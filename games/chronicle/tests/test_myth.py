@@ -10,6 +10,8 @@ import achievements
 import myth as mq
 from setdata import load_set_dict
 
+from .conftest import strip_extras
+
 FIXTURES = Path(__file__).resolve().parent / "fixtures"
 SAMPLE = "presidents-sample"
 DOC, DIS, DOUBT = "documented", "disputed", "traditional-but-doubtful"
@@ -292,8 +294,8 @@ def test_a_locked_chapter_session_is_dropped(p):
     assert p.m.S["msession"] is None
 
 
-def test_the_achievement_manifest_has_nineteen_all_computed_and_described(sample):
-    assert len(achievements.IDS) == 19
+def test_the_achievement_manifest_is_all_computed_and_described(sample):
+    assert len(achievements.IDS) == 27
     data = json.loads((Path(__file__).resolve().parent.parent / "achievements.json").read_text(encoding="utf-8"))["achievements"]
     assert [a["id"] for a in data] == achievements.IDS
     for aid in ("first_thread", "clean_web", "whole_web", "first_sort", "myth_spotter", "straight_sort", "fair_judge"):
@@ -302,6 +304,7 @@ def test_the_achievement_manifest_has_nineteen_all_computed_and_described(sample
 
 def test_a_set_with_no_chapters_can_still_reach_100_percent(g, raw):
     raw.pop("chapters")
+    strip_extras(raw)
     raw["meta"]["id"] = "plain"
     raw["relations"] = []
     raw["claims"] = [c for c in raw["claims"] if c["field"] != "relation"]

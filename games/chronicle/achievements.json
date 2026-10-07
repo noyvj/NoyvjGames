@@ -94,6 +94,46 @@
       "id": "fair_judge",
       "label": "Fair Judge",
       "description": "Sort every claim of a set correctly."
+    },
+    {
+      "id": "first_source",
+      "label": "First Source Weighed",
+      "description": "Judge a source correctly in Whose account?."
+    },
+    {
+      "id": "both_kinds",
+      "label": "Primary and Secondary",
+      "description": "Judge one primary and one secondary source correctly."
+    },
+    {
+      "id": "careful_reader",
+      "label": "Careful Reader",
+      "description": "Judge a source with a single check."
+    },
+    {
+      "id": "every_account",
+      "label": "Every Account",
+      "description": "Judge every source of a set."
+    },
+    {
+      "id": "first_decision",
+      "label": "In Their Shoes",
+      "description": "Make your choice at a decision point."
+    },
+    {
+      "id": "every_crossroads",
+      "label": "Every Crossroads",
+      "description": "Make a choice at every decision point of a set."
+    },
+    {
+      "id": "first_recall",
+      "label": "First Recall",
+      "description": "Answer a review question correctly."
+    },
+    {
+      "id": "long_memory",
+      "label": "Long Memory",
+      "description": "Bring one fact all the way to the longest gap in Review."
     }
   ]
 }

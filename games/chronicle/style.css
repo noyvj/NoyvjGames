@@ -206,6 +206,37 @@ dialog.report-dialog::backdrop { background: rgba(0, 0, 0, 0.55); }
 .bin-btn[aria-disabled="true"] { cursor: default; }
 .why { border-left: 4px solid var(--accent-ink); padding-left: 0.6rem; margin: 0.4rem 0; font-size: 0.9rem; }
 
+/* Whose account?: passages to read, then questions whose answers are chosen from fixed lists. The passage in focus is
+   marked with a diamond and a double border; a locked answer is double-bordered, a wrong one dashed, and both say so in words. */
+.passages { list-style: none; margin: 0.6rem 0; padding: 0; display: grid; gap: 0.7rem; }
+.passage { border: 2px solid var(--edge); border-radius: 10px; padding: 0.55rem 0.8rem; background: var(--surface); }
+.passage.focus { border-style: double; border-width: 5px; border-color: var(--accent-ink); }
+.passage h3 { margin: 0 0 0.3rem; color: var(--accent-ink); }
+.passage p { margin: 0.2rem 0; }
+.acct-questions { list-style: none; margin: 0.6rem 0; padding: 0; display: grid; gap: 0.7rem; }
+.acct-q { border: 2px solid var(--edge); border-radius: 10px; padding: 0.55rem 0.8rem; background: var(--surface); }
+.acct-q.right { border-style: double; border-width: 5px; }
+.acct-q.wrong { border-style: dashed; border-width: 3px; }
+.acct-prompt { margin: 0 0 0.4rem; font-weight: 700; }
+.opt-row { display: flex; gap: 0.4rem; flex-wrap: wrap; }
+.opt-btn { border-width: 2px; font-size: 0.9rem; text-align: left; }
+.opt-btn[aria-pressed="true"] { background: var(--btn-primary); color: var(--on-primary); border-color: var(--hover-edge); font-weight: 700; }
+.opt-btn[aria-pressed="true"]::before { content: "\25CF\00a0"; }
+.opt-btn[aria-disabled="true"] { cursor: default; }
+.passage-reveal.focus { border-style: double; border-width: 5px; border-color: var(--accent-ink); }
+
+/* Decision points: options are plain buttons in a list; nothing is graded, so the chosen option is marked in words. */
+.opt-list { list-style: none; margin: 0.4rem 0; padding: 0; display: grid; gap: 0.5rem; }
+.opt-list .opt-btn { width: 100%; padding: 0.55rem 0.8rem; }
+.opt-list .slot-state { display: block; margin: 0.15rem 0 0 0.3rem; font-size: 0.82rem; color: var(--muted); }
+
+/* Review: one question at a time, written state, no timers */
+.review-context { font-weight: 600; margin: 0.2rem 0 0.6rem; padding: 0.4rem 0.7rem; border-left: 4px solid var(--accent-ink); background: var(--surface); }
+.review-explainer { margin-top: 0.8rem; }
+.review-explainer summary { cursor: pointer; font-weight: 600; }
+.review-options { flex-direction: column; }
+.review-options .opt-btn { width: 100%; }
+
 @keyframes found-in { from { background: var(--btn); transform: translateY(-4px); } to { transform: none; } }
 @keyframes thread-in { from { opacity: 0; } to { opacity: 1; } }
 html[data-effects="off"] .reveal.fresh, html[data-effects="off"] .tile.fresh, html[data-effects="off"] .web-svg .arc.fresh { animation: none; box-shadow: none; }
@@ -222,6 +253,8 @@ html[data-effects="off"] *, html[data-effects="off"] *::before, html[data-effect
   .web-cards { grid-template-columns: minmax(0, 1fr); }
   .bin-row { flex-direction: column; }
   .bin-btn { width: 100%; text-align: left; }
+  .opt-row { flex-direction: column; }
+  .opt-btn { width: 100%; }
   .mode-tabs button[role="tab"] { flex: 1 1 auto; padding: 0.4rem 0.5rem; font-size: 0.9rem; }
 }
 @media (max-width: 420px) { #game { padding: 0.7rem 0.7rem 4rem; } }

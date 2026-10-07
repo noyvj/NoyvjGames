@@ -9,6 +9,8 @@ import pytest
 import web as wb
 from setdata import load_set_dict, validate
 
+from .conftest import strip_extras
+
 FIXTURES = Path(__file__).resolve().parent / "fixtures"
 SAMPLE = "presidents-sample"
 
@@ -330,14 +332,14 @@ def test_the_meter_archive_and_entries_count_the_links(p, sample):
 def test_the_info_page_lists_found_links_with_strength_legend_and_coverage(p, sample):
     info = p.call("info")["info"]
     assert [s["id"] for s in info["strengths"]] == ["direct", "contributing"] and info["found_relations"] == []
-    assert info["counts"]["relations"] == 3 and info["coverage"]["total"] == 28
+    assert info["counts"]["relations"] == 3 and info["coverage"]["total"] == len(sample.claims) == 47
     learn_all(p, sample)
     p.call("web_start", chapter="w1", round=0)
     p.call("web_link", **{"from": "e-fort-sumter", "to": "e-emancipation"})
     info = p.call("info")["info"]
     assert [t["relation"] for t in info["found_relations"]] == ["r-sumter-emancipation"]
     assert all(len(t["claim"]["sources"]) >= 3 for t in info["found_relations"])
-    assert info["coverage"]["shown"] > 20 and "of 28 claims" in info["coverage"]["note"]
+    assert info["coverage"]["shown"] > 20 and "of 47 claims" in info["coverage"]["note"]
 
 
 def test_claim_views_name_their_institutions(p, sample):
@@ -424,10 +426,11 @@ def test_the_mode_setting_is_validated_and_a_set_without_the_mechanic_falls_back
     assert p.call("mode", mode="zz")["ok"] is False
     assert p.call("mode", mode="web")["view"]["mode"] == "web"
     raw.pop("chapters")
+    strip_extras(raw)
     raw["meta"]["id"] = "plain"
     g.register_set(load_set_dict(raw))
     g.S["settings"]["set"] = "plain"
     g.S["session"] = None
     v = p.call("boot")["view"]
-    assert v["mode"] == "timeline" and [m["available"] for m in v["modes"]] == [True, False, False]
+    assert v["mode"] == "timeline" and [m["available"] for m in v["modes"]] == [True, False, False, False, False, True]
     assert p.call("mode", mode="web")["ok"] is False

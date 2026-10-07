@@ -643,5 +643,427 @@
         "note": "Describes the U.S.-Soviet rivalry from Sputnik, through NASA's creation and Kennedy's Moon goal, to Apollo 11 winning the Moon race in July 1969 (step four)."
       }
     ]
+  },
+  {
+    "id": "c-a-gettysburg-speakers",
+    "subject": "e-gettysburg",
+    "field": "account",
+    "value": "a-gettysburg:speakers",
+    "text": "Edward Everett gave the main oration at the cemetery dedication on November 19, 1863 and spoke for about two hours; Lincoln spoke after him for about two minutes.",
+    "confidence": "documented",
+    "sources": [
+      {
+        "source": "nps-wills-house",
+        "note": "Says Everett gave a two-hour oration and that Lincoln's remarks lasted roughly two minutes."
+      },
+      {
+        "source": "ncc-gettysburg",
+        "note": "Says Lincoln was not the main speaker, that Everett gave a long oration, and that Lincoln spoke for roughly two minutes."
+      },
+      {
+        "source": "loc-gettysburg-exhibition",
+        "note": "Says Everett spoke for two hours before Lincoln, and describes Everett's letter that compares his two hours with Lincoln's two minutes."
+      },
+      {
+        "source": "mhs-everett-letter",
+        "note": "Describes Everett's letter of November 20, 1863, written as the main speaker, setting his two hours beside Lincoln's two minutes."
+      }
+    ]
+  },
+  {
+    "id": "c-a-gettysburg-wills",
+    "subject": "e-gettysburg",
+    "field": "account",
+    "value": "a-gettysburg:wills",
+    "text": "Lincoln arrived in Gettysburg on the evening of November 18, 1863 and stayed at the house of David Wills.",
+    "confidence": "documented",
+    "sources": [
+      {
+        "source": "nps-wills-house",
+        "note": "Says Lincoln arrived on the evening of November 18, 1863 and stayed at the Wills home."
+      },
+      {
+        "source": "nps-gett-wills-house",
+        "note": "Says Lincoln came to Gettysburg on the evening of November 18, was escorted to the Wills home, and describes the visit as an overnight stay."
+      },
+      {
+        "source": "loc-gettysburg-exhibition",
+        "note": "Places Lincoln at Judge Wills's home in Gettysburg when he revised the final paragraph; does not give his hour of arrival."
+      }
+    ]
+  },
+  {
+    "id": "c-a-gettysburg-argument",
+    "subject": "e-gettysburg",
+    "field": "account",
+    "value": "a-gettysburg:argument",
+    "text": "The address describes the Civil War as a test of whether a nation founded on liberty and equality can last, and calls on the living to carry on the unfinished work of the soldiers who died there.",
+    "confidence": "documented",
+    "sources": [
+      {
+        "source": "miller-gettysburg-address",
+        "note": "Gives the full text, which frames the war as a test of such a nation and calls on the living to finish the unfinished work."
+      },
+      {
+        "source": "ncc-gettysburg",
+        "note": "Gives the full text and the same summary of its argument."
+      },
+      {
+        "source": "nps-wills-house",
+        "note": "Says Lincoln argued that the war tested whether a nation founded on liberty and equality could endure."
+      }
+    ]
+  },
+  {
+    "id": "c-a-gettysburg-copies",
+    "subject": "e-gettysburg",
+    "field": "account",
+    "value": "a-gettysburg:copies",
+    "text": "Five handwritten copies of the Gettysburg Address by Lincoln are known.",
+    "confidence": "documented",
+    "sources": [
+      {
+        "source": "loc-gettysburg",
+        "note": "Says five known manuscript copies exist and that the Library of Congress holds two of them."
+      },
+      {
+        "source": "loc-gettysburg-exhibition",
+        "note": "Says five copies are known and names who each was written for."
+      },
+      {
+        "source": "cornell-lincoln-gettysburg",
+        "note": "Says Lincoln wrote five manuscript versions, and describes where each is held."
+      }
+    ]
+  },
+  {
+    "id": "c-a-emancipation-covered",
+    "subject": "e-emancipation",
+    "field": "account",
+    "value": "a-emancipation:covered",
+    "text": "The final Emancipation Proclamation, taking effect on January 1, 1863, declared free the people held as slaves in states or parts of states that were then in rebellion against the United States.",
+    "confidence": "documented",
+    "sources": [
+      {
+        "source": "loc-emancipation",
+        "note": "Quotes the freedom clause that covers people held as slaves in states, or parts of states, in rebellion."
+      },
+      {
+        "source": "nara-emancipation",
+        "note": "Says the proclamation declared free those held as slaves in the rebel states it names."
+      },
+      {
+        "source": "nps-emancipation",
+        "note": "Says the final version freed enslaved people in areas in rebellion, covering most of the South."
+      }
+    ]
+  },
+  {
+    "id": "c-a-emancipation-excluded",
+    "subject": "e-emancipation",
+    "field": "account",
+    "value": "a-emancipation:excluded",
+    "text": "The proclamation did not cover slave states that stayed in the Union, such as Maryland, Kentucky and Missouri, or parts of the Confederacy already under Union control.",
+    "confidence": "documented",
+    "sources": [
+      {
+        "source": "nps-emancipation",
+        "note": "Says it excluded the border states of Maryland, Kentucky and Missouri and left areas under United States control unaffected."
+      },
+      {
+        "source": "nara-emancipation",
+        "note": "Says it exempted parts of the Confederacy under Union control and left slavery in place in the loyal border states."
+      },
+      {
+        "source": "miller-lincoln-key-events",
+        "note": "Says the final proclamation freed slaves in Confederate or contested areas and left out the border states and Union-controlled Confederate territory."
+      }
+    ]
+  },
+  {
+    "id": "c-a-emancipation-troops",
+    "subject": "e-emancipation",
+    "field": "account",
+    "value": "a-emancipation:troops",
+    "text": "The proclamation opened the armed forces of the United States to freed Black men.",
+    "confidence": "documented",
+    "sources": [
+      {
+        "source": "miller-emancipation-proclamation",
+        "note": "Gives the text, which says freed men of suitable condition will be received into the armed service."
+      },
+      {
+        "source": "nps-emancipation",
+        "note": "Says it allowed nearly 180,000 former slaves and free Black men to serve as United States Colored Troops."
+      },
+      {
+        "source": "loc-emancipation",
+        "note": "Says the proclamation authorized the recruitment of African Americans as Union soldiers."
+      }
+    ]
+  },
+  {
+    "id": "c-a-emancipation-prelim",
+    "subject": "e-emancipation",
+    "field": "account",
+    "value": "a-emancipation:prelim",
+    "text": "Lincoln issued a preliminary proclamation on September 22, 1862, after the Union victory at Antietam, warning that the final order would follow on January 1, 1863 if the rebellion continued.",
+    "confidence": "documented",
+    "sources": [
+      {
+        "source": "nps-emancipation",
+        "note": "Gives September 22, 1862, after the Battle of Antietam, for the preliminary proclamation."
+      },
+      {
+        "source": "nara-emancipation",
+        "note": "Says Lincoln issued the preliminary proclamation on September 22, 1862 and links it to the Antietam victory."
+      },
+      {
+        "source": "miller-lincoln-key-events",
+        "note": "Dates the preliminary proclamation to September 22, 1862, after Antietam, and says it warned of the January 1 order."
+      }
+    ]
+  },
+  {
+    "id": "c-a-emancipation-warpower",
+    "subject": "e-emancipation",
+    "field": "account",
+    "value": "a-emancipation:warpower",
+    "text": "Lincoln issued the proclamation in his role as commander in chief and described it as a war measure to put down the rebellion.",
+    "confidence": "documented",
+    "sources": [
+      {
+        "source": "miller-emancipation-proclamation",
+        "note": "Gives the text, in which Lincoln invokes his power as commander in chief and calls the order a fit and necessary war measure."
+      },
+      {
+        "source": "nara-emancipation",
+        "note": "Says Lincoln grounded the order in his authority as commander in chief during the rebellion."
+      },
+      {
+        "source": "nps-emancipation",
+        "note": "Says the order was issued under his powers as commander in chief and describes it as a war measure."
+      }
+    ]
+  },
+  {
+    "id": "c-a-emancipation-13th",
+    "subject": "e-emancipation",
+    "field": "account",
+    "value": "a-emancipation:13th",
+    "text": "Slavery was ended throughout the United States by the Thirteenth Amendment, ratified on December 6, 1865.",
+    "confidence": "documented",
+    "sources": [
+      {
+        "source": "nara-13th-amendment",
+        "note": "Gives December 6, 1865 for ratification and says the amendment abolished slavery throughout the United States."
+      },
+      {
+        "source": "ncc-13th-amendment",
+        "note": "Gives December 6, 1865 for ratification and quotes the amendment's ban on slavery within the United States."
+      },
+      {
+        "source": "nps-emancipation",
+        "note": "Says legal freedom for the enslaved came in December 1865 with the Thirteenth Amendment."
+      }
+    ]
+  },
+  {
+    "id": "c-d-sumter-options",
+    "subject": "e-fort-sumter",
+    "field": "decision",
+    "value": "d-sumter:options",
+    "text": "In early March 1861 Major Robert Anderson, who commanded Fort Sumter in Charleston harbor, reported that his garrison needed fresh supplies. President Abraham Lincoln could withdraw the garrison, try to reinforce the fort with troops, or send supplies only.",
+    "confidence": "documented",
+    "sources": [
+      {
+        "source": "nps-battle-fort-sumter",
+        "note": "Describes the garrison's shortage and names three courses: evacuation, supply and reinforcement."
+      },
+      {
+        "source": "miller-july-4-message",
+        "note": "In Lincoln's own account to Congress, weighs giving up the fort, reinforcing it and sending provisions."
+      },
+      {
+        "source": "miller-lincoln-domestic",
+        "note": "Says Anderson told the new president the fort needed resupply or evacuation."
+      }
+    ]
+  },
+  {
+    "id": "c-d-sumter-choice",
+    "subject": "e-fort-sumter",
+    "field": "decision",
+    "value": "d-sumter:choice",
+    "text": "Lincoln chose to send provisions only. He told the governor of South Carolina that no men, arms or ammunition would be landed unless the supply attempt was resisted.",
+    "confidence": "documented",
+    "sources": [
+      {
+        "source": "nps-battle-fort-sumter",
+        "note": "Says Lincoln ordered a supply attempt with provisions only and no men, arms or ammunition unless the expedition was attacked."
+      },
+      {
+        "source": "miller-july-4-message",
+        "note": "Lincoln says he prepared an expedition to provision, not reinforce, the fort and told South Carolina's governor so."
+      },
+      {
+        "source": "loc-civil-war-in-america",
+        "note": "Says Lincoln chose to send provisions but no additional troops or ordnance unless resistance was met."
+      }
+    ]
+  },
+  {
+    "id": "c-d-sumter-after",
+    "subject": "e-fort-sumter",
+    "field": "decision",
+    "value": "d-sumter:after",
+    "text": "Confederate guns opened fire on Fort Sumter at 4:30 a.m. on April 12, 1861, and Major Anderson surrendered the fort on April 13.",
+    "confidence": "documented",
+    "sources": [
+      {
+        "source": "loc-fort-sumter",
+        "note": "Gives April 12, 1861 for the attack and April 13 for Anderson's surrender."
+      },
+      {
+        "source": "nps-battle-fort-sumter",
+        "note": "Gives 4:30 a.m. on April 12 for the first shot and says the bombardment ran through April 13."
+      },
+      {
+        "source": "miller-lincoln-domestic",
+        "note": "Says Confederate guns fired at 4:30 a.m. on April 12 and that Anderson surrendered after a bombardment of about 33 hours."
+      }
+    ]
+  },
+  {
+    "id": "c-d-louisiana-options",
+    "subject": "e-louisiana",
+    "field": "decision",
+    "value": "d-louisiana:options",
+    "text": "In 1803 Thomas Jefferson doubted that the Constitution gave the federal government the power to buy new territory. He considered asking for a constitutional amendment first.",
+    "confidence": "documented",
+    "sources": [
+      {
+        "source": "history-state-louisiana",
+        "note": "Says Jefferson held to a strict reading of the Constitution, which gave no power to buy territory, and thought of an amendment."
+      },
+      {
+        "source": "miller-jefferson-key-events",
+        "note": "Says he was troubled that the Constitution did not provide for acquiring territory and considered proposing an amendment."
+      },
+      {
+        "source": "nara-prologue-louisiana",
+        "note": "Says he questioned the authority to acquire territory and contemplated an amendment."
+      }
+    ]
+  },
+  {
+    "id": "c-d-louisiana-choice",
+    "subject": "e-louisiana",
+    "field": "decision",
+    "value": "d-louisiana:choice",
+    "text": "Jefferson dropped the amendment idea, partly because Napoleon had threatened to withdraw from the deal, and submitted the treaty to the Senate on October 17, 1803.",
+    "confidence": "documented",
+    "sources": [
+      {
+        "source": "nara-prologue-louisiana",
+        "note": "Says he dropped the idea of an amendment when Napoleon threatened to cancel the deal and pushed for ratification by the October 30 deadline."
+      },
+      {
+        "source": "miller-jefferson-key-events",
+        "note": "Says Napoleon's threat to withdraw led Jefferson to send the treaty to the Senate rather than seek an amendment."
+      },
+      {
+        "source": "loc-louisiana-timeline",
+        "note": "Says Jefferson submitted the treaty to the Senate on October 17, 1803."
+      }
+    ]
+  },
+  {
+    "id": "c-d-louisiana-after",
+    "subject": "e-louisiana",
+    "field": "decision",
+    "value": "d-louisiana:after",
+    "text": "The Senate ratified the Louisiana Purchase treaty on October 20, 1803, by a vote of 24 to 7.",
+    "confidence": "documented",
+    "sources": [
+      {
+        "source": "loc-louisiana-timeline",
+        "note": "Gives October 20, 1803 and a vote of 24 yeas to 7 nays."
+      },
+      {
+        "source": "nara-prologue-louisiana",
+        "note": "Gives October 20 and a vote of 24 to 7, and says ratified copies were exchanged the next day."
+      },
+      {
+        "source": "miller-jefferson-key-events",
+        "note": "Says the treaty was ratified in October 1803; does not give the date or the vote."
+      }
+    ]
+  },
+  {
+    "id": "c-d-term-options",
+    "subject": "e-farewell",
+    "field": "decision",
+    "value": "d-term:options",
+    "text": "Before the election of 1792 George Washington had thought about leaving office after his first term, and a farewell address was prepared for that purpose. He could retire then or serve a second term.",
+    "confidence": "documented",
+    "sources": [
+      {
+        "source": "miller-farewell-address",
+        "note": "Says Washington's address recalls that he had prepared an announcement of retirement before the last election."
+      },
+      {
+        "source": "loc-farewell-address",
+        "note": "Says James Madison drafted an early version of the address in 1792."
+      },
+      {
+        "source": "ncc-farewell-lessons",
+        "note": "Says he had considered a farewell address earlier but put it off."
+      }
+    ]
+  },
+  {
+    "id": "c-d-term-choice",
+    "subject": "e-farewell",
+    "field": "decision",
+    "value": "d-term:choice",
+    "text": "Washington decided to serve a second term and was inaugurated for it on March 4, 1793.",
+    "confidence": "documented",
+    "sources": [
+      {
+        "source": "miller-farewell-address",
+        "note": "Says he gave up the idea of retiring then, pointing to the tense state of the country's affairs with other nations."
+      },
+      {
+        "source": "ncc-farewell-lessons",
+        "note": "Says tension between Hamilton and Jefferson led him to seek a second term."
+      },
+      {
+        "source": "loc-inaugurations-1789-1825",
+        "note": "Lists his second inauguration on March 4, 1793."
+      }
+    ]
+  },
+  {
+    "id": "c-d-term-after",
+    "subject": "e-farewell",
+    "field": "decision",
+    "value": "d-term:after",
+    "text": "Four years later, in the Farewell Address published on September 19, 1796, Washington announced that he would not seek a third term.",
+    "confidence": "documented",
+    "sources": [
+      {
+        "source": "loc-farewell-address",
+        "note": "Says the address announced he would not seek a third term and was published on September 19, 1796."
+      },
+      {
+        "source": "ncc-farewell-lessons",
+        "note": "Says the address signaled that he was not running for a third term."
+      },
+      {
+        "source": "miller-farewell-address",
+        "note": "Gives his stated decision to retire, and says he released the address to newspapers."
+      }
+    ]
   }
 ]

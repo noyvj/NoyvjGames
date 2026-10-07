@@ -31,8 +31,8 @@ def test_both_new_panels_are_reachable_by_tab_click_arrow_keys_and_single_keys()
     assert '$("mode-" + id + "-button").addEventListener("click"' in APP
     for key in ("ArrowRight", "ArrowLeft", "Home", "End"):
         assert key in APP
-    assert "/^[twm]$/i" in APP and "switchMode" in APP
-    assert "T, W or M" in HTML and "press T, W or M" in HTML
+    assert "/^[twmadr]$/i" in APP and "switchMode" in APP
+    assert "T, W, M, A, D or R" in HTML and "press T, W, M, A, D or R" in HTML
     assert 'currentMode() !== "web"' in APP and '$("web-panel").hidden = mode !== "web"' in APP and '$("myth-panel").hidden = mode !== "myth"' in APP
 
 
@@ -50,14 +50,15 @@ def test_the_skip_link_follows_the_mode():
 
 
 def test_the_tutorial_teaches_both_new_modes_and_points_at_real_elements():
-    for title in ("Three ways to play", "Cause web", "Myth or record"):
+    for title in ("Six ways to play", "Cause web", "Myth or record", "Whose account?", "Decision points", "Review"):
         assert 'title: "%s"' % title in APP
-    for sel in ("mode-tabs", "mode-web-button", "mode-myth-button"):
+    for sel in ("mode-tabs", "mode-web-button", "mode-myth-button", "mode-account-button", "mode-decision-button", "mode-review-button"):
         assert 'selector: "#%s"' % sel in APP and sel in ids()
 
 
 def test_the_keyboard_help_lists_the_new_keys():
-    for needle in ("T, W or M", "Cause web: press a moment's number", "Myth or record: with a statement focused"):
+    for needle in ("T, W, M, A, D or R", "Cause web: press a moment's number", "Myth or record: with a statement focused",
+                   "Whose account?: with a question focused", "Decision points and Review: press 1 to 4"):
         assert needle in HTML, needle
 
 
@@ -68,7 +69,7 @@ def test_the_page_fetches_the_optional_chapters_file_only_if_it_exists():
 
 def test_the_new_engine_modules_are_loaded_and_have_no_dom():
     block = APP.split("ENGINE_MODULES = [")[1].split("]")[0]
-    for name in ("web.py", "myth.py"):
+    for name in ("web.py", "myth.py", "account.py", "decision.py", "review.py"):
         assert '"%s"' % name in block
         source = (GAME_DIR / name).read_text(encoding="utf-8")
         assert "document." not in source and "window." not in source
@@ -76,7 +77,7 @@ def test_the_new_engine_modules_are_loaded_and_have_no_dom():
 
 
 def test_nothing_new_reaches_a_network():
-    for name in ("web.py", "myth.py", "game.py"):
+    for name in ("web.py", "myth.py", "account.py", "decision.py", "review.py", "game.py"):
         source = (GAME_DIR / name).read_text(encoding="utf-8")
         assert not re.search(r"^\s*(import|from)\s+(urllib|http|requests|socket)", source, re.M), name
 
@@ -84,6 +85,7 @@ def test_nothing_new_reaches_a_network():
 def test_the_cached_view_without_a_result_cannot_crash_the_boards():
     assert "finished && w.result" in APP and "finished && m.result" in APP
     assert "copy.web.result = null" in APP and "copy.myth.result = null" in APP
+    assert "copy.account.result = null" in APP and "copy.decision.result = null" in APP and "copy.review.feedback = null" in APP
 
 
 # ---- non-colour cues, light theme, reduced motion ---------------------------------------------------------------
@@ -151,10 +153,14 @@ def test_opening_every_source_list_at_once_does_not_count_as_reading_them():
 
 
 def test_every_claim_the_info_page_can_show_has_three_sources_and_a_label(p, sample):
-    p.m.load_state({"sets": {"presidents-sample": {"learned": list(sample.events), "threads": sample.web_relation_ids()}}})
+    p.m.load_state({"sets": {"presidents-sample": {"learned": list(sample.events), "threads": sample.web_relation_ids(),
+                                                    "judged": sample.passage_keys(),
+                                                    "decided": {d["id"]: {"picked": d["chosen"]} for d in sample.decisions}}}})
     info = p.call("info")["info"]
     shown = [c for f in info["found_claims"] for c in f["claims"]] + [t["claim"] for t in info["found_relations"]]
-    assert len(shown) == info["coverage"]["shown"] == len(sample.claims)
+    shown += [pt["claim"] for a in info["found_accounts"] for pt in a["points"]]
+    shown += [d["situation"] for d in info["found_decisions"]] + [d["result"][k] for d in info["found_decisions"] for k in ("choice_claim", "after_claim")]
+    assert len({c["id"] for c in shown}) == info["coverage"]["shown"] == len(sample.claims)
     for c in shown:
         assert len(c["sources"]) >= 3 and c["symbol"] and c["confidence_label"] and c["institutions"]
     assert {l["id"] for l in info["legend"]} == {"documented", "disputed", "traditional-but-doubtful"}

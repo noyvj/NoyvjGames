@@ -142,7 +142,7 @@ def test_a_repeated_claim_for_one_field_fails(raw):
 
 def test_different_fields_of_one_subject_may_coexist(raw):
     # the sample already has three claims about the Gettysburg Address (date, tradition, final revision)
-    assert len([c for c in raw["claims"] if c["subject"] == "e-gettysburg"]) == 3
+    assert len([c for c in raw["claims"] if c["subject"] == "e-gettysburg" and c["field"] not in ("account", "decision", "relation")]) == 3
     assert validate(raw) == []
 
 

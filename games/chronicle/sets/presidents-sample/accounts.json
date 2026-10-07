@@ -1,0 +1,192 @@
+{
+  "accounts": [
+    {
+      "id": "a-gettysburg",
+      "event": "e-gettysburg",
+      "title": "Gettysburg, November 1863",
+      "blurb": "Three short accounts of one afternoon at a cemetery dedication: the speech itself, a letter written the next day, and a museum page.",
+      "points": [
+        {
+          "id": "ceremony",
+          "label": "That the occasion was the dedication of a soldiers' cemetery",
+          "claim": "c-e-gettysburg-date"
+        },
+        {
+          "id": "speakers",
+          "label": "Who else spoke, and for how long",
+          "claim": "c-a-gettysburg-speakers"
+        },
+        {
+          "id": "wills",
+          "label": "Where the president stayed in town",
+          "claim": "c-a-gettysburg-wills"
+        },
+        {
+          "id": "argument",
+          "label": "What the speech said about liberty, equality and the unfinished work",
+          "claim": "c-a-gettysburg-argument"
+        },
+        {
+          "id": "copies",
+          "label": "How many handwritten copies of the speech survive",
+          "claim": "c-a-gettysburg-copies"
+        }
+      ],
+      "passages": [
+        {
+          "id": "p1",
+          "source": "miller-gettysburg-address",
+          "text": "The speaker looks back to the founding of the country on the idea that all people are created equal, and says the war is a test of whether a nation built on that idea can last. He says the crowd has come to set apart part of the battlefield as a resting place, but that the soldiers who fought there have already made it holy beyond what anyone present can add. He asks the living to take up the work the fallen left unfinished.",
+          "author_id": "lincoln",
+          "author": "Abraham Lincoln",
+          "written": "1863-11-19",
+          "kind": "primary",
+          "vantage": "took-part",
+          "purpose": "commemorate",
+          "purpose_note": "The Miller Center page gives the text of the remarks made to dedicate the cemetery.",
+          "mentions": [
+            "ceremony",
+            "argument"
+          ]
+        },
+        {
+          "id": "p2",
+          "source": "mhs-everett-letter",
+          "text": "The writer, who had been the main speaker at the ceremony, writes to the president the next day. He praises the short remarks given there as simple and fitting for the occasion. He sets his own two hours at the podium beside the president's two minutes, and says the president came closer to the central idea of the day than he had.",
+          "author_id": "everett",
+          "author": "Edward Everett",
+          "written": "1863-11-20",
+          "kind": "primary",
+          "vantage": "took-part",
+          "purpose": "personal-note",
+          "purpose_note": "The Massachusetts Historical Society holds this as a letter from Everett to Lincoln.",
+          "mentions": [
+            "ceremony",
+            "speakers"
+          ]
+        },
+        {
+          "id": "p3",
+          "source": "nps-gett-wills-house",
+          "text": "A park service page about a house in the town. It says the president arrived on the evening before the ceremony and stayed there. It says the ceremony dedicated a cemetery for soldiers, that the main speaker talked for about two hours and the president for about two minutes, and that the president argued the war tested whether a nation founded on liberty and equality could last.",
+          "author_id": "nps",
+          "author": "National Park Service",
+          "written": null,
+          "kind": "secondary",
+          "vantage": "later",
+          "purpose": "explain",
+          "purpose_note": "The page is a visitor guide to the Wills house and tells its story to readers long after 1863.",
+          "mentions": [
+            "ceremony",
+            "speakers",
+            "wills",
+            "argument"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "a-emancipation",
+      "event": "e-emancipation",
+      "title": "Emancipation Proclamation, January 1863",
+      "blurb": "The order itself, set beside two later summaries. Each one stresses different things.",
+      "points": [
+        {
+          "id": "date",
+          "label": "The date the order took effect",
+          "claim": "c-e-emancipation-date"
+        },
+        {
+          "id": "covered",
+          "label": "Which places the order covered",
+          "claim": "c-a-emancipation-covered"
+        },
+        {
+          "id": "excluded",
+          "label": "Which places it left out",
+          "claim": "c-a-emancipation-excluded"
+        },
+        {
+          "id": "troops",
+          "label": "Whether freed Black men could serve in the army",
+          "claim": "c-a-emancipation-troops"
+        },
+        {
+          "id": "prelim",
+          "label": "The earlier warning issued in September 1862",
+          "claim": "c-a-emancipation-prelim"
+        },
+        {
+          "id": "warpower",
+          "label": "The power Lincoln said he was using",
+          "claim": "c-a-emancipation-warpower"
+        },
+        {
+          "id": "13th",
+          "label": "What finally ended slavery everywhere",
+          "claim": "c-a-emancipation-13th"
+        }
+      ],
+      "passages": [
+        {
+          "id": "p1",
+          "source": "miller-emancipation-proclamation",
+          "text": "The president says that, as commander in chief in a time of armed rebellion, and as a war measure, he orders that people held as slaves in the places he names are free from the first day of January. He lists the places covered, and names others, such as certain parishes and counties already held by the Union, that are left out. He recalls the notice he gave in September, and says freed men of suitable condition will be taken into the armed forces.",
+          "author_id": "lincoln",
+          "author": "Abraham Lincoln",
+          "written": "1863-01-01",
+          "kind": "primary",
+          "vantage": "took-part",
+          "purpose": "announce",
+          "purpose_note": "The Miller Center page gives the text of the order itself, which declares people free and sets rules for the army.",
+          "mentions": [
+            "date",
+            "covered",
+            "excluded",
+            "troops",
+            "prelim",
+            "warpower"
+          ]
+        },
+        {
+          "id": "p2",
+          "source": "nps-emancipation",
+          "text": "A park service article explaining the final proclamation. It says Lincoln issued a first, preliminary notice on 22 September 1862 after the battle at Antietam, and signed the final order on 1 January 1863 under his powers as commander in chief. It says the order covered areas in rebellion but not the border states or places held by the Union, that it let Black men serve as soldiers, and that legal freedom everywhere came with the Thirteenth Amendment in December 1865.",
+          "author_id": "nps",
+          "author": "National Park Service",
+          "written": null,
+          "kind": "secondary",
+          "vantage": "later",
+          "purpose": "explain",
+          "purpose_note": "The National Park Service article explains the proclamation and its limits to the public.",
+          "mentions": [
+            "date",
+            "covered",
+            "excluded",
+            "troops",
+            "prelim",
+            "warpower",
+            "13th"
+          ]
+        },
+        {
+          "id": "p3",
+          "source": "loc-emancipation",
+          "text": "A short library guide that introduces the document. It gives the date as 1 January 1863, repeats the wording that frees people held as slaves in states or parts of states in rebellion, and notes that the order also allowed African Americans to be recruited into the Union army.",
+          "author_id": "loc",
+          "author": "Library of Congress",
+          "written": null,
+          "kind": "secondary",
+          "vantage": "later",
+          "purpose": "explain",
+          "purpose_note": "The Library of Congress guide introduces the primary document to readers who want to study it.",
+          "mentions": [
+            "date",
+            "covered",
+            "troops"
+          ]
+        }
+      ]
+    }
+  ]
+}

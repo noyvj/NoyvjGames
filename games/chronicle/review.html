@@ -17,6 +17,8 @@
   .rv-problem { border: 3px double var(--accent-ink); padding: 0.4rem 0.6rem; border-radius: 8px; font-weight: 700; }
   .rv-table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
   .rv-table th, .rv-table td { text-align: left; vertical-align: top; border-top: 1px solid var(--line); padding: 0.35rem 0.4rem; }
+  #rv-accounts, #rv-decisions, #rv-relations, .rv-claim { overflow-x: auto; }
+  .rv-table { min-width: 36rem; }
   .rv-filter { display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center; margin: 0.5rem 0; }
 </style>
 </head>
@@ -41,6 +43,8 @@
   <section id="rv-summary" class="panel" hidden></section>
   <section id="rv-relations" class="panel" hidden></section>
   <section id="rv-chapters" class="panel" hidden></section>
+  <section id="rv-accounts" class="panel" hidden></section>
+  <section id="rv-decisions" class="panel" hidden></section>
   <div id="rv-body"></div>
 </main>
 <script>
@@ -68,6 +72,10 @@
       for (var f = 0; f < FILES.length; f++) data[FILES[f]] = await (await fetch("sets/" + folder + "/" + FILES[f] + ".json")).json();
       var chResp = await fetch("sets/" + folder + "/chapters.json");        // optional: the cause web's and myth-or-record's chapters
       data.chapters = chResp.ok ? await chResp.json() : { web: [], myth: [] };
+      var acResp = await fetch("sets/" + folder + "/accounts.json");         // optional: whose-account passages
+      data.accounts = acResp.ok ? (await acResp.json()).accounts || [] : [];
+      var dcResp = await fetch("sets/" + folder + "/decisions.json");        // optional: decision points
+      data.decisions = dcResp.ok ? (await dcResp.json()).decisions || [] : [];
       sets[data.meta.id] = data;
       var o = el("option", null, data.meta.title); o.value = data.meta.id; $("rv-set").appendChild(o);
     }
@@ -110,14 +118,17 @@
     var shown = 0;
     renderRelations(set, entity, conf, q);
     renderChapters(set);
+    renderAccounts(set, entity);
+    renderDecisions(set, entity);
     set.claims.forEach(function (c) {
       if (conf !== "all" && c.confidence !== conf) return;
       var hay = (c.text + " " + c.value + " " + (entity[c.subject] || "") + " " + c.sources.map(function (r) { var s = set.sources[r.source] || {}; return (s.title || "") + " " + (s.institution || "") + " " + (r.note || ""); }).join(" ")).toLowerCase();
       if (q && hay.indexOf(q) < 0) return;
       shown++;
       var box = el("div", "rv-claim");
+      var hidden = c.field === "account" || c.field === "decision";
       var rel = c.field === "relation" ? (set.relations || []).filter(function (r) { return r.claim === c.id; })[0] : null;
-      box.appendChild(el("h3", null, rel ? "Cause link: " + entity[rel.from] + " led to " + entity[rel.to] + " (" + rel.strength + ")" : (entity[c.subject] || c.subject) + " · " + c.field + (c.field === "date" ? ": " + fmt(c.value) : "")));
+      box.appendChild(el("h3", null, hidden ? (c.field === "account" ? "Account fact: " : "Decision point: ") + (entity[c.subject] || c.subject) + " (" + c.value + ")" : rel ? "Cause link: " + entity[rel.from] + " led to " + entity[rel.to] + " (" + rel.strength + ")" : (entity[c.subject] || c.subject) + " · " + c.field + (c.field === "date" ? ": " + fmt(c.value) : "")));
       box.appendChild(el("p", null, c.text));
       box.appendChild(el("p", "rv-meta", "claim " + c.id + " · " + SYMBOL[c.confidence] + " " + c.confidence));
       (c.alternatives || []).forEach(function (a) { box.appendChild(el("p", "rv-meta", "Alternative position: " + a)); });
@@ -170,6 +181,73 @@
     box.appendChild(el("h2", null, "Chapters (the cause web and myth or record)"));
     (ch.web || []).forEach(function (c) { box.appendChild(el("p", null, "Cause web, " + c.title + " (" + c.id + "): " + c.events.length + " moments, puzzles of " + c.size + ".")); });
     (ch.myth || []).forEach(function (c) { box.appendChild(el("p", null, "Myth or record, " + c.title + " (" + c.id + "): " + c.claims.length + " claims, puzzles of " + c.size + ".")); });
+  }
+
+  // Whose account?: every passage with its source, author, date, kind and the points it mentions or leaves out. The
+  // passage text is MY summary, so the owner checks it against the linked source; the classification is an editorial reading.
+  function renderAccounts(set, entity) {
+    var box = $("rv-accounts"); box.textContent = "";
+    var accounts = set.accounts || [];
+    box.hidden = !accounts.length;
+    if (!accounts.length) return;
+    var passages = accounts.reduce(function (n, a) { return n + a.passages.length; }, 0);
+    box.appendChild(el("h2", null, "Whose account? (" + accounts.length + " accounts, " + passages + " passages)"));
+    box.appendChild(el("p", "note", "Each passage is a short ORIGINAL summary of one real source: check that it is fair to the source, and that the classification (kind, what the writer could see, purpose, which points it mentions) is a reasonable reading. Every point is a claim below with its own three sources (search the claim id)."));
+    accounts.forEach(function (a) {
+      box.appendChild(el("h3", null, a.title + " (about " + (entity[a.event] || a.event) + ")"));
+      var pts = {}; a.points.forEach(function (pt) { pts[pt.id] = pt; });
+      var pt = el("table", "rv-table");
+      var h0 = el("tr"); ["Point", "Claim", "Sources"].forEach(function (h) { h0.appendChild(el("th", null, h)); });
+      pt.appendChild(h0);
+      var claims = {}; set.claims.forEach(function (c) { claims[c.id] = c; });
+      a.points.forEach(function (x) {
+        var c = claims[x.claim] || { sources: [] };
+        var tr = el("tr");
+        [x.label, x.claim, String(c.sources.length) + (c.sources.length < 3 ? " (too few)" : "")].forEach(function (v) { tr.appendChild(el("td", null, v)); });
+        pt.appendChild(tr);
+      });
+      box.appendChild(pt);
+      var t = el("table", "rv-table");
+      var head = el("tr"); ["Passage", "Author", "Written", "Kind", "Could see", "Purpose", "Source (read)", "Mentions", "Leaves out", "Text"].forEach(function (h) { head.appendChild(el("th", null, h)); });
+      t.appendChild(head);
+      a.passages.forEach(function (p) {
+        var s = set.sources[p.source] || {};
+        var tr = el("tr");
+        var link = el("td"); var an = el("a", null, (s.title || p.source)); an.href = s.url || "#"; an.target = "_blank"; an.rel = "noopener noreferrer"; link.appendChild(an); link.appendChild(document.createTextNode(" (" + (s.institution || s.author || "") + ", read " + (s.read || "missing") + ")"));
+        var cells = [p.id, p.author, p.written ? fmt(p.written) : "undated web page", p.kind, p.vantage, p.purpose + ": " + p.purpose_note];
+        cells.forEach(function (v) { tr.appendChild(el("td", null, v)); });
+        tr.appendChild(link);
+        tr.appendChild(el("td", null, p.mentions.map(function (m) { return pts[m] ? pts[m].label : m; }).join("; ")));
+        tr.appendChild(el("td", null, a.points.filter(function (x) { return p.mentions.indexOf(x.id) < 0; }).map(function (x) { return x.label; }).join("; ") || "nothing"));
+        tr.appendChild(el("td", null, p.text));
+        t.appendChild(tr);
+      });
+      box.appendChild(t);
+    });
+  }
+
+  // Decision points: the options, which one was chosen, and the three claims (options, choice, what followed).
+  function renderDecisions(set, entity) {
+    var box = $("rv-decisions"); box.textContent = "";
+    var decisions = set.decisions || [];
+    box.hidden = !decisions.length;
+    if (!decisions.length) return;
+    box.appendChild(el("h2", null, "Decision points (" + decisions.length + ")"));
+    box.appendChild(el("p", "note", "A decision point exists only where the sources document the options, the choice and what followed. Check that each option really was on the table, that the choice is what the figure did, and that nothing here reads as alternate history. Each part is a claim below with three sources (search the claim id)."));
+    var claims = {}; set.claims.forEach(function (c) { claims[c.id] = c; });
+    var t = el("table", "rv-table");
+    var head = el("tr"); ["Decision", "Who and when", "Options", "What they chose", "Claims (options, choice, after) and source counts"].forEach(function (h) { head.appendChild(el("th", null, h)); });
+    t.appendChild(head);
+    decisions.forEach(function (d) {
+      var tr = el("tr");
+      tr.appendChild(el("td", null, d.title + " (" + d.id + ", about " + (entity[d.event] || d.event) + ")"));
+      tr.appendChild(el("td", null, d.who + ", " + d.when));
+      tr.appendChild(el("td", null, d.options.map(function (o) { return o.id + ": " + o.text; }).join(" | ")));
+      tr.appendChild(el("td", null, d.chosen));
+      tr.appendChild(el("td", null, ["options", "choice", "after"].map(function (k) { var c = claims[d.claims[k]] || { sources: [] }; return d.claims[k] + " (" + c.sources.length + (c.sources.length < 3 ? ", too few" : "") + ")"; }).join("; ")));
+      t.appendChild(tr);
+    });
+    box.appendChild(t);
   }
 
   $("rv-set").addEventListener("change", render);

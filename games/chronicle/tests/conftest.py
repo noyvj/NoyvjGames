@@ -16,6 +16,13 @@ import game as _game  # noqa: E402
 import setdata  # noqa: E402
 
 
+def strip_extras(raw):
+    """Remove the whose-account and decision-point parts from a copy of the sample, leaving a set with only the older mechanics."""
+    raw.pop("accounts", None)
+    raw.pop("decisions", None)
+    raw["claims"] = [c for c in raw["claims"] if c["field"] not in ("account", "decision")]
+
+
 @pytest.fixture
 def raw():
     """The sample set's seven files as plain dicts: a fresh deep copy per test, free to break."""

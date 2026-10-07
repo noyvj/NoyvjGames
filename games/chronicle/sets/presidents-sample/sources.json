@@ -488,5 +488,103 @@
     "url": "https://www.historynewsnetwork.org/article/so-help-me-god-and-the-presidential-oath",
     "read": "2026-10-08",
     "kind": "university"
+  },
+  "miller-gettysburg-address": {
+    "title": "November 19, 1863: Gettysburg Address",
+    "institution": "Miller Center, University of Virginia",
+    "url": "https://millercenter.org/the-presidency/presidential-speeches/november-19-1863-gettysburg-address",
+    "read": "2026-10-08",
+    "kind": "university"
+  },
+  "mhs-everett-letter": {
+    "title": "Letter from Edward Everett to Abraham Lincoln (letterbook copy), 20 November 1863",
+    "institution": "Massachusetts Historical Society",
+    "url": "https://www.masshist.org/database/1780",
+    "read": "2026-10-08",
+    "kind": "archive"
+  },
+  "nps-gett-wills-house": {
+    "title": "The David Wills House - Gettysburg National Military Park",
+    "institution": "National Park Service",
+    "url": "https://www.nps.gov/gett/planyourvisit/david-wills-house.htm",
+    "read": "2026-10-08",
+    "kind": "government"
+  },
+  "cornell-lincoln-gettysburg": {
+    "title": "The Gettysburg Address, the Bancroft copy (Abraham Lincoln exhibit)",
+    "institution": "Cornell University Library",
+    "url": "https://exhibits.library.cornell.edu/lincoln/feature/the-gettysburg-address",
+    "read": "2026-10-08",
+    "kind": "university"
+  },
+  "miller-emancipation-proclamation": {
+    "title": "January 1, 1863: Emancipation Proclamation",
+    "institution": "Miller Center, University of Virginia",
+    "url": "https://millercenter.org/the-presidency/presidential-speeches/january-1-1863-emancipation-proclamation",
+    "read": "2026-10-08",
+    "kind": "university"
+  },
+  "nara-13th-amendment": {
+    "title": "13th Amendment to the U.S. Constitution: Abolition of Slavery (1865)",
+    "institution": "National Archives",
+    "url": "https://www.archives.gov/milestone-documents/13th-amendment",
+    "read": "2026-10-08",
+    "kind": "archive"
+  },
+  "ncc-13th-amendment": {
+    "title": "Amendment XIII (the Thirteenth Amendment)",
+    "institution": "National Constitution Center",
+    "url": "https://constitutioncenter.org/the-constitution/amendments/amendment-xiii",
+    "read": "2026-10-08",
+    "kind": "museum"
+  },
+  "nps-battle-fort-sumter": {
+    "title": "Battle of Fort Sumter, April 1861",
+    "institution": "National Park Service",
+    "url": "https://www.nps.gov/articles/battle-of-fort-sumter-april-1861.htm",
+    "read": "2026-10-08",
+    "kind": "government"
+  },
+  "miller-july-4-message": {
+    "title": "July 4, 1861: July 4th Message to Congress",
+    "institution": "Miller Center, University of Virginia",
+    "url": "https://millercenter.org/the-presidency/presidential-speeches/july-4-1861-july-4th-message-congress",
+    "read": "2026-10-08",
+    "kind": "university"
+  },
+  "loc-civil-war-in-america": {
+    "title": "April 1861-April 1862 (The Civil War in America)",
+    "institution": "Library of Congress",
+    "url": "https://www.loc.gov/exhibits/civil-war-in-america/april-1861-april-1862.html",
+    "read": "2026-10-08",
+    "kind": "library"
+  },
+  "miller-lincoln-domestic": {
+    "title": "Abraham Lincoln: Domestic Affairs",
+    "institution": "Miller Center, University of Virginia",
+    "url": "https://millercenter.org/president/lincoln/domestic-affairs",
+    "read": "2026-10-08",
+    "kind": "university"
+  },
+  "history-state-louisiana": {
+    "title": "Louisiana Purchase, 1803 (Milestones in the History of U.S. Foreign Relations)",
+    "institution": "Office of the Historian, U.S. Department of State",
+    "url": "https://history.state.gov/milestones/1801-1829/louisiana-purchase",
+    "read": "2026-10-08",
+    "kind": "government"
+  },
+  "nara-prologue-louisiana": {
+    "title": "Jefferson Buys Louisiana Territory, and the Nation Moves Westward",
+    "institution": "National Archives",
+    "url": "https://www.archives.gov/publications/prologue/2003/spring/louisiana-purchase.html",
+    "read": "2026-10-08",
+    "kind": "archive"
+  },
+  "loc-louisiana-timeline": {
+    "title": "1803-1804 (8th Congress, 1st Session), Louisiana Purchase: A Legislative Timeline",
+    "institution": "Library of Congress",
+    "url": "https://guides.loc.gov/louisiana-purchase-legislative-timeline/1803-1804",
+    "read": "2026-10-08",
+    "kind": "library"
   }
 }

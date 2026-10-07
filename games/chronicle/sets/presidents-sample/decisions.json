@@ -1,0 +1,80 @@
+{
+  "decisions": [
+    {
+      "id": "d-sumter",
+      "event": "e-fort-sumter",
+      "who": "Abraham Lincoln",
+      "when": "March and April 1861",
+      "title": "Fort Sumter, spring 1861",
+      "question": "What would you do about the fort?",
+      "options": [
+        {
+          "id": "withdraw",
+          "text": "Withdraw the garrison from Fort Sumter."
+        },
+        {
+          "id": "reinforce",
+          "text": "Try to bring more troops into the fort."
+        },
+        {
+          "id": "supply",
+          "text": "Send food to the garrison, and land troops only if the supply ships are fired on."
+        }
+      ],
+      "chosen": "supply",
+      "claims": {
+        "options": "c-d-sumter-options",
+        "choice": "c-d-sumter-choice",
+        "after": "c-d-sumter-after"
+      }
+    },
+    {
+      "id": "d-louisiana",
+      "event": "e-louisiana",
+      "who": "Thomas Jefferson",
+      "when": "Summer and autumn 1803",
+      "title": "Buying Louisiana, 1803",
+      "question": "What would you do about the Constitution?",
+      "options": [
+        {
+          "id": "amend",
+          "text": "Ask for a constitutional amendment before going ahead."
+        },
+        {
+          "id": "proceed",
+          "text": "Send the treaty to the Senate for approval without waiting for an amendment."
+        }
+      ],
+      "chosen": "proceed",
+      "claims": {
+        "options": "c-d-louisiana-options",
+        "choice": "c-d-louisiana-choice",
+        "after": "c-d-louisiana-after"
+      }
+    },
+    {
+      "id": "d-term",
+      "event": "e-farewell",
+      "who": "George Washington",
+      "when": "1792",
+      "title": "Washington and a second term, 1792",
+      "question": "What would you do when the first term ends?",
+      "options": [
+        {
+          "id": "retire",
+          "text": "Retire after one term, as he had planned."
+        },
+        {
+          "id": "serve",
+          "text": "Stand for a second term."
+        }
+      ],
+      "chosen": "serve",
+      "claims": {
+        "options": "c-d-term-options",
+        "choice": "c-d-term-choice",
+        "after": "c-d-term-after"
+      }
+    }
+  ]
+}

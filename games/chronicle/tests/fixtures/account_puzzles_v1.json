@@ -1,0 +1,677 @@
+{
+ "seed_version": "v1",
+ "puzzles": {
+  "presidents-sample/a-gettysburg/0": {
+   "order": [
+    "p3",
+    "p2",
+    "p1"
+   ],
+   "focus": "p3",
+   "questions": [
+    {
+     "id": "who",
+     "options": [
+      "loc",
+      "lincoln",
+      "nps",
+      "everett"
+     ],
+     "answer": "nps"
+    },
+    {
+     "id": "kind",
+     "options": [
+      "primary",
+      "secondary"
+     ],
+     "answer": "secondary"
+    },
+    {
+     "id": "vantage",
+     "options": [
+      "took-part",
+      "watched",
+      "later"
+     ],
+     "answer": "later"
+    },
+    {
+     "id": "purpose",
+     "options": [
+      "announce",
+      "commemorate",
+      "personal-note",
+      "explain",
+      "persuade"
+     ],
+     "answer": "explain"
+    },
+    {
+     "id": "left_out",
+     "options": [
+      "wills",
+      "argument",
+      "copies",
+      "speakers"
+     ],
+     "answer": "copies"
+    }
+   ]
+  },
+  "presidents-sample/a-gettysburg/1": {
+   "order": [
+    "p3",
+    "p2",
+    "p1"
+   ],
+   "focus": "p2",
+   "questions": [
+    {
+     "id": "who",
+     "options": [
+      "nps",
+      "loc",
+      "lincoln",
+      "everett"
+     ],
+     "answer": "everett"
+    },
+    {
+     "id": "kind",
+     "options": [
+      "primary",
+      "secondary"
+     ],
+     "answer": "primary"
+    },
+    {
+     "id": "vantage",
+     "options": [
+      "took-part",
+      "watched",
+      "later"
+     ],
+     "answer": "took-part"
+    },
+    {
+     "id": "purpose",
+     "options": [
+      "announce",
+      "commemorate",
+      "personal-note",
+      "explain",
+      "persuade"
+     ],
+     "answer": "personal-note"
+    },
+    {
+     "id": "left_out",
+     "options": [
+      "ceremony",
+      "speakers",
+      "wills"
+     ],
+     "answer": "wills"
+    }
+   ]
+  },
+  "presidents-sample/a-gettysburg/2": {
+   "order": [
+    "p3",
+    "p2",
+    "p1"
+   ],
+   "focus": "p1",
+   "questions": [
+    {
+     "id": "who",
+     "options": [
+      "lincoln",
+      "nps",
+      "loc",
+      "everett"
+     ],
+     "answer": "lincoln"
+    },
+    {
+     "id": "kind",
+     "options": [
+      "primary",
+      "secondary"
+     ],
+     "answer": "primary"
+    },
+    {
+     "id": "vantage",
+     "options": [
+      "took-part",
+      "watched",
+      "later"
+     ],
+     "answer": "took-part"
+    },
+    {
+     "id": "purpose",
+     "options": [
+      "announce",
+      "commemorate",
+      "personal-note",
+      "explain",
+      "persuade"
+     ],
+     "answer": "commemorate"
+    },
+    {
+     "id": "left_out",
+     "options": [
+      "argument",
+      "ceremony",
+      "speakers"
+     ],
+     "answer": "speakers"
+    }
+   ]
+  },
+  "presidents-sample/a-gettysburg/3": {
+   "order": [
+    "p3",
+    "p2",
+    "p1"
+   ],
+   "focus": "p3",
+   "questions": [
+    {
+     "id": "who",
+     "options": [
+      "nps",
+      "everett",
+      "lincoln",
+      "loc"
+     ],
+     "answer": "nps"
+    },
+    {
+     "id": "kind",
+     "options": [
+      "primary",
+      "secondary"
+     ],
+     "answer": "secondary"
+    },
+    {
+     "id": "vantage",
+     "options": [
+      "took-part",
+      "watched",
+      "later"
+     ],
+     "answer": "later"
+    },
+    {
+     "id": "purpose",
+     "options": [
+      "announce",
+      "commemorate",
+      "personal-note",
+      "explain",
+      "persuade"
+     ],
+     "answer": "explain"
+    },
+    {
+     "id": "left_out",
+     "options": [
+      "copies",
+      "wills",
+      "argument",
+      "speakers"
+     ],
+     "answer": "copies"
+    }
+   ]
+  },
+  "presidents-sample/a-gettysburg/4": {
+   "order": [
+    "p3",
+    "p2",
+    "p1"
+   ],
+   "focus": "p2",
+   "questions": [
+    {
+     "id": "who",
+     "options": [
+      "everett",
+      "nps",
+      "loc",
+      "lincoln"
+     ],
+     "answer": "everett"
+    },
+    {
+     "id": "kind",
+     "options": [
+      "primary",
+      "secondary"
+     ],
+     "answer": "primary"
+    },
+    {
+     "id": "vantage",
+     "options": [
+      "took-part",
+      "watched",
+      "later"
+     ],
+     "answer": "took-part"
+    },
+    {
+     "id": "purpose",
+     "options": [
+      "announce",
+      "commemorate",
+      "personal-note",
+      "explain",
+      "persuade"
+     ],
+     "answer": "personal-note"
+    },
+    {
+     "id": "left_out",
+     "options": [
+      "ceremony",
+      "speakers",
+      "argument"
+     ],
+     "answer": "argument"
+    }
+   ]
+  },
+  "presidents-sample/a-gettysburg/5": {
+   "order": [
+    "p3",
+    "p2",
+    "p1"
+   ],
+   "focus": "p1",
+   "questions": [
+    {
+     "id": "who",
+     "options": [
+      "everett",
+      "nps",
+      "lincoln",
+      "loc"
+     ],
+     "answer": "lincoln"
+    },
+    {
+     "id": "kind",
+     "options": [
+      "primary",
+      "secondary"
+     ],
+     "answer": "primary"
+    },
+    {
+     "id": "vantage",
+     "options": [
+      "took-part",
+      "watched",
+      "later"
+     ],
+     "answer": "took-part"
+    },
+    {
+     "id": "purpose",
+     "options": [
+      "announce",
+      "commemorate",
+      "personal-note",
+      "explain",
+      "persuade"
+     ],
+     "answer": "commemorate"
+    },
+    {
+     "id": "left_out",
+     "options": [
+      "ceremony",
+      "argument",
+      "wills"
+     ],
+     "answer": "wills"
+    }
+   ]
+  },
+  "presidents-sample/a-emancipation/0": {
+   "order": [
+    "p1",
+    "p3",
+    "p2"
+   ],
+   "focus": "p1",
+   "questions": [
+    {
+     "id": "who",
+     "options": [
+      "everett",
+      "loc",
+      "nps",
+      "lincoln"
+     ],
+     "answer": "lincoln"
+    },
+    {
+     "id": "kind",
+     "options": [
+      "primary",
+      "secondary"
+     ],
+     "answer": "primary"
+    },
+    {
+     "id": "vantage",
+     "options": [
+      "took-part",
+      "watched",
+      "later"
+     ],
+     "answer": "took-part"
+    },
+    {
+     "id": "purpose",
+     "options": [
+      "announce",
+      "commemorate",
+      "personal-note",
+      "explain",
+      "persuade"
+     ],
+     "answer": "announce"
+    },
+    {
+     "id": "left_out",
+     "options": [
+      "date",
+      "13th",
+      "excluded",
+      "troops"
+     ],
+     "answer": "13th"
+    }
+   ]
+  },
+  "presidents-sample/a-emancipation/1": {
+   "order": [
+    "p1",
+    "p3",
+    "p2"
+   ],
+   "focus": "p3",
+   "questions": [
+    {
+     "id": "who",
+     "options": [
+      "loc",
+      "everett",
+      "nps",
+      "lincoln"
+     ],
+     "answer": "loc"
+    },
+    {
+     "id": "kind",
+     "options": [
+      "primary",
+      "secondary"
+     ],
+     "answer": "secondary"
+    },
+    {
+     "id": "vantage",
+     "options": [
+      "took-part",
+      "watched",
+      "later"
+     ],
+     "answer": "later"
+    },
+    {
+     "id": "purpose",
+     "options": [
+      "announce",
+      "commemorate",
+      "personal-note",
+      "explain",
+      "persuade"
+     ],
+     "answer": "explain"
+    },
+    {
+     "id": "left_out",
+     "options": [
+      "troops",
+      "date",
+      "excluded",
+      "covered"
+     ],
+     "answer": "excluded"
+    }
+   ]
+  },
+  "presidents-sample/a-emancipation/2": {
+   "order": [
+    "p1",
+    "p3",
+    "p2"
+   ],
+   "focus": "p2",
+   "questions": [
+    {
+     "id": "who",
+     "options": [
+      "nps",
+      "loc",
+      "everett",
+      "lincoln"
+     ],
+     "answer": "nps"
+    },
+    {
+     "id": "kind",
+     "options": [
+      "primary",
+      "secondary"
+     ],
+     "answer": "secondary"
+    },
+    {
+     "id": "vantage",
+     "options": [
+      "took-part",
+      "watched",
+      "later"
+     ],
+     "answer": "later"
+    },
+    {
+     "id": "purpose",
+     "options": [
+      "announce",
+      "commemorate",
+      "personal-note",
+      "explain",
+      "persuade"
+     ],
+     "answer": "explain"
+    }
+   ]
+  },
+  "presidents-sample/a-emancipation/3": {
+   "order": [
+    "p1",
+    "p3",
+    "p2"
+   ],
+   "focus": "p1",
+   "questions": [
+    {
+     "id": "who",
+     "options": [
+      "lincoln",
+      "loc",
+      "nps",
+      "everett"
+     ],
+     "answer": "lincoln"
+    },
+    {
+     "id": "kind",
+     "options": [
+      "primary",
+      "secondary"
+     ],
+     "answer": "primary"
+    },
+    {
+     "id": "vantage",
+     "options": [
+      "took-part",
+      "watched",
+      "later"
+     ],
+     "answer": "took-part"
+    },
+    {
+     "id": "purpose",
+     "options": [
+      "announce",
+      "commemorate",
+      "personal-note",
+      "explain",
+      "persuade"
+     ],
+     "answer": "announce"
+    },
+    {
+     "id": "left_out",
+     "options": [
+      "prelim",
+      "troops",
+      "13th",
+      "warpower"
+     ],
+     "answer": "13th"
+    }
+   ]
+  },
+  "presidents-sample/a-emancipation/4": {
+   "order": [
+    "p1",
+    "p3",
+    "p2"
+   ],
+   "focus": "p3",
+   "questions": [
+    {
+     "id": "who",
+     "options": [
+      "lincoln",
+      "everett",
+      "loc",
+      "nps"
+     ],
+     "answer": "loc"
+    },
+    {
+     "id": "kind",
+     "options": [
+      "primary",
+      "secondary"
+     ],
+     "answer": "secondary"
+    },
+    {
+     "id": "vantage",
+     "options": [
+      "took-part",
+      "watched",
+      "later"
+     ],
+     "answer": "later"
+    },
+    {
+     "id": "purpose",
+     "options": [
+      "announce",
+      "commemorate",
+      "personal-note",
+      "explain",
+      "persuade"
+     ],
+     "answer": "explain"
+    },
+    {
+     "id": "left_out",
+     "options": [
+      "prelim",
+      "covered",
+      "troops",
+      "date"
+     ],
+     "answer": "prelim"
+    }
+   ]
+  },
+  "presidents-sample/a-emancipation/5": {
+   "order": [
+    "p1",
+    "p3",
+    "p2"
+   ],
+   "focus": "p2",
+   "questions": [
+    {
+     "id": "who",
+     "options": [
+      "everett",
+      "lincoln",
+      "nps",
+      "loc"
+     ],
+     "answer": "nps"
+    },
+    {
+     "id": "kind",
+     "options": [
+      "primary",
+      "secondary"
+     ],
+     "answer": "secondary"
+    },
+    {
+     "id": "vantage",
+     "options": [
+      "took-part",
+      "watched",
+      "later"
+     ],
+     "answer": "later"
+    },
+    {
+     "id": "purpose",
+     "options": [
+      "announce",
+      "commemorate",
+      "personal-note",
+      "explain",
+      "persuade"
+     ],
+     "answer": "explain"
+    }
+   ]
+  }
+ }
+}

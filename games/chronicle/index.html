@@ -22,7 +22,7 @@
 <main id="game">
   <a href="../../index.html" class="hub-back-link">&larr; All games</a>
   <h1>Chronicle</h1>
-  <p class="tagline">Put the moments of history in order, trace what led to what, and tell record from myth. Every fact names its sources.</p>
+  <p class="tagline">Put the moments of history in order, trace what led to what, tell record from myth, weigh who is telling the story, and see the choices people faced. Every fact names its sources.</p>
   <p id="draft-banner" class="draft-banner" role="note">Sample set, draft until reviewed: the facts below have three sources each, but the owner has not yet checked them.</p>
 
   <div class="game-toolbar">
@@ -82,6 +82,9 @@
       <li>Every fact the game shows is a claim, and every claim links at least three reputable sources from at least two institutions. Each source gives its title, who published it, a link, and the date it was read.</li>
       <li>Claims carry a confidence label, always written out and marked with a symbol, never colour alone. <strong>&#x2714; Documented</strong>: sources agree. <strong>&#x2248; Disputed</strong>: reputable sources differ, so the game shows each position. <strong>? Traditional but doubtful</strong>: a popular story the sources do not support. Myth or record is built from exactly this label.</li>
       <li>A cause link is a claim too, so it has the same three sources and the same confidence label, plus a strength: <strong>&#x21D2; Direct cause</strong> (the sources treat it as the immediate trigger) or <strong>&#x21E2; Contributing cause</strong> (one factor among several). Causes are plural, so no link is ever presented as the whole story.</li>
+      <li><strong>Whose account?</strong> shows short passages about one event from different sources. Each passage is a summary written for this game in original words, tied to one real source (a primary source made at the time, or a secondary one written afterwards). You say who wrote it, what the writer could see, what the writer was trying to do, and what the passage leaves out. "Leaves out" is judged against the short passage you read, never against the whole source, and the full source is always one link away.</li>
+      <li><strong>Decision points</strong> show a choice a historical figure really faced, only where the sources document the options. You choose; nothing is graded. The game then shows what they chose and what the sources say followed, always labelled as what they chose. It never presents an alternative as what would have happened.</li>
+      <li><strong>Review</strong> brings back what you have learned after gaps of 1, 3, 7, 14 and 30 days. Days only move when you press Let a day pass, so there is no clock, no deadline and nothing that runs out while you are away. A fact you do not recall returns tomorrow and is never taken away.</li>
       <li>All text is original wording; only facts are reused. All art is drawn by code. No images are generated.</li>
       <li>The sample set was drafted by an AI assistant from sources it read on 7 October 2026 and is a draft until the owner has reviewed it. If a claim looks wrong, use Report a problem beside it. Reports open soon: for now a report is only saved on this device.</li>
       <li>The presidents sets aim to be balanced and non-partisan: each moment is stated as a dated, sourced fact, not as praise or blame.</li>
@@ -107,8 +110,11 @@
     <button id="mode-timeline-button" type="button" role="tab" aria-selected="true" aria-controls="puzzle-panel">Timeline</button>
     <button id="mode-web-button" type="button" role="tab" aria-selected="false" aria-controls="web-panel" tabindex="-1">Cause web</button>
     <button id="mode-myth-button" type="button" role="tab" aria-selected="false" aria-controls="myth-panel" tabindex="-1">Myth or record</button>
+    <button id="mode-account-button" type="button" role="tab" aria-selected="false" aria-controls="account-panel" tabindex="-1">Whose account?</button>
+    <button id="mode-decision-button" type="button" role="tab" aria-selected="false" aria-controls="decision-panel" tabindex="-1">Decision points</button>
+    <button id="mode-review-button" type="button" role="tab" aria-selected="false" aria-controls="review-panel" tabindex="-1">Review</button>
   </div>
-  <p class="note mode-hint">Switch mode with the tabs, or press T, W or M.</p>
+  <p class="note mode-hint">Switch mode with the tabs, or press T, W, M, A, D or R.</p>
 
   <nav id="sections" class="sections" aria-label="Sections"></nav>
 
@@ -171,6 +177,53 @@
     </div>
   </section>
 
+  <section id="account-panel" class="panel" hidden aria-labelledby="account-heading">
+    <h2 id="account-heading">Whose account?</h2>
+    <p id="account-meta" class="note"></p>
+    <div id="account-board">
+      <p class="note">Each passage below is a short summary, written for this game in original words, of one real source about the same event. The questions are about the passage marked with a diamond. Pick an answer for each question, then press Check: right answers lock, and when all are right you see the sources. "Leaves out" means not in the short passage you read.</p>
+      <ol id="account-passages" class="passages" aria-label="Passages, each a short summary of one source"></ol>
+      <ol id="account-questions" class="acct-questions" aria-label="Questions about the passage marked with a diamond"></ol>
+      <p id="account-message" class="message-line" role="status" aria-live="polite"></p>
+      <div class="action-bar">
+        <button id="account-check-button" type="button" class="primary">Check</button>
+        <button id="account-show-button" type="button">Show the answers</button>
+        <button id="account-next-button" type="button" class="primary" hidden>Next puzzle</button>
+      </div>
+      <div id="account-result"></div>
+    </div>
+  </section>
+
+  <section id="decision-panel" class="panel" hidden aria-labelledby="decision-heading">
+    <h2 id="decision-heading">Decision points</h2>
+    <p id="decision-meta" class="note"></p>
+    <div id="decision-board">
+      <p class="note">A choice someone really faced, shown only where the sources document the options. Pick what you would do. Nothing is graded: afterwards the game shows what they chose and what the sources say followed.</p>
+      <div id="decision-situation"></div>
+      <h3 id="decision-question"></h3>
+      <ol id="decision-options" class="opt-list" aria-labelledby="decision-question"></ol>
+      <p id="decision-message" class="message-line" role="status" aria-live="polite"></p>
+      <div id="decision-result"></div>
+    </div>
+  </section>
+
+  <section id="review-panel" class="panel" hidden aria-labelledby="review-heading">
+    <h2 id="review-heading">Review</h2>
+    <p id="review-meta" class="note"></p>
+    <div id="review-board">
+      <div id="review-question" aria-live="polite"></div>
+      <p id="review-message" class="message-line" role="status" aria-live="polite"></p>
+      <div class="action-bar">
+        <button id="review-next-button" type="button" class="primary" hidden>Next</button>
+        <button id="review-day-button" type="button">Let a day pass</button>
+      </div>
+      <details class="review-explainer">
+        <summary>How Review works</summary>
+        <ul id="review-explainer" class="info-list"></ul>
+      </details>
+    </div>
+  </section>
+
   <p id="toast" class="note toast" role="status" aria-live="polite"></p>
   <p id="announce" class="sr-only" role="status" aria-live="polite"></p>
 </main>
@@ -224,12 +277,14 @@
     extra: [
       "Tab and Shift+Tab: move between cards, slots and buttons; everything works from the keyboard",
       "Enter or Space on a card: pick it up. Enter or Space on a slot: put the picked-up card there",
-      "T, W or M: switch to the timeline, the cause web or myth or record. On the mode tabs, Arrow keys and Home and End also move between them",
+      "T, W, M, A, D or R: switch to the timeline, the cause web, myth or record, whose account, decision points or review. On the mode tabs, Arrow keys and Home and End also move between them",
       "Number keys 1 to 6 with a card picked up: put it in that slot",
       "Delete or Backspace on a filled slot: return its card to the tray",
       "Escape with a card picked up: put it down again",
       "Cause web: press a moment's number to pick it as the cause, then another number for the moment it led to",
       "Myth or record: with a statement focused, press 1, 2 or 3 to sort it as documented, disputed or traditional but doubtful",
+      "Whose account?: with a question focused, press 1 to 5 to choose that option",
+      "Decision points and Review: press 1 to 4 to choose that option",
     ],
   });
 </script>

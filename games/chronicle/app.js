@@ -9,7 +9,7 @@
  *     engine modules into Pyodide's file system, and runs game.py;
  *   - forwards taps to the engine as JSON and draws whatever view it sends back.
  * The only logic here is presentation: which card is picked up, where things are drawn, the nuance strip, the
- * cause web's arcs and the myth-or-record bins.
+ * cause web's arcs, the myth-or-record bins, the whose-account questions, the decision options and the review card.
  * Nothing in this file posts to a backend. "Report a problem" builds a payload with the engine, saves a draft
  * on this device and says reporting opens soon.
  */
@@ -18,9 +18,9 @@
 
   var GAME = "chronicle";
   var PYODIDE_URL = "https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.js";
-  var ENGINE_MODULES = ["setdata.py", "puzzle.py", "web.py", "myth.py", "achievements.py", "report.py"];
+  var ENGINE_MODULES = ["setdata.py", "puzzle.py", "web.py", "myth.py", "account.py", "decision.py", "review.py", "achievements.py", "report.py"];
   var SET_FILES = ["meta", "sources", "entities", "claims", "relations", "sections", "readings"];
-  var OPTIONAL_SET_FILES = ["chapters"];   // the cause web's and myth-or-record's chapters: a set may not have them
+  var OPTIONAL_SET_FILES = ["chapters", "accounts", "decisions"];   // chapters, accounts and decision points: a set may have none of them
   var LS_STATE = "chronicle:state";
   var LS_VIEW = "chronicle:lastview";
   var LS_REPORTS = "chronicle:report-drafts";
@@ -46,6 +46,7 @@
     if (text !== undefined && text !== null) node.textContent = text;
     return node;
   }
+  function plural(n, word) { return n + " " + word + (n === 1 ? "" : "s"); }
   function clear(node) { while (node.firstChild) node.removeChild(node.firstChild); return node; }
   function announce(text) { $("announce").textContent = ""; setTimeout(function () { $("announce").textContent = text; }, 30); }
 
@@ -188,9 +189,12 @@
     { title: "Order the cards", selector: "#slots", text: "Pick up a card from the tray, then tap a slot. The slots run from earliest to latest. You can also drag cards, or use the number keys." },
     { title: "Check your order", selector: "#check-button", text: "When every slot is full, press Check. Cards in the right place lock and are added to your archive; the others tell you whether to move earlier or later." },
     { title: "Every fact has sources", selector: "#puzzle-panel", text: "Once a puzzle is solved you see each date with the claim, how sure the sources are, and three linked sources. If something looks wrong, use Report a problem." },
-    { title: "Three ways to play", selector: "#mode-tabs", text: "Timeline puts moments in order. Cause web asks which moment helped lead to which. Myth or record sorts statements by how sure the sources are. Each has chapters that open as you find the moments they use." },
+    { title: "Six ways to play", selector: "#mode-tabs", text: "Timeline puts moments in order. Cause web asks which moment helped lead to which. Myth or record sorts statements by how sure the sources are. Whose account? weighs who is telling the story. Decision points show a choice someone really faced. Review brings back what you have learned. Most have chapters that open as you find the moments they use." },
     { title: "Cause web", selector: "#mode-web-button", text: "Pick the earlier moment, then the one it led to. The game confirms a thread only if the set's sources link them, and says how strong the evidence is. Causes are plural: most moments have more than one." },
     { title: "Myth or record", selector: "#mode-myth-button", text: "Each statement is documented, disputed, or a story the sources do not support. Sort them, check, and read why from the sources themselves. Number keys 1, 2 and 3 sort the claim you are on." },
+    { title: "Whose account?", selector: "#mode-account-button", text: "Read short passages about one event, each a summary of a different real source. Say who wrote the one marked with a diamond, what they could see, what they wanted, and what the passage leaves out. Primary sources were made at the time; secondary ones were written afterwards." },
+    { title: "Decision points", selector: "#mode-decision-button", text: "See a choice a historical figure really faced, only where the sources document the options. Pick what you would do. Nothing is graded: the game then shows what they chose and what followed, never what might have happened." },
+    { title: "Review", selector: "#mode-review-button", text: "Facts you have learned come back after gaps that grow each time you remember one. Days only move when you press Let a day pass, so there is no clock and nothing runs out while you are away. A fact you miss simply comes back tomorrow." },
     { title: "Your archive", selector: "#archive-toggle-button", text: "Everything you find fills in the archive: moments, what else was happening, people, places, cause links and sorted claims. It is easy to reach 100%." },
   ];
 
@@ -238,6 +242,9 @@
     copy.result = null;
     if (copy.web && copy.web.result) copy.web.result = null;
     if (copy.myth && copy.myth.result) copy.myth.result = null;
+    if (copy.account && copy.account.result) copy.account.result = null;
+    if (copy.decision && copy.decision.result) copy.decision.result = null;
+    if (copy.review && copy.review.feedback) copy.review.feedback = null;
     return copy;
   }
 
@@ -266,6 +273,9 @@
     renderResult();
     renderWeb();
     renderMyth();
+    renderAccount();
+    renderDecision();
+    renderReview();
     renderAchievements();
     var hints = $("hints-checkbox");
     if (hints) hints.checked = !!view.settings.hints;
@@ -296,31 +306,42 @@
 
   function currentMode() { return (view && view.mode) || "timeline"; }
 
+  var MODE_IDS = ["timeline", "web", "myth", "account", "decision", "review"];
+  var MODE_KEYS = { t: "timeline", w: "web", m: "myth", a: "account", d: "decision", r: "review" };
+  var MODE_LABELS = { timeline: "Timeline", web: "Cause web", myth: "Myth or record", account: "Whose account?", decision: "Decision points", review: "Review" };
+  var MODE_PANELS = { timeline: "puzzle-panel", web: "web-panel", myth: "myth-panel", account: "account-panel", decision: "decision-panel", review: "review-panel" };
+  var MODE_SKIP = { timeline: "Skip to the timeline", web: "Skip to the cause web", myth: "Skip to myth or record", account: "Skip to whose account", decision: "Skip to decision points", review: "Skip to review" };
+
   function renderModeTabs() {
     var mode = currentMode();
     var modes = view.modes || [{ id: "timeline", label: "Timeline", available: true }];
-    ["timeline", "web", "myth"].forEach(function (id) {
+    MODE_IDS.forEach(function (id) {
       var b = $("mode-" + id + "-button");
       var info = modes.filter(function (m) { return m.id === id; })[0];
       var available = !!(info && info.available);
       b.setAttribute("aria-selected", String(mode === id));
       b.setAttribute("tabindex", mode === id ? "0" : "-1");
       b.setAttribute("aria-disabled", String(!available));
-      b.textContent = (id === "timeline" ? "Timeline" : (id === "web" ? "Cause web" : "Myth or record")) + (available ? "" : " (not in this set)");
+      b.textContent = MODE_LABELS[id] + (available ? "" : " (not in this set)");
     });
     $("puzzle-panel").hidden = mode !== "timeline";
     $("web-panel").hidden = mode !== "web";
     $("myth-panel").hidden = mode !== "myth";
-    var panelId = mode === "web" ? "web-panel" : (mode === "myth" ? "myth-panel" : "puzzle-panel");
+    $("account-panel").hidden = mode !== "account";
+    $("decision-panel").hidden = mode !== "decision";
+    $("review-panel").hidden = mode !== "review";
+    var panelId = MODE_PANELS[mode] || "puzzle-panel";
     $("skip-link").setAttribute("href", "#" + panelId);
-    $("skip-link").textContent = mode === "web" ? "Skip to the cause web" : (mode === "myth" ? "Skip to myth or record" : "Skip to the timeline");
+    $("skip-link").textContent = MODE_SKIP[mode] || "Skip to the timeline";
   }
+
+  var CHAPTER_LABELS = { web: "Cause web chapters", myth: "Myth or record chapters", account: "Accounts", decision: "Decision points" };
 
   function renderChapters(list, kind) {
     var nav = clear($("sections"));
-    nav.setAttribute("aria-label", kind === "web" ? "Cause web chapters" : "Myth or record chapters");
-    var board = kind === "web" ? view.web : view.myth;
-    var current = board && board.chapter;
+    nav.setAttribute("aria-label", CHAPTER_LABELS[kind]);
+    var board = kind === "web" ? view.web : (kind === "myth" ? view.myth : (kind === "account" ? view.account : view.decision));
+    var current = board && (kind === "account" ? board.account : (kind === "decision" ? board.id : board.chapter));
     (list || []).forEach(function (c) {
       var b = el("button", "section-card");
       b.type = "button";
@@ -338,8 +359,13 @@
 
   function renderSections() {
     var mode = currentMode();
+    $("sections").hidden = false;
     if (mode === "web") { renderChapters(view.webs, "web"); return; }
     if (mode === "myth") { renderChapters(view.myths, "myth"); return; }
+    if (mode === "account") { renderChapters(view.accounts, "account"); return; }
+    if (mode === "decision") { renderChapters(view.decisions, "decision"); return; }
+    if (mode === "review") { clear($("sections")).hidden = true; return; }
+    $("sections").hidden = false;
     var nav = clear($("sections"));
     nav.setAttribute("aria-label", "Sections");
     var current = view.puzzle.section;
@@ -501,6 +527,8 @@
       place: '<path d="M16 29C9 20 6 16 6 12a10 10 0 0 1 20 0c0 4-3 8-10 17z"/><circle cx="16" cy="12" r="3.5"/>',
       relation: '<circle cx="7" cy="22" r="4"/><circle cx="25" cy="10" r="4"/><path d="M10 19C14 14 17 12 20 11M17 8l4 3-3 4"/>',
       record: '<path d="M16 4v22M7 26h18M6 10h20M6 10l-3 8h6zM26 10l-3 8h6z"/>',
+      account: '<rect x="4" y="5" width="15" height="21" rx="2"/><rect x="13" y="9" width="15" height="19" rx="2"/><path d="M17 15h8M17 20h8"/>',
+      decision: '<path d="M16 28V16M16 16L7 7M16 16l9-9M7 7v6M7 7h6M25 7v6M25 7h-6"/>',
     };
     var ns = "http://www.w3.org/2000/svg";
     var svg = document.createElementNS(ns, "svg");
@@ -804,13 +832,233 @@
     if (resp && resp.ok) announce("Sorted as " + binLabel(view.myth, bin) + ".");
   }
 
+
+  // ---- whose account? -----------------------------------------------------------------------------------------
+  // Every question is a choice from a fixed list the engine built from the passage's own metadata (no typing).
+  // State is written ("Right answer (locked)", "Not this one yet") and drawn with border styles, never colour alone.
+  function renderAccount() {
+    if (currentMode() !== "account") return;
+    var a = view.account;
+    var plist = clear($("account-passages"));
+    var qlist = clear($("account-questions"));
+    clear($("account-result"));
+    if (!a || a.locked) {
+      $("account-meta").textContent = (a && a.message) || "Whose account? opens when you have found the moment an account is about.";
+      $("account-board").hidden = true;
+      return;
+    }
+    $("account-board").hidden = false;
+    $("account-meta").textContent = a.account_title + " · " + a.round_label + " · about: " + a.event_title + " (" + a.event_date + ")" + (a.checks ? " · " + a.checks + (a.checks === 1 ? " check" : " checks") : "");
+    a.passages.forEach(function (ps) {
+      var li = el("li", "passage" + (ps.focus ? " focus" : ""));
+      li.appendChild(el("h3", null, "Passage " + ps.letter + (ps.focus ? " ◆ the questions are about this one" : "")));
+      li.appendChild(el("p", null, ps.text));
+      plist.appendChild(li);
+    });
+    var finished = a.status !== "playing";
+    a.questions.forEach(function (q, i) {
+      var li = el("li", "acct-q" + (q.locked ? " right" : (q.status === "wrong" ? " wrong" : "")));
+      li.setAttribute("data-q", q.id);
+      li.setAttribute("tabindex", "0");
+      li.setAttribute("data-fk", "aq-" + q.id);
+      var chosen = q.options.filter(function (o) { return o.id === q.choice; })[0];
+      li.setAttribute("aria-label", "Question " + (i + 1) + " of " + a.size + ": " + q.prompt + (chosen ? " Chosen: " + chosen.label + (q.locked ? ", right, locked" : (q.status === "wrong" ? ", not right yet" : "")) : " Not answered yet. Press 1 to " + q.options.length + " to choose."));
+      li.appendChild(el("p", "acct-prompt", (i + 1) + ". " + q.prompt));
+      var group = el("div", "opt-row");
+      group.setAttribute("role", "group");
+      group.setAttribute("aria-label", q.prompt);
+      q.options.forEach(function (o, oi) {
+        var btn = el("button", "opt-btn", (oi + 1) + ". " + o.label);
+        btn.type = "button";
+        btn.setAttribute("data-q", q.id);
+        btn.setAttribute("data-opt", o.id);
+        btn.setAttribute("data-fk", "aopt-" + q.id + "-" + o.id);
+        btn.setAttribute("aria-pressed", String(q.choice === o.id));
+        if (q.locked || finished) btn.setAttribute("aria-disabled", "true");
+        group.appendChild(btn);
+      });
+      li.appendChild(group);
+      li.appendChild(el("span", "slot-state", q.locked ? "✔ Right answer (locked)" : (q.status === "wrong" ? "✖ Not this one yet" : (q.choice ? "Chosen, not checked" : "Not answered yet"))));
+      qlist.appendChild(li);
+    });
+    $("account-message").textContent = a.message || (view.first_run ? "Read the passages, then answer each question about the one marked with a diamond." : "");
+    var check = $("account-check-button");
+    check.hidden = finished;
+    check.setAttribute("aria-disabled", String(!a.all_answered));
+    check.textContent = a.all_answered ? "Check" : "Check (answer every question first)";
+    $("account-show-button").hidden = finished;
+    $("account-next-button").hidden = !finished;
+    if (finished && a.result) renderAccountResult($("account-result"), a.result, a);
+  }
+
+  function passageReveal(p, focusLetter) {
+    var box = el("div", "reveal passage-reveal" + (p.letter === focusLetter ? " focus" : ""));
+    box.appendChild(el("div", "when", "Passage " + p.letter + (p.letter === focusLetter ? " ◆" : "")));
+    box.appendChild(el("h3", null, p.author + ", " + p.written_label));
+    box.appendChild(el("p", "note", p.kind_label));
+    box.appendChild(el("p", null, "What the writer could see: " + p.vantage_label + "."));
+    box.appendChild(el("p", null, "What the writer was trying to do: " + p.purpose_label + "."));
+    box.appendChild(el("p", "why", "Why we say so: " + p.purpose_note));
+    var src = el("p", "note");
+    src.appendChild(document.createTextNode("Source: "));
+    var link = el("a", null, p.source.title);
+    link.href = p.source.url; link.target = "_blank"; link.rel = "noopener noreferrer";
+    src.appendChild(link);
+    src.appendChild(document.createTextNode(" (" + p.source.institution + ", read " + p.source.read + ")"));
+    box.appendChild(src);
+    box.appendChild(el("p", "note", "This passage mentions: " + (p.mentions.length ? p.mentions.join("; ") : "none of the listed facts") + "."));
+    box.appendChild(el("p", "note", "This passage leaves out: " + (p.leaves_out.length ? p.leaves_out.join("; ") : "nothing on the list") + "."));
+    return box;
+  }
+
+  function renderAccountResult(res, r, a) {
+    res.appendChild(el("h3", null, r.solved ? "The sources behind the passages" : "The answers"));
+    if (r.solved) res.appendChild(el("p", "message-line", "✔ Source judged: Passage " + r.focus_letter + " is added to your archive."));
+    if (r.account_cleared) res.appendChild(el("p", "message-line", "✔ Every source of this account is judged."));
+    var answers = el("ul", "info-list");
+    a.questions.forEach(function (q) {
+      var c = r.correct.filter(function (x) { return x.id === q.id; })[0];
+      if (c) answers.appendChild(el("li", null, q.prompt + " " + c.label));
+    });
+    res.appendChild(answers);
+    var wrap = el("div", "reveal-list");
+    r.passages.forEach(function (p) { wrap.appendChild(passageReveal(p, r.focus_letter)); });
+    res.appendChild(wrap);
+    res.appendChild(el("p", "note", "The passages are short summaries written for this game, not quotations. \"Leaves out\" is judged against the summary you read; the full source usually says more, so open it to read for yourself."));
+    res.appendChild(el("h3", null, "The facts these accounts are about"));
+    var ul = el("ul", "info-list");
+    r.points.forEach(function (pt) {
+      var li = el("li");
+      li.appendChild(el("strong", null, pt.label));
+      li.appendChild(claimBlock(pt.claim));
+      ul.appendChild(li);
+    });
+    res.appendChild(ul);
+  }
+
+  function answerAccount(qid, opt) {
+    if (!view || !view.account || view.account.status !== "playing") return;
+    var resp = act({ action: "account_answer", question: qid, choice: opt });
+    if (resp && resp.ok) announce("Chosen.");
+  }
+
+  // ---- decision points ----------------------------------------------------------------------------------------
+  function renderDecision() {
+    if (currentMode() !== "decision") return;
+    var d = view.decision;
+    var opts = clear($("decision-options"));
+    clear($("decision-situation"));
+    clear($("decision-result"));
+    if (!d || d.locked) {
+      $("decision-meta").textContent = (d && d.message) || "Decision points open when you have found the moment they are about.";
+      $("decision-board").hidden = true;
+      return;
+    }
+    $("decision-board").hidden = false;
+    $("decision-meta").textContent = d.title + " · " + d.who + ", " + d.when;
+    var sit = $("decision-situation");
+    sit.appendChild(el("h3", null, "The situation"));
+    sit.appendChild(claimBlock(d.situation));
+    $("decision-question").textContent = d.question;
+    d.options.forEach(function (o, i) {
+      var li = el("li");
+      var b = el("button", "opt-btn", (i + 1) + ". " + o.text);
+      b.type = "button";
+      b.setAttribute("data-opt", o.id);
+      b.setAttribute("data-fk", "dopt-" + o.id);
+      b.setAttribute("aria-pressed", String(!!o.picked));
+      if (d.decided) b.setAttribute("aria-disabled", "true");
+      li.appendChild(b);
+      var marks = [];
+      if (o.picked) marks.push("◆ You chose this");
+      if (d.result && d.result.chosen === o.id) marks.push("★ " + d.result.chose_label + " (labelled as what they chose, not as the best choice)");
+      if (marks.length) li.appendChild(el("span", "slot-state", marks.join(" · ")));
+      opts.appendChild(li);
+    });
+    $("decision-message").textContent = d.decided ? "You made your choice. What happened is below." : (view.first_run ? "Pick an option. There is no right answer." : "");
+    var r = d.result;
+    if (d.decided && r) {
+      var res = $("decision-result");
+      res.appendChild(el("h3", null, r.chose_label + ": " + r.chosen_text));
+      res.appendChild(claimBlock(r.choice_claim));
+      res.appendChild(el("h3", null, r.after_label));
+      res.appendChild(claimBlock(r.after_claim));
+      res.appendChild(el("p", "note", r.note));
+    }
+  }
+
+  function pickDecision(optId) {
+    if (!view || !view.decision || view.decision.decided) return;
+    var resp = act({ action: "decision_pick", option: optId });
+    if (resp && resp.ok) announce("Choice made. What they chose and what followed are shown below.");
+  }
+
+  // ---- review ----------------------------------------------------------------------------------------------------
+  // One question at a time, in the order the schedule gives. Everything is written in words and nothing is timed.
+  function renderReview() {
+    if (currentMode() !== "review") return;
+    var r = view.review;
+    var box = clear($("review-question"));
+    var ex = clear($("review-explainer"));
+    if (!r) return;
+    var c = r.counts;
+    $("review-meta").textContent = "Day " + r.day + " · " + c.ready + " ready now · " + c.later + " coming back later · " + c.settled + " at the longest gap · " + c.total + " facts learned";
+    (r.explainer || []).forEach(function (line) { ex.appendChild(el("li", null, line)); });
+    var next = $("review-next-button");
+    next.hidden = !r.feedback;
+    if (r.feedback) {
+      var f = r.feedback;
+      box.appendChild(el("h3", null, f.prompt));
+      box.appendChild(el("p", "review-context", f.context));
+      box.appendChild(el("p", null, "You chose: " + f.choice_label));
+      box.appendChild(el("p", "message-line", (f.right ? "✔ " : "↺ ") + f.message));
+      if (f.settled) box.appendChild(el("p", "note", "This fact has reached the longest gap."));
+      if (f.claim) box.appendChild(claimBlock(f.claim));
+      $("review-message").textContent = "";
+      return;
+    }
+    if (r.question) {
+      var q = r.question;
+      box.appendChild(el("p", "note", q.new ? "A new one to remember" : "Coming back to this one"));
+      box.appendChild(el("h3", null, q.prompt));
+      box.appendChild(el("p", "review-context", q.context));
+      var group = el("div", "opt-row review-options");
+      group.setAttribute("role", "group");
+      group.setAttribute("aria-label", q.prompt);
+      q.options.forEach(function (o, i) {
+        var b = el("button", "opt-btn", (i + 1) + ". " + o.label);
+        b.type = "button";
+        b.setAttribute("data-key", q.key);
+        b.setAttribute("data-opt", o.id);
+        b.setAttribute("data-fk", "ropt-" + o.id);
+        b.setAttribute("aria-pressed", "false");
+        group.appendChild(b);
+      });
+      box.appendChild(group);
+      $("review-message").textContent = "";
+      return;
+    }
+    box.appendChild(el("p", null, r.idle || ""));
+    $("review-message").textContent = "";
+  }
+
+  function answerReview(key, opt) {
+    if (!view || !view.review || !view.review.question) return;
+    var resp = act({ action: "review_answer", key: key, choice: opt });
+    if (resp && resp.ok && view.review.feedback) {
+      announce(view.review.feedback.message);
+      var n = $("review-next-button");
+      if (n && !n.hidden) n.focus();
+    }
+  }
+
   function switchMode(mode) {
     var info = ((view && view.modes) || []).filter(function (m) { return m.id === mode; })[0];
     if (!view) { startEngine(); return; }
     if (info && !info.available) { $("message-line").textContent = "This set does not have that mode yet."; announce("This set does not have that mode yet."); return; }
     selected = null; webPick = null;
     var resp = act({ action: "mode", mode: mode });
-    if (resp && resp.ok) announce((mode === "web" ? "Cause web" : (mode === "myth" ? "Myth or record" : "Timeline")) + " mode.");
+    if (resp && resp.ok) announce(MODE_LABELS[mode] + " mode.");
   }
 
   // ---- drag and drop (the same actions as tapping) -----------------------------------------------------------
@@ -958,6 +1206,23 @@
       d.appendChild(el("h3", null, e.title));
       d.appendChild(claimBlock(e.claim));
       d.appendChild(el("p", "why", "Why: " + e.claim.explanation));
+    } else if (e.kind === "account") {
+      d.appendChild(el("h3", null, e.title));
+      d.appendChild(passageReveal(e.passage, null));
+      d.appendChild(el("p", "note", "The passage is a short summary written for this game; open the source to read the whole thing."));
+      d.appendChild(el("h3", null, "The facts this account is about"));
+      e.points.forEach(function (pt) { d.appendChild(el("p", "note", pt.label)); d.appendChild(claimBlock(pt.claim)); });
+    } else if (e.kind === "decision") {
+      d.appendChild(el("h3", null, e.title));
+      d.appendChild(el("p", "note", e.decision.who + ", " + e.decision.when));
+      d.appendChild(claimBlock(e.decision.situation));
+      var dr = e.decision.result;
+      d.appendChild(el("p", null, "You chose: " + dr.picked_text));
+      d.appendChild(el("h3", null, dr.chose_label + ": " + dr.chosen_text));
+      d.appendChild(claimBlock(dr.choice_claim));
+      d.appendChild(el("h3", null, dr.after_label));
+      d.appendChild(claimBlock(dr.after_claim));
+      d.appendChild(el("p", "note", dr.note));
     } else if (e.kind === "person" || e.kind === "place") {
       d.appendChild(el("h3", null, e.title));
       d.appendChild(el("p", "note", (e.kind === "person" ? "Appears in these moments:" : "Where these moments happened:")));
@@ -980,7 +1245,7 @@
     var i = resp.info;
     var box = clear($("info-dynamic"));
     box.appendChild(el("h3", null, "This set: " + i.set.title));
-    box.appendChild(el("p", "note", i.set.status_label + " · version " + i.set.version + (i.set.drafted ? " · drafted " + i.set.drafted : "") + " · " + i.counts.events + " events (presidential moments plus things that happened elsewhere), " + i.counts.claims + " claims (" + i.counts.levels.documented + " documented, " + i.counts.levels.disputed + " disputed, " + i.counts.levels["traditional-but-doubtful"] + " traditional but doubtful), " + i.counts.relations + " cause links, " + i.counts.sources + " different sources."));
+    box.appendChild(el("p", "note", i.set.status_label + " · version " + i.set.version + (i.set.drafted ? " · drafted " + i.set.drafted : "") + " · " + i.counts.events + " events (presidential moments plus things that happened elsewhere), " + i.counts.claims + " claims (" + i.counts.levels.documented + " documented, " + i.counts.levels.disputed + " disputed, " + i.counts.levels["traditional-but-doubtful"] + " traditional but doubtful), " + i.counts.relations + " cause links, " + i.counts.passages + " passages to weigh in " + i.counts.accounts + " accounts, " + i.counts.decisions + " decision points, " + i.counts.sources + " different sources."));
     box.appendChild(el("h3", null, "How sure are the sources?"));
     var ul = el("ul", "info-list");
     i.legend.forEach(function (l) { var li = el("li"); li.appendChild(el("strong", null, l.symbol + " " + l.label + ": ")); li.appendChild(document.createTextNode(l.meaning)); ul.appendChild(li); });
@@ -990,7 +1255,7 @@
     i.strengths.forEach(function (l) { var li = el("li"); li.appendChild(el("strong", null, l.symbol + " " + l.label + ": ")); li.appendChild(document.createTextNode(l.meaning)); sl.appendChild(li); });
     box.appendChild(sl);
     box.appendChild(el("p", "note", "A cause link also carries the confidence labels above, so a link can be strong and still disputed. Causes are plural: a link is one cause among several."));
-    box.appendChild(el("h3", null, "Sources for what you have found (" + i.found_claims.length + " moments, " + i.found_relations.length + " cause links)"));
+    box.appendChild(el("h3", null, "Sources for what you have found (" + i.found_claims.length + " moments, " + i.found_relations.length + " cause links, " + plural((i.found_accounts || []).length, "account") + ", " + plural((i.found_decisions || []).length, "decision") + ")"));
     box.appendChild(el("p", "note", i.coverage.note));
     var bar = el("div", "settings-row");
     var openAll = el("button", "small-btn", "Show every source list below");
@@ -1001,7 +1266,7 @@
     });
     bar.appendChild(openAll);
     box.appendChild(bar);
-    if (!i.found_claims.length && !i.found_relations.length) box.appendChild(el("p", "note", "Nothing found yet. Solve a puzzle and its claims and sources appear here."));
+    if (!i.found_claims.length && !i.found_relations.length && !(i.found_accounts || []).length && !(i.found_decisions || []).length) box.appendChild(el("p", "note", "Nothing found yet. Solve a puzzle and its claims and sources appear here."));
     i.found_claims.forEach(function (f) {
       var wrap = el("div", "reveal");
       wrap.appendChild(el("div", "when", f.date_label));
@@ -1009,6 +1274,31 @@
       f.claims.forEach(function (c) { wrap.appendChild(claimBlock(c)); });
       box.appendChild(wrap);
     });
+    if (i.found_accounts && i.found_accounts.length) {
+      box.appendChild(el("h3", null, "Accounts you have weighed"));
+      box.appendChild(el("p", "note", "Primary sources were made at the time by someone who took part or watched; secondary sources were written afterwards from other sources. Each passage is a short summary written for this game."));
+      i.found_accounts.forEach(function (a) {
+        var wrap2 = el("div", "reveal");
+        wrap2.appendChild(el("h3", null, a.title + " (" + a.judged + " of " + a.total + " sources judged)"));
+        a.passages.forEach(function (ps) { wrap2.appendChild(passageReveal(ps, null)); });
+        a.points.forEach(function (pt) { wrap2.appendChild(el("p", "note", pt.label)); wrap2.appendChild(claimBlock(pt.claim)); });
+        box.appendChild(wrap2);
+      });
+    }
+    if (i.found_decisions && i.found_decisions.length) {
+      box.appendChild(el("h3", null, "Decision points you have made"));
+      i.found_decisions.forEach(function (d) {
+        var wrap3 = el("div", "reveal");
+        wrap3.appendChild(el("h3", null, d.title));
+        wrap3.appendChild(el("p", "note", d.who + ", " + d.when));
+        wrap3.appendChild(claimBlock(d.situation));
+        wrap3.appendChild(el("h3", null, d.result.chose_label + ": " + d.result.chosen_text));
+        wrap3.appendChild(claimBlock(d.result.choice_claim));
+        wrap3.appendChild(el("h3", null, d.result.after_label));
+        wrap3.appendChild(claimBlock(d.result.after_claim));
+        box.appendChild(wrap3);
+      });
+    }
     if (i.found_relations.length) {
       box.appendChild(el("h3", null, "Cause links you have found"));
       var rl = el("ul", "thread-list");
@@ -1084,7 +1374,7 @@
       var kind = b.getAttribute("data-kind");
       if (b.getAttribute("aria-disabled") === "true") {
         var why = (kind ? "That chapter" : "That section") + " is locked. " + b.querySelectorAll(".sc-meta")[0].textContent + ".";
-        var line = kind === "web" ? "web-message" : (kind === "myth" ? "myth-message" : "message-line");
+        var line = { web: "web-message", myth: "myth-message", account: "account-message", decision: "decision-message" }[kind] || "message-line";
         $(line).textContent = why;
         announce(why);
         return;
@@ -1092,11 +1382,13 @@
       selected = null; webPick = null;
       if (kind === "web") act({ action: "web_start", chapter: b.getAttribute("data-chapter") });
       else if (kind === "myth") act({ action: "myth_start", chapter: b.getAttribute("data-chapter") });
+      else if (kind === "account") act({ action: "account_start", account: b.getAttribute("data-chapter") });
+      else if (kind === "decision") act({ action: "decision_start", decision: b.getAttribute("data-chapter") });
       else act({ action: "start", section: b.getAttribute("data-section") });
     });
 
     // mode tabs (a tablist: arrow keys, Home and End move between the three)
-    var tabs = ["timeline", "web", "myth"];
+    var tabs = MODE_IDS;
     tabs.forEach(function (id) {
       $("mode-" + id + "-button").addEventListener("click", function () { switchMode(id); });
       $("mode-" + id + "-button").addEventListener("keydown", function (ev) {
@@ -1145,6 +1437,44 @@
       else go();
     });
     $("myth-next-button").addEventListener("click", function () { act({ action: "myth_next" }); $("myth-panel").scrollIntoView({ block: "nearest" }); });
+    // whose account?
+    $("account-questions").addEventListener("click", function (ev) {
+      var b = ev.target.closest(".opt-btn");
+      if (!b || b.getAttribute("aria-disabled") === "true") return;
+      answerAccount(b.getAttribute("data-q"), b.getAttribute("data-opt"));
+    });
+    $("account-check-button").addEventListener("click", function () {
+      if (!view || !view.account) return;
+      if (!view.account.all_answered) { $("account-message").textContent = "Answer every question before checking."; announce("Answer every question before checking."); return; }
+      var resp = act({ action: "account_check" });
+      if (resp && resp.ok) announce(view.account.message);
+      if (view.account && view.account.result) $("account-result").scrollIntoView({ block: "nearest" });
+    });
+    $("account-show-button").addEventListener("click", function () {
+      var go = function () { act({ action: "account_show" }); };
+      if (window.ConfirmDialog) window.ConfirmDialog.ask({ id: "chronicle-account-show", message: "Show the answers? Nothing from this puzzle will be added to your archive.", confirmLabel: "Show the answers", allowSkip: true, onConfirm: go });
+      else go();
+    });
+    $("account-next-button").addEventListener("click", function () { act({ action: "account_next" }); $("account-panel").scrollIntoView({ block: "nearest" }); });
+
+    // decision points
+    $("decision-options").addEventListener("click", function (ev) {
+      var b = ev.target.closest(".opt-btn");
+      if (!b || b.getAttribute("aria-disabled") === "true") return;
+      pickDecision(b.getAttribute("data-opt"));
+    });
+
+    // review
+    $("review-question").addEventListener("click", function (ev) {
+      var b = ev.target.closest(".opt-btn");
+      if (b) answerReview(b.getAttribute("data-key"), b.getAttribute("data-opt"));
+    });
+    $("review-next-button").addEventListener("click", function () { act({ action: "review_next" }); var first = document.querySelector("#review-question .opt-btn"); if (first) first.focus(); });
+    $("review-day-button").addEventListener("click", function () {
+      var resp = act({ action: "review_day" });
+      if (resp && resp.ok) announce("A day passed. It is now day " + view.review.day + ".");
+    });
+
     $("set-select").addEventListener("change", function (ev) { selected = null; act({ action: "choose_set", set: ev.target.value }); });
 
     $("report-build-button").addEventListener("click", buildReport);
@@ -1185,6 +1515,26 @@
         if (wc) { ev.preventDefault(); onWebCard(wc.id); }
         return;
       }
+    } else if (mode === "account") {
+      var aq = ev.target.closest && ev.target.closest(".acct-q");
+      if (/^[1-5]$/.test(ev.key) && aq && view.account && !view.account.locked) {
+        ev.preventDefault();
+        var qrow = view.account.questions.filter(function (x) { return x.id === aq.getAttribute("data-q"); })[0];
+        if (qrow && !qrow.locked && qrow.options[parseInt(ev.key, 10) - 1]) answerAccount(qrow.id, qrow.options[parseInt(ev.key, 10) - 1].id);
+        return;
+      }
+    } else if (mode === "decision") {
+      if (/^[1-4]$/.test(ev.key) && view.decision && !view.decision.locked && !view.decision.decided) {
+        var dopt = view.decision.options[parseInt(ev.key, 10) - 1];
+        if (dopt) { ev.preventDefault(); pickDecision(dopt.id); }
+        return;
+      }
+    } else if (mode === "review") {
+      if (/^[1-4]$/.test(ev.key) && view.review && view.review.question) {
+        var ropt = view.review.question.options[parseInt(ev.key, 10) - 1];
+        if (ropt) { ev.preventDefault(); answerReview(view.review.question.key, ropt.id); }
+        return;
+      }
     } else if (mode === "myth") {
       var card = ev.target.closest && ev.target.closest(".myth-card");
       if (/^[1-3]$/.test(ev.key) && card && view.myth && !view.myth.locked) {
@@ -1196,9 +1546,9 @@
         return;
       }
     }
-    if (!(ev.target.closest && ev.target.closest(".myth-card, .web-card")) && /^[twm]$/i.test(ev.key)) {
+    if (!(ev.target.closest && ev.target.closest(".myth-card, .web-card")) && /^[twmadr]$/i.test(ev.key)) {
       ev.preventDefault();
-      switchMode(ev.key.toLowerCase() === "t" ? "timeline" : (ev.key.toLowerCase() === "w" ? "web" : "myth"));
+      switchMode(MODE_KEYS[ev.key.toLowerCase()]);
       return;
     }
     if (ev.key === "Escape" && selected) { selected = null; render(); announce("Put the card down."); return; }

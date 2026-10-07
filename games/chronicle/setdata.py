@@ -11,6 +11,10 @@ A SET is a folder of seven JSON files (see CLAUDE.md for the field-by-field desc
     readings.json   [{id, section, title, text, claims}]
     chapters.json   OPTIONAL {"web": [{id, title, blurb, size, events}], "myth": [{id, title, blurb, size, claims}]}
                     the chapters of the cause web and of myth-or-record (a set without it simply has neither mechanic)
+    accounts.json   OPTIONAL {"accounts": [{id, event, title, blurb, points: [{id, label, claim}], passages: [{id, source, text,
+                    author_id, author, written, kind, vantage, purpose, purpose_note, mentions}]}]}   (whose account?)
+    decisions.json  OPTIONAL {"decisions": [{id, event, who, when, title, question, options: [{id, text}], chosen,
+                    claims: {options, choice, after}}]}   (decision points)
 
 The rule that makes the whole game honest: EVERY fact the game shows is a claim, and EVERY claim links at
 least three reputable, distinct sources, each with a title, an institution or author, a URL and the date it
@@ -29,7 +33,7 @@ from pathlib import Path
 from urllib.parse import urlparse
 
 FILES = ("meta", "sources", "entities", "claims", "relations", "sections", "readings")
-OPTIONAL_FILES = ("chapters",)
+OPTIONAL_FILES = ("chapters", "accounts", "decisions")
 CONFIDENCE = ("documented", "disputed", "traditional-but-doubtful")
 STATUSES = ("sample-draft", "draft", "reviewed")
 KINDS = ("event", "context")          # "context" = what else was happening elsewhere (the nuance strip)
@@ -38,6 +42,29 @@ MIN_INSTITUTIONS = 2
 STRENGTHS = ("direct", "contributing")
 CHAPTER_SIZE = (3, 6)
 MAX_SHORT = 60
+# Claims in these fields are not "about" an event in the ordinary way: several may share one subject, so the
+# contradiction check keys them by value too, and the event reveal / Info page keep them out of the plain claim list.
+KEYED_BY_VALUE = ("relation", "account", "decision")
+HIDDEN_FIELDS = ("relation", "account", "decision")
+ACCOUNT_KINDS = ("primary", "secondary")
+VANTAGES = (            # what the writer could see of the event
+    ("took-part", "Took part in the event"),
+    ("watched", "Was a witness, but did not take part"),
+    ("later", "Wrote afterwards, working from other records"),
+)
+PURPOSES = (            # what the writer was trying to do
+    ("announce", "To announce a decision or give an order"),
+    ("commemorate", "To mark an occasion and honour the people it remembers"),
+    ("personal-note", "To write to one person, to thank or praise them"),
+    ("explain", "To explain the event to readers afterwards"),
+    ("persuade", "To argue for a view and win support"),
+)
+KIND_LABELS = {
+    "primary": "Primary source: made at the time by someone who took part or watched",
+    "secondary": "Secondary source: written afterwards about the event, from other sources",
+}
+MIN_PASSAGES, MAX_PASSAGES = 2, 4
+MIN_DECISION_OPTIONS, MAX_DECISION_OPTIONS = 2, 4
 SLUG = re.compile(r"^[a-z0-9][a-z0-9-]{0,63}$")
 DATE_RE = re.compile(r"^(-?\d{4})(?:-(\d{2})(?:-(\d{2}))?)?$")
 ISO_DAY = re.compile(r"^\d{4}-\d{2}-\d{2}$")
@@ -154,6 +181,10 @@ class ChronicleSet:
         chapters = files.get("chapters") if isinstance(files.get("chapters"), dict) else {}
         self.web_chapters = list(chapters.get("web") or [])
         self.myth_chapters = list(chapters.get("myth") or [])
+        acc = files.get("accounts") if isinstance(files.get("accounts"), dict) else {}
+        self.accounts = list(acc.get("accounts") or [])
+        dec = files.get("decisions") if isinstance(files.get("decisions"), dict) else {}
+        self.decisions = list(dec.get("decisions") or [])
         self.relation_by_id = {r["id"]: r for r in self.relations}
         self._by_subject = {}
         for c in files["claims"]:
@@ -201,6 +232,31 @@ class ChronicleSet:
 
     def myth_chapter(self, chapter_id):
         return next((c for c in self.myth_chapters if c["id"] == chapter_id), None)
+
+    def account(self, account_id):
+        return next((a for a in self.accounts if a["id"] == account_id), None)
+
+    def passage(self, account_id, passage_id):
+        a = self.account(account_id)
+        return next((p for p in a["passages"] if p["id"] == passage_id), None) if a else None
+
+    def passage_keys(self):
+        """'account/passage' for every passage a player can judge, in file order (these count toward the archive meter)."""
+        return ["%s/%s" % (a["id"], p["id"]) for a in self.accounts for p in a["passages"]]
+
+    def authors(self):
+        """{author_id: name} over every passage of the set (the pool the 'who wrote it' options are drawn from)."""
+        out = {}
+        for a in self.accounts:
+            for p in a["passages"]:
+                out.setdefault(p["author_id"], p["author"])
+        return out
+
+    def decision(self, decision_id):
+        return next((d for d in self.decisions if d["id"] == decision_id), None)
+
+    def decision_ids(self):
+        return [d["id"] for d in self.decisions]
 
     def chapter_relations(self, chapter):
         """Relation ids with both ends inside a web chapter, in the set's own relation order."""
@@ -417,7 +473,7 @@ def validate(files):
     for c in claims:
         if not isinstance(c, dict) or "subject" not in c or "field" not in c:
             continue
-        key = (c["subject"], c["field"]) if c["field"] != "relation" else (c["subject"], c["field"], c.get("value"))
+        key = (c["subject"], c["field"]) if c["field"] not in KEYED_BY_VALUE else (c["subject"], c["field"], c.get("value"))
         if key in seen and seen[key]["value"] != c.get("value"):
             bad("E_CONTRADICTION", "claims %s and %s disagree about %s / %s (%r against %r)"
                 % (seen[key]["id"], c.get("id"), key[0], key[1], seen[key]["value"], c.get("value")))
@@ -609,6 +665,10 @@ def validate(files):
     # ---- chapters (optional): the cause web's and myth-or-record's sections
     _check_chapters(files.get("chapters"), event_ids, claim_ids, relations, bad)
 
+    # ---- accounts and decision points (optional)
+    _check_accounts(files.get("accounts"), event_ids, claim_ids, sources, bad)
+    _check_decisions(files.get("decisions"), event_ids, claim_ids, bad)
+
     # ---- playability (only worth checking when the rest is sound)
     if not problems:
         try:
@@ -694,9 +754,189 @@ def _check_chapters(chapters, event_ids, claim_ids, relations, bad):
         used |= set(ids)
     if myth:
         for cid, c in claim_ids.items():
-            if c.get("confidence") in ("disputed", "traditional-but-doubtful") and c.get("field") != "relation" \
+            if c.get("confidence") in ("disputed", "traditional-but-doubtful") and c.get("field") not in HIDDEN_FIELDS \
                     and c.get("subject") in event_ids and cid not in used:
                 bad("E_CHAPTER_UNREACHABLE", "claim %s is %s but is in no myth chapter" % (cid, c["confidence"]))
+
+
+def _check_accounts(data, event_ids, claim_ids, sources, bad):
+    """Whose account?: every passage is tied to a source, an author, a date and primary/secondary; every point to a sourced claim."""
+    if data is None:
+        for cid, c in claim_ids.items():
+            if c.get("field") == "account":
+                bad("E_ACCOUNT_POINT", "claim %s has field 'account' but the set has no accounts.json" % cid)
+        return
+    if not isinstance(data, dict) or set(data) - {"accounts"} or not isinstance(data.get("accounts"), list):
+        bad("E_ACCOUNT", "accounts.json must be an object with one `accounts` list")
+        return
+    vantage_ids = {v[0] for v in VANTAGES}
+    purpose_ids = {v[0] for v in PURPOSES}
+    seen_accounts = set()
+    authors = {}
+    for a in data["accounts"]:
+        if not isinstance(a, dict) or not (_is_str(a.get("id")) and SLUG.match(a["id"])):
+            bad("E_ACCOUNT", "an account has a missing or invalid id")
+            continue
+        aid = a["id"]
+        if aid in seen_accounts:
+            bad("E_ACCOUNT", "duplicate account id %s" % aid)
+        seen_accounts.add(aid)
+        for key in ("title", "blurb"):
+            if not _is_str(a.get(key)):
+                bad("E_ACCOUNT", "account %s has no %s" % (aid, key))
+        if a.get("event") not in event_ids:
+            bad("E_ACCOUNT", "account %s names unknown event %r" % (aid, a.get("event")))
+        # points: the facts a passage may or may not mention; each is a claim, so each has its own three sources
+        points = a.get("points")
+        point_ids = []
+        if not isinstance(points, list) or not 3 <= len(points) <= 8:
+            bad("E_ACCOUNT_POINT", "account %s needs 3 to 8 points" % aid)
+            points = []
+        for pt in points:
+            if not isinstance(pt, dict) or not (_is_str(pt.get("id")) and SLUG.match(pt["id"])) or not _is_str(pt.get("label")):
+                bad("E_ACCOUNT_POINT", "account %s has a point with a missing id or label" % aid)
+                continue
+            if pt["id"] in point_ids:
+                bad("E_ACCOUNT_POINT", "account %s repeats point %s" % (aid, pt["id"]))
+            point_ids.append(pt["id"])
+            claim = claim_ids.get(pt.get("claim"))
+            if claim is None:
+                bad("E_ACCOUNT_POINT", "account %s point %s has no claim, so the fact has no sources" % (aid, pt["id"]))
+            elif claim.get("subject") != a.get("event"):
+                bad("E_ACCOUNT_POINT", "account %s point %s: claim %s must be about the account's event" % (aid, pt["id"], claim["id"]))
+            elif claim.get("confidence") != "documented":
+                bad("E_ACCOUNT_POINT", "account %s point %s: claim %s must be documented (a disputed fact cannot be 'left out')" % (aid, pt["id"], claim["id"]))
+            if len(pt.get("label", "")) > 90:
+                bad("E_ACCOUNT_POINT", "account %s point %s: label is longer than 90 characters" % (aid, pt["id"]))
+        passages = a.get("passages")
+        if not isinstance(passages, list) or not MIN_PASSAGES <= len(passages) <= MAX_PASSAGES:
+            bad("E_ACCOUNT", "account %s needs %d to %d passages" % (aid, MIN_PASSAGES, MAX_PASSAGES))
+            continue
+        kinds, local_authors, pids, omissions = set(), set(), set(), 0
+        for p in passages:
+            if not isinstance(p, dict) or not (_is_str(p.get("id")) and SLUG.match(p["id"])):
+                bad("E_ACCOUNT", "account %s has a passage with a missing id" % aid)
+                continue
+            pid = "%s/%s" % (aid, p["id"])
+            if p["id"] in pids:
+                bad("E_ACCOUNT", "account %s repeats passage id %s" % (aid, p["id"]))
+            pids.add(p["id"])
+            src = sources.get(p.get("source")) if isinstance(sources, dict) else None
+            if not isinstance(src, dict):
+                bad("E_ACCOUNT_SOURCE", "passage %s cites unknown source %r" % (pid, p.get("source")))
+            elif not _has_valid_url(src.get("url")) or not (_is_str(src.get("read")) and parse_date(src.get("read"))):
+                bad("E_ACCOUNT_SOURCE", "passage %s: source %s lacks a URL or a read date" % (pid, p.get("source")))
+            if not (_is_str(p.get("author_id")) and SLUG.match(p["author_id"])) or not _is_str(p.get("author")):
+                bad("E_ACCOUNT_AUTHOR", "passage %s needs an author_id and an author name" % pid)
+            else:
+                if authors.setdefault(p["author_id"], p["author"]) != p["author"]:
+                    bad("E_ACCOUNT_AUTHOR", "author %s is written two ways (%r and %r)" % (p["author_id"], authors[p["author_id"]], p["author"]))
+                if p["author_id"] in local_authors:
+                    bad("E_ACCOUNT_AUTHOR", "account %s: two passages share the author %s (the point is to compare different voices)" % (aid, p["author_id"]))
+                local_authors.add(p["author_id"])
+            kind = p.get("kind")
+            if kind not in ACCOUNT_KINDS:
+                bad("E_ACCOUNT_KIND", "passage %s kind must be primary or secondary" % pid)
+            kinds.add(kind)
+            if p.get("vantage") not in vantage_ids:
+                bad("E_ACCOUNT_KIND", "passage %s vantage must be one of %s" % (pid, ", ".join(sorted(vantage_ids))))
+            elif kind == "primary" and p["vantage"] == "later" or kind == "secondary" and p["vantage"] != "later":
+                bad("E_ACCOUNT_KIND", "passage %s: a primary source took part or watched; a secondary one wrote afterwards" % pid)
+            if p.get("purpose") not in purpose_ids:
+                bad("E_ACCOUNT_KIND", "passage %s purpose must be one of %s" % (pid, ", ".join(sorted(purpose_ids))))
+            written = p.get("written")
+            if written is None:
+                if kind == "primary":
+                    bad("E_ACCOUNT_DATE", "passage %s is primary, so it needs the date it was written" % pid)
+            elif not (_is_str(written) and ISO_DAY.match(written) and parse_date(written)):
+                bad("E_ACCOUNT_DATE", "passage %s has an invalid written date %r" % (pid, written))
+            elif isinstance(src, dict) and _is_str(src.get("read")) and written > src["read"]:
+                bad("E_ACCOUNT_DATE", "passage %s was written after the source was read" % pid)
+            text = p.get("text")
+            if not _is_str(text) or not 80 <= len(text) <= 520:
+                bad("E_ACCOUNT_TEXT", "passage %s text must be 80 to 520 characters (a short original summary)" % pid)
+            elif '"' in text or "\u201c" in text or "\u201d" in text:
+                bad("E_ACCOUNT_TEXT", "passage %s uses quotation marks; passages are original paraphrases, never quoted sentences" % pid)
+            if not _is_str(p.get("purpose_note")):
+                bad("E_ACCOUNT_TEXT", "passage %s needs a purpose_note saying where the purpose comes from" % pid)
+            mentions = p.get("mentions")
+            if not (isinstance(mentions, list) and mentions and len(set(mentions)) == len(mentions) and all(m in point_ids for m in mentions)):
+                bad("E_ACCOUNT_MENTIONS", "passage %s `mentions` must list one or more distinct points of the account" % pid)
+                continue
+            if len(point_ids) - len(mentions) >= 1:
+                omissions += 1
+            if len(mentions) < 2 and len(point_ids) - len(mentions) >= 1:
+                bad("E_ACCOUNT_MENTIONS", "passage %s mentions only one point, so its 'what is left out' question would have fewer than 3 options" % pid)
+        if kinds != set(ACCOUNT_KINDS):
+            bad("E_ACCOUNT_KIND", "account %s needs at least one primary and one secondary passage" % aid)
+        if not omissions:
+            bad("E_ACCOUNT_MENTIONS", "account %s: no passage leaves anything out, so there is nothing to compare" % aid)
+    used = {pt.get("claim") for a in data["accounts"] if isinstance(a, dict) for pt in (a.get("points") or []) if isinstance(pt, dict)}
+    for cid, c in claim_ids.items():
+        if c.get("field") == "account" and cid not in used:
+            bad("E_ACCOUNT_POINT", "claim %s has field 'account' but no account point uses it" % cid)
+    if data["accounts"] and len(authors) < 4:
+        bad("E_ACCOUNT_OPTIONS", "the accounts of a set need at least 4 different authors, so every 'who wrote it' question has 4 options")
+
+
+def _check_decisions(data, event_ids, claim_ids, bad):
+    """Decision points: only where the sources document the options, the choice and what followed (a sourced claim each)."""
+    if data is None:
+        for cid, c in claim_ids.items():
+            if c.get("field") == "decision":
+                bad("E_DECISION_CLAIM", "claim %s has field 'decision' but the set has no decisions.json" % cid)
+        return
+    if not isinstance(data, dict) or set(data) - {"decisions"} or not isinstance(data.get("decisions"), list):
+        bad("E_DECISION", "decisions.json must be an object with one `decisions` list")
+        return
+    seen = set()
+    for d in data["decisions"]:
+        if not isinstance(d, dict) or not (_is_str(d.get("id")) and SLUG.match(d["id"])):
+            bad("E_DECISION", "a decision has a missing or invalid id")
+            continue
+        did = d["id"]
+        if did in seen:
+            bad("E_DECISION", "duplicate decision id %s" % did)
+        seen.add(did)
+        for key in ("title", "who", "when", "question"):
+            if not _is_str(d.get(key)):
+                bad("E_DECISION", "decision %s has no %s" % (did, key))
+        if d.get("event") not in event_ids:
+            bad("E_DECISION", "decision %s names unknown event %r" % (did, d.get("event")))
+        opts = d.get("options")
+        ids = []
+        if not isinstance(opts, list) or not MIN_DECISION_OPTIONS <= len(opts) <= MAX_DECISION_OPTIONS:
+            bad("E_DECISION_OPTIONS", "decision %s needs %d to %d options" % (did, MIN_DECISION_OPTIONS, MAX_DECISION_OPTIONS))
+            opts = []
+        for o in opts:
+            if not isinstance(o, dict) or not (_is_str(o.get("id")) and SLUG.match(o["id"])) or not _is_str(o.get("text")):
+                bad("E_DECISION_OPTIONS", "decision %s has an option with no id or text" % did)
+                continue
+            if o["id"] in ids:
+                bad("E_DECISION_OPTIONS", "decision %s repeats option %s" % (did, o["id"]))
+            ids.append(o["id"])
+        if d.get("chosen") not in ids:
+            bad("E_DECISION_OPTIONS", "decision %s: `chosen` must be one of its options" % did)
+        refs = d.get("claims")
+        if not isinstance(refs, dict) or set(refs) != {"options", "choice", "after"}:
+            bad("E_DECISION_CLAIM", "decision %s needs claims for options, choice and after, so each part has three sources" % did)
+            continue
+        for part, cid in refs.items():
+            c = claim_ids.get(cid)
+            if c is None:
+                bad("E_DECISION_CLAIM", "decision %s %s has no claim" % (did, part))
+                continue
+            if c.get("field") != "decision" or c.get("value") != "%s:%s" % (did, part):
+                bad("E_DECISION_CLAIM", "decision %s: claim %s must have field 'decision' and value %r" % (did, cid, "%s:%s" % (did, part)))
+            if c.get("subject") != d.get("event"):
+                bad("E_DECISION_CLAIM", "decision %s: claim %s must be about the decision's event" % (did, cid))
+            if c.get("confidence") != "documented":
+                bad("E_DECISION_CLAIM", "decision %s: claim %s must be documented (a decision point is only built on settled facts)" % (did, cid))
+    for cid, c in claim_ids.items():
+        if c.get("field") == "decision":
+            did, _, part = str(c.get("value")).partition(":")
+            if not any(isinstance(d, dict) and d.get("id") == did and (d.get("claims") or {}).get(part) == cid for d in data["decisions"]):
+                bad("E_DECISION_CLAIM", "claim %s has field 'decision' but no decision uses it" % cid)
 
 
 def _check_playable(cset):
@@ -719,6 +959,11 @@ def _check_playable(cset):
     for ch in cset.myth_chapters:
         for r in range(len(ch["claims"])):
             make_myth_puzzle(cset, ch["id"], r)
+    from account import make_account_puzzle
+
+    for a in cset.accounts:
+        for r in range(2 * len(a["passages"])):
+            make_account_puzzle(cset, a["id"], r)
     playable_years = [year_of(cset.events[i]) for i in cset.event_ids("event")]
     for cid in cset.event_ids("context"):
         y = year_of(cset.events[cid])
@@ -739,7 +984,7 @@ def load_set_dict(files):
 
 
 def read_set_files(folder):
-    """Read the seven JSON files of a set folder (plus the optional chapters.json) into a dict (a missing file is simply absent)."""
+    """Read the seven JSON files of a set folder (plus the optional chapters, accounts and decisions files) into a dict (a missing file is simply absent)."""
     folder = Path(folder)
     files = {}
     for name in FILES:

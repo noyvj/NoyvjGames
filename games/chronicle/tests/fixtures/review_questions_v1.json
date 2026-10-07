@@ -1,0 +1,869 @@
+{
+ "seed_version": "v1",
+ "puzzles": {
+  "ev:e-washington-oath#0": {
+   "options": [
+    "e-washington-oath",
+    "e-jefferson-oath",
+    "e-fort-sumter",
+    "e-lincoln-death"
+   ],
+   "answer": "e-washington-oath"
+  },
+  "ev:e-washington-oath#1": {
+   "options": [
+    "e-roosevelt-sworn",
+    "e-washington-oath",
+    "e-louisiana",
+    "e-gettysburg"
+   ],
+   "answer": "e-washington-oath"
+  },
+  "ev:e-washington-oath#2": {
+   "options": [
+    "c-berlin-wall",
+    "c-origin",
+    "e-washington-oath",
+    "e-nixon-resigns"
+   ],
+   "answer": "e-washington-oath"
+  },
+  "ev:c-bastille#0": {
+   "options": [
+    "c-sputnik",
+    "c-berlin-wall",
+    "e-gettysburg",
+    "c-bastille"
+   ],
+   "answer": "c-bastille"
+  },
+  "ev:c-bastille#1": {
+   "options": [
+    "e-roosevelt-sworn",
+    "c-apollo",
+    "c-bastille",
+    "c-sarajevo"
+   ],
+   "answer": "c-bastille"
+  },
+  "ev:c-bastille#2": {
+   "options": [
+    "c-bastille",
+    "e-jefferson-oath",
+    "e-kennedy",
+    "e-capitol-burned"
+   ],
+   "answer": "c-bastille"
+  },
+  "ev:e-farewell#0": {
+   "options": [
+    "c-origin",
+    "e-farewell",
+    "e-gettysburg",
+    "c-bastille"
+   ],
+   "answer": "e-farewell"
+  },
+  "ev:e-farewell#1": {
+   "options": [
+    "e-farewell",
+    "e-capitol-burned",
+    "c-apollo",
+    "e-removal-act"
+   ],
+   "answer": "e-farewell"
+  },
+  "ev:e-farewell#2": {
+   "options": [
+    "e-roosevelt-sworn",
+    "e-emancipation",
+    "e-farewell",
+    "e-lincoln-death"
+   ],
+   "answer": "e-farewell"
+  },
+  "ev:e-jefferson-oath#0": {
+   "options": [
+    "e-lincoln-death",
+    "e-jefferson-oath",
+    "e-gettysburg",
+    "e-roosevelt-sworn"
+   ],
+   "answer": "e-jefferson-oath"
+  },
+  "ev:e-jefferson-oath#1": {
+   "options": [
+    "e-louisiana",
+    "e-jefferson-oath",
+    "e-gettysburg",
+    "c-berlin-wall"
+   ],
+   "answer": "e-jefferson-oath"
+  },
+  "ev:e-jefferson-oath#2": {
+   "options": [
+    "e-jefferson-oath",
+    "e-nixon-resigns",
+    "c-apollo",
+    "c-waterloo"
+   ],
+   "answer": "e-jefferson-oath"
+  },
+  "ev:e-louisiana#0": {
+   "options": [
+    "e-louisiana",
+    "e-capitol-burned",
+    "e-nixon-resigns",
+    "e-22nd-amendment"
+   ],
+   "answer": "e-louisiana"
+  },
+  "ev:e-louisiana#1": {
+   "options": [
+    "c-apollo",
+    "e-farewell",
+    "e-emancipation",
+    "e-louisiana"
+   ],
+   "answer": "e-louisiana"
+  },
+  "ev:e-louisiana#2": {
+   "options": [
+    "e-22nd-amendment",
+    "e-fort-sumter",
+    "e-kennedy",
+    "e-louisiana"
+   ],
+   "answer": "e-louisiana"
+  },
+  "ev:e-capitol-burned#0": {
+   "options": [
+    "c-origin",
+    "c-berlin-wall",
+    "c-sputnik",
+    "e-capitol-burned"
+   ],
+   "answer": "e-capitol-burned"
+  },
+  "ev:e-capitol-burned#1": {
+   "options": [
+    "e-fort-sumter",
+    "e-jefferson-oath",
+    "e-lincoln-death",
+    "e-capitol-burned"
+   ],
+   "answer": "e-capitol-burned"
+  },
+  "ev:e-capitol-burned#2": {
+   "options": [
+    "c-apollo",
+    "e-jefferson-oath",
+    "e-capitol-burned",
+    "e-removal-act"
+   ],
+   "answer": "e-capitol-burned"
+  },
+  "ev:c-waterloo#0": {
+   "options": [
+    "e-22nd-amendment",
+    "e-gettysburg",
+    "c-waterloo",
+    "e-nixon-resigns"
+   ],
+   "answer": "c-waterloo"
+  },
+  "ev:c-waterloo#1": {
+   "options": [
+    "c-sputnik",
+    "c-bastille",
+    "c-waterloo",
+    "e-removal-act"
+   ],
+   "answer": "c-waterloo"
+  },
+  "ev:c-waterloo#2": {
+   "options": [
+    "c-bastille",
+    "e-jefferson-oath",
+    "c-waterloo",
+    "c-sputnik"
+   ],
+   "answer": "c-waterloo"
+  },
+  "ev:e-removal-act#0": {
+   "options": [
+    "e-lincoln-death",
+    "e-farewell",
+    "e-removal-act",
+    "c-bastille"
+   ],
+   "answer": "e-removal-act"
+  },
+  "ev:e-removal-act#1": {
+   "options": [
+    "e-lincoln-death",
+    "e-capitol-burned",
+    "e-removal-act",
+    "e-louisiana"
+   ],
+   "answer": "e-removal-act"
+  },
+  "ev:e-removal-act#2": {
+   "options": [
+    "c-origin",
+    "e-farewell",
+    "e-removal-act",
+    "e-roosevelt-sworn"
+   ],
+   "answer": "e-removal-act"
+  },
+  "ev:c-origin#0": {
+   "options": [
+    "e-louisiana",
+    "c-origin",
+    "e-capitol-burned",
+    "e-kennedy"
+   ],
+   "answer": "c-origin"
+  },
+  "ev:c-origin#1": {
+   "options": [
+    "c-origin",
+    "e-lincoln-death",
+    "c-bastille",
+    "e-capitol-burned"
+   ],
+   "answer": "c-origin"
+  },
+  "ev:c-origin#2": {
+   "options": [
+    "c-origin",
+    "c-berlin-wall",
+    "e-roosevelt-sworn",
+    "c-sputnik"
+   ],
+   "answer": "c-origin"
+  },
+  "ev:e-fort-sumter#0": {
+   "options": [
+    "e-fort-sumter",
+    "c-origin",
+    "c-sarajevo",
+    "e-nixon-resigns"
+   ],
+   "answer": "e-fort-sumter"
+  },
+  "ev:e-fort-sumter#1": {
+   "options": [
+    "c-sarajevo",
+    "e-fort-sumter",
+    "e-louisiana",
+    "e-emancipation"
+   ],
+   "answer": "e-fort-sumter"
+  },
+  "ev:e-fort-sumter#2": {
+   "options": [
+    "e-fort-sumter",
+    "c-sarajevo",
+    "c-berlin-wall",
+    "e-washington-oath"
+   ],
+   "answer": "e-fort-sumter"
+  },
+  "ev:e-emancipation#0": {
+   "options": [
+    "e-capitol-burned",
+    "e-emancipation",
+    "e-louisiana",
+    "c-apollo"
+   ],
+   "answer": "e-emancipation"
+  },
+  "ev:e-emancipation#1": {
+   "options": [
+    "e-emancipation",
+    "e-washington-oath",
+    "c-bastille",
+    "e-fort-sumter"
+   ],
+   "answer": "e-emancipation"
+  },
+  "ev:e-emancipation#2": {
+   "options": [
+    "c-apollo",
+    "e-22nd-amendment",
+    "c-origin",
+    "e-emancipation"
+   ],
+   "answer": "e-emancipation"
+  },
+  "ev:e-gettysburg#0": {
+   "options": [
+    "e-fort-sumter",
+    "c-sarajevo",
+    "e-removal-act",
+    "e-gettysburg"
+   ],
+   "answer": "e-gettysburg"
+  },
+  "ev:e-gettysburg#1": {
+   "options": [
+    "e-gettysburg",
+    "e-jefferson-oath",
+    "e-nixon-resigns",
+    "e-capitol-burned"
+   ],
+   "answer": "e-gettysburg"
+  },
+  "ev:e-gettysburg#2": {
+   "options": [
+    "c-sarajevo",
+    "e-gettysburg",
+    "e-kennedy",
+    "e-jefferson-oath"
+   ],
+   "answer": "e-gettysburg"
+  },
+  "ev:e-lincoln-death#0": {
+   "options": [
+    "e-lincoln-death",
+    "e-washington-oath",
+    "e-jefferson-oath",
+    "c-berlin-wall"
+   ],
+   "answer": "e-lincoln-death"
+  },
+  "ev:e-lincoln-death#1": {
+   "options": [
+    "e-22nd-amendment",
+    "e-washington-oath",
+    "e-kennedy",
+    "e-lincoln-death"
+   ],
+   "answer": "e-lincoln-death"
+  },
+  "ev:e-lincoln-death#2": {
+   "options": [
+    "e-jefferson-oath",
+    "e-lincoln-death",
+    "e-emancipation",
+    "e-removal-act"
+   ],
+   "answer": "e-lincoln-death"
+  },
+  "ev:e-roosevelt-sworn#0": {
+   "options": [
+    "c-sarajevo",
+    "e-kennedy",
+    "e-roosevelt-sworn",
+    "e-fort-sumter"
+   ],
+   "answer": "e-roosevelt-sworn"
+  },
+  "ev:e-roosevelt-sworn#1": {
+   "options": [
+    "c-waterloo",
+    "e-farewell",
+    "e-roosevelt-sworn",
+    "c-origin"
+   ],
+   "answer": "e-roosevelt-sworn"
+  },
+  "ev:e-roosevelt-sworn#2": {
+   "options": [
+    "e-emancipation",
+    "e-fort-sumter",
+    "e-roosevelt-sworn",
+    "e-lincoln-death"
+   ],
+   "answer": "e-roosevelt-sworn"
+  },
+  "ev:c-sarajevo#0": {
+   "options": [
+    "c-apollo",
+    "e-nixon-resigns",
+    "e-gettysburg",
+    "c-sarajevo"
+   ],
+   "answer": "c-sarajevo"
+  },
+  "ev:c-sarajevo#1": {
+   "options": [
+    "c-sarajevo",
+    "e-removal-act",
+    "e-washington-oath",
+    "e-nixon-resigns"
+   ],
+   "answer": "c-sarajevo"
+  },
+  "ev:c-sarajevo#2": {
+   "options": [
+    "c-sarajevo",
+    "e-louisiana",
+    "e-roosevelt-sworn",
+    "e-emancipation"
+   ],
+   "answer": "c-sarajevo"
+  },
+  "ev:e-22nd-amendment#0": {
+   "options": [
+    "e-fort-sumter",
+    "e-22nd-amendment",
+    "e-removal-act",
+    "e-roosevelt-sworn"
+   ],
+   "answer": "e-22nd-amendment"
+  },
+  "ev:e-22nd-amendment#1": {
+   "options": [
+    "e-22nd-amendment",
+    "c-apollo",
+    "e-kennedy",
+    "e-removal-act"
+   ],
+   "answer": "e-22nd-amendment"
+  },
+  "ev:e-22nd-amendment#2": {
+   "options": [
+    "c-waterloo",
+    "e-22nd-amendment",
+    "e-washington-oath",
+    "e-louisiana"
+   ],
+   "answer": "e-22nd-amendment"
+  },
+  "ev:c-sputnik#0": {
+   "options": [
+    "c-sputnik",
+    "e-kennedy",
+    "c-waterloo",
+    "e-washington-oath"
+   ],
+   "answer": "c-sputnik"
+  },
+  "ev:c-sputnik#1": {
+   "options": [
+    "c-berlin-wall",
+    "e-kennedy",
+    "c-sputnik",
+    "e-nixon-resigns"
+   ],
+   "answer": "c-sputnik"
+  },
+  "ev:c-sputnik#2": {
+   "options": [
+    "e-louisiana",
+    "e-farewell",
+    "e-emancipation",
+    "c-sputnik"
+   ],
+   "answer": "c-sputnik"
+  },
+  "ev:e-kennedy#0": {
+   "options": [
+    "e-lincoln-death",
+    "c-origin",
+    "e-kennedy",
+    "e-capitol-burned"
+   ],
+   "answer": "e-kennedy"
+  },
+  "ev:e-kennedy#1": {
+   "options": [
+    "e-kennedy",
+    "c-origin",
+    "e-louisiana",
+    "c-waterloo"
+   ],
+   "answer": "e-kennedy"
+  },
+  "ev:e-kennedy#2": {
+   "options": [
+    "e-kennedy",
+    "e-gettysburg",
+    "e-washington-oath",
+    "e-22nd-amendment"
+   ],
+   "answer": "e-kennedy"
+  },
+  "ev:c-apollo#0": {
+   "options": [
+    "e-washington-oath",
+    "e-removal-act",
+    "c-apollo",
+    "e-gettysburg"
+   ],
+   "answer": "c-apollo"
+  },
+  "ev:c-apollo#1": {
+   "options": [
+    "e-kennedy",
+    "c-apollo",
+    "c-sarajevo",
+    "c-origin"
+   ],
+   "answer": "c-apollo"
+  },
+  "ev:c-apollo#2": {
+   "options": [
+    "c-origin",
+    "c-sarajevo",
+    "c-sputnik",
+    "c-apollo"
+   ],
+   "answer": "c-apollo"
+  },
+  "ev:e-nixon-resigns#0": {
+   "options": [
+    "e-nixon-resigns",
+    "e-jefferson-oath",
+    "c-bastille",
+    "e-farewell"
+   ],
+   "answer": "e-nixon-resigns"
+  },
+  "ev:e-nixon-resigns#1": {
+   "options": [
+    "c-berlin-wall",
+    "e-washington-oath",
+    "c-origin",
+    "e-nixon-resigns"
+   ],
+   "answer": "e-nixon-resigns"
+  },
+  "ev:e-nixon-resigns#2": {
+   "options": [
+    "e-gettysburg",
+    "e-nixon-resigns",
+    "c-bastille",
+    "e-22nd-amendment"
+   ],
+   "answer": "e-nixon-resigns"
+  },
+  "ev:c-berlin-wall#0": {
+   "options": [
+    "c-berlin-wall",
+    "e-emancipation",
+    "c-sarajevo",
+    "c-origin"
+   ],
+   "answer": "c-berlin-wall"
+  },
+  "ev:c-berlin-wall#1": {
+   "options": [
+    "c-berlin-wall",
+    "e-nixon-resigns",
+    "e-22nd-amendment",
+    "c-sarajevo"
+   ],
+   "answer": "c-berlin-wall"
+  },
+  "ev:c-berlin-wall#2": {
+   "options": [
+    "e-22nd-amendment",
+    "e-farewell",
+    "c-berlin-wall",
+    "c-sarajevo"
+   ],
+   "answer": "c-berlin-wall"
+  },
+  "my:c-e-gettysburg-date#0": {
+   "options": [
+    "documented",
+    "disputed",
+    "traditional-but-doubtful"
+   ],
+   "answer": "documented"
+  },
+  "my:c-e-gettysburg-date#1": {
+   "options": [
+    "documented",
+    "disputed",
+    "traditional-but-doubtful"
+   ],
+   "answer": "documented"
+  },
+  "my:c-e-gettysburg-date#2": {
+   "options": [
+    "documented",
+    "disputed",
+    "traditional-but-doubtful"
+   ],
+   "answer": "documented"
+  },
+  "my:c-e-gettysburg-tradition#0": {
+   "options": [
+    "documented",
+    "disputed",
+    "traditional-but-doubtful"
+   ],
+   "answer": "traditional-but-doubtful"
+  },
+  "my:c-e-gettysburg-tradition#1": {
+   "options": [
+    "documented",
+    "disputed",
+    "traditional-but-doubtful"
+   ],
+   "answer": "traditional-but-doubtful"
+  },
+  "my:c-e-gettysburg-tradition#2": {
+   "options": [
+    "documented",
+    "disputed",
+    "traditional-but-doubtful"
+   ],
+   "answer": "traditional-but-doubtful"
+  },
+  "my:c-e-gettysburg-final-revision#0": {
+   "options": [
+    "documented",
+    "disputed",
+    "traditional-but-doubtful"
+   ],
+   "answer": "disputed"
+  },
+  "my:c-e-gettysburg-final-revision#1": {
+   "options": [
+    "documented",
+    "disputed",
+    "traditional-but-doubtful"
+   ],
+   "answer": "disputed"
+  },
+  "my:c-e-gettysburg-final-revision#2": {
+   "options": [
+    "documented",
+    "disputed",
+    "traditional-but-doubtful"
+   ],
+   "answer": "disputed"
+  },
+  "my:c-e-emancipation-date#0": {
+   "options": [
+    "documented",
+    "disputed",
+    "traditional-but-doubtful"
+   ],
+   "answer": "documented"
+  },
+  "my:c-e-emancipation-date#1": {
+   "options": [
+    "documented",
+    "disputed",
+    "traditional-but-doubtful"
+   ],
+   "answer": "documented"
+  },
+  "my:c-e-emancipation-date#2": {
+   "options": [
+    "documented",
+    "disputed",
+    "traditional-but-doubtful"
+   ],
+   "answer": "documented"
+  },
+  "my:c-e-emancipation-scope#0": {
+   "options": [
+    "documented",
+    "disputed",
+    "traditional-but-doubtful"
+   ],
+   "answer": "traditional-but-doubtful"
+  },
+  "my:c-e-emancipation-scope#1": {
+   "options": [
+    "documented",
+    "disputed",
+    "traditional-but-doubtful"
+   ],
+   "answer": "traditional-but-doubtful"
+  },
+  "my:c-e-emancipation-scope#2": {
+   "options": [
+    "documented",
+    "disputed",
+    "traditional-but-doubtful"
+   ],
+   "answer": "traditional-but-doubtful"
+  },
+  "my:c-e-washington-oath-date#0": {
+   "options": [
+    "documented",
+    "disputed",
+    "traditional-but-doubtful"
+   ],
+   "answer": "documented"
+  },
+  "my:c-e-washington-oath-date#1": {
+   "options": [
+    "documented",
+    "disputed",
+    "traditional-but-doubtful"
+   ],
+   "answer": "documented"
+  },
+  "my:c-e-washington-oath-date#2": {
+   "options": [
+    "documented",
+    "disputed",
+    "traditional-but-doubtful"
+   ],
+   "answer": "documented"
+  },
+  "my:c-e-washington-oath-words#0": {
+   "options": [
+    "documented",
+    "disputed",
+    "traditional-but-doubtful"
+   ],
+   "answer": "traditional-but-doubtful"
+  },
+  "my:c-e-washington-oath-words#1": {
+   "options": [
+    "documented",
+    "disputed",
+    "traditional-but-doubtful"
+   ],
+   "answer": "traditional-but-doubtful"
+  },
+  "my:c-e-washington-oath-words#2": {
+   "options": [
+    "documented",
+    "disputed",
+    "traditional-but-doubtful"
+   ],
+   "answer": "traditional-but-doubtful"
+  },
+  "ln:r-sumter-emancipation#0": {
+   "options": [
+    "direct",
+    "contributing"
+   ],
+   "answer": "contributing"
+  },
+  "ln:r-sumter-emancipation#1": {
+   "options": [
+    "direct",
+    "contributing"
+   ],
+   "answer": "contributing"
+  },
+  "ln:r-sumter-emancipation#2": {
+   "options": [
+    "direct",
+    "contributing"
+   ],
+   "answer": "contributing"
+  },
+  "ln:r-farewell-22nd#0": {
+   "options": [
+    "direct",
+    "contributing"
+   ],
+   "answer": "contributing"
+  },
+  "ln:r-farewell-22nd#1": {
+   "options": [
+    "direct",
+    "contributing"
+   ],
+   "answer": "contributing"
+  },
+  "ln:r-farewell-22nd#2": {
+   "options": [
+    "direct",
+    "contributing"
+   ],
+   "answer": "contributing"
+  },
+  "ln:r-sputnik-apollo#0": {
+   "options": [
+    "direct",
+    "contributing"
+   ],
+   "answer": "contributing"
+  },
+  "ln:r-sputnik-apollo#1": {
+   "options": [
+    "direct",
+    "contributing"
+   ],
+   "answer": "contributing"
+  },
+  "ln:r-sputnik-apollo#2": {
+   "options": [
+    "direct",
+    "contributing"
+   ],
+   "answer": "contributing"
+  },
+  "dc:d-sumter#0": {
+   "options": [
+    "withdraw",
+    "reinforce",
+    "supply"
+   ],
+   "answer": "supply"
+  },
+  "dc:d-sumter#1": {
+   "options": [
+    "withdraw",
+    "reinforce",
+    "supply"
+   ],
+   "answer": "supply"
+  },
+  "dc:d-sumter#2": {
+   "options": [
+    "withdraw",
+    "reinforce",
+    "supply"
+   ],
+   "answer": "supply"
+  },
+  "dc:d-louisiana#0": {
+   "options": [
+    "amend",
+    "proceed"
+   ],
+   "answer": "proceed"
+  },
+  "dc:d-louisiana#1": {
+   "options": [
+    "amend",
+    "proceed"
+   ],
+   "answer": "proceed"
+  },
+  "dc:d-louisiana#2": {
+   "options": [
+    "amend",
+    "proceed"
+   ],
+   "answer": "proceed"
+  },
+  "dc:d-term#0": {
+   "options": [
+    "retire",
+    "serve"
+   ],
+   "answer": "serve"
+  },
+  "dc:d-term#1": {
+   "options": [
+    "retire",
+    "serve"
+   ],
+   "answer": "serve"
+  },
+  "dc:d-term#2": {
+   "options": [
+    "retire",
+    "serve"
+   ],
+   "answer": "serve"
+  }
+ }
+}

@@ -1,6 +1,6 @@
 # Site-Wide TODO (round 3)
 
-**Progress: 257/904 items checked off (28.4%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land.
+**Progress: 259/904 items checked off (28.7%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land.
 
 Built from your answers in `planning/IMPROVEMENT-IDEAS-ROUND-3.md` (Part 4). Every Round 3 section is now answered (2026-10-07 below the Warframe section); earlier this list held only: **GB** (Canopy gamified), **M** (new games), **N** (seasonal events), **O** (Trade Empire and Continuum replayability), **P/Q/S/T** (Signal, Undersleep, Overclock, Last Line open questions), **X** (Warframe tracker) and **R** (returning later). GC-GI, A-L, U, Z and Y are unanswered and wait for you. The previous list is archived at `planning/todo-archive/260914_260927.md`; anything from it that was moved here is marked "moved" there.
 
@@ -1069,8 +1069,8 @@ Classic stays the default boot (`index.html`); Desktop is a second boot (`pc.htm
 - [ ] CH-6: The report-a-problem feature: a button on every claim, a backend table and routes (same pattern as Le Champ de Mots' answer reports), and a list on the admin page where you mark each report done.
 - [x] CH-7: Milestone 4, the cause web mechanic.
 - [x] CH-8: Milestone 5, myth or record, plus the Info page showing the three sources for every claim.
-- [ ] CH-9: Milestone 6, "whose account?" source evaluation.
-- [ ] CH-10: Milestone 7, spaced review and decision points.
+- [x] CH-9: Milestone 6, "whose account?" source evaluation.
+- [x] CH-10: Milestone 7, spaced review and decision points.
 - [ ] CH-11: Milestone 8, author the American presidents set in full (three sources per claim, a review page, then your review), balanced and non-partisan.
 - [ ] CH-12: Milestone 9, second and third sets (history of food, Ancient Greece) and the set picker.
 - [ ] CH-13: (Note: `scripts/generate-last-updated.py` adds chronicle to `game-manifest.json`; it was removed by hand until the game is hub-registered, so re-run the script then.) Milestone 10, polish, accessibility pass, hub registration, Desktop boot.

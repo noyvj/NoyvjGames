@@ -3,6 +3,8 @@
 a loaded save and a played one cannot disagree. None is hidden or luck-gated; all are reachable by playing
 any one set to the end (easy to 100%): the cause web and Myth or record ones need a set that has those chapters.
 
+The whose-account, decision-point and review ones need a set with those parts (the review ones need only a learned fact).
+
 Each rule is evaluated per set and earned if it holds in ANY loaded set, so a new set never needs engine
 changes and can never take an earned achievement away.
 """
@@ -27,9 +29,18 @@ ACHIEVEMENTS = (
     ("myth_spotter", "Myth Spotter", "Sort a traditional-but-doubtful claim correctly."),
     ("straight_sort", "Straight Sort", "Sort a Myth or record puzzle with a single check."),
     ("fair_judge", "Fair Judge", "Sort every claim of a set correctly."),
+    ("first_source", "First Source Weighed", "Judge a source correctly in Whose account?."),
+    ("both_kinds", "Primary and Secondary", "Judge one primary and one secondary source correctly."),
+    ("careful_reader", "Careful Reader", "Judge a source with a single check."),
+    ("every_account", "Every Account", "Judge every source of a set."),
+    ("first_decision", "In Their Shoes", "Make your choice at a decision point."),
+    ("every_crossroads", "Every Crossroads", "Make a choice at every decision point of a set."),
+    ("first_recall", "First Recall", "Answer a review question correctly."),
+    ("long_memory", "Long Memory", "Bring one fact all the way to the longest gap in Review."),
 )
 
 IDS = [a[0] for a in ACHIEVEMENTS]
+LADDER_LENGTH = 5          # the review ladder has five rungs (review.LADDER); an item at step 5 has reached the longest gap
 
 
 def earned(state, sets, helpers):
@@ -83,6 +94,27 @@ def earned(state, sets, helpers):
         reachable_claims = set(cset.myth_claim_ids())
         if reachable_claims and reachable_claims <= done:
             got.add("fair_judge")
+        judged = helpers.judged(set_id)
+        if judged:
+            got.add("first_source")
+            kinds = {cset.passage(*k.split("/", 1))["kind"] for k in judged if cset.passage(*k.split("/", 1))}
+            if {"primary", "secondary"} <= kinds:
+                got.add("both_kinds")
+        if any(rec.get("checks") == 1 for rec in helpers.account_records(set_id).values()):
+            got.add("careful_reader")
+        all_passages = set(cset.passage_keys())
+        if all_passages and all_passages <= judged:
+            got.add("every_account")
+        decided = helpers.decided(set_id)
+        if decided:
+            got.add("first_decision")
+        if cset.decisions and set(cset.decision_ids()) <= set(decided):
+            got.add("every_crossroads")
+        records = helpers.review_records(set_id)
+        if any(rec.get("right", 0) >= 1 for rec in records.values()):
+            got.add("first_recall")
+        if any(rec.get("step", 0) >= LADDER_LENGTH for rec in records.values()):
+            got.add("long_memory")
     if solved_total >= 5:
         got.add("five_timelines")
     viewed = state["viewed"]

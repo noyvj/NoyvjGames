@@ -30,6 +30,16 @@ Requests: {"action": ..., ...}. Actions
   myth_check                    grade a fully sorted puzzle: right claims lock and are added to the archive
   myth_show                     reveal the right bins (nothing is learned from a reveal)
   myth_next                     the next myth round
+  account_start {account, round?}   open a whose-account puzzle
+  account_answer {question, choice}  choose an option for one question (or clear it with choice null)
+  account_check                 grade a fully answered puzzle: right answers lock; all right = that source is judged
+  account_show                  reveal the answers and the sources (nothing is learned from a reveal)
+  account_next                  the next whose-account round
+  decision_start {decision}     open a decision point
+  decision_pick {option}        choose; the game then shows what they chose and what followed (nothing is graded)
+  review_answer {key, choice}   answer the review question that is ready
+  review_next                   leave the answer's feedback and move to the next ready question
+  review_day                    let a day pass (the review schedule's own day counter; there is no real clock)
   ack                           the player has seen the introduction
   reset                         erase all progress
 Every response: {"ok", "error", "view", "new" (achievements just earned), "dirty" (state changed)}.
@@ -38,16 +48,20 @@ Every response: {"ok", "error", "view", "new" (achievements just earned), "dirty
 import json
 from pathlib import Path
 
+import account as ac
 import achievements
+import decision as dc
 import myth as mq
 import puzzle as pz
 import report
+import review as rv
 import web as wb
-from setdata import SetError, event_key, format_date, load_set, year_of
+from setdata import (HIDDEN_FIELDS, KIND_LABELS, PURPOSES, VANTAGES, SetError, event_key, format_date, load_set, year_of)
 
-SCHEMA = 2
-MODES = ("timeline", "web", "myth")
-MODE_LABELS = {"timeline": "Timeline", "web": "Cause web", "myth": "Myth or record"}
+SCHEMA = 3
+MODES = ("timeline", "web", "myth", "account", "decision", "review")
+MODE_LABELS = {"timeline": "Timeline", "web": "Cause web", "myth": "Myth or record", "account": "Whose account?",
+               "decision": "Decision points", "review": "Review"}
 STRENGTH_LABELS = {"direct": ("Direct cause", "\u21d2"), "contributing": ("Contributing cause", "\u21e2")}
 STRENGTH_MEANING = {
     "direct": "The sources treat this as the immediate trigger. Other causes still matter.",
@@ -112,7 +126,8 @@ def register_set(cset):
 
 def _blank_state():
     return {"sets": {}, "unknown": {}, "viewed": set(), "settings": {"set": None, "hints": True, "mode": "timeline"},
-            "flags": {"onboarded": False}, "session": None, "wsession": None, "msession": None, "earned": []}
+            "flags": {"onboarded": False}, "session": None, "wsession": None, "msession": None, "asession": None,
+            "dsession": None, "day": 0, "rfeedback": None, "earned": []}
 
 
 def reset_engine():
@@ -124,7 +139,7 @@ def reset_engine():
 
 def _ensure_progress(set_id):
     return S["sets"].setdefault(set_id, {"learned": set(), "solved": {}, "revealed": set(), "threads": set(), "sorted": set(),
-                                         "wsolved": {}, "msolved": {}})
+                                         "wsolved": {}, "msolved": {}, "judged": set(), "asolved": {}, "decided": {}, "srs": {}})
 
 
 def _prog(set_id):
@@ -166,6 +181,22 @@ class _Helpers:
         return _prog(set_id)["msolved"]
 
     @staticmethod
+    def judged(set_id):
+        return _prog(set_id)["judged"]
+
+    @staticmethod
+    def account_records(set_id):
+        return _prog(set_id)["asolved"]
+
+    @staticmethod
+    def decided(set_id):
+        return _prog(set_id)["decided"]
+
+    @staticmethod
+    def review_records(set_id):
+        return _prog(set_id)["srs"]
+
+    @staticmethod
     def percent(set_id):
         found, total = _counts(set_id)
         return 100 if found == total else (100 * found) // total
@@ -182,9 +213,11 @@ def _counts(set_id):
     cset = SETS[set_id]
     prog = _prog(set_id)
     rels, claims = set(cset.web_relation_ids()), set(cset.myth_claim_ids())
+    passages, decisions = set(cset.passage_keys()), set(cset.decision_ids())
     found = (len(prog["learned"]) + len(HELP.people_found(set_id)) + len(HELP.places_found(set_id))
-             + len(prog["threads"] & rels) + len(prog["sorted"] & claims))
-    total = len(cset.events) + len(cset.people) + len(cset.places) + len(rels) + len(claims)
+             + len(prog["threads"] & rels) + len(prog["sorted"] & claims) + len(prog["judged"] & passages)
+             + len(set(prog["decided"]) & decisions))
+    total = len(cset.events) + len(cset.people) + len(cset.places) + len(rels) + len(claims) + len(passages) + len(decisions)
     return found, total
 
 
@@ -259,7 +292,7 @@ def _event_full(cset, event_id):
         "place": place["name"] if place else None,
         "people": [cset.people[p]["name"] for p in e.get("people", [])],
         "claim": _claim_view(cset, claim),
-        "other_claims": [_claim_view(cset, c) for c in cset.claims_for(event_id) if c["field"] not in ("date", "relation")],
+        "other_claims": [_claim_view(cset, c) for c in cset.claims_for(event_id) if c["field"] not in ("date",) + tuple(HIDDEN_FIELDS)],
     }
 
 
@@ -626,6 +659,272 @@ def _myth_view(sess):
     }
 
 
+# ---- whose account?: chapters (one per account), session, views
+
+
+def _account_unlocked(set_id, a):
+    return a["event"] in _prog(set_id)["learned"]
+
+
+def _account_judged(set_id, a):
+    return [p["id"] for p in a["passages"] if "%s/%s" % (a["id"], p["id"]) in _prog(set_id)["judged"]]
+
+
+def _account_cleared(set_id, a):
+    return len(_account_judged(set_id, a)) == len(a["passages"])
+
+
+def _account_next_round(set_id, a):
+    solved = _prog(set_id)["asolved"]
+    r = 0
+    while "%s:%d" % (a["id"], r) in solved:
+        r += 1
+    return r
+
+
+def _account_chapter_views(cset):
+    out = []
+    for a in cset.accounts:
+        have = len(_account_judged(cset.id, a))
+        unlocked = _account_unlocked(cset.id, a)
+        out.append({
+            "id": a["id"], "title": a["title"], "blurb": a["blurb"], "size": len(a["passages"]), "difficulty": None,
+            "unlocked": unlocked, "cleared": have == len(a["passages"]), "have": have, "need": len(a["passages"]),
+            "progress": "Judged %d of %d sources" % (have, len(a["passages"])), "missing": 0 if unlocked else 1,
+            "requires_text": "Find that moment in the timeline first",
+            "next_round": _account_next_round(cset.id, a), "main_rounds": ac.main_rounds(cset, a["id"]),
+        })
+    return out
+
+
+def _astart(set_id, account_id, round_no):
+    cset = SETS[set_id]
+    puz = ac.make_account_puzzle(cset, account_id, round_no)
+    n = puz.size
+    S["asession"] = {"set": set_id, "account": account_id, "round": round_no, "answers": [None] * n, "locked": [False] * n,
+                     "marks": [None] * n, "checks": 0, "status": "playing", "new": [], "message": ""}
+    return puz
+
+
+def _adefault(cset):
+    chosen = None
+    for a in cset.accounts:
+        if _account_unlocked(cset.id, a):
+            chosen = a
+            if not _account_cleared(cset.id, a):
+                break
+    if chosen is None:
+        return None
+    _astart(cset.id, chosen["id"], _account_next_round(cset.id, chosen))
+    return S["asession"]
+
+
+def _ensure_asession():
+    sess = S["asession"]
+    cset = _cur_set()
+    if cset is None or not cset.accounts:
+        return None
+    if sess is not None and sess["set"] == cset.id:
+        a = cset.account(sess["account"])
+        if a is not None and _account_unlocked(cset.id, a):
+            return sess
+    S["asession"] = None
+    return _adefault(cset)
+
+
+def _apuzzle(sess):
+    cset = SETS[sess["set"]]
+    return cset, ac.make_account_puzzle(cset, sess["account"], sess["round"])
+
+
+def _letter(i):
+    return chr(65 + i)
+
+
+def _passage_reveal(cset, a, passage, letter):
+    src = cset.sources[passage["source"]]
+    written = passage.get("written")
+    return {
+        "id": passage["id"], "key": "%s/%s" % (a["id"], passage["id"]), "letter": letter, "text": passage["text"],
+        "author": passage["author"], "kind": passage["kind"], "kind_label": KIND_LABELS[passage["kind"]],
+        "written_label": format_date(written) if written else "undated web page, read on %s" % format_date(src["read"]),
+        "vantage_label": dict(VANTAGES)[passage["vantage"]], "purpose_label": dict(PURPOSES)[passage["purpose"]],
+        "purpose_note": passage["purpose_note"],
+        "source": {"id": passage["source"], "title": src["title"], "institution": src.get("institution") or src.get("author"),
+                   "url": src["url"], "read": src["read"]},
+        "mentions": [pt["label"] for pt in a["points"] if pt["id"] in passage["mentions"]],
+        "leaves_out": [pt["label"] for pt in a["points"] if pt["id"] not in passage["mentions"]],
+    }
+
+
+def _account_points(cset, a):
+    return [{"id": pt["id"], "label": pt["label"], "claim": _claim_view(cset, cset.claims[pt["claim"]])} for pt in a["points"]]
+
+
+def _account_view(sess):
+    cset, puz = _apuzzle(sess)
+    a = cset.account(sess["account"])
+    main = ac.main_rounds(cset, sess["account"])
+    label = ("Puzzle %d of %d" % (sess["round"] + 1, main)) if sess["round"] < main else ("Practice puzzle %d" % (sess["round"] - main + 1))
+    by_id = {p["id"]: p for p in a["passages"]}
+    letters = {pid: _letter(i) for i, pid in enumerate(puz.order)}
+    passages = [{"id": pid, "letter": letters[pid], "text": by_id[pid]["text"], "focus": pid == puz.focus} for pid in puz.order]
+    questions = []
+    for i, q in enumerate(puz.questions):
+        prompt = ac.PROMPTS[q["id"]]
+        if q["id"] == "left_out":
+            prompt = "Which of these does Passage %s leave out?" % letters[puz.focus]
+        elif q["id"] == "who":
+            prompt = "Who wrote the source behind Passage %s?" % letters[puz.focus]
+        questions.append({"id": q["id"], "index": i, "prompt": prompt,
+                          "options": [{"id": o, "label": ac.option_label(cset, a["id"], q["id"], o)} for o in q["options"]],
+                          "choice": sess["answers"][i], "locked": sess["locked"][i],
+                          "status": "right" if sess["locked"][i] else ("wrong" if sess["marks"][i] else None)})
+    finished = sess["status"] != "playing"
+    result = None
+    if finished:
+        correct = []
+        for q in puz.questions:
+            correct.append({"id": q["id"], "answer": q["answer"], "label": ac.option_label(cset, a["id"], q["id"], q["answer"])})
+        result = {
+            "solved": sess["status"] == "solved", "focus": puz.focus, "focus_letter": letters[puz.focus], "correct": correct,
+            "passages": [_passage_reveal(cset, a, by_id[pid], letters[pid]) for pid in puz.order],
+            "points": _account_points(cset, a), "new_count": len(sess["new"]),
+            "account_cleared": sess["status"] == "solved" and _account_cleared(cset.id, a),
+        }
+    event = cset.events[a["event"]]
+    return {
+        "id": puz.code, "account": a["id"], "account_title": a["title"], "round": sess["round"], "round_label": label,
+        "size": puz.size, "status": sess["status"], "message": sess["message"], "checks": sess["checks"],
+        "event_title": event["title"], "event_date": format_date(event_start_text(event)),
+        "passages": passages, "focus_letter": letters[puz.focus], "questions": questions,
+        "all_answered": all(c is not None for c in sess["answers"]), "result": result,
+    }
+
+
+# ---- decision points: list, session, views
+
+
+def _decision_unlocked(set_id, d):
+    return d["event"] in _prog(set_id)["learned"]
+
+
+def _decision_chapter_views(cset):
+    out = []
+    prog = _prog(cset.id)
+    for d in cset.decisions:
+        unlocked = _decision_unlocked(cset.id, d)
+        done = d["id"] in prog["decided"]
+        out.append({"id": d["id"], "title": d["title"], "blurb": "%s, %s." % (d["who"], d["when"]), "unlocked": unlocked,
+                    "cleared": done, "progress": "You made your choice" if done else "Waiting for your choice",
+                    "requires_text": "Find that moment in the timeline first", "missing": 0 if unlocked else 1})
+    return out
+
+
+def _ensure_dsession():
+    sess = S["dsession"]
+    cset = _cur_set()
+    if cset is None or not cset.decisions:
+        return None
+    if sess is not None and sess["set"] == cset.id:
+        d = cset.decision(sess["decision"])
+        if d is not None and _decision_unlocked(cset.id, d):
+            return sess
+    S["dsession"] = None
+    chosen = None
+    for d in cset.decisions:
+        if _decision_unlocked(cset.id, d):
+            chosen = d
+            if d["id"] not in _prog(cset.id)["decided"]:
+                break
+    if chosen is None:
+        return None
+    S["dsession"] = {"set": cset.id, "decision": chosen["id"]}
+    return S["dsession"]
+
+
+def _decision_view(sess):
+    cset = SETS[sess["set"]]
+    d = cset.decision(sess["decision"])
+    rec = _prog(cset.id)["decided"].get(d["id"])
+    by_id = {o["id"]: o for o in d["options"]}
+    order = dc.option_order(cset, d["id"])
+    view = {
+        "id": d["id"], "title": d["title"], "who": d["who"], "when": d["when"], "question": d["question"],
+        "situation": _claim_view(cset, cset.claims[d["claims"]["options"]]),
+        "options": [{"id": o, "text": by_id[o]["text"], "picked": bool(rec and rec["picked"] == o)} for o in order],
+        "decided": rec is not None, "picked": rec["picked"] if rec else None, "result": None,
+        "event_title": cset.events[d["event"]]["title"],
+    }
+    if rec:
+        same = rec["picked"] == d["chosen"]
+        view["result"] = {
+            "chosen": d["chosen"], "chosen_text": by_id[d["chosen"]]["text"], "same": same,
+            "picked_text": by_id[rec["picked"]]["text"],
+            "chose_label": "What %s chose" % d["who"], "after_label": "What followed",
+            "choice_claim": _claim_view(cset, cset.claims[d["claims"]["choice"]]),
+            "after_claim": _claim_view(cset, cset.claims[d["claims"]["after"]]),
+            "note": ("Your choice matches what %s chose." if same else "You chose differently from %s.") % d["who"]
+                    + " There is no right answer here. The game shows what was chosen and what the sources say followed; it does not claim to know what would have happened otherwise.",
+        }
+    return view
+
+
+# ---- review: the spaced-review board
+
+REVIEW_LABELS = {
+    "confidence": {k: "%s %s" % (v[1], v[0]) for k, v in CONFIDENCE_LABELS.items()},
+    "strength": {k: "%s %s" % (v[1], v[0]) for k, v in STRENGTH_LABELS.items()},
+}
+
+
+def _review_state(cset):
+    prog = _prog(cset.id)
+    return prog, prog["srs"], S["day"]
+
+
+def _review_counts(cset):
+    prog, srs, day = _review_state(cset)
+    keys = rv.all_keys(cset, prog)
+    ready = len(rv.ready_questions(cset, prog, srs, day, REVIEW_LABELS))
+    settled = sum(1 for k in keys if rv.is_settled(srs.get(k)))
+    new = sum(1 for k in keys if k not in srs)
+    return {"total": len(keys), "ready": ready, "later": len(keys) - ready, "settled": settled, "new": new}
+
+
+def _review_view(cset):
+    prog, srs, day = _review_state(cset)
+    counts = _review_counts(cset)
+    out = {"day": day, "counts": counts, "ladder": list(rv.LADDER), "question": None, "feedback": None, "idle": None,
+           "explainer": _review_explainer()}
+    fb = S["rfeedback"]
+    if fb is not None and fb.get("set") == cset.id:
+        out["feedback"] = fb
+        return out
+    queue = rv.ready_questions(cset, prog, srs, day, REVIEW_LABELS, limit=1)
+    if queue:
+        key, q = queue[0]
+        rec = srs.get(key) or rv.new_record()
+        out["question"] = {"key": key, "kind": q["kind"], "prompt": q["prompt"], "context": q["context"], "options": q["options"],
+                           "new": key not in srs, "asked": rec["asked"]}
+        return out
+    if not counts["total"]:
+        out["idle"] = "Nothing to review yet. Facts you learn in the other modes will appear here, and come back after a gap that grows each time you remember one."
+    else:
+        out["idle"] = ("Nothing is ready on day %d. Facts come back after a gap of 1, 3, 7, 14 and then 30 days. "
+                       "Chronicle's days only move when you press Let a day pass, and nothing is lost while you are away." % day)
+    return out
+
+
+def _review_explainer():
+    return [
+        "Review brings back facts you have already learned: a moment's date, a statement you sorted, a cause link you found, a choice you made.",
+        "A fact you remember comes back after a longer gap each time: %s days. A fact you do not remember comes back tomorrow, and is never taken away." % ", ".join(str(x) for x in rv.LADDER),
+        "Time here is a day counter that moves only when you press Let a day pass. There is no clock, no deadline and nothing that runs out while you are away.",
+        "Answering never changes your archive or your other progress.",
+    ]
+
+
 # ---- the whole view
 
 
@@ -656,6 +955,9 @@ def _view():
         "achievements_earned": _earned_now(),
         "mode": _mode(cset), "modes": _modes_view(cset), "webs": _web_chapter_views(cset), "myths": _myth_chapter_views(cset),
         "web": _web_board(cset), "myth": _myth_board(cset),
+        "accounts": _account_chapter_views(cset), "decisions": _decision_chapter_views(cset),
+        "account": _account_board(cset), "decision": _decision_board(cset), "review": _review_board(cset),
+        "day": S["day"],
     }
 
 
@@ -670,6 +972,10 @@ def _mode(cset):
         return "timeline"
     if mode == "myth" and not cset.myth_chapters:
         return "timeline"
+    if mode == "account" and not cset.accounts:
+        return "timeline"
+    if mode == "decision" and not cset.decisions:
+        return "timeline"
     return mode if mode in MODES else "timeline"
 
 
@@ -678,6 +984,9 @@ def _modes_view(cset):
         {"id": "timeline", "label": MODE_LABELS["timeline"], "available": True},
         {"id": "web", "label": MODE_LABELS["web"], "available": bool(cset.web_chapters)},
         {"id": "myth", "label": MODE_LABELS["myth"], "available": bool(cset.myth_chapters)},
+        {"id": "account", "label": MODE_LABELS["account"], "available": bool(cset.accounts)},
+        {"id": "decision", "label": MODE_LABELS["decision"], "available": bool(cset.decisions)},
+        {"id": "review", "label": MODE_LABELS["review"], "available": True},
     ]
 
 
@@ -697,6 +1006,30 @@ def _myth_board(cset):
     if sess is None:
         return {"locked": True, "message": "Find more moments in the timeline to open a myth-or-record chapter."}
     return _myth_view(sess)
+
+
+def _account_board(cset):
+    if _mode(cset) != "account":
+        return None
+    sess = _ensure_asession()
+    if sess is None:
+        return {"locked": True, "message": "Find the moments an account is about in the timeline to open Whose account?."}
+    return _account_view(sess)
+
+
+def _decision_board(cset):
+    if _mode(cset) != "decision":
+        return None
+    sess = _ensure_dsession()
+    if sess is None:
+        return {"locked": True, "message": "Find the moments a decision point is about in the timeline to open it."}
+    return _decision_view(sess)
+
+
+def _review_board(cset):
+    if _mode(cset) != "review":
+        return None
+    return _review_view(cset)
 
 
 def _earned_now():
@@ -766,6 +1099,9 @@ def _act_choose_set(req):
     S["session"] = None
     S["wsession"] = None
     S["msession"] = None
+    S["asession"] = None
+    S["dsession"] = None
+    S["rfeedback"] = None
     _default_start(cset)
     return True
 
@@ -889,6 +1225,21 @@ def _claim_allowed(cset, claim):
             _c, wpuz = _wpuzzle(ws)
             return rid in wpuz.relations
         return False
+    if claim["field"] == "account":
+        aid = str(claim["value"]).partition(":")[0]
+        a = cset.account(aid)
+        if a is None:
+            return False
+        if _account_judged(cset.id, a):
+            return True
+        asess = S["asession"]
+        return bool(asess and asess["set"] == cset.id and asess["account"] == aid and asess["status"] in ("solved", "revealed"))
+    if claim["field"] == "decision":
+        did, _, part = str(claim["value"]).partition(":")
+        d = cset.decision(did)
+        if d is None or d["event"] not in prog["learned"]:
+            return False
+        return part == "options" or did in prog["decided"]
     subject = claim["subject"]
     if subject in prog["learned"]:
         return True
@@ -971,6 +1322,26 @@ def _archive(cset):
             else:
                 records.append({"id": cid, "kind": "record", "found": False, "title": None, "date_label": None, "hint": "Myth or record"})
         groups.append({"id": "records", "title": "Records and myths", "entries": records})
+    if cset.accounts:
+        sources = []
+        for a in cset.accounts:
+            for p in a["passages"]:
+                key = "%s/%s" % (a["id"], p["id"])
+                if key in prog["judged"]:
+                    when = format_date(p["written"]) if p.get("written") else "undated web page"
+                    sources.append({"id": key, "kind": "account", "found": True, "title": "%s: %s" % (a["title"], p["author"]),
+                                    "date_label": "%s source, %s" % (p["kind"].capitalize(), when), "hint": "Whose account?"})
+                else:
+                    sources.append({"id": key, "kind": "account", "found": False, "title": None, "date_label": None, "hint": "Whose account?"})
+        groups.append({"id": "sources", "title": "Sources weighed", "entries": sources})
+    if cset.decisions:
+        choices = []
+        for d in cset.decisions:
+            if d["id"] in prog["decided"]:
+                choices.append({"id": d["id"], "kind": "decision", "found": True, "title": d["title"], "date_label": "You made your choice", "hint": "Decision points"})
+            else:
+                choices.append({"id": d["id"], "kind": "decision", "found": False, "title": None, "date_label": None, "hint": "Decision points"})
+        groups.append({"id": "choices", "title": "Crossroads", "entries": choices})
     return {"set": cset.id, "title": cset.title, "found": found, "total": total, "percent": HELP.percent(cset.id),
             "groups": groups, "readings": readings, "locked_readings": len(cset.readings) - len(readings)}
 
@@ -1010,6 +1381,23 @@ def _act_entry(req, out):
         view["explanation"] = _explanation(cset, claim)
         out["entry"] = {"id": entry_id, "kind": "record", "title": claim.get("short") or claim["text"], "claim": view}
         return False
+    for a in cset.accounts:
+        for p in a["passages"]:
+            if entry_id == "%s/%s" % (a["id"], p["id"]):
+                if entry_id not in _prog(cset.id)["judged"]:
+                    raise _Bad("You have not found that yet.")
+                order = ac.display_order(cset, a["id"])
+                out["entry"] = {"id": entry_id, "kind": "account", "title": "%s: %s" % (a["title"], p["author"]),
+                                "passage": _passage_reveal(cset, a, p, _letter(order.index(p["id"]))),
+                                "points": _account_points(cset, a)}
+                return False
+    d = cset.decision(entry_id)
+    if d is not None:
+        if entry_id not in _prog(cset.id)["decided"]:
+            raise _Bad("You have not found that yet.")
+        view = _decision_view({"set": cset.id, "decision": entry_id})
+        out["entry"] = {"id": entry_id, "kind": "decision", "title": d["title"], "decision": view}
+        return False
     raise _Bad("No such entry.")
 
 
@@ -1024,19 +1412,38 @@ def _act_info(req, out):
                            "claims": [full["claim"]] + full["other_claims"]})
     nsources = len({ref["source"] for c in cset.claims.values() for ref in c["sources"]})
     threads = [_thread_view(cset, r["id"]) for r in cset.relations if r["id"] in _prog(cset.id)["threads"] and r["id"] in cset.web_relation_ids()]
-    shown = sum(len(c["claims"]) for c in claims) + len(threads)
+    prog = _prog(cset.id)
+    shown_ids = {c["id"] for f in claims for c in f["claims"]} | {t["claim"]["id"] for t in threads}
+    accounts = []
+    for a in cset.accounts:
+        got = _account_judged(cset.id, a)
+        if got:
+            order = ac.display_order(cset, a["id"])
+            accounts.append({"id": a["id"], "title": a["title"], "judged": len(got), "total": len(a["passages"]),
+                             "passages": [_passage_reveal(cset, a, p, _letter(order.index(p["id"]))) for p in a["passages"] if p["id"] in got],
+                             "points": _account_points(cset, a)})
+            shown_ids |= {pt["claim"] for pt in a["points"]}
+    decisions = []
+    for d in cset.decisions:
+        if d["id"] in prog["decided"]:
+            decisions.append(_decision_view({"set": cset.id, "decision": d["id"]}))
+            shown_ids |= set(d["claims"].values())
+    shown = len(shown_ids)
     levels = {k: sum(1 for c in cset.claims.values() if c["confidence"] == k) for k in CONFIDENCE_LABELS}
     out["info"] = {
         "set": {"id": cset.id, "title": cset.title, "status": cset.status, "status_label": cset.status_label,
                 "draft": cset.status != "reviewed", "version": cset.version, "drafted": cset.meta.get("drafted")},
         "legend": [{"id": k, "label": v[0], "symbol": v[1], "meaning": _LEGEND[k]} for k, v in CONFIDENCE_LABELS.items()],
         "counts": {"claims": len(cset.claims), "sources": nsources, "events": len(cset.events), "relations": len(cset.relations),
-                   "levels": levels},
+                   "levels": levels, "accounts": len(cset.accounts), "passages": len(cset.passage_keys()), "decisions": len(cset.decisions)},
         "coverage": {"shown": shown, "total": len(cset.claims),
                      "note": "Every claim in a set links at least three sources. You see %d of %d claims now; the rest appear as you find them." % (shown, len(cset.claims))},
         "strengths": [{"id": k, "label": v[0], "symbol": v[1], "meaning": STRENGTH_MEANING[k]} for k, v in STRENGTH_LABELS.items()],
         "found_claims": claims,
         "found_relations": threads,
+        "found_accounts": accounts,
+        "found_decisions": decisions,
+        "account_kinds": [{"id": k, "label": v} for k, v in KIND_LABELS.items()],
         "reasons": [{"id": i, "label": l} for i, l in report.REASONS],
     }
     return False
@@ -1095,6 +1502,10 @@ def _act_mode(req):
         raise _Bad("This set has no cause web yet.")
     if mode == "myth" and not cset.myth_chapters:
         raise _Bad("This set has no myth-or-record chapter yet.")
+    if mode == "account" and not cset.accounts:
+        raise _Bad("This set has no whose-account puzzles yet.")
+    if mode == "decision" and not cset.decisions:
+        raise _Bad("This set has no decision points yet.")
     changed = S["settings"].get("mode") != mode
     S["settings"]["mode"] = mode
     return changed
@@ -1281,6 +1692,195 @@ def _act_myth_next(_req):
     return True
 
 
+# ---- whose account?
+
+
+def _act_account_start(req):
+    cset = _set_for(req)
+    account_id = _str(req, "account")
+    a = cset.account(account_id)
+    if a is None:
+        raise _Bad("Unknown account.")
+    if not _account_unlocked(cset.id, a):
+        raise _Bad("That account is still locked.")
+    round_no = _int(req, "round") if "round" in req and req["round"] is not None else _account_next_round(cset.id, a)
+    if round_no < 0 or round_no > 10000:
+        raise _Bad("That puzzle does not exist.")
+    S["settings"]["set"] = cset.id
+    S["settings"]["mode"] = "account"
+    _astart(cset.id, account_id, round_no)
+    return True
+
+
+def _aplaying():
+    sess = _ensure_asession()
+    if sess is None:
+        raise _Bad("No whose-account puzzle is open yet.")
+    return sess
+
+
+def _act_account_answer(req):
+    sess = _aplaying()
+    if sess["status"] != "playing":
+        raise _Bad("This puzzle is finished. Press Next puzzle.")
+    cset, puz = _apuzzle(sess)
+    qid = _str(req, "question")
+    ids = puz.question_ids()
+    if qid not in ids:
+        raise _Bad("That question is not in this puzzle.")
+    i = ids.index(qid)
+    choice = req.get("choice")
+    if choice is not None and choice not in puz.questions[i]["options"]:
+        raise _Bad("Pick one of the listed options.")
+    if sess["locked"][i]:
+        raise _Bad("That question is already answered correctly.")
+    if sess["answers"][i] == choice:
+        return False
+    sess["answers"][i] = choice
+    sess["marks"][i] = None
+    sess["message"] = ""
+    return True
+
+
+def _act_account_check(_req):
+    sess = _aplaying()
+    if sess["status"] != "playing":
+        raise _Bad("This puzzle is finished.")
+    cset, puz = _apuzzle(sess)
+    if any(c is None for c in sess["answers"]):
+        raise _Bad("Answer all %d questions before checking." % puz.size)
+    result = ac.grade(puz, {q["id"]: sess["answers"][i] for i, q in enumerate(puz.questions)})
+    prog = _prog(cset.id)
+    sess["checks"] += 1
+    for i, row in enumerate(result["questions"]):
+        if row["status"] == "right":
+            sess["locked"][i] = True
+            sess["marks"][i] = None
+        else:
+            sess["marks"][i] = "wrong"
+    if result["all_right"]:
+        sess["status"] = "solved"
+        key = "%s:%d" % (sess["account"], sess["round"])
+        old = prog["asolved"].get(key)
+        if old is None or sess["checks"] < old["checks"]:
+            prog["asolved"][key] = {"checks": sess["checks"]}
+        pk = "%s/%s" % (sess["account"], puz.focus)
+        if pk not in prog["judged"]:
+            prog["judged"].add(pk)
+            sess["new"].append(pk)
+        sess["message"] = "Judged in one check." if sess["checks"] == 1 else "Judged in %d checks." % sess["checks"]
+    else:
+        sess["message"] = "%d of %d answers are right and locked. Change the others." % (result["right"], puz.size)
+    return True
+
+
+def _act_account_show(_req):
+    sess = _aplaying()
+    if sess["status"] != "playing":
+        raise _Bad("This puzzle is finished.")
+    _cset, puz = _apuzzle(sess)
+    sess["answers"] = [q["answer"] for q in puz.questions]
+    sess["locked"] = [True] * puz.size
+    sess["marks"] = [None] * puz.size
+    sess["status"] = "revealed"
+    sess["message"] = "Answers shown. Nothing was added to your archive from this puzzle."
+    return True
+
+
+def _act_account_next(_req):
+    sess = _aplaying()
+    cset = SETS[sess["set"]]
+    solved = _prog(cset.id)["asolved"]
+    r = sess["round"] + 1
+    while "%s:%d" % (sess["account"], r) in solved:
+        r += 1
+    _astart(cset.id, sess["account"], r)
+    return True
+
+
+# ---- decision points
+
+
+def _act_decision_start(req):
+    cset = _set_for(req)
+    did = _str(req, "decision")
+    d = cset.decision(did)
+    if d is None:
+        raise _Bad("Unknown decision point.")
+    if not _decision_unlocked(cset.id, d):
+        raise _Bad("That decision point is still locked.")
+    S["settings"]["set"] = cset.id
+    S["settings"]["mode"] = "decision"
+    S["dsession"] = {"set": cset.id, "decision": did}
+    return True
+
+
+def _act_decision_pick(req):
+    sess = _ensure_dsession()
+    if sess is None:
+        raise _Bad("No decision point is open yet.")
+    cset = SETS[sess["set"]]
+    d = cset.decision(sess["decision"])
+    option = _str(req, "option")
+    if option not in {o["id"] for o in d["options"]}:
+        raise _Bad("Pick one of the listed options.")
+    prog = _prog(cset.id)
+    if d["id"] in prog["decided"]:
+        raise _Bad("You have already made your choice here. It is shown below.")
+    prog["decided"][d["id"]] = {"picked": option}
+    return True
+
+
+# ---- review
+
+
+def _act_review_answer(req):
+    cset = _cur_set()
+    if cset is None:
+        raise _Bad("No set is loaded.")
+    prog, srs, day = _review_state(cset)
+    if S["rfeedback"] is not None:
+        raise _Bad("Press Next to move on.")
+    queue = rv.ready_questions(cset, prog, srs, day, REVIEW_LABELS, limit=1)
+    if not queue:
+        raise _Bad("Nothing is ready to review.")
+    key, q = queue[0]
+    if req.get("key") != key:
+        raise _Bad("That question is no longer the current one.")
+    choice = req.get("choice")
+    if choice not in {o["id"] for o in q["options"]}:
+        raise _Bad("Pick one of the listed options.")
+    rec = srs.get(key) or rv.new_record()
+    right = choice == q["answer"]
+    new = rv.after_answer(rec, day, right)
+    srs[key] = new
+    claim = rv.claim_for(cset, key)
+    labels = {o["id"]: o["label"] for o in q["options"]}
+    gap = new["due"] - day
+    S["rfeedback"] = {
+        "set": cset.id, "key": key, "right": right, "answer": q["answer"], "answer_label": labels[q["answer"]],
+        "choice_label": labels[choice], "context": q["context"], "prompt": q["prompt"],
+        "message": ("That matches the sources. This fact comes back %s." % rv.interval_text(gap)) if right else
+                   ("Not this time. The sources say: %s. This fact comes back %s, and nothing is taken away." % (labels[q["answer"]], rv.interval_text(gap))),
+        "claim": _claim_view(cset, claim) if claim else None, "settled": rv.is_settled(new),
+    }
+    return True
+
+
+def _act_review_next(_req):
+    changed = S["rfeedback"] is not None
+    S["rfeedback"] = None
+    return changed
+
+
+def _act_review_day(_req):
+    if S["day"] >= rv.MAX_DAY:
+        raise _Bad("That is as far as the day counter goes.")
+    S["day"] += 1
+    S["rfeedback"] = None
+    return True
+
+
 READ_ONLY = {"boot", "archive", "info", "report", "entry"}
 
 
@@ -1329,6 +1929,10 @@ _MUTATORS = {
     "mode": _act_mode, "web_start": _act_web_start, "web_link": _act_web_link, "web_show": _act_web_show, "web_next": _act_web_next,
     "myth_start": _act_myth_start, "myth_sort": _act_myth_sort, "myth_check": _act_myth_check, "myth_show": _act_myth_show,
     "myth_next": _act_myth_next,
+    "account_start": _act_account_start, "account_answer": _act_account_answer, "account_check": _act_account_check,
+    "account_show": _act_account_show, "account_next": _act_account_next,
+    "decision_start": _act_decision_start, "decision_pick": _act_decision_pick,
+    "review_answer": _act_review_answer, "review_next": _act_review_next, "review_day": _act_review_day,
 }
 
 
@@ -1358,7 +1962,11 @@ def get_state():
                         "revealed": sorted(prog["revealed"]),
                         "threads": sorted(prog["threads"]), "sorted": sorted(prog["sorted"]),
                         "web_solved": {k: dict(v) for k, v in sorted(prog["wsolved"].items())},
-                        "myth_solved": {k: dict(v) for k, v in sorted(prog["msolved"].items())}}
+                        "myth_solved": {k: dict(v) for k, v in sorted(prog["msolved"].items())},
+                        "judged": sorted(prog["judged"]),
+                        "account_solved": {k: dict(v) for k, v in sorted(prog["asolved"].items())},
+                        "decided": {k: dict(v) for k, v in sorted(prog["decided"].items())},
+                        "srs": {k: dict(v) for k, v in sorted(prog["srs"].items())}}
     for set_id, raw in S["unknown"].items():
         sets.setdefault(set_id, raw)
     sess = S["session"]
@@ -1368,6 +1976,9 @@ def get_state():
         "session": json.loads(json.dumps(sess)) if sess else None,
         "web_session": json.loads(json.dumps(S["wsession"])) if S["wsession"] else None,
         "myth_session": json.loads(json.dumps(S["msession"])) if S["msession"] else None,
+        "account_session": json.loads(json.dumps(S["asession"])) if S["asession"] else None,
+        "decision_session": dict(S["dsession"]) if S["dsession"] else None,
+        "day": S["day"],
         "achievements_earned": _earned_now(),
     }
 
@@ -1492,6 +2103,84 @@ def _clean_msession(raw):
             "message": raw.get("message") if isinstance(raw.get("message"), str) and len(raw["message"]) < 300 else ""}
 
 
+def _clean_asession(raw):
+    if not isinstance(raw, dict):
+        return None
+    set_id, account_id, round_no = raw.get("set"), raw.get("account"), raw.get("round")
+    if set_id not in SETS or isinstance(round_no, bool) or not isinstance(round_no, int) or not 0 <= round_no <= 10000:
+        return None
+    cset = SETS[set_id]
+    a = cset.account(account_id)
+    if a is None or not _account_unlocked(set_id, a):
+        return None
+    try:
+        puz = ac.make_account_puzzle(cset, account_id, round_no)
+    except ValueError:
+        return None
+    n = puz.size
+    answers, locked, marks = raw.get("answers"), raw.get("locked"), raw.get("marks")
+    if not (isinstance(answers, list) and isinstance(locked, list) and isinstance(marks, list) and len(answers) == len(locked) == len(marks) == n):
+        return None
+    if any(not isinstance(l, bool) for l in locked) or any(m not in (None, "wrong") for m in marks):
+        return None
+    for i, q in enumerate(puz.questions):
+        if answers[i] is not None and answers[i] not in q["options"]:
+            return None
+        if locked[i] and answers[i] != q["answer"]:
+            return None                     # a locked answer must really be the right one
+    status = raw.get("status")
+    if status not in ("playing", "solved", "revealed"):
+        return None
+    if status in ("solved", "revealed") and not all(locked):
+        return None
+    if status == "solved" and "%s/%s" % (account_id, puz.focus) not in _prog(set_id)["judged"]:
+        return None                         # a solved session must really have been earned
+    checks = raw.get("checks")
+    if isinstance(checks, bool) or not isinstance(checks, int) or not 0 <= checks <= 10000:
+        return None
+    new = [k for k in (raw.get("new") if isinstance(raw.get("new"), list) else [])[:MAX_IDS] if isinstance(k, str) and k == "%s/%s" % (account_id, puz.focus)]
+    return {"set": set_id, "account": account_id, "round": round_no, "answers": list(answers), "locked": list(locked), "marks": list(marks),
+            "checks": checks, "status": status, "new": new,
+            "message": raw.get("message") if isinstance(raw.get("message"), str) and len(raw["message"]) < 300 else ""}
+
+
+def _clean_dsession(raw):
+    if not isinstance(raw, dict):
+        return None
+    set_id, did = raw.get("set"), raw.get("decision")
+    if set_id not in SETS:
+        return None
+    d = SETS[set_id].decision(did)
+    if d is None or not _decision_unlocked(set_id, d):
+        return None
+    return {"set": set_id, "decision": did}
+
+
+def _clean_srs(raw, cset):
+    """Saved review records, one at a time: a key the set lacks or a record with a bad number is dropped."""
+    out = {}
+    if not isinstance(raw, dict):
+        return out
+    valid = {"ev": set(cset.events), "my": set(cset.myth_claim_ids()), "ln": set(cset.web_relation_ids()), "dc": set(cset.decision_ids())}
+    for key, rec in list(raw.items())[:MAX_IDS]:
+        kind, ident = rv.split_key(key)
+        if not isinstance(key, str) or ident not in valid.get(kind, ()) or not isinstance(rec, dict):
+            continue
+        nums = {}
+        for field, lo, hi in (("step", 0, 99), ("due", 0, rv.MAX_DAY + 40), ("asked", 0, 100000), ("right", 0, 100000)):
+            v = rec.get(field)
+            if isinstance(v, bool) or not isinstance(v, int) or not lo <= v <= hi:
+                nums = None
+                break
+            nums[field] = v
+        last = rec.get("last")
+        if nums is None or nums["right"] > nums["asked"] or not (last is None or (isinstance(last, int) and not isinstance(last, bool) and 0 <= last <= rv.MAX_DAY)):
+            continue
+        nums["last"] = last
+        out[key] = nums
+    return out
+
+
 def load_state(data):
     """Merge a saved state in (never replaces, never raises on garbage): learned ids are unioned, solved
     puzzles keep the fewer checks, viewed claims are unioned, and bad fields are dropped one at a time."""
@@ -1509,8 +2198,10 @@ def load_state(data):
             learned = [x for x in (raw.get("learned") if isinstance(raw.get("learned"), list) else [])[:MAX_IDS] if isinstance(x, str)]
             solved = {str(k): {"checks": v["checks"]} for k, v in list((raw.get("solved") if isinstance(raw.get("solved"), dict) else {}).items())[:MAX_IDS]
                       if isinstance(v, dict) and isinstance(v.get("checks"), int) and not isinstance(v.get("checks"), bool)}
-            extra = {k: [x for x in (raw.get(k) if isinstance(raw.get(k), list) else [])[:MAX_IDS] if isinstance(x, str)] for k in ("threads", "sorted")}
-            S["unknown"][set_id] = dict({"learned": learned, "solved": solved, "revealed": []}, **extra)
+            extra = {k: [x for x in (raw.get(k) if isinstance(raw.get(k), list) else [])[:MAX_IDS] if isinstance(x, str)] for k in ("threads", "sorted", "judged")}
+            decided = {str(k): {"picked": v["picked"]} for k, v in list((raw.get("decided") if isinstance(raw.get("decided"), dict) else {}).items())[:MAX_IDS]
+                       if isinstance(v, dict) and isinstance(v.get("picked"), str)}
+            S["unknown"][set_id] = dict({"learned": learned, "solved": solved, "revealed": [], "decided": decided}, **extra)
             continue
         cset = SETS[set_id]
         prog = _prog(set_id)
@@ -1533,8 +2224,19 @@ def load_state(data):
                 prog["revealed"].add(key)
         prog["threads"] |= set(_id_list(raw.get("threads"), set(cset.web_relation_ids())))
         prog["sorted"] |= set(_id_list(raw.get("sorted"), set(cset.myth_claim_ids())))
+        prog["judged"] |= set(_id_list(raw.get("judged"), set(cset.passage_keys())))
+        decided = raw.get("decided") if isinstance(raw.get("decided"), dict) else {}
+        for did, rec in list(decided.items())[:MAX_IDS]:
+            d = cset.decision(did) if isinstance(did, str) else None
+            if d is not None and isinstance(rec, dict) and rec.get("picked") in {o["id"] for o in d["options"]}:
+                prog["decided"].setdefault(did, {"picked": rec["picked"]})        # a first choice is never replaced
+        for key, rec in _clean_srs(raw.get("srs"), cset).items():
+            old = prog["srs"].get(key)
+            if old is None or (rec["asked"], rec["last"] or 0) > (old["asked"], old["last"] or 0):
+                prog["srs"][key] = rec
         for field, store, finder, name, floor in (("web_solved", prog["wsolved"], cset.web_chapter, "misses", 0),
-                                                   ("myth_solved", prog["msolved"], cset.myth_chapter, "checks", 1)):
+                                                   ("myth_solved", prog["msolved"], cset.myth_chapter, "checks", 1),
+                                                   ("account_solved", prog["asolved"], cset.account, "checks", 1)):
             recs = raw.get(field) if isinstance(raw.get(field), dict) else {}
             for key, rec in list(recs.items())[:MAX_IDS]:
                 chapter_id, _, rnd = str(key).partition(":")
@@ -1560,6 +2262,9 @@ def load_state(data):
         S["settings"]["set"] = settings["set"]
     if settings.get("mode") in MODES:
         S["settings"]["mode"] = settings["mode"]
+    day = data.get("day")
+    if isinstance(day, int) and not isinstance(day, bool) and 0 <= day <= rv.MAX_DAY:
+        S["day"] = max(S["day"], day)                     # time never runs backwards
     flags = data.get("flags") if isinstance(data.get("flags"), dict) else {}
     if flags.get("onboarded") is True:
         S["flags"]["onboarded"] = True
@@ -1573,6 +2278,13 @@ def load_state(data):
     msession = _clean_msession(data.get("myth_session"))
     if msession is not None:
         S["msession"] = msession
+    asession = _clean_asession(data.get("account_session"))
+    if asession is not None:
+        S["asession"] = asession
+    dsession = _clean_dsession(data.get("decision_session"))
+    if dsession is not None:
+        S["dsession"] = dsession
+    S["rfeedback"] = None
     _refresh_view()
     return True
 

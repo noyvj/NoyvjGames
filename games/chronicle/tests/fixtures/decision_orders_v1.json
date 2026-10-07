@@ -1,0 +1,18 @@
+{
+ "seed_version": "v1",
+ "puzzles": {
+  "d-sumter": [
+   "withdraw",
+   "reinforce",
+   "supply"
+  ],
+  "d-louisiana": [
+   "amend",
+   "proceed"
+  ],
+  "d-term": [
+   "retire",
+   "serve"
+  ]
+ }
+}
