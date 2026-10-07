@@ -868,7 +868,19 @@
   let screensaverHintTimer = 0;
   let screensaverWired = false;
 
+  // Z-31: lite mode (shared/lite-mode.js, the hub-wide "slow computer" switch) lowers this
+  // scene's costs: no antialiasing and a device pixel ratio of 1 for the canvas, and a still
+  // screensaver camera (reduced motion) instead of an animated orbit.
+  function liteMode() {
+    return !!(window.NoyvjLite && typeof window.NoyvjLite.on === "function" && window.NoyvjLite.on());
+  }
+
+  function canvasPixelRatio() {
+    return liteMode() ? 1 : Math.min(window.devicePixelRatio || 1, 2);
+  }
+
   function reducedMotion() {
+    if (liteMode()) return true;
     if (document.documentElement.classList.contains("reduce-motion")) return true;
     try {
       return !!(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
@@ -1171,9 +1183,18 @@
       // the next paint, which is what makes toDataURL() a reliable
       // capture of the last-rendered frame across browsers rather than
       // occasionally returning a blank PNG.
-      renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: true });
+      renderer = new THREE.WebGLRenderer({ antialias: !liteMode(), alpha: true, preserveDrawingBuffer: true });
       renderer.setSize(width, height);
-      renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+      renderer.setPixelRatio(canvasPixelRatio());
+      // Antialiasing is fixed when the renderer is made (it applies from the next load), but the
+      // pixel ratio follows the lite-mode switch live.
+      document.addEventListener("noyvj-lite-change", function () {
+        if (!renderer) return;
+        renderer.setPixelRatio(canvasPixelRatio());
+        const el = document.getElementById(CONTAINER_ID);
+        renderer.setSize((el && el.clientWidth) || width, viewHeight());
+        if (scene && camera) renderer.render(scene, camera);
+      });
       container.innerHTML = "";
       container.appendChild(renderer.domElement);
 
