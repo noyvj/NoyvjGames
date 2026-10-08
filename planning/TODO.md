@@ -1,6 +1,6 @@
 # Site-Wide TODO (round 3)
 
-**Progress: 466/1048 items checked off (44.5%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land.
+**Progress: 467/1048 items checked off (44.6%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land.
 
 Built from your answers in `planning/IMPROVEMENT-IDEAS-ROUND-3.md` (Part 4). Every Round 3 section is now answered (2026-10-07 below the Warframe section); earlier this list held only: **GB** (Canopy gamified), **M** (new games), **N** (seasonal events), **O** (Trade Empire and Continuum replayability), **P/Q/S/T** (Signal, Undersleep, Overclock, Last Line open questions), **X** (Warframe tracker) and **R** (returning later). GC-GI, A-L, U, Z and Y are unanswered and wait for you. The previous list is archived at `planning/todo-archive/260914_260927.md`; anything from it that was moved here is marked "moved" there.
 
@@ -1215,7 +1215,7 @@ One checkbox per pass per area. A pass is not done until its fixes are committed
 - [ ] FY-14: Le Champ de Mots: when a question asks for just the word, do not require its le/la (you said no to requiring it: "Don’t require it when just asking for the word").
 - [ ] FY-15: Be1: Backend: how many proxies does FastAPI Cloud put in front of the app (you said yes: leave as is unless you see abuse.)
 - [ ] FY-16: Be2: Backend: reject the username noyvj at signup unless an owner environment variable is set (you said yes: yes.)
-- [ ] FY-18: Be4: Hub: remove the Google ads script (placeholder client id) from the hub until your AdSense account is approved (you said yes: yes, and I put it back when you give me the id.)
+- [x] FY-18: Be4: Hub: remove the Google ads script (placeholder client id) from the hub until your AdSense account is approved (you said yes: yes, and I put it back when you give me the id.)
 - [ ] FY-19: Ti1: Tide: build a Tide Workshop (sliders for starting funds, lag length, sea-level rate, surge size) with runs labelled "custom rules" and never ranked (you said yes: yes.)
 - [ ] FY-20: Ti2: Tide: may I choose the named coastline scenarios myself (three invented coasts: low delta, cliff bay, barrier island, with plain traits) (you said yes: yes, my call.)
 - [ ] FY-21: Ti3: Tide: add a living harbor scene (a harbor picture drawn in code that reflects acidity and fish, with an off switch) (you said yes: yes.)
