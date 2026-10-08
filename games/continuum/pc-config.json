@@ -31,6 +31,21 @@
       "Post-mortem"
     ],
     [
+      "challenge-panel",
+      "challenge-toggle-button",
+      "Challenge runs"
+    ],
+    [
+      "timelapse-panel",
+      "timelapse-toggle-button",
+      "Time-lapse"
+    ],
+    [
+      "advisors-panel",
+      "advisors-toggle-button",
+      "Advisor council"
+    ],
+    [
       "views-panel",
       "views-toggle-button",
       "City Views"
@@ -74,7 +89,9 @@
     "menu": [
       {
         "heading": "Game",
-        "ids": []
+        "ids": [
+          "challenge-toggle-button"
+        ]
       },
       {
         "heading": "Help",
@@ -91,7 +108,9 @@
           "changelog-toggle-button",
           "summary-toggle-button",
           "founders-toggle-button",
-          "minutes-toggle-button"
+          "minutes-toggle-button",
+          "timelapse-toggle-button",
+          "advisors-toggle-button"
         ]
       },
       {
@@ -113,6 +132,15 @@
       ],
       "group": "Game",
       "label": "🏕 Starting scenario"
+    },
+    {
+      "id": "pc-techdebt-panel",
+      "title": "Technical debt",
+      "members": [
+        "#techdebt"
+      ],
+      "group": "Game",
+      "label": "🔧 Technical debt"
     },
     {
       "id": "pc-log-panel",

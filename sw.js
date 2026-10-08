@@ -2,7 +2,7 @@
 // the precache list; ordinary content deploys don't need it, because
 // same-origin requests are network-first (see the fetch handler below) and
 // so always pick up fresh files whenever the player is online.
-const SW_VERSION = 39;
+const SW_VERSION = 40;
 const CACHE_NAME = "site-cache-v" + SW_VERSION;
 // How long a same-origin network request may take before we give up and
 // serve the cached copy instead (a slow/flaky connection shouldn't hang).
@@ -46,6 +46,8 @@ const PRECACHE_URLS = [
   "shared/info_page.py",
   "shared/info-page.css",
   // Site-wide shared includes (Z-19/21/23/24/25/29/31): in every game page and the hub's.
+  "shared/seed.js",
+  "shared/seed.py",
   "shared/copy-result.js",
   "shared/achievement-share.js",
   "shared/time-controls.js",

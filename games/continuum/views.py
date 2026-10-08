@@ -23,6 +23,7 @@ import math
 
 import sim
 import sustainability
+import techdebt
 
 # --- K1: the dashboard --------------------------------------------------
 
@@ -37,10 +38,12 @@ def _num(value, fmt="{:.1f}"):
     return fmt.format(value)
 
 
-def dashboard(state, effects, researched=None):
+def dashboard(state, effects, researched=None, debt=None):
     """Sections of (label, value) rows covering every stat at once.
 
     `researched` is an optional (done, total) pair for the research tree.
+    `debt` is an optional `techdebt.get()` record (K-4); with one, the Digital
+    Age and later gain technical-debt rows in "Era pressures".
     Returns a list of {"title": str, "rows": [(label, text), ...]}.
     """
     ev = sustainability.evaluate(state, effects)
@@ -144,6 +147,8 @@ def dashboard(state, effects, researched=None):
     if era_i >= sim.era_index("relay"):
         pressures.append(("Holdings' residents", str(state.holdings_residents())))
         pressures.append(("Holdings supplied", _num(float(report.get("outlying_served", 1.0)) * 100, "{:.0f}%")))
+    if debt is not None and techdebt.active(state.era):
+        pressures.extend(techdebt.dashboard_rows(state, debt))
     if pressures:
         sections.append({"title": "Era pressures", "rows": pressures})
     if researched is not None:
@@ -321,8 +326,16 @@ def map_districts(state):
     return out
 
 
-def civic_map_svg(state):
-    """The K24 schematic as an SVG string."""
+HAZARD_WORD = {1: "caution", 2: "danger"}
+
+
+def civic_map_svg(state, hazard=0):
+    """The K24 schematic as an SVG string.
+
+    `hazard` (K-4, 0 none, 1 caution, 2 danger) tints every district that has
+    buildings with a hatch pattern and a "!" mark plus the word, so the debt
+    warning is never colour alone.
+    """
     districts = map_districts(state)
     if not districts:
         return ""
@@ -335,11 +348,25 @@ def civic_map_svg(state):
         f'aria-label="Top-down schematic of the settlement: one district per building type">',
         f'<rect x="0" y="0" width="{width}" height="{height}" class="map-bg"/>',
     ]
+    if hazard:
+        parts.insert(
+            1,
+            '<defs><pattern id="map-hazard-hatch" width="6" height="6" patternUnits="userSpaceOnUse" '
+            'patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" y2="6" class="map-hatch-line"/></pattern></defs>',
+        )
     for i, (building, count) in enumerate(districts):
         x0 = 4 + (i % DISTRICT_COLS) * DISTRICT_W
         y0 = 4 + (i // DISTRICT_COLS) * DISTRICT_H
         cls = "map-district" if count else "map-district map-district--empty"
+        if hazard and count:
+            cls += f" map-district--{HAZARD_WORD.get(hazard, 'caution')}"
         parts.append(f'<rect x="{x0 + 2}" y="{y0 + 2}" width="{DISTRICT_W - 4}" height="{DISTRICT_H - 4}" rx="4" class="{cls}"/>')
+        if hazard and count:
+            parts.append(
+                f'<rect x="{x0 + 2}" y="{y0 + 2}" width="{DISTRICT_W - 4}" height="{DISTRICT_H - 4}" rx="4" '
+                f'fill="url(#map-hazard-hatch)" class="map-hatch"/>'
+                f'<text x="{x0 + DISTRICT_W - 9}" y="{y0 + 14}" class="map-hazard-mark" text-anchor="middle">!</text>'
+            )
         label = sim.BUILDING_LABEL[building]
         parts.append(f'<text x="{x0 + DISTRICT_W / 2}" y="{y0 + 15}" class="map-label" text-anchor="middle">{label}</text>')
         shown = min(count, MAX_GLYPHS)
@@ -353,7 +380,7 @@ def civic_map_svg(state):
     return "".join(parts)
 
 
-def map_caption(state):
+def map_caption(state, hazard=0):
     districts = map_districts(state)
     total = sum(c for _, c in districts)
     shelters = dict(districts).get("shelter", 0)
@@ -361,7 +388,13 @@ def map_caption(state):
         density = f"{state.population / shelters:.1f} people per shelter"
     else:
         density = "no shelters built"
-    return f"{total} buildings across {len(districts)} districts, {state.population} people, {density}."
+    text = f"{total} buildings across {len(districts)} districts, {state.population} people, {density}."
+    if hazard:
+        text += (
+            f" Hatched districts with a ! carry a technical-debt {HAZARD_WORD.get(hazard, 'caution')} "
+            "warning: schedule a refactor season to pay the debt down."
+        )
+    return text
 
 
 # --- K28: resource flow diagram -----------------------------------------

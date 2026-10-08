@@ -37,10 +37,13 @@ _HERE = os.getcwd()
 if _HERE not in sys.path:
     sys.path.insert(0, _HERE)
 
+import advisors  # noqa: E402
 import archive  # noqa: E402
+import challengerun  # noqa: E402
 import challenges  # noqa: E402
 import consulting  # noqa: E402
 import dataexport  # noqa: E402
+import eastereggs  # noqa: E402
 import explain  # noqa: E402
 import founding  # noqa: E402
 import hamlet  # noqa: E402
@@ -58,6 +61,8 @@ import sim  # noqa: E402
 import statlog  # noqa: E402
 import summary  # noqa: E402
 import sustainability  # noqa: E402
+import techdebt  # noqa: E402
+import timelapse  # noqa: E402
 import trajectory  # noqa: E402
 import forecast  # noqa: E402
 import views  # noqa: E402
@@ -99,7 +104,13 @@ def current_effects():
     The single seam through which research reaches both the simulation and
     the sustainability score — nothing else in the game reads the tree.
     """
-    return tree.effects()
+    effects = tree.effects()
+    # K-4: technical debt (Digital Age on) reaches the season loop through this same seam.
+    # Not applied during a Look Back: the live debt belongs to the present settlement.
+    if campaign.revisiting is None:
+        effects = techdebt.apply_effects(effects, campaign.ui, state.era)
+    # K-10/K-11: a challenge run's modifier (the day's boon with a price) rides the same seam.
+    return challengerun.apply_effects(effects, campaign.ui)
 
 
 # --- narration ---------------------------------------------------------
@@ -268,6 +279,10 @@ def render():
     update_achievements_display()
     update_scenario_display()
     update_hard_mode_display()
+    update_techdebt_display()
+    update_challenge_panel()
+    update_timelapse_panel()
+    update_advisors_panel()
     update_summary_panel()
     update_postmortem_panel()
     update_views_panel(effects)
@@ -335,7 +350,11 @@ def _notify_visual_layer():
 def _scenario_locked():
     # K22: a consulting case replaces the opening conditions wholesale, so the
     # normal scenario picker stays locked while one is on the table.
-    return state.season > 1 or consulting.get(campaign.ui) is not None
+    return (
+        state.season > 1
+        or consulting.get(campaign.ui) is not None
+        or challengerun.get(campaign.ui) is not None
+    )
 
 
 def refuge_unlocked():
@@ -381,6 +400,8 @@ def _make_select_scenario_handler(scenario_id):
 
 
 def on_toggle_hard_mode(event=None):
+    if challengerun.active(campaign.ui) is not None:
+        return  # K-10/K-11: Hard Mode is part of the run's setup, so the par stays comparable
     state.hard_mode = not state.hard_mode
     render()
 
@@ -388,6 +409,8 @@ def on_toggle_hard_mode(event=None):
 # --- K22 consulting mode --------------------------------------------------
 def _make_consulting_start_handler(case_id):
     def handler(event=None):
+        if challengerun.get(campaign.ui) is not None:
+            return  # a challenge run already owns this opening
         if consulting.apply(campaign, case_id, chronicle):
             chronicle.log_challenge(
                 state.season, state.era, f"Called in to advise: {consulting.CASES[case_id]['label']}."
@@ -408,7 +431,7 @@ def update_consulting_display():
     pristine = consulting.is_pristine(campaign)
     for case_id in consulting.CASES:
         button = document.getElementById(f"consulting-case-{case_id}-button")
-        button.disabled = not pristine
+        button.disabled = not pristine or challengerun.get(campaign.ui) is not None
         button.classList.toggle("selected", entry is not None and entry["case"] == case_id)
     document.getElementById("consulting-status-display").innerText = (
         consulting.status_text(entry, state)
@@ -451,6 +474,721 @@ def update_hard_mode_display():
     button = document.getElementById("hard-mode-toggle-button")
     button.innerText = f"☠️ Hard Mode: {'ON' if state.hard_mode else 'OFF'}"
     button.classList.toggle("active", state.hard_mode)
+    button.disabled = challengerun.active(campaign.ui) is not None
+
+
+# ===========================================================================
+# K-4: technical debt (Digital Age and later). The rules live in techdebt.py;
+# this is the DOM half: the Quick builds toggle, the refactor button and the
+# status lines. The section is its own block (not inside #buildings) so it is
+# still reachable in the Hamlet view and the Desktop boot, which hide the
+# ordinary Build panel.
+# ===========================================================================
+def _easter_egg(found):
+    """K-23: writes a once-only flavour line into the log (hidden with the story toggle)."""
+    if found is not None:
+        chronicle.log_challenge(state.season, state.era, found[1])
+
+
+def _debt_hazard():
+    """0/1/2: the civic map's technical-debt tint band for the live settlement."""
+    if campaign.revisiting is not None or not techdebt.active(state.era):
+        return 0
+    return techdebt.hazard_level(techdebt.get(campaign.ui)["debt"])
+
+
+def _book_quick_build(building):
+    """Called after a build succeeded at full price: refunds the quick-build
+    discount and books the debt. Does nothing outside the Digital Age on, in a
+    Look Back, or with Quick builds off."""
+    if campaign.revisiting is not None or not techdebt.active(state.era):
+        return False
+    refund = techdebt.quick_build(campaign.ui, sim.BUILDING_COST[building])
+    if refund > 0:
+        state.resources["materials"] += refund
+    return refund > 0
+
+
+def on_toggle_quick_build(event=None):
+    if campaign.revisiting is not None or not techdebt.active(state.era):
+        return
+    record = techdebt.get(campaign.ui)
+    techdebt.set_quick(campaign.ui, not record["quick"])
+    render()
+
+
+def on_toggle_refactor(event=None):
+    if campaign.revisiting is not None or not techdebt.active(state.era):
+        return
+    record = techdebt.get(campaign.ui)
+    techdebt.schedule_refactor(campaign.ui, not record["refactor"])
+    render()
+
+
+def update_techdebt_display():
+    section = document.getElementById("techdebt")
+    active = techdebt.active(state.era)
+    section.hidden = not (active or _pc_layout())
+    record = techdebt.get(campaign.ui)
+    quick = document.getElementById("quick-build-toggle-button")
+    refactor = document.getElementById("refactor-button")
+    status = document.getElementById("techdebt-status-display")
+    note = document.getElementById("techdebt-note-display")
+    quick.hidden = not active
+    refactor.hidden = not active
+    if not active:
+        status.innerText = "Technical debt begins in the Digital Age."
+        note.innerText = (
+            "From then on you can build quickly and cheaply, at the price of debt that "
+            "costs upkeep and output until you schedule a refactor season."
+        )
+        return
+    locked = campaign.revisiting is not None
+    quick.innerText = f"⚡ Quick builds: {'ON' if record['quick'] else 'OFF'}"
+    quick.classList.toggle("active", record["quick"])
+    quick.setAttribute("aria-pressed", "true" if record["quick"] else "false")
+    quick.disabled = locked
+    refactor.innerText = (
+        "🔧 Refactor season scheduled: cancel" if record["refactor"] else "🔧 Schedule a refactor season"
+    )
+    refactor.setAttribute("aria-pressed", "true" if record["refactor"] else "false")
+    refactor.disabled = locked or (record["debt"] <= 0 and not record["refactor"])
+    status.innerText = " ".join(techdebt.status_lines(state, record))
+    cost = min(sim.BUILDING_COST[b] for b in sim.buildings_for_era(state.era))
+    note.innerText = techdebt.build_note(record, cost)
+
+
+# ===========================================================================
+# K-10 daily challenge and K-11 scenario editor with share codes. The rules, the
+# par autopilot, the mod-code format and the ledger live in challengerun.py; this
+# is the DOM half. A "challenge run" is a fixed start, an optional modifier, Hard
+# Mode on or off and a length in seasons; it needs a fresh settlement.
+# ===========================================================================
+challenge_panel_open = False
+_challenge_editor = challengerun.default_config()   # the editor's current dial values (not saved)
+_challenge_code_message = ""
+_challenge_start_message = ""
+_challenge_utc_today_override = None                # tests set a date here
+
+
+def _utc_today():
+    """Today's date in UTC as YYYY-MM-DD (the daily changes at 00:00 UTC for everybody)."""
+    if _challenge_utc_today_override:
+        return _challenge_utc_today_override
+    window = _js_window()
+    try:
+        seed_js = getattr(window, "NoyvjSeed", None) if window is not None else None
+        text = str(seed_js.daily.today()) if seed_js is not None else ""
+        if len(text) == 10:
+            return text
+    except Exception:  # noqa: BLE001 -- the page helper is optional
+        pass
+    return time.strftime("%Y-%m-%d", time.gmtime())
+
+
+def challenge_ledger_load():
+    window = _js_window()
+    if window is None:
+        return []
+    try:
+        raw = window.localStorage.getItem(challengerun.LEDGER_KEY)
+    except Exception:  # noqa: BLE001
+        return []
+    return challengerun.clean_ledger(raw) if isinstance(raw, str) else []
+
+
+def challenge_ledger_store(entries):
+    window = _js_window()
+    if window is None:
+        return False
+    try:
+        window.localStorage.setItem(challengerun.LEDGER_KEY, challengerun.serialize_ledger(entries))
+        return True
+    except Exception:  # noqa: BLE001
+        return False
+
+
+def _challenge_read_inputs():
+    """Reads the editor's controls into `_challenge_editor` (always a valid config)."""
+    global _challenge_editor
+    raw = {}
+    for name in challengerun.RANGES:
+        raw[name] = document.getElementById(f"challenge-dial-{name}").value
+    raw["modifier"] = document.getElementById("challenge-modifier-select").value
+    raw["hard"] = bool(getattr(document.getElementById("challenge-hard-checkbox"), "checked", False))
+    _challenge_editor = challengerun.clean_config(raw)
+    return _challenge_editor
+
+
+def _challenge_write_inputs(cfg):
+    for name in challengerun.RANGES:
+        document.getElementById(f"challenge-dial-{name}").value = str(cfg[name])
+    document.getElementById("challenge-modifier-select").value = cfg["modifier"]
+    document.getElementById("challenge-hard-checkbox").checked = cfg["hard"]
+
+
+def _build_challenge_controls():
+    select = document.getElementById("challenge-modifier-select")
+    select.innerHTML = ""
+    for modifier_id in challengerun.MODIFIER_IDS:
+        option = document.createElement("option")
+        option.value = modifier_id
+        option.innerText = challengerun.modifier_label(modifier_id)
+        select.appendChild(option)
+    _challenge_write_inputs(_challenge_editor)
+
+
+def on_toggle_challenge(event=None):
+    global challenge_panel_open
+    challenge_panel_open = not challenge_panel_open
+    update_challenge_panel()
+
+
+def on_challenge_input(event=None):
+    global _challenge_code_message
+    _challenge_code_message = ""
+    _challenge_read_inputs()
+    update_challenge_panel()
+
+
+def _begin_challenge(kind, config, seed_text="", date_text=""):
+    """Starts a run on the fresh settlement. Returns True when it began."""
+    global _challenge_start_message
+    if not challengerun.can_start(campaign):
+        _challenge_start_message = (
+            "A challenge run needs a fresh settlement: before the first season, not a consulting case."
+        )
+        update_challenge_panel()
+        return False
+    if not challengerun.start(campaign, chronicle, kind, config, seed_text, date_text):
+        _challenge_start_message = "That run could not be started."
+        update_challenge_panel()
+        return False
+    _challenge_start_message = ""
+    cfg = challengerun.clean_config(config)
+    label = f"the daily challenge for {date_text}" if kind == "daily" else f"mod code {challengerun.encode(cfg)}"
+    chronicle.log_challenge(
+        state.season, state.era, f"Challenge run begins: {label}, {cfg['goal']} seasons."
+    )
+    sync_name_input()
+    render()
+    _seed_achievement_toast_baseline()
+    return True
+
+
+def on_challenge_daily_start(event=None):
+    today = _utc_today()
+    day = challengerun.daily(today)
+    if day is None:
+        return
+    if _begin_challenge("daily", day["config"], day["seed"], day["date"]):
+        window = _js_window()
+        try:
+            if window is not None and getattr(window, "NoyvjSeed", None) is not None:
+                window.NoyvjSeed.set(day["seed"])
+        except Exception:  # noqa: BLE001 -- the footer seed is a nicety
+            pass
+
+
+def on_challenge_custom_start(event=None):
+    _begin_challenge("custom", _challenge_read_inputs())
+
+
+def on_challenge_abandon(event=None):
+    if challengerun.abandon(campaign):
+        render()
+
+
+def on_challenge_copy_code(event=None):
+    global _challenge_code_message
+    window = _js_window()
+    code = challengerun.encode(_challenge_editor)
+    copied = False
+    try:
+        if window is not None and getattr(window, "navigator", None) is not None:
+            window.navigator.clipboard.writeText(code)
+            copied = True
+    except Exception:  # noqa: BLE001
+        copied = False
+    _challenge_code_message = (
+        f"Copied {code}." if copied else f"Select the code above and press Ctrl+C: {code}"
+    )
+    update_challenge_panel()
+
+
+def on_challenge_load_code(event=None):
+    global _challenge_code_message
+    cfg, error = challengerun.decode(document.getElementById("challenge-code-input").value)
+    if cfg is None:
+        _challenge_code_message = error
+    else:
+        _challenge_write_inputs(cfg)
+        _challenge_read_inputs()
+        _challenge_code_message = "Code loaded into the editor. Press Play this setup to try it."
+    update_challenge_panel()
+
+
+def _finish_challenge_run(result):
+    """Called on the season the run ends: books the par, the ledger, the daily mark and a log line."""
+    run = challengerun.get(campaign.ui)
+    if run is None:
+        return
+    par_points = challengerun.par_for(run["config"])
+    run["par"] = par_points
+    campaign.ui[challengerun.KEY] = run
+    challenge_ledger_store(challengerun.ledger_add(challenge_ledger_load(), run))
+    chronicle.log_challenge(
+        state.season,
+        state.era,
+        f"Challenge run complete: {result['points']} points over {result['seasons']} seasons. "
+        + challengerun.verdict(result["points"], par_points),
+    )
+    if run["kind"] == "daily" and run["date"] == _utc_today():
+        window = _js_window()
+        try:
+            if window is not None and getattr(window, "NoyvjSeed", None) is not None:
+                info = window.JSON.parse(
+                    json.dumps({"score": result["points"], "text": f"{result['points']} points"})
+                )
+                window.NoyvjSeed.daily.markCompleted("continuum", info)
+        except Exception:  # noqa: BLE001 -- the hub's Today strip is a nicety
+            pass
+    _display_toast(f"🎯 Challenge run complete: {result['points']} points")
+
+
+def challenge_share_result():
+    """The finished run as JSON for the shared Copy result button ({} when none is finished)."""
+    fields = challengerun.share_fields(challengerun.get(campaign.ui))
+    return json.dumps(fields or {})
+
+
+def _daily_done_today():
+    window = _js_window()
+    try:
+        seed_js = getattr(window, "NoyvjSeed", None) if window is not None else None
+        if seed_js is None:
+            return None
+        data = seed_js.daily.read()
+        runs = getattr(data, "runs", None)
+        entry = getattr(runs, "continuum", None) if runs is not None else None
+        if entry is None:
+            return None
+        score = getattr(entry, "score", None)
+        return int(score) if score is not None else 0
+    except Exception:  # noqa: BLE001
+        return None
+
+
+def update_challenge_panel():
+    toggle = document.getElementById("challenge-toggle-button")
+    panel = document.getElementById("challenge-panel")
+    toggle.innerText = "Hide Challenge Runs" if challenge_panel_open else "🎯 Challenge Runs"
+    panel.hidden = not challenge_panel_open
+    if not challenge_panel_open:
+        return
+    run = challengerun.get(campaign.ui)
+    can_start = challengerun.can_start(campaign)
+    status = document.getElementById("challenge-run-status-display")
+    result_box = document.getElementById("challenge-result-display")
+    abandon = document.getElementById("challenge-abandon-button")
+    document.getElementById("challenge-copy-result").hidden = run is None or run["result"] is None
+    if run is None:
+        status.innerText = _challenge_start_message or (
+            "No challenge run in progress."
+            if can_start
+            else "Start a challenge run from a fresh settlement (before the first season)."
+        )
+        result_box.hidden = True
+        abandon.hidden = True
+    else:
+        kind = "Daily challenge" if run["kind"] == "daily" else "Custom run"
+        when = f" {run['date']}" if run["date"] else ""
+        mod = challengerun.modifier_label(run["config"]["modifier"])
+        status.innerText = (
+            f"{kind}{when} (code {run['code']}). {challengerun.progress_text(run)} "
+            f"Modifier: {mod}. Hard Mode: {'on' if run['config']['hard'] else 'off'}."
+        )
+        abandon.hidden = False
+        if run["result"] is None:
+            result_box.hidden = True
+        else:
+            result_box.hidden = False
+            par_points = run["par"] if run["par"] is not None else challengerun.par_for(run["config"])
+            res = run["result"]
+            result_box.innerHTML = ""
+            for line in (
+                f"Result: {res['points']} points. {challengerun.verdict(res['points'], par_points)}",
+                f"Average sustainability {res['avg_score']:.0f}, {res['population']} people, "
+                f"{res['discoveries']} discoveries, {res['eras']} eras entered.",
+            ):
+                row = document.createElement("p")
+                row.className = "status-line"
+                row.innerText = line
+                result_box.appendChild(row)
+
+    # today's challenge
+    today = _utc_today()
+    day = challengerun.daily(today)
+    info = document.getElementById("challenge-daily-info")
+    daily_button = document.getElementById("challenge-daily-start-button")
+    if day is None:
+        info.innerText = "Today's challenge is not available."
+        daily_button.disabled = True
+    else:
+        cfg = day["config"]
+        par_points = challengerun.par_for(cfg)
+        scenario = sim.SCENARIOS[day["scenario"]]["label"]
+        mod = challengerun.MODIFIERS[cfg["modifier"]]
+        done = _daily_done_today()
+        text = (
+            f"{today} (UTC), seed {day['seed']}: {scenario}, modifier {mod['label']} ({mod['blurb']}) "
+            f"Hard Mode {'on' if cfg['hard'] else 'off'}, {cfg['goal']} seasons. Par {par_points} points. "
+            "The same for everyone, changing at 00:00 UTC."
+        )
+        if done is not None:
+            text += f" Done today: {done} points."
+        info.innerText = text
+        daily_button.disabled = not can_start
+        daily_button.innerText = "Play today's challenge" if done is None else "Play today's challenge again"
+
+    # the editor
+    cfg = _challenge_editor
+    for name in challengerun.RANGES:
+        document.getElementById(f"challenge-dial-{name}-value").innerText = str(cfg[name])
+    par_points = challengerun.par_for(cfg)
+    preview = " ".join(challengerun.summary_lines(cfg)) + f" Par: {par_points} points."
+    document.getElementById("challenge-preview-display").innerText = preview
+    document.getElementById("challenge-code-display").value = challengerun.encode(cfg)
+    document.getElementById("challenge-custom-start-button").disabled = not can_start
+    document.getElementById("challenge-code-message").innerText = _challenge_code_message
+
+    # finished runs
+    holder = document.getElementById("challenge-ledger-list")
+    holder.innerHTML = ""
+    entries = challenge_ledger_load()
+    if not entries:
+        row = document.createElement("p")
+        row.className = "row-blurb"
+        row.innerText = "No finished runs yet. Each one you finish is listed here with its points and its par."
+        holder.appendChild(row)
+    for entry in reversed(entries):
+        row = document.createElement("p")
+        row.className = "status-line challenge-ledger-row"
+        row.innerText = challengerun.ledger_line(entry)
+        holder.appendChild(row)
+
+
+# ===========================================================================
+# K-9: the time-lapse run replay. Scrub the settlement's recorded history as the civic map,
+# with discoveries, eras, first buildings and founder's notes pinned on a timeline, and
+# download an image strip. The data work is in timelapse.py; the panel is session-only state.
+# ===========================================================================
+timelapse_open = False
+_tl_index = 0
+_tl_playing = False
+_tl_proxy = None
+TIMELAPSE_STEP_MS = 450
+
+
+def _tl_frames():
+    return timelapse.frames(campaign.ui) if campaign.revisiting is None else []
+
+
+def on_toggle_timelapse(event=None):
+    global timelapse_open, _tl_index
+    timelapse_open = not timelapse_open
+    if timelapse_open:
+        _tl_index = max(0, len(_tl_frames()) - 1)
+    else:
+        _tl_stop()
+    update_timelapse_panel()
+
+
+def _tl_stop():
+    global _tl_playing
+    _tl_playing = False
+
+
+def _tl_set_index(index):
+    global _tl_index
+    count = len(_tl_frames())
+    _tl_index = max(0, min(max(0, count - 1), int(index)))
+
+
+def on_timelapse_scrub(event=None):
+    _tl_stop()
+    try:
+        _tl_set_index(int(document.getElementById("timelapse-scrub").value))
+    except (TypeError, ValueError):
+        pass
+    update_timelapse_panel()
+
+
+def on_timelapse_prev(event=None):
+    _tl_stop()
+    _tl_set_index(_tl_index - 1)
+    update_timelapse_panel()
+
+
+def on_timelapse_next(event=None):
+    _tl_stop()
+    _tl_set_index(_tl_index + 1)
+    update_timelapse_panel()
+
+
+def _tl_tick(*args):
+    global _tl_playing
+    if not _tl_playing or not timelapse_open:
+        _tl_playing = False
+        return
+    count = len(_tl_frames())
+    if _tl_index >= count - 1:
+        _tl_playing = False
+        update_timelapse_panel()
+        return
+    _tl_set_index(_tl_index + 1)
+    update_timelapse_panel()
+    if _tl_playing:
+        setTimeout(_tl_proxy, TIMELAPSE_STEP_MS)
+
+
+def on_timelapse_play(event=None):
+    global _tl_playing, _tl_proxy
+    if _tl_playing:
+        _tl_stop()
+        update_timelapse_panel()
+        return
+    count = len(_tl_frames())
+    if count < timelapse.MIN_FRAMES:
+        return
+    if _tl_index >= count - 1:
+        _tl_set_index(0)
+    _tl_playing = True
+    if _tl_proxy is None:
+        _tl_proxy = create_proxy(_tl_tick)
+    update_timelapse_panel()
+    setTimeout(_tl_proxy, TIMELAPSE_STEP_MS)
+
+
+def _make_timelapse_jump_handler(season):
+    def handler(event=None):
+        _tl_stop()
+        for i, frame in enumerate(_tl_frames()):
+            if frame["season"] == season:
+                _tl_set_index(i)
+                break
+        update_timelapse_panel()
+    return handler
+
+
+_tl_pin_proxies = []
+
+
+def on_timelapse_strip(event=None):
+    frame_list = _tl_frames()
+    if not timelapse.usable(frame_list):
+        return
+    name = settlement_name()
+    _download_text(timelapse.strip_svg(frame_list, name), timelapse.strip_filename(name, frame_list), "image/svg+xml")
+
+
+def update_timelapse_panel():
+    toggle = document.getElementById("timelapse-toggle-button")
+    panel = document.getElementById("timelapse-panel")
+    toggle.innerText = "Hide Time-lapse" if timelapse_open else "⏱ Time-lapse"
+    panel.hidden = not timelapse_open
+    if not timelapse_open:
+        return
+    frame_list = _tl_frames()
+    caption = document.getElementById("timelapse-caption")
+    scrub = document.getElementById("timelapse-scrub")
+    play = document.getElementById("timelapse-play-button")
+    usable = timelapse.usable(frame_list)
+    for button_id in ("timelapse-prev-button", "timelapse-next-button", "timelapse-strip-button"):
+        document.getElementById(button_id).disabled = not usable
+    play.disabled = not usable
+    scrub.disabled = not usable
+    pin_box = document.getElementById("timelapse-pins-list")
+    for stale in _tl_pin_proxies:
+        stale.destroy()
+    _tl_pin_proxies.clear()
+    pin_box.innerHTML = ""
+    if not usable:
+        caption.innerText = (
+            "Nothing to replay yet: play at least two seasons (a Look Back has no replay of its own)."
+            if campaign.revisiting is None
+            else "A Look Back shows a past snapshot; return to the present to use the time-lapse."
+        )
+        document.getElementById("timelapse-map").innerHTML = ""
+        document.getElementById("timelapse-chart").innerHTML = ""
+        play.innerText = "▶ Play"
+        return
+    _tl_set_index(_tl_index)
+    frame = frame_list[_tl_index]
+    pin_list = timelapse.pins(campaign.ui, frame_list)
+    scrub.setAttribute("min", "0")
+    scrub.setAttribute("max", str(len(frame_list) - 1))
+    if str(scrub.value) != str(_tl_index):
+        scrub.value = str(_tl_index)
+    scrub.setAttribute("aria-valuetext", timelapse.caption(frame))
+    play.innerText = "⏸ Pause" if _tl_playing else "▶ Play"
+    play.setAttribute("aria-pressed", "true" if _tl_playing else "false")
+    caption.innerText = timelapse.caption(frame)
+    here = timelapse.pins_at(pin_list, frame["season"])
+    if here:
+        caption.innerText += " " + " ".join(timelapse.pin_text(p) for p in here)
+    document.getElementById("timelapse-map").innerHTML = timelapse.map_svg(frame)
+    document.getElementById("timelapse-chart").innerHTML = timelapse.chart_svg(frame_list, _tl_index, pin_list)
+    if not pin_list:
+        row = document.createElement("p")
+        row.className = "row-blurb"
+        row.innerText = "No events pinned yet: study a discovery, raise a building or add a founder's note."
+        pin_box.appendChild(row)
+    for pin in pin_list:
+        button = document.createElement("button")
+        button.className = "secondary timelapse-pin"
+        button.type = "button"
+        button.innerText = timelapse.pin_text(pin)
+        proxy = create_proxy(_make_timelapse_jump_handler(pin["season"]))
+        _tl_pin_proxies.append(proxy)
+        button.addEventListener("click", proxy)
+        pin_box.appendChild(button)
+
+
+# ===========================================================================
+# K-8: the advisor council. Four invented advisors give one piece of advice each, checked by
+# running the coming season on a copy (advisors.py). Optional, and hidden by the story toggle.
+# The buttons carry out the advice through the same handlers the Work and Build panels use.
+# ===========================================================================
+advisors_open = False
+_advisors_proxies = []
+_advisors_signature_seen = None
+
+
+def _advisor_open_item(advisor_id):
+    for item in advisors.get(campaign.ui)["advice"]:
+        if item["id"] == advisor_id:
+            return item
+    return None
+
+
+def _make_advisor_follow_handler(advisor_id):
+    def handler(event=None):
+        if campaign.revisiting is not None:
+            return
+        item = _advisor_open_item(advisor_id)
+        if item is None or item["status"] != "open" or not advisors.available(state, item["action"]):
+            return
+        action = item["action"]
+        if action["type"] == "assign":
+            _make_assign_handler(action["role"])(None)
+        elif action["type"] == "move":
+            _make_unassign_handler(action["from"])(None)
+            _make_assign_handler(action["role"])(None)
+        else:
+            _make_build_handler(action["building"])(None)
+        advisors.mark_followed(campaign.ui, advisor_id)
+        render()
+    return handler
+
+
+def on_toggle_advisors(event=None):
+    global advisors_open, _advisors_signature_seen
+    advisors_open = not advisors_open
+    _advisors_signature_seen = None
+    update_advisors_panel()
+
+
+def _advisors_rows(record):
+    rows = []
+    by_id = {item["id"]: item for item in record["advice"]}
+    for advisor_id in advisors.ORDER:
+        item = by_id.get(advisor_id)
+        can = bool(item and item["status"] == "open" and campaign.revisiting is None
+                   and advisors.available(state, item["action"]))
+        rows.append((advisor_id, item, can))
+    return rows
+
+
+def update_advisors_panel():
+    global _advisors_signature_seen
+    toggle = document.getElementById("advisors-toggle-button")
+    panel = document.getElementById("advisors-panel")
+    toggle.innerText = "Hide Advisors" if advisors_open else "🧭 Advisors"
+    panel.hidden = not advisors_open
+    if not advisors_open:
+        return
+    if campaign.revisiting is None and advisors.stale(campaign.ui, state):
+        advisors.issue(campaign.ui, state, current_effects())
+    record = advisors.get(campaign.ui)
+    rows = _advisors_rows(record)
+    signature = (
+        record["season"], campaign.revisiting,
+        tuple((a, it["text"] if it else "", it["status"] if it else "", can, record["trust"][a],
+               tuple(sorted(record["record"][a].items()))) for a, it, can in rows),
+        tuple(h["text"] for h in record["history"]),
+    )
+    if signature == _advisors_signature_seen:
+        return
+    _advisors_signature_seen = signature
+    for stale_proxy in _advisors_proxies:
+        stale_proxy.destroy()
+    _advisors_proxies.clear()
+    holder = document.getElementById("advisors-list")
+    holder.innerHTML = ""
+    for advisor_id, item, can in rows:
+        info = advisors.ADVISORS[advisor_id]
+        card = document.createElement("div")
+        card.className = "advisor-card"
+        for css, tag, text in (
+            ("advisor-name", "h3", f"{info['name']}, {info['title']}"),
+            ("advisor-trust status-line", "p", advisors.trust_text(record["trust"][advisor_id])),
+            ("advisor-voice row-blurb", "p", f"\u201c{info['voice']}\u201d"),
+        ):
+            node = document.createElement(tag)
+            node.className = css
+            node.innerText = text
+            card.appendChild(node)
+        if item is None:
+            node = document.createElement("p")
+            node.className = "row-blurb"
+            node.innerText = "Nothing to recommend this season."
+            card.appendChild(node)
+        else:
+            for css, text in (("advisor-advice status-line", item["text"]), ("advisor-claim row-blurb", advisors.claim_text(item))):
+                node = document.createElement("p")
+                node.className = css
+                node.innerText = text
+                card.appendChild(node)
+            button = document.createElement("button")
+            button.id = f"advisor-{advisor_id}-follow-button"
+            button.className = "secondary"
+            button.type = "button"
+            followed = item["status"] == "followed"
+            button.innerText = "✓ Taken this season" if followed else f"Take {info['name'].split()[0]}'s advice"
+            button.disabled = not can
+            proxy = create_proxy(_make_advisor_follow_handler(advisor_id))
+            _advisors_proxies.append(proxy)
+            button.addEventListener("click", proxy)
+            card.appendChild(button)
+        node = document.createElement("p")
+        node.className = "advisor-record row-blurb"
+        node.innerText = advisors.record_text(record["record"][advisor_id])
+        card.appendChild(node)
+        holder.appendChild(card)
+    history = document.getElementById("advisors-history")
+    history.innerHTML = ""
+    if not record["history"]:
+        node = document.createElement("p")
+        node.className = "row-blurb"
+        node.innerText = "No seasons judged yet. After each season the council's advice is scored and shown here."
+        history.appendChild(node)
+    for entry in reversed(record["history"]):
+        node = document.createElement("p")
+        node.className = "status-line advisor-history-row"
+        year, season_name = year_and_season(max(1, entry["season"]))
+        node.innerText = f"Year {year}, {season_name}: {entry['text']}"
+        history.appendChild(node)
 
 
 # ===========================================================================
@@ -1484,7 +2222,9 @@ def update_views_panel(effects=None):
         # snapshot, which that history does not describe, so they are left out.
         history = statlog.rows(campaign.ui) if campaign.revisiting is None else []
         container.className = "views-dashboard views-dashboard--spark" if history else "views-dashboard"
-        for section in views.dashboard(state, effects, (done, total)):
+        for section in views.dashboard(
+            state, effects, (done, total), techdebt.get(campaign.ui) if campaign.revisiting is None else None
+        ):
             block = document.createElement("div")
             block.className = "views-dash-section"
             heading = document.createElement("h3")
@@ -1495,8 +2235,9 @@ def update_views_panel(effects=None):
                 block.appendChild(_dashboard_row(label, value, history, effects))
             container.appendChild(block)
     elif views_tab == "map":
-        document.getElementById("views-map-svg").innerHTML = views.civic_map_svg(state)
-        document.getElementById("views-map-caption").innerText = views.map_caption(state)
+        hazard = _debt_hazard()
+        document.getElementById("views-map-svg").innerHTML = views.civic_map_svg(state, hazard)
+        document.getElementById("views-map-caption").innerText = views.map_caption(state, hazard)
     else:
         document.getElementById("views-flow-svg").innerHTML = views.flow_svg(state, state.last_report)
         document.getElementById("views-flow-caption").innerText = views.flow_caption(state.last_report)
@@ -1891,6 +2632,7 @@ def on_advance_era(event=None):
         _tick_play_time()
         _record_par()
         record_motion("era", sim.ERA_LABEL[state.era] + " era")
+        _easter_egg(eastereggs.on_era(campaign.ui, state.era))
         update_minutes_panel()
         render()
         _check_new_achievements_for_toast()
@@ -2825,6 +3567,9 @@ def _make_build_handler(building):
     def handler(event=None):
         if state.build(building):
             record_motion("build", sim.BUILDING_LABEL[building])
+            quick = _book_quick_build(building)
+            if campaign.revisiting is None:
+                _easter_egg(eastereggs.on_build(campaign.ui, state, building, quick))
         update_minutes_panel()
         render()
         _check_new_achievements_for_toast()
@@ -2835,6 +3580,8 @@ def _make_research_handler(node_id):
     def handler(event=None):
         if tree.research(node_id, state.resources):
             record_motion("research", tree.nodes[node_id].name)
+            if campaign.revisiting is None:
+                _easter_egg(eastereggs.on_research(campaign.ui, state, tree.nodes[node_id].tier))
         update_minutes_panel()
         chronicle.check_research(state, tree)
         render()
@@ -3604,7 +4351,28 @@ def on_advance_season(event=None):
         )
     found_status = ""
     report = state.advance_season(effects)
+    if campaign.revisiting is None:
+        settle = techdebt.after_season(campaign.ui, state)
+        if settle["refactored"]:
+            _easter_egg(eastereggs.on_refactor(campaign.ui, state))
+            chronicle.log_challenge(
+                state.season,
+                state.era,
+                f"Refactor season complete: technical debt eased from {settle['before'] * 100:.0f}% "
+                f"to {settle['after'] * 100:.0f}%. The crews spent the season rewriting, not producing.",
+            )
+        elif settle["warn"]:
+            chronicle.log_challenge(
+                state.season,
+                state.era,
+                "Technical debt has passed 50%: the old shortcuts are failing more often and upkeep is "
+                "climbing. A refactor season would pay it down.",
+            )
     state.record_score(sustainability.score(state, effects))
+    if campaign.revisiting is None:
+        run_result = challengerun.after_season(campaign, sustainability.score(state, effects))
+        if run_result is not None:
+            _finish_challenge_run(run_result)
     trajectory.record(state, report, sustainability.livability(state, effects) * 100.0)
     if campaign.revisiting is None:
         # K-27/K-16/K-18/K-14: one row of stats per completed season (statlog.py).
@@ -3618,6 +4386,14 @@ def on_advance_season(event=None):
         chronicle.log_challenge(state.season, state.era, event["text"])
     chronicle.check_population(state)
     chronicle.check_livability(state, effects)
+    if campaign.revisiting is None:
+        digital_rows = sum(
+            1 for row in statlog.rows(campaign.ui) if int(statlog.value(row, "era")) == sim.era_index(eastereggs.DIGITAL_ERA)
+        )
+        _easter_egg(eastereggs.on_season(campaign.ui, state, digital_rows))
+        # K-8: the council's advice for the season that just ended is judged now; new advice is
+        # issued when the panel next draws (so a closed council costs nothing).
+        advisors.settle(campaign.ui, state, current_effects())
     _tick_play_time()
     render()
     _check_new_achievements_for_toast()
@@ -3755,6 +4531,48 @@ def setup():
         )
     document.getElementById("hard-mode-toggle-button").addEventListener(
         "click", create_proxy(on_toggle_hard_mode)
+    )
+    document.getElementById("challenge-toggle-button").addEventListener(
+        "click", create_proxy(on_toggle_challenge)
+    )
+    _build_challenge_controls()
+    for _name in challengerun.RANGES:
+        document.getElementById(f"challenge-dial-{_name}").addEventListener(
+            "input", create_proxy(on_challenge_input)
+        )
+    document.getElementById("challenge-modifier-select").addEventListener(
+        "change", create_proxy(on_challenge_input)
+    )
+    document.getElementById("challenge-hard-checkbox").addEventListener(
+        "change", create_proxy(on_challenge_input)
+    )
+    for _id, _handler in (
+        ("challenge-daily-start-button", on_challenge_daily_start),
+        ("challenge-custom-start-button", on_challenge_custom_start),
+        ("challenge-abandon-button", on_challenge_abandon),
+        ("challenge-code-copy-button", on_challenge_copy_code),
+        ("challenge-code-load-button", on_challenge_load_code),
+    ):
+        document.getElementById(_id).addEventListener("click", create_proxy(_handler))
+    document.getElementById("timelapse-toggle-button").addEventListener(
+        "click", create_proxy(on_toggle_timelapse)
+    )
+    document.getElementById("timelapse-scrub").addEventListener("input", create_proxy(on_timelapse_scrub))
+    for _id, _handler in (
+        ("timelapse-prev-button", on_timelapse_prev),
+        ("timelapse-next-button", on_timelapse_next),
+        ("timelapse-play-button", on_timelapse_play),
+        ("timelapse-strip-button", on_timelapse_strip),
+    ):
+        document.getElementById(_id).addEventListener("click", create_proxy(_handler))
+    document.getElementById("advisors-toggle-button").addEventListener(
+        "click", create_proxy(on_toggle_advisors)
+    )
+    document.getElementById("quick-build-toggle-button").addEventListener(
+        "click", create_proxy(on_toggle_quick_build)
+    )
+    document.getElementById("refactor-button").addEventListener(
+        "click", create_proxy(on_toggle_refactor)
     )
     for _case_id in consulting.CASES:
         document.getElementById(f"consulting-case-{_case_id}-button").addEventListener(

@@ -1359,6 +1359,12 @@ kbd { border: 1px solid rgba(201, 147, 84, 0.5); border-radius: 4px; padding: 0 
 .map-district--empty { stroke-dasharray: 4 3; fill: none; }
 .map-label { fill: #f0dcbc; font-size: 8.5px; }
 .map-count { fill: #d9b98a; font-size: 8px; }
+.map-district--caution { stroke: #e8b23a; stroke-width: 1.6; }
+.map-district--danger { stroke: #ff9a52; stroke-width: 2.4; stroke-dasharray: 5 2; }
+.map-hatch { pointer-events: none; opacity: 0.55; }
+.map-hatch-line { stroke: #e8b23a; stroke-width: 1.4; }
+.map-hazard-mark { fill: #ffd27a; font-size: 13px; font-weight: 800; }
+.techdebt-actions { flex-wrap: wrap; gap: 0.5rem; }
 .map-glyph { fill: #e0b374; stroke: #2a1f10; stroke-width: 0.6; }
 .map-glyph--line { fill: none; stroke: #e0b374; stroke-width: 1.8; stroke-linecap: round; }
 .map-glyph--hollow { fill: none; stroke: #e0b374; stroke-width: 1.6; }
@@ -1778,6 +1784,45 @@ body.screensaver-on #game, body.screensaver-on .section { backdrop-filter: none 
 /* Z-28: the pause-when-hidden checkbox row in the settings panel. */
 .settings-checkbox-label { display: flex; align-items: center; gap: 0.5rem; font-size: 0.85rem; cursor: pointer; }
 
+/* --- Round 3 K-section, third group (2026-10-08): K-4 debt, K-8 advisors, K-9 time-lapse, K-10/K-11 challenge runs --- */
+.challenge-panel[hidden], .timelapse-panel[hidden], .advisors-panel[hidden], .challenge-result[hidden] { display: none; }
+.challenge-dials { display: grid; grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr)); gap: 0.4rem 1rem; margin: 0.5rem 0; }
+.challenge-dial { display: grid; grid-template-columns: 1fr auto; gap: 0.15rem 0.5rem; align-items: center; }
+.challenge-dial label { grid-column: 1 / -1; font-size: 0.85rem; }
+.challenge-dial input[type="range"] { width: 100%; min-height: 2.75rem; }
+.challenge-dial output { font-variant-numeric: tabular-nums; font-weight: 700; min-width: 2.5rem; text-align: right; }
+.challenge-dial--wide { display: flex; flex-wrap: wrap; gap: 0.5rem; margin: 0.4rem 0; }
+.challenge-dial--wide select { flex: 1 1 14rem; min-height: 2.75rem; font: inherit; }
+.challenge-hard { display: flex; align-items: center; gap: 0.5rem; margin: 0.4rem 0; }
+.challenge-code-row { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; margin: 0.5rem 0; }
+.challenge-code-row label { flex: 0 0 100%; font-size: 0.85rem; }
+.challenge-code-row input { flex: 1 1 12rem; font-family: ui-monospace, Menlo, Consolas, monospace; letter-spacing: 0.05em; }
+.challenge-result { border: 2px solid rgba(201, 147, 84, 0.7); border-radius: 6px; padding: 0.5rem 0.75rem; margin: 0.5rem 0; }
+.challenge-ledger-row { font-variant-numeric: tabular-nums; }
+
+.timelapse-map svg { display: block; margin: 0 auto; width: 100%; height: auto; max-height: 15rem; }
+.timelapse-chart-box svg { width: 100%; height: auto; max-height: 11rem; }
+.timelapse-controls { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; margin: 0.5rem 0; }
+.timelapse-controls input[type="range"] { flex: 1 1 10rem; min-height: 2.75rem; }
+.timelapse-scrub-label { font-size: 0.85rem; }
+.timelapse-pin { display: block; width: 100%; text-align: left; margin: 0.2rem 0; }
+.timelapse-legend { font-size: 0.8rem; }
+.tl-axis { stroke: rgba(224, 179, 116, 0.5); stroke-width: 1; }
+.tl-score { fill: none; stroke: #e0b374; stroke-width: 2; }
+.tl-pop { fill: none; stroke: #8fb8ff; stroke-width: 2; stroke-dasharray: 5 3; }
+.tl-cursor { stroke: #f2e6d0; stroke-width: 1.5; }
+.tl-label { fill: #d8c9a8; font-size: 8px; }
+.tl-pin { fill: #f2e6d0; stroke: #2a1f10; stroke-width: 0.8; }
+.tl-pin--research { fill: #8fb8ff; }
+.tl-pin--build { fill: #e0b374; }
+.tl-pin--note { fill: #ffffff; }
+
+.advisor-card { border: 1px solid rgba(201, 147, 84, 0.45); border-radius: 6px; padding: 0.6rem 0.8rem; margin: 0.6rem 0; }
+.advisor-name { margin: 0 0 0.1rem; font-size: 1rem; }
+.advisor-voice { font-style: italic; }
+.advisor-advice { font-weight: 600; }
+.advisor-card button { margin-top: 0.3rem; }
+
 /* ==========================================================================
    Light theme (Y11b, 2026-09-27). shared/theme-light-games.css already
    restyles the common chrome (page, #game shell, .section panels, buttons,
@@ -1930,6 +1975,10 @@ html[data-theme="light"] .map-district { fill: rgba(168, 105, 31, 0.1); stroke: 
 html[data-theme="light"] .map-label { fill: #2a1c08; }
 html[data-theme="light"] .map-count { fill: #5c3a0a; }
 html[data-theme="light"] .map-glyph { fill: #8a5208; stroke: #ffffff; }
+html[data-theme="light"] .map-district--caution { stroke: #8a5a00; }
+html[data-theme="light"] .map-district--danger { stroke: #a63a00; }
+html[data-theme="light"] .map-hatch-line { stroke: #8a5a00; }
+html[data-theme="light"] .map-hazard-mark { fill: #7a2c00; }
 html[data-theme="light"] .map-glyph--line,
 html[data-theme="light"] .map-glyph--hollow { stroke: #8a5208; }
 html[data-theme="light"] .flow-node { fill: #fff6e0; stroke: #8a5208; }
@@ -1986,3 +2035,15 @@ html[data-theme="light"] .monument-caption { opacity: 1; color: #3a4468; }
 html[data-theme="light"] .monument-state { color: #3a4468; }
 html[data-theme="light"] .achievement-card--earned .monument-state { color: #7a4a12; }
 html[data-theme="light"] .achievement-card:not(.achievement-card--earned) .monument-state { opacity: 1; }
+
+html[data-theme="light"] .challenge-result { border-color: #7a4a12; }
+html[data-theme="light"] .tl-axis { stroke: rgba(40, 55, 110, 0.5); }
+html[data-theme="light"] .tl-score { stroke: #7a4a12; }
+html[data-theme="light"] .tl-pop { stroke: #1f4fa3; }
+html[data-theme="light"] .tl-cursor { stroke: #1b2033; }
+html[data-theme="light"] .tl-label { fill: #3a4468; }
+html[data-theme="light"] .tl-pin { fill: #1b2033; stroke: #ffffff; }
+html[data-theme="light"] .tl-pin--research { fill: #1f4fa3; }
+html[data-theme="light"] .tl-pin--build { fill: #7a4a12; }
+html[data-theme="light"] .tl-pin--note { fill: #ffffff; stroke: #1b2033; }
+html[data-theme="light"] .advisor-card { border-color: rgba(122, 74, 18, 0.55); background: rgba(255, 255, 255, 0.6); }
