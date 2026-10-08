@@ -6739,10 +6739,62 @@ def _note_recovery(plot):
     _log_event("recovered", f"{_plot_ref(plot.index)} finished recovering", plot.index)
 
 
+# B-30 (2026-10-09): a performance guard. When ticks arrive much later than scheduled (a slow device or a busy
+# tab) the decorative effects (wildlife flutter, value pops, leaf bursts) switch off until the loop is steady
+# again, and a small indicator says so. Gameplay and the tick maths are untouched.
+PERF_LAG_FACTOR = 2.5  # a gap this many times the tick interval counts as lag
+PERF_STRIKES_TO_THROTTLE = 3
+PERF_STEADY_TICKS_TO_RECOVER = 30
+perf_mode = False
+_perf_strikes = 0
+_perf_steady = 0
+_last_tick_clock = None
+
+
+def update_perf_guard(gap_seconds):
+    """Feeds one measured gap between ticks; returns True when the guard's state changed."""
+    global perf_mode, _perf_strikes, _perf_steady
+    lagging = gap_seconds > PERF_LAG_FACTOR * TICK_INTERVAL_MS / 1000
+    before = perf_mode
+    if lagging:
+        _perf_strikes += 1
+        _perf_steady = 0
+        if _perf_strikes >= PERF_STRIKES_TO_THROTTLE:
+            perf_mode = True
+    else:
+        _perf_steady += 1
+        if _perf_steady >= PERF_STEADY_TICKS_TO_RECOVER:
+            perf_mode = False
+            _perf_strikes = 0
+    return perf_mode != before
+
+
+def _note_tick_clock():
+    """Called once per tick: measures the gap since the previous tick, ignoring gaps while the tab was hidden or paused."""
+    global _last_tick_clock
+    now = time.time()
+    previous, _last_tick_clock = _last_tick_clock, now
+    if previous is None or getattr(document, "visibilityState", "visible") == "hidden":
+        return
+    if update_perf_guard(now - previous):
+        render_perf_indicator()
+
+
+def render_perf_indicator():
+    element = _el("perf-indicator")
+    root = getattr(document, "documentElement", None)
+    if root is not None and hasattr(root, "setAttribute"):
+        root.setAttribute("data-perf-mode", "on" if perf_mode else "off")
+    if element is not None:
+        element.hidden = not perf_mode
+        element.innerText = "Performance mode: effects are paused while the game catches up" if perf_mode else ""
+
+
 def tick(event=None):
     global pending_stakeholder_request, _session_ticks, forest_tick
     _session_ticks += 1
     forest_tick += 1
+    _note_tick_clock()  # B-30
     if forest_tick % SEASON_CYCLE_TICKS == 0:
         _end_season()  # GB-30: score the season that just ended
     _pending_value_pops.clear()
@@ -6755,7 +6807,7 @@ def tick(event=None):
             bonus = delta * HEART_TREE_AURA_BONUS
             plot.value += bonus
             delta += bonus
-        if delta >= VALUE_POP_MIN_DELTA:
+        if delta >= VALUE_POP_MIN_DELTA and not perf_mode:  # B-30: no pops while throttled
             _pending_value_pops[plot.index] = delta
         if plot.advance_recovery():
             _note_recovery(plot)

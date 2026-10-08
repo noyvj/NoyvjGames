@@ -464,3 +464,49 @@ def test_panel_is_hidden_until_the_player_opts_in(game_env):
     m.render_coach_hints()
     assert game_env.elements["coach-hints-panel"].hidden is False
     assert game_env.elements["coach-hints"].innerText.startswith("• ")
+
+
+# ---- B-30: the performance guard ----
+
+def test_three_lagging_ticks_switch_the_guard_on_and_steady_ticks_switch_it_off(game_env):
+    m = game_env.module
+    m.perf_mode, m._perf_strikes, m._perf_steady = False, 0, 0
+    slow = m.PERF_LAG_FACTOR * m.TICK_INTERVAL_MS / 1000 + 0.5
+    assert m.update_perf_guard(slow) is False and m.update_perf_guard(slow) is False
+    assert m.update_perf_guard(slow) is True and m.perf_mode is True
+    for _ in range(m.PERF_STEADY_TICKS_TO_RECOVER - 1):
+        assert m.update_perf_guard(1.0) is False
+    assert m.perf_mode is True
+    assert m.update_perf_guard(1.0) is True and m.perf_mode is False
+
+
+def test_a_good_tick_in_between_does_not_reset_strikes_but_a_steady_run_does_recover(game_env):
+    m = game_env.module
+    m.perf_mode, m._perf_strikes, m._perf_steady = False, 0, 0
+    slow = m.PERF_LAG_FACTOR * m.TICK_INTERVAL_MS / 1000 + 1
+    m.update_perf_guard(slow)
+    m.update_perf_guard(1.0)
+    m.update_perf_guard(slow)
+    m.update_perf_guard(slow)
+    assert m.perf_mode is True  # three strikes in total
+
+
+def test_indicator_text_and_attribute_follow_the_guard(game_env):
+    m = game_env.module
+    m.perf_mode = True
+    m.render_perf_indicator()
+    el = game_env.elements["perf-indicator"]
+    assert el.hidden is False and "Performance mode" in el.innerText
+    m.perf_mode = False
+    m.render_perf_indicator()
+    assert el.hidden is True and el.innerText == ""
+
+
+def test_pops_are_skipped_while_throttled_but_values_still_grow(game_env):
+    m = game_env.module
+    m.perf_mode = True
+    before = m.standing_forest_value()
+    m.tick()
+    assert m.standing_forest_value() > before
+    assert m._pending_value_pops == {}
+    m.perf_mode = False

@@ -1278,3 +1278,8 @@ Added readability and feedback features to Thaw without adding screen clutter: t
 **Game:** canopy
 **Did:** B-27: an opt-in Settings checkbox, Coach hints, adds a dismissible "Coach" box to the Session Summary with up to three short notes that read the live session: a plot cleared three or more times with its current soil percentage, other plots with soil below 60%, three or more bare plots with nothing replanted yet, and community relations below 30. They are plain text in a polite live region, never a dialog, and one Dismiss button hides what is showing (a new session starts with nothing dismissed). The "replace tutorial text for returning players" part is not built: the hints only add to the report card.
 **Result:** Canopy tests 945 to 950.
+
+### 2026-10-09 (Canopy, personal pass: performance guard)
+**Game:** canopy
+**Did:** B-30: the game measures the gap between ticks (ignoring gaps while the tab is hidden); three gaps longer than 2.5 times the tick interval switch on a performance mode (decorative motion off through a `data-perf-mode` attribute on the page: wildlife flutter, value pops, leaf bursts; value pops are not even created while throttled; a "Performance mode: effects are paused while the game catches up" note under the season forecast, in the Desktop stage bar too), and 30 steady ticks switch it off again. Gameplay and tick maths are untouched.
+**Result:** Canopy tests 950 to 954. Not checked on a genuinely slow machine.

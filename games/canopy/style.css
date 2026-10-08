@@ -2158,6 +2158,14 @@ html:not([data-level-effects="off"]) .level-box--spirit .spirit-line { animation
 .coach-hints-panel[hidden] { display: none; }
 .coach-hints { white-space: pre-line; margin: 0.25rem 0; }
 
+/* B-30: performance mode: decorative motion off while the tick loop lags; a text indicator says so. */
+html[data-perf-mode="on"] .plot-tile.plot-has-wildlife::after,
+html[data-perf-mode="on"] .value-pop,
+html[data-perf-mode="on"] .leaf-burst { animation: none !important; }
+html[data-perf-mode="on"] .value-pop, html[data-perf-mode="on"] .leaf-burst { display: none; }
+.perf-indicator { margin: 0.25rem 0; padding: 0.2rem 0.6rem; border: 1px dashed currentColor; border-radius: 999px; font-size: 0.8rem; display: inline-block; }
+.perf-indicator[hidden] { display: none; }
+
 /* ============================================================
    Light theme (Y11b, 2026-09-27). shared/theme-light-games.css already
    restyles the shared chrome (panels, buttons, inputs, HUD readouts);
