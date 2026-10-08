@@ -1,6 +1,6 @@
 # Site-Wide TODO (round 3)
 
-**Progress: 491/1095 items checked off (44.8%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land.
+**Progress: 495/1095 items checked off (45.2%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land.
 
 Built from your answers in `planning/IMPROVEMENT-IDEAS-ROUND-3.md` (Part 4). Every Round 3 section is now answered (2026-10-07 below the Warframe section); earlier this list held only: **GB** (Canopy gamified), **M** (new games), **N** (seasonal events), **O** (Trade Empire and Continuum replayability), **P/Q/S/T** (Signal, Undersleep, Overclock, Last Line open questions), **X** (Warframe tracker) and **R** (returning later). GC-GI, A-L, U, Z and Y are unanswered and wait for you. The previous list is archived at `planning/todo-archive/260914_260927.md`; anything from it that was moved here is marked "moved" there.
 
@@ -109,10 +109,10 @@ Rules carried over: "yes" items are here, "later" items are parked in `planning/
 - [x] M-4b-2: Milestone 2, Board UI: 5x6 grid, crates, drag plus tap-tap plus keyboard, Sell/Broom, merge highlights (prototype at 375px before customers).
 - [x] M-4b-3: Milestone 3, Customers and orders: queue, patience counted in beats, delivery, payout, 4 archetypes, order generator with a reachability test.
 - [x] M-4b-4: Milestone 4, Market day loop: day start and summary, coins, stall upgrades, a 10-day campaign, 3 festivals. First complete, playable game.
-- [ ] M-4b-5: Milestone 5, Combos, streaks, festivals: order combo, cascade bonus, all 6 festivals with previews, personal-best badges.
-- [ ] M-4b-6: Milestone 6, Standard kit + pledge tests: save widget, settings, confirm dialog, tutorial, mobile dock/HUD, changelog, info panel with the pledge list, feedback, and the pledge tests (no energy, no premium currency, no timers pushing spending).
-- [ ] M-4b-7: Milestone 7, Achievements + story: 14 achievements, panel and toast, regulars, story toggle wiring.
-- [ ] M-4b-8: Milestone 8, Own-folder wrap-up: favicon `icons/favicon-pocket-bazaar.svg`, Desktop boot (`pc-config.json`, its own `pc.html`), the game's CLAUDE.md milestone table, dev logs, tag. Everything inside the game folder, so no waiting.
+- [x] M-4b-5: Milestone 5, Combos, streaks, festivals: order combo, cascade bonus, all 6 festivals with previews, personal-best badges.
+- [x] M-4b-6: Milestone 6, Standard kit + pledge tests: save widget, settings, confirm dialog, tutorial, mobile dock/HUD, changelog, info panel with the pledge list, feedback, and the pledge tests (no energy, no premium currency, no timers pushing spending).
+- [x] M-4b-7: Milestone 7, Achievements + story: 14 achievements, panel and toast, regulars, story toggle wiring.
+- [x] M-4b-8: Milestone 8, Own-folder wrap-up: favicon `icons/favicon-pocket-bazaar.svg`, Desktop boot (`pc-config.json`, its own `pc.html`), the game's CLAUDE.md milestone table, dev logs, tag. Everything inside the game folder, so no waiting.
 - [ ] M-4b-9: Milestone 9, Daily Market (optional): date-seeded day, archive, opt-in leaderboard board. Only if FOR-YOU Pb3 says yes.
 - [ ] M-4b-10: Milestone 10, BLOCKED ON NOY2 (hub registration): the shared registration that must wait until Noy2 releases the hub and shared files: root `index.html` title card and tags, `style.css` thumbnail, `script.js` entries, `sw.js` precache (own game files plus `pc.*`) with a `SW_VERSION` bump, `offline-manifest.json`, `game-manifest.json` / `game-added.json` / `game-last-updated.json` / `game-roadmap-data.json` (rerun the scripts), `game-sessions.json`, `achievements.html`, `leaderboards.html` if it has a board, `admin.html`, `shared/site-settings.js`, `sitemap.xml`, `share/meta` and `share/jsonld` cards (`scripts/generate-share-cards.py`), `scripts/perf-budget.json`, the hub regression and smoke tests (`shared/tests/smoke_support.py`, `test_smoke_everything.py`), the root `CLAUDE.md` games table row, and a check that the game works with Noy2's finished save widget and snapshots. Then run the shared test suite and `scripts/generate-pc-pages.py --check`.
 

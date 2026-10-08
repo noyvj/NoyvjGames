@@ -168,3 +168,15 @@ No recommendation.
 
 Honest note: Chronicle, the new puzzle games and the per-game work come first. Recommend: after your semester.
 
+### Pb4. Pocket Bazaar: on a 1024x700 desktop window the counter cells are about 50px and the stall panel scrolls slightly inside itself; should I widen the side column or shrink the queue to fix it?
+
+Recommended: widen the side column. Say "yes" to go with that, or tell me which you prefer.
+
+### Pb5. Pocket Bazaar: regulars currently reach bond level 3 after about 20 days of play; should bonds be faster?
+
+Recommended: slightly faster, about 12 to 14 days, since you like reachable 100%. Say "yes" to go with that, "no" to keep 20 days.
+
+### Pb6. Pocket Bazaar: on phones the Tutorial, What's New, Settings and About buttons sit at the foot of the page below the crates; is that acceptable?
+
+Recommended: yes, it keeps the board and counter on one screen. Say "no" and tell me where they should go instead.
+
