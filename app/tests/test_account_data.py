@@ -9,7 +9,7 @@ from fastapi.testclient import TestClient
 from database import SessionLocal
 from main import app
 from models import (
-    AnswerReport, AuthSession, Feedback, HelpfulVote, LeaderboardEntry, Rating, Save, ScoreEntry,
+    AnswerReport, AuthSession, Feedback, HelpfulVote, LeaderboardEntry, Rating, Save, SaveSnapshot, ScoreEntry,
     ScoreProfile, User,
 )
 
@@ -54,6 +54,7 @@ def fill_account(headers, uid):
     assert client.put("/users/me/leaderboard-privacy", json={"show_username": True}, headers=headers).status_code == 200
     assert client.put(f"/whats-new/votes/{ENTRY}", json={"helpful": True}, headers=headers).status_code == 200
     assert client.put("/users/me/settings", json={"theme": "light"}, headers=headers).status_code == 200
+    assert client.post("/users/me/snapshots", json={"game_id": GAME, "slot": 1, "summary": f"snap-{uid}", "save_data": {"n": 0}}, headers=headers).status_code == 200
 
 
 def rows_for(uid):
@@ -63,6 +64,7 @@ def rows_for(uid):
             "users": db.query(User).filter(User.id == uid).count(),
             "sessions": db.query(AuthSession).filter(AuthSession.user_id == uid).count(),
             "saves": db.query(Save).filter(Save.user_id == uid).count(),
+            "snapshots": db.query(SaveSnapshot).filter(SaveSnapshot.user_id == uid).count(),
             "legacy_boards": db.query(LeaderboardEntry).filter(LeaderboardEntry.user_id == uid).count(),
             "scores": db.query(ScoreEntry).filter(ScoreEntry.user_id == uid).count(),
             "profiles": db.query(ScoreProfile).filter(ScoreProfile.user_id == uid).count(),
@@ -88,6 +90,7 @@ def test_export_holds_everything_and_no_secrets():
     assert len(body["saves"]) == 2
     assert {s["slot"] for s in body["saves"]} == {1, 2}
     assert body["saves"][0]["save_data"]["n"] == 1
+    assert [(r["game_id"], r["slot"], r["save_data"]) for r in body["save_snapshots"]] == [(GAME, 1, {"n": 0})]
     assert body["achievements"][GAME] == ["first_step", "second", "third"]
     assert [f["comment"] for f in body["feedback"]] == [f"fb-{uid}"]
     assert body["leaderboards"]["show_username"] is True
@@ -105,7 +108,7 @@ def test_export_only_contains_the_callers_rows():
     client.post("/feedback", json={"comment": "theirs-comment"}, headers=theirs)
     body = client.get("/users/me/export", headers=mine).json()
     assert "theirs-only" not in str(body) and "theirs-comment" not in str(body)
-    assert body["saves"] == []
+    assert body["saves"] == [] and body["save_snapshots"] == []
 
 
 def test_delete_needs_the_typed_username():

@@ -51,6 +51,28 @@ class Save(Base):
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
 
 
+class SaveSnapshot(Base):
+    """Z-10, the save "time machine": the last few automatic snapshots of a signed-in player's
+    game state, taken by the save widget just before something overwrites it (Load, New Game,
+    a restore) and on autosave. Capped to SNAPSHOTS_PER_SLOT per (account, game, slot) by
+    deleting the oldest (see snapshots.py). `slot` is 1-3 for a numbered save slot and 0 when
+    no slot was active. `size` is the JSON size in bytes and `summary` a one-line description
+    the widget made. A brand-new table, so create_all builds it and patch_schema() needs no
+    statement. Removed with the account (account_data.delete_account) and part of its export."""
+
+    __tablename__ = "save_snapshots"
+    __table_args__ = (Index("ix_save_snapshots_owner", "user_id", "game_id", "slot"),)
+
+    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    user_id = Column(String, ForeignKey("users.id"), nullable=False, index=True)
+    game_id = Column(String, nullable=False)
+    slot = Column(Integer, nullable=False, default=0, server_default="0")
+    size = Column(Integer, nullable=False, default=0, server_default="0")
+    summary = Column(String, nullable=True)
+    save_data = Column(JSON, nullable=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+
 class User(Base):
     """ACCOUNTS-AND-FEEDBACK-DESIGN.md Phase 2, revised: username +
     password, not the original magic-link/email design — no email

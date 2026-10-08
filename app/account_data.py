@@ -3,7 +3,7 @@ What's New "was this helpful?" votes (Y-24). Pure database helpers: main.py owns
 the routes, the authentication and the rate limiting.
 
 What the server holds about an account (and so what export and delete cover):
-  users, auth_sessions, saves (claimed and slotted), leaderboard_entries,
+  users, auth_sessions, saves (claimed and slotted), save_snapshots (Z-10), leaderboard_entries,
   score_entries, score_profiles, feedback written while signed in, helpful_votes
   cast while signed in.
 What it does NOT link to an account, so cannot export or remove by account:
@@ -23,7 +23,7 @@ from sqlalchemy.orm import Session
 import stats
 from models import (
     AnswerReport, AuthSession, Feedback, HelpfulVote, LeaderboardEntry, PageView, Rating, Save,
-    ScoreEntry, ScoreProfile, User,
+    SaveSnapshot, ScoreEntry, ScoreProfile, User,
 )
 
 # ---------------------------------------------------------------- export / delete
@@ -46,6 +46,8 @@ def build_export(db: Session, user: User, now: Optional[datetime] = None) -> dic
         if earned:
             merged = set(achievements.get(row.game_id, [])) | set(earned)
             achievements[row.game_id] = sorted(merged)
+    snapshots = db.query(SaveSnapshot).filter(SaveSnapshot.user_id == user.id).order_by(
+        SaveSnapshot.game_id, SaveSnapshot.slot, SaveSnapshot.created_at).all()
     feedback = db.query(Feedback).filter(Feedback.user_id == user.id).order_by(Feedback.created_at).all()
     legacy_boards = db.query(LeaderboardEntry).filter(LeaderboardEntry.user_id == user.id).all()
     scores = db.query(ScoreEntry).filter(ScoreEntry.user_id == user.id).order_by(
@@ -74,6 +76,11 @@ def build_export(db: Session, user: User, now: Optional[datetime] = None) -> dic
                 "created_at": _iso(r.created_at), "updated_at": _iso(r.updated_at), "save_data": r.save_data,
             }
             for r in saves
+        ],
+        "save_snapshots": [
+            {"id": r.id, "game_id": r.game_id, "slot": r.slot, "size": r.size, "summary": r.summary,
+             "created_at": _iso(r.created_at), "save_data": r.save_data}
+            for r in snapshots
         ],
         "achievements": achievements,
         "feedback": [
@@ -120,6 +127,7 @@ def delete_account(db: Session, user: User) -> dict:
     for label, model in (
         ("sessions", AuthSession),
         ("saves", Save),
+        ("save_snapshots", SaveSnapshot),
         ("leaderboard_entries", LeaderboardEntry),
         ("score_entries", ScoreEntry),
         ("feedback", Feedback),

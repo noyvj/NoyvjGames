@@ -21,12 +21,13 @@ import boards
 import leaderboards
 import market
 import pools
+import snapshots
 import stats
 from throttle import FailureLimiter
 from database import engine, get_db, init_schema, retry_schema_until_ready
 from models import (
     AnswerReport, AuthSession, Feedback, LeaderboardEntry, OwnerNote, PageView, PoolDay, Rating, Save,
-    ScoreEntry, ScoreProfile, User,
+    SaveSnapshot, ScoreEntry, ScoreProfile, User,
 )
 
 logger = logging.getLogger(__name__)
@@ -535,7 +536,12 @@ RATING_LIMITER = FailureLimiter(max_failures=60, window_seconds=3600)
 SAVE_CREATE_LIMITER = FailureLimiter(max_failures=60, window_seconds=3600)
 ANSWER_REPORT_LIMITER = FailureLimiter(max_failures=120, window_seconds=3600)
 PAGEVIEW_LIMITER = FailureLimiter(max_failures=120, window_seconds=3600)
-WRITE_LIMITERS = (SIGNUP_LIMITER, RATING_LIMITER, SAVE_CREATE_LIMITER, ANSWER_REPORT_LIMITER, PAGEVIEW_LIMITER)
+# Z-10: save snapshots, per ACCOUNT (the key is the user id). The widget takes one before a Load, a
+# New Game or a restore and one per 10 minutes of autosave, so 40 an hour is far above real play.
+SNAPSHOT_LIMITER = FailureLimiter(max_failures=40, window_seconds=3600)
+WRITE_LIMITERS = (
+    SIGNUP_LIMITER, RATING_LIMITER, SAVE_CREATE_LIMITER, ANSWER_REPORT_LIMITER, PAGEVIEW_LIMITER, SNAPSHOT_LIMITER,
+)
 
 
 def _client_key(request: Request) -> str:
@@ -786,6 +792,92 @@ def put_slot_save(
         db.refresh(row)
         return row
     raise HTTPException(status_code=500, detail="Could not generate a unique save code — try again")
+
+
+# --- Z-10: save snapshots (the save widget's "time machine") ---
+# The last SNAPSHOTS_PER_SLOT automatic snapshots of this account's game state, per game and slot
+# (slot 0 = no numbered slot active). The widget writes one before a Load / New Game / restore
+# overwrites the current state and on autosave at most every 10 minutes; the list and the one-row
+# fetch feed its "Restore an earlier state" list. Helpers and caps are in snapshots.py.
+
+
+class SnapshotIn(BaseModel):
+    game_id: str = Field(min_length=1, max_length=ID_MAX_LENGTH)
+    slot: int = 0
+    summary: Optional[str] = Field(default=None, max_length=1000)
+    save_data: dict
+
+
+def _snapshot_out(row: SaveSnapshot, with_data: bool = False) -> dict:
+    out = snapshots.meta(row)
+    if with_data:
+        out["save_data"] = row.save_data
+    return out
+
+
+@app.post("/users/me/snapshots")
+def create_snapshot(
+    payload: SnapshotIn,
+    response: Response,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    response.headers["Cache-Control"] = "no-store"
+    if payload.slot not in snapshots.SLOT_RANGE:
+        raise HTTPException(status_code=422, detail="slot must be from 0 to 3")
+    if not payload.save_data:
+        raise HTTPException(status_code=422, detail="An empty state is never snapshotted")
+    if snapshots.json_size(payload.save_data) > snapshots.SNAPSHOT_MAX_BYTES:
+        raise HTTPException(status_code=413, detail="This state is too large to snapshot")
+    if SNAPSHOT_LIMITER.blocked(current_user.id):
+        raise HTTPException(status_code=429, detail="Too many snapshots, try again later")
+    SNAPSHOT_LIMITER.record_failure(current_user.id)
+    row = snapshots.add_snapshot(
+        db, current_user.id, payload.game_id, payload.slot, payload.summary, payload.save_data)
+    return _snapshot_out(row)
+
+
+@app.get("/users/me/snapshots")
+def list_snapshots(
+    response: Response,
+    game_id: Optional[str] = None,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """This account's snapshots, newest first, without the state itself (fetch one by id)."""
+    response.headers["Cache-Control"] = "no-store"
+    return [_snapshot_out(r) for r in snapshots.list_for(db, current_user.id, game_id)]
+
+
+def _own_snapshot(db: Session, user: User, snapshot_id: str) -> SaveSnapshot:
+    row = db.query(SaveSnapshot).filter(SaveSnapshot.id == snapshot_id, SaveSnapshot.user_id == user.id).first()
+    if row is None:
+        raise HTTPException(status_code=404, detail="Snapshot not found")
+    return row
+
+
+@app.get("/users/me/snapshots/{snapshot_id}")
+def get_snapshot(
+    snapshot_id: str,
+    response: Response,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    response.headers["Cache-Control"] = "no-store"
+    return _snapshot_out(_own_snapshot(db, current_user, snapshot_id), with_data=True)
+
+
+@app.delete("/users/me/snapshots/{snapshot_id}")
+def delete_snapshot(
+    snapshot_id: str,
+    response: Response,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    response.headers["Cache-Control"] = "no-store"
+    db.delete(_own_snapshot(db, current_user, snapshot_id))
+    db.commit()
+    return {"deleted": True}
 
 
 # --- Y31: account-synced site-wide settings ---

@@ -82,7 +82,7 @@ def test_save_widget_reads_the_account_saves_once_at_page_load(harness):
         "<div id='game'>g</div>")
     h.goto()
     h.page.wait_for_function("window.__loaded !== null")
-    h.page.wait_for_selector(".save-widget-slot")
+    h.page.wait_for_selector(".save-widget-slot", state="attached")   # the panel starts collapsed (Z-22)
     reads = [c for c in h.api_calls if c[0] == "GET" and c[1].startswith("/users/me/saves")]
     assert len(reads) == 1, reads
     assert h.page.locator(".save-widget-slot").count() == 3

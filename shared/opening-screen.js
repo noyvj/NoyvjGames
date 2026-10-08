@@ -27,7 +27,7 @@
  *     keeps deep links and automated checks working.
  * Back to the main page (UX-8): after the screen is dismissed, a small "Main menu"
  * control (built here) re-opens it at any time without losing progress. It sits in
- * the save widget's header row (bottom-right, next to Save / Load) on the Classic
+ * the save widget's header row (top-right pill, beside the "Saved N min ago" toggle) on the Classic
  * page, and in the shell's own Menu window on the Desktop boot (pages with a
  * #pc-topbar); with neither, it is a small fixed button. window.NoyvjOpeningScreen
  * .show() does the same from any other control. Re-opened this way "Continue" reads
@@ -96,7 +96,7 @@
     style.textContent = `
       /* UX-6: the card is centred with auto margins inside a scrolling flex container, so
          a short window (or a tall card with several saves) scrolls instead of clipping the
-         top and bottom, and the save widget (z-index 9999, bottom-right) is hidden while
+         top and bottom, and the save widget (z-index 9999, top-right) is hidden while
          this screen is up rather than sitting on top of its buttons. */
       html.opening-screen-open #save-widget { visibility: hidden; }
       #opening-screen {
@@ -137,7 +137,7 @@
       #opening-screen [hidden] { display: none; }
       #opening-screen .opening-hub { font-size: 0.9rem; opacity: 0.85; }
       #noyvj-menu-button { font: inherit; font-size: 0.72rem; cursor: pointer; border-radius: 6px; }
-      #noyvj-menu-button.noyvj-menu-button-fixed { position: fixed; right: 12px; bottom: 12px; z-index: 9990; padding: 0.35rem 0.6rem;
+      #noyvj-menu-button.noyvj-menu-button-fixed { position: fixed; right: 6px; top: 6px; z-index: 9990; padding: 0.35rem 0.6rem;
         background: rgba(18, 20, 31, 0.94); color: #eaeaf0; border: 1px solid #2a3a4c; box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4); }
       html[data-theme="light"] #noyvj-menu-button.noyvj-menu-button-fixed { background: rgba(255, 255, 255, 0.96); color: #1b2033; border-color: rgba(70, 95, 170, 0.3); }
     `;
@@ -345,7 +345,11 @@
     const code = storedCode();
     const go = () => {
       resolveChoice("new");
+      // Z-10: whatever is on screen is snapshotted first (a no-op for an empty or default state),
+      // so a New Game can be undone from the save widget's "Restore an earlier state" list.
+      try { if (window.NoyvjSaveWidget && window.NoyvjSaveWidget.snapshotNow) window.NoyvjSaveWidget.snapshotNow("new-game"); } catch (err) { /* convenience only */ }
       if (code) lsRemove(SAVE_KEY);
+      lsRemove(`savedat:${GAME_ID}`);
       if (menuMode) {
         // A game is already running in this page: reload for a clean start. The flag tells
         // the fresh page that New Game was chosen (so no save is loaded over it) and it
@@ -469,7 +473,6 @@
       if (widget) {
         const toggle = widget.querySelector(".save-widget-toggle");
         if (toggle && toggle.getAttribute("aria-expanded") === "false") toggle.click();
-        widget.scrollIntoView({ block: "center" });
         const input = widget.querySelector(".save-widget-load-input");
         if (input) input.focus();
       }
@@ -506,7 +509,18 @@
     const button = document.createElement("button");
     button.type = "button";
     button.id = "noyvj-menu-button";
-    button.textContent = label || "\u2630 Menu";
+    if (label) {
+      button.textContent = label;
+    } else {
+      // Icon plus a word the save widget's collapsed pill hides (save-widget.js), so the pill stays small.
+      const icon = document.createElement("span");
+      icon.setAttribute("aria-hidden", "true");
+      icon.textContent = "\u2630";
+      const word = document.createElement("span");
+      word.className = "noyvj-menu-label";
+      word.textContent = " Menu";
+      button.append(icon, word);
+    }
     button.title = MENU_TITLE;
     button.setAttribute("aria-label", "Main menu");
     button.addEventListener("click", reopen);
@@ -515,7 +529,7 @@
 
   const isDesktopBoot = () => window.NOYVJ_LAYOUT === "pc" || Boolean(document.getElementById("pc-topbar"));
 
-  // Classic page: one small button in the save widget's header row (bottom-right, beside
+  // Classic page: one small button in the save widget's header row (top-right, beside
   // Save / Load). Desktop boot (a #pc-topbar page): an entry at the top of the shell's Menu
   // window, since the shell owns the screen edges there. Only if neither host exists (or,
   // with `final`, never showed up) is it a small fixed button. Idempotent; called again when
@@ -537,16 +551,17 @@
         return;
       }
       if (!final) return;
-    } else {
-      const header = document.querySelector("#save-widget .save-widget-header");
-      if (header) {
-        const button = menuButton();
-        button.className = "noyvj-menu-button";
-        header.insertBefore(button, header.firstChild);
-        return;
-      }
-      if (!final && !document.body) return;
     }
+    // The save widget's header row (the top-right pill) is the home of the control on the Classic
+    // page, and the fallback on a Desktop page whose shell never built a Menu window.
+    const header = document.querySelector("#save-widget .save-widget-header");
+    if (header) {
+      const button = menuButton();
+      button.className = "noyvj-menu-button";
+      header.insertBefore(button, header.firstChild);
+      return;
+    }
+    if (!final && !isDesktopBoot() && !document.body) return;
     const button = menuButton();
     button.className = "noyvj-menu-button noyvj-menu-button-fixed";
     injectStyles();

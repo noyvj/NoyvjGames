@@ -19,6 +19,23 @@
  * Every localStorage access goes through lsGet/lsSet/lsRemove: blocked storage means "nothing
  * remembered", never a half-built widget.
  *
+ * Z-22 (placement): the widget is a small pill in the TOP-RIGHT corner, collapsed on every screen
+ * size at every page load, showing a live "Saved 5 min ago" line that turns into the plain-text
+ * warning "Save failed — try again" when the last save attempt (manual or autosave) failed. It
+ * steps below any full-width bar fixed to the top (what's-new banner, mobile HUD, seasonal strip,
+ * top ad bar), and on the Desktop boot it reserves its own corner in #pc-topbar. The opened panel
+ * drops down from the pill and scrolls inside itself, leaving the bottom ad bar clear.
+ *
+ * Z-10 (time machine): the last 5 snapshots of the game state per game and slot are kept in
+ * localStorage (size-guarded, failure is silent) and, signed in, on the backend
+ * (/users/me/snapshots). One is taken just before a Load, a New Game or a restore overwrites the
+ * current state, and on autosave at most once per 10 minutes; an empty or never-played default
+ * state is never snapshotted. "Restore an earlier state" lists them with time and a one-line
+ * summary (the page's share_result / copy_result_fields headline, else "N keys, X KB"), asks
+ * through the shared confirm dialog, and snapshots the current state first so a restore can
+ * itself be undone. window.NoyvjSaveWidget.snapshotNow(reason) lets the opening screen take one
+ * before New Game.
+ *
  * Dev-server note: this repo's dev server sends no cache-control header, so Chrome can serve a
  * stale copy of this file even after a hard reload. If an edit seems to have no effect, fetch the
  * file with {cache: "no-store"} and compare before assuming the code is wrong.
@@ -129,28 +146,34 @@
       html[data-theme="light"] .save-widget-chooser-card { background: #ffffff; color: #1b2033; }
       #save-widget {
         position: fixed;
-        bottom: 12px;
-        right: 12px;
+        top: var(--save-widget-top, 6px);
+        right: var(--save-widget-right, 6px);
+        bottom: auto;
         z-index: 9999;
         background: rgba(18, 20, 31, 0.94);
         border: 1px solid #2a3a4c;
-        border-radius: 10px;
-        padding: 10px 12px;
+        border-radius: 12px;
+        padding: 4px 6px;
         font-family: system-ui, -apple-system, sans-serif;
         font-size: 0.78rem;
         color: #eaeaf0;
-        width: 200px;
+        width: 224px;
         box-sizing: border-box;
-        /* UX-6: with three slot rows the open panel is taller than a short or phone-sized
-           viewport. Cap it to the viewport and scroll inside the panel instead of letting
-           the top (toggle, Save Progress) or bottom (Load) run off-screen. */
-        max-width: calc(100vw - 24px);
-        max-height: calc(100vh - 24px);
-        max-height: calc(100dvh - 24px);
+        /* Opened, the panel drops down from the top corner. Cap it to the room between its top
+           and the bottom ad bar (50px) and scroll inside it, so the toggle, Save Progress and Load
+           stay reachable on a short or phone-sized viewport and the ad bar is never covered. */
+        max-width: calc(100vw - 12px);
+        max-height: calc(100vh - var(--save-widget-top, 6px) - 62px);
+        max-height: calc(100dvh - var(--save-widget-top, 6px) - 62px);
         overflow-y: auto;
         overscroll-behavior: contain;
         box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
       }
+      #save-widget:not(.collapsed) { padding: 6px 10px 10px; border-radius: 10px; }
+      /* A game's own stylesheet once pinned the collapsed widget to the bottom (bottom: 3px); with the
+         widget anchored at the top that would stretch it down the screen, so bottom stays auto. */
+      html body #save-widget[data-testid][data-testid] { bottom: auto; height: auto; }
+      #save-widget .save-widget-header button { margin-top: 0; }
       #save-widget .save-widget-toggle {
         background: none;
         border: none;
@@ -166,19 +189,44 @@
         justify-content: space-between;
         gap: 0.4rem;
         text-align: left;
+        position: relative;
       }
+      /* Z-22: the pill and the Main menu button stay small (30px) on touch screens too; the
+         44px touch target is kept as an invisible hit area, as the round info buttons do. */
+      html #save-widget .save-widget-header .save-widget-toggle,
+      html #save-widget .save-widget-header #noyvj-menu-button { min-height: 30px; position: relative; }
+      html #save-widget .save-widget-header .save-widget-toggle::after,
+      html #save-widget .save-widget-header #noyvj-menu-button::after { content: ""; position: absolute; inset: -7px -3px; }
+      #save-widget .save-widget-toggle-icon { flex: 0 0 auto; }
+      #save-widget .save-widget-saved-line { flex: 1 1 auto; min-width: 0; white-space: nowrap; font-size: 0.74rem; font-variant-numeric: tabular-nums; }
+      #save-widget .save-widget-saved-line[data-state="failed"] { text-decoration: underline; text-decoration-style: wavy; text-underline-offset: 2px; color: #ffb4a8; }
+      html[data-theme="light"] #save-widget .save-widget-saved-line[data-state="failed"] { color: #9a2a1a; }
+      #save-widget .save-widget-warning { margin: 0.4rem 0 0; padding: 0.3rem 0.4rem; border: 1px solid currentColor; border-radius: 6px; font-size: 0.72rem; }
       /* The arrow is the actual "this collapses/expands" affordance --
-         the label alone ("Save / Load") reads the same whether the panel
-         is open or shut, which is exactly what made the old toggle unclear. */
+         the label alone reads the same whether the panel is open or shut. */
       #save-widget .save-widget-toggle-arrow {
         display: inline-block;
         transition: none;
         font-size: 0.7rem;
         opacity: 0.85;
+        flex: 0 0 auto;
       }
       #save-widget.collapsed .save-widget-toggle-arrow { transform: rotate(-90deg); }
       #save-widget.collapsed .save-widget-body { display: none; }
-      #save-widget.collapsed { width: auto; padding: 4px 10px; }
+      #save-widget.collapsed { width: auto; overflow: visible; border-radius: 18px; padding: 2px 4px; }
+      /* Collapsed, the Main menu button shrinks to its icon so the pill stays small. */
+      #save-widget.collapsed .noyvj-menu-label { display: none; }
+      /* Desktop boot: keep the shell's top bar out of the pill's corner. */
+      html[data-layout="pc"] #pc-topbar { padding-right: var(--save-widget-reserve, 0px); }
+      #save-widget .save-widget-restore-note { margin: 0.4rem 0 0; font-size: 0.72rem; opacity: 0.8; }
+      #save-widget .save-widget-restore-note:empty { display: none; }
+      #save-widget .save-widget-restore-list { list-style: none; margin: 0.3rem 0 0; padding: 0; display: grid; gap: 0.3rem; }
+      #save-widget .save-widget-restore-item { display: grid; gap: 0.2rem; font-size: 0.72rem; padding: 0.3rem; border: 1px solid #2a3a4c; border-radius: 8px; }
+      #save-widget .save-widget-restore-item-when { font-weight: 600; }
+      #save-widget .save-widget-restore-item-summary { overflow-wrap: anywhere; opacity: 0.85; }
+      #save-widget .save-widget-restore-item button { margin: 0; font-size: 0.72rem; padding: 0.3rem 0.35rem; }
+      html[data-theme="light"] #save-widget .save-widget-restore-item { border-color: rgba(70, 95, 170, 0.3); }
+      html[data-theme="light"] #save-widget .save-widget-restore-item button { background: linear-gradient(135deg, #dbe4fb, #c6d3f5); color: #1b2033; border: 1px solid rgba(70, 95, 170, 0.3); }
       #save-widget button {
         width: 100%;
         font-size: 0.78rem;
@@ -263,9 +311,10 @@
   root.setAttribute("data-testid", "save-widget");
   root.innerHTML = `
     <div class="save-widget-header">
-      <button type="button" class="save-widget-toggle" data-testid="save-widget-toggle"><span class="save-widget-toggle-label">&#128190; Save / Load</span><span class="save-widget-toggle-arrow" aria-hidden="true">&#9662;</span></button>
+      <button type="button" class="save-widget-toggle" data-testid="save-widget-toggle"><span class="save-widget-toggle-icon" aria-hidden="true">&#128190;</span><span class="save-widget-saved-line" data-testid="save-widget-saved-line">Not saved yet</span><span class="save-widget-toggle-arrow" aria-hidden="true">&#9662;</span></button>
     </div>
     <div class="save-widget-body" data-testid="save-widget-body">
+      <p class="save-widget-warning" role="status" data-testid="save-widget-warning" hidden>Warning: the last save did not go through. Press Save Progress to try again.</p>
       <button type="button" class="save-widget-save-button" data-testid="save-widget-save">Save Progress</button>
       <label class="save-widget-autosave-label"><input type="checkbox" class="save-widget-autosave-checkbox" data-testid="save-widget-autosave"> Autosave every 5 minutes</label>
       <p class="save-widget-code" data-testid="save-widget-code" hidden></p>
@@ -273,6 +322,11 @@
       <button type="button" class="save-widget-claim-button save-widget-link" data-testid="save-widget-claim" hidden>Claim this save to your account</button>
       <button type="button" class="save-widget-new-button save-widget-link" data-testid="save-widget-new" hidden>Start a new save (forget this code)</button>
       <div class="save-widget-slots" data-testid="save-widget-slots" hidden></div>
+      <button type="button" class="save-widget-restore-toggle save-widget-link" data-testid="save-widget-restore-toggle" aria-expanded="false">Restore an earlier state</button>
+      <div class="save-widget-restore" data-testid="save-widget-restore" hidden>
+        <p class="save-widget-restore-note" data-testid="save-widget-restore-note"></p>
+        <ul class="save-widget-restore-list" data-testid="save-widget-restore-list"></ul>
+      </div>
       <input type="text" class="save-widget-load-input" data-testid="save-widget-load-input" placeholder="XXXX-XXXX" maxlength="9" autocomplete="off">
       <button type="button" class="save-widget-load-button" data-testid="save-widget-load">Load</button>
       <p class="save-widget-status" data-testid="save-widget-status"></p>
@@ -296,36 +350,138 @@
   const statusEl = root.querySelector(".save-widget-status");
   const toggleButton = root.querySelector(".save-widget-toggle");
 
-  // Starts expanded (unchanged default), but now with an explicit
-  // aria-expanded + title so the toggle's own accessible name says what
-  // clicking it will do, not just a static "Save / Load" label that read
-  // the same whether the panel was already open or shut.
+  // Z-22: every page load starts collapsed, on every screen size (the pill is the whole widget
+  // until the player opens it). aria-expanded + title say what the toggle will do.
   function syncToggleState() {
     const collapsed = root.classList.contains("collapsed");
     toggleButton.setAttribute("aria-expanded", String(!collapsed));
     toggleButton.title = collapsed ? "Show save/load options" : "Hide save/load options";
+    updatePlacement();
   }
   toggleButton.addEventListener("click", () => {
     root.classList.toggle("collapsed");
     syncToggleState();
   });
-  // Playtest audit 2026-10-06 (S1): expanded by default, the widget covers
-  // the bottom-right ~200x230px of a phone screen, hiding primary game
-  // buttons. Below 600px wide it now starts collapsed unless the player has
-  // already chosen otherwise; the choice is remembered per browser.
-  const COLLAPSE_PREF_KEY = "save-widget-collapsed";
-  try {
-    const pref = lsGet(COLLAPSE_PREF_KEY);
-    const narrow = window.matchMedia && window.matchMedia("(max-width: 600px)").matches;
-    // The Desktop boot (window.NOYVJ_LAYOUT === "pc") keeps it tucked away too: the game
-    // fills the window and the widget would sit on top of the side column.
-    const desktopBoot = window.NOYVJ_LAYOUT === "pc";
-    if (pref === "true" || (pref === null && (narrow || desktopBoot))) root.classList.add("collapsed");
-  } catch (e) { /* convenience only */ }
-  toggleButton.addEventListener("click", () => {
-    try { lsSet(COLLAPSE_PREF_KEY, String(root.classList.contains("collapsed"))); }
-    catch (e) { /* convenience only */ }
-  });
+  root.classList.add("collapsed");
+
+  // ---- Z-22: the live "Saved N min ago" line --------------------------------------------------
+  const SAVED_AT_KEY = `savedat:${GAME_ID}`;
+  const savedLineEl = root.querySelector(".save-widget-saved-line");
+  const warningEl = root.querySelector(".save-widget-warning");
+  let lastSaveAt = parseInt(lsGet(SAVED_AT_KEY), 10) || 0;
+  let lastSaveFailed = false;
+
+  function agoShort(ms) {
+    const seconds = Math.max(0, (Date.now() - ms) / 1000);
+    if (seconds < 45) return { short: "just now", long: "just now" };
+    if (seconds < 5400) { const n = Math.max(1, Math.round(seconds / 60)); return { short: `${n} min ago`, long: `${n} ${n === 1 ? "minute" : "minutes"} ago` }; }
+    if (seconds < 129600) { const n = Math.round(seconds / 3600); return { short: `${n} h ago`, long: `${n} ${n === 1 ? "hour" : "hours"} ago` }; }
+    const n = Math.round(seconds / 86400);
+    return { short: `${n} d ago`, long: `${n} ${n === 1 ? "day" : "days"} ago` };
+  }
+
+  // Plain words, never colour alone: the failure text replaces the time.
+  function renderSavedLine() {
+    let shortText;
+    let longText;
+    if (lastSaveFailed) {
+      shortText = "Save failed — try again";
+      longText = lastSaveAt ? `Save failed. Last saved ${agoShort(lastSaveAt).long}` : "Save failed";
+    } else if (!lastSaveAt) {
+      shortText = longText = "Not saved yet";
+    } else {
+      const ago = agoShort(lastSaveAt);
+      shortText = `Saved ${ago.short}`;
+      longText = `Saved ${ago.long}`;
+    }
+    savedLineEl.textContent = shortText;
+    savedLineEl.setAttribute("data-state", lastSaveFailed ? "failed" : lastSaveAt ? "saved" : "none");
+    savedLineEl.title = longText;
+    toggleButton.setAttribute("aria-label", `Save and load options. ${longText}`);
+    warningEl.hidden = !lastSaveFailed;
+    updatePlacement();
+  }
+  function recordSaveSuccess() {
+    lastSaveAt = Date.now();
+    lastSaveFailed = false;
+    lsSet(SAVED_AT_KEY, String(lastSaveAt));
+    renderSavedLine();
+  }
+  function recordSaveFailure() {
+    lastSaveFailed = true;
+    renderSavedLine();
+  }
+  function forgetSavedTime() {
+    lastSaveAt = 0;
+    lastSaveFailed = false;
+    lsRemove(SAVED_AT_KEY);
+    renderSavedLine();
+  }
+  setInterval(() => { if (!document.hidden) renderSavedLine(); }, 20000);
+
+  // ---- Z-22: top-corner placement --------------------------------------------------------------
+  // The pill sits at the top-right. Below any full-width bar fixed to the top (what's-new banner,
+  // mobile HUD, seasonal strip, a top ad bar) it steps down so it never covers one; on the Desktop
+  // boot it reserves its own corner in #pc-topbar (--save-widget-reserve, used by the rule below).
+  let pillWidth = 0;
+  let pillHeight = 0;
+  let placing = false;
+  // Small floating pills that games put in the top-right corner themselves (the Desktop boot's theme
+  // toggle): the widget slides left of one instead of covering it.
+  const CORNER_NEIGHBOURS = ["#theme-toggle-floating", "#story-toggle"];
+  function visibleFixed(el) {
+    const cs = getComputedStyle(el);
+    return cs.position === "fixed" && cs.display !== "none" && cs.visibility !== "hidden";
+  }
+  function updatePlacement() {
+    if (placing || !document.body || !root.isConnected) return;
+    placing = true;
+    try {
+      let top = 6;
+      const vw = window.innerWidth;
+      for (const el of document.body.children) {
+        if (el === root || el.id === "opening-screen") continue;
+        if (!visibleFixed(el)) continue;
+        const r = el.getBoundingClientRect();
+        if (r.height < 8 || r.height > 160 || r.width < vw * 0.6 || r.top > 4 || r.bottom <= 0) continue;
+        top = Math.max(top, Math.ceil(r.bottom) + 4);
+      }
+      root.style.setProperty("--save-widget-top", `${top}px`);
+      if (root.classList.contains("collapsed")) {
+        const box = root.getBoundingClientRect();
+        pillWidth = Math.max(pillWidth, Math.ceil(box.width));
+        pillHeight = Math.max(pillHeight, Math.ceil(box.height));
+      }
+      if (pillWidth) {
+        let right = 6;
+        for (let pass = 0; pass < 2; pass++) {
+          for (const sel of CORNER_NEIGHBOURS) {
+            const el = document.querySelector(sel);
+            if (!el || !visibleFixed(el)) continue;
+            const r = el.getBoundingClientRect();
+            const left = vw - right - pillWidth;
+            if (r.width && r.right > left && r.left < vw - right && r.top < top + pillHeight && r.bottom > top) right = Math.max(right, Math.ceil(vw - r.left + 6));
+          }
+        }
+        root.style.setProperty("--save-widget-right", `${right}px`);
+        // Desktop boot: the top bar stops short of the pill's left edge.
+        const pc = window.NOYVJ_LAYOUT === "pc" || document.documentElement.getAttribute("data-layout") === "pc";
+        const bar = pc && document.getElementById("pc-topbar");
+        if (bar) {
+          const reserve = Math.max(0, Math.ceil(bar.getBoundingClientRect().right - (vw - right - pillWidth - 8)));
+          document.documentElement.style.setProperty("--save-widget-reserve", `${reserve}px`);
+        }
+      }
+    } catch (e) { /* placement is cosmetic */ } finally { placing = false; }
+  }
+  window.addEventListener("resize", updatePlacement);
+  setInterval(() => { if (!document.hidden) updatePlacement(); }, 1500);
+  if (window.MutationObserver) {
+    const start = () => new MutationObserver(updatePlacement).observe(document.body, { childList: true });
+    if (document.body) start(); else document.addEventListener("DOMContentLoaded", start);
+  }
+  if (document.body) updatePlacement(); else document.addEventListener("DOMContentLoaded", updatePlacement);
+  renderSavedLine();
   syncToggleState();
 
   // `owned` = the code came from this account's own slots, so there is nothing to claim.
@@ -415,7 +571,7 @@
       return false;
     }
     try {
-      loadState(window.pyodide.toPy(mostRecent.save_data));
+      applyLoad(loadState, mostRecent.save_data, "load");
     } catch (err) {
       console.error(`${GAME_ID} save-widget: autoload's load_state() call threw`, err);
       return false;
@@ -443,6 +599,7 @@
       // so the first save of the new game asks where to go instead of silently
       // overwriting that slot, and no slot row is marked as the current one.
       clearActiveSlot();
+      forgetSavedTime();
       return false;
     }
     return loadLatestFromAccount();
@@ -451,6 +608,7 @@
   (async () => {
     const loaded = await tryAutoLoadFromAccount();
     if (slotMode()) refreshSlots(true);
+    syncPendingSnapshots();
     if (loaded) return;
     const existingCode = lsGet(STORAGE_KEY);
     if (existingCode) showActiveCode(existingCode);
@@ -465,6 +623,7 @@
     newButton.hidden = true;
     claimButton.hidden = true;
     loadInput.value = "";
+    forgetSavedTime();
     statusEl.textContent = "Next save starts a fresh code.";
   }
 
@@ -626,6 +785,13 @@
       slotRows = {};
       saves.forEach((r) => { slotRows[r.slot] = r; });
       slotsKnown = true;
+      // The active slot's own timestamp tells "saved N min ago" for a returning player (never for
+      // a fresh game: with no active slot nothing is claimed).
+      const activeRow = activeSlot && slotRows[activeSlot];
+      if (activeRow && !lastSaveFailed) {
+        const t = parseTime(activeRow.updated_at || activeRow.created_at);
+        if (t > lastSaveAt) { lastSaveAt = t; renderSavedLine(); }
+      }
     } catch (err) {
       console.error(`${GAME_ID} save-widget: refreshing save slots failed`, err);
       if (!slotsKnown) setFailure("Couldn't reach your saves just now — try again.");
@@ -712,6 +878,7 @@
       );
       if (res.status === 401) {
         setFailure("Your sign-in has expired — sign in again from the hub.");
+        recordSaveFailure();
         return false;
       }
       if (!res.ok) throw new Error(`status ${res.status}`);
@@ -722,9 +889,11 @@
       try { lsSet(STORAGE_KEY, body.save_code); } catch (e) { /* convenience only */ }
       showActiveCode(body.save_code, true);
       renderSlots();
+      recordSaveSuccess();
       return true;
     } catch (err) {
       console.error(`${GAME_ID} save-widget: slot save failed`, err);
+      recordSaveFailure();
       return false;
     }
   }
@@ -740,7 +909,7 @@
     const loadState = window.pyodide.globals.get("load_state");
     if (!loadState) { statusEl.textContent = "This game hasn't wired up loading yet."; return; }
     try {
-      loadState(window.pyodide.toPy(row.save_data));
+      applyLoad(loadState, row.save_data, "load");
       setActiveSlot(n, true);
       try { lsSet(STORAGE_KEY, row.save_code); } catch (e) { /* convenience only */ }
       showActiveCode(row.save_code, true);
@@ -796,7 +965,7 @@
     const fresh = await refreshSlots();
     // If the slot rows have never been read, "no rows" means "unknown", not "empty":
     // going ahead would save into slot 1 and could silently replace a real save there.
-    if (!fresh && !slotsKnown) return false;
+    if (!fresh && !slotsKnown) { recordSaveFailure(); return false; }
     let target = activeSlot;
     if (silent) {
       // Autosave never asks and never touches a slot the player hasn't confirmed this visit.
@@ -813,6 +982,288 @@
       }
     }
     return slotSave(target);
+  }
+
+  // ---- Z-10: the time machine -------------------------------------------------------------------
+  // Snapshots of the game state, kept per game and slot (the newest SNAP_COUNT of each) in
+  // localStorage and, signed in, on the backend. Taken just before a Load / New Game / restore
+  // overwrites the current state, and on autosave at most once per SNAP_AUTO_GAP_MS. An empty or
+  // never-played (boot default) state is never snapshotted. Every storage and network step is
+  // allowed to fail without the widget noticing: a snapshot is a convenience, not a save.
+  const SNAP_COUNT = 5;
+  const SNAP_KEY = `snapshots:${GAME_ID}`;
+  const SNAP_AUTO_KEY = `snapshot-auto-at:${GAME_ID}`;
+  const SNAP_ENTRY_MAX_BYTES = 150000;    // larger states are not kept in localStorage (quota guard)
+  const SNAP_LOCAL_MAX_BYTES = 450000;    // this game's local snapshots together
+  const SNAP_REMOTE_MAX_BYTES = 900000;   // the backend refuses above 1 MB
+  const SNAP_KEEPALIVE_MAX_BYTES = 60000; // a keepalive request may carry about 64 KB
+  const SNAP_AUTO_GAP_MS = 10 * 60 * 1000;
+  const SNAP_LIST_MAX = 15;
+
+  function stateJson(state) { return JSON.stringify(state, undefinedToNull); }
+  function kbText(n) { return `${(n / 1024).toFixed(n < 10240 ? 1 : 0)} KB`; }
+
+  // The state the game booted with: a snapshot equal to it is "default" and never kept. Captured the
+  // first time the state is readable and always before the widget itself loads anything over it.
+  let baselineJson = null;
+  let widgetLoaded = false;
+  function ensureBaseline() {
+    if (baselineJson !== null || widgetLoaded) return;
+    try {
+      const state = readGameState();
+      if (state && typeof state === "object") baselineJson = stateJson(state);
+    } catch (err) { /* no baseline */ }
+  }
+  waitForLoadState().then(ensureBaseline, () => {});
+  function isMeaningful(state) {
+    if (!state || typeof state !== "object" || Array.isArray(state) || !Object.keys(state).length) return false;
+    return baselineJson === null || stateJson(state) !== baselineJson;
+  }
+  // Every widget-driven load goes through here: baseline first, then (unless it is the autoload
+  // at page start, which finds only the default state) a snapshot of what is about to be replaced.
+  function applyLoad(loadState, data, snapshotReason) {
+    ensureBaseline();
+    if (snapshotReason) takeSnapshot(snapshotReason);
+    loadState(window.pyodide.toPy(data));
+    widgetLoaded = true;
+  }
+
+  function headlineOf(fields) {
+    let f = fields;
+    if (typeof f === "string") { try { f = JSON.parse(f); } catch (err) { return ""; } }
+    if (!f || typeof f !== "object") return "";
+    const bits = [];
+    if (f.score !== undefined && f.score !== null && f.score !== "") {
+      const score = typeof f.score === "number" ? f.score.toLocaleString("en-US", { maximumFractionDigits: 2 }) : String(f.score);
+      bits.push(f.unit ? `${score} ${f.unit}` : score);
+    }
+    (Array.isArray(f.stats) ? f.stats : []).slice(0, 2).forEach((p) => {
+      if (typeof p === "string" || typeof p === "number") bits.push(String(p));
+      else if (p && typeof p.n === "number") bits.push(`${p.n} ${p.n === 1 ? p.one : (p.many || p.one)}`);
+    });
+    return bits.join(", ").replace(/\s+/g, " ").trim().slice(0, 120);
+  }
+  // One line for the list: the game's own copy-result headline if the page exposes one, else "N keys, X KB".
+  function summarize(state, jsonLength) {
+    const globals = window.pyodide && window.pyodide.globals;
+    for (const name of ["share_result", "copy_result_fields"]) {
+      try {
+        const fn = globals && globals.get(name);
+        if (!fn) continue;
+        let value = fn();
+        if (value && typeof value.toJs === "function") {
+          const proxy = value;
+          value = proxy.toJs({ dict_converter: Object.fromEntries });
+          if (typeof proxy.destroy === "function") proxy.destroy();
+        }
+        const headline = headlineOf(value);
+        if (headline) return headline;
+      } catch (err) { /* fall back to the generic line */ }
+    }
+    const keys = Object.keys(state).length;
+    return `${keys} ${keys === 1 ? "key" : "keys"}, ${kbText(jsonLength)}`;
+  }
+
+  function readLocalSnaps() {
+    try {
+      const list = JSON.parse(lsGet(SNAP_KEY) || "[]");
+      return (Array.isArray(list) ? list : [])
+        .filter((e) => e && typeof e.id === "string" && typeof e.json === "string" && typeof e.t === "number")
+        .sort((a, b) => b.t - a.t);
+    } catch (err) { return []; }
+  }
+  // Newest first in, per slot trimmed to SNAP_COUNT, then trimmed by size from the oldest end.
+  function writeLocalSnaps(list) {
+    const perSlot = {};
+    let kept = list.filter((e) => (perSlot[e.slot] = (perSlot[e.slot] || 0) + 1) <= SNAP_COUNT);
+    const total = () => kept.reduce((n, e) => n + e.json.length, 0);
+    while (kept.length > 1 && total() > SNAP_LOCAL_MAX_BYTES) kept = kept.slice(0, -1);
+    for (let attempt = 0; attempt < 6; attempt++) {
+      try { localStorage.setItem(SNAP_KEY, JSON.stringify(kept)); return; }
+      catch (err) {
+        if (!kept.length) return;            // storage blocked or full: nothing to keep
+        kept = kept.slice(0, Math.floor(kept.length / 2));   // quota: drop the older half and retry
+      }
+    }
+  }
+
+  // Uploads still on their way, so the restore list can wait for them instead of listing a snapshot
+  // twice (once local without its backend id, once from the server).
+  const uploadsInFlight = new Set();
+  function trackUpload(promise) {
+    uploadsInFlight.add(promise);
+    const done = () => uploadsInFlight.delete(promise);
+    promise.then(done, done);
+    return promise;
+  }
+  async function uploadSnapshot(entry, keepalive) {
+    if (!slotMode()) return false;
+    try {
+      const body = `{"game_id":${JSON.stringify(GAME_ID)},"slot":${entry.slot},"summary":${JSON.stringify(entry.summary || "")},"save_data":${entry.json}}`;
+      const res = await fetch(`${API_BASE}/users/me/snapshots`, {
+        method: "POST",
+        headers: Object.assign({ "Content-Type": "application/json" }, hubAuthHeaders()),
+        body,
+        keepalive: Boolean(keepalive) && body.length <= SNAP_KEEPALIVE_MAX_BYTES,
+      });
+      if (!res.ok) {
+        // A refusal that retrying cannot change (too large, bad shape) is remembered so it is not resent.
+        if (res.status >= 400 && res.status < 500 && res.status !== 401 && res.status !== 429) markLocal(entry.id, { dead: true });
+        return false;
+      }
+      const saved = await res.json();
+      markLocal(entry.id, { rid: saved.id });
+      entry.rid = saved.id;
+      return true;
+    } catch (err) { return false; }   // offline: the start-up sweep tries again next visit
+  }
+  function markLocal(id, fields) {
+    const list = readLocalSnaps();
+    const hit = list.find((e) => e.id === id);
+    if (hit) { Object.assign(hit, fields); writeLocalSnaps(list); }
+  }
+  async function syncPendingSnapshots() {
+    if (!slotMode()) return;
+    const pending = readLocalSnaps().filter((e) => !e.rid && !e.dead && e.json.length <= SNAP_REMOTE_MAX_BYTES).reverse().slice(-SNAP_COUNT);
+    for (const entry of pending) { if (!(await trackUpload(uploadSnapshot(entry, false)))) break; }
+  }
+
+  // Returns the new local entry, or null when nothing was kept (empty/default state, unchanged since
+  // the last snapshot of that slot, state unreadable). Never throws.
+  function takeSnapshot(reason, opts) {
+    try {
+      const state = readGameState();
+      if (!state || !isMeaningful(state)) return null;
+      const json = stateJson(state);
+      const slot = slotMode() ? (activeSlot || 0) : 0;
+      const list = readLocalSnaps();
+      const newestHere = list.find((e) => e.slot === slot);
+      if (newestHere && newestHere.json === json) return null;
+      const entry = {
+        id: `s${Date.now().toString(36)}${Math.random().toString(36).slice(2, 7)}`, t: Date.now(), slot,
+        summary: summarize(state, json.length), size: json.length, reason: reason || "", json, rid: null,
+      };
+      if (json.length <= SNAP_ENTRY_MAX_BYTES) {
+        list.unshift(entry);
+        writeLocalSnaps(list);
+      }
+      if (slotMode() && json.length <= SNAP_REMOTE_MAX_BYTES) trackUpload(uploadSnapshot(entry, Boolean(opts && opts.keepalive)));
+      return entry;
+    } catch (err) {
+      console.warn(`${GAME_ID} save-widget: snapshot skipped`, err);
+      return null;
+    }
+  }
+  // Autosave's snapshot, at most once per SNAP_AUTO_GAP_MS (remembered across reloads).
+  function maybeAutoSnapshot() {
+    const last = parseInt(lsGet(SNAP_AUTO_KEY), 10) || 0;
+    if (Date.now() - last < SNAP_AUTO_GAP_MS) return null;
+    const entry = takeSnapshot("autosave");
+    if (entry) lsSet(SNAP_AUTO_KEY, String(Date.now()));
+    return entry;
+  }
+
+  // ---- the "Restore an earlier state" list ----
+  const restoreToggle = root.querySelector(".save-widget-restore-toggle");
+  const restoreBox = root.querySelector(".save-widget-restore");
+  const restoreNote = root.querySelector(".save-widget-restore-note");
+  const restoreList = root.querySelector(".save-widget-restore-list");
+  let restoreRender = 0;
+
+  function whenText(t) {
+    const stamp = new Date(t).toLocaleString([], { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
+    return `${stamp} (${agoShort(t).short})`;
+  }
+
+  async function renderRestoreList() {
+    const mine = ++restoreRender;
+    restoreNote.textContent = "Loading…";
+    restoreList.innerHTML = "";
+    let items = readLocalSnaps().map((e) => ({ t: e.t, slot: e.slot, summary: e.summary, size: e.size, local: e, rid: e.rid }));
+    let remoteFailed = false;
+    if (slotMode()) {
+      if (uploadsInFlight.size) await Promise.race([Promise.allSettled([...uploadsInFlight]), sleep(4000)]);
+      items = readLocalSnaps().map((e) => ({ t: e.t, slot: e.slot, summary: e.summary, size: e.size, local: e, rid: e.rid }));
+      try {
+        const res = await fetchWithRetry(`${API_BASE}/users/me/snapshots?game_id=${encodeURIComponent(GAME_ID)}`, { headers: hubAuthHeaders(), cache: "no-store" });
+        if (!res.ok) throw new Error(`status ${res.status}`);
+        (await res.json()).forEach((r) => {
+          if (items.some((i) => i.rid === r.id)) return;
+          items.push({ t: parseTime(r.created_at), slot: r.slot, summary: r.summary, size: r.size, rid: r.id });
+        });
+      } catch (err) { remoteFailed = true; }
+    }
+    if (mine !== restoreRender) return;   // a newer render superseded this one
+    items.sort((a, b) => b.t - a.t);
+    items = items.slice(0, SNAP_LIST_MAX);
+    restoreNote.textContent = items.length
+      ? (remoteFailed ? "Couldn't reach your account's snapshots, so this lists the ones in this browser." : "")
+      : "No earlier states yet. One is kept before a load or a new game, and while autosave is on.";
+    items.forEach((item, i) => {
+      const li = document.createElement("li");
+      li.className = "save-widget-restore-item";
+      li.setAttribute("data-testid", `save-widget-restore-item-${i + 1}`);
+      const when = document.createElement("span");
+      when.className = "save-widget-restore-item-when";
+      when.textContent = `${whenText(item.t)}${item.slot ? ` · slot ${item.slot}` : ""}`;
+      const summary = document.createElement("span");
+      summary.className = "save-widget-restore-item-summary";
+      summary.textContent = item.summary || "Earlier state";
+      const button = document.createElement("button");
+      button.type = "button";
+      button.textContent = "Restore";
+      button.setAttribute("data-testid", `save-widget-restore-item-${i + 1}-restore`);
+      button.addEventListener("click", () => askRestore(item));
+      li.append(when, summary, button);
+      restoreList.appendChild(li);
+    });
+  }
+
+  restoreToggle.addEventListener("click", () => {
+    const open = restoreBox.hidden;
+    restoreBox.hidden = !open;
+    restoreToggle.setAttribute("aria-expanded", String(open));
+    if (open) renderRestoreList();
+  });
+
+  function askRestore(item) {
+    const message = `Restore the state from ${whenText(item.t)} (${item.summary || "earlier state"})? ` +
+      "Your current progress is snapshotted first, so you can undo this from the same list.";
+    if (window.ConfirmDialog) {
+      window.ConfirmDialog.ask({
+        id: `${GAME_ID}-save-widget-restore`, message, confirmLabel: "Restore", allowSkip: false,
+        onConfirm: () => doRestore(item),
+      });
+    } else {
+      doRestore(item);
+    }
+  }
+
+  async function doRestore(item) {
+    if (!window.pyodide) { statusEl.textContent = "Still loading — try again in a moment."; return; }
+    const loadState = window.pyodide.globals.get("load_state");
+    if (!loadState) { statusEl.textContent = "This game hasn't wired up loading yet."; return; }
+    let data;
+    try {
+      if (item.local) data = JSON.parse(item.local.json);
+      else {
+        const res = await fetchWithRetry(`${API_BASE}/users/me/snapshots/${encodeURIComponent(item.rid)}`, { headers: hubAuthHeaders(), cache: "no-store" });
+        if (!res.ok) throw new Error(`status ${res.status}`);
+        data = (await res.json()).save_data;
+      }
+    } catch (err) {
+      console.error(`${GAME_ID} save-widget: fetching a snapshot failed`, err);
+      statusEl.textContent = "Couldn't fetch that snapshot — try again.";
+      return;
+    }
+    try {
+      applyLoad(loadState, data, "before-restore");
+      statusEl.textContent = "Restored. Your previous state is first in the list, so you can undo this.";
+    } catch (err) {
+      console.error(`${GAME_ID} save-widget: restore failed`, err);
+      statusEl.textContent = "Restore failed — try again.";
+    }
+    if (!restoreBox.hidden) renderRestoreList();
   }
 
   // The ONE code path that talks to the save endpoint, shared by the Save button and the opt-in
@@ -848,9 +1299,11 @@
       const body = await res.json();
       lsSet(STORAGE_KEY, body.save_code);
       showActiveCode(body.save_code);
+      recordSaveSuccess();
       return true;
     } catch (err) {
       console.error(`${GAME_ID} save-widget: save failed`, err);
+      recordSaveFailure();
       return false;
     }
   }
@@ -906,6 +1359,7 @@
     // and remains the reliable fallback. Only a SUCCESSFUL autosave gets
     // any player-visible feedback, briefly, then reverts.
     const previousStatus = statusEl.textContent;
+    maybeAutoSnapshot();
     const ok = await doSave(undefined, true);
     if (!ok) return;
     statusEl.textContent = "Autosaved";
@@ -948,7 +1402,7 @@
       ));
       if (!res.ok) throw new Error(`status ${res.status}`);
       const body = await res.json();
-      loadState(window.pyodide.toPy(body.save_data));
+      applyLoad(loadState, body.save_data, "load");
       lsSet(STORAGE_KEY, body.save_code);
       showActiveCode(body.save_code);
       loadInput.value = "";
@@ -1010,6 +1464,11 @@
 
   // Small public API for the opening screen's "Main menu" re-entry (UX-8).
   window.NoyvjSaveWidget = {
+    // Z-10: snapshot the current state now (the opening screen calls this before New Game).
+    // Resolves nothing and never throws; true when a snapshot was kept.
+    snapshotNow(reason) { return Boolean(takeSnapshot(reason || "manual", { keepalive: true })); },
+    // This browser's snapshots for this game, newest first (read-only copy).
+    localSnapshots() { return readLocalSnaps().map(({ json, ...rest }) => rest); },
     // Loads the account's latest save (signed in) or the remembered save code
     // (anonymous). Resolves true if something was loaded.
     async loadLatest() {
