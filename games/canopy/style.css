@@ -2119,6 +2119,17 @@ html:not([data-level-effects="off"]) .level-box--spirit .spirit-line { animation
 .vault-note:empty { display: none; }
 .vault-tree { margin-top: 0.4rem; }
 
+/* B-2: the legacy bonus as a small chip with a tooltip (title) naming its source and the +25% cap. */
+.legacy-chip {
+  display: inline-block;
+  padding: 0.15rem 0.6rem;
+  border: 1px solid currentColor;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  cursor: help;
+}
+.legacy-chip:focus-visible { outline: 2px solid currentColor; outline-offset: 2px; }
+
 /* ============================================================
    Light theme (Y11b, 2026-09-27). shared/theme-light-games.css already
    restyles the shared chrome (panels, buttons, inputs, HUD readouts);
@@ -2243,6 +2254,7 @@ html[data-theme="light"] .session-sparkline polyline[stroke="#66b2e8"] { stroke:
 
 /* Settings panel: the theme control (moved here from the floating pill). */
 .settings-row #theme-toggle { flex: 0 0 auto; padding: 0.4rem 1.3rem 0.4rem 0.8rem; }
+
 
 /* GB batch 1 (light theme): the new readouts and marks. */
 html[data-theme="light"] .season-indicator {

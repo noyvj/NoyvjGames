@@ -1906,11 +1906,9 @@ LEGACY_BONUS_PER_BANKED_VALUE = 0.0002  # +0.02% growth per 1 banked value point
 LEGACY_MAX_BONUS = 0.25  # capped so legacy can never dwarf the base game
 
 
-def load_legacy_bonus():
-    """Reads the banked standing value from the previous session and
-    converts it into a growth multiplier, defaulting to 1.0 (no bonus) if
-    nothing is banked yet, storage is unavailable, or the stored value is
-    malformed."""
+def _read_banked_legacy_value():
+    """The banked standing value from the previous session (0.0 when nothing is banked, storage is
+    unavailable or the stored value is malformed)."""
     raw = _read_local_storage_item(LEGACY_STORAGE_KEY)
     banked = 0.0
     if raw:
@@ -1918,7 +1916,45 @@ def load_legacy_bonus():
             banked = max(0.0, float(json.loads(raw).get("banked_value", 0.0)))
         except (ValueError, TypeError, AttributeError):
             banked = 0.0
-    return 1.0 + min(LEGACY_MAX_BONUS, banked * LEGACY_BONUS_PER_BANKED_VALUE)
+    return banked
+
+
+def legacy_bonus_for(banked):
+    """The growth multiplier a banked standing value earns (1.0 means no bonus), capped at LEGACY_MAX_BONUS."""
+    return 1.0 + min(LEGACY_MAX_BONUS, max(0.0, banked) * LEGACY_BONUS_PER_BANKED_VALUE)
+
+
+def load_legacy_bonus():
+    """Reads the banked standing value from the previous session and
+    converts it into a growth multiplier, defaulting to 1.0 (no bonus) if
+    nothing is banked yet, storage is unavailable, or the stored value is
+    malformed."""
+    return legacy_bonus_for(_read_banked_legacy_value())
+
+
+def legacy_chip_text():
+    """B-2: the chip's short label."""
+    if legacy_multiplier <= 1.0:
+        return "Legacy: none yet"
+    return f"Legacy +{(legacy_multiplier - 1) * 100:.0f}% from your last forest"
+
+
+def legacy_chip_tooltip():
+    """B-2: what the bonus comes from and how close it is to the cap."""
+    cap_pct = LEGACY_MAX_BONUS * 100
+    if legacy_multiplier <= 1.0:
+        return (
+            "Legacy bonus: none yet. When a session ends, its final standing forest value is banked, and the next "
+            f"session grows faster by 0.02% for every banked point, up to +{cap_pct:.0f}%."
+        )
+    bonus_pct = (legacy_multiplier - 1) * 100
+    banked = _read_banked_legacy_value()
+    share = min(100.0, bonus_pct / cap_pct * 100)
+    return (
+        f"Legacy bonus: +{bonus_pct:.1f}% growth, from the {banked:.0f} standing forest value your last session ended "
+        f"with (0.02% per point). The cap is +{cap_pct:.0f}%; you are at {share:.0f}% of it."
+        + (" The cap is reached, so extra standing value no longer adds growth." if bonus_pct >= cap_pct - 1e-9 else "")
+    )
 
 
 def _bank_legacy_value():
@@ -1943,10 +1979,10 @@ def render_legacy_bonus():
     element = document.getElementById("legacy-bonus-display")
     if element is None:
         return
-    if legacy_multiplier <= 1.0:
-        element.innerText = "Legacy bonus: none yet — it's set the first time a session ends."
-    else:
-        element.innerText = f"Legacy bonus: +{(legacy_multiplier - 1) * 100:.1f}% growth, from your last session's forest."
+    element.innerText = legacy_chip_text()
+    tooltip = legacy_chip_tooltip()
+    element.title = tooltip
+    element.setAttribute("aria-label", tooltip)
 
 
 def _maybe_update_personal_best():
