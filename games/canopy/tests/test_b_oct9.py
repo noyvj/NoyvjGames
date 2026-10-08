@@ -1171,3 +1171,101 @@ def test_panel_stages_values_without_changing_the_forest_and_shows_the_banner(ga
     assert game_env.elements["lab-banner"].hidden is False and "Sandbox" in game_env.elements["lab-banner"].innerText
     m.reset_lab_to_normal()
     assert m.lab_pending["soil"] == 1.0 and m.lab["soil"] == 2.0
+
+
+# ---- GB-6 species on replant ----
+
+def _bare(m, index=0):
+    plot = m.plots[index]
+    plot.state = m.BARE
+    plot.value = 0.0
+    return plot
+
+
+def test_species_change_recovery_time(game_env):
+    m = game_env.module
+    base = m.RECOVERY_TICKS
+    for species, expected in (("standard", base), ("pine", max(1, round(base * 0.5))), ("oak", base * 2), ("orchard", base)):
+        plot = _bare(m)
+        assert plot.replant(species=species)
+        assert plot.replant_ticks_remaining == expected
+        assert plot.species == (None if species == "standard" else species)
+
+
+def test_species_value_and_biodiversity_rules(game_env):
+    m = game_env.module
+    def grown(species, ticks=40):
+        plot = m.Plot(0)
+        plot.state = m.RECOVERED
+        plot.species = species
+        for _ in range(ticks):
+            plot.accrue_tick()
+        return plot
+    standard, pine, oak, orchard = grown(None), grown("pine"), grown("oak"), grown("orchard")
+    assert pine.value < standard.value < oak.value
+    assert oak.biodiversity > standard.biodiversity > 0 and orchard.biodiversity == 0
+    assert orchard.value < standard.value  # it stops compounding after 30 ticks
+    steady = grown("orchard", 60).value - grown("orchard", 59).value
+    assert abs(steady - (grown("orchard", 61).value - grown("orchard", 60).value)) < 1e-9
+
+
+def test_mixed_forest_bonus_counts_distinct_standing_species(game_env):
+    m = game_env.module
+    assert m.mixed_forest_multiplier() == 1.0
+    m.plots[0].species, m.plots[1].species = "pine", "pine"
+    assert m.mixed_forest_multiplier() == 1.0
+    m.plots[2].species = "oak"
+    assert abs(m.mixed_forest_multiplier() - 1.05) < 1e-9
+    m.plots[3].species = "orchard"
+    assert abs(m.mixed_forest_multiplier() - 1.10) < 1e-9
+    m.plots[3].state = m.BARE  # a bare plot does not count
+    assert abs(m.mixed_forest_multiplier() - 1.05) < 1e-9
+
+
+def test_clearing_forgets_the_species_and_the_replant_picker_is_used(game_env):
+    m = game_env.module
+    m.plots[2].species = "oak"
+    m.plots[2].clear()
+    assert m.plots[2].species is None
+    m.species_choice = "pine"
+    m.selected_index = 2
+    m.on_replant()
+    assert m.plots[2].species == "pine" and "pine" in m.species_planted
+    assert any("Pioneer pine".lower() in e["text"] for e in m.forest_log)
+
+
+def test_species_save_load_and_old_saves(game_env):
+    m = game_env.module
+    assert "species_planted" not in m.get_state() and "species" not in m.get_state()["plots"][0]
+    m.plots[3].species = "oak"
+    m.species_planted.add("oak")
+    state = m.get_state()
+    assert state["plots"][3]["species"] == "oak" and state["species_planted"] == ["oak"]
+    m.plots[3].species = None
+    m.species_planted.clear()
+    m.load_state(state)
+    assert m.plots[3].species == "oak" and "oak" in m.species_planted
+    state["plots"][3]["species"] = "banyan"
+    state["species_planted"] = ["standard", "banyan", 7]
+    m.load_state(state)
+    assert m.plots[3].species is None and not m.species_planted
+
+
+def test_replant_progress_fraction_uses_the_species_wait(game_env):
+    m = game_env.module
+    plot = _bare(m)
+    plot.replant(species="oak")
+    assert plot.maturity_fraction() == 0.0
+    plot.replant_ticks_remaining = plot.replant_ticks_total // 2
+    assert abs(plot.maturity_fraction() - 0.5) < 1e-9
+
+
+def test_species_marks_and_picker_note(game_env):
+    m = game_env.module
+    m.plots[1].species = "orchard"
+    m.render_grid()
+    tile = game_env.elements["plot-grid"].children[1]
+    assert "plot-species--orchard" in tile.className and "Orchard" in tile.getAttribute("data-tooltip")
+    m.species_choice = "oak"
+    m.render_species_note()
+    assert "Hardwood oak" in game_env.elements["species-note"].innerText

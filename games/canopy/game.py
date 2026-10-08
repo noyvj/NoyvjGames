@@ -274,8 +274,39 @@ PARTNER_RECOVERY_TICKS = max(1, RECOVERY_TICKS // 2)
 PARTNER_SHARE_RATIO = 0.35
 
 
+# GB-6 (2026-10-09): tree species chosen when replanting. "standard" is the original seedling (no change to the rules).
+# Pine recovers fast but tops out low, oak is slow but rich in value and wildlife, an orchard pays steadily but
+# attracts no wildlife. A forest mixing species grows a little faster (see mixed_forest_multiplier).
+SPECIES_STANDARD = "standard"
+SPECIES = {
+    "standard": {"label": "Standard seedling", "mark": "", "recovery": 1.0, "value": 1.0, "bio": 1.0, "steady_after": None,
+                 "note": "the usual seedling"},
+    "pine": {"label": "Pioneer pine", "mark": "\u25b2", "recovery": 0.5, "value": 0.75, "bio": 1.0, "steady_after": None,
+             "note": "recovers in half the time, lower ceiling (-25% value)"},
+    "oak": {"label": "Hardwood oak", "mark": "\u25cf", "recovery": 2.0, "value": 1.35, "bio": 1.5, "steady_after": None,
+            "note": "twice the wait, +35% value and +50% biodiversity"},
+    "orchard": {"label": "Orchard", "mark": "\u25c6", "recovery": 1.0, "value": 1.0, "bio": 0.0, "steady_after": 30,
+                "note": "steady income (stops compounding after 30 ticks), no wildlife"},
+}
+MIXED_FOREST_BONUS_PER_EXTRA_SPECIES = 0.05
+species_planted = set()  # which species this forest has planted (for the Almanac); saved only when non-empty
+_mixed_bonus = 1.0
+
+
+def species_recovery_ticks(species, base):
+    return max(1, int(round(base * SPECIES.get(species, SPECIES[SPECIES_STANDARD])["recovery"])))
+
+
+def mixed_forest_multiplier(plot_list=None):
+    """+5% growth for each distinct chosen species standing beyond the first (so +10% with all three)."""
+    standing = {p.species for p in (plots if plot_list is None else plot_list) if p.state in ACCRUING_STATES and p.species}
+    return 1.0 + MIXED_FOREST_BONUS_PER_EXTRA_SPECIES * max(0, len(standing) - 1)
+
+
 class Plot:
     def __init__(self, index, region="main"):
+        self.species = None  # GB-6: None means the standard seedling
+        self.replant_ticks_total = RECOVERY_TICKS
         self.index = index
         # V-CD-5 (planning/TODO.md section N): which grid this plot belongs
         # to -- "main" (the default) or "highland". Structural, not saved
@@ -347,8 +378,10 @@ class Plot:
         if self.state not in ACCRUING_STATES:
             return 0.0
         self.ticks_intact += 1
-        growth_multiplier = 1 + self.ticks_intact * growth_per_tick()  # B-5
-        delta = BASE_ACCRUAL * self.productivity_multiplier() * growth_multiplier
+        spec = SPECIES.get(self.species or SPECIES_STANDARD, SPECIES[SPECIES_STANDARD])  # GB-6
+        compounding = self.ticks_intact if spec["steady_after"] is None else min(self.ticks_intact, spec["steady_after"])
+        growth_multiplier = 1 + compounding * growth_per_tick()  # B-5
+        delta = BASE_ACCRUAL * self.productivity_multiplier() * growth_multiplier * spec["value"] * _mixed_bonus
         # V-CD-5: Highland Grove compounds HIGHLAND_GROWTH_MULTIPLIER times
         # slower than the main forest (a harsher, shorter high-altitude
         # growing season) — 1.0 (a no-op) for main-forest plots.
@@ -368,7 +401,7 @@ class Plot:
         if self.partner_share:  # B11: partner's cut comes off the top, permanently
             delta *= 1 - self.partner_share
         self.value += delta
-        biodiversity_gain = BIODIVERSITY_ACCRUAL_PER_TICK
+        biodiversity_gain = BIODIVERSITY_ACCRUAL_PER_TICK * spec["bio"]
         if self.specialization == SPECIALIZATION_BIODIVERSITY:
             biodiversity_gain *= SPECIALIST_BIODIVERSITY_MULTIPLIER
         self.biodiversity += biodiversity_gain
@@ -392,9 +425,10 @@ class Plot:
         self.specialization = None
         self.partner_share = 0.0  # B11: a partnership is only good for one planting
         self.tend_ticks_left = 0  # GB-4: a cleared plot is no longer being tended
+        self.species = None  # GB-6: the next planting chooses afresh
         return payout
 
-    def replant(self, partner=False):
+    def replant(self, partner=False, species=None):
         """B11: `partner=True` uses a reforestation partner instead of a
         plain replant -- recovers in PARTNER_RECOVERY_TICKS (half the
         normal wait) but this planting's future economic value permanently
@@ -403,9 +437,10 @@ class Plot:
         if "replant" not in VALID_ACTIONS[self.state]:
             return False
         self.state = REPLANTING
-        self.replant_ticks_remaining = (
-            PARTNER_RECOVERY_TICKS if partner else max(1, RECOVERY_TICKS - vault_recovery_ticks_saved())  # GB-10: Fast Sprouts
-        )
+        base_ticks = PARTNER_RECOVERY_TICKS if partner else max(1, RECOVERY_TICKS - vault_recovery_ticks_saved())  # GB-10: Fast Sprouts
+        self.species = species if species in SPECIES and species != SPECIES_STANDARD else None  # GB-6
+        self.replant_ticks_remaining = species_recovery_ticks(self.species or SPECIES_STANDARD, base_ticks)
+        self.replant_ticks_total = max(RECOVERY_TICKS, self.replant_ticks_remaining)
         self.partner_share = PARTNER_SHARE_RATIO if partner else 0.0
         return True
 
@@ -425,7 +460,7 @@ class Plot:
         if self.state in ACCRUING_STATES:
             return min(1.0, self.ticks_intact / MATURITY_TICKS)
         if self.state == REPLANTING:
-            return 1 - (self.replant_ticks_remaining / RECOVERY_TICKS)
+            return 1 - (self.replant_ticks_remaining / max(1, self.replant_ticks_total))
         return 0.0
 
     def advance_recovery(self):
@@ -880,6 +915,7 @@ def reset_session(grid_size=None, _render_after=True, difficulty=None, challenge
     _value_history.clear()
     _report_history.clear()
     _replay_frames.clear()  # B-3
+    species_planted.clear()  # GB-6
     _replay_state["every"] = REPLAY_START_EVERY
     _pending_mature_bursts.clear()
     forest_log = []
@@ -2056,6 +2092,12 @@ def render_grid():
             soil_mark.setAttribute("aria-hidden", "true")
             tile.appendChild(soil_mark)
         tooltip = _plot_tooltip_text(plot)
+        if plot.species and plot.state != BARE:  # GB-6: a shape mark and a name, so species never rely on colour
+            tile.className += f" plot-species plot-species--{plot.species}"
+            species_mark = _make_tile_mark("species-mark", SPECIES[plot.species]["mark"])
+            species_mark.setAttribute("aria-hidden", "true")
+            tile.appendChild(species_mark)
+            tooltip += f" \u00b7 {SPECIES[plot.species]['label']}"
         if golden_seedling is not None and golden_seedling["plot"] == plot.index:
             tooltip += " \u00b7 golden seedling: click it now for a burst of recovery"
         if plot.tend_ticks_left > 0:
@@ -5328,6 +5370,9 @@ ALMANAC_TREES = [
     ("seedling", "\U0001F331", "Replanted seedling", lambda: total_replants >= 1),
     ("deciduous", "\U0001F333", "Recovered woodland", lambda: total_recoveries >= 1),
     ("crown", "\U0001F451", "Old-growth crown", lambda: any(p.mature_celebrated for p in plots)),
+    ("pine", "\u25b2", "Pioneer pine", lambda: "pine" in species_planted),  # GB-6
+    ("oak", "\u25cf", "Hardwood oak", lambda: "oak" in species_planted),
+    ("orchard", "\u25c6", "Orchard", lambda: "orchard" in species_planted),
 ]
 
 
@@ -7240,6 +7285,8 @@ def render_vault():
 
 def _levels_state_fields():
     out = {}
+    if species_planted:  # GB-6
+        out["species_planted"] = sorted(species_planted)
     if lab_active():  # B-5
         out["lab"] = dict(lab)
     if current_scenario != SCENARIO_NONE:  # B-11
@@ -7553,10 +7600,43 @@ def on_replant(event=None):
     if survey_mode:  # B-13
         queue_survey_action("replant", selected_index)
         return
-    if plots[selected_index].replant():
+    if plots[selected_index].replant(species=species_choice):  # GB-6
         total_replants += 1
-        _log_event("replant", f"Replanted {_plot_ref(selected_index)}", selected_index)
+        if species_choice != SPECIES_STANDARD:
+            species_planted.add(species_choice)
+        label = SPECIES[species_choice]["label"].lower() if species_choice != SPECIES_STANDARD else ""
+        _log_event("replant", f"Replanted {_plot_ref(selected_index)}" + (f" with {label}" if label else ""), selected_index)
     render()
+
+
+# GB-6 UI: the picker next to Replant. The choice is remembered on this device.
+SPECIES_CHOICE_KEY = "canopy_species_choice_v1"
+species_choice = SPECIES_STANDARD
+
+
+def load_species_choice():
+    global species_choice
+    value = _read_local_storage_item(SPECIES_CHOICE_KEY)
+    species_choice = value if value in SPECIES else SPECIES_STANDARD
+
+
+def on_species_change(event=None):
+    global species_choice
+    select = _el("species-select")
+    value = getattr(select, "value", SPECIES_STANDARD)
+    species_choice = value if value in SPECIES else SPECIES_STANDARD
+    _write_local_storage_item(SPECIES_CHOICE_KEY, species_choice)
+    render_species_note()
+
+
+def render_species_note():
+    note = _el("species-note")
+    if note is not None:
+        spec = SPECIES[species_choice]
+        note.innerText = f"{spec['label']}: {spec['note']}. Standing species mix gives +5% growth per extra species."
+    select = _el("species-select")
+    if select is not None:
+        select.value = species_choice
 
 
 # B-13 (2026-10-09): Survey mode. The tick is frozen; Clear, Replant and a queued decline of the pending clear request
@@ -7822,6 +7902,8 @@ def tick(event=None):
         _end_season()  # GB-30: score the season that just ended
     _pending_value_pops.clear()
     _pending_mature_bursts.clear()
+    global _mixed_bonus
+    _mixed_bonus = mixed_forest_multiplier()  # GB-6
     aura = _heart_tree_aura()  # GB-8
     newly_mature = []
     for plot in plots:
@@ -7910,6 +7992,7 @@ def _plot_to_dict(plot):
         "mature_celebrated": plot.mature_celebrated,
         "requests_survived": plot.requests_survived,
         "specialization": plot.specialization,
+        **({"species": plot.species} if plot.species else {}),  # GB-6: only when a species was chosen
     }
 
 
@@ -7929,6 +8012,9 @@ def _apply_plot_dict(plot, plot_data):
     plot.requests_survived = plot_data.get("requests_survived", plot.requests_survived)
     saved_spec = plot_data.get("specialization", plot.specialization)
     plot.specialization = saved_spec if saved_spec in SPECIALIZATION_LABEL else None
+    saved_species = plot_data.get("species")  # GB-6
+    plot.species = saved_species if saved_species in SPECIES and saved_species != SPECIES_STANDARD else None
+    plot.replant_ticks_total = max(RECOVERY_TICKS, plot.replant_ticks_remaining)
 
 
 def _wetland_state_fields():
@@ -8119,6 +8205,10 @@ def load_state(data):
         for e in raw_log
         if isinstance(e, dict)
     ][-FOREST_LOG_MAX_ENTRIES:]
+    species_planted.clear()  # GB-6
+    saved_planted = data.get("species_planted")
+    if isinstance(saved_planted, list):
+        species_planted.update(x for x in saved_planted if x in SPECIES and x != SPECIES_STANDARD)
     set_lab_values(data.get("lab"))  # B-5: an older save has none, which means the normal game
     saved_scenario = data.get("scenario")
     current_scenario = saved_scenario if saved_scenario in SCENARIO_SPECS else SCENARIO_NONE
@@ -8357,6 +8447,11 @@ def setup():
         lab_button = _el(lab_id)
         if lab_button is not None:
             lab_button.addEventListener("click", create_proxy(lab_handler))
+    species_select = _el("species-select")  # GB-6
+    if species_select is not None:
+        load_species_choice()
+        species_select.addEventListener("change", create_proxy(on_species_change))
+        render_species_note()
     for survey_id, survey_handler in (("survey-toggle-button", on_toggle_survey), ("survey-commit-button", commit_survey),
                                       ("survey-remove-button", on_survey_remove_last), ("survey-decline-button", on_survey_decline),
                                       ("survey-cancel-button", cancel_survey)):  # B-13

@@ -38,7 +38,7 @@ def test_toggle_label_counts_found_entries(game_env):
     m = game_env.module
     found, total = m.almanac_found_total()
     assert f"({found}/{total})" in game_env.elements["almanac-toggle-button"].innerText
-    assert total == 4 + 6 + 2 + 1
+    assert total == 7 + 6 + 2 + 1
 
 
 def test_unfound_entries_are_silhouettes_or_question_marks(game_env):
@@ -57,13 +57,13 @@ def test_unfound_entries_are_silhouettes_or_question_marks(game_env):
 def test_trees_planted_fill_in_as_you_play(game_env):
     m = game_env.module
     game_env.toggle_almanac()
-    trees = _items(game_env)["Trees planted (1/4)"]
+    trees = _items(game_env)["Trees planted (1/7)"]
     assert _texts(trees[0])[1] == "Evergreen stand"
     game_env.select(0)
     game_env.clear()
     game_env.replant()
     game_env.tick(m.RECOVERY_TICKS)
-    trees = _items(game_env)["Trees planted (3/4)"]
+    trees = _items(game_env)["Trees planted (3/7)"]
     assert [_texts(t)[1] for t in trees[:3]] == ["Evergreen stand", "Replanted seedling", "Recovered woodland"]
 
 
