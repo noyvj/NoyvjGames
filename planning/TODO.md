@@ -1,6 +1,6 @@
 # Site-Wide TODO (round 3)
 
-**Progress: 421/1008 items checked off (41.8%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land.
+**Progress: 422/1009 items checked off (41.8%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land.
 
 Built from your answers in `planning/IMPROVEMENT-IDEAS-ROUND-3.md` (Part 4). Every Round 3 section is now answered (2026-10-07 below the Warframe section); earlier this list held only: **GB** (Canopy gamified), **M** (new games), **N** (seasonal events), **O** (Trade Empire and Continuum replayability), **P/Q/S/T** (Signal, Undersleep, Overclock, Last Line open questions), **X** (Warframe tracker) and **R** (returning later). GC-GI, A-L, U, Z and Y are unanswered and wait for you. The previous list is archived at `planning/todo-archive/260914_260927.md`; anything from it that was moved here is marked "moved" there.
 
@@ -1051,7 +1051,8 @@ Classic stays the default boot (`index.html`); Desktop is a second boot (`pc.htm
 - [x] PC-13: Trade Empire Desktop.
 - [x] PC-14: Le Champ de Mots Desktop (agent-built, reviewed, committed 084a60b; offline cache worker version 27).
 - [x] PC-15: SOL Desktop. Same state as PC-14 (722 tests pass, uncommitted, stopped mid-build).
-- [ ] PC-16: When every game has its Desktop layout, send you screenshots of all of them (your answer 2026-10-07: later, screenshots first), then fix what you say feels wrong. Controller support: not yet; audio stays parked.
+- [x] PC-16: Screenshots of every Desktop game sent to you (2026-10-08, 14 games at 1440x900, first load, light theme; Thaw and Continuum were shot from the last commit because their working-tree files were mid-edit). Chronicle has no Desktop boot yet (CH-13).
+- [ ] PC-18: Fix whatever you say feels wrong in the Desktop screenshots (say which game and what), then re-send screenshots of the changed games. Controller support: not yet; audio stays parked.
 - [x] PC-17: Fix SOL's research node buttons staying greyed out as Iron accumulates (Classic bug found by the Desktop agent: `update_research_node_list()` only runs on events, not as Iron grows). Needs a light update of the `disabled` flags in the tick path, not a full list rebuild every tick (that would swallow clicks); then drop the workaround in `games/sol/pc.js`.
 
 ## LX. Lexis (language-deduction puzzle game; plan `planning/lexis-plan.md`, game in `games/lexis/`)
