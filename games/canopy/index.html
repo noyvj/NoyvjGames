@@ -281,6 +281,7 @@
     </div>
     <div id="achievements-panel" class="section achievements-panel grove-wall" hidden></div>
     <div id="achievement-toast" class="achievement-toast" hidden></div>
+    <p id="layout-banner" class="layout-banner" role="status" hidden></p>
     <p id="fire-status" class="fire-status" role="status" hidden></p>
     <p id="lab-banner" class="lab-banner" role="status" hidden></p>
     <div id="survey-panel" class="section survey-panel" hidden>
@@ -406,6 +407,28 @@
         <label for="lab-variant-select">Saved variants</label>
         <select id="lab-variant-select"></select>
         <button type="button" id="lab-load-variant-button" class="secondary">Stage variant</button>
+      </details>
+      <!-- B-29: custom grid layouts. Toggle cells between plot and open ground, then Apply to start a new forest on that shape. -->
+      <details class="summary-details" id="layout-details">
+        <summary>Custom layouts (grid shapes)</summary>
+        <p id="layout-status" class="layout-status" aria-live="polite"></p>
+        <div class="layout-presets">
+          <button type="button" id="layout-preset-island" class="secondary">Island</button>
+          <button type="button" id="layout-preset-ring" class="secondary">Ring</button>
+          <button type="button" id="layout-preset-plus" class="secondary">Plus</button>
+          <button type="button" id="layout-preset-river" class="secondary">River split</button>
+        </div>
+        <div id="layout-grid" class="layout-grid"></div>
+        <label for="layout-name">Name</label>
+        <input type="text" id="layout-name" maxlength="20" placeholder="Layout name">
+        <div class="layout-buttons">
+          <button type="button" id="layout-apply-button">Apply (starts a new forest)</button>
+          <button type="button" id="layout-save-button" class="secondary">Save</button>
+          <button type="button" id="layout-clear-button" class="secondary">Back to the full grid</button>
+        </div>
+        <label for="layout-select">Saved layouts</label>
+        <select id="layout-select"></select>
+        <button type="button" id="layout-load-button" class="secondary">Load into the editor</button>
       </details>
       <!-- GB-29: optional carbon-credit market. The price follows a known cycle; selling pays now but dips growth for a while. -->
       <details class="summary-details" id="carbon-details">
@@ -1143,6 +1166,11 @@
       const communityResult = document.getElementById("community-forest-result");
       communityButton.addEventListener("click", async () => {
         const API = "https://noyvjgames.fastapicloud.dev";
+        const layoutFn = pyodide.globals.get("layout_active");
+        if (layoutFn && layoutFn()) {  // B-29: custom shapes are not comparable with the standard grid
+          communityResult.textContent = "Custom layouts are kept out of the community comparison. Switch back to the full grid to compare.";
+          return;
+        }
         communityButton.disabled = true;
         communityResult.textContent = "Loading...";
         try {

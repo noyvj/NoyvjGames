@@ -1,6 +1,6 @@
 # Site-Wide TODO (round 3)
 
-**Progress: 530/1095 items checked off (48.4%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land.
+**Progress: 531/1095 items checked off (48.5%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land.
 
 Built from your answers in `planning/IMPROVEMENT-IDEAS-ROUND-3.md` (Part 4). Every Round 3 section is now answered (2026-10-07 below the Warframe section); earlier this list held only: **GB** (Canopy gamified), **M** (new games), **N** (seasonal events), **O** (Trade Empire and Continuum replayability), **P/Q/S/T** (Signal, Undersleep, Overclock, Last Line open questions), **X** (Warframe tracker) and **R** (returning later). GC-GI, A-L, U, Z and Y are unanswered and wait for you. The previous list is archived at `planning/todo-archive/260914_260927.md`; anything from it that was moved here is marked "moved" there.
 
@@ -292,7 +292,7 @@ Your remaining Round 3 answers (Grid to Drift gamified, SOL to Le Champ de Mots,
 - [x] B-26: Add a Canopy Settings numbers-format dropdown (compact 1.2k, thousands separators, full precision) applied to the HUD and mobile dock.
 - [x] B-27: Add opt-in adaptive Coach hints in Canopy's report card: dismissible notes that read the session (e.g. same plot cleared 3 times in one season, soil now 55%), never block play, and replace tutorial text for returning players. (Built 2026-10-09 without 'replace tutorial text for returning players': the hints are an opt-in addition to the report card.)
 - [x] B-28: Add a Canopy mobile bottom sheet opened by long-pressing a plot with large Clear/Replant/Adopt buttons; desktop layout unchanged.
-- [ ] B-29: Add a Canopy custom grid shapes editor: paint which cells exist (island, ring, plus, river-split), save named layouts each with their own personal-best slot, kept out of standard percentiles.
+- [x] B-29: Add a Canopy custom grid shapes editor: paint which cells exist (island, ring, plus, river-split), save named layouts each with their own personal-best slot, kept out of standard percentiles.
 - [x] B-30: Add a Canopy performance guard: auto-throttle wildlife sprite animation and value-pop effects when the tick loop lags, with a "Performance mode" indicator in Settings and a manual override.
 - [x] B-31: Restyle Canopy's achievements panel as a forest-themed "grove wall" laid out like the plot grid, with a leaf/wildlife glyph (existing wildlife icons) per earned badge, locked ones as dim silhouettes keeping progress lines.
 

@@ -2066,3 +2066,171 @@ def test_sandbox_forests_never_water_the_shared_plot(game_env):
     store, pool, board = _community_setup(m)
     m.lab["maturity"] = 2.0
     assert m._community_tick() == 0.0 and pool.added == []
+
+
+# ---- B-29 custom layouts ----
+
+def test_presets_make_valid_shapes_of_the_right_size(game_env):
+    m = game_env.module
+    n = m.GRID_ROWS * m.GRID_COLS
+    for kind in m.LAYOUT_PRESET_LABELS:
+        cells = m.layout_preset_cells(kind)
+        assert len(cells) == n and set(cells) <= {"0", "1"} and m.clean_layout_cells(cells) == cells
+        assert 0 < cells.count("0") < n  # a real shape: some open ground, some plots
+    ring = m.layout_preset_cells("ring")
+    assert ring[0] == "1" and ring[m.GRID_COLS + 1] == "0"  # forest around the edge, open ground inside
+    plus = m.layout_preset_cells("plus")
+    assert plus[0] == "0" and plus[m.GRID_COLS * (m.GRID_ROWS // 2) + 1] == "1"
+
+
+def test_layout_cells_are_validated(game_env):
+    m = game_env.module
+    n = m.GRID_ROWS * m.GRID_COLS
+    assert m.clean_layout_cells("1" * n) == "1" * n
+    assert m.clean_layout_cells("1" * (n - 1)) is None and m.clean_layout_cells("2" * n) is None
+    assert m.clean_layout_cells("0" * n) is None and m.clean_layout_cells(("1" * 3) + "0" * (n - 3)) is None
+    assert m.clean_layout_cells(None) is None
+
+
+def test_starting_a_layout_blocks_the_open_ground_and_it_never_counts(game_env):
+    m = game_env.module
+    cells = m.layout_preset_cells("ring")
+    assert m.start_layout(cells, "My ring") is True
+    assert m.layout_active() and m.current_layout["name"] == "My ring"
+    n_open = cells.count("0")
+    assert sum(1 for p in m.plots if p.blocked) == n_open
+    assert all(p.state == m.BARE for p in m.plots if p.blocked)
+    assert m.active_plot_count() == len(m.plots) - n_open
+    assert sum(m.state_breakdown().values()) == m.active_plot_count()
+    blocked = next(p for p in m.plots if p.blocked)
+    assert blocked.clear() is None and blocked.replant() is False
+    m.select_plot(blocked.index)
+    assert m.selected_index != blocked.index
+    for _ in range(5):
+        m.tick()
+    assert all(p.value == 0 and p.state == m.BARE for p in m.plots if p.blocked)
+    assert m.counterfactual_standing_value() == m.active_plot_count() * m._ideal_accrual_for_ticks(m._session_ticks)
+
+
+def test_blocked_cells_are_never_targets(game_env):
+    m = game_env.module
+    m.start_layout(m.layout_preset_cells("plus"), "")
+    for p in m.plots:
+        if not p.blocked:
+            p.state = m.PRESERVED
+    assert m._replant_grant_target_index() is None  # only open ground is "bare"
+    first_open = next(p for p in m.plots if p.blocked)
+    assert first_open.state == m.BARE and m._replant_grant_target_index() is None
+
+
+def test_tiles_for_open_ground_are_disabled_and_unmarked(game_env):
+    m = game_env.module
+    m.start_layout(m.layout_preset_cells("ring"), "")
+    tiles = game_env.elements["plot-grid"].children
+    for plot, tile in zip(m.plots, tiles):
+        assert ("plot-blocked" in tile.className) == plot.blocked
+        assert tile.disabled == plot.blocked
+        if plot.blocked:
+            assert tile.children == [] and "Open ground" in tile.getAttribute("aria-label")
+
+
+def test_layout_survives_a_save_and_is_dropped_by_clashing_settings(game_env):
+    m = game_env.module
+    m.start_layout(m.layout_preset_cells("river"), "River")
+    state = m.get_state()
+    assert state["layout"]["name"] == "River" and state["layout"]["cells"] == m.layout_preset_cells("river")
+    m.reset_session(layout=None)
+    assert not m.layout_active() and "layout" not in m.get_state()
+    m.load_state(state)
+    assert m.layout_active() and sum(1 for p in m.plots if p.blocked) == m.layout_preset_cells("river").count("0")
+    m.reset_session(difficulty=m.DIFFICULTY_RANGER)
+    assert m.layout_active()  # difficulty and Reset keep the shape
+    m.reset_session()
+    assert m.layout_active()
+    m.reset_session(scenario=next(iter(m.SCENARIO_SPECS)))
+    assert not m.layout_active() and not any(p.blocked for p in m.plots)
+    m.start_layout(m.layout_preset_cells("ring"), "")
+    m.reset_session(grid_size="large")
+    assert not m.layout_active()
+
+
+def test_a_layout_clears_scenario_challenge_and_level(game_env):
+    m = game_env.module
+    m.reset_session(scenario=next(iter(m.SCENARIO_SPECS)))
+    assert m.current_scenario != m.SCENARIO_NONE
+    m.start_layout(m.layout_preset_cells("plus"), "")
+    assert m.current_scenario == m.SCENARIO_NONE and m.current_challenge == m.CHALLENGE_NONE and m.current_level is None
+
+
+def test_bad_saved_layouts_are_ignored_on_load(game_env):
+    m = game_env.module
+    state = m.get_state()
+    for bad in ({"cells": "101"}, {"cells": 5}, "nope", {"cells": "x" * (m.GRID_ROWS * m.GRID_COLS)}):
+        state["layout"] = bad
+        m.load_state(state)
+        assert not m.layout_active() and not any(p.blocked for p in m.plots)
+
+
+def test_named_layouts_are_stored_with_their_own_best(game_env):
+    m = game_env.module
+    store = _memory_storage(m)
+    cells = m.layout_preset_cells("island")
+    assert m.save_layout("  My   island ", cells) == "My island"
+    assert m.save_layout("bad", "11") is None
+    saved = m.load_saved_layouts()
+    assert saved[0]["best"] == 0.0 and saved[0]["rows"] == m.GRID_ROWS and saved[0]["cells"] == cells
+    m.start_layout(cells, "My island")
+    m.plots[next(i for i, c in enumerate(cells) if c == "1")].value = 123.0
+    m._update_layout_best()
+    assert m.load_saved_layouts()[0]["best"] == 123.0
+    assert "best standing 123.0" in m.layout_best_text()
+    m.save_layout("My island", cells)  # re-saving keeps the best
+    assert m.load_saved_layouts()[0]["best"] == 123.0
+    for i in range(8):
+        m.save_layout(f"L{i}", cells)
+    assert len(m.load_saved_layouts()) == m.LAYOUT_MAX_SAVED
+    store[m.LAYOUT_STORAGE_KEY] = "broken"
+    assert m.load_saved_layouts() == []
+
+
+def test_editor_toggles_cells_applies_and_reports(game_env):
+    m = game_env.module
+    m.layout_draft = None
+    m.render_layout_editor()
+    grid = game_env.elements["layout-grid"]
+    assert len(grid.children) == m.GRID_ROWS * m.GRID_COLS
+    m.toggle_draft_cell(0)
+    assert m._draft_cells()[0] == "0" and grid.children[0].className.endswith("off")
+    m.on_layout_preset("plus")
+    assert m._draft_cells() == m.layout_preset_cells("plus")
+    assert "Draft:" in game_env.elements["layout-status"].innerText
+    game_env.elements["layout-name"].value = "Cross"
+    m.on_layout_apply()
+    assert m.layout_active() and m.current_layout["name"] == "Cross"
+    assert game_env.elements["layout-banner"].hidden is False and "community comparison" in game_env.elements["layout-banner"].innerText
+    m.on_layout_clear()
+    assert not m.layout_active() and game_env.elements["layout-banner"].hidden is True
+
+
+def test_the_apply_button_needs_enough_plots(game_env):
+    m = game_env.module
+    m.layout_draft = "0" * (m.GRID_ROWS * m.GRID_COLS - 3) + "111"
+    m.render_layout_editor()
+    assert game_env.elements["layout-apply-button"].disabled is True
+    m.layout_draft = "1" * (m.GRID_ROWS * m.GRID_COLS)
+    m.render_layout_editor()
+    assert game_env.elements["layout-apply-button"].disabled is False
+
+
+def test_custom_layouts_stay_out_of_the_standard_best_and_averages(game_env):
+    import json
+    m = game_env.module
+    store = _memory_storage(m)
+    m.start_layout(m.layout_preset_cells("plus"), "")
+    m._session_ticks = 30
+    m.plots[next(p.index for p in m.plots if not p.blocked)].value = 400.0
+    m._maybe_update_personal_best()
+    assert m.PERSONAL_BEST_STORAGE_KEY not in store
+    m._bank_lifetime()
+    assert json.loads(store[m.LIFETIME_STORAGE_KEY])["by_difficulty"] == {}
+    assert json.loads(store[m.LIFETIME_STORAGE_KEY])["sessions"] == 1

@@ -349,6 +349,7 @@ class Plot:
     def __init__(self, index, region="main"):
         self.species = None  # GB-6: None means the standard seedling
         self.replant_ticks_total = RECOVERY_TICKS
+        self.blocked = False  # B-29: a cell a custom layout leaves out (open ground: no plot, never counted)
         self.index = index
         # V-CD-5 (planning/TODO.md section N): which grid this plot belongs
         # to -- "main" (the default) or "highland". Structural, not saved
@@ -457,7 +458,7 @@ class Plot:
         """Harvests this plot's standing value and returns it as a payout
         (None if clearing isn't valid from the current state). Clearing
         also permanently degrades the plot's future productivity."""
-        if "clear" not in VALID_ACTIONS[self.state]:
+        if self.blocked or "clear" not in VALID_ACTIONS[self.state]:
             return None
         payout = self.value
         self.clear_count += 1
@@ -491,7 +492,7 @@ class Plot:
         normal wait) but this planting's future economic value permanently
         shares PARTNER_SHARE_RATIO with the partner until the plot is next
         cleared."""
-        if "replant" not in VALID_ACTIONS[self.state]:
+        if self.blocked or "replant" not in VALID_ACTIONS[self.state]:
             return False
         self.state = REPLANTING
         base_ticks = PARTNER_RECOVERY_TICKS if partner else max(1, RECOVERY_TICKS - vault_recovery_ticks_saved())  # GB-10: Fast Sprouts
@@ -880,10 +881,11 @@ _challenge_record_cache = None  # GB-17: per-browser fastest-completion record, 
 # separate save-code widget is for) and the shared confirm-dialog pattern
 # the TODO's own site-wide goal describes is still just a design, not a
 # built component, elsewhere in this file.
+_KEEP_LAYOUT = object()  # reset_session(layout=...) default: keep the running layout (a setting that would clash drops it)
 _KEEP_LEVEL = object()  # reset_session(level=...) default: keep the running level unless a setting is being changed
 
 
-def reset_session(grid_size=None, _render_after=True, difficulty=None, challenge=None, pace=None, level=_KEEP_LEVEL, scenario=None, lab_values=None):
+def reset_session(grid_size=None, _render_after=True, difficulty=None, challenge=None, pace=None, level=_KEEP_LEVEL, scenario=None, lab_values=None, layout=_KEEP_LAYOUT):
     """Rebuilds every module-level mutable global back to its fresh-start
     default, optionally at a different GRID_SIZE_PRESETS key. Always
     rebuilds `plots` from scratch (even on a same-size reset) rather than
@@ -904,7 +906,7 @@ def reset_session(grid_size=None, _render_after=True, difficulty=None, challenge
     global wetland_flood_countdown, wetland_floods_survived, wetland_flood_value_lost
     global _wetland_plot_click_proxies
     global forest_log, forest_tick, adopted_plot_index, current_difficulty
-    global legacy_multiplier, current_challenge, current_pace, current_level, current_scenario
+    global legacy_multiplier, current_challenge, current_pace, current_level, current_scenario, current_layout
 
     # B15: bank this (about-to-end) session's standing value for the next
     # session's legacy bonus, then reload the multiplier so the session
@@ -949,6 +951,21 @@ def reset_session(grid_size=None, _render_after=True, difficulty=None, challenge
     elif grid_size is not None or difficulty is not None or challenge is not None or pace is not None or scenario is not None:
         current_level = None
     GRID_ROWS, GRID_COLS = GRID_SIZE_PRESETS[current_grid_size]
+    # B-29: a layout is for one grid size and one plain game mode. Choosing one clears any scenario, challenge or level;
+    # choosing one of those, or another grid size, drops it. Everything else (difficulty, pace, Reset) keeps it.
+    if layout is not _KEEP_LAYOUT:
+        current_layout = None if layout is None else {"name": str(layout[0])[:20], "cells": layout[1]}
+        if current_layout is not None:
+            current_scenario, current_challenge, current_level = SCENARIO_NONE, CHALLENGE_NONE, None
+    elif current_layout is not None and (
+        grid_size is not None
+        or (scenario is not None and scenario != SCENARIO_NONE)
+        or (challenge is not None and challenge != CHALLENGE_NONE)
+        or (level is not _KEEP_LEVEL and level is not None)
+    ):
+        current_layout = None
+    if current_layout is not None and len(current_layout["cells"]) != GRID_ROWS * GRID_COLS:
+        current_layout = None
 
     # Same leak-prevention discipline as render_grid()'s per-render proxy
     # cleanup -- these proxies' plots are about to be dropped entirely.
@@ -957,6 +974,8 @@ def reset_session(grid_size=None, _render_after=True, difficulty=None, challenge
     _plot_click_proxies = {}
 
     plots = [Plot(i) for i in range(GRID_ROWS * GRID_COLS)]
+    if current_layout is not None:  # B-29
+        apply_layout_to_plots(current_layout["cells"])
     selected_index = None
     total_income = 0.0
     community_relations = STARTING_COMMUNITY_RELATIONS
@@ -1115,7 +1134,7 @@ def _most_established_plot_index():
 def _replant_grant_target_index():
     """B25: the bare plot a replant grant would restore -- the one with the
     healthiest soil (most worth restoring), lowest index on ties."""
-    bare = [p for p in plots if p.state == BARE]
+    bare = [p for p in plots if p.state == BARE and not p.blocked]
     if not bare:
         return None
     return max(bare, key=lambda p: (p.productivity_multiplier(), -p.index)).index
@@ -1228,7 +1247,7 @@ def counter_offer_plan():
         return None
     target_row, target_col = divmod(target, GRID_COLS)
     bare = sorted(
-        (p for p in plots if p.state == BARE and p.index != target),
+        (p for p in plots if p.state == BARE and p.index != target and not p.blocked),
         key=lambda p: (abs(divmod(p.index, GRID_COLS)[0] - target_row) + abs(divmod(p.index, GRID_COLS)[1] - target_col), p.index),
     )[:2]
     if bare:
@@ -1588,10 +1607,11 @@ def _bank_lifetime():
     life["xp"] += session_xp(now["standing"], now["seasons"])  # B-19
     if now["badge"] != BADGE_UNDECIDED and now["badge"] not in life["badges"]:
         life["badges"] = (life["badges"] + [now["badge"]])[:12]
-    row = life["by_difficulty"].setdefault(now["difficulty"], {"n": 0, "sum": 0.0, "best": 0.0})
-    row["n"] += 1
-    row["sum"] += now["standing"]
-    row["best"] = max(row["best"], now["standing"])
+    if not layout_active():  # B-29: a custom shape's numbers are not comparable with the standard grid's averages
+        row = life["by_difficulty"].setdefault(now["difficulty"], {"n": 0, "sum": 0.0, "best": 0.0})
+        row["n"] += 1
+        row["sum"] += now["standing"]
+        row["best"] = max(row["best"], now["standing"])
     _write_local_storage_item(LIFETIME_STORAGE_KEY, json.dumps(life))
     _bank_my_forest()  # B-1
 
@@ -2057,6 +2077,247 @@ def render_community_note():
                           "Off. Tick \"Water the community plot\" in Settings to add a small share of your forest's growth to the shared daily total.")
 
 
+# B-29 (2026-10-09): custom grid layouts. A layout says which cells of the current grid are plots; the rest are open ground
+# (blocked plots that never grow, cannot be selected and are left out of every count). A layout is a string of 1 (plot) and 0
+# (open ground), one character per cell, row by row. Presets: island, ring, plus and river-split. Named layouts are kept on
+# this device (up to six) each with its own best standing value. Starting a layout begins a new forest with no scenario,
+# challenge or level, and a layout forest is kept out of the community comparison.
+LAYOUT_MIN_PLOTS = 4
+LAYOUT_STORAGE_KEY = "canopy_layouts_v1"
+LAYOUT_MAX_SAVED = 6
+LAYOUT_PRESET_LABELS = {"island": "Island", "ring": "Ring", "plus": "Plus", "river": "River split"}
+current_layout = None  # {"name": str, "cells": "1101..."} or None for the ordinary full grid
+
+
+def active_plot_count():
+    return sum(1 for p in plots if not p.blocked)
+
+
+def layout_active():
+    return current_layout is not None
+
+
+def layout_preset_cells(kind, rows=None, cols=None):
+    """The cells string for a preset at the given (default: current) grid size."""
+    rows = GRID_ROWS if rows is None else rows
+    cols = GRID_COLS if cols is None else cols
+    out = []
+    for r in range(rows):
+        for c in range(cols):
+            if kind == "island":  # an oval of land with a margin of open ground
+                dr, dc = (r - (rows - 1) / 2) / (rows / 2), (c - (cols - 1) / 2) / (cols / 2)
+                on = dr * dr + dc * dc <= 0.85
+            elif kind == "ring":  # a loop of forest around open ground
+                on = r in (0, rows - 1) or c in (0, cols - 1)
+            elif kind == "plus":
+                on = abs(r - (rows - 1) / 2) <= 0.5 or abs(c - (cols - 1) / 2) <= 0.5
+            elif kind == "river":  # two banks split by a river with a single ford
+                on = abs(c - (cols - 1) / 2) > 0.5 or r == rows // 2
+            else:
+                on = True
+            out.append("1" if on else "0")
+    return "".join(out)
+
+
+def clean_layout_cells(cells, expected=None):
+    """The cells string if it is valid for this grid (right length, only 0/1, enough plots), else None."""
+    expected = GRID_ROWS * GRID_COLS if expected is None else expected
+    if not isinstance(cells, str) or len(cells) != expected or set(cells) - {"0", "1"}:
+        return None
+    return cells if cells.count("1") >= LAYOUT_MIN_PLOTS else None
+
+
+def apply_layout_to_plots(cells):
+    for plot, ch in zip(plots, cells):
+        plot.blocked = ch == "0"
+        if plot.blocked:  # open ground holds nothing
+            plot.state, plot.value = BARE, 0.0
+
+
+def layout_bests_key(name):
+    return str(name)[:20]
+
+
+def load_saved_layouts():
+    raw = _read_local_storage_item(LAYOUT_STORAGE_KEY)
+    try:
+        data = json.loads(raw) if raw else []
+    except (ValueError, TypeError):
+        return []
+    out = []
+    for item in data if isinstance(data, list) else []:
+        if not isinstance(item, dict):
+            continue
+        cells = clean_layout_cells(item.get("cells"), expected=len(str(item.get("cells", ""))))
+        rows, cols = item.get("rows"), item.get("cols")
+        if cells is None or not isinstance(rows, int) or not isinstance(cols, int) or rows * cols != len(cells):
+            continue
+        best = item.get("best")
+        out.append({"name": str(item.get("name", "Layout"))[:20] or "Layout", "rows": rows, "cols": cols, "cells": cells,
+                    "best": float(best) if isinstance(best, (int, float)) and not isinstance(best, bool) and 0 <= best < 1e12 else 0.0})
+    return out[:LAYOUT_MAX_SAVED]
+
+
+def save_layout(name, cells):
+    """Stores a named layout for the current grid size (a same-named one is replaced, keeping its best)."""
+    cells = clean_layout_cells(cells)
+    if cells is None:
+        return None
+    name = " ".join(str(name or "").split())[:20] or f"Layout {len(load_saved_layouts()) + 1}"
+    layouts = load_saved_layouts()
+    previous = next((l for l in layouts if l["name"] == name), None)
+    layouts = [l for l in layouts if l["name"] != name]
+    layouts.append({"name": name, "rows": GRID_ROWS, "cols": GRID_COLS, "cells": cells, "best": previous["best"] if previous else 0.0})
+    _write_local_storage_item(LAYOUT_STORAGE_KEY, json.dumps(layouts[-LAYOUT_MAX_SAVED:]))
+    return name
+
+
+def _update_layout_best():
+    """Called every render: keeps the running named layout's own best standing value."""
+    if current_layout is None or not current_layout.get("name"):
+        return
+    layouts = load_saved_layouts()
+    value = standing_forest_value()
+    for layout in layouts:
+        if layout["name"] == current_layout["name"] and value > layout["best"]:
+            layout["best"] = round(value, 2)
+            _write_local_storage_item(LAYOUT_STORAGE_KEY, json.dumps(layouts))
+            return
+
+
+def layout_best_text():
+    if current_layout is None:
+        return ""
+    name = current_layout.get("name") or "Custom layout"
+    layout = next((l for l in load_saved_layouts() if l["name"] == current_layout.get("name")), None)
+    best = layout["best"] if layout else 0.0
+    return f"{name}: best standing {best:.1f}" if best > 0 else f"{name}: no best yet"
+
+
+def start_layout(cells, name=""):
+    """Starts a new forest on this layout (cells for the current grid size)."""
+    cells = clean_layout_cells(cells)
+    if cells is None:
+        return False
+    return reset_session(layout=(name, cells))
+
+
+# The editor stages a cells string; Apply starts the forest, Save keeps it with a name.
+layout_draft = None
+_layout_grid_signature = {}
+
+
+def on_layout_grid_click(event):
+    """One delegated listener for every cell button (the buttons are rebuilt when the draft changes)."""
+    target = getattr(event, "target", None)
+    cell = target.closest(".layout-cell") if target is not None and hasattr(target, "closest") else None
+    raw = cell.getAttribute("data-index") if cell is not None else None
+    try:
+        toggle_draft_cell(int(raw))
+    except (TypeError, ValueError):
+        pass
+
+
+def _draft_cells():
+    global layout_draft
+    if layout_draft is None or len(layout_draft) != GRID_ROWS * GRID_COLS:
+        layout_draft = current_layout["cells"] if layout_active() and len(current_layout["cells"]) == GRID_ROWS * GRID_COLS else "1" * (GRID_ROWS * GRID_COLS)
+    return layout_draft
+
+
+def toggle_draft_cell(index):
+    global layout_draft
+    cells = _draft_cells()
+    if not 0 <= index < len(cells):
+        return False
+    layout_draft = cells[:index] + ("0" if cells[index] == "1" else "1") + cells[index + 1:]
+    render_layout_editor()
+    return True
+
+
+def on_layout_preset(kind):
+    global layout_draft
+    layout_draft = layout_preset_cells(kind)
+    render_layout_editor()
+
+
+def on_layout_apply(event=None):
+    name = " ".join(str(getattr(_el("layout-name"), "value", "") or "").split())[:20]
+    start_layout(_draft_cells(), name)
+
+
+def on_layout_save(event=None):
+    name_box = _el("layout-name")
+    save_layout(getattr(name_box, "value", ""), _draft_cells())
+    render_layout_editor()
+
+
+def on_layout_load(event=None):
+    global layout_draft
+    select = _el("layout-select")
+    chosen = next((l for l in load_saved_layouts() if l["name"] == getattr(select, "value", "")), None)
+    if chosen is not None and chosen["rows"] == GRID_ROWS and chosen["cols"] == GRID_COLS:
+        layout_draft = chosen["cells"]
+        name_box = _el("layout-name")
+        if name_box is not None:
+            name_box.value = chosen["name"]
+        render_layout_editor()
+
+
+def on_layout_clear(event=None):
+    reset_session(layout=None)
+
+
+def render_layout_editor():
+    grid = _el("layout-grid")
+    status = _el("layout-status")
+    cells = _draft_cells()
+    signature = (cells, GRID_ROWS, GRID_COLS)
+    if grid is not None and _layout_grid_signature.get("sig") != signature:  # rebuilt only on change, so keyboard focus survives the tick
+        _layout_grid_signature["sig"] = signature
+        grid.innerHTML = ""
+        grid.setAttribute("data-cols", str(GRID_COLS))
+        grid.style.gridTemplateColumns = f"repeat({GRID_COLS}, 1fr)"
+        for i, ch in enumerate(cells):
+            cell = document.createElement("button")
+            cell.type = "button"
+            cell.className = "layout-cell layout-cell--on" if ch == "1" else "layout-cell layout-cell--off"
+            cell.innerText = "\u25cf" if ch == "1" else "\u25cb"
+            cell.setAttribute("data-index", str(i))
+            cell.setAttribute("aria-label", f"{plot_coordinate_label(i)}: {'plot' if ch == '1' else 'open ground'}. Press to toggle")
+            cell.setAttribute("aria-pressed", "true" if ch == "1" else "false")
+            grid.appendChild(cell)
+    if status is not None:
+        count = cells.count("1")
+        problem = "" if count >= LAYOUT_MIN_PLOTS else f" At least {LAYOUT_MIN_PLOTS} plots are needed."
+        live = f" Live layout: {layout_best_text()}." if layout_active() else " Live: the full grid."
+        status.innerText = f"Draft: {count} plots, {len(cells) - count} open ground.{problem}{live} Apply starts a new forest."
+    select = _el("layout-select")
+    if select is not None:
+        previous = getattr(select, "value", "")
+        select.innerHTML = ""
+        names = []
+        for layout in load_saved_layouts():
+            if layout["rows"] == GRID_ROWS and layout["cols"] == GRID_COLS:
+                option = document.createElement("option")
+                option.value = layout["name"]
+                option.innerText = f"{layout['name']} (best {layout['best']:.1f})"
+                select.appendChild(option)
+                names.append(layout["name"])
+        if previous in names:
+            select.value = previous
+    apply_button = _el("layout-apply-button")
+    if apply_button is not None:
+        apply_button.disabled = cells.count("1") < LAYOUT_MIN_PLOTS
+
+
+def render_layout_badge():
+    badge = _el("layout-banner")
+    if badge is not None:
+        badge.hidden = not layout_active()
+        badge.innerText = (f"Custom layout: {layout_best_text()}. Kept out of the community comparison." if layout_active() else "")
+
+
 def render_carbon():
     status, chart = _el("carbon-status"), _el("carbon-chart")
     if status is not None:
@@ -2434,6 +2695,13 @@ def render_grid():
     for plot in plots:
         tile = document.createElement("button")
         tile.id = _plot_tile_id(plot.index)
+        if plot.blocked:  # B-29: open ground in a custom layout; nothing to select, grow or count
+            tile.className = "plot-tile plot-blocked"
+            tile.disabled = True
+            tile.title = "Open ground: not part of this layout"
+            tile.setAttribute("aria-label", "Open ground, not part of this layout")
+            grid_el.appendChild(tile)
+            continue
         tile.className = f"plot-tile plot-{plot.state}"
         if plot.index == selected_index:
             tile.className += " plot-selected"
@@ -3268,7 +3536,7 @@ def _maybe_update_personal_best():
     `_personal_best_flashed` makes each axis's flash fire at most once per
     session (still comparing against the true stored best, so a session
     that beats it on both axes in the same tick still only flashes once)."""
-    if lab_active():  # B-5: sandbox forests never set a personal best
+    if lab_active() or layout_active():  # B-5, B-29: sandbox and custom-shape forests never set the standard personal best
         return
     standing_value = standing_forest_value()
     persist = False
@@ -3346,7 +3614,8 @@ def state_breakdown():
     """Count of plots in each state — the grid-level session summary."""
     counts = {PRESERVED: 0, BARE: 0, REPLANTING: 0, RECOVERED: 0}
     for plot in plots:
-        counts[plot.state] += 1
+        if not plot.blocked:  # B-29: open ground in a custom layout is not a plot
+            counts[plot.state] += 1
     return counts
 
 
@@ -3408,7 +3677,7 @@ def counterfactual_standing_value():
     CLAUDE.md's hope-angle section calls for. Deliberately every plot at
     the *current* grid size, not a fixed 36 -- a "large" (B13) session
     compares against its own larger ideal."""
-    return len(plots) * _ideal_accrual_for_ticks(_session_ticks)
+    return active_plot_count() * _ideal_accrual_for_ticks(_session_ticks)
 
 
 def counterfactual_message():
@@ -3498,7 +3767,7 @@ def share_snippet():
     return (
         f"\U0001F332 Canopy — {forest_name or 'my forest'} so far: {standing_value:.1f} standing value, "
         f"{total_income:.1f} harvested, {total_biodiversity():.1f} biodiversity. "
-        f"{standing_plots}/{len(plots)} plots still standing."
+        f"{standing_plots}/{active_plot_count()} plots still standing."
         + (f" ({session_tag_text()})" if session_tag_text() else "")
     )
 
@@ -3674,7 +3943,7 @@ def copy_result_fields():
         "stats": [
             f"{total_income:.1f} harvested",
             f"{total_biodiversity():.1f} biodiversity",
-            f"{standing_plots}/{len(plots)} plots standing",
+            f"{standing_plots}/{active_plot_count()} plots standing",
         ],
     }
 
@@ -3713,7 +3982,7 @@ def _playstyle_run_snapshot():
         "standing_value": standing_forest_value(),
         "biodiversity": total_biodiversity(),
         "plots_standing": counts[PRESERVED] + counts[RECOVERED],
-        "plots_total": len(plots),
+        "plots_total": active_plot_count(),
         "grid_size": current_grid_size,
     }
 
@@ -3964,6 +4233,7 @@ def render_session_summary():
     render_request_history()
     render_faces()
     render_carbon()
+    render_layout_editor()
     render_community_note()
     render_lifetime_stats()
     render_my_forests()
@@ -4874,7 +5144,7 @@ def playstyle_badge():
     clears = _total_clear_count()
     if clears == 0 and _session_ticks == 0 and forest_tick == 0:
         return BADGE_UNDECIDED
-    ratio = clears / max(1, len(plots))
+    ratio = clears / max(1, active_plot_count())
     if ratio < BADGE_PRESERVATIONIST_MAX_CLEAR_RATIO:
         return BADGE_PRESERVATIONIST
     if ratio < BADGE_BALANCED_MAX_CLEAR_RATIO:
@@ -4884,7 +5154,7 @@ def playstyle_badge():
 
 def badge_share_text():
     badge = playstyle_badge()
-    return f"{BADGE_ICON[badge]} Canopy playstyle badge: {badge} ({_total_clear_count()} clears across {len(plots)} plots)"
+    return f"{BADGE_ICON[badge]} Canopy playstyle badge: {badge} ({_total_clear_count()} clears across {active_plot_count()} plots)"
 
 
 # B13 ------------------------------------------------------------------------
@@ -6570,7 +6840,7 @@ def contract_text(contract):
 
 
 def contract_reward():
-    return CONTRACT_REWARD_PER_PLOT * len(plots)
+    return CONTRACT_REWARD_PER_PLOT * active_plot_count()
 
 
 def contract_rank():
@@ -7739,7 +8009,7 @@ def _advance_crews():
         _crew_replant_clock += 1
         interval = CREW_REPLANT_INTERVAL_TICKS - (CREW_LEAD_FASTER_TICKS if "crew_lead" in effects else 0)
         if _crew_replant_clock >= interval:
-            target = next((p for p in plots if p.state == BARE), None)
+            target = next((p for p in plots if p.state == BARE and not p.blocked), None)
             if target is not None and target.replant():
                 total_replants += 1
                 crew_stats["replants"] += 1
@@ -7830,6 +8100,8 @@ def render_vault():
 
 def _levels_state_fields():
     out = {}
+    if current_layout is not None:  # B-29
+        out["layout"] = {"name": current_layout["name"], "cells": current_layout["cells"]}
     if carbon["credits"] > 0 or carbon["sold"] > 0:  # GB-29
         out["carbon"] = {k: (round(v, 3) if isinstance(v, float) else v) for k, v in carbon.items()}
     if stakeholder_faces:  # GB-25
@@ -8080,6 +8352,8 @@ def render():
     render_survey()  # B-13
     render_lab_banner()  # B-5
     render_fire()  # GB-1
+    render_layout_badge()  # B-29
+    _update_layout_best()
     render_stats()
     render_stakeholder_panel()
     render_real_world()
@@ -8114,6 +8388,8 @@ def _make_select_handler(index):
 
 def select_plot(index):
     global selected_index
+    if 0 <= index < len(plots) and plots[index].blocked:  # B-29
+        return
     if golden_seedling is not None and golden_seedling["plot"] == index:
         collect_golden_seedling(index)  # GB-2: clicking the plot the seedling sits on catches it
     drive_off_poacher(index)  # GB-13: clicking the plot a poacher is working on drives it off
@@ -9013,6 +9289,17 @@ def load_state(data):
         for e in raw_log
         if isinstance(e, dict)
     ][-FOREST_LOG_MAX_ENTRIES:]
+    global current_layout  # B-29: validated against this save's own grid; an invalid one is simply ignored
+    saved_layout = data.get("layout")
+    current_layout = None
+    for plot in plots:
+        plot.blocked = False
+    if isinstance(saved_layout, dict):
+        cells = clean_layout_cells(saved_layout.get("cells"))
+        if cells is not None:
+            current_layout = {"name": str(saved_layout.get("name", ""))[:20], "cells": cells}
+            for plot, ch in zip(plots, cells):
+                plot.blocked = ch == "0"
     saved_carbon = data.get("carbon")  # GB-29
     carbon.update({"credits": 0.0, "slump": 0, "sold": 0.0, "earned_from_sales": 0.0})
     if isinstance(saved_carbon, dict):
@@ -9294,6 +9581,18 @@ def setup():
         carbon_button = _el(carbon_id)
         if carbon_button is not None:
             carbon_button.addEventListener("click", create_proxy(carbon_handler))
+    layout_grid = _el("layout-grid")  # B-29
+    if layout_grid is not None:
+        layout_grid.addEventListener("click", create_proxy(on_layout_grid_click))
+    for layout_id, layout_handler in (("layout-apply-button", on_layout_apply), ("layout-save-button", on_layout_save),
+                                      ("layout-load-button", on_layout_load), ("layout-clear-button", on_layout_clear)):
+        layout_button = _el(layout_id)
+        if layout_button is not None:
+            layout_button.addEventListener("click", create_proxy(layout_handler))
+    for preset_kind in LAYOUT_PRESET_LABELS:
+        preset_button = _el(f"layout-preset-{preset_kind}")
+        if preset_button is not None:
+            preset_button.addEventListener("click", create_proxy(lambda event=None, k=preset_kind: on_layout_preset(k)))
     for survey_id, survey_handler in (("survey-toggle-button", on_toggle_survey), ("survey-commit-button", commit_survey),
                                       ("survey-remove-button", on_survey_remove_last), ("survey-decline-button", on_survey_decline),
                                       ("survey-cancel-button", cancel_survey)):  # B-13
