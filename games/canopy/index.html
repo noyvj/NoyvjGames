@@ -270,6 +270,25 @@
         <summary>Forest history</summary>
         <div id="forest-history-list" class="forest-log-list" tabindex="0"></div>
       </details>
+      <details class="summary-details" id="request-history-details">
+        <summary>Request history (did I choose well?)</summary>
+        <label for="request-history-sort">Sort</label>
+        <select id="request-history-sort">
+          <option value="newest">Newest first</option>
+          <option value="oldest">Oldest first</option>
+          <option value="delta-high">Biggest gain first</option>
+          <option value="delta-low">Biggest loss first</option>
+          <option value="plot">By plot</option>
+        </select>
+        <label for="request-history-kind">Show</label>
+        <select id="request-history-kind">
+          <option value="all">All requests</option>
+          <option value="clear">Clear requests</option>
+          <option value="incentive">Incentive offers</option>
+          <option value="replant_grant">Replanting grants</option>
+        </select>
+        <div id="request-history-table" class="forest-log-list" tabindex="0">No answered requests yet: grant or decline one to start the table.</div>
+      </details>
       <details class="summary-details">
         <summary>Wildlife log</summary>
         <div id="wildlife-log-list" class="forest-log-list" tabindex="0"></div>

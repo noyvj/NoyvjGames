@@ -483,6 +483,9 @@ community_relations_min_ever = STARTING_COMMUNITY_RELATIONS  # lowest community_
 # load) so entry ticks stay monotonic across a save/load.
 FOREST_LOG_MAX_ENTRIES = 200
 forest_log = []
+# B-14 (2026-10-09): one record per answered community request, for the request-history table.
+REQUEST_HISTORY_MAX = 60
+request_history = []
 forest_tick = 0
 adopted_plot_index = None  # B27
 
@@ -842,6 +845,7 @@ def reset_session(grid_size=None, _render_after=True, difficulty=None, challenge
     _report_history.clear()
     _pending_mature_bursts.clear()
     forest_log = []
+    request_history.clear()
     forest_tick = 0
     adopted_plot_index = None
     _reset_gb_state()
@@ -1072,6 +1076,7 @@ def grant_stakeholder_request(event=None):
         render()
         return False
     kind = pending_stakeholder_request.get("kind", STAKEHOLDER_KIND_CLEAR)
+    request_snapshot = _request_snapshot(pending_stakeholder_request, kind)
     if kind == STAKEHOLDER_KIND_REPLANT_GRANT:
         idx = pending_stakeholder_request["plot_index"]
         if plots[idx].replant():
@@ -1110,6 +1115,7 @@ def grant_stakeholder_request(event=None):
         _log_event("preserve", f"Accepted an incentive to keep {plot_coordinate_label(idx)} standing", idx)
     _note_community_relations_change()
     stakeholder_grants_count += 1
+    _record_request_choice("granted", request_snapshot)
     pending_stakeholder_request = None
     render()
     return True
@@ -1125,6 +1131,7 @@ def decline_stakeholder_request(event=None):
         render()
         return False
     kind = pending_stakeholder_request.get("kind", STAKEHOLDER_KIND_CLEAR)
+    request_snapshot = _request_snapshot(pending_stakeholder_request, kind)
     if kind not in (STAKEHOLDER_KIND_INCENTIVE, STAKEHOLDER_KIND_REPLANT_GRANT):
         community_relations = max(0, community_relations + STAKEHOLDER_DECLINE_RELATIONS_DELTA)
         # B22/B3: declining a clear-request is a real preserve decision, and
@@ -1145,10 +1152,77 @@ def decline_stakeholder_request(event=None):
     # itself, so there's no relations penalty for this kind.
     _note_community_relations_change()
     stakeholder_declines_count += 1
+    _record_request_choice("declined", request_snapshot)
     pending_stakeholder_request = None
     _check_rare_wildlife()  # GB-20: the wary fox turns up after three refusals
     render()
     return True
+
+
+def _request_snapshot(request, kind):
+    """B-14: what to remember about a request at the moment it is answered."""
+    idx = request["plot_index"]
+    return {"plot": idx, "kind": kind, "value_then": round(float(plots[idx].value), 2), "tick": forest_tick}
+
+
+def _record_request_choice(choice, snapshot):
+    request_history.append({**snapshot, "choice": choice})
+    del request_history[:-REQUEST_HISTORY_MAX]
+
+
+REQUEST_KIND_LABELS = {
+    STAKEHOLDER_KIND_CLEAR: "Clear request",
+    STAKEHOLDER_KIND_INCENTIVE: "Incentive offer",
+    STAKEHOLDER_KIND_REPLANT_GRANT: "Replanting grant",
+}
+
+
+def request_history_rows(sort="newest", kind="all"):
+    """B-14: rows for the 'did I choose well' table. `delta` is that plot's standing value now minus its value
+    when the request was answered, so a declined clear that kept growing reads positive and a granted clear
+    reads negative until the plot is replanted and regrows."""
+    rows = []
+    for entry in request_history:
+        if kind != "all" and entry["kind"] != kind:
+            continue
+        idx = entry["plot"]
+        now = plots[idx].value if 0 <= idx < len(plots) else 0.0
+        rows.append({
+            "tick": entry["tick"],
+            "plot": plot_coordinate_label(idx) if 0 <= idx < len(plots) else "?",
+            "kind": REQUEST_KIND_LABELS.get(entry["kind"], entry["kind"]),
+            "kind_id": entry["kind"],
+            "choice": entry["choice"],
+            "value_then": entry["value_then"],
+            "delta": round(now - entry["value_then"], 2),
+        })
+    keys = {
+        "newest": lambda r: -r["tick"],
+        "oldest": lambda r: r["tick"],
+        "delta-high": lambda r: -r["delta"],
+        "delta-low": lambda r: r["delta"],
+        "plot": lambda r: r["plot"],
+    }
+    rows.sort(key=keys.get(sort, keys["newest"]))
+    return rows
+
+
+def render_request_history():
+    element = _el("request-history-table")
+    if element is None:
+        return
+    sort_el, kind_el = _el("request-history-sort"), _el("request-history-kind")
+    rows = request_history_rows(
+        getattr(sort_el, "value", "newest") or "newest", getattr(kind_el, "value", "all") or "all"
+    )
+    if not rows:
+        element.innerText = "No answered requests yet: grant or decline one to start the table."
+        return
+    header = "Plot | Request | Your choice | Value then | Change since\n"
+    body = "\n".join(
+        f"{r['plot']} | {r['kind']} | {r['choice']} | {r['value_then']:.1f} | {r['delta']:+.1f}" for r in rows
+    )
+    element.innerText = header + body
 
 
 def _plot_tile_id(index):
@@ -2397,6 +2471,7 @@ def render_session_summary():
     render_playstyle_comparison()
     render_report_card()
     render_forest_log_panels()
+    render_request_history()
 
 
 def comparison_message(income, standing_value):
@@ -5987,6 +6062,8 @@ def render_vault():
 
 def _levels_state_fields():
     out = {}
+    if request_history:  # B-14: only once a request has been answered
+        out["request_history"] = copy.deepcopy(request_history)
     if levels_state["done"] or levels_state["best"]:
         out["levels"] = copy.deepcopy(levels_state)
     if vault_owned or vault_meta["best_tier"] or vault_meta["best_ach"] or any(crew_stats.values()):
@@ -6542,6 +6619,17 @@ def load_state(data):
         for e in raw_log
         if isinstance(e, dict)
     ][-FOREST_LOG_MAX_ENTRIES:]
+    request_history.clear()
+    for entry in data.get("request_history") or []:
+        try:
+            if entry["kind"] in REQUEST_KIND_LABELS and entry["choice"] in ("granted", "declined"):
+                request_history.append({
+                    "tick": max(0, int(entry["tick"])), "plot": int(entry["plot"]), "kind": entry["kind"],
+                    "choice": entry["choice"], "value_then": round(float(entry["value_then"]), 2),
+                })
+        except (KeyError, TypeError, ValueError):
+            continue
+    del request_history[:-REQUEST_HISTORY_MAX]
     forest_tick = data.get("forest_tick", forest_tick)
     adopted_plot_index = data.get("adopted_plot_index", adopted_plot_index)
     if adopted_plot_index is not None and not (0 <= adopted_plot_index < len(plots)):
@@ -6731,6 +6819,10 @@ def setup():
     replant_button.innerText = "Replant"
     clear_button.addEventListener("click", create_proxy(on_clear))
     replant_button.addEventListener("click", create_proxy(on_replant))
+    for select_id in ("request-history-sort", "request-history-kind"):  # B-14
+        select = _el(select_id)
+        if select is not None:
+            select.addEventListener("change", create_proxy(lambda event=None: render_request_history()))
     away_chip = _el("away-chip")
     if away_chip is not None:
         away_chip.addEventListener("click", create_proxy(on_dismiss_away_chip))

@@ -92,3 +92,75 @@ def test_visibility_cycle_shows_a_chip_only_if_the_forest_advanced(game_env):
     m.document.visibilityState = "visible"
     m.on_visibility_change()
     assert game_env.elements["away-chip"].hidden is True
+
+
+# ---- B-14: the request-history table ----
+
+def _answer(m, grant, plot_index=None):
+    """Raise a clear request on a standing plot and answer it."""
+    target = plot_index if plot_index is not None else m._most_established_plot_index()
+    m.pending_stakeholder_request = {"plot_index": target, "reason": "jobs", "kind": m.STAKEHOLDER_KIND_CLEAR}
+    return (m.grant_stakeholder_request if grant else m.decline_stakeholder_request)()
+
+
+def test_declined_and_granted_requests_are_recorded(game_env):
+    m = game_env.module
+    for plot in m.plots[:3]:
+        plot.value = 10.0
+    _answer(m, grant=False, plot_index=0)
+    _answer(m, grant=True, plot_index=1)
+    assert [e["choice"] for e in m.request_history] == ["declined", "granted"]
+    assert m.request_history[0]["plot"] == 0 and m.request_history[0]["value_then"] == 10.0
+    assert m.request_history[1]["kind"] == m.STAKEHOLDER_KIND_CLEAR
+
+
+def test_rows_sort_filter_and_show_the_change_since(game_env):
+    m = game_env.module
+    for plot in m.plots[:2]:
+        plot.value = 20.0
+    _answer(m, grant=False, plot_index=0)
+    m.forest_tick += 5
+    _answer(m, grant=True, plot_index=1)
+    m.plots[0].value = 50.0  # the preserved plot kept growing
+    rows = m.request_history_rows("delta-high")
+    assert [r["choice"] for r in rows] == ["declined", "granted"]
+    assert rows[0]["delta"] == 30.0 and rows[1]["delta"] <= 0
+    assert [r["choice"] for r in m.request_history_rows("oldest")] == ["declined", "granted"]
+    assert [r["choice"] for r in m.request_history_rows("newest")] == ["granted", "declined"]
+    assert m.request_history_rows("newest", kind="incentive") == []
+
+
+def test_history_is_saved_validated_and_reset(game_env):
+    m = game_env.module
+    m.plots[0].value = 10.0
+    _answer(m, grant=False, plot_index=0)
+    state = m.get_state()
+    assert state["request_history"][0]["choice"] == "declined"
+    state["request_history"].extend([
+        {"tick": "x"}, {"kind": "bogus", "choice": "granted", "tick": 1, "plot": 0, "value_then": 1},
+        {"kind": "clear", "choice": "maybe", "tick": 1, "plot": 0, "value_then": 1}, "junk", None,
+    ])
+    m.load_state(state)
+    assert len(m.request_history) == 1
+    m.reset_session()
+    assert m.request_history == []
+
+
+def test_old_saves_without_history_load(game_env):
+    m = game_env.module
+    state = m.get_state()
+    state.pop("request_history", None)
+    m.load_state(state)
+    assert m.request_history == []
+
+
+def test_table_text_and_empty_state(game_env):
+    m = game_env.module
+    m.render_request_history()
+    assert "No answered requests yet" in game_env.elements["request-history-table"].innerText
+    m.plots[0].value = 10.0
+    _answer(m, grant=False, plot_index=0)
+    m.render_request_history()
+    text = game_env.elements["request-history-table"].innerText
+    assert text.startswith("Plot | Request | Your choice | Value then | Change since")
+    assert "Clear request | declined | 10.0 | +0.0" in text

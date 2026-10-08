@@ -1,6 +1,10 @@
 {
   "changelog": [
     {
+      "date": "2026-10-09",
+      "entry": "New: the legacy bonus is now a small chip whose tooltip names where it came from (your last forest's standing value) and how close it is to the +25% cap. If the forest kept growing while the tab was hidden you get a 'While you were away' chip saying what changed. The Session Summary has a Request history table: every community request you answered, your choice, and how that plot's value has changed since, sortable and filterable."
+    },
+    {
       "date": "2026-10-08",
       "entry": "New: the Session Summary has a Copy result button that copies one line, such as Canopy, 41.2 standing forest value, with your harvested income, biodiversity and plots still standing. Every achievement you have earned now has a Share button that copies a line you can paste anywhere, with the share of players who have it when that figure is available. The How to Play and Info panels link to the new Credits page."
     },
