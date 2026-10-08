@@ -92,6 +92,12 @@ ELEMENT_IDS = [
     "cap-headroom-meter", "cap-headroom-display", "cap-headroom-bar",
     "feed-efficiency", "caps-efficiency", "capture-efficiency", "pivot-efficiency",
     "litter-efficiency", "biofilter-efficiency",
+    # Round-4 batch: bulk stepper, delta chips, undo, season calendar, breeding rings,
+    # poultry comparison, hall of fame, pace note.
+    "bulk-stepper", "bulk-1-button", "bulk-5-button", "bulk-max-button", "bulk-note",
+    "round-delta-strip", "delta-chip-funds", "delta-chip-methane", "delta-chip-welfare",
+    "delta-chip-pressure", "undo-panel", "undo-round-button", "undo-note", "season-calendar",
+    "genetics-rings", "poultry-compare", "hall-of-fame", "hall-of-fame-list", "pace-note",
 ]
 for _measure in MEASURE_IDS:
     ELEMENT_IDS += [f"{_measure}-name", f"{_measure}-count", f"{_measure}-invest-button"]
@@ -134,6 +140,9 @@ class GameEnv:
 
     def toggle_report_card(self):
         self.elements["report-card-toggle-button"].dispatch("click", None)
+
+    def set_bulk(self, mode):
+        self.elements[{1: "bulk-1-button", 5: "bulk-5-button", "max": "bulk-max-button"}[mode]].dispatch("click", None)
 
     def toggle_changelog(self):
         self.elements["changelog-toggle-button"].dispatch("click", None)

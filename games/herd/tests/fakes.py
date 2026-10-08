@@ -46,6 +46,7 @@ class FakeElement:
         # needed here).
         self.dataset = FakeStyle()
         self.children = []
+        self._attributes = {}
         self._listeners = {}
         if id_ is not None and registry is not None:
             registry[id_] = self
@@ -72,6 +73,12 @@ class FakeElement:
     def appendChild(self, child):
         self.children.append(child)
         return child
+
+    def setAttribute(self, name, value):
+        self._attributes[name] = str(value)
+
+    def getAttribute(self, name):
+        return self._attributes.get(name)
 
     def addEventListener(self, event_name, handler):
         self._listeners.setdefault(event_name, []).append(handler)

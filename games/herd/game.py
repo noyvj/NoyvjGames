@@ -7,9 +7,12 @@ soft market/regulatory consequence system are all implemented below --
 all 7 milestones are complete (see CLAUDE.md's milestone table).
 """
 
+import copy
+import html
 import json
 import math
 import os
+import time
 
 import comparison_chart
 import info_page
@@ -223,6 +226,35 @@ LEVER_LABELS = {
     "satellite_retrofit": "Retrofit Barns",
 }
 
+# F-19 -- bulk buying: Grow Herd and the three decoupling levers can be bought in steps
+# of 1, 5 or as many as the funds (and the regional cap) allow, capped at BULK_MAX_UNITS
+# so one click can never loop for long.
+BULK_MODES = (1, 5, "max")
+BULK_MAX_UNITS = 50
+
+# GF-18 -- undo the last round: once per game, and it costs funds.
+UNDO_PENALTY_FUNDS = 25
+
+# F-20 -- round-delta chips: shown after Advance Round, fade after a few seconds unless pinned.
+DELTA_KEYS = ("funds", "methane", "welfare", "pressure")
+DELTA_FADE_MS = 6000
+
+# F-28 -- a discreet pace note, and a save-and-rest nudge every this many rounds in one sitting.
+SAVE_NUDGE_EVERY = 10
+
+# GF-13 -- every herd unit has a name (fixed by its position in the herd and the generation,
+# never random, so the names are the same after a reload). Longest-serving units of a
+# retired generation go to the hall of fame.
+COW_NAMES = [
+    "Beyonmoo", "Sir Grazealot", "Moolan Rouge", "Udder Chaos", "Cowlin Farrell", "Hay Z",
+    "Clover Kent", "Bovine Jovi", "Lady Gagraze", "Moo Thurman", "Dolly Pasture", "Count Chewcula",
+    "Mootilda", "Grassy Elliott", "Marie Cowrie", "Buttercup Cumberbatch", "Hoofy Mercury",
+    "Curd Vader", "Ruminate Rosie", "Daisy Ridley", "Cud Norris", "Flossie Nightingale",
+    "Moomin", "Bessie Smith",
+]
+HALL_OF_FAME_SIZE = 5
+HALL_PER_HANDOVER = 3
+
 
 def season_for_round(round_number):
     """Deterministic pseudo-random season (same on every load/replay)."""
@@ -307,6 +339,55 @@ class FarmState:
         self.best_perfect_streak = 0
         self.last_round_perfect = False  # one-tick, not saved
         self.just_streak_bonus = None  # one-tick (streak, bonus), not saved
+
+        # GF-18: one rewind per game. undo_snapshot (the state just before the last
+        # Advance Round) is never saved; undo_used is, once it is true.
+        self.undo_used = False
+        self.undo_snapshot = None
+
+    # ---- F-19 bulk buying ----
+    def bulk_plan(self, key, mode):
+        """(units, total cost) for buying `mode` (1, 5 or "max") units of Grow Herd ("herd")
+        or one decoupling lever, worked out on a scratch copy so nothing changes here.
+        It stops at whatever the funds or the regional cap allow. For 5 and max it also
+        stops once the lever's efficiency ratio is at its floor, so a bulk click never buys
+        units that save nothing (a single unit is always allowed, as before)."""
+        want = mode if mode in (1, 5) else BULK_MAX_UNITS
+        scratch = copy.copy(self)
+        scratch.decoupling_investment = dict(self.decoupling_investment)
+        scratch.lever_log = []
+        units = 0
+        while units < want:
+            if (
+                want > 1 and key in DECOUPLING_MEASURES
+                and scratch._efficiency_coupling_ratio() <= MIN_COUPLING_RATIO + 1e-9
+            ):
+                break
+            bought = scratch.grow_herd() if key == "herd" else scratch.invest_decoupling(key)
+            if not bought:
+                break
+            units += 1
+        return units, self.funds - scratch.funds
+
+    def buy_bulk(self, key, mode):
+        """Buys what bulk_plan() promised, one real purchase at a time (so every unit is
+        logged and priced exactly as a single click would be). Returns units bought."""
+        units, _total = self.bulk_plan(key, mode)
+        bought = 0
+        for _ in range(units):
+            ok = self.grow_herd() if key == "herd" else self.invest_decoupling(key)
+            if not ok:
+                break
+            bought += 1
+        return bought
+
+    # ---- GF-13 named cows ----
+    def herd_unit_rounds(self):
+        """The round each herd unit was bought, oldest first. Units the purchase log no
+        longer holds (an old save, or a log that hit its cap) are counted as bought in round 1."""
+        rounds = [r for r, k, _c in self.lever_log if k == "herd"]
+        rounds = rounds[-self.herd_size:] if self.herd_size > 0 else []
+        return [1] * (self.herd_size - len(rounds)) + rounds
 
     # ---- F-17 lever history ----
     def log_purchase(self, key, cost):
@@ -1632,7 +1713,9 @@ PASTURE_COW_THRESHOLDS = [
 
 def update_pasture_visual():
     for element_id, threshold in PASTURE_COW_THRESHOLDS:
-        document.getElementById(element_id).hidden = farm.herd_size < threshold
+        cow = document.getElementById(element_id)
+        cow.hidden = farm.herd_size < threshold
+        cow.title = pasture_cow_title(threshold)  # GF-13: hover shows the animal's name
     # F2 — a small herd-size number overlay alongside the cow visual.
     count = document.getElementById("pasture-herd-count")
     count.innerText = f"Herd: {farm.herd_size}"
@@ -1774,7 +1857,7 @@ def welfare_message():
 def genetics_message():
     return (
         f"Breeding: {farm.genetics_active} lines active, {len(farm.genetics_pending)} maturing "
-        f"({GENETICS_MATURE_ROUNDS} rounds each)"
+        f"({GENETICS_MATURE_ROUNDS} rounds each; a ring below counts each one down)"
     )
 
 
@@ -2240,6 +2323,417 @@ def render_progress_extras():
         element.innerText = lever_efficiency_message(key, _lever_cost(key))
 
 
+# ===========================================================================
+# Round-4 batch (planning/TODO.md "GF + F. Herd"): F-19 bulk buying, F-20 round-delta
+# chips, GF-18 undo last round, F-21 season calendar, F-22 poultry vs cattle card,
+# F-23 breeding rings, GF-13 named cows and hall of fame, F-28 pace note.
+# ===========================================================================
+
+# ---- F-19 bulk-buy stepper -------------------------------------------------------------
+bulk_mode = 1
+BULK_BUTTON_IDS = {1: "bulk-1-button", 5: "bulk-5-button", "max": "bulk-max-button"}
+BULK_HINT = "Tip: x5 and Max buy several units at once; the button shows the total cost first."
+
+
+def bulk_button_label(key, name, single_cost, cost_format):
+    """(label, disabled) for a Grow Herd or decoupling button under the current bulk mode.
+    Mode 1 keeps the exact old label and rules."""
+    units, total = farm.bulk_plan(key, bulk_mode)
+    single = f"{name} ({format(single_cost, cost_format)})"
+    if bulk_mode == 1:
+        return single, units == 0
+    if units == 0:
+        if key in DECOUPLING_MEASURES and farm._efficiency_coupling_ratio() <= MIN_COUPLING_RATIO + 1e-9:
+            return f"{name} (maxed out)", True
+        return single, True
+    return f"{name} x{units} ({total:g} total)", False
+
+
+def bulk_note_message():
+    if bulk_mode == 1:
+        return BULK_HINT
+    units, total = farm.bulk_plan("herd", bulk_mode)
+    if units == 0:
+        return "Grow Herd: nothing is affordable (or the cap blocks it) at this step size."
+    before = farm.methane_this_round()
+    after = before + units * farm.coupling_ratio()
+    return (
+        f"Grow Herd x{units} costs {total:g} in total; methane/round {before:.2f} → {after:.2f} ↑ "
+        f"(herd {farm.herd_size} → {farm.herd_size + units})."
+    )
+
+
+def render_bulk_stepper():
+    for mode, element_id in BULK_BUTTON_IDS.items():
+        button = document.getElementById(element_id)
+        selected = mode == bulk_mode
+        button.setAttribute("aria-pressed", "true" if selected else "false")
+        if selected:
+            button.classList.add("selected")
+        else:
+            button.classList.remove("selected")
+    document.getElementById("bulk-note").innerText = bulk_note_message()
+
+
+def _make_bulk_handler(mode):
+    def handler(event=None):
+        global bulk_mode
+        bulk_mode = mode
+        render()
+    return handler
+
+
+# ---- F-20 round-delta chips ------------------------------------------------------------
+last_deltas = {}
+delta_pinned = set()
+delta_faded = False
+delta_token = 0
+
+
+def round_deltas(funds_before, methane_before, welfare_before, pressure_before):
+    """How the four headline numbers moved over the round that just finished."""
+    return {
+        "funds": farm.funds - funds_before,
+        "methane": farm.methane - methane_before,
+        "welfare": farm.welfare() - welfare_before,
+        "pressure": (farm.pressure_fraction() - pressure_before) * 100,
+    }
+
+
+def delta_chip_text(key, delta):
+    """Shape plus sign plus words, never colour alone: up triangle, down triangle or a square for no change."""
+    arrow = "▲" if delta > 1e-9 else ("▼" if delta < -1e-9 else "■")
+    if key == "funds":
+        return f"{arrow} Funds {delta:+.0f}"
+    if key == "methane":
+        return f"{arrow} Methane {delta:+.1f}"
+    if key == "welfare":
+        return f"{arrow} Welfare {delta:+.0f}"
+    return f"{arrow} Pressure {delta:+.1f} pts"
+
+
+def _delta_is_good(key, delta):
+    if abs(delta) <= 1e-9:
+        return None
+    return delta > 0 if key in ("funds", "welfare") else delta < 0
+
+
+def render_delta_chips():
+    strip = document.getElementById("round-delta-strip")
+    strip.hidden = not last_deltas
+    for key in DELTA_KEYS:
+        chip = document.getElementById(f"delta-chip-{key}")
+        if key not in last_deltas:
+            chip.hidden = True
+            continue
+        delta = last_deltas[key]
+        chip.hidden = False
+        chip.innerText = delta_chip_text(key, delta)
+        pinned = key in delta_pinned
+        chip.setAttribute("aria-pressed", "true" if pinned else "false")
+        chip.title = "Pinned: click to let it fade." if pinned else "Click to pin this change so it stays."
+        good = _delta_is_good(key, delta)
+        for name, on in (
+            ("delta-chip--good", good is True), ("delta-chip--bad", good is False),
+            ("delta-chip--pinned", pinned), ("delta-chip--faded", delta_faded and not pinned),
+        ):
+            if on:
+                chip.classList.add(name)
+            else:
+                chip.classList.remove(name)
+
+
+def _schedule_delta_fade():
+    global delta_token, delta_faded
+    delta_token += 1
+    delta_faded = False
+    token = delta_token
+
+    def _fade(*args):
+        global delta_faded
+        if token == delta_token:
+            delta_faded = True
+            render_delta_chips()
+        proxy.destroy()
+
+    proxy = create_proxy(_fade)
+    setTimeout(proxy, DELTA_FADE_MS)
+
+
+def _make_delta_pin_handler(key):
+    def handler(event=None):
+        if key in delta_pinned:
+            delta_pinned.discard(key)
+        else:
+            delta_pinned.add(key)
+        render_delta_chips()
+    return handler
+
+
+# ---- GF-18 undo the last round ----------------------------------------------------------
+UNDO_NOTE_READY = (
+    f"Rewind to just before the last Advance Round. Once per game, costs {UNDO_PENALTY_FUNDS} funds; "
+    "purchases made since are undone too."
+)
+
+
+def can_undo():
+    snapshot = farm.undo_snapshot
+    return (
+        not farm.undo_used and isinstance(snapshot, dict)
+        and snapshot.get("funds", 0) >= UNDO_PENALTY_FUNDS
+    )
+
+
+def undo_note_message():
+    if farm.undo_used:
+        return "You have used this game's undo."
+    if farm.undo_snapshot is None:
+        return f"Undo is ready after you advance a round (once per game, costs {UNDO_PENALTY_FUNDS} funds)."
+    if not can_undo():
+        return f"Not enough funds before that round to pay the {UNDO_PENALTY_FUNDS}-fund undo fee."
+    return UNDO_NOTE_READY
+
+
+def render_undo():
+    document.getElementById("undo-round-button").disabled = not can_undo()
+    document.getElementById("undo-note").innerText = undo_note_message()
+
+
+def undo_last_round():
+    """Puts the farm back to the moment before the last Advance Round and charges the fee.
+    Succession (generation, legacy points and perks, hall of fame) and collected breeds are
+    kept as they are now; everything on the farm itself comes from the snapshot."""
+    global generation, legacy_points, legacy_perks, hall_of_fame, last_deltas, delta_faded
+    if not can_undo():
+        return False
+    snapshot = farm.undo_snapshot
+    kept = (generation, legacy_points, dict(legacy_perks), list(hall_of_fame), list(breeds_collected))
+    load_state(snapshot)
+    generation, legacy_points, legacy_perks, hall_of_fame = kept[0], kept[1], kept[2], kept[3]
+    for breed_id in kept[4]:
+        if breed_id not in breeds_collected:
+            breeds_collected.append(breed_id)
+    farm.funds -= UNDO_PENALTY_FUNDS
+    if farm.funds_history:
+        farm.funds_history[-1] = farm.funds
+    farm.undo_used = True
+    farm.undo_snapshot = None
+    farm.just_hit_callout = None
+    last_deltas = {}
+    delta_faded = False
+    render()
+    return True
+
+
+def on_undo_round(event=None):
+    if not can_undo():
+        return
+    _confirm_dialog_ask(
+        action_id="herd-undo-round",
+        message=(
+            f"Rewind the last round? The farm goes back to just before you pressed Advance Round, "
+            f"anything bought since is undone, and it costs {UNDO_PENALTY_FUNDS} funds. "
+            "You can do this once per game."
+        ),
+        confirm_label="Rewind",
+        on_confirm=undo_last_round,
+        allow_skip=False,
+    )
+
+
+# ---- F-21 season calendar --------------------------------------------------------------
+CALENDAR_ROUNDS = 12
+SEASON_MARKS = {-0.10: "▼▼", -0.05: "▼", 0.0: "■", 0.05: "▲", 0.10: "▲▲"}
+
+
+def season_calendar_cells(count=CALENDAR_ROUNDS):
+    """The next `count` rounds starting with the current one: each cell's season name,
+    income swing and whether a plant-based demand surge is running."""
+    cells = []
+    for number in range(farm.round_number, farm.round_number + count):
+        name, modifier = season_for_round(number)
+        cells.append({"round": number, "name": name, "mod": modifier, "surge": demand_surge_active(number)})
+    return cells
+
+
+def season_calendar_html():
+    items = []
+    for cell in season_calendar_cells():
+        mark = SEASON_MARKS.get(cell["mod"], "■")
+        tone = "up" if cell["mod"] > 0 else ("down" if cell["mod"] < 0 else "flat")
+        surge = '<span class="season-surge" aria-hidden="true">\U0001F331</span>' if cell["surge"] else ""
+        label = f"Round {cell['round']}: {cell['name']}, income {cell['mod'] * 100:+.0f}%"
+        if cell["surge"]:
+            label += ", plant-based demand surge"
+        now = " season-cell--now" if cell["round"] == farm.round_number else ""
+        items.append(
+            f'<li class="season-cell season-cell--{tone}{now}" title="{label}" aria-label="{label}">'
+            f'<span class="season-round">R{cell["round"]}</span>'
+            f'<span class="season-mark" aria-hidden="true">{mark}</span>'
+            f'<span class="season-pct">{cell["mod"] * 100:+.0f}%</span>{surge}</li>'
+        )
+    return "".join(items)
+
+
+def render_season_calendar():
+    calendar = document.getElementById("season-calendar")
+    calendar.hidden = not farm.variation_enabled
+    calendar.innerHTML = season_calendar_html() if farm.variation_enabled else ""
+
+
+# ---- F-22 poultry vs cattle -------------------------------------------------------------
+def poultry_compare_rows():
+    """Per-unit, per-round figures side by side: (label, cattle text, poultry text)."""
+    cattle_income = HERD_INCOME_PER_UNIT * farm.welfare_multiplier() * farm.certification_multiplier()
+    poultry_income = POULTRY_INCOME_PER_UNIT - POULTRY_UPKEEP_PER_UNIT
+    cattle_ratio = farm.coupling_ratio()
+    poultry_ratio = farm.poultry_coupling_ratio()
+    return [
+        ("Income per unit (before pressure)", f"{cattle_income:.2f}", f"{poultry_income:.2f} after upkeep"),
+        ("Methane-equivalent per unit", f"{cattle_ratio:.2f}", f"{poultry_ratio:.2f}"),
+        ("Income per methane", f"{cattle_income / cattle_ratio:.1f}", f"{poultry_income / poultry_ratio:.1f}"),
+        (
+            "Welfare effect",
+            f"Feed +{WELFARE_FEED:g}, Caps +{WELFARE_CAPS:g}, Breeding +{WELFARE_GENETICS:g} per lever",
+            "None: flock levers do not move the welfare score",
+        ),
+    ]
+
+
+def poultry_compare_html():
+    rows = "".join(
+        f"<tr><th scope=\"row\">{label}</th><td>{cattle}</td><td>{poultry}</td></tr>"
+        for label, cattle, poultry in poultry_compare_rows()
+    )
+    return (
+        '<table class="compare-table"><caption>Cattle against poultry, per unit per round</caption>'
+        '<thead><tr><th scope="col"></th><th scope="col">\U0001F404 Cattle</th>'
+        f'<th scope="col">\U0001F414 Poultry</th></tr></thead><tbody>{rows}</tbody></table>'
+    )
+
+
+# ---- F-23 breeding rings ----------------------------------------------------------------
+def genetics_rings_html():
+    """One small ring per breeding line still maturing: a quarter of the ring per round
+    done, the rounds left written in the middle (so it is never a colour-only cue)."""
+    if not farm.genetics_pending:
+        return '<span class="ring-empty">No line maturing</span>'
+    radius = 11
+    circumference = 2 * math.pi * radius
+    rings = []
+    for left in sorted(farm.genetics_pending):
+        left = max(0, min(GENETICS_MATURE_ROUNDS, left))
+        done = (GENETICS_MATURE_ROUNDS - left) / GENETICS_MATURE_ROUNDS
+        label = f"Breeding line: {left} round{'s' if left != 1 else ''} left of {GENETICS_MATURE_ROUNDS}"
+        rings.append(
+            f'<svg class="breed-ring" viewBox="0 0 30 30" width="30" height="30" role="img" aria-label="{label}">'
+            f'<title>{label}</title>'
+            f'<circle class="breed-ring-track" cx="15" cy="15" r="{radius}" fill="none" stroke-width="3"/>'
+            f'<circle class="breed-ring-fill" cx="15" cy="15" r="{radius}" fill="none" stroke-width="3" '
+            f'stroke-dasharray="{done * circumference:.2f} {circumference:.2f}" transform="rotate(-90 15 15)"/>'
+            f'<text x="15" y="19" text-anchor="middle" class="breed-ring-text">{left}</text></svg>'
+        )
+    return "".join(rings)
+
+
+# ---- GF-13 named cows and the hall of fame ----------------------------------------------
+hall_of_fame = []  # [name, rounds served, generation], longest first
+
+
+def cow_name(index, gen=None):
+    """The name of herd unit `index` (0 = the first animal bought) in a generation. Fixed by
+    position, so the same after any reload; a different generation starts further along the list."""
+    gen = generation if gen is None else gen
+    position = index + (gen - 1) * 7
+    lap, slot = divmod(position, len(COW_NAMES))
+    name = COW_NAMES[slot]
+    if lap == 0:
+        return name
+    numerals = ["", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X"]
+    return f"{name} {numerals[lap] if lap < len(numerals) else lap + 1}"
+
+
+def cow_roster():
+    """(name, rounds served) for every herd unit, oldest first."""
+    return [
+        (cow_name(i), max(0, farm.round_number - bought))
+        for i, bought in enumerate(farm.herd_unit_rounds())
+    ]
+
+
+def retire_herd_to_hall():
+    """Called on handover: the longest-serving animals of the outgoing farm join the hall of fame."""
+    roster = [(name, served) for name, served in cow_roster() if served > 0]
+    roster.sort(key=lambda entry: -entry[1])
+    for name, served in roster[:HALL_PER_HANDOVER]:
+        hall_of_fame.append([name, served, generation])
+    hall_of_fame.sort(key=lambda entry: (-entry[1], entry[2]))
+    del hall_of_fame[HALL_OF_FAME_SIZE:]
+
+
+def hall_of_fame_html():
+    if not hall_of_fame:
+        return (
+            "<li>No animals retired yet. Hand a certified farm to the next generation and its "
+            "longest-serving animals are honoured here.</li>"
+        )
+    return "".join(
+        f"<li>{html.escape(str(name))}: {served} round{'s' if served != 1 else ''} "
+        f"(generation {gen})</li>"
+        for name, served, gen in hall_of_fame
+    )
+
+
+def pasture_cow_title(threshold):
+    """Hover text for a pasture cow: the animal that revealed it (the threshold-th unit)."""
+    roster = cow_roster()
+    if len(roster) < threshold:
+        return ""
+    name, served = roster[threshold - 1]
+    return f"{name}, animal #{threshold}, {served} round{'s' if served != 1 else ''} on the farm"
+
+
+# ---- F-28 pace note and save nudge ------------------------------------------------------
+session_started = time.time()
+session_rounds = 0
+
+
+def pace_note_message():
+    if session_rounds <= 0:
+        return ""
+    minutes = max(0, int((time.time() - session_started) // 60))
+    return (
+        f"This sitting: {session_rounds} round{'s' if session_rounds != 1 else ''}, "
+        f"about {minutes} min."
+    )
+
+
+def save_nudge_message():
+    """A gentle prompt every SAVE_NUDGE_EVERY rounds played in one sitting, else empty."""
+    if session_rounds > 0 and session_rounds % SAVE_NUDGE_EVERY == 0:
+        return (
+            f"{session_rounds} rounds this sitting. A good moment to save and take a break: "
+            "the Save button keeps this farm safe."
+        )
+    return ""
+
+
+def render_round_extras():
+    """Everything the round-4 batch draws, run from render()."""
+    render_bulk_stepper()
+    render_delta_chips()
+    render_undo()
+    render_season_calendar()
+    document.getElementById("genetics-rings").innerHTML = genetics_rings_html()
+    document.getElementById("poultry-compare").innerHTML = poultry_compare_html()
+    document.getElementById("hall-of-fame-list").innerHTML = hall_of_fame_html()
+    note = pace_note_message()
+    pace = document.getElementById("pace-note")
+    pace.innerText = note
+    pace.hidden = not note
+
+
 def round_announcement(funds_before, methane_before):
     """Plain sentence for the aria-live region after Advance Round."""
     change = farm.funds - funds_before
@@ -2333,8 +2827,7 @@ def render():
 
     grow_cost = farm.grow_herd_cost()
     grow_button = document.getElementById("grow-herd-button")
-    grow_button.innerText = f"Grow Herd ({grow_cost:.0f})"
-    grow_button.disabled = farm.funds < grow_cost or farm.cap_blocks_growth(herd=1)
+    grow_button.innerText, grow_button.disabled = bulk_button_label("herd", "Grow Herd", grow_cost, ".0f")
     # F9 — consequence preview next to the Grow Herd button.
     document.getElementById("grow-consequence-preview").innerText = grow_consequence_message()
 
@@ -2345,8 +2838,7 @@ def render():
         )
         button = document.getElementById(f"{measure}-invest-button")
         cost = farm.decoupling_cost(measure)
-        button.innerText = f"{spec['label']} ({cost:g})"
-        button.disabled = farm.funds < cost
+        button.innerText, button.disabled = bulk_button_label(measure, spec["label"], cost, "g")
 
     document.getElementById("decoupling-summary-display").innerText = (
         f"Decoupled: {farm.decoupled_fraction() * 100:.0f}% below baseline emissions per herd unit"
@@ -2404,10 +2896,11 @@ def render():
 
     render_extras()
     render_progress_extras()
+    render_round_extras()
 
 
 def on_grow_herd(event=None):
-    if farm.grow_herd():
+    if farm.buy_bulk("herd", bulk_mode):
         _pulse("grow-herd-button")
     render()
     _check_new_achievements_for_toast()
@@ -2416,7 +2909,7 @@ def on_grow_herd(event=None):
 def _make_decoupling_handler(measure):
     def handler(event=None):
         ratio_before = farm.coupling_ratio()
-        if farm.invest_decoupling(measure):
+        if farm.buy_bulk(measure, bulk_mode):
             _pulse(f"{measure}-count")
             if farm.coupling_ratio() < ratio_before - 1e-9:
                 _pulse("gauge-range-display")  # F22 — new session-best
@@ -2525,13 +3018,15 @@ def hand_over_farm():
     """Awards points, starts the next generation on a fresh farm and applies
     every perk owned so far. Returns the points earned, or None if the farm
     can't be handed over yet."""
-    global farm, generation, legacy_points
+    global farm, generation, legacy_points, last_deltas
     if not can_hand_over():
         return None
     earned = handover_points()
+    retire_herd_to_hall()  # GF-13: the longest-serving animals are honoured before the herd is retired
     legacy_points += earned
     generation += 1
     farm = FarmState()
+    last_deltas = {}  # the old farm's round-change chips do not belong to the new one
     for name, level in legacy_perks.items():
         for _ in range(level):
             _apply_perk_to_farm(name)
@@ -2627,15 +3122,25 @@ def _report_decoupling_gap():
 
 
 def on_advance_round(event=None):
+    global last_deltas, session_rounds
     funds_before, methane_before = farm.funds, farm.methane
+    welfare_before, pressure_before = farm.welfare(), farm.pressure_fraction()
+    farm.undo_snapshot = get_state()  # GF-18: the state to rewind to
     farm.advance_round()
+    session_rounds += 1
+    last_deltas = round_deltas(funds_before, methane_before, welfare_before, pressure_before)
+    _schedule_delta_fade()
     _report_decoupling_gap()
     render()
     document.getElementById("round-announcer").innerText = round_announcement(funds_before, methane_before)
+    nudge = save_nudge_message()
     if farm.just_streak_bonus is not None:
         streak, bonus = farm.just_streak_bonus
         farm.just_streak_bonus = None
-        _display_milestone_toast(f"\U0001F525 Perfect-round streak of {streak}: +{bonus} funds.")
+        message = f"\U0001F525 Perfect-round streak of {streak}: +{bonus} funds."
+        _display_milestone_toast(f"{message} {nudge}".strip())
+    elif nudge:
+        _display_milestone_toast(nudge)
     _check_milestone_callout()
     _check_new_achievements_for_toast()
     if farm.just_flattened:
@@ -2697,6 +3202,10 @@ def get_state():
         state["breeds_collected"] = list(breeds_collected)
     if combos_found:
         state["combos_found"] = list(combos_found)
+    if hall_of_fame:
+        state["hall_of_fame"] = [list(entry) for entry in hall_of_fame]
+    if farm.undo_used:
+        state["undo_used"] = True
     # F25: succession state is written only once a handover has happened or
     # points/perks exist, so an ordinary save is unchanged.
     if generation > 1:
@@ -2720,7 +3229,7 @@ def _safe_int(value, default):
 def _load_progress_fields(data):
     """Validated load of the highlights/log/streak/collection fields; every one
     defaults safely so older saves and hand-edited payloads cannot crash."""
-    global breeds_collected, combos_found
+    global breeds_collected, combos_found, hall_of_fame
     history = data.get("funds_history")
     cleaned = None
     if isinstance(history, list):
@@ -2754,6 +3263,19 @@ def _load_progress_fields(data):
     farm.best_perfect_streak = max(farm.perfect_streak, _safe_int(data.get("best_perfect_streak"), 0))
     breeds_collected = _valid_ids(data.get("breeds_collected"), BREEDS)
     combos_found = _valid_ids(data.get("combos_found"), COMBOS)
+    farm.undo_used = data.get("undo_used") is True
+    farm.undo_snapshot = None
+    hall_of_fame = []
+    saved_hall = data.get("hall_of_fame")
+    if isinstance(saved_hall, list):
+        for entry in saved_hall[:HALL_OF_FAME_SIZE]:
+            if (
+                isinstance(entry, (list, tuple)) and len(entry) == 3 and isinstance(entry[0], str)
+                and all(isinstance(v, (int, float)) and not isinstance(v, bool) and v == v for v in entry[1:])
+                and abs(entry[1]) != float("inf") and abs(entry[2]) != float("inf")
+            ):
+                hall_of_fame.append([entry[0][:40], max(0, int(entry[1])), max(1, int(entry[2]))])
+        hall_of_fame.sort(key=lambda e: (-e[1], e[2]))
 
 
 def load_state(data):
@@ -2907,6 +3429,13 @@ def setup():
     document.getElementById("lever-history-filter").addEventListener(
         "change", create_proxy(on_lever_history_filter)
     )
+    for mode, element_id in BULK_BUTTON_IDS.items():
+        document.getElementById(element_id).addEventListener("click", create_proxy(_make_bulk_handler(mode)))
+    for key in DELTA_KEYS:
+        document.getElementById(f"delta-chip-{key}").addEventListener(
+            "click", create_proxy(_make_delta_pin_handler(key))
+        )
+    document.getElementById("undo-round-button").addEventListener("click", create_proxy(on_undo_round))
     render()
     _seed_achievement_toast_baseline()
 

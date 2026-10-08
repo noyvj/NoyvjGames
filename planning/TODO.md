@@ -1,6 +1,6 @@
 # Site-Wide TODO (round 3)
 
-**Progress: 422/1009 items checked off (41.8%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land.
+**Progress: 429/1009 items checked off (42.5%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land.
 
 Built from your answers in `planning/IMPROVEMENT-IDEAS-ROUND-3.md` (Part 4). Every Round 3 section is now answered (2026-10-07 below the Warframe section); earlier this list held only: **GB** (Canopy gamified), **M** (new games), **N** (seasonal events), **O** (Trade Empire and Continuum replayability), **P/Q/S/T** (Signal, Undersleep, Overclock, Last Line open questions), **X** (Warframe tracker) and **R** (returning later). GC-GI, A-L, U, Z and Y are unanswered and wait for you. The previous list is archived at `planning/todo-archive/260914_260927.md`; anything from it that was moved here is marked "moved" there.
 
@@ -456,16 +456,16 @@ Your remaining Round 3 answers (Grid to Drift gamified, SOL to Le Champ de Mots,
 - [ ] F-16: Add a Herd pin-a-stat header: pin up to three readouts (funds, welfare, income per round) into a sticky strip visible while the extras panel is open.
 - [x] F-17: Add a Herd lever history log: a collapsible list of purchases ('Round 4: bought Capture Systems (-40)') under the extras panel, filterable by lever.
 - [ ] F-18: Add a Herd Settings option to require confirmation for any purchase above N percent of current funds, using the shared confirm dialog. (partly built: Shared confirm-dialog already guards the Plant-Based Pivot (F16) only.)
-- [ ] F-19: Add a Herd x1/x5/max bulk-buy stepper beside Grow Herd and lever buttons showing total cost before clicking, reusing the rising-cost preview.
-- [ ] F-20: Add Herd round-delta chips (+/-) beside funds, methane, welfare and pressure after each Advance Round that fade after a few seconds, with a pin click.
-- [ ] F-21: Add a Herd 12-round season calendar strip in seasons mode showing upcoming income swing and plant-demand surge as colour- and icon-coded cells.
-- [ ] F-22: Add a Herd poultry vs cattle comparison mini-card in the poultry panel: per-unit income, methane-equivalent and welfare effect side by side.
-- [ ] F-23: Add a Herd breeding progress ring on the breeding lever showing rounds left in the 3-round maturation, replacing the text.
+- [x] F-19: Add a Herd x1/x5/max bulk-buy stepper beside Grow Herd and lever buttons showing total cost before clicking, reusing the rising-cost preview.
+- [x] F-20: Add Herd round-delta chips (+/-) beside funds, methane, welfare and pressure after each Advance Round that fade after a few seconds, with a pin click.
+- [x] F-21: Add a Herd 12-round season calendar strip in seasons mode showing upcoming income swing and plant-demand surge as colour- and icon-coded cells.
+- [x] F-22: Add a Herd poultry vs cattle comparison mini-card in the poultry panel: per-unit income, methane-equivalent and welfare effect side by side.
+- [x] F-23: Add a Herd breeding progress ring on the breeding lever showing rounds left in the 3-round maturation, replacing the text.
 - [x] F-24: Add a Herd cap-mode headroom bar under the 20-methane cap with 'rounds until you must decouple' at the current growth pace.
 - [ ] F-25: Add Herd settings export/import: one button copies all local settings (text scale, motion, toggles, personal bests) as a short code, another restores it, using shared/export_progress.py.
 - [ ] F-26: Add a Herd slow-device lite mode toggle (haze, methane wisps, cow-graze off, static pasture), and make it a shared setting in shared/site-settings.js offered to the other games.
 - [ ] F-27: Add Herd achievement hover progress: mini progress bar and exact amount left on hover/focus, extending ACHIEVEMENT_PROGRESS to the remaining numeric achievements. (partly built: ACHIEVEMENT_PROGRESS gives unearned cards an 'N of M' line for ~6 numeric achievements; no hover bar.)
-- [ ] F-28: Add a discreet Herd pace note on the round counter and a save-and-quit nudge every 10 rounds.
+- [x] F-28: Add a discreet Herd pace note on the round counter and a save-and-quit nudge every 10 rounds.
 - [ ] F-29: Add Herd plain-language glossary popovers (coupling ratio, counterfactual, welfare, capture) via dotted underlines with a full glossary in How to Play.
 - [ ] F-30: Add Herd friendly save-recovery: when a save fails validation in load_state, show a plain reason and an option to load with defaults.
 - [ ] F-31: Restyle Herd achievement cards: livestock/pasture glyph per earned badge, barnyard-accent border and a brief unlock flourish (reduced-motion respecting).
@@ -485,7 +485,7 @@ Your remaining Round 3 answers (Grid to Drift gamified, SOL to Le Champ de Mots,
 - [x] GF-15: Add a Herd perfect-round streak counter (methane fell AND funds rose) with a flame icon and tiny bonuses at 3/5/10 rounds.
 - [x] GF-16: Add Herd breed collection: named breeds as a collector shelf with a hidden Methane-Eater Cow (e.g. coupling under 0.25 with welfare over 90), glowing sprite and shelf achievement; breeds in general are a collector goal per owner.
 - [ ] GF-17: Add Herd achievement-gated cosmetic barns: earning certain achievements unlocks barn/fence/tractor skins for the pasture hero image, selectable in the extras panel.
-- [ ] GF-18: Add Herd 'undo last round' once per game at a fund penalty, to let players try risky levers and recover from misclicks.
+- [x] GF-18: Add Herd 'undo last round' once per game at a fund penalty, to let players try risky levers and recover from misclicks.
 - [ ] GF-19: Add Herd tactile animations: a short CSS tractor crossing the screen on Advance Round and squish-on-press buttons, reduced-motion respecting, no audio.
 - [ ] GF-20: Add Herd farm event cards: each round a 20% chance of a one-line flavour event with a two-button choice and small stakes (e.g. neighbour offers to buy 2 units: cash or refuse).
 - [ ] GF-21: Add Herd golden-cow bonus: rarely a golden cow glides across the pasture and clicking it in time grants a one-off funds bonus; provide a non-timed alternative (button or reduced-motion auto-claim).

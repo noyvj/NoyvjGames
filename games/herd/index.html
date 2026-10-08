@@ -203,6 +203,7 @@
 
     <div id="status" class="section">
       <p id="round-display" class="status-line">Round 1</p>
+      <p id="pace-note" class="pace-note" hidden></p>
       <p id="funds-display" class="status-line">Funds: 300</p>
       <p id="herd-display" class="status-line">Herd size: 0</p>
       <p id="methane-display" class="status-line">Methane: 0</p>
@@ -237,8 +238,15 @@
     </div>
 
     <div id="actions" class="section">
+      <div id="bulk-stepper" class="bulk-stepper" role="group" aria-label="How many units each purchase button buys">
+        <span class="bulk-stepper-label">Buy</span>
+        <button id="bulk-1-button" class="secondary bulk-step selected" type="button" aria-pressed="true">x1</button>
+        <button id="bulk-5-button" class="secondary bulk-step" type="button" aria-pressed="false">x5</button>
+        <button id="bulk-max-button" class="secondary bulk-step" type="button" aria-pressed="false">Max</button>
+      </div>
       <button id="grow-herd-button" class="secondary" disabled>Loading...</button>
       <p id="grow-consequence-preview" class="grow-consequence-preview">Loading...</p>
+      <p id="bulk-note" class="bulk-note"></p>
     </div>
 
     <div id="decoupling" class="section">
@@ -283,9 +291,11 @@
       <summary>Farm operations &amp; scenario options</summary>
       <p id="vignette-display" class="comparison-message"></p>
       <p id="season-display" class="comparison-message"></p>
+      <ol id="season-calendar" class="season-calendar" aria-label="Next 12 rounds: income swing and plant-based demand surges" hidden></ol>
       <p id="welfare-display" class="comparison-message" title="Better feed, herd caps and breeding raise welfare; above the neutral 50 it lifts income up to +10%."></p>
       <p id="biogas-display" class="comparison-message" title="Real farms sell captured biogas / renewable natural gas and its credits (see planning notes)."></p>
       <p id="genetics-display" class="comparison-message"></p>
+      <div id="genetics-rings" class="breed-rings"></div>
       <button id="genetics-invest-button" class="secondary" title="Slow-burn fourth decoupling lever: each program takes 3 rounds to breed through, then permanently lowers emissions per animal.">Breeding Program</button>
       <p id="supply-chain-display" class="comparison-message"></p>
       <button id="supply-chain-invest-button" class="secondary" title="A downstream income lever, independent of herd size.">Processing &amp; Distribution</button>
@@ -316,6 +326,7 @@
     <div id="poultry-panel" class="section" hidden>
       <p class="meter-label">Poultry flock (unlocked by certification)<details class="info-toggle"><summary>i</summary><p>A second herd type with its own, much lower emissions curve, its own levers and housing upkeep. Your certified farm earned the right to diversify. Real poultry emissions are mostly manure nitrous oxide and ammonia rather than enteric methane, so the game shows a single methane-equivalent number.</p></details></p>
       <p id="poultry-display" class="comparison-message"></p>
+      <div id="poultry-compare" class="poultry-compare"></div>
       <button id="poultry-grow-button" class="secondary">Grow Flock</button>
       <div class="invest-row"><span class="invest-name">Litter Management</span><span class="invest-count" id="litter-count">0</span><button id="litter-invest-button" class="secondary">Litter</button><span id="litter-efficiency" class="invest-efficiency"></span></div>
       <div class="invest-row"><span class="invest-name">Ventilation Biofilters</span><span class="invest-count" id="biofilter-count">0</span><button id="biofilter-invest-button" class="secondary">Biofilter</button><span id="biofilter-efficiency" class="invest-efficiency"></span></div>
@@ -339,6 +350,10 @@
       <div id="combo-book" class="collection-block">
         <p class="meter-label">Combo book (each combo pays <span class="combo-reward">20</span> funds once)</p>
         <ul id="combo-book-list" class="combo-book-list"></ul>
+      </div>
+      <div id="hall-of-fame" class="collection-block">
+        <p class="meter-label">Hall of fame (longest-serving animals of retired generations)</p>
+        <ul id="hall-of-fame-list" class="hall-of-fame-list"></ul>
       </div>
       <div id="lever-history" class="collection-block">
         <p class="meter-label">Lever history</p>
@@ -364,8 +379,19 @@
       </div>
     </details>
 
+    <div id="undo-panel" class="section undo-panel">
+      <button id="undo-round-button" class="secondary" type="button" disabled>&#8630; Undo last round (once per game)</button>
+      <p id="undo-note" class="comparison-message"></p>
+    </div>
+
     <p id="round-announcer" class="sr-only" role="status" aria-live="polite"></p>
     <button id="advance-round-button" class="primary">⏭️ Advance Round</button>
+    <div id="round-delta-strip" class="round-delta-strip" role="group" aria-label="What changed last round (click a chip to pin it)" hidden>
+      <button id="delta-chip-funds" class="delta-chip" type="button" aria-pressed="false" hidden></button>
+      <button id="delta-chip-methane" class="delta-chip" type="button" aria-pressed="false" hidden></button>
+      <button id="delta-chip-welfare" class="delta-chip" type="button" aria-pressed="false" hidden></button>
+      <button id="delta-chip-pressure" class="delta-chip" type="button" aria-pressed="false" hidden></button>
+    </div>
 
     <div id="leaderboard-mount" class="section"></div>
 

@@ -38,7 +38,7 @@
     {
       "id": "pc-collection-panel",
       "title": "Collection and lever history",
-      "members": ["#collection-summary", "#breed-shelf", "#combo-book", "#lever-history"],
+      "members": ["#collection-summary", "#breed-shelf", "#combo-book", "#hall-of-fame", "#lever-history"],
       "group": "Records",
       "label": "📖 Breeds, combos and history"
     },
@@ -71,9 +71,11 @@
     "stage": [".pasture-visual", "#gauge-section"],
     "side": [
       "#advance-round-button",
+      "#round-delta-strip",
       "#actions",
       "#decoupling",
       "#plant-pivot",
+      "#undo-panel",
       "#farm-extras",
       "#policy-panel",
       "#succession-panel",
