@@ -312,6 +312,18 @@
         <p class="summary-graph-label">Community relations</p>
         <div id="report-card-relations" class="session-summary-sparkline"></div>
       </details>
+      <!-- B-21: larger interactive timeline: hover a point for its value, markers for clears, replants, specialists and requests. -->
+      <details class="summary-details" id="timeline-details">
+        <summary>Timeline chart</summary>
+        <label for="timeline-metric">Show</label>
+        <select id="timeline-metric">
+          <option value="standing">Standing value</option>
+          <option value="biodiversity">Biodiversity</option>
+          <option value="relations">Community relations</option>
+        </select>
+        <div id="timeline-chart" class="timeline-chart"></div>
+        <p id="timeline-legend" class="timeline-legend"></p>
+      </details>
       <details class="summary-details">
         <summary>Forest history</summary>
         <div id="forest-history-list" class="forest-log-list" tabindex="0"></div>

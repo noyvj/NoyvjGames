@@ -2175,6 +2175,12 @@ html[data-forest-frame="crest"] .session-summary-badge { border: 4px solid var(-
 html[data-forest-palette="dusk"] { --forest-accent: #b9a3e3; }
 html[data-forest-palette="meadow"] { --forest-accent: #a7d98a; }
 
+/* B-21: timeline chart. */
+.timeline-chart { overflow-x: auto; }
+.timeline-svg { width: 100%; min-width: 320px; height: auto; display: block; color: inherit; }
+.timeline-marker:focus { outline: 2px solid currentColor; }
+.timeline-legend { font-size: 0.85em; margin: 0.3rem 0 0; }
+
 /* ============================================================
    Light theme (Y11b, 2026-09-27). shared/theme-light-games.css already
    restyles the shared chrome (panels, buttons, inputs, HUD readouts);

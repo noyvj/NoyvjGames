@@ -647,3 +647,66 @@ def test_locked_cosmetics_fall_back_and_options_are_disabled(game_env):
     m.render_forest_rank()
     text = game_env.elements["forest-rank-text"].innerText
     assert "Sapling Warden" in text and "XP" in text
+
+
+# ---- B-21 timeline chart ----
+
+def _fill_history(m, n=90):
+    m._report_history.clear()
+    for i in range(n):
+        m._report_history.append((float(i), 10.0 + i, 50.0))
+    m.forest_tick = 100 + n - 1
+
+
+def test_timeline_model_aligns_ticks_and_builds_season_bands(game_env):
+    m = game_env.module
+    _fill_history(m, 90)
+    model = m.timeline_model("standing")
+    assert model["points"][0] == (100, 10.0) and model["points"][-1] == (189, 99.0)
+    assert [b["season"] for b in model["bands"]][0] == m.SEASONS[(100 // 40) % 4]
+    assert model["bands"][0]["start"] == 100 and model["bands"][-1]["end"] == 189
+    assert all(b["end"] >= b["start"] for b in model["bands"])
+    assert m.timeline_model("nonsense")["metric"] == "standing"
+
+
+def test_timeline_markers_join_the_log_and_request_history(game_env):
+    m = game_env.module
+    _fill_history(m, 90)
+    m.forest_log[:] = [
+        {"tick": 120, "kind": "clear", "plot": 3, "text": "Cleared A4 for 5.0 income"},
+        {"tick": 130, "kind": "replant", "plot": 3, "text": "Replanted A4"},
+        {"tick": 140, "kind": "specialize", "plot": 2, "text": "A3 became a Economic specialist"},
+        {"tick": 141, "kind": "wildlife", "plot": 2, "text": "ignored"},
+        {"tick": 5, "kind": "clear", "plot": 1, "text": "outside the window"},
+    ]
+    m.request_history[:] = [{"plot": 4, "kind": m.STAKEHOLDER_KIND_CLEAR, "value_then": 5.0, "tick": 150, "choice": "declined"}]
+    kinds = [mk["kind"] for mk in m.timeline_model()["markers"]]
+    assert kinds == ["clear", "replant", "specialize", "declined"]
+    assert len(m.timeline_marker_lines()) == 4
+
+
+def test_timeline_svg_has_hover_titles_bands_and_distinct_marker_shapes(game_env):
+    import xml.etree.ElementTree as ET
+    m = game_env.module
+    assert m.timeline_chart_svg() == ""
+    _fill_history(m, 60)
+    m.forest_log[:] = [
+        {"tick": 150, "kind": "clear", "plot": 0, "text": "Cleared A1"},
+        {"tick": 151, "kind": "replant", "plot": 0, "text": "Replanted A1"},
+    ]
+    svg = m.timeline_chart_svg("biodiversity")
+    ET.fromstring(svg)
+    assert "Tick 150:" in svg and "Cleared A1" in svg and "Spring" in svg or "Summer" in svg or "Autumn" in svg or "Winter" in svg
+    assert svg.count("<circle") == 60
+    assert "M" in svg and "Z" in svg  # a cross and a triangle path
+
+
+def test_render_timeline_writes_chart_legend_and_empty_message(game_env):
+    m = game_env.module
+    m.render_timeline_chart()
+    assert "Not enough time" in game_env.elements["timeline-chart"].innerText
+    _fill_history(m, 30)
+    game_env.elements["timeline-metric"].value = "relations"
+    m.render_timeline_chart()
+    assert "<svg" in game_env.elements["timeline-chart"].innerHTML
+    assert "No events" in game_env.elements["timeline-legend"].innerText

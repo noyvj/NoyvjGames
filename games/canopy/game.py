@@ -2897,6 +2897,7 @@ def render_session_summary():
     document.getElementById("session-summary-share-text").innerText = share_snippet()
     render_playstyle_comparison()
     render_report_card()
+    render_timeline_chart()
     render_forest_log_panels()
     render_request_history()
     render_lifetime_stats()
@@ -3837,6 +3838,137 @@ def render_report_card():
         else:
             container.innerHTML = ""
             container.innerText = "Not enough time has passed yet to chart a trend."
+
+
+# B-21 (2026-10-09): a larger, interactive timeline chart joining the report-card series with the forest log and the
+# request history. Window = the same capped history the report card keeps (the last VALUE_HISTORY_MAX_POINTS ticks).
+TIMELINE_WIDTH = 640
+TIMELINE_HEIGHT = 200
+TIMELINE_PAD_LEFT = 38
+TIMELINE_PAD_BOTTOM = 18
+TIMELINE_METRICS = {
+    "biodiversity": ("Biodiversity", 0, "#4caf50"),
+    "standing": ("Standing value", 1, "#66b2e8"),
+    "relations": ("Community relations", 2, "#e8a33d"),
+}
+# Marker kind -> (label, SVG shape). Shapes differ so the chart never relies on colour alone.
+TIMELINE_MARKERS = {
+    "clear": ("Clear", "cross"),
+    "replant": ("Replant", "triangle"),
+    "specialize": ("Specialist choice", "diamond"),
+    "granted": ("Request granted", "square"),
+    "declined": ("Request declined", "square"),
+    "countered": ("Request countered", "square"),
+}
+
+
+def timeline_model(metric="standing"):
+    """Pure data for the chart: points (tick, value), season bands and event markers inside the window."""
+    if metric not in TIMELINE_METRICS:
+        metric = "standing"
+    _label, index, _color = TIMELINE_METRICS[metric]
+    count = len(_report_history)
+    first_tick = forest_tick - count + 1
+    points = [(first_tick + i, float(row[index])) for i, row in enumerate(_report_history)]
+    bands = []
+    if count:
+        tick = first_tick
+        while tick <= forest_tick:
+            season = SEASONS[(tick // SEASON_CYCLE_TICKS) % len(SEASONS)]
+            end = min(forest_tick, (tick // SEASON_CYCLE_TICKS + 1) * SEASON_CYCLE_TICKS - 1)
+            bands.append({"season": season, "start": tick, "end": end})
+            tick = end + 1
+    markers = []
+    if count:
+        for entry in forest_log:
+            if entry["kind"] in ("clear", "replant", "specialize") and first_tick <= entry["tick"] <= forest_tick:
+                markers.append({"tick": entry["tick"], "kind": entry["kind"], "plot": entry["plot"], "text": entry["text"]})
+        for entry in request_history:
+            if entry["choice"] in TIMELINE_MARKERS and first_tick <= entry["tick"] <= forest_tick:
+                markers.append({"tick": entry["tick"], "kind": entry["choice"], "plot": entry["plot"],
+                                "text": f"{TIMELINE_MARKERS[entry['choice']][0]} on {plot_coordinate_label(entry['plot'])}"})
+    markers.sort(key=lambda m: (m["tick"], m["kind"]))
+    return {"metric": metric, "points": points, "bands": bands, "markers": markers}
+
+
+def _marker_shape_svg(shape, x, y, title):
+    safe = _svg_text(title)
+    if shape == "cross":
+        body = f'<path d="M{x-4:.1f},{y-4:.1f}L{x+4:.1f},{y+4:.1f}M{x+4:.1f},{y-4:.1f}L{x-4:.1f},{y+4:.1f}" stroke="currentColor" stroke-width="2" fill="none"/>'
+    elif shape == "triangle":
+        body = f'<path d="M{x:.1f},{y-5:.1f}L{x+5:.1f},{y+4:.1f}L{x-5:.1f},{y+4:.1f}Z" fill="currentColor"/>'
+    elif shape == "diamond":
+        body = f'<path d="M{x:.1f},{y-5:.1f}L{x+5:.1f},{y:.1f}L{x:.1f},{y+5:.1f}L{x-5:.1f},{y:.1f}Z" fill="currentColor"/>'
+    else:
+        body = f'<rect x="{x-4:.1f}" y="{y-4:.1f}" width="8" height="8" fill="currentColor"/>'
+    return f'<g class="timeline-marker" tabindex="0">{body}<title>{safe}</title></g>'
+
+
+def timeline_chart_svg(metric="standing"):
+    """The chart as an SVG string, or "" before there is any history."""
+    model = timeline_model(metric)
+    points = model["points"]
+    if not points:
+        return ""
+    label, _index, color = TIMELINE_METRICS[model["metric"]]
+    width, height = TIMELINE_WIDTH, TIMELINE_HEIGHT
+    plot_w, plot_h = width - TIMELINE_PAD_LEFT, height - TIMELINE_PAD_BOTTOM
+    first_tick, last_tick = points[0][0], points[-1][0]
+    span = max(1, last_tick - first_tick)
+    top = max(max(v for _t, v in points), 1e-9)
+
+    def x_of(tick):
+        return TIMELINE_PAD_LEFT + (tick - first_tick) / span * plot_w
+
+    def y_of(value):
+        return plot_h - value / top * plot_h
+
+    parts = [f'<svg viewBox="0 0 {width} {height}" class="timeline-svg" role="img" '
+             f'aria-label="{label} timeline from tick {first_tick} to {last_tick}, now {points[-1][1]:.1f}">']
+    for i, band in enumerate(model["bands"]):
+        x0, x1 = x_of(band["start"]), x_of(band["end"] + 1 if band["end"] < last_tick else band["end"])
+        opacity = "0.10" if i % 2 == 0 else "0.04"
+        parts.append(f'<rect x="{x0:.1f}" y="0" width="{max(0.0, x1 - x0):.1f}" height="{plot_h}" fill="currentColor" opacity="{opacity}"/>')
+        parts.append(f'<text x="{x0 + 3:.1f}" y="11" font-size="10" fill="currentColor">{SEASON_LABEL[band["season"]]}</text>')
+    parts.append(f'<text x="2" y="12" font-size="10" fill="currentColor">{top:.0f}</text>')
+    parts.append(f'<text x="2" y="{plot_h}" font-size="10" fill="currentColor">0</text>')
+    line = " ".join(f"{x_of(t):.1f},{y_of(v):.1f}" for t, v in points)
+    parts.append(f'<polyline points="{line}" fill="none" stroke="{color}" stroke-width="2"/>')
+    for t, v in points:  # invisible hover targets giving each tick's exact value
+        parts.append(f'<circle cx="{x_of(t):.1f}" cy="{y_of(v):.1f}" r="3" fill="{color}" opacity="0"><title>Tick {t}: {v:.1f}</title></circle>')
+    value_at = dict(points)
+    for marker in model["markers"]:
+        shape = TIMELINE_MARKERS[marker["kind"]][1]
+        parts.append(_marker_shape_svg(shape, x_of(marker["tick"]), y_of(value_at.get(marker["tick"], 0.0)),
+                                       f"Tick {marker['tick']}: {marker['text']}"))
+    parts.append(f'<text x="{TIMELINE_PAD_LEFT}" y="{height - 4}" font-size="10" fill="currentColor">tick {first_tick}</text>')
+    parts.append(f'<text x="{width - 4}" y="{height - 4}" font-size="10" text-anchor="end" fill="currentColor">tick {last_tick}</text>')
+    parts.append("</svg>")
+    return "".join(parts)
+
+
+def timeline_marker_lines(metric="standing"):
+    """Text version of the markers, newest last, for screen readers and the legend."""
+    return [f"t{m['tick']}: {m['text']}" for m in timeline_model(metric)["markers"]]
+
+
+def render_timeline_chart():
+    container = _el("timeline-chart")
+    if container is None:
+        return
+    select = _el("timeline-metric")
+    metric = getattr(select, "value", "standing") or "standing"
+    svg = timeline_chart_svg(metric)
+    if not svg:
+        container.innerHTML = ""
+        container.innerText = "Not enough time has passed yet to chart a timeline."
+    else:
+        container.innerHTML = svg
+    legend = _el("timeline-legend")
+    if legend is not None:
+        lines = timeline_marker_lines(metric)
+        shapes = "; ".join(f"{label} = {shape}" for label, shape in TIMELINE_MARKERS.values())
+        legend.innerText = (f"Markers ({shapes}). " + ("Events: " + " | ".join(lines[-12:]) if lines else "No events in this window yet."))
 
 
 def render_forest_log_panels():
@@ -7497,6 +7629,9 @@ def setup():
     scenario_select = _el("scenario-select")  # B-11
     if scenario_select is not None:
         scenario_select.addEventListener("change", create_proxy(on_scenario_change))
+    timeline_select = _el("timeline-metric")  # B-21
+    if timeline_select is not None:
+        timeline_select.addEventListener("change", create_proxy(lambda event=None: render_timeline_chart()))
     for select_id in ("request-history-sort", "request-history-kind"):  # B-14
         select = _el(select_id)
         if select is not None:

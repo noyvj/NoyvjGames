@@ -1,6 +1,6 @@
 # Site-Wide TODO (round 3)
 
-**Progress: 514/1095 items checked off (46.9%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land.
+**Progress: 515/1095 items checked off (47.0%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land.
 
 Built from your answers in `planning/IMPROVEMENT-IDEAS-ROUND-3.md` (Part 4). Every Round 3 section is now answered (2026-10-07 below the Warframe section); earlier this list held only: **GB** (Canopy gamified), **M** (new games), **N** (seasonal events), **O** (Trade Empire and Continuum replayability), **P/Q/S/T** (Signal, Undersleep, Overclock, Last Line open questions), **X** (Warframe tracker) and **R** (returning later). GC-GI, A-L, U, Z and Y are unanswered and wait for you. The previous list is archived at `planning/todo-archive/260914_260927.md`; anything from it that was moved here is marked "moved" there.
 
@@ -284,7 +284,7 @@ Your remaining Round 3 answers (Grid to Drift gamified, SOL to Le Champ de Mots,
 - [ ] B-17: Add a Canopy visual refresh: layered CSS/SVG tree sprites per plot state with gentle sway, depth shadow and seasonal foliage colours replacing flat tinted tiles, keeping the state icons; hand-drawn in code, NO generated images; sway respects reduce-motion.
 - [x] B-19: Add a Canopy long-term Forest Rank: lifetime XP from standing value, seasons survived and badge variety fills a ladder (Sapling Warden through Grove Keeper) that unlocks cosmetic badge-card frames and palette themes only, no gameplay advantage, placed under the achievements panel.
 - [x] B-20: Achievement progress bars. (already built: game.py ACHIEVEMENT_PROGRESS (line ~2410) gives numeric progress lines for 12 countable achievements, rendered in the panel (~2443); one-shots deliberately plain)
-- [ ] B-21: Add a Canopy interactive timeline chart available any time: larger version of the three report-card series with hover values, season bands and event markers for each clear, request, grant and specialist choice, joining forest_log with report history.
+- [x] B-21: Add a Canopy interactive timeline chart available any time: larger version of the three report-card series with hover values, season bands and event markers for each clear, request, grant and specialist choice, joining forest_log with report history.
 - [x] B-22: Add a Canopy "while away" catch-up chip on tab return (e.g. "+214 value, 1 request expired") instead of silently jumping numbers, tick-speed independent.
 - [ ] B-23: Add a hub-level "Climate Steward" profile that reads optional summary fields from the climate games' saves (Canopy standing value, Tide restored coastline, etc.) into one portrait; Canopy exposes its summary fields in its save state. (needs hub shell, Y/Z coordination)
 - [x] B-24: Add Canopy plot notes: right-click or long-press adds a short label (max 20 chars) to any plot, shown as a corner dot, saved with the session.
