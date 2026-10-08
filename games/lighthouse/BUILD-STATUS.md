@@ -16,8 +16,10 @@ Text harness: `python3 games/lighthouse/harness.py [seed] [nights]`.
 - M1 Sim core (commit 8e34656, tag lighthouse-milestone-01): engine, harness, 78 tests.
 - M2 Night UI: index.html, style.css, app.js, settings.js, SVG scene (sky by hour, beam, ships by silhouette, weather layers), HUD, evening plan, night controls, morning report, speed/pause via shared time-controls, favicon, changelog. Verified live at 1440x900 and 360x740, 104 tests.
 
+- M3 Day loop + upgrades: day panel (mend, rest, tidy, tideline, greenhouse, rescue), workshop with 9 upgrades and a confirm for dear ones, supply-boat order form, seasons, barometer, three standing goals (goals.py), 111 tests.
+
 ## Next
-Milestone 3: day loop UI polish (the day panel is built; verify it live), upgrades, seasons, forecast, boat order; engine for these already exists and is tested.
+Milestone 4: Complete Quiet mode: year-end screen live check, endless continue, Quiet run flag, save widget round trip, settings, confirm dialogs, welcome-back line.
 
 ## Open problems
 none yet

@@ -3,7 +3,7 @@
    estimate in the evening plan, which only repeats the engine's published burn rates as a hint). */
 (function () {
   "use strict";
-  var ENGINE_MODULES = ["rng.py", "data.py", "clock.py", "weather.py", "ships.py", "state.py", "sim.py", "day.py", "achievements.py", "view.py"];
+  var ENGINE_MODULES = ["rng.py", "data.py", "clock.py", "weather.py", "ships.py", "state.py", "sim.py", "day.py", "achievements.py", "goals.py", "view.py"];
   var STORE_KEY = "lighthouse:state";
   var QUIET_KEY = "lighthouse-quiet";
   var GAME_ID = "lighthouse";
@@ -289,6 +289,21 @@
     setText($("hud-rep"), String(v.reputation));
     setText($("hud-rep-title"), v.rep_title + (v.rep_next ? " (next at " + v.rep_next.at + ")" : ""));
     setText($("hud-salvage"), String(v.salvage));
+  }
+
+  function renderGoals(v) {
+    var holder = $("goals-list");
+    fillOnce(holder, JSON.stringify(v.goals), function (h) {
+      v.goals.forEach(function (g) {
+        var li = el("li"); li.dataset.done = String(g.done);
+        li.appendChild(el("span", g.label, "goal-label"));
+        var m = el("span", null, "meter"); m.setAttribute("data-state", g.done ? "ok" : "ok");
+        var f = el("span", null, "meter-fill"); f.style.setProperty("--pct", Math.round(g.have / g.need * 100) + "%"); m.appendChild(f);
+        li.appendChild(m);
+        li.appendChild(el("span", g.have + " of " + g.need, "goal-num"));
+        h.appendChild(li);
+      });
+    });
   }
 
   // ---- the evening -----------------------------------------------------------------------------------
@@ -759,6 +774,7 @@
   function render(v, userMoved) {
     view = v;
     renderHud(v);
+    renderGoals(v);
     renderScene(v);
     renderPhase(v, userMoved);
     renderStation(v);

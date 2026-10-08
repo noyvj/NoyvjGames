@@ -9,6 +9,7 @@ from rng import unit
 from sim import mail_expected, beam_stopped, effective_reach, lamp_level, max_wind, tired, tonight_ships
 from weather import forecast, weather
 import day as daymod
+import goals as goalmod
 
 
 def rep_title(points):
@@ -142,6 +143,7 @@ def build(keep, settings):
                  "ships_delayed": keep.meta["ships_delayed"], "ships_damaged": keep.meta["ships_damaged"], "rescues": keep.meta["rescues"],
                  "lamp_hours": round(keep.meta["lamp_ticks"] * data.TICK_MINUTES / 60.0, 1), "oil_used": round(keep.meta["oil_used"], 1),
                  "clean_streak": keep.meta["clean_streak"], "best_clean_streak": keep.meta["best_clean_streak"]},
+        "goals": goalmod.goals(keep),
         "eerie": settings.get("eerie", True),
         "tick_ms": 4000,
     }
