@@ -1,0 +1,151 @@
+/* Pocket Bazaar. Every colour is a variable so the light theme (html[data-theme="light"], set by shared/theme.js)
+   is a second set of values rather than a second stylesheet. Goods are told apart by SHAPE and LETTER, tiers by a
+   number and pips; the family colour is decoration only (so colourblind players lose nothing). */
+:root {
+  --bg: #17131d; --bg-top: #2a2233; --panel: #221c2b; --panel-fill: rgba(34, 28, 43, 0.92); --surface: #1b1623;
+  --btn: #3a2f47; --btn-primary: #b5651d; --on-primary: #fff6e6;
+  --line: #4a3d5a; --edge: #8b7aa3; --text: #f3ecf9; --muted: #bfb0d1;
+  --accent: #f0b04a; --focus: #ffd666; --hover-edge: #f0b04a; --cell: #2e2538; --cell-edge: #5b4a70;
+  --ink: #1a1420;
+  --fam-produce: #7bc96f; --fam-textiles: #c58af0; --fam-ceramics: #ff9f6b; --fam-spices: #f2c14e; --fam-sweets: #f08fb0;
+  --fam-wild: #e9f2ff; --good-edge: #1a1420; --match: #ffd666; --pick: #ffffff;
+}
+html[data-theme="light"] {
+  --bg: #f7f1ea; --bg-top: #fff9f0; --panel: #ffffff; --panel-fill: rgba(255, 255, 255, 0.95); --surface: #f3ebe2;
+  --btn: #eadbc8; --btn-primary: #9a4f10; --on-primary: #ffffff;
+  --line: #d6c3ad; --edge: #8a6b4a; --text: #2a2018; --muted: #5d4c3c;
+  --accent: #8f4a0e; --focus: #7a3a00; --hover-edge: #8f4a0e; --cell: #efe3d4; --cell-edge: #a98b68;
+  --match: #9a5a00; --pick: #1a1420;
+}
+html[data-high-contrast="true"] { --line: #a897c0; --edge: #e3d8f2; --muted: #e6dcf5; --cell-edge: #e3d8f2; }
+html[data-high-contrast="true"][data-theme="light"] { --line: #5a4630; --edge: #2f2314; --muted: #2f2314; --cell-edge: #2f2314; }
+html[data-high-contrast="true"] .panel, html[data-high-contrast="true"] button, html[data-high-contrast="true"] .cell { border-width: 2px; }
+
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html { font-size: calc(100% * var(--text-scale, 1)); color-scheme: dark; }
+html[data-theme="light"] { color-scheme: light; background: var(--bg); }
+body { margin: 0; background: radial-gradient(ellipse at top, var(--bg-top), var(--bg) 60%); color: var(--text);
+  font: 1rem/1.5 system-ui, -apple-system, sans-serif; min-height: 100vh; }
+#game { max-width: 34rem; margin: 0 auto; padding: 1rem 1rem 3rem; display: block; }
+html[data-theme="light"] #game { background: transparent; border: 0; box-shadow: none; }
+.hub-back-link { color: var(--accent); text-decoration: underline; font-size: 0.85rem; }
+html[data-theme="light"] .hub-back-link, html[data-theme="light"] a { color: var(--accent); }
+h1 { margin: 0.3rem 0 0; letter-spacing: 0.14em; font-weight: 300; text-transform: uppercase; font-size: 1.6rem; }
+html[data-theme="light"] h1 { background: none; color: var(--text); -webkit-text-fill-color: currentColor; text-shadow: none; }
+.tagline, .note { color: var(--muted); font-size: 0.9rem; margin: 0.3rem 0; }
+.panel { background: var(--panel-fill); border: 1px solid var(--line); border-radius: 14px; padding: 0.7rem 0.8rem; margin: 0.7rem 0; }
+html[data-theme="light"] .panel { box-shadow: 0 4px 16px rgba(80, 50, 20, 0.1); }
+.panel h2 { margin: 0 0 0.4rem; font-size: 0.95rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent); }
+button { font: inherit; color: var(--text); background: var(--btn); border: 1px solid var(--edge); border-radius: 8px; padding: 0.4rem 0.8rem; cursor: pointer; }
+button:hover { border-color: var(--hover-edge); }
+button.primary { background: var(--btn-primary); border-color: var(--hover-edge); color: var(--on-primary); }
+button:focus-visible, input:focus-visible, a:focus-visible, summary:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+button[disabled], button[aria-disabled="true"] { opacity: 0.55; cursor: default; border-style: dashed; }
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+.skip-link { position: absolute; left: 0.5rem; top: -4rem; z-index: 1000; padding: 0.5rem 0.8rem; border-radius: 8px; background: var(--panel); color: var(--text); border: 2px solid var(--focus); }
+.skip-link:focus { top: 0.5rem; }
+.top-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.3rem 0.8rem; }
+.game-toolbar { display: flex; flex-wrap: wrap; gap: 0.4rem; margin: 0.4rem 0; }
+.toast { min-height: 1.3rem; font-weight: 600; }
+.toast:empty { min-height: 0; margin: 0; }
+.settings-row { display: flex; gap: 0.6rem; align-items: center; flex-wrap: wrap; margin: 0.5rem 0; }
+.settings-row input[type="checkbox"] { width: 1.25rem; height: 1.25rem; accent-color: var(--btn-primary); vertical-align: middle; }
+.text-size-control { display: inline-flex; gap: 0.3rem; }
+
+/* The tally: every action moves one of these numbers. */
+.stat-strip { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 0.35rem; margin: 0.5rem 0; }
+.stat { background: var(--panel-fill); border: 1px solid var(--line); border-radius: 10px; padding: 0.25rem 0.3rem; text-align: center; min-width: 0; }
+.stat-label { display: block; font-size: 0.62rem; color: var(--muted); letter-spacing: 0.03em; line-height: 1.15; overflow-wrap: anywhere; }
+.stat-value { display: block; font-size: 1.05rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+.stat-value.bump { animation: bump 0.35s ease-out; }
+@keyframes bump { 0% { transform: scale(1); } 40% { transform: scale(1.3); color: var(--accent); } 100% { transform: scale(1); } }
+
+/* The counter. */
+.counter { margin: 0.2rem auto; }
+.board { --cols: 5; display: grid; grid-template-columns: repeat(var(--cols), minmax(0, 1fr)); gap: 4px; max-width: 22rem; margin: 0 auto; user-select: none; -webkit-user-select: none; }
+.cell { position: relative; aspect-ratio: 1; padding: 0; display: grid; place-items: center; background: var(--cell); border: 1px solid var(--cell-edge); border-radius: 10px; min-width: 0; font-size: 0.8rem; }
+.cell.has-good { touch-action: none; cursor: grab; }
+.cell.selected { outline: 3px solid var(--pick); outline-offset: -1px; border-color: var(--pick); }
+.cell.partner { outline: 3px dashed var(--match); outline-offset: -1px; }
+.cell.partner::after { content: "+"; position: absolute; top: 1px; right: 4px; font-weight: 900; color: var(--match); font-size: 1rem; line-height: 1; }
+.cell.drop-over { background: var(--btn); border-style: dashed; }
+.cell.broom-armed.has-good { outline: 3px dotted var(--accent); outline-offset: -1px; }
+.shelf-slot { max-width: 5rem; margin: 0.4rem auto 0; text-align: center; font-size: 0.75rem; color: var(--muted); }
+.shelf-slot .cell { width: 100%; }
+
+/* A good: a shape (the family), a letter and number, and pips for the tier. */
+.good { position: relative; width: 88%; height: 76%; display: block; pointer-events: none; margin-top: -6%; }
+.good-shape { position: absolute; inset: 0; background: var(--good-edge); }
+.good-shape::after { content: ""; position: absolute; inset: 3px; background: var(--fam, var(--fam-produce)); }
+.good-text { position: absolute; inset: 0; display: grid; place-items: center; font-weight: 800; color: var(--ink); font-size: 1rem; letter-spacing: -0.02em; }
+.pips { position: absolute; left: 0; right: 0; bottom: -17%; display: flex; justify-content: center; gap: 2px; }
+.pip { width: 6px; height: 6px; border-radius: 50%; background: var(--text); }
+.pip.star { width: auto; height: auto; background: none; font-size: 0.7rem; line-height: 0.9; color: var(--accent); }
+.fam-produce { --fam: var(--fam-produce); } .fam-textiles { --fam: var(--fam-textiles); } .fam-ceramics { --fam: var(--fam-ceramics); }
+.fam-spices { --fam: var(--fam-spices); } .fam-sweets { --fam: var(--fam-sweets); } .fam-wild { --fam: var(--fam-wild); }
+.shape-circle .good-shape, .shape-circle .good-shape::after { clip-path: circle(50% at 50% 50%); }
+.shape-triangle .good-shape, .shape-triangle .good-shape::after { clip-path: polygon(50% 2%, 99% 96%, 1% 96%); }
+.shape-triangle .good-shape::after { clip-path: polygon(50% 12%, 90% 90%, 10% 90%); inset: 0; }
+.shape-triangle .good-text { padding-top: 22%; }
+.shape-square .good-shape, .shape-square .good-shape::after { clip-path: inset(0 round 18%); }
+.shape-diamond .good-shape, .shape-diamond .good-shape::after { clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%); }
+.shape-hexagon .good-shape, .shape-hexagon .good-shape::after { clip-path: polygon(25% 2%, 75% 2%, 100% 50%, 75% 98%, 25% 98%, 0 50%); }
+.shape-star .good-shape, .shape-star .good-shape::after { clip-path: polygon(50% 0, 62% 36%, 100% 36%, 69% 58%, 81% 96%, 50% 72%, 19% 96%, 31% 58%, 0 36%, 38% 36%); }
+.good.t5 .good-shape { background: var(--accent); }
+.good.dragging-ghost { position: fixed; z-index: 2000; width: 4rem; height: 3.6rem; pointer-events: none; opacity: 0.92; margin: 0; transform: translate(-50%, -50%); }
+
+/* Crates and tools. */
+.tools { display: grid; gap: 0.4rem; margin: 0.5rem 0 0.2rem; max-width: 22rem; margin-left: auto; margin-right: auto; }
+.crates { display: flex; gap: 0.35rem; }
+.crates .crate-btn { flex: 1 1 0; justify-content: center; min-width: 0; }
+.crate-btn { display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.3rem 0.4rem; min-height: 2.75rem; font-size: 0.9rem; }
+.crate-icon { position: relative; width: 1.6rem; height: 1.6rem; flex: 0 0 auto; }
+.crate-icon .good-text { font-size: 0.75rem; }
+.crate-btn.active { border-color: var(--accent); border-width: 2px; }
+.tool-buttons { display: flex; gap: 0.35rem; }
+.tool { flex: 1 1 0; min-width: 0; min-height: 2.75rem; }
+.tool[aria-pressed="true"] { border-width: 3px; border-style: dotted; border-color: var(--accent); }
+.tool.drop-over { border-style: dashed; background: var(--btn-primary); color: var(--on-primary); }
+.selection-info { min-height: 2.6em; max-width: 22rem; margin-left: auto; margin-right: auto; }
+.message { min-height: 1.5rem; font-weight: 600; margin: 0.2rem 0; font-size: 0.9rem; line-height: 1.3; }
+.message.refused::before { content: "Not that: "; font-weight: 700; }
+.how { margin-top: 0.5rem; font-size: 0.9rem; color: var(--muted); }
+.how ul { padding-left: 1.1rem; margin: 0.4rem 0; }
+
+/* Effects: a pop on the cell a merge landed in. Reduce-motion and the Effects switch both turn these off; no
+   information is carried by movement alone. */
+@keyframes pop { 0% { transform: scale(0.6); } 60% { transform: scale(1.18); } 100% { transform: scale(1); } }
+@keyframes glint { 0% { box-shadow: 0 0 0 0 var(--match); } 100% { box-shadow: 0 0 0 10px transparent; } }
+.cell.pop .good { animation: pop 0.32s ease-out; }
+.cell.pop { animation: glint 0.5s ease-out; }
+html[data-effects="off"] .cell.pop, html[data-effects="off"] .cell.pop .good, html[data-effects="off"] .stat-value.bump { animation: none; }
+html[data-reduced-motion="true"] *, html[data-reduced-motion="true"] *::before, html[data-reduced-motion="true"] *::after,
+html[data-effects="off"] *, html[data-effects="off"] *::before, html[data-effects="off"] *::after {
+  animation: none !important; transition: none !important; scroll-behavior: auto !important;
+}
+
+@media (max-width: 600px) {
+  /* A phone shows the whole counter and the crates without scrolling: the long intro and the panel title step aside. */
+  .tagline { display: none; }
+  .panel-title { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; }
+  .stat-strip { margin: 0.3rem 0; }
+  .panel { margin: 0.4rem 0; padding: 0.5rem 0.5rem; }
+  .selection-info { min-height: 2.4em; margin: 0.3rem 0 0; }
+  .tools { display: flex; flex-wrap: wrap; align-items: stretch; gap: 0.3rem; margin: 0.4rem 0 0.1rem; }
+  .crates { flex: 1 1 auto; gap: 0.3rem; }
+  .crate-btn { flex-direction: column; gap: 0.1rem; padding: 0.2rem 0.15rem; font-size: 0.72rem; min-height: 3.2rem; }
+  .tool-buttons { flex: 0 0 auto; gap: 0.3rem; }
+  .tool { flex: 0 0 auto; min-width: 3.4rem; padding: 0.2rem 0.3rem; font-size: 0.8rem; }
+}
+@media (max-width: 420px) {
+  #game { padding: 0.6rem 0.6rem 2.5rem; }
+  h1 { font-size: 1.35rem; }
+  .stat-value { font-size: 0.95rem; }
+  .stat-label { font-size: 0.56rem; }
+  .board { gap: 3px; }
+  .good-text { font-size: 0.85rem; }
+}
+
+/* The shared floating theme pill would sit over the crates on a phone; park it in the empty top-right corner. */
+#theme-toggle-floating { top: 0.4rem !important; bottom: auto !important; left: auto !important; right: 0.6rem !important; }

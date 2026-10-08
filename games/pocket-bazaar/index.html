@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pocket Bazaar - NoyvjGames</title>
+<meta name="description" content="A tiny market stall: customers ask for goods, you merge basic goods on a small board into better ones and hand them over before they lose patience. No energy limits, no premium currency, no timers. Working title.">
+<link rel="icon" type="image/svg+xml" href="icons/favicon-pocket-bazaar.svg">
+<link rel="stylesheet" href="../../shared/theme-light-games.css">
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="../../shared/info-page.css">
+<script src="../../shared/theme.js" data-floating-toggle></script>
+<script src="../../shared/lite-mode.js"></script>
+<script src="../../shared/error-boundary.js" data-game-id="pocket-bazaar"></script>
+<script src="../../shared/perf-mark.js" data-game-id="pocket-bazaar"></script>
+<script src="../../shared/debug-overlay.js"></script>
+<script src="../../shared/info-footer.js" data-game-id="pocket-bazaar"></script>
+<script src="../../shared/site-settings.js" data-game-id="pocket-bazaar"></script>
+<script src="settings.js"></script>
+<link rel="stylesheet" href="../../ad-bar.css">
+<link rel="manifest" href="../../manifest.json">
+<!-- Pyodide is loaded by app.js after first paint, so this shell is readable before the engine is warm. -->
+<link rel="stylesheet" href="../../shared/a11y.css">
+<link rel="stylesheet" href="../../shared/touch-targets.css">
+<link rel="stylesheet" href="../../shared/lite-mode.css">
+</head>
+<body>
+<a class="skip-link" href="#counter">Skip to the counter</a>
+<main id="game">
+  <a href="../../index.html" class="hub-back-link">&larr; All games</a>
+  <div class="top-row">
+    <h1>Pocket Bazaar</h1>
+    <div class="game-toolbar">
+      <button id="settings-toggle-button" type="button" aria-expanded="false" aria-controls="settings-panel">Settings</button>
+    </div>
+  </div>
+  <p class="tagline">A tiny market stall. Merge goods, hand them over, and take your time: nothing here runs on a clock.</p>
+  <section id="settings-panel" class="panel" hidden aria-labelledby="settings-heading">
+    <h2 id="settings-heading">Settings</h2>
+    <p class="note">Display choices stay on this device. They never change a game or a save.</p>
+    <div class="settings-row">
+      <span id="text-size-label">Text size</span>
+      <div class="text-size-control" role="group" aria-labelledby="text-size-label">
+        <button id="text-size-decrease-button" type="button" aria-label="Decrease text size">A&minus;</button>
+        <button id="text-size-reset-button" type="button" aria-label="Reset text size">A</button>
+        <button id="text-size-increase-button" type="button" aria-label="Increase text size">A+</button>
+      </div>
+    </div>
+    <div class="settings-row"><label><input type="checkbox" id="reduced-motion-checkbox"> Reduce motion (no sliding or popping; follows your system setting until you choose)</label></div>
+    <div class="settings-row"><label><input type="checkbox" id="effects-checkbox" checked> Effects (the pop and glint on a merge, the coin tick)</label></div>
+    <div class="settings-row"><label><input type="checkbox" id="high-contrast-checkbox"> High contrast (brighter text, thicker outlines)</label></div>
+    <div class="settings-row"><button id="theme-setting-button" type="button" aria-pressed="false">Light theme</button></div>
+    <div class="settings-row"><button id="display-reset-button" type="button">Reset display settings</button></div>
+  </section>
+  <p id="toast" class="note toast" role="status" aria-live="polite"></p>
+  <p id="message" class="message" role="status" aria-live="polite"></p>
+
+  <section id="stats" class="stat-strip" aria-label="Your stall so far">
+    <div class="stat"><span class="stat-label">Coins</span><span id="stat-coins" class="stat-value">0</span></div>
+    <div class="stat"><span class="stat-label">Crates</span><span id="stat-crates" class="stat-value">0</span></div>
+    <div class="stat"><span class="stat-label">Merges</span><span id="stat-merges" class="stat-value">0</span></div>
+    <div class="stat"><span class="stat-label">Best chain</span><span id="stat-chain" class="stat-value">0</span></div>
+    <div class="stat"><span class="stat-label">Sold</span><span id="stat-sold" class="stat-value">0</span></div>
+    <div class="stat"><span class="stat-label">Swept</span><span id="stat-swept" class="stat-value">0</span></div>
+  </section>
+
+  <section id="stall-panel" class="panel" aria-labelledby="stall-heading">
+    <h2 id="stall-heading" class="panel-title">Your counter</h2>
+    <div id="counter" class="counter">
+      <div id="board" class="board" role="group" aria-label="The counter, a grid of cells"></div>
+      <div id="shelf-slot" class="shelf-slot" hidden></div>
+    </div>
+    <div id="tools" class="tools">
+      <div id="crates" class="crates" role="group" aria-label="Crates"></div>
+      <div class="tool-buttons" role="group" aria-label="Tools">
+        <button id="sell-button" type="button" class="tool" data-drop="sell" data-testid="pocket-bazaar-sell">Sell</button>
+        <button id="broom-button" type="button" class="tool" data-drop="broom" aria-pressed="false" data-testid="pocket-bazaar-broom">Broom</button>
+      </div>
+    </div>
+    <p id="selection-info" class="note selection-info" aria-live="polite">Open a crate to put a good on the counter. Two identical goods merge into a better one.</p>
+    <details class="how">
+      <summary>How the counter works</summary>
+      <ul>
+        <li>Tap a crate to put a basic good on the counter. Crates are free and never run out.</li>
+        <li>Tap a good, then tap an identical one (or drag it on) to merge them into the next tier. A tier-5 showpiece does not merge.</li>
+        <li>Three identical goods together jump two tiers. A merge that lines up with a neighbour keeps going, as a chain.</li>
+        <li>Tap a good then an empty cell to move it; drag one onto a different good to swap them.</li>
+        <li>Sell turns any good into coins and Broom sweeps it away for free, so the counter can never jam.</li>
+        <li>Keyboard: arrows move, Enter picks up or drops, B is the broom, S sells, 1-3 open a crate, Esc lets go.</li>
+      </ul>
+    </details>
+  </section>
+  <p id="engine-status" class="note" role="status">Opening the stall...</p>
+  <p id="announce" class="sr-only" role="status" aria-live="polite"></p>
+</main>
+
+<a id="credits-link" class="credits-link" href="../../credits.html" style="display:block;text-align:center;font-size:0.85rem;margin:0.75rem 0;color:inherit;">Credits</a>
+<div class="ad-bar ad-bar--bottom">
+  <span class="ad-bar-label ad-bar-label-full">Advertisement — not part of the game</span>
+  <span class="ad-bar-label ad-bar-label-short">Ad</span>
+  <!-- Google AdSense manual display ad unit (placeholder client ID until the application is approved) -->
+  <ins class="adsbygoogle"
+       style="display:block; width:320px; height:50px;"
+       data-ad-client="ca-pub-XXXXXXXXXXXXXXXX"
+       data-ad-slot="XXXXXXXXXX"></ins>
+</div>
+<script src="https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.js"></script>
+<script src="app.js"></script>
+<script>
+  if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.register("../../sw.js");
+  }
+</script>
+</body>
+</html>

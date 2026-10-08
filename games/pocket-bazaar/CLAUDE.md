@@ -18,6 +18,11 @@ Python via Pyodide (the Lexis/Signal pattern): DOM-free engine modules, `game.py
 | `rng.py` | seeded integer PRNG stored as `{seed, draws}` |
 | `board.py` | the merge board: merge, three-way bonus, cascade, move/swap, sell, broom, legal-move check, solver (`plan_build`), text form, save form |
 | `textplay.py` | text harness: play a board from a script of commands |
+| `game.py` | the one entry point: `handle(json)`, `get_state()`, `load_state()`; state is saved with only non-default keys |
+
+View files: `index.html`, `style.css`, `settings.js` (display settings in localStorage, never in the save), `app.js` (thin view: draws what `handle` returns, drag via pointer events, tap-then-tap, keyboard).
+
+Interaction model: tap a good to pick it up (matches show a dashed ring and a +), tap a match to merge, tap an empty cell to move. Drag works the same and also swaps with a different good (tapping a different good changes the pick instead, so a swap is never an accident). Sell and Broom act on the picked-up good; Broom with nothing picked up arms the broom for the next tap. Keys: arrows, Enter, B, S, 1-9 crates, C cycles crates, Esc lets go.
 
 ## Standing decisions
 No roguelike or deck-builder mechanics, easy to 100%, effects toggleable, collector welcome, no audio. Open questions Pb1-Pb3 are unanswered: patience in beats, no clock at all, Daily Market later (recommendations used).
@@ -28,7 +33,7 @@ Plan deviations: with five tiers the longest cascade is four merges (T1+T1, T2, 
 | # | Milestone | Content | Status |
 |---|-----------|---------|--------|
 | 1 | Board engine | `board.py` merge rules, cascades, legal-move solver, seeded RNG, text harness; tests for merges and no soft-lock | Done |
-| 2 | Board UI | 5x6 grid, crates, drag + tap-tap + keyboard, Sell/Broom, merge highlights | Not started |
+| 2 | Board UI | 5x6 grid, crates, drag + tap-tap + keyboard, Sell/Broom, merge highlights | Done (practice counter with a visible tally; checked at 1440x900 and 360x740) |
 | 3 | Customers and orders | Queue, patience in beats, delivery, payout, 4 archetypes, order generator with a reachability test | Not started |
 | 4 | Market day loop | Day start/summary, coins, stall upgrades, 10-day campaign, 3 festivals. First complete playable game | Not started |
 | 5 | Combos, streaks, festivals | Order combo, cascade bonus, all 6 festivals with previews, personal-best badges | Not started |
