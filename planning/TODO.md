@@ -1,6 +1,6 @@
 # Site-Wide TODO (round 3)
 
-**Progress: 506/1095 items checked off (46.2%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land.
+**Progress: 507/1095 items checked off (46.3%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land.
 
 Built from your answers in `planning/IMPROVEMENT-IDEAS-ROUND-3.md` (Part 4). Every Round 3 section is now answered (2026-10-07 below the Warframe section); earlier this list held only: **GB** (Canopy gamified), **M** (new games), **N** (seasonal events), **O** (Trade Empire and Continuum replayability), **P/Q/S/T** (Signal, Undersleep, Overclock, Last Line open questions), **X** (Warframe tracker) and **R** (returning later). GC-GI, A-L, U, Z and Y are unanswered and wait for you. The previous list is archived at `planning/todo-archive/260914_260927.md`; anything from it that was moved here is marked "moved" there.
 
@@ -287,7 +287,7 @@ Your remaining Round 3 answers (Grid to Drift gamified, SOL to Le Champ de Mots,
 - [ ] B-21: Add a Canopy interactive timeline chart available any time: larger version of the three report-card series with hover values, season bands and event markers for each clear, request, grant and specialist choice, joining forest_log with report history.
 - [x] B-22: Add a Canopy "while away" catch-up chip on tab return (e.g. "+214 value, 1 request expired") instead of silently jumping numbers, tick-speed independent.
 - [ ] B-23: Add a hub-level "Climate Steward" profile that reads optional summary fields from the climate games' saves (Canopy standing value, Tide restored coastline, etc.) into one portrait; Canopy exposes its summary fields in its save state. (needs hub shell, Y/Z coordination)
-- [ ] B-24: Add Canopy plot notes: right-click or long-press adds a short label (max 20 chars) to any plot, shown as a corner dot, saved with the session.
+- [x] B-24: Add Canopy plot notes: right-click or long-press adds a short label (max 20 chars) to any plot, shown as a corner dot, saved with the session.
 - [ ] B-25: Add a third Counter-offer option to Canopy clear-requests (e.g. clear half the plot area, or give two nearby bare plots instead) with deterministic outcomes previewed with numbers inside the existing stakeholder-relations math.
 - [x] B-26: Add a Canopy Settings numbers-format dropdown (compact 1.2k, thousands separators, full precision) applied to the HUD and mobile dock.
 - [ ] B-27: Add opt-in adaptive Coach hints in Canopy's report card: dismissible notes that read the session (e.g. same plot cleared 3 times in one season, soil now 55%), never block play, and replace tutorial text for returning players.

@@ -486,6 +486,11 @@ forest_log = []
 # B-14 (2026-10-09): one record per answered community request, for the request-history table.
 REQUEST_HISTORY_MAX = 60
 request_history = []
+# B-24 (2026-10-09): short personal labels on plots (right-click or long-press, or the note box below the plot
+# readout), shown as a corner dot and in the tile's tooltip, saved with the session.
+PLOT_NOTE_MAX = 20
+plot_notes = {}
+_note_input_for = None
 forest_tick = 0
 adopted_plot_index = None  # B27
 
@@ -846,6 +851,7 @@ def reset_session(grid_size=None, _render_after=True, difficulty=None, challenge
     _pending_mature_bursts.clear()
     forest_log = []
     request_history.clear()
+    plot_notes.clear()
     forest_tick = 0
     adopted_plot_index = None
     _reset_gb_state()
@@ -1159,6 +1165,67 @@ def decline_stakeholder_request(event=None):
     return True
 
 
+def clean_plot_note(text):
+    """A note as stored: control characters dropped, whitespace collapsed, at most PLOT_NOTE_MAX characters."""
+    text = "".join(ch for ch in str(text or "") if ch.isprintable())
+    return " ".join(text.split())[:PLOT_NOTE_MAX]
+
+
+def set_plot_note(index, text):
+    """Saves (or, with empty text, removes) the note on a main-grid plot. Returns the stored note."""
+    if not 0 <= index < len(plots):
+        return ""
+    note = clean_plot_note(text)
+    if note:
+        plot_notes[index] = note
+    else:
+        plot_notes.pop(index, None)
+    return note
+
+
+def on_save_plot_note(event=None):
+    if selected_index is None:
+        return
+    box = _el("plot-note-input")
+    if box is None:
+        return
+    note = set_plot_note(selected_index, getattr(box, "value", ""))
+    _announce(f"Note saved on {_plot_ref(selected_index)}: {note}" if note else f"Note removed from {_plot_ref(selected_index)}")
+    render()
+
+
+def plot_index_from_tile_id(tile_id):
+    """'plot-12' -> 12; anything else (highland and wetland tiles, junk) -> None."""
+    text = str(tile_id or "")
+    if text.startswith("plot-") and text[5:].isdigit():
+        index = int(text[5:])
+        return index if 0 <= index < len(plots) else None
+    return None
+
+
+def on_plot_contextmenu(event):
+    """Right-click or long-press on a plot: select it and jump to the note box."""
+    tile = event.target.closest(".plot-tile") if getattr(event, "target", None) is not None else None
+    index = plot_index_from_tile_id(getattr(tile, "id", None))
+    if index is None:
+        return
+    event.preventDefault()
+    select_plot(index)
+    box = _el("plot-note-input")
+    if box is not None and hasattr(box, "focus"):
+        box.focus()
+
+
+def render_plot_note_input():
+    """Keeps the note box showing the selected plot's note, without overwriting what is being typed on a re-render."""
+    global _note_input_for
+    box = _el("plot-note-input")
+    if box is None or selected_index == _note_input_for:
+        return
+    _note_input_for = selected_index
+    box.value = plot_notes.get(selected_index, "") if selected_index is not None else ""
+
+
 def _request_snapshot(request, kind):
     """B-14: what to remember about a request at the moment it is answered."""
     idx = request["plot_index"]
@@ -1386,6 +1453,11 @@ def render_grid():
             tile.className += " plot-fully-mature"
         tile.title = STATE_LABEL[plot.state]
         tile.innerText = STATE_ICON[plot.state]
+        note = plot_notes.get(plot.index)
+        if note:  # B-24
+            tile.className += " plot-has-note"
+            tile.title += f" \u2014 note: {note}"
+            tile.appendChild(_make_tile_mark("note-mark", "\u2022"))
         if plot.has_wildlife():
             tile.className += " plot-has-wildlife"
         mature_standing = plot.state in ACCRUING_STATES and plot.maturity_fraction() >= 1.0
@@ -2472,6 +2544,7 @@ def render_session_summary():
     render_report_card()
     render_forest_log_panels()
     render_request_history()
+    render_plot_note_input()
 
 
 def comparison_message(income, standing_value):
@@ -6062,6 +6135,8 @@ def render_vault():
 
 def _levels_state_fields():
     out = {}
+    if plot_notes:  # B-24
+        out["plot_notes"] = {str(i): n for i, n in plot_notes.items()}
     if request_history:  # B-14: only once a request has been answered
         out["request_history"] = copy.deepcopy(request_history)
     if levels_state["done"] or levels_state["best"]:
@@ -6295,6 +6370,7 @@ def render():
     render_info_page()
     render_grid()
     render_panel()
+    render_plot_note_input()  # B-24
     render_stats()
     render_stakeholder_panel()
     render_real_world()
@@ -6619,6 +6695,16 @@ def load_state(data):
         for e in raw_log
         if isinstance(e, dict)
     ][-FOREST_LOG_MAX_ENTRIES:]
+    plot_notes.clear()
+    saved_notes = data.get("plot_notes")
+    if isinstance(saved_notes, dict):
+        for key, text in saved_notes.items():
+            try:
+                index = int(key)
+            except (TypeError, ValueError):
+                continue
+            if 0 <= index < len(plots) and isinstance(text, str):
+                set_plot_note(index, text)
     request_history.clear()
     for entry in data.get("request_history") or []:
         try:
@@ -6823,6 +6909,15 @@ def setup():
         select = _el(select_id)
         if select is not None:
             select.addEventListener("change", create_proxy(lambda event=None: render_request_history()))
+    note_button, note_box, grid_for_notes = _el("plot-note-save"), _el("plot-note-input"), _el("plot-grid")
+    if note_button is not None:  # B-24
+        note_button.addEventListener("click", create_proxy(on_save_plot_note))
+    if note_box is not None:
+        note_box.addEventListener(
+            "keydown", create_proxy(lambda event: on_save_plot_note() if getattr(event, "key", "") == "Enter" else None)
+        )
+    if grid_for_notes is not None:
+        grid_for_notes.addEventListener("contextmenu", create_proxy(on_plot_contextmenu))
     away_chip = _el("away-chip")
     if away_chip is not None:
         away_chip.addEventListener("click", create_proxy(on_dismiss_away_chip))

@@ -164,3 +164,66 @@ def test_table_text_and_empty_state(game_env):
     text = game_env.elements["request-history-table"].innerText
     assert text.startswith("Plot | Request | Your choice | Value then | Change since")
     assert "Clear request | declined | 10.0 | +0.0" in text
+
+
+# ---- B-24: plot notes ----
+
+def test_notes_are_cleaned_truncated_and_removed_when_empty(game_env):
+    m = game_env.module
+    assert m.set_plot_note(3, "  hello   world \t") == "hello world"
+    assert m.plot_notes == {3: "hello world"}
+    assert m.set_plot_note(4, "x" * 50) == "x" * m.PLOT_NOTE_MAX
+    assert m.set_plot_note(3, "   ") == ""
+    assert 3 not in m.plot_notes
+    assert m.set_plot_note(10 ** 6, "nope") == "" and 10 ** 6 not in m.plot_notes
+    assert m.set_plot_note(-1, "nope") == ""
+    assert m.clean_plot_note("a\x00b\x07c") == "abc"
+
+
+def test_save_button_stores_the_note_on_the_selected_plot(game_env):
+    m = game_env.module
+    m.select_plot(5)
+    game_env.elements["plot-note-input"].value = "old oak"
+    m.on_save_plot_note()
+    assert m.plot_notes[5] == "old oak"
+    game_env.elements["plot-note-input"].value = ""
+    m.on_save_plot_note()
+    assert 5 not in m.plot_notes
+
+
+def test_noted_tile_gets_a_class_title_and_dot(game_env):
+    m = game_env.module
+    m.set_plot_note(2, "check soil")
+    m.render()
+    tile = game_env.elements["plot-2"] if "plot-2" in game_env.elements else None
+    grid = game_env.elements["plot-grid"]
+    tiles = [c for c in getattr(grid, "children", []) if getattr(c, "id", "") == "plot-2"]
+    tile = tiles[-1] if tiles else tile
+    assert tile is not None
+    assert "plot-has-note" in tile.className
+    assert tile.title.endswith("note: check soil")
+    assert any("note-mark" in getattr(c, "className", "") for c in tile.children)
+
+
+def test_notes_save_validate_and_reset(game_env):
+    m = game_env.module
+    m.set_plot_note(1, "keep")
+    state = m.get_state()
+    assert state["plot_notes"] == {"1": "keep"}
+    state["plot_notes"].update({"x": "bad key", "999": "out of range", "2": 5, "3": "y" * 99})
+    m.load_state(state)
+    assert m.plot_notes == {1: "keep", 3: "y" * m.PLOT_NOTE_MAX}
+    m.reset_session()
+    assert m.plot_notes == {}
+    assert "plot_notes" not in m.get_state()
+
+
+def test_tile_id_parsing_and_note_box_follows_the_selection(game_env):
+    m = game_env.module
+    assert m.plot_index_from_tile_id("plot-12") == 12
+    for bad in ("highland-plot-3", "plot-", "plot-x", "plot-9999", None, ""):
+        assert m.plot_index_from_tile_id(bad) is None
+    m.set_plot_note(7, "seven")
+    m._note_input_for = None
+    m.select_plot(7)
+    assert game_env.elements["plot-note-input"].value == "seven"

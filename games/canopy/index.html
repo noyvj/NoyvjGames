@@ -433,6 +433,12 @@
       <!-- UX-1: phone-only "..." button (hidden by CSS everywhere else) that unfolds the extras the docked panel hides. -->
       <button id="action-dock-more" class="secondary action-dock-more" type="button" aria-expanded="false" aria-controls="action-panel" aria-label="More plot options" title="More: tend hint, forest name, adopted plot">⋯</button>
       <p id="selected-plot-state" class="selected-plot-state">No plot selected</p>
+      <!-- B-24: a short note on the selected plot (also: right-click or long-press a plot). -->
+      <div class="plot-note-row">
+        <label for="plot-note-input" class="plot-note-label">Plot note</label>
+        <input type="text" id="plot-note-input" class="plot-note-input" maxlength="20" placeholder="max 20 characters" aria-label="Note for the selected plot">
+        <button type="button" id="plot-note-save" class="secondary">Save note</button>
+      </div>
       <!-- B12: soil-quality readout with a "?" hover explanation of what degradation costs in future yield (title text set live by game.py's soil_hint_text()). -->
       <p id="soil-hint" class="soil-hint" tabindex="0" hidden></p>
       <div class="action-buttons">
