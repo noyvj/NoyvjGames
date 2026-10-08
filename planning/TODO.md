@@ -1,6 +1,6 @@
 # Site-Wide TODO (round 3)
 
-**Progress: 527/1095 items checked off (48.1%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land.
+**Progress: 528/1095 items checked off (48.2%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land.
 
 Built from your answers in `planning/IMPROVEMENT-IDEAS-ROUND-3.md` (Part 4). Every Round 3 section is now answered (2026-10-07 below the Warframe section); earlier this list held only: **GB** (Canopy gamified), **M** (new games), **N** (seasonal events), **O** (Trade Empire and Continuum replayability), **P/Q/S/T** (Signal, Undersleep, Overclock, Last Line open questions), **X** (Warframe tracker) and **R** (returning later). GC-GI, A-L, U, Z and Y are unanswered and wait for you. The previous list is archived at `planning/todo-archive/260914_260927.md`; anything from it that was moved here is marked "moved" there.
 
@@ -59,7 +59,7 @@ Rules carried over: "yes" items are here, "later" items are parked in `planning/
 - [ ] GB-21: Timber gambler clear-cut option.
 - [x] GB-22: Standing-value milestone celebrations (1k, 2.5k, 5k, 10k), also as achievements if they are not already.
 - [x] GB-23: Weather reads on the grid (rain shimmer, drought tint).
-- [ ] GB-24: Wetland/mangrove tidal puzzle (extends the Wetland Forest built as B1; share the tide logic with Tide).
+- [x] GB-24: Wetland/mangrove tidal puzzle (extends the Wetland Forest built as B1; share the tide logic with Tide).
 - [x] GB-25: Stakeholder faces (named recurring characters with moods and friendship perks).
 - [x] GB-26: Idle/automation ranger crews, built into a skill tree (per W-3).
 - [x] GB-27: Chain bloom effect.

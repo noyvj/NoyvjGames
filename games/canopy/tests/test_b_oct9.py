@@ -1747,3 +1747,103 @@ def test_wildfire_is_a_valid_difficulty_with_normal_soil_damage_and_a_tag(game_e
     m.reset_session()
     m.load_state(state)
     assert m.current_difficulty == m.DIFFICULTY_WILDFIRE
+
+
+# ---- GB-24 wetland tides ----
+
+def _wet(m):
+    m.wetland_unlocked = True
+    m.forest_tick = 0
+
+
+def test_tide_turns_every_six_ticks_and_half_the_plots_are_under_water(game_env):
+    m = game_env.module
+    _wet(m)
+    n = len(m.wetland_plots)
+    for tick in range(0, 30):
+        flooded = [i for i in range(n) if m.wetland_plot_flooded(i, tick)]
+        assert len(flooded) == n // 2
+    assert m.wetland_tide_high(0) is False and m.wetland_tide_high(6) is True and m.wetland_tide_high(12) is False
+    now = {i for i in range(n) if m.wetland_plot_flooded(i, 0)}
+    later = {i for i in range(n) if m.wetland_plot_flooded(i, 6)}
+    assert now.isdisjoint(later) and now | later == set(range(n))
+    m.forest_tick = 4
+    assert m.wetland_ticks_to_tide_turn() == 2
+
+
+def test_seedlings_only_go_in_dry_plots_and_mangroves_only_in_flooded_ones(game_env):
+    m = game_env.module
+    _wet(m)
+    flooded = next(i for i in range(len(m.wetland_plots)) if m.wetland_plot_flooded(i))
+    dry = next(i for i in range(len(m.wetland_plots)) if not m.wetland_plot_flooded(i))
+    for i in (flooded, dry):
+        m.wetland_plots[i].state = m.BARE
+    m.wetland_selected_index = flooded
+    m.on_wetland_replant()
+    assert m.wetland_plots[flooded].state == m.BARE
+    assert m.on_wetland_mangrove() is True
+    assert m.wetland_plots[flooded].state == m.REPLANTING and m.wetland_plots[flooded].species == m.SPECIES_MANGROVE
+    m.wetland_selected_index = dry
+    assert m.on_wetland_mangrove() is False and m.wetland_plots[dry].state == m.BARE
+    m.on_wetland_replant()
+    assert m.wetland_plots[dry].state == m.REPLANTING and m.wetland_plots[dry].species is None
+
+
+def test_mangroves_recover_fast_and_the_flood_cannot_harm_them(game_env):
+    m = game_env.module
+    plot = m.Plot(0, region="wetland")
+    plot.state = m.BARE
+    plot.replant(species=m.SPECIES_MANGROVE)
+    assert plot.replant_ticks_remaining == round(m.RECOVERY_TICKS * 0.6)
+    plot.state, plot.value, plot.ticks_intact = m.PRESERVED, 50.0, 3
+    assert m.wetland_flood_loss_fraction(plot) == 0.0
+    other = m.Plot(1, region="wetland")
+    other.state, other.value, other.ticks_intact = m.PRESERVED, 50.0, 3
+    assert m.wetland_flood_loss_fraction(other) == m.WETLAND_FLOOD_LOSS_YOUNG
+
+
+def test_the_main_forest_picker_never_offers_or_accepts_a_mangrove(game_env):
+    m = game_env.module
+    m.species_choice = m.SPECIES_MANGROVE
+    m.plots[0].state = m.BARE
+    m.selected_index = 0
+    m.on_replant()
+    assert m.plots[0].species is None
+    store = _memory_storage(m)
+    store[m.SPECIES_CHOICE_KEY] = "mangrove"
+    m.load_species_choice()
+    assert m.species_choice == m.SPECIES_STANDARD
+
+
+def test_tidal_wildlife_appears_in_the_almanac_once_the_wetland_is_open(game_env):
+    m = game_env.module
+    assert "Tidal wildlife" not in [t for t, _ in m.almanac_sections()]
+    _wet(m)
+    sections = dict(m.almanac_sections())
+    assert [e[2] for e in sections["Tidal wildlife"]] == [False, False]
+    for i in range(3):
+        m.wetland_plots[i].state, m.wetland_plots[i].species = m.PRESERVED, m.SPECIES_MANGROVE
+    m.note_wetland_wildlife()
+    assert [e[2] for e in dict(m.almanac_sections())["Tidal wildlife"]] == [True, False]
+    m.wetland_plots[0].ticks_intact = m.MATURITY_TICKS
+    m.note_wetland_wildlife()
+    for p in m.wetland_plots:
+        p.species, p.state = None, m.BARE  # losing the mangroves does not un-find the wildlife
+    assert [e[2] for e in dict(m.almanac_sections())["Tidal wildlife"]] == [True, True]
+
+
+def test_tides_show_on_tiles_and_in_the_status_and_the_wildlife_is_saved(game_env):
+    m = game_env.module
+    _wet(m)
+    m.render_wetland_grid()
+    tiles = game_env.elements["wetland-plot-grid"].children
+    flooded = [i for i, t in enumerate(tiles) if "plot-tidal" in t.className]
+    assert flooded == [i for i in range(len(tiles)) if m.wetland_plot_flooded(i)]
+    assert "under water now" in tiles[flooded[0]].getAttribute("data-tooltip")
+    assert "Tide: low" in m.wetland_tide_text()
+    m.wetland_wildlife_found.add("heron")
+    state = m.get_state()
+    assert state["wetland_wildlife"] == ["heron"]
+    m.wetland_wildlife_found.clear()
+    m.load_state(state)
+    assert m.wetland_wildlife_found == {"heron"}

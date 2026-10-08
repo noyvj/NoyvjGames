@@ -122,10 +122,11 @@ def test_harvesting_before_the_flood_banks_the_value(game_env):
 def test_replant_button_works(game_env):
     m = game_env.module
     _unlock(game_env)
-    m.wetland_plots[2].state = m.BARE
-    game_env.elements["wetland-plot-2"].dispatch("click", None)
+    assert not m.wetland_plot_flooded(1)  # GB-24: seedlings only go in dry plots, and plot 1 is dry at low tide
+    m.wetland_plots[1].state = m.BARE
+    game_env.elements["wetland-plot-1"].dispatch("click", None)
     game_env.elements["wetland-replant-button"].dispatch("click", None)
-    assert m.wetland_plots[2].state == m.REPLANTING
+    assert m.wetland_plots[1].state == m.REPLANTING
 
 
 def test_save_round_trip_keeps_the_wetland(game_env):

@@ -280,6 +280,7 @@ PARTNER_SHARE_RATIO = 0.35
 # Pine recovers fast but tops out low, oak is slow but rich in value and wildlife, an orchard pays steadily but
 # attracts no wildlife. A forest mixing species grows a little faster (see mixed_forest_multiplier).
 SPECIES_STANDARD = "standard"
+SPECIES_MANGROVE = "mangrove"  # GB-24: planted only in the Wetland Forest, only while a plot is flooded
 SPECIES = {
     "standard": {"label": "Standard seedling", "mark": "", "recovery": 1.0, "value": 1.0, "bio": 1.0, "steady_after": None,
                  "note": "the usual seedling"},
@@ -287,6 +288,8 @@ SPECIES = {
              "note": "recovers in half the time, lower ceiling (-25% value)"},
     "oak": {"label": "Hardwood oak", "mark": "\u25cf", "recovery": 2.0, "value": 1.35, "bio": 1.5, "steady_after": None,
             "note": "twice the wait, +35% value and +50% biodiversity"},
+    "mangrove": {"label": "Mangrove", "mark": "\u2237", "recovery": 0.6, "value": 1.1, "bio": 1.4, "steady_after": None,
+                 "note": "wetland only, planted while the plot is under water: recovers fast and floods cannot harm it"},
     "orchard": {"label": "Orchard", "mark": "\u25c6", "recovery": 1.0, "value": 1.0, "bio": 0.0, "steady_after": 30,
                 "note": "steady income (stops compounding after 30 ticks), no wildlife"},
 }
@@ -1005,6 +1008,7 @@ def reset_session(grid_size=None, _render_after=True, difficulty=None, challenge
     wetland_flood_countdown = WETLAND_FLOOD_INTERVAL_TICKS
     wetland_floods_survived = 0
     wetland_flood_value_lost = 0.0
+    wetland_wildlife_found.clear()  # GB-24
 
     if _render_after:
         render()
@@ -2591,11 +2595,66 @@ def wetland_standing_value():
     return sum(plot.value for plot in wetland_plots)
 
 
+# GB-24 (2026-10-09): tides. Every WETLAND_TIDE_HALF_TICKS the tide turns and the two halves of the wetland (a chessboard
+# split) swap between under water and dry, so exactly half the plots are flooded at any moment. A bare dry plot takes a
+# normal seedling, a bare flooded plot can only take a mangrove, which recovers fast and is immune to the big flood.
+# Standing mangroves bring wetland wildlife into the Almanac. Pure function of the tick, so nothing is saved.
+WETLAND_TIDE_HALF_TICKS = 6
+MANGROVES_FOR_HERON = 3
+
+
+def wetland_tide_high(tick=None):
+    tick = forest_tick if tick is None else tick
+    return (tick // WETLAND_TIDE_HALF_TICKS) % 2 == 1
+
+
+def wetland_plot_flooded(index, tick=None):
+    row, col = divmod(index, WETLAND_COLS)
+    return (row + col) % 2 == (1 if wetland_tide_high(tick) else 0)
+
+
+def wetland_ticks_to_tide_turn(tick=None):
+    tick = forest_tick if tick is None else tick
+    return WETLAND_TIDE_HALF_TICKS - (tick % WETLAND_TIDE_HALF_TICKS)
+
+
+def wetland_tide_text():
+    flooded = ", ".join(wetland_plot_label_safe(i) for i in range(len(wetland_plots)) if wetland_plot_flooded(i))
+    turn = wetland_ticks_to_tide_turn()
+    return (f"Tide: {'high' if wetland_tide_high() else 'low'}, turning in {turn} tick{'s' if turn != 1 else ''}. "
+            f"Under water now: {flooded or 'none'}. Plant mangroves on flooded plots and seedlings on dry ones.")
+
+
+def wetland_plot_label_safe(index):
+    return wetland_plot_coordinate_label(index)
+
+
+def standing_mangroves():
+    return [p for p in wetland_plots if p.state in ACCRUING_STATES and p.species == SPECIES_MANGROVE]
+
+
+def wetland_wildlife_entries():
+    """Almanac entries for the tidal wildlife a mangrove stand attracts: (icon, name, found, hint)."""
+    found_heron = "heron" in wetland_wildlife_found or len(standing_mangroves()) >= MANGROVES_FOR_HERON
+    found_crab = "crab" in wetland_wildlife_found or any(p.ticks_intact >= MATURITY_TICKS for p in standing_mangroves())
+    return [("\U0001F9A9", "Tidal heron", found_heron, ""), ("\U0001F980", "Mangrove crab", found_crab, "")]
+
+
+def note_wetland_wildlife():
+    """Remembers wildlife once found (a later flood or clear does not take it back out of the Almanac)."""
+    for _icon, name, found, _hint in wetland_wildlife_entries():
+        if found:
+            wetland_wildlife_found.add("heron" if "heron" in name else "crab")
+
+
+wetland_wildlife_found = set()
+
+
 def wetland_flood_loss_fraction(plot):
     """Share of a standing plot's value the next flood would strip: mature
     plots (a full MATURITY_TICKS intact) hold the water back far better
     than young ones. 0.0 for a plot holding no standing value."""
-    if plot.state not in ACCRUING_STATES:
+    if plot.state not in ACCRUING_STATES or plot.species == SPECIES_MANGROVE:  # GB-24: mangroves hold the water back
         return 0.0
     return WETLAND_FLOOD_LOSS_MATURE if plot.ticks_intact >= MATURITY_TICKS else WETLAND_FLOOD_LOSS_YOUNG
 
@@ -2644,6 +2703,9 @@ def _wetland_tooltip_text(plot):
     loss = wetland_flood_loss_fraction(plot)
     if loss:
         label += f" · flood would cost {round(loss * 100)}%"
+    if plot.species == SPECIES_MANGROVE:
+        label += " · mangrove (flood-proof)"
+    label += " · under water now" if wetland_plot_flooded(plot.index) else " · dry now"
     return label
 
 
@@ -2672,8 +2734,24 @@ def on_wetland_clear(event=None):
 def on_wetland_replant(event=None):
     if wetland_selected_index is None:
         return
+    if wetland_plot_flooded(wetland_selected_index):  # GB-24: no seedlings under water
+        _announce("That plot is under water: plant a mangrove, or wait for the tide to turn.")
+        return
     wetland_plots[wetland_selected_index].replant()
     render()
+
+
+def on_wetland_mangrove(event=None):
+    """GB-24: plants a mangrove, which only takes root on a bare plot that is under water right now."""
+    if wetland_selected_index is None or not wetland_plot_flooded(wetland_selected_index):
+        _announce("Mangroves are planted on flooded plots: wait for this plot to go under water.")
+        return False
+    plot = wetland_plots[wetland_selected_index]
+    if plot.replant(species=SPECIES_MANGROVE):
+        _log_event("replant", f"Planted a mangrove on wetland plot {wetland_plot_coordinate_label(plot.index)}", None)
+        note_wetland_wildlife()
+    render()
+    return True
 
 
 def render_wetland_grid():
@@ -2698,6 +2776,12 @@ def render_wetland_grid():
         tile.title = STATE_LABEL[plot.state]
         tile.innerText = STATE_ICON[plot.state]
         tile.style.backgroundColor = plot_display_color(plot)
+        if wetland_plot_flooded(plot.index):  # GB-24: a wave glyph and a dashed lower edge, so tide never relies on colour
+            tile.className += " plot-tidal"
+            tile.appendChild(_make_tile_mark("tide-mark", "\u2248"))
+        if plot.species == SPECIES_MANGROVE and plot.state != BARE:
+            tile.className += " plot-species plot-species--mangrove"
+            tile.appendChild(_make_tile_mark("species-mark", SPECIES[SPECIES_MANGROVE]["mark"]))
         tile.setAttribute("data-tooltip", _wetland_tooltip_text(plot))
         tile.setAttribute("aria-label", _wetland_tooltip_text(plot))
         old_proxy = _wetland_plot_click_proxies.pop(plot.index, None)
@@ -2714,10 +2798,13 @@ def render_wetland_panel():
     clear_button = document.getElementById("wetland-clear-button")
     replant_button = document.getElementById("wetland-replant-button")
 
+    mangrove_button = document.getElementById("wetland-mangrove-button")  # GB-24
     if wetland_selected_index is None:
         state_el.innerText = "No plot selected"
         clear_button.disabled = True
         replant_button.disabled = True
+        if mangrove_button is not None:
+            mangrove_button.disabled = True
         return
 
     plot = wetland_plots[wetland_selected_index]
@@ -2728,7 +2815,12 @@ def render_wetland_panel():
         f"Plot {wetland_plot_coordinate_label(wetland_selected_index)}: {STATE_LABEL[plot.state]} ({detail})"
     )
     clear_button.disabled = "clear" not in VALID_ACTIONS[plot.state]
-    replant_button.disabled = "replant" not in VALID_ACTIONS[plot.state]
+    flooded = wetland_plot_flooded(wetland_selected_index)
+    replant_button.disabled = "replant" not in VALID_ACTIONS[plot.state] or flooded
+    replant_button.title = "Under water: only a mangrove can be planted now" if flooded else "Replant with a normal seedling (dry plots only)"
+    if mangrove_button is not None:
+        mangrove_button.disabled = "replant" not in VALID_ACTIONS[plot.state] or not flooded
+        mangrove_button.title = "Plant a mangrove (flooded plots only)" if flooded else "Dry now: wait for the tide to turn to plant a mangrove here"
 
 
 def wetland_flood_status_text():
@@ -2742,7 +2834,7 @@ def render_wetland_stats():
     document.getElementById("wetland-standing-value-display").innerText = (
         f"Standing wetland value: {fmt_num(wetland_standing_value())}"
     )
-    document.getElementById("wetland-flood-status").innerText = wetland_flood_status_text()
+    document.getElementById("wetland-flood-status").innerText = wetland_flood_status_text() + " " + wetland_tide_text()
 
 
 def render_wetland_section():
@@ -5619,12 +5711,15 @@ def almanac_sections():
     wildlife = [(icon, name, name in seen_names, "") for icon, name in WILDLIFE_SPECIES]
     rare = [(icon, name, rid in rare_wildlife_found, hint) for rid, icon, name, hint in RARE_WILDLIFE]
     structures = [("\U0001F333", "Heart Tree", heart_tree_index is not None, "")]
-    return [
+    sections = [
         ("Trees planted", trees),
         ("Wildlife seen", wildlife),
         ("Rare wildlife", rare),
         ("Hidden structures", structures),
     ]
+    if wetland_unlocked:  # GB-24: the tidal wildlife only appears once the wetland is open
+        sections.append(("Tidal wildlife", wetland_wildlife_entries()))
+    return sections
 
 
 def seasons_survived():
@@ -7839,7 +7934,7 @@ def on_replant(event=None):
     if survey_mode:  # B-13
         queue_survey_action("replant", selected_index)
         return
-    if plots[selected_index].replant(species=species_choice):  # GB-6
+    if plots[selected_index].replant(species=species_choice if species_choice != SPECIES_MANGROVE else None):  # GB-6
         total_replants += 1
         if species_choice != SPECIES_STANDARD:
             species_planted.add(species_choice)
@@ -7856,14 +7951,14 @@ species_choice = SPECIES_STANDARD
 def load_species_choice():
     global species_choice
     value = _read_local_storage_item(SPECIES_CHOICE_KEY)
-    species_choice = value if value in SPECIES else SPECIES_STANDARD
+    species_choice = value if value in SPECIES and value != SPECIES_MANGROVE else SPECIES_STANDARD
 
 
 def on_species_change(event=None):
     global species_choice
     select = _el("species-select")
     value = getattr(select, "value", SPECIES_STANDARD)
-    species_choice = value if value in SPECIES else SPECIES_STANDARD
+    species_choice = value if value in SPECIES and value != SPECIES_MANGROVE else SPECIES_STANDARD
     _write_local_storage_item(SPECIES_CHOICE_KEY, species_choice)
     render_species_note()
 
@@ -8459,6 +8554,7 @@ def tick(event=None):
     _maybe_unlock_wetland()
     if wetland_unlocked:
         _advance_wetland_tick()
+    note_wetland_wildlife()  # GB-24
     render()
 
 
@@ -8516,6 +8612,7 @@ def _wetland_state_fields():
     if not wetland_unlocked:
         return {}
     return {
+        **({"wetland_wildlife": sorted(wetland_wildlife_found)} if wetland_wildlife_found else {}),  # GB-24
         "wetland_unlocked": True,
         "wetland_selected_index": wetland_selected_index,
         "wetland_income": wetland_income,
@@ -8801,7 +8898,10 @@ def load_state(data):
         wetland_flood_countdown = WETLAND_FLOOD_INTERVAL_TICKS
         wetland_floods_survived = 0
         wetland_flood_value_lost = 0.0
+        wetland_wildlife_found.clear()  # GB-24
     else:
+        wetland_wildlife_found.clear()
+        wetland_wildlife_found.update(x for x in (data.get("wetland_wildlife") or []) if x in ("heron", "crab")) if isinstance(data.get("wetland_wildlife"), list) else None
         saved_selected = data.get("wetland_selected_index")
         wetland_selected_index = (
             saved_selected
@@ -9073,6 +9173,9 @@ def setup():
         element = _el(element_id)
         if element is not None:
             element.addEventListener(event_name, create_proxy(handler))
+    mangrove_button = _el("wetland-mangrove-button")  # GB-24
+    if mangrove_button is not None:
+        mangrove_button.addEventListener("click", create_proxy(on_wetland_mangrove))
     document.getElementById("wetland-replant-button").addEventListener(
         "click", create_proxy(on_wetland_replant)
     )

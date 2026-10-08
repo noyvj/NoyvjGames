@@ -102,6 +102,7 @@ ELEMENT_IDS = [
     "wetland-selected-plot-state",
     "wetland-clear-button",
     "wetland-replant-button",
+    "wetland-mangrove-button",
     # GB batch 1: season indicator, tier title, Tend, undo, names, Almanac
     "season-indicator",
     "season-text",

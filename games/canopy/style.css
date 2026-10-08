@@ -2298,6 +2298,10 @@ html[data-reduced-motion="true"] .tile-sprite, html[data-perf-mode="on"] .tile-s
 html[data-reduced-motion="true"] .fire-mark { animation: none; }
 @keyframes fire-flicker { 0%, 100% { transform: translateX(-50%) scale(1); } 50% { transform: translateX(-50%) scale(1.15); } }
 
+/* GB-24: tides in the Wetland Forest. A wave glyph and a dashed lower edge mark the plots under water. */
+.plot-tidal { border-bottom: 4px dashed rgba(120, 190, 255, 0.9); }
+.tide-mark { position: absolute; left: 3px; top: 1px; font-size: 0.9em; line-height: 1; pointer-events: none; }
+
 /* ============================================================
    Light theme (Y11b, 2026-09-27). shared/theme-light-games.css already
    restyles the shared chrome (panels, buttons, inputs, HUD readouts);
