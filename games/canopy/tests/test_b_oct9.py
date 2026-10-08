@@ -1052,3 +1052,122 @@ def test_panel_renders_the_queue_and_hides_when_off(game_env):
     assert game_env.elements["survey-panel"].hidden is False
     assert "Clear" in game_env.elements["survey-queue"].innerHTML
     assert game_env.elements["survey-commit-button"].disabled is False
+
+
+# ---- B-5 Forest Lab ----
+
+def test_lab_values_are_snapped_and_clamped(game_env):
+    m = game_env.module
+    assert m.clean_lab_value(1.1) == 1.0 and m.clean_lab_value(9) == 2.0 and m.clean_lab_value(0) == 0.5
+    assert m.clean_lab_value("x") == 1.0 and m.clean_lab_value(True) == 1.0 and m.clean_lab_value(float("nan")) == 1.0
+
+
+def test_default_lab_is_the_normal_game(game_env):
+    m = game_env.module
+    assert m.lab_active() is False
+    assert m.growth_per_tick() == m.GROWTH_PER_TICK
+    assert m.current_season_multiplier() == m.SEASON_GROWTH_MULTIPLIER[m.current_season()]
+    assert m.current_degrade_per_clear() == m.DEGRADE_PER_CLEAR * m.vault_soil_factor()
+
+
+def test_each_dial_changes_its_own_rule(game_env):
+    m = game_env.module
+    base_interval = m.current_request_interval()
+    base_degrade = m.current_degrade_per_clear()
+    m.lab["soil"] = 2.0
+    assert m.current_degrade_per_clear() == base_degrade * 2
+    m.lab["requests"] = 2.0
+    assert m.current_request_interval() < base_interval
+    m.lab["maturity"] = 2.0
+    assert m.growth_per_tick() == m.GROWTH_PER_TICK * 2
+    m.lab["season"] = 2.0
+    winter = m.season_multiplier_for("winter")
+    assert winter < m.SEASON_GROWTH_MULTIPLIER["winter"]
+    m.lab["season"] = 0.5
+    assert m.season_multiplier_for("spring") < m.SEASON_GROWTH_MULTIPLIER["spring"]
+
+
+def test_faster_growth_grows_a_plot_faster(game_env):
+    m = game_env.module
+    a, b = m.Plot(0), m.Plot(1)
+    for _ in range(10):
+        a.accrue_tick()
+    m.lab["maturity"] = 2.0
+    for _ in range(10):
+        b.accrue_tick()
+    assert b.value > a.value
+
+
+def test_apply_starts_a_new_forest_and_banks_the_old_one_normally(game_env):
+    import json
+    m = game_env.module
+    store = _memory_storage(m)
+    m._session_ticks = 30
+    m.lab_pending["soil"] = 2.0
+    m.apply_lab()
+    assert m.lab["soil"] == 2.0 and m.lab_active() and m._session_ticks == 0
+    assert json.loads(store[m.LIFETIME_STORAGE_KEY])["sessions"] == 1  # the normal forest was banked
+    m._session_ticks = 30
+    m.reset_session()
+    assert json.loads(store[m.LIFETIME_STORAGE_KEY])["sessions"] == 1  # the sandbox forest was not
+
+
+def test_sandbox_forests_set_no_bests_legacy_or_my_forests(game_env):
+    m = game_env.module
+    store = _memory_storage(m)
+    m.lab["maturity"] = 1.5
+    m._session_ticks = 40
+    m.plots[0].value = 500.0
+    m._maybe_update_personal_best()
+    assert m.PERSONAL_BEST_STORAGE_KEY not in store
+    m._bank_legacy_value()
+    assert m.LEGACY_STORAGE_KEY not in store
+    m._bank_lifetime()
+    assert m.MY_FORESTS_KEY not in store and m.LIFETIME_STORAGE_KEY not in store
+    assert "Forest Lab sandbox" in m.session_tag_text()
+
+
+def test_lab_is_saved_only_when_set_and_loads_safely(game_env):
+    m = game_env.module
+    assert "lab" not in m.get_state()
+    m.lab["soil"] = 1.5
+    state = m.get_state()
+    assert state["lab"]["soil"] == 1.5
+    m.lab["soil"] = 1.0
+    m.load_state(state)
+    assert m.lab["soil"] == 1.5
+    bad = m.get_state()
+    bad["lab"] = {"soil": 99, "season": "x", "extra": 3}
+    m.load_state(bad)
+    assert m.lab["soil"] == 2.0 and m.lab["season"] == 1.0
+    bad.pop("lab")
+    m.load_state(bad)
+    assert m.lab_active() is False
+
+
+def test_variants_save_load_and_cap(game_env):
+    m = game_env.module
+    _memory_storage(m)
+    m.lab_pending.update({"soil": 2.0, "maturity": 0.5})
+    assert m.save_lab_variant("  Harsh   soil ") == "Harsh soil"
+    for i in range(8):
+        m.save_lab_variant(f"V{i}")
+    names = [v["name"] for v in m.load_lab_variants()]
+    assert len(names) == m.LAB_VARIANTS_MAX and "Harsh soil" not in names
+    m.lab_pending.update({"soil": 1.0, "maturity": 1.0})
+    assert m.load_lab_variant("V7") and m.lab_pending["soil"] == 2.0
+    assert m.load_lab_variant("missing") is False
+
+
+def test_panel_stages_values_without_changing_the_forest_and_shows_the_banner(game_env):
+    m = game_env.module
+    _memory_storage(m)
+    game_env.elements["lab-soil"].value = "2"
+    m.on_lab_slider("soil")
+    assert m.lab_pending["soil"] == 2.0 and m.lab["soil"] == 1.0
+    assert "Apply" in game_env.elements["lab-status"].innerText
+    assert game_env.elements["lab-banner"].hidden is True
+    m.on_lab_apply()
+    assert game_env.elements["lab-banner"].hidden is False and "Sandbox" in game_env.elements["lab-banner"].innerText
+    m.reset_lab_to_normal()
+    assert m.lab_pending["soil"] == 1.0 and m.lab["soil"] == 2.0

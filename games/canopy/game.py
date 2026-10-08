@@ -61,7 +61,7 @@ current_difficulty = DIFFICULTY_NORMAL
 
 
 def current_degrade_per_clear():
-    return DEGRADE_PER_CLEAR_BY_DIFFICULTY.get(current_difficulty, DEGRADE_PER_CLEAR) * vault_soil_factor()  # GB-10: Soil perks
+    return DEGRADE_PER_CLEAR_BY_DIFFICULTY.get(current_difficulty, DEGRADE_PER_CLEAR) * vault_soil_factor() * lab["soil"]  # GB-10: Soil perks; B-5: Forest Lab
 
 
 # How many ticks a replanted plot spends in REPLANTING before it
@@ -134,7 +134,28 @@ def current_season():
 
 
 def current_season_multiplier():
-    return SEASON_GROWTH_MULTIPLIER[current_season()]
+    return season_multiplier_for(current_season())
+
+
+# B-5 (2026-10-09): Forest Lab. Four sandbox dials (1.0 is the normal game). They are applied through these helpers, so
+# the counterfactual and the projection use the same numbers as the real forest.
+LAB_KEYS = ("soil", "maturity", "requests", "season")
+LAB_MIN, LAB_MAX, LAB_STEP = 0.5, 2.0, 0.25
+lab = {key: 1.0 for key in LAB_KEYS}
+
+
+def lab_active():
+    return any(abs(value - 1.0) > 1e-9 for value in lab.values())
+
+
+def growth_per_tick():
+    return GROWTH_PER_TICK * lab["maturity"]
+
+
+def season_multiplier_for(season):
+    """The season's growth multiplier with the Lab's season strength applied to its distance from 1.0."""
+    base = SEASON_GROWTH_MULTIPLIER[season]
+    return max(0.1, 1.0 + (base - 1.0) * lab["season"])
 
 
 def ticks_until_next_season():
@@ -326,7 +347,7 @@ class Plot:
         if self.state not in ACCRUING_STATES:
             return 0.0
         self.ticks_intact += 1
-        growth_multiplier = 1 + self.ticks_intact * GROWTH_PER_TICK
+        growth_multiplier = 1 + self.ticks_intact * growth_per_tick()  # B-5
         delta = BASE_ACCRUAL * self.productivity_multiplier() * growth_multiplier
         # V-CD-5: Highland Grove compounds HIGHLAND_GROWTH_MULTIPLIER times
         # slower than the main forest (a harsher, shorter high-altitude
@@ -768,7 +789,7 @@ _challenge_record_cache = None  # GB-17: per-browser fastest-completion record, 
 _KEEP_LEVEL = object()  # reset_session(level=...) default: keep the running level unless a setting is being changed
 
 
-def reset_session(grid_size=None, _render_after=True, difficulty=None, challenge=None, pace=None, level=_KEEP_LEVEL, scenario=None):
+def reset_session(grid_size=None, _render_after=True, difficulty=None, challenge=None, pace=None, level=_KEEP_LEVEL, scenario=None, lab_values=None):
     """Rebuilds every module-level mutable global back to its fresh-start
     default, optionally at a different GRID_SIZE_PRESETS key. Always
     rebuilds `plots` from scratch (even on a same-size reset) rather than
@@ -801,6 +822,8 @@ def reset_session(grid_size=None, _render_after=True, difficulty=None, challenge
         _bank_lifetime()  # B-9
         _bank_legacy_value()
         legacy_multiplier = load_legacy_bonus()
+    if lab_values is not None:  # B-5: switched only after the ending session was banked under its own settings
+        set_lab_values(lab_values)
 
     _personal_best_flashed["standing_value"] = False
     _personal_best_flashed["income"] = False
@@ -1453,7 +1476,7 @@ def _session_lifetime_numbers():
 def _bank_lifetime():
     """Adds the session that is about to end to the stored lifetime totals (skipped when nothing happened)."""
     now = _session_lifetime_numbers()
-    if now["ticks"] <= 0:
+    if now["ticks"] <= 0 or lab_active():  # B-5: sandbox forests never count
         return
     life = load_lifetime()
     life["sessions"] += 1
@@ -2628,6 +2651,8 @@ def _bank_legacy_value():
     bonus. Replaces whatever was banked before (this session's own most
     recent result, not a lifetime max, matching B15's own "based on a
     previous session's final standing value" wording)."""
+    if lab_active():  # B-5: a sandbox forest leaves the stored legacy value alone
+        return
     _write_local_storage_item(
         LEGACY_STORAGE_KEY, json.dumps({"banked_value": standing_forest_value()})
     )
@@ -2665,6 +2690,8 @@ def _maybe_update_personal_best():
     `_personal_best_flashed` makes each axis's flash fire at most once per
     session (still comparing against the true stored best, so a session
     that beats it on both axes in the same tick still only flashes once)."""
+    if lab_active():  # B-5: sandbox forests never set a personal best
+        return
     standing_value = standing_forest_value()
     persist = False
     flash = False
@@ -2790,7 +2817,7 @@ def _ideal_accrual_for_ticks(n):
     for j in range(1, n + 1):
         season = SEASONS[((start_tick + j) // SEASON_CYCLE_TICKS) % len(SEASONS)]
         total += (
-            BASE_ACCRUAL * (1 + j * GROWTH_PER_TICK) * SEASON_GROWTH_MULTIPLIER[season]
+            BASE_ACCRUAL * (1 + j * growth_per_tick()) * season_multiplier_for(season)
             * weather_multiplier_at(start_tick + j)  # GB-23: the same rain/drought the real forest saw
         )
     return total * current_legacy_multiplier() * vault_growth_multiplier()
@@ -3194,6 +3221,142 @@ def on_toggle_session_summary(event=None):
     render_session_summary()
 
 
+# B-5 continued: staged values, applying them, saved variants and the panel. ---------------------------------
+LAB_VARIANTS_KEY = "canopy_lab_variants_v1"
+LAB_VARIANTS_MAX = 6
+LAB_LABELS = {"soil": "Soil damage per clear", "maturity": "Growth over time", "requests": "Request frequency", "season": "Season strength"}
+lab_pending = {key: 1.0 for key in LAB_KEYS}
+
+
+def clean_lab_value(value):
+    """A value snapped onto the slider's steps and range; anything unusable becomes 1.0."""
+    if isinstance(value, bool) or not isinstance(value, (int, float)) or value != value:
+        return 1.0
+    snapped = round(float(value) / LAB_STEP) * LAB_STEP
+    return min(LAB_MAX, max(LAB_MIN, snapped))
+
+
+def set_lab_values(raw):
+    """Applies saved values (missing or invalid ones are the normal 1.0)."""
+    source = raw if isinstance(raw, dict) else {}
+    for key in LAB_KEYS:
+        lab[key] = clean_lab_value(source.get(key, 1.0))
+        lab_pending[key] = lab[key]
+
+
+def lab_summary_text(values):
+    return ", ".join(f"{LAB_LABELS[k].lower()} x{values[k]:g}" for k in LAB_KEYS)
+
+
+def load_lab_variants():
+    raw = _read_local_storage_item(LAB_VARIANTS_KEY)
+    try:
+        data = json.loads(raw) if raw else []
+    except (ValueError, TypeError):
+        return []
+    out = []
+    for item in data if isinstance(data, list) else []:
+        if isinstance(item, dict) and isinstance(item.get("values"), dict):
+            out.append({"name": str(item.get("name", "Variant"))[:20] or "Variant",
+                        "values": {k: clean_lab_value(item["values"].get(k, 1.0)) for k in LAB_KEYS}})
+    return out[:LAB_VARIANTS_MAX]
+
+
+def save_lab_variant(name=""):
+    """Stores the staged values as a named variant; the newest replaces the oldest once six are held."""
+    variants = load_lab_variants()
+    name = " ".join(str(name or "").split())[:20] or f"Variant {len(variants) + 1}"
+    variants = [v for v in variants if v["name"] != name]
+    variants.append({"name": name, "values": dict(lab_pending)})
+    _write_local_storage_item(LAB_VARIANTS_KEY, json.dumps(variants[-LAB_VARIANTS_MAX:]))
+    return name
+
+
+def load_lab_variant(name):
+    for variant in load_lab_variants():
+        if variant["name"] == name:
+            lab_pending.update(variant["values"])
+            return True
+    return False
+
+
+def apply_lab():
+    """Makes the staged dials live. History would be rewritten mid-forest, so this starts a new forest."""
+    reset_session(lab_values=dict(lab_pending))
+    return lab_active()
+
+
+def reset_lab_to_normal(event=None):
+    for key in LAB_KEYS:
+        lab_pending[key] = 1.0
+    render_lab()
+
+
+def on_lab_slider(key):
+    element = _el(f"lab-{key}")
+    if element is None:
+        return
+    try:
+        lab_pending[key] = clean_lab_value(float(element.value))
+    except (TypeError, ValueError):
+        return
+    render_lab()
+
+
+def on_lab_apply(event=None):
+    apply_lab()
+
+
+def on_lab_save_variant(event=None):
+    name_box = _el("lab-variant-name")
+    save_lab_variant(getattr(name_box, "value", ""))
+    if name_box is not None:
+        name_box.value = ""
+    render_lab()
+
+
+def on_lab_load_variant(event=None):
+    select = _el("lab-variant-select")
+    if select is not None and load_lab_variant(getattr(select, "value", "")):
+        render_lab()
+
+
+def render_lab_banner():
+    banner = _el("lab-banner")
+    if banner is not None:
+        banner.hidden = not lab_active()
+        banner.innerText = "Sandbox forest: not counted toward personal bests, lifetime statistics, legacy bonus or rank." if lab_active() else ""
+
+
+def render_lab():
+    render_lab_banner()
+    for key in LAB_KEYS:
+        slider, readout = _el(f"lab-{key}"), _el(f"lab-{key}-value")
+        if slider is not None:
+            slider.min, slider.max, slider.step = str(LAB_MIN), str(LAB_MAX), str(LAB_STEP)
+            slider.value = f"{lab_pending[key]:g}"
+        if readout is not None:
+            readout.innerText = f"x{lab_pending[key]:g}"
+    status = _el("lab-status")
+    if status is not None:
+        changed = any(abs(lab_pending[k] - lab[k]) > 1e-9 for k in LAB_KEYS)
+        status.innerText = (f"Live: {lab_summary_text(lab)}." if lab_active() else "Live: the normal game.") + (
+            " Staged changes start a new forest when you press Apply." if changed else "")
+    select = _el("lab-variant-select")
+    if select is not None:
+        previous = getattr(select, "value", "")
+        select.innerHTML = ""
+        names = []
+        for variant in load_lab_variants():
+            option = document.createElement("option")
+            option.value = variant["name"]
+            option.innerText = f"{variant['name']} ({lab_summary_text(variant['values'])})"
+            select.appendChild(option)
+            names.append(variant["name"])
+        if previous in names:
+            select.value = previous
+
+
 def render_session_summary():
     toggle = document.getElementById("session-summary-toggle-button")
     panel = document.getElementById("session-summary-panel")
@@ -3223,6 +3386,7 @@ def render_session_summary():
     render_request_history()
     render_lifetime_stats()
     render_my_forests()
+    render_lab()
     render_forest_rank()
     render_coach_hints()
     _update_scenario_best()
@@ -5434,7 +5598,7 @@ def render_season_forecast():
 def current_request_interval():
     """Ticks between community requests: the Pass 3 interval scaled by the chosen pace."""
     factor = REQUEST_PACE_FACTOR.get(current_pace, 1.0)
-    return max(5, int(round(STAKEHOLDER_EVENT_INTERVAL_TICKS * factor)))
+    return max(5, int(round(STAKEHOLDER_EVENT_INTERVAL_TICKS * factor / lab["requests"])))  # B-5
 
 
 def session_tag_text():
@@ -5446,6 +5610,8 @@ def session_tag_text():
         parts.append(REQUEST_PACE_LABEL[current_pace].lower())
     if current_challenge != CHALLENGE_NONE:
         parts.append(f"{CHALLENGE_SPECS[current_challenge]['label']} challenge")
+    if lab_active():
+        parts.append("Forest Lab sandbox")
     return ", ".join(parts)
 
 
@@ -5521,7 +5687,7 @@ def load_scenario_bests():
 
 def _update_scenario_best():
     """Called every render(): keeps the running scenario's own best standing value."""
-    if current_scenario == SCENARIO_NONE or current_scenario not in SCENARIO_SPECS:
+    if current_scenario == SCENARIO_NONE or current_scenario not in SCENARIO_SPECS or lab_active():
         return
     bests = load_scenario_bests()
     value = standing_forest_value()
@@ -7074,6 +7240,8 @@ def render_vault():
 
 def _levels_state_fields():
     out = {}
+    if lab_active():  # B-5
+        out["lab"] = dict(lab)
     if current_scenario != SCENARIO_NONE:  # B-11
         out["scenario"] = current_scenario
     if plot_notes:  # B-24
@@ -7314,6 +7482,7 @@ def render():
     render_plot_note_input()  # B-24
     render_plot_sheet()  # B-28
     render_survey()  # B-13
+    render_lab_banner()  # B-5
     render_stats()
     render_stakeholder_panel()
     render_real_world()
@@ -7950,6 +8119,7 @@ def load_state(data):
         for e in raw_log
         if isinstance(e, dict)
     ][-FOREST_LOG_MAX_ENTRIES:]
+    set_lab_values(data.get("lab"))  # B-5: an older save has none, which means the normal game
     saved_scenario = data.get("scenario")
     current_scenario = saved_scenario if saved_scenario in SCENARIO_SPECS else SCENARIO_NONE
     plot_notes.clear()
@@ -8178,6 +8348,15 @@ def setup():
         select = _el(select_id)
         if select is not None:
             select.addEventListener("change", create_proxy(on_my_forests_change))
+    for lab_key in LAB_KEYS:  # B-5
+        lab_slider = _el(f"lab-{lab_key}")
+        if lab_slider is not None:
+            lab_slider.addEventListener("input", create_proxy(lambda event=None, k=lab_key: on_lab_slider(k)))
+    for lab_id, lab_handler in (("lab-apply-button", on_lab_apply), ("lab-reset-button", reset_lab_to_normal),
+                                ("lab-save-variant-button", on_lab_save_variant), ("lab-load-variant-button", on_lab_load_variant)):
+        lab_button = _el(lab_id)
+        if lab_button is not None:
+            lab_button.addEventListener("click", create_proxy(lab_handler))
     for survey_id, survey_handler in (("survey-toggle-button", on_toggle_survey), ("survey-commit-button", commit_survey),
                                       ("survey-remove-button", on_survey_remove_last), ("survey-decline-button", on_survey_decline),
                                       ("survey-cancel-button", cancel_survey)):  # B-13

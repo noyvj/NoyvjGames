@@ -252,6 +252,7 @@
     </div>
     <div id="achievements-panel" class="section achievements-panel grove-wall" hidden></div>
     <div id="achievement-toast" class="achievement-toast" hidden></div>
+    <p id="lab-banner" class="lab-banner" role="status" hidden></p>
     <div id="survey-panel" class="section survey-panel" hidden>
       <p id="survey-status" class="survey-status" aria-live="polite"></p>
       <ol id="survey-queue" class="survey-queue"></ol>
@@ -352,6 +353,29 @@
         <input type="range" id="replay-slider" min="0" max="0" value="0" step="1">
         <div id="replay-grid" class="replay-grid"></div>
         <p id="replay-label" class="replay-label" aria-live="polite"></p>
+      </details>
+      <!-- B-5: Forest Lab sandbox. Dials are staged; Apply starts a new forest. Sandbox forests never count toward bests. -->
+      <details class="summary-details" id="lab-details">
+        <summary>Forest Lab (sandbox)</summary>
+        <p id="lab-status" class="lab-status" aria-live="polite"></p>
+        <label for="lab-soil">Soil damage per clear <output id="lab-soil-value">x1</output></label>
+        <input type="range" id="lab-soil" min="0.5" max="2" step="0.25" value="1">
+        <label for="lab-maturity">Growth over time <output id="lab-maturity-value">x1</output></label>
+        <input type="range" id="lab-maturity" min="0.5" max="2" step="0.25" value="1">
+        <label for="lab-requests">Request frequency <output id="lab-requests-value">x1</output></label>
+        <input type="range" id="lab-requests" min="0.5" max="2" step="0.25" value="1">
+        <label for="lab-season">Season strength <output id="lab-season-value">x1</output></label>
+        <input type="range" id="lab-season" min="0.5" max="2" step="0.25" value="1">
+        <div class="lab-buttons">
+          <button type="button" id="lab-apply-button">Apply (starts a new forest)</button>
+          <button type="button" id="lab-reset-button" class="secondary">Stage the normal game</button>
+        </div>
+        <label for="lab-variant-name">Save these dials as a variant</label>
+        <input type="text" id="lab-variant-name" maxlength="20" placeholder="Variant name">
+        <button type="button" id="lab-save-variant-button" class="secondary">Save variant</button>
+        <label for="lab-variant-select">Saved variants</label>
+        <select id="lab-variant-select"></select>
+        <button type="button" id="lab-load-variant-button" class="secondary">Stage variant</button>
       </details>
       <!-- B-1: library of finished sessions; pick any two to compare side by side. -->
       <details class="summary-details" id="my-forests-details">

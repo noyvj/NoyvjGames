@@ -2223,6 +2223,12 @@ html[data-forest-palette="meadow"] { --forest-accent: #a7d98a; }
 .survey-projection { margin: 0; font-size: 0.9em; }
 .survey-buttons { display: flex; flex-wrap: wrap; gap: 0.5rem; }
 
+/* B-5: Forest Lab. */
+.lab-banner:not([hidden]) { margin: 0.4rem 0; padding: 0.35rem 0.6rem; border: 2px dashed currentColor; border-radius: 8px; font-weight: 600; }
+.lab-status { margin: 0 0 0.4rem; font-size: 0.9em; }
+.lab-buttons { display: flex; flex-wrap: wrap; gap: 0.5rem; margin: 0.4rem 0; }
+#lab-details input[type="range"] { width: 100%; }
+
 /* ============================================================
    Light theme (Y11b, 2026-09-27). shared/theme-light-games.css already
    restyles the shared chrome (panels, buttons, inputs, HUD readouts);
