@@ -1,6 +1,6 @@
 # Site-Wide TODO (round 3)
 
-**Progress: 455/1054 items checked off (43.2%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land.
+**Progress: 455/1048 items checked off (43.4%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land.
 
 Built from your answers in `planning/IMPROVEMENT-IDEAS-ROUND-3.md` (Part 4). Every Round 3 section is now answered (2026-10-07 below the Warframe section); earlier this list held only: **GB** (Canopy gamified), **M** (new games), **N** (seasonal events), **O** (Trade Empire and Continuum replayability), **P/Q/S/T** (Signal, Undersleep, Overclock, Last Line open questions), **X** (Warframe tracker) and **R** (returning later). GC-GI, A-L, U, Z and Y are unanswered and wait for you. The previous list is archived at `planning/todo-archive/260914_260927.md`; anything from it that was moved here is marked "moved" there.
 
@@ -1215,7 +1215,6 @@ One checkbox per pass per area. A pass is not done until its fixes are committed
 - [ ] FY-14: Le Champ de Mots: when a question asks for just the word, do not require its le/la (you said no to requiring it: "Don’t require it when just asking for the word").
 - [ ] FY-15: Be1: Backend: how many proxies does FastAPI Cloud put in front of the app (you said yes: leave as is unless you see abuse.)
 - [ ] FY-16: Be2: Backend: reject the username noyvj at signup unless an owner environment variable is set (you said yes: yes.)
-- [ ] FY-17: Be3: Backend: should sign-in tokens expire, with a logout route (you said yes: later.)
 - [ ] FY-18: Be4: Hub: remove the Google ads script (placeholder client id) from the hub until your AdSense account is approved (you said yes: yes, and I put it back when you give me the id.)
 - [ ] FY-19: Ti1: Tide: build a Tide Workshop (sliders for starting funds, lag length, sea-level rate, surge size) with runs labelled "custom rules" and never ranked (you said yes: yes.)
 - [ ] FY-20: Ti2: Tide: may I choose the named coastline scenarios myself (three invented coasts: low delta, cliff bay, barrier island, with plain traits) (you said yes: yes, my call.)
@@ -1241,17 +1240,12 @@ One checkbox per pass per area. A pass is not done until its fixes are committed
 - [ ] FY-40: Dr1: Drift: merge the two overlapping ideas (a personality system and a civic-milestone system) into one (you said yes: yes.)
 - [ ] FY-41: Dr2: Drift: may I draw the skins, building pop-ups and route glyphs myself as simple code-drawn graphics (you said yes: yes.)
 - [ ] FY-42: Te1: Trade Empire: may I add a Blackout mode badge to the shared opening screen (you said yes: yes, small.)
-- [ ] FY-43: Te2: Trade Empire: build the Cartel Board as a late-game panel (you said yes: later.)
 - [ ] FY-44: Co1: Continuum: write the advisor council, notable citizens and citizen of the season as original fictional characters, with real-world facts only sourced and named on screen (you said yes: yes.)
 - [ ] FY-45: Co2: Continuum: build neighbouring settlements as computer-controlled neighbours first, before any multiplayer (you said yes: yes.)
 - [ ] FY-46: Ca1: Le Champ de Mots: add coins earned from watering that unlock cosmetic skins (you said yes: yes, cosmetic only.)
 - [ ] FY-47: Ca2: Le Champ de Mots: add a false-friends set, built from a reputable list read live and named on screen (you said yes: yes.)
-- [ ] FY-48: Ca3: Le Champ de Mots: add an optional answer timer to practice for a quickest-answer record (you said yes: no.)
 - [ ] FY-49: So1: SOL: may I write the balance for prestige mutators myself (you said yes: yes.)
 - [ ] FY-50: So2: SOL: build the anomaly system on a fixed schedule rather than random (you said yes: yes.)
-- [ ] FY-51: Cn1: Canopy: build the community plot (one forest everyone adds to) on the new leaderboard backend (you said yes: later.)
-- [ ] FY-52: Cn2: Canopy: build the rival-company 1 v 1 mode (you said yes: later.)
-- [ ] FY-53: Mp1: Multiplayer: replay verification of scores for Signal and Last Line only, client-trusted everywhere else (you said yes: later.)
 
 ## Closing tasks
 

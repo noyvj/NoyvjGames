@@ -137,3 +137,14 @@ Several items across the ideas file got parked specifically pending this — you
 - **Round 3 K-3 (Continuum)**: K-3 (Continuum): era-specific crisis events (drought, plague, market crash, fire, grid outage, solar storm) with pre-chosen mitigation policies; owner said 'maybe, but not a deck', so bring back only as a scheduled-crisis or preparedness-slot version with no deck or random hand.
 - **Round 3 K-22 (Continuum)**: K-22 (Continuum): per-era ambient soundscapes (opt-in, own volume slider, muted by default). Owner said audio is still a later; revisit with the other parked audio items (K4, K11).
 - **Round 3 Z-26 (cross-game)**: a tiny dormant shared quiet-mode helper (muted until first tap, one corner switch) that renders nothing until a game adds audio. You said park it (2026-10-07) while audio stays parked; raise audio again every ideas round.
+
+
+## Parked from your sheet answers (2026-10-08; your yes = go with my recommendation, which was later)
+
+- **Be3: Backend: should sign-in tokens expire, with a logout route**
+- **Te2: Trade Empire: build the Cartel Board as a late-game panel**
+- **Cn1: Canopy: build the community plot (one forest everyone adds to) on the new leaderboard backend**
+- **Cn2: Canopy: build the rival-company 1 v 1 mode**
+- **Mp1: Multiplayer: replay verification of scores for Signal and Last Line only, client-trusted everywhere else**
+
+- (Dropped, your yes = my recommendation was no: Ca3: Le Champ de Mots: add an optional answer timer to practice for a quickest-answer record)
