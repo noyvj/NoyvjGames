@@ -2,7 +2,7 @@
 // the precache list; ordinary content deploys don't need it, because
 // same-origin requests are network-first (see the fetch handler below) and
 // so always pick up fresh files whenever the player is online.
-const SW_VERSION = 41;
+const SW_VERSION = 42;
 const CACHE_NAME = "site-cache-v" + SW_VERSION;
 // How long a same-origin network request may take before we give up and
 // serve the cached copy instead (a slow/flaky connection shouldn't hang).
@@ -34,6 +34,8 @@ const PRECACHE_URLS = [
   "./game-sessions.json",
   "./terms-meta.json",
   "./whats-new-data.js",
+  "./profile.js",
+  "./profile.html",
   "./hub-today.js",
   "./hub-foryou.js",
   "./hub-collections.js",
@@ -55,6 +57,8 @@ const PRECACHE_URLS = [
   // Site-wide shared includes (Z-19/21/23/24/25/29/31): in every game page and the hub's.
   "shared/seasonal-events.js",
   "shared/seasonal-dates.json",
+  "shared/profile.js",
+  "shared/report-problem.js",
   "shared/seed.js",
   "shared/seed.py",
   "shared/copy-result.js",

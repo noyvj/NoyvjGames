@@ -432,6 +432,44 @@ With `data-game-id` present nothing else is needed: a Share button is added to e
 
 ---
 
+## 9. Report a problem (`shared/report-problem.js`, backend `bug_reports`, TODO Z-17)
+
+A "Report a problem" button and dialog for every game. **Adopting it is two lines** in the game's `index.html` (the Desktop page picks them up when `pc.html` is regenerated), after the other shared includes:
+
+```html
+<script src="../../shared/report-problem.js" data-game-id="canopy" data-schema-version="3"></script>
+```
+
+(That is line one; `data-schema-version` is optional and should be the save's `schema_version` from `shared/migrate.py` if the game has one. Line two is only needed when the game wants a menu entry instead of the small floating button: add `data-button="none"` to the tag and call `NoyvjReport.open()` from the game's own button; `data-mount="#some-container"` puts the built-in button inside an element instead of floating it.) Not yet in `sw.js`'s precache list.
+
+- **Preview.** The dialog has one box ("What happened?") and a plain-text box headed "Exactly what will be sent". The request body and the preview are built from the same object (`NoyvjReport.payload` and `NoyvjReport.previewText`), and a test checks that every posted value appears in the preview.
+- **Always sent:** game id, the page's path (no query string, no hash), the note, the save-schema version if the game gave one. **Off until ticked:** the save code (read from `localStorage["savecode:<game>"]`, or `NoyvjReport.configure({getSaveCode})`), the browser and window size, the last 20 console lines, and (signed in only) "link this report to my account" so it is deleted with the account. Nothing is sent until Send is pressed.
+- **Console capture.** A ring buffer of the last 20 lines (`console.log/info/warn/error/debug`, uncaught errors, unhandled rejections), started when the script loads, memory only, lines cut at 300 characters, bearer tokens, `token=`/`key=`/`password=` values, save codes and emails replaced with `[removed]` as they are captured (the server scrubs again).
+- **Accessibility and layout.** Native modal `<dialog>` (focus stays inside, Escape closes, focus returns to the opener), labelled controls, 44 px targets, Ctrl/Cmd+Enter sends, light and dark tokens following `html[data-theme]` and the OS, no animation, works at 360 px, prints as nothing.
+- **Backend.** `POST /bug-reports` (public; 15 per address per hour; note 2000 characters, console 20 lines of 300, page 300; `attachment` accepts only `{"save_code": "XXXX-XXXX"}`; 413 above 5 MB; `link_account` links the row to the bearer token's account only when true) and the admin-only `GET /admin/bug-reports` (filters `game_id`, `resolved`, `fixed`, `limit`) and `PATCH /admin/bug-reports/{id}` (`resolved`, `fixed`, `note`, like the answer reports), shown in the "Problem reports" panel of `admin.html`. Linked rows are in `GET /users/me/export` and deleted with the account. Table `bug_reports` is new, so `create_all` builds it and `patch_schema()` needs nothing.
+- Tests: `shared/tests/test_report_problem_browser.py`, `shared/tests/test_admin_bug_reports_browser.py`, `app/tests/test_bug_reports.py`.
+
+---
+
+## 10. Player profile (`shared/profile.js`, `profile.html`, backend `user_profiles`, TODO Z-7 and Y-1)
+
+**Games feed it, one call at save time.** Adopting it is two lines:
+
+```html
+<script src="../../shared/profile.js" data-game-id="canopy"></script>
+<!-- in the save path, after a successful save: -->
+<script>NoyvjProfile.update({ achievements: earnedIds.length, streaks: { daily: dailyStreak } });</script>
+```
+
+(In practice the second line lives in the game's own code or, better, once in `shared/save-widget.js` after a successful save so no game needs it.) Every field is optional: `game` (defaults to the tag's `data-game-id`), `seconds` (time played since the last call; leave it out and the helper counts the seconds the page was open and visible), `achievements` (a count or an array of ids; only ever raises the stored count), `streaks` (`{label: value}`, lowercase letters, digits and `_`; the server keeps the longest). It never blocks or breaks saving (returns at once, swallows every error), posts only for a signed-in player (signed out it keeps and sends nothing), is throttled to one post per game every 5 minutes (a hiding page may send what is waiting at most every 30 seconds), keeps unsent work in `localStorage["profile-sync:<game>"]`, retries after a failure and backs off 15 minutes after a 429. It sends numbers and ids only (plus the seasonal badge ids from `localStorage["event_badges_v1"]`). One post credits at most four hours.
+
+- **Data model** (table `user_profiles`, one row per account, defaults when absent): `is_public` (**off by default**), `favourite_game`, per-game `{seconds, achievements}`, streaks (`"<game>:<label>"` -> longest), seasonal badge ids. Member-since is the account's creation date. Milestone badges (`first-steps`, `achiever-10/50/100`, `explorer-3/8/14`, `time-1h/10h/100h`, `streak-7/30`) are computed from those numbers by `app/profiles.py`, so there is one definition; seasonal badge labels are derived from the id on the server, never taken from the client.
+- **Routes.** `GET /users/me/profile` (the owner's view), `PUT /users/me/profile` (merge: `is_public`, `favourite_game` (null clears), `event_badges`, `progress`), public `GET /profiles/{username}` which answers 404 **identically** for "no such player" and "profile is off", never returns an email, save, save code, token or internal id, and is rate limited per address. The profile is in `GET /users/me/export` and deleted with the account.
+- **`profile.html?u=name`.** Public view: badges (with a glyph and the word "Seasonal" for event badges, never colour alone), achievements per game, favourite game, member since, total time, longest streaks, honest empty and not-public states. For the signed-in owner: the "Make my profile public" switch, a share link with a Copy button, a favourite-game picker, and a preview of what others would see. No tracking of any kind. `noindex`. Not in `sw.js`, `sitemap.xml` or the hub's phone app bar yet (main session); `scripts/wire-shared-includes.py`'s `HUB_PAGES` and `shared/tests/test_site_includes.py` do not list it either, but its head follows the same include order.
+- Tests: `app/tests/test_profiles.py`, `shared/tests/test_profile_helper_browser.py`, `shared/tests/test_profile_page_browser.py`.
+
+---
+
 ## Time controls and pause-when-hidden (W-2, Z-28)
 
 Files: `shared/time-controls.js`, `shared/time-controls.css`, `shared/pause-hidden.js`. Tests: `shared/tests/test_time_controls_browser.py`, `shared/tests/test_pause_hidden_browser.py`, plus `tests/test_time_controls.py` in SOL, Canopy and Trade Empire and `tests/test_pause_hidden.py` in Continuum. Not yet in `sw.js`'s precache: add the three files.

@@ -18,16 +18,18 @@ from sqlalchemy.orm import Session
 
 import account_data
 import boards
+import bug_reports
 import leaderboards
 import market
 import pools
+import profiles
 import snapshots
 import stats
 from throttle import FailureLimiter
 from database import engine, get_db, init_schema, retry_schema_until_ready
 from models import (
-    AnswerReport, AuthSession, Feedback, LeaderboardEntry, OwnerNote, PageView, PoolDay, Rating, Save,
-    SaveSnapshot, ScoreEntry, ScoreProfile, User,
+    AnswerReport, AuthSession, BugReport, Feedback, LeaderboardEntry, OwnerNote, PageView, PoolDay, Rating, Save,
+    SaveSnapshot, ScoreEntry, ScoreProfile, User, UserProfile,
 )
 
 logger = logging.getLogger(__name__)
@@ -146,6 +148,44 @@ def create_rating(rating: RatingIn, request: Request, db: Session = Depends(get_
     db.commit()
     db.refresh(row)
     return row
+
+
+# Y-31: the hub's star averages in ONE small response instead of one download of every rating row
+# per game. Public, aggregates only (no comments, no ids), hidden rows left out. `stars` rows only:
+# in-game feedback-prompt rows (stars NULL, a text `response`) never count towards an average.
+# Test data is handled the way it always was for ratings: an admin hides the row (is_hidden), which
+# ratings have no account link to do any other way. A short cache keeps a busy hub cheap; the hub
+# bypasses it for the one request that follows the visitor's own submission.
+RATINGS_SUMMARY_CACHE_CONTROL = "public, max-age=60"
+
+
+@app.get("/ratings-summary")
+def ratings_summary(response: Response, db: Session = Depends(get_db)):
+    response.headers["Cache-Control"] = RATINGS_SUMMARY_CACHE_CONTROL
+    rows = (
+        db.query(Rating.game_slug, Rating.stars, func.count(Rating.id))
+        .filter(Rating.stars.isnot(None), Rating.is_hidden.is_(False))
+        .group_by(Rating.game_slug, Rating.stars)
+        .all()
+    )
+    games: dict = {}
+    for slug, stars, n in rows:
+        if not isinstance(stars, int) or not 1 <= stars <= 5:
+            continue
+        entry = games.setdefault(slug, {"count": 0, "total": 0, "distribution": {str(i): 0 for i in range(1, 6)}})
+        entry["distribution"][str(stars)] += int(n)
+        entry["count"] += int(n)
+        entry["total"] += stars * int(n)
+    return {
+        "games": {
+            slug: {
+                "average": round(e["total"] / e["count"], 4),
+                "count": e["count"],
+                "distribution": e["distribution"],
+            }
+            for slug, e in sorted(games.items())
+        }
+    }
 
 
 @app.get("/ratings/{game_slug}", response_model=List[RatingOut])
@@ -325,6 +365,15 @@ ADMIN_TOKEN_ENV_VARS = ("ADMIN_TOKEN", "AI_ADMIN_TOKEN")
 # unique (see _normalize_username), so only this exact account matches. The
 # AI sessions keep using AI_ADMIN_TOKEN, which stays independently revocable.
 OWNER_USERNAME = "noyvj"
+
+
+OWNER_SIGNUP_ENV_VAR = "OWNER_SIGNUP_ALLOWED"
+
+
+def owner_signup_allowed() -> bool:
+    """FY-16: true only while the server environment variable OWNER_SIGNUP_ALLOWED is "1" (or "true").
+    Read at request time, so setting or unsetting it needs a redeploy but no code change."""
+    return os.environ.get(OWNER_SIGNUP_ENV_VAR, "").strip().lower() in ("1", "true")
 
 
 def require_admin(
@@ -539,8 +588,16 @@ PAGEVIEW_LIMITER = FailureLimiter(max_failures=120, window_seconds=3600)
 # Z-10: save snapshots, per ACCOUNT (the key is the user id). The widget takes one before a Load, a
 # New Game or a restore and one per 10 minutes of autosave, so 40 an hour is far above real play.
 SNAPSHOT_LIMITER = FailureLimiter(max_failures=40, window_seconds=3600)
+# Z-17: "Report a problem" reports, per address (a real player sends a handful at most).
+BUG_REPORT_LIMITER = FailureLimiter(max_failures=15, window_seconds=3600)
+# Z-7: profile progress posts, per ACCOUNT (the key is the user id). shared/profile.js posts at most
+# about once every five minutes per game, so 90 an hour is far above real play.
+PROFILE_UPDATE_LIMITER = FailureLimiter(max_failures=90, window_seconds=3600)
+# Y-1: public profile lookups, per address, so usernames cannot be walked quickly.
+PROFILE_LOOKUP_LIMITER = FailureLimiter(max_failures=300, window_seconds=3600)
 WRITE_LIMITERS = (
     SIGNUP_LIMITER, RATING_LIMITER, SAVE_CREATE_LIMITER, ANSWER_REPORT_LIMITER, PAGEVIEW_LIMITER, SNAPSHOT_LIMITER,
+    BUG_REPORT_LIMITER, PROFILE_UPDATE_LIMITER, PROFILE_LOOKUP_LIMITER,
 )
 
 
@@ -576,6 +633,12 @@ def signup(payload: AuthIn, request: Request, db: Session = Depends(get_db)):
     # sign in because only signup checks this).
     if not USERNAME_PATTERN.fullmatch(username):
         raise HTTPException(status_code=422, detail="username may only use letters, numbers, spaces and . _ -")
+    # FY-16: the owner account's name is reserved. The account already exists in production; this only
+    # stops a rebuilt or empty database from letting a stranger register "noyvj" first and inherit the
+    # admin access that name carries (require_admin, require_owner). Set OWNER_SIGNUP_ALLOWED=1 in the
+    # server environment ONLY while creating the owner account on a fresh database, then unset it.
+    if username == OWNER_USERNAME and not owner_signup_allowed():
+        raise HTTPException(status_code=403, detail="That username is reserved")
     if _username_exists(db, username):
         raise HTTPException(status_code=409, detail="Username already taken")
 
@@ -2166,3 +2229,131 @@ def admin_whats_new_votes(
 ):
     response.headers["Cache-Control"] = "no-store"
     return {"entries": account_data.vote_tallies(db, hide_test)}
+
+
+# --- Z-17: in-game "Report a problem" (shared/report-problem.js) ---
+# Public POST (rate limited per address, every field size-limited in bug_reports.py), admin-only
+# list and triage. The widget previews exactly what it will send and sends optional parts only when
+# the player ticked them; the server just stores what arrives, so a null field means "not attached".
+
+
+@app.post("/bug-reports")
+def create_bug_report(
+    payload: bug_reports.BugReportIn,
+    request: Request,
+    response: Response,
+    current_user: Optional[User] = Depends(get_current_user_optional),
+    db: Session = Depends(get_db),
+):
+    response.headers["Cache-Control"] = "no-store"
+    _throttle(BUG_REPORT_LIMITER, request, "Too many reports from this address, try again later")
+    row = BugReport(
+        game_id=payload.game_id,
+        page=payload.page,
+        note=payload.note,
+        schema_version=payload.schema_version,
+        browser=payload.browser,
+        viewport=payload.viewport,
+        console_log=payload.console_log,
+        attachment=payload.attachment,
+        # Linked only when the player asked for it AND is signed in; otherwise the report is anonymous.
+        user_id=current_user.id if (payload.link_account and current_user is not None) else None,
+    )
+    db.add(row)
+    db.commit()
+    db.refresh(row)
+    return {"id": row.id, "received": True}
+
+
+@app.get("/admin/bug-reports", response_model=List[bug_reports.BugReportAdminOut])
+def admin_list_bug_reports(
+    response: Response,
+    game_id: Optional[str] = None,
+    resolved: Optional[bool] = None,
+    fixed: Optional[bool] = None,
+    limit: int = 200,
+    _admin: None = Depends(require_admin),
+    db: Session = Depends(get_db),
+):
+    """Newest first, with the linked username when the player chose to link the report."""
+    response.headers["Cache-Control"] = "no-store"
+    limit = max(1, min(bug_reports.LIST_LIMIT_MAX, limit))
+    query = db.query(BugReport)
+    if game_id is not None:
+        query = query.filter(BugReport.game_id == game_id)
+    if resolved is not None:
+        query = query.filter(BugReport.is_resolved.is_(resolved))
+    if fixed is not None:
+        query = query.filter(BugReport.is_fixed.is_(fixed))
+    rows = query.order_by(BugReport.created_at.desc(), BugReport.id).limit(limit).all()
+    ids = {r.user_id for r in rows if r.user_id}
+    names = dict(db.query(User.id, User.username).filter(User.id.in_(ids)).all()) if ids else {}
+    return [bug_reports.admin_out(r, names.get(r.user_id)) for r in rows]
+
+
+@app.patch("/admin/bug-reports/{report_id}", response_model=bug_reports.BugReportAdminOut)
+def admin_patch_bug_report(
+    report_id: str,
+    body: bug_reports.BugReportPatch,
+    response: Response,
+    _admin: None = Depends(require_admin),
+    db: Session = Depends(get_db),
+):
+    """Tick or untick resolved (the owner dealt with it) and fixed (a change was made because of it,
+    with an optional one-line note), exactly like the answer reports. Only the keys sent change."""
+    response.headers["Cache-Control"] = "no-store"
+    row = db.query(BugReport).filter(BugReport.id == report_id).first()
+    if row is None:
+        raise HTTPException(status_code=404, detail="Report not found")
+    if body.resolved is not None:
+        row.is_resolved = body.resolved
+        row.resolved_at = func.now() if body.resolved else None
+    if body.fixed is not None:
+        row.is_fixed = body.fixed
+        row.fixed_at = func.now() if body.fixed else None
+        row.fixed_note = ((body.note or "").strip()[: bug_reports.FIXED_NOTE_MAX_LENGTH] or None) if body.fixed else None
+    db.commit()
+    db.refresh(row)
+    username = db.query(User.username).filter(User.id == row.user_id).scalar() if row.user_id else None
+    return bug_reports.admin_out(row, username)
+
+
+# --- Z-7 / Y-1: the player profile (see profiles.py) ---
+# GET/PUT /users/me/profile is the signed-in owner's view and editor; GET /profiles/{username} is
+# the public page's data and answers 404 for "no such account" and "profile not public" alike.
+PROFILE_NOT_PUBLIC = "There is no public profile with that name."
+
+
+@app.get("/users/me/profile")
+def get_my_profile(response: Response, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    response.headers["Cache-Control"] = "no-store"
+    return profiles.summarize(current_user, profiles.get_row(db, current_user.id), viewer="owner")
+
+
+@app.put("/users/me/profile")
+def put_my_profile(
+    payload: profiles.ProfilePut,
+    response: Response,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Merge the keys sent: is_public (the switch), favourite_game (null clears), event_badges (ids
+    only) and progress ({game, add_seconds, achievements, streaks}, the shared/profile.js update).
+    Progress posts are rate limited per account."""
+    response.headers["Cache-Control"] = "no-store"
+    if payload.progress is not None:
+        if PROFILE_UPDATE_LIMITER.blocked(current_user.id):
+            raise HTTPException(status_code=429, detail="Too many profile updates, try again later")
+        PROFILE_UPDATE_LIMITER.record_failure(current_user.id)
+    row = profiles.apply_put(db, current_user, payload)
+    return profiles.summarize(current_user, row, viewer="owner")
+
+
+@app.get("/profiles/{username}")
+def get_public_profile(username: str, request: Request, response: Response, db: Session = Depends(get_db)):
+    response.headers["Cache-Control"] = "no-store"
+    _throttle(PROFILE_LOOKUP_LIMITER, request)
+    found = profiles.public_profile(db, _normalize_username(username))
+    if found is None:
+        raise HTTPException(status_code=404, detail=PROFILE_NOT_PUBLIC)
+    return found

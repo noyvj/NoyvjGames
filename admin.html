@@ -168,6 +168,7 @@
   .spark-card .base { stroke: rgba(140, 160, 255, 0.25); stroke-width: 1; }
   .spark-foot { display: flex; justify-content: space-between; font-size: 0.7rem; opacity: 0.55; margin-top: 0.2rem; }
   .vote-up, .vote-down { font-variant-numeric: tabular-nums; }
+  .bug-console { white-space: pre-wrap; overflow-wrap: anywhere; max-height: 14rem; overflow: auto; font-size: 0.75rem; margin: 0.3rem 0 0; }
   code { font-size: 0.82rem; background: rgba(5, 6, 13, 0.5); padding: 0.1rem 0.35rem; border-radius: 4px; }
 .skip-link-admin{position:absolute;left:-9999px;top:0;background:#a9c3ff;color:#111;padding:.5rem 1rem;z-index:100}.skip-link-admin:focus{left:0}
 :focus-visible{outline:2px solid #a9c3ff}
@@ -273,6 +274,25 @@
     <p class="status-line" id="reports-status">Loading…</p>
     <table id="reports-table">
       <thead><tr><th>Item</th><th>Submitted</th><th>Marked correct</th><th>Topic</th><th>When</th><th>Status</th><th>Fixed</th></tr></thead>
+      <tbody></tbody>
+    </table>
+  </details>
+
+  <details class="panel" id="panel-bugs" open>
+    <summary><h2>Problem reports <span style="opacity:0.5; font-weight:400;">(in-game "Report a problem")</span></h2></summary>
+    <p class="status-line">Reports players sent from a game's "Report a problem" button. Everything except the note is something the player chose to attach, so an empty extra means they left it off. A save code lets you open their save from the game's own Load box. Mark done when you have dealt with one; tick Fixed when a change was made because of it.</p>
+    <div class="filter-row">
+      <select id="bugs-state" aria-label="Show open or done problem reports">
+        <option value="open">Open</option>
+        <option value="done">Done</option>
+        <option value="all">All</option>
+      </select>
+      <input type="text" id="bugs-filter" placeholder="Filter by game or text…">
+      <button type="button" class="refresh-button" id="bugs-refresh">Refresh</button>
+    </div>
+    <p class="status-line" id="bugs-status" role="status">Loading…</p>
+    <table id="bugs-table">
+      <thead><tr><th>Game / page</th><th>What happened</th><th>Attached</th><th>When</th><th>Status</th><th>Fixed</th></tr></thead>
       <tbody></tbody>
     </table>
   </details>
@@ -492,6 +512,82 @@ async function loadReports() {
   return allReports.length;
 }
 
+
+// Z-17: problem reports sent from the shared "Report a problem" button (shared/report-problem.js).
+let allBugs = [];
+
+function bugAttachments(r) {
+  const parts = [];
+  if (r.schema_version) parts.push(`Save schema <code>${escapeHtml(r.schema_version)}</code>`);
+  if (r.attachment && r.attachment.save_code) parts.push(`Save code <code>${escapeHtml(r.attachment.save_code)}</code>`);
+  if (r.browser) parts.push(`Browser: ${escapeHtml(r.browser)}`);
+  if (r.viewport) parts.push(`Window: ${escapeHtml(r.viewport)}`);
+  if (r.username) parts.push(`Account: ${escapeHtml(r.username)}`);
+  let html = parts.length ? parts.join("<br>") : "Nothing attached";
+  if (r.console_log && r.console_log.length) {
+    html += `<details><summary>${r.console_log.length} console lines</summary><pre class="bug-console">${escapeHtml(r.console_log.join("\n"))}</pre></details>`;
+  }
+  return html;
+}
+
+function renderBugs() {
+  const tbody = document.querySelector("#bugs-table tbody");
+  const filter = document.getElementById("bugs-filter").value.trim().toLowerCase();
+  const state = document.getElementById("bugs-state").value;
+  const byState = allBugs.filter((r) => state === "all" ? true : state === "done" ? r.is_resolved : !r.is_resolved);
+  const filtered = filter
+    ? byState.filter((r) => `${r.game_id} ${r.page || ""} ${r.note}`.toLowerCase().includes(filter))
+    : byState;
+  if (!filtered.length) {
+    tbody.innerHTML = `<tr class="empty-row"><td colspan="6">${allBugs.length ? "No reports here." : "No problem reports sent yet."}</td></tr>`;
+    return;
+  }
+  tbody.innerHTML = filtered.map((r) => `
+    <tr>
+      <td>${escapeHtml(GAME_LABELS[r.game_id] || r.game_id)}<br><small><code>${escapeHtml(r.page || "")}</code></small></td>
+      <td style="white-space:pre-wrap">${escapeHtml(r.note)}</td>
+      <td>${bugAttachments(r)}</td>
+      <td>${formatWhen(r.created_at)}</td>
+      <td>${r.is_resolved ? `Done ${formatWhen(r.resolved_at)}<br>` : ""}<button type="button" class="refresh-button bug-toggle" data-id="${escapeHtml(r.id)}" data-resolved="${r.is_resolved ? "false" : "true"}">${r.is_resolved ? "Reopen" : "Mark done"}</button></td>
+      <td><label><input type="checkbox" class="bug-fixed" data-id="${escapeHtml(r.id)}"${r.is_fixed ? " checked" : ""}> Fixed</label>${r.is_fixed ? `<br><small>${escapeHtml(r.fixed_note || "")}${r.fixed_at ? ` (${formatWhen(r.fixed_at)})` : ""}</small>` : ""}</td>
+    </tr>
+  `).join("");
+}
+
+function bugsStatusLine() {
+  document.getElementById("bugs-status").textContent = `${allBugs.length} problem reports, ${allBugs.filter((r) => !r.is_resolved).length} open.`;
+}
+
+async function patchBug(id, body) {
+  const res = await fetch(`${API_BASE}/admin/bug-reports/${encodeURIComponent(id)}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json", ...adminHeaders() },
+    body: JSON.stringify(body),
+  });
+  if (res.status === 401 || res.status === 503) { showLogin("This account isn't accepted as admin. Sign in as the owner account."); return; }
+  if (!res.ok) { document.getElementById("bugs-status").textContent = "Couldn't update that report."; renderBugs(); return; }
+  const updated = await res.json();
+  const index = allBugs.findIndex((r) => r.id === id);
+  if (index >= 0) allBugs[index] = updated;
+  bugsStatusLine();
+  renderBugs();
+}
+
+async function loadBugReports() {
+  const status = document.getElementById("bugs-status");
+  try {
+    allBugs = await adminFetchJson(`${API_BASE}/admin/bug-reports`);
+  } catch (err) {
+    if (err instanceof AdminAuthError) { showLogin(err.message); return 0; }
+    console.error("loadBugReports failed:", err);
+    status.textContent = "Failed to load problem reports (the server may not have the new route yet).";
+    return 0;
+  }
+  bugsStatusLine();
+  renderBugs();
+  return allBugs.length;
+}
+
 async function loadAdminStats() {
   // New endpoint (TODO.md L8) -- the only aggregate numbers this page
   // couldn't already assemble from the per-game/per-feature public reads
@@ -613,6 +709,7 @@ async function loadAll() {
   loadAccounts();
   loadActivity();
   loadVotes();
+  loadBugReports();
   const [ratingsSummary, feedbackCount, reportsCount, adminStats] = await Promise.all([
     loadRatings(),
     loadFeedback(),
@@ -674,6 +771,17 @@ document.addEventListener("change", (event) => {
   if (box) setReportFixed(box.dataset.id, box.checked);
 });
 document.getElementById("reports-refresh").addEventListener("click", loadAll);
+document.getElementById("bugs-filter").addEventListener("input", renderBugs);
+document.getElementById("bugs-state").addEventListener("change", renderBugs);
+document.getElementById("bugs-refresh").addEventListener("click", loadAll);
+document.querySelector("#bugs-table tbody").addEventListener("click", (event) => {
+  const button = event.target.closest(".bug-toggle");
+  if (button) patchBug(button.dataset.id, { resolved: button.dataset.resolved === "true" });
+});
+document.addEventListener("change", (event) => {
+  const box = event.target.closest && event.target.closest(".bug-fixed");
+  if (box) patchBug(box.dataset.id, { fixed: box.checked, note: box.checked ? "Marked fixed from the admin page" : null });
+});
 document.getElementById("accounts-refresh").addEventListener("click", loadAll);
 document.getElementById("activity-refresh").addEventListener("click", loadAll);
 document.getElementById("activity-days").addEventListener("change", loadActivity);

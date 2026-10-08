@@ -69,19 +69,81 @@ def test_community_highlight_wording_does_not_say_only(harness):
 
 
 def test_rating_responses_resort_the_grid_once(harness):
-    """Each card loads its own ratings; the grid is re-sorted once for the burst, not once per card."""
+    """All the cards' stars arrive in one summary response; the grid is re-sorted once for it."""
     h = harness(init_scripts=["localStorage.setItem('hub-onboarding-seen','1');localStorage.setItem('tutorial-seen:hub','1');"])
-    for slug in ("sol", "canopy", "grid", "tide", "aftermath", "herd", "thaw", "loop", "drift",
-                 "champ-de-mots", "continuum", "signal", "lexis", "trade-empire"):
-        h.api_responses[("GET", f"/ratings/{slug}")] = (200, [{"stars": 4, "comment": None}])
+    slugs = ("sol", "canopy", "grid", "tide", "aftermath", "herd", "thaw", "loop", "drift",
+             "champ-de-mots", "continuum", "signal", "lexis", "trade-empire")
+    h.api_responses[("GET", "/ratings-summary")] = (200, {"games": {
+        slug: {"average": 4.0, "count": 1, "distribution": {"1": 0, "2": 0, "3": 0, "4": 1, "5": 0}} for slug in slugs}})
     h.page.add_init_script("window.__sorts = 0; document.addEventListener('DOMContentLoaded', () => {"
                            "const g = document.getElementById('game-grid'); const a = g.append.bind(g);"
                            "g.append = (...n) => { window.__sorts += 1; return a(...n); }; });")
     page = h.goto("/index.html")
     page.wait_for_function("document.querySelectorAll('.title-card[data-review-count=\"1\"]').length === 14")
     page.wait_for_timeout(300)
-    # one initial sort plus one for the burst of ratings; never one per card
+    # one initial sort plus one for the ratings; never one per card
     assert page.evaluate("window.__sorts") <= 3
+
+
+SOL_SUMMARY = "document.querySelector('.review-widget[data-game-slug=\"sol\"] .ratings-summary').textContent"
+SEEN = ["localStorage.setItem('hub-onboarding-seen','1');localStorage.setItem('tutorial-seen:hub','1');"]
+
+
+def test_hub_reads_one_ratings_summary_not_one_download_per_game(harness):
+    """Y-31: a single GET /ratings-summary feeds every star average; no /ratings/<slug> listing is fetched."""
+    h = harness(init_scripts=SEEN)
+    h.api_responses[("GET", "/ratings-summary")] = (200, {"games": {
+        "sol": {"average": 4.5, "count": 2, "distribution": {"1": 0, "2": 0, "3": 0, "4": 1, "5": 1}},
+        "canopy": {"average": 3.0, "count": 1, "distribution": {"1": 0, "2": 0, "3": 1, "4": 0, "5": 0}}}})
+    page = h.goto("/index.html")
+    page.wait_for_function(SOL_SUMMARY + ".includes('average')")
+    sol = page.evaluate(SOL_SUMMARY)
+    assert "4.5" in sol and "2 reviews" in sol
+    canopy = page.evaluate("document.querySelector('.review-widget[data-game-slug=\"canopy\"] .ratings-summary').textContent")
+    assert "3.0" in canopy and "1 review)" in canopy
+    # a game with no row reads "No reviews yet" and its card data says so
+    grid = page.evaluate("document.querySelector('.review-widget[data-game-slug=\"grid\"] .ratings-summary').textContent")
+    assert grid.startswith("No reviews yet")
+    assert page.evaluate("document.querySelector('.title-card:has([data-game-slug=\"grid\"])').dataset.reviewCount") == "0"
+    page.wait_for_timeout(200)
+    paths = [c[1] for c in h.api_calls if c[0] == "GET"]
+    assert paths.count("/ratings-summary") == 1
+    assert not [p for p in paths if p.startswith("/ratings/")]
+
+
+def test_hub_falls_back_to_per_game_listings_while_the_summary_route_is_not_deployed(harness):
+    h = harness(init_scripts=SEEN)
+    h.api_responses[("GET", "/ratings-summary")] = (404, {"detail": "Not Found"})
+    h.api_responses[("GET", "/ratings/sol")] = (200, [{"stars": 4, "comment": None}, {"stars": None, "response": "yes"}, {"stars": 2, "comment": "x"}])
+    page = h.goto("/index.html")
+    page.wait_for_function(SOL_SUMMARY + ".includes('average')")
+    assert "3.0" in page.evaluate(SOL_SUMMARY)
+
+
+def test_hub_says_reviews_unavailable_when_the_summary_fails(harness):
+    h = harness(init_scripts=SEEN)
+    h.api_responses[("GET", "/ratings-summary")] = (500, {"detail": "boom"})
+    page = h.goto("/index.html")
+    page.wait_for_function(SOL_SUMMARY + ".includes('unavailable')")
+    assert page.evaluate("document.querySelectorAll('.ratings-summary.is-loading').length") == 0
+
+
+def test_submitting_a_rating_refreshes_only_that_card_from_the_summary(harness):
+    h = harness(init_scripts=SEEN)
+    h.api_responses[("GET", "/ratings-summary")] = (200, {"games": {
+        "sol": {"average": 5.0, "count": 1, "distribution": {"1": 0, "2": 0, "3": 0, "4": 0, "5": 1}}}})
+    h.api_responses[("POST", "/ratings")] = (200, {"id": 1, "game_slug": "sol", "stars": 3, "comment": None, "response": None})
+    page = h.goto("/index.html")
+    page.wait_for_function(SOL_SUMMARY + ".includes('average')")
+    h.api_responses[("GET", "/ratings-summary")] = (200, {"games": {
+        "sol": {"average": 4.0, "count": 2, "distribution": {"1": 0, "2": 0, "3": 1, "4": 0, "5": 1}}}})
+    widget = '.review-widget[data-game-slug="sol"]'
+    # the card's review box is folded away until opened; the click handlers are what is under test
+    page.eval_on_selector(f'{widget} .star[data-value="3"]', "el => el.click()")
+    page.eval_on_selector(f"{widget} .comment-submit", "el => el.click()")
+    page.wait_for_function(SOL_SUMMARY + ".includes('2 reviews')")
+    assert [c[1] for c in h.api_calls if c[0] == "POST"].count("/ratings") == 1
+    assert not [c for c in h.api_calls if c[1].startswith("/ratings/")]
 
 
 def _log_tail_route(page, entries_by_log):

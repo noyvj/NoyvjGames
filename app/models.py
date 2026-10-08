@@ -294,3 +294,57 @@ class HelpfulVote(Base):
     helpful = Column(Boolean, nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+
+
+class BugReport(Base):
+    """Z-17: the shared "Report a problem" button's reports (shared/report-problem.js).
+
+    Everything optional is opt-in on the player's side: the widget shows a plain-text preview of
+    exactly what will be sent and leaves every attachment box unticked, so a null `browser`,
+    `viewport`, `console_log`, `attachment` or `user_id` means "the player did not attach it". The
+    `attachment` object is validated in bug_reports.py (today only {"save_code": "XXXX-XXXX"}).
+    `user_id` is set only when a signed-in player ticked "link this to my account"; those rows are
+    part of the account export and are deleted with the account. Triage flags match answer_reports:
+    resolved = the owner dealt with it, fixed = a code or data change was made because of it.
+    A brand-new table, so create_all builds it and patch_schema() needs no statement."""
+
+    __tablename__ = "bug_reports"
+
+    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    game_id = Column(String, nullable=False, index=True)
+    page = Column(String, nullable=True)
+    note = Column(Text, nullable=False)
+    schema_version = Column(String, nullable=True)
+    browser = Column(String, nullable=True)
+    viewport = Column(String, nullable=True)
+    console_log = Column(JSON, nullable=True)
+    attachment = Column(JSON, nullable=True)
+    user_id = Column(String, ForeignKey("users.id"), nullable=True, index=True)
+    is_resolved = Column(Boolean, nullable=False, default=False, server_default=false())
+    resolved_at = Column(DateTime(timezone=True), nullable=True)
+    is_fixed = Column(Boolean, nullable=False, default=False, server_default=false())
+    fixed_note = Column(String, nullable=True)
+    fixed_at = Column(DateTime(timezone=True), nullable=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+
+class UserProfile(Base):
+    """Z-7 / Y-1: one account's profile data. A separate table (not users columns) so the live
+    database needs no schema patch: create_all builds it. No row means the defaults (profile OFF,
+    no progress). `is_public` is the single switch behind the public page; it is False until the
+    owner turns it on. `games_json` maps game slug -> {"seconds": int, "achievements": int} and is
+    fed by shared/profile.js (the games call profile.update at save time); `streaks_json` maps
+    "<game>:<label>" -> longest value seen; `event_badges_json` is a list of seasonal badge ids.
+    Nothing in here is ever an email, a save or a token. Removed with the account and part of
+    its export."""
+
+    __tablename__ = "user_profiles"
+
+    user_id = Column(String, ForeignKey("users.id"), primary_key=True)
+    is_public = Column(Boolean, nullable=False, default=False, server_default=false())
+    favourite_game = Column(String, nullable=True)
+    games_json = Column(JSON, nullable=True)
+    streaks_json = Column(JSON, nullable=True)
+    event_badges_json = Column(JSON, nullable=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())

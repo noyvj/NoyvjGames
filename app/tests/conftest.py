@@ -11,6 +11,10 @@ os.environ.setdefault("DATABASE_URL", "sqlite:///:memory:")
 # U8: admin endpoints need a token; tests use these two fixed values.
 os.environ["ADMIN_TOKEN"] = "test-admin-token"
 os.environ["AI_ADMIN_TOKEN"] = "test-ai-token"
+# FY-16: the name "noyvj" is reserved at signup unless this is set. Most of the suite makes the owner
+# account by signing it up, so it is on for the suite; test_owner_signup_reserved.py switches it off
+# per test to prove the default.
+os.environ["OWNER_SIGNUP_ALLOWED"] = "1"
 
 APP_DIR = Path(__file__).resolve().parent.parent
 if str(APP_DIR) not in sys.path:

@@ -2527,7 +2527,7 @@
     },
     {
      "path": "games/champ-de-mots/changelog.json",
-     "bytes": 13653,
+     "bytes": 15168,
      "precached": false
     },
     {
@@ -2542,37 +2542,37 @@
     },
     {
      "path": "games/champ-de-mots/game.py",
-     "bytes": 380999,
+     "bytes": 389600,
      "precached": true
     },
     {
      "path": "games/champ-de-mots/index.html",
-     "bytes": 84980,
+     "bytes": 88476,
      "precached": true
     },
     {
      "path": "games/champ-de-mots/minigames.css",
-     "bytes": 6437,
+     "bytes": 6686,
      "precached": false
     },
     {
      "path": "games/champ-de-mots/minigames.py",
-     "bytes": 127773,
+     "bytes": 143749,
      "precached": false
     },
     {
      "path": "games/champ-de-mots/pc-config.json",
-     "bytes": 5713,
+     "bytes": 5965,
      "precached": false
     },
     {
      "path": "games/champ-de-mots/pc.css",
-     "bytes": 12594,
+     "bytes": 12623,
      "precached": true
     },
     {
      "path": "games/champ-de-mots/pc.html",
-     "bytes": 90160,
+     "bytes": 93874,
      "precached": true
     },
     {
@@ -2587,7 +2587,7 @@
     },
     {
      "path": "games/champ-de-mots/style.css",
-     "bytes": 47001,
+     "bytes": 49137,
      "precached": true
     },
     {
@@ -2597,7 +2597,7 @@
     },
     {
      "path": "games/champ-de-mots/visual-styles.css",
-     "bytes": 35063,
+     "bytes": 35118,
      "precached": false
     }
    ],
@@ -2805,7 +2805,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 15211413,
+   "bytes": 15247436,
    "bytes_complete": true
   },
   "continuum": {
@@ -2817,12 +2817,12 @@
     },
     {
      "path": "games/continuum/advisors.py",
-     "bytes": 16585,
+     "bytes": 16718,
      "precached": false
     },
     {
      "path": "games/continuum/archive.py",
-     "bytes": 10718,
+     "bytes": 12341,
      "precached": false
     },
     {
@@ -2832,7 +2832,7 @@
     },
     {
      "path": "games/continuum/card.js",
-     "bytes": 5097,
+     "bytes": 6881,
      "precached": false
     },
     {
@@ -2847,7 +2847,12 @@
     },
     {
      "path": "games/continuum/changelog.json",
-     "bytes": 12649,
+     "bytes": 14889,
+     "precached": false
+    },
+    {
+     "path": "games/continuum/citizens.py",
+     "bytes": 16619,
      "precached": false
     },
     {
@@ -2858,6 +2863,11 @@
     {
      "path": "games/continuum/dataexport.py",
      "bytes": 4909,
+     "precached": false
+    },
+    {
+     "path": "games/continuum/doctrines.py",
+     "bytes": 7199,
      "precached": false
     },
     {
@@ -2882,12 +2892,12 @@
     },
     {
      "path": "games/continuum/founding.py",
-     "bytes": 9486,
+     "bytes": 9966,
      "precached": false
     },
     {
      "path": "games/continuum/game.py",
-     "bytes": 190323,
+     "bytes": 224467,
      "precached": false
     },
     {
@@ -2897,12 +2907,12 @@
     },
     {
      "path": "games/continuum/hamlet.py",
-     "bytes": 10247,
+     "bytes": 10264,
      "precached": false
     },
     {
      "path": "games/continuum/index.html",
-     "bytes": 70717,
+     "bytes": 76961,
      "precached": true
     },
     {
@@ -2931,13 +2941,18 @@
      "precached": false
     },
     {
+     "path": "games/continuum/neighbours.py",
+     "bytes": 20128,
+     "precached": false
+    },
+    {
      "path": "games/continuum/par.py",
      "bytes": 6559,
      "precached": false
     },
     {
      "path": "games/continuum/pc-config.json",
-     "bytes": 3747,
+     "bytes": 4269,
      "precached": false
     },
     {
@@ -2947,7 +2962,7 @@
     },
     {
      "path": "games/continuum/pc.html",
-     "bytes": 74086,
+     "bytes": 80812,
      "precached": true
     },
     {
@@ -2967,7 +2982,7 @@
     },
     {
      "path": "games/continuum/research.py",
-     "bytes": 53589,
+     "bytes": 54205,
      "precached": false
     },
     {
@@ -2997,7 +3012,7 @@
     },
     {
      "path": "games/continuum/style.css",
-     "bytes": 79228,
+     "bytes": 82614,
      "precached": true
     },
     {
@@ -3203,6 +3218,21 @@
      "precached": false
     },
     {
+     "path": "shared/skill-tree.css",
+     "bytes": 5340,
+     "precached": true
+    },
+    {
+     "path": "shared/skill-tree.js",
+     "bytes": 23289,
+     "precached": true
+    },
+    {
+     "path": "shared/skill_tree.py",
+     "bytes": 10981,
+     "precached": true
+    },
+    {
      "path": "shared/story-toggle.js",
      "bytes": 3247,
      "precached": false
@@ -3265,7 +3295,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 15815156,
+   "bytes": 15956627,
    "bytes_complete": true
   },
   "signal": {

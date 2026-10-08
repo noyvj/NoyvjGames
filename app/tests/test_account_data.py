@@ -10,7 +10,7 @@ from database import SessionLocal
 from main import app
 from models import (
     AnswerReport, AuthSession, Feedback, HelpfulVote, LeaderboardEntry, Rating, Save, SaveSnapshot, ScoreEntry,
-    ScoreProfile, User,
+    ScoreProfile, User, BugReport, UserProfile,
 )
 
 client = TestClient(app)
@@ -55,6 +55,9 @@ def fill_account(headers, uid):
     assert client.put(f"/whats-new/votes/{ENTRY}", json={"helpful": True}, headers=headers).status_code == 200
     assert client.put("/users/me/settings", json={"theme": "light"}, headers=headers).status_code == 200
     assert client.post("/users/me/snapshots", json={"game_id": GAME, "slot": 1, "summary": f"snap-{uid}", "save_data": {"n": 0}}, headers=headers).status_code == 200
+    # Z-7/Y-1 profile and Z-17 linked bug report
+    assert client.put("/users/me/profile", json={"is_public": True, "progress": {"game": GAME, "add_seconds": 60, "achievements": 2}}, headers=headers).status_code == 200
+    assert client.post("/bug-reports", json={"game_id": GAME, "note": f"bug-{uid}", "link_account": True}, headers=headers).status_code == 200
 
 
 def rows_for(uid):
@@ -70,6 +73,8 @@ def rows_for(uid):
             "profiles": db.query(ScoreProfile).filter(ScoreProfile.user_id == uid).count(),
             "feedback": db.query(Feedback).filter(Feedback.user_id == uid).count(),
             "votes": db.query(HelpfulVote).filter(HelpfulVote.user_id == uid).count(),
+            "user_profiles": db.query(UserProfile).filter(UserProfile.user_id == uid).count(),
+            "bug_reports": db.query(BugReport).filter(BugReport.user_id == uid).count(),
         }
     finally:
         db.close()
@@ -96,6 +101,8 @@ def test_export_holds_everything_and_no_secrets():
     assert body["leaderboards"]["show_username"] is True
     assert len(body["leaderboards"]["legacy_entries"]) == 1
     assert body["leaderboards"]["score_entries"][0]["score"] == 50
+    assert body["profile"]["is_public"] is True and body["profile"]["total_achievements"] == 2
+    assert [r["note"] for r in body["bug_reports"]] == [f"bug-{uid}"]
     assert body["whats_new_votes"] == [{"entry_id": ENTRY, "helpful": True, "updated_at": body["whats_new_votes"][0]["updated_at"]}]
     text = str(body)
     assert "not-a-real-hash" not in text and "tok-exportee" not in text and "password" not in text.lower().replace("passwords", "")

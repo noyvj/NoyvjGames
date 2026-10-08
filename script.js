@@ -83,23 +83,16 @@ function resetStarRating(ratingWidget) {
 // hard-stop gradient clipped to the text), sitting beside the numeric
 // text rather than replacing it -- the number stays the source of truth
 // for screen readers and anyone who can't tell partial fills apart.
-function renderSummary(widget, ratings) {
+function setRatingDisplay(widget, average, count) {
   const summary = widget.querySelector(".ratings-summary");
   const card = widget.closest(".title-card");
   summary.classList.remove("is-loading");
   summary.removeAttribute("aria-busy");
-  // /ratings/{slug} also returns per-game text-feedback-prompt rows
-  // (stars: null, response: "...") alongside this widget's own star
-  // submissions — both share the same table, filtered only by game_slug.
-  // Only star rows belong in a star average.
-  const starRatings = ratings.filter((r) => typeof r.stars === "number");
-  if (!starRatings.length) {
+  if (!count) {
     summary.textContent = "No reviews yet — be the first.";
     if (card) { card.dataset.avg = "0"; card.dataset.reviewCount = "0"; }
     return;
   }
-  const average = starRatings.reduce((sum, r) => sum + r.stars, 0) / starRatings.length;
-  const count = starRatings.length;
   if (card) { card.dataset.avg = String(average); card.dataset.reviewCount = String(count); }
   summary.textContent = "";
   const stars = document.createElement("span");
@@ -113,28 +106,85 @@ function renderSummary(widget, ratings) {
   );
 }
 
-async function loadRatings(widget) {
-  const slug = widget.dataset.gameSlug;
+// The old per-game listing (GET /ratings/{slug}) also returns per-game text-feedback-prompt rows
+// (stars: null, response: "...") alongside this widget's own star submissions -- both share the
+// same table. Only star rows belong in a star average. Used only by the fallback below.
+function renderSummary(widget, ratings) {
+  const starRatings = ratings.filter((r) => typeof r.stars === "number");
+  const count = starRatings.length;
+  const average = count ? starRatings.reduce((sum, r) => sum + r.stars, 0) / count : 0;
+  setRatingDisplay(widget, average, count);
+}
+
+function showRatingsUnavailable(widget) {
   const summary = widget.querySelector(".ratings-summary");
+  summary.classList.remove("is-loading");
+  summary.removeAttribute("aria-busy");
+  summary.textContent = "Reviews unavailable right now.";
+}
+
+// Y-31: ONE small request (GET /ratings-summary: average, count and distribution per game) replaces
+// the one-download-of-every-rating-row-per-game the hub used to make on load. Passing fresh=true
+// (after the visitor's own submission) skips the browser's short cache so their star shows at once.
+// The review boxes still POST to /ratings exactly as before; the hub never listed comments.
+// Until the backend that serves the summary is deployed it answers 404, and then each card falls back
+// to its own listing so the stars never go missing during a rollout.
+let ratingsSummaryPromise = null;
+async function fetchRatingsSummary(fresh) {
+  if (!fresh && ratingsSummaryPromise) return ratingsSummaryPromise;
+  const request = (async () => {
+    const response = await fetch(`${RATINGS_API_BASE}/ratings-summary`, fresh ? { cache: "reload" } : undefined);
+    if (response.status === 404) return null;           // older backend: no summary route yet
+    if (!response.ok) throw new Error(`status ${response.status}`);
+    const body = await response.json();
+    return body && typeof body.games === "object" && body.games ? body.games : {};
+  })();
+  ratingsSummaryPromise = request;
+  request.catch(() => { if (ratingsSummaryPromise === request) ratingsSummaryPromise = null; });
+  return request;
+}
+
+async function loadRatingsLegacy(widget) {
+  const slug = widget.dataset.gameSlug;
   try {
     const response = await fetch(`${RATINGS_API_BASE}/ratings/${slug}`);
     if (!response.ok) throw new Error(`status ${response.status}`);
     renderSummary(widget, await response.json());
   } catch (err) {
-    // Logged so "reviews unavailable" is debuggable from the browser
-    // console at all — the only place this context is ever visible for a
-    // personal-site-scale project with no server-side error tracking.
     console.error(`loadRatings(${slug}) failed:`, err);
-    summary.classList.remove("is-loading");
-    summary.removeAttribute("aria-busy");
-    summary.textContent = "Reviews unavailable right now.";
+    showRatingsUnavailable(widget);
+  }
+}
+
+// Loads the stars for the given widgets (all of them on page load, or just the one just rated).
+async function loadRatings(widgets, fresh) {
+  const list = Array.isArray(widgets) ? widgets : [widgets];
+  let games;
+  try {
+    games = await fetchRatingsSummary(Boolean(fresh));
+  } catch (err) {
+    // Logged so "reviews unavailable" is debuggable from the browser console at all -- the only
+    // place this context is ever visible for a personal-site-scale project with no error tracking.
+    console.error("loadRatings failed:", err);
+    list.forEach(showRatingsUnavailable);
+    scheduleSort();
+    return;
+  }
+  if (games === null) {
+    await Promise.all(list.map(loadRatingsLegacy));
+  } else {
+    list.forEach((widget) => {
+      const entry = games[widget.dataset.gameSlug];
+      const count = entry && Number(entry.count) > 0 ? Number(entry.count) : 0;
+      setRatingDisplay(widget, count ? Number(entry.average) || 0 : 0, count);
+    });
   }
   // Ratings arriving (or a new submission) can change a rating-sorted order.
   scheduleSort();
 }
 
-// Every card loads its own ratings, so up to a dozen-plus responses land within a few milliseconds
-// of each other; re-sorting (a full re-append of the grid) once per response is wasted layout work.
+// All the cards' ratings arrive together; re-sorting (a full re-append of the grid) more than once
+// for that burst is wasted layout work.
 let sortScheduled = false;
 function scheduleSort() {
   if (sortScheduled) return;
@@ -164,18 +214,19 @@ async function submitRating(widget) {
     if (!response.ok) throw new Error(`status ${response.status}`);
     widget.querySelector(".comment-box").value = "";
     submitButton.textContent = "Submitted — thanks!";
-    await loadRatings(widget);
+    await loadRatings(widget, true);
   } catch (err) {
     submitButton.textContent = "Submit failed — try again";
     submitButton.disabled = false;
   }
 }
 
-document.querySelectorAll(".review-widget").forEach((widget) => {
+const reviewWidgets = Array.from(document.querySelectorAll(".review-widget"));
+reviewWidgets.forEach((widget) => {
   bindStarRating(widget.querySelector(".star-rating"));
   widget.querySelector(".comment-submit").addEventListener("click", () => submitRating(widget));
-  loadRatings(widget);
 });
+loadRatings(reviewWidgets, false);
 
 // --- "Last updated" badge per title card (L7) ---
 // From game-last-updated.json, regenerated from git history by scripts/generate-last-updated.py (see its docstring).
@@ -492,7 +543,7 @@ function applyGameFilter() {
 
 // --- Y21: sort modes (default / highest rated / most saved) ---
 // Rating average comes from each card's own review widget
-// (data-avg, set by renderSummary). Save count is the more honest
+// (data-avg, set by setRatingDisplay). Save count is the more honest
 // popularity signal while reviews skew toward test/friend accounts; it's
 // read through loadSaveCounts(), kept deliberately isolated so it can be
 // repointed without touching the sort code. It reads the public

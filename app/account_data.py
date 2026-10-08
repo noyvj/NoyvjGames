@@ -5,7 +5,7 @@ the routes, the authentication and the rate limiting.
 What the server holds about an account (and so what export and delete cover):
   users, auth_sessions, saves (claimed and slotted), save_snapshots (Z-10), leaderboard_entries,
   score_entries, score_profiles, feedback written while signed in, helpful_votes
-  cast while signed in.
+  cast while signed in, user_profiles (Z-7/Y-1) and bug_reports the player chose to link to the account (Z-17).
 What it does NOT link to an account, so cannot export or remove by account:
   ratings (the hub's star widget and in-game prompts), answer_reports (Le Champ de
   Mots), pool_days totals and the opt-in visit counter. None of those rows carries
@@ -22,9 +22,10 @@ from sqlalchemy.orm import Session
 
 import stats
 from models import (
-    AnswerReport, AuthSession, Feedback, HelpfulVote, LeaderboardEntry, PageView, Rating, Save,
-    SaveSnapshot, ScoreEntry, ScoreProfile, User,
+    AnswerReport, AuthSession, BugReport, Feedback, HelpfulVote, LeaderboardEntry, PageView, Rating, Save,
+    SaveSnapshot, ScoreEntry, ScoreProfile, User, UserProfile,
 )
+import profiles
 
 # ---------------------------------------------------------------- export / delete
 
@@ -54,6 +55,7 @@ def build_export(db: Session, user: User, now: Optional[datetime] = None) -> dic
         ScoreEntry.game_id, ScoreEntry.board, ScoreEntry.window, ScoreEntry.period).all()
     profile = db.query(ScoreProfile).filter(ScoreProfile.user_id == user.id).first()
     votes = db.query(HelpfulVote).filter(HelpfulVote.user_id == user.id).order_by(HelpfulVote.created_at).all()
+    reports = db.query(BugReport).filter(BugReport.user_id == user.id).order_by(BugReport.created_at).all()
     sessions = db.query(func.count(AuthSession.id)).filter(AuthSession.user_id == user.id).scalar() or 0
     return {
         "format": EXPORT_FORMAT,
@@ -103,6 +105,14 @@ def build_export(db: Session, user: User, now: Optional[datetime] = None) -> dic
         "whats_new_votes": [
             {"entry_id": r.entry_id, "helpful": bool(r.helpful), "updated_at": _iso(r.updated_at)} for r in votes
         ],
+        "profile": profiles.export_block(db, user),
+        "bug_reports": [
+            {"id": r.id, "game_id": r.game_id, "page": r.page, "note": r.note, "schema_version": r.schema_version,
+             "browser": r.browser, "viewport": r.viewport, "console_log": r.console_log,
+             "attachment": r.attachment, "is_resolved": bool(r.is_resolved), "is_fixed": bool(r.is_fixed),
+             "created_at": _iso(r.created_at)}
+            for r in reports
+        ],
     }
 
 
@@ -132,8 +142,10 @@ def delete_account(db: Session, user: User) -> dict:
         ("score_entries", ScoreEntry),
         ("feedback", Feedback),
         ("whats_new_votes", HelpfulVote),
+        ("bug_reports", BugReport),
     ):
         removed[label] = db.query(model).filter(model.user_id == uid).delete(synchronize_session=False)
+    removed["profile"] = db.query(UserProfile).filter(UserProfile.user_id == uid).delete(synchronize_session=False)
     removed["score_profile"] = db.query(ScoreProfile).filter(ScoreProfile.user_id == uid).delete(synchronize_session=False)
     db.query(User).filter(User.id == uid).delete(synchronize_session=False)
     db.commit()

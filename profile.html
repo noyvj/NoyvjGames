@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Profile — NoyvjGames</title>
+<meta name="description" content="A NoyvjGames player profile: badges, achievements per game, favourite game and member-since date. Only shown when the player has switched it on.">
+<meta name="robots" content="noindex">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="stylesheet" href="shared/space-bg.css">
+<link rel="stylesheet" href="style.css">
+<script src="hub-prefs.js"></script>
+<script src="shared/theme.js"></script>
+<script src="shared/lite-mode.js"></script>
+<script src="shared/site-settings.js"></script>
+<style>
+  /* Page-only styles. Colours are borrowed from the surrounding text and the hub card, so both themes work. */
+  .pf-lead { margin: 0 0 1rem; }
+  .pf-switch { display: flex; gap: 0.7rem; align-items: center; min-height: 44px; font-size: 1rem; font-weight: 600; cursor: pointer; }
+  .pf-switch input { flex: none; width: 1.5rem; height: 1.5rem; margin: 0; }
+  .pf-state { margin: 0.2rem 0 0.8rem; font-weight: 600; }
+  .pf-share { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: stretch; margin: 0.6rem 0 0; }
+  .pf-share input { flex: 1 1 14rem; min-height: 44px; padding: 0 0.7rem; font: inherit; font-size: 0.85rem; color: inherit;
+    background: transparent; border: 1px solid rgba(160, 175, 215, 0.45); border-radius: 8px; }
+  .pf-button { min-height: 44px; padding: 0 1rem; font: inherit; font-size: 0.9rem; color: inherit; background: transparent;
+    border: 1px solid rgba(160, 175, 215, 0.55); border-radius: 8px; cursor: pointer; }
+  .pf-button:hover { border-style: dashed; }
+  .pf-select { min-height: 44px; padding: 0 0.6rem; font: inherit; color: inherit; background: transparent;
+    border: 1px solid rgba(160, 175, 215, 0.45); border-radius: 8px; max-width: 100%; }
+  .pf-select option { color: #1b2033; background: #fff; }
+  .pf-facts { display: grid; grid-template-columns: auto 1fr; gap: 0.3rem 1rem; margin: 0.4rem 0 0.8rem; font-size: 0.92rem; }
+  .pf-facts dt { font-weight: 600; opacity: 0.8; }
+  .pf-facts dd { margin: 0; overflow-wrap: anywhere; }
+  .pf-list { list-style: none; margin: 0.3rem 0 0.9rem; padding: 0; display: grid; gap: 0.45rem; }
+  .pf-list li { display: flex; gap: 0.6rem; align-items: baseline; padding: 0.45rem 0.7rem; border: 1px solid rgba(160, 175, 215, 0.3); border-radius: 8px; }
+  .pf-glyph { flex: none; width: 1.4rem; text-align: center; }
+  .pf-badge-event { border-style: dashed !important; }
+  .pf-sub { display: block; font-size: 0.8rem; opacity: 0.75; }
+  .pf-count { margin-left: auto; font-weight: 700; white-space: nowrap; }
+  .pf-private { border-style: dashed; }
+  .pf-empty { font-style: italic; opacity: 0.8; }
+  .pf-card h3 { font-size: 0.98rem; margin: 1rem 0 0.2rem; }
+  #pf-name { font-size: 1.4rem; margin: 0 0 0.2rem; overflow-wrap: anywhere; }
+  [hidden] { display: none !important; }
+</style>
+<link rel="stylesheet" href="shared/a11y.css">
+<link rel="stylesheet" href="shared/lite-mode.css">
+</head>
+<body>
+  <a class="skip-link" href="#profile-main">Skip to content</a>
+  <div class="space-bg" aria-hidden="true"><div class="space-bg-nebula"></div><div class="space-bg-stars-bright"></div></div>
+  <header id="hub-header">
+    <nav class="hub-nav">
+      <a href="index.html">&larr; Back to NoyvjGames</a>
+      <a href="achievements.html">Achievements</a>
+      <a href="settings.html">Settings</a>
+      <a href="help.html">Help</a>
+      <button type="button" class="hub-nav-button theme-toggle">Theme</button>
+    </nav>
+    <h1>Profile</h1>
+    <p id="hub-tagline">Badges, achievements and a favourite game. Off by default: it is only public when the player switches it on.</p>
+  </header>
+
+  <main id="profile-main" tabindex="-1" class="hub-page-main">
+    <noscript><p>This page needs JavaScript to load a profile.</p></noscript>
+    <p id="pf-status" class="hub-note" role="status">Loading&hellip;</p>
+
+    <section id="pf-owner" class="hub-card" aria-labelledby="pf-owner-h" hidden>
+      <h2 id="pf-owner-h">Your profile</h2>
+      <p id="pf-state" class="pf-state" role="status"></p>
+      <label class="pf-switch" for="pf-public"><input type="checkbox" id="pf-public" aria-describedby="pf-public-hint"> Make my profile public</label>
+      <p id="pf-public-hint" class="hub-note">When this is on, anyone with your link can see exactly what is listed below the line &ldquo;What others see&rdquo;: your username, the month you joined, your favourite game, your badges, your achievement count for each game, your total time played and your longest streaks. Never your email, saves, save codes or password. Turn it off at any time and the page disappears for everyone else straight away.</p>
+      <div id="pf-share" class="pf-share" hidden>
+        <label class="visually-hidden" for="pf-link">Your profile link</label>
+        <input id="pf-link" type="text" readonly>
+        <button type="button" id="pf-copy" class="pf-button">Copy link</button>
+      </div>
+      <div class="settings-row">
+        <label for="pf-favourite" class="settings-label">Favourite game</label>
+        <select id="pf-favourite" class="pf-select"></select>
+      </div>
+      <p id="pf-owner-status" class="settings-status" role="status"></p>
+    </section>
+
+    <section id="pf-card" class="hub-card pf-card" aria-labelledby="pf-name" hidden>
+      <p id="pf-private-note" class="pf-state pf-private" hidden>This is a preview. Only you can see this page until you switch the profile on above.</p>
+      <h2 id="pf-name"></h2>
+      <p class="hub-note" id="pf-what-others-see">What others see</p>
+      <dl class="pf-facts">
+        <dt>Member since</dt><dd id="pf-since"></dd>
+        <dt>Favourite game</dt><dd id="pf-fav"></dd>
+        <dt>Time played</dt><dd id="pf-time"></dd>
+      </dl>
+      <h3>Badges</h3>
+      <ul id="pf-badges" class="pf-list" aria-label="Badges"></ul>
+      <h3>Achievements by game</h3>
+      <ul id="pf-games" class="pf-list" aria-label="Achievements by game"></ul>
+      <div id="pf-streaks-wrap" hidden>
+        <h3>Longest streaks</h3>
+        <ul id="pf-streaks" class="pf-list" aria-label="Longest streaks"></ul>
+      </div>
+    </section>
+
+    <section id="pf-message" class="hub-card" hidden>
+      <h2 id="pf-message-h"></h2>
+      <p id="pf-message-text"></p>
+      <p id="pf-message-actions"></p>
+    </section>
+
+    <p class="hub-note">No tracking: this page does not count who looks at it. Profiles are numbers and badge names only; they are built from what the games report while you are signed in.</p>
+  </main>
+
+  <footer class="hub-footer">
+    <span class="hub-footer-name">NoyvjGames</span>
+    <a href="index.html">Games</a>
+    <a href="settings.html">Settings</a>
+    <a href="credits.html">Credits &amp; Thanks</a>
+    <a href="terms.html">Terms &amp; Privacy</a>
+  </footer>
+
+  <script src="shared/hub-auth.js"></script>
+  <script src="hub-games.js"></script>
+  <script src="profile.js"></script>
+</body>
+</html>
