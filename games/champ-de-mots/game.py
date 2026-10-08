@@ -65,6 +65,7 @@ pairs_tick = minigames.pairs_tick
 gaps_tick = minigames.gaps_tick
 listenpick_tick = minigames.listenpick_tick
 wordorder_tick = minigames.wordorder_tick
+amis_tick = minigames.amis_tick
 minigame_run_active = minigames.any_timed_run_active
 
 CATALOG_FILENAME = "fren_combined_catalog.json"
@@ -643,6 +644,12 @@ def normalize_answer(text, fold_accents=True):
         text = unicodedata.normalize("NFKD", text)
         text = "".join(ch for ch in text if not unicodedata.combining(ch))
     text = text.replace("’", "'").replace("‘", "'")
+    # FY-8 sweep (2026-10-08): the ligatures have no key on most keyboards and
+    # the usual fallback is the two letters, so "oeuf" is "œuf" and "soeur"
+    # is "sœur" whatever the accent setting says; a "/" has the same worth
+    # with or without spaces round it ("I/you/he" is "I / you / he").
+    text = text.replace("œ", "oe").replace("Œ", "oe").replace("æ", "ae").replace("Æ", "ae")
+    text = re.sub(r"\s*/\s*", " / ", text)
     # Answer-report review 2026-10-08 (GP-10): an internal comma, semicolon
     # or colon and a hyphen or dash are not part of what is being tested --
     # "Hello my name is Léa" is "Hello, my name is Léa.", "so so" is
@@ -1246,6 +1253,9 @@ CONTRACTION_PAIRS = [
     ("he's", "he is"), ("she's", "she is"), ("it's", "it is"), ("that's", "that is"),
     ("what's", "what is"), ("who's", "who is"), ("there's", "there is"), ("here's", "here is"),
     ("let's", "let us"),
+    ("how's", "how is"), ("where's", "where is"), ("when's", "when is"),
+    ("i'd", "i would"), ("you'd", "you would"), ("he'd", "he would"), ("she'd", "she would"),
+    ("we'd", "we would"), ("they'd", "they would"),
     ("i've", "i have"), ("you've", "you have"), ("we've", "we have"), ("they've", "they have"),
     ("i'll", "i will"), ("you'll", "you will"), ("he'll", "he will"), ("she'll", "she will"),
     ("we'll", "we will"), ("they'll", "they will"), ("it'll", "it will"),
@@ -1305,6 +1315,8 @@ def answer_alternatives(answer, accepted=None, fold_accents=True):
         if not normalized:
             continue
         alternatives.add(normalized)
+        if " / " in normalized:
+            alternatives.add(normalized.replace(" / ", "/"))
         for prefix in ARTICLE_PREFIXES:
             if normalized.startswith(prefix):
                 alternatives.add(normalized[len(prefix):])
@@ -1608,15 +1620,49 @@ def check_answer(question, given, tier=None, accent_sensitive=None):
     typed = normalize_answer(given, fold_accents=fold_accents)
     if not typed:
         return False
+    bare_ok = _bare_noun_allowed(question)
     if tier is None:
-        return typed in answer_alternatives(question["answer"])
+        allowed = answer_alternatives(question["answer"])
+        return typed in (allowed | _bare_nouns(allowed) if bare_ok else allowed)
     if tier == TIER_STRICT:
         allowed = strict_alternatives(question["answer"], fold_accents=fold_accents)
         for extra in _manual_accepted(question):
             allowed |= strict_alternatives(extra, fold_accents=fold_accents)
-        return typed in allowed
+        return typed in (allowed | _bare_nouns(allowed) if bare_ok else allowed)
     accepted = list(_lookup_accepted(question) or []) + list(question.get("accepted") or [])
-    return typed in answer_alternatives(question["answer"], accepted=accepted, fold_accents=fold_accents)
+    allowed = answer_alternatives(question["answer"], accepted=accepted, fold_accents=fold_accents)
+    return typed in (allowed | _bare_nouns(allowed) if bare_ok else allowed)
+
+
+# FY-14 (owner, 2026-10-08): a question that asks for just the word does not
+# make the player type le/la/un/une. "mode" is right for "la mode"; the
+# article still appears in the feedback line. A question that shows or asks
+# for the article keeps requiring it: it sets "with_article": True (nothing
+# in the typed flow does today; the gender drill is a choice between le and
+# la and never reaches this). Only vocabulary plots are affected (a grammar
+# rule such as "le plus" is about the little word) and only French answers.
+_BARE_NOUN_ARTICLES = ("le ", "la ", "un ", "une ")
+
+
+def _bare_noun_allowed(question):
+    if question.get("with_article") or question.get("variant") == V_GENDER_TAG:
+        return False
+    if question.get("topic_type") != "vocab":
+        return False
+    return not _answer_is_english(question)
+
+
+def _bare_nouns(alternatives):
+    """The same alternatives without a leading le/la/un/une (a one- or
+    few-word noun only: the rest must not start another article)."""
+    bare = set()
+    for alt in alternatives:
+        for article in _BARE_NOUN_ARTICLES:
+            if alt.startswith(article):
+                rest = alt[len(article):].strip()
+                if rest and len(rest.split()) <= 4:
+                    bare.add(rest)
+    return bare
 
 
 # ===========================================================================
@@ -2204,6 +2250,7 @@ PRACTICE_MODES = {
     "gaps": "Grammar Gaps",
     "listenpick": "Listening Pick",
     "wordorder": "Word Order Race",
+    "amis": "Faux Amis (false friends)",
     "builder": "Sentence builder",
     "conversation": "Conversation simulator",
     "listening": "Listening practice",
@@ -4348,6 +4395,9 @@ def _plot_classes(plot):
         classes.append("plot--golden")
     if is_leech(plot):
         classes.append("plot--leech")
+    # L-16: a false-friend badge when the live list (Faux Amis) names this plot's French word.
+    if minigames.amis_for_plot(plot) is not None:
+        classes.append("plot--amis")
     if not state.is_row_unlocked(plot.sequence):
         classes.append("plot--locked")
     return " ".join(classes)
@@ -4385,6 +4435,9 @@ def _plot_title(plot):
         parts.append(
             f"stubborn weed: missed {plot.fail_run} times in a row, so a short re-teach card shows first"
         )
+    amis_note = minigames.amis_plot_note(plot)
+    if amis_note:
+        parts.append(amis_note)
     if is_due(plot, state.current_day):
         parts.append(DUE_NOTE)
     return " · ".join(parts)
@@ -4715,6 +4768,7 @@ def render():
     render_planner()
     render_accent_bars()
     render_water_options()
+    render_shop()
     minigames.render()
 
 
@@ -5295,10 +5349,209 @@ def water_result_text(kind, plot_for_note=None):
     """One plain sentence saying what a correct answer just did to its plot."""
     if kind == WATER_FULL:
         suffix = f" Stage: {plot_for_note.stage.capitalize()}." if plot_for_note is not None else ""
-        return "Watered: this plot's schedule and growth were updated." + suffix
+        coin = f" +{COINS_PER_WATERING} coin."
+        return "Watered: this plot's schedule and growth were updated." + suffix + coin
     if kind == WATER_NUDGE:
         return "Nudged: this plot was already watered today, so its next review just moved a day later."
     return "Already watered and nudged today, so nothing more changes for this plot."
+
+
+# ---------------------------------------------------------------------------
+# Farm shop: coins and plot skins (TODO L-1, the part the owner said yes to on
+# 2026-10-08: coins earned from watering that unlock cosmetic skins)
+# ---------------------------------------------------------------------------
+# One coin source, spelled out in the shop panel: a FULL watering (the first
+# correct answer for a plot each in-game day, from any plot-linked activity).
+# A nudge, a wrong answer and every hand-written activity earn nothing, so the
+# coin counter is exactly "plots watered, ever". Coins never touch the
+# scheduler, and a skin only changes how the plot cells are framed: the stage
+# sprite, its colour and every state cue (due, weeds, golden, stubborn) stay
+# as they were. Saved as "coins" only once something has been earned.
+COINS_PER_WATERING = 1
+PLOT_SKINS = (
+    ("clay", "Terracotta pots", 15, "Round clay pots around every plot."),
+    ("stone", "Stone tiles", 30, "Square slabs of grey stone."),
+    ("crate", "Wooden crates", 45, "Brown wooden frames."),
+    ("lantern", "Lantern glow", 60, "A warm, lamp-lit edge."),
+    ("hedge", "Berry hedge", 80, "A purple hedge border."),
+    ("gilt", "Gilded frames", 120, "Gold frames with a pale inner ring."),
+)
+SKIN_IDS = {skin[0] for skin in PLOT_SKINS}
+coins_state = {"earned": 0, "spent": 0, "owned": [], "equipped": ""}
+shop_open = False
+shop_proxies = []
+COIN_SOURCE_TEXT = (
+    "Where coins come from: one coin for every full watering, which is the first correct answer for a plot "
+    "each in-game day (watering it on the farm, Review, a proficiency test or any minigame). Nudges, wrong "
+    "answers and the hand-written activities earn nothing. Coins never change how a plot is scheduled, and "
+    "skins are cosmetic only: they frame the plots differently and nothing else."
+)
+
+
+def coin_balance():
+    return max(0, coins_state["earned"] - coins_state["spent"])
+
+
+def coins_text():
+    balance = coin_balance()
+    return f"🪙 {balance} coin{'s' if balance != 1 else ''}"
+
+
+def coins_earned_today():
+    return len(_water_today_tally()["watered"]) * COINS_PER_WATERING
+
+
+def skin_info(skin_id):
+    for skin in PLOT_SKINS:
+        if skin[0] == skin_id:
+            return skin
+    return None
+
+
+def earn_coins(amount=COINS_PER_WATERING):
+    coins_state["earned"] += int(amount)
+
+
+def buy_skin(skin_id):
+    """"bought", "owned", "poor" (not enough coins) or "unknown"."""
+    skin = skin_info(skin_id)
+    if skin is None:
+        return "unknown"
+    if skin_id in coins_state["owned"]:
+        return "owned"
+    if coin_balance() < skin[2]:
+        return "poor"
+    coins_state["spent"] += skin[2]
+    coins_state["owned"].append(skin_id)
+    coins_state["equipped"] = skin_id
+    return "bought"
+
+
+def equip_skin(skin_id):
+    """Use an owned skin, or "" for the plain plots. False when not owned."""
+    if skin_id and skin_id not in coins_state["owned"]:
+        return False
+    coins_state["equipped"] = skin_id
+    return True
+
+
+def apply_skin():
+    _element("farm").setAttribute("data-skin", coins_state["equipped"] or "none")
+
+
+def _validated_coins(raw):
+    """A saved "coins" record, or a blank one for anything that is not valid:
+    non-negative whole numbers, only known skins, spent never above earned,
+    the equipped skin one that is owned."""
+    blank = {"earned": 0, "spent": 0, "owned": [], "equipped": ""}
+    if not isinstance(raw, dict):
+        return blank
+
+    def whole(value):
+        return value if isinstance(value, int) and not isinstance(value, bool) and value >= 0 else 0
+
+    earned = whole(raw.get("earned"))
+    spent = min(whole(raw.get("spent")), earned)
+    owned = []
+    for skin_id in raw.get("owned") if isinstance(raw.get("owned"), list) else []:
+        if isinstance(skin_id, str) and skin_id in SKIN_IDS and skin_id not in owned:
+            owned.append(skin_id)
+    equipped = raw.get("equipped")
+    if not isinstance(equipped, str) or equipped not in owned:
+        equipped = ""
+    return {"earned": earned, "spent": spent, "owned": owned, "equipped": equipped}
+
+
+def _destroy_shop_proxies():
+    for proxy in shop_proxies:
+        proxy.destroy()
+    shop_proxies.clear()
+
+
+def on_toggle_shop(event=None):
+    global shop_open
+    shop_open = not shop_open
+    render()
+
+
+def _make_shop_handler(action, skin_id):
+    def handler(event=None):
+        if action == "buy":
+            buy_skin(skin_id)
+        else:
+            equip_skin(skin_id)
+        apply_skin()
+        render()
+    return handler
+
+
+def _shop_row(name, note, button_text, disabled, action, skin_id, button_id):
+    line = document.createElement("div")
+    line.className = "water-option"
+    text = document.createElement("div")
+    text.className = "water-option-text dashboard-practice-row"
+    title = document.createElement("strong")
+    title.innerText = name
+    detail = document.createElement("span")
+    detail.className = "water-option-count dashboard-practice-row"
+    detail.innerText = note
+    text.appendChild(title)
+    text.appendChild(detail)
+    button = document.createElement("button")
+    button.id = button_id
+    button.className = "secondary"
+    button.innerText = button_text
+    button.disabled = disabled
+    proxy = create_proxy(_make_shop_handler(action, skin_id))
+    button.addEventListener("click", proxy)
+    shop_proxies.append(proxy)
+    line.appendChild(text)
+    line.appendChild(button)
+    return line
+
+
+def render_shop():
+    toggle = _element("shop-toggle-button")
+    panel = _element("shop-panel")
+    toggle.innerText = "Close farm shop" if shop_open else "🪙 Farm shop"
+    _element("coins-display").innerText = coins_text()
+    _destroy_shop_proxies()
+    apply_skin()
+    if not shop_open:
+        panel.hidden = True
+        return
+    panel.hidden = False
+    today = coins_earned_today()
+    _element("shop-coins-line").innerText = (
+        f"You have {coin_balance()} coin{'s' if coin_balance() != 1 else ''} "
+        f"({coins_state['earned']} earned in all, {coins_state['spent']} spent). "
+        f"Earned today: {today}."
+    )
+    _element("shop-source-line").innerText = COIN_SOURCE_TEXT
+    box = _element("shop-list")
+    box.innerHTML = ""
+    plain_in_use = not coins_state["equipped"]
+    box.appendChild(_shop_row(
+        "Plain plots", "The farm's own look.",
+        "In use" if plain_in_use else "Use", plain_in_use, "equip", "", "shop-use-none-button",
+    ))
+    for skin_id, name, price, note in PLOT_SKINS:
+        if skin_id in coins_state["owned"]:
+            in_use = coins_state["equipped"] == skin_id
+            box.appendChild(_shop_row(
+                name, f"{note} Owned.", "In use" if in_use else "Use", in_use, "equip", skin_id,
+                f"shop-use-{skin_id}-button",
+            ))
+        else:
+            affordable = coin_balance() >= price
+            need = "" if affordable else f" {price - coin_balance()} more coins needed."
+            box.appendChild(_shop_row(
+                name, f"{note} {price} coins.{need}", f"Buy for {price}", not affordable, "buy", skin_id,
+                f"shop-buy-{skin_id}-button",
+            ))
+    owned = len(coins_state["owned"])
+    _element("shop-progress-line").innerText = f"Skins collected: {owned} of {len(PLOT_SKINS)}."
+
 
 
 def can_water_now(plot):
@@ -5324,6 +5577,7 @@ def water_plot(plot, combo=0, confidence=None):
         plot.last_watered = day
         plot.nudged_day = None
         tally["watered"].add(plot.plot_id)
+        earn_coins()
         return WATER_FULL
     if plot.nudged_day != day:
         nudge_review_correct(plot, day)
@@ -5411,6 +5665,11 @@ GROWTH_INFO = {
         _WATERS[0],
         _WATERS[1],
         "Each sentence is an example from one real grammar plot; a correct order waters that plot. " + _RULE_TIP,
+    ),
+    "amis": (
+        "none",
+        "Does not grow plots",
+        "The words come from a live list of false friends, not from your farm, so there is no plot to grow. Your answers still count toward your practice score. Plots whose French word is on the list carry a small false-friend badge on the farm.",
     ),
     "bonus": (
         "none",
@@ -8936,6 +9195,8 @@ def setup():
     _element("always-mc-checkbox").addEventListener("click", create_proxy(on_toggle_always_mc))
     _element("water-options-toggle-button").addEventListener("click", create_proxy(on_toggle_water_options))
     _element("water-options-close-button").addEventListener("click", create_proxy(on_toggle_water_options))
+    _element("shop-toggle-button").addEventListener("click", create_proxy(on_toggle_shop))
+    _element("shop-close-button").addEventListener("click", create_proxy(on_toggle_shop))
     _element("water-row-select").addEventListener("change", create_proxy(on_water_row_change))
     _element("water-topic-select").addEventListener("change", create_proxy(on_water_topic_change))
     _element("water-opt-next-button").addEventListener("click", create_proxy(on_water_next_option))
@@ -9096,6 +9357,7 @@ def setup():
         check_answer_fn=check_question_answer,
     )
     minigames.configure_speech(speak_french, speech_available)
+    minigames.on_amis_loaded = render
     render_growth_markers()
     minigames.setup()
 
@@ -9199,6 +9461,8 @@ def get_state():
             else {}
         ),
         **({"leech_rests": leech_rests} if leech_rests else {}),
+        # L-1 (shop): coins and skins, only once a coin has been earned.
+        **({"coins": {"earned": coins_state["earned"], "spent": coins_state["spent"], "owned": list(coins_state["owned"]), "equipped": coins_state["equipped"]}} if coins_state["earned"] else {}),
     }
 
 
@@ -9235,6 +9499,7 @@ def load_state(data):
     golden_plot.update(_validated_golden(data.get("golden")))
     quest_state.update(_validated_quests(data.get("quests")))
     leech_rests = _validated_leech_rests(data.get("leech_rests"))
+    coins_state.update(_validated_coins(data.get("coins")))
     _planner_cache.clear()
     # Z11 "My Reports" -- an old save predating this feature simply has no
     # "report_log" key, which sanitize() already treats as "empty list",

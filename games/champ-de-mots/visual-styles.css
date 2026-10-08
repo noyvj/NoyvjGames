@@ -792,9 +792,9 @@ html:is([data-visual-style="lowpoly"], [data-visual-style="textbased"], [data-vi
       .dashboard-pattern-row, .dashboard-practice-row, .dashboard-health-row, .achievement-heading, .row-blurb,
       .proficiency-topic-line, .srs-explainer-line, .settings-note, .settings-label,
       .howto-step-number, .howto-step p, .howto-step h3, .planner-line, .shop-rush-order, .review-setting,
-      #liaison-explanation, #liaison-legend, #calendar-summary, #planner-summary, #placement-summary, #placement-intro,
+      #liaison-explanation, #calendar-summary, #planner-summary, #placement-summary, #placement-intro,
       #placement-plan, #conversation-title, #conversation-line,
-      [id$="-prompt"], [id$="-instruction"]) {
+      .growth-marker, [id$="-prompt"], [id$="-instruction"]) {
   color: var(--lc-ink);
   opacity: 1;
 }
@@ -809,7 +809,7 @@ html:is([data-visual-style="lowpoly"], [data-visual-style="textbased"], [data-vi
   background: var(--lc-bg);
   color: var(--lc-ink);
 }
-html[data-visual-style="cartoon"]:not([data-theme="light"]) .practice-input::placeholder {
+html:is([data-visual-style="textbased"], [data-visual-style="cartoon"]):not([data-theme="light"]) :is(.practice-input, .accent-key)::placeholder {
   color: var(--lc-soft);
   opacity: 1;
 }

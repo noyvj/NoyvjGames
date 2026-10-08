@@ -1568,6 +1568,9 @@ button:disabled {
   cursor: help;
 }
 .growth-marker[data-growth="none"] { border-style: dashed; }
+/* LC-1 (second pass): the marker sits on cream cards (dark ink) and on the dark glass of the arcade panels (pale ink). */
+.growth-marker { color: #33291f; }
+html:not([data-theme="light"]) .minigame-panel .growth-marker { color: #eaeaf0; }
 .growth-marker::before { content: "\1F331 "; }
 .growth-marker[data-growth="none"]::before { content: "\2205 "; }
 
@@ -1588,6 +1591,30 @@ html:not([data-theme="light"]) .ambient-bg--champetre .ambient-bg-blobs {
 #conversation-title, .proficiency-topic-line, .practice-note { color: #5a4c38; opacity: 1; }
 .dashboard-health-row, .dashboard-practice-row, .row-blurb, .srs-explainer-line { color: #33291f; }
 .howto-step-number { color: inherit; opacity: 1; }
+/* shared/tutorial.js fades the number to half opacity with an id selector; one more element wins. */
+html #howto-panel .howto-step-number { opacity: 1; }
 .practice-input::placeholder, .accent-key::placeholder { color: #5f5a52; opacity: 1; }
 .save-widget-load-input::placeholder { color: #aeb6cc; opacity: 1; }
 .farm-control select { background: #fdfbf5; color: #33291f; border: 1px solid #ded2ba; }
+
+/* Farm shop skins (L-1, 2026-10-09). Cosmetic frames only, chosen from the Farm shop: a ring and a corner
+   radius round every plot cell. Nothing here touches a cell's background, its sprite, its border style (the
+   topic-type cue) or its state cues, and the due cue keeps its own inset line. Static, no motion. */
+#farm[data-skin] .plot { box-shadow: 0 0 0 2px var(--skin-ring, transparent); }
+#farm[data-skin] .plot--due { box-shadow: 0 0 0 2px var(--skin-ring, transparent), inset 0 0 0 1px #b9a77f; }
+#farm[data-skin="clay"] .plot { --skin-ring: #b5623a; border-radius: 50%; }
+#farm[data-skin="stone"] .plot { --skin-ring: #8d8f94; border-radius: 1px; }
+#farm[data-skin="crate"] .plot { --skin-ring: #8a5a2b; border-radius: 2px; }
+#farm[data-skin="lantern"] .plot { --skin-ring: #e8b73a; border-radius: 8px; }
+#farm[data-skin="hedge"] .plot { --skin-ring: #7a2f6a; border-radius: 6px; }
+#farm[data-skin="gilt"] .plot { --skin-ring: #c9a227; border-radius: 4px; }
+#farm[data-skin="gilt"] .plot--due { box-shadow: 0 0 0 2px #c9a227, 0 0 0 3px #fff3c4, inset 0 0 0 1px #b9a77f; }
+#farm[data-skin="gilt"] .plot { box-shadow: 0 0 0 2px #c9a227, 0 0 0 3px #fff3c4; }
+
+/* L-16: a farm plot whose French word is on the live false-friends list (Faux Amis). A dark wedge in the
+   top-left corner, a shape and not a colour (the stubborn-weed wedge is bottom-right, so a plot can carry both);
+   the tooltip and aria-label say which English word it looks like and what it really means. Static. */
+.plot--amis { background-image: linear-gradient(315deg, transparent 68%, #5a1f1f 68%); }
+.plot--amis.plot--leech {
+  background-image: linear-gradient(315deg, transparent 68%, #5a1f1f 68%), linear-gradient(135deg, transparent 62%, #7a2e2e 62%);
+}

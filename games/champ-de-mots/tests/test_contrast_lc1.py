@@ -184,3 +184,49 @@ def test_no_text_colour_is_left_on_a_background_it_cannot_beat():
     ]
     for fg, bg in pairs:
         assert ratio(fg, bg) >= 4.5, (fg, bg)
+
+
+# --- second pass (2026-10-09): the full 16-combination scan -------------------------------------------
+PC = (GAME_DIR / "pc.css").read_text(encoding="utf-8")
+
+
+def test_growth_marker_has_dark_ink_on_cream_cards_and_pale_ink_on_arcade_glass():
+    card = "#fcf9f3"
+    assert ratio("#33291f", card) >= 4.5
+    assert re.search(r"^\.growth-marker \{ color: #33291f; \}", STYLE, flags=re.M)
+    assert re.search(r'html:not\(\[data-theme="light"\]\) \.minigame-panel \.growth-marker \{ color: #eaeaf0; \}', STYLE)
+    assert ratio("#eaeaf0", "#14161c") >= 4.5
+    # the alternate styles' dark panels use that style's own light ink
+    assert ".growth-marker, [id$=\"-prompt\"]" in VISUAL
+
+
+def test_tutorial_numbers_are_not_faded_by_the_shared_tutorial_style():
+    assert "html #howto-panel .howto-step-number { opacity: 1; }" in STYLE
+
+
+def test_alternate_dark_styles_lighten_input_placeholders():
+    block = re.search(
+        r'html:is\(\[data-visual-style="textbased"\], \[data-visual-style="cartoon"\]\)'
+        r':not\(\[data-theme="light"\]\) :is\(\.practice-input, \.accent-key\)::placeholder \{([^}]*)\}', VISUAL)
+    assert block and "var(--lc-soft)" in block.group(1) and "opacity: 1" in block.group(1)
+    assert ratio("#93e0ad", "#0a0f12") >= 4.5   # text-based
+    # low-poly keeps its cream input, so its own dark placeholder stays (a pale one failed the scan)
+    assert ratio("#e2d0ff", "#2a1050") >= 4.5   # cartoon
+
+
+def test_desktop_window_links_on_the_cream_card_get_dark_ink():
+    assert ".pc-window-frame :is(.dashboard-health-row, .achievements-hub-link) { color: #33291f; }" in PC
+    assert ratio("#33291f", "#fbf7ee") >= 4.5
+
+
+def test_scanner_rechecks_each_failure_on_its_own_and_skips_dialogs():
+    source = (GAME_DIR / "tests" / "tools" / "contrast_scan.py").read_text(encoding="utf-8")
+    assert "def _measure(" in source and "second look at each failure" in source
+    assert "[aria-modal=true], [role=dialog]" in source
+
+
+def test_the_liaison_legend_keeps_its_dark_ink_because_it_sits_on_a_cream_note():
+    """Found by the second scan: `.practice-note` is a cream callout in every style, so the legend must not
+    be in the alternate dark styles' pale-ink list (pale on cream measured 1.06:1)."""
+    assert "#liaison-legend" not in VISUAL
+    assert ratio("#5a4c38", "#f2eddf") >= 4.5

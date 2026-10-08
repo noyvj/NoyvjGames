@@ -51,6 +51,11 @@
       "Water options"
     ],
     [
+      "shop-panel",
+      "shop-toggle-button",
+      "Farm shop"
+    ],
+    [
       "cultural-notes-panel",
       "cultural-notes-toggle-button",
       "Cultural notes"
@@ -144,6 +149,11 @@
       "wordorder-panel",
       "wordorder-toggle-button",
       "Word Order Race"
+    ],
+    [
+      "amis-panel",
+      "amis-toggle-button",
+      "Faux Amis"
     ]
   ],
   "toolbar": {
@@ -242,6 +252,7 @@
       "#gaps-toggle-button",
       "#listenpick-toggle-button",
       "#wordorder-toggle-button",
+      "#amis-toggle-button",
       "#cultural-notes-toggle-button",
       "details:has(+ #cultural-notes-panel)",
       "#study-buddy-toggle-button",
@@ -295,6 +306,11 @@
       "#quest-display",
       "📋",
       ""
+    ],
+    [
+      "#coins-display",
+      "🪙",
+      "Coins"
     ]
   ],
   "side_label": "Watering, study tools and practice games",

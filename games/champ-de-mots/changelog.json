@@ -1,5 +1,13 @@
 [
   {
+    "date": "2026-10-09",
+    "entry": "Coins and a Faux Amis game. Every full watering (the first correct answer for a plot each day) now earns one coin, shown under the daily goals; spend coins in the new Farm shop on cosmetic plot skins (terracotta pots, stone tiles, wooden crates, lantern glow, berry hedge, gilded frames). Skins only change how the plots are framed. Faux Amis is a new ten-question game about French words that look like an English word but mean something else (the least look-alike first, the near-twins last). Its list is read live from the French Wiktionary's false-friends page, named on screen with a link, and plots on your farm whose French word is on that list carry a small corner mark and a tooltip saying what it really means. It does not grow plots; your answers count toward the practice score."
+  },
+  {
+    "date": "2026-10-09",
+    "entry": "Answer checking, round two: typing just the noun is now enough when a question asks for the French word (mode counts for la mode; the article still shows in the feedback), oeuf counts for œuf, spaces around a slash no longer matter, and I'd like counts for I would like. Many English glosses in weeks 6 and 12 to 23 accept the natural alternatives players typed (the road for la rue, is it far/close to here, C'est loin d'ici, it's hot for il fait chaud, to shower, the violin, mineral water, I can / you can / he can). The unreadable-text fix is finished: all 16 combinations of page, visual style and theme were scanned."
+  },
+  {
     "date": "2026-10-08",
     "entry": "Share and tidy-ups: a Copy result button under every finished Review session (your score, plots automated and practice points) and a Share button on each earned achievement. The arcade games now hold their countdowns while this tab is hidden and tell you when you come back (a Settings checkbox turns that off). Answer checking is friendlier to English: commas and hyphens no longer matter, a French accent slipped onto an English word is forgiven, and one-word answers like 'theater' or 'nice' now count when the course glossary allows them. A Credits link sits at the foot of the page and in the Desktop Help menu."
   },

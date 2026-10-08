@@ -494,13 +494,31 @@ def test_les_etats_unis_keeps_its_article(game_env):
     assert "accepted_fr" not in item
 
 
-def test_singular_le_la_nouns_still_need_their_article(game_env):
-    """Gender is part of the item: dropping le/la is NOT accepted (pending an
-    owner decision, see report_review.json: cdf98a34)."""
+def test_singular_le_la_nouns_accept_the_bare_noun(game_env):
+    """FY-14 (owner, 2026-10-08): a question that asks for just the word does
+    not require its le/la/un/une; replaces the old 'article still needed' rule
+    (report cdf98a34)."""
     module = game_env.module
-    assert not _live(module, "fren151-w4-vocab003", 4, "fr", "mode")
-    assert not _in_array(module, "fren151-w4-vocab003", 4, "fr", "mode")
-    assert not _in_array(module, "fren151-w4-vocab003", 0, "fr", "tourisme")
+    assert _live(module, "fren151-w4-vocab003", 4, "fr", "mode")
+    assert _live(module, "fren151-w4-vocab003", 4, "fr", "la mode")
+    assert _live(module, "fren151-w4-vocab003", 0, "fr", "tourisme")
+    # the wrong article is still not the right word, and a wrong noun is wrong
+    assert not _live(module, "fren151-w4-vocab003", 4, "fr", "mod")
+    assert not _live(module, "fren151-w4-vocab003", 4, "fr", "tourisme")
+
+
+def test_bare_noun_rule_is_limited_to_vocab_french_answers_without_a_shown_article(game_env):
+    module = game_env.module
+    base = {"mode": "typed", "answer": "la mode", "choices": [], "topic_type": "vocab", "variant": module.V_EN_FR_TYPED}
+    assert module.check_answer(base, "mode", tier=module.TIER_LENIENT)
+    assert module.check_answer(dict(base, answer="un livre"), "livre", tier=module.TIER_LENIENT)
+    # a question that shows or asks for the article keeps requiring it
+    assert not module.check_answer(dict(base, with_article=True), "mode", tier=module.TIER_LENIENT)
+    assert module.check_answer(dict(base, with_article=True), "la mode", tier=module.TIER_LENIENT)
+    # grammar rules are about the little word
+    assert not module.check_answer(dict(base, topic_type="grammar", answer="le plus"), "plus", tier=module.TIER_LENIENT)
+    # the English side is untouched
+    assert not module.check_answer(dict(base, answer="the cat", variant=module.V_FR_EN_TYPED), "cat?x", tier=module.TIER_LENIENT)
 
 
 def test_elided_l_nouns_accept_the_bare_noun(game_env):
@@ -568,16 +586,19 @@ def test_catalog_counts_unchanged(game_env):
 # the review file itself
 # --------------------------------------------------------------------------
 def test_report_review_file_covers_all_50_reports():
+    """The first review covered 50 reports (full UUIDs); the second batch
+    (FY-8, 2026-10-08) added three more recorded by their 8-character prefix."""
     data = json.loads(REVIEW_PATH.read_text(encoding="utf-8"))
     entries = data["reports"] if isinstance(data, dict) else data
-    assert len(entries) == 50
+    assert len(entries) == 53
     ids = [e["report_id"] for e in entries]
-    assert len(set(ids)) == 50
+    assert len(set(ids)) == 53
     allowed = {"fixed", "not-a-bug", "test-row", "needs-owner", "needs-code"}
     for entry in entries:
         outcome = entry["outcome"]
         assert outcome in allowed or re.fullmatch(r"duplicate-of:[0-9a-f-]{36}", outcome), entry
         assert entry["note"].strip() and entry["item_id"]
+        assert re.fullmatch(r"[0-9a-f]{8}|[0-9a-f-]{36}", entry["report_id"]), entry
         if outcome.startswith("duplicate-of:"):
             assert outcome.split(":", 1)[1] in ids
 

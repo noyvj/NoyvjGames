@@ -2578,17 +2578,41 @@
               "accepted_en": [
                 "Is it far/close (from here)?",
                 "Is it far?",
-                "Is it close?"
+                "Is it close?",
+                "Is it far/close to here?",
+                "Is it far from here?",
+                "Is it close to here?",
+                "Is it close from here?",
+                "Is it far to here?",
+                "Is it far/close from here?",
+                "Is it near here?",
+                "Is it far away?",
+                "Is it nearby?"
               ],
               "accepted_fr": [
                 "C'est loin/près (d'ici)?",
                 "C'est loin?",
-                "C'est près?"
+                "C'est près?",
+                "C'est loin d'ici?",
+                "C'est près d'ici?",
+                "C'est loin/près d'ici?",
+                "C'est loin d'ici",
+                "C'est près d'ici"
               ]
             },
             {
               "fr": "Est-ce qu'il y a... (près d'ici)?",
-              "en": "Is there a... (near here)?"
+              "en": "Is there a... (near here)?",
+              "accepted_en": [
+                "Is there a... (near here)?",
+                "Is there a... near here?",
+                "Is there a ... near here?",
+                "Is there a... close to here?"
+              ],
+              "accepted_fr": [
+                "Est-ce qu'il y a... (près d'ici)?",
+                "Est-ce qu'il y a... près d'ici?"
+              ]
             }
           ]
         },
@@ -2619,7 +2643,15 @@
             },
             {
               "fr": "tout droit",
-              "en": "straight on"
+              "en": "straight on",
+              "accepted_en": [
+                "straight on",
+                "straight ahead",
+                "straight",
+                "go straight on",
+                "go straight ahead",
+                "straight on ahead"
+              ]
             },
             {
               "fr": "tournez",
@@ -2637,7 +2669,13 @@
             },
             {
               "fr": "traversez",
-              "en": "go across"
+              "en": "go across",
+              "accepted_en": [
+                "go across",
+                "cross",
+                "go over",
+                "cross over"
+              ]
             },
             {
               "fr": "suivez",
@@ -2645,11 +2683,22 @@
             },
             {
               "fr": "à côté de",
-              "en": "next to"
+              "en": "next to",
+              "accepted_en": [
+                "next to",
+                "beside",
+                "alongside"
+              ]
             },
             {
               "fr": "juste à droite",
-              "en": "just on the right"
+              "en": "just on the right",
+              "accepted_en": [
+                "just on the right",
+                "just to the right",
+                "just right",
+                "right on the right"
+              ]
             },
             {
               "fr": "indiqué",
@@ -2725,7 +2774,15 @@
             },
             {
               "fr": "le fleuve",
-              "en": "(big) river to the sea"
+              "en": "(big) river to the sea",
+              "accepted_en": [
+                "(big) river to the sea",
+                "big river",
+                "large river",
+                "river to the sea",
+                "(big) river",
+                "major river"
+              ]
             },
             {
               "fr": "la mer",
@@ -2757,7 +2814,14 @@
             },
             {
               "fr": "le port",
-              "en": "the port"
+              "en": "the port",
+              "accepted_en": [
+                "the port",
+                "the harbour",
+                "the harbor",
+                "harbour",
+                "harbor"
+              ]
             },
             {
               "fr": "le quai",
@@ -2765,7 +2829,11 @@
               "accepted_en": [
                 "the wharf/quay",
                 "the wharf",
-                "the quay"
+                "the quay",
+                "wharf",
+                "quay",
+                "the dock",
+                "dock"
               ]
             },
             {
@@ -2802,11 +2870,25 @@
             },
             {
               "fr": "la place",
-              "en": "the square"
+              "en": "the square",
+              "accepted_en": [
+                "the square",
+                "square",
+                "the plaza",
+                "plaza",
+                "the town square",
+                "town square"
+              ]
             },
             {
               "fr": "la rue",
-              "en": "the street"
+              "en": "the street",
+              "accepted_en": [
+                "the street",
+                "street",
+                "the road",
+                "road"
+              ]
             },
             {
               "fr": "le boulevard",
@@ -2830,7 +2912,12 @@
               "accepted_en": [
                 "the path/walk",
                 "the path",
-                "the walk"
+                "the walk",
+                "path",
+                "walk",
+                "the lane",
+                "the pathway",
+                "the drive"
               ]
             }
           ]
@@ -5137,7 +5224,13 @@
           "items": [
             {
               "fr": "se doucher",
-              "en": "to take a shower"
+              "en": "to take a shower",
+              "accepted_en": [
+                "to take a shower",
+                "to shower",
+                "to have a shower",
+                "to wash in the shower"
+              ]
             },
             {
               "fr": "se réveiller",
@@ -5145,39 +5238,128 @@
             },
             {
               "fr": "se coiffer",
-              "en": "to comb one's hair"
+              "en": "to comb one's hair",
+              "accepted_en": [
+                "to comb one's hair",
+                "to comb your hair",
+                "to comb my hair",
+                "to do one's hair",
+                "to do your hair",
+                "to do my hair",
+                "to brush one's hair",
+                "to brush your hair",
+                "to brush my hair",
+                "to style one's hair",
+                "to style your hair"
+              ]
             },
             {
               "fr": "se maquiller",
-              "en": "to put on makeup"
+              "en": "to put on makeup",
+              "accepted_en": [
+                "to put on makeup",
+                "to put on make up",
+                "to put on make-up",
+                "to put makeup on",
+                "to put make up on",
+                "to wear makeup",
+                "to apply makeup",
+                "to do one's makeup",
+                "to do your makeup",
+                "to do my makeup"
+              ]
             },
             {
               "fr": "se brosser les dents",
-              "en": "to brush one's teeth"
+              "en": "to brush one's teeth",
+              "accepted_en": [
+                "to brush one's teeth",
+                "to brush your teeth",
+                "to brush my teeth",
+                "to brush the teeth",
+                "to clean one's teeth",
+                "to clean your teeth",
+                "to clean my teeth"
+              ]
             },
             {
               "fr": "s'/se habiller / déshabiller",
-              "en": "to get dressed / undressed"
+              "en": "to get dressed / undressed",
+              "accepted_en": [
+                "to get dressed / undressed",
+                "to get dressed",
+                "to get undressed",
+                "to dress",
+                "to undress",
+                "to dress / undress",
+                "to dress oneself",
+                "to get dressed/undressed"
+              ],
+              "accepted_fr": [
+                "s'/se habiller / déshabiller",
+                "s'habiller",
+                "se déshabiller",
+                "s'habiller / se déshabiller",
+                "s'habiller / déshabiller",
+                "se habiller",
+                "habiller / déshabiller"
+              ]
             },
             {
               "fr": "se raser",
-              "en": "to shave"
+              "en": "to shave",
+              "accepted_en": [
+                "to shave",
+                "to shave oneself",
+                "to shave yourself",
+                "to have a shave"
+              ]
             },
             {
               "fr": "se coucher",
-              "en": "to go to bed"
+              "en": "to go to bed",
+              "accepted_en": [
+                "to go to bed",
+                "to lie down",
+                "to get into bed",
+                "to put oneself to bed",
+                "to turn in"
+              ]
             },
             {
               "fr": "se laver",
-              "en": "to wash"
+              "en": "to wash",
+              "accepted_en": [
+                "to wash",
+                "to wash oneself",
+                "to get washed",
+                "to have a wash",
+                "to wash up",
+                "to wash yourself",
+                "to wash myself"
+              ]
             },
             {
               "fr": "s'endormir",
-              "en": "to fall asleep (irregular)"
+              "en": "to fall asleep (irregular)",
+              "accepted_en": [
+                "to fall asleep (irregular)",
+                "to go to sleep",
+                "to fall asleep",
+                "to doze off",
+                "to nod off"
+              ]
             },
             {
               "fr": "se lever",
-              "en": "to get up"
+              "en": "to get up",
+              "accepted_en": [
+                "to get up",
+                "to rise",
+                "to stand up",
+                "to get out of bed",
+                "to get oneself up"
+              ]
             }
           ]
         },
@@ -5224,11 +5406,34 @@
           "items": [
             {
               "fr": "le lundi",
-              "en": "on Mondays (habitually) vs. lundi = on [one particular] Monday"
+              "en": "on Mondays (habitually; lundi = on one particular Monday)",
+              "accepted_en": [
+                "on Mondays (habitually; lundi = on one particular Monday)",
+                "on Mondays",
+                "Mondays",
+                "every Monday",
+                "each Monday",
+                "on Mondays (habitually)",
+                "on a Monday"
+              ]
             },
             {
               "fr": "le matin / le midi / l'après-midi / le soir",
-              "en": "in the mornings/at noon/in the afternoons/in the evenings (habitually)"
+              "en": "in the mornings/at noon/in the afternoons/in the evenings (habitually)",
+              "accepted_en": [
+                "in the mornings/at noon/in the afternoons/in the evenings (habitually)",
+                "in the morning",
+                "in the mornings",
+                "every morning",
+                "in the afternoon",
+                "in the afternoons",
+                "every afternoon",
+                "in the evening",
+                "in the evenings",
+                "every evening",
+                "at noon",
+                "at midday"
+              ]
             }
           ]
         },
@@ -5279,11 +5484,24 @@
             },
             {
               "fr": "rarement",
-              "en": "rarely"
+              "en": "rarely",
+              "accepted_en": [
+                "rarely",
+                "seldom",
+                "hardly ever",
+                "not often"
+              ]
             },
             {
               "fr": "de temps en temps",
-              "en": "from time to time"
+              "en": "from time to time",
+              "accepted_en": [
+                "from time to time",
+                "now and then",
+                "every now and then",
+                "occasionally",
+                "once in a while"
+              ]
             },
             {
               "fr": "quelquefois / parfois",
@@ -5291,39 +5509,95 @@
             },
             {
               "fr": "souvent",
-              "en": "often"
+              "en": "often",
+              "accepted_en": [
+                "often",
+                "frequently",
+                "a lot"
+              ]
             },
             {
               "fr": "toujours",
-              "en": "always"
+              "en": "always",
+              "accepted_en": [
+                "always",
+                "still",
+                "all the time"
+              ]
             },
             {
               "fr": "une fois par jour",
-              "en": "once a day"
+              "en": "once a day",
+              "accepted_en": [
+                "once a day",
+                "once per day",
+                "one time a day",
+                "once every day",
+                "once daily",
+                "one time per day",
+                "1 time a day"
+              ]
             },
             {
               "fr": "deux fois par semaine",
-              "en": "twice a week"
+              "en": "twice a week",
+              "accepted_en": [
+                "twice a week",
+                "twice per week",
+                "two times a week",
+                "two times per week",
+                "2 times a week",
+                "twice every week"
+              ]
             },
             {
               "fr": "trois fois par mois",
-              "en": "three times a month"
+              "en": "three times a month",
+              "accepted_en": [
+                "three times a month",
+                "three times per month",
+                "3 times a month",
+                "3 times per month",
+                "three times every month"
+              ]
             },
             {
               "fr": "tous les jours",
-              "en": "every day"
+              "en": "every day",
+              "accepted_en": [
+                "every day",
+                "everyday",
+                "each day",
+                "daily"
+              ]
             },
             {
               "fr": "toutes les semaines",
-              "en": "every week"
+              "en": "every week",
+              "accepted_en": [
+                "every week",
+                "each week",
+                "weekly"
+              ]
             },
             {
               "fr": "tous les mois",
-              "en": "every month"
+              "en": "every month",
+              "accepted_en": [
+                "every month",
+                "each month",
+                "monthly"
+              ]
             },
             {
               "fr": "tous les ans",
-              "en": "every year"
+              "en": "every year",
+              "accepted_en": [
+                "every year",
+                "each year",
+                "yearly",
+                "annually"
+              ]
             }
           ],
           "rule": "One-word adverbs (jamais, souvent, toujours, etc.) go after the verb (Je vais toujours en cours); in the negative, after 'pas' (Je ne vais pas toujours...). Multi-word adverbial phrases (une fois par semaine, etc.) can go at the start or end of the sentence."
@@ -5347,6 +5621,11 @@
               "accepted_fr": [
                 "les cartes",
                 "cartes"
+              ],
+              "accepted_en": [
+                "cards",
+                "playing cards",
+                "the cards"
               ]
             },
             {
@@ -5355,6 +5634,11 @@
               "accepted_fr": [
                 "les jeux vidéo",
                 "jeux vidéo"
+              ],
+              "accepted_en": [
+                "video games",
+                "video game",
+                "videogames"
               ]
             },
             {
@@ -5363,23 +5647,55 @@
               "accepted_fr": [
                 "les jeux sur ordinateur",
                 "jeux sur ordinateur"
+              ],
+              "accepted_en": [
+                "computer games",
+                "computer game",
+                "PC games",
+                "games on the computer"
               ]
             },
             {
               "fr": "le violon",
-              "en": "violin"
+              "en": "violin",
+              "accepted_en": [
+                "violin",
+                "the violin",
+                "a violin",
+                "fiddle"
+              ]
             },
             {
               "fr": "la clarinette",
-              "en": "clarinet"
+              "en": "clarinet",
+              "accepted_en": [
+                "clarinet",
+                "the clarinet",
+                "a clarinet"
+              ]
             },
             {
               "fr": "la batterie",
-              "en": "drums"
+              "en": "drums",
+              "accepted_en": [
+                "drums",
+                "the drums",
+                "a drum kit",
+                "drum kit",
+                "drum set",
+                "a drum set",
+                "the drum kit",
+                "drum"
+              ]
             },
             {
               "fr": "le clavier",
-              "en": "keyboard"
+              "en": "keyboard",
+              "accepted_en": [
+                "keyboard",
+                "the keyboard",
+                "a keyboard"
+              ]
             },
             {
               "fr": "l'accordéon",
@@ -5387,6 +5703,11 @@
               "accepted_fr": [
                 "l'accordéon",
                 "accordéon"
+              ],
+              "accepted_en": [
+                "accordion",
+                "the accordion",
+                "an accordion"
               ]
             },
             {
@@ -5395,15 +5716,33 @@
               "accepted_fr": [
                 "les cymbales",
                 "cymbales"
+              ],
+              "accepted_en": [
+                "cymbals",
+                "the cymbals",
+                "cymbal",
+                "a cymbal"
               ]
             },
             {
               "fr": "la flûte",
-              "en": "flute"
+              "en": "flute",
+              "accepted_en": [
+                "flute",
+                "the flute",
+                "a flute"
+              ]
             },
             {
               "fr": "la pétanque",
-              "en": "pétanque (French lawn bowls)"
+              "en": "pétanque (French lawn bowls)",
+              "accepted_en": [
+                "pétanque (French lawn bowls)",
+                "petanque",
+                "French lawn bowls",
+                "boules",
+                "petanque (French lawn bowls)"
+              ]
             }
           ]
         }
@@ -5495,19 +5834,53 @@
             },
             {
               "fr": "je sors avec mes amis",
-              "en": "I go out with friends"
+              "en": "I go out with friends",
+              "accepted_en": [
+                "I go out with friends",
+                "I go out with my friends",
+                "I'm going out with friends",
+                "I'm going out with my friends",
+                "I hang out with friends",
+                "I hang out with my friends"
+              ]
             },
             {
               "fr": "je prends le petit déjeuner",
-              "en": "I have breakfast"
+              "en": "I have breakfast",
+              "accepted_en": [
+                "I have breakfast",
+                "I eat breakfast",
+                "I take breakfast",
+                "I have my breakfast",
+                "I eat my breakfast",
+                "I'm having breakfast"
+              ]
             },
             {
               "fr": "je dîne",
-              "en": "I have dinner"
+              "en": "I have dinner",
+              "accepted_en": [
+                "I have dinner",
+                "I eat dinner",
+                "I have my dinner",
+                "I have supper",
+                "I eat supper",
+                "I'm having dinner",
+                "I dine"
+              ]
             },
             {
               "fr": "je me promène sur la plage",
-              "en": "I go for a walk on the beach"
+              "en": "I go for a walk on the beach",
+              "accepted_en": [
+                "I go for a walk on the beach",
+                "I walk on the beach",
+                "I take a walk on the beach",
+                "I stroll on the beach",
+                "I go for a stroll on the beach",
+                "I'm walking on the beach",
+                "I go walking on the beach"
+              ]
             },
             {
               "fr": "je regarde ma série préférée",
@@ -5523,15 +5896,38 @@
             },
             {
               "fr": "je me repose",
-              "en": "I relax"
+              "en": "I relax",
+              "accepted_en": [
+                "I relax",
+                "I rest",
+                "I'm relaxing",
+                "I'm resting",
+                "I have a rest",
+                "I unwind"
+              ]
             },
             {
               "fr": "je fais du sport",
-              "en": "I do sports"
+              "en": "I do sports",
+              "accepted_en": [
+                "I do sports",
+                "I do sport",
+                "I play sport",
+                "I play sports",
+                "I exercise",
+                "I do exercise",
+                "I work out"
+              ]
             },
             {
               "fr": "je prends un bain",
-              "en": "I take a bath"
+              "en": "I take a bath",
+              "accepted_en": [
+                "I take a bath",
+                "I have a bath",
+                "I'm taking a bath",
+                "I bathe"
+              ]
             }
           ]
         },
@@ -5549,7 +5945,10 @@
               "en": "hard-working",
               "accepted_en": [
                 "hard-working",
-                "hard working"
+                "hard working",
+                "hardworking",
+                "industrious",
+                "diligent"
               ]
             },
             {
@@ -5566,7 +5965,9 @@
               "en": "sporty",
               "accepted_en": [
                 "sporty",
-                "athletic"
+                "athletic",
+                "sporting",
+                "sports-minded"
               ]
             },
             {
@@ -5576,11 +5977,34 @@
                 "fêtard(e)",
                 "fêtard",
                 "fêtarde"
+              ],
+              "accepted_en": [
+                "party animal",
+                "party-goer",
+                "partygoer",
+                "party goer",
+                "party lover",
+                "party person",
+                "partier",
+                "reveller",
+                "reveler"
               ]
             },
             {
               "fr": "écolo",
-              "en": "ecologically aware"
+              "en": "ecologically aware",
+              "accepted_en": [
+                "ecologically aware",
+                "eco-friendly",
+                "eco friendly",
+                "green",
+                "environmentalist",
+                "environmentally aware",
+                "environmentally conscious",
+                "ecological",
+                "eco-conscious",
+                "ecologically conscious"
+              ]
             },
             {
               "fr": "gourmand(e)",
@@ -5589,6 +6013,15 @@
                 "gourmand(e)",
                 "gourmand",
                 "gourmande"
+              ],
+              "accepted_en": [
+                "greedy",
+                "gourmand",
+                "foodie",
+                "gluttonous",
+                "glutton",
+                "food lover",
+                "has a sweet tooth"
               ]
             },
             {
@@ -5598,6 +6031,14 @@
                 "coquet(te)",
                 "coquet",
                 "coquette"
+              ],
+              "accepted_en": [
+                "stylish",
+                "fashionable",
+                "vain",
+                "flirtatious",
+                "well-dressed",
+                "dapper"
               ]
             },
             {
@@ -5628,7 +6069,12 @@
             },
             {
               "fr": "prétentieux / prétentieuse",
-              "en": "pretentious"
+              "en": "pretentious",
+              "accepted_en": [
+                "pretentious",
+                "conceited",
+                "showy"
+              ]
             }
           ]
         },
@@ -5639,19 +6085,38 @@
           "items": [
             {
               "fr": "plus + adjective + que",
-              "en": "more ... than"
+              "en": "more ... than",
+              "accepted_en": [
+                "more ... than",
+                "more than",
+                "more...than"
+              ]
             },
             {
               "fr": "moins + adjective + que",
-              "en": "less ... than"
+              "en": "less ... than",
+              "accepted_en": [
+                "less ... than",
+                "less than",
+                "less...than"
+              ]
             },
             {
               "fr": "aussi + adjective + que",
-              "en": "as ... as"
+              "en": "as ... as",
+              "accepted_en": [
+                "as ... as",
+                "as...as",
+                "as as"
+              ]
             },
             {
               "fr": "Jacques est plus grand que Julie.",
-              "en": "Jacques is taller than Julie."
+              "en": "Jacques is taller than Julie.",
+              "accepted_en": [
+                "Jacques is taller than Julie.",
+                "Jacques is bigger than Julie."
+              ]
             },
             {
               "fr": "meilleur(e)(s)",
@@ -5842,7 +6307,15 @@
             },
             {
               "fr": "Quelle est la date de ton anniversaire?",
-              "en": "When is your birthday?"
+              "en": "When is your birthday?",
+              "accepted_en": [
+                "When is your birthday?",
+                "What is the date of your birthday?",
+                "What's the date of your birthday?",
+                "What date is your birthday?",
+                "When's your birthday?",
+                "What day is your birthday?"
+              ]
             },
             {
               "fr": "C'est le [no.] + [mois]",
@@ -5858,11 +6331,33 @@
           "items": [
             {
               "fr": "Combien de fois par jour/semaine/mois...?",
-              "en": "How many times per day/week/month...?"
+              "en": "How many times per day/week/month...?",
+              "accepted_en": [
+                "How many times per day/week/month...?",
+                "How many times a day/week/month...?",
+                "How many times a day?",
+                "How many times a week?",
+                "How many times a month?",
+                "How many times per day?",
+                "How many times per week?",
+                "How many times per month?",
+                "How many times each day?",
+                "How many times each week?",
+                "How many times each month?",
+                "How many times a day / week / month...?"
+              ]
             },
             {
               "fr": "Combien d'heures par semaine...?",
-              "en": "How many hours per week...?"
+              "en": "How many hours per week...?",
+              "accepted_en": [
+                "How many hours per week...?",
+                "How many hours a week...?",
+                "How many hours a week?",
+                "How many hours per week?",
+                "How many hours each week?",
+                "How many hours every week?"
+              ]
             }
           ]
         },
@@ -5881,7 +6376,18 @@
             },
             {
               "fr": "où / quand / comment / pourquoi / qui / combien / quel(le)",
-              "en": "where / when / how / why / who / how much-many / which-what"
+              "en": "where / when / how / why / who / how much-many / which-what",
+              "accepted_en": [
+                "where / when / how / why / who / how much-many / which-what",
+                "how much",
+                "how many",
+                "how much/many",
+                "how much or how many",
+                "which",
+                "what",
+                "which/what",
+                "which or what"
+              ]
             }
           ],
           "rule": "Two main ways to form a question: (1) question word + est-ce que + normal word order, or (2) inversion of the verb and subject pronoun (more formal/written)."
@@ -5893,19 +6399,38 @@
           "items": [
             {
               "fr": "Travaille-t-il?",
-              "en": "Does he work? (verb ends in vowel sound — needs inserted -t-)"
+              "en": "Does he work? (verb ends in vowel sound — needs inserted -t-)",
+              "accepted_en": [
+                "Does he work? (verb ends in vowel sound — needs inserted -t-)",
+                "Is he working?",
+                "Does he work?"
+              ]
             },
             {
               "fr": "Mange-t-elle?",
-              "en": "Does she eat? (needs inserted -t-)"
+              "en": "Does she eat? (needs inserted -t-)",
+              "accepted_en": [
+                "Does she eat? (needs inserted -t-)",
+                "Is she eating?",
+                "Does she eat?"
+              ]
             },
             {
               "fr": "Prend-il?",
-              "en": "Does he take? (verb already ends in -d, pronounced 't' — no insertion needed)"
+              "en": "Does he take? (verb already ends in -d, pronounced 't' — no insertion needed)",
+              "accepted_en": [
+                "Does he take? (verb already ends in -d, pronounced 't' — no insertion needed)",
+                "Is he taking?"
+              ]
             },
             {
               "fr": "Finit-il?",
-              "en": "Does he finish? (verb already ends in -t — no insertion needed)"
+              "en": "Does he finish? (verb already ends in -t — no insertion needed)",
+              "accepted_en": [
+                "Does he finish? (verb already ends in -t — no insertion needed)",
+                "Is he finishing?",
+                "Does he finish?"
+              ]
             }
           ],
           "rule": "When inverting a verb and il/elle/on, insert '-t-' between them UNLESS the verb already ends in -d or -t (both pronounced as a 't' sound) — this avoids an awkward vowel clash between two vowel sounds."
@@ -5954,14 +6479,23 @@
             },
             {
               "fr": "un jean",
-              "en": "jeans"
+              "en": "jeans",
+              "accepted_en": [
+                "jeans",
+                "a pair of jeans",
+                "jean",
+                "a jean"
+              ]
             },
             {
               "fr": "un pantalon",
               "en": "trousers",
               "accepted_en": [
                 "trousers",
-                "pants"
+                "pants",
+                "a pair of trousers",
+                "a pair of pants",
+                "slacks"
               ]
             },
             {
@@ -5982,7 +6516,12 @@
             },
             {
               "fr": "une cravate",
-              "en": "a tie"
+              "en": "a tie",
+              "accepted_en": [
+                "a tie",
+                "a necktie",
+                "a neck tie"
+              ]
             },
             {
               "fr": "des baskets",
@@ -6013,7 +6552,11 @@
             },
             {
               "fr": "un manteau",
-              "en": "a coat"
+              "en": "a coat",
+              "accepted_en": [
+                "a coat",
+                "an overcoat"
+              ]
             },
             {
               "fr": "une casquette",
@@ -6024,12 +6567,25 @@
               "en": "a t-shirt",
               "accepted_en": [
                 "a t-shirt",
-                "a t shirt"
+                "a t shirt",
+                "t-shirt",
+                "a tee shirt",
+                "tee shirt",
+                "a tee-shirt",
+                "tee-shirt",
+                "a tshirt",
+                "tshirt",
+                "a tee"
               ]
             },
             {
               "fr": "un short",
-              "en": "shorts"
+              "en": "shorts",
+              "accepted_en": [
+                "shorts",
+                "a pair of shorts",
+                "short"
+              ]
             },
             {
               "fr": "un costume",
@@ -6061,7 +6617,19 @@
             },
             {
               "fr": "un bonnet",
-              "en": "a beanie"
+              "en": "a beanie",
+              "accepted_en": [
+                "a beanie",
+                "a woolly hat",
+                "a woolen hat",
+                "a woollen hat",
+                "a wool hat",
+                "a knit hat",
+                "a knitted hat",
+                "a bobble hat",
+                "a toque",
+                "a stocking cap"
+              ]
             },
             {
               "fr": "une robe",
@@ -6103,11 +6671,22 @@
               "accepted_fr": [
                 "des lunettes de soleil",
                 "lunettes de soleil"
+              ],
+              "accepted_en": [
+                "sunglasses",
+                "sun glasses",
+                "shades"
               ]
             },
             {
               "fr": "un blouson",
-              "en": "a jacket"
+              "en": "a jacket",
+              "accepted_en": [
+                "a jacket",
+                "a bomber jacket",
+                "a windcheater",
+                "a lightweight jacket"
+              ]
             }
           ]
         },
@@ -6118,11 +6697,24 @@
           "items": [
             {
               "fr": "Qu'est-ce que vous portez aujourd'hui?",
-              "en": "What are you wearing today?"
+              "en": "What are you wearing today?",
+              "accepted_en": [
+                "What are you wearing today?",
+                "What do you wear today?",
+                "What do you wear today",
+                "What are you wearing?"
+              ]
             },
             {
               "fr": "Aujourd'hui, je porte...",
-              "en": "Today I'm wearing..."
+              "en": "Today I'm wearing...",
+              "accepted_en": [
+                "Today I'm wearing...",
+                "Today I wear...",
+                "Today I am wearing...",
+                "Today, I'm wearing...",
+                "Today, I wear..."
+              ]
             }
           ]
         },
@@ -6153,7 +6745,11 @@
             },
             {
               "fr": "violet / violette",
-              "en": "purple"
+              "en": "purple",
+              "accepted_en": [
+                "purple",
+                "violet"
+              ]
             },
             {
               "fr": "orange / orange",
@@ -6369,15 +6965,41 @@
           "items": [
             {
               "fr": "De quelle couleur est/sont ton/ta/tes...?",
-              "en": "What colour is/are your...?"
+              "en": "What colour is/are your...?",
+              "accepted_en": [
+                "What colour is/are your...?",
+                "What colour is your...?",
+                "What colour are your...?",
+                "What color is/are your...?",
+                "What color is your...?",
+                "What color are your...?",
+                "What is the colour of your...?",
+                "What is the color of your...?",
+                "What colour is/are your"
+              ]
             },
             {
               "fr": "En quelle matière est/sont ton/ta/tes...?",
-              "en": "What material is/are your... made of?"
+              "en": "What material is/are your... made of?",
+              "accepted_en": [
+                "What material is/are your... made of?",
+                "What material is your... made of?",
+                "What material are your... made of?",
+                "What is your... made of?",
+                "What are your... made of?",
+                "What material is/are your...?"
+              ]
             },
             {
               "fr": "Mon/Ma/Mes... est/sont en + [material]",
-              "en": "My... is/are made of..."
+              "en": "My... is/are made of...",
+              "accepted_en": [
+                "My... is/are made of...",
+                "My... is made of...",
+                "My... are made of...",
+                "My... is/are made of",
+                "My ... is made of ..."
+              ]
             }
           ]
         },
@@ -6388,7 +7010,25 @@
           "items": [
             {
               "fr": "à manches longues / courtes",
-              "en": "long-sleeved / short-sleeved"
+              "en": "long-sleeved / short-sleeved",
+              "accepted_en": [
+                "long-sleeved / short-sleeved",
+                "long-sleeved/short-sleeved",
+                "long sleeved / short sleeved",
+                "long sleeves / short sleeves",
+                "long-sleeve / short-sleeve",
+                "with long sleeves / with short sleeves",
+                "long sleeves",
+                "short sleeves",
+                "long sleeved",
+                "short sleeved",
+                "with long sleeves",
+                "with short sleeves",
+                "long sleeve",
+                "short sleeve",
+                "long-sleeve",
+                "short-sleeve"
+              ]
             },
             {
               "fr": "à talon",
@@ -6396,12 +7036,23 @@
               "accepted_en": [
                 "high-heeled",
                 "high heeled",
-                "with heels"
+                "with heels",
+                "heeled",
+                "with a heel",
+                "high heels",
+                "high heel",
+                "high-heel"
               ]
             },
             {
               "fr": "à capuche",
-              "en": "hooded"
+              "en": "hooded",
+              "accepted_en": [
+                "hooded",
+                "with a hood",
+                "with hood",
+                "has a hood"
+              ]
             },
             {
               "fr": "des sandales",
@@ -6413,7 +7064,12 @@
             },
             {
               "fr": "la pointure",
-              "en": "shoe size"
+              "en": "shoe size",
+              "accepted_en": [
+                "shoe size",
+                "size of shoe",
+                "footwear size"
+              ]
             },
             {
               "fr": "étroit(e)",
@@ -6422,6 +7078,14 @@
                 "étroit(e)",
                 "étroit",
                 "étroite"
+              ],
+              "accepted_en": [
+                "narrow, tight",
+                "narrow",
+                "tight",
+                "narrow or tight",
+                "narrow/tight",
+                "narrow / tight"
               ]
             },
             {
@@ -6448,7 +7112,13 @@
             },
             {
               "fr": "à rayures",
-              "en": "striped"
+              "en": "striped",
+              "accepted_en": [
+                "striped",
+                "stripy",
+                "with stripes",
+                "stripes"
+              ]
             },
             {
               "fr": "à pois",
@@ -6457,7 +7127,12 @@
                 "spotted",
                 "polka dot",
                 "polka-dot",
-                "dotted"
+                "dotted",
+                "with spots",
+                "with polka dots",
+                "polka dots",
+                "spots",
+                "with dots"
               ]
             },
             {
@@ -6466,7 +7141,10 @@
               "accepted_en": [
                 "flowery",
                 "floral",
-                "flowered"
+                "flowered",
+                "with flowers",
+                "flower patterned",
+                "flower-patterned"
               ]
             }
           ]
@@ -6478,19 +7156,41 @@
           "items": [
             {
               "fr": "celui (masc. sg)",
-              "en": "the one / this one"
+              "en": "the one / this one",
+              "accepted_en": [
+                "the one / this one",
+                "the one / that one"
+              ]
             },
             {
               "fr": "celle (fem. sg)",
-              "en": "the one / this one"
+              "en": "the one / this one",
+              "accepted_en": [
+                "the one / this one",
+                "the one / that one"
+              ]
             },
             {
               "fr": "ceux (masc. pl)",
-              "en": "the ones / these ones"
+              "en": "the ones / these ones",
+              "accepted_en": [
+                "the ones / these ones",
+                "those ones",
+                "those",
+                "these",
+                "the ones / those ones"
+              ]
             },
             {
               "fr": "celles (fem. pl)",
-              "en": "the ones / these ones"
+              "en": "the ones / these ones",
+              "accepted_en": [
+                "the ones / these ones",
+                "those ones",
+                "those",
+                "these",
+                "the ones / those ones"
+              ]
             },
             {
               "fr": "celui-ci / celui-là",
@@ -6510,7 +7210,13 @@
             },
             {
               "fr": "Comment trouves-tu...?",
-              "en": "What do you think of...?"
+              "en": "What do you think of...?",
+              "accepted_en": [
+                "What do you think of...?",
+                "How do you find...?",
+                "What do you think about...?",
+                "How do you like...?"
+              ]
             },
             {
               "fr": "... il/elle te plaît? / ils/elles te plaisent?",
@@ -6555,7 +7261,14 @@
             },
             {
               "fr": "en imitation fourrure",
-              "en": "fake fur"
+              "en": "fake fur",
+              "accepted_en": [
+                "fake fur",
+                "faux fur",
+                "imitation fur",
+                "artificial fur",
+                "synthetic fur"
+              ]
             },
             {
               "fr": "écossais(e)",
@@ -6575,7 +7288,15 @@
             },
             {
               "fr": "la taille",
-              "en": "clothing size"
+              "en": "clothing size",
+              "accepted_en": [
+                "clothing size",
+                "size",
+                "the size",
+                "size (clothing)",
+                "clothes size",
+                "dress size"
+              ]
             },
             {
               "fr": "la pointure",
@@ -6598,7 +7319,12 @@
             },
             {
               "fr": "Vous avez...?",
-              "en": "Do you have...?"
+              "en": "Do you have...?",
+              "accepted_en": [
+                "Do you have...?",
+                "Have you got...?",
+                "Have you got"
+              ]
             },
             {
               "fr": "Vous désirez?",
@@ -6606,15 +7332,36 @@
             },
             {
               "fr": "Je peux vous aider?",
-              "en": "Can I help you? (shop assistant)"
+              "en": "Can I help you? (shop assistant)",
+              "accepted_en": [
+                "Can I help you? (shop assistant)",
+                "May I help you?",
+                "Can I help?",
+                "How can I help you?",
+                "Can I help you?"
+              ]
             },
             {
               "fr": "C'est pour qui? — pour moi/mon frère/ma sœur...",
-              "en": "Who is it for? — for me/my brother/my sister..."
+              "en": "Who is it for? — for me/my brother/my sister...",
+              "accepted_en": [
+                "Who is it for? — for me/my brother/my sister...",
+                "Who is it for?",
+                "Who's it for?",
+                "Who is it for",
+                "Who is it for? - for me/my brother/my sister..."
+              ]
             },
             {
               "fr": "Vous faites quelle taille?",
-              "en": "What size are you?"
+              "en": "What size are you?",
+              "accepted_en": [
+                "What size are you?",
+                "What size do you wear?",
+                "What size do you take?",
+                "What is your size?",
+                "What's your size?"
+              ]
             },
             {
               "fr": "Je fais du + [number]",
@@ -6622,27 +7369,72 @@
             },
             {
               "fr": "Je peux l'essayer?",
-              "en": "Can I try it on?"
+              "en": "Can I try it on?",
+              "accepted_en": [
+                "Can I try it on?",
+                "May I try it on?",
+                "Can I try on?",
+                "Could I try it on?"
+              ]
             },
             {
               "fr": "C'est combien? / Ça coûte combien?",
-              "en": "How much is it?"
+              "en": "How much is it?",
+              "accepted_en": [
+                "How much is it?",
+                "How much does it cost?",
+                "How much is that?",
+                "How much does that cost?"
+              ]
             },
             {
               "fr": "Vous payez comment?",
-              "en": "How are you paying?"
+              "en": "How are you paying?",
+              "accepted_en": [
+                "How are you paying?",
+                "How do you pay?",
+                "How will you pay?",
+                "How would you like to pay?",
+                "How are you going to pay?"
+              ]
             },
             {
               "fr": "par carte",
-              "en": "by card"
+              "en": "by card",
+              "accepted_en": [
+                "by card",
+                "with a card",
+                "by credit card",
+                "by debit card",
+                "with card"
+              ]
             },
             {
               "fr": "en espèces",
-              "en": "in cash"
+              "en": "in cash",
+              "accepted_en": [
+                "in cash",
+                "cash",
+                "by cash",
+                "with cash"
+              ]
             },
             {
               "fr": "C'est un peu/trop cher. Je prends...",
-              "en": "It's a bit/too expensive. I'll take..."
+              "en": "It's a bit/too expensive. I'll take...",
+              "accepted_en": [
+                "It's a bit/too expensive. I'll take...",
+                "It's a bit expensive. I'll take...",
+                "It's too expensive. I'll take...",
+                "It's a bit/too expensive. I'll take",
+                "It's a bit expensive. I will take it",
+                "It's too expensive. I will take it",
+                "It's a bit expensive. I'll take it",
+                "It's too expensive. I'll take it",
+                "It's a little expensive. I'll take...",
+                "It's a bit expensive, I'll take...",
+                "It's too expensive, I'll take..."
+              ]
             }
           ]
         }
@@ -6706,7 +7498,14 @@
             },
             {
               "fr": "un sac à main / un sac à dos",
-              "en": "a handbag / a backpack"
+              "en": "a handbag / a backpack",
+              "accepted_en": [
+                "a handbag / a backpack",
+                "a handbag / a rucksack",
+                "a rucksack",
+                "a purse",
+                "a knapsack"
+              ]
             },
             {
               "fr": "des tongs",
@@ -6726,7 +7525,14 @@
             },
             {
               "fr": "une serviette (de bain)",
-              "en": "a (bath) towel"
+              "en": "a (bath) towel",
+              "accepted_en": [
+                "a (bath) towel",
+                "a bath towel",
+                "bath towel",
+                "a towel",
+                "towel"
+              ]
             },
             {
               "fr": "une crème solaire",
@@ -6748,20 +7554,38 @@
               "en": "a hair-dryer",
               "accepted_en": [
                 "a hair-dryer",
-                "a hair dryer"
+                "a hair dryer",
+                "a hairdryer",
+                "a blow dryer",
+                "a blow-dryer",
+                "a hair drier",
+                "hairdryer"
               ]
             },
             {
               "fr": "une brosse à dents",
-              "en": "a toothbrush"
+              "en": "a toothbrush",
+              "accepted_en": [
+                "a toothbrush",
+                "a tooth brush"
+              ]
             },
             {
               "fr": "du dentifrice",
-              "en": "toothpaste"
+              "en": "toothpaste",
+              "accepted_en": [
+                "toothpaste",
+                "tooth paste"
+              ]
             },
             {
               "fr": "une montre",
-              "en": "a watch"
+              "en": "a watch",
+              "accepted_en": [
+                "a watch",
+                "a wristwatch",
+                "a wrist watch"
+              ]
             }
           ]
         },
@@ -6772,43 +7596,129 @@
           "items": [
             {
               "fr": "Quel temps fait-il?",
-              "en": "What's the weather like?"
+              "en": "What's the weather like?",
+              "accepted_en": [
+                "What's the weather like?",
+                "How's the weather?",
+                "How is the weather?",
+                "What's the weather?",
+                "What is the weather?",
+                "What is the weather like?"
+              ]
             },
             {
               "fr": "il fait beau / mauvais",
-              "en": "it's fine / bad weather"
+              "en": "it's fine / bad weather",
+              "accepted_en": [
+                "it's fine / bad weather",
+                "it's fine weather",
+                "it's nice weather",
+                "it's good weather",
+                "it's bad weather",
+                "it's poor weather",
+                "the weather is fine",
+                "the weather is nice",
+                "the weather is good",
+                "the weather is bad",
+                "it's nice",
+                "it's beautiful",
+                "it's lovely",
+                "it's bad",
+                "it's fine",
+                "it's lovely weather",
+                "it's beautiful weather"
+              ]
             },
             {
               "fr": "il fait froid / chaud",
-              "en": "it's cold / hot"
+              "en": "it's cold / hot",
+              "accepted_en": [
+                "it's cold / hot",
+                "it's cold",
+                "it's hot",
+                "it's warm",
+                "it's chilly",
+                "it's cold / it's hot",
+                "the weather is cold",
+                "the weather is hot",
+                "it is cold/hot"
+              ]
             },
             {
               "fr": "il pleut",
-              "en": "it's raining"
+              "en": "it's raining",
+              "accepted_en": [
+                "it's raining",
+                "it rains",
+                "it's rainy",
+                "it is raining"
+              ]
             },
             {
               "fr": "il neige",
-              "en": "it's snowing"
+              "en": "it's snowing",
+              "accepted_en": [
+                "it's snowing",
+                "it snows",
+                "it's snowy"
+              ]
             },
             {
               "fr": "il y a du soleil",
-              "en": "it's sunny"
+              "en": "it's sunny",
+              "accepted_en": [
+                "it's sunny",
+                "there is sun",
+                "there's sun",
+                "the sun is out",
+                "the sun is shining",
+                "there is sunshine",
+                "there's sunshine",
+                "it's a sunny day"
+              ]
             },
             {
               "fr": "il y a du vent",
-              "en": "it's windy"
+              "en": "it's windy",
+              "accepted_en": [
+                "it's windy",
+                "there is wind",
+                "there's wind",
+                "there is a wind",
+                "there's a wind"
+              ]
             },
             {
               "fr": "il y a du brouillard",
-              "en": "it's foggy"
+              "en": "it's foggy",
+              "accepted_en": [
+                "it's foggy",
+                "there is fog",
+                "there's fog",
+                "it's misty"
+              ]
             },
             {
               "fr": "il y a des nuages",
-              "en": "it's cloudy"
+              "en": "it's cloudy",
+              "accepted_en": [
+                "it's cloudy",
+                "there are clouds"
+              ]
             },
             {
               "fr": "il y a de l'orage",
-              "en": "it's stormy"
+              "en": "it's stormy",
+              "accepted_en": [
+                "it's stormy",
+                "there is a storm",
+                "there's a storm",
+                "there is thunder",
+                "there's thunder",
+                "there is a thunderstorm",
+                "there's a thunderstorm",
+                "it's thundery"
+              ]
             }
           ]
         },
@@ -6837,11 +7747,26 @@
             },
             {
               "fr": "je peux / tu peux / il peut",
-              "en": "I/you/he can / am/is able to"
+              "en": "I/you/he can / am/is able to",
+              "accepted_en": [
+                "I/you/he can / am/is able to",
+                "I can / you can / he can",
+                "I can, you can, he can",
+                "I am able to / you are able to / he is able to",
+                "I can/you can/he can",
+                "I'm able to / you're able to / he's able to"
+              ]
             },
             {
               "fr": "nous pouvons / vous pouvez / ils peuvent",
-              "en": "we/you/they can / are able to"
+              "en": "we/you/they can / are able to",
+              "accepted_en": [
+                "we/you/they can / are able to",
+                "we can / you can / they can",
+                "we can, you can, they can",
+                "we are able to / you are able to / they are able to",
+                "we can/you can/they can"
+              ]
             },
             {
               "fr": "je voudrais",
@@ -6938,7 +7863,13 @@
             },
             {
               "fr": "des céréales",
-              "en": "some cereal (plural)"
+              "en": "some cereal (plural)",
+              "accepted_en": [
+                "some cereal (plural)",
+                "some cereals",
+                "cereals",
+                "cereal"
+              ]
             }
           ],
           "rule": "The partitive translates 'some' or unspecified quantity, used mainly with uncountable/abstract nouns. It becomes just 'de' after ne...pas (except with être), after quantity expressions (une bouteille de), and before an adjective+plural noun (de bonnes notes). Verbs like adorer/aimer/préférer/détester take the definite article instead (j'aime le café, not du café)."
@@ -6970,7 +7901,14 @@
             },
             {
               "fr": "un œuf / des œufs",
-              "en": "an egg / eggs"
+              "en": "an egg / eggs",
+              "accepted_en": [
+                "an egg / eggs",
+                "egg",
+                "eggs",
+                "egg / eggs",
+                "an egg/eggs"
+              ]
             },
             {
               "fr": "du yaourt",
@@ -7018,7 +7956,12 @@
             },
             {
               "fr": "de l'eau (minérale)",
-              "en": "(mineral) water"
+              "en": "(mineral) water",
+              "accepted_en": [
+                "(mineral) water",
+                "mineral water",
+                "water"
+              ]
             },
             {
               "fr": "de la limonade",
@@ -7041,7 +7984,16 @@
           "items": [
             {
               "fr": "une entrée",
-              "en": "a starter"
+              "en": "a starter",
+              "accepted_en": [
+                "a starter",
+                "an entrée",
+                "an entree",
+                "a first course",
+                "an appetizer",
+                "an appetiser",
+                "a starter course"
+              ]
             },
             {
               "fr": "du jambon",
@@ -7130,7 +8082,13 @@
             },
             {
               "fr": "un dessert / du gâteau / de la glace",
-              "en": "dessert / cake / ice cream"
+              "en": "dessert / cake / ice cream",
+              "accepted_en": [
+                "dessert / cake / ice cream",
+                "dessert / cake / ice-cream",
+                "dessert, cake, ice cream",
+                "dessert, cake and ice cream"
+              ]
             }
           ]
         },
@@ -7141,15 +8099,55 @@
           "items": [
             {
               "fr": "Qu'est-ce que vous prenez au petit-déjeuner?",
-              "en": "What do you have for breakfast?"
+              "en": "What do you have for breakfast?",
+              "accepted_en": [
+                "What do you have for breakfast?",
+                "What do you eat for breakfast?",
+                "What do you take for breakfast?",
+                "What are you having for breakfast?",
+                "What do you have at breakfast?",
+                "What do you eat at breakfast?",
+                "What do you have for your breakfast?"
+              ]
             },
             {
               "fr": "Au petit-déjeuner, je prends...",
-              "en": "For breakfast, I have..."
+              "en": "For breakfast, I have...",
+              "accepted_en": [
+                "For breakfast, I have...",
+                "At breakfast, I have...",
+                "For breakfast I eat...",
+                "At breakfast I eat...",
+                "For breakfast, I eat...",
+                "For breakfast I take...",
+                "At breakfast I take...",
+                "For breakfast, I take...",
+                "I have ... for breakfast",
+                "For breakfast I have..."
+              ]
             },
             {
               "fr": "Comme entrée/plat principal/dessert, je voudrais...",
-              "en": "As a starter/main/dessert, I'd like..."
+              "en": "As a starter/main/dessert, I'd like...",
+              "accepted_en": [
+                "As a starter/main/dessert, I'd like...",
+                "As a starter, I'd like...",
+                "As a main, I'd like...",
+                "As a main course, I'd like...",
+                "As a dessert, I'd like...",
+                "As a starter/main course/dessert, I'd like...",
+                "As a starter/main/dessert I'd like...",
+                "For a starter, I'd like...",
+                "For a main, I'd like...",
+                "For a dessert, I'd like...",
+                "For starter, I'd like...",
+                "For main, I'd like...",
+                "For dessert, I'd like...",
+                "As starter, I'd like...",
+                "As main course, I'd like...",
+                "As dessert, I'd like...",
+                "As an entree, I'd like..."
+              ]
             }
           ]
         }
@@ -7197,11 +8195,27 @@
           "items": [
             {
               "fr": "la boulangerie",
-              "en": "the bakery"
+              "en": "the bakery",
+              "accepted_en": [
+                "the bakery",
+                "the baker's",
+                "the baker's shop",
+                "the bakers"
+              ]
             },
             {
               "fr": "la pâtisserie",
-              "en": "the cake shop"
+              "en": "the cake shop",
+              "accepted_en": [
+                "the cake shop",
+                "the pastry shop",
+                "the patisserie",
+                "the pastry store",
+                "the cake store",
+                "cake shop",
+                "patisserie",
+                "pastry shop"
+              ]
             },
             {
               "fr": "l'épicerie",
@@ -7209,27 +8223,86 @@
               "accepted_fr": [
                 "l'épicerie",
                 "épicerie"
+              ],
+              "accepted_en": [
+                "the grocer's",
+                "the grocery store",
+                "the grocery",
+                "the grocery shop",
+                "the grocer",
+                "the corner shop",
+                "grocer's",
+                "grocery store"
               ]
             },
             {
               "fr": "la boucherie",
-              "en": "the butcher's"
+              "en": "the butcher's",
+              "accepted_en": [
+                "the butcher's",
+                "the butcher",
+                "the butcher shop",
+                "the butcher's shop",
+                "butcher's",
+                "butcher"
+              ]
             },
             {
               "fr": "la poissonnerie",
-              "en": "the fish market"
+              "en": "the fish market",
+              "accepted_en": [
+                "the fish market",
+                "the fishmonger's",
+                "the fishmonger",
+                "the fish shop",
+                "the fish store",
+                "fishmonger's",
+                "fishmonger",
+                "fish shop"
+              ]
             },
             {
               "fr": "la charcuterie",
-              "en": "cooked meats/deli"
+              "en": "cooked meats/deli",
+              "accepted_en": [
+                "cooked meats/deli",
+                "the deli",
+                "the delicatessen",
+                "delicatessen",
+                "deli",
+                "cooked meats",
+                "a charcuterie",
+                "the delicatessen / deli",
+                "pork butcher's"
+              ]
             },
             {
               "fr": "la fromagerie",
-              "en": "cheese shop"
+              "en": "cheese shop",
+              "accepted_en": [
+                "cheese shop",
+                "the cheese shop",
+                "the cheese store",
+                "cheese store",
+                "cheesemonger's",
+                "the cheesemonger's"
+              ]
             },
             {
               "fr": "le marchand de fruits et légumes",
-              "en": "the greengrocer"
+              "en": "the greengrocer",
+              "accepted_en": [
+                "the greengrocer",
+                "the greengrocer's",
+                "the fruit and vegetable shop",
+                "the fruit and veg shop",
+                "the fruit and vegetable store",
+                "the fruiterer",
+                "the greengrocery",
+                "greengrocer's",
+                "greengrocer",
+                "the produce store"
+              ]
             }
           ]
         },
@@ -7240,7 +8313,14 @@
           "items": [
             {
               "fr": "Tu vas à la boulangerie? Non, j'y vais demain.",
-              "en": "Are you going to the bakery? No, I'm going (there) tomorrow."
+              "en": "Are you going to the bakery? No, I'm going (there) tomorrow.",
+              "accepted_en": [
+                "Are you going to the bakery? No, I'm going (there) tomorrow.",
+                "Are you going to the bakery? No, I'm going there tomorrow.",
+                "Are you going to the bakery? No, I'm going tomorrow.",
+                "Are you going to the bakery? No, I will go there tomorrow.",
+                "Are you going to the bakery? No, I'll go there tomorrow."
+              ]
             }
           ],
           "rule": "'Y' replaces à + [place] and goes before the verb. Unlike English (where 'there' can be dropped), 'y' must be included in French."
@@ -7295,19 +8375,43 @@
           "items": [
             {
               "fr": "je vais jouer",
-              "en": "I'm going to play"
+              "en": "I'm going to play",
+              "accepted_en": [
+                "I'm going to play",
+                "I will play",
+                "I'll play",
+                "I am going to play"
+              ]
             },
             {
               "fr": "tu vas jouer",
-              "en": "you're going to play"
+              "en": "you're going to play",
+              "accepted_en": [
+                "you're going to play",
+                "you will play",
+                "you'll play",
+                "you are going to play"
+              ]
             },
             {
               "fr": "nous allons jouer",
-              "en": "we're going to play"
+              "en": "we're going to play",
+              "accepted_en": [
+                "we're going to play",
+                "we will play",
+                "we'll play",
+                "we are going to play"
+              ]
             },
             {
               "fr": "ils vont jouer",
-              "en": "they're going to play"
+              "en": "they're going to play",
+              "accepted_en": [
+                "they're going to play",
+                "they will play",
+                "they'll play",
+                "they are going to play"
+              ]
             }
           ],
           "rule": "aller (conjugated) + infinitive describes near-future, inevitable, or pre-planned events. Only the first verb (aller) is conjugated."
@@ -7391,15 +8495,40 @@
           "items": [
             {
               "fr": "Tu veux du café? Oui, j'en veux.",
-              "en": "Do you want coffee? Yes, I want some (of it)."
+              "en": "Do you want coffee? Yes, I want some (of it).",
+              "accepted_en": [
+                "Do you want coffee? Yes, I want some (of it).",
+                "Do you want coffee? Yes, I want some of it.",
+                "Do you want some coffee? Yes, I want some.",
+                "Do you want coffee? Yes, I want some.",
+                "Do you want some coffee? Yes, I want some of it.",
+                "Do you want coffee? Yes, I do.",
+                "Do you want coffee? Yes, I want it."
+              ]
             },
             {
               "fr": "Ils en ont trois.",
-              "en": "They have three (of them)."
+              "en": "They have three (of them).",
+              "accepted_en": [
+                "They have three (of them).",
+                "They have three of them.",
+                "They have three.",
+                "They've got three.",
+                "They've got three of them."
+              ]
             },
             {
               "fr": "Non, je n'en ai pas.",
-              "en": "No, I don't have any (of them)."
+              "en": "No, I don't have any (of them).",
+              "accepted_en": [
+                "No, I don't have any (of them).",
+                "No, I don't have any of them.",
+                "No, I don't have any.",
+                "No, I haven't got any.",
+                "No, I don't have any of it.",
+                "No, I have none.",
+                "No, I have none of them."
+              ]
             }
           ],
           "rule": "'En' replaces a partitive or quantity expression + noun, and goes before the verb. It has no direct English equivalent (often 'of it/them', frequently dropped in English)."
@@ -7444,15 +8573,45 @@
           "items": [
             {
               "fr": "Pouvez-vous me donner la carte?",
-              "en": "Can you give me the menu?"
+              "en": "Can you give me the menu?",
+              "accepted_en": [
+                "Can you give me the menu?",
+                "Could you give me the menu?",
+                "Can you give me the menu please?",
+                "May I have the menu?",
+                "Can I have the menu?",
+                "Could I have the menu?",
+                "Can you give me the menu, please?"
+              ]
             },
             {
               "fr": "Avez-vous choisi?",
-              "en": "Have you chosen?"
+              "en": "Have you chosen?",
+              "accepted_en": [
+                "Have you chosen?",
+                "Have you decided?",
+                "Have you picked?",
+                "Are you ready to order?",
+                "Have you made your choice?",
+                "Have you made a choice?",
+                "Did you choose?"
+              ]
             },
             {
               "fr": "Quel est le plat du jour?",
-              "en": "What is today's special?"
+              "en": "What is today's special?",
+              "accepted_en": [
+                "What is today's special?",
+                "What is the dish of the day?",
+                "What's the dish of the day?",
+                "What is the special of the day?",
+                "What is today's dish?",
+                "What's today's special?",
+                "What is the day's special?",
+                "What is the daily special?",
+                "What's the special today?",
+                "What is the special today?"
+              ]
             },
             {
               "fr": "Je voudrais un steak saignant/à point/bien cuit.",
@@ -7472,11 +8631,36 @@
             },
             {
               "fr": "l'eau plate / gazeuse",
-              "en": "still / sparkling water"
+              "en": "still / sparkling water",
+              "accepted_en": [
+                "still / sparkling water",
+                "still water",
+                "sparkling water",
+                "flat water",
+                "fizzy water",
+                "still or sparkling water",
+                "still water / sparkling water",
+                "still/sparkling water",
+                "flat / sparkling water",
+                "still water or sparkling water",
+                "flat/fizzy water"
+              ]
             },
             {
               "fr": "L'addition, s'il vous plaît?",
-              "en": "The bill, please?"
+              "en": "The bill, please?",
+              "accepted_en": [
+                "The bill, please?",
+                "The check, please?",
+                "The check please",
+                "Can I have the bill, please?",
+                "Could I have the bill, please?",
+                "The bill please",
+                "Can we have the bill, please?",
+                "Could we have the bill, please?",
+                "The bill, please",
+                "The check, please"
+              ]
             }
           ]
         },
@@ -7525,7 +8709,22 @@
           "items": [
             {
               "fr": "hier (matin/soir)",
-              "en": "yesterday (morning/evening)"
+              "en": "yesterday (morning/evening)",
+              "accepted_en": [
+                "yesterday (morning/evening)",
+                "yesterday morning",
+                "yesterday evening",
+                "yesterday morning/evening",
+                "yesterday night",
+                "yesterday"
+              ],
+              "accepted_fr": [
+                "hier (matin/soir)",
+                "hier",
+                "hier matin",
+                "hier soir",
+                "hier matin/soir"
+              ]
             },
             {
               "fr": "la semaine dernière",
@@ -7541,15 +8740,32 @@
             },
             {
               "fr": "récemment",
-              "en": "recently"
+              "en": "recently",
+              "accepted_en": [
+                "recently",
+                "lately"
+              ]
             },
             {
               "fr": "pendant une heure",
-              "en": "for an hour"
+              "en": "for an hour",
+              "accepted_en": [
+                "for an hour",
+                "for one hour",
+                "for 1 hour",
+                "during an hour"
+              ]
             },
             {
               "fr": "soudain / tout à coup",
-              "en": "suddenly / all of a sudden"
+              "en": "suddenly / all of a sudden",
+              "accepted_en": [
+                "suddenly / all of a sudden",
+                "all at once",
+                "suddenly / all at once",
+                "suddenly",
+                "all of a sudden"
+              ]
             }
           ],
           "rule": "Short common adverbs (déjà, bien, souvent, trop, vraiment...) go between avoir and the past participle. Longer adverbs of manner tend to follow the past participle. Time expressions often go at the start or end of the sentence."
@@ -7594,7 +8810,11 @@
           "items": [
             {
               "fr": "avoir → eu",
-              "en": "had"
+              "en": "had",
+              "accepted_en": [
+                "had",
+                "have had"
+              ]
             },
             {
               "fr": "boire → bu",
@@ -7618,11 +8838,21 @@
             },
             {
               "fr": "devoir → dû",
-              "en": "had to"
+              "en": "had to",
+              "accepted_en": [
+                "had to",
+                "owed",
+                "must have"
+              ]
             },
             {
               "fr": "dire → dit",
-              "en": "said"
+              "en": "said",
+              "accepted_en": [
+                "said",
+                "told",
+                "have said"
+              ]
             },
             {
               "fr": "écrire → écrit",
@@ -7663,12 +8893,20 @@
               "en": "put",
               "accepted_en": [
                 "put",
-                "placed"
+                "placed",
+                "put on",
+                "set"
               ]
             },
             {
               "fr": "pouvoir → pu",
-              "en": "was able to"
+              "en": "was able to",
+              "accepted_en": [
+                "was able to",
+                "could",
+                "been able to",
+                "was able"
+              ]
             },
             {
               "fr": "prendre → pris",
@@ -7680,7 +8918,12 @@
             },
             {
               "fr": "recevoir → reçu",
-              "en": "received"
+              "en": "received",
+              "accepted_en": [
+                "received",
+                "got",
+                "have received"
+              ]
             },
             {
               "fr": "savoir → su",
@@ -7692,7 +8935,11 @@
             },
             {
               "fr": "vivre → vécu",
-              "en": "lived"
+              "en": "lived",
+              "accepted_en": [
+                "lived",
+                "have lived"
+              ]
             },
             {
               "fr": "voir → vu",
@@ -7734,11 +8981,26 @@
             },
             {
               "fr": "je connais / tu connais / il connaît",
-              "en": "I/you/he know(s) / am/is familiar with (a person, place, work)"
+              "en": "I/you/he know(s) / am/is familiar with (a person, place, work)",
+              "accepted_en": [
+                "I/you/he know(s) / am/is familiar with (a person, place, work)",
+                "I know / you know / he knows",
+                "I know, you know, he knows",
+                "I am familiar with / you are familiar with / he is familiar with",
+                "I/you/he know(s) / am/is familiar with",
+                "I know/you know/he knows"
+              ]
             },
             {
               "fr": "nous connaissons / vous connaissez / ils connaissent",
-              "en": "we/you/they know / are familiar with"
+              "en": "we/you/they know / are familiar with",
+              "accepted_en": [
+                "we/you/they know / are familiar with",
+                "we know / you know / they know",
+                "we know, you know, they know",
+                "we are familiar with / you are familiar with / they are familiar with",
+                "we know/you know/they know"
+              ]
             }
           ],
           "rule": "Savoir = knowledge of facts, or 'know how to' + infinitive. Connaître = familiarity with people, places, or creative works."
@@ -7824,6 +9086,15 @@
                 "je me suis lavé(e)",
                 "je me suis lavé",
                 "je me suis lavée"
+              ],
+              "accepted_en": [
+                "I washed (myself)",
+                "I washed myself",
+                "I got washed",
+                "I had a wash",
+                "I washed up",
+                "I have washed",
+                "I have washed myself"
               ]
             },
             {
@@ -7833,15 +9104,36 @@
                 "tu t'es levé(e)",
                 "tu t'es levé",
                 "tu t'es levée"
+              ],
+              "accepted_en": [
+                "you got up",
+                "you got out of bed",
+                "you rose",
+                "you stood up",
+                "you have got up"
               ]
             },
             {
               "fr": "elle s'est couchée",
-              "en": "she went to bed"
+              "en": "she went to bed",
+              "accepted_en": [
+                "she went to bed",
+                "she lay down",
+                "she got into bed",
+                "she has gone to bed"
+              ]
             },
             {
               "fr": "ils se sont habillés",
-              "en": "they got dressed"
+              "en": "they got dressed",
+              "accepted_en": [
+                "they got dressed",
+                "they dressed",
+                "they dressed themselves",
+                "they have got dressed",
+                "they got themselves dressed",
+                "they have dressed"
+              ]
             }
           ],
           "rule": "Reflexive verbs always take être in the passé composé, with the past participle agreeing with the subject — UNLESS a direct object noun follows the verb (elle s'est lavé les mains — no agreement, because 'les mains' is the direct object, not the reflexive pronoun)."
@@ -7885,11 +9177,27 @@
           "items": [
             {
               "fr": "Je sais bricoler.",
-              "en": "I know how to do DIY."
+              "en": "I know how to do DIY.",
+              "accepted_en": [
+                "I know how to do DIY.",
+                "I can do DIY.",
+                "I know how to tinker.",
+                "I know how to do odd jobs.",
+                "I know how to do home repairs.",
+                "I know how to do DIY"
+              ]
             },
             {
               "fr": "Je sais travailler en équipe.",
-              "en": "I know how to work in a team."
+              "en": "I know how to work in a team.",
+              "accepted_en": [
+                "I know how to work in a team.",
+                "I can work in a team.",
+                "I can work as part of a team.",
+                "I know how to work as a team.",
+                "I know how to work in a group.",
+                "I can work as a team."
+              ]
             },
             {
               "fr": "J'ai déjà voyagé à l'étranger.",
@@ -7907,7 +9215,13 @@
             },
             {
               "fr": "Je parle des langues étrangères.",
-              "en": "I speak foreign languages."
+              "en": "I speak foreign languages.",
+              "accepted_en": [
+                "I speak foreign languages.",
+                "I speak other languages.",
+                "I speak foreign languages",
+                "I speak a foreign language."
+              ]
             }
           ]
         }

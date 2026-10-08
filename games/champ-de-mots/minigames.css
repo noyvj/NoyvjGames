@@ -296,3 +296,7 @@
 @media (max-width: 480px) {
   .pairs-board { grid-template-columns: 1fr 1fr; }
 }
+
+/* Faux Amis: the link to the published list the game reads. Pale on the dark glass, dark blue on the light panels. */
+.minigame-panel a { color: #bcd7ff; text-decoration: underline; }
+html[data-theme="light"] .minigame-panel a { color: #1d4f9c; }

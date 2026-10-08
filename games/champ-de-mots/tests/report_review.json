@@ -59,8 +59,8 @@
     {
       "report_id": "cdf98a34-4c44-4ee4-a21f-6ffafabebea9",
       "item_id": "fren151-w4-vocab003-i04",
-      "outcome": "needs-owner",
-      "note": "Typed 'mode' for 'la mode': singular le/la nouns are learned with their gender, so it is still marked wrong; the owner decides whether dropping the article should count."
+      "outcome": "fixed",
+      "note": "Owner decided (FY-14, 2026-10-08): a question that asks for just the word does not require le/la/un/une, so 'mode' counts for 'la mode'. Implemented in check_answer() for vocabulary plots (see _bare_noun_allowed); the article still shows in the feedback line. Questions that show or ask for the article (with_article, the gender drill) keep requiring it."
     },
     {
       "report_id": "99b6ab4f-dcad-4d4f-840a-88284aae9091",
@@ -137,14 +137,14 @@
     {
       "report_id": "47ddd797-8ce9-4cff-8bb0-0939f07628c9",
       "item_id": "fren151-w8-grammar008",
-      "outcome": "needs-owner",
-      "note": "Pronunciation-concern report on 'J'adore nager, j'aime aussi faire du surf.': cannot tell which word sounded wrong ('surf' is an English loanword read [sœrf]); the owner should say what was heard or listen to the audio."
+      "outcome": "test-row",
+      "note": "Owner said (2026-10-08) these two pronunciation reports were probably test or misclick submissions: they have made no audio reports. Nothing to change."
     },
     {
       "report_id": "8bbc18a2-2102-4a47-8010-12e59632a95a",
       "item_id": "fren152-w9-vocab003-i07",
-      "outcome": "needs-owner",
-      "note": "Pronunciation-concern report on 'du poulet': cannot tell what was unclear (the 'du' + 'poulet' sounds [dy pulɛ]); the owner should say what was heard or listen to the audio."
+      "outcome": "test-row",
+      "note": "Owner said (2026-10-08) these two pronunciation reports were probably test or misclick submissions: they have made no audio reports. Nothing to change."
     },
     {
       "report_id": "56a3caef-4543-4805-bd29-c3d02f884394",
@@ -301,6 +301,41 @@
       "item_id": "fren151-w9-grammar002",
       "outcome": "fixed",
       "note": "Already fixed in the 2026-09-05 triage ('the cat of the pharmacist' is in accepted_en); verified live."
+    },
+    {
+      "report_id": "a10db191",
+      "item_id": "fren151-w6-vocab002-i18",
+      "outcome": "fixed",
+      "note": "Real miss: 'the road' is a normal translation of 'la rue' (street/road). Added 'the road', 'road' and the bare 'street' to accepted_en; 'la route' is a different word and still has its own plot. Report id is the 8-character prefix from the owner's note (2026-10-08), not the full UUID."
+    },
+    {
+      "report_id": "4f38d109",
+      "item_id": "fren151-w6-phrase001-i03",
+      "outcome": "fixed",
+      "note": "Real miss, English direction: 'is it far/close to here' is a correct reading of 'C'est loin/près (d'ici)?'. The gloss 'Is it far/close (from here)?' had its bracket stripped for grading, so only 'Is it far/close?' style answers passed. Added the 'to here' and 'from here' forms, 'Is it near here?' and 'Is it far away?' to accepted_en. Report id is the 8-character prefix."
+    },
+    {
+      "report_id": "8295f0aa",
+      "item_id": "fren151-w6-phrase001-i03",
+      "outcome": "fixed",
+      "note": "Real miss, French direction: 'C'est loin d'ici' is correct French. accepted_fr only listed the bare 'C'est loin?' / 'C'est près?', so the optional '(d'ici)' could not be typed. Added the 'd'ici' forms (with and without the question mark) to accepted_fr. Report id is the 8-character prefix."
     }
-  ]
+  ],
+  "sweep_2026_10_08_second_batch": {
+    "scope": "week 6 and weeks 12 to 23 (the newer content), English side first, French side where an optional bracket or a slash list is typed",
+    "classes": [
+      "optional bracket the player types (e.g. '(bath) towel', '(mineral) water', '(there)', '(of it)', '(d'ici)')",
+      "slash lists whose parts were not whole answers (e.g. 'still / sparkling water', 'it's cold / hot', 'I can / you can / he can')",
+      "comma lists read as one phrase ('narrow, tight')",
+      "UK and US spellings and words (harbour/harbor, check/bill, entree, make-up)",
+      "missing everyday synonyms (to shower, I eat breakfast, the weather is nice)",
+      "bare English glosses typed with an article (the violin, the keyboard)",
+      "meta text outside brackets ('vs. lundi = ...' in 'le lundi')",
+      "ligatures (oeuf for l'oeuf) and contractions with 'd (I'd like / I would like)"
+    ],
+    "code": [
+      "normalize_answer(): oe/ae ligatures fold to two letters; a slash reads the same with or without spaces",
+      "CONTRACTION_PAIRS: 'd forms plus how's/where's/when's"
+    ]
+  }
 }

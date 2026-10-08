@@ -40,8 +40,44 @@ def ratio(a, b):
     return (max(la, lb) + 0.05) / (min(la, lb) + 0.05)
 
 
+def _measure(page, item, Image, io):
+    """Worst contrast of one collected item against the pixels painted behind it right now."""
+    page.evaluate("(ids) => window.__cs.markClip(ids)", [item["id"]] if item["clip"] else [])
+    page.evaluate("window.__cs.hide(true)")
+    png = page.screenshot()
+    page.evaluate("window.__cs.hide(false); window.__cs.unmarkClip()")
+    img = Image.open(io.BytesIO(png)).convert("RGB")
+    width, height = img.size
+    samples = set()
+    for r in item["rects"]:
+        w, h = r["r"] - r["l"] - 2, r["b"] - r["t"] - 2
+        nx, ny = max(2, min(24, int(w / 4))), max(2, min(4, int(h / 4)))
+        for i in range(nx):
+            for j in range(ny):
+                x, y = int(r["l"] + 1 + (i + 0.5) * w / nx), int(r["t"] + 1 + (j + 0.5) * h / ny)
+                if 0 <= x < width and 0 <= y < height:
+                    samples.add(img.getpixel((x, y)))
+    return _worst(item, samples)
+
+
+def _worst(item, samples):
+    worst, worst_fg, worst_bg = 999, None, None
+    for f in item["fg"]:
+        alpha = f["a"] * item["op"]
+        for bg in samples:
+            fo = tuple(f[k] * alpha + bg[n] * (1 - alpha) for n, k in enumerate("rgb"))
+            value = ratio(fo, bg)
+            if value < worst:
+                worst, worst_fg, worst_bg = value, fo, bg
+    return worst, worst_fg, worst_bg
+
+
 def scan(page, per_sig=3, max_rounds=6):
-    """Contrast failures on the page as it is right now: {"counted": n, "fails": [...]}."""
+    """Contrast failures on the page as it is right now: {"counted": n, "fails": [...]}.
+
+    Every failing item is measured a second time on its own (scrolled into view, settled, fresh
+    rectangles) and only kept if it still fails, so a layout that moved between collecting the
+    boxes and taking the screenshot cannot report a pair that is not on screen."""
     from PIL import Image
 
     page.evaluate(SRC)
@@ -72,17 +108,10 @@ def scan(page, per_sig=3, max_rounds=6):
             if not samples:
                 continue
             measured += 1
-            worst, worst_fg, worst_bg = 999, None, None
-            for f in item["fg"]:
-                alpha = f["a"] * item["op"]
-                for bg in samples:
-                    fo = tuple(f[k] * alpha + bg[n] * (1 - alpha) for n, k in enumerate("rgb"))
-                    value = ratio(fo, bg)
-                    if value < worst:
-                        worst, worst_fg, worst_bg = value, fo, bg
+            worst, worst_fg, worst_bg = _worst(item, samples)
             need = 3 if item["large"] else 4.5
             if worst < need - 0.001:
-                fails.append({"sel": item["sel"], "text": item["text"], "ratio": round(worst, 2), "need": need,
+                fails.append({"id": item["id"], "sel": item["sel"], "text": item["text"], "ratio": round(worst, 2), "need": need,
                               "fg": ",".join(str(round(v)) for v in worst_fg), "bg": ",".join(str(v) for v in worst_bg)})
         pending = [p for p in res["pending"] if counts.get(p["sig"], 0) < per_sig and not seen.get(p["id"]) and p["id"] not in tried]
         if not pending:
@@ -90,8 +119,21 @@ def scan(page, per_sig=3, max_rounds=6):
         tried.add(pending[0]["id"])
         page.evaluate("(id) => window.__cs.scrollTo(id)", pending[0]["id"])
         page.wait_for_timeout(250)
+    # second look at each failure, one at a time
+    confirmed = []
+    for f in fails[:60]:
+        page.evaluate("(id) => window.__cs.scrollTo(id)", f["id"])
+        page.wait_for_timeout(350)
+        res = page.evaluate("(s) => window.__cs.collect(s)", {})
+        item = next((i for i in res["items"] if i["id"] == f["id"]), None)
+        if item is None:
+            continue  # no longer on screen: not a failure
+        worst, worst_fg, worst_bg = _measure(page, item, Image, io)
+        if worst < f["need"] - 0.001:
+            f.update(ratio=round(worst, 2), fg=",".join(str(round(v)) for v in worst_fg), bg=",".join(str(v) for v in worst_bg))
+            confirmed.append(f)
     page.evaluate("(p) => scrollTo(p[0], p[1])", origin)
-    return {"counted": measured, "fails": fails}
+    return {"counted": measured, "fails": confirmed}
 
 
 def run(page_name, style, theme, base="http://localhost:8073", width=1440, height=900):
@@ -170,7 +212,7 @@ def run(page_name, style, theme, base="http://localhost:8073", width=1440, heigh
         pg.keyboard.press("Escape")
         pg.wait_for_timeout(500)
         snap("farm")
-        for name in ("howto", "dashboard", "calendar", "planner", "phrasebook", "achievements", "changelog", "report-log", "settings", "cultural-notes"):
+        for name in ("howto", "dashboard", "calendar", "planner", "phrasebook", "achievements", "changelog", "report-log", "settings", "cultural-notes", "shop"):
             def panel(name=name):
                 click(f"#{name}-toggle-button")
                 pg.wait_for_timeout(500)
@@ -213,14 +255,25 @@ def run(page_name, style, theme, base="http://localhost:8073", width=1440, heigh
                 close_all()
             step(tool)
 
-        for game in ("blitz", "racer", "boutique", "cafe", "sprint"):
+        def wateropts():
+            click("#water-options-toggle-button")
+            pg.wait_for_timeout(500)
+            snap("water-options-open")
+            click("#water-opt-mc-button")
+            pg.wait_for_timeout(700)
+            snap("water-opt-session")
+            play("review", 2)
+            close_all()
+        step(wateropts)
+
+        for game in ("blitz", "racer", "boutique", "cafe", "sprint", "pairs", "gaps", "listenpick", "wordorder", "amis"):
             def arcade(game=game):
                 click(f"#{game}-toggle-button")
                 pg.wait_for_timeout(700)
                 snap(f"{game}-open")
                 click(f"#{game}-start-button")
                 pg.wait_for_timeout(700)
-                options = f"#{game}-options" if game in ("boutique", "cafe") else f"#{game}-choices"
+                options = {"boutique": "#boutique-options", "cafe": "#cafe-options", "pairs": "#pairs-board", "wordorder": "#wordorder-pool"}.get(game, f"#{game}-choices")
                 for i in range(4):
                     pg.evaluate("(s) => { const b = [...document.querySelectorAll(s + ' button')].filter(x => x.getBoundingClientRect().width > 0 && !x.disabled); if (b.length) b[0].click(); }", options)
                     pg.wait_for_timeout(350)
@@ -232,7 +285,7 @@ def run(page_name, style, theme, base="http://localhost:8073", width=1440, heigh
                 close_all()
             step(arcade)
 
-        pg.evaluate("() => document.querySelectorAll('body [hidden]').forEach(e => { if (!e.closest('#opening-screen') && e.id !== 'visual-style-picker') e.hidden = false; })")
+        pg.evaluate("() => document.querySelectorAll('body [hidden]').forEach(e => { if (!e.closest('#opening-screen, [aria-modal=true], [role=dialog]') && e.id !== 'visual-style-picker') e.hidden = false; })")
         pg.wait_for_timeout(300)
         snap("everything-shown")
         browser.close()
