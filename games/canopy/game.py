@@ -303,6 +303,42 @@ def mixed_forest_multiplier(plot_list=None):
     return 1.0 + MIXED_FOREST_BONUS_PER_EXTRA_SPECIES * max(0, len(standing) - 1)
 
 
+# GB-5 (2026-10-09): neighbour synergy. A mature standing plot grows SYNERGY_PER_NEIGHBOUR faster for each of its (up to four)
+# edge-sharing neighbours that is also mature, and a plot replanted next to a mature one recovers SYNERGY_REPLANT_FACTOR
+# as long. Main forest only. Solid blocks pay, checkerboards do not, and a cleared "farm edge" beside a protected core
+# replants quickly. The counterfactual "left standing" line does not model this bonus.
+SYNERGY_PER_NEIGHBOUR = 0.04
+SYNERGY_REPLANT_FACTOR = 0.8
+UI_PREF_SYNERGY_MARKS_OFF = "canopy-synergy-marks-off"  # hides only the +link marks, never the bonus
+
+
+def _is_mature_standing(plot):
+    return plot.state in ACCRUING_STATES and plot.ticks_intact >= MATURITY_TICKS
+
+
+def _edge_neighbours(index, cols=None):
+    cols = GRID_COLS if cols is None else cols
+    row, col = divmod(index, cols)
+    out = []
+    for nr, nc in ((row - 1, col), (row + 1, col), (row, col - 1), (row, col + 1)):
+        if nr >= 0 and 0 <= nc < cols:
+            out.append(nr * cols + nc)
+    return out
+
+
+def mature_neighbour_count(plot):
+    if plot.region != "main":
+        return 0
+    return sum(1 for i in _edge_neighbours(plot.index) if i < len(plots) and plots[i].region == "main" and _is_mature_standing(plots[i]))
+
+
+def synergy_multiplier(plot):
+    """1.0 for a plot that is not mature or has no mature neighbour."""
+    if plot.region != "main" or not _is_mature_standing(plot):
+        return 1.0
+    return 1.0 + SYNERGY_PER_NEIGHBOUR * mature_neighbour_count(plot)
+
+
 class Plot:
     def __init__(self, index, region="main"):
         self.species = None  # GB-6: None means the standard seedling
@@ -381,7 +417,7 @@ class Plot:
         spec = SPECIES.get(self.species or SPECIES_STANDARD, SPECIES[SPECIES_STANDARD])  # GB-6
         compounding = self.ticks_intact if spec["steady_after"] is None else min(self.ticks_intact, spec["steady_after"])
         growth_multiplier = 1 + compounding * growth_per_tick()  # B-5
-        delta = BASE_ACCRUAL * self.productivity_multiplier() * growth_multiplier * spec["value"] * _mixed_bonus
+        delta = BASE_ACCRUAL * self.productivity_multiplier() * growth_multiplier * spec["value"] * _mixed_bonus * synergy_multiplier(self)  # GB-5
         # V-CD-5: Highland Grove compounds HIGHLAND_GROWTH_MULTIPLIER times
         # slower than the main forest (a harsher, shorter high-altitude
         # growing season) — 1.0 (a no-op) for main-forest plots.
@@ -453,6 +489,8 @@ class Plot:
         self.state = REPLANTING
         base_ticks = PARTNER_RECOVERY_TICKS if partner else max(1, RECOVERY_TICKS - vault_recovery_ticks_saved())  # GB-10: Fast Sprouts
         self.species = species if species in SPECIES and species != SPECIES_STANDARD else None  # GB-6
+        if self.region == "main" and mature_neighbour_count(self):  # GB-5: a mature neighbour shelters the seedling
+            base_ticks = max(1, int(round(base_ticks * SYNERGY_REPLANT_FACTOR)))
         self.replant_ticks_remaining = species_recovery_ticks(self.species or SPECIES_STANDARD, base_ticks)
         self.replant_ticks_total = max(RECOVERY_TICKS, self.replant_ticks_remaining)
         self.partner_share = PARTNER_SHARE_RATIO if partner else 0.0
@@ -2107,6 +2145,17 @@ def render_grid():
             soil_mark.setAttribute("aria-hidden", "true")
             tile.appendChild(soil_mark)
         tooltip = _plot_tooltip_text(plot)
+        links = mature_neighbour_count(plot) if _is_mature_standing(plot) else 0  # GB-5
+        if links:
+            bonus_pct = round(SYNERGY_PER_NEIGHBOUR * links * 100)
+            tooltip += f" \u00b7 canopy link: +{bonus_pct}% growth from {links} mature neighbour{'s' if links != 1 else ''}"
+            if ui_pref(UI_PREF_SYNERGY_MARKS_OFF) != "true":
+                tile.className += " plot-linked"
+                link_mark = _make_tile_mark("link-mark", "+link")
+                link_mark.setAttribute("aria-hidden", "true")
+                tile.appendChild(link_mark)
+        elif plot.state == BARE and mature_neighbour_count(plot):
+            tooltip += f" \u00b7 a mature neighbour: replants {round((1 - SYNERGY_REPLANT_FACTOR) * 100)}% faster"
         if plot.species and plot.state != BARE:  # GB-6: a shape mark and a name, so species never rely on colour
             tile.className += f" plot-species plot-species--{plot.species}"
             species_mark = _make_tile_mark("species-mark", SPECIES[plot.species]["mark"])

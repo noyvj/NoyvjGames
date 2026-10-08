@@ -104,6 +104,7 @@
   const PLOT_CONTRAST_KEY = "canopy-plot-contrast";
   const SOIL_OVERLAY_KEY = "canopy-soil-overlay";
   const COACH_KEY = "canopy-coach-hints"; // B-27: opt-in
+  const SYNERGY_MARKS_OFF_KEY = "canopy-synergy-marks-off"; // GB-5: hides only the +link marks
   const BLIGHT_OFF_KEY = "canopy-blight-off"; // GB-7: blight is on unless this is "true"
   const NUMBER_FORMAT_KEY = "canopy-number-format";
   const NUMBER_FORMATS = ["standard", "grouped", "compact", "precise"];
@@ -224,6 +225,14 @@
       coachCheckbox.checked = readFlag(COACH_KEY);
       coachCheckbox.addEventListener("change", function () {
         writeStored(COACH_KEY, coachCheckbox.checked);
+        refreshGame();
+      });
+    }
+    const synergyCheckbox = document.getElementById("synergy-marks-checkbox");
+    if (synergyCheckbox) {
+      synergyCheckbox.checked = !readFlag(SYNERGY_MARKS_OFF_KEY);
+      synergyCheckbox.addEventListener("change", function () {
+        writeStored(SYNERGY_MARKS_OFF_KEY, !synergyCheckbox.checked);
         refreshGame();
       });
     }

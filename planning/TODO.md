@@ -1,6 +1,6 @@
 # Site-Wide TODO (round 3)
 
-**Progress: 523/1095 items checked off (47.8%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land.
+**Progress: 524/1095 items checked off (47.9%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land.
 
 Built from your answers in `planning/IMPROVEMENT-IDEAS-ROUND-3.md` (Part 4). Every Round 3 section is now answered (2026-10-07 below the Warframe section); earlier this list held only: **GB** (Canopy gamified), **M** (new games), **N** (seasonal events), **O** (Trade Empire and Continuum replayability), **P/Q/S/T** (Signal, Undersleep, Overclock, Last Line open questions), **X** (Warframe tracker) and **R** (returning later). GC-GI, A-L, U, Z and Y are unanswered and wait for you. The previous list is archived at `planning/todo-archive/260914_260927.md`; anything from it that was moved here is marked "moved" there.
 
@@ -40,7 +40,7 @@ Rules carried over: "yes" items are here, "later" items are parked in `planning/
 - [x] GB-2: Golden seedling pop-up.
 - [ ] GB-3: Expedition mode (roguelike run of 12 seasons with boons and a shareable seed), built as a separate game mode on my judgment.
 - [x] GB-4: Tend action with cooldown (hotkey T).
-- [ ] GB-5: Neighbour synergy layout puzzle.
+- [x] GB-5: Neighbour synergy layout puzzle.
 - [x] GB-6: Species on replant (pioneer pine, hardwood oak, orchard).
 - [x] GB-7: Blight in monocultures (needs GB-6).
 - [x] GB-8: Hidden Heart Tree secret.

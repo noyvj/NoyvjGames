@@ -130,6 +130,8 @@ def test_incentive_request_still_respects_staleness_guard(game_env):
     m = game_env.module
     _advance_to_request(game_env, 4)
     target = m.pending_stakeholder_request["plot_index"]
+    if m.heart_tree_index == target:
+        m.heart_tree_index = (target + 1) % len(m.plots)  # the Heart Tree can never be cleared, so move it away
     game_env.select(target)
     game_env.clear()  # bypasses Accept/Decline -- request is now stale
 

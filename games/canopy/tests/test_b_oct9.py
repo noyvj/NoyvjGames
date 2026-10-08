@@ -1364,3 +1364,89 @@ def test_blight_can_be_switched_off_and_is_not_saved(game_env):
     assert "blight_pressure" not in m.get_state()
     m.load_state(m.get_state())
     assert m.blight_pressure == {}
+
+
+# ---- GB-5 neighbour synergy ----
+
+def _mature(m, index, ticks=None):
+    plot = m.plots[index]
+    plot.state = m.PRESERVED
+    plot.ticks_intact = m.MATURITY_TICKS if ticks is None else ticks
+    return plot
+
+
+def test_edge_neighbours_respect_the_grid_edges(game_env):
+    m = game_env.module
+    cols = m.GRID_COLS
+    assert sorted(m._edge_neighbours(0)) == [1, cols]
+    assert sorted(m._edge_neighbours(cols - 1)) == [cols - 2, 2 * cols - 1]
+    assert len(m._edge_neighbours(cols + 1)) == 4
+
+
+def test_synergy_needs_the_plot_and_its_neighbours_to_be_mature(game_env):
+    m = game_env.module
+    for p in m.plots:
+        p.ticks_intact = 0
+    centre = m.GRID_COLS + 1
+    _mature(m, centre)
+    assert m.synergy_multiplier(m.plots[centre]) == 1.0  # alone
+    _mature(m, centre - 1)
+    _mature(m, centre + 1)
+    assert abs(m.synergy_multiplier(m.plots[centre]) - (1 + 2 * m.SYNERGY_PER_NEIGHBOUR)) < 1e-9
+    m.plots[centre - 1].ticks_intact = m.MATURITY_TICKS - 1  # not quite mature
+    assert abs(m.synergy_multiplier(m.plots[centre]) - (1 + m.SYNERGY_PER_NEIGHBOUR)) < 1e-9
+    m.plots[centre].ticks_intact = 5
+    assert m.synergy_multiplier(m.plots[centre]) == 1.0  # the plot itself must be mature
+
+
+def test_a_solid_block_outgrows_a_checkerboard(game_env):
+    m = game_env.module
+    for p in m.plots:
+        p.state, p.ticks_intact, p.value = m.BARE, 0, 0.0
+    cols = m.GRID_COLS
+    block = [0, 1, cols, cols + 1]
+    for i in block:
+        _mature(m, i)
+    solid = m.plots[0].accrue_tick()
+    for p in m.plots:
+        p.state, p.ticks_intact = m.BARE, 0
+    for i in (0, 2, cols + 1, cols + 3):  # no two share an edge
+        _mature(m, i)
+    spaced = m.plots[0].accrue_tick()
+    assert solid > spaced
+
+
+def test_replant_next_to_a_mature_plot_recovers_faster(game_env):
+    m = game_env.module
+    for p in m.plots:
+        p.state, p.ticks_intact = m.BARE, 0
+    lone = m.plots[0]
+    lone.replant()
+    assert lone.replant_ticks_remaining == m.RECOVERY_TICKS
+    _mature(m, 1)
+    lone.state = m.BARE
+    lone.replant()
+    assert lone.replant_ticks_remaining == round(m.RECOVERY_TICKS * m.SYNERGY_REPLANT_FACTOR)
+
+
+def test_other_regions_get_no_synergy(game_env):
+    m = game_env.module
+    plot = m.Plot(0, region="highland")
+    plot.state, plot.ticks_intact = m.PRESERVED, m.MATURITY_TICKS
+    assert m.synergy_multiplier(plot) == 1.0
+
+
+def test_link_marks_appear_and_can_be_hidden(game_env):
+    m = game_env.module
+    for p in m.plots:
+        p.ticks_intact = 0
+    _mature(m, 0)
+    _mature(m, 1)
+    m.render_grid()
+    tile = game_env.elements["plot-grid"].children[0]
+    assert "plot-linked" in tile.className and "canopy link" in tile.getAttribute("data-tooltip")
+    assert any(getattr(c, "className", "") == "link-mark" for c in tile.children)
+    m.ui_pref = lambda key, default="": "true" if key == m.UI_PREF_SYNERGY_MARKS_OFF else default
+    m.render_grid()
+    tile = game_env.elements["plot-grid"].children[0]
+    assert "plot-linked" not in tile.className and "canopy link" in tile.getAttribute("data-tooltip")

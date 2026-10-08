@@ -2237,6 +2237,9 @@ html[data-forest-palette="meadow"] { --forest-accent: #a7d98a; }
 /* GB-7: blight warning marker (a dashed outline, so it reads without colour). */
 .plot-blight { outline: 3px dashed currentColor; outline-offset: -3px; }
 
+/* GB-5: canopy link marks. */
+.link-mark { position: absolute; right: 2px; top: 1px; font-size: 0.6em; line-height: 1; font-weight: 700; pointer-events: none; opacity: 0.9; }
+
 /* ============================================================
    Light theme (Y11b, 2026-09-27). shared/theme-light-games.css already
    restyles the shared chrome (panels, buttons, inputs, HUD readouts);
