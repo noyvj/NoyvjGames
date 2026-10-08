@@ -37,6 +37,10 @@
       "entry": "The Wetland Forest now has tides. Every six ticks the tide turns and the two halves of the wetland swap between under water (a wave mark and a dashed lower edge) and dry. A dry bare plot takes a normal seedling; a flooded bare plot can only take a new tree, the mangrove, which recovers fast and is not harmed by the big flood. Mangrove stands bring tidal wildlife into the Almanac (a heron from three standing mangroves, a crab once one is mature)."
     },
     {
+      "date": "2026-10-09",
+      "entry": "New optional Carbon market in the Session Summary. Standing plots earn carbon credits every tick; the price moves on a known cycle (the chart shows the recent price and the next few ticks dotted, with a trend word), so selling is a matter of timing, not luck. Selling pays now but slows the forest's growth for a few ticks, longer for bigger sales, so it only pays when the price is high. Accepting the carbon broker's offers also gifts credits. Credits can sit unsold as long as you like."
+    },
+    {
       "date": "2026-10-08",
       "entry": "New: the Session Summary has a Copy result button that copies one line, such as Canopy, 41.2 standing forest value, with your harvested income, biodiversity and plots still standing. Every achievement you have earned now has a Share button that copies a line you can paste anywhere, with the share of players who have it when that figure is available. The How to Play and Info panels link to the new Credits page."
     },

@@ -9,6 +9,7 @@ degradation land in later milestones.
 
 import copy
 import json
+import math
 import time
 
 import info_page
@@ -434,6 +435,7 @@ class Plot:
         delta *= current_legacy_multiplier()  # B15
         delta *= current_weather_multiplier()  # GB-23: rain / drought episodes
         delta *= current_perfect_streak_multiplier()  # GB-30: Perfect Season flame
+        delta *= carbon_slump_multiplier()  # GB-29: the dip after selling credits
         delta *= vault_growth_multiplier()  # GB-10: Seed Vault Roots perks (1.0 with none)
         if self.tend_ticks_left > 0:  # GB-4: a Tended plot grows faster for a few ticks
             delta *= TEND_GROWTH_MULTIPLIER
@@ -980,6 +982,7 @@ def reset_session(grid_size=None, _render_after=True, difficulty=None, challenge
     forest_log = []
     request_history.clear()
     stakeholder_faces.clear()  # GB-25
+    carbon.update({"credits": 0.0, "slump": 0, "sold": 0.0, "earned_from_sales": 0.0})  # GB-29
     plot_notes.clear()
     _coach_dismissed.clear()
     _coach_dismissed.clear()
@@ -1304,6 +1307,8 @@ def grant_stakeholder_request(event=None):
             100, community_relations + STAKEHOLDER_INCENTIVE_ACCEPT_RELATIONS_DELTA
         )
         total_income += STAKEHOLDER_INCENTIVE_INCOME_BONUS
+        if pending_stakeholder_request.get("reason") == "carbon_credit":  # GB-29: the buyer pays in credits too
+            carbon["credits"] = min(CARBON_CREDIT_CAP, carbon["credits"] + CARBON_OFFER_CREDITS)
     else:
         plot = plots[pending_stakeholder_request["plot_index"]]
         payout = plot.clear()
@@ -1856,6 +1861,128 @@ def render_my_forests():
 
 def on_my_forests_change(event=None):
     render_my_forests()
+
+
+# GB-29 (2026-10-09): carbon-credit market. Standing plots earn credits every tick. The price moves on a known cycle (a pure
+# function of the tick, no dice) and the next few ticks are shown, so the skill is timing, not luck. Selling pays now,
+# but the forest takes a short growth slump that grows with the amount sold, so a sale only pays when the price is high.
+# Accepting a carbon-credit offer from the broker gifts credits. Entirely optional: credits can sit unsold forever.
+CARBON_CREDIT_PER_PLOT_TICK = 0.01
+CARBON_CREDIT_CAP = 100.0
+CARBON_BASE_PRICE = 25.0
+CARBON_FORECAST_TICKS = 6
+CARBON_HISTORY_TICKS = 40
+CARBON_SLUMP_MULTIPLIER = 0.9
+CARBON_SLUMP_BASE_TICKS = 5
+CARBON_SLUMP_TICKS_PER_CREDIT = 0.5
+CARBON_SLUMP_MAX_TICKS = 40
+CARBON_OFFER_CREDITS = 10.0
+carbon = {"credits": 0.0, "slump": 0, "sold": 0.0, "earned_from_sales": 0.0}
+
+
+def carbon_price_factor(tick):
+    """Price relative to the base: between about 0.55 and 1.45, from two slow waves added together."""
+    return 1.0 + 0.30 * math.sin(tick / 9.0) + 0.15 * math.sin(tick / 3.7 + 1.0)
+
+
+def carbon_price(tick=None):
+    return round(CARBON_BASE_PRICE * carbon_price_factor(forest_tick if tick is None else tick), 2)
+
+
+def carbon_trend(tick=None):
+    """'rising', 'falling' or 'steady' over the next three ticks."""
+    tick = forest_tick if tick is None else tick
+    change = carbon_price(tick + 3) - carbon_price(tick)
+    return "rising" if change > 0.75 else "falling" if change < -0.75 else "steady"
+
+
+def carbon_slump_multiplier():
+    return CARBON_SLUMP_MULTIPLIER if carbon["slump"] > 0 else 1.0
+
+
+def carbon_slump_ticks_for(credits):
+    return min(CARBON_SLUMP_MAX_TICKS, CARBON_SLUMP_BASE_TICKS + int(credits * CARBON_SLUMP_TICKS_PER_CREDIT))
+
+
+def sale_preview(amount=None):
+    """What selling `amount` credits (all by default) would pay and cost right now."""
+    credits = carbon["credits"] if amount is None else min(float(amount), carbon["credits"])
+    credits = max(0.0, credits)
+    return {"credits": credits, "price": carbon_price(), "income": round(credits * carbon_price(), 2),
+            "slump_ticks": carbon_slump_ticks_for(credits) if credits > 0 else 0}
+
+
+def _carbon_tick():
+    standing = sum(1 for p in plots if p.state in ACCRUING_STATES)
+    carbon["credits"] = min(CARBON_CREDIT_CAP, carbon["credits"] + standing * CARBON_CREDIT_PER_PLOT_TICK)
+    if carbon["slump"] > 0:
+        carbon["slump"] -= 1
+
+
+def sell_carbon(fraction=1.0):
+    """Sells that share of the credits at today's price. The slump uses the sold amount. Returns the income."""
+    global total_income
+    amount = carbon["credits"] * max(0.0, min(1.0, fraction))
+    if amount < 0.5:
+        return 0.0
+    preview = sale_preview(amount)
+    total_income += preview["income"]
+    carbon["credits"] -= amount
+    carbon["sold"] += amount
+    carbon["earned_from_sales"] += preview["income"]
+    carbon["slump"] = max(carbon["slump"], preview["slump_ticks"])
+    _log_event("carbon", f"Sold {amount:.1f} carbon credits at {preview['price']:.1f} for {preview['income']:.1f}. "
+                         f"Growth dips for {preview['slump_ticks']} ticks")
+    render()
+    return preview["income"]
+
+
+def on_sell_carbon_all(event=None):
+    sell_carbon(1.0)
+
+
+def on_sell_carbon_half(event=None):
+    sell_carbon(0.5)
+
+
+def carbon_status_text():
+    preview = sale_preview()
+    slump = f" Growth slump: {carbon['slump']} more ticks." if carbon["slump"] > 0 else ""
+    return (f"Carbon credits: {carbon['credits']:.1f} (cap {CARBON_CREDIT_CAP:.0f}). Price now {carbon_price():.1f}, {carbon_trend()}. "
+            f"Selling all would pay {preview['income']:.1f} and slow growth for {preview['slump_ticks']} ticks.{slump}")
+
+
+def carbon_chart_svg():
+    """The recent price as a line with the coming ticks dotted, so the cycle can be learned and timed."""
+    width, height = 260, 70
+    first = max(0, forest_tick - CARBON_HISTORY_TICKS)
+    ticks = list(range(first, forest_tick + CARBON_FORECAST_TICKS + 1))
+    prices = [carbon_price(t) for t in ticks]
+    low, high = CARBON_BASE_PRICE * 0.5, CARBON_BASE_PRICE * 1.5
+    step = width / max(1, len(ticks) - 1)
+
+    def point(i):
+        return f"{i * step:.1f},{height - (prices[i] - low) / (high - low) * height:.1f}"
+    now = forest_tick - first
+    past = " ".join(point(i) for i in range(0, now + 1))
+    future = " ".join(point(i) for i in range(now, len(ticks)))
+    return (f'<svg viewBox="0 0 {width} {height}" class="session-sparkline" role="img" aria-label="Carbon price: now {prices[now]:.1f}, {carbon_trend()}">'
+            f'<polyline points="{past}" fill="none" stroke="#66b2e8" stroke-width="2"/>'
+            f'<polyline points="{future}" fill="none" stroke="#66b2e8" stroke-width="2" stroke-dasharray="3 3"/>'
+            f'<circle cx="{now * step:.1f}" cy="{height - (prices[now] - low) / (high - low) * height:.1f}" r="3" fill="currentColor"/></svg>')
+
+
+def render_carbon():
+    status, chart = _el("carbon-status"), _el("carbon-chart")
+    if status is not None:
+        status.innerText = carbon_status_text()
+    if chart is not None:
+        chart.innerHTML = carbon_chart_svg()
+    preview = sale_preview()
+    for button_id, enabled in (("carbon-sell-button", preview["credits"] >= 0.5), ("carbon-sell-half-button", preview["credits"] >= 1.0)):
+        button = _el(button_id)
+        if button is not None:
+            button.disabled = not enabled
 
 
 def render_lifetime_stats():
@@ -3751,6 +3878,7 @@ def render_session_summary():
     render_forest_log_panels()
     render_request_history()
     render_faces()
+    render_carbon()
     render_lifetime_stats()
     render_my_forests()
     render_lab()
@@ -7616,6 +7744,8 @@ def render_vault():
 
 def _levels_state_fields():
     out = {}
+    if carbon["credits"] > 0 or carbon["sold"] > 0:  # GB-29
+        out["carbon"] = {k: (round(v, 3) if isinstance(v, float) else v) for k, v in carbon.items()}
     if stakeholder_faces:  # GB-25
         out["stakeholder_faces"] = copy.deepcopy(stakeholder_faces)
     if species_planted:  # GB-6
@@ -8492,6 +8622,7 @@ def tick(event=None):
     _mixed_bonus = mixed_forest_multiplier()  # GB-6
     _blight_tick()  # GB-7
     _fire_tick()  # GB-1
+    _carbon_tick()  # GB-29
     aura = _heart_tree_aura()  # GB-8
     newly_mature = []
     for plot in plots:
@@ -8795,6 +8926,13 @@ def load_state(data):
         for e in raw_log
         if isinstance(e, dict)
     ][-FOREST_LOG_MAX_ENTRIES:]
+    saved_carbon = data.get("carbon")  # GB-29
+    carbon.update({"credits": 0.0, "slump": 0, "sold": 0.0, "earned_from_sales": 0.0})
+    if isinstance(saved_carbon, dict):
+        carbon["credits"] = float(_number_or(saved_carbon.get("credits"), 0.0, 0.0, CARBON_CREDIT_CAP))
+        carbon["slump"] = int(_number_or(saved_carbon.get("slump"), 0, 0, CARBON_SLUMP_MAX_TICKS))
+        carbon["sold"] = float(_number_or(saved_carbon.get("sold"), 0.0, 0.0, 1e9))
+        carbon["earned_from_sales"] = float(_number_or(saved_carbon.get("earned_from_sales"), 0.0, 0.0, 1e12))
     stakeholder_faces.clear()  # GB-25
     saved_faces = data.get("stakeholder_faces")
     if isinstance(saved_faces, dict):
@@ -9065,6 +9203,10 @@ def setup():
     dampen_button = _el("dampen-button")  # GB-1
     if dampen_button is not None:
         dampen_button.addEventListener("click", create_proxy(on_dampen))
+    for carbon_id, carbon_handler in (("carbon-sell-button", on_sell_carbon_all), ("carbon-sell-half-button", on_sell_carbon_half)):  # GB-29
+        carbon_button = _el(carbon_id)
+        if carbon_button is not None:
+            carbon_button.addEventListener("click", create_proxy(carbon_handler))
     for survey_id, survey_handler in (("survey-toggle-button", on_toggle_survey), ("survey-commit-button", commit_survey),
                                       ("survey-remove-button", on_survey_remove_last), ("survey-decline-button", on_survey_decline),
                                       ("survey-cancel-button", cancel_survey)):  # B-13

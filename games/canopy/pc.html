@@ -405,6 +405,14 @@
         <select id="lab-variant-select"></select>
         <button type="button" id="lab-load-variant-button" class="secondary">Stage variant</button>
       </details>
+      <!-- GB-29: optional carbon-credit market. The price follows a known cycle; selling pays now but dips growth for a while. -->
+      <details class="summary-details" id="carbon-details">
+        <summary>Carbon market (optional)</summary>
+        <p id="carbon-status" class="carbon-status" aria-live="off"></p>
+        <div id="carbon-chart" class="session-summary-sparkline"></div>
+        <button type="button" id="carbon-sell-button" class="secondary">Sell all credits</button>
+        <button type="button" id="carbon-sell-half-button" class="secondary">Sell half</button>
+      </details>
       <details class="summary-details" id="faces-details">
         <summary>Community faces</summary>
         <p id="faces-list" class="faces-list"></p>

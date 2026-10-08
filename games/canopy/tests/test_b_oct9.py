@@ -1847,3 +1847,108 @@ def test_tides_show_on_tiles_and_in_the_status_and_the_wildlife_is_saved(game_en
     m.wetland_wildlife_found.clear()
     m.load_state(state)
     assert m.wetland_wildlife_found == {"heron"}
+
+
+# ---- GB-29 carbon-credit market ----
+
+def test_price_follows_a_known_bounded_cycle(game_env):
+    m = game_env.module
+    prices = [m.carbon_price(t) for t in range(0, 400)]
+    assert prices == [m.carbon_price(t) for t in range(0, 400)]
+    assert min(prices) > m.CARBON_BASE_PRICE * 0.5 and max(prices) < m.CARBON_BASE_PRICE * 1.5
+    assert len({round(p, 1) for p in prices}) > 50  # it really moves
+    assert m.carbon_trend(0) in ("rising", "falling", "steady")
+    trends = {m.carbon_trend(t) for t in range(0, 200)}
+    assert {"rising", "falling"} <= trends
+
+
+def test_standing_plots_earn_credits_up_to_a_cap(game_env):
+    m = game_env.module
+    m._carbon_tick()
+    assert abs(m.carbon["credits"] - len(m.plots) * m.CARBON_CREDIT_PER_PLOT_TICK) < 1e-9
+    m.carbon["credits"] = m.CARBON_CREDIT_CAP - 0.001
+    m._carbon_tick()
+    assert m.carbon["credits"] == m.CARBON_CREDIT_CAP
+    for p in m.plots:
+        p.state = m.BARE
+    before = m.carbon["credits"]
+    m._carbon_tick()
+    assert m.carbon["credits"] == before  # nothing standing, nothing earned
+
+
+def test_selling_pays_now_and_slows_growth_for_a_while(game_env):
+    m = game_env.module
+    m.forest_tick = 20
+    m.carbon["credits"] = 40.0
+    preview = m.sale_preview()
+    assert preview["income"] == round(40.0 * m.carbon_price(), 2) and preview["slump_ticks"] == m.CARBON_SLUMP_BASE_TICKS + 20
+    income = m.total_income
+    paid = m.sell_carbon(1.0)
+    assert paid == preview["income"] and m.total_income == income + paid
+    assert m.carbon["credits"] == 0.0 and m.carbon["slump"] == preview["slump_ticks"] and m.carbon["sold"] == 40.0
+    assert m.carbon_slump_multiplier() == m.CARBON_SLUMP_MULTIPLIER
+    a, b = m.Plot(0), m.Plot(1)
+    a.state = b.state = m.PRESERVED
+    slow = a.accrue_tick()
+    m.carbon["slump"] = 0
+    normal = b.accrue_tick()
+    assert slow < normal
+
+
+def test_slump_runs_out_and_a_tiny_balance_does_not_sell(game_env):
+    m = game_env.module
+    m.carbon["slump"] = 2
+    m._carbon_tick()
+    m._carbon_tick()
+    assert m.carbon_slump_multiplier() == 1.0
+    m.carbon["credits"] = 0.3
+    assert m.sell_carbon(1.0) == 0.0 and m.carbon["credits"] == 0.3
+    m.carbon["credits"] = 10.0
+    m.sell_carbon(0.5)
+    assert abs(m.carbon["credits"] - 5.0) < 1e-9
+
+
+def test_slump_length_is_capped(game_env):
+    m = game_env.module
+    assert m.carbon_slump_ticks_for(1000) == m.CARBON_SLUMP_MAX_TICKS
+
+
+def test_carbon_offer_from_the_broker_gifts_credits(game_env):
+    m = game_env.module
+    m.plots[14].value = 10.0
+    m.pending_stakeholder_request = {"plot_index": 14, "reason": "carbon_credit", "kind": m.STAKEHOLDER_KIND_INCENTIVE}
+    m.grant_stakeholder_request()
+    assert m.carbon["credits"] == m.CARBON_OFFER_CREDITS
+    m.pending_stakeholder_request = {"plot_index": 14, "reason": "ecotourism", "kind": m.STAKEHOLDER_KIND_INCENTIVE}
+    m.grant_stakeholder_request()
+    assert m.carbon["credits"] == m.CARBON_OFFER_CREDITS
+
+
+def test_chart_text_and_buttons(game_env):
+    import xml.etree.ElementTree as ET
+    m = game_env.module
+    m.forest_tick = 30
+    svg = m.carbon_chart_svg()
+    ET.fromstring(svg)
+    assert "stroke-dasharray" in svg  # the forecast is dotted
+    m.carbon["credits"] = 12.0
+    m.render_carbon()
+    assert "Carbon credits: 12.0" in game_env.elements["carbon-status"].innerText
+    assert game_env.elements["carbon-sell-button"].disabled is False
+    m.carbon["credits"] = 0.0
+    m.render_carbon()
+    assert game_env.elements["carbon-sell-button"].disabled is True
+
+
+def test_carbon_saves_only_when_used_validates_and_resets(game_env):
+    m = game_env.module
+    assert "carbon" not in m.get_state()
+    m.carbon.update({"credits": 7.5, "slump": 3, "sold": 20.0, "earned_from_sales": 300.0})
+    state = m.get_state()
+    m.reset_session()
+    assert m.carbon["credits"] == 0.0
+    m.load_state(state)
+    assert m.carbon["credits"] == 7.5 and m.carbon["slump"] == 3 and m.carbon["sold"] == 20.0
+    state["carbon"] = {"credits": 99999, "slump": -4, "sold": "x"}
+    m.load_state(state)
+    assert m.carbon["credits"] == m.CARBON_CREDIT_CAP and m.carbon["slump"] == 0 and m.carbon["sold"] == 0.0
