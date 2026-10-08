@@ -1,0 +1,131 @@
+"""Lighthouse -- the story's words and facts as plain data: the cast, the letters, the gifts.
+
+Nothing here runs. `story.py` reads it to decide who is on the water, which letter comes next and what a gift does;
+`tests/test_story_data.py` checks it (the banned-word lint, every gate reachable, every gift attached somewhere).
+Voice rules, from the design: people are flawed and specific, never all-good; the humour is dry and a little dark,
+never absurd; nobody is ever harmed by anything unexplained, and nothing here is frightening.
+"""
+
+# kind: the generic ship the sailor travels on ('' = ashore, writes only). ship: the sailor's own boat name, or ''
+# when they are a passenger or crew on a boat that already has a name. chance: the odds on a night when a ship of
+# that kind is on the water. min_night: first night they can appear.
+SAILORS = {
+    "ilse": {"name": "Ilse Verrick", "role": "Captain of the mail boat Gannet", "kind": "mail", "ship": "", "chance": 1.0, "min_night": 3,
+             "blurb": "Quiet, punctual and far too proud to be seen resting."},
+    "odd": {"name": "Odd Brannock", "role": "Fisher, of the Hopeful Pail", "kind": "fisher", "ship": "Hopeful Pail", "chance": 0.5, "min_night": 2,
+            "blurb": "Never catches anything and is cheerful about it, which is how he gets away with the rest."},
+    "corvin": {"name": "Corvin Daw", "role": "Master of the Discreet Fig", "kind": "yacht", "ship": "Discreet Fig", "chance": 0.7, "min_night": 4,
+               "blurb": "A smuggler of pickled walnuts, and bad at it in every direction."},
+    "maren": {"name": "Maren Quill", "role": "Surveyor, usually aboard the ferries", "kind": "ferry", "ship": "", "chance": 0.5, "min_night": 5,
+              "blurb": "Corrects charts for a living and conversations for pleasure."},
+    "pip": {"name": "Pip", "role": "Nine and three-quarters, watches the light from the ferry", "kind": "ferry", "ship": "", "chance": 0.55, "min_night": 10,
+            "blurb": "Writes to lighthouses because lighthouses stay put."},
+    "wilhelmina": {"name": "Wilhelmina Thorne", "role": "First mate on the cargo ships", "kind": "cargo", "ship": "", "chance": 0.45, "min_night": 6,
+                   "blurb": "Writes little, means all of it, and trusts a lighthouse more than a post office."},
+    "tobias": {"name": "Tobias Quenby", "role": "Ferry steward and talker", "kind": "ferry", "ship": "", "chance": 0.55, "min_night": 6,
+               "blurb": "Talks enough for two and is writing to someone who talks for none."},
+    "dunstan": {"name": "Dunstan Yarrow", "role": "Keeper before you, now ashore", "kind": "", "ship": "", "chance": 0.0, "min_night": 4,
+                "blurb": "Kept the light for eleven years and still winds a clock in his head each evening."},
+    "hesper": {"name": "Hesper Lund", "role": "Retired ferry captain", "kind": "", "ship": "", "chance": 0.0, "min_night": 20,
+               "blurb": "Gave up a ship to someone better and is working at being glad."},
+    "berit": {"name": "Berit Sorrel", "role": "Retired fisher, awake at all hours", "kind": "", "ship": "", "chance": 0.0, "min_night": 10,
+              "blurb": "Cannot sleep, cannot stop rowing, and is more sociable than she lets on."},
+}
+SAILOR_ORDER = tuple(SAILORS)
+
+# gate: passes = how many times that sailor's ship has got safely by; rep = the keeper's reputation;
+# after = a letter that must already have been delivered; night = first night (for people ashore).
+LETTERS = {
+    "il1": {"from": "ilse", "gate": {"passes": 1}, "subject": "The manifest",
+            "text": "Keeper. The manifest is enclosed. Count it before I leave the dock and not after; I am not paid to be wrong in daylight. I will be at your dock at the hour I say, or I will send word. If I send word, it will be about weather. It will not be about anything else. - I. Verrick, Gannet"},
+    "il2": {"from": "ilse", "gate": {"passes": 2, "rep": 6, "after": "il1"}, "subject": "About the fourth",
+            "text": "Keeper. You may have noticed I was an hour late on the fourth. I said the tide. It was not the tide. I sat on the bow with the engine off and watched your light go round, nine times, and then I remembered the crates. I would take it as a kindness if this stayed between us and the gulls. - I.V.",
+            "replies": [["gulls", "Between us and the gulls.", "Good. The gulls have never once reported anything."],
+                        ["count", "Nine times? You counted.", "Nine. I count things. Do not make a habit of noticing."]]},
+    "il3": {"from": "ilse", "gate": {"passes": 4, "rep": 12, "after": "il2"}, "subject": "A key",
+            "text": "Keeper. Enclosed is the Gannet's old lantern key, which opens nothing aboard her now. I cannot bring myself to throw out a key. You have a lamp room full of things that open things; I thought it might feel at home there. Do not read anything into it. - I.V.",
+            "gift": "brass_key"},
+    "od1": {"from": "odd", "gate": {"passes": 1}, "subject": "Best fisher in the bay",
+            "text": "Brannock here, of the Hopeful Pail, best fisher in the bay by a margin I will not be explaining. Caught nothing again, which is the best result anyone has had this week; the bay is having a quiet one. I saw your light from so far off that I rowed the wrong way out of pure respect. Cheerfully yours, Odd."},
+    "od2": {"from": "odd", "gate": {"passes": 2, "after": "od1"}, "subject": "A small matter of tar",
+            "text": "Odd again. A small matter. I seem to have borrowed a coil of your tar, or you lent it, the memory is a river. I will repay it in fish by the end of the month. In my defence I have never repaid a debt in fish; there have not been any fish. Please do not put this in the log. - Odd",
+            "replies": [["gift", "Consider it a gift.", "A kindness noted, and a blow to my pride that I will treasure."],
+                        ["fish", "A fish a night until it is paid.", "You drive a hard bargain. I will start tomorrow. Or the week after."]],
+            "gift": "odd_cork"},
+    "od3": {"from": "odd", "gate": {"passes": 4, "rep": 8, "after": "od2"}, "subject": "A fish",
+            "text": "Keeper! A fish! Enclosed, in the tin, which is ice-cold; do not ask where I found ice. The fish was in someone else's net, but I have decided it is mine in spirit, and the spirit is what the sea judges. Eat it before I confess. - Odd",
+            "replies": [["eat", "I'll eat it.", "Splendid. A man who shares my views on spirit."],
+                        ["return", "I'll send it back to the net.", "Honest to a fault. I will tell no one you were honest."]],
+            "gift": "tin_fish"},
+    "co1": {"from": "corvin", "gate": {"passes": 1}, "subject": "Cargo: nothing",
+            "text": "To the Keeper. Cargo: nothing. I repeat: nothing. Certainly not forty jars of pickled walnuts, which are legal everywhere in the world except the one harbour I am sailing into. I am merely a man on a boat with a very full hold and a very empty conscience. Do not wave too enthusiastically. - C. Daw, master of the Discreet Fig"},
+    "co2": {"from": "corvin", "gate": {"passes": 2, "rep": 8, "after": "co1"}, "subject": "The harbour official",
+            "text": "The harbour official stopped me. I declared everything at once, in a single breath, including several things they had not asked about, and they let me go out of exhaustion. I am told this is not how smuggling works. I am told a great deal. Enclosed, one jar, as a bribe to you personally, which you may report. - C.D.",
+            "replies": [["eat", "Report it? I'll eat it.", "Then we are accomplices. I have never had one before. It is lovely."],
+                        ["friend", "I'm logging it as a gift from a friend.", "A friend. I shall have it embroidered on something."]],
+            "gift": "walnuts"},
+    "co3": {"from": "corvin", "gate": {"passes": 3, "rep": 16, "after": "co2"}, "subject": "Going straight",
+            "text": "I have decided to go straight. I told the harbour so. They asked me for what, and I realised I have no other trade, only a boat. I will now carry other people's pickled walnuts, legally, and be bad at it in a new and honest way. Your light is the only thing in this business that has never charged me. - Corvin"},
+    "ma1": {"from": "maren", "gate": {"passes": 1}, "subject": "A correction",
+            "text": "To the Keeper of the light on the rock. Your rock is marked on the Admiralty chart some forty yards east of where it is. I have not moved it. I would ask that you not move it either; I have only just corrected the chart and I will not do so twice. With patience, M. Quill, surveyor.",
+            "replies": [["stay", "Noted. The rock stays put.", "Good."],
+                        ["close", "Forty yards? It feels closer.", "It is not closer. It feels closer because you live on it. This is a common error."]]},
+    "ma2": {"from": "maren", "gate": {"passes": 2, "rep": 8, "after": "ma1"}, "subject": "A retraction",
+            "text": "I must retract something. I told a harbour clerk the shoal off your western side was a rumour. It is not. I found it with the keel of a ferry on Tuesday, and the ferry is quite all right, and I am quite not. You said so, in the log, in the spring. I do not apologise easily. I am apologising. - M.Q."},
+    "ma3": {"from": "maren", "gate": {"passes": 3, "rep": 16, "after": "ma2"}, "subject": "The corrected chart",
+            "text": "Enclosed is a copy of my corrected chart, with your rock in its proper place and the western shoal drawn in with a flourish I do not usually permit. Frame it or burn it. If you frame it, hang it away from the damp. - Maren Quill",
+            "gift": "chart"},
+    "pi1": {"from": "pip", "gate": {"passes": 1}, "subject": "Dear Lighthouse",
+            "text": "Dear Lighthouse. My mum says I am not to write to strangers but you are not a stranger, you are a lighthouse, and I have watched you from the ferry every Friday. You blink a lot. Do you ever get tired? My name is Pip. I am nine and three-quarters.",
+            "replies": [["never", "Never tired of ships.", "That is a good answer. I wrote it down."],
+                        ["little", "A little tired. I keep going.", "My mum says that too. I am going to be a lighthouse when I am big."]]},
+    "pi2": {"from": "pip", "gate": {"passes": 2, "rep": 8, "after": "pi1"}, "subject": "I counted",
+            "text": "Dear Lighthouse, I counted your beam and it goes round in the time it takes me to say one lighthouse, two lighthouse seven times. Is that right? My mum says you are probably a person too. Is that right? Enclosed is a drawing of you. I gave you too many windows because I think you would like windows. - Pip",
+            "gift": "pip_drawing"},
+    "pi3": {"from": "pip", "gate": {"passes": 3, "rep": 14, "after": "pi2"}, "subject": "A shell",
+            "text": "Dear Lighthouse, I found a shell on the beach and it looks like a staircase. I think it goes to your rock. Mum says it is just a shell. I am sending it so it can go home. Please do not tell the sea. - Pip",
+            "gift": "stair_shell"},
+    "wi1": {"from": "wilhelmina", "gate": {"passes": 1}, "subject": "A letter to pass on",
+            "text": "To the Keeper. Would you be so kind as to hand the enclosed to whoever is aboard the next ferry that carries a Mr Tobias Quenby? I know the harbour has a post office. I do not trust it with this. I trust a lighthouse. Lighthouses stay where they are. - W. Thorne, first mate",
+            "replies": [["pass", "I'll see it gets to him.", "Thank you. I will not say so twice."],
+                        ["hold", "I'll hold it until I see his ferry.", "Quite right. Better late and sealed than early and read."]]},
+    "to1": {"from": "tobias", "gate": {"passes": 1, "after": "wi1"}, "subject": "An answer for Miss Thorne",
+            "text": "Keeper. A letter reached me through you and I do not know how to thank a lighthouse. Enclosed is my answer for Miss Thorne. She says I talk too much; I say she writes too little; we have not met since the spring the pier was rebuilt. If you could see it reaches her, I will owe you more words than you want. - Tobias Quenby"},
+    "wi2": {"from": "wilhelmina", "gate": {"passes": 2, "rep": 6, "after": "to1"}, "subject": "Three pages",
+            "text": "Keeper: Tobias writes that I write too little. This letter is three pages. It has been through you and two ferries already. Please pass it on without reading it, though I know you will. I would. - W.",
+            "replies": [["unread", "I did not read it.", "Liar. Thank you."],
+                        ["read", "I read it. It was lovely.", "I will pretend to be angry for a day. Thank you."]]},
+    "to2": {"from": "tobias", "gate": {"passes": 2, "after": "wi2"}, "subject": "For once, quiet",
+            "text": "Keeper. I have read what she wrote. I am, for once, quiet. Enclosed is a pressed flower for her, and another for you, for being the postbox. It is the only thing I own that is both small and brave. - Tobias",
+            "gift": "pressed_flower"},
+    "wi3": {"from": "wilhelmina", "gate": {"passes": 4, "rep": 14, "after": "to2"}, "subject": "Biscuits",
+            "text": "Keeper. Enclosed are biscuits. The tin is larger than the biscuits, deliberately; we have decided the tin is the real gift. Mr Quenby and I mean to meet at the harbour. If your light is steady that evening we will take it as a sign, and if it is not we will take it as weather. - W. Thorne",
+            "gift": "biscuits"},
+    "to3": {"from": "tobias", "gate": {"passes": 3, "rep": 16, "after": "wi3"}, "subject": "We met",
+            "text": "Keeper: we met. We have nothing to report except that it rained and neither of us noticed. Enclosed is a postcard of your rock that we both signed, in two hands, one of them mine and too large. - Tobias and Wilhelmina",
+            "gift": "postcard"},
+    "du1": {"from": "dunstan", "gate": {"night": 4}, "subject": "To whoever has my lamp",
+            "text": "To whoever has my lamp. The third stair sticks. The lamp likes oil and hates hurry. The sea keeps its own counsel, so do not ask it for any. I kept the light eleven years and I am told it has been kept better since, which I choose to find encouraging. Write if the clockwork complains. - D. Yarrow"},
+    "du2": {"from": "dunstan", "gate": {"night": 16, "rep": 16, "after": "du1"}, "subject": "A lens cloth",
+            "text": "Enclosed is the cloth I cleaned the lens with every morning, a habit I cannot break from forty miles away. It has been through eleven winters and it is the best lens cloth in the county. Use it and the beam will carry a little further for a week; I do not explain this; it merely does. - D.Y.",
+            "gift": "lens_cloth"},
+}
+LETTER_ORDER = tuple(LETTERS)
+
+# slot: where it sits in the room picture. effect: what taking it does (story mode only).
+GIFTS = {
+    "brass_key": {"name": "A brass key", "slot": "shelf", "text": "The Gannet's old lantern key. It opens nothing, which is why it is on the shelf."},
+    "odd_cork": {"name": "A lucky cork", "slot": "shelf", "text": "From a bottle Odd never opened. He says it is lucky. He has not been lucky."},
+    "tin_fish": {"name": "A tin of fish", "slot": "table", "text": "Odd's catch, of a sort. It is cold and it is food.", "effect": {"food": 2}},
+    "walnuts": {"name": "A jar of pickled walnuts", "slot": "table", "text": "From Corvin, as a bribe. Better than most bribes.", "effect": {"food": 3}},
+    "chart": {"name": "Maren's chart", "slot": "wall", "text": "Your rock in its proper place, and a flourish over the western shoal."},
+    "pip_drawing": {"name": "Pip's drawing", "slot": "wall", "text": "The lighthouse, with too many windows. It looks happy about them."},
+    "stair_shell": {"name": "A staircase shell", "slot": "window", "text": "Hangs in the window and turns when the door opens."},
+    "pressed_flower": {"name": "A pressed flower", "slot": "shelf", "text": "Small, brave and flat. Tobias sent two."},
+    "biscuits": {"name": "A tin of biscuits", "slot": "table", "text": "The tin is larger than the biscuits, on purpose.", "effect": {"food": 2}},
+    "postcard": {"name": "A signed postcard", "slot": "wall", "text": "Your rock, signed in two hands, one of them too large."},
+    "lens_cloth": {"name": "Dunstan's lens cloth", "slot": "shelf", "text": "Eleven winters of mornings. The beam carries one step further for seven nights.", "effect": {"lens_cloth": 7}},
+}
+GIFT_ORDER = tuple(GIFTS)
+
+CONTENT_NOTE = "This game plays with the feeling of dread. Nothing frightening ever happens."

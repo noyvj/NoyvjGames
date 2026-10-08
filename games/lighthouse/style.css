@@ -220,3 +220,29 @@ html[data-effects="off"] #lantern-glow, html[data-effects="off"] #light-pool { d
 .goals-list li { display: grid; grid-template-columns: minmax(0, 1fr) 6rem 4.5rem; gap: 0.6rem; align-items: center; font-size: 0.9rem; }
 .goal-num { font-variant-numeric: tabular-nums; text-align: right; color: var(--muted); }
 @media (max-width: 640px) { .goals-list li { grid-template-columns: minmax(0, 1fr) 4rem 3.6rem; font-size: 0.8rem; } }
+
+/* ---- letters, sailors, gifts and the room ---- */
+.letters-list, .sailors-list, .gifts-list { list-style: none; margin: 0.3rem 0; padding: 0; display: grid; gap: 0.5rem; }
+.letters-list li { border: 1px solid var(--line); border-radius: 10px; padding: 0.5rem 0.8rem; background: var(--surface); }
+.letters-list li[data-read="false"] { border-width: 2px; border-color: var(--accent); }
+.letters-list .letter-head { display: flex; gap: 0.6rem; flex-wrap: wrap; align-items: baseline; }
+.letters-list .letter-new { font-weight: 700; color: var(--accent); }
+.letter-text { margin: 0.4rem 0; font-family: Georgia, "Times New Roman", serif; white-space: pre-wrap; }
+.letter-reply, .letter-answer, .letter-gift { margin: 0.3rem 0; font-size: 0.92rem; }
+.letter-answer { font-style: italic; }
+.reply-buttons { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+.sailors-list { grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr)); }
+.sailors-list li { border: 1px solid var(--line); border-radius: 10px; padding: 0.4rem 0.7rem; background: var(--surface); }
+.sailors-list li[data-met="false"] { border-style: dashed; color: var(--muted); }
+.sailors-list .sailor-name { font-weight: 700; }
+.gifts-list { grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr)); }
+.gifts-list li { border: 1px solid var(--line); border-radius: 10px; padding: 0.35rem 0.7rem; background: var(--surface); }
+.gifts-list li[data-have="false"] { border-style: dashed; color: var(--muted); }
+.gifts-list li[data-have="true"] { border-width: 2px; border-color: var(--accent); }
+.room-svg { width: 100%; max-width: 32rem; height: auto; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); display: block; }
+.room-svg .room-ink { stroke: var(--text); fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.room-svg .room-fill { fill: var(--btn); stroke: var(--text); stroke-width: 2; stroke-linejoin: round; }
+.room-svg .room-accent { fill: var(--accent); stroke: var(--text); stroke-width: 1.5; }
+.room-svg .room-wall { fill: var(--panel); }
+.room-svg .room-floor { fill: var(--off); }
+.report-letters { margin: 0.4rem 0; font-weight: 600; }

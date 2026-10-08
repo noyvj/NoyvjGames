@@ -18,9 +18,10 @@ Text harness: `python3 games/lighthouse/harness.py [seed] [nights]`.
 
 - M3 Day loop + upgrades: day panel (mend, rest, tidy, tideline, greenhouse, rescue), workshop with 9 upgrades and a confirm for dear ones, supply-boat order form, seasons, barometer, three standing goals (goals.py), 111 tests.
 - M4 Complete Quiet mode: year-end screen and endless continue verified live, copy-result button, welcome-back toast, abandon/reset confirms, whole-year handle test. 112 tests. FIRST COMPLETE PLAYABLE GAME.
+- M5 Cast, letters, gifts: lore.py (10 sailors, 23 letters, 11 gifts), cast.py (labels ships, never changes the sim), story.py, Letters panel with sailors/gifts/room SVG, reply choices, story toggle wired, quiet runs skip it all. 137 tests. Hesper and Berit are written for in M6 (mystery characters).
 
 ## Next
-Milestone 5: cast (12 sailors, 6 acceptable), letters, gifts, room scene, story toggle, Quiet run flag takes effect. Content in story data files (cast.json etc.).
+Milestone 6: The Unease. Prototype mystery 1 (The Second Light) first, then the rest; unease meter, odd-detail techniques, dread-ledger tests, Eerie details setting, content note.
 
 ## Open problems
 none yet

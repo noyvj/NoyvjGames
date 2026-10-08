@@ -28,6 +28,7 @@ import achievements
 import data
 import day
 import sim
+import story
 import view
 from state import Keep
 
@@ -144,6 +145,10 @@ def _act(action, request):
         return day.buy_upgrade(keep, request.get("id"))
     if action == "order":
         return day.set_order(keep, request.get("order"))
+    if action == "read_letter":
+        return story.read_letter(keep, request.get("id"))
+    if action == "reply":
+        return story.reply(keep, request.get("id"), request.get("reply"))
     if action == "settings":
         if "eerie" in request:
             settings["eerie"] = request.get("eerie") is not False

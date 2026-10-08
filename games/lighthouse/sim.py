@@ -10,7 +10,9 @@ or turn back, and nobody is hurt. A station with no oil at dusk finds its reserv
 
 import clock
 import data
+import lore
 import ships as shipgen
+import story
 from data import (AUTO_PATCH_HEAL, CLOCK_BASE, CLOCK_WEIGHTS, COND_LABELS, COND_PENALTY, DOCK_MIN, ENERGY_MAX,
                   ENERGY_PATCH, ENERGY_TEND, ENERGY_WIND, EMERGENCY_OIL, FIXED_CONE_DIVISOR, HUNGRY_COST,
                   INCIDENT_CHANCE, INCIDENT_FIX, INCIDENT_KINDS, INCIDENT_LIFE, INCIDENT_TEXT, LEVEL_BURN, LEVEL_REACH,
@@ -112,6 +114,7 @@ def effective_reach(keep, level, cond):
         reach -= 1
     if keep.tasks["watch"] and cond in (1, 2) and keep.energy > 0:
         reach += 1
+    reach += story.lens_cloth_bonus(keep)
     if beam_stopped(keep):
         reach //= FIXED_CONE_DIVISOR
     return max(0, reach)
@@ -233,7 +236,7 @@ def advance(keep):
         if rec["state"] != "pending" or t < ship["arrive"]:
             continue
         if t == ship["arrive"]:
-            event(keep, "ship", "%s %s rounds the point." % (SHIP_KINDS[ship["kind"]]["label"], ship["name"]))
+            event(keep, "ship", story.label_ship(keep, ship, "%s %s" % (SHIP_KINDS[ship["kind"]]["label"], ship["name"])) + " rounds the point.")
         if reach >= ship["need"]:
             rec["seen"] += 1
         elif cond >= 3:
@@ -293,6 +296,7 @@ def resolve_ship(keep, ship, rec, wind):
     stats = keep.night_stats
     base = SHIP_KINDS[ship["kind"]]
     label = "%s %s" % (base["label"], ship["name"]) if ship["kind"] != "mail" else "The mail boat %s" % ship["name"]
+    label = story.label_ship(keep, ship, label)
     if rec["seen"] * 2 >= ship["window"]:
         rec["state"] = "passed"
         stats["passed"] += 1
@@ -514,6 +518,9 @@ def finish_night(keep):
     else:
         keep.hungry = True
     keep.report = build_report(keep, outcomes, quiet)
+    news = story.after_night(keep, ships)
+    keep.report["letters"] = [{"id": lid, "from_name": story.sailor_name(lore.LETTERS[lid]["from"]), "subject": lore.LETTERS[lid]["subject"]} for lid in news["letters"]]
+    keep.report["met"] = [story.sailor_name(sid) for sid in news["met"]]
     return keep.report
 
 

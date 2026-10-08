@@ -9,6 +9,7 @@ regenerated from the seed and the night; only the keeper's progress through toni
 import math
 
 from clock import night_len
+import lore
 from data import (BOAT_CRATES, COMFORT_MAX, CRATE_KINDS, DEFAULT_ORDER, ENERGY_MAX, INCIDENT_KINDS, LEVELS, LOG_KEEP,
                   OIL_CAP_BIG, PARTS, REP_CAP, START_ENERGY, START_OIL, START_STRUCTURE, START_SUPPLIES, SUPPLIES,
                   SUPPLY_CAP, UPGRADE_IDS)
@@ -20,6 +21,7 @@ SHIP_STATES = ("pending", "passed", "delayed", "damaged")
 LOG_KINDS = ("ship", "weather", "incident", "damage", "lamp", "clock", "keeper", "note", "story")
 TASKS = ("wind", "watch", "repair")
 FOCUS_CHOICES = ("worst",) + PARTS
+STORY_KEYS = ("met", "inbox", "read", "gifts", "choices", "buffs")
 COUNTER_NAMES = ("quiet_nights", "fog_clears", "storm_wardens", "tidy_days", "frugal_seasons", "empty_nights",
                  "wound_streak", "best_wound_streak", "calm_years", "eerie_off_nights", "cleared_year_eerie_off")
 MAX_SEED = 2 ** 31 - 1
@@ -105,6 +107,7 @@ class Keep(object):
         self.log = []
         self.report = None
         self.delivery = None
+        self.story = new_story()
 
     # ---- derived ---------------------------------------------------------------------------------------
     def has(self, upgrade):
@@ -174,6 +177,9 @@ class Keep(object):
             run["report"] = self.report
         if self.delivery:
             run["delivery"] = self.delivery
+        story = story_to_dict(self.story)
+        if story:
+            run["story"] = story
         return {"schema": SCHEMA, "meta": meta_to_dict(self.meta), "run": run}
 
     @classmethod
@@ -257,7 +263,55 @@ class Keep(object):
                 keep.log.append([num(entry[0], 0, 200, 0), pick_one(entry[1], LOG_KINDS, "note"), entry[2][:200]])
         keep.report = clean_report(run.get("report"))
         keep.delivery = clean_delivery(run.get("delivery"))
+        keep.story = story_from_dict(run.get("story"))
         return keep
+
+
+def new_story():
+    """The story layer's progress in this run. Every key is written only when it holds something."""
+    return {"met": {}, "inbox": [], "read": [], "gifts": [], "choices": {}, "buffs": {}}
+
+
+def story_to_dict(story):
+    out = {}
+    if story["met"]:
+        out["met"] = dict(story["met"])
+    if story["inbox"]:
+        out["inbox"] = [dict(i) for i in story["inbox"]]
+    for key in ("read", "gifts"):
+        if story[key]:
+            out[key] = list(story[key])
+    if story["choices"]:
+        out["choices"] = {k: list(v) for k, v in story["choices"].items()}
+    buffs = {k: v for k, v in story["buffs"].items() if v}
+    if buffs:
+        out["buffs"] = buffs
+    return out
+
+
+def story_from_dict(raw):
+    raw = as_dict(raw)
+    story = new_story()
+    met = as_dict(raw.get("met"))
+    story["met"] = {k: num(met[k], 0, 10 ** 5, 0) for k in lore.SAILORS if k in met}
+    seen = set()
+    for item in as_list(raw.get("inbox"))[:80]:
+        item = as_dict(item)
+        lid = item.get("id")
+        if isinstance(lid, str) and lid in lore.LETTERS and lid not in seen:
+            seen.add(lid)
+            story["inbox"].append({"id": lid, "night": num(item.get("night"), 1, 100000, 1)})
+    story["read"] = [i for i in dict.fromkeys(as_list(raw.get("read"))) if isinstance(i, str) and i in seen]
+    story["gifts"] = [g for g in dict.fromkeys(as_list(raw.get("gifts"))) if isinstance(g, str) and g in lore.GIFTS]
+    choices = as_dict(raw.get("choices"))
+    for lid, pair in choices.items():
+        letter = lore.LETTERS.get(lid)
+        pair = as_list(pair)
+        if letter and lid in story["read"] and len(pair) == 2 and any(pair[0] == r[0] for r in letter.get("replies", ())):
+            story["choices"][lid] = [pair[0], num(pair[1], 1, 100000, 1)]
+    buffs = as_dict(raw.get("buffs"))
+    story["buffs"] = {k: num(buffs[k], 0, 99, 0) for k in ("lens_cloth",) if k in buffs}
+    return story
 
 
 def new_night_stats():
@@ -271,6 +325,7 @@ def new_meta():
         "nights_kept": 0, "years": 0, "ships_passed": 0, "ships_delayed": 0, "ships_damaged": 0, "rescues": 0,
         "lamp_ticks": 0, "oil_used": 0.0, "clean_streak": 0, "best_clean_streak": 0, "best_lamp_hours_year": 0,
         "year_lamp_ticks": 0, "counters": {}, "achievements_earned": [],
+        "story": {"met": [], "letters": [], "gifts": []},
     }
 
 
@@ -279,6 +334,10 @@ def meta_to_dict(meta):
     out["counters"] = {k: v for k, v in meta["counters"].items() if v}
     if not out["counters"]:
         del out["counters"]
+    ever = {k: list(v) for k, v in meta["story"].items() if v}
+    out.pop("story", None)
+    if ever:
+        out["story"] = ever
     return out
 
 
@@ -291,6 +350,12 @@ def meta_from_dict(raw):
     meta["oil_used"] = float(num(raw.get("oil_used"), 0, 10 ** 8, 0, integer=False))
     counters = as_dict(raw.get("counters"))
     meta["counters"] = {k: num(counters.get(k), 0, 10 ** 6, 0) for k in COUNTER_NAMES if k in counters}
+    ever = as_dict(raw.get("story"))
+    meta["story"] = {
+        "met": [x for x in dict.fromkeys(as_list(ever.get("met"))) if x in lore.SAILORS],
+        "letters": [x for x in dict.fromkeys(as_list(ever.get("letters"))) if x in lore.LETTERS],
+        "gifts": [x for x in dict.fromkeys(as_list(ever.get("gifts"))) if x in lore.GIFTS],
+    }
     earned = as_list(raw.get("achievements_earned"))
     meta["achievements_earned"] = [e for e in dict.fromkeys(earned) if isinstance(e, str) and len(e) <= 40][:80]
     return meta
@@ -311,6 +376,9 @@ def clean_report(raw):
     out["worst"] = num(raw.get("worst"), 0, 4, 0)
     out["quiet"] = raw.get("quiet") is True
     out["lines"] = [text(x, 160) for x in as_list(raw.get("lines"))[:10] if isinstance(x, str)]
+    out["letters"] = [{"id": i, "from_name": text(as_dict(x).get("from_name"), 40), "subject": text(as_dict(x).get("subject"), 60)}
+                      for x in as_list(raw.get("letters"))[:4] for i in [as_dict(x).get("id")] if isinstance(i, str) and i in lore.LETTERS]
+    out["met"] = [text(x, 40) for x in as_list(raw.get("met"))[:6] if isinstance(x, str)]
     return out
 
 

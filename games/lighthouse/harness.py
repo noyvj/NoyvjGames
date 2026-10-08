@@ -73,13 +73,16 @@ def plan_for(keep, style="careful"):
     keep.tasks = {"wind": True, "watch": style == "careful" and keep.energy > 60, "repair": style == "careful" and keep.energy > 50}
 
 
-def play(keep, nights, style="careful"):
-    """Play `nights` whole nights (evening, night, morning, day) with the given policy."""
+def play(keep, nights, style="careful", on_morning=None):
+    """Play `nights` whole nights (evening, night, morning, day) with the given policy. `on_morning(keep)` is called
+    with the morning report showing, before the day is spent."""
     for _ in range(nights):
         if keep.phase == "evening":
             plan_for(keep, style)
             sim.begin_night(keep)
         sim.step(keep, 10 ** 6)
+        if on_morning:
+            on_morning(keep)
         standard_day(keep, upgrades=() if style == "idle" else ("lens", "wick", "weights", "vane", "bell", "shutters", "cistern", "boat", "greenhouse"))
     return keep
 

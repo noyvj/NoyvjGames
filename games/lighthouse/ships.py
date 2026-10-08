@@ -5,6 +5,7 @@ effective reach it needs to pick the light out), rep and salvage (what a safe pa
 knows about the keeper's plan; the sim measures the beam against `need` tick by tick.
 """
 
+import cast
 from clock import is_festival, night_len, season_of
 from data import FIRST_MAIL_NIGHT, MAIL_NAME, SHIP_KINDS, SHIP_ORDER, SHIP_WEIGHTS, SHIPS_PER_NIGHT
 from rng import pick, rint, weighted
@@ -84,6 +85,7 @@ def ships_for_night(seed, night, mail=False):
         arrive = rint(length // 4, max(length // 4, length - window - 4), seed, "mail-arrive", night)
         ships.append(_ship(night, 9, "mail", arrive, MAIL_NAME))
     ships.sort(key=lambda s: (s["arrive"], s["id"]))
+    cast.assign(seed, night, ships)
     if len(_cache) > 64:
         _cache.clear()
     _cache[key] = [dict(s) for s in ships]

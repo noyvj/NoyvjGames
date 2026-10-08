@@ -3,7 +3,7 @@
    estimate in the evening plan, which only repeats the engine's published burn rates as a hint). */
 (function () {
   "use strict";
-  var ENGINE_MODULES = ["rng.py", "data.py", "clock.py", "weather.py", "ships.py", "state.py", "sim.py", "day.py", "achievements.py", "goals.py", "view.py"];
+  var ENGINE_MODULES = ["rng.py", "data.py", "clock.py", "weather.py", "ships.py", "state.py", "sim.py", "day.py", "achievements.py", "goals.py", "lore.py", "cast.py", "story.py", "view.py"];
   var STORE_KEY = "lighthouse:state";
   var QUIET_KEY = "lighthouse-quiet";
   var GAME_ID = "lighthouse";
@@ -306,6 +306,117 @@
     });
   }
 
+
+  // ---- letters, sailors, gifts, the room ------------------------------------------------------------------
+  function roomPart(tag, attrs, cls) { var n = svgEl(tag, attrs); if (cls) n.setAttribute("class", cls); return n; }
+  var GIFT_DRAW = {
+    brass_key: function (x, y) { var g = svgEl("g"); g.appendChild(roomPart("circle", { cx: x, cy: y - 10, r: 5 }, "room-accent")); g.appendChild(roomPart("path", { d: "M" + x + " " + (y - 5) + " V" + y + " M" + x + " " + (y - 2) + " h4" }, "room-ink")); return g; },
+    odd_cork: function (x, y) { var g = svgEl("g"); g.appendChild(roomPart("rect", { x: x - 5, y: y - 11, width: 10, height: 11, rx: 2 }, "room-accent")); return g; },
+    pressed_flower: function (x, y) { var g = svgEl("g"); g.appendChild(roomPart("path", { d: "M" + x + " " + y + " V" + (y - 11) }, "room-ink")); g.appendChild(roomPart("circle", { cx: x, cy: y - 13, r: 4 }, "room-accent")); return g; },
+    lens_cloth: function (x, y) { var g = svgEl("g"); g.appendChild(roomPart("path", { d: "M" + (x - 8) + " " + y + " q4 -12 8 -4 q4 -8 8 4 z" }, "room-fill")); return g; },
+    tin_fish: function (x, y) { var g = svgEl("g"); g.appendChild(roomPart("rect", { x: x - 9, y: y - 9, width: 18, height: 9, rx: 2 }, "room-fill")); g.appendChild(roomPart("path", { d: "M" + (x - 4) + " " + (y - 5) + " q4 -4 8 0 q-4 4 -8 0" }, "room-ink")); return g; },
+    walnuts: function (x, y) { var g = svgEl("g"); g.appendChild(roomPart("rect", { x: x - 6, y: y - 16, width: 12, height: 16, rx: 3 }, "room-fill")); g.appendChild(roomPart("rect", { x: x - 7, y: y - 19, width: 14, height: 4, rx: 1 }, "room-accent")); return g; },
+    biscuits: function (x, y) { var g = svgEl("g"); g.appendChild(roomPart("rect", { x: x - 12, y: y - 12, width: 24, height: 12, rx: 2 }, "room-accent")); g.appendChild(roomPart("path", { d: "M" + (x - 12) + " " + (y - 8) + " h24" }, "room-ink")); return g; },
+    chart: function (x, y) { var g = svgEl("g"); g.appendChild(roomPart("rect", { x: x - 18, y: y, width: 36, height: 26 }, "room-fill")); g.appendChild(roomPart("path", { d: "M" + (x - 12) + " " + (y + 18) + " q6 -14 12 -4 t12 -6" }, "room-ink")); g.appendChild(roomPart("circle", { cx: x + 6, cy: y + 8, r: 2 }, "room-accent")); return g; },
+    pip_drawing: function (x, y) { var g = svgEl("g"); g.appendChild(roomPart("rect", { x: x - 14, y: y, width: 28, height: 28 }, "room-fill")); g.appendChild(roomPart("path", { d: "M" + (x - 4) + " " + (y + 24) + " L" + (x - 2) + " " + (y + 6) + " h4 L" + (x + 4) + " " + (y + 24) + " z M" + (x - 1) + " " + (y + 10) + " h2 M" + (x - 1) + " " + (y + 14) + " h2 M" + (x - 1) + " " + (y + 18) + " h2" }, "room-ink")); return g; },
+    postcard: function (x, y) { var g = svgEl("g"); g.appendChild(roomPart("rect", { x: x - 12, y: y, width: 24, height: 17 }, "room-fill")); g.appendChild(roomPart("path", { d: "M" + (x - 7) + " " + (y + 8) + " h8 M" + (x - 7) + " " + (y + 12) + " h12" }, "room-ink")); return g; },
+    stair_shell: function (x, y) { var g = svgEl("g"); g.appendChild(roomPart("path", { d: "M" + x + " " + y + " v14" }, "room-ink")); g.appendChild(roomPart("path", { d: "M" + (x - 6) + " " + (y + 26) + " q0 -12 6 -12 q6 0 6 12 q-6 4 -12 0 z M" + (x - 3) + " " + (y + 22) + " h6" }, "room-accent")); return g; },
+  };
+  var SLOT_POS = { shelf: function (i) { return [100 + i * 30, 88]; }, table: function (i) { return [168 + i * 34, 150]; }, wall: function (i) { return [70 + i * 52, 22]; }, window: function () { return [276, 36]; }, floor: function (i) { return [60 + i * 30, 185]; } };
+
+  function drawRoom(v) {
+    var svg = $("room-svg");
+    svg.textContent = "";
+    svg.appendChild(roomPart("rect", { x: 0, y: 0, width: 360, height: 140 }, "room-wall"));
+    svg.appendChild(roomPart("rect", { x: 0, y: 140, width: 360, height: 60 }, "room-floor"));
+    var win = roomPart("g");
+    win.appendChild(roomPart("rect", { x: 240, y: 16, width: 72, height: 70 }, "room-fill"));
+    win.appendChild(roomPart("path", { d: "M276 16 V86 M240 51 H312" }, "room-ink"));
+    svg.appendChild(win);
+    svg.appendChild(roomPart("path", { d: "M80 92 H210" }, "room-ink"));                               // the shelf
+    svg.appendChild(roomPart("path", { d: "M150 150 H300 M158 150 V196 M292 150 V196" }, "room-ink"));   // the table
+    svg.appendChild(roomPart("path", { d: "M20 150 H64 M20 150 V196 M64 150 V196 M20 128 H64 V150" }, "room-ink"));   // the bed
+    var chair = roomPart("g", { id: "room-chair", class: "room-chair" });
+    chair.appendChild(roomPart("path", { d: "M318 190 V160 H338 V190 M318 160 V140 H328" }, "room-ink"));
+    svg.appendChild(chair);
+    var used = {};
+    v.story.room.forEach(function (gid) {
+      var g = v.story.gifts.filter(function (x) { return x.id === gid; })[0];
+      if (!g || !GIFT_DRAW[gid]) return;
+      var i = used[g.slot] = (used[g.slot] || 0) + 1;
+      var pos = SLOT_POS[g.slot](i - 1);
+      var node = GIFT_DRAW[gid](pos[0], pos[1]);
+      var t = svgEl("title"); t.textContent = g.name; node.insertBefore(t, node.firstChild);
+      svg.appendChild(node);
+    });
+    $("room-svg").setAttribute("aria-label", "The keeper's room" + (v.story.room.length ? ", with " + v.story.room.length + " keepsake" + (v.story.room.length === 1 ? "" : "s") : ", still bare"));
+  }
+
+  function letterItem(l) {
+    var li = el("li"); li.dataset.read = String(l.read);
+    var head = el("div", null, "letter-head");
+    head.appendChild(el("strong", l.from_name + ": " + l.subject));
+    head.appendChild(el("span", "night " + l.night, "note"));
+    if (!l.read) head.appendChild(el("span", "New", "letter-new"));
+    li.appendChild(head);
+    if (!l.read) {
+      var open = el("button", "Open the letter"); open.type = "button";
+      open.addEventListener("click", function () { var r = send({ action: "read_letter", id: l.id }, false); if (r && r.message) { showToast(r.message); announce(r.message); } });
+      li.appendChild(open);
+      return li;
+    }
+    li.appendChild(el("p", l.text, "letter-text"));
+    if (l.gift) li.appendChild(el("p", "In the envelope: " + l.gift.name + ".", "letter-gift"));
+    if (l.reply) {
+      li.appendChild(el("p", "You answered: " + l.reply, "letter-reply"));
+      li.appendChild(el("p", l.answer ? l.from_name + " writes back: " + l.answer : "Your reply goes out with the next boat.", l.answer ? "letter-answer" : "note"));
+    } else if (l.replies.length) {
+      var row = el("div", null, "reply-buttons"); row.setAttribute("role", "group"); row.setAttribute("aria-label", "Reply to " + l.from_name);
+      l.replies.forEach(function (r) {
+        var b = el("button", r.label); b.type = "button";
+        b.addEventListener("click", function () { var res = send({ action: "reply", id: l.id, reply: r.id }, false); if (res && res.message) announce(res.message); });
+        row.appendChild(b);
+      });
+      li.appendChild(row);
+    }
+    return li;
+  }
+
+  var knownUnread = null;
+  function renderStory(v) {
+    var s = v.story;
+    $("letters-toggle-button").hidden = !s.on;
+    if (!s.on) { $("letters-panel").hidden = true; setToggleState("letters-toggle-button", "letters-panel"); return; }
+    $("letters-toggle-button").textContent = s.unread ? "Letters (" + s.unread + " new)" : "Letters";
+    if (knownUnread !== null && s.unread > knownUnread) showToast("A letter has come.");
+    knownUnread = s.unread;
+    setText($("letters-counts"), "Sailors met " + s.counts.met + " of " + s.counts.sailors + ". Letters read " + s.counts.letters + " of " + s.counts.letters_total + ". Gifts found " + s.counts.gifts + " of " + s.counts.gifts_total + ".");
+    $("letters-empty").hidden = s.inbox.length > 0;
+    fillOnce($("letters-list"), JSON.stringify(s.inbox), function (h) { s.inbox.forEach(function (l) { h.appendChild(letterItem(l)); }); });
+    fillOnce($("sailors-list"), JSON.stringify(s.sailors), function (h) {
+      s.sailors.forEach(function (x) {
+        var li = el("li"); li.dataset.met = String(x.met);
+        li.appendChild(el("span", x.name, "sailor-name"));
+        if (x.met) {
+          li.appendChild(el("div", x.role, "note"));
+          li.appendChild(el("div", x.blurb));
+          li.appendChild(el("div", (x.ashore ? "Writes from ashore. " : "Boat got safely by " + plural(x.passes, "time") + ". ") + "Letters: " + x.letters_got + " of " + x.letters, "note"));
+        } else li.appendChild(el("div", "Not met yet.", "note"));
+        h.appendChild(li);
+      });
+    });
+    fillOnce($("gifts-list"), JSON.stringify(s.gifts), function (h) {
+      s.gifts.forEach(function (g) {
+        var li = el("li"); li.dataset.have = String(g.have);
+        li.appendChild(el("strong", g.have || g.ever ? g.name : "Not found yet"));
+        if (g.have) li.appendChild(el("div", g.text, "note"));
+        h.appendChild(li);
+      });
+    });
+    fillOnce($("room-svg"), JSON.stringify(s.room), function () { drawRoom(v); });
+    setText($("room-text"), s.room.length ? "Everything on the shelf, the table and the walls came in an envelope." : "Nothing on the shelf yet. Letters sometimes bring something small.");
+  }
+
   // ---- the evening -----------------------------------------------------------------------------------
   var LEVEL_IDS = ["dim", "standard", "bright", "storm"];
   function buildPlan(v) {
@@ -388,6 +499,7 @@
         li.appendChild(el("span", n.icon, "ico"));
         li.lastChild.setAttribute("aria-hidden", "true");
         li.appendChild(el("strong", n.label + " " + n.name));
+        if (n.who_name) li.appendChild(el("span", n.who_name, "sailor-note"));
         li.appendChild(el("span", "about " + n.at + " (" + n.block_label.toLowerCase() + "), needs reach " + n.need + " or more", "board-detail"));
         holder.appendChild(li);
       });
@@ -457,6 +569,7 @@
         var icon = el("span", s.icon, "ico"); icon.setAttribute("aria-hidden", "true");
         li.appendChild(icon);
         li.appendChild(el("strong", s.label + " " + s.name));
+        if (s.who_name) li.appendChild(el("span", s.who_name, "sailor-note"));
         var status = s.state !== "pending" ? { passed: "Passed safely", delayed: "Turned back", damaged: "On the shoals, safe" }[s.state] :
           s.present ? (s.lit ? "Near the rock, in the beam" : "Near the rock, looking for the light") : "Expected about " + s.at;
         var st = el("span", status, "ship-state");
@@ -501,6 +614,9 @@
     });
     var lines = $("report-lines");
     fillOnce(lines, JSON.stringify(r.lines), function (holder) { r.lines.forEach(function (t) { holder.appendChild(el("li", t)); }); });
+    var post = $("report-letters");
+    var postText = (r.letters || []).map(function (l) { return "A letter from " + l.from_name + " has come: " + l.subject + "."; }).concat((r.met || []).map(function (n) { return "You have met " + n + "."; })).join(" ");
+    setText(post, postText); post.hidden = !postText || !v.story.on;
     setText($("report-delivery"), v.delivery ? v.delivery.text : (v.boat.due ? "The mail boat could not land and will come again." : ""));
   }
 
@@ -775,6 +891,7 @@
     view = v;
     renderHud(v);
     renderGoals(v);
+    renderStory(v);
     renderScene(v);
     renderPhase(v, userMoved);
     renderStation(v);
@@ -852,6 +969,7 @@
     });
     $("focus-select").addEventListener("change", function () { send({ action: "plan", focus: $("focus-select").value }); });
     wirePanelToggle("achievements-toggle-button", "achievements-panel");
+    wirePanelToggle("letters-toggle-button", "letters-panel");
     wirePanelToggle("changelog-toggle-button", "changelog-panel");
     wirePanelToggle("info-page-toggle-button", "info-page-panel");
     $("quiet-checkbox").checked = quietPref();
@@ -869,7 +987,7 @@
     // the save widget loads a save directly into the engine; this redraws the page afterwards
     window.lighthouseRefresh = function () {
       if (!engine) return;
-      orderDraft = null; lastPhase = null; knownEarned = null; lastLogCount = 0;
+      orderDraft = null; lastPhase = null; knownEarned = null; knownUnread = null; lastLogCount = 0;
       send({ action: "open" }, false);
     };
     document.addEventListener("keydown", onKey);

@@ -73,11 +73,11 @@ SHIP_KINDS = {
     "mail": {"label": "Mail boat", "icon": "✉", "need": 5, "window": 6, "rep": 1, "salvage": 1},
 }
 SHIP_ORDER = ("fisher", "ferry", "cargo", "yacht")
-SHIP_WEIGHTS = (     # by season
-    (4.0, 2.0, 2.0, 1.0),
-    (3.0, 3.0, 1.0, 4.0),
-    (4.0, 2.0, 3.0, 0.5),
-    (2.0, 1.0, 5.0, 0.0),
+SHIP_WEIGHTS = (     # by season: fisher, ferry, cargo, yacht
+    (3.5, 3.5, 2.0, 1.0),
+    (2.5, 4.5, 1.0, 3.5),
+    (3.5, 3.5, 3.0, 0.5),
+    (2.0, 2.0, 5.0, 0.0),
 )
 SHIPS_PER_NIGHT = ((1, 3), (2, 3), (2, 4), (2, 3))   # by severity, inclusive range
 MAIL_NAME = "Gannet"

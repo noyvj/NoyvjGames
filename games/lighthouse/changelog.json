@@ -2,6 +2,10 @@
   "changelog": [
     {
       "date": "2026-10-09",
+      "entry": "Passing sailors now have names. Ten people write to the keeper once their boat has got safely by often enough: a quiet mail captain, a fisher who never catches anything, a smuggler of pickled walnuts, a surveyor who corrects charts, a child on the ferry, two correspondents who write through you, and more. Letters sometimes carry a gift that appears in the keeper's room, and some letters let you choose a reply. The Letters button lists everything you have found, and the Story button hides all of it."
+    },
+    {
+      "date": "2026-10-09",
       "entry": "The first year is now a complete game: forty nights, four seasons, a year-end screen with a Copy result button, and then you may keep the light for as long as you like. Settings has Abandon this year and Reset all progress (both ask first), and a welcome-back line greets you on return."
     },
     {

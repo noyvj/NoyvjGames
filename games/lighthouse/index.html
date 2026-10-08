@@ -39,11 +39,28 @@
   <div class="game-toolbar">
     <button id="tutorial-restart-button" type="button">Tutorial</button>
     <button id="achievements-toggle-button" type="button" aria-expanded="false" aria-controls="achievements-panel">Achievements</button>
+    <button id="letters-toggle-button" type="button" aria-expanded="false" aria-controls="letters-panel">Letters</button>
     <button id="changelog-toggle-button" type="button" aria-expanded="false" aria-controls="changelog-panel">What's New</button>
     <button id="settings-toggle-button" type="button" aria-expanded="false" aria-controls="settings-panel">Settings</button>
     <button id="info-page-toggle-button" type="button" aria-expanded="false" aria-controls="info-page-panel">About the Light</button>
   </div>
 
+  <section id="letters-panel" class="panel" hidden aria-labelledby="letters-heading">
+    <h2 id="letters-heading">Letters, sailors and the room</h2>
+    <p class="note" id="letters-counts"></p>
+    <h3>Letters</h3>
+    <ul id="letters-list" class="letters-list"></ul>
+    <p class="note" id="letters-empty">No letters yet. Sailors write once their boat has got safely by.</p>
+    <h3>The sailors</h3>
+    <ul id="sailors-list" class="sailors-list"></ul>
+    <h3>Gifts</h3>
+    <ul id="gifts-list" class="gifts-list"></ul>
+    <h3 id="room-heading">The room</h3>
+    <div id="room-panel" class="room-wrap">
+      <svg id="room-svg" class="room-svg" viewBox="0 0 360 200" role="img" aria-label="The keeper's room"></svg>
+      <p class="note" id="room-text"></p>
+    </div>
+  </section>
   <section id="info-page-panel" class="panel" hidden aria-labelledby="info-page-heading">
     <h2 id="info-page-heading">About the Light</h2>
     <p id="info-page-framing" class="info-page-framing"></p>
@@ -259,6 +276,7 @@
       <ul id="report-ships" class="report-ships"></ul>
       <dl id="report-facts" class="facts"></dl>
       <ul id="report-lines" class="report-lines"></ul>
+      <p id="report-letters" class="report-letters sailor-note" hidden></p>
       <p id="report-delivery" class="note"></p>
       <div id="report-copy-result"></div>
       <button id="morning-continue-button" type="button" class="primary">Start the day</button>
@@ -334,6 +352,7 @@
   // at panels the Desktop layout moves into windows. app.js asks this function which steps to run.
   window.lighthouseTutorialSteps = function (classicSteps) { return window.LIGHTHOUSE_PC_TUTORIAL_STEPS || classicSteps; };
 </script>
+<script src="../../shared/story-toggle.js" data-game-id="lighthouse" data-story-selectors="#letters-panel, #letters-toggle-button, #room-panel, .sailor-note, .odd-detail, #story-chapters"></script>
 <script src="../../shared/time-controls.js" data-game-id="lighthouse" data-container="#time-controls"></script>
 <script src="../../shared/pause-hidden.js" data-game-id="lighthouse"></script>
 <script src="app.js"></script>
@@ -344,6 +363,7 @@
   window.KeyboardShortcuts.init({
     panels: [
       { toggle: "achievements-toggle-button", panel: "achievements-panel" },
+      { toggle: "letters-toggle-button", panel: "letters-panel" },
       { toggle: "changelog-toggle-button", panel: "changelog-panel" },
       { toggle: "settings-toggle-button", panel: "settings-panel" },
       { toggle: "info-page-toggle-button", panel: "info-page-panel" },

@@ -10,6 +10,7 @@ from sim import mail_expected, beam_stopped, effective_reach, lamp_level, max_wi
 from weather import forecast, weather
 import day as daymod
 import goals as goalmod
+import story as storymod
 
 
 def rep_title(points):
@@ -50,6 +51,8 @@ def ship_view(keep, ship, tick, reach):
         "arrive": ship["arrive"], "window": ship["window"], "need": ship["need"], "state": state,
         "block": shipgen.block_of_arrival(keep.night, ship), "dir": 1 if unit(keep.seed, "dir", ship["id"]) < 0.5 else -1,
         "seen": rec["seen"] if rec else 0,
+        "who": ship.get("who") if storymod.on(keep) else None,
+        "who_name": storymod.sailor_name(ship["who"]) if storymod.on(keep) and ship.get("who") else None,
     }
     out["at"] = clock.clock_label(keep.night, ship["arrive"])
     if rec and state == "pending" and keep.phase == "night":
@@ -75,7 +78,8 @@ def notice_for(keep, night, mail):
         base = SHIP_KINDS[ship["kind"]]
         out.append({"kind": ship["kind"], "label": base["label"], "icon": base["icon"], "name": ship["name"],
                     "block": shipgen.block_of_arrival(night, ship), "block_label": BLOCKS[shipgen.block_of_arrival(night, ship)],
-                    "at": clock.clock_label(night, ship["arrive"]), "need": ship["need"]})
+                    "at": clock.clock_label(night, ship["arrive"]), "need": ship["need"],
+                    "who_name": storymod.sailor_name(ship["who"]) if storymod.on(keep) and ship.get("who") else None})
     return out
 
 
@@ -144,6 +148,7 @@ def build(keep, settings):
                  "lamp_hours": round(keep.meta["lamp_ticks"] * data.TICK_MINUTES / 60.0, 1), "oil_used": round(keep.meta["oil_used"], 1),
                  "clean_streak": keep.meta["clean_streak"], "best_clean_streak": keep.meta["best_clean_streak"]},
         "goals": goalmod.goals(keep),
+        "story": storymod.view(keep),
         "eerie": settings.get("eerie", True),
         "tick_ms": 4000,
     }

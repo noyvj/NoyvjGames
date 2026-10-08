@@ -99,3 +99,18 @@ def test_no_audio_anywhere():
     for name in ("app.js", "index.html", "style.css"):
         text = (GAME_DIR / name).read_text(encoding="utf-8")
         assert not re.search(r"new Audio\(|<audio|AudioContext|\.mp3\b|\.ogg\b|\.wav\b", text), name
+
+
+def test_the_story_toggle_hides_the_whole_story_layer_and_nothing_else():
+    match = re.search(r'story-toggle.js" data-game-id="lighthouse" data-story-selectors="([^"]+)"', HTML)
+    assert match
+    selectors = [s.strip() for s in match.group(1).split(",")]
+    for needed in ("#letters-panel", "#letters-toggle-button", "#room-panel", ".odd-detail", ".sailor-note"):
+        assert needed in selectors
+    for never in ("#hud", "#scene-panel", "#evening-panel", "#night-panel", "#day-panel", "#log-panel"):
+        assert never not in selectors
+
+
+def test_story_ids_the_script_uses_exist():
+    for needle in ('id="letters-list"', 'id="sailors-list"', 'id="gifts-list"', 'id="room-svg"', 'id="report-letters"', 'id="letters-toggle-button"'):
+        assert needle in HTML, needle
