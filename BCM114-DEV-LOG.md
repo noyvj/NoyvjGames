@@ -1343,3 +1343,8 @@ Added readability and feedback features to Thaw without adding screen clutter: t
 **Game:** canopy
 **Did:** GB-5: main-forest plots that are mature (standing 60 ticks) gain +4% growth per mature edge-sharing neighbour, up to +16%, multiplied into the same accrual formula as the other modifiers; a bare plot beside a mature plot recovers in 80% of the replant time. Tiles show a "+link" mark and a tooltip line saying the bonus and the number of neighbours (bare plots beside a mature one say they replant faster); a Settings checkbox hides only the marks, never the bonus. This makes layout matter: solid blocks beat checkerboards, and a protected core with a cleared farm edge replants fast, which also interacts with species patches (monocultures link well but invite blight). The "left standing" counterfactual line does not model synergy (noted in the code). One existing test moved the Heart Tree off the target plot, since the request target (the most valuable plot) now sometimes is the Heart Tree.
 **Result:** Canopy tests 1020 to 1026. Not checked live in a browser.
+
+### 2026-10-09 (Canopy, personal pass: fix for the Forest Rank pickers)
+**Game:** canopy
+**Did:** found while planning the next feature that B-19's two change listeners (badge frame and palette) had been registered inside `render_stakeholder_panel()`, which runs on every render, so each tick added another pair of listeners. Moved them into `setup()` with the other listeners and checked by script that the only listener registrations left outside `setup()` are the three tile grids, which rebuild their tiles on every render. No behaviour change otherwise.
+**Result:** Canopy tests stay at 1026.

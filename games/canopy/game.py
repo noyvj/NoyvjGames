@@ -3586,10 +3586,6 @@ def render_stakeholder_panel():
         else INCENTIVE_ACCEPT_TOOLTIP if is_incentive else CLEAR_GRANT_TOOLTIP
     )
     decline_button.title = INCENTIVE_DECLINE_TOOLTIP if is_incentive else CLEAR_DECLINE_TOOLTIP
-    for select_id, handler in (("forest-frame-select", on_forest_frame_change), ("forest-palette-select", on_forest_palette_change)):
-        select = _el(select_id)  # B-19
-        if select is not None:
-            select.addEventListener("change", create_proxy(handler))
     counter_button = _el("stakeholder-counter-button")  # B-25
     if counter_button is not None:
         plan = counter_offer_plan()
@@ -8603,6 +8599,10 @@ def setup():
         select = _el(select_id)
         if select is not None:
             select.addEventListener("change", create_proxy(on_my_forests_change))
+    for select_id, handler in (("forest-frame-select", on_forest_frame_change), ("forest-palette-select", on_forest_palette_change)):
+        select = _el(select_id)  # B-19
+        if select is not None:
+            select.addEventListener("change", create_proxy(handler))
     for lab_key in LAB_KEYS:  # B-5
         lab_slider = _el(f"lab-{lab_key}")
         if lab_slider is not None:
