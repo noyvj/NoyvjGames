@@ -1386,6 +1386,7 @@ def _bank_lifetime():
     row["sum"] += now["standing"]
     row["best"] = max(row["best"], now["standing"])
     _write_local_storage_item(LIFETIME_STORAGE_KEY, json.dumps(life))
+    _bank_my_forest()  # B-1
 
 
 def lifetime_rows():
@@ -1495,6 +1496,164 @@ def on_forest_palette_change(event=None):
     if select is not None and getattr(select, "value", "") in PALETTE_UNLOCKS:
         _write_local_storage_item(UI_PREF_PALETTE, select.value)
         render_forest_rank()
+
+
+# B-1 (2026-10-09): "My Forests", a library of finished sessions kept on this device so any two can be compared.
+MY_FORESTS_KEY = "canopy_my_forests_v1"
+MY_FORESTS_MAX = 12
+MY_FORESTS_SERIES_POINTS = 30
+MY_FORESTS_SERIES = (("biodiversity", "Biodiversity", "#4caf50"), ("standing", "Standing value", "#66b2e8"),
+                     ("relations", "Community relations", "#e8a33d"))
+
+
+def _downsample(series, count=MY_FORESTS_SERIES_POINTS):
+    """At most `count` evenly spaced values, always ending on the last one."""
+    series = [round(float(v), 1) for v in series]
+    if len(series) <= count:
+        return series
+    step = (len(series) - 1) / (count - 1)
+    return [series[round(i * step)] for i in range(count)]
+
+
+def _clean_series(raw):
+    if not isinstance(raw, list):
+        return []
+    out = []
+    for value in raw[:MY_FORESTS_SERIES_POINTS]:
+        if isinstance(value, (int, float)) and not isinstance(value, bool) and value == value and abs(value) < 1e9:
+            out.append(round(float(value), 1))
+    return out
+
+
+def _clean_forest_record(raw):
+    if not isinstance(raw, dict):
+        return None
+    number = lambda key: float(raw[key]) if isinstance(raw.get(key), (int, float)) and not isinstance(raw.get(key), bool) and abs(raw[key]) < 1e9 else 0.0
+    series = raw.get("series") if isinstance(raw.get("series"), dict) else {}
+    return {
+        "id": _nonneg_int(raw.get("id")),
+        "name": str(raw.get("name", ""))[:28],
+        "difficulty": str(raw.get("difficulty", ""))[:16],
+        "grid": str(raw.get("grid", ""))[:8],
+        "badge": str(raw.get("badge", ""))[:24],
+        "standing": number("standing"), "income": number("income"), "biodiversity": number("biodiversity"),
+        "relations": number("relations"), "seasons": _nonneg_int(raw.get("seasons")), "ticks": _nonneg_int(raw.get("ticks")),
+        "legacy_pct": number("legacy_pct"),
+        "series": {key: _clean_series(series.get(key)) for key, _l, _c in MY_FORESTS_SERIES},
+    }
+
+
+def load_my_forests():
+    raw = _read_local_storage_item(MY_FORESTS_KEY)
+    if not raw:
+        return []
+    try:
+        data = json.loads(raw)
+    except (ValueError, TypeError):
+        return []
+    if not isinstance(data, list):
+        return []
+    records = [r for r in (_clean_forest_record(item) for item in data) if r is not None]
+    return records[-MY_FORESTS_MAX:]
+
+
+def _bank_my_forest():
+    """Called only when a session with at least one tick is banked (see _bank_lifetime)."""
+    records = load_my_forests()
+    next_id = max((r["id"] for r in records), default=0) + 1
+    standing = standing_forest_value()
+    records.append({
+        "id": next_id, "name": forest_name or f"Forest {next_id}", "difficulty": current_difficulty,
+        "grid": f"{GRID_ROWS}x{GRID_COLS}", "badge": playstyle_badge(), "standing": round(standing, 1),
+        "income": round(total_income, 1), "biodiversity": round(total_biodiversity(), 1),
+        "relations": round(community_relations, 1), "seasons": seasons_survived(), "ticks": _session_ticks,
+        "legacy_pct": round((legacy_bonus_for(standing) - 1.0) * 100, 1),
+        "series": {key: _downsample([row[i] for row in _report_history]) for i, (key, _l, _c) in enumerate(MY_FORESTS_SERIES)},
+    })
+    _write_local_storage_item(MY_FORESTS_KEY, json.dumps(records[-MY_FORESTS_MAX:]))
+
+
+def my_forest_option_label(record):
+    return f"#{record['id']} {record['name']}: {record['difficulty']} {record['grid']}, {record['standing']:.1f}"
+
+
+def my_forests_compare_rows(a, b):
+    """(label, value A, value B) rows for the side-by-side table."""
+    def line(label, key, fmt=str):
+        return (label, fmt(a[key]), fmt(b[key]))
+    return [
+        line("Difficulty", "difficulty"), line("Grid", "grid"), line("Playstyle badge", "badge"),
+        line("Standing value", "standing", lambda v: f"{v:.1f}"), line("Harvested", "income", lambda v: f"{v:.1f}"),
+        line("Biodiversity", "biodiversity", lambda v: f"{v:.1f}"), line("Community relations", "relations", lambda v: f"{v:.1f}"),
+        line("Seasons survived", "seasons"), line("Time (ticks)", "ticks"), line("Legacy bonus earned", "legacy_pct", lambda v: f"+{v:.1f}%"),
+    ]
+
+
+def _forest_graph_block(record, heading):
+    parts = [f'<div class="my-forests-column"><p class="summary-graph-label">{_svg_text(heading)}</p>']
+    for key, label, color in MY_FORESTS_SERIES:
+        series = record["series"].get(key, [])
+        parts.append(f'<p class="summary-graph-label">{label}</p>')
+        if series:
+            points = _sparkline_points(series, max(max(series), 1e-9))
+            parts.append(
+                f'<svg viewBox="0 0 {SPARKLINE_WIDTH} {SPARKLINE_HEIGHT}" class="session-sparkline" role="img" '
+                f'aria-label="{_svg_text(label)} for {_svg_text(heading)}, ending at {series[-1]:.1f}">'
+                f'<polyline points="{points}" fill="none" stroke="{color}" stroke-width="2"/></svg>'
+            )
+        else:
+            parts.append("<p>No trend recorded.</p>")
+    parts.append("</div>")
+    return "".join(parts)
+
+
+def render_my_forests():
+    records = load_my_forests()
+    note = _el("my-forests-note")
+    compare = _el("my-forests-compare")
+    selects = [_el("my-forests-a"), _el("my-forests-b")]
+    if note is not None:
+        note.innerText = (f"{len(records)} saved forest{'s' if len(records) != 1 else ''} on this device (the latest {MY_FORESTS_MAX} are kept)."
+                          if records else "Nothing saved yet: a forest is saved here when you start a new one.")
+    for position, select in enumerate(selects):
+        if select is None:
+            continue
+        previous = getattr(select, "value", "")
+        select.innerHTML = ""
+        for record in reversed(records):
+            option = document.createElement("option")
+            option.value = str(record["id"])
+            option.innerText = my_forest_option_label(record)
+            select.appendChild(option)
+        ids = [str(r["id"]) for r in reversed(records)]
+        if previous in ids:
+            select.value = previous
+        elif ids:
+            select.value = ids[min(position, len(ids) - 1)]
+    graphs = _el("my-forests-graphs")
+    if compare is None:
+        return
+    by_id = {str(r["id"]): r for r in records}
+    a = by_id.get(getattr(selects[0], "value", "")) if selects[0] is not None else None
+    b = by_id.get(getattr(selects[1], "value", "")) if selects[1] is not None else None
+    if a is None or b is None:
+        compare.innerHTML = ""
+        if graphs is not None:
+            graphs.innerHTML = ""
+        return
+    head_a, head_b = f"A: #{a['id']} {a['name']}", f"B: #{b['id']} {b['name']}"
+    rows = "".join(
+        f"<tr><th scope=\"row\">{_svg_text(label)}</th><td>{_svg_text(va)}</td><td>{_svg_text(vb)}</td></tr>"
+        for label, va, vb in my_forests_compare_rows(a, b)
+    )
+    compare.innerHTML = (f'<table class="my-forests-table"><thead><tr><th></th><th>{_svg_text(head_a)}</th>'
+                         f'<th>{_svg_text(head_b)}</th></tr></thead><tbody>{rows}</tbody></table>')
+    if graphs is not None:
+        graphs.innerHTML = _forest_graph_block(a, head_a) + _forest_graph_block(b, head_b)
+
+
+def on_my_forests_change(event=None):
+    render_my_forests()
 
 
 def render_lifetime_stats():
@@ -2901,6 +3060,7 @@ def render_session_summary():
     render_forest_log_panels()
     render_request_history()
     render_lifetime_stats()
+    render_my_forests()
     render_forest_rank()
     render_coach_hints()
     _update_scenario_best()
@@ -7646,6 +7806,10 @@ def setup():
     scenario_select = _el("scenario-select")  # B-11
     if scenario_select is not None:
         scenario_select.addEventListener("change", create_proxy(on_scenario_change))
+    for select_id in ("my-forests-a", "my-forests-b"):  # B-1
+        select = _el(select_id)
+        if select is not None:
+            select.addEventListener("change", create_proxy(on_my_forests_change))
     timeline_select = _el("timeline-metric")  # B-21
     if timeline_select is not None:
         timeline_select.addEventListener("change", create_proxy(lambda event=None: render_timeline_chart()))

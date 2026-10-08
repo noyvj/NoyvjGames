@@ -734,3 +734,81 @@ def test_glyphs_cycle_through_the_wildlife_icons(game_env):
     m = game_env.module
     n = len(m.WILDLIFE_SPECIES)
     assert m.grove_wall_glyph(0) == m.grove_wall_glyph(n) != m.grove_wall_glyph(1)
+
+
+# ---- B-1 My Forests ----
+
+def _bank_one(m, ticks=100, name="Oak"):
+    m._report_history.clear()
+    for i in range(80):
+        m._report_history.append((float(i), 10.0 + i, 40.0))
+    m.forest_name = name
+    m._session_ticks = ticks
+    m._bank_lifetime()
+
+
+def test_a_finished_session_is_saved_with_compact_series(game_env):
+    import json
+    m = game_env.module
+    store = _memory_storage(m)
+    _bank_one(m)
+    saved = json.loads(store[m.MY_FORESTS_KEY])
+    assert len(saved) == 1 and saved[0]["name"] == "Oak" and saved[0]["id"] == 1
+    assert len(saved[0]["series"]["standing"]) == m.MY_FORESTS_SERIES_POINTS
+    assert saved[0]["series"]["standing"][-1] == 89.0 and saved[0]["grid"] == f"{m.GRID_ROWS}x{m.GRID_COLS}"
+
+
+def test_nothing_is_saved_for_a_session_that_never_ticked(game_env):
+    m = game_env.module
+    store = _memory_storage(m)
+    m._session_ticks = 0
+    m._bank_lifetime()
+    assert m.MY_FORESTS_KEY not in store
+
+
+def test_library_keeps_only_the_latest_twelve_with_rising_ids(game_env):
+    m = game_env.module
+    _memory_storage(m)
+    for i in range(15):
+        _bank_one(m, name=f"F{i}")
+    records = m.load_my_forests()
+    assert len(records) == m.MY_FORESTS_MAX
+    assert [r["id"] for r in records] == list(range(4, 16))
+
+
+def test_bad_stored_library_is_sanitised(game_env):
+    m = game_env.module
+    store = _memory_storage(m)
+    store[m.MY_FORESTS_KEY] = "nope"
+    assert m.load_my_forests() == []
+    store[m.MY_FORESTS_KEY] = '[5, {"id": "x", "name": 7, "standing": "big", "series": {"standing": [1, "a", true, 2.5]}}, null]'
+    records = m.load_my_forests()
+    assert len(records) == 1 and records[0]["standing"] == 0.0 and records[0]["series"]["standing"] == [1.0, 2.5]
+
+
+def test_downsample_keeps_the_last_value(game_env):
+    m = game_env.module
+    assert m._downsample([1, 2, 3], 30) == [1.0, 2.0, 3.0]
+    out = m._downsample(list(range(100)), 10)
+    assert len(out) == 10 and out[0] == 0.0 and out[-1] == 99.0
+
+
+def test_compare_renders_a_table_and_six_graphs(game_env):
+    m = game_env.module
+    _memory_storage(m)
+    _bank_one(m, name="Oak")
+    _bank_one(m, name="Pine <b>")
+    m.render_my_forests()
+    assert "2 saved forests" in game_env.elements["my-forests-note"].innerText
+    table = game_env.elements["my-forests-compare"].innerHTML
+    assert "A: #2" in table and "B: #1" in table or "A: #1" in table
+    assert "&lt;b&gt;" in table and "<b>" not in table
+    assert game_env.elements["my-forests-graphs"].innerHTML.count("<svg") == 6
+
+
+def test_empty_library_message(game_env):
+    m = game_env.module
+    _memory_storage(m)
+    m.render_my_forests()
+    assert "Nothing saved yet" in game_env.elements["my-forests-note"].innerText
+    assert game_env.elements["my-forests-compare"].innerHTML == ""

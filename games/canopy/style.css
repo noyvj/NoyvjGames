@@ -2193,6 +2193,12 @@ html[data-forest-palette="meadow"] { --forest-accent: #a7d98a; }
 .achievement-card-status { margin: 0 0 0.15rem; font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.06em; opacity: 0.75; }
 .achievement-card:not(.achievement-card--earned) { border-style: dashed; }
 
+/* B-1: My Forests comparison. */
+.my-forests-graphs { display: flex; flex-wrap: wrap; gap: 1rem; }
+.my-forests-column { flex: 1 1 260px; min-width: 0; }
+.my-forests-table { border-collapse: collapse; width: 100%; font-size: 0.85em; margin: 0.4rem 0; }
+.my-forests-table th, .my-forests-table td { border-bottom: 1px solid rgba(140, 160, 255, 0.2); padding: 0.2rem 0.4rem; text-align: left; }
+
 /* ============================================================
    Light theme (Y11b, 2026-09-27). shared/theme-light-games.css already
    restyles the shared chrome (panels, buttons, inputs, HUD readouts);
