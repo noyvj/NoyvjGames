@@ -67,3 +67,44 @@ Tell me keep, fix or drop for each.
 ### Ch6. Chronicle: are the 14 passage summaries in "Whose account?" fair and balanced in tone?
 
 I wrote them from fetched page summaries, not whole pages, so a skim by you is the check.
+
+### Pf1. From your survey: what feels relaxed in a game? You asked for examples, so pick any: (a) a game you can pause any time, (b) steady progress that can never be lost, (c) a collection quietly filling in, (d) a routine you know by heart, (e) something else?
+
+Recommend: tell me which letters, and I lean the calm modes on those.
+
+### Pf2. From your survey: what three words should describe the games on this site (you left it blank)?
+
+A rough guess is fine: it goes into the hub's tagline and my checks on new ideas.
+
+### Pf3. From your survey: which site game are you proudest of, and which are you least sure about (you left it blank)?
+
+Short answer is fine.
+
+### Pf4. From your survey: build one new game as a Lifeline-style choose-your-own-adventure with many branching paths (sci-fi, dark tone, optional reading, a main character who makes mistakes)?
+
+Recommend: yes, as a small text game about a stranded ship crew, built after Chronicle.
+
+### Pf5. From your dream game: write a plan for a dark foggy forest city builder, starting with only the city-and-resources loop and the fog look?
+
+Recommend: later, as a plan first (a planning file), with the first-person helping nodes and the mining skill tree parked.
+
+### Pf6. From your survey: add new games on coding, maths or chemistry (for example a logic-gate puzzle game, a chemistry reactions puzzle)?
+
+Recommend: yes, one coding or logic-circuit puzzle game first (computers and puzzles are two of your favourites).
+
+### Pf7. From your tycoon note: show three "get X to level N to unlock Z" goals at all times in the idle and tycoon games (SOL, Trade Empire, Continuum, Loop), as one shared panel?
+
+Recommend: yes, built once in shared/ and fed by each game's own goals.
+
+### Pf8. From your survey: you were unsure the site can hold real-time input. It can (SOL already ticks every 100 ms and the Champ minigames run every second). Want a fast timed reaction game as one of the next new games?
+
+Recommend: yes, one small optional one, with a slower-mode setting like the Champ minigames.
+
+### Pf9. From your survey: add optional friend ties (shared run codes, a friend list, ghost runs, no messaging, never required, no worst-score shaming)?
+
+Recommend: yes, optional, after the shared run-code format exists (FY-7).
+
+### Pf10. From your survey: keep a standing rule that no game has an all-good hero character who never makes a mistake?
+
+Recommend: yes, already noted in the player profile.
+
