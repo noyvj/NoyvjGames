@@ -168,6 +168,14 @@ No recommendation.
 
 Honest note: Chronicle, the new puzzle games and the per-game work come first. Recommend: after your semester.
 
+### Cn1. Canopy GB-3: should I still build the Expedition mode (a 12-season roguelike run with boons and a shareable seed), given you dislike roguelikes?
+
+Recommend: no, skip it; the optional modes already built (wildfire, rival company, sandbox, layouts) cover the replay value.
+
+### Cn2. Canopy GB-21: should I still build the Timber gambler clear-cut option (a luck-based bonus or loss when you clear a plot)?
+
+Recommend: no, skip it; it is luck pressure and Canopy's clear choices are meant to be readable in advance.
+
 ### Pb4. Pocket Bazaar: on a 1024x700 desktop window the counter cells are about 50px and the stall panel scrolls slightly inside itself; should I widen the side column or shrink the queue to fix it?
 
 Recommended: widen the side column. Say "yes" to go with that, or tell me which you prefer.
