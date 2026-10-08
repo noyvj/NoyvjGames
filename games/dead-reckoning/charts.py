@@ -11,6 +11,7 @@ from charts_fog import CHARTS as _FOG
 from charts_tides import CHARTS as _TIDES
 from charts_compass import CHARTS as _COMPASS
 from pars import PARS
+import gen
 
 CHAPTERS = [
     {"id": "open", "name": "Open water", "blurb": "Heading, speed and time. Then charted hazards, a stream, and land to go round.",
@@ -34,7 +35,11 @@ CHAPTER_OF = {c["id"]: chapter["id"] for chapter in CHAPTERS for c in chapter["c
 
 
 def get_chart(chart_id):
-    return CHARTS.get(chart_id)
+    """A campaign chart, or a practice chart made on demand from its id (practice-<difficulty>-<seed in base 36>)."""
+    chart = CHARTS.get(chart_id)
+    if chart is None and gen.is_practice_id(chart_id):
+        chart = gen.from_id(chart_id)
+    return chart
 
 
 def all_charts():
@@ -44,6 +49,9 @@ def all_charts():
 def par_legs(chart_id):
     """The authored solution, as a list of legs (a fresh copy), or None."""
     legs = PARS.get(chart_id)
+    if legs is None and gen.is_practice_id(chart_id):
+        made = gen.from_id(chart_id)
+        legs = made["par_legs"] if made else None
     return [dict(leg) for leg in legs] if legs else None
 
 
@@ -78,4 +86,6 @@ def unlocked_chapters(records):
 
 
 def is_unlocked(chart_id, records):
+    if gen.is_practice_id(chart_id):
+        return True
     return CHAPTER_OF.get(chart_id) in unlocked_chapters(records)

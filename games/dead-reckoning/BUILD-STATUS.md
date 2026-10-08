@@ -13,8 +13,10 @@ Updated after each milestone. A new agent should read `planning/dead-reckoning-p
 
 - Milestone 6 Fog, tides, compass error: `charts_fog.py`, `charts_tides.py`, `charts_compass.py` (12 charts), anchor legs, found-hazard drawing rules, validators.
 
+- Milestone 8 Practice generator: `gen.py`, practice actions in `game.py`, picker practice box, `tests/test_gen.py`.
+
 ## Next
-- Milestone 8 Practice generator (Milestone 7 Two ships is deferred, as the user confirmed): `gen.py`, seeded charts, solvability fuzz, shareable seeds.
+- Milestone 9 Standard kit (settings panel, changelog, about/info with sourced facts, tutorial, shortcuts, mobile polish, light theme and colourblind audits, keyboard help).
 
 ## Open problems
 - The shared `level-select.js` is not used (own picker instead). Ask the hub session whether to adopt it at registration time.

@@ -46,6 +46,16 @@
     <h2 id="picker-heading">Charts</h2>
     <p class="note">Pick a chart. A chapter opens once you have made landfall on four of the one before. Your stars stay with each chart.</p>
     <div id="picker-body" class="picker"></div>
+    <section id="practice-box" class="practice-box" aria-labelledby="practice-heading">
+      <h3 id="practice-heading">Practice</h3>
+      <p class="note">A fresh chart every time, always solvable, never scored against the campaign. Every one you sail counts toward your practice total. The code under the chart's name replays the same sea.</p>
+      <div id="practice-levels" class="practice-levels" role="group" aria-label="Practice difficulty"></div>
+      <div class="ruler-fields">
+        <label class="field">Practice code<input id="practice-code" type="text" maxlength="12" autocomplete="off" autocapitalize="characters" placeholder="DR3-1K9X2"></label>
+        <button id="practice-code-button" type="button">Open this code</button>
+      </div>
+    </section>
+    <p id="progress-line" class="note" aria-live="polite"></p>
   </section>
   <section id="log-panel" class="panel" hidden aria-labelledby="log-heading">
     <h2 id="log-heading">Captain's log</h2>
@@ -57,6 +67,7 @@
   <section id="chart-head" class="chart-head" aria-labelledby="chart-title">
     <h2 id="chart-title">Gull Sound</h2>
     <p id="chart-goal" class="note goal" aria-live="polite"></p>
+    <p id="practice-line" class="note" hidden></p>
     <p id="chart-intro" class="story-text"></p>
   </section>
 
@@ -159,6 +170,7 @@
       </div>
       <div class="planner-actions">
         <button id="next-chart-button" type="button" class="primary" hidden>Next chart</button>
+        <button id="new-practice-button" type="button" class="primary" hidden>Another practice chart</button>
         <button id="retry-button" type="button">Retry with this plan</button>
         <button id="redo-button" type="button">Start the plan again</button>
         <button id="par-button" type="button" hidden>Show the par plan</button>

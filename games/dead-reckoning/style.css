@@ -230,3 +230,11 @@ html[data-effects="off"] *, html[data-effects="off"] *::before, html[data-effect
 .fix-list .reading { font-variant-numeric: tabular-nums; flex: 1 1 14rem; }
 .leg.sailed { border-style: solid; border-color: var(--line); opacity: 0.9; }
 .leg.sailed .leg-head { margin-bottom: 0; }
+
+/* Practice */
+.practice-box { border-top: 1px solid var(--line); margin-top: 0.8rem; padding-top: 0.5rem; }
+.practice-box h3 { margin: 0 0 0.3rem; font-size: 0.95rem; }
+.practice-levels { display: flex; flex-wrap: wrap; gap: 0.4rem; margin: 0.4rem 0; }
+.practice-levels button { text-align: left; }
+.practice-levels button b { display: block; }
+#practice-code { width: 9rem; text-transform: uppercase; }

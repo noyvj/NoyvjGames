@@ -365,3 +365,94 @@ def test_compass_error_is_part_of_the_plot_when_allowed_and_ignored_when_not(g):
     with_chart = g.call("open")["totals"]["plot_end"]
     without = g.call("allow", value=False)["totals"]["plot_end"]
     assert with_chart != without
+
+
+# --- milestone 8: practice ------------------------------------------------------------------------------
+def test_a_practice_chart_opens_from_a_difficulty_and_has_a_share_code(g):
+    v = g.call("practice", difficulty=2, seed=1234)
+    info = v["chart"]["practice"]
+    assert info["difficulty"] == 2 and info["code"] == "DR2-YA" or info["code"].startswith("DR2-")
+    assert v["chart"]["id"].startswith("practice-2-") and v["phase"] == "plan" and v["legs"] == []
+    again = g.call("practice", code=info["code"])
+    assert again["chart"]["id"] == v["chart"]["id"] and again["svg"] == v["svg"]
+
+
+def test_a_bad_code_leaves_the_game_where_it_was_with_a_note(g):
+    before = g.call("open")["chart"]["id"]
+    v = g.call("practice", code="DR9-NOPE")
+    assert v["chart"]["id"] == before and "not a practice code" in v["note"]
+    assert g.call("practice", difficulty=9)["chart"]["id"] == before
+    assert g.call("open")["note"] == ""
+
+
+def test_practice_without_a_seed_is_repeatable_from_what_the_player_has_done(g):
+    a = g.call("practice", difficulty=3)["chart"]["id"]
+    g.call("reset")
+    assert g.call("practice", difficulty=3)["chart"]["id"] == a
+
+
+def test_a_practice_passage_counts_once_and_keeps_no_campaign_record(g):
+    g.call("practice", difficulty=1, seed=99)
+    g.call("add_leg")
+    v = g.call("sail")
+    assert v["phase"] == "reveal" and g.meta["practice_seeds_played"] == 1 and g.meta["charts"] == {}
+    assert v["progress"]["practice_played"] == 1
+    g.call("retry")
+    g.call("sail")
+    assert g.meta["practice_seeds_played"] == 1
+    g.call("practice", difficulty=1, seed=100)
+    g.call("add_leg")
+    g.call("sail")
+    assert g.meta["practice_seeds_played"] == 2 and g.get_state()["meta"]["practice_seeds_played"] == 2
+
+
+def test_the_practice_par_is_offered_after_an_attempt_and_makes_three_stars(g):
+    g.call("practice", difficulty=2, seed=555)
+    assert g.call("show_par")["phase"] == "plan"
+    g.call("add_leg")
+    v = g.call("sail")
+    assert v["reveal"]["par"] == {"available": True, "shown": False} and v["reveal"]["next_chart"] is None
+    assert g.call("show_par")["reveal"]["par"]["shown"]
+    v = g.call("use_par")
+    assert v["legs"] == g.charts.par_legs(v["chart"]["id"]) and g.run["helpers"] == ["par"]
+    assert g.call("sail")["reveal"]["arrived"]
+
+
+def test_practice_flags_are_earned_but_the_campaign_records_stay_clean(g):
+    g.call("practice", difficulty=1, seed=321)
+    for leg in g.charts.par_legs(g.run["chart_id"]):
+        n = len(g.call("add_leg")["legs"])
+        g.call("set_leg", i=n - 1, **leg)
+    v = g.call("sail")
+    assert v["reveal"]["arrived"] and "landfall" in g.meta["flags"] and g.meta["charts"] == {}
+    assert g.meta["best"]["smallest_final_error_nm"] is not None
+
+
+def test_a_practice_run_survives_save_and_load_including_what_was_found(g):
+    g.call("practice", difficulty=5, seed=2024)
+    chart = g.charts.get_chart(g.run["chart_id"])
+    unmarked = [h for h in chart["hazards"] if not h["charted"]]
+    assert unmarked
+    import solver
+    h = unmarked[0]
+    leg = solver.shoot(chart, chart["start"], (h["x"], h["y"]), model="true", speed=5.0)
+    g.call("set_mode", mode="plan")
+    g.call("add_leg")
+    g.call("set_leg", i=0, **dict(leg, hours=min(12.0, leg["hours"] + 2.0)))
+    g.call("sail")
+    assert g.run["found"]
+    saved = json.loads(json.dumps(g.get_state()))
+    assert saved["run"]["counted"] is True and saved["run"]["found"] == g.run["found"]
+    before = g.call("open")
+    g.call("reset")
+    g.load_state(saved)
+    after = g.call("open")
+    assert after["svg"] == before["svg"] and after["reveal"] == before["reveal"]
+
+
+def test_a_saved_practice_id_that_cannot_be_made_is_dropped(g):
+    g.load_state({"run": {"chart_id": "practice-9-zzz", "legs": []}})
+    assert g.run is None or not g.run["chart_id"].startswith("practice-9")
+    g.load_state({"run": {"chart_id": "practice-3-a", "legs": [{"heading": 10, "speed": 5, "hours": 1}], "found": ["h0", 4, "nope"], "counted": "yes", "par": 1}})
+    assert g.run["chart_id"] == "practice-3-a" and g.run["counted"] is False and g.run["par"] is False
+    assert all(isinstance(x, str) for x in g.run["found"])

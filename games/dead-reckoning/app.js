@@ -3,7 +3,7 @@
    into chart coordinates, and pacing the playback of a track the engine already computed. */
 (function () {
   "use strict";
-  var ENGINE_MODULES = ["geom.py", "sim.py", "chartkit.py", "charts_open.py", "charts_wind.py", "charts_fixes.py", "charts_fog.py", "charts_tides.py", "charts_compass.py", "pars.py", "charts.py", "render.py", "solver.py", "state.py", "progress.py", "fixes.py"];
+  var ENGINE_MODULES = ["geom.py", "sim.py", "chartkit.py", "charts_open.py", "charts_wind.py", "charts_fixes.py", "charts_fog.py", "charts_tides.py", "charts_compass.py", "gen.py", "pars.py", "charts.py", "render.py", "solver.py", "state.py", "progress.py", "fixes.py"];
   var STORE_KEY = "dead-reckoning:state";
 
   var $ = function (id) { return document.getElementById(id); };
@@ -77,6 +77,50 @@
     if (view.phase === "plan" && view.legs.length && view.chart.id !== id && window.ConfirmDialog) {
       window.ConfirmDialog.ask({ id: "dead-reckoning-switch-chart", message: "Leave this chart? The plan you have here will be lost.", confirmLabel: "Open the other chart", onConfirm: go });
     } else go();
+  }
+
+  function renderPractice() {
+    var box = $("practice-levels");
+    var sig = JSON.stringify(view.practice_levels);
+    if (box.dataset.signature !== sig) {
+      box.dataset.signature = sig;
+      box.textContent = "";
+      view.practice_levels.forEach(function (lv) {
+        var b = el("button");
+        b.type = "button";
+        b.appendChild(el("b", "Level " + lv.difficulty));
+        b.appendChild(document.createTextNode(lv.name));
+        b.setAttribute("aria-label", "New practice chart, level " + lv.difficulty + ": " + lv.name);
+        b.addEventListener("click", function () { newPractice(lv.difficulty); });
+        box.appendChild(b);
+      });
+    }
+    var p = view.progress;
+    setText($("progress-line"), "Campaign: " + p.cleared + " of " + p.total + " charts cleared, " + p.stars + " of " + p.stars_total + " stars. Practice charts sailed: " + p.practice_played +
+      (p.best_error === null ? "." : ". Smallest final error so far: " + fmt(p.best_error) + " nm."));
+    var info = view.chart.practice;
+    $("practice-line").hidden = !info;
+    if (info) setText($("practice-line"), "Practice, level " + info.difficulty + " (" + info.name + "). Code " + info.code + ": share it or type it in to replay this sea.");
+  }
+
+  function newPractice(difficulty) {
+    var go = function () {
+      selected = 0;
+      send({ action: "practice", difficulty: difficulty, seed: Math.floor(Math.random() * 2000000000) });
+      $("picker-panel").hidden = true;
+      setToggle("picker-toggle-button", "picker-panel");
+    };
+    if (view.phase === "plan" && view.legs.length && window.ConfirmDialog) {
+      window.ConfirmDialog.ask({ id: "dead-reckoning-switch-chart", message: "Leave this chart? The plan you have here will be lost.", confirmLabel: "Open a practice chart", onConfirm: go });
+    } else go();
+  }
+
+  var toastTimer = 0;
+  function showToast(text) {
+    var toast = $("toast");
+    toast.textContent = text;
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { toast.textContent = ""; }, 7000);
   }
 
   function renderLog() {
@@ -384,6 +428,7 @@
     var r = view.reveal;
     setText($("result-log"), r.log || "");
     $("next-chart-button").hidden = !r.next_chart;
+    $("new-practice-button").hidden = !view.chart.practice;
     if (r.next_chart) setText($("next-chart-button"), "Next chart: " + r.next_chart.name);
     $("par-button").hidden = !(r.par && !r.par.shown);
     $("use-par-button").hidden = !(r.par && r.par.shown);
@@ -431,7 +476,9 @@
   function render() {
     renderChart();
     renderPicker();
+    renderPractice();
     renderLog();
+    if (view.note) showToast(view.note);
     if (view.phase === "plan") renderPlanner();
     renderResult();
   }
@@ -506,6 +553,14 @@
       showUpTo(parseInt($("scrub-range").value, 10));
     });
     guard("next-chart-button", function () { selected = 0; send({ action: "next_chart" }); });
+    guard("new-practice-button", function () { newPractice(view.chart.practice.difficulty); });
+    guard("practice-code-button", function () {
+      var code = $("practice-code").value;
+      if (!code.trim()) return;
+      selected = 0;
+      send({ action: "practice", code: code });
+      if (!view.note) { $("picker-panel").hidden = true; setToggle("picker-toggle-button", "picker-panel"); }
+    });
     guard("par-button", function () { send({ action: "show_par" }); });
     guard("use-par-button", function () { selected = 0; send({ action: "use_par" }); });
     wirePanelToggle("picker-toggle-button", "picker-panel");
@@ -531,7 +586,7 @@
   function setBusy(busy) {
     ["add-leg-button", "clear-button", "undo-button", "sail-button", "naive-flag-button", "current-flag-button", "naive-point-button",
       "current-point-button", "point-set-button", "point-clear-button", "retry-button", "redo-button", "skip-button", "next-chart-button",
-      "par-button", "use-par-button", "anchor-button", "add-wait-button", "mode-plan-button", "mode-watch-button"].forEach(function (id) { $(id).disabled = busy; });
+      "par-button", "use-par-button", "new-practice-button", "practice-code-button", "anchor-button", "add-wait-button", "mode-plan-button", "mode-watch-button"].forEach(function (id) { $(id).disabled = busy; });
   }
 
   async function boot() {

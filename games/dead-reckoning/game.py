@@ -21,6 +21,7 @@ Requests carry an `action`:
   set_mode {mode}            "plan" (full plan) or "watch" (Watch-by-watch), before anything is sailed
   take_fix {landmark}        Watch-by-watch: move the plot to where a landmark's bearing and distance put the ship
   anchor                     Watch-by-watch: end the passage where it stands (sail with the legs already sailed)
+  practice {difficulty, seed?, code?}   open a generated practice chart (a share code such as DR3-1K9X2 replays one)
   next_chart                 open the next chart in the campaign (when it is unlocked)
   show_par | use_par         reveal the authored plan after a first attempt / load it into the planner
   reset                      forget all progress
@@ -30,6 +31,7 @@ import json
 
 import charts
 import fixes
+import gen
 import progress
 import render
 import sim
@@ -40,6 +42,7 @@ from geom import bearing, dist
 meta = state.new_meta()
 run = None
 point = None
+note = ""               # a one-line message about the last request (never saved)
 history = []            # earlier leg lists, for Undo (never saved)
 HISTORY_LIMIT = 40
 CURRENT_HELPER_AFTER = 3   # the "allow for the charted current" helper unlocks after this many charts are cleared
@@ -52,6 +55,21 @@ def _chart():
 
 def _record(chart_id):
     return meta["charts"].get(chart_id) or state.new_record()
+
+
+def _practice():
+    return run is not None and gen.is_practice_id(run["chart_id"])
+
+
+def _discovered(chart):
+    """The hazards the crew has found on this chart: remembered per chart in the campaign, per run in practice."""
+    return list(run["found"]) if gen.is_practice_id(chart["id"]) else _record(chart["id"])["discovered"]
+
+
+def _attempts(chart):
+    if gen.is_practice_id(chart["id"]):
+        return 1 if run["counted"] else 0
+    return _record(chart["id"])["attempts"]
 
 
 def _cleared():
@@ -67,7 +85,7 @@ def _start(chart_id, mode=None, seed=0):
     chart = charts.get_chart(chart_id)
     if mode not in chart.get("modes", ("plan",)):
         mode = chart.get("default_mode", "plan")
-    run = state.new_run(chart_id, seed, mode)
+    run = state.new_run(chart_id, chart.get("seed", seed), mode)
     point = None
     history = []
 
@@ -105,7 +123,7 @@ def _believed(chart):
 
 def _true_pos(chart):
     """The ship's real position after the watches sailed. Used ONLY to work out what a fix would read; never shown."""
-    return tuple(sim.sail(chart, run["legs"][:run["sailed"]], seed=run["seed"], known=_record(chart["id"])["discovered"])["end"])
+    return tuple(sim.sail(chart, run["legs"][:run["sailed"]], seed=run["seed"], known=_discovered(chart))["end"])
 
 
 def _plot_end(chart):
@@ -122,7 +140,14 @@ def _chart_info(chart):
     return {"id": chart["id"], "name": chart["name"], "chapter": chart.get("chapter", ""), "deadline": chart["deadline"],
             "arrival_radius": chart["arrival_radius"], "speeds": chart["speeds"], "size": chart["size"],
             "goal": _goal_text(chart), "intro": chart.get("intro", ""), "mode": run["mode"], "modes": list(chart.get("modes", ["plan"])),
-            "start_hour": chart.get("start_hour", 0.0)}
+            "start_hour": chart.get("start_hour", 0.0), "practice": _practice_info(chart)}
+
+
+def _practice_info(chart):
+    if not gen.is_practice_id(chart["id"]):
+        return None
+    d, seed = gen.parse(chart["id"])
+    return {"difficulty": d, "code": gen.code_of(d, seed), "name": gen.NAMES[d]}
 
 
 def _frame(chart):
@@ -169,11 +194,11 @@ def _log_line(chart, sc):
 
 def _par_view(chart):
     """The par plan as text (and the data to draw it) once the player has made an attempt, or just whether it can be shown."""
-    rec = _record(chart["id"])
+    seen = run["par"] if gen.is_practice_id(chart["id"]) else _record(chart["id"])["par_seen"]
     legs = charts.par_legs(chart["id"])
-    if not legs or rec["attempts"] < 1:
+    if not legs or _attempts(chart) < 1:
         return None
-    if not rec["par_seen"]:
+    if not seen:
         return {"available": True, "shown": False}
     return {"available": True, "shown": True, "legs": legs,
             "lines": ["Leg %d: steer %03d at %g kn for %g h." % (i + 1, leg["heading"], leg["speed"], leg["hours"]) for i, leg in enumerate(legs)]}
@@ -183,6 +208,9 @@ def _view():
     view = _view_phase()
     view["picker"] = _picker()
     view["story"] = {"intro": _chart().get("intro", ""), "log": _story()}
+    view["progress"] = _progress()
+    view["practice_levels"] = [{"difficulty": d, "name": gen.NAMES[d]} for d in gen.DIFFICULTIES]
+    view["note"] = note
     return view
 
 
@@ -199,7 +227,7 @@ def _plan_view(chart):
     est = _plot(chart)
     plot_end = (est[-1][1], est[-1][2])
     hours = sim.plan_hours(legs)
-    discovered = _record(chart["id"])["discovered"]
+    discovered = _discovered(chart)
     pt = None
     if point is not None:
         pt = {"x": point[0], "y": point[1], "bearing": round(bearing(plot_end, point)) % 360,
@@ -230,7 +258,7 @@ def _watch_view(chart):
         return out
     believed = _believed(chart)
     out["believed"] = [believed[0], believed[1]]
-    res = sim.sail(chart, run["legs"][:sailed], seed=run["seed"], known=_record(chart["id"])["discovered"])
+    res = sim.sail(chart, run["legs"][:sailed], seed=run["seed"], known=_discovered(chart))
     out["log"] = [e["text"] for e in res["events"] if e["public"]]
     mine = {fx["after_leg"]: fx for fx in run["fixes"]}.get(sailed - 1)
     out["applied"] = mine["landmark"] if mine else None
@@ -249,7 +277,7 @@ def _reveal_view(chart):
     res = sim.sail(chart, legs, seed=run["seed"], known=known)
     sc = sim.score(chart, legs, res, known=known, used_helpers=bool(run["helpers"]))
     est = _plot(chart)
-    discovered = _record(chart["id"])["discovered"]
+    discovered = _discovered(chart)
     fix_points = [(fx["x"], fx["y"]) for fx in run["fixes"]]
     svg = render.render_chart(chart, est=est, marks=render.plan_marks(legs, est), true_track=res["track"], discovered=discovered,
                               fixes=fix_points)
@@ -299,6 +327,8 @@ def _reveal_view(chart):
 
 
 def _next_playable(chart_id):
+    if gen.is_practice_id(chart_id):
+        return None
     nxt = charts.next_chart_id(chart_id)
     if nxt is None or _record(chart_id)["stars"] < 1 or not charts.is_unlocked(nxt, meta["charts"]):
         return None
@@ -308,8 +338,7 @@ def _next_playable(chart_id):
 def _finish():
     """End the passage and score it (a full plan sails everything; a watch passage ends with the watches already sailed)."""
     chart = _chart()
-    rec = _record(chart["id"])
-    run["known"] = list(rec["discovered"])
+    run["known"] = list(_discovered(chart))
     if _watch():
         del run["legs"][run["sailed"]:]
     else:
@@ -317,7 +346,16 @@ def _finish():
     legs = run["legs"]
     res = sim.sail(chart, legs, seed=run["seed"], known=run["known"])
     sc = sim.score(chart, legs, res, known=run["known"], used_helpers=bool(run["helpers"]))
-    progress.record_outcome(meta, chart, run, res, sc, fix_taken=bool(run["fixes"]))
+    practice = gen.is_practice_id(chart["id"])
+    progress.record_outcome(meta, chart, run, res, sc, scored=not practice, fix_taken=bool(run["fixes"]))
+    if practice:
+        known = {h["id"] for h in chart["hazards"] if h.get("charted", True)}
+        touched = list(res["close"]) + ([res["aground"]["hazard"]] if res["aground"] else [])
+        found = set(run["found"]) | {h for h in touched if h not in known and any(x["id"] == h for x in chart["hazards"])}
+        run["found"] = sorted(found)
+        if not run["counted"]:
+            run["counted"] = True
+            meta["practice_seeds_played"] += 1
     run["phase"] = "reveal"
 
 
@@ -327,7 +365,7 @@ def _sail_watch(chart):
         return
     del run["legs"][run["sailed"] + 1:]
     run["sailed"] = len(run["legs"])
-    res = sim.sail(chart, run["legs"], seed=run["seed"], known=_record(chart["id"])["discovered"])
+    res = sim.sail(chart, run["legs"], seed=run["seed"], known=_discovered(chart))
     if res["aground"] or run["sailed"] >= state.MAX_LEGS:
         _finish()
 
@@ -345,8 +383,45 @@ def _default_leg(chart):
     return sim.clean_leg(chart, {"heading": round(bearing(end, chart["dest"])), "speed": sim.cruise_speed(chart), "hours": 1.0})
 
 
+def _start_practice(request):
+    """Open a practice chart: from a share code, or from a seed (the page may pass one) or the next repeatable seed."""
+    global note
+    code = request.get("code")
+    if isinstance(code, str) and code.strip():
+        parsed = gen.parse(code)
+        chart = gen.make_chart(*parsed) if parsed else None
+        if chart is None:
+            note = "That is not a practice code the game can make. A code looks like DR3-1K9X2."
+            return False
+        _start(chart["id"])
+        return True
+    d = request.get("difficulty")
+    if d not in gen.DIFFICULTIES or isinstance(d, bool):
+        return False
+    seed = request.get("seed")
+    explicit = isinstance(seed, int) and not isinstance(seed, bool) and 0 <= seed < gen.SEED_LIMIT
+    for nonce in range(10):
+        s = seed + nonce if explicit else gen.next_seed(meta["practice_seeds_played"], d, nonce)
+        chart = gen.make_chart(d, s % gen.SEED_LIMIT)
+        if chart is not None:
+            _start(chart["id"])
+            return True
+    note = "No practice chart could be made just now. Try another difficulty."
+    return False
+
+
+def _progress():
+    records = meta["charts"]
+    total = len(charts.ORDER)
+    return {"cleared": sum(1 for cid in charts.ORDER if records.get(cid, {}).get("stars", 0) >= 1), "total": total,
+            "stars": sum(records.get(cid, {}).get("stars", 0) for cid in charts.ORDER), "stars_total": 3 * total,
+            "practice_played": meta["practice_seeds_played"], "best_error": meta["best"]["smallest_final_error_nm"],
+            "longest_route": meta["best"]["longest_route_nm"]}
+
+
 def handle(request_json):
-    global run, point, meta, history
+    global run, point, meta, history, note
+    note = ""
     try:
         request = json.loads(request_json)
         action = request.get("action")
@@ -357,6 +432,8 @@ def handle(request_json):
         run = None
         point = None
         history = []
+    elif action == "practice":
+        _start_practice(request)
     elif action == "start":
         cid = request.get("chart_id")
         if not isinstance(cid, str) or charts.get_chart(cid) is None:
@@ -367,7 +444,7 @@ def handle(request_json):
     _ensure_run()
     chart = _chart()
     editing = run["phase"] == "plan"
-    if action in ("open", "start", "reset", None):
+    if action in ("open", "start", "reset", "practice", None):
         pass
     elif action == "retry":
         run["phase"] = "plan"
@@ -378,10 +455,13 @@ def handle(request_json):
             _start(nxt["id"])
     elif action == "show_par":
         if _par_view(chart):
-            meta["charts"].setdefault(chart["id"], state.new_record())["par_seen"] = True
+            if gen.is_practice_id(chart["id"]):
+                run["par"] = True
+            else:
+                meta["charts"].setdefault(chart["id"], state.new_record())["par_seen"] = True
     elif action == "use_par":
         legs = charts.par_legs(chart["id"])
-        if legs and _record(chart["id"])["attempts"] >= 1:
+        if legs and _attempts(chart) >= 1:
             run["phase"] = "plan"
             run.pop("known", None)
             run["legs"] = sim.clean_legs(chart, legs, limit=state.MAX_LEGS)

@@ -113,7 +113,7 @@ def merge_meta(a, b):
 
 def new_run(chart_id, seed=0, mode="plan"):
     return {"chart_id": chart_id, "seed": seed, "mode": mode, "legs": [], "phase": "plan", "allow": True, "helpers": [],
-            "sailed": 0, "fixes": []}
+            "sailed": 0, "fixes": [], "counted": False, "par": False, "found": []}
 
 
 def clean_fixes(data, sailed, landmark_ids=None, size=40):
@@ -162,6 +162,12 @@ def clean_run(data, get_chart):
     helpers = data.get("helpers")
     if isinstance(helpers, list):
         run["helpers"] = [h for h in HELPERS if h in helpers]
+    run["counted"] = data.get("counted") is True
+    run["par"] = data.get("par") is True
+    found = data.get("found")
+    if isinstance(found, list):
+        ids = {h["id"] for h in chart.get("hazards", ())}
+        run["found"] = [h for h in found[:50] if isinstance(h, str) and h in ids]
     known = data.get("known")
     if run["phase"] == "reveal" and isinstance(known, list):
         run["known"] = [k for k in known[:50] if isinstance(k, str) and len(k) <= CHART_ID_LIMIT]
@@ -183,6 +189,12 @@ def run_to_dict(run):
         out["helpers"] = list(run["helpers"])
     if run.get("known"):
         out["known"] = list(run["known"])
+    if run.get("counted"):
+        out["counted"] = True
+    if run.get("par"):
+        out["par"] = True
+    if run.get("found"):
+        out["found"] = list(run["found"])
     if run.get("sailed"):
         out["sailed"] = run["sailed"]
     if run.get("fixes"):
