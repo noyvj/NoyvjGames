@@ -9322,6 +9322,7 @@ def get_state():
         ],
         "selected_index": selected_index,
         "total_income": total_income,
+        "standing_value": round(standing_forest_value(), 1),  # R-27: read-only summary for the community comparison; ignored on load
         "community_relations": community_relations,
         "pending_stakeholder_request": copy.deepcopy(pending_stakeholder_request),
         "_ticks_since_last_request": _ticks_since_last_request,

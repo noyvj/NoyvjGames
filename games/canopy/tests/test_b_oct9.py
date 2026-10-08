@@ -2374,3 +2374,22 @@ def test_tiles_show_a_glyph_for_bids_claims_and_easements(game_env):
     assert "Rival logging company" not in m.session_tag_text()
     m.current_difficulty = m.DIFFICULTY_RIVAL
     assert "Rival logging company" in m.session_tag_text()
+
+
+# ---- R-27 community comparison of standing value ----
+
+def test_the_save_carries_a_read_only_standing_value_the_stats_backend_reads(game_env):
+    import os
+    m = game_env.module
+    m.plots[0].value = 123.4
+    state = m.get_state()
+    assert state["standing_value"] == round(m.standing_forest_value(), 1)
+    before = m.standing_forest_value()
+    state["standing_value"] = 99999
+    m.load_state(state)
+    assert abs(m.standing_forest_value() - before) < 1e-6  # ignored on load: the plots are the truth
+    root = os.path.join(os.path.dirname(__file__), "..", "..", "..")
+    stats = open(os.path.join(root, "app", "stats.py"), encoding="utf-8").read()
+    assert '"standing_value"' in stats
+    html = open(os.path.join(os.path.dirname(__file__), "..", "index.html"), encoding="utf-8").read()
+    assert '["standing_value", "Standing forest value"]' in html

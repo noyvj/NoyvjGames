@@ -52,6 +52,7 @@ STATS_FIELDS: dict[str, tuple[str, ...]] = {
     "canopy": (
         "total_income", "community_relations", "total_replants",
         "total_recoveries", "stakeholder_grants_count", "highland_income",
+        "standing_value",  # R-27: Canopy's standing forest value, written to its save as a read-only summary
     ),
     "grid": (
         "round_number", "funds", "emissions", "best_clean_streak",

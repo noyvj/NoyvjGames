@@ -1167,6 +1167,7 @@
       // same plain "not available yet" message, and nothing is fetched until
       // the player presses the button (so no background request noise).
       const COMMUNITY_FIELDS = [
+        ["standing_value", "Standing forest value"],
         ["total_income", "Harvested income"],
         ["community_relations", "Community relations"],
         ["total_replants", "Plots replanted"],
@@ -1195,7 +1196,10 @@
           for (const [field, label] of COMMUNITY_FIELDS) {
             const info = summary.fields && summary.fields[field];
             if (!info) continue;
-            const mine = Number(pyodide.globals.get(field));
+            // standing_value is derived (a sum over the plots), so it comes from the function, not a global.
+            const mine = field === "standing_value"
+              ? Number(pyodide.globals.get("standing_forest_value")())
+              : Number(pyodide.globals.get(field));
             let pct = "";
             try {
               const pRes = await fetch(`${API}/stats/games/canopy/percentile?field=${field}&value=${encodeURIComponent(mine)}`);

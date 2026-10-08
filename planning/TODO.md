@@ -1,6 +1,6 @@
 # Site-Wide TODO (round 3)
 
-**Progress: 532/1095 items checked off (48.6%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land.
+**Progress: 533/1095 items checked off (48.7%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land.
 
 Built from your answers in `planning/IMPROVEMENT-IDEAS-ROUND-3.md` (Part 4). Every Round 3 section is now answered (2026-10-07 below the Warframe section); earlier this list held only: **GB** (Canopy gamified), **M** (new games), **N** (seasonal events), **O** (Trade Empire and Continuum replayability), **P/Q/S/T** (Signal, Undersleep, Overclock, Last Line open questions), **X** (Warframe tracker) and **R** (returning later). GC-GI, A-L, U, Z and Y are unanswered and wait for you. The previous list is archived at `planning/todo-archive/260914_260927.md`; anything from it that was moved here is marked "moved" there.
 
@@ -1063,7 +1063,7 @@ Dropped or parked: audio items R1-R8 (revisit round 6), R24 and R26 (Thaw/Drift 
 - [x] R-19: Tide endgame visual flourish.
 - [x] R-22: Herd prestige layer (the succession system built as F25 may already cover this: confirm and close).
 - [x] R-23: Herd intro blurb that reacts to the methane level.
-- [ ] R-27: Canopy compare standing value against the site-wide average (the stats backend now exists).
+- [x] R-27: Canopy compare standing value against the site-wide average (the stats backend now exists).
 - [x] R-28: Grid "grid twin" (built as the shadow grid; you said pick, maybe late-game: confirm and close).
 - [x] R-29: Tide multi-settlement (built as the sister settlement; confirm and close).
 - [ ] R-30: Tide shared coastline community stat (needs W-6 scoping).

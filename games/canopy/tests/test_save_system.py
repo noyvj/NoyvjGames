@@ -12,6 +12,7 @@ def test_get_state_includes_every_expected_key(game_env):
         "plots",
         "selected_index",
         "total_income",
+        "standing_value",
         "community_relations",
         "pending_stakeholder_request",
         "_ticks_since_last_request",
