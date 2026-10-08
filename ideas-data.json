@@ -50,43 +50,128 @@
        "answered": false
       },
       {
-       "n": "Pf1",
-       "text": "**From your survey: what feels relaxed in a game? You asked for examples, so pick any: (a) a game you can pause any time, (b) steady progress that can never be lost, (c) a collection quietly filling in, (d) a routine you know by heart, (e) something else?** Recommend: tell me which letters, and I lean the calm modes on those.",
+       "n": "Fg1",
+       "text": "**Dream game: what working title do you want for the dark foggy forest city builder (a placeholder is fine)?** No recommendation, your call.",
        "answered": false
       },
       {
-       "n": "Pf4",
-       "text": "**From your survey: build one new game as a Lifeline-style choose-your-own-adventure with many branching paths (sci-fi, dark tone, optional reading, a main character who makes mistakes)?** Recommend: yes, as a small text game about a stranded ship crew, built after Chronicle.",
+       "n": "Fg2",
+       "text": "**Dream game: is the city the main loop, with the mining mode, the helping nodes and the puzzles as side activities that feed it?** Recommend: yes, the city is home and everything else feeds it.",
        "answered": false
       },
       {
-       "n": "Pf5",
-       "text": "**From your dream game (a dark foggy forest city builder where each building's keeper has friendship sidequests and gifting, each building has its own puzzle with permanent upgrades, plus a mining mode with a huge skill tree and bunker sections that specialise buildings): write a plan for it, starting with only the city-and-resources loop and the fog look?** Recommend: later, as a plan first (a planning file), with the first-person helping nodes, the mining skill tree and the per-building puzzles parked.",
+       "n": "Fg3",
+       "text": "**Dream game: which piece do you want built first as its own small game: the per-building puzzles, the bunker mining skill tree, the first-person helping nodes, or the friendship sidequests?** Recommend: the per-building puzzles, since you said they could start as their own games.",
        "answered": false
       },
       {
-       "n": "Pf6",
-       "text": "**From your survey: add new games on coding, maths or chemistry (for example a logic-gate puzzle game, a chemistry reactions puzzle)?** Recommend: yes, one coding or logic-circuit puzzle game first (computers and puzzles are two of your favourites).",
+       "n": "Fg4",
+       "text": "**Dream game: top-down 2D, or low-poly 3D like Continuum's scene?** Recommend: top-down 2D first (cheaper and faster), with a low-poly look.",
        "answered": false
       },
       {
-       "n": "Pf7",
-       "text": "**From your tycoon note: show three \"get X to level N to unlock Z\" goals at all times in the idle and tycoon games (SOL, Trade Empire, Continuum, Loop), as one shared panel?** Recommend: yes, built once in shared/ and fed by each game's own goals.",
+       "n": "Fg5",
+       "text": "**Dream game: what does the fog do in play (hides unexplored land, makes some things dangerous, slows travel, only mood)?** Recommend: hides unexplored land and clears as the city grows, never kills you.",
        "answered": false
       },
       {
-       "n": "Pf8",
-       "text": "**From your survey: you were unsure the site can hold real-time input. It can (SOL already ticks every 100 ms and the Champ minigames run every second). Want a fast timed reaction game as one of the next new games?** Recommend: yes, one small optional one, with a slower-mode setting like the Champ minigames.",
+       "n": "Fg6",
+       "text": "**Dream game: what lives in the fog (creatures, survivors, machines, nothing but atmosphere)?** Recommend: machines and strange remnants, to match your sci-fi and computers taste.",
        "answered": false
       },
       {
-       "n": "Pf9",
-       "text": "**From your survey: add optional friend ties (shared run codes, a friend list, ghost runs, no messaging, never required, no worst-score shaming)?** Recommend: yes, optional, after the shared run-code format exists (FY-7).",
+       "n": "Fg7",
+       "text": "**Dream game: who runs the buildings (humans, robots, a mix)?** Recommend: a mix, so the friendship quests can range from warm to eerie.",
        "answered": false
       },
       {
-       "n": "Pf10",
-       "text": "**From your survey: keep a standing rule that no game has an all-good hero character who never makes a mistake?** Recommend: yes, already noted in the player profile.",
+       "n": "Fg8",
+       "text": "**Dream game: are there threats to defend against, and if so should failing a defence cost something fixable (restore by doing something) rather than ending the run?** Recommend: yes, threats exist, failures are always repairable.",
+       "answered": false
+      },
+      {
+       "n": "Fg9",
+       "text": "**Dream game: is there any lose state at all?** Recommend: no, only setbacks you can recover from, with an optional hard mode.",
+       "answered": false
+      },
+      {
+       "n": "Fg10",
+       "text": "**Dream game: what counts as a gift to a keeper (resources, crafted items, found objects, lore pages)?** Recommend: found and crafted objects, so collecting feeds friendship.",
+       "answered": false
+      },
+      {
+       "n": "Fg11",
+       "text": "**Dream game: how many keepers (people running buildings) at launch: about 6, 12 or 20?** Recommend: about 6, each with a real questline, then more later.",
+       "answered": false
+      },
+      {
+       "n": "Fg12",
+       "text": "**Dream game: what puzzle kind should each building have (name a kind per building you imagine, or say \"you choose\")?** Recommend: you choose among your favourites (spatial and logic), I propose a table for you to react to.",
+       "answered": false
+      },
+      {
+       "n": "Fg13",
+       "text": "**Dream game: should the mining mode be a separate screen you open from the city, or a place you walk to inside the city?** Recommend: a separate screen opened from a mine building.",
+       "answered": false
+      },
+      {
+       "n": "Fg14",
+       "text": "**Dream game: how should it support both of your play states, under 20 minutes and over 3 hours (for example a short daily-visit loop and long optimisation sessions)?** Recommend: every building gives a 5 to 15 minute task, with deeper optimisation always available.",
+       "answered": false
+      },
+      {
+       "n": "Fg15",
+       "text": "**Dream game: should the city keep producing while you are away, with a cap?** Recommend: yes with a generous cap and no pressure to return.",
+       "answered": false
+      },
+      {
+       "n": "Fg16",
+       "text": "**Dream game: should friends be able to visit your city or leave a gift (optional, no chat)?** Recommend: later, after the shared run code and friend ties exist.",
+       "answered": false
+      },
+      {
+       "n": "Fg17",
+       "text": "**Dream game: how many branching quest lines (Lifeline-style) should there be at the start?** Recommend: two, then add as the keepers arrive.",
+       "answered": false
+      },
+      {
+       "n": "Fg18",
+       "text": "**Dream game: which existing site game is closest in feel to what you picture (Continuum, SOL, Canopy, another)?** No recommendation.",
+       "answered": false
+      },
+      {
+       "n": "Fg19",
+       "text": "**Dream game: art direction: dark and foggy low-poly, hand-drawn, or something else, and is there a game whose look you want?** Recommend: low-poly dark and foggy.",
+       "answered": false
+      },
+      {
+       "n": "Fg20",
+       "text": "**Dream game: what should the first five minutes be (arrive in the fog, meet the first keeper, place the first building)?** No recommendation, your call.",
+       "answered": false
+      },
+      {
+       "n": "Fg21",
+       "text": "**Dream game: is there an ending, or is it open-ended with a 100% collection goal?** Recommend: open-ended with a collection and completion tracker (easy to 100%).",
+       "answered": false
+      },
+      {
+       "n": "Fg22",
+       "text": "**Dream game: should some of the existing site games appear inside it as building puzzles (for example Signal as a radio tower puzzle, Lexis as a translation hut)?** Recommend: yes, as the cheapest way to get puzzles and link the whole site.",
+       "answered": false
+      },
+      {
+       "n": "Fg23",
+       "text": "**Dream game: what do you want to collect most (people, gifts, recipes, specimens, buildings' upgrades)?** Recommend: people and their gifts, and building upgrades.",
+       "answered": false
+      },
+      {
+       "n": "Fg24",
+       "text": "**Dream game: if it must be smaller, which part do you cut last?** No recommendation.",
+       "answered": false
+      },
+      {
+       "n": "Fg25",
+       "text": "**Dream game: when do you want a first playable, before or after your semester ends?** Honest note: Chronicle, the new puzzle games and the per-game work come first. Recommend: after your semester.",
        "answered": false
       }
      ]

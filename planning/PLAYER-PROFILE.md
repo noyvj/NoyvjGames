@@ -47,5 +47,10 @@ A city builder in a dark foggy forest that has everything: first-person nodes to
 - Ideas sheets: **many quick items is good**; scale the number of questions to how finished a game is; do not repeat the same question across many games: if something applies to **more than 4 games, put it in the cross-game section**.
 - No complaints about how work and questions have been going.
 
+## Added 2026-10-09 (answers to my follow-ups)
+- **What feels relaxed:** steady progress that can never be lost, and a routine they know by heart. Calm modes lean on those.
+- Said yes to: a Lifeline-style story game, coding or logic puzzle games, a shared three-goals panel for idle games, a fast optional reaction game, optional friend ties, the no-all-good-hero rule.
+- The foggy-forest dream game is their huge endgame: they want a lot of questions and their own decisions before any planning doc, and are happy for parts (the per-building puzzles) to be built as separate games first.
+
 ## Open questions I still have for them
-They are in `planning/FOR-YOU.md` as items Pf1, Pf4 to Pf10 (relaxation examples, a Lifeline-style story game, a foggy-forest game, coding and chemistry games, a three-goals panel for tycoon games, a fast reaction game, optional friend ties, the no-all-good-hero rule). Pf2 and Pf3 were answered on 2026-10-09 and removed; all 93 survey answers are in.
+They are the dream-game design questions, FOR-YOU items Fg1 to Fg25, and the second survey set (sections J to Q on the About-you round). All 93 first-set survey answers and the Pf1 to Pf10 follow-ups are answered.

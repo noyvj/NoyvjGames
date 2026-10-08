@@ -1,6 +1,6 @@
 # Site-Wide TODO (round 3)
 
-**Progress: 476/1087 items checked off (43.8%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land.
+**Progress: 478/1095 items checked off (43.7%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land.
 
 Built from your answers in `planning/IMPROVEMENT-IDEAS-ROUND-3.md` (Part 4). Every Round 3 section is now answered (2026-10-07 below the Warframe section); earlier this list held only: **GB** (Canopy gamified), **M** (new games), **N** (seasonal events), **O** (Trade Empire and Continuum replayability), **P/Q/S/T** (Signal, Undersleep, Overclock, Last Line open questions), **X** (Warframe tracker) and **R** (returning later). GC-GI, A-L, U, Z and Y are unanswered and wait for you. The previous list is archived at `planning/todo-archive/260914_260927.md`; anything from it that was moved here is marked "moved" there.
 
@@ -1297,6 +1297,15 @@ One checkbox per pass per area. A pass is not done until its fixes are committed
 - [ ] FY-47: Ca2: Le Champ de Mots: add a false-friends set, built from a reputable list read live and named on screen (you said yes: yes.)
 - [ ] FY-49: So1: SOL: may I write the balance for prestige mutators myself (you said yes: yes.)
 - [ ] FY-50: So2: SOL: build the anomaly system on a fixed schedule rather than random (you said yes: yes.)
+
+- [ ] FY-51: Lifeline-style choose-your-own-adventure game (you said yes): sci-fi, dark tone, many branching paths, optional reading, a main character who makes mistakes; plan first (planning file, M convention), built after Chronicle.
+- [ ] FY-52: A coding or logic-circuit puzzle game as the first of the coding, maths and chemistry games (you said yes); plan first.
+- [ ] FY-53: One shared "three goals at all times" panel (you said yes) built in `shared/` and fed by each game's own goals, then wired into SOL, Trade Empire, Continuum and Loop.
+- [ ] FY-54: One small optional fast timed reaction game with a slower mode like the Champ minigames (you said yes); plan first.
+- [ ] FY-55: Optional friend ties (shared run codes, friend list, ghost runs, no messaging, never required, no worst-score shaming) after the shared run code FY-7 exists (you said yes).
+- [ ] FY-56: Dream game (the dark foggy forest city builder): you want a large set of design questions answered before any planning doc. The 25 questions are FOR-YOU items Fg1 to Fg25; write `planning/<name>-plan.md` only after they are answered, and consider building the per-building puzzles as their own small games first.
+- [x] FY-57: Design principle recorded (you said B and D): steady progress that can never be lost, and routines you know by heart, are what feels relaxed; calm modes lean on those. Written in `planning/PLAYER-PROFILE.md`.
+- [x] FY-58: Standing rule recorded (you said yes): no all-good hero characters who never make a mistake. Written in `planning/PLAYER-PROFILE.md`.
 
 ## Closing tasks
 
