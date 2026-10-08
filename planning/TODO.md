@@ -1,6 +1,6 @@
 # Site-Wide TODO (round 3)
 
-**Progress: 455/1048 items checked off (43.4%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land.
+**Progress: 456/1048 items checked off (43.5%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land.
 
 Built from your answers in `planning/IMPROVEMENT-IDEAS-ROUND-3.md` (Part 4). Every Round 3 section is now answered (2026-10-07 below the Warframe section); earlier this list held only: **GB** (Canopy gamified), **M** (new games), **N** (seasonal events), **O** (Trade Empire and Continuum replayability), **P/Q/S/T** (Signal, Undersleep, Overclock, Last Line open questions), **X** (Warframe tracker) and **R** (returning later). GC-GI, A-L, U, Z and Y are unanswered and wait for you. The previous list is archived at `planning/todo-archive/260914_260927.md`; anything from it that was moved here is marked "moved" there.
 
@@ -1200,7 +1200,7 @@ One checkbox per pass per area. A pass is not done until its fixes are committed
 ## FY. Answered in FOR-YOU on the ideas sheet (2026-10-08)
 
 - [ ] FY-1: Grid C6: let a player save two scenarios and overlay their trend graphs for a side-by-side comparison (you said now).
-- [ ] FY-2: Tide D10: show the acidity from three seasons ago right next to the current acidity so the delayed link is visible as numbers (you said now).
+- [x] FY-2: Tide D10: show the acidity from three seasons ago right next to the current acidity so the delayed link is visible as numbers (you said now).
 - [ ] FY-3: Aftermath E5: add another event category beyond weather and non-weather (for example a heat-mortality event) to the fixed seven-event schedule (you said now).
 - [ ] FY-4: Herd F4: a second end-of-game feedback question about Herd's own lesson ("did decoupling feel like a real strategy, or a tax on growth?"), like Thaw's two-question pattern (you said now).
 - [ ] FY-5: Loop H16: an optional "supply chain disruption" random event, opt-in as an advanced mode, kept apart from the deterministic core lesson (you said now).

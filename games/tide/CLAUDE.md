@@ -605,3 +605,7 @@ Tests 274 -> 322 (`tests/test_todo_pass_oct7.py`). `tests/fakes.py` gained `setA
 ## Pause and fast-forward audit (W-2, 2026-10-08)
 - Tide has no real-time tick (no `setInterval`; the only timers are one-shot UI timeouts). Seasons advance only when the player presses Advance Season, so there is nothing to pause or speed up and neither shared control was added.
 - Wiring pass 2026-10-08: the Session Summary carries the shared Copy result button (`copy_result_fields()` in game.py feeds `shared/copy-result.js`; mounted by the inline script at the end of index.html; the storm count is only mentioned when storms were on), earned achievement cards get a Share button (`shared/achievement-share.js`), the head carries the Open Graph/Twitter block and JSON-LD from `share/meta/tide.html` and `share/jsonld/tide.json`, and the How to Play and Info panels end with a Credits link. Pins: `tests/test_wiring_oct8.py`.
+
+### Acidity three seasons ago (FY-2 / D10, 2026-10-08)
+`acidity_past_text()` in `game.py` reads `state.acidity_history[-3]` and renders "Three seasons ago: acidity X (now Y, up/down/unchanged)" into `#acidity-past-display` (a second status line under the acidity, a "Acidity then" chip on the Desktop page). It says "not yet played (n of 3 seasons banked)" before three seasons exist. Derived from existing history: no new save key. `ACIDITY_PAST_SEASONS = 3`. Tests: `tests/test_acidity_past.py`. Also fixed pre-existing flake8 warnings (an unused `global` list, two ambiguous `l` names).
+

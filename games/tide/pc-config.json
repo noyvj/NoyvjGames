@@ -185,6 +185,11 @@
       "Acidity"
     ],
     [
+      "#acidity-past-display",
+      "⏳",
+      "Acidity then"
+    ],
+    [
       "#fish-yield-display",
       "🐟",
       "Fishing yield"

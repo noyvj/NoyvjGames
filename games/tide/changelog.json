@@ -2,6 +2,10 @@
   "changelog": [
     {
       "date": "2026-10-08",
+      "entry": "New: a line under the ocean acidity shows what acidity was three seasons ago and whether it is up, down or unchanged now, so the delay between what you did and what the fish feel is visible as numbers."
+    },
+    {
+      "date": "2026-10-08",
       "entry": "New: the Session Summary has a Copy result button that copies one line, such as Tide, 12 seasons, with your damage taken, damage saved by adaptation, adaptation tier and storms survived. Every achievement you have earned now has a Share button that copies a line you can paste anywhere, with the share of players who have it when that figure is available. The How to Play and Info panels link to the new Credits page."
     },
     {

@@ -23,6 +23,7 @@ ELEMENT_IDS = [
     "season-display",
     "funds-display",
     "acidity-display",
+    "acidity-past-display",
     "acidity-bar",
     "fish-yield-display",
     "fish-yield-bar",

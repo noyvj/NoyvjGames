@@ -286,9 +286,9 @@ def test_every_tile_names_its_row_and_column(game_env):
     grid = game_env.elements["coastline-grid"]
     labels = [t.getAttribute("aria-label") for t in grid.children]
     assert labels[0].startswith("Row 1: ") and labels[1].startswith("Row 1, column 2: ")
-    heritage_column = [l for l in labels if l.startswith("Row 5, column 4:")]
+    heritage_column = [lab for lab in labels if lab.startswith("Row 5, column 4:")]
     assert heritage_column and "lighthouse" in heritage_column[0]
-    other_column = [l for l in labels if l.startswith("Row 5, column 3:")]
+    other_column = [lab for lab in labels if lab.startswith("Row 5, column 3:")]
     assert "lighthouse" not in other_column[0]
 
 

@@ -2955,7 +2955,7 @@ def library_save_current():
 
 
 def library_delete(record_id):
-    global _library_status, library_a, library_b, library_overlay_id
+    global _library_status
     records = library_records()
     kept = [r for r in records if r["id"] != record_id]
     if len(kept) == len(records):
@@ -3751,12 +3751,34 @@ def render_hard_lag_toggle():
         )
 
 
+# FY-2 (Tide D10): the acidity from three seasons ago, shown beside the
+# current one so the delay between cause and effect is visible as numbers.
+ACIDITY_PAST_SEASONS = 3
+
+
+def acidity_past_text():
+    """'Three seasons ago: acidity 2.3 (now 3.1, up 0.8)' once three seasons are banked."""
+    history = state.acidity_history
+    if len(history) < ACIDITY_PAST_SEASONS:
+        return f"Three seasons ago: not yet played ({len(history)} of {ACIDITY_PAST_SEASONS} seasons banked)"
+    past = history[-ACIDITY_PAST_SEASONS]
+    change = state.acidity - past
+    if abs(change) < 0.05:
+        word = "unchanged"
+    elif change > 0:
+        word = f"up {change:.1f}"
+    else:
+        word = f"down {-change:.1f}"
+    return f"Three seasons ago: acidity {past:.1f} (now {state.acidity:.1f}, {word})"
+
+
 def render():
     render_info_page()
     render_sister()
     document.getElementById("season-display").innerText = f"Season {state.season}"
     document.getElementById("funds-display").innerText = f"Funds: {state.funds:.0f}"
     document.getElementById("acidity-display").innerText = f"Ocean acidity: {state.acidity:.1f}"
+    document.getElementById("acidity-past-display").innerText = acidity_past_text()
     acidity_fraction = min(1.0, state.acidity / FISH_DAMAGE_SCALE)
     document.getElementById("acidity-bar").style.width = f"{acidity_fraction * 100:.0f}%"
 
