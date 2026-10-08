@@ -93,7 +93,7 @@ def test_a_safe_passage_meets_the_sailor_and_letters_arrive_one_a_night():
     letters_by_night = {}
 
     def note(keep):
-        fresh = [l["id"] for l in keep.report["letters"]]
+        fresh = [item["id"] for item in keep.report["letters"]]
         assert len(fresh) <= 1
         if fresh:
             letters_by_night[keep.report["night"]] = fresh[0]

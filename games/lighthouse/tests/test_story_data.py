@@ -39,7 +39,7 @@ def test_letters_are_a_good_length_and_every_sailor_writes():
         words = len(letter["text"].split())
         assert 30 <= words <= 120, (lid, words)
         assert letter["from"] in lore.SAILORS and letter["subject"]
-    written = {l["from"] for l in lore.LETTERS.values()}
+    written = {item["from"] for item in lore.LETTERS.values()}
     ashore_and_story_later = {"hesper", "berit"}
     assert set(lore.SAILORS) - written <= ashore_and_story_later
 
@@ -65,7 +65,7 @@ def test_replies_have_ids_labels_and_answers():
 
 
 def test_every_gift_comes_from_exactly_one_letter_and_has_a_slot():
-    attached = [l["gift"] for l in lore.LETTERS.values() if l.get("gift")]
+    attached = [item["gift"] for item in lore.LETTERS.values() if item.get("gift")]
     assert sorted(attached) == sorted(lore.GIFTS)
     for g in lore.GIFTS.values():
         assert g["slot"] in ("shelf", "table", "wall", "window", "floor")
