@@ -14,8 +14,10 @@ Daily Market (M-4b-9) are NOT part of this build.
 
 - M5 Combos, streaks, festivals: renown.py, combo x1-x3 + pips, chain bonus, wildcards, 6 festivals, child/tourist/crowd archetypes, renown unlocks (spices, sweets), personal-best lines; 189 tests; checked at 360x740 with 5 crates
 
+- M6 Standard kit + pledge tests: opening screen, save widget, tutorial, confirm dialog (sell tier 4-5, erase all), What's New + banner, About + pledge list, keyboard help, 205 tests incl. test_pledge.py; phone layout reworked (toolbar below the counter)
+
 ## Next
-- Milestone 6: standard kit + pledge tests: confirm dialog (reset, sell T4/T5), tutorial, opening screen, save widget, keyboard shortcuts help, changelog + What's New banner, about/info panel with the pledge list, mobile dock/HUD decision (not needed so far: everything fits at 360x740), pledge tests (no clock, no banned words, no timestamps in save)
+- Milestone 7: achievements.json (14) + achievements.py + panel/toast + share, decorations (40, cosmetic coin sink) in shop, regulars (12 with bond), story toggle wiring (story-toggle.js), a visible goals list (three goals at a time, any order)
 - Player-profile notes (private): keep objectives visible without a strict order (a 'goals' list in M7), no tutorial wall, friendly welcome back, leaderboards optional (none here)
 
 ## Open problems / notes

@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Pocket Bazaar - NoyvjGames</title>
-<meta name="description" content="A tiny market stall: customers ask for goods, you merge basic goods on a small board into better ones and hand them over before they lose patience. No energy limits, no premium currency, no timers. Working title.">
+<meta name="description" content="A tiny market stall: customers ask for goods, you merge basic goods on a small board into better ones and hand them over before they run out of patience. Nothing runs on a clock. Working title.">
 <link rel="icon" type="image/svg+xml" href="icons/favicon-pocket-bazaar.svg">
 <link rel="stylesheet" href="../../shared/theme-light-games.css">
 <link rel="stylesheet" href="style.css">
@@ -31,11 +31,26 @@
   <div class="top-row">
     <a href="../../index.html" class="hub-back-link">&larr; All games</a>
     <h1>Pocket Bazaar</h1>
-    <div class="game-toolbar">
-      <button id="settings-toggle-button" type="button" aria-expanded="false" aria-controls="settings-panel">Settings</button>
-    </div>
+  </div>
+  <div class="game-toolbar">
+    <button id="tutorial-restart-button" type="button" aria-label="Tutorial"><span class="btn-long">Tutorial</span><span class="btn-short" aria-hidden="true">Tour</span></button>
+    <button id="changelog-toggle-button" type="button" aria-expanded="false" aria-controls="changelog-panel"><span class="btn-long">What's New</span><span class="btn-short" aria-hidden="true">News</span></button>
+    <button id="settings-toggle-button" type="button" aria-expanded="false" aria-controls="settings-panel">Settings</button>
+    <button id="info-page-toggle-button" type="button" aria-expanded="false" aria-controls="info-page-panel">About</button>
   </div>
   <p class="tagline">A tiny market stall. Merge goods, hand them over, and take your time: nothing here runs on a clock.</p>
+  <section id="info-page-panel" class="panel" hidden aria-labelledby="info-page-heading">
+    <h2 id="info-page-heading">About Pocket Bazaar</h2>
+    <p id="info-page-framing" class="info-page-framing"></p>
+    <h3 id="pledge-heading"></h3>
+    <ul id="pledge-list" class="pledge-list"></ul>
+    <h3 id="how-heading"></h3>
+    <ul id="how-list"></ul>
+  </section>
+  <section id="changelog-panel" class="panel" hidden aria-labelledby="changelog-heading">
+    <h2 id="changelog-heading">What's New</h2>
+    <div id="changelog-entries"></div>
+  </section>
   <section id="settings-panel" class="panel" hidden aria-labelledby="settings-heading">
     <h2 id="settings-heading">Settings</h2>
     <p class="note">Display choices stay on this device. They never change a game or a save.</p>
@@ -52,6 +67,7 @@
     <div class="settings-row"><label><input type="checkbox" id="high-contrast-checkbox"> High contrast (brighter text, thicker outlines)</label></div>
     <div class="settings-row"><button id="theme-setting-button" type="button" aria-pressed="false">Light theme</button></div>
     <div class="settings-row"><button id="display-reset-button" type="button">Reset display settings</button></div>
+    <div class="settings-row"><button id="reset-button" type="button" data-testid="pocket-bazaar-reset">Start the whole stall over</button> <span class="note">Erases coins, upgrades and renown. It asks first.</span></div>
   </section>
   <p id="toast" class="note toast" role="status" aria-live="polite"></p>
 
@@ -146,7 +162,30 @@
        data-ad-slot="XXXXXXXXXX"></ins>
 </div>
 <script src="https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.js"></script>
+<script src="../../shared/tutorial.js"></script>
+<script src="../../shared/hub-auth.js"></script>
+<script src="../../shared/save-widget.js" data-game-id="pocket-bazaar"></script>
+<script src="../../shared/opening-screen.js" data-game-id="pocket-bazaar" data-game-name="Pocket Bazaar" data-tagline="A tiny market stall. Take your time: nothing here runs on a clock."></script>
+<script src="../../shared/confirm-dialog.js"></script>
 <script src="app.js"></script>
+<script src="../../shared/last-played.js" data-game-id="pocket-bazaar"></script>
+<script src="../../shared/whats-new-banner.js" data-game-id="pocket-bazaar"></script>
+<script src="../../shared/keyboard-shortcuts.js"></script>
+<script>
+  window.KeyboardShortcuts.init({
+    panels: [
+      { toggle: "changelog-toggle-button", panel: "changelog-panel" },
+      { toggle: "settings-toggle-button", panel: "settings-panel" },
+      { toggle: "info-page-toggle-button", panel: "info-page-panel" },
+    ],
+    extra: [
+      "Counter: arrow keys move, Enter or Space picks up and drops",
+      "1-5: open a crate; C: move along the crates",
+      "D: hand the picked-up good to the customer who wants it; S: sell it; B: sweep it (or pick up the broom)",
+      "Esc: let go of a good, or close the open panel",
+    ],
+  });
+</script>
 <script>
   if ("serviceWorker" in navigator) {
     navigator.serviceWorker.register("../../sw.js");

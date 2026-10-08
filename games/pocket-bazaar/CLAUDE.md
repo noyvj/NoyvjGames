@@ -24,6 +24,7 @@ Python via Pyodide (the Lexis/Signal pattern): DOM-free engine modules, `game.py
 | `shop.py` | six permanent stall upgrades bought with coins (queue preview, broom polish, tip jar, display shelf, fine scales, wider counter) |
 | `days.py` | the day recipes: first ten days hand-tuned, then Free Stall curve (capped at 16 customers, tier 5) |
 | `day.py` | one market day: counter, queue (three at the stall, the rest waiting), beats, patience, hand-over, leaving, serving, summary |
+| `pledge.py`, `info.py` | the pledge text (the only file allowed to name what the game rules out) and the About page content |
 | `game.py` | the one entry point: `handle(json)`, `get_state()`, `load_state()`; state is saved with only non-default keys |
 
 View files: `index.html`, `style.css`, `settings.js` (display settings in localStorage, never in the save), `app.js` (thin view: draws what `handle` returns, drag via pointer events, tap-then-tap, keyboard).
@@ -47,7 +48,7 @@ Plan deviations: with five tiers the longest cascade is four merges (T1+T1, T2, 
 | 3 | Customers and orders | Queue, patience in beats, delivery, payout, 4 archetypes, order generator with a reachability test | Done (a day opens, three customers at the stall, hand-overs by tap, drag or D; a greedy bot clears the ten days) |
 | 4 | Market day loop | Day start/summary, coins, stall upgrades, 10-day campaign, 3 festivals. First complete playable game | Done (day start card with festival, summary with stars and tomorrow's festival, shop, Free Stall after day 10) |
 | 5 | Combos, streaks, festivals | Order combo, cascade bonus, all 6 festivals with previews, personal-best badges | Done (also wildcards, renown unlocks and the three extra archetypes) |
-| 6 | Standard kit + pledge tests | Save widget, settings, confirm dialog, tutorial, mobile dock/HUD, changelog, info panel, pledge tests | Not started |
+| 6 | Standard kit + pledge tests | Save widget, settings, confirm dialog, tutorial, mobile dock/HUD, changelog, info panel, pledge tests | Done (opening screen, save widget, tutorial, What's New + banner, About with the pledge list, confirm only for selling tier 4-5 and erasing; `tests/test_pledge.py`). The shared mobile dock and HUD are deliberately not used: the whole counter, the stats and the crates fit one 360x740 screen, so nothing needs pinning |
 | 7 | Achievements + story | 14 achievements, panel and toast, regulars, story toggle | Not started |
 | 8 | Own-folder wrap-up | Favicon, Desktop boot (`pc-config.json`, `pc.html`), this table, tag | Not started |
 | 9 | Daily Market (optional) | Not part of this build | Not started |
@@ -55,3 +56,9 @@ Plan deviations: with five tiers the longest cascade is four merges (T1+T1, T2, 
 
 ## Working conventions
 Commit + tag per milestone: `git commit -m "Milestone N: <name>"`, then `git tag pocket-bazaar-milestone-0N`. Tests: `python3 -m pytest -q games/pocket-bazaar`. Lint: `python3 -m flake8 games/pocket-bazaar --extend-ignore=E501`. Local Python is 3.9, Pyodide's is 3.12: no 3.10+ syntax.
+
+## Pre-release checklist (manual, binding)
+A fresh reviewer plays one full session (a few days) on a phone and on a desktop, then lists anything that felt like pressure to keep playing or to pay: a number that looks like a countdown, a reward that depends on coming back, a dialog that argues with leaving, a price in anything but coins, a thing that quietly got harder. Any item fails the release. Also check at 360x740: the counter, queue, crates and Sell/Broom are on screen at once with no scrolling.
+
+## Phone layout note
+Under 600px the title and the row of buttons (Tutorial, What's New, Settings, About) and their panels move below the counter (CSS `order`), the board shrinks to the screen height, and short labels appear. The shared theme pill is not used (the Settings panel has the theme switch).

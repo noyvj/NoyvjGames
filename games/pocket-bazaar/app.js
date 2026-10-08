@@ -3,7 +3,7 @@
    cells could this good merge with", which the engine sends as `partners`). */
 (function () {
   "use strict";
-  var ENGINE_MODULES = ["goods.py", "rng.py", "board.py", "orders.py", "days.py", "festival.py", "renown.py", "shop.py", "day.py"];
+  var ENGINE_MODULES = ["goods.py", "rng.py", "board.py", "orders.py", "days.py", "festival.py", "renown.py", "shop.py", "pledge.py", "info.py", "day.py"];
   var STORE_KEY = "pocket-bazaar:state";
   var BACKUP_KEY = "pocket-bazaar:state-backup";
   var DRAG_THRESHOLD = 8;
@@ -149,6 +149,42 @@
       return;
     }
     send({ action: "deliver", from: selected, to: n });
+  }
+
+  // ---- panels: about, what's new ---------------------------------------------------------------
+  function setToggleState(buttonId, panelId) { $(buttonId).setAttribute("aria-expanded", String(!$(panelId).hidden)); }
+  function wirePanelToggle(buttonId, panelId) {
+    $(buttonId).addEventListener("click", function () { $(panelId).hidden = !$(panelId).hidden; setToggleState(buttonId, panelId); });
+  }
+  function renderAbout() {
+    var about = view.about;
+    if (!about || $("pledge-list").dataset.done) return;
+    $("pledge-list").dataset.done = "1";
+    setText($("info-page-framing"), about.framing);
+    setText($("pledge-heading"), about.pledge_heading);
+    setText($("how-heading"), about.how_heading);
+    about.pledge.forEach(function (line) { $("pledge-list").appendChild(el("li", null, line)); });
+    about.how.forEach(function (line) { $("how-list").appendChild(el("li", null, line)); });
+  }
+  // The page sets window.CHANGELOG_JSON (the raw text of changelog.json) for shared/whats-new-banner.js.
+  function renderChangelog(entries) {
+    var holder = $("changelog-entries");
+    holder.textContent = "";
+    entries.forEach(function (entry) {
+      var row = el("article", "changelog-entry");
+      row.appendChild(el("div", "changelog-date", entry.date));
+      row.appendChild(el("p", "changelog-text", entry.entry));
+      holder.appendChild(row);
+    });
+    document.querySelector("#changelog-toggle-button .btn-long").textContent = "What's New (" + entries.length + ")";
+  }
+  function loadChangelog() {
+    return fetch("changelog.json").then(function (r) { return r.text(); }).then(function (text) {
+      window.CHANGELOG_JSON = text;
+      var data = JSON.parse(text);
+      var list = Array.isArray(data) ? data : (data && data.changelog) || [];
+      renderChangelog(list.slice().sort(function (a, b) { return a.date < b.date ? 1 : -1; }));
+    }).catch(function () { renderChangelog([]); });
   }
 
   // ---- the closed stall ----------------------------------------------------------------------
@@ -395,6 +431,7 @@
   }
 
   function render(event) {
+    renderAbout();
     var open = view.phase === "open";
     $("closed-card").hidden = open;
     $("open-area").hidden = !open;
@@ -459,9 +496,23 @@
     if (!g || partners.indexOf(i) !== -1) { send({ action: "drop", from: selected, to: i }); return; }
     select(i);                                   // a different good: change the pick instead of swapping by accident
   }
+  // The only two questions the game ever asks: selling a tier-4 or tier-5 good, and wiping the stall. Neither
+  // is a guilt prompt; both can be switched off with "don't ask again".
+  function askThen(id, message, confirmLabel, go) {
+    if (window.ConfirmDialog) window.ConfirmDialog.ask({ id: id, message: message, confirmLabel: confirmLabel, allowSkip: id !== "pocket-bazaar-reset", onConfirm: go });
+    else go();
+  }
+  function sellAt(at) {
+    var cell = cellAt(at);
+    if (cell && cell.tier >= 4 && cell.family !== "wild") {
+      askThen("pocket-bazaar-sell-high", "Sell " + cell.label + " for only " + cell.sell + " coins? A customer would pay far more.", "Sell it", function () { send({ action: "sell", at: at }); });
+      return;
+    }
+    send({ action: "sell", at: at });
+  }
   function doSell() {
     if (selected === null) { showMessage("Pick up a good first (tap it), then press Sell.", false); return; }
-    send({ action: "sell", at: selected });
+    sellAt(selected);
   }
   function doBroom() {
     if (selected !== null) { send({ action: "broom", at: selected }); return; }
@@ -521,7 +572,7 @@
     var target = dropTargetAt(e.clientX, e.clientY);
     if (!target) { select(null); return; }
     var spec = target.dataset.drop;
-    if (spec === "sell") send({ action: "sell", at: d.from });
+    if (spec === "sell") sellAt(d.from);
     else if (spec === "broom") send({ action: "broom", at: d.from });
     else if (spec.indexOf("customer:") === 0) send({ action: "deliver", from: d.from, to: Number(spec.slice(9)) });
     else if (spec.indexOf("cell:") === 0) {
@@ -578,6 +629,14 @@
 
   function wire() {
     $("start-day-button").addEventListener("click", function () { send({ action: "start_day" }); });
+    wirePanelToggle("changelog-toggle-button", "changelog-panel");
+    wirePanelToggle("info-page-toggle-button", "info-page-panel");
+    $("reset-button").addEventListener("click", function () {
+      askThen("pocket-bazaar-reset", "Start the whole stall over? Your coins, upgrades, renown and personal bests will be erased.", "Erase it", function () {
+        selected = null;
+        send({ action: "reset" });
+      });
+    });
     $("shop-toggle-button").addEventListener("click", function () {
       var panel = $("shop-panel");
       panel.hidden = !panel.hidden;
@@ -599,7 +658,20 @@
     Array.prototype.forEach.call(document.querySelectorAll(".crate-btn, #sell-button, #broom-button"), function (b) { b.disabled = busy; });
   }
 
+  var TUTORIAL_STEPS = [
+    { title: "Welcome to the stall", text: "Customers ask for goods; you make them by merging and hand them over. Nothing here runs on a clock: customers wait in beats, which are your own actions, so you can stop and think as long as you like. Skip any time and reopen this from the Tutorial button." },
+    { selector: "#stats", title: "Your numbers", text: "Coins, the day, how many customers you have served, and your combo. Every action you take moves one of these, or the tally under the counter." },
+    { selector: "#stall-panel", title: "The stall", text: "When a day is open, up to three customers stand at the top with their orders and a patience bar counted in beats. The counter is below, and your crates, Sell and Broom under that." },
+    { selector: "#crates", title: "Crates", text: "Tap a crate to put a basic good on the counter. Crates are free and never run out. Each good has a shape, a letter and a number, so you never need colour to tell them apart." },
+    { selector: "#board", title: "Merge", text: "Pick up a good and tap an identical one (marked with a +) to merge them into the next tier. Three together jump two tiers, and a merge that lines up with a neighbour keeps going as a chain." },
+    { selector: "#queue", title: "Hand over", text: "Pick up a good, then tap a customer who wants it, or drag it over. The right family at the tier asked for, or better, is accepted; a Critic wants exactly that tier." },
+    { selector: "#tools", title: "Sell and Broom", text: "Sell turns any good into coins and Broom sweeps it away, so the counter can never jam. Moving, swapping and selling are free; only crates, merges, sweeps and hand-overs are beats." },
+    { selector: "#start-day-button", title: "Open the stall", text: "Each market day has a festival that changes one rule, and it says plainly whether it makes the day easier or harder. Between days you can spend coins on permanent upgrades." },
+    { title: "You are ready", text: "Take your time. Your stall is saved after every action, and nothing is lost by leaving." }
+  ];
+
   async function boot() {
+    var changelog = loadChangelog();
     var pyodide = await window.loadPyodide();
     for (var i = 0; i < ENGINE_MODULES.length; i++) {
       var source = await (await fetch(ENGINE_MODULES[i], { cache: "no-cache" })).text();
@@ -616,6 +688,8 @@
     $("engine-status").textContent = "";
     send({ action: "open" });
     setBusy(false);
+    await changelog;
+    if (window.GameTutorial) window.GameTutorial.init(TUTORIAL_STEPS, { gameId: "pocket-bazaar" });
   }
 
   wire();

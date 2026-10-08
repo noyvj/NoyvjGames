@@ -240,3 +240,24 @@ html[data-effects="off"] *, html[data-effects="off"] *::before, html[data-effect
   .good-text { font-size: 0.85rem; }
 }
 
+
+/* About, What's New. */
+.info-page-framing { margin: 0.3rem 0; }
+.pledge-list { padding-left: 1.2rem; margin: 0.3rem 0 0.8rem; }
+.pledge-list li { margin: 0.3rem 0; }
+#info-page-panel h3 { margin: 0.8rem 0 0.2rem; font-size: 1rem; }
+.changelog-entry { border-top: 1px solid var(--line); padding-top: 0.5rem; margin-top: 0.6rem; }
+.changelog-entry:first-child { border-top: 0; margin-top: 0; padding-top: 0; }
+.changelog-date { font-weight: 700; font-variant-numeric: tabular-nums; }
+
+.btn-short { display: none; }
+@media (max-width: 600px) {
+  /* On a phone the top is just the back link (the save pill sits at the right); the title is on the opening screen. The
+     row of buttons and their panels move to the foot of the page so the whole counter stays on screen. */
+  .top-row h1 { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; }
+  .top-row { min-height: 2.6rem; }
+  #game { display: flex; flex-direction: column; }
+  .game-toolbar, #settings-panel, #info-page-panel, #changelog-panel { order: 50; }
+  #engine-status, #announce { order: 60; }
+  .tally { order: 10; }
+}

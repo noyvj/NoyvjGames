@@ -21,6 +21,7 @@ import json
 
 import festival
 import goods
+import info
 import renown
 import shop
 from board import Board
@@ -222,6 +223,7 @@ def _view(message="", ok=True, event=None):
         "coins": stall.coins, "tally": dict(stall.tally), "best_chain": stall.best_chain,
         "days_played": stall.days_played, "next_day": stall.next_day, "summary": stall.last,
         "archetypes": {k: v["name"] for k, v in ARCHETYPES.items()},
+        "about": info.view(),
         "renown": stall.renown, "next_unlock": renown.next_unlock(stall.renown), "unlock_names": dict(renown.UNLOCK_NAMES), "best": dict(stall.best),
         "unlocked_families": list(stall.families()), "upgrades": shop.view(stall.upgrades, stall.coins),
         "festival": _festival_view(day.number if day else stall.next_day),
