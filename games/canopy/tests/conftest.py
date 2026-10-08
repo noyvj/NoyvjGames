@@ -120,6 +120,9 @@ ELEMENT_IDS = [
     # GB batch 2: forecast, challenge, contracts, announcer, request pace
     "season-forecast",
     "forest-rank-text",
+    "rival-status",
+    "rival-lock-button",
+    "rival-buyout-button",
     "layout-grid",
     "layout-status",
     "layout-name",

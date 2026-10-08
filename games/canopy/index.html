@@ -139,6 +139,7 @@
         <select id="difficulty-select">
           <option value="normal">Normal</option>
           <option value="ranger" title="Each clear degrades soil twice as steeply">Forest ranger (harder)</option>
+          <option value="rival" title="Halloran Timber Co. bids on edge plots; lock them with a conservation easement or buy claims back">Rival logging company (opt-in)</option>
           <option value="wildfire" title="Summer and autumn fires spread through standing plots; clear a firebreak or Dampen them">Wildfire season (opt-in)</option>
         </select>
       </label>
@@ -281,6 +282,7 @@
     </div>
     <div id="achievements-panel" class="section achievements-panel grove-wall" hidden></div>
     <div id="achievement-toast" class="achievement-toast" hidden></div>
+    <p id="rival-status" class="rival-status" role="status" hidden></p>
     <p id="layout-banner" class="layout-banner" role="status" hidden></p>
     <p id="fire-status" class="fire-status" role="status" hidden></p>
     <p id="lab-banner" class="lab-banner" role="status" hidden></p>
@@ -660,6 +662,9 @@
         <p id="species-note" class="species-note"></p>
         <button id="adopt-plot-button" class="secondary" type="button" disabled title="Mark the selected plot as a long-term personal project with its own mini-history">⭐ Adopt plot</button>
         <!-- GB-4: a short growth boost on one plot, then a 20-tick cooldown. Press T over a plot, or select one and use this button. -->
+        <!-- GB-12: only shown on the Rival logging company difficulty. -->
+        <button id="rival-lock-button" class="secondary" type="button" hidden disabled>🔒 Lock plot</button>
+        <button id="rival-buyout-button" class="secondary" type="button" hidden disabled>Buy out claim</button>
         <!-- GB-1: only shown on the Wildfire season difficulty. -->
         <button id="dampen-button" class="secondary" type="button" hidden disabled>💧 Dampen</button>
         <button id="tend-button" class="secondary" type="button" disabled title="Tend: a short growth boost on the selected plot (or press T while hovering one), then a 20-tick cooldown">🌿 Tend (T)</button>

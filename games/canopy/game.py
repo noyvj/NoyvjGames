@@ -55,10 +55,12 @@ MIN_PRODUCTIVITY_MULTIPLIER = 0.2
 DIFFICULTY_NORMAL = "normal"
 DIFFICULTY_RANGER = "ranger"
 DIFFICULTY_WILDFIRE = "wildfire"  # GB-1: normal soil damage plus a summer and autumn fire season
+DIFFICULTY_RIVAL = "rival"  # GB-12: normal soil damage plus Halloran Timber Co. bidding on edge plots
 DEGRADE_PER_CLEAR_BY_DIFFICULTY = {
     DIFFICULTY_NORMAL: DEGRADE_PER_CLEAR,
     DIFFICULTY_RANGER: DEGRADE_PER_CLEAR * 2,
     DIFFICULTY_WILDFIRE: DEGRADE_PER_CLEAR,
+    DIFFICULTY_RIVAL: DEGRADE_PER_CLEAR,
 }
 current_difficulty = DIFFICULTY_NORMAL
 
@@ -493,6 +495,8 @@ class Plot:
         shares PARTNER_SHARE_RATIO with the partner until the plot is next
         cleared."""
         if self.blocked or "replant" not in VALID_ACTIONS[self.state]:
+            return False
+        if self.region == "main" and self.index in rival_claims:  # GB-12: a mining claim cannot be planted
             return False
         self.state = REPLANTING
         base_ticks = PARTNER_RECOVERY_TICKS if partner else max(1, RECOVERY_TICKS - vault_recovery_ticks_saved())  # GB-10: Fast Sprouts
@@ -995,6 +999,7 @@ def reset_session(grid_size=None, _render_after=True, difficulty=None, challenge
     _replay_frames.clear()  # B-3
     blight_pressure.clear()  # GB-7
     _reset_fire()  # GB-1
+    _reset_rival()  # GB-12
     species_planted.clear()  # GB-6
     _replay_state["every"] = REPLAY_START_EVERY
     _pending_mature_bursts.clear()
@@ -2793,6 +2798,18 @@ def render_grid():
             tooltip += f" \u00b7 smoke: a spark in {fire_warning['ticks_left']} ticks"
         elif fire_damp.get(plot.index, 0) > 0:
             tooltip += f" \u00b7 damp: safe from fire for {fire_damp[plot.index]} ticks"
+        if rival_notice is not None and rival_notice["plot"] == plot.index:  # GB-12: a flag glyph and a dotted outline
+            tile.className += " plot-bid"
+            tile.appendChild(_make_tile_mark("rival-mark", "\U0001F6A9"))
+            tooltip += f" \u00b7 Halloran Timber Co. takes this in {rival_notice['ticks_left']} ticks: lock it with an easement ({easement_cost(plot.index):.1f})"
+        elif plot.index in rival_claims:
+            tile.className += " plot-claimed"
+            tile.appendChild(_make_tile_mark("rival-mark", "\u26CF\ufe0f"))
+            tooltip += f" \u00b7 mining claim ({rival_claims[plot.index]} ticks left): buy it out ({RIVAL_BUYOUT_COST:.0f}) or wait"
+        elif plot.index in rival_locked:
+            tile.className += " plot-easement"
+            tile.appendChild(_make_tile_mark("rival-mark", "\U0001F512"))
+            tooltip += " \u00b7 under a conservation easement"
         links = mature_neighbour_count(plot) if _is_mature_standing(plot) else 0  # GB-5
         if links:
             bonus_pct = round(SYNERGY_PER_NEIGHBOUR * links * 100)
@@ -6470,6 +6487,8 @@ def session_tag_text():
         parts.append(f"{CHALLENGE_SPECS[current_challenge]['label']} challenge")
     if current_difficulty == DIFFICULTY_WILDFIRE:
         parts.append("Wildfire season")
+    if current_difficulty == DIFFICULTY_RIVAL:
+        parts.append("Rival logging company")
     if lab_active():
         parts.append("Forest Lab sandbox")
     return ", ".join(parts)
@@ -8110,6 +8129,9 @@ def _levels_state_fields():
         out["species_planted"] = sorted(species_planted)
     if lab_active():  # B-5
         out["lab"] = dict(lab)
+    if rival_enabled() and (rival_claims or rival_locked or rival_notice or rival_state["bids"]):  # GB-12
+        out["rival"] = {"claims": {str(i): n for i, n in rival_claims.items()}, "locked": sorted(rival_locked),
+                        "notice": dict(rival_notice) if rival_notice else None, "next_bid": rival_state["next_bid"], "bids": rival_state["bids"]}
     if current_scenario != SCENARIO_NONE:  # B-11
         out["scenario"] = current_scenario
     if plot_notes:  # B-24
@@ -8352,6 +8374,7 @@ def render():
     render_survey()  # B-13
     render_lab_banner()  # B-5
     render_fire()  # GB-1
+    render_rival()  # GB-12
     render_layout_badge()  # B-29
     _update_layout_best()
     render_stats()
@@ -8912,6 +8935,169 @@ def render_fire():
                         + (f" (ready in {dampen_cooldown} ticks)" if dampen_cooldown else ""))
 
 
+# GB-12 (2026-10-09): the rival logging company, only on the "Rival logging company" difficulty. Halloran Timber Co. bids on
+# a standing plot on the edge of the grid: the plot is flagged RIVAL_NOTICE_TICKS ticks ahead, then becomes a mining claim
+# (bare, cannot be replanted) that Halloran works for RIVAL_CLAIM_TICKS ticks before leaving it bare and free. You can lock
+# a plot with a conservation easement (it costs a share of that plot's value from your income) so it can never be claimed,
+# or pay a buy-out to end a claim early. Bids come faster as the session goes on (down to a floor). Deterministic, fully
+# telegraphed and recoverable: a claimed plot comes back. This is a one-player mode; the idea of a second human
+# player in Halloran's place is parked with the multiplayer scoping.
+RIVAL_FIRST_BID_TICKS = 40
+RIVAL_INTERVAL_TICKS = 45
+RIVAL_INTERVAL_STEP = 4
+RIVAL_INTERVAL_FLOOR = 24
+RIVAL_NOTICE_TICKS = 10
+RIVAL_CLAIM_TICKS = 40
+RIVAL_EASEMENT_SHARE = 0.15
+RIVAL_EASEMENT_MIN = 10.0
+RIVAL_BUYOUT_COST = 30.0
+rival_claims = {}  # plot index -> ticks left on the mining claim
+rival_notice = None  # {"plot": int, "ticks_left": int}
+rival_locked = set()  # plots under a conservation easement
+rival_state = {"next_bid": RIVAL_FIRST_BID_TICKS, "bids": 0}
+
+
+def rival_enabled():
+    return current_difficulty == DIFFICULTY_RIVAL
+
+
+def _reset_rival():
+    global rival_notice
+    rival_claims.clear()
+    rival_locked.clear()
+    rival_notice = None
+    rival_state.update({"next_bid": RIVAL_FIRST_BID_TICKS, "bids": 0})
+
+
+def _is_edge(index):
+    row, col = divmod(index, GRID_COLS)
+    return row in (0, GRID_ROWS - 1) or col in (0, GRID_COLS - 1)
+
+
+def rival_bid_interval():
+    return max(RIVAL_INTERVAL_FLOOR, RIVAL_INTERVAL_TICKS - RIVAL_INTERVAL_STEP * rival_state["bids"])
+
+
+def _rival_candidates():
+    return [p.index for p in plots if p.state in ACCRUING_STATES and not p.blocked and _is_edge(p.index)
+            and p.index not in rival_locked and p.index != heart_tree_index]
+
+
+def easement_cost(index):
+    return round(max(RIVAL_EASEMENT_MIN, RIVAL_EASEMENT_SHARE * plots[index].value), 1)
+
+
+def can_lock(index):
+    return (rival_enabled() and index is not None and 0 <= index < len(plots) and plots[index].state in ACCRUING_STATES
+            and not plots[index].blocked and index not in rival_locked and total_income >= easement_cost(index))
+
+
+def lock_easement(index=None):
+    """Pays for a conservation easement on `index` (default: the plot Halloran has bid on, else the selected plot)."""
+    global total_income, rival_notice
+    if index is None:
+        index = rival_notice["plot"] if rival_notice is not None else selected_index
+    if not can_lock(index):
+        return False
+    cost = easement_cost(index)
+    total_income -= cost
+    rival_locked.add(index)
+    if rival_notice is not None and rival_notice["plot"] == index:
+        rival_notice = None
+    _log_event("rival", f"Locked {_plot_ref(index)} with a conservation easement for {cost:.1f}: it can never be claimed", index)
+    render()
+    return True
+
+
+def can_buy_out(index):
+    return rival_enabled() and index in rival_claims and total_income >= RIVAL_BUYOUT_COST
+
+
+def buy_out_claim(index=None):
+    global total_income
+    index = selected_index if index is None else index
+    if not can_buy_out(index):
+        return False
+    total_income -= RIVAL_BUYOUT_COST
+    del rival_claims[index]
+    _log_event("rival", f"Bought out the mining claim on {_plot_ref(index)}: it is free to replant", index)
+    render()
+    return True
+
+
+def _rival_tick():
+    global rival_notice
+    if not rival_enabled():
+        if rival_claims or rival_notice or rival_locked:
+            _reset_rival()
+        return
+    for index in list(rival_claims):
+        rival_claims[index] -= 1
+        if rival_claims[index] <= 0:
+            del rival_claims[index]
+            _log_event("rival", f"Halloran Timber Co. has left {_plot_ref(index)}. It is bare and free to replant", index)
+    if rival_notice is not None:
+        rival_notice["ticks_left"] -= 1
+        if rival_notice["ticks_left"] <= 0:
+            target = rival_notice["plot"]
+            rival_notice = None
+            if plots[target].state in ACCRUING_STATES and target not in rival_locked:
+                lost = plots[target].value
+                plots[target].blight()  # bare with no soil damage, like a fire: nothing was harvested
+                rival_claims[target] = RIVAL_CLAIM_TICKS
+                _log_event("rival", f"Halloran Timber Co. took {_plot_ref(target)} ({lost:.1f} of value). Buy the claim out, or wait {RIVAL_CLAIM_TICKS} ticks", target)
+    elif forest_tick >= rival_state["next_bid"]:
+        candidates = _rival_candidates()
+        rival_state["next_bid"] = forest_tick + rival_bid_interval()
+        if candidates:
+            target = candidates[_gb_hash(rival_state["bids"], forest_tick // 7, 53) % len(candidates)]
+            rival_state["bids"] += 1
+            rival_notice = {"plot": target, "ticks_left": RIVAL_NOTICE_TICKS}
+            _log_event("rival", f"Halloran Timber Co. is bidding on {_plot_ref(target)}: they take it in {RIVAL_NOTICE_TICKS} ticks. "
+                                f"Lock it with an easement ({easement_cost(target):.1f}) to keep it", target)
+
+
+def rival_status_text():
+    if not rival_enabled():
+        return ""
+    if rival_notice is not None:
+        t = rival_notice["plot"]
+        return (f"Halloran Timber Co. is bidding on {plot_coordinate_label(t)}: claim in {rival_notice['ticks_left']} ticks. "
+                f"An easement costs {easement_cost(t):.1f}.")
+    parts = [f"Halloran Timber Co.: next bid in about {max(0, rival_state['next_bid'] - forest_tick)} ticks."]
+    if rival_claims:
+        parts.append("Mining claims: " + ", ".join(f"{plot_coordinate_label(i)} ({n} ticks left)" for i, n in sorted(rival_claims.items())) + ".")
+    if rival_locked:
+        parts.append(f"{len(rival_locked)} plot{'s' if len(rival_locked) != 1 else ''} under easement.")
+    return " ".join(parts)
+
+
+def render_rival():
+    status = _el("rival-status")
+    text = rival_status_text()
+    if status is not None:
+        status.hidden = not text
+        status.innerText = text
+    lock_button, buyout_button = _el("rival-lock-button"), _el("rival-buyout-button")
+    target = rival_notice["plot"] if rival_notice is not None else selected_index
+    if lock_button is not None:
+        lock_button.hidden = not rival_enabled()
+        lock_button.disabled = not can_lock(target)
+        lock_button.innerText = f"\U0001F512 Lock plot ({easement_cost(target):.1f})" if target is not None and 0 <= target < len(plots) else "\U0001F512 Lock plot"
+    if buyout_button is not None:
+        buyout_button.hidden = not rival_enabled()
+        buyout_button.disabled = not can_buy_out(selected_index)
+        buyout_button.innerText = f"Buy out claim ({RIVAL_BUYOUT_COST:.0f})"
+
+
+def on_rival_lock(event=None):
+    lock_easement()
+
+
+def on_rival_buyout(event=None):
+    buy_out_claim()
+
+
 def _note_recovery(plot):
     global total_recoveries
     total_recoveries += 1
@@ -8984,6 +9170,7 @@ def tick(event=None):
     _mixed_bonus = mixed_forest_multiplier()  # GB-6
     _blight_tick()  # GB-7
     _fire_tick()  # GB-1
+    _rival_tick()  # GB-12
     _carbon_tick()  # GB-29
     _community_tick()  # GB-19
     aura = _heart_tree_aura()  # GB-8
@@ -9300,6 +9487,27 @@ def load_state(data):
             current_layout = {"name": str(saved_layout.get("name", ""))[:20], "cells": cells}
             for plot, ch in zip(plots, cells):
                 plot.blocked = ch == "0"
+    global rival_notice  # GB-12
+    _reset_rival()
+    saved_rival = data.get("rival")
+    if isinstance(saved_rival, dict) and current_difficulty == DIFFICULTY_RIVAL:
+        size = len(plots)
+        for key, ticks in (saved_rival.get("claims") or {}).items() if isinstance(saved_rival.get("claims"), dict) else []:
+            try:
+                index = int(key)
+            except (TypeError, ValueError):
+                continue
+            if 0 <= index < size and isinstance(ticks, int) and not isinstance(ticks, bool) and 0 < ticks <= RIVAL_CLAIM_TICKS:
+                rival_claims[index] = ticks
+        for index in saved_rival.get("locked") or [] if isinstance(saved_rival.get("locked"), list) else []:
+            if isinstance(index, int) and not isinstance(index, bool) and 0 <= index < size:
+                rival_locked.add(index)
+        notice = saved_rival.get("notice")
+        if isinstance(notice, dict) and isinstance(notice.get("plot"), int) and not isinstance(notice.get("plot"), bool) \
+                and 0 <= notice["plot"] < size and isinstance(notice.get("ticks_left"), int) and 0 < notice["ticks_left"] <= RIVAL_NOTICE_TICKS:
+            rival_notice = {"plot": notice["plot"], "ticks_left": notice["ticks_left"]}
+        rival_state["next_bid"] = int(_number_or(saved_rival.get("next_bid"), RIVAL_FIRST_BID_TICKS, 0, 10**9))
+        rival_state["bids"] = int(_number_or(saved_rival.get("bids"), 0, 0, 10**6))
     saved_carbon = data.get("carbon")  # GB-29
     carbon.update({"credits": 0.0, "slump": 0, "sold": 0.0, "earned_from_sales": 0.0})
     if isinstance(saved_carbon, dict):
@@ -9593,6 +9801,10 @@ def setup():
         preset_button = _el(f"layout-preset-{preset_kind}")
         if preset_button is not None:
             preset_button.addEventListener("click", create_proxy(lambda event=None, k=preset_kind: on_layout_preset(k)))
+    for rival_id, rival_handler in (("rival-lock-button", on_rival_lock), ("rival-buyout-button", on_rival_buyout)):  # GB-12
+        rival_button = _el(rival_id)
+        if rival_button is not None:
+            rival_button.addEventListener("click", create_proxy(rival_handler))
     for survey_id, survey_handler in (("survey-toggle-button", on_toggle_survey), ("survey-commit-button", commit_survey),
                                       ("survey-remove-button", on_survey_remove_last), ("survey-decline-button", on_survey_decline),
                                       ("survey-cancel-button", cancel_survey)):  # B-13

@@ -1,6 +1,6 @@
 # Site-Wide TODO (round 3)
 
-**Progress: 531/1095 items checked off (48.5%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land.
+**Progress: 532/1095 items checked off (48.6%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land.
 
 Built from your answers in `planning/IMPROVEMENT-IDEAS-ROUND-3.md` (Part 4). Every Round 3 section is now answered (2026-10-07 below the Warframe section); earlier this list held only: **GB** (Canopy gamified), **M** (new games), **N** (seasonal events), **O** (Trade Empire and Continuum replayability), **P/Q/S/T** (Signal, Undersleep, Overclock, Last Line open questions), **X** (Warframe tracker) and **R** (returning later). GC-GI, A-L, U, Z and Y are unanswered and wait for you. The previous list is archived at `planning/todo-archive/260914_260927.md`; anything from it that was moved here is marked "moved" there.
 
@@ -47,7 +47,7 @@ Rules carried over: "yes" items are here, "later" items are parked in `planning/
 - [x] GB-9: Ranger contracts board.
 - [x] GB-10: Seed Vault meta-progression (skill-tree style, per W-3).
 - [x] GB-11: Fast-forward toggle (1x/2x/4x) plus pause (per W-2).
-- [ ] GB-12: Rival logging company, as a possible 1v1 game mode (design it as a mode; park the 1v1 pairing on W-6).
+- [x] GB-12: Rival logging company, as a possible 1v1 game mode (design it as a mode; park the 1v1 pairing on W-6).
 - [x] GB-13: Poacher whack-a-mole, as a level/mode via the level select (not in the base game).
 - [x] GB-14: Forest name and adopted-tree nickname with log narration.
 - [x] GB-15: Storm front events, as a level/mode via the level select.

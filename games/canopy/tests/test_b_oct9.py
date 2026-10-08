@@ -2234,3 +2234,143 @@ def test_custom_layouts_stay_out_of_the_standard_best_and_averages(game_env):
     m._bank_lifetime()
     assert json.loads(store[m.LIFETIME_STORAGE_KEY])["by_difficulty"] == {}
     assert json.loads(store[m.LIFETIME_STORAGE_KEY])["sessions"] == 1
+
+
+# ---- GB-12 rival logging company ----
+
+def _rival(m):
+    m.current_difficulty = m.DIFFICULTY_RIVAL
+    m._reset_rival()
+    for p in m.plots:
+        p.state, p.value, p.ticks_intact = m.PRESERVED, 40.0, 5
+    m.heart_tree_index = None
+    m.total_income = 500.0
+
+
+def test_nothing_happens_on_other_difficulties(game_env):
+    m = game_env.module
+    m.forest_tick = 500
+    for _ in range(100):
+        m.forest_tick += 1
+        m._rival_tick()
+    assert m.rival_notice is None and m.rival_claims == {} and m.rival_status_text() == ""
+
+
+def test_a_bid_is_flagged_on_an_edge_plot_ten_ticks_ahead(game_env):
+    m = game_env.module
+    _rival(m)
+    m.forest_tick = m.RIVAL_FIRST_BID_TICKS
+    m._rival_tick()
+    assert m.rival_notice is not None and m.rival_notice["ticks_left"] == m.RIVAL_NOTICE_TICKS
+    target = m.rival_notice["plot"]
+    assert m._is_edge(target) and m.plots[target].state == m.PRESERVED
+    assert "bidding on" in m.rival_status_text() and "easement" in m.rival_status_text()
+    assert any(e["kind"] == "rival" for e in m.forest_log)
+
+
+def test_an_unanswered_bid_becomes_a_claim_that_expires_and_the_plot_comes_back(game_env):
+    m = game_env.module
+    _rival(m)
+    m.forest_tick = m.RIVAL_FIRST_BID_TICKS
+    m._rival_tick()
+    target = m.rival_notice["plot"]
+    for _ in range(m.RIVAL_NOTICE_TICKS):
+        m.forest_tick += 1
+        m._rival_tick()
+    assert m.rival_notice is None and target in m.rival_claims
+    assert m.plots[target].state == m.BARE and m.plots[target].clear_count == 0 and m.plots[target].value == 0.0
+    assert m.plots[target].replant() is False  # a mining claim cannot be planted
+    for _ in range(m.RIVAL_CLAIM_TICKS):
+        m.forest_tick += 1
+        m._rival_tick()
+    assert target not in m.rival_claims and m.plots[target].replant() is True
+
+
+def test_an_easement_costs_a_share_of_the_plots_value_and_protects_it_for_good(game_env):
+    m = game_env.module
+    _rival(m)
+    m.forest_tick = m.RIVAL_FIRST_BID_TICKS
+    m._rival_tick()
+    target = m.rival_notice["plot"]
+    m.plots[target].value = 200.0
+    assert m.easement_cost(target) == 30.0
+    m.total_income = 500.0
+    assert m.lock_easement() is True
+    assert m.total_income == 470.0 and target in m.rival_locked and m.rival_notice is None
+    assert target not in m._rival_candidates()
+    m.total_income = 5.0
+    other = next(i for i in range(len(m.plots)) if i != target)
+    assert m.can_lock(other) is False  # not enough income: the choice is simply unavailable, never a penalty
+    assert m.easement_cost(other) == max(m.RIVAL_EASEMENT_MIN, round(0.15 * m.plots[other].value, 1))
+
+
+def test_a_locked_plot_survives_its_notice(game_env):
+    m = game_env.module
+    _rival(m)
+    m.rival_notice = {"plot": 0, "ticks_left": 1}
+    m.rival_locked.add(0)
+    m._rival_tick()
+    assert m.plots[0].state == m.PRESERVED and 0 not in m.rival_claims
+
+
+def test_buying_out_a_claim_frees_the_plot_at_once(game_env):
+    m = game_env.module
+    _rival(m)
+    m.plots[0].state, m.plots[0].value = m.BARE, 0.0
+    m.rival_claims[0] = 30
+    m.selected_index = 0
+    income = m.total_income
+    assert m.can_buy_out(0) and m.buy_out_claim() is True
+    assert m.total_income == income - m.RIVAL_BUYOUT_COST and 0 not in m.rival_claims and m.plots[0].replant() is True
+    m.rival_claims[1] = 5
+    m.total_income = 1.0
+    assert m.can_buy_out(1) is False
+
+
+def test_bids_come_faster_down_to_a_floor(game_env):
+    m = game_env.module
+    _rival(m)
+    intervals = []
+    for bids in range(0, 20):
+        m.rival_state["bids"] = bids
+        intervals.append(m.rival_bid_interval())
+    assert intervals == sorted(intervals, reverse=True) and intervals[0] == m.RIVAL_INTERVAL_TICKS and intervals[-1] == m.RIVAL_INTERVAL_FLOOR
+
+
+def test_rival_state_saves_validates_and_resets(game_env):
+    m = game_env.module
+    m.reset_session(difficulty=m.DIFFICULTY_RIVAL)
+    assert "rival" not in m.get_state()
+    m.rival_claims[3] = 12
+    m.rival_locked.update({1, 2})
+    m.rival_notice = {"plot": 5, "ticks_left": 4}
+    m.rival_state.update({"next_bid": 90, "bids": 2})
+    state = m.get_state()
+    m.reset_session(difficulty=m.DIFFICULTY_RIVAL)
+    assert m.rival_claims == {} and m.rival_locked == set() and m.rival_notice is None
+    m.load_state(state)
+    assert m.rival_claims == {3: 12} and m.rival_locked == {1, 2} and m.rival_notice == {"plot": 5, "ticks_left": 4}
+    assert m.rival_state == {"next_bid": 90, "bids": 2}
+    state["rival"] = {"claims": {"x": 5, "99": 5, "3": 9999}, "locked": [-1, "a", 2], "notice": {"plot": 99, "ticks_left": 3}}
+    m.load_state(state)
+    assert m.rival_claims == {} and m.rival_locked == {2} and m.rival_notice is None
+
+
+def test_tiles_show_a_glyph_for_bids_claims_and_easements(game_env):
+    m = game_env.module
+    _rival(m)
+    m.rival_notice = {"plot": 0, "ticks_left": 6}
+    m.rival_locked.add(1)
+    m.plots[2].state = m.BARE
+    m.rival_claims[2] = 20
+    m.render()
+    tiles = game_env.elements["plot-grid"].children
+    assert "plot-bid" in tiles[0].className and "plot-easement" in tiles[1].className and "plot-claimed" in tiles[2].className
+    assert all(any(c.className == "rival-mark" for c in tiles[i].children) for i in (0, 1, 2))
+    assert game_env.elements["rival-lock-button"].hidden is False and game_env.elements["rival-status"].hidden is False
+    m.current_difficulty = m.DIFFICULTY_NORMAL
+    m.render()
+    assert game_env.elements["rival-lock-button"].hidden is True
+    assert "Rival logging company" not in m.session_tag_text()
+    m.current_difficulty = m.DIFFICULTY_RIVAL
+    assert "Rival logging company" in m.session_tag_text()
