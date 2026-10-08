@@ -323,6 +323,8 @@
       <p id="funds-display" class="status-line">Funds: 300</p>
       <p id="acidity-display" class="status-line">Ocean acidity: 0.0</p>
       <p id="acidity-past-display" class="status-line status-line--muted">Three seasons ago: not yet played (0 of 3 seasons banked)</p>
+      <!-- GD-25: seasons in a row without an acidity rise; a star frame at 5 and 10. -->
+      <p id="quiet-seasons-display" class="meter-label quiet-seasons"></p>
       <details class="info-toggle"><summary>i</summary><p>Ocean acidity doesn't hurt you right away — it only affects fishing yield after a delay of several seasons, so acidity you raise now shows up as a fish-stock problem later, not immediately.</p></details>
       <div class="meter"><div id="acidity-bar" class="meter-fill meter-fill--acidity"></div></div>
       <p id="fish-yield-display" class="status-line">Fishing yield: 100%</p>
@@ -407,6 +409,21 @@
       <p id="adaptation-tier-display" class="status-line">Adaptation tier: No adaptation (0% damage dampening)</p>
       <details class="info-toggle"><summary>i</summary><p>Adaptation tiers unlock at fixed total-investment thresholds (3, 6, then 10 units) — it's cumulative and never decays, so spreading investment out over many seasons works just as well as investing it all at once.</p></details>
       <p id="adaptation-tier-progress" class="comparison-message">0/3 invested toward Sandbag berms (next tier).</p>
+      <!-- D-19: how many seasons until each tier and diversification level is affordable, with one pinned target. -->
+      <details class="sea-level-stats-toggle afford-panel">
+        <summary>Affordable in how many seasons?</summary>
+        <p id="afford-pinned" class="comparison-message afford-pinned"></p>
+        <label for="afford-pin-select">Pin a target</label>
+        <select id="afford-pin-select"></select>
+        <p id="afford-list" class="comparison-message afford-list"></p>
+      </details>
+      <!-- GD-19: one pinned personal goal with a progress bar; a ping when it is reached. -->
+      <div class="goal-banner">
+        <label for="goal-select">Pinned goal</label>
+        <select id="goal-select"></select>
+        <div class="meter" aria-hidden="true"><div id="goal-bar" class="meter-fill meter-fill--goal"></div></div>
+        <p id="goal-text" class="comparison-message goal-text" role="status"></p>
+      </div>
       <!-- UI decluttering pass (planning/TODO.md closing task): D3's
            flood countdown and D12's worst-season record are both
            "nice to know" derived stats, not something a player needs
@@ -477,6 +494,7 @@
         <summary>Settlement name &amp; history</summary>
         <p id="settlement-heading" class="meter-label">Your settlement — chronicle</p>
         <input id="settlement-name-input" class="settlement-name-input" type="text" maxlength="24" placeholder="Name your settlement" aria-label="Settlement name">
+        <button id="roll-name-button" class="secondary" type="button" title="Roll a fun harbour name">🎲 Roll a name</button>
         <div id="settlement-chronicle" class="ticker-history-list">Nothing to record yet — history starts as you play.</div>
       </details>
       <!-- D-18: copies the name, summary and chronicle as plain text. -->
@@ -571,6 +589,8 @@
         </div>
       </div>
 
+      <!-- D-20: funds after the investment under the pointer or focus, and after this season's upkeep. -->
+      <p id="net-funds-chip" class="net-funds-chip" role="status" aria-live="polite"></p>
       <div class="advance-row">
         <button id="advance-season-button" class="primary" title="Shortcut: A">Advance Season</button>
         <!-- D-15: up to five quiet seasons; stops before a storm forecast, fish-yield warning,

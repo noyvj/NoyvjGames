@@ -1,6 +1,6 @@
 # Site-Wide TODO (round 3)
 
-**Progress: 533/1095 items checked off (48.7%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land.
+**Progress: 538/1095 items checked off (49.1%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land.
 
 Built from your answers in `planning/IMPROVEMENT-IDEAS-ROUND-3.md` (Part 4). Every Round 3 section is now answered (2026-10-07 below the Warframe section); earlier this list held only: **GB** (Canopy gamified), **M** (new games), **N** (seasonal events), **O** (Trade Empire and Continuum replayability), **P/Q/S/T** (Signal, Undersleep, Overclock, Last Line open questions), **X** (Warframe tracker) and **R** (returning later). GC-GI, A-L, U, Z and Y are unanswered and wait for you. The previous list is archived at `planning/todo-archive/260914_260927.md`; anything from it that was moved here is marked "moved" there.
 
@@ -381,8 +381,8 @@ Your remaining Round 3 answers (Grid to Drift gamified, SOL to Le Champ de Mots,
 - [ ] D-16: Add high-contrast and dyslexia-friendly font toggles to the shared site settings so every game gets them, with Tide's grid tiles and meter bars as the first high-contrast palette. (needs shared/site-settings.js)
 - [ ] D-17: Add ticker filter chips (Fish / Sea / Economy / Storm / Chronicle) and a search box to Tide's delayed-effect ticker and full history. (Partly done 2026-10-07: chips and search on the full history only; the short live ticker stays unfiltered by design.)
 - [x] D-18: Add a Copy as text button to Tide that copies the settlement name, chronicle and session summary to the clipboard.
-- [ ] D-19: Show 'affordable in N seasons at current income' beside each Tide adaptation tier and diversification level, with a pin to keep one target highlighted.
-- [ ] D-20: Add a net-funds preview chip to Tide that shows funds after purchase and after this season's upkeep (heritage, tier) when hovering or selecting any investment.
+- [x] D-19: Show 'affordable in N seasons at current income' beside each Tide adaptation tier and diversification level, with a pin to keep one target highlighted.
+- [x] D-20: Add a net-funds preview chip to Tide that shows funds after purchase and after this season's upkeep (heritage, tier) when hovering or selecting any investment.
 - [x] D-21: Add a crosshair readout to Tide's trend graphs: hover or tap shows a vertical line and tooltip with that season's acidity, yield, damage and funds.
 - [x] D-22: Add a range selector (last 10 / last 20 / all seasons) to Tide's D7 timeline and D10 average-line graphs.
 - [x] D-23: Add an optional series-markers toggle to Tide's graphs with distinct dash styles and point shapes (circle/square/triangle) per series.
@@ -411,14 +411,14 @@ Your remaining Round 3 answers (Grid to Drift gamified, SOL to Le Champ de Mots,
 - [ ] GD-16: Add boat traffic to Tide's scene: small boat sprites drift across, more with higher fish yield and population, vanishing after a crash and leaving one abandoned hull; ambient only, off with reduced motion.
 - [ ] GD-17: Add harbor-master crew quips to Tide: one-line ticker voice triggered by real state changes ('Wall's holding, boss. Ask me again in five seasons.'), hidden by the existing shared Story toggle plus its own mute switch in Settings.
 - [ ] GD-18: Add secret coastline critters to Tide: after set conditions (low acidity for 5 seasons; a heritage site saved through a storm) a seal or whale fin appears on the scene and can be clicked to log it in a Sightings list.
-- [ ] GD-19: Add a pin-a-goal banner to Tide: pick one personal goal from a dropdown ('Keep 4 rows dry', 'Reach 200 population') with a small progress bar under the header and a ping when reached.
+- [x] GD-19: Add a pin-a-goal banner to Tide: pick one personal goal from a dropdown ('Keep 4 rows dry', 'Reach 200 population') with a small progress bar under the header and a ping when reached.
 - [ ] GD-20: Add Rewind Tide to Tide: one charge per run retracts the last Advance Season and marks the run with a small tin-hat icon in the summary so records stay honest.
 - [ ] GD-21: Show the Tide storm forecast as a range with a chance to overtop seawalls ('surge 18-26, 70% to overtop Seawalls') drawn as a small bell-curve chip.
 - [ ] GD-22: Add achievement cosmetic themes to Tide: fortified_in_time, stocks_rebound and similar achievements unlock scene themes (dusk sky, storm-glass, coral-pink sand), selectable in Settings.
 - [ ] GD-23: Add optional speedrun trackers to Tide: fewest clicks and fewest seconds to max adaptation tier, stored beside best-coastline-saved and shown in the session summary.
 - [ ] GD-24: Add a hard-lag ironman badge to Tide: finishing a 20-season run in Hard Lag without Rewind or checkpoint replay earns a gold-anchor badge on the header and settlement history. (needs GD-20)
-- [ ] GD-25: Add a quiet-seasons counter to Tide's meter view: seasons since the last acidity rise, with a glowing frame at 5 and 10.
-- [ ] GD-26: Add a dice button next to Tide's settlement name input that rolls fun harbor names ('Port Regret', 'Kelp Junction') and have the chronicle reference it.
+- [x] GD-25: Add a quiet-seasons counter to Tide's meter view: seasons since the last acidity rise, with a glowing frame at 5 and 10.
+- [x] GD-26: Add a dice button next to Tide's settlement name input that rolls fun harbor names ('Port Regret', 'Kelp Junction') and have the chronicle reference it.
 - [ ] GD-27: Add a heritage-site rescue moment to Tide: when a site is saved at the last second before its row floods, show a lifeboat icon and 'SAVED!' burst plus a chronicle entry.
 - [ ] GD-28: Add Domino Season to Tide: when several rows flood in one season the ticker calls it with a tally, and a small comeback bonus (temporary cheaper barriers) follows so a disaster becomes a pivot.
 - [ ] GD-30: Add a season-end report card to Tide: a one-second overlay after each Advance Season with three stat chips (funds, acidity, fish deltas) coloured and iconed by good/bad, then fading; icons not hue-only, off with reduced motion.

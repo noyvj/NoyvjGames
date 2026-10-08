@@ -1777,6 +1777,15 @@ html[data-theme="light"] .graph-chip[aria-pressed="true"] { border-color: #1b5f8
 html[data-theme="light"] .coastline-grid--scrubbed { outline-color: #1d3fa8; }
 html[data-theme="light"] .planner-input { background: #ffffff; color: #1b2233; border: 1px solid rgba(70, 95, 170, 0.45); }
 
+/* 2026-10-09 pass: D-19 affordability, D-20 net-funds chip, GD-19 pinned goal, GD-25 quiet seasons. */
+.net-funds-chip { min-height: 1.2em; margin: 0.3rem 0; font-size: 0.85rem; }
+.afford-list { white-space: pre-line; }
+.goal-banner { margin: 0.5rem 0; }
+.meter-fill--goal { background: #5fb3a1; }
+.quiet-seasons { margin: 0.2rem 0; }
+.quiet-glow-5 { outline: 2px solid currentColor; outline-offset: 3px; border-radius: 4px; }
+.quiet-glow-10 { outline: 4px double currentColor; outline-offset: 3px; border-radius: 4px; }
+
 /* ============================================================
    Y11b light-theme polish (2026-09-27). Light-only rules from a
    computed-style WCAG contrast scan of the light theme (fresh game, 46

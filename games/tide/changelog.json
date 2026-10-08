@@ -1,6 +1,10 @@
 {
   "changelog": [
     {
+      "date": "2026-10-09",
+      "entry": "New: hover or focus an Invest button to see your funds after buying and after this season's heritage upkeep. A new Affordable in how many seasons? panel lists every adaptation tier and diversification level still ahead with how long they would take at your current income, and you can pin one target. Pin one personal goal (such as Keep 4 rows dry or Reach 200 population) under the investments and watch its bar fill; you get one ping when it is reached. The meters now count quiet seasons in a row without an acidity rise, with a star frame at 5 and 10. In the settlement panel, Roll a name picks a fun harbour name and writes it into the chronicle."
+    },
+    {
       "date": "2026-10-08",
       "entry": "New: a line under the ocean acidity shows what acidity was three seasons ago and whether it is up, down or unchanged now, so the delay between what you did and what the fish feel is visible as numbers."
     },

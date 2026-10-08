@@ -57,6 +57,15 @@ ELEMENT_IDS = [
     "session-summary-toggle-button",
     "session-summary-panel",
     "session-summary-text",
+    "net-funds-chip",
+    "quiet-seasons-display",
+    "afford-pinned",
+    "afford-pin-select",
+    "afford-list",
+    "goal-select",
+    "goal-bar",
+    "goal-text",
+    "roll-name-button",
     # D16: output-mix sub-choice.
     "output-mix-select",
     # D9: harder-lag difficulty toggle.

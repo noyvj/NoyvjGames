@@ -433,6 +433,21 @@ class SettlementState:
         self.season_ledger = []
         # D-4: one compact snapshot per resolved season (see _record_snapshot()).
         self.season_snapshots = []
+        # GD-19: the one personal goal pinned under the header, and whether its ping already fired.
+        self.pinned_goal = ""
+        self.pinned_goal_reached = False
+
+    # ---- GD-25 quiet seasons -----------------------------------------
+    def quiet_seasons(self):
+        """Seasons in a row (counting back from the latest) in which acidity did not rise."""
+        history = self.acidity_history
+        count = 0
+        for i in range(len(history) - 1, -1, -1):
+            previous = history[i - 1] if i > 0 else 0.0
+            if history[i] > previous + 1e-9:
+                break
+            count += 1
+        return count
 
     # ---- D1 managed retreat ------------------------------------------
     def row_lost(self, row):
@@ -3772,6 +3787,264 @@ def acidity_past_text():
     return f"Three seasons ago: acidity {past:.1f} (now {state.acidity:.1f}, {word})"
 
 
+# ===========================================================================
+# 2026-10-09 pass: D-19 affordability, D-20 net-funds chip, GD-19 pinned goal, GD-25 quiet seasons, GD-26 name dice
+# ===========================================================================
+
+AFFORD_PIN_KEY = "tide_afford_pin_v1"
+afford_pin = ""  # id of the target highlighted in the affordability list ("" for none); kept per browser
+
+
+def season_net_income():
+    """Funds gained in one more season at today's numbers: output (fish-tied part included), diversification, less heritage upkeep."""
+    mix = OUTPUT_MIX[state.output_mix]
+    income = state.capacity["output"] * OUTPUT_INCOME_PER_UNIT * (
+        mix["fishing_share"] * state.fish_yield_multiplier() + (1 - mix["fishing_share"])
+    )
+    tourism, aquaculture = state.diversified_income()
+    return income + tourism + aquaculture - HERITAGE_UPKEEP * state.protected_heritage_count()
+
+
+def seasons_to_afford(cost, funds=None, income=None):
+    """0 when affordable now, a whole number of seasons otherwise, None when income will never cover it."""
+    funds = state.funds if funds is None else funds
+    income = season_net_income() if income is None else income
+    if funds >= cost:
+        return 0
+    if income <= 0:
+        return None
+    return int(math.ceil((cost - funds) / income))
+
+
+def afford_targets():
+    """(id, label, total cost) for each adaptation tier still ahead and each diversification level still open."""
+    out = []
+    for i, tier in enumerate(ADAPTATION_TIERS):
+        if i > state.current_tier_index():
+            missing = max(0, tier["threshold"] - state.capacity["adaptation"])
+            out.append((f"tier{i}", f"{tier['name']} (tier {i})", missing * INVEST_COST["adaptation"]))
+    for kind, label in (("tourism", "Tourism"), ("aquaculture", "Aquaculture")):
+        level = state.diversification[kind]
+        if level < DIVERSIFY_MAX_LEVEL:
+            out.append((f"div-{kind}", f"{label} level {level + 1}", DIVERSIFY_COST[kind]))
+    return out
+
+
+def afford_text_for(cost):
+    n = seasons_to_afford(cost)
+    if n == 0:
+        return "affordable now"
+    if n is None:
+        return "not affordable at current income"
+    return f"affordable in {n} season{'s' if n != 1 else ''} at current income"
+
+
+def afford_lines():
+    pinned = afford_pin
+    lines = []
+    for target_id, label, cost in afford_targets():
+        mark = "\U0001F4CC " if target_id == pinned else ""
+        lines.append(f"{mark}{label}: {cost} funds, {afford_text_for(cost)}.")
+    return lines
+
+
+def load_afford_pin():
+    global afford_pin
+    value = _read_local_storage_item(AFFORD_PIN_KEY)
+    afford_pin = value if isinstance(value, str) else ""
+
+
+def on_afford_pin_change(event=None):
+    global afford_pin
+    select = document.getElementById("afford-pin-select")
+    afford_pin = str(getattr(select, "value", "") or "")
+    _write_local_storage_item(AFFORD_PIN_KEY, afford_pin)
+    render_afford()
+
+
+def render_afford():
+    box, select = document.getElementById("afford-list"), document.getElementById("afford-pin-select")
+    targets = afford_targets()
+    if box is not None:
+        lines = afford_lines()
+        box.innerText = "\n".join(lines) if lines else "Every adaptation tier and diversification level is already in place."
+    if select is not None:
+        select.innerHTML = ""
+        none = document.createElement("option")
+        none.value = ""
+        none.innerText = "No pinned target"
+        select.appendChild(none)
+        for target_id, label, _cost in targets:
+            option = document.createElement("option")
+            option.value = target_id
+            option.innerText = label
+            select.appendChild(option)
+        select.value = afford_pin if any(t[0] == afford_pin for t in targets) else ""
+    pinned_el = document.getElementById("afford-pinned")
+    if pinned_el is not None:
+        pin = next((t for t in targets if t[0] == afford_pin), None)
+        pinned_el.innerText = f"\U0001F4CC {pin[1]}: {afford_text_for(pin[2])}." if pin else ""
+
+
+def net_funds_preview(category):
+    cost = INVEST_COST[category]
+    after = state.funds - cost
+    upkeep = HERITAGE_UPKEEP * state.protected_heritage_count()
+    return {"cost": cost, "after_purchase": after, "upkeep": upkeep, "after_upkeep": max(0, after - upkeep), "affordable": after >= 0}
+
+
+def net_funds_text(category):
+    if category not in INVEST_COST:
+        return ""
+    p = net_funds_preview(category)
+    label = INVEST_LABELS[category]
+    if not p["affordable"]:
+        return f"{label} costs {p['cost']}: you have {state.funds:.0f}, so {-p['after_purchase']:.0f} more funds are needed."
+    upkeep = f"{p['after_upkeep']:.0f} after this season's upkeep of {p['upkeep']}" if p["upkeep"] else "no upkeep due this season"
+    return f"{label}: funds {state.funds:.0f}, then {p['after_purchase']:.0f} after buying, {upkeep}."
+
+
+def _make_net_funds_handler(category):
+    def handler(event=None):
+        chip = document.getElementById("net-funds-chip")
+        if chip is not None:
+            chip.innerText = net_funds_text(category) if category else ""
+    return handler
+
+
+# GD-19: goals the player can pin. Each is (label, current value, target value); reached when current >= target.
+GOALS = {
+    "rows4": ("Keep 4 rows dry", lambda: state.rows_dry_count(), 4),
+    "rows5": ("Keep 5 rows dry", lambda: state.rows_dry_count(), 5),
+    "pop200": ("Reach 200 population", lambda: state.population, 200),
+    "tier3": ("Reach the Reinforced seawalls tier", lambda: state.current_tier_index(), 3),
+    "funds500": ("Hold 500 funds", lambda: state.funds, 500),
+    "fish90": ("Bring fishing yield to 90%", lambda: state.fish_yield_multiplier() * 100, 90),
+    "heritage2": ("Protect both heritage sites", lambda: state.protected_heritage_count(), 2),
+    "quiet5": ("Five quiet seasons in a row", lambda: state.quiet_seasons(), 5),
+}
+
+
+def goal_progress():
+    """(label, current, target, reached) for the pinned goal, or None."""
+    entry = GOALS.get(state.pinned_goal)
+    if entry is None:
+        return None
+    label, current_fn, target = entry
+    current = current_fn()
+    return label, current, target, current >= target
+
+
+def pin_goal(goal_id):
+    """Pins one goal (or clears with ''). Pinning a goal that is already met does not ping again."""
+    if goal_id != "" and goal_id not in GOALS:
+        return False
+    state.pinned_goal = goal_id
+    state.pinned_goal_reached = bool(goal_id) and goal_progress()[3]
+    return True
+
+
+def check_pinned_goal():
+    """Fires the one ping when the pinned goal is first reached."""
+    progress = goal_progress()
+    if progress is None or state.pinned_goal_reached or not progress[3]:
+        return False
+    state.pinned_goal_reached = True
+    message = f"Goal reached: {progress[0]}."
+    state._log_ticker(message)
+    state._chronicle_event(message)
+    announce(message)
+    return True
+
+
+def render_goal():
+    select, bar, text = document.getElementById("goal-select"), document.getElementById("goal-bar"), document.getElementById("goal-text")
+    if select is not None:
+        if select.innerHTML == "" or len(getattr(select, "children", [])) != len(GOALS) + 1:
+            select.innerHTML = ""
+            none = document.createElement("option")
+            none.value = ""
+            none.innerText = "No pinned goal"
+            select.appendChild(none)
+            for goal_id, (label, _fn, _target) in GOALS.items():
+                option = document.createElement("option")
+                option.value = goal_id
+                option.innerText = label
+                select.appendChild(option)
+        select.value = state.pinned_goal
+    progress = goal_progress()
+    if bar is not None:
+        bar.style.width = f"{min(100, 100 * progress[1] / progress[2]):.0f}%" if progress else "0%"
+    if text is not None:
+        text.innerText = (f"{progress[0]}: {progress[1]:.0f} of {progress[2]}" + (" (reached!)" if progress[3] else "")) if progress else "Pin one goal to track it here."
+
+
+def on_goal_change(event=None):
+    select = document.getElementById("goal-select")
+    pin_goal(str(getattr(select, "value", "") or ""))
+    render_goal()
+
+
+def quiet_seasons_text():
+    n = state.quiet_seasons()
+    stars = "\u2605\u2605" if n >= 10 else "\u2605" if n >= 5 else ""
+    return f"Quiet seasons (acidity not rising): {n} {stars}".strip()
+
+
+def render_quiet():
+    el = document.getElementById("quiet-seasons-display")
+    if el is None:
+        return
+    n = state.quiet_seasons()
+    el.innerText = quiet_seasons_text()
+    el.className = "meter-label quiet-seasons" + (" quiet-glow quiet-glow-10" if n >= 10 else " quiet-glow quiet-glow-5" if n >= 5 else "")
+
+
+HARBOR_NAMES = [
+    "Port Regret", "Kelp Junction", "Saltwick", "Mussel Landing", "Driftwood Cove", "Brine Bay", "Lantern Quay",
+    "Tidewater", "Gull's Rest", "Pebble Harbour", "Samphire", "Anchor Hollow", "Low Tide Lane", "Barnacle Point",
+    "Cormorant Wharf", "Eelgrass End", "Mooring Mile", "Sandbar Rise", "Haven Foam", "Windward Quay", "Oyster Row",
+    "Seaglass Bay", "Rope Walk", "Halyard Hill",
+]
+_harbor_rolls = {"n": 0}
+
+
+def roll_harbor_name():
+    """The next fun harbour name: a fixed walk through the list from a start that depends on the season, so it is repeatable."""
+    n = _harbor_rolls["n"]
+    _harbor_rolls["n"] += 1
+    index = (n * 7 + state.season * 5) % len(HARBOR_NAMES)
+    if HARBOR_NAMES[index] == state.settlement_name:
+        index = (index + 1) % len(HARBOR_NAMES)
+    return HARBOR_NAMES[index]
+
+
+def apply_rolled_name(name):
+    first = not state.settlement_name
+    state.set_settlement_name(name)
+    if first:
+        if not any("Founded" in e["text"] for e in state.chronicle):
+            state.chronicle.insert(0, {"season": state.season, "text": f"Founded as {state.settlement_name}."})
+    else:
+        state._chronicle_event(f"The harbour came to be called {state.settlement_name}.")
+    return state.settlement_name
+
+
+def on_roll_name(event=None):
+    name = apply_rolled_name(roll_harbor_name())
+    name_input = document.getElementById("settlement-name-input")
+    if name_input is not None:
+        name_input.value = name
+    announce(f"Harbour name: {name}.")
+    render()
+
+
+def render_tide_oct9():
+    render_afford()
+    render_goal()
+    render_quiet()
+
+
 def render():
     render_info_page()
     render_sister()
@@ -3898,6 +4171,7 @@ def render():
     almanac_sync()
     render_almanac()
     update_tab_status()
+    render_tide_oct9()
     _sync_earned_and_toast()
 
 
@@ -3908,6 +4182,7 @@ def _make_invest_handler(category):
     def handler(event=None):
         funds_before = state.funds
         done = state.invest(category)
+        check_pinned_goal()  # GD-19
         render()
         if done:
             announce(f"Invested in {INVEST_LABELS[category]}. Funds now {state.funds:.0f}.")
@@ -3918,6 +4193,7 @@ def _make_invest_handler(category):
 
 def on_advance_season(event=None):
     state.advance_season()
+    check_pinned_goal()  # GD-19
     render()
     announce(state.season_result_text())
     _set_advance_note("")
@@ -4146,6 +4422,7 @@ def get_state():
         "replay_count": state.replay_count,
         "season_ledger": copy.deepcopy(state.season_ledger),
         "season_snapshots": copy.deepcopy(state.season_snapshots),
+        **({"pinned_goal": {"id": state.pinned_goal, "reached": state.pinned_goal_reached}} if state.pinned_goal else {}),  # GD-19
         # Write-only projection (ACHIEVEMENTS-SYSTEM-DESIGN.md §1) —
         # always freshly recomputed, never read back in load_state().
         "achievements_earned": achievement_ids_earned(),
@@ -4434,6 +4711,11 @@ def load_state(data):
     state.replay_count = _clamped_int(data.get("replay_count"), 0, 10**4)
     state.season_ledger = _load_ledger(data.get("season_ledger"))
     state.season_snapshots = _load_snapshots(data.get("season_snapshots"))
+    saved_goal = data.get("pinned_goal")  # GD-19: an unknown goal id or a bad shape just means no pinned goal
+    state.pinned_goal, state.pinned_goal_reached = "", False
+    if isinstance(saved_goal, dict) and saved_goal.get("id") in GOALS:
+        state.pinned_goal = saved_goal["id"]
+        state.pinned_goal_reached = saved_goal.get("reached") is True
 
     # D8's flash-tracking global and the achievements toast-diffing
     # baseline both need to resync to the just-loaded state before
@@ -4554,6 +4836,21 @@ def setup():
     name_input = document.getElementById("settlement-name-input")
     if name_input is not None:
         name_input.addEventListener("change", create_proxy(on_settlement_name_change))
+    roll_button = document.getElementById("roll-name-button")  # GD-26
+    if roll_button is not None:
+        roll_button.addEventListener("click", create_proxy(on_roll_name))
+    for category in CATEGORIES:  # D-20: the net-funds chip follows hover and keyboard focus
+        invest_el = document.getElementById(f"{category}-invest-button")
+        if invest_el is not None:
+            for event_name, name in (("mouseenter", category), ("focus", category), ("mouseleave", ""), ("blur", "")):
+                invest_el.addEventListener(event_name, create_proxy(_make_net_funds_handler(name)))
+    pin_select = document.getElementById("afford-pin-select")  # D-19
+    if pin_select is not None:
+        load_afford_pin()
+        pin_select.addEventListener("change", create_proxy(on_afford_pin_change))
+    goal_select = document.getElementById("goal-select")  # GD-19
+    if goal_select is not None:
+        goal_select.addEventListener("change", create_proxy(on_goal_change))
     document.getElementById("set-baseline-button").addEventListener(
         "click", create_proxy(on_set_baseline)
     )
