@@ -510,3 +510,88 @@ def test_pops_are_skipped_while_throttled_but_values_still_grow(game_env):
     assert m.standing_forest_value() > before
     assert m._pending_value_pops == {}
     m.perf_mode = False
+
+
+# ---- B-25: the counter-offer ----
+
+def _request_on(m, index):
+    reason = next(iter(m.STAKEHOLDER_REASON_TEXT))
+    m.pending_stakeholder_request = {"plot_index": index, "reason": reason, "kind": m.STAKEHOLDER_KIND_CLEAR}
+
+
+def test_no_counter_offer_without_a_clear_request(game_env):
+    m = game_env.module
+    m.pending_stakeholder_request = None
+    assert m.counter_offer_plan() is None
+    m.pending_stakeholder_request = {"plot_index": 0, "reason": "x", "kind": m.STAKEHOLDER_KIND_INCENTIVE}
+    assert m.counter_offer_plan() is None
+    assert m.counter_stakeholder_request() is False
+
+
+def test_with_bare_plots_the_counter_replants_the_two_nearest(game_env):
+    m = game_env.module
+    for index in (8, 20, 35):
+        m.plots[index].state = m.BARE
+    _request_on(m, 14)
+    plan = m.counter_offer_plan()
+    assert plan["kind"] == "replant" and plan["plots"] == [8, 20]
+    assert plan["relations"] == m.COUNTER_RELATIONS_TWO_PLOTS and "replant" in plan["preview"]
+    m.community_relations = 50
+    income_before = m.total_income
+    assert m.counter_stakeholder_request() is True
+    assert m.plots[8].state == m.REPLANTING and m.plots[20].state == m.REPLANTING
+    assert m.plots[14].state == m.PRESERVED and m.plots[35].state == m.BARE
+    assert m.community_relations == 50 + m.COUNTER_RELATIONS_TWO_PLOTS
+    assert m.total_income == income_before
+    assert m.pending_stakeholder_request is None
+    assert m.request_history[-1]["choice"] == "countered"
+    assert m.plots[14].requests_survived == 1
+
+
+def test_one_bare_plot_gives_a_smaller_relations_boost(game_env):
+    m = game_env.module
+    m.plots[3].state = m.BARE
+    _request_on(m, 14)
+    plan = m.counter_offer_plan()
+    assert plan["plots"] == [3] and plan["relations"] == m.COUNTER_RELATIONS_ONE_PLOT
+
+
+def test_without_bare_plots_the_counter_harvests_half_and_keeps_the_plot(game_env):
+    m = game_env.module
+    m.plots[14].value = 40.0
+    _request_on(m, 14)
+    plan = m.counter_offer_plan()
+    assert plan["kind"] == "half" and plan["income"] == 20.0
+    assert "20.0 income" in plan["preview"] and "keeps 20.0" in plan["preview"]
+    m.community_relations = 40
+    clears_before = m.plots[14].clear_count
+    income_before = m.total_income
+    assert m.counter_stakeholder_request() is True
+    assert m.plots[14].value == 20.0 and m.plots[14].state == m.PRESERVED
+    assert m.plots[14].clear_count == clears_before  # the soil is not degraded
+    assert m.total_income == income_before + 20.0
+    assert m.community_relations == 40 + m.COUNTER_RELATIONS_HALF
+
+
+def test_relations_are_capped_and_the_button_follows_the_request(game_env):
+    m = game_env.module
+    m.community_relations = 98
+    m.plots[14].value = 10.0
+    _request_on(m, 14)
+    m.render_stakeholder_panel()
+    button = game_env.elements["stakeholder-counter-button"]
+    assert button.hidden is False and "Counter-offer" in button.title
+    m.counter_stakeholder_request()
+    assert m.community_relations == 100
+    m.render_stakeholder_panel()
+    assert button.hidden is True or m.pending_stakeholder_request is None
+
+
+def test_countered_history_survives_a_save(game_env):
+    m = game_env.module
+    m.plots[14].value = 10.0
+    _request_on(m, 14)
+    m.counter_stakeholder_request()
+    state = m.get_state()
+    m.load_state(state)
+    assert [e["choice"] for e in m.request_history] == ["countered"]

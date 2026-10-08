@@ -1283,3 +1283,8 @@ Added readability and feedback features to Thaw without adding screen clutter: t
 **Game:** canopy
 **Did:** B-30: the game measures the gap between ticks (ignoring gaps while the tab is hidden); three gaps longer than 2.5 times the tick interval switch on a performance mode (decorative motion off through a `data-perf-mode` attribute on the page: wildlife flutter, value pops, leaf bursts; value pops are not even created while throttled; a "Performance mode: effects are paused while the game catches up" note under the season forecast, in the Desktop stage bar too), and 30 steady ticks switch it off again. Gameplay and tick maths are untouched.
 **Result:** Canopy tests 950 to 954. Not checked on a genuinely slow machine.
+
+### 2026-10-09 (Canopy, personal pass: counter-offer on clear requests)
+**Game:** canopy
+**Did:** B-25: a third answer to a community clear request, Counter-offer (not shown for incentive offers or replanting grants). With bare plots on the grid it offers to replant the two nearest to the requested plot (distance, then index, so it is deterministic): relations +5 for two plots, +3 for one, the requested plot stays standing and unharmed, no income. With no bare plots it harvests half of the requested plot's value (half goes to income, the plot keeps the rest and its soil is not degraded, since no clear is counted) for relations +5. The button's tooltip and aria-label preview the exact numbers before the player commits. A counter is recorded in the request history as "countered", counts as surviving a request for that plot, does not count as a grant or a decline (so the refusal achievements are unaffected), and relations are capped at 100.
+**Result:** Canopy tests 954 to 960. Not checked live in a browser.

@@ -1083,6 +1083,73 @@ def _note_community_relations_change():
     _note_season_relations()  # GB-30
 
 
+# B-25 (2026-10-09): a third answer to a clear-request, the Counter-offer. Deterministic, previewed with its numbers:
+# with bare plots available you offer to replant up to two of them (the nearest to the requested plot) instead;
+# with none you harvest half of the requested plot's value and keep the rest standing (its soil is not degraded).
+COUNTER_RELATIONS_TWO_PLOTS = 5
+COUNTER_RELATIONS_ONE_PLOT = 3
+COUNTER_RELATIONS_HALF = 5
+COUNTER_HALF_FRACTION = 0.5
+
+
+def counter_offer_plan():
+    """The counter-offer for the pending clear request, or None (no request, or not a clear request)."""
+    if pending_stakeholder_request is None:
+        return None
+    if pending_stakeholder_request.get("kind", STAKEHOLDER_KIND_CLEAR) != STAKEHOLDER_KIND_CLEAR:
+        return None
+    target = pending_stakeholder_request["plot_index"]
+    if not 0 <= target < len(plots):
+        return None
+    target_row, target_col = divmod(target, GRID_COLS)
+    bare = sorted(
+        (p for p in plots if p.state == BARE and p.index != target),
+        key=lambda p: (abs(divmod(p.index, GRID_COLS)[0] - target_row) + abs(divmod(p.index, GRID_COLS)[1] - target_col), p.index),
+    )[:2]
+    if bare:
+        delta = COUNTER_RELATIONS_TWO_PLOTS if len(bare) == 2 else COUNTER_RELATIONS_ONE_PLOT
+        labels = " and ".join(plot_coordinate_label(p.index) for p in bare)
+        return {
+            "kind": "replant", "target": target, "plots": [p.index for p in bare], "relations": delta, "income": 0.0,
+            "preview": f"Counter-offer: replant {labels} instead. Community relations +{delta}; "
+                       f"{plot_coordinate_label(target)} stays standing and unharmed.",
+        }
+    value = plots[target].value
+    payout = round(value * COUNTER_HALF_FRACTION, 2)
+    return {
+        "kind": "half", "target": target, "plots": [], "relations": COUNTER_RELATIONS_HALF, "income": payout,
+        "preview": f"Counter-offer: harvest half of {plot_coordinate_label(target)} ({payout:.1f} income). "
+                   f"It keeps {value - payout:.1f} value and its soil. Community relations +{COUNTER_RELATIONS_HALF}.",
+    }
+
+
+def counter_stakeholder_request(event=None):
+    global pending_stakeholder_request, community_relations, total_income, total_replants
+    plan = counter_offer_plan()
+    if plan is None or not _stakeholder_target_is_still_standing():
+        return False
+    target = plan["target"]
+    snapshot = _request_snapshot(pending_stakeholder_request, STAKEHOLDER_KIND_CLEAR)
+    if plan["kind"] == "replant":
+        for index in plan["plots"]:
+            if plots[index].replant():
+                total_replants += 1
+        _log_event("preserve", f"Countered the request to clear {plot_coordinate_label(target)}: replanting "
+                   + ", ".join(plot_coordinate_label(i) for i in plan["plots"]) + " instead", target)
+    else:
+        plots[target].value = round(plots[target].value - plan["income"], 2)
+        total_income += plan["income"]
+        _log_event("preserve", f"Countered the request to clear {plot_coordinate_label(target)}: harvested half of its value "
+                   f"({plan['income']:.1f}) and kept it standing", target)
+    plots[target].requests_survived += 1
+    community_relations = min(100, community_relations + plan["relations"])
+    _note_community_relations_change()
+    _record_request_choice("countered", snapshot)
+    pending_stakeholder_request = None
+    render()
+    return True
+
+
 def grant_stakeholder_request(event=None):
     global pending_stakeholder_request, community_relations, total_income
     global stakeholder_grants_count, total_replants, season_cleared
@@ -2823,6 +2890,14 @@ def render_stakeholder_panel():
         else INCENTIVE_ACCEPT_TOOLTIP if is_incentive else CLEAR_GRANT_TOOLTIP
     )
     decline_button.title = INCENTIVE_DECLINE_TOOLTIP if is_incentive else CLEAR_DECLINE_TOOLTIP
+    counter_button = _el("stakeholder-counter-button")  # B-25
+    if counter_button is not None:
+        plan = counter_offer_plan()
+        counter_button.hidden = plan is None
+        counter_button.disabled = plan is None
+        if plan is not None:
+            counter_button.title = plan["preview"]
+            counter_button.setAttribute("aria-label", plan["preview"])
     message_el.title = INCENTIVE_MESSAGE_TOOLTIP if is_incentive else ""
     badge = document.getElementById("stakeholder-badge")
     if badge is not None:
@@ -7110,7 +7185,7 @@ def load_state(data):
     request_history.clear()
     for entry in data.get("request_history") or []:
         try:
-            if entry["kind"] in REQUEST_KIND_LABELS and entry["choice"] in ("granted", "declined"):
+            if entry["kind"] in REQUEST_KIND_LABELS and entry["choice"] in ("granted", "declined", "countered"):
                 request_history.append({
                     "tick": max(0, int(entry["tick"])), "plot": int(entry["plot"]), "kind": entry["kind"],
                     "choice": entry["choice"], "value_then": round(float(entry["value_then"]), 2),
@@ -7307,6 +7382,9 @@ def setup():
     replant_button.innerText = "Replant"
     clear_button.addEventListener("click", create_proxy(on_clear))
     replant_button.addEventListener("click", create_proxy(on_replant))
+    counter_button = _el("stakeholder-counter-button")  # B-25
+    if counter_button is not None:
+        counter_button.addEventListener("click", create_proxy(counter_stakeholder_request))
     coach_button = _el("coach-dismiss")  # B-27
     if coach_button is not None:
         coach_button.addEventListener("click", create_proxy(on_dismiss_coach_hints))
