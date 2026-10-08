@@ -53,8 +53,8 @@ Plan deviations: with five tiers the longest cascade is four merges (T1+T1, T2, 
 | 5 | Combos, streaks, festivals | Order combo, cascade bonus, all 6 festivals with previews, personal-best badges | Done (also wildcards, renown unlocks and the three extra archetypes) |
 | 6 | Standard kit + pledge tests | Save widget, settings, confirm dialog, tutorial, mobile dock/HUD, changelog, info panel, pledge tests | Done (opening screen, save widget, tutorial, What's New + banner, About with the pledge list, confirm only for selling tier 4-5 and erasing; `tests/test_pledge.py`). The shared mobile dock and HUD are deliberately not used: the whole counter, the stats and the crates fit one 360x740 screen, so nothing needs pinning |
 | 7 | Achievements + story | 14 achievements, panel and toast, regulars, story toggle | Done (also a visible three-goals list, 40 decorations, regulars page; story lines hidden by the shared story toggle) |
-| 8 | Own-folder wrap-up | Favicon, Desktop boot (`pc-config.json`, `pc.html`), this table, tag | Not started |
-| 9 | Daily Market (optional) | Not part of this build | Not started |
+| 8 | Own-folder wrap-up | Favicon, Desktop boot (`pc-config.json`, `pc.html`), this table, tag | Done (code-drawn favicon, Desktop boot, 236 tests) |
+| 9 | Daily Market (optional) | Not part of this build (user said yes to a Daily Market later; it must follow the pledge: no login reward, no missed-day penalty) | Not started |
 | 10 | Hub registration | BLOCKED ON NOY2; not done in this folder | Blocked |
 
 ## Working conventions
@@ -71,3 +71,9 @@ Under 600px the title and the row of buttons (Tutorial, What's New, Settings, Ab
 - Decorator is "own 10 decorations" (buying puts one out in its slot; there are only six slots).
 - Regulars bond at 1, 3 and 5 visits and rotate three a day (each is back every fourth day) so bond level 3 is reachable in about 20 days; the plan's "hidden variant" per regular is not built (nothing in the game is hidden).
 - Display settings are in localStorage, not the save (the Lexis rule). The shared mobile dock and HUD are not used (nothing scrolls away).
+
+## Desktop boot
+`pc.html` is generated (never edited by hand) from `index.html` and `pc-config.json` by `scripts/generate-pc-pages.py`; `pc.css` and `pc.js` are this game's own. Layout: the stats strip across the top of the stage; the stage is one panel with the customers in a column beside a counter that uses the window's height; the side column holds the crates (stacked), Sell and Broom, the pick-up hint and the tally; Achievements, Regulars, Settings and About are windows (icons and the Menu); `data-phase` on `#game` hides the crates while the stall is closed. The Desktop tutorial lives in `pc.js`. Known limit: at 1024x700 the counter cells are about 50px and the stall panel scrolls a little inside itself.
+
+## Hub registration (not done here)
+Milestone 10 belongs to the owner of the hub files: title card and tags, thumbnail, `sw.js` precache (the game's files plus `pc.*`) with a `SW_VERSION` bump, `offline-manifest.json`, the `game-*.json` files, achievements page, `admin.html`, `shared/site-settings.js`, `sitemap.xml`, share cards and JSON-LD (`scripts/generate-share-cards.py`, which also adds the share block to both pages' heads), `scripts/perf-budget.json`, the smoke tests and the root `CLAUDE.md` row. Until then the shared stats endpoint answers 404 for this game (a harmless read the achievement Share button makes).

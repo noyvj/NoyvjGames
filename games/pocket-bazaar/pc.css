@@ -1,0 +1,53 @@
+/* Pocket Bazaar, Desktop boot (pc.html only). Everything is scoped to the pc layout, so the Classic page is untouched.
+   The stall (customers, counter, closed-day card) is the stage; the crates, Sell/Broom, the pick-up hint and the tally
+   are a side column; the stats strip sits above the stage. The frame, windows and Menu come from shared/pc-shell.css. */
+
+html[data-layout="pc"] #game { padding-bottom: 0.4rem; }
+html[data-layout="pc"] #game { max-width: none; }
+#pc-topbar { grid-template-columns: auto minmax(0, 1fr); grid-template-areas: "title tools"; padding-right: 9rem; }
+#pc-topbar > .game-toolbar { justify-content: flex-end; }
+#pc-topbar > h1 { font-size: 1.4rem; letter-spacing: 0.12em; }
+
+/* The stats strip across the top of the stage. */
+#pc-stagebar #stats { width: 100%; grid-template-columns: repeat(4, minmax(0, 1fr)); margin: 0; }
+html[data-layout="pc"] .stat { display: flex; flex-direction: column; }
+
+/* The stage: one panel that fills the space, scrolling inside itself (the closed card and the shop can be long). */
+#pc-stage > #stall-panel { flex: 1 1 0; min-height: 0; overflow-y: auto; margin: 0; }
+html[data-layout="pc"] .panel-title { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; }
+/* The customers stand in a column to the left of the counter, so the counter can use the window's whole height. */
+html[data-layout="pc"] #open-area { display: grid; grid-template-columns: minmax(12rem, 16rem) minmax(0, 1fr); grid-template-areas: "queue counter" "line counter"; gap: 0.5rem 1rem; align-items: start; }
+html[data-layout="pc"] #queue { grid-area: queue; grid-template-columns: 1fr; max-width: none; margin: 0; gap: 0.5rem; }
+html[data-layout="pc"] #queue-line { grid-area: line; text-align: left; font-size: 0.85rem; margin: 0; white-space: normal; }
+html[data-layout="pc"] #counter { grid-area: counter; margin: 0; }
+html[data-layout="pc"] .customer { min-height: 4.8rem; font-size: 0.9rem; }
+html[data-layout="pc"] .cust-kind { display: block; }
+/* The board is as large as the window's height allows. */
+html[data-layout="pc"] .board { max-width: min(100%, 40rem, calc((100vh - 20rem) * var(--cols) / 6)); }
+
+#pc-body.pc-has-side { grid-template-columns: minmax(0, 1fr) clamp(15rem, 22vw, 21rem); }
+#pc-side { min-width: 0; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; gap: 0.6rem; padding-right: 0.2rem; }
+
+html[data-layout="pc"] .message { min-height: 1.5em; }
+
+/* The side column: crates stacked, big targets, then Sell and Broom, the hint, the tally. */
+#pc-side #tools { display: grid; gap: 0.5rem; max-width: none; margin: 0; }
+#pc-side .crates { flex-direction: column; gap: 0.4rem; }
+#pc-side .crate-btn { flex-direction: row; justify-content: flex-start; min-height: 3rem; font-size: 0.95rem; padding: 0.3rem 0.8rem; }
+#pc-side .crates[data-many="1"] .crate-name { position: static; width: auto; height: auto; clip: auto; overflow: visible; }
+#pc-side .tool-buttons .tool { min-height: 3rem; font-size: 1rem; }
+#pc-side #selection-info { max-width: none; margin: 0; min-height: 4.5em; }
+#pc-side #tally { margin: 0; }
+#pc-side .tally-strip { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+/* While the stall is closed there is no counter to work, so the crates and hints step aside. */
+#game[data-phase="closed"] #pc-side #tools, #game[data-phase="closed"] #pc-side #selection-info { display: none; }
+
+/* The hint bar under the stage. */
+#pc-hintbar { flex: 0 0 auto; }
+html[data-layout="pc"] #story-toggle { top: 0.6rem !important; left: auto !important; right: 12rem !important; }
+
+/* The closed-day card keeps its two buttons right under the heading, so they never scroll out of reach. */
+html[data-layout="pc"] .closed-card { display: flex; flex-direction: column; align-items: center; }
+html[data-layout="pc"] .closed-card #closed-heading { order: -3; }
+html[data-layout="pc"] .closed-card .closed-buttons { order: -2; margin-bottom: 0.5rem; }
+html[data-layout="pc"] .closed-card #summary { order: -1; }

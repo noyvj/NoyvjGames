@@ -545,6 +545,7 @@
     renderAchievements();
     renderRegulars();
     var open = view.phase === "open";
+    $("game").dataset.phase = view.phase;
     $("closed-card").hidden = open;
     $("open-area").hidden = !open;
     renderStats();
@@ -805,7 +806,7 @@
     send({ action: "open" });
     setBusy(false);
     await changelog;
-    if (window.GameTutorial) window.GameTutorial.init(TUTORIAL_STEPS, { gameId: "pocket-bazaar" });
+    if (window.GameTutorial) window.GameTutorial.init(window.pocketBazaarTutorialSteps ? window.pocketBazaarTutorialSteps(TUTORIAL_STEPS) : TUTORIAL_STEPS, { gameId: "pocket-bazaar" });
   }
 
   wire();

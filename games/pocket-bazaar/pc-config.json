@@ -1,0 +1,41 @@
+{
+  "windows": [
+    ["achievements-panel", "achievements-toggle-button", "Achievements"],
+    ["regulars-panel", "regulars-toggle-button", "Regulars"],
+    ["changelog-panel", "changelog-toggle-button", "What's New"],
+    ["settings-panel", "settings-toggle-button", "Settings"],
+    ["info-page-panel", "info-page-toggle-button", "About Pocket Bazaar"]
+  ],
+  "toolbar": {
+    "icons": [
+      ["achievements-toggle-button", "🏆"],
+      ["regulars-toggle-button", "👥"],
+      ["settings-toggle-button", "⚙️"]
+    ],
+    "menu": [
+      {"heading": "Help", "ids": ["tutorial-restart-button", "info-page-toggle-button", "credits-link"]},
+      {"heading": "Records", "ids": ["changelog-toggle-button"]}
+    ]
+  },
+  "composites": [],
+  "adopt": [],
+  "zones": {
+    "topbar": [".hub-back-link", "h1", ".game-toolbar"],
+    "stagebar": ["#stats"],
+    "stage": ["#stall-panel"],
+    "side": ["#tools", "#selection-info", "#tally"],
+    "hidden": [".tagline"]
+  },
+  "readouts": [],
+  "side_label": "Crates, tools and tally",
+  "hints": [
+    ["Enter", "Pick up / drop"],
+    ["1-5", "Open a crate"],
+    ["D", "Hand over"],
+    ["S", "Sell"],
+    ["B", "Broom"],
+    ["Esc", "Menu / close window"],
+    ["?", "All shortcuts"]
+  ],
+  "notify": null
+}

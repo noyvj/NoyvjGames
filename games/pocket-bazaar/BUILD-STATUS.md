@@ -18,8 +18,11 @@ Daily Market (M-4b-9) are NOT part of this build.
 
 - M7 Achievements + story: achievements.py/json (14), panel + toast + goals, regulars.py (12), decorations.py (40), story toggle, 230 tests
 
+- M8 Own-folder wrap-up: pc-config.json, pc.css, pc.js, pc.html (built with a scratch script calling build('pocket-bazaar', cfg) only), layout-pref.js, desktop tests, changelog entry, CLAUDE.md; 236 tests, shared tests -k bazaar 11 passed
+
 ## Next
-- Milestone 8: own-folder wrap-up: favicon polish (icons/favicon-pocket-bazaar.svg exists, redraw if needed), pc-config.json + pc.js (Desktop tutorial) + pc.html via scratch script calling build('pocket-bazaar', cfg) only, layout-pref.js in index.html, CLAUDE.md table, run `python3 -m pytest -q shared/tests -k bazaar`, tag
+- Nothing in this folder. Hub registration (M-4b-10) and the Daily Market (M-4b-9) are other people's.
+- Optional polish if time: manual pre-release checklist play-through (CLAUDE.md), real-device touch drag check.
 
 ## Open problems / notes
 - Local Python is 3.9 (Pyodide runs 3.12): engine code avoids 3.10+ syntax.
