@@ -152,3 +152,4 @@ Several items across the ideas file got parked specifically pending this — you
 ## Parked from the new-game plan answers (2026-10-08)
 
 - Lighthouse: later, consider a ship that goes missing for dramatic effect (your Li1 note). For now no ship is ever lost; the plan stays "no on-screen loss, ships get delayed or damaged".
+- **Deep Descent** (roguelite dungeon crawler, plan in `planning/deep-descent-plan.md`): parked because of the no-roguelike rule; you said yes to dropping it from the list (2026-10-08). Revisit only if you ask.

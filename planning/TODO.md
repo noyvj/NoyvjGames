@@ -174,11 +174,12 @@ Decisions: cozy tone, "Unpacking"-esque; multiple characters, with a story mode 
 - [x] Q-1: Rework the plan for the cozy, multi-character, story-mode direction (update `planning/undersleep-plan.md`).
 - [ ] Q-2: Build Layer A (the game) with characters, the "you" preset and the story arcs, then the personal-touches layer (no medical framing).
 
-## S. Overclock (space roguelike deck-builder; plan in `planning/overclock-plan.md`)
+## S. Overclock (space skill-tree arcade game, reframed from a roguelike; plan in `planning/overclock-plan.md`)
 
 You chose space and delegated the rest (you dislike the genre): I pick the gimmick, run length, meta-progression and story defaults.
 - [x] S-1: Choose and document the gimmick, run length and meta-progression in the plan.
 - [ ] S-2: Build it to the plan's baseline milestones.
+- [ ] S-3: Reframe the plan first (you said yes, 2026-10-08): a fixed set of unlocks you choose in a skill tree, a Reactor Ring you manage, short runs scored on an opt-in leaderboard, no deck, no randomised runs and no permadeath; update `planning/overclock-plan.md` and `planning/round3-plans-index.md` before building.
 
 ## T. Last Line (turn-based tower defense; plan in `planning/last-line-plan.md`)
 
@@ -187,7 +188,7 @@ Decisions: the tower sits in a living hedge-maze that overgrows and dies to make
 - [ ] T-2: Build it to the baseline milestones, with opt-in leaderboards (W-5).
 
 ## U. Deep Descent (plan in `planning/deep-descent-plan.md`, approved as "same as 6")
-- [ ] U-1: Read the plan against the answers to S and T, decide its gimmick, and build it after Overclock and Last Line.
+- (U-1 dropped to LATER, 2026-10-08: you said yes to moving Deep Descent out of the list because of the no-roguelike rule.)
 
 ---
 
