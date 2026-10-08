@@ -2181,6 +2181,18 @@ html[data-forest-palette="meadow"] { --forest-accent: #a7d98a; }
 .timeline-marker:focus { outline: 2px solid currentColor; }
 .timeline-legend { font-size: 0.85em; margin: 0.3rem 0 0; }
 
+/* B-31: the grove wall. Achievement cards tile like the plot grid; locked ones are dim silhouettes with their progress line kept. */
+.achievements-panel.grove-wall:not([hidden]) {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 0.6rem;
+}
+.grove-wall .achievements-hub-link { grid-column: 1 / -1; }
+.achievement-card-glyph { display: block; font-size: 1.8rem; line-height: 1.2; }
+.achievement-card-glyph--locked { filter: brightness(0); opacity: 0.35; }
+.achievement-card-status { margin: 0 0 0.15rem; font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.06em; opacity: 0.75; }
+.achievement-card:not(.achievement-card--earned) { border-style: dashed; }
+
 /* ============================================================
    Light theme (Y11b, 2026-09-27). shared/theme-light-games.css already
    restyles the shared chrome (panels, buttons, inputs, HUD readouts);

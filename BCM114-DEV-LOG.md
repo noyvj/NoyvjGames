@@ -1298,3 +1298,8 @@ Added readability and feedback features to Thaw without adding screen clutter: t
 **Game:** canopy
 **Did:** B-21: a Timeline chart section in the Session Summary, available any time the panel is open. A pure `timeline_model()` joins the report-card series (last 120 ticks, ticks aligned from `forest_tick`) with season bands and event markers taken from the forest log (clear, replant, specialist choice) and the request history (granted, declined, countered). The SVG is drawn in code: season bands with labels, a metric picker (standing value, biodiversity, community relations), invisible hover targets giving every tick's exact value, and markers that differ by shape (cross, triangle, diamond, square) rather than colour, focusable with a title. A text list of the latest events and a shape legend sit underneath for screen readers.
 **Result:** Canopy tests 965 to 969. Not checked live in a browser.
+
+### 2026-10-09 (Canopy, personal pass: grove wall achievements)
+**Game:** canopy
+**Did:** B-31: the achievements panel is laid out as a grid of cards like the plot grid (auto-fill columns, hub link spanning the row). Each card gets one of the six wildlife icons already in the game, cycling in catalog order; earned cards are lit and say "Earned", locked cards show the icon as a dim silhouette, a dashed border and the word "Locked", with the existing progress line kept, so the earned or locked state never depends on colour. Card content, ids and earned logic are untouched.
+**Result:** Canopy tests 969 to 971. Not checked live in a browser.

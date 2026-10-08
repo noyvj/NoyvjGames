@@ -710,3 +710,27 @@ def test_render_timeline_writes_chart_legend_and_empty_message(game_env):
     m.render_timeline_chart()
     assert "<svg" in game_env.elements["timeline-chart"].innerHTML
     assert "No events" in game_env.elements["timeline-legend"].innerText
+
+
+# ---- B-31 grove wall ----
+
+def test_grove_wall_cards_carry_a_wildlife_glyph_and_a_text_status(game_env):
+    m = game_env.module
+    m.achievements_open = True
+    m.update_achievements_display()
+    panel = game_env.elements["achievements-panel"]
+    assert "grove-wall" in panel.className
+    cards = [c for c in panel.children if "achievement-card" in (c.className or "") and getattr(c.dataset, "achievementId", None)]
+    assert len(cards) == len(m.ACHIEVEMENTS)
+    for card in cards:
+        glyph, status = card.children[0], card.children[1]
+        assert glyph.innerText in [icon for icon, _name in m.WILDLIFE_SPECIES]
+        assert status.innerText in ("Earned", "Locked")
+        assert ("achievement-card--earned" in card.className) == (status.innerText == "Earned")
+        assert ("--locked" in glyph.className) == (status.innerText == "Locked")
+
+
+def test_glyphs_cycle_through_the_wildlife_icons(game_env):
+    m = game_env.module
+    n = len(m.WILDLIFE_SPECIES)
+    assert m.grove_wall_glyph(0) == m.grove_wall_glyph(n) != m.grove_wall_glyph(1)

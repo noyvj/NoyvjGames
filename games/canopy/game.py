@@ -3312,6 +3312,11 @@ def on_toggle_achievements(event=None):
     update_achievements_display()
 
 
+def grove_wall_glyph(position):
+    """B-31: the grove wall reuses the wildlife icons already in the game, cycling in catalog order."""
+    return WILDLIFE_SPECIES[position % len(WILDLIFE_SPECIES)][0]
+
+
 def update_achievements_display():
     toggle = document.getElementById("achievements-toggle-button")
     panel = document.getElementById("achievements-panel")
@@ -3328,12 +3333,24 @@ def update_achievements_display():
         return
 
     panel.innerHTML = ""
-    for entry in achievements_summary():
+    panel.className = "section achievements-panel grove-wall"  # B-31: laid out like the plot grid
+    for position, entry in enumerate(achievements_summary()):
         card = document.createElement("div")
         card.className = (
             "achievement-card achievement-card--earned" if entry["earned"] else "achievement-card"
         )
         card.dataset.achievementId = entry["id"]
+
+        glyph = document.createElement("span")  # B-31: wildlife icon, a dim silhouette until earned
+        glyph.className = "achievement-card-glyph" if entry["earned"] else "achievement-card-glyph achievement-card-glyph--locked"
+        glyph.setAttribute("aria-hidden", "true")
+        glyph.innerText = grove_wall_glyph(position)
+        card.appendChild(glyph)
+
+        status = document.createElement("p")
+        status.className = "achievement-card-status"
+        status.innerText = "Earned" if entry["earned"] else "Locked"
+        card.appendChild(status)
 
         label = document.createElement("p")
         label.className = "achievement-card-label"

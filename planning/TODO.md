@@ -1,6 +1,6 @@
 # Site-Wide TODO (round 3)
 
-**Progress: 515/1095 items checked off (47.0%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land.
+**Progress: 516/1095 items checked off (47.1%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land.
 
 Built from your answers in `planning/IMPROVEMENT-IDEAS-ROUND-3.md` (Part 4). Every Round 3 section is now answered (2026-10-07 below the Warframe section); earlier this list held only: **GB** (Canopy gamified), **M** (new games), **N** (seasonal events), **O** (Trade Empire and Continuum replayability), **P/Q/S/T** (Signal, Undersleep, Overclock, Last Line open questions), **X** (Warframe tracker) and **R** (returning later). GC-GI, A-L, U, Z and Y are unanswered and wait for you. The previous list is archived at `planning/todo-archive/260914_260927.md`; anything from it that was moved here is marked "moved" there.
 
@@ -294,7 +294,7 @@ Your remaining Round 3 answers (Grid to Drift gamified, SOL to Le Champ de Mots,
 - [ ] B-28: Add a Canopy mobile bottom sheet opened by long-pressing a plot with large Clear/Replant/Adopt buttons; desktop layout unchanged.
 - [ ] B-29: Add a Canopy custom grid shapes editor: paint which cells exist (island, ring, plus, river-split), save named layouts each with their own personal-best slot, kept out of standard percentiles.
 - [x] B-30: Add a Canopy performance guard: auto-throttle wildlife sprite animation and value-pop effects when the tick loop lags, with a "Performance mode" indicator in Settings and a manual override.
-- [ ] B-31: Restyle Canopy's achievements panel as a forest-themed "grove wall" laid out like the plot grid, with a leaf/wildlife glyph (existing wildlife icons) per earned badge, locked ones as dim silhouettes keeping progress lines.
+- [x] B-31: Restyle Canopy's achievements panel as a forest-themed "grove wall" laid out like the plot grid, with a leaf/wildlife glyph (existing wildlife icons) per earned badge, locked ones as dim silhouettes keeping progress lines.
 
 *Not added: B-18 (later, parked in LATER.md).*
 
