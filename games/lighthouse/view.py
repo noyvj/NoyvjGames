@@ -40,7 +40,7 @@ def sky_for(keep):
     return "day"
 
 
-def ship_view(keep, ship, tick):
+def ship_view(keep, ship, tick, reach):
     rec = keep.progress.get(ship["id"])
     state = rec["state"] if rec else "pending"
     base = SHIP_KINDS[ship["kind"]]
@@ -50,11 +50,14 @@ def ship_view(keep, ship, tick):
         "block": shipgen.block_of_arrival(keep.night, ship), "dir": 1 if unit(keep.seed, "dir", ship["id"]) < 0.5 else -1,
         "seen": rec["seen"] if rec else 0,
     }
+    out["at"] = clock.clock_label(keep.night, ship["arrive"])
     if rec and state == "pending" and keep.phase == "night":
-        out["pos"] = round(max(0.0, min(1.0, (tick - ship["arrive"]) / float(ship["window"]))), 3)
+        out["pos"] = round(max(0.0, min(1.0, (keep.tick - ship["arrive"]) / float(ship["window"] - 1))), 3)
         out["present"] = True
+        out["lit"] = reach >= ship["need"]
     else:
         out["present"] = False
+        out["lit"] = False
     out["arrived"] = rec is not None
     return out
 
@@ -95,6 +98,7 @@ def build(keep, settings):
         "phase": keep.phase, "night": night, "tick": keep.tick, "length": length, "clock": clock.clock_label(night, keep.tick if keep.tick < length else length - 1),
         "season": clock.season_name(night), "season_index": clock.season_of(night), "year": clock.year_of(night),
         "night_in_season": clock.night_in_season(night), "year_night": clock.year_night(night), "nights_per_year": data.NIGHTS_PER_YEAR,
+        "start_min": data.NIGHT_START_MIN[clock.season_of(night)], "tick_minutes": data.TICK_MINUTES,
         "mode": keep.mode, "quiet": keep.quiet, "festival": clock.is_festival(night),
         "sky": sky_for(keep), "darkness": round(clock.darkness(night, tick), 3) if in_night else (0.15 if keep.phase == "evening" else 0.0),
         "cond": cond, "cond_label": COND_LABELS[cond], "cond_icon": COND_ICONS[cond], "wind": wind,
@@ -115,7 +119,7 @@ def build(keep, settings):
         "level_options": [{"id": LEVELS[i], "label": LEVEL_LABELS[i], "reach": LEVEL_REACH[i], "burn": data.LEVEL_BURN[i] * (0.8 if keep.has("wick") else 1.0)}
                           for i in range(4)],
         "blocks": list(BLOCKS),
-        "ships": [ship_view(keep, s, tick) for s in tonight_ships(keep)] if keep.phase in ("night", "morning") else [],
+        "ships": [ship_view(keep, s, tick, reach) for s in tonight_ships(keep)] if keep.phase in ("night", "morning") else [],
         "notice": notice_for(keep, plan_night, plan_mail),
         "notice_night": plan_night,
         "forecast": forecast_view(keep, plan_night),

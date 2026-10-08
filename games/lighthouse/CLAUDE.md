@@ -20,8 +20,8 @@ Python via Pyodide, engine modules with no DOM (the Signal and Lexis pattern: `h
 ## Milestones
 | # | Milestone | Status |
 |---|---|---|
-| 1 | Sim core: seeded weather and ship generators, tick `step()`, oil/brightness/clockwork/structure/energy, day module, `handle`/save contract, text harness | in progress |
-| 2 | Night UI | not started |
+| 1 | Sim core: seeded weather and ship generators, tick `step()`, oil/brightness/clockwork/structure/energy, day module, `handle`/save contract, text harness | DONE (tagged) |
+| 2 | Night UI: SVG scene, beam, ship silhouettes, evening plan, morning report, speed/pause | DONE (tagged) |
 | 3 | Day loop + upgrades | not started |
 | 4 | Complete Quiet mode | not started |
 | 5 | Cast, letters, gifts | not started |

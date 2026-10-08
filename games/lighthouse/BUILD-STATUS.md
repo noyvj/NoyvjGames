@@ -13,10 +13,16 @@ Text harness: `python3 games/lighthouse/harness.py [seed] [nights]`.
 - One extra deliberate rule: the 20th night of every year is a festival (no ships, calm, no incidents), so "Nothing Happened" is never luck-gated.
 
 ## Done
-(updated after each milestone)
+- M1 Sim core (commit 8e34656, tag lighthouse-milestone-01): engine, harness, 78 tests.
+- M2 Night UI: index.html, style.css, app.js, settings.js, SVG scene (sky by hour, beam, ships by silhouette, weather layers), HUD, evening plan, night controls, morning report, speed/pause via shared time-controls, favicon, changelog. Verified live at 1440x900 and 360x740, 104 tests.
 
 ## Next
-Milestone 1 commit, then Milestone 2 (Night UI).
+Milestone 3: day loop UI polish (the day panel is built; verify it live), upgrades, seasons, forecast, boat order; engine for these already exists and is tested.
 
 ## Open problems
 none yet
+
+## Update 2026-10-09 (after the usage-limit reset)
+- User answered Li1-Li3: yes to all recommendations. Li1 extra: maybe later add missing ships for dramatic effect, but NONE for now (a ship may be delayed or damaged only).
+- Skimmed planning/PLAYER-PROFILE.md (private; never quoted in the game). Consequences for the design: no hard-fail, no timers, easy to 100%; a collector's notebook (logbook of ships, sailors, gifts, odd details); three standing goals visible at all times; sailors are flawed people, not all-good heroes; dark but never absurd humour; a welcome-back line on return.
+- Milestone 2 files (index.html, style.css, app.js, settings.js, changelog.json, icons/) were uncommitted at the cutoff; being verified live now.
