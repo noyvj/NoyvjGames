@@ -174,6 +174,13 @@
     cancelButton = overlay.querySelector("#confirm-dialog-cancel");
     confirmButton = overlay.querySelector("#confirm-dialog-confirm");
 
+    // data-testid hooks for automated tests (convention in planning/game-template.md, Z-30).
+    // Set here rather than in the template so a game that ships its own overlay markup gets them too.
+    [[overlay, "confirm-dialog"], [overlay.querySelector("#confirm-dialog-box"), "confirm-dialog-box"],
+      [messageEl, "confirm-dialog-message"], [skipCheckbox, "confirm-dialog-skip"],
+      [cancelButton, "confirm-dialog-cancel"], [confirmButton, "confirm-dialog-confirm"]]
+      .forEach(([el, id]) => { if (el && !el.hasAttribute("data-testid")) el.setAttribute("data-testid", id); });
+
     cancelButton.addEventListener("click", close);
     overlay.addEventListener("click", (event) => {
       if (event.target === overlay) close(); // click on the dim backdrop

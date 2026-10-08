@@ -1,0 +1,36 @@
+{
+ "achievements_earned": [],
+ "certification_streak": 0,
+ "certified": false,
+ "counterfactual_funds": 300.0,
+ "counterfactual_methane": 0.0,
+ "decoupling_investment": {
+  "caps": 0,
+  "capture": 0,
+  "feed": 0
+ },
+ "funds": 300.0,
+ "genetics_active": 0,
+ "genetics_pending": [],
+ "herd_size": 0,
+ "max_pressure_fraction_seen": 0.0,
+ "methane": 0.0,
+ "methane_history": [
+  0.0
+ ],
+ "plant_pivot_investment": 0,
+ "policy_offer_pending": false,
+ "poultry_investment": {
+  "biofilter": 0,
+  "litter": 0
+ },
+ "poultry_size": 0,
+ "regional_cap_enabled": false,
+ "round_number": 1,
+ "seen_half_decoupled_callout": false,
+ "seen_methane_penalty_nudge": false,
+ "seen_pressure_callout": false,
+ "subsidy_rounds_left": 0,
+ "supply_chain_investment": 0,
+ "variation_enabled": false
+}

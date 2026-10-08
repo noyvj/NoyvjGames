@@ -1,0 +1,95 @@
+{
+ "achievements_earned": [
+  "thriving_once"
+ ],
+ "current_era": "tribal",
+ "current_state": {
+  "city": {
+   "allocation": {
+    "administrators": 0,
+    "architects": 0,
+    "crafters": 0,
+    "factory_workers": 0,
+    "farmers": 0,
+    "foragers": 3,
+    "gatherers": 2,
+    "guildmasters": 0,
+    "keepers": 0,
+    "planners": 0,
+    "wayfinders": 0
+   },
+   "buildings": {
+    "canals": 0,
+    "farmland": 0,
+    "granary": 0,
+    "habitat_rings": 0,
+    "hearth": 1,
+    "public_works": 0,
+    "relay_stations": 0,
+    "sanitation_works": 0,
+    "shelter": 2,
+    "toolworks": 0,
+    "transit_hubs": 0
+   },
+   "calm_streak": 0,
+   "challenge": {
+    "active": null,
+    "completed": {},
+    "failed": 0
+   },
+   "era": "tribal",
+   "ever_recovered_from_collapse": false,
+   "fed_fraction": 1.0,
+   "growth_progress": 0.0,
+   "hard_mode": false,
+   "land_health": 1.0,
+   "last_extraction": 0.0,
+   "last_report": null,
+   "last_sustainable_yield": 26.0,
+   "lowest_score_seen": null,
+   "outlying_served": 1.0,
+   "peak_score": null,
+   "pollution": 0.0,
+   "population": 6,
+   "resources": {
+    "food": 20.0,
+    "knowledge": 0.0,
+    "materials": 20.0,
+    "surplus": 0.0,
+    "tools": 2.0
+   },
+   "scenario": "standard",
+   "score_history": [],
+   "season": 1,
+   "sprawl": 0.0,
+   "trajectory": []
+  },
+  "research": []
+ },
+ "era_order": [
+  "tribal",
+  "agrarian",
+  "classical",
+  "medieval",
+  "industrial",
+  "digital",
+  "space",
+  "relay"
+ ],
+ "era_snapshots": {},
+ "furthest_era": "tribal",
+ "game": "continuum",
+ "has_revisited": false,
+ "log": {
+  "entries": [],
+  "last_score_label": "Thriving",
+  "population_milestones_hit": [],
+  "researched_seen": []
+ },
+ "parked_state": null,
+ "revisiting": null,
+ "save_version": 1,
+ "ui": {
+  "info_page_open": false
+ }
+}

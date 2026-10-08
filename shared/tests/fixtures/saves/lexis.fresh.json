@@ -1,0 +1,35 @@
+{
+ "achievements_earned": [],
+ "bridge": {
+  "notebook": {
+   "entries": {}
+  },
+  "scenes_seen": 0,
+  "spoken": []
+ },
+ "compound": {
+  "notebook": {
+   "entries": {}
+  },
+  "scenes_seen": 0,
+  "spoken": []
+ },
+ "contact": {
+  "bridge": false,
+  "compound": false,
+  "pulse": false
+ },
+ "flags": {},
+ "notebook": {
+  "entries": {}
+ },
+ "scenes_seen": 0,
+ "spoken": [],
+ "station": {
+  "door": "shut",
+  "lamps": 0
+ },
+ "stock": [],
+ "tray": [],
+ "version": 3
+}

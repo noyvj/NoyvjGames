@@ -1,0 +1,95 @@
+{
+ "_note": "Allowed values per game; scripts/measure-perf.py --check fails when a measurement is more than 20% over. Baselines taken in headless Chromium against the local dev server. Update only with --rebaseline, deliberately.",
+ "games": {
+  "aftermath": {
+   "first_interactive_ms": 1422,
+   "own_kb": 367.3,
+   "pyodide_ms": 1173,
+   "total_kb": 5807.3
+  },
+  "canopy": {
+   "first_interactive_ms": 1512,
+   "own_kb": 491.2,
+   "pyodide_ms": 1177,
+   "total_kb": 5931.2
+  },
+  "champ-de-mots": {
+   "first_interactive_ms": 1764,
+   "own_kb": 671.4,
+   "pyodide_ms": 1323,
+   "total_kb": 6111.4
+  },
+  "chronicle": {
+   "first_interactive_ms": 1330,
+   "own_kb": 605.9,
+   "pyodide_ms": 1324,
+   "total_kb": 6045.9
+  },
+  "continuum": {
+   "first_interactive_ms": 1487,
+   "own_kb": 438.6,
+   "pyodide_ms": 1186,
+   "total_kb": 6023.9
+  },
+  "drift": {
+   "first_interactive_ms": 1409,
+   "own_kb": 338.7,
+   "pyodide_ms": 1254,
+   "total_kb": 5778.8
+  },
+  "grid": {
+   "first_interactive_ms": 1492,
+   "own_kb": 342.2,
+   "pyodide_ms": 1283,
+   "total_kb": 5782.2
+  },
+  "herd": {
+   "first_interactive_ms": 1427,
+   "own_kb": 348.0,
+   "pyodide_ms": 1264,
+   "total_kb": 5788.0
+  },
+  "lexis": {
+   "first_interactive_ms": 1237,
+   "own_kb": 262.0,
+   "pyodide_ms": 1229,
+   "total_kb": 5702.0
+  },
+  "loop": {
+   "first_interactive_ms": 1396,
+   "own_kb": 357.5,
+   "pyodide_ms": 1209,
+   "total_kb": 5797.5
+  },
+  "signal": {
+   "first_interactive_ms": 1260,
+   "own_kb": 301.7,
+   "pyodide_ms": 1159,
+   "total_kb": 5741.8
+  },
+  "sol": {
+   "first_interactive_ms": 1698,
+   "own_kb": 413.9,
+   "pyodide_ms": 1416,
+   "total_kb": 5854.0
+  },
+  "thaw": {
+   "first_interactive_ms": 1656,
+   "own_kb": 314.7,
+   "pyodide_ms": 1443,
+   "total_kb": 5754.7
+  },
+  "tide": {
+   "first_interactive_ms": 1627,
+   "own_kb": 357.4,
+   "pyodide_ms": 1359,
+   "total_kb": 5797.5
+  },
+  "trade-empire": {
+   "first_interactive_ms": 2049,
+   "own_kb": 423.9,
+   "pyodide_ms": 1672,
+   "total_kb": 5864.0
+  }
+ }
+}

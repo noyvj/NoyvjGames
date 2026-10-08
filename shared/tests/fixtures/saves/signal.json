@@ -1,0 +1,129 @@
+{
+ "achievements_earned": [],
+ "days": {},
+ "earned": {},
+ "flags": {
+  "shared": false
+ },
+ "onboarding_seen": false,
+ "practice": null,
+ "practice_stats": {
+  "bigsky": {
+   "pings_hist": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "played": 0,
+   "won": 0
+  },
+  "easy": {
+   "pings_hist": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "played": 0,
+   "won": 0
+  },
+  "hard": {
+   "pings_hist": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "played": 0,
+   "won": 0
+  },
+  "wide": {
+   "pings_hist": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "played": 0,
+   "won": 0
+  }
+ },
+ "schema": 1,
+ "session": {
+  "date": null,
+  "marks": [],
+  "mode": "easy",
+  "type": "daily"
+ },
+ "settings": {
+  "ascii_share": false,
+  "assist_shading": true,
+  "last_preset": "easy",
+  "mode": "easy"
+ },
+ "stats": {
+  "easy": {
+   "best_streak": 0,
+   "last_played_utc": null,
+   "pings_hist": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "played": 0,
+   "streak": 0,
+   "won": 0
+  },
+  "hard": {
+   "best_streak": 0,
+   "last_played_utc": null,
+   "pings_hist": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "played": 0,
+   "streak": 0,
+   "won": 0
+  }
+ }
+}

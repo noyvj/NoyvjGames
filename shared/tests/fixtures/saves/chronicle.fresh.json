@@ -1,0 +1,57 @@
+{
+ "account_session": null,
+ "achievements_earned": [],
+ "day": 0,
+ "decision_session": null,
+ "flags": {
+  "onboarded": false
+ },
+ "myth_session": null,
+ "schema": 3,
+ "session": {
+  "checks": 0,
+  "locked": [
+   false,
+   false,
+   false
+  ],
+  "marks": [
+   null,
+   null,
+   null
+  ],
+  "message": "",
+  "new": [],
+  "placement": [
+   null,
+   null,
+   null
+  ],
+  "round": 0,
+  "section": "s1",
+  "set": "presidents-sample",
+  "status": "playing"
+ },
+ "sets": {
+  "presidents-sample": {
+   "account_solved": {},
+   "decided": {},
+   "judged": [],
+   "learned": [],
+   "myth_solved": {},
+   "revealed": [],
+   "solved": {},
+   "sorted": [],
+   "srs": {},
+   "threads": [],
+   "web_solved": {}
+  }
+ },
+ "settings": {
+  "hints": true,
+  "mode": "timeline",
+  "set": "presidents-sample"
+ },
+ "viewed": [],
+ "web_session": null
+}

@@ -284,21 +284,24 @@
 
   const root = document.createElement("div");
   root.id = "save-widget";
+  // data-testid values follow the convention in planning/game-template.md (Z-30):
+  // <component>-<part>, lowercase kebab-case, with a number appended for repeated parts.
+  root.setAttribute("data-testid", "save-widget");
   root.innerHTML = `
     <div class="save-widget-header">
-      <button type="button" class="save-widget-toggle"><span class="save-widget-toggle-label">&#128190; Save / Load</span><span class="save-widget-toggle-arrow" aria-hidden="true">&#9662;</span></button>
+      <button type="button" class="save-widget-toggle" data-testid="save-widget-toggle"><span class="save-widget-toggle-label">&#128190; Save / Load</span><span class="save-widget-toggle-arrow" aria-hidden="true">&#9662;</span></button>
     </div>
-    <div class="save-widget-body">
-      <button type="button" class="save-widget-save-button">Save Progress</button>
-      <label class="save-widget-autosave-label"><input type="checkbox" class="save-widget-autosave-checkbox"> Autosave every 5 minutes</label>
-      <p class="save-widget-code" hidden></p>
-      <button type="button" class="save-widget-copy-button save-widget-link" hidden>Copy code</button>
-      <button type="button" class="save-widget-claim-button save-widget-link" hidden>Claim this save to your account</button>
-      <button type="button" class="save-widget-new-button save-widget-link" hidden>Start a new save (forget this code)</button>
-      <div class="save-widget-slots" hidden></div>
-      <input type="text" class="save-widget-load-input" placeholder="XXXX-XXXX" maxlength="9" autocomplete="off">
-      <button type="button" class="save-widget-load-button">Load</button>
-      <p class="save-widget-status"></p>
+    <div class="save-widget-body" data-testid="save-widget-body">
+      <button type="button" class="save-widget-save-button" data-testid="save-widget-save">Save Progress</button>
+      <label class="save-widget-autosave-label"><input type="checkbox" class="save-widget-autosave-checkbox" data-testid="save-widget-autosave"> Autosave every 5 minutes</label>
+      <p class="save-widget-code" data-testid="save-widget-code" hidden></p>
+      <button type="button" class="save-widget-copy-button save-widget-link" data-testid="save-widget-copy" hidden>Copy code</button>
+      <button type="button" class="save-widget-claim-button save-widget-link" data-testid="save-widget-claim" hidden>Claim this save to your account</button>
+      <button type="button" class="save-widget-new-button save-widget-link" data-testid="save-widget-new" hidden>Start a new save (forget this code)</button>
+      <div class="save-widget-slots" data-testid="save-widget-slots" hidden></div>
+      <input type="text" class="save-widget-load-input" data-testid="save-widget-load-input" placeholder="XXXX-XXXX" maxlength="9" autocomplete="off">
+      <button type="button" class="save-widget-load-button" data-testid="save-widget-load">Load</button>
+      <p class="save-widget-status" data-testid="save-widget-status"></p>
     </div>
   `;
 
@@ -667,6 +670,7 @@
       const row = slotRows[n];
       const line = document.createElement("div");
       line.className = "save-widget-slot";
+      line.setAttribute("data-testid", `save-widget-slot-${n}`);
       const label = document.createElement("span");
       label.className = "save-widget-slot-label";
       label.textContent = row
@@ -676,12 +680,14 @@
       if (row) {
         const load = document.createElement("button");
         load.type = "button";
+        load.setAttribute("data-testid", `save-widget-slot-${n}-load`);
         load.textContent = "Load";
         load.addEventListener("click", () => slotLoad(n));
         line.appendChild(load);
       }
       const save = document.createElement("button");
       save.type = "button";
+      save.setAttribute("data-testid", `save-widget-slot-${n}-save`);
       save.textContent = "Save here";
       save.addEventListener("click", async () => {
         // An explicit tap on a slot that holds something else (not the one this game
@@ -780,6 +786,7 @@
     return new Promise((resolve) => {
       const overlay = document.createElement("div");
       overlay.className = "save-widget-chooser";
+      overlay.setAttribute("data-testid", "save-widget-chooser");
       const card = document.createElement("div");
       card.className = "save-widget-chooser-card";
       card.setAttribute("role", "dialog");
@@ -794,12 +801,14 @@
         const row = slotRows[n];
         const button = document.createElement("button");
         button.type = "button";
+        button.setAttribute("data-testid", `save-widget-chooser-slot-${n}`);
         button.textContent = row ? `Overwrite slot ${n}: ${row.slot_name || "Save " + n} (${timeAgo(row.updated_at || row.created_at)})` : `Save to empty slot ${n}`;
         button.addEventListener("click", () => done(n));
         card.appendChild(button);
       }
       const cancel = document.createElement("button");
       cancel.type = "button";
+      cancel.setAttribute("data-testid", "save-widget-chooser-cancel");
       cancel.textContent = "Cancel";
       cancel.addEventListener("click", () => done(null));
       card.appendChild(cancel);

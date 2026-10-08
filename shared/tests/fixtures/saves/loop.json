@@ -1,0 +1,76 @@
+{
+ "achievements_earned": [
+  "first_fix",
+  "trade_partner",
+  "quarter_loop",
+  "beyond_benchmark",
+  "serial_redesigner",
+  "goods_explorer",
+  "goods_collector",
+  "speed_close",
+  "lean_close"
+ ],
+ "best_closed_loop_streak": 0,
+ "career": {
+  "best": {
+   "clothing": {
+    "best_score": 948.22906375
+   },
+   "electronics": {
+    "best_score": 603.3205
+   },
+   "furniture": {
+    "best_score": 948.22906375,
+    "fastest_close": 4,
+    "lowest_extraction": 48.25
+   }
+  },
+  "closed": [],
+  "plates": [],
+  "speed": [
+   "cycle12",
+   "lean"
+  ]
+ },
+ "chains_completed_count": 9,
+ "circular_fraction_log": [
+  0.305,
+  0.32
+ ],
+ "circularity_investment": {
+  "recycle": 0,
+  "repair": 3,
+  "reuse": 1
+ },
+ "closed_loop_streak": 0,
+ "culture_level": 1,
+ "cycle_number": 3,
+ "first_loop_closed_cycle": null,
+ "funds": 490.41100000000006,
+ "goods_categories_tried": [
+  "clothing",
+  "electronics",
+  "furniture"
+ ],
+ "goods_category": "clothing",
+ "lifetime_circular_fraction": 0.3125,
+ "lifetime_export_revenue": 0.0,
+ "lifetime_investment_spend": 165.0,
+ "overseas_trade_investment": 0,
+ "passport": [
+  {
+   "cycle": 1,
+   "source": "extraction"
+  },
+  {
+   "cycle": 2,
+   "source": "extraction"
+  }
+ ],
+ "regional_hint_seen": true,
+ "regional_trade_investment": 1,
+ "total_extracted": 68.75,
+ "total_produced": 100.0,
+ "trade_link_investment": 0,
+ "waste_focus": "reuse"
+}

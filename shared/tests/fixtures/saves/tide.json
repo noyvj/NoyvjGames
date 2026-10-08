@@ -1,0 +1,501 @@
+{
+ "achievements_earned": [
+  "underway",
+  "first_output",
+  "first_adaptation",
+  "first_flood",
+  "losing_ground"
+ ],
+ "acidity": 32.0,
+ "acidity_history": [
+  0.0,
+  2.0,
+  6.0,
+  10.0,
+  14.0,
+  18.0,
+  22.0,
+  26.0,
+  32.0
+ ],
+ "baseline_damage": 40.0,
+ "baseline_sea_level": 40.0,
+ "baseline_season": 9,
+ "capacity": {
+  "adaptation": 1,
+  "output": 3,
+  "reduction": 0
+ },
+ "checkpoint": {
+  "acidity": 26.0,
+  "acidity_history": [
+   0.0,
+   2.0,
+   6.0,
+   10.0,
+   14.0,
+   18.0,
+   22.0,
+   26.0
+  ],
+  "baseline_damage": 40.0,
+  "baseline_sea_level": 40.0,
+  "baseline_season": 9,
+  "capacity": {
+   "adaptation": 1,
+   "output": 3,
+   "reduction": 0
+  },
+  "chronicle": [
+   {
+    "season": 2,
+    "text": "Townsfolk pooled funds to protect the old lighthouse."
+   },
+   {
+    "season": 3,
+    "text": "The oyster-reef nursery was swallowed by the sea."
+   },
+   {
+    "season": 3,
+    "text": "2 residents relocated inland."
+   },
+   {
+    "season": 4,
+    "text": "The first stretch of coast went under."
+   },
+   {
+    "season": 5,
+    "text": "A storm surge struck; defences held back 0 of 18."
+   },
+   {
+    "season": 6,
+    "text": "22 residents relocated inland."
+   }
+  ],
+  "cumulative_damage": 40.0,
+  "damage_log": [
+   5.0,
+   5.0,
+   5.0,
+   5.0,
+   5.0,
+   5.0,
+   5.0,
+   5.0
+  ],
+  "displaced_total": 24,
+  "diversification": {
+   "aquaculture": 0,
+   "tourism": 1
+  },
+  "first_flood_announced": true,
+  "fish_crash_open": false,
+  "fish_yield_history": [
+   1.0,
+   1.0,
+   1.0,
+   0.96,
+   1.0,
+   1.0,
+   0.96,
+   0.88
+  ],
+  "fortified_in_time_earned": false,
+  "funds": 14.353333333333339,
+  "hard_lag_mode": true,
+  "hard_lag_note_seen": true,
+  "heritage": {
+   "lighthouse": "protected",
+   "reef": "lost"
+  },
+  "max_acidity_ever": 26.0,
+  "max_funds_ever": 300,
+  "min_fish_yield_ever": 0.88,
+  "monitoring_last_season": 0,
+  "monitoring_reports": 0,
+  "output_mix": "fishing",
+  "peak_population": 112,
+  "population": 88,
+  "recovery_celebrated_season": 0,
+  "relocated_total": 0,
+  "replay_count": 2,
+  "retreat_rows": [],
+  "sea_level": 40.0,
+  "sea_scenario": "moderate",
+  "season": 9,
+  "settlement_name": "",
+  "sister": {
+   "damage": 0.0,
+   "net_funds": 0.0
+  },
+  "storm_log": [
+   {
+    "blocked": 0.0,
+    "season": 5,
+    "surge": 18.0,
+    "taken": 18.0
+   }
+  ],
+  "storm_mode": true,
+  "ticker_log": [
+   "22 people had to leave the flooded coast — refugees moving inland.",
+   "Acidity is rising — the effect on fish stocks won't show for a few more seasons.",
+   "Fish stocks quietly declining — acidity from 6 seasons ago is catching up.",
+   "Fish stocks quietly declining — acidity from 6 seasons ago is catching up.",
+   "Checkpoint saved at Season 9."
+  ],
+  "tier_log": [
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0
+  ],
+  "trend_flattening_announced": false,
+  "undampened_damage_total": 40.0
+ },
+ "chronicle": [
+  {
+   "season": 2,
+   "text": "Townsfolk pooled funds to protect the old lighthouse."
+  },
+  {
+   "season": 3,
+   "text": "The oyster-reef nursery was swallowed by the sea."
+  },
+  {
+   "season": 3,
+   "text": "2 residents relocated inland."
+  },
+  {
+   "season": 4,
+   "text": "The first stretch of coast went under."
+  },
+  {
+   "season": 5,
+   "text": "A storm surge struck; defences held back 0 of 18."
+  },
+  {
+   "season": 6,
+   "text": "22 residents relocated inland."
+  },
+  {
+   "season": 9,
+   "text": "22 residents relocated inland."
+  },
+  {
+   "season": 10,
+   "text": "The fish stocks crashed; boats came back near-empty."
+  }
+ ],
+ "cumulative_damage": 45.0,
+ "damage_log": [
+  5.0,
+  5.0,
+  5.0,
+  5.0,
+  5.0,
+  5.0,
+  5.0,
+  5.0,
+  5.0
+ ],
+ "displaced_total": 46,
+ "diversification": {
+  "aquaculture": 0,
+  "tourism": 1
+ },
+ "first_flood_announced": true,
+ "fish_crash_open": true,
+ "fish_yield_history": [
+  1.0,
+  1.0,
+  1.0,
+  0.96,
+  1.0,
+  1.0,
+  0.96,
+  0.88,
+  0.56
+ ],
+ "foresight": [
+  {
+   "damage": 5.0,
+   "fish_yield": 0.88,
+   "flooded": 1,
+   "season": 5
+  },
+  {
+   "damage": 5.0,
+   "fish_yield": 0.8,
+   "flooded": 2,
+   "season": 6
+  },
+  {
+   "damage": 5.0,
+   "fish_yield": 0.72,
+   "flooded": 2,
+   "season": 7
+  }
+ ],
+ "fortified_in_time_earned": false,
+ "funds": 22.20666666666667,
+ "hard_lag_mode": true,
+ "hard_lag_note_seen": true,
+ "heritage": {
+  "lighthouse": "protected",
+  "reef": "lost"
+ },
+ "max_acidity_ever": 32.0,
+ "max_funds_ever": 300,
+ "min_fish_yield_ever": 0.56,
+ "monitoring_last_season": 0,
+ "monitoring_reports": 0,
+ "output_mix": "fishing",
+ "peak_population": 112,
+ "population": 66,
+ "recovery_celebrated_season": 0,
+ "relocated_total": 0,
+ "replay_count": 2,
+ "retreat_rows": [],
+ "sea_level": 45.0,
+ "sea_scenario": "moderate",
+ "season": 10,
+ "season_ledger": [
+  {
+   "acidity": 0.0,
+   "damage": 5.0,
+   "fish_yield": 1.0,
+   "funds": 300.0,
+   "invested": 0,
+   "population": 106,
+   "rows_dry": 6,
+   "season": 1,
+   "tier": 0
+  },
+  {
+   "acidity": 2.0,
+   "damage": 5.0,
+   "fish_yield": 1.0,
+   "funds": 27.0,
+   "invested": 1,
+   "population": 112,
+   "rows_dry": 6,
+   "season": 2,
+   "tier": 0
+  },
+  {
+   "acidity": 6.0,
+   "damage": 5.0,
+   "fish_yield": 1.0,
+   "funds": 20.0,
+   "invested": 2,
+   "population": 110,
+   "rows_dry": 5,
+   "season": 3,
+   "tier": 0
+  },
+  {
+   "acidity": 10.0,
+   "damage": 5.0,
+   "fish_yield": 0.96,
+   "funds": 32.2,
+   "invested": 2,
+   "population": 110,
+   "rows_dry": 5,
+   "season": 4,
+   "tier": 0
+  },
+  {
+   "acidity": 14.0,
+   "damage": 5.0,
+   "fish_yield": 1.0,
+   "funds": 0.0,
+   "invested": 3,
+   "population": 110,
+   "rows_dry": 5,
+   "season": 5,
+   "tier": 0
+  },
+  {
+   "acidity": 18.0,
+   "damage": 5.0,
+   "fish_yield": 1.0,
+   "funds": 12.2,
+   "invested": 3,
+   "population": 88,
+   "rows_dry": 4,
+   "season": 6,
+   "tier": 0
+  },
+  {
+   "acidity": 22.0,
+   "damage": 5.0,
+   "fish_yield": 0.96,
+   "funds": 23.5,
+   "invested": 3,
+   "population": 88,
+   "rows_dry": 4,
+   "season": 7,
+   "tier": 0
+  },
+  {
+   "acidity": 26.0,
+   "damage": 5.0,
+   "fish_yield": 0.88,
+   "funds": 34.4,
+   "invested": 3,
+   "population": 88,
+   "rows_dry": 4,
+   "season": 8,
+   "tier": 0
+  },
+  {
+   "acidity": 32.0,
+   "damage": 5.0,
+   "fish_yield": 0.56,
+   "funds": 22.2,
+   "invested": 4,
+   "population": 66,
+   "rows_dry": 3,
+   "season": 9,
+   "tier": 0
+  }
+ ],
+ "season_snapshots": [
+  [
+   1,
+   5.0,
+   "uu",
+   []
+  ],
+  [
+   2,
+   10.0,
+   "pu",
+   []
+  ],
+  [
+   3,
+   15.0,
+   "pl",
+   []
+  ],
+  [
+   4,
+   20.0,
+   "pl",
+   []
+  ],
+  [
+   5,
+   25.0,
+   "pl",
+   []
+  ],
+  [
+   6,
+   30.0,
+   "pl",
+   []
+  ],
+  [
+   7,
+   35.0,
+   "pl",
+   []
+  ],
+  [
+   8,
+   40.0,
+   "pl",
+   []
+  ],
+  [
+   9,
+   45.0,
+   "pl",
+   []
+  ]
+ ],
+ "settlement_name": "",
+ "sister": {
+  "damage": 6.5,
+  "net_funds": -3.0
+ },
+ "storm_log": [
+  {
+   "blocked": 0.0,
+   "season": 5,
+   "surge": 18.0,
+   "taken": 18.0
+  }
+ ],
+ "storm_mode": true,
+ "ticker_full_history": [
+  "Old lighthouse is now protected — it will outlast the flood, at a small upkeep each season.",
+  "Economy diversified: tourism is now level 1.",
+  "Acidity is rising — the effect on fish stocks won't show for a few more seasons.",
+  "Checkpoint saved at Season 3.",
+  "Checkpoint saved at Season 3.",
+  "Checkpoint saved at Season 3.",
+  "The oyster-reef nursery has been lost to the sea.",
+  "2 people had to leave the flooded coast — refugees moving inland.",
+  "Acidity is rising — the effect on fish stocks won't show for a few more seasons.",
+  "The first coastline tile has flooded — the sea has arrived.",
+  "Fish stocks quietly declining — acidity from 3 seasons ago is catching up.",
+  "Checkpoint saved at Season 5.",
+  "Lag mode changed — the new lag takes effect from next season's fish yield.",
+  "⛈️ Storm surge in Season 5: 0 of 18 held back by your defences; the rest cost 14 funds.",
+  "Acidity is rising — the effect on fish stocks won't show for a few more seasons.",
+  "22 people had to leave the flooded coast — refugees moving inland.",
+  "Acidity is rising — the effect on fish stocks won't show for a few more seasons.",
+  "Fish stocks quietly declining — acidity from 6 seasons ago is catching up.",
+  "Fish stocks quietly declining — acidity from 6 seasons ago is catching up.",
+  "22 people had to leave the flooded coast — refugees moving inland.",
+  "Fish stocks quietly declining — acidity from 6 seasons ago is catching up.",
+  "Fish stocks quietly declining — acidity from 6 seasons ago is catching up.",
+  "Replaying from Season 5 — you now know what the earlier run brought.",
+  "⛈️ Storm surge in Season 5: 0 of 18 held back by your defences; the rest cost 14 funds.",
+  "Fish stocks quietly declining — acidity from 3 seasons ago is catching up.",
+  "22 people had to leave the flooded coast — refugees moving inland.",
+  "Fish stocks quietly declining — acidity from 3 seasons ago is catching up.",
+  "Fish stocks quietly declining — acidity from 3 seasons ago is catching up.",
+  "Lag mode changed — the new lag takes effect from next season's fish yield.",
+  "Replaying from Season 5 — you now know what the earlier run brought.",
+  "Lag mode changed — the new lag takes effect from next season's fish yield.",
+  "⛈️ Storm surge in Season 5: 0 of 18 held back by your defences; the rest cost 14 funds.",
+  "Acidity is rising — the effect on fish stocks won't show for a few more seasons.",
+  "22 people had to leave the flooded coast — refugees moving inland.",
+  "Acidity is rising — the effect on fish stocks won't show for a few more seasons.",
+  "Fish stocks quietly declining — acidity from 6 seasons ago is catching up.",
+  "Fish stocks quietly declining — acidity from 6 seasons ago is catching up.",
+  "Checkpoint saved at Season 9.",
+  "Checkpoint saved at Season 9.",
+  "22 people had to leave the flooded coast — refugees moving inland.",
+  "Fish stocks quietly declining — acidity from 3 seasons ago is catching up."
+ ],
+ "ticker_log": [
+  "Fish stocks quietly declining — acidity from 6 seasons ago is catching up.",
+  "Checkpoint saved at Season 9.",
+  "Checkpoint saved at Season 9.",
+  "22 people had to leave the flooded coast — refugees moving inland.",
+  "Fish stocks quietly declining — acidity from 3 seasons ago is catching up."
+ ],
+ "tier_log": [
+  0,
+  0,
+  0,
+  0,
+  0,
+  0,
+  0,
+  0,
+  0
+ ],
+ "trend_flattening_announced": false,
+ "undampened_damage_total": 45.0
+}

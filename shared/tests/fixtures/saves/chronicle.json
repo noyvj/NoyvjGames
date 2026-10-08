@@ -1,0 +1,74 @@
+{
+ "account_session": null,
+ "achievements_earned": [
+  "first_card",
+  "first_timeline",
+  "straight_line"
+ ],
+ "day": 0,
+ "decision_session": null,
+ "flags": {
+  "onboarded": false
+ },
+ "myth_session": null,
+ "schema": 3,
+ "session": {
+  "checks": 0,
+  "locked": [
+   false,
+   false,
+   false
+  ],
+  "marks": [
+   null,
+   null,
+   null
+  ],
+  "message": "",
+  "new": [],
+  "placement": [
+   "e-capitol-burned",
+   "e-farewell",
+   null
+  ],
+  "round": 5,
+  "section": "s1",
+  "set": "presidents-sample",
+  "status": "playing"
+ },
+ "sets": {
+  "presidents-sample": {
+   "account_solved": {},
+   "decided": {},
+   "judged": [],
+   "learned": [
+    "c-bastille",
+    "c-waterloo",
+    "e-capitol-burned",
+    "e-jefferson-oath",
+    "e-washington-oath"
+   ],
+   "myth_solved": {},
+   "revealed": [
+    "s1:1",
+    "s1:5"
+   ],
+   "solved": {
+    "s1:0": {
+     "checks": 1
+    }
+   },
+   "sorted": [],
+   "srs": {},
+   "threads": [],
+   "web_solved": {}
+  }
+ },
+ "settings": {
+  "hints": true,
+  "mode": "review",
+  "set": "presidents-sample"
+ },
+ "viewed": [],
+ "web_session": null
+}

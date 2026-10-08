@@ -1,0 +1,37 @@
+{
+ "achievements_earned": [
+  "first_event_faced",
+  "first_resilience_investment",
+  "first_growth_investment",
+  "run_complete_1",
+  "severe_survivor",
+  "resilience_focused",
+  "deep_specialist",
+  "codex_complete"
+ ],
+ "damage_taken": 96.62132999999999,
+ "event_index": 3,
+ "event_log": [
+  {
+   "damage": 38.607679999999995,
+   "severity": 1.1355199999999999,
+   "type": "flood"
+  },
+  {
+   "damage": 27.459249999999997,
+   "severity": 0.923,
+   "type": "heatwave"
+  },
+  {
+   "damage": 30.5544,
+   "severity": 1.01848,
+   "type": "supply_chain"
+  }
+ ],
+ "extended": false,
+ "growth_capacity": 6,
+ "resilience_capacity": 0,
+ "resources": 31.378670000000014,
+ "run_number": 2,
+ "skill_tree_strength": 0
+}

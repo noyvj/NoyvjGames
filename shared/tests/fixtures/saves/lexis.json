@@ -1,0 +1,61 @@
+{
+ "achievements_earned": [
+  "first_words",
+  "learning_from_static"
+ ],
+ "bridge": {
+  "notebook": {
+   "entries": {}
+  },
+  "scenes_seen": 0,
+  "spoken": []
+ },
+ "compound": {
+  "notebook": {
+   "entries": {}
+  },
+  "scenes_seen": 0,
+  "spoken": []
+ },
+ "contact": {
+  "bridge": false,
+  "compound": false,
+  "pulse": false
+ },
+ "flags": {
+  "misunderstood": true
+ },
+ "notebook": {
+  "entries": {
+   "0010": "lamp",
+   "1010": "yes",
+   "1011": "yes"
+  }
+ },
+ "scenes_seen": 6,
+ "spoken": [
+  "1001",
+  "0101110",
+  "00101",
+  "101",
+  "111001",
+  "0000100",
+  "1100",
+  "0",
+  "00",
+  "00011",
+  "1001011",
+  "0101011",
+  "110",
+  "1111100",
+  "10101",
+  "011100"
+ ],
+ "station": {
+  "door": "shut",
+  "lamps": 0
+ },
+ "stock": [],
+ "tray": [],
+ "version": 3
+}

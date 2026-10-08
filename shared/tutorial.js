@@ -171,7 +171,14 @@
 
   function el(tag, props) {
     const node = document.createElement(tag);
-    if (props) Object.assign(node, props);
+    if (props) {
+      // `testid` is not a DOM property: it becomes the data-testid hook for automated tests
+      // (naming convention in planning/game-template.md, Z-30).
+      const rest = Object.assign({}, props);
+      delete rest.testid;
+      Object.assign(node, rest);
+      if (props.testid) node.setAttribute("data-testid", props.testid);
+    }
     return node;
   }
 
@@ -206,10 +213,10 @@
     }
 
     function buildOverlay() {
-      overlay = el("div", { id: "tutorial-overlay" });
+      overlay = el("div", { id: "tutorial-overlay", testid: "tutorial-overlay" });
       overlay.hidden = true;
-      spotlight = el("div", { id: "tutorial-spotlight" });
-      card = el("div", { id: "tutorial-card" });
+      spotlight = el("div", { id: "tutorial-spotlight", testid: "tutorial-spotlight" });
+      card = el("div", { id: "tutorial-card", testid: "tutorial-card" });
       overlay.appendChild(spotlight);
       overlay.appendChild(card);
       document.body.appendChild(overlay);
@@ -330,27 +337,29 @@
       card.innerHTML = "";
       const counter = el("p", {
         id: "tutorial-step-counter",
+        testid: "tutorial-step-counter",
         innerText: `Step ${index + 1} of ${steps.length}`,
       });
-      const title = el("p", { id: "tutorial-title", innerText: step.title });
-      const text = el("p", { id: "tutorial-text", innerText: step.text });
-      const buttons = el("div", { id: "tutorial-card-buttons" });
+      const title = el("p", { id: "tutorial-title", testid: "tutorial-title", innerText: step.title });
+      const text = el("p", { id: "tutorial-text", testid: "tutorial-text", innerText: step.text });
+      const buttons = el("div", { id: "tutorial-card-buttons", testid: "tutorial-card-buttons" });
 
       if (index > 0) {
-        const backBtn = el("button", { className: "secondary", innerText: "Back" });
+        const backBtn = el("button", { className: "secondary", testid: "tutorial-back", innerText: "Back" });
         backBtn.type = "button";
         backBtn.addEventListener("click", back);
         buttons.appendChild(backBtn);
       }
       const nextBtn = el("button", {
         className: "secondary tutorial-next-button",
+        testid: "tutorial-next",
         innerText: index === steps.length - 1 ? "Done" : "Next",
       });
       nextBtn.type = "button";
       nextBtn.addEventListener("click", next);
       buttons.appendChild(nextBtn);
 
-      const skipBtn = el("button", { id: "tutorial-skip-button", innerText: "Skip tutorial" });
+      const skipBtn = el("button", { id: "tutorial-skip-button", testid: "tutorial-skip", innerText: "Skip tutorial" });
       skipBtn.type = "button";
       skipBtn.addEventListener("click", () => close(true));
       buttons.appendChild(skipBtn);
@@ -399,7 +408,7 @@
       if (!container || container.dataset.tutorialRendered) return;
       container.dataset.tutorialRendered = "1";
       steps.forEach((step, i) => {
-        const wrap = el("div", { className: "howto-step" });
+        const wrap = el("div", { className: "howto-step", testid: `tutorial-howto-step-${i + 1}` });
         const h3 = el("h3");
         h3.appendChild(el("span", { className: "howto-step-number", innerText: `${i + 1}.` }));
         h3.appendChild(document.createTextNode(step.title));

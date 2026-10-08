@@ -1,0 +1,159 @@
+{
+ "achievements_earned": [
+  "first_herd",
+  "first_decoupling",
+  "all_three_measures",
+  "quarter_decoupled",
+  "half_decoupled",
+  "plant_pioneer",
+  "real_world_match"
+ ],
+ "breeds_collected": [
+  "clover_calf",
+  "sage_grazer",
+  "roomy_ruminant",
+  "methane_eater_cow",
+  "certified_jersey",
+  "biogas_bessie"
+ ],
+ "certification_streak": 0,
+ "certified": false,
+ "combos_found": [
+  "happy_herd",
+  "full_stack",
+  "slow_burn",
+  "green_gourmet",
+  "circular_barn"
+ ],
+ "counterfactual_funds": 375.0,
+ "counterfactual_methane": 0.0,
+ "decoupling_investment": {
+  "caps": 3,
+  "capture": 3,
+  "feed": 4
+ },
+ "funds": 28.0,
+ "funds_history": [
+  300.0,
+  200.0
+ ],
+ "generation": 2,
+ "genetics_active": 0,
+ "genetics_pending": [
+  2,
+  2,
+  3
+ ],
+ "herd_size": 2,
+ "legacy_perks": {
+  "family_savings": 1
+ },
+ "lever_log": [
+  [
+   1,
+   "feed",
+   15.0
+  ],
+  [
+   1,
+   "supply",
+   30.0
+  ],
+  [
+   1,
+   "capture",
+   20.0
+  ],
+  [
+   1,
+   "genetics",
+   30.0
+  ],
+  [
+   1,
+   "feed",
+   15.0
+  ],
+  [
+   1,
+   "capture",
+   20.0
+  ],
+  [
+   1,
+   "feed",
+   15.0
+  ],
+  [
+   1,
+   "genetics",
+   30.0
+  ],
+  [
+   2,
+   "genetics",
+   30.0
+  ],
+  [
+   2,
+   "caps",
+   20.0
+  ],
+  [
+   2,
+   "feed",
+   15.0
+  ],
+  [
+   2,
+   "caps",
+   20.0
+  ],
+  [
+   2,
+   "capture",
+   20.0
+  ],
+  [
+   2,
+   "pivot",
+   25.0
+  ],
+  [
+   2,
+   "herd",
+   20.0
+  ],
+  [
+   2,
+   "caps",
+   20.0
+  ],
+  [
+   2,
+   "herd",
+   22.0
+  ]
+ ],
+ "max_pressure_fraction_seen": 0.0,
+ "methane": 0.0,
+ "methane_history": [
+  0.0,
+  0.0
+ ],
+ "plant_pivot_investment": 1,
+ "policy_offer_pending": false,
+ "poultry_investment": {
+  "biofilter": 0,
+  "litter": 0
+ },
+ "poultry_size": 0,
+ "regional_cap_enabled": false,
+ "round_number": 2,
+ "seen_half_decoupled_callout": false,
+ "seen_methane_penalty_nudge": false,
+ "seen_pressure_callout": false,
+ "subsidy_rounds_left": 0,
+ "supply_chain_investment": 1,
+ "variation_enabled": false
+}

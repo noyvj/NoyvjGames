@@ -1,0 +1,198 @@
+{
+ "achievements_earned": [
+  "thriving_once"
+ ],
+ "current_era": "digital",
+ "current_state": {
+  "city": {
+   "allocation": {
+    "administrators": 2,
+    "architects": 0,
+    "crafters": 3,
+    "factory_workers": 19,
+    "farmers": 11,
+    "foragers": 3,
+    "gatherers": 2,
+    "guildmasters": 6,
+    "keepers": 3,
+    "planners": 0,
+    "wayfinders": 0
+   },
+   "buildings": {
+    "canals": 2,
+    "farmland": 4,
+    "granary": 2,
+    "habitat_rings": 0,
+    "hearth": 3,
+    "public_works": 4,
+    "relay_stations": 0,
+    "sanitation_works": 1,
+    "shelter": 13,
+    "toolworks": 3,
+    "transit_hubs": 0
+   },
+   "calm_streak": 0,
+   "challenge": {
+    "active": {
+     "baseline": 0.3,
+     "id": "quiet_industry",
+     "seasons_done": 0
+    },
+    "completed": {},
+    "failed": 0
+   },
+   "era": "digital",
+   "ever_recovered_from_collapse": false,
+   "fed_fraction": 1.0,
+   "growth_progress": 0.0,
+   "hard_mode": true,
+   "land_health": 0.55,
+   "last_extraction": 0.0,
+   "last_report": null,
+   "last_sustainable_yield": 26.0,
+   "lowest_score_seen": null,
+   "outlying_served": 1.0,
+   "peak_score": null,
+   "pollution": 0.3,
+   "population": 70,
+   "resources": {
+    "food": 25.0,
+    "knowledge": 3.0,
+    "materials": 3.0,
+    "surplus": 10.0,
+    "tools": 6.0
+   },
+   "scenario": "standard",
+   "score_history": [],
+   "season": 1,
+   "sprawl": 0.7,
+   "trajectory": []
+  },
+  "research": [
+   "fire_keeping",
+   "foraging_lore",
+   "seasonal_rounds",
+   "stone_knapping",
+   "plow_and_furrow",
+   "seed_selection",
+   "crop_rotation",
+   "irrigation_channels",
+   "canal_engineering",
+   "managed_irrigation",
+   "monumental_masonry",
+   "trade_networks",
+   "guild_workshops",
+   "trade_zoning",
+   "master_guilds",
+   "public_sanitation",
+   "smoke_abatement",
+   "steam_power",
+   "assembly_lines",
+   "materials_recovery",
+   "storehouse_rotation"
+  ]
+ },
+ "era_order": [
+  "tribal",
+  "agrarian",
+  "classical",
+  "medieval",
+  "industrial",
+  "digital",
+  "space",
+  "relay"
+ ],
+ "era_snapshots": {},
+ "furthest_era": "digital",
+ "game": "continuum",
+ "has_revisited": false,
+ "log": {
+  "entries": [
+   {
+    "era": "digital",
+    "kind": "challenge",
+    "season": 1,
+    "text": "Called in to advise: The Sprawling Suburbs."
+   },
+   {
+    "era": "digital",
+    "kind": "research",
+    "season": 1,
+    "text": "Discovery: Storehouse Rotation. Grain moved through the stores in turn, oldest first, so less of a good harvest is lost before anyone eats it."
+   }
+  ],
+  "last_score_label": "Strained",
+  "population_milestones_hit": [
+   10,
+   15,
+   25,
+   40,
+   60
+  ],
+  "researched_seen": [
+   "assembly_lines",
+   "canal_engineering",
+   "crop_rotation",
+   "fire_keeping",
+   "foraging_lore",
+   "guild_workshops",
+   "irrigation_channels",
+   "managed_irrigation",
+   "master_guilds",
+   "materials_recovery",
+   "monumental_masonry",
+   "plow_and_furrow",
+   "public_sanitation",
+   "seasonal_rounds",
+   "seed_selection",
+   "smoke_abatement",
+   "steam_power",
+   "stone_knapping",
+   "storehouse_rotation",
+   "trade_networks",
+   "trade_zoning"
+  ]
+ },
+ "parked_state": null,
+ "revisiting": null,
+ "save_version": 1,
+ "ui": {
+  "consulting": {
+   "case": "sprawl",
+   "result": null,
+   "start_season": 1,
+   "streak": 0
+  },
+  "earned_before": [
+   "thriving_once"
+  ],
+  "info_page_open": false,
+  "policy_log": [
+   {
+    "era": "digital",
+    "kind": "build",
+    "season": 1,
+    "text": "Motion carried: the council resolves to build Public Works."
+   },
+   {
+    "era": "digital",
+    "kind": "build",
+    "season": 1,
+    "text": "Motion carried: the council resolves to build Knapping Site."
+   },
+   {
+    "era": "digital",
+    "kind": "research",
+    "season": 1,
+    "text": "Motion carried: the council resolves to study Storehouse Rotation."
+   },
+   {
+    "era": "digital",
+    "kind": "build",
+    "season": 1,
+    "text": "Motion carried: the council resolves to build Shelter."
+   }
+  ],
+  "settlement_name": "Ember Spring"
+ }
+}

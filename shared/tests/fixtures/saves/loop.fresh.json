@@ -1,0 +1,28 @@
+{
+ "achievements_earned": [],
+ "best_closed_loop_streak": 0,
+ "chains_completed_count": 0,
+ "circular_fraction_log": [],
+ "circularity_investment": {
+  "recycle": 0,
+  "repair": 0,
+  "reuse": 0
+ },
+ "closed_loop_streak": 0,
+ "cycle_number": 1,
+ "first_loop_closed_cycle": null,
+ "funds": 300.0,
+ "goods_categories_tried": [
+  "electronics"
+ ],
+ "goods_category": "electronics",
+ "lifetime_circular_fraction": 0.0,
+ "lifetime_export_revenue": 0.0,
+ "lifetime_investment_spend": 0.0,
+ "overseas_trade_investment": 0,
+ "regional_hint_seen": false,
+ "regional_trade_investment": 0,
+ "total_extracted": 0.0,
+ "total_produced": 0.0,
+ "trade_link_investment": 0
+}
