@@ -69,6 +69,14 @@ def main():
             live[report["id"]] = report
     done = skipped = failed = 0
     for row in rows:
+        if args.apply and len(row["report_id"]) < 36:
+            # Reports reviewed later carry the 8-character prefix of their id.
+            full = [rid for rid in live if rid.startswith(row["report_id"])]
+            if len(full) != 1:
+                failed += 1
+                print(f"  FAILED {row['report_id']}: {len(full)} live reports match that prefix")
+                continue
+            row = dict(row, report_id=full[0])
         note = (row.get("note") or "Fixed in the 2026-10-08 data review")[:300]
         if not args.apply:
             print(f"  would tick {row['report_id'][:8]}  {row['item_id']}: {note[:90]}")
