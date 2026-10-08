@@ -22,3 +22,13 @@ BASE_CHART = {
 def chart():
     """A fresh empty 20 nm square of open water; tests add what they need."""
     return copy.deepcopy(BASE_CHART)
+
+
+@pytest.fixture
+def g():
+    """The engine module with fresh state, plus a small `call(action, **fields)` that returns the decoded view."""
+    import json
+    import game
+    game.handle(json.dumps({"action": "reset"}))
+    game.call = lambda action, **fields: json.loads(game.handle(json.dumps(dict(fields, action=action))))
+    return game

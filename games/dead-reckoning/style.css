@@ -205,3 +205,15 @@ html[data-effects="off"] *, html[data-effects="off"] *::before, html[data-effect
   .dr-label { font-size: 17px; stroke-width: 4px; }
   .dr-tick, .dr-label-wind, .dr-scale-label, .dr-rose-letter, .dr-label-landmark, .dr-leg-number { font-size: 15px; }
 }
+
+/* Phones: Undo and Sail live in a bar pinned above the ad bar (shared/mobile-dock.js moves it), and the page keeps
+   room under its last line so nothing hides behind the bar. */
+@media (max-width: 640px) {
+  .sail-dock.mobile-docked { position: fixed; left: 0; right: 0; bottom: 50px; z-index: 150; display: flex; gap: 0.6rem;
+    padding: 0.5rem 0.7rem; background: var(--panel); border-top: 2px solid var(--edge); }
+  .sail-dock.mobile-docked button { flex: 1 1 0; }
+  .sail-dock.mobile-docked #sail-button { flex: 2 1 0; }
+  html body { padding-bottom: 130px; }
+  html body #story-toggle { bottom: 120px; }
+}
+.sail-dock:not(.mobile-docked) { display: flex; gap: 0.6rem; margin-top: 0.8rem; }

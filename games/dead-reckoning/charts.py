@@ -16,3 +16,19 @@ DEMO_CHART = {
     ],
     "landmarks": [{"id": "north-light", "name": "North Light", "kind": "lighthouse", "x": 12.0, "y": 18.0, "visible": 9.0}],
 }
+
+
+CHARTS = {DEMO_CHART["id"]: DEMO_CHART}
+
+
+def get_chart(chart_id):
+    return CHARTS.get(chart_id)
+
+
+def all_charts():
+    return list(CHARTS.values())
+
+
+def hazard_ids():
+    """chart id -> the ids of its hazards (used to validate a loaded save's `discovered` lists)."""
+    return {cid: {h["id"] for h in c.get("hazards", ())} for cid, c in CHARTS.items()}

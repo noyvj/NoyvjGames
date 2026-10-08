@@ -52,10 +52,85 @@
   <div class="play">
     <section id="chart-panel" class="panel" aria-label="Chart">
       <div id="chart-holder"></div>
+      <ul class="legend" aria-label="Key to the chart">
+        <li><svg viewBox="0 0 40 12" aria-hidden="true"><path class="dr-est-track" d="M2,6 L38,6"/></svg>Your plot (dashed)</li>
+        <li><svg viewBox="0 0 40 12" aria-hidden="true"><path class="dr-true-track" d="M2,6 L38,6"/></svg>Where the ship really went (solid, after the sail)</li>
+      </ul>
+      <div id="playback" class="playback" hidden>
+        <button id="skip-button" type="button">Skip to the result</button>
+        <label for="scrub-range" class="sr-only">Passage time</label>
+        <input id="scrub-range" type="range" min="0" max="0" step="1" value="0" aria-valuetext="">
+        <span id="playback-time" class="playback-time" aria-hidden="true"></span>
+      </div>
       <details id="chart-notes" class="notes">
         <summary>The chart in words</summary>
         <ul id="chart-notes-list"></ul>
       </details>
+    </section>
+
+    <section id="planner-panel" class="panel" aria-labelledby="planner-heading">
+      <h2 id="planner-heading">Your plan</h2>
+      <div class="totals" id="totals">
+        <span>Legs: <b id="total-legs">0</b></span>
+        <span>Hours: <b id="total-hours">0</b> of <span id="deadline-hours">0</span></span>
+        <span>Distance: <b id="total-distance">0</b> nm</span>
+      </div>
+      <p id="plot-line" class="note" aria-live="polite"></p>
+      <div class="checkline">
+        <input type="checkbox" id="allow-checkbox" checked>
+        <label for="allow-checkbox">Allow for the charted currents, wind and compass error in my plot</label>
+      </div>
+      <ol id="legs-list" class="legs" aria-label="Legs"></ol>
+      <div id="turns" class="turns" role="group" aria-label="Quick turns for the selected leg">
+        <button type="button" data-turn="-15">&minus;15&deg;</button>
+        <button type="button" data-turn="-5">&minus;5&deg;</button>
+        <button type="button" data-turn="5">+5&deg;</button>
+        <button type="button" data-turn="15">+15&deg;</button>
+      </div>
+      <div class="planner-actions">
+        <button id="add-leg-button" type="button">Add a leg</button>
+        <button id="clear-button" type="button">Clear the plan</button>
+      </div>
+      <div class="helpers" role="group" aria-label="Helpers">
+        <button id="naive-flag-button" type="button">Steer straight at the flag</button>
+        <button id="current-flag-button" type="button">Steer to the flag allowing for the chart</button>
+      </div>
+      <p id="helper-note" class="note"></p>
+      <details class="ruler" id="ruler">
+        <summary>Ruler: bearing and distance to a point</summary>
+        <p class="note">Tap the chart to mark a point P, or type its position. The ruler measures from where your plot ends.</p>
+        <div class="ruler-fields">
+          <label class="field">East (nm)<input id="point-x" type="number" min="0" step="0.1" inputmode="decimal"></label>
+          <label class="field">North (nm)<input id="point-y" type="number" min="0" step="0.1" inputmode="decimal"></label>
+          <button id="point-set-button" type="button">Mark point</button>
+          <button id="point-clear-button" type="button">Clear</button>
+        </div>
+        <p id="ruler-readout" class="ruler-readout" aria-live="polite"></p>
+        <div class="helpers">
+          <button id="naive-point-button" type="button">Steer straight to P</button>
+          <button id="current-point-button" type="button">Steer to P allowing for the chart</button>
+        </div>
+      </details>
+      <div id="sail-dock" class="sail-dock">
+        <button id="undo-button" type="button">Undo</button>
+        <button id="sail-button" type="button" class="primary">Sail</button>
+      </div>
+    </section>
+
+    <section id="result-panel" class="panel" aria-labelledby="result-heading" hidden>
+      <h2 id="result-heading">The passage</h2>
+      <div id="result-card" class="result-card" hidden>
+        <p class="result-title"><span id="result-title"></span> <span id="result-stars" class="stars"></span></p>
+        <p id="result-stars-text" class="note"></p>
+        <ul id="result-lines" class="events"></ul>
+        <ul id="result-criteria" class="criteria"></ul>
+      </div>
+      <h3>Log</h3>
+      <ul id="event-list" class="events" aria-live="polite"></ul>
+      <div class="planner-actions">
+        <button id="retry-button" type="button" class="primary">Retry with this plan</button>
+        <button id="redo-button" type="button">Start the plan again</button>
+      </div>
     </section>
   </div>
 
@@ -75,6 +150,9 @@
 </div>
 <script src="https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.js"></script>
 <script src="../../shared/tutorial.js"></script>
+<script src="../../shared/confirm-dialog.js"></script>
+<script src="../../shared/mobile-hud.js"></script>
+<script src="../../shared/mobile-dock.js"></script>
 <script src="../../shared/hub-auth.js"></script>
 <script src="../../shared/save-widget.js" data-game-id="dead-reckoning"></script>
 <script src="../../shared/opening-screen.js" data-game-id="dead-reckoning" data-game-name="Dead Reckoning" data-tagline="Speed, heading and time. Where has the sea put you?"></script>

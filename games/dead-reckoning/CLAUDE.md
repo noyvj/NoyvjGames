@@ -33,7 +33,7 @@ You are a ship's navigator with only speed, heading and time. Plot a course acro
 |---|-----------|---------|--------|
 | 1 | Sim core | `geom.py`, `sim.py`: vectors, current zones, leeway, hazard intersection, tracks, scoring, text harness (`tools/textharness.py`) | Done |
 | 2 | Chart SVG | `render.py`: grid, land, hazards, current arrows, scale, rose, wind, landmarks, tracks, ribbons, the chart in words; `index.html` shell (standard shared includes), `style.css` (night and paper-chart themes), `settings.js`, favicon; page draws the demo chart with a hard-coded plan; golden SVG tests | Done |
-| 3 | Plan and sail | Not started | Not started |
+| 3 | Plan and sail | `game.py` (handle/get_state/load_state), `state.py`, `progress.py`, `solver.py`; leg editor (numeric steppers, quick turns, Undo/Clear), live estimated track with an "allow for the chart" switch, naive and allow-for-the-chart helpers, ruler, Sail with confirm dialog, animated true track with scrub bar and Skip, reveal card with stars explained, save contract; mobile dock and HUD. **Playable slice** | Done |
 | 4 | Campaign chapters 1-2 | Not started | Not started |
 | 5 | Fixes and watch-by-watch | Not started | Not started |
 | 6 | Fog, tides, compass error | Not started | Not started |

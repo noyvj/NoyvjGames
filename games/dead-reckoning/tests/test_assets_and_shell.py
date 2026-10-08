@@ -33,7 +33,8 @@ def test_every_id_app_js_uses_exists_in_the_page():
     ids = set(re.findall(r'\bid="([^"]+)"', HTML))
     used = set(re.findall(r'\$\("([^"]+)"\)', APP))
     assert used, "expected $('id') lookups"
-    assert used <= ids, f"app.js uses ids the page lacks: {sorted(used - ids)}"
+    drawn = set(re.findall(r'\bid="(dr-[a-z-]+)"', (GAME_DIR / "render.py").read_text(encoding="utf-8")))   # ids inside the engine's own SVG
+    assert used <= ids | drawn, f"app.js uses ids the page lacks: {sorted(used - ids - drawn)}"
 
 
 def test_the_page_has_the_standard_shared_includes_in_the_usual_order():
