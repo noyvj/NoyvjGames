@@ -1450,3 +1450,92 @@ def test_link_marks_appear_and_can_be_hidden(game_env):
     m.render_grid()
     tile = game_env.elements["plot-grid"].children[0]
     assert "plot-linked" not in tile.className and "canopy link" in tile.getAttribute("data-tooltip")
+
+
+# ---- GB-25 stakeholder faces ----
+
+def test_each_reason_has_a_recurring_character(game_env):
+    m = game_env.module
+    for reason in list(m.STAKEHOLDER_REASONS) + list(m.STAKEHOLDER_INCENTIVE_REASONS):
+        assert m.REASON_FACE[reason] in m.FACES
+    assert m.face_for_request({"reason": "housing", "kind": m.STAKEHOLDER_KIND_CLEAR}) == "mayor"
+    assert m.face_for_request({"reason": "x", "kind": m.STAKEHOLDER_KIND_REPLANT_GRANT}) == "ranger"
+    assert m.face_for_request(None) is None
+
+
+def test_choices_build_trust_and_a_decline_only_changes_the_mood(game_env):
+    m = game_env.module
+    req = {"reason": "farming", "kind": m.STAKEHOLDER_KIND_CLEAR}
+    assert m.face_mood("farmer") == "reserved"
+    m.note_face_choice("granted", req, m.STAKEHOLDER_KIND_CLEAR)
+    assert m.stakeholder_faces["farmer"]["trust"] == 1 and m.face_mood("farmer") == "pleased"
+    m.note_face_choice("countered", req, m.STAKEHOLDER_KIND_CLEAR)
+    assert m.stakeholder_faces["farmer"]["trust"] == 3 and m.face_mood("farmer") == "friendly"
+    m.note_face_choice("declined", req, m.STAKEHOLDER_KIND_CLEAR)
+    assert m.stakeholder_faces["farmer"]["trust"] == 3 and m.face_mood("farmer") == "disappointed"
+    incentive = {"reason": "ecotourism", "kind": m.STAKEHOLDER_KIND_INCENTIVE}
+    m.note_face_choice("granted", incentive, m.STAKEHOLDER_KIND_INCENTIVE)
+    assert m.stakeholder_faces["broker"]["trust"] == 2 and m.stakeholder_faces["broker"]["last"] == "accepted"
+
+
+def test_trust_is_capped_and_perks_stretch_the_request_gap(game_env):
+    m = game_env.module
+    base = m.current_request_interval()
+    m.stakeholder_faces["mayor"] = {"trust": 5, "last": "granted", "met": 5}
+    assert m.friendship_interval_factor() == 1.1 and m.current_request_interval() > base
+    m.stakeholder_faces["farmer"] = {"trust": 9, "last": "granted", "met": 9}
+    assert abs(m.friendship_interval_factor() - 1.3) < 1e-9
+    for face in ("foreman", "broker", "ranger"):
+        m.stakeholder_faces[face] = {"trust": 10, "last": "granted", "met": 9}
+    assert m.friendship_interval_factor() == 1.5  # capped
+    req = {"reason": "housing", "kind": m.STAKEHOLDER_KIND_CLEAR}
+    for _ in range(30):
+        m.note_face_choice("countered", req, m.STAKEHOLDER_KIND_CLEAR)
+    assert m.stakeholder_faces["mayor"]["trust"] == m.FACE_TRUST_MAX
+
+
+def test_real_answers_flow_through_the_request_handlers(game_env):
+    m = game_env.module
+    m.plots[14].value = 10.0
+    _request_on(m, 14)
+    reason = m.pending_stakeholder_request["reason"]
+    face = m.REASON_FACE.get(reason)
+    m.grant_stakeholder_request()
+    assert m.stakeholder_faces[face]["met"] == 1 and m.stakeholder_faces[face]["last"] == "granted"
+
+
+def test_portrait_is_valid_svg_and_names_the_mood(game_env):
+    import xml.etree.ElementTree as ET
+    m = game_env.module
+    for face_id in m.FACES:
+        ET.fromstring(m.face_portrait_svg(face_id))
+    m.stakeholder_faces["mayor"] = {"trust": 0, "last": "declined", "met": 1}
+    assert "disappointed" in m.face_portrait_svg("mayor")
+
+
+def test_panel_and_summary_show_the_character(game_env):
+    m = game_env.module
+    m.plots[14].value = 10.0
+    _request_on(m, 14)
+    m.render_stakeholder_panel()
+    assert "<svg" in game_env.elements["stakeholder-face"].innerHTML
+    assert game_env.elements["stakeholder-speaker"].innerText
+    assert "Nobody met yet" in game_env.elements["faces-list"].innerText
+    m.stakeholder_faces["mayor"] = {"trust": 5, "last": "granted", "met": 2}
+    m.render_faces()
+    assert "Mayor Odalys" in game_env.elements["faces-list"].innerText and "Perk" in game_env.elements["faces-list"].innerText
+
+
+def test_faces_save_load_validate_and_reset(game_env):
+    m = game_env.module
+    assert "stakeholder_faces" not in m.get_state()
+    m.stakeholder_faces["ranger"] = {"trust": 4, "last": "accepted", "met": 3}
+    state = m.get_state()
+    m.stakeholder_faces.clear()
+    m.load_state(state)
+    assert m.stakeholder_faces["ranger"] == {"trust": 4, "last": "accepted", "met": 3}
+    state["stakeholder_faces"] = {"ranger": {"trust": 99, "last": "weird", "met": "x"}, "ghost": {"trust": 1}, "mayor": 5}
+    m.load_state(state)
+    assert m.stakeholder_faces == {"ranger": {"trust": 10, "last": "", "met": 0}}
+    m.reset_session()
+    assert m.stakeholder_faces == {}

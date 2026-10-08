@@ -973,6 +973,7 @@ def reset_session(grid_size=None, _render_after=True, difficulty=None, challenge
     _pending_mature_bursts.clear()
     forest_log = []
     request_history.clear()
+    stakeholder_faces.clear()  # GB-25
     plot_notes.clear()
     _coach_dismissed.clear()
     _coach_dismissed.clear()
@@ -1862,7 +1863,136 @@ def _request_snapshot(request, kind):
     return {"plot": idx, "kind": kind, "value_then": round(float(plots[idx].value), 2), "tick": forest_tick}
 
 
+# GB-25 (2026-10-09): stakeholder faces. Each kind of request comes from a recurring named character with a mood and a
+# small portrait drawn in code. Trust grows when you engage (grant +1, counter-offer +2, accept an offer +2) and is never
+# lost; a decline just leaves them disappointed for their next request. Allies (trust 5) and champions (trust 8) stretch
+# the gap between requests: +10% and +20% each, at most +50% in all. Kept per forest, saved only once someone has been met.
+FACES = {
+    "mayor": {"name": "Mayor Odalys", "role": "the mayor", "skin": "#e0b48a", "accent": "#6b7fd7", "hat": "sash"},
+    "farmer": {"name": "Farmer Brennan", "role": "a local farmer", "skin": "#d9a679", "accent": "#a8873c", "hat": "brim"},
+    "foreman": {"name": "Foreman Garrick", "role": "the timber foreman", "skin": "#c98f66", "accent": "#c4743a", "hat": "helmet"},
+    "broker": {"name": "Broker Tessaly", "role": "the carbon broker", "skin": "#f0c8a0", "accent": "#3d9aa6", "hat": "tie"},
+    "ranger": {"name": "Ranger Ines", "role": "the restoration ranger", "skin": "#b8805a", "accent": "#2f7d4a", "hat": "cap"},
+}
+REASON_FACE = {"housing": "mayor", "farming": "farmer", "resources": "foreman", "ecotourism": "broker",
+               "carbon_credit": "broker", "conservation_grant": "ranger"}
+FACE_TRUST_MAX = 10
+FACE_ALLY_TRUST, FACE_CHAMPION_TRUST = 5, 8
+FACE_INTERVAL_BONUS = {"ally": 0.10, "champion": 0.20}
+FACE_INTERVAL_BONUS_CAP = 0.5
+FACE_TRUST_GAIN = {"granted": 1, "countered": 2, "accepted": 2, "declined": 0}
+FACE_TONES = {
+    "reserved": "keeps it formal and brief.",
+    "disappointed": "sounds disappointed, but says they understand.",
+    "pleased": "is pleased you listened last time.",
+    "friendly": "greets you like a neighbour.",
+    "ally": "speaks as an ally of the forest now.",
+    "champion": "treats you as a champion of the valley.",
+}
+stakeholder_faces = {}  # face id -> {"trust": int, "last": str, "met": int}
+
+
+def face_for_request(request):
+    if request is None:
+        return None
+    if request.get("kind") == STAKEHOLDER_KIND_REPLANT_GRANT:
+        return "ranger"
+    return REASON_FACE.get(request.get("reason"))
+
+
+def face_tier(trust):
+    if trust >= FACE_CHAMPION_TRUST:
+        return "champion"
+    if trust >= FACE_ALLY_TRUST:
+        return "ally"
+    return "friendly" if trust >= 3 else "none"
+
+
+def face_mood(face_id):
+    state = stakeholder_faces.get(face_id)
+    if not state or not state["met"]:
+        return "reserved"
+    if state["last"] == "declined":
+        return "disappointed"
+    tier = face_tier(state["trust"])
+    if tier != "none":
+        return tier
+    return "pleased" if state["last"] in ("granted", "countered", "accepted") else "reserved"
+
+
+def face_tone_text(face_id):
+    return f"{FACES[face_id]['name']} {FACE_TONES[face_mood(face_id)]}"
+
+
+def note_face_choice(choice, request, kind):
+    """Records one answered request against its character (called from the request history hook)."""
+    face_id = face_for_request(request)
+    if face_id is None:
+        return
+    state = stakeholder_faces.setdefault(face_id, {"trust": 0, "last": "", "met": 0})
+    label = "accepted" if choice == "granted" and kind in (STAKEHOLDER_KIND_INCENTIVE, STAKEHOLDER_KIND_REPLANT_GRANT) else choice
+    state["trust"] = min(FACE_TRUST_MAX, state["trust"] + FACE_TRUST_GAIN.get(label, 0))
+    state["last"] = label
+    state["met"] += 1
+
+
+def friendship_interval_factor():
+    bonus = sum(FACE_INTERVAL_BONUS.get(face_tier(s["trust"]), 0.0) for s in stakeholder_faces.values())
+    return 1.0 + min(FACE_INTERVAL_BONUS_CAP, bonus)
+
+
+def face_portrait_svg(face_id):
+    face = FACES[face_id]
+    mood = face_mood(face_id)
+    mouth = {"pleased": "M17 32 Q24 39 31 32", "friendly": "M17 32 Q24 39 31 32", "ally": "M17 31 Q24 40 31 31",
+             "champion": "M17 31 Q24 41 31 31", "disappointed": "M18 35 Q24 30 30 35"}.get(mood, "M19 33 L29 33")
+    hats = {
+        "sash": f'<path d="M13 22 L35 22 L33 16 Q24 10 15 16 Z" fill="{face["accent"]}"/>',
+        "brim": '<path d="M9 21 L39 21 L35 20 Q24 9 13 20 Z" fill="#8a6a3f"/>',
+        "helmet": '<path d="M12 22 Q24 6 36 22 Z" fill="#e8c14c"/>',
+        "tie": f'<path d="M22 40 L26 40 L27 47 L24 45 L21 47 Z" fill="{face["accent"]}"/>',
+        "cap": f'<path d="M12 21 Q24 8 36 21 L38 22 L12 22 Z" fill="{face["accent"]}"/>',
+    }
+    brows = '<path d="M16 21 L21 23 M32 21 L27 23" stroke="#222" stroke-width="1.4" fill="none"/>' if mood == "disappointed" else ""
+    return (
+        f'<svg viewBox="0 0 48 48" width="48" height="48" class="face-portrait" role="img" aria-label="{_svg_text(face["name"])}, {mood}">'
+        f'<circle cx="24" cy="24" r="23" fill="{face["accent"]}" opacity="0.35"/>'
+        f'<circle cx="24" cy="27" r="13" fill="{face["skin"]}"/>{hats[face["hat"]]}{brows}'
+        '<circle cx="19" cy="25" r="1.7" fill="#222"/><circle cx="29" cy="25" r="1.7" fill="#222"/>'
+        f'<path d="{mouth}" stroke="#222" stroke-width="1.6" fill="none" stroke-linecap="round"/></svg>'
+    )
+
+
+def faces_rows():
+    """Lines for the Session Summary: everyone met so far, with trust, mood and any perk."""
+    rows = []
+    for face_id, face in FACES.items():
+        state = stakeholder_faces.get(face_id)
+        if not state or not state["met"]:
+            continue
+        tier = face_tier(state["trust"])
+        perk = {"ally": " Perk: requests come about 10% less often.", "champion": " Perk: requests come about 20% less often."}.get(tier, "")
+        rows.append(f"{face['name']} ({face['role']}): trust {state['trust']}/{FACE_TRUST_MAX}, {face_mood(face_id)}, asked {state['met']} time{'s' if state['met'] != 1 else ''}.{perk}")
+    return rows
+
+
+def render_faces():
+    element = _el("faces-list")
+    if element is not None:
+        rows = faces_rows()
+        element.innerText = "\n".join(rows) if rows else "Nobody met yet: answer a community request to meet the people asking."
+    face_el, speaker_el, tone_el = _el("stakeholder-face"), _el("stakeholder-speaker"), _el("stakeholder-tone")
+    face_id = face_for_request(pending_stakeholder_request)
+    if face_el is not None:
+        face_el.innerHTML = face_portrait_svg(face_id) if face_id else ""
+    if speaker_el is not None:
+        speaker_el.innerText = f"{FACES[face_id]['name']}, {FACES[face_id]['role']}" if face_id else ""
+    if tone_el is not None:
+        tone_el.innerText = face_tone_text(face_id) if face_id else ""
+
+
 def _record_request_choice(choice, snapshot):
+    note_face_choice(choice, pending_stakeholder_request, snapshot.get("kind"))  # GB-25
     request_history.append({**snapshot, "choice": choice})
     del request_history[:-REQUEST_HISTORY_MAX]
 
@@ -3494,6 +3624,7 @@ def render_session_summary():
     render_replay()
     render_forest_log_panels()
     render_request_history()
+    render_faces()
     render_lifetime_stats()
     render_my_forests()
     render_lab()
@@ -3570,6 +3701,7 @@ def render_stakeholder_panel():
         panel_el.hidden = True
         return
     panel_el.hidden = False
+    render_faces()  # GB-25: portrait, name and tone for whoever is asking
     message_el.innerText = stakeholder_request_message()
     # B11: "Accept" reads more naturally than "Grant" for a positive-
     # trade-off offer, where the player isn't granting the community
@@ -5708,7 +5840,7 @@ def render_season_forecast():
 def current_request_interval():
     """Ticks between community requests: the Pass 3 interval scaled by the chosen pace."""
     factor = REQUEST_PACE_FACTOR.get(current_pace, 1.0)
-    return max(5, int(round(STAKEHOLDER_EVENT_INTERVAL_TICKS * factor / lab["requests"])))  # B-5
+    return max(5, int(round(STAKEHOLDER_EVENT_INTERVAL_TICKS * factor * friendship_interval_factor() / lab["requests"])))  # B-5, GB-25
 
 
 def session_tag_text():
@@ -7350,6 +7482,8 @@ def render_vault():
 
 def _levels_state_fields():
     out = {}
+    if stakeholder_faces:  # GB-25
+        out["stakeholder_faces"] = copy.deepcopy(stakeholder_faces)
     if species_planted:  # GB-6
         out["species_planted"] = sorted(species_planted)
     if lab_active():  # B-5
@@ -8365,6 +8499,16 @@ def load_state(data):
         for e in raw_log
         if isinstance(e, dict)
     ][-FOREST_LOG_MAX_ENTRIES:]
+    stakeholder_faces.clear()  # GB-25
+    saved_faces = data.get("stakeholder_faces")
+    if isinstance(saved_faces, dict):
+        for face_id, raw in saved_faces.items():
+            if face_id in FACES and isinstance(raw, dict):
+                stakeholder_faces[face_id] = {
+                    "trust": int(_number_or(raw.get("trust"), 0, 0, FACE_TRUST_MAX)),
+                    "last": raw.get("last") if raw.get("last") in FACE_TRUST_GAIN else "",
+                    "met": int(_number_or(raw.get("met"), 0, 0, 100000)),
+                }
     species_planted.clear()  # GB-6
     blight_pressure.clear()  # GB-7
     saved_planted = data.get("species_planted")

@@ -2240,6 +2240,13 @@ html[data-forest-palette="meadow"] { --forest-accent: #a7d98a; }
 /* GB-5: canopy link marks. */
 .link-mark { position: absolute; right: 2px; top: 1px; font-size: 0.6em; line-height: 1; font-weight: 700; pointer-events: none; opacity: 0.9; }
 
+/* GB-25: stakeholder faces. */
+.stakeholder-speaker-row { display: flex; align-items: center; gap: 0.6rem; margin-bottom: 0.4rem; }
+.stakeholder-face svg { display: block; }
+.stakeholder-speaker { margin: 0; font-weight: 600; }
+.stakeholder-tone { margin: 0; font-size: 0.85em; opacity: 0.85; }
+.faces-list { white-space: pre-line; margin: 0; }
+
 /* ============================================================
    Light theme (Y11b, 2026-09-27). shared/theme-light-games.css already
    restyles the shared chrome (panels, buttons, inputs, HUD readouts);
