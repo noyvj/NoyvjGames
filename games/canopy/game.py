@@ -428,6 +428,20 @@ class Plot:
         self.species = None  # GB-6: the next planting chooses afresh
         return payout
 
+    def blight(self):
+        """GB-7: killed back to bare by blight. Unlike clear() nothing is harvested and the soil is not harmed."""
+        if self.state not in ACCRUING_STATES:
+            return False
+        self.state = BARE
+        self.value = 0.0
+        self.ticks_intact = 0
+        self.biodiversity = 0.0
+        self.specialization = None
+        self.partner_share = 0.0
+        self.tend_ticks_left = 0
+        self.species = None
+        return True
+
     def replant(self, partner=False, species=None):
         """B11: `partner=True` uses a reforestation partner instead of a
         plain replant -- recovers in PARTNER_RECOVERY_TICKS (half the
@@ -915,6 +929,7 @@ def reset_session(grid_size=None, _render_after=True, difficulty=None, challenge
     _value_history.clear()
     _report_history.clear()
     _replay_frames.clear()  # B-3
+    blight_pressure.clear()  # GB-7
     species_planted.clear()  # GB-6
     _replay_state["every"] = REPLAY_START_EVERY
     _pending_mature_bursts.clear()
@@ -2098,6 +2113,10 @@ def render_grid():
             species_mark.setAttribute("aria-hidden", "true")
             tile.appendChild(species_mark)
             tooltip += f" \u00b7 {SPECIES[plot.species]['label']}"
+            blight_note = blight_status_for(plot.index)  # GB-7
+            if blight_note:
+                tile.className += " plot-blight"
+                tooltip += f" \u00b7 {blight_note}"
         if golden_seedling is not None and golden_seedling["plot"] == plot.index:
             tooltip += " \u00b7 golden seedling: click it now for a burst of recovery"
         if plot.tend_ticks_left > 0:
@@ -5005,6 +5024,7 @@ def tend_plot(index=None):
         render_tend_panel()
         return False
     plot.tend_ticks_left = TEND_DURATION_TICKS
+    relieve_blight(index)  # GB-7
     tends_done += 1  # GB-9: counts toward a Ranger contract
     _tend_message = ""
     _log_event("tend", f"Tended {_plot_ref(index)}", index)
@@ -7834,6 +7854,100 @@ def render_survey():
             button.disabled = not enabled
 
 
+# GB-7 (2026-10-09): blight in monocultures. A connected patch of BLIGHT_MIN_PATCH or more plots of one chosen species
+# builds up blight pressure each tick. At BLIGHT_WARN_TICKS a warning appears (the patch is marked and announced); from
+# BLIGHT_HIT_TICKS the blight kills one plot back to bare every BLIGHT_SPREAD_TICKS, always the least valuable one in
+# the patch, until it is broken up or only one plot is left. Tending any plot in the patch resets it, and a patch that includes
+# a different species or a standard seedling is smaller and so resists. Deterministic (no dice), recoverable (a blighted plot is just bare:
+# no soil damage, no clear counted) and switchable off in Settings. Standard seedlings never count.
+BLIGHT_MIN_PATCH = 5
+BLIGHT_WARN_TICKS = 40
+BLIGHT_HIT_TICKS = 60
+BLIGHT_SPREAD_TICKS = 10
+UI_PREF_BLIGHT_OFF = "canopy-blight-off"
+blight_pressure = {}  # plot index -> ticks of pressure (ephemeral: a reload gives the forest a fresh start)
+
+
+def blight_enabled():
+    return ui_pref(UI_PREF_BLIGHT_OFF) != "true"
+
+
+def species_patches(plot_list=None, cols=None):
+    """Connected (up, down, left, right) groups of standing plots sharing one chosen species, as lists of indexes."""
+    plot_list = plots if plot_list is None else plot_list
+    cols = GRID_COLS if cols is None else cols
+    by_index = {p.index: p for p in plot_list if p.state in ACCRUING_STATES and p.species}
+    seen, patches = set(), []
+    for start in sorted(by_index):
+        if start in seen:
+            continue
+        species, stack, group = by_index[start].species, [start], []
+        seen.add(start)
+        while stack:
+            current = stack.pop()
+            group.append(current)
+            row, col = divmod(current, cols)
+            for nr, nc in ((row - 1, col), (row + 1, col), (row, col - 1), (row, col + 1)):
+                if nr < 0 or nc < 0 or nc >= cols:
+                    continue
+                neighbour = nr * cols + nc
+                if neighbour in by_index and neighbour not in seen and by_index[neighbour].species == species:
+                    seen.add(neighbour)
+                    stack.append(neighbour)
+        patches.append(sorted(group))
+    return patches
+
+
+def blight_patch_for(index):
+    for patch in species_patches():
+        if index in patch:
+            return patch
+    return []
+
+
+def relieve_blight(index):
+    """Tending a plot calms the whole patch it belongs to."""
+    for member in blight_patch_for(index):
+        blight_pressure.pop(member, None)
+
+
+def _blight_tick():
+    """Advances every big single-species patch by one tick of pressure and applies the blight when due."""
+    if not blight_enabled():
+        blight_pressure.clear()
+        return
+    # A patch qualifies when it is big enough, or when the blight already took hold in it and two or more plots remain.
+    large = [patch for patch in species_patches()
+             if len(patch) >= BLIGHT_MIN_PATCH
+             or (len(patch) >= 2 and max(blight_pressure.get(i, 0) for i in patch) >= BLIGHT_HIT_TICKS)]
+    in_patch = {i for patch in large for i in patch}
+    for index in list(blight_pressure):
+        if index not in in_patch:
+            del blight_pressure[index]
+    for patch in large:
+        pressure = max(blight_pressure.get(i, 0) for i in patch) + 1
+        for member in patch:
+            blight_pressure[member] = pressure
+        name = SPECIES[plots[patch[0]].species]["label"].lower()
+        if pressure == BLIGHT_WARN_TICKS:
+            _log_event("blight", f"Blight warning: the {name} patch ({len(patch)} plots) is struggling. Tend a plot in it, or break it up with another species")
+        if pressure >= BLIGHT_HIT_TICKS and (pressure - BLIGHT_HIT_TICKS) % BLIGHT_SPREAD_TICKS == 0:
+            victim = min(patch, key=lambda i: (plots[i].value, i))
+            plots[victim].blight()
+            blight_pressure.pop(victim, None)
+            _log_event("blight", f"Blight killed {_plot_ref(victim)} in the {name} patch. Replant it, ideally with a different species", victim)
+
+
+def blight_status_for(index):
+    """'' when the plot is safe, else a short phrase for its tooltip."""
+    pressure = blight_pressure.get(index, 0)
+    if pressure >= BLIGHT_HIT_TICKS:
+        return f"blight is spreading here (the patch loses a plot every {BLIGHT_SPREAD_TICKS} ticks): tend a plot in it or plant another species"
+    if pressure >= BLIGHT_WARN_TICKS:
+        return f"blight warning: {BLIGHT_HIT_TICKS - pressure} ticks until it spreads (tend a plot in the patch or plant another species)"
+    return ""
+
+
 def _note_recovery(plot):
     global total_recoveries
     total_recoveries += 1
@@ -7904,6 +8018,7 @@ def tick(event=None):
     _pending_mature_bursts.clear()
     global _mixed_bonus
     _mixed_bonus = mixed_forest_multiplier()  # GB-6
+    _blight_tick()  # GB-7
     aura = _heart_tree_aura()  # GB-8
     newly_mature = []
     for plot in plots:
@@ -8206,6 +8321,7 @@ def load_state(data):
         if isinstance(e, dict)
     ][-FOREST_LOG_MAX_ENTRIES:]
     species_planted.clear()  # GB-6
+    blight_pressure.clear()  # GB-7
     saved_planted = data.get("species_planted")
     if isinstance(saved_planted, list):
         species_planted.update(x for x in saved_planted if x in SPECIES and x != SPECIES_STANDARD)

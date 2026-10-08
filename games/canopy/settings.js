@@ -104,6 +104,7 @@
   const PLOT_CONTRAST_KEY = "canopy-plot-contrast";
   const SOIL_OVERLAY_KEY = "canopy-soil-overlay";
   const COACH_KEY = "canopy-coach-hints"; // B-27: opt-in
+  const BLIGHT_OFF_KEY = "canopy-blight-off"; // GB-7: blight is on unless this is "true"
   const NUMBER_FORMAT_KEY = "canopy-number-format";
   const NUMBER_FORMATS = ["standard", "grouped", "compact", "precise"];
   const DEFAULT_NUMBER_FORMAT = "standard";
@@ -223,6 +224,14 @@
       coachCheckbox.checked = readFlag(COACH_KEY);
       coachCheckbox.addEventListener("change", function () {
         writeStored(COACH_KEY, coachCheckbox.checked);
+        refreshGame();
+      });
+    }
+    const blightCheckbox = document.getElementById("blight-checkbox");
+    if (blightCheckbox) {
+      blightCheckbox.checked = !readFlag(BLIGHT_OFF_KEY);
+      blightCheckbox.addEventListener("change", function () {
+        writeStored(BLIGHT_OFF_KEY, !blightCheckbox.checked);
         refreshGame();
       });
     }

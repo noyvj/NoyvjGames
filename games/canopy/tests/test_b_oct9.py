@@ -1269,3 +1269,98 @@ def test_species_marks_and_picker_note(game_env):
     m.species_choice = "oak"
     m.render_species_note()
     assert "Hardwood oak" in game_env.elements["species-note"].innerText
+
+
+# ---- GB-7 blight in monocultures ----
+
+def _plant_row(m, indexes, species="oak"):
+    for i in indexes:
+        m.plots[i].state = m.PRESERVED
+        m.plots[i].species = species
+        m.plots[i].value = 10.0 + i
+
+
+def test_patches_are_connected_groups_of_one_species(game_env):
+    m = game_env.module
+    for p in m.plots:
+        p.species = None
+    _plant_row(m, [0, 1, 2], "oak")
+    _plant_row(m, [3], "pine")      # a neighbour of another species does not join
+    _plant_row(m, [13, 14], "oak")  # two rows down: not adjacent to 0-2
+    patches = m.species_patches()
+    assert [0, 1, 2] in patches and [3] in patches and [13, 14] in patches
+    m.plots[0].species = None
+    assert all(0 not in p for p in m.species_patches())
+
+
+def test_standard_seedlings_and_bare_plots_never_form_patches(game_env):
+    m = game_env.module
+    assert m.species_patches() == []
+    _plant_row(m, [0, 1, 2, 3, 4], "oak")
+    m.plots[2].state = m.BARE
+    assert [0, 1] in m.species_patches() and [3, 4] in m.species_patches()
+
+
+def test_small_patches_never_gather_pressure(game_env):
+    m = game_env.module
+    _plant_row(m, [0, 1, 2, 3], "oak")  # one short of BLIGHT_MIN_PATCH
+    for _ in range(100):
+        m._blight_tick()
+    assert m.blight_pressure == {} and all(m.plots[i].state == m.PRESERVED for i in range(4))
+
+
+def test_a_big_patch_is_warned_then_loses_its_least_valuable_plot_every_ten_ticks(game_env):
+    m = game_env.module
+    _plant_row(m, [0, 1, 2, 3, 4], "oak")
+    for _ in range(m.BLIGHT_WARN_TICKS):
+        m._blight_tick()
+    assert any(e["kind"] == "blight" and "warning" in e["text"] for e in m.forest_log)
+    assert "blight warning" in m.blight_status_for(0)
+    assert all(m.plots[i].state == m.PRESERVED for i in range(5))
+    for _ in range(m.BLIGHT_HIT_TICKS - m.BLIGHT_WARN_TICKS):
+        m._blight_tick()
+    assert m.plots[0].state == m.BARE and m.plots[0].species is None and m.plots[0].clear_count == 0
+    assert [m.plots[i].state for i in range(1, 5)] == [m.PRESERVED] * 4
+    for _ in range(m.BLIGHT_SPREAD_TICKS):
+        m._blight_tick()
+    assert m.plots[1].state == m.BARE
+    # The blight keeps working through the patch while two or more plots remain, and leaves the last one alone.
+    for _ in range(m.BLIGHT_SPREAD_TICKS * 5):
+        m._blight_tick()
+    assert [m.plots[i].state for i in range(5)].count(m.PRESERVED) == 1
+
+
+def test_tending_a_plot_in_the_patch_resets_the_pressure(game_env):
+    m = game_env.module
+    _plant_row(m, [0, 1, 2, 3, 4], "oak")
+    for _ in range(50):
+        m._blight_tick()
+    assert m.blight_pressure[0] == 50
+    m.selected_index = 2
+    assert m.tend_plot(2) is True
+    assert m.blight_pressure == {}
+
+
+def test_a_different_species_in_the_middle_breaks_the_patch(game_env):
+    m = game_env.module
+    _plant_row(m, [0, 1, 2, 3, 4], "oak")
+    for _ in range(45):
+        m._blight_tick()
+    m.plots[2].species = "pine"
+    m._blight_tick()
+    assert m.blight_pressure == {}  # two small patches of two remain, no pressure
+
+
+def test_blight_can_be_switched_off_and_is_not_saved(game_env):
+    m = game_env.module
+    _plant_row(m, [0, 1, 2, 3, 4], "oak")
+    m.ui_pref = lambda key, default="": "true" if key == m.UI_PREF_BLIGHT_OFF else default
+    for _ in range(100):
+        m._blight_tick()
+    assert all(m.plots[i].state == m.PRESERVED for i in range(5))
+    m.ui_pref = lambda key, default="": default
+    m._blight_tick()
+    assert m.blight_pressure
+    assert "blight_pressure" not in m.get_state()
+    m.load_state(m.get_state())
+    assert m.blight_pressure == {}
