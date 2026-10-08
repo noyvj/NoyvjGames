@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Heist Committee - NoyvjGames</title>
+<meta name="description" content="Hire five oddball specialists who do not get along, plan the job on a timeline, then watch complications and personality clashes chain into each other. Working title.">
+<link rel="icon" type="image/svg+xml" href="icons/favicon-heist-committee.svg">
+<link rel="stylesheet" href="../../shared/theme-light-games.css">
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="../../shared/info-page.css">
+<script src="../../shared/theme.js" data-floating-toggle></script>
+<script src="../../shared/lite-mode.js"></script>
+<script src="../../shared/error-boundary.js" data-game-id="heist-committee"></script>
+<script src="../../shared/perf-mark.js" data-game-id="heist-committee"></script>
+<script src="../../shared/debug-overlay.js"></script>
+<script src="../../shared/info-footer.js" data-game-id="heist-committee"></script>
+<script src="../../shared/site-settings.js" data-game-id="heist-committee"></script>
+<script src="settings.js"></script>
+<link rel="stylesheet" href="../../ad-bar.css">
+<link rel="manifest" href="../../manifest.json">
+<!-- Pyodide is loaded by app.js after first paint, so this shell is readable before the engine is warm. -->
+<link rel="stylesheet" href="../../shared/a11y.css">
+<link rel="stylesheet" href="../../shared/touch-targets.css">
+<link rel="stylesheet" href="../../shared/lite-mode.css">
+</head>
+<body>
+<a class="skip-link" href="#main-stage">Skip to the game</a>
+<main id="game">
+  <a href="../../index.html" class="hub-back-link">&larr; All games</a>
+  <h1>Heist Committee</h1>
+  <p class="tagline">Five oddballs, one plan, and a job that will not go the way you drew it.</p>
+  <div class="game-toolbar">
+    <button id="tutorial-restart-button" type="button">Tutorial</button>
+    <button id="achievements-toggle-button" type="button" aria-expanded="false" aria-controls="achievements-panel">Achievements</button>
+    <button id="changelog-toggle-button" type="button" aria-expanded="false" aria-controls="changelog-panel">What's New</button>
+    <button id="settings-toggle-button" type="button" aria-expanded="false" aria-controls="settings-panel">Settings</button>
+    <button id="info-page-toggle-button" type="button" aria-expanded="false" aria-controls="info-page-panel">How it works</button>
+  </div>
+  <section id="info-page-panel" class="panel" hidden aria-labelledby="info-page-heading">
+    <h2 id="info-page-heading">How the plan works</h2>
+    <p id="info-page-framing" class="info-page-framing"></p>
+    <ul id="info-page-sources" class="info-page-sources"></ul>
+  </section>
+  <section id="achievements-panel" class="panel" hidden aria-labelledby="ach-heading">
+    <h2 id="ach-heading">Achievements</h2>
+    <ul id="achievements-list" class="ach-list"></ul>
+  </section>
+  <section id="changelog-panel" class="panel" hidden aria-labelledby="changelog-heading">
+    <h2 id="changelog-heading">What's New</h2>
+    <div id="changelog-entries"></div>
+  </section>
+  <section id="settings-panel" class="panel" hidden aria-labelledby="settings-heading">
+    <h2 id="settings-heading">Settings</h2>
+    <p class="note">Display choices stay on this device. They never change a job or a save.</p>
+    <div class="settings-row">
+      <span id="text-size-label">Text size</span>
+      <div class="text-size-control" role="group" aria-labelledby="text-size-label">
+        <button id="text-size-decrease-button" type="button" aria-label="Decrease text size">A&minus;</button>
+        <button id="text-size-reset-button" type="button" aria-label="Reset text size">A</button>
+        <button id="text-size-increase-button" type="button" aria-label="Increase text size">A+</button>
+      </div>
+    </div>
+    <div class="settings-row"><label><input type="checkbox" id="reduced-motion-checkbox"> Reduce motion (no shaking or sliding; follows your system setting until you choose)</label></div>
+    <div class="settings-row"><label><input type="checkbox" id="effects-checkbox" checked> Effects (the shake on a failed action and the glow on a new line)</label></div>
+    <div class="settings-row"><label><input type="checkbox" id="high-contrast-checkbox"> High contrast (brighter text, thicker outlines)</label></div>
+    <div class="settings-row"><label><input type="checkbox" id="autoplay-checkbox"> Auto-advance the playback (one beat every few seconds; Next beat always works)</label></div>
+    <div class="settings-row"><button id="theme-setting-button" type="button" aria-pressed="false">Light theme</button></div>
+    <div class="settings-row"><button id="display-reset-button" type="button">Reset display settings</button></div>
+  </section>
+  <p id="toast" class="note toast" role="status" aria-live="polite"></p>
+
+  <div id="hud" class="hud" aria-label="The committee's purse">
+    <span class="hud-item"><span class="hud-label">Cash</span> <b id="hud-cash" data-testid="heist-cash">0</b></span>
+    <span class="hud-item" id="hud-job"></span>
+  </div>
+
+  <div id="main-stage" tabindex="-1">
+  <section id="phase-board" class="phase" aria-labelledby="board-heading">
+    <h2 id="board-heading">The contract board</h2>
+    <p class="note">Pick a job. Every target is invented, every guard is mostly asleep.</p>
+    <div id="board-cards" class="card-row"></div>
+  </section>
+
+  <section id="phase-scout" class="phase" hidden aria-labelledby="scout-heading">
+    <h2 id="scout-heading">Case file</h2>
+    <div id="scout-body"></div>
+  </section>
+
+  <section id="phase-recruit" class="phase" hidden aria-labelledby="recruit-heading">
+    <h2 id="recruit-heading">Hire the crew</h2>
+    <p class="note">Choose five of the eight. Each has a trait you can see and a quirk you will have to discover (or pay to check). Lane order matters: neighbours in the timeline can annoy each other.</p>
+    <div id="recruit-cards" class="card-row cards-grid"></div>
+    <div id="recruit-summary" class="panel"></div>
+  </section>
+
+  <section id="phase-plan" class="phase" hidden aria-labelledby="plan-heading">
+    <h2 id="plan-heading">The plan</h2>
+    <p id="plan-intro" class="note"></p>
+    <div class="plan-layout">
+      <div class="plan-main">
+        <div id="timeline-wrap" class="timeline-wrap">
+          <div id="timeline" class="timeline" role="grid" aria-label="Heist timeline: crew in rows, beats in columns"></div>
+        </div>
+        <section id="inspector" class="panel inspector" aria-live="polite" aria-labelledby="inspector-heading">
+          <h3 id="inspector-heading" class="sr-only">Selected cell</h3>
+          <div id="inspector-body"></div>
+        </section>
+        <section id="tray-panel" class="panel tray-panel" aria-labelledby="tray-heading">
+          <h3 id="tray-heading">Actions</h3>
+          <p id="armed-hint" class="note armed-hint" aria-live="polite"></p>
+          <div id="tray" class="tray" role="group" aria-label="Actions to place"></div>
+          <div id="cover-row" class="cover-row" role="group" aria-label="What a standby crew member covers" hidden></div>
+          <div class="plan-controls">
+            <button id="undo-button" type="button" data-testid="heist-undo">Undo</button>
+            <button id="redo-button" type="button" data-testid="heist-redo">Redo</button>
+            <button id="clear-plan-button" type="button" data-testid="heist-clear-plan">Clear plan</button>
+            <button id="start-heist-button" type="button" class="primary" data-testid="heist-start">Start Heist</button>
+          </div>
+        </section>
+      </div>
+      <aside class="plan-side">
+        <section class="panel" aria-labelledby="check-heading">
+          <h3 id="check-heading">Does the plan hold up?</h3>
+          <ul id="check-list" class="check-list" aria-live="polite"></ul>
+        </section>
+        <section class="panel" aria-labelledby="sidebar-scout-heading">
+          <h3 id="sidebar-scout-heading">Scouted</h3>
+          <div id="sidebar-scout"></div>
+        </section>
+        <section class="panel" id="plan-extras">
+          <button id="abandon-button" type="button" data-testid="heist-abandon">Abandon job</button>
+        </section>
+      </aside>
+    </div>
+  </section>
+
+  <section id="phase-playback" class="phase" hidden aria-labelledby="playback-heading">
+    <h2 id="playback-heading">The job</h2>
+    <div id="playback-body"></div>
+  </section>
+
+  <section id="phase-payout" class="phase" hidden aria-labelledby="payout-heading">
+    <h2 id="payout-heading">The payout</h2>
+    <div id="payout-body"></div>
+  </section>
+  </div>
+
+  <p id="engine-status" class="note" role="status">Warming up the van...</p>
+  <p id="announce" class="sr-only" role="status" aria-live="polite"></p>
+</main>
+
+<a id="credits-link" class="credits-link" href="../../credits.html" style="display:block;text-align:center;font-size:0.85rem;margin:0.75rem 0;color:inherit;">Credits</a>
+<div class="ad-bar ad-bar--bottom">
+  <span class="ad-bar-label ad-bar-label-full">Advertisement — not part of the game</span>
+  <span class="ad-bar-label ad-bar-label-short">Ad</span>
+  <!-- Google AdSense manual display ad unit (placeholder client ID until the application is approved) -->
+  <ins class="adsbygoogle"
+       style="display:block; width:320px; height:50px;"
+       data-ad-client="ca-pub-XXXXXXXXXXXXXXXX"
+       data-ad-slot="XXXXXXXXXX"></ins>
+</div>
+<script src="https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.js"></script>
+<script src="../../shared/confirm-dialog.js"></script>
+<script src="../../shared/tutorial.js"></script>
+<script src="../../shared/hub-auth.js"></script>
+<script src="../../shared/save-widget.js" data-game-id="heist-committee"></script>
+<script src="app.js"></script>
+<script src="plan.js"></script>
+<script>
+  if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.register("../../sw.js");
+  }
+</script>
+</body>
+</html>

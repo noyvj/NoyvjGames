@@ -14,3 +14,20 @@ if str(GAME_DIR) not in sys.path:
 def C():
     import content
     return content.load()
+
+
+@pytest.fixture()
+def g():
+    """A fresh game module state: the module is imported once; each test starts a new career."""
+    import json
+
+    import game
+    game.handle(json.dumps({"action": "new_career", "seed": 77}))
+
+    class Handle:
+        module = game
+
+        def __call__(self, **request):
+            return json.loads(game.handle(json.dumps(request)))
+
+    return Handle()
