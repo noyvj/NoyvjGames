@@ -437,7 +437,7 @@ def test_the_desktop_boot_can_reach_every_new_panel_and_setting(game_env):
     setup = [c for c in cfg["composites"] if c["id"] == "pc-setup-panel"][0]
     assert ".grid-size-label" in setup["members"]  # the new selects are .grid-size-label, so they ride along
     index = _read(game_env, "index.html")
-    assert index.count('class="grid-size-label"') == 4  # grid size, difficulty, request pace, challenge
+    assert index.count('class="grid-size-label"') == 5  # grid size, difficulty, request pace, challenge, scenario (B-11)
     hints = [h[0] for h in cfg["hints"]]
     assert "C" in hints and "R" in hints
 

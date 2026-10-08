@@ -767,7 +767,7 @@ _challenge_record_cache = None  # GB-17: per-browser fastest-completion record, 
 _KEEP_LEVEL = object()  # reset_session(level=...) default: keep the running level unless a setting is being changed
 
 
-def reset_session(grid_size=None, _render_after=True, difficulty=None, challenge=None, pace=None, level=_KEEP_LEVEL):
+def reset_session(grid_size=None, _render_after=True, difficulty=None, challenge=None, pace=None, level=_KEEP_LEVEL, scenario=None):
     """Rebuilds every module-level mutable global back to its fresh-start
     default, optionally at a different GRID_SIZE_PRESETS key. Always
     rebuilds `plots` from scratch (even on a same-size reset) rather than
@@ -788,7 +788,7 @@ def reset_session(grid_size=None, _render_after=True, difficulty=None, challenge
     global wetland_flood_countdown, wetland_floods_survived, wetland_flood_value_lost
     global _wetland_plot_click_proxies
     global forest_log, forest_tick, adopted_plot_index, current_difficulty
-    global legacy_multiplier, current_challenge, current_pace, current_level
+    global legacy_multiplier, current_challenge, current_pace, current_level, current_scenario
 
     # B15: bank this (about-to-end) session's standing value for the next
     # session's legacy bonus, then reload the multiplier so the session
@@ -811,6 +811,12 @@ def reset_session(grid_size=None, _render_after=True, difficulty=None, challenge
         if challenge != CHALLENGE_NONE and challenge not in CHALLENGE_SPECS:
             return False
         current_challenge = challenge
+        if challenge != CHALLENGE_NONE and scenario is None:
+            current_scenario = SCENARIO_NONE  # a challenge brings its own starting forest
+    if scenario is not None:  # B-11
+        if scenario != SCENARIO_NONE and scenario not in SCENARIO_SPECS:
+            return False
+        current_scenario = scenario
     if pace is not None:  # B-6
         if pace not in REQUEST_PACE_FACTOR:
             return False
@@ -822,7 +828,7 @@ def reset_session(grid_size=None, _render_after=True, difficulty=None, challenge
     # W-1: Reset Session keeps the running level (so it retries it); changing a setting by hand leaves the level.
     if level is not _KEEP_LEVEL:
         current_level = level
-    elif grid_size is not None or difficulty is not None or challenge is not None or pace is not None:
+    elif grid_size is not None or difficulty is not None or challenge is not None or pace is not None or scenario is not None:
         current_level = None
     GRID_ROWS, GRID_COLS = GRID_SIZE_PRESETS[current_grid_size]
 
@@ -857,6 +863,7 @@ def reset_session(grid_size=None, _render_after=True, difficulty=None, challenge
     adopted_plot_index = None
     _reset_gb_state()
     _apply_challenge_start()  # GB-17: Scorched Start burns the plots just built
+    _apply_scenario_start()  # B-11
     _burn_level_start()  # W-1: some levels begin with part of the forest bare
 
     for proxy in _highland_plot_click_proxies.values():
@@ -2647,6 +2654,8 @@ def render_session_summary():
     render_forest_log_panels()
     render_request_history()
     render_lifetime_stats()
+    _update_scenario_best()
+    render_scenario_best()
     render_plot_note_input()
 
 
@@ -3625,7 +3634,7 @@ def render_grid_size_select():
     difficulty_select = document.getElementById("difficulty-select")
     if difficulty_select is not None:
         difficulty_select.value = current_difficulty
-    for element_id, value in (("challenge-select", current_challenge), ("request-pace-select", current_pace)):
+    for element_id, value in (("challenge-select", current_challenge), ("request-pace-select", current_pace), ("scenario-select", current_scenario)):
         extra_select = _el(element_id)
         if extra_select is not None:
             extra_select.value = value
@@ -4716,6 +4725,102 @@ def on_pace_change(event=None):
 
 
 # --- GB-17: challenge runs -----------------------------------------------------------------------------------
+
+# B-11 (2026-10-09): scenario seeds: pre-made starting forests picked at session start, each with its own
+# best standing value. They only change which plots start bare, so they reuse the ordinary plot save format.
+SCENARIO_NONE = "none"
+SCENARIO_SPECS = {
+    "clearcut": {"label": "Clear-cut Valley", "blurb": "60% of the plots start bare."},
+    "farmland": {"label": "Fragmented Farmland", "blurb": "A checkerboard: every other plot starts bare."},
+    "remnant": {"label": "Old-Growth Remnant", "blurb": "Only one intact core of old growth is left; everything else is bare."},
+}
+SCENARIO_CLEARCUT_BARE_FRACTION = 0.6
+SCENARIO_REMNANT_HEAD_START_TICKS = 40
+SCENARIO_BESTS_STORAGE_KEY = "canopy_scenario_bests_v1"
+current_scenario = SCENARIO_NONE
+
+
+def scenario_bare_indexes(scenario, rows, cols):
+    """Which plot indexes start bare for a scenario on a rows x cols grid (a pure function, so it is testable)."""
+    count = rows * cols
+    if scenario == "clearcut":
+        bare_count = int(round(count * SCENARIO_CLEARCUT_BARE_FRACTION))
+        return set(sorted(range(count), key=lambda i: (_gb_hash(i, 29), i))[:bare_count])
+    if scenario == "farmland":
+        return {r * cols + c for r in range(rows) for c in range(cols) if (r + c) % 2 == 0}
+    if scenario == "remnant":
+        centre_r, centre_c = rows // 2, cols // 2
+        core = {r * cols + c for r in range(rows) for c in range(cols) if abs(r - centre_r) <= 1 and abs(c - centre_c) <= 1}
+        return set(range(count)) - core
+    return set()
+
+
+def _apply_scenario_start():
+    """Called by reset_session() after the plots exist. Skipped while a challenge or a level is running."""
+    if current_scenario == SCENARIO_NONE or current_challenge != CHALLENGE_NONE or current_level is not None:
+        return
+    bare = scenario_bare_indexes(current_scenario, GRID_ROWS, GRID_COLS)
+    for plot in plots:
+        if plot.index in bare:
+            plot.state = BARE
+            plot.value = 0.0
+            plot.ticks_intact = 0
+            plot.biodiversity = 0.0
+        elif current_scenario == "remnant":
+            plot.ticks_intact = SCENARIO_REMNANT_HEAD_START_TICKS
+            plot.value = BASE_ACCRUAL * SCENARIO_REMNANT_HEAD_START_TICKS
+
+
+def load_scenario_bests():
+    raw = _read_local_storage_item(SCENARIO_BESTS_STORAGE_KEY)
+    out = {}
+    if raw:
+        try:
+            data = json.loads(raw)
+        except ValueError:
+            data = {}
+        if isinstance(data, dict):
+            for key in SCENARIO_SPECS:
+                try:
+                    out[key] = max(0.0, float(data.get(key, 0.0)))
+                except (TypeError, ValueError):
+                    continue
+    return out
+
+
+def _update_scenario_best():
+    """Called every render(): keeps the running scenario's own best standing value."""
+    if current_scenario == SCENARIO_NONE or current_scenario not in SCENARIO_SPECS:
+        return
+    bests = load_scenario_bests()
+    value = standing_forest_value()
+    if value > bests.get(current_scenario, 0.0):
+        bests[current_scenario] = round(value, 2)
+        _write_local_storage_item(SCENARIO_BESTS_STORAGE_KEY, json.dumps(bests))
+
+
+def scenario_best_text():
+    if current_scenario not in SCENARIO_SPECS:
+        return ""
+    label = SCENARIO_SPECS[current_scenario]["label"]
+    best = load_scenario_bests().get(current_scenario, 0.0)
+    return f"{label} best: standing {best:.1f}" if best > 0 else f"{label}: no best yet"
+
+
+def render_scenario_best():
+    element = _el("scenario-best-display")
+    if element is None:
+        return
+    text = scenario_best_text()
+    element.innerText = text
+    element.hidden = not text
+
+
+def on_scenario_change(event=None):
+    if event is None:
+        return
+    reset_session(scenario=event.target.value)
+
 
 def _apply_challenge_start():
     """Called by reset_session() once the plots exist. Scorched Start burns two thirds of the forest."""
@@ -6238,6 +6343,8 @@ def render_vault():
 
 def _levels_state_fields():
     out = {}
+    if current_scenario != SCENARIO_NONE:  # B-11
+        out["scenario"] = current_scenario
     if plot_notes:  # B-24
         out["plot_notes"] = {str(i): n for i, n in plot_notes.items()}
     if request_history:  # B-14: only once a request has been answered
@@ -6749,6 +6856,7 @@ def get_state():
 # the same bug class found and fixed across nearly every other game in this
 # hub (see BCM114-DEV-LOG.md's 2026-09-02 entries).
 def load_state(data):
+    global current_scenario
     global selected_index, total_income, community_relations
     global pending_stakeholder_request, _ticks_since_last_request
     global _stakeholder_request_count, info_page_open
@@ -6798,6 +6906,8 @@ def load_state(data):
         for e in raw_log
         if isinstance(e, dict)
     ][-FOREST_LOG_MAX_ENTRIES:]
+    saved_scenario = data.get("scenario")
+    current_scenario = saved_scenario if saved_scenario in SCENARIO_SPECS else SCENARIO_NONE
     plot_notes.clear()
     saved_notes = data.get("plot_notes")
     if isinstance(saved_notes, dict):
@@ -7008,6 +7118,9 @@ def setup():
     replant_button.innerText = "Replant"
     clear_button.addEventListener("click", create_proxy(on_clear))
     replant_button.addEventListener("click", create_proxy(on_replant))
+    scenario_select = _el("scenario-select")  # B-11
+    if scenario_select is not None:
+        scenario_select.addEventListener("change", create_proxy(on_scenario_change))
     for select_id in ("request-history-sort", "request-history-kind"):  # B-14
         select = _el(select_id)
         if select is not None:

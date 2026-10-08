@@ -1263,3 +1263,8 @@ Added readability and feedback features to Thaw without adding screen clutter: t
 **Game:** canopy
 **Did:** B-9: a "Lifetime statistics" section in the Session Summary: finished sessions, plots cleared and replanted (all time, including the live session), time in the forest (hours, or minutes while small) and the average and best standing value per difficulty with the number of sessions behind each average. A session is banked into `canopy_lifetime_stats_v1` when it ends (the same moment as the legacy bonus is banked), only if it ever ticked; stored values are sanitised on load (bad JSON, negative or non-numeric numbers, malformed difficulty rows are ignored).
 **Result:** Canopy tests 930 to 936. Not checked live in a browser yet (the panel is plain text in the existing summary).
+
+### 2026-10-09 (Canopy, personal pass: scenario seeds)
+**Game:** canopy
+**Did:** B-11: a Scenario picker beside the challenge picker. Clear-cut Valley (60% of the plots start bare, chosen by the game's own deterministic hash), Fragmented Farmland (a checkerboard, every other plot bare) and Old-Growth Remnant (only one 3 by 3 core stays standing with a 40-tick head start). They only change which plots start bare, so they reuse the ordinary plot save format; each keeps its own best standing value (`canopy_scenario_bests_v1`, shown under the picker), the scenario is saved only when chosen and validated on load, picking a challenge or a level overrides it (a challenge brings its own starting forest), and changing the scenario by hand resets the session like the other pickers.
+**Result:** Canopy tests 936 to 941 (one existing test's count of selects updated from four to five). Not checked live in a browser.

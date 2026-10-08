@@ -159,6 +159,16 @@
           <option value="no_highland">No-Highland (regions sealed)</option>
         </select>
       </label>
+      <!-- B-11: scenario seeds: pre-made starting forests, each with its own best. Changing it resets the session. -->
+      <label class="grid-size-label">Scenario
+        <select id="scenario-select">
+          <option value="none">Standard forest</option>
+          <option value="clearcut">Clear-cut Valley (60% bare)</option>
+          <option value="farmland">Fragmented Farmland (checkerboard)</option>
+          <option value="remnant">Old-Growth Remnant (one intact core)</option>
+        </select>
+      </label>
+      <p id="scenario-best-display" class="personal-best-display" hidden></p>
       <!-- B2: hard reset back to a fresh session, no confirmation dialog --
            see reset_session()'s docstring in game.py for why. -->
       <button id="reset-session-button" class="secondary" type="button">🔄 Reset Session</button>

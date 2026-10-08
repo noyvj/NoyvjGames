@@ -302,3 +302,67 @@ def test_render_writes_the_table(game_env):
     _memory_storage(m)
     m.render_lifetime_stats()
     assert "Finished sessions: 0" in game_env.elements["lifetime-stats-table"].innerText
+
+
+# ---- B-11: scenario seeds ----
+
+def test_scenario_layouts_on_the_default_grid(game_env):
+    m = game_env.module
+    rows, cols = m.GRID_ROWS, m.GRID_COLS
+    clearcut = m.scenario_bare_indexes("clearcut", rows, cols)
+    assert len(clearcut) == round(rows * cols * 0.6)
+    assert clearcut == m.scenario_bare_indexes("clearcut", rows, cols)  # deterministic
+    checker = m.scenario_bare_indexes("farmland", rows, cols)
+    assert len(checker) == rows * cols // 2 and 0 in checker and 1 not in checker
+    remnant = m.scenario_bare_indexes("remnant", rows, cols)
+    standing = set(range(rows * cols)) - remnant
+    assert len(standing) == 9  # one 3 x 3 core
+    assert m.scenario_bare_indexes("none", rows, cols) == set()
+
+
+def test_reset_with_a_scenario_builds_that_forest(game_env):
+    m = game_env.module
+    assert m.reset_session(scenario="farmland") is not False
+    bare = [p.index for p in m.plots if p.state == m.BARE]
+    assert len(bare) == len(m.plots) // 2
+    m.reset_session(scenario="remnant")
+    standing = [p for p in m.plots if p.state == m.PRESERVED]
+    assert len(standing) == 9 and all(p.ticks_intact == m.SCENARIO_REMNANT_HEAD_START_TICKS for p in standing)
+    assert m.reset_session(scenario="bogus") is False
+    m.reset_session(scenario="none")
+    assert all(p.state == m.PRESERVED for p in m.plots)
+
+
+def test_a_challenge_overrides_the_scenario(game_env):
+    m = game_env.module
+    m.reset_session(scenario="remnant")
+    m.reset_session(challenge="pacifist")
+    assert m.current_scenario == m.SCENARIO_NONE
+    assert all(p.state == m.PRESERVED for p in m.plots)
+
+
+def test_each_scenario_keeps_its_own_best(game_env):
+    import json
+    m = game_env.module
+    store = {}
+    m._read_local_storage_item = lambda key: store.get(key)
+    m._write_local_storage_item = lambda key, value: store.__setitem__(key, value)
+    m.reset_session(scenario="remnant")
+    m.plots[0].value = 500.0
+    m._update_scenario_best()
+    assert json.loads(store[m.SCENARIO_BESTS_STORAGE_KEY])["remnant"] >= 500.0
+    m.reset_session(scenario="clearcut")
+    assert m.scenario_best_text() == "Clear-cut Valley: no best yet"
+    m.reset_session(scenario="remnant")
+    assert m.scenario_best_text().startswith("Old-Growth Remnant best: standing")
+
+
+def test_scenario_is_saved_only_when_chosen_and_validated(game_env):
+    m = game_env.module
+    assert "scenario" not in m.get_state()
+    m.reset_session(scenario="clearcut")
+    state = m.get_state()
+    assert state["scenario"] == "clearcut"
+    state["scenario"] = "junk"
+    m.load_state(state)
+    assert m.current_scenario == m.SCENARIO_NONE
