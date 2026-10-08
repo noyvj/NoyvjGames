@@ -224,6 +224,19 @@ def parse_survey():
     return sections or None
 
 
+def parse_quick_ideas():
+    """planning/QUICK-IDEAS.md as the "Quick ideas" round: ordinary yes / later / no items (same item format as
+    the ideas rounds), written from the player profile. Answers live only on the page and in the owner account."""
+    path = PLANNING / "QUICK-IDEAS.md"
+    if not path.exists():
+        return None
+    sections = parse_questions(path.read_text(encoding="utf-8").splitlines())
+    for section in sections:
+        for item in section["items"]:
+            item["answered"] = False
+    return sections or None
+
+
 def main():
     rounds_out = []
     answers_out = {}
@@ -251,6 +264,10 @@ def main():
     if fy:
         rounds_out.insert(0, {"id": "for-you", "title": "For you", "sections": [fy]})
         answers_out["for-you"] = {}
+    quick = parse_quick_ideas()
+    if quick:
+        rounds_out.insert(1 if fy else 0, {"id": "quick-ideas", "title": "Quick ideas", "sections": quick})
+        answers_out["quick-ideas"] = {}
     survey = parse_survey()
     if survey:
         rounds_out.insert(1 if fy else 0, {"id": "about-you", "title": "About you", "sections": survey})

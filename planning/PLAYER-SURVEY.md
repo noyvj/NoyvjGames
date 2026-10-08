@@ -215,3 +215,72 @@ How it gets used: once enough is answered I write `planning/PLAYER-PROFILE.md` (
 6. What is the quickest way you would like to give me feedback on a game: a note on the ideas sheet, screenshots, a button inside each game that logs a note?
 7. You mentioned agents sitting idle: how do you want me to handle waiting times and how many things should run at once?
 8. When you make "a long list of things" while playing, what format would make that list fastest to write and easiest for me to act on?
+
+## R. Games you may know (one game per question: played it? what did you think?)
+
+1. Stardew Valley: have you played it, and what did you think?
+2. Factorio or Satisfactory: have you played them, and what did you think?
+3. Outer Wilds: have you played it, and what did you think?
+4. Return of the Obra Dinn: have you played it, and what did you think?
+5. Baba Is You: have you played it, and what did you think?
+6. The Witness or The Talos Principle: have you played them, and what did you think?
+7. Papers, Please: have you played it, and what did you think?
+8. Mini Metro or Mini Motorways: have you played them, and what did you think?
+9. Townscaper or Dorfromantik: have you played them, and what did you think?
+10. Cities: Skylines or Frostpunk: have you played them, and what did you think?
+11. Cookie Clicker or A Dark Room: have you played them, and what did you think?
+12. Wordle or other daily word games: have you played them, and what did you think?
+13. The Stanley Parable or Undertale: have you played them, and what did you think?
+14. Subnautica: have you played it, and what did you think?
+15. Slay the Spire, Hades or Balatro: have you tried them, and what exactly put you off or pulled you in?
+16. Keep Talking and Nobody Explodes: have you played it, and what did you think?
+17. Kerbal Space Program: have you played it, and what did you think?
+18. SpaceChem, Opus Magnum or TIS-100: have you played them, and what did you think?
+19. Disco Elysium or other heavy-story games: have you played them, and what did you think?
+20. Unpacking or A Short Hike: have you played them, and what did you think?
+21. Minecraft: how much have you played, and what do you do in it?
+22. Which game from the earlier questions would you most like a small version of on this site, and what would you keep?
+
+## S. This or that (pick one and say why, or say neither)
+
+1. A game with one big goal, or a game with three goals visible at all times?
+2. Slowly watching a city grow, or solving one puzzle at a time?
+3. Collecting every item, or mastering one tough build?
+4. A calm routine you know by heart, or a new surprise each session?
+5. Helping other people in a game, or building something of your own?
+6. A dark moody scene, or a bright cozy one?
+7. Reading a short log entry, or watching a short animation?
+8. A big skill tree with many choices, or a few clear upgrades?
+9. A hard puzzle you may need help with, or an easy puzzle you can finish half-asleep?
+10. A game that is the same every time, or one that changes with a seeded layout you can replay?
+11. Being told how to improve, or working it out yourself?
+12. Short missions that join into a story, or one long unbroken session?
+13. A game that explains the real world, or one that is simply fun and happens to be accurate?
+14. Playing with a friend at the same time, or playing alone and comparing later?
+15. A game you finish once and keep, or one that can grow forever?
+16. Space stations, or deep forests, or old computers, or the deep sea: which draws you most?
+17. A clever solution being rewarded, or a fast solution being rewarded?
+18. Numbers and charts, or pictures and scenes, to show how you are doing?
+19. A quiet game with no text, or a game with a narrator?
+20. A game where a mistake can be undone, or one where choices stick (as long as you can still restore)?
+
+## T. Your own games, one at a time (what to keep, what to change)
+
+1. SOL: what is the best part, and what is the one thing you would change?
+2. Canopy: what is the best part, and what is the one thing you would change?
+3. Grid: what is the best part, and what is the one thing you would change?
+4. Tide: what is the best part, and what is the one thing you would change?
+5. Aftermath: what is the best part, and what is the one thing you would change?
+6. Herd: what is the best part, and what is the one thing you would change?
+7. Thaw: what is the best part, and what is the one thing you would change?
+8. Loop: what is the best part, and what is the one thing you would change?
+9. Drift: what is the best part, and what is the one thing you would change?
+10. Trade Empire: what is the best part, and what is the one thing you would change?
+11. Continuum: what is the best part, and what is the one thing you would change?
+12. Le Champ de Mots: what is the best part, and what is the one thing you would change?
+13. Signal: what is the best part, and what is the one thing you would change?
+14. Lexis: what is the best part, and what is the one thing you would change?
+15. Which game on the site would you recommend first to a friend, and which would you hide?
+16. Which two games would you most like to see combined or connected, and how?
+17. Which game would you like to be able to play for three hours, and what would it need?
+18. Which game would you like to play in under ten minutes, and what would it need?

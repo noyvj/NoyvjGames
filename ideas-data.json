@@ -1080,6 +1080,729 @@
       }
      ],
      "vocab": "survey"
+    },
+    {
+     "code": "R",
+     "title": "Games you may know",
+     "items": [
+      {
+       "n": 1,
+       "text": "Stardew Valley: have you played it, and what did you think?",
+       "answered": false
+      },
+      {
+       "n": 2,
+       "text": "Factorio or Satisfactory: have you played them, and what did you think?",
+       "answered": false
+      },
+      {
+       "n": 3,
+       "text": "Outer Wilds: have you played it, and what did you think?",
+       "answered": false
+      },
+      {
+       "n": 4,
+       "text": "Return of the Obra Dinn: have you played it, and what did you think?",
+       "answered": false
+      },
+      {
+       "n": 5,
+       "text": "Baba Is You: have you played it, and what did you think?",
+       "answered": false
+      },
+      {
+       "n": 6,
+       "text": "The Witness or The Talos Principle: have you played them, and what did you think?",
+       "answered": false
+      },
+      {
+       "n": 7,
+       "text": "Papers, Please: have you played it, and what did you think?",
+       "answered": false
+      },
+      {
+       "n": 8,
+       "text": "Mini Metro or Mini Motorways: have you played them, and what did you think?",
+       "answered": false
+      },
+      {
+       "n": 9,
+       "text": "Townscaper or Dorfromantik: have you played them, and what did you think?",
+       "answered": false
+      },
+      {
+       "n": 10,
+       "text": "Cities: Skylines or Frostpunk: have you played them, and what did you think?",
+       "answered": false
+      },
+      {
+       "n": 11,
+       "text": "Cookie Clicker or A Dark Room: have you played them, and what did you think?",
+       "answered": false
+      },
+      {
+       "n": 12,
+       "text": "Wordle or other daily word games: have you played them, and what did you think?",
+       "answered": false
+      },
+      {
+       "n": 13,
+       "text": "The Stanley Parable or Undertale: have you played them, and what did you think?",
+       "answered": false
+      },
+      {
+       "n": 14,
+       "text": "Subnautica: have you played it, and what did you think?",
+       "answered": false
+      },
+      {
+       "n": 15,
+       "text": "Slay the Spire, Hades or Balatro: have you tried them, and what exactly put you off or pulled you in?",
+       "answered": false
+      },
+      {
+       "n": 16,
+       "text": "Keep Talking and Nobody Explodes: have you played it, and what did you think?",
+       "answered": false
+      },
+      {
+       "n": 17,
+       "text": "Kerbal Space Program: have you played it, and what did you think?",
+       "answered": false
+      },
+      {
+       "n": 18,
+       "text": "SpaceChem, Opus Magnum or TIS-100: have you played them, and what did you think?",
+       "answered": false
+      },
+      {
+       "n": 19,
+       "text": "Disco Elysium or other heavy-story games: have you played them, and what did you think?",
+       "answered": false
+      },
+      {
+       "n": 20,
+       "text": "Unpacking or A Short Hike: have you played them, and what did you think?",
+       "answered": false
+      },
+      {
+       "n": 21,
+       "text": "Minecraft: how much have you played, and what do you do in it?",
+       "answered": false
+      },
+      {
+       "n": 22,
+       "text": "Which game from the earlier questions would you most like a small version of on this site, and what would you keep?",
+       "answered": false
+      }
+     ],
+     "vocab": "survey"
+    },
+    {
+     "code": "S",
+     "title": "This or that",
+     "items": [
+      {
+       "n": 1,
+       "text": "A game with one big goal, or a game with three goals visible at all times?",
+       "answered": false
+      },
+      {
+       "n": 2,
+       "text": "Slowly watching a city grow, or solving one puzzle at a time?",
+       "answered": false
+      },
+      {
+       "n": 3,
+       "text": "Collecting every item, or mastering one tough build?",
+       "answered": false
+      },
+      {
+       "n": 4,
+       "text": "A calm routine you know by heart, or a new surprise each session?",
+       "answered": false
+      },
+      {
+       "n": 5,
+       "text": "Helping other people in a game, or building something of your own?",
+       "answered": false
+      },
+      {
+       "n": 6,
+       "text": "A dark moody scene, or a bright cozy one?",
+       "answered": false
+      },
+      {
+       "n": 7,
+       "text": "Reading a short log entry, or watching a short animation?",
+       "answered": false
+      },
+      {
+       "n": 8,
+       "text": "A big skill tree with many choices, or a few clear upgrades?",
+       "answered": false
+      },
+      {
+       "n": 9,
+       "text": "A hard puzzle you may need help with, or an easy puzzle you can finish half-asleep?",
+       "answered": false
+      },
+      {
+       "n": 10,
+       "text": "A game that is the same every time, or one that changes with a seeded layout you can replay?",
+       "answered": false
+      },
+      {
+       "n": 11,
+       "text": "Being told how to improve, or working it out yourself?",
+       "answered": false
+      },
+      {
+       "n": 12,
+       "text": "Short missions that join into a story, or one long unbroken session?",
+       "answered": false
+      },
+      {
+       "n": 13,
+       "text": "A game that explains the real world, or one that is simply fun and happens to be accurate?",
+       "answered": false
+      },
+      {
+       "n": 14,
+       "text": "Playing with a friend at the same time, or playing alone and comparing later?",
+       "answered": false
+      },
+      {
+       "n": 15,
+       "text": "A game you finish once and keep, or one that can grow forever?",
+       "answered": false
+      },
+      {
+       "n": 16,
+       "text": "Space stations, or deep forests, or old computers, or the deep sea: which draws you most?",
+       "answered": false
+      },
+      {
+       "n": 17,
+       "text": "A clever solution being rewarded, or a fast solution being rewarded?",
+       "answered": false
+      },
+      {
+       "n": 18,
+       "text": "Numbers and charts, or pictures and scenes, to show how you are doing?",
+       "answered": false
+      },
+      {
+       "n": 19,
+       "text": "A quiet game with no text, or a game with a narrator?",
+       "answered": false
+      },
+      {
+       "n": 20,
+       "text": "A game where a mistake can be undone, or one where choices stick (as long as you can still restore)?",
+       "answered": false
+      }
+     ],
+     "vocab": "survey"
+    },
+    {
+     "code": "T",
+     "title": "Your own games, one at a time",
+     "items": [
+      {
+       "n": 1,
+       "text": "SOL: what is the best part, and what is the one thing you would change?",
+       "answered": false
+      },
+      {
+       "n": 2,
+       "text": "Canopy: what is the best part, and what is the one thing you would change?",
+       "answered": false
+      },
+      {
+       "n": 3,
+       "text": "Grid: what is the best part, and what is the one thing you would change?",
+       "answered": false
+      },
+      {
+       "n": 4,
+       "text": "Tide: what is the best part, and what is the one thing you would change?",
+       "answered": false
+      },
+      {
+       "n": 5,
+       "text": "Aftermath: what is the best part, and what is the one thing you would change?",
+       "answered": false
+      },
+      {
+       "n": 6,
+       "text": "Herd: what is the best part, and what is the one thing you would change?",
+       "answered": false
+      },
+      {
+       "n": 7,
+       "text": "Thaw: what is the best part, and what is the one thing you would change?",
+       "answered": false
+      },
+      {
+       "n": 8,
+       "text": "Loop: what is the best part, and what is the one thing you would change?",
+       "answered": false
+      },
+      {
+       "n": 9,
+       "text": "Drift: what is the best part, and what is the one thing you would change?",
+       "answered": false
+      },
+      {
+       "n": 10,
+       "text": "Trade Empire: what is the best part, and what is the one thing you would change?",
+       "answered": false
+      },
+      {
+       "n": 11,
+       "text": "Continuum: what is the best part, and what is the one thing you would change?",
+       "answered": false
+      },
+      {
+       "n": 12,
+       "text": "Le Champ de Mots: what is the best part, and what is the one thing you would change?",
+       "answered": false
+      },
+      {
+       "n": 13,
+       "text": "Signal: what is the best part, and what is the one thing you would change?",
+       "answered": false
+      },
+      {
+       "n": 14,
+       "text": "Lexis: what is the best part, and what is the one thing you would change?",
+       "answered": false
+      },
+      {
+       "n": 15,
+       "text": "Which game on the site would you recommend first to a friend, and which would you hide?",
+       "answered": false
+      },
+      {
+       "n": 16,
+       "text": "Which two games would you most like to see combined or connected, and how?",
+       "answered": false
+      },
+      {
+       "n": 17,
+       "text": "Which game would you like to be able to play for three hours, and what would it need?",
+       "answered": false
+      },
+      {
+       "n": 18,
+       "text": "Which game would you like to play in under ten minutes, and what would it need?",
+       "answered": false
+      }
+     ],
+     "vocab": "survey"
+    }
+   ]
+  },
+  {
+   "id": "quick-ideas",
+   "title": "Quick ideas",
+   "sections": [
+    {
+     "code": "A",
+     "title": "New small puzzle games",
+     "items": [
+      {
+       "n": 1,
+       "tag": "big",
+       "text": "Logic Gates: wire AND, OR, NOT and XOR chips to hit target outputs. Each solved level unlocks a new chip, and the last levels have you build a tiny working computer.",
+       "answered": false
+      },
+      {
+       "n": 2,
+       "tag": "big",
+       "text": "Hull Repair: Flow-Free-style routing of power and pipes across a damaged space-station hull. Every solved board repairs one room on a station map, so the puzzles form a bigger picture.",
+       "answered": false
+      },
+      {
+       "n": 3,
+       "tag": "big",
+       "text": "Robot Script: give a robot a short list of instructions to clear a room (Lightbot style). No timer, medals for using fewer steps, and a free sandbox once you finish.",
+       "answered": false
+      },
+      {
+       "n": 4,
+       "tag": "small",
+       "text": "Reaction Bench: balance chemical reactions to synthesise compounds, and fill a periodic table as you discover each element's uses.",
+       "answered": false
+      },
+      {
+       "n": 5,
+       "tag": "small",
+       "text": "Rule Finder: a sequence of numbers or shapes follows a hidden rule; you test guesses and name the rule.",
+       "answered": false
+      },
+      {
+       "n": 6,
+       "tag": "big",
+       "text": "Slingshot: plan fuel burns and gravity assists to reach moons in a simple but real solar-system model, with the planet data read from a named source.",
+       "answered": false
+      },
+      {
+       "n": 7,
+       "tag": "small",
+       "text": "Teach the Machine: train a tiny classifier by choosing which features it looks at, then see exactly why it gets some cases wrong.",
+       "answered": false
+      },
+      {
+       "n": 8,
+       "tag": "small",
+       "text": "Constellations: connect stars by rules to complete real sky maps, collecting each constellation with a short sourced note.",
+       "answered": false
+      },
+      {
+       "n": 9,
+       "tag": "small",
+       "text": "Zero-G Shift: Sokoban-style crate pushing, but everything keeps sliding until it hits something.",
+       "answered": false
+      },
+      {
+       "n": 10,
+       "tag": "small",
+       "text": "Mirror Lab: place mirrors and prisms so a laser reaches every sensor.",
+       "answered": false
+      },
+      {
+       "n": 11,
+       "tag": "small",
+       "text": "Radio Decode: decode binary, hex and simple ciphers from a drifting signal, each message a short log entry.",
+       "answered": false
+      },
+      {
+       "n": 12,
+       "tag": "small",
+       "text": "Picture Grid: nonograms where each solved picture goes into a gallery you can browse.",
+       "answered": false
+      }
+     ]
+    },
+    {
+     "code": "B",
+     "title": "Helper and caretaker games",
+     "items": [
+      {
+       "n": 1,
+       "tag": "big",
+       "text": "Station Medic: help the crew of a space station by solving triage puzzles with limited supplies. Nobody dies on screen; a bad call means \"restore and try a different plan\".",
+       "answered": false
+      },
+      {
+       "n": 2,
+       "tag": "big",
+       "text": "Robot Repair Shop: fix quirky robots by solving their fault puzzles; each repaired robot becomes a friend that gives you a gift later.",
+       "answered": false
+      },
+      {
+       "n": 3,
+       "tag": "small",
+       "text": "Fog Rescue: guide lost animals or travellers out of a dark foggy forest by lighting the right lanterns in the right order.",
+       "answered": false
+      },
+      {
+       "n": 4,
+       "tag": "big",
+       "text": "Water Works: route clean water to villages with trade-offs between town, farm and wild land, shown from several people's points of view.",
+       "answered": false
+      },
+      {
+       "n": 5,
+       "tag": "small",
+       "text": "Derelict Garden: tend a garden on an abandoned ship, restoring one section at a time, with a steady-progress-that-cannot-be-lost feel.",
+       "answered": false
+      },
+      {
+       "n": 6,
+       "tag": "small",
+       "text": "Memory Archivist: restore corrupted memories from a damaged AI by putting scraps back in order (dark, quiet, science fiction).",
+       "answered": false
+      },
+      {
+       "n": 7,
+       "tag": "small",
+       "text": "Food Bank: plan a week of meals and deliveries for a food bank with a limited budget and several families' needs.",
+       "answered": false
+      },
+      {
+       "n": 8,
+       "tag": "small",
+       "text": "Housing Board: allocate a limited set of homes between competing needs and see how each side judges the result.",
+       "answered": false
+      }
+     ]
+    },
+    {
+     "code": "C",
+     "title": "Collector and completionist ideas",
+     "items": [
+      {
+       "n": 1,
+       "tag": "big",
+       "text": "Anomaly Catalogue: a fixed set of odd rooms or screens where you spot what changed and file it in a field catalogue (the kind of anomaly games you like to watch).",
+       "answered": false
+      },
+      {
+       "n": 2,
+       "tag": "big",
+       "text": "Loadout Lab: combine parts to reach target numbers, with a catalogue of every combination you have found, including the one overpowered build per challenge.",
+       "answered": false
+      },
+      {
+       "n": 3,
+       "tag": "small",
+       "text": "Glitch Hunter: small levels with deliberate, harmless exploits; the goal is to break the rules and the log records every glitch you found.",
+       "answered": false
+      },
+      {
+       "n": 4,
+       "tag": "small",
+       "text": "Space Museum: curate a museum of objects you have collected across the site, arranged in rooms.",
+       "answered": false
+      },
+      {
+       "n": 5,
+       "tag": "big",
+       "text": "Site Codex: one notebook that fills as you play every game (concepts, facts, characters), with a completion percentage.",
+       "answered": false
+      },
+      {
+       "n": 6,
+       "tag": "big",
+       "text": "Trophy Room: a low-poly room on the hub showing a model for each thing you have earned or finished across the site.",
+       "answered": false
+      },
+      {
+       "n": 7,
+       "tag": "small",
+       "text": "A \"100% map\" page: every game as a node that fills as you complete it, with a clear list of what is left.",
+       "answered": false
+      },
+      {
+       "n": 8,
+       "tag": "small",
+       "text": "A \"rarest things you own\" strip on the hub, using the existing achievement rarity numbers.",
+       "answered": false
+      }
+     ]
+    },
+    {
+     "code": "D",
+     "title": "Story and branching-choice games",
+     "items": [
+      {
+       "n": 1,
+       "tag": "big",
+       "text": "Stranded: you advise a stranded astronaut by text over many branching days; there is no waiting timer, and you can go back and try a different path.",
+       "answered": false
+      },
+      {
+       "n": 2,
+       "tag": "big",
+       "text": "The Quiet Program: advise a broken but gentle program on a failing computer network (a tragic, quiet character in the spirit of the one you like).",
+       "answered": false
+      },
+      {
+       "n": 3,
+       "tag": "small",
+       "text": "Night Cameras: investigate odd events by switching between security cameras; no jump scares, and the answer is a deduction.",
+       "answered": false
+      },
+      {
+       "n": 4,
+       "tag": "big",
+       "text": "Three Sides of the Story: a branching story about a real issue (for example a water shortage), played once from each of three people's viewpoints.",
+       "answered": false
+      },
+      {
+       "n": 5,
+       "tag": "big",
+       "text": "Evidence Hunt: a Phasmophobia-lite deduction game where you collect evidence and name the ghost, solo first with an optional co-op by invite code.",
+       "answered": false
+      },
+      {
+       "n": 6,
+       "tag": "small",
+       "text": "Terminal Logs: a choose-your-own-adventure told only through a computer terminal's logs and your commands.",
+       "answered": false
+      }
+     ]
+    },
+    {
+     "code": "E",
+     "title": "Optional friend ties",
+     "items": [
+      {
+       "n": 1,
+       "tag": "big",
+       "text": "Keep Talking: two players each see half of a puzzle and have to talk it out (voice or text in whatever app they already use), joined by an invite link.",
+       "answered": false
+      },
+      {
+       "n": 2,
+       "tag": "small",
+       "text": "Shared Station: friends' finished puzzles light up rooms in a shared space station you can visit.",
+       "answered": false
+      },
+      {
+       "n": 3,
+       "tag": "small",
+       "text": "Saboteur Puzzle: a solo logic puzzle where you work out who among the crew is sabotaging the ship from their statements.",
+       "answered": false
+      },
+      {
+       "n": 4,
+       "tag": "small",
+       "text": "Friends-only boards: a private leaderboard group created with an invite code, with a \"hide my score\" option.",
+       "answered": false
+      },
+      {
+       "n": 5,
+       "tag": "small",
+       "text": "Hint gift: a friend can send you one hint on a puzzle you are stuck on, no text, just a nudge.",
+       "answered": false
+      },
+      {
+       "n": 6,
+       "tag": "small",
+       "text": "Gift an item: send a collected item to a friend once per day, optional and never needed.",
+       "answered": false
+      },
+      {
+       "n": 7,
+       "tag": "big",
+       "text": "Community bar: one shared progress bar that every player's actions fill together toward a goal, cooperative only.",
+       "answered": false
+      }
+     ]
+    },
+    {
+     "code": "F",
+     "title": "Site features that fit how you actually play",
+     "items": [
+      {
+       "n": 1,
+       "tag": "small",
+       "text": "\"How long have you got?\" button on the hub: pick 5 minutes, 15 minutes or \"all night\" and it suggests games that fit.",
+       "answered": false
+      },
+      {
+       "n": 2,
+       "tag": "small",
+       "text": "Half-asleep mode: large buttons, dimmed screen, calm games only, one-handed layout.",
+       "answered": false
+      },
+      {
+       "n": 3,
+       "tag": "small",
+       "text": "Warm night colours after 10pm: the hub and games shift to a dimmer, warmer palette automatically (opt-in).",
+       "answered": false
+      },
+      {
+       "n": 4,
+       "tag": "small",
+       "text": "An Ironman switch per game: opt-in hard fail with no restore, with its own badge, never the default.",
+       "answered": false
+      },
+      {
+       "n": 5,
+       "tag": "small",
+       "text": "An \"undo my last decision\" button in every sim, one level deep.",
+       "answered": false
+      },
+      {
+       "n": 6,
+       "tag": "small",
+       "text": "A graded hint ladder in puzzle games: a nudge, then a hint, then the answer, so you never have to leave to look it up.",
+       "answered": false
+      },
+      {
+       "n": 7,
+       "tag": "big",
+       "text": "Strategy notes page per game: the known good builds and strategies written into the game, so you never alt-tab.",
+       "answered": false
+      },
+      {
+       "n": 8,
+       "tag": "small",
+       "text": "Watch mode for city and sim games: the settlement plays itself slowly so you can leave it on a second screen.",
+       "answered": false
+      },
+      {
+       "n": 9,
+       "tag": "small",
+       "text": "A personal stats page: what you play, when, and how long, so you can see your own pattern.",
+       "answered": false
+      },
+      {
+       "n": 10,
+       "tag": "small",
+       "text": "A \"pick up where you stopped\" strip on the hub that also shows the exact thing you were doing in each game.",
+       "answered": false
+      }
+     ]
+    },
+    {
+     "code": "G",
+     "title": "Computers, code and science",
+     "items": [
+      {
+       "n": 1,
+       "tag": "big",
+       "text": "Repair the Ship's Code: learn Python by fixing a starship's broken functions, with tests that go green as you fix each one.",
+       "answered": false
+      },
+      {
+       "n": 2,
+       "tag": "small",
+       "text": "Query the Archive: learn simple database queries by finding records in a space-station archive, no deletion allowed.",
+       "answered": false
+      },
+      {
+       "n": 3,
+       "tag": "small",
+       "text": "Pattern Match: learn regular expressions by filtering garbled transmissions.",
+       "answered": false
+      },
+      {
+       "n": 4,
+       "tag": "small",
+       "text": "Binary Bakery: a calm game where you build numbers from binary switches to fill orders.",
+       "answered": false
+      },
+      {
+       "n": 5,
+       "tag": "small",
+       "text": "Orbit Maths: short maths puzzles in a rocket-launch frame (ratios, speeds, fuel).",
+       "answered": false
+      },
+      {
+       "n": 6,
+       "tag": "small",
+       "text": "Circuit Playground: a free sandbox for building circuits with live voltage readouts.",
+       "answered": false
+      },
+      {
+       "n": 7,
+       "tag": "small",
+       "text": "AI Mistakes: spot where a simple AI would go wrong in a series of small cases and say why.",
+       "answered": false
+      },
+      {
+       "n": 8,
+       "tag": "small",
+       "text": "Material Match: pick materials for a tool or building from their real properties, with the numbers read from a named source.",
+       "answered": false
+      }
+     ]
     }
    ]
   },
