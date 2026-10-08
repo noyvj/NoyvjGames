@@ -121,7 +121,56 @@
     return Boolean(on);
   }
 
+  // GG-25 / G-14 / G-15: three presentation settings, each a true/false flag stored in
+  // localStorage and shown as a data attribute on <html> that style.css reacts to.
+  const FLAGS = [
+    { key: "thaw-blindfold", attr: "data-blindfold", box: "blindfold-checkbox" },
+    { key: "thaw-graph-patterns", attr: "data-graph-patterns", box: "graph-patterns-checkbox" },
+    { key: "thaw-high-contrast", attr: "data-high-contrast", box: "high-contrast-checkbox" },
+  ];
+
+  function readFlag(flag) {
+    try {
+      return window.localStorage.getItem(flag.key) === "true";
+    } catch (e) {
+      return false;
+    }
+  }
+
+  function applyFlag(flag, on) {
+    document.documentElement.setAttribute(flag.attr, on ? "true" : "false");
+    try {
+      window.localStorage.setItem(flag.key, String(on));
+    } catch (e) {
+      // Losing persistence is not worth breaking the control.
+    }
+    return on;
+  }
+
+  function initFlags() {
+    FLAGS.forEach(function (flag) {
+      const on = readFlag(flag);
+      applyFlag(flag, on);
+      const box = document.getElementById(flag.box);
+      if (box) {
+        box.checked = on;
+        box.addEventListener("change", function () {
+          applyFlag(flag, box.checked);
+        });
+      }
+    });
+  }
+
+  function resetFlags() {
+    FLAGS.forEach(function (flag) {
+      applyFlag(flag, false);
+      const box = document.getElementById(flag.box);
+      if (box) box.checked = false;
+    });
+  }
+
   function init() {
+    initFlags();
     let lite = readStoredLite();
     let scale = readStoredScale();
     applyScale(scale);
@@ -183,6 +232,7 @@
         scale = applyScale(DEFAULT_SCALE);
         reduced = applyMotion(false);
         lite = applyLite(false);
+        resetFlags();
         if (motionCheckbox) {
           motionCheckbox.checked = false;
         }

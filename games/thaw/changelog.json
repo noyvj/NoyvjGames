@@ -1,6 +1,10 @@
 [
   {
     "date": "2026-10-08",
+    "entry": "New: Hold the Line, a run mode you switch on in the Game options before round 1. Keep at least two of the three regions out of the critical tier for as many rounds as you can while escalation events (a heat dome, a wildfire season and more, in a fixed order) raise the background warming and lower how much protection can hold. A finished run earns a title from Ice Cube up to Cryosphere Guardian, shows which of three fixed AI stewards (Cautious Kai, Rash Rasmus, Balanced Bea) you beat, and is saved as a Field Notes entry on this device. Field Notes charts your runs and overlays any two on one graph, or a run against what would have happened with no action. Settings gained a temperature unit (Celsius, Fahrenheit or Kelvin), a blindfold mode that hides the graphs, different dash patterns and end markers for each region's line, and a high-contrast readable-font theme."
+  },
+  {
+    "date": "2026-10-08",
     "entry": "New: a Copy result button under the Highlights recap copies a one-line result (rounds played, regions that tipped, degrees saved against no action) to share. Earned achievements now have a Share button, and a Credits link sits at the bottom of the page (in the Help menu on Desktop)."
   },
   {

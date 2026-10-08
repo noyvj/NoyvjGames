@@ -1198,3 +1198,73 @@ html[data-lite="true"] .permafrost-frost-dust {
 /* Site-wide: a bare `display:` rule on a class must never defeat the HTML hidden attribute
    (playtest audit 2026-10-06, S2: Continuum, Aftermath, Drift, Champ de Mots, hub). */
 [hidden] { display: none !important; }
+
+/* GG-2 Hold the Line, GG-24 result list. */
+.hold-line-result { margin: 0.4rem 0 0; padding-left: 1.1rem; font-size: 0.85rem; }
+.hold-line-result li { margin: 0.2rem 0; }
+
+/* G-1 / G-2 Field Notes and the two-run overlay. Two curves are told apart by line style (solid vs
+   dashed) as well as colour. */
+.field-notes-svg { width: 100%; height: 3rem; display: block; }
+.field-bar { fill: #7fb2e5; }
+.compare-row { display: flex; flex-wrap: wrap; gap: 0.6rem; margin: 0.3rem 0; }
+.compare-row label { font-size: 0.8rem; display: flex; flex-direction: column; gap: 0.15rem; min-width: 0; }
+.compare-row select { max-width: 100%; }
+.compare-svg { width: 100%; height: 5rem; display: block; }
+.compare-line { fill: none; stroke-width: 2; vector-effect: non-scaling-stroke; }
+.compare-line--first { stroke: #e0674c; }
+.compare-line--second { stroke: #8fc7ff; stroke-dasharray: 6 3; }
+.compare-svg .mini-temp-threshold-line { stroke-dasharray: 1 3; }
+.compare-key { font-size: 0.75rem; }
+
+/* G-13: the unit setting. */
+.settings-note { font-size: 0.75rem; opacity: 0.8; margin: 0.25rem 0 0; }
+#temp-unit-select { margin-left: 0.4rem; }
+
+/* G-14: graph patterns. The end markers are always drawn and only revealed by the setting. */
+.mini-temp-end { display: none; fill: #e0674c; stroke: none; }
+html[data-graph-patterns="true"] .mini-temp-end { display: inline; }
+html[data-graph-patterns="true"] .graph-region-b .mini-temp-line { stroke-dasharray: 6 3; }
+html[data-graph-patterns="true"] .graph-region-c .mini-temp-line { stroke-dasharray: 1.5 3; stroke-linecap: round; }
+html[data-graph-patterns="true"] .graph-region-d .mini-temp-line { stroke-dasharray: 7 3 1.5 3; }
+
+/* GG-25: blindfold. Every graph is hidden; the text status beside each one carries the same facts
+   (the graphs' screen-reader summaries are unaffected). */
+html[data-blindfold="true"] .mini-temp-graph,
+html[data-blindfold="true"] .accel-sparkline,
+html[data-blindfold="true"] .field-notes-chart,
+html[data-blindfold="true"] .compare-chart,
+html[data-blindfold="true"] .rate-breakdown-svg,
+html[data-blindfold="true"] .methane-chart-svg { display: none; }
+
+/* G-15: high contrast and a readable font. Plain, opaque panels and strong borders replace the
+   glass look, and body text switches to a wide-set sans-serif. Colours that carry game state
+   (the red tipping flash, the green dampening flash) are left alone. */
+html[data-high-contrast="true"] body,
+html[data-high-contrast="true"] button,
+html[data-high-contrast="true"] input,
+html[data-high-contrast="true"] select,
+html[data-high-contrast="true"] textarea {
+  font-family: Verdana, Tahoma, "Segoe UI", Arial, sans-serif;
+  letter-spacing: 0.02em;
+}
+html[data-high-contrast="true"] #game *:not(svg *) { line-height: 1.5; }
+html[data-high-contrast="true"] .ambient-bg { display: none; }
+html[data-high-contrast="true"] #game,
+html[data-high-contrast="true"] .section,
+html[data-high-contrast="true"] .region-card,
+html[data-high-contrast="true"] .context-blurb {
+  background: #000; color: #fff; border: 2px solid #fff; box-shadow: none;
+  -webkit-backdrop-filter: none; backdrop-filter: none;
+}
+html[data-high-contrast="true"] #game * { color: #fff; }
+html[data-high-contrast="true"] button { background: #000; color: #fff; border: 2px solid #fff; }
+html[data-high-contrast="true"] button:disabled { color: #bbb; border-color: #bbb; }
+html[data-high-contrast="true"] body { background: #000; }
+html[data-high-contrast="true"][data-theme="light"] body { background: #fff; }
+html[data-high-contrast="true"][data-theme="light"] #game,
+html[data-high-contrast="true"][data-theme="light"] .section,
+html[data-high-contrast="true"][data-theme="light"] .region-card,
+html[data-high-contrast="true"][data-theme="light"] .context-blurb { background: #fff; color: #000; border-color: #000; }
+html[data-high-contrast="true"][data-theme="light"] #game * { color: #000; }
+html[data-high-contrast="true"][data-theme="light"] button { background: #fff; color: #000; border-color: #000; }

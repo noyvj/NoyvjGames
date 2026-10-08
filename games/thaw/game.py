@@ -152,7 +152,62 @@ ICE_AGE_TIERS = (
 ACCEL_HISTORY_MAX = 30
 
 
+# GG-2: "Hold the Line", the run-based mode. Keep at least HOLD_LINE_MIN_UNTIPPED of the three
+# managed regions out of the critical tier for as many rounds as you can. A region counts as
+# tipped while it is critical (its methane feedback is at least as large as the background rise).
+# The background gets harsher in steps: every HOLD_LINE_ESCALATION_EVERY rounds a new escalation
+# event adds HOLD_LINE_ESCALATION_STEP degrees to every round's background rise AND erodes the
+# ceiling on how much dampening investment can hold (by HOLD_LINE_CAP_EROSION, never below
+# HOLD_LINE_MIN_CAP), so even a fully invested region eventually cannot hold. The events are
+# stylised game events, not forecasts, and are fixed by the round number (no luck). Score is rounds
+# survived. HOLD_LINE_MAX_ROUNDS ends a run that is still standing, as a completed run.
+HOLD_LINE_MIN_UNTIPPED = 2
+HOLD_LINE_ESCALATION_EVERY = 5
+HOLD_LINE_ESCALATION_STEP = 0.2
+HOLD_LINE_CAP_EROSION = 0.02
+HOLD_LINE_MIN_CAP = 0.3
+HOLD_LINE_MAX_ROUNDS = 100
+HOLD_LINE_EVENTS = (
+    "Heat dome",
+    "Boreal wildfire season",
+    "Marine heatwave",
+    "Early snowmelt",
+    "Dry summer",
+    "Soot on the ice",
+)
+
+# GG-24: run titles by average degrees saved across Regions A-C at the end of a run,
+# (minimum saved, title), ascending. The escalating counterfactual makes saved figures large, so
+# the bands are set from the three stewards' fixed plans (about 14, 150 and 260).
+RUN_TITLES = (
+    (0.0, "Ice Cube"),
+    (10.0, "Snowflake Counter"),
+    (40.0, "Frost Warden"),
+    (90.0, "Permafrost Keeper"),
+    (150.0, "Glacier Steward"),
+    (220.0, "Tundra Guardian"),
+    (300.0, "Cryosphere Guardian"),
+)
+
+# G-13: display units for temperature. Every figure in this game is a rise above the starting
+# level, so a Fahrenheit reading multiplies by 1.8 (no 32 offset) and Kelvin equals Celsius.
+TEMP_UNITS = ("c", "f", "k")
+TEMP_UNIT_STORAGE_KEY = "thaw_temp_unit_v1"
+
 long_game = False
+hold_the_line = False
+temp_unit = "c"
+
+
+def deg(value, digits=1, plus=False):
+    """G-13: a temperature rise as text in the chosen unit. Celsius is the plain degree sign the
+    game always used, so existing text is unchanged by default."""
+    prefix = "+" if plus else ""
+    if temp_unit == "f":
+        return f"{prefix}{value * 1.8:.{digits}f}\u00b0F"
+    if temp_unit == "k":
+        return f"{prefix}{value:.{digits}f} K"
+    return f"{prefix}{value:.{digits}f}\u00b0"
 
 
 def warming_scale():
@@ -163,9 +218,36 @@ def output_income_per_unit():
     return OUTPUT_INCOME_PER_UNIT * (LONG_GAME_INCOME_SCALE if long_game else 1.0)
 
 
-def base_rise_per_round():
-    """The background warming rate this round (scaled in the long game)."""
-    return BASE_TEMP_RISE_PER_ROUND * warming_scale()
+def escalation_level(round_number):
+    """GG-2: how many escalation events have happened by the start of this round (0 outside
+    Hold the Line). Events land at the start of rounds 5, 9, 13, ..."""
+    if not hold_the_line:
+        return 0
+    return max(0, (int(round_number) - 1) // HOLD_LINE_ESCALATION_EVERY)
+
+
+def escalation_event_name(level):
+    return HOLD_LINE_EVENTS[(level - 1) % len(HOLD_LINE_EVENTS)] if level > 0 else ""
+
+
+def max_dampening(round_number):
+    """The ceiling on investment dampening this round: MAX_FEEDBACK_DAMPENING, less the erosion
+    from escalation events in Hold the Line."""
+    level = escalation_level(round_number)
+    if level == 0:
+        return MAX_FEEDBACK_DAMPENING
+    return max(HOLD_LINE_MIN_CAP, MAX_FEEDBACK_DAMPENING - HOLD_LINE_CAP_EROSION * level)
+
+
+def base_rise_per_round(round_number=None):
+    """The background warming rate this round (scaled in the long game, stepped up by
+    escalation events in Hold the Line)."""
+    if round_number is None:
+        round_number = region.round_number
+    return (
+        BASE_TEMP_RISE_PER_ROUND * warming_scale()
+        + HOLD_LINE_ESCALATION_STEP * escalation_level(round_number)
+    )
 
 
 class RegionState:
@@ -262,6 +344,10 @@ class RegionState:
         # the critical tier. Transient: never saved.
         self.just_pulled_back = False
 
+    def base_rise(self):
+        """The background rise for this region's current round."""
+        return base_rise_per_round(self.round_number)
+
     def projected_next_acceleration(self):
         """The acceleration factor the region would read after the coming
         round's warming lands, on its current effective dampening. Melt
@@ -271,7 +357,7 @@ class RegionState:
         next_temperature = self.temperature + self.current_rise_rate()
         excess = max(0.0, next_temperature - MELT_THRESHOLD)
         bonus = excess * FEEDBACK_RATE_PER_DEGREE_OVER * warming_scale() * (1 - self.effective_dampening_fraction())
-        return (base_rise_per_round() + bonus) / base_rise_per_round()
+        return (self.base_rise() + bonus) / self.base_rise()
 
     def restoration_active(self):
         return self.stabilized_rounds >= RESTORATION_STREAK_ROUNDS and self.is_melting()
@@ -281,7 +367,7 @@ class RegionState:
         alone, so a temporary rescue can't count toward stabilization."""
         excess = max(0.0, self.temperature - MELT_THRESHOLD)
         bonus = excess * FEEDBACK_RATE_PER_DEGREE_OVER * warming_scale() * (1 - self.feedback_dampening_fraction())
-        return (base_rise_per_round() + bonus) / base_rise_per_round()
+        return (self.base_rise() + bonus) / self.base_rise()
 
     def _apply_restoration(self):
         """Advances the stabilization streak and, once it has held long
@@ -363,7 +449,7 @@ class RegionState:
             + self.capacity["monitor"] * DAMPENING_PER_MONITOR_UNIT
             + self.policy_dampening
         )
-        return min(MAX_FEEDBACK_DAMPENING, total)
+        return min(max_dampening(self.round_number), total)
 
     def rescue_active(self):
         return self.rescue_rounds_left > 0
@@ -441,7 +527,7 @@ class RegionState:
         return raw_bonus * (1 - self.effective_dampening_fraction())
 
     def current_rise_rate(self):
-        return base_rise_per_round() + self.feedback_bonus()
+        return self.base_rise() + self.feedback_bonus()
 
     def _record_acceleration_sample(self):
         """G11: folds this round's acceleration_factor() into the running
@@ -461,6 +547,7 @@ class RegionState:
         self.funds += self.capacity["output"] * output_income_per_unit()
         current_round = self.round_number
         self.round_events = []
+        base_rise_at_start = self.base_rise()
         was_critical = self.is_critical()
         self._record_acceleration_sample()
         self.temperature += self.current_rise_rate()
@@ -491,7 +578,7 @@ class RegionState:
         self._apply_restoration()
 
         counterfactual_excess = max(0.0, self.counterfactual_temperature - MELT_THRESHOLD)
-        counterfactual_rate = base_rise_per_round() + (
+        counterfactual_rate = base_rise_at_start + (
             counterfactual_excess * FEEDBACK_RATE_PER_DEGREE_OVER * warming_scale()
         )
         self.counterfactual_temperature += counterfactual_rate
@@ -530,14 +617,14 @@ class RegionState:
         if saved <= 0.01:
             return "No meaningful difference from intervention yet."
         return (
-            f"Early intervention has kept warming {saved:.1f}° lower than an "
+            f"Early intervention has kept warming {deg(saved)} lower than an "
             f"unmitigated trajectory would have reached by now."
         )
 
     def acceleration_factor(self):
         """How many times faster than the background baseline warming is
         rising right now — 1.0x when stable, growing once melt kicks in."""
-        return self.current_rise_rate() / base_rise_per_round()
+        return self.current_rise_rate() / self.base_rise()
 
     def acceleration_message(self):
         if not self.is_melting():
@@ -603,11 +690,11 @@ SCIENCE_LOG_MAX = 40
 science_log = []
 
 _EVENT_TEXT = {
-    "melt": "permafrost began melting at +{temp:.1f}\u00b0.",
+    "melt": "permafrost began melting at {temp}.",
     "critical": "the feedback loop went critical ({accel:.1f}x background warming).",
-    "milestone_delay": "intervention delayed reaching +{milestone:.0f}\u00b0 warming.",
+    "milestone_delay": "intervention delayed reaching {milestone} warming.",
     "preempt": "pre-emptive protection ({damp:.0f}% dampening) was already in place when melt began.",
-    "cascade": "a tipping cascade from the neighboring region added {bump:.1f}\u00b0 of warming.",
+    "cascade": "a tipping cascade from the neighboring region added {bump} of warming.",
     "restoration": "the feedback loop held steady long enough for restoration to begin pulling warming back.",
 }
 
@@ -616,11 +703,11 @@ def _record_round_events():
     for label, r in (("A", region), ("B", region_b), ("C", region_c)):
         for event in r.round_events:
             text = _EVENT_TEXT[event].format(
-                temp=r.temperature,
+                temp=deg(r.temperature, plus=True),
                 accel=r.acceleration_factor(),
-                milestone=SECOND_WARMING_MILESTONE,
+                milestone=deg(SECOND_WARMING_MILESTONE, 0, plus=True),
                 damp=(r.dampening_at_melt_start or 0.0) * 100,
-                bump=CASCADE_BUMP,
+                bump=deg(CASCADE_BUMP),
             )
             science_log.append({"region": label, "round": r.round_number - 1, "text": text})
     narrative_log.cap_entries(science_log, SCIENCE_LOG_MAX)
@@ -768,7 +855,7 @@ def best_region_message():
     best = {"A": region, "B": region_b, "C": region_c}[label]
     cap = best.capacity
     return (
-        f"Region {label} currently has the lowest temperature (+{best.temperature:.1f}°) "
+        f"Region {label} currently has the lowest temperature ({deg(best.temperature, plus=True)}) "
         f"among your three managed regions, with an investment mix of "
         f"{cap['preserve']} preserve / {cap['monitor']} monitor / {cap['output']} output."
     )
@@ -807,19 +894,47 @@ def mini_temp_graph_svg(history, name=None):
             f'<line x1="0" y1="{threshold_y:.1f}" x2="{MINI_GRAPH_WIDTH}" y2="{threshold_y:.1f}" '
             f'class="mini-temp-threshold-line" />'
             f'<text x="2" y="{max(threshold_y - 2, 7):.1f}" class="mini-temp-threshold-label">'
-            f"+{MELT_THRESHOLD:.0f}\u00b0</text>"
+            f"{deg(MELT_THRESHOLD, 0, plus=True)}</text>"
         )
 
     aria = ""
+    key = ""
+    marker = ""
     if name:
         summary = graph_summary_text(name, history)
         aria = f' role="img" aria-label="{summary}"'
+        key = GRAPH_REGION_KEYS.get(name, "")
+        if key:
+            key = f" graph-region-{key}"
+            marker = _graph_end_marker(key[-1], xs[-1], ys[-1])
     return (
-        f'<svg viewBox="0 0 {MINI_GRAPH_WIDTH} {MINI_GRAPH_HEIGHT}" class="mini-temp-graph-svg"{aria}>'
+        f'<svg viewBox="0 0 {MINI_GRAPH_WIDTH} {MINI_GRAPH_HEIGHT}" class="mini-temp-graph-svg{key}"{aria}>'
         f"{threshold_line}"
         f'<polyline points="{points}" class="mini-temp-line" />'
+        f"{marker}"
         f"</svg>"
     )
+
+
+# G-14: each region's line gets a dash pattern (CSS, by graph-region-<key>) and an end marker shape
+# of its own, shown when the "graph patterns" setting is on, so the lines can be told apart
+# without colour. The shapes are always drawn and the setting only reveals them.
+GRAPH_REGION_KEYS = {"Region A": "a", "Region B": "b", "Region C": "c", "Region D": "d"}
+
+
+def _graph_end_marker(key, x, y):
+    r = 3.2
+    x = min(max(x, r), MINI_GRAPH_WIDTH - r)
+    y = min(max(y, r), MINI_GRAPH_HEIGHT - r)
+    if key == "a":  # circle
+        shape = f'<circle cx="{x:.1f}" cy="{y:.1f}" r="{r}" />'
+    elif key == "b":  # square
+        shape = f'<rect x="{x - r:.1f}" y="{y - r:.1f}" width="{2 * r}" height="{2 * r}" />'
+    elif key == "c":  # triangle
+        shape = f'<polygon points="{x:.1f},{y - r:.1f} {x + r:.1f},{y + r:.1f} {x - r:.1f},{y + r:.1f}" />'
+    else:  # diamond
+        shape = f'<polygon points="{x:.1f},{y - r:.1f} {x + r:.1f},{y:.1f} {x:.1f},{y + r:.1f} {x - r:.1f},{y:.1f}" />'
+    return f'<g class="mini-temp-end mini-temp-end--{key}">{shape}</g>'
 
 
 def _melt_status_label(r):
@@ -898,13 +1013,13 @@ def _render_restoration(prefix, r):
     element = document.getElementById(f"{prefix}restoration-status")
     if r.restoration_active():
         element.innerText = (
-            f"\U0001F331 Restoration under way \u2014 {r.restored_total:.1f}\u00b0 of melt-driven "
+            f"\U0001F331 Restoration under way \u2014 {deg(r.restored_total)} of melt-driven "
             f"warming pulled back so far."
         )
         element.hidden = False
     elif r.restored_total > 0:
         element.innerText = (
-            f"Restoration paused \u2014 {r.restored_total:.1f}\u00b0 pulled back so far; "
+            f"Restoration paused \u2014 {deg(r.restored_total)} pulled back so far; "
             f"it resumes once the feedback loop is held down again."
         )
         element.hidden = False
@@ -938,7 +1053,7 @@ def render_secondary_region(prefix, r):
     readouts Region A already had — every one of these is already a
     generic RegionState method, so no new game logic was needed, only
     new elements to write them into."""
-    document.getElementById(f"{prefix}-temperature-display").innerText = f"+{r.temperature:.1f}°"
+    document.getElementById(f"{prefix}-temperature-display").innerText = deg(r.temperature, plus=True)
     _render_trend(f"{prefix}-temperature-trend", r)
     for preset_name in PRESET_WEIGHTS:
         document.getElementById(f"{prefix}-preset-{preset_name}-button").title = (
@@ -984,7 +1099,7 @@ def render_worst_case_region():
     numbers are correct the instant a player opens the panel rather than
     only starting from whenever they first reveal it."""
     r = region_d
-    document.getElementById("d-temperature-display").innerText = f"+{r.temperature:.1f}°"
+    document.getElementById("d-temperature-display").innerText = deg(r.temperature, plus=True)
     document.getElementById("d-funds-display").innerText = f"Funds: {r.funds:.0f}"
     document.getElementById("d-graph").innerHTML = mini_temp_graph_svg(r.temperature_history, "Region D")
 
@@ -1240,13 +1355,13 @@ def framing_summary_text():
         mean_saved = sum(r.temperature_saved() for r in regions) / len(regions)
         melting = sum(1 for r in regions if r.is_melting())
         return (
-            f"Global picture, Regions A\u2013C together: +{mean_temp:.1f}\u00b0 average warming, "
-            f"{melting} of {len(regions)} regions melting, {mean_saved:.1f}\u00b0 saved on average "
+            f"Global picture, Regions A\u2013C together: {deg(mean_temp, plus=True)} average warming, "
+            f"{melting} of {len(regions)} regions melting, {deg(mean_saved)} saved on average "
             f"versus no action."
         )
     return (
-        f"Your region's choices (Region A): +{region.temperature:.1f}\u00b0 warming, "
-        f"{region.temperature_saved():.1f}\u00b0 saved versus no action."
+        f"Your region's choices (Region A): {deg(region.temperature, plus=True)} warming, "
+        f"{deg(region.temperature_saved())} saved versus no action."
     )
 
 
@@ -1276,6 +1391,8 @@ def set_long_game(enabled):
     global long_game
     if not can_toggle_long_game():
         return False
+    if enabled and hold_the_line:
+        return False
     long_game = bool(enabled)
     return True
 
@@ -1293,7 +1410,7 @@ def long_game_text():
 def _render_long_game():
     button = document.getElementById("long-game-toggle-button")
     button.innerText = "Long game: on" if long_game else "Long game: off"
-    button.disabled = not can_toggle_long_game()
+    button.disabled = not can_toggle_long_game() or (hold_the_line and not long_game)
     document.getElementById("long-game-display").innerText = long_game_text() + (
         "" if can_toggle_long_game() else " (Locked once the first round has been played.)"
     )
@@ -1370,17 +1487,17 @@ def _render_forecast():
     status = document.getElementById("forecast-status")
     record = document.getElementById("forecast-record")
     if forecast_guess is not None:
-        status.innerText = f"Forecast locked in: +{forecast_guess:.1f}\u00b0 after the next round."
+        status.innerText = f"Forecast locked in: {deg(forecast_guess, plus=True)} after the next round."
     elif forecast_last is not None:
         guess, actual, hit = forecast_last
         verdict = "Nailed it" if hit else "Not quite"
         status.innerText = (
-            f"{verdict} \u2014 you forecast +{guess:.1f}\u00b0, the real figure was +{actual:.1f}\u00b0."
+            f"{verdict} \u2014 you forecast {deg(guess, plus=True)}, the real figure was {deg(actual, plus=True)}."
         )
     else:
         status.innerText = (
             f"Optional: forecast Region A's temperature after the next round "
-            f"(within {FORECAST_TOLERANCE}\u00b0 counts)."
+            f"(within {deg(FORECAST_TOLERANCE)} counts)."
         )
     title = forecast_title()
     if title is None:
@@ -1395,7 +1512,13 @@ def _render_forecast():
 
 
 def on_lock_forecast(event=None):
-    if lock_forecast(document.getElementById("forecast-input").value):
+    """The box is read in the unit chosen in Settings, then stored in the game's own degrees."""
+    raw = document.getElementById("forecast-input").value
+    try:
+        raw = str(float(str(raw).strip()) / (1.8 if temp_unit == "f" else 1.0))
+    except (TypeError, ValueError):
+        pass  # lock_forecast() rejects it
+    if lock_forecast(raw):
         render()
 
 
@@ -1786,7 +1909,7 @@ def render_personal_best():
     element = document.getElementById("personal-best-display")
     if element is None:
         return
-    text = f"Personal best: {personal_best['temperature_saved']:.1f}° saved"
+    text = f"Personal best: {deg(personal_best['temperature_saved'])} saved"
     if personal_best.get("region"):
         text += f" (Region {personal_best['region']})"
     element.innerText = text
@@ -1879,7 +2002,7 @@ def render_climate_archive():
     for label in ARCHIVE_REGIONS:
         entry = climate_archive[label]
         document.getElementById(f"archive-row-{label.lower()}").innerText = (
-            f"Region {label} \u2014 best {entry['best_saved']:.1f}\u00b0 saved, "
+            f"Region {label} \u2014 best {deg(entry['best_saved'])} saved, "
             f"furthest round {entry['furthest_round']}, "
             f"peak dampening {entry['peak_dampening'] * 100:.0f}%"
         )
@@ -2271,7 +2394,7 @@ def apply_balance_bonus():
         "region": "ABC",
         "round": region.round_number - 1,
         "text": (
-            f"all three regions finished within {BALANCE_TOLERANCE:.1f}° of each other: "
+            f"all three regions finished within {deg(BALANCE_TOLERANCE)} of each other: "
             f"a perfect-balance bonus of +{BALANCE_BONUS_FUNDS:.0f} funds each."
         ),
     })
@@ -2282,13 +2405,13 @@ def render_balance():
     global just_balanced
     document.getElementById("balance-display").innerText = (
         f"Perfect-balance bonuses: {balance_bonuses}. When all three regions are melting and end a "
-        f"round within {BALANCE_TOLERANCE:.0f}° of each other, each gets +{BALANCE_BONUS_FUNDS:.0f} funds."
+        f"round within {deg(BALANCE_TOLERANCE, 0)} of each other, each gets +{BALANCE_BONUS_FUNDS:.0f} funds."
     )
     callout = document.getElementById("balance-callout")
     card = document.getElementById("region-comparison")
     if just_balanced:
         callout.innerText = (
-            f"Perfect balance: all three regions finished within {BALANCE_TOLERANCE:.0f}° of each "
+            f"Perfect balance: all three regions finished within {deg(BALANCE_TOLERANCE, 0)} of each "
             f"other. +{BALANCE_BONUS_FUNDS:.0f} funds each."
         )
         callout.hidden = False
@@ -2376,19 +2499,29 @@ def accel_sparkline_svg(history):
     )
 
 
+def _degrees_word(value, digits=1):
+    """Spoken form of a rise in the chosen unit ('+5.0 degrees' in Celsius)."""
+    if temp_unit == "f":
+        return f"+{value * 1.8:.{digits}f} degrees Fahrenheit"
+    if temp_unit == "k":
+        return f"+{value:.{digits}f} kelvin"
+    return f"+{value:.{digits}f} degrees"
+
+
 def graph_summary_text(name, history):
     """G-10: one plain sentence describing a mini-graph for a screen reader."""
     if len(history) < 2:
         return f"{name} temperature graph: not enough rounds yet."
     first, last = history[0], history[-1]
+    threshold = _degrees_word(MELT_THRESHOLD, 0).replace(" degrees", " degree")
     crossed = (
-        f"crossed the +{MELT_THRESHOLD:.0f} degree melt threshold"
+        f"crossed the {threshold} melt threshold"
         if max(history) >= MELT_THRESHOLD
-        else f"still under the +{MELT_THRESHOLD:.0f} degree melt threshold"
+        else f"still under the {threshold} melt threshold"
     )
     return (
-        f"{name} temperature over {len(history)} rounds: from +{first:.1f} to +{last:.1f} degrees, "
-        f"{crossed}."
+        f"{name} temperature over {len(history)} rounds: from {_degrees_word(first)} to "
+        f"{_degrees_word(last)}, {crossed}."
     )
 
 
@@ -2404,6 +2537,10 @@ def round_announcement():
             parts.append(f"Region {label} went critical.")
     if just_balanced:
         parts.append("Perfect balance bonus earned.")
+    if just_escalated and hold_the_line:
+        parts.append(f"Escalation: {escalation_event_name(just_escalated)}.")
+    if run_over:
+        parts.append(f"The run is over after {run_result['survived']} rounds held.")
     return " ".join(parts)
 
 
@@ -2417,7 +2554,7 @@ def rate_breakdown(r):
     the part of raw_feedback that lever removes), net_feedback and total. The
     investment dampening is split between its sources in proportion to their
     uncapped contributions (the 85% cap is applied to the total)."""
-    base = base_rise_per_round()
+    base = r.base_rise()
     excess = max(0.0, r.temperature - MELT_THRESHOLD)
     raw = excess * FEEDBACK_RATE_PER_DEGREE_OVER * warming_scale()
     invest_fraction = r.feedback_dampening_fraction()
@@ -2492,13 +2629,13 @@ def render_rate_inspector():
     b = rate_breakdown(r)
     rows = "".join(
         f'<li class="rate-row rate-row--{sign or "base"}"><span>{label}</span>'
-        f"<span>{sign} {value:.2f}°</span></li>"
+        f"<span>{sign} {deg(value, 2)}</span></li>"
         for label, value, sign in rate_breakdown_rows(b)
     )
     document.getElementById("rate-inspector-body").innerHTML = (
         f"{rate_breakdown_svg(b)}<ul class=\"rate-rows\">{rows}</ul>"
         f'<p class="comparison-message">Region {key.upper()}: acceleration is this rate divided by the '
-        f'background rise ({b["base"]:.2f}°), so {b["total"]:.2f} / {b["base"]:.2f} = '
+        f'background rise ({deg(b["base"], 2)}), so {b["total"]:.2f} / {b["base"]:.2f} = '
         f'{b["acceleration"]:.2f}x.</p>'
     )
 
@@ -2522,12 +2659,12 @@ def highlights_lines():
     if restored:
         total = sum(r.restored_total for _label, r in restored)
         names = ", ".join(label for label, _r in restored)
-        line2 = f"Recovery: restoration pulled back {total:.1f}° of melt-driven warming in Region {names}."
+        line2 = f"Recovery: restoration pulled back {deg(total)} of melt-driven warming in Region {names}."
     elif rescued:
         line2 = f"Recovery: Region {', '.join(rescued)} used its one emergency rescue."
     else:
         line2 = "Recovery: no region has needed (or earned) one yet."
-    saved = ", ".join(f"{label} {r.temperature_saved():.1f}°" for label, r in managed)
+    saved = ", ".join(f"{label} {deg(r.temperature_saved())}" for label, r in managed)
     line3 = (
         f"Degrees saved versus no action: {saved}. {best_region_message()}"
     )
@@ -2551,7 +2688,7 @@ def share_result():
         "score": f"{played} round{'' if played == 1 else 's'}",
         "stats": [
             {"n": tipped, "one": "region tipped", "many": "regions tipped"},
-            f"{max(0.0, saved):.1f}\u00b0 saved vs no action",
+            f"{deg(max(0.0, saved))} saved vs no action",
         ],
     })
 
@@ -2571,12 +2708,577 @@ def on_copy_highlights(event=None):
         status.innerText = "Copy isn't available here: select the three lines above instead."
 
 
+# ===========================================================================
+# G-13: temperature unit (Celsius, Fahrenheit, Kelvin) for every displayed rise. A per-browser
+# preference kept in localStorage, never part of the save.
+# ===========================================================================
+def load_temp_unit():
+    raw = _read_local_storage_item(TEMP_UNIT_STORAGE_KEY)
+    return raw if raw in TEMP_UNITS else "c"
+
+
+def set_temp_unit(unit):
+    global temp_unit
+    if unit not in TEMP_UNITS:
+        return False
+    temp_unit = unit
+    _write_local_storage_item(TEMP_UNIT_STORAGE_KEY, unit)
+    return True
+
+
+def render_temp_unit():
+    document.getElementById("temp-unit-select").value = temp_unit
+
+
+def on_temp_unit_change(event=None):
+    if set_temp_unit(document.getElementById("temp-unit-select").value):
+        render()
+
+
+temp_unit = load_temp_unit()
+
+
+# ===========================================================================
+# GG-2: Hold the Line. The run-based mode: keep at least two of the three managed regions out of
+# the critical tier for as many rounds as possible while escalation events make the background
+# harsher. This is the one place a Thaw run has an end, so it also feeds GG-24 (title ladder),
+# GG-21 (the three AI stewards) and G-1/G-2 (Field Notes and the run overlay). There is no in-game
+# reset (owner decision R24): a finished run stays on screen and a new one starts from the
+# opening screen's New Game.
+# ===========================================================================
+run_over = False
+run_result = None  # {"survived": int, "saved": float, "reason": "tipped" | "limit"}
+just_escalated = 0  # the escalation level announced by the latest Advance Round, else 0
+
+
+def _managed():
+    return (("A", region), ("B", region_b), ("C", region_c))
+
+
+def untipped_count(regions=None):
+    rs = [r for _label, r in _managed()] if regions is None else regions
+    return sum(1 for r in rs if not r.is_critical())
+
+
+def tipped_labels():
+    return [label for label, r in _managed() if r.is_critical()]
+
+
+def line_holds(regions=None):
+    return untipped_count(regions) >= HOLD_LINE_MIN_UNTIPPED
+
+
+def can_toggle_hold_the_line():
+    return not run_over and all(r.round_number == 1 for r in (region, region_b, region_c, region_d))
+
+
+def set_hold_the_line(enabled):
+    """Choose the mode. Only before round 1 is played, never together with the long game."""
+    global hold_the_line
+    if not can_toggle_hold_the_line():
+        return False
+    if enabled and long_game:
+        return False
+    hold_the_line = bool(enabled)
+    return True
+
+
+def average_saved(regions=None):
+    rs = [r for _label, r in _managed()] if regions is None else regions
+    return sum(max(0.0, r.temperature_saved()) for r in rs) / len(rs)
+
+
+def run_title(saved):
+    """GG-24: (title, next title or None, saved needed for the next title or None)."""
+    index = 0
+    for i, (minimum, _name) in enumerate(RUN_TITLES):
+        if saved >= minimum:
+            index = i
+    title = RUN_TITLES[index][1]
+    if index + 1 < len(RUN_TITLES):
+        return title, RUN_TITLES[index + 1][1], RUN_TITLES[index + 1][0]
+    return title, None, None
+
+
+def escalation_text():
+    """The status of the escalation track: what is in force and what is coming."""
+    level = escalation_level(region.round_number)
+    nxt = HOLD_LINE_ESCALATION_EVERY * (level + 1) + 1 - region.round_number
+    upcoming = escalation_event_name(level + 1)
+    rise = base_rise_per_round(region.round_number)
+    cap = max_dampening(region.round_number)
+    if level == 0:
+        now = f"No escalation yet: background rise {deg(rise, 2)}/round, dampening ceiling {cap * 100:.0f}%."
+    else:
+        now = (
+            f"Escalation level {level} ({escalation_event_name(level)}): background rise "
+            f"{deg(rise, 2)}/round, dampening ceiling {cap * 100:.0f}%."
+        )
+    return f"{now} Next: {upcoming} in {nxt} round{'' if nxt == 1 else 's'}."
+
+
+def _announce_escalation(level):
+    global just_escalated
+    just_escalated = level
+    narrative_log.cap_entries(science_log, SCIENCE_LOG_MAX - 1)
+    science_log.append({
+        "region": "ALL",
+        "round": region.round_number - 1,
+        "text": (
+            f"escalation level {level}, {escalation_event_name(level)}: the background rise is now "
+            f"{deg(base_rise_per_round(region.round_number), 2)}/round and the dampening ceiling "
+            f"{max_dampening(region.round_number) * 100:.0f}%."
+        ),
+    })
+
+
+def finish_run(reason):
+    """Ends the run. 'tipped': two or more regions went critical this round, so the round does not
+    count. 'limit': HOLD_LINE_MAX_ROUNDS rounds all held."""
+    global run_over, run_result
+    played = region.round_number - 1
+    survived = played if reason == "limit" else max(0, played - 1)
+    run_result = {"survived": survived, "saved": round(average_saved(), 3), "reason": reason}
+    run_over = True
+    record_field_note()
+    title = run_title(run_result["saved"])[0]
+    narrative_log.cap_entries(science_log, SCIENCE_LOG_MAX - 1)
+    science_log.append({
+        "region": "ALL",
+        "round": played,
+        "text": f"the run is over after {survived} rounds held: you are a {title}.",
+    })
+
+
+def check_run_end():
+    """Called once per Advance Round after every region has advanced."""
+    if not hold_the_line or run_over:
+        return
+    if not line_holds():
+        finish_run("tipped")
+    elif region.round_number - 1 >= HOLD_LINE_MAX_ROUNDS:
+        finish_run("limit")
+
+
+# --- GG-21: three fixed AI stewards play the same mode with a fixed plan -----------------------
+STEWARDS = (
+    ("Cautious Kai", "kai", "buys Preservation first and keeps buying it until the ceiling"),
+    ("Rash Rasmus", "rasmus", "pours everything into Output for 14 rounds, then scrambles to protect"),
+    ("Balanced Bea", "bea", "protects up to half the ceiling and puts the rest into Output"),
+)
+STEWARD_RASH_ROUNDS = 14
+_steward_cache = {}
+
+
+def _steward_move(policy, r):
+    """One steward's spending for one region this round (no rescue/convoy/carbon/cascade: a
+    deliberately simple, fixed plan so the scoreboard is the same for everyone)."""
+    if policy == "kai":
+        while r.funds >= INVEST_COST["preserve"] and r.feedback_dampening_fraction() < max_dampening(r.round_number):
+            r.invest("preserve")
+    elif policy == "rasmus":
+        if r.round_number <= STEWARD_RASH_ROUNDS:
+            while r.funds >= INVEST_COST["output"]:
+                r.invest("output")
+        else:
+            while r.funds >= INVEST_COST["preserve"] and r.feedback_dampening_fraction() < max_dampening(r.round_number):
+                r.invest("preserve")
+    else:
+        # Bea aims for about half of the ceiling in protection and puts the rest into Output, so
+        # she can afford the occasional rescue.
+        while r.funds >= INVEST_COST["preserve"] and r.feedback_dampening_fraction() < max_dampening(r.round_number) * 0.5:
+            r.invest("preserve")
+        while r.funds >= INVEST_COST["output"]:
+            r.invest("output")
+    if r.can_rescue():
+        r.rescue()
+
+
+def simulate_steward(policy):
+    """Plays a whole Hold the Line run for one steward on three fresh regions. Returns
+    {"survived", "saved"} using the same rules as the player's run."""
+    global hold_the_line, long_game
+    saved_flags = (hold_the_line, long_game)
+    hold_the_line, long_game = True, False
+    try:
+        rs = [RegionState() for _ in range(3)]
+        survived = 0
+        for _ in range(HOLD_LINE_MAX_ROUNDS):
+            for r in rs:
+                _steward_move(policy, r)
+            for r in rs:
+                r.advance_round()
+            if not line_holds(rs):
+                break
+            survived += 1
+        return {"survived": survived, "saved": round(average_saved(rs), 3)}
+    finally:
+        hold_the_line, long_game = saved_flags
+
+
+def steward_scores():
+    """Cached: the stewards are deterministic, so each plan only needs playing once."""
+    for _name, policy, _blurb in STEWARDS:
+        if policy not in _steward_cache:
+            _steward_cache[policy] = simulate_steward(policy)
+    return {policy: dict(_steward_cache[policy]) for _name, policy, _blurb in STEWARDS}
+
+
+def stewards_beaten(survived):
+    scores = steward_scores()
+    return sum(1 for _name, policy, _blurb in STEWARDS if survived > scores[policy]["survived"])
+
+
+def steward_lines():
+    scores = steward_scores()
+    return [
+        f"{name} {scores[policy]['survived']} rounds ({deg(scores[policy]['saved'])} saved on average): {blurb}."
+        for name, policy, blurb in STEWARDS
+    ]
+
+
+# --- G-1 / G-2: Field Notes, a per-run history kept on this device ---------------------------
+FIELD_NOTES_KEY = "thaw_field_notes_v1"
+FIELD_NOTES_MAX = 30
+FIELD_NOTES_CURVE_POINTS = 60
+
+
+def _decimate(values, limit=FIELD_NOTES_CURVE_POINTS):
+    """Keeps at most `limit` points, evenly spaced, always including the last one."""
+    values = [round(float(v), 3) for v in values]
+    if len(values) <= limit:
+        return values
+    step = (len(values) - 1) / (limit - 1)
+    return [values[round(i * step)] for i in range(limit)]
+
+
+def _num(value, low, high):
+    return (
+        isinstance(value, (int, float)) and not isinstance(value, bool)
+        and math.isfinite(value) and low <= value <= high
+    )
+
+
+def _clean_curve(raw):
+    if not isinstance(raw, list):
+        return []
+    return _decimate([float(v) for v in raw if _num(v, -1000000, 1000000000)])
+
+
+def _clean_note(raw):
+    """One stored run summary with every field forced into range; None when it is unusable."""
+    if not isinstance(raw, dict) or not _num(raw.get("survived"), 0, 1000000):
+        return None
+    mix_raw = raw.get("mix") if isinstance(raw.get("mix"), dict) else {}
+    saved_raw = raw.get("region_saved") if isinstance(raw.get("region_saved"), dict) else {}
+    best = raw.get("best_region")
+    return {
+        "survived": int(raw["survived"]),
+        "saved": float(raw["saved"]) if _num(raw.get("saved"), -1000000, 1000000000) else 0.0,
+        "tipped": int(raw["tipped"]) if _num(raw.get("tipped"), 0, 3) else 0,
+        "avg_accel": float(raw["avg_accel"]) if _num(raw.get("avg_accel"), 0, 1000000) else 1.0,
+        "mix": {c: int(mix_raw[c]) if _num(mix_raw.get(c), 0, 1000000) else 0 for c in CATEGORIES},
+        "region_saved": {
+            label: float(saved_raw[label]) if _num(saved_raw.get(label), -1000000, 1000000000) else 0.0
+            for label in ARCHIVE_REGIONS
+        },
+        "best_region": best if best in ARCHIVE_REGIONS else "A",
+        "curve": _clean_curve(raw.get("curve")),
+        "baseline": _clean_curve(raw.get("baseline")),
+    }
+
+
+def load_field_notes():
+    raw = _read_local_storage_item(FIELD_NOTES_KEY)
+    if not raw:
+        return []
+    try:
+        data = json.loads(raw)
+    except (ValueError, TypeError):
+        return []
+    if not isinstance(data, list):
+        return []
+    notes = [n for n in (_clean_note(item) for item in data) if n is not None]
+    return notes[-FIELD_NOTES_MAX:]
+
+
+field_notes = load_field_notes()
+
+
+def _build_note():
+    managed = _managed()
+    saved_by = {label: max(0.0, r.temperature_saved()) for label, r in managed}
+    best = max(saved_by, key=lambda label: (saved_by[label], -ord(label)))
+    return {
+        "survived": run_result["survived"],
+        "saved": run_result["saved"],
+        "tipped": sum(1 for _label, r in managed if r.melt_started_round is not None),
+        "avg_accel": round(sum(r.average_acceleration_factor for _label, r in managed) / 3, 3),
+        "mix": {c: sum(r.capacity[c] for _label, r in managed) for c in CATEGORIES},
+        "region_saved": {label: round(v, 3) for label, v in saved_by.items()},
+        "best_region": best,
+        "curve": _decimate(region.temperature_history),
+        "baseline": _decimate(region_d.temperature_history),
+    }
+
+
+def record_field_note():
+    """Appends this run's summary and saves the list (keeping the newest FIELD_NOTES_MAX)."""
+    field_notes.append(_clean_note(_build_note()))
+    del field_notes[:-FIELD_NOTES_MAX]
+    _write_local_storage_item(FIELD_NOTES_KEY, json.dumps(field_notes))
+
+
+def field_note_bests():
+    """Best degrees saved per region across every stored run (all zero with no runs)."""
+    return {
+        label: max([n["region_saved"][label] for n in field_notes] or [0.0])
+        for label in ARCHIVE_REGIONS
+    }
+
+
+def field_note_rows():
+    rows = []
+    for i, n in enumerate(field_notes, start=1):
+        mix = n["mix"]
+        rows.append(
+            f"Run {i}: held {n['survived']} rounds, {deg(n['saved'])} saved, {n['tipped']} region"
+            f"{'' if n['tipped'] == 1 else 's'} melted, average acceleration {n['avg_accel']:.2f}x, "
+            f"units Output {mix['output']} / Preservation {mix['preserve']} / Monitoring {mix['monitor']}, "
+            f"best Region {n['best_region']}."
+        )
+    return rows
+
+
+def field_notes_chart_svg():
+    """Degrees saved per finished run, as bars (a shape the numbers in the list repeat)."""
+    if not field_notes:
+        return ""
+    width, height = 160, 44
+    top = max([n["saved"] for n in field_notes] + [0.001])
+    slot = width / len(field_notes)
+    bars = "".join(
+        f'<rect x="{i * slot + 1:.1f}" y="{height - n["saved"] / top * (height - 4):.1f}" '
+        f'width="{min(max(slot - 2, 1), 12):.1f}" height="{n["saved"] / top * (height - 4):.1f}" class="field-bar" />'
+        for i, n in enumerate(field_notes)
+    )
+    label = f"Degrees saved in each of {len(field_notes)} finished run{'' if len(field_notes) == 1 else 's'}, best {deg(top)}."
+    return (
+        f'<svg viewBox="0 0 {width} {height}" class="field-notes-svg" role="img" aria-label="{label}">'
+        f"<title>{label}</title>{bars}</svg>"
+    )
+
+
+def render_field_notes():
+    rows = field_note_rows()
+    bests = field_note_bests()
+    document.getElementById("field-notes-count").innerText = str(len(field_notes))
+    document.getElementById("field-notes-list").innerHTML = (
+        "".join(f"<li>{row}</li>" for row in rows) if rows
+        else "<li>No finished runs yet. Finish a Hold the Line run to start your field notes.</li>"
+    )
+    document.getElementById("field-notes-bests").innerText = (
+        "Best degrees saved per region: "
+        + ", ".join(f"Region {label} {deg(bests[label])}" for label in ARCHIVE_REGIONS)
+        + "."
+    )
+    document.getElementById("field-notes-chart").innerHTML = field_notes_chart_svg()
+    _render_compare_options()
+    render_compare()
+
+
+# G-2: overlay any two stored runs (or a run against its own no-action baseline) on one graph.
+COMPARE_W, COMPARE_H = 160, 70
+_compare_option_count = -1
+
+
+def compare_choices():
+    """[(value, label)] for the two selects: each stored run and each run's no-action baseline."""
+    choices = []
+    for i in range(1, len(field_notes) + 1):
+        choices.append((f"run:{i}", f"Run {i}"))
+    for i in range(1, len(field_notes) + 1):
+        choices.append((f"base:{i}", f"Run {i} if nobody intervened"))
+    return choices
+
+
+def compare_curve(choice):
+    """The stored curve a choice names, or None when the choice does not name a stored run."""
+    if not isinstance(choice, str) or ":" not in choice:
+        return None
+    kind, _sep, index = choice.partition(":")
+    if kind not in ("run", "base") or not index.isdigit():
+        return None
+    i = int(index)
+    if not 1 <= i <= len(field_notes):
+        return None
+    return field_notes[i - 1]["curve" if kind == "run" else "baseline"]
+
+
+def compare_divergence(a, b):
+    """Per-round gaps between two curves over the rounds both cover (empty if either is empty)."""
+    return [round(abs(x - y), 3) for x, y in zip(a, b)]
+
+
+def compare_readout(a, b):
+    gaps = compare_divergence(a, b)
+    if not gaps:
+        return "Pick two runs that have recorded rounds to compare."
+    biggest = max(gaps)
+    at = gaps.index(biggest) + 1
+    first = next((i + 1 for i, g in enumerate(gaps) if g >= 1.0), None)
+    parts = [
+        f"Over the {len(gaps)} rounds both cover, the gap ends at {deg(gaps[-1])} and peaks at "
+        f"{deg(biggest)} in round {at}."
+    ]
+    parts.append(
+        f"They first differ by a degree or more in round {first}." if first
+        else "They never differ by a full degree."
+    )
+    return " ".join(parts)
+
+
+def compare_chart_svg(a, b):
+    if not a or not b:
+        return ""
+    values = list(a) + list(b)
+    lo, hi = min(values + [0.0]), max(values + [MELT_THRESHOLD])
+    span = max(hi - lo, 1e-9)
+    longest = max(len(a), len(b))
+
+    def points(curve):
+        return " ".join(
+            f"{(i / max(longest - 1, 1)) * COMPARE_W:.1f},{COMPARE_H - (v - lo) / span * COMPARE_H:.1f}"
+            for i, v in enumerate(curve)
+        )
+
+    melt_y = COMPARE_H - (MELT_THRESHOLD - lo) / span * COMPARE_H
+    label = (
+        f"Two temperature curves over up to {longest} rounds. The first ends at {deg(a[-1], plus=True)} "
+        f"and the second at {deg(b[-1], plus=True)}. The dashed line is the +{MELT_THRESHOLD:.0f} degree melt threshold."
+    )
+    return (
+        f'<svg viewBox="0 0 {COMPARE_W} {COMPARE_H}" class="compare-svg" role="img" aria-label="{label}">'
+        f"<title>{label}</title>"
+        f'<line x1="0" y1="{melt_y:.1f}" x2="{COMPARE_W}" y2="{melt_y:.1f}" class="mini-temp-threshold-line" />'
+        f'<polyline points="{points(a)}" class="compare-line compare-line--first" />'
+        f'<polyline points="{points(b)}" class="compare-line compare-line--second" />'
+        f"</svg>"
+    )
+
+
+def _render_compare_options():
+    global _compare_option_count
+    if _compare_option_count == len(field_notes):
+        return
+    _compare_option_count = len(field_notes)
+    choices = compare_choices()
+    options = "".join(f'<option value="{value}">{label}</option>' for value, label in choices)
+    select_a = document.getElementById("compare-run-a")
+    select_b = document.getElementById("compare-run-b")
+    select_a.innerHTML = options
+    select_b.innerHTML = options
+    if choices:
+        newest = len(field_notes)
+        select_a.value = f"run:{newest}"
+        select_b.value = f"base:{newest}"
+
+
+def render_compare():
+    a = compare_curve(document.getElementById("compare-run-a").value)
+    b = compare_curve(document.getElementById("compare-run-b").value)
+    document.getElementById("compare-chart").innerHTML = compare_chart_svg(a, b) if a and b else ""
+    document.getElementById("compare-readout").innerText = (
+        compare_readout(a, b) if a is not None and b is not None
+        else "Finish a run to compare it with another run or with what would have happened with no action."
+    )
+
+
+def on_compare_change(event=None):
+    render_compare()
+
+
+# --- rendering and handlers for the mode itself ---------------------------------------------
+def result_lines():
+    """The end-of-run panel as a list of text lines (empty until the run is over)."""
+    if not run_over or run_result is None:
+        return []
+    survived, saved = run_result["survived"], run_result["saved"]
+    title, nxt, needed = run_title(saved)
+    beaten = stewards_beaten(survived)
+    if run_result["reason"] == "limit":
+        head = f"You held the line for all {survived} rounds, the limit of a run."
+    else:
+        tipped = ", ".join(tipped_labels()) or "two regions"
+        head = f"The line broke: Regions {tipped} went critical. You held it for {survived} rounds."
+    lines = [head, f"Average saved across Regions A to C: {deg(saved)}. Your title: {title}."]
+    if nxt is not None:
+        lines.append(f"Next title: {nxt} at {deg(needed)} saved ({deg(max(0.0, needed - saved))} to go).")
+    else:
+        lines.append("That is the top title.")
+    lines.append(f"You beat {beaten} of 3 stewards.")
+    lines += steward_lines()
+    return lines
+
+
+def hold_line_status():
+    if not hold_the_line:
+        if long_game:
+            return "Hold the Line is off (the long game is on; the two modes cannot be combined)."
+        return (
+            "Hold the Line is off. Turn it on before round 1 to play a run: keep at least two of "
+            "the three regions out of the critical tier for as many rounds as you can while escalation "
+            "events make the background harsher."
+        )
+    if run_over:
+        return "Hold the Line: the run is over. Start a new game from the opening screen to try again."
+    held = untipped_count()
+    return (
+        f"Hold the Line, round {region.round_number}: {held} of 3 regions are out of the critical tier "
+        f"(you need {HOLD_LINE_MIN_UNTIPPED}). {escalation_text()}"
+    )
+
+
+def render_hold_line():
+    global just_escalated
+    button = document.getElementById("hold-line-toggle-button")
+    button.innerText = "Hold the Line: on" if hold_the_line else "Hold the Line: off"
+    button.disabled = not (can_toggle_hold_the_line() and (hold_the_line or not long_game))
+    status = hold_line_status()
+    if not can_toggle_hold_the_line() and not hold_the_line:
+        status += " (Locked once the first round has been played.)"
+    document.getElementById("hold-line-display").innerText = status
+    callout = document.getElementById("escalation-callout")
+    if just_escalated and hold_the_line:
+        callout.innerText = (
+            f"Escalation: {escalation_event_name(just_escalated)}. The background rise is now "
+            f"{deg(base_rise_per_round(region.round_number), 2)}/round and the most dampening "
+            f"investment can hold is {max_dampening(region.round_number) * 100:.0f}%."
+        )
+        callout.hidden = False
+    else:
+        callout.hidden = True
+    just_escalated = 0
+    result = document.getElementById("hold-line-result")
+    lines = result_lines()
+    result.hidden = not lines
+    result.innerHTML = "".join(f"<li>{line}</li>" for line in lines)
+    advance = document.getElementById("advance-round-button")
+    advance.disabled = run_over
+    advance.innerText = "Run over" if run_over else "Advance Round"
+
+
+def on_toggle_hold_the_line(event=None):
+    set_hold_the_line(not hold_the_line)
+    render()
+
+
 def render():
     render_info_page()
     document.getElementById("round-display").innerText = f"Round {region.round_number}"
     document.getElementById("funds-display").innerText = f"Funds: {region.funds:.0f}"
     document.getElementById("temperature-display").innerText = (
-        f"Global temperature: +{region.temperature:.1f}°"
+        f"Global temperature: {deg(region.temperature, plus=True)}"
     )
     # G9: the temperature bar visually caps at TEMPERATURE_METER_MAX
     # (+30°) even though temperature itself keeps climbing past it —
@@ -2586,8 +3288,8 @@ def render():
     cap_note_el = document.getElementById("temperature-cap-note")
     if region.temperature > TEMPERATURE_METER_MAX:
         cap_note_el.innerText = (
-            f"(meter shown capped at +{TEMPERATURE_METER_MAX:.0f}° — actual temperature is "
-            f"+{region.temperature:.1f}°)"
+            f"(meter shown capped at {deg(TEMPERATURE_METER_MAX, 0, plus=True)} — actual temperature is "
+            f"{deg(region.temperature, plus=True)})"
         )
         cap_note_el.hidden = False
     else:
@@ -2605,8 +3307,11 @@ def render():
     render_balance()
     render_rate_inspector()
     render_highlights()
+    render_hold_line()
+    render_field_notes()
+    render_temp_unit()
     document.getElementById("rise-rate-display").innerText = (
-        f"Current warming rate: {region.current_rise_rate():.2f}°/round"
+        f"Current warming rate: {deg(region.current_rise_rate(), 2)}/round"
     )
     melt_status_el = document.getElementById("melt-status-display")
     status = _melt_status_label(region)
@@ -2642,7 +3347,7 @@ def render():
     if region.just_delayed_milestone:
         milestone_delay_el.innerText = (
             f"Your preservation & monitoring investments just delayed reaching "
-            f"+{SECOND_WARMING_MILESTONE:.0f}° warming — the unmitigated counterfactual has "
+            f"{deg(SECOND_WARMING_MILESTONE, 0, plus=True)} warming — the unmitigated counterfactual has "
             f"already passed it."
         )
         milestone_delay_el.hidden = False
@@ -2784,8 +3489,8 @@ def render():
     document.getElementById("advance-round-button").title = "\n".join(
         ["Next round preview"]
         + [
-            f"Region {label}: +{r.current_rise_rate():.2f}° "
-            f"(to +{r.temperature + r.current_rise_rate():.1f}°)"
+            f"Region {label}: {deg(r.current_rise_rate(), 2, plus=True)} "
+            f"(to {deg(r.temperature + r.current_rise_rate(), plus=True)})"
             for label, r in (("A", region), ("B", region_b), ("C", region_c))
         ]
     )
@@ -2866,6 +3571,9 @@ def on_toggle_worst_case_region(event=None):
 
 
 def on_advance_round(event=None):
+    if run_over:
+        return
+    level_before = escalation_level(region.round_number)
     region.advance_round()
     resolve_forecast()
     for r in SECONDARY_REGIONS.values():
@@ -2875,6 +3583,9 @@ def on_advance_round(event=None):
     apply_balance_bonus()
     _auto_play_worst_case_region()
     _record_round_events()
+    if escalation_level(region.round_number) > level_before:
+        _announce_escalation(escalation_level(region.round_number))
+    check_run_end()
     # G-10: announce before render() so the balance flag is still set.
     document.getElementById("sr-announcer").innerText = round_announcement()
     render()
@@ -3090,6 +3801,11 @@ def get_state():
     # G9: only written when the long game is on.
     if long_game:
         state["long_game"] = True
+    # GG-2: only written when Hold the Line is on; the result only once the run is over.
+    if hold_the_line:
+        state["hold_the_line"] = True
+        if run_over and run_result is not None:
+            state["run"] = dict(run_result)
     # GG-5 / GG-27: only written once a convoy or a balance bonus has happened.
     if convoys_sent > 0:
         state["routing"] = {"convoys": convoys_sent, "tax_lost": convoy_tax_lost}
@@ -3113,9 +3829,27 @@ def load_state(data):
     global info_page_open, worst_case_region_revealed, preset_used_ever
     global worst_case_intro_seen, forecast_guess, forecast_total, forecast_hits, forecast_last
     global framing, carbon_bank, long_game, convoys_sent, convoy_tax_lost, balance_bonuses, just_balanced
+    global hold_the_line, run_over, run_result, just_escalated
     if not isinstance(data, dict):
         return False
     long_game = data.get("long_game") is True
+    # GG-2: strict bool; never together with the long game; the run result only counts if the mode
+    # is on and every field is in range.
+    hold_the_line = data.get("hold_the_line") is True and not long_game
+    run_over = False
+    run_result = None
+    just_escalated = 0
+    saved_run = data.get("run")
+    if hold_the_line and isinstance(saved_run, dict):
+        survived = saved_run.get("survived")
+        saved_avg = saved_run.get("saved")
+        reason = saved_run.get("reason")
+        if (
+            _num(survived, 0, 1000000) and isinstance(survived, int)
+            and _num(saved_avg, -1000000, 1000000000) and reason in ("tipped", "limit")
+        ):
+            run_over = True
+            run_result = {"survived": survived, "saved": float(saved_avg), "reason": reason}
     region_data = data.get("region")
     if isinstance(region_data, dict):
         _apply_region_state(region, region_data)
@@ -3213,6 +3947,14 @@ def setup():
     )
     document.getElementById("long-game-toggle-button").addEventListener(
         "click", create_proxy(on_toggle_long_game)
+    )
+    document.getElementById("hold-line-toggle-button").addEventListener(
+        "click", create_proxy(on_toggle_hold_the_line)
+    )
+    for select_id in ("compare-run-a", "compare-run-b"):
+        document.getElementById(select_id).addEventListener("change", create_proxy(on_compare_change))
+    document.getElementById("temp-unit-select").addEventListener(
+        "change", create_proxy(on_temp_unit_change)
     )
     document.getElementById("framing-toggle-button").addEventListener(
         "click", create_proxy(on_toggle_framing)

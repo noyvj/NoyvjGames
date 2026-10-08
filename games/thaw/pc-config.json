@@ -25,7 +25,7 @@
     {
       "id": "pc-archive-panel",
       "title": "Climate archive and scientist's log",
-      "members": ["#personal-best-display", "#archive-toggle-button", "#archive-panel", "#science-log-details", "#highlights-details"],
+      "members": ["#personal-best-display", "#archive-toggle-button", "#archive-panel", "#science-log-details", "#field-notes-details", "#highlights-details"],
       "group": "Records",
       "label": "📓 Archive and scientist's log"
     },
@@ -46,9 +46,9 @@
     {
       "id": "pc-options-panel",
       "title": "Game options",
-      "members": ["#long-game", "#framing"],
+      "members": ["#hold-line", "#long-game", "#framing"],
       "group": "Game",
-      "label": "🎚 Long game and framing"
+      "label": "🎚 Hold the Line, long game and framing"
     },
     {
       "id": "pc-about-panel",

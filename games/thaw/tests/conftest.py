@@ -114,6 +114,20 @@ ELEMENT_IDS = [
     "balance-display",
     "balance-callout",
     "region-comparison",
+    # Oct 8 batch: GG-2 Hold the Line, G-1/G-2 Field Notes and compare, G-13 units.
+    "hold-line-toggle-button",
+    "hold-line-display",
+    "escalation-callout",
+    "hold-line-result",
+    "field-notes-count",
+    "field-notes-list",
+    "field-notes-bests",
+    "field-notes-chart",
+    "compare-run-a",
+    "compare-run-b",
+    "compare-chart",
+    "compare-readout",
+    "temp-unit-select",
 ]
 for _category in CATEGORIES:
     ELEMENT_IDS += [f"{_category}-name", f"{_category}-count", f"{_category}-invest-button"]
