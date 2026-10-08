@@ -303,8 +303,14 @@ def _fixes(fr, fixes):
     return "".join(out)
 
 
+def _par(fr, par_track):
+    if not par_track:
+        return ""
+    return '<polyline class="dr-par-track" points="%s"/>' % fr.pts([(p[1], p[2]) for p in par_track])
+
+
 def render_chart(chart, est=None, marks=(), sailed_legs=0, true_track=None, discovered=(), reveal=False,
-                 point=None, believed=None, fixes=()):
+                 point=None, believed=None, fixes=(), par_track=None):
     """The whole chart as one svg string.
 
     est        the estimated track [[t, x, y, fixed], ...] (the player's own plot)
@@ -312,7 +318,8 @@ def render_chart(chart, est=None, marks=(), sailed_legs=0, true_track=None, disc
     true_track the true track [[t, x, y], ...]; pass it ONLY when the passage is being revealed
     discovered hazard ids the crew has found (uncharted ones then appear)
     reveal     True on the reveal: show every hazard, marked or not
-    point      the ruler's marked point, believed the believed position in Watch-by-watch, fixes fix positions"""
+    point      the ruler's marked point, believed the believed position in Watch-by-watch, fixes fix positions
+    par_track  the authored plan's plotted track (a dotted line), drawn only after the player has asked to see it"""
     fr = Frame(chart)
     notes = chart_notes(chart, discovered)
     parts = [
@@ -325,6 +332,7 @@ def render_chart(chart, est=None, marks=(), sailed_legs=0, true_track=None, disc
         _grid(fr), _land(chart, fr), _currents(chart, fr), _hazards(chart, fr, discovered, reveal), _landmarks(chart, fr),
         _scale_bar(fr), _wind(chart, fr), _rose(fr), _endpoints(chart, fr),
     ]
+    parts.append(_par(fr, par_track))
     if est:
         parts.append(_plan(fr, est, marks, sailed_legs))
     if true_track:

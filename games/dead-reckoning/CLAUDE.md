@@ -34,7 +34,7 @@ You are a ship's navigator with only speed, heading and time. Plot a course acro
 | 1 | Sim core | `geom.py`, `sim.py`: vectors, current zones, leeway, hazard intersection, tracks, scoring, text harness (`tools/textharness.py`) | Done |
 | 2 | Chart SVG | `render.py`: grid, land, hazards, current arrows, scale, rose, wind, landmarks, tracks, ribbons, the chart in words; `index.html` shell (standard shared includes), `style.css` (night and paper-chart themes), `settings.js`, favicon; page draws the demo chart with a hard-coded plan; golden SVG tests | Done |
 | 3 | Plan and sail | `game.py` (handle/get_state/load_state), `state.py`, `progress.py`, `solver.py`; leg editor (numeric steppers, quick turns, Undo/Clear), live estimated track with an "allow for the chart" switch, naive and allow-for-the-chart helpers, ruler, Sail with confirm dialog, animated true track with scrub bar and Skip, reveal card with stars explained, save contract; mobile dock and HUD. **Playable slice** | Done |
-| 4 | Campaign chapters 1-2 | Not started | Not started |
+| 4 | Campaign chapters 1-2 | 12 authored charts (6 open water, 6 wind), par plans generated into `pars.py` from each chart's `waypoints` (`tools/check_charts.py --write`), chart validator tests, chapter gates (four cleared opens the next), chart picker, Next chart, Show/Load the par plan after a first attempt, captain's log. **First complete, playable game** | Done |
 | 5 | Fixes and watch-by-watch | Not started | Not started |
 | 6 | Fog, tides, compass error | Not started | Not started |
 | 7 | Two ships | DEFERRED (plan recommendation, FOR-YOU Dr2: later pass) | Deferred |
@@ -45,3 +45,8 @@ You are a ship's navigator with only speed, heading and time. Plot a course acro
 ## Working conventions
 - Commit + tag per milestone: `git commit -m "Milestone N: <name>"` then `git tag dead-reckoning-milestone-0N`.
 - Hub registration (title card, `sw.js`, manifests, root CLAUDE.md row, dev logs) is a separate later milestone owned by the hub session (TODO M-5b-12). Nothing outside this folder is touched here.
+
+## Chart schema and authoring (milestone 4)
+- A chart is a dict built with `chartkit.chart(...)`: `id, name, chapter, size (nm), start, dest, arrival_radius, deadline, speeds, start_hour, land, hazards, currents, wind?, compass?, landmarks, fog?, waypoints, naive_fails, intro, log{arrived,missed,aground,late}`. Charted values (`set`, `drift_range`, wind `range`) sit beside the true ones (`true_set`, `true_drift`, wind `true`).
+- To add a chart: write it in `charts_<chapter>.py`, register the chapter in `charts.py`, run `python3 tools/check_charts.py --write` (prints naive miss, par and forecast results; rewrites `pars.py`), then `pytest`. `tests/test_charts.py` is the validator: ids unique, nothing overlaps the start or the flag, charted ranges contain the truth (drift range at most 1 kn wide, true set within 10 degrees), the par plan makes 3 stars cleanly with slack on the deadline, the printed midpoints followed carefully still make landfall (ranges are never a trap), and the naive plan fails exactly where `naive_fails` says.
+- Chapters open when four charts of the one before have a star or more (derived from the records, nothing stored). The shared `level-select.js` is not used; the game has its own picker (a deliberate deviation, see BUILD-STATUS).

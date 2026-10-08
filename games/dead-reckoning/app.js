@@ -3,7 +3,7 @@
    into chart coordinates, and pacing the playback of a track the engine already computed. */
 (function () {
   "use strict";
-  var ENGINE_MODULES = ["geom.py", "sim.py", "charts.py", "render.py", "solver.py", "state.py", "progress.py"];
+  var ENGINE_MODULES = ["geom.py", "sim.py", "chartkit.py", "charts_open.py", "charts_wind.py", "pars.py", "charts.py", "render.py", "solver.py", "state.py", "progress.py"];
   var STORE_KEY = "dead-reckoning:state";
 
   var $ = function (id) { return document.getElementById(id); };
@@ -33,6 +33,71 @@
   function stars(n) { return "★".repeat(n) + "☆".repeat(3 - n); }
 
   // ---- the chart ---------------------------------------------------------------------------------
+  // ---- chart picker and captain's log ----------------------------------------------------------------
+  function renderPicker() {
+    var body = $("picker-body");
+    var sig = JSON.stringify(view.picker);
+    if (body.dataset.signature === sig) return;
+    body.dataset.signature = sig;
+    body.textContent = "";
+    view.picker.forEach(function (chapter, n) {
+      var wrap = el("section", undefined, "picker-chapter");
+      wrap.appendChild(el("h3", "Chapter " + (n + 1) + ": " + chapter.name + " (" + chapter.cleared + " of " + chapter.total + " cleared)"));
+      wrap.appendChild(el("p", chapter.blurb, "note"));
+      if (!chapter.unlocked) {
+        wrap.appendChild(el("p", chapter.lock_text, "note"));
+        body.appendChild(wrap);
+        return;
+      }
+      var list = el("ul", undefined, "picker-list");
+      chapter.charts.forEach(function (c, i) {
+        var li = el("li");
+        var b = el("button");
+        b.type = "button";
+        b.appendChild(document.createTextNode((i + 1) + ". " + c.name));
+        b.appendChild(el("span", stars(c.stars), "mini-stars"));
+        b.setAttribute("aria-label", c.name + ", " + c.stars + " of 3 stars" + (c.current ? ", open now" : ""));
+        if (c.current) b.setAttribute("aria-current", "true");
+        b.addEventListener("click", function () { openChart(c.id); });
+        li.appendChild(b);
+        list.appendChild(li);
+      });
+      wrap.appendChild(list);
+      body.appendChild(wrap);
+    });
+  }
+
+  function openChart(id) {
+    function go() {
+      selected = 0;
+      send({ action: "start", chart_id: id });
+      $("picker-panel").hidden = true;
+      setToggle("picker-toggle-button", "picker-panel");
+    }
+    if (view.phase === "plan" && view.legs.length && view.chart.id !== id && window.ConfirmDialog) {
+      window.ConfirmDialog.ask({ id: "dead-reckoning-switch-chart", message: "Leave this chart? The plan you have here will be lost.", confirmLabel: "Open the other chart", onConfirm: go });
+    } else go();
+  }
+
+  function renderLog() {
+    var holder = $("log-entries");
+    holder.textContent = "";
+    view.story.log.forEach(function (entry) {
+      var wrap = el("article", undefined, "log-entry");
+      wrap.appendChild(el("h3", entry.name));
+      wrap.appendChild(el("p", entry.text, "log-line"));
+      holder.appendChild(wrap);
+    });
+  }
+
+  function setToggle(buttonId, panelId) { $(buttonId).setAttribute("aria-expanded", String(!$(panelId).hidden)); }
+  function wirePanelToggle(buttonId, panelId) {
+    $(buttonId).addEventListener("click", function () {
+      $(panelId).hidden = !$(panelId).hidden;
+      setToggle(buttonId, panelId);
+    });
+  }
+
   function renderChart() {
     var holder = $("chart-holder");
     if (holder.dataset.signature !== view.svg) {
@@ -44,6 +109,7 @@
     view.notes.forEach(function (line) { list.appendChild(el("li", line)); });
     setText($("chart-title"), view.chart.name);
     setText($("chart-goal"), view.chart.goal);
+    setText($("chart-intro"), view.story.intro);
   }
 
   // A tap on the chart marks the ruler's point. Converting the tap to nautical miles is the one bit of geometry the view does.
@@ -248,7 +314,21 @@
     crit.textContent = "";
     r.criteria.forEach(function (c) { crit.appendChild(el("li", c.text, c.ok ? "ok" : "no")); });
     renderEvents(Infinity);
+    renderResultExtras();
     announce(r.title + ". " + r.stars_text + ". " + r.lines[0]);
+  }
+
+  function renderResultExtras() {
+    var r = view.reveal;
+    setText($("result-log"), r.log || "");
+    $("next-chart-button").hidden = !r.next_chart;
+    if (r.next_chart) setText($("next-chart-button"), "Next chart: " + r.next_chart.name);
+    $("par-button").hidden = !(r.par && !r.par.shown);
+    $("use-par-button").hidden = !(r.par && r.par.shown);
+    $("par-box").hidden = !(r.par && r.par.shown);
+    var parLines = $("par-lines");
+    parLines.textContent = "";
+    if (r.par && r.par.shown) r.par.lines.forEach(function (line) { parLines.appendChild(el("li", line)); });
   }
 
   function startPlayback() {
@@ -278,15 +358,18 @@
     $("planner-panel").hidden = reveal;
     $("result-panel").hidden = !reveal;
     if (!reveal) { cancelAnimationFrame(playback.raf); playback.key = null; $("playback").hidden = true; return; }
-    if (playback.key !== view.svg) {
-      playback.key = view.svg;
+    var key = JSON.stringify([view.chart.id, view.legs]);
+    if (playback.key !== key) {
+      playback.key = key;
       startPlayback();
-    }
+    } else if (playback.finished) renderResultExtras();
   }
 
   // ---- render --------------------------------------------------------------------------------------
   function render() {
     renderChart();
+    renderPicker();
+    renderLog();
     if (view.phase === "plan") renderPlanner();
     renderResult();
   }
@@ -351,6 +434,11 @@
       cancelAnimationFrame(playback.raf);
       showUpTo(parseInt($("scrub-range").value, 10));
     });
+    guard("next-chart-button", function () { selected = 0; send({ action: "next_chart" }); });
+    guard("par-button", function () { send({ action: "show_par" }); });
+    guard("use-par-button", function () { selected = 0; send({ action: "use_par" }); });
+    wirePanelToggle("picker-toggle-button", "picker-panel");
+    wirePanelToggle("log-toggle-button", "log-panel");
     guard("retry-button", function () { send({ action: "retry" }); });
     guard("redo-button", function () { send({ action: "restart" }); });
     document.addEventListener("keydown", onKey);
@@ -371,7 +459,8 @@
 
   function setBusy(busy) {
     ["add-leg-button", "clear-button", "undo-button", "sail-button", "naive-flag-button", "current-flag-button", "naive-point-button",
-      "current-point-button", "point-set-button", "point-clear-button", "retry-button", "redo-button", "skip-button"].forEach(function (id) { $(id).disabled = busy; });
+      "current-point-button", "point-set-button", "point-clear-button", "retry-button", "redo-button", "skip-button", "next-chart-button",
+      "par-button", "use-par-button"].forEach(function (id) { $(id).disabled = busy; });
   }
 
   async function boot() {

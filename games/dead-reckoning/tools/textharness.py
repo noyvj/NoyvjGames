@@ -10,12 +10,12 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from charts import DEMO_CHART  # noqa: E402
+from charts import get_chart  # noqa: E402
 from sim import clean_leg, describe, estimate, naive_legs, sail, score  # noqa: E402
 
 
 def main(argv):
-    chart = DEMO_CHART
+    chart = get_chart("open-02")
     legs = [clean_leg(chart, dict(zip(("heading", "speed", "hours"), (float(p) for p in a.split(":"))))) for a in argv] \
         or naive_legs(chart)
     res = sail(chart, legs)

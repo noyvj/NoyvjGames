@@ -34,19 +34,30 @@
   <h1>Dead Reckoning</h1>
   <p class="tagline">You know your speed, your heading and the time. You do not know where the sea has put you. Plot a course, sail it, then see how far the truth drifted from your estimate.</p>
   <div class="game-toolbar">
-    <button id="tutorial-restart-button" type="button">Tutorial</button>
+    <button id="tutorial-restart-button" type="button" hidden>Tutorial</button>
     <button id="picker-toggle-button" type="button" aria-expanded="false" aria-controls="picker-panel">Charts</button>
-    <button id="achievements-toggle-button" type="button" aria-expanded="false" aria-controls="achievements-panel">Achievements</button>
+    <button id="achievements-toggle-button" type="button" hidden aria-expanded="false" aria-controls="achievements-panel">Achievements</button>
     <button id="log-toggle-button" type="button" aria-expanded="false" aria-controls="log-panel">Captain's log</button>
-    <button id="changelog-toggle-button" type="button" aria-expanded="false" aria-controls="changelog-panel">What's New</button>
-    <button id="settings-toggle-button" type="button" aria-expanded="false" aria-controls="settings-panel">Settings</button>
-    <button id="info-page-toggle-button" type="button" aria-expanded="false" aria-controls="info-page-panel">About Dead Reckoning</button>
+    <button id="changelog-toggle-button" type="button" hidden aria-expanded="false" aria-controls="changelog-panel">What's New</button>
+    <button id="settings-toggle-button" type="button" hidden aria-expanded="false" aria-controls="settings-panel">Settings</button>
+    <button id="info-page-toggle-button" type="button" hidden aria-expanded="false" aria-controls="info-page-panel">About Dead Reckoning</button>
   </div>
+  <section id="picker-panel" class="panel" hidden aria-labelledby="picker-heading">
+    <h2 id="picker-heading">Charts</h2>
+    <p class="note">Pick a chart. A chapter opens once you have made landfall on four of the one before. Your stars stay with each chart.</p>
+    <div id="picker-body" class="picker"></div>
+  </section>
+  <section id="log-panel" class="panel" hidden aria-labelledby="log-heading">
+    <h2 id="log-heading">Captain's log</h2>
+    <p class="note">The opening line of every chart you have tried, and how the ones you cleared ended. The Story button, bottom left, hides it.</p>
+    <div id="log-entries"></div>
+  </section>
   <p id="toast" class="note toast" role="status" aria-live="polite"></p>
 
   <section id="chart-head" class="chart-head" aria-labelledby="chart-title">
     <h2 id="chart-title">Gull Sound</h2>
     <p id="chart-goal" class="note goal" aria-live="polite"></p>
+    <p id="chart-intro" class="story-text"></p>
   </section>
 
   <div class="play">
@@ -127,9 +138,18 @@
       </div>
       <h3>Log</h3>
       <ul id="event-list" class="events" aria-live="polite"></ul>
+      <p id="result-log" class="log-line story-text"></p>
+      <div id="par-box" hidden>
+        <h3>The par plan</h3>
+        <ul id="par-lines" class="events"></ul>
+        <p class="note">The dotted line on the chart is where the par plan would have plotted.</p>
+      </div>
       <div class="planner-actions">
-        <button id="retry-button" type="button" class="primary">Retry with this plan</button>
+        <button id="next-chart-button" type="button" class="primary" hidden>Next chart</button>
+        <button id="retry-button" type="button">Retry with this plan</button>
         <button id="redo-button" type="button">Start the plan again</button>
+        <button id="par-button" type="button" hidden>Show the par plan</button>
+        <button id="use-par-button" type="button" hidden>Load the par plan into the planner</button>
       </div>
     </section>
   </div>
@@ -156,6 +176,7 @@
 <script src="../../shared/hub-auth.js"></script>
 <script src="../../shared/save-widget.js" data-game-id="dead-reckoning"></script>
 <script src="../../shared/opening-screen.js" data-game-id="dead-reckoning" data-game-name="Dead Reckoning" data-tagline="Speed, heading and time. Where has the sea put you?"></script>
+<script src="../../shared/story-toggle.js" data-game-id="dead-reckoning" data-story-selectors="#chart-intro, #result-log, #log-panel, #log-toggle-button"></script>
 <script src="app.js"></script>
 <script src="../../shared/last-played.js" data-game-id="dead-reckoning"></script>
 <script src="../../shared/whats-new-banner.js" data-game-id="dead-reckoning"></script>

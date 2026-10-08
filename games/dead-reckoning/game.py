@@ -17,6 +17,8 @@ Requests carry an `action`:
   sail                       sail the plan and reveal the passage
   retry                      back to planning with the same legs
   restart                    back to planning with an empty plan
+  next_chart                 open the next chart in the campaign (when it is unlocked)
+  show_par | use_par         reveal the authored plan after a first attempt / load it into the planner
   reset                      forget all progress
 """
 
@@ -63,11 +65,10 @@ def _start(chart_id, mode="plan", seed=0):
 
 
 def _first_chart_id():
-    order = [c["id"] for c in charts.all_charts()]
-    for cid in order:
-        if _record(cid)["stars"] == 0:
+    for cid in charts.ORDER:
+        if _record(cid)["stars"] == 0 and charts.is_unlocked(cid, meta["charts"]):
             return cid
-    return order[0]
+    return charts.ORDER[0]
 
 
 def _ensure_run():
@@ -106,7 +107,63 @@ def _frame(chart):
     return {"left": render.LEFT, "top": render.TOP, "s": round(fr.s, 4), "size": chart["size"]}
 
 
+def _picker():
+    records = meta["charts"]
+    open_chapters = charts.unlocked_chapters(records)
+    out = []
+    for i, chapter in enumerate(charts.CHAPTERS):
+        unlocked = chapter["id"] in open_chapters
+        prev = charts.CHAPTERS[i - 1] if i else None
+        out.append({"id": chapter["id"], "name": chapter["name"], "blurb": chapter["blurb"], "unlocked": unlocked,
+                    "cleared": charts.chapter_cleared(chapter, records), "total": len(chapter["charts"]),
+                    "lock_text": "" if unlocked else "Clear %d charts in %s to open this chapter." % (
+                        min(charts.CLEAR_TO_OPEN_NEXT, len(prev["charts"])), prev["name"]),
+                    "charts": [{"id": c["id"], "name": c["name"], "stars": _record(c["id"])["stars"], "current": c["id"] == run["chart_id"]}
+                               for c in chapter["charts"]]})
+    return out
+
+
+def _story():
+    """The captain's log: the opening line of every chart the player has tried, and how a cleared one ended."""
+    entries = []
+    for chapter in charts.CHAPTERS:
+        for c in chapter["charts"]:
+            rec = _record(c["id"])
+            if rec["attempts"] or c["id"] == run["chart_id"]:
+                text = c["intro"] + ((" " + c["log"]["arrived"]) if rec["stars"] >= 1 else "")
+                entries.append({"id": c["id"], "name": c["name"], "text": text})
+    return entries
+
+
+def _log_line(chart, sc):
+    log = chart.get("log") or {}
+    if sc["aground"]:
+        return log.get("aground", "")
+    if sc["arrived"]:
+        return log.get("late" if not sc["on_time"] else "arrived", "")
+    return log.get("missed", "")
+
+
+def _par_view(chart):
+    """The par plan as text (and the data to draw it) once the player has made an attempt, or just whether it can be shown."""
+    rec = _record(chart["id"])
+    legs = charts.par_legs(chart["id"])
+    if not legs or rec["attempts"] < 1:
+        return None
+    if not rec["par_seen"]:
+        return {"available": True, "shown": False}
+    return {"available": True, "shown": True, "legs": legs,
+            "lines": ["Leg %d: steer %03d at %g kn for %g h." % (i + 1, leg["heading"], leg["speed"], leg["hours"]) for i, leg in enumerate(legs)]}
+
+
 def _view():
+    view = _view_phase()
+    view["picker"] = _picker()
+    view["story"] = {"intro": _chart().get("intro", ""), "log": _story()}
+    return view
+
+
+def _view_phase():
     chart = _chart()
     if run["phase"] == "reveal":
         return _reveal_view(chart)
@@ -172,6 +229,12 @@ def _reveal_view(chart):
         title = "Aground"
     else:
         title = "Short of the flag" if sc["miss_nm"] > chart["arrival_radius"] else "Landfall"
+    par = _par_view(chart)
+    par_plot = None
+    if par and par["shown"]:
+        par_plot = sim.estimate(chart, par["legs"], allow=True)
+        svg = render.render_chart(chart, est=est, marks=render.plan_marks(legs, est), true_track=res["track"], discovered=discovered,
+                                  reveal=True, par_track=par_plot)
     points = [[t, *render.svg_point(chart, x, y)] for t, x, y in res["track"]]
     events = [{"t": e["t"], "text": e["text"], "public": e["public"]} for e in res["events"]]
     return {
@@ -183,9 +246,17 @@ def _reveal_view(chart):
         "reveal": {"title": title, "stars": sc["stars"], "stars_text": _stars_text(sc["stars"]), "criteria": sc["criteria"],
                    "lines": lines, "events": events, "points": points, "hours": res["hours"],
                    "miss_nm": sc["miss_nm"], "arrived": sc["arrived"], "aground": sc["aground"],
-                   "best_stars": _record(chart["id"])["stars"]},
+                   "best_stars": _record(chart["id"])["stars"], "log": _log_line(chart, sc), "par": par,
+                   "next_chart": _next_playable(chart["id"])},
         "stars": _record(chart["id"])["stars"],
     }
+
+
+def _next_playable(chart_id):
+    nxt = charts.next_chart_id(chart_id)
+    if nxt is None or _record(chart_id)["stars"] < 1 or not charts.is_unlocked(nxt, meta["charts"]):
+        return None
+    return {"id": nxt, "name": charts.get_chart(nxt)["name"]}
 
 
 def _sail():
@@ -228,6 +299,8 @@ def handle(request_json):
         cid = request.get("chart_id")
         if not isinstance(cid, str) or charts.get_chart(cid) is None:
             return json.dumps({"error": "unknown chart"})
+        if not charts.is_unlocked(cid, meta["charts"]):
+            return json.dumps({"error": "that chapter is not open yet"})
         _start(cid)
     _ensure_run()
     chart = _chart()
@@ -237,6 +310,21 @@ def handle(request_json):
     elif action == "retry":
         run["phase"] = "plan"
         run.pop("known", None)
+    elif action == "next_chart":
+        nxt = _next_playable(run["chart_id"])
+        if nxt is not None:
+            _start(nxt["id"])
+    elif action == "show_par":
+        if _par_view(chart):
+            meta["charts"].setdefault(chart["id"], state.new_record())["par_seen"] = True
+    elif action == "use_par":
+        legs = charts.par_legs(chart["id"])
+        if legs and _record(chart["id"])["attempts"] >= 1:
+            run["phase"] = "plan"
+            run.pop("known", None)
+            run["legs"] = sim.clean_legs(chart, legs, limit=state.MAX_LEGS)
+            run["helpers"] = ["par"]
+            history = []
     elif action == "restart":
         run["phase"] = "plan"
         run.pop("known", None)

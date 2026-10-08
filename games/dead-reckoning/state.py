@@ -14,6 +14,7 @@ SCHEMA = 1
 MAX_LEGS = 12
 MODES = ("plan", "watch")
 PHASES = ("plan", "reveal")
+HELPERS = ("naive", "current", "par")
 # Irreversible facts that achievements are built from (achievements.py). Anything else in a loaded save is dropped.
 FLAGS = ("landfall", "dead_on", "trusted", "around_rocks", "set_and_drift", "first_fix", "fog_clear", "riding_tide",
          "two_ships", "aground", "long_way")
@@ -132,7 +133,7 @@ def clean_run(data, get_chart):
     run["allow"] = data.get("allow") is not False
     helpers = data.get("helpers")
     if isinstance(helpers, list):
-        run["helpers"] = [h for h in ("naive", "current") if h in helpers]
+        run["helpers"] = [h for h in HELPERS if h in helpers]
     known = data.get("known")
     if run["phase"] == "reveal" and isinstance(known, list):
         run["known"] = [k for k in known[:50] if isinstance(k, str) and len(k) <= CHART_ID_LIMIT]
