@@ -19,6 +19,7 @@ Rules carried over: "yes" items are here, "later" items are parked in `planning/
 - **Events (N):** real big-date events (Christmas, Halloween, New Year, Easter, Hanukkah, Thanksgiving, 4th of July, Valentine's Day and other big ones, internationally inclusive), doable within about 15 minutes of starting a game, with a temporary date-tied stand-in event for games with no natural fit.
 - **New-game plan questions (you, 2026-10-07: "yes", go with the recommendations):** Undersleep has no first-launch gate, only a permanent footer line, the daily check-in starts hidden ("Just play") and journal data stays on the device with manual export and import; Lighthouse never shows a death on screen; Pocket Bazaar counts customer patience in beats, not seconds; Signal's Wide and Big Sky boards stay practice-only for now.
 - **Multiplayer (you, 2026-10-07):** the level of multiplayer is my call, any ghost or run summary is opt-in, two-player games let the player choose friend-only or open (friend-only recommended), moderation is you plus me if possible; client-trusted versus verified scores is still open (FOR-YOU 5).
+- **QA section (you, 2026-10-08):** do NOT work on section QA (code review, bug check, bloat cleanup, load time passes) until closing-tasks time; focus on the feature sections first. Bugs you report (UX, LC-1 style) are still fixed when reported.
 
 ---
 
