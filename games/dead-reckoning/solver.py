@@ -79,3 +79,27 @@ def route(chart, waypoints, speed=None, model="true", seed=0):
         pos = tuple(res["end"])
         clock += leg["hours"]
     return legs, pos
+
+
+def watch_route(chart, waypoints, watch_hours=2.0, max_watches=30, seed=0):
+    """What a careful watch-by-watch player does: sail at most `watch_hours`, take a perfect fix (believe the true position),
+    and plan the next watch with the charted midpoints toward the next waypoint. Returns the legs."""
+    legs = []
+    clock = 0.0
+    targets = [tuple(p) for p in waypoints[1:]]
+    dest = targets[-1]
+    for _ in range(max_watches):
+        res = sail(chart, legs, seed=seed, collide=False)
+        here = tuple(res["end"])
+        while len(targets) > 1 and dist(here, targets[0]) < 0.8:
+            targets.pop(0)
+        target = targets[0]
+        if target == dest and dist(here, dest) < 0.3:
+            break
+        leg = shoot(chart, here, target, model="charted", t_start=clock, seed=seed)
+        if leg is None:
+            break
+        leg = clean_leg(chart, dict(leg, hours=min(leg["hours"], watch_hours)))
+        legs.append(leg)
+        clock += leg["hours"]
+    return legs

@@ -217,3 +217,16 @@ html[data-effects="off"] *, html[data-effects="off"] *::before, html[data-effect
   html body #story-toggle { bottom: 120px; }
 }
 .sail-dock:not(.mobile-docked) { display: flex; gap: 0.6rem; margin-top: 0.8rem; }
+
+/* Watch-by-watch */
+.mode-box { display: flex; flex-wrap: wrap; gap: 0.4rem; align-items: center; margin: 0.4rem 0; }
+.mode-box button[aria-pressed="true"] { background: var(--btn-primary); color: var(--on-primary); border-width: 3px; border-color: var(--hover-edge); font-weight: 700; text-decoration: underline; text-underline-offset: 0.25em; }
+.mode-box .note { flex: 1 1 100%; margin: 0; }
+.watch-box { border: 2px solid var(--edge); border-radius: 10px; padding: 0.5rem 0.7rem; margin: 0.5rem 0; }
+.watch-box h3 { margin: 0 0 0.3rem; font-size: 1rem; }
+.fix-list { list-style: none; margin: 0.4rem 0; padding: 0; display: grid; gap: 0.4rem; }
+.fix-list li { border: 1px solid var(--line); border-radius: 8px; padding: 0.4rem 0.6rem; display: flex; flex-wrap: wrap; gap: 0.4rem 0.8rem; align-items: center; }
+.fix-list li.applied { border-style: solid; border-width: 3px; border-color: var(--accent); }
+.fix-list .reading { font-variant-numeric: tabular-nums; flex: 1 1 14rem; }
+.leg.sailed { border-style: solid; border-color: var(--line); opacity: 0.9; }
+.leg.sailed .leg-head { margin-bottom: 0; }

@@ -3,7 +3,7 @@
    into chart coordinates, and pacing the playback of a track the engine already computed. */
 (function () {
   "use strict";
-  var ENGINE_MODULES = ["geom.py", "sim.py", "chartkit.py", "charts_open.py", "charts_wind.py", "pars.py", "charts.py", "render.py", "solver.py", "state.py", "progress.py"];
+  var ENGINE_MODULES = ["geom.py", "sim.py", "chartkit.py", "charts_open.py", "charts_wind.py", "charts_fixes.py", "pars.py", "charts.py", "render.py", "solver.py", "state.py", "progress.py", "fixes.py"];
   var STORE_KEY = "dead-reckoning:state";
 
   var $ = function (id) { return document.getElementById(id); };
@@ -178,14 +178,22 @@
   function renderLegs() {
     var list = $("legs-list");
     var n = view.legs.length;
+    var sailed = view.sailed || 0;
     if (selected >= n) selected = Math.max(0, n - 1);
-    var sig = String(n);
+    if (selected < sailed) selected = Math.min(sailed, Math.max(0, n - 1));
+    var sig = n + ":" + sailed;
     if (list.dataset.signature !== sig) {
       list.textContent = "";
       view.legs.forEach(function (leg, i) {
-        var li = el("li", undefined, "leg");
+        var li = el("li", undefined, i < sailed ? "leg sailed" : "leg");
         var head = el("div", undefined, "leg-head");
         head.appendChild(el("span", String(i + 1), "leg-number"));
+        if (i < sailed) {
+          head.appendChild(el("strong", "Watch " + (i + 1) + " (sailed): steer " + String(leg.heading).padStart(3, "0") + " at " + fmt(leg.speed) + " kn for " + fmt(leg.hours) + " h"));
+          li.appendChild(head);
+          list.appendChild(li);
+          return;
+        }
         head.appendChild(el("strong", "Leg " + (i + 1)));
         var rm = el("button", "Remove");
         rm.type = "button";
@@ -205,13 +213,14 @@
       list.dataset.signature = sig;
     }
     view.legs.forEach(function (leg, i) {
+      if (i < sailed) return;
       ["heading", "speed", "hours"].forEach(function (field) {
         var input = $("leg-" + i + "-" + field);
         if (input && document.activeElement !== input && input.value !== String(leg[field])) input.value = leg[field];
       });
     });
     markSelected();
-    $("turns").hidden = !n;
+    $("turns").hidden = n <= sailed;
   }
 
   function renderPlanner() {
@@ -227,8 +236,14 @@
     setText($("plot-line"), plot);
     $("allow-checkbox").checked = view.allow;
     renderLegs();
-    setEnabled("add-leg-button", t.legs < view.limits.max_legs);
-    setEnabled("clear-button", t.legs > 0);
+    var watching = view.chart.mode === "watch";
+    var pending = t.legs - (view.sailed || 0);
+    setEnabled("add-leg-button", t.legs < view.limits.max_legs && !(watching && pending > 0));
+    setEnabled("clear-button", pending > 0);
+    setText($("sail-button"), watching ? "Sail this watch" : "Sail");
+    setEnabled("sail-button", !watching || pending > 0);
+    renderMode();
+    renderWatch();
     setEnabled("undo-button", view.can_undo);
     // helpers
     var h = view.helpers;
@@ -248,6 +263,51 @@
     } else {
       setText($("ruler-readout"), "No point marked.");
     }
+  }
+
+  function renderMode() {
+    var box = $("mode-box");
+    var many = view.chart.modes.length > 1 && !(view.sailed > 0);
+    box.hidden = !many;
+    if (!many) return;
+    var watching = view.chart.mode === "watch";
+    $("mode-plan-button").setAttribute("aria-pressed", String(!watching));
+    $("mode-watch-button").setAttribute("aria-pressed", String(watching));
+    setText($("mode-note"), watching
+      ? "Sail one leg at a time. After each watch, take a bearing and distance off any landmark in sight and plan the next from your corrected plot."
+      : "Commit the whole course up front, then sail it. No fixes: the hardest, cleanest puzzle.");
+  }
+
+  function renderWatch() {
+    var w = view.watch;
+    $("watch-box").hidden = !w;
+    if (!w) return;
+    $("anchor-button").hidden = !w.can_anchor;
+    var status;
+    if (!w.sailed) status = "Plan the first watch, then sail it. Between watches you can take a fix if a landmark is in sight.";
+    else {
+      status = "After watch " + w.sailed + " you believe you are at " + fmt(w.believed[0]) + " east, " + fmt(w.believed[1]) + " north.";
+      if (w.fog) status += " Fog: no landmark can be seen.";
+      else if (!w.readings.length) status += " No landmark is in sight from here.";
+    }
+    setText($("watch-status"), status);
+    setText($("watch-heading"), w.sailed ? "After watch " + w.sailed : "Before the first watch");
+    var list = $("fix-list");
+    list.textContent = "";
+    w.readings.forEach(function (r) {
+      var li = el("li", undefined, w.applied === r.id ? "applied" : "");
+      li.appendChild(el("span", r.name + " (" + r.kind + "): bearing " + String(r.bearing).padStart(3, "0") + " degrees, " + fmt(r.range) +
+        " nm off. Good to about " + r.bearing_err + " degrees and " + r.range_err_pct + " percent.", "reading"));
+      var b = el("button", w.applied === r.id ? "Fix applied" : "Take this fix");
+      b.type = "button";
+      b.setAttribute("aria-label", (w.applied === r.id ? "Fix applied from " : "Take a fix from ") + r.name);
+      b.addEventListener("click", function () { if (w.applied !== r.id) send({ action: "take_fix", landmark: r.id }); });
+      li.appendChild(b);
+      list.appendChild(li);
+    });
+    var log = $("watch-log");
+    log.textContent = "";
+    w.log.forEach(function (line) { log.appendChild(el("li", line)); });
   }
 
   function setEnabled(id, enabled) {
@@ -398,8 +458,9 @@
     if (!view || view.phase !== "plan") return;
     var t = view.totals;
     var message = null;
-    if (!t.legs) message = "Sail with no legs? The ship will stay where she is.";
-    else if (t.over) message = "Your plan takes " + fmt(t.hours) + " hours, over the " + fmt(t.deadline) + " hour deadline. Sail anyway?";
+    if (view.chart.mode === "watch") { if (t.legs <= (view.sailed || 0)) return; if (t.over) message = "Your passage is over the " + fmt(t.deadline) + " hour deadline. Sail this watch anyway?"; }
+    else if (!t.legs) message = "Sail with no legs? The ship will stay where she is.";
+    else if (t.over && !message) message = "Your plan takes " + fmt(t.hours) + " hours, over the " + fmt(t.deadline) + " hour deadline. Sail anyway?";
     if (message && window.ConfirmDialog) {
       window.ConfirmDialog.ask({ id: t.legs ? "dead-reckoning-sail-late" : "dead-reckoning-sail-empty", message: message, confirmLabel: "Sail",
         onConfirm: function () { send({ action: "sail" }); } });
@@ -429,6 +490,13 @@
       var b = e.target.closest("button[data-turn]");
       if (b && view.legs.length) send({ action: "nudge", i: selected, field: "heading", delta: parseInt(b.dataset.turn, 10) });
     });
+    guard("anchor-button", function () {
+      var go = function () { send({ action: "anchor" }); };
+      if (window.ConfirmDialog) window.ConfirmDialog.ask({ id: "dead-reckoning-anchor", message: "Drop anchor here and end the passage? It will be scored from where the ship really is.", confirmLabel: "Drop anchor", onConfirm: go });
+      else go();
+    });
+    guard("mode-plan-button", function () { send({ action: "set_mode", mode: "plan" }); });
+    guard("mode-watch-button", function () { send({ action: "set_mode", mode: "watch" }); });
     guard("skip-button", function () { showUpTo(view.reveal.points.length - 1); });
     $("scrub-range").addEventListener("input", function () {
       cancelAnimationFrame(playback.raf);
@@ -460,7 +528,7 @@
   function setBusy(busy) {
     ["add-leg-button", "clear-button", "undo-button", "sail-button", "naive-flag-button", "current-flag-button", "naive-point-button",
       "current-point-button", "point-set-button", "point-clear-button", "retry-button", "redo-button", "skip-button", "next-chart-button",
-      "par-button", "use-par-button"].forEach(function (id) { $(id).disabled = busy; });
+      "par-button", "use-par-button", "anchor-button", "mode-plan-button", "mode-watch-button"].forEach(function (id) { $(id).disabled = busy; });
   }
 
   async function boot() {

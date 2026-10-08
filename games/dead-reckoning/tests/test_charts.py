@@ -155,3 +155,34 @@ def test_the_campaign_has_a_long_route_for_the_long_way_round_achievement():
     from sim import plan_distance
     longest = max(plan_distance(charts.par_legs(c["id"])) for c in ALL)
     assert longest > 60.0
+
+
+WATCH_IDS = [c["id"] for c in ALL if "watch" in c.get("modes", ())]
+
+
+def test_chapter_three_is_watch_by_watch_and_earlier_chapters_are_not():
+    assert len(WATCH_IDS) >= 5
+    for c in ALL:
+        if c["chapter"] == "fixes":
+            assert c["modes"] == ["watch", "plan"] and c["default_mode"] == "watch" and c["landmarks"]
+        else:
+            assert "watch" not in c.get("modes", ())
+
+
+@pytest.mark.parametrize("cid", WATCH_IDS)
+def test_a_careful_watch_by_watch_player_lands_without_grounding(cid):
+    """Sail at most two hours, believe the true position (a perfect fix), plan the next watch from the printed midpoints."""
+    c = charts.get_chart(cid)
+    legs = solver.watch_route(c, [tuple(p) for p in c["waypoints"]])
+    res = sim.sail(c, legs)
+    sc = sim.score(c, legs, res)
+    assert res["aground"] is None and sc["arrived"], (sc["miss_nm"], len(legs))
+    assert len(legs) >= 2, "a watch-by-watch passage is more than one leg"
+
+
+@pytest.mark.parametrize("cid", WATCH_IDS)
+def test_a_landmark_is_in_sight_somewhere_along_the_par_route(cid):
+    from geom import dist
+    c = charts.get_chart(cid)
+    track = sim.sail(c, charts.par_legs(cid))["track"]
+    assert any(dist((x, y), (m["x"], m["y"])) <= m["visible"] for _t, x, y in track for m in c["landmarks"])

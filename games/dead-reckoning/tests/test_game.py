@@ -216,7 +216,7 @@ def test_the_plot_miss_is_a_distance_to_the_flag(g):
 def test_the_picker_lists_chapters_with_stars_and_locks(g):
     v = g.call("open")
     picker = v["picker"]
-    assert [c["id"] for c in picker] == ["open", "wind"]
+    assert [c["id"] for c in picker] == ["open", "wind", "fixes"]
     assert picker[0]["unlocked"] and picker[0]["total"] == 6 and picker[0]["cleared"] == 0 and picker[0]["lock_text"] == ""
     assert not picker[1]["unlocked"] and "Clear 4 charts in Open water" in picker[1]["lock_text"]
     assert [c["current"] for c in picker[0]["charts"]] == [True, False, False, False, False, False]

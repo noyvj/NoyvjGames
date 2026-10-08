@@ -17,6 +17,9 @@ Requests carry an `action`:
   sail                       sail the plan and reveal the passage
   retry                      back to planning with the same legs
   restart                    back to planning with an empty plan
+  set_mode {mode}            "plan" (full plan) or "watch" (Watch-by-watch), before anything is sailed
+  take_fix {landmark}        Watch-by-watch: move the plot to where a landmark's bearing and distance put the ship
+  anchor                     Watch-by-watch: end the passage where it stands (sail with the legs already sailed)
   next_chart                 open the next chart in the campaign (when it is unlocked)
   show_par | use_par         reveal the authored plan after a first attempt / load it into the planner
   reset                      forget all progress
@@ -25,6 +28,7 @@ Requests carry an `action`:
 import json
 
 import charts
+import fixes
 import progress
 import render
 import sim
@@ -57,8 +61,11 @@ def current_helper_unlocked():
     return _cleared() >= CURRENT_HELPER_AFTER
 
 
-def _start(chart_id, mode="plan", seed=0):
+def _start(chart_id, mode=None, seed=0):
     global run, point, history
+    chart = charts.get_chart(chart_id)
+    if mode not in chart.get("modes", ("plan",)):
+        mode = chart.get("default_mode", "plan")
     run = state.new_run(chart_id, seed, mode)
     point = None
     history = []
@@ -81,8 +88,23 @@ def _snapshot():
     del history[:-HISTORY_LIMIT]
 
 
+def _watch():
+    return run["mode"] == "watch"
+
+
 def _plot(chart):
-    return sim.estimate(chart, run["legs"], allow=run["allow"])
+    return sim.estimate(chart, run["legs"], allow=run["allow"], fixes=run["fixes"])
+
+
+def _believed(chart):
+    """Where the player believes the ship is after the watches already sailed (their plot, fixes included)."""
+    est = sim.estimate(chart, run["legs"][:run["sailed"]], allow=run["allow"], fixes=run["fixes"])
+    return (est[-1][1], est[-1][2])
+
+
+def _true_pos(chart):
+    """The ship's real position after the watches sailed. Used ONLY to work out what a fix would read; never shown."""
+    return tuple(sim.sail(chart, run["legs"][:run["sailed"]], seed=run["seed"], known=_record(chart["id"])["discovered"])["end"])
 
 
 def _plot_end(chart):
@@ -98,7 +120,7 @@ def _goal_text(chart):
 def _chart_info(chart):
     return {"id": chart["id"], "name": chart["name"], "chapter": chart.get("chapter", ""), "deadline": chart["deadline"],
             "arrival_radius": chart["arrival_radius"], "speeds": chart["speeds"], "size": chart["size"],
-            "goal": _goal_text(chart), "intro": chart.get("intro", ""), "mode": run["mode"],
+            "goal": _goal_text(chart), "intro": chart.get("intro", ""), "mode": run["mode"], "modes": list(chart.get("modes", ["plan"])),
             "start_hour": chart.get("start_hour", 0.0)}
 
 
@@ -181,9 +203,12 @@ def _plan_view(chart):
     if point is not None:
         pt = {"x": point[0], "y": point[1], "bearing": round(bearing(plot_end, point)) % 360,
               "distance": round(dist(plot_end, point), 1)}
-    svg = render.render_chart(chart, est=est, marks=render.plan_marks(legs, est), discovered=discovered, point=point)
+    believed = _believed(chart) if _watch() and run["sailed"] else None
+    fix_points = [(fx["x"], fx["y"]) for fx in run["fixes"]]
+    svg = render.render_chart(chart, est=est, marks=render.plan_marks(legs, est), sailed_legs=run["sailed"], discovered=discovered,
+                              point=point, believed=believed, fixes=fix_points)
     return {
-        "phase": "plan", "chart": _chart_info(chart), "svg": svg, "frame": _frame(chart),
+        "phase": "plan", "sailed": run["sailed"], "watch": _watch_view(chart) if _watch() else None, "chart": _chart_info(chart), "svg": svg, "frame": _frame(chart),
         "notes": render.chart_notes(chart, discovered), "legs": legs, "allow": run["allow"],
         "totals": {"legs": len(legs), "hours": hours, "distance": round(sim.plan_distance(legs), 1), "deadline": chart["deadline"],
                    "over": hours > chart["deadline"], "plot_end": [plot_end[0], plot_end[1]],
@@ -195,20 +220,38 @@ def _plan_view(chart):
     }
 
 
+def _watch_view(chart):
+    """What the watch officer knows between watches: the plot, any landmark in sight, what the last watch noticed."""
+    sailed = run["sailed"]
+    out = {"sailed": sailed, "readings": [], "applied": None, "log": [], "can_anchor": sailed > 0, "fog": bool(chart.get("fog")),
+           "believed": None}
+    if not sailed:
+        return out
+    believed = _believed(chart)
+    out["believed"] = [believed[0], believed[1]]
+    res = sim.sail(chart, run["legs"][:sailed], seed=run["seed"], known=_record(chart["id"])["discovered"])
+    out["log"] = [e["text"] for e in res["events"] if e["public"]]
+    mine = {fx["after_leg"]: fx for fx in run["fixes"]}.get(sailed - 1)
+    out["applied"] = mine["landmark"] if mine else None
+    out["readings"] = fixes.readings(chart, tuple(res["end"]), sailed)
+    return out
+
+
 # --- the reveal ------------------------------------------------------------------------------------
 def _stars_text(n):
     return "%d of 3 stars" % n
 
 
 def _reveal_view(chart):
-    legs = run["legs"]
+    legs = run["legs"][:run["sailed"]] if _watch() else run["legs"]
     known = run.get("known", [])
     res = sim.sail(chart, legs, seed=run["seed"], known=known)
     sc = sim.score(chart, legs, res, known=known, used_helpers=bool(run["helpers"]))
     est = _plot(chart)
     discovered = _record(chart["id"])["discovered"]
+    fix_points = [(fx["x"], fx["y"]) for fx in run["fixes"]]
     svg = render.render_chart(chart, est=est, marks=render.plan_marks(legs, est), true_track=res["track"], discovered=discovered,
-                              reveal=True)
+                              reveal=True, fixes=fix_points)
     lines = []
     if sc["aground"]:
         lines.append("The ship ran aground %.1f nm from the flag. The tide will lift her in a few hours; the passage is over." % sc["miss_nm"])
@@ -223,6 +266,8 @@ def _reveal_view(chart):
         lines.append("Steering straight at the flag works here: it would finish %.1f nm out." % sc["naive_miss_nm"])
     if sc["forecast_error_nm"] is not None:
         lines.append("Your plot put you %.1f nm from where the ship really ended up." % sc["forecast_error_nm"])
+    if run["fixes"]:
+        lines.append("You took %d fix%s from landmarks along the way." % (len(run["fixes"]), "" if len(run["fixes"]) == 1 else "es"))
     if sc["arrived"]:
         title = "Landfall"
     elif sc["aground"]:
@@ -234,7 +279,7 @@ def _reveal_view(chart):
     if par and par["shown"]:
         par_plot = sim.estimate(chart, par["legs"], allow=True)
         svg = render.render_chart(chart, est=est, marks=render.plan_marks(legs, est), true_track=res["track"], discovered=discovered,
-                                  reveal=True, par_track=par_plot)
+                                  reveal=True, par_track=par_plot, fixes=fix_points)
     points = [[t, *render.svg_point(chart, x, y)] for t, x, y in res["track"]]
     events = [{"t": e["t"], "text": e["text"], "public": e["public"]} for e in res["events"]]
     return {
@@ -259,27 +304,43 @@ def _next_playable(chart_id):
     return {"id": nxt, "name": charts.get_chart(nxt)["name"]}
 
 
-def _sail():
+def _finish():
+    """End the passage and score it (a full plan sails everything; a watch passage ends with the watches already sailed)."""
     chart = _chart()
     rec = _record(chart["id"])
     run["known"] = list(rec["discovered"])
+    if _watch():
+        del run["legs"][run["sailed"]:]
+    else:
+        run["sailed"] = 0
     legs = run["legs"]
     res = sim.sail(chart, legs, seed=run["seed"], known=run["known"])
     sc = sim.score(chart, legs, res, known=run["known"], used_helpers=bool(run["helpers"]))
-    progress.record_outcome(meta, chart, run, res, sc)
+    progress.record_outcome(meta, chart, run, res, sc, fix_taken=bool(run["fixes"]))
     run["phase"] = "reveal"
+
+
+def _sail_watch(chart):
+    """Sail the one pending leg (a watch). The passage ends by itself only when the ship runs aground."""
+    if len(run["legs"]) <= run["sailed"]:
+        return
+    del run["legs"][run["sailed"] + 1:]
+    run["sailed"] = len(run["legs"])
+    res = sim.sail(chart, run["legs"], seed=run["seed"], known=_record(chart["id"])["discovered"])
+    if res["aground"] or run["sailed"] >= state.MAX_LEGS:
+        _finish()
 
 
 # --- the one entry point ---------------------------------------------------------------------------
 def _leg_index(request):
     i = request.get("i")
-    if isinstance(i, bool) or not isinstance(i, int) or not 0 <= i < len(run["legs"]):
+    if isinstance(i, bool) or not isinstance(i, int) or not run["sailed"] <= i < len(run["legs"]):
         return None
     return i
 
 
 def _default_leg(chart):
-    end = _plot_end(chart)
+    end = _believed(chart) if _watch() else _plot_end(chart)
     return sim.clean_leg(chart, {"heading": round(bearing(end, chart["dest"])), "speed": sim.cruise_speed(chart), "hours": 1.0})
 
 
@@ -330,14 +391,30 @@ def handle(request_json):
         run.pop("known", None)
         run["legs"] = []
         run["helpers"] = []
+        run["sailed"] = 0
+        run["fixes"] = []
         history = []
     elif action == "sail":
-        if editing:
-            _sail()
+        if editing and _watch():
+            _sail_watch(chart)
+        elif editing:
+            _finish()
+    elif action == "anchor":
+        if editing and _watch() and run["sailed"] > 0:
+            _finish()
     elif not editing:
         return json.dumps({"error": "the passage is over: retry or pick a chart"})
+    elif action == "set_mode":
+        mode = request.get("mode")
+        if mode in chart.get("modes", ("plan",)) and mode != run["mode"] and run["sailed"] == 0:
+            run["mode"] = mode
+            run["legs"] = []
+            run["helpers"] = []
+            history = []
+    elif action == "take_fix":
+        _take_fix(chart, request)
     elif action == "add_leg":
-        if len(run["legs"]) < state.MAX_LEGS:
+        if len(run["legs"]) < state.MAX_LEGS and not (_watch() and len(run["legs"]) > run["sailed"]):
             _snapshot()
             run["legs"].append(_default_leg(chart))
     elif action == "set_leg":
@@ -364,12 +441,15 @@ def handle(request_json):
             del run["legs"][i]
     elif action == "undo":
         if history:
-            run["legs"] = history.pop()
+            prev = history.pop()
+            if prev[:run["sailed"]] == run["legs"][:run["sailed"]] and len(prev) >= run["sailed"]:
+                run["legs"] = prev
     elif action == "clear":
-        if run["legs"]:
+        if len(run["legs"]) > run["sailed"]:
             _snapshot()
-        run["legs"] = []
-        run["helpers"] = []
+        del run["legs"][run["sailed"]:]
+        if not run["sailed"]:
+            run["helpers"] = []
     elif action == "allow":
         run["allow"] = request.get("value") is not False
     elif action == "helper":
@@ -385,12 +465,30 @@ def handle(request_json):
     return json.dumps(_view())
 
 
+def _take_fix(chart, request):
+    """Apply a landmark fix: the plot jumps to where the readings put the ship. The true position is never revealed."""
+    if not _watch() or run["sailed"] < 1:
+        return
+    options = {r["id"]: r for r in _watch_view(chart)["readings"]}
+    reading = options.get(request.get("landmark"))
+    if reading is None:
+        return
+    pos = fixes.position_from(chart, reading["id"], reading["bearing"], reading["range"])
+    after = run["sailed"] - 1
+    run["fixes"] = [fx for fx in run["fixes"] if fx["after_leg"] != after]
+    run["fixes"].append({"after_leg": after, "x": pos[0], "y": pos[1], "landmark": reading["id"]})
+
+
 def _helper(chart, request):
     kind = request.get("kind")
-    if kind not in ("naive", "current") or len(run["legs"]) >= state.MAX_LEGS:
+    if kind not in ("naive", "current"):
+        return
+    if _watch():
+        del run["legs"][run["sailed"]:]
+    if len(run["legs"]) >= state.MAX_LEGS:
         return
     target = tuple(chart["dest"]) if request.get("target") != "point" or point is None else point
-    here = _plot_end(chart)
+    here = _believed(chart) if _watch() else _plot_end(chart)
     if dist(here, target) < 0.05:
         return
     if kind == "naive":

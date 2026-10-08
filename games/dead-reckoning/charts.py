@@ -6,6 +6,7 @@ tools/check_charts.py --write. The practice generator's charts are made on deman
 
 from charts_open import CHARTS as _OPEN
 from charts_wind import CHARTS as _WIND
+from charts_fixes import CHARTS as _FIXES
 from pars import PARS
 
 CHAPTERS = [
@@ -13,6 +14,8 @@ CHAPTERS = [
      "charts": _OPEN},
     {"id": "wind", "name": "Wind and leeway", "blurb": "A sailing ship slides a little downwind of her heading. Allow for it, and for the rocks it sets you toward.",
      "charts": _WIND},
+    {"id": "fixes", "name": "Fixes and landmarks", "blurb": "Watch by watch: sail a leg, take a bearing and a distance off a landmark, correct your plot, plan the next.",
+     "charts": _FIXES},
 ]
 CLEAR_TO_OPEN_NEXT = 4          # charts cleared (one star or more) in a chapter before the next chapter opens
 

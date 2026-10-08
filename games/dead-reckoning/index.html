@@ -81,6 +81,18 @@
 
     <section id="planner-panel" class="panel" aria-labelledby="planner-heading">
       <h2 id="planner-heading">Your plan</h2>
+      <div id="mode-box" class="mode-box" role="group" aria-label="How to play this chart" hidden>
+        <button id="mode-plan-button" type="button" aria-pressed="false">Full plan</button>
+        <button id="mode-watch-button" type="button" aria-pressed="false">Watch by watch</button>
+        <p id="mode-note" class="note"></p>
+      </div>
+      <div id="watch-box" class="watch-box" hidden>
+        <h3 id="watch-heading">Watch</h3>
+        <p id="watch-status" class="note" aria-live="polite"></p>
+        <ul id="fix-list" class="fix-list" aria-label="Landmarks in sight"></ul>
+        <ul id="watch-log" class="events" aria-live="polite"></ul>
+        <button id="anchor-button" type="button">Drop anchor and finish the passage here</button>
+      </div>
       <div class="totals" id="totals">
         <span>Legs: <b id="total-legs">0</b></span>
         <span>Hours: <b id="total-hours">0</b> of <span id="deadline-hours">0</span></span>

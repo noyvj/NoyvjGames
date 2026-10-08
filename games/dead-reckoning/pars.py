@@ -51,4 +51,24 @@ PARS = {
         {"heading": 333, "speed": 5.5, "hours": 3},
         {"heading": 45, "speed": 5, "hours": 1.5},
     ],
+    "fix-01": [
+        {"heading": 44, "speed": 6, "hours": 3},
+    ],
+    "fix-02": [
+        {"heading": 89, "speed": 5.5, "hours": 1.5},
+        {"heading": 127, "speed": 5.5, "hours": 2},
+    ],
+    "fix-03": [
+        {"heading": 47, "speed": 5, "hours": 3.5},
+    ],
+    "fix-04": [
+        {"heading": 58, "speed": 6, "hours": 2},
+        {"heading": 63, "speed": 6.5, "hours": 2},
+        {"heading": 42, "speed": 6.5, "hours": 2},
+    ],
+    "fix-05": [
+        {"heading": 90, "speed": 3.5, "hours": 3},
+        {"heading": 104, "speed": 3.5, "hours": 2.5},
+        {"heading": 174, "speed": 5, "hours": 1},
+    ],
 }

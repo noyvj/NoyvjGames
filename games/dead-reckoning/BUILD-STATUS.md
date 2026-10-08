@@ -9,9 +9,10 @@ Updated after each milestone. A new agent should read `planning/dead-reckoning-p
 - Milestone 3 Plan and sail: `game.py`, `state.py`, `progress.py`, `solver.py`, full planner/reveal UI in `index.html`/`app.js`.
 
 - Milestone 4 Campaign chapters 1-2: `chartkit.py`, `charts_open.py`, `charts_wind.py`, `charts.py` (registry, chapters, gates), generated `pars.py`, picker, par reveal, captain's log, `tests/test_charts.py`.
+- Milestone 5 Fixes and watch-by-watch: `fixes.py`, watch logic in `game.py`/`state.py`, `charts_fixes.py` (5 charts), watch UI.
 
 ## Next
-- Milestone 5 Fixes and watch-by-watch (landmark bearing fixes, leg-at-a-time mode, chapter 3).
+- Milestone 6 Fog, tides, compass error (chapters 4, 5, 6 here; the plan's Two ships chapter is deferred).
 
 ## Open problems
 - The shared `level-select.js` is not used (own picker instead). Ask the hub session whether to adopt it at registration time.

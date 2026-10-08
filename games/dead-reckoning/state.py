@@ -112,7 +112,27 @@ def merge_meta(a, b):
 
 
 def new_run(chart_id, seed=0, mode="plan"):
-    return {"chart_id": chart_id, "seed": seed, "mode": mode, "legs": [], "phase": "plan", "allow": True, "helpers": []}
+    return {"chart_id": chart_id, "seed": seed, "mode": mode, "legs": [], "phase": "plan", "allow": True, "helpers": [],
+            "sailed": 0, "fixes": []}
+
+
+def clean_fixes(data, sailed, landmark_ids=None, size=40):
+    """Applied fixes: {after_leg, x, y, landmark}. One per watch, only for watches already sailed."""
+    out = {}
+    if not isinstance(data, list):
+        return []
+    for fx in data[:MAX_LEGS]:
+        if not isinstance(fx, dict):
+            continue
+        after = fx.get("after_leg")
+        x, y = _float(fx.get("x"), -5.0, size + 5.0), _float(fx.get("y"), -5.0, size + 5.0)
+        lid = fx.get("landmark")
+        if isinstance(after, bool) or not isinstance(after, int) or not 0 <= after < sailed or x is None or y is None:
+            continue
+        if not isinstance(lid, str) or (landmark_ids is not None and lid not in landmark_ids):
+            continue
+        out[after] = {"after_leg": after, "x": x, "y": y, "landmark": lid}
+    return [out[k] for k in sorted(out)]
 
 
 def clean_run(data, get_chart):
@@ -126,11 +146,19 @@ def clean_run(data, get_chart):
     if chart is None:
         return None
     mode = data.get("mode") if data.get("mode") in MODES else "plan"
+    if mode not in chart.get("modes", ("plan",)):
+        mode = "plan"
     phase = data.get("phase") if data.get("phase") in PHASES else "plan"
     run = new_run(cid, _int(data.get("seed"), 0, 2 ** 31 - 1), mode)
     run["legs"] = clean_legs(chart, data.get("legs"), limit=MAX_LEGS)
     run["phase"] = phase if run["legs"] else "plan"
     run["allow"] = data.get("allow") is not False
+    if mode == "watch" and run["phase"] == "plan":
+        run["sailed"] = _int(data.get("sailed"), 0, len(run["legs"]))
+        run["fixes"] = clean_fixes(data.get("fixes"), run["sailed"], {m["id"] for m in chart.get("landmarks", ())}, chart.get("size", 40))
+    elif mode == "watch":
+        run["sailed"] = len(run["legs"])
+        run["fixes"] = clean_fixes(data.get("fixes"), run["sailed"], {m["id"] for m in chart.get("landmarks", ())}, chart.get("size", 40))
     helpers = data.get("helpers")
     if isinstance(helpers, list):
         run["helpers"] = [h for h in HELPERS if h in helpers]
@@ -155,6 +183,10 @@ def run_to_dict(run):
         out["helpers"] = list(run["helpers"])
     if run.get("known"):
         out["known"] = list(run["known"])
+    if run.get("sailed"):
+        out["sailed"] = run["sailed"]
+    if run.get("fixes"):
+        out["fixes"] = [dict(fx) for fx in run["fixes"]]
     return out
 
 
