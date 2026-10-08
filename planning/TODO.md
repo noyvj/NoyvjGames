@@ -1,6 +1,6 @@
 # Site-Wide TODO (round 3)
 
-**Progress: 467/1048 items checked off (44.6%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land.
+**Progress: 467/1083 items checked off (43.1%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land.
 
 Built from your answers in `planning/IMPROVEMENT-IDEAS-ROUND-3.md` (Part 4). Every Round 3 section is now answered (2026-10-07 below the Warframe section); earlier this list held only: **GB** (Canopy gamified), **M** (new games), **N** (seasonal events), **O** (Trade Empire and Continuum replayability), **P/Q/S/T** (Signal, Undersleep, Overclock, Last Line open questions), **X** (Warframe tracker) and **R** (returning later). GC-GI, A-L, U, Z and Y are unanswered and wait for you. The previous list is archived at `planning/todo-archive/260914_260927.md`; anything from it that was moved here is marked "moved" there.
 
@@ -76,10 +76,56 @@ Rules carried over: "yes" items are here, "later" items are parked in `planning/
 - (M-3 Cryptid Hunt dropped: you do not like roguelikes or card-game styles.)
 - [x] M-4: Pocket Bazaar: write the groundwork plan (fast merge-and-fulfil; explicitly no energy limits and no microtransactions), then build it (M-4b).
 - [x] M-5: Dead Reckoning: write the groundwork plan (navigation puzzle), then build it (M-5b).
-- [ ] M-1b: Build Heist Committee from its plan.
-- [ ] M-2b: Build Lighthouse from its plan.
-- [ ] M-4b: Build Pocket Bazaar from its plan.
-- [ ] M-5b: Build Dead Reckoning from its plan.
+
+**The four builds below were split into one item per milestone (2026-10-08). They live in new folders, so they cannot collide with Noy2's areas; only the hub registration items wait for Noy2. Open questions are FOR-YOU He1-He3, Li1-Li3, Pb1-Pb3, Dr1-Dr3; until you answer, I take each plan's recommendation.**
+
+**Heist Committee** (`planning/heist-committee-plan.md`; code in a new `games/heist-committee/`; commit + tag each milestone as `heist-committee-milestone-0N`; milestones 1-4 ship a complete, playable game)
+- [ ] M-1b-1: Milestone 1, Engine core: `engine.py` data loaders, `resolve_beat`, tags/chain/counters, seeded RNG, text-only harness that runs one heist; tests for determinism and the chain-depth cap.
+- [ ] M-1b-2: Milestone 2, Plan UI: recruit cards, timeline grid, action tray, tap-to-place plus drag, live validation panel, pair-rule previews (prototype the touch interaction here, before content).
+- [ ] M-1b-3: Milestone 3, Playback + payout: beat-by-beat playback, log lines, payout screen, chain diagram, write-up generator.
+- [ ] M-1b-4: Milestone 4, Launch content: 3 targets, 12 crew, 20 complications, 3 gear pieces, contract board and scouting. First complete, playable game.
+- [ ] M-1b-5: Milestone 5, Career and meta: cash, reputation, relationships, unlocks, rotating pool by career seed, more targets and crew (5 / 20 / 60).
+- [ ] M-1b-6: Milestone 6, Standard kit: save widget with mid-playback resume, `settings.js`, confirm dialogs, tutorial, mobile dock/HUD, info panel, changelog, feedback.
+- [ ] M-1b-7: Milestone 7, Achievements + story: 14 achievements, panel and toast, story toggle wiring, crew banter, career thread.
+- [ ] M-1b-8: Milestone 8, Balance and bots: bot playtests, tune bands, second complication pass, colorblind and 375px audit.
+- [ ] M-1b-9: Milestone 9, Hub integration: title card, thumbnail, favicon, `sw.js`, manifests, root CLAUDE.md row, dev logs, tag. WAIT until Noy2 releases the hub files (`index.html`, `sw.js`, `offline-manifest.json`).
+- [ ] M-1b-10: Milestone 10, Daily Job (optional): date-seeded job, archive, opt-in leaderboard board. Only if FOR-YOU He2 says to build it.
+
+**Lighthouse** (`planning/lighthouse-plan.md`; code in a new `games/lighthouse/`; commit + tag each milestone as `lighthouse-milestone-0N`; milestones 1-4 ship a complete, playable game)
+- [ ] M-2b-1: Milestone 1, Sim core: deterministic weather and ship generators, tick `step()`, oil/brightness/clockwork/structure/energy, text harness that plays a night; tests for determinism and pause/fast-forward invariance.
+- [ ] M-2b-2: Milestone 2, Night UI: SVG scene, beam, ship silhouettes, evening plan panel, morning report, speed/pause controls.
+- [ ] M-2b-3: Milestone 3, Day loop + upgrades: repairs, supplies, supply boat, upgrades, seasons, forecast.
+- [ ] M-2b-4: Milestone 4, Complete Quiet mode: one year to completion, endless continue, save widget, settings, confirm dialogs. First complete, playable game (no story layer).
+- [ ] M-2b-5: Milestone 5, Cast, letters, gifts: 12 sailors (6 is acceptable if the schedule needs it), letter panel, gifts, room scene, story toggle.
+- [ ] M-2b-6: Milestone 6, The Unease: unease meter, odd-detail techniques, six mysteries (three if needed) with the dread-ledger tests, Eerie details setting, content note; prototype the first mystery before writing all of them.
+- [ ] M-2b-7: Milestone 7, Standard kit: tutorial, mobile dock/HUD, changelog, info panel, feedback, light theme, colorblind audit.
+- [ ] M-2b-8: Milestone 8, Achievements + polish: 16 achievements, panel and toast, copy lint, perf test, balance bots.
+- [ ] M-2b-9: Milestone 9, Hub integration: card, thumbnail, favicon, `sw.js`, manifests, root CLAUDE.md row, dev logs, tag. WAIT until Noy2 releases the hub files.
+
+**Pocket Bazaar** (`planning/pocket-bazaar-plan.md`; code in a new `games/pocket-bazaar/`; commit + tag each milestone as `pocket-bazaar-milestone-0N`; milestones 1-4 ship a complete, playable game)
+- [ ] M-4b-1: Milestone 1, Board engine: `board.py` merge rules, cascades, legal-move solver, seeded RNG, text harness; tests for merges and no soft-lock.
+- [ ] M-4b-2: Milestone 2, Board UI: 5x6 grid, crates, drag plus tap-tap plus keyboard, Sell/Broom, merge highlights (prototype at 375px before customers).
+- [ ] M-4b-3: Milestone 3, Customers and orders: queue, patience counted in beats, delivery, payout, 4 archetypes, order generator with a reachability test.
+- [ ] M-4b-4: Milestone 4, Market day loop: day start and summary, coins, stall upgrades, a 10-day campaign, 3 festivals. First complete, playable game.
+- [ ] M-4b-5: Milestone 5, Combos, streaks, festivals: order combo, cascade bonus, all 6 festivals with previews, personal-best badges.
+- [ ] M-4b-6: Milestone 6, Standard kit + pledge tests: save widget, settings, confirm dialog, tutorial, mobile dock/HUD, changelog, info panel with the pledge list, feedback, and the pledge tests (no energy, no premium currency, no timers pushing spending).
+- [ ] M-4b-7: Milestone 7, Achievements + story: 14 achievements, panel and toast, regulars, story toggle wiring.
+- [ ] M-4b-8: Milestone 8, Hub integration: title card, thumbnail, favicon, `sw.js`, manifests, root CLAUDE.md row, dev logs, tag. WAIT until Noy2 releases the hub files.
+- [ ] M-4b-9: Milestone 9, Daily Market (optional): date-seeded day, archive, opt-in leaderboard board. Only if FOR-YOU Pb3 says yes.
+
+**Dead Reckoning** (`planning/dead-reckoning-plan.md`; code in a new `games/dead-reckoning/`; commit + tag each milestone as `dead-reckoning-milestone-0N`; milestones 1-4 ship a complete, playable game)
+- [ ] M-5b-1: Milestone 1, Sim core: `sim.py` vectors, current zones, leeway, hazard intersection, tracks, scoring, text harness; tests for determinism, hazards, vectors.
+- [ ] M-5b-2: Milestone 2, Chart SVG: chart renderer (grid, land, hazards, current arrows, scale, rose), one hard-coded chart, static estimated track from a hard-coded plan.
+- [ ] M-5b-3: Milestone 3, Plan and sail: leg editor (numeric steppers and quick-turn buttons), live estimated track, Sail, animated true track, reveal overlay with error ribbon and score. Playable slice.
+- [ ] M-5b-4: Milestone 4, Campaign chapters 1-2: 12 authored charts (open water, wind), stars, retry, par-plan reveal, chart validator tests. First complete, playable game.
+- [ ] M-5b-5: Milestone 5, Fixes and watch-by-watch: landmarks, bearing fixes, leg-at-a-time mode, chapter 3.
+- [ ] M-5b-6: Milestone 6, Fog, tides, compass error: chapters 4, 5 and 7, tide tables, uncharted hazards.
+- [ ] M-5b-7: Milestone 7, Two ships: multi-ship plan and sim, collision events, chapter 6. Do this later rather than at launch unless FOR-YOU Dr2 says otherwise.
+- [ ] M-5b-8: Milestone 8, Practice generator: seeded chart generator, solvability fuzz, shareable seeds.
+- [ ] M-5b-9: Milestone 9, Standard kit: save widget, settings, confirm dialogs, tutorial, mobile dock/HUD, changelog, info panel with sourced facts and the abstraction disclaimer, feedback, light theme, colorblind audit.
+- [ ] M-5b-10: Milestone 10, Achievements + hub: 14 achievements, panel and toast, title card, favicon, `sw.js`, manifests, root CLAUDE.md row, dev logs, tag. Hub files WAIT until Noy2 releases them.
+- [ ] M-5b-11: Milestone 11, Daily Chart (optional): date-seeded chart, archive, opt-in leaderboard board. Only if wanted later.
+
 
 ---
 
