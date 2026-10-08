@@ -9,6 +9,7 @@
 <link rel="stylesheet" href="../../shared/theme-light-games.css">
 <link rel="stylesheet" href="style.css">
 <link rel="stylesheet" href="../../shared/info-page.css">
+<link rel="stylesheet" href="../../shared/personal-best.css">
 <script src="../../shared/theme.js"></script>
 <script src="../../shared/lite-mode.js"></script>
 <script src="../../shared/error-boundary.js" data-game-id="pocket-bazaar"></script>
@@ -58,7 +59,7 @@
     <div class="stat"><span class="stat-label">Coins</span><span id="stat-coins" class="stat-value">0</span></div>
     <div class="stat"><span class="stat-label">Day</span><span id="stat-day" class="stat-value">1</span></div>
     <div class="stat"><span class="stat-label">Served</span><span id="stat-served" class="stat-value">0</span></div>
-    <div class="stat"><span class="stat-label">Left</span><span id="stat-left" class="stat-value">0</span></div>
+    <div class="stat"><span class="stat-label">Combo</span><span id="stat-combo" class="stat-value">x1</span><span id="stat-combo-pips" class="combo-pips" aria-hidden="true"></span></div>
   </section>
 
   <section id="stall-panel" class="panel" aria-labelledby="stall-heading">
@@ -70,8 +71,11 @@
         <p id="summary-stars" class="summary-stars"></p>
         <dl id="summary-list" class="summary-list"></dl>
         <p id="summary-festival" class="note"></p>
+        <p id="summary-bests" class="personal-best-display"></p>
+        <p id="summary-unlocks" class="unlock-line" hidden></p>
       </div>
       <p id="campaign-line" class="note campaign-line"></p>
+      <p id="renown-line" class="note renown-line"></p>
       <div id="festival-card" class="festival-card">
         <p class="festival-title"><span id="festival-label">Next festival</span>: <strong id="festival-name"></strong> <span id="festival-tone" class="chip"></span></p>
         <p id="festival-blurb" class="note"></p>
@@ -109,7 +113,8 @@
         <li>Customers ask for goods. Tap a crate to put a basic good on the counter (crates are free and never run out), then merge two identical goods into the next tier.</li>
         <li>Tap a good, then tap a customer who wants it (or drag it over). A good of the right family and the tier asked for, or better, is accepted; a Critic wants exactly that tier.</li>
         <li>Customers wait in <strong>beats</strong>, not seconds: a beat is a crate, a merge, a sweep or a hand-over. Moving, swapping, selling and thinking are free, so nothing happens while you pause.</li>
-        <li>Three identical goods together jump two tiers. A merge that lines up with a neighbour keeps going, as a chain.</li>
+        <li>Three identical goods together jump two tiers. A merge that lines up with a neighbour keeps going, as a chain, and each extra link pays a few coins.</li>
+        <li>Serve customers in a row without anyone leaving and the combo climbs to x2 and x3, which multiplies what they pay. Every fourth order in a row sets a wildcard on the counter: it merges with any good below a showpiece. A customer leaving only resets the combo for the rest of the day; nothing is lost.</li>
         <li>Sell turns any good into coins and Broom sweeps it away, so the counter can never jam.</li>
         <li>Keyboard: arrows move, Enter picks up or drops, D hands the picked-up good over, B is the broom, S sells, 1-3 open a crate, Esc lets go.</li>
       </ul>

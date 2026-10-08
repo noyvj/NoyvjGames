@@ -21,6 +21,7 @@ import json
 
 import festival
 import goods
+import renown
 import shop
 from board import Board
 from day import Day
@@ -29,8 +30,11 @@ from goods import FAMILY_INFO, good_label
 from orders import ARCHETYPES, make_queue
 from rng import Rng, mix
 
-FAMILIES_AT_START = ("produce", "textiles", "ceramics")
-TALLY_KEYS = ("crates", "merges", "sold", "swept", "triples", "orders")
+TALLY_KEYS = ("crates", "merges", "sold", "swept", "triples", "orders", "wilds")
+BEST_KEYS = ("combo", "day_coins")
+SUMMARY_KEYS = ("number", "served", "left", "total", "coins", "beats", "best_chain", "stars", "streak", "chain_coins",
+                "wilds", "twins", "best_mult", "renown_gain")
+NEW_BEST_IDS = ("combo", "day_coins")
 MAX_COINS = 10 ** 9
 
 
@@ -51,12 +55,13 @@ class Stall:
         self.next_day = 1
         self.renown = 0
         self.upgrades = []
+        self.best = {key: 0 for key in BEST_KEYS}
         self.shelf = None           # the good kept on the display shelf between days
         self.day = None
         self.last = None            # the summary of the day that just ended, until the next one opens
 
     def families(self):
-        return FAMILIES_AT_START
+        return tuple(renown.families(self.renown))
 
     def rules_for(self, number):
         """What the day's festival and the owned upgrades change, as the Day's rules dict."""
@@ -81,6 +86,9 @@ class Stall:
             data["next_day"] = self.next_day
         if self.upgrades:
             data["upgrades"] = list(self.upgrades)
+        best = {k: v for k, v in self.best.items() if v}
+        if best:
+            data["best"] = best
         if self.shelf is not None:
             data["shelf"] = {"f": self.shelf[0], "t": self.shelf[1]}
         if self.day is not None:
@@ -99,6 +107,8 @@ class Stall:
         self.days_played = _int(data.get("days_played"), high=10 ** 5)
         self.renown = _int(data.get("renown"))
         self.next_day = _int(data.get("next_day"), low=1, high=10 ** 5 + 1, default=1)
+        best = data.get("best") if isinstance(data.get("best"), dict) else {}
+        self.best = {key: _int(best.get(key), high=10 ** 7) for key in BEST_KEYS}
         owned = data.get("upgrades")
         self.upgrades = [u for u in shop.ids() if isinstance(owned, list) and u in owned]
         self.shelf = None
@@ -116,9 +126,12 @@ class Stall:
         self.last = None
         last = data.get("last")
         if isinstance(last, dict):
-            keys = ("number", "served", "left", "total", "coins", "beats", "best_chain", "stars")
-            clean = {k: _int(last.get(k), high=10 ** 7) for k in keys}
+            clean = {k: _int(last.get(k), high=10 ** 7) for k in SUMMARY_KEYS}
             clean["festival"] = last.get("festival") if last.get("festival") in festival.FESTIVALS else None
+            unlocks = last.get("unlocks") if isinstance(last.get("unlocks"), list) else []
+            clean["unlocks"] = [u for u in renown.UNLOCK_NAMES if u in unlocks]
+            bests = last.get("new_bests") if isinstance(last.get("new_bests"), list) else []
+            clean["new_bests"] = [b for b in NEW_BEST_IDS if b in bests]
             if clean["number"] >= 1 and 1 <= clean["stars"] <= 3:
                 self.last = clean
 
@@ -127,9 +140,9 @@ class Stall:
         number = self.next_day
         rules = self.rules_for(number)
         rng = Rng(mix(number, 0xBA2AA2))
-        day_spec = festival.apply_spec(spec(number), rules["festival"])
+        day_spec = festival.apply_spec(spec(number, extras=renown.archetypes(self.renown)), rules["festival"])
         queue = make_queue(rng, day_spec, list(self.families()))
-        board = Board(6 if "counter" in self.upgrades else 5, 6, "shelf" in self.upgrades)
+        board = Board(6 if "counter" in self.upgrades else 5, rules.get("board_height", 6), "shelf" in self.upgrades)
         if self.shelf is not None and board.has_shelf:
             board.cells[board.shelf_index] = self.shelf
         self.day = Day(number, board, queue, rng, rules)
@@ -142,9 +155,21 @@ class Stall:
         if day.board.has_shelf:
             self.shelf = day.board.cells[day.board.shelf_index]
         self.last = day.summary()
+        gain = renown.gain(day.served, self.last["stars"])
+        unlocks = renown.newly_unlocked(self.renown, self.renown + gain)
+        self.renown += gain
+        self.last["renown_gain"] = gain
+        self.last["unlocks"] = unlocks
+        bests = []
+        if day.best_streak > self.best["combo"]:
+            bests.append("combo")
+            self.best["combo"] = day.best_streak
+        if day.coins > self.best["day_coins"]:
+            bests.append("day_coins")
+            self.best["day_coins"] = day.coins
+        self.last["new_bests"] = bests
         self.days_played += 1
         self.next_day = day.number + 1
-        self.renown += day.served
         self.day = None
 
 
@@ -163,16 +188,20 @@ def _cell_view(good):
             "next": goods.next_tier_name(good), "sell": goods.sell_value(good)}
 
 
-def _item_view(f, t, done):
+def _item_view(f, t, done, any_tier=False):
     info = FAMILY_INFO[f]
-    return {"family": f, "tier": t, "letter": info["letter"], "shape": info["shape"],
+    if any_tier and not done:
+        return {"family": f, "tier": 1, "tier_text": "+", "letter": info["letter"], "shape": info["shape"],
+                "label": f"any {info['name'].lower()} good", "done": False}
+    return {"family": f, "tier": t, "tier_text": str(t), "letter": info["letter"], "shape": info["shape"],
             "label": good_label((f, t)), "done": bool(done)}
 
 
 def _customer_view(index, c):
+    any_tier = c.info["mode"] == "any"
     return {"index": index, "name": c.name, "archetype": c.archetype, "kind": c.info["name"], "blurb": c.info["blurb"],
-            "items": [_item_view(f, t, d) for f, t, d in c.items], "patience": c.left, "max": c.max,
-            "pay": c.pay(), "exact": c.info["mode"] == "exact"}
+            "items": [_item_view(f, t, d, any_tier) for f, t, d in c.items], "patience": c.left, "max": c.max,
+            "pay": c.pay(), "exact": c.info["mode"] == "exact", "group": c.group}
 
 
 def _festival_view(number):
@@ -193,7 +222,8 @@ def _view(message="", ok=True, event=None):
         "coins": stall.coins, "tally": dict(stall.tally), "best_chain": stall.best_chain,
         "days_played": stall.days_played, "next_day": stall.next_day, "summary": stall.last,
         "archetypes": {k: v["name"] for k, v in ARCHETYPES.items()},
-        "renown": stall.renown, "upgrades": shop.view(stall.upgrades, stall.coins),
+        "renown": stall.renown, "next_unlock": renown.next_unlock(stall.renown), "unlock_names": dict(renown.UNLOCK_NAMES), "best": dict(stall.best),
+        "unlocked_families": list(stall.families()), "upgrades": shop.view(stall.upgrades, stall.coins),
         "festival": _festival_view(day.number if day else stall.next_day),
         "campaign": _campaign_view(day.number if day else stall.next_day),
         "summary_festival": _festival_view(stall.last["number"]) if stall.last else None,
@@ -215,7 +245,8 @@ def _view(message="", ok=True, event=None):
     view["deliverable"] = {str(k): v for k, v in day.deliverable().items()}
     view["full"] = board.first_empty() is None
     view["day"] = {"number": day.number, "total": day.total, "served": day.served, "left": day.left,
-                   "waiting": day.waiting(), "coins": day.coins, "beat": day.beat, "window": WINDOW}
+                   "waiting": day.waiting(), "coins": day.coins, "beat": day.beat, "window": WINDOW,
+                   "streak": day.streak, "mult": day.multiplier(), "to_next": day.to_next(), "chain_coins": day.chain_coins}
     upcoming = day.queue[WINDOW] if "preview" in stall.upgrades and len(day.queue) > WINDOW else None
     view["upcoming"] = _customer_view(WINDOW, upcoming) if upcoming else None
     return view
@@ -241,6 +272,8 @@ def _apply(outcome):
             stall.tally["swept"] += 1
         elif kind == "deliver" and outcome.get("served_now"):
             stall.tally["orders"] += 1
+            if outcome.get("wild") is not None:
+                stall.tally["wilds"] += 1
     message = " ".join([outcome["message"]] + outcome["notes"]).strip()
     flavor = list(outcome.get("flavor", []))
     served_now = outcome.get("served_now")

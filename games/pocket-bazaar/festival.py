@@ -15,9 +15,18 @@ FESTIVALS = {
     "twin": {"name": "Twin Day", "tone": "relaxed",
              "blurb": "Every merge that makes a tier-3 good also sets a free tier-1 good down beside it.",
              "twin": True},
+    "kite": {"name": "Kite Day", "tone": "tricky",
+             "blurb": "The counter has one row fewer, but every combo starts at times two.",
+             "board_height": 5, "combo_floor": 2},
+    "lantern": {"name": "Lantern Night", "tone": "relaxed",
+                "blurb": "Ceramics sell and pay half again as much, and rush crowds come in groups of three.",
+                "family_pct": {"ceramics": 150}, "crowd_weight": 3},
+    "bargain": {"name": "Bargain Hunt", "tone": "tricky",
+                "blurb": "Only Hagglers shop today: big payouts, patience a little shorter than usual.",
+                "only": "haggler", "pay_pct": 130, "patience_pct": 150},
 }
 
-ORDER = ("slow", "harvest", "twin")
+ORDER = ("slow", "harvest", "twin", "kite", "lantern", "bargain")
 
 
 def for_day(number):
@@ -36,6 +45,10 @@ def apply_spec(spec, festival_id):
     out = dict(spec)
     if "patience_pct" in f:
         out["slack_pct"] = spec["slack_pct"] * f["patience_pct"] // 100
+    if "only" in f:
+        out["archetypes"] = ((f["only"], 1),)
+    if "crowd_weight" in f:
+        out["archetypes"] = tuple(a for a in out["archetypes"] if a[0] != "crowd") + (("crowd", f["crowd_weight"]),)
     if "critic_weight" in f:
         out["archetypes"] = tuple((a, w * f["critic_weight"] if a == "critic" else w) for a, w in spec["archetypes"])
     return out
@@ -45,7 +58,7 @@ def day_rules(festival_id):
     """The per-action rules the festival hands to the Day."""
     f = FESTIVALS[festival_id]
     rules = {}
-    for key in ("twin", "pay_pct", "crate_t2"):
+    for key in ("twin", "pay_pct", "crate_t2", "combo_floor", "board_height", "family_pct"):
         if key in f:
             rules[key] = f[key]
     return rules

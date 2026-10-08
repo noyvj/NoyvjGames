@@ -73,6 +73,14 @@ button[disabled], button[aria-disabled="true"] { opacity: 0.55; cursor: default;
 .customer.haggler .cust-face { border-style: dashed; }
 .customer.critic .cust-face { border-radius: 4px; }
 .customer.bulk .cust-face { border-width: 4px; border-style: double; }
+.customer.child .cust-face { width: 1.1rem; height: 1.1rem; margin: 0.15rem; }
+.customer.tourist .cust-face { border-radius: 40% 60% 40% 60%; }
+.customer.crowd .cust-face { border-style: dotted; border-width: 3px; }
+.customer.crowd { border-bottom-width: 4px; border-bottom-style: double; }
+.combo-pips { font-size: 0.65rem; letter-spacing: 0.05em; }
+.unlock-line { font-weight: 700; margin: 0.3rem 0; }
+.renown-line { margin: 0.1rem 0; }
+.personal-best-display { text-align: center; }
 .cust-name { font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
 .cust-kind { font-size: 0.68rem; color: var(--muted); line-height: 1.1; }
 .cust-want { display: none; position: absolute; top: -0.6rem; right: 0.3rem; font-size: 0.62rem; font-weight: 800; line-height: 1; padding: 0.15rem 0.35rem; border-radius: 999px; background: var(--match); color: var(--ink); }
@@ -201,7 +209,8 @@ html[data-effects="off"] *, html[data-effects="off"] *::before, html[data-effect
   .queue-line { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin: 0 0 0.2rem; font-size: 0.72rem; }
   .message { min-height: 2.5em; font-size: 0.82rem; margin: 0 0 0.3rem; overflow: hidden; }
   .msg-flavor { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; }
-  .stat { display: flex; justify-content: center; align-items: baseline; gap: 0.3rem; }
+  #stats { grid-template-columns: 1.1fr 0.8fr 1fr 1.4fr; }
+  .stat { white-space: nowrap; display: flex; justify-content: center; align-items: baseline; gap: 0.3rem; }
   .stat-label { display: inline; font-size: 0.68rem; }
   .stat-value { display: inline; font-size: 0.95rem; }
   h1 { margin: 0; font-size: 1.05rem; letter-spacing: 0.04em; }
@@ -210,6 +219,8 @@ html[data-effects="off"] *, html[data-effects="off"] *::before, html[data-effect
   .hub-back-link { white-space: nowrap; }
   .game-toolbar { margin: 0.2rem 0; }
   .hub-back-link { font-size: 0.8rem; }
+  .crates[data-many="1"] .crate-name { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; }
+  .crates[data-many="1"] .crate-btn { min-width: 0; padding: 0.2rem 0.1rem; }
   .tally-strip .stat { display: block; text-align: center; }
   .tally-strip .stat-label, .tally-strip .stat-value { display: block; }
   .panel { margin: 0.4rem 0; padding: 0.5rem 0.5rem; }

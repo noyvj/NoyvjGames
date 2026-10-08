@@ -24,8 +24,11 @@ _TABLE = {
 }
 
 
-def spec(number, unlocked_archetypes=None):
-    """The day's recipe as a plain dict."""
+EXTRA_WEIGHTS = {"child": 2, "tourist": 2, "crowd": 1}
+
+
+def spec(number, unlocked_archetypes=None, extras=()):
+    """The day's recipe as a plain dict. `extras` are the renown-unlocked archetypes mixed in on top."""
     if number < 1:
         raise ValueError("day numbers start at 1")
     key = min(number, CAMPAIGN_DAYS)
@@ -36,5 +39,6 @@ def spec(number, unlocked_archetypes=None):
         slack = max(200, slack - extra)
     if unlocked_archetypes is not None:
         archetypes = tuple(a for a in archetypes if a[0] in unlocked_archetypes) or (("regular", 1),)
+    archetypes = archetypes + tuple((a, EXTRA_WEIGHTS[a]) for a in ("child", "tourist", "crowd") if a in extras)
     return {"number": number, "customers": customers, "max_tier": max_tier, "max_items": max_items,
             "item_weights": item_weights, "archetypes": archetypes, "slack_pct": slack}

@@ -28,7 +28,7 @@ def C(items, patience=40, arch="regular", name="Tomas"):
 # ---- festivals -------------------------------------------------------------------------------------------
 def test_festivals_rotate_by_day_number_alone_and_day_one_is_the_relaxed_one():
     assert festival.for_day(1) == "slow"
-    assert [festival.for_day(n) for n in range(1, 8)] == ["slow", "harvest", "twin", "slow", "harvest", "twin", "slow"]
+    assert [festival.for_day(n) for n in range(1, 9)] == ["slow", "harvest", "twin", "kite", "lantern", "bargain", "slow", "harvest"]
     assert festival.for_day(5) == festival.for_day(5)               # no clock, no randomness
     assert set(festival.ORDER) == set(festival.FESTIVALS)
 
@@ -211,7 +211,7 @@ def test_the_ten_day_campaign_then_free_stall_keeps_going_with_the_festival_rota
         play_day(v)
         for u in shop.UPGRADES:                 # spend as soon as it is possible, like a keen player
             call(action="buy", id=u["id"])
-    assert seen[:6] == ["slow", "harvest", "twin", "slow", "harvest", "twin"] and len(seen) == 12
+    assert seen[:6] == list(festival.ORDER) and seen[6:8] == ["slow", "harvest"] and len(seen) == 12
     assert game.stall.days_played == 12 and game.stall.next_day == 13 and game.stall.coins >= 0
     assert game.stall.upgrades                    # the economy lets a keen player buy something
 

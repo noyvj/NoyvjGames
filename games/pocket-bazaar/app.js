@@ -3,7 +3,7 @@
    cells could this good merge with", which the engine sends as `partners`). */
 (function () {
   "use strict";
-  var ENGINE_MODULES = ["goods.py", "rng.py", "board.py", "orders.py", "days.py", "festival.py", "shop.py", "day.py"];
+  var ENGINE_MODULES = ["goods.py", "rng.py", "board.py", "orders.py", "days.py", "festival.py", "renown.py", "shop.py", "day.py"];
   var STORE_KEY = "pocket-bazaar:state";
   var BACKUP_KEY = "pocket-bazaar:state-backup";
   var DRAG_THRESHOLD = 8;
@@ -54,7 +54,7 @@
     var wrap = el("span", "item" + (item.done ? " done" : ""));
     var good = el("span", "good shape-" + item.shape + " fam-" + item.family + " t" + item.tier);
     good.appendChild(el("span", "good-shape"));
-    good.appendChild(el("span", "good-text", item.letter + item.tier));
+    good.appendChild(el("span", "good-text", item.letter + (item.tier_text || item.tier)));
     wrap.appendChild(good);
     return wrap;
   }
@@ -125,14 +125,14 @@
     var d = view.day;
     var line = $("queue-line");
     var f = view.festival;
-    var sigq = f.id + "|" + d.waiting + "|" + (view.upcoming ? view.upcoming.name : "");
+    var sigq = f.id + "|" + d.waiting + "|" + d.left + "|" + (view.upcoming ? view.upcoming.name : "");
     if (line.dataset.sig !== sigq) {
       line.dataset.sig = sigq;
       line.textContent = "";
       var chip = el("span", "chip " + f.tone, f.name);
       chip.title = f.blurb;
       line.appendChild(chip);
-      line.appendChild(document.createTextNode(" " + (d.waiting ? d.waiting + " more in line" : "last of the line")));
+      line.appendChild(document.createTextNode(" " + (d.waiting ? d.waiting + " more in line" : "last of the line") + (d.left ? " \u00B7 " + d.left + " left" : "")));
       if (view.upcoming) {
         var up = view.upcoming;
         line.appendChild(document.createTextNode(". Next up: " + up.name + " wants " + up.items.map(function (i) { return i.label; }).join(", ")));
@@ -169,11 +169,22 @@
       });
       setText($("closed-text"), "Your coins are saved. Open the next day whenever you like: there is no rush and nothing to miss.");
       setText($("summary-festival"), view.summary_festival ? "Festival: " + view.summary_festival.name : "");
+      var bests = [];
+      if (sum.new_bests.indexOf("combo") !== -1) bests.push("longest combo: " + sum.streak + " orders in a row");
+      if (sum.new_bests.indexOf("day_coins") !== -1) bests.push("most coins in a day: " + sum.coins);
+      var bestLine = $("summary-bests");
+      bestLine.classList.toggle("just-improved", bests.length > 0);
+      setText(bestLine, bests.length ? "New personal best: " + bests.join("; ") + "." : "Personal bests: longest combo " + view.best.combo + ", most coins in a day " + view.best.day_coins + ".");
+      var unlockLine = $("summary-unlocks");
+      unlockLine.hidden = !sum.unlocks.length;
+      setText(unlockLine, sum.unlocks.length ? "New: " + sum.unlocks.map(function (u) { return view.unlock_names[u]; }).join(", ") + "!" : "");
     } else {
       setText(heading, view.days_played ? "The stall is closed" : "Welcome to your stall");
       setText($("closed-text"), view.days_played ? "Open the next day whenever you like." : "Customers will ask for goods. Open crates, merge them into better ones and hand them over. Nothing here runs on a clock.");
     }
     setText($("start-day-button"), "Open day " + view.next_day);
+    var nu = view.next_unlock;
+    setText($("renown-line"), "Renown " + view.renown + (nu ? ": " + (nu.need - view.renown) + " more opens " + nu.name + "." : ": everything is open."));
     var c = view.campaign;
     setText($("campaign-line"), c.mode === "campaign" ? "Market Days: day " + c.day + " of " + c.of : "Free Stall: day " + c.day + " (the campaign is done; days keep coming, slowly harder)");
     var f = view.festival;
@@ -299,13 +310,14 @@
         icon.appendChild(el("span", "good-shape"));
         icon.appendChild(el("span", "good-text", crate.letter));
         btn.appendChild(icon);
-        btn.appendChild(el("span", null, crate.name));
+        btn.appendChild(el("span", "crate-name", crate.name));
         btn.setAttribute("aria-label", crate.name + " crate, key " + (n + 1));
         btn.addEventListener("click", function () { activeCrate = n; send({ action: "crate", family: crate.family }); });
         holder.appendChild(btn);
       });
       holder.dataset.signature = sig;
     }
+    holder.dataset.many = view.crates.length > 3 ? "1" : "0";
     Array.prototype.forEach.call(holder.children, function (btn, n) { btn.classList.toggle("active", n === activeCrate); });
   }
 
@@ -353,7 +365,15 @@
     bumpStat("stat-coins", view.coins);
     bumpStat("stat-day", view.day ? view.day.number : view.next_day);
     bumpStat("stat-served", view.day ? view.day.served + "/" + view.day.total : (view.summary ? view.summary.served + "/" + view.summary.total : "0"));
-    bumpStat("stat-left", view.day ? view.day.left : (view.summary ? view.summary.left : 0));
+    bumpStat("stat-combo", "x" + (view.day ? view.day.mult : 1));
+    var pips = $("stat-combo-pips");
+    var pipText = "";
+    if (view.day && view.day.mult < 3) {
+      var need = 2, have = need - view.day.to_next;
+      pipText = "\u25CF".repeat(have) + "\u25CB".repeat(need - have);
+    } else if (view.day) { pipText = "max"; }
+    setText(pips, pipText);
+    $("stat-combo").parentNode.title = view.day ? "Order combo x" + view.day.mult + (view.day.to_next ? ": " + view.day.to_next + " more in a row for the next step" : ": the highest") : "";
     bumpStat("stat-orders", view.tally.orders);
     bumpStat("stat-crates", view.tally.crates);
     bumpStat("stat-merges", view.tally.merges);

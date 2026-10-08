@@ -18,14 +18,17 @@ Python via Pyodide (the Lexis/Signal pattern): DOM-free engine modules, `game.py
 | `rng.py` | seeded integer PRNG stored as `{seed, draws}` |
 | `board.py` | the merge board: merge, three-way bonus, cascade, move/swap, sell, broom, legal-move check, solver (`plan_build`), text form, save form |
 | `textplay.py` | text harness: play a board from a script of commands |
-| `orders.py` | customers: archetypes (Regular, Haggler, Critic, Bulk buyer), order matching, payment, patience from build cost, the order generator and its reachability check |
-| `festival.py` | the festival a day carries (by day number alone): Slow Market, Harvest Fair, Twin Day for now |
+| `orders.py` | customers: archetypes (Regular, Haggler, Critic, Bulk buyer; renown adds Child with a coin, Tourist and Rush crowd), order matching, payment, patience from build cost, the order generator and its reachability check |
+| `festival.py` | the festival a day carries (by day number alone): all six: Slow Market, Harvest Fair, Twin Day, Kite Day, Lantern Night, Bargain Hunt (previewed the day before) |
+| `renown.py` | the renown bar: Child 10, Tourist 30, Spices 50, Rush crowd 75, Sweets 110; one point per customer served plus a point per star |
 | `shop.py` | six permanent stall upgrades bought with coins (queue preview, broom polish, tip jar, display shelf, fine scales, wider counter) |
 | `days.py` | the day recipes: first ten days hand-tuned, then Free Stall curve (capped at 16 customers, tier 5) |
 | `day.py` | one market day: counter, queue (three at the stall, the rest waiting), beats, patience, hand-over, leaving, serving, summary |
 | `game.py` | the one entry point: `handle(json)`, `get_state()`, `load_state()`; state is saved with only non-default keys |
 
 View files: `index.html`, `style.css`, `settings.js` (display settings in localStorage, never in the save), `app.js` (thin view: draws what `handle` returns, drag via pointer events, tap-then-tap, keyboard).
+
+Combos: serve orders in a row with nobody leaving and the order multiplier steps x1, x2 (after two), x3 (after four); it multiplies the payment, not the tip. Kite Day starts at x2. A customer leaving resets it for the rest of that day only (nothing carries over; the personal bests are the only record). Every fourth order in a row puts a wildcard on the counter. A chain pays 2k coins for link k from the second link on. Rush crowds pay half their total again if all three are served.
 
 Beats: a crate, a merge (a whole chain is one beat), a sweep or an accepted hand-over costs every customer at the stall one point of patience. Moving, swapping, selling and refused hand-overs are free. Customers in line start with full patience when they step up. A customer who leaves still pays for what they were handed. Patience is set when the customer is made: (build cost of the order + 3) x the day's slack x the archetype's share.
 
@@ -43,7 +46,7 @@ Plan deviations: with five tiers the longest cascade is four merges (T1+T1, T2, 
 | 2 | Board UI | 5x6 grid, crates, drag + tap-tap + keyboard, Sell/Broom, merge highlights | Done (practice counter with a visible tally; checked at 1440x900 and 360x740) |
 | 3 | Customers and orders | Queue, patience in beats, delivery, payout, 4 archetypes, order generator with a reachability test | Done (a day opens, three customers at the stall, hand-overs by tap, drag or D; a greedy bot clears the ten days) |
 | 4 | Market day loop | Day start/summary, coins, stall upgrades, 10-day campaign, 3 festivals. First complete playable game | Done (day start card with festival, summary with stars and tomorrow's festival, shop, Free Stall after day 10) |
-| 5 | Combos, streaks, festivals | Order combo, cascade bonus, all 6 festivals with previews, personal-best badges | Not started |
+| 5 | Combos, streaks, festivals | Order combo, cascade bonus, all 6 festivals with previews, personal-best badges | Done (also wildcards, renown unlocks and the three extra archetypes) |
 | 6 | Standard kit + pledge tests | Save widget, settings, confirm dialog, tutorial, mobile dock/HUD, changelog, info panel, pledge tests | Not started |
 | 7 | Achievements + story | 14 achievements, panel and toast, regulars, story toggle | Not started |
 | 8 | Own-folder wrap-up | Favicon, Desktop boot (`pc-config.json`, `pc.html`), this table, tag | Not started |

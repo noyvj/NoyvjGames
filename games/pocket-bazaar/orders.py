@@ -21,6 +21,12 @@ ARCHETYPES = {
     "haggler": {"name": "Haggler", "pay_pct": 150, "wait_pct": 60, "mode": "atleast", "blurb": "Pays half again as much but waits less."},
     "critic": {"name": "Critic", "pay_pct": 125, "wait_pct": 100, "mode": "exact", "blurb": "Wants exactly that tier, nothing better."},
     "bulk": {"name": "Bulk buyer", "pay_pct": 115, "wait_pct": 100, "mode": "atleast", "blurb": "One big order of the same simple goods."},
+    "child": {"name": "Child with a coin", "pay_pct": 70, "wait_pct": 150, "mode": "atleast", "tip_pct": 100,
+              "blurb": "A tiny order, a very patient customer, and a big tip for quick service."},
+    "tourist": {"name": "Tourist", "pay_pct": 55, "wait_pct": 100, "mode": "any",
+                "blurb": "Takes any tier of the family and pays for the tier you hand over."},
+    "crowd": {"name": "Rush crowd", "pay_pct": 100, "wait_pct": 100, "mode": "atleast",
+              "blurb": "Arrives with two friends. Serve all three for a group bonus."},
 }
 
 MAX_ITEMS = 4
@@ -30,7 +36,8 @@ TIP_PCT = 25                  # served with at least half the patience left
 
 
 class Customer:
-    def __init__(self, name, archetype, items, patience_max, patience_left=None):
+    def __init__(self, name, archetype, items, patience_max, patience_left=None, group=0):
+        self.group = group
         self.name = name
         self.archetype = archetype
         self.items = items                        # list of [family, tier, done]
@@ -52,22 +59,31 @@ class Customer:
         """Beats to fill the whole order from scratch (taps + merges, plus one beat per hand-over)."""
         return sum(crate_beats(t) + 1 for _f, t, _d in self.items)
 
-    def pay(self, pay_pct=100, scales=False, only_done=False):
+    def pay(self, pay_pct=100, scales=False, only_done=False, family_pct=None):
         """What the order pays: the goods' value, times the archetype's share, times the day's `pay_pct`. With
         `scales` goods of tier 3 and up count a tenth more; `only_done` counts just what was handed over."""
         total = 0
-        for _f, t, done in self.items:
+        for f, t, done in self.items:
             if only_done and not done:
                 continue
             value = VALUE[t]
             if scales and t >= 3:
                 value = value * 110 // 100
+            if family_pct and f in family_pct:
+                value = value * family_pct[f] // 100
             total += value
         return max(1, total * self.info["pay_pct"] // 100 * pay_pct // 100)
 
-    def tip(self, pay_pct=100, scales=False, tip_pct=TIP_PCT):
-        """A tip for quick service: served with at least half the patience left."""
-        return self.pay(pay_pct, scales) * tip_pct // 100 if self.left * 2 >= self.max else 0
+    def tip(self, pay_pct=100, scales=False, tip_pct=TIP_PCT, family_pct=None):
+        """A tip for quick service: served with at least half the patience left. A child's tip is always big."""
+        tip_pct = max(tip_pct, self.info.get("tip_pct", 0))
+        return self.pay(pay_pct, scales, family_pct=family_pct) * tip_pct // 100 if self.left * 2 >= self.max else 0
+
+    def fill(self, index, good):
+        """Mark an item handed over. A Tourist is paid by the tier actually handed over."""
+        self.items[index][2] = 1
+        if self.info["mode"] == "any":
+            self.items[index][1] = good[1]
 
     # ---- handing over -------------------------------------------------------------------------------
     def match(self, good):
@@ -111,7 +127,10 @@ class Customer:
             if done:
                 item["d"] = 1
             items.append(item)
-        return {"name": self.name, "arch": self.archetype, "items": items, "max": self.max, "left": self.left}
+        data = {"name": self.name, "arch": self.archetype, "items": items, "max": self.max, "left": self.left}
+        if self.group:
+            data["grp"] = self.group
+        return data
 
     @classmethod
     def from_dict(cls, data, families):
@@ -138,7 +157,10 @@ class Customer:
                 raise ValueError("bad patience")
         if left > patience_max:
             raise ValueError("bad patience")
-        return cls(name, arch, items, patience_max, left)
+        group = data.get("grp", 0)
+        if isinstance(group, bool) or not isinstance(group, int) or not 0 <= group <= 64:
+            raise ValueError("bad group")
+        return cls(name, arch, items, patience_max, left, group)
 
 
 def patience_for(items, archetype, slack_pct):
@@ -158,7 +180,13 @@ def make_customer(rng, spec, families, used_names):
     """One customer from the day's spec. All randomness comes from `rng`, so a day is reproducible."""
     archetype = rng.weighted(spec["archetypes"])
     max_tier = spec["max_tier"]
-    if archetype == "bulk":
+    if archetype == "crowd":
+        archetype = "regular"                  # a crowd is built in make_queue; one drawn alone is just a regular
+    if archetype == "child":
+        items = [[rng.choice(families), rng.between(1, min(2, max_tier)), 0]]
+    elif archetype == "tourist":
+        items = [[rng.choice(families), 1, 0] for _ in range(rng.between(1, 2))]
+    elif archetype == "bulk":
         family = rng.choice(families)
         tier = rng.between(1, min(2, max_tier))
         count = 3 if spec["max_items"] < 4 else rng.between(3, 4)
@@ -177,9 +205,34 @@ def make_customer(rng, spec, families, used_names):
     return Customer(name, archetype, items, patience_for(items, archetype, spec["slack_pct"]))
 
 
+def make_crowd(rng, spec, families, used_names, group):
+    """Three customers who arrive together and want goods from one family; a group bonus if all three are served."""
+    family = rng.choice(families)
+    crowd = []
+    for _ in range(3):
+        count = rng.between(1, min(2, spec["max_items"]))
+        items = [[family, _tier(rng, min(3, spec["max_tier"]), spec.get("tier_weights")), 0] for _ in range(count)]
+        name = rng.choice(NAMES)
+        for _try in range(6):
+            if name not in used_names:
+                break
+            name = rng.choice(NAMES)
+        used_names.add(name)
+        crowd.append(Customer(name, "crowd", items, patience_for(items, "crowd", spec["slack_pct"]), group=group))
+    return crowd
+
+
 def make_queue(rng, spec, families, count=None):
-    used = set()
-    return [make_customer(rng, spec, families, used) for _ in range(count or spec["customers"])]
+    used, queue, group = set(), [], 0
+    target = count or spec["customers"]
+    crowd_weight = dict(spec["archetypes"]).get("crowd", 0)
+    while len(queue) < target:
+        if crowd_weight and target - len(queue) >= 3 and rng.chance(crowd_weight, sum(w for _a, w in spec["archetypes"])):
+            group += 1
+            queue.extend(make_crowd(rng, spec, families, used, group))
+        else:
+            queue.append(make_customer(rng, spec, families, used))
+    return queue
 
 
 def order_is_reachable(customer, board):

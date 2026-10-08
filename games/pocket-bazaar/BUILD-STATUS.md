@@ -12,8 +12,11 @@ Daily Market (M-4b-9) are NOT part of this build.
 
 - M4 Market day loop: festival.py, shop.py, day start/summary cards, shop UI, campaign line, 160 tests; first complete playable game. Days tuned so a greedy bot loses about one customer a day from day 6
 
+- M5 Combos, streaks, festivals: renown.py, combo x1-x3 + pips, chain bonus, wildcards, 6 festivals, child/tourist/crowd archetypes, renown unlocks (spices, sweets), personal-best lines; 189 tests; checked at 360x740 with 5 crates
+
 ## Next
-- Milestone 5: combos (order combo x1-x3 with pips, merge-chain coin bonus, wildcard goods), the other 3 festivals (kite, lantern, bargain) + rotation of all 6, new archetypes (child, tourist, rush crowd) + renown unlocks (spices, sweets), personal-best badges (best combo, best day earnings)
+- Milestone 6: standard kit + pledge tests: confirm dialog (reset, sell T4/T5), tutorial, opening screen, save widget, keyboard shortcuts help, changelog + What's New banner, about/info panel with the pledge list, mobile dock/HUD decision (not needed so far: everything fits at 360x740), pledge tests (no clock, no banned words, no timestamps in save)
+- Player-profile notes (private): keep objectives visible without a strict order (a 'goals' list in M7), no tutorial wall, friendly welcome back, leaderboards optional (none here)
 
 ## Open problems / notes
 - Local Python is 3.9 (Pyodide runs 3.12): engine code avoids 3.10+ syntax.

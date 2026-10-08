@@ -34,8 +34,30 @@ class Day:
         self.coins = 0
         self.beat = 0
         self.best_chain = 0
+        self.streak = 0              # orders served in a row without anyone leaving (resets every day)
+        self.best_streak = 0
+        self.best_mult = 1
+        self.chain_coins = 0
+        self.wilds = 0               # wildcards earned today
+        self.twins = 0               # free tier-1 goods from Twin Day today
+        self.groups = {}             # rush crowd id -> [served, lost, paid]
         self.rules = dict(rules or {})
         self.festival = self.rules.pop("festival", None)
+
+    # ---- combos ------------------------------------------------------------------------------------
+    def multiplier(self):
+        """The order combo: x1, then x2 after two orders in a row, x3 after four. Kite Day starts at x2."""
+        return max(self.rules.get("combo_floor", 1), min(3, 1 + self.streak // 2))
+
+    def to_next(self):
+        """Orders still needed for the next multiplier (0 at x3)."""
+        mult = self.multiplier()
+        if mult >= 3:
+            return 0
+        return max(0, 2 * mult - self.streak)
+
+    def _pay_args(self):
+        return self.rules.get("pay_pct", 100), self.rules.get("scales", False), self.rules.get("family_pct")
 
     # ---- the stall ---------------------------------------------------------------------------------
     def window(self):
@@ -66,7 +88,8 @@ class Day:
         self.left += 1
         paid = 0
         if any(done for _f, _t, done in customer.items):
-            paid = customer.pay(self.rules.get("pay_pct", 100), self.rules.get("scales", False), only_done=True)
+            pct, scales, family_pct = self._pay_args()
+            paid = customer.pay(pct, scales, only_done=True, family_pct=family_pct)
             self.coins += paid
             outcome["coins"] += paid
         text = f"{customer.name} could not wait and left."
@@ -74,20 +97,50 @@ class Day:
             text += f" Paid {paid} for what they had."
         outcome["notes"].append(text)
         outcome["flavor"].append(f"{customer.name}: \"{_line(LEAVE_LINES, self.number, customer.name)}\"")
+        if self.streak:
+            outcome["notes"].append("Combo reset.")
+        self.streak = 0
+        if customer.group:
+            self.groups.setdefault(customer.group, [0, 0, 0])[1] += 1
 
     def _serve(self, customer, outcome):
         self.queue.remove(customer)
         self.served += 1
-        pct, scales = self.rules.get("pay_pct", 100), self.rules.get("scales", False)
-        pay = customer.pay(pct, scales)
-        tip = customer.tip(pct, scales, self.rules.get("tip_pct", TIP_PCT))
+        pct, scales, family_pct = self._pay_args()
+        mult = self.multiplier()                 # the combo you had BEFORE this order: x2 after two in a row
+        self.streak += 1
+        self.best_streak = max(self.best_streak, self.streak)
+        self.best_mult = max(self.best_mult, self.multiplier())
+        base = customer.pay(pct, scales, family_pct=family_pct)
+        pay = base * mult
+        tip = customer.tip(pct, scales, self.rules.get("tip_pct", TIP_PCT), family_pct)
         self.coins += pay + tip
         outcome["coins"] += pay + tip
         text = f"{customer.name} is happy: +{pay + tip} coins"
+        extras = []
+        if mult > 1:
+            extras.append(f"combo x{mult}")
         if tip:
-            text += f" (tip {tip})"
+            extras.append(f"tip {tip}")
+        if extras:
+            text += " (" + ", ".join(extras) + ")"
         outcome["notes"].append(text + ".")
         outcome["flavor"].append(f"{customer.name}: \"{_line(THANK_LINES, self.number, customer.name)}\"")
+        if customer.group:
+            state = self.groups.setdefault(customer.group, [0, 0, 0])
+            state[0] += 1
+            state[2] += pay + tip
+            if state[0] == 3 and state[1] == 0:
+                bonus = state[2] // 2
+                self.coins += bonus
+                outcome["coins"] += bonus
+                outcome["notes"].append(f"The whole rush crowd is served: +{bonus} group bonus.")
+        if self.streak % 4 == 0:
+            at = self.board.place(("wild", 1))
+            if at is not None:
+                self.wilds += 1
+                outcome["wild"] = at
+                outcome["notes"].append("A wildcard good appears on the counter.")
 
     # ---- actions -----------------------------------------------------------------------------------
     def crate_tier(self, family):
@@ -122,8 +175,16 @@ class Day:
             text += " Three-way bonus: two tiers at once!"
         if result.links > 1:
             text += f" {result.links}-link chain!"
+        if result.links > 1:
+            bonus = sum(2 * k for k in range(2, result.links + 1))
+            self.coins += bonus
+            self.chain_coins += bonus
+            text += f" Chain bonus +{bonus} coins."
         outcome = self._outcome(True, text, {"kind": "merge", **result.to_dict()})
         outcome["merge"] = result
+        if result.links > 1:
+            outcome["coins"] += bonus
+        self.twins += len(result.spawned)
         self._advance(outcome)
         return outcome
 
@@ -142,9 +203,11 @@ class Day:
 
     def sell(self, at):
         good = self.board.cells[at] if self.board.valid_index(at) else None
+        pct = self.rules.get("family_pct", {}).get(good[0], 100) if good else 100
         value = self.board.sell(at)
         if value is None:
             return self._outcome(False, "There is nothing there to sell.")
+        value = value * pct // 100
         outcome = self._outcome(True, f"Sold {good_label(good)} for {value} coin{'s' if value != 1 else ''}.",
                                 {"kind": "sell", "at": at, "coins": value})
         outcome["sold"] = value
@@ -161,7 +224,7 @@ class Day:
         item = customer.match(good)
         if item is None:
             return self._outcome(False, customer.why_not(good))
-        customer.items[item][2] = 1
+        customer.fill(item, good)
         self.board.cells[src] = None
         outcome = self._outcome(True, f"{customer.name} takes the {good_label(good)}.",
                                 {"kind": "deliver", "src": src, "customer": index})
@@ -188,15 +251,21 @@ class Day:
         stars = 3 if fraction >= 90 else 2 if fraction >= 60 else 1
         return {"number": self.number, "served": self.served, "left": self.left, "total": self.total,
                 "coins": self.coins, "beats": self.beat, "best_chain": self.best_chain, "stars": stars,
-                "festival": self.festival}
+                "festival": self.festival, "streak": self.best_streak, "chain_coins": self.chain_coins,
+                "wilds": self.wilds, "twins": self.twins, "best_mult": self.best_mult}
 
     # ---- saves -------------------------------------------------------------------------------------------
     def to_dict(self):
         data = {"number": self.number, "board": self.board.to_dict(), "queue": [c.to_dict() for c in self.queue],
                 "total": self.total, "rng": self.rng.to_dict()}
-        for key in ("served", "left", "coins", "beat", "best_chain"):
+        for key in ("served", "left", "coins", "beat", "best_chain", "streak", "best_streak", "chain_coins", "wilds", "twins"):
             if getattr(self, key):
                 data[key] = getattr(self, key)
+        if self.best_mult > 1:
+            data["best_mult"] = self.best_mult
+        groups = {str(g): v for g, v in self.groups.items() if any(v)}
+        if groups:
+            data["groups"] = groups
         return data
 
     @classmethod
@@ -228,4 +297,15 @@ class Day:
         day = cls(number, board, queue, rng, rules)
         day.total, day.served, day.left = total, served, left
         day.coins, day.beat, day.best_chain = whole("coins"), whole("beat"), whole("best_chain", 0, 5)
+        day.streak, day.best_streak = whole("streak", 0, 64), whole("best_streak", 0, 64)
+        day.chain_coins, day.wilds, day.twins = whole("chain_coins"), whole("wilds", 0, 64), whole("twins", 0, 10 ** 4)
+        day.best_mult = whole("best_mult", 0, 3) or 1
+        groups = data.get("groups", {})
+        if not isinstance(groups, dict) or len(groups) > 32:
+            raise ValueError("bad groups")
+        for key, value in groups.items():
+            if (not isinstance(key, str) or not key.isdigit() or not isinstance(value, list) or len(value) != 3
+                    or any(isinstance(v, bool) or not isinstance(v, int) or not 0 <= v <= 10 ** 6 for v in value)):
+                raise ValueError("bad group")
+            day.groups[int(key)] = list(value)
         return day
