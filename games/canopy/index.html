@@ -216,6 +216,13 @@
           Soil quality overlay (border colour and a percentage on every plot)
         </label>
       </div>
+      <!-- B-27: opt-in Coach hints in the report card. -->
+      <div class="settings-row">
+        <label class="settings-checkbox-label" for="coach-hints-checkbox">
+          <input type="checkbox" id="coach-hints-checkbox">
+          Coach hints in the Session Summary (short notes about what your forest is doing; off until you turn them on)
+        </label>
+      </div>
       <!-- GB-13/15/16: the level modes' own animations (poacher shake, storm rain, spirit glow); off removes only the motion. -->
       <div class="settings-row">
         <label class="settings-checkbox-label" for="level-effects-checkbox">
@@ -265,6 +272,12 @@
       <div id="session-summary-sparkline" class="session-summary-sparkline"></div>
       <p id="session-summary-badge" class="session-summary-badge"></p>
       <button type="button" id="forest-card-download" class="secondary">Download forest card (SVG)</button>
+      <!-- B-27: opt-in Coach hints (Settings): plain notes that read the session; dismissible, never blocking. -->
+      <div id="coach-hints-panel" class="coach-hints-panel" hidden>
+        <strong>Coach</strong>
+        <p id="coach-hints" class="coach-hints" aria-live="polite"></p>
+        <button type="button" id="coach-dismiss" class="secondary">Dismiss hints</button>
+      </div>
       <button id="session-summary-copy-badge-button" class="secondary" type="button">📋 Copy badge</button>
       <!-- B13: end-of-session report card, three separate small graphs
            (each labelled, so nothing relies on line color alone). -->

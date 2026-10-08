@@ -1273,3 +1273,8 @@ Added readability and feedback features to Thaw without adding screen clutter: t
 **Game:** canopy
 **Did:** B-4: the Session Summary has a "Download forest card (SVG)" button. The card is a 1200 by 630 SVG drawn in code (no generated images): the final grid with each plot also marked by a letter (P preserved, B bare, R replanting, C recovered) so it reads in greyscale or for colour-blind viewers, the forest name (escaped, cut to 28 characters before escaping so markup is never broken mid-entity), the playstyle badge, the standing forest value large with its unit, and the harvested, biodiversity and plots-standing numbers from the same fields the shared Copy result button uses. The download goes through a small helper that is a no-op outside the browser.
 **Result:** Canopy tests 941 to 945 (the card parsed as XML, every plot present, letters and colours distinct, escaping). Not checked live: the actual download in a browser, and PNG export (the card is SVG only).
+
+### 2026-10-09 (Canopy, personal pass: opt-in Coach hints)
+**Game:** canopy
+**Did:** B-27: an opt-in Settings checkbox, Coach hints, adds a dismissible "Coach" box to the Session Summary with up to three short notes that read the live session: a plot cleared three or more times with its current soil percentage, other plots with soil below 60%, three or more bare plots with nothing replanted yet, and community relations below 30. They are plain text in a polite live region, never a dialog, and one Dismiss button hides what is showing (a new session starts with nothing dismissed). The "replace tutorial text for returning players" part is not built: the hints only add to the report card.
+**Result:** Canopy tests 945 to 950.

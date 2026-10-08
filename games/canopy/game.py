@@ -705,6 +705,7 @@ REQUEST_PACE_LABEL = {PACE_RELAXED: "Relaxed requests", PACE_NORMAL: "Normal req
 # --- B-8 / B-10 / B-26: display options stored per browser (settings.js writes them) ---
 UI_PREF_PLOT_CONTRAST = "canopy-plot-contrast"
 UI_PREF_SOIL_OVERLAY = "canopy-soil-overlay"
+UI_PREF_COACH = "canopy-coach-hints"  # B-27, opt-in
 UI_PREF_NUMBER_FORMAT = "canopy-number-format"
 NUMBER_FORMAT_STANDARD = "standard"  # one decimal, as the game always showed numbers
 NUMBER_FORMAT_GROUPED = "grouped"  # 12,345.6
@@ -859,6 +860,8 @@ def reset_session(grid_size=None, _render_after=True, difficulty=None, challenge
     forest_log = []
     request_history.clear()
     plot_notes.clear()
+    _coach_dismissed.clear()
+    _coach_dismissed.clear()
     forest_tick = 0
     adopted_plot_index = None
     _reset_gb_state()
@@ -2732,6 +2735,7 @@ def render_session_summary():
     render_forest_log_panels()
     render_request_history()
     render_lifetime_stats()
+    render_coach_hints()
     _update_scenario_best()
     render_scenario_best()
     render_plot_note_input()
@@ -6933,6 +6937,61 @@ def get_state():
 # with a KeyError on exactly that (very real) forward-compatibility case --
 # the same bug class found and fixed across nearly every other game in this
 # hub (see BCM114-DEV-LOG.md's 2026-09-02 entries).
+# B-27 (2026-10-09): opt-in Coach hints in the report card. Plain notes that read the session; they never block
+# play (no dialogs), can be dismissed, and are off until the player turns them on in Settings.
+COACH_MAX_HINTS = 3
+_coach_dismissed = set()
+
+
+def coach_hints():
+    """[(hint id, text)] for what the session shows right now, minus anything already dismissed."""
+    hints = []
+    worst = max(plots, key=lambda p: p.clear_count, default=None)
+    if worst is not None and worst.clear_count >= 3:
+        pct = round(worst.productivity_multiplier() * 100)
+        hints.append((
+            f"repeat-clear-{worst.index}",
+            f"{plot_coordinate_label(worst.index)} has been cleared {worst.clear_count} times and its soil is now at {pct}%. "
+            "Soil never recovers, so a plot that has been cleared this often grows more slowly for the rest of the session.",
+        ))
+    low = [p for p in plots if p.productivity_multiplier() < 0.6 and p is not worst]
+    if low:
+        hints.append((
+            "soil-low",
+            f"{len(low)} other plot{'s' if len(low) != 1 else ''} have soil below 60%. Leaving them standing costs nothing, "
+            "but each further clear lowers it again.",
+        ))
+    counts = state_breakdown()
+    if counts[BARE] >= 3 and total_replants == 0:
+        hints.append((
+            "replant-first",
+            f"{counts[BARE]} plots are bare and nothing has been replanted yet. Replanting restarts growth there "
+            "(it does not restore soil quality).",
+        ))
+    if community_relations < 30:
+        hints.append((
+            "relations-low",
+            f"Community relations are at {community_relations}/100. Granting a request or accepting a replanting grant raises them.",
+        ))
+    return [h for h in hints if h[0] not in _coach_dismissed][:COACH_MAX_HINTS]
+
+
+def render_coach_hints():
+    panel = _el("coach-hints-panel")
+    text_el = _el("coach-hints")
+    if panel is None or text_el is None:
+        return
+    hints = coach_hints() if ui_pref(UI_PREF_COACH) == "true" else []
+    panel.hidden = not hints
+    text_el.innerText = "\n".join("\u2022 " + t for _i, t in hints)
+
+
+def on_dismiss_coach_hints(event=None):
+    for hint_id, _t in coach_hints():
+        _coach_dismissed.add(hint_id)
+    render_coach_hints()
+
+
 def load_state(data):
     global current_scenario
     global selected_index, total_income, community_relations
@@ -7196,6 +7255,9 @@ def setup():
     replant_button.innerText = "Replant"
     clear_button.addEventListener("click", create_proxy(on_clear))
     replant_button.addEventListener("click", create_proxy(on_replant))
+    coach_button = _el("coach-dismiss")  # B-27
+    if coach_button is not None:
+        coach_button.addEventListener("click", create_proxy(on_dismiss_coach_hints))
     card_button = _el("forest-card-download")  # B-4
     if card_button is not None:
         card_button.addEventListener("click", create_proxy(on_download_forest_card))

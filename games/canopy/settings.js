@@ -103,6 +103,7 @@
   // (game.py's ui_pref()), so they are per-browser like the two above and never part of a save.
   const PLOT_CONTRAST_KEY = "canopy-plot-contrast";
   const SOIL_OVERLAY_KEY = "canopy-soil-overlay";
+  const COACH_KEY = "canopy-coach-hints"; // B-27: opt-in
   const NUMBER_FORMAT_KEY = "canopy-number-format";
   const NUMBER_FORMATS = ["standard", "grouped", "compact", "precise"];
   const DEFAULT_NUMBER_FORMAT = "standard";
@@ -215,6 +216,14 @@
       soilCheckbox.checked = readFlag(SOIL_OVERLAY_KEY);
       soilCheckbox.addEventListener("change", function () {
         applySoilOverlay(soilCheckbox.checked);
+      });
+    }
+    const coachCheckbox = document.getElementById("coach-hints-checkbox");
+    if (coachCheckbox) {
+      coachCheckbox.checked = readFlag(COACH_KEY);
+      coachCheckbox.addEventListener("change", function () {
+        writeStored(COACH_KEY, coachCheckbox.checked);
+        refreshGame();
       });
     }
     const levelEffectsCheckbox = document.getElementById("level-effects-checkbox");

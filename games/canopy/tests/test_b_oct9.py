@@ -405,3 +405,62 @@ def test_download_is_a_safe_no_op_outside_the_browser(game_env):
     m = game_env.module
     assert m._download_text_file("x.svg", "<svg/>", "image/svg+xml") in (True, False)
     m.on_download_forest_card()  # must not raise
+
+
+# ---- B-27: Coach hints ----
+
+def _prefs(m, **values):
+    store = {m.UI_PREF_COACH: values.get("coach")} if "coach" in values else {}
+    m._read_local_storage_item = lambda key: store.get(key)
+
+
+def test_no_hints_for_a_fresh_forest(game_env):
+    m = game_env.module
+    assert m.coach_hints() == []
+
+
+def test_repeat_clear_hint_names_the_plot_and_its_soil(game_env):
+    m = game_env.module
+    m.plots[4].clear_count = 3
+    ids = [h[0] for h in m.coach_hints()]
+    assert f"repeat-clear-{m.plots[4].index}" in ids
+    text = dict(m.coach_hints())[f"repeat-clear-{m.plots[4].index}"]
+    assert "cleared 3 times" in text and "soil is now at" in text
+
+
+def test_other_hints_fire_on_their_conditions(game_env):
+    m = game_env.module
+    for plot in m.plots[:4]:
+        plot.state = m.BARE
+    m.total_replants = 0
+    m.community_relations = 10
+    ids = [h[0] for h in m.coach_hints()]
+    assert "replant-first" in ids and "relations-low" in ids
+    m.total_replants = 2
+    assert "replant-first" not in [h[0] for h in m.coach_hints()]
+
+
+def test_hints_are_capped_and_can_be_dismissed(game_env):
+    m = game_env.module
+    m.plots[0].clear_count = 5
+    for plot in m.plots[1:5]:
+        plot.state = m.BARE
+    m.community_relations = 0
+    assert 1 <= len(m.coach_hints()) <= m.COACH_MAX_HINTS
+    m.on_dismiss_coach_hints()
+    assert m.coach_hints() == []
+    m.reset_session()
+    m.plots[0].clear_count = 5
+    assert m.coach_hints() != []  # a new session starts with nothing dismissed
+
+
+def test_panel_is_hidden_until_the_player_opts_in(game_env):
+    m = game_env.module
+    m.plots[0].clear_count = 4
+    _prefs(m)
+    m.render_coach_hints()
+    assert game_env.elements["coach-hints-panel"].hidden is True
+    _prefs(m, coach="true")
+    m.render_coach_hints()
+    assert game_env.elements["coach-hints-panel"].hidden is False
+    assert game_env.elements["coach-hints"].innerText.startswith("• ")
