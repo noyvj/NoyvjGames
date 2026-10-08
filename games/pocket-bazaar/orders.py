@@ -52,15 +52,22 @@ class Customer:
         """Beats to fill the whole order from scratch (taps + merges, plus one beat per hand-over)."""
         return sum(crate_beats(t) + 1 for _f, t, _d in self.items)
 
-    def base_value(self):
-        return sum(VALUE[t] for _f, t, _d in self.items)
+    def pay(self, pay_pct=100, scales=False, only_done=False):
+        """What the order pays: the goods' value, times the archetype's share, times the day's `pay_pct`. With
+        `scales` goods of tier 3 and up count a tenth more; `only_done` counts just what was handed over."""
+        total = 0
+        for _f, t, done in self.items:
+            if only_done and not done:
+                continue
+            value = VALUE[t]
+            if scales and t >= 3:
+                value = value * 110 // 100
+            total += value
+        return max(1, total * self.info["pay_pct"] // 100 * pay_pct // 100)
 
-    def pay(self):
-        """What the whole order pays (without a tip)."""
-        return max(1, self.base_value() * self.info["pay_pct"] // 100)
-
-    def tip(self):
-        return self.pay() * TIP_PCT // 100 if self.left * 2 >= self.max else 0
+    def tip(self, pay_pct=100, scales=False, tip_pct=TIP_PCT):
+        """A tip for quick service: served with at least half the patience left."""
+        return self.pay(pay_pct, scales) * tip_pct // 100 if self.left * 2 >= self.max else 0
 
     # ---- handing over -------------------------------------------------------------------------------
     def match(self, good):

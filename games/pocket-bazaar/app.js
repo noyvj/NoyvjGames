@@ -3,7 +3,7 @@
    cells could this good merge with", which the engine sends as `partners`). */
 (function () {
   "use strict";
-  var ENGINE_MODULES = ["goods.py", "rng.py", "board.py", "orders.py", "days.py", "day.py"];
+  var ENGINE_MODULES = ["goods.py", "rng.py", "board.py", "orders.py", "days.py", "festival.py", "shop.py", "day.py"];
   var STORE_KEY = "pocket-bazaar:state";
   var BACKUP_KEY = "pocket-bazaar:state-backup";
   var DRAG_THRESHOLD = 8;
@@ -123,7 +123,21 @@
       btn.setAttribute("aria-label", customerLabel(c) + (wants.indexOf(n) !== -1 ? " Would take the good you picked up." : ""));
     });
     var d = view.day;
-    setText($("queue-line"), (d.waiting ? d.waiting + " more waiting in line. " : "") + "Patience is counted in beats: crates, merges, sweeps and hand-overs.");
+    var line = $("queue-line");
+    var f = view.festival;
+    var sigq = f.id + "|" + d.waiting + "|" + (view.upcoming ? view.upcoming.name : "");
+    if (line.dataset.sig !== sigq) {
+      line.dataset.sig = sigq;
+      line.textContent = "";
+      var chip = el("span", "chip " + f.tone, f.name);
+      chip.title = f.blurb;
+      line.appendChild(chip);
+      line.appendChild(document.createTextNode(" " + (d.waiting ? d.waiting + " more in line" : "last of the line")));
+      if (view.upcoming) {
+        var up = view.upcoming;
+        line.appendChild(document.createTextNode(". Next up: " + up.name + " wants " + up.items.map(function (i) { return i.label; }).join(", ")));
+      }
+    }
     holder.setAttribute("aria-label", "Customers at the stall" + (d.waiting ? ", " + d.waiting + " more waiting in line" : ""));
   }
 
@@ -148,17 +162,55 @@
       $("summary-stars").setAttribute("aria-label", sum.stars + " of 3 stars");
       var list = $("summary-list");
       list.textContent = "";
-      [["Customers served", sum.served + " of " + sum.total], ["Left without their order", String(sum.left)],
-       ["Coins earned today", String(sum.coins)], ["Beats played", String(sum.beats)], ["Longest chain", String(sum.best_chain)]].forEach(function (row) {
+      [["Served", sum.served + " of " + sum.total], ["Left unserved", String(sum.left)],
+       ["Coins today", String(sum.coins)], ["Beats played", String(sum.beats)], ["Longest chain", String(sum.best_chain)], ["Renown", String(view.renown)]].forEach(function (row) {
         list.appendChild(el("dt", null, row[0]));
         list.appendChild(el("dd", null, row[1]));
       });
       setText($("closed-text"), "Your coins are saved. Open the next day whenever you like: there is no rush and nothing to miss.");
+      setText($("summary-festival"), view.summary_festival ? "Festival: " + view.summary_festival.name : "");
     } else {
       setText(heading, view.days_played ? "The stall is closed" : "Welcome to your stall");
       setText($("closed-text"), view.days_played ? "Open the next day whenever you like." : "Customers will ask for goods. Open crates, merge them into better ones and hand them over. Nothing here runs on a clock.");
     }
     setText($("start-day-button"), "Open day " + view.next_day);
+    var c = view.campaign;
+    setText($("campaign-line"), c.mode === "campaign" ? "Market Days: day " + c.day + " of " + c.of : "Free Stall: day " + c.day + " (the campaign is done; days keep coming, slowly harder)");
+    var f = view.festival;
+    setText($("festival-label"), sum ? "Tomorrow's festival" : "Today's festival");
+    setText($("festival-name"), f.name);
+    var tone = $("festival-tone");
+    setText(tone, f.tone === "tricky" ? "harder day" : "easier day");
+    tone.className = "chip " + f.tone;
+    setText($("festival-blurb"), f.blurb);
+    renderShop();
+  }
+
+  function renderShop() {
+    var list = $("shop-list");
+    var sig = view.upgrades.map(function (u) { return u.id + (u.owned ? "o" : u.affordable ? "a" : "n"); }).join(",") + "|" + view.coins;
+    var toggle = $("shop-toggle-button");
+    setText(toggle, "Upgrades (" + view.upgrades.filter(function (u) { return u.owned; }).length + "/" + view.upgrades.length + ")");
+    if (list.dataset.sig === sig) return;
+    list.dataset.sig = sig;
+    list.textContent = "";
+    view.upgrades.forEach(function (u) {
+      var li = el("li", "shop-item" + (u.owned ? " owned" : ""));
+      li.appendChild(el("span", "shop-name", u.name));
+      li.appendChild(el("span", "shop-blurb", u.blurb));
+      if (u.owned) {
+        li.appendChild(el("span", "shop-owned", "Owned \u2713"));
+      } else {
+        var btn = el("button", "shop-buy", "Buy " + u.cost);
+        btn.type = "button";
+        btn.dataset.testid = "pocket-bazaar-buy-" + u.id;
+        btn.setAttribute("aria-label", "Buy " + u.name + " for " + u.cost + " coins" + (u.affordable ? "" : ", you need " + (u.cost - view.coins) + " more"));
+        if (!u.affordable) btn.setAttribute("aria-disabled", "true");
+        btn.addEventListener("click", function () { send({ action: "buy", id: u.id }); });
+        li.appendChild(btn);
+      }
+      list.appendChild(li);
+    });
   }
 
   function makeCell(i, label) {
@@ -506,6 +558,11 @@
 
   function wire() {
     $("start-day-button").addEventListener("click", function () { send({ action: "start_day" }); });
+    $("shop-toggle-button").addEventListener("click", function () {
+      var panel = $("shop-panel");
+      panel.hidden = !panel.hidden;
+      $("shop-toggle-button").setAttribute("aria-expanded", String(!panel.hidden));
+    });
     $("sell-button").addEventListener("click", doSell);
     $("broom-button").addEventListener("click", doBroom);
     var grid = $("counter");

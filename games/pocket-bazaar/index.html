@@ -69,9 +69,23 @@
       <div id="summary" class="summary" hidden>
         <p id="summary-stars" class="summary-stars"></p>
         <dl id="summary-list" class="summary-list"></dl>
+        <p id="summary-festival" class="note"></p>
+      </div>
+      <p id="campaign-line" class="note campaign-line"></p>
+      <div id="festival-card" class="festival-card">
+        <p class="festival-title"><span id="festival-label">Next festival</span>: <strong id="festival-name"></strong> <span id="festival-tone" class="chip"></span></p>
+        <p id="festival-blurb" class="note"></p>
       </div>
       <p id="closed-text" class="note"></p>
-      <button id="start-day-button" type="button" class="primary big" data-testid="pocket-bazaar-start-day">Open the stall</button>
+      <div class="closed-buttons">
+        <button id="start-day-button" type="button" class="primary big" data-testid="pocket-bazaar-start-day">Open the stall</button>
+        <button id="shop-toggle-button" type="button" class="big" aria-expanded="false" aria-controls="shop-panel" data-testid="pocket-bazaar-shop-toggle">Upgrades</button>
+      </div>
+      <div id="shop-panel" class="shop" hidden>
+        <h3>Stall upgrades</h3>
+        <p class="note">Bought once, kept for good, paid in coins you earned. None is needed to finish a day.</p>
+        <ul id="shop-list" class="shop-list"></ul>
+      </div>
     </div>
     <div id="open-area" hidden>
       <div id="queue" class="queue" role="group" aria-label="Customers at the stall"></div>

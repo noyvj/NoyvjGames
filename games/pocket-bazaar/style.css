@@ -91,13 +91,30 @@ button[disabled], button[aria-disabled="true"] { opacity: 0.55; cursor: default;
 .queue-line { text-align: center; margin: 0 0 0.3rem; font-size: 0.8rem; }
 
 /* The closed stall: the day's summary and the one button that opens the next. */
-.closed-card { text-align: center; padding: 0.8rem 0.4rem; }
+.closed-card { text-align: center; padding: 0.6rem 0.3rem; }
 .closed-card h3 { margin: 0 0 0.4rem; font-size: 1.15rem; }
-.summary { margin: 0.5rem auto; max-width: 22rem; }
+.summary { margin: 0.3rem auto; max-width: 26rem; }
+.summary .note { margin: 0.1rem 0; }
 .summary-stars { font-size: 1.3rem; font-weight: 800; margin: 0.2rem 0; letter-spacing: 0.1em; }
-.summary-list { display: grid; grid-template-columns: 1fr auto; gap: 0.2rem 1rem; margin: 0.4rem 0; text-align: left; }
+.summary-list { display: grid; grid-template-columns: 1fr auto 1fr auto; gap: 0.15rem 0.6rem; margin: 0.4rem 0; text-align: left; font-size: 0.88rem; }
 .summary-list dt { color: var(--muted); } .summary-list dd { margin: 0; font-weight: 700; font-variant-numeric: tabular-nums; text-align: right; }
-button.big { font-size: 1.1rem; padding: 0.7rem 1.6rem; min-height: 3rem; margin-top: 0.4rem; }
+button.big { font-size: 1.05rem; padding: 0.6rem 1.3rem; min-height: 3rem; margin-top: 0.4rem; }
+.closed-buttons { display: flex; flex-wrap: wrap; gap: 0.5rem; justify-content: center; }
+.festival-card { border: 1px solid var(--line); border-radius: 10px; padding: 0.4rem 0.7rem; margin: 0.6rem auto; max-width: 24rem; background: var(--surface); }
+.festival-title { margin: 0.1rem 0; }
+.festival-card .note { margin: 0.2rem 0; }
+.chip { display: inline-block; font-size: 0.7rem; font-weight: 700; padding: 0.05rem 0.45rem; border-radius: 999px; border: 1px solid var(--edge); vertical-align: middle; }
+.chip.tricky { border-style: dashed; border-width: 2px; }
+.campaign-line { margin: 0.2rem 0; }
+.shop { margin: 0.8rem auto 0; max-width: 28rem; text-align: left; }
+.shop h3 { margin: 0 0 0.2rem; font-size: 1rem; }
+.shop-list { list-style: none; margin: 0.4rem 0; padding: 0; display: grid; gap: 0.4rem; }
+.shop-item { display: grid; grid-template-columns: 1fr auto; gap: 0.1rem 0.6rem; align-items: center; border: 1px solid var(--line); border-radius: 10px; padding: 0.4rem 0.6rem; background: var(--surface); }
+.shop-item .shop-name { font-weight: 700; }
+.shop-item .shop-blurb { grid-column: 1; color: var(--muted); font-size: 0.82rem; }
+.shop-item .shop-buy { grid-column: 2; grid-row: 1 / span 2; min-width: 5.5rem; }
+.shop-item.owned { border-style: dashed; }
+.shop-item .shop-owned { grid-column: 2; grid-row: 1 / span 2; font-weight: 700; text-align: center; }
 .tally { padding: 0.4rem 0.6rem; }
 .tally summary { cursor: pointer; color: var(--muted); font-size: 0.9rem; }
 .tally-strip { grid-template-columns: repeat(3, minmax(0, 1fr)); margin-top: 0.5rem; }
@@ -169,6 +186,8 @@ html[data-effects="off"] *, html[data-effects="off"] *::before, html[data-effect
 }
 
 @media (max-width: 600px) {
+  /* The board shrinks to the screen's height so the crates and Sell/Broom stay on screen without scrolling. */
+  .board { max-width: min(22rem, 100%, calc((100vh - 23rem) * var(--cols) / 6)); }
   /* A phone shows the whole counter and the crates without scrolling: the long intro and the panel title step aside. */
   .tagline { display: none; }
   .panel-title { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; }
@@ -179,7 +198,7 @@ html[data-effects="off"] *, html[data-effects="off"] *::before, html[data-effect
   .queue { gap: 0.25rem; }
   .customer { min-height: 4.6rem; padding: 0.25rem 0.3rem; font-size: 0.75rem; }
   .cust-kind { display: none; }
-  .queue-line { display: none; }
+  .queue-line { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin: 0 0 0.2rem; font-size: 0.72rem; }
   .message { min-height: 2.5em; font-size: 0.82rem; margin: 0 0 0.3rem; overflow: hidden; }
   .msg-flavor { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; }
   .stat { display: flex; justify-content: center; align-items: baseline; gap: 0.3rem; }

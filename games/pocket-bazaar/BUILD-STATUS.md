@@ -10,8 +10,10 @@ Daily Market (M-4b-9) are NOT part of this build.
 
 - M3 Customers and orders: orders.py, days.py, day.py, game.py rewritten around a Day, queue UI, closed/summary card; 141 tests incl. a greedy bot fairness test; checked at 360x740 (everything incl. crates fits without scrolling) and desktop
 
+- M4 Market day loop: festival.py, shop.py, day start/summary cards, shop UI, campaign line, 160 tests; first complete playable game. Days tuned so a greedy bot loses about one customer a day from day 6
+
 ## Next
-- Milestone 4: market day loop: coins -> stall upgrades (shop), 10-day campaign, 3 festivals (slow, harvest, twin), day start card with festival, summary with next-day preview, save every action. First complete playable game
+- Milestone 5: combos (order combo x1-x3 with pips, merge-chain coin bonus, wildcard goods), the other 3 festivals (kite, lantern, bargain) + rotation of all 6, new archetypes (child, tourist, rush crowd) + renown unlocks (spices, sweets), personal-best badges (best combo, best day earnings)
 
 ## Open problems / notes
 - Local Python is 3.9 (Pyodide runs 3.12): engine code avoids 3.10+ syntax.

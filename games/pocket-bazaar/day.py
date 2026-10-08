@@ -10,8 +10,8 @@ they step up, so a long queue never drains anyone ahead of time.
 
 from board import Board
 from days import WINDOW
-from goods import FAMILY_INFO, VALUE, good_label
-from orders import Customer
+from goods import FAMILY_INFO, good_label
+from orders import Customer, TIP_PCT
 from rng import Rng
 
 LEAVE_LINES = ("Maybe next time!", "No hard feelings.", "Another day, then.", "I will come back later.")
@@ -35,6 +35,7 @@ class Day:
         self.beat = 0
         self.best_chain = 0
         self.rules = dict(rules or {})
+        self.festival = self.rules.pop("festival", None)
 
     # ---- the stall ---------------------------------------------------------------------------------
     def window(self):
@@ -64,9 +65,8 @@ class Day:
         self.queue.remove(customer)
         self.left += 1
         paid = 0
-        got = [(f, t) for f, t, done in customer.items if done]
-        if got:
-            paid = max(1, sum(VALUE[t] for _f, t in got) * customer.info["pay_pct"] // 100)
+        if any(done for _f, _t, done in customer.items):
+            paid = customer.pay(self.rules.get("pay_pct", 100), self.rules.get("scales", False), only_done=True)
             self.coins += paid
             outcome["coins"] += paid
         text = f"{customer.name} could not wait and left."
@@ -78,7 +78,9 @@ class Day:
     def _serve(self, customer, outcome):
         self.queue.remove(customer)
         self.served += 1
-        pay, tip = customer.pay(), customer.tip()
+        pct, scales = self.rules.get("pay_pct", 100), self.rules.get("scales", False)
+        pay = customer.pay(pct, scales)
+        tip = customer.tip(pct, scales, self.rules.get("tip_pct", TIP_PCT))
         self.coins += pay + tip
         outcome["coins"] += pay + tip
         text = f"{customer.name} is happy: +{pay + tip} coins"
@@ -88,7 +90,17 @@ class Day:
         outcome["flavor"].append(f"{customer.name}: \"{_line(THANK_LINES, self.number, customer.name)}\"")
 
     # ---- actions -----------------------------------------------------------------------------------
-    def crate(self, family, tier=1):
+    def crate_tier(self, family):
+        """Crates give tier 1, except where a festival says otherwise (one seeded draw, so a day replays exactly)."""
+        chance = self.rules.get("crate_t2", {}).get(family)
+        if chance and self.rng.chance(*chance):
+            return 2
+        return 1
+
+    def crate(self, family, tier=None):
+        if self.board.is_full():
+            return self._outcome(False, "The counter is full. Merge, sell or sweep something to make room.")
+        tier = tier or self.crate_tier(family)
         at = self.board.place((family, tier))
         if at is None:
             return self._outcome(False, "The counter is full. Merge, sell or sweep something to make room.")
@@ -120,6 +132,11 @@ class Day:
         if not self.board.broom(at):
             return self._outcome(False, "There is nothing there to sweep.")
         outcome = self._outcome(True, f"Swept {good_label(good)} away.", {"kind": "broom", "at": at})
+        refund = self.rules.get("broom_refund", 0)
+        if refund:
+            self.coins += refund
+            outcome["coins"] += refund
+            outcome["message"] += f" +{refund} coin back."
         self._advance(outcome)
         return outcome
 
@@ -170,7 +187,8 @@ class Day:
         fraction = self.served * 100 // self.total if self.total else 100
         stars = 3 if fraction >= 90 else 2 if fraction >= 60 else 1
         return {"number": self.number, "served": self.served, "left": self.left, "total": self.total,
-                "coins": self.coins, "beats": self.beat, "best_chain": self.best_chain, "stars": stars}
+                "coins": self.coins, "beats": self.beat, "best_chain": self.best_chain, "stars": stars,
+                "festival": self.festival}
 
     # ---- saves -------------------------------------------------------------------------------------------
     def to_dict(self):
@@ -211,4 +229,3 @@ class Day:
         day.total, day.served, day.left = total, served, left
         day.coins, day.beat, day.best_chain = whole("coins"), whole("beat"), whole("best_chain", 0, 5)
         return day
-

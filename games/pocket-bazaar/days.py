@@ -13,14 +13,14 @@ WINDOW = 3                    # customers waiting at the stall at once
 _TABLE = {
     1: (6, 2, 1, (1,), (("regular", 1),), 450),
     2: (7, 2, 2, (3, 1), (("regular", 4), ("haggler", 1)), 420),
-    3: (8, 3, 2, (3, 2), (("regular", 4), ("haggler", 1), ("bulk", 1)), 400),
-    4: (8, 3, 2, (2, 2), (("regular", 4), ("haggler", 1), ("bulk", 1), ("critic", 1)), 380),
-    5: (9, 3, 3, (3, 3, 1), (("regular", 4), ("haggler", 1), ("bulk", 1), ("critic", 2)), 360),
-    6: (9, 4, 3, (3, 3, 1), (("regular", 4), ("haggler", 2), ("bulk", 1), ("critic", 2)), 350),
-    7: (10, 4, 3, (2, 3, 2), (("regular", 4), ("haggler", 2), ("bulk", 2), ("critic", 2)), 340),
-    8: (10, 4, 3, (2, 3, 2), (("regular", 3), ("haggler", 2), ("bulk", 2), ("critic", 2)), 330),
-    9: (11, 4, 3, (2, 3, 2), (("regular", 3), ("haggler", 2), ("bulk", 2), ("critic", 3)), 320),
-    10: (12, 5, 3, (2, 3, 2), (("regular", 3), ("haggler", 2), ("bulk", 2), ("critic", 3)), 320),
+    3: (8, 3, 2, (3, 2), (("regular", 4), ("haggler", 1), ("bulk", 1)), 360),
+    4: (8, 3, 2, (2, 2), (("regular", 4), ("haggler", 1), ("bulk", 1), ("critic", 1)), 330),
+    5: (9, 3, 3, (3, 3, 1), (("regular", 4), ("haggler", 1), ("bulk", 1), ("critic", 2)), 300),
+    6: (9, 4, 3, (3, 3, 1), (("regular", 4), ("haggler", 2), ("bulk", 1), ("critic", 2)), 280),
+    7: (10, 4, 3, (2, 3, 2), (("regular", 4), ("haggler", 2), ("bulk", 2), ("critic", 2)), 260),
+    8: (10, 4, 3, (2, 3, 2), (("regular", 3), ("haggler", 2), ("bulk", 2), ("critic", 2)), 250),
+    9: (11, 4, 3, (2, 3, 2), (("regular", 3), ("haggler", 2), ("bulk", 2), ("critic", 3)), 240),
+    10: (12, 5, 3, (2, 3, 2), (("regular", 3), ("haggler", 2), ("bulk", 2), ("critic", 3)), 230),
 }
 
 
@@ -33,7 +33,7 @@ def spec(number, unlocked_archetypes=None):
     if number > CAMPAIGN_DAYS:                     # Free Stall: a gentle climb past the campaign
         extra = number - CAMPAIGN_DAYS
         customers = min(MAX_CUSTOMERS, customers + extra // 2)
-        slack = max(280, slack - extra)
+        slack = max(200, slack - extra)
     if unlocked_archetypes is not None:
         archetypes = tuple(a for a in archetypes if a[0] in unlocked_archetypes) or (("regular", 1),)
     return {"number": number, "customers": customers, "max_tier": max_tier, "max_items": max_items,

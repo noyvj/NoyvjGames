@@ -4,7 +4,6 @@ import days
 import orders
 from board import Board
 from day import Day
-from goods import FAMILIES, crate_beats
 from orders import Customer, make_queue, order_is_reachable, patience_for
 from rng import Rng
 

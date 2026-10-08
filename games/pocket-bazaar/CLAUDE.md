@@ -19,6 +19,8 @@ Python via Pyodide (the Lexis/Signal pattern): DOM-free engine modules, `game.py
 | `board.py` | the merge board: merge, three-way bonus, cascade, move/swap, sell, broom, legal-move check, solver (`plan_build`), text form, save form |
 | `textplay.py` | text harness: play a board from a script of commands |
 | `orders.py` | customers: archetypes (Regular, Haggler, Critic, Bulk buyer), order matching, payment, patience from build cost, the order generator and its reachability check |
+| `festival.py` | the festival a day carries (by day number alone): Slow Market, Harvest Fair, Twin Day for now |
+| `shop.py` | six permanent stall upgrades bought with coins (queue preview, broom polish, tip jar, display shelf, fine scales, wider counter) |
 | `days.py` | the day recipes: first ten days hand-tuned, then Free Stall curve (capped at 16 customers, tier 5) |
 | `day.py` | one market day: counter, queue (three at the stall, the rest waiting), beats, patience, hand-over, leaving, serving, summary |
 | `game.py` | the one entry point: `handle(json)`, `get_state()`, `load_state()`; state is saved with only non-default keys |
@@ -40,7 +42,7 @@ Plan deviations: with five tiers the longest cascade is four merges (T1+T1, T2, 
 | 1 | Board engine | `board.py` merge rules, cascades, legal-move solver, seeded RNG, text harness; tests for merges and no soft-lock | Done |
 | 2 | Board UI | 5x6 grid, crates, drag + tap-tap + keyboard, Sell/Broom, merge highlights | Done (practice counter with a visible tally; checked at 1440x900 and 360x740) |
 | 3 | Customers and orders | Queue, patience in beats, delivery, payout, 4 archetypes, order generator with a reachability test | Done (a day opens, three customers at the stall, hand-overs by tap, drag or D; a greedy bot clears the ten days) |
-| 4 | Market day loop | Day start/summary, coins, stall upgrades, 10-day campaign, 3 festivals. First complete playable game | Not started |
+| 4 | Market day loop | Day start/summary, coins, stall upgrades, 10-day campaign, 3 festivals. First complete playable game | Done (day start card with festival, summary with stars and tomorrow's festival, shop, Free Stall after day 10) |
 | 5 | Combos, streaks, festivals | Order combo, cascade bonus, all 6 festivals with previews, personal-best badges | Not started |
 | 6 | Standard kit + pledge tests | Save widget, settings, confirm dialog, tutorial, mobile dock/HUD, changelog, info panel, pledge tests | Not started |
 | 7 | Achievements + story | 14 achievements, panel and toast, regulars, story toggle | Not started |
