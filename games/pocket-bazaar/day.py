@@ -234,6 +234,7 @@ class Day:
             self._serve(customer, outcome)
         self._advance(outcome, spared=customer if done else None)
         outcome["served_now"] = customer.name if done else None
+        outcome["served_reg"] = customer.reg if done else ""
         return outcome
 
     # ---- what the view needs -------------------------------------------------------------------

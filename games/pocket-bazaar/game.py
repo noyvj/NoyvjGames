@@ -14,14 +14,19 @@ Actions (every request is {"action": ..., ...}; every reply is the whole view):
   sell {at}                   sell a good off the counter for its sell price (free)
   broom {at}                  sweep a good off the counter (a beat)
   buy {id}                    buy a stall upgrade with coins (between days only)
+  buy_decor {id}              buy a decoration (cosmetic) and put it out
+  put_decor {id}              put an owned decoration out in its slot
   reset                       start over (everything)
 """
 
 import json
 
+import achievements
+import decorations
 import festival
 import goods
 import info
+import regulars
 import renown
 import shop
 from board import Board
@@ -57,12 +62,30 @@ class Stall:
         self.renown = 0
         self.upgrades = []
         self.best = {key: 0 for key in BEST_KEYS}
+        self.decor_owned = []
+        self.decor_put = {}
+        self.visits = {}            # regular id -> times served
+        self.flags = []             # achievement facts that cannot be recomputed: perfect, showpiece, bargain, quiet, twin5
+        self.festivals_seen = []
         self.shelf = None           # the good kept on the display shelf between days
         self.day = None
         self.last = None            # the summary of the day that just ended, until the next one opens
 
     def families(self):
         return tuple(renown.families(self.renown))
+
+    def facts(self):
+        """What the achievements are computed from."""
+        facts = {"days_played": self.days_played, "orders": self.tally["orders"], "best_chain": self.best_chain,
+                 "best_combo": self.best["combo"], "regular_level": regulars.max_level(self.visits),
+                 "upgrades": len(self.upgrades), "decor": len(self.decor_owned), "festivals": len(self.festivals_seen)}
+        for flag in ("perfect", "showpiece", "bargain", "quiet", "twin5"):
+            facts["flag_" + flag] = 1 if flag in self.flags else 0
+        return facts
+
+    def set_flag(self, flag):
+        if flag not in self.flags:
+            self.flags.append(flag)
 
     def rules_for(self, number):
         """What the day's festival and the owned upgrades change, as the Day's rules dict."""
@@ -90,6 +113,20 @@ class Stall:
         best = {k: v for k, v in self.best.items() if v}
         if best:
             data["best"] = best
+        if self.decor_owned:
+            data["decor"] = list(self.decor_owned)
+        if self.decor_put:
+            data["put"] = dict(self.decor_put)
+        visits = {k: v for k, v in self.visits.items() if v}
+        if visits:
+            data["reg"] = visits
+        if self.flags:
+            data["flags"] = list(self.flags)
+        if self.festivals_seen:
+            data["seen"] = list(self.festivals_seen)
+        earned = achievements.earned(self.facts())
+        if earned:
+            data["achievements_earned"] = earned       # written for the hub's dashboard, never read back
         if self.shelf is not None:
             data["shelf"] = {"f": self.shelf[0], "t": self.shelf[1]}
         if self.day is not None:
@@ -110,6 +147,17 @@ class Stall:
         self.next_day = _int(data.get("next_day"), low=1, high=10 ** 5 + 1, default=1)
         best = data.get("best") if isinstance(data.get("best"), dict) else {}
         self.best = {key: _int(best.get(key), high=10 ** 7) for key in BEST_KEYS}
+        decor = data.get("decor")
+        self.decor_owned = [d for d in decorations.ids() if isinstance(decor, list) and d in decor]
+        put = data.get("put") if isinstance(data.get("put"), dict) else {}
+        self.decor_put = {slot: put[slot] for slot in decorations.SLOT_IDS
+                          if put.get(slot) in self.decor_owned and decorations.BY_ID[put[slot]][1] == slot}
+        reg = data.get("reg") if isinstance(data.get("reg"), dict) else {}
+        self.visits = {r: _int(reg.get(r), high=10 ** 4) for r in regulars.IDS if _int(reg.get(r), high=10 ** 4)}
+        flags = data.get("flags")
+        self.flags = [f for f in ("perfect", "showpiece", "bargain", "quiet", "twin5") if isinstance(flags, list) and f in flags]
+        seen = data.get("seen")
+        self.festivals_seen = [f for f in festival.ORDER if isinstance(seen, list) and f in seen]
         owned = data.get("upgrades")
         self.upgrades = [u for u in shop.ids() if isinstance(owned, list) and u in owned]
         self.shelf = None
@@ -143,12 +191,27 @@ class Stall:
         rng = Rng(mix(number, 0xBA2AA2))
         day_spec = festival.apply_spec(spec(number, extras=renown.archetypes(self.renown)), rules["festival"])
         queue = make_queue(rng, day_spec, list(self.families()))
+        self._place_regulars(queue, number)
         board = Board(6 if "counter" in self.upgrades else 5, rules.get("board_height", 6), "shelf" in self.upgrades)
         if self.shelf is not None and board.has_shelf:
             board.cells[board.shelf_index] = self.shelf
         self.day = Day(number, board, queue, rng, rules)
         self.last = None
         return self.day
+
+    def _place_regulars(self, queue, number):
+        """Three named regulars step up each day in a fixed rotation, spread through the line. They are ordinary Regular
+        customers (same tiers, same patience) with a name and a favourite family."""
+        eligible = [c for c in queue if c.archetype == "regular" and not c.group and not c.reg]
+        picks = regulars.rotation(number)
+        for k, rid in enumerate(picks):
+            if not eligible:
+                break
+            customer = eligible.pop(min(len(eligible) - 1, (len(eligible) * (2 * k + 1)) // (2 * len(picks))))
+            _id, name, family, _role, _lines = regulars.BY_ID[rid]
+            customer.name, customer.reg = name, rid
+            if family in self.families():
+                customer.items = [[family, t, 0] for _f, t, _d in customer.items]
 
     def close_day(self):
         """Called when the last customer has gone: bank the day and show its summary."""
@@ -169,6 +232,14 @@ class Stall:
             bests.append("day_coins")
             self.best["day_coins"] = day.coins
         self.last["new_bests"] = bests
+        if day.festival and day.festival not in self.festivals_seen:
+            self.festivals_seen = [f for f in festival.ORDER if f in self.festivals_seen or f == day.festival]
+        if day.left == 0 and day.served:
+            self.set_flag("perfect")
+            if day.festival == "bargain":
+                self.set_flag("bargain")
+        if day.festival == "slow" and day.best_mult == 1:
+            self.set_flag("quiet")
         self.days_played += 1
         self.next_day = day.number + 1
         self.day = None
@@ -224,6 +295,9 @@ def _view(message="", ok=True, event=None):
         "days_played": stall.days_played, "next_day": stall.next_day, "summary": stall.last,
         "archetypes": {k: v["name"] for k, v in ARCHETYPES.items()},
         "about": info.view(),
+        "achievements": achievements.view(stall.facts()), "goals": achievements.goals(stall.facts()),
+        "decor": decorations.view(stall.decor_owned, stall.decor_put, stall.coins),
+        "regulars": regulars.view(stall.visits), "regulars_met": len(stall.visits),
         "renown": stall.renown, "next_unlock": renown.next_unlock(stall.renown), "unlock_names": dict(renown.UNLOCK_NAMES), "best": dict(stall.best),
         "unlocked_families": list(stall.families()), "upgrades": shop.view(stall.upgrades, stall.coins),
         "festival": _festival_view(day.number if day else stall.next_day),
@@ -268,6 +342,10 @@ def _apply(outcome):
             stall.tally["merges"] += result.links
             stall.tally["triples"] += 1 if result.triple else 0
             stall.best_chain = max(stall.best_chain, result.links)
+            if result.good[1] >= goods.MAX_TIER:
+                stall.set_flag("showpiece")
+            if day.twins >= 5:
+                stall.set_flag("twin5")
         elif kind == "sell":
             stall.tally["sold"] += 1
         elif kind == "broom":
@@ -276,8 +354,16 @@ def _apply(outcome):
             stall.tally["orders"] += 1
             if outcome.get("wild") is not None:
                 stall.tally["wilds"] += 1
-    message = " ".join([outcome["message"]] + outcome["notes"]).strip()
     flavor = list(outcome.get("flavor", []))
+    reg = outcome.get("served_reg")
+    if reg and reg in regulars.BY_ID:
+        before = stall.visits.get(reg, 0)
+        stall.visits[reg] = min(10 ** 4, before + 1)
+        new_level = regulars.level(stall.visits[reg])
+        if new_level > regulars.level(before):
+            outcome["notes"].append(f"{regulars.BY_ID[reg][1]} is now bond level {new_level} (see Regulars).")
+            flavor.append(f"{regulars.BY_ID[reg][1]}: {regulars.line_for(reg, new_level)}")
+    message = " ".join([outcome["message"]] + outcome["notes"]).strip()
     served_now = outcome.get("served_now")
     left_now = sum(1 for n in outcome["notes"] if "could not wait" in n)
     if served_now or left_now:
@@ -317,6 +403,20 @@ def handle(request_json):
         stall.upgrades = [u for u in shop.ids() if u in stall.upgrades or u == upgrade]
         return json.dumps(_view(f"You bought {shop.BY_ID[upgrade]['name']}. {shop.BY_ID[upgrade]['blurb']}",
                                 event={"kind": "buy", "id": upgrade}))
+    if action in ("buy_decor", "put_decor"):
+        decor_id = request.get("id")
+        if not isinstance(decor_id, str):
+            return json.dumps(_view("There is no such decoration.", ok=False))
+        if action == "buy_decor":
+            ok, reason = decorations.can_buy(stall.decor_owned, decor_id, stall.coins)
+            if not ok:
+                return json.dumps(_view(reason, ok=False))
+            stall.coins -= decorations.BY_ID[decor_id][3]
+            stall.decor_owned = [d for d in decorations.ids() if d in stall.decor_owned or d == decor_id]
+        elif decor_id not in stall.decor_owned:
+            return json.dumps(_view("You do not own that yet.", ok=False))
+        stall.decor_put[decorations.BY_ID[decor_id][1]] = decor_id
+        return json.dumps(_view(f"{decorations.BY_ID[decor_id][2]} is out on the stall.", event={"kind": "decor", "id": decor_id}))
     if action not in ("crate", "drop", "deliver", "sell", "broom"):
         return json.dumps({"error": f"unknown action {action!r}"})
     day = stall.day

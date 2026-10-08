@@ -1,0 +1,74 @@
+{
+  "achievements": [
+    {
+      "id": "open_for_business",
+      "label": "Open for Business",
+      "description": "Finish your first market day."
+    },
+    {
+      "id": "satisfied_customer",
+      "label": "Satisfied Customer",
+      "description": "Fill 10 orders."
+    },
+    {
+      "id": "chain_master",
+      "label": "Chain Master",
+      "description": "Make a 4-link chain, the longest the five tiers allow."
+    },
+    {
+      "id": "full_combo",
+      "label": "Full Combo",
+      "description": "Get the order combo up to times three (four orders in a row)."
+    },
+    {
+      "id": "perfect_day",
+      "label": "Perfect Day",
+      "description": "Finish a day without a single customer leaving."
+    },
+    {
+      "id": "showpiece",
+      "label": "Showpiece",
+      "description": "Make your first tier-5 good."
+    },
+    {
+      "id": "regular",
+      "label": "Regular",
+      "description": "Reach bond level 3 with any of the regulars."
+    },
+    {
+      "id": "bargain_blitz",
+      "label": "Bargain Blitz",
+      "description": "Clear a Bargain Hunt day with nobody leaving."
+    },
+    {
+      "id": "well_stocked",
+      "label": "Well Stocked",
+      "description": "Buy all six stall upgrades."
+    },
+    {
+      "id": "decorator",
+      "label": "Decorator",
+      "description": "Own 10 decorations."
+    },
+    {
+      "id": "twin_twins",
+      "label": "Twin Day Twins",
+      "description": "Get 5 free tier-1 goods from Twin Day in one day."
+    },
+    {
+      "id": "all_festivals",
+      "label": "All Festivals",
+      "description": "Play a market day under each of the six festivals."
+    },
+    {
+      "id": "quiet_stall",
+      "label": "Quiet Stall",
+      "description": "Finish a Slow Market day without ever getting a combo going."
+    },
+    {
+      "id": "thirty_days",
+      "label": "30 Market Days",
+      "description": "Finish 30 market days."
+    }
+  ]
+}

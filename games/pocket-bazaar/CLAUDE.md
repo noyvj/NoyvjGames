@@ -24,6 +24,9 @@ Python via Pyodide (the Lexis/Signal pattern): DOM-free engine modules, `game.py
 | `shop.py` | six permanent stall upgrades bought with coins (queue preview, broom polish, tip jar, display shelf, fine scales, wider counter) |
 | `days.py` | the day recipes: first ten days hand-tuned, then Free Stall curve (capped at 16 customers, tier 5) |
 | `day.py` | one market day: counter, queue (three at the stall, the rest waiting), beats, patience, hand-over, leaving, serving, summary |
+| `achievements.py` | the 14 achievements, each a number (have/need) computed from facts; `achievements.json` is the hub manifest; the first three unearned are shown as goals, in any order |
+| `regulars.py` | twelve named regulars (three step up per day in a fixed rotation), bond levels at 1/3/5 visits, three story lines each |
+| `decorations.py` | 40 cosmetic decorations in six slots, a coin sink with no effect on play |
 | `pledge.py`, `info.py` | the pledge text (the only file allowed to name what the game rules out) and the About page content |
 | `game.py` | the one entry point: `handle(json)`, `get_state()`, `load_state()`; state is saved with only non-default keys |
 
@@ -49,7 +52,7 @@ Plan deviations: with five tiers the longest cascade is four merges (T1+T1, T2, 
 | 4 | Market day loop | Day start/summary, coins, stall upgrades, 10-day campaign, 3 festivals. First complete playable game | Done (day start card with festival, summary with stars and tomorrow's festival, shop, Free Stall after day 10) |
 | 5 | Combos, streaks, festivals | Order combo, cascade bonus, all 6 festivals with previews, personal-best badges | Done (also wildcards, renown unlocks and the three extra archetypes) |
 | 6 | Standard kit + pledge tests | Save widget, settings, confirm dialog, tutorial, mobile dock/HUD, changelog, info panel, pledge tests | Done (opening screen, save widget, tutorial, What's New + banner, About with the pledge list, confirm only for selling tier 4-5 and erasing; `tests/test_pledge.py`). The shared mobile dock and HUD are deliberately not used: the whole counter, the stats and the crates fit one 360x740 screen, so nothing needs pinning |
-| 7 | Achievements + story | 14 achievements, panel and toast, regulars, story toggle | Not started |
+| 7 | Achievements + story | 14 achievements, panel and toast, regulars, story toggle | Done (also a visible three-goals list, 40 decorations, regulars page; story lines hidden by the shared story toggle) |
 | 8 | Own-folder wrap-up | Favicon, Desktop boot (`pc-config.json`, `pc.html`), this table, tag | Not started |
 | 9 | Daily Market (optional) | Not part of this build | Not started |
 | 10 | Hub registration | BLOCKED ON NOY2; not done in this folder | Blocked |
@@ -62,3 +65,9 @@ A fresh reviewer plays one full session (a few days) on a phone and on a desktop
 
 ## Phone layout note
 Under 600px the title and the row of buttons (Tutorial, What's New, Settings, About) and their panels move below the counter (CSS `order`), the board shrinks to the screen height, and short labels appear. The shared theme pill is not used (the Settings panel has the theme switch).
+
+## Plan deviations (for the owner)
+- Chain Master and the cascade perf test use four links, not five or six: five tiers allow at most four merges in a chain.
+- Decorator is "own 10 decorations" (buying puts one out in its slot; there are only six slots).
+- Regulars bond at 1, 3 and 5 visits and rotate three a day (each is back every fourth day) so bond level 3 is reachable in about 20 days; the plan's "hidden variant" per regular is not built (nothing in the game is hidden).
+- Display settings are in localStorage, not the save (the Lexis rule). The shared mobile dock and HUD are not used (nothing scrolls away).

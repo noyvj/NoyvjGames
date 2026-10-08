@@ -16,9 +16,10 @@ Daily Market (M-4b-9) are NOT part of this build.
 
 - M6 Standard kit + pledge tests: opening screen, save widget, tutorial, confirm dialog (sell tier 4-5, erase all), What's New + banner, About + pledge list, keyboard help, 205 tests incl. test_pledge.py; phone layout reworked (toolbar below the counter)
 
+- M7 Achievements + story: achievements.py/json (14), panel + toast + goals, regulars.py (12), decorations.py (40), story toggle, 230 tests
+
 ## Next
-- Milestone 7: achievements.json (14) + achievements.py + panel/toast + share, decorations (40, cosmetic coin sink) in shop, regulars (12 with bond), story toggle wiring (story-toggle.js), a visible goals list (three goals at a time, any order)
-- Player-profile notes (private): keep objectives visible without a strict order (a 'goals' list in M7), no tutorial wall, friendly welcome back, leaderboards optional (none here)
+- Milestone 8: own-folder wrap-up: favicon polish (icons/favicon-pocket-bazaar.svg exists, redraw if needed), pc-config.json + pc.js (Desktop tutorial) + pc.html via scratch script calling build('pocket-bazaar', cfg) only, layout-pref.js in index.html, CLAUDE.md table, run `python3 -m pytest -q shared/tests -k bazaar`, tag
 
 ## Open problems / notes
 - Local Python is 3.9 (Pyodide runs 3.12): engine code avoids 3.10+ syntax.

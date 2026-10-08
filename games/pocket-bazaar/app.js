@@ -3,7 +3,7 @@
    cells could this good merge with", which the engine sends as `partners`). */
 (function () {
   "use strict";
-  var ENGINE_MODULES = ["goods.py", "rng.py", "board.py", "orders.py", "days.py", "festival.py", "renown.py", "shop.py", "pledge.py", "info.py", "day.py"];
+  var ENGINE_MODULES = ["goods.py", "rng.py", "board.py", "orders.py", "days.py", "festival.py", "renown.py", "shop.py", "pledge.py", "info.py", "achievements.py", "decorations.py", "regulars.py", "day.py"];
   var STORE_KEY = "pocket-bazaar:state";
   var BACKUP_KEY = "pocket-bazaar:state-backup";
   var DRAG_THRESHOLD = 8;
@@ -187,6 +187,114 @@
     }).catch(function () { renderChangelog([]); });
   }
 
+  // ---- achievements, regulars, decorations ---------------------------------------------------------
+  var knownEarned = null;
+  function showToast(text) {
+    var t = $("toast");
+    t.textContent = text;
+    t.classList.toggle("on", Boolean(text));
+  }
+  function renderAchievements() {
+    var list = $("achievements-list");
+    var earnedNow = [];
+    var sig = view.achievements.map(function (a) { return a.id + a.have; }).join(",");
+    if (list.dataset.sig !== sig) {
+      list.dataset.sig = sig;
+      list.textContent = "";
+      view.achievements.forEach(function (a) {
+        var li = el("li", a.earned ? "earned" : "");
+        li.setAttribute("data-achievement-id", a.id);
+        li.appendChild(el("span", "tick", a.earned ? "Earned" : a.have + "/" + a.need));
+        var name = el("strong", null, " " + a.label + " ");
+        name.setAttribute("data-achievement-label", "");
+        li.appendChild(name);
+        li.appendChild(el("span", null, a.description));
+        list.appendChild(li);
+      });
+    }
+    view.achievements.forEach(function (a) { if (a.earned) earnedNow.push(a.id); });
+    document.querySelector("#achievements-toggle-button").textContent = "Achievements (" + earnedNow.length + "/" + view.achievements.length + ")";
+    if (knownEarned !== null) {
+      earnedNow.filter(function (id) { return knownEarned.indexOf(id) === -1; }).forEach(function (id) {
+        var a = view.achievements.filter(function (x) { return x.id === id; })[0];
+        showToast("Achievement unlocked: " + a.label + ".");
+        announce("Achievement unlocked: " + a.label + ".");
+      });
+    }
+    knownEarned = earnedNow;
+  }
+  function renderRegulars() {
+    var list = $("regulars-list");
+    var sig = view.regulars.map(function (r) { return r.id + r.visits; }).join(",");
+    setText($("regulars-summary"), "Regulars met: " + view.regulars_met + " of " + view.regulars.length + ". Three step up each day in a fixed rotation, so each one is back every fourth day.");
+    if (list.dataset.sig === sig) return;
+    list.dataset.sig = sig;
+    list.textContent = "";
+    view.regulars.forEach(function (r) {
+      var li = el("li", "regular" + (r.visits ? "" : " unmet"));
+      var head = el("p", "regular-head");
+      head.appendChild(el("strong", null, r.visits ? r.name : "A regular you have not met"));
+      if (r.visits) head.appendChild(el("span", "regular-role note", " " + r.role));
+      li.appendChild(head);
+      var pips = "\u25CF".repeat(r.level) + "\u25CB".repeat(3 - r.level);
+      li.appendChild(el("p", "regular-bond", "Bond " + pips + " level " + r.level + " of 3, " + r.visits + (r.visits === 1 ? " visit" : " visits") + (r.next_at ? ", next level at " + r.next_at : ", complete")));
+      r.lines.forEach(function (line) { li.appendChild(el("p", "regular-line", line)); });
+      list.appendChild(li);
+    });
+  }
+  function renderGoals() {
+    var list = $("goals-list");
+    list.textContent = "";
+    view.goals.forEach(function (g) { list.appendChild(el("li", null, g.label + ": " + g.description + " (" + g.have + "/" + g.need + ")")); });
+    $("goals").hidden = !view.goals.length;
+  }
+  function renderDecor() {
+    var holder = $("decor-list");
+    var sig = view.decor.map(function (s) { return s.items.map(function (i) { return (i.owned ? "o" : i.affordable ? "a" : "n") + (i.put ? "p" : ""); }).join(""); }).join("|");
+    var out = [];
+    view.decor.forEach(function (slot) {
+      var put = slot.items.filter(function (i) { return i.put; })[0];
+      if (put) out.push(put.name);
+    });
+    var owned = 0, total = 0;
+    view.decor.forEach(function (s) { s.items.forEach(function (i) { total++; if (i.owned) owned++; }); });
+    setText($("front-line"), "Stall front: " + (out.length ? out.join(", ") : "bare") + ". Decorations " + owned + "/" + total + ".");
+    if (holder.dataset.sig === sig + "|" + view.coins) return;
+    holder.dataset.sig = sig + "|" + view.coins;
+    var openSlots = Array.prototype.map.call(holder.querySelectorAll("details[open]"), function (d) { return d.dataset.slot; });
+    holder.textContent = "";
+    view.decor.forEach(function (slot) {
+      var det = el("details", "decor-slot");
+      det.dataset.slot = slot.slot;
+      if (openSlots.indexOf(slot.slot) !== -1) det.open = true;
+      var ownedHere = slot.items.filter(function (i) { return i.owned; }).length;
+      det.appendChild(el("summary", null, slot.label + " (" + ownedHere + "/" + slot.items.length + ")"));
+      slot.items.forEach(function (i) {
+        var row = el("div", "decor-item" + (i.owned ? " owned" : ""));
+        row.appendChild(el("span", "decor-name", i.name));
+        if (i.owned) {
+          if (i.put) row.appendChild(el("span", "decor-state", "Out \u2713"));
+          else {
+            var b1 = el("button", null, "Put out");
+            b1.type = "button";
+            b1.addEventListener("click", function () { send({ action: "put_decor", id: i.id }); });
+            row.appendChild(b1);
+          }
+        } else {
+          var b2 = el("button", null, "Buy " + i.cost);
+          b2.type = "button";
+          b2.dataset.testid = "pocket-bazaar-decor-" + i.id;
+          b2.setAttribute("aria-label", "Buy " + i.name + " for " + i.cost + " coins" + (i.affordable ? "" : ", you need " + (i.cost - view.coins) + " more"));
+          if (!i.affordable) b2.setAttribute("aria-disabled", "true");
+          b2.addEventListener("click", function () { send({ action: "buy_decor", id: i.id }); });
+          row.appendChild(b2);
+        }
+        det.appendChild(row);
+      });
+      holder.appendChild(det);
+    });
+  }
+
   // ---- the closed stall ----------------------------------------------------------------------
   function renderClosed() {
     var sum = view.summary;
@@ -231,6 +339,8 @@
     tone.className = "chip " + f.tone;
     setText($("festival-blurb"), f.blurb);
     renderShop();
+    renderGoals();
+    renderDecor();
   }
 
   function renderShop() {
@@ -432,6 +542,8 @@
 
   function render(event) {
     renderAbout();
+    renderAchievements();
+    renderRegulars();
     var open = view.phase === "open";
     $("closed-card").hidden = open;
     $("open-area").hidden = !open;
@@ -466,6 +578,7 @@
     var result = JSON.parse(engine.handle(JSON.stringify(request)));
     if (result.error) { $("engine-status").textContent = "Something went wrong: " + result.error; return null; }
     view = result;
+    showToast("");
     if (request.action === "drop" || request.action === "sell" || request.action === "broom" || request.action === "deliver" || request.action === "start_day") selected = null;
     if (request.action === "start_day") { cursor = 0; broomArmed = false; }
     render(result.event);
@@ -628,8 +741,11 @@
   }
 
   function wire() {
+    $("toast").addEventListener("click", function () { showToast(""); });
     $("start-day-button").addEventListener("click", function () { send({ action: "start_day" }); });
     wirePanelToggle("changelog-toggle-button", "changelog-panel");
+    wirePanelToggle("achievements-toggle-button", "achievements-panel");
+    wirePanelToggle("regulars-toggle-button", "regulars-panel");
     wirePanelToggle("info-page-toggle-button", "info-page-panel");
     $("reset-button").addEventListener("click", function () {
       askThen("pocket-bazaar-reset", "Start the whole stall over? Your coins, upgrades, renown and personal bests will be erased.", "Erase it", function () {

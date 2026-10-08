@@ -261,3 +261,29 @@ html[data-effects="off"] *, html[data-effects="off"] *::before, html[data-effect
   #engine-status, #announce { order: 60; }
   .tally { order: 10; }
 }
+
+/* Achievements, regulars, decorations, goals. */
+.ach-list { list-style: none; padding: 0; margin: 0.4rem 0; display: grid; gap: 0.35rem; }
+.ach-list li { border: 1px solid var(--line); border-radius: 8px; padding: 0.35rem 0.6rem; background: var(--surface); }
+.ach-list li.earned { border-width: 2px; }
+.ach-list .tick { display: inline-block; min-width: 4.2rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+.regulars-list { list-style: none; padding: 0; margin: 0.4rem 0; display: grid; gap: 0.5rem; }
+.regular { border: 1px solid var(--line); border-radius: 10px; padding: 0.4rem 0.7rem; background: var(--surface); }
+.regular.unmet { border-style: dashed; opacity: 0.8; }
+.regular p { margin: 0.15rem 0; }
+.regular-bond { font-size: 0.85rem; color: var(--muted); }
+.regular-line { font-style: italic; }
+.goals { max-width: 26rem; margin: 0.5rem auto; text-align: left; }
+.goals-list { margin: 0.2rem 0; padding-left: 1.1rem; }
+.front-line { margin: 0.3rem 0; }
+.decor-list { display: grid; gap: 0.3rem; margin: 0.4rem 0; }
+.decor-slot { border: 1px solid var(--line); border-radius: 8px; padding: 0.3rem 0.6rem; background: var(--surface); }
+.decor-slot summary { cursor: pointer; font-weight: 700; }
+.decor-item { display: flex; justify-content: space-between; align-items: center; gap: 0.5rem; padding: 0.2rem 0; border-top: 1px solid var(--line); }
+.decor-item:first-of-type { border-top: 0; }
+.decor-item.owned .decor-name { font-weight: 700; }
+.decor-state { font-weight: 700; }
+#toast { position: fixed; top: 3.4rem; left: 50%; transform: translateX(-50%); z-index: 900; max-width: 90vw; padding: 0.4rem 0.8rem; border-radius: 10px; background: var(--btn-primary); color: var(--on-primary); border: 2px solid var(--hover-edge); cursor: pointer; display: none; margin: 0; }
+#toast.on { display: block; }
+/* The shared story switch would sit over the crates on a phone; park it beside the back link. */
+#story-toggle { bottom: auto !important; top: 0.5rem !important; left: 7rem !important; }

@@ -21,6 +21,7 @@
 <link rel="stylesheet" href="../../ad-bar.css">
 <link rel="manifest" href="../../manifest.json">
 <!-- Pyodide is loaded by app.js after first paint, so this shell is readable before the engine is warm. -->
+<script src="../../shared/achievement-share.js" data-game-id="pocket-bazaar" data-game-name="Pocket Bazaar"></script>
 <link rel="stylesheet" href="../../shared/a11y.css">
 <link rel="stylesheet" href="../../shared/touch-targets.css">
 <link rel="stylesheet" href="../../shared/lite-mode.css">
@@ -34,11 +35,23 @@
   </div>
   <div class="game-toolbar">
     <button id="tutorial-restart-button" type="button" aria-label="Tutorial"><span class="btn-long">Tutorial</span><span class="btn-short" aria-hidden="true">Tour</span></button>
+    <button id="achievements-toggle-button" type="button" aria-expanded="false" aria-controls="achievements-panel">Achievements</button>
+    <button id="regulars-toggle-button" type="button" aria-expanded="false" aria-controls="regulars-panel">Regulars</button>
     <button id="changelog-toggle-button" type="button" aria-expanded="false" aria-controls="changelog-panel"><span class="btn-long">What's New</span><span class="btn-short" aria-hidden="true">News</span></button>
     <button id="settings-toggle-button" type="button" aria-expanded="false" aria-controls="settings-panel">Settings</button>
     <button id="info-page-toggle-button" type="button" aria-expanded="false" aria-controls="info-page-panel">About</button>
   </div>
   <p class="tagline">A tiny market stall. Merge goods, hand them over, and take your time: nothing here runs on a clock.</p>
+  <section id="achievements-panel" class="panel" hidden aria-labelledby="ach-heading">
+    <h2 id="ach-heading">Achievements</h2>
+    <p class="note">Every one can be earned in any order, with no luck and no deadline, and each shows how close you are.</p>
+    <ul id="achievements-list" class="ach-list"></ul>
+  </section>
+  <section id="regulars-panel" class="panel" hidden aria-labelledby="regulars-heading">
+    <h2 id="regulars-heading">Regulars</h2>
+    <p id="regulars-summary" class="note"></p>
+    <ul id="regulars-list" class="regulars-list"></ul>
+  </section>
   <section id="info-page-panel" class="panel" hidden aria-labelledby="info-page-heading">
     <h2 id="info-page-heading">About Pocket Bazaar</h2>
     <p id="info-page-framing" class="info-page-framing"></p>
@@ -69,7 +82,7 @@
     <div class="settings-row"><button id="display-reset-button" type="button">Reset display settings</button></div>
     <div class="settings-row"><button id="reset-button" type="button" data-testid="pocket-bazaar-reset">Start the whole stall over</button> <span class="note">Erases coins, upgrades and renown. It asks first.</span></div>
   </section>
-  <p id="toast" class="note toast" role="status" aria-live="polite"></p>
+  <p id="toast" class="note toast" role="status" aria-live="polite" title="Tap to dismiss"></p>
 
   <section id="stats" class="stat-strip" aria-label="This market day">
     <div class="stat"><span class="stat-label">Coins</span><span id="stat-coins" class="stat-value">0</span></div>
@@ -92,6 +105,9 @@
       </div>
       <p id="campaign-line" class="note campaign-line"></p>
       <p id="renown-line" class="note renown-line"></p>
+      <div id="goals" class="goals" aria-label="Next goals"><strong>Next goals</strong> <span class="note">(any order)</span>
+        <ul id="goals-list" class="goals-list"></ul></div>
+      <p id="front-line" class="note front-line"></p>
       <div id="festival-card" class="festival-card">
         <p class="festival-title"><span id="festival-label">Next festival</span>: <strong id="festival-name"></strong> <span id="festival-tone" class="chip"></span></p>
         <p id="festival-blurb" class="note"></p>
@@ -105,6 +121,9 @@
         <h3>Stall upgrades</h3>
         <p class="note">Bought once, kept for good, paid in coins you earned. None is needed to finish a day.</p>
         <ul id="shop-list" class="shop-list"></ul>
+        <h3>Decorations</h3>
+        <p class="note">Purely for show, bought with coins and never needed. One of each kind is out at a time.</p>
+        <div id="decor-list" class="decor-list"></div>
       </div>
     </div>
     <div id="open-area" hidden>
@@ -166,6 +185,7 @@
 <script src="../../shared/hub-auth.js"></script>
 <script src="../../shared/save-widget.js" data-game-id="pocket-bazaar"></script>
 <script src="../../shared/opening-screen.js" data-game-id="pocket-bazaar" data-game-name="Pocket Bazaar" data-tagline="A tiny market stall. Take your time: nothing here runs on a clock."></script>
+<script src="../../shared/story-toggle.js" data-game-id="pocket-bazaar" data-story-selectors=".msg-flavor, .regular-line"></script>
 <script src="../../shared/confirm-dialog.js"></script>
 <script src="app.js"></script>
 <script src="../../shared/last-played.js" data-game-id="pocket-bazaar"></script>
@@ -174,6 +194,8 @@
 <script>
   window.KeyboardShortcuts.init({
     panels: [
+      { toggle: "achievements-toggle-button", panel: "achievements-panel" },
+      { toggle: "regulars-toggle-button", panel: "regulars-panel" },
       { toggle: "changelog-toggle-button", panel: "changelog-panel" },
       { toggle: "settings-toggle-button", panel: "settings-panel" },
       { toggle: "info-page-toggle-button", panel: "info-page-panel" },

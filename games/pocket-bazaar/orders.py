@@ -9,6 +9,7 @@ Order matching: most customers take the tier asked for or any better one of the 
 exact tier; a Tourist takes any tier of the family (and pays by the tier handed over).
 """
 
+import regulars
 from goods import MAX_TIER, VALUE, crate_beats, good_label, good_name, is_wild
 
 NAMES = ("Tomas", "Ines", "Bao", "Lucia", "Oskar", "Priya", "Henrik", "Zainab", "Felix", "Noor", "Anselm", "Yuki",
@@ -36,8 +37,9 @@ TIP_PCT = 25                  # served with at least half the patience left
 
 
 class Customer:
-    def __init__(self, name, archetype, items, patience_max, patience_left=None, group=0):
+    def __init__(self, name, archetype, items, patience_max, patience_left=None, group=0, reg=""):
         self.group = group
+        self.reg = reg                            # the id of the named regular this customer is, if any
         self.name = name
         self.archetype = archetype
         self.items = items                        # list of [family, tier, done]
@@ -130,6 +132,8 @@ class Customer:
         data = {"name": self.name, "arch": self.archetype, "items": items, "max": self.max, "left": self.left}
         if self.group:
             data["grp"] = self.group
+        if self.reg:
+            data["reg"] = self.reg
         return data
 
     @classmethod
@@ -160,7 +164,10 @@ class Customer:
         group = data.get("grp", 0)
         if isinstance(group, bool) or not isinstance(group, int) or not 0 <= group <= 64:
             raise ValueError("bad group")
-        return cls(name, arch, items, patience_max, left, group)
+        reg = data.get("reg", "")
+        if reg != "" and reg not in regulars.IDS:
+            raise ValueError("bad regular")
+        return cls(name, arch, items, patience_max, left, group, reg)
 
 
 def patience_for(items, archetype, slack_pct):
