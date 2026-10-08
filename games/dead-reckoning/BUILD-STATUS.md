@@ -15,8 +15,10 @@ Updated after each milestone. A new agent should read `planning/dead-reckoning-p
 
 - Milestone 8 Practice generator: `gen.py`, practice actions in `game.py`, picker practice box, `tests/test_gen.py`.
 
+- Milestone 9 Standard kit: `info.py`, `changelog.json`, settings/about/changelog panels, tutorial, shortcuts, Copy result, accessibility tests.
+
 ## Next
-- Milestone 9 Standard kit (settings panel, changelog, about/info with sourced facts, tutorial, shortcuts, mobile polish, light theme and colourblind audits, keyboard help).
+- Milestone 10 Achievements (14), favicon check, Desktop boot (`pc-config.json`, `pc.html` via a scratch script calling `build("dead-reckoning", cfg)`, `pc.js`, `pc.css`), CLAUDE.md wrap-up, tag.
 
 ## Open problems
 - The shared `level-select.js` is not used (own picker instead). Ask the hub session whether to adopt it at registration time.

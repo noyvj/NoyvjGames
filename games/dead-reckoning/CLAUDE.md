@@ -39,7 +39,7 @@ You are a ship's navigator with only speed, heading and time. Plot a course acro
 | 6 | Fog, tides, compass error | Chapters 4 (fog, 4 charts), 5 (tides, 4) and 6 (compass error, 4) = 29 charts in all; unmarked hazards are drawn only once found (a close pass or grounding) and remembered per chart; lie at anchor (speed 0) to wait for a fair stream; tidal timetable in the chart's words; the compass error shown on the chart and in the plot; validators for fog, tide and compass charts | Done |
 | 7 | Two ships | DEFERRED (plan recommendation, FOR-YOU Dr2: later pass) | Deferred |
 | 8 | Practice generator | `gen.py`: seeded chart generator in five difficulties (open water; a stream; wind and land; tides and compass; fog and everything), built by rejection and SOLVED on the way (visibility-graph route, shot leg by leg under the true sea, waiting for a fair tide), share codes `DR<level>-<base36 seed>`, practice charts counted in a visible total; solvability fuzz in `tests/test_gen.py` | Done |
-| 9 | Standard kit | Not started | Not started |
+| 9 | Standard kit | Settings panel (text size, reduce motion, effects, high contrast, theme), What's New (`changelog.json`), About page (`info.py`: six facts, each reworded with its source named and the date read, plus the abstraction disclaimer), guided tutorial, keyboard help, Copy result, confirm dialogs, mobile dock and HUD, story toggle, light (paper chart) and dark (night chart) themes with computed contrast checks, colourblind and non-colour-cue checks | Done |
 | 10 | Achievements and own-folder wrap-up | Not started | Not started |
 
 ## Working conventions
@@ -67,3 +67,9 @@ You are a ship's navigator with only speed, heading and time. Plot a course acro
 - Acceptance (the same rules as the campaign): the generator's own par plan lands cleanly (not aground, not even a close pass), on time and with the deadline set from it; the printed midpoints followed carefully also make landfall. Gusts (a small repeatable wobble) exist on generated charts only.
 - Practice never touches the campaign records. Each practice chart sailed counts once toward the visible "Practice charts sailed" total (`meta.practice_seeds_played`, which Practice Makes uses); finishing one also feeds the smallest-final-error and longest-route bests. Found unmarked hazards are kept in the run (`run.found`), and the par plan can be shown after a first attempt.
 - Fuzz: `DR_FUZZ=<n> python3 -m pytest games/dead-reckoning/tests/test_gen.py` sets the charts per difficulty (default 30; measured 0 failures in 300 per difficulty; the plan's 5,000 would take the better part of an hour on this machine).
+
+## Standard kit (milestone 9)
+- Display settings live in `settings.js` (per device, never in the save). The page follows the system's reduced-motion and theme choices until the player picks.
+- The About page facts (`info.py`) were each read live on 2026-10-09 from the page named (Wikipedia: Dead reckoning, Nautical mile, Chip log, Leeway, Magnetic declination, Marine chronometer) and reworded. The figures kept are the 1,852 metre nautical mile and the 1929 conference; the game says plainly it is an abstraction. No celestial navigation is simulated (FOR-YOU Dr3).
+- Accessibility checks are in `tests/test_accessibility.py`: AA contrast for every text pair and 3:1 for lines in both themes, dash and hatch cues, labels, live regions, the chart's text twin, and the standard shared includes.
+- Site feedback and rating live on the hub; the game page has no feedback form of its own.

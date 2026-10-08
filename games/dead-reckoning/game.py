@@ -32,6 +32,7 @@ import json
 import charts
 import fixes
 import gen
+import info
 import progress
 import render
 import sim
@@ -211,6 +212,7 @@ def _view():
     view["progress"] = _progress()
     view["practice_levels"] = [{"difficulty": d, "name": gen.NAMES[d]} for d in gen.DIFFICULTIES]
     view["note"] = note
+    view["info"] = info.view()
     return view
 
 

@@ -1,0 +1,8 @@
+{
+  "changelog": [
+    {
+      "date": "2026-10-09",
+      "entry": "Dead Reckoning is new: a navigation puzzle. You know only your speed, heading and time. Plot a course across a chart with streams, wind, hazards, tides and a compass that reads wrong, sail it, and see how far the truth drifted from your estimate. Twenty-nine charts in six chapters (open water, wind and leeway, fixes and landmarks, fog, tides, compass error), a Watch-by-watch mode where you take bearings off landmarks, an endless practice mode with shareable codes, the par plan after your first try, and an About page that names where its real-world ideas come from."
+    }
+  ]
+}

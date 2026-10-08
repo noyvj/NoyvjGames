@@ -3,7 +3,7 @@
    into chart coordinates, and pacing the playback of a track the engine already computed. */
 (function () {
   "use strict";
-  var ENGINE_MODULES = ["geom.py", "sim.py", "chartkit.py", "charts_open.py", "charts_wind.py", "charts_fixes.py", "charts_fog.py", "charts_tides.py", "charts_compass.py", "gen.py", "pars.py", "charts.py", "render.py", "solver.py", "state.py", "progress.py", "fixes.py"];
+  var ENGINE_MODULES = ["geom.py", "sim.py", "chartkit.py", "charts_open.py", "charts_wind.py", "charts_fixes.py", "charts_fog.py", "charts_tides.py", "charts_compass.py", "gen.py", "info.py", "pars.py", "charts.py", "render.py", "solver.py", "state.py", "progress.py", "fixes.py"];
   var STORE_KEY = "dead-reckoning:state";
 
   var $ = function (id) { return document.getElementById(id); };
@@ -472,9 +472,86 @@
     } else if (playback.finished) renderResultExtras();
   }
 
+  // ---- about, what's new ---------------------------------------------------------------------------
+  function renderInfo() {
+    var info = view.info;
+    if (!info || $("info-page-sources").dataset.drawn) return;
+    $("info-page-sources").dataset.drawn = "1";
+    $("info-page-framing").textContent = info.framing;
+    var list = $("info-page-sources");
+    list.textContent = "";
+    info.facts.forEach(function (fact) {
+      var item = el("li", undefined, "info-page-source");
+      item.appendChild(el("strong", fact.heading));
+      item.appendChild(el("p", fact.fact, "info-page-framing"));
+      item.appendChild(el("p", fact.tie_in, "info-page-tie-in"));
+      var link = el("a", fact.source.title);
+      link.href = fact.source.url;
+      link.target = "_blank";
+      link.rel = "noopener noreferrer";
+      var src = el("p", undefined, "info-page-source-note");
+      src.appendChild(document.createTextNode("Source: "));
+      src.appendChild(link);
+      src.appendChild(document.createTextNode(", " + fact.source.publisher + ". Read on " + fact.source.date_read + "."));
+      item.appendChild(src);
+      list.appendChild(item);
+    });
+  }
+
+  // The page sets window.CHANGELOG_JSON (the raw text of changelog.json) for shared/whats-new-banner.js, which shows a returning
+  // player only what they have not seen; the panel below shows the whole history.
+  function renderChangelog(entries) {
+    var holder = $("changelog-entries");
+    holder.textContent = "";
+    entries.forEach(function (entry) {
+      var row = el("article", undefined, "changelog-entry");
+      row.appendChild(el("div", entry.date, "changelog-date"));
+      row.appendChild(el("p", entry.entry, "changelog-text"));
+      holder.appendChild(row);
+    });
+    $("changelog-toggle-button").textContent = "What's New (" + entries.length + ")";
+  }
+  function loadChangelog() {
+    return fetch("changelog.json").then(function (r) { return r.text(); }).then(function (text) {
+      window.CHANGELOG_JSON = text;
+      var data = JSON.parse(text);
+      var list = Array.isArray(data) ? data : (data && data.changelog) || [];
+      renderChangelog(list.slice().sort(function (a, b) { return a.date < b.date ? 1 : -1; }));
+    }).catch(function () { renderChangelog([]); });
+  }
+
+  var TUTORIAL_STEPS = [
+    { title: "Welcome, navigator", text: "You know your speed, your heading and the time, and nothing else about where the ship is. Plot a course, sail it, then see how far the sea moved you from your estimate. Skip any time and reopen this from the Tutorial button." },
+    { selector: "#chart-goal", title: "The goal", text: "Reach the flag, within its ring, before the deadline. The deadline is in hours of sailing, never real time: nothing here is timed." },
+    { selector: "#chart-holder", title: "The chart", text: "Hazards are hatched or dotted shapes with names. A stream is a dashed zone with an arrow and a range in knots; the truth lies somewhere in the range. Tap the chart to mark a point for the ruler." },
+    { selector: "#planner-panel", title: "Your plan", text: "A plan is a list of legs: a heading in degrees, a speed in knots and a time in hours. The dashed line on the chart is your plot of where you think each leg takes you." },
+    { selector: "#allow-checkbox", title: "Allow for the chart", text: "With this on, your plot adds the middle of every range the chart prints (streams, wind, compass error). Off, it is plain dead reckoning: heading, speed and time only." },
+    { selector: "#naive-flag-button", title: "Helpers", text: "Steering straight at the flag ignores every current: a starting guess, not the answer. A second helper that allows for the chart unlocks after you clear three charts." },
+    { selector: "#sail-button", title: "Sail", text: "Sail shows the real track as a solid line, with the gap to your plot marked each hour, and tells you exactly how the stars were earned. You may retry with the same plan and tune it." },
+    { selector: "#picker-toggle-button", title: "Charts and practice", text: "Six chapters of charts, and a practice mode that makes a fresh chart on demand. A chapter opens once you have cleared four charts of the one before." },
+    { selector: "#info-page-toggle-button", title: "About", text: "The real ideas behind the game, each with its source named. The game itself is a simplified game, not a simulator." },
+    { title: "You are ready", text: "Fair weather. Take your time." },
+  ];
+
+  function mountCopyResult() {
+    if (!window.NoyvjCopyResult || !$("result-copy")) return;
+    window.NoyvjCopyResult.mountButton("#result-copy", {
+      getResult: function () {
+        var r = view && view.reveal;
+        if (!r) return {};
+        return {
+          game: "Dead Reckoning",
+          score: r.stars_text + " on " + view.chart.name,
+          stats: [fmt(r.miss_nm) + " nm from the flag", view.progress.cleared + " of " + view.progress.total + " charts cleared"]
+        };
+      }
+    });
+  }
+
   // ---- render --------------------------------------------------------------------------------------
   function render() {
     renderChart();
+    renderInfo();
     renderPicker();
     renderPractice();
     renderLog();
@@ -565,6 +642,10 @@
     guard("use-par-button", function () { selected = 0; send({ action: "use_par" }); });
     wirePanelToggle("picker-toggle-button", "picker-panel");
     wirePanelToggle("log-toggle-button", "log-panel");
+    wirePanelToggle("info-page-toggle-button", "info-page-panel");
+    wirePanelToggle("changelog-toggle-button", "changelog-panel");
+    wirePanelToggle("achievements-toggle-button", "achievements-panel");
+    mountCopyResult();
     guard("retry-button", function () { send({ action: "retry" }); });
     guard("redo-button", function () { send({ action: "restart" }); });
     document.addEventListener("keydown", onKey);
@@ -591,6 +672,7 @@
 
   async function boot() {
     setBusy(true);
+    var changelog = loadChangelog();     // the panel and the what's-new banner do not need the engine
     var pyodide = await window.loadPyodide();
     for (var i = 0; i < ENGINE_MODULES.length; i++) {
       var source = await (await fetch(ENGINE_MODULES[i])).text();
@@ -608,6 +690,8 @@
     send({ action: "open" });
     if (window.MobileHud) window.MobileHud.init([{ selector: "#total-hours", label: "Hours" }, { selector: "#total-legs", label: "Legs" }]);
     if (window.MobileDock) window.MobileDock.init("#sail-dock");
+    await changelog;
+    if (window.GameTutorial) window.GameTutorial.init(TUTORIAL_STEPS, { gameId: "dead-reckoning" });
   }
 
   wire();
