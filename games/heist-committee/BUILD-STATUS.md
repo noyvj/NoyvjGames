@@ -1,14 +1,13 @@
 # Heist Committee build status (handoff file)
 
-Last updated: Milestone 2.
+Last updated: Milestone 3. The user answered He1-He3: yes to all recommendations (cozy caper tone, Daily Job later, invented crew names). planning/PLAYER-PROFILE.md read: no hard-lose states, no timers, predictable and retry-friendly, optional leaderboards, dark/moody look, three visible goals, short wins.
 
 ## Done
-- M1 Engine core (engine.py, content.py, content/*.json, harness.py, bots.py).
-- M2 Plan UI: index.html, style.css, settings.js, app.js (board, scout, recruit), plan.js (timeline, tray, tap/drag/keyboard placement, inspector, live checks), game.py (handle, get_state/load_state), planops.py, plancheck.py, favicon. Verified live at 1440 and 360 wide, light and dark, tap, drag and keyboard.
+- M1 Engine core. M2 Plan UI.
+- M3 Playback + payout: game.py start_heist/step/skip/finish/retry, writeup.py + content/writeups.json, play.js (beat-by-beat log with why-lines, optional auto-advance, payout screen with chain diagram, retry pays only the improvement). Verified live at 1440 and 360.
 
 ## Next
-- M3 Playback + payout (start_heist, playback view, writeups.json, play.js).
+- M4 Launch content: casino barge + cheese vault targets, more complications (20+ total), gear, contract board with several targets.
 
 ## Open problems
-- Start Heist button sends start_heist, which the engine does not know yet (M3).
 - Mobile dock for the tray is wired in M6.

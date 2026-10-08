@@ -656,7 +656,8 @@ class Sim:
             slot["outcome"] = "sidelined"
             slot["done"] = True
             self.add("action", "%s could not do %s: out of action." % (self.name(lane), action["name"]), lane=lane,
-                     outcome="fail", action=action["id"], icon=action["icon"], why="Sidelined during this job.")
+                     outcome="fail", action=action["id"], icon=action["icon"], why="Sidelined during this job.",
+                     extra={"start": slot["start"]})
             return
         r = roll(self.seed, slot["start"], lane, "act")
         outcome = outcome_for(margin, r)
@@ -720,7 +721,7 @@ class Sim:
         if outcome == "crit" and self.suspicion > 0:
             heat -= 1
         idx = self.add("action", text, lane=lane, why=why, tags=emits, outcome=outcome, action=action["id"],
-                       icon=action["icon"], cause=cause)
+                       icon=action["icon"], cause=cause, extra={"start": slot["start"]})
         slot["event"] = idx
         self.suspicion = max(0, self.suspicion + heat)
         if action.get("removes_success") and outcome in ("success", "crit", "partial"):
@@ -766,7 +767,7 @@ class Sim:
             self.done.setdefault("_outcome_" + req["id"], outcome)
             if req.get("value", 0) > 0:
                 self.done["_grabbed"] = True
-            self.add("goal", "Done: %s." % req["label"], lane=slot["lane"], icon="★", action=action["id"],
+            self.add("goal", "%s." % req["label"], lane=slot["lane"], icon="★", action=action["id"],
                      why="Needed %s in beats %d to %d." % (action["name"], lo, hi), extra={"req": req["id"]})
             break
 
@@ -784,7 +785,7 @@ class Sim:
                 continue
             if slot["lost"]:
                 self.add("action", "%s cannot keep watch: out of action." % self.name(lane), lane=lane, outcome="fail",
-                         action=slot["action"]["id"], icon=slot["action"]["icon"])
+                         action=slot["action"]["id"], icon=slot["action"]["icon"], extra={"start": slot["start"]})
                 continue
             outcome = outcome_for(margin, roll(self.seed, b, lane, "act"))
             if outcome == "fail" and self.rerolls_left[lane] > 0:
@@ -793,7 +794,8 @@ class Sim:
             text = self.fmt(slot["action"]["lines"][outcome], crew=self.name(lane))
             provides = slot["action"].get("provides", []) if outcome != "fail" else []
             idx = self.add("support", text, lane=lane, why=self.why_text(parts, margin), outcome=outcome,
-                           action=slot["action"]["id"], tags=provides, icon=slot["action"]["icon"])
+                           action=slot["action"]["id"], tags=provides, icon=slot["action"]["icon"],
+                           extra={"start": slot["start"]})
             if outcome == "fail":
                 for tag in slot["action"].get("provides", []):
                     self.src["_missing_" + tag] = idx

@@ -17,6 +17,7 @@ Requests carry `"action"`:
   take_job {target} | scout {level} | to_recruit | hire {crew} | background {crew} | gear {gear}
   confirm_crew | place {lane, beat, cell} | clear {lane, beat} | move_lane {lane, dir} | clear_plan
   undo | redo | move_cell {lane, beat, to_lane, to_beat} | abandon | back_to_board
+  start_heist | step | skip | finish | retry
 """
 
 import json
@@ -26,6 +27,7 @@ import content as content_mod
 import engine
 import plancheck
 import planops
+import writeup
 from engine import LANES
 
 C = content_mod.load()
@@ -40,7 +42,8 @@ UNDO_LIMIT = 60
 
 
 def _default_meta():
-    return {"jobs_done": 0, "known_quirks": [], "seen_complications": [], "seen_traits": []}
+    return {"jobs_done": 0, "known_quirks": [], "seen_complications": [], "seen_traits": [],
+            "best": {"cash_single_job": 0, "chain_links": 0}}
 
 
 class Career:
@@ -136,7 +139,7 @@ def _fees(job):
 def _new_job(target_id):
     career.jobs_started += 1
     job = {"phase": "scout", "target": target_id, "seed": _job_seed(), "scout": 0, "offer": [], "crew": [],
-           "gear": [], "plan": None, "attempt": 0, "paid": False}
+           "gear": [], "plan": None, "attempt": 0, "paid": False, "cursor": 0, "best_net": 0, "counted": False}
     return job
 
 
@@ -144,6 +147,36 @@ def _snapshot_undo():
     _undo.append(json.dumps(career.job["plan"]))
     del _undo[:-UNDO_LIMIT]
     del _redo[:]
+
+
+_result_cache = {}
+
+
+def _run(job):
+    """The whole heist for this job (a pure function of the job's inputs, cached)."""
+    key = json.dumps([job["target"], job["crew"], job["plan"], job["gear"], job["seed"], _fees(job)], sort_keys=True)
+    if key not in _result_cache:
+        if len(_result_cache) > 8:
+            _result_cache.clear()
+        _result_cache[key] = engine.simulate(C, job["target"], job["crew"], job["plan"], job["gear"], job["seed"],
+                                             _relations(), _fees(job))
+    return _result_cache[key]
+
+
+def _learn(job):
+    """What the player has now seen: complications, traits and quirks that showed up in the revealed beats."""
+    result = _run(job)
+    meta = career.meta
+    for ev in result["events"]:
+        if ev["beat"] >= job["cursor"]:
+            break
+        if ev["comp"] and ev["comp"] not in meta["seen_complications"]:
+            meta["seen_complications"].append(ev["comp"])
+        if ev["trait"]:
+            if ev["trait"] not in meta["seen_traits"]:
+                meta["seen_traits"].append(ev["trait"])
+            if ev["crew"] and C.crew[ev["crew"]]["quirk"] == ev["trait"] and ev["crew"] not in meta["known_quirks"]:
+                meta["known_quirks"].append(ev["crew"])
 
 
 # --- views --------------------------------------------------------------------------------------
@@ -227,6 +260,48 @@ def _plan_view(job):
     }
 
 
+def _event_view(ev):
+    return {"i": ev["i"], "beat": ev["beat"], "type": ev["type"], "text": ev["text"], "why": ev["why"],
+            "flavor": ev["flavor"], "icon": ev["icon"], "outcome": ev["outcome"], "lane": ev["lane"], "crew": ev["crew"],
+            "cause": ev["cause"], "tags": ev["tags"], "note": ev.get("note", ""), "req": ev.get("req")}
+
+
+def _playback_view(job):
+    result = _run(job)
+    n = len(C.targets[job["target"]]["beats"])
+    cursor = job["cursor"]
+    words = C.lines["outcome_words"]
+    icons = {"crit": "★", "success": "✓", "partial": "~", "fail": "✗", "sidelined": "✗"}
+    events = [_event_view(e) for e in result["events"] if e["beat"] < cursor]
+    results = {}
+    for e in result["events"]:
+        if e["beat"] >= cursor:
+            break
+        if e["type"] in ("action", "support") and e.get("start") is not None and e["lane"] is not None:
+            outcome = e["outcome"] or "success"
+            results["%d:%d" % (e["lane"], e["start"])] = {
+                "outcome": outcome, "icon": icons.get(outcome, "·"), "label": words.get(outcome, outcome),
+                "shake": outcome == "fail" and e["beat"] == cursor - 1}
+    return {"cursor": cursor, "n": n, "done": cursor >= n, "events": events, "results": results,
+            "beat_name": C.targets[job["target"]]["beats"][cursor - 1]["name"] if cursor else "",
+            "attempt": job.get("attempt", 1)}
+
+
+def _payout_view(job):
+    result = _run(job)
+    out = result["outcome"]
+    wr = writeup.build(C, job["target"], result, job["crew"], job["seed"])
+    gross_raw = out["loot"] + out["souvenirs"]
+    return {"title": wr["title"], "writeup": wr["text"], "chain": wr["chain"], "cls": wr["cls"],
+            "loot": out["loot"], "souvenirs": out["souvenirs"], "heat": out["heat"],
+            "heat_cost": gross_raw - out["gross"], "damages": out["damages"], "bonuses": out["bonuses"],
+            "net": out["net"], "completed": out["completed"], "missed": out["missed"], "escaped": out["escaped"],
+            "stranded": out["stranded"], "chain_links": out["chain_links"], "absorbed": out["absorbed"],
+            "sidelined": [C.crew[c]["short"] for c in out["sidelined"]], "alarm": out["alarm"],
+            "credited": job.get("credited", 0), "best_net": job.get("best_net", 0), "attempt": job.get("attempt", 1),
+            "consolation": C.targets[job["target"]]["consolation"]}
+
+
 def _scout_view(job):
     target = C.targets[job["target"]]
     known = _known_complications(job)
@@ -276,6 +351,10 @@ def _view(note=None):
         view["crew"] = [_crew_card(cid, known) for cid in job["crew"]]
         view["tray"] = _tray()
         view["plan"] = _plan_view(job)
+    if phase in ("playback", "payout"):
+        view["playback"] = _playback_view(job)
+    if phase == "payout":
+        view["payout"] = _payout_view(job)
     return view
 
 
@@ -332,13 +411,62 @@ def _dispatch(request):
         career.job = None
         del _undo[:], _redo[:]
         note = "Job abandoned. The crew fees are gone."
+    elif action in ("start_heist", "step", "skip", "finish", "retry"):
+        note = _do_playback(job, action)
     elif action == "back_to_board":
-        if job["phase"] in ("scout", "recruit"):
+        if job["phase"] in ("scout", "recruit", "payout"):
             career.job = None
             del _undo[:], _redo[:]
     else:
         return {"error": "unknown action %r" % action, "view": _view()}
     return {"view": _view(note), "ok": not note or note.startswith("Job abandoned")}
+
+
+def _do_playback(job, action):
+    n = _n_beats()
+    if action == "start_heist":
+        if job["phase"] != "plan":
+            return ""
+        job["phase"] = "playback"
+        job["cursor"] = 0
+        job["attempt"] = job.get("attempt", 0) + 1
+        del _undo[:], _redo[:]
+    elif action == "step":
+        if job["phase"] == "playback" and job["cursor"] < n:
+            job["cursor"] += 1
+            _learn(job)
+    elif action == "skip":
+        if job["phase"] == "playback":
+            job["cursor"] = n
+            _learn(job)
+    elif action == "finish":
+        if job["phase"] == "playback" and job["cursor"] >= n:
+            _finish(job)
+    elif action == "retry":
+        if job["phase"] == "payout":
+            job["phase"] = "plan"
+            job["cursor"] = 0
+            job.pop("credited", None)
+    return ""
+
+
+def _finish(job):
+    result = _run(job)
+    out = result["outcome"]
+    net = out["net"]
+    credited = max(0, net - job.get("best_net", 0))
+    job["credited"] = credited
+    job["best_net"] = max(job.get("best_net", 0), net)
+    career.cash += credited
+    meta = career.meta
+    if not job.get("counted"):
+        job["counted"] = True
+        meta["jobs_done"] += 1
+    meta["best"]["cash_single_job"] = max(meta["best"]["cash_single_job"], net)
+    meta["best"]["chain_links"] = max(meta["best"]["chain_links"], out["chain_links"])
+    job["cursor"] = len(C.targets[job["target"]]["beats"])
+    _learn(job)
+    job["phase"] = "payout"
 
 
 def _do_scout(job, request):
@@ -473,7 +601,7 @@ def get_state():
         data["cash"] = career.cash
     if career.jobs_started:
         data["jobs_started"] = career.jobs_started
-    meta = {k: v for k, v in career.meta.items() if v != _default_meta()[k]}
+    meta = json.loads(json.dumps({k: v for k, v in career.meta.items() if v != _default_meta()[k]}))
     if meta:
         data["meta"] = meta
     if career.job:
@@ -499,7 +627,11 @@ def _clean_job(raw):
     n = len(C.targets[tid]["beats"])
     job = {"phase": phase, "target": tid, "seed": _int(raw.get("seed"), 0, 2147483647, 1),
            "scout": _int(raw.get("scout"), 0, len(_scout_levels(C.targets[tid])) - 1, 0),
-           "attempt": _int(raw.get("attempt"), 0, 999, 0), "paid": bool(raw.get("paid"))}
+           "attempt": _int(raw.get("attempt"), 0, 999, 0), "paid": bool(raw.get("paid")),
+           "best_net": _int(raw.get("best_net"), 0, 10 ** 7, 0), "counted": bool(raw.get("counted")),
+           "cursor": _int(raw.get("cursor"), 0, n, 0)}
+    if raw.get("credited") is not None:
+        job["credited"] = _int(raw.get("credited"), 0, 10 ** 7, 0)
     job["offer"] = _clean_ids(raw.get("offer"), set(C.crew), OFFER_SIZE)
     job["crew"] = _clean_ids(raw.get("crew"), set(job["offer"]), LANES)
     job["gear"] = _clean_ids(raw.get("gear"), set(C.gear), MAX_GEAR)
@@ -527,6 +659,9 @@ def load_state(data):
     fresh.meta["known_quirks"] = _clean_ids(meta.get("known_quirks"), set(C.crew), len(C.crew))
     fresh.meta["seen_complications"] = _clean_ids(meta.get("seen_complications"), set(C.complications), len(C.complications))
     fresh.meta["seen_traits"] = _clean_ids(meta.get("seen_traits"), set(C.traits), len(C.traits))
+    best = meta.get("best") if isinstance(meta.get("best"), dict) else {}
+    fresh.meta["best"] = {"cash_single_job": _int(best.get("cash_single_job"), 0, 10 ** 7, 0),
+                          "chain_links": _int(best.get("chain_links"), 0, 99, 0)}
     fresh.job = _clean_job(data.get("job"))
     career = fresh
     del _undo[:], _redo[:]

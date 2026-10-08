@@ -3,7 +3,7 @@
    Shared pieces live on window.HC so plan.js (the timeline) and play.js (playback and payout) can use them. */
 (function () {
   "use strict";
-  var ENGINE_MODULES = ["content.py", "engine.py", "plancheck.py", "planops.py"];
+  var ENGINE_MODULES = ["content.py", "engine.py", "plancheck.py", "planops.py", "writeup.py"];
   var CONTENT_FILES = ["tags", "actions", "traits", "crew", "gear", "complications", "targets", "lines", "writeups"];
   var STORE_KEY = "heist-committee:state";
   var PHASES = ["board", "scout", "recruit", "plan", "playback", "payout"];

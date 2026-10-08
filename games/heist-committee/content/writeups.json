@@ -1,0 +1,76 @@
+{
+  "titles": {
+    "chain": [
+      "The {short_title} Domino Incident",
+      "How One Sneeze Took Down {short_title}",
+      "The {short_title} Chain of Events"
+    ],
+    "stranded": [
+      "The Long Walk Home from {short_title}",
+      "No Van, No Problem (Yes Problem)"
+    ],
+    "bust": [
+      "The Case of the Empty Pockets",
+      "Nothing Happened at {short_title}, Loudly"
+    ]
+  },
+  "openers": {
+    "clean": [
+      "The committee walked into {target} and walked out again with the prize, which is exactly the plan on the whiteboard.",
+      "{crew_a} said it would be easy. For once, {crew_a} was right.",
+      "Nobody at {target} noticed a thing, which the committee found slightly insulting."
+    ],
+    "loud": [
+      "The job at {target} got the prize, but it was not quiet about it.",
+      "{target} will remember this night. The alarm certainly will.",
+      "The committee did get the prize from {target}, along with a few bruises and one very sour guard."
+    ],
+    "stranded": [
+      "The committee got the prize out of {target} and then discovered that nobody had planned the getaway.",
+      "{target} was a success right up until the part where the van was supposed to be there."
+    ],
+    "bust": [
+      "The committee went into {target} with a plan, a van and high hopes. Only the van came back with anything in it.",
+      "{target} sent the committee home empty-handed and mildly embarrassed."
+    ]
+  },
+  "starts": [
+    "It all started here: \"{first}.\"",
+    "The trouble began with this: \"{first}.\"",
+    "Everyone agrees it started when \"{first}.\""
+  ],
+  "chain": [
+    "From there, {n} things went wrong in a row, each caused by the last.",
+    "That set off a chain of {n} events, like a very small, very silly avalanche.",
+    "After that, {n} problems fell over one after another."
+  ],
+  "no_chain": [
+    "Nothing cascaded. Each problem was a one-off, which the committee considers practically a triumph.",
+    "No single thing led to another, so the post-mortem was short."
+  ],
+  "absorbed": [
+    "{names} quietly handled {n} before anyone noticed.",
+    "Thanks to {names}, {n} never became a problem."
+  ],
+  "souvenir": [
+    "{crew} walked out with a souvenir. Nobody asked for it."
+  ],
+  "closers": {
+    "clean": [
+      "Take the money, say nothing, and perhaps a biscuit.",
+      "The committee adjourned for cake."
+    ],
+    "loud": [
+      "The meeting minutes record only one word, and it is not printable.",
+      "A committee sub-group has been formed to discuss the alarm."
+    ],
+    "stranded": [
+      "The walk home was long. The committee used it for a heartfelt discussion about vans.",
+      "Next time, someone writes 'Drive' on the whiteboard."
+    ],
+    "bust": [
+      "The committee has agreed to try again, with more planning and fewer sandwiches.",
+      "It has been noted that the prize is still there."
+    ]
+  }
+}

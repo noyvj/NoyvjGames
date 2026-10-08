@@ -21,7 +21,7 @@ Python via Pyodide, plain HTML/CSS, no build step. `engine.py` is the heist reso
 |---|-----------|--------|
 | 1 | Engine core | Done |
 | 2 | Plan UI | Done |
-| 3 | Playback + payout | Not started |
+| 3 | Playback + payout | Done |
 | 4 | Launch content | Not started |
 | 5 | Career and meta | Not started |
 | 6 | Standard kit | Not started |
