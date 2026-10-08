@@ -116,6 +116,12 @@
       <p id="settings-keys-status" class="settings-status" role="status"></p>
     </section>
 
+    <section class="hub-card" id="offline" aria-labelledby="settings-offline-h">
+      <h2 id="settings-offline-h">Games stored for offline use</h2>
+      <p class="hub-note" style="margin-top:0">Download a game from its card on the hub (Show details, then Download for offline) and it keeps working without a connection, including its Python runtime. Each game's files and the shared runtime are listed with their size here, and you can remove any of them. Pages the app keeps anyway are never removed, and the shared runtime stays while another downloaded game needs it. A site update can clear downloads: the card then says it needs downloading again.</p>
+      <div id="settings-offline-list"><p class="hub-note">Checking what is stored&hellip;</p></div>
+    </section>
+
     <section class="hub-card" aria-labelledby="settings-data-h">
       <h2 id="settings-data-h">Your data on this device</h2>
       <p id="settings-data-summary" style="margin-top:0"></p>
@@ -128,7 +134,7 @@
         <span class="settings-label">Delete the offline copy of the site</span>
         <button type="button" class="secondary" id="settings-clear-cache">Clear offline cache</button>
       </div>
-      <p class="hub-note">Only removes the stored copies of pages and the Python runtime; your settings and saves stay. Games will need a connection again until you have reopened them.</p>
+      <p class="hub-note">Only removes the stored copies of pages and the Python runtime (this includes games you downloaded for offline use); your settings and saves stay. Games will need a connection again until you have reopened them.</p>
       <p id="settings-data-status" class="settings-status" role="status"></p>
     </section>
 
@@ -191,6 +197,7 @@
 
   <script src="hub-games.js"></script>
   <script src="hub-shortcuts.js"></script>
+  <script src="hub-offline.js"></script>
   <script src="settings.js"></script>
 </body>
 </html>

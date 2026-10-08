@@ -317,6 +317,13 @@ allTitleCards.forEach((card) => {
     refreshCardDetailToggles();
   });
   card.insertBefore(button, widget);
+  // Y-9 / Y-18: the per-card offline download and collections controls (hub-offline.js,
+  // hub-collections.js) live in this row, shown with the other card details.
+  if (!card.querySelector(".title-card-actions")) {
+    const actions = document.createElement("div");
+    actions.className = "title-card-actions";
+    card.insertBefore(actions, button);
+  }
 });
 
 const filterBarForCards = document.getElementById("game-filter-bar");
@@ -460,6 +467,8 @@ function applyGameFilter() {
   const query = gameSearchInput.value.trim().toLowerCase();
   const tag = gameTagFilter.value;
   const sessionWanted = gameSessions && gameSessionFilter ? gameSessionFilter.value : "";
+  const collectionSelect = document.getElementById("game-collection-filter");
+  const collectionWanted = collectionSelect ? collectionSelect.value : "";
   let visibleCount = 0;
   allTitleCards.forEach((card) => {
     const tags = (card.dataset.tags || "").split(/\s+/);
@@ -467,12 +476,17 @@ function applyGameFilter() {
     const inBase = !query || cardBaseText(card).includes(query);
     const inExtra = !!query && !inBase && (extraSearchText.get(card) || "").includes(query);
     const matchesSession = !sessionWanted || cardSession(card) === sessionWanted;
-    const visible = matchesTag && matchesSession && (inBase || inExtra);
+    // Y-18: personal collections (hub-collections.js); no collection chosen = every game.
+    const matchesCollection = !collectionWanted || (window.HubCollections ? window.HubCollections.includes(collectionWanted, cardSlug(card)) : true);
+    const visible = matchesTag && matchesSession && matchesCollection && (inBase || inExtra);
     card.hidden = !visible;
     const note = card.querySelector(".title-card-match-note");
     if (note) note.hidden = !(visible && inExtra);
     if (visible) visibleCount += 1;
   });
+  gameFilterEmpty.textContent = collectionWanted
+    ? "No games in this collection match your search and filters. Add games from a card's Show details."
+    : "No games match your search.";
   gameFilterEmpty.hidden = visibleCount > 0;
 }
 
@@ -1125,6 +1139,10 @@ async function loadContinuePlaying() {
   }
 }
 
+// Y-5: per-game earned/total for the signed-in account, filled in by loadAchievementsDashboard()
+// and read by hub-foryou.js ("because you finished ...").
+const hubAchievementProgress = {};
+
 async function loadAchievementsDashboard() {
   const token = signedInToken();
   const gameIds = await loadAchievementGameIds();
@@ -1183,6 +1201,7 @@ async function loadAchievementsDashboard() {
           ? save.save_data.achievements_earned
           : [];
       const earned = Math.min(earnedList.length, total);
+      hubAchievementProgress[gameId] = { earned, total };
 
       renderProgressBar(
         perGameDetails,
@@ -1210,6 +1229,7 @@ async function loadAchievementsDashboard() {
     accountAchievementsDashboard.appendChild(divider);
     renderProgressBar(accountAchievementsDashboard, "All games", totalEarned, totalPossible, "achievements.html");
 
+    window.dispatchEvent(new CustomEvent("hub-achievements-progress"));
     perGameSummary.textContent = `Per-game breakdown (${gamesRendered} games)`;
     accountAchievementsDashboard.appendChild(perGameDetails);
   } catch (err) {
@@ -2141,6 +2161,22 @@ function initPageviewCounter() {
   }
 }
 initPageviewCounter();
+
+// The small surface the hub-*.js helper scripts (loaded after this file) use, so they do not depend on
+// this file's private names. pickRecommendedGame / isNewPlayer are the Z13/Z19 onboarding code.
+window.HubLobby = {
+  cards: allTitleCards,
+  slugOf: cardSlug,
+  nameOf: (card) => (card.querySelector(".title-card-name")?.textContent || "").trim(),
+  hrefOf: (card) => card.querySelector(".title-card-link")?.getAttribute("href") || "",
+  pickRecommendedGame,
+  isNewPlayer,
+  onboardingAnswers: loadOnboardingAnswers,
+  playedSlugs,
+  achievementProgress: hubAchievementProgress,
+  applyFilter: applyGameFilter,
+  sessionOf: cardSession,
+};
 
 // A page restored from the browser's back/forward cache (e.g. Back from a
 // game, or a tab re-shown) keeps its old DOM and never re-runs any of the

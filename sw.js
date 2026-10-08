@@ -2,7 +2,7 @@
 // the precache list; ordinary content deploys don't need it, because
 // same-origin requests are network-first (see the fetch handler below) and
 // so always pick up fresh files whenever the player is online.
-const SW_VERSION = 40;
+const SW_VERSION = 41;
 const CACHE_NAME = "site-cache-v" + SW_VERSION;
 // How long a same-origin network request may take before we give up and
 // serve the cached copy instead (a slow/flaky connection shouldn't hang).
@@ -34,6 +34,13 @@ const PRECACHE_URLS = [
   "./game-sessions.json",
   "./terms-meta.json",
   "./whats-new-data.js",
+  "./hub-today.js",
+  "./hub-foryou.js",
+  "./hub-collections.js",
+  "./hub-offline.js",
+  "./hub-shell.js",
+  "./today.json",
+  "./offline-manifest.json",
   "./events.html",
   "./events.json",
   "shared/hub-auth.js",
@@ -46,6 +53,8 @@ const PRECACHE_URLS = [
   "shared/info_page.py",
   "shared/info-page.css",
   // Site-wide shared includes (Z-19/21/23/24/25/29/31): in every game page and the hub's.
+  "shared/seasonal-events.js",
+  "shared/seasonal-dates.json",
   "shared/seed.js",
   "shared/seed.py",
   "shared/copy-result.js",
@@ -202,9 +211,29 @@ self.addEventListener("install", (event) => {
 self.addEventListener("activate", (event) => {
   event.waitUntil(
     caches.keys()
-      .then((keys) =>
-        Promise.all(keys.filter((key) => key !== CACHE_NAME).map((key) => caches.delete(key)))
-      )
+      .then((keys) => {
+        // A version bump creates a new cache, which used to throw away everything the player had
+        // chosen to "Download for offline" (those files sit in the live site-cache-v<N>). Carry the
+        // newest older cache's entries over first, skipping anything the new install already holds,
+        // so downloaded games survive an update.
+        const older = keys
+          .filter((key) => key !== CACHE_NAME && /^site-cache-v\d+$/.test(key))
+          .sort((a, b) => Number(b.slice(12)) - Number(a.slice(12)));
+        const carry = older.length
+          ? Promise.all([caches.open(older[0]), caches.open(CACHE_NAME)]).then(([from, into]) =>
+              from.keys().then((requests) =>
+                Promise.all(requests.map((request) =>
+                  into.match(request).then((have) =>
+                    have ? null : from.match(request).then((response) => response && into.put(request, response))
+                  )
+                ))
+              )
+            ).catch(() => null)
+          : Promise.resolve();
+        return carry.then(() =>
+          Promise.all(keys.filter((key) => key !== CACHE_NAME).map((key) => caches.delete(key)))
+        );
+      })
       .then(() => self.clients.claim())
   );
 });

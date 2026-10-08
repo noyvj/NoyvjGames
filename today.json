@@ -1,0 +1,40 @@
+{
+  "version": 1,
+  "sample": true,
+  "updated": "2026-10-08",
+  "note": "SAMPLE schedule shipped with the Today strip (TODO Y-2). The owner has not written a real weekly schedule yet; edit this file to publish one. Schema: today-feed.md.",
+  "repeat": true,
+  "daily": [
+    { "game": "signal", "label": "Signal daily puzzle" }
+  ],
+  "weekly": [
+    {
+      "start": "2026-10-05",
+      "game": "herd",
+      "title": "Herd: decouple within 12 rounds",
+      "text": "Grow the herd while bringing the coupling gauge down with feed, capture or the plant-based pivot, and see how the score compares by round 12.",
+      "sample": true
+    },
+    {
+      "start": "2026-10-12",
+      "game": "grid",
+      "title": "Grid: go renewable early",
+      "text": "Invest in renewables from the first rounds and watch their cost curve fall; compare your score with a fossil-heavy run.",
+      "sample": true
+    },
+    {
+      "start": "2026-10-19",
+      "game": "canopy",
+      "title": "Canopy: preserve a whole session",
+      "text": "Play a session without clearing any plot and compare your forest value with your income.",
+      "sample": true
+    },
+    {
+      "start": "2026-10-26",
+      "game": "signal",
+      "title": "Signal: solve the daily on Easy",
+      "text": "Solve the Easy daily puzzle within its ping budget, then try the Hard one.",
+      "sample": true
+    }
+  ]
+}

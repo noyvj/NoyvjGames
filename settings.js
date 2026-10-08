@@ -13,6 +13,8 @@
  *   hub_shortcuts                  hub-shortcuts.js
  *   tutorial-seen:<slug>, hub-onboarding-seen, hub-new-player-banner-dismissed,
  *   hub_announcement_dismissed, pwa_install_banner_dismissed, claim_save_nudge_dismissed
+ *   hub-foryou-hidden-until (Y-5), hub_collections_v1 / hub_filter_collection (Y-18),
+ *   hub_offline_games (Y-9), hub_today_weekly_done (Y-2)
  *
  * "Defaults for every game" writes the same key into every game, so each game picks it up the next
  * time it loads; the game's own panel can still change it afterwards. Turning a setting back off
@@ -26,7 +28,7 @@
   const SCALES = [0.9, 1, 1.1, 1.2, 1.3, 1.4, 1.5];
   const AUTH_KEYS = ["hub_bearer_token", "hub_account_username", "hub_account_since"];
   const SECRET_KEYS = ["hub_bearer_token"];
-  const NOTICE_KEYS = ["hub_announcement_dismissed", "pwa_install_banner_dismissed", "claim_save_nudge_dismissed", "hub-new-player-banner-dismissed"];
+  const NOTICE_KEYS = ["hub_announcement_dismissed", "pwa_install_banner_dismissed", "claim_save_nudge_dismissed", "hub-new-player-banner-dismissed", "hub-foryou-hidden-until"];
   const TOUR_KEYS = ["tutorial-seen:hub", "hub-onboarding-seen", "hub-new-player-banner-dismissed"];
 
   const API_BASE = "https://noyvjgames.fastapicloud.dev";
@@ -48,8 +50,10 @@
   const prefGames = () => games.filter((g) => NO_DISPLAY_PREFS.indexOf(g.slug) === -1);
 
   // A hub preference (as opposed to sign-in, a game's data or a game's own settings).
+  // The player's own collections and the record of offline downloads are content, not preferences.
+  const PREFERENCE_EXCEPTIONS = ["hub_collections_v1", "hub_offline_games"];
   function isHubPreferenceKey(key) {
-    if (AUTH_KEYS.indexOf(key) !== -1) return false;
+    if (AUTH_KEYS.indexOf(key) !== -1 || PREFERENCE_EXCEPTIONS.indexOf(key) !== -1) return false;
     return /^hub[_-]/.test(key) || key === "lite-mode" || key === "lite-mode-note-seen" || key === "claim_save_nudge_dismissed" ||
       key === "pwa_install_banner_dismissed" || key === "tutorial-seen:hub";
   }
@@ -526,6 +530,7 @@
     initTours();
     initShortcuts();
     initClear();
+    if (window.HubOffline) window.HubOffline.mountSettings($("settings-offline-list"));
     renderDataSummary();
     games = await window.HubGames.load();
     initMotion();
