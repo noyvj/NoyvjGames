@@ -816,8 +816,29 @@
   }
   function quietPref() { return lsGet(QUIET_KEY) === "on"; }
 
+  function shareFields() {
+    var v = view;
+    if (!v) return {};
+    return {
+      game: "Lighthouse",
+      score: v.mode === "endless" || v.phase === "yearend" ? "Year " + v.year + ", night " + v.night : "Night " + v.night,
+      stats: [
+        { n: v.meta.ships_passed, one: "ship brought safely past", many: "ships brought safely past" },
+        { n: v.meta.nights_kept, one: "night kept", many: "nights kept" },
+        v.rep_title + " to the harbour"
+      ]
+    };
+  }
+  function mountCopyResult() {
+    if (!window.NoyvjCopyResult) return;
+    ["#yearend-copy-result", "#report-copy-result"].forEach(function (sel) {
+      if (document.querySelector(sel)) window.NoyvjCopyResult.mountButton(sel, { getResult: shareFields });
+    });
+  }
+
   // ---- wiring -----------------------------------------------------------------------------------------
   function wire() {
+    mountCopyResult();
     guard("light-lamp-button", function () { send({ action: "start_night" }, true); });
     guard("morning-continue-button", function () { send({ action: "end_morning" }, true); });
     guard("end-day-button", function () { orderDraft = null; send({ action: "end_day" }, true); });
@@ -892,7 +913,10 @@
     setBusy(false);
     reducedMotion = document.documentElement.getAttribute("data-reduced-motion") === "true";
     if (!restored) send({ action: "new_game", seed: randomSeed(), quiet: quietPref() }, false);
-    else send({ action: "open" }, false);
+    else {
+      send({ action: "open" }, false);
+      if (view.meta.nights_kept > 0 || view.night > 1) showToast("Welcome back. The light is just as you left it.");
+    }
     if (window.NoyvjTime) {
       window.NoyvjTime.start(GAME_ID, tick, BASE_MS);
       var ctl = window.NoyvjTime.get(GAME_ID);

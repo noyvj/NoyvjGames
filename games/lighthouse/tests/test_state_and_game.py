@@ -182,3 +182,30 @@ def test_settings_action_only_touches_display_choices_the_engine_must_know():
     assert req(action="settings", eerie=False)["eerie"] is False
     assert "eerie" not in json.dumps(game.get_state())
     assert req(action="settings", eerie=True)["eerie"] is True
+
+
+def test_a_whole_first_year_through_handle_ends_at_the_year_end_screen_then_runs_on():
+    fresh(21)
+    seen_year_end = False
+    for _ in range(data.NIGHTS_PER_YEAR + 3):
+        v = req(action="open")
+        if v["phase"] == "evening":
+            req(action="plan", levels=["standard", "dim", "standard"], tasks={"wind": True})
+            v = req(action="start_night")
+        if v["phase"] == "night":
+            v = req(action="step", n=500)
+        if v["phase"] == "morning":
+            v = req(action="end_morning")
+        if v["phase"] == "yearend":
+            seen_year_end = True
+            assert v["night"] == 40 and v["meta"]["years"] == 1 and v["mode"] == "year"
+            assert req(action="end_day")["ok"] is False
+            v = req(action="continue")
+            assert v["mode"] == "endless" and v["phase"] == "day"
+        if v["phase"] == "day":
+            req(action="day", task="beachcomb")
+            v = req(action="end_day")
+    assert seen_year_end and v["night"] >= 41 and v["year"] == 2
+    done = {a["id"] for a in v["achievements"] if a["earned"]}
+    assert {"first_light", "year_at_the_rock", "keeper_for_life"} <= done
+    assert "keeper_for_life" in game.get_state()["achievements_earned"]
