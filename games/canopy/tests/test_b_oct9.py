@@ -947,3 +947,108 @@ def test_sheet_stays_closed_with_no_selection(game_env):
     m.selected_index = None
     m.open_plot_sheet()
     assert m.plot_sheet_open is False
+
+
+# ---- B-13 Survey mode ----
+
+def _standing(m, index, value):
+    m.plots[index].state = m.PRESERVED
+    m.plots[index].value = value
+
+
+def test_tick_is_frozen_while_surveying(game_env):
+    m = game_env.module
+    ticks = m._session_ticks
+    m.enter_survey_mode()
+    m.tick()
+    assert m._session_ticks == ticks and m.forest_tick == getattr(m, "forest_tick")
+    m.cancel_survey()
+    m.tick()
+    assert m._session_ticks == ticks + 1
+
+
+def test_clear_and_replant_queue_instead_of_acting(game_env):
+    m = game_env.module
+    _standing(m, 4, 12.0)
+    m.select_plot(4)
+    m.enter_survey_mode()
+    m.on_clear()
+    assert m.plots[4].state == m.PRESERVED and m.total_income == 0
+    assert m.survey_queue == [{"kind": "clear", "plot": 4}]
+    m.on_replant()  # allowed: the plan leaves the plot bare
+    assert [i["kind"] for i in m.survey_queue] == ["clear", "replant"]
+    assert m.plots[4].state == m.PRESERVED
+
+
+def test_asking_twice_takes_the_action_back_out_and_invalid_ones_are_refused(game_env):
+    m = game_env.module
+    _standing(m, 4, 12.0)
+    m.enter_survey_mode()
+    assert m.queue_survey_action("clear", 4) is True
+    assert m.queue_survey_action("clear", 4) is True and m.survey_queue == []
+    assert m.queue_survey_action("replant", 4) is False  # still standing
+    m.plots[5].state = m.BARE
+    assert m.queue_survey_action("replant", 5) is True
+    assert m.queue_survey_action("decline") is False  # no pending request
+
+
+def test_projection_counts_income_value_loss_gap_and_soil(game_env):
+    m = game_env.module
+    _standing(m, 4, 12.0)
+    _standing(m, 5, 8.0)
+    m._session_ticks = 50
+    m.enter_survey_mode()
+    m.queue_survey_action("clear", 4)
+    m.queue_survey_action("clear", 5)
+    p = m.survey_projection()
+    assert p["income"] == 20.0 and p["standing_after"] == p["standing_now"] - 20.0
+    assert p["gap_after"] >= p["gap_now"] and len(p["soil"]) == 2 and all(pct < 100 for _l, pct in p["soil"])
+    assert "Income +20.0" in m.survey_projection_text()
+    assert m.plots[4].clear_count == 0  # projecting never changes the forest
+
+
+def test_commit_runs_the_plan_in_order_and_resumes_time(game_env):
+    m = game_env.module
+    _standing(m, 4, 12.0)
+    m.select_plot(1)
+    m.enter_survey_mode()
+    m.queue_survey_action("clear", 4)
+    m.queue_survey_action("replant", 4)
+    income = m.total_income
+    assert m.commit_survey() == 2
+    assert m.survey_mode is False and m.survey_queue == []
+    assert m.plots[4].state == m.REPLANTING and m.total_income == income + 12.0
+    assert m.selected_index == 1
+
+
+def test_cancel_discards_the_plan(game_env):
+    m = game_env.module
+    _standing(m, 4, 12.0)
+    m.enter_survey_mode()
+    m.queue_survey_action("clear", 4)
+    m.cancel_survey()
+    assert m.survey_mode is False and m.plots[4].state == m.PRESERVED and m.total_income == 0
+
+
+def test_a_queued_decline_runs_on_commit(game_env):
+    m = game_env.module
+    m.plots[14].value = 10.0
+    _request_on(m, 14)
+    m.enter_survey_mode()
+    assert m.queue_survey_action("decline") is True
+    assert m.pending_stakeholder_request is not None
+    relations = m.community_relations
+    m.commit_survey()
+    assert m.pending_stakeholder_request is None and m.community_relations == relations + m.STAKEHOLDER_DECLINE_RELATIONS_DELTA
+
+
+def test_panel_renders_the_queue_and_hides_when_off(game_env):
+    m = game_env.module
+    _standing(m, 4, 12.0)
+    m.render_survey()
+    assert game_env.elements["survey-panel"].hidden is True
+    m.enter_survey_mode()
+    m.queue_survey_action("clear", 4)
+    assert game_env.elements["survey-panel"].hidden is False
+    assert "Clear" in game_env.elements["survey-queue"].innerHTML
+    assert game_env.elements["survey-commit-button"].disabled is False

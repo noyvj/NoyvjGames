@@ -2216,6 +2216,13 @@ html[data-forest-palette="meadow"] { --forest-accent: #a7d98a; }
 .plot-sheet-buttons { display: grid; grid-template-columns: 1fr 1fr; gap: 0.6rem; }
 .plot-sheet button { min-height: 52px; font-size: 1.05rem; }
 
+/* B-13: Survey mode. */
+.survey-panel:not([hidden]) { display: flex; flex-direction: column; gap: 0.5rem; border: 2px dashed currentColor; }
+.survey-status { margin: 0; font-weight: 600; }
+.survey-queue { margin: 0; padding-left: 1.4rem; }
+.survey-projection { margin: 0; font-size: 0.9em; }
+.survey-buttons { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+
 /* ============================================================
    Light theme (Y11b, 2026-09-27). shared/theme-light-games.css already
    restyles the shared chrome (panels, buttons, inputs, HUD readouts);

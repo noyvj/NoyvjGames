@@ -252,6 +252,17 @@
     </div>
     <div id="achievements-panel" class="section achievements-panel grove-wall" hidden></div>
     <div id="achievement-toast" class="achievement-toast" hidden></div>
+    <div id="survey-panel" class="section survey-panel" hidden>
+      <p id="survey-status" class="survey-status" aria-live="polite"></p>
+      <ol id="survey-queue" class="survey-queue"></ol>
+      <p id="survey-projection" class="survey-projection" aria-live="polite"></p>
+      <div class="survey-buttons">
+        <button type="button" id="survey-decline-button" class="secondary">Queue: decline the request</button>
+        <button type="button" id="survey-remove-button" class="secondary">Remove last</button>
+        <button type="button" id="survey-commit-button">Commit and resume</button>
+        <button type="button" id="survey-cancel-button" class="secondary">Cancel</button>
+      </div>
+    </div>
     <!-- B-28: phone-only bottom sheet opened by a long-press on a plot. -->
     <div id="plot-sheet" class="plot-sheet" role="dialog" aria-label="Plot actions" hidden>
       <p id="plot-sheet-title" class="plot-sheet-title"></p>
@@ -533,6 +544,8 @@
       <div class="action-buttons">
         <button id="clear-button" class="secondary" disabled>Loading...</button>
         <button id="replant-button" class="secondary" disabled>Loading...</button>
+        <!-- B-13: freeze time and queue actions, see the projected result, then commit. -->
+        <button id="survey-toggle-button" class="secondary" type="button" aria-pressed="false" title="Pause time and plan several actions before committing them">🔍 Survey (pause and plan)</button>
         <button id="adopt-plot-button" class="secondary" type="button" disabled title="Mark the selected plot as a long-term personal project with its own mini-history">⭐ Adopt plot</button>
         <!-- GB-4: a short growth boost on one plot, then a 20-tick cooldown. Press T over a plot, or select one and use this button. -->
         <button id="tend-button" class="secondary" type="button" disabled title="Tend: a short growth boost on the selected plot (or press T while hovering one), then a 20-tick cooldown">🌿 Tend (T)</button>

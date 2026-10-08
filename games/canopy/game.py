@@ -7313,6 +7313,7 @@ def render():
     render_panel()
     render_plot_note_input()  # B-24
     render_plot_sheet()  # B-28
+    render_survey()  # B-13
     render_stats()
     render_stakeholder_panel()
     render_real_world()
@@ -7358,6 +7359,9 @@ def on_clear(event=None):
     global total_income, season_cleared
     if selected_index is None:
         return
+    if survey_mode:  # B-13: planning only, nothing happens until Commit
+        queue_survey_action("clear", selected_index)
+        return
     if selected_index == heart_tree_index:
         return  # GB-8: the Heart Tree is never felled
     plot = plots[selected_index]
@@ -7377,10 +7381,208 @@ def on_replant(event=None):
     global total_replants
     if selected_index is None:
         return
+    if survey_mode:  # B-13
+        queue_survey_action("replant", selected_index)
+        return
     if plots[selected_index].replant():
         total_replants += 1
         _log_event("replant", f"Replanted {_plot_ref(selected_index)}", selected_index)
     render()
+
+
+# B-13 (2026-10-09): Survey mode. The tick is frozen; Clear, Replant and a queued decline of the pending clear request
+# are written into a plan instead of happening. The panel shows what the plan would do (income gained, standing value
+# given up, the gap to the "left standing" forest from the Session Summary, soil quality) and Commit runs it in order.
+survey_mode = False
+survey_queue = []  # [{"kind": "clear" | "replant" | "decline", "plot": int}]
+
+
+def _survey_find(kind, plot):
+    for item in survey_queue:
+        if item["kind"] == kind and item["plot"] == plot:
+            return item
+    return None
+
+
+def survey_can_queue(kind, plot):
+    """(allowed, reason) judged against the state the plan would leave the plot in."""
+    if not (0 <= plot < len(plots)):
+        return False, "No such plot."
+    state = plots[plot].state
+    cleared_in_plan = _survey_find("clear", plot) is not None
+    replanted_in_plan = _survey_find("replant", plot) is not None
+    if kind == "clear":
+        if plot == heart_tree_index:
+            return False, "The Heart Tree is never felled."
+        if replanted_in_plan or "clear" not in VALID_ACTIONS[state] or cleared_in_plan:
+            return False, "That plot cannot be cleared in this plan."
+        return True, ""
+    if kind == "replant":
+        if replanted_in_plan or not (state == BARE or cleared_in_plan):
+            return False, "Only a bare plot can be replanted."
+        return True, ""
+    if kind == "decline":
+        request = pending_stakeholder_request
+        if request is None or request.get("kind", STAKEHOLDER_KIND_CLEAR) != STAKEHOLDER_KIND_CLEAR:
+            return False, "There is no clear request to decline."
+        return (_survey_find("decline", request["plot_index"]) is None), "Already in the plan."
+    return False, "Unknown action."
+
+
+def queue_survey_action(kind, plot=None):
+    """Adds an action to the plan; asking again for the same action takes it back out. Returns True if the plan changed."""
+    if not survey_mode:
+        return False
+    if kind == "decline" and plot is None and pending_stakeholder_request is not None:
+        plot = pending_stakeholder_request["plot_index"]
+    if plot is None:
+        return False
+    existing = _survey_find(kind, plot)
+    if existing is not None:
+        survey_queue.remove(existing)
+        # Taking a clear back out also removes a replant that depended on it.
+        if kind == "clear":
+            dependent = _survey_find("replant", plot)
+            if dependent is not None and plots[plot].state != BARE:
+                survey_queue.remove(dependent)
+        render()
+        return True
+    allowed, reason = survey_can_queue(kind, plot)
+    if not allowed:
+        _announce(reason)
+        return False
+    survey_queue.append({"kind": kind, "plot": plot})
+    render()
+    return True
+
+
+def survey_projection():
+    """What the plan would do. Pure: reads the live forest, changes nothing."""
+    income, value_loss, soil, replants, declines = 0.0, 0.0, [], 0, 0
+    for item in survey_queue:
+        plot = plots[item["plot"]]
+        if item["kind"] == "clear":
+            income += plot.value
+            value_loss += plot.value
+            twin = copy.copy(plot)
+            twin.clear()
+            soil.append((plot_coordinate_label(item["plot"]), round(twin.productivity_multiplier() * 100)))
+        elif item["kind"] == "replant":
+            replants += 1
+        elif item["kind"] == "decline":
+            declines += 1
+    standing_now = standing_forest_value()
+    ideal = counterfactual_standing_value()
+    return {
+        "income": income, "value_loss": value_loss, "standing_now": standing_now,
+        "standing_after": standing_now - value_loss, "ideal": ideal,
+        "gap_now": max(0.0, ideal - standing_now), "gap_after": max(0.0, ideal - (standing_now - value_loss)),
+        "soil": soil, "replants": replants, "declines": declines,
+        "relations_delta": STAKEHOLDER_DECLINE_RELATIONS_DELTA * declines,
+    }
+
+
+def survey_projection_text():
+    if not survey_queue:
+        return "Nothing planned yet: with Survey on, Clear, Replant and the decline button add to the plan instead of acting."
+    p = survey_projection()
+    parts = []
+    if p["income"] or p["value_loss"]:
+        parts.append(f"Income +{p['income']:.1f}; standing value {p['standing_now']:.1f} to {p['standing_after']:.1f}")
+        parts.append(f"gap to the left-standing forest ({p['ideal']:.1f}) {p['gap_now']:.1f} to {p['gap_after']:.1f}")
+    if p["soil"]:
+        parts.append("soil after clearing: " + ", ".join(f"{label} {pct}%" for label, pct in p["soil"]))
+    if p["replants"]:
+        parts.append(f"{p['replants']} replant{'s' if p['replants'] != 1 else ''} (each recovers in {RECOVERY_TICKS} ticks once time runs)")
+    if p["declines"]:
+        parts.append(f"decline the request (community relations {p['relations_delta']:+d})")
+    return "; ".join(parts) + "."
+
+
+def survey_queue_lines():
+    labels = {"clear": "Clear", "replant": "Replant", "decline": "Decline the request on"}
+    return [f"{i + 1}. {labels[item['kind']]} {plot_coordinate_label(item['plot'])}" for i, item in enumerate(survey_queue)]
+
+
+def enter_survey_mode(event=None):
+    global survey_mode
+    survey_mode = True
+    survey_queue.clear()
+    close_plot_sheet()
+    render()
+
+
+def _leave_survey_mode():
+    global survey_mode, _last_tick_clock
+    survey_mode = False
+    survey_queue.clear()
+    _last_tick_clock = None  # the long pause must not look like a lagging device to the performance guard
+
+
+def cancel_survey(event=None):
+    _leave_survey_mode()
+    render()
+
+
+def commit_survey(event=None):
+    """Runs the plan in order through the ordinary handlers, then lets time run again."""
+    global selected_index
+    plan = list(survey_queue)
+    previous_selection = selected_index
+    _leave_survey_mode()
+    for item in plan:
+        if item["kind"] == "decline":
+            decline_stakeholder_request()
+            continue
+        selected_index = item["plot"]
+        (on_clear if item["kind"] == "clear" else on_replant)()
+    if previous_selection is not None and previous_selection < len(plots):
+        selected_index = previous_selection
+    render()
+    return len(plan)
+
+
+def on_toggle_survey(event=None):
+    if survey_mode:
+        cancel_survey()
+    else:
+        enter_survey_mode()
+
+
+def on_survey_decline(event=None):
+    queue_survey_action("decline")
+
+
+def on_survey_remove_last(event=None):
+    if survey_queue:
+        survey_queue.pop()
+        render()
+
+
+def render_survey():
+    toggle, panel = _el("survey-toggle-button"), _el("survey-panel")
+    if toggle is not None:
+        toggle.innerText = "Cancel survey and resume" if survey_mode else "\U0001F50D Survey (pause and plan)"
+        toggle.setAttribute("aria-pressed", "true" if survey_mode else "false")
+    if panel is None:
+        return
+    panel.hidden = not survey_mode
+    if not survey_mode:
+        return
+    status = _el("survey-status")
+    if status is not None:
+        status.innerText = "Survey mode: time is paused. Nothing you queue happens until you commit."
+    queue = _el("survey-queue")
+    if queue is not None:
+        queue.innerHTML = "".join(f"<li>{_svg_text(line)}</li>" for line in survey_queue_lines())
+    summary = _el("survey-projection")
+    if summary is not None:
+        summary.innerText = survey_projection_text()
+    for button_id, enabled in (("survey-commit-button", bool(survey_queue)), ("survey-remove-button", bool(survey_queue)),
+                               ("survey-decline-button", survey_can_queue("decline", pending_stakeholder_request["plot_index"] if pending_stakeholder_request else 0)[0] if pending_stakeholder_request else False)):
+        button = _el(button_id)
+        if button is not None:
+            button.disabled = not enabled
 
 
 def _note_recovery(plot):
@@ -7442,6 +7644,8 @@ def render_perf_indicator():
 
 def tick(event=None):
     global pending_stakeholder_request, _session_ticks, forest_tick
+    if survey_mode:  # B-13: time is frozen while the player plans
+        return
     _session_ticks += 1
     forest_tick += 1
     _note_tick_clock()  # B-30
@@ -7974,6 +8178,12 @@ def setup():
         select = _el(select_id)
         if select is not None:
             select.addEventListener("change", create_proxy(on_my_forests_change))
+    for survey_id, survey_handler in (("survey-toggle-button", on_toggle_survey), ("survey-commit-button", commit_survey),
+                                      ("survey-remove-button", on_survey_remove_last), ("survey-decline-button", on_survey_decline),
+                                      ("survey-cancel-button", cancel_survey)):  # B-13
+        survey_button = _el(survey_id)
+        if survey_button is not None:
+            survey_button.addEventListener("click", create_proxy(survey_handler))
     for sheet_name in ("clear", "replant", "adopt", "note"):  # B-28
         sheet_button = _el(f"plot-sheet-{sheet_name}")
         if sheet_button is not None:
