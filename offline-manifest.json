@@ -297,17 +297,17 @@
     },
     {
      "path": "games/canopy/changelog.json",
-     "bytes": 9503,
+     "bytes": 17095,
      "precached": false
     },
     {
      "path": "games/canopy/game.py",
-     "bytes": 291260,
+     "bytes": 413440,
      "precached": true
     },
     {
      "path": "games/canopy/index.html",
-     "bytes": 70726,
+     "bytes": 85551,
      "precached": true
     },
     {
@@ -317,7 +317,7 @@
     },
     {
      "path": "games/canopy/pc-config.json",
-     "bytes": 3795,
+     "bytes": 3859,
      "precached": false
     },
     {
@@ -327,7 +327,7 @@
     },
     {
      "path": "games/canopy/pc.html",
-     "bytes": 74997,
+     "bytes": 89886,
      "precached": true
     },
     {
@@ -337,7 +337,7 @@
     },
     {
      "path": "games/canopy/settings.js",
-     "bytes": 10322,
+     "bytes": 12367,
      "precached": false
     },
     {
@@ -347,7 +347,7 @@
     },
     {
      "path": "games/canopy/style.css",
-     "bytes": 77177,
+     "bytes": 87548,
      "precached": true
     }
    ],
@@ -386,6 +386,11 @@
      "path": "shared/ambient-bg.css",
      "bytes": 16268,
      "precached": true
+    },
+    {
+     "path": "shared/community-pool.js",
+     "bytes": 4091,
+     "precached": false
     },
     {
      "path": "shared/confirm-dialog.js",
@@ -441,6 +446,11 @@
      "path": "shared/layout-pref.js",
      "bytes": 2407,
      "precached": true
+    },
+    {
+     "path": "shared/leaderboard.js",
+     "bytes": 20253,
+     "precached": false
     },
     {
      "path": "shared/level-select.js",
@@ -610,7 +620,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14797053,
+   "bytes": 14993363,
    "bytes_complete": true
   },
   "grid": {

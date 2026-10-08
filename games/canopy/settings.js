@@ -106,6 +106,7 @@
   const COACH_KEY = "canopy-coach-hints"; // B-27: opt-in
   const SYNERGY_MARKS_OFF_KEY = "canopy-synergy-marks-off"; // GB-5: hides only the +link marks
   const SPRITES_OFF_KEY = "canopy-sprites-off"; // B-17: tile tree sprites are on unless this is "true"
+  const COMMUNITY_KEY = "canopy-community-plot"; // GB-19: opt-in
   const BLIGHT_OFF_KEY = "canopy-blight-off"; // GB-7: blight is on unless this is "true"
   const NUMBER_FORMAT_KEY = "canopy-number-format";
   const NUMBER_FORMATS = ["standard", "grouped", "compact", "precise"];
@@ -242,6 +243,14 @@
       spritesCheckbox.checked = !readFlag(SPRITES_OFF_KEY);
       spritesCheckbox.addEventListener("change", function () {
         writeStored(SPRITES_OFF_KEY, !spritesCheckbox.checked);
+        refreshGame();
+      });
+    }
+    const communityCheckbox = document.getElementById("community-plot-checkbox");
+    if (communityCheckbox) {
+      communityCheckbox.checked = readFlag(COMMUNITY_KEY);
+      communityCheckbox.addEventListener("change", function () {
+        writeStored(COMMUNITY_KEY, communityCheckbox.checked);
         refreshGame();
       });
     }

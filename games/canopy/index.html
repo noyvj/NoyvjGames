@@ -238,6 +238,13 @@
           Show "+link" marks on plots that get a canopy bonus from mature neighbours (the bonus itself always applies)
         </label>
       </div>
+      <!-- GB-19: opt-in. Sends only a small anonymous growth number to a shared daily total. -->
+      <div class="settings-row">
+        <label class="settings-checkbox-label" for="community-plot-checkbox">
+          <input type="checkbox" id="community-plot-checkbox">
+          Water the community plot (adds a small, anonymous share of your forest's growth to a shared daily total; off until you turn it on)
+        </label>
+      </div>
       <!-- GB-7: blight in large single-species patches; on by default, switch off here. -->
       <div class="settings-row">
         <label class="settings-checkbox-label" for="blight-checkbox">
@@ -407,6 +414,13 @@
         <div id="carbon-chart" class="session-summary-sparkline"></div>
         <button type="button" id="carbon-sell-button" class="secondary">Sell all credits</button>
         <button type="button" id="carbon-sell-half-button" class="secondary">Sell half</button>
+      </details>
+      <!-- GB-19: the daily community forest and its opt-in board. -->
+      <details class="summary-details" id="community-plot-details">
+        <summary>Community plot (daily)</summary>
+        <p id="community-plot-display" class="community-plot-display" hidden></p>
+        <p id="community-plot-note" class="community-plot-note"></p>
+        <div id="leaderboard-mount"></div>
       </details>
       <details class="summary-details" id="faces-details">
         <summary>Community faces</summary>
@@ -1210,6 +1224,8 @@
   <script src="../../shared/opening-screen.js" data-game-id="canopy" data-tagline="Clear a forest for quick income, or let it grow and compound." data-game-name="Canopy"></script>
   <script src="../../shared/story-toggle.js" data-game-id="canopy" data-story-selectors="#forest-history-list, .highland-blurb, .wetland-blurb, #story-chapters"></script>
   <script src="../../shared/story-chapters.js" data-game-id="canopy" data-story="story.json"></script>
+  <script src="../../shared/community-pool.js" data-game-id="canopy" data-pool="community_plot" data-target="#community-plot-display" data-template="Players have watered the community plot with {total} growth in all; {today} today from {contributions} contributions (best day: {best})."></script>
+  <script src="../../shared/leaderboard.js" data-game-id="canopy" data-api="scores" data-board="community_investment" data-order="desc" data-title="daily community investment" data-unit="growth" data-windows="daily,weekly,alltime" data-mount="#leaderboard-mount"></script>
   <script src="../../shared/last-played.js" data-game-id="canopy"></script>
   <script src="../../shared/whats-new-banner.js" data-game-id="canopy"></script>
   <script src="../../shared/achievement-stats.js" data-game-id="canopy"></script>

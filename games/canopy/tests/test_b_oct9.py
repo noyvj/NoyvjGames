@@ -1952,3 +1952,117 @@ def test_carbon_saves_only_when_used_validates_and_resets(game_env):
     state["carbon"] = {"credits": 99999, "slump": -4, "sold": "x"}
     m.load_state(state)
     assert m.carbon["credits"] == m.CARBON_CREDIT_CAP and m.carbon["slump"] == 0 and m.carbon["sold"] == 0.0
+
+
+# ---- GB-19 community plot ----
+
+class _FakePool:
+    def __init__(self):
+        self.added = []
+
+    def add(self, game, pool, amount):
+        self.added.append((game, pool, amount))
+
+
+class _FakeBoard:
+    def __init__(self):
+        self.reports = []
+
+    def report(self, game, board, score, detail=""):
+        self.reports.append((game, board, score))
+
+
+def _community_setup(m, enabled=True):
+    store = _memory_storage(m)
+    pool, board = _FakePool(), _FakeBoard()
+    window = type("W", (), {"NoyvjPool": pool, "NoyvjLeaderboard": board})()
+    m._community_js = lambda: window
+    m.ui_pref = lambda key, default="": "true" if (enabled and key == m.UI_PREF_COMMUNITY) else default
+    return store, pool, board
+
+
+def test_nothing_is_sent_unless_the_setting_is_on(game_env):
+    m = game_env.module
+    store, pool, board = _community_setup(m, enabled=False)
+    for _ in range(40):
+        m._community_tick()
+    assert pool.added == [] and board.reports == [] and m.COMMUNITY_STORAGE_KEY not in store
+
+
+def test_share_grows_with_how_much_of_the_forest_is_standing(game_env):
+    m = game_env.module
+    full = m.community_share_this_tick()
+    assert abs(full - m.COMMUNITY_PER_TICK) < 1e-9
+    for p in m.plots[: len(m.plots) // 2]:
+        p.state = m.BARE
+    assert abs(m.community_share_this_tick() - m.COMMUNITY_PER_TICK / 2) < 1e-9
+    for p in m.plots:
+        p.state = m.BARE
+    assert m.community_share_this_tick() == 0.0
+
+
+def test_ticks_add_to_the_pool_and_to_todays_total(game_env):
+    m = game_env.module
+    store, pool, board = _community_setup(m)
+    for _ in range(10):
+        assert m._community_tick() > 0
+    assert len(pool.added) == 10 and all(a[:2] == ("canopy", "community_plot") for a in pool.added)
+    assert abs(m.community_today_total() - 10 * m.COMMUNITY_PER_TICK) < 0.01
+    assert max(a[2] for a in pool.added) <= 60.0  # under the server's per-request cap even when batched for a while
+
+
+def test_the_board_gets_the_day_total_every_thirty_ticks(game_env):
+    m = game_env.module
+    store, pool, board = _community_setup(m)
+    m._community_ticks = 0
+    for _ in range(m.COMMUNITY_REPORT_EVERY):
+        m._community_tick()
+    assert len(board.reports) == 1 and board.reports[0][:2] == ("canopy", "community_investment")
+    assert board.reports[0][2] == round(m.community_today_total(), 2)
+
+
+def test_a_new_utc_day_starts_from_zero_and_bad_data_is_ignored(game_env):
+    m = game_env.module
+    store, pool, board = _community_setup(m)
+    store[m.COMMUNITY_STORAGE_KEY] = '{"day": "1999-01-01", "amount": 12.5}'
+    assert m.community_today_total() == 0.0
+    assert abs(m.community_today_total("1999-01-01") - 12.5) < 1e-9
+    store[m.COMMUNITY_STORAGE_KEY] = "garbage"
+    assert m.community_today_total() == 0.0
+    store[m.COMMUNITY_STORAGE_KEY] = '{"day": "%s", "amount": "x"}' % m._utc_day()
+    assert m.community_today_total() == 0.0
+
+
+def test_a_missing_or_broken_shared_script_never_breaks_a_tick(game_env):
+    m = game_env.module
+    store = _memory_storage(m)
+    m.ui_pref = lambda key, default="": "true" if key == m.UI_PREF_COMMUNITY else default
+    m._community_js = lambda: None
+    assert m._community_tick() > 0
+    class Boom:
+        def add(self, *a):
+            raise RuntimeError("network")
+    m._community_js = lambda: type("W", (), {"NoyvjPool": Boom(), "NoyvjLeaderboard": Boom()})()
+    m._community_ticks = m.COMMUNITY_REPORT_EVERY - 1
+    assert m._community_tick() > 0
+
+
+def test_note_explains_the_state_and_the_page_loads_the_shared_scripts(game_env):
+    import os
+    m = game_env.module
+    _community_setup(m, enabled=False)
+    m.render_community_note()
+    assert "Off" in game_env.elements["community-plot-note"].innerText
+    _community_setup(m, enabled=True)
+    m.render_community_note()
+    assert "watered the community plot" in game_env.elements["community-plot-note"].innerText
+    html = open(os.path.join(os.path.dirname(__file__), "..", "index.html"), encoding="utf-8").read()
+    assert 'shared/community-pool.js" data-game-id="canopy" data-pool="community_plot"' in html
+    assert 'data-board="community_investment"' in html and 'id="leaderboard-mount"' in html
+
+
+def test_sandbox_forests_never_water_the_shared_plot(game_env):
+    m = game_env.module
+    store, pool, board = _community_setup(m)
+    m.lab["maturity"] = 2.0
+    assert m._community_tick() == 0.0 and pool.added == []

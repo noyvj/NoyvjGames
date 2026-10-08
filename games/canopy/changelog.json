@@ -41,6 +41,10 @@
       "entry": "New optional Carbon market in the Session Summary. Standing plots earn carbon credits every tick; the price moves on a known cycle (the chart shows the recent price and the next few ticks dotted, with a trend word), so selling is a matter of timing, not luck. Selling pays now but slows the forest's growth for a few ticks, longer for bigger sales, so it only pays when the price is high. Accepting the carbon broker's offers also gifts credits. Credits can sit unsold as long as you like."
     },
     {
+      "date": "2026-10-09",
+      "entry": "New opt-in daily community plot. Tick Water the community plot in Settings and a small share of your forest's growth (more when more of your forest is standing) is added to one anonymous shared total, shown in the Session Summary with today's total and the best day. Your own contribution today can also go on an opt-in daily, weekly and all-time board (sign in and tick the board's box). Nothing is sent unless you turn it on, and sandbox forests never contribute."
+    },
+    {
       "date": "2026-10-08",
       "entry": "New: the Session Summary has a Copy result button that copies one line, such as Canopy, 41.2 standing forest value, with your harvested income, biodiversity and plots still standing. Every achievement you have earned now has a Share button that copies a line you can paste anywhere, with the share of players who have it when that figure is available. The How to Play and Info panels link to the new Credits page."
     },

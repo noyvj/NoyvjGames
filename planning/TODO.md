@@ -1,6 +1,6 @@
 # Site-Wide TODO (round 3)
 
-**Progress: 529/1095 items checked off (48.3%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land.
+**Progress: 530/1095 items checked off (48.4%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land.
 
 Built from your answers in `planning/IMPROVEMENT-IDEAS-ROUND-3.md` (Part 4). Every Round 3 section is now answered (2026-10-07 below the Warframe section); earlier this list held only: **GB** (Canopy gamified), **M** (new games), **N** (seasonal events), **O** (Trade Empire and Continuum replayability), **P/Q/S/T** (Signal, Undersleep, Overclock, Last Line open questions), **X** (Warframe tracker) and **R** (returning later). GC-GI, A-L, U, Z and Y are unanswered and wait for you. The previous list is archived at `planning/todo-archive/260914_260927.md`; anything from it that was moved here is marked "moved" there.
 
@@ -54,7 +54,7 @@ Rules carried over: "yes" items are here, "later" items are parked in `planning/
 - [x] GB-16: Forest spirit narrator, as a story level.
 - [x] GB-17: Challenge run set (Pacifist, Scorched Start, Sprint, No-Highland) with badges.
 - [x] GB-18: Undo window after Clear.
-- [ ] GB-19: Daily community forest: everyone's play waters one big community plot, with a shared "best day" and an opt-in investment leaderboard (uses the community pools backend from tonight and W-5).
+- [x] GB-19: Daily community forest: everyone's play waters one big community plot, with a shared "best day" and an opt-in investment leaderboard (uses the community pools backend from tonight and W-5).
 - [x] GB-20: Rare conditional wildlife in the wildlife log.
 - [ ] GB-21: Timber gambler clear-cut option.
 - [x] GB-22: Standing-value milestone celebrations (1k, 2.5k, 5k, 10k), also as achievements if they are not already.
