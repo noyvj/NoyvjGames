@@ -148,3 +148,7 @@ Several items across the ideas file got parked specifically pending this — you
 - **Mp1: Multiplayer: replay verification of scores for Signal and Last Line only, client-trusted everywhere else**
 
 - (Dropped, your yes = my recommendation was no: Ca3: Le Champ de Mots: add an optional answer timer to practice for a quickest-answer record)
+
+## Parked from the new-game plan answers (2026-10-08)
+
+- Lighthouse: later, consider a ship that goes missing for dramatic effect (your Li1 note). For now no ship is ever lost; the plan stays "no on-screen loss, ships get delayed or damaged".

@@ -48,66 +48,6 @@
        "n": "Ch6",
        "text": "**Chronicle: are the 14 passage summaries in \"Whose account?\" fair and balanced in tone?** I wrote them from fetched page summaries, not whole pages, so a skim by you is the check.",
        "answered": false
-      },
-      {
-       "n": "He1",
-       "text": "**Heist Committee: should the tone be a warm, comedic cozy caper (nothing harmful) or a darker noir-comedy voice?** Recommended: the cozy caper. Details in the game's plan under \"Open questions\".",
-       "answered": false
-      },
-      {
-       "n": "He2",
-       "text": "**Heist Committee: should a Daily Job (the same target for everyone each date) be part of launch or a later add-on?** Recommended: later, as the optional last milestone. Details in the game's plan under \"Open questions\".",
-       "answered": false
-      },
-      {
-       "n": "He3",
-       "text": "**Heist Committee: should the crew all have invented names built from real archetypes, or do you want a nickname bank of your own used?** Recommended: invented names. Details in the game's plan under \"Open questions\".",
-       "answered": false
-      },
-      {
-       "n": "Li1",
-       "text": "**Lighthouse: is \"no on-screen death, ever, even for sailors\" right, or should one ship be truly lost per year for weight?** Recommended: no loss, ships get delayed or damaged instead. Details in the game's plan under \"Open questions\".",
-       "answered": false
-      },
-      {
-       "n": "Li2",
-       "text": "**Lighthouse: should the eerie-details sub-toggle default to on, or be opt-in?** Recommended: default on, with the content note and the off switch always visible. Details in the game's plan under \"Open questions\".",
-       "answered": false
-      },
-      {
-       "n": "Li3",
-       "text": "**Lighthouse: is there any dread technique you want banned outright (for example no figures in windows)?** Name any you want banned; otherwise I use the plan's list. Details in the game's plan under \"Open questions\".",
-       "answered": false
-      },
-      {
-       "n": "Pb1",
-       "text": "**Pocket Bazaar: should customer patience be counted in beats (it cannot expire while you are away) rather than as a visible real-time countdown?** Recommended: beats. It matches the no-timers pledge. Details in the game's plan under \"Open questions\".",
-       "answered": false
-      },
-      {
-       "n": "Pb2",
-       "text": "**Pocket Bazaar: should an optional real-time \"Rush\" mode ever exist (off by default), or is any clock banned outright?** Recommended: banned for launch. Details in the game's plan under \"Open questions\".",
-       "answered": false
-      },
-      {
-       "n": "Pb3",
-       "text": "**Pocket Bazaar: are you comfortable with a Daily Market later, given no daily-login rewards are allowed either way?** Recommended: yes, as the optional last milestone, with no login rewards. Details in the game's plan under \"Open questions\".",
-       "answered": false
-      },
-      {
-       "n": "Dr1",
-       "text": "**Dead Reckoning: should the main mode be planning the whole route up front, with watch-by-watch introduced at chapter 3, or the other way round?** Recommended: full plan up front first. Details in the game's plan under \"Open questions\".",
-       "answered": false
-      },
-      {
-       "n": "Dr2",
-       "text": "**Dead Reckoning: should the two-ship chart wait for a later pass instead of being part of launch?** Recommended: later pass (milestone 7). Details in the game's plan under \"Open questions\".",
-       "answered": false
-      },
-      {
-       "n": "Dr3",
-       "text": "**Dead Reckoning: is it OK to leave celestial navigation out entirely at launch, with only modest flavour text?** Recommended: yes. Details in the game's plan under \"Open questions\".",
-       "answered": false
       }
      ]
     }
