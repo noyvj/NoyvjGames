@@ -2188,7 +2188,7 @@ def _update_layout_best():
 def layout_best_text():
     if current_layout is None:
         return ""
-    name = current_layout.get("name") or "Custom layout"
+    name = current_layout.get("name") or "unnamed"
     layout = next((l for l in load_saved_layouts() if l["name"] == current_layout.get("name")), None)
     best = layout["best"] if layout else 0.0
     return f"{name}: best standing {best:.1f}" if best > 0 else f"{name}: no best yet"
@@ -2315,7 +2315,7 @@ def render_layout_badge():
     badge = _el("layout-banner")
     if badge is not None:
         badge.hidden = not layout_active()
-        badge.innerText = (f"Custom layout: {layout_best_text()}. Kept out of the community comparison." if layout_active() else "")
+        badge.innerText = (f"Custom layout ({layout_best_text()}). Kept out of the community comparison and the standard best." if layout_active() else "")
 
 
 def render_carbon():
