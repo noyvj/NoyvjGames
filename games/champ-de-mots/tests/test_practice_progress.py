@@ -120,15 +120,16 @@ def test_shop_minigames_record_each_customer(game_env):
     assert module.practice_ledger["cafe"]["points"] == 1
 
 
-def test_practice_never_mutates_srs_state(game_env):
+def test_hand_written_practice_never_mutates_srs_state(game_env):
+    """Liaison practice and the bonus sentences are hand-written, not plots, so
+    they never touch a plot's schedule. (Until 2026-10-08 this test also played
+    a Blitz answer and expected the farm unchanged; a minigame answer on a real
+    plot now waters it, so that part moved to test_watering_rule.py.)"""
     module, state = game_env.module, game_env.state
     before = _srs_snapshot(state)
     module.start_liaison_drill()
     module.submit_liaison_answer(module.liaison_questions[0]["answer"])
     module.start_bonus_section(1)
-    mg = module.minigames
-    mg.start_blitz()
-    mg.submit_blitz_choice(mg.blitz_question["answer"])
     assert _srs_snapshot(state) == before
 
 

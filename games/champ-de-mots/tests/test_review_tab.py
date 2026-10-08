@@ -131,7 +131,10 @@ def test_correct_review_answer_nudges_the_interval_without_touching_stage(game_e
     module, state = game_env.module, game_env.state
     module.start_review("word")
     plot = state.plots_by_id[module.review_question["plot_id"]]
-    plot.last_reviewed = state.current_day  # already watered today
+    # Already watered today: since 2026-10-08 that is recorded by last_watered
+    # (the day of the last full watering), not by last_reviewed.
+    plot.last_reviewed = state.current_day
+    plot.last_watered = state.current_day
     stage_before = plot.stage
     interval_before = plot.interval_days
 

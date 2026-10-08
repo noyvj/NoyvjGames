@@ -356,6 +356,124 @@ ELEMENT_IDS = [
     "bonus-sentence-pronunciation-report-button",
     "bonus-summary",
     "bonus-close-button",
+    "pairs-toggle-button",
+    "gaps-toggle-button",
+    "listenpick-toggle-button",
+    "wordorder-toggle-button",
+    "always-mc-checkbox",
+    "format-schedule-note",
+    "blitz-difficulty-select",
+    "blitz-difficulty-note",
+    "blitz-waters",
+    "sprint-difficulty-select",
+    "sprint-difficulty-note",
+    "sprint-waters",
+    "pairs-panel",
+    "growth-marker-pairs",
+    "pairs-difficulty-select",
+    "pairs-difficulty-note",
+    "pairs-lock-message",
+    "pairs-time-display",
+    "pairs-lives-display",
+    "pairs-score-display",
+    "pairs-combo-display",
+    "pairs-start-button",
+    "pairs-summary",
+    "pairs-progress",
+    "pairs-waters",
+    "pairs-board",
+    "pairs-feedback",
+    "pairs-close-button",
+    "gaps-panel",
+    "growth-marker-gaps",
+    "gaps-difficulty-select",
+    "gaps-difficulty-note",
+    "gaps-lock-message",
+    "gaps-time-display",
+    "gaps-lives-display",
+    "gaps-score-display",
+    "gaps-combo-display",
+    "gaps-start-button",
+    "gaps-summary",
+    "gaps-context",
+    "gaps-prompt",
+    "gaps-waters",
+    "gaps-choices",
+    "gaps-feedback",
+    "gaps-close-button",
+    "listenpick-panel",
+    "growth-marker-listenpick",
+    "listenpick-difficulty-select",
+    "listenpick-difficulty-note",
+    "listenpick-lock-message",
+    "listenpick-time-display",
+    "listenpick-lives-display",
+    "listenpick-score-display",
+    "listenpick-combo-display",
+    "listenpick-start-button",
+    "listenpick-summary",
+    "listenpick-context",
+    "listenpick-prompt",
+    "listenpick-play-button",
+    "listenpick-slow-button",
+    "listenpick-show-button",
+    "listenpick-waters",
+    "listenpick-choices",
+    "listenpick-feedback",
+    "listenpick-close-button",
+    "wordorder-panel",
+    "growth-marker-wordorder",
+    "wordorder-difficulty-select",
+    "wordorder-difficulty-note",
+    "wordorder-lock-message",
+    "wordorder-time-display",
+    "wordorder-lives-display",
+    "wordorder-score-display",
+    "wordorder-combo-display",
+    "wordorder-start-button",
+    "wordorder-summary",
+    "wordorder-prompt",
+    "wordorder-waters",
+    "wordorder-placed",
+    "wordorder-pool",
+    "wordorder-undo-button",
+    "wordorder-feedback",
+    "wordorder-close-button",
+    "racer-difficulty-select",
+    "racer-difficulty-note",
+    "racer-waters",
+    "boutique-difficulty-select",
+    "boutique-difficulty-note",
+    "boutique-waters",
+    "cafe-difficulty-select",
+    "cafe-difficulty-note",
+    "cafe-waters",
+    "cafe-twist-waters",
+    "water-options-toggle-button",
+    "water-options-panel",
+    "water-today-line",
+    "water-opt-next-count",
+    "water-opt-next-button",
+    "water-row-select",
+    "water-opt-row-count",
+    "water-opt-row-button",
+    "water-topic-select",
+    "water-opt-topic-count",
+    "water-opt-topic-button",
+    "water-opt-wilting-count",
+    "water-opt-wilting-button",
+    "water-opt-mc-count",
+    "water-opt-mc-button",
+    "water-opt-typed-count",
+    "water-opt-typed-button",
+    "water-opt-listen-count",
+    "water-opt-listen-button",
+    "water-games-list",
+    "water-options-close-button",
+    "practice-water-note",
+    "review-listen-button",
+    "review-listen-show-button",
+    "review-water-note",
 ]
 
 
@@ -411,14 +529,7 @@ def _remove_pyodide_fakes():
         sys.modules.pop(name, None)
 
 
-@pytest.fixture
-def game_env():
-    """Loads a brand-new game.py module against a fresh fake DOM.
-
-    game.py runs setup() as a module-level side effect on import, so every
-    test gets its own module object (and its own FarmState) rather than
-    sharing state via Python's normal import cache.
-    """
+def _load_game_env():
     elements = {id_: FakeElement(id_) for id_ in ELEMENT_IDS}
     _install_pyodide_fakes(elements)
 
@@ -426,7 +537,34 @@ def game_env():
     module = importlib.util.module_from_spec(spec)
     sys.modules["game"] = module
     spec.loader.exec_module(module)
+    return GameEnv(module, elements)
 
-    yield GameEnv(module, elements)
 
+@pytest.fixture
+def progressive_env():
+    """Loads a brand-new game.py module with the REAL progressive question
+    format (2026-10-08): typed questions appear as a plot grows."""
+    env = _load_game_env()
+    yield env
+    _remove_pyodide_fakes()
+
+
+@pytest.fixture
+def game_env():
+    """Loads a brand-new game.py module against a fresh fake DOM.
+
+    game.py runs setup() as a module-level side effect on import, so every
+    test gets its own module object (and its own FarmState) rather than
+    sharing state via Python's normal import cache.
+
+    Since 2026-10-08 a plot that has grown is asked as a typed question some of
+    the time (game.py's progressive format). Most tests grow plots on the way
+    to something else (they open a row, water things) and then expect multiple
+    choice, so this fixture pins `wants_typed` to False; a test that wants a
+    typed question sets `module.wants_typed = lambda plot: True`, and
+    test_progressive_format.py uses `progressive_env` for the real schedule.
+    """
+    env = _load_game_env()
+    env.module.wants_typed = lambda plot: False
+    yield env
     _remove_pyodide_fakes()

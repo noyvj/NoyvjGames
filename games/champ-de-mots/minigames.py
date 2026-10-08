@@ -67,19 +67,30 @@ _credit_plot_id = None
 _credit_item = None
 _credit_reset = None
 _credit_text = None
+_plot_for_fr = None
+_pref_get = None
+_pref_set = None
+_check_answer = None
 
 
 def _credit(question, mode):
     """A correct answer on a real plot: hand it to game.py's plot-growth
-    credit (the Review nudge; see GROWTH_INFO there). A no-op standalone."""
+    credit (water_plot: the first correct answer for a plot each in-game day
+    waters it, a later one nudges it; see game.py's "Watering versus
+    nudging"). Returns "full", "nudge" or None. A no-op standalone."""
     if _credit_plot_id is not None and question is not None:
-        _credit_plot_id(question.get("plot_id"), mode)
+        return _credit_plot_id(question.get("plot_id"), mode)
+    return None
 
 
 def _credit_fr(fr_texts, mode):
+    """Credit every plot behind a list of French texts; returns the list of
+    results ("full" / "nudge" / None, one per text)."""
+    results = []
     if _credit_item is not None:
         for fr in fr_texts:
-            _credit_item(fr, mode)
+            results.append(_credit_item(fr, mode))
+    return results
 
 
 def _reset_credit(mode):
@@ -110,17 +121,26 @@ def configure(
     credit_item_fn=None,
     credit_reset_fn=None,
     credit_text_fn=None,
+    plot_for_fr_fn=None,
+    pref_get_fn=None,
+    pref_set_fn=None,
+    check_answer_fn=None,
 ):
     """Called once from game.py's setup(): hands in the live FarmState plus
     the two question-generation functions every minigame reuses rather than
     re-deriving vocab/distractor selection from scratch (per the brief)."""
     global _farm, _generate_question, _variants_for, _record_practice
     global _credit_plot_id, _credit_item, _credit_reset, _credit_text
+    global _plot_for_fr, _pref_get, _pref_set, _check_answer
     _record_practice = record_practice_fn
     _credit_plot_id = credit_plot_fn
     _credit_item = credit_item_fn
     _credit_reset = credit_reset_fn
     _credit_text = credit_text_fn
+    _plot_for_fr = plot_for_fr_fn
+    _pref_get = pref_get_fn
+    _pref_set = pref_set_fn
+    _check_answer = check_answer_fn
     _farm = farm
     _generate_question = generate_question_fn
     _variants_for = variants_for_fn
@@ -217,6 +237,195 @@ def _strip_leading_article(text):
     return text
 
 
+# --- shared arcade infrastructure (2026-10-08) -------------------------------
+# Difficulty, the "waters: <plot>" line and the typed-answer box are shared by
+# every minigame, old and new.
+
+# Difficulty. Every minigame has a Slower / Normal / Faster setting (a drop-down
+# in its panel, remembered per game in this browser through game.py's pref
+# helpers). It changes only the pressure: timer length, number of lives, the
+# rival's pace or the patience clock. The WATERING rule never changes with
+# difficulty, and neither do the practice-ledger points (1 per correct answer,
+# with the same daily and lifetime caps, at every level, so Faster cannot be
+# farmed and Slower is not penalised). Only the game's own score is scaled a
+# little (DIFFICULTY_SCORE_PERCENT) so a harder run reads as worth more.
+DIFFICULTY_LEVELS = ("slower", "normal", "faster")
+DIFFICULTY_LABELS = {"slower": "Slower", "normal": "Normal", "faster": "Faster"}
+DIFFICULTY_SCORE_PERCENT = {"slower": 80, "normal": 100, "faster": 125}
+PREF_DIFFICULTY_PREFIX = "champ-difficulty-"
+_difficulty = {}
+
+
+def get_difficulty(key):
+    value = _difficulty.get(key)
+    if value is None:
+        stored = _pref_get(PREF_DIFFICULTY_PREFIX + key) if _pref_get is not None else None
+        value = stored if stored in DIFFICULTY_LEVELS else "normal"
+        _difficulty[key] = value
+    return value
+
+
+def set_difficulty(key, value):
+    if value not in DIFFICULTY_LEVELS:
+        return get_difficulty(key)
+    _difficulty[key] = value
+    if _pref_set is not None:
+        _pref_set(PREF_DIFFICULTY_PREFIX + key, value)
+    render()
+    return value
+
+
+def difficulty_points(key, points):
+    """A game-score award scaled by the difficulty (ledger points are not)."""
+    return round(points * DIFFICULTY_SCORE_PERCENT[get_difficulty(key)] / 100)
+
+
+def _make_difficulty_handler(key):
+    def handler(event=None):
+        set_difficulty(key, _element(f"{key}-difficulty-select").value)
+    return handler
+
+
+def _setup_difficulty(key):
+    select = _element(f"{key}-difficulty-select")
+    select.innerHTML = ""
+    for level in DIFFICULTY_LEVELS:
+        option = document.createElement("option")
+        option.value = level
+        option.innerText = DIFFICULTY_LABELS[level]
+        select.appendChild(option)
+    select.value = get_difficulty(key)
+    select.addEventListener("change", create_proxy(_make_difficulty_handler(key)))
+
+
+def _render_difficulty(key, running, describe):
+    """Show the chosen level and what it means; it cannot change mid-run."""
+    level = get_difficulty(key)
+    select = _element(f"{key}-difficulty-select")
+    select.value = level
+    select.disabled = bool(running)
+    _element(f"{key}-difficulty-note").innerText = describe(level)
+
+
+# "waters: <plot>" -- which plot an answer waters, shown under every question
+# before it is answered, then what the answer did.
+def plot_label(plot_id):
+    plot = _farm.plots_by_id.get(plot_id) if _farm is not None else None
+    return plot.label if plot is not None else ""
+
+
+def context_line(question):
+    """The small line above a prompt: where the plot is from and what to do."""
+    instruction = question.get("instruction")
+    return f"{question['context']} · {instruction}" if instruction else question["context"]
+
+
+def labels_for_fr(fr_texts):
+    """Plot labels behind a list of French texts (the shop games' orders)."""
+    labels = []
+    if _plot_for_fr is not None:
+        for fr in fr_texts:
+            plot = _plot_for_fr(fr)
+            if plot is not None and plot.label not in labels:
+                labels.append(plot.label)
+    return labels
+
+
+def waters_text(labels):
+    labels = [label for label in labels if label]
+    return "Waters: " + " + ".join(labels) if labels else ""
+
+
+def _kind_word(kind):
+    return {"full": "watered", "nudge": "nudged"}.get(kind, "already done today")
+
+
+def answer_note(label, correct, kinds):
+    """One line about what the last answer did to its plot(s): `kinds` is the
+    list of water results ("full" / "nudge" / None) for the credited plots."""
+    if correct is False:
+        return f"Missed: {label} is unchanged." if label else "Missed: nothing changes."
+    words = sorted({_kind_word(k) for k in kinds}) if kinds else []
+    if not words:
+        return ""
+    return f"{label}: {' and '.join(words)}." if label else f"{' and '.join(words).capitalize()}."
+
+
+def _check(question, given):
+    """Grade an answer: multiple choice is exact, a typed answer goes through
+    game.py's normal grading (tiers, accents setting)."""
+    if _check_answer is not None:
+        return bool(_check_answer(question, given))
+    return given == question["answer"]
+
+
+def _is_typed(question):
+    return question is not None and question.get("mode") == "typed"
+
+
+def _format_arg(question_format=None):
+    return question_format
+
+
+def _build_answer_area(key, question, box, proxies, submit):
+    """Fill `box` with the answer controls for a generated question: four
+    choice buttons, or (for a plot that has grown, see game.py's progressive
+    format) a text box and a Check button. `submit(given)` takes the choice
+    text or the typed text."""
+    box.innerHTML = ""
+    if _is_typed(question):
+        field = document.createElement("input")
+        field.id = f"{key}-typed-input"
+        field.className = "practice-input"
+        field.setAttribute("type", "text")
+        field.setAttribute("autocomplete", "off")
+        field.setAttribute("autocapitalize", "none")
+        field.setAttribute("spellcheck", "false")
+        field.setAttribute("placeholder", "Type your answer")
+        check = document.createElement("button")
+        check.id = f"{key}-typed-submit"
+        check.className = "secondary"
+        check.innerText = "Check"
+
+        def go(event=None):
+            submit(field.value)
+
+        def on_key(event=None):
+            if event is not None and getattr(event, "key", None) == "Enter":
+                try:
+                    event.preventDefault()
+                except Exception:
+                    pass
+                go()
+
+        for element, name, handler in ((check, "click", go), (field, "keydown", on_key)):
+            proxy = create_proxy(handler)
+            element.addEventListener(name, proxy)
+            proxies.append(proxy)
+        box.appendChild(field)
+        box.appendChild(check)
+        try:
+            field.focus()
+        except Exception:
+            pass
+        return
+    for index, choice in enumerate(question["choices"]):
+        button = document.createElement("button")
+        button.id = f"{key}-choice-{index}"
+        button.innerText = choice
+        button.className = "choice"
+        proxy = create_proxy(_make_choice_submit(submit, choice))
+        button.addEventListener("click", proxy)
+        proxies.append(proxy)
+        box.appendChild(button)
+
+
+def _make_choice_submit(submit, choice):
+    def handler(event=None):
+        submit(choice)
+    return handler
+
+
 def render():
     """Called once per repaint from game.py's own render(), same as every
     other secondary mode's render_<mode>() call. Milestone 27 ships only
@@ -228,6 +437,8 @@ def render():
     render_boutique()
     render_cafe()
     render_sprint()
+    for game in NEW_GAMES:
+        game.render()
 
 
 def setup():
@@ -242,6 +453,8 @@ def setup():
     _setup_boutique()
     _setup_cafe()
     _setup_sprint()
+    for game in NEW_GAMES:
+        game.setup()
 
 
 # ===========================================================================
@@ -305,6 +518,12 @@ BLITZ_TRANSLATE_VARIANTS = {
 
 BLITZ_END_TIME = "time"
 BLITZ_END_LIVES = "lives"
+# Slower / Normal / Faster: how long the run lasts and how many lives you get.
+BLITZ_DIFFICULTY = {
+    "slower": {"seconds": 90, "lives": 5},
+    "normal": {"seconds": BLITZ_DURATION_SECONDS, "lives": BLITZ_STARTING_LIVES},
+    "faster": {"seconds": 45, "lives": 2},
+}
 
 blitz_open = False  # panel toggled open, independent of a live run
 blitz_active = False  # a 60s run is currently in progress
@@ -316,7 +535,17 @@ blitz_time_remaining = BLITZ_DURATION_SECONDS
 blitz_question = None
 blitz_end_reason = None  # None | BLITZ_END_TIME | BLITZ_END_LIVES
 blitz_choice_proxies = []
+blitz_note = ""  # what the last answer did to its plot
 BLITZ_RNG = random.Random()
+
+
+def _blitz_params():
+    return BLITZ_DIFFICULTY[get_difficulty("blitz")]
+
+
+def _blitz_describe(level):
+    p = BLITZ_DIFFICULTY[level]
+    return f"{DIFFICULTY_LABELS[level]}: {p['seconds']} seconds and {p['lives']} lives."
 
 
 def _destroy_blitz_choice_proxies():
@@ -379,7 +608,7 @@ def _roll_blitz_question():
 
 def start_blitz(event=None):
     global blitz_active, blitz_score, blitz_lives, blitz_combo
-    global blitz_time_remaining, blitz_end_reason, blitz_open
+    global blitz_time_remaining, blitz_end_reason, blitz_open, blitz_note
 
     # blitz_available() is a cheap row-unlock-only proxy (see its own
     # docstring); the real candidate pool is only actually computed here,
@@ -391,10 +620,11 @@ def start_blitz(event=None):
     blitz_open = True
     blitz_active = True
     blitz_score = 0
-    blitz_lives = BLITZ_STARTING_LIVES
+    blitz_lives = _blitz_params()["lives"]
     blitz_combo = 0
-    blitz_time_remaining = BLITZ_DURATION_SECONDS
+    blitz_time_remaining = _blitz_params()["seconds"]
     blitz_end_reason = None
+    blitz_note = ""
     _reset_credit("blitz")
     _roll_blitz_question()
     render()
@@ -410,17 +640,20 @@ def _end_blitz(reason):
 
 
 def submit_blitz_choice(given):
-    global blitz_score, blitz_combo, blitz_lives
+    global blitz_score, blitz_combo, blitz_lives, blitz_note
 
     if not blitz_active or blitz_question is None:
         return None
-    correct = given == blitz_question["answer"]
+    correct = _check(blitz_question, given)
     _record("blitz", correct)
+    label = plot_label(blitz_question["plot_id"])
     if correct:
-        _credit(blitz_question, "blitz")
+        kind = _credit(blitz_question, "blitz")
+        blitz_note = answer_note(label, True, [kind])
         blitz_combo += 1
-        blitz_score += round(BLITZ_BASE_POINTS * _blitz_multiplier(blitz_combo))
+        blitz_score += difficulty_points("blitz", round(BLITZ_BASE_POINTS * _blitz_multiplier(blitz_combo)))
     else:
+        blitz_note = answer_note(label, False, [])
         blitz_combo = 0
         blitz_lives -= 1
     if blitz_lives <= 0:
@@ -449,11 +682,12 @@ def blitz_tick(event=None):
 
 
 def close_blitz(event=None):
-    global blitz_open, blitz_active, blitz_question, blitz_end_reason
+    global blitz_open, blitz_active, blitz_question, blitz_end_reason, blitz_note
     blitz_open = False
     blitz_active = False
     blitz_question = None
     blitz_end_reason = None
+    blitz_note = ""
     render()
 
 
@@ -506,6 +740,7 @@ def render_blitz():
     start_button = _element("blitz-start-button")
     summary = _element("blitz-summary")
 
+    _render_difficulty("blitz", blitz_active, _blitz_describe)
     _element("blitz-time-display").innerText = f"{blitz_time_remaining}s"
     _element("blitz-lives-display").innerText = "❤" * max(blitz_lives, 0) or "0 lives"
     _element("blitz-score-display").innerText = f"Score: {blitz_score}"
@@ -520,8 +755,9 @@ def render_blitz():
         _element("blitz-context").innerText = ""
         _element("blitz-prompt").innerText = ""
         _element("blitz-feedback").innerText = ""
+        _element("blitz-waters").innerText = ""
         start_button.hidden = reason is not None
-        start_button.innerText = "Play again" if blitz_end_reason is not None else "Start (60s)"
+        start_button.innerText = "Play again" if blitz_end_reason is not None else f"Start ({_blitz_params()['seconds']}s)"
         summary.hidden = blitz_end_reason is None
         if blitz_end_reason == BLITZ_END_TIME:
             summary.innerText = _with_growth(BLITZ_SUMMARY_MESSAGE.format(score=blitz_score, best=blitz_best_score), "blitz")
@@ -541,23 +777,16 @@ def render_blitz():
     # is exactly the kind of flakiness a fast-paced game can least afford.
     if blitz_question is not _blitz_rendered_question:
         _destroy_blitz_choice_proxies()
-        _element("blitz-context").innerText = blitz_question["context"]
+        _element("blitz-context").innerText = context_line(blitz_question)
         _element("blitz-prompt").innerText = blitz_question["prompt"]
-        _element("blitz-feedback").innerText = ""
-        choices_box.innerHTML = ""
-        for index, choice in enumerate(blitz_question["choices"]):
-            button = document.createElement("button")
-            button.id = f"blitz-choice-{index}"
-            button.innerText = choice
-            button.className = "choice"
-            proxy = create_proxy(_make_blitz_choice_handler(choice))
-            button.addEventListener("click", proxy)
-            blitz_choice_proxies.append(proxy)
-            choices_box.appendChild(button)
+        _element("blitz-feedback").innerText = blitz_note
+        _element("blitz-waters").innerText = waters_text([plot_label(blitz_question["plot_id"])])
+        _build_answer_area("blitz", blitz_question, choices_box, blitz_choice_proxies, submit_blitz_choice)
         _blitz_rendered_question = blitz_question
 
 
 def _setup_blitz():
+    _setup_difficulty("blitz")
     _element("blitz-toggle-button").addEventListener("click", create_proxy(on_toggle_blitz))
     _element("blitz-start-button").addEventListener("click", create_proxy(start_blitz))
     _element("blitz-close-button").addEventListener("click", create_proxy(close_blitz))
@@ -616,6 +845,19 @@ RACER_PREFERRED_VARIANTS = {
     VARIANT_BLANK_WORD,
 }
 
+# Slower / Normal / Faster: how often the rival steps (real seconds per step).
+RACER_DIFFICULTY = {
+    "slower": {"rival_ticks": 5},
+    "normal": {"rival_ticks": RACER_RIVAL_TICKS_PER_STEP},
+    "faster": {"rival_ticks": 2},
+}
+
+
+def _racer_describe(level):
+    ticks = RACER_DIFFICULTY[level]["rival_ticks"]
+    return f"{DIFFICULTY_LABELS[level]}: the rival takes a step every {ticks} seconds."
+
+
 RACER_END_PLAYER = "player"  # the player reached the finish line first
 RACER_END_RIVAL = "rival"  # the rival did
 
@@ -628,6 +870,7 @@ racer_question = None
 racer_result = None  # None | True | False -- last attempt, transient UI flash
 racer_end_reason = None  # None | RACER_END_PLAYER | RACER_END_RIVAL
 racer_choice_proxies = []
+racer_note = ""  # what the last answer did to its plot
 RACER_RNG = random.Random()
 
 
@@ -684,7 +927,7 @@ def _roll_racer_question():
 
 def start_racer(event=None):
     global racer_open, racer_active, racer_player_position, racer_rival_position
-    global racer_tick_count, racer_result, racer_end_reason
+    global racer_tick_count, racer_result, racer_end_reason, racer_note
 
     if not racer_available() or not _racer_candidate_plots():
         return None
@@ -695,6 +938,7 @@ def start_racer(event=None):
     racer_tick_count = 0
     racer_result = None
     racer_end_reason = None
+    racer_note = ""
     _reset_credit("racer")
     _roll_racer_question()
     render()
@@ -709,19 +953,23 @@ def _end_racer(reason):
 
 
 def submit_racer_choice(given):
-    global racer_player_position, racer_result
+    global racer_player_position, racer_result, racer_note
 
     if not racer_active or racer_question is None:
         return None
-    racer_result = given == racer_question["answer"]
+    racer_result = _check(racer_question, given)
     _record("racer", racer_result)
+    label = plot_label(racer_question["plot_id"])
     if racer_result:
-        _credit(racer_question, "racer")
+        kind = _credit(racer_question, "racer")
+        racer_note = answer_note(label, True, [kind])
         racer_player_position += 1
         if racer_player_position >= RACER_TOTAL_STEPS:
             _end_racer(RACER_END_PLAYER)
             render()
             return racer_result
+    else:
+        racer_note = answer_note(label, False, [])
     _roll_racer_question()
     render()
     return racer_result
@@ -736,7 +984,7 @@ def racer_tick(event=None):
     if not racer_active:
         return None
     racer_tick_count += 1
-    if racer_tick_count >= RACER_RIVAL_TICKS_PER_STEP:
+    if racer_tick_count >= RACER_DIFFICULTY[get_difficulty("racer")]["rival_ticks"]:
         racer_tick_count = 0
         racer_rival_position += 1
         if racer_rival_position >= RACER_TOTAL_STEPS:
@@ -746,7 +994,8 @@ def racer_tick(event=None):
 
 
 def close_racer(event=None):
-    global racer_open, racer_active, racer_question, racer_result, racer_end_reason
+    global racer_open, racer_active, racer_question, racer_result, racer_end_reason, racer_note
+    racer_note = ""
     racer_open = False
     racer_active = False
     racer_question = None
@@ -811,6 +1060,7 @@ def render_racer():
     start_button = _element("racer-start-button")
     summary = _element("racer-summary")
 
+    _render_difficulty("racer", racer_active, _racer_describe)
     _element("racer-player-marker").style.left = f"{_racer_marker_position(racer_player_position)}%"
     _element("racer-rival-marker").style.left = f"{_racer_marker_position(racer_rival_position)}%"
     _element("racer-progress-display").innerText = (
@@ -825,6 +1075,7 @@ def render_racer():
         _element("racer-context").innerText = ""
         _element("racer-prompt").innerText = ""
         _element("racer-feedback").innerText = ""
+        _element("racer-waters").innerText = ""
         start_button.hidden = reason is not None
         start_button.innerText = "Race again" if racer_end_reason is not None else "Start the race"
         summary.hidden = racer_end_reason is None
@@ -842,30 +1093,23 @@ def render_racer():
     summary.hidden = True
 
     if racer_result is False:
-        _element("racer-feedback").innerText = "Not this turn — try the next one."
+        _element("racer-feedback").innerText = "Not this turn — try the next one. " + racer_note
     else:
-        _element("racer-feedback").innerText = ""
+        _element("racer-feedback").innerText = racer_note
 
     # Same identity-based rebuild-only-on-change fix Blitz's own live
     # verification found necessary -- see that milestone's build note.
     if racer_question is not _racer_rendered_question:
         _destroy_racer_choice_proxies()
-        _element("racer-context").innerText = racer_question["context"]
+        _element("racer-context").innerText = context_line(racer_question)
         _element("racer-prompt").innerText = racer_question["prompt"]
-        choices_box.innerHTML = ""
-        for index, choice in enumerate(racer_question["choices"]):
-            button = document.createElement("button")
-            button.id = f"racer-choice-{index}"
-            button.innerText = choice
-            button.className = "choice"
-            proxy = create_proxy(_make_racer_choice_handler(choice))
-            button.addEventListener("click", proxy)
-            racer_choice_proxies.append(proxy)
-            choices_box.appendChild(button)
+        _element("racer-waters").innerText = waters_text([plot_label(racer_question["plot_id"])])
+        _build_answer_area("racer", racer_question, choices_box, racer_choice_proxies, submit_racer_choice)
         _racer_rendered_question = racer_question
 
 
 def _setup_racer():
+    _setup_difficulty("racer")
     _element("racer-toggle-button").addEventListener("click", create_proxy(on_toggle_racer))
     _element("racer-start-button").addEventListener("click", create_proxy(start_racer))
     _element("racer-close-button").addEventListener("click", create_proxy(close_racer))
@@ -943,7 +1187,24 @@ boutique_patience_remaining = BOUTIQUE_STARTING_PATIENCE
 boutique_order = None  # {"order_en", "answer", "choices"} | None
 boutique_last_result = None  # None | True | False -- last customer, transient UI flash
 boutique_choice_proxies = []
+boutique_note = ""  # what the last sale did to its plots
 BOUTIQUE_RNG = random.Random()
+# Slower / Normal / Faster: how long a customer waits (seconds) at the start of
+# the shift and the shortest the wait ever gets as sales speed the pace up.
+BOUTIQUE_DIFFICULTY = {
+    "slower": {"start": 18, "min": 9},
+    "normal": {"start": BOUTIQUE_STARTING_PATIENCE, "min": BOUTIQUE_MIN_PATIENCE},
+    "faster": {"start": 8, "min": 4},
+}
+
+
+def _boutique_params():
+    return BOUTIQUE_DIFFICULTY[get_difficulty("boutique")]
+
+
+def _boutique_describe(level):
+    p = BOUTIQUE_DIFFICULTY[level]
+    return f"{DIFFICULTY_LABELS[level]}: customers wait {p['start']} seconds, never less than {p['min']}."
 
 
 def _destroy_boutique_choice_proxies():
@@ -1045,7 +1306,7 @@ def _roll_boutique_order():
 def start_boutique(event=None):
     global boutique_open, boutique_active, boutique_served, boutique_missed
     global boutique_score, boutique_patience_max, boutique_patience_remaining
-    global boutique_last_result
+    global boutique_last_result, boutique_note
 
     if not boutique_available() or not _boutique_garment_entries() or not _boutique_colour_entries():
         return None
@@ -1054,9 +1315,10 @@ def start_boutique(event=None):
     boutique_served = 0
     boutique_missed = 0
     boutique_score = 0
-    boutique_patience_max = BOUTIQUE_STARTING_PATIENCE
-    boutique_patience_remaining = BOUTIQUE_STARTING_PATIENCE
+    boutique_patience_max = _boutique_params()["start"]
+    boutique_patience_remaining = boutique_patience_max
     boutique_last_result = None
+    boutique_note = ""
     _reset_credit("boutique")
     _roll_boutique_order()
     render()
@@ -1069,17 +1331,21 @@ def _resolve_boutique_customer(served):
     tally it, maybe speed up, then either end the shift or bring in the
     next customer."""
     global boutique_served, boutique_missed, boutique_score, boutique_patience_max
-    global boutique_active, boutique_order, boutique_patience_remaining, boutique_last_result
+    global boutique_active, boutique_order, boutique_patience_remaining, boutique_last_result, boutique_note
 
     boutique_last_result = served
     _record("boutique", served)
+    labels = labels_for_fr(boutique_order.get("credit_fr", ())) if boutique_order is not None else []
     if served:
+        kinds = []
         if boutique_order is not None:
-            _credit_fr(boutique_order.get("credit_fr", ()), "boutique")
+            kinds = _credit_fr(boutique_order.get("credit_fr", ()), "boutique")
+        boutique_note = answer_note(" + ".join(labels), True, kinds)
         boutique_served += 1
-        boutique_score += BOUTIQUE_BASE_POINTS
-        boutique_patience_max = max(BOUTIQUE_MIN_PATIENCE, boutique_patience_max - BOUTIQUE_PATIENCE_STEP)
+        boutique_score += difficulty_points("boutique", BOUTIQUE_BASE_POINTS)
+        boutique_patience_max = max(_boutique_params()["min"], boutique_patience_max - BOUTIQUE_PATIENCE_STEP)
     else:
+        boutique_note = answer_note(" + ".join(labels), False, [])
         boutique_missed += 1
 
     if boutique_served + boutique_missed >= BOUTIQUE_TOTAL_CUSTOMERS:
@@ -1115,7 +1381,8 @@ def boutique_tick(event=None):
 
 
 def close_boutique(event=None):
-    global boutique_open, boutique_active, boutique_order, boutique_last_result
+    global boutique_open, boutique_active, boutique_order, boutique_last_result, boutique_note
+    boutique_note = ""
     boutique_open = False
     boutique_active = False
     boutique_order = None
@@ -1173,6 +1440,7 @@ def render_boutique():
     start_button = _element("boutique-start-button")
     summary = _element("boutique-summary")
 
+    _render_difficulty("boutique", boutique_active, _boutique_describe)
     _element("boutique-served-display").innerText = f"Served: {boutique_served}"
     _element("boutique-missed-display").innerText = f"Missed: {boutique_missed}"
     _element("boutique-score-display").innerText = f"Score: {boutique_score}"
@@ -1185,6 +1453,7 @@ def render_boutique():
         _boutique_rendered_order = None
         _element("boutique-order").innerText = ""
         _element("boutique-feedback").innerText = ""
+        _element("boutique-waters").innerText = ""
         fill = _element("boutique-patience-fill")
         fill.style.width = "100%"
         fill.className = "shop-rush-patience-fill"
@@ -1208,15 +1477,16 @@ def render_boutique():
     fill.className = "shop-rush-patience-fill shop-rush-patience-fill--low" if low else "shop-rush-patience-fill"
 
     if boutique_last_result is False:
-        _element("boutique-feedback").innerText = "Not this time — next customer, please."
+        _element("boutique-feedback").innerText = "Not this time — next customer, please. " + boutique_note
     elif boutique_last_result is True:
-        _element("boutique-feedback").innerText = "Sold!"
+        _element("boutique-feedback").innerText = "Sold! " + boutique_note
     else:
         _element("boutique-feedback").innerText = ""
 
     if boutique_order is not _boutique_rendered_order:
         _destroy_boutique_choice_proxies()
         _element("boutique-order").innerText = f"A customer wants: {boutique_order['order_en']}."
+        _element("boutique-waters").innerText = waters_text(labels_for_fr(boutique_order.get("credit_fr", ())))
         options_box.innerHTML = ""
         for index, choice in enumerate(boutique_order["choices"]):
             button = document.createElement("button")
@@ -1231,6 +1501,7 @@ def render_boutique():
 
 
 def _setup_boutique():
+    _setup_difficulty("boutique")
     _element("boutique-toggle-button").addEventListener("click", create_proxy(on_toggle_boutique))
     _element("boutique-start-button").addEventListener("click", create_proxy(start_boutique))
     _element("boutique-close-button").addEventListener("click", create_proxy(close_boutique))
@@ -1330,7 +1601,22 @@ cafe_twist_question = None  # generate_question() output | None
 cafe_last_result = None  # None | True | False -- last customer, transient UI flash
 cafe_choice_proxies = []
 cafe_twist_choice_proxies = []
+cafe_note = ""  # what the last customer's order did to its plots
 CAFE_RNG = random.Random()
+CAFE_DIFFICULTY = {
+    "slower": {"start": 18, "min": 9},
+    "normal": {"start": CAFE_STARTING_PATIENCE, "min": CAFE_MIN_PATIENCE},
+    "faster": {"start": 8, "min": 4},
+}
+
+
+def _cafe_params():
+    return CAFE_DIFFICULTY[get_difficulty("cafe")]
+
+
+def _cafe_describe(level):
+    p = CAFE_DIFFICULTY[level]
+    return f"{DIFFICULTY_LABELS[level]}: customers wait {p['start']} seconds, never less than {p['min']}."
 
 
 def _destroy_cafe_choice_proxies():
@@ -1443,7 +1729,7 @@ def _roll_cafe_customer():
 
 def start_cafe(event=None):
     global cafe_open, cafe_active, cafe_served, cafe_missed, cafe_score
-    global cafe_patience_max, cafe_customer_index, cafe_last_result
+    global cafe_patience_max, cafe_customer_index, cafe_last_result, cafe_note
 
     if not cafe_available() or not _cafe_food_entries():
         return None
@@ -1452,9 +1738,10 @@ def start_cafe(event=None):
     cafe_served = 0
     cafe_missed = 0
     cafe_score = 0
-    cafe_patience_max = CAFE_STARTING_PATIENCE
+    cafe_patience_max = _cafe_params()["start"]
     cafe_customer_index = 0
     cafe_last_result = None
+    cafe_note = ""
     _reset_credit("cafe")
     _roll_cafe_customer()
     render()
@@ -1474,11 +1761,13 @@ def _resolve_cafe_customer(served, speed_up):
     _record("cafe", served)
     if served:
         cafe_served += 1
-        cafe_score += CAFE_BASE_POINTS + (CAFE_TWIST_BONUS_POINTS if cafe_stage == CAFE_STAGE_TWIST else 0)
+        cafe_score += difficulty_points(
+            "cafe", CAFE_BASE_POINTS + (CAFE_TWIST_BONUS_POINTS if cafe_stage == CAFE_STAGE_TWIST else 0)
+        )
     else:
         cafe_missed += 1
     if speed_up:
-        cafe_patience_max = max(CAFE_MIN_PATIENCE, cafe_patience_max - CAFE_PATIENCE_STEP)
+        cafe_patience_max = max(_cafe_params()["min"], cafe_patience_max - CAFE_PATIENCE_STEP)
 
     if cafe_served + cafe_missed >= CAFE_TOTAL_CUSTOMERS:
         cafe_active = False
@@ -1490,16 +1779,19 @@ def _resolve_cafe_customer(served, speed_up):
 
 
 def submit_cafe_item_choice(given):
-    global cafe_stage, cafe_twist_question
+    global cafe_stage, cafe_twist_question, cafe_note
 
     if not cafe_active or cafe_order is None or cafe_stage != CAFE_STAGE_PICK:
         return None
     correct = given == cafe_order["answer"]
+    labels = labels_for_fr(cafe_order.get("credit_fr", ()))
     if not correct:
+        cafe_note = answer_note(" + ".join(labels), False, [])
         _resolve_cafe_customer(served=False, speed_up=False)
         render()
         return False
-    _credit_fr(cafe_order.get("credit_fr", ()), "cafe")
+    kinds = _credit_fr(cafe_order.get("credit_fr", ()), "cafe")
+    cafe_note = answer_note(" + ".join(labels), True, kinds)
 
     twist_pool = _cafe_twist_candidate_plots()
     if cafe_is_twist_round and twist_pool:
@@ -1515,11 +1807,16 @@ def submit_cafe_item_choice(given):
 
 
 def submit_cafe_twist_choice(given):
+    global cafe_note
     if not cafe_active or cafe_stage != CAFE_STAGE_TWIST or cafe_twist_question is None:
         return None
-    correct = given == cafe_twist_question["answer"]
+    correct = _check(cafe_twist_question, given)
+    twist_label = plot_label(cafe_twist_question["plot_id"])
     if correct:
-        _credit(cafe_twist_question, "cafe")
+        kind = _credit(cafe_twist_question, "cafe")
+        cafe_note = (cafe_note + " " + answer_note(twist_label, True, [kind])).strip()
+    else:
+        cafe_note = (cafe_note + " " + answer_note(twist_label, False, [])).strip()
     _resolve_cafe_customer(served=correct, speed_up=correct)
     render()
     return correct
@@ -1542,7 +1839,8 @@ def cafe_tick(event=None):
 
 
 def close_cafe(event=None):
-    global cafe_open, cafe_active, cafe_order, cafe_stage, cafe_twist_question, cafe_last_result
+    global cafe_open, cafe_active, cafe_order, cafe_stage, cafe_twist_question, cafe_last_result, cafe_note
+    cafe_note = ""
     cafe_open = False
     cafe_active = False
     cafe_order = None
@@ -1614,6 +1912,7 @@ def render_cafe():
     start_button = _element("cafe-start-button")
     summary = _element("cafe-summary")
 
+    _render_difficulty("cafe", cafe_active, _cafe_describe)
     _element("cafe-served-display").innerText = f"Served: {cafe_served}"
     _element("cafe-missed-display").innerText = f"Missed: {cafe_missed}"
     _element("cafe-score-display").innerText = f"Score: {cafe_score}"
@@ -1629,6 +1928,7 @@ def render_cafe():
         _cafe_rendered_twist = None
         _element("cafe-order").innerText = ""
         _element("cafe-feedback").innerText = ""
+        _element("cafe-waters").innerText = ""
         twist_panel.hidden = True
         fill = _element("cafe-patience-fill")
         fill.style.width = "100%"
@@ -1653,15 +1953,16 @@ def render_cafe():
     fill.className = "shop-rush-patience-fill shop-rush-patience-fill--low" if low else "shop-rush-patience-fill"
 
     if cafe_last_result is False:
-        _element("cafe-feedback").innerText = "Not this time — next customer, please."
+        _element("cafe-feedback").innerText = "Not this time — next customer, please. " + cafe_note
     elif cafe_last_result is True:
-        _element("cafe-feedback").innerText = "Sold!"
+        _element("cafe-feedback").innerText = "Sold! " + cafe_note
     else:
         _element("cafe-feedback").innerText = ""
 
     if cafe_order is not _cafe_rendered_order:
         _destroy_cafe_choice_proxies()
         _element("cafe-order").innerText = f"A customer wants: {cafe_order['order_en']}."
+        _element("cafe-waters").innerText = waters_text(labels_for_fr(cafe_order.get("credit_fr", ())))
         options_box.innerHTML = ""
         for index, choice in enumerate(cafe_order["choices"]):
             button = document.createElement("button")
@@ -1679,18 +1980,12 @@ def render_cafe():
         options_box.innerHTML = ""  # the item choice is already made -- only the twist remains
         if cafe_twist_question is not _cafe_rendered_twist:
             _destroy_cafe_twist_proxies()
-            _element("cafe-twist-context").innerText = cafe_twist_question["context"]
+            _element("cafe-twist-context").innerText = context_line(cafe_twist_question)
             _element("cafe-twist-prompt").innerText = cafe_twist_question["prompt"]
-            twist_choices_box.innerHTML = ""
-            for index, choice in enumerate(cafe_twist_question["choices"]):
-                button = document.createElement("button")
-                button.id = f"cafe-twist-choice-{index}"
-                button.innerText = choice
-                button.className = "choice"
-                proxy = create_proxy(_make_cafe_twist_choice_handler(choice))
-                button.addEventListener("click", proxy)
-                cafe_twist_choice_proxies.append(proxy)
-                twist_choices_box.appendChild(button)
+            _element("cafe-twist-waters").innerText = waters_text([plot_label(cafe_twist_question["plot_id"])])
+            _build_answer_area(
+                "cafe-twist", cafe_twist_question, twist_choices_box, cafe_twist_choice_proxies, submit_cafe_twist_choice
+            )
             _cafe_rendered_twist = cafe_twist_question
     else:
         twist_panel.hidden = True
@@ -1700,6 +1995,7 @@ def render_cafe():
 
 
 def _setup_cafe():
+    _setup_difficulty("cafe")
     _element("cafe-toggle-button").addEventListener("click", create_proxy(on_toggle_cafe))
     _element("cafe-start-button").addEventListener("click", create_proxy(start_cafe))
     _element("cafe-close-button").addEventListener("click", create_proxy(close_cafe))
@@ -1734,6 +2030,11 @@ SPRINT_VARIANTS = {VARIANT_BLANK_WORD, VARIANT_CONJUGATION_SWAP}
 
 SPRINT_END_TIME = "time"
 SPRINT_END_LIVES = "lives"
+SPRINT_DIFFICULTY = {
+    "slower": {"seconds": 90, "lives": 5},
+    "normal": {"seconds": SPRINT_DURATION_SECONDS, "lives": SPRINT_STARTING_LIVES},
+    "faster": {"seconds": 45, "lives": 2},
+}
 
 sprint_open = False  # panel toggled open, independent of a live run
 sprint_active = False  # a 60s run is currently in progress
@@ -1745,7 +2046,17 @@ sprint_time_remaining = SPRINT_DURATION_SECONDS
 sprint_question = None
 sprint_end_reason = None  # None | SPRINT_END_TIME | SPRINT_END_LIVES
 sprint_choice_proxies = []
+sprint_note = ""  # what the last answer did to its plot
 SPRINT_RNG = random.Random()
+
+
+def _sprint_params():
+    return SPRINT_DIFFICULTY[get_difficulty("sprint")]
+
+
+def _sprint_describe(level):
+    p = SPRINT_DIFFICULTY[level]
+    return f"{DIFFICULTY_LABELS[level]}: {p['seconds']} seconds and {p['lives']} lives."
 
 
 def _destroy_sprint_choice_proxies():
@@ -1808,7 +2119,7 @@ def _roll_sprint_question():
 
 def start_sprint(event=None):
     global sprint_active, sprint_score, sprint_lives, sprint_combo
-    global sprint_time_remaining, sprint_end_reason, sprint_open
+    global sprint_time_remaining, sprint_end_reason, sprint_open, sprint_note
 
     # sprint_available() is a cheap row-unlock-only proxy (see its own
     # docstring); the real candidate pool is only actually computed here,
@@ -1820,10 +2131,11 @@ def start_sprint(event=None):
     sprint_open = True
     sprint_active = True
     sprint_score = 0
-    sprint_lives = SPRINT_STARTING_LIVES
+    sprint_lives = _sprint_params()["lives"]
     sprint_combo = 0
-    sprint_time_remaining = SPRINT_DURATION_SECONDS
+    sprint_time_remaining = _sprint_params()["seconds"]
     sprint_end_reason = None
+    sprint_note = ""
     _reset_credit("sprint")
     _roll_sprint_question()
     render()
@@ -1839,17 +2151,20 @@ def _end_sprint(reason):
 
 
 def submit_sprint_choice(given):
-    global sprint_score, sprint_combo, sprint_lives
+    global sprint_score, sprint_combo, sprint_lives, sprint_note
 
     if not sprint_active or sprint_question is None:
         return None
-    correct = given == sprint_question["answer"]
+    correct = _check(sprint_question, given)
     _record("sprint", correct)
+    label = plot_label(sprint_question["plot_id"])
     if correct:
-        _credit(sprint_question, "sprint")
+        kind = _credit(sprint_question, "sprint")
+        sprint_note = answer_note(label, True, [kind])
         sprint_combo += 1
-        sprint_score += round(SPRINT_BASE_POINTS * _sprint_multiplier(sprint_combo))
+        sprint_score += difficulty_points("sprint", round(SPRINT_BASE_POINTS * _sprint_multiplier(sprint_combo)))
     else:
+        sprint_note = answer_note(label, False, [])
         sprint_combo = 0
         sprint_lives -= 1
     if sprint_lives <= 0:
@@ -1878,7 +2193,8 @@ def sprint_tick(event=None):
 
 
 def close_sprint(event=None):
-    global sprint_open, sprint_active, sprint_question, sprint_end_reason
+    global sprint_open, sprint_active, sprint_question, sprint_end_reason, sprint_note
+    sprint_note = ""
     sprint_open = False
     sprint_active = False
     sprint_question = None
@@ -1935,6 +2251,7 @@ def render_sprint():
     start_button = _element("sprint-start-button")
     summary = _element("sprint-summary")
 
+    _render_difficulty("sprint", sprint_active, _sprint_describe)
     _element("sprint-time-display").innerText = f"{sprint_time_remaining}s"
     _element("sprint-lives-display").innerText = "❤" * max(sprint_lives, 0) or "0 lives"
     _element("sprint-score-display").innerText = f"Score: {sprint_score}"
@@ -1949,8 +2266,9 @@ def render_sprint():
         _element("sprint-context").innerText = ""
         _element("sprint-prompt").innerText = ""
         _element("sprint-feedback").innerText = ""
+        _element("sprint-waters").innerText = ""
         start_button.hidden = reason is not None
-        start_button.innerText = "Play again" if sprint_end_reason is not None else "Start (60s)"
+        start_button.innerText = "Play again" if sprint_end_reason is not None else f"Start ({_sprint_params()['seconds']}s)"
         summary.hidden = sprint_end_reason is None
         if sprint_end_reason == SPRINT_END_TIME:
             summary.innerText = _with_growth(SPRINT_SUMMARY_MESSAGE.format(score=sprint_score, best=sprint_best_score), "sprint")
@@ -1970,23 +2288,1039 @@ def render_sprint():
     # is exactly the kind of flakiness a fast-paced game can least afford.
     if sprint_question is not _sprint_rendered_question:
         _destroy_sprint_choice_proxies()
-        _element("sprint-context").innerText = sprint_question["context"]
+        _element("sprint-context").innerText = context_line(sprint_question)
         _element("sprint-prompt").innerText = sprint_question["prompt"]
-        _element("sprint-feedback").innerText = ""
-        choices_box.innerHTML = ""
-        for index, choice in enumerate(sprint_question["choices"]):
-            button = document.createElement("button")
-            button.id = f"sprint-choice-{index}"
-            button.innerText = choice
-            button.className = "choice"
-            proxy = create_proxy(_make_sprint_choice_handler(choice))
-            button.addEventListener("click", proxy)
-            sprint_choice_proxies.append(proxy)
-            choices_box.appendChild(button)
+        _element("sprint-feedback").innerText = sprint_note
+        _element("sprint-waters").innerText = waters_text([plot_label(sprint_question["plot_id"])])
+        _build_answer_area("sprint", sprint_question, choices_box, sprint_choice_proxies, submit_sprint_choice)
         _sprint_rendered_question = sprint_question
 
 
 def _setup_sprint():
+    _setup_difficulty("sprint")
     _element("sprint-toggle-button").addEventListener("click", create_proxy(on_toggle_sprint))
     _element("sprint-start-button").addEventListener("click", create_proxy(start_sprint))
     _element("sprint-close-button").addEventListener("click", create_proxy(close_sprint))
+
+
+# ===========================================================================
+# 2026-10-08 -- four new arcade games for the weeks the first five do not reach
+# ===========================================================================
+#
+# Word Match (vocabulary and phrases, weeks 12-23), Grammar Gaps (fill the gap
+# in the grammar of the weeks Blitz, Racer and the Sprint do not ask gaps
+# about), Listening Pick (hear it, pick what it means; vocabulary, phrases and
+# pronunciation items) and Word Order Race (put an example sentence's words in
+# order). Each draws only on content already in the catalog, is row-unlock-
+# gated like the others, waters real plots (the line under every question names
+# them), feeds the practice ledger and has a Slower / Normal / Faster setting.
+# The four share one small base class so each game is only its own rules.
+
+_speak = None
+_speech_ok = None
+
+
+def configure_speech(speak_fn=None, speech_ok_fn=None):
+    """game.py hands in its speak_french / speech_available (they use the
+    page's own voices; both are quiet no-ops without them)."""
+    global _speak, _speech_ok
+    _speak = speak_fn
+    _speech_ok = speech_ok_fn
+
+
+def _can_hear():
+    return bool(_speech_ok()) if _speech_ok is not None else False
+
+
+def _say(text, slow=False):
+    if _speak is not None:
+        _speak(text, slow)
+
+
+def _can_water(plot):
+    return plot.last_watered != _farm.current_day
+
+
+def _prefer_unwatered(plots, minimum):
+    """Plots that can still be fully watered today, unless there are too few
+    of them to build a round (then everything, so a game is always playable)."""
+    fresh = [p for p in plots if _can_water(p)]
+    return fresh if len(fresh) >= minimum else plots
+
+
+class _Arcade:
+    """The frame every new game shares: panel, start / close, timer and lives
+    display, difficulty, summary, growth line. A subclass supplies its pool,
+    how a round is built and drawn, and what an answer does."""
+
+    key = ""
+    lo, hi = 1, 23
+    open_label = ""
+    close_label = ""
+    start_label = "Start"
+    again_label = "Play again"
+    difficulty_table = {}
+    base_points = 10
+
+    def __init__(self):
+        self.open = False
+        self.active = False
+        self.score = 0
+        self.best = 0
+        self.lives = 0
+        self.combo = 0
+        self.time_remaining = 0
+        self.end_reason = None
+        self.note = ""
+        self.round = None
+        self.rendered = None
+        self.proxies = []
+        self.rng = random.Random()
+        self._pool = None
+
+    # --- hooks --------------------------------------------------------
+    def build_pool(self):
+        raise NotImplementedError
+
+    def new_round(self):
+        raise NotImplementedError
+
+    def draw_round(self):
+        raise NotImplementedError
+
+    def clear_round_ui(self):
+        pass
+
+    def waters_labels(self):
+        return []
+
+    def describe(self, level):
+        p = self.difficulty_table[level]
+        return f"{DIFFICULTY_LABELS[level]}: {p['seconds']} seconds and {p['lives']} lives."
+
+    def summary_text(self):
+        return f"Time's up! Score: {self.score} (best this session: {self.best})."
+
+    def lives_text(self):
+        return f"Out of lives for this round. Score: {self.score} (best this session: {self.best})."
+
+    def cleared_text(self):
+        return f"Round complete! Score: {self.score} (best this session: {self.best})."
+
+    # --- shared -------------------------------------------------------
+    def el(self, suffix):
+        return _element(f"{self.key}-{suffix}")
+
+    def params(self):
+        return self.difficulty_table[get_difficulty(self.key)]
+
+    def pool(self):
+        if self._pool is None:
+            self._pool = self.build_pool()
+        return self._pool
+
+    def available(self):
+        return _range_fully_unlocked(self.lo, self.hi)
+
+    def lock_reason(self):
+        return None if self.available() else _lock_reason(self.hi)
+
+    def multiplier(self, combo):
+        return 1.0 + min(combo // 3, 4) * 0.5
+
+    def award(self, base=None):
+        """Score for one right answer (combo multiplier, then difficulty)."""
+        base = self.base_points if base is None else base
+        return difficulty_points(self.key, round(base * self.multiplier(self.combo)))
+
+    def start(self, event=None):
+        if not self.available() or not self.pool():
+            return None
+        self.open = True
+        self.active = True
+        self.score = 0
+        self.combo = 0
+        self.lives = self.params().get("lives", 0)
+        self.time_remaining = self.params().get("seconds", 0)
+        self.end_reason = None
+        self.note = ""
+        self.rendered = None
+        _reset_credit(self.key)
+        self.begin()
+        self.new_round()
+        render()
+        return self.round
+
+    def begin(self):
+        """Per-game reset at the start of a run."""
+
+    def end(self, reason):
+        self.active = False
+        self.end_reason = reason
+        self.best = max(self.best, self.score)
+        self.round = None
+
+    def tick(self, event=None):
+        if not self.active:
+            return None
+        self.time_remaining -= 1
+        if self.time_remaining <= 0:
+            self.time_remaining = 0
+            self.on_time_up()
+        else:
+            self.on_tick()
+        render()
+        return self.time_remaining
+
+    def on_time_up(self):
+        self.end("time")
+
+    def on_tick(self):
+        pass
+
+    def close(self, event=None):
+        self.open = False
+        self.active = False
+        self.round = None
+        self.end_reason = None
+        self.note = ""
+        self.rendered = None
+        render()
+
+    def toggle(self, event=None):
+        if self.open:
+            self.close()
+        else:
+            self.open = True
+            render()
+
+    def open_panel(self):
+        self.open = True
+        render()
+
+    def destroy_proxies(self):
+        for proxy in self.proxies:
+            proxy.destroy()
+        self.proxies.clear()
+
+    # stats line; subclasses override when they do not use a clock/lives
+    def stats(self):
+        return {
+            "time": f"{self.time_remaining}s",
+            "lives": "❤" * max(self.lives, 0) or "0 lives",
+            "score": f"Score: {self.score}",
+            "combo": f"Combo x{self.multiplier(self.combo):.1f}" if self.combo >= 3 else "",
+        }
+
+    def render(self):
+        toggle = self.el("toggle-button")
+        panel = self.el("panel")
+        available = self.available()
+        toggle.disabled = not self.open and not available
+        toggle.innerText = self.close_label if self.open else self.open_label
+        if not self.open:
+            panel.hidden = True
+            self.destroy_proxies()
+            self.clear_round_ui()
+            self.rendered = None
+            return
+        panel.hidden = False
+        reason = self.lock_reason()
+        lock = self.el("lock-message")
+        lock.hidden = reason is None
+        lock.innerText = reason or ""
+        _render_difficulty(self.key, self.active, self.describe)
+        values = self.stats()
+        self.el("time-display").innerText = values["time"]
+        self.el("lives-display").innerText = values["lives"]
+        self.el("score-display").innerText = values["score"]
+        self.el("combo-display").innerText = values["combo"]
+        start = self.el("start-button")
+        summary = self.el("summary")
+        if not self.active:
+            self.destroy_proxies()
+            self.clear_round_ui()
+            self.rendered = None
+            self.el("feedback").innerText = ""
+            self.el("waters").innerText = ""
+            start.hidden = reason is not None
+            start.innerText = self.again_label if self.end_reason is not None else self.start_label
+            summary.hidden = self.end_reason is None
+            if self.end_reason == "time":
+                text = self.summary_text()
+            elif self.end_reason == "lives":
+                text = self.lives_text()
+            elif self.end_reason == "cleared":
+                text = self.cleared_text()
+            else:
+                text = ""
+            summary.innerText = _with_growth(text, self.key) if text else ""
+            return
+        start.hidden = True
+        summary.hidden = True
+        if self.round is not self.rendered:
+            self.destroy_proxies()
+            self.el("feedback").innerText = self.note
+            self.el("waters").innerText = waters_text(self.waters_labels())
+            self.draw_round()
+            self.rendered = self.round
+        else:
+            self.refresh_round()
+
+    def refresh_round(self):
+        """Light repaint on a clock tick (the round itself did not change)."""
+
+    def setup(self):
+        _setup_difficulty(self.key)
+        self.el("toggle-button").addEventListener("click", create_proxy(self.toggle))
+        self.el("start-button").addEventListener("click", create_proxy(self.start))
+        self.el("close-button").addEventListener("click", create_proxy(self.close))
+        self.setup_extra()
+
+    def setup_extra(self):
+        pass
+
+
+# ---------------------------------------------------------------------------
+# Word Match: pairs of French and English cards (vocabulary and phrases, 12-23)
+# ---------------------------------------------------------------------------
+PAIRS_LO, PAIRS_HI = 12, 23
+PAIRS_PER_BOARD = 4
+PAIRS_BOARDS = 3
+PAIRS_MAX_FR = 22
+PAIRS_MAX_EN = 30
+PAIRS_BAD_CHARS = set("[]+/…{}<>")
+PAIRS_DIFFICULTY = {
+    "slower": {"seconds": 150, "lives": 6},
+    "normal": {"seconds": 90, "lives": 3},
+    "faster": {"seconds": 60, "lives": 2},
+}
+
+
+class _PairsGame(_Arcade):
+    boards_done = 0
+    selected = None
+    key = "pairs"
+    lo, hi = PAIRS_LO, PAIRS_HI
+    open_label = "🔗 Word Match"
+    close_label = "Close Word Match"
+    start_label = "Start matching"
+    again_label = "Match again"
+    difficulty_table = PAIRS_DIFFICULTY
+
+    def build_pool(self):
+        plots = []
+        for sequence in range(self.lo, self.hi + 1):
+            if not _farm.is_row_unlocked(sequence):
+                continue
+            for plot in _farm.row_plots(sequence):
+                if plot.topic_type not in ("vocab", "phrase") or len(plot.items) != 1:
+                    continue
+                fr = _strip_parens(plot.items[0]["fr"])
+                en = _strip_parens(plot.items[0]["en"])
+                if not fr or not en or len(fr) > PAIRS_MAX_FR or len(en) > PAIRS_MAX_EN:
+                    continue
+                if PAIRS_BAD_CHARS & set(plot.items[0]["fr"] + plot.items[0]["en"]):
+                    continue
+                plots.append(plot)
+        return plots
+
+    def begin(self):
+        self.boards_done = 0
+        self.selected = None
+
+    def pick_plots(self):
+        pool = _prefer_unwatered(self.pool(), PAIRS_PER_BOARD * 2)
+        for _ in range(60):
+            chosen = self.rng.sample(pool, PAIRS_PER_BOARD)
+            frs = {_strip_parens(p.items[0]["fr"]).lower() for p in chosen}
+            ens = {_strip_parens(p.items[0]["en"]).lower() for p in chosen}
+            if len(frs) == PAIRS_PER_BOARD and len(ens) == PAIRS_PER_BOARD:
+                return chosen
+        return self.rng.sample(pool, PAIRS_PER_BOARD)
+
+    def new_round(self):
+        plots = self.pick_plots()
+        cards = []
+        for plot in plots:
+            item = plot.items[0]
+            cards.append({"side": "fr", "plot_id": plot.plot_id, "text": _strip_parens(item["fr"])})
+            cards.append({"side": "en", "plot_id": plot.plot_id, "text": _strip_parens(item["en"])})
+        self.rng.shuffle(cards)
+        for index, card in enumerate(cards):
+            card["id"] = index
+            card["matched"] = False
+        self.selected = None
+        self.round = {"cards": cards, "plots": [p.plot_id for p in plots]}
+
+    def waters_labels(self):
+        return [plot_label(pid) for pid in self.round["plots"]] if self.round else []
+
+    def select(self, card_id):
+        """Tap a card. First tap selects, the second (on the other language)
+        tries the pair. Returns True / False for a tried pair, None otherwise."""
+        if not self.active or self.round is None:
+            return None
+        cards = self.round["cards"]
+        if not 0 <= card_id < len(cards) or cards[card_id]["matched"]:
+            return None
+        card = cards[card_id]
+        if self.selected is None or cards[self.selected]["side"] == card["side"]:
+            self.selected = None if self.selected == card_id else card_id
+            render()
+            return None
+        first = cards[self.selected]
+        self.selected = None
+        correct = first["plot_id"] == card["plot_id"]
+        _record(self.key, correct)
+        label = plot_label(card["plot_id"])
+        if correct:
+            first["matched"] = card["matched"] = True
+            kind = _credit_plot_id(card["plot_id"], self.key) if _credit_plot_id is not None else None
+            self.note = answer_note(label, True, [kind])
+            self.combo += 1
+            self.score += self.award()
+            if all(c["matched"] for c in cards):
+                self.boards_done += 1
+                if self.boards_done >= PAIRS_BOARDS:
+                    self.score += difficulty_points(self.key, max(0, self.time_remaining))
+                    self.end("cleared")
+                    render()
+                    return True
+                self.new_round()
+        else:
+            self.note = "Not a pair: nothing changes for either plot."
+            self.combo = 0
+            self.lives -= 1
+            if self.lives <= 0:
+                self.end("lives")
+        render()
+        return correct
+
+    def clear_round_ui(self):
+        self.el("board").innerHTML = ""
+
+    def cleared_text(self):
+        return (
+            f"Board cleared! All {PAIRS_BOARDS} boards matched with {self.time_remaining}s to spare. "
+            f"Score: {self.score} (best this session: {self.best})."
+        )
+
+    def draw_round(self):
+        board = self.el("board")
+        board.innerHTML = ""
+        self.el("progress").innerText = f"Board {self.boards_done + 1} of {PAIRS_BOARDS}"
+        for card in self.round["cards"]:
+            button = document.createElement("button")
+            button.id = f"pairs-card-{card['id']}"
+            button.className = "choice pairs-card pairs-card--" + card["side"]
+            button.innerText = card["text"]
+            proxy = create_proxy(self.make_handler(card["id"]))
+            button.addEventListener("click", proxy)
+            self.proxies.append(proxy)
+            board.appendChild(button)
+        self.paint_cards()
+
+    def make_handler(self, card_id):
+        def handler(event=None):
+            self.select(card_id)
+        return handler
+
+    def paint_cards(self):
+        board = self.el("board")
+        by_id = {c["id"]: c for c in self.round["cards"]}
+        for button in board.children:
+            try:
+                card_id = int(button.id.rsplit("-", 1)[1])
+            except (ValueError, IndexError):
+                continue
+            card = by_id[card_id]
+            classes = "choice pairs-card pairs-card--" + card["side"]
+            if card["matched"]:
+                classes += " choice--answer"
+                button.disabled = True
+            elif self.selected == card_id:
+                classes += " pairs-card--selected"
+            button.className = classes
+            button.setAttribute("aria-pressed", "true" if self.selected == card_id else "false")
+
+    def refresh_round(self):
+        self.el("feedback").innerText = self.note
+        self.paint_cards()
+
+
+# ---------------------------------------------------------------------------
+# Grammar Gaps: timed fill-the-gap over the grammar the other games skip
+# ---------------------------------------------------------------------------
+GAPS_LO, GAPS_HI = 1, 23
+GAPS_VARIANTS = {VARIANT_BLANK_WORD, VARIANT_BLANK_ENDING, VARIANT_CONJUGATION_SWAP}
+# A rule that is only a list of forms ("je mets / tu mets / il met") has no gap
+# to fill; it is asked as "which English matches this example?" instead, so that
+# every grammar plot has an arcade game.
+GAPS_FALLBACK_VARIANTS = {VARIANT_EXAMPLE_FR_EN, VARIANT_EXAMPLE_EN_FR}
+GAPS_DIFFICULTY = {
+    "slower": {"seconds": 90, "lives": 5},
+    "normal": {"seconds": 60, "lives": 3},
+    "faster": {"seconds": 45, "lives": 2},
+}
+
+
+class _GapsGame(_Arcade):
+    key = "gaps"
+    lo, hi = GAPS_LO, GAPS_HI
+    open_label = "🧩 Grammar Gaps"
+    close_label = "Close Grammar Gaps"
+    start_label = "Start"
+    difficulty_table = GAPS_DIFFICULTY
+
+    def build_pool(self):
+        plots = []
+        for sequence in range(self.lo, self.hi + 1):
+            if not _farm.is_row_unlocked(sequence) or RACER_LO <= sequence <= RACER_HI:
+                continue
+            for plot in _farm.row_plots(sequence):
+                if plot.topic_type != "grammar":
+                    continue
+                # The passé composé has its own Sprint, unless a rule there has no gap for
+                # the Sprint to ask (the être verbs are a list): then it is asked here.
+                if plot.topic_id in CAFE_PASSE_COMPOSE_TOPIC_IDS and any(
+                    v in SPRINT_VARIANTS for v in _variants_for(plot)
+                ):
+                    continue
+                if self.variants_of(plot):
+                    plots.append(plot)
+        return plots
+
+    def variants_of(self, plot):
+        offered = _variants_for(plot)
+        return [v for v in offered if v in GAPS_VARIANTS] or [v for v in offered if v in GAPS_FALLBACK_VARIANTS]
+
+    def new_round(self):
+        pool = _prefer_unwatered(self.pool(), 8)
+        plot = self.rng.choice(pool)
+        self.round = _generate_question(plot, self.rng, variant=self.rng.choice(self.variants_of(plot)))
+
+    def waters_labels(self):
+        return [plot_label(self.round["plot_id"])] if self.round else []
+
+    def submit(self, given):
+        if not self.active or self.round is None:
+            return None
+        question = self.round
+        correct = _check(question, given)
+        _record(self.key, correct)
+        label = plot_label(question["plot_id"])
+        if correct:
+            kind = _credit(question, self.key)
+            self.note = answer_note(label, True, [kind])
+            self.combo += 1
+            self.score += self.award()
+        else:
+            self.note = answer_note(label, False, [])
+            self.combo = 0
+            self.lives -= 1
+        if self.lives <= 0:
+            self.end("lives")
+        else:
+            self.new_round()
+        render()
+        return correct
+
+    def clear_round_ui(self):
+        self.el("choices").innerHTML = ""
+        self.el("context").innerText = ""
+        self.el("prompt").innerText = ""
+
+    def draw_round(self):
+        self.el("context").innerText = context_line(self.round)
+        self.el("prompt").innerText = self.round["prompt"]
+        _build_answer_area(self.key, self.round, self.el("choices"), self.proxies, self.submit)
+
+    def refresh_round(self):
+        pass
+
+
+# ---------------------------------------------------------------------------
+# Listening Pick: hear the French, pick what it means
+# ---------------------------------------------------------------------------
+LISTEN_LO, LISTEN_HI = 1, 23
+LISTEN_QUESTIONS = 10
+LISTEN_VARIANTS = (VARIANT_FR_EN_CHOICE, VARIANT_SYMBOL_NAME_CHOICE)
+LISTEN_DIFFICULTY = {
+    "slower": {"seconds": 25, "lives": 6},
+    "normal": {"seconds": 15, "lives": 3},
+    "faster": {"seconds": 9, "lives": 2},
+}
+LISTEN_HIDDEN_PROMPT = "🔊 Listen, then pick what it means."
+
+
+class _ListenGame(_Arcade):
+    asked = 0
+    revealed = False
+    key = "listenpick"
+    lo, hi = LISTEN_LO, LISTEN_HI
+    open_label = "🎧 Listening Pick"
+    close_label = "Close Listening Pick"
+    start_label = "Start listening"
+    again_label = "Listen again"
+    difficulty_table = LISTEN_DIFFICULTY
+
+    def describe(self, level):
+        p = self.difficulty_table[level]
+        return f"{DIFFICULTY_LABELS[level]}: {p['seconds']} seconds to answer each of {LISTEN_QUESTIONS} questions, {p['lives']} lives."
+
+    def build_pool(self):
+        plots = []
+        for sequence in range(self.lo, self.hi + 1):
+            if not _farm.is_row_unlocked(sequence):
+                continue
+            for plot in _farm.row_plots(sequence):
+                if plot.topic_type != "grammar" and any(v in LISTEN_VARIANTS for v in _variants_for(plot)):
+                    plots.append(plot)
+        return plots
+
+    def begin(self):
+        self.asked = 0
+        self.revealed = False
+        self.question_seconds = self.params()["seconds"]
+        self.time_remaining = self.question_seconds
+
+    def new_round(self):
+        pool = _prefer_unwatered(self.pool(), 10)
+        plot = self.rng.choice(pool)
+        variant = self.rng.choice([v for v in _variants_for(plot) if v in LISTEN_VARIANTS])
+        self.round = _generate_question(plot, self.rng, variant=variant)
+        self.asked += 1
+        self.revealed = False
+        self.time_remaining = self.question_seconds
+        _say(self.round["prompt"])
+
+    def waters_labels(self):
+        if not self.round:
+            return []
+        # The French text is the answer's giveaway, so while it is hidden the line only
+        # says that a plot is being watered; the note after the answer names it.
+        if self.hidden():
+            return ["the word you are hearing"]
+        return [plot_label(self.round["plot_id"])]
+
+    def hidden(self):
+        return _can_hear() and not self.revealed
+
+    def stats(self):
+        values = super().stats()
+        values["combo"] = f"Question {min(self.asked, LISTEN_QUESTIONS)} of {LISTEN_QUESTIONS}"
+        return values
+
+    def on_time_up(self):
+        # The clock for one question ran out: a miss, and on to the next.
+        if self.round is not None:
+            self.settle(False, timed_out=True)
+
+    def settle(self, correct, timed_out=False):
+        question = self.round
+        label = plot_label(question["plot_id"])
+        _record(self.key, correct)
+        if correct:
+            kind = _credit(question, self.key)
+            self.note = answer_note(label, True, [kind])
+            self.combo += 1
+            self.score += self.award()
+        else:
+            reason = "Time ran out. " if timed_out else ""
+            self.note = reason + answer_note(label, False, []) + f" It was: {question['prompt']} = {question['answer']}."
+            self.combo = 0
+            self.lives -= 1
+        if self.lives <= 0:
+            self.end("lives")
+        elif self.asked >= LISTEN_QUESTIONS:
+            self.end("cleared")
+        else:
+            self.new_round()
+
+    def submit(self, given):
+        if not self.active or self.round is None:
+            return None
+        correct = _check(self.round, given)
+        self.settle(correct)
+        render()
+        return correct
+
+    def cleared_text(self):
+        return f"All {LISTEN_QUESTIONS} heard! Score: {self.score} (best this session: {self.best})."
+
+    def clear_round_ui(self):
+        self.el("choices").innerHTML = ""
+        self.el("context").innerText = ""
+        self.el("prompt").innerText = ""
+        self.el("play-button").hidden = True
+        self.el("slow-button").hidden = True
+        self.el("show-button").hidden = True
+
+    def draw_round(self):
+        self.el("context").innerText = context_line(self.round)
+        self.el("prompt").innerText = LISTEN_HIDDEN_PROMPT if self.hidden() else self.round["prompt"]
+        can_hear = _can_hear()
+        self.el("play-button").hidden = not can_hear
+        self.el("slow-button").hidden = not can_hear
+        self.el("show-button").hidden = not self.hidden()
+        _build_answer_area(self.key, self.round, self.el("choices"), self.proxies, self.submit)
+
+    def reveal(self, event=None):
+        if self.round is None:
+            return
+        self.revealed = True
+        self.el("prompt").innerText = self.round["prompt"]
+        self.el("waters").innerText = waters_text(self.waters_labels())
+        self.el("show-button").hidden = True
+
+    def replay(self, event=None):
+        if self.round is not None:
+            _say(self.round["prompt"])
+
+    def replay_slow(self, event=None):
+        if self.round is not None:
+            _say(self.round["prompt"], True)
+
+    def setup_extra(self):
+        self.el("play-button").addEventListener("click", create_proxy(self.replay))
+        self.el("slow-button").addEventListener("click", create_proxy(self.replay_slow))
+        self.el("show-button").addEventListener("click", create_proxy(self.reveal))
+
+
+# ---------------------------------------------------------------------------
+# Word Order Race: put an example sentence's words in order
+# ---------------------------------------------------------------------------
+ORDER_LO, ORDER_HI = 1, 23
+ORDER_SENTENCES = 6
+ORDER_MIN_WORDS, ORDER_MAX_WORDS = 3, 8
+ORDER_BAD_CHARS = set("[]+/…{}()<>→")
+ORDER_DIFFICULTY = {
+    "slower": {"seconds": 60, "lives": 0},
+    "normal": {"seconds": 40, "lives": 0},
+    "faster": {"seconds": 25, "lives": 0},
+}
+
+
+class _OrderGame(_Arcade):
+    done = 0
+    painted = None
+    key = "wordorder"
+    lo, hi = ORDER_LO, ORDER_HI
+    open_label = "🧱 Word Order Race"
+    close_label = "Close Word Order Race"
+    start_label = "Start the race"
+    again_label = "Race again"
+    difficulty_table = ORDER_DIFFICULTY
+    base_points = 10
+
+    def describe(self, level):
+        p = self.difficulty_table[level]
+        return f"{DIFFICULTY_LABELS[level]}: {p['seconds']} seconds for each of {ORDER_SENTENCES} sentences. A miss costs nothing but the points."
+
+    def eligible_items(self, plot):
+        items = []
+        for item in plot.items:
+            fr = item["fr"].strip()
+            words = fr.split()
+            if not ORDER_MIN_WORDS <= len(words) <= ORDER_MAX_WORDS:
+                continue
+            if ORDER_BAD_CHARS & set(fr) or not item.get("en"):
+                continue
+            if len(set(words)) < 2:
+                continue
+            items.append(item)
+        return items
+
+    def build_pool(self):
+        plots = []
+        for sequence in range(self.lo, self.hi + 1):
+            if not _farm.is_row_unlocked(sequence):
+                continue
+            for plot in _farm.row_plots(sequence):
+                if plot.topic_type == "grammar" and self.eligible_items(plot):
+                    plots.append(plot)
+        return plots
+
+    def begin(self):
+        self.done = 0
+        self.placed = []
+        self.painted = None
+        self.used_plots = set()
+        self.question_seconds = self.params()["seconds"]
+        self.time_remaining = self.question_seconds
+
+    def stats(self):
+        values = super().stats()
+        values["lives"] = ""
+        values["combo"] = f"Sentence {min(self.done + 1, ORDER_SENTENCES)} of {ORDER_SENTENCES}"
+        return values
+
+    def new_round(self):
+        pool = [p for p in self.pool() if p.plot_id not in self.used_plots] or self.pool()
+        pool = _prefer_unwatered(pool, 4)
+        plot = self.rng.choice(pool)
+        self.used_plots.add(plot.plot_id)
+        item = self.rng.choice(self.eligible_items(plot))
+        words = item["fr"].strip().split()
+        order = list(range(len(words)))
+        for _ in range(12):
+            self.rng.shuffle(order)
+            if [words[i] for i in order] != words:
+                break
+        self.placed = []
+        self.time_remaining = self.question_seconds
+        self.round = {
+            "plot_id": plot.plot_id,
+            "answer": " ".join(words),
+            "words": words,
+            "order": order,
+            "en": item["en"].strip(),
+        }
+
+    def waters_labels(self):
+        return [plot_label(self.round["plot_id"])] if self.round else []
+
+    def on_time_up(self):
+        if self.round is not None:
+            self.settle(False, timed_out=True)
+
+    def settle(self, correct, timed_out=False):
+        question = self.round
+        label = plot_label(question["plot_id"])
+        _record(self.key, correct)
+        if correct:
+            kind = _credit_plot_id(question["plot_id"], self.key) if _credit_plot_id is not None else None
+            self.note = answer_note(label, True, [kind])
+            self.combo += 1
+            self.score += self.award(self.base_points + max(0, self.time_remaining) // 4)
+        else:
+            reason = "Time ran out. " if timed_out else ""
+            self.note = reason + answer_note(label, False, []) + f" The sentence was: {question['answer']}"
+            self.combo = 0
+        self.done += 1
+        if self.done >= ORDER_SENTENCES:
+            self.end("cleared")
+        else:
+            self.new_round()
+
+    def place(self, tile_index):
+        """Tap a tile in the pool (an index into the shuffled order). When the
+        last tile is placed the sentence is checked."""
+        if not self.active or self.round is None or tile_index in self.placed:
+            return None
+        if not 0 <= tile_index < len(self.round["order"]):
+            return None
+        self.placed.append(tile_index)
+        if len(self.placed) < len(self.round["order"]):
+            render()
+            return None
+        built = [self.round["words"][self.round["order"][i]] for i in self.placed]
+        correct = built == self.round["words"]
+        self.settle(correct)
+        render()
+        return correct
+
+    def undo(self, event=None):
+        if self.active and self.placed:
+            self.placed.pop()
+            render()
+
+    def cleared_text(self):
+        return f"All {ORDER_SENTENCES} sentences done! Score: {self.score} (best this session: {self.best})."
+
+    def clear_round_ui(self):
+        self.el("pool").innerHTML = ""
+        self.el("placed").innerHTML = ""
+        self.el("prompt").innerText = ""
+        self.el("undo-button").hidden = True
+
+    def draw_round(self):
+        self.el("prompt").innerText = self.round["en"]
+        self.paint_tiles()
+
+    def paint_tiles(self):
+        self.destroy_proxies()
+        self.painted = tuple(self.placed)
+        pool, placed_box = self.el("pool"), self.el("placed")
+        pool.innerHTML = ""
+        placed_box.innerHTML = ""
+        words, order = self.round["words"], self.round["order"]
+        for tile_index in self.placed:
+            chip = document.createElement("span")
+            chip.className = "bonus-tile bonus-tile--placed"
+            chip.innerText = words[order[tile_index]]
+            placed_box.appendChild(chip)
+        for tile_index, word_index in enumerate(order):
+            if tile_index in self.placed:
+                continue
+            button = document.createElement("button")
+            button.id = f"wordorder-tile-{tile_index}"
+            button.className = "choice bonus-tile"
+            button.innerText = words[word_index]
+            proxy = create_proxy(self.make_handler(tile_index))
+            button.addEventListener("click", proxy)
+            self.proxies.append(proxy)
+            pool.appendChild(button)
+        self.el("undo-button").hidden = not self.placed
+
+    def make_handler(self, tile_index):
+        def handler(event=None):
+            self.place(tile_index)
+        return handler
+
+    def refresh_round(self):
+        # Repaint the tiles only when one was placed or taken back: a clock tick
+        # must not rebuild buttons under a finger.
+        if tuple(self.placed) != self.painted:
+            self.paint_tiles()
+
+    def setup_extra(self):
+        self.el("undo-button").addEventListener("click", create_proxy(self.undo))
+
+
+PAIRS = _PairsGame()
+GAPS = _GapsGame()
+LISTENPICK = _ListenGame()
+WORDORDER = _OrderGame()
+NEW_GAMES = (PAIRS, GAPS, LISTENPICK, WORDORDER)
+
+
+def pairs_tick(event=None):
+    return PAIRS.tick()
+
+
+def gaps_tick(event=None):
+    return GAPS.tick()
+
+
+def listenpick_tick(event=None):
+    return LISTENPICK.tick()
+
+
+def wordorder_tick(event=None):
+    return WORDORDER.tick()
+
+
+def pairs_available():
+    return PAIRS.available()
+
+
+def start_pairs(event=None):
+    return PAIRS.start()
+
+
+def start_gaps(event=None):
+    return GAPS.start()
+
+
+def start_listenpick(event=None):
+    return LISTENPICK.start()
+
+
+def start_wordorder(event=None):
+    return WORDORDER.start()
+
+
+# ---------------------------------------------------------------------------
+# "Water by minigame": what each game waters, for game.py's Water options
+# ---------------------------------------------------------------------------
+def _plots_for_fr_texts(fr_texts):
+    seen, plots = set(), []
+    for fr in fr_texts:
+        plot = _plot_for_fr(fr) if _plot_for_fr is not None else None
+        if plot is not None and plot.plot_id not in seen:
+            seen.add(plot.plot_id)
+            plots.append(plot)
+    return plots
+
+
+def _boutique_water_pool():
+    frs = [g[0] for g in _boutique_garment_entries()] + [c[0] for c in _boutique_colour_entries()]
+    return _plots_for_fr_texts(frs)
+
+
+def _cafe_water_pool():
+    plots = _plots_for_fr_texts([fr for fr, _en in _cafe_food_entries()])
+    seen = {p.plot_id for p in plots}
+    return plots + [p for p in _cafe_twist_candidate_plots() if p.plot_id not in seen]
+
+
+def _open_blitz():
+    global blitz_open
+    blitz_open = True
+    render()
+
+
+def _open_racer():
+    global racer_open
+    racer_open = True
+    render()
+
+
+def _open_boutique():
+    global boutique_open
+    boutique_open = True
+    render()
+
+
+def _open_cafe():
+    global cafe_open
+    cafe_open = True
+    render()
+
+
+def _open_sprint():
+    global sprint_open
+    sprint_open = True
+    render()
+
+
+WATER_GAMES = [
+    ("blitz", "Greetings & Basics Blitz", "vocabulary, phrases and examples from weeks 1-11",
+     _blitz_candidate_plots, blitz_available, _open_blitz),
+    ("racer", "Verb Racer", "grammar plots from weeks 12-15",
+     _racer_candidate_plots, racer_available, _open_racer),
+    ("boutique", "Boutique Dash", "clothing and colour plots from weeks 16-18",
+     _boutique_water_pool, boutique_available, _open_boutique),
+    ("cafe", "Café Rush", "food and drink plots, plus passé composé plots in the twist (weeks 19-23)",
+     _cafe_water_pool, cafe_available, _open_cafe),
+    ("sprint", "Passé Composé Sprint", "passé composé grammar plots from weeks 21-23",
+     _sprint_candidate_plots, sprint_available, _open_sprint),
+]
+for _game in NEW_GAMES:
+    _note = {
+        "pairs": "vocabulary and phrase plots from weeks 12-23",
+        "gaps": "grammar plots outside weeks 12-15 and the passé composé",
+        "listenpick": "vocabulary, phrase and pronunciation plots from every week",
+        "wordorder": "grammar plots that have a short example sentence, every week",
+    }[_game.key]
+    WATER_GAMES.append((_game.key, _game.open_label.split(" ", 1)[1], _note, _game.pool, _game.available, _game.open_panel))
+
+
+def game_pool(key):
+    """Every plot a game can water (lazy; the same pools the games draw from)."""
+    for entry in WATER_GAMES:
+        if entry[0] == key:
+            return list(entry[3]())
+    return []
+
+
+def water_game_rows():
+    """One row per minigame for game.py's Water options panel: the title, what
+    it waters, how many of those plots can still be watered today, whether it
+    is open to play."""
+    rows = []
+    for key, title, note, pool_fn, available_fn, _open_fn in WATER_GAMES:
+        available = bool(available_fn())
+        count = sum(1 for p in pool_fn() if _can_water(p)) if available else 0
+        rows.append({"key": key, "title": title, "note": note, "count": count, "available": available})
+    return rows
+
+
+def open_game(key):
+    for entry in WATER_GAMES:
+        if entry[0] == key:
+            entry[5]()
+            return True
+    return False

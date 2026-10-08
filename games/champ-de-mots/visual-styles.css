@@ -832,3 +832,13 @@ html:not([data-theme="light"]) .stat-tile .status-line--muted,
 html:not([data-theme="light"]) #pace-display { color: #dde0ef; opacity: 1; }
 html .farm-control select { background: #fdfbf5; color: #33291f; }
 #save-widget .save-widget-load-input::placeholder { color: #aeb6cc; opacity: 1; }
+
+
+/* 2026-10-08: the difficulty row and the "Waters:" line under every arcade question. Both are pale
+   on the dark glass of the arcade panels; the light theme (every style) gets dark ink. */
+html[data-theme="light"] .minigame-difficulty { color: #1b2033; }
+html[data-theme="light"] .minigame-difficulty-note { color: #3a4468; }
+html[data-theme="light"] .minigame-waters { color: #1a5c2e; }
+html[data-theme="light"] .pairs-card--selected { outline-color: #8a5a00; }
+html[data-theme="light"] .pairs-card--fr { border-left-color: #2a4ba0; }
+html[data-theme="light"] .pairs-card--en { border-left-color: #a3561c; }

@@ -200,23 +200,55 @@
           "items": [
             {
               "fr": "é",
-              "en": "accent aigu (e.g. téléphone)"
+              "en": "accent aigu (e.g. téléphone)",
+              "accepted_en": [
+                "accent aigu (e.g. téléphone)",
+                "aigu",
+                "acute accent",
+                "acute"
+              ]
             },
             {
               "fr": "è / à / ù",
-              "en": "accent grave (e.g. mère)"
+              "en": "accent grave (e.g. mère)",
+              "accepted_en": [
+                "accent grave (e.g. mère)",
+                "grave",
+                "grave accent"
+              ]
             },
             {
               "fr": "ê / â / ô / û / î",
-              "en": "accent circonflexe (e.g. fête)"
+              "en": "accent circonflexe (e.g. fête)",
+              "accepted_en": [
+                "accent circonflexe (e.g. fête)",
+                "circonflexe",
+                "circumflex",
+                "circumflex accent"
+              ]
             },
             {
               "fr": "ë / ü / ï",
-              "en": "tréma (e.g. Saïd)"
+              "en": "tréma (e.g. Saïd)",
+              "accepted_en": [
+                "tréma (e.g. Saïd)",
+                "tréma",
+                "accent tréma",
+                "le tréma",
+                "diaeresis",
+                "dieresis"
+              ]
             },
             {
               "fr": "ç",
-              "en": "cédille (e.g. français)"
+              "en": "cédille (e.g. français)",
+              "accepted_en": [
+                "cédille (e.g. français)",
+                "cédille",
+                "accent cédille",
+                "la cédille",
+                "cedilla"
+              ]
             },
             {
               "fr": "'",
@@ -239,11 +271,23 @@
             },
             {
               "fr": "salut",
-              "en": "hi and bye"
+              "en": "hi and bye",
+              "accepted_en": [
+                "hi and bye",
+                "hi / bye",
+                "hi/bye",
+                "hi",
+                "bye",
+                "hi or bye"
+              ]
             },
             {
               "fr": "au revoir",
-              "en": "goodbye"
+              "en": "goodbye",
+              "accepted_en": [
+                "goodbye",
+                "good bye"
+              ]
             },
             {
               "fr": "enchanté",
@@ -259,11 +303,21 @@
             },
             {
               "fr": "monsieur",
-              "en": "sir"
+              "en": "sir",
+              "accepted_en": [
+                "sir",
+                "mister",
+                "mr"
+              ]
             },
             {
               "fr": "madame",
-              "en": "madam"
+              "en": "madam",
+              "accepted_en": [
+                "madam",
+                "mrs",
+                "ma'am"
+              ]
             },
             {
               "fr": "mademoiselle",
@@ -302,7 +356,15 @@
             },
             {
               "fr": "Comment ça s'écrit?",
-              "en": "How is that spelt?"
+              "en": "How is that spelt?",
+              "accepted_en": [
+                "How is that spelt?",
+                "How is that spelled?",
+                "How is it spelled?",
+                "How is it spelt?",
+                "How do you spell that?",
+                "How do you spell it?"
+              ]
             }
           ]
         },
@@ -333,11 +395,21 @@
             },
             {
               "fr": "une gomme",
-              "en": "a rubber/eraser"
+              "en": "a rubber/eraser",
+              "accepted_en": [
+                "a rubber/eraser",
+                "a rubber",
+                "an eraser"
+              ]
             },
             {
               "fr": "un tableau",
-              "en": "a whiteboard/blackboard"
+              "en": "a whiteboard/blackboard",
+              "accepted_en": [
+                "a whiteboard/blackboard",
+                "a whiteboard",
+                "a blackboard"
+              ]
             },
             {
               "fr": "un sac à dos",
@@ -357,11 +429,21 @@
             },
             {
               "fr": "un professeur / une professeure",
-              "en": "a teacher/lecturer (m/f)"
+              "en": "a teacher/lecturer (m/f)",
+              "accepted_en": [
+                "a teacher/lecturer (m/f)",
+                "a teacher",
+                "a lecturer"
+              ]
             },
             {
               "fr": "un / une élève",
-              "en": "a student/pupil (m/f)"
+              "en": "a student/pupil (m/f)",
+              "accepted_en": [
+                "a student/pupil (m/f)",
+                "a student",
+                "a pupil"
+              ]
             }
           ],
           "rule": "Nouns are masculine or feminine. A: un (m) / une (f) / des (pl). THE: le (m) / la (f) / les (pl); both le and la become l' before a vowel or silent h."
@@ -373,87 +455,171 @@
           "items": [
             {
               "fr": "zéro",
-              "en": "0"
+              "en": "0",
+              "accepted_en": [
+                "0",
+                "zero"
+              ]
             },
             {
               "fr": "un",
-              "en": "1"
+              "en": "1",
+              "accepted_en": [
+                "1",
+                "one"
+              ]
             },
             {
               "fr": "deux",
-              "en": "2"
+              "en": "2",
+              "accepted_en": [
+                "2",
+                "two"
+              ]
             },
             {
               "fr": "trois",
-              "en": "3"
+              "en": "3",
+              "accepted_en": [
+                "3",
+                "three"
+              ]
             },
             {
               "fr": "quatre",
-              "en": "4"
+              "en": "4",
+              "accepted_en": [
+                "4",
+                "four"
+              ]
             },
             {
               "fr": "cinq",
-              "en": "5"
+              "en": "5",
+              "accepted_en": [
+                "5",
+                "five"
+              ]
             },
             {
               "fr": "six",
-              "en": "6"
+              "en": "6",
+              "accepted_en": [
+                "6",
+                "six"
+              ]
             },
             {
               "fr": "sept",
-              "en": "7"
+              "en": "7",
+              "accepted_en": [
+                "7",
+                "seven"
+              ]
             },
             {
               "fr": "huit",
-              "en": "8"
+              "en": "8",
+              "accepted_en": [
+                "8",
+                "eight"
+              ]
             },
             {
               "fr": "neuf",
-              "en": "9"
+              "en": "9",
+              "accepted_en": [
+                "9",
+                "nine"
+              ]
             },
             {
               "fr": "dix",
-              "en": "10"
+              "en": "10",
+              "accepted_en": [
+                "10",
+                "ten"
+              ]
             },
             {
               "fr": "onze",
-              "en": "11"
+              "en": "11",
+              "accepted_en": [
+                "11",
+                "eleven"
+              ]
             },
             {
               "fr": "douze",
-              "en": "12"
+              "en": "12",
+              "accepted_en": [
+                "12",
+                "twelve"
+              ]
             },
             {
               "fr": "treize",
-              "en": "13"
+              "en": "13",
+              "accepted_en": [
+                "13",
+                "thirteen"
+              ]
             },
             {
               "fr": "quatorze",
-              "en": "14"
+              "en": "14",
+              "accepted_en": [
+                "14",
+                "fourteen"
+              ]
             },
             {
               "fr": "quinze",
-              "en": "15"
+              "en": "15",
+              "accepted_en": [
+                "15",
+                "fifteen"
+              ]
             },
             {
               "fr": "seize",
-              "en": "16"
+              "en": "16",
+              "accepted_en": [
+                "16",
+                "sixteen"
+              ]
             },
             {
               "fr": "dix-sept",
-              "en": "17"
+              "en": "17",
+              "accepted_en": [
+                "17",
+                "seventeen"
+              ]
             },
             {
               "fr": "dix-huit",
-              "en": "18"
+              "en": "18",
+              "accepted_en": [
+                "18",
+                "eighteen"
+              ]
             },
             {
               "fr": "dix-neuf",
-              "en": "19"
+              "en": "19",
+              "accepted_en": [
+                "19",
+                "nineteen"
+              ]
             },
             {
               "fr": "vingt",
-              "en": "20"
+              "en": "20",
+              "accepted_en": [
+                "20",
+                "twenty"
+              ]
             }
           ]
         },
@@ -468,7 +634,14 @@
             },
             {
               "fr": "encore une fois!",
-              "en": "again!"
+              "en": "again!",
+              "accepted_en": [
+                "again!",
+                "again",
+                "one more time",
+                "once more",
+                "once again"
+              ]
             },
             {
               "fr": "avez-vous fini?",
@@ -501,7 +674,13 @@
             },
             {
               "fr": "Quelle est la bonne réponse?",
-              "en": "What's the correct answer?"
+              "en": "What's the correct answer?",
+              "accepted_en": [
+                "What's the correct answer?",
+                "What is the correct answer?",
+                "What's the right answer?",
+                "What is the right answer?"
+              ]
             },
             {
               "fr": "c'est à vous!",
@@ -540,7 +719,13 @@
             },
             {
               "fr": "m'appelle",
-              "en": "am called"
+              "en": "am called",
+              "accepted_en": [
+                "am called",
+                "call myself",
+                "I call myself",
+                "am named"
+              ]
             },
             {
               "fr": "Léa.",
@@ -561,43 +746,85 @@
           "items": [
             {
               "fr": "vingt",
-              "en": "20"
+              "en": "20",
+              "accepted_en": [
+                "20",
+                "twenty"
+              ]
             },
             {
               "fr": "vingt et un",
-              "en": "21"
+              "en": "21",
+              "accepted_en": [
+                "21",
+                "twenty-one",
+                "twenty one"
+              ]
             },
             {
               "fr": "trente",
-              "en": "30"
+              "en": "30",
+              "accepted_en": [
+                "30",
+                "thirty"
+              ]
             },
             {
               "fr": "quarante",
-              "en": "40"
+              "en": "40",
+              "accepted_en": [
+                "40",
+                "forty"
+              ]
             },
             {
               "fr": "cinquante",
-              "en": "50"
+              "en": "50",
+              "accepted_en": [
+                "50",
+                "fifty"
+              ]
             },
             {
               "fr": "soixante",
-              "en": "60"
+              "en": "60",
+              "accepted_en": [
+                "60",
+                "sixty"
+              ]
             },
             {
               "fr": "soixante-dix",
-              "en": "70"
+              "en": "70",
+              "accepted_en": [
+                "70",
+                "seventy"
+              ]
             },
             {
               "fr": "quatre-vingts",
-              "en": "80"
+              "en": "80",
+              "accepted_en": [
+                "80",
+                "eighty"
+              ]
             },
             {
               "fr": "quatre-vingt-dix",
-              "en": "90"
+              "en": "90",
+              "accepted_en": [
+                "90",
+                "ninety"
+              ]
             },
             {
               "fr": "cent",
-              "en": "100"
+              "en": "100",
+              "accepted_en": [
+                "100",
+                "one hundred",
+                "a hundred"
+              ]
             }
           ]
         },
@@ -718,7 +945,19 @@
             },
             {
               "fr": "il/elle/on parle",
-              "en": "he/she/one speaks"
+              "en": "he/she/one speaks",
+              "accepted_en": [
+                "he/she/one speaks",
+                "he speaks",
+                "she speaks",
+                "one speaks"
+              ],
+              "accepted_fr": [
+                "il/elle/on parle",
+                "il parle",
+                "elle parle",
+                "on parle"
+              ]
             },
             {
               "fr": "nous parlons",
@@ -730,7 +969,12 @@
             },
             {
               "fr": "ils/elles parlent",
-              "en": "they speak"
+              "en": "they speak",
+              "accepted_fr": [
+                "ils/elles parlent",
+                "ils parlent",
+                "elles parlent"
+              ]
             }
           ],
           "rule": "Remove -ER from the infinitive to get the stem, then add: -e, -es, -e, -ons, -ez, -ent."
@@ -750,7 +994,12 @@
             },
             {
               "fr": "aimer",
-              "en": "to like/love"
+              "en": "to like/love",
+              "accepted_en": [
+                "to like/love",
+                "to like",
+                "to love"
+              ]
             },
             {
               "fr": "étudier",
@@ -892,7 +1141,12 @@
           "items": [
             {
               "fr": "Quelle est ta/votre nationalité?",
-              "en": "What is your nationality?"
+              "en": "What is your nationality?",
+              "accepted_fr": [
+                "Quelle est ta/votre nationalité?",
+                "Quelle est ta nationalité?",
+                "Quelle est votre nationalité?"
+              ]
             },
             {
               "fr": "Je suis + [nationality]",
@@ -900,7 +1154,12 @@
             },
             {
               "fr": "Je suis australien(ne) d'origine libanaise.",
-              "en": "I am an Australian of Lebanese extraction."
+              "en": "I am an Australian of Lebanese extraction.",
+              "accepted_fr": [
+                "Je suis australien(ne) d'origine libanaise.",
+                "Je suis australien d'origine libanaise.",
+                "Je suis australienne d'origine libanaise."
+              ]
             }
           ],
           "rule": "Feminine nationality usually adds -e (unless already ending in e); nationalities ending in -ien add -enne. Plural: add -s (masc./mixed) or -es (fem.); already-s endings don't double."
@@ -965,7 +1224,19 @@
             },
             {
               "fr": "il/elle/on a",
-              "en": "he/she/one has"
+              "en": "he/she/one has",
+              "accepted_en": [
+                "he/she/one has",
+                "he has",
+                "she has",
+                "one has"
+              ],
+              "accepted_fr": [
+                "il/elle/on a",
+                "il a",
+                "elle a",
+                "on a"
+              ]
             },
             {
               "fr": "nous avons",
@@ -977,7 +1248,12 @@
             },
             {
               "fr": "ils/elles ont",
-              "en": "they have"
+              "en": "they have",
+              "accepted_fr": [
+                "ils/elles ont",
+                "ils ont",
+                "elles ont"
+              ]
             }
           ]
         },
@@ -1087,7 +1363,11 @@
             },
             {
               "fr": "des livres",
-              "en": "books"
+              "en": "books",
+              "accepted_fr": [
+                "des livres",
+                "livres"
+              ]
             },
             {
               "fr": "un smartphone",
@@ -1099,7 +1379,11 @@
             },
             {
               "fr": "une enceinte portable / sans fil",
-              "en": "a wireless speaker"
+              "en": "a wireless speaker",
+              "accepted_en": [
+                "a wireless speaker",
+                "a portable speaker"
+              ]
             },
             {
               "fr": "un casque sans fil",
@@ -1114,11 +1398,25 @@
           "items": [
             {
               "fr": "J'ai envie d'un/une + [object]",
-              "en": "I want + [object]"
+              "en": "I want + [object]",
+              "accepted_fr": [
+                "J'ai envie d'un/une + [object]",
+                "J'ai envie d'un",
+                "J'ai envie d'une",
+                "J'ai envie de",
+                "J'ai envie d'un / une"
+              ]
             },
             {
               "fr": "J'ai besoin d'un/une + [object]",
-              "en": "I need + [object]"
+              "en": "I need + [object]",
+              "accepted_fr": [
+                "J'ai besoin d'un/une + [object]",
+                "J'ai besoin d'un",
+                "J'ai besoin d'une",
+                "J'ai besoin de",
+                "J'ai besoin d'un / une"
+              ]
             }
           ]
         },
@@ -1169,7 +1467,15 @@
             },
             {
               "fr": "se",
-              "en": "himself/herself/themselves"
+              "en": "himself/herself/themselves",
+              "accepted_en": [
+                "himself/herself/themselves",
+                "himself / herself / themselves",
+                "himself",
+                "herself",
+                "themselves",
+                "oneself"
+              ]
             },
             {
               "fr": "nous",
@@ -1262,11 +1568,28 @@
             },
             {
               "fr": "pour parler avec des ami(e)s",
-              "en": "to speak to friends"
+              "en": "to speak to friends",
+              "accepted_fr": [
+                "pour parler avec des ami(e)s",
+                "pour parler avec des amis",
+                "pour parler avec des amies"
+              ]
             },
             {
               "fr": "pour le C.V.",
-              "en": "for my CV"
+              "en": "for my CV",
+              "accepted_en": [
+                "for my CV",
+                "for my C.V.",
+                "for my resume",
+                "for my résumé"
+              ],
+              "accepted_fr": [
+                "pour le C.V.",
+                "pour le CV",
+                "pour mon CV",
+                "pour mon C.V."
+              ]
             },
             {
               "fr": "pour le plaisir",
@@ -1281,7 +1604,11 @@
           "items": [
             {
               "fr": "un cadeau pour Henri",
-              "en": "a present for Henry"
+              "en": "a present for Henry",
+              "accepted_en": [
+                "a present for Henry",
+                "a gift for Henry"
+              ]
             },
             {
               "fr": "j'étudie le français pour voyager",
@@ -1297,11 +1624,20 @@
           "items": [
             {
               "fr": "cuisinier / cuisinière",
-              "en": "cook"
+              "en": "cook",
+              "accepted_en": [
+                "cook",
+                "chef"
+              ]
             },
             {
               "fr": "médecin",
-              "en": "doctor (m/f)"
+              "en": "doctor (m/f)",
+              "accepted_en": [
+                "doctor (m/f)",
+                "doctor",
+                "physician"
+              ]
             },
             {
               "fr": "infirmier / infirmière",
@@ -1326,7 +1662,9 @@
                 "waiter/waitress",
                 "waiter / waitress",
                 "waitress / waiter",
-                "server"
+                "server",
+                "waiter",
+                "waitress"
               ]
             },
             {
@@ -1339,7 +1677,14 @@
             },
             {
               "fr": "professeur / professeure",
-              "en": "teacher/lecturer"
+              "en": "teacher/lecturer",
+              "accepted_en": [
+                "teacher/lecturer",
+                "teacher / lecturer",
+                "professor",
+                "teacher",
+                "lecturer"
+              ]
             },
             {
               "fr": "étudiant / étudiante",
@@ -1371,7 +1716,11 @@
             },
             {
               "fr": "écrivain / femme écrivain",
-              "en": "writer"
+              "en": "writer",
+              "accepted_en": [
+                "writer",
+                "author"
+              ]
             },
             {
               "fr": "banquier / banquière",
@@ -1383,7 +1732,11 @@
             },
             {
               "fr": "avocat / avocate",
-              "en": "lawyer"
+              "en": "lawyer",
+              "accepted_en": [
+                "lawyer",
+                "attorney"
+              ]
             },
             {
               "fr": "secrétaire",
@@ -1403,7 +1756,15 @@
             },
             {
               "fr": "vendeur / vendeuse",
-              "en": "salesperson"
+              "en": "salesperson",
+              "accepted_en": [
+                "salesperson",
+                "salesman",
+                "saleswoman",
+                "sales assistant",
+                "shop assistant",
+                "salesclerk"
+              ]
             }
           ]
         },
@@ -1422,7 +1783,12 @@
             },
             {
               "fr": "Quel est ton/votre métier?",
-              "en": "What is your occupation?"
+              "en": "What is your occupation?",
+              "accepted_fr": [
+                "Quel est ton/votre métier?",
+                "Quel est ton métier?",
+                "Quel est votre métier?"
+              ]
             },
             {
               "fr": "Je suis + [occupation]",
@@ -1446,15 +1812,32 @@
             },
             {
               "fr": "la restauration",
-              "en": "hospitality"
+              "en": "hospitality",
+              "accepted_en": [
+                "hospitality",
+                "catering",
+                "the restaurant industry"
+              ]
             },
             {
               "fr": "l'enseignement",
-              "en": "education"
+              "en": "education",
+              "accepted_en": [
+                "education",
+                "teaching"
+              ],
+              "accepted_fr": [
+                "l'enseignement",
+                "enseignement"
+              ]
             },
             {
               "fr": "la vente",
-              "en": "retail"
+              "en": "retail",
+              "accepted_en": [
+                "retail",
+                "sales"
+              ]
             },
             {
               "fr": "la mode",
@@ -1466,27 +1849,58 @@
             },
             {
               "fr": "les affaires",
-              "en": "business"
+              "en": "business",
+              "accepted_fr": [
+                "les affaires",
+                "affaires"
+              ]
             },
             {
               "fr": "les urgences",
-              "en": "emergency services"
+              "en": "emergency services",
+              "accepted_fr": [
+                "les urgences",
+                "urgences"
+              ]
             },
             {
               "fr": "le bâtiment",
-              "en": "construction"
+              "en": "construction",
+              "accepted_en": [
+                "construction",
+                "building",
+                "the building industry"
+              ]
             },
             {
               "fr": "l'informatique",
-              "en": "IT"
+              "en": "IT",
+              "accepted_en": [
+                "IT",
+                "computing",
+                "computer science",
+                "information technology"
+              ],
+              "accepted_fr": [
+                "l'informatique",
+                "informatique"
+              ]
             },
             {
               "fr": "l'audiovisuel",
-              "en": "radio & television"
+              "en": "radio & television",
+              "accepted_fr": [
+                "l'audiovisuel",
+                "audiovisuel"
+              ]
             },
             {
               "fr": "le secteur (agro-)alimentaire",
-              "en": "food-processing industry"
+              "en": "food-processing industry",
+              "accepted_en": [
+                "food-processing industry",
+                "food processing industry"
+              ]
             }
           ]
         },
@@ -1501,12 +1915,17 @@
               "accepted_en": [
                 "I work part-time.",
                 "I work part-time",
-                "I work part time"
+                "I work part time",
+                "I work part time."
               ]
             },
             {
               "fr": "Je travaille à temps plein / complet.",
-              "en": "I work full-time."
+              "en": "I work full-time.",
+              "accepted_en": [
+                "I work full-time.",
+                "I work full time."
+              ]
             },
             {
               "fr": "Je suis au chômage.",
@@ -1518,7 +1937,12 @@
             },
             {
               "fr": "Quelle est ton/votre adresse e-mail?",
-              "en": "What is your email address?"
+              "en": "What is your email address?",
+              "accepted_fr": [
+                "Quelle est ton/votre adresse e-mail?",
+                "Quelle est ton adresse e-mail?",
+                "Quelle est votre adresse e-mail?"
+              ]
             },
             {
               "fr": "arobase / point / tiret bas",
@@ -1533,15 +1957,35 @@
           "items": [
             {
               "fr": "les sciences",
-              "en": "science"
+              "en": "science",
+              "accepted_fr": [
+                "les sciences",
+                "sciences"
+              ]
             },
             {
               "fr": "l'ingénierie",
-              "en": "engineering"
+              "en": "engineering",
+              "accepted_fr": [
+                "l'ingénierie",
+                "ingénierie"
+              ]
             },
             {
               "fr": "l'informatique",
-              "en": "IT/computer science"
+              "en": "IT/computer science",
+              "accepted_en": [
+                "IT/computer science",
+                "IT / computer science",
+                "IT",
+                "computer science",
+                "information technology",
+                "computing"
+              ],
+              "accepted_fr": [
+                "l'informatique",
+                "informatique"
+              ]
             },
             {
               "fr": "la médecine",
@@ -1549,15 +1993,27 @@
             },
             {
               "fr": "les études internationales",
-              "en": "international studies"
+              "en": "international studies",
+              "accepted_fr": [
+                "les études internationales",
+                "études internationales"
+              ]
             },
             {
               "fr": "les sciences politiques",
-              "en": "political science"
+              "en": "political science",
+              "accepted_fr": [
+                "les sciences politiques",
+                "sciences politiques"
+              ]
             },
             {
               "fr": "les langues",
-              "en": "languages"
+              "en": "languages",
+              "accepted_fr": [
+                "les langues",
+                "langues"
+              ]
             },
             {
               "fr": "le droit",
@@ -1569,19 +2025,42 @@
             },
             {
               "fr": "les maths",
-              "en": "maths"
+              "en": "maths",
+              "accepted_en": [
+                "maths",
+                "math",
+                "mathematics"
+              ],
+              "accepted_fr": [
+                "les maths",
+                "maths"
+              ]
             },
             {
               "fr": "l'économie",
-              "en": "economics"
+              "en": "economics",
+              "accepted_fr": [
+                "l'économie",
+                "économie"
+              ]
             },
             {
               "fr": "la psycho(logie)",
-              "en": "psychology"
+              "en": "psychology",
+              "accepted_fr": [
+                "la psycho(logie)",
+                "la psycho",
+                "la psychologie"
+              ]
             },
             {
               "fr": "la philo(sophie)",
-              "en": "philosophy"
+              "en": "philosophy",
+              "accepted_fr": [
+                "la philo(sophie)",
+                "la philo",
+                "la philosophie"
+              ]
             },
             {
               "fr": "la sociologie",
@@ -1593,11 +2072,22 @@
             },
             {
               "fr": "le commerce",
-              "en": "business/commerce"
+              "en": "business/commerce",
+              "accepted_en": [
+                "business/commerce",
+                "business / commerce",
+                "business",
+                "commerce",
+                "trade"
+              ]
             },
             {
               "fr": "l'histoire",
-              "en": "history"
+              "en": "history",
+              "accepted_fr": [
+                "l'histoire",
+                "histoire"
+              ]
             },
             {
               "fr": "la géographie",
@@ -1669,7 +2159,11 @@
           "items": [
             {
               "fr": "l'Australie",
-              "en": "Australia"
+              "en": "Australia",
+              "accepted_fr": [
+                "l'Australie",
+                "Australie"
+              ]
             },
             {
               "fr": "la Nouvelle-Zélande",
@@ -1677,7 +2171,11 @@
             },
             {
               "fr": "l'Angleterre",
-              "en": "England"
+              "en": "England",
+              "accepted_fr": [
+                "l'Angleterre",
+                "Angleterre"
+              ]
             },
             {
               "fr": "le Pays de Galles",
@@ -1685,7 +2183,11 @@
             },
             {
               "fr": "l'Écosse",
-              "en": "Scotland"
+              "en": "Scotland",
+              "accepted_fr": [
+                "l'Écosse",
+                "Écosse"
+              ]
             },
             {
               "fr": "le Royaume-Uni",
@@ -1693,7 +2195,11 @@
             },
             {
               "fr": "l'Irlande",
-              "en": "Ireland"
+              "en": "Ireland",
+              "accepted_fr": [
+                "l'Irlande",
+                "Irlande"
+              ]
             },
             {
               "fr": "la France",
@@ -1721,15 +2227,27 @@
             },
             {
               "fr": "l'Allemagne",
-              "en": "Germany"
+              "en": "Germany",
+              "accepted_fr": [
+                "l'Allemagne",
+                "Allemagne"
+              ]
             },
             {
               "fr": "l'Espagne",
-              "en": "Spain"
+              "en": "Spain",
+              "accepted_fr": [
+                "l'Espagne",
+                "Espagne"
+              ]
             },
             {
               "fr": "l'Italie",
-              "en": "Italy"
+              "en": "Italy",
+              "accepted_fr": [
+                "l'Italie",
+                "Italie"
+              ]
             },
             {
               "fr": "la Russie",
@@ -1737,7 +2255,11 @@
             },
             {
               "fr": "l'Inde",
-              "en": "India"
+              "en": "India",
+              "accepted_fr": [
+                "l'Inde",
+                "Inde"
+              ]
             },
             {
               "fr": "la Chine",
@@ -1753,7 +2275,11 @@
             },
             {
               "fr": "l'Indonésie",
-              "en": "Indonesia"
+              "en": "Indonesia",
+              "accepted_fr": [
+                "l'Indonésie",
+                "Indonésie"
+              ]
             },
             {
               "fr": "la Malaisie",
@@ -1832,23 +2358,44 @@
           "items": [
             {
               "fr": "soixante",
-              "en": "60"
+              "en": "60",
+              "accepted_en": [
+                "60",
+                "sixty"
+              ]
             },
             {
               "fr": "soixante-dix",
-              "en": "70"
+              "en": "70",
+              "accepted_en": [
+                "70",
+                "seventy"
+              ]
             },
             {
               "fr": "quatre-vingts",
-              "en": "80"
+              "en": "80",
+              "accepted_en": [
+                "80",
+                "eighty"
+              ]
             },
             {
               "fr": "quatre-vingt-dix",
-              "en": "90"
+              "en": "90",
+              "accepted_en": [
+                "90",
+                "ninety"
+              ]
             },
             {
               "fr": "cent",
-              "en": "100"
+              "en": "100",
+              "accepted_en": [
+                "100",
+                "one hundred",
+                "a hundred"
+              ]
             }
           ],
           "rule": "French counts 70-99 in base-20 style: soixante-dix (60+10), quatre-vingts (4x20), quatre-vingt-dix (4x20+10)."
@@ -1860,7 +2407,12 @@
           "items": [
             {
               "fr": "Quel est ton/votre numéro de téléphone?",
-              "en": "What's your phone number?"
+              "en": "What's your phone number?",
+              "accepted_fr": [
+                "Quel est ton/votre numéro de téléphone?",
+                "Quel est ton numéro de téléphone?",
+                "Quel est votre numéro de téléphone?"
+              ]
             },
             {
               "fr": "C'est le 06.34.62.35.41",
@@ -1879,7 +2431,14 @@
             },
             {
               "fr": "Je n'aime pas les maths.",
-              "en": "I do not like maths."
+              "en": "I do not like maths.",
+              "accepted_en": [
+                "I do not like maths.",
+                "I do not like math.",
+                "I don't like maths.",
+                "I don't like math.",
+                "I do not like mathematics."
+              ]
             },
             {
               "fr": "Je n'ai pas de tablette.",
@@ -1914,15 +2473,27 @@
           "items": [
             {
               "fr": "septante",
-              "en": "70 (Belgium & Switzerland, vs. standard soixante-dix)"
+              "en": "70 (Belgium & Switzerland, vs. standard soixante-dix)",
+              "accepted_en": [
+                "70 (Belgium & Switzerland, vs. standard soixante-dix)",
+                "seventy"
+              ]
             },
             {
               "fr": "huitante",
-              "en": "80 (Switzerland only, vs. standard quatre-vingts)"
+              "en": "80 (Switzerland only, vs. standard quatre-vingts)",
+              "accepted_en": [
+                "80 (Switzerland only, vs. standard quatre-vingts)",
+                "eighty"
+              ]
             },
             {
               "fr": "nonante",
-              "en": "90 (Belgium & Switzerland, vs. standard quatre-vingt-dix)"
+              "en": "90 (Belgium & Switzerland, vs. standard quatre-vingt-dix)",
+              "accepted_en": [
+                "90 (Belgium & Switzerland, vs. standard quatre-vingt-dix)",
+                "ninety"
+              ]
             },
             {
               "fr": "la Hollande",
@@ -2003,7 +2574,17 @@
             },
             {
               "fr": "C'est loin/près (d'ici)?",
-              "en": "Is it far/close (from here)?"
+              "en": "Is it far/close (from here)?",
+              "accepted_en": [
+                "Is it far/close (from here)?",
+                "Is it far?",
+                "Is it close?"
+              ],
+              "accepted_fr": [
+                "C'est loin/près (d'ici)?",
+                "C'est loin?",
+                "C'est près?"
+              ]
             },
             {
               "fr": "Est-ce qu'il y a... (près d'ici)?",
@@ -2018,11 +2599,23 @@
           "items": [
             {
               "fr": "à gauche",
-              "en": "(to the) left"
+              "en": "(to the) left",
+              "accepted_en": [
+                "(to the) left",
+                "left",
+                "to the left",
+                "on the left"
+              ]
             },
             {
               "fr": "à droite",
-              "en": "(to the) right"
+              "en": "(to the) right",
+              "accepted_en": [
+                "(to the) right",
+                "right",
+                "to the right",
+                "on the right"
+              ]
             },
             {
               "fr": "tout droit",
@@ -2034,7 +2627,13 @@
             },
             {
               "fr": "continuez",
-              "en": "carry on"
+              "en": "carry on",
+              "accepted_en": [
+                "carry on",
+                "continue",
+                "keep going",
+                "go on"
+              ]
             },
             {
               "fr": "traversez",
@@ -2054,7 +2653,12 @@
             },
             {
               "fr": "indiqué",
-              "en": "signposted"
+              "en": "signposted",
+              "accepted_en": [
+                "signposted",
+                "indicated",
+                "signed"
+              ]
             }
           ]
         },
@@ -2073,7 +2677,17 @@
             },
             {
               "fr": "il/elle vit",
-              "en": "he/she lives"
+              "en": "he/she lives",
+              "accepted_en": [
+                "he/she lives",
+                "he lives",
+                "she lives"
+              ],
+              "accepted_fr": [
+                "il/elle vit",
+                "il vit",
+                "elle vit"
+              ]
             },
             {
               "fr": "nous vivons",
@@ -2085,7 +2699,12 @@
             },
             {
               "fr": "ils/elles vivent",
-              "en": "they live"
+              "en": "they live",
+              "accepted_fr": [
+                "ils/elles vivent",
+                "ils vivent",
+                "elles vivent"
+              ]
             }
           ],
           "rule": "Habiter is used only for the place/building you live in. Vivre is broader: place, 'to be alive', 'to live through', manner of living."
@@ -2097,7 +2716,12 @@
           "items": [
             {
               "fr": "la rivière",
-              "en": "(small) river"
+              "en": "(small) river",
+              "accepted_en": [
+                "(small) river",
+                "river",
+                "small river"
+              ]
             },
             {
               "fr": "le fleuve",
@@ -2109,7 +2733,11 @@
             },
             {
               "fr": "l'océan",
-              "en": "the ocean"
+              "en": "the ocean",
+              "accepted_fr": [
+                "l'océan",
+                "océan"
+              ]
             },
             {
               "fr": "le lac",
@@ -2133,7 +2761,12 @@
             },
             {
               "fr": "le quai",
-              "en": "the wharf/quay"
+              "en": "the wharf/quay",
+              "accepted_en": [
+                "the wharf/quay",
+                "the wharf",
+                "the quay"
+              ]
             },
             {
               "fr": "la basilique",
@@ -2145,7 +2778,11 @@
             },
             {
               "fr": "l'église",
-              "en": "the church"
+              "en": "the church",
+              "accepted_fr": [
+                "l'église",
+                "église"
+              ]
             },
             {
               "fr": "la mosquée",
@@ -2177,11 +2814,24 @@
             },
             {
               "fr": "l'avenue",
-              "en": "the avenue"
+              "en": "the avenue",
+              "accepted_fr": [
+                "l'avenue",
+                "avenue"
+              ]
             },
             {
               "fr": "l'allée",
-              "en": "the path/walk"
+              "en": "the path/walk",
+              "accepted_fr": [
+                "l'allée",
+                "allée"
+              ],
+              "accepted_en": [
+                "the path/walk",
+                "the path",
+                "the walk"
+              ]
             }
           ]
         },
@@ -2316,11 +2966,20 @@
             },
             {
               "fr": "un théâtre",
-              "en": "a theatre"
+              "en": "a theatre",
+              "accepted_en": [
+                "a theatre",
+                "a theater"
+              ]
             },
             {
               "fr": "un cinéma",
-              "en": "a cinema"
+              "en": "a cinema",
+              "accepted_en": [
+                "a cinema",
+                "a movie theater",
+                "a movie theatre"
+              ]
             },
             {
               "fr": "un café",
@@ -2341,7 +3000,10 @@
                 "a shopping centre/mall",
                 "a shopping centre / mall",
                 "mall / a shopping centre",
-                "a shopping center"
+                "a shopping center",
+                "a shopping mall",
+                "a mall",
+                "a shopping centre"
               ]
             },
             {
@@ -2362,7 +3024,13 @@
             },
             {
               "fr": "un parking",
-              "en": "a carpark"
+              "en": "a carpark",
+              "accepted_en": [
+                "a carpark",
+                "a car park",
+                "a parking lot",
+                "a parking garage"
+              ]
             },
             {
               "fr": "un hôtel",
@@ -2385,11 +3053,21 @@
           "items": [
             {
               "fr": "Il y a un théâtre.",
-              "en": "There is a theatre."
+              "en": "There is a theatre.",
+              "accepted_en": [
+                "There is a theatre.",
+                "There is a theater.",
+                "There's a theater."
+              ]
             },
             {
               "fr": "Il n'y a pas de théâtre.",
-              "en": "There isn't a theatre."
+              "en": "There isn't a theatre.",
+              "accepted_en": [
+                "There isn't a theatre.",
+                "There isn't a theater.",
+                "There is not a theater."
+              ]
             },
             {
               "fr": "Il y a une église.",
@@ -2413,7 +3091,13 @@
             },
             {
               "fr": "sous",
-              "en": "under"
+              "en": "under",
+              "accepted_en": [
+                "under",
+                "below",
+                "beneath",
+                "underneath"
+              ]
             },
             {
               "fr": "devant",
@@ -2445,7 +3129,12 @@
             },
             {
               "fr": "en face de",
-              "en": "opposite"
+              "en": "opposite",
+              "accepted_en": [
+                "opposite",
+                "across from",
+                "facing"
+              ]
             },
             {
               "fr": "au bord de",
@@ -2489,7 +3178,7 @@
           "items": [
             {
               "fr": "aller au",
-              "en": "to go to (masc.) — à + le"
+              "en": "to go to (masc.) (à + le)"
             },
             {
               "fr": "aller à la",
@@ -2497,7 +3186,7 @@
             },
             {
               "fr": "aller aux",
-              "en": "to go to (plural) — à + les"
+              "en": "to go to (plural) (à + les)"
             },
             {
               "fr": "aller à l'",
@@ -2549,7 +3238,17 @@
           "items": [
             {
               "fr": "ancien(ne)",
-              "en": "old"
+              "en": "old",
+              "accepted_en": [
+                "old",
+                "former",
+                "ancient"
+              ],
+              "accepted_fr": [
+                "ancien(ne)",
+                "ancien",
+                "ancienne"
+              ]
             },
             {
               "fr": "moderne",
@@ -2561,39 +3260,87 @@
             },
             {
               "fr": "multiculturel(le)",
-              "en": "multicultural"
+              "en": "multicultural",
+              "accepted_fr": [
+                "multiculturel(le)",
+                "multiculturel",
+                "multiculturelle"
+              ]
             },
             {
               "fr": "élégant(e)",
-              "en": "elegant"
+              "en": "elegant",
+              "accepted_fr": [
+                "élégant(e)",
+                "élégant",
+                "élégante"
+              ]
             },
             {
               "fr": "bien desservi(e)",
-              "en": "well-served by public transport"
+              "en": "well-served by public transport",
+              "accepted_fr": [
+                "bien desservi(e)",
+                "bien desservi",
+                "bien desservie"
+              ],
+              "accepted_en": [
+                "well-served by public transport",
+                "well served by public transport"
+              ]
             },
             {
               "fr": "animé(e)",
-              "en": "lively, busy"
+              "en": "lively, busy",
+              "accepted_fr": [
+                "animé(e)",
+                "animé",
+                "animée"
+              ]
             },
             {
               "fr": "agréable",
-              "en": "pleasant"
+              "en": "pleasant",
+              "accepted_en": [
+                "pleasant",
+                "agreeable"
+              ]
             },
             {
               "fr": "pollué(e)",
-              "en": "polluted"
+              "en": "polluted",
+              "accepted_fr": [
+                "pollué(e)",
+                "pollué",
+                "polluée"
+              ]
             },
             {
               "fr": "tranquille",
-              "en": "quiet"
+              "en": "quiet",
+              "accepted_en": [
+                "quiet",
+                "calm",
+                "peaceful"
+              ]
             },
             {
               "fr": "bruyant(e)",
-              "en": "noisy"
+              "en": "noisy",
+              "accepted_fr": [
+                "bruyant(e)",
+                "bruyant",
+                "bruyante"
+              ]
             },
             {
               "fr": "culturel(le)",
-              "en": "cultural"
+              "en": "cultural",
+              "accepted_fr": [
+                "culturel(le)",
+                "culturel",
+                "culturelle"
+              ]
             },
             {
               "fr": "dynamique",
@@ -2609,15 +3356,35 @@
             },
             {
               "fr": "vivant(e)",
-              "en": "lively"
+              "en": "lively",
+              "accepted_en": [
+                "lively",
+                "alive",
+                "animated"
+              ],
+              "accepted_fr": [
+                "vivant(e)",
+                "vivant",
+                "vivante"
+              ]
             },
             {
               "fr": "sympa",
-              "en": "nice"
+              "en": "nice",
+              "accepted_en": [
+                "nice",
+                "friendly"
+              ]
             },
             {
               "fr": "cher(-ère)",
-              "en": "dear, expensive"
+              "en": "dear, expensive",
+              "accepted_fr": [
+                "cher(-ère)",
+                "cher",
+                "chère",
+                "cher / chère"
+              ]
             }
           ]
         },
@@ -2628,11 +3395,29 @@
           "items": [
             {
               "fr": "beau / belle",
-              "en": "handsome/beautiful"
+              "en": "handsome/beautiful",
+              "accepted_en": [
+                "handsome/beautiful",
+                "handsome / beautiful",
+                "beautiful",
+                "handsome",
+                "good-looking",
+                "good looking"
+              ]
             },
             {
               "fr": "joli(e)",
-              "en": "pretty"
+              "en": "pretty",
+              "accepted_en": [
+                "pretty",
+                "nice",
+                "lovely"
+              ],
+              "accepted_fr": [
+                "joli(e)",
+                "joli",
+                "jolie"
+              ]
             },
             {
               "fr": "vieux / vieille",
@@ -2648,19 +3433,39 @@
             },
             {
               "fr": "mauvais(e)",
-              "en": "bad"
+              "en": "bad",
+              "accepted_fr": [
+                "mauvais(e)",
+                "mauvais",
+                "mauvaise"
+              ]
             },
             {
               "fr": "vrai(e)",
-              "en": "true"
+              "en": "true",
+              "accepted_fr": [
+                "vrai(e)",
+                "vrai",
+                "vraie"
+              ]
             },
             {
               "fr": "grand(e)",
-              "en": "large, big"
+              "en": "large, big",
+              "accepted_fr": [
+                "grand(e)",
+                "grand",
+                "grande"
+              ]
             },
             {
               "fr": "petit(e)",
-              "en": "small, little"
+              "en": "small, little",
+              "accepted_fr": [
+                "petit(e)",
+                "petit",
+                "petite"
+              ]
             }
           ],
           "rule": "Most adjectives come AFTER the noun (un quartier dynamique). BAGS adjectives (Beauty, Age, Goodness, Size) come BEFORE the noun instead (une belle ville, un petit parc)."
@@ -2724,7 +3529,11 @@
             },
             {
               "fr": "Les Allemands sont travailleurs.",
-              "en": "The Germans are hard-working. (capitalised noun for people)"
+              "en": "The Germans are hard-working. (capitalised noun for people)",
+              "accepted_en": [
+                "The Germans are hard-working. (capitalised noun for people)",
+                "The Germans are hard working."
+              ]
             }
           ],
           "rule": "Nationality adjectives and language names are lowercase in French; nouns referring to the people of a nation are capitalised."
@@ -2787,7 +3596,11 @@
             },
             {
               "fr": "Je n'aime pas faire de l'équitation.",
-              "en": "I don't like horse-riding. (ne...pas surrounds the FIRST verb)"
+              "en": "I don't like horse-riding. (ne...pas surrounds the FIRST verb)",
+              "accepted_en": [
+                "I don't like horse-riding. (ne...pas surrounds the FIRST verb)",
+                "I don't like horse riding."
+              ]
             }
           ],
           "rule": "With two verbs in a row, only the first is conjugated; the second stays in the infinitive. Negation wraps the first (conjugated) verb only."
@@ -2867,7 +3680,11 @@
           "items": [
             {
               "fr": "les parents",
-              "en": "parents"
+              "en": "parents",
+              "accepted_fr": [
+                "les parents",
+                "parents"
+              ]
             },
             {
               "fr": "le père / la mère",
@@ -2887,7 +3704,15 @@
             },
             {
               "fr": "les enfants",
-              "en": "children"
+              "en": "children",
+              "accepted_en": [
+                "children",
+                "kids"
+              ],
+              "accepted_fr": [
+                "les enfants",
+                "enfants"
+              ]
             },
             {
               "fr": "le fils / la fille",
@@ -2898,7 +3723,12 @@
               "en": "grandparents",
               "accepted_en": [
                 "grandparents",
-                "grand parents"
+                "grand parents",
+                "grand-parents"
+              ],
+              "accepted_fr": [
+                "les grands-parents",
+                "grands-parents"
               ]
             },
             {
@@ -2907,7 +3737,11 @@
             },
             {
               "fr": "les petits-enfants",
-              "en": "grandchildren"
+              "en": "grandchildren",
+              "accepted_fr": [
+                "les petits-enfants",
+                "petits-enfants"
+              ]
             },
             {
               "fr": "le petit-fils / la petite-fille",
@@ -2919,7 +3753,11 @@
             },
             {
               "fr": "le cousin / la cousine",
-              "en": "cousin (m/f)"
+              "en": "cousin (m/f)",
+              "accepted_en": [
+                "cousin (m/f)",
+                "cousin"
+              ]
             },
             {
               "fr": "le neveu / la nièce",
@@ -2962,7 +3800,12 @@
             },
             {
               "fr": "son / sa / ses",
-              "en": "his/her (m/f/pl)"
+              "en": "his/her (m/f/pl)",
+              "accepted_en": [
+                "his/her (m/f/pl)",
+                "his",
+                "her"
+              ]
             },
             {
               "fr": "notre / notre / nos",
@@ -2994,7 +3837,12 @@
             },
             {
               "fr": "Je suis fils/fille unique.",
-              "en": "I'm an only child."
+              "en": "I'm an only child.",
+              "accepted_fr": [
+                "Je suis fils/fille unique.",
+                "Je suis fils unique.",
+                "Je suis fille unique."
+              ]
             },
             {
               "fr": "Comment s'appellent tes parents?",
@@ -3013,15 +3861,33 @@
             },
             {
               "fr": "petit ami / petite amie",
-              "en": "boyfriend/girlfriend"
+              "en": "boyfriend/girlfriend",
+              "accepted_en": [
+                "boyfriend/girlfriend",
+                "boyfriend / girlfriend",
+                "boyfriend",
+                "girlfriend"
+              ]
             },
             {
               "fr": "copain / copine",
-              "en": "mate"
+              "en": "mate",
+              "accepted_en": [
+                "mate",
+                "buddy",
+                "pal"
+              ]
             },
             {
               "fr": "collègue",
-              "en": "colleague (m/f)"
+              "en": "colleague (m/f)",
+              "accepted_en": [
+                "colleague (m/f)",
+                "colleague",
+                "coworker",
+                "co-worker",
+                "workmate"
+              ]
             },
             {
               "fr": "chef",
@@ -3029,11 +3895,22 @@
             },
             {
               "fr": "voisin / voisine",
-              "en": "neighbour"
+              "en": "neighbour",
+              "accepted_en": [
+                "neighbour",
+                "neighbor"
+              ]
             },
             {
               "fr": "colocataire",
-              "en": "housemate/flatmate (m/f)"
+              "en": "housemate/flatmate (m/f)",
+              "accepted_en": [
+                "housemate/flatmate (m/f)",
+                "housemate",
+                "flatmate",
+                "roommate",
+                "housemate / flatmate"
+              ]
             }
           ]
         },
@@ -3068,27 +3945,72 @@
           "items": [
             {
               "fr": "je fais",
-              "en": "I do/make"
+              "en": "I do/make",
+              "accepted_en": [
+                "I do/make",
+                "I do",
+                "I make"
+              ]
             },
             {
               "fr": "tu fais",
-              "en": "you do/make"
+              "en": "you do/make",
+              "accepted_en": [
+                "you do/make",
+                "you do",
+                "you make"
+              ]
             },
             {
               "fr": "il/elle/on fait",
-              "en": "he/she/one does/makes"
+              "en": "he/she/one does/makes",
+              "accepted_en": [
+                "he/she/one does/makes",
+                "he does",
+                "he makes",
+                "she does",
+                "she makes",
+                "one does",
+                "one makes"
+              ],
+              "accepted_fr": [
+                "il/elle/on fait",
+                "il fait",
+                "elle fait",
+                "on fait"
+              ]
             },
             {
               "fr": "nous faisons",
-              "en": "we do/make"
+              "en": "we do/make",
+              "accepted_en": [
+                "we do/make",
+                "we do",
+                "we make"
+              ]
             },
             {
               "fr": "vous faites",
-              "en": "you do/make (formal/pl)"
+              "en": "you do/make (formal/pl)",
+              "accepted_en": [
+                "you do/make (formal/pl)",
+                "you do",
+                "you make"
+              ]
             },
             {
               "fr": "ils/elles font",
-              "en": "they do/make"
+              "en": "they do/make",
+              "accepted_en": [
+                "they do/make",
+                "they do",
+                "they make"
+              ],
+              "accepted_fr": [
+                "ils/elles font",
+                "ils font",
+                "elles font"
+              ]
             }
           ]
         },
@@ -3099,7 +4021,11 @@
           "items": [
             {
               "fr": "je fais de la musculation",
-              "en": "I do body-building"
+              "en": "I do body-building",
+              "accepted_en": [
+                "I do body-building",
+                "I do body building"
+              ]
             },
             {
               "fr": "je fais de la natation",
@@ -3111,7 +4037,12 @@
             },
             {
               "fr": "je fais du rugby",
-              "en": "I do/play rugby"
+              "en": "I do/play rugby",
+              "accepted_en": [
+                "I do/play rugby",
+                "I do rugby",
+                "I play rugby"
+              ]
             },
             {
               "fr": "je fais de la guitare",
@@ -3158,7 +4089,12 @@
             },
             {
               "fr": "j'aime",
-              "en": "I like/love"
+              "en": "I like/love",
+              "accepted_en": [
+                "I like/love",
+                "I like",
+                "I love"
+              ]
             },
             {
               "fr": "je préfère",
@@ -3194,7 +4130,13 @@
             },
             {
               "fr": "regarder un film",
-              "en": "to watch a film"
+              "en": "to watch a film",
+              "accepted_en": [
+                "to watch a film",
+                "to watch a movie",
+                "watch a film",
+                "watch a movie"
+              ]
             },
             {
               "fr": "voyager",
@@ -3270,7 +4212,11 @@
             },
             {
               "fr": "le sport",
-              "en": "sport"
+              "en": "sport",
+              "accepted_en": [
+                "sport",
+                "sports"
+              ]
             },
             {
               "fr": "la musique",
@@ -3286,15 +4232,33 @@
             },
             {
               "fr": "l'équitation",
-              "en": "horse-riding"
+              "en": "horse-riding",
+              "accepted_en": [
+                "horse-riding",
+                "horse riding",
+                "horseback riding",
+                "riding"
+              ],
+              "accepted_fr": [
+                "l'équitation",
+                "équitation"
+              ]
             },
             {
               "fr": "le foot",
-              "en": "soccer"
+              "en": "soccer",
+              "accepted_en": [
+                "soccer",
+                "football"
+              ]
             },
             {
               "fr": "les promenades",
-              "en": "walks"
+              "en": "walks",
+              "accepted_fr": [
+                "les promenades",
+                "promenades"
+              ]
             },
             {
               "fr": "le rugby",
@@ -3302,7 +4266,14 @@
             },
             {
               "fr": "le cinéma",
-              "en": "cinema"
+              "en": "cinema",
+              "accepted_en": [
+                "cinema",
+                "the cinema",
+                "the movies",
+                "movies",
+                "movie theater"
+              ]
             },
             {
               "fr": "la natation",
@@ -3318,7 +4289,13 @@
             },
             {
               "fr": "le vélo",
-              "en": "cycling"
+              "en": "cycling",
+              "accepted_en": [
+                "cycling",
+                "biking",
+                "bicycling",
+                "bike riding"
+              ]
             },
             {
               "fr": "le tennis",
@@ -3395,11 +4372,21 @@
               "accepted_en": [
                 "kind",
                 "nice"
+              ],
+              "accepted_fr": [
+                "gentil(le)",
+                "gentil",
+                "gentille"
               ]
             },
             {
               "fr": "intelligent(e)",
-              "en": "intelligent"
+              "en": "intelligent",
+              "accepted_fr": [
+                "intelligent(e)",
+                "intelligent",
+                "intelligente"
+              ]
             },
             {
               "fr": "drôle",
@@ -3407,7 +4394,12 @@
             },
             {
               "fr": "impoli(e)",
-              "en": "impolite"
+              "en": "impolite",
+              "accepted_fr": [
+                "impoli(e)",
+                "impoli",
+                "impolie"
+              ]
             },
             {
               "fr": "triste",
@@ -3423,7 +4415,16 @@
             },
             {
               "fr": "méchant(e)",
-              "en": "mean"
+              "en": "mean",
+              "accepted_en": [
+                "mean",
+                "nasty"
+              ],
+              "accepted_fr": [
+                "méchant(e)",
+                "méchant",
+                "méchante"
+              ]
             },
             {
               "fr": "généreux / généreuse",
@@ -3431,7 +4432,17 @@
             },
             {
               "fr": "content(e)",
-              "en": "happy"
+              "en": "happy",
+              "accepted_en": [
+                "happy",
+                "pleased",
+                "glad"
+              ],
+              "accepted_fr": [
+                "content(e)",
+                "content",
+                "contente"
+              ]
             },
             {
               "fr": "stupide",
@@ -3439,7 +4450,13 @@
             },
             {
               "fr": "antipathique",
-              "en": "unlikeable"
+              "en": "unlikeable",
+              "accepted_en": [
+                "unlikeable",
+                "unpleasant",
+                "unfriendly",
+                "disagreeable"
+              ]
             },
             {
               "fr": "timide",
@@ -3458,11 +4475,21 @@
             },
             {
               "fr": "un peu + adjective",
-              "en": "a bit"
+              "en": "a bit",
+              "accepted_en": [
+                "a bit",
+                "a little",
+                "a little bit"
+              ]
             },
             {
               "fr": "assez + adjective",
-              "en": "quite"
+              "en": "quite",
+              "accepted_en": [
+                "quite",
+                "fairly",
+                "rather"
+              ]
             }
           ]
         },
@@ -3477,11 +4504,21 @@
             },
             {
               "fr": "Il a l'air gentil.",
-              "en": "He looks/seems kind."
+              "en": "He looks/seems kind.",
+              "accepted_en": [
+                "He looks/seems kind.",
+                "He looks kind.",
+                "He seems kind."
+              ]
             },
             {
               "fr": "Elle a l'air gentille.",
-              "en": "She looks/seems kind."
+              "en": "She looks/seems kind.",
+              "accepted_en": [
+                "She looks/seems kind.",
+                "She looks kind.",
+                "She seems kind."
+              ]
             }
           ]
         },
@@ -3504,7 +4541,14 @@
             },
             {
               "fr": "Mon frère, il est à Paris.",
-              "en": "My brother is in Paris. (il/elle est + preposition, for location)"
+              "en": "My brother is in Paris. (il/elle est + preposition, for location)",
+              "accepted_fr": [
+                "Mon frère, il est à Paris.",
+                "Mon frère, il est à Paris",
+                "Mon frère il est à Paris",
+                "Mon frère est à Paris",
+                "Mon frère est à Paris."
+              ]
             },
             {
               "fr": "Ce n'est pas Élodie. / Ce sont des crayons. / Ce ne sont pas des stylos.",
@@ -3536,7 +4580,11 @@
             },
             {
               "fr": "travailleur / travailleuse",
-              "en": "hard-working (-eur → -euse)"
+              "en": "hard-working (-eur → -euse)",
+              "accepted_en": [
+                "hard-working (-eur → -euse)",
+                "hard working"
+              ]
             },
             {
               "fr": "conservateur / conservatrice",
@@ -3544,7 +4592,7 @@
             },
             {
               "fr": "loyal / loyale (sg.), loyaux / loyales (pl.)",
-              "en": "loyal — masculine plural is irregular: -al → -aux"
+              "en": "loyal (masculine plural is irregular: -al → -aux)"
             }
           ],
           "rule": "Related noun pattern follows the same logic: un champion→une championne, un acteur→une actrice, un journal→des journaux, un animal→des animaux. The -al→-aux irregularity affects masculine plural only."
@@ -3593,31 +4641,59 @@
           "items": [
             {
               "fr": "les yeux bleus",
-              "en": "blue eyes"
+              "en": "blue eyes",
+              "accepted_fr": [
+                "les yeux bleus",
+                "yeux bleus"
+              ]
             },
             {
               "fr": "les yeux verts",
-              "en": "green eyes"
+              "en": "green eyes",
+              "accepted_fr": [
+                "les yeux verts",
+                "yeux verts"
+              ]
             },
             {
               "fr": "les yeux bruns",
-              "en": "brown eyes"
+              "en": "brown eyes",
+              "accepted_fr": [
+                "les yeux bruns",
+                "yeux bruns"
+              ]
             },
             {
               "fr": "les cheveux longs",
-              "en": "long hair"
+              "en": "long hair",
+              "accepted_fr": [
+                "les cheveux longs",
+                "cheveux longs"
+              ]
             },
             {
               "fr": "les cheveux courts",
-              "en": "short hair"
+              "en": "short hair",
+              "accepted_fr": [
+                "les cheveux courts",
+                "cheveux courts"
+              ]
             },
             {
               "fr": "les cheveux bruns",
-              "en": "brown hair"
+              "en": "brown hair",
+              "accepted_fr": [
+                "les cheveux bruns",
+                "cheveux bruns"
+              ]
             },
             {
               "fr": "les cheveux roux",
-              "en": "red hair"
+              "en": "red hair",
+              "accepted_fr": [
+                "les cheveux roux",
+                "cheveux roux"
+              ]
             },
             {
               "fr": "châtain",
@@ -3665,7 +4741,12 @@
           "items": [
             {
               "fr": "beau / belle",
-              "en": "handsome/beautiful"
+              "en": "handsome/beautiful",
+              "accepted_en": [
+                "handsome/beautiful",
+                "handsome",
+                "beautiful"
+              ]
             },
             {
               "fr": "vieux / vieille",
@@ -3740,11 +4821,23 @@
             },
             {
               "fr": "mince",
-              "en": "slim"
+              "en": "slim",
+              "accepted_en": [
+                "slim",
+                "thin",
+                "slender"
+              ]
             },
             {
               "fr": "maigre",
-              "en": "skinny/thin"
+              "en": "skinny/thin",
+              "accepted_en": [
+                "skinny/thin",
+                "skinny / thin",
+                "skinny",
+                "thin",
+                "lean"
+              ]
             },
             {
               "fr": "fort / forte",
@@ -3756,7 +4849,11 @@
             },
             {
               "fr": "rapide",
-              "en": "fast"
+              "en": "fast",
+              "accepted_en": [
+                "fast",
+                "quick"
+              ]
             },
             {
               "fr": "lent / lente",
@@ -3806,7 +4903,12 @@
           "items": [
             {
               "fr": "zéro à soixante",
-              "en": "0 to 60 — revision from FREN151"
+              "en": "0 to 60",
+              "accepted_en": [
+                "0 to 60",
+                "zero to sixty",
+                "zero to 60"
+              ]
             }
           ]
         },
@@ -3821,11 +4923,27 @@
             },
             {
               "fr": "Il est cinq heures moins vingt de l'après-midi.",
-              "en": "It's 4:40pm (12hr: 5 minus 20)."
+              "en": "It's 4:40pm (12hr: 5 minus 20).",
+              "accepted_en": [
+                "It's 4:40pm (12hr: 5 minus 20).",
+                "It's 4:40pm",
+                "It's 4:40 pm",
+                "It's 4:40 p.m.",
+                "It's 4:40 in the afternoon",
+                "It's twenty to five",
+                "It's twenty to five in the afternoon",
+                "It is 4:40pm",
+                "It is 4:40 pm"
+              ]
             },
             {
               "fr": "Il est seize heures quarante.",
-              "en": "It's 16:40 (24hr clock)."
+              "en": "It's 16:40 (24hr clock).",
+              "accepted_en": [
+                "It's 16:40 (24hr clock).",
+                "It's 16:40",
+                "It's sixteen forty"
+              ]
             },
             {
               "fr": "midi / minuit",
@@ -3841,19 +4959,43 @@
           "items": [
             {
               "fr": "cent",
-              "en": "100"
+              "en": "100",
+              "accepted_en": [
+                "100",
+                "one hundred",
+                "a hundred"
+              ]
             },
             {
               "fr": "mille",
-              "en": "1,000"
+              "en": "1,000",
+              "accepted_en": [
+                "1,000",
+                "1000",
+                "one thousand",
+                "a thousand"
+              ]
             },
             {
               "fr": "un million",
-              "en": "1,000,000"
+              "en": "1,000,000",
+              "accepted_en": [
+                "1,000,000",
+                "1000000",
+                "one million",
+                "a million"
+              ]
             },
             {
               "fr": "un milliard",
-              "en": "1,000,000,000 (a billion)"
+              "en": "1,000,000,000 (a billion)",
+              "accepted_en": [
+                "1,000,000,000 (a billion)",
+                "1000000000",
+                "1,000,000,000",
+                "a billion",
+                "one billion"
+              ]
             }
           ],
           "rule": "'Et' is only used in double-digit numbers ending in 1 (21, 31, 41, 51, 61, 71) — never in larger numbers like 301 (trois cent un) or 5023 (cinq mille vingt-trois)."
@@ -3865,15 +5007,45 @@
           "items": [
             {
               "fr": "mille neuf cent quatre-vingt-douze",
-              "en": "1992 (lit. one thousand nine hundred ninety-two)"
+              "en": "1992 (lit. one thousand nine hundred ninety-two)",
+              "accepted_fr": [
+                "mille neuf cent quatre-vingt-douze",
+                "mille neuf cent quatre vingt douze",
+                "mille neuf cent nonante-deux",
+                "mille neuf cent nonante deux"
+              ],
+              "accepted_en": [
+                "1992 (lit. one thousand nine hundred ninety-two)",
+                "1992",
+                "one thousand nine hundred ninety-two",
+                "one thousand nine hundred and ninety-two"
+              ]
             },
             {
               "fr": "dix-neuf cent quatre-vingt-douze",
-              "en": "1992 (alt. nineteen-hundred ninety-two)"
+              "en": "1992 (alt. nineteen-hundred ninety-two)",
+              "accepted_fr": [
+                "dix-neuf cent quatre-vingt-douze",
+                "dix neuf cent quatre vingt douze",
+                "dix-neuf cent nonante-deux",
+                "dix-neuf cent nonante deux"
+              ],
+              "accepted_en": [
+                "1992 (alt. nineteen-hundred ninety-two)",
+                "1992",
+                "nineteen hundred ninety-two",
+                "nineteen hundred and ninety-two",
+                "nineteen ninety-two"
+              ]
             },
             {
               "fr": "deux mille deux",
-              "en": "2002"
+              "en": "2002",
+              "accepted_en": [
+                "2002",
+                "two thousand two",
+                "two thousand and two"
+              ]
             }
           ]
         },
@@ -3884,19 +5056,39 @@
           "items": [
             {
               "fr": "je finis / tu finis / il finit",
-              "en": "I/you/he finish(es) (-ir pattern, e.g. finir, choisir, réussir, grossir, maigrir, réfléchir)"
+              "en": "I/you/he finish(es) (-ir pattern, e.g. finir, choisir, réussir, grossir, maigrir, réfléchir)",
+              "accepted_en": [
+                "I/you/he finish(es) (-ir pattern, e.g. finir, choisir, réussir, grossir, maigrir, réfléchir)",
+                "I finish / you finish / he finishes",
+                "I finish, you finish, he finishes"
+              ]
             },
             {
               "fr": "nous finissons / vous finissez / ils finissent",
-              "en": "we/you/they finish (-ir pattern)"
+              "en": "we/you/they finish (-ir pattern)",
+              "accepted_en": [
+                "we/you/they finish (-ir pattern)",
+                "we finish / you finish / they finish",
+                "we finish, you finish, they finish"
+              ]
             },
             {
               "fr": "je vends / tu vends / il vend",
-              "en": "I/you/he sell(s) (-re pattern, e.g. vendre, attendre, répondre, rendre, perdre)"
+              "en": "I/you/he sell(s) (-re pattern, e.g. vendre, attendre, répondre, rendre, perdre)",
+              "accepted_en": [
+                "I/you/he sell(s) (-re pattern, e.g. vendre, attendre, répondre, rendre, perdre)",
+                "I sell / you sell / he sells",
+                "I sell, you sell, he sells"
+              ]
             },
             {
               "fr": "nous vendons / vous vendez / ils vendent",
-              "en": "we/you/they sell (-re pattern)"
+              "en": "we/you/they sell (-re pattern)",
+              "accepted_en": [
+                "we/you/they sell (-re pattern)",
+                "we sell / you sell / they sell",
+                "we sell, you sell, they sell"
+              ]
             }
           ],
           "rule": "-ir verbs (like finir): stem + is, is, it, issons, issez, issent. -re verbs (like vendre): stem + s, s, [nothing], ons, ez, ent."
@@ -4047,15 +5239,31 @@
           "items": [
             {
               "fr": "jouer au rugby / au tennis / aux échecs",
-              "en": "to play rugby/tennis/chess (sports & games take 'à')"
+              "en": "to play rugby/tennis/chess (sports & games take 'à')",
+              "accepted_en": [
+                "to play rugby/tennis/chess (sports & games take 'à')",
+                "to play rugby",
+                "to play tennis",
+                "to play chess"
+              ]
             },
             {
               "fr": "jouer du piano / de la guitare",
-              "en": "to play piano/guitar (instruments take 'de')"
+              "en": "to play piano/guitar (instruments take 'de')",
+              "accepted_en": [
+                "to play piano/guitar (instruments take 'de')",
+                "to play piano",
+                "to play guitar"
+              ]
             },
             {
               "fr": "faire du vélo / de la natation",
-              "en": "to do cycling/swimming (general activities take 'faire de')"
+              "en": "to do cycling/swimming (general activities take 'faire de')",
+              "accepted_en": [
+                "to do cycling/swimming (general activities take 'faire de')",
+                "to do cycling",
+                "to do swimming"
+              ]
             }
           ],
           "rule": "jouer à + le/la/les/l' → au/à la/aux/à l' for sports and games. jouer de + le/la/les/l' → du/de la/des/de l' for musical instruments."
@@ -4127,19 +5335,35 @@
           "items": [
             {
               "fr": "les échecs",
-              "en": "chess"
+              "en": "chess",
+              "accepted_fr": [
+                "les échecs",
+                "échecs"
+              ]
             },
             {
               "fr": "les cartes",
-              "en": "cards"
+              "en": "cards",
+              "accepted_fr": [
+                "les cartes",
+                "cartes"
+              ]
             },
             {
               "fr": "les jeux vidéo",
-              "en": "video games"
+              "en": "video games",
+              "accepted_fr": [
+                "les jeux vidéo",
+                "jeux vidéo"
+              ]
             },
             {
               "fr": "les jeux sur ordinateur",
-              "en": "computer games"
+              "en": "computer games",
+              "accepted_fr": [
+                "les jeux sur ordinateur",
+                "jeux sur ordinateur"
+              ]
             },
             {
               "fr": "le violon",
@@ -4159,11 +5383,19 @@
             },
             {
               "fr": "l'accordéon",
-              "en": "accordion"
+              "en": "accordion",
+              "accepted_fr": [
+                "l'accordéon",
+                "accordéon"
+              ]
             },
             {
               "fr": "les cymbales",
-              "en": "cymbals"
+              "en": "cymbals",
+              "accepted_fr": [
+                "les cymbales",
+                "cymbales"
+              ]
             },
             {
               "fr": "la flûte",
@@ -4215,19 +5447,39 @@
           "items": [
             {
               "fr": "je prends / tu prends / il prend",
-              "en": "I/you/he take(s)"
+              "en": "I/you/he take(s)",
+              "accepted_en": [
+                "I/you/he take(s)",
+                "I take / you take / he takes",
+                "I take, you take, he takes"
+              ]
             },
             {
               "fr": "nous prenons / vous prenez / ils prennent",
-              "en": "we/you/they take"
+              "en": "we/you/they take",
+              "accepted_en": [
+                "we/you/they take",
+                "we take / you take / they take",
+                "we take, you take, they take"
+              ]
             },
             {
               "fr": "je sors / tu sors / il sort",
-              "en": "I/you/he go(es) out"
+              "en": "I/you/he go(es) out",
+              "accepted_en": [
+                "I/you/he go(es) out",
+                "I go out / you go out / he goes out",
+                "I go out, you go out, he goes out"
+              ]
             },
             {
               "fr": "nous sortons / vous sortez / ils sortent",
-              "en": "we/you/they go out"
+              "en": "we/you/they go out",
+              "accepted_en": [
+                "we/you/they go out",
+                "we go out / you go out / they go out",
+                "we go out, you go out, they go out"
+              ]
             }
           ],
           "rule": "Sortir-type verbs (dormir, s'endormir, partir, servir) have two stems: singular forms drop the last 3 letters of the infinitive, plural forms drop only the last 2."
@@ -4259,7 +5511,15 @@
             },
             {
               "fr": "je regarde ma série préférée",
-              "en": "I watch my favourite series"
+              "en": "I watch my favourite series",
+              "accepted_en": [
+                "I watch my favourite series",
+                "I watch my favorite series",
+                "I watch my favourite show",
+                "I watch my favorite show",
+                "I watch my favourite TV show",
+                "I watch my favorite TV show"
+              ]
             },
             {
               "fr": "je me repose",
@@ -4286,19 +5546,37 @@
             },
             {
               "fr": "travailleur / travailleuse",
-              "en": "hard-working"
+              "en": "hard-working",
+              "accepted_en": [
+                "hard-working",
+                "hard working"
+              ]
             },
             {
               "fr": "intellectuel(le)",
-              "en": "intellectual"
+              "en": "intellectual",
+              "accepted_fr": [
+                "intellectuel(le)",
+                "intellectuel",
+                "intellectuelle"
+              ]
             },
             {
               "fr": "sportif / sportive",
-              "en": "sporty"
+              "en": "sporty",
+              "accepted_en": [
+                "sporty",
+                "athletic"
+              ]
             },
             {
               "fr": "fêtard(e)",
-              "en": "party animal"
+              "en": "party animal",
+              "accepted_fr": [
+                "fêtard(e)",
+                "fêtard",
+                "fêtarde"
+              ]
             },
             {
               "fr": "écolo",
@@ -4306,19 +5584,47 @@
             },
             {
               "fr": "gourmand(e)",
-              "en": "greedy"
+              "en": "greedy",
+              "accepted_fr": [
+                "gourmand(e)",
+                "gourmand",
+                "gourmande"
+              ]
             },
             {
               "fr": "coquet(te)",
-              "en": "stylish"
+              "en": "stylish",
+              "accepted_fr": [
+                "coquet(te)",
+                "coquet",
+                "coquette"
+              ]
             },
             {
               "fr": "casanier / casanière",
-              "en": "stay-at-home"
+              "en": "stay-at-home",
+              "accepted_en": [
+                "stay-at-home",
+                "stay at home",
+                "homebody",
+                "home-loving"
+              ]
             },
             {
               "fr": "désordonné(e)",
-              "en": "disorderly"
+              "en": "disorderly",
+              "accepted_en": [
+                "disorderly",
+                "messy",
+                "untidy",
+                "disorganised",
+                "disorganized"
+              ],
+              "accepted_fr": [
+                "désordonné(e)",
+                "désordonné",
+                "désordonnée"
+              ]
             },
             {
               "fr": "prétentieux / prétentieuse",
@@ -4349,7 +5655,14 @@
             },
             {
               "fr": "meilleur(e)(s)",
-              "en": "better (irregular comparative of bon — 'plus bon' doesn't exist)"
+              "en": "better (irregular comparative of bon — 'plus bon' doesn't exist)",
+              "accepted_fr": [
+                "meilleur(e)(s)",
+                "meilleur",
+                "meilleure",
+                "meilleurs",
+                "meilleures"
+              ]
             }
           ],
           "rule": "que becomes qu' before a vowel. The adjective agrees with the sentence's subject, not the comparison target."
@@ -4361,11 +5674,23 @@
           "items": [
             {
               "fr": "le/la/les plus + adjective",
-              "en": "the most..."
+              "en": "the most...",
+              "accepted_fr": [
+                "le/la/les plus + adjective",
+                "le plus",
+                "la plus",
+                "les plus"
+              ]
             },
             {
               "fr": "le/la/les moins + adjective",
-              "en": "the least..."
+              "en": "the least...",
+              "accepted_fr": [
+                "le/la/les moins + adjective",
+                "le moins",
+                "la moins",
+                "les moins"
+              ]
             },
             {
               "fr": "Le sport le plus intéressant, c'est le rugby.",
@@ -4474,15 +5799,31 @@
             },
             {
               "fr": "l'été",
-              "en": "summer"
+              "en": "summer",
+              "accepted_fr": [
+                "l'été",
+                "été"
+              ]
             },
             {
               "fr": "l'automne",
-              "en": "autumn"
+              "en": "autumn",
+              "accepted_en": [
+                "autumn",
+                "fall"
+              ],
+              "accepted_fr": [
+                "l'automne",
+                "automne"
+              ]
             },
             {
               "fr": "l'hiver",
-              "en": "winter"
+              "en": "winter",
+              "accepted_fr": [
+                "l'hiver",
+                "hiver"
+              ]
             },
             {
               "fr": "le printemps",
@@ -4617,15 +5958,27 @@
             },
             {
               "fr": "un pantalon",
-              "en": "trousers"
+              "en": "trousers",
+              "accepted_en": [
+                "trousers",
+                "pants"
+              ]
             },
             {
               "fr": "des chaussettes",
-              "en": "socks"
+              "en": "socks",
+              "accepted_fr": [
+                "des chaussettes",
+                "chaussettes"
+              ]
             },
             {
               "fr": "des chaussures",
-              "en": "shoes"
+              "en": "shoes",
+              "accepted_fr": [
+                "des chaussures",
+                "chaussures"
+              ]
             },
             {
               "fr": "une cravate",
@@ -4633,11 +5986,26 @@
             },
             {
               "fr": "des baskets",
-              "en": "runners"
+              "en": "runners",
+              "accepted_en": [
+                "runners",
+                "sneakers",
+                "trainers",
+                "running shoes"
+              ],
+              "accepted_fr": [
+                "des baskets",
+                "baskets"
+              ]
             },
             {
               "fr": "un pull",
-              "en": "a pullover"
+              "en": "a pullover",
+              "accepted_en": [
+                "a pullover",
+                "a sweater",
+                "a jumper"
+              ]
             },
             {
               "fr": "une écharpe",
@@ -4653,7 +6021,11 @@
             },
             {
               "fr": "un tee-shirt",
-              "en": "a t-shirt"
+              "en": "a t-shirt",
+              "accepted_en": [
+                "a t-shirt",
+                "a t shirt"
+              ]
             },
             {
               "fr": "un short",
@@ -4669,7 +6041,15 @@
             },
             {
               "fr": "des collants",
-              "en": "tights"
+              "en": "tights",
+              "accepted_en": [
+                "tights",
+                "pantyhose"
+              ],
+              "accepted_fr": [
+                "des collants",
+                "collants"
+              ]
             },
             {
               "fr": "une jupe",
@@ -4689,19 +6069,41 @@
             },
             {
               "fr": "un maillot de bain",
-              "en": "swimmers"
+              "en": "swimmers",
+              "accepted_en": [
+                "swimmers",
+                "swimsuit",
+                "bathing suit",
+                "swimming costume",
+                "swimwear",
+                "togs"
+              ]
             },
             {
               "fr": "un pyjama",
-              "en": "pyjamas"
+              "en": "pyjamas",
+              "accepted_en": [
+                "pyjamas",
+                "pajamas",
+                "pyjama",
+                "pajama"
+              ]
             },
             {
               "fr": "des bottes",
-              "en": "boots"
+              "en": "boots",
+              "accepted_fr": [
+                "des bottes",
+                "bottes"
+              ]
             },
             {
               "fr": "des lunettes de soleil",
-              "en": "sunglasses"
+              "en": "sunglasses",
+              "accepted_fr": [
+                "des lunettes de soleil",
+                "lunettes de soleil"
+              ]
             },
             {
               "fr": "un blouson",
@@ -4771,7 +6173,11 @@
             },
             {
               "fr": "gris / grise",
-              "en": "grey"
+              "en": "grey",
+              "accepted_en": [
+                "grey",
+                "gray"
+              ]
             },
             {
               "fr": "marron / marron",
@@ -4787,11 +6193,21 @@
           "items": [
             {
               "fr": "je mets / tu mets / il met",
-              "en": "I/you/he put(s) on"
+              "en": "I/you/he put(s) on",
+              "accepted_en": [
+                "I/you/he put(s) on",
+                "I put on / you put on / he puts on",
+                "I put on, you put on, he puts on"
+              ]
             },
             {
               "fr": "nous mettons / vous mettez / ils mettent",
-              "en": "we/you/they put on"
+              "en": "we/you/they put on",
+              "accepted_en": [
+                "we/you/they put on",
+                "we put on / you put on / they put on",
+                "we put on, you put on, they put on"
+              ]
             }
           ]
         },
@@ -4826,7 +6242,12 @@
           "items": [
             {
               "fr": "ce pull",
-              "en": "this pullover (masc. sg)"
+              "en": "this pullover (masc. sg)",
+              "accepted_en": [
+                "this pullover (masc. sg)",
+                "this sweater",
+                "this jumper"
+              ]
             },
             {
               "fr": "cet anorak",
@@ -4838,7 +6259,12 @@
             },
             {
               "fr": "ces pulls / ces chemises",
-              "en": "these pullovers/shirts (plural)"
+              "en": "these pullovers/shirts (plural)",
+              "accepted_en": [
+                "these pullovers/shirts (plural)",
+                "these pullovers",
+                "these shirts"
+              ]
             },
             {
               "fr": "ce pull-ci / ce pull-là",
@@ -4887,7 +6313,12 @@
           "items": [
             {
               "fr": "en laine",
-              "en": "woollen"
+              "en": "woollen",
+              "accepted_en": [
+                "woollen",
+                "woolen",
+                "wool"
+              ]
             },
             {
               "fr": "en coton",
@@ -4915,11 +6346,19 @@
             },
             {
               "fr": "des gants",
-              "en": "gloves"
+              "en": "gloves",
+              "accepted_fr": [
+                "des gants",
+                "gants"
+              ]
             },
             {
               "fr": "des bottes",
-              "en": "boots"
+              "en": "boots",
+              "accepted_fr": [
+                "des bottes",
+                "bottes"
+              ]
             }
           ]
         },
@@ -4953,7 +6392,12 @@
             },
             {
               "fr": "à talon",
-              "en": "high-heeled"
+              "en": "high-heeled",
+              "accepted_en": [
+                "high-heeled",
+                "high heeled",
+                "with heels"
+              ]
             },
             {
               "fr": "à capuche",
@@ -4961,7 +6405,11 @@
             },
             {
               "fr": "des sandales",
-              "en": "sandals"
+              "en": "sandals",
+              "accepted_fr": [
+                "des sandales",
+                "sandales"
+              ]
             },
             {
               "fr": "la pointure",
@@ -4969,15 +6417,34 @@
             },
             {
               "fr": "étroit(e)",
-              "en": "narrow, tight"
+              "en": "narrow, tight",
+              "accepted_fr": [
+                "étroit(e)",
+                "étroit",
+                "étroite"
+              ]
             },
             {
               "fr": "assorti(e)",
-              "en": "matching"
+              "en": "matching",
+              "accepted_en": [
+                "matching",
+                "matched"
+              ],
+              "accepted_fr": [
+                "assorti(e)",
+                "assorti",
+                "assortie"
+              ]
             },
             {
               "fr": "à carreaux",
-              "en": "checked"
+              "en": "checked",
+              "accepted_en": [
+                "checked",
+                "checkered",
+                "chequered"
+              ]
             },
             {
               "fr": "à rayures",
@@ -4985,11 +6452,22 @@
             },
             {
               "fr": "à pois",
-              "en": "spotted"
+              "en": "spotted",
+              "accepted_en": [
+                "spotted",
+                "polka dot",
+                "polka-dot",
+                "dotted"
+              ]
             },
             {
               "fr": "à fleurs",
-              "en": "flowery"
+              "en": "flowery",
+              "accepted_en": [
+                "flowery",
+                "floral",
+                "flowered"
+              ]
             }
           ]
         },
@@ -5036,7 +6514,12 @@
             },
             {
               "fr": "... il/elle te plaît? / ils/elles te plaisent?",
-              "en": "do you like it/them? (lit. does it/do they please you)"
+              "en": "do you like it/them? (lit. does it/do they please you)",
+              "accepted_en": [
+                "do you like it/them? (lit. does it/do they please you)",
+                "do you like it?",
+                "do you like them?"
+              ]
             }
           ]
         },
@@ -5059,7 +6542,12 @@
             },
             {
               "fr": "bordeaux",
-              "en": "maroon (invariable colour)"
+              "en": "maroon (invariable colour)",
+              "accepted_en": [
+                "maroon (invariable colour)",
+                "maroon",
+                "burgundy"
+              ]
             },
             {
               "fr": "beige",
@@ -5071,7 +6559,19 @@
             },
             {
               "fr": "écossais(e)",
-              "en": "tartan/Scottish pattern"
+              "en": "tartan/Scottish pattern",
+              "accepted_en": [
+                "tartan/Scottish pattern",
+                "tartan",
+                "Scottish pattern",
+                "plaid",
+                "tartan pattern"
+              ],
+              "accepted_fr": [
+                "écossais(e)",
+                "écossais",
+                "écossaise"
+              ]
             },
             {
               "fr": "la taille",
@@ -5186,11 +6686,23 @@
           "items": [
             {
               "fr": "un maillot de bain",
-              "en": "swimmers"
+              "en": "swimmers",
+              "accepted_en": [
+                "swimmers",
+                "swimsuit",
+                "bathing suit",
+                "swimming costume",
+                "swimwear",
+                "togs"
+              ]
             },
             {
               "fr": "des lunettes de soleil",
-              "en": "sunglasses"
+              "en": "sunglasses",
+              "accepted_fr": [
+                "des lunettes de soleil",
+                "lunettes de soleil"
+              ]
             },
             {
               "fr": "un sac à main / un sac à dos",
@@ -5198,7 +6710,19 @@
             },
             {
               "fr": "des tongs",
-              "en": "thongs/flip-flops"
+              "en": "thongs/flip-flops",
+              "accepted_en": [
+                "thongs/flip-flops",
+                "thongs / flip-flops",
+                "flip flops",
+                "flip-flops",
+                "thongs",
+                "flip-flop"
+              ],
+              "accepted_fr": [
+                "des tongs",
+                "tongs"
+              ]
             },
             {
               "fr": "une serviette (de bain)",
@@ -5206,7 +6730,14 @@
             },
             {
               "fr": "une crème solaire",
-              "en": "sunscreen"
+              "en": "sunscreen",
+              "accepted_en": [
+                "sunscreen",
+                "sun cream",
+                "suncream",
+                "sunblock",
+                "sun lotion"
+              ]
             },
             {
               "fr": "du shampooing",
@@ -5214,7 +6745,11 @@
             },
             {
               "fr": "un sèche-cheveux",
-              "en": "a hair-dryer"
+              "en": "a hair-dryer",
+              "accepted_en": [
+                "a hair-dryer",
+                "a hair dryer"
+              ]
             },
             {
               "fr": "une brosse à dents",
@@ -5284,11 +6819,21 @@
           "items": [
             {
               "fr": "je veux / tu veux / il veut",
-              "en": "I/you/he want(s) to"
+              "en": "I/you/he want(s) to",
+              "accepted_en": [
+                "I/you/he want(s) to",
+                "I want to / you want to / he wants to",
+                "I want to, you want to, he wants to"
+              ]
             },
             {
               "fr": "nous voulons / vous voulez / ils veulent",
-              "en": "we/you/they want to"
+              "en": "we/you/they want to",
+              "accepted_en": [
+                "we/you/they want to",
+                "we want to / you want to / they want to",
+                "we want to, you want to, they want to"
+              ]
             },
             {
               "fr": "je peux / tu peux / il peut",
@@ -5409,7 +6954,15 @@
             },
             {
               "fr": "des céréales",
-              "en": "cereal"
+              "en": "cereal",
+              "accepted_en": [
+                "cereal",
+                "cereals"
+              ],
+              "accepted_fr": [
+                "des céréales",
+                "céréales"
+              ]
             },
             {
               "fr": "de la confiture",
@@ -5421,7 +6974,12 @@
             },
             {
               "fr": "du yaourt",
-              "en": "yoghurt"
+              "en": "yoghurt",
+              "accepted_en": [
+                "yoghurt",
+                "yogurt",
+                "yoghourt"
+              ]
             },
             {
               "fr": "du beurre",
@@ -5503,7 +7061,11 @@
             },
             {
               "fr": "des olives",
-              "en": "olives"
+              "en": "olives",
+              "accepted_fr": [
+                "des olives",
+                "olives"
+              ]
             },
             {
               "fr": "de la viande",
@@ -5543,11 +7105,24 @@
             },
             {
               "fr": "des pâtes",
-              "en": "pasta"
+              "en": "pasta",
+              "accepted_fr": [
+                "des pâtes",
+                "pâtes"
+              ]
             },
             {
               "fr": "des frites",
-              "en": "fries"
+              "en": "fries",
+              "accepted_en": [
+                "fries",
+                "chips",
+                "french fries"
+              ],
+              "accepted_fr": [
+                "des frites",
+                "frites"
+              ]
             },
             {
               "fr": "du riz",
@@ -5630,7 +7205,11 @@
             },
             {
               "fr": "l'épicerie",
-              "en": "the grocer's"
+              "en": "the grocer's",
+              "accepted_fr": [
+                "l'épicerie",
+                "épicerie"
+              ]
             },
             {
               "fr": "la boucherie",
@@ -5673,19 +7252,39 @@
           "items": [
             {
               "fr": "je mange / tu manges / il mange",
-              "en": "I/you/he eat(s)"
+              "en": "I/you/he eat(s)",
+              "accepted_en": [
+                "I/you/he eat(s)",
+                "I eat / you eat / he eats",
+                "I eat, you eat, he eats"
+              ]
             },
             {
               "fr": "nous mangeons / vous mangez / ils mangent",
-              "en": "we/you/they eat"
+              "en": "we/you/they eat",
+              "accepted_en": [
+                "we/you/they eat",
+                "we eat / you eat / they eat",
+                "we eat, you eat, they eat"
+              ]
             },
             {
               "fr": "je bois / tu bois / il boit",
-              "en": "I/you/he drink(s)"
+              "en": "I/you/he drink(s)",
+              "accepted_en": [
+                "I/you/he drink(s)",
+                "I drink / you drink / he drinks",
+                "I drink, you drink, he drinks"
+              ]
             },
             {
               "fr": "nous buvons / vous buvez / ils boivent",
-              "en": "we/you/they drink (irregular)"
+              "en": "we/you/they drink (irregular)",
+              "accepted_en": [
+                "we/you/they drink (irregular)",
+                "we drink / you drink / they drink",
+                "we drink, you drink, they drink"
+              ]
             }
           ]
         },
@@ -5720,11 +7319,23 @@
           "items": [
             {
               "fr": "une boîte de",
-              "en": "a tin/box of"
+              "en": "a tin/box of",
+              "accepted_en": [
+                "a tin/box of",
+                "a tin of",
+                "a box of",
+                "a can of",
+                "a tin / box of"
+              ]
             },
             {
               "fr": "un paquet de",
-              "en": "a packet of"
+              "en": "a packet of",
+              "accepted_en": [
+                "a packet of",
+                "a pack of",
+                "a package of"
+              ]
             },
             {
               "fr": "une bouteille de",
@@ -5732,7 +7343,13 @@
             },
             {
               "fr": "un pot de",
-              "en": "a pot/jar of"
+              "en": "a pot/jar of",
+              "accepted_en": [
+                "a pot/jar of",
+                "a pot of",
+                "a jar of",
+                "a pot / jar of"
+              ]
             },
             {
               "fr": "une tranche de",
@@ -5740,11 +7357,25 @@
             },
             {
               "fr": "un kilo de / un demi-kilo de",
-              "en": "a kilo of / half a kilo of"
+              "en": "a kilo of / half a kilo of",
+              "accepted_en": [
+                "a kilo of / half a kilo of",
+                "a kilo of",
+                "a kilogram of",
+                "half a kilo of",
+                "half a kilo of / a kilo of"
+              ]
             },
             {
               "fr": "un litre de / un demi-litre de",
-              "en": "a litre of / half a litre of"
+              "en": "a litre of / half a litre of",
+              "accepted_en": [
+                "a litre of / half a litre of",
+                "a liter of / half a liter of",
+                "a litre of",
+                "a liter of",
+                "half a litre of / a litre of"
+              ]
             },
             {
               "fr": "une tasse de / un verre de / un bol de",
@@ -5825,7 +7456,19 @@
             },
             {
               "fr": "Je voudrais un steak saignant/à point/bien cuit.",
-              "en": "I'd like a rare/medium/well-done steak."
+              "en": "I'd like a rare/medium/well-done steak.",
+              "accepted_fr": [
+                "Je voudrais un steak saignant/à point/bien cuit.",
+                "Je voudrais un steak saignant.",
+                "Je voudrais un steak à point.",
+                "Je voudrais un steak bien cuit."
+              ],
+              "accepted_en": [
+                "I'd like a rare/medium/well-done steak.",
+                "I'd like a rare steak.",
+                "I'd like a medium steak.",
+                "I'd like a well-done steak."
+              ]
             },
             {
               "fr": "l'eau plate / gazeuse",
@@ -5844,15 +7487,33 @@
           "items": [
             {
               "fr": "j'ai parlé",
-              "en": "I spoke/have spoken (-er verb)"
+              "en": "I spoke/have spoken (-er verb)",
+              "accepted_en": [
+                "I spoke/have spoken (-er verb)",
+                "I spoke",
+                "I have spoken",
+                "I've spoken"
+              ]
             },
             {
               "fr": "tu as choisi",
-              "en": "you chose/have chosen (-ir verb)"
+              "en": "you chose/have chosen (-ir verb)",
+              "accepted_en": [
+                "you chose/have chosen (-ir verb)",
+                "you chose",
+                "you have chosen",
+                "you've chosen"
+              ]
             },
             {
               "fr": "elle a vendu",
-              "en": "she sold/has sold (-re verb)"
+              "en": "she sold/has sold (-re verb)",
+              "accepted_en": [
+                "she sold/has sold (-re verb)",
+                "she sold",
+                "she has sold",
+                "she's sold"
+              ]
             }
           ],
           "rule": "Regular passé composé = present tense of avoir + past participle. -er verbs: -é; -ir verbs: -i; -re verbs: -u. Used for completed past actions or a change of state."
@@ -5937,11 +7598,19 @@
             },
             {
               "fr": "boire → bu",
-              "en": "drank"
+              "en": "drank",
+              "accepted_en": [
+                "drank",
+                "drunk"
+              ]
             },
             {
               "fr": "connaître → connu",
-              "en": "knew"
+              "en": "knew",
+              "accepted_en": [
+                "knew",
+                "known"
+              ]
             },
             {
               "fr": "croire → cru",
@@ -5957,15 +7626,33 @@
             },
             {
               "fr": "écrire → écrit",
-              "en": "wrote"
+              "en": "wrote",
+              "accepted_en": [
+                "wrote",
+                "written"
+              ]
             },
             {
               "fr": "être → été",
-              "en": "was/were"
+              "en": "was/were",
+              "accepted_en": [
+                "was/were",
+                "was / were",
+                "been",
+                "was",
+                "were"
+              ]
             },
             {
               "fr": "faire → fait",
-              "en": "did/made"
+              "en": "did/made",
+              "accepted_en": [
+                "did/made",
+                "did / made",
+                "done",
+                "made",
+                "did"
+              ]
             },
             {
               "fr": "lire → lu",
@@ -5973,7 +7660,11 @@
             },
             {
               "fr": "mettre → mis",
-              "en": "put"
+              "en": "put",
+              "accepted_en": [
+                "put",
+                "placed"
+              ]
             },
             {
               "fr": "pouvoir → pu",
@@ -5981,7 +7672,11 @@
             },
             {
               "fr": "prendre → pris",
-              "en": "took"
+              "en": "took",
+              "accepted_en": [
+                "took",
+                "taken"
+              ]
             },
             {
               "fr": "recevoir → reçu",
@@ -5989,7 +7684,11 @@
             },
             {
               "fr": "savoir → su",
-              "en": "knew"
+              "en": "knew",
+              "accepted_en": [
+                "knew",
+                "known"
+              ]
             },
             {
               "fr": "vivre → vécu",
@@ -5997,7 +7696,11 @@
             },
             {
               "fr": "voir → vu",
-              "en": "saw"
+              "en": "saw",
+              "accepted_en": [
+                "saw",
+                "seen"
+              ]
             },
             {
               "fr": "vouloir → voulu",
@@ -6013,11 +7716,21 @@
           "items": [
             {
               "fr": "je sais / tu sais / il sait",
-              "en": "I/you/he know(s) (a fact, how to do something)"
+              "en": "I/you/he know(s) (a fact, how to do something)",
+              "accepted_en": [
+                "I/you/he know(s) (a fact, how to do something)",
+                "I know / you know / he knows",
+                "I know, you know, he knows"
+              ]
             },
             {
               "fr": "nous savons / vous savez / ils savent",
-              "en": "we/you/they know (facts)"
+              "en": "we/you/they know (facts)",
+              "accepted_en": [
+                "we/you/they know (facts)",
+                "we know / you know / they know",
+                "we know, you know, they know"
+              ]
             },
             {
               "fr": "je connais / tu connais / il connaît",
@@ -6106,11 +7819,21 @@
           "items": [
             {
               "fr": "je me suis lavé(e)",
-              "en": "I washed (myself)"
+              "en": "I washed (myself)",
+              "accepted_fr": [
+                "je me suis lavé(e)",
+                "je me suis lavé",
+                "je me suis lavée"
+              ]
             },
             {
               "fr": "tu t'es levé(e)",
-              "en": "you got up"
+              "en": "you got up",
+              "accepted_fr": [
+                "tu t'es levé(e)",
+                "tu t'es levé",
+                "tu t'es levée"
+              ]
             },
             {
               "fr": "elle s'est couchée",
@@ -6170,7 +7893,17 @@
             },
             {
               "fr": "J'ai déjà voyagé à l'étranger.",
-              "en": "I have already travelled overseas."
+              "en": "I have already travelled overseas.",
+              "accepted_en": [
+                "I have already travelled overseas.",
+                "I have already traveled overseas.",
+                "I have already travelled abroad.",
+                "I have already traveled abroad.",
+                "I've already travelled overseas.",
+                "I've already traveled overseas.",
+                "I've already travelled abroad.",
+                "I've already traveled abroad."
+              ]
             },
             {
               "fr": "Je parle des langues étrangères.",

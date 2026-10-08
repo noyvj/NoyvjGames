@@ -19,6 +19,7 @@ import json
 import random
 import re
 import unicodedata
+import zlib
 
 import narrative_log
 from js import document
@@ -60,6 +61,10 @@ racer_tick = minigames.racer_tick
 boutique_tick = minigames.boutique_tick
 cafe_tick = minigames.cafe_tick
 sprint_tick = minigames.sprint_tick
+pairs_tick = minigames.pairs_tick
+gaps_tick = minigames.gaps_tick
+listenpick_tick = minigames.listenpick_tick
+wordorder_tick = minigames.wordorder_tick
 
 CATALOG_FILENAME = "fren_combined_catalog.json"
 SUPPLEMENTARY_NOTES_FILENAME = "fren_supplementary_notes.json"
@@ -257,6 +262,13 @@ class Plot:
         # L-18: consecutive wrong answers on this plot (cleared by a correct
         # one). At LEECH_THRESHOLD it becomes a "stubborn weed" (see below).
         self.fail_run = 0
+        # 2026-10-08 watering rule: the in-game day of this plot's last FULL
+        # watering (the first correct answer for it on a day, from any
+        # plot-linked activity), saved with the plot. `nudged_day` is the day
+        # of its last nudge (a later correct answer the same day); it is
+        # transient session state and never saved (see water_plot()).
+        self.last_watered = None
+        self.nudged_day = None
 
     @property
     def is_grammar_rule(self):
@@ -561,6 +573,10 @@ INSTRUCTIONS = {
     V_BLANK_ENDING: "Finish the ending.",
     V_CONJUGATION_SWAP: "Which form goes with this pronoun?",
     V_GENDER_TAG: "Is it le or la?",
+    # Progressive format (2026-10-08): the typed form of a fill-the-gap question,
+    # shown for plots that have grown (see question_format_percent()).
+    V_BLANK_WORD + "_typed": "Type the word that fills the gap.",
+    V_CONJUGATION_SWAP + "_typed": "Type the form that goes with this pronoun.",
 }
 
 # Improvement Ideas addendum: gender-tagging drill -- masc/fem tested
@@ -994,11 +1010,92 @@ def _typed_question(plot, variant, prompt, answer, note=None):
     }
 
 
-def generate_question(plot, rng=None, variant=None, exclude=None, farm=None):
-    """Build one practice prompt for a plot, fresh, from catalog facts."""
+# ---------------------------------------------------------------------------
+# Progressive question format (2026-10-08)
+# ---------------------------------------------------------------------------
+# A plot that has never been watered always starts with multiple choice. As its
+# comprehension grows (its growth stage first, then its correct streak and
+# ease factor) typed answers appear more and more often, until a mastered plot
+# is mostly typed. Deterministic: whether a given question is typed is decided
+# by a fixed hash of the plot's own scheduling state against its typed share,
+# so there is no new randomness (the variant is still picked with the caller's
+# seeded generator, exactly as before). The "Always multiple choice" setting
+# switches the whole thing off.
+ALWAYS_MULTIPLE_CHOICE = False
+FORMAT_STAGE_BASE_PERCENT = {
+    STAGE_SEED: 0,
+    STAGE_SPROUT: 20,
+    STAGE_BUDDING: 45,
+    STAGE_BLOOMING: 70,
+    STAGE_AUTOMATED: 90,
+}
+FORMAT_STREAK_PERCENT_EACH = 2  # per correct in a row, up to FORMAT_STREAK_PERCENT_MAX
+FORMAT_STREAK_PERCENT_MAX = 10
+FORMAT_EASE_PERCENT_PER_POINT = 20  # per ease point away from the 2.5 default
+FORMAT_MAX_PERCENT = 95  # never fully typed: some multiple choice always remains
+FORMAT_AFTER_MISS_FACTOR = 0.5  # a plot just missed leans back toward multiple choice
+TYPED_VARIANTS = (V_FR_EN_TYPED, V_EN_FR_TYPED, V_SYMBOL_NAME_TYPED, V_NAME_SYMBOL_TYPED)
+# Choice variants that have a typed twin of the same plot, and the fill-the-gap
+# variants whose question can also be asked as "type the missing word".
+TYPED_COUNTERPART = {
+    V_FR_EN_CHOICE: V_FR_EN_TYPED,
+    V_EN_FR_CHOICE: V_EN_FR_TYPED,
+    V_SYMBOL_NAME_CHOICE: V_SYMBOL_NAME_TYPED,
+    V_NAME_SYMBOL_CHOICE: V_NAME_SYMBOL_TYPED,
+}
+TYPED_BLANK_VARIANTS = (V_BLANK_WORD, V_CONJUGATION_SWAP)
+
+
+def question_format_percent(plot):
+    """The share (0-95) of this plot's questions that are typed, from its
+    stage, correct streak and ease factor. A plot still at Seed (never answered
+    correctly, so never watered) is always 0: multiple choice only."""
+    if ALWAYS_MULTIPLE_CHOICE or plot.stage == STAGE_SEED or plot.last_reviewed is None:
+        return 0
+    percent = FORMAT_STAGE_BASE_PERCENT.get(plot.stage, 0)
+    percent += min(FORMAT_STREAK_PERCENT_MAX, FORMAT_STREAK_PERCENT_EACH * max(0, plot.correct_streak))
+    percent += round((plot.ease_factor - DEFAULT_EASE) * FORMAT_EASE_PERCENT_PER_POINT)
+    if plot.correct_streak == 0:
+        percent = int(percent * FORMAT_AFTER_MISS_FACTOR)
+    return max(0, min(FORMAT_MAX_PERCENT, int(percent)))
+
+
+def wants_typed(plot):
+    """Whether the next question for this plot should be typed: a fixed hash of
+    the plot's scheduling state (so the answer to 'typed or choice?' changes as
+    the plot is answered, and is the same every time for the same state)
+    against its typed share."""
+    percent = question_format_percent(plot)
+    if percent <= 0:
+        return False
+    key = f"{plot.plot_id}|{plot.last_reviewed}|{plot.correct_streak}|{plot.interval_days}|{plot.last_watered}"
+    return zlib.crc32(key.encode("utf-8")) % 100 < percent
+
+
+def _as_typed_blank(question):
+    """The typed form of a fill-the-gap choice question: same gap, same answer."""
+    question["mode"] = "typed"
+    question["choices"] = []
+    question["instruction"] = INSTRUCTIONS[question["variant"] + "_typed"]
+    return question
+
+
+def generate_question(plot, rng=None, variant=None, exclude=None, farm=None, format=None):
+    """Build one practice prompt for a plot, fresh, from catalog facts.
+
+    `format` is None for the progressive schedule above, "choice" to force a
+    multiple-choice question (for screens that cannot take typing), or "typed"
+    to ask for a typed one wherever the plot has a typed form."""
     rng = random.Random() if rng is None else rng
     farm = state if farm is None else farm
     available = variants_for(plot, farm)
+
+    if format == "typed":
+        typed_now = True
+    elif format == "choice":
+        typed_now = False
+    else:
+        typed_now = wants_typed(plot)
 
     if variant is None:
         excluded = set()
@@ -1007,7 +1104,16 @@ def generate_question(plot, rng=None, variant=None, exclude=None, farm=None):
         elif exclude:
             excluded = set(exclude)
         pool = [v for v in available if v not in excluded] or available
+        if typed_now:
+            typed_pool = [v for v in pool if v in TYPED_VARIANTS or v in TYPED_BLANK_VARIANTS]
+            pool = typed_pool or pool
+        else:
+            choice_pool = [v for v in pool if v not in TYPED_VARIANTS]
+            pool = choice_pool or pool
         variant = rng.choice(pool)
+    elif typed_now and variant in TYPED_COUNTERPART and TYPED_COUNTERPART[variant] in available:
+        variant = TYPED_COUNTERPART[variant]
+    typed_blank = typed_now and variant in TYPED_BLANK_VARIANTS
 
     note = plot.rule if plot.topic_type == "grammar" else None
 
@@ -1035,16 +1141,18 @@ def generate_question(plot, rng=None, variant=None, exclude=None, farm=None):
             pool = _form_pool(farm, plot, answer)
         if not _enough(pool):
             pool = _target_pool(farm, plot, answer)
-        return _choice_question(plot, variant, blanked, answer, pool, rng, note)
+        built = _choice_question(plot, variant, blanked, answer, pool, rng, note)
+        return _as_typed_blank(built) if typed_blank else built
 
     if variant == V_CONJUGATION_SWAP:
         # The pronoun is re-rolled from the table's own six-person set each
         # visit, so the blank moves around instead of drilling one form (§5).
         pronoun, answer = rng.choice(conjugation_forms(plot))
-        return _choice_question(
+        built = _choice_question(
             plot, variant, f"{pronoun} {BLANK_MARKER}", answer,
             _form_pool(farm, plot, answer), rng, note,
         )
+        return _as_typed_blank(built) if typed_blank else built
 
     if variant == V_BLANK_ENDING:
         stem, entries = _ending_split(plot)
@@ -1414,6 +1522,15 @@ def classify_wrong_typed_answer(question, given, tier):
     return ERROR_PATTERN_OTHER
 
 
+def check_question_answer(question, given):
+    """Grade one answer to a generated question the way the farm does: a
+    multiple-choice pick is exact, a typed answer gets its tier from the
+    answer's shape and honours the accent setting. Used by the minigames."""
+    typed = question["mode"] == "typed"
+    tier = grading_tier(question["answer"]) if typed else None
+    return check_answer(question, given, tier=tier, accent_sensitive=ACCENT_SENSITIVE)
+
+
 def record_error_pattern(pattern):
     error_pattern_counts[pattern] = error_pattern_counts.get(pattern, 0) + 1
 
@@ -1567,6 +1684,7 @@ def build_failure_blurb(question):
 current_question = None
 current_result = None
 current_submitted_answer = None
+current_water_kind = None  # what the last correct farm answer did: WATER_FULL / WATER_NUDGE / None
 practice_open = False
 report_sent = False
 pronunciation_report_sent = False
@@ -1656,6 +1774,8 @@ review_question = None
 review_result = None
 review_score = {"correct": 0, "total": 0}
 review_choice_proxies = []
+review_water_kind = None  # what the last correct Review answer did to its plot
+review_listen_revealed = False  # listening water: the French text has been shown
 REVIEW_RNG = random.Random()
 
 # Milestone 26: the report buttons, extended here from the main practice
@@ -2016,6 +2136,11 @@ PRACTICE_MODES = {
     "boutique": "Boutique Dash",
     "cafe": "Café Rush",
     "quick": "Quick water",
+    "wateropts": "Water options",
+    "pairs": "Word Match",
+    "gaps": "Grammar Gaps",
+    "listenpick": "Listening Pick",
+    "wordorder": "Word Order Race",
     "builder": "Sentence builder",
     "conversation": "Conversation simulator",
     "listening": "Listening practice",
@@ -2378,6 +2503,16 @@ def _validated_fail_run(raw):
     return max(0, min(raw, LEECH_FAIL_RUN_LIMIT))
 
 
+def _validated_last_watered(record, plot):
+    """The saved day of a plot's last full watering (a save from before the
+    2026-10-08 watering rule has no such key, which reads as never: on the day
+    of the upgrade those plots can be watered once more, which is harmless)."""
+    raw = record.get("last_watered")
+    if isinstance(raw, bool) or not isinstance(raw, int) or raw < 0:
+        return None
+    return raw
+
+
 def _validated_leech_rests(raw):
     if isinstance(raw, bool) or not isinstance(raw, int):
         return 0
@@ -2505,6 +2640,7 @@ def _restore_plot(plot, record):
         plot.stage = STAGE_SEED
     plot.in_weeds = bool(record.get("in_weeds", False))
     plot.fail_run = _validated_fail_run(record.get("fail_run"))
+    plot.last_watered = _validated_last_watered(record, plot)
 
 
 def can_forgive_slip():
@@ -4418,6 +4554,10 @@ def render_practice():
         )
     else:
         _element("practice-feedback").innerText = ""
+    water_note = _element("practice-water-note")
+    note_text = water_result_text(current_water_kind, plot_for_note=state.plots_by_id.get(current_question["plot_id"])) if (answered and current_result) else ""
+    water_note.innerText = note_text
+    water_note.hidden = not note_text
 
     # Direct user request: continuing to the next due plot used to mean
     # Close, then scroll back up to the farm-level "water next plot" button
@@ -4507,6 +4647,7 @@ def render():
     render_report_log()
     render_planner()
     render_accent_bars()
+    render_water_options()
     minigames.render()
 
 
@@ -4516,6 +4657,7 @@ def render():
 def open_practice(plot_id, variant=None):
     """Water a plot: roll a fresh question for it (§5) and show the panel."""
     global current_question, current_result, current_submitted_answer, practice_open, report_sent, pronunciation_report_sent, current_confidence, deepdive_open, slip_note
+    global current_water_kind
 
     plot = state.plots_by_id.get(plot_id)
     if plot is None or not state.is_row_unlocked(plot.sequence):
@@ -4529,6 +4671,7 @@ def open_practice(plot_id, variant=None):
     current_result = None
     current_submitted_answer = None
     current_confidence = None
+    current_water_kind = None
     report_sent = False
     pronunciation_report_sent = False
     practice_open = True
@@ -4552,6 +4695,7 @@ def set_confidence(value):
 
 def submit_answer(given):
     global current_result, current_submitted_answer, combo_count, _slip_snapshot, slip_note
+    global current_water_kind
 
     if current_question is None or current_result is not None:
         return None
@@ -4612,20 +4756,28 @@ def submit_answer(given):
         record_error_pattern(pattern)
         if _slip_snapshot is not None:
             _slip_snapshot["pattern"] = pattern
-    state.review(
-        current_question["plot_id"],
-        current_result,
-        combo=combo_count,
-        confidence=current_confidence,
-    )
+    if current_result:
+        # Watering rule: the first correct answer for a plot each day is a
+        # full watering, a later one the same day only a nudge.
+        current_water_kind = water_plot(plot, combo=combo_count, confidence=current_confidence)
+    else:
+        current_water_kind = None
+        state.review(
+            current_question["plot_id"],
+            current_result,
+            combo=combo_count,
+            confidence=current_confidence,
+        )
     render()
     return current_result
 
 
 def close_practice(event=None):
     global current_question, current_result, current_submitted_answer, practice_open, report_sent, pronunciation_report_sent, current_confidence, deepdive_open
+    global current_water_kind
 
     current_question = None
+    current_water_kind = None
     current_result = None
     current_submitted_answer = None
     current_confidence = None
@@ -5011,58 +5163,137 @@ def _interleave_by_stage(candidates, rng):
 
 
 def nudge_review_correct(plot, day):
-    """A correct Review answer isn't a full watering event: it nudges the
-    interval a little further out and records that the plot was seen today
-    (so a save doesn't silently drop the nudge — see get_state()'s "touched"
-    rule), but deliberately never touches `correct_streak`, `ease_factor` or
-    `stage`. Only the daily loop's `schedule_after_review()` grows a plant."""
+    """A nudge is the small, second kind of credit a correct answer can give:
+    it pushes the interval a little further out and records that the plot was
+    seen today (so a save doesn't silently drop the nudge -- see get_state()'s
+    "touched" rule), but never touches `correct_streak`, `ease_factor` or
+    `stage`. See water_plot() for when an answer is a watering and when it is
+    only a nudge."""
     plot.interval_days = max(1, plot.interval_days) + REVIEW_NUDGE_DAYS
     plot.next_due = day + plot.interval_days
     plot.last_reviewed = day
 
 
+# ---------------------------------------------------------------------------
+# Watering versus nudging (the single rule behind every plot-linked activity)
+# ---------------------------------------------------------------------------
+# WATER = a full SRS review of the plot: the interval ladder moves up one rung
+# (1 day, 3 days, then interval x ease), the ease factor and the correct
+# streak go up, and the plot may climb a visible growth stage.
+# NUDGE = only the next review date moves a little (one day later): no growth
+# stage, no streak, no ease change.
+# Until 2026-10-08 only watering a plot on the farm (and the first correct
+# Review or proficiency answer for a plot each day) was a watering; the arcade
+# games could only nudge a plot that had already been watered. Now the FIRST
+# correct answer for a plot on an in-game day, from ANY plot-linked activity
+# (the farm, Review and every review-style mode, the proficiency tests and
+# every arcade minigame), is a real watering, so a never-watered plot can be
+# watered by a game and nothing is locked behind "Water the next plot". A later
+# correct answer for the same plot the same day is a nudge (at most one nudge
+# per plot per day, so a fast game cannot pile up days). A wrong answer in any
+# of these activities changes nothing, and a stage never goes down. (Watering a
+# plot on the farm keeps its older rule that a wrong answer there reschedules
+# the plot for tomorrow, as section 6 of the design doc always said.)
+WATER_FULL = "full"
+WATER_NUDGE = "nudge"
+
+# Plots watered / nudged on the current in-game day, by any activity. Session
+# state only (it is recomputed from nothing after a reload, which is harmless:
+# the saved `last_watered` day is what actually stops a double watering).
+water_today = {"day": -1, "watered": set(), "nudged": set()}
+
+
+def _water_today_tally():
+    if water_today["day"] != state.current_day:
+        water_today["day"] = state.current_day
+        water_today["watered"] = set()
+        water_today["nudged"] = set()
+    return water_today
+
+
+def water_today_text():
+    tally = _water_today_tally()
+    watered, nudged = len(tally["watered"]), len(tally["nudged"])
+    if not watered and not nudged:
+        return "Nothing watered yet today."
+    parts = []
+    if watered:
+        parts.append(f"watered {watered} plot{'s' if watered != 1 else ''}")
+    if nudged:
+        parts.append(f"nudged {nudged}")
+    return "Today: " + ", ".join(parts) + "."
+
+
+def water_result_text(kind, plot_for_note=None):
+    """One plain sentence saying what a correct answer just did to its plot."""
+    if kind == WATER_FULL:
+        suffix = f" Stage: {plot_for_note.stage.capitalize()}." if plot_for_note is not None else ""
+        return "Watered: this plot's schedule and growth were updated." + suffix
+    if kind == WATER_NUDGE:
+        return "Nudged: this plot was already watered today, so its next review just moved a day later."
+    return "Already watered and nudged today, so nothing more changes for this plot."
+
+
+def can_water_now(plot):
+    """True while the plot has not had its full watering on the current day."""
+    return plot.last_watered != state.current_day
+
+
+def water_plot(plot, combo=0, confidence=None):
+    """A CORRECT answer on a real plot, from any plot-linked activity.
+    Returns WATER_FULL for the day's first one, WATER_NUDGE for a later one
+    (once per plot per day), None when the plot has already been watered and
+    nudged today (nothing more to add). `combo` and `confidence` only matter
+    for the farm's own practice panel and feed the same scheduler arguments
+    they always did."""
+    if plot is None:
+        return None
+    day = state.current_day
+    tally = _water_today_tally()
+    plot.in_weeds = False
+    plot.fail_run = 0
+    if plot.last_watered != day:
+        state.review(plot.plot_id, True, combo=combo, confidence=confidence)
+        plot.last_watered = day
+        plot.nudged_day = None
+        tally["watered"].add(plot.plot_id)
+        return WATER_FULL
+    if plot.nudged_day != day:
+        nudge_review_correct(plot, day)
+        plot.nudged_day = day
+        tally["nudged"].add(plot.plot_id)
+        return WATER_NUDGE
+    return None
+
+
 def water_from_review(plot):
-    """L3: reviewing a plot that has not been watered yet today counts as
-    watering it -- a full SRS review (interval, ease, streak, stage), the
-    same as answering it on the farm. Once it has been watered today, any
-    further correct Review answers are the gentle nudge as before, so this
-    is never a way to grow a plot faster than one watering a day."""
-    if plot.last_reviewed != state.current_day:
-        state.review(plot.plot_id, True)
-        return True
-    nudge_review_correct(plot, state.current_day)
-    return False
+    """Kept for the Review code and its tests: True when the answer was the
+    day's full watering, False when it was only a nudge (or nothing)."""
+    return water_plot(plot) == WATER_FULL
 
 
 # ---------------------------------------------------------------------------
-# Which activities grow plots (user request, 2026-10-08)
+# Which activities grow plots
 # ---------------------------------------------------------------------------
-# Every activity that asks questions says, in a small text marker, whether it
-# grows plots and how, and the ones that credit plots say what was credited at
-# the end of a session. Three ways an activity can grow a plot, all through the
-# existing SRS paths and never through a game score:
-#   full    -- watering a plot on the farm, or the first correct Review or
-#              proficiency answer for a plot each in-game day (water_from_review);
-#   nudge   -- the Review nudge (the next review a day later, no stage change),
-#              used by the arcade games, once per plot per day and only for a
-#              plot that has already been watered (a game cannot plant one);
-#   apply   -- the placement test, only when its result is applied.
-# A plot's growth stage never goes down and nothing is ever taken away.
+# Every question screen says, in a small text marker, whether it grows plots
+# and how, and every activity that credits plots says what it credited at the
+# end of a session ("watered N plots, nudged M"). A game score never grows a
+# plot by itself: crediting goes through water_plot() only, a plot's stage
+# never goes down, and a wrong answer changes nothing.
+_RULE_TIP = (
+    "The first correct answer for a plot each in-game day waters it fully: its interval, ease, "
+    "streak and growth stage all update, exactly like watering it on the farm. Later correct "
+    "answers for the same plot that day only nudge its next review a day later. A wrong answer "
+    "changes nothing, and a stage never goes down."
+)
+_WATERS = ("review", "Grows plots: waters, then nudges")
 GROWTH_INFO = {
-    "practice": (
-        "full",
-        "Grows plots: full watering",
-        "A correct answer waters this plot properly: its interval, ease and growth stage all update, like every watering on the farm.",
-    ),
-    "review": (
-        "review",
-        "Grows plots: full watering, then nudges",
-        "The first correct answer for a plot each day waters it fully. Further correct answers for it that day only nudge its next review a day later. A wrong answer changes nothing, and a stage never goes down.",
-    ),
+    "practice": ("full", "Grows plots: waters, then nudges", _RULE_TIP),
+    "review": (_WATERS[0], _WATERS[1], _RULE_TIP),
     "proficiency": (
-        "review",
-        "Grows plots: full watering, then nudges",
-        "The test asks about real plots, so a correct answer counts like Review: the first one for a plot each day waters it fully, later ones only nudge it. A wrong answer changes nothing.",
+        _WATERS[0],
+        _WATERS[1],
+        "The test asks about real plots, so it counts like Review. " + _RULE_TIP,
     ),
     "placement": (
         "apply",
@@ -5070,29 +5301,49 @@ GROWTH_INFO = {
         "Answering changes no plot. If you press Apply, plots in the weeks you passed that were never watered become Sprouts (never higher, and nothing is lowered).",
     ),
     "blitz": (
-        "nudge",
-        "Grows plots: small nudge",
-        "A correct answer on a plot you have already watered nudges its next review a day later (once per plot per day, never a stage change). A plot you have not watered yet needs real watering first. A game score never grows a plot by itself.",
+        _WATERS[0],
+        _WATERS[1],
+        "Each question is about one real plot from weeks 1-11; the line under the question names it. " + _RULE_TIP,
     ),
     "racer": (
-        "nudge",
-        "Grows plots: small nudge",
-        "A correct answer on a plot you have already watered nudges its next review a day later (once per plot per day, never a stage change). A plot you have not watered yet needs real watering first.",
+        _WATERS[0],
+        _WATERS[1],
+        "Each question is about one real grammar plot from weeks 12-15; the line under the question names it. " + _RULE_TIP,
     ),
     "sprint": (
-        "nudge",
-        "Grows plots: small nudge",
-        "A correct answer on a plot you have already watered nudges its next review a day later (once per plot per day, never a stage change). A plot you have not watered yet needs real watering first.",
+        _WATERS[0],
+        _WATERS[1],
+        "Each question is about one real passé composé plot (weeks 21-23); the line under the question names it. " + _RULE_TIP,
     ),
     "boutique": (
-        "nudge",
-        "Grows plots: small nudge",
-        "A correct sale nudges the plots for the garment and the colour you picked, if you have already watered them (once per plot per day, never a stage change).",
+        _WATERS[0],
+        _WATERS[1],
+        "A correct sale waters the plots for the garment and the colour you picked. " + _RULE_TIP,
     ),
     "cafe": (
-        "nudge",
-        "Grows plots: small nudge",
-        "A correct order nudges the plot for that dish (and the passé composé plot in a twist round), if you have already watered it (once per plot per day, never a stage change).",
+        _WATERS[0],
+        _WATERS[1],
+        "A correct order waters the plot for that dish (and the passé composé plot in a twist round). " + _RULE_TIP,
+    ),
+    "pairs": (
+        _WATERS[0],
+        _WATERS[1],
+        "Every correct pair waters the plot behind that word or phrase (weeks 12-23). " + _RULE_TIP,
+    ),
+    "gaps": (
+        _WATERS[0],
+        _WATERS[1],
+        "Each gap is about one real grammar plot (weeks 1-11 and 16-20); the line under it names the plot. " + _RULE_TIP,
+    ),
+    "listenpick": (
+        _WATERS[0],
+        _WATERS[1],
+        "Each sound is one real vocabulary, phrase or pronunciation plot; the line under the question names it. " + _RULE_TIP,
+    ),
+    "wordorder": (
+        _WATERS[0],
+        _WATERS[1],
+        "Each sentence is an example from one real grammar plot; a correct order waters that plot. " + _RULE_TIP,
     ),
     "bonus": (
         "none",
@@ -5120,8 +5371,12 @@ GROWTH_INFO = {
         "These sound-rule questions are hand-written and are not tied to any plot, so there is nothing to grow. Your answers still count toward your practice score.",
     ),
 }
-GROWTH_SURFACES = ("review", "proficiency", "blitz", "racer", "boutique", "cafe", "sprint")
+GROWTH_SURFACES = (
+    "review", "proficiency", "blitz", "racer", "boutique", "cafe", "sprint",
+    "pairs", "gaps", "listenpick", "wordorder",
+)
 growth_credit = {surface: {"full": 0, "nudge": 0} for surface in GROWTH_SURFACES}
+_credit_seen = {surface: {} for surface in GROWTH_SURFACES}
 
 
 def growth_marker(key):
@@ -5141,30 +5396,39 @@ def render_growth_markers():
 def reset_growth_credit(surface):
     if surface in growth_credit:
         growth_credit[surface] = {"full": 0, "nudge": 0}
+        _credit_seen[surface] = {}
 
 
-def _note_credit(surface, kind):
-    if surface in growth_credit and kind in growth_credit[surface]:
-        growth_credit[surface][kind] += 1
+def _note_credit(surface, plot, kind):
+    """Count a plot once per session: 'watered N plots, nudged M' are distinct
+    plots, not answers."""
+    if surface not in growth_credit or kind not in growth_credit[surface]:
+        return
+    seen = _credit_seen[surface]
+    if plot.plot_id in seen:
+        return
+    seen[plot.plot_id] = kind
+    growth_credit[surface][kind] += 1
 
 
-def credit_review_plot(plot, surface):
-    """A correct answer on a real plot in Review or a proficiency test:
-    the first for the plot today is a full watering, later ones a nudge."""
-    kind = "full" if water_from_review(plot) else "nudge"
-    _note_credit(surface, kind)
+def credit_correct(plot, surface):
+    """A correct answer on a real plot in a review-style session, a proficiency
+    test or an arcade game: water it (or nudge it), and remember which for the
+    end-of-session line. Returns WATER_FULL, WATER_NUDGE or None."""
+    kind = water_plot(plot)
+    if kind is not None:
+        _note_credit(surface, plot, kind)
     return kind
 
 
+def credit_review_plot(plot, surface):
+    """A correct answer on a real plot in Review or a proficiency test."""
+    return credit_correct(plot, surface)
+
+
 def credit_game_plot(plot, surface):
-    """An arcade game's correct answer on a real plot: the Review nudge only,
-    once per plot per in-game day (the nudge stamps last_reviewed), and never
-    for a plot that has not been watered yet. Returns "nudge" or None."""
-    if plot is None or plot.last_reviewed is None or plot.last_reviewed == state.current_day:
-        return None
-    nudge_review_correct(plot, state.current_day)
-    _note_credit(surface, "nudge")
-    return "nudge"
+    """An arcade game's correct answer on a real plot (it waters, or nudges)."""
+    return credit_correct(plot, surface)
 
 
 def credit_game_plot_id(plot_id, surface):
@@ -5195,10 +5459,23 @@ def _plot_by_fr():
     return _plot_by_fr_index
 
 
+def plot_for_fr(fr):
+    """The plot behind a French text; a "a / b" pair (two names for one dish,
+    say) finds the plot of either side."""
+    index = _plot_by_fr()
+    key = " ".join(str(fr).split()).lower()
+    if key in index:
+        return index[key]
+    for part in re.sub(r"\([^)]*\)", "", str(fr)).split(" / "):
+        found = index.get(" ".join(part.split()).lower())
+        if found is not None:
+            return found
+    return None
+
+
 def credit_game_item(fr, surface):
     """Credit the plot behind a shop-game item's French text, if there is one."""
-    key = " ".join(str(fr).split()).lower()
-    return credit_game_plot(_plot_by_fr().get(key), surface)
+    return credit_game_plot(plot_for_fr(fr), surface)
 
 
 def growth_credit_text(surface):
@@ -5207,9 +5484,12 @@ def growth_credit_text(surface):
         return ""
     parts = []
     if counts["full"]:
-        parts.append(f"{counts['full']} plot{'s' if counts['full'] != 1 else ''} watered")
+        parts.append(f"watered {counts['full']} plot{'s' if counts['full'] != 1 else ''}")
     if counts["nudge"]:
-        parts.append(f"{counts['nudge']} plot{'s' if counts['nudge'] != 1 else ''} nudged")
+        parts.append(
+            f"nudged {counts['nudge']}" if counts["full"] else
+            f"nudged {counts['nudge']} plot{'s' if counts['nudge'] != 1 else ''}"
+        )
     if parts:
         return "Plot growth credited: " + ", ".join(parts) + "."
     return "Plot growth credited: none this session."
@@ -5238,6 +5518,12 @@ def _review_variant_for(plot, mode):
     conjugation prompts"): if the plot can produce one of those variants,
     roll among just those; otherwise (word review, or a grammar plot that
     can't offer one) let generate_question() pick from its full pool."""
+    if mode == WATER_LISTEN_MODE:
+        heard = [v for v in variants_for(plot) if v in WATER_LISTEN_VARIANTS]
+        return QUESTION_RNG.choice(heard) if heard else None
+    if mode == WATER_TYPED_MODE:
+        typed = [v for v in variants_for(plot) if v in TYPED_VARIANTS or v in TYPED_BLANK_VARIANTS]
+        return QUESTION_RNG.choice(typed) if typed else None
     if mode != "grammar" and not (
         mode in (MARATHON_MODE, PHRASEBOOK_MODE, CRAM_MODE, WEAK_SPOT_MODE, QUICK_WATER_MODE)
         and plot.topic_type == "grammar"
@@ -5248,7 +5534,7 @@ def _review_variant_for(plot, mode):
 
 
 def _advance_review_question():
-    global review_question, review_result
+    global review_question, review_result, review_water_kind, review_listen_revealed
     global review_submitted_answer, review_report_sent, review_pronunciation_report_sent
 
     # Both report flags and the submitted-answer text are per-question, so
@@ -5264,9 +5550,16 @@ def _advance_review_question():
         return
     plot = state.plots_by_id[review_queue[review_index]]
     review_question = generate_question(
-        plot, QUESTION_RNG, variant=_review_variant_for(plot, review_mode)
+        plot,
+        QUESTION_RNG,
+        variant=_review_variant_for(plot, review_mode),
+        format=WATER_MODE_FORMAT.get(review_mode),
     )
     review_result = None
+    review_water_kind = None
+    if review_mode == WATER_LISTEN_MODE:
+        review_listen_revealed = False
+        speak_french(review_question["prompt"])
 
 
 def start_review(mode, event=None):
@@ -5299,6 +5592,11 @@ def start_review(mode, event=None):
         # ordered most overdue first, watered plots before never-watered ones).
         review_mode = mode
         review_queue = [p.plot_id for p in marathon_candidates()[:1]]
+    elif mode in WATER_MODES:
+        # The water chooser's sessions: only plots that can still be watered
+        # today, picked by water_session_plots() for the chosen option.
+        review_mode = mode
+        review_queue = [p.plot_id for p in water_session_plots(mode, water_mode_arg)]
     elif mode == MARATHON_MODE:
         # Ignores the count and minimum-stage controls on purpose: the point
         # is "everything that's due", ordered by how overdue it is.
@@ -5320,7 +5618,7 @@ def start_review(mode, event=None):
 
 
 def submit_review_answer(given):
-    global review_result, review_submitted_answer
+    global review_result, review_submitted_answer, review_water_kind
 
     if review_question is None or review_result is not None:
         return None
@@ -5336,13 +5634,16 @@ def submit_review_answer(given):
         record_practice("gender", review_result)  # also counts the study day
     elif review_mode == QUICK_WATER_MODE:
         record_practice("quick", review_result)  # L29; also counts the study day
+    elif review_mode in WATER_MODES:
+        record_practice("wateropts", review_result)  # also counts the study day
     else:
         note_study_answer()
+    review_water_kind = None
     if review_result:
         review_score["correct"] += 1
         plot = state.plots_by_id.get(review_question["plot_id"])
         if plot is not None:
-            credit_review_plot(plot, "review")
+            review_water_kind = credit_review_plot(plot, "review")
     render()
     return review_result
 
@@ -5451,6 +5752,313 @@ def on_quick_water(event=None):
     start_review(QUICK_WATER_MODE)
 
 
+# ===========================================================================
+# Water options (2026-10-08): more ways to water than "Water the next plot"
+# ===========================================================================
+# A short chooser (the "Water options" button next to "Water the next plot")
+# lists every way to pick what to water, each with how many plots it can water
+# RIGHT NOW (a plot that has already had its full watering today is not
+# counted: it can only be nudged). Every option uses the one watering rule
+# (water_plot): the first correct answer for a plot each in-game day waters it,
+# a later one nudges it, a wrong answer changes nothing.
+#
+#   Water next plot            the farm's own most-overdue-first button
+#   Water a chosen week        any one row of the farm
+#   Water by topic             vocabulary / phrases / grammar / pronunciation
+#   Water the wilting plots    the plots that are most overdue, longest first
+#   Quick multiple-choice      5 plots, multiple choice only, low effort
+#   Typing water               5 plots, typed answers only
+#   Listening water            5 plots, hear the French and pick the English
+#   Water by minigame          each arcade game, saying which plots it waters
+#
+# The sessions run in the Review panel (same grading, report buttons and
+# end-of-session "watered N plots, nudged M" line).
+WATER_ROW_MODE = "waterrow"
+WATER_TOPIC_MODE = "watertopic"
+WATER_WILTING_MODE = "waterwilting"
+WATER_MC_MODE = "watermc"
+WATER_TYPED_MODE = "watertyped"
+WATER_LISTEN_MODE = "waterlisten"
+WATER_MODES = (
+    WATER_ROW_MODE, WATER_TOPIC_MODE, WATER_WILTING_MODE, WATER_MC_MODE, WATER_TYPED_MODE, WATER_LISTEN_MODE,
+)
+WATER_MODE_FORMAT = {WATER_MC_MODE: "choice", WATER_TYPED_MODE: "typed", WATER_LISTEN_MODE: "choice"}
+WATER_LISTEN_VARIANTS = (V_FR_EN_CHOICE, V_SYMBOL_NAME_CHOICE)
+WATER_SESSION_MAX = 10
+WATER_QUICK_COUNT = 5
+WATER_TOPICS = (
+    ("vocab", "Vocabulary"),
+    ("phrase", "Phrases"),
+    ("grammar", "Grammar"),
+    ("pronunciation", "Pronunciation (letters and accents)"),
+)
+WATER_EMPTY_MESSAGE = (
+    "Nothing in that group can be watered right now: every plot in it has already been watered "
+    "today (or there is nothing of that kind). Move the day on, or try another option."
+)
+LISTEN_HIDDEN_PROMPT = "🔊 Listen, then pick what it means."
+water_options_open = False
+water_mode_arg = None  # the row number or topic key of the running chooser session
+water_row_choice = 1
+water_topic_choice = "vocab"
+water_option_proxies = []
+
+
+def _water_order(plots):
+    """Most overdue watered plots first, then plots never watered, then watered
+    plots that are not due yet; ties keep farm order."""
+    day = state.current_day
+
+    def key(plot):
+        if plot.next_due is None:
+            return (1, 0)
+        if plot.next_due <= day:
+            return (0, plot.next_due)
+        return (2, plot.next_due)
+
+    return sorted(plots, key=key)
+
+
+def _is_typed_capable(plot):
+    return any(v in TYPED_VARIANTS or v in TYPED_BLANK_VARIANTS for v in variants_for(plot))
+
+
+def _is_listen_capable(plot):
+    return plot.topic_type != "grammar" and any(v in WATER_LISTEN_VARIANTS for v in variants_for(plot))
+
+
+def _topic_match(plot, topic):
+    if topic == "pronunciation":
+        return plot.topic_type == "phonetic"
+    return plot.topic_type == topic
+
+
+def water_pool(kind, arg=None):
+    """Every plot an option could water right now (not yet watered today), in
+    the order a session would ask about them. `kind` is "next", "row",
+    "topic", "wilting", "mc", "typed" or "listen"."""
+    day = state.current_day
+    plots = [p for p in state.available_plots() if can_water_now(p)]
+    if kind == "next":
+        return _water_order([p for p in plots if is_due(p, day)])
+    if kind == "row":
+        try:
+            sequence = int(arg)
+        except (TypeError, ValueError):
+            return []
+        return _water_order([p for p in plots if p.sequence == sequence])
+    if kind == "topic":
+        return _water_order([p for p in plots if _topic_match(p, arg)])
+    if kind == "wilting":
+        return sorted((p for p in plots if is_wilting(p, day)), key=lambda p: p.next_due)
+    if kind == "mc":
+        return _water_order(plots)
+    if kind == "typed":
+        return _water_order([p for p in plots if _is_typed_capable(p)])
+    if kind == "listen":
+        return _water_order([p for p in plots if _is_listen_capable(p)])
+    return []
+
+
+_WATER_MODE_KIND = {
+    WATER_ROW_MODE: "row",
+    WATER_TOPIC_MODE: "topic",
+    WATER_WILTING_MODE: "wilting",
+    WATER_MC_MODE: "mc",
+    WATER_TYPED_MODE: "typed",
+    WATER_LISTEN_MODE: "listen",
+}
+_WATER_MODE_LIMIT = {
+    WATER_ROW_MODE: WATER_SESSION_MAX,
+    WATER_TOPIC_MODE: WATER_SESSION_MAX,
+    WATER_WILTING_MODE: WATER_SESSION_MAX,
+    WATER_MC_MODE: WATER_QUICK_COUNT,
+    WATER_TYPED_MODE: WATER_QUICK_COUNT,
+    WATER_LISTEN_MODE: WATER_QUICK_COUNT,
+}
+
+
+def water_session_plots(mode, arg=None):
+    """The plots one chooser session asks about (capped: 10, or 5 for the
+    quick options)."""
+    return water_pool(_WATER_MODE_KIND[mode], arg)[: _WATER_MODE_LIMIT[mode]]
+
+
+def water_option_counts():
+    """How many plots each option can water right now (uncapped)."""
+    return {
+        "next": len(water_pool("next")),
+        "row": len(water_pool("row", water_row_choice)),
+        "topic": len(water_pool("topic", water_topic_choice)),
+        "wilting": len(water_pool("wilting")),
+        "mc": len(water_pool("mc")),
+        "typed": len(water_pool("typed")),
+        "listen": len(water_pool("listen")) if speech_available() else 0,
+    }
+
+
+def start_water_session(mode, arg=None, event=None):
+    """Begin a chooser session in the Review panel; returns how many plots it
+    holds (0 shows the friendly empty message)."""
+    global water_mode_arg, water_options_open
+    water_mode_arg = arg
+    water_options_open = False
+    start_review(mode)
+    try:
+        # Classic: the Review panel is further down the page than the chooser.
+        getattr(_element("review-panel"), "scrollIntoView")()
+    except Exception:
+        pass
+    return len(review_queue)
+
+
+def on_toggle_water_options(event=None):
+    global water_options_open
+    water_options_open = not water_options_open
+    render()
+
+
+def on_water_row_change(event=None):
+    global water_row_choice
+    try:
+        water_row_choice = int(_element("water-row-select").value)
+    except (TypeError, ValueError):
+        water_row_choice = 1
+    render()
+
+
+def on_water_topic_change(event=None):
+    global water_topic_choice
+    value = _element("water-topic-select").value
+    if value in {key for key, _ in WATER_TOPICS}:
+        water_topic_choice = value
+    render()
+
+
+def on_water_next_option(event=None):
+    global water_options_open
+    water_options_open = False
+    on_water_next()
+    render()
+
+
+def on_water_row_start(event=None):
+    start_water_session(WATER_ROW_MODE, water_row_choice)
+
+
+def on_water_topic_start(event=None):
+    start_water_session(WATER_TOPIC_MODE, water_topic_choice)
+
+
+def on_water_wilting_start(event=None):
+    start_water_session(WATER_WILTING_MODE)
+
+
+def on_water_mc_start(event=None):
+    start_water_session(WATER_MC_MODE)
+
+
+def on_water_typed_start(event=None):
+    start_water_session(WATER_TYPED_MODE)
+
+
+def on_water_listen_start(event=None):
+    start_water_session(WATER_LISTEN_MODE)
+
+
+def on_review_listen(event=None):
+    if review_question is not None and review_mode == WATER_LISTEN_MODE:
+        speak_french(review_question["prompt"])
+
+
+def on_review_listen_show(event=None):
+    global review_listen_revealed
+    review_listen_revealed = True
+    render()
+
+
+def _populate_water_selects():
+    row_select = _element("water-row-select")
+    row_select.innerHTML = ""
+    for row in state.rows:
+        option = document.createElement("option")
+        option.value = str(row.sequence)
+        title = f": {row.chapter_title}" if row.chapter_title else ""
+        option.innerText = f"Week {row.sequence}{title}"
+        row_select.appendChild(option)
+    row_select.value = str(water_row_choice)
+    topic_select = _element("water-topic-select")
+    topic_select.innerHTML = ""
+    for key, label in WATER_TOPICS:
+        option = document.createElement("option")
+        option.value = key
+        option.innerText = label
+        topic_select.appendChild(option)
+    topic_select.value = water_topic_choice
+
+
+def _water_count_text(count, unit="plot"):
+    if count == 1:
+        return f"1 {unit} can be watered now"
+    return f"{count} {unit}s can be watered now"
+
+
+def _destroy_water_option_proxies():
+    for proxy in water_option_proxies:
+        proxy.destroy()
+    water_option_proxies.clear()
+
+
+def _make_open_game_handler(key):
+    def handler(event=None):
+        global water_options_open
+        water_options_open = False
+        minigames.open_game(key)
+        render()
+    return handler
+
+
+def render_water_options():
+    panel = _element("water-options-panel")
+    toggle = _element("water-options-toggle-button")
+    toggle.innerText = "Close water options" if water_options_open else "🚿 Water options"
+    _destroy_water_option_proxies()
+    if not water_options_open:
+        panel.hidden = True
+        return
+    panel.hidden = False
+    _element("water-today-line").innerText = water_today_text()
+    counts = water_option_counts()
+    for key, count in counts.items():
+        _element(f"water-opt-{key}-count").innerText = _water_count_text(count)
+        _element(f"water-opt-{key}-button").disabled = count == 0
+    if not speech_available():
+        _element("water-opt-listen-count").innerText = "needs speech synthesis (not available here)"
+    games_box = _element("water-games-list")
+    games_box.innerHTML = ""
+    for row in minigames.water_game_rows():
+        line = document.createElement("div")
+        line.className = "water-game-row"
+        label = document.createElement("span")
+        label.className = "water-game-label dashboard-practice-row"
+        label.innerText = f"{row['title']} — waters {row['note']}"
+        count = document.createElement("span")
+        count.className = "water-game-count dashboard-practice-row"
+        count.innerText = _water_count_text(row["count"]) if row["available"] else "locked"
+        button = document.createElement("button")
+        button.className = "secondary"
+        button.innerText = "Play"
+        button.id = f"water-game-{row['key']}-button"
+        button.disabled = not row["available"]
+        proxy = create_proxy(_make_open_game_handler(row["key"]))
+        button.addEventListener("click", proxy)
+        water_option_proxies.append(proxy)
+        line.appendChild(label)
+        line.appendChild(count)
+        line.appendChild(button)
+        games_box.appendChild(line)
+
+
 def _make_review_choice_handler(choice):
     def handler(event=None):
         submit_review_answer(choice)
@@ -5479,6 +6087,9 @@ def render_review():
     choices_box = _element("review-choices")
 
     _destroy_review_choice_proxies()
+    _element("review-listen-button").hidden = True
+    _element("review-listen-show-button").hidden = True
+    _element("review-water-note").hidden = True
 
     if review_mode is None:
         panel.hidden = True
@@ -5502,6 +6113,7 @@ def render_review():
                 else QUICK_WATER_EMPTY_MESSAGE if review_mode == QUICK_WATER_MODE
                 else PHRASEBOOK_EMPTY_MESSAGE if review_mode == PHRASEBOOK_MODE
                 else WEAK_SPOT_EMPTY_MESSAGE if review_mode == WEAK_SPOT_MODE
+                else WATER_EMPTY_MESSAGE if review_mode in WATER_MODES
                 else REVIEW_EMPTY_MESSAGE
             )
             summary.hidden = True
@@ -5528,7 +6140,17 @@ def render_review():
     _element("review-progress").innerText = f"{review_index + 1} of {len(review_queue)}"
     _element("review-context").innerText = review_question["context"]
     _element("review-instruction").innerText = review_question["instruction"]
-    _element("review-prompt").innerText = review_question["prompt"]
+    listening_hidden = (
+        review_mode == WATER_LISTEN_MODE
+        and speech_available()
+        and not review_listen_revealed
+        and review_result is None
+    )
+    _element("review-prompt").innerText = LISTEN_HIDDEN_PROMPT if listening_hidden else review_question["prompt"]
+    listen_button = _element("review-listen-button")
+    listen_button.hidden = review_mode != WATER_LISTEN_MODE or not speech_available()
+    show_text_button = _element("review-listen-show-button")
+    show_text_button.hidden = not listening_hidden
 
     note = _element("review-note")
     note.innerText = review_question["note"] or ""
@@ -5567,6 +6189,9 @@ def render_review():
         _element("review-feedback").innerText = template.format(answer=review_question["answer"])
     else:
         _element("review-feedback").innerText = ""
+    review_note = water_result_text(review_water_kind, state.plots_by_id.get(review_question["plot_id"])) if (answered and review_result) else ""
+    _element("review-water-note").innerText = review_note
+    _element("review-water-note").hidden = not review_note
 
     # Milestone 26: same gating as the main practice panel's own two report
     # buttons -- correctness report only for a wrong typed answer,
@@ -5597,6 +6222,60 @@ def on_toggle_accent_sensitivity(event=None):
     ACCENT_SENSITIVE = not ACCENT_SENSITIVE
     _element("accent-toggle-checkbox").checked = ACCENT_SENSITIVE
     render()
+
+
+# --- per-browser preferences (remembered, not part of the save code) -------
+# index.html defines window.champPrefGet/champPrefSet over localStorage. They
+# do not exist under pytest (there is no js.window in the fake module), so both
+# helpers quietly do nothing there. Used for the "Always multiple choice"
+# setting and every minigame's difficulty.
+
+
+def pref_get(key, default=None):
+    try:
+        from js import window
+
+        getter = getattr(window, "champPrefGet", None)
+        if getter is None:
+            return default
+        value = getter(key)
+        return default if value is None else str(value)
+    except Exception:
+        return default
+
+
+def pref_set(key, value):
+    try:
+        from js import window
+
+        setter = getattr(window, "champPrefSet", None)
+        if setter is not None:
+            setter(key, str(value))
+    except Exception:
+        pass
+
+
+PREF_ALWAYS_MC = "champ-always-multiple-choice"
+
+
+def on_toggle_always_mc(event=None):
+    """Progressive format off-switch: with this on, every question is multiple
+    choice wherever the plot has one (see question_format_percent())."""
+    global ALWAYS_MULTIPLE_CHOICE
+    ALWAYS_MULTIPLE_CHOICE = not ALWAYS_MULTIPLE_CHOICE
+    _element("always-mc-checkbox").checked = ALWAYS_MULTIPLE_CHOICE
+    pref_set(PREF_ALWAYS_MC, "1" if ALWAYS_MULTIPLE_CHOICE else "0")
+    render()
+
+
+def format_schedule_lines():
+    """The plain-words schedule shown in Settings."""
+    return [
+        "Seed (never watered): multiple choice only.",
+        "Sprout: about 1 question in 5 is typed. Budding: about 2 in 5.",
+        "Blooming: about 7 in 10. Automated: about 9 in 10.",
+        "A longer run of correct answers and a higher ease nudge the share up; a plot you just missed leans back toward multiple choice.",
+    ]
 
 
 # ===========================================================================
@@ -8109,6 +8788,7 @@ def render_accent_bars():
 
 
 def setup():
+    global ALWAYS_MULTIPLE_CHOICE
     build_farm()
     render_legend()
     build_accent_bars()
@@ -8152,6 +8832,24 @@ def setup():
     _element("planner-minutes-input").addEventListener("change", create_proxy(on_planner_minutes_change))
     _element("planner-clear-button").addEventListener("click", create_proxy(on_planner_clear))
     _populate_cram_selects()
+    _populate_water_selects()
+    ALWAYS_MULTIPLE_CHOICE = pref_get(PREF_ALWAYS_MC) == "1"
+    _element("always-mc-checkbox").checked = ALWAYS_MULTIPLE_CHOICE
+    _element("format-schedule-note").innerText = " ".join(format_schedule_lines())
+    _element("always-mc-checkbox").addEventListener("click", create_proxy(on_toggle_always_mc))
+    _element("water-options-toggle-button").addEventListener("click", create_proxy(on_toggle_water_options))
+    _element("water-options-close-button").addEventListener("click", create_proxy(on_toggle_water_options))
+    _element("water-row-select").addEventListener("change", create_proxy(on_water_row_change))
+    _element("water-topic-select").addEventListener("change", create_proxy(on_water_topic_change))
+    _element("water-opt-next-button").addEventListener("click", create_proxy(on_water_next_option))
+    _element("water-opt-row-button").addEventListener("click", create_proxy(on_water_row_start))
+    _element("water-opt-topic-button").addEventListener("click", create_proxy(on_water_topic_start))
+    _element("water-opt-wilting-button").addEventListener("click", create_proxy(on_water_wilting_start))
+    _element("water-opt-mc-button").addEventListener("click", create_proxy(on_water_mc_start))
+    _element("water-opt-typed-button").addEventListener("click", create_proxy(on_water_typed_start))
+    _element("water-opt-listen-button").addEventListener("click", create_proxy(on_water_listen_start))
+    _element("review-listen-button").addEventListener("click", create_proxy(on_review_listen))
+    _element("review-listen-show-button").addEventListener("click", create_proxy(on_review_listen_show))
     _element("practice-deepdive-button").addEventListener("click", create_proxy(on_toggle_deepdive))
     _element("review-cram-button").addEventListener("click", create_proxy(on_start_cram_review))
     _element("review-weakspots-button").addEventListener("click", create_proxy(on_start_weak_spot_review))
@@ -8295,7 +8993,12 @@ def setup():
         credit_item_fn=credit_game_item,
         credit_reset_fn=reset_growth_credit,
         credit_text_fn=growth_credit_text,
+        plot_for_fr_fn=plot_for_fr,
+        pref_get_fn=pref_get,
+        pref_set_fn=pref_set,
+        check_answer_fn=check_question_answer,
     )
+    minigames.configure_speech(speak_french, speech_available)
     render_growth_markers()
     minigames.setup()
 
@@ -8335,6 +9038,8 @@ def _plot_record(plot):
         # L-18: only written while a plot is on a losing run, so a normal
         # save is unchanged.
         **({"fail_run": plot.fail_run} if plot.fail_run else {}),
+        # 2026-10-08: day of the last full watering, only once there is one.
+        **({"last_watered": plot.last_watered} if plot.last_watered is not None else {}),
     }
 
 
@@ -8347,6 +9052,8 @@ def _reset_plot(plot):
     plot.stage = STAGE_SEED
     plot.in_weeds = False
     plot.fail_run = 0
+    plot.last_watered = None
+    plot.nudged_day = None
 
 
 def get_state():
@@ -8458,6 +9165,7 @@ def load_state(data):
             plot.stage = STAGE_SEED
         plot.in_weeds = bool(record.get("in_weeds", False))
         plot.fail_run = _validated_fail_run(record.get("fail_run"))
+        plot.last_watered = _validated_last_watered(record, plot)
 
     # Any question on screen was generated against the farm that just got
     # replaced, so it is closed rather than answered into the new one.

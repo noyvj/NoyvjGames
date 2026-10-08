@@ -46,6 +46,11 @@
       "Settings"
     ],
     [
+      "water-options-panel",
+      "water-options-toggle-button",
+      "Water options"
+    ],
+    [
       "cultural-notes-panel",
       "cultural-notes-toggle-button",
       "Cultural notes"
@@ -119,6 +124,26 @@
       "sprint-panel",
       "sprint-toggle-button",
       "Passé Composé Sprint"
+    ],
+    [
+      "pairs-panel",
+      "pairs-toggle-button",
+      "Word Match"
+    ],
+    [
+      "gaps-panel",
+      "gaps-toggle-button",
+      "Grammar Gaps"
+    ],
+    [
+      "listenpick-panel",
+      "listenpick-toggle-button",
+      "Listening Pick"
+    ],
+    [
+      "wordorder-panel",
+      "wordorder-toggle-button",
+      "Word Order Race"
     ]
   ],
   "toolbar": {
@@ -212,6 +237,10 @@
       "#boutique-toggle-button",
       "#cafe-toggle-button",
       "#sprint-toggle-button",
+      "#pairs-toggle-button",
+      "#gaps-toggle-button",
+      "#listenpick-toggle-button",
+      "#wordorder-toggle-button",
       "#cultural-notes-toggle-button",
       "details:has(+ #cultural-notes-panel)",
       "#study-buddy-toggle-button",

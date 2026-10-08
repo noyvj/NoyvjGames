@@ -78,7 +78,9 @@ html[data-layout="pc"] .mobile-hud, html[data-layout="pc"] #mobile-hud, html[dat
 
 /* The practice-game launchers sit in two columns beneath the Review tab. */
 #pc-side > #liaison-toggle-button, #pc-side > #blitz-toggle-button, #pc-side > #racer-toggle-button,
-#pc-side > #boutique-toggle-button, #pc-side > #cafe-toggle-button, #pc-side > #sprint-toggle-button {
+#pc-side > #boutique-toggle-button, #pc-side > #cafe-toggle-button, #pc-side > #sprint-toggle-button,
+#pc-side > #pairs-toggle-button, #pc-side > #gaps-toggle-button, #pc-side > #listenpick-toggle-button,
+#pc-side > #wordorder-toggle-button {
   width: 100%;
   min-height: 2.6rem;
   padding: 0.4rem 0.5rem;

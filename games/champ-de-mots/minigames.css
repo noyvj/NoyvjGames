@@ -172,3 +172,127 @@
   padding-top: 0.75rem;
   border-top: 1px dashed rgba(140, 160, 255, 0.25);
 }
+
+/* --- 2026-10-08: difficulty, "waters:" line, Word Match, Word Order, water options ------------- */
+
+.minigame-difficulty {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 0.75rem;
+  margin: 0.25rem 0 0.75rem;
+  font-size: 0.9rem;
+  color: #eaeaf0;
+}
+
+.minigame-difficulty select {
+  font: inherit;
+  padding: 0.25rem 0.5rem;
+  border-radius: 8px;
+  border: 1px solid rgba(140, 160, 255, 0.35);
+  background: #fdfbf5;
+  color: #33291f;
+}
+
+.minigame-difficulty-note {
+  font-size: 0.85rem;
+  color: #c9cfe8;
+}
+
+.minigame-waters {
+  min-height: 1.3em;
+  margin: 0.25rem 0 0.6rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #cfe9c4;
+}
+
+.minigame-waters:empty {
+  min-height: 0;
+  margin: 0;
+}
+
+.pairs-board {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 0.6rem;
+  margin: 0.75rem 0;
+}
+
+.pairs-card {
+  min-height: 3rem;
+  text-align: center;
+}
+
+.pairs-card--fr {
+  border-left: 5px solid #7ea8ff;
+}
+
+.pairs-card--en {
+  border-left: 5px solid #e0a64c;
+}
+
+.pairs-card--selected {
+  outline: 3px solid #ffd479;
+  outline-offset: 2px;
+  font-weight: 700;
+}
+
+.pairs-card:disabled {
+  opacity: 0.65;
+}
+
+/* Water options chooser */
+.water-options-panel {
+  margin-bottom: 1rem;
+}
+
+.water-option {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem 1rem;
+  padding: 0.55rem 0;
+  border-top: 1px solid rgba(140, 160, 255, 0.18);
+}
+
+.water-option-text {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem 0.75rem;
+  flex: 1 1 14rem;
+}
+
+.water-option-count {
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.water-games-list {
+  display: grid;
+  gap: 0.4rem;
+}
+
+.water-game-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem 0.75rem;
+  padding: 0.4rem 0;
+  border-top: 1px solid rgba(140, 160, 255, 0.18);
+}
+
+.water-game-label {
+  flex: 1 1 16rem;
+}
+
+.water-game-count {
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+@media (max-width: 480px) {
+  .pairs-board { grid-template-columns: 1fr 1fr; }
+}

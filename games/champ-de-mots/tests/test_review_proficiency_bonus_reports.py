@@ -18,6 +18,9 @@ instead.
 
 def _open_typed_review_question(game_env, mode="word"):
     module = game_env.module
+    # 2026-10-08 progressive format: a fresh farm only asks multiple choice, so
+    # ask for the typed form explicitly (as a grown farm would).
+    module.wants_typed = lambda plot: True
     game_env.elements["review-count-input"].value = "50"
     module.start_review(mode)
     guard = 0
@@ -34,6 +37,7 @@ def _open_typed_review_question(game_env, mode="word"):
 
 def _open_typed_proficiency_question(game_env, sequence=1):
     module = game_env.module
+    module.wants_typed = lambda plot: True
     module.start_proficiency_test(sequence)
     guard = 0
     while module.proficiency_index < len(module.proficiency_questions) and guard < 100:

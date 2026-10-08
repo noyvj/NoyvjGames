@@ -10,8 +10,12 @@ GAME_DIR = Path(__file__).resolve().parent.parent
 ACTIVITIES = (
     "practice", "review", "proficiency", "bonus", "builder", "conversation", "listening",
     "liaison", "placement", "blitz", "racer", "sprint", "boutique", "cafe",
+    "pairs", "gaps", "listenpick", "wordorder",
 )
-GROWS = {"practice", "review", "proficiency", "placement", "blitz", "racer", "sprint", "boutique", "cafe"}
+GROWS = {
+    "practice", "review", "proficiency", "placement", "blitz", "racer", "sprint", "boutique", "cafe",
+    "pairs", "gaps", "listenpick", "wordorder",
+}
 NO_GROW = {"bonus", "builder", "conversation", "listening", "liaison"}
 
 
@@ -50,12 +54,12 @@ def test_marker_text_says_grows_or_does_not_grow_and_says_how(game_env):
             assert element.attributes["data-growth"] == "none"
         else:
             assert text.startswith("Grows plots")
-    assert game_env.elements["growth-marker-practice"].innerText == "Grows plots: full watering"
-    assert "then nudges" in game_env.elements["growth-marker-review"].innerText
-    assert "then nudges" in game_env.elements["growth-marker-proficiency"].innerText
+    # 2026-10-08 watering rule: every plot-linked activity says the same thing.
+    for key in ("practice", "review", "proficiency", "blitz", "racer", "sprint", "boutique", "cafe",
+                "pairs", "gaps", "listenpick", "wordorder"):
+        assert game_env.elements[f"growth-marker-{key}"].innerText == "Grows plots: waters, then nudges", key
+        assert "first correct answer" in game_env.elements[f"growth-marker-{key}"].title
     assert "apply" in game_env.elements["growth-marker-placement"].innerText
-    for key in ("blitz", "racer", "sprint", "boutique", "cafe"):
-        assert game_env.elements[f"growth-marker-{key}"].innerText == "Grows plots: small nudge"
 
 
 def test_marker_is_a_text_and_shape_cue_not_colour_only():
@@ -86,9 +90,11 @@ def test_review_credit_is_full_first_then_nudge_and_is_reported(game_env):
     if answer is None:
         return
     module.submit_review_answer(answer)
-    assert module.growth_credit["review"] == {"full": 1, "nudge": 1}
+    # The same plot answered again the same day is a nudge, but a plot counts once per session.
+    assert module.growth_credit["review"] == {"full": 1, "nudge": 0}
+    assert plot.interval_days == 2
     module.next_review_question()
-    assert "Plot growth credited: 1 plot watered, 1 plot nudged." in game_env.elements["review-summary"].innerText
+    assert "Plot growth credited: watered 1 plot." in game_env.elements["review-summary"].innerText
 
 
 def test_a_wrong_review_answer_credits_nothing(game_env):
@@ -139,23 +145,24 @@ def test_proficiency_wrong_answer_leaves_the_plot_alone(game_env):
     assert module.growth_credit["proficiency"] == {"full": 0, "nudge": 0}
 
 
-# --- arcade games: the nudge only ------------------------------------------------------------
+# --- arcade games: they water too (2026-10-08) --------------------------------------------------
 
 
-def test_credit_game_plot_is_a_nudge_once_per_day_and_never_plants_or_changes_stage(game_env):
+def test_credit_game_plot_waters_first_then_nudges_once_per_day_and_never_lowers_a_stage(game_env):
     module = game_env.module
     plot = module.state.plots[4]
-    assert module.credit_game_plot(plot, "blitz") is None  # never watered: nothing
-    assert plot.last_reviewed is None
-    _watered(module, plot)
-    stage, streak, ease = plot.stage, plot.correct_streak, plot.ease_factor
-    interval = plot.interval_days
-    assert module.credit_game_plot(plot, "blitz") == "nudge"
+    assert plot.last_reviewed is None  # never watered: a game can now water it
+    assert module.credit_game_plot(plot, "blitz") == "full"
+    assert plot.stage == module.STAGE_SPROUT and plot.last_watered == module.state.current_day
+    stage, streak, ease, interval = plot.stage, plot.correct_streak, plot.ease_factor, plot.interval_days
+    assert module.credit_game_plot(plot, "blitz") == "nudge"  # same day: a nudge
     assert plot.interval_days == interval + module.REVIEW_NUDGE_DAYS
     assert (plot.stage, plot.correct_streak, plot.ease_factor) == (stage, streak, ease)
-    assert plot.last_reviewed == module.state.current_day
-    assert module.credit_game_plot(plot, "blitz") is None  # once per plot per day
-    assert module.growth_credit["blitz"]["nudge"] == 1
+    assert module.credit_game_plot(plot, "blitz") is None  # at most one nudge per plot per day
+    assert module.growth_credit["blitz"] == {"full": 1, "nudge": 0}  # a plot counts once per session
+    module.state.advance_day(40)
+    assert module.credit_game_plot(plot, "blitz") == "full"  # a new day waters again
+    assert module.STAGE_RANK[plot.stage] >= module.STAGE_RANK[stage]
 
 
 def _prep_plot_for_question(module, question):
@@ -164,29 +171,46 @@ def _prep_plot_for_question(module, question):
     return plot
 
 
-def test_blitz_correct_answer_nudges_and_the_summary_says_so(game_env):
+def test_blitz_correct_answer_waters_a_plot_that_was_never_watered_and_the_summary_says_so(game_env):
     module = game_env.module
     mg = module.minigames
     mg.start_blitz()
     question = mg.blitz_question
-    plot = _prep_plot_for_question(module, question)
-    interval = plot.interval_days
+    plot = module.state.plots_by_id[question["plot_id"]]
+    assert plot.stage == module.STAGE_SEED
+    assert mg.submit_blitz_choice(question["answer"]) is True
+    assert plot.stage == module.STAGE_SPROUT and plot.correct_streak == 1
+    assert module.growth_credit["blitz"] == {"full": 1, "nudge": 0}
+    mg._end_blitz(mg.BLITZ_END_TIME)
+    mg.render()
+    assert "Plot growth credited: watered 1 plot." in game_env.elements["blitz-summary"].innerText
+
+
+def test_blitz_on_a_plot_already_watered_today_only_nudges(game_env):
+    module = game_env.module
+    mg = module.minigames
+    mg.start_blitz()
+    question = mg.blitz_question
+    plot = module.state.plots_by_id[question["plot_id"]]
+    module.water_plot(plot)  # the day's watering already happened
+    interval, stage = plot.interval_days, plot.stage
     mg.submit_blitz_choice(question["answer"])
-    assert plot.interval_days == interval + 1
+    assert plot.interval_days == interval + 1 and plot.stage == stage
     assert module.growth_credit["blitz"] == {"full": 0, "nudge": 1}
     mg._end_blitz(mg.BLITZ_END_TIME)
     mg.render()
-    assert "Plot growth credited: 1 plot nudged." in game_env.elements["blitz-summary"].innerText
+    assert "Plot growth credited: nudged 1 plot." in game_env.elements["blitz-summary"].innerText
 
 
-def test_blitz_wrong_answer_and_unplanted_plot_credit_nothing(game_env):
+def test_blitz_wrong_answer_credits_nothing(game_env):
     module = game_env.module
     mg = module.minigames
     mg.start_blitz()
     question = mg.blitz_question
     plot = module.state.plots_by_id[question["plot_id"]]
     before = _plot_snapshot(plot)
-    mg.submit_blitz_choice(question["answer"])  # right, but the plot was never watered
+    wrong = next(c for c in question["choices"] if c != question["answer"])
+    mg.submit_blitz_choice(wrong)
     assert _plot_snapshot(plot) == before
     assert module.growth_credit["blitz"] == {"full": 0, "nudge": 0}
     mg._end_blitz(mg.BLITZ_END_TIME)
@@ -202,37 +226,35 @@ def test_starting_a_new_run_resets_that_games_credit(game_env):
     assert module.growth_credit["blitz"] == {"full": 0, "nudge": 0}
 
 
-def test_racer_correct_answer_nudges(game_env):
+def test_racer_correct_answer_waters(game_env):
     module = game_env.module
     mg = module.minigames
     mg.start_racer()
     question = mg.racer_question
-    plot = _prep_plot_for_question(module, question)
-    interval = plot.interval_days
+    plot = module.state.plots_by_id[question["plot_id"]]
     mg.submit_racer_choice(question["answer"])
-    assert plot.interval_days == interval + 1
-    assert module.growth_credit["racer"]["nudge"] == 1
+    assert plot.stage == module.STAGE_SPROUT
+    assert module.growth_credit["racer"]["full"] == 1
     mg._end_racer(mg.RACER_END_PLAYER)
     mg.render()
-    assert "Plot growth credited: 1 plot nudged." in game_env.elements["racer-summary"].innerText
+    assert "Plot growth credited: watered 1 plot." in game_env.elements["racer-summary"].innerText
 
 
-def test_sprint_correct_answer_nudges(game_env):
+def test_sprint_correct_answer_waters(game_env):
     module = game_env.module
     mg = module.minigames
     mg.start_sprint()
     question = mg.sprint_question
-    plot = _prep_plot_for_question(module, question)
-    interval = plot.interval_days
+    plot = module.state.plots_by_id[question["plot_id"]]
     mg.submit_sprint_choice(question["answer"])
-    assert plot.interval_days == interval + 1
-    assert module.growth_credit["sprint"]["nudge"] == 1
+    assert plot.stage == module.STAGE_SPROUT
+    assert module.growth_credit["sprint"]["full"] == 1
     mg._end_sprint(mg.SPRINT_END_TIME)
     mg.render()
-    assert "Plot growth credited: 1 plot nudged." in game_env.elements["sprint-summary"].innerText
+    assert "Plot growth credited: watered 1 plot." in game_env.elements["sprint-summary"].innerText
 
 
-def test_boutique_correct_sale_nudges_the_garment_and_colour_plots(game_env):
+def test_boutique_correct_sale_waters_the_garment_and_colour_plots(game_env):
     module = game_env.module
     mg = module.minigames
     mg.start_boutique()
@@ -241,12 +263,10 @@ def test_boutique_correct_sale_nudges_the_garment_and_colour_plots(game_env):
     garment_plot = module._plot_by_fr()[" ".join(garment_fr.split()).lower()]
     colour_plot = module._plot_by_fr()[" ".join(colour_fr.split()).lower()]
     assert garment_plot is not colour_plot
-    for plot in (garment_plot, colour_plot):
-        _watered(module, plot)
-    intervals = (garment_plot.interval_days, colour_plot.interval_days)
+    assert garment_plot.stage == colour_plot.stage == module.STAGE_SEED
     mg.submit_boutique_choice(order["answer"])
-    assert (garment_plot.interval_days, colour_plot.interval_days) == (intervals[0] + 1, intervals[1] + 1)
-    assert module.growth_credit["boutique"]["nudge"] == 2
+    assert garment_plot.stage == colour_plot.stage == module.STAGE_SPROUT
+    assert module.growth_credit["boutique"]["full"] == 2
     # finish the shift for the summary
     while mg.boutique_active:
         mg.submit_boutique_choice(mg.boutique_order["answer"])
@@ -268,17 +288,16 @@ def test_boutique_missed_sale_credits_nothing(game_env):
     assert module.growth_credit["boutique"] == {"full": 0, "nudge": 0}
 
 
-def test_cafe_correct_order_nudges_the_dish_plot_and_a_twist_nudges_the_grammar_plot(game_env):
+def test_cafe_correct_order_waters_the_dish_plot_and_a_twist_waters_the_grammar_plot(game_env):
     module = game_env.module
     mg = module.minigames
     mg.start_cafe()
     order = mg.cafe_order
     dish_plot = module._plot_by_fr()[" ".join(order["credit_fr"][0].split()).lower()]
-    _watered(module, dish_plot)
-    interval = dish_plot.interval_days
+    assert dish_plot.stage == module.STAGE_SEED
     mg.submit_cafe_item_choice(order["answer"])
-    assert dish_plot.interval_days == interval + 1
-    assert module.growth_credit["cafe"]["nudge"] == 1
+    assert dish_plot.stage == module.STAGE_SPROUT
+    assert module.growth_credit["cafe"]["full"] == 1
     # run to the first twist round (every third customer)
     guard = 0
     while mg.cafe_active and not (mg.cafe_stage == mg.CAFE_STAGE_TWIST) and guard < 10:
@@ -287,12 +306,10 @@ def test_cafe_correct_order_nudges_the_dish_plot_and_a_twist_nudges_the_grammar_
     assert mg.cafe_stage == mg.CAFE_STAGE_TWIST
     twist = mg.cafe_twist_question
     twist_plot = module.state.plots_by_id[twist["plot_id"]]
-    _watered(module, twist_plot)
-    interval = twist_plot.interval_days
-    before = module.growth_credit["cafe"]["nudge"]
+    before = module.growth_credit["cafe"]["full"]
     mg.submit_cafe_twist_choice(twist["answer"])
-    assert twist_plot.interval_days == interval + 1
-    assert module.growth_credit["cafe"]["nudge"] == before + 1
+    assert twist_plot.stage == module.STAGE_SPROUT
+    assert module.growth_credit["cafe"]["full"] == before + 1
 
 
 def test_cafe_wrong_twist_gives_no_twist_credit(game_env):

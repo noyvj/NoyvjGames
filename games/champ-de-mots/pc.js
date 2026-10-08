@@ -22,7 +22,7 @@ window.CHAMP_DE_MOTS_PC_TUTORIAL_STEPS = [
   {
     selector: "#water-next-button",
     title: "Watering a Plot",
-    text: "Click this to water whichever plot is due next: a quick recall prompt (translate, fill in the blank, or multiple choice, depending on the plot). The question opens as a window over the farm; Enter checks a typed answer, and Escape closes it. Quick water is the one-question version for a short break.",
+    text: "Click this to water whichever plot is due next: a quick recall prompt (translate, fill in the blank, or multiple choice, depending on the plot). The question opens as a window over the farm; Enter checks a typed answer, and Escape closes it. Quick water is the one-question version for a short break, and Water options beside it lists the other ways to choose what to water (a week, a topic, the wilting plots, quick multiple choice, typing, listening or a minigame), each with how many plots it can water right now. The first correct answer for a plot each day waters it; later ones that day only nudge it.",
   },
   {
     selector: "#legend",
@@ -47,7 +47,7 @@ window.CHAMP_DE_MOTS_PC_TUTORIAL_STEPS = [
   {
     selector: "#blitz-toggle-button",
     title: "Study tools and practice games",
-    text: "The column holds the practice games below the Review tab: Liaison practice and the arcade minigames (Greetings and Basics Blitz, Verb Racer, Boutique Dash, Café Rush and the Passé Composé Sprint). Each opens as a window over the farm and counts toward your practice score. The sentence builder, conversation, listening and placement test buttons sit with the watering button above.",
+    text: "The column holds the practice games below the Review tab: Liaison practice and nine arcade minigames (Greetings and Basics Blitz, Verb Racer, Boutique Dash, Café Rush, the Passé Composé Sprint, Word Match, Grammar Gaps, Listening Pick and Word Order Race). Each opens as a window over the farm, has a Slower, Normal and Faster setting, names the plot a right answer waters, and counts toward your practice score. The sentence builder, conversation, listening and placement test buttons sit with the watering button above.",
   },
   {
     selector: "#pc-menu-button",
@@ -116,7 +116,8 @@ document.addEventListener("keydown", (e) => {
   const QUESTION_PANELS = [
     "practice-panel", "review-panel", "proficiency-panel", "bonus-panel", "placement-panel", "conversation-panel",
     "builder-panel", "listening-panel", "liaison-panel", "blitz-panel", "racer-panel", "boutique-panel",
-    "cafe-panel", "sprint-panel",
+    "cafe-panel", "sprint-panel", "pairs-panel", "gaps-panel", "listenpick-panel", "wordorder-panel",
+    "water-options-panel",
   ];
   const FOCUS_ORDER = [
     "input:not([hidden])", "[id$='-choices'] button", "[id$='-options'] button", "#builder-pool button",

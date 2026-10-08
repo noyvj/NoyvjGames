@@ -168,6 +168,12 @@ This state is per-plot, per-user — fits your existing save-code system (Neon/P
 | 36 | V-AB-1: first-run visual-style picker | Four-option dialog shown once when no style is stored (desktop only), skippable to High-def, honest that three styles are CSS chrome | Done |
 | 38 | Study tools batch 1 (Round 3 L-9, L-28, L-24, L-20): exam-date planner + header exam countdown, farm filter/sort, on-screen accent bar | Done (2026-10-07) — see "Study tools batch 1" at the end of this file; L-18, L-19, L-13, L-8, L-29, L-21, L-26, L-27, L-17, L-25 NOT built yet |
 | 37 | Desktop boot (PC version plan): `pc.html` generated from `index.html`, the farm as a self-scrolling stage, readout chips, a side column of watering, study and practice-game buttons, every question flow and minigame as a window | Done (2026-10-07) — see "Desktop boot" at the end of this file |
+| 39 | Watering rule (2026-10-08): the first correct answer for a plot each in-game day, from any plot-linked activity, waters it; later ones nudge | Done — see "Watering versus nudging" at the end of this file |
+| 40 | Water options chooser: next plot, a week, a topic, wilting first, quick multiple choice, typing, listening, by minigame (each with a live count) | Done — see "Water options" |
+| 41 | Minigame audit: every game names the plot each answer waters, waters at least two plots a play, feeds the ledger | Done — see "Minigame audit and coverage" |
+| 42 | Four new minigames (Word Match, Grammar Gaps, Listening Pick, Word Order Race) so every plot has an arcade game | Done — see "New minigames" |
+| 43 | Slower / Normal / Faster for all nine minigames | Done — see "Minigame difficulty" |
+| 44 | Progressive question format: multiple choice for a new plot, typed answers more and more as it grows; "Always multiple choice" setting | Done — see "Progressive question format" |
 
 ## 12. Build Notes & Decisions
 
@@ -996,6 +1002,8 @@ Built in `game.py` (one block, "Round 3 batch 2", before the dashboard) plus sma
 
 ## Which activities grow plots (user request, 2026-10-08)
 
+> **Superseded the same day by "Watering versus nudging" at the end of this file.** The table below describes the first version (the arcade games could only nudge a plot that had already been watered, and farm practice watered on every correct answer). Kept as history; the markers' words and the end-of-session line changed ("watered N plots, nudged M").
+
 Every question screen carries a text marker (`#growth-marker-<activity>`, set from `GROWTH_INFO` by `render_growth_markers()`: the words say "Grows plots: ..." or "Does not grow plots", a dashed ring marks the "none" ones, the tooltip and aria-label give the how or the why). "Plot growth credited: ..." is added to the end-of-session text of Review, proficiency tests and every arcade game (for example "2 plots nudged"). A game score never grows a plot by itself: crediting goes through the existing paths only, a plot's stage never goes down, a wrong answer changes nothing.
 
 | Activity | Grows plots? | How |
@@ -1020,3 +1028,131 @@ Why the arcade games only nudge: timed multiple choice is weaker evidence than a
 **Method.** `tests/tools/contrast_scan.py` (+ `contrast_scan.js`, run by hand with Playwright and the dev server, not by pytest): measures every visible text box against the pixels actually painted behind it (text made transparent, screenshot sampled), WCAG AA 4.5:1 / 3:1 large, skips disabled controls and closed `<details>`, walks the opening screen, farm, every panel, questions, each arcade game incl. the Café twist, then force-shows everything; aborts any non-localhost request. `tests/test_contrast_lc1.py` re-derives the fixed colour pairs from the stylesheets and fails if one regresses.
 
 **What was and was not verified.** The first full scan of Classic/high-def/dark found the sky and about 300 other failing pairs; after the fixes the sky, title, tagline and stat tiles were confirmed readable by screenshot. A second scan of Classic/low-poly/dark showed my first alternate-style ink rule was too broad (it turned the wood-tag contexts and cream blurb text pale) and it was narrowed afterwards; that narrowed version was **not fully re-scanned**. Light-theme scans of Classic (4 styles) showed only a handful of failures (story banner, a few labels; fixed in the same block) but were not re-run after the fixes. The Desktop page (`pc.html`) was **not scanned after the fixes**. Known suspects still to check by running the tool on every page/style/theme: the small green "peg" on `.primary`/`.secondary` buttons can land under the text of the narrow row buttons (Proficiency test, Bonus sentence), which the scan flags at about 2.3:1 and which may be a real overlap; the farm filter selects; the Desktop windows. Needs a human run of `contrast_scan.py` for all 16 combinations (2 pages x 4 styles x 2 themes).
+
+
+## Watering versus nudging (user request, 2026-10-08)
+
+### What the difference was before today, in plain words
+
+A plot has a small memory record: how often it has been remembered correctly in a row (its streak), how easy it is (its ease), how many days until it should come back (its interval), and a growth stage (Seed, Sprout, Budding, Blooming, Automated).
+
+- **Watering** meant a full review of that record. On a correct answer the interval climbed one rung (1 day, then 3, then interval times ease), the streak and the ease went up, and the plant could climb a visible stage. A wrong answer reset the interval to 1 day and the streak to 0 and lowered the ease, but the stage never went down.
+- **Nudging** meant only moving the next-due date one day later. No streak change, no ease change, no stage change, and a plot that had never been watered could not even be nudged by the games.
+- Who did which: watering a plot on the farm watered it on every correct answer (so four correct answers in a row on the same day took a plot from Seed to Blooming). Review and the proficiency tests watered once per plot per day and nudged after that. The five arcade games could only nudge, and only a plot that had already been watered. Nothing else touched a plot.
+
+### The rule now
+
+**The first correct answer for a plot on an in-game day, from ANY plot-linked activity, is a real watering. A later correct answer for the same plot the same day is a nudge.** Plot-linked means: watering on the farm (including the gender drill), every Review mode (word, grammar, marathon, phrasebook, cram, weak-spot, Quick water), the proficiency tests, every arcade minigame (all nine), and the water-options sessions. Hand-written content (bonus sentences, sentence builder, conversation, Listening practice, Liaison practice) is not made of plots and still never touches one; the placement test still only acts when Apply is pressed.
+
+- `water_plot(plot)` in `game.py` is the one place the rule lives. It returns `"full"`, `"nudge"` or `None`. A plot's `last_watered` (the day of its last full watering) decides it, and it is saved in the plot record only once set. `plot.nudged_day` is session-only.
+- **At most one nudge per plot per day.** A fast game could otherwise add a day to a plot's interval on every repeat; a third correct answer the same day changes nothing more (it returns `None` and the screens say "already watered and nudged today").
+- **A never-watered plot can be watered by any of them**, so no plot is locked behind "Water the next plot".
+- **Never punishes.** A wrong answer in Review, the proficiency tests, the water options and every game changes nothing at all, and a stage never goes down. One deliberate exception kept from section 6: a wrong answer when watering a plot on the farm still reschedules it for tomorrow (interval 1, streak 0, ease down), exactly as before, and it does not count as that day's watering, so a right answer later the same day still waters it.
+- A correct answer also clears the weeds overlay and the stubborn-weed run, whichever activity it came from.
+- `water_today` (session) counts the distinct plots watered and nudged today and feeds the "Today: watered N plots, nudged M." line in the Water options panel.
+- Old saves: a record with no `last_watered` loads as "never watered", so on the day of the upgrade those plots can be watered once more. Harmless.
+- **The words on screen.** Every question screen's marker says "Grows plots: waters, then nudges" (hover or screen reader for the full rule); the farm panel shows "Watered: ... Stage: Sprout." or "Nudged: ..." after a correct answer (`#practice-water-note`), Review does the same (`#review-water-note`), each minigame's feedback line names the plot and what happened ("un bonnet: watered."), and the end-of-session line reads "Plot growth credited: watered N plots, nudged M." (distinct plots, not answers; "none this session" when nothing).
+- **Tests changed because they pinned the old rule** (see the 2026-10-08 report): `test_growth_credit.py` (games water, markers, credit text), `test_practice_progress.py` (the blitz half of "practice never mutates SRS state" moved to `test_watering_rule.py`), `test_review_tab.py` (a plot already watered today is marked by `last_watered`), `test_minigame_verb_racer.py` (a grown plot can ask for the gap to be typed), `test_review_proficiency_bonus_reports.py` (typed questions are requested explicitly now that a fresh farm asks only multiple choice), and `conftest.py` (the `game_env` fixture pins `wants_typed` to False; `progressive_env` is the real schedule). New: `test_watering_rule.py`.
+
+## Water options (2026-10-08)
+
+A "Water options" button beside "Water the next plot" (Classic: in the controls row; Desktop: a tile in the side column that opens a window) shows, for every way of choosing what to water, how many plots it can water right now (plots already watered today are not counted: they could only be nudged). All of them run the one rule above.
+
+| Option | What it does | Count shown |
+|---|---|---|
+| Water next plot | The farm's own most-overdue-first question | due plots not yet watered today |
+| Water a chosen week | A week picker, up to 10 plots of that week, due ones first | plots of that week still waterable |
+| Water by topic | Vocabulary, Phrases, Grammar or Pronunciation (letters and accents), up to 10 | plots of that kind |
+| Water the plots wilting most first | Longest overdue first, up to 10 | wilting plots |
+| Quick multiple-choice water | 5 plots, multiple choice only (format forced) | all waterable plots |
+| Typing water | 5 plots, typed answers only (plots with a typed form) | plots that can be asked typed |
+| Listening water | 5 plots: the French is spoken (hidden until "Show the text" or the answer), pick the meaning | needs speech synthesis; says so when it is missing |
+| Water by minigame | One row per game with the plots it waters, how many are waterable, and a Play button that opens it | per game |
+
+The six chooser sessions reuse the Review panel (`WATER_*_MODE` in `game.py`, `water_pool()` / `water_session_plots()`), so they get the same grading, report buttons, accent bar and "Plot growth credited" line. Answers feed a new ledger mode `wateropts` ("Water options"). The panel is `#water-options-panel` (a window in Desktop, `pc-config.json`).
+
+## Minigame audit and coverage (2026-10-08)
+
+**Audit (item 3).** Every game now (a) names the plot or plots a correct answer waters in a `Waters:` line under the question (`#<game>-waters`; Boutique names garment + colour, Cafe names the dish and, in a twist, the passé composé plot; Listening Pick only says "the word you are hearing" until the French is shown, so the line is not a giveaway), (b) says after each answer what it did ("la pointure: watered." / "nudged" / "already done today" / "Missed: ... unchanged"), (c) waters at least two plots in any play (pinned by `test_minigame_plot_audit.py`) and (d) feeds the practice ledger per answer. Found and fixed: a Cafe dish listed as "de la soupe / du potage" never found its plot, so ordering it credited nothing (`plot_for_fr()` now tries each side); and the games could only nudge, never water.
+
+**Coverage table (item 4).** Which plots have an arcade game that can water them, by course week. "Before" is the five games of 2026-10 and earlier (Blitz 1-11, Racer 12-15 grammar, Boutique 16-18 clothes and colours, Cafe 19-23 food plus a twist, Sprint 21-23 passé composé); "Now" adds Word Match (vocabulary and phrases 12-23), Grammar Gaps (grammar outside weeks 12-15 and the passé composé the Sprint can ask), Listening Pick (vocabulary, phrases and sounds, every week) and Word Order Race (grammar plots with a short example sentence). Before: 592 of 790 plots. Now: 790 of 790 (`test_minigame_new_games.py::test_every_plot_on_the_farm_has_at_least_one_arcade_game`).
+
+| Week | Plots (vocab / phrase / grammar / sound) | Before: plots with an arcade game | Now: plots with an arcade game | Games that water it (plots) |
+|---|---|---|---|---|
+| 1 | 83 (46 / 4 / 1 / 32) | 83 | 83 | Blitz 83, Gaps 1, Listen 82, Order 1 |
+| 2 | 57 (44 / 10 / 3 / 0) | 57 | 57 | Blitz 57, Gaps 3, Listen 54 |
+| 3 | 30 (22 / 5 / 3 / 0) | 30 | 30 | Blitz 30, Gaps 3, Listen 27, Order 1 |
+| 4 | 76 (64 / 11 / 1 / 0) | 76 | 76 | Blitz 76, Gaps 1, Listen 75, Order 1 |
+| 5 | 42 (33 / 6 / 3 / 0) | 42 | 42 | Blitz 42, Gaps 3, Listen 39, Order 1 |
+| 6 | 41 (32 / 8 / 1 / 0) | 41 | 41 | Blitz 41, Gaps 1, Listen 40 |
+| 7 | 32 (28 / 0 / 4 / 0) | 32 | 32 | Blitz 32, Gaps 4, Listen 28, Order 3 |
+| 8 | 27 (18 / 0 / 9 / 0) | 27 | 27 | Blitz 27, Gaps 9, Listen 18, Order 5 |
+| 9 | 56 (48 / 4 / 4 / 0) | 56 | 56 | Blitz 56, Gaps 4, Listen 52, Order 1 |
+| 10 | 42 (35 / 3 / 4 / 0) | 42 | 42 | Blitz 42, Gaps 4, Listen 38, Order 2 |
+| 11 | 18 (15 / 0 / 3 / 0) | 18 | 18 | Blitz 18, Gaps 3, Listen 15, Order 1 |
+| 12 | 11 (5 / 4 / 2 / 0) | 2 | 11 | Racer 2, Match 6, Listen 9, Order 1 |
+| 13 | 45 (43 / 0 / 2 / 0) | 2 | 45 | Racer 2, Match 40, Listen 43 |
+| 14 | 23 (20 / 0 / 3 / 0) | 3 | 23 | Racer 3, Match 12, Listen 20, Order 2 |
+| 15 | 23 (16 / 5 / 2 / 0) | 2 | 23 | Racer 2, Match 16, Listen 21, Order 1 |
+| 16 | 42 (37 / 2 / 3 / 0) | 31 | 42 | Boutique 31, Match 25, Gaps 3, Listen 39 |
+| 17 | 50 (29 / 20 / 1 / 0) | 4 | 50 | Boutique 4, Match 37, Gaps 1, Listen 49 |
+| 18 | 23 (21 / 0 / 2 / 0) | 5 | 23 | Boutique 5, Match 17, Gaps 2, Listen 21 |
+| 19 | 39 (35 / 3 / 1 / 0) | 35 | 39 | Cafe 35, Match 28, Gaps 1, Listen 38, Order 1 |
+| 20 | 13 (8 / 0 / 5 / 0) | 0 | 13 | Match 6, Gaps 5, Listen 8, Order 3 |
+| 21 | 8 (0 / 6 / 2 / 0) | 2 | 8 | Cafe 2, Sprint 2, Match 1, Listen 6, Order 2 |
+| 22 | 2 (0 / 0 / 2 / 0) | 1 | 2 | Cafe 1, Sprint 1, Gaps 1 |
+| 23 | 7 (4 / 0 / 3 / 0) | 1 | 7 | Cafe 1, Sprint 1, Match 1, Gaps 2, Listen 4, Order 1 |
+
+Weeks 12-20 were the gap: before, Racer reached 2-3 plots of each of weeks 12-15 (only grammar), Boutique 4-5 of weeks 17-18, and week 20 had nothing.
+
+## New minigames (2026-10-08)
+
+All four share one small base class (`_Arcade` in `minigames.py`: panel, timer, lives, difficulty, summary, the credit line), draw only on content already in the catalog, are row-unlock-gated like the first five (`available()`), register in `PRACTICE_MODES` (so their answers count toward the Practice score; the usual daily cap of 10 points a mode applies), have a `<game>_tick()` the page's one-second interval calls, and prefer plots that can still be fully watered today (so a play waters new plots rather than ones done already). A tick never rebuilds the buttons under a finger.
+
+| Game (key) | Covers | Rules |
+|---|---|---|
+| Word Match (`pairs`) | vocabulary and phrase plots, weeks 12-23 (fr up to 22 characters, en up to 30, no `/`, `[`, `+`) | 3 boards of 4 pairs: tap a French card, then an English card. A right pair waters its plot and clears; a wrong pair costs a life and changes nothing. Clearing all three adds the time left. Slower 150 s / 6 lives, Normal 90 s / 3, Faster 60 s / 2 |
+| Grammar Gaps (`gaps`) | grammar plots outside weeks 12-15 and outside the passé composé rules the Sprint can ask (51 plots across weeks 1-11 and 16-23; Word Match 189, Listening Pick 726 and Word Order Race 27 plots) | 60-second, lives, combo multiplier, the Sprint's shape; fill the gap / conjugation / ending. A rule that is only a list of forms ("je mets / tu mets / il met") has no gap, so it is asked as "which English matches this example?" (`GAPS_FALLBACK_VARIANTS`) |
+| Listening Pick (`listenpick`) | vocabulary, phrases and pronunciation plots, every week | 10 questions, each with its own clock. The French is spoken with the browser's voice (`champSpeak`); replay, slower, and "Show the text"; without a voice the French is shown instead. A miss or a timeout costs a life. Slower 25 s / 6 lives, Normal 15 s / 3, Faster 9 s / 2 |
+| Word Order Race (`wordorder`) | grammar plots with an example item of 3-8 words and none of `[]+/...(){}->` | 6 sentences (different plots), tap the shuffled words in order; the English is shown. A right order waters the plot; a wrong order or a timeout shows the sentence and costs only the points. Slower 60 s / Normal 40 s / Faster 25 s per sentence |
+
+Not built: an achievement for the new games. The achievements here are tiered thresholds read from `achievements.json` with their own panel groups and many pinned tests; adding a third group was not "cheap", so it stays a candidate.
+
+## Minigame difficulty (2026-10-08)
+
+Every minigame has a Slower / Normal / Faster drop-down in its panel (`#<game>-difficulty-select`, a one-line note says what the level means, locked while a run is going). The choice is remembered per game in this browser (`champ-difficulty-<game>` in localStorage through `window.champPrefGet/Set`, never part of the save code).
+
+| Game | Slower | Normal | Faster |
+|---|---|---|---|
+| Greetings & Basics Blitz, Passé Composé Sprint, Grammar Gaps | 90 s (Gaps 90 s), 5 lives | 60 s, 3 lives | 45 s, 2 lives |
+| Verb Racer | rival steps every 5 s | every 3 s | every 2 s |
+| Boutique Dash, Café Rush | customers wait 18 s, never under 9 | 12 s, never under 6 | 8 s, never under 4 |
+| Word Match | 150 s, 6 lives | 90 s, 3 | 60 s, 2 |
+| Listening Pick | 25 s a question, 6 lives | 15 s, 3 | 9 s, 2 |
+| Word Order Race | 60 s a sentence | 40 s | 25 s |
+
+The watering rule is identical at every level. The practice-ledger points are also identical (1 per correct answer, the same daily and lifetime caps) so Faster cannot be farmed and Slower is not penalised; only the game's own score scales a little (80 / 100 / 125 percent, `difficulty_points()`).
+
+## Progressive question format (2026-10-08)
+
+A plot that has never been watered always starts with multiple choice. As its comprehension grows, typed answers appear more and more often (`question_format_percent(plot)` in `game.py`):
+
+| Stage | Share of questions typed |
+|---|---|
+| Seed (never answered correctly, so never watered) | 0 percent, always multiple choice |
+| Sprout | 20 |
+| Budding | 45 |
+| Blooming | 70 |
+| Automated | 90 |
+
+Plus 2 points per correct answer in a row (at most 10), plus 20 points per ease point above the 2.5 default (minus when below), halved right after a miss, capped at 95 (some multiple choice always remains) and floored at 0. Deterministic: `wants_typed(plot)` compares a fixed hash (`zlib.crc32`) of the plot's id, last review, streak, interval and watering day to the share, so it changes as the plot is answered and is the same every time for the same state; the variant itself is still picked with the caller's seeded generator, so there is no new randomness.
+
+- It applies in the farm's practice panel, every Review mode, the proficiency tests, the placement test, and the question-based minigames: Blitz, Racer, Sprint, Grammar Gaps, Listening Pick and the Café twist (a typed box and a Check button appear in place of the four choices, graded by `check_question_answer()` with the same tiers and accent setting as the farm). Word Match and Word Order Race are tap-only by nature and have no typed form.
+- A choice question has a typed twin where the plot has one (translation either way). Fill-the-gap questions (`blank_word`, `conjugation_swap`) can also be asked as "type the missing word" (`_as_typed_blank()`, instructions `blank_word_typed` and `conjugation_swap_typed`), so grammar plots progress too. `blank_ending` stays multiple choice.
+- `generate_question(..., format=None | "choice" | "typed")`: the water-options sessions force `"choice"` (Quick multiple-choice, Listening) or `"typed"` (Typing water).
+- **Setting:** Settings has an "Always multiple choice" checkbox (`#always-mc-checkbox`, remembered in this browser) that sets the typed share to 0 everywhere; the schedule is spelled out under it in words (`format_schedule_lines()`).
+- Tests: `test_progressive_format.py`. In the other test files the `game_env` fixture pins `wants_typed` to False so tests that grow plots on the way to something else still see multiple choice.
+
+## Not verified / open (2026-10-08 pass)
+
+Scripted play and screenshots in the Classic page (1440x900 and 360x740) and the Desktop page (1440x900) only; no full human playthrough, no real browser voice test of Listening Pick (a voice existed in the test browser, the audio itself was not heard), no contrast scan (`tests/tools/contrast_scan.py`) of the new panels in the alternate visual styles (the new classes reuse the existing ink classes and the light theme was checked by eye), and the achievements for the new games are not built.

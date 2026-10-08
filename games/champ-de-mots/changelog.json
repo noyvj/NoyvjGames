@@ -1,7 +1,15 @@
 [
   {
     "date": "2026-10-08",
-    "entry": "Which activities grow plots: every question screen now carries a small text marker saying whether it grows plots and how (full watering, a smaller nudge, or none, with the reason on hover). Proficiency tests and the arcade games (Greetings & Basics Blitz, Verb Racer, Passé Composé Sprint, Boutique Dash, Café Rush) now credit the plots behind your correct answers through the same watering and nudge rules Review uses, and each session's summary says what was credited, for example 3 plots nudged. A game score never grows a plot by itself, a plot you have not watered yet needs real watering first, and nothing ever goes down."
+    "entry": "One watering rule everywhere, and more ways to water: the first correct answer for a plot each day, from anything that asks about a real plot (the farm, Review, Quick water, the proficiency tests and every arcade game), waters it fully, and later correct answers for the same plot that day only nudge its next review a day later. A plot you have never watered can now be watered by a game too. A wrong answer in those places changes nothing and a plant never loses a stage. New Water options panel next to Water the next plot, each choice with how many plots it can water right now: a chosen week, a topic (vocabulary, phrases, grammar, pronunciation), the plots wilting most first, 5 quick multiple-choice plots, 5 typed plots, 5 listening plots, or any minigame. Summaries now read 'Plot growth credited: watered 3 plots, nudged 1'."
+  },
+  {
+    "date": "2026-10-08",
+    "entry": "Four new minigames so every plot has an arcade game: Word Match (pair French and English cards, weeks 12-23), Grammar Gaps (fill the gap in the grammar the other games skip), Listening Pick (hear it, pick what it means) and Word Order Race (put an example sentence's words in order). Every minigame now shows which plot a right answer waters, says what each answer did, and has a Slower, Normal or Faster setting you can change per game (Slower is genuinely relaxed). New plots always start with multiple choice and ask for typed answers more and more as they grow, in the farm, Review and the games; Settings has an Always multiple choice switch and spells out the schedule."
+  },
+  {
+    "date": "2026-10-08",
+    "entry": "Which activities grow plots: every question screen carries a small text marker saying whether it grows plots and how (with the reason on hover). Proficiency tests and the arcade games credit the plots behind your correct answers through the same rule as watering and Review (see the newer entry below), and each session's summary says what was credited. A game score never grows a plot by itself, and nothing ever goes down."
   },
   {
     "date": "2026-10-08",

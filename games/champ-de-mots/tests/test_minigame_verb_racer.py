@@ -62,7 +62,9 @@ def test_every_rolled_question_is_a_grammar_plot_choice_question_in_range(game_e
     for _ in range(20):
         mg.start_racer()
         question = mg.racer_question
-        assert question["mode"] == "choice"
+        # 2026-10-08: a grown plot may ask for the gap to be typed; either way
+        # it is a fill-the-gap question, never a typed translation.
+        assert question["mode"] in ("choice", "typed")
         assert question["variant"] not in mg.RACER_TYPED_VARIANTS
         plot = state.plots_by_id[question["plot_id"]]
         assert plot.topic_type == "grammar"

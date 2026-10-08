@@ -1,0 +1,306 @@
+{
+  "reviewed": "2026-10-08",
+  "source": "answer_reports (unresolved, game_id champ-de-mots), 50 rows",
+  "reports": [
+    {
+      "report_id": "b62acbd5-0532-4730-b9e2-6d7a192918d8",
+      "item_id": "fren151-w10-vocab001-i09",
+      "outcome": "needs-code",
+      "note": "Added 'the cinema', 'the movies', 'movies' and 'movie theater' to the accepted_en of 'le cinéma' (a bare 'the cinema' is a correct translation); the answer 'cinema' is one word, so it is graded STRICT and the curated array is only honoured once STRICT consults it."
+    },
+    {
+      "report_id": "29d3abe2-9504-4d4d-80dd-3d07b22ebe85",
+      "item_id": "fren151-w10-grammar001",
+      "outcome": "fixed",
+      "note": "'a little' (and 'a little bit') now accepted alongside 'a bit' for 'un peu'; also added fairly/rather for 'assez'."
+    },
+    {
+      "report_id": "71e366be-8212-4698-bc01-ccf9e5e02a62",
+      "item_id": "fren151-w10-grammar-slide001",
+      "outcome": "fixed",
+      "note": "'Mon frère est à Paris' (and the comma-less 'Mon frère il est à Paris') is correct French, so both are now accepted alongside 'Mon frère, il est à Paris.'."
+    },
+    {
+      "report_id": "48dc47e1-e152-4ef6-87b1-c5b5b6bfc8c7",
+      "item_id": "fren151-w2-phrase001-i05",
+      "outcome": "not-a-bug",
+      "note": "'et tu / et vous' is wrong: 'tu' is a subject pronoun, the stressed form needed after 'et' is 'toi' ('Et toi / Et vous?')."
+    },
+    {
+      "report_id": "b286f75d-5ad6-42eb-9a27-0502ba0cd7ca",
+      "item_id": "fren152-w2-phrase001-i01",
+      "outcome": "fixed",
+      "note": "Added the natural spellings of the time (4:40pm, 4:40 pm, 4:40 p.m., 'twenty to five', 'in the afternoon') to accepted_en; the '(12hr: 5 minus 20)' hint stays in brackets and is ignored by grading."
+    },
+    {
+      "report_id": "d3ccf448-c333-428d-a46f-f37563a839da",
+      "item_id": "fren152-w2-grammar002",
+      "outcome": "fixed",
+      "note": "The four verb-table rows (finir/vendre, I/you/he and we/you/they) now accept the spelled-out form 'we finish / you finish / they finish' (slash or comma separated) instead of only the compressed 'we/you/they finish'."
+    },
+    {
+      "report_id": "02351c8e-ff80-4d86-91d6-333eb2406df9",
+      "item_id": "fren152-w2-grammar001",
+      "outcome": "fixed",
+      "note": "Belgian/Swiss 'nonante' compounds (mille/dix-neuf cent nonante-deux, with or without the hyphen) and the hyphen-less standard form added to accepted_fr of both 1992 items; the game already treats septante/huitante/nonante as correct."
+    },
+    {
+      "report_id": "90eb9540-66f4-419e-b948-43b57429de24",
+      "item_id": "fren152-w2-vocab001-i00",
+      "outcome": "fixed",
+      "note": "Removed the revision note from the answer: the gloss is now '0 to 60' (zero to sixty also accepted); the topic title already says 'revision'."
+    },
+    {
+      "report_id": "606316b5-8be3-4c6d-8a06-1a3abce4930f",
+      "item_id": "fren151-w4-grammar001",
+      "outcome": "fixed",
+      "note": "'a gift for Henry' added to accepted_en next to 'a present for Henry'."
+    },
+    {
+      "report_id": "cdf98a34-4c44-4ee4-a21f-6ffafabebea9",
+      "item_id": "fren151-w4-vocab003-i04",
+      "outcome": "needs-owner",
+      "note": "Typed 'mode' for 'la mode': singular le/la nouns are learned with their gender, so it is still marked wrong; the owner decides whether dropping the article should count."
+    },
+    {
+      "report_id": "99b6ab4f-dcad-4d4f-840a-88284aae9091",
+      "item_id": "fren151-w4-vocab003-i09",
+      "outcome": "duplicate-of:a2c7189b-01c5-4f12-b371-ecc662a75e11",
+      "note": "Same item and same answer as the earlier report a2c7189b (l'informatique)."
+    },
+    {
+      "report_id": "704f2a3e-4847-476c-8de9-75a6486040dd",
+      "item_id": "fren151-w4-vocab001-i06",
+      "outcome": "fixed",
+      "note": "'for my C.V.', 'for my resume/résumé' added to accepted_en and 'pour le CV', 'pour mon CV' to accepted_fr (dots inside an abbreviation were not stripped)."
+    },
+    {
+      "report_id": "c1d84653-6d67-4f3f-8480-2a1c02938ae9",
+      "item_id": "fren151-w1-phon002-i03",
+      "outcome": "needs-code",
+      "note": "'accent tréma', 'le tréma', 'diaeresis' (and the English names of the other five accents) added to accepted_en; tréma is a one-word answer (STRICT), which ignores the curated array today."
+    },
+    {
+      "report_id": "a18f07c4-840a-4a78-8c94-312ca0f8da3a",
+      "item_id": "fren151-w1-vocab003-i07",
+      "outcome": "not-a-bug",
+      "note": "'what is the answer' leaves out 'bonne' (correct/right), so it is a partial translation; 'What is the right answer?' was added as an accepted alternative."
+    },
+    {
+      "report_id": "df0f9892-7d24-4cb0-bfcd-686fbeaeb6d3",
+      "item_id": "fren151-w1-vocab001-i02",
+      "outcome": "fixed",
+      "note": "'salut' means both hi and bye: 'hi', 'bye', 'hi / bye', 'hi or bye' now accepted next to the odd gloss 'hi and bye'."
+    },
+    {
+      "report_id": "3e5edd8c-ce60-4250-8a31-efe5950f11e8",
+      "item_id": "fren151-w1-bonus001",
+      "outcome": "needs-code",
+      "note": "Only the missing comma/full stop differs from 'Hello, my name is Léa.': comparisons should ignore internal commas, semicolons and colons (see rule 3 in the report); it also affects any other answer with a comma."
+    },
+    {
+      "report_id": "729d34f0-120e-4d75-8b39-759e21907086",
+      "item_id": "fren151-w1-bonus001-tile-2",
+      "outcome": "needs-code",
+      "note": "Tile 'm'appelle' now carries accepted_en [am called, call myself, I call myself, am named]; the bonus tile path does not read a tile-level accepted_en yet (see rule 5)."
+    },
+    {
+      "report_id": "aa40f7de-54fd-487a-8da7-85d4a367cfdd",
+      "item_id": "fren151-w11-vocab-slide001-i01",
+      "outcome": "needs-code",
+      "note": "'thin' (and 'slender') added to accepted_en for 'mince'; one word, graded STRICT, so the curated array is only honoured after the STRICT change."
+    },
+    {
+      "report_id": "f9e2bd72-fff6-435d-8e22-d2ef22e48432",
+      "item_id": "fren151-w4-vocab-slide001-i11",
+      "outcome": "duplicate-of:bc22c62d-b5c9-4e48-bc94-2f3196fb6034",
+      "note": "Same item and same answer as the earlier report bc22c62d (la psycho(logie))."
+    },
+    {
+      "report_id": "1a49470a-c556-462a-b433-837990626036",
+      "item_id": "fren151-w1-phrase001-i03",
+      "outcome": "fixed",
+      "note": "US spelling and natural variants added: 'How is that spelled?', 'How is it spelled/spelt?', 'How do you spell that/it?'."
+    },
+    {
+      "report_id": "bc22c62d-b5c9-4e48-bc94-2f3196fb6034",
+      "item_id": "fren151-w4-vocab-slide001-i11",
+      "outcome": "fixed",
+      "note": "'la psycho(logie)' now also accepts 'la psychologie' and 'la psycho'; the same fix was applied to 'la philo(sophie)'."
+    },
+    {
+      "report_id": "8d281022-2343-49b2-ae0c-7d7e09104725",
+      "item_id": "fren151-w4-vocab-slide001-i09",
+      "outcome": "needs-code",
+      "note": "'math' and 'mathematics' added to accepted_en for 'les maths' (also in 'I do not like maths.', which is live); the single-word gloss 'maths' is STRICT so the item itself waits for the STRICT change."
+    },
+    {
+      "report_id": "47ddd797-8ce9-4cff-8bb0-0939f07628c9",
+      "item_id": "fren151-w8-grammar008",
+      "outcome": "needs-owner",
+      "note": "Pronunciation-concern report on 'J'adore nager, j'aime aussi faire du surf.': cannot tell which word sounded wrong ('surf' is an English loanword read [sœrf]); the owner should say what was heard or listen to the audio."
+    },
+    {
+      "report_id": "8bbc18a2-2102-4a47-8010-12e59632a95a",
+      "item_id": "fren152-w9-vocab003-i07",
+      "outcome": "needs-owner",
+      "note": "Pronunciation-concern report on 'du poulet': cannot tell what was unclear (the 'du' + 'poulet' sounds [dy pulɛ]); the owner should say what was heard or listen to the audio."
+    },
+    {
+      "report_id": "56a3caef-4543-4805-bd29-c3d02f884394",
+      "item_id": "fren151-w1-vocab001-i00",
+      "outcome": "test-row",
+      "note": "Obvious test submission ('definitely-not-the-answer') from 2026-09-21; nothing to fix."
+    },
+    {
+      "report_id": "b70f6b45-7c41-4722-ac84-bfb9bb7d6133",
+      "item_id": "fren151-w3-phrase002-i00",
+      "outcome": "fixed",
+      "note": "The item is a template ('J'ai envie d'un/une + [object]'): the stem 'J'ai envie de' and the un/une forms are now all accepted (same for 'J'ai besoin d'un/une + [object]')."
+    },
+    {
+      "report_id": "031d5772-3d51-4940-9eb6-9addf61a2c5f",
+      "item_id": "fren151-w1-vocab003-i06",
+      "outcome": "fixed",
+      "note": "Already fixed in the 2026-09-05 triage ('listen closely' is in accepted_en); verified through the live grading path, the report was just never resolved."
+    },
+    {
+      "report_id": "8195c057-b88e-4cef-a80c-695ca6bfa710",
+      "item_id": "fren151-w1-vocab003-i04",
+      "outcome": "fixed",
+      "note": "Already fixed in the 2026-09-05 triage ('all together' is in accepted_en); verified through the live grading path."
+    },
+    {
+      "report_id": "cfe66c11-3c91-4ecb-88b0-f0106b5a2ef4",
+      "item_id": "fren152-w2-phrase001-i03",
+      "outcome": "not-a-bug",
+      "note": "'midi / minuit' means noon / midnight (words); '12:00' is a clock reading and loses the noon-vs-midnight distinction the item teaches."
+    },
+    {
+      "report_id": "95ce66a7-9fe5-4f6a-acd4-1b070c18b5ac",
+      "item_id": "fren152-w2-phrase001-i00",
+      "outcome": "not-a-bug",
+      "note": "'what hour is it' is a calque, not English; the natural gloss is 'What time is it?'."
+    },
+    {
+      "report_id": "11fd2b57-733a-401c-882e-48da1e12a620",
+      "item_id": "fren151-w10-vocab003-i00",
+      "outcome": "needs-code",
+      "note": "'nice' is already in accepted_en for gentil (2026-09-05 triage) but 'kind' is one word, so it is graded STRICT and the curated array is ignored; the STRICT change makes it live."
+    },
+    {
+      "report_id": "079114a1-797b-4593-8fdd-9df541f63960",
+      "item_id": "fren151-w9-vocab001-i18",
+      "outcome": "not-a-bug",
+      "note": "'older sibling' drops the brother/sister pair that 'le frère aîné / la sœur aînée' exists to teach (rejected on purpose in the 2026-09-05 triage too)."
+    },
+    {
+      "report_id": "8e0b5689-33f1-4508-84c9-ac5503a75994",
+      "item_id": "fren151-w9-vocab001-i12",
+      "outcome": "fixed",
+      "note": "Bare 'cousin' already passes live (STRICT strips the '(m/f)' hint); the odd '(m/f)' in the stored gloss is a display hint only."
+    },
+    {
+      "report_id": "77eba201-42ac-4082-96bc-caf0155e9aed",
+      "item_id": "fren151-w9-vocab001-i07",
+      "outcome": "needs-code",
+      "note": "'grand parents' (and 'grand-parents') is in accepted_en since the 2026-09-05 triage, but 'grandparents' is one word (STRICT) so the array is ignored until the STRICT change."
+    },
+    {
+      "report_id": "94b44bc1-b603-4cd6-b7ba-058f74ab7631",
+      "item_id": "fren151-w8-vocab001-i11",
+      "outcome": "fixed",
+      "note": "Bare 'culturel' already passes live (STRICT strips '(le)'); 'culturelle' is now accepted too."
+    },
+    {
+      "report_id": "91f1ca5e-0ac0-401b-bca4-3dde7d8a0ae8",
+      "item_id": "fren151-w7-vocab001-i21",
+      "outcome": "fixed",
+      "note": "Already fixed in the 2026-09-05 triage ('a store' is in accepted_en); verified live."
+    },
+    {
+      "report_id": "693c35c5-d453-4a23-b7e3-3f45b00877ac",
+      "item_id": "fren151-w7-vocab001-i20",
+      "outcome": "needs-code",
+      "note": "The player typed the French accent 'à' for the English article 'a'; the English side should ignore the accent-sensitivity setting (see rule 4). 'a shopping center' itself is already accepted."
+    },
+    {
+      "report_id": "74652efd-17dd-426c-be3c-e3e277f7be7a",
+      "item_id": "fren151-w4-phrase002-i00",
+      "outcome": "fixed",
+      "note": "Already fixed in the 2026-09-05 triage ('I work part time' is in accepted_en); verified live."
+    },
+    {
+      "report_id": "a2c7189b-01c5-4f12-b371-ecc662a75e11",
+      "item_id": "fren151-w4-vocab003-i09",
+      "outcome": "needs-code",
+      "note": "l' hides the gender, so the bare noun carries the same information: 'informatique' (and the bare form of the other 25 l'-nouns) added to accepted_fr; the answer is one word so it is graded STRICT and needs STRICT to consult the curated array."
+    },
+    {
+      "report_id": "0b8c02a2-a9db-40b4-a0a3-21ad88d52b44",
+      "item_id": "fren151-w4-vocab002-i06",
+      "outcome": "needs-code",
+      "note": "'server' is in accepted_en for waiter/waitress, but 'waiter/waitress' has no spaces round the slash, so it is graded as one STRICT word and even a bare 'waiter' fails today (rules 1 and 2)."
+    },
+    {
+      "report_id": "6b2d3abb-75e4-4d64-bb99-fd5d0f28bd08",
+      "item_id": "fren151-w3-vocab002-i03",
+      "outcome": "fixed",
+      "note": "'livres' now accepted for 'des livres' (the plural 'des' carries no gender); same fix applied to the 37 other des/les plural nouns."
+    },
+    {
+      "report_id": "6f9b4682-8ae1-48f4-a6e5-ca6775ba1df5",
+      "item_id": "fren151-w3-phrase001-i01",
+      "outcome": "fixed",
+      "note": "Already fixed in the 2026-09-05 triage (accepted_fr has the hyphen-less form); verified live."
+    },
+    {
+      "report_id": "c44e6c9e-5ab3-4a23-887d-7fb7d89cf7e9",
+      "item_id": "fren151-w2-grammar001",
+      "outcome": "fixed",
+      "note": "Bare 'regarder' already passes live (STRICT strips the '(-er)' hint)."
+    },
+    {
+      "report_id": "13429c0b-3302-4cbb-bb37-275594a57abb",
+      "item_id": "fren151-w2-phrase001-i05",
+      "outcome": "not-a-bug",
+      "note": "'et tu' is wrong: after 'et' the stressed pronoun 'toi' is needed ('Et toi / Et vous?')."
+    },
+    {
+      "report_id": "68c73db2-448a-4ebb-b25b-e7f203cd0d09",
+      "item_id": "fren151-w2-phrase001-i04",
+      "outcome": "needs-code",
+      "note": "'so so' is in accepted_en since the 2026-09-05 triage, but 'so-so' is one word (STRICT) so the array is ignored; a hyphen-as-space rule (rule 3) would also fix it."
+    },
+    {
+      "report_id": "1d16001d-9672-4372-91f9-c8ae7115f2ec",
+      "item_id": "fren151-w11-vocab001-i00",
+      "outcome": "fixed",
+      "note": "'yeux bleus' now accepted for 'les yeux bleus' (plural article carries no gender); same fix applied to the other des/les nouns."
+    },
+    {
+      "report_id": "19d520be-6090-4595-9007-500ff8840aab",
+      "item_id": "fren151-w10-vocab003-i01",
+      "outcome": "fixed",
+      "note": "Bare 'intelligent' already passes live (STRICT strips '(e)'); 'intelligente' is now accepted too."
+    },
+    {
+      "report_id": "39fe7403-fe45-4f39-a5c8-a3caf641a4cc",
+      "item_id": "fren151-w10-vocab003-i00",
+      "outcome": "fixed",
+      "note": "Bare 'gentil' already passes live (STRICT strips '(le)'); 'gentille' is now accepted too."
+    },
+    {
+      "report_id": "d28b8920-7eda-48b3-88e6-0d267e57ea9f",
+      "item_id": "fren151-w10-vocab001-i11",
+      "outcome": "needs-code",
+      "note": "'theater' is in accepted_en since the 2026-09-05 triage, but 'theatre' is one word (STRICT) so the array is ignored until the STRICT change."
+    },
+    {
+      "report_id": "c2b0e81b-970a-4e61-89a5-4a6527a36d7f",
+      "item_id": "fren151-w9-grammar002",
+      "outcome": "fixed",
+      "note": "Already fixed in the 2026-09-05 triage ('the cat of the pharmacist' is in accepted_en); verified live."
+    }
+  ]
+}
