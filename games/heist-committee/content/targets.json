@@ -1,0 +1,174 @@
+{
+  "targets": [
+    {
+      "id": "pigeon_museum",
+      "name": "The Little Pigeon Museum",
+      "tier": 1,
+      "min_reputation": 0,
+      "blurb": "A small museum with one famous exhibit: the Gloop Idol, a green jelly figurine of enormous civic importance.",
+      "beats": [
+        {
+          "name": "Arrive",
+          "tags": []
+        },
+        {
+          "name": "Lobby",
+          "tags": []
+        },
+        {
+          "name": "Gallery",
+          "tags": []
+        },
+        {
+          "name": "Case Room",
+          "tags": [
+            "unlucky"
+          ],
+          "note": "The clock in here always reads 13:13."
+        },
+        {
+          "name": "Exit",
+          "tags": []
+        },
+        {
+          "name": "Getaway",
+          "tags": []
+        }
+      ],
+      "start_tags": [
+        "cameras"
+      ],
+      "base_suspicion": 0,
+      "requirements": [
+        {
+          "id": "get_in",
+          "label": "Get past the front desk",
+          "actions": [
+            "sweet_talk",
+            "distract",
+            "disguise"
+          ],
+          "window": [
+            1,
+            2
+          ],
+          "needs_done": [],
+          "value": 0
+        },
+        {
+          "id": "open_case",
+          "label": "Open the display case",
+          "actions": [
+            "lockpick"
+          ],
+          "window": [
+            2,
+            4
+          ],
+          "needs_done": [
+            "get_in"
+          ],
+          "value": 0
+        },
+        {
+          "id": "grab_idol",
+          "label": "Grab the Gloop Idol",
+          "actions": [
+            "carry"
+          ],
+          "window": [
+            3,
+            5
+          ],
+          "needs_done": [
+            "open_case"
+          ],
+          "value": 450
+        },
+        {
+          "id": "till",
+          "label": "Pocket the gift shop till (optional)",
+          "actions": [
+            "carry"
+          ],
+          "window": [
+            2,
+            5
+          ],
+          "needs_done": [
+            "get_in"
+          ],
+          "value": 90,
+          "optional": true
+        },
+        {
+          "id": "escape",
+          "label": "Reach the getaway van",
+          "actions": [
+            "drive"
+          ],
+          "window": [
+            5,
+            6
+          ],
+          "needs_done": [
+            "grab_idol"
+          ],
+          "value": 0,
+          "final": true
+        }
+      ],
+      "consolation": 40,
+      "budget": 210,
+      "scout": {
+        "levels": [
+          {
+            "cost": 0,
+            "reveal": 1
+          },
+          {
+            "cost": 25,
+            "reveal": 4
+          },
+          {
+            "cost": 50,
+            "reveal": 9
+          }
+        ],
+        "details": [
+          "One night guard, mostly asleep in a deckchair.",
+          "Two cameras. One is a decoy.",
+          "A display-case lock, quite old."
+        ]
+      },
+      "cover_options": [
+        "noise",
+        "crowd",
+        "cat",
+        "wet",
+        "guard",
+        "camera",
+        "dust"
+      ],
+      "titles": [
+        "The Pigeon Incident",
+        "The Idol Affair",
+        "The Case of the Wobbly Plinth"
+      ],
+      "intro": "The Little Pigeon Museum closes at five and the guard is asleep by five-oh-five. What could go wrong?",
+      "pool": [
+        "camera_sweep",
+        "sleepy_guard",
+        "guard_rounds",
+        "school_trip",
+        "cat_in_gallery",
+        "vase_falls",
+        "wet_floor",
+        "dusty_display",
+        "alarm_trips",
+        "curator_tour",
+        "inspector_bramble"
+      ]
+    }
+  ]
+}

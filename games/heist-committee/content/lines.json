@@ -1,0 +1,38 @@
+{
+  "beat_header": "Beat {n}: {name}",
+  "sidelined": "{crew} is out of action for this beat.",
+  "soft_landing": "It landed on a quiet beat with nobody in the way, so it only rattled the nerves.",
+  "chain_capped": "Too many things are going wrong at once. The chain stops here, mostly out of politeness.",
+  "stranded": "Nobody is waiting with a getaway. The crew walk home with half the take.",
+  "no_take": "Nobody got away with the prize.",
+  "friends": "{a} and {b} work in step.",
+  "rival": "{a} and {b} are not talking to each other, but are arguing loudly.",
+  "mentor": "{mentor} quietly shows {pupil} a trick.",
+  "company": "{crew} likes having someone to work beside.",
+  "souvenir": "{crew} pockets a little souvenir.",
+  "absorb_standby": "{crew} was on standby for {kind} and handles it without looking up.",
+  "absorb_skill": "{crew} had a free moment and the right skill ({skill}). Handled.",
+  "absorb_gear": "The {gear} come in useful.",
+  "absorb_trait": "{crew} ({trait}) takes it in stride.",
+  "absorb_improvise": "{crew} improvises something unexpectedly good.",
+  "improvise_failed": "{crew} tries to improvise and invents a new problem.",
+  "lucky_reroll": "{crew} is lucky: the failure turns out to be a near miss.",
+  "coin_reroll": "The lucky coin comes out and {crew} gets another try.",
+  "interrupted": "{crew} was interrupted and has to start over.",
+  "truncated": "{crew} ran out of beats and rushed it.",
+  "needs_missing": "{action} needs {need}, and there was none.",
+  "outcome_words": {
+    "crit": "Perfect",
+    "success": "Success",
+    "partial": "Messy",
+    "fail": "Failed",
+    "sidelined": "Out"
+  },
+  "odds_words": {
+    "solid": "Solid",
+    "risky": "Risky",
+    "long": "Long shot",
+    "none": "No chance"
+  },
+  "idle_summary": "{names} stood ready for trouble {n} time(s) that never came. A great many biscuits were eaten."
+}

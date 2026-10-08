@@ -1,0 +1,28 @@
+{
+  "crew": [
+    {"id": "dot", "name": "Dot Marlowe", "short": "Dot", "role": "charmer", "skills": {"charm": 3, "watch": 1}, "trait": "nervous", "quirk": "chatty", "fee": 45,
+     "rival_of": ["vic"], "voice": "I'm fine. Everyone is looking at me. I'm fine."},
+    {"id": "vic", "name": "Vic Salamander", "short": "Vic", "role": "charmer", "skills": {"charm": 2, "wheels": 1}, "trait": "overconfident", "quirk": "show_off", "fee": 40,
+     "rival_of": ["dot"], "voice": "Relax. I've done this a hundred times. Once. In a dream."},
+    {"id": "mabel", "name": "Mabel Orrin", "short": "Mabel", "role": "charmer", "skills": {"charm": 2, "craft": 1}, "trait": "sentimental", "quirk": "cat_person", "fee": 35,
+     "voice": "Is that a mug? Is that someone's favourite mug?"},
+    {"id": "pip", "name": "Pip Quillfeather", "short": "Pip", "role": "locksmith", "skills": {"craft": 3, "muscle": 0}, "trait": "perfectionist", "quirk": "allergic", "fee": 50,
+     "rival_of": ["gus"], "voice": "Nobody touch the door. I'm composing."},
+    {"id": "gus", "name": "Gus Harbottle", "short": "Gus", "role": "locksmith", "skills": {"craft": 2, "wheels": 1}, "trait": "lucky", "quirk": "clumsy", "fee": 35,
+     "rival_of": ["pip"], "voice": "It always works out. Roughly."},
+    {"id": "inez", "name": "Inez Cobblestone", "short": "Inez", "role": "locksmith", "skills": {"craft": 2, "watch": 2}, "trait": "superstitious", "quirk": "calm", "fee": 45,
+     "mentor_of": ["pip"], "voice": "Not on a Thursday. Never on a Thursday."},
+    {"id": "raff", "name": "Raff Doon", "short": "Raff", "role": "driver", "skills": {"wheels": 3, "charm": 0}, "trait": "chatty", "quirk": "overconfident", "fee": 40,
+     "voice": "I know a shortcut. It's not shorter. But I know it."},
+    {"id": "bea", "name": "Bea Vandermeer", "short": "Bea", "role": "driver", "skills": {"wheels": 2, "muscle": 1}, "trait": "calm", "quirk": "cat_person", "fee": 40,
+     "voice": "Seatbelts. Then breathing. Then driving."},
+    {"id": "tomasz", "name": "Tomasz Finch", "short": "Tomasz", "role": "lookout", "skills": {"watch": 3, "charm": 1}, "trait": "perfectionist", "quirk": "chatty", "fee": 45,
+     "voice": "I can see everything. Everything. Including that you've got a loose thread."},
+    {"id": "lottie", "name": "Lottie Krum", "short": "Lottie", "role": "lookout", "skills": {"watch": 2, "charm": 1}, "trait": "allergic", "quirk": "lucky", "fee": 30,
+     "voice": "Atchoo. Sorry. Atchoo. All clear. Atchoo."},
+    {"id": "hank", "name": "Big Hank Pomeroy", "short": "Hank", "role": "hauler", "skills": {"muscle": 3}, "trait": "clumsy", "quirk": "sentimental", "fee": 40,
+     "voice": "I'll get it. Mind the vase. Oh."},
+    {"id": "billie", "name": "Billie Strand", "short": "Billie", "role": "hauler", "skills": {"muscle": 2, "craft": 1}, "trait": "superstitious", "quirk": "hoarder", "fee": 35,
+     "mentor_of": ["gus"], "voice": "Carry with your knees. And never, ever whistle in a vault."}
+  ]
+}

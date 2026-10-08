@@ -1,0 +1,10 @@
+{
+  "gear": [
+    {"id": "earplugs", "name": "Foam earplugs", "icon": "🎧", "cost": 30, "uses": 1, "absorbs_kinds": ["noise"],
+     "text": "Absorbs one noise complication. The crew all look a bit sleepy.", "absorbed": "The earplugs go in and the noise does not bother anyone."},
+    {"id": "cat_treats", "name": "Cat treats", "icon": "🐟", "cost": 25, "uses": 1, "absorbs_kinds": ["cat"],
+     "text": "Absorbs one cat complication. Smells of fish.", "absorbed": "A treat rolls down the corridor and the cat follows it, delighted."},
+    {"id": "lucky_coin", "name": "Lucky coin", "icon": "🪙", "cost": 40, "uses": 1, "rerolls": 1,
+     "text": "Once per heist, one failed or messy action gets another try.", "absorbed": ""}
+  ]
+}

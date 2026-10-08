@@ -1,0 +1,229 @@
+{
+  "traits": {
+    "nervous": {
+      "name": "Nervous",
+      "icon": "😰",
+      "text": "Rattled by an alarm or a guard close by.",
+      "margin_when_tag": {
+        "alarm": -2,
+        "guard_near": -1
+      },
+      "fired": "{crew} is Nervous and the {tag} makes it worse."
+    },
+    "chatty": {
+      "name": "Chatty",
+      "icon": "🗣",
+      "text": "Cannot stay quiet when idle, which is noise.",
+      "idle_emits": [
+        "noise"
+      ],
+      "fired": "{crew} fills the silence with small talk."
+    },
+    "perfectionist": {
+      "name": "Perfectionist",
+      "icon": "📐",
+      "text": "Slow and careful: never fails a two-beat job, but fumbles rushed one-beat ones.",
+      "margin_by_duration": {
+        "1": -1,
+        "2": 1
+      },
+      "no_fail_duration": 2,
+      "fired": "{crew} the Perfectionist refuses to rush."
+    },
+    "overconfident": {
+      "name": "Overconfident",
+      "icon": "😎",
+      "text": "Bold on jobs, useless on standby: wanders off.",
+      "margin_all": 1,
+      "standby_works": false,
+      "fired": "{crew} was supposed to be on standby and went to look at the gift shop."
+    },
+    "lucky": {
+      "name": "Lucky",
+      "icon": "🍀",
+      "text": "Once per heist, a failure turns out to be a near miss.",
+      "rerolls": 1,
+      "fired": "{crew}'s luck holds. A fluke."
+    },
+    "allergic": {
+      "name": "Allergic",
+      "icon": "🤧",
+      "text": "Loses a beat to sneezing near dust or flowers, and the sneeze is loud.",
+      "lose_beat_on_tags": [
+        "dust",
+        "flowers"
+      ],
+      "lose_beat_emits": [
+        "noise"
+      ],
+      "fired": "{crew} is Allergic and sneezes into the {tag}."
+    },
+    "superstitious": {
+      "name": "Superstitious",
+      "icon": "🐞",
+      "text": "Refuses to work on unlucky beats.",
+      "margin_when_tag": {
+        "unlucky": -3
+      },
+      "fired": "{crew} Superstitious: it is an unlucky beat, and that is that."
+    },
+    "sentimental": {
+      "name": "Sentimental",
+      "icon": "🧸",
+      "text": "Pockets one small souvenir (extra cash) and leaves evidence.",
+      "souvenir": 30,
+      "souvenir_emits": [
+        "evidence"
+      ],
+      "fired": "{crew} Sentimental: that mug is coming along too."
+    },
+    "cat_person": {
+      "name": "Cat Person",
+      "icon": "🐱",
+      "text": "Helplessly distracted by any cat.",
+      "margin_when_tag": {
+        "cat": -3
+      },
+      "fired": "{crew} the Cat Person has seen a cat."
+    },
+    "clumsy": {
+      "name": "Clumsy",
+      "icon": "🫗",
+      "text": "Everything they do is a bit louder than it should be.",
+      "action_noise": 1,
+      "fired": "{crew} the Clumsy knocks something over."
+    },
+    "calm": {
+      "name": "Calm",
+      "icon": "😌",
+      "text": "Unflappable. When free, can talk a crowd or an alarm down.",
+      "absorbs_cover": [
+        "alarm",
+        "crowd"
+      ],
+      "margin_when_tag": {
+        "alarm": 1
+      },
+      "fired": "{crew} is calm. It is almost rude."
+    },
+    "show_off": {
+      "name": "Show-off",
+      "icon": "🌟",
+      "text": "Better with an audience, great at distractions.",
+      "margin_when_tag": {
+        "crowd": 1
+      },
+      "margin_for_action": {
+        "distract": 1
+      },
+      "fired": "{crew} loves an audience."
+    },
+    "hoarder": {
+      "name": "Hoarder",
+      "icon": "🧳",
+      "text": "Grabs extra everything: a little more loot, a little more heat.",
+      "extra_loot": 20,
+      "extra_heat": 1,
+      "fired": "{crew} the Hoarder takes the whole box of pens."
+    },
+    "claustrophobic": {
+      "name": "Claustrophobic",
+      "icon": "😬",
+      "text": "Struggles in tight spaces such as vaults and cellars.",
+      "margin_when_tag": {
+        "tight": -2
+      },
+      "fired": "{crew} the Claustrophobic hates this room."
+    },
+    "night_owl": {
+      "name": "Night Owl",
+      "icon": "🦉",
+      "text": "Sharper when the lights are off.",
+      "margin_when_tag": {
+        "dark": 1
+      },
+      "fired": "{crew} the Night Owl is in their element."
+    },
+    "team_player": {
+      "name": "Team Player",
+      "icon": "🤝",
+      "text": "Better when someone else is working the same beat.",
+      "margin_with_company": 1,
+      "fired": "{crew} the Team Player works better with company."
+    },
+    "stage_fright": {
+      "name": "Stage Fright",
+      "icon": "🎤",
+      "text": "Falls apart in front of a crowd.",
+      "margin_when_tag": {
+        "crowd": -2
+      },
+      "fired": "{crew} has Stage Fright."
+    },
+    "light_sleeper": {
+      "name": "Light Sleeper",
+      "icon": "🛏",
+      "text": "Noisy people give them the heebie-jeebies, but they hear trouble coming: absorbs noise when free.",
+      "absorbs_cover": [
+        "noise"
+      ],
+      "fired": "{crew} the Light Sleeper noticed it first."
+    },
+    "penny_pincher": {
+      "name": "Penny Pincher",
+      "icon": "🪙",
+      "text": "Hates waste: stashes a little extra from every job, but works for less.",
+      "extra_loot": 10,
+      "fired": "{crew} has pocketed the loose change."
+    },
+    "motion_sick": {
+      "name": "Motion Sick",
+      "icon": "🤢",
+      "text": "Wobbles on boats and in vans.",
+      "margin_when_tag": {
+        "rocking": -2
+      },
+      "fired": "{crew} is Motion Sick and the floor will not stay still."
+    }
+  },
+  "pair_rules": [
+    {
+      "id": "chatty_nervous",
+      "a": "trait:chatty",
+      "b": "trait:nervous",
+      "geometry": "same_beat",
+      "effect": {
+        "target": "b",
+        "margin": -1,
+        "emits": [
+          "noise"
+        ]
+      },
+      "line": "{a} will not stop talking and {b} is on edge."
+    },
+    {
+      "id": "show_off_stage_fright",
+      "a": "trait:show_off",
+      "b": "trait:stage_fright",
+      "geometry": "adjacent_beat",
+      "effect": {
+        "target": "b",
+        "margin": -1,
+        "emits": []
+      },
+      "line": "{a} keeps stealing the spotlight, and {b} cannot get over it."
+    },
+    {
+      "id": "perfectionist_clumsy",
+      "a": "trait:perfectionist",
+      "b": "trait:clumsy",
+      "geometry": "neighbour_lane",
+      "effect": {
+        "target": "a",
+        "margin": -1,
+        "emits": []
+      },
+      "line": "{b} keeps bumping {a}'s elbow, and {a} has to start over in their head."
+    }
+  ]
+}

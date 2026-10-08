@@ -1,0 +1,215 @@
+{
+  "skills": {
+    "charm": {
+      "label": "Charm",
+      "icon": "💬"
+    },
+    "craft": {
+      "label": "Craft",
+      "icon": "🔧"
+    },
+    "wheels": {
+      "label": "Wheels",
+      "icon": "🚐"
+    },
+    "watch": {
+      "label": "Watch",
+      "icon": "👀"
+    },
+    "muscle": {
+      "label": "Muscle",
+      "icon": "💪"
+    }
+  },
+  "roles": {
+    "charmer": {
+      "label": "Charmer",
+      "icon": "💬",
+      "shape": "circle",
+      "skill": "charm"
+    },
+    "locksmith": {
+      "label": "Locksmith",
+      "icon": "🔧",
+      "shape": "square",
+      "skill": "craft"
+    },
+    "driver": {
+      "label": "Driver",
+      "icon": "🚐",
+      "shape": "triangle",
+      "skill": "wheels"
+    },
+    "lookout": {
+      "label": "Lookout",
+      "icon": "👀",
+      "shape": "diamond",
+      "skill": "watch"
+    },
+    "hauler": {
+      "label": "Hauler",
+      "icon": "💪",
+      "shape": "hexagon",
+      "skill": "muscle"
+    }
+  },
+  "tags": {
+    "noise": {
+      "label": "Noise",
+      "icon": "♪",
+      "lasts": 2
+    },
+    "alarm": {
+      "label": "Alarm",
+      "icon": "⚠",
+      "lasts": 99
+    },
+    "crowd": {
+      "label": "Crowd",
+      "icon": "☺",
+      "lasts": 2
+    },
+    "wet": {
+      "label": "Wet floor",
+      "icon": "≈",
+      "lasts": 2
+    },
+    "flash": {
+      "label": "Flash",
+      "icon": "✦",
+      "lasts": 1
+    },
+    "dust": {
+      "label": "Dust",
+      "icon": "∴",
+      "lasts": 1
+    },
+    "flowers": {
+      "label": "Flowers",
+      "icon": "❀",
+      "lasts": 1
+    },
+    "cat": {
+      "label": "Cat about",
+      "icon": "🐈",
+      "lasts": 3
+    },
+    "clear": {
+      "label": "Clear corridor",
+      "icon": "✓",
+      "lasts": 1
+    },
+    "evidence": {
+      "label": "Evidence",
+      "icon": "🔍",
+      "lasts": 99
+    },
+    "guard_awake": {
+      "label": "Guard awake",
+      "icon": "🔦",
+      "lasts": 99
+    },
+    "guard_near": {
+      "label": "Guard nearby",
+      "icon": "👣",
+      "lasts": 2
+    },
+    "charmed": {
+      "label": "Staff charmed",
+      "icon": "☀",
+      "lasts": 3
+    },
+    "distracted": {
+      "label": "Eyes elsewhere",
+      "icon": "◌",
+      "lasts": 1
+    },
+    "disguised": {
+      "label": "In disguise",
+      "icon": "🎭",
+      "lasts": 3
+    },
+    "cameras": {
+      "label": "Cameras on",
+      "icon": "📷",
+      "lasts": 99
+    },
+    "blind_cameras": {
+      "label": "Cameras blinded",
+      "icon": "▣",
+      "lasts": 3
+    },
+    "smell": {
+      "label": "Strong smell",
+      "icon": "☁",
+      "lasts": 99
+    },
+    "slippery": {
+      "label": "Slippery",
+      "icon": "∿",
+      "lasts": 1
+    },
+    "unlucky": {
+      "label": "Unlucky beat",
+      "icon": "☂",
+      "lasts": 1
+    },
+    "tight": {
+      "label": "Tight space",
+      "icon": "▭",
+      "lasts": 1
+    },
+    "dark": {
+      "label": "Lights out",
+      "icon": "☾",
+      "lasts": 1
+    },
+    "rocking": {
+      "label": "Rocking floor",
+      "icon": "〰",
+      "lasts": 1
+    }
+  },
+  "kinds": {
+    "noise": {
+      "label": "Noise",
+      "icon": "♪"
+    },
+    "alarm": {
+      "label": "Alarm",
+      "icon": "⚠"
+    },
+    "crowd": {
+      "label": "Crowd",
+      "icon": "☺"
+    },
+    "cat": {
+      "label": "Cat",
+      "icon": "🐈"
+    },
+    "wet": {
+      "label": "Wet",
+      "icon": "≈"
+    },
+    "guard": {
+      "label": "Guard",
+      "icon": "🔦"
+    },
+    "dust": {
+      "label": "Dust",
+      "icon": "∴"
+    },
+    "camera": {
+      "label": "Camera",
+      "icon": "📷"
+    },
+    "paperwork": {
+      "label": "Paperwork",
+      "icon": "▤"
+    },
+    "weird": {
+      "label": "Weird",
+      "icon": "?"
+    }
+  }
+}

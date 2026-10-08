@@ -1,0 +1,352 @@
+{
+  "complications": [
+    {
+      "id": "camera_sweep",
+      "name": "Camera sweep",
+      "trigger": "random",
+      "beats": [
+        2,
+        5
+      ],
+      "weight": 3,
+      "requires": [
+        "cameras"
+      ],
+      "forbids": [
+        "blind_cameras"
+      ],
+      "emits": [],
+      "kinds": [
+        "camera"
+      ],
+      "skill_counter": {
+        "skill": "craft",
+        "min": 2
+      },
+      "effects": {
+        "suspicion": 1,
+        "target": "none"
+      },
+      "text": "A camera swivels and finds the crew standing very still in the open.",
+      "absorbed_text": "The camera swivels, finds nothing interesting and swivels back.",
+      "flavor": "It is a very slow camera. It is also a very judgemental one."
+    },
+    {
+      "id": "sleepy_guard",
+      "name": "The guard stirs",
+      "trigger": "auto",
+      "beats": [
+        2,
+        6
+      ],
+      "weight": 1,
+      "requires": [
+        "noise"
+      ],
+      "forbids": [
+        "guard_awake"
+      ],
+      "emits": [
+        "guard_awake",
+        "guard_near"
+      ],
+      "kinds": [
+        "noise",
+        "guard"
+      ],
+      "skill_counter": {
+        "skill": "watch",
+        "min": 3
+      },
+      "effects": {
+        "suspicion": 1,
+        "margin": -1,
+        "target": "needs:clear"
+      },
+      "text": "The night guard in the deckchair stirs. Somebody was too loud.",
+      "absorbed_text": "The guard half-opens one eye, hears nothing, and half-closes it.",
+      "flavor": "He mutters something about wanting to be a pastry chef."
+    },
+    {
+      "id": "guard_rounds",
+      "name": "The guard walks his rounds",
+      "trigger": "auto",
+      "beats": [
+        2,
+        6
+      ],
+      "weight": 1,
+      "requires": [
+        "guard_near"
+      ],
+      "forbids": [
+        "distracted",
+        "disguised"
+      ],
+      "emits": [],
+      "kinds": [
+        "guard"
+      ],
+      "skill_counter": {
+        "skill": "watch",
+        "min": 3
+      },
+      "effects": {
+        "suspicion": 1,
+        "margin": -2,
+        "target": "needs:clear"
+      },
+      "text": "The now-awake guard ambles down the corridor, flashlight swinging.",
+      "absorbed_text": "The guard ambles right past, humming.",
+      "flavor": "He is humming a song about a lighthouse."
+    },
+    {
+      "id": "school_trip",
+      "name": "School trip",
+      "trigger": "random",
+      "beats": [
+        2,
+        4
+      ],
+      "weight": 3,
+      "requires": [],
+      "forbids": [
+        "crowd"
+      ],
+      "emits": [
+        "crowd"
+      ],
+      "kinds": [
+        "crowd"
+      ],
+      "skill_counter": {
+        "skill": "charm",
+        "min": 3
+      },
+      "effects": {
+        "suspicion": 0,
+        "margin": -1,
+        "target": "any_task"
+      },
+      "text": "A school trip floods the gallery. Forty children, one very tired teacher.",
+      "absorbed_text": "The school trip is gently steered toward the gift shop.",
+      "flavor": "One child asks what the crew's names are. Three of the crew lie."
+    },
+    {
+      "id": "cat_in_gallery",
+      "name": "A cat strolls in",
+      "trigger": "random",
+      "beats": [
+        1,
+        5
+      ],
+      "weight": 2,
+      "requires": [],
+      "forbids": [
+        "cat"
+      ],
+      "emits": [
+        "cat"
+      ],
+      "kinds": [
+        "cat"
+      ],
+      "skill_counter": {
+        "skill": "charm",
+        "min": 3
+      },
+      "effects": {
+        "suspicion": 0,
+        "target": "none"
+      },
+      "text": "A cat strolls in as if it owns the place. It is not on the guest list.",
+      "absorbed_text": "The cat is offered a better spot and strolls off with great dignity.",
+      "flavor": "The cat has no comment."
+    },
+    {
+      "id": "vase_falls",
+      "name": "The vase falls",
+      "trigger": "auto",
+      "beats": [
+        1,
+        6
+      ],
+      "weight": 1,
+      "requires": [
+        "cat"
+      ],
+      "forbids": [],
+      "emits": [
+        "noise"
+      ],
+      "kinds": [
+        "noise",
+        "cat"
+      ],
+      "skill_counter": {
+        "skill": "muscle",
+        "min": 3
+      },
+      "effects": {
+        "suspicion": 0,
+        "damage": 20,
+        "target": "none"
+      },
+      "text": "The cat knocks a priceless-looking vase off its plinth. It lands loudly.",
+      "absorbed_text": "A quick hand catches the vase. The cat looks disappointed.",
+      "flavor": "The vase was a replica of a replica."
+    },
+    {
+      "id": "wet_floor",
+      "name": "Freshly mopped",
+      "trigger": "random",
+      "beats": [
+        2,
+        4
+      ],
+      "weight": 2,
+      "requires": [],
+      "forbids": [
+        "wet"
+      ],
+      "emits": [
+        "wet"
+      ],
+      "kinds": [
+        "wet"
+      ],
+      "skill_counter": {
+        "skill": "muscle",
+        "min": 3
+      },
+      "effects": {
+        "suspicion": 0,
+        "margin": -1,
+        "target": "action:carry"
+      },
+      "text": "The cleaner has mopped the whole gallery and left no sign at all.",
+      "absorbed_text": "A very small, very quick woman mops up the mop-up.",
+      "flavor": "The sign is in the cleaner's pocket."
+    },
+    {
+      "id": "dusty_display",
+      "name": "The dust sheets come off",
+      "trigger": "random",
+      "beats": [
+        2,
+        4
+      ],
+      "weight": 2,
+      "requires": [],
+      "forbids": [
+        "dust"
+      ],
+      "emits": [
+        "dust"
+      ],
+      "kinds": [
+        "dust"
+      ],
+      "skill_counter": null,
+      "effects": {
+        "suspicion": 0,
+        "target": "none"
+      },
+      "text": "Someone whips the dust sheets off the display. A great grey cloud rolls out.",
+      "absorbed_text": "A quick fan of a hat keeps the dust where it is.",
+      "flavor": "The dust has been waiting a long time for this."
+    },
+    {
+      "id": "alarm_trips",
+      "name": "The alarm goes off",
+      "trigger": "auto",
+      "beats": [
+        2,
+        6
+      ],
+      "weight": 1,
+      "requires": [
+        "guard_awake",
+        "noise"
+      ],
+      "forbids": [
+        "alarm"
+      ],
+      "emits": [
+        "alarm"
+      ],
+      "kinds": [
+        "alarm",
+        "guard"
+      ],
+      "skill_counter": null,
+      "effects": {
+        "suspicion": 3,
+        "target": "none"
+      },
+      "text": "The guard sees the crew, shrieks, and pulls the alarm lever with great enthusiasm.",
+      "absorbed_text": "The guard reaches for the lever and is handed a cup of tea instead.",
+      "flavor": "The alarm plays a jaunty tune. It is the same tune as the doorbell."
+    },
+    {
+      "id": "curator_tour",
+      "name": "The curator does a tour",
+      "trigger": "random",
+      "beats": [
+        1,
+        3
+      ],
+      "weight": 2,
+      "requires": [],
+      "forbids": [
+        "charmed",
+        "disguised"
+      ],
+      "emits": [],
+      "kinds": [
+        "guard"
+      ],
+      "skill_counter": {
+        "skill": "charm",
+        "min": 2
+      },
+      "effects": {
+        "suspicion": 1,
+        "margin": -1,
+        "target": "any_task"
+      },
+      "text": "The curator wanders through, peering at every visitor and asking who invited them.",
+      "absorbed_text": "The curator is introduced to an enthusiastic 'new volunteer' and wanders off, flattered.",
+      "flavor": "She has a clipboard. She is not afraid to use it."
+    },
+    {
+      "id": "inspector_bramble",
+      "name": "Inspector Bramble drops by",
+      "trigger": "auto",
+      "beats": [
+        4,
+        6
+      ],
+      "weight": 1,
+      "requires": [
+        "evidence"
+      ],
+      "forbids": [],
+      "emits": [],
+      "kinds": [
+        "paperwork"
+      ],
+      "skill_counter": {
+        "skill": "charm",
+        "min": 2
+      },
+      "effects": {
+        "suspicion": 2,
+        "target": "none"
+      },
+      "text": "Inspector Bramble pops in to ask why a mug from the staff kitchen is in somebody's pocket.",
+      "absorbed_text": "Inspector Bramble is talked into a long tour of the building and forgets the question.",
+      "flavor": "Bramble has been inspecting this museum for eleven years and has never found anything."
+    }
+  ]
+}
