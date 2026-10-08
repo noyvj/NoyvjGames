@@ -1,0 +1,40 @@
+{
+  "@context": "https://schema.org",
+  "@type": [
+    "VideoGame",
+    "WebApplication"
+  ],
+  "name": "Canopy",
+  "description": "A forest of plots — clear for quick income, or preserve and let both its value and its biodiversity compound, while the community periodically asks you to clear specific plots for housing or resources. First of the BCM114 climate quartet.",
+  "url": "https://noyvj.github.io/NoyvjGames/games/canopy/",
+  "image": "https://noyvj.github.io/NoyvjGames/share/canopy.png",
+  "applicationCategory": "GameApplication",
+  "operatingSystem": "Any modern web browser",
+  "browserRequirements": "Requires JavaScript and WebAssembly",
+  "gamePlatform": "Web browser",
+  "playMode": "SinglePlayer",
+  "inLanguage": "en",
+  "isAccessibleForFree": true,
+  "offers": {
+    "@type": "Offer",
+    "price": "0",
+    "priceCurrency": "USD"
+  },
+  "author": {
+    "@type": "Person",
+    "name": "Noyvj",
+    "url": "https://github.com/noyvj"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "NoyvjGames",
+    "url": "https://noyvj.github.io/NoyvjGames/"
+  },
+  "genre": [
+    "Climate simulation",
+    "Short session"
+  ],
+  "dateCreated": "2026-08-01",
+  "dateModified": "2026-10-07",
+  "timeRequired": "PT20M"
+}

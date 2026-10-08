@@ -1,0 +1,39 @@
+{
+  "@context": "https://schema.org",
+  "@type": [
+    "VideoGame",
+    "WebApplication"
+  ],
+  "name": "Trade Empire",
+  "description": "Found a private interstellar trading corporation — four ships, five interdependent colonies, and a market that punishes dumping everything on one good. Scale up manually, then research your way to a fleet that runs the whole galaxy on its own. Working title.",
+  "url": "https://noyvj.github.io/NoyvjGames/games/trade-empire/",
+  "image": "https://noyvj.github.io/NoyvjGames/share/trade-empire.png",
+  "applicationCategory": "GameApplication",
+  "operatingSystem": "Any modern web browser",
+  "browserRequirements": "Requires JavaScript and WebAssembly",
+  "gamePlatform": "Web browser",
+  "playMode": "SinglePlayer",
+  "inLanguage": "en",
+  "isAccessibleForFree": true,
+  "offers": {
+    "@type": "Offer",
+    "price": "0",
+    "priceCurrency": "USD"
+  },
+  "author": {
+    "@type": "Person",
+    "name": "Noyvj",
+    "url": "https://github.com/noyvj"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "NoyvjGames",
+    "url": "https://noyvj.github.io/NoyvjGames/"
+  },
+  "genre": [
+    "Economy",
+    "Systems simulation"
+  ],
+  "dateCreated": "2026-08-18",
+  "dateModified": "2026-10-07"
+}

@@ -1978,3 +1978,30 @@ html[data-theme="light"] .site-status[data-state="degraded"] .site-status-dot { 
 .terms-changes { font-size: 0.85rem; opacity: 0.8; margin-top: 0.4rem; }
 .terms-changes summary { cursor: pointer; }
 .terms-changes[hidden] { display: none; }
+
+/* Y-28: achievements dashboard, progress bars and print layout.
+   On screen: the per-game bar only shows when signed in (the "N of M earned" text beside it is the real
+   information; the bar is decoration). Print: achievements.html links shared/print-summary.css (media=print)
+   and marks <main> as .print-summary, which hides the whole shell and forces black on white. The rules
+   below only add what that file cannot know: the bar, the print heading, and letting the long list
+   paginate instead of being kept on one page. */
+.ach-bar { display: inline-block; width: 7.5rem; height: 0.55rem; border-radius: 0.3rem; border: 1px solid rgba(140, 160, 255, 0.4); overflow: hidden; align-self: center; background: rgba(8, 10, 20, 0.4); }
+.ach-bar-fill { display: block; height: 100%; background: linear-gradient(90deg, #6f8fe0, #a9c3ff); }
+html[data-theme="light"] .ach-bar { background: #fff; border-color: rgba(70, 95, 170, 0.5); }
+.ach-print-head { display: none; }
+.ach-print-row { margin: 0 0 1rem; }
+.ach-print-row[hidden], #ach-print[hidden] { display: none; }
+
+@media print {
+  .print-summary .ach-print-head { display: block !important; margin: 0 0 0.6cm; }
+  .print-summary .ach-print-head h1 { font-size: 18pt; margin: 0 0 0.15cm; }
+  .print-summary .ach-print-head p { font-size: 10pt; margin: 0; }
+  .print-summary .ach-controls, .print-summary .ach-jump, .print-summary .ach-print-row, .print-summary .ach-game-link { display: none !important; }
+  .print-summary > * { break-inside: auto; page-break-inside: auto; }
+  .print-summary .ach-game { break-inside: auto; border: 0 !important; border-top: 1px solid #999 !important; border-radius: 0 !important; padding: 0.3cm 0 !important; margin: 0 !important; }
+  .print-summary .ach-game-summary { break-after: avoid; font-size: 13pt; }
+  .print-summary .ach-item { break-inside: avoid; page-break-inside: avoid; padding: 0.12cm 0; border-bottom: 0 !important; font-size: 10.5pt; }
+  .print-summary .ach-item-desc, .print-summary .ach-item-rarity, .print-summary .ach-item-status { opacity: 1 !important; font-size: 10pt; }
+  .print-summary .ach-bar { display: inline-block !important; width: 4cm; height: 0.28cm; border: 1px solid #333 !important; border-radius: 0; background: #fff !important; }
+  .print-summary .ach-bar .ach-bar-fill { background: #111 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+}

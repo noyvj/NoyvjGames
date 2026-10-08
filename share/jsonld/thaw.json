@@ -1,0 +1,40 @@
+{
+  "@context": "https://schema.org",
+  "@type": [
+    "VideoGame",
+    "WebApplication"
+  ],
+  "name": "Thaw",
+  "description": "Manage three northern regions side by side as global temperature rises largely on its own — watch a slow problem tip into a runaway feedback loop in real time, and see exactly what intervention buys you. Second of a second climate quartet.",
+  "url": "https://noyvj.github.io/NoyvjGames/games/thaw/",
+  "image": "https://noyvj.github.io/NoyvjGames/share/thaw.png",
+  "applicationCategory": "GameApplication",
+  "operatingSystem": "Any modern web browser",
+  "browserRequirements": "Requires JavaScript and WebAssembly",
+  "gamePlatform": "Web browser",
+  "playMode": "SinglePlayer",
+  "inLanguage": "en",
+  "isAccessibleForFree": true,
+  "offers": {
+    "@type": "Offer",
+    "price": "0",
+    "priceCurrency": "USD"
+  },
+  "author": {
+    "@type": "Person",
+    "name": "Noyvj",
+    "url": "https://github.com/noyvj"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "NoyvjGames",
+    "url": "https://noyvj.github.io/NoyvjGames/"
+  },
+  "genre": [
+    "Climate simulation",
+    "Short session"
+  ],
+  "dateCreated": "2026-08-07",
+  "dateModified": "2026-10-07",
+  "timeRequired": "PT20M"
+}

@@ -1,0 +1,7 @@
+# robots.txt for NoyvjGames. Crawlers only read this at the host root, so for a GitHub Pages
+# project site it is documentation plus a sitemap pointer (see scripts/generate-seo.py).
+# Owner-only pages are protected by their own noindex meta tag and gate, not by naming them here.
+User-agent: *
+Allow: /
+
+Sitemap: https://noyvj.github.io/NoyvjGames/sitemap.xml

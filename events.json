@@ -1,0 +1,136 @@
+{
+  "version": 1,
+  "_readme": "Y-12: the one file behind events.html (and, later, the profile page's badge list). Dates are NOT stored here: they come from shared/seasonal-events.js (DEFAULT_EVENTS) and shared/seasonal-dates.json, so the page, the games and the tests agree. This file holds the copy, the proposed host game and the badge colour for each event id. Host mapping and tasks are PROPOSALS from planning/SEASONAL-EVENTS.md that the owner has not confirmed; a host's status is 'coming' until its game actually calls NoyvjSeasonal.init, then change it to 'live'. Badge ids are NoyvjSeasonal.badgeId: <event id with hyphens>-<year>, e.g. halloween-2026.",
+  "events": [
+    {
+      "id": "new_year",
+      "name": "New Year",
+      "about": "The turn of the year, 1 January.",
+      "host": {
+        "slug": "sol",
+        "name": "SOL",
+        "status": "coming"
+      },
+      "task": "Fund the Near Bodies research tier during the window",
+      "accent": "#5b8def",
+      "mark": "1/1"
+    },
+    {
+      "id": "valentines",
+      "name": "Valentine's Day",
+      "about": "14 February, a near-universal day for friends and loved ones.",
+      "host": {
+        "slug": "champ-de-mots",
+        "name": "Le Champ de Mots",
+        "status": "coming"
+      },
+      "task": "Answer 10 review questions from the French love-and-friendship week during the window",
+      "accent": "#d9627f",
+      "mark": "14"
+    },
+    {
+      "id": "lunar_new_year",
+      "name": "Lunar New Year",
+      "about": "The first day of the first Chinese lunisolar month; the date moves each year.",
+      "host": {
+        "slug": "trade-empire",
+        "name": "Trade Empire",
+        "status": "coming"
+      },
+      "task": "Sell 20 goods at the festival market",
+      "accent": "#d94f3d",
+      "mark": "LNY"
+    },
+    {
+      "id": "easter",
+      "name": "Easter",
+      "about": "Western Easter Sunday and the days around it; the date moves each year.",
+      "host": {
+        "slug": "canopy",
+        "name": "Canopy",
+        "status": "coming"
+      },
+      "task": "Find 5 golden seedlings, an egg hunt among the trees",
+      "accent": "#8bc34a",
+      "mark": "E"
+    },
+    {
+      "id": "independence_day",
+      "name": "4th of July",
+      "about": "United States Independence Day, 4 July. Open to swap for a more international midsummer date.",
+      "host": {
+        "slug": "grid",
+        "name": "Grid",
+        "status": "coming"
+      },
+      "task": "Light the grid: reach 50% clean capacity in one session",
+      "accent": "#4f7fd9",
+      "mark": "4"
+    },
+    {
+      "id": "halloween",
+      "name": "Halloween",
+      "about": "31 October, with a few days of build-up.",
+      "host": {
+        "slug": "aftermath",
+        "name": "Aftermath",
+        "status": "coming"
+      },
+      "task": "Survive one run of storms with resources left",
+      "accent": "#e0833a",
+      "mark": "31"
+    },
+    {
+      "id": "diwali",
+      "name": "Diwali",
+      "about": "The festival of lights; the main day moves each year.",
+      "host": {
+        "slug": "loop",
+        "name": "Loop",
+        "status": "coming"
+      },
+      "task": "Close the loop once",
+      "accent": "#e0b83a",
+      "mark": "D"
+    },
+    {
+      "id": "thanksgiving",
+      "name": "Thanksgiving",
+      "about": "The fourth Thursday of November (United States), with the days around it. Open to swap for a generic harvest festival.",
+      "host": {
+        "slug": "herd",
+        "name": "Herd",
+        "status": "coming"
+      },
+      "task": "Reach a herd of 10 with methane pressure under 25%",
+      "accent": "#b8793a",
+      "mark": "T"
+    },
+    {
+      "id": "hanukkah",
+      "name": "Hanukkah",
+      "about": "Eight days; the dates move each year.",
+      "host": {
+        "slug": "grid",
+        "name": "Grid",
+        "status": "coming"
+      },
+      "task": "Go 8 rounds without a disruption, one for each night",
+      "accent": "#5a8fd9",
+      "mark": "H"
+    },
+    {
+      "id": "christmas",
+      "name": "Christmas",
+      "about": "25 December, with the week before it.",
+      "host": {
+        "slug": "canopy",
+        "name": "Canopy",
+        "status": "coming"
+      },
+      "task": "Replant 5 plots in the holiday tree-planting drive",
+      "accent": "#3fae55",
+      "mark": "25"
+    }
+  ]
+}

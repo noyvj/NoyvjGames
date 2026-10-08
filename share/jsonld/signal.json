@@ -1,0 +1,39 @@
+{
+  "@context": "https://schema.org",
+  "@type": [
+    "VideoGame",
+    "WebApplication"
+  ],
+  "name": "Signal",
+  "description": "A five-minute daily deduction puzzle: ping the grid, read the summed signal, find the hidden transmitters. One new puzzle a day, a calendar archive, and endless practice with shareable codes.",
+  "url": "https://noyvj.github.io/NoyvjGames/games/signal/",
+  "image": "https://noyvj.github.io/NoyvjGames/share/signal.png",
+  "applicationCategory": "GameApplication",
+  "operatingSystem": "Any modern web browser",
+  "browserRequirements": "Requires JavaScript and WebAssembly",
+  "gamePlatform": "Web browser",
+  "playMode": "SinglePlayer",
+  "inLanguage": "en",
+  "isAccessibleForFree": true,
+  "offers": {
+    "@type": "Offer",
+    "price": "0",
+    "priceCurrency": "USD"
+  },
+  "author": {
+    "@type": "Person",
+    "name": "Noyvj",
+    "url": "https://github.com/noyvj"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "NoyvjGames",
+    "url": "https://noyvj.github.io/NoyvjGames/"
+  },
+  "genre": [
+    "Short session"
+  ],
+  "dateCreated": "2026-09-27",
+  "dateModified": "2026-10-07",
+  "timeRequired": "PT5M"
+}

@@ -1,0 +1,42 @@
+{
+  "@context": "https://schema.org",
+  "@type": [
+    "VideoGame",
+    "WebApplication"
+  ],
+  "name": "Le Champ de Mots",
+  "description": "Every plot is one real French vocabulary or grammar fact, planted in actual course order — water it to answer a freshly-generated question, and watch correct recall slowly need you less. A personal spaced-repetition study tool, not a course assessment.",
+  "url": "https://noyvj.github.io/NoyvjGames/games/champ-de-mots/",
+  "image": "https://noyvj.github.io/NoyvjGames/share/champ-de-mots.png",
+  "applicationCategory": "GameApplication",
+  "operatingSystem": "Any modern web browser",
+  "browserRequirements": "Requires JavaScript and WebAssembly",
+  "gamePlatform": "Web browser",
+  "playMode": "SinglePlayer",
+  "inLanguage": [
+    "en",
+    "fr"
+  ],
+  "isAccessibleForFree": true,
+  "offers": {
+    "@type": "Offer",
+    "price": "0",
+    "priceCurrency": "USD"
+  },
+  "author": {
+    "@type": "Person",
+    "name": "Noyvj",
+    "url": "https://github.com/noyvj"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "NoyvjGames",
+    "url": "https://noyvj.github.io/NoyvjGames/"
+  },
+  "genre": [
+    "Language learning",
+    "Systems simulation"
+  ],
+  "dateCreated": "2026-09-02",
+  "dateModified": "2026-10-07"
+}

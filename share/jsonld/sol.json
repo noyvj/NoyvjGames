@@ -1,0 +1,39 @@
+{
+  "@context": "https://schema.org",
+  "@type": [
+    "VideoGame",
+    "WebApplication"
+  ],
+  "name": "SOL",
+  "description": "Solar-system incremental clicker — click, automate, and expand outward through the solar system.",
+  "url": "https://noyvj.github.io/NoyvjGames/games/sol/",
+  "image": "https://noyvj.github.io/NoyvjGames/share/sol.png",
+  "applicationCategory": "GameApplication",
+  "operatingSystem": "Any modern web browser",
+  "browserRequirements": "Requires JavaScript and WebAssembly",
+  "gamePlatform": "Web browser",
+  "playMode": "SinglePlayer",
+  "inLanguage": "en",
+  "isAccessibleForFree": true,
+  "offers": {
+    "@type": "Offer",
+    "price": "0",
+    "priceCurrency": "USD"
+  },
+  "author": {
+    "@type": "Person",
+    "name": "Noyvj",
+    "url": "https://github.com/noyvj"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "NoyvjGames",
+    "url": "https://noyvj.github.io/NoyvjGames/"
+  },
+  "genre": [
+    "Space",
+    "Systems simulation"
+  ],
+  "dateCreated": "2026-07-04",
+  "dateModified": "2026-10-07"
+}

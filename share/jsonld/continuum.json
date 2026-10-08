@@ -1,0 +1,39 @@
+{
+  "@context": "https://schema.org",
+  "@type": [
+    "VideoGame",
+    "WebApplication"
+  ],
+  "name": "Continuum",
+  "description": "Grow one settlement from a tribal community to a space-age civilization across seven eras — a real low-poly 3D city, a research tree spanning the whole arc, and a livability score that gates how big you're actually allowed to get. Flagship BCM114 Round 2 digital artefact.",
+  "url": "https://noyvj.github.io/NoyvjGames/games/continuum/",
+  "image": "https://noyvj.github.io/NoyvjGames/share/continuum.png",
+  "applicationCategory": "GameApplication",
+  "operatingSystem": "Any modern web browser",
+  "browserRequirements": "Requires JavaScript and WebAssembly",
+  "gamePlatform": "Web browser",
+  "playMode": "SinglePlayer",
+  "inLanguage": "en",
+  "isAccessibleForFree": true,
+  "offers": {
+    "@type": "Offer",
+    "price": "0",
+    "priceCurrency": "USD"
+  },
+  "author": {
+    "@type": "Person",
+    "name": "Noyvj",
+    "url": "https://github.com/noyvj"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "NoyvjGames",
+    "url": "https://noyvj.github.io/NoyvjGames/"
+  },
+  "genre": [
+    "Civilization building",
+    "Systems simulation"
+  ],
+  "dateCreated": "2026-09-02",
+  "dateModified": "2026-10-07"
+}

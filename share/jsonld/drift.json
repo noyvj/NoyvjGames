@@ -1,0 +1,40 @@
+{
+  "@context": "https://schema.org",
+  "@type": [
+    "VideoGame",
+    "WebApplication"
+  ],
+  "name": "Drift",
+  "description": "Manage a receiving region as climate displacement pressure rises, and project your region's outcome generations forward — whether it becomes a crisis or a manageable transition comes down to how well it prepared. Fourth of a second climate quartet.",
+  "url": "https://noyvj.github.io/NoyvjGames/games/drift/",
+  "image": "https://noyvj.github.io/NoyvjGames/share/drift.png",
+  "applicationCategory": "GameApplication",
+  "operatingSystem": "Any modern web browser",
+  "browserRequirements": "Requires JavaScript and WebAssembly",
+  "gamePlatform": "Web browser",
+  "playMode": "SinglePlayer",
+  "inLanguage": "en",
+  "isAccessibleForFree": true,
+  "offers": {
+    "@type": "Offer",
+    "price": "0",
+    "priceCurrency": "USD"
+  },
+  "author": {
+    "@type": "Person",
+    "name": "Noyvj",
+    "url": "https://github.com/noyvj"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "NoyvjGames",
+    "url": "https://noyvj.github.io/NoyvjGames/"
+  },
+  "genre": [
+    "Climate simulation",
+    "Short session"
+  ],
+  "dateCreated": "2026-08-08",
+  "dateModified": "2026-10-07",
+  "timeRequired": "PT20M"
+}
