@@ -124,3 +124,94 @@ How it gets used: once enough is answered I write `planning/PLAYER-PROFILE.md` (
 2. When I am unsure whether something fits your taste, would you rather I ask, pick the safe option, or drop it?
 3. How much of the ideas sheet do you want each round: fewer big questions or many quick yes/later/no items?
 4. Is there anything about how I have been working or asking questions that you want changed?
+
+---
+
+## J. Mechanics you like, in more detail
+
+1. Pick the three single mechanics from any games you have played (for example Warframe's mod system, Portal's portals) that you would most like a small web game built around, and say what you love about each.
+2. In a typical Warframe optimisation session, what do you actually look at and change, and what tells you that you are done?
+3. Describe the best "broken build" you found in any game and what it felt like in the moment.
+4. When a game has a skill tree, how big do you want it (small, medium, huge), and should re-spending points be free?
+5. How many different currencies or resources is too many to keep track of?
+6. Do you want a game to tell you the best move (a hint button, an advisor), or would you rather always work it out?
+7. Do you like discovering crafting recipes yourself, or being handed them?
+8. What should the first five minutes of a new game be like? Name a game with an opening you loved.
+9. When you come back to a game after a week away, what should it do (a short catch-up, a summary, nothing)?
+10. Which game interfaces do you find the nicest to use (panels, overlay windows, wheel menus), and why?
+
+## K. Pacing, rewards and progress
+
+1. How long should the gap between small rewards be: seconds, minutes, or about an hour?
+2. When progress slows to a wall, what kind of help do you want: a new tool, a shortcut, a hint, a way to skip it?
+3. Do you like numbers growing huge (billions and beyond) or staying small and easy to read?
+4. How do you feel about reset or prestige systems: love them, fine once, or avoid them?
+5. How do you feel about a game progressing while you are away (offline progress)?
+6. Which kind of achievement feels best: skill, exploration, completion, funny, or secret?
+7. Do you like hidden achievements, and should they give a hint before you find them?
+8. How do you like to see your total progress: a percentage bar, a checklist, a map filling in, or a museum shelf?
+9. Would you want each game's completion percentage shown on the hub's game cards?
+10. Which unlockable cosmetic things do you actually like (skins, banners, titles, themes), and which feel pointless?
+
+## L. Failing, difficulty and fairness
+
+1. Give an example of a failure you liked, where you failed but could restore progress by doing something.
+2. How many failed tries before a game should offer to make itself easier?
+3. Should a game ever take something away from you permanently? What is the limit?
+4. How do you feel about a hard mode that unlocks after you finish the game (the same game, extra challenge)?
+5. Should difficulty adjust itself to you automatically, or only when you choose it?
+6. When a game is very easy, do you feel bored or relaxed?
+
+## M. Friends and the site's community
+
+1. About how many friends would realistically play these games, and which games do they play now?
+2. What do your competitive friends actually enjoy about competing (a specific example)?
+3. What would make a friend send the site to another friend?
+4. Would you want one friend leaderboard for the whole hub, or one per game? Why?
+5. Should friends be able to leave each other gifts or short notes (not chat)?
+6. What is the worst thing a competitive friend could do on the site that would make you uncomfortable?
+7. Do your friends play mostly on phones or computers, in class or at night?
+8. Would you want a co-op game where two friends fix one problem together? What kind of problem?
+9. Which of your friends have tastes very different from yours, and what would the site need to cover them?
+
+## N. Look, feel and interface
+
+1. What does the best overlay-window interface you have used look like (inventory, map, quest log)? Name the game.
+2. How do you feel about effects like particles, glow and screen shake: love, fine in small amounts, or turn them off?
+3. For each of Canopy, SOL, Continuum and Le Champ de Mots, would you want it dark and foggy or clean and flat?
+4. Do you prefer playing with the mouse, with keyboard shortcuts, or both?
+5. What size is your screen, and do you play full screen?
+6. How much text on screen at once is too much?
+7. Do you prefer icons or words on buttons?
+8. When I eventually add audio, which sounds would you want first (clicks, a soundtrack, alerts, ambience)?
+9. Are there colours you find hard to read on dark backgrounds?
+
+## O. Story, characters and tone
+
+1. Describe the story you would want in a Lifeline-style game in two sentences: who you are, what has gone wrong.
+2. What role would you want in a story: the one making the choices, an observer, or a flawed character you steer?
+3. How dark is too dark? Name examples of things that would need a content note.
+4. What kind of companion character would you love (a robot, an AI, a stranger, a rival)?
+5. What kind of jokes feel right in a game's log or notes?
+6. What should my games never joke about?
+7. Do you want characters or a crew that recur across several games?
+
+## P. School, learning and the portfolio
+
+1. For each of your courses (international history, digital and social media), what in these games would help you pass or show off?
+2. Which game on the site best shows your skills to a lecturer, and what is missing to make it a stronger digital artefact?
+3. How should the dev logs and changelog read to a marker: how formal, how detailed?
+4. Which subject have you struggled with that a game could have taught you better?
+5. For chemistry, maths or coding, which specific topic (balancing equations, binary, sorting, logic gates, anything else) would be a fun game?
+6. Should in-game facts always show their source on screen, even when nobody asks?
+
+## Q. Working together, round two
+
+1. How often do you want a summary from me: after each piece of work, at the end of each day, or only when you ask?
+2. What size of surprise is okay: a feature you did not ask for, a changed layout?
+3. Which of my past mistakes or habits annoyed you most?
+4. What should I always check with you before doing, even when you are away?
+5. What would an ideal weekly rhythm look like (a play-testing day, a building day)?
+6. What is the quickest way you would like to give me feedback on a game: a note on the ideas sheet, screenshots, a button inside each game that logs a note?
+7. You mentioned agents sitting idle: how do you want me to handle waiting times and how many things should run at once?
+8. When you make "a long list of things" while playing, what format would make that list fastest to write and easiest for me to act on?
