@@ -1,57 +1,27 @@
 /*
- * Shared save widget — SAVE-BUTTON-INTEGRATION.md.
- *
- * One script, included unchanged by every game via:
+ * Shared save widget (planning/SAVE-BUTTON-INTEGRATION.md). One script, included unchanged by
+ * every game:
  *   <script src="../../shared/save-widget.js" data-game-id="<slug>"></script>
- * (two levels up from games/<slug>/index.html to the repo root, then into
- * shared/ — the design doc's own example used one "../", which assumed a
- * shallower games/ layout than this repo actually has; corrected here.)
+ * (after shared/hub-auth.js, which supplies HUB_AUTH_TOKEN_KEY and hubAuthHeaders()).
  *
- * Per-game contract (see SAVE-BUTTON-INTEGRATION.md §2): the game's Python
- * code exposes two functions to Pyodide's globals —
- *   get_state() -> plain JSON-safe dict
- *   load_state(data) -> restores that dict, inverse of get_state()
- * — and the page's own boot script must expose `window.pyodide` (just
- * `window.pyodide = pyodide;` right after `await loadPyodide()`). Nothing
- * else about the widget changes per game.
+ * Per-game contract: the game's Python exposes get_state() -> plain JSON-safe dict and
+ * load_state(data) (its inverse) in Pyodide's globals, and the page's boot script sets
+ * window.pyodide right after loadPyodide(). Nothing else changes per game.
  *
- * Anonymous play always works. If a bearer token is already present in
- * localStorage (the hub's sign-in — see ACCOUNTS-AND-FEEDBACK-DESIGN.md),
- * a "Claim this save to your account" option appears after a successful
- * REVIEW(documentation): "appears after a successful save" undersells it —
- * showActiveCode() (which surfaces the claim button) also runs on plain page
- * load if a signed-in user already has a stored code, and after a successful
- * Load, not just after a Save.
- * save. No auto-save by default, no conflict resolution — one explicit
- * button, one explicit save point, last write wins. See §5 of the design
- * doc for why — and its new §7 for the Z25b opt-in autosave-checkbox
- * exception to that "no auto-save" default (still OFF unless the player
- * turns it on).
+ * Anonymous play always works, with one save code per game kept in localStorage. When a bearer
+ * token is present (the hub's sign-in), a "Claim this save to your account" option appears
+ * (also on page load and after Load, wherever a stored code is shown), saves go to three
+ * account slots, and on page load the account's most recent save for this game is loaded
+ * automatically, unless the opening screen's "New Game" was chosen. There is no auto-save by
+ * default, no conflict resolution: one explicit button, last write wins (the opt-in autosave
+ * checkbox is the one exception, see SAVE-BUTTON-INTEGRATION.md section 7).
  *
- * Signed-in autoload: on page load, if signed in, the widget fetches the
- * account's saves for this game and, if any exist, loads the most recently
- * updated one automatically — the account is the source of truth once
- * signed in, ahead of whatever anonymous code happens to be remembered in
- * this browser's localStorage for this game. Without this, a returning
- * signed-in player who forgot to paste in their code by hand would see a
- * blank farm/city/settlement every time and reasonably read that as "my
- * save keeps resetting" — it wasn't resetting, it just was never loading.
+ * Every localStorage access goes through lsGet/lsSet/lsRemove: blocked storage means "nothing
+ * remembered", never a half-built widget.
  *
- * Dev-environment note (found verifying the Z22 follow-up's ConfirmDialog
- * gating on "Start a new save"): this repo's local dev server sends no
- * cache-control header, and this exact file gets loaded by every game
- * across an entire long working session, so Chrome's heuristic HTTP cache
- * can end up serving a genuinely stale copy of THIS SPECIFIC file even
- * after a hard page reload -- confirmed by fetching it with
- * `{cache: "no-store"}` and comparing against what a plain <script> tag
- * actually executed. A brand-new tab with no service-worker registration
- * still hit this. If a save-widget.js change ever appears to have "no
- * effect" while manually verifying in this dev setup, check this before
- * assuming the code is wrong: fetch this file with cache disabled and
- * compare, or open the file's URL directly and hard-refresh with dev
- * tools' cache disabled. Not a concern in production (GitHub Pages serves
- * with different caching behavior, and real users don't reload the same
- * dev tab for hours).
+ * Dev-server note: this repo's dev server sends no cache-control header, so Chrome can serve a
+ * stale copy of this file even after a hard reload. If an edit seems to have no effect, fetch the
+ * file with {cache: "no-store"} and compare before assuming the code is wrong.
  */
 (function () {
   const SCRIPT = document.currentScript;
@@ -60,9 +30,19 @@
     console.error("save-widget.js: missing required data-game-id attribute on its <script> tag");
     return;
   }
+  // A second copy (a page that includes it twice) would mount a second panel and double every handler.
+  if (window.NoyvjSaveWidget) return;
 
   const API_BASE = "https://noyvjgames.fastapicloud.dev";
   const STORAGE_KEY = `savecode:${GAME_ID}`;
+
+  // Storage can throw (blocked site data, some private modes). Every read and write goes through
+  // these so a blocked store means "nothing remembered", never a widget that stops half-built.
+  function lsGet(key) { try { return localStorage.getItem(key); } catch (err) { return null; } }
+  function lsSet(key, value) { try { localStorage.setItem(key, value); } catch (err) { /* not remembered this load */ } }
+  function lsRemove(key) { try { localStorage.removeItem(key); } catch (err) { /* nothing to forget */ } }
+  // The hub's bearer token (HUB_AUTH_TOKEN_KEY comes from shared/hub-auth.js).
+  function hubToken() { return lsGet(HUB_AUTH_TOKEN_KEY); }
   // HUB_AUTH_TOKEN_KEY/hubAuthHeaders() come from shared/hub-auth.js,
   // loaded before this file — the same bearer-token helpers script.js uses
   // for the hub's own sign-in UI, so the two can't drift out of sync on
@@ -87,16 +67,10 @@
     return Number.isNaN(ms) ? 0 : ms;
   }
 
-  // The backend's database (Neon, serverless Postgres) suspends its
-  // compute after a few minutes idle. The first request after that wakes
-  // it back up, but used to fail outright with a bare 500 rather than
-  // just being slow (a stale pooled DB connection failing before the fix
-  // in app/database.py's pool_pre_ping). A transient failure here is
-  // exactly the kind of thing a user "fixes" by clicking Save four times
-  // in a row — so retry it for them instead of making that the expected
-  // workflow. Doesn't retry a 4xx (a wrong save code, a bad request body)
-  // since retrying an error that isn't going to change the outcome just
-  // delays telling the user the real problem.
+  // Neon (serverless Postgres) sleeps when idle, and the first request after that used to fail
+  // with a bare 500 instead of just being slow, which a player "fixes" by clicking Save four
+  // times. Retry transient failures (network error, 5xx) for them; never a 4xx (wrong code, bad
+  // body), because retrying cannot change that answer.
   async function fetchWithRetry(url, options, onRetrying) {
     let lastErr;
     for (let attempt = 0; attempt <= RETRY_DELAYS_MS.length; attempt++) {
@@ -341,7 +315,7 @@
   // already chosen otherwise; the choice is remembered per browser.
   const COLLAPSE_PREF_KEY = "save-widget-collapsed";
   try {
-    const pref = localStorage.getItem(COLLAPSE_PREF_KEY);
+    const pref = lsGet(COLLAPSE_PREF_KEY);
     const narrow = window.matchMedia && window.matchMedia("(max-width: 600px)").matches;
     // The Desktop boot (window.NOYVJ_LAYOUT === "pc") keeps it tucked away too: the game
     // fills the window and the widget would sit on top of the side column.
@@ -349,7 +323,7 @@
     if (pref === "true" || (pref === null && (narrow || desktopBoot))) root.classList.add("collapsed");
   } catch (e) { /* convenience only */ }
   toggleButton.addEventListener("click", () => {
-    try { localStorage.setItem(COLLAPSE_PREF_KEY, String(root.classList.contains("collapsed"))); }
+    try { lsSet(COLLAPSE_PREF_KEY, String(root.classList.contains("collapsed"))); }
     catch (e) { /* convenience only */ }
   });
   syncToggleState();
@@ -360,7 +334,7 @@
     codeDisplay.hidden = false;
     copyButton.hidden = false;
     newButton.hidden = false;
-    claimButton.hidden = Boolean(owned) || !localStorage.getItem(HUB_AUTH_TOKEN_KEY);
+    claimButton.hidden = Boolean(owned) || !hubToken();
     // Pre-fill the load field with the remembered code too, not just the
     // separate "Code: X" display -- lets a player re-load (e.g. after
     // accidentally clicking around) without having to retype or re-copy
@@ -387,13 +361,10 @@
     });
   }
 
-  // Resolves once the opening screen (if this page has one) has been answered.
-  // opening-screen.js is included AFTER this file, so when this script first runs
-  // window.NoyvjOpeningScreen does not exist yet. Checking it synchronously (as this
-  // used to) always found nothing, the "wait for the player's choice" guard was dead
-  // code, and a signed-in player who pressed "New Game" still had the account's
-  // latest save loaded over it a moment later. Waiting for the document to finish
-  // parsing guarantees every script tag has run and the promise (if any) exists.
+  // Resolves once the opening screen (if any) has been answered. opening-screen.js loads AFTER this
+  // file, so window.NoyvjOpeningScreen does not exist yet when this runs; waiting for the document
+  // to finish parsing guarantees every script ran. (Checking synchronously let the account's latest
+  // save load over a "New Game".)
   async function waitForOpeningChoice() {
     if (document.readyState === "loading") {
       await new Promise((resolve) => document.addEventListener("DOMContentLoaded", resolve, { once: true }));
@@ -404,14 +375,19 @@
     return "continue";
   }
 
+  // The last /users/me/saves answer, kept for a few seconds for the page-load sequence only
+  // (autoload, then slot rows): both need the same list, so one request serves both.
+  let recentSaves = null;
+
   // Fetches this account's saves for this game, newest first. Returns null on any
   // failure (not signed in, network, bad response) and [] when there are none.
   async function fetchAccountSaves() {
-    if (!localStorage.getItem(HUB_AUTH_TOKEN_KEY)) return null;
+    if (!hubToken()) return null;
     try {
       const res = await fetchWithRetry(`${API_BASE}/users/me/saves`, { headers: hubAuthHeaders(), cache: "no-store" });
       if (!res.ok) return null;
       const saves = await res.json();
+      recentSaves = { at: Date.now(), raw: saves };   // lets the startup refreshSlots() skip a second identical request
       return saves
         .filter((s) => s.game_id === GAME_ID)
         .sort((a, b) => parseTime(b.updated_at || b.created_at) - parseTime(a.updated_at || a.created_at));
@@ -444,7 +420,7 @@
       console.error(`${GAME_ID} save-widget: autoload's load_state() call threw`, err);
       return false;
     }
-    localStorage.setItem(STORAGE_KEY, mostRecent.save_code);
+    lsSet(STORAGE_KEY, mostRecent.save_code);
     showActiveCode(mostRecent.save_code, true);
     // U3: the loaded save's slot becomes the active, already-confirmed one.
     if (mostRecent.slot) setActiveSlot(mostRecent.slot, true);
@@ -458,7 +434,7 @@
 
   // Returns true if an account save for this game was found and loaded.
   async function tryAutoLoadFromAccount() {
-    if (!localStorage.getItem(HUB_AUTH_TOKEN_KEY)) return false;
+    if (!hubToken()) return false;
     // U4: with an opening screen present, wait for the player's choice. A
     // "New Game" must never be overwritten by the account's latest save.
     const chosen = await waitForOpeningChoice();
@@ -474,26 +450,16 @@
 
   (async () => {
     const loaded = await tryAutoLoadFromAccount();
-    if (slotMode()) refreshSlots();
+    if (slotMode()) refreshSlots(true);
     if (loaded) return;
-    const existingCode = localStorage.getItem(STORAGE_KEY);
+    const existingCode = lsGet(STORAGE_KEY);
     if (existingCode) showActiveCode(existingCode);
   })();
 
-  // Z22 follow-up (planning/TODO.md, found while auditing every game's own
-  // reset-progress action): this button is the actual site-wide full-save
-  // wipe -- identical across all 12 games since this file is shared
-  // unchanged -- and used to fire with zero confirmation of any kind, not
-  // even a native confirm(). Gated behind the shared ConfirmDialog here
-  // (one fix, every game gets it at once) rather than per-game, matching
-  // this file's own "one script, included unchanged by every game"
-  // contract. Falls through to firing immediately if a page hasn't
-  // included shared/confirm-dialog.js -- same graceful-degradation shape
-  // every Python-side _confirm_dialog_ask() helper already uses -- so this
-  // is strictly additive for pages that opt in and a no-op change for ones
-  // that don't (yet).
+  // "Start a new save" forgets the remembered code, so it asks first through the shared
+  // ConfirmDialog (one fix for every game); a page without confirm-dialog.js acts at once.
   function forgetSavedCode() {
-    localStorage.removeItem(STORAGE_KEY);
+    lsRemove(STORAGE_KEY);
     codeDisplay.hidden = true;
     copyButton.hidden = true;
     newButton.hidden = true;
@@ -532,7 +498,7 @@
   }
 
   copyButton.addEventListener("click", async () => {
-    const code = localStorage.getItem(STORAGE_KEY);
+    const code = lsGet(STORAGE_KEY);
     if (!code) return;
     // Try the modern Clipboard API first, but don't just take "it exists"
     // as proof it'll work -- some browsers expose navigator.clipboard yet
@@ -600,7 +566,7 @@
   const ACTIVE_SLOT_KEY = `activeslot:${GAME_ID}`;
   const slotsEl = root.querySelector(".save-widget-slots");
   let slotRows = {};
-  let activeSlot = parseInt(localStorage.getItem(ACTIVE_SLOT_KEY), 10) || null;
+  let activeSlot = parseInt(lsGet(ACTIVE_SLOT_KEY), 10) || null;
   let slotConfirmed = false;
   // True once the slot rows have been read from the server at least once. Until then
   // the widget does not know what is in the slots, so it must never guess "empty".
@@ -614,17 +580,17 @@
   }
 
   function slotMode() {
-    return Boolean(localStorage.getItem(HUB_AUTH_TOKEN_KEY));
+    return Boolean(hubToken());
   }
   function setActiveSlot(n, confirmed) {
     activeSlot = n;
     slotConfirmed = Boolean(confirmed);
-    try { localStorage.setItem(ACTIVE_SLOT_KEY, String(n)); } catch (e) { /* convenience only */ }
+    try { lsSet(ACTIVE_SLOT_KEY, String(n)); } catch (e) { /* convenience only */ }
   }
   function clearActiveSlot() {
     activeSlot = null;
     slotConfirmed = false;
-    try { localStorage.removeItem(ACTIVE_SLOT_KEY); } catch (e) { /* convenience only */ }
+    try { lsRemove(ACTIVE_SLOT_KEY); } catch (e) { /* convenience only */ }
     if (slotMode() && Object.keys(slotRows).length) renderSlots();
   }
   function timeAgo(iso) {
@@ -639,19 +605,24 @@
   // Re-reads this account's slot rows. Returns true when the rows are fresh. On a
   // failure it says why in the status line (a stale/expired sign-in looks exactly like
   // "saving is broken" otherwise) instead of silently leaving the slot list hidden.
-  async function refreshSlots() {
+  async function refreshSlots(allowRecent) {
     if (!slotMode()) {
       slotsEl.hidden = true;
       return false;
     }
     try {
-      const res = await fetchWithRetry(`${API_BASE}/users/me/saves`, { headers: hubAuthHeaders(), cache: "no-store" });
-      if (res.status === 401) {
-        setFailure("Your sign-in has expired — sign in again from the hub.");
-        return false;
+      let raw = allowRecent && recentSaves && Date.now() - recentSaves.at < 10000 ? recentSaves.raw : null;
+      recentSaves = null;
+      if (!raw) {
+        const res = await fetchWithRetry(`${API_BASE}/users/me/saves`, { headers: hubAuthHeaders(), cache: "no-store" });
+        if (res.status === 401) {
+          setFailure("Your sign-in has expired — sign in again from the hub.");
+          return false;
+        }
+        if (!res.ok) throw new Error(`status ${res.status}`);
+        raw = await res.json();
       }
-      if (!res.ok) throw new Error(`status ${res.status}`);
-      const saves = (await res.json()).filter((r) => r.game_id === GAME_ID && r.slot);
+      const saves = raw.filter((r) => r.game_id === GAME_ID && r.slot);
       slotRows = {};
       saves.forEach((r) => { slotRows[r.slot] = r; });
       slotsKnown = true;
@@ -706,7 +677,7 @@
     }
     slotsEl.hidden = false;
     // A remembered code that is one of this account's own slots is already claimed.
-    const remembered = localStorage.getItem(STORAGE_KEY);
+    const remembered = lsGet(STORAGE_KEY);
     if (remembered && Object.values(slotRows).some((r) => r.save_code === remembered)) claimButton.hidden = true;
   }
 
@@ -748,7 +719,7 @@
       slotRows[n] = body;
       slotsKnown = true;
       setActiveSlot(n, true);
-      try { localStorage.setItem(STORAGE_KEY, body.save_code); } catch (e) { /* convenience only */ }
+      try { lsSet(STORAGE_KEY, body.save_code); } catch (e) { /* convenience only */ }
       showActiveCode(body.save_code, true);
       renderSlots();
       return true;
@@ -771,7 +742,7 @@
     try {
       loadState(window.pyodide.toPy(row.save_data));
       setActiveSlot(n, true);
-      try { localStorage.setItem(STORAGE_KEY, row.save_code); } catch (e) { /* convenience only */ }
+      try { lsSet(STORAGE_KEY, row.save_code); } catch (e) { /* convenience only */ }
       showActiveCode(row.save_code, true);
       renderSlots();
       statusEl.textContent = `Loaded slot ${n}!`;
@@ -844,14 +815,9 @@
     return slotSave(target);
   }
 
-  // Core save logic (Z25b refactor) -- the ONE code path that actually talks
-  // to the save endpoint, shared by the manual "Save Progress" button below
-  // and the opt-in autosave timer further down, so autosave can't drift out
-  // of sync with a manual save by duplicating its request-building logic.
-  // Returns true/false; deliberately leaves ALL user-facing feedback (status
-  // text, button disabling) to the caller, since the two call sites want
-  // different feedback (a disabled "Saving..." button vs. a silent
-  // unattended timer tick).
+  // The ONE code path that talks to the save endpoint, shared by the Save button and the opt-in
+  // autosave timer so they cannot drift apart. Returns true/false and leaves all user-facing
+  // feedback to the caller (a disabled "Saving..." button vs. a silent timer tick).
   async function doSave(onRetrying, silent) {
     saveFailureNote = "";
     if (slotMode()) return doSlotSave(Boolean(silent));
@@ -865,7 +831,7 @@
       return false;
     }
     try {
-      const code = localStorage.getItem(STORAGE_KEY);
+      const code = lsGet(STORAGE_KEY);
       const res = await fetchWithRetry(
         code ? `${API_BASE}/saves/${code}` : `${API_BASE}/saves`,
         {
@@ -880,7 +846,7 @@
       );
       if (!res.ok) throw new Error(`status ${res.status}`);
       const body = await res.json();
-      localStorage.setItem(STORAGE_KEY, body.save_code);
+      lsSet(STORAGE_KEY, body.save_code);
       showActiveCode(body.save_code);
       return true;
     } catch (err) {
@@ -898,20 +864,16 @@
     saveButton.textContent = "Save Progress";
   });
 
-  // Z25b: opt-in autosave, every 5 minutes, default OFF -- a deliberate,
-  // explicit exception to the "no auto-save timer" decision in
-  // SAVE-BUTTON-INTEGRATION.md §5 (see that doc's new §7 for the writeup).
-  // Calls the exact same doSave() the manual button uses; last-write-wins
-  // (already this file's stated design principle) means an autosave and a
-  // manual save can never meaningfully "race" each other in a way worth
-  // guarding against.
+  // Opt-in autosave every 5 minutes, default OFF (the one exception to "no auto-save", see
+  // SAVE-BUTTON-INTEGRATION.md section 7). It calls the same doSave() as the button; last write
+  // wins, so the two cannot meaningfully race.
   const AUTOSAVE_KEY = `autosave-enabled:${GAME_ID}`;
   const AUTOSAVE_INTERVAL_MS = 5 * 60 * 1000;
   let autosaveTimer = null;
 
   function isAutosaveEnabled() {
     try {
-      return localStorage.getItem(AUTOSAVE_KEY) === "true";
+      return lsGet(AUTOSAVE_KEY) === "true";
     } catch (err) {
       return false;
     }
@@ -919,7 +881,7 @@
 
   function setAutosaveEnabled(enabled) {
     try {
-      localStorage.setItem(AUTOSAVE_KEY, enabled ? "true" : "false");
+      lsSet(AUTOSAVE_KEY, enabled ? "true" : "false");
     } catch (err) {
       console.error(`${GAME_ID} save-widget: failed to persist autosave preference`, err);
     }
@@ -958,11 +920,8 @@
     else stopAutosaveTimer();
   });
 
-  // Restore on load. A brand-new visitor has no AUTOSAVE_KEY yet --
-  // isAutosaveEnabled() returns false for a missing key, same as an
-  // explicit "false", so the default is OFF either way. A returning player
-  // who previously turned it on gets the timer running again automatically
-  // from page load, without needing to re-check the box every visit.
+  // Restore on load: a missing key reads as OFF; a player who turned it on gets the timer back
+  // from page load without re-ticking the box.
   autosaveCheckbox.checked = isAutosaveEnabled();
   if (autosaveCheckbox.checked) startAutosaveTimer();
 
@@ -990,7 +949,7 @@
       if (!res.ok) throw new Error(`status ${res.status}`);
       const body = await res.json();
       loadState(window.pyodide.toPy(body.save_data));
-      localStorage.setItem(STORAGE_KEY, body.save_code);
+      lsSet(STORAGE_KEY, body.save_code);
       showActiveCode(body.save_code);
       loadInput.value = "";
       statusEl.textContent = "Loaded!";
@@ -1006,7 +965,7 @@
   });
 
   claimButton.addEventListener("click", async () => {
-    const code = localStorage.getItem(STORAGE_KEY);
+    const code = lsGet(STORAGE_KEY);
     if (!code) return;
     claimButton.disabled = true;
     claimButton.textContent = "Claiming...";
@@ -1059,7 +1018,7 @@
         if (ok) await refreshSlots();
         return ok;
       }
-      const code = localStorage.getItem(STORAGE_KEY);
+      const code = lsGet(STORAGE_KEY);
       if (!code || !window.pyodide) return false;
       loadInput.value = code;
       loadButton.click();

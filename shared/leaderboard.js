@@ -101,17 +101,17 @@
     if (typeof score !== "number" || !Number.isFinite(score)) return false;
     const registered = boards[`${game}/${board}`];
     if (registered && registered.kind === "scores") return reportScore(registered, score, detail);
-    const order =boards[`${game}/${board}`] ? boards[`${game}/${board}`].order : "asc";
+    const order = boards[`${game}/${board}`] ? boards[`${game}/${board}`].order : "asc";
     const previous = readBest(game, board);
     if (previous && !better(order, score, previous.score)) return false;
     const best = { score, detail: typeof detail === "string" ? detail : "" };
     safeSet(bestKey(game, board), JSON.stringify(best));
     if (!isOptedIn(game, board) || !signedIn()) return false;
     try {
-      await put(game, board, best);
+      const saved = await put(game, board, best);   // null when the server refused it
       const entry = boards[`${game}/${board}`];
       if (entry) entry.refresh();
-      return true;
+      return saved !== null;
     } catch (e) {
       return false;
     }

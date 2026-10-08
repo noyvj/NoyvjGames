@@ -49,14 +49,18 @@
   inset: 0;
 }
 
+/* QA-4: the tiled drifts are compositor transforms on a box enlarged by exactly the travel (on
+   the side it moves away from), with background-position putting the tile origin back where it
+   started. An animated background-position repaints every gradient on every frame, which cost
+   about two seconds of CPU per three on a software-rendered browser; a transform costs none. */
 @keyframes ambient-bg-drift-1 {
-  from { background-position: 0 0; }
-  to { background-position: -300px 300px; }
+  from { transform: translate3d(0, 0, 0); }
+  to { transform: translate3d(-300px, 300px, 0); }
 }
 
 @keyframes ambient-bg-drift-2 {
-  from { background-position: 0 0; }
-  to { background-position: 420px -420px; }
+  from { transform: translate3d(0, 0, 0); }
+  to { transform: translate3d(420px, -420px, 0); }
 }
 
 @keyframes ambient-bg-blob-drift {
@@ -75,13 +79,13 @@
 }
 
 @keyframes ambient-bg-snow-fall {
-  from { background-position: 0 0; }
-  to { background-position: 40px 400px; }
+  from { transform: translate3d(0, 0, 0); }
+  to { transform: translate3d(40px, 400px, 0); }
 }
 
 @keyframes ambient-bg-embers-rise {
-  from { background-position: 0 0; }
-  to { background-position: 0 -500px; }
+  from { transform: translate3d(0, 0, 0); }
+  to { transform: translate3d(0, -500px, 0); }
 }
 
 @keyframes ambient-bg-orbit-spin {
@@ -147,6 +151,8 @@
   background-image:
     repeating-linear-gradient(0deg, rgba(80, 200, 255, 0.08) 0 1px, transparent 1px 90px),
     repeating-linear-gradient(90deg, rgba(80, 200, 255, 0.08) 0 1px, transparent 1px 90px);
+  inset: 0 0 -420px -420px;
+  will-change: transform;
   animation: ambient-bg-drift-2 150s linear infinite;
 }
 .ambient-bg--grid::after {
@@ -232,6 +238,8 @@
     radial-gradient(1.5px 1.5px at 90% 88%, #ffb366, transparent 100%);
   background-repeat: repeat;
   background-size: 300px 500px;
+  inset: 0 0 -500px 0;
+  will-change: transform;
   animation: ambient-bg-embers-rise 14s linear infinite;
 }
 
@@ -262,6 +270,9 @@
     radial-gradient(1.5px 1.5px at 35% 70%, #ffe9b0, transparent 100%);
   background-repeat: repeat;
   background-size: 400px 400px;
+  inset: -300px -300px 0 0;
+  background-position: 0 300px;
+  will-change: transform;
   animation: ambient-bg-drift-1 170s linear infinite;
 }
 
@@ -301,6 +312,9 @@
     radial-gradient(1.5px 1.5px at 20% 70%, #fff, transparent 100%);
   background-repeat: repeat;
   background-size: 300px 400px;
+  inset: -400px 0 0 -40px;
+  background-position: 40px 400px;
+  will-change: transform;
   animation: ambient-bg-snow-fall 18s linear infinite;
 }
 
@@ -335,6 +349,9 @@
     radial-gradient(2px 2px at 40% 80%, #bfffe0, transparent 100%);
   background-repeat: repeat;
   background-size: 340px 340px;
+  inset: -300px -300px 0 0;
+  background-position: 0 300px;
+  will-change: transform;
   animation: ambient-bg-drift-1 150s linear infinite reverse;
 }
 
@@ -364,6 +381,9 @@
     radial-gradient(3px 1.5px at 80% 35%, rgba(20, 15, 25, 0.75), transparent 100%);
   background-repeat: repeat;
   background-size: 500px 300px;
+  inset: 0 0 -420px -420px;
+  background-position: 420px 0;
+  will-change: transform;
   animation: ambient-bg-drift-2 160s linear infinite;
 }
 
@@ -427,5 +447,8 @@
     radial-gradient(1.5px 1.5px at 30% 65%, #fff3c4, transparent 100%);
   background-repeat: repeat;
   background-size: 380px 380px;
+  inset: -300px -300px 0 0;
+  background-position: 0 300px;
+  will-change: transform;
   animation: ambient-bg-drift-1 170s linear infinite;
 }

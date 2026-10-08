@@ -15,10 +15,13 @@
  * runs.
  */
 
-const HUB_AUTH_TOKEN_KEY = "hub_bearer_token";
+// `var` (not `const`) so including this file twice is harmless instead of a SyntaxError that
+// would stop the second copy and, in some browsers, everything that follows it.
+var HUB_AUTH_TOKEN_KEY = "hub_bearer_token";
 
+// A browser with storage blocked throws from localStorage.getItem; treat that as signed out.
 function hubGetBearerToken() {
-  return localStorage.getItem(HUB_AUTH_TOKEN_KEY);
+  try { return localStorage.getItem(HUB_AUTH_TOKEN_KEY); } catch (err) { return null; }
 }
 
 function hubAuthHeaders() {

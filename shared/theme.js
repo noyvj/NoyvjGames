@@ -12,6 +12,8 @@
  * including this script is always safe.
  */
 (function () {
+  // A second copy would double every toggle click handler (two toggles = no change).
+  if (window.NoyvjTheme) return;
   const KEY = "theme";
   function stored() {
     try { const v = localStorage.getItem(KEY); return v === "light" || v === "dark" ? v : null; }

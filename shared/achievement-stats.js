@@ -1,58 +1,31 @@
 /*
- * Shared "% of players who've earned this" stat — planning/TODO.md's Z27b,
- * built on top of Z1's cross-game aggregate-stats backend (app/stats.py,
- * GET /stats/games/<game_id>) which already returns, per achievement id
- * that at least MIN_BUCKET (3) saves have earned:
- *   {"achievements": {"<id>": {"earned_pct": 12.5, "earned_count": 4}, ...},
- *    "suppressed": bool, "save_count": N, ...}
- * An id simply absent from that dict means too few saves have earned it
- * yet (or the whole game is `suppressed` for having too few saves at all)
- * -- never treated as "0%", since that would misreport an under-sampled
- * achievement as unearnable. See app/stats.py's own privacy-rules comment.
+ * Shared "% of players who've earned this" stat (planning/TODO.md Z27b, Z-15), built on the
+ * cross-game stats backend (GET /stats/games/<game_id>, app/stats.py), which returns per
+ * achievement id that at least MIN_BUCKET saves have earned:
+ *   {"achievements": {"<id>": {"earned_pct": 12.5, "earned_count": 4}}, "suppressed": bool, ...}
+ * An id that is absent has too few earners (or the whole game is `suppressed`): that is never
+ * shown as 0%, which would misreport an under-sampled achievement as unearnable.
  *
- * One script, included unchanged by every game via:
  *   <script src="../../shared/achievement-stats.js" data-game-id="<slug>"></script>
- * (same data-game-id convention as shared/last-played.js and
- * shared/whats-new-banner.js) placed alongside those two, near the end of
- * <body>.
  *
- * Deliberately a SINGLE shared helper rather than 12 copy-pasted
- * window.<gameId>AchievementStats hooks (unlike Grid's C15
- * window.gridCompare, which is one bespoke comparison line per game) --
- * every game's achievements panel already renders potentially a dozen-plus
- * rows in one pass, and every one of those rows needs the same "look up
- * this row's achievement id in the fetched blob, write in a line of text"
- * treatment, generic enough that one shared function can do it for any
- * game's panel. It relies on each achievement row in the DOM carrying a
- * `data-achievement-id` attribute set to that achievement's own id --
- * already added to every game's achievement-card (or, for Le Champ de
- * Mots' tiered earned/next rows, achievement-earned/achievement-next)
- * element alongside this rollout.
+ * game.py calls window.applyAchievementStats() (through the optional-hook pattern
+ * `getattr(window, "applyAchievementStats", None)`) after its achievements panel has rendered;
+ * this script never touches Pyodide or game state. It needs each row in #achievements-panel to
+ * carry data-achievement-id, and writes plain text into it. Every failure (network, missing
+ * panel or row) leaves the row exactly as the game rendered it.
  *
- * Same Python-decides/JS-fetches division of labor as every other
- * community-comparison feature on this hub: game.py calls this function
- * (via the same `getattr(window, "applyAchievementStats", None)` optional-
- * hook pattern as Grid's C15) once its own achievements panel has finished
- * rendering into the DOM; this script never touches Pyodide or game state,
- * it only reads the already-rendered panel and writes plain text into it.
- * Fails soft everywhere: a network error, a missing panel, or a missing
- * data-achievement-id row all just leave that row exactly as game.py
- * rendered it, no visible error.
+ * Rarity (Z-15): a row whose earned_pct is known gets a Gold / Silver / Bronze label (rarer is
+ * better), as text plus a shape plus a border style, never colour alone. The thresholds live in
+ * RARITY_THRESHOLDS below (setRarityThresholds() changes them at runtime). No label while the
+ * percentage is suppressed.
  *
- * Z-15 additions (planning/TODO.md): rarity labels and hidden achievements.
- *   - Rarity: each row whose earned_pct is known gets a Gold / Silver / Bronze label
- *     (rarer = better). The thresholds live in ONE place, RARITY_THRESHOLDS below, and can be
- *     changed at runtime with NoyvjAchievementStats.setRarityThresholds(). The label is text
- *     plus a shape (star, diamond, circle) plus a border style, never colour alone. It is
- *     suppressed exactly when the percentage is: while the whole game is `suppressed`, or an
- *     id is absent from the response (too few players), no label and no guess.
- *   - Hidden: a row is hidden when its element has data-achievement-hidden="true" or its id was
- *     passed to NoyvjAchievementStats.registerCatalog(list) with `hidden: true`
- *     (achievements.json entries may carry "hidden": true). Until the row is earned (its element
- *     has a class ending in "earned", e.g. achievement-card--earned, or
- *     data-achievement-earned="true") its description shows as "???".
- *   - window.NoyvjAchievementStats also lets shared/achievement-share.js (Z-27) read the same
- *     cached numbers. See planning/SHARED-COMPONENTS.md.
+ * Hidden: a row is hidden when it has data-achievement-hidden="true" or its id was passed to
+ * registerCatalog(list) with `hidden: true` (achievements.json entries may carry it). Until it is
+ * earned (a class ending in "earned", or data-achievement-earned="true") its description reads
+ * "???".
+ *
+ * window.NoyvjAchievementStats also lets shared/achievement-share.js read the same cached numbers.
+ * See planning/SHARED-COMPONENTS.md.
  */
 (function () {
   // Loaded twice (a page that includes it and a helper that injects it): keep the first.

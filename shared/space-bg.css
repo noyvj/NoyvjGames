@@ -33,7 +33,12 @@
 .space-bg::after {
   content: "";
   position: absolute;
-  inset: -10%;
+  inset: 0;
+  /* QA-4: the drift is a compositor transform on an oversized box, not an animated
+     background-position (which repaints every star gradient on every frame). Each layer is
+     enlarged on the side it moves away from by exactly its travel (one tile), and
+     background-position puts the tile origin back where it started, so the loop is the same. */
+  will-change: transform;
 }
 
 /* Layer 1: small, dense, distant stars — the slowest layer, furthest away. */
@@ -53,6 +58,9 @@
     radial-gradient(1.5px 1.5px at 55% 95%, #cfd6ff, transparent 100%);
   background-repeat: repeat;
   background-size: 300px 300px;
+  background-position: 0 300px;
+  top: -300px;
+  right: -300px;
   animation: space-bg-drift-1 170s linear infinite;
   opacity: 0.8;
 }
@@ -70,6 +78,9 @@
     radial-gradient(2.5px 2.5px at 15% 45%, #d7e0ff, transparent 100%);
   background-repeat: repeat;
   background-size: 420px 420px;
+  background-position: 420px 0;
+  left: -420px;
+  bottom: -420px;
   animation: space-bg-drift-2 110s linear infinite reverse;
   opacity: 0.95;
 }
@@ -80,7 +91,11 @@
 .space-bg-stars-bright {
   content: "";
   position: absolute;
-  inset: -10%;
+  inset: 0;
+  top: -300px;
+  right: -300px;
+  will-change: transform;
+  background-position: 0 300px;
   background-image:
     radial-gradient(2px 2px at 18% 22%, #fff, transparent 60%),
     radial-gradient(10px 10px at 18% 22%, rgba(180, 200, 255, 0.35), transparent 70%),
@@ -118,13 +133,13 @@
 }
 
 @keyframes space-bg-drift-1 {
-  from { background-position: 0 0; }
-  to { background-position: -300px 300px; }
+  from { transform: translate3d(0, 0, 0); }
+  to { transform: translate3d(-300px, 300px, 0); }
 }
 
 @keyframes space-bg-drift-2 {
-  from { background-position: 0 0; }
-  to { background-position: 420px -420px; }
+  from { transform: translate3d(0, 0, 0); }
+  to { transform: translate3d(420px, -420px, 0); }
 }
 
 @keyframes space-bg-nebula-drift {

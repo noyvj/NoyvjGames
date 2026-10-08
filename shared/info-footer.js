@@ -37,13 +37,25 @@
     return SLUG ? SLUG.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()) : "";
   }
 
+  // The newest date, parsed once per distinct changelog (the footer text is rebuilt on every panel
+  // mutation and on every poll tick; re-parsing and sorting the whole changelog each time was waste).
+  let cachedSource = null;
+  let cachedDate = "";
   function changelogDate() {
-    let data = window.CHANGELOG_JSON;
-    if (!data) return "";
-    if (typeof data === "string") { try { data = JSON.parse(data); } catch (e) { return ""; } }
-    const list = Array.isArray(data) ? data : data && Array.isArray(data.changelog) ? data.changelog : [];
-    const dates = list.map((e) => e && e.date).filter((d) => typeof d === "string" && /^\d{4}-\d{2}-\d{2}/.test(d));
-    return dates.sort().pop() || "";
+    const source = window.CHANGELOG_JSON;
+    if (!source) return "";
+    if (source === cachedSource) return cachedDate;
+    let data = source;
+    let date = "";
+    if (typeof data === "string") { try { data = JSON.parse(data); } catch (e) { data = null; } }
+    if (data) {
+      const list = Array.isArray(data) ? data : Array.isArray(data.changelog) ? data.changelog : [];
+      const dates = list.map((e) => e && e.date).filter((d) => typeof d === "string" && /^\d{4}-\d{2}-\d{2}/.test(d));
+      date = dates.sort().pop() || "";
+    }
+    cachedSource = source;
+    cachedDate = date;
+    return date;
   }
 
   function seed() {
@@ -111,15 +123,23 @@
     document.querySelectorAll(SELECTOR).forEach(watch);
   }
 
+  // Every comma-separated part of the selector matches something on the page.
+  const PARTS = SELECTOR.split(",").map((p) => p.trim()).filter(Boolean);
+  function everyPanelPresent() {
+    return PARTS.every((sel) => { try { return document.querySelector(sel) !== null; } catch (e) { return true; } });
+  }
+
   function start() {
     scan();
     // Panels some games create late, and the changelog arriving after the boot script finishes.
+    // Polling ends as soon as both have happened (every panel exists and the date is known), instead
+    // of always running for 60 seconds; the observers keep each footer current after that.
     let tries = 0;
     const timer = setInterval(() => {
       scan();
       document.querySelectorAll(SELECTOR).forEach(place);
       tries += 1;
-      if (tries > 120) clearInterval(timer);
+      if (tries > 120 || (everyPanelPresent() && changelogDate())) clearInterval(timer);
     }, 500);
   }
 

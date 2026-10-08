@@ -76,6 +76,8 @@
   }
 
   document.addEventListener("visibilitychange", () => {
+    // Coming back to the tab: the numbers may be a while old (the timer below skips hidden tabs).
+    if (document.visibilityState === "visible") displays.forEach(refresh);
     if (document.visibilityState === "hidden") {
       Object.keys(pending).forEach((key) => {
         const [game, pool] = key.split("/");
@@ -93,7 +95,8 @@
       const display = { game: script.dataset.gameId, pool: script.dataset.pool, target, template: script.dataset.template };
       displays.push(display);
       refresh(display);
-      setInterval(() => refresh(display), REFRESH_MS);
+      // A hidden tab has nobody reading the line: skip the request, refresh on return instead.
+      setInterval(() => { if (document.visibilityState !== "hidden") refresh(display); }, REFRESH_MS);
     }
   }
 })();

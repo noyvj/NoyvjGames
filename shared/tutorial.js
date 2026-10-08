@@ -190,6 +190,9 @@
     let spotlight = null;
     let card = null;
     let reposition = null;
+    // The pending first positioning of the current step. A stale one from the previous step must
+    // never run after a quick Next/Back (it would re-spotlight the old target over a centered card).
+    let positionTimer = null;
 
     function storageKey() {
       return `tutorial-seen:${gameId}`;
@@ -252,35 +255,17 @@
       const target = currentTarget();
 
       if (target) {
-        // `behavior: "smooth"` used to run here, with positioning deferred
-        // to a fixed 260ms timeout plus a 'scroll' listener meant to catch
-        // up once the animation finished. For a target far down a long
-        // page, the smooth-scroll animation can genuinely take longer than
-        // that (and, in at least one real environment, stopped dispatching
-        // 'scroll' events before the animation visually settled) -- either
-        // way, positionNow() below ran once against a mid-scroll rect and
-        // then never got a correcting call, leaving the card stuck exactly
-        // where that one bad reading put it: fully off-screen. An instant
-        // jump removes the whole race -- there's no animation left to
-        // outrun, so the very next positionNow() call always sees the
-        // final, settled rect.
+        // Instant jump, not smooth: a smooth scroll can outlast the 260 ms wait (or stop dispatching
+        // 'scroll'), leaving the card positioned from a mid-scroll rect and stuck off-screen.
         target.scrollIntoView({ behavior: "auto", block: "center" });
       }
 
       const positionNow = () => {
         card.classList.remove("centered");
         if (target) {
-          // #tutorial-overlay is `position: fixed`, which makes it the
-          // containing block for its `position: absolute` children
-          // (spotlight/card) -- their top/left are relative to the
-          // VIEWPORT, exactly like getBoundingClientRect()'s own numbers
-          // already are. Adding window.scrollX/scrollY here double-counts
-          // the scroll offset once the page has actually scrolled (which
-          // target.scrollIntoView() below routinely causes), pushing the
-          // card further down/right the more the page is scrolled -- a
-          // real bug (not a hypothetical one) that pushed step 2's card
-          // fully off-screen on a short mobile viewport. Fixed by using
-          // the viewport-relative rect directly, with no scroll offset.
+          // The overlay is `position: fixed`, so spotlight/card top/left are viewport-relative, like
+          // getBoundingClientRect(). Adding scrollX/scrollY double-counts the scroll and pushed step 2's
+          // card off-screen on a short phone.
           const rect = target.getBoundingClientRect();
           const pad = 6;
           spotlight.style.display = "block";
@@ -332,7 +317,8 @@
       reposition = positionNow;
       window.addEventListener("scroll", reposition, true);
       window.addEventListener("resize", reposition);
-      window.setTimeout(positionNow, target ? 260 : 0);
+      if (positionTimer !== null) window.clearTimeout(positionTimer);
+      positionTimer = window.setTimeout(() => { positionTimer = null; positionNow(); }, target ? 260 : 0);
 
       card.innerHTML = "";
       const counter = el("p", {
@@ -388,6 +374,7 @@
     function close(seen) {
       if (seen) markSeen();
       if (overlay) overlay.hidden = true;
+      if (positionTimer !== null) { window.clearTimeout(positionTimer); positionTimer = null; }
       if (reposition) {
         window.removeEventListener("scroll", reposition, true);
         window.removeEventListener("resize", reposition);
@@ -421,13 +408,17 @@
 
     function wireChrome(options) {
       const restartBtn = document.getElementById(options.restartButtonId || "tutorial-restart-button");
-      if (restartBtn) {
+      // dataset flags: a second init() must not stack a second handler (two clicks = two starts, or
+      // for the How to Play toggle an open then an immediate close).
+      if (restartBtn && !restartBtn.dataset.tutorialWired) {
+        restartBtn.dataset.tutorialWired = "1";
         restartBtn.addEventListener("click", start);
       }
 
       const howtoBtn = document.getElementById(options.howtoButtonId || "howto-toggle-button");
       const howtoPanel = document.getElementById(options.howtoPanelId || "howto-panel");
-      if (howtoBtn && howtoPanel) {
+      if (howtoBtn && howtoPanel && !howtoBtn.dataset.tutorialWired) {
+        howtoBtn.dataset.tutorialWired = "1";
         const openLabel = howtoBtn.innerText;
         howtoBtn.addEventListener("click", () => {
           const willOpen = howtoPanel.hidden;

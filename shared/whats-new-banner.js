@@ -1,58 +1,19 @@
 /*
- * Shared "what's new since you last played" banner — planning/TODO.md's
- * Z24 (site-wide goal), deliberately DISTINCT from each game's own
- * in-game "What's New" changelog PANEL (the "📋 What's New" toggle button
- * built per-game from that same changelog.json, e.g. Loop's own K16 note
- * in games/loop/CLAUDE.md). That panel is opt-in, player-triggered, and
- * always shows the FULL history from scratch, with no memory of what the
- * player has already seen — closer to a changelog page than a
- * notification. This banner is the opposite shape: it appears
- * automatically, unprompted, only for a RETURNING player, and only shows
- * the entries added since their last visit — a real diff, not the whole
- * log — closer to what most software calls a "what's new since you were
- * last here" toast.
+ * Shared "what's new since you last played" banner (planning/TODO.md Z24). Distinct from each
+ * game's own in-game "What's New" panel, which is opt-in and always shows the full history: this
+ * appears on its own, only for a RETURNING player, and lists only the entries newer than the last
+ * one they were shown.
  *
- * One script, included unchanged by every game via:
  *   <script src="../../shared/whats-new-banner.js" data-game-id="<slug>"></script>
- * placed AFTER that game's own changelog fetch in the boot sequence (in
- * practice: right alongside shared/save-widget.js and
- * shared/last-played.js, near the end of <body>, after the inline
- * `main();` call that eventually sets `window.CHANGELOG_JSON`) — same
- * data-game-id convention as every other shared script on this hub.
  *
- * Reuses window.CHANGELOG_JSON exactly as each game's own Python-side
- * changelog panel already does (the raw text of changelog.json, fetched
- * once inside that game's own Promise.all() and handed to Pyodide as a
- * window global) rather than fetching changelog.json a second time here
- * — see e.g. games/loop/index.html's `window.CHANGELOG_JSON =
- * changelogJson;` line. Because that global is set from inside an async
- * `main()` that this script's own <script> tag can't block on just by
- * sitting after it in the markup, this file polls for it the same way
- * shared/save-widget.js's own `waitForLoadState()` polls for
- * `window.pyodide`/`load_state()` — see that file's own comment on why a
- * plain load-order assumption isn't safe against an async boot sequence.
+ * Placed near the end of <body>. It reuses window.CHANGELOG_JSON (the raw text of the game's
+ * changelog.json, set by the game's own boot script) instead of fetching it again, and polls for
+ * it because that global appears only after the async boot. Both changelog shapes are accepted: a
+ * bare array, or {"changelog": [...]}, of {"date": "YYYY-MM-DD", "entry": "..."}.
  *
- * changelog.json itself ships in two equivalent shapes across this repo's
- * 12 games — a bare array (most games) or `{"changelog": [...]}` (SOL/
- * Canopy/Grid/Tide) — both a flat list of `{"date": "YYYY-MM-DD",
- * "entry": "..."}` objects. Both are handled here.
- *
- * Persistence: `localStorage["whats-new-seen:<slug>"]` stores the DATE
- * STRING of the newest changelog entry the player has already been shown
- * (not a timestamp of when the banner last appeared) — a plain
- * `"YYYY-MM-DD"` string, directly comparable against entry dates. A
- * brand-new player (no key yet) never sees a banner dumping the entire
- * history at them — that would read as noise, not news — instead this
- * silently marks the current newest entry as already-seen the first time
- * the script ever runs for them, so only a genuinely RETURNING player who
- * missed real updates since their last visit sees anything.
- *
- * Defensive by construction, matching every other shared file on this
- * hub: a missing/malformed changelog.json, a `window.CHANGELOG_JSON` that
- * never gets set (fetch failure, a game that hasn't adopted the changelog
- * panel pattern yet), unparseable JSON, or a non-array/non-object shape
- * all fall through to "show nothing" rather than throwing or blocking the
- * rest of the page.
+ * localStorage["whats-new-seen:<slug>"] holds the date of the newest entry already shown. A
+ * brand-new player (no key) never gets the whole history: the first run silently marks the newest
+ * entry seen. A missing, malformed or never-set changelog shows nothing.
  */
 (function () {
   const SCRIPT = document.currentScript;
@@ -65,7 +26,10 @@
   const STORAGE_KEY = `whats-new-seen:${GAME_ID}`;
   const MAX_ENTRIES_SHOWN = 5;
 
-  if (!document.getElementById("whats-new-banner-styles")) {
+  // Only a returning player with missed entries ever sees the banner, so the stylesheet is added
+  // when it is mounted, not on every page load.
+  function injectStyles() {
+    if (document.getElementById("whats-new-banner-styles")) return;
     const style = document.createElement("style");
     style.id = "whats-new-banner-styles";
     style.textContent = `
@@ -129,15 +93,9 @@
     document.head.appendChild(style);
   }
 
-  // Same shape of async-boot-order problem shared/save-widget.js's own
-  // waitForLoadState() solves: window.CHANGELOG_JSON is set from inside
-  // each game's async main(), well after this script's own <script> tag
-  // runs, so this has to poll rather than assume it's already there.
-  // Unlike waitForLoadState() (which rejects on timeout because the save
-  // widget has real fallback/logging behavior tied to that failure), a
-  // timeout here just means "no changelog data materialized in time" —
-  // exactly the same as "no changelog data at all," so it resolves to
-  // null instead of rejecting.
+  // window.CHANGELOG_JSON is set from inside each game's async main(), after this script ran, so
+  // poll for it (as save-widget.js does for window.pyodide). A timeout resolves null, which is the
+  // same as "no changelog": show nothing.
   function waitForChangelogJson(timeoutMs = 15000, intervalMs = 150) {
     return new Promise((resolve) => {
       const start = Date.now();
@@ -218,23 +176,11 @@
   }
 
   function mountBanner(newEntries, newestDate) {
-    // document.body is guaranteed to exist by the time this runs (the
-    // <script> tag itself sits near the end of <body>), but guard anyway,
-    // matching shared/confirm-dialog.js's own defensive DOMContentLoaded
-    // fallback rather than assuming a specific per-game markup position.
-    //
-    // The banner itself is `position: fixed` (see the injected CSS above)
-    // rather than a normal-flow element -- found live, verifying against
-    // SOL: several games' own `body { display: flex; align-items: center;
-    // justify-content: center; }` shell (centering a single `#game` child)
-    // turns into a broken two-item flex row the instant a second in-flow
-    // sibling like a plain <div> gets inserted before it. A fixed-position
-    // element is removed from its parent's flex layout entirely, so it can
-    // be inserted as a body child on ANY of this hub's 12 games regardless
-    // of that game's own body/shell layout, the same reasoning
-    // achievement-toast/loop-closed-banner-style fixed overlays already
-    // rely on elsewhere in this hub.
+    // The banner is `position: fixed` on purpose: several games' `body { display: flex }` shells
+    // center a single #game child, and an in-flow sibling inserted before it broke that layout.
+    // A fixed element is out of the flex flow, so it works on every game.
     const insert = () => {
+      injectStyles();
       const banner = buildBanner(newEntries, () => {
         try {
           localStorage.setItem(STORAGE_KEY, newestDate);

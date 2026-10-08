@@ -46,9 +46,18 @@
  * time when <body> doesn't exist yet.
  */
 (function () {
+  if (window.ConfirmDialog) return;   // a second copy would only replace a working one
   const STORAGE_PREFIX = "confirm-dialog:skip:";
 
-  if (!document.getElementById("confirm-dialog-styles")) {
+  // Storage can throw (blocked site data). A blocked read means "no skip flag", a blocked write
+  // just means the opt-out is not remembered: the guarded action itself must still go ahead.
+  function lsGet(key) { try { return localStorage.getItem(key); } catch (err) { return null; } }
+  function lsSet(key, value) { try { localStorage.setItem(key, value); } catch (err) { /* not remembered */ } }
+  function lsRemove(key) { try { localStorage.removeItem(key); } catch (err) { /* nothing to forget */ } }
+
+  // Injected on the first real use, not while <head> is still parsing: most page loads never ask.
+  function injectStyles() {
+    if (document.getElementById("confirm-dialog-styles")) return;
     const style = document.createElement("style");
     style.id = "confirm-dialog-styles";
     style.textContent = `
@@ -109,22 +118,9 @@
     document.head.appendChild(style);
   }
 
-  // Every game on this site includes this script from a plain, un-deferred
-  // <script src="..."> tag sitting in <head> (same convention as
-  // tutorial.js/mobile-hud.js/mobile-dock.js) -- which runs it before
-  // <body> has been parsed, so `document.body` is still null at this
-  // point. tutorial.js/mobile-hud.js dodge this by only touching
-  // `document.body` from inside a function invoked later (tutorial's
-  // `buildOverlay()`, called on first actual use); this file used to
-  // build+appendChild its overlay at top-level IIFE-execution time
-  // instead, which threw "Cannot read properties of null (reading
-  // 'appendChild')" and aborted before ever reaching the
-  // `window.ConfirmDialog = {...}` assignment below -- silently killing
-  // the dialog on every page that includes this script. Fixed the same
-  // way tutorial.js already does it: defer the DOM-touching setup into
-  // `ensureBuilt()`, called lazily on first real use (`ask()`/
-  // `resetSkip()`) once `document.body` is guaranteed to exist, instead
-  // of eagerly at script-parse time.
+  // The tag sits in <head>, so this runs before <body> exists: building the overlay here threw on
+  // document.body and killed the whole dialog. The DOM is built lazily in ensureBuilt(), on the
+  // first ask()/resetSkip().
   let overlay = null;
   let messageEl = null;
   let skipCheckbox = null;
@@ -147,6 +143,7 @@
 
   function ensureBuilt() {
     if (overlay) return;
+    injectStyles();
 
     overlay = document.getElementById("confirm-dialog-overlay");
     if (!overlay) {
@@ -187,7 +184,7 @@
     });
     confirmButton.addEventListener("click", () => {
       if (pendingId && skipCheckbox.checked && !skipCheckbox.closest('#confirm-dialog-skip-row').hidden) {
-        localStorage.setItem(STORAGE_PREFIX + pendingId, "true");
+        lsSet(STORAGE_PREFIX + pendingId, "true");
       }
       const onConfirm = pendingOnConfirm;
       close();
@@ -205,7 +202,7 @@
         console.error("ConfirmDialog.ask() requires a unique `id`");
         return;
       }
-      if (allowSkip && localStorage.getItem(STORAGE_PREFIX + id) === "true") {
+      if (allowSkip && lsGet(STORAGE_PREFIX + id) === "true") {
         if (onConfirm) onConfirm();
         return;
       }
@@ -226,12 +223,14 @@
     // know the exact localStorage key shape.
     resetSkip(id) {
       if (id) {
-        localStorage.removeItem(STORAGE_PREFIX + id);
+        lsRemove(STORAGE_PREFIX + id);
         return;
       }
-      Object.keys(localStorage)
-        .filter((key) => key.startsWith(STORAGE_PREFIX))
-        .forEach((key) => localStorage.removeItem(key));
+      try {
+        Object.keys(localStorage)
+          .filter((key) => key.startsWith(STORAGE_PREFIX))
+          .forEach((key) => lsRemove(key));
+      } catch (err) { /* storage blocked: no flags to clear */ }
     },
   };
 })();

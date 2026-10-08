@@ -243,6 +243,9 @@ html[data-theme="light"] .noyvj-as{--as-fg:#1b2033;--as-border:rgba(60,85,160,.7
       }
       busy = true;   // our own insertions must not retrigger us
       try { decorate(panel, game, gameName); } finally { busy = false; }
+      // MutationObserver callbacks arrive after this function returns, so `busy` alone never caught our
+      // own insertions: drop them here so they do not trigger a second, pointless pass.
+      if (observer) observer.takeRecords();
     };
     run();
     const timer = setInterval(run, 1000);   // the panel is often created late

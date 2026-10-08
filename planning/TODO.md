@@ -1,6 +1,6 @@
 # Site-Wide TODO (round 3)
 
-**Progress: 417/1008 items checked off (41.4%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land.
+**Progress: 421/1008 items checked off (41.8%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land.
 
 Built from your answers in `planning/IMPROVEMENT-IDEAS-ROUND-3.md` (Part 4). Every Round 3 section is now answered (2026-10-07 below the Warframe section); earlier this list held only: **GB** (Canopy gamified), **M** (new games), **N** (seasonal events), **O** (Trade Empire and Continuum replayability), **P/Q/S/T** (Signal, Undersleep, Overclock, Last Line open questions), **X** (Warframe tracker) and **R** (returning later). GC-GI, A-L, U, Z and Y are unanswered and wait for you. The previous list is archived at `planning/todo-archive/260914_260927.md`; anything from it that was moved here is marked "moved" there.
 
@@ -1123,7 +1123,7 @@ One checkbox per pass per area. A pass is not done until its fixes are committed
   - [ ] QA-1 Chronicle
   - [x] QA-1 The hub (index.html, script.js, style.css and the root pages)
   - [x] QA-1 The backend (app/)
-  - [ ] QA-1 Shared components (shared/)
+  - [x] QA-1 Shared components (shared/)
   - [ ] QA-1 Scripts and test infrastructure (scripts/, shared/tests, every game's tests/ folder)
   - [ ] QA-1 The service worker and offline behaviour (sw.js)
   - [ ] QA-1 Planning docs and dev logs (stale or duplicated text)
@@ -1145,7 +1145,7 @@ One checkbox per pass per area. A pass is not done until its fixes are committed
   - [ ] QA-2 Chronicle
   - [x] QA-2 The hub (index.html, script.js, style.css and the root pages)
   - [x] QA-2 The backend (app/)
-  - [ ] QA-2 Shared components (shared/)
+  - [x] QA-2 Shared components (shared/)
   - [ ] QA-2 Scripts and test infrastructure (scripts/, shared/tests, every game's tests/ folder)
   - [ ] QA-2 The service worker and offline behaviour (sw.js)
   - [ ] QA-2 Planning docs and dev logs (stale or duplicated text)
@@ -1167,7 +1167,7 @@ One checkbox per pass per area. A pass is not done until its fixes are committed
   - [ ] QA-3 Chronicle
   - [x] QA-3 The hub (index.html, script.js, style.css and the root pages)
   - [x] QA-3 The backend (app/)
-  - [ ] QA-3 Shared components (shared/)
+  - [x] QA-3 Shared components (shared/)
   - [ ] QA-3 Scripts and test infrastructure (scripts/, shared/tests, every game's tests/ folder)
   - [ ] QA-3 The service worker and offline behaviour (sw.js)
   - [ ] QA-3 Planning docs and dev logs (stale or duplicated text)
@@ -1189,7 +1189,7 @@ One checkbox per pass per area. A pass is not done until its fixes are committed
   - [ ] QA-4 Chronicle
   - [x] QA-4 The hub (index.html, script.js, style.css and the root pages)
   - [x] QA-4 The backend (app/)
-  - [ ] QA-4 Shared components (shared/)
+  - [x] QA-4 Shared components (shared/)
   - [ ] QA-4 Scripts and test infrastructure (scripts/, shared/tests, every game's tests/ folder)
   - [ ] QA-4 The service worker and offline behaviour (sw.js)
   - [ ] QA-4 Planning docs and dev logs (stale or duplicated text)

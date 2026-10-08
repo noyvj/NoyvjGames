@@ -134,8 +134,16 @@
     return { panel: panel, setOpen: setOpen };
   }
 
+  // The one live keydown listener. A second init() (two includes, or a game wiring it twice) replaces
+  // it: two listeners would both toggle the "?" overlay, which reads as it never opening.
+  var activeListener = null;
+
   window.KeyboardShortcuts = {
     init: function (config) {
+      if (activeListener) {
+        document.removeEventListener("keydown", activeListener);
+        activeListener = null;
+      }
       config = config || {};
       var panels = config.panels || [];
       var helpId = config.helpPanelId || "kb-shortcuts-panel";
@@ -155,7 +163,7 @@
         help = buildHelpOverlay(helpId, config.extra);
       }
 
-      document.addEventListener("keydown", function (event) {
+      activeListener = function (event) {
         if (isTypingTarget(event.target)) return;
         if (event.ctrlKey || event.metaKey || event.altKey) return;
 
@@ -181,7 +189,8 @@
           });
           if (closedSomething) event.preventDefault();
         }
-      });
+      };
+      document.addEventListener("keydown", activeListener);
     },
   };
 })();

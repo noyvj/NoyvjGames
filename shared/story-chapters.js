@@ -69,7 +69,10 @@
     countEl.textContent = `${shown.length} of ${chapters.length} chapters`;
     if (shown.length) {
       const latest = shown[shown.length - 1];
-      banner.textContent = `${latest.title}: ${latest.text.split(/(?<=[.!?])\s/)[0]}`;
+      // First sentence, without a lookbehind regex (a syntax error in Safari before 16.4 would
+      // stop this whole file from loading).
+      const firstSentence = (latest.text.match(/^[\s\S]*?[.!?](?=\s|$)/) || [latest.text])[0];
+      banner.textContent = `${latest.title}: ${firstSentence}`;
     } else {
       banner.textContent = "";
     }
