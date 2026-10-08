@@ -797,6 +797,7 @@ def reset_session(grid_size=None, _render_after=True, difficulty=None, challenge
     # before the module has ever had a session), so there's nothing to
     # bank yet.
     if plots:
+        _bank_lifetime()  # B-9
         _bank_legacy_value()
         legacy_multiplier = load_legacy_bonus()
 
@@ -1224,6 +1225,107 @@ def render_plot_note_input():
         return
     _note_input_for = selected_index
     box.value = plot_notes.get(selected_index, "") if selected_index is not None else ""
+
+
+# B-9 (2026-10-09): lifetime statistics across every finished session on this browser. A session is banked
+# when it ends (the same moment the legacy bonus is banked); the panel adds the live session on top.
+LIFETIME_STORAGE_KEY = "canopy_lifetime_stats_v1"
+LIFETIME_MAX_DIFFICULTIES = 12
+
+
+def _empty_lifetime():
+    return {"sessions": 0, "clears": 0, "replants": 0, "ticks": 0, "by_difficulty": {}}
+
+
+def _nonneg_int(value):
+    try:
+        return max(0, int(value))
+    except (TypeError, ValueError):
+        return 0
+
+
+def _sanitize_lifetime(raw):
+    out = _empty_lifetime()
+    if not isinstance(raw, dict):
+        return out
+    for key in ("sessions", "clears", "replants", "ticks"):
+        out[key] = _nonneg_int(raw.get(key))
+    by = raw.get("by_difficulty")
+    if isinstance(by, dict):
+        for name, row in list(by.items())[:LIFETIME_MAX_DIFFICULTIES]:
+            if not isinstance(row, dict):
+                continue
+            try:
+                out["by_difficulty"][str(name)[:20]] = {
+                    "n": _nonneg_int(row.get("n")),
+                    "sum": max(0.0, float(row.get("sum", 0.0))),
+                    "best": max(0.0, float(row.get("best", 0.0))),
+                }
+            except (TypeError, ValueError):
+                continue
+    return out
+
+
+def load_lifetime():
+    raw = _read_local_storage_item(LIFETIME_STORAGE_KEY)
+    if not raw:
+        return _empty_lifetime()
+    try:
+        return _sanitize_lifetime(json.loads(raw))
+    except ValueError:
+        return _empty_lifetime()
+
+
+def _session_lifetime_numbers():
+    return {
+        "clears": sum(p.clear_count for p in plots),
+        "replants": total_replants,
+        "ticks": _session_ticks,
+        "standing": standing_forest_value(),
+        "difficulty": current_difficulty,
+    }
+
+
+def _bank_lifetime():
+    """Adds the session that is about to end to the stored lifetime totals (skipped when nothing happened)."""
+    now = _session_lifetime_numbers()
+    if now["ticks"] <= 0:
+        return
+    life = load_lifetime()
+    life["sessions"] += 1
+    life["clears"] += now["clears"]
+    life["replants"] += now["replants"]
+    life["ticks"] += now["ticks"]
+    row = life["by_difficulty"].setdefault(now["difficulty"], {"n": 0, "sum": 0.0, "best": 0.0})
+    row["n"] += 1
+    row["sum"] += now["standing"]
+    row["best"] = max(row["best"], now["standing"])
+    _write_local_storage_item(LIFETIME_STORAGE_KEY, json.dumps(life))
+
+
+def lifetime_rows():
+    """The statistics table lines: finished sessions banked plus the live session's clears, replants and time."""
+    life = load_lifetime()
+    now = _session_lifetime_numbers()
+    seconds = (life["ticks"] + now["ticks"]) * TICK_INTERVAL_MS / 1000
+    hours = seconds / 3600
+    rows = [
+        ("Finished sessions", str(life["sessions"])),
+        ("Plots cleared (all time)", str(life["clears"] + now["clears"])),
+        ("Plots replanted (all time)", str(life["replants"] + now["replants"])),
+        ("Time in the forest", f"{hours:.1f} hours" if hours >= 0.1 else f"{seconds / 60:.0f} minutes"),
+    ]
+    for name in sorted(life["by_difficulty"]):
+        row = life["by_difficulty"][name]
+        if row["n"]:
+            rows.append((f"Average standing value, {name}", f"{row['sum'] / row['n']:.1f} over {row['n']} (best {row['best']:.1f})"))
+    return rows
+
+
+def render_lifetime_stats():
+    element = _el("lifetime-stats-table")
+    if element is not None:
+        element.innerText = "\n".join(f"{label}: {value}" for label, value in lifetime_rows())
 
 
 def _request_snapshot(request, kind):
@@ -2544,6 +2646,7 @@ def render_session_summary():
     render_report_card()
     render_forest_log_panels()
     render_request_history()
+    render_lifetime_stats()
     render_plot_note_input()
 
 

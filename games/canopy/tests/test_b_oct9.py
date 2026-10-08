@@ -227,3 +227,78 @@ def test_tile_id_parsing_and_note_box_follows_the_selection(game_env):
     m._note_input_for = None
     m.select_plot(7)
     assert game_env.elements["plot-note-input"].value == "seven"
+
+
+# ---- B-9: lifetime statistics ----
+
+def _memory_storage(m):
+    store = {}
+    m._read_local_storage_item = lambda key: store.get(key)
+    m._write_local_storage_item = lambda key, value: store.__setitem__(key, value)
+    return store
+
+
+def test_nothing_banked_when_the_session_never_ticked(game_env):
+    m = game_env.module
+    store = _memory_storage(m)
+    m._session_ticks = 0
+    m._bank_lifetime()
+    assert store == {}
+    assert dict(m.lifetime_rows())["Finished sessions"] == "0"
+
+
+def test_banking_adds_totals_and_per_difficulty_averages(game_env):
+    import json
+    m = game_env.module
+    store = _memory_storage(m)
+    m._session_ticks = 600
+    m.total_replants = 4
+    m.plots[0].clear_count = 2
+    m.plots[1].clear_count = 1
+    m.current_difficulty = m.DIFFICULTY_NORMAL
+    m._bank_lifetime()
+    m._bank_lifetime()  # a second session with the same numbers
+    life = json.loads(store[m.LIFETIME_STORAGE_KEY])
+    assert (life["sessions"], life["clears"], life["replants"], life["ticks"]) == (2, 6, 8, 1200)
+    assert life["by_difficulty"]["normal"]["n"] == 2
+
+
+def test_rows_add_the_live_session_to_the_banked_ones(game_env):
+    m = game_env.module
+    _memory_storage(m)
+    m._session_ticks = 3600
+    m.plots[0].clear_count = 1
+    m.reset_session()  # banks the ending session
+    m._session_ticks = 1800
+    m.plots[2].clear_count = 3
+    rows = dict(m.lifetime_rows())
+    assert rows["Finished sessions"] == "1"
+    assert rows["Plots cleared (all time)"] == "4"
+    assert rows["Time in the forest"] == "1.5 hours"
+    assert any(label.startswith("Average standing value, normal") for label in rows)
+
+
+def test_reset_session_banks_the_ending_session(game_env):
+    m = game_env.module
+    store = _memory_storage(m)
+    m._session_ticks = 120
+    m.reset_session()
+    assert m.LIFETIME_STORAGE_KEY in store
+
+
+def test_bad_stored_lifetime_is_sanitised(game_env):
+    m = game_env.module
+    store = _memory_storage(m)
+    store[m.LIFETIME_STORAGE_KEY] = "not json"
+    assert m.load_lifetime() == m._empty_lifetime()
+    store[m.LIFETIME_STORAGE_KEY] = '{"sessions": -5, "clears": "x", "by_difficulty": {"ranger": {"n": "3", "sum": -2, "best": "oops"}, "bad": 7}}'
+    life = m.load_lifetime()
+    assert life["sessions"] == 0 and life["clears"] == 0
+    assert "bad" not in life["by_difficulty"] and life["by_difficulty"].get("ranger") is None
+
+
+def test_render_writes_the_table(game_env):
+    m = game_env.module
+    _memory_storage(m)
+    m.render_lifetime_stats()
+    assert "Finished sessions: 0" in game_env.elements["lifetime-stats-table"].innerText
