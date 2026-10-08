@@ -54,12 +54,53 @@ button[disabled], button[aria-disabled="true"] { opacity: 0.55; cursor: default;
 .text-size-control { display: inline-flex; gap: 0.3rem; }
 
 /* The tally: every action moves one of these numbers. */
-.stat-strip { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 0.35rem; margin: 0.5rem 0; }
+.stat-strip { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0.35rem; margin: 0.5rem 0; }
 .stat { background: var(--panel-fill); border: 1px solid var(--line); border-radius: 10px; padding: 0.25rem 0.3rem; text-align: center; min-width: 0; }
 .stat-label { display: block; font-size: 0.62rem; color: var(--muted); letter-spacing: 0.03em; line-height: 1.15; overflow-wrap: anywhere; }
 .stat-value { display: block; font-size: 1.05rem; font-weight: 700; font-variant-numeric: tabular-nums; }
 .stat-value.bump { animation: bump 0.35s ease-out; }
 @keyframes bump { 0% { transform: scale(1); } 40% { transform: scale(1.3); color: var(--accent); } 100% { transform: scale(1); } }
+
+/* The queue: up to three customers at the stall. A card is a button (tap it with a good picked up to hand it over). */
+.queue { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.35rem; max-width: 26rem; margin: 0 auto 0.3rem; }
+.customer { position: relative; display: flex; flex-direction: column; gap: 0.25rem; align-items: stretch; text-align: left; padding: 0.3rem 0.35rem; min-width: 0; min-height: 5.2rem; border-radius: 10px; font-size: 0.8rem; background: var(--surface); }
+.customer.empty { opacity: 0.45; border-style: dashed; align-items: center; justify-content: center; }
+.customer.wants { outline: 3px dashed var(--match); outline-offset: -1px; }
+.customer.wants .cust-want { display: block; }
+.customer.drop-over { background: var(--btn); border-style: dashed; }
+.cust-head { display: flex; gap: 0.3rem; align-items: center; min-width: 0; }
+.cust-face { flex: 0 0 auto; width: 1.4rem; height: 1.4rem; border-radius: 50%; border: 2px solid var(--edge); display: grid; place-items: center; font-weight: 800; font-size: 0.75rem; }
+.customer.haggler .cust-face { border-style: dashed; }
+.customer.critic .cust-face { border-radius: 4px; }
+.customer.bulk .cust-face { border-width: 4px; border-style: double; }
+.cust-name { font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+.cust-kind { font-size: 0.68rem; color: var(--muted); line-height: 1.1; }
+.cust-want { display: none; position: absolute; top: -0.6rem; right: 0.3rem; font-size: 0.62rem; font-weight: 800; line-height: 1; padding: 0.15rem 0.35rem; border-radius: 999px; background: var(--match); color: var(--ink); }
+.cust-order { display: flex; flex-wrap: wrap; gap: 3px; align-items: center; }
+.item { position: relative; display: inline-flex; align-items: center; gap: 1px; }
+.item .good { width: 1.35rem; height: 1.2rem; margin: 0; }
+.item .good-text { font-size: 0.62rem; }
+.item.done { opacity: 0.5; }
+.item.done::after { content: "\2713"; font-weight: 900; font-size: 0.85rem; margin-left: 1px; color: var(--text); }
+.cust-patience { display: flex; align-items: center; gap: 0.3rem; margin-top: auto; }
+.bar { flex: 1 1 auto; height: 0.55rem; border: 1px solid var(--edge); border-radius: 3px; overflow: hidden; background: var(--cell); min-width: 0; }
+.bar-fill { display: block; height: 100%; background: var(--accent); }
+.customer.low .bar-fill { background: repeating-linear-gradient(45deg, var(--accent), var(--accent) 3px, var(--cell) 3px, var(--cell) 6px); }
+.beats { font-variant-numeric: tabular-nums; font-weight: 700; font-size: 0.75rem; min-width: 1.4rem; text-align: right; }
+.customer.low .beats::before { content: "!"; }
+.queue-line { text-align: center; margin: 0 0 0.3rem; font-size: 0.8rem; }
+
+/* The closed stall: the day's summary and the one button that opens the next. */
+.closed-card { text-align: center; padding: 0.8rem 0.4rem; }
+.closed-card h3 { margin: 0 0 0.4rem; font-size: 1.15rem; }
+.summary { margin: 0.5rem auto; max-width: 22rem; }
+.summary-stars { font-size: 1.3rem; font-weight: 800; margin: 0.2rem 0; letter-spacing: 0.1em; }
+.summary-list { display: grid; grid-template-columns: 1fr auto; gap: 0.2rem 1rem; margin: 0.4rem 0; text-align: left; }
+.summary-list dt { color: var(--muted); } .summary-list dd { margin: 0; font-weight: 700; font-variant-numeric: tabular-nums; text-align: right; }
+button.big { font-size: 1.1rem; padding: 0.7rem 1.6rem; min-height: 3rem; margin-top: 0.4rem; }
+.tally { padding: 0.4rem 0.6rem; }
+.tally summary { cursor: pointer; color: var(--muted); font-size: 0.9rem; }
+.tally-strip { grid-template-columns: repeat(3, minmax(0, 1fr)); margin-top: 0.5rem; }
 
 /* The counter. */
 .counter { margin: 0.2rem auto; }
@@ -70,6 +111,7 @@ button[disabled], button[aria-disabled="true"] { opacity: 0.55; cursor: default;
 .cell.partner { outline: 3px dashed var(--match); outline-offset: -1px; }
 .cell.partner::after { content: "+"; position: absolute; top: 1px; right: 4px; font-weight: 900; color: var(--match); font-size: 1rem; line-height: 1; }
 .cell.drop-over { background: var(--btn); border-style: dashed; }
+.cell.hand-over { outline: 3px dotted var(--match); outline-offset: -1px; }
 .cell.broom-armed.has-good { outline: 3px dotted var(--accent); outline-offset: -1px; }
 .shelf-slot { max-width: 5rem; margin: 0.4rem auto 0; text-align: center; font-size: 0.75rem; color: var(--muted); }
 .shelf-slot .cell { width: 100%; }
@@ -108,7 +150,8 @@ button[disabled], button[aria-disabled="true"] { opacity: 0.55; cursor: default;
 .tool[aria-pressed="true"] { border-width: 3px; border-style: dotted; border-color: var(--accent); }
 .tool.drop-over { border-style: dashed; background: var(--btn-primary); color: var(--on-primary); }
 .selection-info { min-height: 2.6em; max-width: 22rem; margin-left: auto; margin-right: auto; }
-.message { min-height: 1.5rem; font-weight: 600; margin: 0.2rem 0; font-size: 0.9rem; line-height: 1.3; }
+.message { min-height: 2.6em; font-weight: 600; margin: 0.2rem 0; font-size: 0.9rem; line-height: 1.3; }
+.msg-flavor { font-weight: 400; font-style: italic; color: var(--muted); margin-left: 0.3rem; }
 .message.refused::before { content: "Not that: "; font-weight: 700; }
 .how { margin-top: 0.5rem; font-size: 0.9rem; color: var(--muted); }
 .how ul { padding-left: 1.1rem; margin: 0.4rem 0; }
@@ -129,7 +172,27 @@ html[data-effects="off"] *, html[data-effects="off"] *::before, html[data-effect
   /* A phone shows the whole counter and the crates without scrolling: the long intro and the panel title step aside. */
   .tagline { display: none; }
   .panel-title { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; }
-  .stat-strip { margin: 0.3rem 0; }
+  .stat-strip { margin: 0.3rem 0; gap: 0.25rem; }
+  .stat { padding: 0.15rem 0.2rem; }
+  .stat-label { font-size: 0.62rem; }
+  .stat-value { font-size: 0.95rem; }
+  .queue { gap: 0.25rem; }
+  .customer { min-height: 4.6rem; padding: 0.25rem 0.3rem; font-size: 0.75rem; }
+  .cust-kind { display: none; }
+  .queue-line { display: none; }
+  .message { min-height: 2.5em; font-size: 0.82rem; margin: 0 0 0.3rem; overflow: hidden; }
+  .msg-flavor { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; }
+  .stat { display: flex; justify-content: center; align-items: baseline; gap: 0.3rem; }
+  .stat-label { display: inline; font-size: 0.68rem; }
+  .stat-value { display: inline; font-size: 0.95rem; }
+  h1 { margin: 0; font-size: 1.05rem; letter-spacing: 0.04em; }
+  .top-row { flex-wrap: nowrap; gap: 0.4rem; }
+  .top-row h1 { flex: 1 1 auto; min-width: 0; white-space: nowrap; }
+  .hub-back-link { white-space: nowrap; }
+  .game-toolbar { margin: 0.2rem 0; }
+  .hub-back-link { font-size: 0.8rem; }
+  .tally-strip .stat { display: block; text-align: center; }
+  .tally-strip .stat-label, .tally-strip .stat-value { display: block; }
   .panel { margin: 0.4rem 0; padding: 0.5rem 0.5rem; }
   .selection-info { min-height: 2.4em; margin: 0.3rem 0 0; }
   .tools { display: flex; flex-wrap: wrap; align-items: stretch; gap: 0.3rem; margin: 0.4rem 0 0.1rem; }
@@ -147,5 +210,3 @@ html[data-effects="off"] *, html[data-effects="off"] *::before, html[data-effect
   .good-text { font-size: 0.85rem; }
 }
 
-/* The shared floating theme pill would sit over the crates on a phone; park it in the empty top-right corner. */
-#theme-toggle-floating { top: 0.4rem !important; bottom: auto !important; left: auto !important; right: 0.6rem !important; }

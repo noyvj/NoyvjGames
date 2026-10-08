@@ -2,26 +2,32 @@
 
 The view (app.js) never reads engine objects: it sends one JSON string to `handle` and draws the JSON that
 comes back. `get_state()` / `load_state()` are the shared save widget's contract
-(planning/SAVE-BUTTON-INTEGRATION.md). Nothing here reads a clock: the game is turn-based.
+(planning/SAVE-BUTTON-INTEGRATION.md). Nothing here reads a clock: the game is turn-based, customers' patience is
+counted in beats (see day.py), and the save holds no timestamps.
 
 Actions (every request is {"action": ..., ...}; every reply is the whole view):
   open                        the current view
-  crate {family}              put a tier-1 good of that family on the first free cell
-  drop {from, to}             merge two goods, or move / swap (cells are numbered row by row)
-  sell {at}                   sell a good off the board for its sell price
-  broom {at}                  sweep a good off the board for free
-  clear                       sweep the whole board clear (free, no tally change)
+  start_day                   open the stall for the next market day
+  crate {family}              put a tier-1 good of that family on the first free cell (a beat)
+  drop {from, to}             merge two goods (a beat), or move / swap (free); cells are numbered row by row
+  deliver {from, to}          hand the good at cell `from` to customer number `to` (0-2) (a beat when accepted)
+  sell {at}                   sell a good off the counter for its sell price (free)
+  broom {at}                  sweep a good off the counter (a beat)
   reset                       start over (everything)
 """
 
 import json
 
 import goods
-from board import Board, DEFAULT_HEIGHT, DEFAULT_WIDTH
+from board import Board
+from day import Day
+from days import WINDOW, spec
 from goods import FAMILY_INFO, good_label
+from orders import ARCHETYPES, make_queue
+from rng import Rng, mix
 
 FAMILIES_AT_START = ("produce", "textiles", "ceramics")
-TALLY_KEYS = ("crates", "merges", "sold", "swept", "triples")
+TALLY_KEYS = ("crates", "merges", "sold", "swept", "triples", "orders")
 MAX_COINS = 10 ** 9
 
 
@@ -32,80 +38,173 @@ def _int(value, low=0, high=MAX_COINS, default=0):
 
 
 class Stall:
-    """Everything the player has. M2: just a practice board, coins and a tally of what they have done."""
+    """Everything the player has: the stall's lifetime numbers and, while the stall is open, the current day."""
 
     def __init__(self):
-        self.board = Board(DEFAULT_WIDTH, DEFAULT_HEIGHT)
         self.coins = 0
         self.tally = {key: 0 for key in TALLY_KEYS}
         self.best_chain = 0
+        self.days_played = 0
+        self.next_day = 1
+        self.renown = 0
+        self.day = None
+        self.last = None            # the summary of the day that just ended, until the next one opens
+
+    def families(self):
+        return FAMILIES_AT_START
 
     def to_dict(self):
         """Only what differs from a fresh game is written, so old and new saves stay compatible."""
         data = {}
-        if self.board.count():
-            data["board"] = self.board.to_dict()
         if self.coins:
             data["coins"] = self.coins
         tally = {k: v for k, v in self.tally.items() if v}
         if tally:
             data["tally"] = tally
-        if self.best_chain:
-            data["best_chain"] = self.best_chain
+        for key in ("best_chain", "days_played", "renown"):
+            if getattr(self, key):
+                data[key] = getattr(self, key)
+        if self.next_day != 1:
+            data["next_day"] = self.next_day
+        if self.day is not None:
+            data["day"] = self.day.to_dict()
+        if self.last:
+            data["last"] = dict(self.last)
         return data
 
     def load(self, data):
         """Take a saved dict, checking every field on its own; a bad field falls back to its default."""
         data = data if isinstance(data, dict) else {}
-        try:
-            self.board = Board.from_dict(data["board"]) if "board" in data else Board(DEFAULT_WIDTH, DEFAULT_HEIGHT)
-        except (ValueError, TypeError, KeyError):
-            self.board = Board(DEFAULT_WIDTH, DEFAULT_HEIGHT)
         self.coins = _int(data.get("coins"))
         tally = data.get("tally") if isinstance(data.get("tally"), dict) else {}
         self.tally = {key: _int(tally.get(key)) for key in TALLY_KEYS}
         self.best_chain = _int(data.get("best_chain"), high=goods.MAX_TIER)
+        self.days_played = _int(data.get("days_played"), high=10 ** 5)
+        self.renown = _int(data.get("renown"))
+        self.next_day = _int(data.get("next_day"), low=1, high=10 ** 5 + 1, default=1)
+        self.day = None
+        if "day" in data:
+            try:
+                self.day = Day.from_dict(data["day"], self.families())
+            except (ValueError, TypeError, KeyError, AttributeError):
+                self.day = None
+        self.last = None
+        last = data.get("last")
+        if isinstance(last, dict):
+            keys = ("number", "served", "left", "total", "coins", "beats", "best_chain", "stars")
+            clean = {k: _int(last.get(k), high=10 ** 7) for k in keys}
+            if clean["number"] >= 1 and 1 <= clean["stars"] <= 3:
+                self.last = clean
+
+    # ---- the day ---------------------------------------------------------------------------------
+    def open_day(self):
+        number = self.next_day
+        rng = Rng(mix(number, 0xBA2AA2))
+        queue = make_queue(rng, spec(number), list(self.families()))
+        self.day = Day(number, Board(), queue, rng)
+        self.last = None
+        return self.day
+
+    def close_day(self):
+        """Called when the last customer has gone: bank the day and show its summary."""
+        day = self.day
+        self.last = day.summary()
+        self.days_played += 1
+        self.next_day = day.number + 1
+        self.renown += day.served
+        self.day = None
 
 
 stall = Stall()
 
 
-def _cell_view(i, good):
+def _cell_view(good):
     if good is None:
         return None
     if goods.is_wild(good):
         return {"code": goods.good_code(good), "family": "wild", "tier": 1, "name": "Wildcard", "letter": "*",
-                "shape": "star", "label": "Wildcard", "next": None}
+                "shape": "star", "label": "Wildcard", "next": None, "sell": 1}
     info = FAMILY_INFO[good[0]]
     return {"code": goods.good_code(good), "family": good[0], "tier": good[1], "name": goods.good_name(good),
             "letter": info["letter"], "shape": info["shape"], "label": good_label(good),
             "next": goods.next_tier_name(good), "sell": goods.sell_value(good)}
 
 
+def _item_view(f, t, done):
+    info = FAMILY_INFO[f]
+    return {"family": f, "tier": t, "letter": info["letter"], "shape": info["shape"],
+            "label": good_label((f, t)), "done": bool(done)}
+
+
+def _customer_view(index, c):
+    return {"index": index, "name": c.name, "archetype": c.archetype, "kind": c.info["name"], "blurb": c.info["blurb"],
+            "items": [_item_view(f, t, d) for f, t, d in c.items], "patience": c.left, "max": c.max,
+            "pay": c.pay(), "exact": c.info["mode"] == "exact"}
+
+
 def _view(message="", ok=True, event=None):
-    board = stall.board
-    partners = {str(i): board.partners(i) for i, g in board.goods() if board.partners(i)}
-    return {
-        "ok": ok, "message": message, "event": event,
-        "board": {"w": board.width, "h": board.height, "shelf": board.has_shelf,
-                  "cells": [_cell_view(i, g) for i, g in enumerate(board.cells)]},
-        "partners": partners,
+    day = stall.day
+    view = {
+        "ok": ok, "message": message, "flavor": [], "event": event,
+        "phase": "open" if day else "closed",
         "crates": [{"family": f, "name": FAMILY_INFO[f]["name"], "letter": FAMILY_INFO[f]["letter"],
-                    "shape": FAMILY_INFO[f]["shape"]} for f in FAMILIES_AT_START],
-        "full": board.first_empty() is None,
-        "coins": stall.coins,
-        "tally": dict(stall.tally),
-        "best_chain": stall.best_chain,
+                    "shape": FAMILY_INFO[f]["shape"]} for f in stall.families()],
+        "coins": stall.coins, "tally": dict(stall.tally), "best_chain": stall.best_chain,
+        "days_played": stall.days_played, "next_day": stall.next_day, "summary": stall.last,
+        "archetypes": {k: v["name"] for k, v in ARCHETYPES.items()},
     }
+    if day is None:
+        view["board"] = None
+        view["customers"] = []
+        view["partners"] = {}
+        view["deliverable"] = {}
+        view["day"] = None
+        view["full"] = False
+        return view
+    board = day.board
+    view["board"] = {"w": board.width, "h": board.height, "shelf": board.has_shelf,
+                     "cells": [_cell_view(g) for g in board.cells]}
+    view["partners"] = {str(i): board.partners(i) for i, _g in board.goods() if board.partners(i)}
+    view["customers"] = [_customer_view(i, c) for i, c in enumerate(day.window())]
+    view["deliverable"] = {str(k): v for k, v in day.deliverable().items()}
+    view["full"] = board.first_empty() is None
+    view["day"] = {"number": day.number, "total": day.total, "served": day.served, "left": day.left,
+                   "waiting": day.waiting(), "coins": day.coins, "beat": day.beat, "window": WINDOW}
+    return view
 
 
-def _merge_message(result):
-    text = f"Merged into {good_label(result.good)}."
-    if result.triple:
-        text += " Three-way bonus: two tiers at once!"
-    if result.links > 1:
-        text += f" {result.links}-link chain!"
-    return text
+def _apply(outcome):
+    """Fold an action's outcome into the stall (coins, tally) and write the reply message."""
+    day = stall.day
+    stall.coins = min(MAX_COINS, stall.coins + outcome.get("coins", 0) + outcome.get("sold", 0))
+    event = outcome.get("event")
+    if outcome["ok"] and event:
+        kind = event["kind"]
+        if kind == "crate":
+            stall.tally["crates"] += 1
+        elif kind == "merge":
+            result = outcome["merge"]
+            stall.tally["merges"] += result.links
+            stall.tally["triples"] += 1 if result.triple else 0
+            stall.best_chain = max(stall.best_chain, result.links)
+        elif kind == "sell":
+            stall.tally["sold"] += 1
+        elif kind == "broom":
+            stall.tally["swept"] += 1
+        elif kind == "deliver" and outcome.get("served_now"):
+            stall.tally["orders"] += 1
+    message = " ".join([outcome["message"]] + outcome["notes"]).strip()
+    flavor = list(outcome.get("flavor", []))
+    served_now = outcome.get("served_now")
+    left_now = sum(1 for n in outcome["notes"] if "could not wait" in n)
+    if served_now or left_now:
+        event = dict(event or {}, served=bool(served_now), left=left_now)
+    if day.is_over():
+        stall.close_day()
+        message += f" Day {stall.last['number']} is done."
+    view = _view(message, outcome["ok"], event)
+    view["flavor"] = flavor
+    return view
 
 
 def handle(request_json):
@@ -114,56 +213,34 @@ def handle(request_json):
         action = request.get("action")
     except (ValueError, AttributeError):
         return json.dumps({"error": "bad request"})
-    board = stall.board
     if action == "open":
         return json.dumps(_view())
-    if action == "crate":
-        family = request.get("family")
-        if family not in FAMILIES_AT_START:
-            return json.dumps(_view("That crate is not open yet.", ok=False))
-        at = board.place((family, 1))
-        if at is None:
-            return json.dumps(_view("The counter is full. Merge, sell or sweep something to make room.", ok=False))
-        stall.tally["crates"] += 1
-        return json.dumps(_view(f"{good_label((family, 1))} from the {FAMILY_INFO[family]['name']} crate.",
-                                event={"kind": "crate", "at": at}))
-    if action == "drop":
-        src, dst = request.get("from"), request.get("to")
-        result = board.drop(src, dst)
-        if not result.ok:
-            return json.dumps(_view(result.reason, ok=False))
-        if result.links:
-            stall.tally["merges"] += result.links
-            stall.tally["triples"] += 1 if result.triple else 0
-            stall.best_chain = max(stall.best_chain, result.links)
-            return json.dumps(_view(_merge_message(result), event={"kind": "merge", **result.to_dict()}))
-        return json.dumps(_view("Swapped them." if result.swapped else "Moved.",
-                                event={"kind": "move", "src": result.src, "dst": result.dst}))
-    if action == "sell":
-        at = request.get("at")
-        good = board.cells[at] if board.valid_index(at) else None
-        value = board.sell(at)
-        if value is None:
-            return json.dumps(_view("There is nothing there to sell.", ok=False))
-        stall.coins += value
-        stall.tally["sold"] += 1
-        return json.dumps(_view(f"Sold {good_label(good)} for {value} coin{'s' if value != 1 else ''}.",
-                                event={"kind": "sell", "at": at, "coins": value}))
-    if action == "broom":
-        at = request.get("at")
-        good = board.cells[at] if board.valid_index(at) else None
-        if not board.broom(at):
-            return json.dumps(_view("There is nothing there to sweep.", ok=False))
-        stall.tally["swept"] += 1
-        return json.dumps(_view(f"Swept {good_label(good)} away.", event={"kind": "broom", "at": at}))
-    if action == "clear":
-        for i in range(len(board.cells)):
-            board.cells[i] = None
-        return json.dumps(_view("The counter is clear."))
     if action == "reset":
         stall.__init__()
         return json.dumps(_view("Starting over."))
-    return json.dumps({"error": f"unknown action {action!r}"})
+    if action == "start_day":
+        if stall.day is None:
+            stall.open_day()
+        return json.dumps(_view(f"Day {stall.day.number}: the stall is open."))
+    if action not in ("crate", "drop", "deliver", "sell", "broom"):
+        return json.dumps({"error": f"unknown action {action!r}"})
+    day = stall.day
+    if day is None:
+        return json.dumps(_view("Open the stall first.", ok=False))
+    if action == "crate":
+        family = request.get("family")
+        if family not in stall.families():
+            return json.dumps(_view("That crate is not open yet.", ok=False))
+        outcome = day.crate(family)
+    elif action == "drop":
+        outcome = day.drop(request.get("from"), request.get("to"))
+    elif action == "deliver":
+        outcome = day.deliver(request.get("from"), request.get("to"))
+    elif action == "sell":
+        outcome = day.sell(request.get("at"))
+    else:
+        outcome = day.broom(request.get("at"))
+    return json.dumps(_apply(outcome))
 
 
 def get_state():

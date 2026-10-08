@@ -8,8 +8,10 @@ Daily Market (M-4b-9) are NOT part of this build.
 
 - M2 Board UI: game.py (practice counter), index.html, app.js, style.css, settings.js, favicon placeholder; 84 tests; checked at 1440x900 and 360x740 (crates + Sell/Broom visible without scrolling at 360x740)
 
+- M3 Customers and orders: orders.py, days.py, day.py, game.py rewritten around a Day, queue UI, closed/summary card; 141 tests incl. a greedy bot fairness test; checked at 360x740 (everything incl. crates fits without scrolling) and desktop
+
 ## Next
-- Milestone 3: customers and orders (orders.py, queue UI, patience in beats, delivery, 4 archetypes, reachability test). Mobile dock decision: customers add height, so consider shared/mobile-dock.js for the tools row
+- Milestone 4: market day loop: coins -> stall upgrades (shop), 10-day campaign, 3 festivals (slow, harvest, twin), day start card with festival, summary with next-day preview, save every action. First complete playable game
 
 ## Open problems / notes
 - Local Python is 3.9 (Pyodide runs 3.12): engine code avoids 3.10+ syntax.
