@@ -118,6 +118,9 @@ ELEMENT_IDS = [
     "almanac-panel",
     # GB batch 2: forecast, challenge, contracts, announcer, request pace
     "season-forecast",
+    "forest-rank-text",
+    "forest-frame-select",
+    "forest-palette-select",
     "stakeholder-counter-button",
     "perf-indicator",
     "coach-hints-panel",

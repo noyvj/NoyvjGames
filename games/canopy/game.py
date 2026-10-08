@@ -1311,7 +1311,7 @@ LIFETIME_MAX_DIFFICULTIES = 12
 
 
 def _empty_lifetime():
-    return {"sessions": 0, "clears": 0, "replants": 0, "ticks": 0, "by_difficulty": {}}
+    return {"sessions": 0, "clears": 0, "replants": 0, "ticks": 0, "by_difficulty": {}, "xp": 0, "badges": []}
 
 
 def _nonneg_int(value):
@@ -1325,8 +1325,11 @@ def _sanitize_lifetime(raw):
     out = _empty_lifetime()
     if not isinstance(raw, dict):
         return out
-    for key in ("sessions", "clears", "replants", "ticks"):
+    for key in ("sessions", "clears", "replants", "ticks", "xp"):
         out[key] = _nonneg_int(raw.get(key))
+    badges = raw.get("badges")
+    if isinstance(badges, list):
+        out["badges"] = [str(b)[:24] for b in badges if isinstance(b, str)][:12]
     by = raw.get("by_difficulty")
     if isinstance(by, dict):
         for name, row in list(by.items())[:LIFETIME_MAX_DIFFICULTIES]:
@@ -1360,6 +1363,8 @@ def _session_lifetime_numbers():
         "ticks": _session_ticks,
         "standing": standing_forest_value(),
         "difficulty": current_difficulty,
+        "seasons": seasons_survived(),
+        "badge": playstyle_badge(),
     }
 
 
@@ -1373,6 +1378,9 @@ def _bank_lifetime():
     life["clears"] += now["clears"]
     life["replants"] += now["replants"]
     life["ticks"] += now["ticks"]
+    life["xp"] += session_xp(now["standing"], now["seasons"])  # B-19
+    if now["badge"] != BADGE_UNDECIDED and now["badge"] not in life["badges"]:
+        life["badges"] = (life["badges"] + [now["badge"]])[:12]
     row = life["by_difficulty"].setdefault(now["difficulty"], {"n": 0, "sum": 0.0, "best": 0.0})
     row["n"] += 1
     row["sum"] += now["standing"]
@@ -1397,6 +1405,96 @@ def lifetime_rows():
         if row["n"]:
             rows.append((f"Average standing value, {name}", f"{row['sum'] / row['n']:.1f} over {row['n']} (best {row['best']:.1f})"))
     return rows
+
+
+# B-19 (2026-10-09): a long-term Forest Rank. Lifetime XP comes from standing value, seasons survived and how many
+# different playstyle badges you have earned. Ranks unlock cosmetic frames and palettes only: no gameplay effect.
+XP_PER_STANDING_POINT = 0.1
+XP_PER_SEASON = 5
+XP_PER_BADGE_TYPE = 25
+FOREST_RANKS = (
+    (0, "Sapling Warden"),
+    (100, "Grove Tender"),
+    (300, "Canopy Keeper"),
+    (700, "Heartwood Ranger"),
+    (1500, "Old-Growth Steward"),
+    (3000, "Grove Keeper"),
+)
+FRAME_UNLOCKS = {"none": 0, "leaf": 1, "vine": 3, "crest": 5}      # option -> rank index needed
+PALETTE_UNLOCKS = {"default": 0, "dusk": 2, "meadow": 4}
+UI_PREF_FRAME = "canopy-forest-frame"
+UI_PREF_PALETTE = "canopy-forest-palette"
+
+
+def session_xp(standing, seasons):
+    return int(max(0.0, standing) * XP_PER_STANDING_POINT) + XP_PER_SEASON * max(0, int(seasons))
+
+
+def rank_for_xp(xp):
+    """(rank index, name, xp needed for the next rank or None at the top)."""
+    index = 0
+    for i, (needed, _name) in enumerate(FOREST_RANKS):
+        if xp >= needed:
+            index = i
+    nxt = FOREST_RANKS[index + 1][0] if index + 1 < len(FOREST_RANKS) else None
+    return index, FOREST_RANKS[index][1], nxt
+
+
+def forest_rank_info():
+    life = load_lifetime()
+    now = _session_lifetime_numbers()
+    badges = set(life["badges"])
+    if now["badge"] != BADGE_UNDECIDED:
+        badges.add(now["badge"])
+    xp = life["xp"] + session_xp(now["standing"], now["seasons"]) + XP_PER_BADGE_TYPE * len(badges)
+    index, name, nxt = rank_for_xp(xp)
+    return {"xp": xp, "rank_index": index, "rank": name, "next_at": nxt, "badge_types": len(badges)}
+
+
+def chosen_cosmetic(pref_key, unlocks, default, rank_index):
+    value = ui_pref(pref_key, default)
+    return value if value in unlocks and unlocks[value] <= rank_index else default
+
+
+def render_forest_rank():
+    info = forest_rank_info()
+    text_el = _el("forest-rank-text")
+    if text_el is not None:
+        to_next = "top rank reached" if info["next_at"] is None else f"{info['next_at'] - info['xp']} XP to the next rank"
+        text_el.innerText = (
+            f"Forest Rank: {info['rank']} ({info['rank_index'] + 1}/{len(FOREST_RANKS)}), {info['xp']} XP, {to_next}. "
+            f"XP comes from standing value, seasons survived and {XP_PER_BADGE_TYPE} for each playstyle badge type ({info['badge_types']} so far)."
+        )
+    frame = chosen_cosmetic(UI_PREF_FRAME, FRAME_UNLOCKS, "none", info["rank_index"])
+    palette = chosen_cosmetic(UI_PREF_PALETTE, PALETTE_UNLOCKS, "default", info["rank_index"])
+    root = getattr(document, "documentElement", None)
+    if root is not None and hasattr(root, "setAttribute"):
+        root.setAttribute("data-forest-frame", frame)
+        root.setAttribute("data-forest-palette", palette)
+    for select_id, unlocks, current in (("forest-frame-select", FRAME_UNLOCKS, frame), ("forest-palette-select", PALETTE_UNLOCKS, palette)):
+        select = _el(select_id)
+        if select is None:
+            continue
+        select.value = current
+        for option in getattr(select, "children", []) or []:
+            needed = unlocks.get(getattr(option, "value", ""), 0)
+            option.disabled = needed > info["rank_index"]
+            if option.disabled:
+                option.title = f"Unlocks at rank {needed + 1}: {FOREST_RANKS[needed][1]}"
+
+
+def on_forest_frame_change(event=None):
+    select = _el("forest-frame-select")
+    if select is not None and getattr(select, "value", "") in FRAME_UNLOCKS:
+        _write_local_storage_item(UI_PREF_FRAME, select.value)
+        render_forest_rank()
+
+
+def on_forest_palette_change(event=None):
+    select = _el("forest-palette-select")
+    if select is not None and getattr(select, "value", "") in PALETTE_UNLOCKS:
+        _write_local_storage_item(UI_PREF_PALETTE, select.value)
+        render_forest_rank()
 
 
 def render_lifetime_stats():
@@ -2802,6 +2900,7 @@ def render_session_summary():
     render_forest_log_panels()
     render_request_history()
     render_lifetime_stats()
+    render_forest_rank()
     render_coach_hints()
     _update_scenario_best()
     render_scenario_best()
@@ -2890,6 +2989,10 @@ def render_stakeholder_panel():
         else INCENTIVE_ACCEPT_TOOLTIP if is_incentive else CLEAR_GRANT_TOOLTIP
     )
     decline_button.title = INCENTIVE_DECLINE_TOOLTIP if is_incentive else CLEAR_DECLINE_TOOLTIP
+    for select_id, handler in (("forest-frame-select", on_forest_frame_change), ("forest-palette-select", on_forest_palette_change)):
+        select = _el(select_id)  # B-19
+        if select is not None:
+            select.addEventListener("change", create_proxy(handler))
     counter_button = _el("stakeholder-counter-button")  # B-25
     if counter_button is not None:
         plan = counter_offer_plan()

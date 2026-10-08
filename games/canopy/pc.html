@@ -257,6 +257,23 @@
     </div>
     <div id="achievements-panel" class="section achievements-panel" hidden></div>
     <div id="achievement-toast" class="achievement-toast" hidden></div>
+    <!-- B-19: long-term Forest Rank (cosmetic frames and palettes only), shown under the achievements. -->
+    <div id="forest-rank-panel" class="section forest-rank-panel">
+      <p id="forest-rank-text" class="forest-rank-text"></p>
+      <label for="forest-frame-select">Badge frame</label>
+      <select id="forest-frame-select">
+        <option value="none">Plain</option>
+        <option value="leaf">Leaf (dashed edge)</option>
+        <option value="vine">Vine (double edge)</option>
+        <option value="crest">Crest (heavy edge)</option>
+      </select>
+      <label for="forest-palette-select">Palette</label>
+      <select id="forest-palette-select">
+        <option value="default">Default</option>
+        <option value="dusk">Dusk</option>
+        <option value="meadow">Meadow</option>
+      </select>
+    </div>
     <!-- "What's New" changelog panel (site-wide goal, planning/TODO.md, origin K16):
          newest-first highlights pulled from CLAUDE.md's own milestone table, not a
          full duplicate of the dev logs. Same hidden-until-opened .section idiom as

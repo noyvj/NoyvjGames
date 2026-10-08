@@ -595,3 +595,55 @@ def test_countered_history_survives_a_save(game_env):
     state = m.get_state()
     m.load_state(state)
     assert [e["choice"] for e in m.request_history] == ["countered"]
+
+
+# ---- B-19 Forest Rank ----
+
+def test_rank_ladder_thresholds(game_env):
+    m = game_env.module
+    assert m.rank_for_xp(0)[1] == "Sapling Warden"
+    assert m.rank_for_xp(99)[0] == 0 and m.rank_for_xp(100)[1] == "Grove Tender"
+    assert m.rank_for_xp(3000)[1] == "Grove Keeper" and m.rank_for_xp(3000)[2] is None
+    assert m.rank_for_xp(299)[2] == 300
+
+
+def test_session_xp_uses_standing_and_seasons(game_env):
+    m = game_env.module
+    assert m.session_xp(1000.0, 3) == 100 + 15
+    assert m.session_xp(-5, -2) == 0
+
+
+def test_banking_stores_xp_and_each_badge_once(game_env):
+    import json
+    m = game_env.module
+    store = _memory_storage(m)
+    m._session_ticks = 60
+    m._bank_lifetime()
+    m._bank_lifetime()
+    life = json.loads(store[m.LIFETIME_STORAGE_KEY])
+    assert life["xp"] >= 0 and len(life["badges"]) == len(set(life["badges"]))
+    store[m.LIFETIME_STORAGE_KEY] = '{"xp": "x", "badges": ["a", 3, "b"]}'
+    life = m.load_lifetime()
+    assert life["xp"] == 0 and life["badges"] == ["a", "b"]
+
+
+def test_rank_info_adds_badge_bonus_and_the_live_session(game_env):
+    m = game_env.module
+    store = _memory_storage(m)
+    store[m.LIFETIME_STORAGE_KEY] = '{"xp": 90, "badges": ["Steward", "Gardener"]}'
+    m._session_ticks = 10
+    info = m.forest_rank_info()
+    assert info["xp"] >= 90 + 2 * m.XP_PER_BADGE_TYPE
+    assert info["rank_index"] == 1 and info["badge_types"] >= 2
+
+
+def test_locked_cosmetics_fall_back_and_options_are_disabled(game_env):
+    m = game_env.module
+    store = _memory_storage(m)
+    m.ui_pref = lambda key, default=None: "crest" if key == m.UI_PREF_FRAME else default
+    assert m.chosen_cosmetic(m.UI_PREF_FRAME, m.FRAME_UNLOCKS, "none", 0) == "none"
+    assert m.chosen_cosmetic(m.UI_PREF_FRAME, m.FRAME_UNLOCKS, "none", 5) == "crest"
+    m._session_ticks = 5
+    m.render_forest_rank()
+    text = game_env.elements["forest-rank-text"].innerText
+    assert "Sapling Warden" in text and "XP" in text

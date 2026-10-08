@@ -2166,6 +2166,15 @@ html[data-perf-mode="on"] .value-pop, html[data-perf-mode="on"] .leaf-burst { di
 .perf-indicator { margin: 0.25rem 0; padding: 0.2rem 0.6rem; border: 1px dashed currentColor; border-radius: 999px; font-size: 0.8rem; display: inline-block; }
 .perf-indicator[hidden] { display: none; }
 
+/* B-19: Forest Rank cosmetics. The frames differ by edge style, not colour alone. */
+.forest-rank-panel { --forest-accent: currentColor; }
+.forest-rank-text { margin: 0 0 0.4rem; }
+html[data-forest-frame="leaf"] .session-summary-badge { border: 2px dashed var(--forest-accent, currentColor); border-radius: 12px; padding: 0.3rem 0.6rem; }
+html[data-forest-frame="vine"] .session-summary-badge { border: 4px double var(--forest-accent, currentColor); border-radius: 12px; padding: 0.3rem 0.6rem; }
+html[data-forest-frame="crest"] .session-summary-badge { border: 4px solid var(--forest-accent, currentColor); border-radius: 12px; padding: 0.3rem 0.6rem; box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.25); }
+html[data-forest-palette="dusk"] { --forest-accent: #b9a3e3; }
+html[data-forest-palette="meadow"] { --forest-accent: #a7d98a; }
+
 /* ============================================================
    Light theme (Y11b, 2026-09-27). shared/theme-light-games.css already
    restyles the shared chrome (panels, buttons, inputs, HUD readouts);
