@@ -213,3 +213,183 @@ def test_rolling_sets_the_name_the_input_and_the_chronicle(game_env):
     assert second != name and any(e["text"] == f"The harbour came to be called {second}." for e in m.state.chronicle)
     assert len(m.state.settlement_name) <= m.SETTLEMENT_NAME_MAX
     assert all(len(n) <= m.SETTLEMENT_NAME_MAX for n in m.HARBOR_NAMES)
+
+
+# ---- GD-14 balanced seasons ----
+
+def _invest_all(env):
+    for category in ("output", "reduction", "adaptation"):
+        env.invest(category)
+
+
+def test_investing_in_all_three_pays_a_bonus_and_builds_a_streak(game_env):
+    m = game_env.module
+    s = m.state
+    s.funds = 1000
+    s.capacity["output"] = 10
+    _invest_all(game_env)
+    funds_before = s.funds
+    s.advance_season()
+    assert s.balance_streak == 1
+    assert s.funds > funds_before
+    for expected in (2, 3, 4):
+        _invest_all(game_env)
+        s.advance_season()
+        assert s.balance_streak == expected
+
+
+def test_the_multiplier_steps_up_and_caps(game_env):
+    m = game_env.module
+    s = m.state
+    s.funds = 100000
+    seen = []
+    for _ in range(5):
+        _invest_all(game_env)
+        seen.append(s.balance_multiplier())
+        s.advance_season()
+    assert seen == [1.1, 1.2, 1.3, 1.3, 1.3]
+
+
+def test_skipping_a_category_breaks_the_streak(game_env):
+    m = game_env.module
+    s = m.state
+    s.funds = 100000
+    for _ in range(2):
+        _invest_all(game_env)
+        s.advance_season()
+    assert s.balance_streak == 2
+    game_env.invest("output")
+    game_env.invest("reduction")
+    s.advance_season()
+    assert s.balance_streak == 0 and s.season_invested == set()
+
+
+def test_the_bonus_is_exactly_the_multiplier_on_income(game_env):
+    m = game_env.module
+    s = m.state
+    s.capacity["output"] = 10
+    s.funds = 1000
+    plain = m.copy.deepcopy(s)
+    m.state = plain
+    plain.advance_season()
+    plain_gain = plain.funds - 1000
+    m.state = s
+    for category in ("output", "reduction", "adaptation"):
+        s.season_invested.add(category)  # as if invested, without changing capacity or funds
+    s.advance_season()
+    assert s.funds - 1000 == pytest.approx(plain_gain * 1.1)
+
+
+def test_balance_text_and_save(game_env):
+    m = game_env.module
+    s = m.state
+    assert "balanced income bonus" in m.balance_text()
+    s.funds = 1000
+    game_env.invest("output")
+    assert "Acidity Reduction" in m.balance_text() and "Adaptation" in m.balance_text()
+    assert "balance" in m.get_state()
+    state = m.get_state()
+    s.season_invested, s.balance_streak = set(), 0
+    assert "balance" not in m.get_state()
+    m.load_state(state)
+    assert s.season_invested == {"output"}
+    state["balance"] = {"streak": -4, "invested": ["output", "bogus", 5]}
+    m.load_state(state)
+    assert s.balance_streak == 0 and s.season_invested == {"output"}
+
+
+# ---- GD-28 domino season ----
+
+def test_three_rows_flooding_at_once_starts_a_comeback_discount(game_env):
+    m = game_env.module
+    s = m.state
+    s.sea_level = m.row_flood_threshold(m.COASTLINE_ROWS - 1) - 0.01  # the lowest row is about to flood
+    rows_before = m.flooded_row_count(s.sea_level)
+    s.sea_rise_per_season = lambda: 3 * m.ROW_FLOOD_STEP  # a big rise in one season
+    s.advance_season()
+    assert m.flooded_row_count(s.sea_level) - rows_before >= m.DOMINO_MIN_ROWS
+    assert s.domino_seasons_left == m.DOMINO_DISCOUNT_SEASONS and s.domino_count == 1
+    assert any("Domino season" in line for line in s.ticker_log)
+    assert s.invest_cost("adaptation") == 23  # 30 less 25%, rounded up
+    assert s.invest_cost("output") == m.INVEST_COST["output"]
+
+
+def test_the_discount_runs_out_and_buttons_show_the_price(game_env):
+    m = game_env.module
+    s = m.state
+    s.domino_seasons_left = 2
+    m.render()
+    assert game_env.elements["adaptation-invest-button"].innerText == f"Invest ({s.invest_cost('adaptation')})"
+    assert s.invest_cost("adaptation") < m.INVEST_COST["adaptation"]
+    assert "Domino comeback" in game_env.elements["domino-display"].innerText
+    s.advance_season()
+    s.advance_season()
+    assert s.domino_seasons_left == 0 and s.invest_cost("adaptation") == m.INVEST_COST["adaptation"]
+    m.render()
+    assert game_env.elements["domino-display"].hidden is True
+
+
+def test_a_small_rise_is_not_a_domino_and_domino_state_saves(game_env):
+    m = game_env.module
+    s = m.state
+    s.advance_season()
+    assert s.domino_count == 0 and "domino" not in m.get_state()
+    s.domino_seasons_left, s.domino_count = 1, 2
+    state = m.get_state()
+    s.domino_seasons_left, s.domino_count = 0, 0
+    m.load_state(state)
+    assert (s.domino_seasons_left, s.domino_count) == (1, 2)
+    state["domino"] = {"left": 99, "count": "x"}
+    m.load_state(state)
+    assert s.domino_seasons_left == m.DOMINO_DISCOUNT_SEASONS and s.domino_count == 0
+
+
+# ---- GD-27 heritage rescue ----
+
+def test_protecting_a_site_at_the_last_second_is_a_rescue(game_env):
+    m = game_env.module
+    s = m.state
+    site = m.HERITAGE_SITES[0]
+    s.funds = 1000
+    s.sea_level = m.row_flood_threshold(site["row"]) - 0.5 * s.sea_rise_per_season()
+    assert s.seasons_until_flood(site["row"]) <= 1
+    assert s.protect_heritage(site["id"]) is True
+    assert s.last_rescue == site["id"]
+    assert any("SAVED" in line for line in s.ticker_log) and any("last second" in e["text"] for e in s.chronicle)
+    m.render()
+    assert game_env.elements["rescue-burst"].hidden is False and "SAVED" in game_env.elements["rescue-burst"].innerText
+    assert s.last_rescue is None  # shown once
+
+
+def test_an_early_protection_is_not_a_rescue(game_env):
+    m = game_env.module
+    s = m.state
+    s.funds = 1000
+    assert m.state.seasons_until_flood(m.HERITAGE_SITES[0]["row"]) > 1
+    s.protect_heritage(m.HERITAGE_SITES[0]["id"])
+    assert s.last_rescue is None and not any("SAVED" in line for line in s.ticker_log)
+
+
+# ---- GD-30 season report card ----
+
+def test_report_chips_use_arrows_and_words_not_just_colour(game_env):
+    m = game_env.module
+    chips = m.season_report_chips({"funds": 100, "acidity": 1.0, "fish": 0.9}, {"funds": 130, "acidity": 1.8, "fish": 0.81})
+    texts = [c[0] for c in chips]
+    assert texts[0].startswith("▲ Funds +30") and "good" in texts[0]
+    assert texts[1].startswith("▲ Acidity +0.8") and "watch" in texts[1]
+    assert texts[2].startswith("▼ Fish -9%") and "watch" in texts[2]
+    steady = m.season_report_chips({"funds": 5, "acidity": 1, "fish": 1}, {"funds": 5, "acidity": 1, "fish": 1})
+    assert all("unchanged" in c[0] for c in steady)
+
+
+def test_the_overlay_shows_after_advancing_and_not_with_reduced_motion(game_env, monkeypatch):
+    m = game_env.module
+    card = game_env.elements["season-report-card"]
+    monkeypatch.setattr(m, "_reduced_motion", lambda: False)
+    m.on_advance_season()
+    assert card.hidden is False and card.innerHTML.count("report-chip") >= 3
+    card.hidden = True
+    monkeypatch.setattr(m, "_reduced_motion", lambda: True)
+    m.on_advance_season()
+    assert card.hidden is True

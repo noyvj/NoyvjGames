@@ -47,6 +47,13 @@ HERITAGE_SITES = [
     {"id": "lighthouse", "name": "Old lighthouse", "emoji": "🗼", "row": 4, "cost": 120},
     {"id": "reef", "name": "Oyster-reef nursery", "emoji": "🦪", "row": 5, "cost": 180},
 ]
+# GD-14 / GD-28 (2026-10-09): a balanced-seasons income streak and the comeback discount after a domino season.
+BALANCE_MULTIPLIERS = (1.0, 1.1, 1.2, 1.3)  # by streak length, capped at the last
+DOMINO_MIN_ROWS = 3
+DOMINO_DISCOUNT = 0.25
+DOMINO_DISCOUNT_SEASONS = 2
+# GD-27: a heritage site protected when its row would flood within this many seasons counts as a last-second rescue.
+RESCUE_WITHIN_SEASONS = 1
 HERITAGE_UNPROTECTED = "unprotected"
 HERITAGE_PROTECTED = "protected"
 HERITAGE_LOST = "lost"
@@ -436,6 +443,14 @@ class SettlementState:
         # GD-19: the one personal goal pinned under the header, and whether its ping already fired.
         self.pinned_goal = ""
         self.pinned_goal_reached = False
+        # GD-14: categories invested in this season, and how many seasons in a row had all three.
+        self.season_invested = set()
+        self.balance_streak = 0
+        # GD-28: seasons of cheaper adaptation left after a domino season.
+        self.domino_seasons_left = 0
+        self.domino_count = 0
+        # GD-27: the site most recently saved at the last second (transient, shown once, never saved).
+        self.last_rescue = None
 
     # ---- GD-25 quiet seasons -----------------------------------------
     def quiet_seasons(self):
@@ -580,6 +595,10 @@ class SettlementState:
         self.heritage[site_id] = HERITAGE_PROTECTED
         self._log_ticker(f"{site['name']} is now protected — it will outlast the flood, at a small upkeep each season.")
         self._chronicle_event(f"Townsfolk pooled funds to protect the {site['name'].lower()}.")
+        if self.seasons_until_flood(site["row"]) <= RESCUE_WITHIN_SEASONS:  # GD-27: saved at the last second
+            self.last_rescue = site_id
+            self._log_ticker(f"\U0001F6DF SAVED! The {site['name'].lower()} was protected with its row about to flood.")
+            self._chronicle_event(f"The {site['name'].lower()} was saved at the last second, just before its row flooded.")
         return True
 
     def protected_heritage_count(self):
@@ -738,13 +757,26 @@ class SettlementState:
         self.sea_scenario = scenario
         return True
 
+    def invest_cost(self, category):
+        """The price now: the base cost, with the adaptation discount while a domino comeback is running."""
+        base = INVEST_COST[category]
+        if category == "adaptation" and self.domino_seasons_left > 0:
+            return int(math.ceil(base * (1 - DOMINO_DISCOUNT)))
+        return base
+
+    def balance_multiplier(self):
+        """The income multiplier the next Advance Season will use, given this season's investments so far."""
+        streak = self.balance_streak + (1 if set(CATEGORIES) <= self.season_invested else 0)
+        return BALANCE_MULTIPLIERS[min(streak, len(BALANCE_MULTIPLIERS) - 1)]
+
     def invest(self, category):
-        cost = INVEST_COST[category]
+        cost = self.invest_cost(category)
         if self.funds < cost:
             return False
         old_tier_index = self.current_tier_index() if category == "adaptation" else None
         self.funds -= cost
         self.capacity[category] += 1
+        self.season_invested.add(category)  # GD-14
         if category == "adaptation":
             new_tier_index = self.current_tier_index()
             if new_tier_index > old_tier_index:
@@ -1346,7 +1378,18 @@ class SettlementState:
             fishing_share * old_fish_yield + (1 - fishing_share)
         )
         tourism_income, aquaculture_income = self.diversified_income()
-        self.funds += income + tourism_income + aquaculture_income
+        # GD-14: investing in all three categories this season extends the balanced streak; skipping one breaks it.
+        balanced = set(CATEGORIES) <= self.season_invested
+        self.balance_streak = self.balance_streak + 1 if balanced else 0
+        multiplier = BALANCE_MULTIPLIERS[min(self.balance_streak, len(BALANCE_MULTIPLIERS) - 1)]
+        self.season_invested = set()
+        bonus = (income + tourism_income + aquaculture_income) * (multiplier - 1.0)
+        if bonus > 0:
+            self._log_ticker(f"Balanced seasons x{multiplier:.1f}: +{bonus:.0f} income from investing in all three.")
+        self.funds += (income + tourism_income + aquaculture_income) * multiplier
+        if self.domino_seasons_left > 0:  # GD-28: the comeback discount runs down one season at a time
+            self.domino_seasons_left -= 1
+        rows_flooded_before = flooded_row_count(self.sea_level)
         self.max_funds_ever = max(self.max_funds_ever, self.funds)
 
         acidity_change = (
@@ -1359,6 +1402,13 @@ class SettlementState:
 
         rise = self.sea_rise_per_season()
         self.sea_level += rise
+        newly_flooded = flooded_row_count(self.sea_level) - rows_flooded_before
+        if newly_flooded >= DOMINO_MIN_ROWS:  # GD-28: a disaster that becomes a pivot
+            self.domino_seasons_left = DOMINO_DISCOUNT_SEASONS
+            self.domino_count += 1
+            self._log_ticker(f"Domino season: {newly_flooded} rows flooded at once. Emergency funds make adaptation "
+                             f"{round(DOMINO_DISCOUNT * 100)}% cheaper for {DOMINO_DISCOUNT_SEASONS} seasons.")
+            self._chronicle_event(f"{newly_flooded} rows went under in one season; the town rallied behind the walls.")
         damage_this_season = rise * (1 - self.dampening_fraction())
         self.cumulative_damage += damage_this_season
         self.undampened_damage_total += rise
@@ -3822,7 +3872,7 @@ def afford_targets():
     for i, tier in enumerate(ADAPTATION_TIERS):
         if i > state.current_tier_index():
             missing = max(0, tier["threshold"] - state.capacity["adaptation"])
-            out.append((f"tier{i}", f"{tier['name']} (tier {i})", missing * INVEST_COST["adaptation"]))
+            out.append((f"tier{i}", f"{tier['name']} (tier {i})", missing * state.invest_cost("adaptation")))
     for kind, label in (("tourism", "Tourism"), ("aquaculture", "Aquaculture")):
         level = state.diversification[kind]
         if level < DIVERSIFY_MAX_LEVEL:
@@ -3887,7 +3937,7 @@ def render_afford():
 
 
 def net_funds_preview(category):
-    cost = INVEST_COST[category]
+    cost = state.invest_cost(category)
     after = state.funds - cost
     upkeep = HERITAGE_UPKEEP * state.protected_heritage_count()
     return {"cost": cost, "after_purchase": after, "upkeep": upkeep, "after_upkeep": max(0, after - upkeep), "affordable": after >= 0}
@@ -4039,10 +4089,117 @@ def on_roll_name(event=None):
     render()
 
 
+# GD-14 balanced seasons, GD-28 domino comeback, GD-27 rescue burst, GD-30 season report card -----------------------
+
+def balance_text():
+    streak = state.balance_streak
+    invested = state.season_invested
+    missing = [INVEST_LABELS[c] for c in CATEGORIES if c not in invested]
+    next_mult = state.balance_multiplier()
+    if not missing:
+        return f"Balanced: all three invested this season, so the next advance pays x{next_mult:.1f} income (streak {streak})."
+    if streak:
+        return f"Balanced streak {streak} (x{BALANCE_MULTIPLIERS[min(streak, 3)]:.1f}). Invest in {', '.join(missing)} this season to keep it."
+    if invested:
+        return f"Add {', '.join(missing)} this season for a balanced income bonus (x{BALANCE_MULTIPLIERS[1]:.1f}, rising to x{BALANCE_MULTIPLIERS[-1]:.1f})."
+    return f"Invest in all three categories in one season for a balanced income bonus (x{BALANCE_MULTIPLIERS[1]:.1f}, rising to x{BALANCE_MULTIPLIERS[-1]:.1f})."
+
+
+def domino_text():
+    if state.domino_seasons_left > 0:
+        return (f"Domino comeback: adaptation costs {round(DOMINO_DISCOUNT * 100)}% less for {state.domino_seasons_left} more "
+                f"season{'s' if state.domino_seasons_left != 1 else ''}.")
+    return ""
+
+
+def _reduced_motion():
+    root = getattr(document, "documentElement", None)
+    if root is not None and hasattr(root, "getAttribute") and root.getAttribute("data-reduced-motion") == "true":
+        return True
+    try:
+        return bool(_js.window.matchMedia("(prefers-reduced-motion: reduce)").matches)
+    except Exception:  # noqa: BLE001 -- outside a browser there is no media query
+        return False
+
+
+def _hide_later(element_id, delay_ms):
+    holder = []
+
+    def hide():
+        el = document.getElementById(element_id)
+        if el is not None:
+            el.hidden = True
+        if holder:
+            holder[0].destroy()
+
+    holder.append(create_proxy(hide))
+    setTimeout(holder[0], delay_ms)
+
+
+def render_rescue_burst():
+    """GD-27: the lifeboat burst, shown once for a last-second heritage rescue."""
+    el = document.getElementById("rescue-burst")
+    if el is None or state.last_rescue is None:
+        return
+    site = next((x for x in HERITAGE_SITES if x["id"] == state.last_rescue), None)
+    state.last_rescue = None
+    if site is None:
+        return
+    el.innerText = f"\U0001F6DF SAVED! {site['emoji']} {site['name']}"
+    el.hidden = False
+    announce(f"Saved at the last second: {site['name']}.")
+    _hide_later("rescue-burst", 3500)
+
+
+def season_report_chips(before, after):
+    """Three chips (funds, acidity, fish yield) as (text, good) with a shape arrow, so good and bad never rely on colour."""
+    def chip(label, delta, higher_is_good, fmt):
+        if abs(delta) < 1e-9:
+            return (f"\u25ac {label} unchanged", True)
+        arrow = "\u25b2" if delta > 0 else "\u25bc"
+        good = (delta > 0) == higher_is_good
+        return (f"{arrow} {label} {fmt(delta)} ({'good' if good else 'watch'})", good)
+    return [
+        chip("Funds", after["funds"] - before["funds"], True, lambda d: f"{d:+.0f}"),
+        chip("Acidity", after["acidity"] - before["acidity"], False, lambda d: f"{d:+.1f}"),
+        chip("Fish", (after["fish"] - before["fish"]) * 100, True, lambda d: f"{d:+.0f}%"),
+    ]
+
+
+def _season_numbers():
+    return {"funds": state.funds, "acidity": state.acidity, "fish": state.fish_yield_multiplier()}
+
+
+def show_season_report(before, after):
+    """GD-30: a short overlay after Advance Season. Skipped with reduced motion (the live-region announcement still says it all)."""
+    el = document.getElementById("season-report-card")
+    if el is None or _reduced_motion():
+        return False
+    el.innerHTML = "".join(
+        f'<span class="report-chip report-chip--{"good" if good else "watch"}">{html.escape(text)}</span>' for text, good in season_report_chips(before, after)
+    )
+    el.hidden = False
+    _hide_later("season-report-card", 2200)
+    return True
+
+
+def render_balance():
+    el = document.getElementById("balance-display")
+    if el is not None:
+        el.innerText = balance_text()
+    dom = document.getElementById("domino-display")
+    if dom is not None:
+        text = domino_text()
+        dom.innerText = text
+        dom.hidden = not text
+    render_rescue_burst()
+
+
 def render_tide_oct9():
     render_afford()
     render_goal()
     render_quiet()
+    render_balance()
 
 
 def render():
@@ -4146,11 +4303,11 @@ def render():
     for category in CATEGORIES:
         document.getElementById(f"{category}-count").innerText = str(state.capacity[category])
         invest_button = document.getElementById(f"{category}-invest-button")
-        invest_button.innerText = f"Invest ({INVEST_COST[category]})"
-        invest_button.disabled = state.funds < INVEST_COST[category]
+        invest_button.innerText = f"Invest ({state.invest_cost(category)})"
+        invest_button.disabled = state.funds < state.invest_cost(category)
         # D-7: three buttons all reading "Invest (30)" are ambiguous to a screen reader.
         invest_button.setAttribute(
-            "aria-label", f"Invest {INVEST_COST[category]} funds in {INVEST_LABELS[category]}"
+            "aria-label", f"Invest {state.invest_cost(category)} funds in {INVEST_LABELS[category]}"
         )
 
     render_output_mix_controls()
@@ -4186,15 +4343,17 @@ def _make_invest_handler(category):
         render()
         if done:
             announce(f"Invested in {INVEST_LABELS[category]}. Funds now {state.funds:.0f}.")
-        elif funds_before < INVEST_COST[category]:
+        elif funds_before < state.invest_cost(category):
             announce(f"Not enough funds to invest in {INVEST_LABELS[category]}.")
     return handler
 
 
 def on_advance_season(event=None):
+    before = _season_numbers()
     state.advance_season()
     check_pinned_goal()  # GD-19
     render()
+    show_season_report(before, _season_numbers())  # GD-30
     announce(state.season_result_text())
     _set_advance_note("")
 
@@ -4423,6 +4582,8 @@ def get_state():
         "season_ledger": copy.deepcopy(state.season_ledger),
         "season_snapshots": copy.deepcopy(state.season_snapshots),
         **({"pinned_goal": {"id": state.pinned_goal, "reached": state.pinned_goal_reached}} if state.pinned_goal else {}),  # GD-19
+        **({"balance": {"streak": state.balance_streak, "invested": sorted(state.season_invested)}} if (state.balance_streak or state.season_invested) else {}),  # GD-14
+        **({"domino": {"left": state.domino_seasons_left, "count": state.domino_count}} if (state.domino_seasons_left or state.domino_count) else {}),  # GD-28
         # Write-only projection (ACHIEVEMENTS-SYSTEM-DESIGN.md §1) —
         # always freshly recomputed, never read back in load_state().
         "achievements_earned": achievement_ids_earned(),
@@ -4711,6 +4872,18 @@ def load_state(data):
     state.replay_count = _clamped_int(data.get("replay_count"), 0, 10**4)
     state.season_ledger = _load_ledger(data.get("season_ledger"))
     state.season_snapshots = _load_snapshots(data.get("season_snapshots"))
+    saved_balance = data.get("balance")  # GD-14
+    state.balance_streak, state.season_invested = 0, set()
+    if isinstance(saved_balance, dict):
+        state.balance_streak = _clamped_int(saved_balance.get("streak"), 0, 10**4)
+        invested = saved_balance.get("invested")
+        if isinstance(invested, list):
+            state.season_invested = {c for c in invested if c in CATEGORIES}
+    saved_domino = data.get("domino")  # GD-28
+    state.domino_seasons_left, state.domino_count = 0, 0
+    if isinstance(saved_domino, dict):
+        state.domino_seasons_left = _clamped_int(saved_domino.get("left"), 0, DOMINO_DISCOUNT_SEASONS)
+        state.domino_count = _clamped_int(saved_domino.get("count"), 0, 10**4)
     saved_goal = data.get("pinned_goal")  # GD-19: an unknown goal id or a bad shape just means no pinned goal
     state.pinned_goal, state.pinned_goal_reached = "", False
     if isinstance(saved_goal, dict) and saved_goal.get("id") in GOALS:

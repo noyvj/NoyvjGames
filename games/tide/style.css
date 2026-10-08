@@ -1786,6 +1786,17 @@ html[data-theme="light"] .planner-input { background: #ffffff; color: #1b2233; b
 .quiet-glow-5 { outline: 2px solid currentColor; outline-offset: 3px; border-radius: 4px; }
 .quiet-glow-10 { outline: 4px double currentColor; outline-offset: 3px; border-radius: 4px; }
 
+/* GD-14 / GD-27 / GD-28 / GD-30 (2026-10-09). */
+.balance-display, .domino-display { margin: 0.2rem 0; }
+.rescue-burst { position: fixed; left: 50%; top: 18%; transform: translateX(-50%); z-index: 70; padding: 0.6rem 1rem; border: 3px solid currentColor; border-radius: 12px; background: #0e2a3a; color: #f3fbff; font-weight: 700; }
+.rescue-burst[hidden], .season-report-card[hidden] { display: none; }
+.season-report-card { position: fixed; left: 50%; bottom: 12%; transform: translateX(-50%); z-index: 70; display: flex; gap: 0.5rem; flex-wrap: wrap; justify-content: center; animation: report-fade 2.2s ease-out forwards; pointer-events: none; }
+.report-chip { padding: 0.35rem 0.7rem; border-radius: 999px; border: 2px solid currentColor; background: #0e2a3a; color: #f3fbff; font-size: 0.9rem; }
+.report-chip--watch { border-style: dashed; }
+@keyframes report-fade { 0% { opacity: 0; } 15% { opacity: 1; } 75% { opacity: 1; } 100% { opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .season-report-card { animation: none; } }
+html[data-reduced-motion="true"] .season-report-card { animation: none; }
+
 /* ============================================================
    Y11b light-theme polish (2026-09-27). Light-only rules from a
    computed-style WCAG contrast scan of the light theme (fresh game, 46

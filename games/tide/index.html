@@ -154,6 +154,9 @@
          full duplicate of the dev logs. Same hidden-until-opened .section idiom as
          achievements/settings above. -->
     <div id="changelog-panel" class="section changelog-panel" hidden></div>
+    <!-- GD-27: lifeboat burst for a last-second heritage rescue. GD-30: a one-second season report card. -->
+    <div id="rescue-burst" class="rescue-burst" role="status" hidden></div>
+    <div id="season-report-card" class="season-report-card" aria-hidden="true" hidden></div>
     <div id="achievement-toast" class="achievement-toast" hidden></div>
     <!-- D7: an on-demand end-of-session recap, same never-forced pattern
          as the achievements/info-page panels. See session_summary_text()
@@ -585,6 +588,9 @@
       </div>
 
       <!-- D-20: funds after the investment under the pointer or focus, and after this season's upkeep. -->
+      <!-- GD-14: balanced-seasons income streak; GD-28: the comeback discount after a domino season. -->
+      <p id="balance-display" class="comparison-message balance-display"></p>
+      <p id="domino-display" class="comparison-message domino-display" hidden></p>
       <p id="net-funds-chip" class="net-funds-chip" role="status" aria-live="polite"></p>
       <div class="advance-row">
         <button id="advance-season-button" class="primary" title="Shortcut: A">Advance Season</button>

@@ -1,6 +1,6 @@
 # Site-Wide TODO (round 3)
 
-**Progress: 538/1095 items checked off (49.1%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land.
+**Progress: 542/1095 items checked off (49.5%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land.
 
 Built from your answers in `planning/IMPROVEMENT-IDEAS-ROUND-3.md` (Part 4). Every Round 3 section is now answered (2026-10-07 below the Warframe section); earlier this list held only: **GB** (Canopy gamified), **M** (new games), **N** (seasonal events), **O** (Trade Empire and Continuum replayability), **P/Q/S/T** (Signal, Undersleep, Overclock, Last Line open questions), **X** (Warframe tracker) and **R** (returning later). GC-GI, A-L, U, Z and Y are unanswered and wait for you. The previous list is archived at `planning/todo-archive/260914_260927.md`; anything from it that was moved here is marked "moved" there.
 
@@ -406,7 +406,7 @@ Your remaining Round 3 answers (Grid to Drift gamified, SOL to Le Champ de Mots,
 - [ ] GD-11: Add Crew and specialists to Tide: hire up to three (Marine Biologist: fish lag one season shorter; Harbor Engineer: tier costs -15%; Broker: better deal terms) each with per-season upkeep so the choice is a build decision. (needs GD-8 (Broker))
 - [ ] GD-12: Add an optional Acid Tide boss to Tide around season 15: a mega-event pushing acidity to a spike unless the player spends a large buffer (funds plus reduction); surviving upgrades the fish recovery banner to a full victory beat, skipping makes fish crash hard.
 - [ ] GD-13: Add Lucky Catch to Tide: each Advance Season can roll a bonus haul (net-cast animation, '+35 lucky catch'), likelier at high fish yield, plus a fish collection where each catch logs a species so collectors can complete it.
-- [ ] GD-14: Add a balanced-seasons combo to Tide: investing in all three categories in a season builds an x1.1/x1.2/x1.3 income streak, skipping a category breaks it.
+- [x] GD-14: Add a balanced-seasons combo to Tide: investing in all three categories in a season builds an x1.1/x1.2/x1.3 income streak, skipping a category breaks it.
 - [ ] GD-15: Extend Tide's flood flash: tiles in a flooded row ripple in sequence, add a foam edge to the flash, a brief screen shake; shake and ripple must be toggleable and respect reduced motion. (partly built: D8 newly-flooded-row flash exists (.coastline-flash, game.py _previous_flooded_rows).) (no 'glub' text: you confirmed 2026-10-07, consistent with declining GD-29)
 - [ ] GD-16: Add boat traffic to Tide's scene: small boat sprites drift across, more with higher fish yield and population, vanishing after a crash and leaving one abandoned hull; ambient only, off with reduced motion.
 - [ ] GD-17: Add harbor-master crew quips to Tide: one-line ticker voice triggered by real state changes ('Wall's holding, boss. Ask me again in five seasons.'), hidden by the existing shared Story toggle plus its own mute switch in Settings.
@@ -419,9 +419,9 @@ Your remaining Round 3 answers (Grid to Drift gamified, SOL to Le Champ de Mots,
 - [ ] GD-24: Add a hard-lag ironman badge to Tide: finishing a 20-season run in Hard Lag without Rewind or checkpoint replay earns a gold-anchor badge on the header and settlement history. (needs GD-20)
 - [x] GD-25: Add a quiet-seasons counter to Tide's meter view: seasons since the last acidity rise, with a glowing frame at 5 and 10.
 - [x] GD-26: Add a dice button next to Tide's settlement name input that rolls fun harbor names ('Port Regret', 'Kelp Junction') and have the chronicle reference it.
-- [ ] GD-27: Add a heritage-site rescue moment to Tide: when a site is saved at the last second before its row floods, show a lifeboat icon and 'SAVED!' burst plus a chronicle entry.
-- [ ] GD-28: Add Domino Season to Tide: when several rows flood in one season the ticker calls it with a tally, and a small comeback bonus (temporary cheaper barriers) follows so a disaster becomes a pivot.
-- [ ] GD-30: Add a season-end report card to Tide: a one-second overlay after each Advance Season with three stat chips (funds, acidity, fish deltas) coloured and iconed by good/bad, then fading; icons not hue-only, off with reduced motion.
+- [x] GD-27: Add a heritage-site rescue moment to Tide: when a site is saved at the last second before its row floods, show a lifeboat icon and 'SAVED!' burst plus a chronicle entry.
+- [x] GD-28: Add Domino Season to Tide: when several rows flood in one season the ticker calls it with a tally, and a small comeback bonus (temporary cheaper barriers) follows so a disaster becomes a pivot.
+- [x] GD-30: Add a season-end report card to Tide: a one-second overlay after each Advance Season with three stat chips (funds, acidity, fish deltas) coloured and iconed by good/bad, then fading; icons not hue-only, off with reduced motion.
 
 *Not added: GD-1 (no); GD-29 (no).*
 
