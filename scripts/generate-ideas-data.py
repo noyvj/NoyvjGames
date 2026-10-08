@@ -27,6 +27,7 @@ ROOT = Path(__file__).resolve().parent.parent
 PLANNING = ROOT / "planning"
 
 ROUNDS = [
+    {"id": "round-4", "title": "Round 4", "file": "IMPROVEMENT-IDEAS-ROUND-4.md", "answers_marker": r"^# PART 4"},
     {"id": "round-3", "title": "Round 3", "file": "IMPROVEMENT-IDEAS-ROUND-3.md", "answers_marker": r"^# PART 4"},
     {"id": "round-2", "title": "Round 2", "file": "IMPROVEMENT-IDEAS-ROUND-2.md", "answers_marker": r"^## [A-Z]{1,2}\s*$"},
 ]
