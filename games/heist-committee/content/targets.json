@@ -170,6 +170,364 @@
         "inspector_bramble"
       ],
       "short": "the Pigeon Museum"
+    },
+    {
+      "id": "the_affineur",
+      "name": "The Affineur's Cellar",
+      "short": "the cheese cellar",
+      "tier": 1,
+      "min_reputation": 0,
+      "blurb": "A cave of aged cheese beneath a village shop. The Grand Reserve wheel has not been cut in thirty years and the whole place smells like a warm armchair.",
+      "beats": [
+        {
+          "name": "Back Door",
+          "tags": []
+        },
+        {
+          "name": "Cellar Steps",
+          "tags": [
+            "dark"
+          ]
+        },
+        {
+          "name": "Rind Hall",
+          "tags": [
+            "tight"
+          ]
+        },
+        {
+          "name": "The Vault",
+          "tags": [
+            "tight"
+          ],
+          "note": "The air here is thick enough to chew."
+        },
+        {
+          "name": "Haul",
+          "tags": []
+        },
+        {
+          "name": "Escape",
+          "tags": []
+        }
+      ],
+      "start_tags": [
+        "smell"
+      ],
+      "base_suspicion": 0,
+      "requirements": [
+        {
+          "id": "slip_in",
+          "label": "Slip past the shopkeeper",
+          "actions": [
+            "sweet_talk",
+            "disguise",
+            "distract"
+          ],
+          "window": [
+            1,
+            2
+          ],
+          "needs_done": [],
+          "value": 0
+        },
+        {
+          "id": "open_vault",
+          "label": "Open the temperature-locked door",
+          "actions": [
+            "lockpick"
+          ],
+          "window": [
+            2,
+            4
+          ],
+          "needs_done": [
+            "slip_in"
+          ],
+          "value": 0
+        },
+        {
+          "id": "lift_wheel",
+          "label": "Lift the Grand Reserve wheel",
+          "actions": [
+            "carry"
+          ],
+          "window": [
+            3,
+            5
+          ],
+          "needs_done": [
+            "open_vault"
+          ],
+          "value": 480
+        },
+        {
+          "id": "samples",
+          "label": "Pocket the sample tray (optional)",
+          "actions": [
+            "carry"
+          ],
+          "window": [
+            2,
+            5
+          ],
+          "needs_done": [
+            "slip_in"
+          ],
+          "value": 70,
+          "optional": true
+        },
+        {
+          "id": "escape",
+          "label": "Reach the getaway van",
+          "actions": [
+            "drive"
+          ],
+          "window": [
+            5,
+            6
+          ],
+          "needs_done": [
+            "lift_wheel"
+          ],
+          "value": 0,
+          "final": true
+        }
+      ],
+      "consolation": 50,
+      "budget": 200,
+      "scout": {
+        "levels": [
+          {
+            "cost": 0,
+            "reveal": 1
+          },
+          {
+            "cost": 25,
+            "reveal": 4
+          },
+          {
+            "cost": 50,
+            "reveal": 8
+          }
+        ],
+        "details": [
+          "A sleepy shopkeeper who sniffs everyone who comes in.",
+          "The vault is kept at exactly eleven degrees, and it shows.",
+          "Nothing here has a camera. Everything here has a nose."
+        ]
+      },
+      "cover_options": [
+        "noise",
+        "cat",
+        "guard",
+        "weird",
+        "alarm",
+        "paperwork"
+      ],
+      "pool": [
+        "cheese_fumes",
+        "mouse_parade",
+        "humidity_alarm",
+        "wheel_rolls",
+        "night_affineur",
+        "stinky_trail",
+        "cat_in_gallery",
+        "vase_falls",
+        "sleepy_guard",
+        "guard_rounds",
+        "alarm_trips"
+      ],
+      "titles": [
+        "The Great Wheel Caper",
+        "A Matter of Rind",
+        "The Brie Who Knew Too Much"
+      ],
+      "intro": "Somewhere under the shop, a wheel of cheese older than the committee is waiting. So is a very sensitive nose."
+    },
+    {
+      "id": "lucky_barge",
+      "name": "The Lucky Barge",
+      "short": "the Lucky Barge",
+      "tier": 2,
+      "min_reputation": 0,
+      "blurb": "A floating casino with a polka band and a cash cage full of chips. It is mostly legal, which is the problem.",
+      "beats": [
+        {
+          "name": "Board",
+          "tags": []
+        },
+        {
+          "name": "Deck",
+          "tags": [
+            "rocking"
+          ],
+          "note": "The deck never quite stops moving."
+        },
+        {
+          "name": "Tables",
+          "tags": []
+        },
+        {
+          "name": "Cash Cage",
+          "tags": [
+            "unlucky"
+          ],
+          "note": "The cage clock shows 13:13, same as the museum's."
+        },
+        {
+          "name": "Count Room",
+          "tags": [
+            "tight",
+            "dark"
+          ]
+        },
+        {
+          "name": "Loading",
+          "tags": []
+        },
+        {
+          "name": "Cast Off",
+          "tags": []
+        }
+      ],
+      "start_tags": [
+        "cameras",
+        "crowd"
+      ],
+      "base_suspicion": 1,
+      "requirements": [
+        {
+          "id": "get_on",
+          "label": "Get on board",
+          "actions": [
+            "sweet_talk",
+            "disguise",
+            "distract"
+          ],
+          "window": [
+            1,
+            2
+          ],
+          "needs_done": [],
+          "value": 0
+        },
+        {
+          "id": "open_cage",
+          "label": "Open the cash cage",
+          "actions": [
+            "lockpick"
+          ],
+          "window": [
+            3,
+            5
+          ],
+          "needs_done": [
+            "get_on"
+          ],
+          "value": 0
+        },
+        {
+          "id": "grab_chips",
+          "label": "Carry out the chips",
+          "actions": [
+            "carry"
+          ],
+          "window": [
+            4,
+            6
+          ],
+          "needs_done": [
+            "open_cage"
+          ],
+          "value": 520
+        },
+        {
+          "id": "golden_dice",
+          "label": "Palm the Golden Dice (optional)",
+          "actions": [
+            "carry"
+          ],
+          "window": [
+            3,
+            6
+          ],
+          "needs_done": [
+            "get_on"
+          ],
+          "value": 120,
+          "optional": true
+        },
+        {
+          "id": "escape",
+          "label": "Cast off before anyone counts",
+          "actions": [
+            "drive"
+          ],
+          "window": [
+            6,
+            7
+          ],
+          "needs_done": [
+            "grab_chips"
+          ],
+          "value": 0,
+          "final": true
+        }
+      ],
+      "consolation": 80,
+      "budget": 230,
+      "scout": {
+        "levels": [
+          {
+            "cost": 0,
+            "reveal": 1
+          },
+          {
+            "cost": 35,
+            "reveal": 5
+          },
+          {
+            "cost": 70,
+            "reveal": 11
+          }
+        ],
+        "details": [
+          "A pit boss, two bouncers and a great many cameras.",
+          "The cash cage has a lock the size of a toaster.",
+          "A polka band that never takes a break."
+        ]
+      },
+      "cover_options": [
+        "noise",
+        "crowd",
+        "camera",
+        "guard",
+        "wet",
+        "weird",
+        "paperwork"
+      ],
+      "pool": [
+        "pit_boss_glare",
+        "high_roller",
+        "band_strikes_up",
+        "bouncer_turns",
+        "seasick_swell",
+        "seagull_snatch",
+        "chip_cart_jam",
+        "pit_audit",
+        "camera_sweep",
+        "guard_rounds",
+        "alarm_trips",
+        "cat_in_gallery",
+        "vase_falls"
+      ],
+      "titles": [
+        "The Barge Gambit",
+        "All In, All Out",
+        "Snake Eyes on the Water"
+      ],
+      "intro": "The Lucky Barge is full of tourists, chips and a bouncer called Sir. The cash cage is below deck, and so is the plan."
     }
   ]
 }

@@ -33,7 +33,7 @@
     },
     {
       "id": "sleepy_guard",
-      "name": "The guard stirs",
+      "name": "The watchman stirs",
       "trigger": "auto",
       "beats": [
         2,
@@ -63,13 +63,13 @@
         "margin": -1,
         "target": "needs:clear"
       },
-      "text": "The night guard in the deckchair stirs. Somebody was too loud.",
-      "absorbed_text": "The guard half-opens one eye, hears nothing, and half-closes it.",
+      "text": "The night watchman stirs in his chair. Somebody was too loud.",
+      "absorbed_text": "The watchman half-opens one eye, hears nothing, and half-closes it.",
       "flavor": "He mutters something about wanting to be a pastry chef."
     },
     {
       "id": "guard_rounds",
-      "name": "The guard walks his rounds",
+      "name": "The watchman walks his rounds",
       "trigger": "auto",
       "beats": [
         2,
@@ -96,8 +96,8 @@
         "margin": -2,
         "target": "needs:clear"
       },
-      "text": "The now-awake guard ambles down the corridor, flashlight swinging.",
-      "absorbed_text": "The guard ambles right past, humming.",
+      "text": "The now-awake watchman ambles down the corridor, flashlight swinging.",
+      "absorbed_text": "The watchman ambles right past, humming.",
       "flavor": "He is humming a song about a lighthouse."
     },
     {
@@ -192,7 +192,7 @@
         "damage": 20,
         "target": "none"
       },
-      "text": "The cat knocks a priceless-looking vase off its plinth. It lands loudly.",
+      "text": "The cat knocks a priceless-looking vase off its shelf. It lands loudly.",
       "absorbed_text": "A quick hand catches the vase. The cat looks disappointed.",
       "flavor": "The vase was a replica of a replica."
     },
@@ -284,8 +284,8 @@
         "suspicion": 3,
         "target": "none"
       },
-      "text": "The guard sees the crew, shrieks, and pulls the alarm lever with great enthusiasm.",
-      "absorbed_text": "The guard reaches for the lever and is handed a cup of tea instead.",
+      "text": "The watchman sees the crew, shrieks, and pulls the alarm lever with great enthusiasm.",
+      "absorbed_text": "The watchman reaches for the lever and is handed a cup of tea instead.",
       "flavor": "The alarm plays a jaunty tune. It is the same tune as the doorbell."
     },
     {
@@ -347,6 +347,439 @@
       "text": "Inspector Bramble pops in to ask why a mug from the staff kitchen is in somebody's pocket.",
       "absorbed_text": "Inspector Bramble is talked into a long tour of the building and forgets the question.",
       "flavor": "Bramble has been inspecting this museum for eleven years and has never found anything."
+    },
+    {
+      "id": "pit_boss_glare",
+      "name": "The pit boss does a lap",
+      "trigger": "random",
+      "beats": [
+        2,
+        5
+      ],
+      "weight": 3,
+      "requires": [
+        "crowd"
+      ],
+      "forbids": [
+        "disguised"
+      ],
+      "emits": [],
+      "kinds": [
+        "guard"
+      ],
+      "skill_counter": {
+        "skill": "charm",
+        "min": 3
+      },
+      "effects": {
+        "suspicion": 1,
+        "margin": -1,
+        "target": "any_task"
+      },
+      "text": "The pit boss does a slow lap of the floor, squinting at every stranger in a bad jacket.",
+      "absorbed_text": "The pit boss is handed a drink by a very friendly stranger and forgets what he was squinting at.",
+      "flavor": "His moustache has its own security clearance."
+    },
+    {
+      "id": "high_roller",
+      "name": "A high roller says hello",
+      "trigger": "random",
+      "beats": [
+        2,
+        6
+      ],
+      "weight": 2,
+      "requires": [
+        "crowd"
+      ],
+      "forbids": [
+        "charmed"
+      ],
+      "emits": [],
+      "kinds": [
+        "crowd"
+      ],
+      "skill_counter": {
+        "skill": "charm",
+        "min": 2
+      },
+      "effects": {
+        "suspicion": 1,
+        "margin": -1,
+        "target": "random_crew"
+      },
+      "text": "A high roller swears he has met one of the crew before, at a wedding, in another country.",
+      "absorbed_text": "The high roller is steered to the buffet by someone with a lovely smile.",
+      "flavor": "He has not met anyone before. He says this a lot."
+    },
+    {
+      "id": "band_strikes_up",
+      "name": "The band strikes up",
+      "trigger": "random",
+      "beats": [
+        1,
+        7
+      ],
+      "weight": 2,
+      "requires": [],
+      "forbids": [
+        "noise"
+      ],
+      "emits": [
+        "noise"
+      ],
+      "kinds": [
+        "noise"
+      ],
+      "skill_counter": null,
+      "effects": {
+        "suspicion": 0,
+        "target": "none"
+      },
+      "text": "The house band strikes up a very enthusiastic polka. Every pot and pan in the building hums along.",
+      "absorbed_text": "The polka starts, and nobody in the crew even flinches.",
+      "flavor": "The accordion player has a lot of opinions."
+    },
+    {
+      "id": "bouncer_turns",
+      "name": "A bouncer turns his head",
+      "trigger": "auto",
+      "beats": [
+        2,
+        7
+      ],
+      "weight": 1,
+      "requires": [
+        "noise"
+      ],
+      "forbids": [
+        "guard_awake",
+        "distracted"
+      ],
+      "emits": [
+        "guard_awake",
+        "guard_near"
+      ],
+      "kinds": [
+        "noise",
+        "guard"
+      ],
+      "skill_counter": {
+        "skill": "watch",
+        "min": 3
+      },
+      "effects": {
+        "suspicion": 1,
+        "margin": -1,
+        "target": "needs:clear"
+      },
+      "text": "A very large bouncer hears the commotion and turns his very large head.",
+      "absorbed_text": "The bouncer glances over, sees only a band and a buffet, and turns back.",
+      "flavor": "He has a name tag that just says 'Sir'."
+    },
+    {
+      "id": "seasick_swell",
+      "name": "A swell rocks the barge",
+      "trigger": "random",
+      "beats": [
+        2,
+        6
+      ],
+      "weight": 2,
+      "requires": [],
+      "forbids": [
+        "rocking"
+      ],
+      "emits": [
+        "rocking",
+        "wet"
+      ],
+      "kinds": [
+        "wet"
+      ],
+      "skill_counter": {
+        "skill": "muscle",
+        "min": 3
+      },
+      "effects": {
+        "suspicion": 0,
+        "margin": -1,
+        "target": "action:carry"
+      },
+      "text": "A passing ferry sends a swell under the barge. Every chip on every table slides an inch to the left.",
+      "absorbed_text": "The barge lurches, and a steady pair of hands keeps everything where it should be.",
+      "flavor": "The ferry's captain waves cheerfully."
+    },
+    {
+      "id": "seagull_snatch",
+      "name": "A seagull sees the haul",
+      "trigger": "random",
+      "beats": [
+        5,
+        7
+      ],
+      "weight": 2,
+      "requires": [],
+      "forbids": [],
+      "emits": [],
+      "kinds": [
+        "weird"
+      ],
+      "skill_counter": {
+        "skill": "watch",
+        "min": 2
+      },
+      "effects": {
+        "suspicion": 0,
+        "loot_loss": 60,
+        "target": "none"
+      },
+      "text": "A seagull dives out of nowhere, snatches a fistful of chips, and leaves with great dignity.",
+      "absorbed_text": "A sharp eye spots the seagull in time, and the haul stays in the bag.",
+      "flavor": "The seagull cashes in at a rival barge later that week."
+    },
+    {
+      "id": "chip_cart_jam",
+      "name": "The cash cart blocks the way",
+      "trigger": "random",
+      "beats": [
+        3,
+        6
+      ],
+      "weight": 2,
+      "requires": [],
+      "forbids": [],
+      "emits": [],
+      "kinds": [
+        "weird"
+      ],
+      "skill_counter": {
+        "skill": "muscle",
+        "min": 2
+      },
+      "effects": {
+        "suspicion": 0,
+        "margin": -1,
+        "target": "needs:clear"
+      },
+      "text": "A trolley of cash chips wedges itself across the corridor, with a wobbly wheel and a very loud squeak.",
+      "absorbed_text": "The trolley is parked neatly out of the way, with no squeak.",
+      "flavor": "Its wheel has opinions about the polka."
+    },
+    {
+      "id": "pit_audit",
+      "name": "The auditor counts everything",
+      "trigger": "auto",
+      "beats": [
+        4,
+        7
+      ],
+      "weight": 1,
+      "requires": [
+        "evidence"
+      ],
+      "forbids": [],
+      "emits": [],
+      "kinds": [
+        "paperwork"
+      ],
+      "skill_counter": {
+        "skill": "charm",
+        "min": 2
+      },
+      "effects": {
+        "suspicion": 2,
+        "target": "none"
+      },
+      "text": "The casino auditor notices a small souvenir missing and begins, patiently, to count everything on the barge.",
+      "absorbed_text": "The auditor is taken to see a very fine view and loses count.",
+      "flavor": "He counts in his sleep."
+    },
+    {
+      "id": "cheese_fumes",
+      "name": "The fumes hit",
+      "trigger": "random",
+      "beats": [
+        2,
+        5
+      ],
+      "weight": 3,
+      "requires": [
+        "smell"
+      ],
+      "forbids": [],
+      "emits": [],
+      "kinds": [
+        "weird"
+      ],
+      "skill_counter": {
+        "skill": "watch",
+        "min": 3
+      },
+      "effects": {
+        "suspicion": 0,
+        "sideline": 1,
+        "target": "random_crew"
+      },
+      "text": "The aged-cheese fumes roll in like a wall of warm socks. Someone has to sit down.",
+      "absorbed_text": "A sharp eye sees the whiff coming and the whole crew breathes through their sleeves.",
+      "flavor": "The smell is described, by a crew member, as 'moist'."
+    },
+    {
+      "id": "mouse_parade",
+      "name": "A parade of mice",
+      "trigger": "random",
+      "beats": [
+        1,
+        4
+      ],
+      "weight": 2,
+      "requires": [
+        "smell"
+      ],
+      "forbids": [
+        "cat"
+      ],
+      "emits": [
+        "noise"
+      ],
+      "kinds": [
+        "noise",
+        "weird"
+      ],
+      "skill_counter": null,
+      "effects": {
+        "suspicion": 0,
+        "target": "none"
+      },
+      "text": "Forty mice march through in a very tidy line, squeaking, toward the good cheese.",
+      "absorbed_text": "The mice are gently redirected toward the snack table, squeaking approvingly.",
+      "flavor": "The lead mouse has a tiny hat."
+    },
+    {
+      "id": "humidity_alarm",
+      "name": "The humidity monitor beeps",
+      "trigger": "random",
+      "beats": [
+        3,
+        6
+      ],
+      "weight": 2,
+      "requires": [],
+      "forbids": [
+        "alarm"
+      ],
+      "emits": [
+        "noise"
+      ],
+      "kinds": [
+        "alarm",
+        "noise"
+      ],
+      "skill_counter": {
+        "skill": "craft",
+        "min": 2
+      },
+      "effects": {
+        "suspicion": 1,
+        "target": "none"
+      },
+      "text": "A humidity monitor starts beeping, because someone opened a door in the wrong order.",
+      "absorbed_text": "A quick hand resets the monitor before it finishes its second beep.",
+      "flavor": "The monitor has never beeped before and sounds embarrassed."
+    },
+    {
+      "id": "wheel_rolls",
+      "name": "A wheel rolls loose",
+      "trigger": "random",
+      "beats": [
+        3,
+        6
+      ],
+      "weight": 2,
+      "requires": [],
+      "forbids": [],
+      "emits": [
+        "noise"
+      ],
+      "kinds": [
+        "noise",
+        "weird"
+      ],
+      "skill_counter": {
+        "skill": "muscle",
+        "min": 3
+      },
+      "effects": {
+        "suspicion": 0,
+        "loot_loss": 80,
+        "target": "none"
+      },
+      "text": "A cheese wheel the size of a tractor tyre rolls off its shelf and thunders away down the cellar steps.",
+      "absorbed_text": "Two strong arms catch the wheel, and the room breathes out.",
+      "flavor": "It rolls all the way to the car park, which is further than it sounds."
+    },
+    {
+      "id": "night_affineur",
+      "name": "The night affineur turns the wheels",
+      "trigger": "random",
+      "beats": [
+        2,
+        5
+      ],
+      "weight": 2,
+      "requires": [],
+      "forbids": [
+        "distracted",
+        "disguised",
+        "charmed"
+      ],
+      "emits": [],
+      "kinds": [
+        "guard"
+      ],
+      "skill_counter": {
+        "skill": "charm",
+        "min": 3
+      },
+      "effects": {
+        "suspicion": 1,
+        "margin": -1,
+        "target": "any_task"
+      },
+      "text": "The night affineur shuffles through, turning wheels and tutting at the crew's footprints.",
+      "absorbed_text": "The affineur is asked about his favourite wheel and talks happily for ten minutes.",
+      "flavor": "He talks to the cheese. The cheese is a good listener."
+    },
+    {
+      "id": "stinky_trail",
+      "name": "The trail leads home",
+      "trigger": "auto",
+      "beats": [
+        5,
+        6
+      ],
+      "weight": 1,
+      "requires": [
+        "evidence",
+        "smell"
+      ],
+      "forbids": [],
+      "emits": [],
+      "kinds": [
+        "paperwork"
+      ],
+      "skill_counter": {
+        "skill": "charm",
+        "min": 2
+      },
+      "effects": {
+        "suspicion": 2,
+        "target": "none"
+      },
+      "text": "A very faint, very distinctive smell of cheese leads a keen-nosed inspector straight to the van.",
+      "absorbed_text": "The inspector is given a sample and loses the trail in joy.",
+      "flavor": "The inspector's nose is famous."
     }
   ]
 }
