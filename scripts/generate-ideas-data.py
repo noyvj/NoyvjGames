@@ -210,6 +210,20 @@ def parse_for_you():
     return {"code": "FY", "title": "Open questions from me", "vocab": "recommend", "items": out}
 
 
+def parse_survey():
+    """planning/PLAYER-SURVEY.md as the "About you" round: every `## X. Title` is a section and every numbered
+    line a free-text question (vocab "survey": the page shows only a text box, no yes/later/no)."""
+    path = PLANNING / "PLAYER-SURVEY.md"
+    if not path.exists():
+        return None
+    sections = parse_questions(path.read_text(encoding="utf-8").splitlines())
+    for section in sections:
+        section["vocab"] = "survey"
+        for item in section["items"]:
+            item["answered"] = False
+    return sections or None
+
+
 def main():
     rounds_out = []
     answers_out = {}
@@ -237,6 +251,10 @@ def main():
     if fy:
         rounds_out.insert(0, {"id": "for-you", "title": "For you", "sections": [fy]})
         answers_out["for-you"] = {}
+    survey = parse_survey()
+    if survey:
+        rounds_out.insert(1 if fy else 0, {"id": "about-you", "title": "About you", "sections": survey})
+        answers_out["about-you"] = {}
     (ROOT / "ideas-data.json").write_text(
         json.dumps({"rounds": rounds_out}, ensure_ascii=False, indent=1) + "\n", encoding="utf-8")
     (ROOT / "ideas-answers.local.json").write_text(

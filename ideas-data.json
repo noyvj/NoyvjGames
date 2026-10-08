@@ -54,6 +54,540 @@
    ]
   },
   {
+   "id": "about-you",
+   "title": "About you",
+   "sections": [
+    {
+     "code": "A",
+     "title": "Your games",
+     "items": [
+      {
+       "n": 1,
+       "text": "What are your top 10 games, the ones you have played the most or loved the most? List them in order if you can and give a few words on why each one is there.",
+       "answered": false
+      },
+      {
+       "n": 2,
+       "text": "Which game have you spent the most hours in, and what kept you coming back?",
+       "answered": false
+      },
+      {
+       "n": 3,
+       "text": "Which game did you finish 100% (or badly wanted to), and what made it worth completing?",
+       "answered": false
+      },
+      {
+       "n": 4,
+       "text": "Which game did you love for the first hour or two and then drop, and why did it lose you?",
+       "answered": false
+      },
+      {
+       "n": 5,
+       "text": "Which popular game do you think is overrated or just not for you, and why?",
+       "answered": false
+      },
+      {
+       "n": 6,
+       "text": "What is the last game you could not stop playing?",
+       "answered": false
+      },
+      {
+       "n": 7,
+       "text": "What is your best gaming memory, and what made it special?",
+       "answered": false
+      },
+      {
+       "n": 8,
+       "text": "Which games from when you were younger still stick in your head?",
+       "answered": false
+      },
+      {
+       "n": 9,
+       "text": "Which small browser or phone games have you actually enjoyed, even briefly?",
+       "answered": false
+      },
+      {
+       "n": 10,
+       "text": "Which games do you go back and replay, and what do you do differently each time?",
+       "answered": false
+      }
+     ],
+     "vocab": "survey"
+    },
+    {
+     "code": "B",
+     "title": "What you like doing in a game",
+     "items": [
+      {
+       "n": 1,
+       "text": "Which genres do you love? (For example puzzle, strategy, sim or tycoon, city builder, farming, survival, RPG, platformer, shooter, horror, idle or incremental, word games, visual novels.)",
+       "answered": false
+      },
+      {
+       "n": 2,
+       "text": "Which genres do you avoid or never get into?",
+       "answered": false
+      },
+      {
+       "n": 3,
+       "text": "Which actions feel the best to you: building, optimising, collecting, exploring, solving, managing, fighting, decorating, something else?",
+       "answered": false
+      },
+      {
+       "n": 4,
+       "text": "What annoys you in games the most? (For example timers, energy limits, random luck, grinding, losing progress, being rushed, long cutscenes.)",
+       "answered": false
+      },
+      {
+       "n": 5,
+       "text": "What exactly is it about roguelikes that you dislike: the randomness, losing your run, the repetition, the speed, something else?",
+       "answered": false
+      },
+      {
+       "n": 6,
+       "text": "What exactly is it about deck-builders or card games that you dislike?",
+       "answered": false
+      },
+      {
+       "n": 7,
+       "text": "Is there any randomness you do like, and when does luck feel fair instead of annoying?",
+       "answered": false
+      },
+      {
+       "n": 8,
+       "text": "How do you feel about failing or losing in a game: do you want a gentle retry, a real penalty, or no failure at all?",
+       "answered": false
+      },
+      {
+       "n": 9,
+       "text": "How hard do you want games to be? (Always easy to finish, a medium challenge, or hard when you choose it.)",
+       "answered": false
+      },
+      {
+       "n": 10,
+       "text": "Do you prefer being told what to do next, or being left to work out your own goals?",
+       "answered": false
+      },
+      {
+       "n": 11,
+       "text": "Do you enjoy numbers going up and spreadsheet-style optimising, or does it feel like homework?",
+       "answered": false
+      },
+      {
+       "n": 12,
+       "text": "Are quick-reaction or timing games ever fun for you, or do you want everything turn-based and calm?",
+       "answered": false
+      },
+      {
+       "n": 13,
+       "text": "Which kinds of puzzles do you enjoy most: logic, word, spatial, number, deduction, pattern?",
+       "answered": false
+      },
+      {
+       "n": 14,
+       "text": "How much reading do you want in a game: almost none, short snippets, or a lot of story text?",
+       "answered": false
+      },
+      {
+       "n": 15,
+       "text": "Do you like tutorials, or do you prefer working it out yourself?",
+       "answered": false
+      },
+      {
+       "n": 16,
+       "text": "Do you prefer slow and cozy, or tense and fast?",
+       "answered": false
+      },
+      {
+       "n": 17,
+       "text": "What do you like to collect in games (items, creatures, achievements, recipes, lore), and what makes a collection satisfying?",
+       "answered": false
+      },
+      {
+       "n": 18,
+       "text": "What makes getting to 100% feel good rather than like a chore?",
+       "answered": false
+      },
+      {
+       "n": 19,
+       "text": "Are there any mechanics you have never tried but are curious about?",
+       "answered": false
+      }
+     ],
+     "vocab": "survey"
+    },
+    {
+     "code": "C",
+     "title": "How and when you play",
+     "items": [
+      {
+       "n": 1,
+       "text": "Do you mostly play on your phone, on a computer, on a console, or a mix?",
+       "answered": false
+      },
+      {
+       "n": 2,
+       "text": "When in your day do you usually play, and where?",
+       "answered": false
+      },
+      {
+       "n": 3,
+       "text": "How long is your ideal session on this site: two minutes, ten minutes, thirty minutes, longer?",
+       "answered": false
+      },
+      {
+       "n": 4,
+       "text": "Do daily things (a daily puzzle, a daily visit) feel nice to you or like pressure?",
+       "answered": false
+      },
+      {
+       "n": 5,
+       "text": "Do you play while doing something else (watching, listening, in a lecture)? What suits that?",
+       "answered": false
+      },
+      {
+       "n": 6,
+       "text": "Do you play with friends, and do you want your friends to be able to see or share anything from these games?",
+       "answered": false
+      },
+      {
+       "n": 7,
+       "text": "Do you like competing and leaderboards, or comparing with others, or would you rather keep it private?",
+       "answered": false
+      },
+      {
+       "n": 8,
+       "text": "Do you like sharing your results (screenshots, share codes, links), and if so where?",
+       "answered": false
+      },
+      {
+       "n": 9,
+       "text": "On a low-energy or stressed day, what kind of game do you reach for?",
+       "answered": false
+      },
+      {
+       "n": 10,
+       "text": "Do you like it when a game remembers you and welcomes you back, or just wants to start fresh each time?",
+       "answered": false
+      }
+     ],
+     "vocab": "survey"
+    },
+    {
+     "code": "D",
+     "title": "What you watch and read",
+     "items": [
+      {
+       "n": 1,
+       "text": "Which gaming YouTubers or streamers do you watch, and what do you like about each one?",
+       "answered": false
+      },
+      {
+       "n": 2,
+       "text": "Which non-gaming YouTube channels or topics do you watch?",
+       "answered": false
+      },
+      {
+       "n": 3,
+       "text": "What kind of videos do you enjoy most: let's plays, video essays, speedruns, reviews, lore deep-dives, tutorials, something else?",
+       "answered": false
+      },
+      {
+       "n": 4,
+       "text": "What do you like about the way your favourite creators talk or present things (humour, calm, energy, honesty, depth)?",
+       "answered": false
+      },
+      {
+       "n": 5,
+       "text": "Which shows, anime or films do you love, and why?",
+       "answered": false
+      },
+      {
+       "n": 6,
+       "text": "Which books, comics or podcasts do you love?",
+       "answered": false
+      },
+      {
+       "n": 7,
+       "text": "What kind of humour do you like (dry, silly, dark, wholesome, absurd, none)?",
+       "answered": false
+      },
+      {
+       "n": 8,
+       "text": "What kind of music or atmosphere do you like, even though I am not adding audio yet?",
+       "answered": false
+      },
+      {
+       "n": 9,
+       "text": "Which websites or apps do you use the most outside of games?",
+       "answered": false
+      },
+      {
+       "n": 10,
+       "text": "Is there a creator, game or show whose \"feel\" you would like my games to have?",
+       "answered": false
+      }
+     ],
+     "vocab": "survey"
+    },
+    {
+     "code": "E",
+     "title": "Themes, art and tone",
+     "items": [
+      {
+       "n": 1,
+       "text": "Which themes pull you in the most? (For example space, nature, the ocean, mystery, cozy life, history, science, fantasy, cities, machines, weather.)",
+       "answered": false
+      },
+      {
+       "n": 2,
+       "text": "Which themes do you never want to see?",
+       "answered": false
+      },
+      {
+       "n": 3,
+       "text": "Which art styles do you like best: pixel art, low-poly, flat and clean, hand-drawn, minimal, text-only, glossy?",
+       "answered": false
+      },
+      {
+       "n": 4,
+       "text": "Which colours and moods do you like: dark and moody, bright, neon, pastel, earthy, high contrast?",
+       "answered": false
+      },
+      {
+       "n": 5,
+       "text": "What tone do you want from my games: serious, funny, cozy, eerie, wholesome, a mix?",
+       "answered": false
+      },
+      {
+       "n": 6,
+       "text": "Do you want a story in games at all, and if so what kind (short and light, mystery, character-driven, none)?",
+       "answered": false
+      },
+      {
+       "n": 7,
+       "text": "Which fictional characters have you loved in any game, show or book, and why?",
+       "answered": false
+      },
+      {
+       "n": 8,
+       "text": "Which places or worlds would you most want to explore in a game?",
+       "answered": false
+      },
+      {
+       "n": 10,
+       "text": "Is there something you find charming or cute that I should lean on?",
+       "answered": false
+      }
+     ],
+     "vocab": "survey"
+    },
+    {
+     "code": "F",
+     "title": "Learning and the real world",
+     "items": [
+      {
+       "n": 1,
+       "text": "What would you like to learn about through playing a game?",
+       "answered": false
+      },
+      {
+       "n": 2,
+       "text": "Which of your courses or interests (BCM, languages, environment, anything else) do you want to show up in the games?",
+       "answered": false
+      },
+      {
+       "n": 3,
+       "text": "Do you enjoy games that teach you something, or does being taught feel like being lectured?",
+       "answered": false
+      },
+      {
+       "n": 4,
+       "text": "Which real-world issues or topics do you care about most?",
+       "answered": false
+      },
+      {
+       "n": 5,
+       "text": "Should the games with real-world facts stay neutral, or are you happy for a game to take a clear point of view?",
+       "answered": false
+      },
+      {
+       "n": 6,
+       "text": "Is there a subject you wish had a good game about it and does not?",
+       "answered": false
+      }
+     ],
+     "vocab": "survey"
+    },
+    {
+     "code": "G",
+     "title": "Your personality and play style",
+     "items": [
+      {
+       "n": 1,
+       "text": "Are you a planner who maps things out, or an improviser who tries things and sees?",
+       "answered": false
+      },
+      {
+       "n": 2,
+       "text": "When you are stuck in a game, what do you do: keep trying, look it up, take a break, quit?",
+       "answered": false
+      },
+      {
+       "n": 3,
+       "text": "Are you a perfectionist in games, and does that help or stress you?",
+       "answered": false
+      },
+      {
+       "n": 4,
+       "text": "Do you prefer surprises or predictability?",
+       "answered": false
+      },
+      {
+       "n": 5,
+       "text": "Are you a cautious player or a risk-taker?",
+       "answered": false
+      },
+      {
+       "n": 6,
+       "text": "What makes you feel clever in a game?",
+       "answered": false
+      },
+      {
+       "n": 7,
+       "text": "What makes you feel relaxed in a game?",
+       "answered": false
+      },
+      {
+       "n": 8,
+       "text": "What makes you feel proud in a game?",
+       "answered": false
+      },
+      {
+       "n": 9,
+       "text": "What stresses you out in a game?",
+       "answered": false
+      },
+      {
+       "n": 10,
+       "text": "Which role do you most like to play: builder, caretaker, detective, explorer, strategist, collector, storyteller, hero?",
+       "answered": false
+      },
+      {
+       "n": 11,
+       "text": "Would you rather create something or compete with someone?",
+       "answered": false
+      },
+      {
+       "n": 12,
+       "text": "Why do you play games at all: to relax, to feel smart, to escape, to socialise, to create, something else?",
+       "answered": false
+      },
+      {
+       "n": 13,
+       "text": "Do you prefer short wins or long slow arcs?",
+       "answered": false
+      },
+      {
+       "n": 14,
+       "text": "Do you have any accessibility needs or preferences (colour, motion, text size, reading speed)?",
+       "answered": false
+      },
+      {
+       "n": 15,
+       "text": "Is there any content or theme that should never appear in my games?",
+       "answered": false
+      }
+     ],
+     "vocab": "survey"
+    },
+    {
+     "code": "H",
+     "title": "This site and your games",
+     "items": [
+      {
+       "n": 1,
+       "text": "Which of the games on the site do you actually play the most, and why?",
+       "answered": false
+      },
+      {
+       "n": 2,
+       "text": "Which of the games feels least like you?",
+       "answered": false
+      },
+      {
+       "n": 3,
+       "text": "What was the best moment you have had playing one of your own games?",
+       "answered": false
+      },
+      {
+       "n": 4,
+       "text": "Is there a feature from another game or app that you wish my games had?",
+       "answered": false
+      },
+      {
+       "n": 5,
+       "text": "Describe your dream game with no limits on time or tech.",
+       "answered": false
+      },
+      {
+       "n": 6,
+       "text": "What three words should describe the games on this site?",
+       "answered": false
+      },
+      {
+       "n": 7,
+       "text": "Who do you picture playing these games: you, your friends, strangers, classmates?",
+       "answered": false
+      },
+      {
+       "n": 8,
+       "text": "What do you want someone to feel in their first minute on the site?",
+       "answered": false
+      },
+      {
+       "n": 9,
+       "text": "Is there an existing game you would love a small web version of?",
+       "answered": false
+      },
+      {
+       "n": 10,
+       "text": "Which of the games on the site are you proudest of, and which are you not sure about?",
+       "answered": false
+      }
+     ],
+     "vocab": "survey"
+    },
+    {
+     "code": "I",
+     "title": "How you want me to work",
+     "items": [
+      {
+       "n": 1,
+       "text": "Where should I follow my own judgement without asking, and where do you always want a question first?",
+       "answered": false
+      },
+      {
+       "n": 2,
+       "text": "When I am unsure whether something fits your taste, would you rather I ask, pick the safe option, or drop it?",
+       "answered": false
+      },
+      {
+       "n": 3,
+       "text": "How much of the ideas sheet do you want each round: fewer big questions or many quick yes/later/no items?",
+       "answered": false
+      },
+      {
+       "n": 4,
+       "text": "Is there anything about how I have been working or asking questions that you want changed?",
+       "answered": false
+      }
+     ],
+     "vocab": "survey"
+    }
+   ]
+  },
+  {
    "id": "round-3",
    "title": "Round 3",
    "sections": [

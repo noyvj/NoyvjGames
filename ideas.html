@@ -191,7 +191,8 @@
       ? [["yes", "Go with the recommendation"], ["later", "Later"], ["no", "Not that"]]
       : [["yes", "Yes"], ["later", "Later"], ["no", "No"]]);
   const words = (sec) => (sec.vocab === "decide" ? { yes: "now", later: "later", no: "drop" } : { yes: "yes", later: "later", no: "no" });
-  const isQuestions = (sec) => /open questions/i.test(sec.title) || sec.vocab === "recommend";
+  const isQuestions = (sec) => /open questions/i.test(sec.title) || sec.vocab === "recommend" || sec.vocab === "survey";
+  const isSurvey = (sec) => sec.vocab === "survey"; // free-text only: no yes/later/no buttons, answered = text typed
 
   function mineFor(code, n) { const [r, c] = split(code); return ((mine[r] || {})[c] || {})[n]; }
   function baseFor(code, n) { const [r, c] = split(code); return ((baseline[r] || {})[c] || {})[n]; }
@@ -204,7 +205,14 @@
   function isOpen(code, item) {
     const m = mineFor(code, item.n);
     if (m && m.c) return false;
+    if (sectionIsSurvey(code)) return !((effective(code, item) || {}).m);
     return !item.answered;
+  }
+  function sectionIsSurvey(code) {
+    const [rid, real] = split(code);
+    const r = data.rounds.find((x) => x.id === rid);
+    const sec = r && r.sections.find((x) => x.code === real);
+    return Boolean(sec && sec.vocab === "survey");
   }
   function setMine(code, n, patch) {
     const [rid, realCode] = split(code);
@@ -353,7 +361,7 @@
 
     const choices = document.createElement("div"); choices.className = "choices";
     choices.setAttribute("role", "group"); choices.setAttribute("aria-label", "Answer for item " + item.n);
-    for (const [c, label] of labels(sec)) {
+    for (const [c, label] of (isSurvey(sec) ? [] : labels(sec))) {
       const b = document.createElement("button"); b.type = "button"; b.dataset.c = c; b.textContent = label;
       b.setAttribute("aria-pressed", String(Boolean(eff && eff.c === c)));
       b.addEventListener("click", () => choose(sec, item, c));
@@ -362,11 +370,10 @@
     const cm = document.createElement("button"); cm.type = "button"; cm.className = "link";
     const hasComment = Boolean(eff && eff.m);
     cm.textContent = hasComment ? "Edit comment" : "+ Add comment";
-    choices.appendChild(cm);
-    art.appendChild(choices);
+    if (!isSurvey(sec)) { choices.appendChild(cm); art.appendChild(choices); }
 
     const ta = document.createElement("textarea"); ta.className = "comment"; ta.setAttribute("aria-label", "Comment on item " + item.n);
-    ta.placeholder = "Anything you want to add…";
+    ta.placeholder = isSurvey(sec) ? "Type your answer (skip anything you like)…" : "Anything you want to add…";
     ta.value = (eff && eff.m) || "";
     ta.hidden = !(hasComment || isQuestions(sec));
     ta.addEventListener("input", () => { setMine(sec.code, item.n, { m: ta.value.trim() }); updateChrome(); });
