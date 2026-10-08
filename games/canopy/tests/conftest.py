@@ -119,6 +119,9 @@ ELEMENT_IDS = [
     # GB batch 2: forecast, challenge, contracts, announcer, request pace
     "season-forecast",
     "forest-rank-text",
+    "replay-slider",
+    "replay-grid",
+    "replay-label",
     "my-forests-note",
     "my-forests-a",
     "my-forests-b",

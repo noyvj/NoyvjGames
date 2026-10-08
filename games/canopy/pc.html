@@ -328,6 +328,14 @@
         <summary>Forest history</summary>
         <div id="forest-history-list" class="forest-log-list" tabindex="0"></div>
       </details>
+      <!-- B-3: drag the slider to watch the forest change through the session. -->
+      <details class="summary-details" id="replay-details">
+        <summary>Forest replay</summary>
+        <label for="replay-slider">Scrub through the session</label>
+        <input type="range" id="replay-slider" min="0" max="0" value="0" step="1">
+        <div id="replay-grid" class="replay-grid"></div>
+        <p id="replay-label" class="replay-label" aria-live="polite"></p>
+      </details>
       <!-- B-1: library of finished sessions; pick any two to compare side by side. -->
       <details class="summary-details" id="my-forests-details">
         <summary>My Forests (compare two)</summary>

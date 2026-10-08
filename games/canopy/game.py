@@ -856,6 +856,8 @@ def reset_session(grid_size=None, _render_after=True, difficulty=None, challenge
     _session_ticks = 0
     _value_history.clear()
     _report_history.clear()
+    _replay_frames.clear()  # B-3
+    _replay_state["every"] = REPLAY_START_EVERY
     _pending_mature_bursts.clear()
     forest_log = []
     request_history.clear()
@@ -2827,6 +2829,85 @@ CARD_STATE_STYLE = {
 }
 
 
+# B-3 (2026-10-09): replay scrubber. A snapshot of every plot's state is kept every few ticks; when the list is full it
+# is thinned to every other frame and the spacing doubles, so a session of any length fits in REPLAY_MAX_FRAMES.
+# Ephemeral like the other session histories: never saved, restarted on a new session.
+REPLAY_START_EVERY = 5
+REPLAY_MAX_FRAMES = 120
+_replay_frames = []  # (tick, "PBRC..." one letter per plot)
+_replay_state = {"every": REPLAY_START_EVERY}
+
+
+def _plot_letters():
+    return "".join(CARD_STATE_STYLE.get(p.state, ("", "?"))[1] for p in plots)
+
+
+def _record_replay_frame():
+    if _replay_frames and forest_tick % _replay_state["every"] != 0:
+        return
+    if _replay_frames and _replay_frames[-1][0] == forest_tick:
+        return
+    _replay_frames.append((forest_tick, _plot_letters()))
+    if len(_replay_frames) > REPLAY_MAX_FRAMES:
+        _replay_frames[:] = _replay_frames[::2] if len(_replay_frames) % 2 == 0 else _replay_frames[::2] + [_replay_frames[-1]]
+        _replay_state["every"] *= 2
+
+
+def replay_frames():
+    """Recorded frames plus the live forest as the final frame."""
+    frames = list(_replay_frames)
+    if not frames or frames[-1][0] != forest_tick:
+        frames.append((forest_tick, _plot_letters()))
+    return frames
+
+
+def replay_grid_svg(letters):
+    """One frame as a small SVG: each plot is its state colour and also its letter, so it reads without colour."""
+    if len(letters) != GRID_ROWS * GRID_COLS:
+        return ""
+    cell = 28
+    colour_for_letter = {letter: colour for colour, letter in CARD_STATE_STYLE.values()}
+    parts = [f'<svg viewBox="0 0 {GRID_COLS * cell} {GRID_ROWS * cell}" class="replay-svg" role="img" '
+             f'aria-label="Forest at one moment of the session: {letters.count("P")} preserved, {letters.count("B")} bare, '
+             f'{letters.count("R")} replanting, {letters.count("C")} recovered">']
+    for i, letter in enumerate(letters):
+        row, col = divmod(i, GRID_COLS)
+        colour = colour_for_letter.get(letter, "#555555")
+        x, y = col * cell, row * cell
+        parts.append(f'<rect x="{x + 1}" y="{y + 1}" width="{cell - 2}" height="{cell - 2}" rx="4" fill="{colour}"/>')
+        parts.append(f'<text x="{x + cell / 2}" y="{y + cell / 2 + 4}" font-size="12" text-anchor="middle" fill="#ffffff" font-family="sans-serif" font-weight="700">{letter}</text>')
+    parts.append("</svg>")
+    return "".join(parts)
+
+
+def render_replay():
+    slider, grid, label = _el("replay-slider"), _el("replay-grid"), _el("replay-label")
+    if grid is None:
+        return
+    frames = replay_frames()
+    if slider is not None:
+        slider.min = "0"
+        slider.max = str(len(frames) - 1)
+        try:
+            chosen = int(getattr(slider, "value", "") or len(frames) - 1)
+        except (TypeError, ValueError):
+            chosen = len(frames) - 1
+        chosen = max(0, min(len(frames) - 1, chosen))
+        slider.value = str(chosen)
+    else:
+        chosen = len(frames) - 1
+    tick, letters = frames[chosen]
+    grid.innerHTML = replay_grid_svg(letters)
+    if label is not None:
+        label.innerText = (f"Moment {chosen + 1} of {len(frames)}: tick {tick}, "
+                           f"{letters.count('P') + letters.count('C')} plots standing, {letters.count('B')} bare. "
+                           "P preserved, B bare, R replanting, C recovered.")
+
+
+def on_replay_scrub(event=None):
+    render_replay()
+
+
 def _svg_text(text):
     return str(text).replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace('"', "&quot;")
 
@@ -3057,6 +3138,7 @@ def render_session_summary():
     render_playstyle_comparison()
     render_report_card()
     render_timeline_chart()
+    render_replay()
     render_forest_log_panels()
     render_request_history()
     render_lifetime_stats()
@@ -7334,6 +7416,7 @@ def tick(event=None):
     _value_history.append((total_income, standing_forest_value()))
     _report_history.append((total_biodiversity(), standing_forest_value(), community_relations))
     del _report_history[:-VALUE_HISTORY_MAX_POINTS]
+    _record_replay_frame()  # B-3
     del _value_history[:-VALUE_HISTORY_MAX_POINTS]  # no-op once under the cap
     # B3: checked every tick regardless of whether it's already unlocked
     # (a no-op once True) -- accrual only starts once unlocked, so a
@@ -7810,6 +7893,9 @@ def setup():
         select = _el(select_id)
         if select is not None:
             select.addEventListener("change", create_proxy(on_my_forests_change))
+    replay_slider = _el("replay-slider")  # B-3
+    if replay_slider is not None:
+        replay_slider.addEventListener("input", create_proxy(on_replay_scrub))
     timeline_select = _el("timeline-metric")  # B-21
     if timeline_select is not None:
         timeline_select.addEventListener("change", create_proxy(lambda event=None: render_timeline_chart()))

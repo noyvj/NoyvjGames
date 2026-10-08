@@ -1,6 +1,6 @@
 # Site-Wide TODO (round 3)
 
-**Progress: 517/1095 items checked off (47.2%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land.
+**Progress: 518/1095 items checked off (47.3%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land.
 
 Built from your answers in `planning/IMPROVEMENT-IDEAS-ROUND-3.md` (Part 4). Every Round 3 section is now answered (2026-10-07 below the Warframe section); earlier this list held only: **GB** (Canopy gamified), **M** (new games), **N** (seasonal events), **O** (Trade Empire and Continuum replayability), **P/Q/S/T** (Signal, Undersleep, Overclock, Last Line open questions), **X** (Warframe tracker) and **R** (returning later). GC-GI, A-L, U, Z and Y are unanswered and wait for you. The previous list is archived at `planning/todo-archive/260914_260927.md`; anything from it that was moved here is marked "moved" there.
 
@@ -267,7 +267,7 @@ Your remaining Round 3 answers (Grid to Drift gamified, SOL to Le Champ de Mots,
 
 - [x] B-1: Add a Canopy "My Forests" library: store a compact record of every finished session (final values, playstyle badge, difficulty, grid size, the three report-card series, legacy bonus) in localStorage and let the player compare any two side by side with the existing report-card sparklines.
 - [x] B-2: Move Canopy's legacy bonus into a header chip (e.g. "+12% from your last forest") with a tooltip naming its source (last session's banked standing value) and how close it is to the +25% cap. (partly built: game.py render_legacy_bonus() shows a text line "Legacy bonus: +X% growth, from your last session's forest"; LEGACY_MAX_BONUS 0.25 cap; no chip, tooltip or cap proximity)
-- [ ] B-3: Add a Canopy forest replay scrubber to the Session Summary: record periodic per-plot snapshots alongside the capped forest_log and let a slider scrub the grid through the session, plots greening and clearing in sequence, screenshot-friendly.
+- [x] B-3: Add a Canopy forest replay scrubber to the Session Summary: record periodic per-plot snapshots alongside the capped forest_log and let a slider scrub the grid through the session, plots greening and clearing in sequence, screenshot-friendly.
 - [x] B-4: Add a Canopy shareable forest image: render the final grid, playstyle badge and three headline numbers onto one canvas card (drawn in code, no generated images) with a Download PNG button beside Copy badge; no backend.
 - [ ] B-5: Add a Canopy "Forest Lab" sandbox panel with sliders for soil degradation per clear, maturity speed, request frequency and season strength; sandbox sessions are clearly marked and excluded from personal bests, percentiles and leaderboards, and can be saved as harder/gentler Ranger-style variants.
 - [x] B-6: Add a Canopy Settings request-interval selector (Relaxed / Normal / Frequent) that scales STAKEHOLDER_EVENT_INTERVAL_TICKS, saved and recorded with the difficulty tag so stats and percentiles stay honest.

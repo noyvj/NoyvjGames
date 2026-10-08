@@ -1308,3 +1308,8 @@ Added readability and feedback features to Thaw without adding screen clutter: t
 **Game:** canopy
 **Did:** B-1: whenever a session with at least one tick is banked (the same moment the lifetime stats are), a compact record is also saved to `canopy_my_forests_v1`: name (or "Forest N"), difficulty, grid size, playstyle badge, standing value, harvested, biodiversity, relations, seasons, ticks, legacy bonus earned, and the three report-card series downsampled to 30 points. The latest twelve are kept, ids keep rising, and a bad or tampered store is sanitised record by record. A "My Forests (compare two)" section in the Session Summary has two pickers (newest and second newest by default), a side-by-side table (names escaped) and the three labelled trend graphs for each forest, using the report card's sparkline maths.
 **Result:** Canopy tests 971 to 978. Not checked live in a browser; comparing is read-only (no delete button yet).
+
+### 2026-10-09 (Canopy, personal pass: forest replay scrubber)
+**Game:** canopy
+**Did:** B-3: a "Forest replay" section in the Session Summary with a range slider that scrubs the grid through the session. The game keeps a snapshot of every plot's state (one letter per plot) every 5 ticks; when 120 frames are held the list is thinned to every other frame and the spacing doubles, so a session of any length fits in bounded memory. The live forest is always the final frame. Each frame is drawn as a small SVG with the state colour and its letter, and a text line gives the tick and how many plots stand or are bare. Frames are ephemeral like the other session histories: never saved, cleared by a new session.
+**Result:** Canopy tests 978 to 984. Not checked live in a browser; there is no autoplay button yet, only the slider.

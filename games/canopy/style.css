@@ -2199,6 +2199,11 @@ html[data-forest-palette="meadow"] { --forest-accent: #a7d98a; }
 .my-forests-table { border-collapse: collapse; width: 100%; font-size: 0.85em; margin: 0.4rem 0; }
 .my-forests-table th, .my-forests-table td { border-bottom: 1px solid rgba(140, 160, 255, 0.2); padding: 0.2rem 0.4rem; text-align: left; }
 
+/* B-3: replay scrubber. */
+#replay-slider { width: 100%; }
+.replay-svg { width: 100%; max-width: 360px; height: auto; display: block; margin: 0.4rem 0; }
+.replay-label { font-size: 0.85em; margin: 0.2rem 0 0; }
+
 /* ============================================================
    Light theme (Y11b, 2026-09-27). shared/theme-light-games.css already
    restyles the shared chrome (panels, buttons, inputs, HUD readouts);

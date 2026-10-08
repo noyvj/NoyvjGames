@@ -812,3 +812,74 @@ def test_empty_library_message(game_env):
     m.render_my_forests()
     assert "Nothing saved yet" in game_env.elements["my-forests-note"].innerText
     assert game_env.elements["my-forests-compare"].innerHTML == ""
+
+
+# ---- B-3 replay scrubber ----
+
+def test_frames_are_recorded_every_few_ticks(game_env):
+    m = game_env.module
+    m._replay_frames.clear()
+    for tick in range(1, 21):
+        m.forest_tick = tick
+        m._record_replay_frame()
+    assert [t for t, _ in m._replay_frames] == [1, 5, 10, 15, 20]
+    assert all(len(letters) == len(m.plots) for _, letters in m._replay_frames)
+
+
+def test_frames_are_thinned_and_spacing_doubles_when_full(game_env):
+    m = game_env.module
+    m._replay_frames.clear()
+    m._replay_state["every"] = 1
+    for tick in range(1, m.REPLAY_MAX_FRAMES + 10):
+        m.forest_tick = tick
+        m._record_replay_frame()
+    assert len(m._replay_frames) <= m.REPLAY_MAX_FRAMES
+    assert m._replay_state["every"] == 2
+    ticks = [t for t, _ in m._replay_frames]
+    assert ticks == sorted(ticks) and ticks[0] == 1
+
+
+def test_replay_shows_a_plot_clearing_and_the_live_frame_is_last(game_env):
+    m = game_env.module
+    m._replay_frames.clear()
+    m.forest_tick = 5
+    before = m._plot_letters()
+    m._record_replay_frame()
+    m.plots[0].state = m.BARE
+    m.forest_tick = 7
+    frames = m.replay_frames()
+    assert frames[0][1] == before and frames[-1] == (7, m._plot_letters())
+    assert frames[0][1][0] != frames[-1][1][0]
+
+
+def test_replay_svg_shows_letters_and_rejects_the_wrong_size(game_env):
+    import xml.etree.ElementTree as ET
+    m = game_env.module
+    letters = m._plot_letters()
+    svg = m.replay_grid_svg(letters)
+    ET.fromstring(svg)
+    assert svg.count("<rect") == len(m.plots) and ">P<" in svg
+    assert m.replay_grid_svg("PB") == ""
+
+
+def test_render_replay_follows_the_slider(game_env):
+    m = game_env.module
+    m._replay_frames.clear()
+    for tick in (1, 5, 10):
+        m.forest_tick = tick
+        m._record_replay_frame()
+    slider = game_env.elements["replay-slider"]
+    slider.value = "0"
+    m.render_replay()
+    assert slider.max == "2" and "tick 1" in game_env.elements["replay-label"].innerText
+    slider.value = "99"
+    m.render_replay()
+    assert slider.value == "2" and "tick 10" in game_env.elements["replay-label"].innerText
+
+
+def test_new_session_clears_the_replay(game_env):
+    m = game_env.module
+    m.forest_tick = 5
+    m._record_replay_frame()
+    m.reset_session()
+    assert m._replay_frames == [] or m._replay_frames[0][0] == 0
