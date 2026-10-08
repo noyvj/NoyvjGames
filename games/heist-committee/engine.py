@@ -174,6 +174,7 @@ class Sim:
         self.b = 0
         self.side_notes = []
         self.idle_beats = {}
+        self.heat_log = []
 
     # ---- events ---------------------------------------------------------------------------
     def add(self, kind, text, lane=None, why=None, tags=(), cause=None, outcome=None, icon="", comp=None,
@@ -833,6 +834,7 @@ class Sim:
                         self.idle_beats[lane] = self.idle_beats.get(lane, 0) + 1
             if b == self.n - 1:
                 self.wrap_up()
+        self.heat_log.append(self.suspicion)
 
     def wrap_up(self):
         self.b = self.n - 1
@@ -922,7 +924,8 @@ def simulate(content, target_id, crew_ids, plan, gear_ids=(), seed=0, relations=
     """The whole heist. Returns {'events': [...], 'outcome': {...}, 'beats': [...]}."""
     sim = Sim(content, target_id, crew_ids, plan, gear_ids, seed, relations, fees).run()
     beats = [{"index": i, "name": b["name"]} for i, b in enumerate(sim.target["beats"])]
-    return {"events": sim.events, "outcome": sim.result(), "beats": beats, "target": target_id, "seed": seed}
+    return {"events": sim.events, "outcome": sim.result(), "beats": beats, "target": target_id, "seed": seed,
+            "heat_by_beat": sim.heat_log}
 
 
 def preview(content, target_id, crew_ids, plan, gear_ids=(), relations=None, hidden_quirks=()):

@@ -180,6 +180,7 @@
         box.appendChild(news);
       }
       box.appendChild(el("div", { "class": "panel" }, [el("h3", { text: "The write-up" }), el("p", { "class": "writeup", "data-testid": "heist-writeup", text: p.writeup })]));
+      box.appendChild(el("div", { id: "payout-copy-result" }));
       box.appendChild(el("div", { "class": "phase-actions" }, [
         el("button", { type: "button", "class": "primary", "data-testid": "heist-retry", text: "Retry this target (same crew, same night)",
           onclick: function () { HC.send({ action: "retry" }); } }),
@@ -187,5 +188,16 @@
           onclick: function () { HC.send({ action: "back_to_board" }); } })]));
     });
   };
+  HC.onRender.push(function (view) {
+    var holder = document.getElementById("payout-copy-result");
+    if (view.phase !== "payout" || !holder || !window.NoyvjCopyResult || holder.dataset.mounted) return;
+    holder.dataset.mounted = "1";
+    var p = view.payout;
+    window.NoyvjCopyResult.mountButton("#payout-copy-result", {
+      getResult: function () {
+        return { game: "Heist Committee", score: p.net, unit: "cash", stats: [p.title, p.chain_links ? p.chain_links + "-link chain" : "no chain"] };
+      }
+    });
+  });
   function stat(k, v) { return el("div", { "class": "stat" }, [el("span", { "class": "k", text: k }), el("span", { "class": "v", text: v })]); }
 })();

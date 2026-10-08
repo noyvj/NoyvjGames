@@ -19,6 +19,8 @@
 <script src="settings.js"></script>
 <link rel="stylesheet" href="../../ad-bar.css">
 <link rel="manifest" href="../../manifest.json">
+<script src="../../shared/copy-result.js" data-game-id="heist-committee"></script>
+<script src="../../shared/achievement-share.js" data-game-id="heist-committee" data-game-name="Heist Committee"></script>
 <!-- Pyodide is loaded by app.js after first paint, so this shell is readable before the engine is warm. -->
 <link rel="stylesheet" href="../../shared/a11y.css">
 <link rel="stylesheet" href="../../shared/touch-targets.css">
@@ -73,6 +75,7 @@
   <div id="hud" class="hud" aria-label="The committee's purse">
     <span class="hud-item"><span class="hud-label">Cash</span> <b id="hud-cash" data-testid="heist-cash">0</b></span>
     <span class="hud-item"><span class="hud-label">Reputation</span> <b id="hud-rep" data-testid="heist-rep">0</b></span>
+    <span class="hud-item"><span class="hud-label">Now</span> <b id="hud-status" data-testid="heist-status">Contract board</b></span>
     <span class="hud-item" id="hud-job"></span>
   </div>
 
@@ -166,10 +169,32 @@
 <script src="../../shared/confirm-dialog.js"></script>
 <script src="../../shared/tutorial.js"></script>
 <script src="../../shared/hub-auth.js"></script>
+<script src="../../shared/mobile-dock.js"></script>
+<script src="../../shared/mobile-hud.js"></script>
 <script src="../../shared/save-widget.js" data-game-id="heist-committee"></script>
+<script src="../../shared/opening-screen.js" data-game-id="heist-committee" data-game-name="Heist Committee" data-tagline="Five oddballs, one plan. Whatever happens, it will make a good story."></script>
+<script src="../../shared/story-toggle.js" data-game-id="heist-committee" data-story-selectors=".ev-flavor, .story-line, #story-panel, #story-toggle-button"></script>
 <script src="app.js"></script>
 <script src="plan.js"></script>
 <script src="play.js"></script>
+<script src="../../shared/last-played.js" data-game-id="heist-committee"></script>
+<script src="../../shared/whats-new-banner.js" data-game-id="heist-committee"></script>
+<script src="../../shared/keyboard-shortcuts.js"></script>
+<script>
+  window.KeyboardShortcuts.init({
+    panels: [
+      { toggle: "achievements-toggle-button", panel: "achievements-panel" },
+      { toggle: "changelog-toggle-button", panel: "changelog-panel" },
+      { toggle: "settings-toggle-button", panel: "settings-panel" },
+      { toggle: "info-page-toggle-button", panel: "info-page-panel" },
+    ],
+    extra: [
+      "Plan: arrow keys move over the timeline, Enter places the armed action, Delete clears a cell, S puts a crew member on Standby",
+      "Plan: 1 to 9 pick an action from the tray, Escape puts it down, Ctrl+Z undoes and Ctrl+Shift+Z redoes",
+      "Playback: Next beat reveals one beat at a time, Play only auto-advances if you want it to",
+    ],
+  });
+</script>
 <script>
   if ("serviceWorker" in navigator) {
     navigator.serviceWorker.register("../../sw.js");

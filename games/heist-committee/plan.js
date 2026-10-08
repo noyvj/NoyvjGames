@@ -318,6 +318,11 @@
     }
   }
   HC.renderers.plan = renderPlan;
+  HC.onRender.push(function (view) {
+    var planning = view.phase === "plan";
+    $("tray-panel").hidden = !planning;       // after docking it lives under <body>, outside the hidden plan section
+    document.body.classList.toggle("has-docked-tray", planning);
+  });
   HC.planState = function () { return { armed: armed, selected: selected, cursor: cursor }; };
 
   // ---- keyboard --------------------------------------------------------------------------------

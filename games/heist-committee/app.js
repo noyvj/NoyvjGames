@@ -3,7 +3,7 @@
    Shared pieces live on window.HC so plan.js (the timeline) and play.js (playback and payout) can use them. */
 (function () {
   "use strict";
-  var ENGINE_MODULES = ["content.py", "engine.py", "plancheck.py", "planops.py", "writeup.py"];
+  var ENGINE_MODULES = ["content.py", "engine.py", "plancheck.py", "planops.py", "writeup.py", "info.py"];
   var CONTENT_FILES = ["tags", "actions", "traits", "crew", "gear", "complications", "targets", "lines", "writeups"];
   var STORE_KEY = "heist-committee:state";
   var PHASES = ["board", "scout", "recruit", "plan", "playback", "payout"];
@@ -125,6 +125,10 @@
       hudJob.appendChild(el("span", { "class": "hud-label" }, ["Job "]));
       hudJob.appendChild(el("b", {}, [view.target.name]));
     }
+    var status = { board: "Contract board", scout: "Case file", recruit: "Hiring", plan: "Planning",
+      payout: "Payout" }[view.phase];
+    if (view.phase === "playback") status = "Beat " + Math.max(1, view.playback.cursor) + " of " + view.playback.n + ", heat " + view.playback.heat;
+    HC.setText($("hud-status"), status);
     PHASES.forEach(function (p) { $("phase-" + p).hidden = p !== view.phase; });
     var changed = lastPhase !== null && lastPhase !== view.phase;
     var render = HC.renderers[view.phase];
@@ -312,6 +316,57 @@
     window.heistRefresh = function () { if (HC.engine) HC.send({ action: "open" }); };
   }
 
+  // ---- info panel, changelog, tutorial ----------------------------------------------------------
+  function renderInfo(info) {
+    $("info-page-framing").textContent = info.framing;
+    var list = $("info-page-sources");
+    list.textContent = "";
+    info.sections.forEach(function (s) {
+      list.appendChild(el("li", { "class": "info-page-source" }, [el("h3", { text: s.heading }), el("p", { text: s.body })]));
+    });
+  }
+  function renderChangelog(entries) {
+    var holder = $("changelog-entries");
+    holder.textContent = "";
+    entries.forEach(function (entry) {
+      holder.appendChild(el("article", { "class": "changelog-entry" }, [el("div", { "class": "changelog-date", text: entry.date }), el("p", { text: entry.entry })]));
+    });
+    $("changelog-toggle-button").textContent = "What's New (" + entries.length + ")";
+  }
+  function loadChangelog() {
+    return fetch("changelog.json").then(function (r) { return r.text(); }).then(function (text) {
+      window.CHANGELOG_JSON = text;
+      var data = JSON.parse(text);
+      var list = Array.isArray(data) ? data : (data && data.changelog) || [];
+      renderChangelog(list.slice().sort(function (x, y) { return x.date < y.date ? 1 : -1; }));
+    }).catch(function () { renderChangelog([]); });
+  }
+
+  var TUTORIAL_STEPS = [
+    { title: "Welcome to the committee", text: "You never control the heist itself. You control the plan: who does what, and when. Then you watch it play out, and whatever goes wrong goes wrong for a reason you can read. Skip any time and reopen this from the Tutorial button." },
+    { selector: "#board-cards", title: "Pick a job", text: "Each job is a target with a prize. A bad night still pays a little, nobody is ever eliminated, and more jobs open as your reputation grows." },
+    { selector: "#hud", title: "Cash and reputation", text: "Cash pays the crew and buys gear. Reputation opens new jobs, new crew and new gear, and only goes up when a job goes better than you managed before." },
+    { title: "Scout and hire", text: "Before hiring, scout the place to learn what might go wrong. Then choose five of eight crew: each has a visible trait and a hidden quirk you learn by watching them work, or by paying for a background check." },
+    { title: "The timeline", text: "Rows are crew, columns are beats. Pick an action from the tray and tap cells, or tap a cell then an action, or drag. Arrow keys and Enter work too. Tap any filled cell to see exactly why its odds are what they are." },
+    { title: "The checklist", text: "The list beside the timeline tells you which goals your plan covers, which actions are missing something they need (a Lookout for a lockpick, say), and which crew will clash. Warnings never block you: you may run a broken plan on purpose." },
+    { title: "Standby and slack", text: "A crew member on Standby for one kind of trouble absorbs it. A crew member with nothing to do and the right skill can help too. Standing around costs a turn, so use it where you expect trouble." },
+    { title: "Watch it play", text: "Press Next beat to reveal the job one beat at a time. Every line says why it happened. At the end the payout shows the chain of events and which link started it. Retry the same night with a better plan any time." },
+    { selector: "#settings-toggle-button", title: "Settings", text: "Text size, reduced motion, an effects switch, high contrast, optional auto-advance for the playback, and the light or dark theme." },
+    { selector: "#info-page-toggle-button", title: "How it works", text: "The rules behind the odds, written out. The game is fiction, so there are no real-world facts to cite." },
+    { title: "You are ready", text: "Have fun, and keep the plan flexible." }
+  ];
+
+  HC.afterBoot = async function () {
+    wirePanelsAfter();
+    await loadChangelog();
+    var reply = HC.send({ action: "info" });
+    if (reply && reply.info) renderInfo(reply.info);
+    if (window.GameTutorial) window.GameTutorial.init(TUTORIAL_STEPS, { gameId: "heist-committee" });
+    if (window.MobileHud) window.MobileHud.init([{ selector: "#hud-cash", label: "Cash" }, { selector: "#hud-rep", label: "Rep" }, { selector: "#hud-status", label: "Now" }]);
+    if (window.MobileDock) window.MobileDock.init("#tray-panel");
+  };
+  function wirePanelsAfter() { /* panels are wired in wireGlobal; kept for symmetry */ }
+
   async function boot() {
     var pyodide = await window.loadPyodide();
     for (var i = 0; i < ENGINE_MODULES.length; i++) {
@@ -326,7 +381,10 @@
     await pyodide.runPythonAsync(await (await fetch("game.py")).text());
     window.pyodide = pyodide;   // the shared save widget looks for it
     HC.engine = { handle: pyodide.globals.get("handle"), getStateJson: pyodide.globals.get("get_state_json"), loadState: pyodide.globals.get("load_state") };
-    var saved = lsGet(STORE_KEY);
+    var choice = "continue";
+    try { if (window.NoyvjOpeningScreen && window.NoyvjOpeningScreen.choice) choice = await window.NoyvjOpeningScreen.choice; } catch (e) { /* continue */ }
+    if (choice === "new") { try { localStorage.removeItem(STORE_KEY); } catch (e) { /* ok */ } }
+    var saved = choice === "new" ? null : lsGet(STORE_KEY);
     if (saved) {
       try { HC.engine.loadState(pyodide.toPy(JSON.parse(saved))); } catch (e) { /* a bad save never blocks play */ }
     }

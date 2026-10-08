@@ -25,6 +25,7 @@ import time
 
 import content as content_mod
 import engine
+import info
 import plancheck
 import planops
 import writeup
@@ -339,7 +340,8 @@ def _playback_view(job):
             results["%d:%d" % (e["lane"], e["start"])] = {
                 "outcome": outcome, "icon": icons.get(outcome, "·"), "label": words.get(outcome, outcome),
                 "shake": outcome == "fail" and e["beat"] == cursor - 1}
-    return {"cursor": cursor, "n": n, "done": cursor >= n, "events": events, "results": results,
+    heat = result["heat_by_beat"][cursor - 1] if cursor else 0
+    return {"cursor": cursor, "n": n, "done": cursor >= n, "events": events, "results": results, "heat": min(10, heat),
             "beat_name": C.targets[job["target"]]["beats"][cursor - 1]["name"] if cursor else "",
             "attempt": job.get("attempt", 1)}
 
@@ -451,6 +453,8 @@ def _dispatch(request):
     note = ""
     if action == "open":
         pass
+    elif action == "info":
+        return {"view": _view(), "info": info.view(career.meta)}
     elif action == "new_career":
         seed = _int(request.get("seed"), 1, 2147483647, int(time.time()) % 2147483647 or 1)
         career = Career(seed)

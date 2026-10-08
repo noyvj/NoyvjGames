@@ -221,3 +221,22 @@ html[data-reduced-motion="true"] *, html[data-reduced-motion="true"] *::before, 
 html[data-effects="off"] *, html[data-effects="off"] *::before, html[data-effects="off"] *::after {
   animation: none !important; transition: none !important; scroll-behavior: auto !important;
 }
+
+/* Mobile dock: the action tray and Start Heist are pinned above the ad bar on a phone, so the timeline and the
+   tray are on screen together. Moved there by shared/mobile-dock.js; styling stays here. */
+@media (max-width: 640px) {
+  #tray-panel.mobile-docked { position: fixed; left: 0; right: 0; bottom: 50px; margin: 0; z-index: 90; border-radius: 12px 12px 0 0;
+    padding: 0.35rem 0.5rem 0.35rem 3.3rem; background: var(--panel); border: 1px solid var(--edge); box-shadow: 0 -6px 16px rgba(0, 0, 0, 0.3); }
+  #tray-panel.mobile-docked h3, #tray-panel.mobile-docked .touch-tray-note { display: none; }
+  #tray-panel.mobile-docked .armed-hint { min-height: 0; margin: 0 0 0.2rem; font-size: 0.78rem; max-height: 2.4em; overflow: hidden; }
+  #tray-panel.mobile-docked .tray { display: flex; overflow-x: auto; gap: 0.3rem; padding-bottom: 0.2rem; }
+  #tray-panel.mobile-docked .tray-item { flex: 0 0 auto; min-width: 6.4rem; }
+  #tray-panel.mobile-docked .tray-item .t-sub { display: none; }
+  #tray-panel.mobile-docked .cover-row { margin: 0.2rem 0; overflow-x: auto; flex-wrap: nowrap; }
+  #tray-panel.mobile-docked .cover-row button { flex: 0 0 auto; }
+  #tray-panel.mobile-docked .plan-controls { margin-top: 0.2rem; gap: 0.3rem; flex-wrap: nowrap; }
+  #tray-panel.mobile-docked .plan-controls button { flex: 1 1 auto; padding: 0.3rem 0.4rem; }
+  #tray-panel.mobile-docked .plan-controls .primary { width: auto; }
+  body.has-docked-tray { padding-bottom: 14rem; }
+  #plan-intro { display: none; }
+}
