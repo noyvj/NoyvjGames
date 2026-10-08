@@ -53,9 +53,11 @@ MIN_PRODUCTIVITY_MULTIPLIER = 0.2
 # and would otherwise silently rewrite every plot's history).
 DIFFICULTY_NORMAL = "normal"
 DIFFICULTY_RANGER = "ranger"
+DIFFICULTY_WILDFIRE = "wildfire"  # GB-1: normal soil damage plus a summer and autumn fire season
 DEGRADE_PER_CLEAR_BY_DIFFICULTY = {
     DIFFICULTY_NORMAL: DEGRADE_PER_CLEAR,
     DIFFICULTY_RANGER: DEGRADE_PER_CLEAR * 2,
+    DIFFICULTY_WILDFIRE: DEGRADE_PER_CLEAR,
 }
 current_difficulty = DIFFICULTY_NORMAL
 
@@ -968,6 +970,7 @@ def reset_session(grid_size=None, _render_after=True, difficulty=None, challenge
     _report_history.clear()
     _replay_frames.clear()  # B-3
     blight_pressure.clear()  # GB-7
+    _reset_fire()  # GB-1
     species_planted.clear()  # GB-6
     _replay_state["every"] = REPLAY_START_EVERY
     _pending_mature_bursts.clear()
@@ -2292,6 +2295,20 @@ def render_grid():
             soil_mark.setAttribute("aria-hidden", "true")
             tile.appendChild(soil_mark)
         tooltip = _plot_tooltip_text(plot)
+        if plot.index in fires:  # GB-1: a flame glyph and a solid outline, so fire never relies on colour
+            tile.className += " plot-burning"
+            fire_mark = _make_tile_mark("fire-mark", "\U0001F525")
+            fire_mark.setAttribute("aria-hidden", "true")
+            tile.appendChild(fire_mark)
+            tooltip += f" \u00b7 BURNING ({FIRE_BURN_TICKS - fires[plot.index]} ticks left): select it and press Dampen"
+        elif fire_warning is not None and fire_warning["plot"] == plot.index:
+            tile.className += " plot-smoke"
+            smoke_mark = _make_tile_mark("fire-mark", "\U0001F4A8")
+            smoke_mark.setAttribute("aria-hidden", "true")
+            tile.appendChild(smoke_mark)
+            tooltip += f" \u00b7 smoke: a spark in {fire_warning['ticks_left']} ticks"
+        elif fire_damp.get(plot.index, 0) > 0:
+            tooltip += f" \u00b7 damp: safe from fire for {fire_damp[plot.index]} ticks"
         links = mature_neighbour_count(plot) if _is_mature_standing(plot) else 0  # GB-5
         if links:
             bonus_pct = round(SYNERGY_PER_NEIGHBOUR * links * 100)
@@ -5872,6 +5889,8 @@ def session_tag_text():
         parts.append(REQUEST_PACE_LABEL[current_pace].lower())
     if current_challenge != CHALLENGE_NONE:
         parts.append(f"{CHALLENGE_SPECS[current_challenge]['label']} challenge")
+    if current_difficulty == DIFFICULTY_WILDFIRE:
+        parts.append("Wildfire season")
     if lab_active():
         parts.append("Forest Lab sandbox")
     return ", ".join(parts)
@@ -7749,6 +7768,7 @@ def render():
     render_plot_sheet()  # B-28
     render_survey()  # B-13
     render_lab_banner()  # B-5
+    render_fire()  # GB-1
     render_stats()
     render_stakeholder_panel()
     render_real_world()
@@ -8147,6 +8167,164 @@ def blight_status_for(index):
     return ""
 
 
+# GB-1 (2026-10-09): wildfire season, only on the "Wildfire season" difficulty. In summer (every 30-tick block) and about
+# half the autumn blocks a spark is due on a standing plot. Three ticks before, smoke marks the plot and the log warns.
+# A burning plot sets its standing neighbours alight from its second tick, and burns out (back to bare, value lost, no soil
+# damage) on its fourth. Bare and replanting plots are firebreaks, so clearing a plot on purpose (and taking the soil hit)
+# can save a mature cluster; Dampen puts a burning or smoking plot out and shields it for a while. The Heart Tree never burns.
+# Deterministic (the same hash as the weather, no dice) and not saved: a reload starts calm.
+FIRE_BLOCK_TICKS = 30
+FIRE_WARNING_TICKS = 3
+FIRE_SPREAD_AGE = 2
+FIRE_BURN_TICKS = 4
+FIRE_DAMP_TICKS = 12
+FIRE_DAMPEN_COOLDOWN = 6
+FIRE_SEASON_PERCENT = {"summer": 100, "autumn": 50}
+fires = {}  # plot index -> ticks burning
+fire_damp = {}  # plot index -> ticks of protection left
+fire_warning = None  # {"plot": int, "ticks_left": int}
+dampen_cooldown = 0
+fire_value_lost = 0.0
+
+
+def _reset_fire():
+    global fire_warning, dampen_cooldown, fire_value_lost
+    fires.clear()
+    fire_damp.clear()
+    fire_warning = None
+    dampen_cooldown = 0
+    fire_value_lost = 0.0
+
+
+def wildfire_enabled():
+    return current_difficulty == DIFFICULTY_WILDFIRE
+
+
+def fire_ignition_tick(block):
+    """The tick inside `block` at which a spark is due, or None when that block has no fire."""
+    start = block * FIRE_BLOCK_TICKS
+    season = _season_at(start + FIRE_BLOCK_TICKS // 2)
+    if _gb_hash(block, 41) % 100 >= FIRE_SEASON_PERCENT.get(season, 0):
+        return None
+    return start + FIRE_WARNING_TICKS + _gb_hash(block, 43) % (FIRE_BLOCK_TICKS - FIRE_WARNING_TICKS - 1)
+
+
+def _fire_candidates():
+    return [p.index for p in plots if p.state in ACCRUING_STATES and p.index not in fires
+            and fire_damp.get(p.index, 0) <= 0 and p.index != heart_tree_index and p.value > 0]
+
+
+def _ignite(index, message=None):
+    fires[index] = 0
+    _log_event("fire", message or f"Fire spread to {_plot_ref(index)}", index)
+
+
+def _burn_out(index):
+    global fire_value_lost
+    fires.pop(index, None)
+    plot = plots[index]
+    fire_value_lost += plot.value
+    lost = plot.value
+    plot.blight()  # back to bare: nothing harvested, soil untouched
+    _log_event("fire", f"Fire burned out {_plot_ref(index)} and took {lost:.1f} of value. Replant it when it is safe", index)
+
+
+def _fire_tick():
+    """Advances warnings, fires and protection by one tick (a no-op unless the difficulty is Wildfire season)."""
+    global fire_warning, dampen_cooldown
+    if not wildfire_enabled():
+        if fires or fire_warning or fire_damp:
+            fires.clear(); fire_damp.clear(); fire_warning = None
+        return
+    dampen_cooldown = max(0, dampen_cooldown - 1)
+    for index in list(fire_damp):
+        fire_damp[index] -= 1
+        if fire_damp[index] <= 0:
+            del fire_damp[index]
+    for index in list(fires):  # snapshot: plots set alight this tick start their own clock next tick
+        if index not in fires:
+            continue
+        fires[index] += 1
+        if fires[index] >= FIRE_SPREAD_AGE:
+            for neighbour in _edge_neighbours(index):
+                if (neighbour < len(plots) and neighbour not in fires and plots[neighbour].state in ACCRUING_STATES
+                        and plots[neighbour].region == "main" and fire_damp.get(neighbour, 0) <= 0
+                        and neighbour != heart_tree_index):
+                    _ignite(neighbour)
+        if fires[index] >= FIRE_BURN_TICKS:
+            _burn_out(index)
+    for index in list(fires):  # a plot that stopped standing some other way (cleared) is out
+        if plots[index].state not in ACCRUING_STATES:
+            del fires[index]
+    ignition_block = forest_tick // FIRE_BLOCK_TICKS
+    due = fire_ignition_tick(ignition_block)
+    if fire_warning is not None:
+        fire_warning["ticks_left"] -= 1
+        if fire_warning["ticks_left"] <= 0:
+            target = fire_warning["plot"]
+            fire_warning = None
+            if plots[target].state in ACCRUING_STATES and fire_damp.get(target, 0) <= 0 and target not in fires:
+                _ignite(target, f"A spark caught on {_plot_ref(target)}. Dampen it, or clear a plot to make a firebreak")
+    elif due is not None and forest_tick == due - FIRE_WARNING_TICKS:
+        candidates = _fire_candidates()
+        if candidates:
+            target = candidates[_gb_hash(ignition_block, 47) % len(candidates)]
+            fire_warning = {"plot": target, "ticks_left": FIRE_WARNING_TICKS}
+            _log_event("fire", f"Smoke over {_plot_ref(target)}: a spark is due in {FIRE_WARNING_TICKS} ticks. Select it and press Dampen", target)
+
+
+def can_dampen(index):
+    if not wildfire_enabled() or index is None or dampen_cooldown > 0:
+        return False
+    return index in fires or (fire_warning is not None and fire_warning["plot"] == index)
+
+
+def dampen_plot(index=None):
+    """Puts out a fire (or the smoking plot's coming spark) and shields that plot for FIRE_DAMP_TICKS."""
+    global fire_warning, dampen_cooldown
+    index = selected_index if index is None else index
+    if not can_dampen(index):
+        return False
+    fires.pop(index, None)
+    if fire_warning is not None and fire_warning["plot"] == index:
+        fire_warning = None
+    fire_damp[index] = FIRE_DAMP_TICKS
+    dampen_cooldown = FIRE_DAMPEN_COOLDOWN
+    _log_event("fire", f"Dampened {_plot_ref(index)}: it is safe for {FIRE_DAMP_TICKS} ticks", index)
+    render()
+    return True
+
+
+def on_dampen(event=None):
+    dampen_plot()
+
+
+def fire_status_text():
+    if not wildfire_enabled():
+        return ""
+    if fires:
+        labels = ", ".join(plot_coordinate_label(i) for i in sorted(fires))
+        soonest = FIRE_BURN_TICKS - max(fires.values())
+        return f"Fire on {labels}: the oldest burns out in {soonest} tick{'s' if soonest != 1 else ''}. Dampen it or clear a plot to stop it spreading."
+    if fire_warning is not None:
+        return f"Smoke over {plot_coordinate_label(fire_warning['plot'])}: a spark in {fire_warning['ticks_left']} tick{'s' if fire_warning['ticks_left'] != 1 else ''}."
+    return f"Fire season: calm for now ({SEASON_LABEL[current_season()].lower()}). Lost to fire so far: {fire_value_lost:.1f}."
+
+
+def render_fire():
+    status = _el("fire-status")
+    if status is not None:
+        text = fire_status_text()
+        status.hidden = not text
+        status.innerText = text
+    button = _el("dampen-button")
+    if button is not None:
+        button.hidden = not wildfire_enabled()
+        button.disabled = not can_dampen(selected_index)
+        button.title = ("Put out the burning or smoking plot you selected and shield it for a while"
+                        + (f" (ready in {dampen_cooldown} ticks)" if dampen_cooldown else ""))
+
+
 def _note_recovery(plot):
     global total_recoveries
     total_recoveries += 1
@@ -8218,6 +8396,7 @@ def tick(event=None):
     global _mixed_bonus
     _mixed_bonus = mixed_forest_multiplier()  # GB-6
     _blight_tick()  # GB-7
+    _fire_tick()  # GB-1
     aura = _heart_tree_aura()  # GB-8
     newly_mature = []
     for plot in plots:
@@ -8531,6 +8710,8 @@ def load_state(data):
                 }
     species_planted.clear()  # GB-6
     blight_pressure.clear()  # GB-7
+    _reset_fire()  # GB-1
+    fires.clear(); fire_damp.clear()  # GB-1
     saved_planted = data.get("species_planted")
     if isinstance(saved_planted, list):
         species_planted.update(x for x in saved_planted if x in SPECIES and x != SPECIES_STANDARD)
@@ -8781,6 +8962,9 @@ def setup():
         load_species_choice()
         species_select.addEventListener("change", create_proxy(on_species_change))
         render_species_note()
+    dampen_button = _el("dampen-button")  # GB-1
+    if dampen_button is not None:
+        dampen_button.addEventListener("click", create_proxy(on_dampen))
     for survey_id, survey_handler in (("survey-toggle-button", on_toggle_survey), ("survey-commit-button", commit_survey),
                                       ("survey-remove-button", on_survey_remove_last), ("survey-decline-button", on_survey_decline),
                                       ("survey-cancel-button", cancel_survey)):  # B-13

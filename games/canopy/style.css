@@ -2289,6 +2289,15 @@ html[data-season="winter"] { --leaf: #5f7f8c; --leaf-light: #a9c3cf; }
 @media (prefers-reduced-motion: reduce) { .tile-sprite { animation: none; } }
 html[data-reduced-motion="true"] .tile-sprite, html[data-perf-mode="on"] .tile-sprite { animation: none; }
 
+/* GB-1: wildfire. A solid heavy outline for fire and a dotted one for smoke, plus a glyph, so it never relies on colour. */
+.fire-status:not([hidden]) { margin: 0.4rem 0; padding: 0.35rem 0.6rem; border: 2px solid currentColor; border-radius: 8px; font-weight: 600; }
+.plot-burning { outline: 4px solid #ff7043; outline-offset: -4px; }
+.plot-smoke { outline: 3px dotted #cfd8dc; outline-offset: -3px; }
+.fire-mark { position: absolute; left: 50%; top: 2px; transform: translateX(-50%); font-size: 1em; line-height: 1; pointer-events: none; }
+@media (prefers-reduced-motion: no-preference) { .plot-burning .fire-mark { animation: fire-flicker 0.9s ease-in-out infinite; } }
+html[data-reduced-motion="true"] .fire-mark { animation: none; }
+@keyframes fire-flicker { 0%, 100% { transform: translateX(-50%) scale(1); } 50% { transform: translateX(-50%) scale(1.15); } }
+
 /* ============================================================
    Light theme (Y11b, 2026-09-27). shared/theme-light-games.css already
    restyles the shared chrome (panels, buttons, inputs, HUD readouts);

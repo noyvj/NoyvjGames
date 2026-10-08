@@ -1583,3 +1583,167 @@ def test_sprite_css_respects_reduced_motion_and_perf_mode(game_env):
     css = open(__import__("os").path.join(__import__("os").path.dirname(__file__), "..", "style.css"), encoding="utf-8").read()
     assert 'html[data-reduced-motion="true"] .tile-sprite' in css and 'data-perf-mode="on"] .tile-sprite' in css
     assert "@media (prefers-reduced-motion: reduce) { .tile-sprite { animation: none; } }" in css
+
+
+# ---- GB-1 wildfire season ----
+
+def _wildfire(m):
+    m.current_difficulty = m.DIFFICULTY_WILDFIRE
+    m._reset_fire()
+    for p in m.plots:
+        p.state, p.value, p.ticks_intact = m.PRESERVED, 20.0, 5
+    m.heart_tree_index = None
+
+
+def test_fire_only_exists_on_the_wildfire_difficulty(game_env):
+    m = game_env.module
+    m.forest_tick = 90
+    for _ in range(200):
+        m.forest_tick += 1
+        m._fire_tick()
+    assert m.fires == {} and m.fire_warning is None and m.fire_status_text() == ""
+
+
+def test_ignition_schedule_is_deterministic_and_seasonal(game_env):
+    m = game_env.module
+    blocks = range(0, 200)
+    schedule = [m.fire_ignition_tick(b) for b in blocks]
+    assert schedule == [m.fire_ignition_tick(b) for b in blocks]
+    for b, t in zip(blocks, schedule):
+        season = m._season_at(b * m.FIRE_BLOCK_TICKS + m.FIRE_BLOCK_TICKS // 2)
+        if season in ("spring", "winter"):
+            assert t is None
+        if t is not None:
+            assert b * m.FIRE_BLOCK_TICKS + m.FIRE_WARNING_TICKS <= t < (b + 1) * m.FIRE_BLOCK_TICKS
+    summer_blocks = [b for b in blocks if m._season_at(b * m.FIRE_BLOCK_TICKS + 15) == "summer"]
+    assert all(m.fire_ignition_tick(b) is not None for b in summer_blocks)
+    autumn_blocks = [b for b in blocks if m._season_at(b * m.FIRE_BLOCK_TICKS + 15) == "autumn"]
+    assert 0 < sum(1 for b in autumn_blocks if m.fire_ignition_tick(b) is not None) < len(autumn_blocks)
+
+
+def _first_summer_block(m):
+    return next(b for b in range(0, 100) if m._season_at(b * m.FIRE_BLOCK_TICKS + 15) == "summer" and m.fire_ignition_tick(b) is not None)
+
+
+def test_smoke_comes_three_ticks_before_the_spark_and_names_the_plot(game_env):
+    m = game_env.module
+    _wildfire(m)
+    block = _first_summer_block(m)
+    due = m.fire_ignition_tick(block)
+    m.forest_tick = due - m.FIRE_WARNING_TICKS
+    m._fire_tick()
+    assert m.fire_warning is not None and m.fire_warning["ticks_left"] == m.FIRE_WARNING_TICKS
+    target = m.fire_warning["plot"]
+    assert "Smoke over" in m.fire_status_text()
+    for _ in range(m.FIRE_WARNING_TICKS):
+        m.forest_tick += 1
+        m._fire_tick()
+    assert target in m.fires and m.fire_warning is None
+
+
+def test_fire_spreads_to_standing_neighbours_and_burns_out_to_bare(game_env):
+    m = game_env.module
+    _wildfire(m)
+    m.forest_tick = 0  # a calm spring tick, so no new spark interferes
+    centre = m.GRID_COLS + 1
+    m._ignite(centre)
+    m._fire_tick()
+    assert set(m.fires) == {centre}
+    m._fire_tick()  # age 2: spreads
+    assert set(m._edge_neighbours(centre)) <= set(m.fires)
+    for _ in range(m.FIRE_BURN_TICKS):
+        m._fire_tick()
+    assert m.plots[centre].state == m.BARE and m.plots[centre].clear_count == 0
+    assert m.fire_value_lost >= 20.0
+
+
+def test_bare_and_replanting_plots_are_firebreaks_and_the_heart_tree_never_burns(game_env):
+    m = game_env.module
+    _wildfire(m)
+    m.forest_tick = 0
+    start = m.GRID_COLS + 1
+    left, right, up, down = start - 1, start + 1, start - m.GRID_COLS, start + m.GRID_COLS
+    m.plots[left].state = m.BARE
+    m.plots[right].state = m.REPLANTING
+    m.heart_tree_index = up
+    m._ignite(start)
+    for _ in range(3):
+        m._fire_tick()
+    assert left not in m.fires and right not in m.fires and up not in m.fires and down in m.fires
+
+
+def test_dampen_stops_a_fire_shields_the_plot_and_has_a_cooldown(game_env):
+    m = game_env.module
+    _wildfire(m)
+    m.forest_tick = 0
+    m._ignite(7)
+    m.selected_index = 7
+    assert m.can_dampen(7) is True and m.can_dampen(8) is False
+    assert m.dampen_plot() is True
+    assert 7 not in m.fires and m.fire_damp[7] == m.FIRE_DAMP_TICKS
+    m._ignite(8)
+    assert m.dampen_plot(8) is False  # cooling down
+    for _ in range(m.FIRE_DAMPEN_COOLDOWN):
+        m._fire_tick()
+    m._ignite(9)
+    assert m.can_dampen(9) is True  # the cooldown is over (the fire on 8 has burned out by now)
+    m.fire_damp[10] = 5  # a damp neighbour is not set alight
+    for _ in range(3):
+        m._fire_tick()
+    assert 10 not in m.fires
+
+
+def test_dampening_the_smoking_plot_cancels_the_spark(game_env):
+    m = game_env.module
+    _wildfire(m)
+    due = m.fire_ignition_tick(_first_summer_block(m))
+    m.forest_tick = due - m.FIRE_WARNING_TICKS
+    m._fire_tick()
+    target = m.fire_warning["plot"]
+    assert m.dampen_plot(target) is True and m.fire_warning is None
+    for _ in range(5):
+        m.forest_tick += 1
+        m._fire_tick()
+    assert target not in m.fires
+
+
+def test_clearing_a_burning_plot_puts_it_out_and_new_game_is_calm(game_env):
+    m = game_env.module
+    _wildfire(m)
+    m.forest_tick = 0
+    m._ignite(3)
+    m.plots[3].clear()
+    m._fire_tick()
+    assert 3 not in m.fires
+    m._ignite(4)
+    m.reset_session()
+    assert m.fires == {} and m.fire_warning is None
+
+
+def test_tiles_show_a_glyph_and_the_button_follows_the_difficulty(game_env):
+    m = game_env.module
+    _wildfire(m)
+    m._ignite(2)
+    m.fire_warning = {"plot": 5, "ticks_left": 2}
+    m.selected_index = 2
+    m.render()
+    grid = game_env.elements["plot-grid"].children
+    assert "plot-burning" in grid[2].className and any(c.className == "fire-mark" for c in grid[2].children)
+    assert "plot-smoke" in grid[5].className and "BURNING" in grid[2].getAttribute("data-tooltip")
+    assert game_env.elements["dampen-button"].hidden is False and game_env.elements["dampen-button"].disabled is False
+    assert game_env.elements["fire-status"].hidden is False
+    m.current_difficulty = m.DIFFICULTY_NORMAL
+    m.render()
+    assert game_env.elements["dampen-button"].hidden is True
+
+
+def test_wildfire_is_a_valid_difficulty_with_normal_soil_damage_and_a_tag(game_env):
+    m = game_env.module
+    m.reset_session(difficulty=m.DIFFICULTY_WILDFIRE)
+    assert m.current_difficulty == m.DIFFICULTY_WILDFIRE
+    assert m.current_degrade_per_clear() == m.DEGRADE_PER_CLEAR * m.vault_soil_factor()
+    assert "Wildfire season" in m.session_tag_text()
+    state = m.get_state()
+    m.reset_session()
+    m.load_state(state)
+    assert m.current_difficulty == m.DIFFICULTY_WILDFIRE
