@@ -1,6 +1,6 @@
 # Site-Wide TODO (round 3)
 
-**Progress: 406/1000 items checked off (40.6%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land.
+**Progress: 407/1000 items checked off (40.7%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land.
 
 Built from your answers in `planning/IMPROVEMENT-IDEAS-ROUND-3.md` (Part 4). Every Round 3 section is now answered (2026-10-07 below the Warframe section); earlier this list held only: **GB** (Canopy gamified), **M** (new games), **N** (seasonal events), **O** (Trade Empire and Continuum replayability), **P/Q/S/T** (Signal, Undersleep, Overclock, Last Line open questions), **X** (Warframe tracker) and **R** (returning later). GC-GI, A-L, U, Z and Y are unanswered and wait for you. The previous list is archived at `planning/todo-archive/260914_260927.md`; anything from it that was moved here is marked "moved" there.
 
@@ -921,7 +921,7 @@ Your remaining Round 3 answers (Grid to Drift gamified, SOL to Le Champ de Mots,
   - [x] Z-25 Le Champ de Mots
   - [x] Z-25 Signal
   - [x] Z-25 Lexis
-- [ ] Z-27: Add a shared achievement Share button that copies a one-line text ('I earned X in Game, N% of players have it') plus the game link, using the live earned_pct, omitting the percentage while suppressed/under-sampled. (needs achievement stats backend (built)) (Shared Share button built 2026-10-08 (shared/achievement-share.js); the script tag per game page is still to add.)
+- [x] Z-27: Add a shared achievement Share button that copies a one-line text ('I earned X in Game, N% of players have it') plus the game link, using the live earned_pct, omitting the percentage while suppressed/under-sampled. (needs achievement stats backend (built)) (Shared Share button built 2026-10-08 (shared/achievement-share.js); the script tag per game page is still to add.)
 - [x] Z-28: Add a shared pause-when-tab-hidden helper for games with a real-time loop (SOL, Canopy, Trade Empire, Continuum animation), with an on/off toggle in each game's settings; avoid silent simulation advance while hidden. (needs W-2 pause)
   Per game (Classic and Desktop pages both; tick each once wired and tested):
   - [x] Z-28 SOL
