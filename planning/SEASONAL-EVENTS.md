@@ -48,3 +48,6 @@ Nothing needs a new backend or a new save format beyond one optional list.
 1. Is the host-game mapping above acceptable, or do you want different games for any date?
 2. Which of the American-centric dates do you want to keep, replace or drop?
 3. Should badges appear only in the game, or also on the hub next to account achievements? (I recommend both.)
+
+
+**Reviewed 2026-10-08 (you said yes):** the host-game mapping, the date list (including the American dates) and badges shown both in the game and on the hub are accepted as proposed.

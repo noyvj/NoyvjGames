@@ -74,3 +74,6 @@ Keep building level-1 features (boards, pools, aggregates), keep every new endpo
 3. Two-player games: the player chooses friend-only or open, with friend-only recommended in the interface. (Round 2 also answered "later, I want to do a full multiplayer pass soon" on the Round 2 multiplayer item.)
 4. Client-trusted scores versus replay verification: the user is unsure; my recommendation is client-trusted for now, verification only where cheating would matter (asked again in FOR-YOU 5).
 5. Moderation: the user for now, and the assistant too if that can be made possible (an admin-token read of reports, never silent deletion).
+
+
+**Decided 2026-10-08 (you said "go with that"):** scores stay client-trusted for now; replay verification is added only for a game where cheating would matter (Signal and Last Line are the candidates, later).

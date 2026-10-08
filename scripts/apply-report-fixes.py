@@ -46,7 +46,7 @@ def review_rows():
 def call(method, path, token, body=None):
     request = urllib.request.Request(
         API + path, method=method, data=json.dumps(body).encode() if body is not None else None,
-        headers={"X-Admin-Token": token, "Content-Type": "application/json"})
+        headers={"X-Admin-Token": token, "Content-Type": "application/json", "User-Agent": "noyvjgames-apply-report-fixes/1.0"})
     with urllib.request.urlopen(request, timeout=30) as response:
         return json.loads(response.read().decode())
 

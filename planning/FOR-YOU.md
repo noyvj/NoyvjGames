@@ -46,42 +46,231 @@ I'll drop all of that into the ad bar and it goes live everywhere on the site at
 
 **Your answer:** list any combos you want built in (name plus the parts), or say "just my own box is fine".
 
-### 4. Answers to your Round 3 questions, plus five items I now explain (each needs one word from you)
+---
 
-**You asked: how visible is all the information right now (usernames, passwords, saves)?** I checked the backend code. Plainly:
-- **Passwords** are never stored or sent back. Each is hashed with PBKDF2-SHA256 (600,000 rounds, a random salt per account) and no endpoint returns the hash.
-- **Usernames** are private except in two places: signing up tells you whether a name is already taken (so names can be probed one at a time), and a username shows next to a score only on a leaderboard you have opted into.
-- **Saves** are the main exposure. A save is stored as plain JSON in the database and **the save code is the only key**: anyone who has a code can read (and overwrite) that save with no login. A code is 8 characters from a 31-letter alphabet (about 850 billion possibilities), fine for game progress, not fine for anything personal. Saves you claim to an account are attached to it, but the code still works.
-- **Feedback comments** are public. The public list used to include an internal account id; I removed it tonight.
-- **Emails** (optional) are visible only to you in the admin page, never in any public output. **Ratings**, **aggregate stats** and **leaderboard entries** are public by design; stats hide any group smaller than 3.
-- **Sessions** (the login token) never expire on their own.
-- **Fixed tonight (goes live on the next backend deploy):** guessing passwords is now throttled per username and per address, guessing save codes is throttled per address, and the public feedback list no longer carries an account id.
-- **Still open, your call:** for Undersleep's personal data I recommend it stays on the device only (with manual export and import) and never goes in a save code or the cloud; a cloud version would need per-account encryption, which is a real project. Tell me if you want that project anyway.
+### U1. Undersleep: should the optional daily check-in layer be hidden until the player turns it on?
 
-**Undersleep Q3, restated:** should the optional daily check-in part (the "add personal touches" layer) be hidden until the player turns it on ("Just play" is the default), or shown from the first launch? I recommend hidden by default.
+Recommend: yes, hidden by default ("Just play" is the default).
 
-**Items you could not judge because I did not explain them (my labels; the ideas are from Round 1):**
-1. **Grid C6:** let a player save two scenarios and overlay their trend graphs for a side-by-side comparison. (Grid now has the shadow-grid twin, which covers part of this.) now, later or drop?
-2. **Tide D10:** show the acidity from three seasons ago right next to the current acidity, so the delayed link between cause and effect is visible as numbers. now, later or drop?
-3. **Aftermath E5:** add another event category beyond weather and non-weather (for example a heat-mortality event) for variety in the fixed seven-event schedule. now, later or drop?
-4. **Herd F4:** a second end-of-game feedback question about Herd's own lesson ("did decoupling feel like a real strategy, or a tax on growth?"), like Thaw's two-question pattern. now, later or drop?
-5. **Loop H16:** an optional "supply chain disruption" random event, opt-in as an advanced mode, kept apart from the deterministic core lesson. now, later or drop?
-6. **Contraption (round 2 M8):** a physics puzzle sandbox (drag parts, watch them collide). It needs a JavaScript physics engine such as Matter.js, which means shipping a library and writing the game in JavaScript rather than Python, a much bigger stack decision than a normal new game. It stays parked as you said; tell me if you ever want it costed properly.
+### U2. Undersleep: keep the player's personal data on the device only, with manual export and import, and never in a save code or the cloud?
 
-### 5. Multiplayer: one decision left (the rest are answered)
+Recommend: yes. A cloud version needs per-account encryption, which is a real project; say "later" if you want that project eventually.
 
-Answered 2026-10-07 and recorded in `planning/MULTIPLAYER-SCOPING.md`: (1) the level of multiplayer is my call; (2) any ghost or run summary is opt-in; (3) two-player games let the player choose friend-only or open, with friend-only recommended; (5) moderation is you for now, and me too if that is possible.
+### Ch1. Chronicle: after you spot-check the sample set, may I author the full American presidents set (three sources per claim)?
 
-**Still open: (4) client-trusted scores or replay verification.** You said unsure. Plain version: today a score is whatever the player's browser sends, so a determined person can post a fake one. Replay verification means the server re-runs the game from its seed and the recorded moves to check the score, which only works for deterministic games (Signal, Last Line, a seeded Canopy forest) and costs real work. My recommendation: accept client-trusted scores for now (friendly boards), and add verification only for a game where cheating would matter. Say "go with that" or tell me otherwise.
+Recommend: yes, then the history of food and Ancient Greece as sets 2 and 3.
 
-### 7. Seasonal events: react to the redone list
+### Ch2. Chronicle: spot-check the weakest claims first: "Washington added 'so help me God'" (two of its three sources are opinion essays from one outlet)?
 
-`planning/SEASONAL-EVENTS.md` redoes Round 3 section N around real big dates (Christmas, Halloween, New Year, Easter, Hanukkah, Thanksgiving, 4th of July, Valentine's, Lunar New Year, Diwali), each a 15-minute task on a host game with a temporary stand-in where no game fits. The date engine is built and tested. Three questions: (1) is the host-game mapping acceptable? (2) which American-centric dates (4th of July, Thanksgiving) do you keep, replace with inclusive ones, or drop? (3) should badges show only in the game, or also on the hub next to account achievements (I recommend both)?
+Open `games/chronicle/review.html` on the dev server and tell me keep, fix or drop.
+
+### Ch3. Chronicle: spot-check the Sputnik to Apollo 11 cause link (no single source states the whole chain)?
+
+Open `games/chronicle/review.html`; recommend keeping it labelled "contributing" unless you want it dropped.
+
+### Ch4. Chronicle: spot-check the Lincoln-stayed-at-the-Wills-house claim (only NPS pages and one exhibition place him there)?
+
+Tell me keep, fix or drop.
+
+### Ch5. Chronicle: spot-check the Fort Sumter options claim (only two institutions) and the 1792 second-term decision (one Miller Center line plus one NCC line)?
+
+Tell me keep, fix or drop for each.
+
+### Ch6. Chronicle: are the 14 passage summaries in "Whose account?" fair and balanced in tone?
+
+I wrote them from fetched page summaries, not whole pages, so a skim by you is the check.
+
+### Ch7. Chronicle: when it is ready, should Chronicle go on the hub (card, thumbnail, favicon) now, or wait until the presidents set is fully authored?
+
+Recommend: wait until the full presidents set is done.
+
+### Lx1. Lexis: build planets 4 and 5 (the two fainter worlds) to grow it to the Large size?
+
+Recommend: later, after you have played planets 1 to 3.
+
+### Fr1. Le Champ de Mots: should a singular noun typed without its le or la (for example `mode` for `la mode`) count as correct?
+
+Today it is marked wrong because the article carries the gender. Recommend: keep le/la required (the bare plural for des/les nouns and the bare noun for l' nouns are already accepted).
+
+### Fr2. Le Champ de Mots: which word sounded wrong in "J'adore nager, j'aime aussi faire du surf." (a player's pronunciation concern)?
+
+I suspect "surf" (an English loanword). Please listen and tell me which word.
+
+### Fr3. Le Champ de Mots: which word sounded wrong in "du poulet" (a player's pronunciation concern)?
+
+It is not on the pronunciation watchlist. Please listen and tell me.
+
+### Be1. Backend: how many proxies does FastAPI Cloud put in front of the app?
+
+The per-address rate limits use the first X-Forwarded-For entry, which a client can spoof. Recommend: leave as is unless you see abuse.
+
+### Be2. Backend: reject the username noyvj at signup unless an owner environment variable is set?
+
+Otherwise, if the production database were ever rebuilt, whoever signed up as noyvj first would get admin. Recommend: yes.
+
+### Be3. Backend: should sign-in tokens expire, with a logout route?
+
+They never expire today (a noted design choice). Recommend: later.
+
+### Be4. Hub: remove the Google ads script (placeholder client id) from the hub until your AdSense account is approved?
+
+It can only fail until then. Recommend: yes, and I put it back when you give me the id.
+
+### Be5. Hub: ask for the session lengths on the hub cards separately later (you said later on this)?
+
+My estimates: Signal 5 min, the eight climate games 20 min, everything else long-form. Say "later" to keep this parked.
+
+### Ti1. Tide: build a Tide Workshop (sliders for starting funds, lag length, sea-level rate, surge size) with runs labelled "custom rules" and never ranked?
+
+Recommend: yes.
+
+### Ti2. Tide: may I choose the named coastline scenarios myself (three invented coasts: low delta, cliff bay, barrier island, with plain traits)?
+
+Recommend: yes, my call.
+
+### Ti3. Tide: add a living harbor scene (a harbor picture drawn in code that reflects acidity and fish, with an off switch)?
+
+Recommend: yes.
+
+### Ti4. Tide: give technical words (acidity, lag) plainer labels with the science in a tooltip?
+
+Recommend: yes.
+
+### Ti5. Tide: show achievements as medal cards (shape plus text) instead of a plain list?
+
+Recommend: yes.
+
+### Gr1. Grid: should retiring a plant ask for confirmation only when it is the last plant? (Retiring any other plant already skips confirmation.)
+
+Recommend: yes, last plant only.
+
+### Gr2. Grid: may the scenario builder share scenarios through the shared run-code format?
+
+Recommend: yes.
+
+### Gr3. Grid: build the R&D lab as part of an upgrade tree (you suggested a tree over a roguelike earlier)?
+
+Recommend: yes.
+
+### Gr4. Grid: build neighbour trading with computer-controlled neighbours only (no real players)?
+
+Recommend: yes.
+
+### Gr5. Grid: build storm prep as a short preparation step before a storm with small costs?
+
+Recommend: yes.
+
+### He1. Herd: may I choose the balance values for the new mechanics myself and tell you afterwards?
+
+Recommend: yes.
+
+### He2. Herd: may I write the branching story as a short original story with three branches, with real-world facts only in the info panel?
+
+Recommend: yes.
+
+### He3. Herd: how much should the minigame affect results?
+
+Recommend: a small bonus capped at about 5% of a round's funds.
+
+### He4. Herd (and Aftermath, Thaw): mark runs that use custom rules as "unranked" and keep them off leaderboards?
+
+Recommend: yes.
+
+### Th1. Thaw: show real-world gigatonne carbon figures only if I read them live and name the source on screen?
+
+Recommend: yes.
+
+### Af1. Aftermath: add a fog mode (events hidden until they arrive) as an optional hard mode, since it conflicts with the forecast features?
+
+Recommend: yes, optional.
+
+### Af2. Aftermath: put the scenario and modifier options into one "modifiers" menu?
+
+Recommend: yes.
+
+### Lo1. Loop: build trading cards with short real-world facts about each material, read live and named on screen?
+
+Recommend: yes.
+
+### Lo2. Loop: add market shocks as a deterministic scheduled mode (no randomness)?
+
+Recommend: yes.
+
+### Lo3. Loop: add a simple computer rival chain you compare against?
+
+Recommend: yes.
+
+### Lo4. Loop: add rewind (like Drift's) now and autopilot later?
+
+Recommend: rewind yes, autopilot later.
+
+### Dr1. Drift: merge the two overlapping ideas (a personality system and a civic-milestone system) into one?
+
+Recommend: yes.
+
+### Dr2. Drift: may I draw the skins, building pop-ups and route glyphs myself as simple code-drawn graphics?
+
+Recommend: yes.
+
+### Te1. Trade Empire: may I add a Blackout mode badge to the shared opening screen?
+
+It touches shared code used by every game. Recommend: yes, small.
+
+### Te2. Trade Empire: build the Cartel Board as a late-game panel?
+
+Recommend: later.
+
+### Co1. Continuum: write the advisor council, notable citizens and citizen of the season as original fictional characters, with real-world facts only sourced and named on screen?
+
+Recommend: yes.
+
+### Co2. Continuum: build neighbouring settlements as computer-controlled neighbours first, before any multiplayer?
+
+Recommend: yes.
+
+### Ca1. Le Champ de Mots: add coins earned from watering that unlock cosmetic skins?
+
+Recommend: yes, cosmetic only.
+
+### Ca2. Le Champ de Mots: add a false-friends set, built from a reputable list read live and named on screen?
+
+Recommend: yes.
+
+### Ca3. Le Champ de Mots: add an optional answer timer to practice for a quickest-answer record?
+
+The game deliberately has no clock. Recommend: no.
+
+### So1. SOL: may I write the balance for prestige mutators myself?
+
+Recommend: yes.
+
+### So2. SOL: build the anomaly system on a fixed schedule rather than random?
+
+Recommend: yes.
+
+### Cn1. Canopy: build the community plot (one forest everyone adds to) on the new leaderboard backend?
+
+Recommend: later.
+
+### Cn2. Canopy: build the rival-company 1 v 1 mode?
+
+Recommend: later.
+
+### Mp1. Multiplayer: replay verification of scores for Signal and Last Line only, client-trusted everywhere else?
+
+You said go with client-trusted for now; this asks only about adding verification later for Signal. Recommend: later.
 
 ---
 
-### 8. Design calls my overnight batch passes skipped (answer yes, later or no per line, or ignore the ones you do not care about)
-Each of these was left out of the 2026-10-07 per-game batches because it needs your decision, not because it is hard. Plain recommendation first. (1) **Aftermath Flawless Defense bar:** I built it at 15% of base damage, not the 10% in the list, because 10% was unreachable with the 85% mitigation cap; keep 15%? Recommend yes. (2) **Aftermath E-28, a confirm when you resolve with unspent resources:** the default would prompt almost every time; recommend off by default. (3) **Trade Empire J-13, charter archetypes:** overlaps the perk tree you chose over a single pick; recommend drop. (4) **Continuum K-29, Blitz timer:** seasons already run on a real-time clock, so "30 seconds per season or the default policy applies" is unclear; recommend drop or tell me what you meant. (5) **Continuum par badges:** the par numbers (910 seasons or 75 minutes on standard) come from the game's own tables and have not been playtested; recommend you play one run to the Relay Age and tell me if they feel too loose or tight. (6) **Share-code format (Loop GH-28 and H-7, Tide D-3, Grid C-29):** one shared compact code format for runs, friends can paste to view a ghost; recommend yes, built once in the shared folder. (7) **Random-reward items (Loop GH-17, GH-21, GH-30):** they involve luck, which your taste notes avoid; recommend drop. (8) **Session lengths on the hub cards** (`game-sessions.json`): my estimates are Signal 5 min, the eight climate games 20 min, everything else long-form; correct any that feel wrong. (9) **Chronicle new claims to review first:** the weakest-sourced are "Washington added 'so help me God'" (two of its three sources are opinion essays from one outlet) and the Sputnik to Apollo 11 cause link (no single source states the whole chain; each source confirms one step). Open `games/chronicle/review.html`. (10) **Chronicle accounts and decisions to spot-check:** the weakest are the Lincoln-stayed-at-the-Wills-house claim (only NPS pages and one exhibition place him there), the Fort Sumter options claim (two institutions) and the 1792 second-term decision (one Miller Center line plus one NCC line); the 14 passage summaries and 22 new claim notes rest on fetched page summaries, not whole pages. (11) **French answer reports, three I could not decide:** (a) a player typed `mode` for `la mode` (fashion): should a singular noun typed without its le or la count as correct? Today it is marked wrong because the article carries the gender; I already accept the bare plural for des and les nouns and the bare noun for l' nouns (recommend: keep le/la required). (b) a pronunciation concern on "J'adore nager, j'aime aussi faire du surf.": which word sounded wrong? I suspect "surf" (an English loanword that should sound like surf with a French r); please listen and tell me. (c) a pronunciation concern on "du poulet": which word sounded wrong? It is not on the pronunciation watchlist. (12) **Backend decisions from the security review:** (a) how many proxies does FastAPI Cloud put in front of the app (the per-address rate limits use the first X-Forwarded-For entry, which a client can spoof; the last entry is safe behind one proxy but would put everyone in one bucket behind two; recommend: leave as is unless you see abuse); (b) the owner account is just the username noyvj, so if the production database were ever rebuilt whoever signs up as noyvj first would get admin; recommend: reject that name at signup unless an owner environment variable is set, say yes and I will build it; (c) sign-in tokens never expire and there is no logout route (already noted in the code as a design choice; recommend: add expiry and logout later). (13) **AdSense placeholder:** the hub loads Google's ads script with the placeholder client id ca-pub-XXXXXXXXXXXXXXXX on every page view, which can only fail until the account is approved; remove it until then? (recommend: yes, and I put it back when you have the id). (14) **Chronicle:** open `games/chronicle/review.html` on the dev server, spot-check the 23 sample claims and their 63 sources, and tell me if the tone and balance are right before I author the full presidents set.
+## Answered 2026-10-08 — folded into the TODO and docs (read from the ideas sheet)
+
+- **Round 1 items to judge (old item 4):** you said **now** for Grid C6 (overlay two saved scenarios' trend graphs), Tide D10 (show acidity from three seasons ago next to the current value), Aftermath E5 (another event category), Herd F4 (a second end-of-game feedback question about Herd's own lesson) and Loop H16 (optional supply chain disruption event, opt-in advanced mode), and **do not do it** for the Contraption physics sandbox. The five are now TODO items (section FY); Contraption is dropped.
+- **Multiplayer (4):** go with client-trusted scores for now (recorded in `planning/MULTIPLAYER-SCOPING.md`).
+- **Seasonal events:** you said yes to the redone list (host mapping, the dates and badges in both the game and the hub); recorded in `planning/SEASONAL-EVENTS.md`.
+- **Overnight design calls:** yes to my recommendations: keep the Aftermath Flawless Defense bar at 15%, build the Aftermath unspent-resources confirm off by default, drop Trade Empire J-13 (charter archetypes), drop Continuum K-29 (Blitz timer), build the shared run-code format once, drop the luck items (Loop GH-17, GH-21, GH-30). You will tell me about the Continuum par numbers while you play, and asked me to ask about session lengths separately (that is item Be5).
+- **Clean up test rows (0), AdSense (1) and screenshots (0c):** you said later; they stay at the top.
+- **Redeploy (0b):** you pushed and the backend answered, so it is done. Everything pushed so far is live: the answer report "fixed" tickboxes, leaderboards, health, the account export and delete, and the rest.
+- **How to ask you things (0e):** you asked me to put questions on the ideas sheet directly, one per item, because answering in a file is hard from your phone. That is what this file now does: each question below is one item.
 
 ## Answered — building now (no further input needed, listed so you can see what your answers turned into)
 

@@ -1,6 +1,6 @@
 # Site-Wide TODO (round 3)
 
-**Progress: 411/1000 items checked off (41.1%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land.
+**Progress: 417/1008 items checked off (41.4%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land.
 
 Built from your answers in `planning/IMPROVEMENT-IDEAS-ROUND-3.md` (Part 4). Every Round 3 section is now answered (2026-10-07 below the Warframe section); earlier this list held only: **GB** (Canopy gamified), **M** (new games), **N** (seasonal events), **O** (Trade Empire and Continuum replayability), **P/Q/S/T** (Signal, Undersleep, Overclock, Last Line open questions), **X** (Warframe tracker) and **R** (returning later). GC-GI, A-L, U, Z and Y are unanswered and wait for you. The previous list is archived at `planning/todo-archive/260914_260927.md`; anything from it that was moved here is marked "moved" there.
 
@@ -402,7 +402,7 @@ Your remaining Round 3 answers (Grid to Drift gamified, SOL to Le Champ de Mots,
 - [ ] E-25: Add named allocation presets to Aftermath ('Flood plan: 3 resilience, 1 growth') applied in one click before an event, stored per profile.
 - [ ] E-26: Enlarge Aftermath's mobile tap targets and confirm Resolve plus resources show in the bottom bar at phone width. (partly built: #actions-dock pinned to bottom via shared/mobile-dock.js and mobile-hud.js sticky HUD already hold the invest and Resolve buttons.)
 - [x] E-27: Add a live tab title to Aftermath ('Aftermath - Run 7, event 3 of 6 (Flood next)'), hiding next-event type in fog mode.
-- [ ] E-28: Add an unspent-resources confirm to Aftermath's Resolve (e.g. 'Keep 80 resources unspent?') with a Settings switch to disable it, via shared ConfirmDialog.
+- [ ] E-28: Add an unspent-resources confirm to Aftermath's Resolve (e.g. 'Keep 80 resources unspent?') with a Settings switch to disable it, via shared ConfirmDialog. (Decided 2026-10-08: build it with the default OFF.)
 - [ ] E-29: Add a 'helps against' line to each Aftermath skill tooltip listing which upcoming events it softens and roughly by how much for the current schedule.
 - [ ] E-30: Add a persistent save health badge to Aftermath ('Saved 12s ago / storage full / unsaved changes') covering localStorage, with a one-click export prompt when storage fails. (partly built: Shared save widget shows 'Saved at HH:MM' and 'Save failed'; tree lives in localStorage with no health badge.)
 - [ ] E-31: Restyle Aftermath's achievements: show earned badges as small lit nodes on a mini tree-shaped strip beside the toggle button, with text labels, more visible and tied to the skill tree look.
@@ -581,11 +581,11 @@ Your remaining Round 3 answers (Grid to Drift gamified, SOL to Le Champ de Mots,
 - [x] GH-14: Add a secret fourth goods category to Loop (e.g. Ship-Breaking Yard or Fast Fashion), unlocked by 100% circular on all three normal categories, with its own vignette lines and a different starting fraction.
 - [x] GH-15: Add Loop Score name plates to Loop's end screen: The Scrapper (mostly recycle), The Fixer (mostly repair), The Diplomat (mostly trade), plus a mix title, with a collection list of the plates earned.
 - [ ] GH-16: Add damage-meter cracks to Loop: panel borders gain visual cracks and the starfield dims slightly as damage climbs, easing back as circularity recovers; no extra numbers, honours reduce-motion.
-- [ ] GH-17: Add a Golden Cycle to Loop: once per chain one future cycle (seeded, deterministic) sparkles in the UI and doubles supply from the investment bought that cycle; never required for achievements. [conflict: Owner rule: nothing luck-gated without a hint. Sparkle is the hint; keep optional and out of records.]
+- [x] GH-17: Add a Golden Cycle to Loop: once per chain one future cycle (seeded, deterministic) sparkles in the UI and doubles supply from the investment bought that cycle; never required for achievements. [conflict: Owner rule: nothing luck-gated without a hint. Sparkle is the hint; keep optional and out of records.] (DROPPED: dropped by you 2026-10-08 (luck item).)
 - [ ] GH-18: Add a Rewind token to Loop: one per chain, reverts the last Advance Cycle (state snapshot), shown as a spendable token in the header.
 - [ ] GH-19: Add a snarky supply-chain narrator ticker to Loop under the chain, with lines reacting to play, controlled by the existing Story on/off toggle (add its selector).
 - [x] GH-20: Add speed-loop achievements to Loop: closed the loop by cycle 12, closed with under 500 total extraction, never used trade; shown in the achievements panel only, not as callouts.
-- [ ] GH-21: Add an optional import-export gamble to Loop: a two-choice 'sell now or hold a cycle for a chance at a higher price' with odds shown; opt-in, equal expected value, never needed for achievements or personal bests. [conflict: Random outcome clashes with 'nothing luck-gated'; making it opt-in and disclosed.]
+- [x] GH-21: Add an optional import-export gamble to Loop: a two-choice 'sell now or hold a cycle for a chance at a higher price' with odds shown; opt-in, equal expected value, never needed for achievements or personal bests. [conflict: Random outcome clashes with 'nothing luck-gated'; making it opt-in and disclosed.] (DROPPED: dropped by you 2026-10-08 (luck item).)
 - [ ] GH-22: Add collectable Trading Cards to Loop: 6 per goods category unlocked at circular-fraction thresholds, art-free stat blocks with rarity and in-game stats, shown in a collection panel. [conflict: Real-world fun facts must be read live and dated, not recalled; keep card text in-game, or source it.]
 - [ ] GH-23: Add unlockable ring colour themes to Loop (Neon, Blueprint, Paper Cut-out) earned through achievements and chosen in Settings, cosmetic only.
 - [x] GH-24: Add Streak insurance to Loop: spend 10 funds once per chain to freeze the closed-loop streak through one bad cycle.
@@ -594,7 +594,7 @@ Your remaining Round 3 answers (Grid to Drift gamified, SOL to Le Champ de Mots,
 - [ ] GH-27: Add Two-chain juggling to Loop (optional mode): run two goods categories at once sharing one funds pool and damage meter, trade partners pick a side each cycle, investments spill by-products to the other chain. (needs W-1)
 - [ ] GH-28: Add ghost replay sharing to Loop: export a compact run code (investments per cycle) that another player loads as a ghost line on their circular-fraction graph to beat.
 - [ ] GH-29: Add optional haptics to Loop: subtle vibration on investment and at 25% milestones where the browser allows, off by default, toggled in Settings.
-- [ ] GH-30: Add Crates to Loop: each closed-loop milestone grants a crate with a perk from a visible catalogue (+10 funds, an investment discount, a cosmetic node), shake animation toggleable. [conflict: Random reveals clash with easy-to-100%: make the catalogue visible and complete in a fixed order.]
+- [x] GH-30: Add Crates to Loop: each closed-loop milestone grants a crate with a perk from a visible catalogue (+10 funds, an investment discount, a cosmetic node), shake animation toggleable. [conflict: Random reveals clash with easy-to-100%: make the catalogue visible and complete in a fixed order.] (DROPPED: dropped by you 2026-10-08 (luck item).)
 - [ ] H-1: Add a Past Chains archive to Loop: store a compact record per finished or reset chain (category, cycles to close, total extraction, score, investment mix) and a panel with a line chart overlaying the last 5 chains' circular-fraction curves.
 - [ ] H-2: Add an opt-in Sandbox Tuner to Loop: sliders for starting funds, production target 30-80, damage multiplier cap and investment costs; tuned chains tagged 'custom', excluded from bests and difficulty-sensitive achievements (Z27), tuning saved in the save code.
 - [ ] H-3: Add a Multi-cycle Planner to Loop: queue investments across the next 3-5 cycles and preview projected circular fraction, extraction cost and funds before committing.
@@ -706,7 +706,7 @@ Your remaining Round 3 answers (Grid to Drift gamified, SOL to Le Champ de Mots,
 - [ ] J-10: Add a restart-scenario hotkey (listed in the ? shortcut help) and a best-medal chip on each Trade Crises scenario card in Trade Empire.
 - [ ] J-11: Add Corporate Espionage to Trade Empire: a non-violent shadow NPC firm, Meridian Freight, contests the same routes and is seen only through price moves you did not cause; answer by out-pricing it, signing exclusive Trade Guild contracts, or ignoring it. No combat or piracy.
 - [ ] J-12: Add a rival ledger line ('Meridian moved 340 units this cycle') in Trade Empire that is flavour only until Market Intel research is unlocked, after which it shows real numbers.
-- [ ] J-13: Layer named Prestige Charter archetypes on Trade Empire's renewal: on each renewal choose a focus (Hardened Fleet, Frontier Speculator, Master Diplomat) that also reshapes the starting board (one colony pre-developed, one good locked), in addition to the existing perk tree. (partly built: O-1..O-4 done: charter points + 12-perk tree, O-2 automatic founding conditions on renewal, harder charter. No named archetype that changes the starting board.) [conflict: Your earlier O-1 note chose a research tree instead of picking a single charter; this proposes a single pick. Proposed as an archetype on top of the tree; also overlaps O-2's automatic conditions.]
+- [x] J-13: Layer named Prestige Charter archetypes on Trade Empire's renewal: on each renewal choose a focus (Hardened Fleet, Frontier Speculator, Master Diplomat) that also reshapes the starting board (one colony pre-developed, one good locked), in addition to the existing perk tree. (partly built: O-1..O-4 done: charter points + 12-perk tree, O-2 automatic founding conditions on renewal, harder charter. No named archetype that changes the starting board.) [conflict: Your earlier O-1 note chose a research tree instead of picking a single charter; this proposes a single pick. Proposed as an archetype on top of the tree; also overlaps O-2's automatic conditions.] (DROPPED: dropped by you 2026-10-08.)
 - [x] J-14: Show the active Charter's crest (a shape plus a text label, not colour only) next to the Trade Empire title, and list past Charters as a career log on the Ledger/Charter panel. (partly built: Charter panel has a lifetime ledger (counts of charters, goods, routes, hard runs; O-3). No crest by the title and no per-charter career log.)
 - [ ] J-17: Add Market Weather to Trade Empire: unpredictable one-off booms and slumps (a festival at Verdant, a strike at Ferrum) lasting 20-40 ticks that cascade to dependent colonies, with the Almanac hinting at leading indicators so close readers can front-run them; opt-in toggle like seasonal demand.
 - [ ] J-18: Add a text-only news ticker chip on Trade Empire's map with a one-line headline per Market Weather event ('Strike at Ferrum: ore output down'), no scrolling motion.
@@ -753,7 +753,7 @@ Your remaining Round 3 answers (Grid to Drift gamified, SOL to Le Champ de Mots,
 - [x] K-26: Add a par-time badge to Continuum: finish a run in fewer real minutes or fewer seasons than a par set per scenario, using the existing time-played readout.
 - [x] K-27: Add sparklines to Continuum's City Views dashboard next to every stat showing the last 20 seasons.
 - [ ] K-28: Add a 'citizen of the season' spotlight card to Continuum's log: one named resident and one flavour line tied to a recent event, hidden by the story toggle. (needs shared/story-toggle.js)
-- [ ] K-29: Add an opt-in Blitz timer to Continuum's Hard Mode: 30 seconds per season or the default policy applies, with its own achievement (opt-in, with a pause or accessibility off switch).
+- [x] K-29: Add an opt-in Blitz timer to Continuum's Hard Mode: 30 seconds per season or the default policy applies, with its own achievement (opt-in, with a pause or accessibility off switch). (DROPPED: dropped by you 2026-10-08.)
 - [x] K-30: Add a hotkey remapping panel to Continuum's Settings beside the '?' cheat-sheet, to bind advance-season, view switches and camera presets to custom keys.
 - [x] K-31: Restyle Continuum's achievement cards: earned badges get a small per-era icon and the violet-glass accent, laid out as a 'monument row' instead of a plain list (no generated images; inline SVG or CSS). (partly built: Achievement cards exist (style.css .achievement-card, 21 in achievements.json) with progress and rarity; no era icons or monument row.)
 
@@ -1194,6 +1194,17 @@ One checkbox per pass per area. A pass is not done until its fixes are committed
   - [ ] QA-4 The service worker and offline behaviour (sw.js)
   - [ ] QA-4 Planning docs and dev logs (stale or duplicated text)
 
+
+## FY. Answered in FOR-YOU on the ideas sheet (2026-10-08)
+
+- [ ] FY-1: Grid C6: let a player save two scenarios and overlay their trend graphs for a side-by-side comparison (you said now).
+- [ ] FY-2: Tide D10: show the acidity from three seasons ago right next to the current acidity so the delayed link is visible as numbers (you said now).
+- [ ] FY-3: Aftermath E5: add another event category beyond weather and non-weather (for example a heat-mortality event) to the fixed seven-event schedule (you said now).
+- [ ] FY-4: Herd F4: a second end-of-game feedback question about Herd's own lesson ("did decoupling feel like a real strategy, or a tax on growth?"), like Thaw's two-question pattern (you said now).
+- [ ] FY-5: Loop H16: an optional "supply chain disruption" random event, opt-in as an advanced mode, kept apart from the deterministic core lesson (you said now).
+- [x] FY-6: Contraption (physics sandbox): DROPPED by you 2026-10-08.
+- [ ] FY-7: One shared compact run-code format (you said yes): friends paste a code to view a ghost; built once in `shared/` and then used by Loop GH-28 and H-7, Tide D-3 and Grid C-29.
+- [ ] FY-8: Read the 3 new Le Champ de Mots answer reports that arrived after the first review (a10db191 "the road" for "the street"; 4f38d109 and 8295f0aa on the "Is it far/close (from here)?" phrase) and tick "fixed" on the ones the data fixes.
 
 ## Closing tasks
 
