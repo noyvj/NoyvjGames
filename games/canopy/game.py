@@ -9,6 +9,7 @@ degradation land in later milestones.
 
 import copy
 import json
+import time
 
 import info_page
 import skill_tree
@@ -6653,6 +6654,76 @@ def _start_tick_loop():
     return "interval"
 
 
+# B-22 (2026-10-09): a "while away" catch-up chip. When the tab comes back after being hidden and the
+# forest really advanced meanwhile (only possible when the player has turned off pausing while hidden, or the
+# browser kept ticking), say what changed instead of letting the numbers jump silently. It reads the game's own
+# tick counter, so it does not depend on the tick speed. With the default pause-when-hidden nothing advances,
+# so no chip appears.
+AWAY_MIN_SECONDS = 10
+_away_snapshot = None
+_away_started_at = None
+
+
+def away_snapshot():
+    return {
+        "value": standing_forest_value(),
+        "ticks": _session_ticks,
+        "seasons": forest_tick // SEASON_CYCLE_TICKS,
+    }
+
+
+def _format_away_duration(seconds):
+    seconds = int(seconds)
+    if seconds < 60:
+        return f"{seconds} s"
+    minutes, rest = divmod(seconds, 60)
+    return f"{minutes} min" if rest == 0 else f"{minutes} min {rest} s"
+
+
+def away_summary(before, after, seconds):
+    """The chip text, or "" when there is nothing to say (away too briefly, or the game did not advance)."""
+    if seconds < AWAY_MIN_SECONDS or after["ticks"] <= before["ticks"]:
+        return ""
+    delta = after["value"] - before["value"]
+    ticks = after["ticks"] - before["ticks"]
+    seasons = after["seasons"] - before["seasons"]
+    parts = [f"standing value {delta:+.1f}", f"{ticks} tick{'s' if ticks != 1 else ''}"]
+    if seasons > 0:
+        parts.append(f"{seasons} season change{'s' if seasons != 1 else ''}")
+    return f"While you were away ({_format_away_duration(seconds)}): " + ", ".join(parts) + "."
+
+
+def show_away_chip(text):
+    element = _el("away-chip")
+    if element is None:
+        return
+    if text:
+        element.innerText = text + " (click to dismiss)"
+        element.hidden = False
+        _announce(text)
+    else:
+        element.hidden = True
+
+
+def on_visibility_change(event=None):
+    global _away_snapshot, _away_started_at
+    if getattr(document, "visibilityState", "visible") == "hidden":
+        _away_snapshot = away_snapshot()
+        _away_started_at = time.time()
+        return
+    if _away_snapshot is None:
+        return
+    seconds = time.time() - _away_started_at if _away_started_at is not None else 0
+    text = away_summary(_away_snapshot, away_snapshot(), seconds)
+    _away_snapshot = None
+    _away_started_at = None
+    show_away_chip(text)
+
+
+def on_dismiss_away_chip(event=None):
+    show_away_chip("")
+
+
 def setup():
     clear_button = document.getElementById("clear-button")
     replant_button = document.getElementById("replant-button")
@@ -6660,6 +6731,10 @@ def setup():
     replant_button.innerText = "Replant"
     clear_button.addEventListener("click", create_proxy(on_clear))
     replant_button.addEventListener("click", create_proxy(on_replant))
+    away_chip = _el("away-chip")
+    if away_chip is not None:
+        away_chip.addEventListener("click", create_proxy(on_dismiss_away_chip))
+    document.addEventListener("visibilitychange", create_proxy(on_visibility_change))  # B-22
     document.getElementById("stakeholder-grant-button").addEventListener(
         "click", create_proxy(grant_stakeholder_request)
     )

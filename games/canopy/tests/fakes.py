@@ -106,8 +106,14 @@ class FakeElement:
 
 
 class FakeDocument:
+    visibilityState = "visible"
+
     def __init__(self, elements):
         self._elements = elements
+        self.listeners = {}
+
+    def addEventListener(self, event_name, handler):
+        self.listeners.setdefault(event_name, []).append(handler)
 
     def getElementById(self, id_):
         return self._elements[id_]

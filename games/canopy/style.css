@@ -2130,6 +2130,21 @@ html:not([data-level-effects="off"]) .level-box--spirit .spirit-line { animation
 }
 .legacy-chip:focus-visible { outline: 2px solid currentColor; outline-offset: 2px; }
 
+/* B-22: the "while away" catch-up chip; click to dismiss. */
+.away-chip {
+  display: inline-block;
+  margin: 0.25rem 0;
+  padding: 0.25rem 0.7rem;
+  border: 1px solid currentColor;
+  border-radius: 999px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+.away-chip[hidden] { display: none; }
+
 /* ============================================================
    Light theme (Y11b, 2026-09-27). shared/theme-light-games.css already
    restyles the shared chrome (panels, buttons, inputs, HUD readouts);
