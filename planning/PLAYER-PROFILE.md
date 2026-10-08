@@ -1,4 +1,4 @@
-# Player profile: the owner's taste, from the "About you" survey (answered 2026-10-08, 91 of 93 answers)
+# Player profile: the owner's taste, from the "About you" survey (answered 2026-10-08 and 2026-10-09, all 93 answers)
 
 Source: `planning/PLAYER-SURVEY.md` (the questions), answers read from the owner notes. Check every new idea round, game plan and agent brief against this file before building. It is a summary of what the owner said, not an interpretation beyond it; open questions for them are the "Pf" items in `planning/FOR-YOU.md`.
 
@@ -32,8 +32,14 @@ Source: `planning/PLAYER-SURVEY.md` (the questions), answers read from the owner
 - **Tone:** a mix. Story only if it is Lifeline-style choose-your-own-adventure with a lot of branching, and optional unless the story is the whole game. Real-world issue games should present multiple points of view to compare, not a single stance. Cares about food, healthcare, water, housing, body autonomy, LGBTQ, women's and racial rights.
 - **Audience:** them and their friends for now, strangers later. First minute should feel like "no matter who you are there is a game for you". Accessible to everyone (the owner has no needs themselves).
 
+## Three words for the site (H6)
+Diverse, rewarding, engaging.
+
+## Proudest and least sure (H10)
+They have not played the games enough yet to say.
+
 ## Their dream game (H5, shortened)
-A city builder in a dark foggy forest that has everything: first-person nodes to help others, gather resources, hunt or defend; story quests; idle and optimisation in the city; a mining mode with a huge skill tree and bunker sections that become building specialisations, each building with its own kind of puzzle.
+A city builder in a dark foggy forest that has everything: first-person nodes to help others, gather resources, hunt or defend; story quests; idle and optimisation in the city; a mining mode with a huge skill tree and bunker sections that become building specialisations; each building has its own puzzle whose levels give permanent upgrades; friendship sidequests and gifting with the people who run each building. All the play styles matter but none is overbearing.
 
 ## How they want me to work (I section)
 - After an ideas list is done, "you decide" means use judgement. Small spec tweaks (10% to 15% because it makes more sense) are mine to just do unless they stated the number themselves, not as "something like 20%".
@@ -42,4 +48,4 @@ A city builder in a dark foggy forest that has everything: first-person nodes to
 - No complaints about how work and questions have been going.
 
 ## Open questions I still have for them
-They are in `planning/FOR-YOU.md` as items Pf1 onward (relaxation examples, three words for the site, proudest and least sure games, a Lifeline-style story game, a foggy-forest game, coding and chemistry games, a three-goals panel for tycoon games, real-time play).
+They are in `planning/FOR-YOU.md` as items Pf1, Pf4 to Pf10 (relaxation examples, a Lifeline-style story game, a foggy-forest game, coding and chemistry games, a three-goals panel for tycoon games, a fast reaction game, optional friend ties, the no-all-good-hero rule). Pf2 and Pf3 were answered on 2026-10-09 and removed; all 93 survey answers are in.

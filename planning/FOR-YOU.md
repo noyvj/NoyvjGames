@@ -72,21 +72,13 @@ I wrote them from fetched page summaries, not whole pages, so a skim by you is t
 
 Recommend: tell me which letters, and I lean the calm modes on those.
 
-### Pf2. From your survey: what three words should describe the games on this site (you left it blank)?
-
-A rough guess is fine: it goes into the hub's tagline and my checks on new ideas.
-
-### Pf3. From your survey: which site game are you proudest of, and which are you least sure about (you left it blank)?
-
-Short answer is fine.
-
 ### Pf4. From your survey: build one new game as a Lifeline-style choose-your-own-adventure with many branching paths (sci-fi, dark tone, optional reading, a main character who makes mistakes)?
 
 Recommend: yes, as a small text game about a stranded ship crew, built after Chronicle.
 
-### Pf5. From your dream game: write a plan for a dark foggy forest city builder, starting with only the city-and-resources loop and the fog look?
+### Pf5. From your dream game (a dark foggy forest city builder where each building's keeper has friendship sidequests and gifting, each building has its own puzzle with permanent upgrades, plus a mining mode with a huge skill tree and bunker sections that specialise buildings): write a plan for it, starting with only the city-and-resources loop and the fog look?
 
-Recommend: later, as a plan first (a planning file), with the first-person helping nodes and the mining skill tree parked.
+Recommend: later, as a plan first (a planning file), with the first-person helping nodes, the mining skill tree and the per-building puzzles parked.
 
 ### Pf6. From your survey: add new games on coding, maths or chemistry (for example a logic-gate puzzle game, a chemistry reactions puzzle)?
 
