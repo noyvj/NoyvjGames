@@ -146,7 +146,9 @@ class Feedback(Base):
 
     id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
     game_id = Column(String, nullable=True, index=True)
-    user_id = Column(String, ForeignKey("users.id"), nullable=True)
+    # Indexed (patch_schema() adds it to the live table): account export and
+    # deletion filter feedback by user.
+    user_id = Column(String, ForeignKey("users.id"), nullable=True, index=True)
     rating = Column(Integer, nullable=True)
     comment = Column(String, nullable=True)
     is_hidden = Column(Boolean, nullable=False, default=False, server_default=false())

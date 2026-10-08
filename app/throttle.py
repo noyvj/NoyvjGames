@@ -13,6 +13,8 @@ from typing import Optional
 
 
 class FailureLimiter:
+    MAX_KEYS = 5000  # above this many tracked keys, stale ones are swept on the next write
+
     def __init__(self, max_failures: int, window_seconds: float):
         self.max_failures = max_failures
         self.window_seconds = window_seconds
@@ -38,6 +40,12 @@ class FailureLimiter:
             recent = self._recent(key, now)
             recent.append(now)
             self._failures[key] = recent
+            if len(self._failures) > self.MAX_KEYS:
+                # Keys are client-chosen (usernames, forwarded addresses), so
+                # sweep out the ones whose whole window has passed rather than
+                # letting a flood of distinct keys grow the dict forever.
+                for stale in [k for k, ts in self._failures.items() if not ts or now - ts[-1] >= self.window_seconds]:
+                    del self._failures[stale]
 
     def clear(self, key: str) -> None:
         with self._lock:

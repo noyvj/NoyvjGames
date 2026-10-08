@@ -1,6 +1,6 @@
 # Site-Wide TODO (round 3)
 
-**Progress: 398/999 items checked off (39.8%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land.
+**Progress: 402/1000 items checked off (40.2%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land.
 
 Built from your answers in `planning/IMPROVEMENT-IDEAS-ROUND-3.md` (Part 4). Every Round 3 section is now answered (2026-10-07 below the Warframe section); earlier this list held only: **GB** (Canopy gamified), **M** (new games), **N** (seasonal events), **O** (Trade Empire and Continuum replayability), **P/Q/S/T** (Signal, Undersleep, Overclock, Last Line open questions), **X** (Warframe tracker) and **R** (returning later). GC-GI, A-L, U, Z and Y are unanswered and wait for you. The previous list is archived at `planning/todo-archive/260914_260927.md`; anything from it that was moved here is marked "moved" there.
 
@@ -996,6 +996,7 @@ Your remaining Round 3 answers (Grid to Drift gamified, SOL to Le Champ de Mots,
 - [ ] Y-28: Add a print stylesheet for the achievements dashboard and profile pages (clean black-on-white list with progress bars) reusing shared/print-summary.css. (needs Y-1 profile (for the profile half)) (Partly done 2026-10-08: the achievements dashboard prints cleanly with a Print button; the profile half waits for Y-1.)
 - [ ] Y-29: Add a credits & thanks section (tools, fonts, Pyodide, consenting named playtesters) separate from sources.html, linked from the hub footer and from every game's home/opening screen. (Partly done 2026-10-08: credits.html listing only what the site really uses, linked from the hub footer; still open: the link from every game's home and opening screen.)
 - [x] Y-30: Auto-fill the terms/privacy 'last verified' line from the file's git date via a scripts/ generator and link a short 'what changed' list.
+- [ ] Y-31: Add a rating summary endpoint (average and count per game slug) and make the hub read it instead of downloading every rating row for each game on load (found by the backend QA pass: `GET /ratings/{slug}` returns every row and grows with every rating; the hub fires one per game).
 
 ---
 
@@ -1121,7 +1122,7 @@ One checkbox per pass per area. A pass is not done until its fixes are committed
   - [ ] QA-1 Lexis
   - [ ] QA-1 Chronicle
   - [ ] QA-1 The hub (index.html, script.js, style.css and the root pages)
-  - [ ] QA-1 The backend (app/)
+  - [x] QA-1 The backend (app/)
   - [ ] QA-1 Shared components (shared/)
   - [ ] QA-1 Scripts and test infrastructure (scripts/, shared/tests, every game's tests/ folder)
   - [ ] QA-1 The service worker and offline behaviour (sw.js)
@@ -1143,7 +1144,7 @@ One checkbox per pass per area. A pass is not done until its fixes are committed
   - [ ] QA-2 Lexis
   - [ ] QA-2 Chronicle
   - [ ] QA-2 The hub (index.html, script.js, style.css and the root pages)
-  - [ ] QA-2 The backend (app/)
+  - [x] QA-2 The backend (app/)
   - [ ] QA-2 Shared components (shared/)
   - [ ] QA-2 Scripts and test infrastructure (scripts/, shared/tests, every game's tests/ folder)
   - [ ] QA-2 The service worker and offline behaviour (sw.js)
@@ -1165,7 +1166,7 @@ One checkbox per pass per area. A pass is not done until its fixes are committed
   - [ ] QA-3 Lexis
   - [ ] QA-3 Chronicle
   - [ ] QA-3 The hub (index.html, script.js, style.css and the root pages)
-  - [ ] QA-3 The backend (app/)
+  - [x] QA-3 The backend (app/)
   - [ ] QA-3 Shared components (shared/)
   - [ ] QA-3 Scripts and test infrastructure (scripts/, shared/tests, every game's tests/ folder)
   - [ ] QA-3 The service worker and offline behaviour (sw.js)
@@ -1187,7 +1188,7 @@ One checkbox per pass per area. A pass is not done until its fixes are committed
   - [ ] QA-4 Lexis
   - [ ] QA-4 Chronicle
   - [ ] QA-4 The hub (index.html, script.js, style.css and the root pages)
-  - [ ] QA-4 The backend (app/)
+  - [x] QA-4 The backend (app/)
   - [ ] QA-4 Shared components (shared/)
   - [ ] QA-4 Scripts and test infrastructure (scripts/, shared/tests, every game's tests/ folder)
   - [ ] QA-4 The service worker and offline behaviour (sw.js)

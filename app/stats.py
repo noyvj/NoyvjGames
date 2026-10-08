@@ -139,6 +139,27 @@ def extract_achievements(save_data: Any) -> set[str]:
     return {a for a in raw if isinstance(a, str) and ACHIEVEMENT_ID_RE.match(a)}
 
 
+def slim_save(game_id: str, save_data: Any) -> dict:
+    """Only what summarize_game and field_values ever read from a save: its
+    well-formed achievement ids and the whitelisted numeric paths, rebuilt as the
+    same nested dicts. The stats cache holds these instead of whole save blobs
+    (up to MAX_SAVES_SCANNED per game), which keeps its memory small."""
+    slim: dict = {}
+    achievements = sorted(extract_achievements(save_data))
+    if achievements:
+        slim["achievements_earned"] = achievements
+    for path in STATS_FIELDS.get(game_id, ()):
+        value = extract_number(save_data, path)
+        if value is None:
+            continue
+        node = slim
+        *parents, leaf = path.split(".")
+        for part in parents:
+            node = node.setdefault(part, {})
+        node[leaf] = value
+    return slim
+
+
 def percentile_of(sorted_values: list[float], value: float) -> float:
     """Mid-rank percentile (0-100) of `value` within a sorted list: the
     share strictly below plus half the share tied. A value below everything

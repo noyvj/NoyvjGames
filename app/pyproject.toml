@@ -17,4 +17,4 @@ requires = ["setuptools>=68"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools]
-py-modules = ["main", "database", "models", "stats", "leaderboards", "market", "pools", "throttle"]
+py-modules = ["main", "database", "models", "stats", "leaderboards", "boards", "account_data", "market", "pools", "throttle"]

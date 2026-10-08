@@ -17,6 +17,7 @@ from datetime import datetime, timedelta, timezone
 from typing import Optional
 
 from sqlalchemy import func, or_
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 import stats
@@ -227,16 +228,25 @@ def voter_for(user: Optional[User], token: Optional[str]) -> Optional[tuple]:
 
 def cast_vote(db: Session, entry_id: str, voter_key: str, user_id: Optional[str], helpful: bool) -> HelpfulVote:
     """Upsert: one row per entry and voter, the latest answer wins."""
-    row = db.query(HelpfulVote).filter(HelpfulVote.entry_id == entry_id, HelpfulVote.voter_key == voter_key).first()
-    if row is None:
-        row = HelpfulVote(entry_id=entry_id, voter_key=voter_key, user_id=user_id, helpful=helpful)
-        db.add(row)
-    else:
-        row.helpful = helpful
-        row.updated_at = func.now()
-    db.commit()
-    db.refresh(row)
-    return row
+    for attempt in range(2):
+        row = db.query(HelpfulVote).filter(HelpfulVote.entry_id == entry_id, HelpfulVote.voter_key == voter_key).first()
+        if row is None:
+            row = HelpfulVote(entry_id=entry_id, voter_key=voter_key, user_id=user_id, helpful=helpful)
+            db.add(row)
+        else:
+            row.helpful = helpful
+            row.updated_at = func.now()
+        try:
+            db.commit()
+        except IntegrityError:
+            # Two first votes from the same voter raced past the lookup above; the
+            # loser retries once and takes the update branch (a bare 500 otherwise).
+            db.rollback()
+            if attempt:
+                raise
+            continue
+        db.refresh(row)
+        return row
 
 
 def retract_vote(db: Session, entry_id: str, voter_key: str) -> int:

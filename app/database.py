@@ -97,6 +97,9 @@ def patch_schema():
         # UX-9: admin can hide test feedback/ratings from the public reads.
         "ALTER TABLE ratings ADD COLUMN IF NOT EXISTS is_hidden BOOLEAN NOT NULL DEFAULT FALSE",
         "ALTER TABLE feedback ADD COLUMN IF NOT EXISTS is_hidden BOOLEAN NOT NULL DEFAULT FALSE",
+        # Indexes on columns filtered by account export / deletion (create_all
+        # only indexes tables it creates, so an existing table needs this).
+        "CREATE INDEX IF NOT EXISTS ix_feedback_user_id ON feedback (user_id)",
     ]
     with engine.begin() as conn:
         for statement in statements:

@@ -25,7 +25,7 @@ import stats
 from throttle import FailureLimiter
 from database import engine, get_db, init_schema, retry_schema_until_ready
 from models import (
-    AnswerReport, AuthSession, Feedback, HelpfulVote, LeaderboardEntry, OwnerNote, PageView, PoolDay, Rating, Save,
+    AnswerReport, AuthSession, Feedback, LeaderboardEntry, OwnerNote, PageView, PoolDay, Rating, Save,
     ScoreEntry, ScoreProfile, User,
 )
 
@@ -37,8 +37,41 @@ if not init_schema():
 app = FastAPI(title="CodingIsANoyvj ratings API")
 
 DEFAULT_ORIGINS = "https://noyvj.github.io,http://localhost:8073"
-allowed_origins = os.environ.get("ALLOWED_ORIGINS", DEFAULT_ORIGINS).split(",")
+allowed_origins = [o.strip() for o in os.environ.get("ALLOWED_ORIGINS", DEFAULT_ORIGINS).split(",") if o.strip()]
 
+# Largest request body any route accepts (the biggest legitimate payload is a
+# game save; the owner-note cap is 1 MB). Checked from Content-Length before
+# the body is read, so an oversized POST/PUT is refused without being parsed.
+# Added BEFORE the CORS middleware so CORS wraps it and the 413 is readable
+# from the browser.
+MAX_BODY_BYTES = 5_000_000
+
+
+class BodySizeLimitMiddleware:
+    def __init__(self, app, max_bytes: int = MAX_BODY_BYTES):
+        self.app = app
+        self.max_bytes = max_bytes
+
+    async def __call__(self, scope, receive, send):
+        if scope["type"] == "http":
+            for name, value in scope["headers"]:
+                if name == b"content-length":
+                    try:
+                        too_big = int(value) > self.max_bytes
+                    except ValueError:
+                        too_big = True
+                    if too_big:
+                        body = b'{"detail":"Request body too large"}'
+                        await send({"type": "http.response.start", "status": 413,
+                                    "headers": [(b"content-type", b"application/json"),
+                                                (b"content-length", str(len(body)).encode())]})
+                        await send({"type": "http.response.body", "body": body})
+                        return
+                    break
+        await self.app(scope, receive, send)
+
+
+app.add_middleware(BodySizeLimitMiddleware)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=allowed_origins,
@@ -47,14 +80,20 @@ app.add_middleware(
 )
 
 
+# Text-length caps on public write routes (the body-size limit above is the
+# backstop; these keep one row from being megabytes of text).
+ID_MAX_LENGTH = 64
+TEXT_MAX_LENGTH = 5000
+
+
 class RatingIn(BaseModel):
-    game_slug: str
+    game_slug: str = Field(max_length=ID_MAX_LENGTH)
     # Both optional: the hub's star-rating widget sends stars (+ optional
     # comment); a per-game feedback prompt (Canopy onward) sends response
     # instead. A submission needs at least one of the two — see below.
     stars: Optional[int] = Field(default=None, ge=1, le=5)
-    comment: Optional[str] = None
-    response: Optional[str] = None
+    comment: Optional[str] = Field(default=None, max_length=TEXT_MAX_LENGTH)
+    response: Optional[str] = Field(default=None, max_length=TEXT_MAX_LENGTH)
 
     @model_validator(mode="after")
     def require_stars_or_response(self):
@@ -94,7 +133,8 @@ def health(response: Response):
 
 
 @app.post("/ratings", response_model=RatingOut)
-def create_rating(rating: RatingIn, db: Session = Depends(get_db)):
+def create_rating(rating: RatingIn, request: Request, db: Session = Depends(get_db)):
+    _throttle(RATING_LIMITER, request)
     row = Rating(
         game_slug=rating.game_slug,
         stars=rating.stars,
@@ -139,7 +179,7 @@ def _generate_save_code() -> str:
 
 
 class SaveIn(BaseModel):
-    game_id: str
+    game_id: str = Field(max_length=ID_MAX_LENGTH)
     save_data: dict
 
 
@@ -164,7 +204,8 @@ class SaveOut(BaseModel):
 
 
 @app.post("/saves", response_model=SaveOut)
-def create_save(payload: SaveIn, db: Session = Depends(get_db)):
+def create_save(payload: SaveIn, request: Request, db: Session = Depends(get_db)):
+    _throttle(SAVE_CREATE_LIMITER, request)
     # Collision check on insert, per the design doc: generate, try to
     # commit, and on a unique-constraint hit (astronomically unlikely at
     # this keyspace size, but cheap to guard) roll back and regenerate.
@@ -222,11 +263,11 @@ DEFAULT_ANSWER_REPORT_GAME_ID = "champ-de-mots"
 
 
 class AnswerReportIn(BaseModel):
-    game_id: str = DEFAULT_ANSWER_REPORT_GAME_ID
-    item_id: str
-    submitted_answer: str
-    marked_correct_answer: List[str]
-    topic_type: Optional[str] = None
+    game_id: str = Field(default=DEFAULT_ANSWER_REPORT_GAME_ID, max_length=ID_MAX_LENGTH)
+    item_id: str = Field(max_length=200)
+    submitted_answer: str = Field(max_length=500)
+    marked_correct_answer: List[str] = Field(max_length=20)
+    topic_type: Optional[str] = Field(default=None, max_length=ID_MAX_LENGTH)
 
     @model_validator(mode="after")
     def require_the_essentials(self):
@@ -236,6 +277,8 @@ class AnswerReportIn(BaseModel):
             raise ValueError("submitted_answer is required")
         if not self.marked_correct_answer:
             raise ValueError("marked_correct_answer must contain at least one answer")
+        if any(len(answer) > 500 for answer in self.marked_correct_answer):
+            raise ValueError("each marked_correct_answer entry must be at most 500 characters")
         return self
 
 
@@ -305,7 +348,8 @@ def require_admin(
 
 
 @app.post("/answer-reports", response_model=AnswerReportOut)
-def create_answer_report(payload: AnswerReportIn, db: Session = Depends(get_db)):
+def create_answer_report(payload: AnswerReportIn, request: Request, db: Session = Depends(get_db)):
+    _throttle(ANSWER_REPORT_LIMITER, request)
     row = AnswerReport(
         game_id=payload.game_id,
         item_id=payload.item_id,
@@ -431,9 +475,12 @@ def _normalize_username(username: str) -> str:
     return username.strip().lower()
 
 
+USERNAME_MAX_LENGTH = 64  # enforced at signup only, so a legacy longer name can still sign in
+
+
 class AuthIn(BaseModel):
     username: str
-    password: str
+    password: str = Field(max_length=1024)
 
     @model_validator(mode="after")
     def require_both(self):
@@ -479,6 +526,16 @@ LOGIN_FAILURE_LIMITER = FailureLimiter(max_failures=8, window_seconds=15 * 60)
 LOGIN_IP_FAILURE_LIMITER = FailureLimiter(max_failures=40, window_seconds=15 * 60)
 SAVE_CODE_MISS_LIMITER = FailureLimiter(max_failures=40, window_seconds=15 * 60)
 
+# Per-address brakes on the unauthenticated write routes, so a script cannot
+# fill the database. Every call counts (not just failures). Generous: a real
+# player is nowhere near these. In-process like the others (see throttle.py).
+SIGNUP_LIMITER = FailureLimiter(max_failures=20, window_seconds=3600)
+RATING_LIMITER = FailureLimiter(max_failures=60, window_seconds=3600)
+SAVE_CREATE_LIMITER = FailureLimiter(max_failures=60, window_seconds=3600)
+ANSWER_REPORT_LIMITER = FailureLimiter(max_failures=120, window_seconds=3600)
+PAGEVIEW_LIMITER = FailureLimiter(max_failures=120, window_seconds=3600)
+WRITE_LIMITERS = (SIGNUP_LIMITER, RATING_LIMITER, SAVE_CREATE_LIMITER, ANSWER_REPORT_LIMITER, PAGEVIEW_LIMITER)
+
 
 def _client_key(request: Request) -> str:
     """The caller's address: the first X-Forwarded-For entry when behind the
@@ -489,9 +546,24 @@ def _client_key(request: Request) -> str:
     return request.client.host if request.client else "unknown"
 
 
+def _throttle(limiter: FailureLimiter, request: Request, detail: str = "Too many requests, try again later") -> None:
+    key = _client_key(request)
+    if limiter.blocked(key):
+        raise HTTPException(status_code=429, detail=detail)
+    limiter.record_failure(key)
+
+
+def reset_write_limiters() -> None:
+    for limiter in WRITE_LIMITERS:
+        limiter.reset()
+
+
 @app.post("/auth/signup", response_model=AuthOut)
-def signup(payload: AuthIn, db: Session = Depends(get_db)):
+def signup(payload: AuthIn, request: Request, db: Session = Depends(get_db)):
+    _throttle(SIGNUP_LIMITER, request, "Too many sign-ups from this address, try again later")
     username = _normalize_username(payload.username)
+    if len(username) > USERNAME_MAX_LENGTH:
+        raise HTTPException(status_code=422, detail=f"username must be at most {USERNAME_MAX_LENGTH} characters")
     if _username_exists(db, username):
         raise HTTPException(status_code=409, detail="Username already taken")
 
@@ -673,6 +745,8 @@ def put_slot_save(
     response.headers["Cache-Control"] = "no-store"
     if not 1 <= slot <= SAVE_SLOTS_PER_GAME:
         raise HTTPException(status_code=422, detail=f"slot must be from 1 to {SAVE_SLOTS_PER_GAME}")
+    if not game_id or len(game_id) > ID_MAX_LENGTH:
+        raise HTTPException(status_code=422, detail=f"game_id must be 1 to {ID_MAX_LENGTH} characters")
     name = None
     if payload.name is not None:
         name = payload.name.strip()[:SLOT_NAME_MAX_LENGTH] or None
@@ -892,12 +966,15 @@ def _check_feedback_rate_limit(client_ip: str) -> None:
             raise HTTPException(status_code=429, detail="Too many submissions — try again later")
         recent.append(now)
         _feedback_submission_log[client_ip] = recent
+        if len(_feedback_submission_log) > 5000:  # drop addresses whose whole window has passed
+            for stale in [ip for ip, ts in _feedback_submission_log.items() if not ts or ts[-1] <= window_start]:
+                del _feedback_submission_log[stale]
 
 
 class FeedbackIn(BaseModel):
-    game_id: Optional[str] = None
+    game_id: Optional[str] = Field(default=None, max_length=ID_MAX_LENGTH)
     rating: Optional[int] = Field(default=None, ge=1, le=5)
-    comment: Optional[str] = None
+    comment: Optional[str] = Field(default=None, max_length=TEXT_MAX_LENGTH)
 
     @model_validator(mode="after")
     def require_rating_or_comment(self):
@@ -935,7 +1012,7 @@ def create_feedback(
     current_user: Optional[User] = Depends(get_current_user_optional),
     db: Session = Depends(get_db),
 ):
-    _check_feedback_rate_limit(request.client.host if request.client else "unknown")
+    _check_feedback_rate_limit(_client_key(request))
     row = Feedback(
         game_id=payload.game_id,
         user_id=current_user.id if current_user else None,
@@ -1066,17 +1143,8 @@ def admin_hide_rating(
 
 
 # --- Admin aggregate stats (TODO.md L8) ---
-# Backs the unlisted admin.html page's Overview panel. `admin.html`'s own
-# comment already establishes the precedent this follows: every number
-# here is a count, never a row of actual user content (no usernames,
-# emails, save contents, or comment text) — accounts and saves had no
-# aggregate-count endpoint before this, only per-user (/users/me/saves)
-# or per-code (/saves/{code}) lookups, neither of which can answer "how
-# many, total". Unauthenticated and public like every other endpoint
-# admin.html already calls, for the same reason: a bare count isn't
-# meaningfully sensitive at this site's scale, and gating it behind auth
-# would need inventing an admin-role concept (there isn't one — see
-# models.py's User) for very little actual protection.
+# Backs the unlisted admin.html page's Overview panel. Every number here is
+# a count, never a row of user content. Admin-only (require_admin).
 class AdminStatsOut(BaseModel):
     total_users: int
     total_saves: int
@@ -1227,7 +1295,7 @@ def _game_saves(db: Session, game_id: str) -> list:
         .limit(stats.MAX_SAVES_SCANNED)
         .all()
     )
-    saves = [r[0] for r in rows]
+    saves = [stats.slim_save(game_id, r[0]) for r in rows]
     stats.cache_put(game_id, saves)
     return saves
 
@@ -1846,7 +1914,7 @@ def add_to_pool(game_id: str, pool: str, payload: PoolContribution, request: Req
     amount = pools.valid_amount(config, payload.amount)
     if amount is None:
         raise HTTPException(status_code=422, detail="amount is outside this pool's accepted range")
-    client = request.client.host if request.client else "unknown"
+    client = _client_key(request)
     if pools.rate_limited(client):
         raise HTTPException(status_code=429, detail="Too many contributions, try again later")
     today = pools.today_utc()
@@ -1861,10 +1929,11 @@ def add_to_pool(game_id: str, pool: str, payload: PoolContribution, request: Req
 
 
 @app.post("/stats/pageview")
-def stats_pageview(db: Session = Depends(get_db)):
+def stats_pageview(request: Request, db: Session = Depends(get_db)):
     """Y29: records one opt-in hub visit and returns the running total.
-    No identifying detail is ever taken from the request -- a bare insert,
-    then a count(*), is the entire implementation."""
+    No identifying detail is stored -- a bare insert, then a count(*). The
+    address is used only for the in-memory rate limit and never kept."""
+    _throttle(PAGEVIEW_LIMITER, request)
     db.add(PageView())
     db.commit()
     total = db.query(PageView).count()

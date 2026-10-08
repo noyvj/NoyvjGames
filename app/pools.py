@@ -60,6 +60,9 @@ def rate_limited(client: str, now: Optional[float] = None) -> bool:
             return True
         recent.append(now)
         _request_log[client] = recent
+        if len(_request_log) > 5000:  # drop addresses whose whole window has passed
+            for stale in [c for c, ts in _request_log.items() if not ts or now - ts[-1] >= 3600]:
+                del _request_log[stale]
         return False
 
 

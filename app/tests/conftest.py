@@ -18,3 +18,15 @@ if str(APP_DIR) not in sys.path:
 
 
 ADMIN_HEADERS = {"X-Admin-Token": "test-admin-token"}
+
+
+import pytest  # noqa: E402
+
+
+@pytest.fixture(autouse=True)
+def _reset_write_limiters():
+    """The per-address write brakes are module-global; every test starts with them empty."""
+    import main
+
+    main.reset_write_limiters()
+    yield
