@@ -81,8 +81,14 @@
     catalog.ach.forEach(function (a) {
       var got = earned.indexOf(a.id) >= 0;
       var li = el("li", got ? "earned" : "");
+      li.setAttribute("data-achievement-id", a.id);
       li.appendChild(el("span", "tick", got ? "✔ Earned" : "Not yet"));
-      li.appendChild(el("strong", null, " " + a.label + ": "));
+      var name = el("strong", null, " ");
+      var labelSpan = el("span", null, a.label);
+      labelSpan.setAttribute("data-achievement-label", "");
+      name.appendChild(labelSpan);
+      name.appendChild(document.createTextNode(": "));
+      li.appendChild(name);
       li.appendChild(document.createTextNode(a.description));
       list.appendChild(li);
     });
@@ -1580,8 +1586,25 @@
     showToast("Save loaded.");
   };
 
+  // Z-20: the shared "Copy result" button under the archive, filled from the figures the meter shows.
+  function mountCopyResult() {
+    if (!window.NoyvjCopyResult || !$("archive-copy-result")) return;
+    window.NoyvjCopyResult.mountButton("#archive-copy-result", {
+      getResult: function () {
+        if (!view || !view.set) return {};
+        var earned = (view.achievements_earned || []).length;
+        return {
+          game: "Chronicle",
+          score: view.set.percent + "% of the " + (view.set.title || "set") + " archive",
+          stats: [view.set.found + " of " + view.set.total + " found", earned + " of " + catalog.ach.length + " achievements"]
+        };
+      }
+    });
+  }
+
   function init() {
     wire();
+    mountCopyResult();
     var cached = jsonParse(lsGet(LS_VIEW) || "null");
     if (cached && cached.puzzle && cached.set) {
       view = cached;

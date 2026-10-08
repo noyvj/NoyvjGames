@@ -17,7 +17,7 @@
     ],
     "menu": [
       {"heading": "Empire", "ids": ["captains-toggle-button"]},
-      {"heading": "Help", "ids": ["tutorial-restart-button", "howto-toggle-button"]},
+      {"heading": "Help", "ids": ["tutorial-restart-button", "howto-toggle-button", "credits-link"]},
       {"heading": "Records", "ids": ["changelog-toggle-button"]}
     ]
   },

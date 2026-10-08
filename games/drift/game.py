@@ -2717,6 +2717,23 @@ def collection_counts():
     return len(collection["civic"]), len(CIVIC_MILESTONES), len(collection["titles"]), len(REGION_TITLES)
 
 
+def share_result():
+    """Z-20: the headline numbers for the shared "Copy result" button, as a JSON string the page
+    reads (it calls this by name through window.pyodide). Wellbeing score, the projected
+    long-horizon wellbeing the coda shows, people integrated and rounds played."""
+    stats = []
+    if region.has_long_horizon_story():
+        stats.append(f"{region.projected_wellbeing_score():.0f} projected generations from now")
+    stats.append({"n": round(region.integrated_population), "one": "person integrated", "many": "people integrated"})
+    stats.append({"n": max(0, region.round_number - 1), "one": "round", "many": "rounds"})
+    return json.dumps({
+        "game": "Drift",
+        "score": round(region.wellbeing_score()),
+        "unit": "wellbeing",
+        "stats": stats,
+    })
+
+
 def render_collection_summary():
     civic, civic_total, titles, titles_total = collection_counts()
     document.getElementById("collection-summary-display").innerText = (

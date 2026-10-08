@@ -64,3 +64,5 @@ Hub card and thumbnail, `icons/favicon-chronicle.svg` (the page uses an inline S
 
 ## Working conventions
 Commit and tag per milestone (`git tag chronicle-milestone-0N`); update the Status column as work happens. Run the tests with `python3 -m pytest -q games/chronicle/tests` (433 at the end of milestone 7; the account, decision and review fixtures are regenerated with `python3 tests/make_fixture.py` only after bumping the matching `SEED_VERSION`).
+
+- **Oct 8 wiring (Z-20, Z-27, Y-29):** `mountCopyResult()` in `app.js` mounts the shared `NoyvjCopyResult` button under the Archive (`#archive-copy-result`: percent of the set's archive found, found of total, achievements). Chronicle has no end screen, so the Archive is the nearest summary. Achievement rows carry `data-achievement-id` / `data-achievement-label` so `shared/achievement-share.js` can add Share to earned ones; a `#credits-link` anchor sits above the ad bar. NOT done: Open Graph / JSON-LD (Y-7, Y-8) because Chronicle is not hub-registered yet and has no `share/meta` or `share/jsonld` file, and the Desktop boot does not exist. Tests: `tests/test_wiring_oct8.py`.

@@ -1,6 +1,10 @@
 {
   "changelog": [
     {
+      "date": "2026-10-08",
+      "entry": "New: a Copy result button under the Contact report copies a one-line result (notebook entries right, planets contacted, achievements) to share. Earned achievements now have a Share button, and a Credits link sits at the bottom of the page (in the Help menu on Desktop)."
+    },
+    {
       "date": "2026-10-07",
       "entry": "Lexis gets an accessibility and display pass: every control works from the keyboard (Tab through everything, S and L add marks, Backspace and Delete edit the signal, arrow keys move along a row of buttons), screen readers hear each new transmission and what changed, and every state has a shape or a written label as well as a colour. A Settings panel adds text size, reduce motion, an effects switch, high contrast and a light or dark theme that follows your device until you choose."
     },

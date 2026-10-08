@@ -842,13 +842,13 @@ Your remaining Round 3 answers (Grid to Drift gamified, SOL to Le Champ de Mots,
   - [x] Z-20 Tide
   - [x] Z-20 Aftermath
   - [x] Z-20 Herd
-  - [ ] Z-20 Thaw
-  - [ ] Z-20 Loop
-  - [ ] Z-20 Drift
-  - [ ] Z-20 Trade Empire
-  - [ ] Z-20 Continuum
+  - [x] Z-20 Thaw
+  - [x] Z-20 Loop
+  - [x] Z-20 Drift
+  - [x] Z-20 Trade Empire
+  - [x] Z-20 Continuum
   - [ ] Z-20 Le Champ de Mots
-  - [ ] Z-20 Lexis
+  - [x] Z-20 Lexis
 - [x] Z-21: Add shared/perf-mark.js that logs Pyodide boot milestones (script start, pyodide loaded, game setup done, first interactive) via performance.mark and one consistent console format, included by every game. (Built 2026-10-08: shared/perf-mark.js (marks script-start, dom-ready, pyodide-loaded, game-setup-done, first-interactive; one `[noyvj-perf] <game> <mark> <ms>ms` format), wired into every page. Only Le Champ de Mots is still to wire.)
   Per game (Classic and Desktop pages both; tick each once wired and tested):
   - [x] Z-21 SOL

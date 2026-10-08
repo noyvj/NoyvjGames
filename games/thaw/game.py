@@ -2538,6 +2538,24 @@ def highlights_text():
     return f"Thaw highlights (round {region.round_number}): " + " ".join(highlights_lines())
 
 
+def share_result():
+    """Z-20: the headline numbers for the shared "Copy result" button, as a JSON string the page
+    reads (the page calls this by name through window.pyodide). Rounds played, regions that
+    tipped into melt and the degrees all three regions saved against no action."""
+    managed = (region, region_b, region_c)
+    tipped = sum(1 for r in managed if r.melt_started_round is not None)
+    saved = sum(r.temperature_saved() for r in managed)
+    played = max(0, region.round_number - 1)
+    return json.dumps({
+        "game": "Thaw",
+        "score": f"{played} round{'' if played == 1 else 's'}",
+        "stats": [
+            {"n": tipped, "one": "region tipped", "many": "regions tipped"},
+            f"{max(0.0, saved):.1f}\u00b0 saved vs no action",
+        ],
+    })
+
+
 def render_highlights():
     items = "".join(f"<li>{line}</li>" for line in highlights_lines())
     document.getElementById("highlights-list").innerHTML = items

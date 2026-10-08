@@ -1295,6 +1295,46 @@ def _summary_stat_row(container, text):
     container.appendChild(row)
 
 
+def _detach_copy_result_holder(panel):
+    """Z-20: empties the summary panel but keeps the shared "Copy result" button's container (and so
+    its listener and its "Copied" message) alive, returning it with whether it held keyboard focus."""
+    holder = document.getElementById("summary-copy-result")
+    focused = False
+    try:
+        focused = holder is not None and bool(holder.contains(document.activeElement))
+    except Exception:  # noqa: BLE001 -- no focus API (tests)
+        pass
+    panel.innerHTML = ""
+    return holder, focused
+
+
+def _reattach_copy_result_holder(panel, held):
+    holder, focused = held
+    if holder is None:
+        return
+    panel.appendChild(holder)
+    if focused:
+        try:
+            holder.querySelector("button").focus()
+        except Exception:  # noqa: BLE001
+            pass
+
+
+def share_result():
+    """Z-20: the headline numbers for the shared "Copy result" button, as a JSON string the page
+    reads (it calls this by name through window.pyodide): the furthest era, seasons played, peak
+    population and the peak sustainability score, from the same summary the panel shows."""
+    data = summary.summary(campaign)
+    stats = [
+        data["furthest_era_label"] + " reached",
+        {"n": data["total_seasons"], "one": "season", "many": "seasons"},
+        f"peak population {data['peak_population']}",
+    ]
+    if data["peak_score"] is not None:
+        stats.append(f"peak sustainability {data['peak_score']:.0f}/100")
+    return json.dumps({"game": "Continuum", "score": f"{data['eras_completed']} of {data['eras_total']} eras", "stats": stats})
+
+
 def update_summary_panel():
     toggle = document.getElementById("summary-toggle-button")
     panel = document.getElementById("summary-panel")
@@ -1303,7 +1343,7 @@ def update_summary_panel():
     if not summary_panel_open:
         return
 
-    panel.innerHTML = ""
+    holder = _detach_copy_result_holder(panel)
     data = summary.summary(campaign)
 
     # K7: in-character stakeholder-report framing, K17: efficiency rank.
@@ -1354,6 +1394,7 @@ def update_summary_panel():
     if data["has_revisited"]:
         _summary_stat_row(panel, "You've looked back at least once during this playthrough.")
     _summary_stat_row(panel, f"Achievements earned: {len(achievement_ids_earned())} of {len(ACHIEVEMENTS)}.")
+    _reattach_copy_result_holder(panel, holder)
 
     heading = document.createElement("h3")
     heading.className = "summary-eras-heading"

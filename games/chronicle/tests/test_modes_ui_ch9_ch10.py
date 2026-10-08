@@ -156,7 +156,7 @@ def test_the_review_page_lists_every_passage_and_decision_for_the_owner():
 
 def test_the_changelog_announces_the_three_new_modes():
     log = json.loads((GAME_DIR / "changelog.json").read_text(encoding="utf-8"))["changelog"]
-    text = log[0]["entry"].lower()
+    text = next(e["entry"] for e in log if "whose account?" in e["entry"].lower()).lower()   # not always the newest entry
     assert "whose account?" in text and "decision points" in text and "review" in text and "day" in text
     assert [e["date"] for e in log] == sorted((e["date"] for e in log), reverse=True)
 

@@ -17,7 +17,7 @@
     "menu": [
       {"heading": "Game", "ids": []},
       {"heading": "Details", "ids": []},
-      {"heading": "Help", "ids": ["tutorial-restart-button", "howto-toggle-button", "info-page-toggle-button"]},
+      {"heading": "Help", "ids": ["tutorial-restart-button", "howto-toggle-button", "info-page-toggle-button", "credits-link"]},
       {"heading": "Records", "ids": ["community-compare-toggle-button", "changelog-toggle-button"]}
     ]
   },

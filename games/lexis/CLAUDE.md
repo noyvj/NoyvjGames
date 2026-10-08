@@ -59,3 +59,5 @@ Python via Pyodide, engine modules with no DOM (the Signal pattern: a thin view 
 
 ## Working conventions
 Commit and tag per milestone: `git commit -m "Milestone N: <name>"`, `git tag lexis-milestone-0N`. Update the Status column as work happens.
+
+- **Oct 8 wiring (Z-20, Z-27, Y-7, Y-8, Y-29):** `mountCopyResult()` in `app.js` mounts the shared `NoyvjCopyResult` button under the Contact report (`#report-copy-result`; the report only exists after planet 3, before that the button says nothing to copy yet), with notebook entries right, planets contacted, transmissions and achievements. Achievement rows carry `data-achievement-id` / `data-achievement-label` so `shared/achievement-share.js` can add Share to earned ones. The Open Graph block and JSON-LD sit in `<head>` before the shared includes; a `#credits-link` anchor sits above the ad bar (in the Desktop Help menu via `pc-config.json`). Tests: `tests/test_wiring_oct8.py`.

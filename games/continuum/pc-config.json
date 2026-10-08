@@ -81,7 +81,8 @@
         "ids": [
           "tutorial-restart-button",
           "howto-toggle-button",
-          "info-page-toggle-button"
+          "info-page-toggle-button",
+          "credits-link"
         ]
       },
       {

@@ -1,4 +1,5 @@
 [
+  { "date": "2026-10-08", "entry": "New: a Copy result button in the Civilization Summary copies a one-line result (eras completed, furthest era, seasons, peak population and sustainability) to share. Earned achievements now have a Share button, and a Credits link sits at the bottom of the page (in the Help menu on Desktop)." },
   { "date": "2026-10-08", "entry": "New: a setting, on by default, pauses the season clock while this browser tab is hidden and puts your speed back, with a short note, when you return. Turn it off in Settings if you want the clock to keep running in a background tab." },
   {
     "date": "2026-10-07",

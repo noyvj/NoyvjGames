@@ -104,6 +104,7 @@ ELEMENT_IDS = [
     # K5 — the civilization summary report (rows are created at runtime).
     "summary-toggle-button",
     "summary-panel",
+    "summary-copy-result",
     "postmortem-panel",  # K-14
     "postmortem-toggle-button",
     # K12 — starting scenario select (three static buttons, never rebuilt).

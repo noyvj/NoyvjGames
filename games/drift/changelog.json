@@ -1,5 +1,9 @@
 [
   {
+    "date": "2026-10-08",
+    "entry": "New: a Copy result button under the long-horizon outcomes copies a one-line result (wellbeing, projected wellbeing, people integrated, rounds) to share. Earned achievements now have a Share button, and a Credits link sits at the bottom of the page (in the Help menu on Desktop)."
+  },
+  {
     "date": "2026-10-07",
     "entry": "New tools and a collection. Reset this round refunds everything you decided since the round began, and a one-per-region Rewind Token undoes the last Advance Round. Play 5 rounds advances with your current allocation and stops early if strain rises a level, a second wave is announced or the neighbouring district goes critical. A recap line says what each round did, and the Round Ledger keeps a sortable, filterable table of every round with Copy as CSV. The Region Collection keeps ten civic milestones (each with a hint while locked) and five region-personality titles (Builder, Educator, Engineer, Reformer, Balancer), kept in your browser across regions. Keys: 1, 2, 3 buy, Enter advances, U resets the round, P plays 5, L opens the Ledger, C the Collection. Settings gains High Contrast and an Easy-Read Font, and the browser tab title now shows the round and strain. No rules or numbers changed."
   },

@@ -2626,6 +2626,19 @@ def _copy_to_clipboard(text):
         return False
 
 
+def share_result():
+    """Z-20: the headline numbers for the shared "Copy result" button, as a JSON string the page
+    reads (it calls this by name through window.pyodide). Score, cycles run, lifetime circular
+    share and, once it has happened, the cycle the loop first closed."""
+    stats = [
+        {"n": max(0, chain.cycle_number - 1), "one": "cycle", "many": "cycles"},
+        f"{chain.lifetime_circular_fraction() * 100:.0f}% circular",
+    ]
+    if chain.first_loop_closed_cycle is not None:
+        stats.append(f"loop closed in cycle {chain.first_loop_closed_cycle}")
+    return json.dumps({"game": "Loop", "score": round(chain.score()), "unit": "points", "stats": stats})
+
+
 def on_copy_summary(event=None):
     text = summary_text()
     status = document.getElementById("copy-summary-status")

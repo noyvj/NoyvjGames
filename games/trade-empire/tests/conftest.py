@@ -75,6 +75,7 @@ ELEMENT_IDS = [
     "changelog-panel",
     "summary-toggle-button",
     "summary-panel",
+    "summary-copy-result",
     "notice-toast",
     # Batch (J-4..J-31): crest, career log, ribbon, throughput, captains panel.
     "charter-crest",

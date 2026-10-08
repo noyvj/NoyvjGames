@@ -3615,6 +3615,46 @@ def _route_profitability_lines():
     return lines
 
 
+def _detach_copy_result_holder(panel):
+    """Z-20: empties the summary panel but keeps the shared "Copy result" button's container (and so
+    its listener and its "Copied" message) alive, returning it with whether it held keyboard focus."""
+    holder = document.getElementById("summary-copy-result")
+    focused = False
+    try:
+        focused = holder is not None and bool(holder.contains(document.activeElement))
+    except Exception:  # noqa: BLE001 -- no focus API (tests)
+        pass
+    panel.innerHTML = ""
+    return holder, focused
+
+
+def _reattach_copy_result_holder(panel, held):
+    holder, focused = held
+    if holder is None:
+        return
+    panel.appendChild(holder)
+    if focused:
+        try:
+            holder.querySelector("button").focus()
+        except Exception:  # noqa: BLE001
+            pass
+
+
+def share_result():
+    """Z-20: the headline numbers for the shared "Copy result" button, as a JSON string the page
+    reads (it calls this by name through window.pyodide): total profit, how far the empire got
+    (colonies developed, ships) and whether the full-scale endgame was reached."""
+    developed = sum(1 for state in colony_states.values() if state.is_developed())
+    ships_owned = sum(1 for ship in ships.values() if ship.purchased)
+    stats = [
+        {"n": developed, "one": "colony developed", "many": "colonies developed"},
+        {"n": ships_owned, "one": "ship", "many": "ships"},
+    ]
+    if endgame_reached:
+        stats.append("endgame reached")
+    return json.dumps({"game": "Trade Empire", "score": total_profit, "unit": "credits profit", "stats": stats})
+
+
 def update_summary_display():
     toggle = document.getElementById("summary-toggle-button")
     panel = document.getElementById("summary-panel")
@@ -3638,12 +3678,13 @@ def update_summary_display():
         charter_summary_text(),
     ]
 
-    panel.innerHTML = ""
+    holder = _detach_copy_result_holder(panel)
     for line in overview_lines:
         p = document.createElement("p")
         p.className = "summary-line"
         p.innerText = line
         panel.appendChild(p)
+    _reattach_copy_result_holder(panel, holder)
 
     route_heading = document.createElement("p")
     route_heading.className = "panel-label summary-route-heading"

@@ -113,3 +113,5 @@ Until that is deployed, `GET /leaderboards/signal/best_streak` returns 404 and t
 ## Shared touch targets (Z-23, 2026-10-08)
 
 `shared/touch-targets.css` makes buttons at least 44px tall on phones. A 9x9 board cannot have 44px cells on a 360px screen, so `app.js` marks every `.cell` button with `data-touch-exempt` and the shared rule skips it. Everything else (toolbar buttons, mode tabs, Commit / Clear / Give up, the tool toggle) follows the 44px rule.
+
+- **Oct 8 wiring (Z-27, Y-7, Y-8, Y-29):** Signal keeps its own share text (`lastShareText` in `app.js`) and does NOT use `shared/copy-result.js`. `shared/copy-result.js` is loaded only so the achievement Share helper can use its clipboard fallback. `shared/achievement-share.js` adds Share to earned achievement cards (the cards already carry `data-achievement-id`). The Open Graph block and JSON-LD sit in `<head>` before the shared includes; a `#credits-link` anchor sits above the ad bar (in the Desktop Help menu via `pc-config.json`). Tests: `tests/test_wiring_oct8.py`.

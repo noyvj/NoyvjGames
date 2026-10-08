@@ -503,10 +503,12 @@
     (view.achievements || []).forEach(function (a) {
       var li = document.createElement("li");
       li.className = a.earned ? "earned" : "";
+      li.setAttribute("data-achievement-id", a.id);
       var tick = document.createElement("span");
       tick.className = "tick";
       tick.textContent = a.earned ? "Earned" : "Not yet";
       var name = document.createElement("strong");
+      name.setAttribute("data-achievement-label", "");
       name.textContent = " " + a.label + " ";
       var desc = document.createElement("span");
       desc.textContent = a.description;
@@ -806,7 +808,29 @@
     if (add && e.key.length === 1) { e.preventDefault(); add(); }
   }
 
+  // Z-20: the shared "Copy result" button under the contact report (the report only exists after planet 3).
+  function mountCopyResult() {
+    if (!window.NoyvjCopyResult || !$("report-copy-result")) return;
+    window.NoyvjCopyResult.mountButton("#report-copy-result", {
+      getResult: function () {
+        var report = view && view.report;
+        if (!report) return {};
+        var t = report.totals;
+        return {
+          game: "Lexis",
+          score: t.right + " of " + t.written + " notebook entries right",
+          stats: [
+            { n: report.planets.length, one: "planet contacted", many: "planets contacted" },
+            t.transmissions + " transmissions received",
+            report.achievements.length + " of " + report.achievements_total + " achievements"
+          ]
+        };
+      }
+    });
+  }
+
   function wire() {
+    mountCopyResult();
     wireCompound();
     wireBridge();
     wirePanelToggle("achievements-toggle-button", "achievements-panel");

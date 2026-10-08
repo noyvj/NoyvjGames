@@ -1,5 +1,9 @@
 [
   {
+    "date": "2026-10-08",
+    "entry": "New: a Copy result button under the Highlights recap copies a one-line result (rounds played, regions that tipped, degrees saved against no action) to share. Earned achievements now have a Share button, and a Credits link sits at the bottom of the page (in the Help menu on Desktop)."
+  },
+  {
     "date": "2026-10-07",
     "entry": "New in Thaw: resource convoys that move funds between Regions A, B and C for a 20% transport tax, a perfect-balance bonus when all three melting regions finish within 1 degree of each other, an Ice Age medal for long runs without a tipping event, a \"phew\" note when your last move pulls a region back from going critical, an \"Explain this number\" breakdown of the warming rate, an acceleration sparkline, a three-line highlights recap you can copy, spoken round summaries and graph descriptions for screen readers, and a Lite mode in Settings that drops blur and background animation."
   },
