@@ -526,3 +526,150 @@ Interplay with away reports: a report that counts game ticks is unaffected (no t
 ### Per game (what was wired)
 
 SOL, Canopy, Trade Empire: both scripts, the stylesheet, `#time-controls`, the settings checkbox, `_start_tick_loop()` in `game.py`, the stage-bar zone and hints in `pc-config.json` (Desktop page regenerated). Continuum: `pause-hidden.js` in manual mode and the settings checkbox. Tide: nothing (turn based).
+
+---
+
+## 11. Run codes (`shared/run_code.py`, `shared/run-code.js`, TODO FY-7)
+
+One short text a player can send a friend: "this seed, this mode, this result". Built once here for Loop GH-28 and H-7, Tide D-3, Grid C-29 and the friend ties of FY-55; nothing is wired into a game yet. The Python and JavaScript sides are the **same algorithm**, pinned together by `shared/tests/test_run_code.py` (pinned codes, byte layout, every refusal) and `shared/tests/test_run_code_browser.py` (300 encodes, 1,500+ decodes of valid, mangled, foreign and forged codes, and 1,000+ describe lines agree exactly; plus both UIs). **A deliberate change to the format must bump `FORMAT_VERSION` and re-pin both tests**, because shared codes would otherwise change meaning.
+
+### The code
+
+`RUN-TIDE-7G0F4-1JE0H-M62WK-4Y8G0-630-EPX`: the word `RUN`, the game's seed prefix (`prefix_for`: `trade-empire` becomes `TRADEEMPIRE`), the packed body in groups of five, and a three-character checksum. Body characters are Crockford base 32 (`0-9 A-Z` without `I L O U`). The body is bit-packed bytes:
+
+| bytes | meaning |
+|---|---|
+| 1 | `version<<5 | has_seed<<4 | has_result<<3 | stat_count<<1 | 0` (version 1, 0 to 2 stats; the last bit is reserved and must be 0) |
+| 4 (if seed) | the seed's five characters as a base-31 number (`seed.py`'s alphabet), big-endian |
+| 1 + n | mode length 0 to 8, then the mode: lower-case `a-z0-9` |
+| varint (if result) | the score, then each stat, LEB128 little-endian, canonical (no trailing zero group), each 0 to `MAX_VALUE` (2^48 - 1) |
+
+The checksum is 15 bits of FNV-1a 64 over `run-code-v1|PREFIX|BODY`. It exists to catch **typing mistakes**, not to prove anything: every single-character slip in the pinned code is caught, and anyone can still write a code with any score. Longest possible code: 74 characters without dashes (`MAX_COMPACT_LEN` is 80); pasted text over 400 characters is refused without being read.
+
+**What can be in a code:** the game, a seed, a mode token, a score and up to two whole numbers. Nothing a player typed, no name, account, address or id. A game with decimal scores stores them scaled (tenths as integers); what each of the two stats means is the game's own fixed order (for example storms survived, then calm days).
+
+**Scores are client-trusted.** A decoded code is data to *display*. It is never executed, never saved as the viewer's own progress, never ranked, and every decoded result says `verified: false`. Both UIs say so in words ("Run codes are not checked against a server: anyone can write one with any result, so treat it as a friendly challenge, not proof."). There is no comparison or "you did worse" wording anywhere: it shows their run, nothing else (PLAYER-PROFILE: optional social, never worst-score shaming, never pressure).
+
+### API (same names; Python snake_case, JavaScript camelCase)
+
+| Python (`run_code`) | JavaScript (`NoyvjRunCode`) | notes |
+|---|---|---|
+| `encode(fields)` | `encode(fields)` | `fields`: `game` (required), `seed`, `mode`, `score`, `stats`. Returns the code; raises `RunCodeError` (a `ValueError`) in Python and a `RangeError` named `RunCodeError` in JavaScript, both with `.reason`: `game`, `seed`, `wrong-game` (seed of another game), `mode`, `score`, `stats`. A seed may be typed loosely (`k7f2q`), the mode in any case |
+| `decode(text, game=None)` | `decode(text, game?)` | never raises. `{ok, error, message, code, game, seed, mode, score, stats, has_result / hasResult, verified: False}`. `error` is `""`, `empty`, `too-long`, `format`, `version` (made by a newer game), `checksum` (typing mistake) or `wrong-game` (only when `game` is passed); `message` is ready to show |
+| `validate(text, game=None)`, `is_valid`, `normalize` | `validate`, `isValid`, `normalize` | like `seed.validate`: `{ok, code, error, message}`, a bool, the canonical spelling or `""` |
+| `describe(decoded, options)` | `describe(decoded, options)` | the display line: `Their run: 4,210 pts, 3 storms, 12 calm days, Hard mode`. Options: `prefix`, `unit`, `stats` (one entry per stat: a label string, or `{one, many}`), `modes` (token to display name) |
+
+`decode` forgives case, spaces, line breaks, odd dashes and underscores, **missing dashes when `game` is given** (the prefix is then known), and the look-alikes `O` for 0 and `I`/`L` for 1. The returned `code` is always the canonical spelling, so `normalize(normalize(x)) == normalize(x)`.
+
+### In a game
+
+The Pyodide games write the module next to `seed.py` (it needs it for the alphabet, prefix rule and hash), exactly as for the seed:
+
+```js
+for (const f of ["seed.py", "run_code.py"]) {
+  const src = await (await fetch("../../shared/" + f)).text();
+  pyodide.FS.writeFile(f, src, { encoding: "utf8" });
+}
+```
+```python
+import run_code
+code = run_code.encode({"game": "tide", "seed": state["seed"], "mode": state["difficulty"],
+                        "score": final_score, "stats": [storms_survived, calm_days]})
+ghost = run_code.decode(pasted_text, "tide")        # ok / error / message, then ghost["score"], ghost["stats"] ...
+```
+
+Run-end screen and new-game or friends screen (JavaScript; the file stands alone, no `seed.js` needed):
+
+```html
+<div id="run-end-code"></div>  <div id="friends-ghost"></div>
+<script src="../../shared/run-code.js"></script>
+```
+```js
+const ghostLine = { unit: "pts", stats: [{ one: "storm", many: "storms" }, "calm days"], modes: { hard: "Hard" } };
+NoyvjRunCode.mountCopy("#run-end-code", {
+  game: "tide", describe: ghostLine,
+  getRun: () => ({ seed: runSeed, mode: difficulty, score: finalScore, stats: [storms, calmDays] }),   // read on mount, update() and every click
+});
+NoyvjRunCode.mountPaste("#friends-ghost", {
+  game: "tide", describe: ghostLine,
+  onView: (ghost) => { /* optional: remember it for a later "ghost" overlay; it is only data */ },
+  onPlaySeed: (seed, ghost) => startRun(seed),     // optional: the "Play this seed" button exists only when the code has a seed AND this is given
+});
+```
+
+`mountCopy` returns `{update(run), destroy(), element}`: a `role="group"` with the code in a selectable box, a 44 px "Copy run code" button, a "A friend will see: ..." line (so the player sees exactly what is shared), the not-verified note and a polite live status (`✓ Copied RUN-...`; if the browser refuses the clipboard, a selected read-only box and "press Ctrl+C"). A run that cannot be encoded (a negative score, three stats) disables the button and says why with a leading `!`. `mountPaste` returns `{setValue, focus, clear, destroy, element}`: a labelled field (placeholder `RUN-TIDE-...`), a bad code is explained in text with a leading `!`, a dashed 3 px border, `aria-invalid`, a `role="alert"` message and focus back on the field; a good one shows a "Ghost run" card (`role="status"` region: the describe line, the seed, the not-verified note, Clear). Everything is written with `textContent`. Light and dark tokens (`--nrc-*`, following `html[data-theme="light"]` and the OS preference), no transitions under reduced motion (`prefers-reduced-motion` or `html[data-reduced-motion="true"]`), every control at least 44 px, fits 360 px without sideways scrolling. Nothing touches the network or storage. Wiring each game's end screen and friends screen is a later step.
+
+---
+
+## 12. Goals panel (`shared/goals-panel.js` + `.css`, TODO FY-53)
+
+"Three goals at all times" (PLAYER-PROFILE: get X to level N to unlock Z, always visible, never pressure) for the idle and tycoon games. The **game owns every rule**: it supplies a queue of goals and says how far along each is and whether it is done; the panel shows at most three, with a progress bar plus text, and promotes the next when one finishes. Tests: `shared/tests/test_goals_panel_browser.py`. Nothing is wired into a game yet (SOL, Trade Empire, Continuum and Loop come next).
+
+### Goal data (a function returning a list, or a plain list)
+
+```js
+{ id: "smelters",                     // string, unique, stable
+  label: "Reach 5 Smelters",
+  current: 3, target: 5,              // or progress: {current, target}; no target = a plain tick (no bar)
+  reward: "Unlocks the Foundry",      // optional text; shown as "Reward: ..."
+  done: false }                       // optional; if absent, derived from current >= target
+```
+
+The visible goals are the **first three that are not done, in the order given**, so the game orders its own queue (the "next thing to unlock" first). `current` is clamped to `target` for display. Unusable entries (no id or label) and duplicate ids are skipped; if `getGoals()` throws or returns something that is not a list, the panel hides rather than breaking the game. A goal the game never lists is never shown; the panel never invents, reorders or completes anything.
+
+### Mounting
+
+```html
+<link rel="stylesheet" href="../../shared/goals-panel.css">   <!-- optional: the script links it itself -->
+<div id="goals"></div>
+<script src="../../shared/goals-panel.js"></script>
+```
+```js
+const goals = NoyvjGoals.mount("#goals", {
+  game: "sol",
+  getGoals: () => currentGoals(),            // or goals: [...]; called on every refresh()
+  title: "Goals",                             // optional
+  onChange: (visible) => {},                  // optional, only when what is shown really changed
+});
+goals.refresh();                              // after the game's state changes: cheap, updates in place
+```
+
+`mount` returns `{refresh(), setEnabled(on, {persist}), isEnabled(), focus(), visibleIds(), destroy(), element}`. `refresh()` is safe to call every tick: it updates the existing list items in place (a screen reader's position and any animation survive) and calls `onChange` only when the visible goals or the done count changed. Code that cannot hold the handle can fire `document.dispatchEvent(new CustomEvent("noyvj-goals-change", {detail: {game: "sol"}}))` (the `game` is optional) or call `NoyvjGoals.refreshAll()`.
+
+**Settings switch.** `goals.setEnabled(false)` hides the panel; the choice is remembered per game in `localStorage["noyvj-goals:<game>"]` (`"on"`/`"off"`, default on, blocked storage tolerated; `{persist: false}` skips it, and `opts.enabled` overrides the stored value at mount). `onEnabledChange(on)` fires on a real change. Goals that finish while it is off are not announced when it comes back. For the settings panel: `NoyvjGoals.bindCheckbox(goals, "#goals-checkbox")` sets the checkbox from the panel and keeps them in step (it returns an unbind function), the same on/off shape as the pause-when-hidden switch.
+
+**When it hides.** No goals at all, or switched off: the whole panel is `hidden`. All goals done: it stays with "✓ Every goal is done. Nice work." and "N of N done".
+
+### Behaviour and accessibility
+
+- A `<section>` named by its title; the goals are a real `<ul>` of `<li>`, each reading as one sentence: `Reach 5 Smelters: 3 of 5` then `Reward: Unlocks the Foundry`. The bar is `aria-hidden` (the numbers are already text) and has a visible outline; each goal has a marker glyph (`▸`); nothing is conveyed by colour alone.
+- **Completion.** The first paint is silent. When a goal that was not done becomes done, one visually hidden `role="status"` `aria-live="polite"` region says "Goal complete: Reach 5 Smelters. Reward: Unlocks the Foundry. New goal: Reach 10 Furnaces." (several at once are joined; the last one says "Every goal is done."), and a visible, non-live note "✓ Done: ..." stays under the list until the 44 px dismiss button is pressed or another goal finishes. The announcement is made whether or not motion is reduced.
+- **Motion** only when neither `prefers-reduced-motion` nor `html[data-reduced-motion="true"]` asks for none: the bar eases to its width and a newly promoted goal does a 0.4 s fade-in. No timers, countdowns, intervals or frame loops anywhere (the test counts them: zero), and no urgency wording.
+- The only interactive control is the dismiss button (44 px). The section has `tabindex="-1"` and `goals.focus()` so a game can move focus to it from a help or shortcut. Light and dark tokens `--ng-*` on `:root` (following `html[data-theme="light"]` and the OS preference), a blanket `[hidden]` rule, fits 360 px, about 60 px per goal. Text is always written with `textContent`.
+
+### Adoption: a Python game exposes a function, a few JavaScript lines mount it
+
+Pyodide games (SOL, Trade Empire, Continuum, Loop) keep the rules in Python. Add one function that returns the **whole ordered queue** from the game's own state (the panel picks the first three open ones):
+
+```python
+import json
+
+def goals_json():
+    s = state()                                           # the game's own state accessor
+    return json.dumps([
+        {"id": "smelters", "label": "Reach 5 Smelters", "current": s.smelters, "target": 5,
+         "reward": "Unlocks the Foundry", "done": s.foundry_unlocked},
+        # ... the queue, ordered by what the game wants the player to do next
+    ])
+```
+```js
+const panel = NoyvjGoals.mount("#goals", {
+  game: "sol",
+  getGoals: () => JSON.parse(pyodide.runPython("goals_json()")),
+});
+// in the game's existing "state changed" or render hook:
+panel.refresh();
+// settings panel: NoyvjGoals.bindCheckbox(panel, "#goals-checkbox")  (add the checkbox next to the game's other toggles)
+```
+
+Per game, the later wiring step only has to decide the queue (examples, not decisions: SOL, the next building or research tier; Trade Empire, the next route, post or charter perk; Continuum, the next era requirement or civic target; Loop, the next unlock), put `<div id="goals">` where it is always visible (the stage bar or HUD), add the include lines, a settings checkbox and, for the Desktop boot, the new element id in both `index.html` and `pc.html` (`shared/tests/test_pc_games.py` checks that). Every goal should map to something the game already measures, so what the player sees always counts toward a visible stat.

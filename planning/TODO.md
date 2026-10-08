@@ -1256,7 +1256,7 @@ One checkbox per pass per area. A pass is not done until its fixes are committed
 - [ ] FY-4: Herd F4: a second end-of-game feedback question about Herd's own lesson ("did decoupling feel like a real strategy, or a tax on growth?"), like Thaw's two-question pattern (you said now).
 - [ ] FY-5: Loop H16: an optional "supply chain disruption" random event, opt-in as an advanced mode, kept apart from the deterministic core lesson (you said now).
 - [x] FY-6: Contraption (physics sandbox): DROPPED by you 2026-10-08.
-- [ ] FY-7: One shared compact run-code format (you said yes): friends paste a code to view a ghost; built once in `shared/` and then used by Loop GH-28 and H-7, Tide D-3 and Grid C-29.
+- [ ] FY-7: One shared compact run-code format (you said yes): friends paste a code to view a ghost; built once in `shared/` and then used by Loop GH-28 and H-7, Tide D-3 and Grid C-29. (Shared format built 2026-10-09: shared/run_code.py and run-code.js, tested identical; Loop GH-28 and H-7, Tide D-3 and Grid C-29 still to adopt it.)
 - [x] FY-8: Read the 3 new Le Champ de Mots answer reports that arrived after the first review (a10db191 "the road" for "the street"; 4f38d109 and 8295f0aa on the "Is it far/close (from here)?" phrase) and tick "fixed" on the ones the data fixes.
 - [ ] FY-9: U1: Undersleep: should the optional daily check-in layer be hidden until the player turns it on (you said yes: yes, hidden by default ("Just play" is the default).)
 - [ ] FY-10: U2: Undersleep: keep the player's personal data on the device only, with manual export and import, and never in a save code or the cloud (you said yes: yes. A cloud version needs per-account encryption, which is a real project; say "later" if you want that project eventually.)
@@ -1300,7 +1300,7 @@ One checkbox per pass per area. A pass is not done until its fixes are committed
 
 - [ ] FY-51: Lifeline-style choose-your-own-adventure game (you said yes): sci-fi, dark tone, many branching paths, optional reading, a main character who makes mistakes; plan first (planning file, M convention), built after Chronicle.
 - [ ] FY-52: A coding or logic-circuit puzzle game as the first of the coding, maths and chemistry games (you said yes); plan first.
-- [ ] FY-53: One shared "three goals at all times" panel (you said yes) built in `shared/` and fed by each game's own goals, then wired into SOL, Trade Empire, Continuum and Loop.
+- [ ] FY-53: One shared "three goals at all times" panel (you said yes) built in `shared/` and fed by each game's own goals, then wired into SOL, Trade Empire, Continuum and Loop. (Shared panel built 2026-10-09: shared/goals-panel.js and .css; wiring into SOL, Trade Empire, Continuum and Loop still to do, see SHARED-COMPONENTS section 12.)
 - [ ] FY-54: One small optional fast timed reaction game with a slower mode like the Champ minigames (you said yes); plan first.
 - [ ] FY-55: Optional friend ties (shared run codes, friend list, ghost runs, no messaging, never required, no worst-score shaming) after the shared run code FY-7 exists (you said yes).
 - [ ] FY-56: Dream game (the dark foggy forest city builder): you want a large set of design questions answered before any planning doc. The 25 questions are FOR-YOU items Fg1 to Fg25; write `planning/<name>-plan.md` only after they are answered, and consider building the per-building puzzles as their own small games first.
