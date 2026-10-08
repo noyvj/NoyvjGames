@@ -102,6 +102,17 @@
         }
       }
 
+      // Same rule as the hub (script.js hubReduceData): the explicit setting wins, otherwise the browser's Data Saver.
+      // The rarity lines are community statistics, so they are skipped while it is on.
+      function reduceData() {
+        let choice = null;
+        try { choice = localStorage.getItem("hub_reduce_data"); } catch (e) { /* storage blocked */ }
+        if (choice === "1") return true;
+        if (choice === "0") return false;
+        const conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+        return Boolean(conn && conn.saveData);
+      }
+
       async function loadGameIds() {
         const manifest = await fetchJson("game-manifest.json");
         const ids = manifest && Array.isArray(manifest.achievements)
@@ -114,7 +125,9 @@
 
       // Earned ids per game from the signed-in account's most recent save of each game.
       async function loadEarned() {
-        if (typeof hubGetBearerToken !== "function" || !hubGetBearerToken()) return null;
+        let token = null;
+        try { token = typeof hubGetBearerToken === "function" ? hubGetBearerToken() : null; } catch (e) { /* storage blocked: treat as signed out */ }
+        if (!token) return null;
         const saves = await fetchJson(`${API_BASE}/users/me/saves`, { headers: hubAuthHeaders() });
         if (!Array.isArray(saves)) return null;
         const earned = {};
@@ -197,7 +210,7 @@
         const [earned, catalogs, stats] = await Promise.all([
           loadEarned(),
           Promise.all(ids.map((id) => fetchJson(`games/${id}/achievements.json`))),
-          Promise.all(ids.map((id) => fetchJson(`${API_BASE}/stats/games/${id}`))),
+          reduceData() ? Promise.resolve(ids.map(() => null)) : Promise.all(ids.map((id) => fetchJson(`${API_BASE}/stats/games/${id}`))),
         ]);
         signedIn = earned !== null;
 

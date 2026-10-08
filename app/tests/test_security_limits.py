@@ -182,3 +182,14 @@ def test_admin_routes_all_refuse_anonymous_callers():
         assert client.get(path).status_code in (401, 503), path
     assert client.get("/admin/users", headers={"X-Admin-Token": "wrong"}).status_code == 401
     assert client.get("/admin/users", headers={"X-Admin-Token": ""}).status_code == 401
+
+
+def test_signup_rejects_usernames_with_markup_but_keeps_ordinary_names():
+    from fastapi.testclient import TestClient
+    from main import app
+    client = TestClient(app)
+    for bad in ('x" autofocus onfocus="alert(1)', "<b>hi</b>", "a'b", "a&b", "name;drop"):
+        resp = client.post("/auth/signup", json={"username": bad, "password": "hunter22"})
+        assert resp.status_code == 422, bad
+    ok = client.post("/auth/signup", json={"username": "Ordinary_Name-7 x", "password": "hunter22"})
+    assert ok.status_code == 200, ok.text

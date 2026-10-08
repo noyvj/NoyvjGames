@@ -292,10 +292,12 @@ const GAME_LABELS = {
   "champ-de-mots": "Le Champ de Mots", signal: "Signal", lexis: "Lexis",
 };
 
+// Escapes & < > and both quote characters: values (usernames are free text) are also placed inside
+// quoted attributes (data-id, aria-label), where an unescaped quote would let a name inject markup.
 function escapeHtml(value) {
-  const div = document.createElement("div");
-  div.textContent = value == null ? "" : String(value);
-  return div.innerHTML;
+  return (value == null ? "" : String(value)).replace(/[&<>"']/g, (c) => ({
+    "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;",
+  }[c]));
 }
 
 function formatWhen(iso) {
@@ -303,14 +305,8 @@ function formatWhen(iso) {
   try {
     return new Date(iso).toLocaleString();
   } catch (err) {
-    return iso;
+    return escapeHtml(iso);
   }
-}
-
-async function fetchJson(url) {
-  const res = await fetch(url);
-  if (!res.ok) throw new Error(`${url} -> status ${res.status}`);
-  return res.json();
 }
 
 // The owner account's own sign-in is the credential (same hub token the gate in

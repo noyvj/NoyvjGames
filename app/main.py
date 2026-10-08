@@ -476,6 +476,7 @@ def _normalize_username(username: str) -> str:
 
 
 USERNAME_MAX_LENGTH = 64  # enforced at signup only, so a legacy longer name can still sign in
+USERNAME_PATTERN = re.compile(r"[\w .-]+", re.UNICODE)
 
 
 class AuthIn(BaseModel):
@@ -564,6 +565,11 @@ def signup(payload: AuthIn, request: Request, db: Session = Depends(get_db)):
     username = _normalize_username(payload.username)
     if len(username) > USERNAME_MAX_LENGTH:
         raise HTTPException(status_code=422, detail=f"username must be at most {USERNAME_MAX_LENGTH} characters")
+    # Letters, digits, spaces and . _ - only for NEW accounts (hub QA found that any string could become a
+    # username and be rendered in places like the admin page; older accounts with other characters can still
+    # sign in because only signup checks this).
+    if not USERNAME_PATTERN.fullmatch(username):
+        raise HTTPException(status_code=422, detail="username may only use letters, numbers, spaces and . _ -")
     if _username_exists(db, username):
         raise HTTPException(status_code=409, detail="Username already taken")
 

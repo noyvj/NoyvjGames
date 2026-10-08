@@ -1936,7 +1936,6 @@ kbd.hub-key, .hub-shortcuts-list kbd {
 .faq-item[hidden] { display: none; }
 .faq-item summary { cursor: pointer; font-weight: 600; font-size: 0.93rem; }
 .faq-item p { margin: 0.5rem 0 0; }
-.faq-empty { opacity: 0.7; font-size: 0.9rem; }
 .faq-games { list-style: none; margin: 0.4rem 0 0; padding: 0; }
 .faq-games li { margin: 0.35rem 0; }
 .credits-list { margin: 0.3rem 0 0; padding-left: 1.2rem; }
