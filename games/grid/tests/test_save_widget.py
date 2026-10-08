@@ -60,6 +60,21 @@ EXPECTED_KEYS = {
     "aging_breakdown_count",
     "first_90_clean_round",
     "last_round_recap",
+    # 2026-10-08 batch: seeded run, loadout, peek, Perfect Round, Ironman, nicknames, grants.
+    "seed",
+    "start_option",
+    "immunity_available",
+    "immunity_used",
+    "peeked_round",
+    "perfect_streak",
+    "best_perfect_streak",
+    "ironman",
+    "plant_names",
+    "name_serial",
+    "last_eulogy",
+    "grant_offer",
+    "grant_effects",
+    "last_grant_message",
 }
 
 

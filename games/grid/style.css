@@ -1721,3 +1721,44 @@ html[data-reduced-motion="true"] *::after {
 
 /* GC-17: auto-advance sits under the main Advance Round button. */
 #auto-advance-button { width: 100%; margin-top: 0.4rem; }
+
+/* GC-2b: the operator upgrade tree (drawn by shared/skill-tree.js). */
+.career-tree { margin: 0.5rem 0; }
+
+/* GC-2b / GC-21: run-setup controls in the difficulty row. */
+.run-seed-input { width: 9rem; font-family: monospace; text-transform: uppercase; }
+#ironman-toggle-button.active, #ironman-toggle-button[aria-pressed="true"] { font-weight: 700; }
+#undo-build-button { width: 100%; margin-top: 0.3rem; }
+#peek-forecast-button { margin-top: 0.3rem; }
+
+/* GC-15: Perfect Round streak. The flame is decorative; the number and bonus are written out. */
+.perfect-streak { font-size: 0.85rem; }
+
+/* GC-25: the surprise-offer banner. */
+.grant-banner { border: 1px solid rgba(240, 228, 66, 0.55); }
+.grant-banner p { margin: 0 0 0.4rem; }
+
+/* GC-4: plant nicknames under each row's header, and the coal eulogy with its demolition puff. */
+.plant-nicknames { margin: 0.1rem 0 0.2rem 0.2rem; font-size: 0.72rem; font-style: italic; opacity: 0.75; }
+.plant-nicknames:empty { display: none; }
+.eulogy-display { margin: 0.3rem 0; padding: 0.4rem 0.6rem; font-size: 0.85rem; font-style: italic; border-left: 3px solid rgba(180, 180, 180, 0.6); }
+.eulogy-display::before { content: "\1F4A8  "; display: inline-block; }
+.eulogy-display.eulogy-puff::before { animation: grid-demolition-puff 1.4s ease-out 1; }
+@keyframes grid-demolition-puff {
+  0% { transform: scale(0.4) translateY(6px); opacity: 0; }
+  40% { transform: scale(1.5) translateY(-4px); opacity: 1; }
+  100% { transform: scale(1) translateY(-10px); opacity: 0.6; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .eulogy-display.eulogy-puff::before { animation: none; }
+}
+.run-setup-details { margin-top: 0.4rem; font-size: 0.85rem; }
+.run-setup-details > summary { cursor: pointer; font-weight: 600; }
+
+/* C-4: hovering or focusing a mix bar highlights that plant's row and the bar itself. */
+.mix-row { border-radius: 6px; }
+.mix-row:hover, .mix-row:focus-visible, .mix-row.mix-row--active { background: rgba(140, 160, 255, 0.12); outline: none; }
+.mix-row:focus-visible { box-shadow: 0 0 0 2px rgba(240, 228, 66, 0.8); }
+.plant-row.plant-row--highlight { box-shadow: 0 0 0 2px rgba(111, 179, 255, 0.85); border-radius: 8px; }
+.mix-hover-readout { min-height: 2.4em; margin: 0.2rem 0 0.4rem; }
+.changelog-load-note { font-size: 0.82rem; margin: 0.2rem 0 0.6rem; padding: 0.3rem 0.5rem; border-left: 3px solid rgba(240, 228, 66, 0.7); }

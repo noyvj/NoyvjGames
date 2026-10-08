@@ -1,4 +1,5 @@
 import importlib.util
+import random
 import sys
 import types
 from pathlib import Path
@@ -17,6 +18,7 @@ SHARED_DIR = Path(__file__).resolve().parent.parent.parent.parent / "shared"
 if str(SHARED_DIR) not in sys.path:
     sys.path.insert(0, str(SHARED_DIR))
 
+QUIET_SEED = "GRID-BCDFG"
 PLANT_TYPES = ["coal", "gas", "nuclear", "solar", "wind", "hydro", "battery"]
 # C2: battery is storage, not generation -- it has no plant-mix chart row
 # (see game.py's GENERATION_TYPES comment).
@@ -96,10 +98,27 @@ ELEMENT_IDS = [
     "career-stats-display",
     "career-preview-display",
     "career-finish-button",
-    "career-unlock-seed_capital-button",
-    "career-unlock-crew_training-button",
-    "career-unlock-storage_partners-button",
-    "career-unlock-demand_analytics-button",
+    "career-tree-summary",
+    "career-tree",
+    "career-whatif",
+    "career-whatif-verdict",
+    "start-option-select",
+    "start-option-note",
+    "run-seed-display",
+    "run-seed-input",
+    "run-seed-apply-button",
+    "run-seed-note",
+    "ironman-toggle-button",
+    "undo-build-button",
+    "grant-banner",
+    "grant-text",
+    "grant-accept-button",
+    "grant-decline-button",
+    "grant-message-display",
+    "peek-forecast-button",
+    "peek-forecast-display",
+    "perfect-streak-display",
+    "eulogy-display",
     "career-records-display",
     "career-record-flash",
     "career-next-perk-display",
@@ -137,12 +156,17 @@ for _plant in PLANT_TYPES:
         f"{_plant}-name",
         f"{_plant}-wear-pct",
         f"{_plant}-risk-badge",
+        f"{_plant}-names",
     ]
 for _plant in GENERATION_PLANT_TYPES:
     ELEMENT_IDS += [
         f"{_plant}-mix-bar",
         f"{_plant}-mix-pct",
+        f"{_plant}-mix-row",
     ]
+for _plant in PLANT_TYPES:
+    ELEMENT_IDS.append(f"{_plant}-row")
+ELEMENT_IDS.append("mix-hover-readout")
 
 INITIALLY_DISABLED_IDS = (
     [f"{p}-build-button" for p in PLANT_TYPES]
@@ -280,6 +304,9 @@ def game_env():
     test gets its own module object (and its own GridState) rather than
     sharing state via Python's normal import cache.
     """
+    # Run seeds are drawn from Python's random (game.new_run_seed), so fix it: every test starts from the
+    # same seed and nothing depends on a lucky or unlucky grant offer.
+    random.seed(20261008)
     elements = {id_: FakeElement(id_) for id_ in ELEMENT_IDS}
     for id_ in INITIALLY_DISABLED_IDS:
         elements[id_].disabled = True
@@ -290,6 +317,9 @@ def game_env():
     module = importlib.util.module_from_spec(spec)
     sys.modules["game"] = module
     spec.loader.exec_module(module)  # runs setup() at the bottom of game.py
+    # A seed that offers no surprise grant in its first 40 rounds, so the older tests (which count rounds
+    # and funds exactly) never meet one; the grant tests set their own seeds.
+    module.state.seed = QUIET_SEED
 
     yield GameEnv(module, elements, timers)
 

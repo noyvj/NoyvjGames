@@ -120,3 +120,12 @@ html[data-layout="pc"] .ambient-bg { overflow: hidden; }
 
 /* C-10: the difficulty preset label sits beside the title in the top bar. */
 #pc-topbar > #difficulty-header-display { grid-area: title; align-self: end; justify-self: start; margin: 0 0 0 5.2rem; font-size: 0.75rem; }
+
+/* GC-4: nicknames sit on their own line under a plant row, and the coal eulogy (a <p> inside the board)
+   must survive the rule that hides the board's explanatory paragraphs. */
+#plants .plant-nicknames { grid-column: 1 / -1; order: 5; margin: 0 0 0 0.2rem; }
+#plants > p.eulogy-display:not([hidden]) { display: block; flex: 1 1 100%; margin: 0; }
+
+/* GC-25 / GC-11 / GC-21 additions in the side column. */
+#pc-side > #undo-build-button { width: 100%; }
+#pc-side > .grant-banner:not([hidden]) { display: block; }

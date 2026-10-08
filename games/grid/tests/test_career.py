@@ -142,16 +142,20 @@ def test_banked_achievements_persist_across_runs(game_env):
 
 
 def test_career_panel_renders_and_unlock_button(game_env):
+    """GC-2b: the perks are nodes of the upgrade tree. The widget itself is JS (not present in the
+    fake DOM), so the panel's text summary and the buy rules are what is checked here."""
     g = game_env.module
     _install_storage()
     g.career["points"] = 3
     game_env.toggle_career()
     assert game_env.elements["career-panel"].hidden is False
-    btn = game_env.elements["career-unlock-seed_capital-button"]
-    assert btn.disabled is False and "3 pts" in btn.innerText
-    assert game_env.elements["career-unlock-crew_training-button"].disabled is True
-    btn.dispatch("click", None)
-    assert "Unlocked" in btn.innerText and btn.disabled is True
+    assert "3 career points to spend" in game_env.elements["career-tree-summary"].innerText
+    assert "3 pts, ready to unlock" in g.career_perk_progress_text("seed_capital")
+    assert "4 pts, 1 more point(s) needed" in g.career_perk_progress_text("crew_training")
+    assert g.unlock_career_perk("seed_capital") is True
+    assert g.unlock_career_perk("crew_training") is False
+    g.render()
+    assert g.career_perk_progress_text("seed_capital").startswith("Unlocked")
     assert "0 to spend" in game_env.elements["career-stats-display"].innerText
 
 

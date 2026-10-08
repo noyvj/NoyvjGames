@@ -13,6 +13,8 @@ import random
 
 import comparison_chart
 import info_page
+import seed as seed_lib
+import skill_tree
 from js import document, setTimeout
 from pyodide.ffi import create_proxy
 
@@ -303,33 +305,76 @@ CAREER_STORAGE_KEY = "grid_career_v1"
 CAREER_MIN_ROUNDS = 5
 CAREER_GRADE_POINTS = {"A": 4, "B": 3, "C": 2, "D": 1, "F": 0}
 CAREER_RESILIENCE_BONUS_THRESHOLD = 60
+# GC-2b / GC-1 / GC-11 -- the career is an upgrade TREE (shared/skill_tree.py, drawn by
+# shared/skill-tree.js). Four branches: Operations (the original four perks, now the first
+# nodes), Projects (named permanent modifiers you pick on purpose -- the deterministic
+# replacement for the declined card draw: nothing is drawn or discarded), Starting loadout
+# (pick ONE option per run) and Meteorology (the peek forecast). None of it is random, and
+# none of it touches the emissions-to-disruption link or the learning-curve lesson itself,
+# except the R&D grant, which speeds the cost curve the lesson is about.
+CAREER_BRANCHES = [
+    {"id": "operations", "title": "Operations", "blurb": "Everyday conveniences: seed money, cheaper upkeep, better storage."},
+    {"id": "projects", "title": "Projects", "blurb": "Named permanent modifiers you buy on purpose. They cheapen builds, speed the cost curve and stretch policy offers."},
+    {"id": "loadout", "title": "Starting loadout", "blurb": "Buying a loadout makes it a choice for the start of a run. Pick one at the run setup (Difficulty window on Desktop)."},
+    {"id": "meteorology", "title": "Meteorology", "blurb": "Pay a small fee to read next round's weather and disruption roll before you commit a build."},
+]
+_CAREER_NODES = [
+    # (id, branch, cost, label, effect text, description, requires)
+    ("seed_capital", "operations", 3, "Seed capital", "+75 funds at the start of every run",
+     "Start every new run with 75 extra funds.", []),
+    ("crew_training", "operations", 4, "Crew training", "-15% maintenance cost", "Maintenance costs 15% less.", []),
+    ("storage_partners", "operations", 5, "Storage partnerships", "battery efficiency 85% -> 92%",
+     "Battery round-trip efficiency rises from 85% to 92%.", []),
+    ("demand_analytics", "operations", 6, "Demand analytics", "-20% demand response cost",
+     "Demand response costs 20% less.", []),
+    ("wind_sites", "projects", 3, "Wind site leases", "wind plants cost 15% less to build",
+     "Pre-agreed ridge leases: every new wind plant costs 15% less.", []),
+    ("solar_sites", "projects", 3, "Solar site leases", "solar plants cost 15% less to build",
+     "Pre-agreed rooftop and field leases: every new solar plant costs 15% less.", []),
+    ("storage_subsidy", "projects", 4, "Storage subsidy", "batteries cost 20% less to build",
+     "A standing subsidy: every new battery costs 20% less.", []),
+    ("rd_grant", "projects", 5, "R&D grant", "renewable cost curve 5% -> 6% per unit built",
+     "Research funding: each renewable unit you build trims that type's next price by 6% instead of 5%.",
+     ["wind_sites", "solar_sites"]),
+    ("policy_liaison", "projects", 4, "Policy liaison", "renewable subsidy: 30% off, 2 extra rounds",
+     "A regulator contact: when you enact the renewable subsidy it takes 30% off instead of 25% and lasts 2 extra rounds.",
+     ["wind_sites"]),
+    ("old_coal_contract", "loadout", 2, "Old Coal Contract", "start with 2 coal plants already running",
+     "Loadout: start the run with 2 aged coal plants (no cost). Early power, early emissions.", []),
+    ("storage_startup", "loadout", 3, "Storage Startup", "start with 1 battery installed",
+     "Loadout: start the run with one battery already installed.", []),
+    ("diplomatic_immunity", "loadout", 4, "Diplomatic Immunity", "the first disruption of the run is waived",
+     "Loadout: the first disruption of the run is called off. A waived round counts as a disruption-free round.", []),
+    ("weather_station", "meteorology", 2, "Weather station", "unlocks Peek forecast (20 funds)",
+     "Pay 20 funds to read next round's weather roll and whether a disruption will hit, before you build.", []),
+    ("long_range_outlook", "meteorology", 4, "Long-range outlook", "peek also shows the round after next",
+     "Peek forecast also reports the weather roll for the round after next.", ["weather_station"]),
+]
 CAREER_UNLOCKS = {
-    "seed_capital": {
-        "label": "Seed capital",
-        "cost": 3,
-        "effect": "+75 funds at the start of every run",
-        "description": "Start every new run with 75 extra funds.",
-    },
-    "crew_training": {
-        "label": "Crew training",
-        "cost": 4,
-        "effect": "-15% maintenance cost",
-        "description": "Maintenance costs 15% less.",
-    },
-    "storage_partners": {
-        "label": "Storage partnerships",
-        "cost": 5,
-        "effect": "battery efficiency 85% -> 92%",
-        "description": "Battery round-trip efficiency rises from 85% to 92%.",
-    },
-    "demand_analytics": {
-        "label": "Demand analytics",
-        "cost": 6,
-        "effect": "-20% demand response cost",
-        "description": "Demand response costs 20% less.",
-    },
+    nid: {"label": label, "cost": cost, "effect": effect, "description": desc, "branch": branch, "requires": list(req)}
+    for nid, branch, cost, label, effect, desc, req in _CAREER_NODES
 }
-CAREER_UNLOCK_ORDER = ["seed_capital", "crew_training", "storage_partners", "demand_analytics"]
+CAREER_UNLOCK_ORDER = [row[0] for row in _CAREER_NODES]
+CAREER_TREE = {
+    "id": "grid_career",
+    "title": "Operator upgrade tree",
+    "currency": "career points",
+    "branches": CAREER_BRANCHES,
+    "nodes": [
+        {"id": nid, "branch": branch, "cost": cost, "label": label,
+         "description": desc, "requires": list(req)}
+        for nid, branch, cost, label, effect, desc, req in _CAREER_NODES
+    ],
+}
+LOADOUT_NODES = ("old_coal_contract", "storage_startup", "diplomatic_immunity")
+PROJECT_PLANT_DISCOUNT = {"wind_sites": ("wind", 0.85), "solar_sites": ("solar", 0.85), "storage_subsidy": ("battery", 0.8)}
+RD_GRANT_DECAY = 0.94
+POLICY_LIAISON_EXTRA_ROUNDS = 2
+POLICY_LIAISON_SUBSIDY_MULTIPLIER = 0.70
+OLD_COAL_CONTRACT_PLANTS = 2
+OLD_COAL_CONTRACT_AGE = 4.0
+# GC-11: the fee for one peek at the coming round, and how far ahead the long-range outlook looks.
+PEEK_FEE = 20
 SEED_CAPITAL_BONUS = 75
 
 # C-1 / GC-26 -- run history and personal records. The history keeps the last
@@ -344,6 +389,75 @@ RECORD_CLEAN_SHARE = 0.9
 CREW_TRAINING_MAINTENANCE_MULTIPLIER = 0.85
 STORAGE_PARTNERS_EFFICIENCY = 0.92
 DEMAND_ANALYTICS_COST_MULTIPLIER = 0.8
+
+
+# Seeded runs (the Z-1 helper in shared/seed.py, reused read-only). Grid used to
+# draw from random.random(), so a run could not be replayed. Now every run has a
+# short seed such as GRID-K7F2Q and every random draw of a round comes from its
+# own STATELESS stream derived from (seed, purpose, round number), so the same
+# seed and the same choices give the same weather, disruptions and breakdowns
+# in Python, in a replay, in the what-if analyzer and in a peek at the forecast.
+SEED_GAME = "grid"
+
+
+def new_run_seed():
+    """A fresh seed (not secrets: Python's random, so the test harness can fix it)."""
+    return seed_lib.new_seed(SEED_GAME, entropy=lambda n: random.randrange(n))
+
+
+# GC-15 -- Perfect Round combo: consecutive rounds with no disruption, no aging breakdown and
+# demand fully met build a revenue bonus on the round's base revenue.
+PERFECT_ROUND_STEP = 0.05
+PERFECT_ROUND_MAX_STEPS = 6
+
+# GC-25 -- surprise grants: now and then a two-button offer appears. Rolled from the run's own
+# seeded stream, so the same seed offers the same grants in the same rounds.
+GRANT_ODDS = 0.15
+GRANT_MIN_ROUND = 3
+GRANTS = {
+    "clean_grant": {
+        "title": "Clean-energy grant",
+        "text": "A regional fund offers 120 funds. The strings: fossil plants cost 25% more to build for the next 3 rounds.",
+        "accept": "Accept the grant", "decline": "Decline",
+    },
+    "sponsor_deal": {
+        "title": "Industrial sponsor",
+        "text": "A manufacturer will pay 90 funds up front for a guaranteed supply deal. The strings: demand rises by 6 right away.",
+        "accept": "Take the deal", "decline": "Decline",
+    },
+    "inspection_fine": {
+        "title": "Safety inspection",
+        "text": "Inspectors found wear problems. Pay a 70-fund fine and repair them (every fleet's wear drops by 3), or contest it for free and risk it: aging breakdown chance doubles for 2 rounds.",
+        "accept": "Pay the fine and repair", "decline": "Contest it",
+    },
+}
+GRANT_ORDER = ("clean_grant", "sponsor_deal", "inspection_fine")
+GRANT_CLEAN_FUNDS = 120
+GRANT_CLEAN_SURCHARGE = 1.25
+GRANT_CLEAN_ROUNDS = 3
+GRANT_SPONSOR_FUNDS = 90
+GRANT_SPONSOR_DEMAND = 6
+GRANT_FINE = 70
+GRANT_REPAIR_AGE = 3.0
+GRANT_CONTEST_ROUNDS = 2
+
+# GC-4 -- plant nicknames, drawn from the run's seed (reproducible), and a eulogy when the last
+# coal plant is retired.
+PLANT_NAME_POOL = {
+    "coal": ["Old Smoky", "Black Betty", "Sooty Pete", "Grandpa Grit", "Cinder", "Big Charcoal", "Dusty", "Ol' Faithful"],
+    "gas": ["Blue Flame", "Pilot Light", "Puff", "Steady Eddie", "Torchy", "Hot Stuff", "Gassy Gus", "Ember"],
+    "nuclear": ["Atom Ant", "Big Glow", "Reactor Rita", "Fission Chips", "Quiet Giant", "Mr. Core", "Half-Life", "Neutron Nell"],
+    "solar": ["Sunny Delight", "Sol Mate", "Bright Idea", "Panel Pal", "Dawn Patrol", "Lumen", "Sunbeam", "Photon Fiona"],
+    "wind": ["Breezy", "Gust Buster", "Whirl", "Windy Pete", "Big Fan", "Zephyr", "Sky Spinner", "Gale"],
+    "hydro": ["River Run", "Dam Good", "Splash", "Old Faithful Falls", "Flow", "Deep Blue", "Cascade", "Mighty Wet"],
+    "battery": ["Juice Box", "Top-Up", "Reserve Rob", "Charge Charlie", "Stash", "Big Bank", "Spark Jar", "Cell Mate"],
+}
+COAL_EULOGIES = [
+    "Farewell, {name}. You kept the lights on, and the sky a little greyer. Rest easy.",
+    "{name} has gone quiet. The last coal plant on the grid is switched off.",
+    "Goodnight, {name}. Thank you for the long shifts.",
+]
+NAME_MAX_LEN = 24
 
 
 def _breakdown_probability_for_age(age):
@@ -469,6 +583,50 @@ class GridState:
         self.aging_breakdown_count = 0
         self.first_90_clean_round = None
         self.last_round_recap = None
+        # Seeded run (see SEED_GAME): the run's seed, the chosen starting loadout (GC-2b), whether
+        # Diplomatic Immunity is still unspent, the round of the last paid peek (GC-11).
+        self.seed = new_run_seed()
+        self.start_option = None
+        self.immunity_available = False
+        self.immunity_used = False
+        self.peeked_round = 0
+        # GC-15 Perfect Round combo.
+        self.perfect_streak = 0
+        self.best_perfect_streak = 0
+        # GC-21 undo last build (same round) and the opt-in Ironman toggle.
+        self.undo_record = None
+        self.ironman = False
+        # GC-4 nicknames: standing units' names per type, and how many names were ever drawn.
+        self.plant_names = {t: [] for t in PLANT_TYPES}
+        self.name_serial = {t: 0 for t in PLANT_TYPES}
+        self.last_eulogy = None
+        # GC-25 surprise grants: the open offer (or None), strings still running, count taken.
+        self.grant_offer = None
+        self.grant_effects = {"fossil_surcharge": 0, "breakdown_risk": 0}
+        self.last_grant_message = ""
+
+    # ---- seeded streams (the Z-1 helper) -------------------------------------------------
+    def stream(self, label, round_number=None):
+        """A fresh stateless generator for one purpose in one round: it depends only on the run's
+        seed, the label and the round number, never on how many draws happened before."""
+        n = self.round_number if round_number is None else round_number
+        return seed_lib.Rng(f"{self.seed}#{label}#{n}")
+
+    def set_seed(self, text):
+        """Use a typed seed for this run. Only before anything is built or advanced."""
+        if self.round_number != 1 or any(self.cumulative_built.values()):
+            return False
+        result = seed_lib.validate(text, SEED_GAME)
+        if not result["ok"]:
+            return False
+        self.seed = result["seed"]
+        self.plant_names = {t: [] for t in PLANT_TYPES}
+        self.name_serial = {t: 0 for t in PLANT_TYPES}
+        return True
+
+    def unstarted(self):
+        """True while nothing has been built or advanced (setup choices are still allowed)."""
+        return self.round_number == 1 and not any(self.cumulative_built.values()) and self.demand_response_level == 0
 
     def arbitrage_efficiency(self):
         return STORAGE_PARTNERS_EFFICIENCY if "storage_partners" in self.perks else ARBITRAGE_EFFICIENCY
@@ -568,6 +726,9 @@ class GridState:
             return False
         scenario = SCENARIOS[scenario_id]
         self.plant_counts = {t: 0 for t in PLANT_TYPES}
+        self.plant_age = {t: 0.0 for t in PLANT_TYPES}
+        self.plant_names = {t: [] for t in PLANT_TYPES}
+        self.name_serial = {t: 0 for t in PLANT_TYPES}
         for plant_type, count in scenario["plants"].items():
             self.plant_counts[plant_type] = count
         self.funds = scenario["funds"] + (SEED_CAPITAL_BONUS if "seed_capital" in self.perks else 0)
@@ -578,6 +739,40 @@ class GridState:
             else None
         )
         self.scenario = scenario_id
+        self._apply_start_option()
+        return True
+
+    def _apply_start_option(self):
+        """GC-2b: the starting loadout chosen for this run, applied on top of the scenario's
+        opening fleet. Only ever called from apply_scenario(), so it can only happen before the
+        first build or round."""
+        option = self.start_option if self.start_option in self.perks else None
+        self.immunity_available = option == "diplomatic_immunity"
+        if option == "old_coal_contract":
+            old = self.plant_counts["coal"]
+            self.plant_counts["coal"] = old + OLD_COAL_CONTRACT_PLANTS
+            self.plant_age["coal"] = OLD_COAL_CONTRACT_AGE * OLD_COAL_CONTRACT_PLANTS / (old + OLD_COAL_CONTRACT_PLANTS)
+        elif option == "storage_startup":
+            self.plant_counts["battery"] += 1
+
+    def set_start_option(self, option):
+        """GC-2b: choose (or clear, with None) this run's starting loadout. Needs the loadout
+        bought in the upgrade tree, and a run that has not started."""
+        if option is not None and (option not in LOADOUT_NODES or option not in self.perks):
+            return False
+        if not self.unstarted():
+            return False
+        self.start_option = option
+        self.apply_scenario(self.scenario)
+        return True
+
+    def set_ironman(self, flag):
+        """GC-21: Ironman can only be switched at the start of a run; once play begins it is fixed."""
+        if not self.unstarted():
+            return False
+        self.ironman = bool(flag)
+        if self.ironman:
+            self.undo_record = None
         return True
 
     def _learning_curve_cost(self, plant_type):
@@ -600,10 +795,8 @@ class GridState:
         base = PLANT_BASE_COST[plant_type]
         if plant_type not in RENEWABLE_TYPES:
             return base
-        multiplier = max(
-            MIN_COST_MULTIPLIER,
-            RENEWABLE_COST_DECAY ** self.cumulative_built[plant_type],
-        )
+        decay = RD_GRANT_DECAY if "rd_grant" in self.perks else RENEWABLE_COST_DECAY
+        multiplier = max(MIN_COST_MULTIPLIER, decay ** self.cumulative_built[plant_type])
         return base * multiplier
 
     def plant_cost(self, plant_type):
@@ -617,7 +810,18 @@ class GridState:
             if policy_type == "carbon_pricing" and plant_type in FOSSIL_TYPES:
                 cost *= CARBON_PRICING_FOSSIL_COST_MULTIPLIER
             elif policy_type == "renewable_subsidy" and plant_type in RENEWABLE_TYPES:
-                cost *= RENEWABLE_SUBSIDY_COST_MULTIPLIER
+                cost *= (
+                    POLICY_LIAISON_SUBSIDY_MULTIPLIER if "policy_liaison" in self.perks
+                    else RENEWABLE_SUBSIDY_COST_MULTIPLIER
+                )
+        # GC-1: permanent Projects from the upgrade tree (build-time price signals, like policies,
+        # so they never feed a retire refund).
+        for project, (target, factor) in PROJECT_PLANT_DISCOUNT.items():
+            if project in self.perks and target == plant_type:
+                cost *= factor
+        # GC-25: the strings of an accepted clean-energy grant.
+        if self.grant_effects["fossil_surcharge"] > 0 and plant_type in FOSSIL_TYPES:
+            cost *= GRANT_CLEAN_SURCHARGE
         return cost
 
     def total_capacity(self):
@@ -683,6 +887,14 @@ class GridState:
         cost = self.plant_cost(plant_type)
         if self.funds < cost:
             return False
+        self.plant_name_list(plant_type)  # name the units already standing before the new one
+        previous = {
+            "round": self.round_number,
+            "plant": plant_type,
+            "cost": cost,
+            "age": self.plant_age[plant_type],
+            "unlocked": self.renewable_unlocked,
+        }
         self.funds -= cost
         self.lifetime_build_spend += cost
         old_count = self.plant_counts[plant_type]
@@ -693,12 +905,75 @@ class GridState:
         self.cumulative_built[plant_type] += 1
         if plant_type in RENEWABLE_TYPES:
             self.renewable_unlocked = True
+        self.plant_name_list(plant_type)
+        # GC-21: remember this build so it can be taken back free this round (not in Ironman).
+        self.undo_record = None if self.ironman else previous
         return True
+
+    # ---- GC-21 undo last build ---------------------------------------------------------
+    def can_undo_build(self):
+        record = self.undo_record
+        return (
+            not self.ironman
+            and record is not None
+            and record["round"] == self.round_number
+            and self.plant_counts[record["plant"]] > 0
+        )
+
+    def undo_last_build(self):
+        """Take back the most recent build, free, as long as it is still the last thing done this
+        round (any retire, maintenance, demand response or round advance closes the window)."""
+        if not self.can_undo_build():
+            return False
+        record = self.undo_record
+        plant_type = record["plant"]
+        self.plant_names[plant_type] = self.plant_name_list(plant_type)[:-1]
+        self.funds += record["cost"]
+        self.lifetime_build_spend -= record["cost"]
+        self.plant_counts[plant_type] -= 1
+        self.cumulative_built[plant_type] -= 1
+        self.plant_age[plant_type] = record["age"]
+        self.renewable_unlocked = record["unlocked"]
+        self.undo_record = None
+        return True
+
+    # ---- GC-4 nicknames ----------------------------------------------------------------
+    def _new_plant_name(self, plant_type):
+        serial = self.name_serial[plant_type]
+        self.name_serial[plant_type] = serial + 1
+        pool = PLANT_NAME_POOL[plant_type]
+        rng = seed_lib.Rng(f"{self.seed}#name#{plant_type}#{serial}")
+        name = rng.choice(pool)
+        taken = set(self.plant_names[plant_type])
+        suffix = 1
+        candidate = name
+        while candidate in taken:
+            suffix += 1
+            candidate = f"{name} {'I' * suffix if suffix <= 3 else suffix}"
+        return candidate[:NAME_MAX_LEN]
+
+    def plant_name_list(self, plant_type):
+        """The nicknames of this type's standing units, oldest first. Kept in step with the count
+        on every call: missing names are drawn from the run's seed, extras (lost to damage or an
+        aging breakdown) are dropped from the newest end."""
+        names = self.plant_names[plant_type]
+        count = self.plant_counts[plant_type]
+        while len(names) < count:
+            names.append(self._new_plant_name(plant_type))
+        del names[count:]
+        return names
 
     def retire_plant(self, plant_type):
         if self.plant_counts[plant_type] <= 0:
             return False
+        names = self.plant_name_list(plant_type)
+        retired_name = names[-1] if names else None
+        self.undo_record = None
         self.plant_counts[plant_type] -= 1
+        self.plant_name_list(plant_type)
+        if plant_type == "coal" and self.plant_counts["coal"] == 0 and retired_name:
+            line = self.stream("eulogy").choice(COAL_EULOGIES)
+            self.last_eulogy = {"round": self.round_number, "text": line.format(name=retired_name)}
         # Refund off the plant's *current* (possibly learning-curve-discounted)
         # cost, not its flat base cost — once a renewable's discount passes
         # 50% off base, a flat base-cost refund would pay out more than the
@@ -723,6 +998,7 @@ class GridState:
         cost = self.maintenance_cost(plant_type)
         if self.funds < cost:
             return False
+        self.undo_record = None
         self.funds -= cost
         self.lifetime_maintenance_spend += cost
         self.plant_age[plant_type] = max(0.0, self.plant_age[plant_type] - MAINTENANCE_AGE_REDUCTION)
@@ -741,7 +1017,10 @@ class GridState:
         oldest = self.oldest_vulnerable_plant()
         if oldest is None:
             return 0.0
-        return _breakdown_probability_for_age(self.plant_age[oldest])
+        probability = _breakdown_probability_for_age(self.plant_age[oldest])
+        if self.grant_effects["breakdown_risk"] > 0:
+            probability = min(MAX_AGE_BREAKDOWN_PROBABILITY, probability * 2)
+        return probability
 
     def breakdown_risk_probability(self, plant_type):
         """C19: this specific type's own risk of an aging breakdown, past
@@ -769,7 +1048,7 @@ class GridState:
         reading, it's still just wear-3."""
         return min(100, round(self.plant_age[plant_type] / WEAR_PERCENT_REFERENCE_AGE * 100))
 
-    def effective_capacity_for_revenue(self, weather_rng=random.random):
+    def effective_capacity_for_revenue(self, weather_rng=None):
         """C4: this round's actual output for revenue purposes -- equal to
         total_capacity() unless weather_variability_enabled, in which case
         each renewable type's contribution is scaled by an independent
@@ -788,6 +1067,8 @@ class GridState:
         the emissions-driven disruption/brownout math at all (see
         PLANT_TYPES' comment on why that's a deliberately separate axis).
         """
+        if weather_rng is None:
+            weather_rng = self.stream("weather").random
         if not self.weather_variability_enabled:
             # TODO-C17: no weather effect this call -- reset the scratch
             # fields so advance_round() never narrates a stale reading
@@ -831,18 +1112,35 @@ class GridState:
             return None
         return max(candidates, key=lambda t: self.plant_counts[t] * PLANT_CAPACITY[t] * EMISSIONS_FACTOR[t])
 
-    def advance_round(self, rng=random.random, age_rng=random.random, weather_rng=random.random):
+    def advance_round(self, rng=None, age_rng=None, weather_rng=None):
+        # Seeded run: each purpose draws from its own stateless stream for this round (see stream()).
+        # Tests and the shadow grid pass their own callables instead.
+        if rng is None:
+            rng = self.stream("disruption").random
+        if age_rng is None:
+            age_rng = self.stream("aging").random
+        if weather_rng is None:
+            weather_rng = self.stream("weather").random
+        self.undo_record = None
+        # GC-25: an offer nobody answered lapses as declined when the round moves on.
+        if self.grant_offer is not None:
+            self.decline_grant()
         # TODO-C23: run any pre-committed auto-maintenance before this
         # round's own aging/breakdown roll, so a scheduled type actually
         # gets the benefit this round rather than one round late.
         funds_before_round = self.funds
         round_played = self.round_number
+        demand_played = self.demand
         scheduled_actions = self._run_scheduled_maintenance()
 
         effective_capacity = self.effective_capacity_for_revenue(weather_rng)
         met_demand = min(effective_capacity, self.demand)
         revenue = met_demand * REVENUE_PER_UNIT_MET
         base_revenue = revenue
+        # GC-15: the Perfect Round combo's bonus on this round's base revenue (earned by the
+        # streak so far, so it applies before this round's own result is known).
+        perfect_bonus = base_revenue * self.perfect_bonus_fraction()
+        revenue += perfect_bonus
         # C9: optional storage arbitrage on top of ordinary revenue.
         arbitrage_revenue = self._run_arbitrage(effective_capacity)
         revenue += arbitrage_revenue
@@ -888,7 +1186,15 @@ class GridState:
                 self.weather_log = self.weather_log[-WEATHER_LOG_MAX_ENTRIES:]
 
         event = None
-        if rng() < self.disruption_probability():
+        immunity_round = False
+        disruption_hit = rng() < self.disruption_probability()
+        if disruption_hit and self.immunity_available:
+            # GC-2b Diplomatic Immunity: the first disruption of the run is called off.
+            self.immunity_available = False
+            self.immunity_used = True
+            immunity_round = True
+            disruption_hit = False
+        if disruption_hit:
             severity = self.disruption_severity()
             revenue_loss = revenue * severity * MAX_REVENUE_LOSS_FRACTION
             revenue -= revenue_loss
@@ -976,6 +1282,19 @@ class GridState:
             self.best_clean_streak = max(self.best_clean_streak, self.current_clean_streak)
         self.last_aging_event = aging_event
         self._update_emergency()
+        # GC-15: a Perfect Round has no disruption (a waived one counts), no aging breakdown and
+        # demand fully met; the streak of them raises next round's revenue bonus.
+        perfect_round = event is None and aging_event is None and effective_capacity >= demand_played
+        if perfect_round:
+            self.perfect_streak += 1
+            self.best_perfect_streak = max(self.best_perfect_streak, self.perfect_streak)
+        else:
+            self.perfect_streak = 0
+        # GC-25: strings of an accepted grant run down by one round; then maybe a new offer.
+        for key in self.grant_effects:
+            if self.grant_effects[key] > 0:
+                self.grant_effects[key] -= 1
+        self._maybe_offer_grant(round_played)
 
         self.clean_fraction_log.append(1 - self.fossil_share())
         self.emissions_history.append(self.emissions)
@@ -1005,7 +1324,112 @@ class GridState:
             "aging_plant": aging_event["plant"] if aging_event else None,
             "disruption_type": event["type"] if event else None,
             "demand_growth": demand_growth,
+            "perfect_bonus": perfect_bonus,
+            "perfect": perfect_round,
+            "immunity": immunity_round,
         }
+
+    # ---- GC-15 Perfect Round combo ---------------------------------------------------------
+    def perfect_bonus_fraction(self):
+        """The revenue bonus the current Perfect Round streak earns on the next round."""
+        return PERFECT_ROUND_STEP * min(self.perfect_streak, PERFECT_ROUND_MAX_STEPS)
+
+    # ---- GC-25 surprise grants ---------------------------------------------------------------
+    def _maybe_offer_grant(self, round_played):
+        if self.grant_offer is not None or self.policy_lever_available:
+            return
+        if self.round_number < GRANT_MIN_ROUND:
+            return
+        rng = self.stream("grant", round_played)
+        if rng.random() >= GRANT_ODDS:
+            return
+        self.grant_offer = {"id": rng.choice(GRANT_ORDER), "round": self.round_number}
+
+    def accept_grant(self):
+        """Take the open offer, strings and all."""
+        offer = self.grant_offer
+        if offer is None:
+            return False
+        kind = offer["id"]
+        self.grant_offer = None
+        self.undo_record = None
+        if kind == "clean_grant":
+            self.funds += GRANT_CLEAN_FUNDS
+            self.grant_effects["fossil_surcharge"] = GRANT_CLEAN_ROUNDS
+            self.last_grant_message = (
+                f"Grant accepted: +{GRANT_CLEAN_FUNDS} funds. Fossil plants cost 25% more to build for {GRANT_CLEAN_ROUNDS} rounds."
+            )
+        elif kind == "sponsor_deal":
+            self.funds += GRANT_SPONSOR_FUNDS
+            self.demand += GRANT_SPONSOR_DEMAND
+            self.last_grant_message = f"Deal taken: +{GRANT_SPONSOR_FUNDS} funds, and demand rose by {GRANT_SPONSOR_DEMAND}."
+        else:
+            paid = min(self.funds, GRANT_FINE)
+            self.funds -= paid
+            for plant_type in PLANT_TYPES:
+                self.plant_age[plant_type] = max(0.0, self.plant_age[plant_type] - GRANT_REPAIR_AGE)
+            self.last_grant_message = f"Fine paid ({paid:.0f} funds) and the wear problems repaired: every fleet's wear dropped."
+        return True
+
+    def decline_grant(self):
+        offer = self.grant_offer
+        if offer is None:
+            return False
+        kind = offer["id"]
+        self.grant_offer = None
+        if kind == "inspection_fine":
+            self.grant_effects["breakdown_risk"] = GRANT_CONTEST_ROUNDS
+            self.last_grant_message = (
+                f"Fine contested. Aging breakdown chance is doubled for {GRANT_CONTEST_ROUNDS} rounds."
+            )
+        else:
+            self.last_grant_message = "Offer declined. No strings, no money."
+        return True
+
+    # ---- GC-11 peek forecast (meteorology branch of the upgrade tree) -----------------------
+    def peek_unlocked(self):
+        return "weather_station" in self.perks
+
+    def peek_active(self):
+        return self.peeked_round == self.round_number and self.peek_unlocked()
+
+    def buy_peek(self):
+        """Pay PEEK_FEE once per round to read the coming round's rolls."""
+        if not self.peek_unlocked() or self.peeked_round == self.round_number or self.funds < PEEK_FEE:
+            return False
+        self.funds -= PEEK_FEE
+        self.lifetime_build_spend += PEEK_FEE
+        self.undo_record = None
+        self.peeked_round = self.round_number
+        return True
+
+    def renewable_weather_factors(self, round_number=None):
+        """The output factor each renewable type gets in a round with weather variability on, in the
+        same order and from the same stream advance_round() uses (so a peek is exact)."""
+        rng = self.stream("weather", round_number)
+        out = {}
+        for plant_type in GENERATION_TYPES:
+            if plant_type in RENEWABLE_TYPES:
+                out[plant_type] = 1 + (rng.random() * 2 - 1) * WEATHER_VARIANCE_FRACTION
+        return out
+
+    def peek_forecast(self):
+        """What the coming round holds: the disruption roll (given the emissions it will be rolled
+        against) and, with weather variability on, each renewable's output factor; with the
+        long-range outlook, the round after next's weather too."""
+        probability = self.disruption_probability()
+        will_hit = self.stream("disruption").random() < probability
+        waived = will_hit and self.immunity_available
+        forecast = {
+            "round": self.round_number,
+            "probability": probability,
+            "disruption": "waived" if waived else ("hit" if will_hit else "none"),
+            "weather": self.renewable_weather_factors() if self.weather_variability_enabled else None,
+            "weather_next": None,
+        }
+        if "long_range_outlook" in self.perks and self.weather_variability_enabled:
+            forecast["weather_next"] = self.renewable_weather_factors(self.round_number + 1)
+        return forecast
 
     def average_clean_fraction(self):
         """Sustained cleanliness across the whole run so far — every round
@@ -1094,6 +1518,7 @@ class GridState:
         cost = self.demand_response_cost()
         if self.funds < cost:
             return False
+        self.undo_record = None
         self.funds -= cost
         # Counted alongside build spend in the funds breakdown -- it's the
         # same category of "spent on infrastructure," just demand-side
@@ -1123,7 +1548,10 @@ class GridState:
         if policy_type not in ("carbon_pricing", "renewable_subsidy"):
             return False
         self.policy_lever_available = False
-        self.active_policy = {"type": policy_type, "rounds_remaining": POLICY_LEVER_DURATION}
+        duration = POLICY_LEVER_DURATION
+        if policy_type == "renewable_subsidy" and "policy_liaison" in self.perks:
+            duration += POLICY_LIAISON_EXTRA_ROUNDS
+        self.active_policy = {"type": policy_type, "rounds_remaining": duration}
         self.last_policy_lever_round_offered = self.round_number
         return True
 
@@ -1211,6 +1639,8 @@ def _default_career():
         # GC-26: personal records (None = not set yet).
         "best_streak": 0,
         "best_rounds_to_90": None,
+        # GC-2b: the starting loadout chosen for the next run (None = none).
+        "loadout": None,
     }
 
 
@@ -1236,6 +1666,31 @@ def _clean_series(raw, lo, hi):
         if isinstance(value, bool) or not isinstance(value, (int, float)) or value != value:
             return []
         out.append(max(lo, min(hi, int(round(value)))))
+    return out
+
+
+def _clean_seed(raw):
+    if not isinstance(raw, str):
+        return ""
+    return seed_lib.normalize(raw, SEED_GAME)
+
+
+def _validate_whatif(raw):
+    """C-3: the saved what-if rows -> at most one row per known strategy."""
+    out = []
+    if not isinstance(raw, list):
+        return out
+    known = {key for key, _label in WHATIF_STRATEGIES}
+    for entry in raw:
+        if not isinstance(entry, dict) or entry.get("id") not in known or entry["id"] in [o["id"] for o in out]:
+            continue
+        grade = entry.get("grade")
+        out.append({
+            "id": entry["id"],
+            "grade": grade if grade in CAREER_GRADE_POINTS else "F",
+            "funds": int(_career_number(entry.get("funds"), 0, 0, 10 ** 9)),
+            "score": round(float(_career_number(entry.get("score"), 0.0, 0.0, 100.0)), 1),
+        })
     return out
 
 
@@ -1271,6 +1726,10 @@ def _validate_run_record(raw):
         "clean": _clean_series(raw.get("clean"), 0, 100),
         "funds_series": _clean_series(raw.get("funds_series"), 0, 10 ** 9),
         "demand_series": _clean_series(raw.get("demand_series"), 0, 10 ** 9),
+        # 2026-10-08: the run's seed, whether it was Ironman, and the C-3 what-if results.
+        "seed": _clean_seed(raw.get("seed")),
+        "ironman": bool(raw.get("ironman", False)),
+        "whatif": _validate_whatif(raw.get("whatif")),
     }
 
 
@@ -1309,7 +1768,7 @@ def validate_career(raw):
     out["best_grade"] = grade if grade in CAREER_GRADE_POINTS else None
     unlocked = raw.get("unlocked")
     if isinstance(unlocked, list):
-        out["unlocked"] = [u for u in CAREER_UNLOCK_ORDER if u in unlocked]
+        out["unlocked"] = [u for u in unlocked if isinstance(u, str)]
     banked = raw.get("achievements")
     if isinstance(banked, list):
         out["achievements"] = [a for a in banked if isinstance(a, str)][:200]
@@ -1325,20 +1784,16 @@ def validate_career(raw):
         valid = [_validate_run_record(entry) for entry in history]
         out["history"] = [entry for entry in valid if entry is not None][-CAREER_HISTORY_MAX:]
     out["lifetime"] = _validate_lifetime(raw.get("lifetime"))
-    # Never let unlocks exceed what the earned points could have paid for.
-    spent = 0
-    kept = []
-    for uid in out["unlocked"]:
-        if spent + CAREER_UNLOCKS[uid]["cost"] <= out["points"]:
-            spent += CAREER_UNLOCKS[uid]["cost"]
-            kept.append(uid)
-    out["unlocked"] = kept
+    # Never let unlocks exceed what the earned points could have paid for: unknown ids, repeats and
+    # nodes whose prerequisites are not owned are dropped, and an overspend is trimmed from the newest end.
+    out["unlocked"] = skill_tree.sanitize_owned(CAREER_TREE, out["unlocked"], out["points"], overspend="trim")
+    loadout = raw.get("loadout")
+    out["loadout"] = loadout if loadout in LOADOUT_NODES and loadout in out["unlocked"] else None
     return out
 
 
 def career_points_available():
-    spent = sum(CAREER_UNLOCKS[u]["cost"] for u in career["unlocked"])
-    return career["points"] - spent
+    return skill_tree.points_left(CAREER_TREE, career["unlocked"], career["points"])
 
 
 def _career_storage():
@@ -1371,7 +1826,7 @@ def save_career_to_storage():
 
 
 def _sync_perks():
-    state.perks = set(career["unlocked"])
+    state.perks = set(skill_tree.effects(CAREER_TREE, career["unlocked"]))
 
 
 def run_career_points():
@@ -1470,7 +1925,154 @@ def run_record(points, grade):
         "clean": _thin(state.clean_fraction_log, 100.0),
         "funds_series": _thin([max(0, v) for v in state.funds_history]),
         "demand_series": _thin(state.demand_history),
+        "seed": state.seed,
+        "ironman": state.ironman,
+        "whatif": what_if_results(state),
     }
+
+
+# C-3 -- the post-run "what if" analyzer. Because every random draw of a run comes from the run's
+# seed (see SEED_GAME), a finished run can be replayed on a fresh grid with the same seed, scenario,
+# toggles and loadout under three canned strategies and see how each would have ended, facing the
+# same weather and disruption rolls. The strategies are simple bots, not optimal play: they are
+# there to show what a different philosophy would have cost or earned.
+WHATIF_STRATEGIES = [
+    ("renewables_early", "All-renewable early"),
+    ("no_retire", "Never retire, grow with fossil"),
+    ("storage_first", "Storage first"),
+]
+WHATIF_MAX_ROUNDS = 100
+WHATIF_BUILDS_PER_ROUND = 12
+
+
+def _whatif_grid(source):
+    grid = GridState()
+    grid.seed = source.seed
+    grid.perks = set(source.perks)
+    grid.start_option = source.start_option
+    grid.steeper_demand_growth_enabled = source.steeper_demand_growth_enabled
+    grid.weather_variability_enabled = source.weather_variability_enabled
+    grid.apply_scenario(source.scenario)
+    return grid
+
+
+def _cost_per_capacity(grid, plant_type):
+    return grid.plant_cost(plant_type) / PLANT_CAPACITY[plant_type]
+
+
+def _whatif_build_toward(grid, candidates):
+    """Build the cheapest-per-capacity candidate while capacity is short of next round's demand."""
+    target = grid.demand + grid.demand_growth_this_round()
+    for _ in range(WHATIF_BUILDS_PER_ROUND):
+        if grid.total_capacity() >= target:
+            return
+        pick = min(candidates, key=lambda t: _cost_per_capacity(grid, t))
+        if not grid.build_plant(pick):
+            return
+
+
+def _whatif_upkeep(grid):
+    oldest = grid.oldest_vulnerable_plant()
+    if oldest is not None and grid.plant_age[oldest] >= AGE_GRACE_PERIOD:
+        if grid.funds >= grid.maintenance_cost(oldest) * 3:
+            grid.maintain_plant(oldest)
+
+
+def _whatif_turn(grid, key):
+    if grid.policy_lever_available:
+        if key == "no_retire":
+            grid.decline_policy()
+        else:
+            grid.enact_policy("renewable_subsidy")
+    if grid.grant_offer is not None:
+        grid.decline_grant()
+    _whatif_upkeep(grid)
+    renewables = [t for t in GENERATION_TYPES if t in RENEWABLE_TYPES]
+    if key == "no_retire":
+        # Business as usual: keep every plant and meet new demand with the cheapest fossil capacity.
+        _whatif_build_toward(grid, list(FOSSIL_TYPES))
+        return
+    if key == "storage_first" and grid.cumulative_built["battery"] == 0:
+        grid.build_plant("battery")
+    if key == "renewables_early" and grid.round_number >= 3:
+        # Retire a fossil unit once the rest of the fleet still covers demand without it.
+        for fossil in ("coal", "gas"):
+            if grid.plant_counts[fossil] > 0 and grid.total_capacity() - PLANT_CAPACITY[fossil] >= grid.demand:
+                grid.retire_plant(fossil)
+                break
+    _whatif_build_toward(grid, renewables)
+    if key == "storage_first" and grid.plant_counts["battery"] > 0:
+        grid.set_arbitrage_mode("discharge" if grid.total_capacity() < grid.demand else "charge")
+
+
+def simulate_strategy(source, key, rounds):
+    """Replay `rounds` rounds of the run `source` (a GridState) under one canned strategy."""
+    grid = _whatif_grid(source)
+    for _ in range(max(0, min(rounds, WHATIF_MAX_ROUNDS))):
+        _whatif_turn(grid, key)
+        grid.advance_round()
+    return {
+        "id": key,
+        "grade": grid.benchmark_grade() or "F",
+        "funds": max(0, int(round(grid.funds))),
+        "score": round(grid.score(), 1),
+    }
+
+
+def what_if_results(source):
+    """The three what-if rows for a run, or [] when it is too short to count."""
+    rounds = source.round_number - 1
+    if rounds < CAREER_MIN_ROUNDS:
+        return []
+    return [simulate_strategy(source, key, rounds) for key, _label in WHATIF_STRATEGIES]
+
+
+def career_whatif_rows(record):
+    """(label, grade, funds, score) rows: the run itself first, then each strategy."""
+    if record is None or not record.get("whatif"):
+        return []
+    labels = dict(WHATIF_STRATEGIES)
+    rows = [("You", record["grade"], record["funds"], record["score"])]
+    for entry in record["whatif"]:
+        rows.append((labels[entry["id"]], entry["grade"], entry["funds"], entry["score"]))
+    return rows
+
+
+def career_whatif_verdict(record):
+    rows = career_whatif_rows(record)
+    if not rows:
+        return "Finish a run of at least 5 rounds and the same seed is replayed here under three other strategies."
+    order = "ABCDF"
+    best = min(rows, key=lambda r: (order.index(r[1]), -r[3], -r[2]))
+    if best[0] == "You":
+        return "Your own play beat all three canned strategies on grade and clean score."
+    return f"{best[0]} would have done best: grade {best[1]}, clean score {best[3]:.0f}/100, final funds {best[2]}."
+
+
+def render_career_whatif(history):
+    container = document.getElementById("career-whatif")
+    verdict_el = document.getElementById("career-whatif-verdict")
+    container.innerHTML = ""
+    latest = next((r for r in reversed(history) if r.get("whatif")), None)
+    verdict_el.innerText = career_whatif_verdict(latest)
+    if latest is None:
+        return
+    seed_note = f" (seed {latest['seed']})" if latest.get("seed") else ""
+    head = document.createElement("div")
+    head.className = "shadow-row shadow-row--head"
+    for text in (f"Strategy{seed_note}", "Grade", "Funds", "Clean score"):
+        cell = document.createElement("span")
+        cell.innerText = text
+        head.appendChild(cell)
+    container.appendChild(head)
+    for label, grade, funds, score in career_whatif_rows(latest):
+        line = document.createElement("div")
+        line.className = "shadow-row"
+        for text in (label, grade, str(funds), f"{score:.0f}/100"):
+            cell = document.createElement("span")
+            cell.innerText = text
+            line.appendChild(cell)
+        container.appendChild(line)
 
 
 def _add_to_lifetime(record):
@@ -1487,12 +2089,38 @@ def _add_to_lifetime(record):
 
 
 def unlock_career_perk(perk_id):
-    if perk_id not in CAREER_UNLOCKS or perk_id in career["unlocked"]:
+    """Buy one node of the upgrade tree with career points (prerequisites must be owned)."""
+    result = skill_tree.buy(CAREER_TREE, career["unlocked"], perk_id, career["points"])
+    if not result["ok"]:
         return False
-    if career_points_available() < CAREER_UNLOCKS[perk_id]["cost"]:
-        return False
-    career["unlocked"] = [u for u in CAREER_UNLOCK_ORDER if u in career["unlocked"] or u == perk_id]
+    career["unlocked"] = result["owned"]
     save_career_to_storage()
+    _refresh_unstarted_run()
+    return True
+
+
+def _refresh_unstarted_run():
+    """A run that has not started yet picks up newly bought nodes at once (seed money, a loadout
+    choice); a run in progress keeps its rules until the next run, as before."""
+    if state.unstarted():
+        _sync_perks()
+        if state.start_option not in state.perks:
+            state.start_option = None
+        state.apply_scenario(state.scenario)
+
+
+def set_loadout(option):
+    """GC-2b: choose the starting loadout for this run and the next ones (None = no loadout)."""
+    if option is not None and option not in career["unlocked"]:
+        return False
+    if option is not None and option not in LOADOUT_NODES:
+        return False
+    career["loadout"] = option
+    save_career_to_storage()
+    if state.unstarted():
+        _sync_perks()
+        state.start_option = option
+        state.apply_scenario(state.scenario)
     return True
 
 
@@ -2261,6 +2889,12 @@ def update_changelog_display():
         return
 
     panel.innerHTML = ""
+    note_text = load_report_text()
+    if note_text:
+        note = document.createElement("p")
+        note.className = "changelog-load-note"
+        note.innerText = note_text
+        panel.appendChild(note)
     # changelog.json is authored newest-first already, so no re-sort needed
     # here — same "trust the JSON's own order" posture ACHIEVEMENTS takes.
     for entry in CHANGELOG:
@@ -2535,6 +3169,7 @@ def render():
     render_auto_advance()
     render_round_recap()
     render_difficulty_preset()
+    render_run_setup_and_extras()
     update_career_panel()
 
     for plant_type in PLANT_TYPES:
@@ -2608,6 +3243,7 @@ def _start_new_run():
     global state, renewable_milestone_visible, retire_callout_visible, maintain_callout_visible
     state = GridState()
     _sync_perks()
+    state.start_option = career["loadout"]
     state.apply_scenario("standard")
     renewable_milestone_visible = False
     retire_callout_visible = False
@@ -2638,6 +3274,10 @@ def career_perk_progress_text(perk_id):
     info = CAREER_UNLOCKS[perk_id]
     if perk_id in career["unlocked"]:
         return f"Unlocked: {info['label']} ({info['effect']}) -- {info['description']}"
+    missing = skill_tree.missing_requirements(CAREER_TREE, career["unlocked"], perk_id)
+    if missing:
+        names = ", ".join(CAREER_UNLOCKS[m]["label"] for m in missing)
+        return f"{info['label']} ({info['cost']} pts, needs {names} first): {info['effect']} -- {info['description']}"
     gap = info["cost"] - career_points_available()
     status = "ready to unlock" if gap <= 0 else f"{gap} more point(s) needed"
     return f"{info['label']} ({info['cost']} pts, {status}): {info['effect']} -- {info['description']}"
@@ -2645,9 +3285,14 @@ def career_perk_progress_text(perk_id):
 
 def career_next_perk_text():
     """C-2: one line naming the cheapest perk still locked and its gap."""
-    locked = [u for u in CAREER_UNLOCK_ORDER if u not in career["unlocked"]]
+    locked = [
+        u for u in CAREER_UNLOCK_ORDER
+        if u not in career["unlocked"] and not skill_tree.missing_requirements(CAREER_TREE, career["unlocked"], u)
+    ]
     if not locked:
-        return "Every career perk is unlocked."
+        if all(u in career["unlocked"] for u in CAREER_UNLOCK_ORDER):
+            return "Every career upgrade is unlocked."
+        return "Next upgrades need an earlier node in their branch first."
     perk_id = min(locked, key=lambda u: CAREER_UNLOCKS[u]["cost"])
     info = CAREER_UNLOCKS[perk_id]
     gap = info["cost"] - career_points_available()
@@ -2784,6 +3429,8 @@ def career_history_rows(history):
             f"clean score {r['score']:.0f}/100, {r['rounds']} rounds, {r['points']} pt(s) banked, "
             f"final funds {r['funds']}, emissions {r['emissions']}, resilience {r['resilience']}, "
             f"best streak {r['streak']}{r90}."
+            + (f" Seed {r['seed']}." if r.get("seed") else "")
+            + (" Ironman." if r.get("ironman") else "")
         )
     return rows
 
@@ -2867,12 +3514,8 @@ def update_career_panel():
     document.getElementById("career-next-perk-display").innerText = career_next_perk_text()
     finish = document.getElementById("career-finish-button")
     finish.disabled = state.round_number - 1 < CAREER_MIN_ROUNDS
-    for perk_id in CAREER_UNLOCK_ORDER:
-        info = CAREER_UNLOCKS[perk_id]
-        button = document.getElementById(f"career-unlock-{perk_id}-button")
-        button.innerText = career_perk_progress_text(perk_id)
-        button.disabled = perk_id in career["unlocked"] or career_points_available() < info["cost"]
-        button.title = "Permanent perk. Takes effect from your next run (and when you load a save)."
+    document.getElementById("career-tree-summary").innerText = career_tree_summary_text()
+    _render_career_tree()
 
     history = career["history"]
     list_el = document.getElementById("career-history-list")
@@ -2891,6 +3534,7 @@ def update_career_panel():
     document.getElementById("career-history-chart").innerHTML = career_history_charts_html(history)
     document.getElementById("career-lifetime-display").innerText = "\n".join(career_lifetime_lines())
     document.getElementById("career-heatmap").innerHTML = career_heatmap_html(history)
+    render_career_whatif(history)
     document.getElementById("career-data-status").innerText = career_data_message
 
 
@@ -2919,11 +3563,226 @@ def on_finish_run(event=None):
     )
 
 
-def _make_unlock_handler(perk_id):
-    def handler(event=None):
-        unlock_career_perk(perk_id)
-        render()
-    return handler
+# --- GC-2b / GC-1 / GC-11: the upgrade tree's view --------------------------------------------------------
+_career_view = None
+_career_proxies = []
+
+
+def _js_window():
+    try:
+        import js  # noqa: PLC0415 -- Pyodide-only, deliberately lazy
+    except ImportError:
+        return None
+    return getattr(js, "window", None)
+
+
+def _to_js(value):
+    try:
+        from js import Object  # noqa: PLC0415
+        from pyodide.ffi import to_js  # noqa: PLC0415
+    except ImportError:
+        return None
+    return to_js(value, dict_converter=Object.fromEntries)
+
+
+def _on_tree_buy(node_id, node=None):
+    unlock_career_perk(str(node_id))
+    render()
+
+
+def _render_career_tree():
+    """Draws (or updates) the shared skill-tree widget into #career-tree. Without the script (the
+    tests, or a failed load) the tree is simply not drawn; the plain-text summary above it stays."""
+    global _career_view
+    window = _js_window()
+    widget = getattr(window, "NoyvjSkillTree", None) if window is not None else None
+    container = document.getElementById("career-tree")
+    if widget is None or container is None:
+        return
+    if _career_view is None:
+        if not _career_proxies:
+            _career_proxies.append(create_proxy(_on_tree_buy))
+        options = _to_js({
+            "tree": CAREER_TREE, "owned": list(career["unlocked"]), "earned": career["points"],
+            "refundNodes": False, "onBuy": _career_proxies[0],
+        })
+        if options is not None:
+            _career_view = widget.render(container, options)
+        return
+    update = _to_js({"owned": list(career["unlocked"]), "earned": career["points"]})
+    if update is not None:
+        _career_view.update(update)
+
+
+def career_tree_summary_text():
+    totals = skill_tree.totals(CAREER_TREE, career["unlocked"], career["points"])
+    return (
+        f"{career_points_available()} career points to spend ({career['points']} earned in all). "
+        f"{totals['owned_count']} of {totals['node_count']} upgrades owned. "
+        "Upgrades are permanent and apply to your next run (a run you have not started picks them up at once)."
+    )
+
+
+# --- run setup: starting loadout, run seed, Ironman -------------------------------------------------------
+run_setup_message = ""
+START_OPTION_NONE = "none"
+
+
+def on_start_option_change(event=None):
+    global run_setup_message
+    value = document.getElementById("start-option-select").value
+    option = None if value in (START_OPTION_NONE, "", None) else value
+    if set_loadout(option):
+        run_setup_message = ""
+    else:
+        run_setup_message = "That loadout is not available."
+    render()
+
+
+def on_apply_run_seed(event=None):
+    global run_setup_message
+    text = document.getElementById("run-seed-input").value or ""
+    result = seed_lib.validate(text, SEED_GAME)
+    if not result["ok"]:
+        run_setup_message = result["message"]
+    elif not state.set_seed(result["seed"]):
+        run_setup_message = "The seed can only be changed before you build or advance a round."
+    else:
+        run_setup_message = f"Seed {state.seed} set."
+    render()
+
+
+def on_toggle_ironman(event=None):
+    global run_setup_message
+    if state.set_ironman(not state.ironman):
+        run_setup_message = (
+            "Ironman on: no undo, every action is final." if state.ironman else "Ironman off."
+        )
+    else:
+        run_setup_message = "Ironman can only be switched before you build or advance a round."
+    render()
+
+
+def on_undo_build(event=None):
+    if state.can_undo_build():
+        record = state.undo_record
+        last = shadow_actions[-1] if shadow_actions else None
+        if last is not None and last.get("kind") == "build" and last.get("type") == record["plant"] \
+                and last.get("round") == record["round"]:
+            shadow_actions.pop()
+    state.undo_last_build()
+    render()
+
+
+def on_accept_grant(event=None):
+    state.accept_grant()
+    render()
+
+
+def on_decline_grant(event=None):
+    state.decline_grant()
+    render()
+
+
+def on_peek_forecast(event=None):
+    state.buy_peek()
+    render()
+
+
+def peek_text():
+    """The peek forecast spelled out in words (and numbers), or the reason it is not showing."""
+    if not state.peek_unlocked():
+        return "Peek forecast: buy Weather station in the Career upgrade tree (Meteorology) to read next round's rolls."
+    if not state.peek_active():
+        return f"Peek forecast: pay {PEEK_FEE} funds to read next round's weather roll and whether a disruption hits."
+    f = state.peek_forecast()
+    outcome = {
+        "hit": f"A disruption WILL hit next round (the chance was {f['probability'] * 100:.0f}%).",
+        "waived": "A disruption would hit next round, but Diplomatic Immunity calls it off.",
+        "none": f"No disruption next round (the chance was {f['probability'] * 100:.0f}%).",
+    }[f["disruption"]]
+    if f["weather"] is None:
+        weather = "Weather variability is off, so renewable output stays at nameplate."
+    else:
+        weather = "Next round's renewable output: " + ", ".join(
+            f"{PLANT_LABEL[t]} {(v - 1) * 100:+.0f}%" for t, v in f["weather"].items()
+        ) + "."
+    text = f"Peek forecast: {outcome} {weather}"
+    if f["weather_next"] is not None:
+        text += " The round after: " + ", ".join(
+            f"{PLANT_LABEL[t]} {(v - 1) * 100:+.0f}%" for t, v in f["weather_next"].items()
+        ) + "."
+    return text
+
+
+def render_run_setup_and_extras():
+    """Everything the 2026-10-08 batch added to the main screen: run setup (loadout, seed, Ironman),
+    the undo button, the Perfect Round streak, the grant offer, the peek forecast, plant nicknames."""
+    owned_loadouts = [n for n in LOADOUT_NODES if n in career["unlocked"]]
+    select = document.getElementById("start-option-select")
+    select.value = state.start_option if state.start_option in owned_loadouts else START_OPTION_NONE
+    select.disabled = not state.unstarted() or not owned_loadouts
+    options = getattr(select, "options", None)  # the fake DOM has none; the browser marks unowned loadouts unavailable
+    if options is not None:
+        for index in range(int(options.length)):
+            option = options.item(index)
+            option.disabled = option.value != START_OPTION_NONE and option.value not in owned_loadouts
+    select.title = (
+        "Buy a loadout in the Career upgrade tree (Starting loadout branch) to choose one here."
+        if not owned_loadouts else "Choose one starting loadout per run, before you build or advance a round."
+    )
+    note = document.getElementById("start-option-note")
+    if state.start_option in owned_loadouts:
+        note.innerText = f"Loadout: {CAREER_UNLOCKS[state.start_option]['label']} -- {CAREER_UNLOCKS[state.start_option]['effect']}."
+    elif owned_loadouts:
+        note.innerText = "Loadout: none chosen."
+    else:
+        note.innerText = "No loadout bought yet (Career upgrade tree, Starting loadout)."
+    document.getElementById("run-seed-display").innerText = f"Run seed: {state.seed}"
+    document.getElementById("run-seed-apply-button").disabled = not state.unstarted()
+    document.getElementById("run-seed-input").disabled = not state.unstarted()
+    document.getElementById("run-seed-note").innerText = run_setup_message
+    iron = document.getElementById("ironman-toggle-button")
+    iron.innerText = "Ironman: ON (no undo)" if state.ironman else "Ironman: OFF"
+    iron.disabled = not state.unstarted() and not state.ironman
+    iron.title = "Opt-in challenge: every action is final and Undo last build is off. Fixed once the run starts."
+    undo = document.getElementById("undo-build-button")
+    undo.disabled = not state.can_undo_build()
+    if state.ironman:
+        undo.innerText = "Undo last build (off in Ironman)"
+    elif state.can_undo_build():
+        record = state.undo_record
+        undo.innerText = f"Undo last build ({PLANT_LABEL[record['plant']]}, refunds {record['cost']:.0f})"
+    else:
+        undo.innerText = "Undo last build"
+    bonus = state.perfect_bonus_fraction()
+    document.getElementById("perfect-streak-display").innerText = (
+        f"\U0001F525 Perfect Round streak: {state.perfect_streak} (revenue bonus +{bonus * 100:.0f}%, best {state.best_perfect_streak})"
+        if state.perfect_streak > 0
+        else f"Perfect Round streak: 0 (best {state.best_perfect_streak}). Rounds with no disruption and demand fully met build a revenue bonus."
+    )
+    offer = state.grant_offer
+    banner = document.getElementById("grant-banner")
+    banner.hidden = offer is None
+    if offer is not None:
+        info = GRANTS[offer["id"]]
+        document.getElementById("grant-text").innerText = f"{info['title']}: {info['text']}"
+        document.getElementById("grant-accept-button").innerText = info["accept"]
+        document.getElementById("grant-decline-button").innerText = info["decline"]
+    message = document.getElementById("grant-message-display")
+    message.innerText = state.last_grant_message
+    message.hidden = not state.last_grant_message
+    peek = document.getElementById("peek-forecast-button")
+    peek.hidden = not state.peek_unlocked()
+    peek.innerText = f"Peek forecast ({PEEK_FEE} funds)"
+    peek.disabled = state.peeked_round == state.round_number or state.funds < PEEK_FEE
+    document.getElementById("peek-forecast-display").innerText = peek_text()
+    for plant_type in PLANT_TYPES:
+        names = state.plant_name_list(plant_type)
+        document.getElementById(f"{plant_type}-names").innerText = ", ".join(names)
+    eulogy = document.getElementById("eulogy-display")
+    eulogy.hidden = state.last_eulogy is None
+    eulogy.innerText = state.last_eulogy["text"] if state.last_eulogy else ""
 
 
 def on_export_career(event=None):
@@ -3150,12 +4009,28 @@ def _confirm_dialog_ask(action_id, message, confirm_label, on_confirm, allow_ski
     )
 
 
+def _play_demolition_puff():
+    """GC-4: replays the little smoke puff on the eulogy line (CSS only; off under reduced motion)."""
+    line = document.getElementById("eulogy-display")
+    line.classList.remove("eulogy-puff")
+
+    def _start(*args):
+        line.classList.add("eulogy-puff")
+        proxy.destroy()
+
+    proxy = create_proxy(_start)
+    setTimeout(proxy, 30)
+
+
 def _make_retire_handler(plant_type):
     def do_retire():
         global retire_callout_visible
+        eulogy_before = state.last_eulogy
         succeeded = state.retire_plant(plant_type)
         if succeeded:
             record_shadow_action("retire", plant_type)
+        if succeeded and state.last_eulogy is not eulogy_before:
+            _play_demolition_puff()
         if succeeded and not state.seen_retire_callout:
             state.seen_retire_callout = True
             retire_callout_visible = True
@@ -3188,6 +4063,51 @@ def _make_retire_handler(plant_type):
         else:
             do_retire()
     return handler
+
+
+# C-4 -- plant-mix hover/focus readout: one plant type's share of capacity, of the round's revenue and of
+# its emissions, plus a highlight on its row. Pure display; no new state.
+def mix_hover_text(plant_type):
+    share = state.capacity_share(plant_type)
+    total_capacity = state.total_capacity()
+    if total_capacity <= 0:
+        return f"{PLANT_LABEL[plant_type]}: no generation on the grid yet, so no share of capacity, revenue or emissions."
+    paid_units = min(total_capacity, state.demand)
+    revenue = share * paid_units * REVENUE_PER_UNIT_MET
+    revenue_total = paid_units * REVENUE_PER_UNIT_MET
+    emissions = state.plant_counts[plant_type] * PLANT_CAPACITY[plant_type] * EMISSIONS_FACTOR[plant_type]
+    emissions_total = sum(
+        state.plant_counts[t] * PLANT_CAPACITY[t] * EMISSIONS_FACTOR[t] for t in GENERATION_TYPES
+    )
+    emissions_part = (
+        f"{emissions / emissions_total * 100:.0f}% of emissions ({emissions:.0f} of {emissions_total:.0f} per round)"
+        if emissions_total > 0
+        else "0% of emissions (the grid emits nothing)"
+    )
+    return (
+        f"{PLANT_LABEL[plant_type]}: {share * 100:.0f}% of capacity, "
+        f"about {share * 100:.0f}% of revenue ({revenue:.0f} of {revenue_total:.0f} funds per round, "
+        f"every unit of output sold earns the same), {emissions_part}."
+    )
+
+
+def _make_mix_hover_handler(plant_type, entering):
+    def handler(event=None):
+        readout = document.getElementById("mix-hover-readout")
+        row = document.getElementById(f"{plant_type}-row")
+        mix_row = document.getElementById(f"{plant_type}-mix-row")
+        if entering:
+            readout.innerText = mix_hover_text(plant_type)
+            row.classList.add("plant-row--highlight")
+            mix_row.classList.add("mix-row--active")
+        else:
+            readout.innerText = MIX_HOVER_HINT
+            row.classList.remove("plant-row--highlight")
+            mix_row.classList.remove("mix-row--active")
+    return handler
+
+
+MIX_HOVER_HINT = "Hover or focus a bar to see that plant type's share of capacity, revenue and emissions."
 
 
 def _make_maintain_handler(plant_type):
@@ -3601,6 +4521,8 @@ def auto_advance(max_rounds=AUTO_ADVANCE_ROUNDS, **rngs):
     rngs are passed straight to GridState.advance_round (tests use them)."""
     if state.policy_lever_available:
         return 0, "A policy lever is waiting for your decision first."
+    if state.grant_offer is not None:
+        return 0, "A grant offer is waiting for your decision first."
     played = 0
     reason = f"Played all {max_rounds} rounds with nothing needing a decision."
     for _ in range(max_rounds):
@@ -3615,6 +4537,9 @@ def auto_advance(max_rounds=AUTO_ADVANCE_ROUNDS, **rngs):
             break
         if state.policy_lever_available:
             reason = "Stopped: a policy lever is on offer."
+            break
+        if state.grant_offer is not None:
+            reason = "Stopped: a grant offer is waiting."
             break
     return played, f"Auto-advanced {played} round(s). {reason}"
 
@@ -3635,10 +4560,10 @@ def on_auto_advance(event=None):
 def render_auto_advance():
     button = document.getElementById("auto-advance-button")
     button.innerText = f"Auto-advance up to {AUTO_ADVANCE_ROUNDS} rounds"
-    button.disabled = state.policy_lever_available
+    button.disabled = state.policy_lever_available or state.grant_offer is not None
     button.title = (
-        "Answer the policy lever on offer first."
-        if state.policy_lever_available
+        "Answer the policy lever or grant on offer first."
+        if state.policy_lever_available or state.grant_offer is not None
         else "Plays rounds back to back with no building in between. Stops at the first disruption, "
         "aging breakdown or policy offer."
     )
@@ -3656,6 +4581,10 @@ def round_recap_text():
     if r is None:
         return "Round recap: no round played yet.", "Advance a round and its funds story appears here."
     lines = [f"Revenue earned: +{r['base_revenue']:.0f}"]
+    if r.get("perfect_bonus", 0) > 0:
+        lines.append(f"Perfect Round bonus: +{r['perfect_bonus']:.0f}")
+    if r.get("immunity"):
+        lines.append("Diplomatic Immunity: a disruption was called off")
     if r["arbitrage"] > 0:
         lines.append(f"Storage arbitrage sales: +{r['arbitrage']:.0f}")
     if state.regional_grid_connected:
@@ -3676,6 +4605,8 @@ def round_recap_text():
     if state.demand_response_level > 0:
         growth_note += f" (demand response level {state.demand_response_level})"
     lines.append(growth_note)
+    if r.get("perfect"):
+        lines.append("This was a Perfect Round: no disruption, no breakdown, demand fully met")
     sign = "+" if r["net"] >= 0 else "-"
     return f"Round {r['round']} recap: net {sign}{abs(r['net']):.0f} funds", "\n".join(lines)
 
@@ -3763,7 +4694,7 @@ def render_difficulty_preset():
     select.value = key
     label = DIFFICULTY_PRESETS[key]["label"] if key != "custom" else "Custom"
     header = document.getElementById("difficulty-header-display")
-    header.innerText = f"Difficulty: {label}"
+    header.innerText = f"Difficulty: {label}" + (" | Ironman" if state.ironman else "")
     header.title = DIFFICULTY_PRESETS[key]["blurb"] if key != "custom" else "A mix of the difficulty controls."
     document.getElementById("difficulty-preset-note").innerText = difficulty_note
 
@@ -3845,6 +4776,21 @@ def get_state():
         "aging_breakdown_count": state.aging_breakdown_count,
         "first_90_clean_round": state.first_90_clean_round,
         "last_round_recap": copy.deepcopy(state.last_round_recap),
+        # 2026-10-08 batch: the seeded run, loadout, peek, Perfect Round streak, Ironman, nicknames, grants.
+        "seed": state.seed,
+        "start_option": state.start_option,
+        "immunity_available": state.immunity_available,
+        "immunity_used": state.immunity_used,
+        "peeked_round": state.peeked_round,
+        "perfect_streak": state.perfect_streak,
+        "best_perfect_streak": state.best_perfect_streak,
+        "ironman": state.ironman,
+        "plant_names": {t: list(state.plant_name_list(t)) for t in PLANT_TYPES},
+        "name_serial": dict(state.name_serial),
+        "last_eulogy": copy.deepcopy(state.last_eulogy),
+        "grant_offer": copy.deepcopy(state.grant_offer),
+        "grant_effects": dict(state.grant_effects),
+        "last_grant_message": state.last_grant_message,
         # Write-only projection (ACHIEVEMENTS-SYSTEM-DESIGN.md §1) — always
         # freshly recomputed, never read back in load_state() below.
         "achievements_earned": achievement_ids_earned(),
@@ -4014,6 +4960,9 @@ def _load_round_recap(raw):
         "aging_plant": plant if plant in PLANT_LABEL else None,
         "disruption_type": kind if kind in ("brownout", "damage") else None,
         "demand_growth": max(0.0, _finite_number(raw.get("demand_growth"))),
+        "perfect_bonus": max(0.0, _finite_number(raw.get("perfect_bonus"))),
+        "perfect": bool(raw.get("perfect")),
+        "immunity": bool(raw.get("immunity")),
     }
 
 
@@ -4026,6 +4975,47 @@ def _load_round_history_fields(data):
     first = data.get("first_90_clean_round")
     state.first_90_clean_round = _as_int(first, 1, 1) if first is not None and not isinstance(first, bool) else None
     state.last_round_recap = _load_round_recap(data.get("last_round_recap"))
+
+
+def _load_round6_fields(data):
+    """2026-10-08 batch: every field validated, each defaulting safely for an older save."""
+    saved_seed = seed_lib.normalize(data.get("seed", "") if isinstance(data.get("seed"), str) else "", SEED_GAME)
+    if saved_seed and saved_seed.split("-")[0] == seed_lib.prefix_for(SEED_GAME):
+        state.seed = saved_seed
+    option = data.get("start_option")
+    state.start_option = option if option in LOADOUT_NODES else None
+    state.immunity_available = bool(data.get("immunity_available", False)) and state.start_option == "diplomatic_immunity"
+    state.immunity_used = bool(data.get("immunity_used", False))
+    state.peeked_round = _as_int(data.get("peeked_round"), 0, 0)
+    state.perfect_streak = _as_int(data.get("perfect_streak"), 0, 0)
+    state.best_perfect_streak = max(state.perfect_streak, _as_int(data.get("best_perfect_streak"), 0, 0))
+    state.ironman = bool(data.get("ironman", False))
+    state.undo_record = None
+    names = data.get("plant_names") if isinstance(data.get("plant_names"), dict) else {}
+    serial = data.get("name_serial") if isinstance(data.get("name_serial"), dict) else {}
+    for plant_type in PLANT_TYPES:
+        raw_names = names.get(plant_type) if isinstance(names.get(plant_type), list) else []
+        state.plant_names[plant_type] = [n[:NAME_MAX_LEN] for n in raw_names if isinstance(n, str) and n][:300]
+        state.name_serial[plant_type] = _as_int(serial.get(plant_type), len(state.plant_names[plant_type]), 0, 10 ** 6)
+    eulogy = data.get("last_eulogy")
+    state.last_eulogy = (
+        {"round": _as_int(eulogy.get("round"), 1, 1), "text": str(eulogy.get("text", ""))[:200]}
+        if isinstance(eulogy, dict) and isinstance(eulogy.get("text"), str) and eulogy.get("text")
+        else None
+    )
+    offer = data.get("grant_offer")
+    state.grant_offer = (
+        {"id": offer["id"], "round": _as_int(offer.get("round"), 1, 1)}
+        if isinstance(offer, dict) and offer.get("id") in GRANTS
+        else None
+    )
+    effects = data.get("grant_effects") if isinstance(data.get("grant_effects"), dict) else {}
+    state.grant_effects = {
+        "fossil_surcharge": _as_int(effects.get("fossil_surcharge"), 0, 0, GRANT_CLEAN_ROUNDS),
+        "breakdown_risk": _as_int(effects.get("breakdown_risk"), 0, 0, GRANT_CONTEST_ROUNDS),
+    }
+    message = data.get("last_grant_message")
+    state.last_grant_message = message[:200] if isinstance(message, str) else ""
 
 
 def _load_career(data):
@@ -4043,8 +5033,41 @@ def _load_career(data):
     _sync_perks()
 
 
+# C-26 -- what the last load had to repair. A save missing fields (an older format, or a hand-edited or
+# truncated one) used to fall back to defaults silently; now the "What's New" panel says how many and which.
+LOAD_REPORT_IGNORED_KEYS = {"achievements_earned"}  # write-only: never read back
+load_report = {"loaded": False, "fields": []}
+
+
+def compute_load_report(data):
+    """The saved fields a load had to fill in with defaults: whole keys the save lacks, and plant types
+    missing inside the three per-plant dicts."""
+    expected = set(get_state().keys()) - LOAD_REPORT_IGNORED_KEYS
+    fields = sorted(key for key in expected if key not in data)
+    for key in ("plant_counts", "cumulative_built", "plant_age"):
+        saved = data.get(key)
+        if isinstance(saved, dict):
+            fields.extend(f"{key}.{plant_type}" for plant_type in PLANT_TYPES if plant_type not in saved)
+    return fields
+
+
+def load_report_text():
+    if not load_report["loaded"]:
+        return ""
+    fields = load_report["fields"]
+    if not fields:
+        return "Last save loaded: complete, nothing had to be repaired."
+    shown = ", ".join(fields[:8]) + (f" and {len(fields) - 8} more" if len(fields) > 8 else "")
+    return (
+        f"Last save loaded: repaired {len(fields)} missing field{'s' if len(fields) != 1 else ''} "
+        f"with safe defaults ({shown})."
+    )
+
+
 def load_state(data):
     global info_page_open
+    load_report["fields"] = compute_load_report(data) if isinstance(data, dict) else []
+    load_report["loaded"] = True
 
     # Every field is pulled with .get(..., <current live value>) rather
     # than bare data["key"] indexing, so a save written before a later
@@ -4105,6 +5128,7 @@ def load_state(data):
     _load_round3_fields(data)
     _load_round_history_fields(data)
     _load_career(data)
+    _load_round6_fields(data)
     # "achievements_earned" is intentionally never read back here — see
     # get_state()'s comment and ACHIEVEMENTS-SYSTEM-DESIGN.md §1.
 
@@ -4181,10 +5205,17 @@ def setup():
     )
     document.getElementById("career-toggle-button").addEventListener("click", create_proxy(on_toggle_career))
     document.getElementById("career-finish-button").addEventListener("click", create_proxy(on_finish_run))
-    for perk_id in CAREER_UNLOCK_ORDER:
-        document.getElementById(f"career-unlock-{perk_id}-button").addEventListener(
-            "click", create_proxy(_make_unlock_handler(perk_id))
-        )
+    for plant_type in GENERATION_TYPES:
+        mix_row = document.getElementById(f"{plant_type}-mix-row")
+        for event_name, entering in (("mouseenter", True), ("focus", True), ("mouseleave", False), ("blur", False)):
+            mix_row.addEventListener(event_name, create_proxy(_make_mix_hover_handler(plant_type, entering)))
+    document.getElementById("start-option-select").addEventListener("change", create_proxy(on_start_option_change))
+    document.getElementById("run-seed-apply-button").addEventListener("click", create_proxy(on_apply_run_seed))
+    document.getElementById("ironman-toggle-button").addEventListener("click", create_proxy(on_toggle_ironman))
+    document.getElementById("undo-build-button").addEventListener("click", create_proxy(on_undo_build))
+    document.getElementById("grant-accept-button").addEventListener("click", create_proxy(on_accept_grant))
+    document.getElementById("grant-decline-button").addEventListener("click", create_proxy(on_decline_grant))
+    document.getElementById("peek-forecast-button").addEventListener("click", create_proxy(on_peek_forecast))
     document.getElementById("career-export-button").addEventListener("click", create_proxy(on_export_career))
     document.getElementById("career-import-button").addEventListener("click", create_proxy(on_import_career))
     document.getElementById("career-reset-button").addEventListener("click", create_proxy(on_reset_career))

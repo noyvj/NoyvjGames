@@ -2,7 +2,6 @@
 round recap (C-8), difficulty presets (C-10), career backup/reset (C-16),
 auto-advance (GC-17) and personal records (GC-26)."""
 import json
-import sys
 
 from .test_career import _install_storage, _play
 
@@ -79,15 +78,17 @@ def test_locked_perks_show_effect_and_points_gap(game_env):
     g = game_env.module
     g.career["points"] = 1
     game_env.toggle_career()
-    text = game_env.elements["career-unlock-seed_capital-button"].innerText
+    text = g.career_perk_progress_text("seed_capital")
     assert "+75 funds" in text and "2 more point(s) needed" in text
-    assert "Next perk: Seed capital" in game_env.elements["career-next-perk-display"].innerText
+    # The cheapest upgrade with its prerequisites met is the next one named (Old Coal Contract, 2 points).
+    assert "Next perk: Old Coal Contract" in game_env.elements["career-next-perk-display"].innerText
+    assert "1 point(s) away" in game_env.elements["career-next-perk-display"].innerText
     g.career["points"] = 3
     g.render()
-    assert "ready to unlock" in game_env.elements["career-unlock-seed_capital-button"].innerText
+    assert "ready to unlock" in g.career_perk_progress_text("seed_capital")
     g.unlock_career_perk("seed_capital")
     g.render()
-    assert game_env.elements["career-unlock-seed_capital-button"].innerText.startswith("Unlocked: Seed capital")
+    assert g.career_perk_progress_text("seed_capital").startswith("Unlocked: Seed capital")
 
 
 # --- C-7 lifetime stats -----------------------------------------------------

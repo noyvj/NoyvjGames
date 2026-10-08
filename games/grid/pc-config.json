@@ -126,12 +126,12 @@
     },
     {
       "id": "pc-difficulty-panel",
-      "title": "Difficulty",
+      "title": "Difficulty and run setup",
       "members": [
         ".difficulty-preset-row"
       ],
       "group": "Game",
-      "label": "🎚️ Difficulty"
+      "label": "🎚️ Difficulty and run setup"
     }
   ],
   "readouts": [
@@ -201,12 +201,18 @@
       "#active-policy-display",
       "#demand-response-level-display",
       "#demand-response-button",
+      "#undo-build-button",
+      "#grant-banner",
+      "#grant-message-display",
+      "#peek-forecast-button",
+      "#peek-forecast-display",
       "#disruption-risk-display",
       ".meter:has(> #emissions-bar)",
       "#event-display",
       "#aging-event-display",
       "#round-recap",
       "#streak-display",
+      "#perfect-streak-display",
       "#score-display",
       ".info-toggle:has(+ .meter > #score-bar)",
       ".meter:has(> #score-bar)",
