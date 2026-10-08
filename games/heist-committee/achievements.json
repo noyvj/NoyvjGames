@@ -1,0 +1,74 @@
+{
+  "achievements": [
+    {
+      "id": "first_job",
+      "label": "First Job",
+      "description": "Finish any heist."
+    },
+    {
+      "id": "nobody_saw",
+      "label": "Nobody Saw Anything",
+      "description": "Finish a job without setting off an alarm."
+    },
+    {
+      "id": "chain_reaction",
+      "label": "Chain Reaction",
+      "description": "See a chain of five events, each caused by the last."
+    },
+    {
+      "id": "absorbed",
+      "label": "Absorbed",
+      "description": "Absorb three pieces of trouble in a single job, with Standby, skills, gear or traits."
+    },
+    {
+      "id": "old_rivals",
+      "label": "Old Rivals",
+      "description": "Make friends of two crew members who started out as rivals."
+    },
+    {
+      "id": "everyone_home",
+      "label": "Everyone Home",
+      "description": "Get away with the prize and nobody sidelined."
+    },
+    {
+      "id": "full_house",
+      "label": "Full House",
+      "description": "Finish a job with one of each role in the crew."
+    },
+    {
+      "id": "cat_job",
+      "label": "The Cat Job",
+      "description": "Meet the cat on every target."
+    },
+    {
+      "id": "paid_in_cheese",
+      "label": "Paid in Cheese",
+      "description": "Get away with the Grand Reserve wheel."
+    },
+    {
+      "id": "over_planner",
+      "label": "Over-Planner",
+      "description": "Finish a job with every cell of the timeline filled."
+    },
+    {
+      "id": "minimalist",
+      "label": "Minimalist",
+      "description": "Get away with the prize with no more than three people working in any one beat."
+    },
+    {
+      "id": "fifth_time_lucky",
+      "label": "Fifth Time Lucky",
+      "description": "Retry the same job five times."
+    },
+    {
+      "id": "rich_and_infamous",
+      "label": "Rich and Infamous",
+      "description": "Reach a reputation of 20."
+    },
+    {
+      "id": "committee_meeting",
+      "label": "Committee Meeting",
+      "description": "Meet twenty different kinds of trouble."
+    }
+  ]
+}

@@ -179,6 +179,11 @@
         news.appendChild(nl);
         box.appendChild(news);
       }
+      if (p.debrief && p.debrief.length) {
+        var talk = el("div", { "class": "panel story-line" }, [el("h3", { text: "The debrief" })]);
+        p.debrief.forEach(function (d) { talk.appendChild(el("p", { "class": "story-line" }, [el("b", { text: d.who + ": " }), "\u201C" + d.text + "\u201D"])); });
+        box.appendChild(talk);
+      }
       box.appendChild(el("div", { "class": "panel" }, [el("h3", { text: "The write-up" }), el("p", { "class": "writeup", "data-testid": "heist-writeup", text: p.writeup })]));
       box.appendChild(el("div", { id: "payout-copy-result" }));
       box.appendChild(el("div", { "class": "phase-actions" }, [

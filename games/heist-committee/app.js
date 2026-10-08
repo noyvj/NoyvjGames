@@ -3,7 +3,7 @@
    Shared pieces live on window.HC so plan.js (the timeline) and play.js (playback and payout) can use them. */
 (function () {
   "use strict";
-  var ENGINE_MODULES = ["content.py", "engine.py", "plancheck.py", "planops.py", "writeup.py", "info.py"];
+  var ENGINE_MODULES = ["content.py", "engine.py", "plancheck.py", "planops.py", "writeup.py", "info.py", "achievements.py", "story.py"];
   var CONTENT_FILES = ["tags", "actions", "traits", "crew", "gear", "complications", "targets", "lines", "writeups"];
   var STORE_KEY = "heist-committee:state";
   var PHASES = ["board", "scout", "recruit", "plan", "playback", "payout"];
@@ -158,6 +158,42 @@
     }
   };
 
+  // ---- achievements and the committee's minutes ------------------------------------------------
+  var knownEarned = null;
+  function renderAchievements(view) {
+    var list = $("achievements-list");
+    var earnedNow = [];
+    var sig = JSON.stringify(view.achievements);
+    HC.fillOnce(list, sig, function (ul) {
+      view.achievements.forEach(function (a) {
+        ul.appendChild(el("li", { "class": a.earned ? "earned" : "", "data-achievement-id": a.id }, [
+          el("span", { "class": "tick", text: a.earned ? "Earned" : "Not yet" }),
+          el("strong", { "data-achievement-label": "", text: " " + a.label + " " }),
+          el("span", { text: a.description })]));
+      });
+    });
+    view.achievements.forEach(function (a) { if (a.earned) earnedNow.push(a.id); });
+    $("achievements-toggle-button").textContent = "Achievements (" + earnedNow.length + "/" + view.achievements.length + ")";
+    if (knownEarned !== null) {
+      earnedNow.filter(function (id) { return knownEarned.indexOf(id) === -1; }).forEach(function (id) {
+        var a = view.achievements.filter(function (x) { return x.id === id; })[0];
+        HC.toast("Achievement unlocked: " + a.label + ".");
+        HC.announce("Achievement unlocked: " + a.label + ".");
+      });
+    }
+    knownEarned = earnedNow;
+  }
+  function renderMinutes(view) {
+    var m = view.minutes;
+    HC.fillOnce($("minutes-entries"), JSON.stringify(m), function (box) {
+      m.entries.slice().reverse().forEach(function (e) {
+        box.appendChild(el("article", { "class": "changelog-entry story-line" }, [el("div", { "class": "changelog-date", text: e.title }), el("p", { text: e.text })]));
+      });
+      box.appendChild(el("p", { "class": "note", text: m.next_at === null ? "That is every meeting on the books, for now." : "The next meeting opens once you have finished " + m.next_at + (m.next_at === 1 ? " job" : " jobs") + " (so far: " + m.jobs_done + ")." }));
+    });
+  }
+  HC.onRender.push(function (view) { renderAchievements(view); renderMinutes(view); });
+
   // ---- the board -------------------------------------------------------------------------------
   HC.renderers.board = function (view) {
     HC.renderers.board_extra(view);
@@ -309,11 +345,12 @@
         btn.setAttribute("aria-expanded", String(!panel.hidden));
       });
     }
+    panelToggle("minutes-toggle-button", "minutes-panel");
     panelToggle("achievements-toggle-button", "achievements-panel");
     panelToggle("changelog-toggle-button", "changelog-panel");
     panelToggle("info-page-toggle-button", "info-page-panel");
     // The save widget loads a save directly into the engine; this redraws the page afterwards.
-    window.heistRefresh = function () { if (HC.engine) HC.send({ action: "open" }); };
+    window.heistRefresh = function () { knownEarned = null; if (HC.engine) HC.send({ action: "open" }); };
   }
 
   // ---- info panel, changelog, tutorial ----------------------------------------------------------

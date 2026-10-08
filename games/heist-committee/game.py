@@ -24,10 +24,12 @@ import json
 import time
 
 import content as content_mod
+import achievements
 import engine
 import info
 import plancheck
 import planops
+import story
 import writeup
 from engine import LANES
 
@@ -45,7 +47,7 @@ UNDO_LIMIT = 60
 def _default_meta():
     return {"jobs_done": 0, "jobs_clean": 0, "reputation": 0, "known_quirks": [], "seen_complications": [],
             "seen_traits": [], "relationships": {}, "pair_scores": {}, "finished_targets": [], "retries": {},
-            "best": {"cash_single_job": 0, "chain_links": 0}}
+            "flags": [], "cat_targets": [], "best": {"cash_single_job": 0, "chain_links": 0, "absorbed": 0}}
 
 
 class Career:
@@ -360,6 +362,7 @@ def _payout_view(job):
             "credited": job.get("credited", 0), "best_net": job.get("best_net", 0), "attempt": job.get("attempt", 1),
             "rep_gained": job.get("rep_gained", 0), "reputation": _rep(), "new_unlocks": job.get("new_unlocks", []),
             "relations_changed": job.get("relations_changed", []),
+            "debrief": story.debrief(C, job["crew"], result, wr["cls"], job["seed"]),
             "consolation": C.targets[job["target"]]["consolation"]}
 
 
@@ -396,7 +399,8 @@ def _view(note=None):
     job = career.job
     known = set(career.meta["known_quirks"])
     view = {"schema": SCHEMA, "phase": job["phase"] if job else "board", "cash": career.cash,
-            "jobs_done": career.meta["jobs_done"], "reputation": _rep(), "note": note or ""}
+            "jobs_done": career.meta["jobs_done"], "reputation": _rep(), "note": note or "",
+            "achievements": achievements.view(career.meta, C), "minutes": story.minutes(career.meta)}
     if not job:
         view["board"] = [_target_card(t) for t in _board_targets()]
         view["reputation"] = _rep()
@@ -557,6 +561,12 @@ def _finish(job):
     job["relations_changed"] = _update_relationships(job, result) if first_count else []
     meta["best"]["cash_single_job"] = max(meta["best"]["cash_single_job"], net)
     meta["best"]["chain_links"] = max(meta["best"]["chain_links"], out["chain_links"])
+    meta["best"]["absorbed"] = max(meta["best"]["absorbed"], out["absorbed"])
+    for flag in achievements.job_flags(C, job["crew"], out):
+        if flag not in meta["flags"]:
+            meta["flags"].append(flag)
+    if achievements.CAT_COMPLICATION in out["complications"] and job["target"] not in meta["cat_targets"]:
+        meta["cat_targets"].append(job["target"])
     job["cursor"] = len(C.targets[job["target"]]["beats"])
     _learn(job)
     job["phase"] = "payout"
@@ -734,6 +744,9 @@ def get_state_json():
 
 def get_state():
     data = {"schema": SCHEMA, "career_seed": career.career_seed}
+    earned = achievements.earned(career.meta, C)
+    if earned:
+        data["achievements_earned"] = earned       # a write-only projection for the hub dashboard, never read back
     if career.cash != START_CASH:
         data["cash"] = career.cash
     if career.jobs_started:
@@ -826,9 +839,12 @@ def load_state(data):
     for tid, n in retries.items():
         if tid in C.targets:
             fresh.meta["retries"][tid] = _int(n, 0, 999, 0)
+    fresh.meta["flags"] = _clean_ids(meta.get("flags"), {"full_house", "over_planner", "minimalist", "everyone_home"}, 4)
+    fresh.meta["cat_targets"] = _clean_ids(meta.get("cat_targets"), set(C.targets), len(C.targets))
     best = meta.get("best") if isinstance(meta.get("best"), dict) else {}
     fresh.meta["best"] = {"cash_single_job": _int(best.get("cash_single_job"), 0, 10 ** 7, 0),
-                          "chain_links": _int(best.get("chain_links"), 0, 99, 0)}
+                          "chain_links": _int(best.get("chain_links"), 0, 99, 0),
+                          "absorbed": _int(best.get("absorbed"), 0, 99, 0)}
     fresh.job = _clean_job(data.get("job"))
     career = fresh
     del _undo[:], _redo[:]

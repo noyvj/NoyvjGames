@@ -1,6 +1,6 @@
 # Heist Committee build status (handoff file)
 
-Last updated: Milestone 6. The user answered He1-He3: yes to all recommendations (cozy caper tone, Daily Job later, invented crew names). planning/PLAYER-PROFILE.md read: no hard-lose states, no timers, predictable and retry-friendly, optional leaderboards, dark/moody look, three visible goals, short wins.
+Last updated: Milestone 7. The user answered He1-He3: yes to all recommendations (cozy caper tone, Daily Job later, invented crew names). planning/PLAYER-PROFILE.md read: no hard-lose states, no timers, predictable and retry-friendly, optional leaderboards, dark/moody look, three visible goals, short wins.
 
 ## Done
 - M1 Engine core. M2 Plan UI.
@@ -13,8 +13,10 @@ Last updated: Milestone 6. The user answered He1-He3: yes to all recommendations
 - M6 Standard kit: opening screen (New Game clears the local resume), save widget contract verified mid-playback, confirm dialogs, tutorial (11 steps), mobile dock for the tray + mobile HUD, keyboard shortcuts help, info panel (info.py), changelog.json, story toggle wired to .ev-flavor, copy-result on the payout.
 - Tests that drive the page must use index.html#play to skip the opening screen.
 
+- M7 Achievements + story: 14 achievements computed from meta (achievements.py + achievements.json, panel, toast, achievements_earned in the save), story.py (debrief banter after each job, seven "Minutes of the Committee" opening by jobs done), story toggle hides .ev-flavor, .story-line and the Minutes panel.
+
 ## Next
-- M7 Achievements + story: 14 achievements (achievements.py/json, panel, toast), crew banter, career thread (story.py).
+- M8 Balance and bots: bot playtests with bands, contrast/colorblind/375px audit, second complication pass.
 
 ## Open problems
 - Mobile dock for the tray is wired in M6.

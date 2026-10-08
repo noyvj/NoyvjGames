@@ -34,6 +34,7 @@
   <p class="tagline">Five oddballs, one plan, and a job that will not go the way you drew it.</p>
   <div class="game-toolbar">
     <button id="tutorial-restart-button" type="button">Tutorial</button>
+    <button id="minutes-toggle-button" type="button" aria-expanded="false" aria-controls="minutes-panel">Minutes</button>
     <button id="achievements-toggle-button" type="button" aria-expanded="false" aria-controls="achievements-panel">Achievements</button>
     <button id="changelog-toggle-button" type="button" aria-expanded="false" aria-controls="changelog-panel">What's New</button>
     <button id="settings-toggle-button" type="button" aria-expanded="false" aria-controls="settings-panel">Settings</button>
@@ -43,6 +44,11 @@
     <h2 id="info-page-heading">How the plan works</h2>
     <p id="info-page-framing" class="info-page-framing"></p>
     <ul id="info-page-sources" class="info-page-sources"></ul>
+  </section>
+  <section id="minutes-panel" class="panel" hidden aria-labelledby="minutes-heading">
+    <h2 id="minutes-heading">Minutes of the Committee</h2>
+    <p class="note">The Committee's own meetings, opening up as you finish jobs. Switch the Story off and this panel, and the banter, disappear. The rules never depend on it.</p>
+    <div id="minutes-entries"></div>
   </section>
   <section id="achievements-panel" class="panel" hidden aria-labelledby="ach-heading">
     <h2 id="ach-heading">Achievements</h2>
@@ -173,7 +179,7 @@
 <script src="../../shared/mobile-hud.js"></script>
 <script src="../../shared/save-widget.js" data-game-id="heist-committee"></script>
 <script src="../../shared/opening-screen.js" data-game-id="heist-committee" data-game-name="Heist Committee" data-tagline="Five oddballs, one plan. Whatever happens, it will make a good story."></script>
-<script src="../../shared/story-toggle.js" data-game-id="heist-committee" data-story-selectors=".ev-flavor, .story-line, #story-panel, #story-toggle-button"></script>
+<script src="../../shared/story-toggle.js" data-game-id="heist-committee" data-story-selectors=".ev-flavor, .story-line, #minutes-panel, #minutes-toggle-button"></script>
 <script src="app.js"></script>
 <script src="plan.js"></script>
 <script src="play.js"></script>
@@ -183,6 +189,7 @@
 <script>
   window.KeyboardShortcuts.init({
     panels: [
+      { toggle: "minutes-toggle-button", panel: "minutes-panel" },
       { toggle: "achievements-toggle-button", panel: "achievements-panel" },
       { toggle: "changelog-toggle-button", panel: "changelog-panel" },
       { toggle: "settings-toggle-button", panel: "settings-panel" },
