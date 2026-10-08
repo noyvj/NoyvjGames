@@ -32,7 +32,7 @@ You are a ship's navigator with only speed, heading and time. Plot a course acro
 | # | Milestone | Content | Status |
 |---|-----------|---------|--------|
 | 1 | Sim core | `geom.py`, `sim.py`: vectors, current zones, leeway, hazard intersection, tracks, scoring, text harness (`tools/textharness.py`) | Done |
-| 2 | Chart SVG | Not started | Not started |
+| 2 | Chart SVG | `render.py`: grid, land, hazards, current arrows, scale, rose, wind, landmarks, tracks, ribbons, the chart in words; `index.html` shell (standard shared includes), `style.css` (night and paper-chart themes), `settings.js`, favicon; page draws the demo chart with a hard-coded plan; golden SVG tests | Done |
 | 3 | Plan and sail | Not started | Not started |
 | 4 | Campaign chapters 1-2 | Not started | Not started |
 | 5 | Fixes and watch-by-watch | Not started | Not started |

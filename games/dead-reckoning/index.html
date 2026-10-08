@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script src="../../shared/layout-pref.js" data-game-id="dead-reckoning" data-pc-page="pc.html" data-classic-page="index.html"></script>
+<title>Dead Reckoning - NoyvjGames</title>
+<meta name="description" content="A navigation puzzle: you are the navigator with only speed, heading and time. Plot a course across a chart with currents, wind and hazards, sail it, and see how far your estimate drifted from the truth. Working title.">
+<link rel="icon" type="image/svg+xml" href="icons/favicon-dead-reckoning.svg">
+<link rel="stylesheet" href="../../shared/theme-light-games.css">
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="../../shared/info-page.css">
+<script src="../../shared/theme.js" data-floating-toggle></script>
+<script src="../../shared/lite-mode.js"></script>
+<script src="../../shared/error-boundary.js" data-game-id="dead-reckoning"></script>
+<script src="../../shared/perf-mark.js" data-game-id="dead-reckoning"></script>
+<script src="../../shared/debug-overlay.js"></script>
+<script src="../../shared/info-footer.js" data-game-id="dead-reckoning"></script>
+<script src="../../shared/site-settings.js" data-game-id="dead-reckoning"></script>
+<script src="settings.js"></script>
+<link rel="stylesheet" href="../../ad-bar.css">
+<link rel="manifest" href="../../manifest.json">
+<!-- Pyodide is loaded by app.js after first paint, so this shell is readable before the engine is warm. -->
+<script src="../../shared/copy-result.js" data-game-id="dead-reckoning"></script>
+<script src="../../shared/achievement-share.js" data-game-id="dead-reckoning" data-game-name="Dead Reckoning"></script>
+<link rel="stylesheet" href="../../shared/a11y.css">
+<link rel="stylesheet" href="../../shared/touch-targets.css">
+<link rel="stylesheet" href="../../shared/lite-mode.css">
+</head>
+<body>
+<a class="skip-link" href="#chart-panel">Skip to the chart</a>
+<main id="game">
+  <a href="../../index.html" class="hub-back-link">&larr; All games</a>
+  <h1>Dead Reckoning</h1>
+  <p class="tagline">You know your speed, your heading and the time. You do not know where the sea has put you. Plot a course, sail it, then see how far the truth drifted from your estimate.</p>
+  <div class="game-toolbar">
+    <button id="tutorial-restart-button" type="button">Tutorial</button>
+    <button id="picker-toggle-button" type="button" aria-expanded="false" aria-controls="picker-panel">Charts</button>
+    <button id="achievements-toggle-button" type="button" aria-expanded="false" aria-controls="achievements-panel">Achievements</button>
+    <button id="log-toggle-button" type="button" aria-expanded="false" aria-controls="log-panel">Captain's log</button>
+    <button id="changelog-toggle-button" type="button" aria-expanded="false" aria-controls="changelog-panel">What's New</button>
+    <button id="settings-toggle-button" type="button" aria-expanded="false" aria-controls="settings-panel">Settings</button>
+    <button id="info-page-toggle-button" type="button" aria-expanded="false" aria-controls="info-page-panel">About Dead Reckoning</button>
+  </div>
+  <p id="toast" class="note toast" role="status" aria-live="polite"></p>
+
+  <section id="chart-head" class="chart-head" aria-labelledby="chart-title">
+    <h2 id="chart-title">Gull Sound</h2>
+    <p id="chart-goal" class="note goal" aria-live="polite"></p>
+  </section>
+
+  <div class="play">
+    <section id="chart-panel" class="panel" aria-label="Chart">
+      <div id="chart-holder"></div>
+      <details id="chart-notes" class="notes">
+        <summary>The chart in words</summary>
+        <ul id="chart-notes-list"></ul>
+      </details>
+    </section>
+  </div>
+
+  <p id="engine-status" class="note" role="status">Starting the chart table...</p>
+  <p id="announce" class="sr-only" role="status" aria-live="polite"></p>
+</main>
+
+<a id="credits-link" class="credits-link" href="../../credits.html" style="display:block;text-align:center;font-size:0.85rem;margin:0.75rem 0;color:inherit;">Credits</a>
+<div class="ad-bar ad-bar--bottom">
+  <span class="ad-bar-label ad-bar-label-full">Advertisement — not part of the game</span>
+  <span class="ad-bar-label ad-bar-label-short">Ad</span>
+  <!-- Google AdSense manual display ad unit (placeholder client ID until the application is approved) -->
+  <ins class="adsbygoogle"
+       style="display:block; width:320px; height:50px;"
+       data-ad-client="ca-pub-XXXXXXXXXXXXXXXX"
+       data-ad-slot="XXXXXXXXXX"></ins>
+</div>
+<script src="https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.js"></script>
+<script src="../../shared/tutorial.js"></script>
+<script src="../../shared/hub-auth.js"></script>
+<script src="../../shared/save-widget.js" data-game-id="dead-reckoning"></script>
+<script src="../../shared/opening-screen.js" data-game-id="dead-reckoning" data-game-name="Dead Reckoning" data-tagline="Speed, heading and time. Where has the sea put you?"></script>
+<script src="app.js"></script>
+<script src="../../shared/last-played.js" data-game-id="dead-reckoning"></script>
+<script src="../../shared/whats-new-banner.js" data-game-id="dead-reckoning"></script>
+<script>
+  if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.register("../../sw.js");
+  }
+</script>
+</body>
+</html>

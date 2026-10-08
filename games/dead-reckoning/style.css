@@ -1,0 +1,207 @@
+/* Dead Reckoning. Every colour is a variable so the light theme (html[data-theme="light"], set by shared/theme.js)
+   is a second set of values, not a second stylesheet. The dark theme is a night chart; the light theme is a paper
+   chart. Nothing carries meaning by colour alone: hazards differ by shape, hatch and label, a current is an arrow
+   plus a number range, the estimate is dashed and the truth is solid. tests/test_accessibility.py checks both the
+   contrast ratios and the non-colour cues. */
+:root {
+  --bg: #0a1420; --bg-top: #15283d; --panel: #0f1d2e; --panel-fill: rgba(15, 29, 46, 0.92); --surface: #0b1826;
+  --btn: #1a2f48; --btn-primary: #2a5d8f; --on-primary: #f2f7ff;
+  --line: #2b4560; --edge: #6f8daf; --text: #e7eff9; --muted: #a6bad2;
+  --accent: #7fd1ff; --focus: #ffd666; --hover-edge: #7fd1ff;
+  --sea: #10283d; --grid-minor: #1d3750; --grid-major: #36587a; --halo: #0a1620;
+  --land: #3d3b30; --land-edge: #c8bf95; --land-hatch: #8f8869;
+  --hazard: #ff9ad2; --hazard-fill: #4a2540; --current: #8fe3b4; --est: #7fd1ff; --truth: #ffb25e; --ribbon: #d9e4f2;
+  --flag: #ffd666; --good: #bfe8c8; --bad: #ffc2b8;
+}
+html[data-theme="light"] {
+  --bg: #f1e9d4; --bg-top: #faf4e3; --panel: #fffaf0; --panel-fill: rgba(255, 250, 240, 0.96); --surface: #f7efdb;
+  --btn: #e3dcc6; --btn-primary: #1f4a73; --on-primary: #ffffff;
+  --line: #b9ad8a; --edge: #6d6340; --text: #1c2833; --muted: #4a5663;
+  --accent: #14507e; --focus: #1a3d9c; --hover-edge: #14507e;
+  --sea: #dfe9e8; --grid-minor: #c8d5d4; --grid-major: #8ea7a8; --halo: #fffaf0;
+  --land: #ecdcab; --land-edge: #5c4b1d; --land-hatch: #a38a45;
+  --hazard: #a1175f; --hazard-fill: #f0c6dc; --current: #1b6b45; --est: #14507e; --truth: #b3430a; --ribbon: #4a5663;
+  --flag: #a1175f; --good: #1b5e33; --bad: #9a2a1a;
+}
+/* High contrast: brighter text, firm outlines. */
+html[data-high-contrast="true"] { --line: #8da9c8; --edge: #c5d6ec; --muted: #d6e2f2; --grid-minor: #2f5070; --grid-major: #5f86ad; }
+html[data-high-contrast="true"][data-theme="light"] { --line: #4a3f1c; --edge: #2c250d; --muted: #1c2833; --grid-minor: #9fb3b2; --grid-major: #587372; }
+html[data-high-contrast="true"] .panel, html[data-high-contrast="true"] button, html[data-high-contrast="true"] input,
+html[data-high-contrast="true"] select { border-width: 2px; }
+html[data-high-contrast="true"] .dr-est-track, html[data-high-contrast="true"] .dr-true-track { stroke-width: 4.5; }
+
+* { box-sizing: border-box; }
+html { font-size: calc(100% * var(--text-scale, 1)); color-scheme: dark; }
+html[data-theme="light"] { color-scheme: light; background: var(--bg); }
+body { margin: 0; background: radial-gradient(ellipse at top, var(--bg-top), var(--bg) 62%); color: var(--text);
+  font: 1rem/1.5 system-ui, -apple-system, sans-serif; min-height: 100vh; }
+#game { max-width: 72rem; margin: 0 auto; padding: 1rem 1rem 3rem; display: block; }
+html[data-theme="light"] #game { background: transparent; border: 0; box-shadow: none; }
+.hub-back-link { color: var(--accent); text-decoration: underline; font-size: 0.85rem; }
+html[data-theme="light"] .hub-back-link, html[data-theme="light"] a { color: var(--accent); }
+h1 { margin: 0.4rem 0 0; letter-spacing: 0.18em; font-weight: 300; text-transform: uppercase; }
+html[data-theme="light"] h1 { background: none; color: var(--text); -webkit-text-fill-color: currentColor; }
+.tagline, .note { color: var(--muted); font-size: 0.9rem; }
+.panel { background: var(--panel-fill); border: 1px solid var(--line); border-radius: 14px; padding: 0.8rem 1rem; margin: 0.9rem 0; }
+html[data-theme="light"] .panel { box-shadow: 0 4px 16px rgba(70, 60, 20, 0.1); }
+.panel h2 { margin: 0 0 0.4rem; font-size: 1rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent); }
+button { font: inherit; color: var(--text); background: var(--btn); border: 1px solid var(--edge); border-radius: 8px; padding: 0.4rem 0.8rem; cursor: pointer; }
+button:hover { border-color: var(--hover-edge); }
+button.primary { background: var(--btn-primary); border-color: var(--hover-edge); color: var(--on-primary); font-weight: 600; }
+button:focus-visible, input:focus-visible, a:focus-visible, select:focus-visible, textarea:focus-visible, summary:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+button[disabled], button[aria-disabled="true"] { opacity: 0.55; cursor: default; border-style: dashed; }
+button[aria-disabled="true"]:hover { border-color: var(--edge); }
+input[type="number"], input[type="text"], select { font: inherit; color: var(--text); background: var(--surface); border: 1px solid var(--edge); border-radius: 6px; padding: 0.3rem 0.4rem; }
+[hidden] { display: none !important; }
+
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+.skip-link { position: absolute; left: 0.5rem; top: -4rem; z-index: 1000; padding: 0.5rem 0.8rem; border-radius: 8px; background: var(--panel); color: var(--text); border: 2px solid var(--focus); }
+.skip-link:focus { top: 0.5rem; }
+.game-toolbar { display: flex; gap: 0.5rem; flex-wrap: wrap; margin: 0.5rem 0; }
+
+/* --- the chart ----------------------------------------------------------------------------------- */
+.chart-head h2 { margin-bottom: 0.2rem; }
+.chart-head .goal { margin: 0.2rem 0; }
+.play { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 1rem; align-items: start; }
+.play > .panel { margin: 0.5rem 0; }
+@media (max-width: 900px) { .play { grid-template-columns: minmax(0, 1fr); } }
+#chart-holder { line-height: 0; }
+.dr-chart { width: 100%; height: auto; display: block; max-height: 80vh; }
+.dr-sea { fill: var(--sea); stroke: var(--edge); stroke-width: 1.5; }
+.dr-grid-minor { stroke: var(--grid-minor); stroke-width: 0.6; }
+.dr-grid-major { stroke: var(--grid-major); stroke-width: 1; }
+.dr-tick { fill: var(--muted); font-size: 12px; font-variant-numeric: tabular-nums; }
+.dr-label { fill: var(--text); font-size: 13px; paint-order: stroke; stroke: var(--halo); stroke-width: 3.5px; stroke-linejoin: round; }
+.dr-label-land { font-style: italic; }
+.dr-label-hazard { fill: var(--hazard); font-weight: 600; }
+.dr-label-current { fill: var(--current); font-weight: 600; }
+.dr-label-wind, .dr-scale-label, .dr-rose-letter { fill: var(--text); font-size: 12px; }
+.dr-label-landmark { font-size: 12px; }
+.dr-label-dest { font-weight: 700; fill: var(--flag); }
+.dr-pat-bg-land { fill: var(--land); }
+.dr-hatch { stroke: var(--land-hatch); stroke-width: 1.6; }
+.dr-land-shape { stroke: var(--land-edge); stroke-width: 2; stroke-linejoin: round; }
+.dr-pat-bg-reef { fill: var(--sea); }
+.dr-hatch-reef { stroke: var(--hazard); stroke-width: 1.6; }
+.dr-pat-bg-shoal { fill: var(--sea); }
+.dr-dot { fill: var(--hazard); }
+.dr-hazard-shape { stroke: var(--hazard); stroke-width: 2.2; }
+.dr-hazard-shoal .dr-hazard-shape { stroke-dasharray: 2 4; stroke-linecap: round; }
+.dr-hazard-rock .dr-hazard-shape { fill: var(--hazard-fill); }
+.dr-hazard-cross { stroke: var(--hazard); stroke-width: 2.2; fill: none; stroke-linecap: round; }
+.dr-hazard-unmarked .dr-hazard-shape { stroke-dasharray: 5 3; }
+.dr-current-zone { fill: none; stroke: var(--current); stroke-width: 1.4; stroke-dasharray: 3 5; }
+.dr-current-arrow { fill: none; stroke: var(--current); stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round; }
+.dr-current-arrow-back { stroke-dasharray: 2 5; }
+.dr-wind-arrow { fill: none; stroke: var(--text); stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
+.dr-landmark-shape { fill: var(--surface); stroke: var(--text); stroke-width: 1.8; stroke-linejoin: round; }
+.dr-landmark-ray { fill: none; stroke: var(--text); stroke-width: 1.8; stroke-linecap: round; }
+.dr-rose-ring { fill: none; stroke: var(--edge); stroke-width: 1.4; }
+.dr-rose-needle { fill: var(--text); }
+.dr-rose-tail { stroke: var(--edge); stroke-width: 1.4; fill: none; }
+.dr-scale-bar { stroke: var(--text); stroke-width: 2; fill: none; }
+.dr-start-ring { fill: var(--surface); stroke: var(--text); stroke-width: 2.2; }
+.dr-start-dot { fill: var(--text); }
+.dr-arrival-ring { fill: none; stroke: var(--flag); stroke-width: 2; stroke-dasharray: 6 4; }
+.dr-flag-pole { stroke: var(--flag); stroke-width: 2.4; }
+.dr-flag { fill: var(--flag); stroke: var(--flag); stroke-width: 1; stroke-linejoin: round; }
+.dr-est-track { fill: none; stroke: var(--est); stroke-width: 3; stroke-dasharray: 8 6; stroke-linecap: round; stroke-linejoin: round; }
+.dr-leg-mark circle { fill: var(--panel); stroke: var(--est); stroke-width: 2.2; }
+.dr-leg-sailed circle { stroke-width: 4; }
+.dr-leg-number { fill: var(--text); font-size: 12px; font-weight: 700; }
+.dr-true-track { fill: none; stroke: var(--truth); stroke-width: 4; stroke-linecap: round; stroke-linejoin: round; }
+.dr-ribbon { stroke: var(--ribbon); stroke-width: 1.4; stroke-dasharray: 1 3; stroke-linecap: round; }
+.dr-ship-shape { fill: var(--truth); stroke: var(--halo); stroke-width: 1.5; stroke-linejoin: round; }
+.dr-point-cross { stroke: var(--text); stroke-width: 2; fill: none; stroke-linecap: round; }
+.dr-label-point { font-weight: 700; }
+.dr-believed-shape { fill: var(--panel); stroke: var(--est); stroke-width: 2.6; stroke-linejoin: round; }
+.dr-fix { fill: var(--est); stroke: var(--halo); stroke-width: 1.5; }
+.dr-par-track { fill: none; stroke: var(--flag); stroke-width: 2.4; stroke-dasharray: 2 6; stroke-linecap: round; }
+
+/* --- legend and notes ------------------------------------------------------------------------------ */
+.legend { display: flex; flex-wrap: wrap; gap: 0.3rem 1.2rem; margin: 0.5rem 0 0; padding: 0; list-style: none; font-size: 0.85rem; color: var(--muted); }
+.legend svg { width: 2.6rem; height: 0.9rem; vertical-align: middle; margin-right: 0.3rem; }
+details.notes { margin-top: 0.5rem; }
+details.notes summary { cursor: pointer; color: var(--accent); }
+details.notes ul { margin: 0.4rem 0; padding-left: 1.2rem; }
+
+/* --- planner --------------------------------------------------------------------------------------- */
+.totals { display: flex; flex-wrap: wrap; gap: 0.3rem 1.2rem; margin: 0.3rem 0 0.6rem; font-variant-numeric: tabular-nums; }
+.totals b { font-weight: 700; }
+.totals .over { text-decoration: underline wavy; text-underline-offset: 3px; }
+.legs { list-style: none; margin: 0.4rem 0; padding: 0; display: grid; gap: 0.5rem; }
+.leg { border: 1px solid var(--line); border-radius: 10px; padding: 0.5rem 0.6rem; }
+.leg.selected { border-width: 3px; border-style: solid; border-color: var(--hover-edge); padding: calc(0.5rem - 2px) calc(0.6rem - 2px); }
+.leg:not(.selected) { border-style: dashed; }
+.leg-head { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.3rem; }
+.leg-number { display: inline-flex; align-items: center; justify-content: center; width: 1.7rem; height: 1.7rem; border: 2px solid var(--est); border-radius: 50%; font-weight: 700; }
+.leg-fields { display: flex; flex-wrap: wrap; gap: 0.5rem 0.9rem; }
+.field { display: flex; flex-direction: column; gap: 0.15rem; font-size: 0.85rem; color: var(--muted); }
+.field .stepper { display: inline-flex; gap: 0.2rem; align-items: center; }
+.field input { width: 4.4rem; text-align: center; font-variant-numeric: tabular-nums; }
+.field .stepper button { padding: 0.25rem 0.55rem; }
+.turns { display: flex; flex-wrap: wrap; gap: 0.3rem; margin-top: 0.4rem; }
+.turns button { padding: 0.25rem 0.55rem; font-variant-numeric: tabular-nums; }
+.planner-actions, .helpers { display: flex; flex-wrap: wrap; gap: 0.5rem; margin: 0.6rem 0; }
+.ruler { border-top: 1px solid var(--line); margin-top: 0.7rem; padding-top: 0.5rem; }
+.ruler-fields { display: flex; flex-wrap: wrap; gap: 0.5rem 0.9rem; align-items: end; }
+.ruler-readout { margin: 0.4rem 0; font-variant-numeric: tabular-nums; }
+.toast { min-height: 1.4rem; font-weight: 600; }
+.checkline { display: flex; gap: 0.5rem; align-items: center; margin: 0.4rem 0; }
+.checkline input[type="checkbox"] { width: 1.25rem; height: 1.25rem; accent-color: var(--btn-primary); }
+.sail-dock { display: contents; }
+
+/* --- playback and reveal ----------------------------------------------------------------------------- */
+.playback { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem 0.8rem; margin: 0.6rem 0 0; }
+.playback input[type="range"] { flex: 1 1 10rem; min-width: 8rem; accent-color: var(--btn-primary); }
+.playback-time { font-variant-numeric: tabular-nums; min-width: 6rem; }
+.result-card { border: 2px solid var(--edge); border-radius: 12px; padding: 0.6rem 0.8rem; margin: 0.6rem 0; }
+.result-title { margin: 0; font-size: 1.1rem; }
+.stars { font-size: 1.3rem; letter-spacing: 0.15em; }
+.criteria { list-style: none; margin: 0.4rem 0; padding: 0; display: grid; gap: 0.25rem; }
+.criteria li::before { display: inline-block; min-width: 4.5rem; font-weight: 700; }
+.criteria li.ok::before { content: "Yes  "; }
+.criteria li.no::before { content: "Not yet  "; }
+.events { margin: 0.4rem 0; padding-left: 1.2rem; }
+.events li { margin: 0.15rem 0; }
+.log-line { font-style: italic; margin: 0.3rem 0; }
+
+/* --- chart picker and panels ----------------------------------------------------------------------- */
+.picker { display: grid; gap: 0.5rem; }
+.picker-chapter h3 { margin: 0.4rem 0 0.2rem; font-size: 0.95rem; }
+.picker-list { display: flex; flex-wrap: wrap; gap: 0.4rem; list-style: none; margin: 0; padding: 0; }
+.picker-list button { min-width: 7rem; text-align: left; }
+.picker-list button[aria-current="true"] { border-width: 3px; border-color: var(--hover-edge); font-weight: 700; }
+.picker-list button .mini-stars { display: block; font-size: 0.85rem; letter-spacing: 0.1em; }
+.ach-list { list-style: none; padding: 0; margin: 0.4rem 0; display: grid; gap: 0.4rem; }
+.ach-list li { border: 1px solid var(--line); border-radius: 8px; padding: 0.4rem 0.7rem; }
+.ach-list li.earned { border-style: solid; border-width: 2px; border-color: var(--accent); }
+.ach-list li:not(.earned) { border-style: dashed; border-color: var(--edge); }
+.ach-list .tick { display: inline-block; min-width: 4.5rem; font-weight: 700; }
+.changelog-entry { border-top: 1px solid var(--line); padding-top: 0.5rem; margin-top: 0.6rem; }
+.changelog-entry:first-child { border-top: 0; margin-top: 0; padding-top: 0; }
+.changelog-date { font-weight: 700; font-variant-numeric: tabular-nums; }
+#info-page-sources { list-style: none; padding-left: 0; }
+.info-page-source { border-top: 1px solid var(--line); padding-top: 0.5rem; margin-top: 0.6rem; }
+.info-page-source:first-child { border-top: 0; margin-top: 0; padding-top: 0; }
+.info-page-source a { color: var(--accent); }
+.settings-row { display: flex; gap: 0.6rem; align-items: center; flex-wrap: wrap; margin: 0.5rem 0; }
+.settings-row input[type="checkbox"] { width: 1.25rem; height: 1.25rem; accent-color: var(--btn-primary); vertical-align: middle; }
+.text-size-control { display: inline-flex; gap: 0.3rem; }
+@media (max-width: 420px) { #game { padding: 0.7rem 0.7rem 2.5rem; } }
+
+/* Effects: the ship glide and the card fade. Reduce-motion removes the movement, the Effects switch removes the
+   fade and the glow; either way no information is carried by them. */
+@keyframes card-in { from { background: var(--btn); transform: translateY(-4px); } to { background: transparent; transform: none; } }
+.result-card.fresh { animation: card-in 0.6s ease-out; }
+html[data-effects="off"] .result-card.fresh { animation: none; }
+html[data-reduced-motion="true"] *, html[data-reduced-motion="true"] *::before, html[data-reduced-motion="true"] *::after,
+html[data-effects="off"] *, html[data-effects="off"] *::before, html[data-effects="off"] *::after {
+  animation: none !important; transition: none !important; scroll-behavior: auto !important;
+}
+
+/* Small screens: the chart scales down with the page, so its labels are drawn larger to stay readable. */
+@media (max-width: 560px) {
+  .dr-label { font-size: 17px; stroke-width: 4px; }
+  .dr-tick, .dr-label-wind, .dr-scale-label, .dr-rose-letter, .dr-label-landmark, .dr-leg-number { font-size: 15px; }
+}

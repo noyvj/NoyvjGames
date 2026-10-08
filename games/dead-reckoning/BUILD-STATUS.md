@@ -5,8 +5,10 @@ Updated after each milestone. A new agent should read `planning/dead-reckoning-p
 ## Done
 - Milestone 1 Sim core: `geom.py`, `sim.py`, `charts.py` (demo chart only), `tools/textharness.py`, tests.
 
+- Milestone 2 Chart SVG: `render.py`, `index.html`, `style.css`, `settings.js`, `app.js` (boot + chart draw), `game.py` (demo view), favicon, golden SVG tests.
+
 ## Next
-- Milestone 2 Chart SVG (`render.py`).
+- Milestone 3 Plan and sail (leg editor, helpers, Sail, playback, reveal, save contract).
 
 ## Open problems
 - None yet.
