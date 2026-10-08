@@ -366,3 +366,42 @@ def test_scenario_is_saved_only_when_chosen_and_validated(game_env):
     state["scenario"] = "junk"
     m.load_state(state)
     assert m.current_scenario == m.SCENARIO_NONE
+
+
+# ---- B-4: the shareable forest card ----
+
+def test_card_is_valid_xml_with_every_plot_and_the_headline_numbers(game_env):
+    import xml.etree.ElementTree as ET
+    m = game_env.module
+    m.forest_name = 'Oak & "Ash" <grove>'
+    svg = m.forest_card_svg()
+    root = ET.fromstring(svg)  # raises if the markup is broken
+    assert root.tag.endswith("svg") and root.get("width") == "1200" and root.get("height") == "630"
+    texts = [t.text or "" for t in root.iter() if t.tag.endswith("text")]
+    letters = [t for t in texts if t in ("P", "B", "R", "C")]
+    assert len(letters) == len(m.plots)
+    assert any('Oak & "Ash" <grove>' in t for t in texts)  # escaped in the file, intact when parsed
+    fields = m.copy_result_fields()
+    assert any(f"{fields['score']:.1f}" == t for t in texts)
+    assert any(stat in texts for stat in fields["stats"])
+
+
+def test_every_plot_state_has_a_colour_and_a_letter(game_env):
+    m = game_env.module
+    for state in (m.PRESERVED, m.BARE, m.REPLANTING, m.RECOVERED):
+        colour, letter = m.CARD_STATE_STYLE[state]
+        assert colour.startswith("#") and len(letter) == 1
+    assert len({letter for _c, letter in m.CARD_STATE_STYLE.values()}) == 4
+
+
+def test_bare_and_preserved_plots_appear_with_their_own_letters(game_env):
+    m = game_env.module
+    m.plots[0].state = m.BARE
+    svg = m.forest_card_svg()
+    assert svg.count(">B</text>") == 1 and svg.count(">P</text>") == len(m.plots) - 1
+
+
+def test_download_is_a_safe_no_op_outside_the_browser(game_env):
+    m = game_env.module
+    assert m._download_text_file("x.svg", "<svg/>", "image/svg+xml") in (True, False)
+    m.on_download_forest_card()  # must not raise

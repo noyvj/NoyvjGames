@@ -2489,6 +2489,84 @@ def share_snippet():
     )
 
 
+# B-4 (2026-10-09): a shareable forest image: the final grid, the playstyle badge and three headline numbers on one
+# 1200 x 630 card, drawn in code as an SVG (no generated images). Each plot shows a letter as well as a colour, so the
+# card still reads in greyscale or for colour-blind viewers.
+CARD_STATE_STYLE = {
+    PRESERVED: ("#2f7d4a", "P"),
+    BARE: ("#8a6a3f", "B"),
+    REPLANTING: ("#9bc873", "R"),
+    RECOVERED: ("#3d9aa6", "C"),
+}
+
+
+def _svg_text(text):
+    return str(text).replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace('"', "&quot;")
+
+
+def forest_card_svg():
+    """The card as an SVG string. Pure: reads the live session and returns text."""
+    width, height = 1200, 630
+    cell = min(int(560 / GRID_ROWS), int(560 / GRID_COLS), 90)
+    grid_w, grid_h = cell * GRID_COLS, cell * GRID_ROWS
+    left, top = 40 + (560 - grid_w) // 2, 35 + (560 - grid_h) // 2
+    parts = [
+        f'<svg xmlns="http://www.w3.org/2000/svg" width="{width}" height="{height}" viewBox="0 0 {width} {height}" role="img" aria-label="Canopy forest card">',
+        f'<rect width="{width}" height="{height}" fill="#14221a"/>',
+        f'<rect x="{left - 6}" y="{top - 6}" width="{grid_w + 12}" height="{grid_h + 12}" rx="10" fill="#0d1511"/>',
+    ]
+    for plot in plots:
+        row, col = divmod(plot.index, GRID_COLS)
+        colour, letter = CARD_STATE_STYLE.get(plot.state, ("#555555", "?"))
+        x, y = left + col * cell, top + row * cell
+        parts.append(f'<rect x="{x + 2}" y="{y + 2}" width="{cell - 4}" height="{cell - 4}" rx="6" fill="{colour}"/>')
+        parts.append(
+            f'<text x="{x + cell / 2}" y="{y + cell / 2 + cell * 0.14}" font-size="{int(cell * 0.4)}" font-family="sans-serif" '
+            f'font-weight="700" text-anchor="middle" fill="#ffffff">{letter}</text>'
+        )
+    fields = copy_result_fields()
+    badge = playstyle_badge()
+    title = forest_name or "My forest"
+    right = 660
+    parts += [
+        f'<text x="{right}" y="110" font-size="30" font-family="sans-serif" fill="#9bc873">Canopy</text>',
+        f'<text x="{right}" y="170" font-size="52" font-family="sans-serif" font-weight="700" fill="#ffffff">{_svg_text(title[:28])}</text>',
+        f'<text x="{right}" y="225" font-size="32" font-family="sans-serif" fill="#e9d8a6">{BADGE_ICON[badge]} {_svg_text(badge)}</text>',
+        f'<text x="{right}" y="330" font-size="64" font-family="sans-serif" font-weight="700" fill="#ffffff">{fields["score"]:.1f}</text>',
+        f'<text x="{right}" y="368" font-size="26" font-family="sans-serif" fill="#cfd8d2">{_svg_text(fields["unit"])}</text>',
+    ]
+    for n, stat in enumerate(fields["stats"]):
+        parts.append(
+            f'<text x="{right}" y="{440 + n * 48}" font-size="32" font-family="sans-serif" fill="#ffffff">{_svg_text(stat)}</text>'
+        )
+    parts += [
+        f'<text x="{right}" y="590" font-size="22" font-family="sans-serif" fill="#8fa397">P preserved, B bare, R replanting, C recovered</text>',
+        "</svg>",
+    ]
+    return "".join(parts)
+
+
+def _download_text_file(filename, text, mime):
+    """Hands text to the browser as a file download (a no-op outside the browser)."""
+    try:
+        from js import Blob, URL  # noqa: PLC0415 -- Pyodide-only, deliberately lazy
+    except ImportError:
+        return False
+    blob = Blob.new([text], {"type": mime})
+    url = URL.createObjectURL(blob)
+    link = document.createElement("a")
+    link.href = url
+    link.download = filename
+    link.click()
+    URL.revokeObjectURL(url)
+    return True
+
+
+def on_download_forest_card(event=None):
+    ok = _download_text_file("canopy-forest-card.svg", forest_card_svg(), "image/svg+xml")
+    _announce("Forest card downloaded" if ok else "Forest card could not be downloaded here")
+
+
 def copy_result_fields():
     """Z-20: the fields shared/copy-result.js turns into one pasteable line,
     e.g. "Canopy, 41.2 standing value, 12.5 harvested, ...". Read by the
@@ -7118,6 +7196,9 @@ def setup():
     replant_button.innerText = "Replant"
     clear_button.addEventListener("click", create_proxy(on_clear))
     replant_button.addEventListener("click", create_proxy(on_replant))
+    card_button = _el("forest-card-download")  # B-4
+    if card_button is not None:
+        card_button.addEventListener("click", create_proxy(on_download_forest_card))
     scenario_select = _el("scenario-select")  # B-11
     if scenario_select is not None:
         scenario_select.addEventListener("change", create_proxy(on_scenario_change))
