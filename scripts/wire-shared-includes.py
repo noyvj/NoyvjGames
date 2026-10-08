@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Add the site-wide shared includes (lite mode, a11y, touch targets, error boundary, perf marks,
-debug overlay, info footer) to every game's index.html and to the hub pages. Idempotent: a page
+debug overlay, info footer, report a problem, profile helper) to every game's index.html and to the hub pages. Idempotent: a page
 that already has an include is left alone, so it is safe to run again after adding a new game.
 
     python3 scripts/wire-shared-includes.py            # edit the pages
@@ -38,6 +38,13 @@ def game_scripts(prefix, slug):
         f'<script src="{prefix}perf-mark.js" data-game-id="{slug}"></script>',
         f'<script src="{prefix}debug-overlay.js"></script>',
         f'<script src="{prefix}info-footer.js" data-game-id="{slug}"></script>',
+        # Z-17 Report a problem (reads the save code from localStorage["savecode:<slug>"]; the save widget
+        # hands it the save's schema_version after a save) and Z-7 profile helper (fed by save-widget.js).
+        # The button is mounted inside the page's own .game-toolbar (in the normal flow, so it can never sit
+        # on the save pill, the mobile dock, the ad bar or a bottom bar); the generated Desktop page swaps
+        # it for a Menu > Help entry (scripts/generate-pc-pages.py).
+        f'<script src="{prefix}report-problem.js" data-game-id="{slug}" data-mount=".game-toolbar"></script>',
+        f'<script src="{prefix}profile.js" data-game-id="{slug}"></script>',
     ]
 
 
@@ -60,11 +67,21 @@ def wire(path, scripts_for, styles_for, slug=None):
     if not match or "</head>" not in text:
         return None
     indent, prefix = match.group(1), match.group(2)
-    scripts = [s for s in (scripts_for(prefix, slug) if slug else scripts_for(prefix)) if s not in text]
+    wanted = scripts_for(prefix, slug) if slug else scripts_for(prefix)
     styles = [s for s in styles_for(prefix) if s not in text]
-    if scripts:
-        block = "".join(f"{indent}{line}\n" for line in scripts)
-        text = text[: match.end()] + block + text[match.end():]
+    # Each missing script goes right after the nearest earlier script of the list already on the page
+    # (so a later addition like report-problem.js lands after info-footer.js, not ahead of the error
+    # boundary); with none present, right after theme.js.
+    for position, line in enumerate(wanted):
+        if line in text:
+            continue
+        anchor = match.end()
+        for earlier in reversed(wanted[:position]):
+            at = text.find(earlier)
+            if at >= 0:
+                anchor = text.index("\n", at) + 1
+                break
+        text = text[:anchor] + f"{indent}{line}\n" + text[anchor:]
     if styles:
         text = text.replace("</head>", "".join(f"{line}\n" for line in styles) + "</head>", 1)
     return text

@@ -32,7 +32,7 @@
     },
     {
      "path": "games/sol/index.html",
-     "bytes": 87602,
+     "bytes": 87774,
      "precached": true
     },
     {
@@ -47,7 +47,7 @@
     },
     {
      "path": "games/sol/pc.html",
-     "bytes": 91032,
+     "bytes": 91413,
      "precached": true
     },
     {
@@ -193,8 +193,18 @@
      "precached": true
     },
     {
+     "path": "shared/profile.js",
+     "bytes": 9880,
+     "precached": true
+    },
+    {
+     "path": "shared/report-problem.js",
+     "bytes": 22021,
+     "precached": true
+    },
+    {
      "path": "shared/save-widget.js",
-     "bytes": 70916,
+     "bytes": 72027,
      "precached": true
     },
     {
@@ -275,7 +285,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14608157,
+   "bytes": 14641722,
    "bytes_complete": true
   },
   "canopy": {
@@ -297,7 +307,7 @@
     },
     {
      "path": "games/canopy/index.html",
-     "bytes": 70548,
+     "bytes": 70726,
      "precached": true
     },
     {
@@ -317,7 +327,7 @@
     },
     {
      "path": "games/canopy/pc.html",
-     "bytes": 74610,
+     "bytes": 74997,
      "precached": true
     },
     {
@@ -493,8 +503,18 @@
      "precached": false
     },
     {
+     "path": "shared/profile.js",
+     "bytes": 9880,
+     "precached": true
+    },
+    {
+     "path": "shared/report-problem.js",
+     "bytes": 22021,
+     "precached": true
+    },
+    {
      "path": "shared/save-widget.js",
-     "bytes": 70916,
+     "bytes": 72027,
      "precached": true
     },
     {
@@ -590,7 +610,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14763476,
+   "bytes": 14797053,
    "bytes_complete": true
   },
   "grid": {
@@ -612,7 +632,7 @@
     },
     {
      "path": "games/grid/index.html",
-     "bytes": 58935,
+     "bytes": 59109,
      "precached": true
     },
     {
@@ -627,7 +647,7 @@
     },
     {
      "path": "games/grid/pc.html",
-     "bytes": 63166,
+     "bytes": 63549,
      "precached": true
     },
     {
@@ -788,8 +808,18 @@
      "precached": true
     },
     {
+     "path": "shared/profile.js",
+     "bytes": 9880,
+     "precached": true
+    },
+    {
+     "path": "shared/report-problem.js",
+     "bytes": 22021,
+     "precached": true
+    },
+    {
      "path": "shared/save-widget.js",
-     "bytes": 70916,
+     "bytes": 72027,
      "precached": true
     },
     {
@@ -880,7 +910,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14608112,
+   "bytes": 14641681,
    "bytes_complete": true
   },
   "tide": {
@@ -902,7 +932,7 @@
     },
     {
      "path": "games/tide/index.html",
-     "bytes": 55995,
+     "bytes": 56169,
      "precached": true
     },
     {
@@ -917,7 +947,7 @@
     },
     {
      "path": "games/tide/pc.html",
-     "bytes": 59559,
+     "bytes": 59942,
      "precached": true
     },
     {
@@ -1088,8 +1118,18 @@
      "precached": false
     },
     {
+     "path": "shared/profile.js",
+     "bytes": 9880,
+     "precached": true
+    },
+    {
+     "path": "shared/report-problem.js",
+     "bytes": 22021,
+     "precached": true
+    },
+    {
      "path": "shared/save-widget.js",
-     "bytes": 70916,
+     "bytes": 72027,
      "precached": true
     },
     {
@@ -1155,7 +1195,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14504672,
+   "bytes": 14538241,
    "bytes_complete": true
   },
   "aftermath": {
@@ -1177,7 +1217,7 @@
     },
     {
      "path": "games/aftermath/index.html",
-     "bytes": 46031,
+     "bytes": 46215,
      "precached": true
     },
     {
@@ -1192,7 +1232,7 @@
     },
     {
      "path": "games/aftermath/pc.html",
-     "bytes": 49160,
+     "bytes": 49553,
      "precached": true
     },
     {
@@ -1368,8 +1408,18 @@
      "precached": false
     },
     {
+     "path": "shared/profile.js",
+     "bytes": 9880,
+     "precached": true
+    },
+    {
+     "path": "shared/report-problem.js",
+     "bytes": 22021,
+     "precached": true
+    },
+    {
      "path": "shared/save-widget.js",
-     "bytes": 70916,
+     "bytes": 72027,
      "precached": true
     },
     {
@@ -1435,7 +1485,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14467856,
+   "bytes": 14501445,
    "bytes_complete": true
   },
   "herd": {
@@ -1457,7 +1507,7 @@
     },
     {
      "path": "games/herd/index.html",
-     "bytes": 46731,
+     "bytes": 46905,
      "precached": true
     },
     {
@@ -1472,7 +1522,7 @@
     },
     {
      "path": "games/herd/pc.html",
-     "bytes": 49937,
+     "bytes": 50320,
      "precached": true
     },
     {
@@ -1643,8 +1693,18 @@
      "precached": false
     },
     {
+     "path": "shared/profile.js",
+     "bytes": 9880,
+     "precached": true
+    },
+    {
+     "path": "shared/report-problem.js",
+     "bytes": 22021,
+     "precached": true
+    },
+    {
      "path": "shared/save-widget.js",
-     "bytes": 70916,
+     "bytes": 72027,
      "precached": true
     },
     {
@@ -1715,7 +1775,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14458116,
+   "bytes": 14491685,
    "bytes_complete": true
   },
   "thaw": {
@@ -1737,7 +1797,7 @@
     },
     {
      "path": "games/thaw/index.html",
-     "bytes": 49053,
+     "bytes": 49227,
      "precached": true
     },
     {
@@ -1752,7 +1812,7 @@
     },
     {
      "path": "games/thaw/pc.html",
-     "bytes": 52436,
+     "bytes": 52819,
      "precached": true
     },
     {
@@ -1908,8 +1968,18 @@
      "precached": false
     },
     {
+     "path": "shared/profile.js",
+     "bytes": 9880,
+     "precached": true
+    },
+    {
+     "path": "shared/report-problem.js",
+     "bytes": 22021,
+     "precached": true
+    },
+    {
      "path": "shared/save-widget.js",
-     "bytes": 70916,
+     "bytes": 72027,
      "precached": true
     },
     {
@@ -1975,7 +2045,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14446458,
+   "bytes": 14480027,
    "bytes_complete": true
   },
   "loop": {
@@ -1997,7 +2067,7 @@
     },
     {
      "path": "games/loop/index.html",
-     "bytes": 48072,
+     "bytes": 48246,
      "precached": true
     },
     {
@@ -2012,7 +2082,7 @@
     },
     {
      "path": "games/loop/pc.html",
-     "bytes": 50656,
+     "bytes": 51039,
      "precached": true
     },
     {
@@ -2173,8 +2243,18 @@
      "precached": true
     },
     {
+     "path": "shared/profile.js",
+     "bytes": 9880,
+     "precached": true
+    },
+    {
+     "path": "shared/report-problem.js",
+     "bytes": 22021,
+     "precached": true
+    },
+    {
      "path": "shared/save-widget.js",
-     "bytes": 70916,
+     "bytes": 72027,
      "precached": true
     },
     {
@@ -2245,7 +2325,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14466436,
+   "bytes": 14500005,
    "bytes_complete": true
   },
   "drift": {
@@ -2267,7 +2347,7 @@
     },
     {
      "path": "games/drift/index.html",
-     "bytes": 48680,
+     "bytes": 48856,
      "precached": true
     },
     {
@@ -2282,7 +2362,7 @@
     },
     {
      "path": "games/drift/pc.html",
-     "bytes": 51534,
+     "bytes": 51919,
      "precached": true
     },
     {
@@ -2443,8 +2523,18 @@
      "precached": true
     },
     {
+     "path": "shared/profile.js",
+     "bytes": 9880,
+     "precached": true
+    },
+    {
+     "path": "shared/report-problem.js",
+     "bytes": 22021,
+     "precached": true
+    },
+    {
      "path": "shared/save-widget.js",
-     "bytes": 70916,
+     "bytes": 72027,
      "precached": true
     },
     {
@@ -2515,7 +2605,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14489343,
+   "bytes": 14522916,
    "bytes_complete": true
   },
   "champ-de-mots": {
@@ -2547,7 +2637,7 @@
     },
     {
      "path": "games/champ-de-mots/index.html",
-     "bytes": 88476,
+     "bytes": 88668,
      "precached": true
     },
     {
@@ -2572,7 +2662,7 @@
     },
     {
      "path": "games/champ-de-mots/pc.html",
-     "bytes": 93874,
+     "bytes": 94275,
      "precached": true
     },
     {
@@ -2733,8 +2823,18 @@
      "precached": true
     },
     {
+     "path": "shared/profile.js",
+     "bytes": 9880,
+     "precached": true
+    },
+    {
+     "path": "shared/report-problem.js",
+     "bytes": 22021,
+     "precached": true
+    },
+    {
      "path": "shared/save-widget.js",
-     "bytes": 70916,
+     "bytes": 72027,
      "precached": true
     },
     {
@@ -2805,7 +2905,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 15247436,
+   "bytes": 15281041,
    "bytes_complete": true
   },
   "continuum": {
@@ -2912,7 +3012,7 @@
     },
     {
      "path": "games/continuum/index.html",
-     "bytes": 76961,
+     "bytes": 77145,
      "precached": true
     },
     {
@@ -2962,7 +3062,7 @@
     },
     {
      "path": "games/continuum/pc.html",
-     "bytes": 80812,
+     "bytes": 81205,
      "precached": true
     },
     {
@@ -3198,8 +3298,18 @@
      "precached": true
     },
     {
+     "path": "shared/profile.js",
+     "bytes": 9880,
+     "precached": true
+    },
+    {
+     "path": "shared/report-problem.js",
+     "bytes": 22021,
+     "precached": true
+    },
+    {
      "path": "shared/save-widget.js",
-     "bytes": 70916,
+     "bytes": 72027,
      "precached": true
     },
     {
@@ -3295,7 +3405,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 15956627,
+   "bytes": 15990216,
    "bytes_complete": true
   },
   "signal": {
@@ -3322,7 +3432,7 @@
     },
     {
      "path": "games/signal/index.html",
-     "bytes": 18395,
+     "bytes": 18569,
      "precached": true
     },
     {
@@ -3337,7 +3447,7 @@
     },
     {
      "path": "games/signal/pc.html",
-     "bytes": 21007,
+     "bytes": 21390,
      "precached": true
     },
     {
@@ -3473,8 +3583,18 @@
      "precached": true
     },
     {
+     "path": "shared/profile.js",
+     "bytes": 9880,
+     "precached": true
+    },
+    {
+     "path": "shared/report-problem.js",
+     "bytes": 22021,
+     "precached": true
+    },
+    {
      "path": "shared/save-widget.js",
-     "bytes": 70916,
+     "bytes": 72027,
      "precached": true
     },
     {
@@ -3509,7 +3629,7 @@
     }
    ],
    "cdn": [],
-   "bytes": 468787,
+   "bytes": 502356,
    "bytes_complete": true
   },
   "lexis": {
@@ -3581,7 +3701,7 @@
     },
     {
      "path": "games/lexis/index.html",
-     "bytes": 19870,
+     "bytes": 20042,
      "precached": true
     },
     {
@@ -3616,7 +3736,7 @@
     },
     {
      "path": "games/lexis/pc.html",
-     "bytes": 21884,
+     "bytes": 22265,
      "precached": true
     },
     {
@@ -3762,8 +3882,18 @@
      "precached": true
     },
     {
+     "path": "shared/profile.js",
+     "bytes": 9880,
+     "precached": true
+    },
+    {
+     "path": "shared/report-problem.js",
+     "bytes": 22021,
+     "precached": true
+    },
+    {
      "path": "shared/save-widget.js",
-     "bytes": 70916,
+     "bytes": 72027,
      "precached": true
     },
     {
@@ -3829,7 +3959,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14229849,
+   "bytes": 14263414,
    "bytes_complete": true
   },
   "trade-empire": {
@@ -3851,7 +3981,7 @@
     },
     {
      "path": "games/trade-empire/index.html",
-     "bytes": 88460,
+     "bytes": 88650,
      "precached": true
     },
     {
@@ -3866,7 +3996,7 @@
     },
     {
      "path": "games/trade-empire/pc.html",
-     "bytes": 91310,
+     "bytes": 91709,
      "precached": true
     },
     {
@@ -4012,8 +4142,18 @@
      "precached": true
     },
     {
+     "path": "shared/profile.js",
+     "bytes": 9880,
+     "precached": true
+    },
+    {
+     "path": "shared/report-problem.js",
+     "bytes": 22021,
+     "precached": true
+    },
+    {
      "path": "shared/save-widget.js",
-     "bytes": 70916,
+     "bytes": 72027,
      "precached": true
     },
     {
@@ -4099,7 +4239,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14617116,
+   "bytes": 14650717,
    "bytes_complete": true
   }
  }

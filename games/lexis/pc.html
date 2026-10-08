@@ -4,7 +4,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<script>window.NOYVJ_LAYOUT = "pc"; window.NOYVJ_PC_WINDOWS = [{"panel": "crew-log-panel", "toggle": "crew-log-toggle-button", "title": "Crew log"}, {"panel": "report-panel", "toggle": "report-toggle-button", "title": "Contact report"}, {"panel": "achievements-panel", "toggle": "achievements-toggle-button", "title": "Achievements"}, {"panel": "changelog-panel", "toggle": "changelog-toggle-button", "title": "What's New"}, {"panel": "settings-panel", "toggle": "settings-toggle-button", "title": "Settings"}, {"panel": "info-page-panel", "toggle": "info-page-toggle-button", "title": "About Lexis"}]; window.NOYVJ_PC_ZONES = {"topbar": [".hub-back-link", "h1", ".game-toolbar"], "stagebar": ["#planet-tabs", "#goal-line", "#toast", "#engine-status"], "stage": ["#planet-pulse", "#planet-compound", "#planet-bridge"], "side": [], "hidden": [".tagline", "#contact-line"]}; window.NOYVJ_PC_HINTS = [["Tab", "Next control"], ["S / L", "Short tick / long bar (Planet 1 Transmit)"], ["⌫", "Remove last"], ["Del", "Clear signal"], ["←→", "Along a row of buttons"], ["?", "All shortcuts"], ["Esc", "Menu / close window"]]; window.NOYVJ_PC_NOTIFY = null; window.NOYVJ_PC_TOOLBAR = {"icons": [["crew-log-toggle-button", "📓"], ["achievements-toggle-button", "🏆"], ["settings-toggle-button", "⚙️"]], "menu": [{"heading": "Game", "ids": []}, {"heading": "Help", "ids": ["tutorial-restart-button", "info-page-toggle-button", "credits-link"]}, {"heading": "Records", "ids": ["report-toggle-button", "changelog-toggle-button"]}]}; window.NOYVJ_PC_COMPOSITES = []; window.NOYVJ_PC_ADOPT = []; window.NOYVJ_PC_READOUTS = [["#contact-line", "📡", "Contact"]]; window.NOYVJ_PC_SIDE_LABEL = "Notebook and transmit";</script>
+<script>window.NOYVJ_LAYOUT = "pc"; window.NOYVJ_PC_WINDOWS = [{"panel": "crew-log-panel", "toggle": "crew-log-toggle-button", "title": "Crew log"}, {"panel": "report-panel", "toggle": "report-toggle-button", "title": "Contact report"}, {"panel": "achievements-panel", "toggle": "achievements-toggle-button", "title": "Achievements"}, {"panel": "changelog-panel", "toggle": "changelog-toggle-button", "title": "What's New"}, {"panel": "settings-panel", "toggle": "settings-toggle-button", "title": "Settings"}, {"panel": "info-page-panel", "toggle": "info-page-toggle-button", "title": "About Lexis"}]; window.NOYVJ_PC_ZONES = {"topbar": [".hub-back-link", "h1", ".game-toolbar"], "stagebar": ["#planet-tabs", "#goal-line", "#toast", "#engine-status"], "stage": ["#planet-pulse", "#planet-compound", "#planet-bridge"], "side": [], "hidden": [".tagline", "#contact-line"]}; window.NOYVJ_PC_HINTS = [["Tab", "Next control"], ["S / L", "Short tick / long bar (Planet 1 Transmit)"], ["⌫", "Remove last"], ["Del", "Clear signal"], ["←→", "Along a row of buttons"], ["?", "All shortcuts"], ["Esc", "Menu / close window"]]; window.NOYVJ_PC_NOTIFY = null; window.NOYVJ_PC_TOOLBAR = {"icons": [["crew-log-toggle-button", "📓"], ["achievements-toggle-button", "🏆"], ["settings-toggle-button", "⚙️"]], "menu": [{"heading": "Game", "ids": []}, {"heading": "Help", "ids": ["tutorial-restart-button", "info-page-toggle-button", "credits-link", "noyvj-report-menu-button"]}, {"heading": "Records", "ids": ["report-toggle-button", "changelog-toggle-button"]}]}; window.NOYVJ_PC_COMPOSITES = []; window.NOYVJ_PC_ADOPT = []; window.NOYVJ_PC_READOUTS = [["#contact-line", "📡", "Contact"]]; window.NOYVJ_PC_SIDE_LABEL = "Notebook and transmit";</script>
 <script src="pc.js"></script>
 <script src="../../shared/layout-pref.js" data-game-id="lexis" data-pc-page="pc.html" data-classic-page="index.html"></script>
 <title>Lexis - NoyvjGames (Desktop)</title>
@@ -80,6 +80,8 @@
 <script src="../../shared/perf-mark.js" data-game-id="lexis"></script>
 <script src="../../shared/debug-overlay.js"></script>
 <script src="../../shared/info-footer.js" data-game-id="lexis"></script>
+<script src="../../shared/report-problem.js" data-button="none" data-game-id="lexis" data-mount=".game-toolbar"></script>
+<script src="../../shared/profile.js" data-game-id="lexis"></script>
 <script src="../../shared/site-settings.js" data-game-id="lexis"></script>
 <script src="settings.js"></script>
 <link rel="stylesheet" href="../../ad-bar.css">
@@ -342,6 +344,7 @@
     navigator.serviceWorker.register("../../sw.js");
   }
 </script>
+<button type="button" class="secondary" id="noyvj-report-menu-button" onclick="window.NoyvjReport &amp;&amp; window.NoyvjReport.open()">Report a problem</button>
 <script src="../../shared/pc-shell.js"></script>
 </body>
 </html>

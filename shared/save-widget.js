@@ -407,6 +407,23 @@
     lsSet(SAVED_AT_KEY, String(lastSaveAt));
     renderSavedLine();
   }
+  // Z-7 / Z-17: after a SUCCESSFUL save only, tell the shared profile helper how many achievements
+  // the saved state holds (shared/profile.js adds the visible-tab seconds itself and posts only for a
+  // signed-in player) and tell the Report a problem dialog which save schema this state carries.
+  // Never awaited, never throws: it must not delay or break a save.
+  function afterSaveSuccess(state) {
+    try {
+      const earned = state && Array.isArray(state.achievements_earned) ? state.achievements_earned : null;
+      if (window.NoyvjProfile && typeof window.NoyvjProfile.update === "function") {
+        const info = { game: GAME_ID };
+        if (earned) info.achievements = earned;
+        window.NoyvjProfile.update(info);
+      }
+      if (state && state.schema_version != null && window.NoyvjReport && typeof window.NoyvjReport.configure === "function") {
+        window.NoyvjReport.configure({ schemaVersion: state.schema_version });
+      }
+    } catch (err) { /* a profile or report helper problem never touches saving */ }
+  }
   function recordSaveFailure() {
     lastSaveFailed = true;
     renderSavedLine();
@@ -890,6 +907,7 @@
       showActiveCode(body.save_code, true);
       renderSlots();
       recordSaveSuccess();
+      afterSaveSuccess(state);
       return true;
     } catch (err) {
       console.error(`${GAME_ID} save-widget: slot save failed`, err);
@@ -1300,6 +1318,7 @@
       lsSet(STORAGE_KEY, body.save_code);
       showActiveCode(body.save_code);
       recordSaveSuccess();
+      afterSaveSuccess(state);
       return true;
     } catch (err) {
       console.error(`${GAME_ID} save-widget: save failed`, err);

@@ -23,6 +23,10 @@ GAME_STYLES = ["a11y.css", "touch-targets.css", "lite-mode.css"]
 HUB_PAGES = ["index.html", "settings.html", "help.html", "credits.html", "achievements.html",
              "whats-new.html", "roadmap.html", "sources.html", "terms.html"]
 SHARED_FILES = GAME_SCRIPTS + GAME_STYLES
+# Z-17 Report a problem and Z-7 profile helper: on every game page (Classic and Desktop). Not in the
+# service worker's precache list yet (that file belongs to the main session), so they are kept apart
+# from SHARED_FILES, which test_every_shared_file_is_precached checks.
+GAME_EXTRA_SCRIPTS = ["report-problem.js", "profile.js"]
 
 
 def game_pages():
@@ -63,6 +67,30 @@ def test_game_page_includes_every_shared_file(slug, name):
     for file in ("error-boundary.js", "perf-mark.js", "info-footer.js"):
         assert f'data-game-id="{slug}"' in src_tag(html, file), f"{file} needs the game id"
     assert 'data-game-id="' not in src_tag(html, "lite-mode.js")
+
+
+@pytest.mark.parametrize("slug,name", game_pages())
+def test_game_page_includes_report_problem_and_profile(slug, name):
+    html = (ROOT / "games" / slug / name).read_text(encoding="utf-8")
+    head = html[: html.index("</head>")]
+    for file in GAME_EXTRA_SCRIPTS:
+        tag = src_tag(html, file)
+        assert tag.startswith("<script"), file
+        assert f'data-game-id="{slug}"' in tag, f"{file} needs the game id"
+        # in <head>, after the error boundary (already listening), before the settings sync
+        assert position(head, "shared/error-boundary.js") < position(head, f"shared/{file}") < position(head, "shared/site-settings.js")
+    if name == "index.html":
+        assert 'data-mount=".game-toolbar"' in src_tag(html, "report-problem.js"), "Classic mounts the button in the game toolbar"
+        assert "data-button" not in src_tag(html, "report-problem.js")
+        assert 'class="game-toolbar' in html, "the toolbar the button is mounted in must exist"
+    else:
+        # Desktop: a Menu > Help entry replaces the floating button, or the floating button stays
+        tag = src_tag(html, "report-problem.js")
+        entry = 'id="noyvj-report-menu-button"' in html
+        assert entry == ('data-button="none"' in tag), "the toolbar button is off exactly when the Menu entry exists"
+        if entry:
+            assert '"noyvj-report-menu-button"' in html, "the Help group must list the entry"
+            assert html.index('id="noyvj-report-menu-button"') < html.index("shared/pc-shell.js")
 
 
 @pytest.mark.parametrize("slug,name", game_pages())
@@ -145,8 +173,9 @@ def test_wiring_script_is_idempotent_and_refuses_pages_it_cannot_place(tmp_path)
     once = wire.wire(page, wire.game_scripts, wire.game_styles, "x")
     page.write_text(once)
     assert wire.wire(page, wire.game_scripts, wire.game_styles, "x") == once, "second run must change nothing"
-    for file in SHARED_FILES:
+    for file in SHARED_FILES + GAME_EXTRA_SCRIPTS:
         assert once.count(f"shared/{file}") == 1
+    assert once.index("info-footer.js") < once.index("report-problem.js") < once.index("profile.js") < once.index("site-settings.js")
     assert once.index("lite-mode.js") < once.index("site-settings.js")
     page.write_text("<html><head></head><body>no theme tag</body></html>")
     assert wire.wire(page, wire.game_scripts, wire.game_styles, "x") is None
