@@ -126,6 +126,13 @@ class AnswerReport(Base):
     # the admin-token-protected PATCH /answer-reports/{id}.
     is_resolved = Column(Boolean, nullable=False, default=False, server_default=false())
     resolved_at = Column(DateTime(timezone=True), nullable=True)
+    # "Fixed" is separate from "done": done means the owner has dealt with a
+    # report; fixed means the game's data or code was actually changed because
+    # of it (set with PATCH /answer-reports/{id}/fixed, which also takes the AI
+    # admin token, so the AI session can tick it itself and say what it did).
+    is_fixed = Column(Boolean, nullable=False, default=False, server_default=false())
+    fixed_note = Column(String, nullable=True)
+    fixed_at = Column(DateTime(timezone=True), nullable=True)
 
 
 class Feedback(Base):

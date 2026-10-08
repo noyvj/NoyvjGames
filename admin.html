@@ -272,7 +272,7 @@
     </div>
     <p class="status-line" id="reports-status">Loading…</p>
     <table id="reports-table">
-      <thead><tr><th>Item</th><th>Submitted</th><th>Marked correct</th><th>Topic</th><th>When</th><th>Status</th></tr></thead>
+      <thead><tr><th>Item</th><th>Submitted</th><th>Marked correct</th><th>Topic</th><th>When</th><th>Status</th><th>Fixed</th></tr></thead>
       <tbody></tbody>
     </table>
   </details>
@@ -434,7 +434,7 @@ function renderReports() {
     : byState;
 
   if (!filtered.length) {
-    tbody.innerHTML = `<tr class="empty-row"><td colspan="6">${allReports.length ? "No reports here." : "No answer reports submitted yet."}</td></tr>`;
+    tbody.innerHTML = `<tr class="empty-row"><td colspan="7">${allReports.length ? "No reports here." : "No answer reports submitted yet."}</td></tr>`;
     return;
   }
   tbody.innerHTML = filtered.map((r) => `
@@ -445,8 +445,23 @@ function renderReports() {
       <td>${escapeHtml(r.topic_type) || "—"}</td>
       <td>${formatWhen(r.created_at)}</td>
       <td>${r.is_resolved ? `Done ${formatWhen(r.resolved_at)}<br>` : ""}<button type="button" class="refresh-button report-toggle" data-id="${escapeHtml(r.id)}" data-resolved="${r.is_resolved ? "false" : "true"}">${r.is_resolved ? "Reopen" : "Mark done"}</button></td>
+      <td><label><input type="checkbox" class="report-fixed" data-id="${escapeHtml(r.id)}"${r.is_fixed ? " checked" : ""}> Fixed</label>${r.is_fixed ? `<br><small>${escapeHtml(r.fixed_note || "")}${r.fixed_at ? ` (${formatWhen(r.fixed_at)})` : ""}</small>` : ""}</td>
     </tr>
   `).join("");
+}
+
+async function setReportFixed(id, fixed) {
+  const res = await fetch(`${API_BASE}/answer-reports/${encodeURIComponent(id)}/fixed`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json", ...adminHeaders() },
+    body: JSON.stringify({ fixed, note: fixed ? "Marked fixed from the admin page" : null }),
+  });
+  if (res.status === 401 || res.status === 503) { showLogin("This account isn't accepted as admin. Sign in as the owner account."); return; }
+  if (!res.ok) { document.getElementById("reports-status").textContent = "Couldn't update that report."; renderReports(); return; }
+  const updated = await res.json();
+  const index = allReports.findIndex((r) => r.id === id);
+  if (index >= 0) allReports[index] = updated;
+  renderReports();
 }
 
 async function setReportResolved(id, resolved) {
@@ -657,6 +672,10 @@ document.getElementById("reports-state").addEventListener("change", renderReport
 document.querySelector("#reports-table tbody").addEventListener("click", (event) => {
   const button = event.target.closest(".report-toggle");
   if (button) setReportResolved(button.dataset.id, button.dataset.resolved === "true");
+});
+document.addEventListener("change", (event) => {
+  const box = event.target.closest && event.target.closest(".report-fixed");
+  if (box) setReportFixed(box.dataset.id, box.checked);
 });
 document.getElementById("reports-refresh").addEventListener("click", loadAll);
 document.getElementById("accounts-refresh").addEventListener("click", loadAll);

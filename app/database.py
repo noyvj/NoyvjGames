@@ -90,6 +90,10 @@ def patch_schema():
         # U6: report triage state.
         "ALTER TABLE answer_reports ADD COLUMN IF NOT EXISTS is_resolved BOOLEAN NOT NULL DEFAULT FALSE",
         "ALTER TABLE answer_reports ADD COLUMN IF NOT EXISTS resolved_at TIMESTAMPTZ",
+        # Reports a code or data change has actually fixed (separate from done).
+        "ALTER TABLE answer_reports ADD COLUMN IF NOT EXISTS is_fixed BOOLEAN NOT NULL DEFAULT FALSE",
+        "ALTER TABLE answer_reports ADD COLUMN IF NOT EXISTS fixed_note VARCHAR",
+        "ALTER TABLE answer_reports ADD COLUMN IF NOT EXISTS fixed_at TIMESTAMPTZ",
         # UX-9: admin can hide test feedback/ratings from the public reads.
         "ALTER TABLE ratings ADD COLUMN IF NOT EXISTS is_hidden BOOLEAN NOT NULL DEFAULT FALSE",
         "ALTER TABLE feedback ADD COLUMN IF NOT EXISTS is_hidden BOOLEAN NOT NULL DEFAULT FALSE",

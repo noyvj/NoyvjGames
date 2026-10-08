@@ -249,12 +249,20 @@ class AnswerReportOut(BaseModel):
     created_at: datetime
     is_resolved: bool = False
     resolved_at: Optional[datetime] = None
+    is_fixed: bool = False
+    fixed_note: Optional[str] = None
+    fixed_at: Optional[datetime] = None
 
     model_config = ConfigDict(from_attributes=True)
 
 
 class ReportResolveIn(BaseModel):
     resolved: bool
+
+
+class ReportFixedIn(BaseModel):
+    fixed: bool
+    note: Optional[str] = None
 
 
 # --- U8: admin access ---
@@ -349,6 +357,28 @@ def resolve_answer_report(
         raise HTTPException(status_code=404, detail="Report not found")
     row.is_resolved = body.resolved
     row.resolved_at = func.now() if body.resolved else None
+    db.commit()
+    db.refresh(row)
+    return row
+
+
+@app.patch("/answer-reports/{report_id}/fixed", response_model=AnswerReportOut)
+def mark_answer_report_fixed(
+    report_id: str,
+    body: ReportFixedIn,
+    response: Response,
+    _admin: None = Depends(require_admin),
+    db: Session = Depends(get_db),
+):
+    """Tick or untick "fixed" on a report, with a one-line note of what changed.
+    Admin token (owner bearer or the AI token) only. Does not touch `is_resolved`."""
+    response.headers["Cache-Control"] = "no-store"
+    row = db.query(AnswerReport).filter(AnswerReport.id == report_id).first()
+    if row is None:
+        raise HTTPException(status_code=404, detail="Report not found")
+    row.is_fixed = body.fixed
+    row.fixed_note = (body.note or "").strip()[:300] or None if body.fixed else None
+    row.fixed_at = func.now() if body.fixed else None
     db.commit()
     db.refresh(row)
     return row
