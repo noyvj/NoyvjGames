@@ -1566,3 +1566,10 @@ html.easy-read-font textarea {
 }
 html.easy-read-font body { line-height: 1.65; }
 html.easy-read-font .comparison-message { font-style: normal; }
+
+/* ---- Round-3 batch 2: council and calendar ---- */
+.autopilot-rules { display: grid; gap: 0.4rem; margin: 0.4rem 0; }
+.autopilot-rules label { display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem; }
+.autopilot-log { margin: 0.4rem 0 0; padding-left: 1.1rem; font-size: 0.85em; max-height: 12em; overflow-y: auto; }
+.council-tree, .council-tree ul { margin: 0.2rem 0; padding-left: 1.1rem; }
+#calendar-brace-button { margin-top: 0.4rem; }

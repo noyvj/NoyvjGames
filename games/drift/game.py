@@ -275,6 +275,159 @@ LEDGER_FIELDS = [
     "service", "economy", "cohesion", "wellbeing", "funds", "auto",
 ]
 
+# ---------------------------------------------------------------------------
+# Round-3 batch 2 (2026-10-08): Perfect Fit streak (GI-13), the Crisis Calendar
+# with named Surge Tests (GI-2, GI-11) and the Mayor's Council upgrade tree
+# (GI-1). Everything below is fixed and visible: no cards, no randomness.
+# ---------------------------------------------------------------------------
+
+# GI-13: capacity (plus sponsorship and council coverage) covers the people who
+# have arrived, with at most this many units to spare. Each round in the streak
+# adds PERFECT_FIT_FUNDS_PER_STREAK funds of income (streak counted up to
+# PERFECT_FIT_STREAK_CAP), which lifts economic health, so precise building
+# pays a little.
+PERFECT_FIT_MARGIN = 12.0
+PERFECT_FIT_FUNDS_PER_STREAK = 3.0
+PERFECT_FIT_STREAK_CAP = 5
+
+# GI-2 / GI-11: the Crisis Calendar. Opt-in (a toggle, off by default, like
+# Accelerated Severity) so the baseline game and every record stay as they were.
+# Events are on a fixed schedule: every CALENDAR_SPACING rounds from
+# CALENDAR_FIRST_ROUND through round 100 the kind cycles through
+# CALENDAR_CYCLE, and rounds 25, 50 and 75 are named Surge Tests. An event hits
+# while the round of that number resolves; it is previewed from the round before.
+# Paying the brace cost (in the preview round or the event round) softens it.
+# Nothing here can end a run.
+CALENDAR_FIRST_ROUND = 8
+CALENDAR_SPACING = 4
+CALENDAR_LAST_ROUND = 100
+CALENDAR_CYCLE = ["bumper_harvest", "surge", "budget_cut", "flood"]
+CALENDAR_LOG_MAX = 40
+BOSS_ROUNDS = {25: "The Long Queue", 50: "The Winter Crossing", 75: "The Great Intake"}
+CALENDAR_KINDS = {
+    "bumper_harvest": {
+        "label": "Bumper harvest", "icon": "🌾", "braceable": False, "brace_cost": 0.0,
+        "income_bonus": 40.0,
+        "text": "a bumper harvest adds 40 funds to the round's income",
+    },
+    "surge": {
+        "label": "Arrivals surge", "icon": "🌊", "braceable": True, "brace_cost": 25.0,
+        "arrivals_mult": 1.4, "braced_arrivals_mult": 1.2,
+        "text": "40% more people arrive (20% more if you brace)",
+    },
+    "budget_cut": {
+        "label": "Budget cut", "icon": "✂️", "braceable": True, "brace_cost": 20.0,
+        "income_mult": 0.7, "braced_income_mult": 0.9,
+        "text": "the round's income is cut by 30% (10% if you brace)",
+    },
+    "flood": {
+        "label": "Flood damage", "icon": "🌧️", "braceable": True, "brace_cost": 25.0,
+        "infrastructure_loss": 12.0, "braced_infrastructure_loss": 4.0,
+        "text": "a flood damages 12 infrastructure capacity (4 if you brace)",
+    },
+    "boss": {
+        "label": "Surge Test", "icon": "🏛️", "braceable": True, "brace_cost": 40.0,
+        "arrivals_mult": 1.8, "braced_arrivals_mult": 1.5,
+        "text": "80% more people arrive (50% more if you brace)",
+    },
+}
+
+
+def calendar_event_for_round(round_number):
+    """The fixed event for a round as a dict {round, kind, name}, or None."""
+    if round_number in BOSS_ROUNDS:
+        return {"round": round_number, "kind": "boss", "name": BOSS_ROUNDS[round_number]}
+    if (
+        CALENDAR_FIRST_ROUND <= round_number <= CALENDAR_LAST_ROUND
+        and (round_number - CALENDAR_FIRST_ROUND) % CALENDAR_SPACING == 0
+    ):
+        index = ((round_number - CALENDAR_FIRST_ROUND) // CALENDAR_SPACING) % len(CALENDAR_CYCLE)
+        kind = CALENDAR_CYCLE[index]
+        return {"round": round_number, "kind": kind, "name": CALENDAR_KINDS[kind]["label"]}
+    return None
+
+
+# GI-1: the Mayor's Council. After every COUNCIL_INTERVAL completed rounds the
+# council offers a pick; the player chooses which of three branches to deepen
+# (the next tier of that branch). All nine programs are listed up front. Each is
+# permanent for the run and has a trade-off. Effect keys: throughput (added to
+# integration throughput), contribution (added to what integrated people pay
+# back), coverage (flat units counted against arrivals, like sponsorship),
+# income (flat funds per round).
+COUNCIL_INTERVAL = 10
+COUNCIL_BRANCHES = {
+    "education": "Learning",
+    "housing": "Housing",
+    "transit": "Transit",
+}
+COUNCIL_PROGRAMS = [
+    {"id": "night_school", "branch": "education", "tier": 1, "name": "Night-School Network",
+     "effect": {"throughput": 0.15}, "tradeoff": {"income": -3.0},
+     "text": "+15% integration throughput; -3 funds per round for teachers' wages"},
+    {"id": "language_cafes", "branch": "education", "tier": 2, "name": "Language Cafes",
+     "effect": {"throughput": 0.20}, "tradeoff": {"coverage": -8.0},
+     "text": "+20% integration throughput; the cafes take over rooms, so -8 coverage"},
+    {"id": "credential_bridge", "branch": "education", "tier": 3, "name": "Credential Bridge",
+     "effect": {"contribution": 0.20}, "tradeoff": {"throughput": -0.05},
+     "text": "integrated people pay back 20% more; -5% integration throughput"},
+    {"id": "rapid_housing", "branch": "housing", "tier": 1, "name": "Rapid Housing Modules",
+     "effect": {"coverage": 12.0}, "tradeoff": {"income": -3.0},
+     "text": "+12 coverage; -3 funds per round maintenance"},
+    {"id": "modular_retrofit", "branch": "housing", "tier": 2, "name": "Modular Retrofit",
+     "effect": {"coverage": 18.0}, "tradeoff": {"contribution": -0.05},
+     "text": "+18 coverage; integrated people pay back 5% less while neighbourhoods adjust"},
+    {"id": "pattern_book", "branch": "housing", "tier": 3, "name": "Pattern Book Zoning",
+     "effect": {"coverage": 25.0}, "tradeoff": {"income": -5.0},
+     "text": "+25 coverage; -5 funds per round in permitting costs"},
+    {"id": "transit_expansion", "branch": "transit", "tier": 1, "name": "Transit Expansion",
+     "effect": {"contribution": 0.10}, "tradeoff": {"coverage": -5.0},
+     "text": "integrated people pay back 10% more; -5 coverage for corridor land"},
+    {"id": "commuter_corridors", "branch": "transit", "tier": 2, "name": "Commuter Corridors",
+     "effect": {"contribution": 0.15}, "tradeoff": {"throughput": -0.05},
+     "text": "integrated people pay back 15% more; -5% integration throughput"},
+    {"id": "regional_hub", "branch": "transit", "tier": 3, "name": "Regional Hub",
+     "effect": {"income": 8.0}, "tradeoff": {"coverage": -10.0},
+     "text": "+8 funds per round; -10 coverage"},
+]
+COUNCIL_BY_ID = {p["id"]: p for p in COUNCIL_PROGRAMS}
+
+
+def council_next_program(branch, picks):
+    """The next unpicked tier of a branch, or None once it is complete."""
+    taken = [COUNCIL_BY_ID[pid]["tier"] for pid in picks if COUNCIL_BY_ID[pid]["branch"] == branch]
+    tier = (max(taken) if taken else 0) + 1
+    for program in COUNCIL_PROGRAMS:
+        if program["branch"] == branch and program["tier"] == tier:
+            return program
+    return None
+
+
+# GI-5: the Budget Autopilot. Standing rules the player sets, then runs for a
+# stretch of rounds. services_share: keep Integration Services at least this
+# share of total capacity (None = off); surplus: where money above the reserve
+# goes (None = hold it); reserve: funds always left unspent; rounds: how many
+# rounds one run covers. A run stops early if strain rises a level or a
+# braceable calendar event is due. Autopilot rounds are ordinary rounds (flagged
+# auto in the ledger); the mode never gates an achievement.
+AUTOPILOT_SERVICES_SHARES = [None, 0.4, 0.5, 0.6]
+AUTOPILOT_SURPLUS_CHOICES = [None, "housing", "services", "infrastructure"]
+AUTOPILOT_RESERVES = [0, 40, 100]
+AUTOPILOT_ROUND_CHOICES = [5, 10, 25]
+AUTOPILOT_DEFAULT_RULES = {"services_share": 0.5, "surplus": "housing", "reserve": 40, "rounds": 10}
+AUTOPILOT_LOG_MAX = 40
+AUTOPILOT_MAX_BUYS_PER_ROUND = 25
+
+# GI-21: star ratings. Three independent goals, 0 to 3 stars each, judged on the
+# live region; the run is banked into the run history when round
+# RUN_STARS_ROUND finishes.
+RUN_STARS_ROUND = 50
+RUN_STARS_WELLBEING = [50.0, 70.0, 90.0]
+RUN_STARS_NET_POSITIVE_ROUND = [16, 10, 7]  # first round at or under each bound
+RUN_STARS_ROI = [2.0, 4.0, 8.0]  # integration paid back per fund invested
+RUN_HISTORY_STORAGE_KEY = "drift_run_stars_v1"
+RUN_HISTORY_MAX = 12
+
+
 class RegionState:
     def __init__(self):
         self.round_number = 1
@@ -402,6 +555,20 @@ class RegionState:
         self.round_buys = 0
         # GI-18: the round the one-per-run Rewind Token was used (None = unused).
         self.rewind_used_round = None
+        # GI-13: consecutive Perfect Fit rounds and the best streak this region reached.
+        self.perfect_fit_streak = 0
+        self.best_perfect_fit_streak = 0
+        # GI-2 / GI-11: the opt-in Crisis Calendar. braced_rounds are the event
+        # rounds the player paid to brace; calendar_log records each event that hit.
+        self.calendar_enabled = False
+        self.braced_rounds = []
+        self.calendar_log = []
+        # GI-1: program ids chosen at the Mayor's Council, in order.
+        self.council_picks = []
+        # GI-5: the Budget Autopilot's standing rules (see AUTOPILOT_DEFAULT_RULES).
+        self.autopilot = dict(AUTOPILOT_DEFAULT_RULES)
+        # GI-21: the round the run's stars were banked into the run history (None = not yet).
+        self.stars_banked = None
 
     def total_capacity(self):
         return sum(self.capacity[t] for t in CAPACITY_TYPES)
@@ -413,6 +580,65 @@ class RegionState:
 
     def policy_cost(self, policy):
         return POLICY_BASE_COST * (self.policy_level[policy] + 1)
+
+    def program_effect(self, key):
+        """GI-1: the summed council effect (programs and their trade-offs) for one key."""
+        total = 0.0
+        for pid in self.council_picks:
+            program = COUNCIL_BY_ID.get(pid)
+            if program is not None:
+                total += program["effect"].get(key, 0.0) + program["tradeoff"].get(key, 0.0)
+        return total
+
+    def coverage_bonus(self):
+        """Capacity-equivalent units counted against arrivals without being built:
+        sponsorship plus whatever the council programs add (or take away)."""
+        return self.policy_effect("sponsorship") + self.program_effect("coverage")
+
+    # ---- GI-2 / GI-11: the Crisis Calendar ----
+    def calendar_event(self, round_number=None):
+        """The event on a round (default: the current one), or None when the calendar is off."""
+        if not self.calendar_enabled:
+            return None
+        return calendar_event_for_round(self.round_number if round_number is None else round_number)
+
+    def brace_target(self):
+        """The braceable, unbraced event the player can still pay to soften: the current
+        round's first, else the next round's. None if there is none."""
+        for target in (self.round_number, self.round_number + 1):
+            event = self.calendar_event(target)
+            if event and CALENDAR_KINDS[event["kind"]]["braceable"] and target not in self.braced_rounds:
+                return event
+        return None
+
+    def brace(self):
+        event = self.brace_target()
+        if event is None:
+            return False
+        cost = CALENDAR_KINDS[event["kind"]]["brace_cost"]
+        if self.funds < cost:
+            return False
+        self.funds -= cost
+        self.braced_rounds.append(event["round"])
+        self.round_buys += 1
+        return True
+
+    def _event_arrivals_multiplier(self):
+        event = self.calendar_event()
+        if event is None:
+            return 1.0
+        spec = CALENDAR_KINDS[event["kind"]]
+        if "arrivals_mult" not in spec:
+            return 1.0
+        return spec["braced_arrivals_mult"] if self.round_number in self.braced_rounds else spec["arrivals_mult"]
+
+    # ---- GI-13: Perfect Fit ----
+    def is_perfect_fit(self):
+        """Capacity covers everyone who has arrived with at most PERFECT_FIT_MARGIN to spare."""
+        if self.total_arrivals <= 0 or self.total_capacity() <= 0:
+            return False
+        slack = self.total_capacity() + self.coverage_bonus() - self.total_arrivals
+        return 0.0 <= slack <= PERFECT_FIT_MARGIN
 
     def invest_policy(self, policy):
         if policy not in POLICIES or self.policy_level[policy] >= POLICY_MAX_LEVEL:
@@ -448,6 +674,7 @@ class RegionState:
         base = BASE_ARRIVALS_PER_ROUND + self.background_severity * ARRIVALS_PER_SEVERITY_POINT
         if self.second_wave_status == "active":
             base *= SECOND_WAVE_ARRIVALS_MULTIPLIER
+        base *= self._event_arrivals_multiplier()
         return base + self.spillover_arrivals
 
     def strain_fraction(self):
@@ -457,7 +684,7 @@ class RegionState:
         outrun capacity."""
         if self.total_arrivals <= 0:
             return 0.0
-        shortfall = max(0.0, self.total_arrivals - self.total_capacity() - self.policy_effect("sponsorship"))
+        shortfall = max(0.0, self.total_arrivals - self.total_capacity() - self.coverage_bonus())
         return min(1.0, shortfall / self.total_arrivals)
 
     def strain_level(self):
@@ -479,7 +706,8 @@ class RegionState:
         fast as its services capacity allows, regardless of funds."""
         throughput = (
             self.capacity["services"] * INTEGRATION_RATE_PER_SERVICES_UNIT
-            * (1.0 + self.policy_effect("language_access") + (LEARNING_INTEGRATION_BONUS if self.learning_active else 0.0))
+            * max(0.1, 1.0 + self.policy_effect("language_access") + (LEARNING_INTEGRATION_BONUS if self.learning_active else 0.0)
+                  + self.program_effect("throughput"))
         )
         return min(self.pending_population(), throughput)
 
@@ -490,7 +718,7 @@ class RegionState:
         that enabled it and keeps paying after that."""
         return (
             self.integrated_population * INTEGRATION_CONTRIBUTION_PER_PERSON
-            * (1.0 + self.policy_effect("credentialing"))
+            * max(0.1, 1.0 + self.policy_effect("credentialing") + self.program_effect("contribution"))
         )
 
     def has_crossed_to_net_positive(self):
@@ -596,10 +824,27 @@ class RegionState:
             self.current_stable_streak = 0
         self.best_stable_streak = max(self.best_stable_streak, self.current_stable_streak)
 
+        # GI-13: Perfect Fit, judged on the same standing as the strain just measured.
+        if self.is_perfect_fit():
+            self.perfect_fit_streak += 1
+            self.best_perfect_fit_streak = max(self.best_perfect_fit_streak, self.perfect_fit_streak)
+        else:
+            self.perfect_fit_streak = 0
+
         contribution = self.integration_contribution()
         income = BASE_REGIONAL_INCOME_PER_ROUND * (1 - strain)
         income += contribution
         self.cumulative_integration_contribution += contribution
+        income += self.program_effect("income")  # GI-1: council programs and their trade-offs
+        income += PERFECT_FIT_FUNDS_PER_STREAK * min(self.perfect_fit_streak, PERFECT_FIT_STREAK_CAP)
+        event = self.calendar_event(completed_round)  # GI-2 / GI-11
+        braced = completed_round in self.braced_rounds
+        if event is not None:
+            spec = CALENDAR_KINDS[event["kind"]]
+            if "income_mult" in spec:
+                income *= spec["braced_income_mult"] if braced else spec["income_mult"]
+            income += spec.get("income_bonus", 0.0)
+        income = max(0.0, income)
 
         # I15: detect the exact round the long-horizon coda first becomes
         # available, before integrated_population actually changes below.
@@ -619,6 +864,8 @@ class RegionState:
             severity_rise *= ACCELERATED_SEVERITY_MULTIPLIER
         self.background_severity += severity_rise
         self.funds += income
+        if event is not None:
+            self._finish_calendar_event(event, braced)
         self.round_number += 1
 
         # Iteration Pass 3 — turning-point detection: the first round
@@ -667,9 +914,24 @@ class RegionState:
             }
             self.milestone_just_updated = True
 
+    def _finish_calendar_event(self, event, braced):
+        """Apply an event's after-effects and log it. `held` is only meaningful for surges
+        and Surge Tests: capacity (plus coverage) covered everyone who has now arrived."""
+        spec = CALENDAR_KINDS[event["kind"]]
+        if "infrastructure_loss" in spec:
+            loss = spec["braced_infrastructure_loss"] if braced else spec["infrastructure_loss"]
+            self.capacity["infrastructure"] = max(0.0, self.capacity["infrastructure"] - loss)
+        held = None
+        if "arrivals_mult" in spec:
+            held = self.total_capacity() + self.coverage_bonus() >= self.total_arrivals
+        self.calendar_log.append(
+            {"round": event["round"], "kind": event["kind"], "braced": bool(braced), "held": held}
+        )
+        del self.calendar_log[:-CALENDAR_LOG_MAX]
+
     def _append_ledger_row(self, completed_round, spent, income, arrivals, integrated_new, auto):
         shortfall = max(
-            0.0, self.total_arrivals - self.total_capacity() - self.policy_effect("sponsorship")
+            0.0, self.total_arrivals - self.total_capacity() - self.coverage_bonus()
         )
         row = {
             "round": completed_round,
@@ -1203,9 +1465,10 @@ def session_milestone_message(region_state):
 # simplification: if the player toggles accelerated severity mid-run,
 # this recomputes as though it had been on/off for the whole run, since
 # it's a passive ambient contrast, not a precise parallel save).
-def _simulate_control_region(round_number, accelerated_severity_enabled):
+def _simulate_control_region(round_number, accelerated_severity_enabled, calendar_enabled=False):
     control = RegionState()
     control.accelerated_severity_enabled = accelerated_severity_enabled
+    control.calendar_enabled = calendar_enabled  # the unmanaged region meets the same fixed events, unbraced
     for _ in range(round_number - 1):
         control.advance_round()
     return control
@@ -2327,6 +2590,7 @@ def _take_round_start_snapshot():
         "cumulative_services_investment": region.cumulative_services_investment,
         "spend_by_type": dict(region.spend_by_type),
         "round_spend": dict(region.round_spend),
+        "braced_rounds": list(region.braced_rounds),
         "neighbor": copy.deepcopy(neighbor.__dict__) if neighbor is not None else None,
         "support_sent": neighbor_support_sent,
     }
@@ -2354,6 +2618,7 @@ def reset_round():
     region.cumulative_services_investment = snap["cumulative_services_investment"]
     region.spend_by_type = dict(snap["spend_by_type"])
     region.round_spend = dict(snap["round_spend"])
+    region.braced_rounds = list(snap.get("braced_rounds", region.braced_rounds))
     region.round_buys = 0
     neighbor = _clone_region(snap["neighbor"]) if snap["neighbor"] is not None else None
     neighbor_support_sent = snap["support_sent"]
@@ -2427,19 +2692,39 @@ def _strain_rank(fraction):
     return rank
 
 
-def play_rounds(count=PLAY_ROUNDS_COUNT):
-    """Advance up to `count` rounds with the current allocation (no purchases).
-    Stops early, after the round that caused it, if strain moves up a level, a
-    second-wave event arrives, or the neighbouring district starts sending people.
-    Returns (rounds advanced, reason or None)."""
+def _auto_block_reason():
+    """Why an automatic run must not start the current round, or None. A braceable
+    calendar event due this round has to be braced by hand, or advanced by hand."""
+    event = region.calendar_event()
+    if (
+        event is not None
+        and CALENDAR_KINDS[event["kind"]]["braceable"]
+        and region.round_number not in region.braced_rounds
+    ):
+        return f"{event['name']} is due this round: brace for it, or press Advance Round yourself"
+    return None
+
+
+def _run_auto_rounds(count, before_round=None):
+    """Advance up to `count` rounds as automatic rounds. `before_round` (optional) makes
+    purchases first (the Budget Autopilot). Stops early, after the round that caused it, if
+    strain moves up a level, a second-wave event arrives, the neighbouring district starts
+    sending people, or the Crisis Calendar shows a braceable event for next round; and
+    refuses to start a round whose braceable event is unbraced. Returns (advanced, reason)."""
     global rewind_snapshot, round_start_snapshot
     advanced = 0
     reason = None
     for _ in range(count):
+        blocked = _auto_block_reason()
+        if blocked:
+            reason = blocked
+            break
         level_before = _strain_rank(region.strain_fraction())
         wave_before = region.second_wave_status
         spill_before = neighbor_spillover()
         _sync_spillover()
+        if before_round is not None:
+            before_round()
         rewind_snapshot = _take_full_snapshot()
         completed = region.round_number
         region.advance_round(auto=True)
@@ -2448,6 +2733,7 @@ def play_rounds(count=PLAY_ROUNDS_COUNT):
         _sync_spillover()
         _collect_after_round(completed)
         advanced += 1
+        upcoming = region.calendar_event(region.round_number + 1)
         if _strain_rank(region.strain_fraction()) > level_before:
             reason = f"strain rose to {region.strain_level()}"
         elif region.second_wave_status != wave_before:
@@ -2458,10 +2744,22 @@ def play_rounds(count=PLAY_ROUNDS_COUNT):
             }.get(region.second_wave_status, "a forecast event arrived")
         elif spill_before == 0.0 and neighbor_spillover() > 0.0:
             reason = "the neighbouring district went critical and is sending people your way"
+        elif (
+            upcoming is not None
+            and CALENDAR_KINDS[upcoming["kind"]]["braceable"]
+            and upcoming["round"] not in region.braced_rounds
+        ):
+            reason = f"the Crisis Calendar shows {upcoming['name']} next round"
         if reason:
             break
     round_start_snapshot = _take_round_start_snapshot()
     return advanced, reason
+
+
+def play_rounds(count=PLAY_ROUNDS_COUNT):
+    """Advance up to `count` rounds with the current allocation (no purchases).
+    Returns (rounds advanced, reason or None)."""
+    return _run_auto_rounds(count)
 
 
 def on_play_rounds(event=None):
@@ -2710,6 +3008,11 @@ def _collect_after_round(completed_round):
         _store_collection()
         collection_note = "New in your collection: " + "; ".join(found) + "."
         _display_achievement_toast("🗂️ " + found[0] + (f" (+{len(found) - 1} more)" if len(found) > 1 else ""))
+    banked = _bank_run_stars(completed_round)
+    if banked:
+        found.append(banked)
+        collection_note = (collection_note + " " if collection_note else "") + banked
+        _display_achievement_toast("⭐ " + banked)
     return found
 
 
@@ -2773,6 +3076,7 @@ def render_collection_summary():
         else:
             lines.append(f"<li class=\"collection-locked\"><strong>🔒 Locked</strong>. Hint: {info['hint']}</li>")
     lines.append("</ul>")
+    lines.append(run_history_html())
     document.getElementById("collection-list").innerHTML = "".join(lines)
 
 
@@ -2780,6 +3084,556 @@ def on_toggle_collection(event=None):
     global collection_open
     collection_open = not collection_open
     render_collection_summary()
+
+
+# ---- GI-13 / GI-2 / GI-11 / GI-1 / GI-5 / GI-21 / I-18: civic tools ----------------
+# Perfect Fit streak, Crisis Calendar and Surge Tests, Mayor's Council, Budget
+# Autopilot, star ratings and the copy-able run summary. See the constants above
+# the RegionState class for the rules.
+calendar_note_text = ""
+autopilot_log = []
+council_note_text = ""
+summary_note_text = ""
+
+
+def perfect_fit_message():
+    """GI-13: the streak line shown beside the forecast."""
+    streak = region.perfect_fit_streak
+    bonus = PERFECT_FIT_FUNDS_PER_STREAK * min(streak, PERFECT_FIT_STREAK_CAP)
+    best = region.best_perfect_fit_streak
+    if region.total_capacity() > 0 and region.total_arrivals > 0:
+        slack = region.total_capacity() + region.coverage_bonus() - region.total_arrivals
+        if region.is_perfect_fit():
+            now = f"Holding a Perfect Fit right now ({slack:.0f} spare)."
+        elif slack < 0:
+            now = f"Not a Perfect Fit right now: {-slack:.0f} short."
+        else:
+            now = f"Not a Perfect Fit right now: {slack:.0f} spare (the limit is {PERFECT_FIT_MARGIN:.0f})."
+    else:
+        now = "Build some capacity to start."
+    if streak > 0:
+        head = f"Perfect Fit streak: {streak} round(s), +{bonus:.0f} funds a round."
+    else:
+        head = (
+            f"Perfect Fit: end a round with capacity covering everyone who has arrived and no more than "
+            f"{PERFECT_FIT_MARGIN:.0f} to spare. Each round in a row adds {PERFECT_FIT_FUNDS_PER_STREAK:.0f} funds of "
+            f"income, up to {PERFECT_FIT_FUNDS_PER_STREAK * PERFECT_FIT_STREAK_CAP:.0f}."
+        )
+    tail = f" Best streak this region: {best}." if best > 0 else ""
+    return f"{head} {now}{tail}"
+
+
+def calendar_next_event(after_round):
+    """The first scheduled event on a round after `after_round`, or None."""
+    for r in range(after_round + 1, CALENDAR_LAST_ROUND + 1):
+        event = calendar_event_for_round(r)
+        if event is not None:
+            return event
+    return None
+
+
+def calendar_describe(event, braced=False):
+    spec = CALENDAR_KINDS[event["kind"]]
+    label = event["name"] if event["kind"] == "boss" else spec["label"]
+    if event["kind"] == "boss":
+        label = f"Surge Test, {event['name']}"
+    tag = " Braced." if braced else ""
+    return f"{spec['icon']} {label}: {spec['text']}.{tag}"
+
+
+def calendar_message():
+    """GI-2: the Next Round preview, from fixed data only."""
+    if not region.calendar_enabled:
+        return (
+            "Off. Switch it on for a fixed, visible schedule of events: surges, budget cuts, floods and bumper "
+            "harvests every 4 rounds from round 8, and three named Surge Tests at rounds 25, 50 and 75. Each "
+            "is shown a round ahead and can be softened by paying to brace. Nothing is random and nothing ends a run."
+        )
+    lines = []
+    here = region.calendar_event()
+    if here is not None:
+        lines.append(f"This round (round {region.round_number}): " + calendar_describe(here, region.round_number in region.braced_rounds))
+    ahead = region.calendar_event(region.round_number + 1)
+    if ahead is not None:
+        lines.append(f"Next round (round {ahead['round']}): " + calendar_describe(ahead, ahead["round"] in region.braced_rounds))
+    if not lines:
+        later = calendar_next_event(region.round_number)
+        if later is None:
+            lines.append("No more events are scheduled in this run.")
+        else:
+            lines.append(f"Nothing this round or next. Next event: round {later['round']}, {later['name']}.")
+    return " ".join(lines)
+
+
+def calendar_result_message(entry):
+    """What the most recent event did, with the Surge Test 'held the line' card."""
+    kind = entry["kind"]
+    spec = CALENDAR_KINDS[kind]
+    if kind == "boss":
+        name = BOSS_ROUNDS.get(entry["round"], "Surge Test")
+        if entry["held"]:
+            return (
+                f"🏛️ Held the line! {name} (round {entry['round']}) came and your capacity covered "
+                "everyone who arrived. That is what preparing ahead of a surge looks like."
+            )
+        return (
+            f"🏛️ {name} (round {entry['round']}) outran your capacity this time, so strain will show it. "
+            "Nothing is lost for good: build and it recovers."
+        )
+    if entry["held"] is True:
+        return f"{spec['icon']} {spec['label']} at round {entry['round']}: capacity still covers everyone who has arrived."
+    if entry["held"] is False:
+        return f"{spec['icon']} {spec['label']} at round {entry['round']}: it outran capacity for now. Build and it recovers."
+    return f"{spec['icon']} {spec['label']} at round {entry['round']}: done."
+
+
+def _reset_civic_notes():
+    global calendar_note_text, council_note_text
+    calendar_note_text = ""
+    council_note_text = ""
+
+
+def on_toggle_calendar(event=None):
+    global calendar_note_text
+    region.calendar_enabled = not region.calendar_enabled
+    calendar_note_text = ""
+    render()
+
+
+def on_brace(event=None):
+    global calendar_note_text
+    target = region.brace_target()
+    if target is not None and region.brace():
+        calendar_note_text = f"Braced for {target['name']}. {CALENDAR_KINDS[target['kind']]['brace_cost']:.0f} funds spent."
+    render()
+
+
+def render_calendar():
+    toggle = document.getElementById("calendar-toggle-button")
+    toggle.innerText = "Crisis Calendar: ON" if region.calendar_enabled else "Crisis Calendar: OFF"
+    if region.calendar_enabled:
+        toggle.classList.add("active")
+    else:
+        toggle.classList.remove("active")
+    document.getElementById("calendar-display").innerText = calendar_message()
+    brace = document.getElementById("calendar-brace-button")
+    target = region.brace_target()
+    brace.hidden = not region.calendar_enabled
+    if target is not None:
+        cost = CALENDAR_KINDS[target["kind"]]["brace_cost"]
+        brace.innerText = f"Brace for {target['name']} ({cost:.0f} funds)"
+        brace.disabled = region.funds < cost
+    else:
+        brace.innerText = "Nothing to brace for"
+        brace.disabled = True
+    note = document.getElementById("calendar-note")
+    text = calendar_note_text
+    if not text and region.calendar_enabled and region.calendar_log:
+        last = region.calendar_log[-1]
+        if last["round"] == region.round_number - 1:
+            text = calendar_result_message(last)
+    note.innerText = text
+    note.hidden = text == ""
+
+
+# -- GI-1: Mayor's Council --
+def council_pending_picks(r=None):
+    r = region if r is None else r
+    completed = max(0, r.round_number - 1)
+    earned = min(completed // COUNCIL_INTERVAL, len(COUNCIL_PROGRAMS))
+    return max(0, earned - len(r.council_picks))
+
+
+def council_options(r=None):
+    r = region if r is None else r
+    options = {}
+    for branch in COUNCIL_BRANCHES:
+        program = council_next_program(branch, r.council_picks)
+        if program is not None:
+            options[branch] = program
+    return options
+
+
+def council_pick(branch):
+    if council_pending_picks() <= 0:
+        return False
+    program = council_options().get(branch)
+    if program is None:
+        return False
+    region.council_picks.append(program["id"])
+    return True
+
+
+def council_status_message():
+    if len(region.council_picks) >= len(COUNCIL_PROGRAMS):
+        return "Every program has been adopted."
+    pending = council_pending_picks()
+    if pending > 0:
+        return f"The council meets: choose one program ({pending} pick{'s' if pending != 1 else ''} waiting)."
+    completed = max(0, region.round_number - 1)
+    next_at = (completed // COUNCIL_INTERVAL + 1) * COUNCIL_INTERVAL
+    return f"Next council pick after round {next_at}. Programs adopted: {len(region.council_picks)} of {len(COUNCIL_PROGRAMS)}."
+
+
+def council_tree_html():
+    rows = []
+    for branch, label in COUNCIL_BRANCHES.items():
+        rows.append(f"<li><strong>{label}</strong><ul>")
+        for program in COUNCIL_PROGRAMS:
+            if program["branch"] != branch:
+                continue
+            mark = "✓" if program["id"] in region.council_picks else "○"
+            rows.append(f"<li>{mark} <strong>{program['name']}</strong> (tier {program['tier']}): {program['text']}</li>")
+        rows.append("</ul></li>")
+    return "<ul class=\"council-tree\">" + "".join(rows) + "</ul>"
+
+
+def on_council_pick(branch):
+    global council_note_text
+    program = council_options().get(branch)
+    if program is not None and council_pick(branch):
+        council_note_text = f"Adopted: {program['name']}. {program['text']}."
+    render()
+
+
+def _make_council_handler(branch):
+    def handler(event=None):
+        on_council_pick(branch)
+
+    return handler
+
+
+def render_council():
+    document.getElementById("council-status").innerText = (council_note_text + " " if council_note_text else "") + council_status_message()
+    pending = council_pending_picks()
+    options = council_options()
+    for branch, label in COUNCIL_BRANCHES.items():
+        button = document.getElementById(f"council-pick-{branch}")
+        program = options.get(branch)
+        if program is None:
+            button.innerText = f"{label}: complete"
+            button.disabled = True
+            button.title = "Every program on this branch has been adopted."
+        else:
+            button.innerText = f"{label}: {program['name']}"
+            button.disabled = pending <= 0
+            button.title = program["text"]
+    document.getElementById("council-tree").innerHTML = council_tree_html()
+
+
+# -- GI-5: Budget Autopilot --
+def _clean_autopilot(raw):
+    """A valid rules dict from anything (unknown or bad values fall back to the defaults)."""
+    out = dict(AUTOPILOT_DEFAULT_RULES)
+    if not isinstance(raw, dict):
+        return out
+    if "services_share" in raw and raw["services_share"] in AUTOPILOT_SERVICES_SHARES:
+        out["services_share"] = raw["services_share"]
+    if "surplus" in raw and raw["surplus"] in AUTOPILOT_SURPLUS_CHOICES:
+        out["surplus"] = raw["surplus"]
+    reserve = raw.get("reserve")
+    if isinstance(reserve, (int, float)) and not isinstance(reserve, bool) and reserve in AUTOPILOT_RESERVES:
+        out["reserve"] = int(reserve)
+    rounds = raw.get("rounds")
+    if isinstance(rounds, int) and not isinstance(rounds, bool) and rounds in AUTOPILOT_ROUND_CHOICES:
+        out["rounds"] = rounds
+    return out
+
+
+def _autopilot_log(line):
+    autopilot_log.append(line)
+    del autopilot_log[:-AUTOPILOT_LOG_MAX]
+
+
+def _autopilot_pick():
+    """The next purchase the rules call for, as (capacity type, reason), or (None, None)."""
+    rules = region.autopilot
+    spare = region.funds - rules["reserve"]
+    target = rules["services_share"]
+    if target is not None and spare >= INVEST_COST["services"]:
+        total = region.total_capacity()
+        share = region.capacity["services"] / total if total > 0 else 0.0
+        if share < target:
+            return "services", f"services were {share * 100:.0f}% of capacity, target {target * 100:.0f}%"
+    surplus = rules["surplus"]
+    if surplus is not None and spare >= INVEST_COST[surplus]:
+        return surplus, "surplus above the reserve"
+    return None, None
+
+
+def _autopilot_buy_round():
+    rules = region.autopilot
+    bought = {}
+    reasons = {}
+    for _ in range(AUTOPILOT_MAX_BUYS_PER_ROUND):
+        capacity_type, reason = _autopilot_pick()
+        if capacity_type is None or not region.invest(capacity_type):
+            break
+        bought[capacity_type] = bought.get(capacity_type, 0) + 1
+        reasons.setdefault(capacity_type, reason)
+    if bought:
+        parts = [f"{n} {CAPACITY_LABEL[t]} ({reasons[t]})" for t, n in bought.items()]
+        _autopilot_log(f"Round {region.round_number}: bought " + "; ".join(parts) + ".")
+    else:
+        _autopilot_log(f"Round {region.round_number}: nothing to buy (funds {region.funds:.0f}, reserve {rules['reserve']}).")
+
+
+def autopilot_run():
+    """Run the Budget Autopilot for the set number of rounds. Returns (rounds, reason)."""
+    rounds = region.autopilot["rounds"]
+    advanced, reason = _run_auto_rounds(rounds, before_round=_autopilot_buy_round)
+    unit = "round" if advanced == 1 else "rounds"
+    _autopilot_log(f"Stopped after {advanced} {unit}: " + (reason if reason else "the run finished."))
+    return advanced, reason
+
+
+def autopilot_rules_text():
+    rules = region.autopilot
+    share = "no services-share rule" if rules["services_share"] is None else f"keep services at {rules['services_share'] * 100:.0f}% of capacity"
+    surplus = "hold the surplus" if rules["surplus"] is None else f"spend surplus on {CAPACITY_LABEL[rules['surplus']].lower()}"
+    return f"Rules: {share}; {surplus}; always keep {rules['reserve']} funds back; run {rules['rounds']} rounds."
+
+
+def on_autopilot_change(event=None):
+    def value(element_id, default):
+        return getattr(document.getElementById(element_id), "value", default)
+
+    share_raw = str(value("autopilot-share-select", "50"))
+    surplus_raw = str(value("autopilot-surplus-select", "housing"))
+    raw = {
+        "services_share": None if share_raw == "off" else _to_float(share_raw, 50.0) / 100.0,
+        "surplus": None if surplus_raw == "hold" else surplus_raw,
+        "reserve": _to_int(value("autopilot-reserve-select", "40"), 40),
+        "rounds": _to_int(value("autopilot-rounds-select", "10"), 10),
+    }
+    if raw["services_share"] is not None:
+        raw["services_share"] = round(raw["services_share"], 2)
+    region.autopilot = _clean_autopilot(raw)
+    render_autopilot()
+
+
+def _to_float(value, default):
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return default
+
+
+def _to_int(value, default):
+    try:
+        return int(float(value))
+    except (TypeError, ValueError):
+        return default
+
+
+def on_autopilot_run(event=None):
+    global round_tools_message, collection_note
+    collection_note = ""
+    advanced, reason = autopilot_run()
+    unit = "round" if advanced == 1 else "rounds"
+    round_tools_message = (
+        f"Autopilot ran {advanced} {unit} and stopped early: {reason}." if reason
+        else f"Autopilot ran {advanced} {unit}."
+    )
+    render()
+    _check_new_achievements_for_toast()
+
+
+def render_autopilot():
+    rules = region.autopilot
+    share = rules["services_share"]
+    document.getElementById("autopilot-share-select").value = "off" if share is None else str(int(round(share * 100)))
+    document.getElementById("autopilot-surplus-select").value = "hold" if rules["surplus"] is None else rules["surplus"]
+    document.getElementById("autopilot-reserve-select").value = str(rules["reserve"])
+    document.getElementById("autopilot-rounds-select").value = str(rules["rounds"])
+    document.getElementById("autopilot-run-button").innerText = f"▶ Run Autopilot ({rules['rounds']} rounds)"
+    document.getElementById("autopilot-note").innerText = autopilot_rules_text()
+    log = document.getElementById("autopilot-log")
+    log.innerHTML = "".join(f"<li>{line}</li>" for line in reversed(autopilot_log[-12:]))
+
+
+# -- GI-21: star ratings --
+def star_goals(r=None):
+    """Stars (0 to 3) on the three goals: wellbeing, speed to net-positive, efficiency of funds."""
+    r = region if r is None else r
+    wellbeing = sum(1 for bound in RUN_STARS_WELLBEING if r.wellbeing_score() >= bound)
+    speed = 0
+    if r.net_positive_round is not None:
+        speed = sum(1 for bound in RUN_STARS_NET_POSITIVE_ROUND if r.net_positive_round <= bound)
+    roi = r.investment_roi()
+    efficiency = 0 if roi is None else sum(1 for bound in RUN_STARS_ROI if roi >= bound)
+    return {"wellbeing": wellbeing, "speed": speed, "efficiency": efficiency}
+
+
+def stars_text(count):
+    return "★" * count + "☆" * (3 - count)
+
+
+def run_stars_message():
+    goals = star_goals()
+    parts = (
+        f"Wellbeing {stars_text(goals['wellbeing'])}  Speed {stars_text(goals['speed'])}  "
+        f"Efficiency {stars_text(goals['efficiency'])}"
+    )
+    if region.stars_banked is not None:
+        return f"Run stars: {parts}. Banked into your run history at round {region.stars_banked}."
+    return f"Run stars so far: {parts}. They are banked into your run history when round {RUN_STARS_ROUND} finishes."
+
+
+def _clean_run_history(raw):
+    out = []
+    if not isinstance(raw, list):
+        return out
+    for entry in raw:
+        if not isinstance(entry, dict):
+            continue
+        stars = entry.get("stars")
+        token = entry.get("token")
+        if (
+            not isinstance(stars, list) or len(stars) != 3 or not isinstance(token, str)
+            or not all(isinstance(n, int) and not isinstance(n, bool) and 0 <= n <= 3 for n in stars)
+        ):
+            continue
+        name = entry.get("name")
+        rounds = entry.get("round")
+        out.append({
+            "name": name[:REGION_NAME_MAX_LENGTH] if isinstance(name, str) else "",
+            "round": rounds if isinstance(rounds, int) and not isinstance(rounds, bool) and rounds >= 1 else RUN_STARS_ROUND,
+            "stars": list(stars),
+            "token": token[:80],
+        })
+    return out[-RUN_HISTORY_MAX:]
+
+
+def _load_run_history():
+    raw = _read_local_storage_item(RUN_HISTORY_STORAGE_KEY)
+    if not raw:
+        return []
+    try:
+        return _clean_run_history(json.loads(raw))
+    except (ValueError, TypeError):
+        return []
+
+
+run_history = _load_run_history()
+
+
+def _run_token():
+    return f"{region.region_name}|{region.total_arrivals:.1f}|{region.cumulative_integration_contribution:.1f}"
+
+
+def _bank_run_stars(completed_round):
+    """Bank the run's stars once, when round RUN_STARS_ROUND has finished. Returns a message or None."""
+    if completed_round < RUN_STARS_ROUND or region.stars_banked is not None:
+        return None
+    region.stars_banked = completed_round
+    goals = star_goals()
+    token = _run_token()
+    if any(entry["token"] == token for entry in run_history):
+        return None
+    run_history.append({
+        "name": region.region_name, "round": completed_round,
+        "stars": [goals["wellbeing"], goals["speed"], goals["efficiency"]], "token": token,
+    })
+    del run_history[:-RUN_HISTORY_MAX]
+    _write_local_storage_item(RUN_HISTORY_STORAGE_KEY, json.dumps(run_history))
+    total = sum(run_history[-1]["stars"])
+    return f"Run banked at round {completed_round}: {total} of 9 stars."
+
+
+def run_history_html():
+    if not run_history:
+        return "<p class=\"collection-locked\">No banked runs yet. Reach the end of round " + str(RUN_STARS_ROUND) + " to bank your first.</p>"
+    best = sorted(run_history, key=lambda e: (-sum(e["stars"]), run_history.index(e)))[:5]
+    items = []
+    for entry in best:
+        label = entry["name"] or "Unnamed region"
+        s = entry["stars"]
+        items.append(
+            f"<li><strong>{stars_text(s[0])} {stars_text(s[1])} {stars_text(s[2])}</strong> "
+            f"({sum(s)} of 9) {label}, round {entry['round']}</li>"
+        )
+    return (
+        "<p class=\"meter-label\">Best star combinations (wellbeing, speed, efficiency)</p>"
+        "<ul class=\"collection-list\">" + "".join(items) + "</ul>"
+    )
+
+
+# -- I-18: copy run summary --
+CURVE_BLOCKS = "▁▂▃▄▅▆▇█"
+CURVE_WIDTH = 30
+
+
+def wellbeing_band(score):
+    if score >= MODEL_REGION_WELLBEING_SCORE:
+        return "Model Region"
+    if score >= THRIVING_WELLBEING_SCORE:
+        return "Thriving"
+    if score >= 40:
+        return "Managing"
+    return "Struggling"
+
+
+def wellbeing_curve(values, width=CURVE_WIDTH):
+    """A block-character curve (0 to 100) of up to `width` evenly spaced samples."""
+    if not values:
+        return ""
+    if len(values) > width:
+        picks = [values[round(i * (len(values) - 1) / (width - 1))] for i in range(width)]
+    else:
+        picks = list(values)
+    out = []
+    for v in picks:
+        index = int(max(0.0, min(99.999, v)) / 100.0 * len(CURVE_BLOCKS))
+        out.append(CURVE_BLOCKS[index])
+    return "".join(out)
+
+
+def run_summary_text():
+    name = region.region_name or "Unnamed region"
+    completed = max(0, region.round_number - 1)
+    score = region.wellbeing_score()
+    tags = []
+    if region.accelerated_severity_enabled:
+        tags.append(f"Accelerated Severity ({ACCELERATED_SEVERITY_MULTIPLIER:.0f}x)")
+    if region.crisis_start_enabled:
+        tags.append("Crisis Start")
+    if region.calendar_enabled:
+        tags.append("Crisis Calendar")
+    if region.council_picks:
+        tags.append("Council: " + ", ".join(COUNCIL_BY_ID[pid]["name"] for pid in region.council_picks))
+    goals = star_goals()
+    lines = [
+        f"Drift: {name}",
+        f"After {completed} rounds: {wellbeing_band(score)}, wellbeing {score:.0f}, strain {region.strain_level()}",
+        f"Wellbeing curve: {wellbeing_curve(region.wellbeing_log)}",
+        "Setup: " + ("; ".join(tags) if tags else "standard"),
+        f"Stars: wellbeing {stars_text(goals['wellbeing'])} speed {stars_text(goals['speed'])} efficiency {stars_text(goals['efficiency'])}",
+    ]
+    return "\n".join(lines)
+
+
+def on_copy_summary(event=None):
+    global summary_note_text
+    text = run_summary_text()
+    area = document.getElementById("summary-copy-area")
+    if _copy_to_clipboard(text):
+        area.hidden = True
+        summary_note_text = "Copied the run summary to the clipboard."
+    else:
+        area.hidden = False
+        area.value = text
+        summary_note_text = "Could not copy automatically. Select the text below and copy it yourself."
+    document.getElementById("round-tools-note").innerText = summary_note_text
+    document.getElementById("round-tools-note").hidden = False
+
+
+def render_civic_tools():
+    document.getElementById("perfect-fit-display").innerText = perfect_fit_message()
+    render_calendar()
+    render_council()
+    render_autopilot()
+    document.getElementById("run-stars-display").innerText = run_stars_message()
 
 
 # ---- I-24: live tab title ----------------------------------------------------
@@ -2906,7 +3760,7 @@ def render():
     # completed.
     control_display = document.getElementById("control-region-contrast-display")
     if region.round_number > 1:
-        control_region = _simulate_control_region(region.round_number, region.accelerated_severity_enabled)
+        control_region = _simulate_control_region(region.round_number, region.accelerated_severity_enabled, region.calendar_enabled)
         control_display.hidden = False
         control_display.innerText = control_region_contrast_message(control_region)
     else:
@@ -2974,7 +3828,7 @@ def render():
     )
     if coda_visible and region.has_long_horizon_story():
         document.getElementById("coda-control-display").innerText = coda_control_message(
-            region, _simulate_control_region(region.round_number, region.accelerated_severity_enabled)
+            region, _simulate_control_region(region.round_number, region.accelerated_severity_enabled, region.calendar_enabled)
         )
 
     # I2: skyline building count/height tracking real capacity.
@@ -2989,7 +3843,7 @@ def render():
     control_wellbeing = None
     if region.round_number > 2:
         control_wellbeing = _simulate_control_region(
-            region.round_number, region.accelerated_severity_enabled
+            region.round_number, region.accelerated_severity_enabled, region.calendar_enabled
         ).wellbeing_log
     trend_svg = trend_graph_svg(region.strain_log, region.wellbeing_log, control_wellbeing)
     document.getElementById("trend-graph").innerHTML = trend_svg
@@ -3066,6 +3920,7 @@ def render():
         f"arrival pressure rises — never your capacity or funds math directly."
     )
     render_round_tools()
+    render_civic_tools()
     render_ledger()
     render_collection_summary()
     document.title = tab_title()
@@ -3075,6 +3930,7 @@ def on_advance_round(event=None):
     global rewind_snapshot, round_start_snapshot, round_tools_message, collection_note
     round_tools_message = ""
     collection_note = ""
+    _reset_civic_notes()
     _sync_spillover()
     rewind_snapshot = _take_full_snapshot()  # GI-18: the state just before this advance
     completed_round = region.round_number
@@ -3342,6 +4198,20 @@ def _ledger_state_fields():
         out["rewind_used_round"] = region.rewind_used_round
     if collection["titles"] or collection["civic"]:
         out["collection"] = copy.deepcopy(collection)
+    if region.best_perfect_fit_streak > 0:
+        out["perfect_fit"] = {"streak": region.perfect_fit_streak, "best": region.best_perfect_fit_streak}
+    if region.calendar_enabled or region.braced_rounds or region.calendar_log:
+        out["calendar"] = {
+            "enabled": region.calendar_enabled,
+            "braced": list(region.braced_rounds),
+            "log": [dict(entry) for entry in region.calendar_log],
+        }
+    if region.council_picks:
+        out["council"] = list(region.council_picks)
+    if region.autopilot != AUTOPILOT_DEFAULT_RULES:
+        out["autopilot"] = dict(region.autopilot)
+    if region.stars_banked is not None:
+        out["stars_banked"] = region.stars_banked
     return out
 
 
@@ -3379,6 +4249,52 @@ def _load_ledger(saved):
         if ok:
             rows.append(row)
     return rows[-LEDGER_MAX_ENTRIES:]
+
+
+def _small_int(value, low=0):
+    return isinstance(value, int) and not isinstance(value, bool) and value >= low
+
+
+def _load_civic_state(data):
+    """GI-13 / GI-2 / GI-1 / GI-5 / GI-21: every field optional and validated; bad values reset to the default."""
+    fit = data.get("perfect_fit")
+    region.perfect_fit_streak = 0
+    region.best_perfect_fit_streak = 0
+    if isinstance(fit, dict) and _small_int(fit.get("best")) and _small_int(fit.get("streak")):
+        region.best_perfect_fit_streak = fit["best"]
+        region.perfect_fit_streak = min(fit["streak"], fit["best"])
+    region.calendar_enabled = False
+    region.braced_rounds = []
+    region.calendar_log = []
+    cal = data.get("calendar")
+    if isinstance(cal, dict):
+        region.calendar_enabled = cal.get("enabled") is True
+        braced = cal.get("braced")
+        if isinstance(braced, list):
+            region.braced_rounds = sorted({r for r in braced if _small_int(r, 1) and calendar_event_for_round(r) is not None})
+        log = cal.get("log")
+        if isinstance(log, list):
+            for entry in log:
+                if (
+                    isinstance(entry, dict) and _small_int(entry.get("round"), 1)
+                    and entry.get("kind") in CALENDAR_KINDS and isinstance(entry.get("braced"), bool)
+                    and (entry.get("held") is None or isinstance(entry.get("held"), bool))
+                ):
+                    region.calendar_log.append(
+                        {"round": entry["round"], "kind": entry["kind"], "braced": entry["braced"], "held": entry["held"]}
+                    )
+            region.calendar_log = region.calendar_log[-CALENDAR_LOG_MAX:]
+    region.council_picks = []
+    picks = data.get("council")
+    if isinstance(picks, list):
+        for pid in picks:
+            program = COUNCIL_BY_ID.get(pid) if isinstance(pid, str) else None
+            # a pick is only valid if it is the next tier of its branch, so a hand-edited save cannot skip tiers
+            if program is not None and council_next_program(program["branch"], region.council_picks) is program:
+                region.council_picks.append(pid)
+    region.autopilot = _clean_autopilot(data.get("autopilot"))
+    banked = data.get("stars_banked")
+    region.stars_banked = banked if _small_int(banked, 1) else None
 
 
 def get_state():
@@ -3552,6 +4468,9 @@ def load_state(data):
         used_round if isinstance(used_round, int) and not isinstance(used_round, bool) and used_round >= 1 else None
     )
     merge_collection(data.get("collection"))
+    _load_civic_state(data)
+    autopilot_log.clear()
+    _reset_civic_notes()
     _reset_undo_state()
     name_input = document.getElementById("region-name-input")
     name_input.value = region.region_name
@@ -3622,8 +4541,21 @@ def setup():
         ("ledger-toggle-button", on_toggle_ledger),
         ("collection-toggle-button", on_toggle_collection),
         ("copy-ledger-csv-button", on_copy_ledger_csv),
+        ("calendar-toggle-button", on_toggle_calendar),
+        ("calendar-brace-button", on_brace),
+        ("autopilot-run-button", on_autopilot_run),
+        ("copy-summary-button", on_copy_summary),
     ):
         document.getElementById(button_id).addEventListener("click", create_proxy(handler))
+    for branch in COUNCIL_BRANCHES:
+        document.getElementById(f"council-pick-{branch}").addEventListener(
+            "click", create_proxy(_make_council_handler(branch))
+        )
+    for select_id in (
+        "autopilot-share-select", "autopilot-surplus-select", "autopilot-reserve-select", "autopilot-rounds-select",
+    ):
+        document.getElementById(select_id).addEventListener("change", create_proxy(on_autopilot_change))
+    document.getElementById("summary-copy-area").hidden = True
     document.getElementById("ledger-sort-select").addEventListener("change", create_proxy(on_ledger_sort))
     document.getElementById("ledger-filter-select").addEventListener("change", create_proxy(on_ledger_filter))
     document.getElementById("ledger-copy-area").hidden = True

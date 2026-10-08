@@ -163,6 +163,27 @@ ELEMENT_IDS = [
     "collection-list",
     "collection-summary-display",
     "region-title-display",
+    # Round-3 batch 2 (Oct 8): Perfect Fit, Crisis Calendar, Council, Autopilot, stars, summary.
+    "perfect-fit-display",
+    "calendar-toggle-button",
+    "calendar-display",
+    "calendar-brace-button",
+    "calendar-note",
+    "council-status",
+    "council-pick-education",
+    "council-pick-housing",
+    "council-pick-transit",
+    "council-tree",
+    "autopilot-share-select",
+    "autopilot-surplus-select",
+    "autopilot-reserve-select",
+    "autopilot-rounds-select",
+    "autopilot-run-button",
+    "autopilot-note",
+    "autopilot-log",
+    "run-stars-display",
+    "copy-summary-button",
+    "summary-copy-area",
 ]
 
 

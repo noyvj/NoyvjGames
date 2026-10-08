@@ -668,7 +668,6 @@ def test_every_milestone_has_a_name_hint_and_line(game_env):
 
 
 def test_collection_panel_shows_hints_for_locked_and_text_for_found(game_env):
-    module = game_env.module
     game_env.elements["collection-toggle-button"].dispatch("click", None)
     html = game_env.elements["collection-list"].innerHTML
     assert html.count("Locked") == 10 + 5

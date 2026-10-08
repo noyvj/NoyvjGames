@@ -4,7 +4,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<script>window.NOYVJ_LAYOUT = "pc"; window.NOYVJ_PC_WINDOWS = [{"panel": "howto-panel", "toggle": "howto-toggle-button", "title": "How to Play"}, {"panel": "achievements-panel", "toggle": "achievements-toggle-button", "title": "Achievements"}, {"panel": "changelog-panel", "toggle": "changelog-toggle-button", "title": "What's New"}, {"panel": "ledger-panel", "toggle": "ledger-toggle-button", "title": "Round Ledger"}, {"panel": "collection-panel", "toggle": "collection-toggle-button", "title": "Region Collection"}, {"panel": "settings-panel", "toggle": "settings-toggle-button", "title": "Settings"}, {"panel": "info-page-panel", "toggle": "info-page-toggle-button", "title": "The Real Story"}, {"panel": "coda-section", "toggle": "coda-button", "title": "Long-Horizon Outcomes"}]; window.NOYVJ_PC_ZONES = {"topbar": [".hub-back-link", "h1", ".game-toolbar"], "stagebar": [], "stage": [".region-visual", "#status", "#pressure", "#integration", "#wellbeing"], "side": ["#advance-round-button", "#coda-button", "#capacity", "#round-tools", "#neighbor-panel", "#capacity-tools"], "hidden": ["#round-display", "#funds-display", "#total-capacity-display"]}; window.NOYVJ_PC_HINTS = [["?", "All shortcuts"], ["1 2 3", "Buy"], ["Enter", "Advance"], ["U", "Reset round"], ["P", "Play 5"], ["L", "Ledger"], ["C", "Collection"], ["Esc", "Menu / close window"]]; window.NOYVJ_PC_NOTIFY = null; window.NOYVJ_PC_TOOLBAR = {"icons": [["achievements-toggle-button", "🏆"], ["howto-toggle-button", "📖"], ["settings-toggle-button", "⚙️"]], "menu": [{"heading": "Game", "ids": ["accelerated-severity-toggle-button", "crisis-start-toggle-button"]}, {"heading": "Help", "ids": ["tutorial-restart-button", "info-page-toggle-button", "credits-link"]}, {"heading": "Records", "ids": ["ledger-toggle-button", "collection-toggle-button", "changelog-toggle-button"]}]}; window.NOYVJ_PC_COMPOSITES = [{"id": "pc-about-panel", "title": "About Drift", "members": [".tagline", ".context-blurb", "#community-index"], "group": "Help", "label": "ℹ️ About Drift"}, {"id": "pc-feedback-panel", "title": "Feedback", "members": ["#feedback-prompt"], "group": "Help", "label": "💬 Send feedback"}]; window.NOYVJ_PC_ADOPT = []; window.NOYVJ_PC_READOUTS = [["#round-display", "🔁", ""], ["#funds-display", "💰", "Funds"], ["#total-capacity-display", "🏘️", "Capacity"], ["#strain-display", "📉", "Strain"], ["#pending-display", "⏳", "Pending"], ["#wellbeing-display", "⭐", "Wellbeing"]]; window.NOYVJ_PC_SIDE_LABEL = "Investments and decisions";</script>
+<script>window.NOYVJ_LAYOUT = "pc"; window.NOYVJ_PC_WINDOWS = [{"panel": "howto-panel", "toggle": "howto-toggle-button", "title": "How to Play"}, {"panel": "achievements-panel", "toggle": "achievements-toggle-button", "title": "Achievements"}, {"panel": "changelog-panel", "toggle": "changelog-toggle-button", "title": "What's New"}, {"panel": "ledger-panel", "toggle": "ledger-toggle-button", "title": "Round Ledger"}, {"panel": "collection-panel", "toggle": "collection-toggle-button", "title": "Region Collection"}, {"panel": "settings-panel", "toggle": "settings-toggle-button", "title": "Settings"}, {"panel": "info-page-panel", "toggle": "info-page-toggle-button", "title": "The Real Story"}, {"panel": "coda-section", "toggle": "coda-button", "title": "Long-Horizon Outcomes"}]; window.NOYVJ_PC_ZONES = {"topbar": [".hub-back-link", "h1", ".game-toolbar"], "stagebar": [], "stage": [".region-visual", "#status", "#pressure", "#integration", "#wellbeing"], "side": ["#advance-round-button", "#coda-button", "#capacity", "#round-tools", "#civic-tools", "#neighbor-panel", "#capacity-tools"], "hidden": ["#round-display", "#funds-display", "#total-capacity-display"]}; window.NOYVJ_PC_HINTS = [["?", "All shortcuts"], ["1 2 3", "Buy"], ["Enter", "Advance"], ["U", "Reset round"], ["P", "Play 5"], ["L", "Ledger"], ["C", "Collection"], ["Esc", "Menu / close window"]]; window.NOYVJ_PC_NOTIFY = null; window.NOYVJ_PC_TOOLBAR = {"icons": [["achievements-toggle-button", "🏆"], ["howto-toggle-button", "📖"], ["settings-toggle-button", "⚙️"]], "menu": [{"heading": "Game", "ids": ["accelerated-severity-toggle-button", "crisis-start-toggle-button"]}, {"heading": "Help", "ids": ["tutorial-restart-button", "info-page-toggle-button", "credits-link"]}, {"heading": "Records", "ids": ["ledger-toggle-button", "collection-toggle-button", "changelog-toggle-button"]}]}; window.NOYVJ_PC_COMPOSITES = [{"id": "pc-about-panel", "title": "About Drift", "members": [".tagline", ".context-blurb", "#community-index"], "group": "Help", "label": "ℹ️ About Drift"}, {"id": "pc-feedback-panel", "title": "Feedback", "members": ["#feedback-prompt"], "group": "Help", "label": "💬 Send feedback"}]; window.NOYVJ_PC_ADOPT = []; window.NOYVJ_PC_READOUTS = [["#round-display", "🔁", ""], ["#funds-display", "💰", "Funds"], ["#total-capacity-display", "🏘️", "Capacity"], ["#strain-display", "📉", "Strain"], ["#pending-display", "⏳", "Pending"], ["#wellbeing-display", "⭐", "Wellbeing"]]; window.NOYVJ_PC_SIDE_LABEL = "Investments and decisions";</script>
 <script src="pc.js"></script>
 <script src="../../shared/layout-pref.js" data-game-id="drift" data-pc-page="pc.html" data-classic-page="index.html"></script>
 <title>Drift - NoyvjGames (Desktop)</title>
@@ -228,6 +228,7 @@
       <p id="capacity-milestone-display" class="status-line">Next capacity milestone: 50 total capacity.</p>
       <p id="collection-summary-display" class="status-line"></p>
       <p id="region-title-display" class="status-line"></p>
+      <p id="run-stars-display" class="status-line"></p>
       <label class="region-name-row">Region name (optional, carried into the coda)
         <input id="region-name-input" class="region-name-input" type="text" maxlength="30" placeholder="Name your region">
       </label>
@@ -258,6 +259,8 @@
         <summary>Capacity planning forecast</summary>
         <p id="forecast-display" class="comparison-message"></p>
       </details>
+      <!-- GI-13: Perfect Fit streak, beside the forecast -->
+      <p id="perfect-fit-display" class="comparison-message"></p>
     </div>
 
     <div id="integration" class="section">
@@ -489,11 +492,74 @@
         <button id="reset-round-button" class="secondary" type="button" title="Refund everything you decided since this round began.">↩️ Reset this round</button>
         <button id="rewind-button" class="secondary" type="button" title="One per region: undo the last Advance Round and get that round back exactly as it was.">⏪ Rewind Token (1 left)</button>
         <button id="play-rounds-button" class="secondary" type="button" title="Advance up to 5 rounds with your current allocation. Stops early if strain rises a level or a forecast event arrives.">⏩ Play 5 rounds</button>
+        <button id="copy-summary-button" class="secondary" type="button" title="Copy a plain-text summary of this run: region, band, a block-character wellbeing curve, setup and stars.">📋 Copy run summary</button>
       </div>
       <p id="round-tools-note" class="comparison-message" role="status" aria-live="polite" hidden></p>
+      <textarea id="summary-copy-area" class="ledger-copy-area" readonly hidden aria-label="Run summary as text"></textarea>
       <details id="round-recap-details" class="context-toggle" open hidden>
         <summary>Last round recap</summary>
         <p id="round-recap-display" class="comparison-message"></p>
+      </details>
+    </div>
+
+    <!-- GI-2 / GI-11 Crisis Calendar, GI-1 Mayor's Council, GI-5 Budget Autopilot. All fixed and visible: no cards, no randomness. -->
+    <div id="civic-tools" class="section">
+      <p class="meter-label">Council and calendar</p>
+      <details class="context-toggle" open>
+        <summary>Crisis Calendar (optional)</summary>
+        <button id="calendar-toggle-button" class="secondary difficulty-toggle" type="button" title="Optional: fixed, telegraphed events (surges, budget cuts, floods, bumper harvests, three Surge Tests). Off by default.">Crisis Calendar: OFF</button>
+        <p id="calendar-display" class="comparison-message"></p>
+        <button id="calendar-brace-button" class="secondary" type="button" hidden>Nothing to brace for</button>
+        <p id="calendar-note" class="comparison-message" role="status" aria-live="polite" hidden></p>
+      </details>
+      <details class="context-toggle">
+        <summary>Mayor's Council</summary>
+        <p id="council-status" class="comparison-message" role="status" aria-live="polite"></p>
+        <div class="round-tools-buttons">
+          <button id="council-pick-education" class="secondary" type="button">Learning</button>
+          <button id="council-pick-housing" class="secondary" type="button">Housing</button>
+          <button id="council-pick-transit" class="secondary" type="button">Transit</button>
+        </div>
+        <div id="council-tree" class="comparison-message"></div>
+      </details>
+      <details class="context-toggle">
+        <summary>Budget Autopilot</summary>
+        <p class="comparison-message">Set standing rules, then run several rounds in one click. It buys the same capacity you could buy by hand, and stops early if strain rises a level or a braceable calendar event is due.</p>
+        <div class="autopilot-rules">
+          <label>Keep services at
+            <select id="autopilot-share-select">
+              <option value="off">no target</option>
+              <option value="40">40% of capacity</option>
+              <option value="50">50% of capacity</option>
+              <option value="60">60% of capacity</option>
+            </select>
+          </label>
+          <label>Spend surplus on
+            <select id="autopilot-surplus-select">
+              <option value="housing">Housing</option>
+              <option value="services">Integration Services</option>
+              <option value="infrastructure">Infrastructure</option>
+              <option value="hold">nothing (hold it)</option>
+            </select>
+          </label>
+          <label>Keep in reserve
+            <select id="autopilot-reserve-select">
+              <option value="0">0 funds</option>
+              <option value="40">40 funds</option>
+              <option value="100">100 funds</option>
+            </select>
+          </label>
+          <label>Run for
+            <select id="autopilot-rounds-select">
+              <option value="5">5 rounds</option>
+              <option value="10">10 rounds</option>
+              <option value="25">25 rounds</option>
+            </select>
+          </label>
+        </div>
+        <p id="autopilot-note" class="comparison-message"></p>
+        <button id="autopilot-run-button" class="secondary" type="button">▶ Run Autopilot</button>
+        <ul id="autopilot-log" class="autopilot-log" aria-label="Autopilot rule log"></ul>
       </details>
     </div>
 

@@ -1,6 +1,10 @@
 [
   {
     "date": "2026-10-08",
+    "entry": "New in Drift: a Perfect Fit streak (end a round with capacity covering everyone who has arrived and no more than 12 to spare; each round in a row adds funds, up to 15, and the streak sits beside the forecast). An optional Crisis Calendar shows fixed events a round ahead (arrivals surges, budget cuts, floods, bumper harvests) and three named Surge Tests at rounds 25, 50 and 75, with a pay-to-brace option and a Held the line card; nothing is random and nothing ends a run. The Mayor's Council offers a pick every 10 rounds from a visible tree of nine programs (Night-School Network, Rapid Housing Modules, Transit Expansion and six follow-ups), each with a trade-off. A Budget Autopilot runs several rounds from your standing rules with a visible log, and finished runs earn 1 to 3 stars on wellbeing, speed to net-positive and efficiency, banked into a run history at round 50. Copy run summary copies a short text with a block-character wellbeing curve. Nothing changes unless you use it or switch the calendar on."
+  },
+  {
+    "date": "2026-10-08",
     "entry": "New: a Copy result button under the long-horizon outcomes copies a one-line result (wellbeing, projected wellbeing, people integrated, rounds) to share. Earned achievements now have a Share button, and a Credits link sits at the bottom of the page (in the Help menu on Desktop)."
   },
   {

@@ -42,7 +42,7 @@
     "topbar": [".hub-back-link", "h1", ".game-toolbar"],
     "stagebar": [],
     "stage": [".region-visual", "#status", "#pressure", "#integration", "#wellbeing"],
-    "side": ["#advance-round-button", "#coda-button", "#capacity", "#round-tools", "#neighbor-panel", "#capacity-tools"],
+    "side": ["#advance-round-button", "#coda-button", "#capacity", "#round-tools", "#civic-tools", "#neighbor-panel", "#capacity-tools"],
     "hidden": ["#round-display", "#funds-display", "#total-capacity-display"]
   },
   "readouts": [
