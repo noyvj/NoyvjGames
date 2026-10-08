@@ -883,3 +883,67 @@ def test_new_session_clears_the_replay(game_env):
     m._record_replay_frame()
     m.reset_session()
     assert m._replay_frames == [] or m._replay_frames[0][0] == 0
+
+
+# ---- B-28 phone bottom sheet ----
+
+class _ContextEvent:
+    def __init__(self, tile_id):
+        self.prevented = False
+        self.target = type("T", (), {"closest": lambda self_, sel: type("Tile", (), {"id": tile_id})()})()
+
+    def preventDefault(self):
+        self.prevented = True
+
+
+def test_desktop_contextmenu_never_opens_the_sheet(game_env):
+    m = game_env.module
+    m.is_phone_layout = lambda: False
+    m.on_plot_contextmenu(_ContextEvent("plot-3"))
+    assert m.plot_sheet_open is False and game_env.elements["plot-sheet"].hidden is True
+
+
+def test_phone_long_press_opens_the_sheet_for_that_plot(game_env):
+    m = game_env.module
+    m.is_phone_layout = lambda: True
+    event = _ContextEvent("plot-3")
+    m.on_plot_contextmenu(event)
+    assert event.prevented and m.selected_index == 3 and m.plot_sheet_open
+    sheet = game_env.elements["plot-sheet"]
+    assert sheet.hidden is False and m.plot_coordinate_label(3) in game_env.elements["plot-sheet-title"].innerText
+
+
+def test_sheet_buttons_follow_the_plot_state(game_env):
+    m = game_env.module
+    m.selected_index = 3
+    m.plots[3].state = m.BARE
+    actions = m.plot_sheet_actions()
+    assert actions["clear"][0] is False and actions["replant"][0] is True
+    m.plots[3].state = m.PRESERVED
+    actions = m.plot_sheet_actions()
+    assert actions["clear"][0] is True and actions["replant"][0] is False
+    m.adopted_plot_index = 3
+    assert m.plot_sheet_actions()["adopt"][1] == "Release plot"
+
+
+def test_sheet_actions_run_the_normal_handlers_and_close(game_env):
+    m = game_env.module
+    m.is_phone_layout = lambda: True
+    m.select_plot(2)
+    m.plots[2].state = m.PRESERVED
+    m.plots[2].value = 10.0
+    m.open_plot_sheet()
+    income = m.total_income
+    m.on_plot_sheet_action("clear")
+    assert m.plots[2].state == m.BARE and m.total_income > income
+    assert m.plot_sheet_open is False and game_env.elements["plot-sheet"].hidden is True
+    m.open_plot_sheet()
+    m.on_plot_sheet_action("replant")
+    assert m.plots[2].state == m.REPLANTING
+
+
+def test_sheet_stays_closed_with_no_selection(game_env):
+    m = game_env.module
+    m.selected_index = None
+    m.open_plot_sheet()
+    assert m.plot_sheet_open is False

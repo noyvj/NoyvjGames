@@ -2204,6 +2204,18 @@ html[data-forest-palette="meadow"] { --forest-accent: #a7d98a; }
 .replay-svg { width: 100%; max-width: 360px; height: auto; display: block; margin: 0.4rem 0; }
 .replay-label { font-size: 0.85em; margin: 0.2rem 0 0; }
 
+/* B-28: phone bottom sheet. Never shown by the desktop layout (the game only opens it at phone width). */
+.plot-sheet:not([hidden]) {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 60;
+  display: flex; flex-direction: column; gap: 0.6rem;
+  padding: 0.9rem 1rem calc(0.9rem + env(safe-area-inset-bottom, 0px));
+  background: #14221a; color: #f0f4ee; border-top: 3px solid #9bc873;
+  border-radius: 14px 14px 0 0; box-shadow: 0 -6px 18px rgba(0, 0, 0, 0.45);
+}
+.plot-sheet-title { margin: 0; font-weight: 600; }
+.plot-sheet-buttons { display: grid; grid-template-columns: 1fr 1fr; gap: 0.6rem; }
+.plot-sheet button { min-height: 52px; font-size: 1.05rem; }
+
 /* ============================================================
    Light theme (Y11b, 2026-09-27). shared/theme-light-games.css already
    restyles the shared chrome (panels, buttons, inputs, HUD readouts);

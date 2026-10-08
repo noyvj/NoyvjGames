@@ -1291,9 +1291,89 @@ def on_plot_contextmenu(event):
         return
     event.preventDefault()
     select_plot(index)
+    if is_phone_layout():  # B-28: a long-press on a phone opens the bottom sheet instead
+        open_plot_sheet()
+        return
     box = _el("plot-note-input")
     if box is not None and hasattr(box, "focus"):
         box.focus()
+
+
+# B-28 (2026-10-09): on a phone-width screen a long-press (or right-click) on a plot opens a bottom sheet with large
+# Clear / Replant / Adopt / Note buttons. The sheet only calls the ordinary handlers on the selected plot, and the
+# desktop layout never opens it.
+PHONE_MAX_WIDTH_PX = 700
+plot_sheet_open = False
+
+
+def is_phone_layout():
+    try:
+        import js  # noqa: PLC0415 -- Pyodide-only, deliberately lazy
+        return bool(js.window.matchMedia(f"(max-width: {PHONE_MAX_WIDTH_PX}px)").matches)
+    except Exception:  # noqa: BLE001 -- outside a browser there is no media query, so it is not a phone
+        return False
+
+
+def open_plot_sheet():
+    global plot_sheet_open
+    if selected_index is None:
+        return
+    plot_sheet_open = True
+    render_plot_sheet()
+
+
+def close_plot_sheet(event=None):
+    global plot_sheet_open
+    plot_sheet_open = False
+    render_plot_sheet()
+
+
+def plot_sheet_actions():
+    """Which of the sheet's buttons are usable for the selected plot, and what to call them."""
+    if selected_index is None:
+        return {"clear": (False, "Clear"), "replant": (False, "Replant"), "adopt": (False, "Adopt"), "note": (False, "Note")}
+    plot = plots[selected_index]
+    can_clear = "clear" in VALID_ACTIONS[plot.state] and plot.index != heart_tree_index
+    can_replant = "replant" in VALID_ACTIONS[plot.state]
+    adopted = adopted_plot_index == selected_index
+    return {
+        "clear": (can_clear, "Clear"),
+        "replant": (can_replant, "Replant"),
+        "adopt": (True, "Release plot" if adopted else "Adopt plot"),
+        "note": (True, "Edit note"),
+    }
+
+
+def render_plot_sheet():
+    sheet = _el("plot-sheet")
+    if sheet is None:
+        return
+    sheet.hidden = not (plot_sheet_open and selected_index is not None)
+    if sheet.hidden:
+        return
+    title = _el("plot-sheet-title")
+    if title is not None:
+        plot = plots[selected_index]
+        title.innerText = f"Plot {plot_coordinate_label(selected_index)}: {STATE_LABEL[plot.state]}, value {plot.value:.1f}"
+    for name, (enabled, text) in plot_sheet_actions().items():
+        button = _el(f"plot-sheet-{name}")
+        if button is not None:
+            button.disabled = not enabled
+            button.innerText = text
+
+
+def on_plot_sheet_action(name):
+    if name == "clear":
+        on_clear()
+    elif name == "replant":
+        on_replant()
+    elif name == "adopt":
+        on_adopt_plot()
+    elif name == "note":
+        box = _el("plot-note-input")
+        if box is not None and hasattr(box, "focus"):
+            box.focus()
+    close_plot_sheet()
 
 
 def render_plot_note_input():
@@ -7232,6 +7312,7 @@ def render():
     render_grid()
     render_panel()
     render_plot_note_input()  # B-24
+    render_plot_sheet()  # B-28
     render_stats()
     render_stakeholder_panel()
     render_real_world()
@@ -7893,6 +7974,13 @@ def setup():
         select = _el(select_id)
         if select is not None:
             select.addEventListener("change", create_proxy(on_my_forests_change))
+    for sheet_name in ("clear", "replant", "adopt", "note"):  # B-28
+        sheet_button = _el(f"plot-sheet-{sheet_name}")
+        if sheet_button is not None:
+            sheet_button.addEventListener("click", create_proxy(lambda event=None, n=sheet_name: on_plot_sheet_action(n)))
+    sheet_close = _el("plot-sheet-close")
+    if sheet_close is not None:
+        sheet_close.addEventListener("click", create_proxy(close_plot_sheet))
     replay_slider = _el("replay-slider")  # B-3
     if replay_slider is not None:
         replay_slider.addEventListener("input", create_proxy(on_replay_scrub))

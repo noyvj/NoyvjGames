@@ -1313,3 +1313,8 @@ Added readability and feedback features to Thaw without adding screen clutter: t
 **Game:** canopy
 **Did:** B-3: a "Forest replay" section in the Session Summary with a range slider that scrubs the grid through the session. The game keeps a snapshot of every plot's state (one letter per plot) every 5 ticks; when 120 frames are held the list is thinned to every other frame and the spacing doubles, so a session of any length fits in bounded memory. The live forest is always the final frame. Each frame is drawn as a small SVG with the state colour and its letter, and a text line gives the tick and how many plots stand or are bare. Frames are ephemeral like the other session histories: never saved, cleared by a new session.
 **Result:** Canopy tests 978 to 984. Not checked live in a browser; there is no autoplay button yet, only the slider.
+
+### 2026-10-09 (Canopy, personal pass: phone bottom sheet)
+**Game:** canopy
+**Did:** B-28: a long-press (the browser's contextmenu event) on a plot, at a screen 700px wide or narrower, now selects the plot and opens a fixed bottom sheet with a title (coordinate, state, value) and four 52px-high buttons: Clear, Replant, Adopt/Release plot and Edit note, plus Close. The buttons are disabled when the action is not valid for the plot (and Clear for the Heart Tree) and simply call the ordinary handlers, then close the sheet. On a wider screen the same gesture still jumps to the note box, so the desktop layout is untouched.
+**Result:** Canopy tests 984 to 989. Not checked on a real phone; the media query is read lazily and falls back to "not a phone" outside a browser.

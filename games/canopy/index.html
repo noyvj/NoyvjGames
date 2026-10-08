@@ -252,6 +252,17 @@
     </div>
     <div id="achievements-panel" class="section achievements-panel grove-wall" hidden></div>
     <div id="achievement-toast" class="achievement-toast" hidden></div>
+    <!-- B-28: phone-only bottom sheet opened by a long-press on a plot. -->
+    <div id="plot-sheet" class="plot-sheet" role="dialog" aria-label="Plot actions" hidden>
+      <p id="plot-sheet-title" class="plot-sheet-title"></p>
+      <div class="plot-sheet-buttons">
+        <button type="button" id="plot-sheet-clear">Clear</button>
+        <button type="button" id="plot-sheet-replant">Replant</button>
+        <button type="button" id="plot-sheet-adopt">Adopt plot</button>
+        <button type="button" id="plot-sheet-note" class="secondary">Edit note</button>
+      </div>
+      <button type="button" id="plot-sheet-close" class="secondary">Close</button>
+    </div>
     <!-- B-19: long-term Forest Rank (cosmetic frames and palettes only), shown under the achievements. -->
     <div id="forest-rank-panel" class="section forest-rank-panel">
       <p id="forest-rank-text" class="forest-rank-text"></p>
