@@ -2001,6 +2001,25 @@ def projection_message(projection):
     )
 
 
+def copy_result_fields():
+    """Z-20: the fields shared/copy-result.js turns into one pasteable line,
+    e.g. "Grid, 62 clean-grid score, round 14, operator grade B, ...". Read by
+    the page's own inline script through pyodide.globals when the shared Copy
+    result button is pressed, so it always matches the run as it stands."""
+    stats = [f"round {state.round_number}"]
+    grade = state.benchmark_grade()
+    if grade is not None:
+        stats.append(f"operator grade {grade}")
+    stats.append(f"{state.emissions_avoided():.0f} emissions avoided")
+    stats.append(f"resilience {state.resilience_score()}/100")
+    return {
+        "game": "Grid",
+        "score": round(state.score()),
+        "unit": "clean-grid score",
+        "stats": stats,
+    }
+
+
 def summary_panel_html():
     """C5: the Run Summary panel's content -- pure read of existing
     state/score/funds-breakdown/C17-counterfactual math, no new

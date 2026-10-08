@@ -836,12 +836,12 @@ Your remaining Round 3 answers (Grid to Drift gamified, SOL to Le Champ de Mots,
   - [x] Z-19 Lexis
 - [ ] Z-20: Add one shared copy-result-as-text helper (Wordle-style line, e.g. 'Tide, 4,210 pts, 3 storms survived', seed only if the game has one) and call it from the end/summary screen of every game except Signal, which keeps its own. (partly built: Signal has a result-share copy (games/signal/app.js lastShareText); no shared helper, no other game) (Shared helper built 2026-10-08 (shared/copy-result.js); calling it from each game's end screen is still to wire (per-game boxes below).)
   Per game (Classic and Desktop pages both; tick each once wired and tested):
-  - [ ] Z-20 SOL
-  - [ ] Z-20 Canopy
-  - [ ] Z-20 Grid
-  - [ ] Z-20 Tide
-  - [ ] Z-20 Aftermath
-  - [ ] Z-20 Herd
+  - [x] Z-20 SOL
+  - [x] Z-20 Canopy
+  - [x] Z-20 Grid
+  - [x] Z-20 Tide
+  - [x] Z-20 Aftermath
+  - [x] Z-20 Herd
   - [ ] Z-20 Thaw
   - [ ] Z-20 Loop
   - [ ] Z-20 Drift

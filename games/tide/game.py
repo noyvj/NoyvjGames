@@ -2432,6 +2432,28 @@ def update_session_summary_display():
         text_el.innerText = state.session_summary_text() + (" " + best_line if best_line else "")
 
 
+def copy_result_fields():
+    """Z-20: the fields shared/copy-result.js turns into one pasteable line
+    ("Tide, 12 seasons, 340 damage taken, ..."). Read by the page's own
+    inline script through pyodide.globals when the Copy result button is
+    pressed, so it always describes the run as it stands right now."""
+    seasons = max(0, state.season - 1)
+    stats = [
+        {"n": round(state.cumulative_damage), "one": "damage taken", "many": "damage taken"},
+        {"n": round(state.damage_saved()), "one": "damage saved by adaptation", "many": "damage saved by adaptation"},
+        "tier: " + state.current_tier()["name"],
+    ]
+    storms = len(state.storm_log)
+    if storms:
+        stats.append({"n": storms, "one": "storm survived", "many": "storms survived"})
+    return {
+        "game": "Tide",
+        "score": seasons,
+        "unit": "season" if seasons == 1 else "seasons",
+        "stats": stats,
+    }
+
+
 def render_fish_warning_banner():
     """D14: an early-warning banner for a fish-yield crash already locked
     in by acidity that's already in the pipeline -- distinct from the

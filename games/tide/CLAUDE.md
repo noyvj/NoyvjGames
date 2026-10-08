@@ -604,3 +604,4 @@ Tests 274 -> 322 (`tests/test_todo_pass_oct7.py`). `tests/fakes.py` gained `setA
 
 ## Pause and fast-forward audit (W-2, 2026-10-08)
 - Tide has no real-time tick (no `setInterval`; the only timers are one-shot UI timeouts). Seasons advance only when the player presses Advance Season, so there is nothing to pause or speed up and neither shared control was added.
+- Wiring pass 2026-10-08: the Session Summary carries the shared Copy result button (`copy_result_fields()` in game.py feeds `shared/copy-result.js`; mounted by the inline script at the end of index.html; the storm count is only mentioned when storms were on), earned achievement cards get a Share button (`shared/achievement-share.js`), the head carries the Open Graph/Twitter block and JSON-LD from `share/meta/tide.html` and `share/jsonld/tide.json`, and the How to Play and Info panels end with a Credits link. Pins: `tests/test_wiring_oct8.py`.

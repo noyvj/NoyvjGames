@@ -1,6 +1,10 @@
 {
   "changelog": [
     {
+      "date": "2026-10-08",
+      "entry": "New: the Run Summary has a Copy result button that copies one line, such as Grid, 62 clean-grid score, with your round, operator grade and emissions avoided. Every achievement you have earned now has a Share button that copies a line you can paste anywhere, with the share of players who have it when that figure is available. The How to Play and Info panels link to the new Credits page."
+    },
+    {
       "date": "2026-10-07",
       "entry": "Career and quality-of-life update: your Career panel now keeps a run history with stacked comparison charts, lifetime statistics with a clean-share heatmap, personal records (fewest rounds to 90% clean, longest disruption-free streak) with a New record! flash, and locked perks show their effect and how many points away they are. You can export, import or reset your career (reset offers a backup first). New: Auto-advance plays up to five rounds and stops at the first disruption, breakdown or policy offer; a round recap line explains where last round's funds went; and Relaxed, Standard and Operator difficulty presets set the existing difficulty controls in one choice."
     },

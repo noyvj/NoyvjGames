@@ -2,6 +2,10 @@
   "changelog": [
     {
       "date": "2026-10-08",
+      "entry": "New: after you finish the system, the Epilogue and the Stats & Share panel have a Copy result button that copies one line, such as SOL, 100% terraformed, with your worlds, achievements and time played. Every achievement you have earned now has a Share button that copies a line you can paste anywhere, with the share of players who have it when that figure is available. The How to Play panel has a link to the new Credits page."
+    },
+    {
+      "date": "2026-10-08",
       "entry": "New: a Pause, 1x, 2x and 4x control sits under the toolbar (Space pauses or resumes, [ and ] change the speed). Faster only means the game ticks more often, never that anything is skipped, and nothing at all happens while it is paused. New: a setting, on by default, pauses the game while this browser tab is hidden and tells you when you come back; switch it off in Settings if you want it to keep running in the background."
     },
     {

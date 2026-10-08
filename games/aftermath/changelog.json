@@ -1,5 +1,9 @@
 [
   {
+    "date": "2026-10-08",
+    "entry": "New: the run summary has a Copy result button that copies one line, such as Aftermath, 340 resources left, with your run, events weathered, damage taken and flawless defenses (it sits beside the existing Copy run summary, which still copies the full event-by-event text). Every achievement you have earned now has a Share button that copies a line you can paste anywhere, with the share of players who have it when that figure is available. The How to Play and Info panels link to the new Credits page."
+  },
+  {
     "date": "2026-10-07",
     "entry": "New in Aftermath: a Disaster Codex (one page per kind of shock, filling in with your damage, best mitigation and a sourced real-world story as you face each one) and a Lifetime Stats page. Invest in steps of x1, x5 or Max, and undo your last investment click before Face Next Event. Hold an event to 15% of its base damage for a Flawless Defense (a bonus knowledge point and a new achievement), see how many knowledge points came from where, copy your run summary, and watch each hit's prevented damage and streak. The tab title tracks your run, events are announced for screen readers, and Settings gains High contrast and Readable font. Keys: 1 and 2 invest, Enter faces the event, U undoes, T jumps to the tree, H, C and S open History, Codex and Stats."
   },

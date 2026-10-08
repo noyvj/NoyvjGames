@@ -2197,6 +2197,25 @@ def share_snippet():
     )
 
 
+def copy_result_fields():
+    """Z-20: the fields shared/copy-result.js turns into one pasteable line,
+    e.g. "Canopy, 41.2 standing value, 12.5 harvested, ...". Read by the
+    page's own inline script through pyodide.globals when the shared Copy
+    result button is pressed, so it always matches the session right now."""
+    counts = state_breakdown()
+    standing_plots = counts[PRESERVED] + counts[RECOVERED]
+    return {
+        "game": "Canopy",
+        "score": round(standing_forest_value(), 1),
+        "unit": "standing forest value",
+        "stats": [
+            f"{total_income:.1f} harvested",
+            f"{total_biodiversity():.1f} biodiversity",
+            f"{standing_plots}/{len(plots)} plots standing",
+        ],
+    }
+
+
 # B7 (planning/TODO.md "Per-game: Canopy"): save/compare two named
 # playstyle runs. Per-browser via localStorage -- same mechanism and same
 # "deliberately NOT part of get_state()" reasoning as B14's personal

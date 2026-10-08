@@ -2342,6 +2342,23 @@ def build_share_card_text():
     return "\n".join(lines)
 
 
+def copy_result_fields():
+    """Z-20: the fields shared/copy-result.js turns into one pasteable line,
+    e.g. "SOL, 100% terraformed, 9/9 worlds fully terraformed, ...". Read by
+    the page's own inline script through pyodide.globals when the shared
+    Copy result button is pressed, so it always matches the run right now."""
+    terraform_values = [planet_state[p]["terraform_progress"] for p in PLANETS]
+    average = round(sum(terraform_values) / len(terraform_values))
+    stats = [
+        f"{_terraformed_planet_count()}/{len(PLANETS)} worlds fully terraformed",
+        f"{len(achievement_ids_earned())}/{len(ACHIEVEMENTS)} achievements",
+        "played " + _format_duration(_lifetime_playtime_seconds()),
+    ]
+    if prestige_level > 0:
+        stats.append(f"prestige {prestige_level}")
+    return {"game": "SOL", "score": f"{average}%", "unit": "terraformed", "stats": stats}
+
+
 def on_copy_share_card(event=None):
     # Clipboard access is browser-only (no navigator in the pytest fake-DOM
     # harness) -- guarded the same lazy-import-and-degrade way

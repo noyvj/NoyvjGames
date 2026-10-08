@@ -2,6 +2,10 @@
   "changelog": [
     {
       "date": "2026-10-08",
+      "entry": "New: the Session Summary has a Copy result button that copies one line, such as Tide, 12 seasons, with your damage taken, damage saved by adaptation, adaptation tier and storms survived. Every achievement you have earned now has a Share button that copies a line you can paste anywhere, with the share of players who have it when that figure is available. The How to Play and Info panels link to the new Credits page."
+    },
+    {
+      "date": "2026-10-08",
       "entry": "New: a Season Planner (stage 3 to 5 seasons of investments and see projected acidity, fishing yield and dry rows at risk before spending anything, then commit the first season), a season scrubber under the coastline (drag back to see any earlier season's coast, meters, tier and heritage, read-only), a Session Library (save sessions in this browser and overlay any two on the graphs, one solid and one dashed), and a Harbor Almanac (lifetime seasons, rows kept dry, heritage protected and storms weathered, plus your best run for each sea scenario and lag mode, also shown in the session summary). The trend graphs gain a hover/tap/arrow-key crosshair with that season's numbers, a Last 10 / Last 20 / All range, and optional dash styles and point shapes per series. Every coastline tile can now be reached with the arrow keys."
     },
     {

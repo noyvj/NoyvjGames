@@ -1060,6 +1060,25 @@ def _request_comparison():
         hook(float(farm.methane), farm.round_number)
 
 
+def copy_result_fields():
+    """Z-20: the fields shared/copy-result.js turns into one pasteable line,
+    e.g. "Herd, 412 score, Careful Rancher, round 9, ...". Read by the page's
+    own inline script through pyodide.globals when the shared Copy result
+    button is pressed, so it always matches the farm as it stands."""
+    methane_avoided = max(0.0, farm.counterfactual_methane - farm.methane)
+    return {
+        "game": "Herd",
+        "score": round(farm.score()),
+        "unit": "score",
+        "stats": [
+            RATING_TITLES[rating_index()][0],
+            f"round {farm.round_number}",
+            f"{farm.decoupled_fraction() * 100:.0f}% decoupled",
+            f"{methane_avoided:.0f} methane avoided",
+        ],
+    }
+
+
 def report_card_html():
     """F3 — an on-demand end-of-session report card. Reuses the exact
     same counterfactual numbers as the live comparison (F1) and the

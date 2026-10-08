@@ -2890,6 +2890,29 @@ def run_summary_text(run_state=None):
     return "\n".join(lines)
 
 
+def copy_result_fields(run_state=None):
+    """Z-20: the fields shared/copy-result.js turns into one pasteable line,
+    e.g. "Aftermath, 340 resources left, run 3 (Coastal), 5 events, ...". Read
+    by the page's own inline script through pyodide.globals when the shared
+    Copy result button is pressed, so it always matches the run right now."""
+    run_state = run_state or run
+    events = len(run_state.event_log)
+    flawless = flawless_count(run_state.event_log)
+    stats = [
+        f"run {run_state.run_number} ({SCENARIOS[run_state.scenario]['label']})" + ("" if run_state.is_complete() else ", in progress"),
+        {"n": events, "one": "event weathered", "many": "events weathered"},
+        f"{run_state.damage_taken:.0f} damage taken",
+    ]
+    if flawless:
+        stats.append({"n": flawless, "one": "flawless defense", "many": "flawless defenses"})
+    return {
+        "game": "Aftermath",
+        "score": round(run_state.run_score()),
+        "unit": "resources left" if run_state.is_complete() else "resources so far",
+        "stats": stats,
+    }
+
+
 def _copy_to_clipboard(text):
     try:
         import js as _js  # noqa: PLC0415 -- Pyodide-only, deliberately lazy
