@@ -220,6 +220,15 @@ def _wind(chart, fr):
     return "".join(out)
 
 
+def _compass_label(chart, fr):
+    comp = chart.get("compass")
+    if not comp:
+        return ""
+    lo, hi = comp["range"]
+    text = "Compass error %s degrees %s" % (range_text([abs(lo), abs(hi)], "").strip(), "E" if (lo + hi) >= 0 else "W")
+    return '<g class="dr-compass-note" role="img" aria-label="%s">%s</g>' % (escape(text), _label(fr.width - RIGHT - 52.0, 26.0, text, "dr-label dr-label-wind", "end"))
+
+
 def _endpoints(chart, fr):
     sx, sy = fr.xy(chart["start"])
     dx, dy = fr.xy(chart["dest"])
@@ -330,7 +339,7 @@ def render_chart(chart, est=None, marks=(), sailed_legs=0, true_track=None, disc
         _defs(),
         '<rect class="dr-sea" x="%s" y="%s" width="%s" height="%s"/>' % (f(LEFT), f(TOP), f(PX), f(PX)),
         _grid(fr), _land(chart, fr), _currents(chart, fr), _hazards(chart, fr, discovered, reveal), _landmarks(chart, fr),
-        _scale_bar(fr), _wind(chart, fr), _rose(fr), _endpoints(chart, fr),
+        _scale_bar(fr), _wind(chart, fr), _compass_label(chart, fr), _rose(fr), _endpoints(chart, fr),
     ]
     parts.append(_par(fr, par_track))
     if est:

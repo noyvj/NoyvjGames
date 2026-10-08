@@ -45,7 +45,7 @@ def buoy(lid, name, x, y, visible=5.0):
 def chart(cid, name, chapter, **fields):
     """A chart with the defaults every chart shares; `waypoints` is the authored route the par plan is shot along."""
     base = {"id": cid, "name": name, "chapter": chapter, "size": 20, "arrival_radius": 1.5, "speeds": [3.0, 7.0], "start_hour": 0.0,
-            "land": [], "hazards": [], "currents": [], "landmarks": [], "naive_fails": False, "modes": ["plan"], "default_mode": "plan", "waypoints": [], "intro": "", "log": {}}
+            "land": [], "hazards": [], "currents": [], "landmarks": [], "naive_fails": False, "modes": ["plan"], "default_mode": "plan", "par_wait": 0.0, "fair_ok": True, "waypoints": [], "intro": "", "log": {}}
     base.update(fields)
     if not base["waypoints"]:
         base["waypoints"] = [base["start"], base["dest"]]

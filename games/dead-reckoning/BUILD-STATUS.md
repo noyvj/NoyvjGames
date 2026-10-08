@@ -11,8 +11,10 @@ Updated after each milestone. A new agent should read `planning/dead-reckoning-p
 - Milestone 4 Campaign chapters 1-2: `chartkit.py`, `charts_open.py`, `charts_wind.py`, `charts.py` (registry, chapters, gates), generated `pars.py`, picker, par reveal, captain's log, `tests/test_charts.py`.
 - Milestone 5 Fixes and watch-by-watch: `fixes.py`, watch logic in `game.py`/`state.py`, `charts_fixes.py` (5 charts), watch UI.
 
+- Milestone 6 Fog, tides, compass error: `charts_fog.py`, `charts_tides.py`, `charts_compass.py` (12 charts), anchor legs, found-hazard drawing rules, validators.
+
 ## Next
-- Milestone 6 Fog, tides, compass error (chapters 4, 5, 6 here; the plan's Two ships chapter is deferred).
+- Milestone 8 Practice generator (Milestone 7 Two ships is deferred, as the user confirmed): `gen.py`, seeded charts, solvability fuzz, shareable seeds.
 
 ## Open problems
 - The shared `level-select.js` is not used (own picker instead). Ask the hub session whether to adopt it at registration time.

@@ -64,12 +64,15 @@ def shoot(chart, start, target, speed=None, model="charted", t_start=0.0, seed=0
     return clean_leg(chart, {"heading": best[1], "speed": best[2], "hours": best[3]})
 
 
-def route(chart, waypoints, speed=None, model="true", seed=0):
+def route(chart, waypoints, speed=None, model="true", seed=0, wait=0.0):
     """Legs through a list of waypoints (the first is the start), shooting each from where the PREVIOUS leg really ends
-    under the model, so errors never pile up. Returns (legs, end_position)."""
+    under the model, so errors never pile up. `wait` hours at anchor come first (to catch a fair stream). Returns (legs, end_position)."""
     legs = []
     pos = tuple(waypoints[0])
     clock = 0.0
+    if wait > 0:
+        legs.append({"heading": 0, "speed": 0.0, "hours": wait})
+        clock = wait
     for target in waypoints[1:]:
         leg = shoot(chart, pos, target, speed=speed, model=model, t_start=clock, seed=seed)
         if leg is None:

@@ -71,4 +71,59 @@ PARS = {
         {"heading": 104, "speed": 3.5, "hours": 2.5},
         {"heading": 174, "speed": 5, "hours": 1},
     ],
+    "fog-01": [
+        {"heading": 107, "speed": 5.5, "hours": 1.5},
+        {"heading": 73, "speed": 5.5, "hours": 1.5},
+    ],
+    "fog-02": [
+        {"heading": 98, "speed": 6, "hours": 1.5},
+        {"heading": 32, "speed": 5.5, "hours": 1.5},
+        {"heading": 33, "speed": 5, "hours": 1},
+    ],
+    "fog-03": [
+        {"heading": 113, "speed": 6.5, "hours": 1},
+        {"heading": 122, "speed": 5.5, "hours": 1.5},
+        {"heading": 162, "speed": 6.5, "hours": 1.5},
+    ],
+    "fog-04": [
+        {"heading": 85, "speed": 4, "hours": 2.5},
+        {"heading": 68, "speed": 5, "hours": 1.5},
+        {"heading": 5, "speed": 6.5, "hours": 1},
+    ],
+    "tide-01": [
+        {"heading": 0, "speed": 0, "hours": 4.5},
+        {"heading": 270, "speed": 4, "hours": 3.5},
+    ],
+    "tide-02": [
+        {"heading": 0, "speed": 0, "hours": 3},
+        {"heading": 94, "speed": 4, "hours": 4},
+    ],
+    "tide-03": [
+        {"heading": 0, "speed": 0, "hours": 2.5},
+        {"heading": 90, "speed": 4.5, "hours": 3},
+    ],
+    "tide-04": [
+        {"heading": 0, "speed": 0, "hours": 2},
+        {"heading": 90, "speed": 4.5, "hours": 1.5},
+        {"heading": 12, "speed": 3.5, "hours": 2.5},
+        {"heading": 39, "speed": 3.5, "hours": 2.5},
+    ],
+    "comp-01": [
+        {"heading": 42, "speed": 5, "hours": 4},
+    ],
+    "comp-02": [
+        {"heading": 117, "speed": 5, "hours": 1.5},
+        {"heading": 127, "speed": 4.5, "hours": 2.5},
+        {"heading": 171, "speed": 4.5, "hours": 1},
+    ],
+    "comp-03": [
+        {"heading": 66, "speed": 4, "hours": 2},
+        {"heading": 74, "speed": 4, "hours": 2},
+    ],
+    "comp-04": [
+        {"heading": 62, "speed": 6.5, "hours": 1.5},
+        {"heading": 62, "speed": 6.5, "hours": 2},
+        {"heading": 353, "speed": 7.5, "hours": 1},
+        {"heading": 1, "speed": 5.5, "hours": 1},
+    ],
 }

@@ -3,7 +3,7 @@
    into chart coordinates, and pacing the playback of a track the engine already computed. */
 (function () {
   "use strict";
-  var ENGINE_MODULES = ["geom.py", "sim.py", "chartkit.py", "charts_open.py", "charts_wind.py", "charts_fixes.py", "pars.py", "charts.py", "render.py", "solver.py", "state.py", "progress.py", "fixes.py"];
+  var ENGINE_MODULES = ["geom.py", "sim.py", "chartkit.py", "charts_open.py", "charts_wind.py", "charts_fixes.py", "charts_fog.py", "charts_tides.py", "charts_compass.py", "pars.py", "charts.py", "render.py", "solver.py", "state.py", "progress.py", "fixes.py"];
   var STORE_KEY = "dead-reckoning:state";
 
   var $ = function (id) { return document.getElementById(id); };
@@ -189,12 +189,13 @@
         var head = el("div", undefined, "leg-head");
         head.appendChild(el("span", String(i + 1), "leg-number"));
         if (i < sailed) {
-          head.appendChild(el("strong", "Watch " + (i + 1) + " (sailed): steer " + String(leg.heading).padStart(3, "0") + " at " + fmt(leg.speed) + " kn for " + fmt(leg.hours) + " h"));
+          head.appendChild(el("strong", leg.speed === 0 ? "Watch " + (i + 1) + " (sailed): lay at anchor for " + fmt(leg.hours) + " h"
+            : "Watch " + (i + 1) + " (sailed): steer " + String(leg.heading).padStart(3, "0") + " at " + fmt(leg.speed) + " kn for " + fmt(leg.hours) + " h"));
           li.appendChild(head);
           list.appendChild(li);
           return;
         }
-        head.appendChild(el("strong", "Leg " + (i + 1)));
+        head.appendChild(el("strong", "Leg " + (i + 1) + (leg.speed === 0 ? " (lying at anchor)" : "")));
         var rm = el("button", "Remove");
         rm.type = "button";
         rm.setAttribute("aria-label", "Remove leg " + (i + 1));
@@ -203,7 +204,7 @@
         li.appendChild(head);
         var fields = el("div", undefined, "leg-fields");
         fields.appendChild(stepperField(i, "heading", "Heading", leg.heading, 0, 359, 1, "degrees"));
-        fields.appendChild(stepperField(i, "speed", "Speed", leg.speed, view.limits.speeds[0], view.limits.speeds[1], 0.5, "knots"));
+        fields.appendChild(stepperField(i, "speed", "Speed (0 = at anchor)", leg.speed, 0, view.limits.speeds[1], 0.5, "knots"));
         fields.appendChild(stepperField(i, "hours", "Time", leg.hours, 0.5, view.limits.max_hours, 0.5, "hours"));
         li.appendChild(fields);
         li.addEventListener("click", function () { selected = i; markSelected(); });
@@ -239,6 +240,7 @@
     var watching = view.chart.mode === "watch";
     var pending = t.legs - (view.sailed || 0);
     setEnabled("add-leg-button", t.legs < view.limits.max_legs && !(watching && pending > 0));
+    setEnabled("add-wait-button", t.legs < view.limits.max_legs && !(watching && pending > 0));
     setEnabled("clear-button", pending > 0);
     setText($("sail-button"), watching ? "Sail this watch" : "Sail");
     setEnabled("sail-button", !watching || pending > 0);
@@ -474,6 +476,7 @@
     $("chart-holder").addEventListener("click", onChartTap);
     guard("add-leg-button", function () { selected = view.legs.length; send({ action: "add_leg" }); });
     guard("clear-button", function () { send({ action: "clear" }); });
+    guard("add-wait-button", function () { selected = view.legs.length; send({ action: "add_wait" }); });
     guard("undo-button", function () { send({ action: "undo" }); });
     guard("sail-button", trySail);
     guard("naive-flag-button", function () { selected = view.legs.length; send({ action: "helper", kind: "naive", target: "flag" }); });
@@ -528,7 +531,7 @@
   function setBusy(busy) {
     ["add-leg-button", "clear-button", "undo-button", "sail-button", "naive-flag-button", "current-flag-button", "naive-point-button",
       "current-point-button", "point-set-button", "point-clear-button", "retry-button", "redo-button", "skip-button", "next-chart-button",
-      "par-button", "use-par-button", "anchor-button", "mode-plan-button", "mode-watch-button"].forEach(function (id) { $(id).disabled = busy; });
+      "par-button", "use-par-button", "anchor-button", "add-wait-button", "mode-plan-button", "mode-watch-button"].forEach(function (id) { $(id).disabled = busy; });
   }
 
   async function boot() {

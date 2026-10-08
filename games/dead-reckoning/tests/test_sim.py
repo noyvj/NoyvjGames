@@ -299,3 +299,26 @@ def test_forecast_error_is_the_gap_between_belief_and_truth(chart):
 
 def test_step_constant_is_a_quarter_hour():
     assert DT == 0.25
+
+
+def test_a_leg_at_speed_zero_lies_at_anchor_and_holds_her_place(chart):
+    chart["currents"] = [whole_sea_current(90, 2.0)]
+    chart["wind"] = {"from": 270, "range": [20, 20], "true": 20}
+    res = sail(chart, [leg(90, 0.0, 2.0)])
+    assert res["end"] == [2.0, 2.0] and res["aground"] is None
+    assert clean_leg(chart, {"heading": 5, "speed": 0, "hours": 1}) == {"heading": 5, "speed": 0.0, "hours": 1.0}
+    assert clean_leg(chart, {"heading": 5, "speed": -3, "hours": 1})["speed"] == 0.0
+    assert clean_leg(chart, {"heading": 5, "speed": 0.4, "hours": 1})["speed"] == 3.0       # a moving ship keeps the speed range
+
+
+def test_waiting_for_the_tide_changes_where_the_same_leg_ends(chart):
+    chart["currents"] = [whole_sea_current(90, 2.0, tide={"period": 12.0, "phase": 0.0})]
+    go = [leg(0, 4.0, 2.0)]
+    early = sail(chart, go)["end"]
+    late = sail(chart, [leg(0, 0.0, 6.0)] + go)["end"]
+    assert early[0] > 2.0 + 1.0 and late[0] < 2.0                  # fair stream at once, foul after the turn
+
+
+def test_a_plot_through_an_anchored_leg_does_not_move(chart):
+    est = estimate(chart, [leg(0, 0.0, 1.5)], allow=True)
+    assert est[-1][1:3] == [2.0, 2.0]

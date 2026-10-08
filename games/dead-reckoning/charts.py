@@ -7,6 +7,9 @@ tools/check_charts.py --write. The practice generator's charts are made on deman
 from charts_open import CHARTS as _OPEN
 from charts_wind import CHARTS as _WIND
 from charts_fixes import CHARTS as _FIXES
+from charts_fog import CHARTS as _FOG
+from charts_tides import CHARTS as _TIDES
+from charts_compass import CHARTS as _COMPASS
 from pars import PARS
 
 CHAPTERS = [
@@ -16,6 +19,12 @@ CHAPTERS = [
      "charts": _WIND},
     {"id": "fixes", "name": "Fixes and landmarks", "blurb": "Watch by watch: sail a leg, take a bearing and a distance off a landmark, correct your plot, plan the next.",
      "charts": _FIXES},
+    {"id": "fog", "name": "Fog and unmarked dangers", "blurb": "No landmark is visible and some dangers are not on the chart. Find one, and it is charted for good.",
+     "charts": _FOG},
+    {"id": "tides", "name": "Tides", "blurb": "A stream that runs, slackens and turns. Read the timetable, and lie at anchor for a fair one.",
+     "charts": _TIDES},
+    {"id": "compass", "name": "Compass error", "blurb": "The compass does not read true. Steer the heading that is already corrected.",
+     "charts": _COMPASS},
 ]
 CLEAR_TO_OPEN_NEXT = 4          # charts cleared (one star or more) in a chapter before the next chapter opens
 

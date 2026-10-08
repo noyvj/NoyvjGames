@@ -216,7 +216,7 @@ def test_the_plot_miss_is_a_distance_to_the_flag(g):
 def test_the_picker_lists_chapters_with_stars_and_locks(g):
     v = g.call("open")
     picker = v["picker"]
-    assert [c["id"] for c in picker] == ["open", "wind", "fixes"]
+    assert [c["id"] for c in picker] == ["open", "wind", "fixes", "fog", "tides", "compass"]
     assert picker[0]["unlocked"] and picker[0]["total"] == 6 and picker[0]["cleared"] == 0 and picker[0]["lock_text"] == ""
     assert not picker[1]["unlocked"] and "Clear 4 charts in Open water" in picker[1]["lock_text"]
     assert [c["current"] for c in picker[0]["charts"]] == [True, False, False, False, False, False]
@@ -280,3 +280,88 @@ def test_the_log_line_matches_how_the_passage_ended(g):
     g.call("add_leg")
     miss = g.call("sail")["reveal"]
     assert miss["log"] == g.charts.get_chart("open-02")["log"]["missed"] or miss["log"] == g.charts.get_chart("open-02")["log"]["aground"]
+
+
+# --- milestone 6: fog, tides, compass ------------------------------------------------------------------
+def open_everything(g):
+    for cid in g.charts.ORDER:
+        g.meta["charts"][cid] = dict(g.state.new_record(), stars=1)
+
+
+def test_add_wait_appends_an_hour_at_anchor(g):
+    v = g.call("add_wait")
+    assert v["legs"] == [{"heading": 0, "speed": 0.0, "hours": 1.0}]
+    assert v["totals"]["distance"] == 0.0 and v["totals"]["hours"] == 1.0
+    g.call("nudge", i=0, field="hours", delta=2)
+    assert g.run["legs"][0]["hours"] == 3.0
+    assert g.call("set_leg", i=0, speed=0)["legs"][0]["speed"] == 0.0
+
+
+def test_an_unmarked_danger_is_found_by_hitting_it_and_stays_on_the_chart(g):
+    import solver
+    open_everything(g)
+    g.call("start", chart_id="fog-01")
+    chart = g.charts.get_chart("fog-01")
+    plan = g.call("open")
+    assert "Gong Rock" not in plan["svg"] and "Gong Rock" not in " ".join(plan["notes"])
+    leg = solver.shoot(chart, chart["start"], (10.0, 10.0), model="true", speed=5.0)
+    g.call("set_mode", mode="plan")
+    g.call("add_leg")
+    g.call("set_leg", i=0, **leg)
+    v = g.call("sail")
+    assert v["reveal"]["aground"] and "unmarked danger" in " ".join(e["text"] for e in v["reveal"]["events"])
+    assert g.meta["charts"]["fog-01"]["discovered"] == ["gong-rock"]
+    assert "Gong Rock (found)" in v["svg"] and "Far Reef" not in v["svg"]          # only what was found is drawn, even on the reveal
+    v = g.call("restart")
+    assert "Gong Rock (found)" in v["svg"] and any("Gong Rock" in n for n in v["notes"])
+    assert "Far Reef" not in v["svg"]
+
+
+def test_a_close_pass_in_the_fog_is_reported_but_costs_no_star_the_first_time(g):
+    open_everything(g)
+    g.call("start", chart_id="fog-01")
+    chart = g.charts.get_chart("fog-01")
+    g.call("set_mode", mode="plan")
+    legs = g.charts.par_legs("fog-01")
+    for leg in legs:
+        n = len(g.call("add_leg")["legs"])
+        g.call("set_leg", i=n - 1, **leg)
+    assert g.call("sail")["reveal"]["stars"] == 3
+    assert chart["hazards"][0]["charted"] is False
+
+
+def test_fog_watches_report_what_hissed_past_and_no_landmarks(g):
+    open_everything(g)
+    g.call("start", chart_id="fog-01")
+    g.call("add_leg")
+    g.call("set_leg", i=0, heading=95, speed=5.0, hours=1.5)       # ends a little short of the rock, passing it close to port
+    v = g.call("sail")
+    assert v["phase"] == "plan" and v["watch"]["fog"] and v["watch"]["readings"] == []
+    g.call("add_leg")
+    g.call("set_leg", i=1, heading=85, speed=4.0, hours=1.0)
+    v = g.call("sail")
+    texts = " ".join(v["watch"]["log"]) if v["phase"] == "plan" else " ".join(e["text"] for e in v["reveal"]["events"])
+    assert "hissed past" in texts or "aground" in texts
+
+
+def test_the_tide_timetable_and_the_waiting_par_work_through_the_game(g):
+    open_everything(g)
+    v = g.call("start", chart_id="tide-01")
+    assert any(n.startswith("Hour") and "stream" in n for n in v["notes"])
+    legs = g.charts.par_legs("tide-01")
+    assert legs[0]["speed"] == 0.0
+    for leg in legs:
+        n = len(g.call("add_leg")["legs"])
+        g.call("set_leg", i=n - 1, **leg)
+    v = g.call("sail")
+    assert v["reveal"]["stars"] == 3 and "riding_tide" in g.meta["flags"] and "set_and_drift" in g.meta["flags"] or "riding_tide" in g.meta["flags"]
+
+
+def test_compass_error_is_part_of_the_plot_when_allowed_and_ignored_when_not(g):
+    open_everything(g)
+    g.call("start", chart_id="comp-01")
+    g.call("add_leg")
+    g.call("set_leg", i=0, heading=45, speed=5.0, hours=2.0)
+    with_chart = g.call("open")["totals"]["plot_end"]
+    without = g.call("allow", value=False)["totals"]["plot_end"]
+    assert with_chart != without

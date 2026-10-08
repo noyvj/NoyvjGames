@@ -109,7 +109,7 @@ def test_the_par_plan_exists_and_lands_three_stars_cleanly(cid):
 def test_the_honest_forecast_is_good_enough_to_make_landfall(cid):
     """The chart's printed midpoints, followed carefully, must be enough to arrive: ranges are never a trap."""
     c = charts.get_chart(cid)
-    legs, _ = solver.route(c, [tuple(p) for p in c["waypoints"]], model="charted")
+    legs, _ = solver.route(c, [tuple(p) for p in c["waypoints"]], model="charted", wait=c.get("par_wait", 0.0))
     res = sim.sail(c, legs)
     sc = sim.score(c, legs, res)
     assert res["aground"] is None and sc["arrived"], (res["aground"], sc["miss_nm"])
@@ -158,18 +158,19 @@ def test_the_campaign_has_a_long_route_for_the_long_way_round_achievement():
 
 
 WATCH_IDS = [c["id"] for c in ALL if "watch" in c.get("modes", ())]
+FIX_IDS = [c["id"] for c in ALL if c["chapter"] == "fixes"]
 
 
 def test_chapter_three_is_watch_by_watch_and_earlier_chapters_are_not():
-    assert len(WATCH_IDS) >= 5
+    assert len(FIX_IDS) >= 5
     for c in ALL:
         if c["chapter"] == "fixes":
             assert c["modes"] == ["watch", "plan"] and c["default_mode"] == "watch" and c["landmarks"]
-        else:
+        elif c["chapter"] != "fog":
             assert "watch" not in c.get("modes", ())
 
 
-@pytest.mark.parametrize("cid", WATCH_IDS)
+@pytest.mark.parametrize("cid", FIX_IDS)
 def test_a_careful_watch_by_watch_player_lands_without_grounding(cid):
     """Sail at most two hours, believe the true position (a perfect fix), plan the next watch from the printed midpoints."""
     c = charts.get_chart(cid)
@@ -180,9 +181,63 @@ def test_a_careful_watch_by_watch_player_lands_without_grounding(cid):
     assert len(legs) >= 2, "a watch-by-watch passage is more than one leg"
 
 
-@pytest.mark.parametrize("cid", WATCH_IDS)
+@pytest.mark.parametrize("cid", FIX_IDS)
 def test_a_landmark_is_in_sight_somewhere_along_the_par_route(cid):
     from geom import dist
     c = charts.get_chart(cid)
     track = sim.sail(c, charts.par_legs(cid))["track"]
     assert any(dist((x, y), (m["x"], m["y"])) <= m["visible"] for _t, x, y in track for m in c["landmarks"])
+
+
+FOG_IDS = [c["id"] for c in ALL if c["chapter"] == "fog"]
+TIDE_IDS = [c["id"] for c in ALL if any(z.get("tide") for z in c["currents"])]
+COMPASS_IDS = [c["id"] for c in ALL if c.get("compass")]
+
+
+def test_the_later_chapters_exist_in_order():
+    assert [ch["id"] for ch in charts.CHAPTERS] == ["open", "wind", "fixes", "fog", "tides", "compass"]
+    assert len(FOG_IDS) == 4 and len(TIDE_IDS) >= 4 and len(COMPASS_IDS) >= 4
+    assert len(ALL) >= 27
+
+
+@pytest.mark.parametrize("cid", FOG_IDS)
+def test_fog_charts_hide_landmarks_and_have_unmarked_dangers(cid):
+    c = charts.get_chart(cid)
+    assert c["fog"] and not c["landmarks"]
+    assert any(not h.get("charted", True) for h in c["hazards"])
+    assert "Fog" in " ".join(chart_notes(c)) and all(h["name"] not in " ".join(chart_notes(c)) for h in c["hazards"] if not h.get("charted", True))
+    plain = render_chart(c)
+    assert all(h["name"] not in plain for h in c["hazards"] if not h.get("charted", True))
+
+
+@pytest.mark.parametrize("cid", FOG_IDS)
+def test_every_unmarked_danger_can_be_found_by_sailing_into_it(cid):
+    c = charts.get_chart(cid)
+    for h in c["hazards"]:
+        if h.get("charted", True):
+            continue
+        leg = solver.shoot(c, c["start"], (h["x"], h["y"]), model="true", speed=5.0)
+        leg = dict(leg, hours=min(sim.MAX_LEG_HOURS, leg["hours"] + 2.0))
+        # a straight run at the hazard's own position grounds on it, or on something in the way
+        assert sim.sail(c, [leg])["aground"] is not None
+
+
+@pytest.mark.parametrize("cid", TIDE_IDS)
+def test_tide_charts_have_a_timetable_and_the_par_rides_a_fair_stream(cid):
+    c = charts.get_chart(cid)
+    assert "the stream peaks toward" in " ".join(chart_notes(c))
+    for z in c["currents"]:
+        if z.get("tide"):
+            assert z["tide"]["period"] == 12.0 and 0 <= z["tide"]["phase"] < 12
+    res = sim.sail(c, charts.par_legs(cid))
+    assert res["tide_fair"] is not None
+    if c["fair_ok"]:
+        assert res["tide_fair"] >= 0.6, "Riding the Tide must be possible on this chart"
+    assert c["par_wait"] == 0 or charts.par_legs(cid)[0]["speed"] == 0
+
+
+@pytest.mark.parametrize("cid", COMPASS_IDS)
+def test_compass_charts_print_the_error_in_the_picture_and_in_words(cid):
+    c = charts.get_chart(cid)
+    assert "Compass error" in render_chart(c) and "Compass error" in " ".join(chart_notes(c))
+    assert sim.compass_error(c, "true") != 0.0

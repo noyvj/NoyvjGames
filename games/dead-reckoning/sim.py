@@ -8,7 +8,7 @@ A chart is a plain dict (see charts.py and CLAUDE.md for the full schema). The p
     start, dest [x, y]      nautical miles; x grows east, y grows north
     arrival_radius          nm; the ship has arrived when it ends within this distance of dest
     deadline                hours
-    speeds [lo, hi]         the ship's speed range in knots (steps of 0.5)
+    speeds [lo, hi]         the ship's speed range in knots (steps of 0.5); a leg at speed 0 lies at anchor
     start_hour              the clock time the passage starts (tidal streams are tied to this clock)
     land   [{id, name, poly}]
     hazards [{id, kind, name, x, y, r, charted}]       kind: reef | shoal | rock; charted False = unmarked
@@ -62,7 +62,9 @@ def clean_leg(chart, leg):
         return None
     lo, hi = chart["speeds"]
     heading = int(round(_num(leg.get("heading"), 0.0))) % 360
-    speed = round(min(hi, max(lo, _num(leg.get("speed"), cruise_speed(chart)))) / SPEED_STEP) * SPEED_STEP
+    wanted = _num(leg.get("speed"), cruise_speed(chart))
+    # Speed 0 is "lie at anchor": the ship holds her place (the one way to wait for a fair stream).
+    speed = 0.0 if wanted <= 0 else round(min(hi, max(lo, wanted)) / SPEED_STEP) * SPEED_STEP
     hours = round(min(MAX_LEG_HOURS, max(LEG_STEP, _num(leg.get("hours"), LEG_STEP))) / LEG_STEP) * LEG_STEP
     return {"heading": heading, "speed": speed, "hours": hours}
 
@@ -148,6 +150,8 @@ def gust_at(chart, seed, k, model):
 
 def ship_velocity(chart, pt, t_abs, leg, model, seed=0, k=0):
     """The ship's velocity over the ground (nm per hour): through the water, plus leeway, current and gusts."""
+    if leg["speed"] <= 0:
+        return (0.0, 0.0)                                  # at anchor
     heading = leg["heading"] + compass_error(chart, model)
     ux, uy = unit(heading)
     lx, ly = leeway_at(chart, heading, model)

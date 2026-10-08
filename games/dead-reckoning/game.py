@@ -7,6 +7,7 @@ deterministic: the same chart, plan and seed always give the same passage.
 Requests carry an `action`:
   open                       the current view (starts the first chart if nothing is open)
   start {chart_id}           open a chart with an empty plan
+  add_wait                   append an hour lying at anchor (speed 0), to wait for a fair stream
   add_leg                    append a leg (heading toward the flag from where the plot ends, cruising speed, 1 hour)
   set_leg {i, heading?, speed?, hours?}   set fields of leg i (forced onto the legal grid)
   nudge {i, field, delta}    heading / speed / hours of leg i plus delta
@@ -251,7 +252,7 @@ def _reveal_view(chart):
     discovered = _record(chart["id"])["discovered"]
     fix_points = [(fx["x"], fx["y"]) for fx in run["fixes"]]
     svg = render.render_chart(chart, est=est, marks=render.plan_marks(legs, est), true_track=res["track"], discovered=discovered,
-                              reveal=True, fixes=fix_points)
+                              fixes=fix_points)
     lines = []
     if sc["aground"]:
         lines.append("The ship ran aground %.1f nm from the flag. The tide will lift her in a few hours; the passage is over." % sc["miss_nm"])
@@ -279,7 +280,7 @@ def _reveal_view(chart):
     if par and par["shown"]:
         par_plot = sim.estimate(chart, par["legs"], allow=True)
         svg = render.render_chart(chart, est=est, marks=render.plan_marks(legs, est), true_track=res["track"], discovered=discovered,
-                                  reveal=True, par_track=par_plot, fixes=fix_points)
+                                  par_track=par_plot, fixes=fix_points)
     points = [[t, *render.svg_point(chart, x, y)] for t, x, y in res["track"]]
     events = [{"t": e["t"], "text": e["text"], "public": e["public"]} for e in res["events"]]
     return {
@@ -404,6 +405,10 @@ def handle(request_json):
             _finish()
     elif not editing:
         return json.dumps({"error": "the passage is over: retry or pick a chart"})
+    elif action == "add_wait":
+        if len(run["legs"]) < state.MAX_LEGS and not (_watch() and len(run["legs"]) > run["sailed"]):
+            _snapshot()
+            run["legs"].append({"heading": 0, "speed": 0.0, "hours": 1.0})
     elif action == "set_mode":
         mode = request.get("mode")
         if mode in chart.get("modes", ("plan",)) and mode != run["mode"] and run["sailed"] == 0:

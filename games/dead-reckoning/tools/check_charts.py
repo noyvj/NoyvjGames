@@ -15,7 +15,7 @@ import solver  # noqa: E402
 
 
 def par_for(chart):
-    legs, _end = solver.route(chart, [tuple(p) for p in chart["waypoints"]], model="true")
+    legs, _end = solver.route(chart, [tuple(p) for p in chart["waypoints"]], model="true", wait=chart.get("par_wait", 0.0))
     return legs
 
 
@@ -30,7 +30,7 @@ def main(argv):
         pars[chart["id"]] = legs
         res = sim.sail(chart, legs)
         sc = sim.score(chart, legs, res)
-        fc_legs, _ = solver.route(chart, [tuple(p) for p in chart["waypoints"]], model="charted")
+        fc_legs, _ = solver.route(chart, [tuple(p) for p in chart["waypoints"]], model="charted", wait=chart.get("par_wait", 0.0))
         fc_res = sim.sail(chart, fc_legs)
         fc = sim.score(chart, fc_legs, fc_res)
         print("%-10s naive miss %5.1f (fails=%s)  par: %d legs %4.1f h/%g stars %d miss %.2f aground=%s close=%s | forecast: miss %.2f stars %d aground=%s | route %.1f nm"
