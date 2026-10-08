@@ -780,6 +780,950 @@
       "text": "A very faint, very distinctive smell of cheese leads a keen-nosed inspector straight to the van.",
       "absorbed_text": "The inspector is given a sample and loses the trail in joy.",
       "flavor": "The inspector's nose is famous."
+    },
+    {
+      "id": "fog_rolls_in",
+      "name": "Fog rolls in",
+      "trigger": "random",
+      "beats": [
+        1,
+        5
+      ],
+      "weight": 3,
+      "requires": [],
+      "forbids": [
+        "fog"
+      ],
+      "emits": [
+        "fog"
+      ],
+      "kinds": [
+        "weird"
+      ],
+      "skill_counter": {
+        "skill": "watch",
+        "min": 3
+      },
+      "effects": {
+        "suspicion": 0,
+        "margin": -1,
+        "target": "any_task"
+      },
+      "text": "Fog rolls up the hill and swallows the path, the van and, briefly, someone's sense of direction.",
+      "absorbed_text": "A sharp-eyed lookout calls out the path and nobody wanders into the fog.",
+      "flavor": "Even the fog looks a little lost."
+    },
+    {
+      "id": "lost_in_fog",
+      "name": "Someone wanders off",
+      "trigger": "auto",
+      "beats": [
+        1,
+        6
+      ],
+      "weight": 1,
+      "requires": [
+        "fog"
+      ],
+      "forbids": [],
+      "emits": [],
+      "kinds": [
+        "weird"
+      ],
+      "skill_counter": {
+        "skill": "watch",
+        "min": 2
+      },
+      "effects": {
+        "suspicion": 0,
+        "target": "random_crew",
+        "sideline": 1
+      },
+      "text": "In the fog, somebody follows a promising-sounding noise and ends up in a hedge.",
+      "absorbed_text": "A quick whistle brings everybody back to the path.",
+      "flavor": "The hedge is very nice about it."
+    },
+    {
+      "id": "telescope_swings",
+      "name": "The telescope swings",
+      "trigger": "random",
+      "beats": [
+        3,
+        6
+      ],
+      "weight": 2,
+      "requires": [],
+      "forbids": [],
+      "emits": [
+        "noise"
+      ],
+      "kinds": [
+        "noise"
+      ],
+      "skill_counter": {
+        "skill": "muscle",
+        "min": 3
+      },
+      "effects": {
+        "suspicion": 0,
+        "target": "none",
+        "damage": 25
+      },
+      "text": "A vintage telescope swings loose on its mount and clangs against the dome like a gong.",
+      "absorbed_text": "Two strong hands catch the telescope before it clangs.",
+      "flavor": "It was built in a time before anyone asked about safety."
+    },
+    {
+      "id": "lens_flash",
+      "name": "A lens catches the light",
+      "trigger": "random",
+      "beats": [
+        2,
+        6
+      ],
+      "weight": 2,
+      "requires": [],
+      "forbids": [
+        "blind_cameras"
+      ],
+      "emits": [
+        "flash"
+      ],
+      "kinds": [
+        "camera"
+      ],
+      "skill_counter": {
+        "skill": "craft",
+        "min": 2
+      },
+      "effects": {
+        "suspicion": 0,
+        "target": "none"
+      },
+      "text": "A polished lens catches the sky and throws a dazzling white flash across the room.",
+      "absorbed_text": "A deft hand tilts the lens away before it flashes.",
+      "flavor": "It was only trying to be helpful."
+    },
+    {
+      "id": "dazzled",
+      "name": "Everybody is dazzled",
+      "trigger": "auto",
+      "beats": [
+        2,
+        7
+      ],
+      "weight": 1,
+      "requires": [
+        "flash"
+      ],
+      "forbids": [],
+      "emits": [],
+      "kinds": [
+        "camera"
+      ],
+      "skill_counter": {
+        "skill": "watch",
+        "min": 3
+      },
+      "effects": {
+        "suspicion": 0,
+        "margin": -2,
+        "target": "any_task"
+      },
+      "text": "Everyone blinks away the flash and tries to work while seeing purple spots.",
+      "absorbed_text": "A seasoned lookout shields their eyes and keeps working.",
+      "flavor": "The spots are, apparently, very pretty."
+    },
+    {
+      "id": "astronomer_shift",
+      "name": "The night astronomer looks up",
+      "trigger": "random",
+      "beats": [
+        2,
+        6
+      ],
+      "weight": 2,
+      "requires": [],
+      "forbids": [
+        "distracted",
+        "disguised",
+        "charmed"
+      ],
+      "emits": [],
+      "kinds": [
+        "guard"
+      ],
+      "skill_counter": {
+        "skill": "charm",
+        "min": 3
+      },
+      "effects": {
+        "suspicion": 1,
+        "margin": -1,
+        "target": "any_task"
+      },
+      "text": "The night astronomer pulls her eye from the eyepiece and peers suspiciously at the corridor.",
+      "absorbed_text": "The astronomer is asked about Saturn, and the rest of the night disappears.",
+      "flavor": "She has named all her telescopes."
+    },
+    {
+      "id": "star_party",
+      "name": "A star-gazing party",
+      "trigger": "random",
+      "beats": [
+        1,
+        4
+      ],
+      "weight": 2,
+      "requires": [],
+      "forbids": [
+        "crowd"
+      ],
+      "emits": [
+        "crowd"
+      ],
+      "kinds": [
+        "crowd"
+      ],
+      "skill_counter": {
+        "skill": "charm",
+        "min": 3
+      },
+      "effects": {
+        "suspicion": 0,
+        "margin": -1,
+        "target": "any_task"
+      },
+      "text": "A star-gazing club arrives in thermal socks, and they all want to look through everything.",
+      "absorbed_text": "The club is shown to the roof, delighted, with a free biscuit each.",
+      "flavor": "One of them is carrying a very large flask."
+    },
+    {
+      "id": "cold_snap",
+      "name": "A cold snap",
+      "trigger": "random",
+      "beats": [
+        2,
+        6
+      ],
+      "weight": 2,
+      "requires": [],
+      "forbids": [],
+      "emits": [],
+      "kinds": [
+        "weird"
+      ],
+      "skill_counter": {
+        "skill": "muscle",
+        "min": 2
+      },
+      "effects": {
+        "suspicion": 0,
+        "margin": -1,
+        "target": "any_task"
+      },
+      "text": "A cold snap sweeps in. Fingers turn stiff, and a screwdriver is dropped from a dignified height.",
+      "absorbed_text": "A flask of something warm goes round and the cold is forgotten.",
+      "flavor": "Someone's breath looks like a ghost."
+    },
+    {
+      "id": "radio_squawk",
+      "name": "The radio squawks",
+      "trigger": "random",
+      "beats": [
+        1,
+        7
+      ],
+      "weight": 2,
+      "requires": [],
+      "forbids": [
+        "noise"
+      ],
+      "emits": [
+        "noise"
+      ],
+      "kinds": [
+        "noise"
+      ],
+      "skill_counter": null,
+      "effects": {
+        "suspicion": 0,
+        "target": "none"
+      },
+      "text": "A forgotten radio on a shelf crackles to life and begins to read the shipping forecast.",
+      "absorbed_text": "The radio squawks and everyone calmly pretends to be a ham operator.",
+      "flavor": "Gale warnings in the west."
+    },
+    {
+      "id": "shooting_star_gasp",
+      "name": "A shooting star",
+      "trigger": "random",
+      "beats": [
+        2,
+        6
+      ],
+      "weight": 1,
+      "requires": [],
+      "forbids": [],
+      "emits": [],
+      "kinds": [
+        "crowd"
+      ],
+      "skill_counter": {
+        "skill": "charm",
+        "min": 2
+      },
+      "effects": {
+        "suspicion": 0,
+        "target": "random_crew",
+        "sideline": 1
+      },
+      "text": "A shooting star streaks overhead and one crew member stops dead in a window to make a wish.",
+      "absorbed_text": "A gentle nudge keeps the wishing to a quick one.",
+      "flavor": "They will not say what they wished for."
+    },
+    {
+      "id": "pollen_burst",
+      "name": "A cloud of pollen",
+      "trigger": "random",
+      "beats": [
+        2,
+        5
+      ],
+      "weight": 3,
+      "requires": [],
+      "forbids": [
+        "flowers"
+      ],
+      "emits": [
+        "flowers"
+      ],
+      "kinds": [
+        "dust"
+      ],
+      "skill_counter": null,
+      "effects": {
+        "suspicion": 0,
+        "target": "none"
+      },
+      "text": "A gust through the vents lifts a golden cloud of pollen off every bloom in the row.",
+      "absorbed_text": "A quick fan of a hat keeps the pollen where it is.",
+      "flavor": "It smells like a wedding."
+    },
+    {
+      "id": "sprinkler_cycle",
+      "name": "The sprinklers come on",
+      "trigger": "random",
+      "beats": [
+        2,
+        5
+      ],
+      "weight": 3,
+      "requires": [],
+      "forbids": [
+        "wet"
+      ],
+      "emits": [
+        "wet",
+        "steam"
+      ],
+      "kinds": [
+        "wet"
+      ],
+      "skill_counter": {
+        "skill": "muscle",
+        "min": 3
+      },
+      "effects": {
+        "suspicion": 0,
+        "margin": -1,
+        "target": "action:carry"
+      },
+      "text": "The sprinklers come on, on a timer nobody wrote down, and everything below waist height is wet.",
+      "absorbed_text": "A big umbrella of a person shelters the haul from the sprinklers.",
+      "flavor": "The timer is older than the dome."
+    },
+    {
+      "id": "gardener_rounds",
+      "name": "The gardener does the rounds",
+      "trigger": "random",
+      "beats": [
+        2,
+        6
+      ],
+      "weight": 2,
+      "requires": [],
+      "forbids": [
+        "distracted",
+        "disguised",
+        "charmed"
+      ],
+      "emits": [],
+      "kinds": [
+        "guard"
+      ],
+      "skill_counter": {
+        "skill": "charm",
+        "min": 3
+      },
+      "effects": {
+        "suspicion": 1,
+        "margin": -1,
+        "target": "any_task"
+      },
+      "text": "The head gardener does her rounds, prodding leaves and sniffing at the soil.",
+      "absorbed_text": "The gardener is asked about her ferns and the rounds go on for ever.",
+      "flavor": "The ferns have been waiting for this."
+    },
+    {
+      "id": "parrot_repeats",
+      "name": "The parrot repeats everything",
+      "trigger": "random",
+      "beats": [
+        1,
+        6
+      ],
+      "weight": 2,
+      "requires": [],
+      "forbids": [
+        "noise"
+      ],
+      "emits": [
+        "noise"
+      ],
+      "kinds": [
+        "noise"
+      ],
+      "skill_counter": null,
+      "effects": {
+        "suspicion": 0,
+        "target": "none"
+      },
+      "text": "A large parrot in the palm court repeats everything the crew just whispered, loudly, in their own voices.",
+      "absorbed_text": "The parrot repeats a bit, then loses interest.",
+      "flavor": "It also does a very good alarm clock."
+    },
+    {
+      "id": "butterfly_swarm",
+      "name": "A butterfly swarm",
+      "trigger": "random",
+      "beats": [
+        2,
+        5
+      ],
+      "weight": 2,
+      "requires": [],
+      "forbids": [
+        "crowd"
+      ],
+      "emits": [
+        "crowd",
+        "flash"
+      ],
+      "kinds": [
+        "crowd"
+      ],
+      "skill_counter": {
+        "skill": "charm",
+        "min": 3
+      },
+      "effects": {
+        "suspicion": 0,
+        "margin": -1,
+        "target": "any_task"
+      },
+      "text": "A swarm of butterflies lifts off a flowering bush, and every visitor stops to point.",
+      "absorbed_text": "The butterflies are steered gently toward the cafe.",
+      "flavor": "Several are of questionable origin."
+    },
+    {
+      "id": "vine_grabs",
+      "name": "A vine grabs a sleeve",
+      "trigger": "random",
+      "beats": [
+        2,
+        5
+      ],
+      "weight": 2,
+      "requires": [],
+      "forbids": [],
+      "emits": [],
+      "kinds": [
+        "weird"
+      ],
+      "skill_counter": {
+        "skill": "muscle",
+        "min": 2
+      },
+      "effects": {
+        "suspicion": 0,
+        "target": "random_crew",
+        "sideline": 1
+      },
+      "text": "A heavy vine drops from the roof and loops itself through somebody's belt. It will not let go.",
+      "absorbed_text": "A quick pair of clippers frees the sleeve before the vine gets any ideas.",
+      "flavor": "Somebody calls it Gerald."
+    },
+    {
+      "id": "steam_vent",
+      "name": "The steam vents",
+      "trigger": "auto",
+      "beats": [
+        2,
+        6
+      ],
+      "weight": 1,
+      "requires": [
+        "steam"
+      ],
+      "forbids": [],
+      "emits": [],
+      "kinds": [
+        "wet"
+      ],
+      "skill_counter": {
+        "skill": "craft",
+        "min": 2
+      },
+      "effects": {
+        "suspicion": 0,
+        "margin": -1,
+        "target": "needs:clear"
+      },
+      "text": "A steam vent bursts open and the whole corridor is a warm, wet cloud.",
+      "absorbed_text": "A deft hand shuts the vent before the cloud gathers.",
+      "flavor": "It smells faintly of soup."
+    },
+    {
+      "id": "tour_group",
+      "name": "A guided tour",
+      "trigger": "random",
+      "beats": [
+        1,
+        4
+      ],
+      "weight": 2,
+      "requires": [],
+      "forbids": [
+        "crowd"
+      ],
+      "emits": [
+        "crowd"
+      ],
+      "kinds": [
+        "crowd"
+      ],
+      "skill_counter": {
+        "skill": "charm",
+        "min": 3
+      },
+      "effects": {
+        "suspicion": 0,
+        "margin": -1,
+        "target": "any_task"
+      },
+      "text": "A guided tour arrives and the guide asks the crew a pointed question about orchids.",
+      "absorbed_text": "The tour is waved on by a confident-looking person with a clipboard.",
+      "flavor": "The guide has a flag on a stick."
+    },
+    {
+      "id": "fountain_splash",
+      "name": "The fountain overflows",
+      "trigger": "random",
+      "beats": [
+        3,
+        6
+      ],
+      "weight": 1,
+      "requires": [],
+      "forbids": [
+        "wet"
+      ],
+      "emits": [
+        "wet"
+      ],
+      "kinds": [
+        "wet"
+      ],
+      "skill_counter": {
+        "skill": "muscle",
+        "min": 2
+      },
+      "effects": {
+        "suspicion": 0,
+        "margin": -1,
+        "target": "any_task"
+      },
+      "text": "The fountain in the palm court overflows with a happy gurgle and floods the whole walkway.",
+      "absorbed_text": "A mop appears from nowhere and the flood is over in a minute.",
+      "flavor": "It is a very large frog statue."
+    },
+    {
+      "id": "seed_inspector",
+      "name": "The seed inspector",
+      "trigger": "auto",
+      "beats": [
+        4,
+        6
+      ],
+      "weight": 1,
+      "requires": [
+        "evidence"
+      ],
+      "forbids": [],
+      "emits": [],
+      "kinds": [
+        "paperwork"
+      ],
+      "skill_counter": {
+        "skill": "charm",
+        "min": 2
+      },
+      "effects": {
+        "suspicion": 2,
+        "target": "none"
+      },
+      "text": "A seed inspector notices a small pocket of rare seeds is missing and begins to ask polite, pointed questions.",
+      "absorbed_text": "The inspector is given a cup of tea and a lot of paperwork to read.",
+      "flavor": "Every seed has a name."
+    },
+    {
+      "id": "pigeon_flock",
+      "name": "The pigeons take off",
+      "trigger": "random",
+      "beats": [
+        1,
+        6
+      ],
+      "weight": 2,
+      "requires": [],
+      "forbids": [
+        "noise"
+      ],
+      "emits": [
+        "noise"
+      ],
+      "kinds": [
+        "noise"
+      ],
+      "skill_counter": null,
+      "effects": {
+        "suspicion": 0,
+        "target": "none"
+      },
+      "text": "A flock of pigeons bursts off the roof in a great flapping cloud. The museum was named for them.",
+      "absorbed_text": "The pigeons settle again, and nobody even looks up.",
+      "flavor": "The pigeons have a union."
+    },
+    {
+      "id": "fire_drill",
+      "name": "The monthly drill",
+      "trigger": "random",
+      "beats": [
+        2,
+        5
+      ],
+      "weight": 1,
+      "requires": [],
+      "forbids": [
+        "crowd"
+      ],
+      "emits": [
+        "crowd"
+      ],
+      "kinds": [
+        "crowd",
+        "alarm"
+      ],
+      "skill_counter": {
+        "skill": "charm",
+        "min": 3
+      },
+      "effects": {
+        "suspicion": 1,
+        "margin": -1,
+        "target": "any_task"
+      },
+      "text": "A very loud bell rings. It is the monthly fire drill, and everyone is now in the corridor with a clipboard.",
+      "absorbed_text": "The drill is waved through by someone with a convincing lanyard.",
+      "flavor": "It was last month's drill. Nobody told the bell."
+    },
+    {
+      "id": "gift_shop_rush",
+      "name": "The gift shop rush",
+      "trigger": "random",
+      "beats": [
+        2,
+        5
+      ],
+      "weight": 2,
+      "requires": [],
+      "forbids": [
+        "crowd"
+      ],
+      "emits": [
+        "crowd"
+      ],
+      "kinds": [
+        "crowd"
+      ],
+      "skill_counter": {
+        "skill": "charm",
+        "min": 2
+      },
+      "effects": {
+        "suspicion": 0,
+        "margin": -1,
+        "target": "any_task"
+      },
+      "text": "A coach party rushes the gift shop. Every shelf of tote bags is attacked at once.",
+      "absorbed_text": "The coach party is pointed toward a half-price rack on the far side.",
+      "flavor": "One person buys nine tea towels."
+    },
+    {
+      "id": "loose_floorboard",
+      "name": "A loose floorboard",
+      "trigger": "random",
+      "beats": [
+        1,
+        6
+      ],
+      "weight": 3,
+      "requires": [],
+      "forbids": [],
+      "emits": [
+        "noise"
+      ],
+      "kinds": [
+        "noise"
+      ],
+      "skill_counter": {
+        "skill": "watch",
+        "min": 2
+      },
+      "effects": {
+        "suspicion": 0,
+        "target": "none"
+      },
+      "text": "A floorboard declares itself in the middle of the corridor with a creak like an old door.",
+      "absorbed_text": "A watchful eye spots the board and the crew step around it.",
+      "flavor": "It creaks in B flat."
+    },
+    {
+      "id": "spilled_tea",
+      "name": "Someone spills the tea",
+      "trigger": "random",
+      "beats": [
+        2,
+        6
+      ],
+      "weight": 2,
+      "requires": [],
+      "forbids": [
+        "wet"
+      ],
+      "emits": [
+        "wet"
+      ],
+      "kinds": [
+        "wet"
+      ],
+      "skill_counter": {
+        "skill": "muscle",
+        "min": 2
+      },
+      "effects": {
+        "suspicion": 0,
+        "margin": -1,
+        "target": "any_task"
+      },
+      "text": "A staff member, startled by nothing, spills an entire pot of tea down the middle of the corridor.",
+      "absorbed_text": "A quick cloth and the tea is gone before it has the chance to spread.",
+      "flavor": "The pot was a gift from an aunt."
+    },
+    {
+      "id": "sneaky_dog",
+      "name": "A very small dog",
+      "trigger": "random",
+      "beats": [
+        1,
+        6
+      ],
+      "weight": 2,
+      "requires": [],
+      "forbids": [
+        "cat",
+        "dog"
+      ],
+      "emits": [
+        "dog"
+      ],
+      "kinds": [
+        "noise",
+        "cat"
+      ],
+      "skill_counter": {
+        "skill": "charm",
+        "min": 2
+      },
+      "effects": {
+        "suspicion": 0,
+        "target": "none"
+      },
+      "text": "A very small dog of unclear ownership trots in, sniffing every ankle.",
+      "absorbed_text": "The dog is given a biscuit and a sofa to sit on.",
+      "flavor": "It has a better name than any of the crew."
+    },
+    {
+      "id": "dog_barks",
+      "name": "The dog barks",
+      "trigger": "auto",
+      "beats": [
+        1,
+        7
+      ],
+      "weight": 1,
+      "requires": [
+        "dog"
+      ],
+      "forbids": [],
+      "emits": [
+        "noise"
+      ],
+      "kinds": [
+        "noise"
+      ],
+      "skill_counter": {
+        "skill": "charm",
+        "min": 3
+      },
+      "effects": {
+        "suspicion": 0,
+        "target": "none"
+      },
+      "text": "The small dog realises it is in a place with strangers and says so, at great length.",
+      "absorbed_text": "A strong word and a treat quiet the dog.",
+      "flavor": "It is, in fairness, a good bark."
+    },
+    {
+      "id": "sticky_floor",
+      "name": "A sticky floor",
+      "trigger": "random",
+      "beats": [
+        2,
+        6
+      ],
+      "weight": 1,
+      "requires": [],
+      "forbids": [
+        "wet"
+      ],
+      "emits": [
+        "wet"
+      ],
+      "kinds": [
+        "wet"
+      ],
+      "skill_counter": {
+        "skill": "muscle",
+        "min": 2
+      },
+      "effects": {
+        "suspicion": 0,
+        "margin": -1,
+        "target": "action:carry"
+      },
+      "text": "Someone spilled something sweet earlier and the floor has been quietly gluing itself to every shoe.",
+      "absorbed_text": "Someone with the right shoes steps around the stickiest bit.",
+      "flavor": "It tastes of blueberry."
+    },
+    {
+      "id": "long_queue",
+      "name": "A long queue",
+      "trigger": "random",
+      "beats": [
+        1,
+        4
+      ],
+      "weight": 2,
+      "requires": [],
+      "forbids": [],
+      "emits": [
+        "crowd"
+      ],
+      "kinds": [
+        "crowd"
+      ],
+      "skill_counter": {
+        "skill": "charm",
+        "min": 2
+      },
+      "effects": {
+        "suspicion": 0,
+        "margin": -1,
+        "target": "any_task"
+      },
+      "text": "A queue forms in the one corridor the plan needs, about forty people deep and quite determined.",
+      "absorbed_text": "The queue is cheerfully redirected to a shorter line.",
+      "flavor": "Someone is selling snacks to it."
+    },
+    {
+      "id": "sneezing_guard",
+      "name": "The guard sneezes",
+      "trigger": "random",
+      "beats": [
+        2,
+        6
+      ],
+      "weight": 1,
+      "requires": [],
+      "forbids": [
+        "noise"
+      ],
+      "emits": [
+        "noise"
+      ],
+      "kinds": [
+        "noise"
+      ],
+      "skill_counter": null,
+      "effects": {
+        "suspicion": 0,
+        "target": "none"
+      },
+      "text": "A guard around the corner sneezes enormously, then says 'who's there?' to nobody.",
+      "absorbed_text": "The guard sneezes and then forgets what he was going to say.",
+      "flavor": "Bless you."
+    },
+    {
+      "id": "power_flicker",
+      "name": "The lights flicker",
+      "trigger": "random",
+      "beats": [
+        2,
+        6
+      ],
+      "weight": 2,
+      "requires": [],
+      "forbids": [],
+      "emits": [
+        "dark"
+      ],
+      "kinds": [
+        "camera"
+      ],
+      "skill_counter": {
+        "skill": "craft",
+        "min": 2
+      },
+      "effects": {
+        "suspicion": 0,
+        "margin": -1,
+        "target": "any_task"
+      },
+      "text": "The lights flicker, die and come back on, and every camera reboots with a small, sleepy sigh.",
+      "absorbed_text": "A quick hand throws the right switch and the lights hardly dip.",
+      "flavor": "The fuse box is held together with tape."
     }
   ]
 }

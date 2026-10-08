@@ -118,6 +118,7 @@
     var view = HC.view;
     if (!view) return;
     HC.setText($("hud-cash"), String(view.cash));
+    HC.setText($("hud-rep"), String(view.reputation));
     var hudJob = $("hud-job");
     hudJob.textContent = "";
     if (view.target) {
@@ -155,6 +156,7 @@
 
   // ---- the board -------------------------------------------------------------------------------
   HC.renderers.board = function (view) {
+    HC.renderers.board_extra(view);
     var root = $("board-cards");
     HC.fillOnce(root, JSON.stringify(view.board), function (box) {
       view.board.forEach(function (t) {
@@ -167,6 +169,27 @@
             el("button", { type: "button", "class": "primary", "data-testid": "heist-take-" + t.id, text: "Take the job",
               onclick: function () { HC.send({ action: "take_job", target: t.id }); } })])]));
       });
+    });
+  };
+
+  HC.renderers.board_extra = function (view) {
+    HC.fillOnce($("board-standing"), JSON.stringify([view.reputation, view.next_unlock, view.relationships, view.jobs_done]), function (box) {
+      box.appendChild(el("h3", { text: "The committee's standing" }));
+      box.appendChild(el("p", { text: "Reputation " + view.reputation + ", " + view.jobs_done + (view.jobs_done === 1 ? " job" : " jobs") + " done." }));
+      if (view.next_unlock) {
+        box.appendChild(el("p", { "class": "note", text: "At reputation " + view.next_unlock.at + " this opens: " + view.next_unlock.names.join(", ") + "." }));
+      } else {
+        box.appendChild(el("p", { "class": "note", text: "Everything on the books is open." }));
+      }
+      if (view.relationships.length) {
+        var ul = el("ul", { "class": "list-plain" });
+        view.relationships.forEach(function (r) {
+          ul.appendChild(el("li", { text: (r.kind === "friends" ? "♥ " + r.a + " and " + r.b + " are friends (a small bonus when they share a beat)." : "⚡ " + r.a + " and " + r.b + " are feuding (a penalty when they share a beat).") }));
+        });
+        box.appendChild(ul);
+      }
+      box.appendChild(el("button", { type: "button", "data-testid": "heist-new-career", text: "Start a new career",
+        onclick: function () { HC.ask("heist-new-career", "Start a brand new career? Cash, reputation and friendships go back to the start.", "Start over", function () { HC.send({ action: "new_career" }); }); } }));
     });
   };
 
@@ -222,6 +245,7 @@
     var rel = [];
     if (c.rivals.length) rel.push("Does not get along with " + c.rivals.join(", ") + ".");
     if (c.mentors.length) rel.push("Mentors " + c.mentors.join(", ") + ".");
+    c.relations.forEach(function (r) { rel.push((r.kind === "friends" ? "♥ Friends with " : "⚡ Feuding with ") + r.short + "."); });
     var card = el("article", { "class": "card" + (hired ? " hired" : ""), "data-testid": "heist-crew-" + c.id }, [
       el("div", { "class": "row" }, [HC.glyph(c), el("div", {}, [el("h3", { text: c.name }), el("span", { "class": "tier", text: c.role_icon + " " + c.role_label })]),
         el("span", { "class": "fee", text: "Fee " + c.fee })]),
@@ -251,8 +275,9 @@
       var gear = el("div", { "class": "row", style: "display:flex;gap:.5rem;flex-wrap:wrap" });
       view.gear.forEach(function (g) {
         gear.appendChild(el("button", { type: "button", "aria-pressed": g.equipped ? "true" : "false", title: g.text, "data-testid": "heist-gear-" + g.id,
-          text: g.icon + " " + g.name + " (" + g.cost + ")" + (g.equipped ? " - packed" : ""),
-          onclick: function () { HC.send({ action: "gear", gear: g.id }); } }));
+          "aria-disabled": g.locked ? "true" : null,
+          text: g.icon + " " + g.name + (g.locked ? " (opens at reputation " + g.unlock + ")" : " (" + g.cost + ")" + (g.equipped ? " - packed" : "")),
+          onclick: function () { if (!g.locked) HC.send({ action: "gear", gear: g.id }); } }));
       });
       box.appendChild(gear);
       box.appendChild(el("ul", { "class": "list-plain" }, view.gear.filter(function (g) { return g.equipped; }).map(function (g) { return el("li", { text: g.name + ": " + g.text }); })));

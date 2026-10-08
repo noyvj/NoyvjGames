@@ -167,7 +167,14 @@
         "dusty_display",
         "alarm_trips",
         "curator_tour",
-        "inspector_bramble"
+        "inspector_bramble",
+        "pigeon_flock",
+        "fire_drill",
+        "gift_shop_rush",
+        "loose_floorboard",
+        "spilled_tea",
+        "sneezing_guard",
+        "power_flicker"
       ],
       "short": "the Pigeon Museum"
     },
@@ -336,7 +343,13 @@
         "vase_falls",
         "sleepy_guard",
         "guard_rounds",
-        "alarm_trips"
+        "alarm_trips",
+        "sneaky_dog",
+        "dog_barks",
+        "loose_floorboard",
+        "spilled_tea",
+        "sticky_floor",
+        "sneezing_guard"
       ],
       "titles": [
         "The Great Wheel Caper",
@@ -350,7 +363,7 @@
       "name": "The Lucky Barge",
       "short": "the Lucky Barge",
       "tier": 2,
-      "min_reputation": 0,
+      "min_reputation": 2,
       "blurb": "A floating casino with a polka band and a cash cage full of chips. It is mostly legal, which is the problem.",
       "beats": [
         {
@@ -520,7 +533,15 @@
         "guard_rounds",
         "alarm_trips",
         "cat_in_gallery",
-        "vase_falls"
+        "vase_falls",
+        "long_queue",
+        "fire_drill",
+        "spilled_tea",
+        "sneaky_dog",
+        "dog_barks",
+        "sticky_floor",
+        "sneezing_guard",
+        "power_flicker"
       ],
       "titles": [
         "The Barge Gambit",
@@ -528,6 +549,376 @@
         "Snake Eyes on the Water"
       ],
       "intro": "The Lucky Barge is full of tourists, chips and a bouncer called Sir. The cash cage is below deck, and so is the plan."
+    },
+    {
+      "id": "glasshouse_dome",
+      "name": "The Glasshouse Dome",
+      "short": "the Glasshouse",
+      "tier": 2,
+      "min_reputation": 4,
+      "blurb": "A botanical garden under a great glass roof, famous for one orchid, one parrot and one very strict gardener.",
+      "beats": [
+        {
+          "name": "Potting Shed",
+          "tags": []
+        },
+        {
+          "name": "Orchid Row",
+          "tags": [
+            "flowers"
+          ],
+          "note": "Every bloom here is shedding pollen."
+        },
+        {
+          "name": "Fern Walk",
+          "tags": [
+            "wet"
+          ]
+        },
+        {
+          "name": "Palm Court",
+          "tags": []
+        },
+        {
+          "name": "Seed Vault",
+          "tags": [
+            "tight"
+          ]
+        },
+        {
+          "name": "Out the Gate",
+          "tags": []
+        }
+      ],
+      "start_tags": [
+        "cameras"
+      ],
+      "base_suspicion": 0,
+      "requirements": [
+        {
+          "id": "shed_in",
+          "label": "Get into the potting shed",
+          "actions": [
+            "sweet_talk",
+            "disguise",
+            "distract"
+          ],
+          "window": [
+            1,
+            2
+          ],
+          "needs_done": [],
+          "value": 0
+        },
+        {
+          "id": "open_seed_vault",
+          "label": "Open the seed vault",
+          "actions": [
+            "lockpick"
+          ],
+          "window": [
+            2,
+            4
+          ],
+          "needs_done": [
+            "shed_in"
+          ],
+          "value": 0
+        },
+        {
+          "id": "lift_orchid",
+          "label": "Lift the Golden Orchid",
+          "actions": [
+            "carry"
+          ],
+          "window": [
+            3,
+            5
+          ],
+          "needs_done": [
+            "open_seed_vault"
+          ],
+          "value": 540
+        },
+        {
+          "id": "rare_seeds",
+          "label": "Pocket the rare seed packets (optional)",
+          "actions": [
+            "carry"
+          ],
+          "window": [
+            2,
+            5
+          ],
+          "needs_done": [
+            "shed_in"
+          ],
+          "value": 90,
+          "optional": true
+        },
+        {
+          "id": "escape",
+          "label": "Reach the getaway van",
+          "actions": [
+            "drive"
+          ],
+          "window": [
+            5,
+            6
+          ],
+          "needs_done": [
+            "lift_orchid"
+          ],
+          "value": 0,
+          "final": true
+        }
+      ],
+      "consolation": 90,
+      "budget": 240,
+      "scout": {
+        "levels": [
+          {
+            "cost": 0,
+            "reveal": 1
+          },
+          {
+            "cost": 35,
+            "reveal": 5
+          },
+          {
+            "cost": 70,
+            "reveal": 12
+          }
+        ],
+        "details": [
+          "A head gardener who knows every leaf by name.",
+          "A parrot with a better memory than any camera.",
+          "Every beat is either damp, dusty or both."
+        ]
+      },
+      "cover_options": [
+        "noise",
+        "crowd",
+        "dust",
+        "wet",
+        "guard",
+        "weird",
+        "paperwork"
+      ],
+      "pool": [
+        "pollen_burst",
+        "sprinkler_cycle",
+        "gardener_rounds",
+        "parrot_repeats",
+        "butterfly_swarm",
+        "vine_grabs",
+        "steam_vent",
+        "tour_group",
+        "fountain_splash",
+        "seed_inspector",
+        "camera_sweep",
+        "sleepy_guard",
+        "guard_rounds",
+        "alarm_trips",
+        "cat_in_gallery",
+        "vase_falls",
+        "sneaky_dog",
+        "dog_barks"
+      ],
+      "titles": [
+        "The Orchid Affair",
+        "A Bad Day for Ferns",
+        "The Parrot Told Everyone"
+      ],
+      "intro": "Under three hundred panes of glass, a golden orchid is blooming. The committee has one night and a lot of sensible shoes."
+    },
+    {
+      "id": "hilltop_observatory",
+      "name": "The Hilltop Observatory",
+      "short": "the observatory",
+      "tier": 3,
+      "min_reputation": 7,
+      "blurb": "A white dome on a foggy hill, holding the Moon Atlas: a hand-drawn map of the whole moon, with some of the craters named after the astronomer's relatives.",
+      "beats": [
+        {
+          "name": "Gate",
+          "tags": []
+        },
+        {
+          "name": "Hilltop Path",
+          "tags": []
+        },
+        {
+          "name": "Stairwell",
+          "tags": [
+            "tight"
+          ]
+        },
+        {
+          "name": "Control Room",
+          "tags": [
+            "dark"
+          ]
+        },
+        {
+          "name": "Atlas Vault",
+          "tags": [
+            "tight",
+            "dark",
+            "unlucky"
+          ],
+          "note": "A sign says 'Do not whistle'."
+        },
+        {
+          "name": "Hauling",
+          "tags": []
+        },
+        {
+          "name": "Descent",
+          "tags": []
+        }
+      ],
+      "start_tags": [
+        "cameras"
+      ],
+      "base_suspicion": 1,
+      "requirements": [
+        {
+          "id": "gate_in",
+          "label": "Get past the gate",
+          "actions": [
+            "sweet_talk",
+            "disguise",
+            "distract"
+          ],
+          "window": [
+            1,
+            2
+          ],
+          "needs_done": [],
+          "value": 0
+        },
+        {
+          "id": "open_atlas_vault",
+          "label": "Open the Atlas vault",
+          "actions": [
+            "lockpick"
+          ],
+          "window": [
+            3,
+            5
+          ],
+          "needs_done": [
+            "gate_in"
+          ],
+          "value": 0
+        },
+        {
+          "id": "take_atlas",
+          "label": "Take the Moon Atlas",
+          "actions": [
+            "carry"
+          ],
+          "window": [
+            4,
+            6
+          ],
+          "needs_done": [
+            "open_atlas_vault"
+          ],
+          "value": 560
+        },
+        {
+          "id": "lens_cap",
+          "label": "Pocket the lens cap collection (optional)",
+          "actions": [
+            "carry"
+          ],
+          "window": [
+            2,
+            6
+          ],
+          "needs_done": [
+            "gate_in"
+          ],
+          "value": 100,
+          "optional": true
+        },
+        {
+          "id": "escape",
+          "label": "Get down the hill",
+          "actions": [
+            "drive"
+          ],
+          "window": [
+            6,
+            7
+          ],
+          "needs_done": [
+            "take_atlas"
+          ],
+          "value": 0,
+          "final": true
+        }
+      ],
+      "consolation": 100,
+      "budget": 250,
+      "scout": {
+        "levels": [
+          {
+            "cost": 0,
+            "reveal": 1
+          },
+          {
+            "cost": 40,
+            "reveal": 6
+          },
+          {
+            "cost": 80,
+            "reveal": 14
+          }
+        ],
+        "details": [
+          "One night astronomer, one dog-sized telescope.",
+          "The hill is steep and usually foggy.",
+          "Most of the building is dark, tight or both."
+        ]
+      },
+      "cover_options": [
+        "noise",
+        "crowd",
+        "camera",
+        "guard",
+        "weird",
+        "wet"
+      ],
+      "pool": [
+        "fog_rolls_in",
+        "lost_in_fog",
+        "telescope_swings",
+        "lens_flash",
+        "dazzled",
+        "astronomer_shift",
+        "star_party",
+        "cold_snap",
+        "radio_squawk",
+        "shooting_star_gasp",
+        "camera_sweep",
+        "sleepy_guard",
+        "guard_rounds",
+        "alarm_trips",
+        "loose_floorboard",
+        "power_flicker",
+        "inspector_bramble",
+        "cat_in_gallery",
+        "vase_falls"
+      ],
+      "titles": [
+        "The Moon Atlas Mix-up",
+        "One Small Step for Burglars",
+        "The Observatory Night"
+      ],
+      "intro": "A foggy hill, a quiet dome and a sign that says 'Do not whistle'. The committee whistles immediately."
     }
   ]
 }

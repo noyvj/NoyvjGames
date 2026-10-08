@@ -71,9 +71,9 @@ def test_confirm_needs_five_and_charges_fees(g):
 
 
 def test_unaffordable_crew_cannot_be_confirmed(g):
-    g.module.career.cash = 20
     g(action="take_job", target="pigeon_museum")
     offer = [c["id"] for c in g(action="to_recruit")["view"]["offer"]]
+    g.module.career.cash = 20
     for cid in offer[:5]:
         g(action="hire", crew=cid)
     out = g(action="confirm_crew")

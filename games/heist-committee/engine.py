@@ -355,23 +355,23 @@ class Sim:
                 slot.setdefault("needs_missing", []).append(need)
         for eff in self.pair_effects(lane, b):
             self.put_mod(slot, eff["label"], eff["value"], None)
-            if eff["key"] not in self.pair_seen and not self.preview:
-                self.pair_seen.add(eff["key"])
-                if eff["kind"] == "rival":
-                    ev = self.add("pair", eff["line"] if eff.get("prefilled") else self.fmt(
-                        eff["line"], a=self.name(lane), b=self.name(eff["partner"])), lane=lane, tags=eff["emits"],
-                        why="Feud: %+d for %s." % (eff["value"], self.name(lane)), icon="⚡")
-                    self.emit(eff["emits"], ev, b)
-                elif eff["kind"] == "rule":
-                    ev = self.add("pair", eff["line"], lane=lane, tags=eff["emits"],
-                                  why="%s: %+d for %s." % (eff["label"], eff["value"], self.name(lane)), icon="⚡")
-                    self.emit(eff["emits"], ev, b)
-                elif eff["kind"] == "mentor":
-                    self.add("pair", self.fmt(eff["line"], mentor=self.crew[eff["partner"]]["short"], pupil=self.name(lane)),
-                             lane=lane, why="%s: +1 for %s." % (eff["label"], self.name(lane)), icon="🎓")
-                elif eff["kind"] == "friends":
-                    self.add("pair", self.fmt(eff["line"], a=self.name(lane), b=self.name(eff["partner"])), lane=lane,
-                             why="Friends: +1 for %s." % self.name(lane), icon="♥")
+            if eff["key"] in self.pair_seen or self.preview:
+                continue
+            self.pair_seen.add(eff["key"])
+            partner = eff["partner"]
+            pair = sorted((self.crew_ids[lane], self.crew_ids[partner]))
+            extra = {"pair": pair, "clash": eff["value"] < 0}
+            if eff["kind"] in ("rival", "rule"):
+                text = eff["line"] if eff.get("prefilled") else self.fmt(eff["line"], a=self.name(lane), b=self.name(partner))
+                why = ("Feud: %+d for %s." if eff["kind"] == "rival" else eff["label"] + ": %+d for %s.") % (eff["value"], self.name(lane))
+                ev = self.add("pair", text, lane=lane, tags=eff["emits"], why=why, icon="⚡", extra=extra)
+                self.emit(eff["emits"], ev, b)
+            elif eff["kind"] == "mentor":
+                self.add("pair", self.fmt(eff["line"], mentor=self.crew[partner]["short"], pupil=self.name(lane)),
+                         lane=lane, why="%s: +1 for %s." % (eff["label"], self.name(lane)), icon="🎓", extra=extra)
+            elif eff["kind"] == "friends":
+                self.add("pair", self.fmt(eff["line"], a=self.name(lane), b=self.name(partner)), lane=lane,
+                         why="Friends: +1 for %s." % self.name(lane), icon="♥", extra=extra)
 
     def finish_margin(self, slot):
         parts = self.base_margin(slot) + list(slot["mods"].items())

@@ -42,7 +42,8 @@ UNDO_LIMIT = 60
 
 
 def _default_meta():
-    return {"jobs_done": 0, "known_quirks": [], "seen_complications": [], "seen_traits": [],
+    return {"jobs_done": 0, "jobs_clean": 0, "reputation": 0, "known_quirks": [], "seen_complications": [],
+            "seen_traits": [], "relationships": {}, "pair_scores": {}, "finished_targets": [], "retries": {},
             "best": {"cash_single_job": 0, "chain_links": 0}}
 
 
@@ -104,7 +105,7 @@ def _known_complications(job):
 
 def _offer_for(job):
     """Eight candidates, seeded, always covering all five roles."""
-    ranked = sorted(C.crew_order, key=lambda cid: engine.roll(job["seed"], "offer", cid))
+    ranked = sorted(_unlocked_crew(), key=lambda cid: engine.roll(job["seed"], "offer", cid))
     chosen = []
     for role in C.roles:
         for cid in ranked:
@@ -125,7 +126,60 @@ def _hidden_quirks(job):
 
 
 def _relations():
-    return {}
+    return dict(career.meta["relationships"])
+
+
+def _rep():
+    return career.meta["reputation"]
+
+
+def _unlocked_targets():
+    return [t for t in C.target_order if C.targets[t].get("min_reputation", 0) <= _rep()]
+
+
+def _board_targets_for(jobs_started):
+    """Up to three unlocked contracts, drawn by the career seed; the same until a job is taken."""
+    pool = _unlocked_targets()
+    ranked = sorted(pool, key=lambda t: engine.roll(career.career_seed, "board", jobs_started, t))
+    return sorted(ranked[:3], key=lambda t: C.target_order.index(t))
+
+
+def _board_targets():
+    return _board_targets_for(career.jobs_started)
+
+
+def _unlocked_crew():
+    return [c for c in C.crew_order if C.crew[c].get("min_reputation", 0) <= _rep()]
+
+
+def _unlock_list(rep):
+    """Everything that opens at exactly this reputation or lower, as (kind, name, min_rep)."""
+    items = [("job", C.targets[t]["name"], C.targets[t].get("min_reputation", 0)) for t in C.target_order]
+    items += [("crew", C.crew[c]["name"], C.crew[c].get("min_reputation", 0)) for c in C.crew_order]
+    items += [("gear", g["name"], g.get("min_reputation", 0)) for g in C.gear.values()]
+    return [i for i in items if i[2] <= rep]
+
+
+def _next_unlock():
+    later = sorted((i for i in _unlock_list(10 ** 6) if i[2] > _rep()), key=lambda i: i[2])
+    if not later:
+        return None
+    at = later[0][2]
+    return {"at": at, "names": [i[1] for i in later if i[2] == at]}
+
+
+def _rep_score(out):
+    score = 1
+    if out["escaped"]:
+        score += 1
+        score += 1 if not out["alarm"] else 0
+        score += 1 if out["chain_links"] >= 3 else 0
+        score += 1 if not out["sidelined"] else 0
+    return score
+
+
+def _pair_key(a, b):
+    return "|".join(sorted((a, b)))
 
 
 def _gear_cost(job):
@@ -139,7 +193,8 @@ def _fees(job):
 def _new_job(target_id):
     career.jobs_started += 1
     job = {"phase": "scout", "target": target_id, "seed": _job_seed(), "scout": 0, "offer": [], "crew": [],
-           "gear": [], "plan": None, "attempt": 0, "paid": False, "cursor": 0, "best_net": 0, "counted": False}
+           "gear": [], "plan": None, "attempt": 0, "paid": False, "cursor": 0, "best_net": 0, "counted": False,
+           "best_rep": 0}
     return job
 
 
@@ -194,6 +249,8 @@ def _crew_card(cid, known):
         "quirk": ({"id": m["quirk"], "name": quirk["name"], "icon": quirk["icon"], "text": quirk["text"]}
                   if cid in known else None),
         "quirk_known": cid in known, "voice": m["voice"],
+        "relations": [{"short": C.crew[o]["short"], "kind": career.meta["relationships"][_pair_key(cid, o)]}
+                      for o in C.crew_order if o != cid and _pair_key(cid, o) in career.meta["relationships"]],
         "rivals": [C.crew[o]["short"] for o in m.get("rival_of", []) if o in C.crew],
         "mentors": [C.crew[o]["short"] for o in m.get("mentor_of", []) if o in C.crew],
     }
@@ -299,6 +356,8 @@ def _payout_view(job):
             "stranded": out["stranded"], "chain_links": out["chain_links"], "absorbed": out["absorbed"],
             "sidelined": [C.crew[c]["short"] for c in out["sidelined"]], "alarm": out["alarm"],
             "credited": job.get("credited", 0), "best_net": job.get("best_net", 0), "attempt": job.get("attempt", 1),
+            "rep_gained": job.get("rep_gained", 0), "reputation": _rep(), "new_unlocks": job.get("new_unlocks", []),
+            "relations_changed": job.get("relations_changed", []),
             "consolation": C.targets[job["target"]]["consolation"]}
 
 
@@ -322,13 +381,25 @@ def _scout_view(job):
     }
 
 
+def _relationship_list():
+    out = []
+    for key, kind in sorted(career.meta["relationships"].items()):
+        a, b = key.split("|")
+        if a in C.crew and b in C.crew:
+            out.append({"a": C.crew[a]["short"], "b": C.crew[b]["short"], "kind": kind})
+    return out
+
+
 def _view(note=None):
     job = career.job
     known = set(career.meta["known_quirks"])
     view = {"schema": SCHEMA, "phase": job["phase"] if job else "board", "cash": career.cash,
-            "jobs_done": career.meta["jobs_done"], "note": note or ""}
+            "jobs_done": career.meta["jobs_done"], "reputation": _rep(), "note": note or ""}
     if not job:
-        view["board"] = [_target_card(t) for t in C.target_order]
+        view["board"] = [_target_card(t) for t in _board_targets()]
+        view["reputation"] = _rep()
+        view["next_unlock"] = _next_unlock()
+        view["relationships"] = _relationship_list()
         return view
     target = C.targets[job["target"]]
     view["target"] = _target_card(job["target"])
@@ -345,7 +416,8 @@ def _view(note=None):
         view["offer"] = [_crew_card(cid, known) for cid in job["offer"]]
         view["crew_ids"] = list(job["crew"])
         view["gear"] = [{"id": gid, "name": g["name"], "icon": g["icon"], "cost": g["cost"], "text": g["text"],
-                         "equipped": gid in job["gear"]} for gid, g in C.gear.items()]
+                         "equipped": gid in job["gear"], "locked": g.get("min_reputation", 0) > _rep(),
+                         "unlock": g.get("min_reputation", 0)} for gid, g in C.gear.items()]
         view["background_fee"] = BACKGROUND_FEE
     if phase in ("plan", "playback", "payout"):
         view["crew"] = [_crew_card(cid, known) for cid in job["crew"]]
@@ -385,7 +457,7 @@ def _dispatch(request):
         del _undo[:], _redo[:]
     elif action == "take_job":
         tid = str(request.get("target", ""))
-        if job is None and tid in C.targets:
+        if job is None and tid in _board_targets():
             career.job = _new_job(tid)
         else:
             note = "Finish or abandon the current job first."
@@ -397,6 +469,7 @@ def _dispatch(request):
         if job["phase"] == "scout":
             job["offer"] = _offer_for(job)
             job["phase"] = "recruit"
+            note = _pass_the_hat(job)
     elif action == "hire":
         note = _do_hire(job, str(request.get("crew", "")))
     elif action == "background":
@@ -459,14 +532,64 @@ def _finish(job):
     job["best_net"] = max(job.get("best_net", 0), net)
     career.cash += credited
     meta = career.meta
-    if not job.get("counted"):
+    first_count = not job.get("counted")
+    if first_count:
         job["counted"] = True
         meta["jobs_done"] += 1
+    before_unlocks = {i[1] for i in _unlock_list(_rep())}
+    score = _rep_score(out)
+    gained = max(0, score - job.get("best_rep", 0))
+    job["best_rep"] = max(job.get("best_rep", 0), score)
+    job["rep_gained"] = gained
+    meta["reputation"] += gained
+    if out["escaped"] and not out["alarm"] and job.get("clean_credited") is None:
+        job["clean_credited"] = True
+        meta["jobs_clean"] += 1
+    if out["escaped"] and job["target"] not in meta["finished_targets"]:
+        meta["finished_targets"].append(job["target"])
+    job["new_unlocks"] = sorted({i[1] for i in _unlock_list(_rep())} - before_unlocks)
+    if job["attempt"] > 1:
+        meta["retries"][job["target"]] = max(meta["retries"].get(job["target"], 0), job["attempt"] - 1)
+    job["relations_changed"] = _update_relationships(job, result) if first_count else []
     meta["best"]["cash_single_job"] = max(meta["best"]["cash_single_job"], net)
     meta["best"]["chain_links"] = max(meta["best"]["chain_links"], out["chain_links"])
     job["cursor"] = len(C.targets[job["target"]]["beats"])
     _learn(job)
     job["phase"] = "payout"
+
+
+def _update_relationships(job, result):
+    """Crew who share a heist drift together or apart: a clash costs a point, a clean job together earns one."""
+    meta = career.meta
+    clashes = set()
+    for ev in result["events"]:
+        if ev.get("pair") and ev.get("clash"):
+            clashes.add(_pair_key(*ev["pair"]))
+    changes = []
+    crew = job["crew"]
+    for i in range(len(crew)):
+        for j in range(i + 1, len(crew)):
+            key = _pair_key(crew[i], crew[j])
+            old = meta["relationships"].get(key)
+            score = meta["pair_scores"].get(key, 0)
+            if key in clashes:
+                score -= 1
+            elif result["outcome"]["escaped"]:
+                score += 1
+            score = max(-9, min(9, score))
+            if score:
+                meta["pair_scores"][key] = score
+            else:
+                meta["pair_scores"].pop(key, None)
+            new = "friends" if score >= 3 else "feud" if score <= -3 else None
+            if new:
+                meta["relationships"][key] = new
+            else:
+                meta["relationships"].pop(key, None)
+            if new != old and new:
+                a, b = key.split("|")
+                changes.append({"a": C.crew[a]["short"], "b": C.crew[b]["short"], "kind": new})
+    return changes
 
 
 def _do_scout(job, request):
@@ -484,6 +607,16 @@ def _do_scout(job, request):
     career.cash -= cost
     job["scout"] = want
     return ""
+
+
+def _pass_the_hat(job):
+    """Nobody is ever stuck: if the purse cannot cover the five cheapest candidates, the committee tops it up."""
+    cheapest = sum(sorted(C.crew[c]["fee"] for c in job["offer"])[:LANES])
+    if career.cash >= cheapest:
+        return ""
+    top_up = cheapest + 20 - career.cash
+    career.cash += top_up
+    return "The committee passes the hat and finds %d, so the crew can be hired." % top_up
 
 
 def _do_hire(job, cid):
@@ -507,7 +640,7 @@ def _do_background(job, cid):
 
 
 def _do_gear(job, gid):
-    if job["phase"] != "recruit" or gid not in C.gear:
+    if job["phase"] != "recruit" or gid not in C.gear or C.gear[gid].get("min_reputation", 0) > _rep():
         return ""
     if gid in job["gear"]:
         job["gear"].remove(gid)
@@ -632,6 +765,17 @@ def _clean_job(raw):
            "cursor": _int(raw.get("cursor"), 0, n, 0)}
     if raw.get("credited") is not None:
         job["credited"] = _int(raw.get("credited"), 0, 10 ** 7, 0)
+    job["best_rep"] = _int(raw.get("best_rep"), 0, 20, 0)
+    job["rep_gained"] = _int(raw.get("rep_gained"), 0, 20, 0)
+    if raw.get("clean_credited"):
+        job["clean_credited"] = True
+    names = {i[1] for i in _unlock_list(10 ** 6)}
+    job["new_unlocks"] = [x for x in (raw.get("new_unlocks") or []) if isinstance(x, str) and x in names][:30]
+    changes = []
+    for ch in raw.get("relations_changed") or []:
+        if isinstance(ch, dict) and ch.get("kind") in ("friends", "feud") and isinstance(ch.get("a"), str) and isinstance(ch.get("b"), str):
+            changes.append({"a": ch["a"][:30], "b": ch["b"][:30], "kind": ch["kind"]})
+    job["relations_changed"] = changes[:10]
     job["offer"] = _clean_ids(raw.get("offer"), set(C.crew), OFFER_SIZE)
     job["crew"] = _clean_ids(raw.get("crew"), set(job["offer"]), LANES)
     job["gear"] = _clean_ids(raw.get("gear"), set(C.gear), MAX_GEAR)
@@ -659,6 +803,25 @@ def load_state(data):
     fresh.meta["known_quirks"] = _clean_ids(meta.get("known_quirks"), set(C.crew), len(C.crew))
     fresh.meta["seen_complications"] = _clean_ids(meta.get("seen_complications"), set(C.complications), len(C.complications))
     fresh.meta["seen_traits"] = _clean_ids(meta.get("seen_traits"), set(C.traits), len(C.traits))
+    fresh.meta["jobs_clean"] = _int(meta.get("jobs_clean"), 0, 10 ** 6, 0)
+    fresh.meta["reputation"] = _int(meta.get("reputation"), 0, 10 ** 4, 0)
+    rel = meta.get("relationships") if isinstance(meta.get("relationships"), dict) else {}
+    for key, kind in rel.items():
+        parts = key.split("|") if isinstance(key, str) else []
+        if len(parts) == 2 and parts[0] in C.crew and parts[1] in C.crew and parts[0] < parts[1] and kind in ("friends", "feud"):
+            fresh.meta["relationships"][key] = kind
+    scores = meta.get("pair_scores") if isinstance(meta.get("pair_scores"), dict) else {}
+    for key, value in scores.items():
+        parts = key.split("|") if isinstance(key, str) else []
+        if len(parts) == 2 and parts[0] in C.crew and parts[1] in C.crew and parts[0] < parts[1]:
+            score = _int(value, -9, 9, 0)
+            if score:
+                fresh.meta["pair_scores"][key] = score
+    fresh.meta["finished_targets"] = _clean_ids(meta.get("finished_targets"), set(C.targets), len(C.targets))
+    retries = meta.get("retries") if isinstance(meta.get("retries"), dict) else {}
+    for tid, n in retries.items():
+        if tid in C.targets:
+            fresh.meta["retries"][tid] = _int(n, 0, 999, 0)
     best = meta.get("best") if isinstance(meta.get("best"), dict) else {}
     fresh.meta["best"] = {"cash_single_job": _int(best.get("cash_single_job"), 0, 10 ** 7, 0),
                           "chain_links": _int(best.get("chain_links"), 0, 99, 0)}

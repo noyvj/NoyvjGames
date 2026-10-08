@@ -168,6 +168,21 @@
       "label": "Rocking floor",
       "icon": "〰",
       "lasts": 1
+    },
+    "fog": {
+      "label": "Fog",
+      "icon": "🌫",
+      "lasts": 2
+    },
+    "steam": {
+      "label": "Steam",
+      "icon": "♨",
+      "lasts": 2
+    },
+    "dog": {
+      "label": "Dog about",
+      "icon": "🐕",
+      "lasts": 3
     }
   },
   "kinds": {

@@ -1,10 +1,90 @@
 {
   "gear": [
-    {"id": "earplugs", "name": "Foam earplugs", "icon": "🎧", "cost": 30, "uses": 1, "absorbs_kinds": ["noise"],
-     "text": "Absorbs one noise complication. The crew all look a bit sleepy.", "absorbed": "The earplugs go in and the noise does not bother anyone."},
-    {"id": "cat_treats", "name": "Cat treats", "icon": "🐟", "cost": 25, "uses": 1, "absorbs_kinds": ["cat"],
-     "text": "Absorbs one cat complication. Smells of fish.", "absorbed": "A treat rolls down the corridor and the cat follows it, delighted."},
-    {"id": "lucky_coin", "name": "Lucky coin", "icon": "🪙", "cost": 40, "uses": 1, "rerolls": 1,
-     "text": "Once per heist, one failed or messy action gets another try.", "absorbed": ""}
+    {
+      "id": "earplugs",
+      "name": "Foam earplugs",
+      "icon": "🎧",
+      "cost": 30,
+      "uses": 1,
+      "absorbs_kinds": [
+        "noise"
+      ],
+      "text": "Absorbs one noise complication. The crew all look a bit sleepy.",
+      "absorbed": "The earplugs go in and the noise does not bother anyone."
+    },
+    {
+      "id": "cat_treats",
+      "name": "Cat treats",
+      "icon": "🐟",
+      "cost": 25,
+      "uses": 1,
+      "absorbs_kinds": [
+        "cat"
+      ],
+      "text": "Absorbs one cat complication. Smells of fish.",
+      "absorbed": "A treat rolls down the corridor and the cat follows it, delighted."
+    },
+    {
+      "id": "lucky_coin",
+      "name": "Lucky coin",
+      "icon": "🪙",
+      "cost": 40,
+      "uses": 1,
+      "rerolls": 1,
+      "text": "Once per heist, one failed or messy action gets another try.",
+      "absorbed": ""
+    },
+    {
+      "id": "umbrella",
+      "name": "Big umbrella",
+      "icon": "☂",
+      "cost": 25,
+      "uses": 1,
+      "absorbs_kinds": [
+        "wet"
+      ],
+      "min_reputation": 1,
+      "text": "Absorbs one wet complication. Slightly embarrassing indoors.",
+      "absorbed": "The big umbrella goes up and the splash goes sideways."
+    },
+    {
+      "id": "dust_masks",
+      "name": "Dust masks",
+      "icon": "😷",
+      "cost": 25,
+      "uses": 1,
+      "absorbs_kinds": [
+        "dust"
+      ],
+      "min_reputation": 1,
+      "text": "Absorbs one dust or pollen complication. Everyone looks like a dentist.",
+      "absorbed": "The dust masks go on and the cloud drifts by."
+    },
+    {
+      "id": "tea_flask",
+      "name": "Flask of tea",
+      "icon": "🍵",
+      "cost": 35,
+      "uses": 1,
+      "absorbs_kinds": [
+        "guard"
+      ],
+      "min_reputation": 2,
+      "text": "Absorbs one guard complication. Everybody likes tea.",
+      "absorbed": "The flask comes out and the guard stops for a cup."
+    },
+    {
+      "id": "sticky_gloves",
+      "name": "Grippy gloves",
+      "icon": "🧤",
+      "cost": 60,
+      "uses": 99,
+      "margin_skill": {
+        "muscle": 1
+      },
+      "min_reputation": 4,
+      "text": "Everyone's Muscle counts one higher, every heist.",
+      "absorbed": ""
+    }
   ]
 }

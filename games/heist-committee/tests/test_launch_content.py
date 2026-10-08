@@ -61,13 +61,16 @@ def test_the_cat_complication_exists_on_every_target_for_the_collector(C):
 
 
 def test_board_offers_every_launch_target(g):
+    g.module.career.meta["reputation"] = 3
     board = g(action="open")["view"]["board"]
     assert [t["id"] for t in board] == ["pigeon_museum", "the_affineur", "lucky_barge"]
 
 
 def test_every_target_can_be_played_through_the_ui_engine(g):
-    for tid in ("the_affineur", "lucky_barge"):
+    for tid in ("the_affineur", "lucky_barge", "glasshouse_dome", "hilltop_observatory"):
         g(action="new_career", seed=5)
+        g.module.career.meta["reputation"] = 20
+        g.module.career.jobs_started = next(n for n in range(200) if tid in g.module._board_targets_for(n))
         g(action="take_job", target=tid)
         g(action="to_recruit")
         job = g.module.career.job

@@ -145,6 +145,7 @@
         money.appendChild(line("Best earlier attempt", String(p.best_net - p.credited)));
       }
       money.appendChild(line("Added to the purse", sign(p.credited), true));
+      money.appendChild(line("Reputation", sign(p.rep_gained) + " (now " + p.reputation + ")"));
       if (p.attempt > 1) money.appendChild(el("p", { "class": "note", text: "A retry only pays what it adds beyond your best earlier attempt, so you can keep improving without grinding." }));
       box.appendChild(money);
       var req = el("div", { "class": "panel" }, [el("h3", { text: "Goals" })]);
@@ -168,6 +169,16 @@
         chain.appendChild(el("p", { text: "No chain this time: nothing led to anything else." }));
       }
       box.appendChild(chain);
+      if (p.new_unlocks.length || p.relations_changed.length) {
+        var news = el("div", { "class": "panel" }, [el("h3", { text: "News from the committee" })]);
+        var nl = el("ul", { "class": "list-plain" });
+        p.new_unlocks.forEach(function (n) { nl.appendChild(el("li", { text: "New: " + n + " is now open." })); });
+        p.relations_changed.forEach(function (r) {
+          nl.appendChild(el("li", { text: r.a + " and " + r.b + (r.kind === "friends" ? " are now friends. They work well in the same beat." : " are now feuding. Keep them apart.") }));
+        });
+        news.appendChild(nl);
+        box.appendChild(news);
+      }
       box.appendChild(el("div", { "class": "panel" }, [el("h3", { text: "The write-up" }), el("p", { "class": "writeup", "data-testid": "heist-writeup", text: p.writeup })]));
       box.appendChild(el("div", { "class": "phase-actions" }, [
         el("button", { type: "button", "class": "primary", "data-testid": "heist-retry", text: "Retry this target (same crew, same night)",
