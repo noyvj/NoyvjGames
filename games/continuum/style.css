@@ -1775,6 +1775,9 @@ body.screensaver-on #game, body.screensaver-on .section { backdrop-filter: none 
 .keybind-row button[aria-pressed="true"] { border-color: #b9a2ff; background: rgba(160, 130, 255, 0.25); }
 .keybind-status { min-height: 1.2em; }
 
+/* Z-28: the pause-when-hidden checkbox row in the settings panel. */
+.settings-checkbox-label { display: flex; align-items: center; gap: 0.5rem; font-size: 0.85rem; cursor: pointer; }
+
 /* ==========================================================================
    Light theme (Y11b, 2026-09-27). shared/theme-light-games.css already
    restyles the common chrome (page, #game shell, .section panels, buttons,

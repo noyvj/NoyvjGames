@@ -1739,6 +1739,9 @@ button.secondary:disabled::after {
 .charter-career { margin: 0.4rem 0 0; padding-left: 1.4rem; font-size: 0.85rem; line-height: 1.5; list-style: none; }
 .charter-career li { margin: 0.15rem 0; }
 
+/* Z-28: the pause-when-hidden checkbox row in the settings panel. */
+.settings-checkbox-label { display: flex; align-items: center; gap: 0.5rem; font-size: 0.85rem; cursor: pointer; }
+
 /* ============================================================
    Y11b light-theme polish (2026-09-27). Light-only rules from a
    computed-style WCAG contrast scan of the light theme (fresh game,

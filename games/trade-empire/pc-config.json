@@ -54,7 +54,7 @@
   "adopt": [],
   "zones": {
     "topbar": [".hub-back-link", "h1", ".game-toolbar"],
-    "stagebar": ["#fleet-priority-panel", "#guild-panel"],
+    "stagebar": ["#time-controls", "#fleet-priority-panel", "#guild-panel"],
     "stage": ["#map-panel", "#mobile-needs-strip", "#ledger-ribbon", "#ledger"],
     "side": ["#ship-1-panel", "#ship-2-panel", "#ship-3-panel", "#ship-4-panel", "#ship-5-panel", "#ship-6-panel", "#endgame-panel"],
     "hidden": ["#profit-display", "#automation-slots-display"]
@@ -66,6 +66,8 @@
   ],
   "side_label": "Your fleet: load, depart and automate ships",
   "hints": [
+    ["Space", "Pause / resume"],
+    ["[ ]", "Slower / faster"],
     ["?", "All shortcuts"],
     ["Esc", "Menu / close window"]
   ],

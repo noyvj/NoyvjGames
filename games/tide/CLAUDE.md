@@ -601,3 +601,6 @@ Tests 274 -> 322 (`tests/test_todo_pass_oct7.py`). `tests/fakes.py` gained `setA
 - **D-7 rest.** Every coastline tile is now labelled ("Row 5, column 3: dry, ...", heritage only on its column) and focusable; one Tab stop per row, arrows/Home/End walk rows and columns in `ui.js`.
 - Not built: D-17 live-ticker filter (kept unfiltered by design), D-3, D-5, D-8, D-10 to D-13, D-16, D-19, D-20, D-26, D-28 to D-31 (not in this batch; several need shared components or user input).
 - Tests 322 -> 370 (`tests/test_oct8_pass.py`; the old one-focus-stop test was updated for focusable columns). New ids: planner-*, library-*, almanac-*, scrub-*, graph-range-*, graph-markers-toggle (all in index.html and pc.html; panels are Desktop windows and Menu entries). No new JS file.
+
+## Pause and fast-forward audit (W-2, 2026-10-08)
+- Tide has no real-time tick (no `setInterval`; the only timers are one-shot UI timeouts). Seasons advance only when the player presses Advance Season, so there is nothing to pause or speed up and neither shared control was added.

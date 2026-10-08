@@ -1,4 +1,5 @@
 [
+  { "date": "2026-10-08", "entry": "New: a setting, on by default, pauses the season clock while this browser tab is hidden and puts your speed back, with a short note, when you return. Turn it off in Settings if you want the clock to keep running in a background tab." },
   {
     "date": "2026-10-07",
     "entry": "New: name your settlement (Founder's Log window, with era-flavoured suggestions) and see the name on the founding plaque, the Summary, the archive and the shareable card. Export your run as CSV or JSON from the Civilization Summary. Compare any two archived settlements side by side. Par badges for reaching the Relay Age quickly (seasons and time). Achievements are now a row of monuments, one picture per era. A Screensaver mode shows only the slowly turning 3D city (Scene menu, or press S), and you can remap the keyboard shortcuts in Settings."

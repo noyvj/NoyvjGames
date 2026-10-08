@@ -73,7 +73,7 @@
   "adopt": [],
   "zones": {
     "topbar": [".hub-back-link", "h1", ".game-toolbar"],
-    "stagebar": ["#season-indicator", "#season-forecast", "#challenge-status", "#level-box"],
+    "stagebar": ["#time-controls", "#season-indicator", "#season-forecast", "#challenge-status", "#level-box"],
     "stage": ["#plot-grid", "#plot-tooltip", "#legend-panel"],
     "side": ["#action-panel", "#stakeholder-panel"],
     "hidden": ["#income-display", "#standing-value-display", "#biodiversity-display", "#community-relations-display", "#mobile-info-dock-toggle"]
@@ -94,6 +94,8 @@
     ["U", "Undo clear"],
     ["P", "Drive off poacher"],
     ["N", "Requested plot"],
+    ["Space", "Pause / resume"],
+    ["[ ]", "Slower / faster"],
     ["?", "All shortcuts"],
     ["Esc", "Menu / close window"]
   ],

@@ -972,3 +972,8 @@ Test count 886 -> 914 (`tests/test_round3_oct7.py`). New engine modules (all in 
 ## Lite mode (Z-31, 2026-10-08)
 
 `render3d.js` reads the site-wide slow-computer switch (`shared/lite-mode.js`, `NoyvjLite.on()`): when it is on the WebGL renderer is made without antialiasing (applies from the next load) and with a device pixel ratio of 1 (follows the switch live through `noyvj-lite-change`), and `reducedMotion()` is true so the screensaver camera holds still. The switch itself is in the hub (nav button and settings page); the rest of lite mode is CSS (`shared/lite-mode.css`). Not covered by pytest (no WebGL); checked only through the page tests in `shared/tests`.
+
+## Pause when the tab is hidden (Z-28, 2026-10-08)
+- Continuum already has its own speed buttons and season clock (U1), so it does NOT use `shared/time-controls.js`. Only `shared/pause-hidden.js` is hooked in, in manual mode (`data-manual`, `NoyvjPauseHidden.init({gameId: "continuum", hooks})` in the boot script): hide = remember `sim_speed` and `set_speed(0)`, show = restore it (only if still paused by the hold) and show the one-line note. A player who had already paused gets no hold and no note.
+- Before: the clock loop already skipped steps while `document.visibilityState` was not visible (no catch-up, each step clamped to 1 s in `tick_clock`). Now that is explicit and a setting: "Pause the season clock when this tab is hidden" (`#pause-hidden-checkbox`, `continuum-pause-hidden`, default on). Turning it OFF lets the loop keep calling `tick_clock` in a hidden tab (browser-throttled, each step still clamped), like the other games' off behaviour.
+- Tests: `tests/test_pause_hidden.py`.

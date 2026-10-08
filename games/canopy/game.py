@@ -6579,6 +6579,25 @@ def load_state(data):
     return True
 
 
+def _start_tick_loop():
+    """W-2: hands `tick` to shared/time-controls.js (pause and 1x/2x/4x) when the
+    page has it, otherwise falls back to the plain setInterval this game always
+    used (fake-js test environments and any page without the shared script).
+    Either way the tick itself is untouched: the controller only changes how
+    often it is called, and not at all while paused or while the tab is hidden
+    (shared/pause-hidden.js). Returns "shared" or "interval"."""
+    try:
+        from js import window  # noqa: PLC0415 -- Pyodide-only, deliberately lazy
+        controls = getattr(window, "NoyvjTime", None)
+    except ImportError:
+        controls = None
+    if controls is not None and getattr(controls, "start", None) is not None:
+        controls.start("canopy", create_proxy(tick), TICK_INTERVAL_MS)
+        return "shared"
+    setInterval(create_proxy(tick), TICK_INTERVAL_MS)
+    return "interval"
+
+
 def setup():
     clear_button = document.getElementById("clear-button")
     replant_button = document.getElementById("replant-button")
@@ -6673,7 +6692,7 @@ def setup():
     _load_meta()  # GB batch 3: this browser's level progress and Seed Vault
     _note_vault_progress(silent=True)
     _setup_levels_bridge()
-    setInterval(create_proxy(tick), TICK_INTERVAL_MS)
+    _start_tick_loop()
     render()
 
 

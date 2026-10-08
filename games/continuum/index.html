@@ -172,6 +172,12 @@
         <button id="keybind-reset-button" class="secondary" type="button">Reset shortcuts</button>
       </div>
       <div class="settings-row">
+        <label class="settings-checkbox-label" for="pause-hidden-checkbox">
+          <input type="checkbox" id="pause-hidden-checkbox" checked>
+          Pause the season clock when this tab is hidden (off lets it keep running in a background tab)
+        </label>
+      </div>
+      <div class="settings-row">
         <button id="settings-reset-button" class="secondary" type="button">Reset to Default</button>
       </div>
       <p class="settings-note">Saved in this browser only — a display preference, not part of your save code.</p>
@@ -748,11 +754,35 @@
       {
         const tick = pyodide.globals.get("tick_clock");
         let last = performance.now();
+        // Z-28: shared/pause-hidden.js holds the clock (sim speed 0) while the tab is hidden. If the
+        // player turned that setting off, the clock keeps running in a hidden tab at whatever rate the
+        // browser allows (each step is still clamped to one second inside tick_clock).
+        const setSpeed = pyodide.globals.get("set_speed");
+        let speedBeforeHold = 0;
+        if (window.NoyvjPauseHidden) {
+          window.NoyvjPauseHidden.init({
+            gameId: "continuum",
+            hooks: {
+              pause() {
+                const running = Number(pyodide.globals.get("sim_speed")) || 0;
+                if (!running) return false;   // already paused by the player: nothing to stop, no note
+                speedBeforeHold = running;
+                setSpeed(0);
+                return true;
+              },
+              resume() {
+                if (speedBeforeHold && !Number(pyodide.globals.get("sim_speed"))) setSpeed(speedBeforeHold);
+                speedBeforeHold = 0;
+              },
+            },
+          });
+        }
         setInterval(() => {
           const now = performance.now();
           const dt = (now - last) / 1000;
           last = now;
-          if (document.visibilityState === "visible") tick(dt);
+          const hold = window.NoyvjPauseHidden && window.NoyvjPauseHidden.get("continuum");
+          if (document.visibilityState === "visible" || (hold && !hold.enabled())) tick(dt);
         }, 250);
       }
       // Phase 5: attempt the 3D layer last, after the real 2D game is
@@ -778,6 +808,7 @@
   <script src="../../shared/story-toggle.js" data-game-id="continuum" data-story-selectors="#log"></script>
   <script src="../../shared/last-played.js" data-game-id="continuum"></script>
   <script src="../../shared/whats-new-banner.js" data-game-id="continuum"></script>
+  <script src="../../shared/pause-hidden.js" data-game-id="continuum" data-manual></script>
   <script src="../../shared/achievement-stats.js" data-game-id="continuum"></script>
   <!--
     Z16 audit: the info-panel report button's actual network call, the

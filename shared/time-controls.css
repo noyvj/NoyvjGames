@@ -1,0 +1,121 @@
+/*
+ * Styles for shared/time-controls.js (planning/TODO.md W-2). Every colour is a token on :root so a
+ * game can override one value; the light palette follows html[data-theme="light"] (the site's theme
+ * switch) and, with no theme attribute, the OS preference. The active state is never colour-only:
+ * the pressed button gets a check mark, a heavier border and bold type, and the status line names
+ * the state in words with a symbol. Transitions only run when neither prefers-reduced-motion nor
+ * html[data-reduced-motion="true"] is set.
+ */
+:root {
+  --nt-bg: rgba(20, 24, 42, 0.7);
+  --nt-fg: #e8e9f0;
+  --nt-muted: #b4bad2;
+  --nt-border: rgba(140, 160, 255, 0.45);
+  --nt-active-bg: rgba(110, 150, 255, 0.28);
+  --nt-active-border: #c9d6ff;
+  --nt-paused-bg: rgba(255, 200, 90, 0.2);
+  --nt-paused-border: #ffd866;
+  --nt-focus: #ffd866;
+}
+html[data-theme="light"] {
+  --nt-bg: rgba(255, 255, 255, 0.92);
+  --nt-fg: #1b2033;
+  --nt-muted: #4a5275;
+  --nt-border: rgba(60, 85, 160, 0.5);
+  --nt-active-bg: rgba(60, 100, 220, 0.16);
+  --nt-active-border: #243b8a;
+  --nt-paused-bg: rgba(200, 130, 0, 0.16);
+  --nt-paused-border: #8a5a00;
+  --nt-focus: #8a5a00;
+}
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme]) {
+    --nt-bg: rgba(255, 255, 255, 0.92);
+    --nt-fg: #1b2033;
+    --nt-muted: #4a5275;
+    --nt-border: rgba(60, 85, 160, 0.5);
+    --nt-active-bg: rgba(60, 100, 220, 0.16);
+    --nt-active-border: #243b8a;
+    --nt-paused-bg: rgba(200, 130, 0, 0.16);
+    --nt-paused-border: #8a5a00;
+    --nt-focus: #8a5a00;
+  }
+}
+
+[hidden] { display: none !important; }
+
+.nt-host { margin: 0.4rem 0; }
+
+.nt-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem 0.5rem;
+  padding: 0.3rem 0.45rem;
+  border: 1px solid var(--nt-border);
+  border-radius: 10px;
+  background: var(--nt-bg);
+  color: var(--nt-fg);
+  font-size: 0.9rem;
+  width: fit-content;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.nt-btn {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.3rem;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0.25rem 0.7rem;
+  border: 1px solid var(--nt-border);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--nt-fg);
+  font: inherit;
+  font-weight: 500;
+  cursor: pointer;
+  box-sizing: border-box;
+}
+.nt-btn:hover { background: var(--nt-active-bg); }
+.nt-btn:focus-visible { outline: 3px solid var(--nt-focus); outline-offset: 2px; }
+
+/* Pressed = the current choice: check mark + thicker border + bold, so it reads without colour. */
+.nt-btn[aria-pressed="true"] {
+  background: var(--nt-active-bg);
+  border: 3px solid var(--nt-active-border);
+  padding: calc(0.25rem - 2px) calc(0.7rem - 2px);
+  font-weight: 700;
+}
+.nt-speed[aria-pressed="true"]::before { content: "\2713" / ""; }
+
+/* The Pause button is "pressed" while paused or held: dashed border marks it apart from a speed. */
+.nt-pause[aria-pressed="true"] {
+  background: var(--nt-paused-bg);
+  border-color: var(--nt-paused-border);
+  border-style: dashed;
+}
+.nt-pause[aria-pressed="true"]::after { content: "\2713" / ""; }
+
+.nt-status {
+  color: var(--nt-muted);
+  font-weight: 600;
+  white-space: nowrap;
+  padding: 0 0.2rem;
+}
+.nt-bar[data-state="paused"] .nt-status,
+.nt-bar[data-state="held"] .nt-status { color: var(--nt-fg); text-decoration: underline dotted; text-underline-offset: 3px; }
+
+@media (prefers-reduced-motion: no-preference) {
+  html:not([data-reduced-motion="true"]) .nt-btn { transition: background-color 0.12s ease, border-color 0.12s ease; }
+}
+
+@media (max-width: 480px) {
+  .nt-bar { gap: 0.3rem; padding: 0.25rem 0.35rem; }
+  .nt-btn { padding: 0.2rem 0.5rem; }
+  .nt-btn[aria-pressed="true"] { padding: calc(0.2rem - 2px) calc(0.5rem - 2px); }
+  .nt-status { flex-basis: 100%; white-space: normal; }
+}

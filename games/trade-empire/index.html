@@ -8,6 +8,7 @@
 <link rel="icon" type="image/svg+xml" href="../../icons/favicon-trade-empire.svg">
 <link rel="stylesheet" href="../../shared/space-bg.css">
 <link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="../../shared/time-controls.css">
   <link rel="stylesheet" href="../../shared/theme-light-games.css">
   <script src="../../shared/theme.js" data-floating-toggle></script>
   <script src="../../shared/lite-mode.js"></script>
@@ -53,6 +54,8 @@
            Pyodide finishes booting. -->
       <button id="settings-toggle-button" class="secondary" type="button">⚙️ Settings</button>
     </div>
+    <!-- W-2: pause and 1x/2x/4x, mounted by shared/time-controls.js; game.py hands it the tick. -->
+    <div id="time-controls"></div>
     <!-- J-31: earned achievements as a small ribbon of badges (a shape plus
          the achievement's name), refreshed by game.py's render_ribbon(). -->
     <div id="ledger-ribbon" class="ledger-ribbon" role="group" aria-label="Ledger ribbon: your earned achievement badges"></div>
@@ -80,6 +83,12 @@
         <button id="effects-toggle-button" class="secondary" type="button" aria-describedby="effects-note">Effects: On</button>
       </div>
       <p id="effects-note" class="settings-note">Effects are the optional flourishes: sale sparks, the dock rings on the map and the ribbon glow when you unlock something. Reduce Motion also turns them off.</p>
+      <div class="settings-row">
+        <label class="settings-checkbox-label" for="pause-hidden-checkbox">
+          <input type="checkbox" id="pause-hidden-checkbox" checked>
+          Pause when this tab is hidden (nothing ticks in a background tab; off keeps the old behaviour)
+        </label>
+      </div>
       <div class="settings-row">
         <button id="settings-reset-button" class="secondary" type="button">Reset to Default</button>
       </div>
@@ -1070,9 +1079,12 @@
   <script src="../../shared/achievement-stats.js" data-game-id="trade-empire"></script>
   <!-- Z4 (site-wide goal): "?" shows a keyboard-shortcuts help overlay,
        Esc closes whichever panel is open. See shared/keyboard-shortcuts.js. -->
+  <script src="../../shared/time-controls.js" data-game-id="trade-empire" data-container="#time-controls"></script>
+  <script src="../../shared/pause-hidden.js" data-game-id="trade-empire"></script>
   <script src="../../shared/keyboard-shortcuts.js"></script>
   <script>
     window.KeyboardShortcuts.init({
+      extra: ["Space — pause or resume time", "[ and ] — slower or faster (1x, 2x, 4x)"],
       panels: [
         { toggle: "howto-toggle-button", panel: "howto-panel" },
         { toggle: "achievements-toggle-button", panel: "achievements-panel" },

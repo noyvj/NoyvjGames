@@ -52,7 +52,7 @@
   "adopt": [],
   "zones": {
     "topbar": [".hub-back-link", "h1", ".game-toolbar"],
-    "stagebar": ["#captains-log-latest", "#trophy-shelf", "#click-streak", "#away-report", "#win-banner"],
+    "stagebar": ["#time-controls", "#captains-log-latest", "#trophy-shelf", "#click-streak", "#away-report", "#win-banner"],
     "stage": ["#earth-view", "#mars-view", "#moon-view", "#venus-view", "#asteroidbelt-view", "#pluto-view", "#jupitermoons-view", "#saturnmoons-view", "#away-view"],
     "hidden": []
   },
@@ -68,6 +68,8 @@
   ],
   "side_label": "Details",
   "hints": [
+    ["Space", "Pause / resume"],
+    ["[ ]", "Slower / faster"],
     ["?", "All shortcuts"],
     ["Esc", "Menu / close window"]
   ],

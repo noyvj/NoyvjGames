@@ -429,3 +429,62 @@ Copies `I earned Cleanup Crew in Tide, 12.5% of players have it` and, on the nex
 ```
 
 With `data-game-id` present nothing else is needed: a Share button is added to every **earned** row of `#achievements-panel` (rows with `data-achievement-id` and an earned class, as the games already render them), and kept there when the game rebuilds the panel. Without it, call `NoyvjAchievementShare.mountButton(container, {game, gameName, achievementId, label})`, or `share(opts)` (copies now, resolves `{ok, text}`) or the pure `text({label, gameName, game, earnedPct, url})`. The stats are prefetched when a button mounts, so the click copies immediately inside the user gesture; a click made before they arrive waits at most 1.5 s. The link comes from where the script was loaded (`../games/<game>/`). If the clipboard refuses, a selected read-only box appears. Buttons are 44 px high, labelled `Share: <achievement>`, with a polite status line, light and dark tokens and no transitions under reduced motion. Not yet added to any game page (the game pages need the one extra script tag; `sw.js` precache and `SW_VERSION` are the main session's call).
+
+---
+
+## Time controls and pause-when-hidden (W-2, Z-28)
+
+Files: `shared/time-controls.js`, `shared/time-controls.css`, `shared/pause-hidden.js`. Tests: `shared/tests/test_time_controls_browser.py`, `shared/tests/test_pause_hidden_browser.py`, plus `tests/test_time_controls.py` in SOL, Canopy and Trade Empire and `tests/test_pause_hidden.py` in Continuum. Not yet in `sw.js`'s precache: add the three files.
+
+### Audit of the 14 games (2026-10-08)
+
+| Game | Real-time tick? | Pause and speed today | How the tick is driven | Done |
+|---|---|---|---|---|
+| SOL | yes, 100 ms | none | Python `setInterval(tick, 100)` in `setup()` | time controls + pause-hidden |
+| Canopy | yes, 1 s | none | Python `setInterval(tick, 1000)` | time controls + pause-hidden |
+| Trade Empire | yes, 1 s | none | Python `setInterval(tick, 1000)` | time controls + pause-hidden |
+| Continuum | yes, season clock | already has Pause/1x/2x/4x (U1) | JS `setInterval` 250 ms in `index.html` calling Python `tick_clock(dt)`, steps clamped to 1 s, skipped while hidden | pause-hidden only (hooks); its own buttons kept |
+| Tide | no (turn based, Advance Season) | n/a | one-shot UI timeouts only | audited, left alone |
+| Aftermath, Grid, Herd, Thaw, Loop, Drift | no (turn based) | n/a | one-shot `setTimeout` toasts; Aftermath has a cosmetic 40 ms count-up | left alone |
+| Le Champ de Mots | only the timed arcade minigames: a 1 s JS `setInterval` calling `blitz_tick`, `sprint_tick`, `racer_tick`, `boutique_tick`, `cafe_tick` (no-ops outside a running minigame) | none | JS `setInterval` 1000 in `index.html` | not touched (another session's folder). Fast-forward makes no sense for a timed quiz; pause-when-hidden would (candidate for a later pass, hooks mode) |
+| Signal | no (the "next puzzle" countdown is a wall-clock label) | n/a | none | left alone |
+| Chronicle, Lexis | no | n/a | none (announce timeouts only) | left alone |
+
+Other timers that are NOT simulation ticks and were left alone: SOL's hold-to-repeat button timer (`hold-repeat.js`, already stops on `visibilitychange`), Continuum's 3D screensaver `requestAnimationFrame` loop (visual only, already skips when hidden).
+
+### `NoyvjTime` (time-controls.js)
+
+Mount: `<div id="time-controls"></div>`, `<link rel="stylesheet" href="../../shared/time-controls.css">` after the game's own stylesheet and before `a11y.css`, and `<script src="../../shared/time-controls.js" data-game-id="sol" data-container="#time-controls"></script>`. Options as data attributes: `data-speeds="1,2,4"`, `data-keys="off"`, `data-start-paused="true"`, `data-modal-selector`. The game then hands over its tick instead of calling `setInterval`:
+
+```python
+from js import window
+window.NoyvjTime.start("sol", create_proxy(tick), TICK_INTERVAL_MS)   # keep a setInterval fallback for tests / old pages
+```
+
+or `NoyvjTime.start(gameId, fn, baseMs)` from JS. Calling `start` again replaces the tick (never a second timer). API: `create(opts)`, `start`, `controller(id)`, `get(id)`, `intervalFor(baseMs, speed)`; controller: `setSpeed(n)`, `pause()`, `resume()`, `toggle()`, `hold(reason)`, `release(reason)`, `isRunning()`, `snapshot()`, `subscribe(fn)`, `handleKey(event)`, `stop()`, `destroy()`. A change also fires `document` event `noyvj-time-change` (detail = snapshot) and sets `<html data-time-state="running|paused|held">`.
+
+Rules (the "never change tick math" contract):
+- Speed n calls the tick every `baseMs / n` ms (floor 20 ms). The tick itself is untouched and must not read the speed; a game test should pin that only the small start helper mentions `NoyvjTime`.
+- Paused or held: no timer exists, so no tick; there is no stored time debt, so resuming never fires a burst, and the time spent paused gives no progress. 4x is "four times as many ordinary ticks", never a skipped rule; if a slow computer cannot keep up, the game just runs slower than 4x.
+- Choosing a speed while paused resumes at that speed. A "hold" (used for the hidden tab) sits beside the player's pause and speed and never overwrites them.
+- Player actions (clicks, buying, planting, selling) are not ticks and still work while paused.
+- The speed is never saved (not in saves, not in localStorage); a reload starts at 1x, running.
+- Away or offline handling is per game and documented in each game's `CLAUDE.md`: none of SOL, Canopy or Trade Empire advances anything from wall-clock time while closed or hidden; a game's own away report must count ticks, not wall time (SOL's does).
+
+Keys (documented defaults; only active with no text box, dialog, tutorial, level select or opening screen in front): Space pause or resume, but only when nothing interactive has the focus (a focused button, link or Canopy plot keeps Space); `[` slower; `]` faster. `keys: false` turns the built-in handler off and a game's own key handler can call `controller.handleKey(event)` (returns true when it acted). Games list them in their `?` help (`KeyboardShortcuts.init({extra: [...]})`) and the Desktop hint bar (`["Space", "Pause / resume"], ["[ ]", "Slower / faster"]` in `pc-config.json`).
+
+Accessibility: a `role="group"` named "Game speed" of four real buttons (44 px minimum), `aria-pressed` on the current choice, a `role="status"` line saying "Paused", "Paused (tab hidden)" or "Running at 2x". The current choice is marked by a check mark, a heavier border and bold text; Pause is a dashed border; none depends on colour. Light/dark tokens like the other shared pieces, transitions only without `prefers-reduced-motion` and `html[data-reduced-motion="true"]`.
+
+### `NoyvjPauseHidden` (pause-hidden.js)
+
+Page Visibility API only. When the tab becomes hidden it holds the game (`controller.hold("hidden")`); when visible again it releases and, only if a running game was really paused, shows a one-line note "Paused while the tab was hidden" for 5 s (fixed pill, click to dismiss, `role="status"`). A tab opened in the background starts held. Nothing about the hidden time is stored, so nothing is caught up.
+
+Setting: one on/off per game in `localStorage` as `<gameId>-pause-hidden` ("on"/"off", default on), the same on/off shape the games' `settings.js` toggles use. The game's settings panel carries `<label class="settings-checkbox-label" for="pause-hidden-checkbox"><input type="checkbox" id="pause-hidden-checkbox" checked> ...</label>`; the script wires the checkbox and the panel's `#settings-reset-button`. Off restores the old behaviour exactly (the browser throttles the timer of a hidden tab but it keeps running).
+
+Wiring: games on `time-controls.js` need only `<script src="../../shared/pause-hidden.js" data-game-id="sol"></script>` after it. A game with its own clock uses `data-manual` and `NoyvjPauseHidden.init({gameId, hooks: {pause() {...; return true}, resume() {...}}})`; `pause()` returns whether it stopped something that was running (Continuum does this with `set_speed(0)` and restores the speed).
+
+Interplay with away reports: a report that counts game ticks is unaffected (no ticks run while hidden or paused), so hidden time adds nothing to it; SOL's A5 report is tested for exactly this.
+
+### Per game (what was wired)
+
+SOL, Canopy, Trade Empire: both scripts, the stylesheet, `#time-controls`, the settings checkbox, `_start_tick_loop()` in `game.py`, the stage-bar zone and hints in `pc-config.json` (Desktop page regenerated). Continuum: `pause-hidden.js` in manual mode and the settings checkbox. Tide: nothing (turn based).

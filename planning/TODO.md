@@ -1,6 +1,6 @@
 # Site-Wide TODO (round 3)
 
-**Progress: 373/992 items checked off (37.6%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land.
+**Progress: 380/992 items checked off (38.3%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land.
 
 Built from your answers in `planning/IMPROVEMENT-IDEAS-ROUND-3.md` (Part 4). Every Round 3 section is now answered (2026-10-07 below the Warframe section); earlier this list held only: **GB** (Canopy gamified), **M** (new games), **N** (seasonal events), **O** (Trade Empire and Continuum replayability), **P/Q/S/T** (Signal, Undersleep, Overclock, Last Line open questions), **X** (Warframe tracker) and **R** (returning later). GC-GI, A-L, U, Z and Y are unanswered and wait for you. The previous list is archived at `planning/todo-archive/260914_260927.md`; anything from it that was moved here is marked "moved" there.
 
@@ -25,7 +25,7 @@ Rules carried over: "yes" items are here, "later" items are parked in `planning/
 ## W. Cross-game groundwork these answers need (build once, reuse)
 
 - [x] W-1: **Level select framework** (shared component plus per-game level list): a level-select screen where every fifth level is a game mode or a new mechanic; used first by Canopy (GB-13, GB-15, GB-16) and then offered to other games that are getting complex. (Built 2026-10-08 as shared/level-select.js, documented in planning/SHARED-COMPONENTS.md; each game still needs its own level list, GB-13/15/16.)
-- [ ] W-2: **Fast-forward (1x/2x/4x) and pause** for the real-time (ticking) games: audit which games tick (SOL, Canopy, Tide? Continuum has speed controls already) and add the same control to those that lack it, without touching tick math.
+- [x] W-2: **Fast-forward (1x/2x/4x) and pause** for the real-time (ticking) games: audit which games tick (SOL, Canopy, Tide? Continuum has speed controls already) and add the same control to those that lack it, without touching tick math.
 - [x] W-3: **Skill-tree component** (shared UI and data shape) for meta-progression, first user Canopy's Seed Vault and ranger crews (GB-10, GB-26), later Trade Empire's charter tree (O-1). (Built 2026-10-08: shared/skill-tree.js, .css and a Python mirror skill_tree.py; wiring into Canopy and Trade Empire is still open.)
 - [x] W-4: **Seasonal events groundwork** (`shared/seasonal-events.js` per Round 3 section N item 11): date-window check, flavour overrides, banner, badge grant through the achievements path, no new backend. (Built 2026-10-08 as shared/seasonal-events.js and .css with hub-contract badge ids; N-2 needs one host game to wire it in.)
 - [x] W-5: **General opt-in leaderboards**: extend `app/leaderboards.py` boards beyond the three built tonight, and a shared widget entry per game (the shared `leaderboard.js` already exists); used by Canopy's community plot (GB-19), Last Line and Signal. (Built 2026-10-08 on branch `cloud/leaderboards-w5` as `app/boards.py` plus `NoyvjLeaderboard.addBoard` in shared/leaderboard.js, documented in planning/SHARED-COMPONENTS.md section 4; no game is wired yet and the backend needs the owner's push to deploy.)
@@ -45,7 +45,7 @@ Rules carried over: "yes" items are here, "later" items are parked in `planning/
 - [x] GB-8: Hidden Heart Tree secret.
 - [x] GB-9: Ranger contracts board.
 - [x] GB-10: Seed Vault meta-progression (skill-tree style, per W-3).
-- [ ] GB-11: Fast-forward toggle (1x/2x/4x) plus pause (per W-2).
+- [x] GB-11: Fast-forward toggle (1x/2x/4x) plus pause (per W-2).
 - [ ] GB-12: Rival logging company, as a possible 1v1 game mode (design it as a mode; park the 1v1 pairing on W-6).
 - [x] GB-13: Poacher whack-a-mole, as a level/mode via the level select (not in the base game).
 - [x] GB-14: Forest name and adopted-tree nickname with log narration.
@@ -915,12 +915,12 @@ Your remaining Round 3 answers (Grid to Drift gamified, SOL to Le Champ de Mots,
   - [x] Z-25 Signal
   - [x] Z-25 Lexis
 - [ ] Z-27: Add a shared achievement Share button that copies a one-line text ('I earned X in Game, N% of players have it') plus the game link, using the live earned_pct, omitting the percentage while suppressed/under-sampled. (needs achievement stats backend (built)) (Shared Share button built 2026-10-08 (shared/achievement-share.js); the script tag per game page is still to add.)
-- [ ] Z-28: Add a shared pause-when-tab-hidden helper for games with a real-time loop (SOL, Canopy, Trade Empire, Continuum animation), with an on/off toggle in each game's settings; avoid silent simulation advance while hidden. (needs W-2 pause)
+- [x] Z-28: Add a shared pause-when-tab-hidden helper for games with a real-time loop (SOL, Canopy, Trade Empire, Continuum animation), with an on/off toggle in each game's settings; avoid silent simulation advance while hidden. (needs W-2 pause)
   Per game (Classic and Desktop pages both; tick each once wired and tested):
-  - [ ] Z-28 SOL
-  - [ ] Z-28 Canopy
-  - [ ] Z-28 Trade Empire
-  - [ ] Z-28 Continuum
+  - [x] Z-28 SOL
+  - [x] Z-28 Canopy
+  - [x] Z-28 Trade Empire
+  - [x] Z-28 Continuum
 - [x] Z-29: Add a shared info/help panel footer showing the game's changelog date, seed (if any) and site URL, so screenshots and printouts are self-identifying; apply to every game's info/help panel. (Built 2026-10-08: shared/info-footer.js adds `NoyvjGames - <game> - updated <changelog date> - [seed] - <site URL>` to #howto-panel and #info-page-panel (a seed shows once Z-1 exposes one via window.NoyvjSeed.current() or NOYVJ_SEED), wired into every page. Only Le Champ de Mots is still to wire.)
   Per game (Classic and Desktop pages both; tick each once wired and tested):
   - [x] Z-29 SOL

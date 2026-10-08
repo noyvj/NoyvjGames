@@ -2,6 +2,10 @@
   "changelog": [
     {
       "date": "2026-10-08",
+      "entry": "New: a Pause, 1x, 2x and 4x control sits under the toolbar (Space pauses or resumes, [ and ] change the speed). Faster only means the game ticks more often, never that anything is skipped, and nothing at all happens while it is paused. New: a setting, on by default, pauses the game while this browser tab is hidden and tells you when you come back; switch it off in Settings if you want it to keep running in the background."
+    },
+    {
+      "date": "2026-10-08",
       "entry": "New in SOL: Chain Reactions (do the right actions in the right order within a minute for a small bonus, seven to find, with hints), a rhythm bonus for steady clicking (up to +5%, can be switched off), a trophy shelf of your five newest achievements, a Governor mood line on every Governor Report card, a Splits page for your time per world against your personal best (switch on Show timing in Settings), and Copy as spreadsheet text on the Build Plan. Research buttons now light up as soon as you can afford a node. Two new achievements: In Rhythm and Chain Reactor."
     },
     {

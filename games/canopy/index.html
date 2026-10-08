@@ -8,6 +8,7 @@
 <link rel="icon" type="image/svg+xml" href="../../icons/favicon-canopy.svg">
 <link rel="stylesheet" href="../../shared/ambient-bg.css">
 <link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="../../shared/time-controls.css">
   <link rel="stylesheet" href="../../shared/theme-light-games.css">
   <script src="../../shared/theme.js"></script>
   <script src="../../shared/lite-mode.js"></script>
@@ -101,6 +102,8 @@
       <button id="reset-session-button" class="secondary" type="button">🔄 Reset Session</button>
       <button id="settings-toggle-button" class="secondary" type="button">⚙️ Settings</button>
     </div>
+    <!-- W-2: pause and 1x/2x/4x, mounted by shared/time-controls.js; game.py hands it the tick. -->
+    <div id="time-controls"></div>
     <div id="howto-panel" class="section" hidden></div>
     <!-- Settings panel (site-wide goal, planning/TODO.md): text-scale + reduced-motion,
          consolidated into one panel per settings.js. A browser preference, not game
@@ -157,6 +160,12 @@
           <option value="compact">Compact (12.3k)</option>
           <option value="precise">Two decimals (12345.60)</option>
         </select>
+      </div>
+      <div class="settings-row">
+        <label class="settings-checkbox-label" for="pause-hidden-checkbox">
+          <input type="checkbox" id="pause-hidden-checkbox" checked>
+          Pause when this tab is hidden (nothing ticks in a background tab; off keeps the old behaviour)
+        </label>
       </div>
       <div class="settings-row">
         <button id="settings-reset-button" class="secondary" type="button">Reset to Default</button>
@@ -938,6 +947,8 @@
   <script src="../../shared/achievement-stats.js" data-game-id="canopy"></script>
   <!-- Z4 (site-wide goal): "?" shows a keyboard-shortcuts help overlay,
        Esc closes whichever panel is open. See shared/keyboard-shortcuts.js. -->
+  <script src="../../shared/time-controls.js" data-game-id="canopy" data-container="#time-controls"></script>
+  <script src="../../shared/pause-hidden.js" data-game-id="canopy"></script>
   <script src="../../shared/keyboard-shortcuts.js"></script>
   <!-- W-1 / W-3: the shared level select and skill tree. game.py configures both from Python (levels.json lists the levels; the Seed Vault tree lives in game.py and is checked against shared/skill_tree.py). -->
   <link rel="stylesheet" href="../../shared/skill-tree.css">
@@ -958,6 +969,8 @@
         { toggle: "info-page-toggle-button", panel: "info-page-panel" },
       ],
       extra: [
+        "Space — pause or resume time (when no button or plot has the focus)",
+        "[ and ] — slower or faster (1x, 2x, 4x)",
         "Arrow keys — move between plots (click or Tab to a plot first, then Enter or Space to select)",
         "N — jump to the plot a pending stakeholder request names",
         "T — tend the plot under the pointer (or the selected plot)",

@@ -8,6 +8,7 @@
 <link rel="icon" type="image/svg+xml" href="../../icons/favicon-sol.svg">
 <link rel="stylesheet" href="../../shared/space-bg.css">
 <link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="../../shared/time-controls.css">
   <link rel="stylesheet" href="../../shared/theme-light-games.css">
   <script src="../../shared/theme.js"></script>
   <script src="../../shared/lite-mode.js"></script>
@@ -54,6 +55,8 @@
       <button id="changelog-toggle-button" class="secondary" type="button">📋 What's New</button>
       <button id="settings-toggle-button" class="secondary" type="button">⚙️ Settings</button>
     </div>
+    <!-- W-2: pause and 1x/2x/4x, mounted by shared/time-controls.js; game.py hands it the tick. -->
+    <div id="time-controls"></div>
     <div id="howto-panel" class="section" hidden></div>
     <!-- Settings panel (site-wide goal, planning/TODO.md): text-scale + reduced-motion,
          consolidated into one panel per settings.js. A browser preference, not game
@@ -110,6 +113,12 @@
         <label class="settings-checkbox-label" for="show-timing-checkbox">
           <input type="checkbox" id="show-timing-checkbox">
           Show timing (adds the Splits page: time per world against your personal best)
+        </label>
+      </div>
+      <div class="settings-row">
+        <label class="settings-checkbox-label" for="pause-hidden-checkbox">
+          <input type="checkbox" id="pause-hidden-checkbox" checked>
+          Pause when this tab is hidden (nothing ticks in a background tab; off keeps the old behaviour)
         </label>
       </div>
       <div class="settings-row">
@@ -1331,9 +1340,12 @@
   <script src="../../shared/leaderboard.js" data-game-id="sol" data-board="fastest_completion" data-order="asc" data-title="fastest full completion" data-unit="s" data-mount="#leaderboard-mount"></script>
   <!-- Z4 (site-wide goal): "?" shows a keyboard-shortcuts help overlay,
        Esc closes whichever panel is open. See shared/keyboard-shortcuts.js. -->
+  <script src="../../shared/time-controls.js" data-game-id="sol" data-container="#time-controls"></script>
+  <script src="../../shared/pause-hidden.js" data-game-id="sol"></script>
   <script src="../../shared/keyboard-shortcuts.js"></script>
   <script>
     window.KeyboardShortcuts.init({
+      extra: ["Space — pause or resume time", "[ and ] — slower or faster (1x, 2x, 4x)"],
       panels: [
         { toggle: "howto-toggle-button", panel: "howto-panel" },
         { toggle: "settings-toggle-button", panel: "settings-panel" },

@@ -2,6 +2,10 @@
   "changelog": [
     {
       "date": "2026-10-08",
+      "entry": "New: a Pause, 1x, 2x and 4x control sits under the toolbar (Space pauses or resumes, [ and ] change the speed). Faster only means the game ticks more often, never that anything is skipped, and nothing at all happens while it is paused. New: a setting, on by default, pauses the game while this browser tab is hidden and tells you when you come back; switch it off in Settings if you want it to keep running in the background."
+    },
+    {
+      "date": "2026-10-08",
       "entry": "New: a Levels screen (the Levels button, or the Menu on Desktop) with 15 levels. Every fifth one is a mode or a new mechanic: Poacher Patrol (click the plot, or press P, before a poacher strikes), Storm Front (replant the gaps before each front sweeps two rows) and The Spirit's Walk (a forest spirit sets six small tasks and narrates them); the four challenge runs are levels too. Your best result for each level is kept. New: the Seed Vault, a skill tree you spend seed points in (1 point for each level completed, forest tier reached and every 4 achievements): growth and soil perks, plus idle ranger crews that tend, catch seedlings and replant for you. Perks rest during challenge runs. In Settings, Level effects turns off the modes' animations."
     },
     {
