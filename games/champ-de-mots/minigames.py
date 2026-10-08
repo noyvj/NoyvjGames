@@ -3202,6 +3202,16 @@ def wordorder_tick(event=None):
     return WORDORDER.tick()
 
 
+def any_timed_run_active():
+    """True while any arcade minigame has a countdown running. The page's
+    one-second JS timer asks this when the tab is hidden (shared/pause-hidden.js),
+    so the "paused while the tab was hidden" note only shows when a run
+    really was held. Reads state only; never moves a clock."""
+    if blitz_active or racer_active or boutique_active or cafe_active or sprint_active:
+        return True
+    return any(game.active for game in NEW_GAMES)
+
+
 def pairs_available():
     return PAIRS.available()
 

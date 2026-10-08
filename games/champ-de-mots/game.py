@@ -65,6 +65,7 @@ pairs_tick = minigames.pairs_tick
 gaps_tick = minigames.gaps_tick
 listenpick_tick = minigames.listenpick_tick
 wordorder_tick = minigames.wordorder_tick
+minigame_run_active = minigames.any_timed_run_active
 
 CATALOG_FILENAME = "fren_combined_catalog.json"
 SUPPLEMENTARY_NOTES_FILENAME = "fren_supplementary_notes.json"
@@ -642,6 +643,12 @@ def normalize_answer(text, fold_accents=True):
         text = unicodedata.normalize("NFKD", text)
         text = "".join(ch for ch in text if not unicodedata.combining(ch))
     text = text.replace("’", "'").replace("‘", "'")
+    # Answer-report review 2026-10-08 (GP-10): an internal comma, semicolon
+    # or colon and a hyphen or dash are not part of what is being tested --
+    # "Hello my name is Léa" is "Hello, my name is Léa.", "so so" is
+    # "so-so", "quatre vingt dix" is "quatre-vingt-dix". They compare as
+    # plain word breaks on both sides.
+    text = re.sub(r"[,;:\-\u2010\u2011\u2013\u2014]", " ", text)
     text = re.sub(r"\s+", " ", text.casefold()).strip()
     return text.strip(" .!?¡¿\"«»")
 
@@ -1266,10 +1273,11 @@ def _contraction_variants(text):
 # accepted. ("nonante" is the actual attested regional word for 90;
 # "neufante" isn't real French, but accepted too in case that's genuinely
 # what you were taught as its counterpart to septante/huitante.)
+# Keys are in normalize_answer() form (hyphens read as spaces).
 NUMBER_REGIONALISMS = {
-    "soixante-dix": ("septante",),
-    "quatre-vingts": ("huitante",),
-    "quatre-vingt-dix": ("nonante", "neufante"),
+    "soixante dix": ("septante",),
+    "quatre vingts": ("huitante",),
+    "quatre vingt dix": ("nonante", "neufante"),
 }
 
 
@@ -1327,6 +1335,11 @@ def grading_tier(answer_text):
     parenthetical stripping happen first so a template item like "I am +
     [nationality]" is judged on "I am" (LENIENT), not the annotated original."""
     text = strip_parentheticals(_strip_plus_annotation(str(answer_text)))
+    # A "/" lists alternatives ("waiter/waitress"): each side must be
+    # accepted on its own, which only the LENIENT path does, however few
+    # spaces the author left round the slash (answer-report review 2026-10-08).
+    if "/" in text:
+        return TIER_LENIENT
     return TIER_STRICT if len(text.split()) <= 1 else TIER_LENIENT
 
 
@@ -1428,6 +1441,51 @@ def _lookup_accepted(question, farm=None):
         if item.get("en") == answer:
             return _catalog_item_accepted(item, "en")
     return None
+
+
+def _matched_item_field(question, farm=None):
+    """(item, field) of the catalog item a generated question's answer came
+    from, or (None, None) for a hand-built question."""
+    farm = state if farm is None else farm
+    plot = farm.plots_by_id.get(question.get("plot_id"))
+    if plot is None:
+        return None, None
+    answer = question.get("answer")
+    for item in plot.items:
+        if item.get("fr") == answer:
+            return item, "fr"
+        if item.get("en") == answer:
+            return item, "en"
+    return None, None
+
+
+def _manual_accepted(question, farm=None):
+    """Only a hand-curated array: the item's literal accepted_en/accepted_fr
+    or one the question itself carries (bonus tiles and sentences). The
+    STRICT tier honours these but never the mechanically generated ones."""
+    extra = list(question.get("accepted") or [])
+    item, field = _matched_item_field(question, farm)
+    if item is not None and item.get(f"accepted_{field}"):
+        extra.extend(item[f"accepted_{field}"])
+    return extra
+
+
+def _answer_is_english(question, farm=None):
+    """True when the typed answer is English, whose accents are never
+    assessed (a French accent slipped onto an English word is a slip, not a
+    wrong answer). The phonetic accent names (tréma, cédille) stay exact."""
+    lang = question.get("lang")
+    if lang:
+        return lang == "en"
+    if question.get("topic_type") == "phonetic":
+        return False
+    variant = question.get("variant")
+    if variant in (V_FR_EN_TYPED, V_EXAMPLE_FR_EN):
+        return True
+    if variant is not None:
+        return False
+    item, field = _matched_item_field(question, farm)
+    return field == "en" and item.get("fr") != item.get("en")
 
 
 # Improvement Ideas §2: "weeds" as a distinct plot state for commonly-
@@ -1545,14 +1603,19 @@ def check_answer(question, given, tier=None, accent_sensitive=None):
     if question["mode"] == "choice":
         return given == question["answer"]
     fold_accents = True if accent_sensitive is None else not accent_sensitive
+    if not fold_accents and _answer_is_english(question):
+        fold_accents = True
     typed = normalize_answer(given, fold_accents=fold_accents)
     if not typed:
         return False
     if tier is None:
         return typed in answer_alternatives(question["answer"])
     if tier == TIER_STRICT:
-        return typed in strict_alternatives(question["answer"], fold_accents=fold_accents)
-    accepted = _lookup_accepted(question)
+        allowed = strict_alternatives(question["answer"], fold_accents=fold_accents)
+        for extra in _manual_accepted(question):
+            allowed |= strict_alternatives(extra, fold_accents=fold_accents)
+        return typed in allowed
+    accepted = list(_lookup_accepted(question) or []) + list(question.get("accepted") or [])
     return typed in answer_alternatives(question["answer"], accepted=accepted, fold_accents=fold_accents)
 
 
@@ -3987,7 +4050,11 @@ def _render_achievement_group(container, group):
     for entry in group["earned"]:
         line = document.createElement("p")
         line.className = "achievement-earned"
-        line.innerText = f"🏆 {entry['label']}"
+        line.innerText = "🏆 "
+        label = document.createElement("span")
+        label.className = "achievement-card-label"  # shared/achievement-share.js reads the name from here
+        label.innerText = entry["label"]
+        line.appendChild(label)
         line.dataset.achievementId = entry["id"]
         container.appendChild(line)
     if group["next"] is not None:
@@ -6075,6 +6142,24 @@ def on_review_answer_keydown(event=None):
         on_review_submit_typed()
 
 
+def share_result():
+    """JSON for shared/copy-result.js (Z-20): the figures a player would
+    paste after a review session -- the session score, plots automated and
+    the practice score. No seed text: this game has no seeds."""
+    total = review_score["total"]
+    stats = []
+    if total:
+        stats.append(f"{review_score['correct']}/{total} right")
+    automated = automated_plot_count()
+    stats.append({"n": automated, "one": "plot automated", "many": "plots automated"})
+    stats.append(f"{practice_score()} practice points")
+    return json.dumps({
+        "game": "Le Champ de Mots",
+        "score": f"day {state.current_day}",
+        "stats": stats,
+    })
+
+
 def render_review():
     _notify_visual_style_context("review" if review_mode is not None else "farm")
 
@@ -6090,6 +6175,9 @@ def render_review():
     _element("review-listen-button").hidden = True
     _element("review-listen-show-button").hidden = True
     _element("review-water-note").hidden = True
+
+    # The Copy result button (Z-20) only belongs under the finished summary.
+    _element("result-copy-review").hidden = True
 
     if review_mode is None:
         panel.hidden = True
@@ -6123,6 +6211,7 @@ def render_review():
         empty_message.hidden = True
         summary.hidden = False
         summary.innerText = _with_growth(_with_highlights(REVIEW_SUMMARY_MESSAGE.format(**review_score)), "review")
+        _element("result-copy-review").hidden = False
         _element("review-progress").innerText = ""
         _element("review-context").innerText = ""
         _element("review-instruction").innerText = ""
@@ -6783,7 +6872,10 @@ def submit_bonus_tile_translation(given):
         return None
     tile = sentence["tiles"][bonus_tile_index]
     bonus_tile_submitted_answer = str(given).strip()
-    question = {"mode": "typed", "answer": tile["en"], "choices": []}
+    question = {
+        "mode": "typed", "answer": tile["en"], "choices": [],
+        "lang": "en", "accepted": tile.get("accepted_en") or [],
+    }
     bonus_tile_result = check_answer(
         question, given, tier=TIER_STRICT, accent_sensitive=ACCENT_SENSITIVE
     )
@@ -6828,7 +6920,10 @@ def submit_bonus_sentence_translation(given):
     if sentence is None:
         return None
     bonus_sentence_submitted_answer = str(given).strip()
-    question = {"mode": "typed", "answer": sentence["en"], "choices": []}
+    question = {
+        "mode": "typed", "answer": sentence["en"], "choices": [],
+        "lang": "en", "accepted": sentence.get("accepted_en") or [],
+    }
     bonus_sentence_result = check_answer(
         question, given, tier=TIER_LENIENT, accent_sensitive=ACCENT_SENSITIVE
     )
@@ -6908,7 +7003,9 @@ def _bonus_tile_report_payload():
         "game_id": REPORT_GAME_ID,
         "item_id": f"{sentence['id']}-tile-{bonus_tile_index}",
         "submitted_answer": bonus_tile_submitted_answer or "",
-        "marked_correct_answer": generate_accepted_variants(tile["en"]),
+        "marked_correct_answer": generate_accepted_variants(tile["en"]) + [
+            e for e in (tile.get("accepted_en") or []) if e not in generate_accepted_variants(tile["en"])
+        ],
         "topic_type": BONUS_TILE_REPORT_TOPIC_TYPE,
     }
 

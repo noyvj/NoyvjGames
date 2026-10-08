@@ -311,6 +311,7 @@ ELEMENT_IDS = [
     "review-feedback",
     "review-next-button",
     "review-summary",
+    "result-copy-review",
     "review-close-button",
     "review-report-button",
     "review-pronunciation-report-button",

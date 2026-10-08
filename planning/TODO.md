@@ -1,6 +1,6 @@
 # Site-Wide TODO (round 3)
 
-**Progress: 402/1000 items checked off (40.2%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land.
+**Progress: 406/1000 items checked off (40.6%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land.
 
 Built from your answers in `planning/IMPROVEMENT-IDEAS-ROUND-3.md` (Part 4). Every Round 3 section is now answered (2026-10-07 below the Warframe section); earlier this list held only: **GB** (Canopy gamified), **M** (new games), **N** (seasonal events), **O** (Trade Empire and Continuum replayability), **P/Q/S/T** (Signal, Undersleep, Overclock, Last Line open questions), **X** (Warframe tracker) and **R** (returning later). GC-GI, A-L, U, Z and Y are unanswered and wait for you. The previous list is archived at `planning/todo-archive/260914_260927.md`; anything from it that was moved here is marked "moved" there.
 
@@ -802,7 +802,7 @@ Your remaining Round 3 answers (Grid to Drift gamified, SOL to Le Champ de Mots,
 - [x] GP-7: Four new minigames (Word Match, Grammar Gaps, Listening Pick, Word Order Race) so every plot has at least one game (592 of 790 plots covered before, 790 of 790 now); coverage table in the game's CLAUDE.md.
 - [x] GP-8: Slower / Normal / Faster on all nine minigames, remembered per game; only the game's own score scales (80, 100, 125 percent).
 - [x] GP-9: Progressive question format: a never-watered plot is always multiple choice; the typed share rises with growth stage (Sprout 20%, Budding 45%, Blooming 70%, Automated 90%, capped at 95%), deterministic, with an "Always multiple choice" setting.
-- [ ] GP-10: Grading rules found by the answer-report review (needs game.py changes): STRICT consults each item's curated accepted_en/accepted_fr, slashed answers grade LENIENT, internal punctuation and hyphens ignored, the English side ignores the accent toggle, bonus tiles and sentences honour curated answers (48 xfail tests wait on this).
+- [x] GP-10: Grading rules found by the answer-report review (needs game.py changes): STRICT consults each item's curated accepted_en/accepted_fr, slashed answers grade LENIENT, internal punctuation and hyphens ignored, the English side ignores the accent toggle, bonus tiles and sentences honour curated answers (48 xfail tests wait on this).
 - [ ] LC-1: Fix the unreadable text in Le Champ de Mots: your report (2026-10-07) is "a lot of white on white text and dark on dark". Run a computed-style contrast scan (same method as the earlier light-theme passes) on both the Classic page and the Desktop page, in light and dark themes and in all four visual styles (High-def, Low-poly, Text-based, Cartoon), across the farm, every panel and window, the question flow, the five minigames, the dashboard, Settings and the opening screen; fix every text/background pair under WCAG AA 4.5:1 (3:1 for large text), then add a test that fails on a new pair. Start with the Desktop page's `pc.css` panel backgrounds and the dark-glass top bar and side column, which were written recently and have not been scanned. Known spots you reported (2026-10-07): **the title is white on white**, and **Café Rush's secondary questions show dark text on a dark background in the 'fill in the blank' example**; you said there are many more. (No screenshots yet, so the scan finds the rest.) (Partly done 2026-10-08: root cause was the pale dawn sky behind pale title and stat text; fixed with a dusk-sky override plus arcade, alternate-style and cream-card ink fixes, a regression test and a scan tool in tests/tools. Still open: scan all 16 combinations of style, theme and page, including the Desktop page, and look at the farm selects and narrow row buttons.)
 
 ## Z. Cross-game patterns (Round 3 answers, 2026-10-07)
@@ -841,7 +841,7 @@ Your remaining Round 3 answers (Grid to Drift gamified, SOL to Le Champ de Mots,
   - [x] Z-19 Le Champ de Mots
   - [x] Z-19 Signal
   - [x] Z-19 Lexis
-- [ ] Z-20: Add one shared copy-result-as-text helper (Wordle-style line, e.g. 'Tide, 4,210 pts, 3 storms survived', seed only if the game has one) and call it from the end/summary screen of every game except Signal, which keeps its own. (partly built: Signal has a result-share copy (games/signal/app.js lastShareText); no shared helper, no other game) (Shared helper built 2026-10-08 (shared/copy-result.js); calling it from each game's end screen is still to wire (per-game boxes below).)
+- [x] Z-20: Add one shared copy-result-as-text helper (Wordle-style line, e.g. 'Tide, 4,210 pts, 3 storms survived', seed only if the game has one) and call it from the end/summary screen of every game except Signal, which keeps its own. (partly built: Signal has a result-share copy (games/signal/app.js lastShareText); no shared helper, no other game) (Shared helper built 2026-10-08 (shared/copy-result.js); calling it from each game's end screen is still to wire (per-game boxes below).)
   Per game (Classic and Desktop pages both; tick each once wired and tested):
   - [x] Z-20 SOL
   - [x] Z-20 Canopy
@@ -854,7 +854,7 @@ Your remaining Round 3 answers (Grid to Drift gamified, SOL to Le Champ de Mots,
   - [x] Z-20 Drift
   - [x] Z-20 Trade Empire
   - [x] Z-20 Continuum
-  - [ ] Z-20 Le Champ de Mots
+  - [x] Z-20 Le Champ de Mots
   - [x] Z-20 Lexis
 - [x] Z-21: Add shared/perf-mark.js that logs Pyodide boot milestones (script start, pyodide loaded, game setup done, first interactive) via performance.mark and one consistent console format, included by every game. (Built 2026-10-08: shared/perf-mark.js (marks script-start, dom-ready, pyodide-loaded, game-setup-done, first-interactive; one `[noyvj-perf] <game> <mark> <ms>ms` format), wired into every page. Only Le Champ de Mots is still to wire.)
   Per game (Classic and Desktop pages both; tick each once wired and tested):
@@ -994,7 +994,7 @@ Your remaining Round 3 answers (Grid to Drift gamified, SOL to Le Champ de Mots,
 - [x] Y-26: Skip the hub's stats/community endpoint fetches when navigator.connection.saveData is on, quietly by default, with a 'reduce data' note in settings (Y-10). (needs Y-10 settings page)
 - [x] Y-27: Add a lightweight /health endpoint and a footer site-status dot (green/amber) with a one-line explanation of why ratings/saves may be unavailable. (needs backend /health endpoint)
 - [ ] Y-28: Add a print stylesheet for the achievements dashboard and profile pages (clean black-on-white list with progress bars) reusing shared/print-summary.css. (needs Y-1 profile (for the profile half)) (Partly done 2026-10-08: the achievements dashboard prints cleanly with a Print button; the profile half waits for Y-1.)
-- [ ] Y-29: Add a credits & thanks section (tools, fonts, Pyodide, consenting named playtesters) separate from sources.html, linked from the hub footer and from every game's home/opening screen. (Partly done 2026-10-08: credits.html listing only what the site really uses, linked from the hub footer; still open: the link from every game's home and opening screen.)
+- [x] Y-29: Add a credits & thanks section (tools, fonts, Pyodide, consenting named playtesters) separate from sources.html, linked from the hub footer and from every game's home/opening screen. (Partly done 2026-10-08: credits.html listing only what the site really uses, linked from the hub footer; still open: the link from every game's home and opening screen.)
 - [x] Y-30: Auto-fill the terms/privacy 'last verified' line from the file's git date via a scripts/ generator and link a short 'what changed' list.
 - [ ] Y-31: Add a rating summary endpoint (average and count per game slug) and make the hub read it instead of downloading every rating row for each game on load (found by the backend QA pass: `GET /ratings/{slug}` returns every row and grows with every rating; the hub fires one per game).
 

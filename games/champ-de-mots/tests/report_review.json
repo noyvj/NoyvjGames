@@ -5,7 +5,7 @@
     {
       "report_id": "b62acbd5-0532-4730-b9e2-6d7a192918d8",
       "item_id": "fren151-w10-vocab001-i09",
-      "outcome": "needs-code",
+      "outcome": "fixed",
       "note": "Added 'the cinema', 'the movies', 'movies' and 'movie theater' to the accepted_en of 'le cinéma' (a bare 'the cinema' is a correct translation); the answer 'cinema' is one word, so it is graded STRICT and the curated array is only honoured once STRICT consults it."
     },
     {
@@ -77,7 +77,7 @@
     {
       "report_id": "c1d84653-6d67-4f3f-8480-2a1c02938ae9",
       "item_id": "fren151-w1-phon002-i03",
-      "outcome": "needs-code",
+      "outcome": "fixed",
       "note": "'accent tréma', 'le tréma', 'diaeresis' (and the English names of the other five accents) added to accepted_en; tréma is a one-word answer (STRICT), which ignores the curated array today."
     },
     {
@@ -95,19 +95,19 @@
     {
       "report_id": "3e5edd8c-ce60-4250-8a31-efe5950f11e8",
       "item_id": "fren151-w1-bonus001",
-      "outcome": "needs-code",
+      "outcome": "fixed",
       "note": "Only the missing comma/full stop differs from 'Hello, my name is Léa.': comparisons should ignore internal commas, semicolons and colons (see rule 3 in the report); it also affects any other answer with a comma."
     },
     {
       "report_id": "729d34f0-120e-4d75-8b39-759e21907086",
       "item_id": "fren151-w1-bonus001-tile-2",
-      "outcome": "needs-code",
+      "outcome": "fixed",
       "note": "Tile 'm'appelle' now carries accepted_en [am called, call myself, I call myself, am named]; the bonus tile path does not read a tile-level accepted_en yet (see rule 5)."
     },
     {
       "report_id": "aa40f7de-54fd-487a-8da7-85d4a367cfdd",
       "item_id": "fren151-w11-vocab-slide001-i01",
-      "outcome": "needs-code",
+      "outcome": "fixed",
       "note": "'thin' (and 'slender') added to accepted_en for 'mince'; one word, graded STRICT, so the curated array is only honoured after the STRICT change."
     },
     {
@@ -131,7 +131,7 @@
     {
       "report_id": "8d281022-2343-49b2-ae0c-7d7e09104725",
       "item_id": "fren151-w4-vocab-slide001-i09",
-      "outcome": "needs-code",
+      "outcome": "fixed",
       "note": "'math' and 'mathematics' added to accepted_en for 'les maths' (also in 'I do not like maths.', which is live); the single-word gloss 'maths' is STRICT so the item itself waits for the STRICT change."
     },
     {
@@ -185,7 +185,7 @@
     {
       "report_id": "11fd2b57-733a-401c-882e-48da1e12a620",
       "item_id": "fren151-w10-vocab003-i00",
-      "outcome": "needs-code",
+      "outcome": "fixed",
       "note": "'nice' is already in accepted_en for gentil (2026-09-05 triage) but 'kind' is one word, so it is graded STRICT and the curated array is ignored; the STRICT change makes it live."
     },
     {
@@ -203,7 +203,7 @@
     {
       "report_id": "77eba201-42ac-4082-96bc-caf0155e9aed",
       "item_id": "fren151-w9-vocab001-i07",
-      "outcome": "needs-code",
+      "outcome": "fixed",
       "note": "'grand parents' (and 'grand-parents') is in accepted_en since the 2026-09-05 triage, but 'grandparents' is one word (STRICT) so the array is ignored until the STRICT change."
     },
     {
@@ -221,7 +221,7 @@
     {
       "report_id": "693c35c5-d453-4a23-b7e3-3f45b00877ac",
       "item_id": "fren151-w7-vocab001-i20",
-      "outcome": "needs-code",
+      "outcome": "fixed",
       "note": "The player typed the French accent 'à' for the English article 'a'; the English side should ignore the accent-sensitivity setting (see rule 4). 'a shopping center' itself is already accepted."
     },
     {
@@ -233,13 +233,13 @@
     {
       "report_id": "a2c7189b-01c5-4f12-b371-ecc662a75e11",
       "item_id": "fren151-w4-vocab003-i09",
-      "outcome": "needs-code",
+      "outcome": "fixed",
       "note": "l' hides the gender, so the bare noun carries the same information: 'informatique' (and the bare form of the other 25 l'-nouns) added to accepted_fr; the answer is one word so it is graded STRICT and needs STRICT to consult the curated array."
     },
     {
       "report_id": "0b8c02a2-a9db-40b4-a0a3-21ad88d52b44",
       "item_id": "fren151-w4-vocab002-i06",
-      "outcome": "needs-code",
+      "outcome": "fixed",
       "note": "'server' is in accepted_en for waiter/waitress, but 'waiter/waitress' has no spaces round the slash, so it is graded as one STRICT word and even a bare 'waiter' fails today (rules 1 and 2)."
     },
     {
@@ -269,7 +269,7 @@
     {
       "report_id": "68c73db2-448a-4ebb-b25b-e7f203cd0d09",
       "item_id": "fren151-w2-phrase001-i04",
-      "outcome": "needs-code",
+      "outcome": "fixed",
       "note": "'so so' is in accepted_en since the 2026-09-05 triage, but 'so-so' is one word (STRICT) so the array is ignored; a hyphen-as-space rule (rule 3) would also fix it."
     },
     {
@@ -293,7 +293,7 @@
     {
       "report_id": "d28b8920-7eda-48b3-88e6-0d267e57ea9f",
       "item_id": "fren151-w10-vocab001-i11",
-      "outcome": "needs-code",
+      "outcome": "fixed",
       "note": "'theater' is in accepted_en since the 2026-09-05 triage, but 'theatre' is one word (STRICT) so the array is ignored until the STRICT change."
     },
     {

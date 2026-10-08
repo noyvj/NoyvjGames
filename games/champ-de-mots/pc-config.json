@@ -170,7 +170,8 @@
         "heading": "Help",
         "ids": [
           "tutorial-restart-button",
-          "howto-toggle-button"
+          "howto-toggle-button",
+          "credits-link"
         ]
       },
       {

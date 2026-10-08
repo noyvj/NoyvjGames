@@ -1,6 +1,10 @@
 [
   {
     "date": "2026-10-08",
+    "entry": "Share and tidy-ups: a Copy result button under every finished Review session (your score, plots automated and practice points) and a Share button on each earned achievement. The arcade games now hold their countdowns while this tab is hidden and tell you when you come back (a Settings checkbox turns that off). Answer checking is friendlier to English: commas and hyphens no longer matter, a French accent slipped onto an English word is forgiven, and one-word answers like 'theater' or 'nice' now count when the course glossary allows them. A Credits link sits at the foot of the page and in the Desktop Help menu."
+  },
+  {
+    "date": "2026-10-08",
     "entry": "One watering rule everywhere, and more ways to water: the first correct answer for a plot each day, from anything that asks about a real plot (the farm, Review, Quick water, the proficiency tests and every arcade game), waters it fully, and later correct answers for the same plot that day only nudge its next review a day later. A plot you have never watered can now be watered by a game too. A wrong answer in those places changes nothing and a plant never loses a stage. New Water options panel next to Water the next plot, each choice with how many plots it can water right now: a chosen week, a topic (vocabulary, phrases, grammar, pronunciation), the plots wilting most first, 5 quick multiple-choice plots, 5 typed plots, 5 listening plots, or any minigame. Summaries now read 'Plot growth credited: watered 3 plots, nudged 1'."
   },
   {

@@ -1156,3 +1156,23 @@ Plus 2 points per correct answer in a row (at most 10), plus 20 points per ease 
 ## Not verified / open (2026-10-08 pass)
 
 Scripted play and screenshots in the Classic page (1440x900 and 360x740) and the Desktop page (1440x900) only; no full human playthrough, no real browser voice test of Listening Pick (a voice existed in the test browser, the audio itself was not heard), no contrast scan (`tests/tools/contrast_scan.py`) of the new panels in the alternate visual styles (the new classes reuse the existing ink classes and the light theme was checked by eye), and the achievements for the new games are not built.
+
+## GP-10: the five grading rules from the answer-report review (2026-10-08)
+
+The 2026-10-08 review of 50 live answer reports (`tests/report_review.json`, data fixes pinned by `tests/test_report_fixes.py`) found five grading gaps that data alone could not close. All five are in `game.py` now and the 13 `needs-code` outcomes are `fixed`:
+
+1. **STRICT honours the curated array.** `check_answer()`'s STRICT branch also accepts the item's literal `accepted_en`/`accepted_fr` (`_manual_accepted()`; generated variants are still LENIENT-only), so one-word answers like `theater`, `nice`, `server`, `thin` and the spelled-out numbers count when the catalog lists them.
+2. **A `/` makes an answer LENIENT.** `grading_tier()` returns LENIENT whenever the (parenthetical-stripped) answer contains `/`, so `waiter/waitress` accepts `waiter` and `waitress` separately.
+3. **Internal punctuation and hyphens are word breaks.** `normalize_answer()` turns `, ; : -` (and dashes) into spaces on both sides, so `Hello my name is Léa`, `so so` and `quatre vingt dix` all match; apostrophes stay. `NUMBER_REGIONALISMS` keys are in that normalized form (`quatre vingt dix`).
+4. **The English side ignores the accent toggle.** `_answer_is_english()` (question `lang`, else variant `V_FR_EN_TYPED`/`V_EXAMPLE_FR_EN`, else the matched catalog field) folds accents for English answers; French answers and the phonetic accent names stay exact.
+5. **Bonus tiles and sentences honour curated glosses.** Their question dicts carry `lang: "en"` and `accepted` from the tile's or sentence's `accepted_en`, which STRICT and LENIENT both read; the tile `m'appelle` has `[am called, call myself, I call myself, am named]`.
+
+Tests: `tests/test_report_fixes.py` (the 48 STRICT live checks are plain passes now, plus one test per rule).
+
+## Oct 8 wiring (Z-20, Z-27, Y-7, Y-8, Y-29, Z-28)
+
+- **Copy result:** `share_result()` in `game.py` returns JSON (`game`, `score` = "day N", stats: the finished Review session's "N/M right", plots automated, practice points). `#result-copy` (inside `#result-copy-review`, under `#review-summary`) is mounted with `NoyvjCopyResult.mountButton`; `render_review()` shows the wrapper only for a finished session. No seed text.
+- **Achievement share:** `shared/achievement-share.js` with `data-game-id`/`data-game-name`; earned rows (`achievement-earned`, `data-achievement-id`) carry a `.achievement-card-label` span so the shared text uses the label, not the id.
+- **Meta, JSON-LD, Credits:** the exact `share/meta` block and `share/jsonld` script in `<head>` of `index.html` (and the generated `pc.html`); `#credits-link` above the ad bar and in the Desktop Help menu (`pc-config.json`).
+- **Pause when hidden (the timed minigames):** `shared/pause-hidden.js` in manual mode. The one-second JS interval in `index.html` returns early while `window.CHAMP_MINIGAMES_HELD` is true (the tick functions and their maths are untouched, nothing is caught up); the hook's `pause()` asks `minigame_run_active()` (new, `minigames.any_timed_run_active()`) so the "Paused while the tab was hidden" note only shows if a run really was held. Settings has a "Pause the timed games while this tab is hidden" checkbox (`#pause-hidden-checkbox`, default on, per browser).
+- Shared files the pages now load (for the `sw.js` precache): `shared/copy-result.js`, `shared/achievement-share.js`, `shared/pause-hidden.js`; also `credits.html` and `share/champ-de-mots.png`. Tests: `tests/test_wiring_oct8.py`.

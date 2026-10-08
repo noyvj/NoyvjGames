@@ -9,11 +9,9 @@ data fixes made in fren_combined_catalog.json:
 * LIVE tests run the exact path a typed answer takes in play
   (grading_tier() -> check_answer(..., tier=...)) against the real catalog
   item, so they fail if the data regresses.
-* STRICT-tier tests: a one-word answer is graded STRICT, and STRICT today
-  ignores a curated accepted_en/accepted_fr array (see report_review.json,
-  outcome "needs-code"). For those the data assertion always runs and the
-  live assertion is an xfail (non-strict) that flips to a pass as soon as
-  check_answer() lets the STRICT tier consult the curated array.
+* STRICT-tier tests: a one-word answer is graded STRICT; since GP-10 the
+  STRICT tier also honours the item's curated accepted_en/accepted_fr array,
+  so both the data and the live assertion run.
 * Hygiene tests keep the whole catalog free of the classes of oddity that
   were swept (revision notes in an answer, duplicate or blank accepted
   entries, digit glosses without their spelled-out forms, ...).
@@ -195,8 +193,7 @@ def test_live_typed_answer_is_accepted(game_env, topic_id, idx, field, typed):
 
 
 # --------------------------------------------------------------------------
-# STRICT-tier fixes: data always present, live acceptance needs the game.py
-# rule "STRICT consults the item's curated accepted_* array"
+# STRICT-tier fixes: the curated array is present AND the STRICT tier uses it
 # --------------------------------------------------------------------------
 STRICT_CASES = [
     ("fren151-w10-vocab001", 9, "en", "The cinema"),
@@ -258,11 +255,6 @@ def test_strict_item_curated_array_has_the_variant(game_env, topic_id, idx, fiel
     )
 
 
-@pytest.mark.xfail(
-    reason="needs game.py: the STRICT tier in check_answer() must consult the item's curated "
-    "accepted_en/accepted_fr (see tests/report_review.json, outcome needs-code)",
-    strict=False,
-)
 @pytest.mark.parametrize("topic_id,idx,field,typed", STRICT_CASES)
 def test_strict_item_variant_is_accepted_live(game_env, topic_id, idx, field, typed):
     module = game_env.module
@@ -588,3 +580,87 @@ def test_report_review_file_covers_all_50_reports():
         assert entry["note"].strip() and entry["item_id"]
         if outcome.startswith("duplicate-of:"):
             assert outcome.split(":", 1)[1] in ids
+
+
+# --------------------------------------------------------------------------
+# GP-10: the five grading rules that went into game.py
+# --------------------------------------------------------------------------
+def test_strict_tier_honours_the_curated_array_but_not_generated_ones(game_env):
+    module = game_env.module
+    q = {"mode": "typed", "answer": "kind", "choices": []}
+    assert not module.check_answer(q, "nice", tier=module.TIER_STRICT)
+    q["accepted"] = ["nice"]
+    assert module.check_answer(q, "nice", tier=module.TIER_STRICT)
+    assert not module.check_answer(q, "friendly", tier=module.TIER_STRICT)
+
+
+def test_slashed_answers_grade_lenient_and_accept_each_side(game_env):
+    module = game_env.module
+    assert module.grading_tier("waiter/waitress") == module.TIER_LENIENT
+    assert module.grading_tier("teacher/lecturer") == module.TIER_LENIENT
+    assert module.grading_tier("cousin (m/f)") == module.TIER_STRICT
+    assert module.grading_tier("hello") == module.TIER_STRICT
+    assert _live(module, "fren151-w4-vocab002", 6, "en", "waiter")
+    assert _live(module, "fren151-w4-vocab002", 6, "en", "waitress")
+    assert _live(module, "fren151-w4-vocab002", 9, "en", "teacher")
+    assert not _live(module, "fren151-w4-vocab002", 6, "en", "chef")
+
+
+def test_internal_punctuation_and_hyphens_are_word_breaks(game_env):
+    module = game_env.module
+    n = module.normalize_answer
+    assert n("Hello, my name is Léa.") == n("hello my name is léa")
+    assert n("so-so") == n("so so")
+    assert n("Je suis, euh: là; voilà") == n("je suis euh là voilà")
+    assert n("l'été") == "l'ete"            # apostrophes stay
+    q = {"mode": "typed", "answer": "Hello, my name is Léa.", "choices": []}
+    assert module.check_answer(q, "Hello my name is Léa", tier=module.TIER_LENIENT, accent_sensitive=True)
+    assert module.check_answer(q, "hello; my name is lea", tier=module.TIER_LENIENT, accent_sensitive=False)
+
+
+def test_number_regionalisms_still_work_with_hyphens_read_as_spaces(game_env):
+    module = game_env.module
+    assert "septante" in module.answer_alternatives("soixante-dix")
+    assert "nonante" in module.strict_alternatives("quatre-vingt-dix")
+    assert "huitante" in module.strict_alternatives("quatre-vingts")
+    assert module.normalize_answer("quatre vingt dix") in module.strict_alternatives("quatre-vingt-dix")
+    for alt in module.NUMBER_REGIONALISMS:
+        assert alt == module.normalize_answer(alt)
+
+
+def test_english_side_ignores_the_accent_toggle_french_does_not(game_env):
+    module = game_env.module
+    assert _live(module, "fren151-w7-vocab001", 20, "en", "à shopping center")
+    # a French answer keeps its accents when the toggle is on
+    assert not _live(module, "fren151-w3-phrase001", 1, "fr", "quel age avez-vous", accent_sensitive=True)
+    assert _live(module, "fren151-w3-phrase001", 1, "fr", "quel age avez-vous", accent_sensitive=False)
+    # the accent names themselves are French words and stay exact
+    q = {"mode": "typed", "answer": "tréma", "choices": [], "topic_type": "phonetic"}
+    assert not module.check_answer(q, "trema", tier=module.TIER_STRICT, accent_sensitive=True)
+
+
+def test_bonus_tile_and_sentence_honour_curated_glosses(game_env):
+    module = game_env.module
+    sentence = next(
+        b for w in module.CATALOG["weeks"] for b in w.get("bonus_sentences", [])
+        if b["id"] == "fren151-w1-bonus001"
+    )
+    tile = sentence["tiles"][2]
+    q = {"mode": "typed", "answer": tile["en"], "choices": [], "lang": "en",
+         "accepted": tile.get("accepted_en") or []}
+    assert module.check_answer(q, "I call myself", tier=module.TIER_STRICT, accent_sensitive=True)
+    assert module.check_answer(q, "call myself", tier=module.TIER_STRICT, accent_sensitive=True)
+    assert not module.check_answer(q, "am named Bob", tier=module.TIER_STRICT, accent_sensitive=True)
+
+
+def test_bonus_sentence_submit_path_ignores_commas(game_env):
+    module = game_env.module
+    sentence = next(
+        b for w in module.CATALOG["weeks"] for b in w.get("bonus_sentences", [])
+        if b["id"] == "fren151-w1-bonus001"
+    )
+    module.bonus_queue = [sentence]
+    module.bonus_index = 0
+    module.bonus_task = "translate_sentence"
+    module.bonus_sentence_result = None
+    assert module.submit_bonus_sentence_translation("Hello my name is Léa") is True
