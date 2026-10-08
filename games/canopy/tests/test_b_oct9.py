@@ -1539,3 +1539,47 @@ def test_faces_save_load_validate_and_reset(game_env):
     assert m.stakeholder_faces == {"ranger": {"trust": 10, "last": "", "met": 0}}
     m.reset_session()
     assert m.stakeholder_faces == {}
+
+
+# ---- B-17 tile sprites ----
+
+def test_sprite_kind_follows_the_growth_stage(game_env):
+    m = game_env.module
+    plot = m.plots[0]
+    plot.state, plot.ticks_intact = m.PRESERVED, 3
+    assert m.sprite_kind(plot) == "tree"
+    plot.ticks_intact = m.MATURITY_TICKS
+    assert m.sprite_kind(plot) == "mature"
+    plot.state = m.REPLANTING
+    assert m.sprite_kind(plot) == "sapling"
+    plot.state = m.BARE
+    assert m.sprite_kind(plot) == "stump"
+
+
+def test_every_tile_gets_a_sprite_unless_switched_off(game_env):
+    m = game_env.module
+    m.plots[1].state = m.BARE
+    m.render_grid()
+    grid = game_env.elements["plot-grid"]
+    sprites = [[c.className for c in t.children if c.className.startswith("tile-sprite")] for t in grid.children]
+    assert all(len(s) == 1 for s in sprites)
+    assert sprites[1] == ["tile-sprite tile-sprite--stump"]
+    m.ui_pref = lambda key, default="": "true" if key == m.UI_PREF_SPRITES_OFF else default
+    m.render_grid()
+    assert all(not c.className.startswith("tile-sprite") for t in game_env.elements["plot-grid"].children for c in t.children)
+
+
+def test_the_season_is_published_for_the_foliage_colours(game_env):
+    m = game_env.module
+    m.forest_tick = 0
+    m.render_season_indicator()
+    assert game_env.module.document.documentElement.getAttribute("data-season") == "spring"
+    m.forest_tick = m.SEASON_CYCLE_TICKS * 2
+    m.render_season_indicator()
+    assert game_env.module.document.documentElement.getAttribute("data-season") == "autumn"
+
+
+def test_sprite_css_respects_reduced_motion_and_perf_mode(game_env):
+    css = open(__import__("os").path.join(__import__("os").path.dirname(__file__), "..", "style.css"), encoding="utf-8").read()
+    assert 'html[data-reduced-motion="true"] .tile-sprite' in css and 'data-perf-mode="on"] .tile-sprite' in css
+    assert "@media (prefers-reduced-motion: reduce) { .tile-sprite { animation: none; } }" in css

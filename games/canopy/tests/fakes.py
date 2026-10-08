@@ -111,6 +111,7 @@ class FakeDocument:
     def __init__(self, elements):
         self._elements = elements
         self.listeners = {}
+        self.documentElement = FakeElement(registry=elements)  # the <html> element (attributes only)
 
     def addEventListener(self, event_name, handler):
         self.listeners.setdefault(event_name, []).append(handler)

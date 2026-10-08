@@ -2170,6 +2170,21 @@ def _value_pop_size_class(delta):
 LEAF_BURST_COUNT = 6
 
 
+# B-17 (2026-10-09): visual refresh. Each tile gets a layered CSS sprite (canopy, trunk, ground shadow) that shows the
+# plot's growth stage, tinted by the season, with a slow sway that stops for reduced motion and performance mode. The
+# state icons, hatch patterns and letters stay, so nothing relies on the sprite or on colour.
+UI_PREF_SPRITES_OFF = "canopy-sprites-off"
+
+
+def sprite_kind(plot):
+    """tree (standing), mature (fully grown), sapling (replanting) or stump (bare)."""
+    if plot.state == BARE:
+        return "stump"
+    if plot.state == REPLANTING:
+        return "sapling"
+    return "mature" if plot.maturity_fraction() >= 1.0 else "tree"
+
+
 def _make_tile_mark(class_name, text):
     mark = document.createElement("span")
     mark.className = class_name
@@ -2262,6 +2277,8 @@ def render_grid():
             tile.className += " plot-ghost-stag"
             tile.appendChild(_make_tile_mark("ghost-stag-mark", "\U0001F98C"))
         tile.style.backgroundColor = plot_display_color(plot)
+        if ui_pref(UI_PREF_SPRITES_OFF) != "true":  # B-17: a small tree drawn in CSS behind the icon
+            tile.appendChild(_make_tile_mark(f"tile-sprite tile-sprite--{sprite_kind(plot)}", ""))
         if contrast_on:  # B-8: a letter on every tile so state reads without the green gradient
             tile.className += " plot-contrast"
             letter = MATURE_LETTER if mature_standing else STATE_LETTER[plot.state]
@@ -5056,6 +5073,9 @@ def _flash_element(element_id):
 
 def render_season_indicator():
     season = current_season()
+    root = getattr(document, "documentElement", None)  # B-17: seasonal foliage colours come from this attribute
+    if root is not None and hasattr(root, "setAttribute"):
+        root.setAttribute("data-season", season)
     next_season = SEASONS[(SEASONS.index(season) + 1) % len(SEASONS)]
     season_el = _el("season-text")
     if season_el is not None:

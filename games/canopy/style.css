@@ -2238,7 +2238,7 @@ html[data-forest-palette="meadow"] { --forest-accent: #a7d98a; }
 .plot-blight { outline: 3px dashed currentColor; outline-offset: -3px; }
 
 /* GB-5: canopy link marks. */
-.link-mark { position: absolute; right: 2px; top: 1px; font-size: 0.6em; line-height: 1; font-weight: 700; pointer-events: none; opacity: 0.9; }
+.link-mark { position: absolute; right: 2px; top: 1px; font-size: 0.55em; line-height: 1; font-weight: 700; pointer-events: none; opacity: 0.6; }
 
 /* GB-25: stakeholder faces. */
 .stakeholder-speaker-row { display: flex; align-items: center; gap: 0.6rem; margin-bottom: 0.4rem; }
@@ -2246,6 +2246,48 @@ html[data-forest-palette="meadow"] { --forest-accent: #a7d98a; }
 .stakeholder-speaker { margin: 0; font-weight: 600; }
 .stakeholder-tone { margin: 0; font-size: 0.85em; opacity: 0.85; }
 .faces-list { white-space: pre-line; margin: 0; }
+
+/* B-17: tile sprites. Drawn only with CSS gradients (no images); behind the state icon and the hatch pattern. */
+html { --leaf: #2e7d32; --leaf-light: #66bb6a; }
+html[data-season="spring"] { --leaf: #5ea63a; --leaf-light: #a5d66a; }
+html[data-season="summer"] { --leaf: #2e7d32; --leaf-light: #66bb6a; }
+html[data-season="autumn"] { --leaf: #c4691f; --leaf-light: #e8a33d; }
+html[data-season="winter"] { --leaf: #5f7f8c; --leaf-light: #a9c3cf; }
+.plot-tile { isolation: isolate; }
+.tile-sprite {
+  position: absolute; inset: 6% 10% 4%; z-index: -1; pointer-events: none;
+  background-repeat: no-repeat; transform-origin: 50% 92%;
+}
+.tile-sprite--tree, .tile-sprite--mature {
+  background-image:
+    radial-gradient(ellipse 36% 9% at 50% 96%, rgba(0, 0, 0, 0.38), transparent 100%),
+    linear-gradient(#5b3d22, #5b3d22),
+    radial-gradient(circle at 50% 40%, var(--leaf-light), var(--leaf) 72%);
+  background-position: 50% 100%, 50% 94%, 50% 4%;
+  background-size: 100% 100%, 11% 34%, 66% 66%;
+  animation: tile-sway 6s ease-in-out infinite;
+}
+.tile-sprite--mature { background-size: 100% 100%, 13% 38%, 84% 78%; filter: saturate(1.15); }
+.tile-sprite--sapling {
+  background-image:
+    radial-gradient(ellipse 22% 7% at 50% 96%, rgba(0, 0, 0, 0.3), transparent 100%),
+    linear-gradient(#6b8a3a, #6b8a3a),
+    radial-gradient(circle at 50% 50%, var(--leaf-light), var(--leaf) 75%);
+  background-position: 50% 100%, 50% 94%, 50% 44%;
+  background-size: 100% 100%, 5% 26%, 30% 30%;
+}
+.tile-sprite--stump {
+  background-image:
+    radial-gradient(ellipse 34% 9% at 50% 96%, rgba(0, 0, 0, 0.35), transparent 100%),
+    radial-gradient(ellipse 22% 16% at 50% 82%, #8a6a3f, #5b3d22 80%);
+  background-position: 50% 100%, 50% 100%;
+  background-size: 100% 100%, 100% 100%;
+}
+.plot-grid .plot-tile:nth-child(3n) .tile-sprite--tree, .plot-grid .plot-tile:nth-child(3n) .tile-sprite--mature { animation-delay: -1.7s; }
+.plot-grid .plot-tile:nth-child(3n + 1) .tile-sprite--tree, .plot-grid .plot-tile:nth-child(3n + 1) .tile-sprite--mature { animation-delay: -3.4s; }
+@keyframes tile-sway { 0%, 100% { transform: rotate(-1.6deg); } 50% { transform: rotate(1.6deg); } }
+@media (prefers-reduced-motion: reduce) { .tile-sprite { animation: none; } }
+html[data-reduced-motion="true"] .tile-sprite, html[data-perf-mode="on"] .tile-sprite { animation: none; }
 
 /* ============================================================
    Light theme (Y11b, 2026-09-27). shared/theme-light-games.css already

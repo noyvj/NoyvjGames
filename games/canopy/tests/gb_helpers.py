@@ -23,7 +23,8 @@ def tile(env, index):
 
 
 def tile_marks(env, index):
-    return [child.className for child in tile(env, index).children]
+    # B-17: the decorative tree sprite is not a mark (it carries no information of its own).
+    return [child.className for child in tile(env, index).children if not child.className.startswith("tile-sprite")]
 
 
 def toast_text(env):
