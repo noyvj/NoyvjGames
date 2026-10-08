@@ -25,6 +25,8 @@ effect, and never stacked: a new settlement carries exactly the legacy of
 the settlement just before it.
 """
 
+import copy
+
 import consulting
 import save
 import sim
@@ -32,6 +34,10 @@ import sim
 LEGACY_KEY = "legacy"
 EARNED_KEY = "earned_before"
 EARNED_MAX = 200
+# K-2/K-17/K-20: player-level records that follow the player into the next settlement
+# (the Dynasty, the rewind tokens already used, the chosen banner, the notable-citizens
+# switch). Everything else in `ui` belongs to the settlement being left behind.
+CARRY_KEYS = ("dynasty", "rewind", "banner", "citizens")
 
 # Ordered by the era the previous settlement reached. `eras` are the
 # `sim.ERA_ORDER` ids that map to this legacy. Every entry grants exactly
@@ -208,7 +214,7 @@ def is_pristine(campaign):
     )
 
 
-def found_new(campaign, chronicle, legacy_entry=None, earned_ids=()):
+def found_new(campaign, chronicle, legacy_entry=None, earned_ids=(), carry=None):
     """Resets `campaign` in place to a brand-new Tribal-era settlement.
 
     Never archives; the caller must already have filed the departing
@@ -235,6 +241,10 @@ def found_new(campaign, chronicle, legacy_entry=None, earned_ids=()):
     clean = clean_legacy(legacy_entry)
     if clean is not None:
         ui[LEGACY_KEY] = clean
+    if isinstance(carry, dict):
+        for key in CARRY_KEYS:
+            if key in carry:
+                ui[key] = copy.deepcopy(carry[key])
     campaign.ui = ui
     if chronicle is not None:
         chronicle.bootstrap(campaign.state, campaign.tree, campaign.tree.effects())

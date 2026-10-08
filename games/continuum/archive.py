@@ -19,6 +19,8 @@ import json
 import math
 import re
 
+import banners
+import dynasty
 import naming
 import sim
 import summary
@@ -49,12 +51,15 @@ def _int(value, low=0, high=10**7):
     return min(max(int(value), low), high)
 
 
-def make_record(campaign, achievements, saved_on, thumbnail="", name="", researched=None, minutes=None):
+def make_record(campaign, achievements, saved_on, thumbnail="", name="", researched=None, minutes=None,
+                cosmetics=None, dynasty_info=None):
     """Builds one archive record from a live campaign.
 
     `name` (K-24), `researched` (discoveries made) and `minutes` (time played)
     are optional extras, stored only when given, so older records and callers
-    stay valid.
+    stay valid. `cosmetics` (K-20: {"banner", "flourish"}) and `dynasty_info`
+    (K-2: {"rank": index, "perks": [perk ids active in this settlement]}) are
+    extras of the same kind.
     """
     data = summary.summary(campaign)
     peak = data["peak_score"]
@@ -73,6 +78,9 @@ def make_record(campaign, achievements, saved_on, thumbnail="", name="", researc
             "hard_mode": bool(campaign.state.hard_mode),
             "achievements": achievements,
             "thumb": thumbnail,
+            "banner": (cosmetics or {}).get("banner"),
+            "flourish": (cosmetics or {}).get("flourish"),
+            "dynasty": dynasty_info,
         }
     )
 
@@ -119,6 +127,23 @@ def clean_record(raw):
     minutes = _int(raw.get("minutes"), 0, 10**6)
     if minutes is not None:
         record["minutes"] = minutes
+    # K-20 cosmetics: known catalog ids only; the plain defaults are simply not stored.
+    banner, flourish = raw.get("banner"), raw.get("flourish")
+    if isinstance(banner, str) and banner in banners.BANNER_IDS and banner != "plain":
+        record["banner"] = banner
+    if isinstance(flourish, str) and flourish in banners.FLOURISH_IDS and flourish != "none":
+        record["flourish"] = flourish
+    # K-2: the Dynasty rank and the perks that applied to this settlement.
+    info = raw.get("dynasty")
+    if isinstance(info, dict):
+        rank = _int(info.get("rank"), 0, len(dynasty.RANKS) - 1)
+        perk_ids = {n["id"] for n in dynasty.DYNASTY_TREE["nodes"]}
+        perks = []
+        for perk in info.get("perks") if isinstance(info.get("perks"), list) else []:
+            if isinstance(perk, str) and perk in perk_ids and perk not in perks:
+                perks.append(perk)
+        if rank or perks:
+            record["dynasty"] = {"rank": rank or 0, "perks": perks}
     return record
 
 
@@ -187,6 +212,12 @@ def card_lines(record):
         lines.append(f"{record['researched']} discoveries")
     if "minutes" in record:
         lines.append(f"{record['minutes']} minutes played")
+    info = record.get("dynasty")
+    if info:
+        count = len(info["perks"])
+        lines.append(
+            f"Dynasty {dynasty.RANKS[info['rank']][1]}" + (f", {count} perk{'s' if count != 1 else ''}" if count else "")
+        )
     return lines
 
 

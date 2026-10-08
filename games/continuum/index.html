@@ -99,6 +99,8 @@
 -->
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
 <script src="../../shared/seed.js"></script>
+<link rel="stylesheet" href="../../shared/skill-tree.css">
+<script src="../../shared/skill-tree.js"></script>
 <script src="../../shared/copy-result.js" data-game-id="continuum"></script>
 <script src="../../shared/achievement-share.js" data-game-id="continuum" data-game-name="Continuum"></script>
 <link rel="stylesheet" href="../../shared/a11y.css">
@@ -131,6 +133,12 @@
       <button id="challenge-toggle-button" class="secondary" type="button" title="The daily challenge, and a scenario editor that makes short share codes other players can try to beat.">🎯 Challenge Runs</button>
       <button id="timelapse-toggle-button" class="secondary" type="button" title="Scrub back through the settlement's recorded history, with the moments that mattered pinned on a timeline.">⏱ Time-lapse</button>
       <button id="advisors-toggle-button" class="secondary" type="button" title="Four invented advisors each recommend one action every season. The game checks what each would really do.">🧭 Advisors</button>
+      <!-- Round 3 batch 3: the Dynasty and its banners (K-2, K-20), era doctrines (K-6), notable citizens
+           (K-15, K-28; hidden by the story toggle) and computer-controlled neighbours (K-7). -->
+      <button id="dynasty-toggle-button" class="secondary" type="button" title="Legacy points banked by your settlements buy permanent starting perks, new starting scenarios and cosmetic banners.">🏰 Dynasty</button>
+      <button id="doctrines-toggle-button" class="secondary" type="button" title="Adopt one doctrine for each era after the first: cheaper research in some branches and a small standing bonus.">⚖️ Doctrines</button>
+      <button id="citizens-toggle-button" class="secondary" type="button" title="Invented citizens who follow the settlement across the ages, and the citizen of the season.">🧑 Citizens</button>
+      <button id="neighbours-toggle-button" class="secondary" type="button" title="Three computer-controlled neighbouring settlements: trade, share discoveries and bid for the Salt Flats.">🗺 Neighbours</button>
       <button id="views-toggle-button" class="secondary" type="button" title="Optional data views of the same city: a numbers dashboard, a top-down map and a resource flow diagram.">📊 City Views</button>
       <!-- Milestone 19 (site-wide settings panel, TODO.md origin A9):
            consolidates what used to be a standalone text-size toolbar
@@ -290,6 +298,54 @@
       <h3 class="summary-eras-heading">How past advice turned out</h3>
       <div id="advisors-history"></div>
     </div>
+    <!-- K-2 / K-20: the Dynasty. The perk tree is drawn by shared/skill-tree.js into #dynasty-tree. -->
+    <div id="dynasty-panel" class="section dynasty-panel" hidden>
+      <h2 class="section-heading">Dynasty</h2>
+      <p class="row-blurb">Every settlement you play can bank Legacy points when it ends (you found a new one, it collapses, or you press the button). Points buy permanent perks below. Perks rest during a challenge run or consulting case so those stay comparable, and you can switch them off.</p>
+      <p id="dynasty-summary" class="status-line" role="status"></p>
+      <div class="dynasty-actions">
+        <button id="dynasty-bank-button" class="secondary" type="button">Bank this settlement's Legacy</button>
+        <button id="dynasty-off-button" class="secondary" type="button" aria-pressed="true">Dynasty perks: ON</button>
+      </div>
+      <p id="dynasty-bank-status" class="row-blurb" role="status" aria-live="polite"></p>
+      <div id="dynasty-tree" class="dynasty-tree"></div>
+      <h3 class="summary-eras-heading">Banners and skyline flourishes</h3>
+      <p class="row-blurb">Cosmetic only. Unlocked by achievements and Dynasty rank, shown in the archive and on the shareable card.</p>
+      <div id="banner-list" class="banner-list"></div>
+    </div>
+    <!-- K-6: era doctrines. -->
+    <div id="doctrines-panel" class="section doctrines-panel" hidden>
+      <h2 class="section-heading">Era doctrines</h2>
+      <p class="row-blurb">When the settlement enters a new era you may adopt one doctrine for it. A doctrine makes some research branches cheaper and adds one small standing bonus. Each kind counts once; adopting the same kind in a second era makes it half again as strong. (The Dynasty perk Schools of Thought deepens the discounts.) Choices are written into the Founder's Log.</p>
+      <p id="doctrines-status" class="status-line" role="status" aria-live="polite"></p>
+      <div id="doctrines-list"></div>
+      <h3 class="summary-eras-heading">Doctrines so far</h3>
+      <div id="doctrines-history"></div>
+    </div>
+    <!-- K-15 / K-28: notable citizens and the citizen of the season (hidden by the story toggle). -->
+    <div id="citizens-panel" class="section citizens-panel" hidden>
+      <h2 class="section-heading">Notable citizens</h2>
+      <p class="row-blurb">Invented people, not real ones. A child appears in every era, is apprenticed in the next and becomes a master of that era's trade in the one after, giving a small standing bonus (shown in City Views). You can switch the whole feature off.</p>
+      <button id="citizens-off-button" class="secondary" type="button" aria-pressed="true">Notable citizens: ON</button>
+      <p id="citizens-bonus" class="status-line" role="status"></p>
+      <div id="citizens-list"></div>
+      <h3 class="summary-eras-heading">Citizens of the season</h3>
+      <div id="citizens-spots"></div>
+    </div>
+    <!-- K-7: computer-controlled neighbouring settlements. -->
+    <div id="neighbours-panel" class="section neighbours-panel" hidden>
+      <h2 class="section-heading">Neighbouring settlements</h2>
+      <p id="neighbours-note" class="row-blurb"></p>
+      <div id="neighbours-map" class="neighbours-map"></div>
+      <p id="neighbours-caption" class="row-blurb"></p>
+      <div id="neighbours-list"></div>
+      <h3 class="summary-eras-heading">The Salt Flats</h3>
+      <p id="neighbours-lease" class="status-line"></p>
+      <div id="neighbours-bids" class="neighbours-bids"></div>
+      <p id="neighbours-status" class="status-line" role="status" aria-live="polite"></p>
+      <h3 class="summary-eras-heading">Recent dealings</h3>
+      <div id="neighbours-events"></div>
+    </div>
     <div id="views-panel" class="section views-panel" hidden>
       <h2 class="section-heading">City Views</h2>
       <div class="views-tabs" role="group" aria-label="City view">
@@ -395,6 +451,10 @@
         <button id="scenario-frontier-button" class="secondary scenario-button" type="button" title="Fewer hands, thinner stores, and land that's already been worked hard. A tougher opening.">Harsh Frontier</button>
         <button id="scenario-fertile-button" class="secondary scenario-button" type="button" title="A generous opening: more people, deeper stores, and land at full health.">Fertile Valley</button>
         <!-- O-8: unlocked once any settlement has reached the Space Age (game.py's refuge_unlocked()). -->
+        <!-- K-2: unlocked by Dynasty perks (game.py's _scenario_available()). -->
+        <button id="scenario-hardy-button" class="secondary scenario-button" type="button" title="Locked: buy the Hardier Tribe perk in the Dynasty.">🔒 Hardier Tribe</button>
+        <button id="scenario-river-button" class="secondary scenario-button" type="button" title="Locked: buy the River-valley Charter perk in the Dynasty.">🔒 River Valley</button>
+        <button id="scenario-heirloom-button" class="secondary scenario-button" type="button" title="Locked: buy the Library Heirloom perk in the Dynasty.">🔒 Library Heirloom</button>
         <button id="scenario-refuge-button" class="secondary scenario-button" type="button" title="Locked: reach the Space Age in any settlement to unlock this opening.">🔒 Refuge Start</button>
       </div>
       <p id="scenario-select-note" class="row-blurb">Loading...</p>
@@ -451,6 +511,8 @@
         <button id="speed-2x-button" class="secondary speed-button" type="button">2x</button>
         <button id="speed-4x-button" class="secondary speed-button" type="button">4x</button>
       </div>
+      <!-- K-17: unwind the last season (earned tokens; costs knowledge). -->
+      <button id="rewind-button" class="secondary rewind-button" type="button">↶ Rewind (0)</button>
       <div class="meter"><div id="season-progress-fill" class="meter-fill meter-fill--season"></div></div>
       <p id="season-clock-display" class="status-line">Paused.</p>
     </div>
@@ -661,6 +723,7 @@
       <h2 class="section-heading">Log</h2>
       <p id="log-status-display" class="status-line">0 entries</p>
       <p class="row-blurb">Notes on the settlement as it goes — a discovery, a milestone, a shift in how things are going. Nothing here needs a response; skip it any time.</p>
+      <p id="citizen-spotlight" class="citizen-spotlight" hidden></p>
       <div id="log-list"></div>
     </div>
 
@@ -800,7 +863,7 @@
     // Each engine module is written into Pyodide's virtual filesystem (the
     // working directory, which is on sys.path) before game.py runs and
     // imports them. Still no build step — just more than one fetch.
-    const ENGINE_MODULES = ["sim.py", "sustainability.py", "research.py", "log.py", "transition.py", "save.py", "info_content.py", "visual.py", "summary.py", "challenges.py", "trajectory.py", "views.py", "archive.py", "consulting.py", "founding.py", "minutes.py", "hamlet.py", "forecast.py", "statlog.py", "explain.py", "postmortem.py", "naming.py", "dataexport.py", "monuments.py", "par.py", "techdebt.py", "challengerun.py", "timelapse.py", "advisors.py", "eastereggs.py"];
+    const ENGINE_MODULES = ["sim.py", "sustainability.py", "research.py", "log.py", "transition.py", "save.py", "info_content.py", "visual.py", "summary.py", "challenges.py", "trajectory.py", "views.py", "archive.py", "consulting.py", "founding.py", "minutes.py", "hamlet.py", "forecast.py", "statlog.py", "explain.py", "postmortem.py", "naming.py", "dataexport.py", "monuments.py", "par.py", "techdebt.py", "challengerun.py", "timelapse.py", "advisors.py", "eastereggs.py", "dynasty.py", "banners.py", "doctrines.py", "rewind.py", "citizens.py", "neighbours.py"];
 
     const CONTINUUM_TUTORIAL_STEPS = [
       {
@@ -904,6 +967,10 @@
       // shared module); Thaw and Le Champ de Mots reuse it too.
       const narrativeLogSource = await (await fetch("../../shared/narrative_log.py")).text();
       pyodide.FS.writeFile("narrative_log.py", narrativeLogSource, { encoding: "utf8" });
+      // Shared skill-tree rules (shared/skill_tree.py): the Dynasty perk tree (dynasty.py) is validated and
+      // bought through them, the same way Canopy's Seed Vault is.
+      const skillTreeSource = await (await fetch("../../shared/skill_tree.py")).text();
+      pyodide.FS.writeFile("skill_tree.py", skillTreeSource, { encoding: "utf8" });
       // Shared seeded-run module (shared/seed.py): challengerun.py derives the daily challenge
       // from the UTC date with it, the same function the JavaScript side (seed.js) uses.
       const seedSource = await (await fetch("../../shared/seed.py")).text();
@@ -1013,7 +1080,7 @@
   <script src="../../shared/hub-auth.js"></script>
   <script src="../../shared/save-widget.js" data-game-id="continuum"></script>
   <script src="../../shared/opening-screen.js" data-game-id="continuum" data-tagline="Grow one settlement from a tribe to a region reaching off-world." data-game-name="Continuum"></script>
-  <script src="../../shared/story-toggle.js" data-game-id="continuum" data-story-selectors="#log, #advisors-panel, #advisors-toggle-button"></script>
+  <script src="../../shared/story-toggle.js" data-game-id="continuum" data-story-selectors="#log, #advisors-panel, #advisors-toggle-button, #citizens-panel, #citizens-toggle-button, #citizen-spotlight"></script>
   <script src="../../shared/last-played.js" data-game-id="continuum"></script>
   <script src="../../shared/whats-new-banner.js" data-game-id="continuum"></script>
   <script src="../../shared/pause-hidden.js" data-game-id="continuum" data-manual></script>

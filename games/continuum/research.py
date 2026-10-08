@@ -115,6 +115,9 @@ class ResearchTree:
         # its order is the order things were discovered, which the Phase 2
         # log system will want.
         self.researched = list(researched or [])
+        # K-6: era doctrines make some branches cheaper. {branch: multiplier}; set by
+        # the game each render from the doctrines it holds (never saved), empty by default.
+        self.cost_mults = {}
 
     # --- queries --------------------------------------------------------
     def is_researched(self, node_id):
@@ -190,8 +193,17 @@ class ResearchTree:
         nodes = [n for n in self.nodes.values() if self.era_reached(n.era)]
         return sorted(nodes, key=lambda n: (n.tier, BRANCHES.index(n.branch), n.name))
 
+    def cost_of(self, node_id):
+        """What a node costs right now: its base cost times its branch's doctrine multiplier
+        (K-6), to one decimal place so the price shown is the price paid."""
+        node = self.nodes[node_id]
+        mult = self.cost_mults.get(node.branch, 1.0)
+        if mult == 1.0:
+            return node.cost
+        return round(node.cost * mult, 1)
+
     def can_afford(self, node_id, resources):
-        return resources.get("knowledge", 0.0) >= self.nodes[node_id].cost
+        return resources.get("knowledge", 0.0) >= self.cost_of(node_id)
 
     # --- mutation -------------------------------------------------------
     def research(self, node_id, resources):
@@ -202,7 +214,7 @@ class ResearchTree:
             return False
         if not self.can_afford(node_id, resources):
             return False
-        resources["knowledge"] -= self.nodes[node_id].cost
+        resources["knowledge"] -= self.cost_of(node_id)
         self.researched.append(node_id)
         return True
 
@@ -1288,12 +1300,12 @@ def unlock_estimate(tree, node_id):
         return None
     short = TIER_UNLOCK_REQUIREMENT - tree.researched_in_tier(node.tier - 1)
     candidates = sorted(
-        n.cost for n in tree.nodes.values()
+        tree.cost_of(n.node_id) for n in tree.nodes.values()
         if n.tier == node.tier - 1 and not tree.is_researched(n.node_id) and tree.is_available(n.node_id)
     )
     if len(candidates) < short:
         return None
-    return sum(candidates[:short]) + node.cost
+    return sum(candidates[:short]) + tree.cost_of(node_id)
 
 
 def build_tree(current_era=sim.FIRST_ERA, researched=None):

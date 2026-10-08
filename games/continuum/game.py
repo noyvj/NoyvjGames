@@ -39,10 +39,14 @@ if _HERE not in sys.path:
 
 import advisors  # noqa: E402
 import archive  # noqa: E402
+import banners  # noqa: E402
+import citizens  # noqa: E402
 import challengerun  # noqa: E402
 import challenges  # noqa: E402
 import consulting  # noqa: E402
 import dataexport  # noqa: E402
+import doctrines  # noqa: E402
+import dynasty  # noqa: E402
 import eastereggs  # noqa: E402
 import explain  # noqa: E402
 import founding  # noqa: E402
@@ -52,10 +56,12 @@ import info_page  # noqa: E402
 import minutes  # noqa: E402
 import monuments  # noqa: E402
 import naming  # noqa: E402
+import neighbours  # noqa: E402
 import par  # noqa: E402
 import postmortem  # noqa: E402
 import narrative_log  # noqa: E402
 import research  # noqa: E402
+import rewind  # noqa: E402
 import save  # noqa: E402
 import sim  # noqa: E402
 import statlog  # noqa: E402
@@ -110,7 +116,16 @@ def current_effects():
     if campaign.revisiting is None:
         effects = techdebt.apply_effects(effects, campaign.ui, state.era)
     # K-10/K-11: a challenge run's modifier (the day's boon with a price) rides the same seam.
-    return challengerun.apply_effects(effects, campaign.ui)
+    effects = challengerun.apply_effects(effects, campaign.ui)
+    _sync_tree_costs()
+    if campaign.revisiting is None:
+        # K-2/K-6/K-15: Dynasty perks, doctrines and notable citizens ride the same seam. The
+        # earned advantages rest while a challenge run or consulting case is the active run.
+        resting = _resting()
+        effects = dynasty.apply_effects(effects, campaign.ui, resting)
+        effects = doctrines.apply_effects(effects, campaign.ui)
+        effects = citizens.apply_effects(effects, campaign.ui, state.era, resting)
+    return effects
 
 
 # --- narration ---------------------------------------------------------
@@ -288,6 +303,12 @@ def render():
     update_views_panel(effects)
     update_consulting_display()
     update_found_display()
+    update_dynasty_panel()
+    update_doctrines_panel()
+    update_citizens_panel()
+    update_spotlight_card()
+    update_neighbours_panel()
+    update_rewind_button()
     render_insights(effects)
     render_hamlet(effects)
     _notify_visual_layer()
@@ -365,6 +386,8 @@ def refuge_unlocked():
 
 
 def _scenario_available(scenario_id):
+    if scenario_id in dynasty.SCENARIO_UNLOCKS:
+        return dynasty.scenario_unlocked(campaign.ui, scenario_id)
     return scenario_id != "refuge" or refuge_unlocked()
 
 
@@ -457,16 +480,18 @@ def update_scenario_display():
         available = _scenario_available(scenario_id)
         button.disabled = locked or not available
         button.classList.toggle("selected", state.scenario == scenario_id)
-        if scenario_id == "refuge":
+        if scenario_id == "refuge" or scenario_id in dynasty.SCENARIO_UNLOCKS:
             label = sim.SCENARIOS[scenario_id]["label"]
             button.innerText = label if available else f"🔒 {label}"
             hint = sim.SCENARIOS[scenario_id]["blurb"]
-            button.title = hint if available else (
-                f"Locked: reach the {sim.ERA_LABEL[sim.REFUGE_UNLOCK_ERA]} in any settlement to unlock this opening."
-            )
+            if scenario_id == "refuge":
+                lock_text = f"reach the {sim.ERA_LABEL[sim.REFUGE_UNLOCK_ERA]} in any settlement"
+            else:
+                lock_text = f"buy the \u201c{dynasty.scenario_unlock_label(scenario_id)}\u201d perk in the Dynasty"
+            button.title = hint if available else f"Locked: {lock_text} to unlock this opening."
             button.setAttribute(
                 "aria-label",
-                f"{label}, available" if available else f"{label}, locked until you reach the {sim.ERA_LABEL[sim.REFUGE_UNLOCK_ERA]}",
+                f"{label}, available" if available else f"{label}, locked until you {lock_text}",
             )
 
 
@@ -1272,7 +1297,22 @@ def current_record(thumbnail=""):
         name=settlement_name(),
         researched=None if campaign.revisiting else len(tree.researched),
         minutes=int(play_seconds() // 60),
+        cosmetics=_cosmetic_choice(),
+        dynasty_info=_dynasty_record_info(),
     )
+
+
+def _cosmetic_choice():
+    """K-20: the banner and flourish to show (anything no longer unlocked falls back to plain)."""
+    return banners.effective(
+        campaign.ui, set(achievement_ids_earned()), dynasty.rank_index(dynasty.get(campaign.ui)["earned"])
+    )
+
+
+def _dynasty_record_info():
+    """K-2: the Dynasty rank and the perks that applied to this settlement, for the archive."""
+    record = dynasty.get(campaign.ui)
+    return {"rank": dynasty.rank_index(record["earned"]), "perks": dynasty.active_perk_ids(campaign.ui, _resting())}
 
 
 def on_archive_current(event=None):
@@ -1453,6 +1493,7 @@ def _download_card(record, thumbnail):
         "thumb": thumbnail,
         "filename": f"continuum-card-{record['era']}-{record['saved_on']}.png",
     }
+    payload.update(banners.card_payload({"banner": record.get("banner"), "flourish": record.get("flourish")}))
     try:
         download(json.dumps(payload))
     except Exception:
@@ -1581,6 +1622,24 @@ def _render_archive_section(panel):
         stamp.className = "archive-line archive-date"
         stamp.innerText = f"Filed {record['saved_on']}"
         text.appendChild(stamp)
+        if record.get("banner") or record.get("flourish"):
+            # K-20: the cosmetic banner and flourish, drawn from the catalogue and named in words.
+            flair = document.createElement("div")
+            flair.className = "archive-flair"
+            picture = document.createElement("span")
+            picture.className = "archive-flair-picture"
+            picture.innerHTML = (
+                banners.banner_svg(record["banner"], 36) if record.get("banner") else ""
+            ) + (banners.flourish_svg(record["flourish"], 120) if record.get("flourish") else "")
+            flair.appendChild(picture)
+            names = [banners.label_of(record["banner"])] if record.get("banner") else []
+            if record.get("flourish"):
+                names.append(banners.flourish_label_of(record["flourish"]))
+            caption = document.createElement("span")
+            caption.className = "archive-line"
+            caption.innerText = " · ".join(names)
+            flair.appendChild(caption)
+            text.appendChild(flair)
         card.appendChild(text)
         buttons = document.createElement("div")
         buttons.className = "archive-actions"
@@ -1693,10 +1752,17 @@ def found_new_settlement():
         render()
         return False
     earned = achievement_ids_earned()
-    if not founding.found_new(campaign, chronicle, legacy_entry, earned):
+    # K-2: the departing settlement's Legacy is banked first (by the difference), then the
+    # player-level records (Dynasty, tokens used, banner, citizens switch) follow into the next one.
+    banked, _info = _bank_current()
+    carry = {key: campaign.ui[key] for key in founding.CARRY_KEYS if key in campaign.ui and key != "citizens"}
+    if not _citizens_on():
+        carry["citizens"] = {"off": True}
+    if not founding.found_new(campaign, chronicle, legacy_entry, earned, carry):
         found_status = "A new settlement could not be founded, so nothing was changed."
         render()
         return False
+    _rewind_clear()
     sim_speed = 0
     season_progress = 0.0
     _last_tick = time.time()
@@ -1707,6 +1773,8 @@ def found_new_settlement():
         "A new settlement is founded. The old one is filed in the archive. Pick a starting "
         "scenario, Hard Mode or a consulting case, then press 1x to begin."
     )
+    if banked["gained"]:
+        found_status += f" Its Legacy is banked: +{banked['gained']} points."
     render()
     _seed_achievement_toast_baseline()
     return True
@@ -2222,9 +2290,12 @@ def update_views_panel(effects=None):
         # snapshot, which that history does not describe, so they are left out.
         history = statlog.rows(campaign.ui) if campaign.revisiting is None else []
         container.className = "views-dashboard views-dashboard--spark" if history else "views-dashboard"
-        for section in views.dashboard(
+        sections = views.dashboard(
             state, effects, (done, total), techdebt.get(campaign.ui) if campaign.revisiting is None else None
-        ):
+        )
+        if campaign.revisiting is None:
+            sections = sections + _extra_dashboard_sections()
+        for section in sections:
             block = document.createElement("div")
             block.className = "views-dash-section"
             heading = document.createElement("h3")
@@ -2629,6 +2700,11 @@ def _record_par():
 
 def on_advance_era(event=None):
     if transition.attempt_transition(campaign):
+        _rewind_clear()
+        chronicle.log_challenge(
+            state.season, state.era,
+            f"A doctrine can now be adopted for the {sim.ERA_LABEL[state.era]} era (see Doctrines).",
+        )
         _tick_play_time()
         _record_par()
         record_motion("era", sim.ERA_LABEL[state.era] + " era")
@@ -2722,6 +2798,7 @@ def render_revisit():
 def _make_enter_revisit_handler(era):
     def handler(event=None):
         if campaign.enter_revisit(era):
+            _rewind_clear()
             render()
             _check_new_achievements_for_toast()
     return handler
@@ -3440,7 +3517,7 @@ def render_research():
         name.innerText = ("✓ " if researched else "") + node.name
         cost = document.createElement("span")
         cost.className = "row-count"
-        cost.innerText = "—" if researched else f"{node.cost:.0f}"
+        cost.innerText = "—" if researched else f"{tree.cost_of(node.node_id):g}"
         top.appendChild(name)
         top.appendChild(cost)
         row.appendChild(top)
@@ -3482,7 +3559,7 @@ def render_research():
             button.innerText = "Known"
             button.disabled = True
         else:
-            button.innerText = f"Study ({node.cost:.0f})"
+            button.innerText = f"Study ({tree.cost_of(node.node_id):g})"
             button.disabled = not (available and tree.can_afford(node.node_id, state.resources))
             live_node_ids.add(node.node_id)
             proxy = create_proxy(_make_research_handler(node.node_id))
@@ -4164,8 +4241,8 @@ def _hamlet_render_town(effects, force=False):
             "span", "hamlet-town-name", f"{node.name} · {research.BRANCH_LABEL[node.branch]}"))
         row.title = f"{node.blurb} Effect: {effect}"
         _hamlet_town_button(
-            row, f"hamlet-study-{node.node_id}", f"Study {node.cost:.0f}",
-            f"Study {node.name}: {node.cost:.0f} knowledge. Effect: {effect}."
+            row, f"hamlet-study-{node.node_id}", f"Study {tree.cost_of(node.node_id):g}",
+            f"Study {node.name}: {tree.cost_of(node.node_id):g} knowledge. Effect: {effect}."
             + ("" if affordable else " Not enough knowledge yet."),
             _make_hamlet_research_handler(node.node_id), blocked=not affordable)
         panel.appendChild(row)
@@ -4338,7 +4415,9 @@ def _make_speed_handler(speed):
 
 
 def on_advance_season(event=None):
-    global found_status
+    global found_status, _rewind_snapshot
+    # K-17: remember the world just before the season runs, so it can be unwound once.
+    _rewind_snapshot = rewind.capture(campaign)
     effects = current_effects()
     # O-7: a pending founder's legacy arrives with the opening season, once.
     delivered = founding.apply_legacy(campaign, consulting.get(campaign.ui) is not None)
@@ -4349,6 +4428,13 @@ def on_advance_season(event=None):
             state.era,
             f"Founder's legacy arrives: {legacy['label']} ({founding.bonus_text(delivered)}). {legacy['blurb']}",
         )
+    # K-2: the Dynasty's starting perks arrive with the opening season, once (they rest in a
+    # challenge run or consulting case, and the turn is used up either way).
+    if campaign.revisiting is None:
+        bonuses = dynasty.apply_start(campaign, _resting())
+        if bonuses:
+            chronicle.log_challenge(state.season, state.era, _dynasty_start_message(bonuses))
+            effects = current_effects()
     found_status = ""
     report = state.advance_season(effects)
     if campaign.revisiting is None:
@@ -4394,9 +4480,732 @@ def on_advance_season(event=None):
         # K-8: the council's advice for the season that just ended is judged now; new advice is
         # issued when the panel next draws (so a closed council costs nothing).
         advisors.settle(campaign.ui, state, current_effects())
+    if campaign.revisiting is None:
+        _citizens_after_season(report)
+        if _neighbours_allowed():
+            for text in neighbours.after_season(campaign.ui, state.season, state.resources, _player_era_index()):
+                chronicle.log_challenge(state.season, state.era, text)
+        _bank_if_collapsed()
     _tick_play_time()
     render()
     _check_new_achievements_for_toast()
+
+
+# ===========================================================================
+# Round 3, third batch: K-2 Dynasty (and K-20 banners), K-6 era doctrines, K-17 the
+# rewind token, K-15/K-28 notable citizens and the citizen of the season, and K-7
+# computer-controlled neighbouring settlements. The rules live in dynasty.py, banners.py,
+# doctrines.py, rewind.py, citizens.py and neighbours.py; this is the DOM half.
+# ===========================================================================
+DYNASTY_STORAGE_KEY = "continuum-dynasty-v1"
+_rewind_snapshot = None
+dynasty_open = False
+doctrines_open = False
+citizens_open = False
+neighbours_open = False
+_dynasty_view = None
+_dynasty_proxies = []
+_dynasty_status = ""
+_banner_proxies = []
+_doctrine_proxies = []
+_citizens_proxies = []
+_neighbour_proxies = []
+neighbours_status = ""
+
+
+def _resting():
+    """True while a challenge run or consulting case is the active run: every earned advantage
+    (Dynasty perks, citizen bonuses, rewinds, neighbours) rests so those runs stay comparable."""
+    return challengerun.get(campaign.ui) is not None or consulting.get(campaign.ui) is not None
+
+
+def _rest_reason():
+    if challengerun.get(campaign.ui) is not None:
+        return "a challenge run is the active run, so its score stays comparable."
+    if consulting.get(campaign.ui) is not None:
+        return "a consulting case is the active run, so its goal stays comparable."
+    return ""
+
+
+def _inherited_era():
+    case = consulting.get(campaign.ui)
+    return consulting.CASES[case["case"]]["era"] if case is not None else None
+
+
+def _seed_hint():
+    return int(time.time()) % 2147483647 or 1
+
+
+def _sync_tree_costs():
+    """Doctrines make some research branches cheaper; the tree is told each time effects are read."""
+    if campaign.revisiting is not None:
+        tree.cost_mults = {}
+        return
+    tree.cost_mults = doctrines.cost_multipliers(campaign.ui, dynasty.doctrine_edge(campaign.ui, _resting()))
+
+
+# --- per-browser copy of the Dynasty (so a reload or an older save never takes progress away) --------------
+def _dynasty_local_load():
+    window = _js_window()
+    if window is None:
+        return None
+    try:
+        raw = window.localStorage.getItem(DYNASTY_STORAGE_KEY)
+        return json.loads(raw) if isinstance(raw, str) else None
+    except Exception:
+        return None
+
+
+def _dynasty_local_store():
+    window = _js_window()
+    if window is None:
+        return
+    record = dynasty.get(campaign.ui)
+    try:
+        window.localStorage.setItem(DYNASTY_STORAGE_KEY, json.dumps(record))
+    except Exception:
+        pass
+
+
+def _adopt_local_dynasty():
+    """Merges this browser's Dynasty with the one in the live save (neither loses progress)."""
+    local = _dynasty_local_load()
+    if local is None:
+        return
+    merged = dynasty.merge(campaign.ui.get(dynasty.KEY), local)
+    if merged != dynasty.get(campaign.ui):
+        dynasty.put(campaign.ui, merged)
+
+
+# --- K-2 Dynasty ----------------------------------------------------------------------------------------
+def _rank_names():
+    return [name for _need, name in dynasty.RANKS]
+
+
+def _bank_current():
+    """Banks the live settlement's Legacy (by the difference). Returns (result, info)."""
+    info = dynasty.run_info(campaign, _inherited_era())
+    result = dynasty.bank(campaign.ui, info)
+    if result["gained"] or result["first"]:
+        _dynasty_local_store()
+    return result, info
+
+
+def _banked_text(result):
+    if result["points"] <= 0:
+        return (
+            f"A settlement is only worth banking once it has lived {dynasty.MIN_SEASONS_TO_BANK} seasons; "
+            "this one has not yet."
+        )
+    if result["gained"] <= 0:
+        return f"Already banked: this settlement is worth {result['points']} Legacy points and all of them are in."
+    return f"Banked {result['gained']} Legacy points ({result['total']} earned in all)."
+
+
+def on_toggle_dynasty(event=None):
+    global dynasty_open
+    dynasty_open = not dynasty_open
+    update_dynasty_panel()
+
+
+def on_dynasty_bank(event=None):
+    global _dynasty_status
+    if campaign.revisiting is not None:
+        _dynasty_status = "Return to the present before banking."
+    else:
+        result, _info = _bank_current()
+        _dynasty_status = _banked_text(result)
+    render()
+
+
+def on_dynasty_off(event=None):
+    record = dynasty.get(campaign.ui)
+    dynasty.set_off(campaign.ui, not record["off"])
+    _dynasty_local_store()
+    render()
+
+
+def _dynasty_buy(node_id):
+    result = dynasty.buy(campaign.ui, node_id)
+    if result["ok"]:
+        _dynasty_local_store()
+        render()
+    return result
+
+
+def _dynasty_refund(node_id):
+    result = dynasty.refund(campaign.ui, node_id)
+    if result["ok"]:
+        _dynasty_local_store()
+        render()
+    return result
+
+
+def _dynasty_refund_all():
+    result = dynasty.refund_all(campaign.ui)
+    _dynasty_local_store()
+    render()
+    return result
+
+
+def _to_js(value):
+    try:
+        from js import Object  # noqa: PLC0415
+        from pyodide.ffi import to_js  # noqa: PLC0415
+    except ImportError:
+        return None
+    return to_js(value, dict_converter=Object.fromEntries)
+
+
+def _render_dynasty_tree():
+    global _dynasty_view
+    window = _js_window()
+    skill_view = getattr(window, "NoyvjSkillTree", None) if window is not None else None
+    container = document.getElementById("dynasty-tree")
+    if skill_view is None:
+        return
+    record = dynasty.get(campaign.ui)
+    if _dynasty_view is None:
+        if not _dynasty_proxies:
+            _dynasty_proxies.extend([
+                create_proxy(lambda node_id, node=None: _dynasty_buy(str(node_id))),
+                create_proxy(lambda node_id, node=None: _dynasty_refund(str(node_id))),
+                create_proxy(lambda: _dynasty_refund_all()),
+            ])
+        buy, refund, refund_all = _dynasty_proxies
+        options = _to_js({
+            "tree": dynasty.DYNASTY_TREE, "owned": list(record["owned"]), "earned": record["earned"],
+            "refundNodes": True, "onBuy": buy, "onRefund": refund, "onRefundAll": refund_all,
+        })
+        if options is not None:
+            _dynasty_view = skill_view.render(container, options)
+        return
+    update = _to_js({"owned": list(record["owned"]), "earned": record["earned"]})
+    if update is not None:
+        _dynasty_view.update(update)
+
+
+def _make_banner_handler(kind, item_id):
+    def handler(event=None):
+        banner_id = item_id if kind == "banner" else None
+        flourish_id = item_id if kind == "flourish" else None
+        ok, _reason = banners.choose(
+            campaign.ui, banner_id, flourish_id, set(achievement_ids_earned()),
+            dynasty.rank_index(dynasty.get(campaign.ui)["earned"]),
+        )
+        if ok:
+            render()
+    return handler
+
+
+def _achievement_names():
+    return {entry["id"]: entry["label"] for entry in ACHIEVEMENTS}
+
+
+def _render_banner_picker():
+    for proxy in _banner_proxies:
+        proxy.destroy()
+    del _banner_proxies[:]
+    holder = document.getElementById("banner-list")
+    holder.innerHTML = ""
+    earned = set(achievement_ids_earned())
+    rank_index = dynasty.rank_index(dynasty.get(campaign.ui)["earned"])
+    choice = banners.effective(campaign.ui, earned, rank_index)
+    names = _achievement_names()
+    for heading, kind, catalog, current in (
+        ("Banners", "banner", banners.BANNERS, choice["banner"]),
+        ("Skyline flourishes", "flourish", banners.FLOURISHES, choice["flourish"]),
+    ):
+        title = document.createElement("h4")
+        title.className = "banner-heading"
+        title.innerText = heading
+        holder.appendChild(title)
+        row = document.createElement("div")
+        row.className = "banner-row"
+        for item in catalog:
+            unlocked = banners.is_unlocked(item, earned, rank_index)
+            card = document.createElement("div")
+            card.className = "banner-card" + (" banner-card--locked" if not unlocked else "")
+            picture = document.createElement("span")
+            picture.className = "banner-picture"
+            picture.innerHTML = (
+                banners.banner_svg(item["id"], 44) if kind == "banner" else banners.flourish_svg(item["id"], 120)
+            ) if unlocked else ""
+            card.appendChild(picture)
+            button = document.createElement("button")
+            button.id = f"{kind}-{item['id']}-button"
+            button.className = "secondary banner-button"
+            button.type = "button"
+            selected = item["id"] == current
+            button.innerText = ("✓ " if selected else ("" if unlocked else "🔒 ")) + item["label"]
+            button.disabled = not unlocked
+            button.setAttribute("aria-pressed", "true" if selected else "false")
+            if not unlocked:
+                button.title = banners.unlock_text(item, names, _rank_names())
+                button.setAttribute("aria-label", f"{item['label']}, locked. {button.title}")
+            proxy = create_proxy(_make_banner_handler(kind, item["id"]))
+            _banner_proxies.append(proxy)
+            button.addEventListener("click", proxy)
+            card.appendChild(button)
+            if not unlocked:
+                hint = document.createElement("span")
+                hint.className = "banner-hint"
+                hint.innerText = banners.unlock_text(item, names, _rank_names())
+                card.appendChild(hint)
+            row.appendChild(card)
+        holder.appendChild(row)
+
+
+def update_dynasty_panel():
+    record = dynasty.get(campaign.ui)
+    toggle = document.getElementById("dynasty-toggle-button")
+    free = dynasty.points_free(record)
+    toggle.innerText = "Hide Dynasty" if dynasty_open else (f"🏰 Dynasty ({free} pts)" if free else "🏰 Dynasty")
+    panel = document.getElementById("dynasty-panel")
+    panel.hidden = not dynasty_open
+    if not dynasty_open:
+        return
+    resting = _resting()
+    lines = dynasty.status_lines(campaign.ui, resting, _rest_reason())
+    info = dynasty.run_info(campaign, _inherited_era())
+    run = dynasty.get_run(campaign.ui)
+    lines.append(
+        f"This settlement is worth {info['points']} Legacy points so far ({run['banked']} banked). "
+        "Points are banked when you found a new settlement or when it collapses, or any time with the button below."
+    )
+    document.getElementById("dynasty-summary").innerText = " ".join(lines)
+    off = document.getElementById("dynasty-off-button")
+    off.innerText = f"Dynasty perks: {'OFF' if record['off'] else 'ON'}"
+    off.setAttribute("aria-pressed", "false" if record["off"] else "true")
+    bank_button = document.getElementById("dynasty-bank-button")
+    bank_button.disabled = campaign.revisiting is not None
+    document.getElementById("dynasty-bank-status").innerText = _dynasty_status
+    _render_dynasty_tree()
+    _render_banner_picker()
+
+
+def _dynasty_start_message(bonuses):
+    return f"Dynasty heritage arrives with the first season: {dynasty.start_text(bonuses)}."
+
+
+# --- K-6 doctrines ----------------------------------------------------------------------------------------
+def on_toggle_doctrines(event=None):
+    global doctrines_open
+    doctrines_open = not doctrines_open
+    update_doctrines_panel()
+
+
+def _make_doctrine_handler(doctrine_id):
+    def handler(event=None):
+        if campaign.revisiting is not None:
+            return
+        era = state.era
+        ok, _reason = doctrines.choose(campaign.ui, era, doctrine_id)
+        if ok:
+            line = doctrines.log_line(era, doctrine_id)
+            add_founders_note(line)
+            chronicle.log_challenge(state.season, state.era, line)
+            update_founders_panel()
+            render()
+    return handler
+
+
+def update_doctrines_panel():
+    open_now = campaign.revisiting is None and doctrines.is_open(campaign.ui, state.era)
+    toggle = document.getElementById("doctrines-toggle-button")
+    toggle.innerText = "Hide Doctrines" if doctrines_open else ("⚖️ Doctrines (choose)" if open_now else "⚖️ Doctrines")
+    panel = document.getElementById("doctrines-panel")
+    panel.hidden = not doctrines_open
+    if not doctrines_open:
+        return
+    for proxy in _doctrine_proxies:
+        proxy.destroy()
+    del _doctrine_proxies[:]
+    edge = dynasty.doctrine_edge(campaign.ui, _resting())
+    chosen = doctrines.chosen_for(campaign.ui, state.era)
+    if state.era == sim.FIRST_ERA:
+        status = "Doctrines begin with your first era transition. Enter the Agrarian era to adopt one."
+    elif chosen:
+        status = f"The {sim.ERA_LABEL[state.era]} era follows the {doctrines.DOCTRINES[chosen]['label']} doctrine."
+    elif campaign.revisiting is not None:
+        status = "Return to the present to adopt a doctrine."
+    else:
+        status = f"Choose a doctrine for the {sim.ERA_LABEL[state.era]} era. The choice is final for this era."
+    if edge:
+        status += f" Schools of Thought makes each doctrine's main discount {edge} points deeper."
+    document.getElementById("doctrines-status").innerText = status
+    holder = document.getElementById("doctrines-list")
+    holder.innerHTML = ""
+    counts = doctrines.counts(campaign.ui)
+    for doctrine_id, info in doctrines.DOCTRINES.items():
+        card = document.createElement("div")
+        card.className = "doctrine-card"
+        for css, tag, text in (
+            ("doctrine-name", "h3", info["label"] + (" (entrenched)" if counts.get(doctrine_id, 0) >= 2 else "")),
+            ("row-blurb", "p", info["blurb"]),
+            ("status-line", "p", doctrines.discount_text(doctrine_id) + "; " + doctrines.effect_text(doctrine_id) + "."),
+        ):
+            node = document.createElement(tag)
+            node.className = css
+            node.innerText = text
+            card.appendChild(node)
+        button = document.createElement("button")
+        button.id = f"doctrine-{doctrine_id}-button"
+        button.className = "secondary"
+        button.type = "button"
+        button.innerText = "✓ Adopted for this era" if chosen == doctrine_id else f"Adopt the {info['label']} doctrine"
+        button.disabled = not open_now
+        proxy = create_proxy(_make_doctrine_handler(doctrine_id))
+        _doctrine_proxies.append(proxy)
+        button.addEventListener("click", proxy)
+        card.appendChild(button)
+        holder.appendChild(card)
+    history = document.getElementById("doctrines-history")
+    history.innerHTML = ""
+    rows = doctrines.history(campaign.ui)
+    if not rows:
+        node = document.createElement("p")
+        node.className = "row-blurb"
+        node.innerText = "No doctrine adopted yet."
+        history.appendChild(node)
+    for era, doctrine_id in rows:
+        node = document.createElement("p")
+        node.className = "status-line"
+        node.innerText = f"{sim.ERA_LABEL[era]} era: {doctrines.DOCTRINES[doctrine_id]['label']}"
+        history.appendChild(node)
+
+
+# --- K-17 rewind ------------------------------------------------------------------------------------------
+def _rewind_tokens():
+    return rewind.tokens_left(
+        campaign.ui, len(achievement_ids_earned()), dynasty.rewind_perk_tokens(campaign.ui)
+    )
+
+
+def _rewind_clear():
+    global _rewind_snapshot
+    _rewind_snapshot = None
+
+
+def on_rewind(event=None):
+    global _rewind_snapshot
+    reason = rewind.refusal(_rewind_snapshot, campaign, _rewind_tokens(), _resting())
+    if reason:
+        _display_toast(reason)
+        return
+    ok, cost = rewind.apply(campaign, _rewind_snapshot)
+    _rewind_snapshot = None
+    if not ok:
+        _display_toast("The season could not be unwound.")
+        return
+    set_speed(0)
+    chronicle.log_challenge(
+        state.season, state.era,
+        f"A season was unwound. It cost a rewind token and {cost:.1f} knowledge; time is held until you choose a speed.",
+    )
+    sync_name_input()
+    _dynasty_local_store()
+    render()
+    _seed_achievement_toast_baseline()
+    _display_toast(f"Season unwound. {cost:.1f} knowledge spent, {_rewind_tokens()} rewind tokens left.")
+
+
+def update_rewind_button():
+    button = document.getElementById("rewind-button")
+    tokens = _rewind_tokens()
+    button.innerText = f"↶ Rewind ({tokens})"
+    reason = rewind.refusal(_rewind_snapshot, campaign, tokens, _resting())
+    text = rewind.preview(_rewind_snapshot, campaign, tokens, _resting())
+    button.disabled = bool(reason)
+    button.title = text
+    button.setAttribute("aria-label", f"Rewind one season, {tokens} tokens. {text}")
+
+
+# --- K-15 / K-28 citizens ---------------------------------------------------------------------------------
+def _citizens_on():
+    return citizens.is_on(campaign.ui)
+
+
+def on_toggle_citizens(event=None):
+    global citizens_open
+    citizens_open = not citizens_open
+    if citizens_open and campaign.revisiting is None and _citizens_on() and state.season > 1:
+        citizens.ensure_roster(campaign.ui, campaign.furthest_era, _seed_hint())
+    update_citizens_panel()
+
+
+def on_citizens_off(event=None):
+    citizens.set_off(campaign.ui, _citizens_on())
+    render()
+
+
+def _citizen_effects_text():
+    return citizens.bonus_text(citizens.bonus_deltas(campaign.ui, state.era, _resting())) or "none right now"
+
+
+def update_spotlight_card():
+    card = document.getElementById("citizen-spotlight")
+    spot = citizens.latest_spot(campaign.ui) if _citizens_on() else None
+    card.hidden = spot is None
+    if spot is not None:
+        year, season_name = year_and_season(max(1, spot["season"]))
+        card.innerText = f"Citizen of the season, Year {year} {season_name}: {spot['name']}. {spot['line']}"
+
+
+def update_citizens_panel():
+    toggle = document.getElementById("citizens-toggle-button")
+    toggle.innerText = "Hide Citizens" if citizens_open else "🧑 Citizens"
+    panel = document.getElementById("citizens-panel")
+    panel.hidden = not citizens_open
+    if not citizens_open:
+        return
+    on = _citizens_on()
+    off_button = document.getElementById("citizens-off-button")
+    off_button.innerText = f"Notable citizens: {'ON' if on else 'OFF'}"
+    off_button.setAttribute("aria-pressed", "true" if on else "false")
+    holder = document.getElementById("citizens-list")
+    holder.innerHTML = ""
+    record = citizens.get(campaign.ui)
+    if not on:
+        text = "Notable citizens are switched off: no citizens appear and none give a bonus."
+    elif not record["roster"]:
+        text = "Citizens appear as the settlement lives its first seasons. They are invented people."
+    else:
+        text = (
+            f"Invented people who follow the settlement from era to era. Their standing bonus right now: "
+            f"{_citizen_effects_text()}." + (" (Resting during a challenge run or consulting case.)" if _resting() else "")
+        )
+    document.getElementById("citizens-bonus").innerText = text
+    for citizen in reversed(record["roster"]) if on else []:
+        stage = citizens.stage_of(citizen, state.era)
+        card = document.createElement("div")
+        card.className = "citizen-card"
+        title = document.createElement("h3")
+        title.className = "citizen-name"
+        title.innerText = f"{citizen['name']}, {stage['title']}"
+        card.appendChild(title)
+        for line in citizens.thread(citizen, state.era):
+            node = document.createElement("p")
+            node.className = "row-blurb citizen-thread"
+            node.innerText = line
+            card.appendChild(node)
+        holder.appendChild(card)
+    spots = document.getElementById("citizens-spots")
+    spots.innerHTML = ""
+    for spot in reversed(record["spots"]) if on else []:
+        year, season_name = year_and_season(max(1, spot["season"]))
+        node = document.createElement("p")
+        node.className = "status-line"
+        node.innerText = f"Year {year} {season_name}: {spot['name']}. {spot['line']}"
+        spots.appendChild(node)
+
+
+def _citizens_after_season(report):
+    """New children for new eras, and the citizen of the season."""
+    if campaign.revisiting is not None or not _citizens_on():
+        return
+    added = citizens.ensure_roster(campaign.ui, campaign.furthest_era, _seed_hint())
+    for citizen in added:
+        chronicle.log_challenge(
+            state.season, state.era,
+            f"{citizen['name']} is born among the {citizens.ERA_TRADES[citizen['born']]['household']}.",
+        )
+    citizens.make_spotlight(campaign.ui, state.era, report.get("season", state.season - 1), report, minutes.entries(campaign.ui))
+
+
+# --- K-7 neighbours ---------------------------------------------------------------------------------------
+def on_toggle_neighbours(event=None):
+    global neighbours_open
+    neighbours_open = not neighbours_open
+    if neighbours_open:
+        neighbours.ensure(campaign.ui, _seed_hint()) if campaign.revisiting is None else None
+    update_neighbours_panel()
+
+
+def _neighbours_allowed():
+    return campaign.revisiting is None and not _resting()
+
+
+def _player_era_index():
+    return sim.era_index(state.era)
+
+
+def _make_trade_handler(sid):
+    def handler(event=None):
+        global neighbours_status
+        if not _neighbours_allowed():
+            return
+        ok, text = neighbours.apply_trade(campaign.ui, sid, state.season, state.resources, _player_era_index())
+        neighbours_status = text
+        render()
+    return handler
+
+
+def _make_share_handler(sid):
+    def handler(event=None):
+        global neighbours_status
+        if not _neighbours_allowed():
+            return
+        costs = {nid: node.cost for nid, node in tree.nodes.items()}
+        names = {nid: node.name for nid, node in tree.nodes.items()}
+        ok, text, gained = neighbours.apply_share(
+            campaign.ui, sid, state.season, list(tree.researched), costs, names, _player_era_index()
+        )
+        if ok:
+            state.resources["knowledge"] += gained
+        neighbours_status = text
+        render()
+    return handler
+
+
+def _make_bid_handler(amount):
+    def handler(event=None):
+        global neighbours_status
+        if not _neighbours_allowed():
+            return
+        ok, text = neighbours.place_bid(campaign.ui, amount, state.resources, state.season, _player_era_index())
+        neighbours_status = text
+        render()
+    return handler
+
+
+def _neighbour_button(parent, button_id, text, handler, disabled=False, title=""):
+    button = document.createElement("button")
+    button.id = button_id
+    button.className = "secondary"
+    button.type = "button"
+    button.innerText = text
+    button.disabled = disabled
+    if title:
+        button.title = title
+    proxy = create_proxy(handler)
+    _neighbour_proxies.append(proxy)
+    button.addEventListener("click", proxy)
+    parent.appendChild(button)
+    return button
+
+
+def update_neighbours_panel():
+    toggle = document.getElementById("neighbours-toggle-button")
+    toggle.innerText = "Hide Neighbours" if neighbours_open else "🗺 Neighbours"
+    panel = document.getElementById("neighbours-panel")
+    panel.hidden = not neighbours_open
+    if not neighbours_open:
+        return
+    for proxy in _neighbour_proxies:
+        proxy.destroy()
+    del _neighbour_proxies[:]
+    record = neighbours.get(campaign.ui)
+    era_index = _player_era_index()
+    season = state.season
+    slot_views = [neighbours.view(record, sid, season, era_index) for sid in neighbours.SLOT_IDS]
+    allowed = _neighbours_allowed()
+    label = naming.title(settlement_name()) if settlement_name() else "Your settlement"
+    document.getElementById("neighbours-map").innerHTML = neighbours.map_svg(slot_views, record, season, label[:20])
+    document.getElementById("neighbours-caption").innerText = neighbours.map_caption(slot_views)
+    if not allowed:
+        note = (
+            "Return to the present to deal with your neighbours." if campaign.revisiting is not None
+            else f"Neighbours rest: {_rest_reason()}"
+        )
+    else:
+        note = "Three computer-controlled neighbours. They never attack; you trade, share discoveries and bid for the lease on the Salt Flats."
+    document.getElementById("neighbours-note").innerText = note
+    holder = document.getElementById("neighbours-list")
+    holder.innerHTML = ""
+    resources = state.resources
+    costs = {nid: node.cost for nid, node in tree.nodes.items()}
+    for v in slot_views:
+        card = document.createElement("div")
+        card.className = "neighbour-card"
+        head = document.createElement("h3")
+        head.className = "neighbour-name"
+        head.innerText = f"{v['name']}: {v['era_label']} era, {v['population']} people, {v['attitude_word']}"
+        card.appendChild(head)
+        need = document.createElement("p")
+        need.className = "row-blurb"
+        need.innerText = f"Needs {v['need']}; offers {v['offer']}. A trade: you give {v['give']} {v['need']}, you receive {v['get']} {v['offer']}."
+        card.appendChild(need)
+        ok_trade, why_trade = neighbours.can_trade(record, v["id"], season, resources, era_index)
+        _neighbour_button(
+            card, f"neighbour-{v['id']}-trade-button", f"Trade with {v['name']}",
+            _make_trade_handler(v["id"]), disabled=not (allowed and ok_trade), title=why_trade,
+        )
+        candidate = neighbours.next_share_candidate(record, v["id"], list(tree.researched), costs)
+        why_share = ""
+        if v["share_ready_in"]:
+            why_share = f"Ready in {v['share_ready_in']} seasons."
+        elif candidate is None:
+            why_share = "No discovery they have not heard."
+        share_label = "Share a discovery"
+        if candidate is not None:
+            share_label = f"Share {tree.nodes[candidate].name}"
+        _neighbour_button(
+            card, f"neighbour-{v['id']}-share-button", share_label,
+            _make_share_handler(v["id"]), disabled=not (allowed and not why_share), title=why_share,
+        )
+        holder.appendChild(card)
+    document.getElementById("neighbours-lease").innerText = neighbours.lease_text(record, season)
+    bids = document.getElementById("neighbours-bids")
+    bids.innerHTML = ""
+    low, high = neighbours.rival_range(record, season, era_index)
+    hint = document.createElement("p")
+    hint.className = "row-blurb"
+    hint.innerText = (
+        f"Rival bids usually fall between {low} and {high} materials; friendlier neighbours ask a little less. "
+        f"The lease pays {neighbours.lease_income(era_index)} materials a season for {neighbours.LEASE_LENGTH} seasons. "
+        "A bid is paid only if you win; otherwise it is returned."
+    )
+    bids.appendChild(hint)
+    for name, amount in neighbours.bid_options(era_index):
+        _neighbour_button(
+            bids, f"neighbours-bid-{name}-button", f"Bid {amount} ({name})", _make_bid_handler(amount),
+            disabled=not allowed or bool(record["lease"]["pending"]) or resources.get("materials", 0.0) < amount,
+        )
+    document.getElementById("neighbours-status").innerText = neighbours_status
+    events = document.getElementById("neighbours-events")
+    events.innerHTML = ""
+    for entry in reversed(record["events"]):
+        node = document.createElement("p")
+        node.className = "status-line"
+        year, season_name = year_and_season(max(1, entry["season"]))
+        node.innerText = f"Year {year} {season_name}: {entry['text']}"
+        events.appendChild(node)
+
+
+def _extra_dashboard_sections():
+    """Standing advantages as dashboard rows, so none is ever a hidden mechanic."""
+    resting = _resting()
+    record = dynasty.get(campaign.ui)
+    if record["off"]:
+        perks = "switched off"
+    elif resting:
+        perks = "resting (comparable run)"
+    else:
+        perks = f"{len(record['owned'])} owned"
+    doctrine_rows = doctrines.history(campaign.ui)
+    doctrine_text = ", ".join(f"{doctrines.DOCTRINES[d]['label']} ({sim.ERA_LABEL[e]})" for e, d in doctrine_rows) or "none"
+    rows = [
+        ("Dynasty perks", perks),
+        ("Dynasty rank", dynasty.rank_name(record["earned"])),
+        ("Doctrines", doctrine_text),
+        ("Citizen bonuses", _citizen_effects_text() if _citizens_on() else "switched off"),
+    ]
+    return [{"title": "Standing advantages", "rows": rows}]
+
+
+def _bank_if_collapsed():
+    """A collapsed settlement banks what it reached, once."""
+    if campaign.revisiting is not None or not dynasty.is_collapsed(state):
+        return
+    if dynasty.get_run(campaign.ui)["failed"]:
+        return
+    result, info = _bank_current()
+    if result["points"] > 0:
+        chronicle.log_challenge(
+            state.season, state.era,
+            f"The settlement has failed. Its lessons are banked in the Dynasty: {result['gained']} Legacy points.",
+        )
 
 
 # --- the shared save widget's contract ---------------------------------
@@ -4419,6 +5228,8 @@ def load_state(data):
     if not campaign.load_dict(data):
         return False
     info_page_open = bool(campaign.ui.get("info_page_open", False))
+    _rewind_clear()
+    _adopt_local_dynasty()
     sync_name_input()
     render()
     _seed_achievement_toast_baseline()
@@ -4584,6 +5395,18 @@ def setup():
     document.getElementById("found-settlement-button").addEventListener(
         "click", create_proxy(on_found_new_settlement)
     )
+    for _id, _handler in (
+        ("dynasty-toggle-button", on_toggle_dynasty),
+        ("dynasty-bank-button", on_dynasty_bank),
+        ("dynasty-off-button", on_dynasty_off),
+        ("doctrines-toggle-button", on_toggle_doctrines),
+        ("citizens-toggle-button", on_toggle_citizens),
+        ("citizens-off-button", on_citizens_off),
+        ("neighbours-toggle-button", on_toggle_neighbours),
+        ("rewind-button", on_rewind),
+    ):
+        document.getElementById(_id).addEventListener("click", create_proxy(_handler))
+    _adopt_local_dynasty()
     # Belt-and-suspenders: the toast starts hidden via the static `hidden`
     # attribute in index.html, but every other stateful element in this
     # file (panels, buttons) has its shown/hidden state actively driven by

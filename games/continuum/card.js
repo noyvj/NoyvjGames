@@ -21,7 +21,8 @@
     return out;
   }
 
-  function draw(payload, image) {
+  function draw(payload, image, extras) {
+    extras = extras || {};
     const canvas = document.createElement("canvas");
     canvas.width = W;
     canvas.height = H;
@@ -67,15 +68,26 @@
       ctx.font = i === 0 ? "bold 36px sans-serif" : "30px sans-serif";
       ctx.fillText(fitText(ctx, line, 540), 60, 262 + i * 50);
     });
+    // K-20: the cosmetic skyline flourish along the bottom of the picture, and the banner cloth hung
+    // from the top-right corner. Both are drawn from stand-alone SVG strings; labels are written as
+    // text too, so the card never depends on the pictures to say what they are.
+    if (extras.flourish) {
+      try { ctx.drawImage(extras.flourish, px, py + ph - 70, pw, 70); } catch (err) { /* decoration only */ }
+    }
+    if (extras.banner) {
+      try { ctx.drawImage(extras.banner, W - 150, 14, 110, 154); } catch (err) { /* decoration only */ }
+    }
     ctx.fillStyle = "#8a7355";
     ctx.font = "24px sans-serif";
+    const cosmetics = [payload.banner_label, payload.flourish_label].filter(function (t) { return t && !/^(Plain Cloth|No flourish)$/.test(t); });
+    if (cosmetics.length) ctx.fillText(fitText(ctx, cosmetics.join(" · "), 560), 640, H - 44);
     ctx.fillText("Continuum · NoyvjGames", 60, H - 44);
     return canvas;
   }
 
-  function finish(payload, image) {
+  function finish(payload, image, extras) {
     try {
-      const canvas = draw(payload, image);
+      const canvas = draw(payload, image, extras);
       const link = document.createElement("a");
       const name = String(payload.filename || "continuum-card.png").replace(/[^A-Za-z0-9._-]/g, "-");
       link.download = name;
@@ -96,14 +108,32 @@
       return;
     }
     if (!payload || typeof payload !== "object") return;
-    if (typeof payload.thumb === "string" && payload.thumb.indexOf("data:image/jpeg;base64,") === 0) {
-      const image = new Image();
-      image.onload = function () { finish(payload, image); };
-      image.onerror = function () { finish(payload, null); };
-      image.src = payload.thumb;
-    } else {
-      finish(payload, null);
+    // Load the picture and the two optional cosmetic SVGs, then draw once all have settled
+    // (a failed or missing image is simply left out).
+    const jobs = [
+      ["thumb", typeof payload.thumb === "string" && payload.thumb.indexOf("data:image/jpeg;base64,") === 0 ? payload.thumb : ""],
+      ["banner", svgSource(payload.banner_svg)],
+      ["flourish", svgSource(payload.flourish_svg)],
+    ];
+    const found = {};
+    let pending = jobs.length;
+    function settle() {
+      pending -= 1;
+      if (pending === 0) finish(payload, found.thumb || null, { banner: found.banner || null, flourish: found.flourish || null });
     }
+    jobs.forEach(function (job) {
+      if (!job[1]) { settle(); return; }
+      const img = new Image();
+      img.onload = function () { found[job[0]] = img; settle(); };
+      img.onerror = function () { settle(); };
+      img.src = job[1];
+    });
+  }
+
+  // A stand-alone SVG string from game.py -> a data URL, only when it really is a plain <svg> with no script.
+  function svgSource(markup) {
+    if (typeof markup !== "string" || markup.indexOf("<svg") !== 0 || markup.length > 20000 || /<script|onload|onerror|href=/i.test(markup)) return "";
+    return "data:image/svg+xml;charset=utf-8," + encodeURIComponent(markup);
   }
 
   // K-18: downloads plain text (CSV or JSON) as a file. game.py hands it a JSON

@@ -69,6 +69,26 @@
       "info-page-panel",
       "info-page-toggle-button",
       "In the real world"
+    ],
+    [
+      "dynasty-panel",
+      "dynasty-toggle-button",
+      "Dynasty"
+    ],
+    [
+      "doctrines-panel",
+      "doctrines-toggle-button",
+      "Era doctrines"
+    ],
+    [
+      "citizens-panel",
+      "citizens-toggle-button",
+      "Notable citizens"
+    ],
+    [
+      "neighbours-panel",
+      "neighbours-toggle-button",
+      "Neighbouring settlements"
     ]
   ],
   "toolbar": {
@@ -90,7 +110,10 @@
       {
         "heading": "Game",
         "ids": [
-          "challenge-toggle-button"
+          "challenge-toggle-button",
+          "dynasty-toggle-button",
+          "doctrines-toggle-button",
+          "neighbours-toggle-button"
         ]
       },
       {
@@ -110,7 +133,8 @@
           "founders-toggle-button",
           "minutes-toggle-button",
           "timelapse-toggle-button",
-          "advisors-toggle-button"
+          "advisors-toggle-button",
+          "citizens-toggle-button"
         ]
       },
       {

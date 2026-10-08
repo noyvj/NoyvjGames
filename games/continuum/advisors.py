@@ -133,10 +133,10 @@ def _clean_advice(raw):
         "action": action,
         "text": text[:240],
         "metric": ADVISORS[raw["id"]]["metric"],
-        "gain": _num(raw.get("gain")),
-        "baseline": _num(raw.get("baseline")),
-        "before": _num(raw.get("before")),
-        "score_effect": _num(raw.get("score_effect")),
+        "net_gain": _num(raw.get("net_gain", raw.get("gain"))),
+        "net_baseline": _num(raw.get("net_baseline", raw.get("baseline"))),
+        "net_before": _num(raw.get("net_before", raw.get("before"))),
+        "score_delta": _num(raw.get("score_delta", raw.get("score_effect"))),
         "quality": quality if quality in ("sound", "narrow", "empty") else "empty",
         "status": status if status in ("open", "followed") else "open",
         "rival": raw.get("rival") if raw.get("rival") in ADVISORS else "",
@@ -301,8 +301,8 @@ def issue(ui, state, effects):
         score_effect = with_action[1] - baseline[1]
         advice.append({
             "id": advisor_id, "action": action, "text": text, "metric": key,
-            "gain": gain, "baseline": baseline[0] - before, "before": before,
-            "score_effect": score_effect, "quality": _judge(gain, score_effect, key),
+            "net_gain": gain, "net_baseline": baseline[0] - before, "net_before": before,
+            "score_delta": score_effect, "quality": _judge(gain, score_effect, key),
             "status": "open", "rival": "",
         })
     # advisors that need the same scarce thing disagree out loud
@@ -355,10 +355,10 @@ def outcome_text(item, state, effects):
     if item["status"] == "followed":
         now = metric_value(state, item["metric"], effects)
         return (
-            f"{info['name']} (taken): {unit} went {item['before']:.1f} to {now:.1f}; predicted "
-            f"{item['gain']:+.1f} over doing nothing. {verdict}"
+            f"{info['name']} (taken): {unit} went {item['net_before']:.1f} to {now:.1f}; predicted "
+            f"{item['net_gain']:+.1f} over doing nothing. {verdict}"
         )
-    return f"{info['name']} (not taken): it would have been {item['gain']:+.1f} {unit} for {item['score_effect']:+.1f} sustainability. {verdict}"
+    return f"{info['name']} (not taken): it would have been {item['net_gain']:+.1f} {unit} for {item['score_delta']:+.1f} sustainability. {verdict}"
 
 
 def mark_followed(ui, advisor_id):
@@ -395,10 +395,10 @@ def record_text(rec):
 def claim_text(item):
     info = ADVISORS[item["id"]]
     if item["metric"] == "headroom":
-        claim = f"Next season: {item['gain']:+.0f} {info['unit']} compared with doing nothing."
+        claim = f"Next season: {item['net_gain']:+.0f} {info['unit']} compared with doing nothing."
     else:
-        claim = f"Next season: {item['gain']:+.1f} {info['unit']} compared with doing nothing."
-    claim += f" Effect on sustainability: {item['score_effect']:+.1f}."
+        claim = f"Next season: {item['net_gain']:+.1f} {info['unit']} compared with doing nothing."
+    claim += f" Effect on sustainability: {item['score_delta']:+.1f}."
     claim += {
         "sound": " Looks sound.",
         "narrow": " Narrow: it helps their corner at the whole's expense.",

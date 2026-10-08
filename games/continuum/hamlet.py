@@ -226,7 +226,7 @@ def researchable_nodes(tree):
         node for node in tree.visible_nodes()
         if not tree.is_researched(node.node_id) and tree.is_available(node.node_id)
     ]
-    return sorted(nodes, key=lambda node: (node.cost, node.node_id))
+    return sorted(nodes, key=lambda node: (tree.cost_of(node.node_id), node.node_id))
 
 
 def locked_count(tree):

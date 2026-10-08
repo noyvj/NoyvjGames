@@ -30,13 +30,13 @@ def test_clean_survives_junk_and_clamps():
            "advice": [{"id": "marit", "action": {"type": "assign", "role": "wizards"}, "text": "x"},
                       {"id": "zzz"}, 5,
                       {"id": "okoro", "action": {"type": "assign", "role": "keepers"}, "text": "ok", "quality": "weird",
-                       "status": "done", "gain": float("nan")}],
+                       "status": "done", "net_gain": float("nan")}],
            "history": [{"id": "marit", "text": "t", "season": 3}, {"id": "bad", "text": "t"}, "junk"]}
     rec = adv.clean(raw)
     assert rec["season"] == 0 and rec["trust"]["marit"] == 10 and rec["trust"]["teodor"] == 5 and rec["trust"]["ines"] == 0
     assert rec["record"]["marit"]["sound"] == 0 and rec["record"]["marit"]["followed"] == 2
     assert [a["id"] for a in rec["advice"]] == ["okoro"]
-    assert rec["advice"][0]["quality"] == "empty" and rec["advice"][0]["status"] == "open" and rec["advice"][0]["gain"] == 0.0
+    assert rec["advice"][0]["quality"] == "empty" and rec["advice"][0]["status"] == "open" and rec["advice"][0]["net_gain"] == 0.0
     assert len(rec["history"]) == 1
 
 
@@ -56,11 +56,11 @@ def test_issue_gives_each_advisor_a_real_checked_action():
     assert [a["id"] for a in record["advice"]] == list(adv.ORDER)
     for item in record["advice"]:
         assert adv.available(state, item["action"])
-        assert item["gain"] > 0  # on a fresh settlement every suggestion measurably helps its own corner
+        assert item["net_gain"] > 0  # on a fresh settlement every suggestion measurably helps its own corner
         assert item["quality"] in ("sound", "narrow", "empty")
         assert adv.claim_text(item)
     teodor = next(a for a in record["advice"] if a["id"] == "teodor")
-    assert teodor["action"] == {"type": "build", "building": "shelter"} and teodor["gain"] == pytest.approx(4.0)
+    assert teodor["action"] == {"type": "build", "building": "shelter"} and teodor["net_gain"] == pytest.approx(4.0)
 
 
 def test_issuing_never_changes_the_real_state():
@@ -80,8 +80,8 @@ def test_the_claimed_gain_is_what_the_season_really_does():
     without = copy.deepcopy(state)
     with_it.advance_season(effects)
     without.advance_season(effects)
-    assert marit["gain"] == pytest.approx(with_it.resources["food"] - without.resources["food"])
-    assert marit["score_effect"] == pytest.approx(
+    assert marit["net_gain"] == pytest.approx(with_it.resources["food"] - without.resources["food"])
+    assert marit["score_delta"] == pytest.approx(
         sustainability.score(with_it, effects) - sustainability.score(without, effects))
 
 

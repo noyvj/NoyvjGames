@@ -1823,6 +1823,39 @@ body.screensaver-on #game, body.screensaver-on .section { backdrop-filter: none 
 .advisor-advice { font-weight: 600; }
 .advisor-card button { margin-top: 0.3rem; }
 
+/* --- Round 3 K-section, fourth group (2026-10-09): K-2 Dynasty, K-6 doctrines, K-17 rewind, K-20 banners,
+   K-15/K-28 citizens, K-7 neighbours. Light-theme rules follow in the same block. --- */
+.dynasty-panel[hidden], .doctrines-panel[hidden], .citizens-panel[hidden], .neighbours-panel[hidden],
+.citizen-spotlight[hidden] { display: none; }
+.dynasty-actions { display: flex; flex-wrap: wrap; gap: 0.5rem; margin: 0.4rem 0; }
+.dynasty-tree { margin: 0.6rem 0; }
+.banner-heading { margin: 0.8rem 0 0.2rem; font-size: 0.95rem; }
+.banner-row { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+.banner-card { display: flex; flex-direction: column; align-items: center; gap: 0.2rem; width: 8.2rem; padding: 0.4rem; border: 1px solid rgba(201, 147, 84, 0.45); border-radius: 6px; }
+.banner-card--locked { border-style: dashed; opacity: 0.85; }
+.banner-picture { min-height: 62px; display: flex; align-items: center; justify-content: center; }
+.banner-button { font-size: 0.78rem; padding: 0.3rem 0.4rem; width: 100%; }
+.banner-button[aria-pressed="true"] { border-width: 2px; }
+.banner-hint { font-size: 0.7rem; text-align: center; opacity: 0.9; }
+.doctrine-card, .citizen-card, .neighbour-card { border: 1px solid rgba(201, 147, 84, 0.45); border-radius: 6px; padding: 0.6rem 0.8rem; margin: 0.6rem 0; }
+.doctrine-name, .citizen-name, .neighbour-name { margin: 0 0 0.2rem; font-size: 1rem; }
+.doctrine-card button, .neighbour-card button { margin: 0.3rem 0.4rem 0 0; }
+.citizen-thread { margin: 0.1rem 0; }
+.citizen-spotlight { margin: 0.4rem 0; padding: 0.5rem 0.7rem; border-left: 4px solid #e0b374; background: rgba(201, 147, 84, 0.1); font-style: italic; }
+.neighbours-map svg { width: 100%; max-width: 560px; height: auto; }
+.neighbours-bids { display: flex; flex-wrap: wrap; gap: 0.4rem; align-items: center; }
+.neighbours-bids .row-blurb { flex-basis: 100%; }
+.nb-road { stroke: #d9b98a; stroke-width: 1.6; }
+.nb-road--cold { stroke-dasharray: 5 4; }
+.nb-town { fill: rgba(201, 147, 84, 0.18); stroke: #e0b374; stroke-width: 2; }
+.nb-home { fill: rgba(224, 179, 116, 0.5); stroke: #e0b374; stroke-width: 2; }
+.nb-site { fill: none; stroke: #d9b98a; stroke-width: 2; stroke-dasharray: 3 3; }
+.nb-site--yours { fill: rgba(224, 179, 116, 0.55); stroke-dasharray: none; }
+.nb-site--rival { fill: rgba(217, 185, 138, 0.2); stroke-dasharray: none; }
+.rewind-button { margin: 0.3rem 0; }
+.archive-flair { display: flex; align-items: center; gap: 0.5rem; margin-top: 0.3rem; flex-wrap: wrap; }
+.archive-flair-picture { display: inline-flex; align-items: center; gap: 0.4rem; }
+
 /* ==========================================================================
    Light theme (Y11b, 2026-09-27). shared/theme-light-games.css already
    restyles the common chrome (page, #game shell, .section panels, buttons,
@@ -2047,3 +2080,12 @@ html[data-theme="light"] .tl-pin--research { fill: #1f4fa3; }
 html[data-theme="light"] .tl-pin--build { fill: #7a4a12; }
 html[data-theme="light"] .tl-pin--note { fill: #ffffff; stroke: #1b2033; }
 html[data-theme="light"] .advisor-card { border-color: rgba(122, 74, 18, 0.55); background: rgba(255, 255, 255, 0.6); }
+html[data-theme="light"] .banner-card, html[data-theme="light"] .doctrine-card,
+html[data-theme="light"] .citizen-card, html[data-theme="light"] .neighbour-card { border-color: rgba(122, 74, 18, 0.55); background: rgba(255, 255, 255, 0.6); }
+html[data-theme="light"] .banner-hint { color: #3d2a08; }
+html[data-theme="light"] .citizen-spotlight { border-left-color: #7a4a12; background: rgba(168, 105, 31, 0.1); color: #2a1c08; }
+html[data-theme="light"] .nb-road { stroke: #5c3a0a; }
+html[data-theme="light"] .nb-town, html[data-theme="light"] .nb-home { fill: rgba(168, 105, 31, 0.18); stroke: #7a4a12; }
+html[data-theme="light"] .nb-site { stroke: #5c3a0a; }
+html[data-theme="light"] .nb-site--yours { fill: rgba(168, 105, 31, 0.5); }
+html[data-theme="light"] .nb-site--rival { fill: rgba(122, 74, 18, 0.2); }

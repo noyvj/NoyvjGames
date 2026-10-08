@@ -461,6 +461,49 @@ SCENARIOS = {
         "land_health": 0.6,
         "knowledge": 6.0,
     },
+    # K-2: three more openings, each unlocked by a Dynasty perk (dynasty.py's
+    # SCENARIO_UNLOCKS; gated in game.py's UI only, so a save carrying one
+    # always loads). Like the Refuge they vary WHAT you start with rather than
+    # how much, and none is strictly better than Standard: a bigger band on
+    # thin stores, a food-rich valley short of timber, a small group that
+    # carries the elders' books.
+    "hardy": {
+        "label": "Hardier Tribe",
+        "blurb": (
+            "A bigger, tougher band fills every roof from the first day, but it arrives with "
+            "thin stores and a worked-over patch of ground. Feed them before you grow them."
+        ),
+        "population": 8,
+        "food": 14.0,
+        "materials": 12.0,
+        "tools": 1.0,
+        "land_health": 0.9,
+    },
+    "river": {
+        "label": "River Valley",
+        "blurb": (
+            "Fish and silt: the larder starts full and the land is at full health, "
+            "but there is little timber and almost no tools. Build before you coast."
+        ),
+        "population": 6,
+        "food": 30.0,
+        "materials": 12.0,
+        "tools": 1.0,
+        "land_health": 1.0,
+    },
+    "heirloom": {
+        "label": "Library Heirloom",
+        "blurb": (
+            "A small group that carries the elders' books: ten knowledge to spend on the first "
+            "discoveries, but fewer hands and lighter stores."
+        ),
+        "population": 5,
+        "food": 18.0,
+        "materials": 14.0,
+        "tools": 1.0,
+        "land_health": 1.0,
+        "knowledge": 10.0,
+    },
 }
 DEFAULT_SCENARIO = "standard"
 # O-8: the era a player must have reached (in any settlement, ever) to be
