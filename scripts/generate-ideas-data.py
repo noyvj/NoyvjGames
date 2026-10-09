@@ -32,7 +32,7 @@ ROUNDS = [
     {"id": "round-2", "title": "Round 2", "file": "IMPROVEMENT-IDEAS-ROUND-2.md", "answers_marker": r"^## [A-Z]{1,2}\s*$"},
 ]
 
-QUESTION_HEADING = re.compile(r"^## ([A-Z]{1,2})\. (.+?)\s*$")
+QUESTION_HEADING = re.compile(r"^## ([A-Z]{1,3})\. (.+?)\s*$")
 ITEM = re.compile(r"^(\d+)\. (.*)$")
 TAG = re.compile(r"^\*\*\[(BIG|SMALL)\]\*\*\s*")
 # Round 3 answers: "### GB — Canopy (gamified)"; round 2 answers: "## A"
