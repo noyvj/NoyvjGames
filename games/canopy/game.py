@@ -13,6 +13,7 @@ import math
 import time
 
 import info_page
+import seed as seed_lib
 import skill_tree
 from js import document, setInterval, setTimeout
 from pyodide.ffi import create_proxy
@@ -66,7 +67,7 @@ current_difficulty = DIFFICULTY_NORMAL
 
 
 def current_degrade_per_clear():
-    return DEGRADE_PER_CLEAR_BY_DIFFICULTY.get(current_difficulty, DEGRADE_PER_CLEAR) * vault_soil_factor() * lab["soil"]  # GB-10: Soil perks; B-5: Forest Lab
+    return DEGRADE_PER_CLEAR_BY_DIFFICULTY.get(current_difficulty, DEGRADE_PER_CLEAR) * vault_soil_factor() * expedition_soil_factor() * lab["soil"]  # GB-10: Soil perks; GB-3: Expedition soil upgrade; B-5: Forest Lab
 
 
 # How many ticks a replanted plot spends in REPLANTING before it
@@ -442,6 +443,7 @@ class Plot:
         delta *= current_perfect_streak_multiplier()  # GB-30: Perfect Season flame
         delta *= carbon_slump_multiplier()  # GB-29: the dip after selling credits
         delta *= vault_growth_multiplier()  # GB-10: Seed Vault Roots perks (1.0 with none)
+        delta *= expedition_growth_multiplier(self)  # GB-3: the Expedition's map terrain and Growth upgrades (1.0 outside one)
         if self.tend_ticks_left > 0:  # GB-4: a Tended plot grows faster for a few ticks
             delta *= TEND_GROWTH_MULTIPLIER
         if self.specialization == SPECIALIZATION_ECONOMIC:
@@ -511,7 +513,7 @@ class Plot:
         if self.region == "main" and self.index in rival_claims:  # GB-12: a mining claim cannot be planted
             return False
         self.state = REPLANTING
-        base_ticks = PARTNER_RECOVERY_TICKS if partner else max(1, RECOVERY_TICKS - vault_recovery_ticks_saved())  # GB-10: Fast Sprouts
+        base_ticks = PARTNER_RECOVERY_TICKS if partner else max(1, RECOVERY_TICKS - vault_recovery_ticks_saved() - expedition_recovery_ticks_saved())  # GB-10: Fast Sprouts; GB-3: Nursery
         self.species = species if species in SPECIES and species != SPECIES_STANDARD else None  # GB-6
         if self.region == "main" and mature_neighbour_count(self):  # GB-5: a mature neighbour shelters the seedling
             base_ticks = max(1, int(round(base_ticks * SYNERGY_REPLANT_FACTOR)))
@@ -900,9 +902,10 @@ _challenge_record_cache = None  # GB-17: per-browser fastest-completion record, 
 # built component, elsewhere in this file.
 _KEEP_LAYOUT = object()  # reset_session(layout=...) default: keep the running layout (a setting that would clash drops it)
 _KEEP_LEVEL = object()  # reset_session(level=...) default: keep the running level unless a setting is being changed
+_KEEP_EXPEDITION = object()  # reset_session(expedition=...) default: Reset retries the Expedition; changing a setting leaves it
 
 
-def reset_session(grid_size=None, _render_after=True, difficulty=None, challenge=None, pace=None, level=_KEEP_LEVEL, scenario=None, lab_values=None, layout=_KEEP_LAYOUT):
+def reset_session(grid_size=None, _render_after=True, difficulty=None, challenge=None, pace=None, level=_KEEP_LEVEL, scenario=None, lab_values=None, layout=_KEEP_LAYOUT, expedition=_KEEP_EXPEDITION):
     """Rebuilds every module-level mutable global back to its fresh-start
     default, optionally at a different GRID_SIZE_PRESETS key. Always
     rebuilds `plots` from scratch (even on a same-size reset) rather than
@@ -923,7 +926,7 @@ def reset_session(grid_size=None, _render_after=True, difficulty=None, challenge
     global wetland_flood_countdown, wetland_floods_survived, wetland_flood_value_lost
     global _wetland_plot_click_proxies
     global forest_log, forest_tick, adopted_plot_index, current_difficulty
-    global legacy_multiplier, current_challenge, current_pace, current_level, current_scenario, current_layout
+    global legacy_multiplier, current_challenge, current_pace, current_level, current_scenario, current_layout, current_expedition
 
     # B15: bank this (about-to-end) session's standing value for the next
     # session's legacy bonus, then reload the multiplier so the session
@@ -967,6 +970,17 @@ def reset_session(grid_size=None, _render_after=True, difficulty=None, challenge
         current_level = level
     elif grid_size is not None or difficulty is not None or challenge is not None or pace is not None or scenario is not None:
         current_level = None
+    # GB-3: Reset Session retries the running Expedition on the same seed (upgrades back to none); changing a setting by
+    # hand, starting a level or applying a layout leaves it; an explicit seed (start_expedition) starts a new one.
+    if expedition is not _KEEP_EXPEDITION:
+        current_expedition = None if expedition is None else _new_expedition_run(expedition)
+    elif current_expedition is not None:
+        settings_changed = (
+            grid_size is not None or difficulty is not None or challenge is not None or pace is not None
+            or scenario is not None or (level is not _KEEP_LEVEL and level is not None)
+            or (layout is not _KEEP_LAYOUT and layout is not None)
+        )
+        current_expedition = None if settings_changed else _new_expedition_run(current_expedition["seed"])
     GRID_ROWS, GRID_COLS = GRID_SIZE_PRESETS[current_grid_size]
     # B-29: a layout is for one grid size and one plain game mode. Choosing one clears any scenario, challenge or level;
     # choosing one of those, or another grid size, drops it. Everything else (difficulty, pace, Reset) keeps it.
@@ -1029,6 +1043,7 @@ def reset_session(grid_size=None, _render_after=True, difficulty=None, challenge
     _apply_challenge_start()  # GB-17: Scorched Start burns the plots just built
     _apply_scenario_start()  # B-11
     _burn_level_start()  # W-1: some levels begin with part of the forest bare
+    _apply_expedition_start()  # GB-3: the seed's map (rich and thin soil, a few bare plots)
 
     for proxy in _highland_plot_click_proxies.values():
         proxy.destroy()
@@ -2806,6 +2821,16 @@ def render_grid():
             soil_mark.setAttribute("aria-hidden", "true")
             tile.appendChild(soil_mark)
         tooltip = _plot_tooltip_text(plot)
+        terrain = expedition_terrain.get(plot.index) if current_expedition is not None else None
+        if terrain:  # GB-3: the map's soil, as a triangle mark and words (never colour alone)
+            tile.className += f" plot-terrain plot-terrain--{terrain}"
+            terrain_mark = _make_tile_mark("terrain-mark", EXPEDITION_TERRAIN_MARK[terrain])
+            terrain_mark.setAttribute("aria-hidden", "true")
+            tile.appendChild(terrain_mark)
+            tooltip += (
+                f" \u00b7 rich soil (Expedition map): grows {round((EXPEDITION_RICH_GROWTH - 1) * 100)}% faster" if terrain == "rich"
+                else f" \u00b7 thin soil (Expedition map): grows {round((1 - EXPEDITION_THIN_GROWTH) * 100)}% slower"
+            )
         if plot.index in fires:  # GB-1: a flame glyph and a solid outline, so fire never relies on colour
             tile.className += " plot-burning"
             fire_mark = _make_tile_mark("fire-mark", "\U0001F525")
@@ -4545,6 +4570,9 @@ ACHIEVEMENT_CHECKS = {
     # GB-21: the clear-cut and the Harvester playstyle badge it feeds.
     "quick_payout": lambda: clear_cuts_total >= 1,
     "harvester_badge": lambda: clear_cuts_total >= 1 and playstyle_badge() == BADGE_HARVESTER,
+    # GB-3: finish an Expedition (12 seasons), and finish them on two different seeds. Read from the per-browser records.
+    "expedition_complete": lambda: expedition_finished_count() >= 1,
+    "two_maps": lambda: len(expedition_meta["best"]) >= 2,
 }
 
 # Progress readouts, only for achievements with a natural numeric scale-up
@@ -5879,7 +5907,7 @@ def _advance_tend():
             active = True
             plot.tend_ticks_left -= 1
             if plot.tend_ticks_left == 0:
-                tend_cooldown_ticks = TEND_COOLDOWN_TICKS
+                tend_cooldown_ticks = expedition_tend_cooldown()  # GB-3: 20 ticks, 10 with the Expedition's Tend rhythm upgrade
     if not active and tend_cooldown_ticks > 0:
         tend_cooldown_ticks -= 1
 
@@ -6106,11 +6134,6 @@ def clear_cut_dip_fraction(plot):
     if ticks <= 0:
         return 0.0
     return CLEAR_CUT_DIP * min(ticks, CLEAR_CUT_HEAL_TICKS) / CLEAR_CUT_HEAL_TICKS
-
-
-def expedition_extra_heal():
-    """Placeholder until the Expedition section below redefines it (kept so the heal rate has one source)."""
-    return 0
 
 
 def _soil_heal_rate():
@@ -8026,7 +8049,7 @@ def vault_points_free():
 
 def vault_perks_active():
     """Perks and crews rest during a challenge run so those stay comparable."""
-    return current_challenge == CHALLENGE_NONE
+    return current_challenge == CHALLENGE_NONE and current_expedition is None  # GB-3: an Expedition has its own tree
 
 
 def vault_effects():
@@ -8252,7 +8275,7 @@ def render_vault():
     for element_id, text in (
         ("vault-summary", vault_summary_text()),
         ("vault-crews", vault_crews_text()),
-        ("vault-note", "" if vault_perks_active() else "Perks and crews rest during a challenge run, so those stay comparable."),
+        ("vault-note", "" if vault_perks_active() else "Perks and crews rest during a challenge run or an Expedition, so those stay comparable."),
     ):
         element = _el(element_id)
         if element is not None:
@@ -8292,6 +8315,7 @@ def _levels_state_fields():
             "best_ach": vault_meta["best_ach"],
             "crews": dict(crew_stats),
         }
+    out.update(_expedition_state_fields())  # GB-3
     if current_level is not None:
         run = {"id": current_level, "ticks": level_ticks, "done_tick": level_done_tick}
         if poacher_run:
@@ -8371,6 +8395,576 @@ def _load_level_mode_state(raw):
         spirit_run.update(step=step, said=int(_number_or(saved.get("said"), -1, -1, len(SPIRIT_STEPS))))
 
 
+# ===========================================================================
+# GB-3 (2026-10-10): the Expedition. A separate game mode (its own button and panel, not a level and not the base
+# game): 12 seasons (EXPEDITION_TICKS) on a map decided by a shareable seed, with fixed upgrades CHOSEN from a skill tree.
+# It is not a roguelike run: nothing is random during play, there are no random boons, nothing can be lost, and there is
+# no permadeath (no fail state; the run simply ends with a score). The seed (shared/seed.py, "CANOPY-K7F2Q") decides ONLY
+# the map: which plots are rich soil (+25% growth), which are thin (-20%) and which four start bare. The upgrade tree uses
+# the shared rules (shared/skill_tree.py, drawn by shared/skill-tree.js): 3 points at the start and one more each season,
+# free and unlimited to take back and re-spend. The Seed Vault's perks and crews rest during an Expedition so every run
+# on a seed is comparable. Leave Expedition goes back to normal play on the same forest; the save format only gains an
+# `expedition` key while one is running. See games/canopy/CLAUDE.md.
+# ===========================================================================
+
+SEED_GAME = "canopy"
+EXPEDITION_SEASONS = 12
+EXPEDITION_TICKS = EXPEDITION_SEASONS * SEASON_CYCLE_TICKS
+EXPEDITION_START_POINTS = 3
+EXPEDITION_MAX_POINTS = EXPEDITION_START_POINTS + EXPEDITION_SEASONS - 1  # a new point at the start of each season after the first
+EXPEDITION_RICH_PLOTS = 6
+EXPEDITION_THIN_PLOTS = 6
+EXPEDITION_BARE_PLOTS = 4
+EXPEDITION_RICH_GROWTH = 1.25
+EXPEDITION_THIN_GROWTH = 0.80
+EXPEDITION_GROWTH_BONUS = {"exp_growth_1": 0.06, "exp_growth_2": 0.08, "exp_growth_3": 0.10}
+EXPEDITION_SOIL_FACTOR = 0.75  # soil lost per clear
+EXPEDITION_NURSERY_TICKS_SAVED = 3
+EXPEDITION_PAYOUT_BONUS = 0.15  # manual clears and clear-cuts
+EXPEDITION_TEND_COOLDOWN = 10
+EXPEDITION_STORAGE_KEY = "canopy_expedition_v1"
+EXPEDITION_BEST_MAX_SEEDS = 40
+EXPEDITION_TERRAIN_MARK = {"rich": "▲", "thin": "▽"}
+EXPEDITION_TREE = {
+    "id": "expedition",
+    "title": "Expedition upgrades",
+    "currency": "upgrade points",
+    "branches": [
+        {"id": "growth", "title": "Growth", "blurb": "Standing plots grow faster."},
+        {"id": "soil", "title": "Soil and recovery", "blurb": "Clearing hurts less, replanting is quicker, clear-cuts heal sooner."},
+        {"id": "trade", "title": "Trade and tending", "blurb": "Harvest for more, tend more often."},
+    ],
+    "nodes": [
+        {"id": "sun_terraces", "branch": "growth", "cost": 1, "label": "Sun Terraces",
+         "description": "Standing plots grow 6% faster.", "effect": "exp_growth_1"},
+        {"id": "mycelium_net", "branch": "growth", "cost": 2, "label": "Mycelium Net",
+         "description": "Another 8% faster growth.", "requires": ["sun_terraces"], "effect": "exp_growth_2"},
+        {"id": "old_roots", "branch": "growth", "cost": 3, "label": "Old Roots",
+         "description": "Another 10% faster growth.", "requires": ["mycelium_net"], "effect": "exp_growth_3"},
+        {"id": "terraced_soil", "branch": "soil", "cost": 1, "label": "Terraced Soil",
+         "description": "Each clear costs a plot's soil 25% less.", "effect": "exp_soil"},
+        {"id": "quick_nursery", "branch": "soil", "cost": 2, "label": "Quick Nursery",
+         "description": "Replanted plots recover 3 ticks sooner.", "requires": ["terraced_soil"], "effect": "exp_nursery"},
+        {"id": "soil_salve", "branch": "soil", "cost": 2, "label": "Soil Salve",
+         "description": "The soil dip left by a clear-cut heals twice as fast.", "requires": ["terraced_soil"], "effect": "exp_salve"},
+        {"id": "trade_route", "branch": "trade", "cost": 2, "label": "Trade Route",
+         "description": "Clears and clear-cuts you make pay 15% more.", "effect": "exp_trade"},
+        {"id": "tend_rhythm", "branch": "trade", "cost": 2, "label": "Tend Rhythm",
+         "description": "Tend is ready again after 10 ticks instead of 20.", "effect": "exp_tend"},
+    ],
+}
+
+# The running Expedition: None, or {"seed", "owned": [node ids], "done_tick": int | None, "score": int | None}.
+current_expedition = None
+expedition_terrain = {}  # plot index -> "rich" | "thin" (main forest, derived from the seed, never saved)
+expedition_meta = {"best": {}, "finished": 0, "last_seed": ""}  # per browser: best score per seed, runs finished
+expedition_open = False
+_expedition_view = None
+_expedition_proxies = []
+_expedition_effect_cache = {}
+_expedition_message = ""
+_expedition_shown_seed = None
+
+
+def new_expedition_seed():
+    """A fresh seed from the operating system's entropy (shared/seed.py), the one place the game draws on chance: it only
+    decides the map, never anything during play. Tests replace this function to fix the seed."""
+    return seed_lib.new_seed(SEED_GAME)
+
+
+def _new_expedition_run(seed_text):
+    return {"seed": seed_text, "owned": [], "done_tick": None, "score": None}
+
+
+def expedition_map(seed_text):
+    """(rich, thin, bare) plot indices of the normal grid for a seed: sorted lists, 6 + 6 + 4 distinct plots drawn
+    from the seed's own "map" stream, so the same seed always gives the same map in Python and in JavaScript."""
+    plot_count = GRID_SIZE_PRESETS["normal"][0] * GRID_SIZE_PRESETS["normal"][1]
+    picks = seed_lib.Rng(seed_text).fork("map").sample(range(plot_count), EXPEDITION_RICH_PLOTS + EXPEDITION_THIN_PLOTS + EXPEDITION_BARE_PLOTS)
+    rich = sorted(picks[:EXPEDITION_RICH_PLOTS])
+    thin = sorted(picks[EXPEDITION_RICH_PLOTS:EXPEDITION_RICH_PLOTS + EXPEDITION_THIN_PLOTS])
+    bare = sorted(picks[EXPEDITION_RICH_PLOTS + EXPEDITION_THIN_PLOTS:])
+    return rich, thin, bare
+
+
+def _rebuild_expedition_terrain():
+    expedition_terrain.clear()
+    _expedition_effect_cache.clear()
+    if current_expedition is None:
+        return
+    rich, thin, _bare = expedition_map(current_expedition["seed"])
+    expedition_terrain.update({i: "rich" for i in rich})
+    expedition_terrain.update({i: "thin" for i in thin})
+
+
+def _apply_expedition_start():
+    """Called by reset_session(): the seed's map, and its bare plots (soil untouched, no clear counted)."""
+    _rebuild_expedition_terrain()
+    if current_expedition is None:
+        return
+    for index in expedition_map(current_expedition["seed"])[2]:
+        plot = plots[index]
+        plot.state = BARE
+        plot.value = 0.0
+        plot.ticks_intact = 0
+        plot.biodiversity = 0.0
+
+
+def expedition_effects():
+    if current_expedition is None or not current_expedition["owned"]:
+        return frozenset()
+    key = tuple(current_expedition["owned"])
+    cached = _expedition_effect_cache.get(key)
+    if cached is None:
+        cached = frozenset(skill_tree.effects(EXPEDITION_TREE, current_expedition["owned"]))
+        _expedition_effect_cache.clear()
+        _expedition_effect_cache[key] = cached
+    return cached
+
+
+def expedition_growth_multiplier(plot):
+    """Terrain (main forest only) times the Growth upgrades; exactly 1.0 outside an Expedition."""
+    if current_expedition is None:
+        return 1.0
+    effects = expedition_effects()
+    multiplier = 1.0 + sum(bonus for effect, bonus in EXPEDITION_GROWTH_BONUS.items() if effect in effects)
+    if plot.region == "main":
+        kind = expedition_terrain.get(plot.index)
+        if kind == "rich":
+            multiplier *= EXPEDITION_RICH_GROWTH
+        elif kind == "thin":
+            multiplier *= EXPEDITION_THIN_GROWTH
+    return multiplier
+
+
+def expedition_soil_factor():
+    return EXPEDITION_SOIL_FACTOR if "exp_soil" in expedition_effects() else 1.0
+
+
+def expedition_recovery_ticks_saved():
+    return EXPEDITION_NURSERY_TICKS_SAVED if "exp_nursery" in expedition_effects() else 0
+
+
+def expedition_extra_heal():
+    return 1 if "exp_salve" in expedition_effects() else 0
+
+
+def expedition_payout_multiplier():
+    return 1.0 + EXPEDITION_PAYOUT_BONUS if "exp_trade" in expedition_effects() else 1.0
+
+
+def expedition_tend_cooldown():
+    return EXPEDITION_TEND_COOLDOWN if "exp_tend" in expedition_effects() else TEND_COOLDOWN_TICKS
+
+
+def expedition_season():
+    return min(EXPEDITION_SEASONS, forest_tick // SEASON_CYCLE_TICKS + 1)
+
+
+def expedition_points_earned():
+    if current_expedition is None:
+        return 0
+    return min(EXPEDITION_MAX_POINTS, EXPEDITION_START_POINTS + forest_tick // SEASON_CYCLE_TICKS)
+
+
+def expedition_points_free():
+    if current_expedition is None:
+        return 0
+    return skill_tree.points_left(EXPEDITION_TREE, current_expedition["owned"], expedition_points_earned())
+
+
+def expedition_score():
+    """Standing forest value plus harvested income, rounded: the one number to compare on a seed."""
+    return int(round(standing_forest_value() + total_income))
+
+
+def expedition_finished():
+    return current_expedition is not None and current_expedition["done_tick"] is not None
+
+
+def expedition_finished_count():
+    return int(expedition_meta["finished"])
+
+
+def expedition_best_for(seed_text):
+    return expedition_meta["best"].get(seed_text)
+
+
+def _save_expedition_meta():
+    blob = {"best": dict(expedition_meta["best"]), "finished": expedition_meta["finished"], "last_seed": expedition_meta["last_seed"]}
+    _write_local_storage_item(EXPEDITION_STORAGE_KEY, json.dumps(blob))
+
+
+def _load_expedition_meta():
+    """This browser's Expedition records at start-up; anything malformed simply means none."""
+    expedition_meta["best"] = {}
+    expedition_meta["finished"] = 0
+    expedition_meta["last_seed"] = ""
+    raw = _read_local_storage_item(EXPEDITION_STORAGE_KEY)
+    if not raw:
+        return
+    try:
+        blob = json.loads(raw)
+    except (ValueError, TypeError):
+        return
+    if not isinstance(blob, dict):
+        return
+    best = blob.get("best")
+    if isinstance(best, dict):
+        for key, score in best.items():
+            if isinstance(key, str) and seed_lib.is_valid(key, SEED_GAME) and seed_lib.normalize(key, SEED_GAME) == key:
+                value = _number_or(score, None, 0, 10 ** 9)
+                if value is not None and len(expedition_meta["best"]) < EXPEDITION_BEST_MAX_SEEDS:
+                    expedition_meta["best"][key] = int(value)
+    expedition_meta["finished"] = int(_number_or(blob.get("finished"), 0, 0, 10 ** 6))
+    last = blob.get("last_seed")
+    if isinstance(last, str) and seed_lib.is_valid(last, SEED_GAME):
+        expedition_meta["last_seed"] = seed_lib.normalize(last, SEED_GAME)
+
+
+def _expedition_settings_ok():
+    """An Expedition only exists on the plain game: normal grid, normal difficulty and pace, no challenge, scenario,
+    level or custom layout."""
+    return (
+        current_grid_size == "normal" and current_difficulty == DIFFICULTY_NORMAL and current_challenge == CHALLENGE_NONE
+        and current_pace == PACE_NORMAL and current_scenario == SCENARIO_NONE and current_level is None and current_layout is None
+    )
+
+
+def start_expedition(seed_text=None):
+    """Starts an Expedition on a seed (a fresh one when none is given): a new forest with the seed's map. Returns the
+    seed, or None when the text is not a valid Canopy seed (the panel says why)."""
+    global _expedition_message
+    if seed_text is None or not str(seed_text).strip():
+        seed_text = new_expedition_seed()
+    check = seed_lib.validate(str(seed_text), SEED_GAME)
+    if not check["ok"]:
+        _expedition_message = check["message"]
+        render_expedition()
+        return None
+    seed_text = check["seed"]
+    started = reset_session(
+        grid_size="normal", difficulty=DIFFICULTY_NORMAL, challenge=CHALLENGE_NONE, pace=PACE_NORMAL,
+        scenario=SCENARIO_NONE, level=None, layout=None, expedition=seed_text, _render_after=False,
+    )
+    if not started:
+        return None
+    expedition_meta["last_seed"] = seed_text
+    _save_expedition_meta()
+    _expedition_message = ""
+    best = expedition_best_for(seed_text)
+    _log_event("expedition", f"Expedition {seed_text} started: {EXPEDITION_SEASONS} seasons" + (f" (your best here: {best})" if best is not None else ""), None)
+    render()
+    return seed_text
+
+
+def on_leave_expedition(event=None):
+    """Back to normal play: the forest stays exactly as it is, the map's terrain and the upgrades stop."""
+    global current_expedition
+    if current_expedition is None:
+        return False
+    seed_text = current_expedition["seed"]
+    current_expedition = None
+    _rebuild_expedition_terrain()
+    _log_event("expedition", f"Left Expedition {seed_text}: normal play on the same forest", None)
+    render()
+    return True
+
+
+def buy_expedition_node(node_id):
+    if current_expedition is None:
+        return {"ok": False, "reason": "none"}
+    result = skill_tree.buy(EXPEDITION_TREE, current_expedition["owned"], node_id, expedition_points_earned())
+    if result["ok"]:
+        current_expedition["owned"] = list(result["owned"])
+        _expedition_effect_cache.clear()
+        label = next(n["label"] for n in EXPEDITION_TREE["nodes"] if n["id"] == node_id)
+        _log_event("expedition", f"Expedition upgrade: {label}", None)
+        render()
+    return result
+
+
+def refund_expedition_node(node_id):
+    if current_expedition is None:
+        return {"ok": False, "reason": "none"}
+    result = skill_tree.refund(EXPEDITION_TREE, current_expedition["owned"], node_id)
+    if result["ok"]:
+        current_expedition["owned"] = list(result["owned"])
+        _expedition_effect_cache.clear()
+        render()
+    return result
+
+
+def refund_all_expedition():
+    if current_expedition is None:
+        return {"ok": False, "reason": "none"}
+    result = skill_tree.refund_all(EXPEDITION_TREE, current_expedition["owned"])
+    current_expedition["owned"] = list(result["owned"])
+    _expedition_effect_cache.clear()
+    render()
+    return result
+
+
+def _finish_expedition():
+    """The twelfth season is over: record the score, say so, and let play go on until the player leaves."""
+    score = expedition_score()
+    seed_text = current_expedition["seed"]
+    current_expedition["done_tick"] = forest_tick
+    current_expedition["score"] = score
+    previous = expedition_meta["best"].get(seed_text)
+    new_best = previous is None or score > previous
+    if new_best:
+        expedition_meta["best"].pop(seed_text, None)
+        expedition_meta["best"][seed_text] = score
+        while len(expedition_meta["best"]) > EXPEDITION_BEST_MAX_SEEDS:
+            expedition_meta["best"].pop(next(iter(expedition_meta["best"])))
+    expedition_meta["finished"] += 1
+    _save_expedition_meta()
+    note = "a new best on this seed" if new_best and previous is not None else (f"your best here is {previous}" if previous is not None else "your first run on this seed")
+    _log_event("expedition", f"Expedition {seed_text} complete: score {score} ({note})", None)
+    _gb_toast(f"\U0001F9ED Expedition complete: score {score} ({note}). Keep playing, or leave from the Expedition panel")
+
+
+def _advance_expedition():
+    """On the tick: a new upgrade point at each season start, and the finish after season 12."""
+    if current_expedition is None or current_expedition["done_tick"] is not None:
+        return
+    if forest_tick >= EXPEDITION_TICKS:
+        _finish_expedition()
+    elif forest_tick > 0 and forest_tick % SEASON_CYCLE_TICKS == 0:
+        text = f"Expedition: season {expedition_season()} of {EXPEDITION_SEASONS} begins. +1 upgrade point ({expedition_points_free()} to spend)"
+        _gb_toast("\U0001F9ED " + text)
+        _announce(text)
+
+
+def expedition_map_text():
+    if current_expedition is None:
+        return ""
+    return (
+        f"Map for {current_expedition['seed']}: {EXPEDITION_TERRAIN_MARK['rich']} {EXPEDITION_RICH_PLOTS} rich-soil plots "
+        f"(+{round((EXPEDITION_RICH_GROWTH - 1) * 100)}% growth), {EXPEDITION_TERRAIN_MARK['thin']} {EXPEDITION_THIN_PLOTS} thin-soil plots "
+        f"(-{round((1 - EXPEDITION_THIN_GROWTH) * 100)}% growth), and {EXPEDITION_BARE_PLOTS} plots start bare."
+    )
+
+
+def expedition_status_text():
+    if current_expedition is None:
+        return ""
+    seed_text = current_expedition["seed"]
+    if current_expedition["done_tick"] is not None:
+        best = expedition_best_for(seed_text)
+        return f"Expedition {seed_text} complete: score {current_expedition['score']} (best on this seed {best}). Leave it from the Expedition panel when you like."
+    to_next = SEASON_CYCLE_TICKS - forest_tick % SEASON_CYCLE_TICKS
+    return (
+        f"Expedition {seed_text}: season {expedition_season()} of {EXPEDITION_SEASONS}"
+        + ("" if expedition_season() >= EXPEDITION_SEASONS else f" ({to_next} ticks to the next)")
+        + f". {expedition_points_free()} upgrade point{'s' if expedition_points_free() != 1 else ''} to spend."
+    )
+
+
+def on_toggle_expedition(event=None):
+    global expedition_open
+    expedition_open = not expedition_open
+    render_expedition()
+
+
+def on_expedition_new_seed(event=None):
+    global _expedition_message
+    field = _el("expedition-seed-input")
+    seed_text = new_expedition_seed()
+    if field is not None:
+        field.value = seed_text
+    _expedition_message = f"New seed {seed_text}. Press Start Expedition to play it."
+    render_expedition()
+
+
+def on_expedition_copy(event=None):
+    global _expedition_message
+    field = _el("expedition-seed-input")
+    text = current_expedition["seed"] if current_expedition is not None else (getattr(field, "value", "") if field is not None else "")
+    window = _js_window()
+    clipboard = getattr(getattr(window, "navigator", None), "clipboard", None) if window is not None else None
+    copied = False
+    if clipboard is not None and text:
+        try:
+            clipboard.writeText(text)
+            copied = True
+        except Exception:  # noqa: BLE001 -- a blocked clipboard just means the player copies by hand
+            copied = False
+    _expedition_message = f"Copied {text}." if copied else (f"Seed: {text} (select it and copy by hand)." if text else "No seed to copy yet.")
+    render_expedition()
+
+
+def on_expedition_start(event=None):
+    """Start Expedition: reads the seed box (an empty box means a fresh seed), asks first when a forest would be given up."""
+    global _expedition_message
+    field = _el("expedition-seed-input")
+    raw = getattr(field, "value", "") if field is not None else ""
+    if raw and str(raw).strip():
+        check = seed_lib.validate(str(raw), SEED_GAME)
+        if not check["ok"]:
+            _expedition_message = check["message"]
+            render_expedition()
+            return
+        seed_text = check["seed"]
+    else:
+        seed_text = new_expedition_seed()
+    if field is not None:
+        field.value = seed_text
+    if standing_forest_value() <= 0 and total_income <= 0:
+        start_expedition(seed_text)
+        return
+    _confirm_dialog_ask(
+        "canopy-expedition-start",
+        f"Start Expedition {seed_text}? It begins a new forest, so you will give up {standing_forest_value():.1f} standing value"
+        f" and {total_income:.1f} income. Saves you have already made are not touched, and you can leave the Expedition for normal play at any time.",
+        "Start Expedition",
+        lambda: start_expedition(seed_text),
+    )
+
+
+def _expedition_callbacks():
+    if _expedition_proxies:
+        return _expedition_proxies
+    _expedition_proxies.extend([
+        create_proxy(lambda node_id, node=None: buy_expedition_node(str(node_id))),
+        create_proxy(lambda node_id, node=None: refund_expedition_node(str(node_id))),
+        create_proxy(lambda: refund_all_expedition()),
+    ])
+    return _expedition_proxies
+
+
+def _render_expedition_tree():
+    global _expedition_view
+    container = _el("expedition-tree")
+    if container is None:
+        return
+    container.hidden = current_expedition is None
+    if current_expedition is None:
+        return
+    window = _js_window()
+    skill_view = getattr(window, "NoyvjSkillTree", None) if window is not None else None
+    if skill_view is None:
+        return
+    earned = expedition_points_earned()
+    if _expedition_view is None:
+        buy, refund, refund_all = _expedition_callbacks()
+        options = _to_js({
+            "tree": EXPEDITION_TREE, "owned": list(current_expedition["owned"]), "earned": earned, "refundNodes": True,
+            "onBuy": buy, "onRefund": refund, "onRefundAll": refund_all,
+        })
+        if options is not None:
+            _expedition_view = skill_view.render(container, options)
+        return
+    update = _to_js({"owned": list(current_expedition["owned"]), "earned": earned})
+    if update is not None:
+        _expedition_view.update(update)
+
+
+def render_expedition():
+    global _expedition_shown_seed
+    toggle = _el("expedition-toggle-button")
+    panel = _el("expedition-panel")
+    status = _el("expedition-status")
+    if status is not None:
+        text = expedition_status_text()
+        status.innerText = text
+        status.hidden = not text
+    if toggle is not None:
+        if expedition_open:
+            toggle.innerText = "Hide Expedition"
+        elif current_expedition is not None and not expedition_finished():
+            toggle.innerText = f"\U0001F9ED Expedition ({expedition_season()}/{EXPEDITION_SEASONS})"
+        else:
+            toggle.innerText = "\U0001F9ED Expedition"
+    if panel is None:
+        return
+    panel.hidden = not expedition_open
+    if not expedition_open:
+        return
+    field = _el("expedition-seed-input")
+    if field is not None:
+        shown = current_expedition["seed"] if current_expedition is not None else expedition_meta["last_seed"]
+        if shown != _expedition_shown_seed:  # a seed the player is typing is never overwritten by a re-render
+            _expedition_shown_seed = shown
+            if shown:
+                field.value = shown
+    leave = _el("expedition-leave-button")
+    if leave is not None:
+        leave.disabled = current_expedition is None
+    start = _el("expedition-start-button")
+    if start is not None:
+        start.innerText = "Retry this seed" if current_expedition is not None and (field is None or getattr(field, "value", "") in ("", current_expedition["seed"])) else "Start Expedition"
+    for element_id, text in (
+        ("expedition-seed-message", _expedition_message),
+        ("expedition-summary", expedition_summary_text()),
+        ("expedition-map-note", expedition_map_text()),
+        ("expedition-result", expedition_result_text()),
+        ("expedition-bests", expedition_bests_text()),
+    ):
+        element = _el(element_id)
+        if element is not None:
+            element.innerText = text
+    _render_expedition_tree()
+
+
+def expedition_summary_text():
+    if current_expedition is None:
+        return ("No Expedition running. Press New seed (or type one a friend shared) and Start Expedition. "
+                "You get 3 upgrade points at the start and 1 more every season, 14 in all, and the whole tree costs more than that, so the build is your choice.")
+    totals = skill_tree.totals(EXPEDITION_TREE, current_expedition["owned"], expedition_points_earned())
+    return (
+        f"Season {expedition_season()} of {EXPEDITION_SEASONS}. {expedition_points_free()} upgrade points to spend ({expedition_points_earned()} earned so far). "
+        f"{totals['owned_count']} of {totals['node_count']} upgrades owned. Taking an upgrade back is free."
+    )
+
+
+def expedition_result_text():
+    if not expedition_finished():
+        return ""
+    return f"Complete: score {current_expedition['score']} (standing forest value plus harvested income). Leave the Expedition for normal play, or keep going on this forest."
+
+
+def expedition_bests_text():
+    best = expedition_meta["best"]
+    parts = [f"Expeditions finished on this device: {expedition_meta['finished']}."]
+    if current_expedition is not None and expedition_best_for(current_expedition["seed"]) is not None:
+        parts.append(f"Best on {current_expedition['seed']}: {expedition_best_for(current_expedition['seed'])}.")
+    elif best:
+        newest = list(best.items())[-3:]
+        parts.append("Recent bests: " + ", ".join(f"{seed_text} {score}" for seed_text, score in reversed(newest)) + ".")
+    return " ".join(parts)
+
+
+def _expedition_state_fields():
+    if current_expedition is None:
+        return {}
+    return {"expedition": {
+        "seed": current_expedition["seed"], "owned": list(current_expedition["owned"]),
+        "done_tick": current_expedition["done_tick"], "score": current_expedition["score"],
+    }}
+
+
+def _load_expedition(data):
+    """Validates and applies the `expedition` key: a save is authoritative, so no key (or a bad one) means no
+    Expedition. The map is rebuilt from the seed; owned upgrades are trimmed to the points this forest has earned."""
+    global current_expedition
+    current_expedition = None
+    raw = data.get("expedition")
+    if isinstance(raw, dict) and isinstance(raw.get("seed"), str) and _expedition_settings_ok():
+        check = seed_lib.validate(raw["seed"], SEED_GAME)
+        if check["ok"]:
+            run = _new_expedition_run(check["seed"])
+            current_expedition = run
+            run["owned"] = skill_tree.sanitize_owned(EXPEDITION_TREE, raw.get("owned"), expedition_points_earned(), overspend="trim")
+            done = _number_or(raw.get("done_tick"), None, EXPEDITION_TICKS)
+            if done is not None and forest_tick >= EXPEDITION_TICKS:
+                run["done_tick"] = int(min(done, forest_tick))
+                score = _number_or(raw.get("score"), None, 0, 10 ** 9)
+                run["score"] = int(score) if score is not None else expedition_score()
+    _rebuild_expedition_terrain()
+
+
 # --- per-tick hook and state -------------------------------------------------------------------------------------------
 
 def _gb_after_tick():
@@ -8380,6 +8974,7 @@ def _gb_after_tick():
     _advance_crews()  # GB-26: idle ranger crews (Seed Vault perks)
     _advance_undo()
     _advance_soil_dips()  # GB-21
+    _advance_expedition()  # GB-3
     _note_season_relations()
     _check_rare_wildlife()
     _check_heart_tree()
@@ -8513,6 +9108,7 @@ def _load_gb_state(data):
         season_min_relations = int(low) if low is not None else None
     _load_gb2_state(data)
     _load_levels(data)  # GB batch 3
+    _load_expedition(data)  # GB-3: after the grid, difficulty, pace, scenario, layout and level it depends on
     _sync_name_inputs()
 
 
@@ -8546,6 +9142,7 @@ def render():
     render_contracts()
     render_level_status()
     render_vault()
+    render_expedition()  # GB-3
     render_session_summary()
     render_highland_section()
     render_wetland_section()
@@ -8594,10 +9191,11 @@ def _manual_clear(cut):
     best_income_before = personal_best["income"]
     payout = plot.clear_cut() if cut else plot.clear()
     if payout is not None:
+        bonus = payout - payout / (1 + CLEAR_CUT_BONUS) if cut else 0.0
+        payout *= expedition_payout_multiplier()  # GB-3: the Expedition's Trade route upgrade (1.0 outside one)
         total_income += payout
         if cut:  # GB-21
             clear_cuts_total += 1
-            bonus = payout - payout / (1 + CLEAR_CUT_BONUS)
             _log_event(
                 "clear",
                 f"Clear-cut {_plot_ref(selected_index)} for {payout:.1f} income (+{bonus:.1f} bonus); its soil dips and heals over about {CLEAR_CUT_HEAL_TICKS // SEASON_CYCLE_TICKS} seasons",
@@ -10086,6 +10684,11 @@ def setup():
         ("almanac-toggle-button", "click", on_toggle_almanac),
         ("contracts-toggle-button", "click", on_toggle_contracts),
         ("vault-toggle-button", "click", on_toggle_vault),
+        ("expedition-toggle-button", "click", on_toggle_expedition),  # GB-3
+        ("expedition-new-seed-button", "click", on_expedition_new_seed),
+        ("expedition-copy-button", "click", on_expedition_copy),
+        ("expedition-start-button", "click", on_expedition_start),
+        ("expedition-leave-button", "click", on_leave_expedition),
         ("level-leave-button", "click", on_leave_level),
         ("forest-name-input", "change", on_forest_name_change),
         ("plot-nickname-input", "change", on_plot_nickname_change),
@@ -10109,6 +10712,7 @@ def setup():
         toast.hidden = True
     _fill_contract_board()  # GB-9: the module starts without a reset_session(), so seed the board here
     _load_meta()  # GB batch 3: this browser's level progress and Seed Vault
+    _load_expedition_meta()  # GB-3: this browser's Expedition bests
     _note_vault_progress(silent=True)
     _setup_levels_bridge()
     _start_tick_loop()

@@ -149,6 +149,16 @@
       "id": "harvester_badge",
       "label": "Harvester",
       "description": "Earn the Harvester playstyle badge (clears reach 0.6 per plot) with at least one clear-cut among them."
+    },
+    {
+      "id": "expedition_complete",
+      "label": "Twelve Seasons",
+      "description": "Finish an Expedition: twelve seasons on a seeded map with upgrades you chose."
+    },
+    {
+      "id": "two_maps",
+      "label": "Two Maps",
+      "description": "Finish Expeditions on two different seeds."
     }
   ]
 }

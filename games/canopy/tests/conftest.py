@@ -231,6 +231,21 @@ ELEMENT_IDS = [
     "level-status",
     "spirit-line",
     "level-leave-button",
+    # GB-3: the Expedition
+    "expedition-toggle-button",
+    "expedition-panel",
+    "expedition-status",
+    "expedition-seed-input",
+    "expedition-new-seed-button",
+    "expedition-copy-button",
+    "expedition-seed-message",
+    "expedition-start-button",
+    "expedition-leave-button",
+    "expedition-summary",
+    "expedition-map-note",
+    "expedition-tree",
+    "expedition-result",
+    "expedition-bests",
 ]
 
 # Buttons that carry the `disabled` attribute in index.html's initial markup

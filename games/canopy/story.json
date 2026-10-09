@@ -155,6 +155,16 @@
       "id": "harvester_badge",
       "title": "The harvester's name",
       "text": "By the end of the year people at the market had started calling you the harvester, not unkindly. You earned it plot by plot, and every plot you cut is still there, a little thinner each time, waiting for whoever plants next."
+    },
+    {
+      "id": "expedition_complete",
+      "title": "Twelve seasons out",
+      "text": "The survey party came back with a map, a ledger and very little to say. Twelve seasons on ground you had never seen: you chose your tools one at a time, and the land answered each of them. People at the mill asked what you would do differently. You said you would go again."
+    },
+    {
+      "id": "two_maps",
+      "title": "Second map",
+      "text": "The second valley looked nothing like the first, and the same habits still worked. You had learned which ground to trust, which to coax, and which to leave alone. Somebody pinned both maps side by side in the village hall."
     }
   ]
 }

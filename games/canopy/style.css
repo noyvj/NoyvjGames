@@ -2148,6 +2148,34 @@ html:not([data-level-effects="off"]) .level-box--spirit .spirit-line { animation
 .vault-note:empty { display: none; }
 .vault-tree { margin-top: 0.4rem; }
 
+/* GB-3: the Expedition panel and its map marks. The marks are triangles (up = rich, down = thin), never colour alone. */
+.expedition-seed-row, .expedition-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem; margin: 0 0 0.5rem; }
+.expedition-seed-input {
+  flex: 1 1 11rem;
+  min-width: 0;
+  padding: 0.4rem 0.6rem;
+  font: inherit;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: inherit;
+  background: rgba(4, 8, 5, 0.6);
+  border: 1px solid rgba(140, 160, 255, 0.35);
+  border-radius: 6px;
+}
+.expedition-seed-row button, .expedition-actions button { flex: 0 0 auto; min-width: 0; }
+.expedition-status { border-left: 3px solid #8fd1a0; }
+.terrain-mark {
+  position: absolute;
+  bottom: 1px;
+  left: 2px;
+  font-size: 0.6rem;
+  line-height: 1;
+  font-weight: 700;
+  color: #fff;
+  text-shadow: 0 0 2px #000, 0 0 3px #000;
+  pointer-events: none;
+}
+
 /* B-2: the legacy bonus as a small chip with a tooltip (title) naming its source and the +25% cap. */
 .legacy-chip {
   display: inline-block;
@@ -2525,3 +2553,7 @@ html[data-theme="light"] .vault-summary, html[data-theme="light"] .vault-crews, 
 
 /* GB-21 (light theme): the soil-dip chip stays dark with light text, so it reads on any tile. */
 html[data-theme="light"] .soil-dip-mark { background: rgba(60, 35, 10, 0.9); color: #ffe6bd; }
+
+/* GB-3 (light theme): the seed box and status line follow the page, the map marks keep their dark outline. */
+html[data-theme="light"] .expedition-seed-input { background: #ffffff; color: #1b2033; border-color: rgba(70, 95, 170, 0.45); }
+html[data-theme="light"] .expedition-status { border-left-color: #2e7d46; }

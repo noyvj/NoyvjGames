@@ -14,7 +14,7 @@ def _ids(entries):
 
 def test_catalog_loaded_and_nonempty(game_env):
     m = game_env.module
-    assert 5 <= len(m.ACHIEVEMENTS) <= 30
+    assert 5 <= len(m.ACHIEVEMENTS) <= 40
 
 
 def test_every_catalog_id_is_unique(game_env):

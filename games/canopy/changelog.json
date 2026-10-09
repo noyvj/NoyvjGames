@@ -2,6 +2,10 @@
   "changelog": [
     {
       "date": "2026-10-10",
+      "entry": "New: Expedition mode (the Expedition button, or the Menu on Desktop). A separate 12-season run (about 8 minutes at normal speed, 2 at 4x) on a map decided by a shareable seed such as CANOPY-K7F2Q. The seed only decides the map: 6 rich-soil plots (marked with an up triangle, +25% growth), 6 thin-soil plots (a down triangle, -20%) and 4 plots that start bare. You get 3 upgrade points at the start and one more every season, and spend them in a skill tree with three branches (Growth, Soil and recovery, Trade and tending). The whole tree costs more than you can earn, so the build is your choice, and taking an upgrade back is free. Nothing is random, nothing is lost and there is no way to fail: after season 12 you get a score (standing value plus income) and your best per seed is kept on this device. Leave Expedition returns to normal play on the same forest, and normal saves are unchanged. Seed Vault perks rest during an Expedition so runs stay comparable. Two new achievements: Twelve Seasons and Two Maps."
+    },
+    {
+      "date": "2026-10-10",
       "entry": "New: Clear-cut. Select a standing plot and press Clear-cut (or K) to bank 20% more income than a plain Clear. The price is a visible soil dip: the plot's growth drops by up to 30 points and heals in a straight line over about three seasons (120 ticks), whether the plot is bare, replanting or growing again. It carries a down-arrow mark, its tooltip and the soil readout say how long is left, and Undo takes it back. There are no dice. Clear-cuts count toward the Harvester playstyle badge, which now shows how many of your clears were clear-cuts, and there are two new achievements, Quick Payout and Harvester."
     },
     {

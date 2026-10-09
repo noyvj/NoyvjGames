@@ -116,6 +116,8 @@
       <button id="levels-open-button" class="secondary" type="button">🗺️ Levels</button>
       <!-- GB-10/GB-26: the Seed Vault skill tree (shared/skill-tree.js): perks and idle ranger crews bought with seed points. -->
       <button id="vault-toggle-button" class="secondary" type="button">🌰 Seed Vault</button>
+      <!-- GB-3: the Expedition, a separate 12-season mode on a seeded map with upgrades chosen from a skill tree. -->
+      <button id="expedition-toggle-button" class="secondary" type="button">🧭 Expedition</button>
       <!-- B1/B6/B18/B20: a player-triggered recap (stats, a sparkline of
            income vs. standing value over the session, a closing
            counterfactual line, and a shareable text snippet) -- same
@@ -341,6 +343,26 @@
       <p id="vault-note" class="vault-note"></p>
       <div id="vault-tree" class="vault-tree"></div>
     </div>
+    <!-- GB-3: the Expedition. The seed only decides the map; the upgrade tree is drawn by shared/skill-tree.js into #expedition-tree. -->
+    <div id="expedition-panel" class="section expedition-panel" hidden>
+      <p class="vault-summary">An Expedition is a 12-season run (about 8 minutes at normal speed) on a map decided by a seed. You choose upgrades from a skill tree as you go: 3 points at the start and one more every season. Nothing is random and nothing is lost: the seed only decides which plots are rich or thin soil and which start bare, taking an upgrade back is free, and there is no way to fail. Share the seed to compare scores on the same map. Seed Vault perks rest during an Expedition so every run stays comparable.</p>
+      <div class="expedition-seed-row">
+        <label for="expedition-seed-input">Seed</label>
+        <input id="expedition-seed-input" class="expedition-seed-input" type="text" maxlength="24" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="CANOPY-K7F2Q">
+        <button id="expedition-new-seed-button" class="secondary" type="button">New seed</button>
+        <button id="expedition-copy-button" class="secondary" type="button">Copy seed</button>
+      </div>
+      <p id="expedition-seed-message" class="vault-note" role="status" aria-live="polite"></p>
+      <div class="expedition-actions">
+        <button id="expedition-start-button" class="secondary" type="button">Start Expedition</button>
+        <button id="expedition-leave-button" class="secondary" type="button" disabled>Leave Expedition (normal play)</button>
+      </div>
+      <p id="expedition-summary" class="vault-summary"></p>
+      <p id="expedition-map-note" class="vault-note"></p>
+      <div id="expedition-tree" class="vault-tree" hidden></div>
+      <p id="expedition-result" class="vault-summary"></p>
+      <p id="expedition-bests" class="vault-note"></p>
+    </div>
     <div id="session-summary-panel" class="section session-summary-panel print-summary" hidden>
       <p id="session-summary-counterfactual" class="session-summary-counterfactual"></p>
       <div id="session-summary-sparkline" class="session-summary-sparkline"></div>
@@ -552,6 +574,7 @@
     <button type="button" id="away-chip" class="away-chip" hidden></button>
     <!-- GB-17: the active challenge, its goal and progress. -->
     <p id="challenge-status" class="challenge-status" role="status" hidden></p>
+    <p id="expedition-status" class="challenge-status expedition-status" role="status" hidden></p>
     <!-- W-1: the running level (goal and progress), a way back to free play, and the forest spirit's narration (GB-16). -->
     <div id="level-box" class="level-box" hidden>
       <p id="level-status" class="level-status" role="status"></p>
@@ -829,6 +852,9 @@
       // (GB-10/GB-26) validates, buys and refunds through it, so the page and the game never disagree.
       const skillTreeSource = await (await fetch("../../shared/skill_tree.py")).text();
       pyodide.FS.writeFile("skill_tree.py", skillTreeSource, { encoding: "utf8" });
+      // Shared seeded-run helper (shared/seed.py): the Expedition's seed (GB-3) only decides the map.
+      const seedSource = await (await fetch("../../shared/seed.py")).text();
+      pyodide.FS.writeFile("seed.py", seedSource, { encoding: "utf8" });
       // ACHIEVEMENTS-SYSTEM-DESIGN.md's loading contract: fetch the static
       // catalog and hand it to Python as a window global *before* game.py
       // runs, same pattern SOL's reference integration established.
@@ -1352,6 +1378,7 @@
         { toggle: "almanac-toggle-button", panel: "almanac-panel" },
         { toggle: "contracts-toggle-button", panel: "contracts-panel" },
         { toggle: "vault-toggle-button", panel: "vault-panel" },
+        { toggle: "expedition-toggle-button", panel: "expedition-panel" },
         { toggle: "session-summary-toggle-button", panel: "session-summary-panel" },
         { toggle: "info-page-toggle-button", panel: "info-page-panel" },
       ],
