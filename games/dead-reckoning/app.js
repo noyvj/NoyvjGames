@@ -3,7 +3,7 @@
    into chart coordinates, and pacing the playback of a track the engine already computed. */
 (function () {
   "use strict";
-  var ENGINE_MODULES = ["geom.py", "sim.py", "chartkit.py", "charts_open.py", "charts_wind.py", "charts_fixes.py", "charts_fog.py", "charts_tides.py", "charts_compass.py", "gen.py", "info.py", "pars.py", "charts.py", "render.py", "solver.py", "state.py", "progress.py", "fixes.py"];
+  var ENGINE_MODULES = ["geom.py", "sim.py", "chartkit.py", "charts_open.py", "charts_wind.py", "charts_fixes.py", "charts_fog.py", "charts_tides.py", "charts_compass.py", "gen.py", "info.py", "pars.py", "charts.py", "render.py", "solver.py", "state.py", "progress.py", "achievements.py", "fixes.py"];
   var STORE_KEY = "dead-reckoning:state";
 
   var $ = function (id) { return document.getElementById(id); };
@@ -118,7 +118,7 @@
   var toastTimer = 0;
   function showToast(text) {
     var toast = $("toast");
-    toast.textContent = text;
+    toast.textContent = toast.textContent && toast.textContent.indexOf(text) === -1 ? toast.textContent + " " + text : text;
     clearTimeout(toastTimer);
     toastTimer = setTimeout(function () { toast.textContent = ""; }, 7000);
   }
@@ -472,6 +472,32 @@
     } else if (playback.finished) renderResultExtras();
   }
 
+  var knownEarned = null;
+  function renderAchievements() {
+    var list = $("achievements-list");
+    list.textContent = "";
+    var earnedNow = [];
+    (view.achievements || []).forEach(function (a) {
+      var li = el("li", undefined, a.earned ? "earned" : "");
+      li.setAttribute("data-achievement-id", a.id);
+      li.appendChild(el("span", a.earned ? "Earned" : "Not yet", "tick"));
+      var name = el("strong", " " + a.label + " ");
+      name.setAttribute("data-achievement-label", "");
+      li.appendChild(name);
+      li.appendChild(el("span", a.description));
+      list.appendChild(li);
+      if (a.earned) earnedNow.push(a.id);
+    });
+    $("achievements-toggle-button").textContent = "Achievements (" + earnedNow.length + "/" + (view.achievements || []).length + ")";
+    if (knownEarned !== null) {
+      earnedNow.filter(function (id) { return knownEarned.indexOf(id) === -1; }).forEach(function (id) {
+        var a = view.achievements.filter(function (x) { return x.id === id; })[0];
+        showToast("Achievement unlocked: " + a.label + ".");
+      });
+    }
+    knownEarned = earnedNow;
+  }
+
   // ---- about, what's new ---------------------------------------------------------------------------
   function renderInfo() {
     var info = view.info;
@@ -551,6 +577,7 @@
   // ---- render --------------------------------------------------------------------------------------
   function render() {
     renderChart();
+    renderAchievements();
     renderInfo();
     renderPicker();
     renderPractice();
@@ -691,7 +718,7 @@
     if (window.MobileHud) window.MobileHud.init([{ selector: "#total-hours", label: "Hours" }, { selector: "#total-legs", label: "Legs" }]);
     if (window.MobileDock) window.MobileDock.init("#sail-dock");
     await changelog;
-    if (window.GameTutorial) window.GameTutorial.init(TUTORIAL_STEPS, { gameId: "dead-reckoning" });
+    if (window.GameTutorial) window.GameTutorial.init(window.deadReckoningTutorialSteps ? window.deadReckoningTutorialSteps(TUTORIAL_STEPS) : TUTORIAL_STEPS, { gameId: "dead-reckoning" });
   }
 
   wire();

@@ -29,6 +29,7 @@ Requests carry an `action`:
 
 import json
 
+import achievements
 import charts
 import fixes
 import gen
@@ -213,6 +214,7 @@ def _view():
     view["practice_levels"] = [{"difficulty": d, "name": gen.NAMES[d]} for d in gen.DIFFICULTIES]
     view["note"] = note
     view["info"] = info.view()
+    view["achievements"] = achievements.view(meta, _chapter_ids())
     return view
 
 
@@ -412,6 +414,10 @@ def _start_practice(request):
     return False
 
 
+def _chapter_ids():
+    return [[c["id"] for c in chapter["charts"]] for chapter in charts.CHAPTERS]
+
+
 def _progress():
     records = meta["charts"]
     total = len(charts.ORDER)
@@ -598,6 +604,10 @@ def get_state():
     m = state.meta_to_dict(meta)
     if m:
         data["meta"] = m
+    # A write-only projection for the hub's achievements dashboard, recomputed here and never read back.
+    earned = achievements.earned(meta, _chapter_ids())
+    if earned:
+        data["achievements_earned"] = earned
     if run is not None and (run["legs"] or run["phase"] != "plan"):
         data["run"] = state.run_to_dict(run)
     return data

@@ -62,6 +62,8 @@ def record_outcome(meta, chart, run, res, sc, scored=True, fix_taken=False):
             flags.add("fog_clear")
         if has_tide(chart) and (sc["tide_fair"] or 0.0) >= FAIR_STREAM_SHARE:
             flags.add("riding_tide")
+        if any(leg["speed"] <= 0 for leg in run["legs"]):
+            flags.add("waited")
         if distance > LONG_WAY_NM:
             flags.add("long_way")
         if sc["stars"] == 3 and not run["helpers"]:

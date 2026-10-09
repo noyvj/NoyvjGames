@@ -40,7 +40,7 @@ You are a ship's navigator with only speed, heading and time. Plot a course acro
 | 7 | Two ships | DEFERRED (plan recommendation, FOR-YOU Dr2: later pass) | Deferred |
 | 8 | Practice generator | `gen.py`: seeded chart generator in five difficulties (open water; a stream; wind and land; tides and compass; fog and everything), built by rejection and SOLVED on the way (visibility-graph route, shot leg by leg under the true sea, waiting for a fair tide), share codes `DR<level>-<base36 seed>`, practice charts counted in a visible total; solvability fuzz in `tests/test_gen.py` | Done |
 | 9 | Standard kit | Settings panel (text size, reduce motion, effects, high contrast, theme), What's New (`changelog.json`), About page (`info.py`: six facts, each reworded with its source named and the date read, plus the abstraction disclaimer), guided tutorial, keyboard help, Copy result, confirm dialogs, mobile dock and HUD, story toggle, light (paper chart) and dark (night chart) themes with computed contrast checks, colourblind and non-colour-cue checks | Done |
-| 10 | Achievements and own-folder wrap-up | Not started | Not started |
+| 10 | Achievements and own-folder wrap-up | 14 achievements (`achievements.py` + `achievements.json`, panel and toast, `achievements_earned` written to the save and never read back), favicon, Desktop boot (`pc-config.json`, `pc.css`, `pc.js`, generated `pc.html`), this file's tables, tag. The whole game can be 100%-ed with the par plans (tested) | Done |
 
 ## Working conventions
 - Commit + tag per milestone: `git commit -m "Milestone N: <name>"` then `git tag dead-reckoning-milestone-0N`.
@@ -73,3 +73,14 @@ You are a ship's navigator with only speed, heading and time. Plot a course acro
 - The About page facts (`info.py`) were each read live on 2026-10-09 from the page named (Wikipedia: Dead reckoning, Nautical mile, Chip log, Leeway, Magnetic declination, Marine chronometer) and reworded. The figures kept are the 1,852 metre nautical mile and the 1929 conference; the game says plainly it is an abstraction. No celestial navigation is simulated (FOR-YOU Dr3).
 - Accessibility checks are in `tests/test_accessibility.py`: AA contrast for every text pair and 3:1 for lines in both themes, dash and hatch cues, labels, live regions, the chart's text twin, and the standard shared includes.
 - Site feedback and rating live on the hub; the game page has no feedback form of its own.
+
+## Achievements (milestone 10)
+- 14, computed from the saved record (flags in `meta.flags`, per-chart stars, the practice total), never stored separately. The plan's "Two at Once" (a two-ship chart) waits for the deferred Two ships milestone, so **Patient Navigator** (lie at anchor for the tide, then make landfall) takes its place. `tests/test_achievements.py` plays every par plan, takes a fix, runs aground once and sails ten practice charts, and checks all 14 end up earned: easy to 100%.
+- "Trust the Numbers" needs three stars with no helper (naive, allow-for-the-chart or the par plan) used in that run.
+
+## Desktop boot
+- `pc.html` is generated: `python3 games/dead-reckoning/tools/build_pc.py` (this game only; the shared all-games generator is not run from here). The chart is the stage; the plan or the passage is the side column; Charts, Achievements, Captain's log, What's New, Settings and About are windows; three icons (Charts, Achievements, Settings) and the Menu hold the toolbar. `pc.js` is the Desktop tutorial. Same engine, same save.
+
+## Not built / deferred
+- Milestone 7 Two ships and Milestone 11 Daily Chart. Depth soundings (landmark fixes only). A drag dial for headings (numeric steppers and quick turns only). Celestial navigation (never planned, FOR-YOU Dr3).
+- Hub registration (M-5b-12) is deliberately not done: title card, `sw.js`, `offline-manifest.json`, `game-*.json`, share cards, root CLAUDE.md row, dev logs, the generated meta and JSON-LD blocks in `index.html`, `scripts/perf-budget.json`, `shared/site-settings.js` and the hub smoke tests.

@@ -1,0 +1,120 @@
+{
+  "windows": [
+    [
+      "picker-panel",
+      "picker-toggle-button",
+      "Charts"
+    ],
+    [
+      "achievements-panel",
+      "achievements-toggle-button",
+      "Achievements"
+    ],
+    [
+      "log-panel",
+      "log-toggle-button",
+      "Captain's log"
+    ],
+    [
+      "changelog-panel",
+      "changelog-toggle-button",
+      "What's New"
+    ],
+    [
+      "settings-panel",
+      "settings-toggle-button",
+      "Settings"
+    ],
+    [
+      "info-page-panel",
+      "info-page-toggle-button",
+      "About Dead Reckoning"
+    ]
+  ],
+  "toolbar": {
+    "icons": [
+      [
+        "picker-toggle-button",
+        "🗺️"
+      ],
+      [
+        "achievements-toggle-button",
+        "🏆"
+      ],
+      [
+        "settings-toggle-button",
+        "⚙️"
+      ]
+    ],
+    "menu": [
+      {
+        "heading": "Game",
+        "ids": []
+      },
+      {
+        "heading": "Help",
+        "ids": [
+          "tutorial-restart-button",
+          "info-page-toggle-button",
+          "credits-link"
+        ]
+      },
+      {
+        "heading": "Records",
+        "ids": [
+          "log-toggle-button",
+          "changelog-toggle-button"
+        ]
+      }
+    ]
+  },
+  "composites": [],
+  "adopt": [],
+  "zones": {
+    "topbar": [
+      ".hub-back-link",
+      "h1",
+      ".game-toolbar"
+    ],
+    "stagebar": [
+      "#chart-head",
+      "#toast",
+      "#engine-status"
+    ],
+    "stage": [
+      "#chart-panel"
+    ],
+    "side": [
+      "#planner-panel",
+      "#result-panel"
+    ],
+    "hidden": [
+      ".tagline"
+    ]
+  },
+  "readouts": [],
+  "side_label": "Plan and result",
+  "hints": [
+    [
+      "A / Enter",
+      "Add a leg"
+    ],
+    [
+      "S",
+      "Sail"
+    ],
+    [
+      "Z",
+      "Undo"
+    ],
+    [
+      "?",
+      "All shortcuts"
+    ],
+    [
+      "Esc",
+      "Menu / close window"
+    ]
+  ],
+  "notify": null
+}

@@ -17,7 +17,7 @@ PHASES = ("plan", "reveal")
 HELPERS = ("naive", "current", "par")
 # Irreversible facts that achievements are built from (achievements.py). Anything else in a loaded save is dropped.
 FLAGS = ("landfall", "dead_on", "trusted", "around_rocks", "set_and_drift", "first_fix", "fog_clear", "riding_tide",
-         "two_ships", "aground", "long_way")
+         "waited", "aground", "long_way")
 LONG_WAY_NM = 60.0
 CHART_ID_LIMIT = 80
 

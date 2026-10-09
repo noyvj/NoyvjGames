@@ -17,11 +17,14 @@ Updated after each milestone. A new agent should read `planning/dead-reckoning-p
 
 - Milestone 9 Standard kit: `info.py`, `changelog.json`, settings/about/changelog panels, tutorial, shortcuts, Copy result, accessibility tests.
 
+- Milestone 10 Achievements and wrap-up: `achievements.py/.json`, achievements panel, Desktop boot (`pc-config.json`, `pc.css`, `pc.js`, `pc.html`, `tools/build_pc.py`), docs.
+
 ## Next
-- Milestone 10 Achievements (14), favicon check, Desktop boot (`pc-config.json`, `pc.html` via a scratch script calling `build("dead-reckoning", cfg)`, `pc.js`, `pc.css`), CLAUDE.md wrap-up, tag.
+- Nothing in this folder. Remaining owner work is hub registration (TODO M-5b-12), Two ships (M-5b-7) and Daily Chart (M-5b-11).
 
 ## Open problems
 - The shared `level-select.js` is not used (own picker instead). Ask the hub session whether to adopt it at registration time.
+- The plan's achievement 9 (Two at Once) is replaced by Patient Navigator until Two ships exists.
 - Dev tip: the hub service worker and HTTP cache serve stale app.js; unregister the SW and `fetch(f, {cache: "reload"})` each file before reloading in the browser pane.
 
 ## Notes for whoever continues

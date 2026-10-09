@@ -51,3 +51,17 @@ def test_the_favicon_is_inside_the_game_folder_and_is_code_drawn_svg():
     assert 'href="icons/favicon-dead-reckoning.svg"' in HTML
     svg = (GAME_DIR / "icons" / "favicon-dead-reckoning.svg").read_text(encoding="utf-8")
     assert svg.lstrip().startswith("<svg") and "<image" not in svg
+
+
+def test_the_desktop_boot_files_exist_and_pc_html_is_the_generated_page():
+    import importlib.util
+    import json
+    root = GAME_DIR.parent.parent
+    spec = importlib.util.spec_from_file_location("generate_pc_pages", root / "scripts" / "generate-pc-pages.py")
+    generator = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(generator)
+    cfg = json.loads((GAME_DIR / "pc-config.json").read_text(encoding="utf-8"))
+    assert (GAME_DIR / "pc.html").read_text(encoding="utf-8") == generator.build("dead-reckoning", cfg)
+    for name in ("pc.css", "pc.js"):
+        assert (GAME_DIR / name).exists()
+    assert "DEAD_RECKONING_PC_TUTORIAL_STEPS" in HTML and "DEAD_RECKONING_PC_TUTORIAL_STEPS" in (GAME_DIR / "pc.js").read_text(encoding="utf-8")

@@ -1,0 +1,74 @@
+{
+  "achievements": [
+    {
+      "id": "first_landfall",
+      "label": "First Landfall",
+      "description": "Reach a destination."
+    },
+    {
+      "id": "dead_on",
+      "label": "Dead On",
+      "description": "Make landfall with the ship ending within half a nautical mile of where your own plot said she would."
+    },
+    {
+      "id": "trust_the_numbers",
+      "label": "Trust the Numbers",
+      "description": "Earn three stars on a chart without using any steer-to helper or the par plan."
+    },
+    {
+      "id": "around_the_rocks",
+      "label": "Around the Rocks",
+      "description": "Make landfall on a chart with three hazards on the direct line."
+    },
+    {
+      "id": "set_and_drift",
+      "label": "Set and Drift",
+      "description": "Make landfall on a chart with a current, beating the naive plan by at least half."
+    },
+    {
+      "id": "first_fix",
+      "label": "First Fix",
+      "description": "Take a landmark fix in Watch-by-watch."
+    },
+    {
+      "id": "fog_of_war_ish",
+      "label": "Fog of War-ish",
+      "description": "Make landfall on a fog chart."
+    },
+    {
+      "id": "riding_the_tide",
+      "label": "Riding the Tide",
+      "description": "Make landfall with the tidal stream fair for most of the time you spent in it."
+    },
+    {
+      "id": "patient_navigator",
+      "label": "Patient Navigator",
+      "description": "Lie at anchor to wait for the tide, then make landfall."
+    },
+    {
+      "id": "aground",
+      "label": "Aground",
+      "description": "Run aground once. Everyone does."
+    },
+    {
+      "id": "long_way_round",
+      "label": "Long Way Round",
+      "description": "Make landfall on a plan of more than 60 nautical miles through the water."
+    },
+    {
+      "id": "chapter_closer",
+      "label": "Chapter Closer",
+      "description": "Make landfall on every chart in a chapter."
+    },
+    {
+      "id": "practice_makes",
+      "label": "Practice Makes",
+      "description": "Sail 10 practice charts."
+    },
+    {
+      "id": "all_stars",
+      "label": "All Stars",
+      "description": "Earn three stars on every campaign chart."
+    }
+  ]
+}
