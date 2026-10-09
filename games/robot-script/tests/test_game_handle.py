@@ -124,7 +124,7 @@ def test_load_state_survives_junk_and_tampering():
         v = call(action="open")
         assert v["room"]["id"] == "wake-up"
         assert v["totals"]["cleared"] == 0
-        assert v["tally"] == {"runs": 0, "halts": 0, "written": 0, "hints": 0}
+        assert v["tally"] == {"runs": 0, "halts": 0, "written": 0, "hints": 0, "sbx_runs": 0, "sbx_tiles": 0}
 
 
 def test_a_best_that_does_not_really_clear_is_dropped_but_a_real_one_loads():

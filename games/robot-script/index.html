@@ -47,6 +47,7 @@
     <h2 id="rooms-heading">Rooms</h2>
     <p class="note">A chapter opens once five rooms of the one before are cleared. Inside a chapter, play any room in any order. The medal on a room is for the shortest list you have cleared it with.</p>
     <div id="rooms-body" class="rooms-body"></div>
+    <section id="sandbox-entry" class="chapter"></section>
   </section>
   <section id="workshop-panel" class="panel" hidden aria-labelledby="workshop-heading">
     <h2 id="workshop-heading">Workshop</h2>
@@ -129,6 +130,19 @@
       <p id="scrap-line" class="scrap-line story-text note" hidden></p>
       <p id="part-line" class="part-line" hidden></p>
     </div>
+    <div id="sandbox-box" class="sandbox-box" hidden>
+      <p class="note">Pick a tile, then tap the room to paint it, or type a column and row. Each tile you paint and each list you run counts in the tally.</p>
+      <div id="sandbox-tools" class="sandbox-tools" role="group" aria-label="Tiles to paint"></div>
+      <div class="sandbox-form">
+        <label>Column <input id="sbx-col" type="number" min="1" max="8" value="1" inputmode="numeric"></label>
+        <label>Row <input id="sbx-row" type="number" min="1" max="8" value="1" inputmode="numeric"></label>
+        <button id="sbx-paint-button" type="button" data-testid="robot-script-sbx-paint">Paint this tile</button>
+      </div>
+      <div class="sandbox-form">
+        <label>Start from <select id="sbx-preset"></select></label>
+        <button id="sbx-preset-button" type="button" data-testid="robot-script-sbx-preset">Replace the room</button>
+      </div>
+    </div>
     <div id="hint-box" class="hint-box">
       <button id="hint-button" type="button" data-testid="robot-script-hint">Need a nudge?</button>
       <p id="hint-nudge" class="note hint-line" hidden></p>
@@ -179,6 +193,8 @@
     <div class="stat-strip tally-strip">
       <div class="stat"><span class="stat-label">Steps written</span><span id="stat-written" class="stat-value">0</span></div>
       <div class="stat"><span class="stat-label">Hints asked</span><span id="stat-hints" class="stat-value">0</span></div>
+      <div class="stat"><span class="stat-label">Sandbox runs</span><span id="stat-sbx-runs" class="stat-value">0</span></div>
+      <div class="stat"><span class="stat-label">Tiles painted</span><span id="stat-sbx-tiles" class="stat-value">0</span></div>
       <div class="stat"><span class="stat-label">Silver medals</span><span id="stat-silver" class="stat-value">0</span></div>
       <div class="stat"><span class="stat-label">Bronze medals</span><span id="stat-bronze" class="stat-value">0</span></div>
       <div class="stat"><span class="stat-label">Stopped runs</span><span id="stat-halts" class="stat-value">0</span></div>

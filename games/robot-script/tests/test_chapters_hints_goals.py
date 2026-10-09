@@ -24,12 +24,35 @@ def clear_with_ref(rid):
     return call(action="run")
 
 
-def test_loop_rooms_really_need_the_loop_for_gold():
-    for rid in rooms.CHAPTER_LIST[2]["rooms"]:
-        r = rooms.BY_ID[rid]
-        flat = shortest(r.layout, limit=500000)
-        assert flat is not None and len(flat) > r.par, rid
-        assert "rep" in dsl.uses(r.ref)
+def test_compressed_rooms_really_need_the_chapters_idea_for_gold():
+    """From chapter 3 on, the reference is shorter than the shortest flat list, and uses the chapter's own tool."""
+    tool = {2: {"rep"}, 3: {"call"}, 4: {"until", "if"}}
+    for idx in (2, 3, 4):
+        for rid in rooms.CHAPTER_LIST[idx]["rooms"]:
+            r = rooms.BY_ID[rid]
+            flat = shortest(r.layout, limit=2000000)
+            assert flat is not None and len(flat) > r.par, rid
+            if idx != 3:
+                assert dsl.uses(r.ref) & tool[idx], rid
+            else:
+                assert "call" in dsl.uses(r.ref), rid
+
+
+def test_the_forty_rooms_in_six_chapters():
+    assert len(rooms.ORDER) == 40 and [len(c["rooms"]) for c in rooms.CHAPTER_LIST] == [7, 7, 7, 7, 7, 5]
+    assert len(companion.PARTS) == 40
+
+
+def test_toolbox_grows_chapter_by_chapter():
+    seen = set()
+    for idx, c in enumerate(rooms.CHAPTER_LIST):
+        tools = set()
+        for rid in c["rooms"]:
+            tools |= dsl.allowed_ops(rooms.BY_ID[rid].allow)
+        assert seen <= tools or idx == 0
+        seen |= tools
+    assert {"rep", "A", "B", "until", "if"} <= seen
+    assert not (set("LR") & dsl.allowed_ops(rooms.BY_ID["wake-up"].allow))
 
 
 def test_each_chapter_teaches_with_the_tool_it_adds():

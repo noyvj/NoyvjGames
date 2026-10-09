@@ -235,3 +235,11 @@ html[data-effects="off"] .rs-room .rs-switch.lit { filter: none; }
 .zone-list, .parts-list { padding-left: 1.2rem; margin: 0.3rem 0; font-size: 0.88rem; }
 .parts-list li.missing { color: var(--muted); }
 .parts-details { margin-top: 0.5rem; font-size: 0.88rem; }
+
+/* The sandbox. */
+.sandbox-tools { display: flex; flex-wrap: wrap; gap: 0.3rem; margin: 0.4rem 0; }
+.tile-tool { padding: 0.25rem 0.5rem; font-size: 0.82rem; }
+.tile-tool[aria-pressed="true"] { background: var(--btn-primary); color: var(--on-primary); border-color: var(--hover-edge); }
+.sandbox-form { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; margin: 0.4rem 0; font-size: 0.88rem; }
+.sandbox-form input[type="number"] { width: 4rem; font: inherit; color: var(--text); background: var(--surface); border: 1px solid var(--edge); border-radius: 6px; padding: 0.25rem; }
+html[data-sandbox="true"] .room-holder svg { cursor: crosshair; }

@@ -2,6 +2,10 @@
   "changelog": [
     {
       "date": "2026-10-09",
+      "entry": "The deck is complete: forty rooms in six chapters, with sub-routines (save a few steps as A or B and call them), conditionals (until and if) and a final chapter, The Long Shift, that mixes everything. Clear the last room and the free sandbox opens: paint any room, write any list, run it as often as you like. Nothing is scored there."
+    },
+    {
+      "date": "2026-10-09",
       "entry": "Two more chapters: Turning (left and right, seven rooms) and Loops (repeat blocks, seven rooms). A hint ladder on every room (a nudge, a hint, then the answer; free, and it never touches a medal). Scrap, a salvage drone, gets one part for every room you clear, and a better list gives the same part a better finish. A strip of the next three goals stays in view."
     },
     {

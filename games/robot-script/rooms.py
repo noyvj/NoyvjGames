@@ -9,14 +9,20 @@ modules; this module only gathers them.
 import dsl
 from room import Layout
 
+import rooms_branches
+import rooms_capstone
 import rooms_loops
 import rooms_moving
+import rooms_routines
 import rooms_turning
 
 CHAPTERS = (
     ("moving", "Moving", "Straight corridors: count your steps, light a switch, carry a part.", rooms_moving),
     ("turning", "Turning", "Left and right: corners, detours and two trips with one pair of hands.", rooms_turning),
     ("loops", "Loops", "Repeat blocks: say it once, do it many times.", rooms_loops),
+    ("routines", "Sub-routines", "Save a few steps under a name and call them wherever they are needed.", rooms_routines),
+    ("branches", "Conditionals", "Until and if: let the robot look at where it is and decide.", rooms_branches),
+    ("shift", "The Long Shift", "Everything at once. The last room clears the deck.", rooms_capstone),
 )
 
 

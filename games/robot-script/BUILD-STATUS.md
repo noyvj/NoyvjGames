@@ -9,8 +9,10 @@ Updated after every milestone. Read `planning/robot-script-plan.md`, `CLAUDE.md`
 
 - M3 Chapters 2-3 (rooms_turning.py, rooms_loops.py), hints.py, achievements.py (facts + goals only), companion.py, Workshop panel, goals strip; 155 tests; checked live (loop room built with nested repeats in the UI, cleared gold, Scrap part and line shown).
 
+- M4 Chapters 4-6 (19 rooms, 40 in all), tools/author.py, sandbox.py + sandbox UI; 230 tests (26 skipped = flat-minimum checks that do not apply to compressed rooms); live check: conditional room built in the editor, sandbox opened from the Rooms panel and painted.
+
 ## Next
-- M4 Chapters 4-6 (19 rooms, 40 in all) and the sandbox.
+- M5 Standard kit (opening screen is already included; add tutorial, keyboard help text check, a11y/light theme tests, About review).
 
 ## Open problems / notes
 - Local Python is 3.9: engine code avoids 3.10+ syntax.

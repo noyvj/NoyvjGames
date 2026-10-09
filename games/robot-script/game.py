@@ -19,6 +19,9 @@ Actions (every request is {"action": ..., ...}; every reply is the whole view):
   load_best                    put the room's best list in the editor
   hint                         climb one more rung of the hint ladder (nudge, hint, answer) for this room
   load_answer                  put the reference list in the editor (after the answer rung)
+  sandbox                      go to the free sandbox (opens once The Long Shift is cleared)
+  sbx_paint {x, y, tile}       paint one tile of the sandbox room
+  sbx_preset {name}            replace the sandbox room with a preset (open, maze, workshop)
   run                          run the list; the reply carries the whole trace
   reset                        start over (everything)
 """
@@ -33,10 +36,12 @@ import hints
 import info
 import progress
 import render
+import room as roomlib
 import rooms
 import run as runner
+import sandbox
 
-TALLY_KEYS = ("runs", "halts", "written", "hints")
+TALLY_KEYS = ("runs", "halts", "written", "hints", "sbx_runs", "sbx_tiles")
 MAX_COUNT = 10 ** 6
 DEFAULT_COUNT = 3
 
@@ -99,6 +104,8 @@ class Game:
         self.flags = []
         self.bumped = []               # rooms where a run has halted: for "learned from a bump"
         self.rungs = {}                # room id -> hint rungs climbed (1 to 3)
+        self.sbx_rows = sandbox.default_rows()
+        self.sbx_prog = None           # the sandbox's unfinished list
         self.ed = None
         self.svg_due = True
         self._enter(self.current)
@@ -106,10 +113,14 @@ class Game:
     # ---- the current room ------------------------------------------------------------------------------------------
     @property
     def room(self):
-        return rooms.BY_ID[self.current]
+        return sandbox.SandboxRoom(self.sbx_rows) if self.current == "sandbox" else rooms.BY_ID[self.current]
 
     def _enter(self, rid):
         self.current = rid
+        if rid == "sandbox":
+            self.ed = editor.Editor(self.sbx_prog, sandbox.ALLOW)
+            self.svg_due = True
+            return
         r = rooms.BY_ID[rid]
         prog = self.drafts.get(rid)
         if prog is None and rid in self.best:
@@ -117,9 +128,15 @@ class Game:
         self.ed = editor.Editor(prog, r.allow)
         self.svg_due = True
 
+    def sandbox_open(self):
+        return progress.sandbox_open(self.best)
+
     def _stash(self):
         """Keep the unfinished list of the room being left."""
         rid = self.current
+        if rid == "sandbox":
+            self.sbx_prog = None if self.ed.is_empty() else dsl.copy(self.ed.prog)
+            return
         if self.ed.is_empty() or (rid in self.best and dsl.to_text(self.ed.prog) == self.best[rid]["t"]):
             self.drafts.pop(rid, None)
         else:
@@ -145,6 +162,10 @@ class Game:
             data["bumped"] = list(self.bumped)
         if self.rungs:
             data["rungs"] = dict(self.rungs)
+        if self.sbx_rows != sandbox.default_rows():
+            data["sbx"] = list(self.sbx_rows)
+        if self.sbx_prog is not None:
+            data["sdraft"] = dsl.to_text(self.sbx_prog)
         earned = achievements.earned(self.facts())
         if earned:
             data["achievements_earned"] = earned       # written for the hub's dashboard, never read back
@@ -182,8 +203,16 @@ class Game:
         self.bumped = [rid for rid in rooms.ORDER if isinstance(bumped, list) and rid in bumped]
         rungs = data.get("rungs") if isinstance(data.get("rungs"), dict) else {}
         self.rungs = {rid: rungs[rid] for rid in rooms.ORDER if _int(rungs.get(rid), 1, 3)}
+        rows = data.get("sbx")
+        self.sbx_rows = list(rows) if sandbox.valid_rows(rows) else sandbox.default_rows()
+        text = data.get("sdraft")
+        prog = dsl.parse(text) if isinstance(text, str) else None
+        self.sbx_prog = prog if prog is not None and not dsl.check(prog, sandbox.ALLOW) and dsl.size(prog) else None
         cur = data.get("cur")
-        cur = cur if cur in rooms.BY_ID and progress.room_open(self.best, cur) else rooms.ORDER[0]
+        if cur == "sandbox" and self.sandbox_open():
+            pass
+        elif not (cur in rooms.BY_ID and progress.room_open(self.best, cur)):
+            cur = rooms.ORDER[0]
         self._enter(cur)
 
     def facts(self):
@@ -263,24 +292,29 @@ class Game:
 
     def view(self, message="", ok=True, run_result=None, with_svg=False):
         r = self.room
-        chapter = rooms.CHAPTER_LIST[r.chapter]
+        sbx = r.id == "sandbox"
+        chapter_name = "Sandbox" if sbx else rooms.CHAPTER_LIST[r.chapter]["name"]
         words_lines, words_rows = render.describe(r.layout)
-        medal = progress.medal_of(self.best, r.id)
-        goal_rows = [{"id": g["id"], "label": g["label"], "met": False} for g in _goal_labels(r.layout)]
+        medal = 0 if sbx else progress.medal_of(self.best, r.id)
+        goal_rows = [] if sbx else [{"id": g["id"], "label": g["label"], "met": False} for g in _goal_labels(r.layout)]
         view = {
             "ok": ok, "message": message,
-            "room": {"id": r.id, "name": r.name, "chapter": chapter["name"], "number": r.number, "of": len(chapter["rooms"]),
+            "room": {"id": r.id, "name": r.name, "chapter": chapter_name, "number": r.number,
+                     "of": 1 if sbx else len(rooms.CHAPTER_LIST[r.chapter]["rooms"]), "sandbox": sbx,
                      "intro": r.intro, "nudge": r.nudge, "par": r.par, "silver": r.silver, "best": self.best[r.id]["n"] if r.id in self.best else None,
                      "medal": medal, "medal_name": MEDAL_NAMES[medal], "goals": goal_rows,
                      "words": {"lines": words_lines, "rows": words_rows}, "start": list(r.layout.start),
                      "w": r.layout.w, "h": r.layout.h, "has_best": r.id in self.best},
             "program": self._program_view(),
             "rooms": self._rooms_view(),
+            "sandbox": {"open": self.sandbox_open(), "current": sbx, "need": rooms.CHAPTER_LIST[-1]["name"],
+                        "tiles": [{"tile": t, "label": label} for t, label in sandbox.TILES], "size": sandbox.SIZE,
+                        "presets": [{"id": k, "label": v[0]} for k, v in sandbox.PRESETS.items()]},
             "totals": progress.totals(self.best),
             "tally": dict(self.tally),
-            "hint": hints.view(r, self.rungs.get(r.id, 0)),
+            "hint": hints.view(r, 0) if sbx else hints.view(r, self.rungs.get(r.id, 0)),
             "scrap": companion.view(self.best),
-            "goals": achievements.goals(self.facts(), self.open_chapters()),
+            "goals": achievements.goals(self.facts(), self.open_chapters() + (1 if self.sandbox_open() else 0)),
             "achievements": achievements.view(self.facts()),
             "about": info.view(),
             "run": run_result,
@@ -296,6 +330,8 @@ class Game:
         prog = self.ed.prog
         size = dsl.size(prog)
         result = runner.run(r.layout, prog)
+        if r.id == "sandbox":
+            return self._sandbox_run(result, size)
         self.tally["runs"] += 1
         new_best = False
         medal = 0
@@ -321,6 +357,20 @@ class Game:
         trace["next_name"] = rooms.BY_ID[trace["next"]].name if trace["next"] else ""
         return trace
 
+    def _sandbox_run(self, result, size):
+        self.tally["sbx_runs"] += 1
+        x, y, d, carry, _parts, _sockets, _switches = result.state
+        where = "The robot ended in column %d, row %d, facing %s%s." % (
+            x + 1, y + 1, roomlib.HEADING_NAMES[d], ", carrying a part" if carry >= 0 else "")
+        if result.status in ("halt", "loop"):
+            message = result.message
+        else:
+            message = "The list finished. " + where
+        return {"status": result.status, "message": message, "frames": [list(f) for f in result.frames], "actions": result.actions,
+                "size": size, "par": None, "silver": None, "cleared": False, "sandbox": True, "goals": [], "at": result.at,
+                "medal": 0, "medal_name": "none", "new_best": False, "best": None, "next": None, "next_name": "",
+                "scrap_line": "", "part": None}
+
     def _note_flags(self, rid, prog):
         used = dsl.uses(prog)
         new = []
@@ -339,7 +389,6 @@ FLAGS = ("rep", "call", "branch", "comeback")
 
 
 def _goal_labels(layout):
-    import room as roomlib
     return roomlib.goals(layout, layout.initial())
 
 
@@ -373,7 +422,33 @@ def handle(request_json):
         g._stash()
         g._enter(rid)
         return json.dumps(g.view())
+    if action == "sandbox":
+        if not g.sandbox_open():
+            return json.dumps(g.view("The sandbox opens once you have cleared every room of " + rooms.CHAPTER_LIST[-1]["name"] + ".", ok=False))
+        g._stash()
+        g._enter("sandbox")
+        return json.dumps(g.view())
+    if action == "sbx_paint" or action == "sbx_preset":
+        if g.current != "sandbox":
+            return json.dumps(g.view("Open the sandbox first.", ok=False))
+        if action == "sbx_preset":
+            preset = sandbox.PRESETS.get(request.get("name"))
+            if preset is None:
+                return json.dumps(g.view("There is no such preset.", ok=False))
+            g.sbx_rows = list(preset[1])
+            g.svg_due = True
+            return json.dumps(g.view("Room replaced: " + preset[0] + "."))
+        rows, changed = sandbox.paint(g.sbx_rows, request.get("x"), request.get("y"), request.get("tile"))
+        if isinstance(changed, str):
+            return json.dumps(g.view(changed, ok=False))
+        if changed:
+            g.sbx_rows = rows
+            g.tally["sbx_tiles"] += 1
+            g.svg_due = True
+        return json.dumps(g.view())
     if action == "next":
+        if g.current == "sandbox":
+            return json.dumps(g.view("The sandbox has no next room.", ok=False))
         nxt = progress.next_room(g.best, g.current)
         if nxt is None:
             return json.dumps(g.view("That was the last room open for now.", ok=False))

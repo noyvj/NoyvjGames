@@ -1,0 +1,42 @@
+"""Chapter 4, Sub-routines: save a few steps as routine A (or B, which may call A) and call them by name. Rooms drawn around their reference with tools/author.py."""
+
+ROOMS = [
+    {"id": 'same-again', "name": 'Same Again', "allow": "F L R G P S rep A B",
+     "rows": ['>p.op.o', '######.', 'o.po.p.'],
+     "ref": 'main: A R F F R A\nA: rep 2 { F G F F P }', "par": 12,
+     "nudge": 'Write the pick-up-and-deliver run once as routine A, then call A for each row. A routine can hold a repeat.',
+     "intro": "The same job twice over, which is the deck's idea of variety."},
+    {"id": 'side-bays', "name": 'Side Bays', "allow": "F L R G P S rep A B",
+     "rows": ['>o.o.oE', '#p#p#p#'],
+     "ref": 'main: F A rep 2 { F F A } F\nA: R F G R R F P R', "par": 15,
+     "nudge": 'Every bay is the same small detour: turn, step in, pick up, turn round, step out, place, turn back. Save it as routine A.',
+     "intro": 'Three bays off a corridor. Each one holds a part that somebody meant to come back for.'},
+    {"id": 'relay', "name": 'Relay', "allow": "F L R G P S rep A B",
+     "rows": ['>p.o#####', '###p#####', '###.#####', '###o.p.o#', '#######p#', '#######.#', '#######oE'],
+     "ref": 'main: F B F B\nA: G F F P\nB: A R F A L F', "par": 14,
+     "nudge": 'A is a short delivery. B can use A twice with a turn in between. Then main uses B twice.',
+     "intro": 'A routine that calls a routine. The robot does not find this strange.'},
+    {"id": 'alcoves', "name": 'Alcoves', "allow": "F L R G P S rep A B",
+     "rows": ['>.....E', '#1#2#3#'],
+     "ref": 'main: F A rep 2 { F F A } F\nA: R F S R R F R', "par": 14,
+     "nudge": 'Each alcove is the same trip: turn, step in, light the switch, turn round, step out, turn back. Put it in routine A.',
+     "intro": 'Three switches, each in its own dark little alcove. Someone designed this on purpose.'},
+    {"id": 'twin-runs', "name": 'Twin Runs', "allow": "F L R G P S rep A B",
+     "rows": ['.#>p.o', '.####.', 'o.p...'],
+     "ref": 'main: A F F A\nA: F G F F P R F F R', "par": 13,
+     "nudge": 'The two runs are the same walk. Write the walk once and call it twice, with the long straight between.',
+     "intro": 'Two identical jobs, hours apart. Neither of them was meant to be efficient.'},
+    {"id": 'gallery', "name": 'Gallery', "allow": "F L R G P S rep A B",
+     "rows": ['##E###', '...>.1', '3.....', '##..##', '##.2##'],
+     "ref": 'main: rep 3 { A } F\nA: F F S R F R F F L', "par": 12,
+     "nudge": 'One walk that lights a switch, repeated three times from different places. Give it a name and call it.',
+     "intro": 'A gallery of switches. The robot is not here for the art.'},
+    {"id": 'locked-relay', "name": 'Locked Relay', "allow": "F L R G P S rep A B",
+     "rows": ['>1.Apo####', '#####.####', '#####p####', '#####o.poE'],
+     "ref": 'main: F S F F A R F B F\nA: F G F P\nB: A L F A', "par": 17,
+     "nudge": 'Light the switch to open the door, then deliver twice: routine A delivers once, and B uses A twice.',
+     "intro": 'A door, a delivery and a routine that calls a routine. A busy afternoon for a small robot.'},
+]
+
+_ORDER = ["same-again", "twin-runs", "gallery", "alcoves", "side-bays", "relay", "locked-relay"]
+ROOMS.sort(key=lambda r: _ORDER.index(r["id"]))

@@ -30,7 +30,7 @@ Give a maintenance robot a short list of instructions to clear a room (Lightbot 
 | 1 | Engine | `dsl.py`, `room.py`, `run.py`, `rooms.py`, chapter 1 (7 rooms), `tools/solver.py`, tests | Done |
 | 2 | Room UI | SVG room (`render.py`), structured editor (`editor.py`), run/step/skip playback, result card with medal, room picker, favicon, settings, save contract (`game.py`) | Done |
 | 3 | Chapters 2-3, medals, hints | 14 rooms (Turning checked against the solver, Loops checked to need the loop), gating at 5 of 7, hint ladder (`hints.py`), three-goals strip (`achievements.py` facts), Scrap and the Workshop (`companion.py`) | Done |
-| 4 | Chapters 4-6 and the sandbox | 19 rooms (40), sandbox. First complete game | Planned |
+| 4 | Chapters 4-6 and the sandbox | 19 rooms (40 in all: `rooms_routines.py`, `rooms_branches.py`, `rooms_capstone.py`; routine rooms drawn around their reference with `tools/author.py`) and the free sandbox (`sandbox.py`). First complete game | Done |
 | 5 | Standard kit | Opening screen, tutorial, About, What's New, keyboard help, light theme, accessibility | Planned |
 | 6 | Achievements | 14 achievements, panel, toast, manifest | Planned |
 | 7 | Desktop boot and wrap-up | `pc-config.json`, `pc.css`, `pc.js`, generated `pc.html`, docs | Planned |
@@ -49,3 +49,9 @@ Give a maintenance robot a short list of instructions to clear a room (Lightbot 
 - Hints: `hint` climbs one rung per call (nudge, hint, answer), saved per room in `rungs`; `load_answer` needs rung 3. Hints never touch a medal.
 - Scrap: one part per room (40 in `companion.PARTS`, ten zones); the finish follows the room's medal; drawing and list are computed from `best`. Lines sit behind the story toggle (`.scrap-line`, `.story-text`).
 - Goals strip: the next three unearned achievements whose chapter is open (`achievements.goals`); the achievements themselves (panel, toast, manifest) arrive in milestone 6.
+
+## Milestone 4 notes
+- 40 rooms: 7 + 7 + 7 + 7 + 7 + 5. From chapter 3 on every reference is shorter than the shortest flat list (tested with the solver), and chapters 3-5 must use their own tool (repeat, call, until/if). Chapter 6 mixes everything.
+- `tools/author.py` (dev only): expands a reference (repeats and calls, no conditionals) and draws the room where exactly that walk works; conditional rooms were drawn from an equivalent flat walk and verified with the conditional reference.
+- Sandbox: id `sandbox`, 8x8, opens once every room of the last chapter is cleared (`progress.sandbox_open`). Saved as `sbx` (rows, only when not the default), `sdraft` (the unfinished list) and `cur: "sandbox"`; tally keys `sbx_runs` and `sbx_tiles`. Painting works by tapping the room or by column/row fields (the keyboard path). Presets: open, maze, workshop.
+- A perfect-play test clears all 40 rooms with gold from the references and checks every achievement is reachable.

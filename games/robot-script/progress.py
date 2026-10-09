@@ -29,6 +29,11 @@ def room_open(best, rid):
     return chapter_open(best, rooms.BY_ID[rid].chapter)
 
 
+def sandbox_open(best):
+    """The free sandbox opens once every room of the last chapter is cleared."""
+    return chapter_done(best, len(rooms.CHAPTER_LIST) - 1)
+
+
 def medal_of(best, rid):
     """0 not cleared, else 1 bronze, 2 silver, 3 gold."""
     entry = best.get(rid)

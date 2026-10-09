@@ -2,7 +2,7 @@
    returns, plays a run back, and forwards what the player does. No game logic lives here. */
 (function () {
   "use strict";
-  var ENGINE_MODULES = ["dsl.py", "room.py", "run.py", "editor.py", "render.py", "progress.py", "info.py", "hints.py", "rooms_moving.py", "rooms_turning.py", "rooms_loops.py", "rooms.py", "companion.py", "achievements.py"];
+  var ENGINE_MODULES = ["dsl.py", "room.py", "run.py", "editor.py", "render.py", "progress.py", "info.py", "hints.py", "rooms_moving.py", "rooms_turning.py", "rooms_loops.py", "rooms_routines.py", "rooms_branches.py", "rooms_capstone.py", "rooms.py", "companion.py", "achievements.py", "sandbox.py"];
   var STORE_KEY = "robot-script:state";
   var BACKUP_KEY = "robot-script:state-backup";
   var TILE = 48;
@@ -16,6 +16,7 @@
   var headDeg = 0;
   var play = { frames: null, i: 0, timer: null, trace: null, running: false };
   var refocus = false;
+  var sandboxTile = "#";
 
   function lsGet(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
   function lsSet(k, v) { try { localStorage.setItem(k, v); } catch (e) { /* convenience only */ } }
@@ -95,6 +96,8 @@
     bumpStat("stat-runs", view.tally.runs);
     bumpStat("stat-written", view.tally.written);
     bumpStat("stat-hints", view.tally.hints);
+    bumpStat("stat-sbx-runs", view.tally.sbx_runs);
+    bumpStat("stat-sbx-tiles", view.tally.sbx_tiles);
     bumpStat("stat-silver", view.totals.silver);
     bumpStat("stat-bronze", view.totals.bronze);
     bumpStat("stat-halts", view.tally.halts);
@@ -226,6 +229,21 @@
     if (!t) return;
     var halted = t.status === "halt" || t.status === "loop";
     if (halted && t.at) markNode(t.at, true);
+    if (t.sandbox) {
+      var sc = $("result-card");
+      sc.hidden = false;
+      sc.className = "result-card " + (halted ? "stopped" : "cleared");
+      setText($("result-title"), halted ? "The robot stopped" : "The run is over");
+      $("result-medal").textContent = "";
+      setText($("result-text"), t.message);
+      $("result-goals").textContent = "";
+      $("next-button").hidden = true;
+      $("scrap-line").hidden = true;
+      $("part-line").hidden = true;
+      announce(t.message);
+      syncPlayButtons();
+      return;
+    }
     renderGoals("room-goals", t.goals);
     var card = $("result-card");
     card.hidden = false;
@@ -437,7 +455,7 @@
   function renderProgram() {
     var p = view.program;
     var r = view.room;
-    var line = plural(p.size, "step", "steps") + " in your list. Gold at " + r.par + " or fewer, silver at " + r.silver + "." + (r.best !== null ? " Your best: " + r.best + "." : "");
+    var line = r.sandbox ? plural(p.size, "step", "steps") + " in your list (up to " + p.max + ")." : plural(p.size, "step", "steps") + " in your list. Gold at " + r.par + " or fewer, silver at " + r.silver + "." + (r.best !== null ? " Your best: " + r.best + "." : "");
     setText($("size-line"), line);
     var tabs = $("routine-tabs");
     tabs.textContent = "";
@@ -469,7 +487,66 @@
   }
 
   // ---- the room picker -------------------------------------------------------------------------------
+  function renderSandboxEntry() {
+    var s = view.sandbox;
+    var holder = $("sandbox-entry");
+    var sig = String(s.open) + String(s.current);
+    if (holder.dataset.sig === sig) return;
+    holder.dataset.sig = sig;
+    holder.textContent = "";
+    holder.appendChild(el("h3", null, "Sandbox"));
+    holder.appendChild(el("p", "note", s.open ? "Paint any room, write any list, run it as often as you like. Nothing is scored." : "Opens when every room of " + s.need + " is cleared."));
+    var b = el("button", s.current ? "room-btn current" : "room-btn", s.open ? (s.current ? "In the sandbox" : "Open the sandbox") : "Locked");
+    b.type = "button";
+    b.dataset.testid = "robot-script-sandbox-open";
+    if (!s.open) b.setAttribute("aria-disabled", "true");
+    b.addEventListener("click", function () {
+      if (!s.open) { showToast("The sandbox opens once every room of " + s.need + " is cleared."); return; }
+      send({ action: "sandbox" });
+      $("rooms-panel").hidden = true;
+      $("rooms-toggle-button").setAttribute("aria-expanded", "false");
+    });
+    holder.appendChild(b);
+  }
+  function renderSandboxTools() {
+    var s = view.sandbox;
+    var tools = $("sandbox-tools");
+    if (tools.dataset.built) return;
+    tools.dataset.built = "1";
+    s.tiles.forEach(function (t, i) {
+      var b = el("button", "tile-tool", t.label);
+      b.type = "button";
+      b.dataset.tile = t.tile;
+      b.dataset.testid = "robot-script-tile-" + i;
+      b.setAttribute("aria-pressed", String(i === 1));
+      b.addEventListener("click", function () { sandboxTile = t.tile; syncTileTools(); });
+      tools.appendChild(b);
+    });
+    s.presets.forEach(function (p) {
+      var o = el("option", null, p.label);
+      o.value = p.id;
+      $("sbx-preset").appendChild(o);
+    });
+    $("sbx-col").max = s.size; $("sbx-row").max = s.size;
+    syncTileTools();
+  }
+  function syncTileTools() {
+    Array.prototype.forEach.call($("sandbox-tools").querySelectorAll("button"), function (b) { b.setAttribute("aria-pressed", String(b.dataset.tile === sandboxTile)); });
+  }
+  function onRoomClick(e) {
+    if (!view || !view.room.sandbox) return;
+    var svg = svgEl();
+    if (!svg || !svg.getScreenCTM) return;
+    var pt = svg.createSVGPoint();
+    pt.x = e.clientX; pt.y = e.clientY;
+    var p = pt.matrixTransform(svg.getScreenCTM().inverse());
+    var x = Math.floor(p.x / TILE), y = Math.floor(p.y / TILE);
+    if (x < 0 || y < 0 || x >= view.room.w || y >= view.room.h) return;
+    send({ action: "sbx_paint", x: x, y: y, tile: sandboxTile }, true);
+  }
   function renderRooms() {
+    renderSandboxEntry();
+    renderSandboxTools();
     var holder = $("rooms-body");
     var sig = JSON.stringify(view.rooms.map(function (c) { return c.rooms.map(function (r) { return r.medal + (r.current ? "c" : "") + (r.open ? "o" : ""); }); }));
     if (holder.dataset.sig === sig) return;
@@ -571,7 +648,7 @@
   function render() {
     renderAbout();
     var changed = view.room.id !== roomId;
-    if (view.room.svg && (changed || !svgEl())) {
+    if (view.room.svg) {
       $("room-holder").innerHTML = view.room.svg;
       roomId = view.room.id;
       PALETTE_SIG = "";
@@ -659,6 +736,15 @@
     $("answer-load-button").addEventListener("click", function () { send({ action: "load_answer" }, true); });
     wirePanelToggle("changelog-toggle-button", "changelog-panel");
     wirePanelToggle("info-page-toggle-button", "info-page-panel");
+    $("room-holder").addEventListener("click", onRoomClick);
+    $("sbx-paint-button").addEventListener("click", function () {
+      send({ action: "sbx_paint", x: Number($("sbx-col").value) - 1, y: Number($("sbx-row").value) - 1, tile: sandboxTile }, true);
+    });
+    $("sbx-preset-button").addEventListener("click", function () {
+      askThen("robot-script-preset", "Replace the sandbox room with this preset? The room you painted will be erased.", "Replace it", function () {
+        send({ action: "sbx_preset", name: $("sbx-preset").value }, true);
+      });
+    });
     $("run-button").addEventListener("click", onRun);
     $("step-button").addEventListener("click", onStep);
     $("skip-button").addEventListener("click", onSkip);
