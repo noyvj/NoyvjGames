@@ -1259,3 +1259,101 @@ def test_workshop_saves_only_when_custom_and_validates(game_env):
     saved["workshop"] = "nope"
     m.load_state(saved)
     assert s.workshop == m.WORKSHOP_DEFAULTS
+
+
+# ---- GD-9 postcard ----
+
+def test_grade_follows_how_the_harbour_did(game_env):
+    m = game_env.module
+    s = m.state
+    s.population = s.peak_population = 100
+    best = m.postcard_score()
+    assert m.postcard_grade(best) == "S"
+    s.sea_level = m.row_flood_threshold(0) + 1  # everything flooded
+    s.population = 20
+    assert m.postcard_score() < best and m.postcard_grade() != "S"
+    s.fish_yield_multiplier = lambda: 0.2
+    s.population = 0
+    s.undampened_damage_total, s.cumulative_damage = 100.0, 100.0
+    assert m.postcard_grade() in ("D", "E")
+    assert [m.postcard_grade(x) for x in (0.95, 0.8, 0.65, 0.5, 0.35, 0.1)] == list(m.POSTCARD_GRADES)
+
+
+def test_nicknames_come_from_the_real_state(game_env):
+    m = game_env.module
+    s = m.state
+    assert m.postcard_nickname() == "The Stubborn Harbour"
+    s.crew = ["engineer", "broker"]
+    assert m.postcard_nickname() == "The Busy Harbour"
+    for site in m.HERITAGE_SITES:
+        s.heritage[site["id"]] = m.HERITAGE_PROTECTED
+    assert m.postcard_nickname() == "Keeper of Lights"
+    s.capacity["adaptation"] = 10
+    assert m.postcard_nickname() == "The Unflooded"
+    s.ironman_earned = True
+    assert m.postcard_nickname() == "The Anchor That Held"
+    s.ironman_earned = False
+    s.sea_level = m.row_flood_threshold(0) + 1
+    assert m.postcard_nickname() == "The Drowned Quay"
+    assert set(m.postcard_nickname() for _ in range(1)) <= set(m.POSTCARD_NICKNAMES)
+
+
+def test_the_svg_is_valid_and_shows_flooded_rows_as_sunken_roofs(game_env):
+    import xml.etree.ElementTree as ET
+    m = game_env.module
+    s = m.state
+    dry = m.postcard_svg()
+    ET.fromstring(dry)
+    s.sea_level = m.row_flood_threshold(m.COASTLINE_ROWS - 1) + 1
+    s.settlement_name = "Port <Regret>"
+    wet = m.postcard_svg()
+    ET.fromstring(wet)
+    assert "#1a5876" in wet and "#1a5876" not in dry and "Port &lt;Regret&gt;" in wet
+    assert f"grade {m.postcard_grade()}" in wet
+
+
+def test_the_gallery_collects_each_variant_once_and_needs_a_few_seasons(game_env, storage):
+    m = game_env.module
+    assert m.collect_postcard() == "early"
+    for _ in range(4):
+        m.state.advance_season()
+    assert m.collect_postcard() == "new"
+    assert m.collect_postcard() == "seen"
+    assert len(m.load_postcards()) == 1 and "1 of 42" in m.gallery_text()
+    m.state.sea_level = m.row_flood_threshold(0) + 1
+    assert m.collect_postcard() == "new" and len(m.load_postcards()) == 2
+
+
+def test_custom_rule_runs_do_not_fill_the_gallery(game_env, storage):
+    m = game_env.module
+    for _ in range(4):
+        m.state.advance_season()
+    m.state.workshop["rise"] = 0.5
+    assert m.collect_postcard() == "early"
+
+
+def test_bad_gallery_data_is_ignored(game_env, storage):
+    m = game_env.module
+    storage[m.POSTCARD_KEY] = "junk"
+    assert m.load_postcards() == []
+    storage[m.POSTCARD_KEY] = '[{"grade": "Z", "nickname": "The Stubborn Harbour"}, {"grade": "A", "nickname": "Made Up"}, {"grade": "B", "nickname": "The Quiet Nets", "season": 7}, 5]'
+    cards = m.load_postcards()
+    assert len(cards) == 1 and cards[0]["season"] == 7
+
+
+def test_button_and_panel(game_env, storage):
+    m = game_env.module
+    m.session_summary_open = True
+    m.render()
+    assert "<svg" in game_env.elements["postcard-view"].innerHTML and "0 of 42" in game_env.elements["postcard-gallery"].innerText
+    game_env.elements["postcard-button"].dispatch("click", None)
+    assert "Play at least" in game_env.elements["postcard-status"].innerText
+    for _ in range(4):
+        m.state.advance_season()
+    game_env.elements["postcard-button"].dispatch("click", None)
+    assert "new postcard variant" in game_env.elements["postcard-status"].innerText
+    game_env.elements["postcard-button"].dispatch("click", None)
+    assert "already have" in game_env.elements["postcard-status"].innerText
+    m.session_summary_open = False
+    m.render()
+    assert game_env.elements["postcard-view"].innerHTML == ""

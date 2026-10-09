@@ -5015,6 +5015,145 @@ def render_workshop():
         badge.innerText = "Custom rules" if state.workshop_active() else ""
 
 
+# GD-9 Postcard ending ----------------------------------------------------------------------------------------------
+POSTCARD_KEY = "tide_postcards_v1"
+POSTCARD_GRADES = ("S", "A", "B", "C", "D", "E")
+POSTCARD_NICKNAMES = (
+    "The Unflooded", "The Drowned Quay", "The Quiet Nets", "Keeper of Lights", "The Anchor That Held",
+    "The Busy Harbour", "The Stubborn Harbour",
+)
+POSTCARD_MIN_SEASONS = 3
+
+
+def postcard_score():
+    """0..1 from what actually happened: dry rows, fish yield, population kept and damage the defences saved."""
+    s = state
+    dry = s.rows_dry_count() / COASTLINE_ROWS
+    fish = s.fish_yield_multiplier()
+    population = min(1.0, s.population / max(1, s.peak_population or POP_START))
+    saved = (s.damage_saved() / s.undampened_damage_total) if s.undampened_damage_total > 0 else 1.0
+    return max(0.0, min(1.0, 0.35 * dry + 0.25 * fish + 0.20 * population + 0.20 * max(0.0, min(1.0, saved))))
+
+
+def postcard_grade(score=None):
+    score = postcard_score() if score is None else score
+    for grade, floor in zip(POSTCARD_GRADES, (0.9, 0.75, 0.6, 0.45, 0.3, 0.0)):
+        if score >= floor:
+            return grade
+    return "E"
+
+
+def postcard_nickname():
+    s = state
+    if s.ironman_earned:
+        return "The Anchor That Held"
+    if s.rows_dry_count() == COASTLINE_ROWS and s.current_tier_index() >= 3:
+        return "The Unflooded"
+    if s.rows_dry_count() <= 1:
+        return "The Drowned Quay"
+    if s.fish_yield_multiplier() < 0.6:
+        return "The Quiet Nets"
+    if s.protected_heritage_count() == len(HERITAGE_SITES):
+        return "Keeper of Lights"
+    if len(s.crew) >= 2:
+        return "The Busy Harbour"
+    return "The Stubborn Harbour"
+
+
+def postcard_svg():
+    """The postcard as an SVG: every coastline row is a band (dry sand, flooded water, retreat marked), with the seawall tier, heritage and boats."""
+    s = state
+    width, height, band = 200, 150, 16
+    tier = s.current_tier_index()
+    parts = [f'<svg viewBox="0 0 {width} {height}" class="postcard-svg" xmlns="http://www.w3.org/2000/svg" role="img" '
+             f'aria-label="Postcard of {html.escape(s.display_name())}: grade {postcard_grade()}, {s.rows_dry_count()} of {COASTLINE_ROWS} rows dry">',
+             f'<rect width="{width}" height="{height}" fill="#cfeaf5"/>',
+             '<rect y="0" width="200" height="22" fill="#e8f6fb"/>']
+    for row in range(COASTLINE_ROWS):
+        y = 24 + row * band
+        lost = tile_row_state(row, s.sea_level) == FLOODED
+        retreated = row in s.retreat_rows
+        fill = "#2f7f9e" if lost else "#8d6e4a" if retreated else "#e6cf9a"
+        parts.append(f'<rect x="10" y="{y}" width="180" height="{band - 1}" fill="{fill}"/>')
+        if lost:
+            for col in range(8):  # sunken roofs: a small triangle just under the surface
+                parts.append(f'<path d="M{16 + col * 22},{y + 12} l5,-6 l5,6 z" fill="#1a5876"/>')
+        else:
+            for col in range(0, 8, 2):
+                parts.append(f'<rect x="{18 + col * 22}" y="{y + 5}" width="8" height="6" fill="#b5651d"/>')
+    if tier:
+        parts.append(f'<rect x="8" y="24" width="{2 + tier * 2}" height="{COASTLINE_ROWS * band}" fill="#6b6b6b"/>')
+    for site in HERITAGE_SITES:
+        if s.heritage.get(site["id"]) == HERITAGE_PROTECTED:
+            parts.append(f'<text x="168" y="{24 + site["row"] * band + 12}" font-size="12">{site["emoji"]}</text>')
+    boats = min(4, max(0, int(s.population / 60))) if s.fish_yield_multiplier() > 0.3 else 0
+    for i in range(boats):
+        parts.append(f'<path d="M{30 + i * 40},20 l8,0 l-4,-7 z" fill="#fff" stroke="#555" stroke-width="0.5"/>')
+    if s.population > 0 and boats == 0 and s.fish_yield_multiplier() <= 0.3:
+        parts.append('<path d="M60,20 l10,0 l-2,3 l-6,0 z" fill="#555"/>')  # one abandoned hull
+    parts.append(f'<text x="100" y="{height - 6}" font-size="9" text-anchor="middle" fill="#13354a">Greetings from {html.escape(s.display_name())} · {postcard_grade()} · {html.escape(postcard_nickname())}</text>')
+    parts.append("</svg>")
+    return "".join(parts)
+
+
+def load_postcards():
+    raw = _read_local_storage_item(POSTCARD_KEY)
+    try:
+        data = json.loads(raw) if raw else []
+    except (ValueError, TypeError):
+        return []
+    out = []
+    for item in data if isinstance(data, list) else []:
+        if isinstance(item, dict) and item.get("grade") in POSTCARD_GRADES and item.get("nickname") in POSTCARD_NICKNAMES:
+            out.append({"grade": item["grade"], "nickname": item["nickname"], "name": str(item.get("name", ""))[:24], "season": int(item["season"]) if isinstance(item.get("season"), int) and not isinstance(item.get("season"), bool) else 0})
+    return out[:len(POSTCARD_GRADES) * len(POSTCARD_NICKNAMES)]
+
+
+def collect_postcard():
+    """Files the current postcard in the gallery (one per grade and nickname variant). Returns 'new', 'seen' or 'early'."""
+    if state.season - 1 < POSTCARD_MIN_SEASONS or state.workshop_active():
+        return "early"
+    entry = {"grade": postcard_grade(), "nickname": postcard_nickname(), "name": state.display_name()[:24], "season": state.season - 1}
+    cards = load_postcards()
+    if any(c["grade"] == entry["grade"] and c["nickname"] == entry["nickname"] for c in cards):
+        return "seen"
+    cards.append(entry)
+    _write_local_storage_item(POSTCARD_KEY, json.dumps(cards))
+    return "new"
+
+
+def gallery_text():
+    cards = load_postcards()
+    total = len(POSTCARD_GRADES) * len(POSTCARD_NICKNAMES)
+    if not cards:
+        return f"Postcard gallery: 0 of {total} variants collected."
+    shown = ", ".join(f"{c['grade']} {c['nickname']}" for c in cards[-6:])
+    return f"Postcard gallery: {len(cards)} of {total} variants collected. Latest: {shown}."
+
+
+_postcard_status = {"text": ""}
+
+
+def on_make_postcard(event=None):
+    result = collect_postcard()
+    _postcard_status["text"] = {
+        "new": "A new postcard variant was added to your gallery.",
+        "seen": "You already have this variant in your gallery.",
+        "early": f"Play at least {POSTCARD_MIN_SEASONS} seasons (with standard rules) before a postcard counts for the gallery.",
+    }[result]
+    render()
+
+
+def render_postcard():
+    box = document.getElementById("postcard-view")
+    if box is not None:
+        box.innerHTML = postcard_svg() if session_summary_open else ""
+    for element_id, text in (("postcard-gallery", gallery_text()), ("postcard-status", _postcard_status["text"])):
+        element = document.getElementById(element_id)
+        if element is not None:
+            element.innerText = text
+
+
 def render_tide_oct9():
     render_afford()
     render_goal()
@@ -5028,6 +5167,7 @@ def render_tide_oct9():
     render_crew()
     render_autosaves()
     render_workshop()
+    render_postcard()
 
 
 def render():
@@ -5941,6 +6081,9 @@ def setup():
     autosave_list = document.getElementById("autosave-list")  # D-11
     if autosave_list is not None:
         autosave_list.addEventListener("click", create_proxy(on_autosave_click))
+    postcard_button = document.getElementById("postcard-button")  # GD-9
+    if postcard_button is not None:
+        postcard_button.addEventListener("click", create_proxy(on_make_postcard))
     theme_select = document.getElementById("scene-theme-select")  # GD-22
     if theme_select is not None:
         theme_select.addEventListener("change", create_proxy(on_scene_theme_change))
