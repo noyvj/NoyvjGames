@@ -1,0 +1,39 @@
+{
+  "@context": "https://schema.org",
+  "@type": [
+    "VideoGame",
+    "WebApplication"
+  ],
+  "name": "Logic Gates",
+  "description": "A dead station computer, rebuilt one circuit at a time: wire gates to match a truth table, keep each solved circuit as a chip, and end by wiring a four-instruction computer. Forty circuits and a free sandbox. Working title.",
+  "url": "https://noyvj.github.io/NoyvjGames/games/logic-gates/",
+  "image": "https://noyvj.github.io/NoyvjGames/share/logic-gates.png",
+  "applicationCategory": "GameApplication",
+  "operatingSystem": "Any modern web browser",
+  "browserRequirements": "Requires JavaScript and WebAssembly",
+  "gamePlatform": "Web browser",
+  "playMode": "SinglePlayer",
+  "inLanguage": "en",
+  "isAccessibleForFree": true,
+  "offers": {
+    "@type": "Offer",
+    "price": "0",
+    "priceCurrency": "USD"
+  },
+  "author": {
+    "@type": "Person",
+    "name": "Noyvj",
+    "url": "https://github.com/noyvj"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "NoyvjGames",
+    "url": "https://noyvj.github.io/NoyvjGames/"
+  },
+  "genre": [
+    "Systems simulation"
+  ],
+  "dateCreated": "2026-10-09",
+  "dateModified": "2026-10-09",
+  "timeRequired": "PT20M"
+}

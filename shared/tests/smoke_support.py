@@ -7,7 +7,7 @@ Every older game ships a pytest fixture `game_env` in `games/<slug>/tests/confte
 `game.py` against a fake DOM (`FakeElement`s keyed by id, a fake `js` and `pyodide` module). This
 module imports that conftest under a unique package name and calls the fixture's own function, so
 the games' boot code is exactly the one their own tests use and nothing is duplicated. The
-engine-style games (Signal, Chronicle, Lexis, Heist Committee, Lighthouse, Pocket Bazaar, Dead Reckoning) have no DOM: their `game.py` is a plain module with
+engine-style games (Signal, Chronicle, Lexis, Heist Committee, Lighthouse, Pocket Bazaar, Dead Reckoning, Logic Gates) have no DOM: their `game.py` is a plain module with
 a request/response entry point, driven here with a small action grammar instead of clicks.
 
 Importing a game's tests package changes `sys.path` and `sys.modules` (every game's module is
@@ -414,6 +414,36 @@ def reckoning_request(rng, last):
     return {"action": rng.choice(["sail", "sail", "anchor"])}
 
 
+def gates_request(rng, last):
+    """Logic Gates: open a level, put chips on the board, wire pins to the sources the view offers, flip switches, climb the hints."""
+    view = last or {}
+    roll = rng.random()
+    board = view.get("board") or {}
+    if roll < 0.04:
+        return {"action": rng.choice(["open", "reset", "bogus", "undo", "clear", "restore", "cancel", "manual", "next"])}
+    if roll < 0.10:
+        ids = [lv["id"] for ch in view.get("picker", []) for lv in ch.get("levels", []) if lv.get("open")]
+        return {"action": "start", "level": rng.choice(ids + ["sandbox"] if ids else ["sandbox"])}
+    if roll < 0.28:
+        types = [p["type"] for p in view.get("palette", [])] or ["and"]
+        return {"action": "add", "type": rng.choice(types)}
+    pins = [pin for chip in board.get("chips", []) for pin in chip.get("ins", [])] + list(board.get("lamps", []))
+    if roll < 0.62 and pins:
+        pin = rng.choice(pins)
+        sources = [o["value"] for o in pin.get("options", [])]
+        return {"action": "wire", "dest": pin["dest"], "src": rng.choice(sources or [""])}
+    if roll < 0.70 and board.get("chips"):
+        return {"action": "remove", "id": rng.choice(board["chips"])["id"]}
+    if roll < 0.82:
+        names = (view.get("level") or {}).get("ins") or ["A"]
+        return {"action": "flip", "name": rng.choice(names)}
+    if roll < 0.88:
+        return {"action": "script", "step": rng.randrange(0, 4)}
+    if roll < 0.94:
+        return {"action": rng.choice(["hint", "hint", "answer"])}
+    return {"action": "pick", "pin": rng.choice(["s:in:A", "d:out:X", "s:1.out", "d:1.A", "x"])}
+
+
 @contextlib.contextmanager
 def engine_game(slug):
     """Yield (call, get_state, next_request) for an engine-style game, freshly reset."""
@@ -460,6 +490,11 @@ def engine_game(slug):
             import game as module                    # noqa: PLC0415 -- resolved through that path
             module.handle(json.dumps({"action": "reset"}))
             yield (lambda req: json.loads(module.handle(json.dumps(req)))), module.get_state, reckoning_request
+        elif slug == "logic-gates":
+            load_conftest(slug)                     # puts games/logic-gates on sys.path
+            import game as module                    # noqa: PLC0415 -- resolved through that path
+            module.handle(json.dumps({"action": "reset"}))
+            yield (lambda req: json.loads(module.handle(json.dumps(req)))), module.get_state, gates_request
         else:
             raise KeyError(slug)
 
@@ -468,5 +503,5 @@ def engine_game(slug):
 
 FAKE_DOM_GAMES = ["aftermath", "canopy", "champ-de-mots", "continuum", "drift", "grid", "herd", "loop",
                   "sol", "thaw", "tide", "trade-empire"]
-ENGINE_GAMES = ["signal", "chronicle", "lexis", "heist-committee", "lighthouse", "pocket-bazaar", "dead-reckoning"]
+ENGINE_GAMES = ["signal", "chronicle", "lexis", "heist-committee", "lighthouse", "pocket-bazaar", "dead-reckoning", "logic-gates"]
 ALL_GAMES = sorted(FAKE_DOM_GAMES + ENGINE_GAMES)

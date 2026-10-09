@@ -1,0 +1,155 @@
+{
+ "achievements_earned": [
+  "first_light",
+  "asked_nicely"
+ ],
+ "meta": {
+  "current": "three-keys",
+  "levels": {
+   "both": {
+    "hints": 1
+   },
+   "decoder": {
+    "hints": 1
+   },
+   "invert": {
+    "chips": 3,
+    "hints": 3,
+    "solved": true
+   },
+   "straight-through": {
+    "chips": 0,
+    "hints": 2,
+    "par": true,
+    "solved": true
+   },
+   "three-keys": {
+    "hints": 1
+   }
+  },
+  "stats": {
+   "chips": 27,
+   "flips": 29,
+   "wires": 41
+  },
+  "work": {
+   "both": {
+    "chips": [
+     {
+      "id": 2,
+      "type": "not"
+     },
+     {
+      "id": 4,
+      "type": "not"
+     },
+     {
+      "id": 5,
+      "type": "and"
+     },
+     {
+      "id": 6,
+      "type": "not"
+     },
+     {
+      "id": 7,
+      "type": "and"
+     },
+     {
+      "id": 8,
+      "type": "not"
+     }
+    ],
+    "wires": {
+     "2.A": "in:B",
+     "7.B": "in:B"
+    }
+   },
+   "decoder": {
+    "chips": [],
+    "wires": {
+     "out:Y0": "in:A",
+     "out:Y3": "const:1"
+    }
+   },
+   "invert": {
+    "chips": [
+     {
+      "id": 1,
+      "type": "not"
+     },
+     {
+      "id": 3,
+      "type": "not"
+     },
+     {
+      "id": 4,
+      "type": "not"
+     }
+    ],
+    "wires": {
+     "1.A": "in:A",
+     "out:Y": "4.Y"
+    }
+   },
+   "lock-code": {
+    "chips": [
+     {
+      "id": 1,
+      "type": "not"
+     },
+     {
+      "id": 2,
+      "type": "and"
+     }
+    ],
+    "wires": {
+     "1.A": "in:A",
+     "2.A": "in:C"
+    }
+   },
+   "sandbox": {
+    "chips": [
+     {
+      "id": 1,
+      "type": "and"
+     }
+    ],
+    "wires": {}
+   },
+   "straight-through": {
+    "chips": [
+     {
+      "id": 1,
+      "type": "and"
+     }
+    ],
+    "wires": {
+     "out:Y": "const:1"
+    }
+   },
+   "three-keys": {
+    "chips": [
+     {
+      "id": 2,
+      "type": "and"
+     },
+     {
+      "id": 3,
+      "type": "and"
+     },
+     {
+      "id": 4,
+      "type": "and"
+     }
+    ],
+    "wires": {
+     "2.B": "3.Y",
+     "3.B": "const:1",
+     "out:Y": "in:A"
+    }
+   }
+  }
+ },
+ "schema": 1
+}

@@ -73,6 +73,12 @@
    "pyodide_ms": 3930,
    "total_kb": 5893.5
   },
+  "logic-gates": {
+   "first_interactive_ms": 1134,
+   "own_kb": 325.1,
+   "pyodide_ms": 1129,
+   "total_kb": 5765.2
+  },
   "loop": {
    "first_interactive_ms": 1396,
    "own_kb": 357.5,

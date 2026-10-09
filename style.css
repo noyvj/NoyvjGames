@@ -762,6 +762,31 @@ html[data-theme="light"] .whats-new-thumb[aria-pressed="true"] { color: #2c4a9a;
   border-top: 3px dashed #ffb25e;
 }
 
+/* Logic Gates: a cyan-outlined AND gate with two input wires and a gold output
+   lamp, on a near-black blue ground. Same shapes as the game's own favicon. */
+.title-card-thumb--logic-gates {
+  --thumb-glow: #5fd4e6;
+  background: repeating-linear-gradient(90deg, rgba(95, 212, 230, 0.07) 0 1px, transparent 1px 24px), linear-gradient(160deg, #14233a 0%, #0a1220 100%);
+}
+.title-card-thumb--logic-gates::before {
+  inset: 50% auto auto 50%;
+  width: 54px;
+  height: 66px;
+  transform: translate(-50%, -50%);
+  border: 3px solid #5fd4e6;
+  border-radius: 6px 33px 33px 6px;
+  background: #14233a;
+  box-shadow: -36px -16px 0 -26px #5fd4e6, -36px 16px 0 -26px #5fd4e6;
+}
+.title-card-thumb--logic-gates::after {
+  inset: 50% auto auto calc(50% + 28px);
+  width: 36px;
+  height: 3px;
+  background: #f2b84b;
+  transform: translateY(-50%);
+  box-shadow: 40px 0 0 3px #f2b84b;
+}
+
 /* Trade Empire: a miniature version of the in-game trade map itself —
    route lines connecting colony nodes (the same NODE_COLOR blue used by
    game.py's render_map()) with one gold dot standing in for an automated

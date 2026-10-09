@@ -61,6 +61,7 @@ THEMES = {
     "lighthouse": (["#143a52", "#0a1f30"], "waves", "#ffcf6b", "#143a52", ("lighthouse",)),
     "pocket-bazaar": (["#3a2f4a", "#2a2233"], "hills:#1a1420", "#e8a33d", "#2a2233", ("stall",)),
     "dead-reckoning": (["#17405e", "#07131f"], "gridlines", "#7fd1ff", "#10283d", ("compass",)),
+    "logic-gates": (["#14233a", "#0a1220"], "gridlines", "#5fd4e6", "#0a1220", ("gate",)),
     "trade-empire": (["#1a1f3a", "#0d0f1e"], "network", "#e0c34c", "#171b30", ("letter", "$", "#e0c34c")),
 }
 FALLBACK_THEME = (["#1a1f3a", "#0d0f1e"], "stars", "#8fb0e8", "#2c4a7c", ("letter", "?", "#ffffff"))
@@ -327,6 +328,15 @@ def draw_glyph(draw, glyph, scale, tile_color):
             a = (18 + 27 * t0, 49 - 25 * t0)
             b = (18 + 27 * t1, 49 - 25 * t1)
             stroke(draw, S([a, b]), 2.5 * scale, cyan)
+    elif kind == "gate":
+        cyan, gold = rgb("#5fd4e6"), rgb("#f2b84b")
+        stroke(draw, S([(12, 20), (26, 20)]), 3 * scale, cyan)
+        stroke(draw, S([(12, 44), (26, 44)]), 3 * scale, cyan)
+        body = [(26, 12), (36, 12)] + arc_points(36, 32, 20, -90, 90) + [(26, 52)]
+        draw.polygon(S(body), fill=rgb("#14233a"))
+        stroke(draw, S(body + [(26, 12)]), 3 * scale, cyan)
+        stroke(draw, S([(42, 32), (54, 32)]), 3 * scale, gold)
+        draw.ellipse((51 * scale, 28 * scale, 59 * scale, 36 * scale), fill=gold)
     elif kind == "lexis":
         blue = rgb("#9ad0ff")
         for a, b in (((16, 22), (26, 22)), ((34, 22), (36, 22)), ((42, 22), (48, 22)),

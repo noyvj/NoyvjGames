@@ -99,6 +99,15 @@
         "Milestone 7: Standard kit"
       ]
     },
+    "logic-gates": {
+      "commit_count": 8,
+      "last_updated": "2026-10-09",
+      "recent_commits": [
+        "Logic Gates milestone 8: Wrap-up",
+        "Logic Gates milestone 7: Desktop boot",
+        "Logic Gates milestone 6: Achievements"
+      ]
+    },
     "loop": {
       "commit_count": 72,
       "last_updated": "2026-10-07",

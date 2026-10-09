@@ -2,7 +2,7 @@
 // the precache list; ordinary content deploys don't need it, because
 // same-origin requests are network-first (see the fetch handler below) and
 // so always pick up fresh files whenever the player is online.
-const SW_VERSION = 46;
+const SW_VERSION = 47;
 const CACHE_NAME = "site-cache-v" + SW_VERSION;
 // How long a same-origin network request may take before we give up and
 // serve the cached copy instead (a slow/flaky connection shouldn't hang).
@@ -240,6 +240,26 @@ const PRECACHE_URLS = [
   "games/dead-reckoning/progress.py",
   "games/dead-reckoning/achievements.py",
   "games/dead-reckoning/fixes.py",
+  "games/logic-gates/index.html",
+  "games/logic-gates/style.css",
+  "games/logic-gates/game.py",
+  "games/logic-gates/app.js",
+  "games/logic-gates/settings.js",
+  "games/logic-gates/changelog.json",
+  "games/logic-gates/achievements.json",
+  "games/logic-gates/chips.py",
+  "games/logic-gates/net.py",
+  "games/logic-gates/sim.py",
+  "games/logic-gates/levels_a.py",
+  "games/logic-gates/levels_b.py",
+  "games/logic-gates/levels_c.py",
+  "games/logic-gates/levels.py",
+  "games/logic-gates/check.py",
+  "games/logic-gates/words.py",
+  "games/logic-gates/render.py",
+  "games/logic-gates/state.py",
+  "games/logic-gates/achievements.py",
+  "games/logic-gates/info.py",
   // Audit fix 2026-09-27: Trade Empire is hub-linked and has been for a while
   // (see CLAUDE.md's Current games table) -- both were mistakenly left off
   // this list under a stale "not hub-linked yet" comment. Trade Empire has the
@@ -296,6 +316,9 @@ const PRECACHE_URLS = [
   "games/dead-reckoning/pc.html",
   "games/dead-reckoning/pc.css",
   "games/dead-reckoning/pc.js",
+  "games/logic-gates/pc.html",
+  "games/logic-gates/pc.css",
+  "games/logic-gates/pc.js",
   "games/signal/pc.html",
   "games/signal/pc.css",
   "games/signal/pc.js",
