@@ -216,12 +216,3 @@ Recommended: keep 3 minutes, with 2x and 4x speeds and pause already available.
 ### Fs2. FREN152: the slides folder holds "FREN152 LECTURE 13 (2024)", a 2024 lecture 13 although week 13 has not happened this semester; should I use it as a preview of week 13 or ignore it?
 
 Recommended: ignore it until your 2026 week 13 arrives, since the 2024 content may differ from this year's.
-
-
-### Gb1. Canopy GB-3: you said yes to an Expedition mode (a 12-season roguelike run with boons and a shareable seed), but you have since said you dislike roguelikes; which version do you want instead?
-
-Options: (a) a skill-tree "Expedition" with fixed, chosen upgrades and a shareable seed for the map only, no random boons (recommended); (b) drop it; (c) build it as first described. Say "yes" to go with (a), "no" to drop it.
-
-### Gb2. Canopy GB-21: you said yes to a "timber gambler" Clear-cut option (a 25% chance of a triple payout, otherwise a 40% soil crash); since you dislike heavy luck and hard losses, should I soften it?
-
-Options: (a) a "clear-cut for a quick payout" choice with no dice: a fixed small bonus now in exchange for a visible, recoverable soil dip that heals over a few seasons, with a badge for the Harvester playstyle (recommended); (b) drop it; (c) build the dice version as written. Say "yes" to go with (a), "no" to drop it.

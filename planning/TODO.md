@@ -38,7 +38,7 @@ Rules carried over: "yes" items are here, "later" items are parked in `planning/
 
 - [x] GB-1: Wildfire season (opt-in via the difficulty select).
 - [x] GB-2: Golden seedling pop-up.
-- [ ] GB-3: Expedition mode (roguelike run of 12 seasons with boons and a shareable seed), built as a separate game mode on my judgment.
+- [ ] GB-3: Expedition mode, reframed (you said go with the recommendation, 2026-10-09): a skill-tree Expedition of 12 seasons with fixed, chosen upgrades (no random boons, no roguelike run) and a shareable seed that only decides the map; built as a separate game mode on the shared skill tree.
 - [x] GB-4: Tend action with cooldown (hotkey T).
 - [x] GB-5: Neighbour synergy layout puzzle.
 - [x] GB-6: Species on replant (pioneer pine, hardwood oak, orchard).
@@ -56,7 +56,7 @@ Rules carried over: "yes" items are here, "later" items are parked in `planning/
 - [x] GB-18: Undo window after Clear.
 - [x] GB-19: Daily community forest: everyone's play waters one big community plot, with a shared "best day" and an opt-in investment leaderboard (uses the community pools backend from tonight and W-5).
 - [x] GB-20: Rare conditional wildlife in the wildlife log.
-- [ ] GB-21: Timber gambler clear-cut option.
+- [ ] GB-21: Clear-cut option, softened (you said go with the recommendation, 2026-10-09): a "clear-cut for a quick payout" choice with no dice: a fixed small bonus now in exchange for a visible, recoverable soil dip that heals over a few seasons, with a badge for the Harvester playstyle.
 - [x] GB-22: Standing-value milestone celebrations (1k, 2.5k, 5k, 10k), also as achievements if they are not already.
 - [x] GB-23: Weather reads on the grid (rain shimmer, drought tint).
 - [x] GB-24: Wetland/mangrove tidal puzzle (extends the Wetland Forest built as B1; share the tide logic with Tide).
