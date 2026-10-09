@@ -7,7 +7,7 @@ Every older game ships a pytest fixture `game_env` in `games/<slug>/tests/confte
 `game.py` against a fake DOM (`FakeElement`s keyed by id, a fake `js` and `pyodide` module). This
 module imports that conftest under a unique package name and calls the fixture's own function, so
 the games' boot code is exactly the one their own tests use and nothing is duplicated. The
-engine-style games (Signal, Chronicle, Lexis, Heist Committee, Lighthouse, Pocket Bazaar, Dead Reckoning, Logic Gates) have no DOM: their `game.py` is a plain module with
+engine-style games (Signal, Chronicle, Lexis, Heist Committee, Lighthouse, Pocket Bazaar, Dead Reckoning, Logic Gates, Robot Script) have no DOM: their `game.py` is a plain module with
 a request/response entry point, driven here with a small action grammar instead of clicks.
 
 Importing a game's tests package changes `sys.path` and `sys.modules` (every game's module is
@@ -444,6 +444,35 @@ def gates_request(rng, last):
     return {"action": "pick", "pin": rng.choice(["s:in:A", "d:out:X", "s:1.out", "d:1.A", "x"])}
 
 
+def robot_request(rng, last):
+    """Robot Script: pick rooms, write instructions into the lists the view offers, run the program, climb the hint ladder."""
+    view = last or {}
+    roll = rng.random()
+    program = view.get("program") or {}
+    addr = rng.choice(["main/0", "main/1", "main/0/0/0", "A/0", "B/1", "main", "x"])
+    if roll < 0.03:
+        return {"action": rng.choice(["open", "reset", "bogus", "undo", "clear", "load_best", "load_answer", "next", "sandbox"])}
+    if roll < 0.08:
+        room_ids = [r["id"] for ch in view.get("rooms", []) for r in ch.get("rooms", []) if r.get("open")]
+        return {"action": "pick", "room": rng.choice(room_ids or ["x"])}
+    if roll < 0.12:
+        return {"action": rng.choice(["sbx_paint", "sbx_preset"]), "x": rng.randrange(0, 9), "y": rng.randrange(0, 9),
+                "tile": rng.choice([".", "#", "E", "p", ">", "?"]), "name": rng.choice(["open", "maze", "workshop", "none"])}
+    if roll < 0.50:
+        kinds = [p["k"] for p in program.get("palette", [])] or ["F"]
+        return {"action": "insert", "kind": rng.choice(kinds), "n": rng.randrange(0, 12), "cond": rng.choice(["blocked", "!part", "exit", "bad"])}
+    if roll < 0.58:
+        return {"action": "cursor", "list": rng.choice(["main", "A", "B", "x"]), "index": rng.randrange(0, 5)}
+    if roll < 0.64:
+        return {"action": "routine", "name": rng.choice(["main", "A", "B", "C"])}
+    if roll < 0.74:
+        return {"action": rng.choice(["remove", "move", "count", "cond"]), "at": addr, "delta": rng.choice([-1, 1]),
+                "n": rng.randrange(0, 12), "cond": rng.choice(["blocked", "!part", "bad"])}
+    if roll < 0.80:
+        return {"action": rng.choice(["hint", "hint", "load_answer"])}
+    return {"action": "run"}
+
+
 @contextlib.contextmanager
 def engine_game(slug):
     """Yield (call, get_state, next_request) for an engine-style game, freshly reset."""
@@ -495,6 +524,11 @@ def engine_game(slug):
             import game as module                    # noqa: PLC0415 -- resolved through that path
             module.handle(json.dumps({"action": "reset"}))
             yield (lambda req: json.loads(module.handle(json.dumps(req)))), module.get_state, gates_request
+        elif slug == "robot-script":
+            load_conftest(slug)                     # puts games/robot-script (and its tools) on sys.path
+            import game as module                    # noqa: PLC0415 -- resolved through that path
+            module.handle(json.dumps({"action": "reset"}))
+            yield (lambda req: json.loads(module.handle(json.dumps(req)))), module.get_state, robot_request
         else:
             raise KeyError(slug)
 
@@ -503,5 +537,5 @@ def engine_game(slug):
 
 FAKE_DOM_GAMES = ["aftermath", "canopy", "champ-de-mots", "continuum", "drift", "grid", "herd", "loop",
                   "sol", "thaw", "tide", "trade-empire"]
-ENGINE_GAMES = ["signal", "chronicle", "lexis", "heist-committee", "lighthouse", "pocket-bazaar", "dead-reckoning", "logic-gates"]
+ENGINE_GAMES = ["signal", "chronicle", "lexis", "heist-committee", "lighthouse", "pocket-bazaar", "dead-reckoning", "logic-gates", "robot-script"]
 ALL_GAMES = sorted(FAKE_DOM_GAMES + ENGINE_GAMES)

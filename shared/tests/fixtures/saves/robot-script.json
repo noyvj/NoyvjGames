@@ -1,0 +1,33 @@
+{
+ "achievements_earned": [
+  "second_opinion"
+ ],
+ "bumped": [
+  "wake-up",
+  "first-delivery",
+  "in-order",
+  "the-shaft"
+ ],
+ "cur": "the-shaft",
+ "draft": {
+  "first-delivery": "main: P",
+  "first-switch": "main: S",
+  "in-order": "main: G F F F G G",
+  "long-hall": "main: F",
+  "stop-short": "main: F F F F",
+  "the-shaft": "main: P G G G S P G G S G S F S S P F F F G P S P S S",
+  "wake-up": "main: F F F"
+ },
+ "rungs": {
+  "in-order": 1,
+  "stop-short": 1,
+  "the-shaft": 1,
+  "wake-up": 3
+ },
+ "tally": {
+  "halts": 31,
+  "hints": 6,
+  "runs": 36,
+  "written": 74
+ }
+}

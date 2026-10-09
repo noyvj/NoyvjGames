@@ -23,6 +23,7 @@
     "pocket-bazaar": "Pocket Bazaar",
     "dead-reckoning": "Dead Reckoning",
     "logic-gates": "Logic Gates",
+    "robot-script": "Robot Script",
   };
   let games = [];                       // [{slug, name, href}] from the lobby page
   let ownData = null;                   // the owner's own profile data, when viewing it

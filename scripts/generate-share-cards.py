@@ -62,6 +62,7 @@ THEMES = {
     "pocket-bazaar": (["#3a2f4a", "#2a2233"], "hills:#1a1420", "#e8a33d", "#2a2233", ("stall",)),
     "dead-reckoning": (["#17405e", "#07131f"], "gridlines", "#7fd1ff", "#10283d", ("compass",)),
     "logic-gates": (["#14233a", "#0a1220"], "gridlines", "#5fd4e6", "#0a1220", ("gate",)),
+    "robot-script": (["#2a3348", "#151a26"], "gridlines", "#8fd4e3", "#1c2230", ("robot",)),
     "trade-empire": (["#1a1f3a", "#0d0f1e"], "network", "#e0c34c", "#171b30", ("letter", "$", "#e0c34c")),
 }
 FALLBACK_THEME = (["#1a1f3a", "#0d0f1e"], "stars", "#8fb0e8", "#2c4a7c", ("letter", "?", "#ffffff"))
@@ -337,6 +338,13 @@ def draw_glyph(draw, glyph, scale, tile_color):
         stroke(draw, S(body + [(26, 12)]), 3 * scale, cyan)
         stroke(draw, S([(42, 32), (54, 32)]), 3 * scale, gold)
         draw.ellipse((51 * scale, 28 * scale, 59 * scale, 36 * scale), fill=gold)
+    elif kind == "robot":
+        draw.polygon(S([(22, 12), (42, 12), (52, 22), (52, 42), (42, 52), (22, 52), (12, 42), (12, 22)]), fill=rgb("#5fb3c7"))
+        draw.polygon(S([(22, 12), (42, 12), (32, 22)]), fill=rgb("#8fd4e3"))
+        draw.rounded_rectangle((19 * scale, 26 * scale, 45 * scale, 40 * scale), radius=3 * scale, fill=rgb("#0f141d"))
+        for cx in (26, 38):
+            draw.ellipse(((cx - 3.2) * scale, 29.8 * scale, (cx + 3.2) * scale, 36.2 * scale), fill=rgb("#f0b04a"))
+        stroke(draw, S([(24, 46), (40, 46)]), 3 * scale, rgb("#0f141d"))
     elif kind == "lexis":
         blue = rgb("#9ad0ff")
         for a, b in (((16, 22), (26, 22)), ((34, 22), (36, 22)), ((42, 22), (48, 22)),

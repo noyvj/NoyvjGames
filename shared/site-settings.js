@@ -25,6 +25,7 @@
     sol: { scale: "sol-text-scale", motion: "sol-reduced-motion" },
     continuum: { scale: "continuum-text-scale", motion: "continuum-reduced-motion" },
     lexis: { scale: "lexis-text-scale", motion: "lexis-reduced-motion" },
+    "robot-script": { scale: "robot-script-text-scale", motion: "robot-script-reduced-motion" },
     "logic-gates": { scale: "logic-gates-text-scale", motion: "logic-gates-reduced-motion" },
     "dead-reckoning": { scale: "dead-reckoning-text-scale", motion: "dead-reckoning-reduced-motion" },
     "pocket-bazaar": { scale: "pocket-bazaar-text-scale", motion: "pocket-bazaar-reduced-motion" },

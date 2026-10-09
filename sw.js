@@ -2,7 +2,7 @@
 // the precache list; ordinary content deploys don't need it, because
 // same-origin requests are network-first (see the fetch handler below) and
 // so always pick up fresh files whenever the player is online.
-const SW_VERSION = 47;
+const SW_VERSION = 48;
 const CACHE_NAME = "site-cache-v" + SW_VERSION;
 // How long a same-origin network request may take before we give up and
 // serve the cached copy instead (a slow/flaky connection shouldn't hang).
@@ -260,6 +260,31 @@ const PRECACHE_URLS = [
   "games/logic-gates/state.py",
   "games/logic-gates/achievements.py",
   "games/logic-gates/info.py",
+  "games/robot-script/index.html",
+  "games/robot-script/style.css",
+  "games/robot-script/game.py",
+  "games/robot-script/app.js",
+  "games/robot-script/settings.js",
+  "games/robot-script/changelog.json",
+  "games/robot-script/achievements.json",
+  "games/robot-script/dsl.py",
+  "games/robot-script/room.py",
+  "games/robot-script/run.py",
+  "games/robot-script/editor.py",
+  "games/robot-script/render.py",
+  "games/robot-script/progress.py",
+  "games/robot-script/info.py",
+  "games/robot-script/hints.py",
+  "games/robot-script/rooms_moving.py",
+  "games/robot-script/rooms_turning.py",
+  "games/robot-script/rooms_loops.py",
+  "games/robot-script/rooms_routines.py",
+  "games/robot-script/rooms_branches.py",
+  "games/robot-script/rooms_capstone.py",
+  "games/robot-script/rooms.py",
+  "games/robot-script/companion.py",
+  "games/robot-script/achievements.py",
+  "games/robot-script/sandbox.py",
   // Audit fix 2026-09-27: Trade Empire is hub-linked and has been for a while
   // (see CLAUDE.md's Current games table) -- both were mistakenly left off
   // this list under a stale "not hub-linked yet" comment. Trade Empire has the
@@ -319,6 +344,9 @@ const PRECACHE_URLS = [
   "games/logic-gates/pc.html",
   "games/logic-gates/pc.css",
   "games/logic-gates/pc.js",
+  "games/robot-script/pc.html",
+  "games/robot-script/pc.css",
+  "games/robot-script/pc.js",
   "games/signal/pc.html",
   "games/signal/pc.css",
   "games/signal/pc.js",

@@ -91,6 +91,12 @@
    "pyodide_ms": 3564,
    "total_kb": 5788.5
   },
+  "robot-script": {
+   "first_interactive_ms": 1170,
+   "own_kb": 345.7,
+   "pyodide_ms": 1144,
+   "total_kb": 5785.7
+  },
   "signal": {
    "first_interactive_ms": 1260,
    "own_kb": 301.7,

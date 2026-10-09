@@ -787,6 +787,29 @@ html[data-theme="light"] .whats-new-thumb[aria-pressed="true"] { color: #2c4a9a;
   box-shadow: 40px 0 0 3px #f2b84b;
 }
 
+/* Robot Script: a teal octagonal robot head with a dark visor and two amber
+   eyes, on a slate floor of tiles. Same shapes as the game's own favicon. */
+.title-card-thumb--robot-script {
+  --thumb-glow: #5fb3c7;
+  background: repeating-linear-gradient(0deg, rgba(95, 179, 199, 0.09) 0 1px, transparent 1px 26px), repeating-linear-gradient(90deg, rgba(95, 179, 199, 0.09) 0 1px, transparent 1px 26px), linear-gradient(160deg, #2a3348 0%, #151a26 100%);
+}
+.title-card-thumb--robot-script::before {
+  inset: 50% auto auto 50%;
+  width: 78px;
+  height: 78px;
+  transform: translate(-50%, -50%);
+  clip-path: polygon(30% 0, 70% 0, 100% 30%, 100% 70%, 70% 100%, 30% 100%, 0 70%, 0 30%);
+  background: linear-gradient(180deg, #8fd4e3 0 18%, #5fb3c7 18% 100%);
+}
+.title-card-thumb--robot-script::after {
+  inset: 50% auto auto 50%;
+  width: 46px;
+  height: 24px;
+  transform: translate(-50%, -62%);
+  border-radius: 6px;
+  background: radial-gradient(circle at 28% 50%, #f0b04a 0 5px, transparent 6px), radial-gradient(circle at 72% 50%, #f0b04a 0 5px, transparent 6px), #0f141d;
+}
+
 /* Trade Empire: a miniature version of the in-game trade map itself —
    route lines connecting colony nodes (the same NODE_COLOR blue used by
    game.py's render_map()) with one gold dot standing in for an automated

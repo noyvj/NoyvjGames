@@ -72,14 +72,14 @@ def test_rating_responses_resort_the_grid_once(harness):
     """All the cards' stars arrive in one summary response; the grid is re-sorted once for it."""
     h = harness(init_scripts=["localStorage.setItem('hub-onboarding-seen','1');localStorage.setItem('tutorial-seen:hub','1');"])
     slugs = ("sol", "canopy", "grid", "tide", "aftermath", "herd", "thaw", "loop", "drift",
-             "champ-de-mots", "continuum", "signal", "lexis", "trade-empire", "heist-committee", "lighthouse", "pocket-bazaar", "dead-reckoning", "logic-gates")
+             "champ-de-mots", "continuum", "signal", "lexis", "trade-empire", "heist-committee", "lighthouse", "pocket-bazaar", "dead-reckoning", "logic-gates", "robot-script")
     h.api_responses[("GET", "/ratings-summary")] = (200, {"games": {
         slug: {"average": 4.0, "count": 1, "distribution": {"1": 0, "2": 0, "3": 0, "4": 1, "5": 0}} for slug in slugs}})
     h.page.add_init_script("window.__sorts = 0; document.addEventListener('DOMContentLoaded', () => {"
                            "const g = document.getElementById('game-grid'); const a = g.append.bind(g);"
                            "g.append = (...n) => { window.__sorts += 1; return a(...n); }; });")
     page = h.goto("/index.html")
-    page.wait_for_function("document.querySelectorAll('.title-card[data-review-count=\"1\"]').length === 19")
+    page.wait_for_function("document.querySelectorAll('.title-card[data-review-count=\"1\"]').length === 20")
     page.wait_for_timeout(300)
     # one initial sort plus one for the ratings; never one per card
     assert page.evaluate("window.__sorts") <= 3
