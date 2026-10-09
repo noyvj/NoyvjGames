@@ -1,0 +1,44 @@
+{
+  "windows": [
+    ["picker-panel", "picker-toggle-button", "Levels"],
+    ["shelf-panel", "shelf-toggle-button", "Chips"],
+    ["sandbox-panel", "sandbox-toggle-button", "Sandbox"],
+    ["achievements-panel", "achievements-toggle-button", "Achievements"],
+    ["log-panel", "log-toggle-button", "Station log"],
+    ["changelog-panel", "changelog-toggle-button", "What's New"],
+    ["settings-panel", "settings-toggle-button", "Settings"],
+    ["info-page-panel", "info-page-toggle-button", "About Logic Gates"]
+  ],
+  "toolbar": {
+    "icons": [
+      ["picker-toggle-button", "🗺️"],
+      ["shelf-toggle-button", "🔧"],
+      ["achievements-toggle-button", "🏆"],
+      ["settings-toggle-button", "⚙️"]
+    ],
+    "menu": [
+      {"heading": "Game", "ids": ["sandbox-toggle-button"]},
+      {"heading": "Help", "ids": ["tutorial-restart-button", "info-page-toggle-button", "credits-link"]},
+      {"heading": "Records", "ids": ["log-toggle-button", "changelog-toggle-button"]}
+    ]
+  },
+  "composites": [],
+  "adopt": [],
+  "zones": {
+    "topbar": [".top-row", ".game-toolbar"],
+    "stagebar": ["#status-strip", "#goals", "#level-head", "#solved-banner", "#toast", "#engine-status"],
+    "stage": ["#board-panel"],
+    "side": ["#check-panel", "#parts-panel", "#hints-panel"],
+    "hidden": [".tagline"]
+  },
+  "readouts": [],
+  "side_label": "Result, parts and help",
+  "hints": [
+    ["Tap a pin, then another", "Wire"],
+    ["U", "Undo"],
+    ["N", "Next level"],
+    ["Esc", "Let go / menu / close window"],
+    ["?", "All shortcuts"]
+  ],
+  "notify": null
+}

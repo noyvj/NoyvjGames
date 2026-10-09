@@ -15,8 +15,10 @@ Updated after each milestone. A new agent should read `planning/logic-gates-plan
 
 - Milestone 6 Achievements: `achievements.json` (14, generated from `achievements.py`), tests for manifest sync, goals, and an ordinary game that earns all 14.
 
+- Milestone 7 Desktop boot: `pc-config.json`, `pc.css`, `pc.js`, `pc.html` (generated only for this game via importlib `build("logic-gates", cfg)`; never run the all-games generator), `tests/test_desktop_boot.py`; checked live at 1440x900 (no page scroll).
+
 ## Next
-- Milestone 7: Desktop boot (`pc-config.json`, `pc.css`, `pc.js`, generated `pc.html` via importlib `build()` only).
+- Milestone 8: wrap-up (final mobile/desktop pass, docs).
 
 ## Open problems
 - None yet.
