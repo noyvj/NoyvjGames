@@ -51,6 +51,7 @@ import dynasty  # noqa: E402
 import eastereggs  # noqa: E402
 import explain  # noqa: E402
 import founding  # noqa: E402
+import geography  # noqa: E402
 import hamlet  # noqa: E402
 import heritage  # noqa: E402
 import info_content  # noqa: E402
@@ -132,6 +133,8 @@ def current_effects():
         effects = heritage.apply_effects(effects, campaign.ui, campaign.furthest_era, resting)
         # K-13: the Beyond's standing pressure, while a run is on.
         effects = beyond.apply_effects(effects, campaign.ui, state, not resting)
+        # K-12: the generated map's boons and prices (a challenge run is always played on open land).
+        effects = geography.apply_effects(effects, _geo_seed())
     return effects
 
 
@@ -318,6 +321,7 @@ def render():
     update_orders_panel()
     update_heritage_panel()
     update_beyond_panel()
+    update_geography_panel()
     update_rewind_button()
     render_insights(effects)
     render_hamlet(effects)
@@ -337,6 +341,8 @@ def get_visual_state():
     # consulting case rests), as plain {era, kept} so the scene can draw a ruin or a cleared patch.
     sites = [] if _resting() else heritage.sites_before(state.era, campaign.ui)
     visual_data["heritage"] = [{"era": s["era"], "kept": s["kept"]} for s in sites]
+    # K-12: the non-plains cells of the generated map (empty on open land) for the scene to lay down.
+    visual_data["terrain"] = geography.terrain_cells(geography.generate(_geo_seed()))
     return visual_data
 
 
@@ -2324,7 +2330,9 @@ def update_views_panel(effects=None):
     elif views_tab == "map":
         hazard = _debt_hazard()
         sites = [] if _resting() else heritage.sites_before(state.era, campaign.ui)
-        document.getElementById("views-map-svg").innerHTML = views.civic_map_svg(state, hazard, sites)
+        document.getElementById("views-map-svg").innerHTML = views.civic_map_svg(state, hazard, sites) + geography.map_svg(
+            geography.generate(_geo_seed())
+        )
         document.getElementById("views-map-caption").innerText = views.map_caption(state, hazard)
     else:
         document.getElementById("views-flow-svg").innerHTML = views.flow_svg(state, state.last_report)
@@ -5773,6 +5781,117 @@ def update_beyond_panel():
         rows.appendChild(line)
 
 
+# --- K-12 generated map with biomes -------------------------------------------------------------------------
+# The rules live in geography.py. This is the DOM half: an opt-in map chosen before the first season (or
+# inherited from a consulting case), shown as a grid, with each biome's boon and price in words.
+geography_open = False
+geography_status = ""
+
+
+def _geo_seed():
+    """The seed in force: a consulting case's inherited map, else the player's (none in a challenge run)."""
+    case = consulting.get(campaign.ui)
+    if case is not None:
+        return geography.active_seed(campaign.ui, case["case"])
+    if challengerun.get(campaign.ui) is not None:
+        return None
+    return geography.chosen_seed(campaign.ui)
+
+
+def _geo_editable():
+    return (
+        campaign.revisiting is None
+        and consulting.get(campaign.ui) is None
+        and challengerun.get(campaign.ui) is None
+        and founding.is_pristine(campaign)
+    )
+
+
+def on_toggle_geography(event=None):
+    global geography_open
+    geography_open = not geography_open
+    update_geography_panel()
+
+
+def _geo_set(seed, message):
+    global geography_status
+    if not _geo_editable():
+        geography_status = "The map can only be chosen before the first season of a fresh settlement."
+        update_geography_panel()
+        return
+    geography.set_seed(campaign.ui, seed)
+    geography_status = message
+    render()
+
+
+def on_geography_new(event=None):
+    seed = _seed_hint() % geography.SEED_MAX or 1
+    current = geography.chosen_seed(campaign.ui)
+    if seed == current:
+        seed = seed % (geography.SEED_MAX - 1) + 1
+    _geo_set(seed, f"A new map was drawn (seed {seed}).")
+
+
+def on_geography_off(event=None):
+    _geo_set(None, "Back to open land: no map.")
+
+
+def on_geography_use_seed(event=None):
+    raw = document.getElementById("geography-seed-input").value
+    try:
+        seed = int(str(raw).strip())
+    except (TypeError, ValueError):
+        seed = None
+    if geography.clean_seed(seed) is None:
+        global geography_status
+        geography_status = "Type a whole number from 1 to 2147483647."
+        update_geography_panel()
+        return
+    _geo_set(seed, f"Map for seed {seed}.")
+
+
+def update_geography_panel():
+    toggle = document.getElementById("geography-toggle-button")
+    toggle.innerText = "Hide Geography" if geography_open else "🗺 Geography"
+    panel = document.getElementById("geography-panel")
+    panel.hidden = not geography_open
+    if not geography_open:
+        return
+    seed = _geo_seed()
+    grid = geography.generate(seed)
+    case = consulting.get(campaign.ui)
+    editable = _geo_editable()
+    note = document.getElementById("geography-note")
+    if case is not None:
+        note.innerText = "This consulting case comes with its own inherited ground, so the map is fixed."
+    elif challengerun.get(campaign.ui) is not None:
+        note.innerText = "Challenge runs are played on open land so their scores stay comparable."
+    elif not editable:
+        note.innerText = "The map is fixed once the first season has begun (or while looking back)."
+    else:
+        note.innerText = (
+            "Optional. Draw a map for this settlement before its first season: each biome gives a small boon and a "
+            "small price. Share the seed number and someone else gets the same ground."
+        )
+    document.getElementById("geography-seed").innerText = (
+        f"Seed {seed}: {geography.summary_text(grid)}." if grid else "Open land: no map (every number as usual)."
+    )
+    document.getElementById("geography-map").innerHTML = geography.map_svg(grid)
+    holder = document.getElementById("geography-list")
+    holder.innerHTML = ""
+    for line in geography.describe(grid):
+        node = document.createElement("p")
+        node.className = "row-blurb"
+        node.innerText = line
+        holder.appendChild(node)
+    document.getElementById("geography-new-button").disabled = not editable
+    document.getElementById("geography-new-button").innerText = "New map" if grid else "Draw a map"
+    document.getElementById("geography-off-button").disabled = not editable or not grid
+    document.getElementById("geography-use-seed-button").disabled = not editable
+    document.getElementById("geography-seed-input").disabled = not editable
+    document.getElementById("geography-status").innerText = geography_status
+
+
 def _extra_dashboard_sections():
     """Standing advantages as dashboard rows, so none is ever a hidden mechanic."""
     resting = _resting()
@@ -5792,6 +5911,7 @@ def _extra_dashboard_sections():
         ("Citizen bonuses", _citizen_effects_text() if _citizens_on() else "switched off"),
         ("Heritage sites", _heritage_summary_text()),
         ("The Beyond", _beyond_summary_text()),
+        ("Geography", geography.summary_text(geography.generate(_geo_seed()))),
     ]
     return [{"title": "Standing advantages", "rows": rows}]
 
@@ -6008,6 +6128,10 @@ def setup():
         ("orders-toggle-button", on_toggle_orders),
         ("heritage-toggle-button", on_toggle_heritage),
         ("beyond-toggle-button", on_toggle_beyond),
+        ("geography-toggle-button", on_toggle_geography),
+        ("geography-new-button", on_geography_new),
+        ("geography-off-button", on_geography_off),
+        ("geography-use-seed-button", on_geography_use_seed),
         ("beyond-start-button", on_beyond_start),
         ("beyond-stop-button", on_beyond_stop),
         ("orders-master-button", on_orders_master),

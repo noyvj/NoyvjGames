@@ -104,6 +104,11 @@
       "beyond-panel",
       "beyond-toggle-button",
       "The Beyond"
+    ],
+    [
+      "geography-panel",
+      "geography-toggle-button",
+      "Geography"
     ]
   ],
   "toolbar": {
@@ -131,7 +136,8 @@
           "doctrines-toggle-button",
           "neighbours-toggle-button",
           "heritage-toggle-button",
-          "beyond-toggle-button"
+          "beyond-toggle-button",
+          "geography-toggle-button"
         ]
       },
       {

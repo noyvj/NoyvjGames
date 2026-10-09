@@ -474,6 +474,33 @@
     return group;
   }
 
+  // K-12: the generated map's non-plains cells as flat tiles on the ground (and a small peak on each
+  // mountain cell away from the middle), so the geography reads by shape and sits under the buildings.
+  const TERRAIN_COLOR = { river: 0x6fb0d8, coast: 0x4f7fc0, mountains: 0x8d8d92, desert: 0xd8c27a };
+
+  function addTerrain(group, cells) {
+    if (!Array.isArray(cells)) return;
+    cells.forEach(function (cell) {
+      const color = TERRAIN_COLOR[cell.biome];
+      if (color === undefined) return;
+      const x = cell.x * 3.6;
+      const z = cell.z * 2.6;
+      const tile = flatPlot(1.2, 1.2, color, 0.012);
+      tile.position.set(x, 0.012, z);
+      group.add(tile);
+      if (cell.biome === "mountains" && Math.hypot(x, z) >= 2.2) {
+        const peak = coneRoof(0.4, 0.55, 0x77777c, 5);
+        peak.position.set(x, 0.28, z);
+        group.add(peak);
+      }
+      if (cell.biome === "coast") {
+        const foam = flatPlot(1.2, 0.06, 0xdfeaf6, 0.02);
+        foam.position.set(x, 0.02, z + (cell.z > 0 ? -0.55 : 0.55));
+        group.add(foam);
+      }
+    });
+  }
+
   function addHeritage(group, sites) {
     if (!Array.isArray(sites)) return;
     sites.forEach(function (site) {
@@ -1143,6 +1170,7 @@
         scene.remove(sceneGroup);
       }
       sceneGroup = builder(vs);
+      addTerrain(sceneGroup, vs.terrain);
       addHeritage(sceneGroup, vs.heritage);
       scene.add(sceneGroup);
       builtEra = vs.era;
@@ -1154,6 +1182,7 @@
       // above), so this stays comfortably fast.
       scene.remove(sceneGroup);
       sceneGroup = builder(vs);
+      addTerrain(sceneGroup, vs.terrain);
       addHeritage(sceneGroup, vs.heritage);
       scene.add(sceneGroup);
     }

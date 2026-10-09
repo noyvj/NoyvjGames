@@ -144,6 +144,7 @@
       <button id="orders-toggle-button" class="secondary" type="button" title="If/then rules chosen from menus: when food runs low, move people to foraging. Each time one fires it is minuted in the Council Minutes.">📌 Standing Orders</button>
       <button id="heritage-toggle-button" class="secondary" type="button" title="The old places each era leaves behind: keep them for culture, or clear them for materials and land at a cost.">🏛 Heritage Sites</button>
       <button id="beyond-toggle-button" class="secondary" type="button" title="An optional endless mode after the Relay Age: each era has a named pressure that grows with entropy.">🌌 The Beyond</button>
+      <button id="geography-toggle-button" class="secondary" type="button" title="An optional map drawn before the first season: river, coast, mountains and desert each give a small boon and a small price.">🗺 Geography</button>
       <button id="views-toggle-button" class="secondary" type="button" title="Optional data views of the same city: a numbers dashboard, a top-down map and a resource flow diagram.">📊 City Views</button>
       <!-- Milestone 19 (site-wide settings panel, TODO.md origin A9):
            consolidates what used to be a standalone text-size toolbar
@@ -385,6 +386,24 @@
       <p id="beyond-status" class="status-line" role="status" aria-live="polite"></p>
       <h3 class="summary-eras-heading">Furthest runs on this device</h3>
       <div id="beyond-ladder"></div>
+    </div>
+    <!-- K-12: a generated map with biomes. -->
+    <div id="geography-panel" class="section geography-panel" hidden>
+      <h2 class="section-heading">Geography</h2>
+      <p id="geography-note" class="row-blurb"></p>
+      <p id="geography-seed" class="status-line" role="status"></p>
+      <div id="geography-map" class="geography-map"></div>
+      <div id="geography-list"></div>
+      <div class="orders-actions">
+        <button id="geography-new-button" class="secondary" type="button">Draw a map</button>
+        <button id="geography-off-button" class="secondary" type="button">Back to open land</button>
+      </div>
+      <div class="orders-actions">
+        <label class="orders-field"><span class="orders-field-label">Seed number</span>
+          <input id="geography-seed-input" type="text" inputmode="numeric" maxlength="10" autocomplete="off" aria-label="Seed number for the map"></label>
+        <button id="geography-use-seed-button" class="secondary" type="button">Use this seed</button>
+      </div>
+      <p id="geography-status" class="status-line" role="status" aria-live="polite"></p>
     </div>
     <div id="views-panel" class="section views-panel" hidden>
       <h2 class="section-heading">City Views</h2>
@@ -903,7 +922,7 @@
     // Each engine module is written into Pyodide's virtual filesystem (the
     // working directory, which is on sys.path) before game.py runs and
     // imports them. Still no build step — just more than one fetch.
-    const ENGINE_MODULES = ["sim.py", "sustainability.py", "research.py", "log.py", "transition.py", "save.py", "info_content.py", "visual.py", "summary.py", "challenges.py", "trajectory.py", "views.py", "archive.py", "consulting.py", "founding.py", "minutes.py", "hamlet.py", "forecast.py", "statlog.py", "explain.py", "postmortem.py", "naming.py", "dataexport.py", "monuments.py", "par.py", "techdebt.py", "challengerun.py", "timelapse.py", "advisors.py", "eastereggs.py", "dynasty.py", "banners.py", "doctrines.py", "rewind.py", "citizens.py", "neighbours.py", "orders.py", "heritage.py", "beyond.py"];
+    const ENGINE_MODULES = ["sim.py", "sustainability.py", "research.py", "log.py", "transition.py", "save.py", "info_content.py", "visual.py", "summary.py", "challenges.py", "trajectory.py", "views.py", "archive.py", "consulting.py", "founding.py", "minutes.py", "hamlet.py", "forecast.py", "statlog.py", "explain.py", "postmortem.py", "naming.py", "dataexport.py", "monuments.py", "par.py", "techdebt.py", "challengerun.py", "timelapse.py", "advisors.py", "eastereggs.py", "dynasty.py", "banners.py", "doctrines.py", "rewind.py", "citizens.py", "neighbours.py", "orders.py", "heritage.py", "beyond.py", "geography.py"];
 
     const CONTINUUM_TUTORIAL_STEPS = [
       {

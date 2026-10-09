@@ -226,6 +226,8 @@ ELEMENT_IDS = [
     "orders-list", "orders-status", "orders-recent",
     "beyond-toggle-button", "beyond-panel", "beyond-note", "beyond-start-button", "beyond-stop-button",
     "beyond-lines", "beyond-status", "beyond-ladder",
+    "geography-toggle-button", "geography-panel", "geography-note", "geography-seed", "geography-map", "geography-list",
+    "geography-new-button", "geography-off-button", "geography-seed-input", "geography-use-seed-button", "geography-status",
     "heritage-toggle-button", "heritage-panel", "heritage-note", "heritage-summary", "heritage-list", "heritage-status",
     "scenario-hardy-button", "scenario-river-button", "scenario-heirloom-button", "rewind-button",
     "challenge-dial-population",
