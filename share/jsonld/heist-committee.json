@@ -1,0 +1,39 @@
+{
+  "@context": "https://schema.org",
+  "@type": [
+    "VideoGame",
+    "WebApplication"
+  ],
+  "name": "Heist Committee",
+  "description": "Pick a target, hire five oddball specialists who do not get along, and drag their actions into a timeline. Then watch the job play out beat by beat as complications and personality clashes chain into each other. A cozy caper with no timers. Working title.",
+  "url": "https://noyvj.github.io/NoyvjGames/games/heist-committee/",
+  "image": "https://noyvj.github.io/NoyvjGames/share/heist-committee.png",
+  "applicationCategory": "GameApplication",
+  "operatingSystem": "Any modern web browser",
+  "browserRequirements": "Requires JavaScript and WebAssembly",
+  "gamePlatform": "Web browser",
+  "playMode": "SinglePlayer",
+  "inLanguage": "en",
+  "isAccessibleForFree": true,
+  "offers": {
+    "@type": "Offer",
+    "price": "0",
+    "priceCurrency": "USD"
+  },
+  "author": {
+    "@type": "Person",
+    "name": "Noyvj",
+    "url": "https://github.com/noyvj"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "NoyvjGames",
+    "url": "https://noyvj.github.io/NoyvjGames/"
+  },
+  "genre": [
+    "Systems simulation"
+  ],
+  "dateCreated": "2026-10-08",
+  "dateModified": "2026-10-09",
+  "timeRequired": "PT20M"
+}

@@ -984,7 +984,7 @@ async function loadMySaves() {
 // below keeps the dashboard working.
 const ACHIEVEMENT_GAMES_FALLBACK = [
   "sol", "continuum", "canopy", "grid", "trade-empire", "tide",
-  "aftermath", "herd", "thaw", "loop", "drift", "champ-de-mots", "signal", "lexis",
+  "aftermath", "herd", "thaw", "loop", "drift", "champ-de-mots", "signal", "lexis", "heist-committee",
 ];
 
 async function loadAchievementGameIds() {
@@ -1018,6 +1018,7 @@ const GAME_DISPLAY_NAMES = {
   "champ-de-mots": "Le Champ de Mots",
   signal: "Signal",
   lexis: "Lexis",
+  "heist-committee": "Heist Committee",
 };
 
 // --- R2-Z23b: earned holiday-event badges (data contract v1) ---

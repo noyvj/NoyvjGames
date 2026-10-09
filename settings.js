@@ -25,6 +25,9 @@
 
   // Games with no text-size / reduced-motion setting of their own (no games/<slug>/settings.js).
   const NO_DISPLAY_PREFS = ["champ-de-mots"];
+  // Games whose own settings.js names its storage keys with a shorter prefix than the folder slug.
+  const KEY_PREFIX = { "heist-committee": "heist" };
+  const keyPrefix = (slug) => KEY_PREFIX[slug] || slug;
   const SCALES = [0.9, 1, 1.1, 1.2, 1.3, 1.4, 1.5];
   const AUTH_KEYS = ["hub_bearer_token", "hub_account_username", "hub_account_since"];
   const SECRET_KEYS = ["hub_bearer_token"];
@@ -73,7 +76,7 @@
   }
 
   function motionState() {
-    const flags = prefGames().map((g) => lsGet(`${g.slug}-reduced-motion`) === "true");
+    const flags = prefGames().map((g) => lsGet(`${keyPrefix(g.slug)}-reduced-motion`) === "true");
     flags.push(lsGet("hub_reduced_motion") === "true");
     const on = flags.filter(Boolean).length;
     return on === 0 ? "off" : on === flags.length ? "on" : "mixed";
@@ -96,7 +99,7 @@
       apply("hub_reduced_motion");
       if (on) document.documentElement.setAttribute("data-hub-reduced-motion", "true");
       else document.documentElement.removeAttribute("data-hub-reduced-motion");
-      prefGames().forEach((g) => apply(`${g.slug}-reduced-motion`));
+      prefGames().forEach((g) => apply(`${keyPrefix(g.slug)}-reduced-motion`));
       renderMotion();
       say("settings-appearance-status", on
         ? `Reduce motion is on for the hub and ${prefGames().length} games.`
@@ -111,7 +114,7 @@
     return `${Math.round(value * 100)}%`;
   }
   function readScale(slug) {
-    const v = parseFloat(lsGet(`${slug}-text-scale`));
+    const v = parseFloat(lsGet(`${keyPrefix(slug)}-text-scale`));
     return Number.isFinite(v) ? Math.round(v * 100) / 100 : 1;
   }
 
@@ -162,7 +165,7 @@
     scaleSelect.addEventListener("change", () => {
       const value = Number(scaleSelect.value);
       if (!Number.isFinite(value)) return;
-      prefGames().forEach((g) => (value === 1 ? lsRemove(`${g.slug}-text-scale`) : lsSet(`${g.slug}-text-scale`, String(value))));
+      prefGames().forEach((g) => (value === 1 ? lsRemove(`${keyPrefix(g.slug)}-text-scale`) : lsSet(`${keyPrefix(g.slug)}-text-scale`, String(value))));
       renderGameDefaults();
       say("settings-games-status", `Text size set to ${scaleLabel(value).toLowerCase()} in ${prefGames().length} games. Open games pick it up on their next load.`);
     });

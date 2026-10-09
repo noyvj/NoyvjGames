@@ -674,6 +674,30 @@ html[data-theme="light"] .whats-new-thumb[aria-pressed="true"] { color: #2c4a9a;
   box-shadow: 0 0 12px rgba(255, 210, 122, 0.7);
 }
 
+/* Heist Committee: a gold hat (crown with a plum band, wide brim) on a dusky
+   purple ground. Same shapes as the game's own favicon. */
+.title-card-thumb--heist-committee {
+  --thumb-glow: #ffc15e;
+  background: linear-gradient(160deg, #3a2a52 0%, #1d1530 100%);
+}
+.title-card-thumb--heist-committee::before {
+  inset: 26% auto auto 50%;
+  width: 64px;
+  height: 46px;
+  transform: translateX(-50%);
+  border-radius: 32px 32px 4px 4px;
+  background: linear-gradient(#ffc15e 0 68%, #7a2e4e 68% 100%);
+}
+.title-card-thumb--heist-committee::after {
+  inset: calc(26% + 38px) auto auto 50%;
+  width: 136px;
+  height: 20px;
+  transform: translateX(-50%);
+  border-radius: 50%;
+  background: #ffc15e;
+  box-shadow: 0 0 22px rgba(255, 193, 94, 0.35);
+}
+
 /* Trade Empire: a miniature version of the in-game trade map itself —
    route lines connecting colony nodes (the same NODE_COLOR blue used by
    game.py's render_map()) with one gold dot standing in for an automated

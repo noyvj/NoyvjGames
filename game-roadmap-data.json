@@ -54,6 +54,15 @@
         "Grid W1: Kestrel Valley story mode; shared story-chapters.js"
       ]
     },
+    "heist-committee": {
+      "commit_count": 9,
+      "last_updated": "2026-10-09",
+      "recent_commits": [
+        "Milestone 9: Own-folder wrap-up (Desktop boot, final docs)",
+        "Milestone 8: Balance and bots",
+        "Milestone 7: Achievements + story"
+      ]
+    },
     "herd": {
       "commit_count": 72,
       "last_updated": "2026-10-07",

@@ -42,7 +42,7 @@ def test_noscript_lists_a_link_to_every_game_on_the_lobby():
     noscript = re.search(r"<noscript>(.*?)</noscript>", INDEX, re.S).group(1)
     linked = re.findall(r'<a href="(games/[^"]+)">', noscript)
     assert linked == [href for _, href, _ in cards()]
-    assert len(linked) == 14
+    assert len(linked) == 15
 
 
 def test_noscript_and_compat_notice_exist_with_alert_role():
@@ -107,8 +107,10 @@ def test_settings_page_game_keys_exist_in_the_games():
             assert not game_settings.exists(), f"{slug} now has a settings.js: remove it from NO_DISPLAY_PREFS"
             continue
         source = game_settings.read_text(encoding="utf-8")
-        assert f'"{slug}-text-scale"' in source, slug
-        assert f'"{slug}-reduced-motion"' in source, slug
+        prefix = re.search(r'KEY_PREFIX = \{(.*?)\}', settings_js).group(1)
+        prefix = dict(re.findall(r'"([^"]+)":\s*"([^"]+)"', prefix)).get(slug, slug)
+        assert f'"{prefix}-text-scale"' in source, slug
+        assert f'"{prefix}-reduced-motion"' in source, slug
 
 
 def test_settings_storage_keys_match_the_shared_scripts():

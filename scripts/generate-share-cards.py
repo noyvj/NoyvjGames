@@ -57,6 +57,7 @@ THEMES = {
     "continuum": (["#241a3a", "#4a3a5c", "#7a5230", "#c9922f"], "skyline", "#8cdcdc", "#4a3a5c|#c9922f", ("letter", "C", "#ffffff")),
     "signal": (["#14211c", "#0d1512"], "pulse", "#ffb347", "#14211c", ("signal",)),
     "lexis": (["#1b2747", "#0e1426"], "marks", "#9ad0ff", "#16203a", ("lexis",)),
+    "heist-committee": (["#3a2a52", "#1d1530"], "skyline", "#ffc15e", "#2a1f3d", ("hat",)),
     "trade-empire": (["#1a1f3a", "#0d0f1e"], "network", "#e0c34c", "#171b30", ("letter", "$", "#e0c34c")),
 }
 FALLBACK_THEME = (["#1a1f3a", "#0d0f1e"], "stars", "#8fb0e8", "#2c4a7c", ("letter", "?", "#ffffff"))
@@ -287,6 +288,13 @@ def draw_glyph(draw, glyph, scale, tile_color):
         stroke(draw, S(arc_points(30.34, 32, 10, -49.1, 49.1)), 5 * scale, amber)
         r = 4.5 * scale
         draw.ellipse((32 * scale - r, 32 * scale - r, 32 * scale + r, 32 * scale + r), fill=amber)
+    elif kind == "hat":
+        gold, plum, blue = rgb("#ffc15e"), rgb("#7a2e4e"), rgb("#8fd3ff")
+        draw.polygon(S(bezier((19, 41), (17, 24), (27, 17), (32, 17)) + bezier((32, 17), (37, 17), (47, 24), (45, 41))), fill=gold)
+        draw.ellipse((9 * scale, 35 * scale, 55 * scale, 49 * scale), fill=gold)
+        draw.polygon(S([(19.4, 36), (44.6, 36), (44.9, 40.5), (19.1, 40.5)]), fill=plum)
+        for cx, r in ((32, 2.2), (24, 1.6), (40, 1.6)):
+            draw.ellipse(((cx - r) * scale, (50.5 - r) * scale, (cx + r) * scale, (50.5 + r) * scale), fill=blue)
     elif kind == "lexis":
         blue = rgb("#9ad0ff")
         for a, b in (((16, 22), (26, 22)), ((34, 22), (36, 22)), ((42, 22), (48, 22)),

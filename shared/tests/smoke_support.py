@@ -7,7 +7,7 @@ Every older game ships a pytest fixture `game_env` in `games/<slug>/tests/confte
 `game.py` against a fake DOM (`FakeElement`s keyed by id, a fake `js` and `pyodide` module). This
 module imports that conftest under a unique package name and calls the fixture's own function, so
 the games' boot code is exactly the one their own tests use and nothing is duplicated. The
-engine-style games (Signal, Chronicle, Lexis) have no DOM: their `game.py` is a plain module with
+engine-style games (Signal, Chronicle, Lexis, Heist Committee) have no DOM: their `game.py` is a plain module with
 a request/response entry point, driven here with a small action grammar instead of clicks.
 
 Importing a game's tests package changes `sys.path` and `sys.modules` (every game's module is
@@ -278,6 +278,48 @@ def lexis_request(rng, last):
     return {"action": rng.choice(["open", "open", "reset"]), "planet": planet}
 
 
+def heist_request(rng, last):
+    """Heist Committee: follow the phase the last response reported (board, scout, recruit, plan,
+    playback, payout), mostly with valid moves and now and then with a stray one."""
+    view = (last or {}).get("view") or {}
+    phase = view.get("phase", "board")
+    roll = rng.random()
+    if roll < 0.04:
+        return {"action": rng.choice(["open", "undo", "redo", "abandon", "clear_plan", "info", "bogus"])}
+    if phase == "board":
+        ids = [card["id"] for card in view.get("board", [])]
+        return {"action": "take_job", "target": rng.choice(ids)} if ids else {"action": "open"}
+    if phase == "scout":
+        return rng.choice([{"action": "scout", "level": rng.randrange(0, 4)}, {"action": "to_recruit"},
+                           {"action": "to_recruit"}, {"action": "back_to_board"}])
+    if phase == "recruit":
+        offer = [c["id"] for c in view.get("offer", [])]
+        gear = [g["id"] for g in view.get("gear", [])]
+        picks = [{"action": "confirm_crew"}]
+        if offer:
+            picks += [{"action": "hire", "crew": rng.choice(offer)}] * 4
+            picks += [{"action": "background", "crew": rng.choice(offer)}]
+        if gear:
+            picks += [{"action": "gear", "gear": rng.choice(gear)}]
+        return rng.choice(picks)
+    if phase == "plan":
+        beats = max(1, int((view.get("target") or {}).get("beats", 6)))
+        tray = [a["id"] for a in view.get("tray", [])] or ["wait"]
+        lane, beat = rng.randrange(0, 5), rng.randrange(0, beats)
+        if roll < 0.60:
+            return {"action": "place", "lane": lane, "beat": beat, "cell": rng.choice(tray)}
+        if roll < 0.68:
+            return {"action": "clear", "lane": lane, "beat": beat}
+        if roll < 0.74:
+            return {"action": "move_cell", "lane": lane, "beat": beat, "to_lane": rng.randrange(0, 5), "to_beat": rng.randrange(0, beats)}
+        if roll < 0.78:
+            return {"action": "move_lane", "lane": lane, "to_lane": rng.randrange(0, 5)}
+        return {"action": "start_heist"}
+    if phase == "playback":
+        return rng.choice([{"action": "step"}] * 4 + [{"action": "skip"}, {"action": "finish"}, {"action": "finish"}])
+    return rng.choice([{"action": "retry"}, {"action": "back_to_board"}, {"action": "back_to_board"}])
+
+
 @contextlib.contextmanager
 def engine_game(slug):
     """Yield (call, get_state, next_request) for an engine-style game, freshly reset."""
@@ -304,6 +346,11 @@ def engine_game(slug):
             import game as module                    # noqa: PLC0415 -- resolved through that path
             module.handle(json.dumps({"action": "reset"}))
             yield (lambda req: json.loads(module.handle(json.dumps(req)))), module.get_state, lexis_request
+        elif slug == "heist-committee":
+            load_conftest(slug)                     # puts games/heist-committee on sys.path
+            import game as module                    # noqa: PLC0415 -- resolved through that path
+            module.handle(json.dumps({"action": "new_career", "seed": 77}))
+            yield (lambda req: json.loads(module.handle(json.dumps(req)))), module.get_state, heist_request
         else:
             raise KeyError(slug)
 
@@ -312,5 +359,5 @@ def engine_game(slug):
 
 FAKE_DOM_GAMES = ["aftermath", "canopy", "champ-de-mots", "continuum", "drift", "grid", "herd", "loop",
                   "sol", "thaw", "tide", "trade-empire"]
-ENGINE_GAMES = ["signal", "chronicle", "lexis"]
+ENGINE_GAMES = ["signal", "chronicle", "lexis", "heist-committee"]
 ALL_GAMES = sorted(FAKE_DOM_GAMES + ENGINE_GAMES)

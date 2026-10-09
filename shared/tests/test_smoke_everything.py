@@ -8,8 +8,8 @@ from a click handler or an engine call fails the test.
 Two kinds of games:
   * the 12 DOM games are driven by clicking a seeded-random enabled button (the game's real
     handlers run, including the panels, the achievements code and the info page);
-  * Signal, Chronicle and Lexis have no DOM, only a request/response engine, so they get a small
-    action grammar (smoke_support.signal_request / chronicle_request / lexis_request).
+  * Signal, Chronicle, Lexis and Heist Committee have no DOM, only a request/response engine, so they get a
+    small action grammar (smoke_support.signal_request / chronicle_request / lexis_request / heist_request).
 
 Deterministic: fixed seeds, `random.seed` set before each run. The whole file takes well under a
 minute. NOT covered (listed so nobody assumes otherwise): `change`/`input`/`keydown` handlers
@@ -28,7 +28,7 @@ import smoke_support as ss
 # steps per game: more for the fast ones, fewer where one get_state() is slow (Drift, Thaw, Champ).
 STEPS = {"aftermath": 1200, "canopy": 800, "champ-de-mots": 300, "continuum": 600, "drift": 300,
          "grid": 1200, "herd": 1200, "loop": 1000, "sol": 1200, "thaw": 300, "tide": 800, "trade-empire": 800,
-         "signal": 600, "chronicle": 400, "lexis": 400}
+         "signal": 600, "chronicle": 400, "lexis": 400, "heist-committee": 400}
 SEEDS = (20261008, 7)
 
 # Extra paths that may legitimately be negative in one game (regex over the state path).

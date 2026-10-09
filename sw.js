@@ -2,7 +2,7 @@
 // the precache list; ordinary content deploys don't need it, because
 // same-origin requests are network-first (see the fetch handler below) and
 // so always pick up fresh files whenever the player is online.
-const SW_VERSION = 42;
+const SW_VERSION = 43;
 const CACHE_NAME = "site-cache-v" + SW_VERSION;
 // How long a same-origin network request may take before we give up and
 // serve the cached copy instead (a slow/flaky connection shouldn't hang).
@@ -143,6 +143,32 @@ const PRECACHE_URLS = [
   "games/lexis/story.py",
   "games/lexis/report.py",
   "games/lexis/info.py",
+  "games/heist-committee/index.html",
+  "games/heist-committee/style.css",
+  "games/heist-committee/game.py",
+  "games/heist-committee/app.js",
+  "games/heist-committee/plan.js",
+  "games/heist-committee/play.js",
+  "games/heist-committee/settings.js",
+  "games/heist-committee/changelog.json",
+  "games/heist-committee/achievements.json",
+  "games/heist-committee/content/tags.json",
+  "games/heist-committee/content/actions.json",
+  "games/heist-committee/content/traits.json",
+  "games/heist-committee/content/crew.json",
+  "games/heist-committee/content/gear.json",
+  "games/heist-committee/content/complications.json",
+  "games/heist-committee/content/targets.json",
+  "games/heist-committee/content/lines.json",
+  "games/heist-committee/content/writeups.json",
+  "games/heist-committee/content.py",
+  "games/heist-committee/engine.py",
+  "games/heist-committee/plancheck.py",
+  "games/heist-committee/planops.py",
+  "games/heist-committee/writeup.py",
+  "games/heist-committee/info.py",
+  "games/heist-committee/achievements.py",
+  "games/heist-committee/story.py",
   // Audit fix 2026-09-27: Trade Empire is hub-linked and has been for a while
   // (see CLAUDE.md's Current games table) -- both were mistakenly left off
   // this list under a stale "not hub-linked yet" comment. Trade Empire has the
@@ -187,6 +213,9 @@ const PRECACHE_URLS = [
   "games/lexis/pc.html",
   "games/lexis/pc.css",
   "games/lexis/pc.js",
+  "games/heist-committee/pc.html",
+  "games/heist-committee/pc.css",
+  "games/heist-committee/pc.js",
   "games/signal/pc.html",
   "games/signal/pc.css",
   "games/signal/pc.js",

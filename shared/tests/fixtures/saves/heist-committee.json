@@ -1,0 +1,71 @@
+{
+ "achievements_earned": [
+  "first_job",
+  "absorbed",
+  "full_house"
+ ],
+ "career_seed": 77,
+ "cash": 185,
+ "job": {
+  "attempt": 0,
+  "best_net": 0,
+  "best_rep": 0,
+  "counted": false,
+  "crew": [
+   "gus",
+   "vic",
+   "lottie",
+   "bea"
+  ],
+  "cursor": 0,
+  "gear": [
+   "umbrella",
+   "cat_treats"
+  ],
+  "offer": [
+   "vic",
+   "mabel",
+   "gus",
+   "bea",
+   "tomasz",
+   "lottie",
+   "billie",
+   "otto"
+  ],
+  "paid": false,
+  "phase": "recruit",
+  "plan": null,
+  "scout": 0,
+  "seed": 310475446,
+  "target": "the_affineur"
+ },
+ "jobs_started": 2,
+ "meta": {
+  "best": {
+   "absorbed": 3,
+   "cash_single_job": 40,
+   "chain_links": 1
+  },
+  "flags": [
+   "full_house"
+  ],
+  "jobs_done": 1,
+  "known_quirks": [
+   "nell",
+   "dot",
+   "hank",
+   "lottie",
+   "vic",
+   "gus",
+   "raff",
+   "billie"
+  ],
+  "reputation": 1,
+  "seen_complications": [
+   "gift_shop_rush",
+   "loose_floorboard",
+   "spilled_tea"
+  ]
+ },
+ "schema": 1
+}
