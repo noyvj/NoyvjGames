@@ -65,3 +65,32 @@ def test_the_changelog_is_valid_and_dated():
 def test_the_favicon_is_a_code_drawn_svg_in_this_folder():
     svg = (GAME_DIR / "icons" / "favicon-hull-repair.svg").read_text(encoding="utf-8")
     assert svg.startswith("<svg") and "<image" not in svg and "data:" not in svg
+
+
+def test_the_tutorial_only_points_at_things_the_page_has():
+    ids = set(re.findall(r'(?<![-\w])id="([^"]+)"', HTML))
+    steps = APP.split("var TUTORIAL_STEPS = [")[1].split("];")[0]
+    selectors = re.findall(r'selector: "#([\w-]+)"', steps)
+    assert len(selectors) >= 5 and set(selectors) <= ids
+    assert 'id="tutorial-restart-button"' in HTML and "hullRepairTutorialSteps" in HTML and "tutorial.js" in HTML
+
+
+def test_shared_includes_are_in_the_standard_order_after_the_page_scripts():
+    tail = HTML[HTML.index("pyodide.js"):]
+    order = ["shared/tutorial.js", "shared/hub-auth.js", "shared/save-widget.js", "shared/opening-screen.js", "shared/story-toggle.js",
+             "shared/confirm-dialog.js", 'src="app.js"', "shared/last-played.js", "shared/whats-new-banner.js", "shared/keyboard-shortcuts.js"]
+    positions = [tail.index(name) for name in order]
+    assert positions == sorted(positions)
+
+
+def test_the_opening_screen_and_story_toggle_are_wired_for_this_game():
+    assert 'opening-screen.js" data-game-id="hull-repair" data-game-name="Hull Repair"' in HTML
+    assert 'story-toggle.js" data-game-id="hull-repair" data-story-selectors=".story-text"' in HTML
+    assert 'class="result-log story-text note"' in HTML and "log-line story-text" in APP
+
+
+def test_every_panel_the_shortcuts_close_exists_and_has_a_toggle():
+    ids = set(re.findall(r'(?<![-\w])id="([^"]+)"', HTML))
+    block = HTML.split("KeyboardShortcuts.init(")[1].split("});")[0]
+    for toggle, panel in re.findall(r'toggle: "([\w-]+)", panel: "([\w-]+)"', block):
+        assert toggle in ids and panel in ids

@@ -207,3 +207,8 @@ html[data-effects="off"] .hr-room.s2 .hr-window { opacity: 0.9; }
 .log-list li.missing { color: var(--muted); border-style: dashed; }
 .log-list .log-room { font-weight: 700; }
 .log-list .log-line { margin: 0.2rem 0 0; font-style: italic; }
+
+.info-page-framing { margin: 0.3rem 0; }
+.pledge-list { padding-left: 1.2rem; margin: 0.3rem 0 0.8rem; }
+.pledge-list li { margin: 0.3rem 0; }
+#info-page-panel h3 { margin: 0.8rem 0 0.2rem; font-size: 1rem; }

@@ -11,8 +11,10 @@ Updated after every milestone. Read `planning/hull-repair-plan.md`, `CLAUDE.md` 
 
 - M4 Decks 4-5: 16 more boards (40 in all; deck 4 valves, deck 5 mixers), 227 tests, every board proven unique; checked live (9x9 Emergency Bridge with mixer, valves, holes; answer laid).
 
+- M5 Standard kit: opening screen, tutorial, About (info.py), keyboard help, story toggle, pledge tests; 241 tests; checked live (opening screen, tutorial card, light theme, 360px no overflow).
+
 ## Next
-- M5 Standard kit (opening screen, tutorial, About, What's New banner, keyboard help, confirm dialogs, story toggle, light theme and accessibility pass).
+- M6 Achievements (manifest, panel, toast, share, reachability test).
 
 ## Open problems / notes
 - Local Python is 3.9: engine code avoids 3.10+ syntax.

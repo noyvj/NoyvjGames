@@ -23,6 +23,7 @@ import json
 import achievements
 import boards
 import hints
+import info
 import logbook
 import play
 import progress
@@ -190,6 +191,7 @@ class Game:
             "goals": achievements.goals(self.facts(), self.open_decks()),
             "achievements": achievements.view(self.facts()),
             "map": render.station_svg(self._rooms_view()),
+            "about": info.view(),
             "rooms": self._rooms_view(),
             "totals": progress.totals(self.st),
             "tally": dict(self.tally),

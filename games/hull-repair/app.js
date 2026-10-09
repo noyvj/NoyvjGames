@@ -3,7 +3,7 @@
    logic lives here. */
 (function () {
   "use strict";
-  var ENGINE_MODULES = ["rules.py", "play.py", "boards_dock.py", "boards_crew.py", "boards_engineering.py", "boards_life.py", "boards_core.py", "boards.py", "progress.py", "render.py", "hints.py", "logbook.py", "achievements.py"];
+  var ENGINE_MODULES = ["rules.py", "play.py", "boards_dock.py", "boards_crew.py", "boards_engineering.py", "boards_life.py", "boards_core.py", "boards.py", "progress.py", "render.py", "hints.py", "logbook.py", "achievements.py", "info.py"];
   var STORE_KEY = "hull-repair:state";
   var BACKUP_KEY = "hull-repair:state-backup";
   var GLYPHS = { circle: "●", square: "■", triangle: "▲", diamond: "◆", hexagon: "⬢", pentagon: "⬟", cross: "✚", star: "★" };
@@ -42,6 +42,16 @@
       $(panelId).hidden = !$(panelId).hidden;
       $(buttonId).setAttribute("aria-expanded", String(!$(panelId).hidden));
     });
+  }
+  function renderAbout() {
+    var about = view.about;
+    if (!about || $("pledge-list").dataset.done) return;
+    $("pledge-list").dataset.done = "1";
+    setText($("info-page-framing"), about.framing);
+    setText($("pledge-heading"), about.pledge_heading);
+    setText($("how-heading"), about.how_heading);
+    about.pledge.forEach(function (line) { $("pledge-list").appendChild(el("li", null, line)); });
+    about.how.forEach(function (line) { $("how-list").appendChild(el("li", null, line)); });
   }
   function renderChangelog(entries) {
     var holder = $("changelog-entries");
@@ -266,6 +276,7 @@
     $("hint-answer").hidden = !h.answer;
   }
   function render() {
+    renderAbout();
     renderBoard();
     renderStats();
     renderResult();
@@ -464,6 +475,7 @@
     wirePanelToggle("rooms-toggle-button", "rooms-panel");
     wirePanelToggle("log-toggle-button", "log-panel");
     wirePanelToggle("changelog-toggle-button", "changelog-panel");
+    wirePanelToggle("info-page-toggle-button", "info-page-panel");
     $("map-holder").addEventListener("click", onMapClick);
     $("hint-button").addEventListener("click", function () { send({ action: "hint" }); });
     $("answer-load-button").addEventListener("click", function () { send({ action: "load_answer" }); });
@@ -486,6 +498,17 @@
     window.hullRepairRefresh = function () { if (engine) { boardId = null; send({ action: "open" }); } };
   }
 
+  var TUTORIAL_STEPS = [
+    { title: "Welcome to the station", text: "Tern is dark and needs its power and pipes laid again, one room at a time. Join each pair of matching ports with a line. Nothing is timed, and a wrong line only costs you a tap to take it back. Skip any time and reopen this from the Tutorial button." },
+    { selector: "#board-holder", title: "The board", text: "Solid shapes are sources and ringed shapes are sinks; a source and sink with the same shape and letter belong together. Drag from a port to lay a line, and drop it on its partner. Lines move one cell at a time and never cross or share a cell. Holes are hull that is gone." },
+    { selector: "#line-chips", title: "Your lines", text: "Each line shows whether it is joined. Tap one to clear just that line. Dragging back along a line shortens it, dragging across another line cuts it, and tapping the end of a line takes one cell back." },
+    { selector: "#board-line", title: "Patched and restored", text: "Joining every line patches the room and lights it dimly. Covering every cell as well restores it fully. The dots mark cells nothing covers yet; every board has exactly one way to cover them all." },
+    { selector: "#hint-button", title: "Hints are free", text: "A nudge says where to start, a hint draws the opening of one line as a dotted ghost, and the answer draws the whole layout. Using them never costs anything, and the room still counts." },
+    { selector: "#goals", title: "Your goals", text: "Three goals stay in view, in any order. Every line you lay, erase or hint you ask for counts toward something on the screen." },
+    { selector: "#rooms-toggle-button", title: "The station", text: "Station opens the map: every patched room lights up there, and the Repair log keeps a line from the people who left. A deck opens once five of the one before are patched. New parts arrive deck by deck: bridges, valves, mixers." },
+    { title: "You are ready", text: "Take your time. Your repairs are saved as you go." }
+  ];
+
   async function boot() {
     var changelog = loadChangelog();
     var pyodide = await window.loadPyodide();
@@ -504,6 +527,7 @@
     $("engine-status").textContent = "";
     send({ action: "open" });
     await changelog;
+    if (window.GameTutorial) window.GameTutorial.init(window.hullRepairTutorialSteps ? window.hullRepairTutorialSteps(TUTORIAL_STEPS) : TUTORIAL_STEPS, { gameId: "hull-repair" });
   }
 
   wire();
