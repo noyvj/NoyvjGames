@@ -41,7 +41,7 @@ A station called Tern (invented) drifts dark after an accident nobody wants to e
 | # | Milestone | Content | Status |
 |---|-----------|---------|--------|
 | 1 | Engine | rules, drawing state, solver, deck 1 (8 boards) with proofs and tests | Done |
-| 2 | Board UI | SVG board, pointer and keyboard drawing, result card, board picker, favicon, settings, save contract. Playable slice | Planned |
+| 2 | Board UI | SVG board, pointer and keyboard drawing, result card, board picker, favicon, settings, save contract. Playable slice | Done |
 | 3 | Decks 2-3, map, log, hints | 16 more boards, deck gating, station map, repair log, hint ladder, three-goals strip | Planned |
 | 4 | Decks 4-5 | 16 more boards (40 in all) with valves and mixers. First complete game | Planned |
 | 5 | Standard kit | Opening screen, tutorial, About, What's New, keyboard help, confirm dialogs, light theme, accessibility pass | Planned |

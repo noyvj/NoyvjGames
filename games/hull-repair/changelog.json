@@ -1,0 +1,8 @@
+{
+  "changelog": [
+    {
+      "date": "2026-10-10",
+      "entry": "Hull Repair opens: join matching ports on a damaged space-station board with lines that never cross. The first deck, the Docking Ring, has eight boards. Joining every line patches a room; covering every cell as well restores it. Drag from a port, drag back to shorten a line, tap its end to take a cell back. Nothing is timed."
+    }
+  ]
+}

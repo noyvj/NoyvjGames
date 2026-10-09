@@ -142,7 +142,7 @@ class Solver:
             if not self.complete[ci]:
                 heads.add(self.paths[ci][-1])
                 sinks.add(self.dst[ci])
-        kind, occ, occb, nb, arrow = self.kind, self.occ, self.occb, self.nb, self.arrow
+        kind, occ, arrow = self.kind, self.occ, self.arrow
         for cell in self.need_cells:
             k = kind[cell]
             if k == BRIDGE:

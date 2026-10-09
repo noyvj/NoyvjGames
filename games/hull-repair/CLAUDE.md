@@ -25,7 +25,7 @@ Flow-Free-style routing of power and pipes across a damaged space-station hull: 
 | # | Milestone | Content | Status |
 |---|-----------|---------|--------|
 | 1 | Engine | `rules.py`, `play.py`, `tools/solver.py`, `tools/gen.py`, `boards.py` + deck 1 (8 boards), tests | Done |
-| 2 | Board UI | SVG board, pointer and keyboard drawing, result card, board picker, favicon, settings, save contract | Planned |
+| 2 | Board UI | SVG board, pointer and keyboard drawing, result card, board picker, favicon, settings, save contract | Done |
 | 3 | Decks 2-3, map, log, hints | 16 boards, deck gating, station map, repair log, hint ladder, three-goals strip | Planned |
 | 4 | Decks 4-5 | 16 boards (40 in all) with valves and mixers. First complete game | Planned |
 | 5 | Standard kit | Opening screen, tutorial, About, What's New, keyboard help, confirm dialogs, light theme, accessibility pass | Planned |
@@ -36,3 +36,9 @@ Flow-Free-style routing of power and pipes across a damaged space-station hull: 
 - Commit only this folder and the plan with a pathspec commit, then tag `hull-repair-milestone-0N`. Hub registration is a separate later job.
 - Tests: `python3 -m pytest -q games/hull-repair`; lint: `python3 -m flake8 --extend-ignore=E501 games/hull-repair`.
 - Finding boards: `python3 tools/gen.py W H [--holes x,y ...] [--bridges x,y ...] [--valves N] [--mixers N] --seeds 1-40`, then freeze the chosen seeds into a `boards_*.py` file.
+
+## Engine and page notes (milestone 2)
+- `game.handle(json)` returns the whole view; `board.svg` is sent only when the board changes (`svg_due`), `layer` (the lines layer, `render.lines_svg`) every time. The page replaces only `<g id="hr-lines">`.
+- A touch is `begin {x,y}`, `move {cells}`, `end`; the engine records a better layout at `end` (`_record`) and returns a `result` (patched or restored, empty cells left, next board). Undo/clear/clear_line also re-record.
+- Save (`get_state`): `cur`, `best {board: "A0102;B..."}` (re-judged by `rules.decode`/`rules.status` on load), `draft {board: text}`, `tally` (laid, erased, undos), `flags` (bridge, valve, mix, retry); only non-default keys.
+- Keyboard: arrows move a cursor, Enter/Space picks a line up and puts it down, Backspace takes a cell back, Escape lets go, Z undoes. Pointer: pointer capture on `#board-holder`, `touch-action: none`.
