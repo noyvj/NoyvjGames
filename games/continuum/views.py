@@ -19,6 +19,7 @@ Nothing here is saved, so there is no save-robustness surface; malformed
 inputs (a missing report, odd numbers) degrade to empty output.
 """
 
+import html
 import math
 
 import sim
@@ -265,6 +266,7 @@ GLYPH_SHAPES = {
 
 DISTRICT_W = 70
 DISTRICT_H = 88
+HERITAGE_H = 52  # K-5: one row of heritage sites under the districts
 DISTRICT_COLS = 5
 CELL = 14
 CELLS_PER_ROW = 4
@@ -329,8 +331,12 @@ def map_districts(state):
 HAZARD_WORD = {1: "caution", 2: "danger"}
 
 
-def civic_map_svg(state, hazard=0):
+def civic_map_svg(state, hazard=0, heritage_sites=None):
     """The K24 schematic as an SVG string.
+
+    `heritage_sites` (K-5, from `heritage.sites_before`) adds one extra row of small sites at the
+    bottom: kept ones as a dashed ruin outline with the word "kept", cleared ones as a plain
+    footprint with the word "cleared" (shape and word, never colour alone).
 
     `hazard` (K-4, 0 none, 1 caution, 2 danger) tints every district that has
     buildings with a hatch pattern and a "!" mark plus the word, so the debt
@@ -343,6 +349,13 @@ def civic_map_svg(state, hazard=0):
     rows = math.ceil(len(districts) / DISTRICT_COLS)
     width = cols * DISTRICT_W + 8
     height = rows * DISTRICT_H + 8
+    sites = list(heritage_sites or [])
+    site_rows = math.ceil(len(sites) / DISTRICT_COLS) if sites else 0
+    if sites:
+        cols = max(cols, min(DISTRICT_COLS, len(sites)))
+        width = cols * DISTRICT_W + 8
+    heritage_top = height
+    height += site_rows * HERITAGE_H
     parts = [
         f'<svg viewBox="0 0 {width} {height}" class="views-svg" role="img" '
         f'aria-label="Top-down schematic of the settlement: one district per building type">',
@@ -376,6 +389,23 @@ def civic_map_svg(state, hazard=0):
             parts.append(_glyph(GLYPH_SHAPES[building], cx, cy))
         count_text = str(count) if count <= MAX_GLYPHS else f"{count} (showing {MAX_GLYPHS})"
         parts.append(f'<text x="{x0 + DISTRICT_W / 2}" y="{y0 + DISTRICT_H - 8}" class="map-count" text-anchor="middle">{count_text}</text>')
+    for i, site in enumerate(sites):
+        x0 = 4 + (i % DISTRICT_COLS) * DISTRICT_W
+        y0 = heritage_top - 4 + (i // DISTRICT_COLS) * HERITAGE_H
+        kept = bool(site.get("kept"))
+        cls = "map-heritage" if kept else "map-heritage map-heritage--cleared"
+        parts.append(
+            f'<rect x="{x0 + 2}" y="{y0 + 6}" width="{DISTRICT_W - 4}" height="{HERITAGE_H - 10}" rx="4" class="{cls}">'
+            f'<title>{html.escape(str(site.get("name", "Heritage site")))}</title></rect>'
+        )
+        parts.append(
+            f'<text x="{x0 + DISTRICT_W / 2}" y="{y0 + 22}" class="map-label" text-anchor="middle">'
+            f'{html.escape(sim.ERA_LABEL.get(site.get("era"), "Old"))} ruin</text>'
+        )
+        parts.append(
+            f'<text x="{x0 + DISTRICT_W / 2}" y="{y0 + 38}" class="map-count" text-anchor="middle">'
+            f'Heritage, {"kept" if kept else "cleared"}</text>'
+        )
     parts.append("</svg>")
     return "".join(parts)
 

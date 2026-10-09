@@ -1,6 +1,10 @@
 [
   {
     "date": "2026-10-09",
+    "entry": "New: living ruins. Each era you leave behind now stays standing as a heritage site (a stone circle, a broken colonnade, a cold chimney, a dead server hall) in the 3D scene and on the civic map. Keep a site and it adds 6% to your culture capacity; clear it and you get materials and a little healthier land at once, but your culture capacity is 5% lower for good, so it is a two-step choice that cannot be undone. Look Back now shows what each completed era left behind, and in the Digital Age and later the scene lays buildings out on a grid so more of them fit."
+  },
+  {
+    "date": "2026-10-09",
     "entry": "New: Standing Orders. Pick if/then rules from menus (for example: if food stored falls below 2 seasons of eating, move 1 person from idle people to foragers) and the council carries them out after every season, with no code to write. Five slots open as you learn community discoveries (the first with Shared Hearth), more triggers appear with the discovery that makes them worth watching (land health, materials, pollution, sprawl, technical debt), and every firing is written into the Council Minutes. Orders only do what you could do by hand, can be paused one by one or all at once, and never run during a Look Back."
   },
   {

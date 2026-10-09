@@ -1866,6 +1866,17 @@ body.screensaver-on #game, body.screensaver-on .section { backdrop-filter: none 
 .orders-field { display: flex; flex-direction: column; gap: 0.15rem; font-size: 0.8rem; min-width: 0; }
 .orders-field select { max-width: 100%; min-height: 2.2rem; }
 .orders-buttons { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-top: 0.5rem; }
+/* K-5 living ruins */
+.heritage-panel[hidden] { display: none; }
+.heritage-card { border: 1px dashed rgba(201, 147, 84, 0.6); border-radius: 6px; padding: 0.6rem 0.8rem; margin: 0.6rem 0; }
+.heritage-card--cleared { border-style: solid; opacity: 0.8; }
+.heritage-name { margin: 0 0 0.2rem; font-size: 1rem; }
+.heritage-card button { margin: 0.3rem 0.4rem 0 0; }
+.heritage-preview { font-style: italic; }
+.map-heritage { fill: none; stroke: #d9b98a; stroke-width: 1.4; stroke-dasharray: 5 3; }
+.map-heritage--cleared { stroke-dasharray: none; stroke-width: 0.8; opacity: 0.6; }
+html[data-theme="light"] .heritage-card { border-color: rgba(122, 74, 18, 0.55); background: rgba(255, 255, 255, 0.6); }
+html[data-theme="light"] .map-heritage { stroke: #7a4a12; }
 html[data-theme="light"] .orders-card { border-color: rgba(122, 74, 18, 0.55); background: rgba(255, 255, 255, 0.6); }
 
 /* ==========================================================================

@@ -142,6 +142,7 @@
       <button id="citizens-toggle-button" class="secondary" type="button" title="Invented citizens who follow the settlement across the ages, and the citizen of the season.">🧑 Citizens</button>
       <button id="neighbours-toggle-button" class="secondary" type="button" title="Three computer-controlled neighbouring settlements: trade, share discoveries and bid for the Salt Flats.">🗺 Neighbours</button>
       <button id="orders-toggle-button" class="secondary" type="button" title="If/then rules chosen from menus: when food runs low, move people to foraging. Each time one fires it is minuted in the Council Minutes.">📌 Standing Orders</button>
+      <button id="heritage-toggle-button" class="secondary" type="button" title="The old places each era leaves behind: keep them for culture, or clear them for materials and land at a cost.">🏛 Heritage Sites</button>
       <button id="views-toggle-button" class="secondary" type="button" title="Optional data views of the same city: a numbers dashboard, a top-down map and a resource flow diagram.">📊 City Views</button>
       <!-- Milestone 19 (site-wide settings panel, TODO.md origin A9):
            consolidates what used to be a standalone text-size toolbar
@@ -362,6 +363,14 @@
       <p id="orders-status" class="status-line" role="status" aria-live="polite"></p>
       <h3 class="summary-eras-heading">Recently carried out</h3>
       <div id="orders-recent"></div>
+    </div>
+    <!-- K-5: living ruins. -->
+    <div id="heritage-panel" class="section heritage-panel" hidden>
+      <h2 class="section-heading">Heritage sites</h2>
+      <p id="heritage-note" class="row-blurb"></p>
+      <p id="heritage-summary" class="status-line" role="status"></p>
+      <div id="heritage-list"></div>
+      <p id="heritage-status" class="status-line" role="status" aria-live="polite"></p>
     </div>
     <div id="views-panel" class="section views-panel" hidden>
       <h2 class="section-heading">City Views</h2>
@@ -880,7 +889,7 @@
     // Each engine module is written into Pyodide's virtual filesystem (the
     // working directory, which is on sys.path) before game.py runs and
     // imports them. Still no build step — just more than one fetch.
-    const ENGINE_MODULES = ["sim.py", "sustainability.py", "research.py", "log.py", "transition.py", "save.py", "info_content.py", "visual.py", "summary.py", "challenges.py", "trajectory.py", "views.py", "archive.py", "consulting.py", "founding.py", "minutes.py", "hamlet.py", "forecast.py", "statlog.py", "explain.py", "postmortem.py", "naming.py", "dataexport.py", "monuments.py", "par.py", "techdebt.py", "challengerun.py", "timelapse.py", "advisors.py", "eastereggs.py", "dynasty.py", "banners.py", "doctrines.py", "rewind.py", "citizens.py", "neighbours.py", "orders.py"];
+    const ENGINE_MODULES = ["sim.py", "sustainability.py", "research.py", "log.py", "transition.py", "save.py", "info_content.py", "visual.py", "summary.py", "challenges.py", "trajectory.py", "views.py", "archive.py", "consulting.py", "founding.py", "minutes.py", "hamlet.py", "forecast.py", "statlog.py", "explain.py", "postmortem.py", "naming.py", "dataexport.py", "monuments.py", "par.py", "techdebt.py", "challengerun.py", "timelapse.py", "advisors.py", "eastereggs.py", "dynasty.py", "banners.py", "doctrines.py", "rewind.py", "citizens.py", "neighbours.py", "orders.py", "heritage.py"];
 
     const CONTINUUM_TUTORIAL_STEPS = [
       {

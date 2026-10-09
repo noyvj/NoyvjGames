@@ -401,6 +401,93 @@
     return positions;
   }
 
+  // K-5 (planning/TODO.md): later eras switch from a circle to a grid so more buildings fit.
+  // A centred block of `count` cells in rows of `columns`, `spacing` apart.
+  function gridLayout(count, columns, spacing) {
+    const positions = [];
+    const rows = Math.ceil(count / columns);
+    for (let i = 0; i < count; i++) {
+      const col = i % columns;
+      const row = Math.floor(i / columns);
+      const inRow = Math.min(columns, count - row * columns);
+      positions.push([(col - (inRow - 1) / 2) * spacing, (row - (rows - 1) / 2) * spacing]);
+    }
+    return positions;
+  }
+
+  // K-5: heritage sites, one per era the settlement has left behind, on a ring at the edge of
+  // the ground. A kept site is a weathered ruin whose SHAPE is its era's (stone circle, wall,
+  // colonnade, tower stump, chimney, slab, ring segment); a cleared one is only a flat
+  // footprint, so the state reads by shape and not by colour.
+  const RUIN_STONE = 0x9a9486;
+  const RUIN_ORDER = ["tribal", "agrarian", "classical", "medieval", "industrial", "digital", "space"];
+
+  function buildRuin(era, kept) {
+    const group = new THREE.Group();
+    if (!kept) {
+      const footprint = flatPlot(0.5, 0.5, 0x6d6658, 0.02);
+      group.add(footprint);
+      return group;
+    }
+    if (era === "tribal") {
+      for (let i = 0; i < 5; i++) {
+        const stone = cylinder(0.05, 0.07, 0.22 + (i % 2) * 0.1, RUIN_STONE, 5);
+        const a = (i / 5) * Math.PI * 2;
+        stone.position.set(Math.cos(a) * 0.22, stone.position.y, Math.sin(a) * 0.22);
+        group.add(stone);
+      }
+    } else if (era === "agrarian") {
+      for (let i = 0; i < 3; i++) {
+        const wall = box(0.5, 0.08 + (i % 2) * 0.05, 0.06, RUIN_STONE);
+        wall.position.set(0, wall.position.y, (i - 1) * 0.16);
+        group.add(wall);
+      }
+    } else if (era === "classical") {
+      for (let i = 0; i < 3; i++) {
+        const column = cylinder(0.06, 0.07, i === 1 ? 0.2 : 0.4, RUIN_STONE, 8);
+        column.position.set((i - 1) * 0.2, column.position.y, 0);
+        group.add(column);
+      }
+    } else if (era === "medieval") {
+      group.add(cylinder(0.22, 0.26, 0.38, RUIN_STONE, 8));
+      const gap = box(0.12, 0.2, 0.12, 0x6d6658);
+      gap.position.set(0.18, gap.position.y + 0.28, 0);
+      group.add(gap);
+    } else if (era === "industrial") {
+      group.add(cylinder(0.07, 0.11, 0.6, 0x8a5a44, 8));
+      group.add(box(0.34, 0.1, 0.3, RUIN_STONE));
+    } else if (era === "digital") {
+      const slab = box(0.46, 0.06, 0.32, 0x7d8892);
+      slab.rotation.z = 0.25;
+      slab.position.y = 0.12;
+      group.add(slab);
+      group.add(box(0.1, 0.22, 0.1, 0x59636c));
+    } else {
+      const segment = new THREE.Mesh(
+        new THREE.TorusGeometry(0.3, 0.05, 6, 12, Math.PI * 1.3),
+        toonMaterial(0x8e98a8)
+      );
+      segment.rotation.x = Math.PI / 2;
+      segment.position.y = 0.06;
+      group.add(segment);
+    }
+    return group;
+  }
+
+  function addHeritage(group, sites) {
+    if (!Array.isArray(sites)) return;
+    sites.forEach(function (site) {
+      const index = RUIN_ORDER.indexOf(site.era);
+      if (index < 0) return;
+      const angle = -Math.PI / 2 + (index / RUIN_ORDER.length) * Math.PI * 2 + 0.2;
+      const ruin = buildRuin(site.era, site.kept !== false);
+      ruin.position.set(Math.cos(angle) * 4.2, 0, Math.sin(angle) * 4.2);
+      ruin.rotation.y = -angle;
+      ruin.scale.set(1.5, 1.5, 1.5);
+      group.add(ruin);
+    });
+  }
+
   function buildTribalScene(vs) {
     const group = new THREE.Group();
     group.add(buildGround(0x5c8a3e));
@@ -555,8 +642,8 @@
     const group = new THREE.Group();
     group.add(buildGround(0x808a94));
 
-    const towerCount = settlementScale(vs, 3, 8, 10);
-    ringLayout(towerCount, 1.6, 0.5).forEach(function (pos, i) {
+    const towerCount = settlementScale(vs, 3, 8, 16);
+    gridLayout(towerCount, 4, 0.7).forEach(function (pos, i) {
       const height = 0.7 + (i % 4) * 0.3;
       const tower = buildGlassTower(0x5f7f9f, height);
       tower.position.set(pos[0], 0, pos[1]);
@@ -577,8 +664,8 @@
     const group = new THREE.Group();
     group.add(buildGround(0x746a7c));
 
-    const spireCount = settlementScale(vs, 3, 8, 10);
-    ringLayout(spireCount, 1.7, 0.5).forEach(function (pos, i) {
+    const spireCount = settlementScale(vs, 3, 8, 16);
+    gridLayout(spireCount, 4, 0.7).forEach(function (pos, i) {
       const height = 0.9 + (i % 3) * 0.35;
       const spire = buildSpire(0x8890c8, height);
       spire.position.set(pos[0], 0, pos[1]);
@@ -1056,6 +1143,7 @@
         scene.remove(sceneGroup);
       }
       sceneGroup = builder(vs);
+      addHeritage(sceneGroup, vs.heritage);
       scene.add(sceneGroup);
       builtEra = vs.era;
     } else {
@@ -1066,6 +1154,7 @@
       // above), so this stays comfortably fast.
       scene.remove(sceneGroup);
       sceneGroup = builder(vs);
+      addHeritage(sceneGroup, vs.heritage);
       scene.add(sceneGroup);
     }
     renderer.render(scene, camera);

@@ -94,6 +94,11 @@
       "orders-panel",
       "orders-toggle-button",
       "Standing Orders"
+    ],
+    [
+      "heritage-panel",
+      "heritage-toggle-button",
+      "Heritage sites"
     ]
   ],
   "toolbar": {
@@ -119,7 +124,8 @@
           "orders-toggle-button",
           "dynasty-toggle-button",
           "doctrines-toggle-button",
-          "neighbours-toggle-button"
+          "neighbours-toggle-button",
+          "heritage-toggle-button"
         ]
       },
       {

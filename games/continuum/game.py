@@ -51,6 +51,7 @@ import eastereggs  # noqa: E402
 import explain  # noqa: E402
 import founding  # noqa: E402
 import hamlet  # noqa: E402
+import heritage  # noqa: E402
 import info_content  # noqa: E402
 import info_page  # noqa: E402
 import minutes  # noqa: E402
@@ -126,6 +127,8 @@ def current_effects():
         effects = dynasty.apply_effects(effects, campaign.ui, resting)
         effects = doctrines.apply_effects(effects, campaign.ui)
         effects = citizens.apply_effects(effects, campaign.ui, state.era, resting)
+        # K-5: kept heritage sites add to culture, cleared ones take a little away.
+        effects = heritage.apply_effects(effects, campaign.ui, campaign.furthest_era, resting)
     return effects
 
 
@@ -310,6 +313,7 @@ def render():
     update_spotlight_card()
     update_neighbours_panel()
     update_orders_panel()
+    update_heritage_panel()
     update_rewind_button()
     render_insights(effects)
     render_hamlet(effects)
@@ -324,7 +328,12 @@ def get_visual_state():
     Returns a plain dict; pyodide's toJs() (called from JS) turns it into
     a plain JS object, mirroring the save widget's own contract.
     """
-    return visual.visual_state(state, current_effects())
+    visual_data = visual.visual_state(state, current_effects())
+    # K-5: the heritage sites standing behind the era being drawn (none while a challenge run or
+    # consulting case rests), as plain {era, kept} so the scene can draw a ruin or a cleared patch.
+    sites = [] if _resting() else heritage.sites_before(state.era, campaign.ui)
+    visual_data["heritage"] = [{"era": s["era"], "kept": s["kept"]} for s in sites]
+    return visual_data
 
 
 def _notify_visual_layer():
@@ -2309,7 +2318,8 @@ def update_views_panel(effects=None):
             container.appendChild(block)
     elif views_tab == "map":
         hazard = _debt_hazard()
-        document.getElementById("views-map-svg").innerHTML = views.civic_map_svg(state, hazard)
+        sites = [] if _resting() else heritage.sites_before(state.era, campaign.ui)
+        document.getElementById("views-map-svg").innerHTML = views.civic_map_svg(state, hazard, sites)
         document.getElementById("views-map-caption").innerText = views.map_caption(state, hazard)
     else:
         document.getElementById("views-flow-svg").innerHTML = views.flow_svg(state, state.last_report)
@@ -2700,6 +2710,19 @@ def _record_par():
     )
 
 
+def _log_heritage_left_behind():
+    """K-5: the era just left stays standing as a heritage site; say so once, in the log."""
+    if _resting() or campaign.revisiting is not None:
+        return
+    for site in heritage.sites_before(state.era, campaign.ui):
+        if site["era"] == sim.ERA_ORDER[sim.era_index(state.era) - 1]:
+            chronicle.log_challenge(
+                state.season, state.era,
+                f"{site['name']} is left standing at the edge of town: {site['blurb']} Keep it for the "
+                "culture it gives, or clear it (see Heritage sites).",
+            )
+
+
 def on_advance_era(event=None):
     if transition.attempt_transition(campaign):
         _rewind_clear()
@@ -2711,6 +2734,7 @@ def on_advance_era(event=None):
         _record_par()
         record_motion("era", sim.ERA_LABEL[state.era] + " era")
         _easter_egg(eastereggs.on_era(campaign.ui, state.era))
+        _log_heritage_left_behind()
         update_minutes_panel()
         render()
         _check_new_achievements_for_toast()
@@ -2789,6 +2813,12 @@ def render_revisit():
             button.addEventListener("click", proxy)
             actions.appendChild(button)
             row.appendChild(actions)
+            hint = heritage.preview_text(era, campaign.ui)
+            if hint and not _resting():
+                note = document.createElement("p")
+                note.className = "row-blurb heritage-preview"
+                note.innerText = hint
+                row.appendChild(note)
 
             container.appendChild(row)
 
@@ -5454,6 +5484,140 @@ def update_orders_panel():
         recent.appendChild(line)
 
 
+# --- K-5 living ruins (heritage sites) ----------------------------------------------------------------------
+# The rules live in heritage.py. This is the DOM half: a panel listing the sites the settlement has left
+# behind, each kept (a culture bonus) or cleared (materials and land now, a culture cost for good).
+heritage_open = False
+heritage_status = ""
+heritage_confirm = None
+_heritage_proxies = []
+
+
+def _heritage_sites():
+    return [] if _resting() else heritage.sites_before(campaign.furthest_era, campaign.ui)
+
+
+def _heritage_summary_text():
+    if _resting():
+        return "resting (comparable run)"
+    kept, cleared = heritage.counts(campaign.ui, campaign.furthest_era)
+    if kept + cleared == 0:
+        return "none yet"
+    return f"{kept} kept, {cleared} cleared"
+
+
+def on_toggle_heritage(event=None):
+    global heritage_open, heritage_confirm
+    heritage_open = not heritage_open
+    heritage_confirm = None
+    update_heritage_panel()
+
+
+def _make_heritage_demolish_handler(era):
+    def handler(event=None):
+        global heritage_confirm, heritage_status
+        if heritage_confirm != era:
+            heritage_confirm = era
+            heritage_status = "Clearing a heritage site cannot be undone. Press Confirm to go ahead."
+            update_heritage_panel()
+            return
+        ok, text = heritage.demolish(
+            campaign.ui, state, campaign.furthest_era, era, _resting(), campaign.revisiting is not None
+        )
+        heritage_confirm = None
+        heritage_status = text
+        if ok:
+            chronicle.log_challenge(state.season, state.era, text)
+        render()
+        _check_new_achievements_for_toast()
+    return handler
+
+
+def _make_heritage_cancel_handler():
+    def handler(event=None):
+        global heritage_confirm, heritage_status
+        heritage_confirm = None
+        heritage_status = "Nothing was cleared."
+        update_heritage_panel()
+    return handler
+
+
+def update_heritage_panel():
+    toggle = document.getElementById("heritage-toggle-button")
+    toggle.innerText = "Hide Heritage" if heritage_open else "🏛 Heritage Sites"
+    panel = document.getElementById("heritage-panel")
+    panel.hidden = not heritage_open
+    if not heritage_open:
+        return
+    for proxy in _heritage_proxies:
+        proxy.destroy()
+    del _heritage_proxies[:]
+    sites = _heritage_sites()
+    locked = campaign.revisiting is not None or _resting()
+    note = document.getElementById("heritage-note")
+    if campaign.revisiting is not None:
+        note.innerText = "Return to the present to change a heritage site."
+    elif _resting():
+        note.innerText = f"Heritage sites rest: {_rest_reason()}"
+    else:
+        note.innerText = (
+            "Each era you leave behind stays standing as a heritage site. Kept, it adds "
+            f"{heritage.KEEP_BONUS * 100:.0f}% to culture capacity. Cleared, you gain materials and a little land health "
+            f"now, and culture capacity is {heritage.DEMOLISH_PENALTY * 100:.0f}% lower for good. Keeping is the default."
+        )
+    document.getElementById("heritage-summary").innerText = _heritage_summary_text() + "."
+    holder = document.getElementById("heritage-list")
+    holder.innerHTML = ""
+    if not sites:
+        empty = document.createElement("p")
+        empty.className = "row-blurb"
+        empty.innerText = "No heritage sites yet. The first appears when you leave the Tribal era."
+        holder.appendChild(empty)
+    for site in sites:
+        card = document.createElement("div")
+        card.className = "heritage-card" + ("" if site["kept"] else " heritage-card--cleared")
+        head = document.createElement("h3")
+        head.className = "heritage-name"
+        head.innerText = f"{site['name']} ({sim.ERA_LABEL[site['era']]} era)"
+        card.appendChild(head)
+        blurb = document.createElement("p")
+        blurb.className = "row-blurb"
+        blurb.innerText = site["blurb"]
+        card.appendChild(blurb)
+        status = document.createElement("p")
+        status.className = "status-line"
+        status.innerText = heritage.status_text(site)
+        card.appendChild(status)
+        if site["kept"]:
+            era = site["era"]
+            confirming = heritage_confirm == era
+            gain = heritage.demolish_gain(era)
+            button = document.createElement("button")
+            button.id = f"heritage-{era}-demolish-button"
+            button.className = "secondary"
+            button.type = "button"
+            button.disabled = locked
+            button.innerText = (
+                f"Confirm: clear it for {gain:.0f} materials" if confirming else f"Clear this site (+{gain:.0f} materials)"
+            )
+            proxy = create_proxy(_make_heritage_demolish_handler(era))
+            _heritage_proxies.append(proxy)
+            button.addEventListener("click", proxy)
+            card.appendChild(button)
+            if confirming:
+                cancel = document.createElement("button")
+                cancel.id = f"heritage-{era}-cancel-button"
+                cancel.className = "secondary"
+                cancel.type = "button"
+                cancel.innerText = "Keep it"
+                cancel_proxy = create_proxy(_make_heritage_cancel_handler())
+                _heritage_proxies.append(cancel_proxy)
+                cancel.addEventListener("click", cancel_proxy)
+                card.appendChild(cancel)
+        holder.appendChild(card)
+    document.getElementById("heritage-status").innerText = heritage_status
+
+
 def _extra_dashboard_sections():
     """Standing advantages as dashboard rows, so none is ever a hidden mechanic."""
     resting = _resting()
@@ -5471,6 +5635,7 @@ def _extra_dashboard_sections():
         ("Dynasty rank", dynasty.rank_name(record["earned"])),
         ("Doctrines", doctrine_text),
         ("Citizen bonuses", _citizen_effects_text() if _citizens_on() else "switched off"),
+        ("Heritage sites", _heritage_summary_text()),
     ]
     return [{"title": "Standing advantages", "rows": rows}]
 
@@ -5685,6 +5850,7 @@ def setup():
         ("citizens-off-button", on_citizens_off),
         ("neighbours-toggle-button", on_toggle_neighbours),
         ("orders-toggle-button", on_toggle_orders),
+        ("heritage-toggle-button", on_toggle_heritage),
         ("orders-master-button", on_orders_master),
         ("orders-add-button", on_orders_add),
         ("rewind-button", on_rewind),
