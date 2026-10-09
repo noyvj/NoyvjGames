@@ -246,3 +246,26 @@ html[data-effects="off"] #lantern-glow, html[data-effects="off"] #light-pool { d
 .room-svg .room-wall { fill: var(--panel); }
 .room-svg .room-floor { fill: var(--off); }
 .report-letters { margin: 0.4rem 0; font-weight: 600; }
+
+/* ---- the odd things: a quiet typeface, a slow reveal, never colour alone ---- */
+.log-list li.odd-detail .log-kind::before { content: ""; }
+.log-list li.odd-detail { font-style: italic; border-left: 3px double var(--accent); padding-left: 0.5rem; }
+.log-list li.story-line { border-left: 3px solid var(--edge); padding-left: 0.5rem; }
+.log-list li.odd-detail .log-text::before { content: "(odd) "; font-style: normal; font-weight: 700; color: var(--muted); font-size: 0.8rem; }
+.log-list li.story-line .log-text::before { content: "(kind) "; font-style: normal; font-weight: 700; color: var(--muted); font-size: 0.8rem; }
+html:not([data-reduced-motion="true"]):not([data-effects="off"]) .log-list li.reveal .clause { opacity: 0; animation: clause-in 0.01s steps(1) forwards; animation-delay: calc(var(--i, 0) * 1.1s); }
+@keyframes clause-in { to { opacity: 1; } }
+.notebook-list { list-style: none; margin: 0.3rem 0; padding: 0; display: grid; gap: 0.5rem; }
+.notebook-list > li { border: 1px solid var(--line); border-radius: 10px; padding: 0.4rem 0.8rem; background: var(--surface); }
+.notebook-list > li[data-solved="true"] { border-width: 2px; border-color: var(--accent); }
+.notebook-list > li[data-begun="false"] { border-style: dashed; color: var(--muted); }
+.notebook-list ol { margin: 0.3rem 0 0.3rem 1.2rem; padding: 0; }
+.notebook-list .nb-status { font-weight: 700; margin-left: 0.5rem; }
+.notebook-list .nb-technique { color: var(--muted); font-size: 0.8rem; }
+#off-chart .odd-light { transition: opacity 1s; }
+#off-chart .odd-light.blinking { animation: oddblink 2.4s steps(1) infinite; }
+@keyframes oddblink { 0% { opacity: 1; } 20% { opacity: 0.15; } 40% { opacity: 1; } 60% { opacity: 0.15; } 70% { opacity: 1; } }
+html[data-reduced-motion="true"] #off-chart .odd-light.blinking { animation: none; }
+.log-list li.hand .log-text, .report-lines li.hand { font-family: "Segoe Script", "Bradley Hand", "Brush Script MT", cursive; font-style: normal; }
+#report-beats li.odd-detail { font-style: italic; border-left: 3px double var(--accent); padding-left: 0.5rem; }
+#report-beats li.story-line { border-left: 3px solid var(--edge); padding-left: 0.5rem; }

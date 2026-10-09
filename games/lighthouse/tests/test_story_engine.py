@@ -13,7 +13,7 @@ import lore
 import ships
 import sim
 import story
-from state import Keep
+from state import Keep, new_story
 
 
 def new_keep(seed=3, quiet=False):
@@ -79,8 +79,8 @@ def test_the_sim_is_identical_with_the_story_on_or_off_when_no_letter_is_read():
 def test_a_quiet_run_has_no_story_at_all():
     k = new_keep(5, True)
     harness.play(k, 40, "careful")
-    assert k.story == {"met": {}, "inbox": [], "read": [], "gifts": [], "choices": {}, "buffs": {}}
-    assert k.meta["story"] == {"met": [], "letters": [], "gifts": []}
+    assert k.story == new_story()
+    assert all(v == [] for v in k.meta["story"].values())
     assert not story.read_letter(k, "il1")[0]
     from view import build
     v = build(k, {"eerie": True})

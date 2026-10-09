@@ -18,7 +18,7 @@ You keep one light on one rock. Storms come, ships pass, oil is finite, and a sm
 Python via Pyodide, engine modules with no DOM (the Signal and Lexis pattern: `handle(json) -> json`, `get_state()` / `load_state()` for the save widget), plain HTML/CSS with an inline SVG scene, no build step. Art is drawn by code as SVG.
 
 ## Modules (engine, no DOM)
-`rng.py` stateless seeded randomness; `data.py` every rule number; `clock.py` calendar; `weather.py` and `ships.py` the seeded night; `cast.py` labels ships with sailors; `state.py` the validated save; `sim.py` the night; `day.py` the day; `goals.py` three standing goals; `lore.py` the cast, letters and gifts as data; `story.py` post, gifts, replies; `achievements.py`; `view.py` builds the whole view; `game.py` `handle(json)`, `get_state()`, `load_state()`. `harness.py` plays nights as text and holds the test policies (not loaded by the page).
+`rng.py` stateless seeded randomness; `data.py` every rule number; `clock.py` calendar; `weather.py` and `ships.py` the seeded night; `cast.py` labels ships with sailors; `state.py` the validated save; `sim.py` the night; `day.py` the day; `goals.py` three standing goals; `lore.py` the cast, letters and gifts as data; `story.py` post, gifts, replies; `mysteries.py` the dread ledger as data; `unease.py` the year's schedule and the hidden meter; `achievements.py`; `view.py` builds the whole view; `game.py` `handle(json)`, `get_state()`, `load_state()`. `harness.py` plays nights as text and holds the test policies (not loaded by the page).
 
 ## Milestones
 | # | Milestone | Status |
@@ -28,7 +28,7 @@ Python via Pyodide, engine modules with no DOM (the Signal and Lexis pattern: `h
 | 3 | Day loop + upgrades: day tasks, workshop (9 upgrades), boat order, seasons, barometer, three standing goals | DONE (tagged) |
 | 4 | Complete Quiet mode: one year to completion, endless continue, save widget, settings, confirm dialogs | DONE (tagged) |
 | 5 | Cast, letters, gifts: 10 sailors, 23 letters, 11 gifts, room scene, reply choices, story toggle | DONE (tagged) |
-| 6 | The Unease | not started |
+| 6 | The Unease: 6 mysteries, 8 small oddities, hidden unease meter, dread-ledger tests, Eerie details switch, content note | DONE (tagged) |
 | 7 | Standard kit | not started |
 | 8 | Achievements + polish | not started |
 | 9 | Own-folder wrap-up | not started |

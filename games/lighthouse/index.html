@@ -18,6 +18,8 @@
 <script src="../../shared/perf-mark.js" data-game-id="lighthouse"></script>
 <script src="../../shared/debug-overlay.js"></script>
 <script src="../../shared/info-footer.js" data-game-id="lighthouse"></script>
+<script src="../../shared/report-problem.js" data-game-id="lighthouse" data-mount=".game-toolbar"></script>
+<script src="../../shared/profile.js" data-game-id="lighthouse"></script>
 <script src="../../shared/site-settings.js" data-game-id="lighthouse"></script>
 <script src="settings.js"></script>
 <link rel="stylesheet" href="../../ad-bar.css">
@@ -39,12 +41,22 @@
   <div class="game-toolbar">
     <button id="tutorial-restart-button" type="button">Tutorial</button>
     <button id="achievements-toggle-button" type="button" aria-expanded="false" aria-controls="achievements-panel">Achievements</button>
+    <button id="eerie-toggle-button" type="button" aria-pressed="true" class="story-line" title="Eerie details are the odd things that happen in the night. Switch them off and the letters, the sailors and the kind moments stay.">Eerie details: on</button>
     <button id="letters-toggle-button" type="button" aria-expanded="false" aria-controls="letters-panel">Letters</button>
     <button id="changelog-toggle-button" type="button" aria-expanded="false" aria-controls="changelog-panel">What's New</button>
     <button id="settings-toggle-button" type="button" aria-expanded="false" aria-controls="settings-panel">Settings</button>
     <button id="info-page-toggle-button" type="button" aria-expanded="false" aria-controls="info-page-panel">About the Light</button>
   </div>
 
+  <section id="content-note-panel" class="panel story-line" hidden aria-labelledby="content-note-heading">
+    <h2 id="content-note-heading">Before you begin</h2>
+    <p id="content-note-text"></p>
+    <p class="note">Two switches are always in reach: <strong>Eerie details</strong> in the toolbar keeps the letters and the cosy cast but skips the odd happenings, and <strong>Story</strong> (bottom left) hides every letter, sailor and odd detail.</p>
+    <div class="settings-row">
+      <button id="content-note-ok" type="button" class="primary">Carry on</button>
+      <button id="content-note-eerie-off" type="button">Turn eerie details off</button>
+    </div>
+  </section>
   <section id="letters-panel" class="panel" hidden aria-labelledby="letters-heading">
     <h2 id="letters-heading">Letters, sailors and the room</h2>
     <p class="note" id="letters-counts"></p>
@@ -55,6 +67,10 @@
     <ul id="sailors-list" class="sailors-list"></ul>
     <h3>Gifts</h3>
     <ul id="gifts-list" class="gifts-list"></ul>
+    <h3>Notebook of odd things</h3>
+    <p class="note" id="notebook-counts"></p>
+    <ul id="notebook-list" class="notebook-list odd-detail"></ul>
+    <ul id="oddities-list" class="notebook-list odd-detail"></ul>
     <h3 id="room-heading">The room</h3>
     <div id="room-panel" class="room-wrap">
       <svg id="room-svg" class="room-svg" viewBox="0 0 360 200" role="img" aria-label="The keeper's room"></svg>
@@ -92,6 +108,9 @@
     <div class="settings-row"><button id="theme-setting-button" type="button" aria-pressed="false">Light theme</button></div>
     <div class="settings-row"><button id="display-reset-button" type="button">Reset display settings</button></div>
     <h3 class="settings-sub">This keeper</h3>
+    <div class="settings-row story-line">
+      <label><input type="checkbox" id="eerie-checkbox" checked> Eerie details (the odd things that happen in the night; letters and kind moments stay when this is off)</label>
+    </div>
     <div class="settings-row">
       <label><input type="checkbox" id="quiet-checkbox"> Quiet mode for the next year (just the lighthouse; no sailors, letters or odd happenings)</label>
     </div>
@@ -276,6 +295,7 @@
       <ul id="report-ships" class="report-ships"></ul>
       <dl id="report-facts" class="facts"></dl>
       <ul id="report-lines" class="report-lines"></ul>
+      <ul id="report-beats" class="report-lines" hidden></ul>
       <p id="report-letters" class="report-letters sailor-note" hidden></p>
       <p id="report-delivery" class="note"></p>
       <div id="report-copy-result"></div>
@@ -352,7 +372,7 @@
   // at panels the Desktop layout moves into windows. app.js asks this function which steps to run.
   window.lighthouseTutorialSteps = function (classicSteps) { return window.LIGHTHOUSE_PC_TUTORIAL_STEPS || classicSteps; };
 </script>
-<script src="../../shared/story-toggle.js" data-game-id="lighthouse" data-story-selectors="#letters-panel, #letters-toggle-button, #room-panel, .sailor-note, .odd-detail, #story-chapters"></script>
+<script src="../../shared/story-toggle.js" data-game-id="lighthouse" data-story-selectors="#letters-panel, #letters-toggle-button, #room-panel, #content-note-panel, .sailor-note, .odd-detail, .story-line, #story-chapters"></script>
 <script src="../../shared/time-controls.js" data-game-id="lighthouse" data-container="#time-controls"></script>
 <script src="../../shared/pause-hidden.js" data-game-id="lighthouse"></script>
 <script src="app.js"></script>

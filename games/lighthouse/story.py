@@ -6,6 +6,8 @@ most one a night, after the sailor's boat has got safely by often enough and the
 """
 
 import lore
+import mysteries
+import unease
 from data import SUPPLY_CAP
 
 
@@ -33,8 +35,19 @@ def lens_cloth_bonus(keep):
     return 1 if on(keep) and keep.story["buffs"].get("lens_cloth", 0) > 0 else 0
 
 
+def eerie(keep):
+    """The per-device 'Eerie details' choice, handed in by game.py on each request; true when unset."""
+    return getattr(keep, "_eerie", True)
+
+
+def beat_nights(keep):
+    return {b[0]: b[1] for b in keep.story["beats"]}
+
+
 def _gate_ok(keep, letter):
     gate = letter["gate"]
+    if gate.get("beat") and not (gate["beat"] in beat_nights(keep) and beat_nights(keep)[gate["beat"]] < keep.night):
+        return False
     sid = letter["from"]
     if gate.get("passes") is not None and keep.story["met"].get(sid, 0) < gate["passes"]:
         return False
@@ -56,9 +69,10 @@ def meet(keep, sid):
 
 def after_night(keep, ships):
     """Called once at dawn, after the ships are settled. Returns what the morning report should mention."""
-    out = {"letters": [], "met": []}
+    out = {"letters": [], "met": [], "beats": [], "unrecorded": []}
     if not on(keep):
         return out
+    resolved = emit_morning(keep, out)
     st = keep.story
     for ship in ships:
         who = ship.get("who")
@@ -81,6 +95,11 @@ def after_night(keep, ships):
         st["inbox"].append({"id": lid, "night": keep.night})
         out["letters"].append(lid)
         break
+    seen = beat_nights(keep)
+    out["unrecorded"] = [b["board"] for _m, b in unease.beats_on(keep.seed, keep.night) if b.get("board") and seen.get(b["id"]) == keep.night]
+    stats = keep.night_stats
+    keep.story["unease"] = unease.meter_after_night(keep.story["unease"], stats["worst_cond"], stats["fog_ticks"], bool(out["letters"]), resolved)
+    keep.story["tonight"] = ""
     return out
 
 
@@ -173,4 +192,162 @@ def view(keep):
         "counts": {"met": len(keep.meta["story"]["met"]), "sailors": len(lore.SAILORS), "letters": len(keep.meta["story"]["letters"]),
                    "letters_total": len(lore.LETTERS), "gifts": len(keep.meta["story"]["gifts"]), "gifts_total": len(lore.GIFTS)},
         "buffs": dict(st["buffs"]), "note": lore.CONTENT_NOTE,
+        "notebook": notebook(keep), "odd": odd_visuals(keep), "eerie": eerie(keep), "room_odd": room_odd(keep),
     }
+
+
+# ---- the odd and the kind: mystery beats and small oddities ----------------------------------------------------
+def _fmt(keep, text):
+    stats = keep.night_stats
+    names = [sh["name"] for sh in __import__("sim").tonight_ships(keep) if sh["kind"] != "mail"][:3]
+    board = " and ".join(names) if names else "no one"
+    try:
+        return text.format(passed=stats["passed"], hours=round(stats["lamp_ticks"] / 6.0, 1), board=board)
+    except (KeyError, IndexError, ValueError):
+        return text
+
+
+def _record(keep, mid, beat):
+    keep.story["beats"].append([beat["id"], keep.night])
+    if mid not in keep.meta["story"]["mysteries"]:
+        keep.meta["story"]["mysteries"].append(mid)
+
+
+def _fire(keep, mid, beat, out=None):
+    """Show one mystery beat. Odd and moment beats are skipped, silently, when Eerie details is off. Returns True when
+    the beat was a resolve."""
+    if beat["id"] in beat_nights(keep):
+        return False
+    odd = beat["kind"] in unease.ODD_KINDS
+    if odd and not eerie(keep):
+        return False
+    text = _fmt(keep, beat["text"])
+    _record(keep, mid, beat)
+    log_kind = "hand" if beat.get("font") else "odd" if odd else "story"
+    keep.add_log(log_kind, text)
+    if out is not None:
+        out["beats"].append({"kind": beat["kind"], "text": text})
+    if beat.get("gift") and beat["gift"] not in keep.story["gifts"]:
+        take_gift(keep, beat["gift"])
+    if beat["kind"] == "resolve":
+        keep.story["unease"] = max(0, keep.story["unease"] - 40)
+        who = mysteries.MYSTERIES[mid].get("who")
+        if who:
+            meet(keep, who)
+        return True
+    return False
+
+
+def begin_night(keep):
+    """Decide tonight's small oddity (if any) once, so a pause or a save cannot change the answer."""
+    keep.story["tonight"] = ""
+    if not on(keep) or not eerie(keep):
+        return
+    odd, kind = unease.odd_nights(keep.seed)
+    odd = set(odd) | set(keep.story["trifles"].values())
+    pick = unease.trifle_tonight(keep.seed, keep.night, keep.story["unease"], keep.story["trifles"], odd, kind)
+    if pick:
+        keep.story["tonight"] = pick
+
+
+def emit_tick(keep, tick):
+    """Called by the sim at the end of each tick: the beats and the oddity that show at exactly this tick."""
+    if not on(keep):
+        return
+    for mid, beat in unease.beats_on(keep.seed, keep.night):
+        if beat["at"] != "morning" and unease.beat_tick(keep.night, beat["at"]) == tick:
+            _fire(keep, mid, beat)
+    tid = keep.story.get("tonight")
+    if tid and tid not in keep.story["trifles"]:
+        spec = mysteries.TRIFLES[tid]
+        if spec["at"] != "morning" and unease.beat_tick(keep.night, spec["at"]) == tick:
+            _show_trifle(keep, tid, None)
+
+
+def _show_trifle(keep, tid, out):
+    keep.story["trifles"][tid] = keep.night
+    text = mysteries.TRIFLES[tid]["odd"]
+    keep.add_log("odd", text)
+    if out is not None:
+        out["beats"].append({"kind": "trifle", "text": text})
+
+
+def emit_morning(keep, out):
+    """The beats and oddities that belong to the morning, and the explanations that are due. Returns whether a
+    mystery was solved."""
+    resolved = False
+    for mid, beat in unease.beats_on(keep.seed, keep.night):
+        if beat["at"] == "morning":
+            resolved = _fire(keep, mid, beat, out) or resolved
+    tid = keep.story.get("tonight")
+    if tid and tid not in keep.story["trifles"] and mysteries.TRIFLES[tid]["at"] == "morning":
+        _show_trifle(keep, tid, out)
+    for tid, night in list(keep.story["trifles"].items()):
+        if tid in keep.story["explained"]:
+            continue
+        if keep.night >= night + mysteries.TRIFLES[tid]["delay"]:
+            keep.story["explained"].append(tid)
+            text = mysteries.TRIFLES[tid]["resolve"]
+            out["beats"].append({"kind": "explain", "text": text})
+            keep.add_log("story", text)
+            keep.story["unease"] = max(0, keep.story["unease"] - 15)
+            if tid not in keep.meta["story"]["oddities"]:
+                keep.meta["story"]["oddities"].append(tid)
+    return resolved
+
+
+def odd_visuals(keep):
+    """What the scene should draw tonight for the odd beats already shown: the latest light of each mystery."""
+    if not on(keep) or keep.phase != "night":
+        return []
+    seen = beat_nights(keep)
+    out = []
+    for mid, beat in unease.beats_on(keep.seed, keep.night):
+        if beat["id"] in seen and beat.get("visual"):
+            out.append(dict(beat["visual"], mystery=mid, id=beat["id"]))
+    return out
+
+
+def notebook(keep):
+    seen = beat_nights(keep)
+    rows = []
+    for mid in unease.mystery_order():
+        m = mysteries.MYSTERIES[mid]
+        shown = [b for b in m["beats"] if b["id"] in seen]
+        solved = any(b["kind"] == "resolve" for b in shown)
+        rows.append({
+            "id": mid, "begun": bool(shown), "solved": solved,
+            "title": m["title"] if shown else "A mystery you have not begun",
+            "summary": m["summary"] if solved else "",
+            "entries": [{"kind": b["kind"], "night": seen[b["id"]], "text": _plain(b["text"]), "technique": b["technique"]} for b in shown],
+        })
+    trifles = []
+    for tid in mysteries.TRIFLE_ORDER:
+        if tid in keep.story["trifles"]:
+            t = mysteries.TRIFLES[tid]
+            done = tid in keep.story["explained"]
+            trifles.append({"id": tid, "night": keep.story["trifles"][tid], "odd": t["odd"], "explained": done, "resolve": t["resolve"] if done else ""})
+    return {"mysteries": rows, "trifles": trifles, "mysteries_total": len(mysteries.MYSTERIES), "trifles_total": len(mysteries.TRIFLES)}
+
+
+def _plain(text):
+    return text.replace("{passed}", "some").replace("{hours}", "some").replace("{level}", "the")
+
+
+def board_extras(keep, night):
+    """Ships the harbour board lists that never come (the 'ghost entries'): only with the story and Eerie details on."""
+    if not on(keep) or not eerie(keep):
+        return []
+    return [b["board"] for _m, b in unease.beats_on(keep.seed, night) if b.get("board")]
+
+
+def room_odd(keep):
+    seen = beat_nights(keep)
+    chair = 0
+    cup = False
+    for m in mysteries.MYSTERIES.values():
+        for b in m["beats"]:
+            if b["id"] in seen and b.get("room"):
+                chair = max(chair, b["room"].get("chair", 0))
+                cup = cup or bool(b["room"].get("cup"))
+    return {"chair": chair, "cup": cup and "second_cup" not in keep.story["gifts"]}

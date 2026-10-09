@@ -173,6 +173,7 @@ def begin_night(keep):
     keep.log = []
     keep.report = None
     keep.add_log("lamp", "Dusk. You light the lamp.")
+    story.begin_night(keep)
     return True
 
 
@@ -275,6 +276,7 @@ def advance(keep):
             rest *= 0.7
         keep.energy = min(float(ENERGY_MAX), keep.energy + rest)
     keep.energy = round(keep.energy, 2)
+    story.emit_tick(keep, t)
 
     keep.tick = t + 1
     if keep.tick >= length:
@@ -521,6 +523,9 @@ def finish_night(keep):
     news = story.after_night(keep, ships)
     keep.report["letters"] = [{"id": lid, "from_name": story.sailor_name(lore.LETTERS[lid]["from"]), "subject": lore.LETTERS[lid]["subject"]} for lid in news["letters"]]
     keep.report["met"] = [story.sailor_name(sid) for sid in news["met"]]
+    keep.report["beats"] = news["beats"]
+    for name in news["unrecorded"]:
+        keep.report["ships"].append({"name": name, "kind": "ferry", "outcome": "unrecorded"})
     return keep.report
 
 

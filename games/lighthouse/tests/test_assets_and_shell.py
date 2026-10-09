@@ -44,7 +44,7 @@ def test_every_id_app_js_uses_exists_in_the_page():
     used |= set(re.findall(r'wirePanelToggle\("([^"]+)", "([^"]+)"\)', APP) and [i for pair in re.findall(r'wirePanelToggle\("([^"]+)", "([^"]+)"\)', APP) for i in pair])
     assert used, "expected $('id') lookups"
     # ids built at run time by the script itself are not in the static page
-    dynamic = {i for i in used if i.startswith(("repair-meter-", "task-rest", "task-tidy", "task-beachcomb", "task-garden"))}
+    dynamic = {i for i in used if i.startswith(("room-chair", "repair-meter-", "task-rest", "task-tidy", "task-beachcomb", "task-garden"))}
     assert used - dynamic <= ids, f"app.js uses ids the page lacks: {sorted(used - dynamic - ids)}"
 
 

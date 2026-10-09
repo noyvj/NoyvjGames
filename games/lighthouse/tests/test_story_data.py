@@ -65,7 +65,9 @@ def test_replies_have_ids_labels_and_answers():
 
 
 def test_every_gift_comes_from_exactly_one_letter_and_has_a_slot():
+    import mysteries
     attached = [item["gift"] for item in lore.LETTERS.values() if item.get("gift")]
+    attached += [b["gift"] for m in mysteries.MYSTERIES.values() for b in m["beats"] if b.get("gift")]
     assert sorted(attached) == sorted(lore.GIFTS)
     for g in lore.GIFTS.values():
         assert g["slot"] in ("shelf", "table", "wall", "window", "floor")

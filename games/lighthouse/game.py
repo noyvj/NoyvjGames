@@ -100,6 +100,7 @@ def _day_task(request):
 
 def _act(action, request):
     """Perform one action. Returns (ok, message)."""
+    keep._eerie = settings["eerie"]
     if action == "open":
         return True, ""
     if action in ("new_game", "abandon"):

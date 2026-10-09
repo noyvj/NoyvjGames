@@ -10,6 +10,7 @@ import math
 
 from clock import night_len
 import lore
+import mysteries
 from data import (BOAT_CRATES, COMFORT_MAX, CRATE_KINDS, DEFAULT_ORDER, ENERGY_MAX, INCIDENT_KINDS, LEVELS, LOG_KEEP,
                   OIL_CAP_BIG, PARTS, REP_CAP, START_ENERGY, START_OIL, START_STRUCTURE, START_SUPPLIES, SUPPLIES,
                   SUPPLY_CAP, UPGRADE_IDS)
@@ -18,10 +19,10 @@ SCHEMA = 1
 PHASES = ("evening", "night", "morning", "day", "yearend")
 MODES = ("year", "endless")
 SHIP_STATES = ("pending", "passed", "delayed", "damaged")
-LOG_KINDS = ("ship", "weather", "incident", "damage", "lamp", "clock", "keeper", "note", "story")
+REPORT_STATES = SHIP_STATES + ("unrecorded",)
+LOG_KINDS = ("ship", "weather", "incident", "damage", "lamp", "clock", "keeper", "note", "story", "odd", "hand")
 TASKS = ("wind", "watch", "repair")
 FOCUS_CHOICES = ("worst",) + PARTS
-STORY_KEYS = ("met", "inbox", "read", "gifts", "choices", "buffs")
 COUNTER_NAMES = ("quiet_nights", "fog_clears", "storm_wardens", "tidy_days", "frugal_seasons", "empty_nights",
                  "wound_streak", "best_wound_streak", "calm_years", "eerie_off_nights", "cleared_year_eerie_off")
 MAX_SEED = 2 ** 31 - 1
@@ -120,7 +121,7 @@ class Keep(object):
         return LEVELS[index]
 
     def add_log(self, kind, line):
-        self.log.append([int(self.tick), kind, str(line)[:200]])
+        self.log.append([int(self.tick), kind, str(line)[:900]])
         if len(self.log) > LOG_KEEP:
             del self.log[:len(self.log) - LOG_KEEP]
 
@@ -260,7 +261,7 @@ class Keep(object):
             if "season_min_oil" in run else keep.oil
         for entry in as_list(run.get("log"))[-LOG_KEEP:]:
             if isinstance(entry, list) and len(entry) == 3 and isinstance(entry[2], str):
-                keep.log.append([num(entry[0], 0, 200, 0), pick_one(entry[1], LOG_KINDS, "note"), entry[2][:200]])
+                keep.log.append([num(entry[0], 0, 200, 0), pick_one(entry[1], LOG_KINDS, "note"), entry[2][:900]])
         keep.report = clean_report(run.get("report"))
         keep.delivery = clean_delivery(run.get("delivery"))
         keep.story = story_from_dict(run.get("story"))
@@ -269,7 +270,7 @@ class Keep(object):
 
 def new_story():
     """The story layer's progress in this run. Every key is written only when it holds something."""
-    return {"met": {}, "inbox": [], "read": [], "gifts": [], "choices": {}, "buffs": {}}
+    return {"met": {}, "inbox": [], "read": [], "gifts": [], "choices": {}, "buffs": {}, "beats": [], "unease": 0, "trifles": {}, "explained": [], "tonight": ""}
 
 
 def story_to_dict(story):
@@ -286,6 +287,16 @@ def story_to_dict(story):
     buffs = {k: v for k, v in story["buffs"].items() if v}
     if buffs:
         out["buffs"] = buffs
+    if story["beats"]:
+        out["beats"] = [list(b) for b in story["beats"]]
+    if story["unease"]:
+        out["unease"] = story["unease"]
+    if story["trifles"]:
+        out["trifles"] = dict(story["trifles"])
+    if story["explained"]:
+        out["explained"] = list(story["explained"])
+    if story["tonight"]:
+        out["tonight"] = story["tonight"]
     return out
 
 
@@ -311,6 +322,18 @@ def story_from_dict(raw):
             story["choices"][lid] = [pair[0], num(pair[1], 1, 100000, 1)]
     buffs = as_dict(raw.get("buffs"))
     story["buffs"] = {k: num(buffs[k], 0, 99, 0) for k in ("lens_cloth",) if k in buffs}
+    known = {b["id"] for m in mysteries.MYSTERIES.values() for b in m["beats"]}
+    seen_ids = set()
+    for pair in as_list(raw.get("beats"))[:80]:
+        pair = as_list(pair)
+        if len(pair) == 2 and isinstance(pair[0], str) and pair[0] in known and pair[0] not in seen_ids:
+            seen_ids.add(pair[0])
+            story["beats"].append([pair[0], num(pair[1], 1, 100000, 1)])
+    story["unease"] = num(raw.get("unease"), 0, mysteries.UNEASE_CAP, 0)
+    trifles = as_dict(raw.get("trifles"))
+    story["trifles"] = {k: num(trifles[k], 1, 100000, 1) for k in mysteries.TRIFLES if k in trifles}
+    story["explained"] = [t for t in dict.fromkeys(as_list(raw.get("explained"))) if t in story["trifles"]]
+    story["tonight"] = pick_one(raw.get("tonight"), tuple(mysteries.TRIFLES), "")
     return story
 
 
@@ -325,7 +348,7 @@ def new_meta():
         "nights_kept": 0, "years": 0, "ships_passed": 0, "ships_delayed": 0, "ships_damaged": 0, "rescues": 0,
         "lamp_ticks": 0, "oil_used": 0.0, "clean_streak": 0, "best_clean_streak": 0, "best_lamp_hours_year": 0,
         "year_lamp_ticks": 0, "counters": {}, "achievements_earned": [],
-        "story": {"met": [], "letters": [], "gifts": []},
+        "story": {"met": [], "letters": [], "gifts": [], "mysteries": [], "oddities": []},
     }
 
 
@@ -355,6 +378,8 @@ def meta_from_dict(raw):
         "met": [x for x in dict.fromkeys(as_list(ever.get("met"))) if x in lore.SAILORS],
         "letters": [x for x in dict.fromkeys(as_list(ever.get("letters"))) if x in lore.LETTERS],
         "gifts": [x for x in dict.fromkeys(as_list(ever.get("gifts"))) if x in lore.GIFTS],
+        "mysteries": [x for x in dict.fromkeys(as_list(ever.get("mysteries"))) if x in mysteries.MYSTERIES],
+        "oddities": [x for x in dict.fromkeys(as_list(ever.get("oddities"))) if x in mysteries.TRIFLES],
     }
     earned = as_list(raw.get("achievements_earned"))
     meta["achievements_earned"] = [e for e in dict.fromkeys(earned) if isinstance(e, str) and len(e) <= 40][:80]
@@ -368,7 +393,7 @@ def clean_report(raw):
         return None
     out = {"night": num(raw.get("night"), 1, 100000, 1), "summary": text(raw.get("summary"), 300)}
     out["ships"] = [{"name": text(as_dict(s).get("name"), 40), "kind": text(as_dict(s).get("kind"), 12),
-                     "outcome": pick_one(as_dict(s).get("outcome"), SHIP_STATES, "passed")} for s in as_list(raw.get("ships"))[:8]]
+                     "outcome": pick_one(as_dict(s).get("outcome"), REPORT_STATES, "passed")} for s in as_list(raw.get("ships"))[:8]]
     for key in ("lamp_hours", "oil_used"):
         out[key] = float(num(raw.get(key), 0, 100000, 0, integer=False))
     for key in ("damage", "incidents", "rep", "salvage", "passed", "delayed", "damaged"):
@@ -379,6 +404,8 @@ def clean_report(raw):
     out["letters"] = [{"id": i, "from_name": text(as_dict(x).get("from_name"), 40), "subject": text(as_dict(x).get("subject"), 60)}
                       for x in as_list(raw.get("letters"))[:4] for i in [as_dict(x).get("id")] if isinstance(i, str) and i in lore.LETTERS]
     out["met"] = [text(x, 40) for x in as_list(raw.get("met"))[:6] if isinstance(x, str)]
+    out["beats"] = [{"kind": pick_one(as_dict(x).get("kind"), ("odd", "moment", "kind", "resolve", "trifle", "explain"), "kind"),
+                     "text": text(as_dict(x).get("text"), 700)} for x in as_list(raw.get("beats"))[:6]]
     return out
 
 

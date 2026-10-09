@@ -80,6 +80,9 @@ def notice_for(keep, night, mail):
                     "block": shipgen.block_of_arrival(night, ship), "block_label": BLOCKS[shipgen.block_of_arrival(night, ship)],
                     "at": clock.clock_label(night, ship["arrive"]), "need": ship["need"],
                     "who_name": storymod.sailor_name(ship["who"]) if storymod.on(keep) and ship.get("who") else None})
+    for name in storymod.board_extras(keep, night):
+        out.append({"kind": "ferry", "label": "Ferry", "icon": SHIP_KINDS["ferry"]["icon"], "name": name, "block": 1, "block_label": "Deep night",
+                    "at": clock.clock_label(night, clock.night_len(night) // 2), "need": 4, "who_name": None, "ghost": True})
     return out
 
 
