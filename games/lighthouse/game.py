@@ -50,6 +50,7 @@ def _begin_run(seed, quiet, keep_meta=True):
     if keep_meta:
         keep.meta = old_meta
     keep.quiet = bool(quiet)
+    keep.meta["counters"]["eerie_off_streak"] = 0
     sim.to_evening(keep)
     achievements.refresh(keep)
 

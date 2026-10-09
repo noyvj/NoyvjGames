@@ -222,9 +222,9 @@ def test_every_ghost_entry_on_the_board_is_a_beat_that_resolves():
     sim.to_evening(k)
     from view import build
     notice = build(k, {"eerie": True})["notice"]
-    assert any(n.get("ghost") and n["name"] == "Lantern Lark" for n in notice)
+    assert any(n.get("chalked") and n["name"] == "Lantern Lark" for n in notice)
     k._eerie = False
-    assert not any(n.get("ghost") for n in build(k, {"eerie": False})["notice"])
+    assert not any(n.get("chalked") for n in build(k, {"eerie": False})["notice"])
 
 
 def test_the_content_note_is_one_gentle_non_spoiling_line():

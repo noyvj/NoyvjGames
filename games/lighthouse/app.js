@@ -571,8 +571,8 @@
         li.lastChild.setAttribute("aria-hidden", "true");
         li.appendChild(el("strong", n.label + " " + n.name));
         if (n.who_name) li.appendChild(el("span", n.who_name, "sailor-note"));
-        if (n.ghost) li.className = "odd-detail";
-        li.appendChild(el("span", "about " + n.at + " (" + n.block_label.toLowerCase() + "), needs reach " + n.need + " or more" + (n.ghost ? " (chalked on the board)" : ""), "board-detail"));
+        if (n.chalked) li.className = "odd-detail";
+        li.appendChild(el("span", "about " + n.at + " (" + n.block_label.toLowerCase() + "), needs reach " + n.need + " or more" + (n.chalked ? " (chalked on the board)" : ""), "board-detail"));
         holder.appendChild(li);
       });
       if (!v.notice.length) holder.appendChild(el("li", "No ships are expected tonight."));
@@ -941,6 +941,8 @@
       if (a.earned) earnedNow.push(a.id);
     });
     $("achievements-toggle-button").textContent = "Achievements (" + earnedNow.length + "/" + (v.achievements || []).length + ")";
+    var keepingAll = (v.achievements || []).filter(function (x) { return !x.story; }), storyAll = (v.achievements || []).filter(function (x) { return x.story; });
+    setText($("ach-summary"), "Keeping the light: " + keepingAll.filter(function (x) { return x.earned; }).length + " of " + keepingAll.length + ". The story layer: " + storyAll.filter(function (x) { return x.earned; }).length + " of " + storyAll.length + ". A Quiet year can reach every one of the first group.");
     if (knownEarned !== null) {
       earnedNow.filter(function (id) { return knownEarned.indexOf(id) === -1; }).forEach(function (id) {
         var a = v.achievements.filter(function (x) { return x.id === id; })[0];

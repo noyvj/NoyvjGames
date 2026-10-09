@@ -21,9 +21,10 @@ Text harness: `python3 games/lighthouse/harness.py [seed] [nights]`.
 - M5 Cast, letters, gifts: lore.py (10 sailors, 23 letters, 11 gifts), cast.py (labels ships, never changes the sim), story.py, Letters panel with sailors/gifts/room SVG, reply choices, story toggle wired, quiet runs skip it all. 137 tests. Hesper and Berit are written for in M6 (mystery characters).
 - M6 The Unease: mysteries.py (6 mysteries, 35 beats, 8 small oddities), unease.py (pure year schedule with fog preference, the odd-streak rules, hidden meter), beats shown in the log/report/scene (off-chart light, phantom ferry, ghost board entry, turning chair, extra cup), notebook of odd things, Eerie details toggle (toolbar, settings, per-device), content note, dread-ledger tests over 1000 seeds. 157 tests. Mystery 1 was prototyped and checked live before the others were written.
 - M7 Standard kit: 14-step tutorial, mobile HUD strip and docked night controls (live-checked at 360x740), About the Light with 4 sourced facts read 2026-10-09 (Wikipedia: Fresnel lens, Lighthouse, Fog signal), light theme from M2, colourblind audit test, what's-new banner. 168 tests. Feedback: the opening screen's shared Feedback button (no in-game report button on purpose).
+- M8 Achievements + polish: 21 achievements (11 keeping, 10 story incl. 6 hidden mystery ones), achievements.json manifest tested against the code, toast and panel, copy lint over all shipped strings, worst-case timing test, balance bots (careful 98%, idle ~63%, miser ~10% safe passages). 183 tests. NOTE: the plan said 16; it listed one achievement per mystery, so the count is 15 + 6. Reported to the user.
 
 ## Next
-Milestone 8: Achievements (11 keeping + mystery ones + story ones), panel/toast, achievements.json manifest, copy lint over all shipped text, worst-case perf test, balance bots.
+Milestone 9: own-folder wrap-up: favicon check, Desktop boot (pc-config.json, pc.js, pc.css, pc.html generated for lighthouse only), game CLAUDE.md table, BUILD-STATUS, tag. Then final report.
 
 ## Open problems
 none yet

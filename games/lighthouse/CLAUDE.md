@@ -30,5 +30,5 @@ Python via Pyodide, engine modules with no DOM (the Signal and Lexis pattern: `h
 | 5 | Cast, letters, gifts: 10 sailors, 23 letters, 11 gifts, room scene, reply choices, story toggle | DONE (tagged) |
 | 6 | The Unease: 6 mysteries, 8 small oddities, hidden unease meter, dread-ledger tests, Eerie details switch, content note | DONE (tagged) |
 | 7 | Standard kit: tutorial, phone HUD strip and dock, About the Light (sourced), colourblind audit | DONE (tagged) |
-| 8 | Achievements + polish | not started |
+| 8 | Achievements + polish: 21 achievements, copy lint, timing test, balance bots | DONE (tagged) |
 | 9 | Own-folder wrap-up | not started |

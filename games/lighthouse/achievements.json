@@ -1,0 +1,109 @@
+{
+  "achievements": [
+    {
+      "id": "first_light",
+      "label": "First Light",
+      "description": "Keep the light through your first night."
+    },
+    {
+      "id": "quiet_night",
+      "label": "Quiet Night",
+      "description": "End a night with no trouble at all: no incident, no damage, no ship turned back."
+    },
+    {
+      "id": "fog_bank",
+      "label": "Fog Bank",
+      "description": "Bring every ship through a night of long fog."
+    },
+    {
+      "id": "storm_warden",
+      "label": "Storm Warden",
+      "description": "Come through a storm with every part of the station above half."
+    },
+    {
+      "id": "tidy",
+      "label": "Tidy",
+      "description": "Repair every part of the station in a single day."
+    },
+    {
+      "id": "frugal",
+      "label": "Frugal",
+      "description": "Finish a season with the oil never below 20."
+    },
+    {
+      "id": "year_at_the_rock",
+      "label": "Year at the Rock",
+      "description": "Complete a year."
+    },
+    {
+      "id": "wound_tight",
+      "label": "Wound Tight",
+      "description": "Keep the clockwork turning for seven nights in a row."
+    },
+    {
+      "id": "fog_bell",
+      "label": "Fog Bell",
+      "description": "Build the fog bell."
+    },
+    {
+      "id": "nothing_happened",
+      "label": "Nothing Happened",
+      "description": "End a night with nothing in the log at all."
+    },
+    {
+      "id": "keeper_for_life",
+      "label": "Keeper for Life",
+      "description": "Keep the light on after the first year."
+    },
+    {
+      "id": "reading_by_lamplight",
+      "label": "Reading by Lamplight",
+      "description": "Read five letters."
+    },
+    {
+      "id": "whole_cast",
+      "label": "The Whole Cast",
+      "description": "Meet all ten of the people who write to the light."
+    },
+    {
+      "id": "good_neighbour",
+      "label": "A Good Neighbour",
+      "description": "Receive ten gifts."
+    },
+    {
+      "id": "bravery_optional",
+      "label": "Bravery is Optional",
+      "description": "Keep the light for a whole year with Eerie details switched off."
+    },
+    {
+      "id": "second_light",
+      "label": "Second Light",
+      "description": "Find out who kept the second light on the water."
+    },
+    {
+      "id": "square_to_the_floor",
+      "label": "Square to the Floor",
+      "description": "Find out why the chair kept turning."
+    },
+    {
+      "id": "the_drummer",
+      "label": "The Drummer",
+      "description": "Find out who was knocking at the cistern."
+    },
+    {
+      "id": "two_cups",
+      "label": "Two Cups",
+      "description": "Find out who left the second cup."
+    },
+    {
+      "id": "return_to_sender",
+      "label": "Return to Sender",
+      "description": "Find out who wrote the unsigned letters."
+    },
+    {
+      "id": "twelve_windows",
+      "label": "Twelve Windows",
+      "description": "Find out about the ship that is not on any chart."
+    }
+  ]
+}

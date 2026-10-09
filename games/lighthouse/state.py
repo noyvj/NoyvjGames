@@ -24,7 +24,7 @@ LOG_KINDS = ("ship", "weather", "incident", "damage", "lamp", "clock", "keeper",
 TASKS = ("wind", "watch", "repair")
 FOCUS_CHOICES = ("worst",) + PARTS
 COUNTER_NAMES = ("quiet_nights", "fog_clears", "storm_wardens", "tidy_days", "frugal_seasons", "empty_nights",
-                 "wound_streak", "best_wound_streak", "calm_years", "eerie_off_nights", "cleared_year_eerie_off")
+                 "wound_streak", "best_wound_streak", "calm_years", "eerie_off_streak")
 MAX_SEED = 2 ** 31 - 1
 
 

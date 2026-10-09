@@ -72,6 +72,8 @@ def after_night(keep, ships):
     out = {"letters": [], "met": [], "beats": [], "unrecorded": []}
     if not on(keep):
         return out
+    counters = keep.meta["counters"]
+    counters["eerie_off_streak"] = 0 if eerie(keep) else counters.get("eerie_off_streak", 0) + 1
     resolved = emit_morning(keep, out)
     st = keep.story
     for ship in ships:
