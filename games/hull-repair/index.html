@@ -36,15 +36,22 @@
     <h1>Hull Repair</h1>
   </div>
   <div class="game-toolbar">
-    <button id="rooms-toggle-button" type="button" aria-expanded="false" aria-controls="rooms-panel">Rooms</button>
+    <button id="rooms-toggle-button" type="button" aria-expanded="false" aria-controls="rooms-panel">Station</button>
+    <button id="log-toggle-button" type="button" aria-expanded="false" aria-controls="log-panel">Repair log</button>
     <button id="changelog-toggle-button" type="button" aria-expanded="false" aria-controls="changelog-panel"><span class="btn-long">What's New</span><span class="btn-short" aria-hidden="true">News</span></button>
     <button id="settings-toggle-button" type="button" aria-expanded="false" aria-controls="settings-panel">Settings</button>
   </div>
   <p class="tagline">Join matching ports with lines that never cross. Nothing is timed, and a wrong line only costs you a tap to take it back.</p>
   <section id="rooms-panel" class="panel" hidden aria-labelledby="rooms-heading">
-    <h2 id="rooms-heading">Rooms</h2>
-    <p class="note">A deck opens once five rooms of the one before are patched. Inside a deck, play any room in any order. Patched means every line is joined; restored means every cell is covered too.</p>
+    <h2 id="rooms-heading">Station</h2>
+    <p class="note">Every room you patch lights up on the map. A deck opens once five rooms of the one before are patched. Inside a deck, play any room in any order. Patched means every line is joined; restored means every cell is covered too. Tap a room on the map, or pick it from the lists below.</p>
+    <div id="map-holder" class="map-holder"></div>
     <div id="rooms-body" class="rooms-body"></div>
+  </section>
+  <section id="log-panel" class="panel" hidden aria-labelledby="log-heading">
+    <h2 id="log-heading">Repair log</h2>
+    <p id="log-summary" class="note"></p>
+    <ul id="log-list" class="log-list"></ul>
   </section>
   <section id="changelog-panel" class="panel" hidden aria-labelledby="changelog-heading">
     <h2 id="changelog-heading">What's New</h2>
@@ -78,6 +85,11 @@
     <div class="stat"><span class="stat-label">Cells empty here</span><span id="stat-empty" class="stat-value">0</span></div>
   </section>
 
+  <section id="goals" class="goals" aria-label="Next goals">
+    <strong>Next goals</strong> <span class="note">(any order)</span>
+    <ul id="goals-list" class="goals-list"></ul>
+  </section>
+
   <section id="board-panel" class="panel" aria-labelledby="board-heading">
     <p id="board-chapter" class="note board-chapter"></p>
     <h2 id="board-heading">Airlock Two</h2>
@@ -92,8 +104,18 @@
     <div id="result-card" class="result-card" hidden>
       <p id="result-title" class="result-title"></p>
       <p id="result-text" class="note"></p>
+      <p id="result-log" class="result-log story-text note" hidden></p>
       <div class="result-buttons">
         <button id="next-button" type="button" class="primary" hidden data-testid="hull-repair-next">Next room</button>
+      </div>
+    </div>
+    <div id="hint-box" class="hint-box">
+      <button id="hint-button" type="button" data-testid="hull-repair-hint">Need a nudge?</button>
+      <p id="hint-nudge" class="note hint-line" hidden></p>
+      <p id="hint-hint" class="note hint-line" hidden></p>
+      <div id="hint-answer" class="hint-answer" hidden>
+        <p class="note hint-line">The whole answer is drawn on the board as a dotted ghost.</p>
+        <button id="answer-load-button" type="button" data-testid="hull-repair-load-answer">Lay the answer on the board</button>
       </div>
     </div>
     <details class="board-words">
@@ -122,6 +144,7 @@
     <div class="stat-strip tally-strip">
       <div class="stat"><span class="stat-label">Pipe erased</span><span id="stat-erased" class="stat-value">0</span></div>
       <div class="stat"><span class="stat-label">Undos</span><span id="stat-undos" class="stat-value">0</span></div>
+      <div class="stat"><span class="stat-label">Hints asked</span><span id="stat-hints" class="stat-value">0</span></div>
     </div>
   </details>
   <p id="engine-status" class="note" role="status">Switching the station's lights on...</p>

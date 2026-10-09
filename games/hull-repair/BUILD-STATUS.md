@@ -7,8 +7,10 @@ Updated after every milestone. Read `planning/hull-repair-plan.md`, `CLAUDE.md` 
 
 - M2 Board UI: render.py, progress.py, game.py, index.html, app.js, style.css, settings.js, changelog.json, favicon; 112 tests; checked live at 1440x900-ish pane and 360x740 (drag, keyboard, restored card, no horizontal scroll).
 
+- M3 Decks 2-3 (16 boards: holes, bridges), station map, repair log (all 40 lines written), hint ladder, goals strip; 172 tests; checked live (map, deck 2 board with holes, hint ghosts, answer ghost).
+
 ## Next
-- M3 Decks 2-3 (32 more boards needs generator tuning for holes and bridges), station map, repair log, hint ladder, goals strip (achievement facts).
+- M4 Decks 4-5 (valves; mixers): 16 boards. Generator finds 8x8 and 9x9 boards rarely: tune (maxlen, more seeds, node limit) before authoring; valves must be load-bearing in at least some boards.
 
 ## Open problems / notes
 - Local Python is 3.9: engine code avoids 3.10+ syntax.

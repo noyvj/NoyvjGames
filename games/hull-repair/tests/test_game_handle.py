@@ -34,7 +34,7 @@ def test_open_returns_the_whole_view():
     fresh()
     v = call(action="open")
     assert v["board"]["id"] == boards.ORDER[0] and v["board"]["svg"].startswith("<svg") and v["layer"] is not None
-    assert v["totals"]["rooms"] == len(boards.ORDER) and v["tally"] == {"laid": 0, "erased": 0, "undos": 0}
+    assert v["totals"]["rooms"] == len(boards.ORDER) and v["tally"] == {"laid": 0, "erased": 0, "undos": 0, "hints": 0}
     assert [line["c"] for line in v["board"]["lines"]] == list(boards.ALL_BOARDS[0].lines)
     assert call(action="open")["rooms"][0]["open"] is True
 
@@ -136,7 +136,7 @@ def test_save_round_trip_keeps_best_drafts_tally_and_flags():
     lay(boards.ORDER[0])
     lay(boards.ORDER[1], upto=3, lines=[boards.ALL_BOARDS[1].lines[0]])
     state = json.loads(json.dumps(game.get_state()))
-    assert set(state) == {"cur", "best", "draft", "tally"}
+    assert set(state) == {"cur", "best", "draft", "tally", "achievements_earned"}
     fresh()
     game.load_state(state)
     v = call(action="open")
@@ -168,7 +168,7 @@ def test_only_fully_validated_state_loads():
         assert v["totals"]["patched"] == 0 and all(x >= 0 for x in v["tally"].values()), data
     game.load_state({"best": {b.id: good}, "tally": {"laid": 12, "erased": -1}, "flags": ["bridge", "bogus"], "cur": "nowhere"})
     v = call(action="open")
-    assert v["totals"]["restored"] == 1 and v["tally"] == {"laid": 12, "erased": 0, "undos": 0} and game.game.flags == ["bridge"]
+    assert v["totals"]["restored"] == 1 and v["tally"] == {"laid": 12, "erased": 0, "undos": 0, "hints": 0} and game.game.flags == ["bridge"]
     assert v["board"]["id"] == boards.ORDER[0]
 
 

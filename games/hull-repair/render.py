@@ -215,3 +215,68 @@ def cell_words(board, paths, cell):
     if on:
         return "%s: %s with the %s line%s." % (here, kind, " and ".join(on), "s" if len(on) > 1 else "")
     return "%s: %s, empty." % (here, kind)
+
+
+# ---- the station map ---------------------------------------------------------------------------------------------------
+MAP_W, MAP_H = 640, 424
+ROOM_WIDTHS = (70, 56, 80, 62, 54, 78, 50, 58)          # eight rooms a deck, 508 wide with 4 between
+ROW_H, ROW_GAP, MAP_TOP, MAP_LEFT = 64, 14, 22, 92
+ROOMS_PER_DECK = 8
+
+
+def _hull_level(patched, restored, total):
+    if not total:
+        return 0
+    share = (restored + patched) / (2.0 * total)
+    return 0 if share < 0.1 else 1 if share < 0.4 else 2 if share < 0.8 else 3
+
+
+def station_svg(decks):
+    """The station cutaway: five decks of eight rooms, the first deck at the bottom. `decks` is the game's deck list (each
+    with name, open, rooms [{id, name, number, status, status_name, open, current}]). A room is dark and cracked when open
+    to repair, dashed and half-lit when patched, solid with lit windows and a check mark when restored; a deck that is not
+    open yet is dotted. Everything that tells states apart is shape, not only light."""
+    total = sum(len(d["rooms"]) for d in decks)
+    patched = sum(1 for d in decks for r in d["rooms"] if r["status"] >= 1)
+    restored = sum(1 for d in decks for r in d["rooms"] if r["status"] >= 2)
+    level = _hull_level(patched - restored, restored, total)
+    out = ['<svg class="hr-map" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 %d %d" role="img" aria-label="Station map: %d of %d rooms patched, %d restored" focusable="false">' % (
+        MAP_W, MAP_H, patched, total or 40, restored),
+        '<polygon class="hr-hull hr-hull-%d" points="%s"/>' % (level, _pts([(84, 30), (120, 8), (612, 8), (638, 30), (638, 394), (612, 416), (120, 416), (84, 394)]))]
+    for index, deck in enumerate(decks):
+        y = MAP_TOP + (len(decks) - 1 - index) * (ROW_H + ROW_GAP)
+        done = sum(1 for r in deck["rooms"] if r["status"] >= 1)
+        out.append('<text class="hr-deck-name" x="6" y="%g">%s</text><text class="hr-deck-count" x="6" y="%g">%d/%d patched</text>' % (
+            y + 26, deck["name"], y + 42, done, len(deck["rooms"]) or ROOMS_PER_DECK))
+        x = MAP_LEFT
+        widths = ROOM_WIDTHS[index % ROOMS_PER_DECK:] + ROOM_WIDTHS[:index % ROOMS_PER_DECK]
+        for slot in range(ROOMS_PER_DECK):
+            w = widths[slot]
+            room = deck["rooms"][slot] if slot < len(deck["rooms"]) else None
+            out.append(_map_room(room, slot + 1, x, y, w, deck["open"]))
+            x += w + 4
+    out.append("</svg>")
+    return "".join(out)
+
+
+def _map_room(room, number, x, y, w, deck_open):
+    if room is None:
+        return '<g class="hr-room hr-room-empty"><rect class="hr-room-body" x="%g" y="%g" width="%d" height="%d" rx="3"/></g>' % (x, y, w, ROW_H)
+    status = room["status"]
+    cls = "hr-room s%d%s%s" % (status, "" if deck_open else " locked", " current" if room["current"] else "")
+    words = "%s: %s" % (room["name"], room["status_name"] if deck_open else "locked")
+    parts = ['<g class="%s" data-id="%s" data-open="%d"><title>%s</title>' % (cls, room["id"], 1 if deck_open else 0, words),
+             '<rect class="hr-room-body" x="%g" y="%g" width="%d" height="%d" rx="3"/>' % (x, y, w, ROW_H),
+             _poly([(x + 2, y + 2), (x + w - 2, y + 2), (x + 2, y + ROW_H - 2)], "hr-room-facet")]
+    if status >= 1:
+        n = 2 if status == 1 else max(2, (w - 12) // 14)
+        for k in range(n):
+            parts.append('<rect class="hr-window" x="%g" y="%g" width="8" height="10" rx="1"/>' % (x + 8 + k * 14, y + 36))
+    if status == 2:
+        parts.append('<path class="hr-room-check" d="M%g,%g l7,8 l14,-16"/>' % (x + w / 2 - 10, y + 22))
+    elif status == 1:
+        parts.append('<rect class="hr-room-dash" x="%g" y="%g" width="%d" height="%d" rx="3"/>' % (x + 4, y + 4, w - 8, ROW_H - 8))
+    else:
+        parts.append('<path class="hr-room-crack" d="M%g,%g l9,12 l-6,10 l10,14 M%g,%g l-10,8"/>' % (x + w / 2 - 6, y + 4, x + w / 2 + 2, y + 26))
+    parts.append('<text class="hr-room-num" x="%g" y="%g">%d</text></g>' % (x + 5, y + 14, number))
+    return "".join(parts)

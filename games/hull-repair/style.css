@@ -160,3 +160,50 @@ html[data-dots="off"] .hr-dot { display: none; }
   .legend { display: none; }
   .board-holder svg { max-height: 56vh; }
 }
+
+/* Goals: three at a time, always in view. */
+.goals { background: var(--panel-fill); border: 1px solid var(--line); border-radius: 12px; padding: 0.4rem 0.7rem; margin: 0.5rem 0; font-size: 0.85rem; }
+.goals-list { list-style: none; margin: 0.2rem 0 0; padding: 0; display: grid; gap: 0.2rem; }
+.goals-list li { display: flex; flex-wrap: wrap; align-items: center; gap: 0.1rem 0.4rem; }
+.goals-list .bar { display: inline-block; flex: 0 0 5rem; height: 0.55rem; border: 1px solid var(--edge); border-radius: 3px; overflow: hidden; background: var(--surface); }
+.bar-fill { display: block; height: 100%; background: var(--accent); }
+.goal-count { font-variant-numeric: tabular-nums; font-weight: 700; }
+@media (max-width: 640px) { .goals { padding: 0.3rem 0.5rem; font-size: 0.78rem; } .goals-list .bar { flex-basis: 3rem; } }
+
+/* Hints and the result's log line. */
+.hint-box { margin: 0.5rem 0; text-align: center; }
+.hint-line { margin: 0.3rem 0; }
+.hint-answer { margin: 0.4rem 0; }
+.result-log { font-style: italic; }
+
+/* The station map. */
+.map-holder { max-width: 40rem; margin: 0.4rem auto; }
+.hr-map { display: block; width: 100%; height: auto; }
+.hr-hull { fill: var(--surface); stroke: var(--frame); stroke-width: 3; stroke-dasharray: 2 6; }
+.hr-hull-1 { stroke-dasharray: 8 5; } .hr-hull-2 { stroke-dasharray: 16 4; stroke: var(--edge); } .hr-hull-3 { stroke-dasharray: none; stroke: var(--accent); stroke-width: 4; }
+.hr-deck-name { font: 700 11px system-ui, sans-serif; fill: var(--text); }
+.hr-deck-count { font: 10px system-ui, sans-serif; fill: var(--muted); }
+.hr-room { cursor: pointer; }
+.hr-room-body { fill: var(--wall-base); stroke: var(--frame); stroke-width: 2; }
+.hr-room-facet { fill: var(--floor-b); opacity: 0.5; }
+.hr-room.s1 .hr-room-body { fill: var(--floor-a); stroke: var(--ok); stroke-dasharray: 5 3; }
+.hr-room.s2 .hr-room-body { fill: var(--floor-a2); stroke: var(--ok); stroke-width: 4; }
+.hr-room.s2 .hr-room-facet { opacity: 0.9; }
+.hr-room.locked { cursor: default; opacity: 0.55; }
+.hr-room.locked .hr-room-body { stroke-dasharray: 2 4; }
+.hr-room.current .hr-room-body { stroke: var(--focus); stroke-width: 4; stroke-dasharray: none; }
+.hr-room-empty .hr-room-body { fill: none; stroke-dasharray: 1 5; opacity: 0.5; }
+.hr-room-num { font: 700 10px system-ui, sans-serif; fill: var(--muted); }
+.hr-room-crack { fill: none; stroke: var(--wall-x); stroke-width: 1.8; opacity: 0.8; }
+.hr-room-dash { fill: none; stroke: var(--ok); stroke-width: 1.5; stroke-dasharray: 3 3; opacity: 0.8; }
+.hr-room-check { fill: none; stroke: var(--ok); stroke-width: 4; stroke-linecap: round; stroke-linejoin: round; }
+.hr-window { fill: var(--line-A); opacity: 0.55; }
+.hr-room.s2 .hr-window { opacity: 1; }
+html[data-effects="off"] .hr-room.s2 .hr-window { opacity: 0.9; }
+
+/* The repair log. */
+.log-list { list-style: none; margin: 0.4rem 0; padding: 0; display: grid; gap: 0.35rem; }
+.log-list li { border: 1px solid var(--line); border-radius: 10px; padding: 0.35rem 0.6rem; background: var(--surface); }
+.log-list li.missing { color: var(--muted); border-style: dashed; }
+.log-list .log-room { font-weight: 700; }
+.log-list .log-line { margin: 0.2rem 0 0; font-style: italic; }

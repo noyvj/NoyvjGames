@@ -12,19 +12,24 @@ Actions (every request is {"action": ..., ...}; every reply is the whole view):
   move {cells: [[x, y], ...]}  the finger passed over these neighbouring cells, in order
   end                          the finger came up (a tap on a line's end takes one cell back); may carry a `result`
   undo | clear | clear_line {line}   take back the last touch | empty the board | empty one line
+  hint                         climb one more rung of the hint ladder (nudge, hint, answer) for this board
+  load_answer                  lay the stored layout on the board (after the answer rung)
   cell {x, y}                  words for one cell (the keyboard cursor)
   reset                        start over (everything)
 """
 
 import json
 
+import achievements
 import boards
+import hints
+import logbook
 import play
 import progress
 import render
 import rules
 
-TALLY_KEYS = ("laid", "erased", "undos")
+TALLY_KEYS = ("laid", "erased", "undos", "hints")
 FLAGS = ("bridge", "valve", "mix", "retry")
 MAX_COUNT = 10 ** 9
 
@@ -47,6 +52,7 @@ class Game:
         self.current = boards.ORDER[0]
         self.tally = {key: 0 for key in TALLY_KEYS}
         self.flags = []
+        self.rungs = {}                # board id -> hint rungs climbed (1 to 3)
         self.draw = None
         self.svg_due = True
         self.result = None
@@ -90,6 +96,11 @@ class Game:
             data["tally"] = tally
         if self.flags:
             data["flags"] = list(self.flags)
+        if self.rungs:
+            data["rungs"] = dict(self.rungs)
+        earned = achievements.earned(self.facts())
+        if earned:
+            data["achievements_earned"] = earned       # written for the hub's dashboard, never read back
         return data
 
     def load(self, data):
@@ -113,10 +124,24 @@ class Game:
         self.tally = {key: _int(tally.get(key)) for key in TALLY_KEYS}
         flags = data.get("flags")
         self.flags = [f for f in FLAGS if isinstance(flags, list) and f in flags]
+        rungs = data.get("rungs") if isinstance(data.get("rungs"), dict) else {}
+        self.rungs = {bid: rungs[bid] for bid in boards.ORDER if _int(rungs.get(bid), 1, 3)}
         cur = data.get("cur")
         if not (cur in boards.BY_ID and progress.board_open(self.st, cur)):
             cur = boards.ORDER[0]
         self._enter(cur)
+
+    def facts(self):
+        """What the achievements are computed from."""
+        totals = progress.totals(self.st)
+        facts = {"patched": totals["patched"], "restored": totals["restored"], "decks_patched": totals["decks_patched"],
+                 "rung3": 1 if any(v >= 3 for v in self.rungs.values()) else 0, "laid": self.tally.get("laid", 0)}
+        for flag in FLAGS:
+            facts["flag_" + flag] = 1 if flag in self.flags else 0
+        return facts
+
+    def open_decks(self):
+        return sum(1 for i in range(len(boards.CHAPTER_LIST)) if progress.chapter_open(self.st, i))
 
     # ---- the view --------------------------------------------------------------------------------------------------
     def _lines_view(self):
@@ -159,7 +184,12 @@ class Game:
                       "status": status, "status_name": rules.STATUS_NAMES[status], "best_status": self.st.get(b.id, 0),
                       "empty": len(missing), "cells": len(b.need), "words": render.describe(b),
                       "paths": {c: [list(p) for p in cells] for c, cells in paths.items()}},
-            "layer": render.lines_svg(b, paths),
+            "layer": render.lines_svg(b, paths, ghosts=hints.ghosts(b, self.rungs.get(b.id, 0))),
+            "hint": hints.view(b, self.rungs.get(b.id, 0)),
+            "log": logbook.entries(self.st),
+            "goals": achievements.goals(self.facts(), self.open_decks()),
+            "achievements": achievements.view(self.facts()),
+            "map": render.station_svg(self._rooms_view()),
             "rooms": self._rooms_view(),
             "totals": progress.totals(self.st),
             "tally": dict(self.tally),
@@ -194,7 +224,7 @@ class Game:
             used.append("retry")
         self.flags = [f for f in FLAGS if f in self.flags or f in used]
         nxt = progress.next_board(self.st, bid)
-        self.result = {"status": status, "status_name": rules.STATUS_NAMES[status], "new": improved, "first": before == 0 and improved,
+        self.result = {"log": logbook.line_for(bid), "room": self.board.name, "status": status, "status_name": rules.STATUS_NAMES[status], "new": improved, "first": before == 0 and improved,
                        "empty": len(rules.uncovered(self.board, self.draw.paths)), "next": nxt,
                        "next_name": boards.BY_ID[nxt].name if nxt else ""}
 
@@ -274,6 +304,21 @@ def handle(request_json):
         if not isinstance(line, str) or not d.clear_line(line):
             ok, message = False, "That line is already empty."
         g.result = None
+    elif action == "hint":
+        rung = g.rungs.get(g.current, 0)
+        if rung >= 3:
+            ok, message = False, "That is every rung: the answer is showing."
+        else:
+            g.rungs[g.current] = rung + 1
+            g.tally["hints"] += 1
+    elif action == "load_answer":
+        if g.rungs.get(g.current, 0) < 3:
+            ok, message = False, "Climb to the answer first."
+        else:
+            d.load_answer(g.board.solution)
+            g._count()
+            g._record()
+            return json.dumps(g.view())
     elif action == "cell":
         cell = _cell(request)
         view = g.view()

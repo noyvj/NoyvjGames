@@ -3,7 +3,7 @@
    logic lives here. */
 (function () {
   "use strict";
-  var ENGINE_MODULES = ["rules.py", "play.py", "boards_dock.py", "boards.py", "progress.py", "render.py"];
+  var ENGINE_MODULES = ["rules.py", "play.py", "boards_dock.py", "boards_crew.py", "boards_engineering.py", "boards.py", "progress.py", "render.py", "hints.py", "logbook.py", "achievements.py"];
   var STORE_KEY = "hull-repair:state";
   var BACKUP_KEY = "hull-repair:state-backup";
   var GLYPHS = { circle: "●", square: "■", triangle: "▲", diamond: "◆", hexagon: "⬢", pentagon: "⬟", cross: "✚", star: "★" };
@@ -84,6 +84,7 @@
     bumpStat("stat-empty", view.board.empty + "/" + view.board.cells);
     bumpStat("stat-erased", view.tally.erased);
     bumpStat("stat-undos", view.tally.undos);
+    bumpStat("stat-hints", view.tally.hints);
   }
 
   // ---- the board -------------------------------------------------------------------------------------
@@ -155,6 +156,9 @@
       setText($("result-title"), "Room patched");
       setText($("result-text"), "Every line is joined. " + plural(r.empty, "cell is", "cells are") + " still empty: cover them all to restore this room." + (r.first ? " The room is back on, dimly." : ""));
     }
+    var log = $("result-log");
+    log.hidden = !(r.first && r.log);
+    setText(log, r.log ? "Log, " + r.room + ": " + r.log : "");
     var next = $("next-button");
     next.hidden = !r.next;
     if (r.next) setText(next, "Next room: " + r.next_name);
@@ -195,11 +199,81 @@
       holder.appendChild(sec);
     });
   }
+  function renderMap() {
+    var holder = $("map-holder");
+    if (holder.dataset.sig === view.map) return;
+    holder.dataset.sig = view.map;
+    holder.innerHTML = view.map;
+  }
+  function onMapClick(e) {
+    var room = e.target.closest ? e.target.closest(".hr-room[data-id]") : null;
+    if (!room) return;
+    if (room.getAttribute("data-open") !== "1") { showToast("That deck is not open yet: patch five rooms of the deck before it."); return; }
+    send({ action: "pick", board: room.getAttribute("data-id") });
+    $("rooms-panel").hidden = true;
+    $("rooms-toggle-button").setAttribute("aria-expanded", "false");
+    var anchor = $("board-panel");
+    if (anchor.scrollIntoView) anchor.scrollIntoView({ block: "start" });
+  }
+  function renderLog() {
+    var found = view.log.filter(function (e) { return e.found; }).length;
+    setText($("log-summary"), found + " of " + view.log.length + " log lines found. Each room you patch adds its line, in any order, and nothing here can be missed.");
+    $("log-toggle-button").textContent = "Repair log (" + found + "/" + view.log.length + ")";
+    var list = $("log-list");
+    var sig = view.log.map(function (e) { return e.found ? "1" : "0"; }).join("");
+    if (list.dataset.sig === sig) return;
+    list.dataset.sig = sig;
+    list.textContent = "";
+    view.log.forEach(function (e) {
+      var li = el("li", e.found ? "" : "missing");
+      li.appendChild(el("span", "log-room", e.name));
+      li.appendChild(document.createTextNode(" (" + e.deck + ")"));
+      if (e.found) li.appendChild(el("p", "log-line story-text", e.line));
+      else li.appendChild(el("p", "note", "Not found yet: patch this room to read its line."));
+      list.appendChild(li);
+    });
+  }
+  function renderGoalStrip() {
+    var list = $("goals-list");
+    var sig = view.goals.map(function (g) { return g.id + g.have; }).join(",");
+    if (list.dataset.sig === sig) return;
+    list.dataset.sig = sig;
+    list.textContent = "";
+    if (!view.goals.length) { list.appendChild(el("li", null, "Every goal you can reach right now is done. New ones appear as new decks open.")); return; }
+    view.goals.forEach(function (g) {
+      var li = el("li");
+      li.appendChild(el("strong", null, g.label + ": "));
+      li.appendChild(document.createTextNode(g.description + " "));
+      var bar = el("span", "bar");
+      bar.setAttribute("aria-hidden", "true");
+      var fill = el("span", "bar-fill");
+      fill.style.width = Math.round(100 * g.have / g.need) + "%";
+      bar.appendChild(fill);
+      li.appendChild(bar);
+      li.appendChild(el("span", "goal-count", " " + g.have + "/" + g.need));
+      list.appendChild(li);
+    });
+  }
+  function renderHints() {
+    var h = view.hint;
+    var btn = $("hint-button");
+    btn.hidden = h.rung >= 3;
+    setText(btn, h.rung === 0 ? "Need a nudge?" : (h.rung === 1 ? "Another hint" : "Show the answer"));
+    $("hint-nudge").hidden = !h.nudge;
+    setText($("hint-nudge"), h.nudge ? "Nudge: " + h.nudge : "");
+    $("hint-hint").hidden = !h.hint;
+    setText($("hint-hint"), h.hint ? "Hint: " + h.hint : "");
+    $("hint-answer").hidden = !h.answer;
+  }
   function render() {
     renderBoard();
     renderStats();
     renderResult();
     renderRooms();
+    renderMap();
+    renderLog();
+    renderGoalStrip();
+    renderHints();
   }
 
   // ---- talking to the engine --------------------------------------------------------------------------------
@@ -224,7 +298,7 @@
     if (request.action === "end" && view.result && (!previous || !previous.result || previous.result.status !== view.result.status)) {
       announce(view.result.status === 2 ? "Room restored." : "Room patched. " + plural(view.result.empty, "cell", "cells") + " still empty.");
     }
-    if (request.action === "end" || request.action === "undo" || request.action === "clear" || request.action === "clear_line" || request.action === "pick" || request.action === "next") persist();
+    if (request.action === "end" || request.action === "undo" || request.action === "clear" || request.action === "clear_line" || request.action === "pick" || request.action === "next" || request.action === "hint" || request.action === "load_answer") persist();
     return result;
   }
 
@@ -388,7 +462,11 @@
   function wire() {
     $("toast").addEventListener("click", function () { showToast(""); });
     wirePanelToggle("rooms-toggle-button", "rooms-panel");
+    wirePanelToggle("log-toggle-button", "log-panel");
     wirePanelToggle("changelog-toggle-button", "changelog-panel");
+    $("map-holder").addEventListener("click", onMapClick);
+    $("hint-button").addEventListener("click", function () { send({ action: "hint" }); });
+    $("answer-load-button").addEventListener("click", function () { send({ action: "load_answer" }); });
     var holder = $("board-holder");
     holder.addEventListener("pointerdown", onPointerDown);
     holder.addEventListener("pointermove", onPointerMove);

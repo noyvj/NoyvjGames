@@ -19,6 +19,9 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import rules  # noqa: E402
 import solver  # noqa: E402
 
+rules.LINES = "ABCDEFGHIJKLMNOP"         # while searching, a board may briefly need more lines than the game allows
+MAX_GAME_LINES = 8
+
 D = rules.DIRS
 ARROW_CHARS = "^>v<"
 
@@ -151,7 +154,7 @@ def lines_to_spec(w, h, holes, bridges, valves, lines):
     return spec
 
 
-def make(params, seed, node_limit=300000):
+def make(params, seed, node_limit=40000):
     """params: w, h, holes, bridges, valves (count), mixers (count), maxlen, max_lines."""
     rng = random.Random(seed)
     w, h = params["w"], params["h"]
@@ -204,30 +207,75 @@ def make(params, seed, node_limit=300000):
             break
         valves[cell] = d
     max_lines = params.get("max_lines", 8)
+    cap = 14
     for _round in range(40):
-        if len(lines) > max_lines:
+        if len(lines) > cap:
             return None
         spec = lines_to_spec(w, h, holes, bridges, valves, lines)
-        try:
-            board = rules.Board(dict(spec, id="x"))
-        except ValueError:
-            return None
+        board = rules.Board(dict(spec, id="x"))
         try:
             sols = solver.solve(board, 2, node_limit=node_limit)
         except RuntimeError:
             return None
         if len(sols) == 1:
-            if rules.check_layout(board, sols[0]):
-                return None
-            spec["sol"] = rules.encode(sols[0])
-            spec["_lines"] = len(lines)
-            return spec
+            break
         if not sols:
             return None
         lines = split_line(rng, board, lines, sols, t.bridges, valves)
         if lines is None:
             return None
-    return None
+    else:
+        return None
+    lines = merge_lines(rng, w, h, holes, bridges, valves, lines, node_limit)
+    if len(lines) > max_lines or len(lines) < params.get("min_lines", 2):
+        return None
+    spec = lines_to_spec(w, h, holes, bridges, valves, lines)
+    board = rules.Board(dict(spec, id="x"))
+    sols = solver.solve(board, 2, node_limit=node_limit)
+    if len(sols) != 1 or rules.check_layout(board, sols[0]):
+        return None
+    spec["sol"] = rules.encode(sols[0])
+    spec["_lines"] = len(lines)
+    spec["_valves"] = sum(1 for v in loadbearing_valves(w, h, holes, bridges, valves, lines, node_limit))
+    return spec
+
+
+def merge_lines(rng, w, h, holes, bridges, valves, lines, node_limit):
+    """Join two lines end to start (no reversing, so valve arrows stay right) whenever the board stays unique."""
+    changed = True
+    while changed:
+        changed = False
+        pairs = [(i, j) for i in range(len(lines)) for j in range(len(lines))
+                 if i != j and lines[i][1] is None and lines[j][1] is None and rules.adjacent(lines[i][0][-1], lines[j][0][0])]
+        rng.shuffle(pairs)
+        for i, j in pairs:
+            merged = lines[i][0] + lines[j][0]
+            trial = [x for k, x in enumerate(lines) if k not in (i, j)] + [(merged, None)]
+            spec = lines_to_spec(w, h, holes, bridges, valves, trial)
+            try:
+                board = rules.Board(dict(spec, id="x"))
+                sols = solver.solve(board, 2, node_limit=node_limit)
+            except (RuntimeError, ValueError):
+                continue
+            if len(sols) == 1:
+                lines = trial
+                changed = True
+                break
+    return lines
+
+
+def loadbearing_valves(w, h, holes, bridges, valves, lines, node_limit):
+    """The valves whose removal would make the board's restored layout ambiguous."""
+    out = []
+    for cell in valves:
+        rest = {k: v for k, v in valves.items() if k != cell}
+        board = rules.Board(dict(lines_to_spec(w, h, holes, bridges, rest, lines), id="x"))
+        try:
+            if len(solver.solve(board, 2, node_limit=node_limit)) > 1:
+                out.append(cell)
+        except RuntimeError:
+            out.append(cell)
+    return out
 
 
 def split_line(rng, board, lines, sols, bridges, valves):

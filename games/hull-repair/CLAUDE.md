@@ -26,7 +26,7 @@ Flow-Free-style routing of power and pipes across a damaged space-station hull: 
 |---|-----------|---------|--------|
 | 1 | Engine | `rules.py`, `play.py`, `tools/solver.py`, `tools/gen.py`, `boards.py` + deck 1 (8 boards), tests | Done |
 | 2 | Board UI | SVG board, pointer and keyboard drawing, result card, board picker, favicon, settings, save contract | Done |
-| 3 | Decks 2-3, map, log, hints | 16 boards, deck gating, station map, repair log, hint ladder, three-goals strip | Planned |
+| 3 | Decks 2-3, map, log, hints | 16 boards, deck gating, station map, repair log, hint ladder, three-goals strip | Done |
 | 4 | Decks 4-5 | 16 boards (40 in all) with valves and mixers. First complete game | Planned |
 | 5 | Standard kit | Opening screen, tutorial, About, What's New, keyboard help, confirm dialogs, light theme, accessibility pass | Planned |
 | 6 | Achievements | 14 achievements, panel and toast, manifest, reachability test | Planned |
@@ -42,3 +42,10 @@ Flow-Free-style routing of power and pipes across a damaged space-station hull: 
 - A touch is `begin {x,y}`, `move {cells}`, `end`; the engine records a better layout at `end` (`_record`) and returns a `result` (patched or restored, empty cells left, next board). Undo/clear/clear_line also re-record.
 - Save (`get_state`): `cur`, `best {board: "A0102;B..."}` (re-judged by `rules.decode`/`rules.status` on load), `draft {board: text}`, `tally` (laid, erased, undos), `flags` (bridge, valve, mix, retry); only non-default keys.
 - Keyboard: arrows move a cursor, Enter/Space picks a line up and puts it down, Backspace takes a cell back, Escape lets go, Z undoes. Pointer: pointer capture on `#board-holder`, `touch-action: none`.
+
+## Milestone 3 notes
+- Decks: 1 plain (`boards_dock.py`), 2 holes (`boards_crew.py`), 3 bridges (`boards_engineering.py`); a deck opens at 5 patched rooms of the one before (`progress.py`). Every bridge board really crosses on a bridge (tested).
+- Hints (`hints.py`): rung 1 nudge, rung 2 hint (ghost of the opening cells of the most constrained long line), rung 3 answer (ghost of every line, `load_answer` lays it, undoable). Free, saved per board in `rungs`, never touch a status.
+- Station map (`render.station_svg`): five decks of eight rooms, state by shape (cracked / dashed ring / check mark) as well as light; clicking a room opens it. Repair log (`logbook.py`): one quiet line per room (all 40 written), found when the room is patched.
+- Goals strip: `achievements.goals` gives the next three unearned achievements that can be worked on now (facts only; the manifest, panel and toast arrive in milestone 6).
+- Board finding: `tools/gen.py` widens the letter set while searching (up to 14 lines), then merges lines back down while the layout stays unique, so 6x6 and 7x7 boards with 6 to 8 lines come out fast. 8x8 and 9x9 are much rarer (see BUILD-STATUS).

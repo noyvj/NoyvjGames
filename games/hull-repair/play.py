@@ -200,6 +200,16 @@ class Drawing:
         self._remove_from(c, 0)
         return True
 
+    def load_answer(self, paths):
+        """Lay a whole layout at once (the hint ladder's last rung). It can be undone like any other change."""
+        if _copy(paths) == self.paths:
+            return
+        self._push_history(_copy(self.paths))
+        self.erased += sum(len(p) for p in self.paths.values())
+        self.laid += sum(len(p) - 1 for p in paths.values())
+        self.paths = _copy(paths)
+        self.drag = None
+
     def load(self, paths):
         self.paths = _copy(paths)
         self.drag = None

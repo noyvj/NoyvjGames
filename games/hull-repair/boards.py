@@ -1,17 +1,19 @@
 """Hull Repair -- the forty boards, grouped into five decks (chapters). Each board's stored `sol` is its one restored
 layout; tests prove it is the only one. A deck opens once OPEN_AT boards of the deck before it are patched."""
 
+import boards_crew
 import boards_dock
+import boards_engineering
 import rules
 
 CHAPTER_DEFS = (
     {"id": "dock", "name": "Docking Ring", "data": boards_dock.DOCK,
      "blurb": "The ring where ships used to arrive. Plain lines between matching ports: join every pair, and keep lines out of each other's way.",
      "new": ""},
-    {"id": "crew", "name": "Crew Deck", "data": [],
+    {"id": "crew", "name": "Crew Deck", "data": boards_crew.CREW,
      "blurb": "Where people slept and ate. Parts of the hull are gone here, so the rooms are no longer square.",
      "new": "Holes: cells with no hull. Nothing can be laid there."},
-    {"id": "engineering", "name": "Engineering", "data": [],
+    {"id": "engineering", "name": "Engineering", "data": boards_engineering.ENGINEERING,
      "blurb": "Pumps, cables and cabinets. Lines need to cross, and this deck has the parts for it.",
      "new": "Bridges: two lines may cross in a bridge cell, one straight across and one straight up and down."},
     {"id": "life", "name": "Life Support", "data": [],
