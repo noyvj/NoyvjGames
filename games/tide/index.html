@@ -100,7 +100,7 @@
   <div class="ambient-bg ambient-bg--ocean" aria-hidden="true"><div class="ambient-bg-blobs"></div><div class="ambient-bg-accent"></div></div>
   <div id="game">
     <a href="../../index.html" class="hub-back-link">&larr; All games</a>
-    <h1>Tide <span id="ironman-badge" class="run-badge" hidden></span><span id="tin-hat-badge" class="run-badge" hidden></span></h1>
+    <h1>Tide <span id="custom-rules-badge" class="run-badge" hidden></span><span id="ironman-badge" class="run-badge" hidden></span><span id="tin-hat-badge" class="run-badge" hidden></span></h1>
 
     <div class="game-toolbar">
       <button id="tutorial-restart-button" class="secondary" type="button">🎓 Tutorial</button>
@@ -328,6 +328,23 @@
       <button id="critter-seal" class="secondary critter-button" type="button" hidden></button>
       <button id="critter-whale" class="secondary critter-button" type="button" hidden></button>
     </div>
+    <!-- D-5: the Workshop. Dials for a NEW run; a custom-rules run stays out of the Almanac, best and library. -->
+    <details class="sea-level-stats-toggle workshop-panel">
+      <summary>Tide Workshop (custom rules)</summary>
+      <p id="workshop-status" class="comparison-message" aria-live="polite"></p>
+      <label for="workshop-funds">Starting funds <output id="workshop-funds-value"></output></label>
+      <input type="range" id="workshop-funds" min="0" max="1" step="1" value="0">
+      <label for="workshop-lag">Fish lag (seasons, 0 = normal) <output id="workshop-lag-value"></output></label>
+      <input type="range" id="workshop-lag" min="0" max="1" step="1" value="0">
+      <label for="workshop-rise">Sea-level rise rate <output id="workshop-rise-value"></output></label>
+      <input type="range" id="workshop-rise" min="0" max="1" step="1" value="0">
+      <label for="workshop-surge">Storm surge size <output id="workshop-surge-value"></output></label>
+      <input type="range" id="workshop-surge" min="0" max="1" step="1" value="0">
+      <label for="workshop-fish">Fish sensitivity to acidity <output id="workshop-fish-value"></output></label>
+      <input type="range" id="workshop-fish" min="0" max="1" step="1" value="0">
+      <button id="workshop-apply-button" class="secondary" type="button">Apply (starts a new run)</button>
+      <button id="workshop-reset-button" class="secondary" type="button">Stage the standard rules</button>
+    </details>
     <!-- D-11: the last three per-season autosaves, and a way back if a load could not be read. -->
     <details id="autosave-panel" class="sea-level-stats-toggle autosave-panel">
       <summary>Restore a previous save</summary>

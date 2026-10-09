@@ -1159,3 +1159,103 @@ def test_empty_state_says_so(game_env, storage):
     m = game_env.module
     m.render()
     assert "No autosaves yet" in game_env.elements["autosave-list"].innerText
+
+
+# ---- D-5 Workshop ----
+
+def test_defaults_change_nothing(game_env):
+    m = game_env.module
+    s = m.state
+    assert s.workshop_active() is False and s.workshop == m.WORKSHOP_DEFAULTS
+    assert s.sea_rise_per_season() == m.SEA_SCENARIOS[s.sea_scenario]["rise"]
+    assert s._effective_fish_lag() == m.FISH_LAG_SEASONS
+    assert m.workshop_rating(m.WORKSHOP_DEFAULTS)[1] == "Standard"
+
+
+def test_each_dial_changes_its_own_rule(game_env):
+    m = game_env.module
+    s = m.state
+    base_rise = s.sea_rise_per_season()
+    base_surge = s.storm_surge_strength()
+    s.workshop.update(rise=2.0, surge=1.5, lag=5)
+    assert s.sea_rise_per_season() == pytest.approx(2 * base_rise)
+    assert s.storm_surge_strength() == pytest.approx(1.5 * base_surge)
+    assert s._effective_fish_lag() == 5
+    s.hard_lag_mode = True
+    assert s._effective_fish_lag() == 5  # a chosen lag replaces both presets
+    s.workshop.update(lag=0)
+    s.hard_lag_mode = False
+    s.acidity_history = [10.0, 0.0, 0.0]
+    normal = s.fish_yield_multiplier()
+    s.workshop["fish"] = 2.0
+    assert s.fish_yield_multiplier() < normal
+
+
+def test_values_are_snapped_clamped_and_cleaned(game_env):
+    m = game_env.module
+    assert m.clean_workshop_value("funds", 333) == 350 and m.clean_workshop_value("funds", 9999) == 600
+    assert m.clean_workshop_value("lag", 3.4) == 3 and m.clean_workshop_value("rise", 1.1) == 1.0
+    assert m.clean_workshop_value("rise", "x") == 1.0 and m.clean_workshop_value("lag", True) == 0
+
+
+def test_rating_goes_up_with_harder_dials_and_has_labels(game_env):
+    m = game_env.module
+    easy = dict(m.WORKSHOP_DEFAULTS, rise=0.5, surge=0.5, fish=0.5, funds=600)
+    hard = dict(m.WORKSHOP_DEFAULTS, rise=2.0, surge=2.0, fish=2.0, funds=100, lag=8)
+    assert m.workshop_rating(easy)[0] < m.workshop_rating(m.WORKSHOP_DEFAULTS)[0] < m.workshop_rating(hard)[0]
+    assert m.workshop_rating(easy)[1] == "Gentle" and m.workshop_rating(hard)[1] == "Brutal"
+
+
+def test_apply_starts_a_new_run_with_the_funds_and_rules(game_env):
+    m = game_env.module
+    old = m.state
+    m.on_advance_season()
+    m.workshop_pending.update(funds=450, rise=1.5)
+    m.on_workshop_apply()
+    assert m.state is not old and m.state.funds == 450 and m.state.season == 1
+    assert m.state.workshop_active() and m.state.workshop["rise"] == 1.5
+    assert game_env.elements["custom-rules-badge"].hidden is False
+    m.on_workshop_reset()
+    assert m.workshop_pending == m.WORKSHOP_DEFAULTS
+    m.on_workshop_apply()
+    assert m.state.workshop_active() is False and m.state.funds == m.STARTING_FUNDS
+
+
+def test_custom_rule_runs_stay_out_of_best_almanac_and_library(game_env, storage):
+    m = game_env.module
+    m.workshop_pending.update(rise=0.5)
+    m.on_workshop_apply()
+    s = m.state
+    s.capacity["adaptation"] = 10
+    for _ in range(6):
+        s.advance_season()
+    m.render()
+    assert m.BEST_COASTLINE_STORAGE_KEY not in storage
+    assert m.almanac["seasons"] == 0
+    assert m.library_save_current() is False and "custom Workshop rules" in m._library_status
+
+
+def test_slider_events_stage_values_and_the_status_text(game_env):
+    m = game_env.module
+    game_env.elements["workshop-surge"].value = "2"
+    m.on_workshop_slider("surge")()
+    assert m.workshop_pending["surge"] == 2.0
+    text = game_env.elements["workshop-status"].innerText
+    assert "custom rules" in text and "Apply starts a new run" in text and "standard rules" in text
+
+
+def test_workshop_saves_only_when_custom_and_validates(game_env):
+    m = game_env.module
+    s = m.state
+    assert "workshop" not in m.get_state()
+    s.workshop.update(rise=1.5, funds=400)
+    saved = m.get_state()
+    s.workshop = dict(m.WORKSHOP_DEFAULTS)
+    m.load_state(saved)
+    assert s.workshop["rise"] == 1.5 and s.workshop["funds"] == 400
+    saved["workshop"] = {"rise": 99, "lag": "x", "funds": -5, "surge": None}
+    m.load_state(saved)
+    assert s.workshop == dict(m.WORKSHOP_DEFAULTS, rise=2.0, funds=100)
+    saved["workshop"] = "nope"
+    m.load_state(saved)
+    assert s.workshop == m.WORKSHOP_DEFAULTS

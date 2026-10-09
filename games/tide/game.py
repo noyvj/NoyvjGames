@@ -72,6 +72,12 @@ CREW_HIRE_COST = 60
 CREW_WAGE = 5
 ENGINEER_DISCOUNT = 0.15
 BROKER_GAIN_BONUS = 0.30
+# D-5 (2026-10-09): the Tide Workshop. Opt-in dials that change the rules of a NEW run; a run with any dial moved is
+# labelled "custom rules" and stays out of the Almanac, the personal best and the session library.
+WORKSHOP_DEFAULTS = {"funds": STARTING_FUNDS, "lag": 0, "rise": 1.0, "surge": 1.0, "fish": 1.0}  # lag 0 means the normal lag
+WORKSHOP_RANGES = {"funds": (100, 600, 50), "lag": (0, 8, 1), "rise": (0.5, 2.0, 0.25), "surge": (0.5, 2.0, 0.25), "fish": (0.5, 2.0, 0.25)}
+WORKSHOP_LABELS = {"funds": "Starting funds", "lag": "Fish lag (seasons, 0 = normal)", "rise": "Sea-level rise rate",
+                   "surge": "Storm surge size", "fish": "Fish sensitivity to acidity"}
 # GD-27: a heritage site protected when its row would flood within this many seasons counts as a last-second rescue.
 RESCUE_WITHIN_SEASONS = 1
 HERITAGE_UNPROTECTED = "unprotected"
@@ -480,6 +486,8 @@ class SettlementState:
         self.maxtier_seconds = None
         # GD-18: ids of the critters the player has clicked into the Sightings list.
         self.sightings = []
+        # D-5: the Workshop dials for this run (see WORKSHOP_DEFAULTS).
+        self.workshop = dict(WORKSHOP_DEFAULTS)
         # GD-11: the specialists on the payroll.
         self.crew = []
         # GD-8: the deal on the table right now ({"kind", "gain", "season"} or None), how many deals were accepted,
@@ -692,7 +700,7 @@ class SettlementState:
         return (-self.season) % STORM_INTERVAL
 
     def storm_surge_strength(self):
-        return STORM_BASE_SURGE + STORM_SURGE_GROWTH * len(self.storm_log)
+        return (STORM_BASE_SURGE + STORM_SURGE_GROWTH * len(self.storm_log)) * self.workshop["surge"]
 
     def _resolve_storm(self):
         """Called while advance_season() resolves a season. The surge is cut
@@ -786,8 +794,11 @@ class SettlementState:
             f"yield of about {projected * 100:.0f}% from that season's acidity alone."
         )
 
+    def workshop_active(self):
+        return any(self.workshop[k] != WORKSHOP_DEFAULTS[k] for k in WORKSHOP_DEFAULTS)
+
     def sea_rise_per_season(self):
-        return SEA_SCENARIOS[self.sea_scenario]["rise"]
+        return SEA_SCENARIOS[self.sea_scenario]["rise"] * self.workshop["rise"]
 
     def set_sea_scenario(self, scenario):
         """D19: only while nothing has been played yet -- changing the
@@ -939,6 +950,8 @@ class SettlementState:
         """D9: which lag length is currently live -- the hard-mode toggle
         only ever changes this lookup, never acidity_history itself. GD-11: a Marine Biologist shortens it by one season."""
         lag = FISH_LAG_SEASONS_HARD if self.hard_lag_mode else FISH_LAG_SEASONS
+        if self.workshop["lag"]:  # D-5: a chosen lag replaces both presets
+            lag = self.workshop["lag"]
         return max(1, lag - 1) if "biologist" in self.crew else lag
 
     # ---- GD-11 crew ------------------------------------------------------
@@ -966,7 +979,7 @@ class SettlementState:
         if len(self.acidity_history) < lag:
             return 1.0
         lagged_acidity = self.acidity_history[-lag]
-        return max(MIN_FISH_MULTIPLIER, 1 - lagged_acidity / FISH_DAMAGE_SCALE)
+        return max(MIN_FISH_MULTIPLIER, 1 - lagged_acidity * self.workshop["fish"] / FISH_DAMAGE_SCALE)
 
     def next_season_fish_yield_preview(self):
         """D14: what fish_yield_multiplier() will read out *next* season,
@@ -2246,6 +2259,8 @@ def _maybe_update_best_coastline_saved():
     """Called every render(); bumps + persists the record whenever the
     live session's damage_saved() exceeds it."""
     global best_coastline_saved
+    if state.workshop_active():  # D-5: custom rules never set the standard best
+        return
     saved = state.damage_saved()
     if saved > best_coastline_saved:
         best_coastline_saved = saved
@@ -3186,6 +3201,9 @@ def library_save_current():
     """D-2: stores the running session (its settings, outcome and the acidity and fish-yield
     series) in this browser. Needs a few seasons so a saved session is worth comparing."""
     global _library_status, library_b
+    if state.workshop_active():  # D-5
+        _library_status = "Runs with custom Workshop rules are not saved to the library."
+        return False
     if state.season - 1 < LIBRARY_MIN_SEASONS:
         _library_status = f"Play at least {LIBRARY_MIN_SEASONS} seasons before saving a session to the library."
         return False
@@ -3435,6 +3453,9 @@ def almanac_sync():
     """Adds whatever happened since the last call to the lifetime totals and updates the
     personal best for this scenario and lag mode. Called from render(), so it is idempotent."""
     cursor = _almanac_cursor
+    if state.workshop_active():  # D-5: custom-rule runs are not counted in the Almanac
+        cursor["season"] = state.season
+        return
     if state.season < cursor["season"]:
         cursor["season"] = state.season
     new_seasons = state.season - cursor["season"]
@@ -4907,6 +4928,93 @@ def on_autosave_click(event):
         pass
 
 
+# D-5 Tide Workshop ---------------------------------------------------------------------------------------------
+workshop_pending = dict(WORKSHOP_DEFAULTS)
+
+
+def clean_workshop_value(key, value):
+    """A value snapped onto the dial's steps and range; anything unusable becomes the default."""
+    low, high, step = WORKSHOP_RANGES[key]
+    if isinstance(value, bool) or not isinstance(value, (int, float)) or value != value:
+        return WORKSHOP_DEFAULTS[key]
+    snapped = round(float(value) / step) * step
+    snapped = min(high, max(low, snapped))
+    return int(round(snapped)) if key in ("funds", "lag") else round(snapped, 2)
+
+
+def workshop_rating(values):
+    """(score, label): 1.0 is the standard game, higher is harder. A readout only."""
+    funds_factor = (WORKSHOP_DEFAULTS["funds"] / max(1, values["funds"])) ** 0.5
+    lag = values["lag"] or FISH_LAG_SEASONS
+    lag_factor = 1.0 + 0.08 * (lag - FISH_LAG_SEASONS)  # a longer lag hides the cause for longer, so it is harder
+    score = (0.30 * values["rise"] + 0.15 * values["surge"] + 0.25 * values["fish"] + 0.15 * lag_factor + 0.15 * funds_factor)
+    label = "Gentle" if score < 0.85 else "Standard" if score < 1.15 else "Hard" if score < 1.5 else "Brutal"
+    return score, label
+
+
+def workshop_text():
+    score, label = workshop_rating(workshop_pending)
+    custom = any(workshop_pending[k] != WORKSHOP_DEFAULTS[k] for k in WORKSHOP_DEFAULTS)
+    live = "Live run: custom rules (kept out of the Almanac, best and library)." if state.workshop_active() else "Live run: standard rules."
+    return f"Difficulty rating {score:.2f} ({label}){' - custom rules' if custom else ''}. {live} Apply starts a new run."
+
+
+def start_new_run(values):
+    """Starts a fresh settlement with these Workshop values (the old run is not saved: use the save widget first)."""
+    global state
+    fresh = SettlementState()
+    fresh.workshop = {k: clean_workshop_value(k, values.get(k, WORKSHOP_DEFAULTS[k])) for k in WORKSHOP_DEFAULTS}
+    fresh.funds = fresh.workshop["funds"]
+    fresh.max_funds_ever = fresh.funds
+    state = fresh
+    _rewind_snapshot[0] = None
+    _last_action_at[0] = None
+    _quip.update({"text": "", "last": ""})
+    _delta_open["kind"] = ""
+    _resync_previous_flooded_rows()
+    almanac_resync()
+    render()
+    return True
+
+
+def on_workshop_slider(key):
+    def handler(event=None):
+        element = document.getElementById(f"workshop-{key}")
+        try:
+            workshop_pending[key] = clean_workshop_value(key, float(element.value))
+        except (TypeError, ValueError, AttributeError):
+            return
+        render_workshop()
+    return handler
+
+
+def on_workshop_apply(event=None):
+    start_new_run(dict(workshop_pending))
+
+
+def on_workshop_reset(event=None):
+    workshop_pending.update(WORKSHOP_DEFAULTS)
+    render_workshop()
+
+
+def render_workshop():
+    for key in WORKSHOP_DEFAULTS:
+        slider, readout = document.getElementById(f"workshop-{key}"), document.getElementById(f"workshop-{key}-value")
+        if slider is not None:
+            low, high, step = WORKSHOP_RANGES[key]
+            slider.min, slider.max, slider.step = str(low), str(high), str(step)
+            slider.value = f"{workshop_pending[key]:g}"
+        if readout is not None:
+            readout.innerText = f"{workshop_pending[key]:g}"
+    text = document.getElementById("workshop-status")
+    if text is not None:
+        text.innerText = workshop_text()
+    badge = document.getElementById("custom-rules-badge")
+    if badge is not None:
+        badge.hidden = not state.workshop_active()
+        badge.innerText = "Custom rules" if state.workshop_active() else ""
+
+
 def render_tide_oct9():
     render_afford()
     render_goal()
@@ -4919,6 +5027,7 @@ def render_tide_oct9():
     render_market()
     render_crew()
     render_autosaves()
+    render_workshop()
 
 
 def render():
@@ -5321,6 +5430,7 @@ def get_state():
         }} if (state.rewind_used or state.ironman_earned or state.actions_count or not state.hard_lag_all_run) else {}),  # GD-20/23/24
         **({"sightings": list(state.sightings)} if state.sightings else {}),  # GD-18
         **({"crew": list(state.crew)} if state.crew else {}),  # GD-11
+        **({"workshop": dict(state.workshop)} if state.workshop_active() else {}),  # D-5
         **({"market": {"event": copy.deepcopy(state.market_event), "accepted": state.market_accepted, "dip": state.income_dip_seasons}}
            if (state.market_event or state.market_accepted or state.income_dip_seasons) else {}),  # GD-8
         **({"balance": {"streak": state.balance_streak, "invested": sorted(state.season_invested)}} if (state.balance_streak or state.season_invested) else {}),  # GD-14
@@ -5627,6 +5737,9 @@ def load_state(data):
         mt_a, mt_s = saved_run.get("maxtier_actions"), saved_run.get("maxtier_seconds")
         if isinstance(mt_a, int) and not isinstance(mt_a, bool) and 0 <= mt_a < 10**6 and isinstance(mt_s, (int, float)) and not isinstance(mt_s, bool) and 0 <= mt_s < 1e8:
             state.maxtier_actions, state.maxtier_seconds = mt_a, float(mt_s)
+    saved_workshop = data.get("workshop")  # D-5: bad values fall back to the standard dial
+    source = saved_workshop if isinstance(saved_workshop, dict) else {}
+    state.workshop = {k: clean_workshop_value(k, source.get(k, WORKSHOP_DEFAULTS[k])) for k in WORKSHOP_DEFAULTS}
     saved_crew = data.get("crew")  # GD-11: unknown ids, repeats and anything past the cap are dropped
     state.crew = []
     if isinstance(saved_crew, list):
@@ -5813,6 +5926,14 @@ def setup():
         market_button = document.getElementById(market_id)
         if market_button is not None:
             market_button.addEventListener("click", create_proxy(on_market_answer(market_accept)))
+    for workshop_key in WORKSHOP_DEFAULTS:  # D-5
+        workshop_slider = document.getElementById(f"workshop-{workshop_key}")
+        if workshop_slider is not None:
+            workshop_slider.addEventListener("input", create_proxy(on_workshop_slider(workshop_key)))
+    for workshop_id, workshop_handler in (("workshop-apply-button", on_workshop_apply), ("workshop-reset-button", on_workshop_reset)):
+        workshop_button = document.getElementById(workshop_id)
+        if workshop_button is not None:
+            workshop_button.addEventListener("click", create_proxy(workshop_handler))
     for crew_id in CREW:  # GD-11
         crew_button = document.getElementById(f"crew-{crew_id}-button")
         if crew_button is not None:

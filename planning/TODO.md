@@ -1,6 +1,6 @@
 # Site-Wide TODO (round 3)
 
-**Progress: 556/1095 items checked off (50.8%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land.
+**Progress: 557/1095 items checked off (50.9%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land.
 
 Built from your answers in `planning/IMPROVEMENT-IDEAS-ROUND-3.md` (Part 4). Every Round 3 section is now answered (2026-10-07 below the Warframe section); earlier this list held only: **GB** (Canopy gamified), **M** (new games), **N** (seasonal events), **O** (Trade Empire and Continuum replayability), **P/Q/S/T** (Signal, Undersleep, Overclock, Last Line open questions), **X** (Warframe tracker) and **R** (returning later). GC-GI, A-L, U, Z and Y are unanswered and wait for you. The previous list is archived at `planning/todo-archive/260914_260927.md`; anything from it that was moved here is marked "moved" there.
 
@@ -367,7 +367,7 @@ Your remaining Round 3 answers (Grid to Drift gamified, SOL to Le Champ de Mots,
 - [x] D-2: Add a session library to Tide: finished sessions saved locally (scenario, lag mode, storms, final score) and any two overlaid on the acidity/fish-yield graphs as solid vs dashed lines.
 - [ ] D-3: Add a shareable session code to Tide: a finished run exports a compact code (scenario, per-season choices, outcome) that a friend pastes into Load Ghost to view as a read-only overlay or step-through against their own run.
 - [x] D-4: Add a season scrubber to Tide: a slider under the coastline to view any earlier season (grid, meters, tier badges, heritage) read-only without altering the live run.
-- [ ] D-5: Add a Tide Workshop to Tide: opt-in sliders for starting funds, lag length, sea-level rate, surge size and fish sensitivity with a live difficulty rating and a 'custom rules' label; hard lag and the three scenarios become presets.
+- [x] D-5: Add a Tide Workshop to Tide: opt-in sliders for starting funds, lag length, sea-level rate, surge size and fish sensitivity with a live difficulty rating and a 'custom rules' label; hard lag and the three scenarios become presets.
 - [x] D-6: Add a season planner to Tide: a Plan tab to stage 3 to 5 seasons of allocations and see projected acidity, fish yield and rows-at-risk curves, never writing to game state until Commit season 1.
 - [x] D-7: Finish Tide's accessibility pass: a live region announcing each season's result, a text description of the coastline ('Row 5 dry, seawall tier 2'), and keyboard-operable tiles, investment buttons and graphs with visible focus. (partly built: Z15 audit fixed settings heading; text-scale and reduced motion exist; shared ?/Esc overlay. No aria-live, tile text or keyboard grid in index.html.) (Partly done 2026-10-07: live region, row descriptions, arrow keys between rows, focus ring; still open: per-column tile navigation.)
 - [ ] D-8: Add named coastline scenarios to Tide (low delta town, rocky headland, atoll, dredged port), each with its own elevation profile, heritage sites, economy weights and storm frequency, combined with the sea-level scenario into a grid of starts.
