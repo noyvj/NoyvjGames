@@ -317,7 +317,9 @@
     const secs = round().sections;
     if (ui.round === ALL) {
       for (const r of data.rounds) {
-        const list = secs.filter((s) => s._round === r.id);
+        // Tabs whose items are all answered are hidden here (the one being worked in stays until you leave it).
+        const list = secs.filter((s) => s._round === r.id &&
+          (s.code === ui.section || s.items.some((i) => isOpen(s.code, i))));
         if (!list.length) continue;
         const g = document.createElement("div"); g.className = "nav-group"; g.textContent = r.title; nav.appendChild(g);
         for (const s of list) nav.appendChild(navButton(s, s._plain));
