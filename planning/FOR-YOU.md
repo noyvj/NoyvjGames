@@ -229,3 +229,22 @@ Recommended: chip-based (the current build), since you like objectives without a
 
 Recommended: yes, kept generous and optional, never needed to progress.
 
+### Rs1. Robot Script: should the free sandbox open earlier than the end of the last chapter (for example after chapter 3)?
+
+Recommended: open it after chapter 3 so there is somewhere to experiment sooner. Say "yes" to go with that.
+
+### Rs2. Robot Script: is the companion drone Scrap's tone right (quiet, dry, slightly sulky salvage drone, not a cheerful hero)?
+
+Recommended: yes, keep it quiet and a little sulky. Say "yes" to go with that.
+
+### Rs3. Robot Script: is the medal rule right (gold for the reference length, silver for up to a third more, bronze for any clear)?
+
+Recommended: yes, as written. Say "yes" to go with that.
+
+### Rs4. Robot Script: should chapter 1 stay straight corridors with no turning, or bring turning in from room 4?
+
+Recommended: bring turning in from room 4 so chapter 1 teaches more. Say "yes" to go with that.
+
+### Rs5. Robot Script: chapters currently open after 5 of 7 rooms are cleared; do you prefer every room open from the start?
+
+Recommended: open every room from the start, since you like objectives without a strict order. Say "yes" to go with that.
