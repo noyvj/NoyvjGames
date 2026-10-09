@@ -173,6 +173,36 @@
        "n": "Pq10",
        "text": "**Should every game get a \"difficulty\" choice at the start (easy, normal, hard) even when the game is already easy?** Recommended: yes, with normal as the default and hard shown as an option. Reason: you want multiple difficulties from the start and easy-to-medium as the base. Say \"yes\" to go with that.",
        "answered": false
+      },
+      {
+       "n": "Hr1",
+       "text": "**Hull Repair: is the split right between a board being \"patched\" (every line joined) and \"restored\" (every cell covered too), or should patched alone fill the station map?** Recommended: keep both; patched opens the map, restored earns the log line. Say \"yes\" to go with that.",
+       "answered": false
+      },
+      {
+       "n": "Hr2",
+       "text": "**Hull Repair: should a deck open once 5 of its 8 boards are patched, or should every board be open from the start?** Recommended: open every board from the start, since you like objectives without a strict order. Say \"yes\" to go with that.",
+       "answered": false
+      },
+      {
+       "n": "Hr3",
+       "text": "**Hull Repair: is the quiet station tone right, or should the repair log be shorter or off by default?** Recommended: keep it, with a Settings switch to hide the log. Say \"yes\" to go with that.",
+       "answered": false
+      },
+      {
+       "n": "Hr4",
+       "text": "**Hull Repair: should there be a free workbench mode after the last deck (draw your own boards)?** Recommended: yes, later, as a sandbox. Say \"yes\" to go with that.",
+       "answered": false
+      },
+      {
+       "n": "Hr5",
+       "text": "**Hull Repair: should valves or mixers arrive earlier than decks 4 and 5?** Recommended: bring valves to deck 3 so they have more boards to prove themselves. Say \"yes\" to go with that.",
+       "answered": false
+      },
+      {
+       "n": "Hr6",
+       "text": "**Hull Repair: only two boards reach 9x9 and deck 5 is mostly 8x8; is that fine, or should bigger boards be allowed more colours?** Recommended: fine as is. Say \"yes\" to go with that.",
+       "answered": false
       }
      ]
     }

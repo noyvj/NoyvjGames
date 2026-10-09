@@ -1,6 +1,6 @@
 # Site-Wide TODO (round 3)
 
-**Progress: 608/1199 items checked off (50.7%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land.
+**Progress: 609/1200 items checked off (50.7%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land.
 
 Built from your answers in `planning/IMPROVEMENT-IDEAS-ROUND-3.md` (Part 4). Every Round 3 section is now answered (2026-10-07 below the Warframe section); earlier this list held only: **GB** (Canopy gamified), **M** (new games), **N** (seasonal events), **O** (Trade Empire and Continuum replayability), **P/Q/S/T** (Signal, Undersleep, Overclock, Last Line open questions), **X** (Warframe tracker) and **R** (returning later). GC-GI, A-L, U, Z and Y are unanswered and wait for you. The previous list is archived at `planning/todo-archive/260914_260927.md`; anything from it that was moved here is marked "moved" there.
 
@@ -218,7 +218,8 @@ You said yes to every item except F5 (undo button, no). New games below each nee
 **New games**
 - [x] QI-1: Logic Gates (Quick ideas A1): write the groundwork plan, then build it. wire AND, OR, NOT and XOR chips to hit target outputs. Each solved level unlocks a new chip, and the last levels have you build a tiny working computer. (BUILT 2026-10-09, milestones 1-8, 221 tests; hub registration is item QI-1b.)
 - [x] QI-1b: Register Logic Gates in the hub (same steps as the hub registration of the four earlier new games).
-- [ ] QI-2: Hull Repair (Quick ideas A2): write the groundwork plan, then build it. Flow-Free-style routing of power and pipes across a damaged space-station hull. Every solved board repairs one room on a station map, so the puzzles form a bigger picture.
+- [x] QI-2: Hull Repair (Quick ideas A2): write the groundwork plan, then build it. Flow-Free-style routing of power and pipes across a damaged space-station hull. Every solved board repairs one room on a station map, so the puzzles form a bigger picture. (BUILT 2026-10-10, milestones 1-7, 255 tests; hub registration is item QI-2b.)
+- [ ] QI-2b: Register Hull Repair in the hub (same steps as the earlier new games).
 - [x] QI-3: Robot Script (Quick ideas A3): write the groundwork plan, then build it. give a robot a short list of instructions to clear a room (Lightbot style). No timer, medals for using fewer steps, and a free sandbox once you finish. (BUILT 2026-10-09, milestones 1-7, 240 tests; hub registration is item QI-3b.)
 - [x] QI-3b: Register Robot Script in the hub (same steps as the hub registration of the four earlier new games).
 - [ ] QI-4: Reaction Bench (Quick ideas A4): write the groundwork plan, then build it. balance chemical reactions to synthesise compounds, and fill a periodic table as you discover each element's uses.
