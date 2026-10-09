@@ -3823,6 +3823,61 @@ def render_programmes():
     storm_el = document.getElementById("storm-forecast")
     if storm_el is not None:
         storm_el.innerText = storm_forecast_text()
+    bell_el = document.getElementById("storm-bell")  # GD-21
+    if bell_el is not None:
+        bell_el.innerHTML = storm_bell_svg() if state.storm_mode else ""
+
+
+# GD-21 (2026-10-09): the forecast as a range. Real forecasts are uncertain, so the surge is shown as +/- STORM_UNCERTAINTY
+# and each adaptation tier has the biggest surge it can fully turn back; the chance to overtop is the share of the range
+# above that height (the range treated as evenly spread). A readout of the same numbers, never changing what a storm does.
+STORM_UNCERTAINTY = 0.15
+TIER_SURGE_CAPACITY = (0.0, 12.0, 22.0, 34.0, 48.0)  # indexed like ADAPTATION_TIERS
+
+
+def storm_range():
+    surge = state.storm_surge_strength()
+    return surge * (1 - STORM_UNCERTAINTY), surge * (1 + STORM_UNCERTAINTY)
+
+
+def storm_wall_capacity():
+    return TIER_SURGE_CAPACITY[min(state.current_tier_index(), len(TIER_SURGE_CAPACITY) - 1)]
+
+
+def overtop_chance():
+    """0..1: how much of the forecast range is above what the current tier turns back."""
+    low, high = storm_range()
+    capacity = storm_wall_capacity()
+    if capacity >= high:
+        return 0.0
+    if capacity <= low:
+        return 1.0
+    return (high - capacity) / (high - low)
+
+
+def storm_bell_svg():
+    """A small bell curve of the forecast range with a marker at the wall height, plus a text label (not colour alone)."""
+    low, high = storm_range()
+    width, height = 160, 54
+    span_lo, span_hi = low - 0.5 * (high - low), high + 0.5 * (high - low)
+
+    def x_of(value):
+        return (value - span_lo) / (span_hi - span_lo) * width
+
+    mid, sigma = (low + high) / 2, (high - low) / 4
+    points = []
+    for i in range(0, 41):
+        value = span_lo + (span_hi - span_lo) * i / 40
+        y = height - 6 - (height - 14) * math.exp(-((value - mid) ** 2) / (2 * sigma * sigma))
+        points.append(f"{x_of(value):.1f},{y:.1f}")
+    wall_x = min(width, max(0, x_of(storm_wall_capacity())))
+    chance = round(overtop_chance() * 100)
+    return (
+        f'<svg viewBox="0 0 {width} {height}" class="storm-bell" role="img" aria-label="Surge {low:.0f} to {high:.0f}, {chance}% chance to overtop your seawalls">'
+        f'<polyline points="{" ".join(points)}" fill="none" stroke="currentColor" stroke-width="2"/>'
+        f'<line x1="{wall_x:.1f}" y1="2" x2="{wall_x:.1f}" y2="{height - 4}" stroke="currentColor" stroke-width="2" stroke-dasharray="4 3"/>'
+        f'<text x="{min(width - 4, wall_x + 4):.1f}" y="12" font-size="9" fill="currentColor" text-anchor="{"end" if wall_x > width - 50 else "start"}">wall {storm_wall_capacity():.0f}</text></svg>'
+    )
 
 
 def storm_forecast_text():
@@ -3832,9 +3887,11 @@ def storm_forecast_text():
     surge = state.storm_surge_strength()
     held = surge * state.dampening_fraction()
     when = "this season's end" if wait == 0 else f"{wait} season(s) from now"
+    low, high = storm_range()
     return (
-        f"Forecast: a surge of about {surge:.0f} arrives at {when}; your current tier would hold back "
-        f"about {held:.0f} of it."
+        f"Forecast: a surge of {low:.0f}-{high:.0f} arrives at {when}, {round(overtop_chance() * 100)}% chance to overtop "
+        f"{state.current_tier()['name']} (turns back up to {storm_wall_capacity():.0f}); your current tier would hold back "
+        f"about {held:.0f} of a {surge:.0f} surge."
     )
 
 

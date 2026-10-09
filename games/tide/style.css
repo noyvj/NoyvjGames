@@ -1801,6 +1801,10 @@ html[data-reduced-motion="true"] .season-report-card { animation: none; }
 .run-badge { font-size: 0.7em; margin-left: 0.3rem; }
 .speedrun-display { font-size: 0.85rem; }
 
+/* GD-21 (2026-10-09). */
+.storm-bell-chip { max-width: 180px; }
+.storm-bell { width: 100%; height: auto; display: block; }
+
 /* ============================================================
    Y11b light-theme polish (2026-09-27). Light-only rules from a
    computed-style WCAG contrast scan of the light theme (fresh game, 46

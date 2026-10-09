@@ -58,6 +58,7 @@ ELEMENT_IDS = [
     "session-summary-panel",
     "session-summary-text",
     "net-funds-chip",
+    "storm-bell",
     "rewind-button",
     "ironman-badge",
     "tin-hat-badge",

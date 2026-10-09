@@ -547,3 +547,56 @@ def test_run_stats_round_trip_and_validate(game_env):
     m.load_state(saved)
     assert s.actions_count == 0 and s.active_seconds == 0.0 and s.maxtier_actions is None
     assert s.ironman_earned is False and s.hard_lag_all_run is False
+
+
+# ---- GD-21 storm forecast range ----
+
+def test_range_is_plus_minus_fifteen_percent(game_env):
+    m = game_env.module
+    low, high = m.storm_range()
+    surge = m.state.storm_surge_strength()
+    assert low == pytest.approx(surge * 0.85) and high == pytest.approx(surge * 1.15)
+
+
+def test_overtop_chance_follows_the_tier_and_the_range(game_env):
+    m = game_env.module
+    s = m.state
+    assert m.overtop_chance() == 1.0  # no adaptation turns back nothing
+    s.capacity["adaptation"] = 6  # seawalls, capacity 22 against an 18 surge (15.3 to 20.7)
+    assert m.overtop_chance() == 0.0
+    s.storm_log = [1] * 6  # a surge of 36 (30.6 to 41.4) against capacity 22
+    assert m.overtop_chance() == 1.0
+    s.capacity["adaptation"] = 10  # reinforced, capacity 34
+    chance = m.overtop_chance()
+    assert 0.0 < chance < 1.0
+    low, high = m.storm_range()
+    assert chance == pytest.approx((high - 34.0) / (high - low))
+
+
+def test_chance_only_falls_as_adaptation_grows(game_env):
+    m = game_env.module
+    s = m.state
+    s.storm_log = [1] * 4
+    chances = []
+    for threshold in (0, 3, 6, 10, 15):
+        s.capacity["adaptation"] = threshold
+        chances.append(m.overtop_chance())
+    assert chances == sorted(chances, reverse=True)
+
+
+def test_forecast_text_and_bell_show_the_range_and_a_label(game_env):
+    import xml.etree.ElementTree as ET
+    m = game_env.module
+    s = m.state
+    assert "off" in m.storm_forecast_text()
+    s.set_storm_mode(True)
+    text = m.storm_forecast_text()
+    assert "surge of" in text and "chance to overtop" in text and "%" in text
+    svg = m.storm_bell_svg()
+    ET.fromstring(svg)
+    assert "chance to overtop your seawalls" in svg and "wall " in svg
+    m.render()
+    assert "<svg" in game_env.elements["storm-bell"].innerHTML
+    s.set_storm_mode(False)
+    m.render()
+    assert game_env.elements["storm-bell"].innerHTML == ""
