@@ -154,6 +154,14 @@ def lines_to_spec(w, h, holes, bridges, valves, lines):
     return spec
 
 
+FAIL = {}
+
+
+def _fail(reason):
+    FAIL[reason] = FAIL.get(reason, 0) + 1
+    return None
+
+
 def make(params, seed, node_limit=40000):
     """params: w, h, holes, bridges, valves (count), mixers (count), maxlen, max_lines."""
     rng = random.Random(seed)
@@ -166,7 +174,7 @@ def make(params, seed, node_limit=40000):
         if t.build(maxlen):
             break
     else:
-        return None
+        return _fail("tiling")
     paths = [list(p) for p in t.paths]
     for p in paths:
         if rng.random() < 0.5:
@@ -189,7 +197,7 @@ def make(params, seed, node_limit=40000):
         replaced[i] = [(p[:k] + [m], m), (list(reversed(p[k + 1:])) + [m], m)]
         made += 1
     if made < params.get("mixers", 0):
-        return None
+        return _fail("mixer")
     new = []
     for i, item in enumerate(lines):
         new.extend(replaced.get(i, [item]))
@@ -210,25 +218,25 @@ def make(params, seed, node_limit=40000):
     cap = 14
     for _round in range(40):
         if len(lines) > cap:
-            return None
+            return _fail("cap")
         spec = lines_to_spec(w, h, holes, bridges, valves, lines)
         board = rules.Board(dict(spec, id="x"))
         try:
             sols = solver.solve(board, 2, node_limit=node_limit)
         except RuntimeError:
-            return None
+            return _fail("nodes")
         if len(sols) == 1:
             break
         if not sols:
-            return None
+            return _fail("nosol")
         lines = split_line(rng, board, lines, sols, t.bridges, valves)
         if lines is None:
-            return None
+            return _fail("nosplit")
     else:
-        return None
+        return _fail("rounds")
     lines = merge_lines(rng, w, h, holes, bridges, valves, lines, node_limit)
     if len(lines) > max_lines or len(lines) < params.get("min_lines", 2):
-        return None
+        return _fail("lines>%d" % max_lines if len(lines) > max_lines else "fewlines")
     spec = lines_to_spec(w, h, holes, bridges, valves, lines)
     board = rules.Board(dict(spec, id="x"))
     sols = solver.solve(board, 2, node_limit=node_limit)
@@ -241,15 +249,26 @@ def make(params, seed, node_limit=40000):
 
 
 def merge_lines(rng, w, h, holes, bridges, valves, lines, node_limit):
-    """Join two lines end to start (no reversing, so valve arrows stay right) whenever the board stays unique."""
+    """Join two lines end to end whenever the board stays unique. A line holding a valve is never turned round (its arrow
+    would point the wrong way)."""
     changed = True
     while changed:
         changed = False
-        pairs = [(i, j) for i in range(len(lines)) for j in range(len(lines))
-                 if i != j and lines[i][1] is None and lines[j][1] is None and rules.adjacent(lines[i][0][-1], lines[j][0][0])]
-        rng.shuffle(pairs)
-        for i, j in pairs:
-            merged = lines[i][0] + lines[j][0]
+        options = []
+        for i in range(len(lines)):
+            for j in range(len(lines)):
+                if i == j or lines[i][1] is not None or lines[j][1] is not None:
+                    continue
+                for ri in (False, True):
+                    for rj in (False, True):
+                        a = lines[i][0][::-1] if ri else lines[i][0]
+                        b = lines[j][0][::-1] if rj else lines[j][0]
+                        if (ri and any(c in valves for c in lines[i][0])) or (rj and any(c in valves for c in lines[j][0])):
+                            continue
+                        if rules.adjacent(a[-1], b[0]):
+                            options.append((i, j, a + b))
+        rng.shuffle(options)
+        for i, j, merged in options:
             trial = [x for k, x in enumerate(lines) if k not in (i, j)] + [(merged, None)]
             spec = lines_to_spec(w, h, holes, bridges, valves, trial)
             try:

@@ -3,7 +3,7 @@
    logic lives here. */
 (function () {
   "use strict";
-  var ENGINE_MODULES = ["rules.py", "play.py", "boards_dock.py", "boards_crew.py", "boards_engineering.py", "boards.py", "progress.py", "render.py", "hints.py", "logbook.py", "achievements.py"];
+  var ENGINE_MODULES = ["rules.py", "play.py", "boards_dock.py", "boards_crew.py", "boards_engineering.py", "boards_life.py", "boards.py", "progress.py", "render.py", "hints.py", "logbook.py", "achievements.py"];
   var STORE_KEY = "hull-repair:state";
   var BACKUP_KEY = "hull-repair:state-backup";
   var GLYPHS = { circle: "●", square: "■", triangle: "▲", diamond: "◆", hexagon: "⬢", pentagon: "⬟", cross: "✚", star: "★" };

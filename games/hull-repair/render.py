@@ -123,9 +123,9 @@ def board_svg(board, label=""):
             out.append(_hole(x, y) if (x, y) in board.holes else _tile(x, y))
     for cell in sorted(board.bridges, key=lambda p: (p[1], p[0])):
         out.append(_bridge(*cell))
-    for cell, d in sorted(board.valves.items(), key=lambda kv: (kv[0][1], kv[0][0])):
-        out.append(_valve(cell[0], cell[1], d))
     out.append('<g id="hr-lines"></g>')
+    for cell, d in sorted(board.valves.items(), key=lambda kv: (kv[0][1], kv[0][0])):       # drawn over the lines so the arrow stays readable
+        out.append(_valve(cell[0], cell[1], d))
     for cell, pair in sorted(board.mixers.items(), key=lambda kv: (kv[0][1], kv[0][0])):
         out.append(_mixer(cell, pair))
     for c in board.lines:

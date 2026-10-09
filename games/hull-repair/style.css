@@ -114,8 +114,8 @@ html[data-reduced-motion="true"] .stat-value.bump, html[data-effects="off"] .sta
 .hr-bridge-plate { fill: var(--surface); stroke: var(--edge); stroke-width: 2; }
 .hr-bridge-rail { stroke: var(--muted); stroke-width: 3; fill: none; }
 .hr-bridge-over { stroke-dasharray: 5 3; }
-.hr-valve-plate { fill: var(--surface); stroke: var(--edge); stroke-width: 2; }
-.hr-valve-arrow { fill: var(--text); opacity: 0.95; stroke: var(--surface); stroke-width: 1; }
+.hr-valve-plate { fill: none; stroke: var(--edge); stroke-width: 2; stroke-dasharray: 4 3; }
+.hr-valve-arrow { fill: var(--text); stroke: var(--wall-base); stroke-width: 2; paint-order: stroke; }
 .hr-mixer-body { fill: var(--surface); stroke: var(--text); stroke-width: 2.5; }
 .hr-mixer-half { fill: var(--lc); stroke: none; opacity: 0.95; }
 .hr-label { font: 800 13px system-ui, sans-serif; }

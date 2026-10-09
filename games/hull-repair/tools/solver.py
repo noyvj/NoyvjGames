@@ -168,6 +168,40 @@ class Solver:
                     count += 1
             if count < 2:
                 return True
+        return self._isolated_region(heads, sinks)
+
+    def _isolated_region(self, heads, sinks):
+        """True when a stretch of uncovered cells touches no line end or no sink: nothing could ever fill it."""
+        kind, occ, occb, nb = self.kind, self.occ, self.occb, self.nb
+        seen = set()
+        for start in self.need_cells:
+            if start in seen or kind[start] == BRIDGE or occ[start]:
+                continue
+            seen.add(start)
+            stack = [start]
+            has_head = has_sink = False
+            while stack:
+                cur = stack.pop()
+                for d in range(4):
+                    m = nb[cur][d]
+                    if m < 0:
+                        continue
+                    if m in heads:
+                        has_head = True
+                    if m in sinks:
+                        has_sink = True
+                    k = kind[m]
+                    if m in seen or (k != OPEN and k != VALVE and k != BRIDGE):
+                        continue
+                    if k == BRIDGE:
+                        if occb[d & 1][m]:
+                            continue
+                    elif occ[m]:
+                        continue
+                    seen.add(m)
+                    stack.append(m)
+            if not (has_head and has_sink):
+                return True
         return False
 
     def _reachable_from(self, cell, d, heads, sinks):

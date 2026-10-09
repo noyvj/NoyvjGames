@@ -9,6 +9,9 @@ Updated after every milestone. Read `planning/hull-repair-plan.md`, `CLAUDE.md` 
 
 - M3 Decks 2-3 (16 boards: holes, bridges), station map, repair log (all 40 lines written), hint ladder, goals strip; 172 tests; checked live (map, deck 2 board with holes, hint ghosts, answer ghost).
 
+## In progress (M4)
+- Deck 4 Life Support (8 boards with valves) is in and committed; valve arrows draw over the lines. Deck 5 (mixers) boards are being searched with tools/gen.py (8x8 easy, 9x9 with the 8-line cap is rare: use holes and valves to make 9x9 unique). Not tagged until all 40 boards exist.
+
 ## Next
 - M4 Decks 4-5 (valves; mixers): 16 boards. Generator finds 8x8 and 9x9 boards rarely: tune (maxlen, more seeds, node limit) before authoring; valves must be load-bearing in at least some boards.
 

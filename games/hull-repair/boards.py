@@ -4,6 +4,7 @@ layout; tests prove it is the only one. A deck opens once OPEN_AT boards of the 
 import boards_crew
 import boards_dock
 import boards_engineering
+import boards_life
 import rules
 
 CHAPTER_DEFS = (
@@ -16,7 +17,7 @@ CHAPTER_DEFS = (
     {"id": "engineering", "name": "Engineering", "data": boards_engineering.ENGINEERING,
      "blurb": "Pumps, cables and cabinets. Lines need to cross, and this deck has the parts for it.",
      "new": "Bridges: two lines may cross in a bridge cell, one straight across and one straight up and down."},
-    {"id": "life", "name": "Life Support", "data": [],
+    {"id": "life", "name": "Life Support", "data": boards_life.LIFE,
      "blurb": "Air, water and waste, and the valves that keep them going the right way.",
      "new": "Valves: a line goes straight through, the way the arrow points, travelling from its source (solid) to its sink (ringed)."},
     {"id": "core", "name": "The Core", "data": [],
