@@ -1831,6 +1831,10 @@ html[data-scene-theme="coral_sand"] .tide-scene-wave--front { background: linear
 @media (prefers-reduced-motion: reduce) { .achievement-toast--ripple { animation: none; } }
 html[data-reduced-motion="true"] .achievement-toast--ripple { animation: none; }
 
+/* D-28 (2026-10-09). */
+.why-button { font-size: 0.75rem; padding: 0.1rem 0.5rem; margin: 0 0.3rem 0.2rem 0; min-height: 0; }
+.delta-popover:not([hidden]) { white-space: pre-line; margin: 0.3rem 0; padding: 0.4rem 0.6rem; border: 2px solid currentColor; border-radius: 8px; font-size: 0.85rem; }
+
 /* ============================================================
    Y11b light-theme polish (2026-09-27). Light-only rules from a
    computed-style WCAG contrast scan of the light theme (fresh game, 46

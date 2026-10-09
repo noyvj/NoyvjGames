@@ -1428,3 +1428,8 @@ Added readability and feedback features to Thaw without adding screen clutter: t
 **Game:** tide
 **Did:** GD-22: a Scene theme select in Settings with Daylight plus three themes unlocked by achievements already in the game (dusk sky by Fortified In Time, storm-glass by Storm-Surge Barriers, coral-pink sand by Stocks Rebound). The choice is kept per browser, a locked or unknown stored choice falls back to Daylight, locked options are disabled and say which achievement unlocks them, and a `data-scene-theme` attribute on the page lets CSS recolour only the decorative scene. D-31: each achievement card gets a coral glyph when earned or a faded wave when locked, a heavier coral-coloured left border when earned and a dashed border when locked (so state is not colour alone), and the unlock toast gets a one-time ripple that stops under reduced motion.
 **Result:** Tide tests 444 to 450. Not checked live in a browser.
+
+### 2026-10-09 (Tide, personal pass: D-28 delta breakdown)
+**Game:** tide
+**Did:** D-28: `advance_season()` now keeps, for the season just resolved, where the acidity and funds changes came from (`last_breakdown`, transient and never saved): output pushing acidity up and reduction pulling it down; output income, tourism, aquaculture (each including the balanced-seasons multiplier), heritage upkeep actually paid and storm repairs. Two small "? Funds" and "? Acidity" buttons toggle a text popover with those lines (aria-expanded, no hover needed); a line is shown only when it moved the number by at least 0.05, and a remainder is labelled (acidity held at zero, or "other"). The parts sum to the displayed change, which the tests check.
+**Result:** Tide tests 450 to 456. Not checked live in a browser.

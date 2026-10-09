@@ -1,6 +1,6 @@
 # Site-Wide TODO (round 3)
 
-**Progress: 552/1095 items checked off (50.4%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land.
+**Progress: 553/1095 items checked off (50.5%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land.
 
 Built from your answers in `planning/IMPROVEMENT-IDEAS-ROUND-3.md` (Part 4). Every Round 3 section is now answered (2026-10-07 below the Warframe section); earlier this list held only: **GB** (Canopy gamified), **M** (new games), **N** (seasonal events), **O** (Trade Empire and Continuum replayability), **P/Q/S/T** (Signal, Undersleep, Overclock, Last Line open questions), **X** (Warframe tracker) and **R** (returning later). GC-GI, A-L, U, Z and Y are unanswered and wait for you. The previous list is archived at `planning/todo-archive/260914_260927.md`; anything from it that was moved here is marked "moved" there.
 
@@ -390,7 +390,7 @@ Your remaining Round 3 answers (Grid to Drift gamified, SOL to Le Champ de Mots,
 - [x] D-25: Add a personal-best line to Tide's session summary ('Best for this scenario: 14 seasons dry. You: 11') from the Almanac data. (needs D-9)
 - [ ] D-26: Polish Tide on mobile: raise tap targets to 44px on tiles and invest buttons and add swipe between Coast / Meters / Log panels. (partly built: Mobile dock for Advance/investments (D1, mobile-dock.js) and a 320px audit (Z18) exist; tile/button min-height is 2.5rem; no swipe panels.)
 - [x] D-27: Make each Tide <details> panel (timeline, chronicle, heritage, diversification) remember open/closed state across reloads.
-- [ ] D-28: Add a delta breakdown popover to Tide: clicking a meter change (acidity +4) lists the contributors ('+6 output, -2 reduction, +0 aquaculture').
+- [x] D-28: Add a delta breakdown popover to Tide: clicking a meter change (acidity +4) lists the contributors ('+6 output, -2 reduction, +0 aquaculture').
 - [x] D-29: Add a plain-language label mode to Tide Settings that renames jargon (dampening, lag, output mix) to everyday words in buttons and tooltips.
 - [x] D-30: Pause Tide's looping animations (wave cue, tide ripple, scene) when the tab is hidden or the device reports low power, and resume on return.
 - [x] D-31: Restyle Tide's achievement cards: a coral or wave glyph per earned badge, a coral-reef accent border from the coastline art, and a brief ripple on unlock.

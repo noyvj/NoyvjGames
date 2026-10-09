@@ -465,6 +465,8 @@ class SettlementState:
         self.maxtier_seconds = None
         # GD-18: ids of the critters the player has clicked into the Sightings list.
         self.sightings = []
+        # D-28: where the last season's acidity and funds changes came from (transient, never saved).
+        self.last_breakdown = None
         # GD-27: the site most recently saved at the last second (transient, shown once, never saved).
         self.last_rescue = None
 
@@ -1404,6 +1406,7 @@ class SettlementState:
             fishing_share * old_fish_yield + (1 - fishing_share)
         )
         tourism_income, aquaculture_income = self.diversified_income()
+        funds_start = self.funds  # D-28
         # GD-14: investing in all three categories this season extends the balanced streak; skipping one breaks it.
         balanced = set(CATEGORIES) <= self.season_invested
         self.balance_streak = self.balance_streak + 1 if balanced else 0
@@ -1422,6 +1425,7 @@ class SettlementState:
             self.capacity["output"] * ACIDITY_RISE_PER_OUTPUT * mix["acidity_multiplier"]
             - self.capacity["reduction"] * ACIDITY_FALL_PER_REDUCTION
         )
+        acidity_start = self.acidity  # D-28
         self.acidity = max(0.0, self.acidity + acidity_change)
         self.acidity_history.append(self.acidity)
         self.max_acidity_ever = max(self.max_acidity_ever, self.acidity)
@@ -1442,10 +1446,33 @@ class SettlementState:
         self.tier_log.append(self.current_tier_index())
         self._advance_sister(rise)
 
+        funds_before_upkeep = self.funds  # D-28
         self._update_heritage()
+        upkeep_paid = funds_before_upkeep - self.funds
         self._update_population()
+        funds_before_storm = self.funds
         if self.storm_this_season():
             self._resolve_storm()
+        storm_cost = funds_before_storm - self.funds
+        self.last_breakdown = {  # D-28
+            "acidity": {
+                "from": acidity_start, "to": self.acidity,
+                "parts": [
+                    ("Output pushing acidity up", self.capacity["output"] * ACIDITY_RISE_PER_OUTPUT * mix["acidity_multiplier"]),
+                    ("Reduction pulling it down", -self.capacity["reduction"] * ACIDITY_FALL_PER_REDUCTION),
+                ],
+            },
+            "funds": {
+                "from": funds_start, "to": self.funds,
+                "parts": [
+                    ("Output income", income * multiplier),
+                    ("Tourism", tourism_income * multiplier),
+                    ("Aquaculture", aquaculture_income * multiplier),
+                    ("Heritage upkeep", -upkeep_paid),
+                    ("Storm repairs", -storm_cost),
+                ],
+            },
+        }
 
         self.season += 1
         if not self.hard_lag_mode:  # GD-24: the badge needs hard lag for the whole run
@@ -4584,6 +4611,51 @@ def on_scene_theme_change(event=None):
     if value in SCENE_THEMES and theme_unlocked(value):
         _write_local_storage_item(SCENE_THEME_KEY, value)
     render_scene_theme()
+    render_delta_popover()
+
+
+# D-28 delta breakdown ------------------------------------------------------------------------------------------
+def delta_breakdown_text(kind):
+    """Plain lines explaining last season's change in acidity or funds ('' before the first season)."""
+    data = (state.last_breakdown or {}).get(kind)
+    if not data:
+        return "No season has been resolved yet."
+    delta = data["to"] - data["from"]
+    lines = [f"{'Funds' if kind == 'funds' else 'Acidity'} last season: {data['from']:.1f} to {data['to']:.1f} ({delta:+.1f})."]
+    for label, value in data["parts"]:
+        if abs(value) >= 0.05:
+            lines.append(f"{value:+.1f} {label}")
+    if len(lines) == 1:
+        lines.append("Nothing moved it.")
+    shown = sum(v for _l, v in data["parts"])
+    gap = delta - shown
+    if abs(gap) >= 0.05 and kind == "acidity":
+        lines.append(f"{gap:+.1f} held at zero (acidity cannot go below 0)")
+    elif abs(gap) >= 0.05:
+        lines.append(f"{gap:+.1f} other")
+    return "\n".join(lines)
+
+
+_delta_open = {"kind": ""}
+
+
+def on_why_button(kind):
+    def handler(event=None):
+        _delta_open["kind"] = "" if _delta_open["kind"] == kind else kind
+        render_delta_popover()
+    return handler
+
+
+def render_delta_popover():
+    box = document.getElementById("delta-popover")
+    kind = _delta_open["kind"]
+    if box is not None:
+        box.hidden = not kind
+        box.innerText = delta_breakdown_text(kind) if kind else ""
+    for name in ("acidity", "funds"):
+        button = document.getElementById(f"why-{name}-button")
+        if button is not None:
+            button.setAttribute("aria-expanded", "true" if kind == name else "false")
 
 
 def render_tide_oct9():
@@ -5457,6 +5529,10 @@ def setup():
     if pin_select is not None:
         load_afford_pin()
         pin_select.addEventListener("change", create_proxy(on_afford_pin_change))
+    for why_name in ("acidity", "funds"):  # D-28
+        why_button = document.getElementById(f"why-{why_name}-button")
+        if why_button is not None:
+            why_button.addEventListener("click", create_proxy(on_why_button(why_name)))
     theme_select = document.getElementById("scene-theme-select")  # GD-22
     if theme_select is not None:
         theme_select.addEventListener("change", create_proxy(on_scene_theme_change))

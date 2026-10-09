@@ -806,3 +806,69 @@ def test_the_ripple_class_is_added_and_css_stops_it_for_reduced_motion():
     from pathlib import Path
     css = (Path(__file__).resolve().parent.parent / "style.css").read_text(encoding="utf-8")
     assert "achievement-toast--ripple" in css and 'html[data-reduced-motion="true"] .achievement-toast--ripple' in css
+
+
+# ---- D-28 delta breakdown ----
+
+def test_no_breakdown_before_the_first_season(game_env):
+    m = game_env.module
+    assert "No season has been resolved yet" in m.delta_breakdown_text("funds")
+    assert "No season has been resolved yet" in m.delta_breakdown_text("acidity")
+
+
+def test_acidity_parts_add_up_to_the_change(game_env):
+    m = game_env.module
+    s = m.state
+    s.capacity["output"], s.capacity["reduction"] = 6, 2
+    s.advance_season()
+    data = s.last_breakdown["acidity"]
+    assert sum(v for _l, v in data["parts"]) == pytest.approx(data["to"] - data["from"])
+    text = m.delta_breakdown_text("acidity")
+    assert "Output pushing acidity up" in text and "Reduction pulling it down" in text and "(" in text.splitlines()[0]
+
+
+def test_funds_parts_add_up_with_upkeep_and_the_balanced_bonus(game_env):
+    m = game_env.module
+    s = m.state
+    s.funds = 1000
+    s.capacity["output"] = 8
+    s.heritage["lighthouse"] = m.HERITAGE_PROTECTED
+    for category in ("output", "reduction", "adaptation"):
+        s.season_invested.add(category)
+    s.advance_season()
+    data = s.last_breakdown["funds"]
+    assert sum(v for _l, v in data["parts"]) == pytest.approx(data["to"] - data["from"])
+    parts = dict(data["parts"])
+    assert parts["Heritage upkeep"] == pytest.approx(-m.HERITAGE_UPKEEP)
+    assert parts["Output income"] > 0
+    text = m.delta_breakdown_text("funds")
+    assert "Heritage upkeep" in text and "Output income" in text
+
+
+def test_acidity_held_at_zero_is_explained(game_env):
+    m = game_env.module
+    s = m.state
+    s.capacity["reduction"] = 3
+    s.advance_season()
+    assert s.last_breakdown["acidity"]["to"] == 0.0
+    assert "acidity cannot go below 0" in m.delta_breakdown_text("acidity")
+
+
+def test_buttons_toggle_the_popover(game_env):
+    m = game_env.module
+    m.state.advance_season()
+    box = game_env.elements["delta-popover"]
+    game_env.elements["why-funds-button"].dispatch("click", None)
+    assert box.hidden is False and "Funds last season" in box.innerText
+    assert game_env.elements["why-funds-button"].getAttribute("aria-expanded") == "true"
+    game_env.elements["why-acidity-button"].dispatch("click", None)
+    assert "Acidity last season" in box.innerText
+    game_env.elements["why-acidity-button"].dispatch("click", None)
+    assert box.hidden is True
+
+
+def test_the_breakdown_is_not_saved(game_env):
+    m = game_env.module
+    m.state.advance_season()
+    assert "last_breakdown" not in str(m.get_state().keys())
+    m.load_state(m.get_state())
