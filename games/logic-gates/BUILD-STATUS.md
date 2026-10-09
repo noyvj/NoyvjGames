@@ -17,11 +17,13 @@ Updated after each milestone. A new agent should read `planning/logic-gates-plan
 
 - Milestone 7 Desktop boot: `pc-config.json`, `pc.css`, `pc.js`, `pc.html` (generated only for this game via importlib `build("logic-gates", cfg)`; never run the all-games generator), `tests/test_desktop_boot.py`; checked live at 1440x900 (no page scroll).
 
+- Milestone 8 Wrap-up: checked Classic at 1440x900 and 360x740 (no page-level horizontal scroll, board scrolls inside its frame), Desktop at 1440x900 (no page scroll), console clean apart from one site-wide 404; docs.
+
 ## Next
-- Milestone 8: wrap-up (final mobile/desktop pass, docs).
+- Milestone 9 (NOT this folder's job): hub registration by the main session: title card, `game-*.json`, `sw.js`/`offline-manifest.json`, achievements page, perf budget, root CLAUDE.md.
 
 ## Open problems
-- None yet.
+- Hub registration pending. The sandbox/shelf palette is long late in the game (built chips fold into a details list). Test suite takes 20-60 s because the play-through tests drive ~800 handle() calls.
 
 ## Notes for whoever continues
 - Commit only these paths: `git add games/logic-gates planning/logic-gates-plan.md && git commit -m "Logic Gates milestone N: <name>" -- games/logic-gates planning/logic-gates-plan.md`, then tag `logic-gates-milestone-0N`. Never push.

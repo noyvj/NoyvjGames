@@ -24,7 +24,19 @@ Python via Pyodide: DOM-free engine modules, `game.py` with `handle(json)`, `get
 40 in five chapters (Switches and Lamps 8, Combining Gates 9, Memory 7, Adders 7, A Tiny Computer 9). A level opens when the chips its reference uses are unlocked. Par = reference chip count. Sequence levels start from power-on.
 
 ## Milestones
-See the table in `planning/logic-gates-plan.md`; state is in `BUILD-STATUS.md`.
+| # | Milestone | Status |
+|---|---|---|
+| 1 | Engine and level data (chips, simulator, checker, 40 levels) | Done |
+| 2 | Board UI (SVG board, chip cards, probe, table, picker, save contract) | Done |
+| 3 | Chapters 2-3, hint ladder, sandbox | Done |
+| 4 | Chapters 4-5 (adders, the tiny computer) | Done |
+| 5 | Standard kit (settings, tutorial, About, changelog, accessibility, light theme) | Done |
+| 6 | Achievements (14) | Done |
+| 7 | Desktop boot | Done |
+| 8 | Wrap-up | Done |
+| 9 | Hub registration | BLOCKED ON MAIN SESSION (not done here) |
+
+Open questions for the owner (Lg1-Lg5) are at the end of `planning/logic-gates-plan.md`.
 
 ## Playing notes
 Chips are earned by solving: a level hands out the chip it builds (a level's reference circuit IS the chip). Memory cells (SR latch, D latch, flip-flop) are modelled directly so the whole computer simulates quickly. A flip-flop never fires on the first look at its clock (power-on). The tiny computer: a 4-bit accumulator, a 2-bit program counter and a 4-word ROM; an instruction word W3 W2 W1 W0 is op (00 add, 01 and, 10 or, 11 xor) then a number 0-3; each clock edge runs ACC = ACC op number.

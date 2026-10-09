@@ -1,6 +1,6 @@
 # Logic Gates (working title) -- Groundwork Plan (Quick ideas QI-1)
 
-Status: being built in `games/logic-gates/` (slug `logic-gates`, section code LG). Owner approved it from the Quick ideas round: "wire AND, OR, NOT and XOR chips to hit target outputs. Each solved level unlocks a new chip, and the last levels have you build a tiny working computer." Personal project, no BCM tag. Hub registration is a separate later job. Checked against `PLAYER-PROFILE.md`: logic/coding puzzle (yes), computers theme (favoured), collector of chips (yes), easy-to-medium, no timers, nothing lost, no audio.
+Status: built in `games/logic-gates/` (slug `logic-gates`, section code LG). Owner approved it from the Quick ideas round: "wire AND, OR, NOT and XOR chips to hit target outputs. Each solved level unlocks a new chip, and the last levels have you build a tiny working computer." Personal project, no BCM tag. Hub registration is a separate later job. Checked against `PLAYER-PROFILE.md`: logic/coding puzzle (yes), computers theme (favoured), collector of chips (yes), easy-to-medium, no timers, nothing lost, no audio.
 
 ## 1. Pitch
 A dead station computer, rebuilt one circuit at a time. Each level gives you switches on the left and lamps on the right and a truth table the lamps must match. You wire chips between them. Solve it and the circuit becomes a chip you keep, so by the end you are wiring a clock, a register, an ALU and a four-instruction computer out of parts you built yourself.
@@ -57,7 +57,7 @@ Dark, quiet "night blueprint": near-black navy, cyan signal, amber lamps, thin l
 | 5 | Standard kit | settings, tutorial, About with live-read sources, changelog, shortcuts, accessibility, light theme, shared includes | Done |
 | 6 | Achievements | 14 achievements, manifest, panel, goals strip, copy result | Done (no copy-result button: the owner dislikes sharing) |
 | 7 | Desktop boot | `pc-config.json`, `pc.css`, `pc.js`, generated `pc.html` | Done |
-| 8 | Wrap-up | story log, mobile and desktop pass, docs, BUILD-STATUS | Planned |
+| 8 | Wrap-up | story log, mobile and desktop pass, docs, BUILD-STATUS | Done |
 | 9 | Hub registration | NOT mine: main session (cards, manifests, sw, game-*.json) | BLOCKED ON MAIN |
 
 ## 12. Open questions for the owner (defaults in brackets are in the build)
