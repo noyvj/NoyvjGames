@@ -33,7 +33,7 @@ See `planning/station-medic-plan.md` section 8 (the table is copied below and ke
 | 4 | Chapters 6-8 | 21 more shifts (60 in all), Tally, finale. First complete game | Done |
 | 5 | Standard kit | opening screen, tutorial, About with the fiction notice, What's New, keyboard help, confirm dialogs, light theme, accessibility pass | Done |
 | 6 | Achievements | 14 achievements, panel, toast, manifest, reachability test | Done |
-| 7 | Desktop boot and wrap-up | `pc-config.json`, `pc.css`, `pc.js`, generated `pc.html`, docs, changelog | Planned |
+| 7 | Desktop boot and wrap-up | `pc-config.json`, `pc.css`, `pc.js`, generated `pc.html`, docs, changelog | Done |
 
 ## Working conventions
 - Commit only this folder and the plan with a pathspec commit, then tag `station-medic-milestone-0N`. Hub registration is a separate later job.
@@ -61,3 +61,8 @@ See `planning/station-medic-plan.md` section 8 (the table is copied below and ke
 
 ## Milestone 6 notes
 - `achievements.json` (the hub manifest) is generated from `achievements.py` and a test keeps them equal. The panel shows a number on every achievement (earned, or have/need), a toast announces a new one (also to screen readers), and `achievements_earned` is written to the save and never read back. `test_whole_game.py` proves all 14 can be earned and the Record filled from a clean save.
+
+## Milestone 7 notes and pre-release checklist
+- Desktop boot: the ward (patients, bedside, result, hints) is the stage; the cabinet, the sheet, the log and the tally are the side column; the stats strip and the three goals sit above the stage. `pc.html` is generated for this game only (`importlib` on `scripts/generate-pc-pages.py`, `build("station-medic", cfg)` written to `pc.html`); `python3 scripts/generate-pc-pages.py --check` and `python3 -m pytest -q shared/tests -k medic` pass. The Classic two-column grid in `style.css` is scoped to `html:not([data-layout="pc"])`.
+- Hub registration (title card, `sw.js` precache, `game-*.json`, share cards, root CLAUDE.md row, dev logs) is not part of this folder. The owner's questions are the last section of `planning/station-medic-plan.md`.
+- Manual checks worth a human pass: a screen reader walk through the patient cards and bedside actions, real-device touch on the small supply buttons, the Desktop tutorial steps, and the opening-screen "Switch to Desktop layout" button on a wide window.

@@ -15,8 +15,10 @@ Updated after every milestone. Read `planning/station-medic-plan.md`, `CLAUDE.md
 
 - M6 Achievements: achievements.json, panel + toast, manifest test; 97 tests; toast and panel checked live.
 
+- M7 Desktop boot: pc-config.json, pc.css, pc.js, generated pc.html, desktop tests; 103 tests; `generate-pc-pages.py --check` and `shared/tests -k medic` (13) pass; checked live at 1440x900.
+
 ## Next
-- M7 Desktop boot: pc-config.json, pc.css, pc.js (Desktop tutorial), generated pc.html (this game only), desktop tests, docs. (Old M5 note follows, now done) M5 standard kit: tutorial (steps in app.js + the opening-screen offer already works), About already has the fiction notice, keyboard help, confirm dialogs (restore and reset exist), accessibility tests (contrast, shapes), light-theme check, What's New entry.
+- Nothing in this folder. Hub registration is the hub session's job (title card, sw.js, offline-manifest, game-*.json, share cards, perf budget, root CLAUDE.md row). The plan's last section lists questions for the owner. (Old M5 note follows, now done) M5 standard kit: tutorial (steps in app.js + the opening-screen offer already works), About already has the fiction notice, keyboard help, confirm dialogs (restore and reset exist), accessibility tests (contrast, shapes), light-theme check, What's New entry.
 
 ## Open problems / notes
 - Local Python is 3.9: engine code avoids 3.10+ syntax.
