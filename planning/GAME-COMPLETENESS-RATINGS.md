@@ -38,3 +38,25 @@ No game is currently a 1 (nothing is that unfinished) or a 5 (every game has ope
 1. When generating a new ideas sheet, read this file first, re-rate each game (open-item counts, new user audit findings, anything that shipped), update the table, then size each game's list from the mapping.
 2. The non-per-game sections (new-game ideas, cross-game Z, hub Y, Warframe X) keep their own sizes.
 3. If the resulting sheet is still too long to answer comfortably, switch to the fallback column and note that here.
+
+## Re-rated 2026-10-09 (for Round 4)
+
+Same ratings as 2026-09-26 for the twelve games already in the table (every game still has a large open backlog, so none moved up), plus the two games that were not in it. **The "Ideas" column is the requested amount for the general section, not a maximum, and the made-for-you section is extra on top** (owner, 2026-10-09).
+
+| Game | Rating | General ideas requested |
+|---|---|---|
+| SOL | 4 | 15 |
+| Canopy | 4 | 15 |
+| Grid | 4 | 15 |
+| Tide | 4 | 15 |
+| Herd | 4 | 15 |
+| Signal | 4 | 15 |
+| Aftermath | 3 | 20 |
+| Drift | 3 | 20 |
+| Trade Empire | 3 | 20 |
+| Continuum | 3 | 20 |
+| Lexis | 3 | 20 |
+| Thaw | 2 | 25 |
+| Loop | 2 | 25 |
+| Le Champ de Mots | 2 | 25 |
+
