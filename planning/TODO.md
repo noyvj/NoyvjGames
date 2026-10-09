@@ -1,6 +1,6 @@
 # Site-Wide TODO (round 3)
 
-**Progress: 609/1200 items checked off (50.7%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land.
+**Progress: 610/1201 items checked off (50.8%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land.
 
 Built from your answers in `planning/IMPROVEMENT-IDEAS-ROUND-3.md` (Part 4). Every Round 3 section is now answered (2026-10-07 below the Warframe section); earlier this list held only: **GB** (Canopy gamified), **M** (new games), **N** (seasonal events), **O** (Trade Empire and Continuum replayability), **P/Q/S/T** (Signal, Undersleep, Overclock, Last Line open questions), **X** (Warframe tracker) and **R** (returning later). GC-GI, A-L, U, Z and Y are unanswered and wait for you. The previous list is archived at `planning/todo-archive/260914_260927.md`; anything from it that was moved here is marked "moved" there.
 
@@ -231,7 +231,8 @@ You said yes to every item except F5 (undo button, no). New games below each nee
 - [ ] QI-10: Mirror Lab (Quick ideas A10): write the groundwork plan, then build it. place mirrors and prisms so a laser reaches every sensor.
 - [ ] QI-11: Radio Decode (Quick ideas A11): write the groundwork plan, then build it. decode binary, hex and simple ciphers from a drifting signal, each message a short log entry.
 - [ ] QI-12: Picture Grid (Quick ideas A12): write the groundwork plan, then build it. nonograms where each solved picture goes into a gallery you can browse.
-- [ ] QI-13: Station Medic (Quick ideas B1): write the groundwork plan, then build it. help the crew of a space station by solving triage puzzles with limited supplies. Nobody dies on screen; a bad call means "restore and try a different plan".
+- [x] QI-13: Station Medic (Quick ideas B1): write the groundwork plan, then build it. help the crew of a space station by solving triage puzzles with limited supplies. Nobody dies on screen; a bad call means "restore and try a different plan". (BUILT 2026-10-10, milestones 1-7, 103 tests; hub registration is item QI-13b.)
+- [ ] QI-13b: Register Station Medic in the hub (same steps as the earlier new games).
 - [ ] QI-14: Robot Repair Shop (Quick ideas B2): write the groundwork plan, then build it. fix quirky robots by solving their fault puzzles; each repaired robot becomes a friend that gives you a gift later.
 - [ ] QI-15: Fog Rescue (Quick ideas B3): write the groundwork plan, then build it. guide lost animals or travellers out of a dark foggy forest by lighting the right lanterns in the right order.
 - [ ] QI-16: Water Works (Quick ideas B4): write the groundwork plan, then build it. route clean water to villages with trade-offs between town, farm and wild land, shown from several people's points of view.

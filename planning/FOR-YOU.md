@@ -191,3 +191,27 @@ Recommended: bring valves to deck 3 so they have more boards to prove themselves
 ### Hr6. Hull Repair: only two boards reach 9x9 and deck 5 is mostly 8x8; is that fine, or should bigger boards be allowed more colours?
 
 Recommended: fine as is. Say "yes" to go with that.
+
+### Sm1. Station Medic: should the sheet's "rule out for me" dimming be on by default, with a setting to turn it off?
+
+Recommended: on by default, with the setting. Say "yes" to go with that.
+
+### Sm2. Station Medic: should a Rough shift (a bad call, then restored with costs) still count toward opening the next chapter?
+
+Recommended: yes, so a bad call never blocks you. Say "yes" to go with that.
+
+### Sm3. Station Medic: keep "borrow a spare" and "comfort care" (each costs 1) as the no-dead-end fallbacks?
+
+Recommended: keep both. Say "yes" to go with that.
+
+### Sm4. Station Medic: keep the names Lowlight Station, Tally (the robot) and the absent Dr. Aurel?
+
+Recommended: keep them; say "no" and give new names if you want. Say "yes" to go with that.
+
+### Sm5. Station Medic: the crew's flaws (hoarded seed stock, an adjusted supply count, a hidden weld report) are gentle but real; should I drop any?
+
+Recommended: keep all of them, since you want characters who are not all good. Say "yes" to go with that.
+
+### Sm6. Station Medic: chapters open after 5 of 8 shifts are done; do you prefer every chapter open from the start?
+
+Recommended: open every chapter from the start, since you like objectives without a strict order. Say "yes" to go with that.
