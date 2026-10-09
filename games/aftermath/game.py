@@ -2230,7 +2230,7 @@ def on_import_progress(event=None):
 # reset the way the two-click version could. `_confirm_dialog_ask()` is
 # the same helper shape as every other game's own copy.
 # ===========================================================================
-def _confirm_dialog_ask(action_id, message, confirm_label, on_confirm):
+def _confirm_dialog_ask(action_id, message, confirm_label, on_confirm, allow_skip=None):
     try:
         from js import window  # noqa: PLC0415 -- Pyodide-only, deliberately lazy
     except ImportError:
@@ -2240,11 +2240,13 @@ def _confirm_dialog_ask(action_id, message, confirm_label, on_confirm):
     if confirm_dialog is None:
         on_confirm()
         return
+    options = {} if allow_skip is None else {"allowSkip": allow_skip}
     confirm_dialog.ask(
         id=action_id,
         message=message,
         confirmLabel=confirm_label,
         onConfirm=create_proxy(on_confirm),
+        **options,
     )
 
 
@@ -3560,7 +3562,49 @@ def on_invest_growth(event=None):
     _check_new_achievements_for_toast()
 
 
+# E-28: an optional "you still have resources" check before Face Next Event. Off by default
+# (the Settings checkbox writes this key); it only ever asks, never changes a number.
+CONFIRM_UNSPENT_STORAGE_KEY = "aftermath-confirm-unspent"
+
+
+def confirm_unspent_enabled():
+    return localStorage.getItem(CONFIRM_UNSPENT_STORAGE_KEY) == "true"
+
+
+def unspent_confirm_message(run_state):
+    """The question, naming what the unspent resources could still have bought, or
+    None when there is nothing worth asking about (the run is over, or the
+    resources cannot buy even one unit)."""
+    if run_state.is_complete() or run_state.resources < min(RESILIENCE_COST, GROWTH_COST):
+        return None
+    resilience = run_state.step_units("resilience", "max")
+    growth = int(run_state.resources // GROWTH_COST)
+    options = []
+    if resilience:
+        options.append(f"up to {resilience} resilience")
+    if growth:
+        options.append(f"up to {growth} growth")
+    return (
+        f"Keep {run_state.resources:.0f} resources unspent? You could still buy {' or '.join(options)} "
+        f"before {EVENT_LABEL[run_state.next_event_type()]} hits."
+    )
+
+
 def on_resolve_event(event=None):
+    message = unspent_confirm_message(run) if confirm_unspent_enabled() else None
+    if message is None:
+        _resolve_event_now()
+        return
+    _confirm_dialog_ask(
+        action_id="aftermath-unspent-resources",
+        message=message,
+        confirm_label="Face the event",
+        on_confirm=_resolve_event_now,
+        allow_skip=False,  # the Settings checkbox is the switch, so no hidden "don't ask again"
+    )
+
+
+def _resolve_event_now():
     before = len(run.event_log)
     run.resolve_next_event()
     _maybe_trigger_callouts(run)

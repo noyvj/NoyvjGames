@@ -32,6 +32,8 @@
   // E-16: two more display options, same shape as reduced motion (a root attribute plus a stored flag).
   const CONTRAST_KEY = "aftermath-high-contrast";
   const FONT_KEY = "aftermath-readable-font";
+  // E-28: ask before Face Next Event while resources sit unspent. Read by game.py from this same key.
+  const CONFIRM_UNSPENT_KEY = "aftermath-confirm-unspent";
   const MIN_SCALE = 0.85;
   const MAX_SCALE = 1.5;
   const STEP = 0.1;
@@ -125,6 +127,18 @@
       });
     }
 
+    const confirmBox = document.getElementById("confirm-unspent-checkbox");
+    if (confirmBox) {
+      confirmBox.checked = readFlag(CONFIRM_UNSPENT_KEY);
+      confirmBox.addEventListener("change", function () {
+        try {
+          window.localStorage.setItem(CONFIRM_UNSPENT_KEY, String(confirmBox.checked));
+        } catch (e) {
+          // Persistence is a convenience only.
+        }
+      });
+    }
+
     let scale = readStoredScale();
     applyScale(scale);
     let reduced = readStoredMotion();
@@ -179,6 +193,14 @@
         readable = applyFlag("data-readable-font", FONT_KEY, false);
         if (contrastBox) contrastBox.checked = false;
         if (fontBox) fontBox.checked = false;
+        if (confirmBox) {
+          confirmBox.checked = false;
+          try {
+            window.localStorage.setItem(CONFIRM_UNSPENT_KEY, "false");
+          } catch (e) {
+            // Persistence is a convenience only.
+          }
+        }
       });
     }
   }

@@ -1,6 +1,10 @@
 [
   {
     "date": "2026-10-09",
+    "entry": "New setting: Ask before facing an event with unspent resources (off by default, in Settings and included in Reset to Default). When it is on, Face Next Event first asks whether you want to keep, say, 80 resources unspent, and tells you how much resilience or growth they could still buy; it only asks, it never changes a number, and it stays quiet when you cannot afford anything or the run is over."
+  },
+  {
+    "date": "2026-10-09",
     "entry": "New: after each event, a collapsible How that damage was worked out section shows the hit step by step: the base damage, what the severity added or took off, how much each protection took away (resilience, Early Warning, Mutual Aid, your category skill and any societal memory), the 85% cap when it bites, and the damage taken, as a stacked bar with every number also written as a line."
   },
   {
