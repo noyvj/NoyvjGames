@@ -28,7 +28,7 @@ See `planning/station-medic-plan.md` section 8 (the table is copied below and ke
 | # | Milestone | Content | Status |
 |---|-----------|---------|--------|
 | 1 | Engine | lexicon, shift rules, solver, chapters 1-2 (15 shifts), tests | Done |
-| 2 | Infirmary UI | ward, bedside panel, cabinet, sheet, log, result card, restore, save contract, favicon. Playable slice | Planned |
+| 2 | Infirmary UI | ward, bedside panel, cabinet, sheet, log, result card, restore, save contract, favicon. Playable slice | Done |
 | 3 | Chapters 3-5, hints, record | 24 more shifts, hint ladder, three-goals strip, crew files, Record (codex) | Planned |
 | 4 | Chapters 6-8 | 21 more shifts (60 in all), Tally, finale. First complete game | Planned |
 | 5 | Standard kit | opening screen, tutorial, About with the fiction notice, What's New, keyboard help, confirm dialogs, light theme, accessibility pass | Planned |
@@ -38,3 +38,9 @@ See `planning/station-medic-plan.md` section 8 (the table is copied below and ke
 ## Working conventions
 - Commit only this folder and the plan with a pathspec commit, then tag `station-medic-milestone-0N`. Hub registration is a separate later job.
 - Tests: `python3 -m pytest -q games/station-medic`; lint: `python3 -m flake8 --extend-ignore=E501 games/station-medic`. Local Python is 3.9 (Pyodide runs 3.12): no 3.10+ syntax in engine code.
+
+## Engine and page notes (milestone 2)
+- `game.handle(json)` returns the whole view every time (patients with portraits and per-button availability, sheet, cabinet, log, result, shifts list, totals, tally, hint). `app.js` only draws it; the selected patient is page state.
+- Save (`get_state`): `cur`, `best {shift: 1-3}`, `run {shift: [action tokens]}` (each unfinished shift keeps its actions and is replayed and re-checked on load), `tally`, `flags`, `cured`/`cures`/`tests` (the Record's facts); only non-default keys.
+- Hints (`hints.py`) come from the solver's best move for the state on screen: nudge, hint, answer, then `hint_do` performs it (or restores if a clean finish is gone). A test follows the hints through every shift and expects Clean.
+- Settings: text size, "Rule out for me" (dims and strikes through sheet conditions that cannot fit the selected patient; default on), reduce motion, effects, high contrast, theme. All per device, not in the save.

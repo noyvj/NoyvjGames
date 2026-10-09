@@ -83,7 +83,7 @@ _C = (
     ("coldh", "Cold Hands", ("chills", "numb"), ("lamp",), ("loz", "tonic"), "gel", False, "Fingers that will not warm. Lamp scans glow amber on the knuckles."),
     ("frost", "Frost Lock", ("chills", "numb"), (), ("drip", "patch"), "salve", False, "Cold that goes inward. It hides from every scan."),
     ("lampeye", "Lamp Eye", ("blurred", "aching"), ("pulse",), ("gel", "patch"), "wrap", False, "Sight that smears around lights. The pulse drums fast."),
-    ("static", "Static Eye", ("blurred", "aching"), ("breath",), ("wrap", "draught"), "gel", False, "Sight that fizzes like a dead screen. The breath vial clouds."),
+    ("static", "Static Eye", ("blurred", "aching"), ("breath",), ("wrap", "draught"), "gel", False, "Sight that fizzes like a blank screen. The breath vial clouds."),
     ("brine", "Brine Cramp", ("thirst", "cramps"), ("dye",), ("tonic", "salve"), "drip", False, "Cramps from too little water and too much salt. Stains the dye strip."),
     ("seam", "Dry Seam", ("thirst", "cramps"), ("pulse",), ("drip", "patch"), "loz", False, "A tight, dry ache along the sides. The pulse drums."),
     ("saltt", "Salt Tremor", ("shaking", "thirst"), ("lamp",), ("tonic", "gel"), "loz", False, "Hands that will not hold still, and a thirst that does not end. Glows amber under the lamp."),

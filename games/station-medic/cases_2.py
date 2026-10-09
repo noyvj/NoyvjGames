@@ -19,7 +19,7 @@ SHIFTS = [
     S("2-4", "Two Beds", "A heavy dizziness and a smeared eye, side by side. Every scan you run is one fewer for the next person.",
       "drift hum tide lampeye static", {"roll": 1, "vials": 1, "cells": 1, "liners": 1, "gel": 1, "loz": 1, "wrap": 1, "tonic": 1},
       [P("imre", "tide", "Everything is slow, like wading through the corridor. I am nineteen, I should not be slow."),
-       P("kit", "static", "My vision fizzes. Like a dead screen. I have told the drones to be gentle with me.")],
+       P("kit", "static", "My vision fizzes. Like a blank screen. I have told the drones to be gentle with me.")],
       tests="dye lamp pulse breath"),
     S("2-5", "One Cure Fits", "Sometimes two look-alikes are settled by the same treatment. Spending a scan is not the only way to be sure.",
       "coil brass lampeye static", {"liners": 1, "vials": 1, "gel": 2, "wrap": 1},

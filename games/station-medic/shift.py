@@ -270,8 +270,7 @@ class Case:
             new = _put(new, CURED, cured)
             if cured == (1 << len(pd.truth)) - 1:
                 new = _put(new, CLOSED, 1, ISO, 0)
-                clean = new[COST] == 0
-                msg = "The %s works: %s is settled." % (name.lower(), who) + (" A clean shift for them." if clean else "")
+                msg = "The %s works: %s is settled." % (name.lower(), who)
                 return (stock2, _swap(pats, p, new), borrowed), _ok(msg + extra, delta, "cure", p, closed=True)
             return (stock2, _swap(pats, p, new), borrowed), _ok("The %s takes hold. There is more to treat for %s." % (name.lower(), who) + extra, delta, "partial", p)
         for k, c in enumerate(pd.truth):

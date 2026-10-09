@@ -1,0 +1,179 @@
+/* Station Medic. Every colour is a variable so the light theme (html[data-theme="light"], set by shared/theme.js) is a second
+   set of values. State is never told by colour alone: a settled patient has a ring AND the word "Settled", a seal is a word with
+   its own border style, a supply shelf has a letter, a ruled-out condition is struck through as well as dimmed. */
+:root {
+  --bg: #0b1014; --bg-top: #16202a; --panel: #121a21; --panel-fill: rgba(18, 26, 33, 0.95); --surface: #1a252e;
+  --btn: #25323d; --btn-primary: #8a5a1c; --on-primary: #fff6e8;
+  --line: #34454f; --edge: #7e98a8; --text: #e6edf0; --muted: #a9b9c2;
+  --accent: #e0a458; --cool: #7fb3c8; --focus: #ffd666; --hover-edge: #e0a458;
+  --ink: #0b1014;
+  --ok: #8fe0a4; --bad: #ff9c8a; --gold: #e0a458; --silver: #cfd8e3; --bronze: #c98b5c;
+  --sc-wall: #101820; --sc-floor: #0c1218; --sc-port: #2a3a46; --sc-space: #05080b; --sc-star: #cfe6ef; --sc-lamp: #e0a458;
+  --sc-beam: rgba(224, 164, 88, 0.14); --sc-bed: #2c3d4a; --sc-pane: #3b5566; --sc-pane-in: #0a1118;
+}
+html[data-theme="light"] {
+  --bg: #eef1f3; --bg-top: #fafbfc; --panel: #ffffff; --panel-fill: rgba(255, 255, 255, 0.97); --surface: #e9eef1;
+  --btn: #dce4e9; --btn-primary: #8a4f06; --on-primary: #ffffff;
+  --line: #b7c4cc; --edge: #536b7a; --text: #17232b; --muted: #43545e;
+  --accent: #8a4f06; --cool: #1d6783; --focus: #6a2f00; --hover-edge: #8a4f06;
+  --ok: #0b6b3a; --bad: #a8412f; --gold: #8a4f06; --silver: #4b5b66; --bronze: #86501f;
+  --sc-wall: #cdd8de; --sc-floor: #b9c7cf; --sc-port: #7e93a0; --sc-space: #243541; --sc-star: #f2f8fb; --sc-lamp: #b87a28;
+  --sc-beam: rgba(184, 122, 40, 0.18); --sc-bed: #8fa3af; --sc-pane: #7e93a0; --sc-pane-in: #e6eef2;
+}
+html[data-high-contrast="true"] { --line: #a9c2d0; --edge: #e1ecf2; --muted: #e1ecf2; }
+html[data-high-contrast="true"][data-theme="light"] { --line: #2f4452; --edge: #17232b; --muted: #17232b; }
+html[data-high-contrast="true"] .panel, html[data-high-contrast="true"] button { border-width: 2px; }
+
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html { font-size: calc(100% * var(--text-scale, 1)); color-scheme: dark; }
+html[data-theme="light"] { color-scheme: light; background: var(--bg); }
+body { margin: 0; background: radial-gradient(ellipse at top, var(--bg-top), var(--bg) 60%); color: var(--text);
+  font: 1rem/1.5 system-ui, -apple-system, sans-serif; min-height: 100vh; }
+#game { max-width: 66rem; margin: 0 auto; padding: 1rem 1rem 3rem; display: block; }
+html[data-theme="light"] #game { background: transparent; border: 0; box-shadow: none; }
+.hub-back-link { color: var(--accent); text-decoration: underline; font-size: 0.85rem; }
+html[data-theme="light"] .hub-back-link, html[data-theme="light"] a { color: var(--accent); }
+h1 { margin: 0.3rem 0 0; letter-spacing: 0.14em; font-weight: 300; text-transform: uppercase; font-size: 1.6rem; }
+html[data-theme="light"] h1 { background: none; color: var(--text); -webkit-text-fill-color: currentColor; text-shadow: none; }
+.tagline, .note { color: var(--muted); font-size: 0.9rem; margin: 0.3rem 0; }
+.panel { background: var(--panel-fill); border: 1px solid var(--line); border-radius: 14px; padding: 0.7rem 0.8rem; margin: 0.7rem 0; }
+html[data-theme="light"] .panel { box-shadow: 0 4px 16px rgba(30, 50, 80, 0.1); }
+.panel h2 { margin: 0 0 0.4rem; font-size: 0.95rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent); }
+.sub { margin: 0.6rem 0 0.2rem; font-size: 0.9rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+button, select { font: inherit; color: var(--text); background: var(--btn); border: 1px solid var(--edge); border-radius: 8px; padding: 0.4rem 0.8rem; cursor: pointer; }
+button:hover { border-color: var(--hover-edge); }
+button.primary { background: var(--btn-primary); border-color: var(--hover-edge); color: var(--on-primary); }
+button:focus-visible, select:focus-visible, input:focus-visible, a:focus-visible, summary:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+button[disabled], button[aria-disabled="true"] { opacity: 0.6; cursor: pointer; border-style: dashed; }
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+.skip-link { position: absolute; left: 0.5rem; top: -4rem; z-index: 1000; padding: 0.5rem 0.8rem; border-radius: 8px; background: var(--panel); color: var(--text); border: 2px solid var(--focus); }
+.skip-link:focus { top: 0.5rem; }
+.top-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.3rem 0.8rem; }
+.game-toolbar { display: flex; flex-wrap: wrap; gap: 0.4rem; margin: 0.4rem 0; }
+.toast { min-height: 1.3rem; font-weight: 600; }
+.toast:empty { min-height: 0; margin: 0; }
+.toast.on { background: var(--surface); border: 1px solid var(--ok); border-radius: 8px; padding: 0.25rem 0.6rem; }
+.settings-row { display: flex; gap: 0.6rem; align-items: center; flex-wrap: wrap; margin: 0.5rem 0; }
+.settings-row input[type="checkbox"] { width: 1.25rem; height: 1.25rem; accent-color: var(--btn-primary); vertical-align: middle; }
+.text-size-control { display: inline-flex; gap: 0.3rem; }
+.btn-short { display: none; }
+@media (max-width: 420px) { .btn-long { display: none; } .btn-short { display: inline; } }
+
+.stat-strip { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0.35rem; margin: 0.5rem 0; }
+.stat { background: var(--panel-fill); border: 1px solid var(--line); border-radius: 10px; padding: 0.25rem 0.3rem; text-align: center; min-width: 0; }
+.stat-label { display: block; font-size: 0.62rem; color: var(--muted); letter-spacing: 0.03em; line-height: 1.15; overflow-wrap: anywhere; }
+.stat-value { display: block; font-size: 1.05rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+.stat-value.bump { animation: bump 0.35s ease-out; }
+@keyframes bump { 0% { transform: scale(1); } 40% { transform: scale(1.3); color: var(--accent); } 100% { transform: scale(1); } }
+html[data-reduced-motion="true"] .stat-value.bump, html[data-effects="off"] .stat-value.bump { animation: none; }
+.tally { padding: 0.4rem 0.6rem; }
+.tally summary { cursor: pointer; color: var(--muted); font-size: 0.9rem; }
+.tally-strip { grid-template-columns: repeat(auto-fit, minmax(5.5rem, 1fr)); margin-top: 0.5rem; }
+
+/* The page: the ward, then the cabinet, sheet and log. Two columns when there is room. */
+#shift-panel, #cabinet-panel, #sheet-panel, #log-panel { min-width: 0; }
+@media (min-width: 900px) {
+  html:not([data-layout="pc"]) #game { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 0 1rem; align-items: start; }
+  html:not([data-layout="pc"]) #game > * { grid-column: 1 / -1; }
+  html:not([data-layout="pc"]) #game > #shift-panel { grid-column: 1; grid-row: span 4; }
+  html:not([data-layout="pc"]) #game > #cabinet-panel, html:not([data-layout="pc"]) #game > #sheet-panel,
+  html:not([data-layout="pc"]) #game > #log-panel, html:not([data-layout="pc"]) #game > #tally { grid-column: 2; }
+}
+
+/* The ward. */
+.shift-chapter { margin: 0; text-transform: uppercase; letter-spacing: 0.06em; font-size: 0.75rem; }
+#shift-heading { margin-bottom: 0.2rem; }
+.scene-holder { margin: 0.3rem 0; border-radius: 10px; overflow: hidden; border: 1px solid var(--line); }
+.scene { display: block; width: 100%; height: 5.2rem; }
+.sc-wall { fill: var(--sc-wall); } .sc-floor { fill: var(--sc-floor); } .sc-port { fill: var(--sc-port); } .sc-space { fill: var(--sc-space); }
+.sc-star { fill: var(--sc-star); } .sc-lamp { fill: var(--sc-lamp); } .sc-beam { fill: var(--sc-beam); } .sc-bed { fill: var(--sc-bed); }
+.sc-pane { fill: var(--sc-pane); } .sc-pane-in { fill: var(--sc-pane-in); }
+.patients { display: grid; grid-template-columns: repeat(auto-fit, minmax(8.2rem, 1fr)); gap: 0.4rem; margin: 0.3rem 0; }
+.patient { display: flex; flex-direction: column; align-items: center; gap: 0.1rem; text-align: center; padding: 0.35rem 0.3rem; border: 2px solid var(--edge); border-radius: 12px; background: var(--surface); }
+.patient[aria-pressed="true"] { border-color: var(--accent); border-width: 3px; background: var(--panel); }
+.patient.settled { border-style: dashed; }
+.patient .bust { width: 3.6rem; height: 3.6rem; }
+.patient .pname { font-weight: 700; font-size: 0.9rem; }
+.patient .pstatus { font-size: 0.72rem; color: var(--muted); }
+.bust { display: block; }
+.bedside { border: 1px solid var(--line); border-radius: 12px; padding: 0.5rem 0.7rem; margin: 0.4rem 0; background: var(--surface); }
+.bedside-head { display: flex; gap: 0.7rem; align-items: center; }
+.bedside-portrait .bust { width: 4.6rem; height: 4.6rem; }
+.bedside h3 { margin: 0; font-size: 1.05rem; }
+.bedside-say { font-style: italic; margin: 0.2rem 0 0; }
+.bedside-label { margin: 0.5rem 0 0.15rem; font-size: 0.72rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+.chips, .matches, .readings, .chart-notes { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 0.3rem; }
+.chips li { border: 1px solid var(--edge); border-radius: 999px; padding: 0.05rem 0.6rem; font-size: 0.85rem; }
+.chart-notes li { border: 2px dashed var(--accent); border-radius: 8px; padding: 0.05rem 0.5rem; font-size: 0.82rem; }
+.readings li { border: 1px solid var(--line); border-radius: 8px; padding: 0.05rem 0.5rem; font-size: 0.82rem; }
+.readings li.positive { border: 2px solid var(--cool); font-weight: 700; }
+.readings li.clear { border-style: dotted; }
+.readings li.unknown { color: var(--muted); border-style: dashed; }
+.matches li { border: 1px solid var(--edge); border-radius: 8px; padding: 0.05rem 0.5rem; font-size: 0.88rem; font-weight: 600; }
+.act-row { display: flex; flex-wrap: wrap; gap: 0.35rem; }
+.act-row button { display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.3rem 0.6rem; }
+.act-row button .letter { display: inline-block; min-width: 1.2rem; text-align: center; font-family: ui-monospace, monospace; font-weight: 800; border: 1px solid currentColor; border-radius: 4px; font-size: 0.78rem; }
+.act-row button .left { font-size: 0.78rem; color: var(--muted); }
+.act-row button.unavailable { border-style: dashed; opacity: 0.65; }
+.bedside-actions { display: grid; gap: 0.1rem; }
+.action-line { min-height: 1.4em; }
+.result-card { border: 2px solid var(--ok); border-radius: 12px; padding: 0.5rem 0.8rem; margin: 0.5rem 0; background: var(--surface); text-align: center; }
+.result-title { margin: 0; font-weight: 800; font-size: 1.1rem; }
+.result-grade { margin: 0.2rem 0; font-weight: 700; }
+.result-buttons, .shift-buttons { display: flex; gap: 0.5rem; justify-content: center; flex-wrap: wrap; margin-top: 0.4rem; align-items: center; }
+.seal { display: inline-block; min-width: 4.4em; padding: 0 0.6em; border-radius: 999px; border: 2px solid currentColor; font-weight: 800; font-size: 0.78rem; text-align: center; }
+.seal-clean { color: var(--gold); }
+.seal-steady { color: var(--silver); border-style: double; border-width: 4px; }
+.seal-rough { color: var(--bronze); border-style: dashed; }
+.hint-box { margin: 0.5rem 0; text-align: center; }
+.hint-line { margin: 0.3rem 0; }
+
+/* The cabinet, sheet and log. */
+.cabinet { list-style: none; margin: 0.3rem 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(8.5rem, 1fr)); gap: 0.35rem; }
+.shelf { border: 2px solid var(--edge); border-radius: 10px; padding: 0.3rem 0.5rem; background: var(--surface); display: flex; align-items: center; gap: 0.5rem; }
+.shelf .letter { font: 800 1.1rem ui-monospace, monospace; border: 2px solid var(--accent); border-radius: 6px; min-width: 1.8rem; text-align: center; }
+.shelf .count { font-size: 1.2rem; font-weight: 800; font-variant-numeric: tabular-nums; }
+.shelf .sname { font-size: 0.8rem; line-height: 1.2; }
+.shelf.empty { border-style: dashed; opacity: 0.8; }
+.shelf .uses { display: block; font-size: 0.68rem; color: var(--muted); }
+.borrow { margin-top: 0.4rem; font-size: 0.9rem; color: var(--muted); }
+.sheet { list-style: none; margin: 0.3rem 0; padding: 0; display: grid; gap: 0.35rem; }
+.sheet li { border: 1px solid var(--line); border-radius: 10px; padding: 0.3rem 0.6rem; background: var(--surface); }
+.sheet li.ruled-out { opacity: 0.55; border-style: dashed; }
+html[data-narrow="on"] .sheet li.ruled-out .cname { text-decoration: line-through; }
+html[data-narrow="off"] .sheet li.ruled-out { opacity: 1; border-style: solid; }
+.sheet .cname { font-weight: 700; }
+.sheet .cline { font-size: 0.82rem; color: var(--muted); display: block; }
+.sheet .tag { display: inline-block; border: 1px solid var(--accent); border-radius: 6px; font-size: 0.7rem; padding: 0 0.3rem; margin-left: 0.3rem; color: var(--accent); }
+.log { margin: 0.3rem 0; padding-left: 1.2rem; max-height: 15rem; overflow-y: auto; font-size: 0.85rem; }
+.log li { margin: 0.15rem 0; }
+.log li.refused { color: var(--muted); font-style: italic; }
+.log li.cost { font-weight: 600; }
+.log li.cure { color: var(--text); font-weight: 600; }
+
+/* The room picker. */
+.chapter { border-top: 1px solid var(--line); padding-top: 0.5rem; margin-top: 0.6rem; }
+.chapter:first-child { border-top: 0; margin-top: 0; padding-top: 0; }
+.chapter h3 { margin: 0; font-size: 1rem; }
+.shift-grid { list-style: none; padding: 0; margin: 0.4rem 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(9.5rem, 1fr)); gap: 0.4rem; }
+.shift-btn { width: 100%; text-align: left; display: flex; flex-direction: column; gap: 0.1rem; min-height: 3.4rem; }
+.shift-btn.current { border-width: 3px; border-color: var(--accent); }
+.shift-btn .rname { font-weight: 700; }
+.shift-btn .rmeta { font-size: 0.75rem; color: var(--muted); }
+
+.info-page-framing { margin: 0.3rem 0; }
+.notice { border: 2px dashed var(--accent); border-radius: 10px; padding: 0.4rem 0.6rem; font-weight: 600; }
+.pledge-list { padding-left: 1.2rem; margin: 0.3rem 0 0.8rem; }
+.pledge-list li { margin: 0.3rem 0; }
+#info-page-panel h3 { margin: 0.8rem 0 0.2rem; font-size: 1rem; }
+.changelog-entry { border-top: 1px solid var(--line); padding-top: 0.5rem; margin-top: 0.6rem; }
+.changelog-entry:first-child { border-top: 0; margin-top: 0; padding-top: 0; }
+.changelog-date { font-weight: 700; font-variant-numeric: tabular-nums; }
+
+@media (max-width: 640px) {
+  #game { padding: 0.6rem 0.6rem 2.5rem; }
+  .tagline { display: none; }
+  .scene { height: 3.8rem; }
+  .patients { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}

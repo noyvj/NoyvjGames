@@ -45,8 +45,8 @@ The **Record** (codex) fills in: every condition (first cured), treatment (first
 ## 8. Milestones
 | # | Milestone | Content | Status |
 |---|-----------|---------|--------|
-| 1 | Engine | lexicon, shift rules, solver, chapters 1-2 (15 shifts), tests | Planned |
-| 2 | Infirmary UI | ward, bedside panel, cabinet, sheet, log, result card, restore, save contract, favicon. Playable slice | Planned |
+| 1 | Engine | lexicon, shift rules, solver, chapters 1-2 (15 shifts), tests | Done |
+| 2 | Infirmary UI | ward, bedside panel, cabinet, sheet, log, result card, restore, save contract, favicon. Playable slice | Done |
 | 3 | Chapters 3-5, hints, record | 24 more shifts, hint ladder, three-goals strip, crew files, Record (codex) | Planned |
 | 4 | Chapters 6-8 | 21 more shifts (60 in all), Tally, finale. First complete game | Planned |
 | 5 | Standard kit | opening screen, tutorial, About with the fiction notice, What's New, keyboard help, confirm dialogs, light theme, accessibility pass | Planned |
