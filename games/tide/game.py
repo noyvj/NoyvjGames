@@ -463,6 +463,8 @@ class SettlementState:
         self.active_seconds = 0.0
         self.maxtier_actions = None
         self.maxtier_seconds = None
+        # GD-18: ids of the critters the player has clicked into the Sightings list.
+        self.sightings = []
         # GD-27: the site most recently saved at the last second (transient, shown once, never saved).
         self.last_rescue = None
 
@@ -4415,12 +4417,118 @@ def render_run_extras():
         sr.innerText = speedrun_text()
 
 
+# GD-17 harbour-master quips and GD-18 secret critters ---------------------------------------------------------------
+QUIPS_MUTED_KEY = "tide-quips-muted"
+_quip = {"text": "", "last": ""}
+
+
+def quips_muted():
+    return _read_local_storage_item(QUIPS_MUTED_KEY) == "true"
+
+
+def _storm_next_season():
+    wait = state.seasons_until_storm()
+    return wait is not None and wait <= 1
+
+
+# (id, condition, line). The first match that is not the line just spoken wins, so the voice varies without any dice.
+QUIPS = (
+    ("rescue", lambda ctx: ctx["rescued"], "That was close, boss. The lamp stays lit."),
+    ("flooded", lambda ctx: ctx["new_rows"] > 0, "Water's in the lower yard again. We'll pump and carry on."),
+    ("storm", lambda ctx: _storm_next_season(), "Storm's brewing. Batten the shutters."),
+    ("fish", lambda ctx: state.fish_warning_active(), "Nets came up light this week. The fish are thin."),
+    ("quiet", lambda ctx: state.quiet_seasons() >= 5, "Quiet water. Too quiet. I like it."),
+    ("wall", lambda ctx: state.current_tier_index() >= 2, "Wall's holding, boss. Ask me again in five seasons."),
+    ("broke", lambda ctx: state.funds < 30, "Purse is nearly empty, boss. We make do."),
+)
+
+
+def pick_quip(ctx, last=""):
+    for quip_id, condition, line in QUIPS:
+        if line != last and condition(ctx):
+            return line
+    return ""
+
+
+def speak_quip(new_rows=0, rescued=False):
+    """Called after a real Advance click. Sets the one-line quip (empty when muted or nothing applies)."""
+    if quips_muted():
+        _quip["text"] = ""
+        return ""
+    line = pick_quip({"new_rows": new_rows, "rescued": rescued}, _quip["last"])
+    _quip["text"] = line
+    if line:
+        _quip["last"] = line
+    return line
+
+
+CRITTERS = {
+    "seal": {
+        "icon": "\U0001F9AD", "name": "Grey seal", "hint": "keep the acidity low for five seasons",
+        "available": lambda: len(state.acidity_history) >= 5 and all(a < CRITTER_LOW_ACIDITY for a in state.acidity_history[-5:]),
+    },
+    "whale": {
+        "icon": "\U0001F433", "name": "Whale fin", "hint": "save a heritage site through a storm",
+        "available": lambda: state.protected_heritage_count() > 0 and len(state.storm_log) > 0,
+    },
+}
+CRITTER_LOW_ACIDITY = 2.0
+
+
+def critter_available(critter_id):
+    entry = CRITTERS.get(critter_id)
+    return bool(entry) and critter_id not in state.sightings and entry["available"]()
+
+
+def log_sighting(critter_id):
+    """Clicking a surfaced critter writes it into the Sightings list (once)."""
+    if critter_id not in CRITTERS or critter_id in state.sightings or not critter_available(critter_id):
+        return False
+    state.sightings.append(critter_id)
+    name = CRITTERS[critter_id]["name"].lower()
+    state._log_ticker(f"{CRITTERS[critter_id]['icon']} A {name} was logged in the Sightings list.")
+    state._chronicle_event(f"A {name} was sighted off the harbour.")
+    announce(f"Sighting logged: {CRITTERS[critter_id]['name']}.")
+    return True
+
+
+def _make_critter_handler(critter_id):
+    def handler(event=None):
+        log_sighting(critter_id)
+        render()
+    return handler
+
+
+def sightings_text():
+    parts = []
+    for critter_id, entry in CRITTERS.items():
+        parts.append(f"{entry['icon']} {entry['name']}: seen" if critter_id in state.sightings
+                     else f"? Unseen ({entry['hint']})")
+    return " | ".join(parts)
+
+
+def render_critters_and_quip():
+    for critter_id, entry in CRITTERS.items():
+        button = document.getElementById(f"critter-{critter_id}")
+        if button is not None:
+            button.hidden = not critter_available(critter_id)
+            button.innerText = f"{entry['icon']} A {entry['name'].lower()} surfaced: log it"
+    box = document.getElementById("sightings-list")
+    if box is not None:
+        box.innerText = sightings_text()
+    quip = document.getElementById("harbor-quip")
+    if quip is not None:
+        quip.hidden = not _quip["text"]
+        quip.innerText = f"\u2693 Harbour master: {_quip['text']}" if _quip["text"] else ""
+
+
 def render_tide_oct9():
     render_afford()
     render_goal()
     render_quiet()
     render_balance()
     render_run_extras()
+    render_critters_and_quip()
 
 
 def render():
@@ -4575,7 +4683,9 @@ def on_advance_season(event=None):
     before = _season_numbers()
     take_rewind_snapshot()  # GD-20
     note_action()  # GD-23
+    rows_before = flooded_row_count(state.sea_level)
     state.advance_season()
+    speak_quip(new_rows=flooded_row_count(state.sea_level) - rows_before, rescued=False)  # GD-17
     check_pinned_goal()  # GD-19
     render()
     show_season_report(before, _season_numbers())  # GD-30
@@ -4640,6 +4750,8 @@ def on_toggle_hard_lag(event=None):
 def _make_heritage_handler(site_id):
     def handler(event=None):
         state.protect_heritage(site_id)
+        if state.last_rescue is not None:
+            speak_quip(rescued=True)  # GD-17
         render()
     return handler
 
@@ -4814,6 +4926,7 @@ def get_state():
             "actions": state.actions_count, "seconds": round(state.active_seconds, 1),
             "maxtier_actions": state.maxtier_actions, "maxtier_seconds": state.maxtier_seconds,
         }} if (state.rewind_used or state.ironman_earned or state.actions_count or not state.hard_lag_all_run) else {}),  # GD-20/23/24
+        **({"sightings": list(state.sightings)} if state.sightings else {}),  # GD-18
         **({"balance": {"streak": state.balance_streak, "invested": sorted(state.season_invested)}} if (state.balance_streak or state.season_invested) else {}),  # GD-14
         **({"domino": {"left": state.domino_seasons_left, "count": state.domino_count}} if (state.domino_seasons_left or state.domino_count) else {}),  # GD-28
         # Write-only projection (ACHIEVEMENTS-SYSTEM-DESIGN.md §1) —
@@ -5117,6 +5230,12 @@ def load_state(data):
         mt_a, mt_s = saved_run.get("maxtier_actions"), saved_run.get("maxtier_seconds")
         if isinstance(mt_a, int) and not isinstance(mt_a, bool) and 0 <= mt_a < 10**6 and isinstance(mt_s, (int, float)) and not isinstance(mt_s, bool) and 0 <= mt_s < 1e8:
             state.maxtier_actions, state.maxtier_seconds = mt_a, float(mt_s)
+    saved_sightings = data.get("sightings")  # GD-18: unknown ids and duplicates are dropped
+    state.sightings = []
+    if isinstance(saved_sightings, list):
+        for item in saved_sightings:
+            if item in CRITTERS and item not in state.sightings:
+                state.sightings.append(item)
     saved_balance = data.get("balance")  # GD-14
     state.balance_streak, state.season_invested = 0, set()
     if isinstance(saved_balance, dict):
@@ -5254,6 +5373,10 @@ def setup():
     name_input = document.getElementById("settlement-name-input")
     if name_input is not None:
         name_input.addEventListener("change", create_proxy(on_settlement_name_change))
+    for critter_id in CRITTERS:  # GD-18
+        critter_button = document.getElementById(f"critter-{critter_id}")
+        if critter_button is not None:
+            critter_button.addEventListener("click", create_proxy(_make_critter_handler(critter_id)))
     rewind_button = document.getElementById("rewind-button")  # GD-20
     if rewind_button is not None:
         rewind_button.addEventListener("click", create_proxy(on_rewind))

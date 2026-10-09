@@ -645,3 +645,101 @@ def test_ui_and_css_pause_animations_when_hidden_or_low_power():
     css = (root / "style.css").read_text(encoding="utf-8")
     assert 'visibilityState === "hidden"' in js and "data-anim-paused" in js and "getBattery" in js
     assert 'html[data-anim-paused="true"] *' in css and "animation-play-state: paused" in css
+
+
+# ---- GD-17 quips ----
+
+def test_quip_follows_real_state_and_never_repeats_back_to_back(game_env, storage):
+    m = game_env.module
+    s = m.state
+    s.funds = 10
+    first = m.speak_quip()
+    assert first == "Purse is nearly empty, boss. We make do."
+    assert m.speak_quip() == ""  # nothing else applies, and the same line is not repeated
+    s.capacity["adaptation"] = 6
+    assert "Wall's holding" in m.speak_quip()
+
+
+def test_a_flooded_row_and_a_rescue_take_priority(game_env, storage):
+    m = game_env.module
+    assert "lower yard" in m.speak_quip(new_rows=1)
+    m._quip["last"] = ""
+    assert "lamp stays lit" in m.speak_quip(new_rows=1, rescued=True)
+
+
+def test_muting_silences_quips_and_clears_the_line(game_env, storage):
+    m = game_env.module
+    m.state.funds = 10
+    assert m.speak_quip()
+    storage[m.QUIPS_MUTED_KEY] = "true"
+    assert m.speak_quip() == "" and m._quip["text"] == ""
+    m.render()
+    assert game_env.elements["harbor-quip"].hidden is True
+
+
+def test_the_quip_shows_after_advancing_and_is_covered_by_the_story_toggle(game_env, storage):
+    from pathlib import Path
+    m = game_env.module
+    m.state.funds = 0
+    m.state.advance_season = lambda: None  # no real season, only the quip path
+    m.on_advance_season()
+    assert "Harbour master:" in game_env.elements["harbor-quip"].innerText and game_env.elements["harbor-quip"].hidden is False
+    html = (Path(__file__).resolve().parent.parent / "index.html").read_text(encoding="utf-8")
+    assert "#harbor-quip" in html.split("story-toggle.js")[1].split(">")[0]
+
+
+# ---- GD-18 critters ----
+
+def test_the_seal_needs_five_low_acidity_seasons(game_env):
+    m = game_env.module
+    s = m.state
+    s.acidity_history = [0.5] * 4
+    assert m.critter_available("seal") is False
+    s.acidity_history = [0.5] * 5
+    assert m.critter_available("seal") is True
+    s.acidity_history = [0.5] * 4 + [m.CRITTER_LOW_ACIDITY + 1]
+    assert m.critter_available("seal") is False
+
+
+def test_the_whale_needs_a_protected_site_and_a_storm(game_env):
+    m = game_env.module
+    s = m.state
+    s.heritage["lighthouse"] = m.HERITAGE_PROTECTED
+    assert m.critter_available("whale") is False
+    s.storm_log = [1]
+    assert m.critter_available("whale") is True
+    s.heritage["lighthouse"] = m.HERITAGE_LOST
+    assert m.critter_available("whale") is False
+
+
+def test_clicking_a_critter_logs_it_once_and_the_list_shows_it(game_env):
+    m = game_env.module
+    s = m.state
+    s.acidity_history = [0.5] * 5
+    m.render()
+    button = game_env.elements["critter-seal"]
+    assert button.hidden is False and "grey seal" in button.innerText
+    assert "Unseen" in game_env.elements["sightings-list"].innerText
+    button.dispatch("click", None)
+    assert s.sightings == ["seal"] and button.hidden is True
+    assert "Grey seal: seen" in game_env.elements["sightings-list"].innerText
+    assert any("Sightings list" in line for line in s.ticker_log) and any("sighted off the harbour" in e["text"] for e in s.chronicle)
+    assert m.log_sighting("seal") is False and s.sightings == ["seal"]
+    assert m.log_sighting("dragon") is False
+
+
+def test_sightings_save_and_load_safely(game_env):
+    m = game_env.module
+    s = m.state
+    assert "sightings" not in m.get_state()
+    s.sightings = ["seal"]
+    saved = m.get_state()
+    s.sightings = []
+    m.load_state(saved)
+    assert s.sightings == ["seal"]
+    saved["sightings"] = ["whale", "whale", "kraken", 7]
+    m.load_state(saved)
+    assert s.sightings == ["whale"]
+    saved["sightings"] = "oops"
+    m.load_state(saved)
+    assert s.sightings == []

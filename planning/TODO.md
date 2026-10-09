@@ -1,6 +1,6 @@
 # Site-Wide TODO (round 3)
 
-**Progress: 548/1095 items checked off (50.0%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land.
+**Progress: 550/1095 items checked off (50.2%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land.
 
 Built from your answers in `planning/IMPROVEMENT-IDEAS-ROUND-3.md` (Part 4). Every Round 3 section is now answered (2026-10-07 below the Warframe section); earlier this list held only: **GB** (Canopy gamified), **M** (new games), **N** (seasonal events), **O** (Trade Empire and Continuum replayability), **P/Q/S/T** (Signal, Undersleep, Overclock, Last Line open questions), **X** (Warframe tracker) and **R** (returning later). GC-GI, A-L, U, Z and Y are unanswered and wait for you. The previous list is archived at `planning/todo-archive/260914_260927.md`; anything from it that was moved here is marked "moved" there.
 
@@ -409,8 +409,8 @@ Your remaining Round 3 answers (Grid to Drift gamified, SOL to Le Champ de Mots,
 - [x] GD-14: Add a balanced-seasons combo to Tide: investing in all three categories in a season builds an x1.1/x1.2/x1.3 income streak, skipping a category breaks it.
 - [ ] GD-15: Extend Tide's flood flash: tiles in a flooded row ripple in sequence, add a foam edge to the flash, a brief screen shake; shake and ripple must be toggleable and respect reduced motion. (partly built: D8 newly-flooded-row flash exists (.coastline-flash, game.py _previous_flooded_rows).) (no 'glub' text: you confirmed 2026-10-07, consistent with declining GD-29)
 - [ ] GD-16: Add boat traffic to Tide's scene: small boat sprites drift across, more with higher fish yield and population, vanishing after a crash and leaving one abandoned hull; ambient only, off with reduced motion.
-- [ ] GD-17: Add harbor-master crew quips to Tide: one-line ticker voice triggered by real state changes ('Wall's holding, boss. Ask me again in five seasons.'), hidden by the existing shared Story toggle plus its own mute switch in Settings.
-- [ ] GD-18: Add secret coastline critters to Tide: after set conditions (low acidity for 5 seasons; a heritage site saved through a storm) a seal or whale fin appears on the scene and can be clicked to log it in a Sightings list.
+- [x] GD-17: Add harbor-master crew quips to Tide: one-line ticker voice triggered by real state changes ('Wall's holding, boss. Ask me again in five seasons.'), hidden by the existing shared Story toggle plus its own mute switch in Settings.
+- [x] GD-18: Add secret coastline critters to Tide: after set conditions (low acidity for 5 seasons; a heritage site saved through a storm) a seal or whale fin appears on the scene and can be clicked to log it in a Sightings list.
 - [x] GD-19: Add a pin-a-goal banner to Tide: pick one personal goal from a dropdown ('Keep 4 rows dry', 'Reach 200 population') with a small progress bar under the header and a ping when reached.
 - [x] GD-20: Add Rewind Tide to Tide: one charge per run retracts the last Advance Season and marks the run with a small tin-hat icon in the summary so records stay honest.
 - [x] GD-21: Show the Tide storm forecast as a range with a chance to overtop seawalls ('surge 18-26, 70% to overtop Seawalls') drawn as a small bell-curve chip.

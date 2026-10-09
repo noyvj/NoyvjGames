@@ -156,6 +156,13 @@
           Plain-language labels (everyday words instead of jargon like dampening and lag)
         </label>
       </div>
+      <!-- GD-17: the harbour master's one-line quips; the shared Story toggle hides them too. -->
+      <div class="settings-row">
+        <label class="settings-checkbox-label" for="quips-mute-checkbox">
+          <input type="checkbox" id="quips-mute-checkbox">
+          Mute the harbour master's one-line quips
+        </label>
+      </div>
       <div class="settings-row">
         <button id="settings-reset-button" class="secondary" type="button">Reset to Default</button>
       </div>
@@ -315,6 +322,14 @@
       <div class="tide-scene-fish tide-scene-fish--b"></div>
       <div class="tide-scene-wave tide-scene-wave--front"></div>
     </div>
+
+    <!-- GD-18: critters that surface when set conditions are met; click one to log it. GD-17: the harbour master's one-liner. -->
+    <div id="critter-row" class="critter-row">
+      <button id="critter-seal" class="secondary critter-button" type="button" hidden></button>
+      <button id="critter-whale" class="secondary critter-button" type="button" hidden></button>
+    </div>
+    <p id="harbor-quip" class="harbor-quip" role="status" hidden></p>
+    <p id="sightings-list" class="comparison-message sightings-list"></p>
 
     <button id="info-page-toggle-button" class="secondary info-page-toggle">Loading...</button>
     <div id="info-page-panel" class="section" hidden>
@@ -740,7 +755,7 @@
   <script src="../../shared/hub-auth.js"></script>
   <script src="../../shared/save-widget.js" data-game-id="tide"></script>
   <script src="../../shared/opening-screen.js" data-game-id="tide" data-tagline="Defend a coastal settlement against a rising sea." data-game-name="Tide"></script>
-  <script src="../../shared/story-toggle.js" data-game-id="tide" data-story-selectors="#ticker-log, .ticker-history-toggle, #ticker-history-list"></script>
+  <script src="../../shared/story-toggle.js" data-game-id="tide" data-story-selectors="#ticker-log, .ticker-history-toggle, #ticker-history-list, #harbor-quip"></script>
   <script src="../../shared/last-played.js" data-game-id="tide"></script>
   <script src="../../shared/whats-new-banner.js" data-game-id="tide"></script>
   <script src="../../shared/achievement-stats.js" data-game-id="tide"></script>

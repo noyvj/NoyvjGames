@@ -1808,6 +1808,11 @@ html[data-reduced-motion="true"] .season-report-card { animation: none; }
 /* D-30 (2026-10-09): every looping animation stops while the tab is hidden or the device is low on power (ui.js sets the attribute). */
 html[data-anim-paused="true"] *, html[data-anim-paused="true"] *::before, html[data-anim-paused="true"] *::after { animation-play-state: paused !important; }
 
+/* GD-17 / GD-18 (2026-10-09). */
+.critter-row { display: flex; flex-wrap: wrap; gap: 0.5rem; margin: 0.3rem 0; }
+.harbor-quip { margin: 0.2rem 0; font-style: italic; }
+.sightings-list { font-size: 0.85rem; }
+
 /* ============================================================
    Y11b light-theme polish (2026-09-27). Light-only rules from a
    computed-style WCAG contrast scan of the light theme (fresh game, 46

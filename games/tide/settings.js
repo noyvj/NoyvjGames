@@ -98,6 +98,20 @@
     const increaseButton = document.getElementById("text-size-increase-button");
     const resetButton = document.getElementById("text-size-reset-button");
     const motionCheckbox = document.getElementById("reduced-motion-checkbox");
+    const quipCheckbox = document.getElementById("quips-mute-checkbox");
+    if (quipCheckbox) {
+      var QUIP_KEY = "tide-quips-muted";
+      try { quipCheckbox.checked = window.localStorage.getItem(QUIP_KEY) === "true"; } catch (e) { quipCheckbox.checked = false; }
+      quipCheckbox.addEventListener("change", function () {
+        try { window.localStorage.setItem(QUIP_KEY, String(quipCheckbox.checked)); } catch (e) { /* not saved */ }
+        var render = window.pyodide && window.pyodide.globals && window.pyodide.globals.get("render");
+        if (quipCheckbox.checked) {
+          var clear = window.pyodide && window.pyodide.globals && window.pyodide.globals.get("speak_quip");
+          if (clear) clear();
+        }
+        if (render) render();
+      });
+    }
     const plainCheckbox = document.getElementById("plain-labels-checkbox");
     if (plainCheckbox) {
       var PLAIN_KEY = "tide-plain-labels";

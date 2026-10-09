@@ -9,6 +9,10 @@
       "entry": "Investing in all three categories in one season now builds a balanced-seasons income streak (x1.1, x1.2, then x1.3 on that season's income); skipping a category breaks it. When three or more rows flood in one season it is called a Domino season, and adaptation costs 25% less for the next two seasons. Protect a heritage site when its row is about to flood and you get a SAVED! lifeboat moment and a chronicle entry. After each Advance Season a one-second report card shows funds, acidity and fish changes with arrows and the words good or watch (it is skipped with reduced motion). A Rewind button retracts your last Advance click once per run and marks the run with a tin hat. Finishing 20 seasons in Hard Lag with no Rewind and no checkpoint replay earns a gold anchor next to the title. Clicks and active seconds to the top adaptation tier are tracked, with your best kept in this browser and shown in the session summary. The storm forecast now shows a range with a chance to overtop your current seawalls and a small bell-curve chip with the wall height marked and labelled. Settings has a Plain-language labels option that swaps jargon (dampening, lag, adaptation, output) for everyday words in the buttons and tier lines. The looping scene and meter animations now pause while the tab is hidden or the device is on low battery."
     },
     {
+      "date": "2026-10-09",
+      "entry": "The harbour master now has a one-line quip after each season that reflects what really happened (a flooded row, a storm brewing, thin fish, a quiet stretch, a rescued site); mute it in Settings, and the shared Story toggle hides it too. Secret critters surface when you earn them: a grey seal after five low-acidity seasons, a whale fin when a protected heritage site has come through a storm. Click one to log it in the new Sightings list."
+    },
+    {
       "date": "2026-10-08",
       "entry": "New: a line under the ocean acidity shows what acidity was three seasons ago and whether it is up, down or unchanged now, so the delay between what you did and what the fish feel is visible as numbers."
     },
@@ -30,59 +34,23 @@
     },
     {
       "date": "2026-09-27",
-      "entry": "A faint glint now travels along a coastline held by the top-tier storm-surge barriers (motion only; off for reduced motion) (R-19)."
-    },
-    {
-      "date": "2026-09-27",
-      "entry": "Light theme polish: dimmed captions, the pale info bubble, the earned-achievement teal, the fishing warning banner and the selected feedback button were darkened for readable contrast on the light theme, and the coastline grid gets a visible edge. The land and flooded tiles themselves already passed. Dark mode is unchanged (Y11b)."
+      "entry": "A faint glint now travels along a coastline held by the top-tier storm-surge barriers (motion only; off for reduced motion) (R-19). Light theme polish: dimmed captions, the pale info bubble, the earned-achievement teal, the fishing warning banner and the selected feedback button were darkened for readable contrast on the light theme, and the coastline grid gets a visible edge. The land and flooded tiles themselves already passed. Dark mode is unchanged (Y11b)."
     },
     {
       "date": "2026-09-26",
-      "entry": "Community seawall comparison: a line showing the median season other players first reached each seawall tier (sandbag berms, seawalls, reinforced seawalls, storm-surge barriers), shown only for tiers with enough data (D9)."
-    },
-    {
-      "date": "2026-09-26",
-      "entry": "Sister settlement: add a second, lower-lying coastal settlement that shares your funds and seawall tier but faces the sea harder (D3)."
+      "entry": "Community seawall comparison: a line showing the median season other players first reached each seawall tier (sandbag berms, seawalls, reinforced seawalls, storm-surge barriers), shown only for tiers with enough data (D9). Sister settlement: add a second, lower-lying coastal settlement that shares your funds and seawall tier but faces the sea harder (D3)."
     },
     {
       "date": "2026-09-22",
-      "entry": "Achievement cards now show \"Earned by N% of players\" once enough real save data exists for that achievement (site-wide goal, Z1/Z27b)."
-    },
-    {
-      "date": "2026-09-22",
-      "entry": "Added a keyboard-shortcuts help overlay: press ? to see it, Esc to close it or whichever panel is open (site-wide goal, Z4)."
+      "entry": "Achievement cards now show \"Earned by N% of players\" once enough real save data exists for that achievement (site-wide goal, Z1/Z27b). Added a keyboard-shortcuts help overlay: press ? to see it, Esc to close it or whichever panel is open (site-wide goal, Z4)."
     },
     {
       "date": "2026-09-21",
-      "entry": "Settings panel: added a \"Reset to Default\" button that resets text size and reduce-motion back to their defaults in one click (site-wide goal, folded from A26)."
-    },
-    {
-      "date": "2026-09-21",
-      "entry": "Session Summary is now print-friendly: printing the page (e.g. Ctrl/Cmd+P) while it's open hides the site chrome and renders the summary in clean dark-on-white, instead of the site's usual dark theme and UI."
-    },
-    {
-      "date": "2026-09-21",
-      "entry": "Fixed a display bug where the Achievements panel showed as an empty box before its first open and never visually closed again once opened once."
-    },
-    {
-      "date": "2026-09-21",
-      "entry": "Round-3 additions, all in collapsed panels: delayed-consequence timeline, a tide indicator, settlement name and chronicle, coastal heritage sites, citizen-science monitoring reports, opt-in storm seasons, managed retreat, population and displacement, economy diversification, and checkpoint replay with foresight."
-    },
-    {
-      "date": "2026-09-21",
-      "entry": "D4: a small decorative wave cue next to the sea-level meter, speeding up as sea level rises — cosmetic only, doesn't change the meter's own numbers."
-    },
-    {
-      "date": "2026-09-21",
-      "entry": "Z6: the personal-best label's \"just improved\" badge flash moved into the new shared shared/personal-best.css (also used by Canopy and Thaw) instead of a per-game copy of the same rule."
+      "entry": "Settings panel: added a \"Reset to Default\" button that resets text size and reduce-motion back to their defaults in one click (site-wide goal, folded from A26). Session Summary is now print-friendly: printing the page (e.g. Ctrl/Cmd+P) while it's open hides the site chrome and renders the summary in clean dark-on-white, instead of the site's usual dark theme and UI. Fixed a display bug where the Achievements panel showed as an empty box before its first open and never visually closed again once opened once. Round-3 additions, all in collapsed panels: delayed-consequence timeline, a tide indicator, settlement name and chronicle, coastal heritage sites, citizen-science monitoring reports, opt-in storm seasons, managed retreat, population and displacement, economy diversification, and checkpoint replay with foresight. D4: a small decorative wave cue next to the sea-level meter, speeding up as sea level rises — cosmetic only, doesn't change the meter's own numbers. Z6: the personal-best label's \"just improved\" badge flash moved into the new shared shared/personal-best.css (also used by Canopy and Thaw) instead of a per-game copy of the same rule."
     },
     {
       "date": "2026-09-20",
-      "entry": "Round-2 pass: sea-level scenario select (conservative/moderate/severe), a seasons-survived counter, a fish-stock recovery celebration, worst-season cause, a suggested action on the fish-yield warning, live output-mix preview, dashed average and baseline markers on the acidity graph, a then-vs-now damage sparkline, per-tier seawall textures and a tier badge, and per-tile seasons-until-flood tooltips."
-    },
-    {
-      "date": "2026-09-20",
-      "entry": "Output-mix dropdown (Fishing/Mixed/Industry) now states its acidity-rate and fish-crash trade-off directly in the option labels and a tooltip."
+      "entry": "Round-2 pass: sea-level scenario select (conservative/moderate/severe), a seasons-survived counter, a fish-stock recovery celebration, worst-season cause, a suggested action on the fish-yield warning, live output-mix preview, dashed average and baseline markers on the acidity graph, a then-vs-now damage sparkline, per-tier seawall textures and a tier badge, and per-tile seasons-until-flood tooltips. Output-mix dropdown (Fishing/Mixed/Industry) now states its acidity-rate and fish-crash trade-off directly in the option labels and a tooltip."
     },
     {
       "date": "2026-09-19",
@@ -90,11 +58,7 @@
     },
     {
       "date": "2026-09-15",
-      "entry": "20 achievements added: investment milestones, all four adaptation tiers, coastline flood progression, the delayed fish-stock crash and recovery, and more — with an in-game panel, unlock toast, and hub link."
-    },
-    {
-      "date": "2026-09-15",
-      "entry": "Post-launch pass (D1-D19): mobile action dock, a fourth adaptation tier (storm-surge barriers), a next-flood estimate, an expandable ticker history, a counterfactual \"what if\" replay, an end-of-session summary, a harder-lag difficulty mode, a fish-yield-crash early warning, and per-tile flood-threshold tooltips."
+      "entry": "20 achievements added: investment milestones, all four adaptation tiers, coastline flood progression, the delayed fish-stock crash and recovery, and more — with an in-game panel, unlock toast, and hub link. Post-launch pass (D1-D19): mobile action dock, a fourth adaptation tier (storm-surge barriers), a next-flood estimate, an expandable ticker history, a counterfactual \"what if\" replay, an end-of-session summary, a harder-lag difficulty mode, a fish-yield-crash early warning, and per-tile flood-threshold tooltips."
     },
     {
       "date": "2026-09-05",
@@ -106,11 +70,7 @@
     },
     {
       "date": "2026-08-18",
-      "entry": "Info Page added with curated real-world sources on ocean acidification and sea-level rise."
-    },
-    {
-      "date": "2026-08-18",
-      "entry": "Pass 2: adaptation tech tree with per-tier dampening and a matching coastline seawall visual."
+      "entry": "Info Page added with curated real-world sources on ocean acidification and sea-level rise. Pass 2: adaptation tech tree with per-tier dampening and a matching coastline seawall visual."
     },
     {
       "date": "2026-08-11",
