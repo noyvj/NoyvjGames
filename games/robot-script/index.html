@@ -38,6 +38,7 @@
   <div class="game-toolbar">
     <button id="tutorial-restart-button" type="button" aria-label="Tutorial"><span class="btn-long">Tutorial</span><span class="btn-short" aria-hidden="true">Tour</span></button>
     <button id="rooms-toggle-button" type="button" aria-expanded="false" aria-controls="rooms-panel">Rooms</button>
+    <button id="achievements-toggle-button" type="button" aria-expanded="false" aria-controls="achievements-panel">Achievements</button>
     <button id="workshop-toggle-button" type="button" aria-expanded="false" aria-controls="workshop-panel">Workshop</button>
     <button id="changelog-toggle-button" type="button" aria-expanded="false" aria-controls="changelog-panel"><span class="btn-long">What's New</span><span class="btn-short" aria-hidden="true">News</span></button>
     <button id="settings-toggle-button" type="button" aria-expanded="false" aria-controls="settings-panel">Settings</button>
@@ -49,6 +50,11 @@
     <p class="note">A chapter opens once five rooms of the one before are cleared. Inside a chapter, play any room in any order. The medal on a room is for the shortest list you have cleared it with.</p>
     <div id="rooms-body" class="rooms-body"></div>
     <section id="sandbox-entry" class="chapter"></section>
+  </section>
+  <section id="achievements-panel" class="panel" hidden aria-labelledby="ach-heading">
+    <h2 id="ach-heading">Achievements</h2>
+    <p class="note">Every one can be earned in any order, with no luck and no deadline, and each shows how close you are.</p>
+    <ul id="achievements-list" class="ach-list"></ul>
   </section>
   <section id="workshop-panel" class="panel" hidden aria-labelledby="workshop-heading">
     <h2 id="workshop-heading">Workshop</h2>
@@ -235,6 +241,7 @@
   window.KeyboardShortcuts.init({
     panels: [
       { toggle: "rooms-toggle-button", panel: "rooms-panel" },
+      { toggle: "achievements-toggle-button", panel: "achievements-panel" },
       { toggle: "workshop-toggle-button", panel: "workshop-panel" },
       { toggle: "changelog-toggle-button", panel: "changelog-panel" },
       { toggle: "settings-toggle-button", panel: "settings-panel" },

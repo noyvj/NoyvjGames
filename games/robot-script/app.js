@@ -35,6 +35,7 @@
   function showToast(text) {
     var t = $("toast");
     t.textContent = text;
+    t.classList.toggle("on", Boolean(text));
   }
   function plural(n, one, many) { return n + " " + (n === 1 ? one : many); }
 
@@ -612,6 +613,36 @@
       list.appendChild(li);
     });
   }
+  var knownEarned = null;
+  function renderAchievements() {
+    var list = $("achievements-list");
+    var earnedNow = [];
+    var sig = view.achievements.map(function (a) { return a.id + a.have; }).join(",");
+    if (list.dataset.sig !== sig) {
+      list.dataset.sig = sig;
+      list.textContent = "";
+      view.achievements.forEach(function (a) {
+        var li = el("li", a.earned ? "earned" : "");
+        li.setAttribute("data-achievement-id", a.id);
+        li.appendChild(el("span", "tick", a.earned ? "Earned" : a.have + "/" + a.need));
+        var name = el("strong", null, " " + a.label + " ");
+        name.setAttribute("data-achievement-label", "");
+        li.appendChild(name);
+        li.appendChild(el("span", null, a.description));
+        list.appendChild(li);
+      });
+    }
+    view.achievements.forEach(function (a) { if (a.earned) earnedNow.push(a.id); });
+    $("achievements-toggle-button").textContent = "Achievements (" + earnedNow.length + "/" + view.achievements.length + ")";
+    if (knownEarned !== null) {
+      earnedNow.filter(function (id) { return knownEarned.indexOf(id) === -1; }).forEach(function (id) {
+        var a = view.achievements.filter(function (x) { return x.id === id; })[0];
+        showToast("Achievement unlocked: " + a.label + ".");
+        announce("Achievement unlocked: " + a.label + ".");
+      });
+    }
+    knownEarned = earnedNow;
+  }
   function renderWorkshop() {
     var s = view.scrap;
     var sig = s.svg + s.found;
@@ -663,6 +694,7 @@
     renderProgram();
     renderRooms();
     renderGoalStrip();
+    renderAchievements();
     renderWorkshop();
     renderHints();
     syncPlayButtons();
@@ -683,6 +715,7 @@
     if (result.error) { $("engine-status").textContent = "Something went wrong: " + result.error; return null; }
     if (isEdit && result.ok) invalidateRun();
     view = result;
+    showToast("");
     if (request.action === "pick" || request.action === "next" || request.action === "reset") invalidateRun();
     render();
     var edit = $("edit-line");
@@ -732,6 +765,7 @@
     $("toast").addEventListener("click", function () { showToast(""); });
     wirePanelToggle("rooms-toggle-button", "rooms-panel");
     wirePanelToggle("workshop-toggle-button", "workshop-panel");
+    wirePanelToggle("achievements-toggle-button", "achievements-panel");
     $("hint-button").addEventListener("click", function () { send({ action: "hint" }); });
     $("answer-load-button").addEventListener("click", function () { send({ action: "load_answer" }, true); });
     wirePanelToggle("changelog-toggle-button", "changelog-panel");

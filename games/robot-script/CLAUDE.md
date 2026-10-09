@@ -32,7 +32,7 @@ Give a maintenance robot a short list of instructions to clear a room (Lightbot 
 | 3 | Chapters 2-3, medals, hints | 14 rooms (Turning checked against the solver, Loops checked to need the loop), gating at 5 of 7, hint ladder (`hints.py`), three-goals strip (`achievements.py` facts), Scrap and the Workshop (`companion.py`) | Done |
 | 4 | Chapters 4-6 and the sandbox | 19 rooms (40 in all: `rooms_routines.py`, `rooms_branches.py`, `rooms_capstone.py`; routine rooms drawn around their reference with `tools/author.py`) and the free sandbox (`sandbox.py`). First complete game | Done |
 | 5 | Standard kit | Opening screen, save widget, tutorial (9 steps), About with the pledge, What's New + banner, keyboard help, confirm dialogs (reset, sandbox preset), settings (text size, run speed, reduce motion, effects, high contrast, theme), contrast and shape tests, pledge tests | Done |
-| 6 | Achievements | 14 achievements, panel, toast, manifest | Planned |
+| 6 | Achievements | 14 achievements (`achievements.py` + `achievements.json`, `achievements_earned` written to the save and never read back), panel with progress numbers, toast, share button via the shared script; perfect-play test earns all 14 | Done |
 | 7 | Desktop boot and wrap-up | `pc-config.json`, `pc.css`, `pc.js`, generated `pc.html`, docs | Planned |
 
 ## Working conventions

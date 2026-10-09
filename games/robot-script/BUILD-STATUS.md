@@ -13,8 +13,10 @@ Updated after every milestone. Read `planning/robot-script-plan.md`, `CLAUDE.md`
 
 - M5 Standard kit: tutorial + hook for the Desktop steps, accessibility and pledge tests, light-theme contrast fixes; 254 tests; opening screen and tutorial offer verified live.
 
+- M6 Achievements: achievements.json, panel, toast; 260 tests; checked live (First Light toast, panel with share).
+
 ## Next
-- M6 Achievements (panel, toast, manifest, share).
+- M7 Desktop boot (pc-config.json, pc.css, pc.js, generated pc.html), docs, final checks.
 
 ## Open problems / notes
 - Local Python is 3.9: engine code avoids 3.10+ syntax.

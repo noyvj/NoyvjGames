@@ -1,0 +1,74 @@
+{
+  "achievements": [
+    {
+      "id": "first_light",
+      "label": "First Light",
+      "description": "Clear your first room."
+    },
+    {
+      "id": "ten_down",
+      "label": "Ten Down",
+      "description": "Clear 10 rooms."
+    },
+    {
+      "id": "chapter_closed",
+      "label": "Chapter Closed",
+      "description": "Clear every room of one chapter."
+    },
+    {
+      "id": "halfway_there",
+      "label": "Halfway There",
+      "description": "Clear every room of 3 chapters."
+    },
+    {
+      "id": "shift_done",
+      "label": "Shift Done",
+      "description": "Clear every room of every chapter."
+    },
+    {
+      "id": "fine_work",
+      "label": "Fine Work",
+      "description": "Earn 5 gold medals."
+    },
+    {
+      "id": "clockwork",
+      "label": "Clockwork",
+      "description": "Earn 20 gold medals."
+    },
+    {
+      "id": "perfect_script",
+      "label": "Perfect Script",
+      "description": "Earn a gold medal in every room."
+    },
+    {
+      "id": "loop_the_loop",
+      "label": "Loop the Loop",
+      "description": "Clear a room with a repeat block."
+    },
+    {
+      "id": "phone_a_friend",
+      "label": "Phone a Friend",
+      "description": "Clear a room by calling a routine."
+    },
+    {
+      "id": "two_minds",
+      "label": "Two Minds",
+      "description": "Clear a room with an if or until block."
+    },
+    {
+      "id": "learned_from_a_bump",
+      "label": "Learned From a Bump",
+      "description": "Clear a room after a run that stopped short."
+    },
+    {
+      "id": "second_opinion",
+      "label": "Second Opinion",
+      "description": "Climb the whole hint ladder in one room: nudge, hint, answer."
+    },
+    {
+      "id": "tinkerer",
+      "label": "Tinkerer",
+      "description": "Run 10 lists in the sandbox."
+    }
+  ]
+}
