@@ -3895,11 +3895,39 @@ def storm_forecast_text():
     )
 
 
+# D-29 (2026-10-09): plain-language label mode (Settings). Longest phrases first so "damage dampening" wins over "dampening".
+PLAIN_LABELS_KEY = "tide-plain-labels"
+PLAIN_REPLACEMENTS = (
+    ("Harder Lag", "Slower fish effects"),
+    ("Acidity Reduction", "Cut acidity"),
+    ("damage dampening", "damage protection"),
+    ("dampening", "protection"),
+    ("Adaptation", "Sea defences"),
+    ("adaptation", "sea defences"),
+    ("Output", "Income"),
+    ("delay", "delay"),
+    ("lag", "delay"),
+)
+
+
+def plain_labels_on():
+    return _read_local_storage_item(PLAIN_LABELS_KEY) == "true"
+
+
+def plain(text):
+    """The text in everyday words when the setting is on, otherwise unchanged."""
+    if not plain_labels_on() or not isinstance(text, str):
+        return text
+    for old, new in PLAIN_REPLACEMENTS:
+        text = text.replace(old, new)
+    return text
+
+
 def render_hard_lag_toggle():
     """D9: keeps the toggle button's label in sync with the live mode."""
     button = document.getElementById("hard-lag-toggle-button")
     if button is not None:
-        button.innerText = (
+        button.innerText = plain(
             "Harder Lag: On (turn off)" if state.hard_lag_mode else "Harder Lag: Off (turn on)"
         )
 
@@ -4420,10 +4448,10 @@ def render():
     document.getElementById("damage-saved-display").innerText = damage_saved_message(state.damage_saved())
     document.getElementById("damage-trend-display").innerText = damage_trend_message(state.damage_trend())
     tier = state.current_tier()
-    document.getElementById("adaptation-tier-display").innerText = (
+    document.getElementById("adaptation-tier-display").innerText = plain(
         f"Adaptation tier: {tier['name']} ({tier['dampening'] * 100:.0f}% damage dampening)"
     )
-    document.getElementById("adaptation-tier-progress").innerText = state.next_tier_progress_text()
+    document.getElementById("adaptation-tier-progress").innerText = plain(state.next_tier_progress_text())
 
     # D3: seasons until the next currently-unflooded row goes under.
     next_flood_el = document.getElementById("next-flood-display")
@@ -4500,7 +4528,7 @@ def render():
         invest_button.disabled = state.funds < state.invest_cost(category)
         # D-7: three buttons all reading "Invest (30)" are ambiguous to a screen reader.
         invest_button.setAttribute(
-            "aria-label", f"Invest {state.invest_cost(category)} funds in {INVEST_LABELS[category]}"
+            "aria-label", plain(f"Invest {state.invest_cost(category)} funds in {INVEST_LABELS[category]}")
         )
 
     render_output_mix_controls()

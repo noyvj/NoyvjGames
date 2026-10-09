@@ -242,6 +242,25 @@
     if (key) safeSet(key, details.open ? "1" : "0");
   }, true);
 
+  // ---- D-30 pause the looping animations while nobody is looking, or when the device is low on power ----
+  // Sets data-anim-paused on <html>; style.css turns every animation off under it. Both signals only ever
+  // pause: the page works the same with them unavailable.
+  var lowPower = false;
+  function syncAnimationPause() {
+    var paused = document.visibilityState === "hidden" || lowPower;
+    document.documentElement.setAttribute("data-anim-paused", paused ? "true" : "false");
+  }
+  document.addEventListener("visibilitychange", syncAnimationPause);
+  if (navigator.getBattery) {
+    navigator.getBattery().then(function (battery) {
+      function update() { lowPower = !battery.charging && battery.level <= 0.2; syncAnimationPause(); }
+      battery.addEventListener("levelchange", update);
+      battery.addEventListener("chargingchange", update);
+      update();
+    }).catch(function () { /* no battery info: only the hidden-tab rule applies */ });
+  }
+  syncAnimationPause();
+
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", restoreDetails);
   else restoreDetails();
 })();

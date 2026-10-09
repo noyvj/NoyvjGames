@@ -144,6 +144,13 @@
           Reduce motion (disables animations/transitions)
         </label>
       </div>
+      <!-- D-29: everyday words instead of jargon (dampening, lag, output mix). -->
+      <div class="settings-row">
+        <label class="settings-checkbox-label" for="plain-labels-checkbox">
+          <input type="checkbox" id="plain-labels-checkbox">
+          Plain-language labels (everyday words instead of jargon like dampening and lag)
+        </label>
+      </div>
       <div class="settings-row">
         <button id="settings-reset-button" class="secondary" type="button">Reset to Default</button>
       </div>
@@ -559,7 +566,7 @@
     <div id="actions-dock">
       <div id="investments" class="section">
         <div class="invest-row" data-category="output">
-          <span class="invest-name">Output</span>
+          <span class="invest-name" data-plain="Income">Output</span>
           <span class="invest-count" id="output-count">0</span>
           <button id="output-invest-button" class="secondary" disabled>Loading...</button>
         </div>
@@ -576,12 +583,12 @@
         <!-- D22: live per-season trade-off of each mix at current capacity. -->
         <p id="output-mix-preview" class="comparison-message output-mix-preview"></p>
         <div class="invest-row" data-category="reduction">
-          <span class="invest-name">Acidity Reduction</span>
+          <span class="invest-name" data-plain="Cut acidity">Acidity Reduction</span>
           <span class="invest-count" id="reduction-count">0</span>
           <button id="reduction-invest-button" class="secondary" disabled>Loading...</button>
         </div>
         <div class="invest-row" data-category="adaptation">
-          <span class="invest-name">Adaptation</span>
+          <span class="invest-name" data-plain="Sea defences">Adaptation</span>
           <span class="invest-count" id="adaptation-count">0</span>
           <span id="adaptation-tier-badge" class="tier-badge" aria-hidden="true">⚪</span>
           <button id="adaptation-invest-button" class="secondary" disabled>Loading...</button>

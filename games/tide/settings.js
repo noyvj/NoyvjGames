@@ -98,6 +98,26 @@
     const increaseButton = document.getElementById("text-size-increase-button");
     const resetButton = document.getElementById("text-size-reset-button");
     const motionCheckbox = document.getElementById("reduced-motion-checkbox");
+    const plainCheckbox = document.getElementById("plain-labels-checkbox");
+    if (plainCheckbox) {
+      var PLAIN_KEY = "tide-plain-labels";
+      var plainOn = false;
+      try { plainOn = window.localStorage.getItem(PLAIN_KEY) === "true"; } catch (e) { plainOn = false; }
+      plainCheckbox.checked = plainOn;
+      var applyPlainStatic = function (on) {
+        document.querySelectorAll("[data-plain]").forEach(function (el) {
+          if (el.dataset.original === undefined) el.dataset.original = el.textContent;
+          el.textContent = on ? el.getAttribute("data-plain") : el.dataset.original;
+        });
+      };
+      applyPlainStatic(plainOn);
+      plainCheckbox.addEventListener("change", function () {
+        try { window.localStorage.setItem(PLAIN_KEY, String(plainCheckbox.checked)); } catch (e) { /* not saved */ }
+        applyPlainStatic(plainCheckbox.checked);
+        var render = window.pyodide && window.pyodide.globals && window.pyodide.globals.get("render");
+        if (render) render();
+      });
+    }
 
     if (motionCheckbox) {
       motionCheckbox.checked = reduced;

@@ -1805,6 +1805,9 @@ html[data-reduced-motion="true"] .season-report-card { animation: none; }
 .storm-bell-chip { max-width: 180px; }
 .storm-bell { width: 100%; height: auto; display: block; }
 
+/* D-30 (2026-10-09): every looping animation stops while the tab is hidden or the device is low on power (ui.js sets the attribute). */
+html[data-anim-paused="true"] *, html[data-anim-paused="true"] *::before, html[data-anim-paused="true"] *::after { animation-play-state: paused !important; }
+
 /* ============================================================
    Y11b light-theme polish (2026-09-27). Light-only rules from a
    computed-style WCAG contrast scan of the light theme (fresh game, 46

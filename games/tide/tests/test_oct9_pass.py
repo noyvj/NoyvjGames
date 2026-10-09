@@ -600,3 +600,48 @@ def test_forecast_text_and_bell_show_the_range_and_a_label(game_env):
     s.set_storm_mode(False)
     m.render()
     assert game_env.elements["storm-bell"].innerHTML == ""
+
+
+# ---- D-29 plain labels, D-30 animation pause (file checks for the browser-only part) ----
+
+def test_plain_text_replaces_jargon_only_when_on(game_env, storage):
+    m = game_env.module
+    original = "Adaptation tier: Seawalls (60% damage dampening) after lag"
+    assert m.plain(original) == original
+    storage[m.PLAIN_LABELS_KEY] = "true"
+    out = m.plain(original)
+    assert "Sea defences tier" in out and "damage protection" in out and "delay" in out
+    assert "dampening" not in out and "Adaptation" not in out
+    assert m.plain("Harder Lag: Off (turn on)") == "Slower fish effects: Off (turn on)"
+    assert m.plain(5) == 5
+
+
+def test_render_uses_the_plain_words(game_env, storage):
+    m = game_env.module
+    storage[m.PLAIN_LABELS_KEY] = "true"
+    m.render()
+    assert "protection" in game_env.elements["adaptation-tier-display"].innerText
+    assert "dampening" not in game_env.elements["adaptation-tier-display"].innerText
+    assert "Sea defences" in game_env.elements["adaptation-invest-button"].getAttribute("aria-label")
+    assert game_env.elements["hard-lag-toggle-button"].innerText.startswith("Slower fish effects")
+    storage[m.PLAIN_LABELS_KEY] = "false"
+    m.render()
+    assert "dampening" in game_env.elements["adaptation-tier-display"].innerText
+
+
+def test_settings_and_page_carry_the_plain_label_pieces():
+    from pathlib import Path
+    root = Path(__file__).resolve().parent.parent
+    html = (root / "index.html").read_text(encoding="utf-8")
+    js = (root / "settings.js").read_text(encoding="utf-8")
+    assert 'id="plain-labels-checkbox"' in html and html.count('data-plain="') == 3
+    assert "tide-plain-labels" in js and 'globals.get("render")' in js
+
+
+def test_ui_and_css_pause_animations_when_hidden_or_low_power():
+    from pathlib import Path
+    root = Path(__file__).resolve().parent.parent
+    js = (root / "ui.js").read_text(encoding="utf-8")
+    css = (root / "style.css").read_text(encoding="utf-8")
+    assert 'visibilityState === "hidden"' in js and "data-anim-paused" in js and "getBattery" in js
+    assert 'html[data-anim-paused="true"] *' in css and "animation-play-state: paused" in css
