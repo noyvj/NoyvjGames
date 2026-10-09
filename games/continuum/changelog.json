@@ -1,6 +1,10 @@
 [
   {
     "date": "2026-10-09",
+    "entry": "New: Standing Orders. Pick if/then rules from menus (for example: if food stored falls below 2 seasons of eating, move 1 person from idle people to foragers) and the council carries them out after every season, with no code to write. Five slots open as you learn community discoveries (the first with Shared Hearth), more triggers appear with the discovery that makes them worth watching (land health, materials, pollution, sprawl, technical debt), and every firing is written into the Council Minutes. Orders only do what you could do by hand, can be paused one by one or all at once, and never run during a Look Back."
+  },
+  {
+    "date": "2026-10-09",
     "entry": "New: the Dynasty. Every settlement you play can bank Legacy points when it ends (you found a new one, it collapses, or you press the button), with half again as many on Hard Mode. They buy permanent perks from a skill tree: a little more food, tools, materials, knowledge or one extra person at the start, a few small standing habits of two or three percent, and three new starting scenarios (Hardier Tribe, River Valley, Library Heirloom). Perks rest during a challenge run or consulting case, can be switched off, and refunds are free. Your Dynasty rank only goes up."
   },
   {

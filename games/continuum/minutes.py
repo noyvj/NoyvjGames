@@ -15,14 +15,16 @@ what the player DECIDED.
 import sim
 
 MAX_ENTRIES = 80
-TEXT_MAX = 160
+TEXT_MAX = 200
 KEY = "policy_log"
-KINDS = ("research", "build", "era")
+KINDS = ("research", "build", "era", "order")
 
 _VERB = {
     "research": "Motion carried: the council resolves to study {subject}.",
     "build": "Motion carried: the council resolves to build {subject}.",
     "era": "Motion carried: the settlement enters {subject}.",
+    # K-1: a standing order carried out by itself (orders.py); `subject` is the whole sentence.
+    "order": "Standing order: {subject}",
 }
 
 
@@ -30,12 +32,27 @@ def motion_text(kind, subject):
     return _VERB[kind].format(subject=subject)
 
 
+def _trim(items):
+    """Keep the newest MAX_ENTRIES. When over, the council's own standing-order lines go first
+    (oldest first) so a chatty rule can never push the player's real decisions out."""
+    over = len(items) - MAX_ENTRIES
+    if over <= 0:
+        return items
+    out = []
+    for item in items:
+        if over > 0 and item["kind"] == "order":
+            over -= 1
+            continue
+        out.append(item)
+    return out[-MAX_ENTRIES:]
+
+
 def clean(raw):
     """Validated entries from whatever a save handed back (may be junk)."""
     if not isinstance(raw, list):
         return []
     out = []
-    for item in raw[-MAX_ENTRIES:]:
+    for item in raw[-(MAX_ENTRIES * 3):]:
         if not isinstance(item, dict):
             continue
         kind, era, season, text = item.get("kind"), item.get("era"), item.get("season"), item.get("text")
@@ -46,7 +63,7 @@ def clean(raw):
         if not isinstance(text, str) or not text.strip():
             continue
         out.append({"kind": kind, "era": era, "season": season, "text": text[:TEXT_MAX]})
-    return out
+    return _trim(out)
 
 
 def entries(ui):
@@ -61,5 +78,5 @@ def record(ui, kind, subject, era, season):
         return False
     log = entries(ui)
     log.append({"kind": kind, "era": era, "season": season, "text": motion_text(kind, subject.strip())[:TEXT_MAX]})
-    ui[KEY] = log[-MAX_ENTRIES:]
+    ui[KEY] = _trim(log)
     return True

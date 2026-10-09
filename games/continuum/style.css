@@ -1856,6 +1856,18 @@ body.screensaver-on #game, body.screensaver-on .section { backdrop-filter: none 
 .archive-flair { display: flex; align-items: center; gap: 0.5rem; margin-top: 0.3rem; flex-wrap: wrap; }
 .archive-flair-picture { display: inline-flex; align-items: center; gap: 0.4rem; }
 
+/* --- Round 4 K-section (2026-10-09): K-1 standing orders. Dark is the default; light rules at the end of the block. --- */
+.orders-panel[hidden] { display: none; }
+.orders-actions { display: flex; flex-wrap: wrap; gap: 0.5rem; margin: 0.4rem 0; }
+.orders-card { border: 1px solid rgba(201, 147, 84, 0.45); border-radius: 6px; padding: 0.6rem 0.8rem; margin: 0.6rem 0; }
+.orders-card--off { border-style: dashed; opacity: 0.85; }
+.orders-sentence { margin: 0 0 0.4rem; font-weight: 600; }
+.orders-controls { display: flex; flex-wrap: wrap; gap: 0.5rem 0.7rem; align-items: flex-end; }
+.orders-field { display: flex; flex-direction: column; gap: 0.15rem; font-size: 0.8rem; min-width: 0; }
+.orders-field select { max-width: 100%; min-height: 2.2rem; }
+.orders-buttons { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-top: 0.5rem; }
+html[data-theme="light"] .orders-card { border-color: rgba(122, 74, 18, 0.55); background: rgba(255, 255, 255, 0.6); }
+
 /* ==========================================================================
    Light theme (Y11b, 2026-09-27). shared/theme-light-games.css already
    restyles the common chrome (page, #game shell, .section panels, buttons,

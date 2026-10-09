@@ -165,7 +165,7 @@ def _redo_hint(kind, cause):
 def decisions_to_redo(ui, pivot_season, cause):
     """Up to three of the player's last Council Minutes decisions made at or
     before `pivot_season`, each with a prompt. Newest first."""
-    entries = [e for e in minutes.entries(ui) if e["season"] <= pivot_season]
+    entries = [e for e in minutes.entries(ui) if e["season"] <= pivot_season and e["kind"] != "order"]
     out = []
     for entry in reversed(entries[-REDO_COUNT:]):
         out.append(

@@ -12,7 +12,7 @@ import datetime
 
 def test_changelog_loads_from_json_with_a_reasonable_count(game_env):
     module = game_env.module
-    assert 1 <= len(module.CHANGELOG) <= 40
+    assert 1 <= len(module.CHANGELOG) <= 60
 
 
 def test_every_entry_has_a_real_date_and_nonempty_text(game_env):

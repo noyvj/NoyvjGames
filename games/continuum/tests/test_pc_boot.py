@@ -125,7 +125,10 @@ def test_every_condensed_toolbar_button_exists_on_both_pages():
     ids = [i for i, _emoji in cfg["icons"]] + [i for group in cfg["menu"] for i in group["ids"]]
     assert ids
     for name, html in (("index.html", CLASSIC), ("pc.html", DESKTOP)):
-        missing = [i for i in ids if i not in _ids(html)]
+        # The Report-a-problem entry exists only on the Desktop page (the generator adds it);
+        # the Classic page reaches the same dialog through the shared footer.
+        wanted = [i for i in ids if i != "noyvj-report-menu-button" or name == "pc.html"]
+        missing = [i for i in wanted if i not in _ids(html)]
         assert not missing, f"{name} lacks toolbar ids: {missing}"
     # Nothing that used to be in the toolbar may be silently dropped.
     toolbar = CLASSIC[CLASSIC.index('class="game-toolbar"'):]

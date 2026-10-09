@@ -89,6 +89,11 @@
       "neighbours-panel",
       "neighbours-toggle-button",
       "Neighbouring settlements"
+    ],
+    [
+      "orders-panel",
+      "orders-toggle-button",
+      "Standing Orders"
     ]
   ],
   "toolbar": {
@@ -111,6 +116,7 @@
         "heading": "Game",
         "ids": [
           "challenge-toggle-button",
+          "orders-toggle-button",
           "dynasty-toggle-button",
           "doctrines-toggle-button",
           "neighbours-toggle-button"

@@ -222,6 +222,8 @@ ELEMENT_IDS = [
     "citizens-spots", "citizen-spotlight",
     "neighbours-toggle-button", "neighbours-panel", "neighbours-note", "neighbours-map", "neighbours-caption",
     "neighbours-list", "neighbours-lease", "neighbours-bids", "neighbours-status", "neighbours-events",
+    "orders-toggle-button", "orders-panel", "orders-note", "orders-summary", "orders-add-button", "orders-master-button",
+    "orders-list", "orders-status", "orders-recent",
     "scenario-hardy-button", "scenario-river-button", "scenario-heirloom-button", "rewind-button",
     "challenge-dial-population",
     "challenge-dial-population-value",
