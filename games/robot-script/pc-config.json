@@ -1,0 +1,43 @@
+{
+  "windows": [
+    ["rooms-panel", "rooms-toggle-button", "Rooms"],
+    ["achievements-panel", "achievements-toggle-button", "Achievements"],
+    ["workshop-panel", "workshop-toggle-button", "Workshop"],
+    ["changelog-panel", "changelog-toggle-button", "What's New"],
+    ["settings-panel", "settings-toggle-button", "Settings"],
+    ["info-page-panel", "info-page-toggle-button", "About Robot Script"]
+  ],
+  "toolbar": {
+    "icons": [
+      ["rooms-toggle-button", "🚪"],
+      ["workshop-toggle-button", "🔧"],
+      ["achievements-toggle-button", "🏆"],
+      ["settings-toggle-button", "⚙️"]
+    ],
+    "menu": [
+      {"heading": "Help", "ids": ["tutorial-restart-button", "info-page-toggle-button", "credits-link"]},
+      {"heading": "Records", "ids": ["changelog-toggle-button"]}
+    ]
+  },
+  "composites": [],
+  "adopt": [],
+  "zones": {
+    "topbar": [".hub-back-link", "h1", ".game-toolbar"],
+    "stagebar": ["#stats", "#goals"],
+    "stage": ["#room-panel"],
+    "side": ["#editor-panel", "#tally"],
+    "hidden": [".tagline"]
+  },
+  "readouts": [],
+  "side_label": "Your list and tally",
+  "hints": [
+    ["F L R", "Move and turn"],
+    ["G P S", "Pick up, place, switch"],
+    ["Bksp", "Remove the step before the gap"],
+    ["Z", "Undo"],
+    ["Enter", "Run"],
+    ["Esc", "Menu / close window"],
+    ["?", "All shortcuts"]
+  ],
+  "notify": null
+}

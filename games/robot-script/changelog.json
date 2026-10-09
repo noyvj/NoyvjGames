@@ -2,6 +2,10 @@
   "changelog": [
     {
       "date": "2026-10-09",
+      "entry": "Achievements (fourteen, none timed or luck-based) and a Desktop layout for wide windows: the room fills the stage, your list sits in a side column, and the Rooms, Workshop, Achievements and Settings open as windows from icons or the Menu (Esc). It is the same game and the same save; the Classic layout is unchanged and is still what phones use."
+    },
+    {
+      "date": "2026-10-09",
       "entry": "The deck is complete: forty rooms in six chapters, with sub-routines (save a few steps as A or B and call them), conditionals (until and if) and a final chapter, The Long Shift, that mixes everything. Clear the last room and the free sandbox opens: paint any room, write any list, run it as often as you like. Nothing is scored there."
     },
     {

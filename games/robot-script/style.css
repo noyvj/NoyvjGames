@@ -75,11 +75,11 @@ button[disabled], button[aria-disabled="true"] { opacity: 0.55; cursor: default;
 /* The page: the room, then the list. Side by side when there is room. */
 #room-panel, #editor-panel { min-width: 0; }
 @media (min-width: 900px) {
-  #game { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); gap: 0 1rem; align-items: start; }
-  #game > * { grid-column: 1 / -1; }
-  #game > #room-panel { grid-column: 1; grid-row: span 3; }
-  #game > #editor-panel { grid-column: 2; }
-  #game > #tally { grid-column: 2; }
+  html:not([data-layout="pc"]) #game { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); gap: 0 1rem; align-items: start; }
+  html:not([data-layout="pc"]) #game > * { grid-column: 1 / -1; }
+  html:not([data-layout="pc"]) #game > #room-panel { grid-column: 1; grid-row: span 3; }
+  html:not([data-layout="pc"]) #game > #editor-panel { grid-column: 2; }
+  html:not([data-layout="pc"]) #game > #tally { grid-column: 2; }
 }
 
 .room-chapter { margin: 0; text-transform: uppercase; letter-spacing: 0.06em; font-size: 0.75rem; }

@@ -15,8 +15,10 @@ Updated after every milestone. Read `planning/robot-script-plan.md`, `CLAUDE.md`
 
 - M6 Achievements: achievements.json, panel, toast; 260 tests; checked live (First Light toast, panel with share).
 
+- M7 Desktop boot: pc-config.json, pc.css, pc.js, generated pc.html, desktop tests; shared pc tests -k robot pass; 266 tests collected.
+
 ## Next
-- M7 Desktop boot (pc-config.json, pc.css, pc.js, generated pc.html), docs, final checks.
+- Nothing in this folder. Hub registration is the hub session's job (title card, sw.js, game-*.json, CLAUDE.md row, dev logs); the plan's last section lists questions for the owner.
 
 ## Open problems / notes
 - Local Python is 3.9: engine code avoids 3.10+ syntax.

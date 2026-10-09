@@ -33,7 +33,7 @@ Give a maintenance robot a short list of instructions to clear a room (Lightbot 
 | 4 | Chapters 4-6 and the sandbox | 19 rooms (40 in all: `rooms_routines.py`, `rooms_branches.py`, `rooms_capstone.py`; routine rooms drawn around their reference with `tools/author.py`) and the free sandbox (`sandbox.py`). First complete game | Done |
 | 5 | Standard kit | Opening screen, save widget, tutorial (9 steps), About with the pledge, What's New + banner, keyboard help, confirm dialogs (reset, sandbox preset), settings (text size, run speed, reduce motion, effects, high contrast, theme), contrast and shape tests, pledge tests | Done |
 | 6 | Achievements | 14 achievements (`achievements.py` + `achievements.json`, `achievements_earned` written to the save and never read back), panel with progress numbers, toast, share button via the shared script; perfect-play test earns all 14 | Done |
-| 7 | Desktop boot and wrap-up | `pc-config.json`, `pc.css`, `pc.js`, generated `pc.html`, docs | Planned |
+| 7 | Desktop boot and wrap-up | `pc-config.json`, `pc.css`, `pc.js` (Desktop tutorial), `pc.html` generated for this game only, desktop tests, docs, changelog | Done |
 
 ## Working conventions
 - Commit only this folder with a pathspec commit, then tag `robot-script-milestone-0N`. Hub registration is a separate later job (nothing outside this folder and `planning/robot-script-plan.md` is touched here).
@@ -59,3 +59,8 @@ Give a maintenance robot a short list of instructions to clear a room (Lightbot 
 ## Milestone 5 notes
 - `tests/test_accessibility.py` computes contrast from the CSS variables (both themes) for text, controls, and every room object against the floor; `tests/test_pledge.py` scans for banned words, clocks and randomness, counts the only two interval timers (cosmetic playback), and checks that a stopped run never costs the list or a medal and that every action moves a visible number.
 - About page states no real-world facts (invented deck, invented drone), so there are no sources to date on screen.
+
+## Milestone 7 notes and pre-release checklist
+- Desktop boot: the room is the stage, the list editor and tally are the side column, the stats strip and the three goals sit above the stage. `pc.html` is generated (`importlib` on `scripts/generate-pc-pages.py`, `build("robot-script", cfg)` written to `pc.html`); `python3 scripts/generate-pc-pages.py --check` and `python3 -m pytest -q shared/tests -k robot` pass. The Classic desktop grid in `style.css` is scoped to `html:not([data-layout="pc"])` so it cannot fight the shell.
+- Hub registration (title card, `sw.js` precache, `game-*.json`, root CLAUDE.md row, dev logs) is still to do and is not part of this folder. The owner's questions are the last section of `planning/robot-script-plan.md`.
+- Manual checks worth a human pass: real-device touch on the list editor (gap buttons are small by design), a screen reader walk through the list editor, and the opening-screen "Switch to Desktop layout" button on a wide window.

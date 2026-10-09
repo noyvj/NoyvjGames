@@ -6,7 +6,7 @@ Source: the Quick ideas round, owner-approved: "give a robot a short list of ins
 A decommissioned maintenance deck on a station that nobody has the budget to demolish. A literal-minded maintenance robot waits at the start of each room and does exactly what your instruction list says, including the foolish parts. You build the list from a short toolbox, press Run, and watch it clear the room: reach the exit, light the switches, carry the parts to their sockets. A mistake is never a loss: the robot stops where it went wrong, tells you why in plain words, and your list is still there to fix. Nothing is timed. Look: a dark, faceted low-poly room drawn as SVG (floor and wall tiles in two shades per tile, a lit exit pad), every object distinct by shape and label as well as colour.
 
 ## 2. The rules (a pure function of room and program)
-- Room: up to 8x8. Tiles: floor, wall, exit pad, parts (to carry), sockets (to fill), switches 1-3 and doors A-C (door N opens once switch N is lit). The robot starts on a tile facing a direction.
+- Room: up to 8x8 cells (a corridor may be 10 long, 64 cells at most). Tiles: floor, wall, exit pad, parts (to carry), sockets (to fill), switches 1-3 and doors A-C (door N opens once switch N is lit). The robot starts on a tile facing a direction.
 - Actions: `F` forward, `L`/`R` turn, `G` pick up a part on this tile, `P` place the carried part into a socket here, `S` light the switch here. Carry capacity one.
 - Control: `rep N {..}` (2-9 times), `until [not] cond {..}`, `if [not] cond {..} else {..}`, and `call A` / `call B` for saved sub-routines (A calls nothing, B may call A, no recursion). Conditions: `blocked` (wall, edge or closed door ahead), `part`, `socket`, `switch` (unlit one here), `carrying`, `exit`.
 - A room is cleared when the program ends with every goal met: robot on the exit (if the room has one), every socket filled, every switch lit, and (rooms with parts but no sockets) every part collected.
@@ -45,13 +45,13 @@ A strip of the next three goals, any order, each with progress ("Clear 10 rooms 
 ## 9. Milestones
 | # | Milestone | Content | Status |
 |---|-----------|---------|--------|
-| 1 | Engine | DSL, room, interpreter, solver, chapter 1 (7 rooms) with references and tests | Planned |
-| 2 | Room UI | SVG room, structured editor, run/step/skip playback, result card with medal, room picker, favicon, settings, save contract. Playable slice | Planned |
-| 3 | Chapters 2-3, medals, hints | 14 more rooms, chapter gating, hint ladder, three-goals strip, Scrap and the Workshop | Planned |
-| 4 | Chapters 4-6 and the sandbox | 19 more rooms (40 in all) and the free sandbox. First complete game | Planned |
-| 5 | Standard kit | Opening screen, tutorial, About, What's New, keyboard help, confirm dialogs, light theme, accessibility pass | Planned |
-| 6 | Achievements | 14 achievements, panel and toast, manifest, reachability test | Planned |
-| 7 | Desktop boot and wrap-up | `pc-config.json`, `pc.css`, `pc.js`, generated `pc.html`, docs, changelog | Planned |
+| 1 | Engine | DSL, room, interpreter, solver, chapter 1 (7 rooms) with references and tests | Done |
+| 2 | Room UI | SVG room, structured editor, run/step/skip playback, result card with medal, room picker, favicon, settings, save contract. Playable slice | Done |
+| 3 | Chapters 2-3, medals, hints | 14 more rooms, chapter gating, hint ladder, three-goals strip, Scrap and the Workshop | Done |
+| 4 | Chapters 4-6 and the sandbox | 19 more rooms (40 in all) and the free sandbox. First complete game | Done |
+| 5 | Standard kit | Opening screen, tutorial, About, What's New, keyboard help, confirm dialogs, light theme, accessibility pass | Done |
+| 6 | Achievements | 14 achievements, panel and toast, manifest, reachability test | Done |
+| 7 | Desktop boot and wrap-up | `pc-config.json`, `pc.css`, `pc.js`, generated `pc.html`, docs, changelog | Done |
 
 ## 10. Open questions for the owner (defaults used meanwhile)
 1. Should the sandbox open earlier than the end of The Long Shift (for example after chapter 3)? Default: after the last chapter, as asked.
