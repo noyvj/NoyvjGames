@@ -55,7 +55,7 @@ Dark, quiet "night blueprint": near-black navy, cyan signal, amber lamps, thin l
 | 3 | Chapters 2-3, hints, sandbox | levels 9-24, sequential checking, hint ladder, sandbox with truth-table log | Done |
 | 4 | Chapters 4-5 | levels 25-40, the CPU core, full play-through test, restore and clear | Done |
 | 5 | Standard kit | settings, tutorial, About with live-read sources, changelog, shortcuts, accessibility, light theme, shared includes | Done |
-| 6 | Achievements | 14 achievements, manifest, panel, goals strip, copy result | Planned |
+| 6 | Achievements | 14 achievements, manifest, panel, goals strip, copy result | Done (no copy-result button: the owner dislikes sharing) |
 | 7 | Desktop boot | `pc-config.json`, `pc.css`, `pc.js`, generated `pc.html` | Planned |
 | 8 | Wrap-up | story log, mobile and desktop pass, docs, BUILD-STATUS | Planned |
 | 9 | Hub registration | NOT mine: main session (cards, manifests, sw, game-*.json) | BLOCKED ON MAIN |

@@ -1,0 +1,74 @@
+{
+  "achievements": [
+    {
+      "id": "first_light",
+      "label": "First Light",
+      "description": "Solve a level."
+    },
+    {
+      "id": "gate_keeper",
+      "label": "Gate Keeper",
+      "description": "Solve every level in Switches and Lamps."
+    },
+    {
+      "id": "mix_and_match",
+      "label": "Mix and Match",
+      "description": "Solve every level in Combining Gates."
+    },
+    {
+      "id": "remember_me",
+      "label": "Remember Me",
+      "description": "Solve every level in Memory."
+    },
+    {
+      "id": "carry_the_one",
+      "label": "Carry the One",
+      "description": "Solve every level in Adders."
+    },
+    {
+      "id": "station_awake",
+      "label": "Wake the Station",
+      "description": "Solve the last level and wake the station."
+    },
+    {
+      "id": "forty_for_forty",
+      "label": "Forty for Forty",
+      "description": "Solve all 40 levels."
+    },
+    {
+      "id": "tidy_ten",
+      "label": "Tidy Ten",
+      "description": "Reach par (no more chips than the reference) on 10 levels."
+    },
+    {
+      "id": "full_par",
+      "label": "Full Par",
+      "description": "Reach par on all 40 levels."
+    },
+    {
+      "id": "on_your_own",
+      "label": "On Your Own",
+      "description": "Solve 15 levels without asking for a hint."
+    },
+    {
+      "id": "asked_nicely",
+      "label": "Asked Nicely",
+      "description": "Ask for a hint once. It is what they are for."
+    },
+    {
+      "id": "the_sixteen",
+      "label": "The Sixteen",
+      "description": "Find all 16 two-input functions in the sandbox."
+    },
+    {
+      "id": "hundred_chips",
+      "label": "Hundred Chips",
+      "description": "Place 100 chips, anywhere."
+    },
+    {
+      "id": "switch_flipper",
+      "label": "Switch Flipper",
+      "description": "Flip 100 switches to see what a circuit does."
+    }
+  ]
+}
