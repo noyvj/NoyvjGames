@@ -1,6 +1,6 @@
 # Site-Wide TODO (round 3)
 
-**Progress: 583/1153 items checked off (50.6%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land.
+**Progress: 583/1159 items checked off (50.3%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land.
 
 Built from your answers in `planning/IMPROVEMENT-IDEAS-ROUND-3.md` (Part 4). Every Round 3 section is now answered (2026-10-07 below the Warframe section); earlier this list held only: **GB** (Canopy gamified), **M** (new games), **N** (seasonal events), **O** (Trade Empire and Continuum replayability), **P/Q/S/T** (Signal, Undersleep, Overclock, Last Line open questions), **X** (Warframe tracker) and **R** (returning later). GC-GI, A-L, U, Z and Y are unanswered and wait for you. The previous list is archived at `planning/todo-archive/260914_260927.md`; anything from it that was moved here is marked "moved" there.
 
@@ -66,6 +66,18 @@ Rules carried over: "yes" items are here, "later" items are parked in `planning/
 - [x] GB-28: Forest Almanac collection page.
 - [x] GB-29: Carbon-credit market minigame.
 - [x] GB-30: Perfect Season streak.
+
+---
+
+## FS. FREN152 slides into Le Champ de Mots (you uploaded them 2026-10-09)
+
+The files are in `/Users/alexhart/BCM Project folder/fren152-slides/` (outside the repo, never published): lectures 1 to 10 plus a "Lecture 7 supplement" (teachers versions) and tutorials 2A to 10B; there is no tutorial 1 and no week 11 to 13 yet. A stray "Lecture 13 (2024)" file is also there (see FOR-YOU Fs2). Rules: slide text is the lecturers' own material, so the game gets my own wording and examples, never copied slides; nothing from the folder is committed; real course order decides the farm's order.
+- [ ] FS-1: Extract the text of every slide file to plain notes outside the repo (no python-pptx is installed here: install it for the session or read the pptx XML directly), one notes file per week with lecture, tutorial A and tutorial B kept apart.
+- [ ] FS-2: Compare the 2026 weeks 1 to 10 with the existing FREN152 rows in `games/champ-de-mots/fren_combined_catalog.json` (sequence 12 to 23) and write a gap list per week: new topics, changed vocabulary, grammar points that were not there, tutorial exercises that could become practice items.
+- [ ] FS-3: Turn the gap list into TODO items under this section (one per week), then build them: new topics and items for any week the farm lacks, keeping the rule that the farm's rows follow the real syllabus order, with tests for the catalogue and the question generator.
+- [ ] FS-4: Add the "Lecture 7 supplement" content as its own bonus topic with a note saying where it came from.
+- [ ] FS-5: Use the tutorial exercises' formats (for example fill in the blank, matching, sentence building) to check that each has a matching practice mode in the game, and list the missing ones.
+- [ ] FS-6: When weeks 11 to 13 arrive, repeat FS-1 to FS-3 for them (waits on your upload).
 
 ---
 

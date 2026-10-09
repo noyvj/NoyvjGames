@@ -213,9 +213,7 @@ Recommended: keep 21, since you like reachable 100% and every one is earnable in
 
 Recommended: keep 3 minutes, with 2x and 4x speeds and pause already available.
 
+### Fs2. FREN152: the slides folder holds "FREN152 LECTURE 13 (2024)", a 2024 lecture 13 although week 13 has not happened this semester; should I use it as a preview of week 13 or ignore it?
 
-### Fs1. Upload the FREN152 slides, weeks 1 to 10 (tomorrow, when you have them), so Le Champ de Mots can follow your real syllabus
+Recommended: ignore it until your 2026 week 13 arrives, since the 2024 content may differ from this year's.
 
-**Why:** the farm's FREN152 content only reflects the weeks I already had; your slides for weeks up to 10 hold the current vocabulary, grammar and examples, and the game should plant exactly what your course teaches, in order.
-
-**Steps:** drop the slide files (PDF, PPTX or exported text/images) into the folder `/Users/alexhart/BCM Project folder/fren152-slides/` (I created it; it sits outside the git repo, so nothing is published). Every week has three sets of slides: the lecture, tutorial A and tutorial B, so please name them like `week-07-lecture.pdf`, `week-07-tutorial-a.pdf` and `week-07-tutorial-b.pdf` (30 files for weeks 1 to 10; send what you have if a set is missing and tell me which). Then tell me in chat that they are there. I will read them, compare them with the existing FREN152 rows, and list anything new or changed as TODO items for Le Champ de Mots before touching the game.
