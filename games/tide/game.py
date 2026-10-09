@@ -4827,6 +4827,86 @@ def on_crew_button(crew_id):
     return handler
 
 
+# D-11 autosave history ---------------------------------------------------------------------------------------------
+AUTOSAVE_KEY = "tide_autosaves_v1"
+AUTOSAVE_SLOTS = 3
+AUTOSAVE_MAX_BYTES = 300000  # a slot bigger than this is skipped rather than risk filling the browser's storage
+_autosave_info = {"load_failed": False}
+
+
+def load_autosaves():
+    """The stored slots, newest last: [{"season", "funds", "state"}], with anything malformed dropped."""
+    raw = _read_local_storage_item(AUTOSAVE_KEY)
+    try:
+        data = json.loads(raw) if raw else []
+    except (ValueError, TypeError):
+        return []
+    out = []
+    for item in data if isinstance(data, list) else []:
+        if (isinstance(item, dict) and isinstance(item.get("state"), dict)
+                and isinstance(item.get("season"), int) and not isinstance(item.get("season"), bool)
+                and isinstance(item.get("funds"), (int, float)) and not isinstance(item.get("funds"), bool)):
+            out.append({"season": item["season"], "funds": float(item["funds"]), "state": item["state"]})
+    return out[-AUTOSAVE_SLOTS:]
+
+
+def record_autosave():
+    """Keeps the last few per-season states (called after a season resolves). Returns True when one was stored."""
+    entry = {"season": state.season, "funds": round(state.funds, 1), "state": get_state()}
+    encoded = json.dumps(entry)
+    if len(encoded) > AUTOSAVE_MAX_BYTES:
+        return False
+    slots = [s for s in load_autosaves() if s["season"] != entry["season"]] + [entry]
+    _write_local_storage_item(AUTOSAVE_KEY, json.dumps(slots[-AUTOSAVE_SLOTS:]))
+    return True
+
+
+def restore_autosave(index):
+    slots = load_autosaves()
+    if not 0 <= index < len(slots):
+        return False
+    ok = load_state(copy.deepcopy(slots[index]["state"]))
+    if ok:
+        _autosave_info["load_failed"] = False
+        state._log_ticker(f"Restored the autosave from Season {slots[index]['season']}.")
+        render()
+    return ok
+
+
+def render_autosaves():
+    panel, box = document.getElementById("autosave-panel"), document.getElementById("autosave-list")
+    slots = load_autosaves()
+    if panel is not None and _autosave_info["load_failed"]:
+        panel.open = True
+    note = document.getElementById("autosave-note")
+    if note is not None:
+        note.innerText = ("The last load could not be read. Pick an earlier autosave below." if _autosave_info["load_failed"]
+                          else f"The last {AUTOSAVE_SLOTS} seasons are kept automatically in this browser.")
+    if box is None:
+        return
+    box.innerHTML = ""
+    if not slots:
+        box.innerText = "No autosaves yet: they start once a season has been played."
+        return
+    for i, slot in enumerate(reversed(slots)):
+        index = len(slots) - 1 - i
+        button = document.createElement("button")
+        button.type = "button"
+        button.className = "secondary autosave-button"
+        button.setAttribute("data-slot", str(index))
+        button.innerText = f"Restore Season {slot['season']} (funds {slot['funds']:.0f})"
+        box.appendChild(button)
+
+
+def on_autosave_click(event):
+    target = getattr(event, "target", None)
+    raw = target.getAttribute("data-slot") if target is not None and hasattr(target, "getAttribute") else None
+    try:
+        restore_autosave(int(raw))
+    except (TypeError, ValueError):
+        pass
+
+
 def render_tide_oct9():
     render_afford()
     render_goal()
@@ -4838,6 +4918,7 @@ def render_tide_oct9():
     render_delta_popover()
     render_market()
     render_crew()
+    render_autosaves()
 
 
 def render():
@@ -4997,6 +5078,7 @@ def on_advance_season(event=None):
     speak_quip(new_rows=flooded_row_count(state.sea_level) - rows_before, rescued=False)  # GD-17
     check_pinned_goal()  # GD-19
     render()
+    record_autosave()  # D-11
     show_season_report(before, _season_numbers())  # GD-30
     announce(state.season_result_text())
     _set_advance_note("")
@@ -5014,6 +5096,8 @@ def on_advance_x5(event=None):
     take_rewind_snapshot()  # GD-20
     note_action()  # GD-23
     ran, stop_text = state.advance_quiet_seasons(ADVANCE_BATCH)
+    if ran:
+        record_autosave()  # D-11
     render()
     if ran == 0:
         note = f"Not started: {stop_text}. Use Advance Season to go one at a time."
@@ -5353,6 +5437,7 @@ def _load_sister(data):
 
 def load_state(data):
     if not isinstance(data, dict):
+        _autosave_info["load_failed"] = True  # D-11: the restore panel opens itself
         return False
     state.season = data.get("season", state.season)
     state.funds = data.get("funds", state.funds)
@@ -5732,6 +5817,9 @@ def setup():
         crew_button = document.getElementById(f"crew-{crew_id}-button")
         if crew_button is not None:
             crew_button.addEventListener("click", create_proxy(on_crew_button(crew_id)))
+    autosave_list = document.getElementById("autosave-list")  # D-11
+    if autosave_list is not None:
+        autosave_list.addEventListener("click", create_proxy(on_autosave_click))
     theme_select = document.getElementById("scene-theme-select")  # GD-22
     if theme_select is not None:
         theme_select.addEventListener("change", create_proxy(on_scene_theme_change))

@@ -1087,3 +1087,75 @@ def test_crew_saves_and_validates(game_env):
     saved["crew"] = "oops"
     m.load_state(saved)
     assert s.crew == []
+
+
+# ---- D-11 autosave history ----
+
+def test_each_season_keeps_a_slot_and_only_the_last_three(game_env, storage):
+    m = game_env.module
+    for _ in range(5):
+        m.on_advance_season()
+    slots = m.load_autosaves()
+    assert [s["season"] for s in slots] == [4, 5, 6]
+    assert all(isinstance(s["state"], dict) and "funds" in s["state"] for s in slots)
+
+
+def test_x5_stores_one_slot_for_the_end_state(game_env, storage):
+    m = game_env.module
+    m.on_advance_x5()
+    slots = m.load_autosaves()
+    assert len(slots) == 1 and slots[0]["season"] == m.state.season
+
+
+def test_restoring_goes_back_and_clears_the_failed_flag(game_env, storage):
+    m = game_env.module
+    for _ in range(4):
+        m.on_advance_season()
+    target = m.load_autosaves()[0]
+    m._autosave_info["load_failed"] = True
+    assert m.restore_autosave(0) is True
+    assert m.state.season == target["season"] and m._autosave_info["load_failed"] is False
+    assert any("Restored the autosave" in line for line in m.state.ticker_log)
+    assert m.restore_autosave(9) is False and m.restore_autosave(-1) is False
+
+
+def test_an_unreadable_load_opens_the_panel_and_explains(game_env, storage):
+    m = game_env.module
+    m.on_advance_season()
+    assert m.load_state("not a dict") is False
+    m.render()
+    assert game_env.elements["autosave-panel"].open is True
+    assert "could not be read" in game_env.elements["autosave-note"].innerText
+    assert game_env.elements["autosave-list"].children and "Restore Season" in game_env.elements["autosave-list"].children[0].innerText
+
+
+def test_buttons_restore_the_slot_they_name(game_env, storage):
+    m = game_env.module
+    for _ in range(3):
+        m.on_advance_season()
+    m.render()
+    buttons = game_env.elements["autosave-list"].children
+    assert [b.getAttribute("data-slot") for b in buttons][0] == str(len(buttons) - 1)  # newest first
+    oldest = buttons[-1]
+
+    class _Event:
+        target = oldest
+
+    m.on_autosave_click(_Event())
+    assert m.state.season == m.load_autosaves()[int(oldest.getAttribute("data-slot"))]["season"]
+
+
+def test_bad_or_oversized_slots_are_ignored(game_env, storage, monkeypatch):
+    m = game_env.module
+    storage[m.AUTOSAVE_KEY] = "garbage"
+    assert m.load_autosaves() == []
+    storage[m.AUTOSAVE_KEY] = '[{"season": "x", "funds": 1, "state": {}}, {"season": 3, "funds": 5.5, "state": {"a": 1}}, 7]'
+    assert [s["season"] for s in m.load_autosaves()] == [3]
+    monkeypatch.setattr(m, "AUTOSAVE_MAX_BYTES", 10)
+    assert m.record_autosave() is False
+
+
+def test_empty_state_says_so(game_env, storage):
+    m = game_env.module
+    m.render()
+    assert "No autosaves yet" in game_env.elements["autosave-list"].innerText
