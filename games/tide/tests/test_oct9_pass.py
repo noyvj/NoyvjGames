@@ -1357,3 +1357,111 @@ def test_button_and_panel(game_env, storage):
     m.session_summary_open = False
     m.render()
     assert game_env.elements["postcard-view"].innerHTML == ""
+
+
+# ---- GD-12 Acid Tide boss ----
+
+def _to_boss_season(s, m):
+    while s.season < m.ACID_BOSS_SEASON:
+        s.advance_season()
+
+
+def test_nothing_happens_with_the_boss_off(game_env):
+    m = game_env.module
+    s = m.state
+    _to_boss_season(s, m)
+    s.advance_season()
+    assert s.acid_boss_result == "" and s.acidity == 0.0
+    assert "boss is off" in m.acid_boss_text()
+
+
+def test_an_unbraced_harbour_takes_the_spike(game_env):
+    m = game_env.module
+    s = m.state
+    s.acid_boss_mode = True
+    _to_boss_season(s, m)
+    before = s.acidity
+    s.advance_season()
+    assert s.acid_boss_result == "hit" and s.acidity == pytest.approx(before + m.ACID_BOSS_SPIKE)
+    assert s.acidity_history[-1] == pytest.approx(s.acidity)
+    assert any("Acid Tide struck" in line for line in s.ticker_log)
+    assert s.fish_yield_multiplier() <= 1.0
+
+
+def test_bracing_needs_funds_and_reduction_and_absorbs_the_spike(game_env):
+    m = game_env.module
+    s = m.state
+    s.acid_boss_mode = True
+    s.funds = 1000
+    assert s.can_brace() is False  # no reduction yet
+    s.capacity["reduction"] = m.ACID_BRACE_MIN_REDUCTION
+    assert s.can_brace() is True
+    funds = s.funds
+    assert s.brace_for_acid_tide() is True and s.funds == funds - m.ACID_BRACE_COST
+    assert s.brace_for_acid_tide() is False
+    s.funds = 100000
+    _to_boss_season(s, m)
+    before = s.acidity
+    s.advance_season()
+    assert s.acid_boss_result == "survived" and s.acidity <= before
+    assert any("harbour held" in line for line in s.ticker_log)
+
+
+def test_the_boss_only_happens_once(game_env):
+    m = game_env.module
+    s = m.state
+    s.acid_boss_mode = True
+    _to_boss_season(s, m)
+    s.advance_season()
+    acidity = s.acidity
+    s.season = m.ACID_BOSS_SEASON
+    s._resolve_acid_boss()
+    assert s.acidity == acidity
+    assert s.acid_boss_pending() is False
+
+
+def test_the_warning_text_and_buttons(game_env):
+    m = game_env.module
+    s = m.state
+    s.acid_boss_mode = True
+    m.render()
+    assert "A warning will appear" in game_env.elements["acid-boss-text"].innerText
+    s.season = m.ACID_BOSS_SEASON - 4
+    m.render()
+    assert "surge in 4 seasons" in game_env.elements["acid-boss-text"].innerText
+    assert game_env.elements["acid-boss-brace-button"].hidden is False and game_env.elements["acid-boss-brace-button"].disabled is True
+    s.funds, s.capacity["reduction"] = 500, 8
+    m.render()
+    game_env.elements["acid-boss-brace-button"].dispatch("click", None)
+    assert s.acid_braced is True and "Braced." in game_env.elements["acid-boss-text"].innerText
+    game_env.elements["acid-boss-toggle-button"].dispatch("click", None)
+    assert s.acid_boss_mode is False
+
+
+def test_surviving_upgrades_the_recovery_banner(game_env):
+    m = game_env.module
+    s = m.state
+    s.acid_boss_result = "survived"
+    s.recovery_celebrated_season = s.season
+    m.render()
+    assert "Victory!" in game_env.elements["fish-recovery-banner"].innerText
+    s.acid_boss_result = ""
+    m.render()
+    assert "Recovery!" in game_env.elements["fish-recovery-banner"].innerText
+
+
+def test_boss_state_saves_and_validates(game_env):
+    m = game_env.module
+    s = m.state
+    assert "acid_boss" not in m.get_state()
+    s.acid_boss_mode, s.acid_braced = True, True
+    saved = m.get_state()
+    s.acid_boss_mode, s.acid_braced = False, False
+    m.load_state(saved)
+    assert s.acid_boss_mode is True and s.acid_braced is True and s.acid_boss_result == ""
+    saved["acid_boss"] = {"mode": "yes", "braced": 1, "result": "exploded"}
+    m.load_state(saved)
+    assert (s.acid_boss_mode, s.acid_braced, s.acid_boss_result) == (False, False, "")
+    saved["acid_boss"] = {"mode": True, "result": "hit"}
+    m.load_state(saved)
+    assert s.acid_boss_result == "hit"

@@ -1,6 +1,6 @@
 # Site-Wide TODO (round 3)
 
-**Progress: 558/1095 items checked off (51.0%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land.
+**Progress: 559/1095 items checked off (51.1%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land.
 
 Built from your answers in `planning/IMPROVEMENT-IDEAS-ROUND-3.md` (Part 4). Every Round 3 section is now answered (2026-10-07 below the Warframe section); earlier this list held only: **GB** (Canopy gamified), **M** (new games), **N** (seasonal events), **O** (Trade Empire and Continuum replayability), **P/Q/S/T** (Signal, Undersleep, Overclock, Last Line open questions), **X** (Warframe tracker) and **R** (returning later). GC-GI, A-L, U, Z and Y are unanswered and wait for you. The previous list is archived at `planning/todo-archive/260914_260927.md`; anything from it that was moved here is marked "moved" there.
 
@@ -404,7 +404,7 @@ Your remaining Round 3 answers (Grid to Drift gamified, SOL to Le Champ de Mots,
 - [x] GD-9: Add a Postcard Ending to Tide: at session end render a pixel postcard from real state (walls, reef, heritage, boats, flooded rows as sunken roofs) with a letter grade and nickname; keep a collectable gallery of every postcard variant.
 - [ ] GD-10: Add a Harbor Trials campaign to Tide: hand-made fixed starts (e.g. 15 seasons, 200 funds, high acidity, two heritage sites, 3 invests per season) each with a par score and 3 stars, shown through the level select with every 5th level a new mode or mechanic. (needs W-1)
 - [x] GD-11: Add Crew and specialists to Tide: hire up to three (Marine Biologist: fish lag one season shorter; Harbor Engineer: tier costs -15%; Broker: better deal terms) each with per-season upkeep so the choice is a build decision. (needs GD-8 (Broker))
-- [ ] GD-12: Add an optional Acid Tide boss to Tide around season 15: a mega-event pushing acidity to a spike unless the player spends a large buffer (funds plus reduction); surviving upgrades the fish recovery banner to a full victory beat, skipping makes fish crash hard.
+- [x] GD-12: Add an optional Acid Tide boss to Tide around season 15: a mega-event pushing acidity to a spike unless the player spends a large buffer (funds plus reduction); surviving upgrades the fish recovery banner to a full victory beat, skipping makes fish crash hard.
 - [ ] GD-13: Add Lucky Catch to Tide: each Advance Season can roll a bonus haul (net-cast animation, '+35 lucky catch'), likelier at high fish yield, plus a fish collection where each catch logs a species so collectors can complete it.
 - [x] GD-14: Add a balanced-seasons combo to Tide: investing in all three categories in a season builds an x1.1/x1.2/x1.3 income streak, skipping a category breaks it.
 - [ ] GD-15: Extend Tide's flood flash: tiles in a flooded row ripple in sequence, add a foam edge to the flash, a brief screen shake; shake and ripple must be toggleable and respect reduced motion. (partly built: D8 newly-flooded-row flash exists (.coastline-flash, game.py _previous_flooded_rows).) (no 'glub' text: you confirmed 2026-10-07, consistent with declining GD-29)

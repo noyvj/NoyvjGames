@@ -78,6 +78,13 @@ WORKSHOP_DEFAULTS = {"funds": STARTING_FUNDS, "lag": 0, "rise": 1.0, "surge": 1.
 WORKSHOP_RANGES = {"funds": (100, 600, 50), "lag": (0, 8, 1), "rise": (0.5, 2.0, 0.25), "surge": (0.5, 2.0, 0.25), "fish": (0.5, 2.0, 0.25)}
 WORKSHOP_LABELS = {"funds": "Starting funds", "lag": "Fish lag (seasons, 0 = normal)", "rise": "Sea-level rise rate",
                    "surge": "Storm surge size", "fish": "Fish sensitivity to acidity"}
+# GD-12 (2026-10-09): the optional Acid Tide boss. When it is switched on, a mega acid surge arrives while Season
+# ACID_BOSS_SEASON resolves unless the player braced for it (a big one-off sum of funds, with enough Reduction capacity).
+ACID_BOSS_SEASON = 15
+ACID_BOSS_SPIKE = 25.0
+ACID_BRACE_COST = 150
+ACID_BRACE_MIN_REDUCTION = 6
+ACID_BOSS_WARN_SEASONS = 3
 # GD-27: a heritage site protected when its row would flood within this many seasons counts as a last-second rescue.
 RESCUE_WITHIN_SEASONS = 1
 HERITAGE_UNPROTECTED = "unprotected"
@@ -486,6 +493,10 @@ class SettlementState:
         self.maxtier_seconds = None
         # GD-18: ids of the critters the player has clicked into the Sightings list.
         self.sightings = []
+        # GD-12: the opt-in boss: mode, braced yes/no, and how it ended ("", "survived" or "hit").
+        self.acid_boss_mode = False
+        self.acid_braced = False
+        self.acid_boss_result = ""
         # D-5: the Workshop dials for this run (see WORKSHOP_DEFAULTS).
         self.workshop = dict(WORKSHOP_DEFAULTS)
         # GD-11: the specialists on the payroll.
@@ -953,6 +964,40 @@ class SettlementState:
         if self.workshop["lag"]:  # D-5: a chosen lag replaces both presets
             lag = self.workshop["lag"]
         return max(1, lag - 1) if "biologist" in self.crew else lag
+
+    # ---- GD-12 Acid Tide boss ---------------------------------------------
+    def acid_boss_pending(self):
+        return self.acid_boss_mode and not self.acid_boss_result and self.season <= ACID_BOSS_SEASON
+
+    def seasons_until_acid_boss(self):
+        return ACID_BOSS_SEASON - self.season if self.acid_boss_pending() else None
+
+    def can_brace(self):
+        return (self.acid_boss_pending() and not self.acid_braced and self.funds >= ACID_BRACE_COST
+                and self.capacity["reduction"] >= ACID_BRACE_MIN_REDUCTION)
+
+    def brace_for_acid_tide(self):
+        if not self.can_brace():
+            return False
+        self.funds -= ACID_BRACE_COST
+        self.acid_braced = True
+        self._log_ticker(f"Braced for the Acid Tide: {ACID_BRACE_COST} funds set aside as a buffer.")
+        return True
+
+    def _resolve_acid_boss(self):
+        """Called while the boss season resolves."""
+        if not self.acid_boss_mode or self.acid_boss_result or self.season != ACID_BOSS_SEASON:
+            return
+        if self.acid_braced:
+            self.acid_boss_result = "survived"
+            self._log_ticker("\U0001F30A The Acid Tide broke against your buffer. The harbour held.")
+            self._chronicle_event("The great Acid Tide came and went; the buffer held.")
+        else:
+            self.acid_boss_result = "hit"
+            self.acidity += ACID_BOSS_SPIKE
+            self.max_acidity_ever = max(self.max_acidity_ever, self.acidity)
+            self._log_ticker(f"\U0001F30A The Acid Tide struck: acidity jumped by {ACID_BOSS_SPIKE:.0f}. The fish will feel it in a few seasons.")
+            self._chronicle_event("The Acid Tide struck an unprepared harbour.")
 
     # ---- GD-11 crew ------------------------------------------------------
     def hire(self, crew_id):
@@ -1551,6 +1596,7 @@ class SettlementState:
         )
         acidity_start = self.acidity  # D-28
         self.acidity = max(0.0, self.acidity + acidity_change)
+        self._resolve_acid_boss()  # GD-12: the spike lands before this season's acidity is recorded
         self.acidity_history.append(self.acidity)
         self.max_acidity_ever = max(self.max_acidity_ever, self.acidity)
 
@@ -3879,6 +3925,9 @@ def render_fish_recovery_banner():
             "🎉 Recovery! The fish stock has rebuilt — the lag that delayed the "
             "damage also delayed the healing, and your cleaner choices got you here."
         )
+        if state.acid_boss_result == "survived":  # GD-12: the full victory beat
+            banner.innerText = ("\U0001F3C6 Victory! You braced for the Acid Tide and the fish stock rebuilt anyway: "
+                                "the buffer you set aside is why the harbour is still full of life.")
     else:
         banner.hidden = True
 
@@ -5154,6 +5203,46 @@ def render_postcard():
             element.innerText = text
 
 
+def acid_boss_text():
+    if not state.acid_boss_mode:
+        return "The Acid Tide boss is off. Turn it on for one optional mega acid surge in Season 15 that you can brace against."
+    if state.acid_boss_result == "survived":
+        return "The Acid Tide has been faced down. Your buffer held."
+    if state.acid_boss_result == "hit":
+        return "The Acid Tide struck. Watch the fish: the lag means the full damage arrives in a few seasons."
+    wait = state.seasons_until_acid_boss()
+    if wait is not None and wait <= ACID_BOSS_WARN_SEASONS * 2:
+        brace = ("Braced." if state.acid_braced else
+                 f"Brace for it: {ACID_BRACE_COST} funds and {ACID_BRACE_MIN_REDUCTION} Reduction capacity (you have {state.capacity['reduction']}).")
+        return f"Acid Tide forecast: a +{ACID_BOSS_SPIKE:.0f} acidity surge in {wait} season{'s' if wait != 1 else ''}. {brace}"
+    return f"Acid Tide boss on: a surge is coming around Season {ACID_BOSS_SEASON}. A warning will appear {ACID_BOSS_WARN_SEASONS * 2} seasons ahead."
+
+
+def on_toggle_acid_boss(event=None):
+    if state.acid_boss_result:
+        return
+    state.acid_boss_mode = not state.acid_boss_mode
+    render()
+
+
+def on_brace(event=None):
+    if state.brace_for_acid_tide():
+        announce("Braced for the Acid Tide.")
+    render()
+
+
+def render_acid_boss():
+    toggle, text, brace = (document.getElementById(i) for i in ("acid-boss-toggle-button", "acid-boss-text", "acid-boss-brace-button"))
+    if toggle is not None:
+        toggle.innerText = "Acid Tide boss: On (turn off)" if state.acid_boss_mode else "Acid Tide boss: Off (turn on)"
+        toggle.disabled = bool(state.acid_boss_result)
+    if text is not None:
+        text.innerText = acid_boss_text()
+    if brace is not None:
+        brace.hidden = not state.acid_boss_pending()
+        brace.disabled = not state.can_brace()
+
+
 def render_tide_oct9():
     render_afford()
     render_goal()
@@ -5168,6 +5257,7 @@ def render_tide_oct9():
     render_autosaves()
     render_workshop()
     render_postcard()
+    render_acid_boss()
 
 
 def render():
@@ -5570,6 +5660,8 @@ def get_state():
         }} if (state.rewind_used or state.ironman_earned or state.actions_count or not state.hard_lag_all_run) else {}),  # GD-20/23/24
         **({"sightings": list(state.sightings)} if state.sightings else {}),  # GD-18
         **({"crew": list(state.crew)} if state.crew else {}),  # GD-11
+        **({"acid_boss": {"mode": state.acid_boss_mode, "braced": state.acid_braced, "result": state.acid_boss_result}}
+           if (state.acid_boss_mode or state.acid_braced or state.acid_boss_result) else {}),  # GD-12
         **({"workshop": dict(state.workshop)} if state.workshop_active() else {}),  # D-5
         **({"market": {"event": copy.deepcopy(state.market_event), "accepted": state.market_accepted, "dip": state.income_dip_seasons}}
            if (state.market_event or state.market_accepted or state.income_dip_seasons) else {}),  # GD-8
@@ -5880,6 +5972,12 @@ def load_state(data):
     saved_workshop = data.get("workshop")  # D-5: bad values fall back to the standard dial
     source = saved_workshop if isinstance(saved_workshop, dict) else {}
     state.workshop = {k: clean_workshop_value(k, source.get(k, WORKSHOP_DEFAULTS[k])) for k in WORKSHOP_DEFAULTS}
+    saved_boss = data.get("acid_boss")  # GD-12
+    state.acid_boss_mode, state.acid_braced, state.acid_boss_result = False, False, ""
+    if isinstance(saved_boss, dict):
+        state.acid_boss_mode = saved_boss.get("mode") is True
+        state.acid_braced = saved_boss.get("braced") is True
+        state.acid_boss_result = saved_boss.get("result") if saved_boss.get("result") in ("survived", "hit") else ""
     saved_crew = data.get("crew")  # GD-11: unknown ids, repeats and anything past the cap are dropped
     state.crew = []
     if isinstance(saved_crew, list):
@@ -6084,6 +6182,12 @@ def setup():
     postcard_button = document.getElementById("postcard-button")  # GD-9
     if postcard_button is not None:
         postcard_button.addEventListener("click", create_proxy(on_make_postcard))
+    acid_toggle = document.getElementById("acid-boss-toggle-button")  # GD-12
+    if acid_toggle is not None:
+        acid_toggle.addEventListener("click", create_proxy(on_toggle_acid_boss))
+    acid_brace = document.getElementById("acid-boss-brace-button")
+    if acid_brace is not None:
+        acid_brace.addEventListener("click", create_proxy(on_brace))
     theme_select = document.getElementById("scene-theme-select")  # GD-22
     if theme_select is not None:
         theme_select.addEventListener("change", create_proxy(on_scene_theme_change))
