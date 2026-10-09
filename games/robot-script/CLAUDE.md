@@ -29,7 +29,7 @@ Give a maintenance robot a short list of instructions to clear a room (Lightbot 
 |---|-----------|---------|--------|
 | 1 | Engine | `dsl.py`, `room.py`, `run.py`, `rooms.py`, chapter 1 (7 rooms), `tools/solver.py`, tests | Done |
 | 2 | Room UI | SVG room (`render.py`), structured editor (`editor.py`), run/step/skip playback, result card with medal, room picker, favicon, settings, save contract (`game.py`) | Done |
-| 3 | Chapters 2-3, medals, hints | 14 rooms, gating, hint ladder, three-goals strip, Scrap and the Workshop | Planned |
+| 3 | Chapters 2-3, medals, hints | 14 rooms (Turning checked against the solver, Loops checked to need the loop), gating at 5 of 7, hint ladder (`hints.py`), three-goals strip (`achievements.py` facts), Scrap and the Workshop (`companion.py`) | Done |
 | 4 | Chapters 4-6 and the sandbox | 19 rooms (40), sandbox. First complete game | Planned |
 | 5 | Standard kit | Opening screen, tutorial, About, What's New, keyboard help, light theme, accessibility | Planned |
 | 6 | Achievements | 14 achievements, panel, toast, manifest | Planned |
@@ -43,3 +43,9 @@ Give a maintenance robot a short list of instructions to clear a room (Lightbot 
 - `game.handle(json)` returns the whole view; `room.svg` is sent only when the room changes (`svg_due`). A run returns `run` with every frame `[x, y, d, carry, partsMask, socketsMask, switchesMask, at]`; app.js plays them back (speed from `data-run-speed`, instant under reduced motion) and the engine has already recorded the result, so skipping the animation loses nothing.
 - Save (`get_state`): `cur`, `best {room: {n, t}}` (re-run and re-checked on load), `draft {room: text}`, `tally`, `flags`, `bumped`; only non-default keys. A room with a best and no draft opens with its best list in the editor.
 - The editor works on addresses (`main/2/2` = the body of the block at index 2 of main; an `if` has bodies 2 and 3) and refuses anything `dsl.check` rejects; gap buttons are `data-touch-exempt` (dense list).
+
+## Milestone 3 notes
+- Chapter 2 rooms are flat: their par is the breadth-first minimum (tested). Chapter 3 rooms are each shorter with `rep` than any flat list (tested against the solver).
+- Hints: `hint` climbs one rung per call (nudge, hint, answer), saved per room in `rungs`; `load_answer` needs rung 3. Hints never touch a medal.
+- Scrap: one part per room (40 in `companion.PARTS`, ten zones); the finish follows the room's medal; drawing and list are computed from `best`. Lines sit behind the story toggle (`.scrap-line`, `.story-text`).
+- Goals strip: the next three unearned achievements whose chapter is open (`achievements.goals`); the achievements themselves (panel, toast, manifest) arrive in milestone 6.

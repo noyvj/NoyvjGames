@@ -9,10 +9,14 @@ modules; this module only gathers them.
 import dsl
 from room import Layout
 
+import rooms_loops
 import rooms_moving
+import rooms_turning
 
 CHAPTERS = (
     ("moving", "Moving", "Straight corridors: count your steps, light a switch, carry a part.", rooms_moving),
+    ("turning", "Turning", "Left and right: corners, detours and two trips with one pair of hands.", rooms_turning),
+    ("loops", "Loops", "Repeat blocks: say it once, do it many times.", rooms_loops),
 )
 
 

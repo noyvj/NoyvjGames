@@ -17,21 +17,26 @@ Actions (every request is {"action": ..., ...}; every reply is the whole view):
   cond {at, cond}              set an until / if condition
   undo | clear                 undo the last edit | empty the list
   load_best                    put the room's best list in the editor
+  hint                         climb one more rung of the hint ladder (nudge, hint, answer) for this room
+  load_answer                  put the reference list in the editor (after the answer rung)
   run                          run the list; the reply carries the whole trace
   reset                        start over (everything)
 """
 
 import json
 
+import achievements
+import companion
 import dsl
 import editor
+import hints
 import info
 import progress
 import render
 import rooms
 import run as runner
 
-TALLY_KEYS = ("runs", "halts", "written")
+TALLY_KEYS = ("runs", "halts", "written", "hints")
 MAX_COUNT = 10 ** 6
 DEFAULT_COUNT = 3
 
@@ -93,6 +98,7 @@ class Game:
         self.tally = {key: 0 for key in TALLY_KEYS}
         self.flags = []
         self.bumped = []               # rooms where a run has halted: for "learned from a bump"
+        self.rungs = {}                # room id -> hint rungs climbed (1 to 3)
         self.ed = None
         self.svg_due = True
         self._enter(self.current)
@@ -137,6 +143,11 @@ class Game:
             data["flags"] = list(self.flags)
         if self.bumped:
             data["bumped"] = list(self.bumped)
+        if self.rungs:
+            data["rungs"] = dict(self.rungs)
+        earned = achievements.earned(self.facts())
+        if earned:
+            data["achievements_earned"] = earned       # written for the hub's dashboard, never read back
         return data
 
     def load(self, data):
@@ -169,9 +180,23 @@ class Game:
         self.flags = [f for f in FLAGS if isinstance(flags, list) and f in flags]
         bumped = data.get("bumped")
         self.bumped = [rid for rid in rooms.ORDER if isinstance(bumped, list) and rid in bumped]
+        rungs = data.get("rungs") if isinstance(data.get("rungs"), dict) else {}
+        self.rungs = {rid: rungs[rid] for rid in rooms.ORDER if _int(rungs.get(rid), 1, 3)}
         cur = data.get("cur")
         cur = cur if cur in rooms.BY_ID and progress.room_open(self.best, cur) else rooms.ORDER[0]
         self._enter(cur)
+
+    def facts(self):
+        """What the achievements are computed from."""
+        totals = progress.totals(self.best)
+        facts = {"rooms": totals["cleared"], "gold": totals["gold"], "chapters_done": totals["chapters_done"],
+                 "rung3": 1 if any(v >= 3 for v in self.rungs.values()) else 0, "sbx": self.tally.get("sbx_runs", 0)}
+        for flag in FLAGS:
+            facts["flag_" + flag] = 1 if flag in self.flags else 0
+        return facts
+
+    def open_chapters(self):
+        return sum(1 for i in range(len(rooms.CHAPTER_LIST)) if progress.chapter_open(self.best, i))
 
     # ---- the view --------------------------------------------------------------------------------------------------
     def _list_view(self, items, laddr):
@@ -253,6 +278,10 @@ class Game:
             "rooms": self._rooms_view(),
             "totals": progress.totals(self.best),
             "tally": dict(self.tally),
+            "hint": hints.view(r, self.rungs.get(r.id, 0)),
+            "scrap": companion.view(self.best),
+            "goals": achievements.goals(self.facts(), self.open_chapters()),
+            "achievements": achievements.view(self.facts()),
             "about": info.view(),
             "run": run_result,
         }
@@ -270,12 +299,12 @@ class Game:
         self.tally["runs"] += 1
         new_best = False
         medal = 0
+        before = self.best.get(r.id)
         if result.status in ("halt", "loop"):
             self.tally["halts"] += 1
             if r.id not in self.bumped:
                 self.bumped = [x for x in rooms.ORDER if x in self.bumped or x == r.id]
         if result.cleared:
-            before = self.best.get(r.id)
             if before is None or size < before["n"]:
                 self.best[r.id] = {"n": size, "t": dsl.to_text(prog)}
                 new_best = True
@@ -285,6 +314,9 @@ class Game:
                  "actions": result.actions, "size": size, "par": r.par, "silver": r.silver, "cleared": result.cleared,
                  "goals": result.goals, "at": result.at, "medal": medal, "medal_name": MEDAL_NAMES[medal], "new_best": new_best,
                  "best": self.best[r.id]["n"] if r.id in self.best else None}
+        trace["scrap_line"] = companion.line_for(r.id, medal) if result.cleared else ""
+        trace["part"] = {"name": companion.part_for(r.id)[1], "finish": companion.FINISH.get(medal, ""),
+                         "first": result.cleared and before is None} if result.cleared else None
         trace["next"] = progress.next_room(self.best, r.id) if result.cleared else None
         trace["next_name"] = rooms.BY_ID[trace["next"]].name if trace["next"] else ""
         return trace
@@ -389,6 +421,16 @@ def handle(request_json):
         prog = dsl.parse(g.best[g.current]["t"]) if g.current in g.best else None
         if prog is None or not ed.load(prog):
             ok, message = False, "There is no best list for this room yet."
+    elif action == "hint":
+        rung = g.rungs.get(g.current, 0)
+        if rung >= 3:
+            ok, message = False, "That is every rung: the answer is showing."
+        else:
+            g.rungs[g.current] = rung + 1
+            g.tally["hints"] += 1
+    elif action == "load_answer":
+        if g.rungs.get(g.current, 0) < 3 or not ed.load(g.room.ref):
+            ok, message = False, "Climb to the answer first."
     elif action == "run":
         trace = g.do_run()
         return json.dumps(g.view(trace["message"], ok=trace["cleared"] or trace["status"] == "short", run_result=trace))

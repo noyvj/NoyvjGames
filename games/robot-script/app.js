@@ -2,7 +2,7 @@
    returns, plays a run back, and forwards what the player does. No game logic lives here. */
 (function () {
   "use strict";
-  var ENGINE_MODULES = ["dsl.py", "room.py", "run.py", "editor.py", "render.py", "progress.py", "info.py", "rooms_moving.py", "rooms.py"];
+  var ENGINE_MODULES = ["dsl.py", "room.py", "run.py", "editor.py", "render.py", "progress.py", "info.py", "hints.py", "rooms_moving.py", "rooms_turning.py", "rooms_loops.py", "rooms.py", "companion.py", "achievements.py"];
   var STORE_KEY = "robot-script:state";
   var BACKUP_KEY = "robot-script:state-backup";
   var TILE = 48;
@@ -91,8 +91,10 @@
   function renderStats() {
     bumpStat("stat-rooms", view.totals.cleared + "/" + view.totals.rooms);
     bumpStat("stat-gold", view.totals.gold);
+    bumpStat("stat-parts", view.scrap.found + "/" + view.scrap.total);
     bumpStat("stat-runs", view.tally.runs);
     bumpStat("stat-written", view.tally.written);
+    bumpStat("stat-hints", view.tally.hints);
     bumpStat("stat-silver", view.totals.silver);
     bumpStat("stat-bronze", view.totals.bronze);
     bumpStat("stat-halts", view.tally.halts);
@@ -244,6 +246,12 @@
       setText($("result-text"), t.message);
     }
     renderGoals("result-goals", t.goals);
+    var sl = $("scrap-line");
+    sl.hidden = !(t.cleared && t.scrap_line);
+    setText(sl, t.scrap_line ? "Scrap: " + t.scrap_line : "");
+    var pl = $("part-line");
+    pl.hidden = !(t.part);
+    setText(pl, t.part ? (t.part.first ? "Part found for Scrap: " : "Scrap's part: ") + t.part.name + " (" + t.part.finish + ")." : "");
     var next = $("next-button");
     next.hidden = !(t.cleared && t.next);
     if (t.next) setText(next, "Next room: " + t.next_name);
@@ -504,6 +512,61 @@
     });
   }
 
+  // ---- goals, the workshop and the hint ladder ----------------------------------------------------------
+  function renderGoalStrip() {
+    var list = $("goals-list");
+    var sig = view.goals.map(function (g) { return g.id + g.have; }).join(",");
+    $("goals").hidden = false;
+    if (list.dataset.sig === sig) return;
+    list.dataset.sig = sig;
+    list.textContent = "";
+    if (!view.goals.length) { list.appendChild(el("li", null, "Every goal you can reach right now is done. New ones appear as new chapters open.")); return; }
+    view.goals.forEach(function (g) {
+      var li = el("li");
+      li.appendChild(el("strong", null, g.label + ": "));
+      li.appendChild(document.createTextNode(g.description + " "));
+      var bar = el("span", "bar");
+      bar.setAttribute("aria-hidden", "true");
+      var fill = el("span", "bar-fill");
+      fill.style.width = Math.round(100 * g.have / g.need) + "%";
+      bar.appendChild(fill);
+      li.appendChild(bar);
+      li.appendChild(el("span", "goal-count", " " + g.have + "/" + g.need));
+      list.appendChild(li);
+    });
+  }
+  function renderWorkshop() {
+    var s = view.scrap;
+    var sig = s.svg + s.found;
+    setText($("workshop-summary"), "Scrap has " + s.found + " of " + s.total + " parts back on, " + s.polished + " of them polished.");
+    if ($("scrap-holder").dataset.sig !== sig) {
+      $("scrap-holder").dataset.sig = sig;
+      $("scrap-holder").innerHTML = s.svg;
+      var zl = $("zone-list");
+      zl.textContent = "";
+      s.zones.forEach(function (z) {
+        zl.appendChild(el("li", null, z.name + ": " + z.have + "/" + z.need + (z.finish ? " (" + z.finish + ")" : "")));
+      });
+      var pl = $("parts-list");
+      pl.textContent = "";
+      s.parts.forEach(function (p) {
+        pl.appendChild(el("li", p.found ? "found" : "missing", p.found ? p.name + " (" + p.finish + "), from " + p.room_name : "Not found yet: from " + p.room_name));
+      });
+    }
+  }
+  function renderHints() {
+    var h = view.hint;
+    var btn = $("hint-button");
+    btn.hidden = h.rung >= 3;
+    setText(btn, h.rung === 0 ? "Need a nudge?" : (h.rung === 1 ? "Another hint" : "Show the answer"));
+    $("hint-nudge").hidden = !h.nudge;
+    setText($("hint-nudge"), h.nudge ? "Nudge: " + h.nudge : "");
+    $("hint-hint").hidden = !h.hint;
+    setText($("hint-hint"), h.hint ? "Hint: " + h.hint : "");
+    $("hint-answer").hidden = !h.answer;
+    if (h.answer) setText($("hint-answer-lines"), h.answer.lines.join("\n"));
+  }
+
   // ---- render everything ----------------------------------------------------------------------------------
   function render() {
     renderAbout();
@@ -522,6 +585,9 @@
     if (!play.trace) renderGoals("room-goals", view.room.goals);
     renderProgram();
     renderRooms();
+    renderGoalStrip();
+    renderWorkshop();
+    renderHints();
     syncPlayButtons();
   }
 
@@ -588,6 +654,9 @@
   function wire() {
     $("toast").addEventListener("click", function () { showToast(""); });
     wirePanelToggle("rooms-toggle-button", "rooms-panel");
+    wirePanelToggle("workshop-toggle-button", "workshop-panel");
+    $("hint-button").addEventListener("click", function () { send({ action: "hint" }); });
+    $("answer-load-button").addEventListener("click", function () { send({ action: "load_answer" }, true); });
     wirePanelToggle("changelog-toggle-button", "changelog-panel");
     wirePanelToggle("info-page-toggle-button", "info-page-panel");
     $("run-button").addEventListener("click", onRun);

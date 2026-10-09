@@ -72,6 +72,22 @@ def uses(prog):
     return found
 
 
+def counts(prog):
+    """How many of each construct a program contains: {"rep": n, "until": n, "if": n, "call": n}."""
+    found = {kind: 0 for kind in CONSTRUCTS}
+
+    def walk(items):
+        for stmt in items:
+            if isinstance(stmt, list):
+                found[stmt[0]] += 1
+                for part in stmt:
+                    if isinstance(part, list):
+                        walk(part)
+    for name in ROUTINES:
+        walk(prog.get(name, []))
+    return found
+
+
 def routines_used(prog):
     return [name for name in ROUTINES if name != "main" and prog.get(name)]
 

@@ -2,6 +2,10 @@
   "changelog": [
     {
       "date": "2026-10-09",
+      "entry": "Two more chapters: Turning (left and right, seven rooms) and Loops (repeat blocks, seven rooms). A hint ladder on every room (a nudge, a hint, then the answer; free, and it never touches a medal). Scrap, a salvage drone, gets one part for every room you clear, and a better list gives the same part a better finish. A strip of the next three goals stays in view."
+    },
+    {
+      "date": "2026-10-09",
       "entry": "Robot Script opens: write a short list of instructions for a maintenance robot and watch it clear a room. The first chapter, Moving, has seven straight corridors. A run that goes wrong just stops where the robot went wrong and tells you why; your list stays. Gold, silver and bronze medals go to shorter lists. Nothing is timed."
     }
   ]
