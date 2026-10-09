@@ -1,6 +1,6 @@
 # Improvement ideas, Round 4
 
-Written 2026-10-09. Two kinds of section for every game, kept apart on purpose (like Round 3's "gamified" sections): **general ideas** (would make the game better for any player; not shaped by your taste) and **made for you** (built from `planning/PLAYER-PROFILE.md`: your collecting, helper-role, three-goals, dark space-and-robots, calm-watching and short-win tastes). The first two sections are for the whole site. Every game has a 2-letter code (the general section) and the same code plus P (made for you); the older made-for-you sections keep their first codes (PS, PC, ...) so earlier answers stay attached. Each idea is one yes / later / no item with an optional comment; "yes" goes into `planning/TODO.md`, "later" into `planning/LATER.md`. Ideas that read facts from a named outside source (for example NASA pages) need that source confirmed before anything is built.
+Written 2026-10-09. Two kinds of section for every game, kept apart on purpose (like Round 3's "gamified" sections): **general ideas** (would make the game better for any player; not shaped by your taste) and **made for you** (built from `planning/PLAYER-PROFILE.md`: your collecting, helper-role, three-goals, dark space-and-robots, calm-watching and short-win tastes). The first two sections are for the whole site. Every game has a 2-letter code (the general section) and the same code plus P (made for you); the older made-for-you sections keep their first codes (PS, PC, ...) so earlier answers stay attached. Every game has a 2-letter code (the general section) and the same code plus P (made for you); the older made-for-you sections keep their first codes (PS, PC, ...) so earlier answers stay attached. Each idea is one yes / later / no item with an optional comment; "yes" goes into `planning/TODO.md`, "later" into `planning/LATER.md`. Ideas that read facts from a named outside source (for example NASA pages) need that source confirmed before anything is built.
 
 Item counts are scaled to how finished each game is. Every idea was checked against the existing TODO, LATER and Rounds 2 and 3 so none repeats, but the audit was by search, so tell me if one already exists.
 
@@ -108,6 +108,32 @@ Item counts are scaled to how finished each game is. Every idea was checked agai
 29. **[BIG]** Add a tidy base mode where you arrange buildings on each world's map for small neatness bonuses, in a calm, no-pressure way. This follows your liking for the calm of tidy-up games.
 30. **[SMALL]** Add a pen-pal planet: a friend's finished system appears as a distant trading partner that sends one small gift each visit. This follows your wish for optional friend ties with no chat.
 
+## SOPC. SOL: PC view
+
+1. **[SMALL]** Let every SOL hotkey (pause, speed, each window) be rebound in a Controls tab in Settings by clicking an action and pressing a new key, with clashes flagged. You get keys that fit your own hand.
+2. **[BIG]** Let windows such as Overview, Governor Report and Build Plan snap to the screen edges as resizable docked panels that stay open while you play. You can watch every world at once on a wide monitor.
+3. **[SMALL]** Show a hover card on any resource number with its income per second split by source and a 60-second mini graph. You get the detail without opening a window.
+4. **[SMALL]** Add a right-click menu on a building with Pin to Build Plan, Show in Chain Reactions and Copy its numbers. You get quick actions with no window hunting.
+5. **[BIG]** Add a Ctrl+K command palette where typing "mars" or "regolith" jumps to that world, window, setting or research node. You reach anything in two keystrokes.
+6. **[SMALL]** Let the number keys 1 to 9 jump the main view to each world in unlock order, and Tab cycle through them. You can move round the system with no mouse.
+7. **[BIG]** Make the Overview a real star chart with mouse-wheel zoom, drag to pan, and a click on a world that opens its panel beside the map. You get a proper map on a big monitor.
+8. **[SMALL]** On screens wider than 1600px, keep the captain's log open as a tall side strip that shows the last 30 lines instead of one. A wide monitor shows the history for free.
+9. **[SMALL]** Turn the save slots into a file-style load screen listing play time, worlds finished and a tiny skyline for each slot, with rename and duplicate. Loading feels like a real PC game's menu.
+10. **[SMALL]** Let you save a window layout as "Mining" or "Research" and flip between layouts with F1 and F2. Different sittings get different screens.
+
+## SOMO. SOL: mobile view
+
+1. **[BIG]** Make the main screen a portrait world carousel where you swipe sideways between worlds, each a full-height card with big Buy buttons at the bottom. One thumb can walk the whole system.
+2. **[SMALL]** Open a bottom sheet with a building's numbers and a Buy button when you long-press it. You get detail without leaving the list.
+3. **[SMALL]** Restore the exact world, scroll position and open panel when you reopen SOL, with a small "back where you were" chip. A two-minute visit never loses your place.
+4. **[SMALL]** Add an optional tiny haptic buzz when a purchase lands or a world finishes terraforming, off by default and set in Settings, where the browser allows. Progress becomes something you feel.
+5. **[SMALL]** Show a one-card summary page when the installed app opens, with worlds finished, your next goal and income per second, before the full game loads. You can check in at a glance during class.
+6. **[BIG]** Add a battery-saver calm mode that stops all animation, updates numbers once a second and dims to a dark flat theme while the sim keeps running. Your phone lasts through a long lesson.
+7. **[SMALL]** Open the Governor Report when you pull down on the main screen. A one-thumb gesture gets you the summary.
+8. **[SMALL]** Let you swipe a research card right to add it to the Build Plan. You can queue a plan without typing or menus.
+9. **[SMALL]** When the phone turns sideways, show the Overview beside the current world instead of stacking them. Landscape becomes a two-pane view.
+10. **[SMALL]** Add a compact number mode with a larger digit size and the unit on a second line (4.2 on top, million below). Big numbers stay readable on a 360px screen.
+
 ## CA. Canopy: general ideas
 
 1. **[BIG]** Add a river across the forest: plots next to the water grow faster, and clearing upstream plots dries out the ones downstream. You see how one decision travels across the map.
@@ -158,6 +184,32 @@ Item counts are scaled to how finished each game is. Every idea was checked agai
 28. **[SMALL]** Add a forager's recipe book, handed to you, for turning finds into tea, lantern oil and more for the cabin. This follows your preference for handed recipes and collecting.
 29. **[SMALL]** Add forest anomalies: two photos of the same plot with one change, which you spot and file in a catalogue. This follows your taste for anomaly-style games.
 30. **[SMALL]** Add a cross-section view of one plot showing roots, soil layers and burrows. This follows your wish for cutaway views and pictures over charts.
+
+## CAPC. Canopy: PC view
+
+1. **[SMALL]** Show a hover card on a plot with its tree age, income per tick, recovery stage and what a click would do. You read a plot without clicking it.
+2. **[BIG]** Add mouse-wheel zoom, drag panning and a corner minimap that shows plot health on big forests. You can manage a large grid from one screen.
+3. **[SMALL]** Add a right-click menu on a plot with Tend, Golden seedling, Clear, Replant, Adopt and Inspect, each showing its hotkey. You learn the keys by using the mouse.
+4. **[SMALL]** Let Ctrl+1 to Ctrl+4 save named cursor spots (for example "the poacher edge") and 1 to 4 jump back to them. You can hop between trouble areas in one key.
+5. **[SMALL]** Pin the Ranger contracts as a permanent right-hand tray whose lines jump the cursor to the requested plot when clicked. Contracts stay in view while you work.
+6. **[BIG]** Add a seasons scrub bar under the forest that you drag to replay how the grid changed over the last 20 seasons. You see your forest grow back like a time-lapse.
+7. **[SMALL]** Add a Controls tab in Settings that lists all twelve Canopy keys and lets you rebind each one. You can move the cursor and tend plots with your own layout.
+8. **[SMALL]** Let you drag a plot onto the Seed Vault tray to store its seedling and drag a stored seed back to a bare plot. Moving seeds feels like handling real objects.
+9. **[SMALL]** When the window is wider than 1700px, show income, biodiversity and relations as three stacked live graphs in the side column. Big screens show trends at a glance.
+10. **[SMALL]** Show a faint ring on the grid cursor with an arrow-key trail of where it has been this minute. You can see which plots you keep missing.
+
+## CAMO. Canopy: mobile view
+
+1. **[BIG]** Make the forest fill a portrait screen with plots sized for thumbs, so a pinch zooms the grid and a two-finger drag moves it. A big forest stays playable on a phone.
+2. **[SMALL]** Let a swipe across a row of plots queue Tend on each plot you touch. One finger waters a whole row.
+3. **[SMALL]** Add an optional light buzz when a plot is replanted or a golden seedling is caught, where the browser allows. Good actions feel solid under your thumb.
+4. **[SMALL]** Reopen Canopy on the exact plot you last selected, with its bottom sheet already open if it was. Short sessions pick up at once.
+5. **[SMALL]** Put the three most useful buttons (Tend, Golden, Replant) in a thumb arc at the bottom right and let you swap sides for left-handed play. One hand reaches everything.
+6. **[SMALL]** Show a home-screen summary card with standing value, forest health and the next contract on opening the installed app. You can check the forest before the game boots.
+7. **[BIG]** Add a calm bed-time forest mode that dims to a slow dark canopy, hides numbers except one, and lets the forest pass seasons quietly while you watch. A tired player still gets a pleasant screen.
+8. **[SMALL]** Make the poacher alert a large edge-of-screen banner you can swipe away or tap to drive them off. A phone player can respond with one touch.
+9. **[SMALL]** Collapse each side panel into a bottom tab strip with icons (Plots, Contracts, Vault, Almanac) that you swipe between. You get card-sized screens instead of one long scroll.
+10. **[SMALL]** Add pull-down on the forest to run a quick Tend All with a short summary of what changed. A one-gesture upkeep pass fits a two-minute visit.
 
 ## GR. Grid: general ideas
 
@@ -210,6 +262,32 @@ Item counts are scaled to how finished each game is. Every idea was checked agai
 29. **[SMALL]** Add a haunted substation scenario with odd readings you must explain, with no jump scares. This follows your liking for anomaly and eerie games.
 30. **[BIG]** Add commentated runs: a step-by-step expert run with a text commentary track you can step through or let play. This follows your enjoyment of long, commented let's plays.
 
+## GRPC. Grid: PC view
+
+1. **[BIG]** Let you drag plants from a parts bin straight onto a grid map and drag them off to retire them, with the cost shown as you hover. Building a power system feels like a real tycoon game.
+2. **[SMALL]** Show a hover card on each plant with output, cost, emissions and its learning-curve price after your next build. You compare options without a calculation.
+3. **[SMALL]** Add a right-click menu on a plant to Upgrade, Retire, Pin to the plan and Show in the weather log. Common jobs sit one click from the plant.
+4. **[BIG]** Add a live demand-versus-supply chart that fills the centre of a wide screen and shows next round's forecast as a dashed line. You see shortfalls coming on a big display.
+5. **[SMALL]** Let number keys 1 to 6 pick plant types and Enter build the selected one, with Backspace to retire. You can play a whole round from the keyboard.
+6. **[SMALL]** Let you save window layouts such as "Planner" (chart, plants and weather log) and "Review" (summary and career), switched with F1 and F2. The screen fits the task.
+7. **[SMALL]** Add a bottom bar of F1 to F8 labelled keys (Build, Retire, Advance, Chart, Weather, Career and more) that works by key or click. Mouse and keyboard players share one clear control strip.
+8. **[BIG]** Add a wide Plan Table window where every plant is a row with sortable columns for cost, output, emissions and payback, and a click in a row builds one. You can optimise like a spreadsheet inside the game.
+9. **[SMALL]** Add a draggable what-if slider for the next round's weather variability that redraws the forecast chart as you move it. You test how risky a mix is before committing.
+10. **[SMALL]** Add a compare-to-last-run strip under the chart that shows your previous run's mix as a ghost outline. You can see at once whether you are doing better.
+
+## GRMO. Grid: mobile view
+
+1. **[BIG]** Make the plant list a vertical stack of large cards where a swipe right builds one and each card shows its price change. Managing the grid works with one thumb.
+2. **[SMALL]** Pin round, funds and the supply-versus-demand gap in a thin top strip that turns bold when demand outruns supply. You see the main number without scrolling.
+3. **[SMALL]** Let you drag a finger along the demand chart to read each round's supply and demand in a floating bubble. You read the chart by touch.
+4. **[SMALL]** Show a warning chip when forecast demand exceeds supply that opens a sheet of fixes when tapped. A problem comes with a one-tap path to solve it.
+5. **[SMALL]** Add a card density option (compact, normal, roomy) in Settings. The plant cards fit your phone and your eyes.
+6. **[SMALL]** Show an installed-app home card with the current round, emissions trend and a "next best build" line before the game opens. You can glance at your grid in class.
+7. **[BIG]** Add a half-asleep Auto-plan that suggests one build per round as a big single button and shows the effect in plain words. A tired player can still make steady progress.
+8. **[SMALL]** Turn the weather log into a horizontal card strip you swipe through, one card per round. Reading the past is a thumb flick.
+9. **[SMALL]** Show emissions as a thin line along the top edge that fills across the screen as they grow. The long-term goal is visible without a panel.
+10. **[SMALL]** Let a long-press on any gauge pop up a bottom sheet with a plain-words explanation and its last five values. You get the detail without a hover.
+
 ## TI. Tide: general ideas
 
 1. **[SMALL]** Add a fishing quota dial: set how much you catch each season against the fish stock. You learn overfishing as a separate pressure from acidity.
@@ -260,6 +338,32 @@ Item counts are scaled to how finished each game is. Every idea was checked agai
 28. **[SMALL]** Add signal flag decoding puzzles that unlock messages. This follows your code and cipher interest.
 29. **[BIG]** Add a low-poly 3D coast you can rotate with water rising visibly. This follows your low-poly taste.
 30. **[SMALL]** Add a tidal turbine gear puzzle where you fit gears to turn a tidal turbine. This follows your tinkering and spatial taste.
+
+## TIPC. Tide: PC view
+
+1. **[BIG]** Draw the harbour as a wide scene where you click a stretch of coast to place a seawall or wetland and see its flood protection range as you hover. Adaptation becomes a map you edit.
+2. **[SMALL]** Add a hover crosshair on the sea-level and acidity graphs that shows the exact season, value and which of your choices drove it. You can read the delay between cause and effect directly.
+3. **[SMALL]** Add a right-click menu on the coastline with Build seawall, Restore wetland, Inspect and Add to the planner. You reach the choices from the map.
+4. **[SMALL]** Let you resize the Season Planner window and pin it beside the harbour scene while you play. You can edit the plan and watch the result together.
+5. **[SMALL]** Add a Pin button on each graph that floats it as a small always-on-top window beside the scene. You watch acidity or sea level while you work.
+6. **[BIG]** Add a dual-view pane that shows the coastline "then" and "now" side by side with a draggable divider that wipes between them. You can see how much the sea has taken in one gesture.
+7. **[SMALL]** Let a middle-click on a coast section toggle between seawall and wetland previews. Comparing defences is fast.
+8. **[SMALL]** Show season history as a filmstrip under the scene so a click on any frame displays the harbour as it was. You can browse your timeline like a video editor.
+9. **[SMALL]** Let you save planner layouts as named "plans" that you load from a dropdown and compare with the current one in a split view. You can try two strategies without losing either.
+10. **[SMALL]** On wide screens, keep the Harbor Ledger open as a right-hand table that auto-scrolls to the newest season. A permanent record sits next to the action.
+
+## TIMO. Tide: mobile view
+
+1. **[BIG]** Turn the harbour scene into a full-width portrait view where you drag a seawall icon onto the coast and release to place it. Adapting the coast is a direct touch.
+2. **[SMALL]** Keep Advance Season as a large button at the bottom centre with a ring showing seasons left in the year. The main action sits under your thumb.
+3. **[SMALL]** Keep a slim sea-level gauge on the screen edge with the flood line marked. The main danger stays visible while you scroll.
+4. **[SMALL]** Zoom the harbour into the stretch of coast you are protecting with a double-tap. Detail is one gesture away.
+5. **[SMALL]** Show a swipeable season strip at the top with tiny bars for each season's income and sea level, and a tap to open one. History is a flick.
+6. **[SMALL]** Show the three meters as large swipeable cards that fit one screen each, with the graph on the back of each card. You read one thing at a time.
+7. **[SMALL]** Add a calm harbour mode that dims the scene, slows the water, and hides all numbers except a single health word. It suits playing in bed half asleep.
+8. **[SMALL]** Let you tap and hold a season on the graph to see what you decided then in a bottom sheet. History is a thumb away.
+9. **[SMALL]** Add a battery-saver toggle that stops the waves and cloud movement and redraws only when you advance. The game stops draining your phone.
+10. **[SMALL]** Make invest buttons a vertical thumb rail on the right edge, with a flip to the left for left-handers. The most-used controls are in reach.
 
 ## AF. Aftermath: general ideas
 
@@ -317,6 +421,32 @@ Item counts are scaled to how finished each game is. Every idea was checked agai
 29. **[BIG]** Add a save-the-archive packing puzzle that moves records and artefacts to safety, each saved item entering a heritage catalogue with a sourced note. This follows your history studies and collecting habit.
 30. **[SMALL]** Add a vulnerability lens that shows who is hit hardest by each event (renters, elderly, disabled) and a policy to protect them. This follows your care about housing, healthcare and equal rights.
 
+## AFPC. Aftermath: PC view
+
+1. **[BIG]** Show the skill tree as a pannable, zoomable map with the mouse wheel and a drag, with a hover card on each node showing cost, effect and which runs used it. You can plan your resilience build like in a big PC skill tree.
+2. **[SMALL]** Add a hotkey bar along the bottom of the run screen with big keys for Invest, Face event and Undo that light up when pressed. The key bindings are visible and easy to learn.
+3. **[SMALL]** Add a right-click menu on an investment with Pin as a goal, Show linked nodes and Compare with last run. You get quick tools while planning.
+4. **[SMALL]** Add Ctrl+F search above the skill tree that dims every node except those matching a word like "flood", with Enter to jump to the next match. You find the part of the tree you want at once.
+5. **[SMALL]** Let you detach the Disaster Codex into a floating window you can resize and keep open during a run. You look up the next event type while you decide.
+6. **[BIG]** Add a Past Runs table with sortable columns (date, severity, damage prevented, resilience reached) and a click that opens a run's event ribbon. You can analyse your history like a spreadsheet.
+7. **[SMALL]** Add a UI scale and density setting (compact, normal, roomy) that resizes every panel together. The game fits a 1080p monitor or a 4K screen.
+8. **[SMALL]** Keep a strip of up to three pinned skill goals above the tree, each with a progress bar and a click to jump to the node. You always see your next three goals.
+9. **[SMALL]** Show a hover preview on each upcoming event slot that lists the damage types it is known to bring. You can plan against what you know.
+10. **[SMALL]** Add a wide-screen dashboard layout with run, tree and codex in three always-open columns above 1800px. A big monitor holds the whole loop at once.
+
+## AFMO. Aftermath: mobile view
+
+1. **[BIG]** Make each run a stack of event cards that you swipe through, with Invest as a bottom sheet of large buttons. A run plays as a short card-sized session.
+2. **[SMALL]** Show the coming disaster as a full-width banner card at the top with its icon and a plain word for severity, and let a swipe down expand its codex entry. You see the threat before you spend.
+3. **[SMALL]** Put the Invest buttons in a bottom sheet with three snap heights (peek, half, full) that you drag between. You choose how much of the run stays visible while you decide.
+4. **[SMALL]** Add a home-screen card with your resilience level, total knowledge points and the next affordable skill node. You can see where your tree stands at a glance.
+5. **[SMALL]** Put the skill tree on a vertical scroll of branch cards, each with a locked count and a tap to expand. The big tree fits a thumb.
+6. **[SMALL]** Add a swipe from a skill node to the left to pin it as a goal. Planning your next unlock is one gesture.
+7. **[SMALL]** Add a bed-time mode that dims the screen, enlarges buttons and offers one recommended investment per round. A tired player still makes sensible progress.
+8. **[SMALL]** Let a double-tap on an affordable skill node buy it, with a confirm tick. Unlocking is a gesture.
+9. **[SMALL]** Pin knowledge points and resilience in a thin top strip that stays visible while you scroll. You keep your main numbers in sight.
+10. **[SMALL]** Let a long-press on a past run open a bottom sheet with its three biggest lessons. History is readable at phone size.
+
 ## HE. Herd: general ideas
 
 1. **[SMALL]** Add a lever for rotational grazing that improves the pasture and cuts feed costs, with a note giving both supportive and critical views of its climate benefit. You get a realistic option with honest limits.
@@ -367,6 +497,32 @@ Item counts are scaled to how finished each game is. Every idea was checked agai
 28. **[BIG]** Add old machinery restoration where you sort parts to bring an old tractor back, with a quiet log from its last owner. This follows your restoring-machines idea.
 29. **[SMALL]** Add night rounds in the dark pasture where you spot what is off and file it in a catalogue. This follows your anomaly and eerie taste.
 30. **[SMALL]** Add a lineage tree showing how your animals descend across generations. This follows your collecting and shelf-style progress taste.
+
+## HEPC. Herd: PC view
+
+1. **[BIG]** Draw the farm as a pasture you can click: hover a paddock to see herd size, methane and income, and click to apply a lever such as feed change or capture. The levers sit on the farm instead of in a list.
+2. **[SMALL]** Show a hover card on each gauge with its last five rounds and what moved it most. You see cause and effect without opening the report.
+3. **[SMALL]** Add a right-click menu on a lever with Buy, Pin as a goal, Show cost over time and Compare with baseline farm. You get tools at your cursor.
+4. **[SMALL]** Hold I to label every part of the pasture with what it is and which lever affects it. New players learn the farm by pointing.
+5. **[BIG]** Add a baseline-farm ghost mode where a second, greyed pasture beside yours shows the "grow unchecked" farm round by round with a drag handle between them. You see the decoupling payoff directly.
+6. **[SMALL]** Let you resize the Report Card and dock it beside the pasture. You read your score while choosing levers.
+7. **[BIG]** Add a three-round lever planner where you queue levers for the next rounds and see a projected methane line before you commit. You can plan ahead like a strategy game.
+8. **[SMALL]** Show the Collection and lever history as a sortable table with a click that replays that round's state. You can browse your farm's story like a save file.
+9. **[SMALL]** Add a big-screen live graph of herd, methane and funds that fills the lower centre on wide monitors. Trends are always visible.
+10. **[SMALL]** Add a UI scale slider and a high-contrast outline mode in Settings. The game stays readable on any monitor.
+
+## HEMO. Herd: mobile view
+
+1. **[BIG]** Make the farm a portrait scene with levers as large cards below it, where a swipe on a card buys it and a long-press shows the cost over time. A round plays with one thumb.
+2. **[SMALL]** Pin round, funds and methane in a thin sticky top strip that gently changes label when methane crosses a band. The main trade-off stays in sight.
+3. **[SMALL]** Put levers in a sideways shelf of large tiles above Advance, grouped as feed, herd and capture. You pick a lever without scrolling the page.
+4. **[SMALL]** Show methane as a tall thermometer on the screen edge that opens its breakdown sheet when tapped. The key risk stays in view.
+5. **[SMALL]** Make the baseline-farm comparison a flip card where a tap turns your farm into the unchecked-growth farm. You compare with one tap.
+6. **[SMALL]** Let a pull-down on the farm advance one round with a confirm tick. A one-gesture turn suits tired thumbs.
+7. **[BIG]** Add a calm barn mode that dims the pasture, slows the animals, and shows only a single "healthy farm" word and the advance button. It suits bed-time play.
+8. **[SMALL]** Add a herd-size slider with a big handle and live methane and income numbers above it. A herd decision feels direct.
+9. **[SMALL]** Show the Report Card as a swipeable stack of cards (score, methane, funds, herd), one per screen. A report fits a phone.
+10. **[SMALL]** Add an undo bar for the last lever bought, kept until you advance. A mis-tap costs nothing.
 
 ## TH. Thaw: general ideas
 
@@ -429,6 +585,32 @@ Item counts are scaled to how finished each game is. Every idea was checked agai
 29. **[SMALL]** Add secret terminal commands in the station console that unlock silly cosmetics. This follows your computers taste and cryptic hidden-achievement taste.
 30. **[SMALL]** Add a pen-pal scientist at a distant station who sends postcards and small gifts as you progress. This follows your friendship and gifts taste.
 
+## THPC. Thaw: PC view
+
+1. **[BIG]** Show the four regions as four panes with one shared time cursor, so dragging on one temperature graph moves the cursor on all four. You compare the same round across regions at a glance.
+2. **[SMALL]** Add pattern markers and a clickable legend on the temperature chart to hide or show each region's line. You declutter the chart in one click.
+3. **[SMALL]** Add a right-click menu on a region with Focus (hide the others), Pin to the side column and Show its science log. You can give one region the whole screen.
+4. **[SMALL]** Let you click a funding amount and type a number, with the arrow keys for fine steps and Shift for big steps. Setting a split is quick on a keyboard.
+5. **[SMALL]** Show the Carbon Bank as a wide table with sortable columns for deposit, round and dampening effect, plus a total row. You can read the lever like a ledger.
+6. **[SMALL]** Add mouse-wheel zoom on the temperature graph to switch between the last 10 rounds and the whole run. You choose how close to look.
+7. **[SMALL]** Add a Data window that lists every round's raw numbers in a table with a Copy as CSV button. You get a mod-style data viewer for your own analysis.
+8. **[SMALL]** Add named window layouts such as "Forecasting" and "Review" that switch with F1 and F2. Each sitting gets the screen it needs.
+9. **[SMALL]** Double-click a point on a graph to open that round's full details in a window. You inspect any past moment.
+10. **[SMALL]** Add a science-log window with filters for region and event type and a search box. You find a specific warming event fast.
+
+## THMO. Thaw: mobile view
+
+1. **[SMALL]** Add a bottom tab bar with A, B, C and D for the four regions, and let you swipe sideways between them. You can check any region with one thumb.
+2. **[SMALL]** Replace funding sliders with a bar you drag, plus large plus and minus steps beside it. Splitting money is easy on a small screen.
+3. **[SMALL]** Let you swipe a science log card away to mark it read, with the unread count shown on the tab. The log becomes a quick inbox you clear.
+4. **[SMALL]** Add an escalating haptic pattern as temperature crosses each threshold, where the browser allows. The warming trend is something you feel.
+5. **[SMALL]** Turn the phone sideways to show the four regions as a 2 by 2 grid of mini graphs. Landscape becomes a comparison board.
+6. **[BIG]** Let you pinch two region graphs together to overlay them on one chart, with the gap shaded. Comparing regions works with a gesture.
+7. **[SMALL]** Add a one-region focus mode that shows only your region and shrinks the others to dots you can tap. The screen is calm and simple.
+8. **[SMALL]** Let you read The Real Story as swipeable cards that work fully offline. A class break is enough to read one.
+9. **[SMALL]** Add a Skip ahead three rounds button with a single summary screen at the end, using the same choices as before. A short session covers more ground.
+10. **[SMALL]** Pull down on the main screen to open the climate archive as a bottom sheet. History is one gesture away.
+
 ## LO. Loop: general ideas
 
 1. **[SMALL]** Chain autopsy: after a chain closes, one panel points at the single cycle where you left the most savings on the table and shows the cheapest buy that would have fixed it. You get a clear "do this next time" lesson for your next chain.
@@ -490,6 +672,32 @@ Item counts are scaled to how finished each game is. Every idea was checked agai
 29. **[SMALL]** Full completion bar: one percentage bar covering the categories, name plates, strategies and certificates. You get a clear, reachable 100 percent (your reachable-100% taste).
 30. **[BIG]** Huge patent tree: grow the patent tree into dozens of nodes in long branches per lever, with no refunds. You get the big tree you asked for (your huge-skill-tree taste).
 
+## LOPC. Loop: PC view
+
+1. **[BIG]** Let you drag a handle on each ring node to set how much goes to repair, reuse and recycle, with the flow lines redrawing as you drag. You shape the loop by hand and watch it change.
+2. **[SMALL]** Let Shift plus 1, 2 or 3 apply a saved spending split to the round. You can run a favourite plan with one chord.
+3. **[SMALL]** Add mouse-wheel zoom and drag pan on the trade network. Large networks stay readable on a monitor.
+4. **[SMALL]** Add a right-click menu on a goods category with Relabel, Pin, Show its chain and Compare with last cycle. Common jobs sit at your cursor.
+5. **[SMALL]** Add a split view with the chain diagram on the left, a table of materials per cycle on the right and a draggable divider. You see the picture and the numbers together.
+6. **[SMALL]** Add Ctrl+Z and Ctrl+Y across a cycle's investment changes with a small history list you can click. You can try ideas and step back freely.
+7. **[SMALL]** Hold Alt over a ring node to show a ghost of what would change if you added one more unit of spending. You preview a choice without making it.
+8. **[SMALL]** Add a pinned goal bar with three circular-share markers you set yourself (for example 40, 60 and 80 percent). Your three goals are always visible.
+9. **[SMALL]** Save the layout of your open windows as "Planning" or "Review" and switch with F1 and F2. The screen fits the sitting.
+10. **[SMALL]** Let a middle-click on a node invest one step and a Shift-click invest ten. Mouse players get fast bulk changes.
+
+## LOMO. Loop: mobile view
+
+1. **[BIG]** Let you tap a ring node to open a bottom sheet where you drag one slider to split spending. The loop can be redesigned with a thumb.
+2. **[SMALL]** Keep the Advance Cycle button as a wide bar at the bottom with a thin ring around it showing the circular share. The main action and goal share one control.
+3. **[SMALL]** Show the circular percent as a large number that changes colour band with a pattern as well, pinned at the top. The main goal is always visible.
+4. **[SMALL]** Let a swipe on the ring show last cycle's ring beside this one. Progress appears as a before and after.
+5. **[SMALL]** Swipe a goods card left to relabel it. A common job becomes a gesture.
+6. **[SMALL]** Add a large-print mode that enlarges node labels and flow numbers while keeping the diagram on one screen. The ring stays readable for tired eyes.
+7. **[SMALL]** Turn the phone sideways to show the loop diagram on the left and the investments on the right. Landscape becomes a workshop view.
+8. **[SMALL]** Double-tap the diagram to fit it to the screen and pinch to zoom into a node. The ring stays legible on small phones.
+9. **[SMALL]** Let a long-press on a node show a plain-words card of what flows in and out. Detail comes without a hover.
+10. **[SMALL]** Add a half-asleep one-button mode that applies your last split and advances. A tired player still moves the loop forward.
+
 ## DR. Drift: general ideas
 
 1. **[BIG]** Arrival mix: newcomers arrive as a mix of families, single adults, older people and children with different needs, shown as a small composition bar each round. You get a reason to match services to who actually arrived instead of one headcount.
@@ -545,6 +753,32 @@ Item counts are scaled to how finished each game is. Every idea was checked agai
 28. **[SMALL]** Schematic view: the region drawn as a dark blueprint with glowing lines. You get a computer-board look (your Tron and computers taste).
 29. **[SMALL]** Wellbeing weather: wellbeing shown as sky and weather over the region as well as numbers. You get pictures instead of charts (your pictures-over-numbers taste).
 30. **[SMALL]** Strain lab: a toy with sliders showing how capacity and strain move together. You get a physics-style playground (your maths and physics taste).
+
+## DRPC. Drift: PC view
+
+1. **[BIG]** Make the district view pannable and zoomable with the mouse wheel and a drag, with a click on a building showing who lives there and its strain. The region becomes a place you explore.
+2. **[SMALL]** Show a hover card on each gauge (capacity, strain, integration, wellbeing, pending) with the last five rounds and the biggest change. You see why a number moved.
+3. **[SMALL]** Add a right-click menu on a building with Invest, Show people housed and Compare with neighbour. Common jobs sit at the cursor.
+4. **[BIG]** Let you resize and tile the Round Ledger, Region Collection and Long-Horizon Outcomes windows side by side, remembering the arrangement. You can study the long story across three views.
+5. **[SMALL]** Add Ctrl+F on the district map that highlights buildings by name or type. You find a building without scanning the map.
+6. **[SMALL]** Keep a sticky bar with the current band, strain and a mini trend line that stays put as you pan the map. Your key numbers never leave the screen.
+7. **[SMALL]** Add Tab order and focus rings through the district's buildings, with Enter to open one. You can browse the region without a mouse.
+8. **[SMALL]** Add a mouse-wheel timeline strip along the bottom where scrolling steps back through rounds and shows the district as it was. You can see the region change over time.
+9. **[SMALL]** Hold Shift while hovering a building to compare it with the neighbouring region's matching building. You see what the other side has.
+10. **[SMALL]** Add a Data window with every round's numbers in a sortable table and a Copy as CSV button. You can inspect your region like a modder.
+
+## DRMO. Drift: mobile view
+
+1. **[BIG]** Make the region visual a portrait map where a tap on a building opens a bottom sheet with Invest and details. Managing the district is a direct touch.
+2. **[SMALL]** Let you swipe between your region and the neighbouring district as two full-screen cards. Comparing neighbours is a flick.
+3. **[SMALL]** Keep Advance Round as a large bottom button with a small strain ring around it. The key action and key risk share one control.
+4. **[SMALL]** Make long investment lists into collapsible groups with a sticky header showing the group's total cost. You skim a region's options in one screen.
+5. **[SMALL]** Let a swipe on a gauge cycle between its value, its last ten rounds as a mini graph and a plain explanation. Each gauge becomes a three-sided card.
+6. **[SMALL]** Add a text size picker (small, normal, large) with a live preview, remembered on the phone. Long labels stay comfortable to read.
+7. **[SMALL]** Turn long lists of investments into cards you swipe right to buy. Choices are gestures.
+8. **[SMALL]** Keep a sticky bar with the number of people arriving next round and an arrow for the trend. You always see what is coming while you scroll.
+9. **[SMALL]** Let a long-press on any term open a bottom-sheet glossary line with a link to The Real Story. Definitions fit a small screen.
+10. **[SMALL]** Add a quiet dusk mode that dims the region and hides all numbers except a single word for how the region feels. It suits bed-time play.
 
 ## TE. Trade Empire: general ideas
 
@@ -602,6 +836,32 @@ Item counts are scaled to how finished each game is. Every idea was checked agai
 29. **[BIG]** Cargo packing: a calm puzzle packing crates into a hold, which sets how efficiently a ship loads. You get a spatial puzzle with a payoff (your spatial-puzzle taste).
 30. **[SMALL]** Needs-you strip: a quiet strip that only lights up when something requires a decision, so you can half-watch. You get a class-friendly way to play (your half-attention taste).
 
+## TEPC. Trade Empire: PC view
+
+1. **[BIG]** Make the map a full-window star chart with mouse-wheel zoom, drag pan and a click-and-drag to draw a new route from one colony to another. Building a trade network feels like a real strategy game.
+2. **[SMALL]** Show a hover card on each colony with its needs, stockpile and the ships serving it. You read a colony without opening a window.
+3. **[SMALL]** Add a right-click menu on a ship with Send to colony, Set priority, Rename and Show its history. Fleet orders sit at the cursor.
+4. **[BIG]** Let you drag ships from the Fleet Captains list onto routes on the map to assign them, with a preview of profit per trip. Assigning a fleet is direct and visual.
+5. **[SMALL]** Add box-select on the map to pick several ships with a drag and give them a shared order. You can move a group in one action.
+6. **[SMALL]** Add Ctrl+1 to Ctrl+9 control groups for ships and colonies, and 1 to 9 to jump to them. Experienced players get an RTS-style quick recall.
+7. **[SMALL]** Add a route-profit overlay on key P that shades routes by profit with a pattern as well as colour. You spot weak routes at a glance.
+8. **[SMALL]** Show a permanent ledger ribbon along the bottom of a wide monitor that scrolls profit per route in real time. Income is always in view.
+9. **[SMALL]** Let Alt-click on a colony open its trade-post window and Shift-click add it to the route you are drawing. The mouse does more with modifier keys.
+10. **[SMALL]** Add save slots as a file-style list with a map thumbnail, profit and automation slots for each. Loading is a proper PC menu.
+
+## TEMO. Trade Empire: mobile view
+
+1. **[BIG]** Make the map a portrait view where you tap a colony and then another to draw a route, with a bottom sheet to assign a ship. Route building is a two-tap job.
+2. **[SMALL]** Put ships in a horizontal strip above the thumb zone that you can tap to open their orders. Fleet control is one-handed.
+3. **[SMALL]** Let a long-press on a ship open a radial menu with Send, Assign route and Rename. Fleet orders are one gesture.
+4. **[SMALL]** Add a Send all idle ships button that gives each idle ship its last route and shows a summary sheet. A short session keeps the fleet working.
+5. **[SMALL]** Add a home-screen card with profit per minute, automation slots used and the next colony need. You can check on the empire in class.
+6. **[SMALL]** Let you pinch to zoom the map and double-tap a colony to centre it. The map works like a phone map.
+7. **[SMALL]** Add a half-asleep mode that shows one big card for the most valuable idle ship with a Send button. A tired player can keep the network running with a tap.
+8. **[SMALL]** Add a battery-saver mode that stops ship animation and updates positions every few seconds. The phone lasts longer.
+9. **[SMALL]** Swipe a colony card left to see its needs and right to see its stockpile. A colony fits a card.
+10. **[SMALL]** Turn the market table into cards sorted by profit with a long-press that opens a price history sheet. Trading data fits a phone.
+
 ## CO. Continuum: general ideas
 
 1. **[BIG]** Wonder of the age: each era offers one wonder that the whole settlement builds across many seasons from shared labour and materials, with its own model in the 3D scene. You get a big shared goal in every era.
@@ -657,6 +917,32 @@ Item counts are scaled to how finished each game is. Every idea was checked agai
 28. **[BIG]** Expert settlement viewer: watch a strong settlement at your own pace with reasons beside each choice. You get the walkthrough built in (your watch-a-100%-run taste).
 29. **[SMALL]** Picture stats: an option to show food, safety and knowledge as parts of the skyline rather than numbers. You get pictures over numbers (your pictures-over-numbers taste).
 30. **[SMALL]** Fast first era: the Tribal era teaches by doing with two buildings and speeds up within a few seasons. You get an easy start that ramps quickly (your easy-start-then-ramp taste).
+
+## COPC. Continuum: PC view
+
+1. **[BIG]** Add mouse-wheel zoom, middle-drag orbit and right-drag pan on the 3D settlement, with the 1 to 4 camera presets kept as shortcuts. The scene becomes a proper strategy-game view.
+2. **[SMALL]** Show a hover card on every building in the 3D scene with its output, workers and the next upgrade. You read the settlement by pointing.
+3. **[SMALL]** Add a right-click menu on a building with Upgrade, Assign workers, Show its research and Look back. Common jobs sit at the cursor.
+4. **[BIG]** Add a wide mission-control layout that tiles the City Views dashboard, the civic map and the flow diagram as three docked panes with resizable dividers. A big monitor holds the whole city.
+5. **[SMALL]** Add WASD and edge-of-screen camera movement in the 3D scene with Q and E to rotate and Shift for speed. The camera moves like in a city builder.
+6. **[SMALL]** Add a Ctrl+K command palette to jump to a research node, building, citizen, heritage site or era by name. You find things by typing.
+7. **[SMALL]** Let the log sit as a docked, scrollable side panel with filter chips for events, research and citizens on a wide screen. History stays in view.
+8. **[SMALL]** Add save slots as a file-style list with era, population and a small 3D snapshot of each settlement. Loading looks like a real PC game menu.
+9. **[SMALL]** Add window layouts such as "Builder", "Council" and "Archive", switched with F1 to F3. Each sitting gets the screen it needs.
+10. **[SMALL]** Add a mod-style Data window that lists every building, tech and citizen in sortable tables with a Copy button. You can study the game's numbers.
+
+## COMO. Continuum: mobile view
+
+1. **[BIG]** Make the 3D scene full-screen in portrait with a one-finger orbit, a pinch to zoom, and a bottom sheet that opens when you tap a building. The settlement is something you touch.
+2. **[SMALL]** Keep the camera presets as four large buttons along the bottom edge, with a fifth for "my last view". Camera changes are one tap.
+3. **[SMALL]** Add a bottom tab bar (City, Research, Look back, Log) so the main areas are one thumb tap apart. The big game fits four tabs.
+4. **[SMALL]** Reset the camera to the last preset with a two-finger tap on the 3D scene. A lost camera is fixed in one gesture.
+5. **[SMALL]** Add a first-run picker for text size and 3D detail (small, standard, large) that sets phone-friendly defaults. The game starts comfortable instead of cramped.
+6. **[BIG]** Add a low-power 2D view for old phones that replaces the 3D scene with a flat illustrated map and the same tap sheet. Weak phones still get a full game.
+7. **[SMALL]** Add swipeable era cards in the Look Back panel with a tap to open each era's snapshot. History is a card flick.
+8. **[SMALL]** Let a pull-down on the scene advance one season with a confirm tick. A one-gesture turn suits short sessions.
+9. **[SMALL]** Add a half-asleep mode that dims the city, shows a single suggested action and a Next season button. A tired player can still make progress.
+10. **[SMALL]** Add a settings option to cap the 3D frame rate and pixel density on phones. The game stays smooth and cool.
 
 ## CH. Le Champ de Mots: general ideas
 
@@ -719,6 +1005,32 @@ Item counts are scaled to how finished each game is. Every idea was checked agai
 29. **[SMALL]** Half-listening review: slow single-tap multiple choice with no combos, for class or when half asleep. You get review that needs little attention (your half-attention taste).
 30. **[SMALL]** Banter pack: playful phrases to use with friends, kept friendly. You get French for the banter you love (your Among Us banter taste).
 
+## CHPC. Le Champ de Mots: PC view
+
+1. **[SMALL]** Make Enter submit, Tab move to the next plot and the arrow keys walk the farm, with a keyboard-focus ring on the current plot. You can water the whole farm without the mouse.
+2. **[BIG]** Add an accent key layer where holding Alt and a letter types the French accented form (Alt+e gives é), with a small cheat chart in the corner. You type French fast on any PC keyboard.
+3. **[SMALL]** Show a hover card on each plot with the word, its stage, next review date and last three answers. You see a plot's history by pointing.
+4. **[SMALL]** Add a right-click menu on a plot with Water now, Add a note, Flag a mistake and Show cultural note. Study tools sit at the cursor.
+5. **[BIG]** Let you drag the Exam Planner, Phrasebook and Progress dashboard into a three-column study desk that remembers its size. A big monitor becomes a proper study station.
+6. **[SMALL]** Add a keymap overlay on Shift+F1 that shows where é, è, ç and œ sit on US, UK and AZERTY layouts, with a click to type one. You type French accents without hunting.
+7. **[SMALL]** Add Ctrl+K as a command palette that jumps to any word in your phrasebook, minigame or week by typing. You find a word in a few letters.
+8. **[SMALL]** Add a Ctrl+F word search window that filters the farm by word, tag or stage and highlights matches. You find a word without scrolling.
+9. **[SMALL]** Add a split phrasebook view with the word list on the left and the selected word's full detail on the right, with arrow keys to browse. You read vocabulary like a dictionary app.
+10. **[SMALL]** Add a pinned side clock showing words due today and a progress ring on wide screens. Your study target stays in view.
+
+## CHMO. Le Champ de Mots: mobile view
+
+1. **[BIG]** Make watering a full-screen question card with a big on-screen accent bar and large answer buttons at the bottom. A study round is a one-thumb card.
+2. **[SMALL]** Let a swipe from a plot to the right water it. The farm works by gesture.
+3. **[SMALL]** Lift the question card and accent bar above the on-screen keyboard and add a Done key that closes it. Typing French on a phone never hides the question.
+4. **[SMALL]** Add a bottom tab bar (Farm, Study, Games, Me) that stays on every screen. Moving round the app is one thumb tap.
+5. **[SMALL]** Add a home-screen card with words due today, words known and your exam countdown before the farm loads. You can check study status in class.
+6. **[SMALL]** Make a Five-minute set a single button that picks the right number of due words and ends with a summary card. A short session fits a break.
+7. **[SMALL]** Add a portrait minigame lobby of large cards, one per minigame, with your best score on each. Practice games feel like a phone arcade.
+8. **[SMALL]** Add an offline set of the next week's words that you can study fully without a connection. Study works on the bus.
+9. **[SMALL]** Add a night-study mode that dims the farm, enlarges the cards and shows one question at a time. It suits bed-time play.
+10. **[SMALL]** Add a landscape typing layout where the question sits above and the keyboard area shrinks to fit. Typing on a phone is less cramped.
+
 ## SI. Signal: general ideas
 
 1. **[BIG]** Blocked tiles: some tiles are rock, so you cannot ping there and signals are weaker across them. You get a new kind of puzzle with a map to read.
@@ -769,6 +1081,32 @@ Item counts are scaled to how finished each game is. Every idea was checked agai
 28. **[SMALL]** Friend playlist: a friend picks seven boards for you to play at your own pace. You get a friend gift with no chat (your gifts-and-notes taste).
 29. **[BIG]** Receiver workshop tree: a big tree of practice-mode tools such as filters and extra ping types, with no refunds. You get a big tree (your huge-skill-tree taste).
 30. **[SMALL]** Learn by pinging: the first board teaches every rule by doing, with no text. You get an intuitive start (your no-tutorial taste).
+
+## SIPC. Signal: PC view
+
+1. **[SMALL]** Show a faint preview on hover that lists what a ping on that tile would read for each possible transmitter distance. You pick your pings with more thought and fewer wasted ones.
+2. **[SMALL]** Let a right-click on a tile toggle a small pencil "maybe" note in the corner that does not count as an answer. You can think on the board the way you do on paper.
+3. **[SMALL]** Add a readings sheet beside the board that lists each ping's tile and number in sortable rows, with a click that highlights the tile. Your evidence sits in one table.
+4. **[SMALL]** Add Ctrl+Z and Ctrl+Y for markers and pencil notes, with a visible history list. You can try theories and step back.
+5. **[BIG]** Hold Space to overlay each ping's reach rings across the whole board, so the overlap points show where a transmitter must sit. You can see the logic of the puzzle at a glance.
+6. **[SMALL]** Show the archive as a wide month grid with hover previews of each puzzle's board size and your result. You browse past puzzles like a calendar app.
+7. **[SMALL]** Add mouse-wheel zoom and drag pan for large practice boards, with a recentre key. Big boards stay comfortable on a monitor.
+8. **[SMALL]** Hold Shift to draw a ruler line from the cursor tile to the nearest ping showing distance and reading difference. You check the geometry quickly.
+9. **[SMALL]** Let a held mouse button sweep across tiles to mark or unmark them in one stroke. Filling in candidate tiles is fast.
+10. **[SMALL]** Add a stats window that stays open beside the board with streak and par history as small charts. Your record sits in view while you solve.
+
+## SIMO. Signal: mobile view
+
+1. **[BIG]** Hold a tile to show a magnifier bubble above your finger with the tile's coordinate and a ping preview, so your thumb never hides the target. Precise tapping works on a small screen.
+2. **[SMALL]** Put the Ping and Mark tool switch as two big buttons at the bottom edge. The main choice sits under your thumb.
+3. **[SMALL]** Let a tap ping the tile and a long-press mark it, as an option in Settings. One finger does both jobs without a tool switch.
+4. **[SMALL]** Add a haptic pulse on each ping that grows stronger with a bigger reading, where the browser allows. You feel how close you are.
+5. **[SMALL]** Reopen on the exact half-solved board with pings and markers in place. A two-minute visit keeps all your reasoning.
+6. **[SMALL]** Add a Today shortcut that opens straight into the day's puzzle from the home-screen icon. You get a one-tap start.
+7. **[SMALL]** Let you swipe between Today, Archive and Practice as three full-screen tabs. Moving between modes is a flick.
+8. **[SMALL]** Add a pure-black dark theme for OLED phones with brighter tile outlines. Bed-time play is easy on the eyes and the battery.
+9. **[SMALL]** Open a small radial menu with Ping, Mark and Clear next to your finger when you long-press the board. You never travel to a toolbar.
+10. **[SMALL]** Add pinch to zoom on large boards, with a double-tap to reset. Large practice puzzles remain tappable.
 
 ## LE. Lexis: general ideas
 
@@ -825,6 +1163,32 @@ Item counts are scaled to how finished each game is. Every idea was checked agai
 28. **[SMALL]** Confirm stamps: a tiny stamp animation each time a sign is confirmed. You get a small reward every few minutes (your small-rewards taste).
 29. **[SMALL]** Sketch page: rough pencil sketches of each species in the crew notebook, drawn by code. You get a hand-drawn touch (your hand-drawn-on-occasion taste).
 30. **[SMALL]** Contact settings: Gentle, Standard and Sharp settings that change the number of scenes and distractor signs, each checked to stay deducible. You get a difficulty you choose (your choose-difficulty taste).
+
+## LEPC. Lexis: PC view
+
+1. **[BIG]** Hover any sign to light up every place it appears in the scenes, notebook and crew log at once. You can spot patterns by pointing.
+2. **[BIG]** Show scene player, notebook and transmit bar as three docked panes with draggable dividers on wide screens. You can watch, note and compose together.
+3. **[SMALL]** Let you drag signs from the notebook into the transmit bar and reorder them by dragging. Building a message feels hands-on.
+4. **[SMALL]** Press / to search the notebook by sign shape or your own note, and arrow keys to move through the matches. You find an entry with the keyboard only.
+5. **[SMALL]** Add a right-click menu on a sign with Add note, Show scenes and Copy to transmit. Common jobs sit at the cursor.
+6. **[SMALL]** Pin a scene as a small floating player that stays visible while you edit the notebook. You can compare as you write.
+7. **[SMALL]** Double-click a sign in a scene to jump the notebook to its entry and open it for editing. You go from scene to note in one action.
+8. **[SMALL]** Add Ctrl+Z and Ctrl+Y for the transmit line. You can try a message and step back.
+9. **[SMALL]** Show a hover line on each crew-log entry saying which planet and scene triggered it. You can trace the story to its cause.
+10. **[SMALL]** Add a print layout so Ctrl+P produces a one-page glossary of your notebook. You get a take-away sheet of what you have decoded.
+
+## LEMO. Lexis: mobile view
+
+1. **[BIG]** Play scenes as full-screen vertical cards where you swipe up for the next scene and tap to pause. Watching feels like a phone story.
+2. **[SMALL]** Pull the notebook up as a bottom sheet with a peek height that leaves the scene visible above. You can read and watch together.
+3. **[SMALL]** Make the transmit pad two big buttons for tick and bar, with a short buzz for a tick and a long buzz for a bar, where the browser allows. Composing a signal feels physical.
+4. **[BIG]** Add a portrait sign keyboard at the bottom with your known signs in a grid, tapped to build a message. Composing is a thumb job.
+5. **[SMALL]** Let you long-press a sign in a scene to copy it into the transmit line. A sign moves from watching to speaking in one gesture.
+6. **[SMALL]** Resume a scene at the exact frame you paused on. A short visit never loses your place.
+7. **[SMALL]** Add a home-screen card with planets contacted, signs decoded and the next goal. You can see progress at a glance.
+8. **[SMALL]** Add a dim night theme with softer glow on the signs. Bed-time puzzling stays gentle.
+9. **[SMALL]** Turn the crew log into a swipeable card stack, one entry per card. Story beats fit a phone.
+10. **[SMALL]** In landscape, show the scene on the left and the notebook on the right. Turning the phone gives a work desk.
 
 ## HC. Heist Committee: general ideas
 
@@ -887,6 +1251,32 @@ Item counts are scaled to how finished each game is. Every idea was checked agai
 29. **[SMALL]** A Glitch log that records every deliberate harmless exploit you find, such as two clashing crew absorbing each other. It feeds the build-breaking fan.
 30. **[SMALL]** A session goal picker on the opening screen (finish one target, meet one new crew member, fill one codex page) that gets ticked at the end. It honours proud-of-a-self-set-goal sessions.
 
+## HCPC. Heist Committee: PC view
+
+1. **[SMALL]** Show a hover card on each timeline cell with its odds in words, who clashes with whom there, and what chains it could set off. You plan with the facts in front of you.
+2. **[SMALL]** Add a right-click menu on a cell with Clear, Copy to another beat, Swap with and Show odds. Cell jobs sit at the cursor.
+3. **[SMALL]** Let a drag-box select several cells and arrow keys nudge the whole block one beat. You can shift a plan without redoing it.
+4. **[SMALL]** Add Ctrl+C and Ctrl+V to copy a block of actions from one crew row to another. You reuse a good routine.
+5. **[BIG]** Add a playback film strip under the timeline with J, K and L stepping, a speed key and a draggable playhead. You can study exactly how a complication chained.
+6. **[SMALL]** Highlight every cell changed since your last run with a small dot, and list them in a side panel. You can see what your edits did.
+7. **[SMALL]** Add a second-screen playback log with big text you can pop out into its own window. The story plays on one screen while you plan on the other.
+8. **[SMALL]** Add a pop-out client brief window you can park on a second monitor, listing the target's rules and complications. The brief stays visible and the timeline gets the full screen.
+9. **[SMALL]** Add a Controls tab in Settings that rebinds the arm keys 1 to 9, Standby and Delete. The keys fit your hand.
+10. **[SMALL]** Hover a crew portrait to show its clash and friendship pairs as small icons in the side panel. You can seat the crew without opening a screen.
+
+## HCMO. Heist Committee: mobile view
+
+1. **[BIG]** Show the timeline one crew row at a time, with swipe up and down between crew and sideways scroll for beats, and a bottom sheet to pick an action for a tapped cell. Planning works on a portrait screen.
+2. **[SMALL]** Put the action tray as a thumb-height carousel at the bottom with the odds shown as one word. You pick an action in one flick.
+3. **[SMALL]** Add a short buzz for each link in a complication chain during playback, where the browser allows. A chain reaction is felt.
+4. **[BIG]** Play the heist as full-screen story cards where a tap anywhere moves to the next beat. Playback is a one-thumb show.
+5. **[SMALL]** Resume playback at the exact beat you left. A two-minute pause never loses the story.
+6. **[SMALL]** Let a long-press on a cell open a sheet that explains its odds in plain words. Detail comes without a hover.
+7. **[SMALL]** Let the crew sheet slide in from the left edge with a swipe and slide away with another. The timeline gets the whole screen when you plan.
+8. **[SMALL]** In landscape, show the whole timeline with crew rows and allow a pinch to zoom. Turning the phone gives the full plan view.
+9. **[SMALL]** Add a dim cosy-night theme with bigger cells. Bed-time planning stays easy.
+10. **[SMALL]** Add a swipe on a past job in the career list to replay it. History is one flick away.
+
 ## LH. Lighthouse: general ideas
 
 1. **[SMALL]** A tide gauge on the rock scene that shows high and low water with a number and a pattern. Dock work and boat visits become something you can plan around.
@@ -947,6 +1337,32 @@ Item counts are scaled to how finished each game is. Every idea was checked agai
 28. **[BIG]** A friendly rock gull that you can name and feed, with a small collection of its habits you discover. It is a gentle helper-role caretaker idea.
 29. **[SMALL]** Optional dry, dark jokes in the keeper's logbook that stay gentle and never silly. It matches your humour.
 30. **[SMALL]** A "short wins" shelf where each completed night leaves one small object (a pebble, a feather) on the windowsill. Small nights build into a full shelf.
+
+## LHPC. Lighthouse: PC view
+
+1. **[BIG]** Make the lighthouse picture clickable: hover the lamp, clockwork or trouble spot to see a glowing label and click to act. The keeper's rounds happen in the place itself.
+2. **[SMALL]** Show a hover card on a ship with its name, cargo, mood toward the light and last letter. You read the sea by pointing.
+3. **[SMALL]** Add a Controls tab in Settings that rebinds W, T, Space, brackets and the lamp keys. The keys fit your hand.
+4. **[SMALL]** Make the letters window a two-pane mail reader with J and K to move between letters, the sailor on the left and the letter on the right. Reading is smooth.
+5. **[SMALL]** Add a small storm scope as a dockable circular window you can place anywhere. You watch the weather without changing screens.
+6. **[SMALL]** Add HUD scale and fade sliders in Settings, with an option to hide the HUD while nothing needs you. The scene stays cinematic.
+7. **[BIG]** Add a camera key C that cycles three fixed views (the sea, the gallery and the lantern room) with a slow drift. The place feels like a world you look around.
+8. **[SMALL]** Save window arrangements such as "Keeper desk" and "Quiet night" and switch with F1 and F2. The screen fits the sitting.
+9. **[SMALL]** Add a letterbox cinema option with a choice of 16:9 or 21:9 framing and optional film grain. The scene is framed like a short film.
+10. **[SMALL]** Add an opacity slider for each window so reports and letters can sit as see-through panels over the scene. You read while the sea stays in view.
+
+## LHMO. Lighthouse: mobile view
+
+1. **[SMALL]** Make lamp level a tall slider at the right edge you drag with your thumb, with four marked notches. The main control is easy to reach.
+2. **[SMALL]** Wind the clockwork by drawing circles on a crank on screen. A tap job becomes a small physical act.
+3. **[SMALL]** Add an optional soft pulse once per beam sweep, off by default, where the browser allows. The light has a gentle rhythm you feel.
+4. **[SMALL]** Show letters as paper cards you flip with a tap and swipe away to file. Reading feels like handling mail.
+5. **[SMALL]** Keep a night summary strip in the header that expands into the full phase report when tapped. The main screen stays about the light.
+6. **[SMALL]** Open the letters drawer with a swipe from the left edge. Reading mail is one thumb flick away.
+7. **[BIG]** Make the scene a tall portrait view with the lighthouse on top and phase panels in a bottom sheet. The place fits a phone.
+8. **[SMALL]** Add a battery-saver night that draws one still frame and a moving beam only. The phone lasts through a long watch.
+9. **[SMALL]** Keep four lamp-level buttons as a one-thumb rail on the bottom edge. Quick changes are one tap.
+10. **[SMALL]** Show oil and repair as large icons with numbers in the top bar that glow gently when low, never loudly. Warnings are calm and clear.
 
 ## PB. Pocket Bazaar: general ideas
 
@@ -1009,6 +1425,32 @@ Item counts are scaled to how finished each game is. Every idea was checked agai
 29. **[SMALL]** A rare-goods spotlight on the stall counter that shows the one item you are closest to collecting. It makes the last piece easy to find.
 30. **[SMALL]** A "routine day" button that repeats your last day's choices so a familiar flow takes a few taps. It suits the routine-they-know-by-heart calm.
 
+## PBPC. Pocket Bazaar: PC view
+
+1. **[SMALL]** Hover a piece to highlight every piece it can merge with and show what the merge would make. You see good moves before you take them.
+2. **[SMALL]** Add a right-click menu on a piece with Sell, Hand over to a customer and Pick up. Piece jobs sit at the cursor.
+3. **[SMALL]** Hover a customer to show their liked goods and patience in beats. You can read the queue without opening anything.
+4. **[BIG]** On wide screens, let you drag decorations around a free-form stall scene to arrange them anywhere. Your stall becomes your own layout.
+5. **[SMALL]** Hold Shift to select several pieces and press D to hand them all to one customer. A big order is one action.
+6. **[SMALL]** Show a large chain counter on wide screens that grows and changes style as a combo builds. A good combo feels like a moment.
+7. **[SMALL]** Add a board size slider from 80 percent to 160 percent in Settings. The board fits any monitor.
+8. **[SMALL]** Hold Alt to show the hotkey number over every crate and tool. You learn the keys by looking.
+9. **[SMALL]** Add a Controls tab in Settings that rebinds the crate, hand-over, sell and broom keys. The keys fit your hand.
+10. **[SMALL]** Add save slots as a file-style list with coins, day and a small stall thumbnail. Loading looks like a real PC menu.
+
+## PBMO. Pocket Bazaar: mobile view
+
+1. **[SMALL]** Let you flick a piece in a direction to push it to the next cell. Merging works by swiping.
+2. **[SMALL]** Add a haptic tap on a merge that gets stronger with the tier and a roll for a cascade, where the browser allows. Merging feels satisfying.
+3. **[SMALL]** Put Sell, Broom and Hand over as three big buttons along the bottom edge. The tools sit under your thumb.
+4. **[BIG]** Make the board fill the phone width with customers as a row of cards above it. The whole stall fits one portrait screen.
+5. **[SMALL]** Let you pull down the stall banner to peek at the festival and regulars. A glance does not leave the board.
+6. **[SMALL]** Resume the day on the exact board. A short break never loses a merge.
+7. **[SMALL]** Show each customer's patience beats as large dots under their card. You never miss that someone is about to leave.
+8. **[SMALL]** Let a double-tap on a piece pick it up and a double-tap on a customer hand it over. Frequent actions become gestures.
+9. **[SMALL]** Add a mirror switch that moves the tool buttons to the left side. Left-handed play is comfortable.
+10. **[SMALL]** Add a dark lantern-lit night market theme with larger pieces. Bed-time play stays easy on the eyes.
+
 ## DE. Dead Reckoning: general ideas
 
 1. **[SMALL]** A "protractor overlay" on the chart that shows a bearing arc from your ship's start as you drag the heading. Setting headings feels like holding a real tool.
@@ -1069,6 +1511,32 @@ Item counts are scaled to how finished each game is. Every idea was checked agai
 28. **[SMALL]** A "closest to 100 percent" list that shows the three nearest completions and the exact chart for each. It makes finishing easy.
 29. **[SMALL]** A one-tap "repeat my usual plan" button that loads the last plan you used for the same chart type. It suits a known routine.
 30. **[SMALL]** A friendly welcome tile on first launch showing three kinds of play (chart solver, collector, scripter) and letting you pick one. It makes the game feel made for whoever opens it.
+
+## DEPC. Dead Reckoning: PC view
+
+1. **[SMALL]** Let you type a leg as "090 6kn 2h" in a one-line box and press Enter to add it. Planning is fast for keyboard users.
+2. **[SMALL]** Add mouse-wheel zoom and drag pan on the chart with a scale bar and a recentre key. You can read a big chart closely.
+3. **[SMALL]** Show the position in nautical miles, the current arrow and the tide at that spot as you hover over the chart. The chart tells you what is under the cursor.
+4. **[SMALL]** Add a right-click menu on the chart with Drop a fix mark, Measure from the ship and Add a waypoint. Chart tools sit at the cursor.
+5. **[SMALL]** Hold R and drag to measure distance and bearing like parallel rules. You get a real chart tool.
+6. **[SMALL]** Add a layers panel to toggle currents, wind, hazards, grid and labels. The chart can be as plain or rich as you like.
+7. **[BIG]** Add an editable plan table where every leg is a row with heading, speed and time cells you tab through, and the chart redraws as you type. You can plan like a spreadsheet.
+8. **[SMALL]** Dock the tide table as a window beside the chart and highlight the row for the hour of your current leg. You read tides without hunting.
+9. **[SMALL]** Add a Ctrl+P print layout that produces a clean chart sheet with your plan listed. You get a paper chart to keep.
+10. **[SMALL]** Add save slots as a file-style list with chart name, stars and a thumbnail of the track. Loading looks like a real PC menu.
+
+## DEMO. Dead Reckoning: mobile view
+
+1. **[SMALL]** Set speed and time with two large wheel pickers at the bottom of the screen. Entering a leg is a thumb spin.
+2. **[SMALL]** Let you pinch to zoom the chart and drag to pan. The chart works like a phone map.
+3. **[SMALL]** Long-press the chart to drop a fix mark. A common job becomes a gesture.
+4. **[SMALL]** Add a short buzz when the reveal shows your estimate within one nautical mile, where the browser allows. Accuracy is felt.
+5. **[SMALL]** Show legs as cards you swipe to delete with an undo bar. Editing a plan is a flick.
+6. **[BIG]** Make the chart fill a portrait screen with the plan as a bottom sheet that peeks up. The chart and plan share a phone.
+7. **[SMALL]** Resume the plan you were drafting, with every leg kept. Short visits never lose a plan.
+8. **[SMALL]** Let the leg editor float as a draggable card over the chart that you can slide to the top or bottom. You keep the part of the chart you are working on in view.
+9. **[SMALL]** In landscape, show the chart full-screen with a floating leg editor. Turning the phone gives a chart table.
+10. **[SMALL]** Make downloaded charts work fully offline with a small list of what is saved. Navigation works on the bus.
 
 ## CL. Chronicle: general ideas
 
@@ -1131,6 +1599,32 @@ Item counts are scaled to how finished each game is. Every idea was checked agai
 29. **[BIG]** Sets shown as test chambers with a dry machine voice that comments on your attempts and never states a false fact. You get a Portal-like host without losing accuracy. (taste: Portal-style puzzles)
 30. **[SMALL]** A "set my goal for tonight" box that gives a stamp when you finish what you chose. You feel proud of a goal you set yourself. (taste: self-set session goals)
 
+## CLPC. Chronicle: PC view
+
+1. **[BIG]** Show the timeline as lanes, with the main set in the middle and "what else was happening" lanes above and below that you drag to reorder. You see simultaneous history without jumping between screens.
+2. **[SMALL]** Show a hover card on an event with its date and its three sources with publishers. You check the evidence before you place it.
+3. **[BIG]** Make the cause web a free canvas where you drag cards, draw threads with the mouse and pan by scrolling. Thinking in links feels like a pinboard.
+4. **[SMALL]** Add a right-click menu on a claim with Show sources, Add note and Report a problem. Common jobs sit at the cursor.
+5. **[SMALL]** Show two sources in two columns with scroll sync and a highlighter to mark phrases that show bias. Comparing accounts becomes a close reading tool.
+6. **[SMALL]** Let arrow keys move a card along the timeline and Enter place it. You can build a timeline from the keyboard.
+7. **[SMALL]** Add a notes window docked beside the game that collects your notes by set and can be exported as text. You build a study document as you play.
+8. **[SMALL]** Add a Ctrl+K palette to jump to any person, event or set by name. You find things with a few letters.
+9. **[SMALL]** Show the set picker as a library grid with progress rings and hover counts of claims and sources. Choosing a set feels like picking a game from a shelf.
+10. **[SMALL]** Add a Ctrl+P print layout that draws your finished timeline as a clean poster. You get a keepsake of what you built.
+
+## CLMO. Chronicle: mobile view
+
+1. **[BIG]** Show the timeline as a vertical scroll through time, where you tap the place you want and pick a card from a bottom tray. History fits a portrait screen.
+2. **[SMALL]** Link two events by tapping them one after the other. The cause web works with simple taps.
+3. **[SMALL]** Sort claims into documented, disputed and myth by swiping a claim sheet right, up or left. Judging claims is quick and tactile.
+4. **[SMALL]** Long-press a claim to open its three sources in a bottom sheet. Evidence is one gesture away.
+5. **[SMALL]** Add a thin ruler at the screen edge that shows the centuries with a draggable thumb. You jump through a long timeline quickly.
+6. **[SMALL]** Add a reading mode with larger text and a quiet background for sources. Long reading is easy on a phone.
+7. **[SMALL]** Zoom a card's text to a large reading size with a double-tap and back with another. Reading small dates and names gets easy.
+8. **[SMALL]** Let you take a set offline with one button that saves all its text and sources. Study works anywhere.
+9. **[SMALL]** Add a bookmarks tab where a long-press on any card saves it, listed with the set it came from. You build your own revision list as you play.
+10. **[SMALL]** In landscape, show two sources side by side for Whose account. Comparing texts is easier on a wide screen.
+
 ## UN. Undersleep: general ideas
 
 1. **[BIG]** Extra home rooms (kitchen, balcony, reading nook) that unlock one by one, each with its own objects to place. The home grows into a place with a story.
@@ -1191,6 +1685,32 @@ Item counts are scaled to how finished each game is. Every idea was checked agai
 28. **[SMALL]** A mode choice at start (Story, Sandbox, Puzzle, Watch) that you can switch at any time. There are many ways to play the same home. (taste: many ways to play)
 29. **[SMALL]** A private "just for me" note field on the character sheet that stays on the device and is never shown anywhere else. You add personal touches knowing nothing leaves. (taste: privacy and personal touches)
 30. **[SMALL]** A mood-lamp that changes colour with your chosen palette in the evening scene. You make the room match your night. (taste: dark moody looks)
+
+## UNPC. Undersleep: PC view
+
+1. **[BIG]** Show a rectangular 24-hour strip below the ring with the circadian curve behind it, linked so dragging a block on one moves it on the other. You plan on whichever view you prefer.
+2. **[SMALL]** Show a hover card on a block with its fit score, meter effects and the effect on its neighbours. You see why a placement works.
+3. **[SMALL]** Add a right-click menu on a block with Duplicate to tomorrow, Lock and Split. Block jobs sit at the cursor.
+4. **[BIG]** Add a week view with seven small rings side by side that you copy and paste blocks between with Ctrl+C and Ctrl+V. You can plan a routine rather than one day.
+5. **[SMALL]** Let arrow keys nudge a selected block by 15 minutes and Shift plus an arrow by an hour, with Tab to select the next block. A plan can be adjusted from the keyboard.
+6. **[BIG]** Let you drag furniture and keepsakes around the cosy home on a snapping grid, with a hover note on how each item looks to its owner. The room becomes yours.
+7. **[SMALL]** Let number keys switch between characters in story mode and show two days side by side. You can compare people's rhythms.
+8. **[SMALL]** Add save slots with each character's portrait, day count and rhythm score. Loading looks like a PC game character menu.
+9. **[SMALL]** Show past debrief receipts as a scrolling docked list. You can browse the funny days.
+10. **[SMALL]** Add a mini-map of the house with room icons that you click to jump the home view. Large homes stay easy to navigate.
+
+## UNMO. Undersleep: mobile view
+
+1. **[BIG]** Show the ring with large handles on each block, and tap an empty arc to open a block picker sheet. Planning a day works with a thumb.
+2. **[SMALL]** Add a draggable "now" marker on the ring that you move with one finger to read the curve at any hour. You read the day by touch.
+3. **[SMALL]** Show debrief receipts as swipeable story cards, one per beat. A day's summary is a short flick.
+4. **[SMALL]** Add a soft thump when a block snaps onto a good-fit hour, where the browser allows. Good fit is felt.
+5. **[SMALL]** Open the block picker with a swipe up from the ring and close it with a swipe down. The picker stays out of the way.
+6. **[SMALL]** Make Run Day a wide button at the bottom with a confirm tick. The main action is easy to reach and hard to hit by mistake.
+7. **[SMALL]** Keep an undo bar for the last block placed or moved at the bottom. Mistakes are cheap.
+8. **[SMALL]** Let you swipe between characters' days as full-screen pages. Story mode becomes a card flick.
+9. **[SMALL]** Add a dim night theme matched to the character's rhythm. Bed-time planning is easy on the eyes.
+10. **[SMALL]** Show a small cosy-room thumbnail in the header that opens the home view with a tap. Your decorated space is one tap away.
 
 ## LL. Last Line: general ideas
 
@@ -1253,6 +1773,32 @@ Item counts are scaled to how finished each game is. Every idea was checked agai
 29. **[SMALL]** A steady "hedge trimmed" total across all levels that only goes up. It gives calm progress that cannot be lost. (taste: steady progress)
 30. **[SMALL]** A mode picker at start (Campaign, Endless, Sandbox, Watch) that you can change any time. There are many ways to play. (taste: many ways to play)
 
+## LLPC. Last Line: PC view
+
+1. **[SMALL]** Show a hover card on a pad with a range circle, the route cells it covers and the hits it would land on the forecast route. You pick pads with the facts in view.
+2. **[BIG]** Add mouse-wheel zoom and drag pan on large mazes with a minimap that marks hedge, gates and pads. Big mazes remain easy to read.
+3. **[SMALL]** Hold F to flash next wave's forecast maze over the current one. You compare now and next without a menu.
+4. **[SMALL]** Add a right-click menu on a pad with Build (listing towers), Upgrade and Sell. Pad jobs sit at the cursor.
+5. **[SMALL]** Let 1 to 9 pick a tower, Q and E cycle pads, and Enter build. A whole build phase can be played from the keyboard.
+6. **[SMALL]** Press R to overlay each gate's route with its path length. You see which gate matters most.
+7. **[SMALL]** Let a drag-box select several pads to upgrade them together. Mid-game upkeep takes a click.
+8. **[SMALL]** Dock a wave notes window beside the maze showing the enemy types and counts you know for each wave. Intel stays in view.
+9. **[SMALL]** Save "build orders" that you replay on a new seed by pressing a key. A favourite opening is a shortcut.
+10. **[SMALL]** Show a ghost of the selected tower and its range under the mouse on each pad, with right-click to cancel. Placing feels like a PC strategy game.
+
+## LLMO. Last Line: mobile view
+
+1. **[SMALL]** Give pads large tap areas and open a bottom sheet with tower choices when you tap one. Building works on a phone.
+2. **[SMALL]** Add pinch to zoom and two-finger pan with a double-tap to fit the maze. Big mazes remain playable.
+3. **[SMALL]** Show a wave summary card after each wave listing leaks and hits, which you swipe down to dismiss. Reviewing a wave takes a second.
+4. **[SMALL]** Swipe left and right on the maze to flip between this wave and next wave's forecast. Planning ahead is a gesture.
+5. **[SMALL]** Show your last three tower choices as quick chips above the pad sheet. Repeating a build is one tap.
+6. **[SMALL]** Centre on the tower with a double-tap on empty maze space. You never get lost when zoomed in.
+7. **[SMALL]** Add a fast-forward chip for wave animation (1x, 2x, 4x). Long waves take less phone time.
+8. **[SMALL]** Long-press a pad to show its range ring without building. You can check coverage without commitment.
+9. **[BIG]** Make the maze fill a portrait screen with the build panel as a bottom sheet that peeks up. The whole game fits one hand.
+10. **[SMALL]** Add a large Send wave bar at the bottom edge. The main action is under your thumb.
+
 ## OC. Overclock: general ideas
 
 1. **[BIG]** A set of named sectors that are fixed hand-built runs, each with a par score. Everyone plays the same sector, so scores mean something.
@@ -1313,6 +1859,136 @@ Item counts are scaled to how finished each game is. Every idea was checked agai
 28. **[SMALL]** A steady "light-years travelled" total that only goes up. It gives calm progress that cannot be lost. (taste: relaxed steady progress)
 29. **[SMALL]** A mode picker (Sectors, Training, Watch, Puzzle) that you can switch at any time. There are many ways to play. (taste: many ways to play)
 30. **[SMALL]** A module museum in a dark low-poly hall where every module you have used stands on a plinth with a short note. You get a collection to wander through. (taste: collecting and dark looks)
+
+## OCPC. Overclock: PC view
+
+1. **[BIG]** Let you drag modules around the ring with a ring-shaped drop zone that shows the neighbour effects as you hover. Arranging the machine feels hands-on.
+2. **[SMALL]** Show a hover card on a module with its neighbour bonuses and what firing it would do now. You see why an arrangement works.
+3. **[SMALL]** Show a hover preview on an enemy intent that shows the damage after your current ring. You can plan against the real result.
+4. **[SMALL]** Let arrow keys select a slot, Enter swap with the next, O overclock and Space end the turn. A whole fight can be played from the keyboard.
+5. **[SMALL]** Show the next three firing modules as a strip above the ring that updates as you swap. You see the rotation before it happens.
+6. **[SMALL]** Add Ctrl+Z to undo the two adjustments within a turn. You can try a swap and take it back.
+7. **[BIG]** Add a parts catalogue window with filters, detail cards and the modules you have found. You can browse your toolbox like a mod list.
+8. **[SMALL]** Show heat as a big vertical gauge with a ghost marker for the heat after an overclock. You see the risk before you take it.
+9. **[SMALL]** Dock the fight log as a side panel where a click on a line highlights what happened. You can review a turn.
+10. **[SMALL]** Let the mouse wheel over a slot cycle through the modules you own, with a hover card for each. You try combinations quickly.
+
+## OCMO. Overclock: mobile view
+
+1. **[SMALL]** Swap two modules by tapping one and then its neighbour, or by dragging between them. Two ways to swap suit different thumbs.
+2. **[BIG]** Make the ring fill the phone width with enemy intents in a row above and actions in a thumb bar below. A fight fits one portrait screen.
+3. **[SMALL]** Add a thump when a module fires and a rising buzz as heat grows, where the browser allows. The reactor is felt.
+4. **[SMALL]** Long-press a module to open its card in a bottom sheet. Detail comes without a hover.
+5. **[SMALL]** Show enemy intents as a swipeable row of three cards that expand into a damage preview on tap. Threat reading is thumb-sized.
+6. **[SMALL]** Add a Lock-in bar and an Undo button at thumb height so swaps show at once but only count when you lock them in. Mis-taps cost nothing.
+7. **[SMALL]** Show heat as a thick vertical bar down the screen edge. The main risk is always at the edge of your eye.
+8. **[SMALL]** Use a slide-to-confirm control for Overclock so a stray tap cannot trigger it. A risky action needs a deliberate gesture.
+9. **[SMALL]** Add a fast-fights toggle that skips animation and shows only results. Short sessions get faster.
+10. **[SMALL]** Add a dim cockpit theme with large modules. Bed-time fights are easy on the eyes.
+
+## LGPC. Logic Gates: PC view
+
+1. **[BIG]** Let you drag a wire from one pin to another with a live preview line and a snap to the nearest pin, alongside the tap-tap path. Wiring feels like a real circuit editor.
+2. **[BIG]** Add mouse-wheel zoom and drag pan on the board, with a minimap for the big computer levels. Large circuits stay easy to navigate.
+3. **[SMALL]** Show a hover card on a wire with its live value and the truth-table rows where it is high. You can read a signal by pointing at it.
+4. **[BIG]** Add a right-click menu on a built chip with Open inside, Duplicate and Delete, where Open inside shows its own circuit in a window. You can see how any chip you made works.
+5. **[SMALL]** Let a drag-box select several parts, move them together and copy them with Ctrl+C and Ctrl+V. You can repeat a half-adder without rebuilding it.
+6. **[SMALL]** Dock the truth table beside the board and highlight the row for the current inputs, with a click on a row that sets the switches. You test every case fast.
+7. **[SMALL]** Add hotkeys A, O, N and X that put an AND, OR, NOT or XOR gate under the cursor. A circuit can be built with one hand on the keyboard.
+8. **[BIG]** Add a timing-diagram window for sequence levels showing each wire's 0 and 1 over the steps like a logic analyser. You see memory and clocks the way engineers do.
+9. **[SMALL]** Let you drop a circuit text file onto the page to load it into the sandbox. You can keep and share circuits as small files.
+10. **[SMALL]** Add a Controls tab in Settings that rebinds every Logic Gates key. The keys match your hand.
+
+## LGMO. Logic Gates: mobile view
+
+1. **[SMALL]** Make pin hit areas grow when a wire is armed, with a gentle magnet toward the nearest pin. Wiring on a small screen stops missing.
+2. **[SMALL]** Put the chip tray in a bottom drawer you pull up and tap to place. Chips are always in thumb reach.
+3. **[BIG]** Add pinch to zoom and two-finger pan on the board with a double-tap to fit it to the screen. Big circuits work on a phone.
+4. **[SMALL]** Add a light haptic tick when a switch flips and a longer buzz when a level solves, where the browser allows. The circuit feels alive.
+5. **[SMALL]** Reopen on the exact wiring of the level you were in. A short visit never loses a circuit.
+6. **[SMALL]** Show the result as a bottom sheet with a scrolling truth table and the failing row highlighted. You can see what is wrong without leaving the board.
+7. **[SMALL]** In landscape, put the board on the left and the truth table on the right. Turning the phone gives a bench view.
+8. **[SMALL]** Show levels as swipeable chapter cards with a progress ring and chip count for each. Choosing a level fits a phone.
+9. **[SMALL]** Undo with a two-finger tap. A common fix is a gesture.
+10. **[SMALL]** Add a fit-and-centre button and a snap-to-grid toggle for placing chips. Placement stays precise with a thumb.
+
+## RSPC. Robot Script: PC view
+
+1. **[BIG]** Let you drag instruction blocks from a palette into the list, reorder them by dragging and drop them inside repeat blocks. Building a program feels like a real visual coding tool.
+2. **[BIG]** Add a step debugger where F10 runs one instruction, the current line is highlighted and a side panel shows the robot's position and what it holds. You can find a mistake by watching it happen.
+3. **[SMALL]** Let you click the gutter beside a line to set a breakpoint where a run pauses. You can stop exactly where you want to look.
+4. **[SMALL]** Show a hover card on a line with the tiles it visited last run. You can see what each step did.
+5. **[BIG]** Add a text view where the same program appears as numbered lines you can edit directly, with Ctrl+Enter to run. Keyboard players can type a whole program.
+6. **[SMALL]** Add a snippets drawer where you save a routine and drag it into any room. You can reuse a good routine.
+7. **[SMALL]** Add a playback slider with the bracket keys for speed and the arrow keys for frame stepping. You control how closely you watch.
+8. **[SMALL]** Add a medals table window sorting every room by your length against par. You can find rooms to improve.
+9. **[SMALL]** Let you run two versions of a program side by side on the same room with a diff of their steps. You can compare approaches directly.
+10. **[SMALL]** Add a Controls tab in Settings that rebinds F, L, R, G, P, S and Run. The keys fit your hand.
+
+## RSMO. Robot Script: mobile view
+
+1. **[BIG]** Build programs from a bottom keypad of large instruction buttons, with a scrolling list above and long-press handles to reorder. Writing a program works with one thumb.
+2. **[SMALL]** Add a soft tick as the robot takes each step and a longer buzz at the exit, where the browser allows. Watching a run is felt.
+3. **[SMALL]** Split the screen into room on top and list below with a draggable divider. You choose how much of each you see.
+4. **[SMALL]** Swipe an instruction left to delete it with an undo bar. Editing is a flick.
+5. **[SMALL]** Reopen on the same room with your unfinished list kept. A short visit never loses a program.
+6. **[SMALL]** Add a run-speed chip (1x, 2x, 4x) next to Run, with a tap on the room to skip to the end. Quick runs stay quick.
+7. **[SMALL]** In landscape, put the room on the left and the list on the right. Turning the phone gives a workbench.
+8. **[SMALL]** Show chapters as swipeable cards with medal counts. Picking a room fits a phone.
+9. **[SMALL]** Add pinch to zoom for large rooms with a double-tap to fit. Bigger rooms stay tappable.
+10. **[SMALL]** Show a hint as a bottom sheet that reveals one line at a time with each long-press. You choose how much help you get.
+
+## HRPC. Hull Repair: PC view
+
+1. **[BIG]** Draw the station as a large cutaway you can zoom with the mouse wheel and pan with a drag, where hover shows a room's status and a click opens its board. The bigger picture is something you explore.
+2. **[SMALL]** Hover a port to light its twin and its current path, and hover a line to show its length. You read the board by pointing.
+3. **[SMALL]** Add a lock on finished lines through a right-click so dragging cannot cut them. You can protect work as you finish others.
+4. **[SMALL]** Let Tab pick the next line, arrow keys extend it, and Backspace trim it. You can route a whole board without the mouse.
+5. **[SMALL]** Add Ctrl+Z and Ctrl+Y with a clickable history list. You can step back to try another route.
+6. **[SMALL]** Press C to pulse the uncovered open cells gently. You see what still needs routing at a glance.
+7. **[SMALL]** After a restore, replay the lines drawing in order. A neat finish shows how you solved it.
+8. **[SMALL]** Add a Ctrl+K palette where typing a room name opens its board. You reach any room in two keystrokes.
+9. **[SMALL]** Add a board scale slider and a focus key that hides side panels. The board fits any monitor.
+10. **[SMALL]** Add arrow-key movement across the cutaway map with Enter to open the room under the cursor. You can browse the station with the keyboard.
+
+## HRMO. Hull Repair: mobile view
+
+1. **[SMALL]** Show a faint ghost of the line a little above your finger as you drag. Your thumb never hides the route.
+2. **[SMALL]** Add a haptic tick for each cell entered and a short pulse when a line connects, where the browser allows. Routing feels tactile.
+3. **[SMALL]** Add two-finger pan and pinch zoom for 9 by 9 boards with a double-tap to fit. The biggest boards remain playable.
+4. **[BIG]** Show the station as a vertical scroll of decks, each with room thumbnails you tap to open. The bigger picture fits a phone.
+5. **[SMALL]** Add undo with a two-finger tap and a large undo button at thumb height. Mistakes are cheap.
+6. **[SMALL]** Let a drag backward from the end of a line trim it with a soft tick per cell. Fixing a mistake is one smooth gesture.
+7. **[SMALL]** Add a home-screen card with rooms restored out of forty and the current deck. You can see how much of the station is lit.
+8. **[SMALL]** Add left-hand and right-hand layouts that move the undo and next-board buttons to your thumb side. Both hands can play comfortably.
+9. **[SMALL]** Add a big-shape mode that draws ports larger with their letters. Ports are easy to tell apart on small screens.
+10. **[SMALL]** End each board with a One more board button that opens the next one straight away. A short session turns into a few.
+
+## SMPC. Station Medic: PC view
+
+1. **[BIG]** Let you drag a treatment from the supply cabinet onto a patient's bed, and a scan onto a patient to run it. Treating the ward feels hands-on.
+2. **[SMALL]** Hover a sign or scan result to show which conditions on the sheet carry it. You can reason without searching.
+3. **[SMALL]** Add a notepad on the Condition Sheet where a click strikes out a condition and a second click restores it. You can rule things out as you go.
+4. **[SMALL]** Add a right-click menu on a patient with Scan, Treat, Isolate and Comfort. Ward jobs sit at the cursor.
+5. **[SMALL]** Let 1 to 4 pick patients, S open scans, T open treatments and Z step back. A whole shift can be played from the keyboard.
+6. **[BIG]** Show every action in a history list where a click on an earlier step rewinds to it, leaving later steps ready to re-run. You can retry from any point without restarting the shift.
+7. **[SMALL]** On wide screens, show all patient beds side by side with a permanent strip for chart notes. You can compare cases at a glance.
+8. **[SMALL]** Keep a supply tray along the bottom with stock counts and a hover preview of which patient could use each item. You never open the cabinet to check.
+9. **[SMALL]** Add a Ctrl+P print layout for the shift report with seal and notes. You get a clean record of the shift.
+10. **[SMALL]** Let you pin a patient's chart (signs, scans done, notes) beside each bed as a resizable window. You read several charts at once.
+
+## SMMO. Station Medic: mobile view
+
+1. **[BIG]** Show one patient per screen with swipe left and right between beds, and scans and treatments in a bottom drawer. The ward fits a phone.
+2. **[SMALL]** Let you tap a supply chip and then a patient to use it, or drag it. Two ways to act suit different thumbs.
+3. **[SMALL]** Add a soft pulse for a clean cure and a gentle double pulse when a cost is added, where the browser allows. The result is felt.
+4. **[SMALL]** Pull down to open the Condition Sheet as a bottom sheet. The reference is one gesture away.
+5. **[SMALL]** Hold the shift title to Restore the shift with a confirm. Starting over is deliberate and easy.
+6. **[SMALL]** Show each patient's signs as large icon chips whose tap lists the conditions that carry them. Reading a patient takes a glance.
+7. **[SMALL]** Split the drawer into Scans and Treatments tabs with a supply count on each. You see what is left before you tap.
+8. **[SMALL]** Let a long-press on a supply borrow it through a confirm sheet that shows the cost. A fallback is one gesture away.
+9. **[SMALL]** Add a dim infirmary night mode with bigger buttons. Bed-time play stays easy.
+10. **[SMALL]** Show chart notes as a banner at the top that you can swipe away and recall from a tab. Warnings stay in reach but out of the way.
 
 ## M. Five new game concepts (brand new, not in Quick ideas)
 
