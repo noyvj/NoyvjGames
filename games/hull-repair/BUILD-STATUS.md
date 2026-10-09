@@ -15,8 +15,10 @@ Updated after every milestone. Read `planning/hull-repair-plan.md`, `CLAUDE.md` 
 
 - M6 Achievements: manifest, panel, toast, reachability test; 249 tests; checked live (toast, panel counts).
 
+- M7 Desktop boot: pc-config.json, pc.css, pc.js, generated pc.html, desktop tests; shared `-k hull` tests and the generator check pass; 255 tests; checked live at 1440x900 (stage, side tally, Station window).
+
 ## Next
-- M7 Desktop boot (pc-config.json, pc.css, pc.js, generated pc.html), wrap-up docs.
+- Nothing in this folder. Hub registration is the hub session's job (title card, sw.js, game-*.json, CLAUDE.md row, share cards); the plan's last section lists the owner's questions.
 
 ## Open problems / notes
 - Local Python is 3.9: engine code avoids 3.10+ syntax.

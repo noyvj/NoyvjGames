@@ -30,7 +30,7 @@ Flow-Free-style routing of power and pipes across a damaged space-station hull: 
 | 4 | Decks 4-5 | 16 boards (40 in all) with valves and mixers. First complete game | Done |
 | 5 | Standard kit | Opening screen, tutorial, About, What's New, keyboard help, confirm dialogs, light theme, accessibility pass | Done |
 | 6 | Achievements | 14 achievements, panel and toast, manifest, reachability test | Done |
-| 7 | Desktop boot and wrap-up | `pc-config.json`, `pc.css`, `pc.js`, generated `pc.html`, docs, changelog | Planned |
+| 7 | Desktop boot and wrap-up | `pc-config.json`, `pc.css`, `pc.js`, generated `pc.html`, docs, changelog | Done |
 
 ## Working conventions
 - Commit only this folder and the plan with a pathspec commit, then tag `hull-repair-milestone-0N`. Hub registration is a separate later job.
@@ -60,3 +60,8 @@ Flow-Free-style routing of power and pipes across a damaged space-station hull: 
 
 ## Milestone 6 notes
 - `achievements.py` holds the table and the facts; `achievements.json` is the hub manifest (id, label, description; a test keeps them equal). `achievements_earned` is written to the save and never read back. Panel and toast in `app.js` use the hub hooks (`data-achievement-id`, `data-achievement-label`); the share button comes from `shared/achievement-share.js`. A test plays all 40 boards from the stored layouts, takes a line back once and climbs the ladder once, and checks all 14 are earned.
+
+## Milestone 7 notes and pre-release checklist
+- Desktop boot: the board is the stage, the tally is the side column, the stats strip and the three goals sit above the stage; Station, Repair log, Achievements, What's New, Settings and About open as windows. `pc.html` is generated for this game only (`importlib` on `scripts/generate-pc-pages.py`, `build("hull-repair", cfg)` written to `pc.html`); `python3 scripts/generate-pc-pages.py --check` and `python3 -m pytest -q shared/tests -k hull` pass.
+- Hub registration (title card, `sw.js` precache, `game-*.json`, root CLAUDE.md row, share cards, dev logs) is still to do and is not part of this folder. The owner's questions are the last section of `planning/hull-repair-plan.md`.
+- Manual checks worth a human pass: real-device touch drawing (drag with a finger, tap the end of a line), a screen-reader walk through the keyboard cursor, and the opening-screen "Switch to Desktop layout" button on a wide window.

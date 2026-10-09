@@ -2,6 +2,10 @@
   "changelog": [
     {
       "date": "2026-10-10",
+      "entry": "A Desktop layout for wide windows: the board fills the stage, the tally sits in a side column, and the Station map, Repair log, Achievements and Settings open as windows from icons or the Menu (Esc). It is the same game and the same save; the Classic layout is unchanged and is still what phones use."
+    },
+    {
+      "date": "2026-10-10",
       "entry": "Fourteen achievements, none timed or luck-based, each with a visible count, in a new Achievements panel with a share button. Patching and restoring rooms, crossing lines on a bridge, going through a valve, using a mixer, taking a line back and climbing the hint ladder all count."
     },
     {

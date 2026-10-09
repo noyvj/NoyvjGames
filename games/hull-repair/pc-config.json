@@ -1,0 +1,42 @@
+{
+  "windows": [
+    ["rooms-panel", "rooms-toggle-button", "Station"],
+    ["log-panel", "log-toggle-button", "Repair log"],
+    ["achievements-panel", "achievements-toggle-button", "Achievements"],
+    ["changelog-panel", "changelog-toggle-button", "What's New"],
+    ["settings-panel", "settings-toggle-button", "Settings"],
+    ["info-page-panel", "info-page-toggle-button", "About Hull Repair"]
+  ],
+  "toolbar": {
+    "icons": [
+      ["rooms-toggle-button", "🛰️"],
+      ["log-toggle-button", "📓"],
+      ["achievements-toggle-button", "🏆"],
+      ["settings-toggle-button", "⚙️"]
+    ],
+    "menu": [
+      {"heading": "Help", "ids": ["tutorial-restart-button", "info-page-toggle-button", "credits-link"]},
+      {"heading": "Records", "ids": ["changelog-toggle-button"]}
+    ]
+  },
+  "composites": [],
+  "adopt": [],
+  "zones": {
+    "topbar": [".hub-back-link", "h1", ".game-toolbar"],
+    "stagebar": ["#stats", "#goals"],
+    "stage": ["#board-panel"],
+    "side": ["#tally"],
+    "hidden": [".tagline"]
+  },
+  "readouts": [],
+  "side_label": "Tally",
+  "hints": [
+    ["Arrows", "Move the cursor"],
+    ["Enter", "Pick up / put down a line"],
+    ["Bksp", "Take a cell back"],
+    ["Z", "Undo"],
+    ["Esc", "Let go / menu / close window"],
+    ["?", "All shortcuts"]
+  ],
+  "notify": null
+}

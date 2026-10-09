@@ -46,7 +46,7 @@ A station called Tern (invented) drifts dark after an accident nobody wants to e
 | 4 | Decks 4-5 | 16 more boards (40 in all) with valves and mixers. First complete game | Done |
 | 5 | Standard kit | Opening screen, tutorial, About, What's New, keyboard help, confirm dialogs, light theme, accessibility pass | Done |
 | 6 | Achievements | 14 achievements, panel and toast, manifest, reachability test | Done |
-| 7 | Desktop boot and wrap-up | `pc-config.json`, `pc.css`, `pc.js`, generated `pc.html`, docs, changelog | Planned |
+| 7 | Desktop boot and wrap-up | `pc-config.json`, `pc.css`, `pc.js`, generated `pc.html`, docs, changelog | Done |
 
 ## 9. Open questions for the owner (defaults used meanwhile)
 1. Restored needs every cell covered, patched needs only the connections. Is that the right split, or should patched be enough for the map? Default: both states, map shows both.
@@ -54,3 +54,4 @@ A station called Tern (invented) drifts dark after an accident nobody wants to e
 3. Is the station story (a tired crew, shortcuts, an accident no one explains) the right quiet tone, or should the log be shorter or off by default? Default: short, behind the story toggle.
 4. Should there be a free "workbench" mode (draw your own board and have the solver check it) after the last deck? Default: no.
 5. Valves and mixers arrive late (decks 4 and 5). Bring one of them into deck 2 instead? Default: as written.
+6. Only two boards reach 9x9 (the finder rarely proves a 9x9 board unique with 8 lines or fewer, and more than 8 lines would need more colours); deck 5 is mostly 8x8. Fine, or add more lines (a ninth and tenth colour) for bigger boards? Default: as built.
