@@ -1782,6 +1782,10 @@ html[data-theme="light"] .schedule-chip { background: rgba(255, 255, 255, 0.7); 
 html[data-high-contrast="true"] .schedule-chip { background: #000000; }
 html[data-high-contrast="true"][data-theme="light"] .schedule-chip { background: #ffffff; }
 
+.skill-helps { font-size: 0.78rem; margin: 0.15rem 0 0; opacity: 0.9; }
+.skill-helps:empty { display: none; }
+html[data-theme="light"] .skill-helps { opacity: 1; color: #46507a; }
+
 /* ============================================================
    Y11b light-theme polish (2026-09-27). Light-only rules from a
    computed-style WCAG contrast scan of the light theme. Dark is

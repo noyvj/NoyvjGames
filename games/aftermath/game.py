@@ -3009,6 +3009,66 @@ def update_tab_title():
         pass
 
 
+# ---- E-29: what a locked skill would help against ---------------------------
+# Extra mitigation a skill adds, as {skill_id: (category or None for every event, amount)}.
+SKILL_MITIGATION_EXTRA = {
+    "early_warning": (None, 0.10),
+    "mutual_aid_network": (None, 0.05),
+    "civic_preparedness": ("social", 0.35),
+    "climate_hardening": ("weather", 0.20),
+}
+
+
+def skill_helps_against(skill_id, run_state=None):
+    """For a mitigation skill: ({event label: count}, total damage it would save)
+    over the events still to come in this run, from the exact deterministic
+    severities, so the line matches what would really happen. None for a skill
+    that changes the starting build instead (it applies from the next run)."""
+    rule = SKILL_MITIGATION_EXTRA.get(skill_id)
+    if rule is None:
+        return None
+    run_state = run_state or run
+    category, amount = rule
+    strength = skill_tree_strength()
+    counts = {}
+    saved = 0.0
+    for index in range(run_state.event_index, len(run_state.schedule)):
+        event_type = run_state.schedule[index]
+        if category is not None and EVENT_CATEGORY[event_type] != category:
+            continue
+        current = run_state.mitigation_for(event_type)
+        gain = min(MAX_MITIGATION, current + amount) - current
+        severity = event_severity(run_state.run_number, index, strength)
+        saved += EVENT_BASE_DAMAGE[event_type] * severity * gain
+        counts[EVENT_LABEL[event_type]] = counts.get(EVENT_LABEL[event_type], 0) + 1
+    return counts, saved
+
+
+def skill_helps_text(skill_id, run_state=None):
+    """The 'Helps against' line shown under a locked skill. Empty once unlocked."""
+    if skill_id in skill_tree.unlocked:
+        return ""
+    run_state = run_state or run
+    result = skill_helps_against(skill_id, run_state)
+    if result is None:
+        if skill_id == "reinforced_infrastructure":
+            return "Helps from your next run's first event: +2 resilience is +10% mitigation against every kind of event."
+        if skill_id == "community_reserves":
+            return "Helps from your next run's first event: 50 more resources to absorb whatever comes first."
+        if skill_id == "adaptive_growth":
+            events = len(run_state.schedule)
+            return f"Helps every event of your next run: +{GROWTH_INCOME_PER_UNIT} resources per event, about +{GROWTH_INCOME_PER_UNIT * events} over {events} events."
+        return ""
+    counts, saved = result
+    if not counts:
+        kind = SKILL_MITIGATION_EXTRA[skill_id][0]
+        if run_state.is_complete():
+            return f"Helps against: {kind or 'every'} events in your next run."
+        return f"Helps against: nothing left in this run's schedule (it softens {kind} events, which return in your next run)."
+    names = ", ".join(f"{label} \u00d7{count}" if count > 1 else label for label, count in counts.items())
+    return f"Helps against: {names}. About {saved:.0f} less damage over the rest of this run at your current build."
+
+
 # ---- E-17: schedule strip -------------------------------------------------
 def schedule_strip_entries(run_state):
     """One entry per event in the run's schedule: what it is, whether it is
@@ -3339,6 +3399,9 @@ def render():
         practice_el = document.getElementById(f"skill-{skill_id}-practice")
         unlock_button = document.getElementById(f"skill-{skill_id}-unlock-button")
         practice_el.innerText = skill["real_practice"]
+        helps_el = document.getElementById(f"skill-{skill_id}-helps")  # E-29
+        if helps_el is not None:
+            helps_el.innerText = skill_helps_text(skill_id)
 
         # E15: a settlement-art badge per unlocked skill.
         badge = document.getElementById(f"settlement-badge-{skill_id}")

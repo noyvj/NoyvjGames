@@ -136,6 +136,7 @@ for _skill in SKILL_IDS:
         f"skill-{_skill}-status",
         f"skill-{_skill}-unlock-button",
         f"skill-{_skill}-practice",
+        f"skill-{_skill}-helps",  # E-29
         # E15: a settlement-art badge per unlocked skill.
         f"settlement-badge-{_skill}",
         # E30a/E30b: pin button + runs-until-affordable estimate.

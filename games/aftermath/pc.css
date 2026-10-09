@@ -122,6 +122,7 @@ html[data-layout="pc"] .mobile-hud, html[data-layout="pc"] #mobile-hud-bar { dis
 #pc-side > #skill-tree .skill-row .skill-status { display: block; flex: none; }
 #pc-side > #skill-tree .skill-row button.secondary { width: auto; flex: none; margin: 0; padding: 0.4rem 0.7rem; }
 #pc-side > #skill-tree .skill-row .skill-eta,
+#pc-side > #skill-tree .skill-row .skill-helps,
 #pc-side > #skill-tree .skill-row .skill-practice { grid-column: 1 / -1; margin: 0; }
 #pc-side > #skill-tree .skill-row .skill-eta:empty { display: none; }
 

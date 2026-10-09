@@ -1,6 +1,10 @@
 [
   {
     "date": "2026-10-09",
+    "entry": "New: every locked skill in the tree now has a Helps against line. Early Warning, Mutual Aid, Climate Hardening and Civic Preparedness name which of the events still to come they would soften (for example Flood x2, Heatwave, Storm) and the exact damage they would save over the rest of this run at your current build, and the starting-build skills say how they help from your next run's first event."
+  },
+  {
+    "date": "2026-10-09",
     "entry": "New: a Schedule strip under the next-event line lists every event of the run as a small chip with its number, icon and name. Done events are ticked, the next one is marked with an arrow, and hovering or focusing any chip (it is also reachable with Tab) shows its details underneath: the exact damage you would take at your current build, its severity, your mitigation and any category bonus, so you can see how an investment changes the whole run."
   },
   {
