@@ -85,6 +85,15 @@ ACID_BOSS_SPIKE = 25.0
 ACID_BRACE_COST = 150
 ACID_BRACE_MIN_REDUCTION = 6
 ACID_BOSS_WARN_SEASONS = 3
+# GD-3 (2026-10-09): bracing for a storm. Within BRACE_WINDOW seasons of a forecast storm the player can commit funds to
+# barriers (each BARRIER_FUNDS_PER_SURGE funds hold back one more point of surge), a stockpile (cash set aside that
+# absorbs the storm's cost, the unused part coming back) and evacuating the unprotected heritage sites. The result is
+# graded Shrugged Off, Battered or Breached; a breach loses any unprotected, non-evacuated site.
+BRACE_WINDOW = 2
+BRACE_STEP = 10
+BARRIER_FUNDS_PER_SURGE = 5
+EVACUATE_COST = 25
+STORM_RESULT_TIERS = ((0.15, "Shrugged Off"), (0.5, "Battered"), (10**9, "Breached"))
 # GD-27: a heritage site protected when its row would flood within this many seasons counts as a last-second rescue.
 RESCUE_WITHIN_SEASONS = 1
 HERITAGE_UNPROTECTED = "unprotected"
@@ -493,6 +502,9 @@ class SettlementState:
         self.maxtier_seconds = None
         # GD-18: ids of the critters the player has clicked into the Sightings list.
         self.sightings = []
+        # GD-3: funds committed to brace for the next storm, and how the last storm ended.
+        self.brace = {"barriers": 0, "stockpile": 0, "evacuate": False}
+        self.last_storm_result = ""
         # GD-12: the opt-in boss: mode, braced yes/no, and how it ended ("", "survived" or "hit").
         self.acid_boss_mode = False
         self.acid_braced = False
@@ -713,19 +725,62 @@ class SettlementState:
     def storm_surge_strength(self):
         return (STORM_BASE_SURGE + STORM_SURGE_GROWTH * len(self.storm_log)) * self.workshop["surge"]
 
+    # ---- GD-3 bracing ------------------------------------------------------
+    def can_brace_storm(self):
+        wait = self.seasons_until_storm()
+        return self.storm_mode and wait is not None and wait <= BRACE_WINDOW
+
+    def add_brace(self, kind):
+        if not self.can_brace_storm():
+            return False
+        if kind in ("barriers", "stockpile"):
+            if self.funds < BRACE_STEP:
+                return False
+            self.funds -= BRACE_STEP
+            self.brace[kind] += BRACE_STEP
+            return True
+        if kind == "evacuate":
+            exposed = [x for x in HERITAGE_SITES if self.heritage.get(x["id"]) == HERITAGE_UNPROTECTED]
+            if self.brace["evacuate"] or not exposed or self.funds < EVACUATE_COST:
+                return False
+            self.funds -= EVACUATE_COST
+            self.brace["evacuate"] = True
+            return True
+        return False
+
+    def brace_text(self):
+        if not self.can_brace_storm():
+            return ""
+        b = self.brace
+        held = b["barriers"] / BARRIER_FUNDS_PER_SURGE
+        return (f"Brace for the storm: barriers {b['barriers']} (holds back {held:.0f} more surge), stockpile {b['stockpile']}, "
+                f"{'heritage evacuated' if b['evacuate'] else 'heritage not evacuated'}.")
+
     def _resolve_storm(self):
         """Called while advance_season() resolves a season. The surge is cut
-        by the current dampening; what gets through costs funds."""
+        by the current dampening; what gets through costs funds. GD-3: committed brace funds cut it further."""
         surge = self.storm_surge_strength()
-        taken = surge * (1 - self.dampening_fraction())
-        funds_lost = min(self.funds, taken * STORM_FUNDS_PER_DAMAGE)
+        extra_held = self.brace["barriers"] / BARRIER_FUNDS_PER_SURGE
+        taken = max(0.0, surge * (1 - self.dampening_fraction()) - extra_held)
+        funds_lost = min(self.funds + self.brace["stockpile"], taken * STORM_FUNDS_PER_DAMAGE)
+        from_stockpile = min(self.brace["stockpile"], funds_lost)
+        self.funds += self.brace["stockpile"] - from_stockpile  # the unused stockpile comes back
+        funds_lost -= from_stockpile
+        ratio = taken / surge if surge else 0.0
+        self.last_storm_result = next(label for limit, label in STORM_RESULT_TIERS if ratio < limit)
+        if self.last_storm_result == "Breached":
+            for site in HERITAGE_SITES:
+                if self.heritage.get(site["id"]) == HERITAGE_UNPROTECTED and not self.brace["evacuate"]:
+                    self.heritage[site["id"]] = HERITAGE_LOST
+                    self._log_ticker(f"The {site['name'].lower()} was lost when the storm breached the defences.")
+        self.brace = {"barriers": 0, "stockpile": 0, "evacuate": False}
         self.funds -= funds_lost
         self.storm_log.append(
             {"season": self.season, "surge": surge, "taken": taken, "blocked": surge - taken}
         )
         self.storm_log = self.storm_log[-20:]
         self._log_ticker(
-            f"⛈️ Storm surge in Season {self.season}: {surge - taken:.0f} of {surge:.0f} held back "
+            f"⛈️ Storm surge in Season {self.season} ({self.last_storm_result}): {surge - taken:.0f} of {surge:.0f} held back "
             f"by your defences; the rest cost {funds_lost:.0f} funds."
         )
         self._chronicle_event(f"A storm surge struck; defences held back {surge - taken:.0f} of {surge:.0f}.")
@@ -5243,6 +5298,50 @@ def render_acid_boss():
         brace.disabled = not state.can_brace()
 
 
+def render_brace():
+    panel, text, result = (document.getElementById(i) for i in ("brace-panel", "brace-text", "storm-result"))
+    if panel is not None:
+        panel.hidden = not state.can_brace_storm()
+    if text is not None:
+        text.innerText = state.brace_text()
+    for kind in ("barriers", "stockpile", "evacuate"):
+        button = document.getElementById(f"brace-{kind}-button")
+        if button is not None:
+            cost = EVACUATE_COST if kind == "evacuate" else BRACE_STEP
+            button.disabled = not state.can_brace_storm() or state.funds < cost or (kind == "evacuate" and state.brace["evacuate"])
+    if result is not None:
+        result.innerText = f"Last storm: {state.last_storm_result}." if state.last_storm_result else ""
+    root = document.getElementById("coastline-grid")
+    if root is not None and state.last_storm_result and _storm_crash["season"] != state.season and state.storm_log:
+        _storm_crash["season"] = state.season
+        if not _reduced_motion():
+            root.classList.add("storm-crash")
+            _remove_class_later(root, "storm-crash", 1400)
+
+
+_storm_crash = {"season": 0}
+
+
+def _remove_class_later(element, class_name, delay_ms):
+    holder = []
+
+    def remove():
+        element.classList.remove(class_name)
+        if holder:
+            holder[0].destroy()
+
+    holder.append(create_proxy(remove))
+    setTimeout(holder[0], delay_ms)
+
+
+def on_brace_button(kind):
+    def handler(event=None):
+        if state.add_brace(kind):
+            announce(f"Committed to {kind} for the storm.")
+        render()
+    return handler
+
+
 def render_tide_oct9():
     render_afford()
     render_goal()
@@ -5258,6 +5357,7 @@ def render_tide_oct9():
     render_workshop()
     render_postcard()
     render_acid_boss()
+    render_brace()
 
 
 def render():
@@ -5660,6 +5760,8 @@ def get_state():
         }} if (state.rewind_used or state.ironman_earned or state.actions_count or not state.hard_lag_all_run) else {}),  # GD-20/23/24
         **({"sightings": list(state.sightings)} if state.sightings else {}),  # GD-18
         **({"crew": list(state.crew)} if state.crew else {}),  # GD-11
+        **({"brace": dict(state.brace), "storm_result": state.last_storm_result}
+           if (state.brace["barriers"] or state.brace["stockpile"] or state.brace["evacuate"] or state.last_storm_result) else {}),  # GD-3
         **({"acid_boss": {"mode": state.acid_boss_mode, "braced": state.acid_braced, "result": state.acid_boss_result}}
            if (state.acid_boss_mode or state.acid_braced or state.acid_boss_result) else {}),  # GD-12
         **({"workshop": dict(state.workshop)} if state.workshop_active() else {}),  # D-5
@@ -5978,6 +6080,16 @@ def load_state(data):
         state.acid_boss_mode = saved_boss.get("mode") is True
         state.acid_braced = saved_boss.get("braced") is True
         state.acid_boss_result = saved_boss.get("result") if saved_boss.get("result") in ("survived", "hit") else ""
+    saved_brace = data.get("brace")  # GD-3: bad amounts are dropped
+    state.brace = {"barriers": 0, "stockpile": 0, "evacuate": False}
+    if isinstance(saved_brace, dict):
+        for kind in ("barriers", "stockpile"):
+            amount = saved_brace.get(kind)
+            if isinstance(amount, int) and not isinstance(amount, bool) and 0 <= amount <= 10**5 and amount % BRACE_STEP == 0:
+                state.brace[kind] = amount
+        state.brace["evacuate"] = saved_brace.get("evacuate") is True
+    result = data.get("storm_result")
+    state.last_storm_result = result if result in [label for _l, label in STORM_RESULT_TIERS] else ""
     saved_crew = data.get("crew")  # GD-11: unknown ids, repeats and anything past the cap are dropped
     state.crew = []
     if isinstance(saved_crew, list):
@@ -6182,6 +6294,10 @@ def setup():
     postcard_button = document.getElementById("postcard-button")  # GD-9
     if postcard_button is not None:
         postcard_button.addEventListener("click", create_proxy(on_make_postcard))
+    for brace_kind in ("barriers", "stockpile", "evacuate"):  # GD-3
+        brace_button = document.getElementById(f"brace-{brace_kind}-button")
+        if brace_button is not None:
+            brace_button.addEventListener("click", create_proxy(on_brace_button(brace_kind)))
     acid_toggle = document.getElementById("acid-boss-toggle-button")  # GD-12
     if acid_toggle is not None:
         acid_toggle.addEventListener("click", create_proxy(on_toggle_acid_boss))

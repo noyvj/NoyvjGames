@@ -1465,3 +1465,124 @@ def test_boss_state_saves_and_validates(game_env):
     saved["acid_boss"] = {"mode": True, "result": "hit"}
     m.load_state(saved)
     assert s.acid_boss_result == "hit"
+
+
+# ---- GD-3 storm bracing ----
+
+def _storm_ready(m):
+    s = m.state
+    s.set_storm_mode(True)
+    s.funds = 1000
+    s.season = m.STORM_INTERVAL - 1  # a storm is within the brace window
+    return s
+
+
+def test_bracing_is_only_open_in_the_window_before_a_storm(game_env):
+    m = game_env.module
+    s = m.state
+    assert s.can_brace_storm() is False and s.add_brace("barriers") is False
+    s.set_storm_mode(True)
+    s.season = 1
+    assert s.can_brace_storm() is (s.seasons_until_storm() <= m.BRACE_WINDOW)
+    _storm_ready(m)
+    assert s.can_brace_storm() is True
+
+
+def test_commitments_cost_funds_and_stay_capped_by_what_you_have(game_env):
+    m = game_env.module
+    s = _storm_ready(m)
+    assert s.add_brace("barriers") and s.add_brace("stockpile") and s.add_brace("evacuate")
+    assert s.funds == 1000 - 2 * m.BRACE_STEP - m.EVACUATE_COST
+    assert s.add_brace("evacuate") is False  # once only
+    s.funds = 5
+    assert s.add_brace("barriers") is False
+    assert s.add_brace("nonsense") is False
+
+
+def test_evacuate_needs_an_exposed_site(game_env):
+    m = game_env.module
+    s = _storm_ready(m)
+    for site in m.HERITAGE_SITES:
+        s.heritage[site["id"]] = m.HERITAGE_PROTECTED
+    assert s.add_brace("evacuate") is False
+
+
+def test_barriers_hold_back_more_surge_and_the_storm_is_graded(game_env):
+    m = game_env.module
+    s = _storm_ready(m)
+    s.season = m.STORM_INTERVAL
+    plain = m.copy.deepcopy(s)
+    s._resolve_storm()
+    unbraced_taken = s.storm_log[-1]["taken"]
+    t = plain
+    m.state = t
+    t.season = m.STORM_INTERVAL
+    t.brace["barriers"] = 50
+    t._resolve_storm()
+    m.state = s
+    assert t.storm_log[-1]["taken"] == pytest.approx(max(0.0, unbraced_taken - 10))
+    assert t.last_storm_result in [label for _l, label in m.STORM_RESULT_TIERS]
+    assert t.brace == {"barriers": 0, "stockpile": 0, "evacuate": False}
+
+
+def test_result_tiers(game_env):
+    m = game_env.module
+    s = _storm_ready(m)
+    s.season = m.STORM_INTERVAL
+    s.capacity["adaptation"] = 15  # barriers tier, 95% dampening
+    s._resolve_storm()
+    assert s.last_storm_result == "Shrugged Off"
+    s.capacity["adaptation"] = 0
+    s.workshop["surge"] = 1.0
+    s._resolve_storm()
+    assert s.last_storm_result == "Breached"
+    s.capacity["adaptation"] = 6
+    s.storm_log = []
+    s._resolve_storm()
+    assert s.last_storm_result in ("Battered", "Shrugged Off")
+
+
+def test_a_breach_loses_unprotected_sites_unless_evacuated(game_env):
+    m = game_env.module
+    s = _storm_ready(m)
+    s.season = m.STORM_INTERVAL
+    s.brace["evacuate"] = True
+    s._resolve_storm()
+    assert s.last_storm_result == "Breached"
+    assert all(v == m.HERITAGE_UNPROTECTED for v in s.heritage.values())
+    s.brace["evacuate"] = False
+    s._resolve_storm()
+    assert all(v == m.HERITAGE_LOST for v in s.heritage.values())
+
+
+def test_the_stockpile_absorbs_cost_and_the_rest_comes_back(game_env):
+    m = game_env.module
+    s = _storm_ready(m)
+    s.season = m.STORM_INTERVAL
+    s.capacity["adaptation"] = 10
+    s.funds = 500
+    s.brace["stockpile"] = 1000
+    s._resolve_storm()
+    taken = s.storm_log[-1]["taken"]
+    expected_loss = taken * m.STORM_FUNDS_PER_DAMAGE
+    assert s.funds == pytest.approx(500 + 1000 - expected_loss)
+
+
+def test_panel_text_buttons_and_state_round_trip(game_env):
+    m = game_env.module
+    s = _storm_ready(m)
+    m.render()
+    assert game_env.elements["brace-panel"].hidden is False
+    game_env.elements["brace-barriers-button"].dispatch("click", None)
+    assert s.brace["barriers"] == m.BRACE_STEP and "barriers 10" in game_env.elements["brace-text"].innerText
+    saved = m.get_state()
+    s.brace = {"barriers": 0, "stockpile": 0, "evacuate": False}
+    m.load_state(saved)
+    assert s.brace["barriers"] == m.BRACE_STEP
+    saved["brace"] = {"barriers": 7, "stockpile": -10, "evacuate": "yes"}
+    saved["storm_result"] = "Obliterated"
+    m.load_state(saved)
+    assert s.brace == {"barriers": 0, "stockpile": 0, "evacuate": False} and s.last_storm_result == ""
+    s.set_storm_mode(False)
+    m.render()
+    assert game_env.elements["brace-panel"].hidden is True

@@ -1839,6 +1839,12 @@ html[data-reduced-motion="true"] .achievement-toast--ripple { animation: none; }
 .postcard-view { max-width: 360px; margin: 0.4rem 0; border: 4px solid #f3ead3; border-radius: 6px; background: #f3ead3; }
 .postcard-svg { width: 100%; height: auto; display: block; }
 
+/* GD-3 (2026-10-09): a short wave-crash shake on the coastline after a storm; stopped by reduced motion. */
+.storm-crash { animation: storm-crash 1.2s ease-out 1; }
+@keyframes storm-crash { 0% { transform: translateX(0); } 15% { transform: translateX(-5px) translateY(2px); } 30% { transform: translateX(5px); } 50% { transform: translateX(-3px); } 100% { transform: translateX(0); } }
+@media (prefers-reduced-motion: reduce) { .storm-crash { animation: none; } }
+html[data-reduced-motion="true"] .storm-crash { animation: none; }
+
 /* ============================================================
    Y11b light-theme polish (2026-09-27). Light-only rules from a
    computed-style WCAG contrast scan of the light theme (fresh game, 46
