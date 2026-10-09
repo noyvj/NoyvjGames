@@ -28,7 +28,7 @@ Give a maintenance robot a short list of instructions to clear a room (Lightbot 
 | # | Milestone | Content | Status |
 |---|-----------|---------|--------|
 | 1 | Engine | `dsl.py`, `room.py`, `run.py`, `rooms.py`, chapter 1 (7 rooms), `tools/solver.py`, tests | Done |
-| 2 | Room UI | SVG room, structured editor, run/step/skip playback, result card, picker, favicon, settings, save contract | Planned |
+| 2 | Room UI | SVG room (`render.py`), structured editor (`editor.py`), run/step/skip playback, result card with medal, room picker, favicon, settings, save contract (`game.py`) | Done |
 | 3 | Chapters 2-3, medals, hints | 14 rooms, gating, hint ladder, three-goals strip, Scrap and the Workshop | Planned |
 | 4 | Chapters 4-6 and the sandbox | 19 rooms (40), sandbox. First complete game | Planned |
 | 5 | Standard kit | Opening screen, tutorial, About, What's New, keyboard help, light theme, accessibility | Planned |
@@ -38,3 +38,8 @@ Give a maintenance robot a short list of instructions to clear a room (Lightbot 
 ## Working conventions
 - Commit only this folder with a pathspec commit, then tag `robot-script-milestone-0N`. Hub registration is a separate later job (nothing outside this folder and `planning/robot-script-plan.md` is touched here).
 - Tests: `python3 -m pytest -q games/robot-script`; lint: `python3 -m flake8 --extend-ignore=E501 games/robot-script`. Local Python is 3.9 (Pyodide runs 3.12): no 3.10+ syntax in engine code.
+
+## Engine and page notes (milestone 2)
+- `game.handle(json)` returns the whole view; `room.svg` is sent only when the room changes (`svg_due`). A run returns `run` with every frame `[x, y, d, carry, partsMask, socketsMask, switchesMask, at]`; app.js plays them back (speed from `data-run-speed`, instant under reduced motion) and the engine has already recorded the result, so skipping the animation loses nothing.
+- Save (`get_state`): `cur`, `best {room: {n, t}}` (re-run and re-checked on load), `draft {room: text}`, `tally`, `flags`, `bumped`; only non-default keys. A room with a best and no draft opens with its best list in the editor.
+- The editor works on addresses (`main/2/2` = the body of the block at index 2 of main; an `if` has bodies 2 and 3) and refuses anything `dsl.check` rejects; gap buttons are `data-touch-exempt` (dense list).

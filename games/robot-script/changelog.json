@@ -1,0 +1,8 @@
+{
+  "changelog": [
+    {
+      "date": "2026-10-09",
+      "entry": "Robot Script opens: write a short list of instructions for a maintenance robot and watch it clear a room. The first chapter, Moving, has seven straight corridors. A run that goes wrong just stops where the robot went wrong and tells you why; your list stays. Gold, silver and bronze medals go to shorter lists. Nothing is timed."
+    }
+  ]
+}
