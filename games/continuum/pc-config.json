@@ -99,6 +99,11 @@
       "heritage-panel",
       "heritage-toggle-button",
       "Heritage sites"
+    ],
+    [
+      "beyond-panel",
+      "beyond-toggle-button",
+      "The Beyond"
     ]
   ],
   "toolbar": {
@@ -125,7 +130,8 @@
           "dynasty-toggle-button",
           "doctrines-toggle-button",
           "neighbours-toggle-button",
-          "heritage-toggle-button"
+          "heritage-toggle-button",
+          "beyond-toggle-button"
         ]
       },
       {

@@ -40,6 +40,7 @@ if _HERE not in sys.path:
 import advisors  # noqa: E402
 import archive  # noqa: E402
 import banners  # noqa: E402
+import beyond  # noqa: E402
 import citizens  # noqa: E402
 import challengerun  # noqa: E402
 import challenges  # noqa: E402
@@ -129,6 +130,8 @@ def current_effects():
         effects = citizens.apply_effects(effects, campaign.ui, state.era, resting)
         # K-5: kept heritage sites add to culture, cleared ones take a little away.
         effects = heritage.apply_effects(effects, campaign.ui, campaign.furthest_era, resting)
+        # K-13: the Beyond's standing pressure, while a run is on.
+        effects = beyond.apply_effects(effects, campaign.ui, state, not resting)
     return effects
 
 
@@ -314,6 +317,7 @@ def render():
     update_neighbours_panel()
     update_orders_panel()
     update_heritage_panel()
+    update_beyond_panel()
     update_rewind_button()
     render_insights(effects)
     render_hamlet(effects)
@@ -1310,6 +1314,7 @@ def current_record(thumbnail=""):
         minutes=int(play_seconds() // 60),
         cosmetics=_cosmetic_choice(),
         dynasty_info=_dynasty_record_info(),
+        beyond_best=beyond.get(campaign.ui)["best"],
     )
 
 
@@ -4488,6 +4493,8 @@ def on_advance_season(event=None):
             )
     state.record_score(sustainability.score(state, effects))
     if campaign.revisiting is None:
+        _beyond_after_season(sustainability.score(state, effects))
+    if campaign.revisiting is None:
         run_result = challengerun.after_season(campaign, sustainability.score(state, effects))
         if run_result is not None:
             _finish_challenge_run(run_result)
@@ -5618,6 +5625,154 @@ def update_heritage_panel():
     document.getElementById("heritage-status").innerText = heritage_status
 
 
+# --- K-13 the Beyond ------------------------------------------------------------------------------------------
+# The rules live in beyond.py. This is the DOM half: the panel, the ladder kept in localStorage, and the
+# one call after each season that scores a Beyond era.
+beyond_open = False
+beyond_status = ""
+_beyond_signature = None
+
+
+def beyond_ladder_load():
+    window = _js_window()
+    if window is None:
+        return []
+    try:
+        raw = window.localStorage.getItem(beyond.LADDER_KEY)
+    except Exception:  # noqa: BLE001
+        return []
+    return beyond.clean_ladder(raw) if isinstance(raw, str) else []
+
+
+def beyond_ladder_store(rows):
+    window = _js_window()
+    if window is None:
+        return False
+    try:
+        window.localStorage.setItem(beyond.LADDER_KEY, json.dumps(beyond.clean_ladder(rows)))
+        return True
+    except Exception:  # noqa: BLE001
+        return False
+
+
+def _bank_beyond_result(survived):
+    """A run ended: put its result on the ladder (a run that survived no era is not listed)."""
+    if survived and survived >= 1:
+        beyond_ladder_store(beyond.add_to_ladder(beyond_ladder_load(), _today(), survived, settlement_name()))
+
+
+def _beyond_after_season(score):
+    global beyond_status, _beyond_signature
+    event = beyond.after_season(campaign.ui, score)
+    _beyond_signature = None
+    if event is None:
+        return
+    if event["kind"] == "survived":
+        beyond_status = f"Beyond era {event['era']} survived. Next: {event['next_theme']}."
+        chronicle.log_challenge(state.season, state.era, f"Beyond era {event['era']} survived. Next comes {event['next_theme']}.")
+    else:
+        beyond_status = (
+            f"The Beyond run ended after {event['survived']} era(s) survived. The settlement carries on as it is; "
+            "you can begin a new run whenever you like."
+        )
+        chronicle.log_challenge(state.season, state.era, beyond_status)
+        _bank_beyond_result(event["survived"])
+
+
+def _beyond_summary_text():
+    record = beyond.get(campaign.ui)
+    if not beyond.available(campaign.furthest_era):
+        return "opens at the Relay Age"
+    if record["on"]:
+        return f"era {record['era']} under way, best {record['best']}"
+    return f"best {record['best']} era(s) survived"
+
+
+def on_toggle_beyond(event=None):
+    global beyond_open, _beyond_signature
+    beyond_open = not beyond_open
+    _beyond_signature = None
+    update_beyond_panel()
+
+
+def on_beyond_start(event=None):
+    global beyond_status, _beyond_signature
+    ok, text = beyond.start(campaign.ui, campaign.furthest_era, _resting(), campaign.revisiting is not None)
+    beyond_status = text
+    _beyond_signature = None
+    if ok:
+        chronicle.log_challenge(state.season, state.era, text)
+        render()
+    else:
+        update_beyond_panel()
+
+
+def on_beyond_stop(event=None):
+    global beyond_status, _beyond_signature
+    survived = beyond.stop(campaign.ui)
+    _beyond_signature = None
+    if survived is None:
+        return
+    _bank_beyond_result(survived)
+    beyond_status = f"You ended the run with {survived} Beyond era(s) survived. The pressure is lifted."
+    render()
+
+
+def update_beyond_panel():
+    global _beyond_signature
+    toggle = document.getElementById("beyond-toggle-button")
+    toggle.innerText = "Hide the Beyond" if beyond_open else "🌌 The Beyond"
+    panel = document.getElementById("beyond-panel")
+    panel.hidden = not beyond_open
+    if not beyond_open:
+        return
+    record = beyond.get(campaign.ui)
+    ladder = beyond_ladder_load()
+    signature = (json.dumps(record, sort_keys=True), campaign.revisiting, campaign.furthest_era, beyond_status,
+                 json.dumps(ladder), _resting(), round(state.land_health, 2), state.population)
+    if signature == _beyond_signature:
+        return
+    _beyond_signature = signature
+    available = beyond.available(campaign.furthest_era)
+    note = document.getElementById("beyond-note")
+    if not available:
+        note.innerText = "The Beyond opens once the settlement reaches the Relay Age."
+    elif _resting():
+        note.innerText = f"The Beyond is not offered: {_rest_reason()}"
+    elif campaign.revisiting is not None:
+        note.innerText = "Return to the present to take part in the Beyond."
+    else:
+        note.innerText = (
+            "An optional endless mode. Each Beyond era has a named pressure that grows with entropy; keep the "
+            "sustainability score up for 10 of its 12 seasons to survive it. A run that falls short simply ends: "
+            "nothing is lost and you can begin again."
+        )
+    start = document.getElementById("beyond-start-button")
+    start.disabled = (not available) or record["on"] or _resting() or campaign.revisiting is not None
+    stop = document.getElementById("beyond-stop-button")
+    stop.hidden = not record["on"]
+    holder = document.getElementById("beyond-lines")
+    holder.innerHTML = ""
+    for line in beyond.status_lines(record, state, current_effects()):
+        node = document.createElement("p")
+        node.className = "row-blurb"
+        node.innerText = line
+        holder.appendChild(node)
+    document.getElementById("beyond-status").innerText = beyond_status
+    rows = document.getElementById("beyond-ladder")
+    rows.innerHTML = ""
+    if not ladder:
+        none = document.createElement("p")
+        none.className = "row-blurb"
+        none.innerText = "No finished runs yet. Your furthest runs on this device are listed here."
+        rows.appendChild(none)
+    for index, row in enumerate(ladder, start=1):
+        line = document.createElement("p")
+        line.className = "status-line"
+        line.innerText = beyond.ladder_text(row, index)
+        rows.appendChild(line)
+
+
 def _extra_dashboard_sections():
     """Standing advantages as dashboard rows, so none is ever a hidden mechanic."""
     resting = _resting()
@@ -5636,6 +5791,7 @@ def _extra_dashboard_sections():
         ("Doctrines", doctrine_text),
         ("Citizen bonuses", _citizen_effects_text() if _citizens_on() else "switched off"),
         ("Heritage sites", _heritage_summary_text()),
+        ("The Beyond", _beyond_summary_text()),
     ]
     return [{"title": "Standing advantages", "rows": rows}]
 
@@ -5851,6 +6007,9 @@ def setup():
         ("neighbours-toggle-button", on_toggle_neighbours),
         ("orders-toggle-button", on_toggle_orders),
         ("heritage-toggle-button", on_toggle_heritage),
+        ("beyond-toggle-button", on_toggle_beyond),
+        ("beyond-start-button", on_beyond_start),
+        ("beyond-stop-button", on_beyond_stop),
         ("orders-master-button", on_orders_master),
         ("orders-add-button", on_orders_add),
         ("rewind-button", on_rewind),

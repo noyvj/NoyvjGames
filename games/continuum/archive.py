@@ -52,7 +52,7 @@ def _int(value, low=0, high=10**7):
 
 
 def make_record(campaign, achievements, saved_on, thumbnail="", name="", researched=None, minutes=None,
-                cosmetics=None, dynasty_info=None):
+                cosmetics=None, dynasty_info=None, beyond_best=0):
     """Builds one archive record from a live campaign.
 
     `name` (K-24), `researched` (discoveries made) and `minutes` (time played)
@@ -81,6 +81,7 @@ def make_record(campaign, achievements, saved_on, thumbnail="", name="", researc
             "banner": (cosmetics or {}).get("banner"),
             "flourish": (cosmetics or {}).get("flourish"),
             "dynasty": dynasty_info,
+            "beyond": beyond_best,
         }
     )
 
@@ -144,6 +145,10 @@ def clean_record(raw):
                 perks.append(perk)
         if rank or perks:
             record["dynasty"] = {"rank": rank or 0, "perks": perks}
+    # K-13: the furthest Beyond era survived on this settlement (only stored when there is one).
+    beyond_best = raw.get("beyond")
+    if isinstance(beyond_best, int) and not isinstance(beyond_best, bool) and 1 <= beyond_best <= 999:
+        record["beyond"] = beyond_best
     return record
 
 
@@ -212,6 +217,8 @@ def card_lines(record):
         lines.append(f"{record['researched']} discoveries")
     if "minutes" in record:
         lines.append(f"{record['minutes']} minutes played")
+    if record.get("beyond"):
+        lines.append(f"Beyond: {record['beyond']} era{'s' if record['beyond'] != 1 else ''} survived")
     info = record.get("dynasty")
     if info:
         count = len(info["perks"])

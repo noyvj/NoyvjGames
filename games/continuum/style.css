@@ -1867,7 +1867,7 @@ body.screensaver-on #game, body.screensaver-on .section { backdrop-filter: none 
 .orders-field select { max-width: 100%; min-height: 2.2rem; }
 .orders-buttons { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-top: 0.5rem; }
 /* K-5 living ruins */
-.heritage-panel[hidden] { display: none; }
+.heritage-panel[hidden], .beyond-panel[hidden] { display: none; }
 .heritage-card { border: 1px dashed rgba(201, 147, 84, 0.6); border-radius: 6px; padding: 0.6rem 0.8rem; margin: 0.6rem 0; }
 .heritage-card--cleared { border-style: solid; opacity: 0.8; }
 .heritage-name { margin: 0 0 0.2rem; font-size: 1rem; }

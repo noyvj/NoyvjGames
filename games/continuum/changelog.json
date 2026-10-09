@@ -1,6 +1,10 @@
 [
   {
     "date": "2026-10-09",
+    "entry": "New: The Beyond. Once you reach the Relay Age you can begin an optional endless mode. Each Beyond era has a named pressure (the long drought, worn machines, quiet archives, salt winds, cold habitats, thin supply lines), a stated remedy you can work towards, and an entropy that rises every season, so every era is harder than the last. Keep the sustainability score up for 10 of an era's 12 seasons to survive it; the bar rises with each era. A run that falls short just ends, nothing is lost, and the furthest runs are listed on a ladder on your device."
+  },
+  {
+    "date": "2026-10-09",
     "entry": "New: living ruins. Each era you leave behind now stays standing as a heritage site (a stone circle, a broken colonnade, a cold chimney, a dead server hall) in the 3D scene and on the civic map. Keep a site and it adds 6% to your culture capacity; clear it and you get materials and a little healthier land at once, but your culture capacity is 5% lower for good, so it is a two-step choice that cannot be undone. Look Back now shows what each completed era left behind, and in the Digital Age and later the scene lays buildings out on a grid so more of them fit."
   },
   {
