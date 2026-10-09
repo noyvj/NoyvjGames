@@ -20,6 +20,7 @@
     "champ-de-mots": "Le Champ de Mots", signal: "Signal", lexis: "Lexis",
     "heist-committee": "Heist Committee",
     "lighthouse": "Lighthouse",
+    "pocket-bazaar": "Pocket Bazaar",
   };
   let games = [];                       // [{slug, name, href}] from the lobby page
   let ownData = null;                   // the owner's own profile data, when viewing it

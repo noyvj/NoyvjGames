@@ -1,0 +1,150 @@
+{
+ "coins": 4,
+ "day": {
+  "beat": 13,
+  "best_streak": 1,
+  "board": {
+   "cells": [
+    {
+     "f": "ceramics",
+     "t": 1
+    },
+    {
+     "f": "ceramics",
+     "t": 1
+    },
+    {
+     "f": "ceramics",
+     "t": 1
+    },
+    {
+     "f": "ceramics",
+     "t": 1
+    },
+    {
+     "f": "textiles",
+     "t": 1
+    },
+    {
+     "f": "ceramics",
+     "t": 1
+    },
+    {
+     "f": "textiles",
+     "t": 1
+    },
+    {
+     "f": "textiles",
+     "t": 1
+    },
+    {
+     "f": "ceramics",
+     "t": 1
+    },
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    {
+     "f": "produce",
+     "t": 1
+    },
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null
+   ],
+   "h": 6,
+   "shelf": false,
+   "w": 5
+  },
+  "coins": 3,
+  "number": 1,
+  "queue": [
+   {
+    "arch": "regular",
+    "items": [
+     {
+      "f": "produce",
+      "t": 1
+     }
+    ],
+    "left": 21,
+    "max": 34,
+    "name": "Odette"
+   },
+   {
+    "arch": "regular",
+    "items": [
+     {
+      "f": "produce",
+      "t": 1
+     }
+    ],
+    "left": 21,
+    "max": 34,
+    "name": "Elsie"
+   },
+   {
+    "arch": "regular",
+    "items": [
+     {
+      "f": "ceramics",
+      "t": 2
+     }
+    ],
+    "left": 40,
+    "max": 48,
+    "name": "Bashir"
+   },
+   {
+    "arch": "regular",
+    "items": [
+     {
+      "f": "produce",
+      "t": 2
+     }
+    ],
+    "left": 48,
+    "max": 48,
+    "name": "Imogen"
+   },
+   {
+    "arch": "regular",
+    "items": [
+     {
+      "f": "textiles",
+      "t": 2
+     }
+    ],
+    "left": 48,
+    "max": 48,
+    "name": "Anselm"
+   }
+  ],
+  "rng": {
+   "draws": 30,
+   "seed": 3070509739
+  },
+  "served": 1,
+  "streak": 1,
+  "total": 6
+ },
+ "tally": {
+  "crates": 12,
+  "orders": 1,
+  "sold": 1
+ }
+}

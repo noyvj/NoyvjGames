@@ -42,7 +42,7 @@ def test_noscript_lists_a_link_to_every_game_on_the_lobby():
     noscript = re.search(r"<noscript>(.*?)</noscript>", INDEX, re.S).group(1)
     linked = re.findall(r'<a href="(games/[^"]+)">', noscript)
     assert linked == [href for _, href, _ in cards()]
-    assert len(linked) == 16
+    assert len(linked) == 17
 
 
 def test_noscript_and_compat_notice_exist_with_alert_role():

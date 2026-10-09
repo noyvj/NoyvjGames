@@ -720,6 +720,25 @@ html[data-theme="light"] .whats-new-thumb[aria-pressed="true"] { color: #2c4a9a;
   box-shadow: 0 0 22px 8px rgba(255, 207, 107, 0.5), -64px 3px 0 -4px rgba(255, 207, 107, 0.4);
 }
 
+/* Pocket Bazaar: a striped red-and-amber awning over a green crate holding two
+   goods, on a dusky plum ground. Same shapes as the game's own favicon. */
+.title-card-thumb--pocket-bazaar {
+  --thumb-glow: #e8a33d;
+  background: linear-gradient(160deg, #3a2f4a 0%, #221a2c 100%);
+}
+.title-card-thumb--pocket-bazaar::before {
+  inset: 16% 18% auto 18%;
+  height: 32px;
+  border-radius: 16px 16px 0 0;
+  background: repeating-linear-gradient(90deg, #c7442e 0 22px, #e8a33d 22px 44px);
+}
+.title-card-thumb--pocket-bazaar::after {
+  inset: auto 26% 16% 26%;
+  height: 36px;
+  border-radius: 6px;
+  background: radial-gradient(circle at 28% 50%, #ff9f6b 0 9px, transparent 10px), radial-gradient(circle at 72% 50%, #f2c14e 0 9px, transparent 10px), #7bc96f;
+}
+
 /* Trade Empire: a miniature version of the in-game trade map itself —
    route lines connecting colony nodes (the same NODE_COLOR blue used by
    game.py's render_map()) with one gold dot standing in for an automated

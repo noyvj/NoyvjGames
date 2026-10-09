@@ -59,6 +59,7 @@ THEMES = {
     "lexis": (["#1b2747", "#0e1426"], "marks", "#9ad0ff", "#16203a", ("lexis",)),
     "heist-committee": (["#3a2a52", "#1d1530"], "skyline", "#ffc15e", "#2a1f3d", ("hat",)),
     "lighthouse": (["#143a52", "#0a1f30"], "waves", "#ffcf6b", "#143a52", ("lighthouse",)),
+    "pocket-bazaar": (["#3a2f4a", "#2a2233"], "hills:#1a1420", "#e8a33d", "#2a2233", ("stall",)),
     "trade-empire": (["#1a1f3a", "#0d0f1e"], "network", "#e0c34c", "#171b30", ("letter", "$", "#e0c34c")),
 }
 FALLBACK_THEME = (["#1a1f3a", "#0d0f1e"], "stars", "#8fb0e8", "#2c4a7c", ("letter", "?", "#ffffff"))
@@ -304,6 +305,16 @@ def draw_glyph(draw, glyph, scale, tile_color):
         draw.polygon(S([(26, 17), (38, 17), (32, 10)]), fill=rgb("#e8eef2"))
         draw.rectangle((23 * scale, 49 * scale, 41 * scale, 52 * scale), fill=rgb("#f4f1e8"))
         stroke(draw, S(bezier((10, 56), (14, 52), (20, 52), (24, 56)) + bezier((24, 56), (28, 60), (34, 60), (38, 56)) + bezier((38, 56), (42, 52), (48, 52), (52, 56))), 2.2 * scale, rgb("#7fd1ff"))
+    elif kind == "stall":
+        draw.rounded_rectangle((8 * scale, 12 * scale, 56 * scale, 36 * scale), radius=10 * scale, fill=rgb("#e8a33d"))
+        draw.rectangle((8 * scale, 24 * scale, 56 * scale, 36 * scale), fill=rgb("#e8a33d"))
+        for k in range(4):
+            x0 = (8 + 12 * k) * scale
+            draw.rectangle((x0, 24 * scale, x0 + 12 * scale, 30 * scale), fill=rgb("#c7442e"))
+            draw.ellipse((x0, 24 * scale, x0 + 12 * scale, 33 * scale), fill=rgb("#c7442e"))
+        draw.rounded_rectangle((12 * scale, 38 * scale, 52 * scale, 52 * scale), radius=3 * scale, fill=rgb("#7bc96f"), outline=rgb("#1a1420"), width=max(1, int(2 * scale)))
+        for cx, col in ((24, "#ff9f6b"), (40, "#f2c14e")):
+            draw.ellipse(((cx - 4) * scale, 41 * scale, (cx + 4) * scale, 49 * scale), fill=rgb(col))
     elif kind == "lexis":
         blue = rgb("#9ad0ff")
         for a, b in (((16, 22), (26, 22)), ((34, 22), (36, 22)), ((42, 22), (48, 22)),

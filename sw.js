@@ -2,7 +2,7 @@
 // the precache list; ordinary content deploys don't need it, because
 // same-origin requests are network-first (see the fetch handler below) and
 // so always pick up fresh files whenever the player is online.
-const SW_VERSION = 44;
+const SW_VERSION = 45;
 const CACHE_NAME = "site-cache-v" + SW_VERSION;
 // How long a same-origin network request may take before we give up and
 // serve the cached copy instead (a slow/flaky connection shouldn't hang).
@@ -193,6 +193,27 @@ const PRECACHE_URLS = [
   "games/lighthouse/unease.py",
   "games/lighthouse/info.py",
   "games/lighthouse/view.py",
+  "games/pocket-bazaar/index.html",
+  "games/pocket-bazaar/style.css",
+  "games/pocket-bazaar/game.py",
+  "games/pocket-bazaar/app.js",
+  "games/pocket-bazaar/settings.js",
+  "games/pocket-bazaar/changelog.json",
+  "games/pocket-bazaar/achievements.json",
+  "games/pocket-bazaar/goods.py",
+  "games/pocket-bazaar/rng.py",
+  "games/pocket-bazaar/board.py",
+  "games/pocket-bazaar/orders.py",
+  "games/pocket-bazaar/days.py",
+  "games/pocket-bazaar/festival.py",
+  "games/pocket-bazaar/renown.py",
+  "games/pocket-bazaar/shop.py",
+  "games/pocket-bazaar/pledge.py",
+  "games/pocket-bazaar/info.py",
+  "games/pocket-bazaar/achievements.py",
+  "games/pocket-bazaar/decorations.py",
+  "games/pocket-bazaar/regulars.py",
+  "games/pocket-bazaar/day.py",
   // Audit fix 2026-09-27: Trade Empire is hub-linked and has been for a while
   // (see CLAUDE.md's Current games table) -- both were mistakenly left off
   // this list under a stale "not hub-linked yet" comment. Trade Empire has the
@@ -243,6 +264,9 @@ const PRECACHE_URLS = [
   "games/lighthouse/pc.html",
   "games/lighthouse/pc.css",
   "games/lighthouse/pc.js",
+  "games/pocket-bazaar/pc.html",
+  "games/pocket-bazaar/pc.css",
+  "games/pocket-bazaar/pc.js",
   "games/signal/pc.html",
   "games/signal/pc.css",
   "games/signal/pc.js",

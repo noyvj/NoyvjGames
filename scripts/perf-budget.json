@@ -73,6 +73,12 @@
    "pyodide_ms": 1209,
    "total_kb": 5797.5
   },
+  "pocket-bazaar": {
+   "first_interactive_ms": 3573,
+   "own_kb": 348.5,
+   "pyodide_ms": 3564,
+   "total_kb": 5788.5
+  },
   "signal": {
    "first_interactive_ms": 1260,
    "own_kb": 301.7,

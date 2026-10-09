@@ -99,6 +99,15 @@
         "Loop H11: opt-in regional recycling pool donation"
       ]
     },
+    "pocket-bazaar": {
+      "commit_count": 9,
+      "last_updated": "2026-10-09",
+      "recent_commits": [
+        "Pocket Bazaar: report-a-problem and profile includes (shared wiring script)",
+        "Milestone 8: Own-folder wrap-up (Desktop boot, favicon, docs)",
+        "Milestone 7: Achievements and story"
+      ]
+    },
     "signal": {
       "commit_count": 3,
       "last_updated": "2026-10-07",

@@ -1,0 +1,39 @@
+{
+  "@context": "https://schema.org",
+  "@type": [
+    "VideoGame",
+    "WebApplication"
+  ],
+  "name": "Pocket Bazaar",
+  "description": "A tiny market stall: customers ask for goods, you merge basic goods on a small board into better ones and hand them over before their patience runs out. Chain sales into combos across a three-to-five-minute market day. No timers that gate play, no energy, no premium currency. Working title.",
+  "url": "https://noyvj.github.io/NoyvjGames/games/pocket-bazaar/",
+  "image": "https://noyvj.github.io/NoyvjGames/share/pocket-bazaar.png",
+  "applicationCategory": "GameApplication",
+  "operatingSystem": "Any modern web browser",
+  "browserRequirements": "Requires JavaScript and WebAssembly",
+  "gamePlatform": "Web browser",
+  "playMode": "SinglePlayer",
+  "inLanguage": "en",
+  "isAccessibleForFree": true,
+  "offers": {
+    "@type": "Offer",
+    "price": "0",
+    "priceCurrency": "USD"
+  },
+  "author": {
+    "@type": "Person",
+    "name": "Noyvj",
+    "url": "https://github.com/noyvj"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "NoyvjGames",
+    "url": "https://noyvj.github.io/NoyvjGames/"
+  },
+  "genre": [
+    "Short session"
+  ],
+  "dateCreated": "2026-10-08",
+  "dateModified": "2026-10-09",
+  "timeRequired": "PT5M"
+}

@@ -25,6 +25,7 @@
     sol: { scale: "sol-text-scale", motion: "sol-reduced-motion" },
     continuum: { scale: "continuum-text-scale", motion: "continuum-reduced-motion" },
     lexis: { scale: "lexis-text-scale", motion: "lexis-reduced-motion" },
+    "pocket-bazaar": { scale: "pocket-bazaar-text-scale", motion: "pocket-bazaar-reduced-motion" },
     "lighthouse": { scale: "lighthouse-text-scale", motion: "lighthouse-reduced-motion" },
     "heist-committee": { scale: "heist-text-scale", motion: "heist-reduced-motion" },
   };
