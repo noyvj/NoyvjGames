@@ -61,6 +61,12 @@
    "pyodide_ms": 1229,
    "total_kb": 5702.0
   },
+  "lighthouse": {
+   "first_interactive_ms": 3938,
+   "own_kb": 455.5,
+   "pyodide_ms": 3930,
+   "total_kb": 5893.5
+  },
   "loop": {
    "first_interactive_ms": 1396,
    "own_kb": 357.5,

@@ -1,0 +1,39 @@
+{
+  "@context": "https://schema.org",
+  "@type": [
+    "VideoGame",
+    "WebApplication"
+  ],
+  "name": "Lighthouse",
+  "description": "Keep one light on one rock. Storms come, ships pass, oil runs low, and passing sailors leave letters, gifts and things you cannot quite explain. A cozy, slightly eerie keeper sim you cannot lose, with the eerie details switchable off. Working title.",
+  "url": "https://noyvj.github.io/NoyvjGames/games/lighthouse/",
+  "image": "https://noyvj.github.io/NoyvjGames/share/lighthouse.png",
+  "applicationCategory": "GameApplication",
+  "operatingSystem": "Any modern web browser",
+  "browserRequirements": "Requires JavaScript and WebAssembly",
+  "gamePlatform": "Web browser",
+  "playMode": "SinglePlayer",
+  "inLanguage": "en",
+  "isAccessibleForFree": true,
+  "offers": {
+    "@type": "Offer",
+    "price": "0",
+    "priceCurrency": "USD"
+  },
+  "author": {
+    "@type": "Person",
+    "name": "Noyvj",
+    "url": "https://github.com/noyvj"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "NoyvjGames",
+    "url": "https://noyvj.github.io/NoyvjGames/"
+  },
+  "genre": [
+    "Systems simulation"
+  ],
+  "dateCreated": "2026-10-09",
+  "dateModified": "2026-10-09",
+  "timeRequired": "PT20M"
+}

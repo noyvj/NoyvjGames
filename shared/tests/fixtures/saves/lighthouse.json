@@ -1,0 +1,80 @@
+{
+ "achievements_earned": [
+  "first_light",
+  "quiet_night"
+ ],
+ "meta": {
+  "achievements_earned": [
+   "first_light",
+   "quiet_night"
+  ],
+  "best_clean_streak": 1,
+  "counters": {
+   "best_wound_streak": 3,
+   "quiet_nights": 2
+  },
+  "lamp_ticks": 527,
+  "nights_kept": 13,
+  "oil_used": 495.0,
+  "ships_damaged": 1,
+  "ships_delayed": 31,
+  "ships_passed": 14,
+  "story": {
+   "met": [
+    "odd",
+    "ilse",
+    "dunstan",
+    "wilhelmina"
+   ],
+   "mysteries": [
+    "second_light"
+   ]
+  },
+  "year_lamp_ticks": 527
+ },
+ "run": {
+  "clock_left": 24.0,
+  "comfort": 0,
+  "energy": 100.0,
+  "log": [
+   [
+    0,
+    "lamp",
+    "Dusk. You light the lamp."
+   ]
+  ],
+  "night": 1,
+  "oil": 150.0,
+  "phase": "night",
+  "plan": {
+   "levels": [
+    "standard",
+    "standard",
+    "standard"
+   ],
+   "tasks": {
+    "repair": false,
+    "watch": false,
+    "wind": true
+   }
+  },
+  "reputation": 0,
+  "salvage": 0,
+  "seed": 953,
+  "structure": {
+   "cistern": 75,
+   "dock": 65,
+   "lantern": 70,
+   "rail": 60,
+   "tower": 80
+  },
+  "supplies": {
+   "food": 6,
+   "glass": 2,
+   "tar": 3,
+   "timber": 3
+  },
+  "tick": 0
+ },
+ "schema": 1
+}

@@ -58,6 +58,7 @@ THEMES = {
     "signal": (["#14211c", "#0d1512"], "pulse", "#ffb347", "#14211c", ("signal",)),
     "lexis": (["#1b2747", "#0e1426"], "marks", "#9ad0ff", "#16203a", ("lexis",)),
     "heist-committee": (["#3a2a52", "#1d1530"], "skyline", "#ffc15e", "#2a1f3d", ("hat",)),
+    "lighthouse": (["#143a52", "#0a1f30"], "waves", "#ffcf6b", "#143a52", ("lighthouse",)),
     "trade-empire": (["#1a1f3a", "#0d0f1e"], "network", "#e0c34c", "#171b30", ("letter", "$", "#e0c34c")),
 }
 FALLBACK_THEME = (["#1a1f3a", "#0d0f1e"], "stars", "#8fb0e8", "#2c4a7c", ("letter", "?", "#ffffff"))
@@ -295,6 +296,14 @@ def draw_glyph(draw, glyph, scale, tile_color):
         draw.polygon(S([(19.4, 36), (44.6, 36), (44.9, 40.5), (19.1, 40.5)]), fill=plum)
         for cx, r in ((32, 2.2), (24, 1.6), (40, 1.6)):
             draw.ellipse(((cx - r) * scale, (50.5 - r) * scale, (cx + r) * scale, (50.5 + r) * scale), fill=blue)
+    elif kind == "lighthouse":
+        draw.polygon(S([(0, 26), (30, 26), (30, 30), (0, 36)]), fill=rgb("#ffcf6b", 140))
+        draw.polygon(S([(25, 50), (28, 24), (36, 24), (39, 50)]), fill=rgb("#f4f1e8"))
+        draw.polygon(S([(26.4, 40), (27.2, 33), (36.8, 33), (37.6, 40)]), fill=rgb("#c8483a"))
+        draw.rectangle((27 * scale, 17 * scale, 37 * scale, 24 * scale), fill=rgb("#ffcf6b"))
+        draw.polygon(S([(26, 17), (38, 17), (32, 10)]), fill=rgb("#e8eef2"))
+        draw.rectangle((23 * scale, 49 * scale, 41 * scale, 52 * scale), fill=rgb("#f4f1e8"))
+        stroke(draw, S(bezier((10, 56), (14, 52), (20, 52), (24, 56)) + bezier((24, 56), (28, 60), (34, 60), (38, 56)) + bezier((38, 56), (42, 52), (48, 52), (52, 56))), 2.2 * scale, rgb("#7fd1ff"))
     elif kind == "lexis":
         blue = rgb("#9ad0ff")
         for a, b in (((16, 22), (26, 22)), ((34, 22), (36, 22)), ((42, 22), (48, 22)),

@@ -28,11 +28,12 @@ import smoke_support as ss
 # steps per game: more for the fast ones, fewer where one get_state() is slow (Drift, Thaw, Champ).
 STEPS = {"aftermath": 1200, "canopy": 800, "champ-de-mots": 300, "continuum": 600, "drift": 300,
          "grid": 1200, "herd": 1200, "loop": 1000, "sol": 1200, "thaw": 300, "tide": 800, "trade-empire": 800,
-         "signal": 600, "chronicle": 400, "lexis": 400, "heist-committee": 400}
+         "signal": 600, "chronicle": 400, "lexis": 400, "heist-committee": 400, "lighthouse": 300}
 SEEDS = (20261008, 7)
 
 # Extra paths that may legitimately be negative in one game (regex over the state path).
-SIGNED_OK = {}
+# Lighthouse: a night's reputation change is a signed delta by design.
+SIGNED_OK = {"lighthouse": r"/(night_stats|report)/rep$"}
 
 # The fuzzer must really have played: at least this many handlers fired and this many distinct
 # buttons/actions were used, or the harness is silently doing nothing.

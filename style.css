@@ -698,6 +698,28 @@ html[data-theme="light"] .whats-new-thumb[aria-pressed="true"] { color: #2c4a9a;
   box-shadow: 0 0 22px rgba(255, 193, 94, 0.35);
 }
 
+/* Lighthouse: a striped tower with a lit lamp on a night-sea ground, a dark
+   swell along the bottom. Same shapes as the game's own favicon. */
+.title-card-thumb--lighthouse {
+  --thumb-glow: #ffcf6b;
+  background: linear-gradient(0deg, #0d2b3d 0 14%, transparent 14%), linear-gradient(180deg, #143a52 0%, #0b2233 100%);
+}
+.title-card-thumb--lighthouse::before {
+  inset: 32% auto 14% 50%;
+  width: 28px;
+  transform: translateX(-50%);
+  clip-path: polygon(22% 0, 78% 0, 100% 100%, 0 100%);
+  background: repeating-linear-gradient(180deg, #f4f1e8 0 13px, #c8483a 13px 22px);
+}
+.title-card-thumb--lighthouse::after {
+  inset: 22% auto auto 50%;
+  width: 18px;
+  height: 14px;
+  transform: translateX(-50%);
+  background: #ffcf6b;
+  box-shadow: 0 0 22px 8px rgba(255, 207, 107, 0.5), -64px 3px 0 -4px rgba(255, 207, 107, 0.4);
+}
+
 /* Trade Empire: a miniature version of the in-game trade map itself —
    route lines connecting colony nodes (the same NODE_COLOR blue used by
    game.py's render_map()) with one gold dot standing in for an automated

@@ -2,7 +2,7 @@
 // the precache list; ordinary content deploys don't need it, because
 // same-origin requests are network-first (see the fetch handler below) and
 // so always pick up fresh files whenever the player is online.
-const SW_VERSION = 43;
+const SW_VERSION = 44;
 const CACHE_NAME = "site-cache-v" + SW_VERSION;
 // How long a same-origin network request may take before we give up and
 // serve the cached copy instead (a slow/flaky connection shouldn't hang).
@@ -169,6 +169,30 @@ const PRECACHE_URLS = [
   "games/heist-committee/info.py",
   "games/heist-committee/achievements.py",
   "games/heist-committee/story.py",
+  "games/lighthouse/index.html",
+  "games/lighthouse/style.css",
+  "games/lighthouse/game.py",
+  "games/lighthouse/app.js",
+  "games/lighthouse/settings.js",
+  "games/lighthouse/changelog.json",
+  "games/lighthouse/achievements.json",
+  "games/lighthouse/rng.py",
+  "games/lighthouse/data.py",
+  "games/lighthouse/clock.py",
+  "games/lighthouse/weather.py",
+  "games/lighthouse/ships.py",
+  "games/lighthouse/state.py",
+  "games/lighthouse/sim.py",
+  "games/lighthouse/day.py",
+  "games/lighthouse/achievements.py",
+  "games/lighthouse/goals.py",
+  "games/lighthouse/lore.py",
+  "games/lighthouse/cast.py",
+  "games/lighthouse/story.py",
+  "games/lighthouse/mysteries.py",
+  "games/lighthouse/unease.py",
+  "games/lighthouse/info.py",
+  "games/lighthouse/view.py",
   // Audit fix 2026-09-27: Trade Empire is hub-linked and has been for a while
   // (see CLAUDE.md's Current games table) -- both were mistakenly left off
   // this list under a stale "not hub-linked yet" comment. Trade Empire has the
@@ -216,6 +240,9 @@ const PRECACHE_URLS = [
   "games/heist-committee/pc.html",
   "games/heist-committee/pc.css",
   "games/heist-committee/pc.js",
+  "games/lighthouse/pc.html",
+  "games/lighthouse/pc.css",
+  "games/lighthouse/pc.js",
   "games/signal/pc.html",
   "games/signal/pc.css",
   "games/signal/pc.js",

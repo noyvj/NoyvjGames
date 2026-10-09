@@ -1,0 +1,41 @@
+{
+ "achievements_earned": [],
+ "meta": {},
+ "run": {
+  "comfort": 0,
+  "energy": 100.0,
+  "night": 1,
+  "oil": 150.0,
+  "phase": "evening",
+  "plan": {
+   "levels": [
+    "standard",
+    "standard",
+    "standard"
+   ],
+   "tasks": {
+    "repair": false,
+    "watch": false,
+    "wind": true
+   }
+  },
+  "reputation": 0,
+  "salvage": 0,
+  "seed": 77,
+  "structure": {
+   "cistern": 75,
+   "dock": 65,
+   "lantern": 70,
+   "rail": 60,
+   "tower": 80
+  },
+  "supplies": {
+   "food": 6,
+   "glass": 2,
+   "tar": 3,
+   "timber": 3
+  },
+  "tick": 0
+ },
+ "schema": 1
+}

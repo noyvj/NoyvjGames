@@ -7,7 +7,7 @@ Every older game ships a pytest fixture `game_env` in `games/<slug>/tests/confte
 `game.py` against a fake DOM (`FakeElement`s keyed by id, a fake `js` and `pyodide` module). This
 module imports that conftest under a unique package name and calls the fixture's own function, so
 the games' boot code is exactly the one their own tests use and nothing is duplicated. The
-engine-style games (Signal, Chronicle, Lexis, Heist Committee) have no DOM: their `game.py` is a plain module with
+engine-style games (Signal, Chronicle, Lexis, Heist Committee, Lighthouse) have no DOM: their `game.py` is a plain module with
 a request/response entry point, driven here with a small action grammar instead of clicks.
 
 Importing a game's tests package changes `sys.path` and `sys.modules` (every game's module is
@@ -320,6 +320,42 @@ def heist_request(rng, last):
     return rng.choice([{"action": "retry"}, {"action": "back_to_board"}, {"action": "back_to_board"}])
 
 
+def lighthouse_request(rng, last):
+    """Lighthouse: follow the phase the last response reported (evening, night, morning, day, yearend)."""
+    phase = ((last or {}).get("phase")) or "evening"
+    roll = rng.random()
+    parts = ["tower", "lantern", "rail", "dock", "cistern"]
+    if roll < 0.04:
+        return {"action": rng.choice(["open", "settings", "abandon", "bogus", "read_letter", "reply"]),
+                "eerie": rng.random() < 0.5, "id": rng.choice(["a", "b", ""]), "seed": rng.randrange(1, 999)}
+    if phase == "evening":
+        if roll < 0.35:
+            return {"action": "plan", "levels": [rng.choice(["dim", "standard", "bright", "storm"]) for _ in range(3)],
+                    "tasks": {"wind": rng.random() < 0.5, "watch": rng.random() < 0.5, "repair": rng.random() < 0.5},
+                    "ration": rng.choice([0, 5, 20]), "focus": rng.choice(["worst"] + parts)}
+        if roll < 0.45:
+            return {"action": "upgrade", "id": rng.choice([u["id"] for u in (last or {}).get("upgrades", [])] or ["x"])}
+        return {"action": "start_night"}
+    if phase == "night":
+        if roll < 0.55:
+            return {"action": "step", "n": rng.choice([1, 3, 10, 40])}
+        return rng.choice([{"action": "level", "level": rng.choice(["dim", "standard", "bright", "storm"])},
+                           {"action": "wind"}, {"action": "tend"}, {"action": "patch", "part": rng.choice(parts)},
+                           {"action": "step", "n": 25}])
+    if phase == "morning":
+        return {"action": "end_morning"}
+    if phase == "day":
+        if roll < 0.60:
+            return {"action": "day", "task": rng.choice(["repair", "rest", "tidy", "beachcomb", "garden", "rescue"]),
+                    "part": rng.choice(parts), "id": rng.choice(["a", "b"])}
+        if roll < 0.70:
+            return {"action": "upgrade", "id": rng.choice([u["id"] for u in (last or {}).get("upgrades", [])] or ["x"])}
+        if roll < 0.78:
+            return {"action": "order", "order": {k: rng.randrange(0, 5) for k in ["oil", "wick", "timber", "food", "cloth"]}}
+        return {"action": "end_day"}
+    return {"action": rng.choice(["continue", "continue", "abandon", "end_day"])}
+
+
 @contextlib.contextmanager
 def engine_game(slug):
     """Yield (call, get_state, next_request) for an engine-style game, freshly reset."""
@@ -351,6 +387,11 @@ def engine_game(slug):
             import game as module                    # noqa: PLC0415 -- resolved through that path
             module.handle(json.dumps({"action": "new_career", "seed": 77}))
             yield (lambda req: json.loads(module.handle(json.dumps(req)))), module.get_state, heist_request
+        elif slug == "lighthouse":
+            load_conftest(slug)                     # puts games/lighthouse on sys.path
+            import game as module                    # noqa: PLC0415 -- resolved through that path
+            module.handle(json.dumps({"action": "new_game", "seed": 77}))
+            yield (lambda req: json.loads(module.handle(json.dumps(req)))), module.get_state, lighthouse_request
         else:
             raise KeyError(slug)
 
@@ -359,5 +400,5 @@ def engine_game(slug):
 
 FAKE_DOM_GAMES = ["aftermath", "canopy", "champ-de-mots", "continuum", "drift", "grid", "herd", "loop",
                   "sol", "thaw", "tide", "trade-empire"]
-ENGINE_GAMES = ["signal", "chronicle", "lexis", "heist-committee"]
+ENGINE_GAMES = ["signal", "chronicle", "lexis", "heist-committee", "lighthouse"]
 ALL_GAMES = sorted(FAKE_DOM_GAMES + ENGINE_GAMES)

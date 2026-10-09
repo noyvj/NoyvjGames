@@ -69,7 +69,7 @@ def test_the_page_wires_the_save_widget_opening_screen_and_time_controls():
     for needle in ('shared/save-widget.js" data-game-id="lighthouse"', 'shared/opening-screen.js" data-game-id="lighthouse"',
                    'shared/time-controls.js" data-game-id="lighthouse"', 'shared/pause-hidden.js" data-game-id="lighthouse"',
                    'id="pause-hidden-checkbox"', 'id="settings-toggle-button"', 'id="info-page-toggle-button"',
-                   'data-pc-page="pc.html"', 'rel="icon" type="image/svg+xml" href="icons/favicon-lighthouse.svg"'):
+                   'data-pc-page="pc.html"', 'rel="icon" type="image/svg+xml" href="../../icons/favicon-lighthouse.svg"'):
         assert needle in HTML, needle
     assert (GAME_DIR / "icons" / "favicon-lighthouse.svg").exists()
 

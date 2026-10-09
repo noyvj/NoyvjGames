@@ -45,7 +45,7 @@ def png_size(path):
 def test_game_list_matches_lobby_and_manifest():
     slugs = [g["slug"] for g in GAMES]
     manifest = json.loads((ROOT / "game-manifest.json").read_text(encoding="utf-8"))["achievements"]
-    assert len(slugs) == 15 and set(slugs) <= set(manifest)
+    assert len(slugs) == 16 and set(slugs) <= set(manifest)
 
 
 def test_sitemap_lists_existing_files_only():

@@ -19,6 +19,7 @@
     thaw: "Thaw", loop: "Loop", drift: "Drift", "trade-empire": "Trade Empire", continuum: "Continuum",
     "champ-de-mots": "Le Champ de Mots", signal: "Signal", lexis: "Lexis",
     "heist-committee": "Heist Committee",
+    "lighthouse": "Lighthouse",
   };
   let games = [];                       // [{slug, name, href}] from the lobby page
   let ownData = null;                   // the owner's own profile data, when viewing it

@@ -81,6 +81,15 @@
         "Lexis milestone 6 (part 1): Bridge language engine, scenes and deducibility checker"
       ]
     },
+    "lighthouse": {
+      "commit_count": 11,
+      "last_updated": "2026-10-09",
+      "recent_commits": [
+        "Milestone 9: Own-folder wrap-up",
+        "Milestone 8: Achievements and polish",
+        "Milestone 7: Standard kit"
+      ]
+    },
     "loop": {
       "commit_count": 72,
       "last_updated": "2026-10-07",
