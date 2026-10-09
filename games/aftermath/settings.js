@@ -34,6 +34,8 @@
   const FONT_KEY = "aftermath-readable-font";
   // E-28: ask before Face Next Event while resources sit unspent. Read by game.py from this same key.
   const CONFIRM_UNSPENT_KEY = "aftermath-confirm-unspent";
+  // GE-21: hides the closing line on the run summary. Read by game.py from this same key.
+  const HIDE_EPITAPH_KEY = "aftermath-hide-epitaph";
   const MIN_SCALE = 0.85;
   const MAX_SCALE = 1.5;
   const STEP = 0.1;
@@ -139,6 +141,18 @@
       });
     }
 
+    const epitaphBox = document.getElementById("hide-epitaph-checkbox");
+    if (epitaphBox) {
+      epitaphBox.checked = readFlag(HIDE_EPITAPH_KEY);
+      epitaphBox.addEventListener("change", function () {
+        try {
+          window.localStorage.setItem(HIDE_EPITAPH_KEY, String(epitaphBox.checked));
+        } catch (e) {
+          // Persistence is a convenience only.
+        }
+      });
+    }
+
     let scale = readStoredScale();
     applyScale(scale);
     let reduced = readStoredMotion();
@@ -193,6 +207,14 @@
         readable = applyFlag("data-readable-font", FONT_KEY, false);
         if (contrastBox) contrastBox.checked = false;
         if (fontBox) fontBox.checked = false;
+        if (epitaphBox) {
+          epitaphBox.checked = false;
+          try {
+            window.localStorage.setItem(HIDE_EPITAPH_KEY, "false");
+          } catch (e) {
+            // Persistence is a convenience only.
+          }
+        }
         if (confirmBox) {
           confirmBox.checked = false;
           try {

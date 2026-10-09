@@ -3519,6 +3519,98 @@ def render_damage_waterfall():
         body.appendChild(line)
 
 
+# ---- GE-21: closing line (epitaph) on the run summary --------------------------
+# One short line per finished run, picked from a bank keyed to how the run went. The pick is
+# deterministic (run number, so it never flickers between renders and replaying the same run reads
+# the same). Lines for a hard run stay gentle on purpose; the dry jokes are kept for runs that went
+# well. A Settings checkbox hides it (key written by settings.js).
+HIDE_EPITAPH_STORAGE_KEY = "aftermath-hide-epitaph"
+EPITAPHS = {
+    "ruin": [
+        "The settlement is still standing. It just needs a long sit-down.",
+        "Every shock left a lesson, and the notes are already in the tree.",
+        "A rough run. The people remember what worked, and so does your skill tree.",
+        "Tomorrow's plan starts from today's scars, and that is how plans improve.",
+        "Nothing is wasted: this run's hard hits are next run's early warnings.",
+        "Rebuilding is also a result. Take what it taught you.",
+    ],
+    "flawless": [
+        "The levee held. The mayor, as ever, took the credit.",
+        "At least one disaster arrived and found nobody home to hurt.",
+        "A shock walked in, read the sea wall, and left.",
+        "Perfectly defended, and not one person had to be heroic about it.",
+        "The best disaster plan is the one nobody notices until afterwards.",
+        "Insurance adjusters were seen weeping with happiness.",
+    ],
+    "rich": [
+        "Weathered it all and still finished with money in the bank.",
+        "The settlement ended the year richer than it started. Suspicious, but welcome.",
+        "Growth and good luck? No, growth and good planning.",
+        "The treasurer would like it noted that this was never in doubt.",
+        "Disasters came, the budget stayed standing.",
+        "A surplus after seven shocks. The history books will need a bigger margin.",
+    ],
+    "resilience": [
+        "Built to last, and it did.",
+        "The walls were thick, the people were prepared, and the weather had to take notes.",
+        "Everything was reinforced, including the committee meetings.",
+        "A settlement that spent early and slept well.",
+        "Concrete, drills and good habits: boring on purpose, and it worked.",
+        "When the storm came, the most dramatic thing was the forecast.",
+    ],
+    "growth": [
+        "Fast growth, thin margins, and it still came through.",
+        "The economy kept humming through every shock.",
+        "Income first, armour later, and the bet paid off this time.",
+        "A busy settlement: too busy to be flattened.",
+        "The market stalls reopened before the water had finished draining.",
+        "Prosperity is also a kind of preparedness.",
+    ],
+    "steady": [
+        "Seven shocks, one settlement, still here.",
+        "Nothing glamorous, nothing lost. That is what resilience looks like.",
+        "A steady run: the kind that does not make the news, which is the point.",
+        "The shocks came and went, and so did the worry.",
+        "A solid year. Next year's weather will not care, and neither will you.",
+        "Survival, with room for improvement.",
+    ],
+}
+SCENARIO_EPITAPHS = {
+    "heat_season": "The summer is over. The shade, the water and the neighbours who checked in all counted.",
+    "coastal": "The tide went out again and the harbour was still there.",
+    "urban": "The city kept its lights on, its trains running and its arguments civil, mostly.",
+}
+
+
+def epitaph_kind(run_state):
+    """Which bucket of EPITAPHS fits a finished run, checked in this order."""
+    if run_state.resources <= 0 or run_state.run_score() <= VERY_BAD_RUN_SCORE:
+        return "ruin"
+    if flawless_count(run_state.event_log) >= 1:
+        return "flawless"
+    if run_state.resources > run_state.starting_resources:
+        return "rich"
+    if run_state.resilience_capacity >= 3 and run_state.resilience_capacity > run_state.growth_capacity:
+        return "resilience"
+    if run_state.growth_capacity >= 3 and run_state.growth_capacity > run_state.resilience_capacity:
+        return "growth"
+    return "steady"
+
+
+def epitaph_text(run_state):
+    """The closing line for a finished run: a scenario line on every third run of that scenario
+    (never over a ruinous run), otherwise from the outcome bucket."""
+    kind = epitaph_kind(run_state)
+    if kind != "ruin" and run_state.scenario in SCENARIO_EPITAPHS and run_state.run_number % 3 == 0:
+        return SCENARIO_EPITAPHS[run_state.scenario]
+    bank = EPITAPHS[kind]
+    return bank[(run_state.run_number * 5 + len(run_state.event_log)) % len(bank)]
+
+
+def epitaph_hidden():
+    return localStorage.getItem(HIDE_EPITAPH_STORAGE_KEY) == "true"
+
+
 # ---- E-17: schedule strip -------------------------------------------------
 def schedule_strip_entries(run_state):
     """One entry per event in the run's schedule: what it is, whether it is
@@ -3712,6 +3804,11 @@ def render():
             line.innerText = text
             breakdown.appendChild(line)
         run_summary_panel.appendChild(breakdown)
+        if not epitaph_hidden():  # GE-21
+            epitaph_el = document.createElement("p")
+            epitaph_el.className = "run-epitaph"
+            epitaph_el.innerText = epitaph_text(run)
+            run_summary_panel.appendChild(epitaph_el)
         epilogue = extended_epilogue_text(run)
         if epilogue:
             epilogue_el = document.createElement("p")

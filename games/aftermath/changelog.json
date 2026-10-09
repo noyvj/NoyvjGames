@@ -1,6 +1,10 @@
 [
   {
     "date": "2026-10-09",
+    "entry": "New: a closing line on the run summary, chosen from a bank of 40 lines to match how the run went (a flawless defence, a surplus, a resilience-heavy or growth-heavy build, a steady run, plus a few place-specific lines). Lines for a hard run are kept gentle. You can hide it with the new Settings checkbox Hide the closing line on the run summary."
+  },
+  {
+    "date": "2026-10-09",
     "entry": "New: an improvement streak. When two or more runs in a row each beat your best score so far, a flame line under your run comparison says how many, and those runs get a flame and a warm glow in Review Past Runs (shown as an icon and words, not only colour)."
   },
   {

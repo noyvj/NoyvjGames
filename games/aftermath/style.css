@@ -1819,6 +1819,8 @@ html[data-high-contrast="true"] .waterfall-seg--taken { background: repeating-li
 .improvement-streak { font-weight: 700; }
 .past-run-card--streak { box-shadow: 0 0 12px rgba(255, 150, 60, 0.45); border-color: rgba(255, 150, 60, 0.6); }
 
+.run-epitaph { margin: 0.5rem 0 0; font-style: italic; font-size: 0.85rem; }
+
 /* ============================================================
    Y11b light-theme polish (2026-09-27). Light-only rules from a
    computed-style WCAG contrast scan of the light theme. Dark is
