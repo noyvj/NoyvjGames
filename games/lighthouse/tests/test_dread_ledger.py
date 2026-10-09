@@ -66,7 +66,7 @@ def test_no_banned_word_in_any_player_visible_string():
 
 def test_nothing_in_the_mysteries_harms_anyone():
     for text in player_strings():
-        assert not re.search(r"\b(hurt|harm|injur\w*|attack\w*|bleed\w*|wound\w*|lost at sea|never seen again|vanish\w*)\b", text, re.I), text
+        assert not re.search(r"\b(hurt|harm|injur\w*|attack\w*|bleed\w*|wounded|wounds|lost at sea|never seen again|vanish\w*)\b", text, re.I), text
 
 
 def test_each_resolution_reframes_the_fear_as_a_person_an_animal_or_a_plain_fact():

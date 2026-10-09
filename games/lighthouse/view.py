@@ -10,6 +10,7 @@ from sim import mail_expected, beam_stopped, effective_reach, lamp_level, max_wi
 from weather import forecast, weather
 import day as daymod
 import goals as goalmod
+import info as infomod
 import story as storymod
 
 
@@ -151,6 +152,7 @@ def build(keep, settings):
                  "lamp_hours": round(keep.meta["lamp_ticks"] * data.TICK_MINUTES / 60.0, 1), "oil_used": round(keep.meta["oil_used"], 1),
                  "clean_streak": keep.meta["clean_streak"], "best_clean_streak": keep.meta["best_clean_streak"]},
         "goals": goalmod.goals(keep),
+        "info": infomod.view(),
         "story": storymod.view(keep),
         "eerie": settings.get("eerie", True),
         "tick_ms": 4000,

@@ -3,7 +3,7 @@
    estimate in the evening plan, which only repeats the engine's published burn rates as a hint). */
 (function () {
   "use strict";
-  var ENGINE_MODULES = ["rng.py", "data.py", "clock.py", "weather.py", "ships.py", "state.py", "sim.py", "day.py", "achievements.py", "goals.py", "lore.py", "cast.py", "story.py", "mysteries.py", "unease.py", "view.py"];
+  var ENGINE_MODULES = ["rng.py", "data.py", "clock.py", "weather.py", "ships.py", "state.py", "sim.py", "day.py", "achievements.py", "goals.py", "lore.py", "cast.py", "story.py", "mysteries.py", "unease.py", "info.py", "view.py"];
   var STORE_KEY = "lighthouse:state";
   var QUIET_KEY = "lighthouse-quiet";
   var EERIE_KEY = "lighthouse-eerie";
@@ -900,6 +900,31 @@
     lastLogCount = v.phase === "night" ? v.log.length : 0;
   }
 
+  var infoShown = false;
+  function renderInfo(v) {
+    if (infoShown) return;
+    infoShown = true;
+    $("info-page-framing").textContent = v.info.framing;
+    var how = $("info-page-how");
+    v.info.how.forEach(function (t) { how.appendChild(el("li", t)); });
+    var list = $("info-page-sources");
+    v.info.facts.forEach(function (fact) {
+      var item = el("li", null, "info-page-source");
+      item.appendChild(el("strong", fact.heading));
+      item.appendChild(el("p", fact.fact, "info-page-framing"));
+      item.appendChild(el("p", fact.tie_in, "info-page-tie-in"));
+      var link = el("a", fact.source.title);
+      link.href = fact.source.url; link.target = "_blank"; link.rel = "noopener noreferrer";
+      var src = el("p", null, "info-page-source-note");
+      src.appendChild(document.createTextNode("Source: "));
+      src.appendChild(link);
+      src.appendChild(document.createTextNode(", " + fact.source.publisher + ". Read on " + fact.source.date_read + "."));
+      item.appendChild(src);
+      list.appendChild(item);
+    });
+    $("info-page-note").textContent = v.story.note;
+  }
+
   // ---- achievements, changelog, panels ----------------------------------------------------------------
   function renderAchievements(v) {
     var list = $("achievements-list");
@@ -955,6 +980,7 @@
   var PHASE_PANELS = { evening: "evening-panel", night: "night-panel", morning: "morning-panel", day: "day-panel", yearend: "yearend-panel" };
   function renderPhase(v, userMoved) {
     Object.keys(PHASE_PANELS).forEach(function (p) { $(PHASE_PANELS[p]).hidden = v.phase !== p; });
+    $("night-controls").hidden = v.phase !== "night";
     if (v.phase === "evening") renderEvening(v);
     if (v.phase === "night") renderNight(v);
     if (v.phase === "morning") renderMorning(v);
@@ -980,6 +1006,7 @@
     view = v;
     renderHud(v);
     renderGoals(v);
+    renderInfo(v);
     renderStory(v);
     renderScene(v);
     renderPhase(v, userMoved);
@@ -1102,6 +1129,24 @@
     document.addEventListener("noyvj-theme-change", function () { if (view) renderScene(view); });
   }
 
+  var TUTORIAL_STEPS = [
+    { title: "The keeper's life", text: "You keep one light on one rock. Each evening you plan the night, the night plays out, and each morning you read how the ships fared. Nothing you do can end the game, and everything can be paused. Skip any time and reopen this from the Tutorial button." },
+    { selector: "#hud", title: "The station at a glance", text: "Oil feeds the lamp, energy is yours, The Light is the harbour's opinion of you, and salvage buys upgrades. Every meter has a number and a word as well as a bar." },
+    { selector: "#goals-panel", title: "Three goals, no order", text: "Three goals are always on show: the next title the harbour could give you, the upgrade nearest your salvage, and something to try. Do them in any order; each is replaced when it is done." },
+    { selector: "#scene-panel", title: "The rock", text: "The beam sweeps the sea and ships pass by. A ship that is lit up by your beam gets a ring and a mark in the list below. Fog, haze, squalls and storms all shorten how far the beam reaches." },
+    { selector: "#barometer-card", title: "The barometer", text: "Tonight's weather as a band of two steps. It is right about nine nights in ten, so it is a hint, not a promise." },
+    { selector: "#board-card", title: "The harbour board", text: "The ships expected tonight, roughly when, and how far the beam must reach for each to find you. Plan your lamp around them." },
+    { selector: "#plan-blocks", title: "The lamp plan", text: "Choose a lamp level for dusk, deep night and dawn. Brighter reaches further and burns more oil; the estimate under it tells you whether the oil will last." },
+    { selector: "#task-wind", title: "The keeper's rounds", text: "Tick the rounds you want: winding the clockwork when it runs low, keeping watch, patching between rounds. Each costs energy or supplies." },
+    { selector: "#light-lamp-button", title: "Light the lamp", text: "When you are ready. In the night you can pause, speed up to 2x or 4x, change the lamp for the rest of the current part of the night (keys 1 to 4), wind the clockwork (W) and see to trouble (T)." },
+    { selector: "#station-panel", title: "The station", text: "Storms wear the tower, the lantern glass, the rail, the dock and the cistern. In the day you mend them with supplies from the supply boat, whose twelve crates you order yourself." },
+    { selector: "#letters-toggle-button", title: "Letters", text: "Passing sailors write once their boat has got safely by often enough, and some send gifts. Odd things happen too, and every one of them has a kind explanation." },
+    { selector: "#eerie-toggle-button", title: "Eerie details", text: "This switch is always here. Off keeps the letters and the cosy cast but skips the odd happenings. The Story button at bottom left hides the whole story layer." },
+    { selector: "#info-page-toggle-button", title: "About the Light", text: "How the rules work, and a few real facts about lighthouses with their sources named." },
+    { title: "You are ready", text: "Set the lamp, light it, and keep the sea company. Take your time." },
+  ];
+
+
   function onKey(e) {
     if (e.altKey || e.ctrlKey || e.metaKey || !view || view.phase !== "night") return;
     var t = e.target;
@@ -1157,6 +1202,23 @@
       if (view) renderScene(view);
     }).observe(document.documentElement, { attributes: true, attributeFilter: ["data-reduced-motion"] });
     await changelog;
+    if (window.GameTutorial) window.GameTutorial.init(window.lighthouseTutorialSteps ? window.lighthouseTutorialSteps(TUTORIAL_STEPS) : TUTORIAL_STEPS, { gameId: GAME_ID });
+    if (window.MobileHud) window.MobileHud.init([{ selector: "#hud-night", label: "Night" }, { selector: "#hud-oil", label: "Oil" }, { selector: "#hud-energy", label: "Energy" }]);
+    if (window.MobileDock) window.MobileDock.init("#night-controls", { breakpoint: 640 });
+    watchDock();
+  }
+
+  // On a phone the night controls are pinned to the bottom of the screen; keep the floating pills clear of them.
+  function watchDock() {
+    var dock = $("night-controls");
+    function measure() {
+      var h = dock.classList.contains("mobile-docked") && !dock.hidden ? dock.getBoundingClientRect().height : 0;
+      document.documentElement.style.setProperty("--dock-h", Math.round(h) + "px");
+    }
+    if (window.ResizeObserver) new ResizeObserver(measure).observe(dock);
+    window.addEventListener("resize", measure);
+    document.addEventListener("noyvj-time-change", measure);
+    measure();
   }
 
   wire();

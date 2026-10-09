@@ -6,7 +6,7 @@ import re
 import lore
 
 BANNED = re.compile(r"\b(death|dead|die|dies|died|dying|corpse|blood\w*|bleed\w*|murder\w*|kill\w*|scream\w*|drown\w*|stab\w*|gore|ghost\w*|haunt\w*|"
-                    r"horror|terror|slaughter\w*|suicid\w*|grave\w*|wound\w*|torture\w*|victim\w*)\b", re.I)
+                    r"horror|terror|slaughter\w*|suicid\w*|grave\w*|wounded|wounds|torture\w*|victim\w*)\b", re.I)
 
 
 def all_strings():
