@@ -739,6 +739,29 @@ html[data-theme="light"] .whats-new-thumb[aria-pressed="true"] { color: #2c4a9a;
   background: radial-gradient(circle at 28% 50%, #ff9f6b 0 9px, transparent 10px), radial-gradient(circle at 72% 50%, #f2c14e 0 9px, transparent 10px), #7bc96f;
 }
 
+/* Dead Reckoning: a compass ring on a navy chart ground, with the dashed
+   estimated course crossing it. Same marks as the game's own favicon. */
+.title-card-thumb--dead-reckoning {
+  --thumb-glow: #7fd1ff;
+  background: repeating-linear-gradient(0deg, rgba(127, 209, 255, 0.10) 0 1px, transparent 1px 22px), repeating-linear-gradient(90deg, rgba(127, 209, 255, 0.10) 0 1px, transparent 1px 22px), linear-gradient(160deg, #17405e 0%, #0b1c2c 100%);
+}
+.title-card-thumb--dead-reckoning::before {
+  inset: 50% auto auto 50%;
+  width: 78px;
+  height: 78px;
+  transform: translate(-50%, -50%);
+  border: 2px solid #7fd1ff;
+  border-radius: 50%;
+  background: linear-gradient(0deg, transparent 6%, #e7eff9 6% 94%, transparent 94%) center / 4px 100% no-repeat;
+}
+.title-card-thumb--dead-reckoning::after {
+  inset: 50% auto auto 50%;
+  width: 120px;
+  height: 0;
+  transform: translate(-50%, -50%) rotate(-38deg);
+  border-top: 3px dashed #ffb25e;
+}
+
 /* Trade Empire: a miniature version of the in-game trade map itself —
    route lines connecting colony nodes (the same NODE_COLOR blue used by
    game.py's render_map()) with one gold dot standing in for an automated

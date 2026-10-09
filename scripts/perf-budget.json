@@ -31,6 +31,12 @@
    "pyodide_ms": 1186,
    "total_kb": 6023.9
   },
+  "dead-reckoning": {
+   "first_interactive_ms": 4355,
+   "own_kb": 459.4,
+   "pyodide_ms": 4349,
+   "total_kb": 5899.4
+  },
   "drift": {
    "first_interactive_ms": 1409,
    "own_kb": 338.7,

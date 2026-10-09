@@ -7,7 +7,7 @@ Every older game ships a pytest fixture `game_env` in `games/<slug>/tests/confte
 `game.py` against a fake DOM (`FakeElement`s keyed by id, a fake `js` and `pyodide` module). This
 module imports that conftest under a unique package name and calls the fixture's own function, so
 the games' boot code is exactly the one their own tests use and nothing is duplicated. The
-engine-style games (Signal, Chronicle, Lexis, Heist Committee, Lighthouse, Pocket Bazaar) have no DOM: their `game.py` is a plain module with
+engine-style games (Signal, Chronicle, Lexis, Heist Committee, Lighthouse, Pocket Bazaar, Dead Reckoning) have no DOM: their `game.py` is a plain module with
 a request/response entry point, driven here with a small action grammar instead of clicks.
 
 Importing a game's tests package changes `sys.path` and `sys.modules` (every game's module is
@@ -382,6 +382,38 @@ def pocket_request(rng, last):
     return {"action": "broom", "at": rng.randrange(n)}
 
 
+def reckoning_request(rng, last):
+    """Dead Reckoning: pick a chart or a practice chart, plan legs, sail, then retry, restart or go on."""
+    view = last or {}
+    roll = rng.random()
+    chart_ids = [c["id"] for ch in view.get("picker", []) if ch.get("unlocked", True) for c in ch.get("charts", [])]
+    if roll < 0.05:
+        return {"action": rng.choice(["open", "reset", "bogus", "undo", "clear", "restart", "allow", "clear_point", "show_par", "use_par"]),
+                "value": rng.random() < 0.5}
+    if roll < 0.10:
+        return {"action": "start", "chart_id": rng.choice(chart_ids or ["x"])}
+    if roll < 0.14:
+        return {"action": "practice", "difficulty": rng.choice([1, 2, 3, 4, 5]), "seed": rng.choice([None, rng.randrange(0, 1000)])}
+    if view.get("phase") == "reveal":
+        return {"action": rng.choice(["retry", "next_chart", "retry", "restart", "show_par"])}
+    leg = rng.randrange(0, 4)
+    if roll < 0.34:
+        return {"action": "add_leg"}
+    if roll < 0.46:
+        return {"action": "set_leg", "i": leg, "heading": rng.randrange(0, 360), "speed": rng.uniform(0, 9), "hours": rng.uniform(0, 6)}
+    if roll < 0.54:
+        return {"action": "nudge", "i": leg, "field": rng.choice(["heading", "speed", "hours"]), "delta": rng.choice([-10, -1, 1, 10])}
+    if roll < 0.60:
+        return {"action": "remove_leg", "i": leg}
+    if roll < 0.66:
+        return {"action": "helper", "kind": rng.choice(["naive", "current"]), "target": rng.choice(["dest", "point"])}
+    if roll < 0.70:
+        return {"action": "point", "x": rng.uniform(0, 30), "y": rng.uniform(0, 30)}
+    if roll < 0.74:
+        return {"action": rng.choice(["take_fix", "add_wait", "set_mode"]), "landmark": rng.choice(["a", "b", "c"]), "mode": rng.choice(["plan", "watch"])}
+    return {"action": rng.choice(["sail", "sail", "anchor"])}
+
+
 @contextlib.contextmanager
 def engine_game(slug):
     """Yield (call, get_state, next_request) for an engine-style game, freshly reset."""
@@ -423,6 +455,11 @@ def engine_game(slug):
             import game as module                    # noqa: PLC0415 -- resolved through that path
             module.handle(json.dumps({"action": "reset"}))
             yield (lambda req: json.loads(module.handle(json.dumps(req)))), module.get_state, pocket_request
+        elif slug == "dead-reckoning":
+            load_conftest(slug)                     # puts games/dead-reckoning on sys.path
+            import game as module                    # noqa: PLC0415 -- resolved through that path
+            module.handle(json.dumps({"action": "reset"}))
+            yield (lambda req: json.loads(module.handle(json.dumps(req)))), module.get_state, reckoning_request
         else:
             raise KeyError(slug)
 
@@ -431,5 +468,5 @@ def engine_game(slug):
 
 FAKE_DOM_GAMES = ["aftermath", "canopy", "champ-de-mots", "continuum", "drift", "grid", "herd", "loop",
                   "sol", "thaw", "tide", "trade-empire"]
-ENGINE_GAMES = ["signal", "chronicle", "lexis", "heist-committee", "lighthouse", "pocket-bazaar"]
+ENGINE_GAMES = ["signal", "chronicle", "lexis", "heist-committee", "lighthouse", "pocket-bazaar", "dead-reckoning"]
 ALL_GAMES = sorted(FAKE_DOM_GAMES + ENGINE_GAMES)

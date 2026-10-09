@@ -48,7 +48,7 @@ def test_the_page_has_the_standard_shared_includes_in_the_usual_order():
 
 
 def test_the_favicon_is_inside_the_game_folder_and_is_code_drawn_svg():
-    assert 'href="icons/favicon-dead-reckoning.svg"' in HTML
+    assert 'href="../../icons/favicon-dead-reckoning.svg"' in HTML
     svg = (GAME_DIR / "icons" / "favicon-dead-reckoning.svg").read_text(encoding="utf-8")
     assert svg.lstrip().startswith("<svg") and "<image" not in svg
 

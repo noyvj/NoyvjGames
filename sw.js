@@ -2,7 +2,7 @@
 // the precache list; ordinary content deploys don't need it, because
 // same-origin requests are network-first (see the fetch handler below) and
 // so always pick up fresh files whenever the player is online.
-const SW_VERSION = 45;
+const SW_VERSION = 46;
 const CACHE_NAME = "site-cache-v" + SW_VERSION;
 // How long a same-origin network request may take before we give up and
 // serve the cached copy instead (a slow/flaky connection shouldn't hang).
@@ -214,6 +214,32 @@ const PRECACHE_URLS = [
   "games/pocket-bazaar/decorations.py",
   "games/pocket-bazaar/regulars.py",
   "games/pocket-bazaar/day.py",
+  "games/dead-reckoning/index.html",
+  "games/dead-reckoning/style.css",
+  "games/dead-reckoning/game.py",
+  "games/dead-reckoning/app.js",
+  "games/dead-reckoning/settings.js",
+  "games/dead-reckoning/changelog.json",
+  "games/dead-reckoning/achievements.json",
+  "games/dead-reckoning/geom.py",
+  "games/dead-reckoning/sim.py",
+  "games/dead-reckoning/chartkit.py",
+  "games/dead-reckoning/charts_open.py",
+  "games/dead-reckoning/charts_wind.py",
+  "games/dead-reckoning/charts_fixes.py",
+  "games/dead-reckoning/charts_fog.py",
+  "games/dead-reckoning/charts_tides.py",
+  "games/dead-reckoning/charts_compass.py",
+  "games/dead-reckoning/gen.py",
+  "games/dead-reckoning/info.py",
+  "games/dead-reckoning/pars.py",
+  "games/dead-reckoning/charts.py",
+  "games/dead-reckoning/render.py",
+  "games/dead-reckoning/solver.py",
+  "games/dead-reckoning/state.py",
+  "games/dead-reckoning/progress.py",
+  "games/dead-reckoning/achievements.py",
+  "games/dead-reckoning/fixes.py",
   // Audit fix 2026-09-27: Trade Empire is hub-linked and has been for a while
   // (see CLAUDE.md's Current games table) -- both were mistakenly left off
   // this list under a stale "not hub-linked yet" comment. Trade Empire has the
@@ -267,6 +293,9 @@ const PRECACHE_URLS = [
   "games/pocket-bazaar/pc.html",
   "games/pocket-bazaar/pc.css",
   "games/pocket-bazaar/pc.js",
+  "games/dead-reckoning/pc.html",
+  "games/dead-reckoning/pc.css",
+  "games/dead-reckoning/pc.js",
   "games/signal/pc.html",
   "games/signal/pc.css",
   "games/signal/pc.js",

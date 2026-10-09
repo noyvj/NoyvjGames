@@ -5032,6 +5032,381 @@
    "bytes": 14285068,
    "bytes_complete": true
   },
+  "dead-reckoning": {
+   "files": [
+    {
+     "path": "games/dead-reckoning/achievements.json",
+     "bytes": 2150,
+     "precached": true
+    },
+    {
+     "path": "games/dead-reckoning/achievements.py",
+     "bytes": 3222,
+     "precached": true
+    },
+    {
+     "path": "games/dead-reckoning/app.js",
+     "bytes": 37058,
+     "precached": true
+    },
+    {
+     "path": "games/dead-reckoning/changelog.json",
+     "bytes": 653,
+     "precached": true
+    },
+    {
+     "path": "games/dead-reckoning/chartkit.py",
+     "bytes": 2222,
+     "precached": true
+    },
+    {
+     "path": "games/dead-reckoning/charts.py",
+     "bytes": 4071,
+     "precached": true
+    },
+    {
+     "path": "games/dead-reckoning/charts_compass.py",
+     "bytes": 3943,
+     "precached": true
+    },
+    {
+     "path": "games/dead-reckoning/charts_fixes.py",
+     "bytes": 5283,
+     "precached": true
+    },
+    {
+     "path": "games/dead-reckoning/charts_fog.py",
+     "bytes": 4228,
+     "precached": true
+    },
+    {
+     "path": "games/dead-reckoning/charts_open.py",
+     "bytes": 5457,
+     "precached": true
+    },
+    {
+     "path": "games/dead-reckoning/charts_tides.py",
+     "bytes": 4112,
+     "precached": true
+    },
+    {
+     "path": "games/dead-reckoning/charts_wind.py",
+     "bytes": 5597,
+     "precached": true
+    },
+    {
+     "path": "games/dead-reckoning/fixes.py",
+     "bytes": 2320,
+     "precached": true
+    },
+    {
+     "path": "games/dead-reckoning/game.py",
+     "bytes": 27405,
+     "precached": true
+    },
+    {
+     "path": "games/dead-reckoning/gen.py",
+     "bytes": 14161,
+     "precached": true
+    },
+    {
+     "path": "games/dead-reckoning/geom.py",
+     "bytes": 4403,
+     "precached": true
+    },
+    {
+     "path": "games/dead-reckoning/icons/favicon-dead-reckoning.svg",
+     "bytes": 639,
+     "precached": false
+    },
+    {
+     "path": "games/dead-reckoning/index.html",
+     "bytes": 16839,
+     "precached": true
+    },
+    {
+     "path": "games/dead-reckoning/info.py",
+     "bytes": 5019,
+     "precached": true
+    },
+    {
+     "path": "games/dead-reckoning/pars.py",
+     "bytes": 4262,
+     "precached": true
+    },
+    {
+     "path": "games/dead-reckoning/pc-config.json",
+     "bytes": 1875,
+     "precached": false
+    },
+    {
+     "path": "games/dead-reckoning/pc.css",
+     "bytes": 3243,
+     "precached": true
+    },
+    {
+     "path": "games/dead-reckoning/pc.html",
+     "bytes": 18866,
+     "precached": true
+    },
+    {
+     "path": "games/dead-reckoning/pc.js",
+     "bytes": 2466,
+     "precached": true
+    },
+    {
+     "path": "games/dead-reckoning/progress.py",
+     "bytes": 3304,
+     "precached": true
+    },
+    {
+     "path": "games/dead-reckoning/render.py",
+     "bytes": 19693,
+     "precached": true
+    },
+    {
+     "path": "games/dead-reckoning/settings.js",
+     "bytes": 6013,
+     "precached": true
+    },
+    {
+     "path": "games/dead-reckoning/sim.py",
+     "bytes": 19903,
+     "precached": true
+    },
+    {
+     "path": "games/dead-reckoning/solver.py",
+     "bytes": 5200,
+     "precached": true
+    },
+    {
+     "path": "games/dead-reckoning/state.py",
+     "bytes": 9563,
+     "precached": true
+    },
+    {
+     "path": "games/dead-reckoning/style.css",
+     "bytes": 18327,
+     "precached": true
+    },
+    {
+     "path": "games/dead-reckoning/tools/build_pc.py",
+     "bytes": 703,
+     "precached": false
+    },
+    {
+     "path": "games/dead-reckoning/tools/check_charts.py",
+     "bytes": 2719,
+     "precached": false
+    },
+    {
+     "path": "games/dead-reckoning/tools/make_golden.py",
+     "bytes": 472,
+     "precached": false
+    },
+    {
+     "path": "games/dead-reckoning/tools/textharness.py",
+     "bytes": 1275,
+     "precached": false
+    }
+   ],
+   "shared": [
+    {
+     "path": "ad-bar.css",
+     "bytes": 1932,
+     "precached": true
+    },
+    {
+     "path": "icons/favicon-dead-reckoning.svg",
+     "bytes": 639,
+     "precached": false
+    },
+    {
+     "path": "manifest.json",
+     "bytes": 338,
+     "precached": true
+    },
+    {
+     "path": "shared/a11y.css",
+     "bytes": 5058,
+     "precached": true
+    },
+    {
+     "path": "shared/achievement-share.js",
+     "bytes": 12575,
+     "precached": true
+    },
+    {
+     "path": "shared/confirm-dialog.js",
+     "bytes": 9825,
+     "precached": false
+    },
+    {
+     "path": "shared/copy-result.js",
+     "bytes": 9681,
+     "precached": true
+    },
+    {
+     "path": "shared/debug-overlay.js",
+     "bytes": 5628,
+     "precached": true
+    },
+    {
+     "path": "shared/error-boundary.js",
+     "bytes": 9714,
+     "precached": true
+    },
+    {
+     "path": "shared/hub-auth.js",
+     "bytes": 1356,
+     "precached": true
+    },
+    {
+     "path": "shared/info-footer.js",
+     "bytes": 6317,
+     "precached": true
+    },
+    {
+     "path": "shared/info-page.css",
+     "bytes": 1092,
+     "precached": true
+    },
+    {
+     "path": "shared/keyboard-shortcuts.js",
+     "bytes": 7262,
+     "precached": false
+    },
+    {
+     "path": "shared/last-played.js",
+     "bytes": 2153,
+     "precached": false
+    },
+    {
+     "path": "shared/layout-pref.js",
+     "bytes": 2407,
+     "precached": true
+    },
+    {
+     "path": "shared/lite-mode.css",
+     "bytes": 3644,
+     "precached": true
+    },
+    {
+     "path": "shared/lite-mode.js",
+     "bytes": 8153,
+     "precached": true
+    },
+    {
+     "path": "shared/mobile-dock.js",
+     "bytes": 3392,
+     "precached": false
+    },
+    {
+     "path": "shared/mobile-hud.js",
+     "bytes": 4491,
+     "precached": false
+    },
+    {
+     "path": "shared/opening-screen.js",
+     "bytes": 27851,
+     "precached": false
+    },
+    {
+     "path": "shared/pc-shell.css",
+     "bytes": 7277,
+     "precached": true
+    },
+    {
+     "path": "shared/pc-shell.js",
+     "bytes": 23081,
+     "precached": true
+    },
+    {
+     "path": "shared/perf-mark.js",
+     "bytes": 4209,
+     "precached": true
+    },
+    {
+     "path": "shared/profile.js",
+     "bytes": 9880,
+     "precached": true
+    },
+    {
+     "path": "shared/report-problem.js",
+     "bytes": 22021,
+     "precached": true
+    },
+    {
+     "path": "shared/save-widget.js",
+     "bytes": 72027,
+     "precached": true
+    },
+    {
+     "path": "shared/site-settings.js",
+     "bytes": 5720,
+     "precached": false
+    },
+    {
+     "path": "shared/story-toggle.js",
+     "bytes": 3247,
+     "precached": false
+    },
+    {
+     "path": "shared/theme-light-games.css",
+     "bytes": 7674,
+     "precached": false
+    },
+    {
+     "path": "shared/theme.js",
+     "bytes": 3651,
+     "precached": false
+    },
+    {
+     "path": "shared/touch-targets.css",
+     "bytes": 3271,
+     "precached": true
+    },
+    {
+     "path": "shared/tutorial.js",
+     "bytes": 17014,
+     "precached": false
+    },
+    {
+     "path": "shared/whats-new-banner.js",
+     "bytes": 8822,
+     "precached": false
+    }
+   ],
+   "cdn": [
+    {
+     "url": "https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.js",
+     "bytes": 14761,
+     "kind": "pyodide"
+    },
+    {
+     "url": "https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.asm.js",
+     "bytes": 1229099,
+     "kind": "pyodide"
+    },
+    {
+     "url": "https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.asm.wasm",
+     "bytes": 10088051,
+     "kind": "pyodide"
+    },
+    {
+     "url": "https://cdn.jsdelivr.net/pyodide/v0.26.4/full/python_stdlib.zip",
+     "bytes": 2341872,
+     "kind": "pyodide"
+    },
+    {
+     "url": "https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide-lock.json",
+     "bytes": 106335,
+     "kind": "pyodide"
+    }
+   ],
+   "bytes": 14358186,
+   "bytes_complete": true
+  },
   "trade-empire": {
    "files": [
     {

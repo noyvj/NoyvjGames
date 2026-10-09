@@ -36,6 +36,15 @@
         "Desktop windows: draggable, remembered position, click to front, double-click to centre"
       ]
     },
+    "dead-reckoning": {
+      "commit_count": 9,
+      "last_updated": "2026-10-09",
+      "recent_commits": [
+        "Milestone 10: Achievements and own-folder wrap-up",
+        "Milestone 9: Standard kit",
+        "Milestone 8: Practice generator"
+      ]
+    },
     "drift": {
       "commit_count": 85,
       "last_updated": "2026-10-07",

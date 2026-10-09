@@ -60,6 +60,7 @@ THEMES = {
     "heist-committee": (["#3a2a52", "#1d1530"], "skyline", "#ffc15e", "#2a1f3d", ("hat",)),
     "lighthouse": (["#143a52", "#0a1f30"], "waves", "#ffcf6b", "#143a52", ("lighthouse",)),
     "pocket-bazaar": (["#3a2f4a", "#2a2233"], "hills:#1a1420", "#e8a33d", "#2a2233", ("stall",)),
+    "dead-reckoning": (["#17405e", "#07131f"], "gridlines", "#7fd1ff", "#10283d", ("compass",)),
     "trade-empire": (["#1a1f3a", "#0d0f1e"], "network", "#e0c34c", "#171b30", ("letter", "$", "#e0c34c")),
 }
 FALLBACK_THEME = (["#1a1f3a", "#0d0f1e"], "stars", "#8fb0e8", "#2c4a7c", ("letter", "?", "#ffffff"))
@@ -315,6 +316,17 @@ def draw_glyph(draw, glyph, scale, tile_color):
         draw.rounded_rectangle((12 * scale, 38 * scale, 52 * scale, 52 * scale), radius=3 * scale, fill=rgb("#7bc96f"), outline=rgb("#1a1420"), width=max(1, int(2 * scale)))
         for cx, col in ((24, "#ff9f6b"), (40, "#f2c14e")):
             draw.ellipse(((cx - 4) * scale, 41 * scale, (cx + 4) * scale, 49 * scale), fill=rgb(col))
+    elif kind == "compass":
+        cyan, ice, orange = rgb("#7fd1ff"), rgb("#e7eff9"), rgb("#ffb25e")
+        draw.ellipse((10 * scale, 10 * scale, 54 * scale, 54 * scale), outline=cyan, width=max(1, int(2.5 * scale)))
+        draw.polygon(S([(32, 8), (36, 32), (32, 56), (28, 32)]), fill=ice)
+        draw.polygon(S([(10, 32), (32, 28.5), (54, 32), (32, 35.5)]), outline=cyan, width=max(1, int(2 * scale)))
+        stroke(draw, S(bezier((16, 46), (24, 43), (36, 36), (40, 22)) + [(47, 18)]), 3.5 * scale, orange)
+        for k in range(4):
+            t0, t1 = k / 4.5, (k + 0.55) / 4.5
+            a = (18 + 27 * t0, 49 - 25 * t0)
+            b = (18 + 27 * t1, 49 - 25 * t1)
+            stroke(draw, S([a, b]), 2.5 * scale, cyan)
     elif kind == "lexis":
         blue = rgb("#9ad0ff")
         for a, b in (((16, 22), (26, 22)), ((34, 22), (36, 22)), ((42, 22), (48, 22)),

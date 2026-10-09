@@ -21,6 +21,7 @@
     "heist-committee": "Heist Committee",
     "lighthouse": "Lighthouse",
     "pocket-bazaar": "Pocket Bazaar",
+    "dead-reckoning": "Dead Reckoning",
   };
   let games = [];                       // [{slug, name, href}] from the lobby page
   let ownData = null;                   // the owner's own profile data, when viewing it

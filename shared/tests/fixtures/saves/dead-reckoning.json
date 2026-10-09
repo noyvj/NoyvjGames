@@ -1,0 +1,63 @@
+{
+ "achievements_earned": [
+  "aground"
+ ],
+ "meta": {
+  "charts": {
+   "open-02": {
+    "attempts": 1
+   },
+   "open-03": {
+    "attempts": 1
+   },
+   "open-05": {
+    "attempts": 2,
+    "par_seen": true
+   }
+  },
+  "flags": [
+   "aground"
+  ],
+  "practice_seeds_played": 2
+ },
+ "run": {
+  "chart_id": "practice-4-9kzf",
+  "helpers": [
+   "naive"
+  ],
+  "legs": [
+   {
+    "heading": 54,
+    "hours": 3.5,
+    "speed": 6.0
+   },
+   {
+    "heading": 178,
+    "hours": 3.5,
+    "speed": 4.0
+   },
+   {
+    "heading": 356,
+    "hours": 1.0,
+    "speed": 6.0
+   },
+   {
+    "heading": 2,
+    "hours": 1.0,
+    "speed": 6.0
+   },
+   {
+    "heading": 24,
+    "hours": 1.0,
+    "speed": 6.0
+   },
+   {
+    "heading": 149,
+    "hours": 1.0,
+    "speed": 6.0
+   }
+  ],
+  "seed": 447099
+ },
+ "schema": 1
+}

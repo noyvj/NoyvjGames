@@ -1,0 +1,39 @@
+{
+  "@context": "https://schema.org",
+  "@type": [
+    "VideoGame",
+    "WebApplication"
+  ],
+  "name": "Dead Reckoning",
+  "description": "You are a ship's navigator with only speed, heading and time. Plot a course across a chart with currents, wind and hazards, sail it, then see how far your estimate drifted from the truth. A campaign of charts plus endless practice. Working title.",
+  "url": "https://noyvj.github.io/NoyvjGames/games/dead-reckoning/",
+  "image": "https://noyvj.github.io/NoyvjGames/share/dead-reckoning.png",
+  "applicationCategory": "GameApplication",
+  "operatingSystem": "Any modern web browser",
+  "browserRequirements": "Requires JavaScript and WebAssembly",
+  "gamePlatform": "Web browser",
+  "playMode": "SinglePlayer",
+  "inLanguage": "en",
+  "isAccessibleForFree": true,
+  "offers": {
+    "@type": "Offer",
+    "price": "0",
+    "priceCurrency": "USD"
+  },
+  "author": {
+    "@type": "Person",
+    "name": "Noyvj",
+    "url": "https://github.com/noyvj"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "NoyvjGames",
+    "url": "https://noyvj.github.io/NoyvjGames/"
+  },
+  "genre": [
+    "Short session"
+  ],
+  "dateCreated": "2026-10-08",
+  "dateModified": "2026-10-09",
+  "timeRequired": "PT20M"
+}
