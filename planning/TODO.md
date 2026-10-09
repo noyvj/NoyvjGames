@@ -1,6 +1,6 @@
 # Site-Wide TODO (round 3)
 
-**Progress: 567/1153 items checked off (49.2%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land.
+**Progress: 574/1153 items checked off (49.8%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land.
 
 Built from your answers in `planning/IMPROVEMENT-IDEAS-ROUND-3.md` (Part 4). Every Round 3 section is now answered (2026-10-07 below the Warframe section); earlier this list held only: **GB** (Canopy gamified), **M** (new games), **N** (seasonal events), **O** (Trade Empire and Continuum replayability), **P/Q/S/T** (Signal, Undersleep, Overclock, Last Line open questions), **X** (Warframe tracker) and **R** (returning later). GC-GI, A-L, U, Z and Y are unanswered and wait for you. The previous list is archived at `planning/todo-archive/260914_260927.md`; anything from it that was moved here is marked "moved" there.
 
@@ -82,13 +82,13 @@ Rules carried over: "yes" items are here, "later" items are parked in `planning/
 **Heist Committee** (`planning/heist-committee-plan.md`; code in a new `games/heist-committee/`; commit + tag each milestone as `heist-committee-milestone-0N`; milestones 1-4 ship a complete, playable game)
 - [x] M-1b-1: Milestone 1, Engine core: `engine.py` data loaders, `resolve_beat`, tags/chain/counters, seeded RNG, text-only harness that runs one heist; tests for determinism and the chain-depth cap.
 - [x] M-1b-2: Milestone 2, Plan UI: recruit cards, timeline grid, action tray, tap-to-place plus drag, live validation panel, pair-rule previews (prototype the touch interaction here, before content).
-- [ ] M-1b-3: Milestone 3, Playback + payout: beat-by-beat playback, log lines, payout screen, chain diagram, write-up generator.
-- [ ] M-1b-4: Milestone 4, Launch content: 3 targets, 12 crew, 20 complications, 3 gear pieces, contract board and scouting. First complete, playable game.
-- [ ] M-1b-5: Milestone 5, Career and meta: cash, reputation, relationships, unlocks, rotating pool by career seed, more targets and crew (5 / 20 / 60).
-- [ ] M-1b-6: Milestone 6, Standard kit: save widget with mid-playback resume, `settings.js`, confirm dialogs, tutorial, mobile dock/HUD, info panel, changelog, feedback.
-- [ ] M-1b-7: Milestone 7, Achievements + story: 14 achievements, panel and toast, story toggle wiring, crew banter, career thread.
-- [ ] M-1b-8: Milestone 8, Balance and bots: bot playtests, tune bands, second complication pass, colorblind and 375px audit.
-- [ ] M-1b-9: Milestone 9, Own-folder wrap-up: favicon `icons/favicon-heist-committee.svg`, Desktop boot (`pc-config.json`, its own `pc.html` via a scratch `build("heist-committee", cfg)` call), the game's CLAUDE.md milestone table, dev logs, tag. Everything inside the game folder, so no waiting.
+- [x] M-1b-3: Milestone 3, Playback + payout: beat-by-beat playback, log lines, payout screen, chain diagram, write-up generator.
+- [x] M-1b-4: Milestone 4, Launch content: 3 targets, 12 crew, 20 complications, 3 gear pieces, contract board and scouting. First complete, playable game.
+- [x] M-1b-5: Milestone 5, Career and meta: cash, reputation, relationships, unlocks, rotating pool by career seed, more targets and crew (5 / 20 / 60).
+- [x] M-1b-6: Milestone 6, Standard kit: save widget with mid-playback resume, `settings.js`, confirm dialogs, tutorial, mobile dock/HUD, info panel, changelog, feedback.
+- [x] M-1b-7: Milestone 7, Achievements + story: 14 achievements, panel and toast, story toggle wiring, crew banter, career thread.
+- [x] M-1b-8: Milestone 8, Balance and bots: bot playtests, tune bands, second complication pass, colorblind and 375px audit.
+- [x] M-1b-9: Milestone 9, Own-folder wrap-up: favicon `icons/favicon-heist-committee.svg`, Desktop boot (`pc-config.json`, its own `pc.html` via a scratch `build("heist-committee", cfg)` call), the game's CLAUDE.md milestone table, dev logs, tag. Everything inside the game folder, so no waiting.
 - [ ] M-1b-10: Milestone 10, Daily Job (optional): date-seeded job, archive, opt-in leaderboard board. Only if FOR-YOU He2 says to build it.
 - [ ] M-1b-11: Milestone 11, BLOCKED ON NOY2 (hub registration): the shared registration that must wait until Noy2 releases the hub and shared files: root `index.html` title card and tags, `style.css` thumbnail, `script.js` entries, `sw.js` precache (own game files plus `pc.*`) with a `SW_VERSION` bump, `offline-manifest.json`, `game-manifest.json` / `game-added.json` / `game-last-updated.json` / `game-roadmap-data.json` (rerun the scripts), `game-sessions.json`, `achievements.html`, `leaderboards.html` if it has a board, `admin.html`, `shared/site-settings.js`, `sitemap.xml`, `share/meta` and `share/jsonld` cards (`scripts/generate-share-cards.py`), `scripts/perf-budget.json`, the hub regression and smoke tests (`shared/tests/smoke_support.py`, `test_smoke_everything.py`), the root `CLAUDE.md` games table row, and a check that the game works with Noy2's finished save widget and snapshots. Then run the shared test suite and `scripts/generate-pc-pages.py --check`.
 
