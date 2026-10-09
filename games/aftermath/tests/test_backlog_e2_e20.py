@@ -159,12 +159,12 @@ def test_toggle_past_runs_shows_panel_with_run_cards(game_env):
         game_env.resolve_event()
     game_env.toggle_past_runs()
     assert not game_env.elements["past-runs-panel"].hidden
-    assert len(game_env.elements["past-runs-panel"].children) == 1
+    assert len(game_env.elements["past-runs-list"].children) == 1
 
 
 def test_past_runs_panel_shows_placeholder_before_any_completion(game_env):
     game_env.toggle_past_runs()
-    assert len(game_env.elements["past-runs-panel"].children) == 1  # the "no history yet" message
+    assert len(game_env.elements["past-runs-list"].children) == 1  # the "no history yet" message
 
 
 # ---------------------------------------------------------------------------

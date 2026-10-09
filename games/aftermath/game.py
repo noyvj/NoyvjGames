@@ -634,6 +634,8 @@ def save_run_log_history(history):
 # browser profile with no such key just gets the empty defaults.
 META_STORAGE_KEY = "aftermath_meta_v1"
 SETTLEMENT_NAME_MAX = 30
+RUN_NOTE_MAX_CHARS = 140
+RUN_NOTES_MAX = 500
 
 
 def _default_meta():
@@ -642,6 +644,10 @@ def _default_meta():
         "pinned_skills": [],
         "seen_negative_tip": False,
         "seen_harsh_callout": False,
+        # E-22 / E-21: a short note per completed run (keyed by run number as a string) and the
+        # run numbers the player has archived from the Past Runs list.
+        "run_notes": {},
+        "archived_runs": [],
     }
 
 
@@ -657,6 +663,14 @@ def _sanitize_meta(data):
         meta["pinned_skills"] = [p for p in pinned if isinstance(p, str)]
     meta["seen_negative_tip"] = bool(data.get("seen_negative_tip", False))
     meta["seen_harsh_callout"] = bool(data.get("seen_harsh_callout", False))
+    notes = data.get("run_notes", {})
+    if isinstance(notes, dict):
+        for key, value in list(notes.items())[:RUN_NOTES_MAX]:
+            if isinstance(value, str) and value.strip() and str(key).isdigit():
+                meta["run_notes"][str(key)] = value.strip()[:RUN_NOTE_MAX_CHARS]
+    archived = data.get("archived_runs", [])
+    if isinstance(archived, list):
+        meta["archived_runs"] = sorted({a for a in archived if isinstance(a, int) and not isinstance(a, bool) and a > 0})
     return meta
 
 
@@ -1786,6 +1800,237 @@ def new_record_run_indexes():
     return records
 
 
+# ---- E-22 / E-21 / E-20: notes, sort, filter, archive and compare in Past Runs ----
+# All view state lives in memory (it is a way of looking at the list, not progress).
+# The notes and the archive list live in `meta`, so they ride the progress export.
+PAST_RUN_SORTS = ("newest", "oldest", "score_high", "score_low", "mode")
+past_runs_sort = "newest"
+past_runs_filter = "all"  # "all", "standard", "extended" or "scenario:<key>"
+past_runs_show_archived = False
+past_runs_compare = []  # up to two run numbers, oldest pick first
+
+
+def run_mode(entry):
+    """What kind of run a logged run was, worked out from its event log (the log has
+    no scenario field): the scenario whose schedule it matches (or None) and whether it
+    is an Extended Run (the schedule twice over)."""
+    types = [e.get("type") for e in (entry.get("event_log") or []) if isinstance(e, dict)]
+    length = len(SCENARIOS[DEFAULT_SCENARIO]["schedule"])
+    extended = len(types) == 2 * length and types[:length] == types[length:]
+    base = types[:length] if extended else types
+    scenario = next((key for key, spec in SCENARIOS.items() if spec["schedule"] == base), None)
+    return {"scenario": scenario, "extended": extended}
+
+
+def run_mode_label(entry):
+    mode = run_mode(entry)
+    label = SCENARIOS[mode["scenario"]]["label"] if mode["scenario"] else "Custom schedule"
+    return label + (", extended" if mode["extended"] else "")
+
+
+def run_note(run_number):
+    return meta["run_notes"].get(str(run_number), "")
+
+
+def set_run_note(run_number, text):
+    """E-22: keeps a short note for a completed run (cleared by an empty string)."""
+    text = str(text or "").strip()[:RUN_NOTE_MAX_CHARS]
+    if not text:
+        meta["run_notes"].pop(str(run_number), None)
+    elif str(run_number) in meta["run_notes"] or len(meta["run_notes"]) < RUN_NOTES_MAX:
+        meta["run_notes"][str(run_number)] = text
+    save_meta()
+    return text
+
+
+def set_run_archived(run_number, archived):
+    """E-21: archiving only hides a run from the default list; its score, its knowledge
+    points and every stat built from it are untouched."""
+    current = set(meta["archived_runs"])
+    if archived:
+        current.add(run_number)
+    else:
+        current.discard(run_number)
+    meta["archived_runs"] = sorted(current)
+    save_meta()
+
+
+def past_runs_view(history=None):
+    """The run log entries that pass the current filter, in the current sort order
+    (each as (position in run_log_history, entry))."""
+    history = run_log_history if history is None else history
+    archived = set(meta["archived_runs"])
+    rows = []
+    for index, entry in enumerate(history):
+        if not isinstance(entry, dict) or "run_number" not in entry:
+            continue
+        if entry["run_number"] in archived and not past_runs_show_archived:
+            continue
+        mode = run_mode(entry)
+        if past_runs_filter == "extended" and not mode["extended"]:
+            continue
+        if past_runs_filter == "standard" and mode["extended"]:
+            continue
+        if past_runs_filter.startswith("scenario:") and mode["scenario"] != past_runs_filter.split(":", 1)[1]:
+            continue
+        rows.append((index, entry))
+    if past_runs_sort == "oldest":
+        rows.sort(key=lambda r: r[0])
+    elif past_runs_sort == "score_high":
+        rows.sort(key=lambda r: (-r[1].get("score", 0), -r[0]))
+    elif past_runs_sort == "score_low":
+        rows.sort(key=lambda r: (r[1].get("score", 0), -r[0]))
+    elif past_runs_sort == "mode":
+        rows.sort(key=lambda r: (run_mode_label(r[1]), -r[0]))
+    else:
+        rows.sort(key=lambda r: -r[0])
+    return rows
+
+
+def _run_by_number(run_number):
+    for entry in run_log_history:
+        if isinstance(entry, dict) and entry.get("run_number") == run_number:
+            return entry
+    return None
+
+
+def compare_runs_rows(entry_a, entry_b):
+    """E-20: the two runs side by side: a header row, a stats row each for score, damage,
+    resilience, growth and knowledge (with the difference), then the events in order with
+    the damage difference on the one that was harsher."""
+    rows = []
+    for label, key, fmt in (
+        ("Score", "score", "{:.0f}"),
+        ("Damage taken", "damage_taken", "{:.0f}"),
+        ("Resilience", "resilience_capacity", "{:.0f}"),
+        ("Growth", "growth_capacity", "{:.0f}"),
+        ("Knowledge earned", "knowledge_earned", "{:.0f}"),
+    ):
+        a, b = entry_a.get(key, 0), entry_b.get(key, 0)
+        diff = b - a
+        sign = "+" if diff > 0 else "\u2212"
+        change = f" ({sign}{fmt.format(abs(diff))})" if abs(diff) >= 0.5 else " (same)"
+        rows.append({
+            "kind": "stat",
+            "left": f"{label}: {fmt.format(a)}",
+            "right": f"{label}: {fmt.format(b)}{change}",
+            "different": abs(diff) >= 0.5,
+        })
+    log_a, log_b = entry_a.get("event_log") or [], entry_b.get("event_log") or []
+    for position in range(max(len(log_a), len(log_b))):
+        ea = log_a[position] if position < len(log_a) else None
+        eb = log_b[position] if position < len(log_b) else None
+
+        def describe(event, other):
+            if event is None:
+                return "(no event)"
+            text = f"{position + 1}. {EVENT_ICON[event['type']]} {EVENT_LABEL[event['type']]}: {event['damage']:.0f} damage"
+            if other is not None and other["type"] == event["type"] and abs(event["damage"] - other["damage"]) >= 0.5:
+                text += " (harsher)" if event["damage"] > other["damage"] else " (gentler)"
+            elif other is not None and other["type"] != event["type"]:
+                text += " (different event)"
+            return text
+
+        rows.append({
+            "kind": "event",
+            "left": describe(ea, eb),
+            "right": describe(eb, ea),
+            "different": ea is None or eb is None or ea["type"] != eb["type"] or abs(ea["damage"] - eb["damage"]) >= 0.5,
+        })
+    return rows
+
+
+def compare_summary_text(entry_a, entry_b):
+    diff = entry_b.get("score", 0) - entry_a.get("score", 0)
+    if abs(diff) < 0.5:
+        return f"Run #{entry_a['run_number']} and Run #{entry_b['run_number']} finished with the same score."
+    better, worse = (entry_b, entry_a) if diff > 0 else (entry_a, entry_b)
+    return f"Run #{better['run_number']} scored {abs(diff):.0f} more than Run #{worse['run_number']}."
+
+
+def render_past_run_compare():
+    box = document.getElementById("past-runs-compare")
+    if box is None:
+        return
+    box.innerHTML = ""
+    entries = [_run_by_number(n) for n in past_runs_compare]
+    entries = [e for e in entries if e is not None]
+    if len(entries) < 2:
+        box.hidden = True
+        return
+    box.hidden = False
+    entry_a, entry_b = entries[0], entries[1]
+    heading = document.createElement("p")
+    heading.className = "past-run-title"
+    heading.innerText = "Side by side: " + compare_summary_text(entry_a, entry_b)
+    box.appendChild(heading)
+    grid = document.createElement("div")
+    grid.className = "compare-grid"
+    for entry in (entry_a, entry_b):
+        head = document.createElement("p")
+        head.className = "compare-head"
+        head.innerText = f"Run #{entry['run_number']} ({run_mode_label(entry)})"
+        grid.appendChild(head)
+    for row in compare_runs_rows(entry_a, entry_b):
+        for side in ("left", "right"):
+            cell = document.createElement("p")
+            cell.className = f"compare-cell compare-cell--{row['kind']}" + (" compare-cell--different" if row["different"] else "")
+            cell.innerText = row[side]
+            grid.appendChild(cell)
+    box.appendChild(grid)
+
+
+def _past_run_card(index, entry, is_record):
+    run_number = entry["run_number"]
+    card = document.createElement("div")
+    card.className = "past-run-card past-run-card--record" if is_record else "past-run-card"
+    if run_number in meta["archived_runs"]:
+        card.className += " past-run-card--archived"
+    title = document.createElement("p")
+    title.className = "past-run-title"
+    title.innerText = (
+        f"{'🏆 ' if is_record else ''}Run #{run_number} — score {entry['score']:.0f} "
+        f"(resilience {entry['resilience_capacity']}, growth {entry['growth_capacity']}, "
+        f"+{entry['knowledge_earned']} knowledge)"
+        f" · {run_mode_label(entry)}" + (" · archived" if run_number in meta["archived_runs"] else "")
+    )
+    card.appendChild(title)
+    _render_event_breakdown_lines(card, entry["event_log"], show_category=True)
+    note = document.createElement("input")
+    note.className = "past-run-note-input"
+    note.setAttribute("type", "text")
+    note.setAttribute("maxlength", str(RUN_NOTE_MAX_CHARS))
+    note.setAttribute("placeholder", "Add a note about this run")
+    note.setAttribute("aria-label", f"Note for run {run_number}")
+    note.setAttribute("data-action", "note")
+    note.setAttribute("data-run", str(run_number))
+    note.value = run_note(run_number)
+    card.appendChild(note)
+    actions = document.createElement("div")
+    actions.className = "past-run-actions"
+    compare_label = document.createElement("label")
+    compare_label.className = "past-run-compare-label"
+    compare_box = document.createElement("input")
+    compare_box.setAttribute("type", "checkbox")
+    compare_box.setAttribute("data-action", "compare")
+    compare_box.setAttribute("data-run", str(run_number))
+    compare_box.checked = run_number in past_runs_compare
+    compare_label.appendChild(compare_box)
+    compare_text = document.createElement("span")
+    compare_text.innerText = " Compare"
+    compare_label.appendChild(compare_text)
+    actions.appendChild(compare_label)
+    archive_button = document.createElement("button")
+    archive_button.className = "secondary past-run-archive-button"
+    archive_button.setAttribute("type", "button")
+    archive_button.setAttribute("data-action", "archive")
+    archive_button.setAttribute("data-run", str(run_number))
+    archive_button.innerText = "Unarchive" if run_number in meta["archived_runs"] else "Archive"
+    actions.appendChild(archive_button)
+    card.appendChild(actions)
+    return card
+
+
 def render_past_runs_panel():
     toggle = document.getElementById("past-runs-toggle-button")
     panel = document.getElementById("past-runs-panel")
@@ -1793,30 +2038,78 @@ def render_past_runs_panel():
     panel.hidden = not past_runs_open
     if not past_runs_open:
         return
-
-    panel.innerHTML = ""
+    listing = document.getElementById("past-runs-list")
+    controls = document.getElementById("past-runs-controls")
+    if listing is None:
+        return  # a cached older page without the list container
+    listing.innerHTML = ""
+    if controls is not None:
+        controls.hidden = not run_log_history
+    render_past_run_compare()
     if not run_log_history:
         empty = document.createElement("p")
         empty.innerText = "No detailed run history yet — complete a run to start building one."
-        panel.appendChild(empty)
+        listing.appendChild(empty)
         return
 
     record_indexes = new_record_run_indexes()
-    for index in range(len(run_log_history) - 1, -1, -1):
-        entry = run_log_history[index]
-        card = document.createElement("div")
-        is_record = index in record_indexes
-        card.className = "past-run-card past-run-card--record" if is_record else "past-run-card"
-        title = document.createElement("p")
-        title.className = "past-run-title"
-        title.innerText = (
-            f"{'🏆 ' if is_record else ''}Run #{entry['run_number']} — score {entry['score']:.0f} "
-            f"(resilience {entry['resilience_capacity']}, growth {entry['growth_capacity']}, "
-            f"+{entry['knowledge_earned']} knowledge)"
+    rows = past_runs_view()
+    status = document.getElementById("past-runs-status")
+    if status is not None:
+        hidden_count = len(run_log_history) - len(rows)
+        status.innerText = f"Showing {len(rows)} of {len(run_log_history)} runs." + (
+            " Archived and filtered-out runs keep their score and knowledge." if hidden_count else ""
         )
-        card.appendChild(title)
-        _render_event_breakdown_lines(card, entry["event_log"], show_category=True)
-        panel.appendChild(card)
+    if not rows:
+        empty = document.createElement("p")
+        empty.innerText = "No runs match this view. Change the filter or show archived runs."
+        listing.appendChild(empty)
+        return
+    for index, entry in rows:
+        listing.appendChild(_past_run_card(index, entry, index in record_indexes))
+
+
+def on_past_runs_event(event=None):
+    """One delegated handler for everything inside the Past Runs list: the note boxes, the
+    Compare ticks and the Archive buttons (cards are rebuilt on every render, so a handler
+    per card would pile up)."""
+    global past_runs_compare
+    target = getattr(event, "target", None)
+    if target is None:
+        return
+    action = target.getAttribute("data-action")
+    raw_run = target.getAttribute("data-run")
+    if not action or raw_run is None or not str(raw_run).isdigit():
+        return
+    run_number = int(raw_run)
+    if action == "note":
+        set_run_note(run_number, target.value)
+    elif action == "archive":
+        set_run_archived(run_number, run_number not in meta["archived_runs"])
+        render()
+    elif action == "compare":
+        if target.checked:
+            if run_number not in past_runs_compare:
+                past_runs_compare = (past_runs_compare + [run_number])[-2:]
+        else:
+            past_runs_compare = [n for n in past_runs_compare if n != run_number]
+        render()
+
+
+def on_past_runs_controls_change(event=None):
+    global past_runs_sort, past_runs_filter, past_runs_show_archived
+    sort_el = document.getElementById("past-runs-sort")
+    filter_el = document.getElementById("past-runs-filter")
+    archived_el = document.getElementById("past-runs-archived")
+    if sort_el is not None and sort_el.value in PAST_RUN_SORTS:
+        past_runs_sort = sort_el.value
+    if filter_el is not None:
+        value = filter_el.value
+        if value in ("all", "standard", "extended") or (value.startswith("scenario:") and value.split(":", 1)[1] in SCENARIOS):
+            past_runs_filter = value
+    if archived_el is not None:
+        past_runs_show_archived = bool(archived_el.checked)
+    render()
 
 
 # ===========================================================================
@@ -3807,6 +4100,15 @@ def setup():
     document.getElementById("changelog-toggle-button").addEventListener(
         "click", create_proxy(on_toggle_changelog)
     )
+    # E-22 / E-21 / E-20: one delegated handler for the whole Past Runs list, plus the controls.
+    past_runs_list = document.getElementById("past-runs-list")
+    if past_runs_list is not None:
+        for event_name in ("click", "change"):
+            past_runs_list.addEventListener(event_name, create_proxy(on_past_runs_event))
+    for control_id in ("past-runs-sort", "past-runs-filter", "past-runs-archived"):
+        control = document.getElementById(control_id)
+        if control is not None:
+            control.addEventListener("change", create_proxy(on_past_runs_controls_change))
     document.getElementById("reset-skill-tree-button").addEventListener(
         "click", create_proxy(on_reset_skill_tree)
     )

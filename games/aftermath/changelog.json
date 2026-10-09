@@ -1,6 +1,10 @@
 [
   {
     "date": "2026-10-09",
+    "entry": "Review Past Runs grew up: you can sort the list (newest, oldest, best or worst score, by scenario), show only standard, extended or one scenario's runs, archive runs you no longer want in the way (their score and knowledge still count), write a short note on any run (kept with your progress and included in the backup code), and tick two runs to see them side by side with the differences marked, including the damage of each event."
+  },
+  {
+    "date": "2026-10-09",
     "entry": "New setting: Ask before facing an event with unspent resources (off by default, in Settings and included in Reset to Default). When it is on, Face Next Event first asks whether you want to keep, say, 80 resources unspent, and tells you how much resilience or growth they could still buy; it only asks, it never changes a number, and it stays quiet when you cannot afford anything or the run is over."
   },
   {

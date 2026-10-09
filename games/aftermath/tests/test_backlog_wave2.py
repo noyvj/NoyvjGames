@@ -212,7 +212,7 @@ def test_past_runs_panel_marks_record_card_and_shows_category_icons(game_env):
         {"run_number": 2, "score": 50, "resilience_capacity": 0, "growth_capacity": 0, "knowledge_earned": 2, "event_log": log},
     ]
     game_env.toggle_past_runs()
-    cards = game_env.elements["past-runs-panel"].children
+    cards = game_env.elements["past-runs-list"].children
     assert cards[0].className == "past-run-card past-run-card--record"
     assert cards[1].className == "past-run-card"
     lines = [c.innerText for c in cards[0].children[1:]]

@@ -60,6 +60,14 @@ ELEMENT_IDS = [
     # E7: reviewing a specific past run's event-by-event breakdown.
     "past-runs-toggle-button",
     "past-runs-panel",
+    # E-21 / E-22 / E-20: the Past Runs list container and controls.
+    "past-runs-list",
+    "past-runs-controls",
+    "past-runs-compare",
+    "past-runs-status",
+    "past-runs-sort",
+    "past-runs-filter",
+    "past-runs-archived",
     # E8/E16: expected-damage-this-event preview, with numeric severity.
     "expected-damage-display",
     # E9: "X/Y skills unlocked" progress summary.

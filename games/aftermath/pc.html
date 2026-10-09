@@ -197,7 +197,40 @@
       <ul id="info-page-sources" class="info-page-sources"></ul>
     </div>
     <div id="achievements-panel" class="section achievements-panel" hidden></div>
-    <div id="past-runs-panel" class="section" hidden></div>
+    <div id="past-runs-panel" class="section" hidden>
+      <!-- E-21 / E-22 / E-20: sort, filter, archive, a note per run and a side-by-side compare (all in game.py). -->
+      <div id="past-runs-controls" class="past-runs-controls">
+        <label>Sort
+          <select id="past-runs-sort">
+            <option value="newest">Newest first</option>
+            <option value="oldest">Oldest first</option>
+            <option value="score_high">Score, high to low</option>
+            <option value="score_low">Score, low to high</option>
+            <option value="mode">Mode (scenario)</option>
+          </select>
+        </label>
+        <label>Show
+          <select id="past-runs-filter">
+            <option value="all">All runs</option>
+            <option value="standard">Standard length</option>
+            <option value="extended">Extended runs</option>
+            <option value="scenario:classic">Classic mix</option>
+            <option value="scenario:coastal">Coastal</option>
+            <option value="scenario:inland">Inland</option>
+            <option value="scenario:urban">Urban</option>
+            <option value="scenario:san_francisco">San Francisco</option>
+            <option value="scenario:houston">Houston</option>
+            <option value="scenario:phoenix">Phoenix</option>
+            <option value="scenario:chicago">Chicago</option>
+            <option value="scenario:heat_season">Heat season</option>
+          </select>
+        </label>
+        <label class="past-runs-archived-label"><input type="checkbox" id="past-runs-archived"> Show archived</label>
+        <p id="past-runs-status" class="comparison-message" role="status"></p>
+      </div>
+      <div id="past-runs-compare" class="past-runs-compare" hidden></div>
+      <div id="past-runs-list"></div>
+    </div>
     <div id="codex-panel" class="section codex-panel" hidden></div>
     <div id="stats-panel" class="section stats-panel" hidden></div>
     <div id="changelog-panel" class="section changelog-panel" hidden></div>

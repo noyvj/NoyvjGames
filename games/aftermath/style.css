@@ -1799,6 +1799,21 @@ html[data-theme="light"] .skill-helps { opacity: 1; color: #46507a; }
 html[data-high-contrast="true"] .waterfall-seg--prevented { background: #ffffff; }
 html[data-high-contrast="true"] .waterfall-seg--taken { background: repeating-linear-gradient(45deg, #ffd400 0 4px, #000000 4px 8px); }
 
+/* E-21 / E-22 / E-20: Past Runs controls, per-run note and actions, and the side-by-side compare. */
+.past-runs-controls { display: flex; flex-wrap: wrap; gap: 0.6rem 1rem; align-items: center; margin-bottom: 0.6rem; font-size: 0.82rem; }
+.past-runs-controls label { display: flex; align-items: center; gap: 0.35rem; }
+.past-runs-controls .comparison-message { flex: 1 1 100%; margin: 0; }
+.past-run-card--archived { opacity: 0.7; border-style: dashed; }
+.past-run-note-input { width: 100%; margin-top: 0.4rem; padding: 0.35rem 0.5rem; font-size: 0.8rem; box-sizing: border-box; }
+.past-run-actions { display: flex; align-items: center; gap: 0.8rem; margin-top: 0.4rem; font-size: 0.8rem; }
+.past-run-archive-button { width: auto; flex: none; padding: 0.25rem 0.7rem; font-size: 0.78rem; margin: 0; }
+.past-runs-compare { margin-bottom: 0.8rem; padding: 0.6rem 0.75rem; border: 1px solid rgba(212, 175, 55, 0.45); border-radius: 10px; }
+.compare-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.2rem 0.8rem; }
+.compare-head { margin: 0 0 0.2rem; font-weight: 700; font-size: 0.82rem; }
+.compare-cell { margin: 0; font-size: 0.78rem; }
+.compare-cell--different { font-weight: 700; text-decoration: underline dotted; }
+@media (max-width: 480px) { .compare-grid { font-size: 0.74rem; gap: 0.2rem 0.4rem; } }
+
 /* ============================================================
    Y11b light-theme polish (2026-09-27). Light-only rules from a
    computed-style WCAG contrast scan of the light theme. Dark is
