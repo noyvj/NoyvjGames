@@ -25,3 +25,6 @@ Python via Pyodide: DOM-free engine modules, `game.py` with `handle(json)`, `get
 
 ## Milestones
 See the table in `planning/logic-gates-plan.md`; state is in `BUILD-STATUS.md`.
+
+## Playing notes
+Chips are earned by solving: a level hands out the chip it builds (a level's reference circuit IS the chip). Memory cells (SR latch, D latch, flip-flop) are modelled directly so the whole computer simulates quickly. A flip-flop never fires on the first look at its clock (power-on). The tiny computer: a 4-bit accumulator, a 2-bit program counter and a 4-word ROM; an instruction word W3 W2 W1 W0 is op (00 add, 01 and, 10 or, 11 xor) then a number 0-3; each clock edge runs ACC = ACC op number.

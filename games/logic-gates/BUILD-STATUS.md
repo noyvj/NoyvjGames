@@ -9,8 +9,10 @@ Updated after each milestone. A new agent should read `planning/logic-gates-plan
 
 - Milestone 3 Chapters 2-3, hints, sandbox: levels 9-24, hint ladder (nudge/hint/answer + place answer), sandbox with truth-table log and The Sixteen; checked live; `tests/test_content.py`.
 
+- Milestone 4 Chapters 4-5: levels 25-40 (adders, register, ALU, program counter, ROM, CPU core, second program, finale); play-through tests (own solutions and hint-ladder-only both reach 40/40); restore after leaving a level.
+
 ## Next
-- Milestone 4: full play-through using only the hint ladder, docs.
+- Milestone 5: standard kit checks (accessibility tests, light theme, shortcuts, tutorial, About, changelog).
 
 ## Open problems
 - None yet.

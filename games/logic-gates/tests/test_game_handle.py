@@ -316,3 +316,35 @@ def test_goals_are_always_three_until_nearly_everything_is_earned():
     assert len(v["goals"]) <= 3
     assert state.new_meta()["current"] == levels.LEVELS[0]["id"]
     assert len(achievements.ACHIEVEMENTS) == 14
+
+
+def test_the_whole_game_can_be_finished_with_the_hint_ladder_alone():
+    """Easy to 100%: anyone can reach every level, and every level's own answer solves it (it just does not count for par)."""
+    fresh()
+    done = set()
+    while len(done) < 40:
+        v = call("open")
+        nxt = next((lv for ch in v["picker"] for lv in ch["levels"] if lv["open"] and not lv["solved"]), None)
+        assert nxt, "a level is stuck behind chips nobody can unlock"
+        call("start", level=nxt["id"])
+        call("clear")
+        for _ in range(3):
+            call("hint")
+        v = call("answer")
+        assert v["table"]["ok"], (nxt["id"], v["table"]["message"])
+        done.add(nxt["id"])
+    v = call("open")
+    assert v["stats"]["solved"] == 40 and v["stats"]["par"] == 0
+    assert next(a for a in v["achievements"] if a["id"] == "asked_nicely")["earned"]
+    assert next(a for a in v["achievements"] if a["id"] == "station_awake")["earned"]
+
+
+def test_a_cleared_board_is_always_restorable_even_after_leaving_the_level():
+    solve_all()
+    call("start", level="decoder")
+    call("clear")
+    call("start", level="comparator")
+    v = call("start", level="decoder")
+    assert v["board"]["count"] == 0 and v["can_restore"]
+    v = call("restore")
+    assert v["table"]["ok"]
