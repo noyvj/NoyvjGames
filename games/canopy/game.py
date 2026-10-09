@@ -6223,7 +6223,11 @@ def hotkey_clear_cut_selected(event=None):
         return False
     before = plots[selected_index].state
     on_clear_cut()
-    return plots[selected_index].state != before
+    changed = plots[selected_index].state != before
+    if not changed and selected_index is not None and not survey_mode:
+        _announce(_hotkey_refusal(selected_index, "cut"))
+        render_announcer()
+    return changed
 
 
 # --- GB-20: rare wildlife ------------------------------------------------------------------------
@@ -6566,14 +6570,49 @@ def _announce(message):
         del _announce_queue[:-ANNOUNCE_MAX_QUEUED]
 
 
+_announce_flip = False
+
+
 def render_announcer():
+    global _announce_flip
     if not _announce_queue:
         return
     text = ". ".join(m.rstrip(". ") for m in _announce_queue)
     del _announce_queue[:]
     element = _el("sr-announcer")
     if element is not None:
-        element.innerText = text
+        # A live region only speaks when its text changes, so a repeated message (a second refusal, the same
+        # selection again) alternates an invisible zero-width space.
+        _announce_flip = not _announce_flip
+        element.innerText = text + ("\u200b" if _announce_flip else "")
+
+
+def selection_announcement(index):
+    """What the live region says when a plot is selected (Enter, Space or a click): which plot, what it is, what keys act on it."""
+    plot = plots[index]
+    text = f"Selected {_plot_ref(index)}: {STATE_LABEL[plot.state]}, value {plot.value:.1f}, soil {round(plot.productivity_multiplier() * 100)}%"
+    if plot.state in ACCRUING_STATES and index != heart_tree_index:
+        text += ". Press C to clear it or K to clear-cut it"
+    elif plot.state == BARE:
+        text += ". Press R to replant it"
+    return text
+
+
+def _hotkey_refusal(index, action):
+    """Why C, K or R did nothing on the selected plot, in a sentence for the live region."""
+    plot = plots[index]
+    ref = _plot_ref(index)
+    if survey_mode and action != "replant":
+        return f"{ref}: Survey mode is on. Use the Clear button to add it to the plan, or leave Survey mode"
+    if action == "replant":
+        return f"{ref} is {STATE_LABEL[plot.state].lower()}: only a bare plot can be replanted"
+    if index == heart_tree_index:
+        return "The Heart Tree is never felled"
+    if plot.state == BARE:
+        return f"{ref} is already bare: nothing to clear. Press R to replant it"
+    if plot.state == REPLANTING:
+        return f"{ref} is replanting: wait for it to recover before clearing it"
+    return f"{ref} cannot be cleared right now"
 
 
 def hotkey_clear_selected(event=None):
@@ -6584,7 +6623,11 @@ def hotkey_clear_selected(event=None):
         return False
     before = plots[selected_index].state
     on_clear()
-    return plots[selected_index].state != before
+    changed = plots[selected_index].state != before
+    if not changed and not (survey_mode and survey_queue):
+        _announce(_hotkey_refusal(selected_index, "clear"))
+        render_announcer()
+    return changed
 
 
 def hotkey_replant_selected(event=None):
@@ -6595,7 +6638,11 @@ def hotkey_replant_selected(event=None):
         return False
     before = plots[selected_index].state
     on_replant()
-    return plots[selected_index].state != before
+    changed = plots[selected_index].state != before
+    if not changed and not (survey_mode and survey_queue):
+        _announce(_hotkey_refusal(selected_index, "replant"))
+        render_announcer()
+    return changed
 
 
 # --- B-12: season forecast -----------------------------------------------------------------------------------
@@ -9166,6 +9213,7 @@ def select_plot(index):
         collect_golden_seedling(index)  # GB-2: clicking the plot the seedling sits on catches it
     drive_off_poacher(index)  # GB-13: clicking the plot a poacher is working on drives it off
     selected_index = index
+    _announce(selection_announcement(index))  # B-7: say which plot is now selected and what keys act on it
     render()
 
 
