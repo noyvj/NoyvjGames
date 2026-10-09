@@ -1,6 +1,6 @@
 # Site-Wide TODO (round 3)
 
-**Progress: 583/1159 items checked off (50.3%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land.
+**Progress: 583/1182 items checked off (49.3%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land.
 
 Built from your answers in `planning/IMPROVEMENT-IDEAS-ROUND-3.md` (Part 4). Every Round 3 section is now answered (2026-10-07 below the Warframe section); earlier this list held only: **GB** (Canopy gamified), **M** (new games), **N** (seasonal events), **O** (Trade Empire and Continuum replayability), **P/Q/S/T** (Signal, Undersleep, Overclock, Last Line open questions), **X** (Warframe tracker) and **R** (returning later). GC-GI, A-L, U, Z and Y are unanswered and wait for you. The previous list is archived at `planning/todo-archive/260914_260927.md`; anything from it that was moved here is marked "moved" there.
 
@@ -78,6 +78,40 @@ The files are in `/Users/alexhart/BCM Project folder/fren152-slides/` (outside t
 - [ ] FS-4: Add the "Lecture 7 supplement" content as its own bonus topic with a note saying where it came from.
 - [ ] FS-5: Use the tutorial exercises' formats (for example fill in the blank, matching, sentence building) to check that each has a matching practice mode in the game, and list the missing ones.
 - [ ] FS-6: When weeks 11 to 13 arrive, repeat FS-1 to FS-3 for them (waits on your upload).
+
+---
+
+## LM. Le Champ de Mots: semesters and a guide to the indicators (you, 2026-10-09)
+
+- [ ] LM-1: Separate the semesters more clearly on the farm: today FREN151 and FREN152 run as one continuous farm with only a chapter label between them. Give each semester its own visibly separate band (a heading with the course name, a divider, its own progress line and a collapse/expand control, and a small "Semester 1 / Semester 2" summary), while keeping one continuous sequence underneath so the review order and saves do not change. Keep the farm easy to read at 360px.
+- [ ] LM-2: Add a visual-indicators guide: a "What the colours and icons mean" panel (opened from a "?" next to the farm, from the Desktop Menu and from Help) that lists every indicator a plot, row, badge or meter can show (growth stages, watered or thirsty, weeds, golden or boosted, mastered, locked, review due, streak or combo marks, and so on) with a drawn sample of each next to its plain-words meaning, read from the same tables the game draws from so it can never drift from the real indicators; with tests that every indicator the game can render has a legend entry.
+- [ ] LM-3: Check both with the FREN152 slides work (section FS) so new weeks land in the right semester band.
+
+---
+
+## SR. Sources page for every game (you, 2026-10-09)
+
+Every game gets a "Sources" page listing three things: the **research** it used (papers, datasets, reports, pages read live, each with publisher, link and the date it was read), the **inspiration** it drew on (games, shows, books or other media, with what was taken from each), and **other** credits (tools, libraries, the way the maths or rules were derived, anything else worth naming). It is one shared page and one data file per game, so adding a source is one line.
+- [ ] SR-1: Design the shared Sources page: a `sources.json` schema per game (groups research / inspiration / other; each entry has a title, a creator or publisher, a link when there is one, a read date for live pages, and one line on what the game took from it), a shared script that renders it with search-free simple lists, a link to it from every game's About panel, the Desktop Menu and the hub's game card menu, and tests that every game's file validates and every link has a title and a note.
+- [ ] SR-2: Build the shared page and the link, then wire it into every game page and Desktop boot through the existing wiring scripts, and add a hub-wide "Sources" index that lists every game's sources together.
+- [ ] SR-3: SOL: fill in `games/sol/sources.json`: gather the research already used (the About page, CLAUDE.md, the plan and the dev logs), the games and other media that inspired it (the plan and your Round answers name several), and any tools or credits, each with a note on what was taken.
+- [ ] SR-4: Canopy: fill in `games/canopy/sources.json`: gather the research already used (the About page, CLAUDE.md, the plan and the dev logs), the games and other media that inspired it (the plan and your Round answers name several), and any tools or credits, each with a note on what was taken.
+- [ ] SR-5: Grid: fill in `games/grid/sources.json`: gather the research already used (the About page, CLAUDE.md, the plan and the dev logs), the games and other media that inspired it (the plan and your Round answers name several), and any tools or credits, each with a note on what was taken.
+- [ ] SR-6: Tide: fill in `games/tide/sources.json`: gather the research already used (the About page, CLAUDE.md, the plan and the dev logs), the games and other media that inspired it (the plan and your Round answers name several), and any tools or credits, each with a note on what was taken.
+- [ ] SR-7: Aftermath: fill in `games/aftermath/sources.json`: gather the research already used (the About page, CLAUDE.md, the plan and the dev logs), the games and other media that inspired it (the plan and your Round answers name several), and any tools or credits, each with a note on what was taken.
+- [ ] SR-8: Herd: fill in `games/herd/sources.json`: gather the research already used (the About page, CLAUDE.md, the plan and the dev logs), the games and other media that inspired it (the plan and your Round answers name several), and any tools or credits, each with a note on what was taken.
+- [ ] SR-9: Thaw: fill in `games/thaw/sources.json`: gather the research already used (the About page, CLAUDE.md, the plan and the dev logs), the games and other media that inspired it (the plan and your Round answers name several), and any tools or credits, each with a note on what was taken.
+- [ ] SR-10: Loop: fill in `games/loop/sources.json`: gather the research already used (the About page, CLAUDE.md, the plan and the dev logs), the games and other media that inspired it (the plan and your Round answers name several), and any tools or credits, each with a note on what was taken.
+- [ ] SR-11: Drift: fill in `games/drift/sources.json`: gather the research already used (the About page, CLAUDE.md, the plan and the dev logs), the games and other media that inspired it (the plan and your Round answers name several), and any tools or credits, each with a note on what was taken.
+- [ ] SR-12: Trade Empire: fill in `games/trade-empire/sources.json`: gather the research already used (the About page, CLAUDE.md, the plan and the dev logs), the games and other media that inspired it (the plan and your Round answers name several), and any tools or credits, each with a note on what was taken.
+- [ ] SR-13: Continuum: fill in `games/continuum/sources.json`: gather the research already used (the About page, CLAUDE.md, the plan and the dev logs), the games and other media that inspired it (the plan and your Round answers name several), and any tools or credits, each with a note on what was taken.
+- [ ] SR-14: Le Champ de Mots: fill in `games/champ-de-mots/sources.json`: gather the research already used (the About page, CLAUDE.md, the plan and the dev logs), the games and other media that inspired it (the plan and your Round answers name several), and any tools or credits, each with a note on what was taken.
+- [ ] SR-15: Signal: fill in `games/signal/sources.json`: gather the research already used (the About page, CLAUDE.md, the plan and the dev logs), the games and other media that inspired it (the plan and your Round answers name several), and any tools or credits, each with a note on what was taken.
+- [ ] SR-16: Lexis: fill in `games/lexis/sources.json`: gather the research already used (the About page, CLAUDE.md, the plan and the dev logs), the games and other media that inspired it (the plan and your Round answers name several), and any tools or credits, each with a note on what was taken.
+- [ ] SR-17: Heist Committee: fill in `games/heist-committee/sources.json`: gather the research already used (the About page, CLAUDE.md, the plan and the dev logs), the games and other media that inspired it (the plan and your Round answers name several), and any tools or credits, each with a note on what was taken.
+- [ ] SR-18: Lighthouse: fill in `games/lighthouse/sources.json`: gather the research already used (the About page, CLAUDE.md, the plan and the dev logs), the games and other media that inspired it (the plan and your Round answers name several), and any tools or credits, each with a note on what was taken.
+- [ ] SR-19: Pocket Bazaar: fill in `games/pocket-bazaar/sources.json`: gather the research already used (the About page, CLAUDE.md, the plan and the dev logs), the games and other media that inspired it (the plan and your Round answers name several), and any tools or credits, each with a note on what was taken.
+- [ ] SR-20: Dead Reckoning: fill in `games/dead-reckoning/sources.json`: gather the research already used (the About page, CLAUDE.md, the plan and the dev logs), the games and other media that inspired it (the plan and your Round answers name several), and any tools or credits, each with a note on what was taken.
 
 ---
 
