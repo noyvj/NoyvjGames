@@ -45,7 +45,7 @@ A station called Tern (invented) drifts dark after an accident nobody wants to e
 | 3 | Decks 2-3, map, log, hints | 16 more boards, deck gating, station map, repair log, hint ladder, three-goals strip | Done |
 | 4 | Decks 4-5 | 16 more boards (40 in all) with valves and mixers. First complete game | Done |
 | 5 | Standard kit | Opening screen, tutorial, About, What's New, keyboard help, confirm dialogs, light theme, accessibility pass | Done |
-| 6 | Achievements | 14 achievements, panel and toast, manifest, reachability test | Planned |
+| 6 | Achievements | 14 achievements, panel and toast, manifest, reachability test | Done |
 | 7 | Desktop boot and wrap-up | `pc-config.json`, `pc.css`, `pc.js`, generated `pc.html`, docs, changelog | Planned |
 
 ## 9. Open questions for the owner (defaults used meanwhile)

@@ -1,0 +1,74 @@
+{
+  "achievements": [
+    {
+      "id": "first_spark",
+      "label": "First Spark",
+      "description": "Patch your first room."
+    },
+    {
+      "id": "ten_lit",
+      "label": "Ten Lit",
+      "description": "Patch 10 rooms."
+    },
+    {
+      "id": "deck_patched",
+      "label": "Deck Patched",
+      "description": "Patch every room of one deck."
+    },
+    {
+      "id": "three_decks",
+      "label": "Three Decks",
+      "description": "Patch every room of 3 decks."
+    },
+    {
+      "id": "station_lit",
+      "label": "Station Lit",
+      "description": "Patch every room on the station."
+    },
+    {
+      "id": "tidy_work",
+      "label": "Tidy Work",
+      "description": "Restore 5 rooms: every line joined and every cell covered."
+    },
+    {
+      "id": "careful_hands",
+      "label": "Careful Hands",
+      "description": "Restore 20 rooms."
+    },
+    {
+      "id": "hull_whole",
+      "label": "Hull Whole",
+      "description": "Restore every room on the station."
+    },
+    {
+      "id": "over_and_under",
+      "label": "Over and Under",
+      "description": "Join a board with two lines crossing on a bridge."
+    },
+    {
+      "id": "mind_the_valve",
+      "label": "Mind the Valve",
+      "description": "Join a board with a line through a valve."
+    },
+    {
+      "id": "colour_theory",
+      "label": "Colour Theory",
+      "description": "Join a board with a mixer."
+    },
+    {
+      "id": "second_thoughts",
+      "label": "Second Thoughts",
+      "description": "Join a board after taking a line back on it."
+    },
+    {
+      "id": "second_opinion",
+      "label": "Second Opinion",
+      "description": "Climb the whole hint ladder on one board: nudge, hint, answer."
+    },
+    {
+      "id": "pipe_layer",
+      "label": "Pipe Layer",
+      "description": "Lay 500 cells of pipe."
+    }
+  ]
+}

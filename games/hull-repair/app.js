@@ -225,6 +225,36 @@
     var anchor = $("board-panel");
     if (anchor.scrollIntoView) anchor.scrollIntoView({ block: "start" });
   }
+  var knownEarned = null;
+  function renderAchievements() {
+    var list = $("achievements-list");
+    var earnedNow = [];
+    var sig = view.achievements.map(function (a) { return a.id + a.have; }).join(",");
+    if (list.dataset.sig !== sig) {
+      list.dataset.sig = sig;
+      list.textContent = "";
+      view.achievements.forEach(function (a) {
+        var li = el("li", a.earned ? "earned" : "");
+        li.setAttribute("data-achievement-id", a.id);
+        li.appendChild(el("span", "tick", a.earned ? "Earned" : a.have + "/" + a.need));
+        var name = el("strong", null, " " + a.label + " ");
+        name.setAttribute("data-achievement-label", "");
+        li.appendChild(name);
+        li.appendChild(el("span", null, a.description));
+        list.appendChild(li);
+      });
+    }
+    view.achievements.forEach(function (a) { if (a.earned) earnedNow.push(a.id); });
+    $("achievements-toggle-button").textContent = "Achievements (" + earnedNow.length + "/" + view.achievements.length + ")";
+    if (knownEarned !== null) {
+      earnedNow.filter(function (id) { return knownEarned.indexOf(id) === -1; }).forEach(function (id) {
+        var a = view.achievements.filter(function (x) { return x.id === id; })[0];
+        showToast("Achievement unlocked: " + a.label + ".");
+        announce("Achievement unlocked: " + a.label + ".");
+      });
+    }
+    knownEarned = earnedNow;
+  }
   function renderLog() {
     var found = view.log.filter(function (e) { return e.found; }).length;
     setText($("log-summary"), found + " of " + view.log.length + " log lines found. Each room you patch adds its line, in any order, and nothing here can be missed.");
@@ -283,6 +313,7 @@
     renderRooms();
     renderMap();
     renderLog();
+    renderAchievements();
     renderGoalStrip();
     renderHints();
   }
@@ -474,6 +505,7 @@
     $("toast").addEventListener("click", function () { showToast(""); });
     wirePanelToggle("rooms-toggle-button", "rooms-panel");
     wirePanelToggle("log-toggle-button", "log-panel");
+    wirePanelToggle("achievements-toggle-button", "achievements-panel");
     wirePanelToggle("changelog-toggle-button", "changelog-panel");
     wirePanelToggle("info-page-toggle-button", "info-page-panel");
     $("map-holder").addEventListener("click", onMapClick);

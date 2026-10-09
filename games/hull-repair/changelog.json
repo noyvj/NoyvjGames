@@ -2,6 +2,10 @@
   "changelog": [
     {
       "date": "2026-10-10",
+      "entry": "Fourteen achievements, none timed or luck-based, each with a visible count, in a new Achievements panel with a share button. Patching and restoring rooms, crossing lines on a bridge, going through a valve, using a mixer, taking a line back and climbing the hint ladder all count."
+    },
+    {
+      "date": "2026-10-10",
       "entry": "An opening screen (New Game, Continue, Saves), a short skippable tutorial, an About page that says what the game will never do, a keyboard shortcut list (press ?), a light theme, and a story toggle that hides the repair-log lines if you only want the puzzles. Nothing about the boards changed."
     },
     {

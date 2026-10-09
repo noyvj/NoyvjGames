@@ -39,6 +39,7 @@
     <button id="tutorial-restart-button" type="button" aria-label="Tutorial"><span class="btn-long">Tutorial</span><span class="btn-short" aria-hidden="true">Tour</span></button>
     <button id="rooms-toggle-button" type="button" aria-expanded="false" aria-controls="rooms-panel">Station</button>
     <button id="log-toggle-button" type="button" aria-expanded="false" aria-controls="log-panel">Repair log</button>
+    <button id="achievements-toggle-button" type="button" aria-expanded="false" aria-controls="achievements-panel">Achievements</button>
     <button id="changelog-toggle-button" type="button" aria-expanded="false" aria-controls="changelog-panel"><span class="btn-long">What's New</span><span class="btn-short" aria-hidden="true">News</span></button>
     <button id="settings-toggle-button" type="button" aria-expanded="false" aria-controls="settings-panel">Settings</button>
     <button id="info-page-toggle-button" type="button" aria-expanded="false" aria-controls="info-page-panel">About</button>
@@ -54,6 +55,11 @@
     <h2 id="log-heading">Repair log</h2>
     <p id="log-summary" class="note"></p>
     <ul id="log-list" class="log-list"></ul>
+  </section>
+  <section id="achievements-panel" class="panel" hidden aria-labelledby="ach-heading">
+    <h2 id="ach-heading">Achievements</h2>
+    <p class="note">Every one can be earned in any order, with no luck and no deadline, and each shows how close you are.</p>
+    <ul id="achievements-list" class="ach-list"></ul>
   </section>
   <section id="info-page-panel" class="panel" hidden aria-labelledby="info-page-heading">
     <h2 id="info-page-heading">About Hull Repair</h2>
@@ -192,6 +198,7 @@
     panels: [
       { toggle: "rooms-toggle-button", panel: "rooms-panel" },
       { toggle: "log-toggle-button", panel: "log-panel" },
+      { toggle: "achievements-toggle-button", panel: "achievements-panel" },
       { toggle: "changelog-toggle-button", panel: "changelog-panel" },
       { toggle: "settings-toggle-button", panel: "settings-panel" },
       { toggle: "info-page-toggle-button", panel: "info-page-panel" },

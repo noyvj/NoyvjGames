@@ -13,8 +13,10 @@ Updated after every milestone. Read `planning/hull-repair-plan.md`, `CLAUDE.md` 
 
 - M5 Standard kit: opening screen, tutorial, About (info.py), keyboard help, story toggle, pledge tests; 241 tests; checked live (opening screen, tutorial card, light theme, 360px no overflow).
 
+- M6 Achievements: manifest, panel, toast, reachability test; 249 tests; checked live (toast, panel counts).
+
 ## Next
-- M6 Achievements (manifest, panel, toast, share, reachability test).
+- M7 Desktop boot (pc-config.json, pc.css, pc.js, generated pc.html), wrap-up docs.
 
 ## Open problems / notes
 - Local Python is 3.9: engine code avoids 3.10+ syntax.

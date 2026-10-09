@@ -29,7 +29,7 @@ Flow-Free-style routing of power and pipes across a damaged space-station hull: 
 | 3 | Decks 2-3, map, log, hints | 16 boards, deck gating, station map, repair log, hint ladder, three-goals strip | Done |
 | 4 | Decks 4-5 | 16 boards (40 in all) with valves and mixers. First complete game | Done |
 | 5 | Standard kit | Opening screen, tutorial, About, What's New, keyboard help, confirm dialogs, light theme, accessibility pass | Done |
-| 6 | Achievements | 14 achievements, panel and toast, manifest, reachability test | Planned |
+| 6 | Achievements | 14 achievements, panel and toast, manifest, reachability test | Done |
 | 7 | Desktop boot and wrap-up | `pc-config.json`, `pc.css`, `pc.js`, generated `pc.html`, docs, changelog | Planned |
 
 ## Working conventions
@@ -57,3 +57,6 @@ Flow-Free-style routing of power and pipes across a damaged space-station hull: 
 
 ## Milestone 5 notes
 - Standard kit as in Robot Script: opening screen, 8-step tutorial (`TUTORIAL_STEPS`; the Desktop boot will replace them through `window.HULL_REPAIR_PC_TUTORIAL_STEPS`), About from `info.py` (invented place, no real-world facts, so no sources to date), What's New + banner, keyboard help (`?`), reset confirm dialog, story toggle on `.story-text` (the repair-log lines), light theme (contrast tested for every line colour in both themes), `tests/test_pledge.py` (banned words, no clock or randomness, one cosmetic timeout, no audio, every action moves a visible number).
+
+## Milestone 6 notes
+- `achievements.py` holds the table and the facts; `achievements.json` is the hub manifest (id, label, description; a test keeps them equal). `achievements_earned` is written to the save and never read back. Panel and toast in `app.js` use the hub hooks (`data-achievement-id`, `data-achievement-label`); the share button comes from `shared/achievement-share.js`. A test plays all 40 boards from the stored layouts, takes a line back once and climbs the ladder once, and checks all 14 are earned.
