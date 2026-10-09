@@ -118,7 +118,17 @@
     {
       "id": "codex_complete",
       "label": "Seen It All",
-      "description": "Weather every kind of shock at least once, completing the Disaster Codex."
+      "description": "Weather the original six kinds of shock at least once (flood, heatwave, storm, supply-chain disruption, infrastructure failure, civil unrest), completing the Disaster Codex's first six pages."
+    },
+    {
+      "id": "heat_health_faced",
+      "label": "When the Heat Is the Hazard",
+      "description": "Weather a Heat-Health Emergency, a shock that only arrives in the Heat season scenario."
+    },
+    {
+      "id": "codex_full_record",
+      "label": "The Full Record",
+      "description": "Fill every Disaster Codex page, including the Heat-Health Emergency from the Heat season scenario."
     }
   ]
 }

@@ -98,6 +98,16 @@ SCENARIOS = {
         "blurb": "Severe storms and winter storms, summer heat, flooding and a stressed supply network.",
         "schedule": ["storm", "heatwave", "infrastructure_failure", "flood", "storm", "supply_chain", "civil_unrest"],
     },
+    # FY-3: the fourth event category, "health", arrives only through this
+    # selectable scenario. The Classic mix above is deliberately untouched:
+    # it is the fixed baseline the run-1-versus-latest comparison, the
+    # hope-angle tests and every saved run were built against. Total base
+    # damage 247 against Classic's 265 (inside the usual 12% band).
+    "heat_season": {
+        "label": "Heat season",
+        "blurb": "A long hot summer: heatwaves, power and supply strain, and two heat-health emergencies where the heat itself endangers people (a new kind of shock).",
+        "schedule": ["heatwave", "heat_mortality", "supply_chain", "infrastructure_failure", "heat_mortality", "flood", "civil_unrest"],
+    },
 }
 DEFAULT_SCENARIO = "classic"
 
@@ -108,7 +118,14 @@ EVENT_LABEL = {
     "supply_chain": "Supply-Chain Disruption",
     "infrastructure_failure": "Infrastructure Failure",
     "civil_unrest": "Civil Unrest",
+    # FY-3: the health category's first event type.
+    "heat_mortality": "Heat-Health Emergency",
 }
+
+# The original six event types. The Seen It All achievement (codex_complete)
+# is defined on exactly these, so adding event types later can never take an
+# earned achievement away; a newer type gets its own achievement instead.
+CODEX_CORE_TYPES = ("flood", "heatwave", "storm", "supply_chain", "infrastructure_failure", "civil_unrest")
 
 EVENT_ICON = {
     # Each icon carries an explicit U+FE0F variation selector so every
@@ -122,6 +139,7 @@ EVENT_ICON = {
     "supply_chain": "\U0001F4E6️",  # package
     "infrastructure_failure": "⚡️",  # high voltage
     "civil_unrest": "\U0001F4E2️",  # loudspeaker
+    "heat_mortality": "\U0001F321️",  # thermometer
 }
 
 EVENT_BASE_DAMAGE = {
@@ -131,6 +149,7 @@ EVENT_BASE_DAMAGE = {
     "supply_chain": 30.0,
     "infrastructure_failure": 38.0,
     "civil_unrest": 32.0,
+    "heat_mortality": 36.0,
 }
 
 # Iteration Pass 2 — event-type category, so weather and non-weather
@@ -149,6 +168,11 @@ EVENT_CATEGORY = {
     # real, documented consequence of repeated disaster strain, and
     # belongs in "resilience-relevant shocks" alongside the other two.
     "civil_unrest": "social",
+    # FY-3: a fourth category -- health shocks, where the hazard (here, heat)
+    # harms people directly rather than damaging places or supply lines.
+    # The skill tree has no specialization for it, so its only dedicated
+    # protection is an earned societal memory (like non-weather shocks).
+    "heat_mortality": "health",
 }
 
 # GE-15: Flawless Defense. An event whose final damage is at most this share
@@ -429,11 +453,12 @@ def save_legacy_events(events):
 # triggers it.
 SOCIETAL_MEMORY_STORAGE_KEY = "aftermath_societal_memory_v1"
 VERY_BAD_RUN_SCORE = 10.0
-SOCIETAL_MEMORY_BONUS = {"weather": 0.15, "social": 0.15, "non-weather": 0.25}
+SOCIETAL_MEMORY_BONUS = {"weather": 0.15, "social": 0.15, "non-weather": 0.25, "health": 0.25}
 SOCIETAL_MEMORY_LABEL = {
     "weather": "the weather that broke it",
     "social": "the unrest that broke it",
     "non-weather": "the systems failure that broke it",
+    "health": "the health emergency that broke it",
 }
 
 
@@ -1239,7 +1264,9 @@ ACHIEVEMENT_CHECKS = {
     "come_back_stronger": lambda: len(run_history) >= 2 and run_history[-1] > run_history[0],
     # GE-15 / E-12: collector and mastery achievements.
     "flawless_defense": lambda: achievement_progress["ever_flawless_defense"],
-    "codex_complete": lambda: all(t in legacy_events for t in EVENT_LABEL),
+    "codex_complete": lambda: all(t in legacy_events for t in CODEX_CORE_TYPES),
+    "codex_full_record": lambda: all(t in legacy_events for t in EVENT_LABEL),
+    "heat_health_faced": lambda: "heat_mortality" in legacy_events,
 }
 
 # Progress readouts, only for achievements with a natural numeric scale-up
@@ -1250,7 +1277,8 @@ ACHIEVEMENT_PROGRESS = {
     "full_skill_tree": lambda: (len(skill_tree.unlocked & set(SKILLS)), len(SKILLS)),
     "knowledge_25": lambda: (min(skill_tree.lifetime_knowledge, 25), 25),
     "knowledge_100": lambda: (min(skill_tree.lifetime_knowledge, 100), 100),
-    "codex_complete": lambda: (sum(1 for t in EVENT_LABEL if t in legacy_events), len(EVENT_LABEL)),
+    "codex_complete": lambda: (sum(1 for t in CODEX_CORE_TYPES if t in legacy_events), len(CODEX_CORE_TYPES)),
+    "codex_full_record": lambda: (sum(1 for t in EVENT_LABEL if t in legacy_events), len(EVENT_LABEL)),
 }
 
 
@@ -1557,7 +1585,7 @@ def legacy_history_summary():
 # category's aggregated legacy_event_counts total climbs. Purely derived
 # from already-persisted legacy_event_counts -- no new storage key.
 # ===========================================================================
-LEGACY_SCAR_CATEGORIES = ("weather", "non-weather", "social")
+LEGACY_SCAR_CATEGORIES = ("weather", "non-weather", "social", "health")
 LEGACY_SCAR_TIER_THRESHOLDS = (1, 3, 6)  # cumulative count needed for tier 1 / 2 / 3
 
 
@@ -1676,7 +1704,7 @@ def on_toggle_past_runs(event=None):
     render_past_runs_panel()
 
 
-CATEGORY_ICON = {"weather": "🌦️", "non-weather": "🏗️", "social": "👥"}
+CATEGORY_ICON = {"weather": "🌦️", "non-weather": "🏗️", "social": "👥", "health": "🩺"}
 
 
 def _render_event_breakdown_lines(container, event_log, show_category=False):
@@ -2388,6 +2416,13 @@ REAL_WORLD_EXAMPLES = {
         "text": "After the 2010 and 2011 Christchurch earthquakes strained the city, a student-started volunteer effort grew to 13,000 students a week at its peak and helped clear over 360,000 tonnes of silt, showing how community cooperation can be rebuilt fast.",
         "source": "Wikipedia, Student Volunteer Army", "url": "https://en.wikipedia.org/wiki/Student_Volunteer_Army",
     },
+    # FY-3: read live on 2026-10-09 (a later read than the six above, so it carries its own date).
+    "heat_mortality": {
+        "title": "The 1995 Chicago heat wave",
+        "text": "The heat wave caused 739 heat-related deaths in Chicago over five days, mostly elderly poor residents, some without air conditioning and others unable to afford to run it. City officials did not release a heat emergency warning until the last day, so the city's five cooling centres were not fully used.",
+        "source": "Wikipedia, 1995 Chicago heat wave", "url": "https://en.wikipedia.org/wiki/1995_Chicago_heat_wave",
+        "read": "2026-10-09",
+    },
 }
 
 
@@ -2408,7 +2443,7 @@ def render_real_world():
         return
     document.getElementById("real-world-text").innerText = f"In the real world: {example['title']}. {example['text']}"
     link = document.getElementById("real-world-source")
-    link.innerText = f"Source: {example['source']} (read {REAL_WORLD_READ_DATE})"
+    link.innerText = f"Source: {example['source']} (read {example.get('read', REAL_WORLD_READ_DATE)})"
     link.href = example["url"]
 
 
@@ -2536,9 +2571,21 @@ def codex_summary_text():
     return f"{done} of {total} kinds of shock recorded. Face each kind to fill its page and unlock its real-world note."
 
 
+def event_source_hint(event_type):
+    """FY-3: where an event type can be met, when it is not in the Classic
+    schedule -- so the Codex can say how to fill a page that the default
+    run never fills. Empty for a type the Classic mix already contains."""
+    if event_type in SCENARIOS[DEFAULT_SCENARIO]["schedule"]:
+        return ""
+    names = [data["label"] for data in SCENARIOS.values() if event_type in data["schedule"]]
+    if not names:
+        return ""
+    return " It only arrives in the " + " or ".join(names) + " scenario" + ("s" if len(names) > 1 else "") + ", chosen before a run's first event."
+
+
 def codex_stats_text(row):
     if row["faced"] == 0:
-        return f"Not faced yet. Weather a {row['label']} to record it and unlock its real-world note."
+        return f"Not faced yet. Weather a {row['label']} to record it and unlock its real-world note.{event_source_hint(row['type'])}"
     if row["avg_damage"] is None:
         return f"Faced x{row['faced']}. Damage details are recorded for runs completed since the run log began."
     flawless = f" · Flawless Defense x{row['flawless']}" if row["flawless"] else ""
@@ -2597,7 +2644,7 @@ def render_codex_panel():
             link.href = example["url"]
             link.target = "_blank"
             link.rel = "noopener noreferrer"
-            link.innerText = f"Source: {example['source']} (read {REAL_WORLD_READ_DATE})"
+            link.innerText = f"Source: {example['source']} (read {example.get('read', REAL_WORLD_READ_DATE)})"
             card.appendChild(link)
         panel.appendChild(card)
 
@@ -2609,7 +2656,7 @@ STATS_KP_ROWS = 15
 
 def lifetime_stats():
     logs = [entry for entry in run_log_history if isinstance(entry, dict)]
-    category_damage = {c: 0.0 for c in ("weather", "non-weather", "social")}
+    category_damage = {c: 0.0 for c in ("weather", "non-weather", "social", "health")}
     per_type = {}
     for entry in logs:
         for event in entry.get("event_log", []) or []:
@@ -2723,6 +2770,8 @@ def render_stats_panel():
     _stat_heading(panel, "Damage taken by category")
     total = sum(stats["category_damage"].values()) or 1.0
     for category, amount in stats["category_damage"].items():
+        if category == "health" and amount <= 0:
+            continue  # FY-3: the health category only exists in the Heat season scenario
         panel.appendChild(
             _stat_row(f"{CATEGORY_ICON[category]} {category.capitalize()}", amount / total,
                       f"{amount:.0f} damage ({amount / total * 100:.0f}%)")

@@ -4,7 +4,7 @@
 def test_four_scenarios_with_classic_as_default(game_env):
     m = game_env.module
     assert set(m.SCENARIOS) == {
-        "classic", "coastal", "inland", "urban", "san_francisco", "houston", "phoenix", "chicago",
+        "classic", "coastal", "inland", "urban", "san_francisco", "houston", "phoenix", "chicago", "heat_season",
     }
     assert m.DEFAULT_SCENARIO == "classic"
     assert m.run.scenario == "classic" and m.run.schedule is m.EVENT_SCHEDULE

@@ -291,6 +291,7 @@
         <div class="settlement-legacy-scar settlement-legacy-scar--weather" id="settlement-legacy-scar-weather" aria-hidden="true"></div>
         <div class="settlement-legacy-scar settlement-legacy-scar--non-weather" id="settlement-legacy-scar-non-weather" aria-hidden="true"></div>
         <div class="settlement-legacy-scar settlement-legacy-scar--social" id="settlement-legacy-scar-social" aria-hidden="true"></div>
+        <div class="settlement-legacy-scar settlement-legacy-scar--health" id="settlement-legacy-scar-health" aria-hidden="true"></div>
       </div>
     </div>
 
@@ -335,6 +336,7 @@
             <option value="phoenix">Phoenix</option>
             <option value="chicago">Chicago</option>
           </optgroup>
+          <option value="heat_season">Heat season</option>
         </select>
         <span id="scenario-blurb" class="scenario-blurb"></span>
       </label>
@@ -470,7 +472,7 @@
       {
         selector: "#status",
         title: "Facing a Run",
-        text: "Each run works through a fixed sequence of 7 events — floods, heatwaves, and storms, non-weather shocks like supply-chain disruption and infrastructure failure, and a social shock (civil unrest). Severity (mild/typical/severe, and now shown as an exact multiplier before you commit) isn't random: it's a fixed pattern tied to the run number, so replaying the same run always poses the same challenge. Your very first run is always typical difficulty.",
+        text: "Each run works through a fixed sequence of 7 events — floods, heatwaves, and storms, non-weather shocks like supply-chain disruption and infrastructure failure, and a social shock (civil unrest). The Heat season scenario, chosen before a run starts, adds a fourth kind of shock: a heat-health emergency, where the heat itself endangers people. Severity (mild/typical/severe, and now shown as an exact multiplier before you commit) isn't random: it's a fixed pattern tied to the run number, so replaying the same run always poses the same challenge. Your very first run is always typical difficulty.",
       },
       {
         selector: "#resilience-invest-button",

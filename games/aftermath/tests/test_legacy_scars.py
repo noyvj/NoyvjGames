@@ -13,7 +13,7 @@ each of the three settlement-legacy-scar elements ends up with.
 # ---------------------------------------------------------------------------
 def test_legacy_category_totals_all_zero_before_any_run(game_env):
     totals = game_env.module.legacy_category_totals()
-    assert totals == {"weather": 0, "non-weather": 0, "social": 0}
+    assert totals == {"weather": 0, "non-weather": 0, "social": 0, "health": 0}
 
 
 def test_legacy_category_totals_aggregate_per_event_type_counts(game_env):
@@ -24,7 +24,7 @@ def test_legacy_category_totals_aggregate_per_event_type_counts(game_env):
         "civil_unrest": 5,  # social: 5
     })
     totals = module.legacy_category_totals()
-    assert totals == {"weather": 4, "non-weather": 3, "social": 5}
+    assert totals == {"weather": 4, "non-weather": 3, "social": 5, "health": 0}
 
 
 def test_legacy_scar_tier_thresholds(game_env):
@@ -45,7 +45,7 @@ def test_legacy_scar_tiers_maps_each_category(game_env):
         "supply_chain": 3, "infrastructure_failure": 1,  # non-weather: 4 -> tier 2
         "civil_unrest": 8,  # social: 8 -> tier 3
     })
-    assert module.legacy_scar_tiers() == {"weather": 1, "non-weather": 2, "social": 3}
+    assert module.legacy_scar_tiers() == {"weather": 1, "non-weather": 2, "social": 3, "health": 0}
 
 
 # ---------------------------------------------------------------------------
@@ -58,7 +58,7 @@ def _tier_classes(element):
 
 def test_scars_untiered_before_any_event_resolves(game_env):
     game_env.module.render()
-    for category in ("weather", "non-weather", "social"):
+    for category in ("weather", "non-weather", "social", "health"):
         el = game_env.elements[f"settlement-legacy-scar-{category}"]
         assert _tier_classes(el) == set()
 

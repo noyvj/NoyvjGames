@@ -1098,8 +1098,17 @@ button.primary:disabled::after {
   text-shadow: 0 0 10px rgba(192, 127, 216, 0.35);
 }
 
-#last-event-display.event-category--social ~ .settlement-visual .settlement-damage {
+#last-event-display.event-category--social ~ .settlement-visual .settlement-damage,
+#last-event-display.event-category--health ~ .settlement-visual .settlement-damage {
   opacity: 1;
+}
+
+/* FY-3: a fourth event category -- health shocks (heat_mortality), a teal
+   identity hue distinct from blue, amber and violet; the icon and the label
+   text always travel with it, so colour is never the only cue. */
+.event-category--health {
+  color: #4fc9b0;
+  text-shadow: 0 0 10px rgba(79, 201, 176, 0.35);
 }
 
 /* ============================================================
@@ -1303,6 +1312,7 @@ button.primary:disabled::after {
 .settlement-legacy-scar--weather { left: 14%; color: #6fa8d8; }
 .settlement-legacy-scar--non-weather { left: 44%; color: #d8a24c; }
 .settlement-legacy-scar--social { left: 74%; color: #c07fd8; }
+.settlement-legacy-scar--health { left: 59%; color: #4fc9b0; }
 
 .settlement-legacy-scar--tier-1 { opacity: 0.45; transform: scaleX(0.7); }
 .settlement-legacy-scar--tier-2 { opacity: 0.75; transform: scaleX(1); }
@@ -1708,6 +1718,7 @@ html[data-high-contrast="true"] summary:focus-visible { outline: 3px solid #ffd4
 html[data-high-contrast="true"] .event-category--weather { color: #8fd0ff; text-shadow: none; }
 html[data-high-contrast="true"] .event-category--non-weather { color: #ffcf6b; text-shadow: none; }
 html[data-high-contrast="true"] .event-category--social { color: #f0b3ff; text-shadow: none; }
+html[data-high-contrast="true"] .event-category--health { color: #8ff0dc; text-shadow: none; }
 html[data-high-contrast="true"] .meter, html[data-high-contrast="true"] .stat-bar { background: #000000; border: 2px solid #ffffff; }
 html[data-high-contrast="true"] .stat-bar-fill { background: #ffffff; }
 html[data-high-contrast="true"] a { color: #8fd0ff; text-decoration: underline; }
@@ -1737,6 +1748,7 @@ html[data-high-contrast="true"][data-theme="light"] #actions .step-row button.se
 html[data-high-contrast="true"][data-theme="light"] .event-category--weather { color: #003f7a; }
 html[data-high-contrast="true"][data-theme="light"] .event-category--non-weather { color: #5a3500; }
 html[data-high-contrast="true"][data-theme="light"] .event-category--social { color: #55157a; }
+html[data-high-contrast="true"][data-theme="light"] .event-category--health { color: #00493e; }
 html[data-high-contrast="true"][data-theme="light"] .meter, html[data-high-contrast="true"][data-theme="light"] .stat-bar { background: #ffffff; border-color: #000000; }
 html[data-high-contrast="true"][data-theme="light"] .stat-bar-fill { background: #000000; }
 html[data-high-contrast="true"][data-theme="light"] a { color: #003f9e; }
@@ -1778,6 +1790,7 @@ html[data-theme="light"] #howto-panel .howto-step-number { opacity: 1; color: #4
 html[data-theme="light"] .event-category--weather { color: #174f86; text-shadow: none; }
 html[data-theme="light"] .event-category--non-weather { color: #6e4600; text-shadow: none; }
 html[data-theme="light"] .event-category--social { color: #6d2f8c; text-shadow: none; }
+html[data-theme="light"] .event-category--health { color: #0b6b5a; text-shadow: none; }
 html[data-theme="light"] .past-run-event { opacity: 1; }
 html[data-theme="light"] .severity--mild { opacity: 0.85; }
 html[data-theme="light"] .feedback-buttons .secondary.selected { color: #ffffff; }

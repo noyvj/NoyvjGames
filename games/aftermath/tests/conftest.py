@@ -109,6 +109,7 @@ ELEMENT_IDS = [
     "settlement-legacy-scar-weather",
     "settlement-legacy-scar-non-weather",
     "settlement-legacy-scar-social",
+    "settlement-legacy-scar-health",
     # Round-3 batch: steps, undo, codex, stats, popup, copy, hints.
     "step-x1-button",
     "step-x5-button",

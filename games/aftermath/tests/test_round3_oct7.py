@@ -293,11 +293,11 @@ def test_announcer_mentions_flawless_defense(game_env):
 # ---- E-12 Disaster Codex -------------------------------------------------
 def test_codex_starts_empty_and_locked(game_env):
     m = game_env.module
-    assert m.codex_completion() == (0, 6)
+    assert m.codex_completion() == (0, 7)
     rows = m.codex_entries()
     assert [r["type"] for r in rows] == list(m.EVENT_LABEL)
     assert all(r["faced"] == 0 and r["example"] is None for r in rows)
-    assert "0/6" in _text(game_env, "codex-toggle-button")
+    assert "0/7" in _text(game_env, "codex-toggle-button")
 
 
 def test_facing_an_event_fills_its_page_even_mid_run(game_env):
@@ -306,7 +306,7 @@ def test_facing_an_event_fills_its_page_even_mid_run(game_env):
     row = next(r for r in m.codex_entries() if r["type"] == "flood")
     assert row["faced"] == 1 and row["avg_damage"] == row["worst_damage"] == row["lowest_damage"]
     assert row["example"]["title"] == m.REAL_WORLD_EXAMPLES["flood"]["title"]
-    assert m.codex_completion() == (1, 6)
+    assert m.codex_completion() == (1, 7)
 
 
 def test_a_finished_run_is_counted_once(game_env):
@@ -314,7 +314,7 @@ def test_a_finished_run_is_counted_once(game_env):
     _finish(game_env)
     floods = next(r for r in m.codex_entries() if r["type"] == "flood")
     assert floods["faced"] == 2  # the classic schedule has two floods
-    assert m.codex_completion() == (5, 6) or m.codex_completion()[0] >= 5
+    assert m.codex_completion() == (6, 7)  # the Classic mix holds six of the seven kinds
 
 
 def test_codex_panel_shows_stats_note_and_source_once_unlocked(game_env):
@@ -337,7 +337,7 @@ def test_locked_pages_say_how_to_unlock(game_env):
     game_env.elements["codex-toggle-button"].dispatch("click", None)
     text = _all_text(game_env.elements["codex-panel"])
     assert "Not faced yet. Weather a Flood" in text
-    assert "0 of 6 kinds of shock recorded" in text
+    assert "0 of 7 kinds of shock recorded" in text
 
 
 def test_codex_completion_achievement(game_env):
