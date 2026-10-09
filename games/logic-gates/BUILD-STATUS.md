@@ -5,8 +5,10 @@ Updated after each milestone. A new agent should read `planning/logic-gates-plan
 ## Done
 - Milestone 1 Engine and level data: `chips.py`, `net.py`, `sim.py`, `levels*.py`, `check.py`; all 40 reference solutions verified; 150-ish tests.
 
+- Milestone 2 Board UI: `game.py`, `state.py`, `render.py`, `words.py`, `achievements.py`, `info.py`, `index.html`, `style.css`, `settings.js`, `app.js`, favicon; checked live at 1440x900 and 360x740.
+
 ## Next
-- Milestone 2: board UI (`game.py`, `state.py`, `render.py`, `index.html`, `style.css`, `settings.js`, `app.js`, favicon).
+- Milestone 3: hint ladder and sandbox are already in the engine; verify in the browser, add sequence-level UI checks, more tests.
 
 ## Open problems
 - None yet.
