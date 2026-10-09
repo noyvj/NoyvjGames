@@ -1,6 +1,7 @@
 """Dev aid: python3 tools/shrink.py <shift id> [item ...] -- starting from a generous shelf (every item the shift lists, plus any
 extra named, three of each), remove units in several orders and print the minimal fair stocks found."""
 import itertools
+import os
 import sys
 from pathlib import Path
 
@@ -21,7 +22,7 @@ def main():
     d = next(x for x in cases.ALL if x["id"] == sys.argv[1])
     items = list(dict.fromkeys(list(d["stock"]) + sys.argv[2:]))
     found = set()
-    for order in itertools.islice(itertools.permutations(items), 0, 200):
+    for order in itertools.islice(itertools.permutations(items), 0, int(os.environ.get("SHRINK_N", "60"))):
         stock = {i: 3 for i in items}
         if not fair(d, stock):
             print("not fair even with 3 of everything")

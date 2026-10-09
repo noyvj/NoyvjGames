@@ -112,3 +112,32 @@ def test_replaying_the_solvers_plan_through_tokens_matches():
         plan, st, cost = solve_truth(c)
         st2, infos = shift.replay(c, [shift.to_token(a) for a in plan])
         assert st2 == st and sum(i["delta"] for i in infos) == 0
+
+
+def test_cold_room_shifts_really_need_the_bed_and_a_forgotten_bed_costs():
+    for d, c in COMPILED:
+        if not c.beds:
+            continue
+        plan, _st, _cost = solve_truth(c)
+        assert any(a[0] == "isolate" for a in plan), d["id"]
+        # treating the patient who shows flecks in the open ward is a cost (the shelf is irrelevant to that rule)
+        spreaders = [i for i, p in enumerate(c.patients) if p.spreads]
+        for i in spreaders:
+            pat = c.new_state()
+            for t in range(len(c.tests)):
+                st2, info = c.apply(pat, ("scan", i, t))
+                if st2 is not None:
+                    assert info["delta"] == shift.COST_EXPOSURE, d["id"]
+                    break
+
+
+def test_chart_notes_are_real_traps_in_the_chart_notes_chapter():
+    traps = 0
+    for d, c in COMPILED:
+        for p_i, p in enumerate(c.patients):
+            if not p.forbids:
+                continue
+            for x, tid in enumerate(c.tx):
+                if c.tx_forbidden(p_i, x) and any(tid in lx.COND[t]["cures"] for t in p.truth):
+                    traps += 1
+    assert traps >= 8

@@ -29,7 +29,7 @@ See `planning/station-medic-plan.md` section 8 (the table is copied below and ke
 |---|-----------|---------|--------|
 | 1 | Engine | lexicon, shift rules, solver, chapters 1-2 (15 shifts), tests | Done |
 | 2 | Infirmary UI | ward, bedside panel, cabinet, sheet, log, result card, restore, save contract, favicon. Playable slice | Done |
-| 3 | Chapters 3-5, hints, record | 24 more shifts, hint ladder, three-goals strip, crew files, Record (codex) | Planned |
+| 3 | Chapters 3-5, hints, record | 24 more shifts, hint ladder, three-goals strip, crew files, Record (codex) | Done |
 | 4 | Chapters 6-8 | 21 more shifts (60 in all), Tally, finale. First complete game | Planned |
 | 5 | Standard kit | opening screen, tutorial, About with the fiction notice, What's New, keyboard help, confirm dialogs, light theme, accessibility pass | Planned |
 | 6 | Achievements | 14 achievements, panel, toast, manifest, reachability test | Planned |
@@ -44,3 +44,8 @@ See `planning/station-medic-plan.md` section 8 (the table is copied below and ke
 - Save (`get_state`): `cur`, `best {shift: 1-3}`, `run {shift: [action tokens]}` (each unfinished shift keeps its actions and is replayed and re-checked on load), `tally`, `flags`, `cured`/`cures`/`tests` (the Record's facts); only non-default keys.
 - Hints (`hints.py`) come from the solver's best move for the state on screen: nudge, hint, answer, then `hint_do` performs it (or restores if a clean finish is gone). A test follows the hints through every shift and expects Clean.
 - Settings: text size, "Rule out for me" (dims and strikes through sheet conditions that cannot fit the selected patient; default on), reduce motion, effects, high contrast, theme. All per device, not in the save.
+
+## Milestone 3 notes
+- Chapters: 1 Quiet Hours (7), 2 The Second Look (8), 3 Chart Notes (8, `cases_3.py`), 4 Shared Shelves (8, roll and vials serve a scan and a treatment), 5 The Cold Room (8, beds). Stocks were found with `tools/shrink.py` and written with `tools/setstock.py`; every shift must have at least one tight shelf (test).
+- The Record (`codex.py`): conditions (first cured), scans (first run), treatments (first cure), crew files (a beat is told when the shift it belongs to is done; beat k belongs to that crew member's `cast.BEAT_AT[k]`-th appearance in authored order), Tally's beats (shifts with robots), station notes (a chapter's shifts all done). All derived from `best`, `cured`, `cures`, `tests` in the save. Opens with the fiction notice.
+- `achievements.py` holds the 14 achievements (facts, need, chapter gate) and `goals()` (the three always-visible, any-order goals); the in-game panel, toast and `achievements.json` manifest arrive in milestone 6. `achievements_earned` is already written to the save and never read back.

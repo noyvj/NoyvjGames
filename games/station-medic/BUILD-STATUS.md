@@ -7,8 +7,10 @@ Updated after every milestone. Read `planning/station-medic-plan.md`, `CLAUDE.md
 
 - M2 Infirmary UI: game.py, progress.py, hints.py, render.py (SVG busts and scene), info.py, index.html, app.js, style.css, settings.js, changelog.json, favicon; 62 tests incl. a pledge lint (real-medicine, death, timer words); checked live at 1440x900 and 360x740 (cure, scan, shift picker, no horizontal scroll).
 
+- M3 Chapters 3-5 (cases_3/4/5: 24 shifts, 39 in all), cast beats + codex.py (the Record), achievements.py facts + goals strip, Record panel; 72 tests; checked live (cold room, goals, Record counts).
+
 ## Next
-- M3: chapters 3-5 (24 shifts), crew beats and the Record (codex), three-goals strip (goals from achievements facts).
+- M4: chapters 6-8 (21 shifts: shaking patients and bands, Tally robots=1, two-condition patients with maxc=2, the finale), Tally beats, make every crew member reach 13 appearances (BEAT_AT), update tests (60 shifts, Record reachable).
 
 ## Open problems / notes
 - Local Python is 3.9: engine code avoids 3.10+ syntax.

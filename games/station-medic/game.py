@@ -22,6 +22,8 @@ Actions (every request is {"action": ..., ...}; every reply is the whole view):
 
 import json
 
+import achievements
+import codex
 import hints
 import info
 import lexicon as lx
@@ -31,7 +33,6 @@ import shift as sh
 import solver as sv
 
 TALLY_KEYS = ("scans", "treats", "restores", "borrows", "hints", "comforts")
-FLAGS = ("cold", "tally")
 GRADE_LABEL = {0: "", 1: "Rough", 2: "Steady", 3: "Clean"}
 MAX_TOKENS = 300
 LOG_KEEP = 40
@@ -60,7 +61,6 @@ class Game:
         self.runs = {}                       # shift id -> action tokens of an unfinished shift
         self.cur = progress.ORDER[0]
         self.tally = {key: 0 for key in TALLY_KEYS}
-        self.flags = []
         self.rec_cured = []                  # condition ids cured at least once
         self.rec_cures = []                  # treatment ids that cured something
         self.rec_tests = []                  # scan ids run at least once
@@ -109,14 +109,15 @@ class Game:
         tally = {k: v for k, v in self.tally.items() if v}
         if tally:
             data["tally"] = tally
-        if self.flags:
-            data["flags"] = list(self.flags)
         if self.rec_cured:
             data["cured"] = list(self.rec_cured)
         if self.rec_cures:
             data["cures"] = list(self.rec_cures)
         if self.rec_tests:
             data["tests"] = list(self.rec_tests)
+        earned = achievements.earned(self.facts())
+        if earned:
+            data["achievements_earned"] = earned       # written for the hub's dashboard, never read back
         return data
 
     def load(self, data):
@@ -126,8 +127,6 @@ class Game:
         self.best = {sid: raw[sid] for sid in progress.ORDER if raw.get(sid) in (1, 2, 3) and not isinstance(raw.get(sid), bool)}
         tally = data.get("tally") if isinstance(data.get("tally"), dict) else {}
         self.tally = {key: _int(tally.get(key)) for key in TALLY_KEYS}
-        flags = data.get("flags")
-        self.flags = [f for f in FLAGS if isinstance(flags, list) and f in flags]
         for attr, key, universe in (("rec_cured", "cured", lx.COND_IDS), ("rec_cures", "cures", lx.TX_IDS), ("rec_tests", "tests", lx.TEST_IDS)):
             value = data.get(key)
             setattr(self, attr, [x for x in universe if isinstance(value, list) and x in value])
@@ -145,9 +144,17 @@ class Game:
         self._enter(cur)
 
     def facts(self):
-        """What the goals and achievements are computed from (grows with the achievements milestone)."""
+        """What the goals and achievements are computed from."""
         t = progress.totals(self.best)
-        return {"done": t["done"], "clean": t["clean"], "chapters_done": t["chapters_done"], "scans": self.tally["scans"]}
+        found, _total = codex.counts(self.rec_cured, self.rec_cures, self.rec_tests, self.best)
+        clean = [sid for sid in progress.ORDER if self.best.get(sid) == 3]
+        return {"done": t["done"], "clean": t["clean"], "chapters_done": t["chapters_done"], "scans": self.tally["scans"],
+                "cold_clean": sum(1 for sid in clean if progress.DATA[sid].get("beds")),
+                "tally_clean": sum(1 for sid in clean if progress.DATA[sid].get("robots")),
+                "records": found, "crew_told": codex.crew_told(self.best)}
+
+    def open_chapters(self):
+        return sum(1 for c in progress.CHAPTERS if progress.chapter_open(self.best, c["index"]))
 
     # ---- the view --------------------------------------------------------------------------------------------------
     def _why(self, act):
@@ -272,6 +279,8 @@ class Game:
             "log": self.log[-LOG_KEEP:], "result": self.result,
             "rooms": self._rooms_view(), "totals": progress.totals(self.best), "tally": dict(self.tally),
             "hint": self._hint(), "about": info.view(),
+            "goals": achievements.goals(self.facts(), self.open_chapters()), "achievements": achievements.view(self.facts()),
+            "record": codex.view(self.rec_cured, self.rec_cures, self.rec_tests, self.best),
         }
         return view
 
@@ -325,11 +334,6 @@ class Game:
         new_best = grade > before
         if new_best:
             self.best[self.cur] = grade
-        if grade == 3:
-            if case.beds and "cold" not in self.flags:
-                self.flags = _ordered(FLAGS, set(self.flags) | {"cold"})
-            if case.robots and "tally" not in self.flags:
-                self.flags = _ordered(FLAGS, set(self.flags) | {"tally"})
         self.runs.pop(self.cur, None)
         nxt = progress.next_shift(self.best, self.cur)
         if grade == 3:
@@ -339,7 +343,7 @@ class Game:
         else:
             line = "Rough, but everyone is settled. Restore the shift to try for a cleaner one."
         self.result = {"cost": cost, "grade": grade, "grade_name": GRADE_LABEL[grade], "new_best": new_best, "best": self.best[self.cur],
-                       "best_name": GRADE_LABEL[self.best[self.cur]], "line": line, "next": nxt, "next_name": progress.DATA[nxt]["title"] if nxt else ""}
+                       "best_name": GRADE_LABEL[self.best[self.cur]], "line": line, "beats": codex.beats_for(self.cur), "next": nxt, "next_name": progress.DATA[nxt]["title"] if nxt else ""}
 
     def _stash(self):
         """Keep the unfinished actions of the shift being left."""

@@ -37,6 +37,7 @@
   </div>
   <div class="game-toolbar">
     <button id="shifts-toggle-button" type="button" aria-expanded="false" aria-controls="shifts-panel">Shifts</button>
+    <button id="record-toggle-button" type="button" aria-expanded="false" aria-controls="record-panel">Record</button>
     <button id="changelog-toggle-button" type="button" aria-expanded="false" aria-controls="changelog-panel"><span class="btn-long">What's New</span><span class="btn-short" aria-hidden="true">News</span></button>
     <button id="settings-toggle-button" type="button" aria-expanded="false" aria-controls="settings-panel">Settings</button>
     <button id="info-page-toggle-button" type="button" aria-expanded="false" aria-controls="info-page-panel">About</button>
@@ -46,6 +47,12 @@
     <h2 id="shifts-heading">Shifts</h2>
     <p class="note">A chapter opens once five shifts of the one before are done. Inside a chapter, take any shift in any order. The seal on a shift is the best you have earned there.</p>
     <div id="shifts-body" class="shifts-body"></div>
+  </section>
+  <section id="record-panel" class="panel" hidden aria-labelledby="record-heading">
+    <h2 id="record-heading">The Record</h2>
+    <p id="record-notice" class="notice"></p>
+    <p id="record-summary" class="note"></p>
+    <div id="record-body" class="record-body"></div>
   </section>
   <section id="info-page-panel" class="panel" hidden aria-labelledby="info-page-heading">
     <h2 id="info-page-heading">About Station Medic</h2>
@@ -85,7 +92,11 @@
     <div class="stat"><span class="stat-label">Shifts done</span><span id="stat-shifts" class="stat-value">0</span></div>
     <div class="stat"><span class="stat-label">Clean shifts</span><span id="stat-clean" class="stat-value">0</span></div>
     <div class="stat"><span class="stat-label">Patients seen</span><span id="stat-patients" class="stat-value">0</span></div>
-    <div class="stat"><span class="stat-label">Scans run</span><span id="stat-scans" class="stat-value">0</span></div>
+    <div class="stat"><span class="stat-label">Record pages</span><span id="stat-records" class="stat-value">0</span></div>
+  </section>
+  <section id="goals" class="goals" aria-label="Next goals">
+    <strong>Next goals</strong> <span class="note">(any order)</span>
+    <ul id="goals-list" class="goals-list"></ul>
   </section>
 
   <section id="shift-panel" class="panel" aria-labelledby="shift-heading">
@@ -123,6 +134,7 @@
       <p id="result-title" class="result-title"></p>
       <p id="result-grade" class="result-grade"></p>
       <p id="result-text" class="note"></p>
+      <ul id="result-beats" class="result-beats"></ul>
       <div class="result-buttons">
         <button id="next-button" type="button" class="primary" data-testid="station-medic-next">Next shift</button>
       </div>
@@ -165,6 +177,7 @@
   <details id="tally" class="panel tally">
     <summary>Tally (everything you have done)</summary>
     <div class="stat-strip tally-strip">
+      <div class="stat"><span class="stat-label">Scans run</span><span id="stat-scans" class="stat-value">0</span></div>
       <div class="stat"><span class="stat-label">Treatments given</span><span id="stat-treats" class="stat-value">0</span></div>
       <div class="stat"><span class="stat-label">Restores</span><span id="stat-restores" class="stat-value">0</span></div>
       <div class="stat"><span class="stat-label">Spares borrowed</span><span id="stat-borrows" class="stat-value">0</span></div>
@@ -203,6 +216,7 @@
   window.KeyboardShortcuts.init({
     panels: [
       { toggle: "shifts-toggle-button", panel: "shifts-panel" },
+      { toggle: "record-toggle-button", panel: "record-panel" },
       { toggle: "changelog-toggle-button", panel: "changelog-panel" },
       { toggle: "settings-toggle-button", panel: "settings-panel" },
       { toggle: "info-page-toggle-button", panel: "info-page-panel" },

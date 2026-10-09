@@ -2,7 +2,7 @@
    and forwards what the player does. No game logic lives here. */
 (function () {
   "use strict";
-  var ENGINE_MODULES = ["lexicon.py", "cast.py", "shift.py", "solver.py", "casekit.py", "cases_1.py", "cases_2.py", "cases.py", "progress.py", "render.py", "hints.py", "info.py"];
+  var ENGINE_MODULES = ["lexicon.py", "cast.py", "shift.py", "solver.py", "casekit.py", "cases_1.py", "cases_2.py", "cases_3.py", "cases_4.py", "cases_5.py", "cases.py", "progress.py", "codex.py", "achievements.py", "render.py", "hints.py", "info.py"];
   var STORE_KEY = "station-medic:state";
   var BACKUP_KEY = "station-medic:state-backup";
 
@@ -90,6 +90,7 @@
     bumpStat("stat-shifts", t.done + "/" + t.shifts);
     bumpStat("stat-clean", t.clean);
     bumpStat("stat-patients", t.patients);
+    bumpStat("stat-records", view.record.found + "/" + view.record.total);
     bumpStat("stat-scans", view.tally.scans);
     bumpStat("stat-treats", view.tally.treats);
     bumpStat("stat-restores", view.tally.restores);
@@ -264,6 +265,53 @@
     });
     list.scrollTop = list.scrollHeight;
   }
+  function renderGoalStrip() {
+    var list = $("goals-list");
+    var sig = view.goals.map(function (g) { return g.id + g.have; }).join(",");
+    if (list.dataset.sig === sig) return;
+    list.dataset.sig = sig;
+    list.textContent = "";
+    if (!view.goals.length) { list.appendChild(el("li", null, "Every goal you can reach right now is done. New ones appear as new chapters open.")); return; }
+    view.goals.forEach(function (g) {
+      var li = el("li");
+      li.appendChild(el("strong", null, g.label + ": "));
+      li.appendChild(document.createTextNode(g.description + " "));
+      var bar = el("span", "bar");
+      bar.setAttribute("aria-hidden", "true");
+      var fill = el("span", "bar-fill");
+      fill.style.width = Math.round(100 * g.have / g.need) + "%";
+      bar.appendChild(fill);
+      li.appendChild(bar);
+      li.appendChild(el("span", "goal-count", " " + g.have + "/" + g.need));
+      list.appendChild(li);
+    });
+  }
+  function renderRecord() {
+    var r = view.record;
+    var sig = r.found + ":" + r.crew_told;
+    if ($("record-body").dataset.sig === sig) return;
+    $("record-body").dataset.sig = sig;
+    setText($("record-notice"), r.notice);
+    setText($("record-summary"), r.found + " of " + r.total + " pages filed. Pages are filed by playing: nothing is missable and nothing runs out.");
+    var body = $("record-body");
+    body.textContent = "";
+    r.sections.forEach(function (sec) {
+      var d = el("details", "record-section");
+      if (sec.id === "crew" || sec.found < sec.total) d.open = false;
+      var sum = el("summary", null, sec.name + " (" + sec.found + "/" + sec.total + ")");
+      d.appendChild(sum);
+      var ul = el("ul", "record-list");
+      sec.entries.forEach(function (e) {
+        var li = el("li", e.unlocked ? "filed" : "unfiled");
+        li.appendChild(el("strong", null, e.title));
+        li.appendChild(el("span", "rtext", e.text));
+        e.lines.forEach(function (l) { li.appendChild(el("span", "rline", l)); });
+        ul.appendChild(li);
+      });
+      d.appendChild(ul);
+      body.appendChild(d);
+    });
+  }
   function renderResult() {
     var r = view.result;
     var card = $("result-card");
@@ -275,6 +323,14 @@
     g.appendChild(sealNode(r.grade_name));
     g.appendChild(document.createTextNode(" Cost " + r.cost + (r.new_best ? ". A new best seal for this shift." : ". Your best here is " + r.best_name + ".")));
     setText($("result-text"), r.line);
+    var beats = $("result-beats");
+    beats.textContent = "";
+    r.beats.forEach(function (b) {
+      var li = el("li", "story-text");
+      li.appendChild(el("strong", null, b.who + ": "));
+      li.appendChild(document.createTextNode(b.text));
+      beats.appendChild(li);
+    });
     $("next-button").hidden = !r.next;
     setText($("next-button"), r.next ? "Next shift: " + r.next_name : "Next shift");
   }
@@ -351,6 +407,8 @@
     renderResult();
     renderHints();
     renderShifts();
+    renderGoalStrip();
+    renderRecord();
   }
 
   // ---- talking to the engine --------------------------------------------------------------------------------
@@ -405,6 +463,7 @@
   function wire() {
     $("toast").addEventListener("click", function () { showToast(""); });
     wirePanelToggle("shifts-toggle-button", "shifts-panel");
+    wirePanelToggle("record-toggle-button", "record-panel");
     wirePanelToggle("changelog-toggle-button", "changelog-panel");
     wirePanelToggle("info-page-toggle-button", "info-page-panel");
     $("hint-button").addEventListener("click", function () { send({ action: "hint" }); });

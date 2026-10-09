@@ -21,6 +21,8 @@ from shift import CLOSED, ISO, STEADY, READ, CURED, GIVEN
 
 class Solver:
     def __init__(self, case, limit=2000000):
+        if case.errors:
+            raise ValueError("; ".join(case.errors))
         self.case = case
         self.memo = {}
         self.limit = limit
