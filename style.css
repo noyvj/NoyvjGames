@@ -717,7 +717,7 @@ html[data-theme="light"] .whats-new-thumb[aria-pressed="true"] { color: #2c4a9a;
   height: 14px;
   transform: translateX(-50%);
   background: #ffcf6b;
-  box-shadow: 0 0 22px 8px rgba(255, 207, 107, 0.5), -64px 3px 0 -4px rgba(255, 207, 107, 0.4);
+  box-shadow: 0 0 22px 8px rgba(255, 207, 107, 0.5);
 }
 
 /* Pocket Bazaar: a striped red-and-amber awning over a green crate holding two
