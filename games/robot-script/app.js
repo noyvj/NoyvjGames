@@ -761,6 +761,18 @@
     window.robotScriptRefresh = function () { if (engine) { roomId = null; send({ action: "open" }); } };
   }
 
+  var TUTORIAL_STEPS = [
+    { title: "Welcome to the deck", text: "A maintenance robot does exactly what your list says. Write the list, press Run, and watch. Nothing is timed, and a run that goes wrong costs nothing. Skip any time and reopen this from the Tutorial button." },
+    { selector: "#room-panel", title: "The room", text: "The robot starts on its tile facing the way its nose points. The checklist above the room says what the room needs: here, reach the glowing exit pad. Parts are diamonds, sockets are dashed frames, switches are numbered plates and doors are barred and lettered." },
+    { selector: "#palette", title: "Instructions", text: "Tap an instruction to add it to your list. The robot only has what this room allows; more appear as you clear rooms. Forward moves one tile, and every instruction you add is one step." },
+    { selector: "#program", title: "Your list", text: "The marked gap shows where the next step goes. Tap another gap to add somewhere else, the arrows move a step, and the x removes it. Undo takes back your last change." },
+    { selector: "#run-button", title: "Run, Step and Skip", text: "Run plays your list. Step does one action at a time and Skip jumps to the end. If the robot cannot do a step (a wall, a shut door, nothing to pick up), it stops there and says why. Your list stays, so just fix it and run again." },
+    { selector: "#size-line", title: "Steps and medals", text: "Fewer steps earn better medals: gold at the reference length, silver a little over, bronze for any clear. Hints are free and never touch a medal." },
+    { selector: "#goals", title: "Your goals", text: "Three goals stay in view, and you can do them in any order. Every run, every step you write and every hint you ask for counts toward something on the screen." },
+    { selector: "#rooms-toggle-button", title: "Rooms and Scrap", text: "Rooms lists the chapters. Each room you clear gives Scrap, the salvage drone in the Workshop, a part, and a better list gives the same part a better finish. At the end of the last chapter a free sandbox opens." },
+    { title: "You are ready", text: "Take your time. Your lists and medals are saved as you go." }
+  ];
+
   async function boot() {
     var changelog = loadChangelog();
     var pyodide = await window.loadPyodide();
@@ -779,6 +791,7 @@
     $("engine-status").textContent = "";
     send({ action: "open" });
     await changelog;
+    if (window.GameTutorial) window.GameTutorial.init(window.robotScriptTutorialSteps ? window.robotScriptTutorialSteps(TUTORIAL_STEPS) : TUTORIAL_STEPS, { gameId: "robot-script" });
   }
 
   wire();

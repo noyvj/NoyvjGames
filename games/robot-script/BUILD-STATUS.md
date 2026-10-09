@@ -11,8 +11,10 @@ Updated after every milestone. Read `planning/robot-script-plan.md`, `CLAUDE.md`
 
 - M4 Chapters 4-6 (19 rooms, 40 in all), tools/author.py, sandbox.py + sandbox UI; 230 tests (26 skipped = flat-minimum checks that do not apply to compressed rooms); live check: conditional room built in the editor, sandbox opened from the Rooms panel and painted.
 
+- M5 Standard kit: tutorial + hook for the Desktop steps, accessibility and pledge tests, light-theme contrast fixes; 254 tests; opening screen and tutorial offer verified live.
+
 ## Next
-- M5 Standard kit (opening screen is already included; add tutorial, keyboard help text check, a11y/light theme tests, About review).
+- M6 Achievements (panel, toast, manifest, share).
 
 ## Open problems / notes
 - Local Python is 3.9: engine code avoids 3.10+ syntax.

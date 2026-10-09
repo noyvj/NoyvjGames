@@ -62,3 +62,19 @@ def test_shared_head_includes_keep_the_site_wide_order():
 def test_every_file_the_page_links_exists():
     for ref in re.findall(r'(?:src|href)="((?!https?:|#)[^"]+)"', HTML):
         assert (GAME_DIR / ref).resolve().exists(), ref
+
+
+def test_the_tutorial_only_points_at_things_the_page_has():
+    ids = set(re.findall(r'(?<![-\w])id="([^"]+)"', HTML))
+    steps = APP.split("var TUTORIAL_STEPS = [")[1].split("];")[0]
+    selectors = re.findall(r'selector: "#([\w-]+)"', steps)
+    assert len(selectors) >= 5 and set(selectors) <= ids
+    assert 'id="tutorial-restart-button"' in HTML and "robotScriptTutorialSteps" in HTML and "tutorial.js" in HTML
+
+
+def test_shared_includes_are_in_the_standard_order_after_the_page_scripts():
+    tail = HTML[HTML.index("pyodide.js"):]
+    order = ["shared/tutorial.js", "shared/hub-auth.js", "shared/save-widget.js", "shared/opening-screen.js", "shared/story-toggle.js",
+             "shared/confirm-dialog.js", 'src="app.js"', "shared/last-played.js", "shared/whats-new-banner.js", "shared/keyboard-shortcuts.js"]
+    positions = [tail.index(name) for name in order]
+    assert positions == sorted(positions)

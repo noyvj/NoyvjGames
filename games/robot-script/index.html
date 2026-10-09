@@ -36,6 +36,7 @@
     <h1>Robot Script</h1>
   </div>
   <div class="game-toolbar">
+    <button id="tutorial-restart-button" type="button" aria-label="Tutorial"><span class="btn-long">Tutorial</span><span class="btn-short" aria-hidden="true">Tour</span></button>
     <button id="rooms-toggle-button" type="button" aria-expanded="false" aria-controls="rooms-panel">Rooms</button>
     <button id="workshop-toggle-button" type="button" aria-expanded="false" aria-controls="workshop-panel">Workshop</button>
     <button id="changelog-toggle-button" type="button" aria-expanded="false" aria-controls="changelog-panel"><span class="btn-long">What's New</span><span class="btn-short" aria-hidden="true">News</span></button>
@@ -215,11 +216,17 @@
        data-ad-slot="XXXXXXXXXX"></ins>
 </div>
 <script src="https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.js"></script>
+<script src="../../shared/tutorial.js"></script>
 <script src="../../shared/hub-auth.js"></script>
 <script src="../../shared/save-widget.js" data-game-id="robot-script"></script>
 <script src="../../shared/opening-screen.js" data-game-id="robot-script" data-game-name="Robot Script" data-tagline="Write the robot a short list. Nothing is timed."></script>
 <script src="../../shared/story-toggle.js" data-game-id="robot-script" data-story-selectors=".story-text, .scrap-line"></script>
 <script src="../../shared/confirm-dialog.js"></script>
+<script>
+  // pc.js (the Desktop boot only) defines window.ROBOT_SCRIPT_PC_TUTORIAL_STEPS, because the Classic walkthrough points at
+  // buttons the Desktop layout turns into icons and windows. app.js asks this function which steps to run.
+  window.robotScriptTutorialSteps = function (classicSteps) { return window.ROBOT_SCRIPT_PC_TUTORIAL_STEPS || classicSteps; };
+</script>
 <script src="app.js"></script>
 <script src="../../shared/last-played.js" data-game-id="robot-script"></script>
 <script src="../../shared/whats-new-banner.js" data-game-id="robot-script"></script>
@@ -237,6 +244,7 @@
       "F, L, R, G, P, S: add that instruction at the marked gap",
       "Backspace: remove the step before the gap; Z: undo",
       "Enter: run the list; Esc: close the open panel",
+      "Tab to a gap and press Enter to choose where the next step goes",
     ],
   });
 </script>
