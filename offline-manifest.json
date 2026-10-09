@@ -209,7 +209,7 @@
     },
     {
      "path": "shared/site-settings.js",
-     "bytes": 5340,
+     "bytes": 5911,
      "precached": false
     },
     {
@@ -285,7 +285,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14641722,
+   "bytes": 14642293,
    "bytes_complete": true
   },
   "canopy": {
@@ -297,17 +297,17 @@
     },
     {
      "path": "games/canopy/changelog.json",
-     "bytes": 17095,
+     "bytes": 18803,
      "precached": false
     },
     {
      "path": "games/canopy/game.py",
-     "bytes": 413440,
+     "bytes": 438081,
      "precached": true
     },
     {
      "path": "games/canopy/index.html",
-     "bytes": 85551,
+     "bytes": 88278,
      "precached": true
     },
     {
@@ -317,7 +317,7 @@
     },
     {
      "path": "games/canopy/pc-config.json",
-     "bytes": 3859,
+     "bytes": 3894,
      "precached": false
     },
     {
@@ -327,7 +327,7 @@
     },
     {
      "path": "games/canopy/pc.html",
-     "bytes": 89886,
+     "bytes": 92648,
      "precached": true
     },
     {
@@ -347,7 +347,7 @@
     },
     {
      "path": "games/canopy/style.css",
-     "bytes": 87548,
+     "bytes": 88971,
      "precached": true
     }
    ],
@@ -529,7 +529,7 @@
     },
     {
      "path": "shared/site-settings.js",
-     "bytes": 5340,
+     "bytes": 5911,
      "precached": false
     },
     {
@@ -620,7 +620,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14993363,
+   "bytes": 15027230,
    "bytes_complete": true
   },
   "grid": {
@@ -839,7 +839,7 @@
     },
     {
      "path": "shared/site-settings.js",
-     "bytes": 5340,
+     "bytes": 5911,
      "precached": false
     },
     {
@@ -920,7 +920,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14641681,
+   "bytes": 14642252,
    "bytes_complete": true
   },
   "tide": {
@@ -932,17 +932,17 @@
     },
     {
      "path": "games/tide/changelog.json",
-     "bytes": 8543,
+     "bytes": 13466,
      "precached": false
     },
     {
      "path": "games/tide/game.py",
-     "bytes": 196571,
+     "bytes": 283001,
      "precached": true
     },
     {
      "path": "games/tide/index.html",
-     "bytes": 56169,
+     "bytes": 65374,
      "precached": true
     },
     {
@@ -957,7 +957,7 @@
     },
     {
      "path": "games/tide/pc.html",
-     "bytes": 59942,
+     "bytes": 69147,
      "precached": true
     },
     {
@@ -967,17 +967,17 @@
     },
     {
      "path": "games/tide/settings.js",
-     "bytes": 5096,
+     "bytes": 6910,
      "precached": false
     },
     {
      "path": "games/tide/style.css",
-     "bytes": 51331,
+     "bytes": 56817,
      "precached": true
     },
     {
      "path": "games/tide/ui.js",
-     "bytes": 10367,
+     "bytes": 11363,
      "precached": true
     }
    ],
@@ -1144,7 +1144,7 @@
     },
     {
      "path": "shared/site-settings.js",
-     "bytes": 5340,
+     "bytes": 5911,
      "precached": false
     },
     {
@@ -1205,29 +1205,29 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14538241,
+   "bytes": 14656871,
    "bytes_complete": true
   },
   "aftermath": {
    "files": [
     {
      "path": "games/aftermath/achievements.json",
-     "bytes": 3895,
+     "bytes": 4418,
      "precached": false
     },
     {
      "path": "games/aftermath/changelog.json",
-     "bytes": 7991,
+     "bytes": 11628,
      "precached": false
     },
     {
      "path": "games/aftermath/game.py",
-     "bytes": 152202,
+     "bytes": 189721,
      "precached": true
     },
     {
      "path": "games/aftermath/index.html",
-     "bytes": 46215,
+     "bytes": 50437,
      "precached": true
     },
     {
@@ -1237,12 +1237,12 @@
     },
     {
      "path": "games/aftermath/pc.css",
-     "bytes": 7413,
+     "bytes": 7461,
      "precached": true
     },
     {
      "path": "games/aftermath/pc.html",
-     "bytes": 49553,
+     "bytes": 53775,
      "precached": true
     },
     {
@@ -1252,17 +1252,17 @@
     },
     {
      "path": "games/aftermath/settings.js",
-     "bytes": 6718,
+     "bytes": 8332,
      "precached": false
     },
     {
      "path": "games/aftermath/style.css",
-     "bytes": 56825,
+     "bytes": 61728,
      "precached": true
     },
     {
      "path": "games/aftermath/ui.js",
-     "bytes": 4721,
+     "bytes": 5733,
      "precached": true
     }
    ],
@@ -1434,7 +1434,7 @@
     },
     {
      "path": "shared/site-settings.js",
-     "bytes": 5340,
+     "bytes": 5911,
      "precached": false
     },
     {
@@ -1495,7 +1495,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14501445,
+   "bytes": 14559716,
    "bytes_complete": true
   },
   "herd": {
@@ -1507,7 +1507,7 @@
     },
     {
      "path": "games/herd/changelog.json",
-     "bytes": 9274,
+     "bytes": 9551,
      "precached": false
     },
     {
@@ -1517,7 +1517,7 @@
     },
     {
      "path": "games/herd/index.html",
-     "bytes": 46905,
+     "bytes": 48389,
      "precached": true
     },
     {
@@ -1532,7 +1532,7 @@
     },
     {
      "path": "games/herd/pc.html",
-     "bytes": 50320,
+     "bytes": 51804,
      "precached": true
     },
     {
@@ -1719,7 +1719,7 @@
     },
     {
      "path": "shared/site-settings.js",
-     "bytes": 5340,
+     "bytes": 5911,
      "precached": false
     },
     {
@@ -1785,7 +1785,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14491685,
+   "bytes": 14495501,
    "bytes_complete": true
   },
   "thaw": {
@@ -1994,7 +1994,7 @@
     },
     {
      "path": "shared/site-settings.js",
-     "bytes": 5340,
+     "bytes": 5911,
      "precached": false
     },
     {
@@ -2055,7 +2055,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14480027,
+   "bytes": 14480598,
    "bytes_complete": true
   },
   "loop": {
@@ -2269,7 +2269,7 @@
     },
     {
      "path": "shared/site-settings.js",
-     "bytes": 5340,
+     "bytes": 5911,
      "precached": false
     },
     {
@@ -2335,7 +2335,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14500005,
+   "bytes": 14500576,
    "bytes_complete": true
   },
   "drift": {
@@ -2549,7 +2549,7 @@
     },
     {
      "path": "shared/site-settings.js",
-     "bytes": 5340,
+     "bytes": 5911,
      "precached": false
     },
     {
@@ -2615,7 +2615,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14522916,
+   "bytes": 14523487,
    "bytes_complete": true
   },
   "champ-de-mots": {
@@ -2849,7 +2849,7 @@
     },
     {
      "path": "shared/site-settings.js",
-     "bytes": 5340,
+     "bytes": 5911,
      "precached": false
     },
     {
@@ -2915,7 +2915,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 15281041,
+   "bytes": 15281612,
    "bytes_complete": true
   },
   "continuum": {
@@ -2932,12 +2932,17 @@
     },
     {
      "path": "games/continuum/archive.py",
-     "bytes": 12341,
+     "bytes": 12798,
      "precached": false
     },
     {
      "path": "games/continuum/banners.py",
      "bytes": 12530,
+     "precached": false
+    },
+    {
+     "path": "games/continuum/beyond.py",
+     "bytes": 15306,
      "precached": false
     },
     {
@@ -2957,7 +2962,7 @@
     },
     {
      "path": "games/continuum/changelog.json",
-     "bytes": 14889,
+     "bytes": 17430,
      "precached": false
     },
     {
@@ -3007,7 +3012,12 @@
     },
     {
      "path": "games/continuum/game.py",
-     "bytes": 224467,
+     "bytes": 255259,
+     "precached": false
+    },
+    {
+     "path": "games/continuum/geography.py",
+     "bytes": 11667,
      "precached": false
     },
     {
@@ -3021,8 +3031,13 @@
      "precached": false
     },
     {
+     "path": "games/continuum/heritage.py",
+     "bytes": 6386,
+     "precached": false
+    },
+    {
      "path": "games/continuum/index.html",
-     "bytes": 77145,
+     "bytes": 81138,
      "precached": true
     },
     {
@@ -3037,7 +3052,7 @@
     },
     {
      "path": "games/continuum/minutes.py",
-     "bytes": 2360,
+     "bytes": 2972,
      "precached": false
     },
     {
@@ -3056,13 +3071,18 @@
      "precached": false
     },
     {
+     "path": "games/continuum/orders.py",
+     "bytes": 19414,
+     "precached": false
+    },
+    {
      "path": "games/continuum/par.py",
      "bytes": 6559,
      "precached": false
     },
     {
      "path": "games/continuum/pc-config.json",
-     "bytes": 4269,
+     "bytes": 4764,
      "precached": false
     },
     {
@@ -3072,7 +3092,7 @@
     },
     {
      "path": "games/continuum/pc.html",
-     "bytes": 81205,
+     "bytes": 85653,
      "precached": true
     },
     {
@@ -3082,12 +3102,12 @@
     },
     {
      "path": "games/continuum/postmortem.py",
-     "bytes": 13950,
+     "bytes": 13975,
      "precached": false
     },
     {
      "path": "games/continuum/render3d.js",
-     "bytes": 51751,
+     "bytes": 56468,
      "precached": false
     },
     {
@@ -3122,7 +3142,7 @@
     },
     {
      "path": "games/continuum/style.css",
-     "bytes": 82614,
+     "bytes": 84940,
      "precached": true
     },
     {
@@ -3157,7 +3177,7 @@
     },
     {
      "path": "games/continuum/views.py",
-     "bytes": 24405,
+     "bytes": 25985,
      "precached": false
     },
     {
@@ -3334,7 +3354,7 @@
     },
     {
      "path": "shared/site-settings.js",
-     "bytes": 5340,
+     "bytes": 5911,
      "precached": false
     },
     {
@@ -3415,7 +3435,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 15990216,
+   "bytes": 16095546,
    "bytes_complete": true
   },
   "signal": {
@@ -3609,7 +3629,7 @@
     },
     {
      "path": "shared/site-settings.js",
-     "bytes": 5340,
+     "bytes": 5911,
      "precached": false
     },
     {
@@ -3639,7 +3659,7 @@
     }
    ],
    "cdn": [],
-   "bytes": 502356,
+   "bytes": 502927,
    "bytes_complete": true
   },
   "lexis": {
@@ -3908,7 +3928,7 @@
     },
     {
      "path": "shared/site-settings.js",
-     "bytes": 5340,
+     "bytes": 5911,
      "precached": false
     },
     {
@@ -3969,7 +3989,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14263414,
+   "bytes": 14263985,
    "bytes_complete": true
   },
   "heist-committee": {
@@ -4273,7 +4293,7 @@
     },
     {
      "path": "shared/site-settings.js",
-     "bytes": 5426,
+     "bytes": 5911,
      "precached": false
     },
     {
@@ -4334,7 +4354,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14440743,
+   "bytes": 14441228,
    "bytes_complete": true
   },
   "lighthouse": {
@@ -4633,7 +4653,7 @@
     },
     {
      "path": "shared/site-settings.js",
-     "bytes": 5517,
+     "bytes": 5911,
      "precached": false
     },
     {
@@ -4704,7 +4724,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14481180,
+   "bytes": 14481574,
    "bytes_complete": true
   },
   "pocket-bazaar": {
@@ -4968,7 +4988,7 @@
     },
     {
      "path": "shared/site-settings.js",
-     "bytes": 5617,
+     "bytes": 5911,
      "precached": false
     },
     {
@@ -5029,7 +5049,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14285068,
+   "bytes": 14285362,
    "bytes_complete": true
   },
   "dead-reckoning": {
@@ -5343,7 +5363,7 @@
     },
     {
      "path": "shared/site-settings.js",
-     "bytes": 5720,
+     "bytes": 5911,
      "precached": false
     },
     {
@@ -5404,7 +5424,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14358186,
+   "bytes": 14358377,
    "bytes_complete": true
   },
   "logic-gates": {
@@ -5658,7 +5678,7 @@
     },
     {
      "path": "shared/site-settings.js",
-     "bytes": 5814,
+     "bytes": 5911,
      "precached": false
     },
     {
@@ -5719,7 +5739,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14275133,
+   "bytes": 14275230,
    "bytes_complete": true
   },
   "robot-script": {
@@ -6263,7 +6283,7 @@
     },
     {
      "path": "shared/site-settings.js",
-     "bytes": 5340,
+     "bytes": 5911,
      "precached": false
     },
     {
@@ -6344,7 +6364,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14650717,
+   "bytes": 14651288,
    "bytes_complete": true
   }
  }
