@@ -132,3 +132,38 @@ Recommended: keep every game on the web for now; flag a game "best in the app" l
 
 Recommended: yes, later, after the current game batches finish.
 
+### Pq1. Should Signal's daily puzzle keep a streak, or be a plain "today's puzzle" with no streak?
+
+Recommended: no streak by default, keep the archive so missing a day costs nothing. Reason: you like daily content but daily pressure is what you dislike. Say "yes" to go with that.
+
+### Pq2. When a puzzle has a hint ladder, should the next rung open only when you press "Another hint"?
+
+Recommended: yes, every rung needs a press and the first rung asks "Would you like a suggestion?". Reason: you want hints only when you agree to them. Say "yes" to go with that.
+
+### Pq3. In a huge skill tree with no free refund, should a wrong spend be repairable by a paid undo (in-game currency, not a restart)?
+
+Recommended: yes, a small in-game cost to move one point. Reason: it keeps your "no free refund" feeling and your "nothing you cannot get back" rule. Say "yes" to go with that.
+
+### Pq4. When you want the audio block (clicks, soundtrack, alerts, ambience), should it be before the dream game starts?
+
+Recommended: yes, one block in the next quiet week and a master mute on every game. Reason: you said it happens all at once, and sounds are easier to add before big new games exist. Say "yes" to go with that.
+
+### Pq5. Can I build three small mockups of overlay windows (a side drawer, a centred pop-up, a full-screen menu) on one test page so you can pick?
+
+Recommended: yes, with a picture for each. Reason: you want overlays on PC but did not know the terms, so seeing them is easier than describing them. Say "yes" to go with that.
+
+### Pq6. Should Stranded and the other Lifeline-style games have a narrator voice line in text (a short intro per day) rather than silent logs?
+
+Recommended: yes, a short narrated-style intro per day that can be turned off. Reason: you picked a narrator over silence but want story optional. Say "yes" to go with that.
+
+### Pq7. Should two-player puzzles work with just one friend who has a link, even if the site has very few players?
+
+Recommended: yes, invite link only and a solo version that plays both halves. Reason: only about two friends play today, so it must work with one or none. Say "yes" to go with that.
+
+### Pq9. Should account-wide titles replace per-game titles?
+
+Recommended: yes, no per-game titles; one titles shelf on your account. Reason: you dislike per-game titles but said account ones could be cool. Say "yes" to go with that.
+
+### Pq10. Should every game get a "difficulty" choice at the start (easy, normal, hard) even when the game is already easy?
+
+Recommended: yes, with normal as the default and hard shown as an option. Reason: you want multiple difficulties from the start and easy-to-medium as the base. Say "yes" to go with that.
