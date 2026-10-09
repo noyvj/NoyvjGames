@@ -22,14 +22,12 @@ Text harness: `python3 games/lighthouse/harness.py [seed] [nights]`.
 - M6 The Unease: mysteries.py (6 mysteries, 35 beats, 8 small oddities), unease.py (pure year schedule with fog preference, the odd-streak rules, hidden meter), beats shown in the log/report/scene (off-chart light, phantom ferry, ghost board entry, turning chair, extra cup), notebook of odd things, Eerie details toggle (toolbar, settings, per-device), content note, dread-ledger tests over 1000 seeds. 157 tests. Mystery 1 was prototyped and checked live before the others were written.
 - M7 Standard kit: 14-step tutorial, mobile HUD strip and docked night controls (live-checked at 360x740), About the Light with 4 sourced facts read 2026-10-09 (Wikipedia: Fresnel lens, Lighthouse, Fog signal), light theme from M2, colourblind audit test, what's-new banner. 168 tests. Feedback: the opening screen's shared Feedback button (no in-game report button on purpose).
 - M8 Achievements + polish: 21 achievements (11 keeping, 10 story incl. 6 hidden mystery ones), achievements.json manifest tested against the code, toast and panel, copy lint over all shipped strings, worst-case timing test, balance bots (careful 98%, idle ~63%, miser ~10% safe passages). 183 tests. NOTE: the plan said 16; it listed one achievement per mystery, so the count is 15 + 6. Reported to the user.
+- M9 Own-folder wrap-up: pc-config.json, pc.css, pc.js, generated pc.html (this game only), favicon, CLAUDE.md, desktop tests; `shared/tests -k lighthouse` 13 pass; checked live at 1440x900 and 1024x700.
 
 ## Next
-Milestone 9: own-folder wrap-up: favicon check, Desktop boot (pc-config.json, pc.js, pc.css, pc.html generated for lighthouse only), game CLAUDE.md table, BUILD-STATUS, tag. Then final report.
+Nothing in this folder. Remaining work is M-2b-10 (hub registration), which belongs to the session that owns the shared files; see the list in `planning/TODO.md`. Move or copy `icons/favicon-lighthouse.svg` to the hub's `icons/` at registration if the hub convention is wanted.
 
 ## Open problems
-none yet
-
-## Update 2026-10-09 (after the usage-limit reset)
-- User answered Li1-Li3: yes to all recommendations. Li1 extra: maybe later add missing ships for dramatic effect, but NONE for now (a ship may be delayed or damaged only).
-- Skimmed planning/PLAYER-PROFILE.md (private; never quoted in the game). Consequences for the design: no hard-fail, no timers, easy to 100%; a collector's notebook (logbook of ships, sailors, gifts, odd details); three standing goals visible at all times; sailors are flawed people, not all-good heroes; dark but never absurd humour; a welcome-back line on return.
-- Milestone 2 files (index.html, style.css, app.js, settings.js, changelog.json, icons/) were uncommitted at the cutoff; being verified live now.
+- Achievement count is 21, not the plan's 16 (the plan listed one per mystery plus 15 others).
+- The 404 for `/stats/games/lighthouse` in the console is the shared stats call for a game the backend does not know yet; it goes away at registration.
+- Dev logs (BCM114/BCM206) and the root CLAUDE.md row were not touched (outside the folder): they need an entry at registration.

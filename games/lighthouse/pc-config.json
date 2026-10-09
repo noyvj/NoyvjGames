@@ -1,0 +1,50 @@
+{
+  "windows": [
+    ["letters-panel", "letters-toggle-button", "Letters, sailors and the room"],
+    ["achievements-panel", "achievements-toggle-button", "Achievements"],
+    ["changelog-panel", "changelog-toggle-button", "What's New"],
+    ["settings-panel", "settings-toggle-button", "Settings"],
+    ["info-page-panel", "info-page-toggle-button", "About the Light"]
+  ],
+  "toolbar": {
+    "icons": [
+      ["letters-toggle-button", "✉️"],
+      ["achievements-toggle-button", "🏆"],
+      ["settings-toggle-button", "⚙️"]
+    ],
+    "menu": [
+      {"heading": "Game", "ids": ["eerie-toggle-button"]},
+      {"heading": "Help", "ids": ["tutorial-restart-button", "info-page-toggle-button", "credits-link"]},
+      {"heading": "Records", "ids": ["changelog-toggle-button"]}
+    ]
+  },
+  "composites": [],
+  "adopt": [],
+  "zones": {
+    "topbar": [".hub-back-link", "h1", ".game-toolbar"],
+    "stagebar": ["#goals-panel", "#toast", "#engine-status", "#content-note-panel"],
+    "stage": ["#scene-panel", "#log-panel"],
+    "side": ["#phase-panels", "#station-panel"],
+    "hidden": [".tagline", "#hud"]
+  },
+  "readouts": [
+    ["#hud-night", "🌙", "Night"],
+    ["#hud-clock", "🕗", "Clock"],
+    ["#hud-oil", "🛢️", "Oil"],
+    ["#hud-energy", "❤️", "Energy"],
+    ["#hud-rep", "★", "The Light"],
+    ["#hud-salvage", "⚓", "Salvage"]
+  ],
+  "side_label": "Plan, report and the station",
+  "hints": [
+    ["Space", "Pause or resume the night"],
+    ["[ ]", "Slower or faster"],
+    ["1-4", "Lamp level (at night)"],
+    ["W", "Wind the clockwork"],
+    ["T", "See to trouble"],
+    ["Tab", "Next control"],
+    ["?", "All shortcuts"],
+    ["Esc", "Menu / close window"]
+  ],
+  "notify": null
+}

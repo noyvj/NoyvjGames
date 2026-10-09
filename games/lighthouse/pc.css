@@ -1,0 +1,61 @@
+/* Lighthouse, Desktop boot (pc.html only). Everything is scoped to the pc layout, so the Classic page is untouched.
+   The rock fills the stage with the keeper's log under it; the evening plan, the night's controls, the morning
+   report and the day's tasks share the right column with the station. Frame, readout chips and windows come
+   from shared/pc-shell.css. */
+
+html[data-layout="pc"], html[data-layout="pc"] body { height: 100%; overflow: hidden; }
+html[data-layout="pc"] body { padding-bottom: 0; }
+html[data-layout="pc"] #game { padding-bottom: 0.4rem; }
+html[data-layout="pc"] .play-grid { display: none; }
+#pc-topbar { grid-template-columns: auto minmax(0, 1fr); grid-template-areas: "title tools"; padding-right: 7.5rem; }
+#pc-topbar > .game-toolbar { justify-content: flex-end; }
+html[data-layout="pc"] #theme-toggle-floating { top: 0.7rem !important; bottom: auto !important; left: auto !important; right: 1rem !important; }
+#pc-topbar > h1 { font-size: 1.4rem; }
+.pc-readout-value { font-variant-numeric: tabular-nums; }
+
+/* --- stage bar: the three goals and the status lines ------------------------------------------------- */
+#pc-stagebar { flex-direction: row; flex-wrap: wrap; align-items: center; gap: 0.3rem 1rem; }
+#pc-stagebar > p, #pc-stagebar > section { margin: 0; }
+#pc-stagebar > .goals { flex: 1 1 24rem; min-width: 0; padding: 0.25rem 0.6rem; }
+#pc-stagebar > .goals .goals-heading { display: none; }
+#pc-stagebar > .toast:empty, #pc-stagebar > #engine-status:empty { display: none; }
+#pc-stagebar > #content-note-panel { flex: 1 1 100%; }
+
+/* --- stage: the scene fills the width, the log takes what is left and scrolls inside ------------------- */
+html[data-layout="pc"] #pc-body { grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); }
+#pc-stage > #scene-panel { margin: 0; flex: 0 1 auto; min-height: 0; }
+#pc-stage > #scene-panel .scene { max-height: min(46vh, 30rem); }
+#pc-stage > #log-panel { margin: 0; flex: 1 1 0; min-height: 6rem; display: flex; flex-direction: column; }
+#pc-stage > #log-panel .log-list { flex: 1 1 0; min-height: 0; max-height: none; overflow-y: auto; }
+
+/* --- side: decisions, scrolling inside the column ------------------------------------------------------- */
+#pc-side { min-width: 0; min-height: 0; display: flex; flex-direction: column; gap: 0.6rem; overflow-y: auto; padding-right: 0.15rem; }
+#pc-side > #phase-panels { flex: 0 0 auto; }
+#pc-side > #phase-panels > .panel, #pc-side > #station-panel { margin: 0 0 0.6rem; }
+#pc-side > #station-panel { flex: 0 0 auto; }
+
+/* --- windows: a deep sea blue frame in both themes ------------------------------------------------------- */
+html[data-layout="pc"] .pc-window-frame {
+  --pc-window-bg: #0f1b25; --pc-window-bar-bg: #16293a; --pc-window-line: rgba(127, 209, 255, 0.35);
+  color: var(--text);
+}
+html[data-theme="light"][data-layout="pc"] .pc-window-frame {
+  --pc-window-bg: #ffffff; --pc-window-bar-bg: #dde8ef; --pc-window-line: rgba(31, 95, 134, 0.45);
+  color: var(--text);
+}
+.pc-window-frame > .panel { margin: 0; border: 0; border-radius: 0; box-shadow: none; background: transparent; }
+.pc-window-frame > .panel > h2:first-child { display: none; }
+.pc-window-frame a { color: var(--accent); }
+html[data-theme="light"] #pc-hintbar { opacity: 1; }
+html[data-theme="light"][data-layout="pc"] .pc-readout { background: var(--panel); color: var(--text); }
+html[data-layout="pc"] .pc-readout { color: var(--text); }
+
+@media (max-width: 1100px) {
+  html[data-layout="pc"] #pc-body { grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); }
+  .pc-readout { padding: 0.25rem 0.55rem; font-size: 0.8rem; }
+}
+@media (max-height: 780px) {
+  html[data-layout="pc"] #game { gap: 0.4rem; padding-top: 0.4rem; }
+  #pc-topbar > h1 { margin-top: 0.8rem; font-size: 1.2rem; }
+  #pc-stage > #scene-panel .scene { max-height: 36vh; }
+}
