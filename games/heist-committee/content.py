@@ -253,6 +253,8 @@ def validate(c):
     for cid, comp in c.complications.items():
         if comp["trigger"] not in ("random", "auto"):
             problems.append(f"complication {cid}: bad trigger")
+        if not 0 < comp.get("chance", 1.0) <= 1:
+            problems.append(f"complication {cid}: chance must be above 0 and at most 1")
         if comp["trigger"] == "auto" and not comp.get("requires") and not comp.get("requires_any"):
             problems.append(f"complication {cid}: an auto complication must require a tag (or it loops)")
         lo, hi = comp["beats"]

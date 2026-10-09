@@ -206,6 +206,7 @@ button[disabled], button[aria-disabled="true"] { opacity: 0.6; cursor: default; 
   h1 { font-size: 1.35rem; }
   .timeline { --lane-w: 5.6rem; --cell-w: 4.6rem; }
   .lane-head .lane-name span { display: none; }
+  .lane-move { display: none; }
   .lane-head .glyph { width: 1.7rem; height: 1.7rem; }
   .cell { min-height: 4.1rem; }
   .cell .cell-sub { display: none; }

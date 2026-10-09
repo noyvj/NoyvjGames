@@ -283,6 +283,11 @@
       } else {
         parts.push(el("p", { "class": "note", text: "Empty. Pick an action to put here." }));
       }
+      parts.push(el("div", { "class": "row lane-order" }, [
+        el("button", { type: "button", "data-testid": "heist-inspector-up", text: "Move " + crew.short + " up a lane", disabled: lane === 0 ? true : null,
+          onclick: function () { selected = null; HC.send({ action: "move_lane", lane: lane, dir: -1 }); } }),
+        el("button", { type: "button", "data-testid": "heist-inspector-down", text: "Move " + crew.short + " down a lane", disabled: lane === view.crew.length - 1 ? true : null,
+          onclick: function () { selected = null; HC.send({ action: "move_lane", lane: lane, dir: 1 }); } })]));
     }
     var sig = JSON.stringify([selected, parts.length, view.plan.lanes]) + JSON.stringify(view.crew.map(function (c) { return c.quirk_known; }));
     HC.fillOnce(box, sig, function (b) { parts.forEach(function (p) { b.appendChild(p); }); });

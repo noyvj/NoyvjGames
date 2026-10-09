@@ -26,7 +26,7 @@ Python via Pyodide, plain HTML/CSS, no build step. `engine.py` is the heist reso
 | 5 | Career and meta | Done |
 | 6 | Standard kit | Done |
 | 7 | Achievements + story | Done |
-| 8 | Balance and bots | Not started |
+| 8 | Balance and bots | Done |
 | 9 | Own-folder wrap-up | Not started |
 
 ## Working conventions

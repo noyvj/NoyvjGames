@@ -23,7 +23,19 @@ def _best_lane(content, crew_ids, skill, taken, plan, start, dur):
     return best
 
 
-def greedy_plan(content, target_id, crew_ids, standby=True, optional=False):
+def scouted_kinds(content, target_id, limit=3):
+    """The kinds of trouble scouting reveals first: the heaviest-weighted complications in the target's pool."""
+    target = content.targets[target_id]
+    pool = sorted((content.complications[c] for c in target["pool"]), key=lambda c: -c.get("weight", 1))
+    kinds = []
+    for comp in pool:
+        for kind in comp.get("kinds", []):
+            if kind in target["cover_options"] and kind not in kinds:
+                kinds.append(kind)
+    return kinds[:limit]
+
+
+def greedy_plan(content, target_id, crew_ids, standby=True, optional=False, kinds=None):
     """Fill the plan requirement by requirement with the best-skilled free crew member; a Lookout covers every
     action that needs a clear corridor; leftover lanes stand by for the target's scouted kinds."""
     target = content.targets[target_id]
@@ -61,7 +73,7 @@ def greedy_plan(content, target_id, crew_ids, standby=True, optional=False):
             if placed:
                 break
     if standby:
-        kinds = list(target.get("cover_options", []))[:3]
+        kinds = list(kinds or target.get("cover_options", []))[:3]
         for lane in range(LANES):
             for b in range(n):
                 if plan["lanes"][lane][b] is None and kinds and b >= 1:

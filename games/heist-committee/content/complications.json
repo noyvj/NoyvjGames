@@ -65,7 +65,8 @@
       },
       "text": "The night watchman stirs in his chair. Somebody was too loud.",
       "absorbed_text": "The watchman half-opens one eye, hears nothing, and half-closes it.",
-      "flavor": "He mutters something about wanting to be a pastry chef."
+      "flavor": "He mutters something about wanting to be a pastry chef.",
+      "chance": 0.6
     },
     {
       "id": "guard_rounds",
@@ -98,7 +99,8 @@
       },
       "text": "The now-awake watchman ambles down the corridor, flashlight swinging.",
       "absorbed_text": "The watchman ambles right past, humming.",
-      "flavor": "He is humming a song about a lighthouse."
+      "flavor": "He is humming a song about a lighthouse.",
+      "chance": 0.75
     },
     {
       "id": "school_trip",
@@ -194,7 +196,8 @@
       },
       "text": "The cat knocks a priceless-looking vase off its shelf. It lands loudly.",
       "absorbed_text": "A quick hand catches the vase. The cat looks disappointed.",
-      "flavor": "The vase was a replica of a replica."
+      "flavor": "The vase was a replica of a replica.",
+      "chance": 0.8
     },
     {
       "id": "wet_floor",
@@ -286,7 +289,8 @@
       },
       "text": "The watchman sees the crew, shrieks, and pulls the alarm lever with great enthusiasm.",
       "absorbed_text": "The watchman reaches for the lever and is handed a cup of tea instead.",
-      "flavor": "The alarm plays a jaunty tune. It is the same tune as the doorbell."
+      "flavor": "The alarm plays a jaunty tune. It is the same tune as the doorbell.",
+      "chance": 0.5
     },
     {
       "id": "curator_tour",
@@ -346,7 +350,8 @@
       },
       "text": "Inspector Bramble pops in to ask why a mug from the staff kitchen is in somebody's pocket.",
       "absorbed_text": "Inspector Bramble is talked into a long tour of the building and forgets the question.",
-      "flavor": "Bramble has been inspecting this museum for eleven years and has never found anything."
+      "flavor": "Bramble has been inspecting this museum for eleven years and has never found anything.",
+      "chance": 0.7
     },
     {
       "id": "pit_boss_glare",
@@ -475,7 +480,8 @@
       },
       "text": "A very large bouncer hears the commotion and turns his very large head.",
       "absorbed_text": "The bouncer glances over, sees only a band and a buffet, and turns back.",
-      "flavor": "He has a name tag that just says 'Sir'."
+      "flavor": "He has a name tag that just says 'Sir'.",
+      "chance": 0.6
     },
     {
       "id": "seasick_swell",
@@ -593,7 +599,8 @@
       },
       "text": "The casino auditor notices a small souvenir missing and begins, patiently, to count everything on the barge.",
       "absorbed_text": "The auditor is taken to see a very fine view and loses count.",
-      "flavor": "He counts in his sleep."
+      "flavor": "He counts in his sleep.",
+      "chance": 0.7
     },
     {
       "id": "cheese_fumes",
@@ -779,7 +786,8 @@
       },
       "text": "A very faint, very distinctive smell of cheese leads a keen-nosed inspector straight to the van.",
       "absorbed_text": "The inspector is given a sample and loses the trail in joy.",
-      "flavor": "The inspector's nose is famous."
+      "flavor": "The inspector's nose is famous.",
+      "chance": 0.7
     },
     {
       "id": "fog_rolls_in",
@@ -841,7 +849,8 @@
       },
       "text": "In the fog, somebody follows a promising-sounding noise and ends up in a hedge.",
       "absorbed_text": "A quick whistle brings everybody back to the path.",
-      "flavor": "The hedge is very nice about it."
+      "flavor": "The hedge is very nice about it.",
+      "chance": 0.8
     },
     {
       "id": "telescope_swings",
@@ -932,7 +941,8 @@
       },
       "text": "Everyone blinks away the flash and tries to work while seeing purple spots.",
       "absorbed_text": "A seasoned lookout shields their eyes and keeps working.",
-      "flavor": "The spots are, apparently, very pretty."
+      "flavor": "The spots are, apparently, very pretty.",
+      "chance": 0.8
     },
     {
       "id": "astronomer_shift",
@@ -1292,7 +1302,8 @@
       },
       "text": "A steam vent bursts open and the whole corridor is a warm, wet cloud.",
       "absorbed_text": "A deft hand shuts the vent before the cloud gathers.",
-      "flavor": "It smells faintly of soup."
+      "flavor": "It smells faintly of soup.",
+      "chance": 0.8
     },
     {
       "id": "tour_group",
@@ -1385,7 +1396,8 @@
       },
       "text": "A seed inspector notices a small pocket of rare seeds is missing and begins to ask polite, pointed questions.",
       "absorbed_text": "The inspector is given a cup of tea and a lot of paperwork to read.",
-      "flavor": "Every seed has a name."
+      "flavor": "Every seed has a name.",
+      "chance": 0.7
     },
     {
       "id": "pigeon_flock",
@@ -1603,7 +1615,8 @@
       },
       "text": "The small dog realises it is in a place with strangers and says so, at great length.",
       "absorbed_text": "A strong word and a treat quiet the dog.",
-      "flavor": "It is, in fairness, a good bark."
+      "flavor": "It is, in fairness, a good bark.",
+      "chance": 0.8
     },
     {
       "id": "sticky_floor",

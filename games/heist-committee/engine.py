@@ -577,6 +577,8 @@ class Sim:
             nxt = None
             for comp in self.pool:
                 if comp["trigger"] == "auto" and self.eligible(comp, b):
+                    if roll(self.seed, b, "auto", comp["id"]) >= comp.get("chance", 1.0):
+                        continue
                     nxt = comp
                     break
             if nxt is None:
