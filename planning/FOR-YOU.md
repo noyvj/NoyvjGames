@@ -204,3 +204,12 @@ Name up to five by title (for example "Logic Gates, Robot Script, Station Medic"
 ### Qa2. May I register the four finished new games (Heist Committee, Pocket Bazaar, Dead Reckoning and, once done, Lighthouse) in the hub now (title cards, service worker, offline manifest and the other shared files), since the other session is not running?
 
 Recommended: yes, one game at a time with all tests run after each. Say "no" to leave it until you tell me the other session is back.
+
+### Li4. Lighthouse: it shipped with 21 achievements (11 for keeping the light, 10 story ones, six of them hidden until solved) instead of the plan's 16; should I cut it to 16?
+
+Recommended: keep 21, since you like reachable 100% and every one is earnable in a Quiet year.
+
+### Li5. Lighthouse: a night lasts about 3 minutes at normal speed (one tick per 4 seconds); is that the right pace, or should it be faster or slower?
+
+Recommended: keep 3 minutes, with 2x and 4x speeds and pause already available.
+

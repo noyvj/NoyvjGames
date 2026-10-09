@@ -1,6 +1,6 @@
 # Site-Wide TODO (round 3)
 
-**Progress: 574/1153 items checked off (49.8%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land.
+**Progress: 582/1153 items checked off (50.5%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land.
 
 Built from your answers in `planning/IMPROVEMENT-IDEAS-ROUND-3.md` (Part 4). Every Round 3 section is now answered (2026-10-07 below the Warframe section); earlier this list held only: **GB** (Canopy gamified), **M** (new games), **N** (seasonal events), **O** (Trade Empire and Continuum replayability), **P/Q/S/T** (Signal, Undersleep, Overclock, Last Line open questions), **X** (Warframe tracker) and **R** (returning later). GC-GI, A-L, U, Z and Y are unanswered and wait for you. The previous list is archived at `planning/todo-archive/260914_260927.md`; anything from it that was moved here is marked "moved" there.
 
@@ -94,14 +94,14 @@ Rules carried over: "yes" items are here, "later" items are parked in `planning/
 
 **Lighthouse** (`planning/lighthouse-plan.md`; code in a new `games/lighthouse/`; commit + tag each milestone as `lighthouse-milestone-0N`; milestones 1-4 ship a complete, playable game)
 - [x] M-2b-1: Milestone 1, Sim core: deterministic weather and ship generators, tick `step()`, oil/brightness/clockwork/structure/energy, text harness that plays a night; tests for determinism and pause/fast-forward invariance.
-- [ ] M-2b-2: Milestone 2, Night UI: SVG scene, beam, ship silhouettes, evening plan panel, morning report, speed/pause controls.
-- [ ] M-2b-3: Milestone 3, Day loop + upgrades: repairs, supplies, supply boat, upgrades, seasons, forecast.
-- [ ] M-2b-4: Milestone 4, Complete Quiet mode: one year to completion, endless continue, save widget, settings, confirm dialogs. First complete, playable game (no story layer).
-- [ ] M-2b-5: Milestone 5, Cast, letters, gifts: 12 sailors (6 is acceptable if the schedule needs it), letter panel, gifts, room scene, story toggle.
-- [ ] M-2b-6: Milestone 6, The Unease: unease meter, odd-detail techniques, six mysteries (three if needed) with the dread-ledger tests, Eerie details setting, content note; prototype the first mystery before writing all of them.
-- [ ] M-2b-7: Milestone 7, Standard kit: tutorial, mobile dock/HUD, changelog, info panel, feedback, light theme, colorblind audit.
-- [ ] M-2b-8: Milestone 8, Achievements + polish: 16 achievements, panel and toast, copy lint, perf test, balance bots.
-- [ ] M-2b-9: Milestone 9, Own-folder wrap-up: favicon `icons/favicon-lighthouse.svg`, Desktop boot (`pc-config.json`, its own `pc.html`), the game's CLAUDE.md milestone table, dev logs, tag. Everything inside the game folder, so no waiting.
+- [x] M-2b-2: Milestone 2, Night UI: SVG scene, beam, ship silhouettes, evening plan panel, morning report, speed/pause controls.
+- [x] M-2b-3: Milestone 3, Day loop + upgrades: repairs, supplies, supply boat, upgrades, seasons, forecast.
+- [x] M-2b-4: Milestone 4, Complete Quiet mode: one year to completion, endless continue, save widget, settings, confirm dialogs. First complete, playable game (no story layer).
+- [x] M-2b-5: Milestone 5, Cast, letters, gifts: 12 sailors (6 is acceptable if the schedule needs it), letter panel, gifts, room scene, story toggle.
+- [x] M-2b-6: Milestone 6, The Unease: unease meter, odd-detail techniques, six mysteries (three if needed) with the dread-ledger tests, Eerie details setting, content note; prototype the first mystery before writing all of them.
+- [x] M-2b-7: Milestone 7, Standard kit: tutorial, mobile dock/HUD, changelog, info panel, feedback, light theme, colorblind audit.
+- [x] M-2b-8: Milestone 8, Achievements + polish: 16 achievements, panel and toast, copy lint, perf test, balance bots.
+- [x] M-2b-9: Milestone 9, Own-folder wrap-up: favicon `icons/favicon-lighthouse.svg`, Desktop boot (`pc-config.json`, its own `pc.html`), the game's CLAUDE.md milestone table, dev logs, tag. Everything inside the game folder, so no waiting.
 - [ ] M-2b-10: Milestone 10, BLOCKED ON NOY2 (hub registration): the shared registration that must wait until Noy2 releases the hub and shared files: root `index.html` title card and tags, `style.css` thumbnail, `script.js` entries, `sw.js` precache (own game files plus `pc.*`) with a `SW_VERSION` bump, `offline-manifest.json`, `game-manifest.json` / `game-added.json` / `game-last-updated.json` / `game-roadmap-data.json` (rerun the scripts), `game-sessions.json`, `achievements.html`, `leaderboards.html` if it has a board, `admin.html`, `shared/site-settings.js`, `sitemap.xml`, `share/meta` and `share/jsonld` cards (`scripts/generate-share-cards.py`), `scripts/perf-budget.json`, the hub regression and smoke tests (`shared/tests/smoke_support.py`, `test_smoke_everything.py`), the root `CLAUDE.md` games table row, and a check that the game works with Noy2's finished save widget and snapshots. Then run the shared test suite and `scripts/generate-pc-pages.py --check`.
 
 **Pocket Bazaar** (`planning/pocket-bazaar-plan.md`; code in a new `games/pocket-bazaar/`; commit + tag each milestone as `pocket-bazaar-milestone-0N`; milestones 1-4 ship a complete, playable game)
