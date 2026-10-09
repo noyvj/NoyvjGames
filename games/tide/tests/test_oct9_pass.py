@@ -393,3 +393,157 @@ def test_the_overlay_shows_after_advancing_and_not_with_reduced_motion(game_env,
     monkeypatch.setattr(m, "_reduced_motion", lambda: True)
     m.on_advance_season()
     assert card.hidden is True
+
+
+# ---- GD-20 rewind ----
+
+def test_rewind_is_unavailable_until_a_season_has_been_advanced(game_env):
+    m = game_env.module
+    assert m.can_rewind() is False
+    m.on_rewind()
+    assert m.state.season == 1 and m.state.rewind_used is False
+
+
+def test_rewind_retracts_the_last_advance_once_and_marks_the_run(game_env):
+    m = game_env.module
+    s = m.state
+    game_env.invest("output")
+    m.on_advance_season()
+    funds_after_first = s.funds
+    season_after_first = s.season
+    m.on_advance_season()
+    assert s.season == season_after_first + 1
+    assert m.can_rewind() is True and game_env.elements["rewind-button"].disabled is False
+    game_env.elements["rewind-button"].dispatch("click", None)
+    s = m.state  # load_state keeps the same object, but be explicit
+    assert s.season == season_after_first and s.funds == pytest.approx(funds_after_first)
+    assert s.rewind_used is True and m.can_rewind() is False
+    assert game_env.elements["tin-hat-badge"].hidden is False and game_env.elements["rewind-button"].disabled is True
+    assert "Rewound once" in s.session_summary_text()
+    assert any("Rewound" in line for line in s.ticker_log) and any("turned back the clock" in e["text"] for e in s.chronicle)
+    m.on_rewind()
+    assert s.season == season_after_first  # a second try does nothing
+
+
+def test_rewinding_an_x5_run_retracts_the_whole_click(game_env):
+    m = game_env.module
+    m.on_advance_x5()
+    assert m.state.season > 1
+    m.on_rewind()
+    assert m.state.season == 1
+
+
+def test_rewind_use_is_saved_and_a_new_snapshot_does_not_restore_the_charge(game_env):
+    m = game_env.module
+    m.on_advance_season()
+    m.on_advance_season()
+    m.on_rewind()
+    saved = m.get_state()
+    assert saved["run_stats"]["rewind_used"] is True
+    m.on_advance_season()
+    assert m.can_rewind() is False
+
+
+# ---- GD-24 ironman ----
+
+def _advance_many(m, n):
+    for _ in range(n):
+        m.state.advance_season()
+
+
+def test_twenty_hard_lag_seasons_without_rewind_earn_the_anchor(game_env):
+    m = game_env.module
+    m.state.set_hard_lag_mode(True)
+    _advance_many(m, m.IRONMAN_SEASONS - 1)
+    assert m.state.ironman_earned is False
+    m.state.advance_season()
+    assert m.state.ironman_earned is True
+    assert any("Ironman" in line for line in m.state.ticker_log)
+    m.render()
+    assert game_env.elements["ironman-badge"].hidden is False and "Hard-lag ironman" in m.state.session_summary_text()
+
+
+def test_turning_hard_lag_off_rewinding_or_replaying_forfeits_it(game_env):
+    m = game_env.module
+    m.state.set_hard_lag_mode(True)
+    _advance_many(m, 5)
+    m.state.set_hard_lag_mode(False)
+    m.state.advance_season()
+    m.state.set_hard_lag_mode(True)
+    _advance_many(m, 25)
+    assert m.state.ironman_earned is False
+
+    m2 = game_env.module
+    m2.state.__init__()
+    m2.state.set_hard_lag_mode(True)
+    m2.state.rewind_used = True
+    _advance_many(m2, 22)
+    assert m2.state.ironman_earned is False
+
+    m2.state.__init__()
+    m2.state.set_hard_lag_mode(True)
+    m2.state.replay_count = 1
+    _advance_many(m2, 22)
+    assert m2.state.ironman_earned is False
+
+
+# ---- GD-23 speedrun trackers ----
+
+def test_clicks_and_active_seconds_are_counted_with_an_idle_cap(game_env, monkeypatch):
+    m = game_env.module
+    clock = [1000.0]
+    monkeypatch.setattr(m.time, "time", lambda: clock[0])
+    m.note_action()
+    clock[0] += 5
+    m.note_action()
+    clock[0] += 600  # walked away
+    m.note_action()
+    assert m.state.actions_count == 3
+    assert m.state.active_seconds == pytest.approx(5 + m.IDLE_CAP_SECONDS)
+
+
+def test_reaching_the_top_tier_records_the_totals_and_the_personal_best(game_env, storage, monkeypatch):
+    m = game_env.module
+    s = m.state
+    s.funds = 100000
+    clock = [0.0]
+    monkeypatch.setattr(m.time, "time", lambda: clock[0])
+    handler = m._make_invest_handler("adaptation")
+    for _ in range(m.ADAPTATION_TIERS[-1]["threshold"]):
+        clock[0] += 2
+        handler()
+    assert s.maxtier_actions == m.ADAPTATION_TIERS[-1]["threshold"]
+    assert s.maxtier_seconds == pytest.approx(2 * (s.maxtier_actions - 1))
+    best = m.load_speedrun_best()
+    assert best["actions"] == s.maxtier_actions
+    # a slower later run does not replace it, a faster one does
+    s.maxtier_actions, s.maxtier_seconds = 99, 500.0
+    assert m.record_speedrun() is False
+    s.maxtier_actions, s.maxtier_seconds = 5, 3.0
+    assert m.record_speedrun() is True and m.load_speedrun_best() == {"actions": 5.0, "seconds": 3.0}
+    assert "Best: 5 clicks, 3 s" in m.speedrun_text()
+
+
+def test_speedrun_text_before_the_top_tier_and_bad_storage(game_env, storage):
+    m = game_env.module
+    assert "not reached yet" in m.speedrun_text() and "No speedrun best yet" in m.speedrun_text()
+    storage[m.SPEEDRUN_KEY] = "garbage"
+    assert m.load_speedrun_best() == {}
+    storage[m.SPEEDRUN_KEY] = '{"actions": -3, "seconds": "x"}'
+    assert m.load_speedrun_best() == {}
+
+
+def test_run_stats_round_trip_and_validate(game_env):
+    m = game_env.module
+    s = m.state
+    assert "run_stats" not in m.get_state()
+    s.actions_count, s.active_seconds, s.maxtier_actions, s.maxtier_seconds = 12, 34.5, 10, 20.0
+    s.ironman_earned = True
+    saved = m.get_state()
+    s.__init__()
+    m.load_state(saved)
+    assert (s.actions_count, s.active_seconds, s.maxtier_actions, s.maxtier_seconds, s.ironman_earned) == (12, 34.5, 10, 20.0, True)
+    saved["run_stats"] = {"actions": -5, "seconds": "x", "maxtier_actions": "a", "maxtier_seconds": 1, "ironman": "yes", "hard_lag_all_run": False}
+    m.load_state(saved)
+    assert s.actions_count == 0 and s.active_seconds == 0.0 and s.maxtier_actions is None
+    assert s.ironman_earned is False and s.hard_lag_all_run is False

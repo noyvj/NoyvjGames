@@ -1,6 +1,6 @@
 # Site-Wide TODO (round 3)
 
-**Progress: 542/1095 items checked off (49.5%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land.
+**Progress: 545/1095 items checked off (49.8%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land.
 
 Built from your answers in `planning/IMPROVEMENT-IDEAS-ROUND-3.md` (Part 4). Every Round 3 section is now answered (2026-10-07 below the Warframe section); earlier this list held only: **GB** (Canopy gamified), **M** (new games), **N** (seasonal events), **O** (Trade Empire and Continuum replayability), **P/Q/S/T** (Signal, Undersleep, Overclock, Last Line open questions), **X** (Warframe tracker) and **R** (returning later). GC-GI, A-L, U, Z and Y are unanswered and wait for you. The previous list is archived at `planning/todo-archive/260914_260927.md`; anything from it that was moved here is marked "moved" there.
 
@@ -412,11 +412,11 @@ Your remaining Round 3 answers (Grid to Drift gamified, SOL to Le Champ de Mots,
 - [ ] GD-17: Add harbor-master crew quips to Tide: one-line ticker voice triggered by real state changes ('Wall's holding, boss. Ask me again in five seasons.'), hidden by the existing shared Story toggle plus its own mute switch in Settings.
 - [ ] GD-18: Add secret coastline critters to Tide: after set conditions (low acidity for 5 seasons; a heritage site saved through a storm) a seal or whale fin appears on the scene and can be clicked to log it in a Sightings list.
 - [x] GD-19: Add a pin-a-goal banner to Tide: pick one personal goal from a dropdown ('Keep 4 rows dry', 'Reach 200 population') with a small progress bar under the header and a ping when reached.
-- [ ] GD-20: Add Rewind Tide to Tide: one charge per run retracts the last Advance Season and marks the run with a small tin-hat icon in the summary so records stay honest.
+- [x] GD-20: Add Rewind Tide to Tide: one charge per run retracts the last Advance Season and marks the run with a small tin-hat icon in the summary so records stay honest.
 - [ ] GD-21: Show the Tide storm forecast as a range with a chance to overtop seawalls ('surge 18-26, 70% to overtop Seawalls') drawn as a small bell-curve chip.
 - [ ] GD-22: Add achievement cosmetic themes to Tide: fortified_in_time, stocks_rebound and similar achievements unlock scene themes (dusk sky, storm-glass, coral-pink sand), selectable in Settings.
-- [ ] GD-23: Add optional speedrun trackers to Tide: fewest clicks and fewest seconds to max adaptation tier, stored beside best-coastline-saved and shown in the session summary.
-- [ ] GD-24: Add a hard-lag ironman badge to Tide: finishing a 20-season run in Hard Lag without Rewind or checkpoint replay earns a gold-anchor badge on the header and settlement history. (needs GD-20)
+- [x] GD-23: Add optional speedrun trackers to Tide: fewest clicks and fewest seconds to max adaptation tier, stored beside best-coastline-saved and shown in the session summary.
+- [x] GD-24: Add a hard-lag ironman badge to Tide: finishing a 20-season run in Hard Lag without Rewind or checkpoint replay earns a gold-anchor badge on the header and settlement history. (needs GD-20)
 - [x] GD-25: Add a quiet-seasons counter to Tide's meter view: seasons since the last acidity rise, with a glowing frame at 5 and 10.
 - [x] GD-26: Add a dice button next to Tide's settlement name input that rolls fun harbor names ('Port Regret', 'Kelp Junction') and have the chronicle reference it.
 - [x] GD-27: Add a heritage-site rescue moment to Tide: when a site is saved at the last second before its row floods, show a lifeboat icon and 'SAVED!' burst plus a chronicle entry.

@@ -105,7 +105,7 @@
   <div class="ambient-bg ambient-bg--ocean" aria-hidden="true"><div class="ambient-bg-blobs"></div><div class="ambient-bg-accent"></div></div>
   <div id="game">
     <a href="../../index.html" class="hub-back-link">&larr; All games</a>
-    <h1>Tide</h1>
+    <h1>Tide <span id="ironman-badge" class="run-badge" hidden></span><span id="tin-hat-badge" class="run-badge" hidden></span></h1>
 
     <div class="game-toolbar">
       <button id="tutorial-restart-button" class="secondary" type="button">🎓 Tutorial</button>
@@ -596,12 +596,15 @@
       <!-- GD-14: balanced-seasons income streak; GD-28: the comeback discount after a domino season. -->
       <p id="balance-display" class="comparison-message balance-display"></p>
       <p id="domino-display" class="comparison-message domino-display" hidden></p>
+      <p id="speedrun-display" class="comparison-message speedrun-display"></p>
       <p id="net-funds-chip" class="net-funds-chip" role="status" aria-live="polite"></p>
       <div class="advance-row">
         <button id="advance-season-button" class="primary" title="Shortcut: A">Advance Season</button>
         <!-- D-15: up to five quiet seasons; stops before a storm forecast, fish-yield warning,
              heritage site at risk or a monitoring crew becoming available again. -->
         <button id="advance-x5-button" class="secondary" type="button" title="Shortcut: X. Runs up to 5 seasons, stopping before any that needs a decision.">Advance x5</button>
+        <!-- GD-20: one Rewind per run. -->
+        <button id="rewind-button" class="secondary" type="button" disabled title="Retract the last Advance click once per run">🪖 Rewind</button>
       </div>
       <p id="advance-x5-note" class="comparison-message advance-x5-note" role="status"></p>
     </div>

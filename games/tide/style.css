@@ -1797,6 +1797,10 @@ html[data-theme="light"] .planner-input { background: #ffffff; color: #1b2233; b
 @media (prefers-reduced-motion: reduce) { .season-report-card { animation: none; } }
 html[data-reduced-motion="true"] .season-report-card { animation: none; }
 
+/* GD-20 / GD-23 / GD-24 (2026-10-09). */
+.run-badge { font-size: 0.7em; margin-left: 0.3rem; }
+.speedrun-display { font-size: 0.85rem; }
+
 /* ============================================================
    Y11b light-theme polish (2026-09-27). Light-only rules from a
    computed-style WCAG contrast scan of the light theme (fresh game, 46

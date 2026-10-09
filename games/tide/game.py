@@ -10,6 +10,7 @@ import copy
 import html
 import json
 import math
+import time
 
 import info_page
 import js as _js
@@ -52,6 +53,10 @@ BALANCE_MULTIPLIERS = (1.0, 1.1, 1.2, 1.3)  # by streak length, capped at the la
 DOMINO_MIN_ROWS = 3
 DOMINO_DISCOUNT = 0.25
 DOMINO_DISCOUNT_SEASONS = 2
+# GD-20 / GD-24 / GD-23 (2026-10-09): one Rewind per run, the hard-lag ironman badge and the speedrun trackers.
+IRONMAN_SEASONS = 20
+IDLE_CAP_SECONDS = 60  # a gap between clicks counts for at most this long, so walking away does not ruin a run
+SPEEDRUN_KEY = "tide_speedrun_v1"
 # GD-27: a heritage site protected when its row would flood within this many seasons counts as a last-second rescue.
 RESCUE_WITHIN_SEASONS = 1
 HERITAGE_UNPROTECTED = "unprotected"
@@ -449,6 +454,15 @@ class SettlementState:
         # GD-28: seasons of cheaper adaptation left after a domino season.
         self.domino_seasons_left = 0
         self.domino_count = 0
+        # GD-20: the single Rewind charge; GD-24: ironman bookkeeping; GD-23: clicks and active seconds so far,
+        # and the totals at the moment the top adaptation tier was reached.
+        self.rewind_used = False
+        self.hard_lag_all_run = True
+        self.ironman_earned = False
+        self.actions_count = 0
+        self.active_seconds = 0.0
+        self.maxtier_actions = None
+        self.maxtier_seconds = None
         # GD-27: the site most recently saved at the last second (transient, shown once, never saved).
         self.last_rescue = None
 
@@ -781,6 +795,9 @@ class SettlementState:
             new_tier_index = self.current_tier_index()
             if new_tier_index > old_tier_index:
                 self._record_tier_unlock_message(new_tier_index)
+                if new_tier_index == len(ADAPTATION_TIERS) - 1 and self.maxtier_actions is None:
+                    self.maxtier_actions = self.actions_count  # GD-23
+                    self.maxtier_seconds = round(self.active_seconds, 1)
                 if (
                     new_tier_index == len(ADAPTATION_TIERS) - 1
                     and flooded_row_count(self.sea_level) == 0
@@ -1045,10 +1062,17 @@ class SettlementState:
             else "No seasons played yet."
         )
         tier = self.current_tier()
+        extras = ""
+        if self.rewind_used:
+            extras += " \U0001FA96 Rewound once (a tin hat marks the run)."  # GD-20
+        if self.ironman_earned:
+            extras += " \u2693 Hard-lag ironman."  # GD-24
+        if self.maxtier_actions is not None:
+            extras += f" Top tier reached in {self.maxtier_actions} clicks and about {self.maxtier_seconds:.0f} seconds."  # GD-23
         return (
             f"Seasons played: {max(0, self.season - 1)}. Final funds: {self.funds:.0f}. "
             f"Cumulative damage: {self.cumulative_damage:.0f} (saved {self.damage_saved():.0f} "
-            f"via adaptation). Adaptation tier reached: {tier['name']}. {worst_text}"
+            f"via adaptation). Adaptation tier reached: {tier['name']}. {worst_text}{extras}"
         )
 
     # ---- D-1 Harbor Ledger -------------------------------------------
@@ -1422,6 +1446,13 @@ class SettlementState:
             self._resolve_storm()
 
         self.season += 1
+        if not self.hard_lag_mode:  # GD-24: the badge needs hard lag for the whole run
+            self.hard_lag_all_run = False
+        if (not self.ironman_earned and self.hard_lag_all_run and self.season - 1 >= IRONMAN_SEASONS
+                and not self.rewind_used and self.replay_count == 0):
+            self.ironman_earned = True
+            self._log_ticker(f"\u2693 Ironman: {IRONMAN_SEASONS} seasons in Hard Lag with no Rewind and no checkpoint replay.")
+            self._chronicle_event(f"The harbour held for {IRONMAN_SEASONS} seasons of hard lag without turning back the clock.")
 
         new_fish_yield = self.fish_yield_multiplier()
         self.fish_yield_history.append(new_fish_yield)
@@ -4195,11 +4226,116 @@ def render_balance():
     render_rescue_burst()
 
 
+# GD-20 Rewind, GD-23 speedrun trackers, GD-24 ironman -----------------------------------------------------------
+_rewind_snapshot = [None]
+_last_action_at = [None]
+
+
+def note_action():
+    """Counts one real player click (invest, advance, x5) and the active seconds between clicks."""
+    now = time.time()
+    last = _last_action_at[0]
+    _last_action_at[0] = now
+    if last is not None:
+        state.active_seconds += min(IDLE_CAP_SECONDS, max(0.0, now - last))
+    state.actions_count += 1
+
+
+def can_rewind():
+    snap = _rewind_snapshot[0]
+    return (not state.rewind_used) and snap is not None and snap.get("season", 10**9) < state.season
+
+
+def take_rewind_snapshot():
+    _rewind_snapshot[0] = copy.deepcopy(get_state())
+
+
+def rewind_season():
+    """Retracts the last Advance click (one charge per run) and marks the run, so records stay honest."""
+    if not can_rewind():
+        return False
+    snapshot = _rewind_snapshot[0]
+    _rewind_snapshot[0] = None
+    load_state(snapshot)
+    state.rewind_used = True
+    state._log_ticker("\U0001FA96 Rewound the last advance. The run is marked with a tin hat.")
+    state._chronicle_event("The harbour council turned back the clock once.")
+    announce("Rewound the last Advance Season. This run now carries a tin hat.")
+    render()
+    return True
+
+
+def on_rewind(event=None):
+    rewind_season()
+
+
+def load_speedrun_best():
+    raw = _read_local_storage_item(SPEEDRUN_KEY)
+    try:
+        data = json.loads(raw) if raw else {}
+    except (ValueError, TypeError):
+        return {}
+    out = {}
+    if isinstance(data, dict):
+        for key in ("actions", "seconds"):
+            value = data.get(key)
+            if isinstance(value, (int, float)) and not isinstance(value, bool) and 0 < value < 1e9:
+                out[key] = float(value)
+    return out
+
+
+def record_speedrun():
+    """Stores a new personal best (fewest clicks, fewest seconds) once this run has reached the top tier."""
+    if state.maxtier_actions is None:
+        return False
+    best = load_speedrun_best()
+    changed = False
+    if "actions" not in best or state.maxtier_actions < best["actions"]:
+        best["actions"], changed = float(state.maxtier_actions), True
+    if "seconds" not in best or state.maxtier_seconds < best["seconds"]:
+        best["seconds"], changed = float(state.maxtier_seconds), True
+    if changed:
+        _write_local_storage_item(SPEEDRUN_KEY, json.dumps(best))
+    return changed
+
+
+def speedrun_text():
+    best = load_speedrun_best()
+    now = (f"This run: top tier in {state.maxtier_actions} clicks, about {state.maxtier_seconds:.0f} s."
+           if state.maxtier_actions is not None else
+           f"This run: {state.actions_count} clicks and about {state.active_seconds:.0f} s so far; the top tier is not reached yet.")
+    if not best:
+        return now + " No speedrun best yet."
+    return now + f" Best: {best.get('actions', 0):.0f} clicks, {best.get('seconds', 0):.0f} s."
+
+
+def render_run_extras():
+    badge = document.getElementById("ironman-badge")
+    if badge is not None:
+        badge.hidden = not state.ironman_earned
+        badge.innerText = "\u2693" if state.ironman_earned else ""
+        badge.title = f"Hard-lag ironman: {IRONMAN_SEASONS} seasons with no Rewind and no checkpoint replay"
+    tin = document.getElementById("tin-hat-badge")
+    if tin is not None:
+        tin.hidden = not state.rewind_used
+        tin.innerText = "\U0001FA96" if state.rewind_used else ""
+        tin.title = "This run used its Rewind"
+    button = document.getElementById("rewind-button")
+    if button is not None:
+        button.disabled = not can_rewind()
+        button.title = ("Retract the last Advance click once per run; the run is marked with a tin hat"
+                        if not state.rewind_used else "This run has already used its Rewind")
+    sr = document.getElementById("speedrun-display")
+    if sr is not None:
+        sr.innerText = speedrun_text()
+
+
 def render_tide_oct9():
     render_afford()
     render_goal()
     render_quiet()
     render_balance()
+    render_run_extras()
 
 
 def render():
@@ -4338,7 +4474,9 @@ INVEST_LABELS = {"output": "Output", "reduction": "Acidity Reduction", "adaptati
 def _make_invest_handler(category):
     def handler(event=None):
         funds_before = state.funds
+        note_action()  # GD-23
         done = state.invest(category)
+        record_speedrun()
         check_pinned_goal()  # GD-19
         render()
         if done:
@@ -4350,6 +4488,8 @@ def _make_invest_handler(category):
 
 def on_advance_season(event=None):
     before = _season_numbers()
+    take_rewind_snapshot()  # GD-20
+    note_action()  # GD-23
     state.advance_season()
     check_pinned_goal()  # GD-19
     render()
@@ -4367,6 +4507,8 @@ def _set_advance_note(text):
 def on_advance_x5(event=None):
     """D-15: up to five quiet seasons in one click; stops before any season
     that needs a decision and says why."""
+    take_rewind_snapshot()  # GD-20
+    note_action()  # GD-23
     ran, stop_text = state.advance_quiet_seasons(ADVANCE_BATCH)
     render()
     if ran == 0:
@@ -4582,6 +4724,11 @@ def get_state():
         "season_ledger": copy.deepcopy(state.season_ledger),
         "season_snapshots": copy.deepcopy(state.season_snapshots),
         **({"pinned_goal": {"id": state.pinned_goal, "reached": state.pinned_goal_reached}} if state.pinned_goal else {}),  # GD-19
+        **({"run_stats": {
+            "rewind_used": state.rewind_used, "hard_lag_all_run": state.hard_lag_all_run, "ironman": state.ironman_earned,
+            "actions": state.actions_count, "seconds": round(state.active_seconds, 1),
+            "maxtier_actions": state.maxtier_actions, "maxtier_seconds": state.maxtier_seconds,
+        }} if (state.rewind_used or state.ironman_earned or state.actions_count or not state.hard_lag_all_run) else {}),  # GD-20/23/24
         **({"balance": {"streak": state.balance_streak, "invested": sorted(state.season_invested)}} if (state.balance_streak or state.season_invested) else {}),  # GD-14
         **({"domino": {"left": state.domino_seasons_left, "count": state.domino_count}} if (state.domino_seasons_left or state.domino_count) else {}),  # GD-28
         # Write-only projection (ACHIEVEMENTS-SYSTEM-DESIGN.md §1) —
@@ -4872,6 +5019,19 @@ def load_state(data):
     state.replay_count = _clamped_int(data.get("replay_count"), 0, 10**4)
     state.season_ledger = _load_ledger(data.get("season_ledger"))
     state.season_snapshots = _load_snapshots(data.get("season_snapshots"))
+    saved_run = data.get("run_stats")  # GD-20/23/24: bad or missing values fall back to a fresh run's defaults
+    state.rewind_used, state.hard_lag_all_run, state.ironman_earned = False, True, False
+    state.actions_count, state.active_seconds, state.maxtier_actions, state.maxtier_seconds = 0, 0.0, None, None
+    if isinstance(saved_run, dict):
+        state.rewind_used = saved_run.get("rewind_used") is True
+        state.hard_lag_all_run = saved_run.get("hard_lag_all_run") is not False
+        state.ironman_earned = saved_run.get("ironman") is True
+        state.actions_count = _clamped_int(saved_run.get("actions"), 0, 10**6)
+        seconds = saved_run.get("seconds")
+        state.active_seconds = float(seconds) if isinstance(seconds, (int, float)) and not isinstance(seconds, bool) and 0 <= seconds < 1e8 else 0.0
+        mt_a, mt_s = saved_run.get("maxtier_actions"), saved_run.get("maxtier_seconds")
+        if isinstance(mt_a, int) and not isinstance(mt_a, bool) and 0 <= mt_a < 10**6 and isinstance(mt_s, (int, float)) and not isinstance(mt_s, bool) and 0 <= mt_s < 1e8:
+            state.maxtier_actions, state.maxtier_seconds = mt_a, float(mt_s)
     saved_balance = data.get("balance")  # GD-14
     state.balance_streak, state.season_invested = 0, set()
     if isinstance(saved_balance, dict):
@@ -5009,6 +5169,9 @@ def setup():
     name_input = document.getElementById("settlement-name-input")
     if name_input is not None:
         name_input.addEventListener("change", create_proxy(on_settlement_name_change))
+    rewind_button = document.getElementById("rewind-button")  # GD-20
+    if rewind_button is not None:
+        rewind_button.addEventListener("click", create_proxy(on_rewind))
     roll_button = document.getElementById("roll-name-button")  # GD-26
     if roll_button is not None:
         roll_button.addEventListener("click", create_proxy(on_roll_name))
