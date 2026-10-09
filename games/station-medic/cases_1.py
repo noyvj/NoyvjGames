@@ -1,0 +1,40 @@
+"""Chapter 1, Quiet Hours: signs only. Every condition on the sheet shows its own signs, so the work is reading the sheet and
+matching each patient to a cure that is on the shelf and not needed by someone else."""
+
+from casekit import P, S
+
+SHIFTS = [
+    S("1-1", "First Night", "Dr. Aurel's keys are still on the hook. The infirmary is dim and cold, and one cadet is waiting by the door. Read the sheet, match the signs, treat.",
+      "hollow vent drift", {"wrap": 1, "loz": 1},
+      [P("imre", "hollow", "I did not want to wake anyone. It just aches, here, like something is missing.")]),
+    S("1-2", "Two Complaints", "Two crew at once, and one lozenge between them. The sheet says who can have what.",
+      "vent coldh hollow", {"loz": 1, "gel": 1},
+      [P("maren", "vent", "It is the vents by bay four. I cough all through the watering."),
+       P("dov", "coldh", "My hands are fine. It is the gloves that are wrong.")]),
+    S("1-3", "Whose Is Whose", "A heat, and a blur around the lights. Both could take the gel. Only one can.",
+      "coil lampeye brine", {"gel": 1, "wrap": 1},
+      [P("teo", "coil", "Cannot sleep, cannot cool down. I told the soup it was not its fault."),
+       P("kit", "lampeye", "Every drone light has a halo. I named the halos. That is how bad it is.")]),
+    S("1-4", "Three at the Door", "The corridor lights flicker and three people come in together. Count the shelf before you pick.",
+      "drift ring brine coil", {"vials": 1, "gel": 1, "tonic": 1},
+      [P("orla", "drift", "The floor is tilting. I would prefer you did not mention that to anyone."),
+       P("pell", "ring", "There is a bell somewhere. Is there a bell? I surveyed a whole moon without a bell."),
+       P("halloran", "brine", "Cramps. Thirsty. It is the saltiest week of my life and I flew cargo.")]),
+    S("1-5", "The Slow Hour", "Three in a row, one cure each, nothing spare. The shelf has the answer if you read it slowly.",
+      "palew vent mothrash coldh", {"loz": 1, "gel": 1, "wrap": 1},
+      [P("yusra", "palew", "I keep nodding off at the console. The static does not mind."),
+       P("nell", "vent", "Cough. Nothing serious. I have already counted the lozenges, so do not give me the last one."),
+       P("kit", "mothrash", "Papery patches on my arms. I think the station is trying to shed me.")]),
+    S("1-6", "Long Corridor", "Four of them, and a shelf with four things on it. Somebody's first choice is somebody else's only choice.",
+      "coil emberrash ring lampeye hollow", {"gel": 1, "wrap": 1, "roll": 1, "vials": 1},
+      [P("maren", "coil", "A fever that sits behind my ribs. The tomatoes are fine, thank you for asking."),
+       P("dov", "emberrash", "Red patches by the galley wall. It is nothing. It is a rash. Give me the cream."),
+       P("teo", "ring", "A thin ringing. At three in the morning it sounds like someone asking for me."),
+       P("pell", "lampeye", "The lamps smear. I have been telling people they are very bright.")]),
+    S("1-7", "End of the Month", "The end of the month, and the shelf is nearly bare. Four people, four cures, one way round.",
+      "coldh hollow brine vent", {"loz": 1, "tonic": 1, "gel": 1, "wrap": 1},
+      [P("halloran", "coldh", "Numb fingers. I would not trust them with a joystick today."),
+       P("orla", "brine", "Cramps. I am told it is the salt. I am told many things."),
+       P("imre", "hollow", "The ache again. Do not tell anyone I came in twice."),
+       P("nell", "vent", "Back for the cough. I have recounted. The shelf is exactly one short of comfortable.")]),
+]
