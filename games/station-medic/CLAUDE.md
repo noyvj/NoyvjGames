@@ -31,7 +31,7 @@ See `planning/station-medic-plan.md` section 8 (the table is copied below and ke
 | 2 | Infirmary UI | ward, bedside panel, cabinet, sheet, log, result card, restore, save contract, favicon. Playable slice | Done |
 | 3 | Chapters 3-5, hints, record | 24 more shifts, hint ladder, three-goals strip, crew files, Record (codex) | Done |
 | 4 | Chapters 6-8 | 21 more shifts (60 in all), Tally, finale. First complete game | Done |
-| 5 | Standard kit | opening screen, tutorial, About with the fiction notice, What's New, keyboard help, confirm dialogs, light theme, accessibility pass | Planned |
+| 5 | Standard kit | opening screen, tutorial, About with the fiction notice, What's New, keyboard help, confirm dialogs, light theme, accessibility pass | Done |
 | 6 | Achievements | 14 achievements, panel, toast, manifest, reachability test | Planned |
 | 7 | Desktop boot and wrap-up | `pc-config.json`, `pc.css`, `pc.js`, generated `pc.html`, docs, changelog | Planned |
 
@@ -54,3 +54,7 @@ See `planning/station-medic-plan.md` section 8 (the table is copied below and ke
 - 60 shifts: 7, 8, 8, 8, 8, 8, 7, 6. Chapter 6 teaches shaking patients (bands from `band` on the shelf, Tally from 6-4: `robots=1` steadies one patient for free), chapter 7 two-condition patients (`maxc=2`, heavy clashes), chapter 8 mixes everything and its last shift closes the year.
 - Tally's five beats are told on the 1st, 4th, 8th, 12th and 16th shift where Tally is on duty (`codex.TALLY_AT`). Every crew member appears at least 13 times so all six of their beats are reachable (test).
 - `tests/test_whole_game.py` plays all 60 shifts with the hint ladder (all Clean), then fills the last Record pages, and expects all 14 achievements and a 100% Record: the game is completable from a clean save.
+
+## Milestone 5 notes
+- Standard kit: shared opening screen (Continue / New Game / Saves), a 9-step tutorial (`TUTORIAL_STEPS` in app.js, reopened from the Tutorial button; `window.stationMedicTutorialSteps` lets the Desktop boot swap in its own steps), About with the fiction notice and pledge, What's New + banner, keyboard help (1 to 4 pick a patient), confirm dialogs for Restore, Comfort care and the whole-game reset, story toggle on the story lines, light theme.
+- `tests/test_accessibility.py` computes contrast from the CSS variables in both themes and checks the shape/word cues (settled ring + dashed border + the word, seals with distinct borders, readings by border style, letters on shelves, struck-through ruled-out conditions).

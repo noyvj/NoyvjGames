@@ -11,8 +11,10 @@ Updated after every milestone. Read `planning/station-medic-plan.md`, `CLAUDE.md
 
 - M4 Chapters 6-8 (cases_6/7/8: 21 shifts, 60 in all), Tally beats, finale; every crew member has 13+ appearances; 77 tests incl. a whole-game test (all Clean, all 14 achievements, 100% Record); checked live (Tally steady, no horizontal scroll at 360).
 
+- M5 Standard kit: tutorial (9 steps + restart button + Desktop hook), confirm dialogs (restore, comfort, reset), keyboard help, light-theme list fix, accessibility tests; 91 tests; tutorial and light theme checked live.
+
 ## Next
-- M5 standard kit: tutorial (steps in app.js + the opening-screen offer already works), About already has the fiction notice, keyboard help, confirm dialogs (restore and reset exist), accessibility tests (contrast, shapes), light-theme check, What's New entry.
+- M6 achievements: achievements.json manifest, in-game panel + toast, test. (Old M5 note follows, now done) M5 standard kit: tutorial (steps in app.js + the opening-screen offer already works), About already has the fiction notice, keyboard help, confirm dialogs (restore and reset exist), accessibility tests (contrast, shapes), light-theme check, What's New entry.
 
 ## Open problems / notes
 - Local Python is 3.9: engine code avoids 3.10+ syntax.

@@ -36,6 +36,7 @@
     <h1>Station Medic</h1>
   </div>
   <div class="game-toolbar">
+    <button id="tutorial-restart-button" type="button" aria-label="Tutorial"><span class="btn-long">Tutorial</span><span class="btn-short" aria-hidden="true">Tour</span></button>
     <button id="shifts-toggle-button" type="button" aria-expanded="false" aria-controls="shifts-panel">Shifts</button>
     <button id="record-toggle-button" type="button" aria-expanded="false" aria-controls="record-panel">Record</button>
     <button id="changelog-toggle-button" type="button" aria-expanded="false" aria-controls="changelog-panel"><span class="btn-long">What's New</span><span class="btn-short" aria-hidden="true">News</span></button>
@@ -208,6 +209,11 @@
 <script src="../../shared/opening-screen.js" data-game-id="station-medic" data-game-name="Station Medic" data-tagline="A quiet infirmary. Nothing is timed."></script>
 <script src="../../shared/story-toggle.js" data-game-id="station-medic" data-story-selectors=".story-text"></script>
 <script src="../../shared/confirm-dialog.js"></script>
+<script>
+  // pc.js (the Desktop boot only) defines window.STATION_MEDIC_PC_TUTORIAL_STEPS, because the Classic walkthrough points at
+  // buttons the Desktop layout turns into icons and windows. app.js asks this function which steps to run.
+  window.stationMedicTutorialSteps = function (classicSteps) { return window.STATION_MEDIC_PC_TUTORIAL_STEPS || classicSteps; };
+</script>
 <script src="app.js"></script>
 <script src="../../shared/last-played.js" data-game-id="station-medic"></script>
 <script src="../../shared/whats-new-banner.js" data-game-id="station-medic"></script>
@@ -223,6 +229,7 @@
     ],
     extra: [
       "1 to 4: look at that patient",
+      "Tab through the scan and treatment buttons; Enter or Space to use one",
       "Esc: close the open panel",
     ],
   });

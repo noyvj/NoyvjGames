@@ -197,3 +197,8 @@ html[data-narrow="off"] .sheet li.ruled-out { opacity: 1; border-style: solid; }
 .record-list li.filed .rtext { color: var(--text); }
 .result-beats { list-style: none; margin: 0.4rem 0; padding: 0; text-align: left; font-size: 0.88rem; display: grid; gap: 0.3rem; }
 .result-beats li { border-left: 3px solid var(--accent); padding-left: 0.5rem; }
+
+/* The shared light theme styles bare lists; these lists are layout, not bulleted text. */
+html[data-theme="light"] ul.goals-list, html[data-theme="light"] ul.chips, html[data-theme="light"] ul.matches, html[data-theme="light"] ul.readings,
+html[data-theme="light"] ul.chart-notes, html[data-theme="light"] ul.cabinet, html[data-theme="light"] ul.sheet, html[data-theme="light"] ul.record-list,
+html[data-theme="light"] ul.shift-grid, html[data-theme="light"] ul.result-beats { list-style: none; padding-left: 0; margin-left: 0; }

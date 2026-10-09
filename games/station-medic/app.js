@@ -211,7 +211,9 @@
     if (care.robot) careRow.appendChild(actButton("", "Ask Tally to steady", "", care.robot.ok, care.robot.why, function () { act({ action: "robot", p: p.i }); }, "station-medic-robot"));
     if (care.isolate) careRow.appendChild(actButton("", "Move to the cold room", "", care.isolate.ok, care.isolate.why, function () { act({ action: "isolate", p: p.i }); }, "station-medic-isolate"));
     if (care.release) careRow.appendChild(actButton("", "Back to the ward", "", care.release.ok, care.release.why, function () { act({ action: "release", p: p.i }); }, "station-medic-release"));
-    careRow.appendChild(actButton("", "Comfort care", "(cost 1)", true, "", function () { act({ action: "comfort", p: p.i }); }, "station-medic-comfort"));
+    careRow.appendChild(actButton("", "Comfort care", "(cost 1)", true, "", function () {
+      askThen("station-medic-comfort", "Settle " + p.first + " with comfort care now? It costs 1 on this shift's seal. You can restore the shift afterwards if you change your mind.", "Settle them", function () { act({ action: "comfort", p: p.i }); });
+    }, "station-medic-comfort"));
   }
   function shelfCount(itemName) {
     var found = view.cabinet.items.filter(function (i) { return i.name === itemName; })[0];
@@ -483,6 +485,18 @@
     window.stationMedicRefresh = function () { if (engine) { shiftId = null; send({ action: "open" }); } };
   }
 
+  var TUTORIAL_STEPS = [
+    { title: "Welcome to the infirmary", text: "You are the only medic on Lowlight Station. Crew come in with signs, and you choose the scans and the treatments. Nothing is timed, and a bad call only costs a seal. This is a fiction game with invented conditions, not medical advice. Skip any time and reopen this from the Tutorial button." },
+    { selector: "#patients", title: "The ward", text: "Each person waiting is a card. Tap one to look at them. Their signs are on the card below: a patient shows all the signs of what they have." },
+    { selector: "#sheet-panel", title: "Today's sheet", text: "These are the conditions going round the ring this week: their signs, which scans read positive for them, and what cures them. If the sheet's conditions are dimmed, they cannot fit the patient you are looking at." },
+    { selector: "#bedside-actions", title: "Scan and treat", text: "A scan answers yes or no and uses a supply. A treatment uses a supply too. Treat only when one condition fits, or when one treatment cures every one that does. Chart notes forbid some treatments." },
+    { selector: "#cabinet-panel", title: "The cabinet", text: "Each shelf has a letter and a count. It restocks between shifts, and some shelves serve two jobs. If you are short, you can borrow a spare for a cost of 1." },
+    { selector: "#restore-button", title: "Restore", text: "A bad call costs a seal, never a person: the patient is settled later by Tally's night round. You can restore the shift to its start at any time, for free, and try a different plan." },
+    { selector: "#goals", title: "Your goals", text: "Three goals stay in view, in any order. Every scan, treatment and hint counts toward something on the screen." },
+    { selector: "#record-toggle-button", title: "The Record", text: "Every condition you cure, every scan and treatment you use and every crew story you hear is filed in the Record. Nothing is missable." },
+    { title: "You are ready", text: "Take your time. Your seals and records are saved as you go." }
+  ];
+
   async function boot() {
     var changelog = loadChangelog();
     var pyodide = await window.loadPyodide();
@@ -501,6 +515,7 @@
     $("engine-status").textContent = "";
     send({ action: "open" });
     await changelog;
+    if (window.GameTutorial) window.GameTutorial.init(window.stationMedicTutorialSteps ? window.stationMedicTutorialSteps(TUTORIAL_STEPS) : TUTORIAL_STEPS, { gameId: "station-medic" });
   }
 
   wire();
