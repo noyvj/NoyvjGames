@@ -32,7 +32,7 @@ See `planning/station-medic-plan.md` section 8 (the table is copied below and ke
 | 3 | Chapters 3-5, hints, record | 24 more shifts, hint ladder, three-goals strip, crew files, Record (codex) | Done |
 | 4 | Chapters 6-8 | 21 more shifts (60 in all), Tally, finale. First complete game | Done |
 | 5 | Standard kit | opening screen, tutorial, About with the fiction notice, What's New, keyboard help, confirm dialogs, light theme, accessibility pass | Done |
-| 6 | Achievements | 14 achievements, panel, toast, manifest, reachability test | Planned |
+| 6 | Achievements | 14 achievements, panel, toast, manifest, reachability test | Done |
 | 7 | Desktop boot and wrap-up | `pc-config.json`, `pc.css`, `pc.js`, generated `pc.html`, docs, changelog | Planned |
 
 ## Working conventions
@@ -58,3 +58,6 @@ See `planning/station-medic-plan.md` section 8 (the table is copied below and ke
 ## Milestone 5 notes
 - Standard kit: shared opening screen (Continue / New Game / Saves), a 9-step tutorial (`TUTORIAL_STEPS` in app.js, reopened from the Tutorial button; `window.stationMedicTutorialSteps` lets the Desktop boot swap in its own steps), About with the fiction notice and pledge, What's New + banner, keyboard help (1 to 4 pick a patient), confirm dialogs for Restore, Comfort care and the whole-game reset, story toggle on the story lines, light theme.
 - `tests/test_accessibility.py` computes contrast from the CSS variables in both themes and checks the shape/word cues (settled ring + dashed border + the word, seals with distinct borders, readings by border style, letters on shelves, struck-through ruled-out conditions).
+
+## Milestone 6 notes
+- `achievements.json` (the hub manifest) is generated from `achievements.py` and a test keeps them equal. The panel shows a number on every achievement (earned, or have/need), a toast announces a new one (also to screen readers), and `achievements_earned` is written to the save and never read back. `test_whole_game.py` proves all 14 can be earned and the Record filled from a clean save.

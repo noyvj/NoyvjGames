@@ -1,0 +1,74 @@
+{
+  "achievements": [
+    {
+      "id": "first_shift",
+      "label": "First Shift",
+      "description": "Finish your first shift."
+    },
+    {
+      "id": "ten_shifts",
+      "label": "Ten Shifts",
+      "description": "Finish 10 shifts."
+    },
+    {
+      "id": "chapter_closed",
+      "label": "Chapter Closed",
+      "description": "Finish every shift of one chapter."
+    },
+    {
+      "id": "halfway_round",
+      "label": "Halfway Round",
+      "description": "Finish every shift of 4 chapters."
+    },
+    {
+      "id": "long_night",
+      "label": "The Long Night",
+      "description": "Finish every shift."
+    },
+    {
+      "id": "clean_hands",
+      "label": "Clean Hands",
+      "description": "Earn 5 Clean seals."
+    },
+    {
+      "id": "steady_work",
+      "label": "Steady Work",
+      "description": "Earn 25 Clean seals."
+    },
+    {
+      "id": "spotless_ward",
+      "label": "Spotless Ward",
+      "description": "Earn a Clean seal on every shift."
+    },
+    {
+      "id": "careful_eyes",
+      "label": "Careful Eyes",
+      "description": "Run 20 scans."
+    },
+    {
+      "id": "door_closed",
+      "label": "Door Closed",
+      "description": "Earn 3 Clean seals on shifts that use the cold room."
+    },
+    {
+      "id": "tallys_friend",
+      "label": "Tally's Friend",
+      "description": "Earn 5 Clean seals on shifts where Tally is on duty."
+    },
+    {
+      "id": "pages_filled",
+      "label": "Pages Filled",
+      "description": "File half of the Record."
+    },
+    {
+      "id": "whole_record",
+      "label": "The Whole Record",
+      "description": "File every page of the Record."
+    },
+    {
+      "id": "quiet_company",
+      "label": "Quiet Company",
+      "description": "Hear every crew story to its last page."
+    }
+  ]
+}

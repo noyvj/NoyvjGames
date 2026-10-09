@@ -13,8 +13,10 @@ Updated after every milestone. Read `planning/station-medic-plan.md`, `CLAUDE.md
 
 - M5 Standard kit: tutorial (9 steps + restart button + Desktop hook), confirm dialogs (restore, comfort, reset), keyboard help, light-theme list fix, accessibility tests; 91 tests; tutorial and light theme checked live.
 
+- M6 Achievements: achievements.json, panel + toast, manifest test; 97 tests; toast and panel checked live.
+
 ## Next
-- M6 achievements: achievements.json manifest, in-game panel + toast, test. (Old M5 note follows, now done) M5 standard kit: tutorial (steps in app.js + the opening-screen offer already works), About already has the fiction notice, keyboard help, confirm dialogs (restore and reset exist), accessibility tests (contrast, shapes), light-theme check, What's New entry.
+- M7 Desktop boot: pc-config.json, pc.css, pc.js (Desktop tutorial), generated pc.html (this game only), desktop tests, docs. (Old M5 note follows, now done) M5 standard kit: tutorial (steps in app.js + the opening-screen offer already works), About already has the fiction notice, keyboard help, confirm dialogs (restore and reset exist), accessibility tests (contrast, shapes), light-theme check, What's New entry.
 
 ## Open problems / notes
 - Local Python is 3.9: engine code avoids 3.10+ syntax.
