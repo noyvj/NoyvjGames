@@ -58,6 +58,8 @@ ELEMENT_IDS = [
     "session-summary-panel",
     "session-summary-text",
     "net-funds-chip",
+    "chess-toggle-button",
+    "chess-text",
     "brace-panel",
     "brace-text",
     "storm-result",

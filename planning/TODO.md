@@ -1,6 +1,6 @@
 # Site-Wide TODO (round 3)
 
-**Progress: 560/1095 items checked off (51.1%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land.
+**Progress: 561/1095 items checked off (51.2%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land.
 
 Built from your answers in `planning/IMPROVEMENT-IDEAS-ROUND-3.md` (Part 4). Every Round 3 section is now answered (2026-10-07 below the Warframe section); earlier this list held only: **GB** (Canopy gamified), **M** (new games), **N** (seasonal events), **O** (Trade Empire and Continuum replayability), **P/Q/S/T** (Signal, Undersleep, Overclock, Last Line open questions), **X** (Warframe tracker) and **R** (returning later). GC-GI, A-L, U, Z and Y are unanswered and wait for you. The previous list is archived at `planning/todo-archive/260914_260927.md`; anything from it that was moved here is marked "moved" there.
 
@@ -396,7 +396,7 @@ Your remaining Round 3 answers (Grid to Drift gamified, SOL to Le Champ de Mots,
 - [x] D-31: Restyle Tide's achievement cards: a coral or wave glyph per earned badge, a coral-reef accent border from the coastline art, and a brief ripple on unlock.
 - [ ] GD-2: Build Tide's Harbor Charter as a skill tree: finishing runs and achievements earn Charter Marks spent on permanent Tide-only unlocks (starting sandbag tier, second monitor charge, cosmetic pier styles); stored per-browser in Tide's own localStorage. (needs W-3) [reframe: Run-based meta reframed as a skill tree per W-3. The 'new starting Edict slot' unlock is dropped because GD-1 (Edicts) was declined.]
 - [x] GD-3: Add a Storm Season boss fight to Tide: forecast shows surge height, player gets two seasons to pre-commit funds to a brace allocation (barriers, evacuate heritage, stockpile), then a wave-crash animation on the grid and a tiered result (Shrugged Off / Battered / Breached).
-- [ ] GD-4: Add a 'Tidal Chess' challenge mode to Tide: fish lag plus a new runoff lag (industry pollution feeds acidity 2 seasons late) both active, only the fish-yield warning visible, scored on how few seasons dip below FISH_YIELD_WARNING_THRESHOLD. (needs W-1 (optional, as a level-select mode))
+- [x] GD-4: Add a 'Tidal Chess' challenge mode to Tide: fish lag plus a new runoff lag (industry pollution feeds acidity 2 seasons late) both active, only the fish-yield warning visible, scored on how few seasons dip below FISH_YIELD_WARNING_THRESHOLD. (needs W-1 (optional, as a level-select mode))
 - [ ] GD-5: Add a Daily Tide seed to Tide: a once-a-day fixed run (sea scenario and storm timing seeded by UTC date) with a shareable result line like 'Day 14: 11 seasons, 2 rows lost, 1 site saved'; optional opt-in daily board. (needs W-5 (optional))
 - [ ] GD-6: Add rival neighbour towns to Tide: a computer-run settlement on a fixed strategy (greedy industrialist, cautious wall-builder, diversifier) shown as a faint second coastline strip; beating each rival's final population/funds unlocks that strategy as a starting preset.
 - [ ] GD-7: Add a Reef Builder side-board to Tide: a 3x4 reef plot under the coastline where Reduction points plant coral tiles that grow, soften storm surge and boost adjacent fish yield, with adjacency bonuses and bleaching when acidity spikes; reuse the grid renderer.

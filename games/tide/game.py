@@ -94,6 +94,11 @@ BRACE_STEP = 10
 BARRIER_FUNDS_PER_SURGE = 5
 EVACUATE_COST = 25
 STORM_RESULT_TIERS = ((0.15, "Shrugged Off"), (0.5, "Battered"), (10**9, "Breached"))
+# GD-4 (2026-10-09): Tidal Chess. A challenge mode: on top of the fish lag, industry runoff reaches the water RUNOFF_LAG
+# seasons late (a second delay), the acidity readouts are hidden and only the fish warning stays visible. The score is how
+# few seasons the fish yield dipped to the warning level. It can only be switched on before the first season.
+CHESS_RUNOFF_LAG = 2
+CHESS_RUNOFF_SHARE = 0.5  # share of each Output unit's normal acidity that arrives as late runoff instead of at once
 # GD-27: a heritage site protected when its row would flood within this many seasons counts as a last-second rescue.
 RESCUE_WITHIN_SEASONS = 1
 HERITAGE_UNPROTECTED = "unprotected"
@@ -502,6 +507,10 @@ class SettlementState:
         self.maxtier_seconds = None
         # GD-18: ids of the critters the player has clicked into the Sightings list.
         self.sightings = []
+        # GD-4: Tidal Chess mode, the runoff still on its way, and seasons the fish yield sat at the warning level.
+        self.chess_mode = False
+        self.runoff_queue = []
+        self.chess_dips = 0
         # GD-3: funds committed to brace for the next storm, and how the last storm ended.
         self.brace = {"barriers": 0, "stockpile": 0, "evacuate": False}
         self.last_storm_result = ""
@@ -861,7 +870,16 @@ class SettlementState:
         )
 
     def workshop_active(self):
-        return any(self.workshop[k] != WORKSHOP_DEFAULTS[k] for k in WORKSHOP_DEFAULTS)
+        """True for any run with non-standard rules: Workshop dials or the Tidal Chess challenge."""
+        return self.chess_mode or any(self.workshop[k] != WORKSHOP_DEFAULTS[k] for k in WORKSHOP_DEFAULTS)
+
+    def set_chess_mode(self, enabled):
+        if self.season > 1 and enabled != self.chess_mode:
+            return False  # only before the first season resolves, so the score is comparable
+        self.chess_mode = bool(enabled)
+        if not self.chess_mode:
+            self.runoff_queue, self.chess_dips = [], 0
+        return True
 
     def sea_rise_per_season(self):
         return SEA_SCENARIOS[self.sea_scenario]["rise"] * self.workshop["rise"]
@@ -1645,8 +1663,14 @@ class SettlementState:
         rows_flooded_before = flooded_row_count(self.sea_level)
         self.max_funds_ever = max(self.max_funds_ever, self.funds)
 
+        output_rise = self.capacity["output"] * ACIDITY_RISE_PER_OUTPUT * mix["acidity_multiplier"]
+        if self.chess_mode:  # GD-4: half the output acidity arrives CHESS_RUNOFF_LAG seasons late
+            late = output_rise * CHESS_RUNOFF_SHARE
+            self.runoff_queue.append(late)
+            arriving = self.runoff_queue.pop(0) if len(self.runoff_queue) > CHESS_RUNOFF_LAG else 0.0
+            output_rise = output_rise - late + arriving
         acidity_change = (
-            self.capacity["output"] * ACIDITY_RISE_PER_OUTPUT * mix["acidity_multiplier"]
+            output_rise
             - self.capacity["reduction"] * ACIDITY_FALL_PER_REDUCTION
         )
         acidity_start = self.acidity  # D-28
@@ -1686,7 +1710,7 @@ class SettlementState:
             "acidity": {
                 "from": acidity_start, "to": self.acidity,
                 "parts": [
-                    ("Output pushing acidity up", self.capacity["output"] * ACIDITY_RISE_PER_OUTPUT * mix["acidity_multiplier"]),
+                    ("Output pushing acidity up", output_rise),
                     ("Reduction pulling it down", -self.capacity["reduction"] * ACIDITY_FALL_PER_REDUCTION),
                 ],
             },
@@ -1716,6 +1740,8 @@ class SettlementState:
         new_fish_yield = self.fish_yield_multiplier()
         self.fish_yield_history.append(new_fish_yield)
         self.min_fish_yield_ever = min(self.min_fish_yield_ever, new_fish_yield)
+        if self.chess_mode and new_fish_yield <= FISH_YIELD_WARNING_THRESHOLD:  # GD-4
+            self.chess_dips += 1
         self._record_ledger_entry(self.season - 1, damage_this_season, new_fish_yield)
         self._record_snapshot(self.season - 1)
 
@@ -5342,6 +5368,30 @@ def on_brace_button(kind):
     return handler
 
 
+def chess_text():
+    if not state.chess_mode:
+        return "Tidal Chess is off. Turn it on before the first season for a runoff delay on top of the fish lag, with the acidity readouts hidden."
+    return (f"Tidal Chess: runoff reaches the water {CHESS_RUNOFF_LAG} seasons late and only the fish warning is shown. "
+            f"Seasons with the fish at the warning level: {state.chess_dips} (fewer is better).")
+
+
+def on_toggle_chess(event=None):
+    state.set_chess_mode(not state.chess_mode)
+    render()
+
+
+def render_chess():
+    toggle, text = document.getElementById("chess-toggle-button"), document.getElementById("chess-text")
+    if toggle is not None:
+        toggle.innerText = "Tidal Chess: On (turn off)" if state.chess_mode else "Tidal Chess: Off (turn on)"
+        toggle.disabled = state.season > 1
+    if text is not None:
+        text.innerText = chess_text()
+    root = getattr(document, "documentElement", None)
+    if root is not None and hasattr(root, "setAttribute"):
+        root.setAttribute("data-tidal-chess", "on" if state.chess_mode else "off")
+
+
 def render_tide_oct9():
     render_afford()
     render_goal()
@@ -5358,6 +5408,7 @@ def render_tide_oct9():
     render_postcard()
     render_acid_boss()
     render_brace()
+    render_chess()
 
 
 def render():
@@ -5760,6 +5811,7 @@ def get_state():
         }} if (state.rewind_used or state.ironman_earned or state.actions_count or not state.hard_lag_all_run) else {}),  # GD-20/23/24
         **({"sightings": list(state.sightings)} if state.sightings else {}),  # GD-18
         **({"crew": list(state.crew)} if state.crew else {}),  # GD-11
+        **({"chess": {"on": state.chess_mode, "runoff": list(state.runoff_queue), "dips": state.chess_dips}} if state.chess_mode else {}),  # GD-4
         **({"brace": dict(state.brace), "storm_result": state.last_storm_result}
            if (state.brace["barriers"] or state.brace["stockpile"] or state.brace["evacuate"] or state.last_storm_result) else {}),  # GD-3
         **({"acid_boss": {"mode": state.acid_boss_mode, "braced": state.acid_braced, "result": state.acid_boss_result}}
@@ -6090,6 +6142,15 @@ def load_state(data):
         state.brace["evacuate"] = saved_brace.get("evacuate") is True
     result = data.get("storm_result")
     state.last_storm_result = result if result in [label for _l, label in STORM_RESULT_TIERS] else ""
+    saved_chess = data.get("chess")  # GD-4: bad values leave Tidal Chess off
+    state.chess_mode, state.runoff_queue, state.chess_dips = False, [], 0
+    if isinstance(saved_chess, dict) and saved_chess.get("on") is True:
+        state.chess_mode = True
+        queue = saved_chess.get("runoff")
+        if isinstance(queue, list):
+            state.runoff_queue = [float(x) for x in queue[:CHESS_RUNOFF_LAG + 1]
+                                  if isinstance(x, (int, float)) and not isinstance(x, bool) and 0 <= x < 10**6]
+        state.chess_dips = _clamped_int(saved_chess.get("dips"), 0, 10**4)
     saved_crew = data.get("crew")  # GD-11: unknown ids, repeats and anything past the cap are dropped
     state.crew = []
     if isinstance(saved_crew, list):
@@ -6298,6 +6359,9 @@ def setup():
         brace_button = document.getElementById(f"brace-{brace_kind}-button")
         if brace_button is not None:
             brace_button.addEventListener("click", create_proxy(on_brace_button(brace_kind)))
+    chess_toggle = document.getElementById("chess-toggle-button")  # GD-4
+    if chess_toggle is not None:
+        chess_toggle.addEventListener("click", create_proxy(on_toggle_chess))
     acid_toggle = document.getElementById("acid-boss-toggle-button")  # GD-12
     if acid_toggle is not None:
         acid_toggle.addEventListener("click", create_proxy(on_toggle_acid_boss))

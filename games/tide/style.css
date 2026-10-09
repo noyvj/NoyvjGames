@@ -1845,6 +1845,11 @@ html[data-reduced-motion="true"] .achievement-toast--ripple { animation: none; }
 @media (prefers-reduced-motion: reduce) { .storm-crash { animation: none; } }
 html[data-reduced-motion="true"] .storm-crash { animation: none; }
 
+/* GD-4 (2026-10-09): Tidal Chess hides the acidity readouts; only the fish warning stays. */
+html[data-tidal-chess="on"] #acidity-display, html[data-tidal-chess="on"] #acidity-past-display, html[data-tidal-chess="on"] #acidity-bar,
+html[data-tidal-chess="on"] #quiet-seasons-display, html[data-tidal-chess="on"] #why-acidity-button, html[data-tidal-chess="on"] #delayed-consequence-graph,
+html[data-tidal-chess="on"] #delayed-consequence-text { display: none !important; }
+
 /* ============================================================
    Y11b light-theme polish (2026-09-27). Light-only rules from a
    computed-style WCAG contrast scan of the light theme (fresh game, 46

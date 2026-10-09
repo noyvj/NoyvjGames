@@ -1586,3 +1586,62 @@ def test_panel_text_buttons_and_state_round_trip(game_env):
     s.set_storm_mode(False)
     m.render()
     assert game_env.elements["brace-panel"].hidden is True
+
+
+# ---- GD-4 Tidal Chess ----
+
+def test_chess_can_only_be_switched_on_before_the_first_season(game_env):
+    m = game_env.module
+    s = m.state
+    assert s.set_chess_mode(True) is True and s.workshop_active() is True
+    s.advance_season()
+    assert s.set_chess_mode(False) is False and s.chess_mode is True
+
+
+def test_half_the_output_acidity_arrives_two_seasons_late(game_env):
+    m = game_env.module
+    s = m.state
+    s.set_chess_mode(True)
+    s.capacity["output"] = 4
+    full = 4 * m.ACIDITY_RISE_PER_OUTPUT
+    s.advance_season()
+    assert s.acidity == pytest.approx(full * (1 - m.CHESS_RUNOFF_SHARE))
+    s.advance_season()
+    s.advance_season()
+    # the first season's late share has now arrived on top of this season's immediate share
+    assert s.acidity_history[2] - s.acidity_history[1] == pytest.approx(full * (1 - m.CHESS_RUNOFF_SHARE) + full * m.CHESS_RUNOFF_SHARE)
+
+
+def test_dips_are_counted_and_the_acidity_readouts_are_hidden_by_attribute(game_env):
+    m = game_env.module
+    s = m.state
+    s.set_chess_mode(True)
+    s.acidity_history = [40.0] * 6
+    s.advance_season()
+    assert s.chess_dips >= 1
+    m.render()
+    assert "fewer is better" in game_env.elements["chess-text"].innerText
+    root = getattr(m.document, "documentElement", None)
+    if root is not None:
+        assert root.getAttribute("data-tidal-chess") == "on"
+    assert game_env.elements["chess-toggle-button"].disabled is True
+
+
+def test_chess_saves_and_validates_and_stays_out_of_the_almanac(game_env, storage):
+    m = game_env.module
+    s = m.state
+    assert "chess" not in m.get_state()
+    s.set_chess_mode(True)
+    s.runoff_queue, s.chess_dips = [1.5, 2.5], 3
+    saved = m.get_state()
+    s.chess_mode, s.runoff_queue, s.chess_dips = False, [], 0
+    m.load_state(saved)
+    assert s.chess_mode and s.runoff_queue == [1.5, 2.5] and s.chess_dips == 3
+    saved["chess"] = {"on": "yes", "runoff": [1], "dips": 5}
+    m.load_state(saved)
+    assert s.chess_mode is False and s.runoff_queue == [] and s.chess_dips == 0
+    s.set_chess_mode(True)
+    for _ in range(3):
+        s.advance_season()
+    m.render()
+    assert m.almanac["seasons"] == 0
