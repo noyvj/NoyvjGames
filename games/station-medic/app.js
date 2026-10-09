@@ -2,7 +2,7 @@
    and forwards what the player does. No game logic lives here. */
 (function () {
   "use strict";
-  var ENGINE_MODULES = ["lexicon.py", "cast.py", "shift.py", "solver.py", "casekit.py", "cases_1.py", "cases_2.py", "cases_3.py", "cases_4.py", "cases_5.py", "cases.py", "progress.py", "codex.py", "achievements.py", "render.py", "hints.py", "info.py"];
+  var ENGINE_MODULES = ["lexicon.py", "cast.py", "shift.py", "solver.py", "casekit.py", "cases_1.py", "cases_2.py", "cases_3.py", "cases_4.py", "cases_5.py", "cases_6.py", "cases_7.py", "cases_8.py", "cases.py", "progress.py", "codex.py", "achievements.py", "render.py", "hints.py", "info.py"];
   var STORE_KEY = "station-medic:state";
   var BACKUP_KEY = "station-medic:state-backup";
 

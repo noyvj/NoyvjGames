@@ -9,8 +9,10 @@ Updated after every milestone. Read `planning/station-medic-plan.md`, `CLAUDE.md
 
 - M3 Chapters 3-5 (cases_3/4/5: 24 shifts, 39 in all), cast beats + codex.py (the Record), achievements.py facts + goals strip, Record panel; 72 tests; checked live (cold room, goals, Record counts).
 
+- M4 Chapters 6-8 (cases_6/7/8: 21 shifts, 60 in all), Tally beats, finale; every crew member has 13+ appearances; 77 tests incl. a whole-game test (all Clean, all 14 achievements, 100% Record); checked live (Tally steady, no horizontal scroll at 360).
+
 ## Next
-- M4: chapters 6-8 (21 shifts: shaking patients and bands, Tally robots=1, two-condition patients with maxc=2, the finale), Tally beats, make every crew member reach 13 appearances (BEAT_AT), update tests (60 shifts, Record reachable).
+- M5 standard kit: tutorial (steps in app.js + the opening-screen offer already works), About already has the fiction notice, keyboard help, confirm dialogs (restore and reset exist), accessibility tests (contrast, shapes), light-theme check, What's New entry.
 
 ## Open problems / notes
 - Local Python is 3.9: engine code avoids 3.10+ syntax.

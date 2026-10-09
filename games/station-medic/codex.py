@@ -28,8 +28,8 @@ def _assign():
 
 
 BEATS_BY_SHIFT, APPEARANCES = _assign()
-# Tally's beats are told on the 1st, 4th, 8th, 12th and 17th shift where it is on duty
-TALLY_AT = (0, 3, 7, 11, 16)
+# Tally's beats are told on the 1st, 4th, 8th, 12th and 16th shift where it is on duty
+TALLY_AT = (0, 3, 7, 11, 15)
 ROBOT_SHIFTS = [d["id"] for d in cases.ALL if d.get("robots")]
 TALLY_BY_SHIFT = {ROBOT_SHIFTS[i]: k for k, i in enumerate(TALLY_AT) if i < len(ROBOT_SHIFTS)}
 NOTE_SHIFTS = [c["shifts"] for c in progress.CHAPTERS]

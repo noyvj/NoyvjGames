@@ -30,7 +30,7 @@ See `planning/station-medic-plan.md` section 8 (the table is copied below and ke
 | 1 | Engine | lexicon, shift rules, solver, chapters 1-2 (15 shifts), tests | Done |
 | 2 | Infirmary UI | ward, bedside panel, cabinet, sheet, log, result card, restore, save contract, favicon. Playable slice | Done |
 | 3 | Chapters 3-5, hints, record | 24 more shifts, hint ladder, three-goals strip, crew files, Record (codex) | Done |
-| 4 | Chapters 6-8 | 21 more shifts (60 in all), Tally, finale. First complete game | Planned |
+| 4 | Chapters 6-8 | 21 more shifts (60 in all), Tally, finale. First complete game | Done |
 | 5 | Standard kit | opening screen, tutorial, About with the fiction notice, What's New, keyboard help, confirm dialogs, light theme, accessibility pass | Planned |
 | 6 | Achievements | 14 achievements, panel, toast, manifest, reachability test | Planned |
 | 7 | Desktop boot and wrap-up | `pc-config.json`, `pc.css`, `pc.js`, generated `pc.html`, docs, changelog | Planned |
@@ -49,3 +49,8 @@ See `planning/station-medic-plan.md` section 8 (the table is copied below and ke
 - Chapters: 1 Quiet Hours (7), 2 The Second Look (8), 3 Chart Notes (8, `cases_3.py`), 4 Shared Shelves (8, roll and vials serve a scan and a treatment), 5 The Cold Room (8, beds). Stocks were found with `tools/shrink.py` and written with `tools/setstock.py`; every shift must have at least one tight shelf (test).
 - The Record (`codex.py`): conditions (first cured), scans (first run), treatments (first cure), crew files (a beat is told when the shift it belongs to is done; beat k belongs to that crew member's `cast.BEAT_AT[k]`-th appearance in authored order), Tally's beats (shifts with robots), station notes (a chapter's shifts all done). All derived from `best`, `cured`, `cures`, `tests` in the save. Opens with the fiction notice.
 - `achievements.py` holds the 14 achievements (facts, need, chapter gate) and `goals()` (the three always-visible, any-order goals); the in-game panel, toast and `achievements.json` manifest arrive in milestone 6. `achievements_earned` is already written to the save and never read back.
+
+## Milestone 4 notes
+- 60 shifts: 7, 8, 8, 8, 8, 8, 7, 6. Chapter 6 teaches shaking patients (bands from `band` on the shelf, Tally from 6-4: `robots=1` steadies one patient for free), chapter 7 two-condition patients (`maxc=2`, heavy clashes), chapter 8 mixes everything and its last shift closes the year.
+- Tally's five beats are told on the 1st, 4th, 8th, 12th and 16th shift where Tally is on duty (`codex.TALLY_AT`). Every crew member appears at least 13 times so all six of their beats are reachable (test).
+- `tests/test_whole_game.py` plays all 60 shifts with the hint ladder (all Clean), then fills the last Record pages, and expects all 14 achievements and a 100% Record: the game is completable from a clean save.
