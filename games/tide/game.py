@@ -61,6 +61,17 @@ SPEEDRUN_KEY = "tide_speedrun_v1"
 MARKET_EVERY = 4
 MARKET_DIP_FACTOR = 0.9
 MARKET_KINDS = ("export", "tourism", "insurance")
+# GD-11 (2026-10-09): crew and specialists. Up to CREW_MAX can be hired at once; each has a one-off fee and a wage every season.
+CREW = {
+    "biologist": {"name": "Marine Biologist", "effect": "fish lag one season shorter"},
+    "engineer": {"name": "Harbor Engineer", "effect": "adaptation costs 15% less"},
+    "broker": {"name": "Broker", "effect": "Trade Winds deals pay 30% more and leave a lighter dip"},
+}
+CREW_MAX = 3
+CREW_HIRE_COST = 60
+CREW_WAGE = 5
+ENGINEER_DISCOUNT = 0.15
+BROKER_GAIN_BONUS = 0.30
 # GD-27: a heritage site protected when its row would flood within this many seasons counts as a last-second rescue.
 RESCUE_WITHIN_SEASONS = 1
 HERITAGE_UNPROTECTED = "unprotected"
@@ -469,6 +480,8 @@ class SettlementState:
         self.maxtier_seconds = None
         # GD-18: ids of the critters the player has clicked into the Sightings list.
         self.sightings = []
+        # GD-11: the specialists on the payroll.
+        self.crew = []
         # GD-8: the deal on the table right now ({"kind", "gain", "season"} or None), how many deals were accepted,
         # and the seasons of slower income an accepted deal can leave behind.
         self.market_event = None
@@ -789,12 +802,15 @@ class SettlementState:
         event = self.market_event
         if not event:
             return ""
-        gain = event["gain"]
+        broker = "broker" in self.crew  # GD-11: the Broker's better terms are shown before you decide
+        gain = event["gain"] * (1 + BROKER_GAIN_BONUS) if broker else event["gain"]
         if event["kind"] == "export":
             return f"Trade Winds: a fish-export contract pays {gain:.0f} funds now, but the extra boats push acidity up by 0.6."
         if event["kind"] == "tourism":
-            return f"Trade Winds: a tourism boom pays {gain:.0f} funds now, but overstretched hosts cut next season's income by 10%."
-        return f"Trade Winds: an insurance payout of {gain:.0f} funds is on offer, but the premium cuts the next two seasons' income by 10%."
+            dip = "and your Broker keeps hosts from being overstretched, so there is no income dip." if broker else "but overstretched hosts cut next season's income by 10%."
+            return f"Trade Winds: a tourism boom pays {gain:.0f} funds now, {dip}"
+        dip = "the premium cuts next season's income by 10%." if broker else "the premium cuts the next two seasons' income by 10%."
+        return f"Trade Winds: an insurance payout of {gain:.0f} funds is on offer, but {dip}"
 
     def market_telegraph_text(self):
         if self.market_event is None and self.season % MARKET_EVERY == MARKET_EVERY - 1:
@@ -830,6 +846,8 @@ class SettlementState:
         if not accept:
             self._log_ticker("Trade Winds: you declined the deal.")
             return True
+        if "broker" in self.crew:  # GD-11: better terms
+            event = dict(event, gain=round(event["gain"] * (1 + BROKER_GAIN_BONUS), 1))
         self.funds += event["gain"]
         self.max_funds_ever = max(self.max_funds_ever, self.funds)
         self.market_accepted += 1
@@ -837,9 +855,9 @@ class SettlementState:
             self.acidity += 0.6
             self.max_acidity_ever = max(self.max_acidity_ever, self.acidity)
         elif event["kind"] == "tourism":
-            self.income_dip_seasons = max(self.income_dip_seasons, 1)
+            self.income_dip_seasons = max(self.income_dip_seasons, 0 if "broker" in self.crew else 1)
         else:
-            self.income_dip_seasons = max(self.income_dip_seasons, 2)
+            self.income_dip_seasons = max(self.income_dip_seasons, 1 if "broker" in self.crew else 2)
         self._log_ticker(f"Trade Winds: you took the {event['kind']} deal (+{event['gain']:.0f} funds).")
         self._chronicle_event(f"A trader's {event['kind']} deal was accepted.")
         return True
@@ -847,9 +865,12 @@ class SettlementState:
     def invest_cost(self, category):
         """The price now: the base cost, with the adaptation discount while a domino comeback is running."""
         base = INVEST_COST[category]
+        factor = 1.0
         if category == "adaptation" and self.domino_seasons_left > 0:
-            return int(math.ceil(base * (1 - DOMINO_DISCOUNT)))
-        return base
+            factor *= 1 - DOMINO_DISCOUNT
+        if category == "adaptation" and "engineer" in self.crew:  # GD-11
+            factor *= 1 - ENGINEER_DISCOUNT
+        return int(math.ceil(base * factor)) if factor != 1.0 else base
 
     def balance_multiplier(self):
         """The income multiplier the next Advance Season will use, given this season's investments so far."""
@@ -916,8 +937,26 @@ class SettlementState:
 
     def _effective_fish_lag(self):
         """D9: which lag length is currently live -- the hard-mode toggle
-        only ever changes this lookup, never acidity_history itself."""
-        return FISH_LAG_SEASONS_HARD if self.hard_lag_mode else FISH_LAG_SEASONS
+        only ever changes this lookup, never acidity_history itself. GD-11: a Marine Biologist shortens it by one season."""
+        lag = FISH_LAG_SEASONS_HARD if self.hard_lag_mode else FISH_LAG_SEASONS
+        return max(1, lag - 1) if "biologist" in self.crew else lag
+
+    # ---- GD-11 crew ------------------------------------------------------
+    def hire(self, crew_id):
+        if crew_id not in CREW or crew_id in self.crew or len(self.crew) >= CREW_MAX or self.funds < CREW_HIRE_COST:
+            return False
+        self.funds -= CREW_HIRE_COST
+        self.crew.append(crew_id)
+        self._log_ticker(f"Hired a {CREW[crew_id]['name']}: {CREW[crew_id]['effect']} (wage {CREW_WAGE} a season).")
+        self._chronicle_event(f"A {CREW[crew_id]['name'].lower()} joined the harbour crew.")
+        return True
+
+    def dismiss(self, crew_id):
+        if crew_id not in self.crew:
+            return False
+        self.crew.remove(crew_id)
+        self._log_ticker(f"The {CREW[crew_id]['name']} was let go.")
+        return True
 
     def fish_yield_multiplier(self):
         """1.0 (full yield) until enough seasons have passed for the lag
@@ -1521,6 +1560,9 @@ class SettlementState:
         funds_before_upkeep = self.funds  # D-28
         self._update_heritage()
         upkeep_paid = funds_before_upkeep - self.funds
+        wages_before = self.funds
+        self.funds = max(0.0, self.funds - CREW_WAGE * len(self.crew))  # GD-11
+        wages_paid = wages_before - self.funds
         self._update_population()
         funds_before_storm = self.funds
         if self.storm_this_season():
@@ -1541,6 +1583,7 @@ class SettlementState:
                     ("Tourism", tourism_income * multiplier),
                     ("Aquaculture", aquaculture_income * multiplier),
                     ("Heritage upkeep", -upkeep_paid),
+                    ("Crew wages", -wages_paid),
                     ("Storm repairs", -storm_cost),
                 ],
             },
@@ -4753,6 +4796,37 @@ def on_market_answer(accept):
     return handler
 
 
+def crew_text():
+    if not state.crew:
+        return f"No crew hired. Each specialist costs {CREW_HIRE_COST} to hire and {CREW_WAGE} a season."
+    names = ", ".join(f"{CREW[c]['name']} ({CREW[c]['effect']})" for c in state.crew)
+    return f"Crew: {names}. Wages: {CREW_WAGE * len(state.crew)} a season."
+
+
+def render_crew():
+    box = document.getElementById("crew-text")
+    if box is not None:
+        box.innerText = crew_text()
+    for crew_id, entry in CREW.items():
+        button = document.getElementById(f"crew-{crew_id}-button")
+        if button is None:
+            continue
+        hired = crew_id in state.crew
+        button.innerText = f"Dismiss the {entry['name']}" if hired else f"Hire a {entry['name']} ({CREW_HIRE_COST})"
+        button.disabled = (not hired) and (len(state.crew) >= CREW_MAX or state.funds < CREW_HIRE_COST)
+        button.title = f"{entry['name']}: {entry['effect']}; wage {CREW_WAGE} a season"
+
+
+def on_crew_button(crew_id):
+    def handler(event=None):
+        if crew_id in state.crew:
+            state.dismiss(crew_id)
+        else:
+            state.hire(crew_id)
+        render()
+    return handler
+
+
 def render_tide_oct9():
     render_afford()
     render_goal()
@@ -4763,6 +4837,7 @@ def render_tide_oct9():
     render_scene_theme()
     render_delta_popover()
     render_market()
+    render_crew()
 
 
 def render():
@@ -5161,6 +5236,7 @@ def get_state():
             "maxtier_actions": state.maxtier_actions, "maxtier_seconds": state.maxtier_seconds,
         }} if (state.rewind_used or state.ironman_earned or state.actions_count or not state.hard_lag_all_run) else {}),  # GD-20/23/24
         **({"sightings": list(state.sightings)} if state.sightings else {}),  # GD-18
+        **({"crew": list(state.crew)} if state.crew else {}),  # GD-11
         **({"market": {"event": copy.deepcopy(state.market_event), "accepted": state.market_accepted, "dip": state.income_dip_seasons}}
            if (state.market_event or state.market_accepted or state.income_dip_seasons) else {}),  # GD-8
         **({"balance": {"streak": state.balance_streak, "invested": sorted(state.season_invested)}} if (state.balance_streak or state.season_invested) else {}),  # GD-14
@@ -5466,6 +5542,12 @@ def load_state(data):
         mt_a, mt_s = saved_run.get("maxtier_actions"), saved_run.get("maxtier_seconds")
         if isinstance(mt_a, int) and not isinstance(mt_a, bool) and 0 <= mt_a < 10**6 and isinstance(mt_s, (int, float)) and not isinstance(mt_s, bool) and 0 <= mt_s < 1e8:
             state.maxtier_actions, state.maxtier_seconds = mt_a, float(mt_s)
+    saved_crew = data.get("crew")  # GD-11: unknown ids, repeats and anything past the cap are dropped
+    state.crew = []
+    if isinstance(saved_crew, list):
+        for item in saved_crew:
+            if item in CREW and item not in state.crew and len(state.crew) < CREW_MAX:
+                state.crew.append(item)
     saved_market = data.get("market")  # GD-8: bad values leave no deal, no dip
     state.market_event, state.market_accepted, state.income_dip_seasons = None, 0, 0
     if isinstance(saved_market, dict):
@@ -5646,6 +5728,10 @@ def setup():
         market_button = document.getElementById(market_id)
         if market_button is not None:
             market_button.addEventListener("click", create_proxy(on_market_answer(market_accept)))
+    for crew_id in CREW:  # GD-11
+        crew_button = document.getElementById(f"crew-{crew_id}-button")
+        if crew_button is not None:
+            crew_button.addEventListener("click", create_proxy(on_crew_button(crew_id)))
     theme_select = document.getElementById("scene-theme-select")  # GD-22
     if theme_select is not None:
         theme_select.addEventListener("change", create_proxy(on_scene_theme_change))

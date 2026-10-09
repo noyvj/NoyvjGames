@@ -987,3 +987,103 @@ def test_market_state_saves_and_validates(game_env):
     saved["market"] = {"event": {"kind": "piracy", "gain": 5, "season": 4}, "accepted": -3, "dip": 99}
     m.load_state(saved)
     assert s.market_event is None and s.market_accepted == 0 and s.income_dip_seasons == 2
+
+
+# ---- GD-11 crew ----
+
+def test_hiring_costs_a_fee_and_respects_the_cap_and_funds(game_env):
+    m = game_env.module
+    s = m.state
+    s.funds = 1000
+    assert s.hire("biologist") is True and s.funds == 1000 - m.CREW_HIRE_COST
+    assert s.hire("biologist") is False and s.hire("pirate") is False
+    s.hire("engineer")
+    s.hire("broker")
+    assert len(s.crew) == m.CREW_MAX
+    s.crew.remove("broker")
+    s.funds = m.CREW_HIRE_COST - 1
+    assert s.hire("broker") is False
+    assert s.dismiss("engineer") is True and s.dismiss("engineer") is False
+
+
+def test_the_biologist_shortens_the_fish_lag_by_one_season(game_env):
+    m = game_env.module
+    s = m.state
+    assert s._effective_fish_lag() == m.FISH_LAG_SEASONS
+    s.crew = ["biologist"]
+    assert s._effective_fish_lag() == m.FISH_LAG_SEASONS - 1
+    s.hard_lag_mode = True
+    assert s._effective_fish_lag() == m.FISH_LAG_SEASONS_HARD - 1
+
+
+def test_the_engineer_cuts_adaptation_costs_and_stacks_with_the_domino_discount(game_env):
+    m = game_env.module
+    s = m.state
+    assert s.invest_cost("adaptation") == 30
+    s.crew = ["engineer"]
+    assert s.invest_cost("adaptation") == 26  # 30 less 15%, rounded up
+    assert s.invest_cost("output") == m.INVEST_COST["output"]
+    s.domino_seasons_left = 1
+    assert s.invest_cost("adaptation") == 20  # 30 x 0.75 x 0.85, rounded up
+
+
+def test_wages_are_paid_each_season_and_shown_in_the_breakdown(game_env):
+    m = game_env.module
+    s = m.state
+    s.funds = 100
+    s.crew = ["engineer", "broker"]
+    s.advance_season()
+    assert s.funds == pytest.approx(100 - 2 * m.CREW_WAGE)
+    assert dict(s.last_breakdown["funds"]["parts"])["Crew wages"] == pytest.approx(-2 * m.CREW_WAGE)
+    s.funds = 3
+    s.advance_season()
+    assert s.funds >= 0
+
+
+def test_the_broker_improves_deals_and_the_offer_text_says_so(game_env):
+    m = game_env.module
+    s = m.state
+    s.market_event = {"kind": "tourism", "gain": 100.0, "season": 4}
+    plain_text = s.market_offer_text()
+    assert "100 funds" in plain_text and "10%" in plain_text
+    s.crew = ["broker"]
+    assert "130 funds" in s.market_offer_text() and "no income dip" in s.market_offer_text()
+    funds = s.funds
+    s.answer_market(True)
+    assert s.funds == pytest.approx(funds + 130) and s.income_dip_seasons == 0
+    s.market_event = {"kind": "insurance", "gain": 10.0, "season": 8}
+    s.answer_market(True)
+    assert s.income_dip_seasons == 1
+
+
+def test_crew_buttons_and_status(game_env):
+    m = game_env.module
+    s = m.state
+    s.funds = 500
+    m.render()
+    assert "No crew hired" in game_env.elements["crew-text"].innerText
+    assert game_env.elements["crew-biologist-button"].innerText.startswith("Hire a Marine Biologist")
+    game_env.elements["crew-biologist-button"].dispatch("click", None)
+    assert s.crew == ["biologist"] and "Dismiss the Marine Biologist" in game_env.elements["crew-biologist-button"].innerText
+    assert "Crew: Marine Biologist" in game_env.elements["crew-text"].innerText
+    s.funds = 10
+    m.render()
+    assert game_env.elements["crew-engineer-button"].disabled is True
+    assert game_env.elements["crew-biologist-button"].disabled is False  # dismissing is always possible
+
+
+def test_crew_saves_and_validates(game_env):
+    m = game_env.module
+    s = m.state
+    assert "crew" not in m.get_state()
+    s.crew = ["engineer", "broker"]
+    saved = m.get_state()
+    s.crew = []
+    m.load_state(saved)
+    assert s.crew == ["engineer", "broker"]
+    saved["crew"] = ["broker", "broker", "pirate", "biologist", "engineer", 4]
+    m.load_state(saved)
+    assert s.crew == ["broker", "biologist", "engineer"]
+    saved["crew"] = "oops"
+    m.load_state(saved)
+    assert s.crew == []
