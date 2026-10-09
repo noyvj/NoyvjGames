@@ -1,6 +1,6 @@
 # Site-Wide TODO (round 3)
 
-**Progress: 583/1182 items checked off (49.3%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land.
+**Progress: 593/1182 items checked off (50.2%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land.
 
 Built from your answers in `planning/IMPROVEMENT-IDEAS-ROUND-3.md` (Part 4). Every Round 3 section is now answered (2026-10-07 below the Warframe section); earlier this list held only: **GB** (Canopy gamified), **M** (new games), **N** (seasonal events), **O** (Trade Empire and Continuum replayability), **P/Q/S/T** (Signal, Undersleep, Overclock, Last Line open questions), **X** (Warframe tracker) and **R** (returning later). GC-GI, A-L, U, Z and Y are unanswered and wait for you. The previous list is archived at `planning/todo-archive/260914_260927.md`; anything from it that was moved here is marked "moved" there.
 
@@ -556,19 +556,19 @@ Your remaining Round 3 answers (Grid to Drift gamified, SOL to Le Champ de Mots,
 - [x] E-14: Add Aftermath keyboard shortcuts for allocation (number keys), Enter to resolve, T for tree, H for history, listed in the ? overlay. (partly built: shared/keyboard-shortcuts.js gives ? help and Esc to close panels (Z4); no number keys or Enter.)
 - [x] E-15: Add x1 / x5 / Max step buttons next to resilience and growth in Aftermath, respecting costs and the resource cap.
 - [x] E-16: Add high-contrast and readable-font toggles to Aftermath's Settings panel beside text scale and reduced motion, included in Reset to Default.
-- [ ] E-17: Add a schedule strip to Aftermath with hover/focus details per upcoming event (type, expected-damage range at current build, category mitigation bonus).
-- [ ] E-18: Add a damage waterfall to Aftermath's resolution panel: base damage, severity change, each mitigation source, final damage as a stacked bar with text equivalent.
+- [x] E-17: Add a schedule strip to Aftermath with hover/focus details per upcoming event (type, expected-damage range at current build, category mitigation bonus).
+- [x] E-18: Add a damage waterfall to Aftermath's resolution panel: base damage, severity change, each mitigation source, final damage as a stacked bar with text equivalent.
 - [ ] E-19: Add tree search and filter chips (Affordable / Pinned / Owned / Category) to Aftermath's skill tree.
-- [ ] E-20: Add side-by-side run compare to Aftermath's Review Past Runs: tick two runs to see events, damage and score in two columns with differences highlighted.
-- [ ] E-21: Add sort (score, date, mode), filters (extended, custom) and archive to Aftermath's Review Past Runs, archiving without removing KP credit.
-- [ ] E-22: Add a short per-run note field to Aftermath saved to history and shown in the list, included in the progress export.
+- [x] E-20: Add side-by-side run compare to Aftermath's Review Past Runs: tick two runs to see events, damage and score in two columns with differences highlighted.
+- [x] E-21: Add sort (score, date, mode), filters (extended, custom) and archive to Aftermath's Review Past Runs, archiving without removing KP credit.
+- [x] E-22: Add a short per-run note field to Aftermath saved to history and shown in the list, included in the progress export.
 - [x] E-23: Itemise Aftermath's end-of-run KP by source (base score and any bonus lines) in the summary panel so the preview is explained.
 - [x] E-24: Add a Copy run summary button to Aftermath with settlement name, run number, score and event list as text.
 - [ ] E-25: Add named allocation presets to Aftermath ('Flood plan: 3 resilience, 1 growth') applied in one click before an event, stored per profile.
 - [ ] E-26: Enlarge Aftermath's mobile tap targets and confirm Resolve plus resources show in the bottom bar at phone width. (partly built: #actions-dock pinned to bottom via shared/mobile-dock.js and mobile-hud.js sticky HUD already hold the invest and Resolve buttons.)
 - [x] E-27: Add a live tab title to Aftermath ('Aftermath - Run 7, event 3 of 6 (Flood next)'), hiding next-event type in fog mode.
-- [ ] E-28: Add an unspent-resources confirm to Aftermath's Resolve (e.g. 'Keep 80 resources unspent?') with a Settings switch to disable it, via shared ConfirmDialog. (Decided 2026-10-08: build it with the default OFF.)
-- [ ] E-29: Add a 'helps against' line to each Aftermath skill tooltip listing which upcoming events it softens and roughly by how much for the current schedule.
+- [x] E-28: Add an unspent-resources confirm to Aftermath's Resolve (e.g. 'Keep 80 resources unspent?') with a Settings switch to disable it, via shared ConfirmDialog. (Decided 2026-10-08: build it with the default OFF.)
+- [x] E-29: Add a 'helps against' line to each Aftermath skill tooltip listing which upcoming events it softens and roughly by how much for the current schedule.
 - [ ] E-30: Add a persistent save health badge to Aftermath ('Saved 12s ago / storage full / unsaved changes') covering localStorage, with a one-click export prompt when storage fails. (partly built: Shared save widget shows 'Saved at HH:MM' and 'Save failed'; tree lives in localStorage with no health badge.)
 - [ ] E-31: Restyle Aftermath's achievements: show earned badges as small lit nodes on a mini tree-shaped strip beside the toggle button, with text labels, more visible and tied to the skill tree look.
 - [ ] GE-3: Add an opt-in Fog of War mode to Aftermath where the next 3 events are hidden until Early Warning (reveals 1 ahead) and Mutual Aid Network (reveals 2 ahead) are owned; hide expected-damage preview and mentor hints for hidden events; keep a hint explaining how to reveal them. [conflict: Conflicts with E-17/E-29/GE-26, which all show upcoming events: those must respect fog. Early Warning and Mutual Aid keep their existing mitigation bonuses.]
@@ -588,8 +588,8 @@ Your remaining Round 3 answers (Grid to Drift gamified, SOL to Le Champ de Mots,
 - [x] GE-18: Add undo of the last allocation click to Aftermath within a between-event phase before Resolve, with a visible undo-count; disabled after Resolve and after load.
 - [ ] GE-19: Add a Mutation of the Day to Aftermath: a deterministic-by-date modifier (floods x1.2 severity, growth cost -3) shown on the run screen, opt-in, framed as a daily scenario with a clear name and a normal-run option; not a random mutator. [reframe: Daily scenario, not roguelike mutators; keep it opt-in and exclude from the main leaderboard.]
 - [ ] GE-20: Add a settlement mood emoji strip to Aftermath: tiny citizen faces shifting from grinning to grim with resources and resilience, updated on each allocation click, with an aria-label for screen readers.
-- [ ] GE-21: Add a post-run epitaph to Aftermath: a witty line from a large bank keyed to outcomes (e.g. 'The levee held. The mayor did not.') on the run-summary panel, with a Settings toggle to hide it and a tone kept gentle for bad runs.
-- [ ] GE-22: Add a run-improvement streak to Aftermath: a fire counter at 2+ consecutive runs beating the prior best, with a warm glow in Review Past Runs; use text plus icon, not colour only.
+- [x] GE-21: Add a post-run epitaph to Aftermath: a witty line from a large bank keyed to outcomes (e.g. 'The levee held. The mayor did not.') on the run-summary panel, with a Settings toggle to hide it and a tone kept gentle for bad runs.
+- [x] GE-22: Add a run-improvement streak to Aftermath: a fire counter at 2+ consecutive runs beating the prior best, with a warm glow in Review Past Runs; use text plus icon, not colour only.
 - [ ] GE-23: Add an optional run timer to Aftermath with a best-time-to-finish column in Review Past Runs; time never affects score or KP, only a badge, and the timer is off by default.
 - [ ] GE-24: Add a starting twist to Aftermath runs: each run begins with a chosen or hash-decided quirk (Rich Start: +60 resources and no growth; Fortified Slum: +2 resilience, -1 growth) shown before the run, with the player able to pick from the list. [reframe: Random mutator reframed as a selectable scenario option with no luck-gated outcomes.]
 - [ ] GE-25: Add unlock-tier settlement skins to Aftermath (thatched, timber, concrete) at skill thresholds 5, 10 and all, shown at run start and in history; set thresholds from the tree's actual size (currently 7 skills).
@@ -1365,7 +1365,7 @@ One checkbox per pass per area. A pass is not done until its fixes are committed
 
 - [ ] FY-1: Grid C6: let a player save two scenarios and overlay their trend graphs for a side-by-side comparison (you said now).
 - [x] FY-2: Tide D10: show the acidity from three seasons ago right next to the current acidity so the delayed link is visible as numbers (you said now).
-- [ ] FY-3: Aftermath E5: add another event category beyond weather and non-weather (for example a heat-mortality event) to the fixed seven-event schedule (you said now).
+- [x] FY-3: Aftermath E5: add another event category beyond weather and non-weather (for example a heat-mortality event) to the fixed seven-event schedule (you said now).
 - [x] FY-4: Herd F4: a second end-of-game feedback question about Herd's own lesson ("did decoupling feel like a real strategy, or a tax on growth?"), like Thaw's two-question pattern (you said now).
 - [ ] FY-5: Loop H16: an optional "supply chain disruption" random event, opt-in as an advanced mode, kept apart from the deterministic core lesson (you said now).
 - [x] FY-6: Contraption (physics sandbox): DROPPED by you 2026-10-08.
