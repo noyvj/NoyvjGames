@@ -145,6 +145,16 @@
       "id": "challenge_no_highland",
       "title": "Low country",
       "text": "The hill paths stayed closed that year, so you learned the valley floor by heart: every ditch, every stump, every plot that sulked. Nobody sings about the lowlands, but you could name them all, and that turns out to be a kind of wealth."
+    },
+    {
+      "id": "quick_payout",
+      "title": "Fast money, slow ground",
+      "text": "The mill buyer offered a better price if you took the whole stand at once, no sorting, no sparing. You took it. The ground under the stumps went pale and tired, and the old forester only said that soil heals if you leave it alone long enough."
+    },
+    {
+      "id": "harvester_badge",
+      "title": "The harvester's name",
+      "text": "By the end of the year people at the market had started calling you the harvester, not unkindly. You earned it plot by plot, and every plot you cut is still there, a little thinner each time, waiting for whoever plants next."
     }
   ]
 }

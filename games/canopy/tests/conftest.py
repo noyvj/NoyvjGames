@@ -113,6 +113,8 @@ ELEMENT_IDS = [
     "tend-button",
     "tend-status",
     "undo-clear-button",
+    "clear-cut-button",
+    "clear-cut-status",
     "forest-name-input",
     "plot-nickname-input",
     "almanac-toggle-button",
@@ -178,6 +180,7 @@ ELEMENT_IDS = [
     "plot-sheet",
     "plot-sheet-title",
     "plot-sheet-clear",
+    "plot-sheet-cut",
     "plot-sheet-replant",
     "plot-sheet-adopt",
     "plot-sheet-note",
@@ -243,6 +246,7 @@ INITIALLY_DISABLED_IDS = [
     "wetland-clear-button",
     "wetland-replant-button",
     "tend-button",
+    "clear-cut-button",
     "plot-nickname-input",
 ]
 

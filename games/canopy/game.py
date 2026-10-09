@@ -385,6 +385,8 @@ class Plot:
         # plot is tended at a time; saved as the top-level "tend" key, never
         # per plot, so the plot dict shape stays unchanged.
         self.tend_ticks_left = 0
+        # GB-21: ticks left of the clear-cut soil dip (0 = none). Healing, not permanent: see CLEAR_CUT_* below.
+        self.soil_dip_ticks = 0
 
     def can_specialize(self):
         return (
@@ -411,7 +413,7 @@ class Plot:
         # is flooding, not erosion) -- so it multiplies by 1.0 here.
         return max(
             MIN_PRODUCTIVITY_MULTIPLIER,
-            1 - current_degrade_per_clear() * region_degrade_multiplier * self.clear_count,
+            1 - current_degrade_per_clear() * region_degrade_multiplier * self.clear_count - clear_cut_dip_fraction(self),  # GB-21
         )
 
     def accrue_tick(self):
@@ -473,6 +475,16 @@ class Plot:
         self.tend_ticks_left = 0  # GB-4: a cleared plot is no longer being tended
         self.species = None  # GB-6: the next planting chooses afresh
         return payout
+
+    def clear_cut(self):
+        """GB-21: a clear that pays CLEAR_CUT_BONUS more now and leaves a soil dip that heals over
+        CLEAR_CUT_HEAL_TICKS (about three seasons). No dice. Counts as a clear for every purpose (soil
+        degradation, the playstyle badge, contracts). Returns the payout, or None if clearing is not valid."""
+        payout = self.clear()
+        if payout is None:
+            return None
+        self.soil_dip_ticks = CLEAR_CUT_HEAL_TICKS
+        return payout * (1 + CLEAR_CUT_BONUS)
 
     def blight(self):
         """GB-7: killed back to bare by blight. Unlike clear() nothing is harvested and the soil is not harmed."""
@@ -865,6 +877,7 @@ golden_seedling = None  # {"plot": index, "ticks_left": n} or None
 _golden_next_tick = GOLDEN_SEEDLING_MIN_GAP
 _tend_message = ""
 _undo_snapshot = None
+clear_cuts_total = 0  # GB-21: clear-cuts made in this forest (saved only when above 0)
 _recent_matures = []  # (forest_tick, plot index) for chain bloom
 _pending_bloom = {}  # plot index -> ripple rank, consumed by the next render_grid()
 _pending_golden_bursts = set()  # plot indices, consumed by the next render_grid()
@@ -1480,13 +1493,14 @@ def close_plot_sheet(event=None):
 def plot_sheet_actions():
     """Which of the sheet's buttons are usable for the selected plot, and what to call them."""
     if selected_index is None:
-        return {"clear": (False, "Clear"), "replant": (False, "Replant"), "adopt": (False, "Adopt"), "note": (False, "Note")}
+        return {"clear": (False, "Clear"), "cut": (False, "Clear-cut"), "replant": (False, "Replant"), "adopt": (False, "Adopt"), "note": (False, "Note")}
     plot = plots[selected_index]
     can_clear = "clear" in VALID_ACTIONS[plot.state] and plot.index != heart_tree_index
     can_replant = "replant" in VALID_ACTIONS[plot.state]
     adopted = adopted_plot_index == selected_index
     return {
         "clear": (can_clear, "Clear"),
+        "cut": (can_clear and not survey_mode and not plot.blocked, "Clear-cut"),  # GB-21
         "replant": (can_replant, "Replant"),
         "adopt": (True, "Release plot" if adopted else "Adopt plot"),
         "note": (True, "Edit note"),
@@ -1514,6 +1528,8 @@ def render_plot_sheet():
 def on_plot_sheet_action(name):
     if name == "clear":
         on_clear()
+    elif name == "cut":
+        on_clear_cut()  # GB-21
     elif name == "replant":
         on_replant()
     elif name == "adopt":
@@ -2610,6 +2626,7 @@ def soil_hint_text(plot):
         f"Soil quality: this plot's future value grows at {pct}% of the rate of a never-cleared plot. "
         f"Every clear permanently costs {step_pct} points (never below {floor_pct}%), and replanting "
         "does not restore it."
+        + (f" Right now it is also down {round(clear_cut_dip_fraction(plot) * 100)} points from a clear-cut, which heals by itself ({soil_dip_text(plot)})." if plot.soil_dip_ticks > 0 else "")
     )
 
 
@@ -2747,6 +2764,11 @@ def render_grid():
                 leaf = _make_tile_mark("leaf-burst", "\U0001F343")
                 leaf.className = f"leaf-burst leaf-burst--{n}"
                 tile.appendChild(leaf)
+        if plot.soil_dip_ticks > 0:  # GB-21: a down-arrow mark and a dashed edge, so the dip never relies on colour
+            tile.className += " plot-soil-dip"
+            dip_mark = _make_tile_mark("soil-dip-mark", "\u2193")
+            dip_mark.setAttribute("aria-hidden", "true")
+            tile.appendChild(dip_mark)
         if plot.tend_ticks_left > 0:  # GB-4
             tile.className += " plot-tended"
             tile.appendChild(_make_tile_mark("tend-mark", "\U0001F33F"))
@@ -2835,6 +2857,8 @@ def render_grid():
             tooltip += " \u00b7 golden seedling: click it now for a burst of recovery"
         if plot.tend_ticks_left > 0:
             tooltip += f" \u00b7 tended ({plot.tend_ticks_left} ticks left)"
+        if plot.soil_dip_ticks > 0:  # GB-21
+            tooltip += f" \u00b7 {soil_dip_text(plot)}"
         if plot.index == poacher_plot:
             tooltip += f" \u00b7 POACHER: click this plot or press P within {poacher_run['ticks_left']} ticks"
         if plot.index // GRID_COLS in storm_rows:
@@ -2880,7 +2904,7 @@ def render_panel():
         f"Plot {plot_coordinate_label(selected_index)}: {STATE_LABEL[plot.state]} ({detail})"
     )
     soil_el.hidden = False
-    soil_el.innerText = f"Soil {round(plot.productivity_multiplier() * 100)}% ?"
+    soil_el.innerText = f"Soil {round(plot.productivity_multiplier() * 100)}%" + (" (healing)" if plot.soil_dip_ticks > 0 else "") + " ?"
     soil_el.title = soil_hint_text(plot)
     clear_button.disabled = "clear" not in VALID_ACTIONS[plot.state] or plot.index == heart_tree_index
     replant_button.disabled = "replant" not in VALID_ACTIONS[plot.state]
@@ -4518,6 +4542,9 @@ ACHIEVEMENT_CHECKS = {
     "challenge_scorched": lambda: current_challenge == CHALLENGE_SCORCHED and challenge_complete_tick is not None,
     "challenge_sprint": lambda: current_challenge == CHALLENGE_SPRINT and challenge_complete_tick is not None,
     "challenge_no_highland": lambda: current_challenge == CHALLENGE_NO_HIGHLAND and challenge_complete_tick is not None,
+    # GB-21: the clear-cut and the Harvester playstyle badge it feeds.
+    "quick_payout": lambda: clear_cuts_total >= 1,
+    "harvester_badge": lambda: clear_cuts_total >= 1 and playstyle_badge() == BADGE_HARVESTER,
 }
 
 # Progress readouts, only for achievements with a natural numeric scale-up
@@ -5171,7 +5198,8 @@ def playstyle_badge():
 
 def badge_share_text():
     badge = playstyle_badge()
-    return f"{BADGE_ICON[badge]} Canopy playstyle badge: {badge} ({_total_clear_count()} clears across {active_plot_count()} plots)"
+    cuts = f", {clear_cuts_total} of them clear-cuts" if clear_cuts_total else ""
+    return f"{BADGE_ICON[badge]} Canopy playstyle badge: {badge} ({_total_clear_count()} clears{cuts} across {active_plot_count()} plots)"
 
 
 # B13 ------------------------------------------------------------------------
@@ -5343,7 +5371,7 @@ def render_forest_log_panels():
     badge_el = document.getElementById("session-summary-badge")
     if badge_el is not None:
         badge = playstyle_badge()
-        badge_el.innerText = f"{BADGE_ICON[badge]} Playstyle badge: {badge}"
+        badge_el.innerText = f"{BADGE_ICON[badge]} Playstyle badge: {badge}" + (f" ({clear_cuts_total} clear-cut{'s' if clear_cuts_total != 1 else ''})" if clear_cuts_total else "")
     seen = species_seen()
     wildlife_el = document.getElementById("wildlife-log-list")
     if wildlife_el is not None:
@@ -5990,7 +6018,7 @@ def _sync_name_inputs():
 
 # --- GB-18: undo a clear -------------------------------------------------------------------
 
-def _arm_undo(plot_index, before_fields, payout, log_entry, season_cleared_before, best_income_before):
+def _arm_undo(plot_index, before_fields, payout, log_entry, season_cleared_before, best_income_before, cut=False):
     global _undo_snapshot
     if current_difficulty == DIFFICULTY_RANGER:
         _undo_snapshot = None
@@ -6004,6 +6032,7 @@ def _arm_undo(plot_index, before_fields, payout, log_entry, season_cleared_befor
         "season_cleared_before": season_cleared_before,
         "best_income_before": best_income_before,
         "ticks_left": UNDO_WINDOW_TICKS,
+        "cut": cut,  # GB-21: undoing a clear-cut also takes the clear-cut count back
     }
 
 
@@ -6021,7 +6050,7 @@ def _advance_undo():
 def undo_last_clear(event=None):
     """Restores the plot cleared in the last UNDO_WINDOW_MS (not in Ranger
     difficulty). Only valid while that plot is still bare from that clear."""
-    global _undo_snapshot, total_income, season_cleared
+    global _undo_snapshot, total_income, season_cleared, clear_cuts_total
     snapshot = _undo_snapshot
     if snapshot is None:
         return False
@@ -6036,6 +6065,8 @@ def undo_last_clear(event=None):
         personal_best["income"] = snapshot["best_income_before"]
         _write_local_storage_item(PERSONAL_BEST_STORAGE_KEY, json.dumps(personal_best))
     total_income = max(0.0, total_income - snapshot["payout"])
+    if snapshot.get("cut"):
+        clear_cuts_total = max(0, clear_cuts_total - 1)
     season_cleared = snapshot["season_cleared_before"]
     if snapshot["log_entry"] in forest_log:
         forest_log.remove(snapshot["log_entry"])
@@ -6055,7 +6086,121 @@ def render_undo_chip():
     chip.hidden = False
     seconds = max(1, _undo_snapshot["ticks_left"])
     chip.innerText = f"\u21a9 Undo clear ({label}, {seconds}s)"
-    chip.setAttribute("aria-label", f"Undo clearing {label}. About {seconds} seconds left.")
+    chip.setAttribute("aria-label", f"Undo {'clear-cutting' if _undo_snapshot.get('cut') else 'clearing'} {label}. About {seconds} seconds left.")
+
+
+# --- GB-21: clear-cut for a quick payout ------------------------------------------------------------
+# A second way to clear a standing plot, with no dice: CLEAR_CUT_BONUS more income now, in exchange for a visible,
+# recoverable soil dip (CLEAR_CUT_DIP of the plot's growth) that heals in a straight line over CLEAR_CUT_HEAL_TICKS (three
+# seasons), whether the plot is bare, replanting or growing again. It counts as an ordinary clear in every other way
+# (the permanent soil cost per clear, the playstyle badge, contracts, Pacifist), so it is purely an extra choice. Main
+# forest only; Undo works; never offered in Survey mode (a plan is Clear or Replant).
+CLEAR_CUT_BONUS = 0.20
+CLEAR_CUT_DIP = 0.30
+CLEAR_CUT_HEAL_TICKS = 3 * SEASON_CYCLE_TICKS
+
+
+def clear_cut_dip_fraction(plot):
+    """How many points of growth the plot's soil is down from its clear-cut right now (0 when none)."""
+    ticks = getattr(plot, "soil_dip_ticks", 0)
+    if ticks <= 0:
+        return 0.0
+    return CLEAR_CUT_DIP * min(ticks, CLEAR_CUT_HEAL_TICKS) / CLEAR_CUT_HEAL_TICKS
+
+
+def expedition_extra_heal():
+    """Placeholder until the Expedition section below redefines it (kept so the heal rate has one source)."""
+    return 0
+
+
+def _soil_heal_rate():
+    """Ticks of dip healed per tick (the Expedition's Soil Salve doubles it)."""
+    return 1 + expedition_extra_heal()
+
+
+def soil_dip_text(plot):
+    """'' when the plot has no dip, else a plain sentence for the tooltip and the soil hint."""
+    ticks = getattr(plot, "soil_dip_ticks", 0)
+    if ticks <= 0:
+        return ""
+    points = round(clear_cut_dip_fraction(plot) * 100)
+    rate = _soil_heal_rate()
+    left = -(-ticks // rate)  # ceiling: ticks until fully healed at the current rate
+    seasons = left / SEASON_CYCLE_TICKS
+    return f"clear-cut soil dip: down {points} points, healed in {left} ticks (about {seasons:.1f} seasons)"
+
+
+def _advance_soil_dips():
+    """One tick of healing on every main-forest plot; logs the moment a plot's soil is whole again."""
+    rate = _soil_heal_rate()
+    for plot in plots:
+        if plot.soil_dip_ticks <= 0:
+            continue
+        plot.soil_dip_ticks = max(0, plot.soil_dip_ticks - rate)
+        if plot.soil_dip_ticks == 0:
+            _log_event("heal", f"The soil at {_plot_ref(plot.index)} has healed from the clear-cut", plot.index)
+
+
+def clear_cut_preview(plot):
+    """(payout, bonus) the clear-cut of this plot would give right now."""
+    bonus = plot.value * CLEAR_CUT_BONUS
+    return plot.value + bonus, bonus
+
+
+def _note_harvester_badge():
+    """Says so once when clear-cutting tips the forest into the Harvester playstyle badge."""
+    global _harvester_badge_announced
+    if playstyle_badge() == BADGE_HARVESTER and not _harvester_badge_announced:
+        _harvester_badge_announced = True
+        _gb_toast(f"{BADGE_ICON[BADGE_HARVESTER]} Playstyle badge: Harvester. Quick payouts, and the soil will heal")
+        _announce("Playstyle badge: Harvester")
+
+
+_harvester_badge_announced = False
+
+
+def render_clear_cut_panel():
+    button = _el("clear-cut-button")
+    if button is None:
+        return
+    status = _el("clear-cut-status")
+    plot = plots[selected_index] if selected_index is not None else None
+    allowed = (
+        plot is not None and not survey_mode and not plot.blocked and "clear" in VALID_ACTIONS[plot.state]
+        and plot.index != heart_tree_index
+    )
+    button.disabled = not allowed
+    if allowed:
+        payout, bonus = clear_cut_preview(plot)
+        button.title = (
+            f"Clear-cut (K): bank {payout:.1f} income now ({bonus:.1f} more than Clear). The soil then dips "
+            f"{round(CLEAR_CUT_DIP * 100)} points and heals over about {CLEAR_CUT_HEAL_TICKS // SEASON_CYCLE_TICKS} seasons. Undo works."
+        )
+    else:
+        button.title = (
+            f"Clear-cut (K): a bonus of {round(CLEAR_CUT_BONUS * 100)}% now for a soil dip that heals over about "
+            f"{CLEAR_CUT_HEAL_TICKS // SEASON_CYCLE_TICKS} seasons. Select a standing plot first."
+        )
+    if status is not None:
+        dipped = [p for p in plots if p.soil_dip_ticks > 0 and not p.blocked]
+        parts = []
+        if dipped:
+            worst = max(p.soil_dip_ticks for p in dipped)
+            parts.append(f"{len(dipped)} plot{'s' if len(dipped) != 1 else ''} healing from a clear-cut (the last in about {worst} ticks)")
+        if clear_cuts_total:
+            parts.append(f"{clear_cuts_total} clear-cut{'s' if clear_cuts_total != 1 else ''} so far")
+        status.innerText = ". ".join(parts)
+
+
+def hotkey_clear_cut_selected(event=None):
+    """K: clear-cuts the selected plot (select one first, the same deliberate two steps as C)."""
+    if selected_index is None:
+        _announce("No plot selected. Select a plot with Enter or a click, then press K to clear-cut it")
+        render_announcer()
+        return False
+    before = plots[selected_index].state
+    on_clear_cut()
+    return plots[selected_index].state != before
 
 
 # --- GB-20: rare wildlife ------------------------------------------------------------------------
@@ -8234,6 +8379,7 @@ def _gb_after_tick():
     _advance_golden_seedling()
     _advance_crews()  # GB-26: idle ranger crews (Seed Vault perks)
     _advance_undo()
+    _advance_soil_dips()  # GB-21
     _note_season_relations()
     _check_rare_wildlife()
     _check_heart_tree()
@@ -8248,7 +8394,7 @@ def _reset_gb_state():
     global forest_name, adopted_plot_nickname, heart_tree_index, rare_wildlife_found
     global peak_standing_value, milestone_tier, tend_cooldown_ticks, perfect_streak
     global season_cleared, season_min_relations
-    global golden_seedling, _tend_message, _undo_snapshot
+    global golden_seedling, _tend_message, _undo_snapshot, clear_cuts_total, _harvester_badge_announced
     global _recent_matures, _golden_next_tick
     del _gb_toast_queue[:]
     forest_name = ""
@@ -8265,6 +8411,8 @@ def _reset_gb_state():
     _golden_next_tick = GOLDEN_SEEDLING_MIN_GAP
     _tend_message = ""
     _undo_snapshot = None
+    clear_cuts_total = 0
+    _harvester_badge_announced = False
     _recent_matures = []
     _pending_bloom.clear()
     _pending_golden_bursts.clear()
@@ -8282,6 +8430,8 @@ def _gb_state_fields():
         out["adopted_plot_nickname"] = adopted_plot_nickname
     if heart_tree_index is not None:
         out["heart_tree_index"] = heart_tree_index
+    if clear_cuts_total > 0:  # GB-21
+        out["clear_cuts_total"] = clear_cuts_total
     if rare_wildlife_found:
         out["rare_wildlife_found"] = list(rare_wildlife_found)
     if peak_standing_value > 0:
@@ -8311,11 +8461,12 @@ def _load_gb_state(data):
     session's names/discoveries must not leak into a save that lacks them)."""
     global forest_name, adopted_plot_nickname, heart_tree_index
     global peak_standing_value, milestone_tier, tend_cooldown_ticks, perfect_streak
-    global season_cleared, season_min_relations
+    global season_cleared, season_min_relations, clear_cuts_total
 
     _reset_gb_state()
     for plot in plots:
         plot.tend_ticks_left = 0
+    clear_cuts_total = int(_number_or(data.get("clear_cuts_total"), 0, 0, 10 ** 6))  # GB-21
     _schedule_golden_seedling()
 
     forest_name = _clean_name(data.get("forest_name"), FOREST_NAME_MAX)
@@ -8389,6 +8540,7 @@ def render():
     render_challenge_status()
     render_forest_title()
     render_tend_panel()
+    render_clear_cut_panel()  # GB-21
     render_undo_chip()
     render_almanac()
     render_contracts()
@@ -8421,10 +8573,18 @@ def select_plot(index):
 
 
 def on_clear(event=None):
-    global total_income, season_cleared
+    _manual_clear(cut=False)
+
+
+def _manual_clear(cut):
+    """Clear (or, with cut=True, the GB-21 clear-cut) on the selected main-forest plot."""
+    global total_income, season_cleared, clear_cuts_total
     if selected_index is None:
         return
     if survey_mode:  # B-13: planning only, nothing happens until Commit
+        if cut:
+            _announce("Clear-cut is not part of a Survey plan. Use Clear, or leave Survey mode first")
+            return
         queue_survey_action("clear", selected_index)
         return
     if selected_index == heart_tree_index:
@@ -8432,14 +8592,29 @@ def on_clear(event=None):
     plot = plots[selected_index]
     before_fields = dict(plot.__dict__)
     best_income_before = personal_best["income"]
-    payout = plot.clear()
+    payout = plot.clear_cut() if cut else plot.clear()
     if payout is not None:
         total_income += payout
-        _log_event("clear", f"Cleared {_plot_ref(selected_index)} for {payout:.1f} income", selected_index)
+        if cut:  # GB-21
+            clear_cuts_total += 1
+            bonus = payout - payout / (1 + CLEAR_CUT_BONUS)
+            _log_event(
+                "clear",
+                f"Clear-cut {_plot_ref(selected_index)} for {payout:.1f} income (+{bonus:.1f} bonus); its soil dips and heals over about {CLEAR_CUT_HEAL_TICKS // SEASON_CYCLE_TICKS} seasons",
+                selected_index,
+            )
+        else:
+            _log_event("clear", f"Cleared {_plot_ref(selected_index)} for {payout:.1f} income", selected_index)
         was_cleared = season_cleared
         season_cleared = True  # GB-30
-        _arm_undo(selected_index, before_fields, payout, forest_log[-1], was_cleared, best_income_before)  # GB-18
+        _arm_undo(selected_index, before_fields, payout, forest_log[-1], was_cleared, best_income_before, cut=cut)  # GB-18
+        if cut:
+            _note_harvester_badge()
     render()
+
+
+def on_clear_cut(event=None):
+    _manual_clear(cut=True)
 
 
 def on_replant(event=None):
@@ -9263,6 +9438,7 @@ def _plot_to_dict(plot):
         "requests_survived": plot.requests_survived,
         "specialization": plot.specialization,
         **({"species": plot.species} if plot.species else {}),  # GB-6: only when a species was chosen
+        **({"soil_dip_ticks": plot.soil_dip_ticks} if plot.soil_dip_ticks > 0 else {}),  # GB-21: only while healing
     }
 
 
@@ -9285,6 +9461,8 @@ def _apply_plot_dict(plot, plot_data):
     saved_species = plot_data.get("species")  # GB-6
     plot.species = saved_species if saved_species in SPECIES and saved_species != SPECIES_STANDARD else None
     plot.replant_ticks_total = max(RECOVERY_TICKS, plot.replant_ticks_remaining)
+    # GB-21: a save is authoritative, so a missing or malformed key means no dip (a bool or NaN never counts).
+    plot.soil_dip_ticks = int(_number_or(plot_data.get("soil_dip_ticks"), 0, 0, CLEAR_CUT_HEAL_TICKS))
 
 
 def _wetland_state_fields():
@@ -9812,7 +9990,7 @@ def setup():
         survey_button = _el(survey_id)
         if survey_button is not None:
             survey_button.addEventListener("click", create_proxy(survey_handler))
-    for sheet_name in ("clear", "replant", "adopt", "note"):  # B-28
+    for sheet_name in ("clear", "cut", "replant", "adopt", "note"):  # B-28
         sheet_button = _el(f"plot-sheet-{sheet_name}")
         if sheet_button is not None:
             sheet_button.addEventListener("click", create_proxy(lambda event=None, n=sheet_name: on_plot_sheet_action(n)))
@@ -9903,6 +10081,7 @@ def setup():
     # GB batch 1: optional elements (a page or test DOM without them just skips the wiring).
     for element_id, event_name, handler in (
         ("tend-button", "click", on_tend),
+        ("clear-cut-button", "click", on_clear_cut),  # GB-21
         ("undo-clear-button", "click", undo_last_clear),
         ("almanac-toggle-button", "click", on_toggle_almanac),
         ("contracts-toggle-button", "click", on_toggle_contracts),

@@ -1,6 +1,10 @@
 {
   "changelog": [
     {
+      "date": "2026-10-10",
+      "entry": "New: Clear-cut. Select a standing plot and press Clear-cut (or K) to bank 20% more income than a plain Clear. The price is a visible soil dip: the plot's growth drops by up to 30 points and heals in a straight line over about three seasons (120 ticks), whether the plot is bare, replanting or growing again. It carries a down-arrow mark, its tooltip and the soil readout say how long is left, and Undo takes it back. There are no dice. Clear-cuts count toward the Harvester playstyle badge, which now shows how many of your clears were clear-cuts, and there are two new achievements, Quick Payout and Harvester."
+    },
+    {
       "date": "2026-10-09",
       "entry": "New: the legacy bonus is now a small chip whose tooltip names where it came from (your last forest's standing value) and how close it is to the +25% cap. If the forest kept growing while the tab was hidden you get a 'While you were away' chip saying what changed. Plots can now carry a short note (up to 20 characters): type it in the Plot note box under the plot readout, or right-click or long-press a plot to jump to the box; a noted plot shows a dot and its note in the tooltip. On a slow device or a busy tab the game now pauses its decorative effects (wildlife flutter, value pops, leaf bursts) and shows a small 'Performance mode' note until the game is steady again; nothing about the game itself changes. On a phone, long-pressing a plot opens a bottom sheet with large Clear, Replant, Adopt and Edit note buttons for that plot; the desktop layout is unchanged. Every plot now shows a small drawn tree, sapling or stump that follows the season (you can switch these off in Settings)."
     },

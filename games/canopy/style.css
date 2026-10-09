@@ -1163,10 +1163,21 @@ button.secondary:disabled::after {
     overflow: hidden;
     text-overflow: ellipsis;
   }
-  #action-panel .action-buttons { flex-wrap: nowrap; gap: 0.3rem; }
+  /* 2026-10-10: later features (Survey, tree picker, Adopt, Tend, Clear-cut) put more than a phone row can hold,
+     which crushed every tile to ~5px wide. The row stays one line and now scrolls sideways instead, the tree picker
+     (label, select, note) folds behind the "..." button with the other extras, and the tiles keep a readable width. */
+  #action-panel .action-buttons { flex-wrap: nowrap; gap: 0.3rem; overflow-x: auto; }
+  #action-panel.mobile-docked:not(.action-dock--expanded) .plot-note-row,
+  #action-panel.mobile-docked:not(.action-dock--expanded) .species-label,
+  #action-panel.mobile-docked:not(.action-dock--expanded) #species-select,
+  #action-panel.mobile-docked:not(.action-dock--expanded) #species-note { display: none; }
+  #action-panel.mobile-docked.action-dock--expanded .action-buttons { flex-wrap: wrap; overflow-x: visible; }
+  #action-panel .action-buttons .species-label,
+  #action-panel .action-buttons #species-select,
+  #action-panel .action-buttons #species-note { flex: 1 1 100%; margin-top: 0; }
   #action-panel .action-buttons button.secondary {
-    flex: 1 1 0;
-    min-width: 0;
+    flex: 1 0 4.4rem;
+    min-width: 4.4rem;
     padding: 0.3rem 0.1rem 0.35rem;
     gap: 0.1rem;
     font-size: 0.7rem;
@@ -1800,6 +1811,24 @@ html[data-season="winter"] .ambient-bg { filter: hue-rotate(35deg) saturate(0.55
   pointer-events: none;
 }
 .tend-status { margin: 0.4rem 0 0; font-size: 0.8rem; opacity: 0.85; }
+
+/* GB-21: a clear-cut leaves a soil dip that heals. A down arrow on a dark chip marks it (not colour alone), and the
+   status line and the tile's tooltip give the numbers. */
+.soil-dip-mark {
+  position: absolute;
+  top: 1px;
+  right: 1px;
+  min-width: 0.9rem;
+  padding: 0 2px;
+  border-radius: 3px;
+  background: rgba(20, 14, 6, 0.78);
+  color: #ffd9a0;
+  font-size: 0.62rem;
+  font-weight: 700;
+  line-height: 1.1;
+  text-align: center;
+  pointer-events: none;
+}
 
 /* GB-8: the Heart Tree: a glowing ancient tree with a permanent aura. There is
    no legend entry for it on purpose. */
@@ -2493,3 +2522,6 @@ html[data-theme="light"] .level-box .spirit-line { border-left-color: #1b5e20; }
 html[data-theme="light"] .plot-tile.plot-poacher { outline-color: #b23b12; box-shadow: 0 0 8px 2px rgba(178, 59, 18, 0.65); }
 html[data-theme="light"] .plot-tile.plot-storm-warning { outline-color: #0d47a1; box-shadow: inset 0 0 10px 2px rgba(13, 71, 161, 0.5); }
 html[data-theme="light"] .vault-summary, html[data-theme="light"] .vault-crews, html[data-theme="light"] .vault-note { opacity: 1; }
+
+/* GB-21 (light theme): the soil-dip chip stays dark with light text, so it reads on any tile. */
+html[data-theme="light"] .soil-dip-mark { background: rgba(60, 35, 10, 0.9); color: #ffe6bd; }

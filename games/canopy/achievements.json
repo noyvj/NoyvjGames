@@ -139,6 +139,16 @@
       "id": "challenge_no_highland",
       "label": "Lowlander",
       "description": "Finish the No-Highland challenge with Highland Grove and Wetland Forest sealed."
+    },
+    {
+      "id": "quick_payout",
+      "label": "Quick Payout",
+      "description": "Clear-cut a plot for the first time: a bonus now, and soil that heals over about three seasons."
+    },
+    {
+      "id": "harvester_badge",
+      "label": "Harvester",
+      "description": "Earn the Harvester playstyle badge (clears reach 0.6 per plot) with at least one clear-cut among them."
     }
   ]
 }

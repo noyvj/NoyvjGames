@@ -91,6 +91,7 @@
     ["G", "Golden seedling"],
     ["C", "Clear selected"],
     ["R", "Replant selected"],
+    ["K", "Clear-cut selected"],
     ["U", "Undo clear"],
     ["P", "Drive off poacher"],
     ["N", "Requested plot"],
