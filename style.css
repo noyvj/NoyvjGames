@@ -776,15 +776,13 @@ html[data-theme="light"] .whats-new-thumb[aria-pressed="true"] { color: #2c4a9a;
   border: 3px solid #5fd4e6;
   border-radius: 6px 33px 33px 6px;
   background: #14233a;
-  box-shadow: -36px -16px 0 -26px #5fd4e6, -36px 16px 0 -26px #5fd4e6;
 }
 .title-card-thumb--logic-gates::after {
   inset: 50% auto auto calc(50% + 28px);
-  width: 36px;
-  height: 3px;
-  background: #f2b84b;
+  width: 44px;
+  height: 12px;
   transform: translateY(-50%);
-  box-shadow: 40px 0 0 3px #f2b84b;
+  background: linear-gradient(#f2b84b, #f2b84b) left center / calc(100% - 6px) 3px no-repeat, radial-gradient(circle at right center, #f2b84b 0 5px, transparent 6px);
 }
 
 /* Robot Script: a teal octagonal robot head with a dark visor and two amber
