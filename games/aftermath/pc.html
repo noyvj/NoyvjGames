@@ -218,6 +218,12 @@
       <p id="expected-damage-display" class="status-line"></p>
       <!-- GE-15: what a Flawless Defense needs for the coming event. -->
       <p id="flawless-hint-display" class="status-line flawless-hint-display"></p>
+      <!-- E-17: every event in this run, in order, with hover/focus details (also a plain-text list for screen readers). -->
+      <div class="schedule-strip-wrapper">
+        <p class="meter-label" id="schedule-strip-label">Schedule</p>
+        <ol id="schedule-strip" class="schedule-strip" aria-labelledby="schedule-strip-label"></ol>
+        <p id="schedule-detail" class="schedule-detail" data-default=""></p>
+      </div>
       <div class="event-visual" aria-hidden="true">
         <div class="event-visual-storm">
           <div class="event-visual-cloud"></div>

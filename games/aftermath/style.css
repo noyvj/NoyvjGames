@@ -1753,6 +1753,35 @@ html[data-high-contrast="true"][data-theme="light"] .meter, html[data-high-contr
 html[data-high-contrast="true"][data-theme="light"] .stat-bar-fill { background: #000000; }
 html[data-high-contrast="true"][data-theme="light"] a { color: #003f9e; }
 
+/* E-17: the schedule strip -- every event of the run as a small chip. The category colour comes from the
+   event-category--* classes (the icon, number and name always travel with it); done / next / upcoming are
+   told apart by a mark (a tick or a play arrow), weight and an outline, not by colour alone. */
+.schedule-strip-wrapper { margin: 0 0 0.6rem; }
+.schedule-strip {
+  list-style: none;
+  margin: 0.25rem 0 0.3rem;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+}
+.schedule-chip {
+  font-size: 0.78rem;
+  padding: 0.2rem 0.5rem;
+  border: 1px solid currentColor;
+  border-radius: 999px;
+  background: rgba(8, 10, 24, 0.45);
+  cursor: default;
+  white-space: nowrap;
+}
+.schedule-chip--done { opacity: 0.6; border-style: dashed; }
+.schedule-chip--next { font-weight: 700; outline: 2px solid currentColor; outline-offset: 1px; }
+.schedule-chip:focus-visible { outline: 3px solid #ffd400; outline-offset: 2px; }
+.schedule-detail { margin: 0; font-size: 0.82rem; min-height: 2.4em; opacity: 0.9; }
+html[data-theme="light"] .schedule-chip { background: rgba(255, 255, 255, 0.7); }
+html[data-high-contrast="true"] .schedule-chip { background: #000000; }
+html[data-high-contrast="true"][data-theme="light"] .schedule-chip { background: #ffffff; }
+
 /* ============================================================
    Y11b light-theme polish (2026-09-27). Light-only rules from a
    computed-style WCAG contrast scan of the light theme. Dark is
@@ -1794,5 +1823,6 @@ html[data-theme="light"] .event-category--health { color: #0b6b5a; text-shadow: 
 html[data-theme="light"] .past-run-event { opacity: 1; }
 html[data-theme="light"] .severity--mild { opacity: 0.85; }
 html[data-theme="light"] .feedback-buttons .secondary.selected { color: #ffffff; }
+
 
 

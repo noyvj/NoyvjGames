@@ -3009,6 +3009,88 @@ def update_tab_title():
         pass
 
 
+# ---- E-17: schedule strip -------------------------------------------------
+def schedule_strip_entries(run_state):
+    """One entry per event in the run's schedule: what it is, whether it is
+    done / next / upcoming, and the numbers to show. Upcoming damage is exact
+    for this run number (severity is deterministic) at the CURRENT build, so
+    it moves as the player invests."""
+    strength = skill_tree_strength()
+    entries = []
+    for index, event_type in enumerate(run_state.schedule):
+        category = EVENT_CATEGORY[event_type]
+        entry = {
+            "index": index,
+            "number": index + 1,
+            "type": event_type,
+            "label": EVENT_LABEL[event_type],
+            "icon": EVENT_ICON[event_type],
+            "category": category,
+            "category_bonus": category_mitigation_bonus(event_type),
+        }
+        if index < run_state.event_index and index < len(run_state.event_log):
+            logged = run_state.event_log[index]
+            entry.update(
+                state="done",
+                damage=logged["damage"],
+                severity=logged.get("severity", 1.0),
+                mitigation=entry_mitigation(logged),
+            )
+        else:
+            severity = event_severity(run_state.run_number, index, strength)
+            mitigation = run_state.mitigation_for(event_type)
+            entry.update(
+                state="next" if index == run_state.event_index else "upcoming",
+                damage=EVENT_BASE_DAMAGE[event_type] * severity * (1 - mitigation),
+                severity=severity,
+                mitigation=mitigation,
+            )
+        entries.append(entry)
+    return entries
+
+
+def schedule_entry_text(entry):
+    """The plain-text detail for one strip entry (hover, focus and screen readers)."""
+    head = f"Event {entry['number']}: {entry['label']} ({entry['category']} shock)."
+    severity = f"{entry['severity']:.2f}\u00d7 severity, {severity_label(entry['severity'])}"
+    if entry["state"] == "done":
+        mitigation = entry["mitigation"]
+        held = f", {mitigation * 100:.0f}% prevented" if mitigation is not None else ""
+        return f"{head} Faced: {entry['damage']:.0f} damage ({severity}{held})."
+    bonus = entry["category_bonus"]
+    bonus_text = f"a {bonus * 100:.0f}% category bonus" if bonus else "no category bonus"
+    when = "Next" if entry["state"] == "next" else "Upcoming"
+    return (
+        f"{head} {when}: about {entry['damage']:.0f} damage at your current build "
+        f"({severity}; {entry['mitigation'] * 100:.0f}% mitigation, {bonus_text})."
+    )
+
+
+def render_schedule_strip():
+    strip = document.getElementById("schedule-strip")
+    strip.innerHTML = ""
+    entries = schedule_strip_entries(run)
+    default_text = ""
+    for entry in entries:
+        text = schedule_entry_text(entry)
+        if entry["state"] == "next":
+            default_text = text
+        mark = {"done": "\u2713 ", "next": "\u25b6 ", "upcoming": ""}[entry["state"]]
+        chip = document.createElement("li")
+        chip.className = f"schedule-chip schedule-chip--{entry['state']} event-category--{entry['category']}"
+        chip.innerText = f"{mark}{entry['number']} {entry['icon']} {entry['label']}"
+        chip.title = text
+        chip.setAttribute("tabindex", "0")
+        chip.setAttribute("aria-label", text)
+        chip.setAttribute("data-detail", text)
+        strip.appendChild(chip)
+    if not default_text:
+        default_text = f"Run complete: all {len(entries)} events faced."
+    detail = document.getElementById("schedule-detail")
+    detail.innerText = default_text
+    detail.setAttribute("data-default", default_text)
+
+
 # ---- GE-18 / E-15 handlers ---------------------------------------------
 def on_undo_allocation(event=None):
     if run.undo_last_allocation():
@@ -3036,6 +3118,7 @@ def render():
     document.getElementById("societal-memory-display").innerText = societal_memory_message()
     render_mentor()
     render_real_world()
+    render_schedule_strip()
     document.getElementById("curriculum-display").innerText = curriculum_message()
     document.getElementById("resources-display").innerText = f"Resources: {run.resources:.0f}"
     document.getElementById("resilience-display").innerText = f"Resilience: {run.resilience_capacity}"

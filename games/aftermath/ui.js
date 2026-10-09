@@ -106,6 +106,31 @@
     new MutationObserver(check).observe(popup, { attributes: true, attributeFilter: ["data-event-key"] });
   }
 
-  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", watchPopup);
-  else watchPopup();
+  // E-17: hovering or focusing a chip in the schedule strip shows that event's details in the line
+  // under it; leaving the strip restores the next event's details. The same text is on each chip as
+  // its title and aria-label, so nothing depends on this script.
+  function watchSchedule() {
+    const strip = document.getElementById("schedule-strip");
+    const detail = document.getElementById("schedule-detail");
+    if (!strip || !detail) return;
+    function show(event) {
+      const chip = event.target && event.target.closest ? event.target.closest("li[data-detail]") : null;
+      if (chip) detail.textContent = chip.getAttribute("data-detail");
+    }
+    function reset() {
+      detail.textContent = detail.getAttribute("data-default") || "";
+    }
+    strip.addEventListener("mouseover", show);
+    strip.addEventListener("focusin", show);
+    strip.addEventListener("mouseleave", reset);
+    strip.addEventListener("focusout", reset);
+  }
+
+  function start() {
+    watchPopup();
+    watchSchedule();
+  }
+
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", start);
+  else start();
 })();
