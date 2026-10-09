@@ -292,22 +292,22 @@
    "files": [
     {
      "path": "games/canopy/achievements.json",
-     "bytes": 4652,
+     "bytes": 5353,
      "precached": false
     },
     {
      "path": "games/canopy/changelog.json",
-     "bytes": 18803,
+     "bytes": 21295,
      "precached": false
     },
     {
      "path": "games/canopy/game.py",
-     "bytes": 438081,
+     "bytes": 478106,
      "precached": true
     },
     {
      "path": "games/canopy/index.html",
-     "bytes": 88278,
+     "bytes": 91601,
      "precached": true
     },
     {
@@ -317,7 +317,7 @@
     },
     {
      "path": "games/canopy/pc-config.json",
-     "bytes": 3894,
+     "bytes": 4061,
      "precached": false
     },
     {
@@ -327,7 +327,7 @@
     },
     {
      "path": "games/canopy/pc.html",
-     "bytes": 92648,
+     "bytes": 96152,
      "precached": true
     },
     {
@@ -342,12 +342,12 @@
     },
     {
      "path": "games/canopy/story.json",
-     "bytes": 8368,
+     "bytes": 9714,
      "precached": false
     },
     {
      "path": "games/canopy/style.css",
-     "bytes": 88971,
+     "bytes": 91820,
      "precached": true
     }
    ],
@@ -528,6 +528,11 @@
      "precached": true
     },
     {
+     "path": "shared/seed.py",
+     "bytes": 9788,
+     "precached": true
+    },
+    {
      "path": "shared/site-settings.js",
      "bytes": 5911,
      "precached": false
@@ -620,7 +625,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 15027230,
+   "bytes": 15091425,
    "bytes_complete": true
   },
   "grid": {

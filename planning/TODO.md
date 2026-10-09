@@ -1,6 +1,6 @@
 # Site-Wide TODO (round 3)
 
-**Progress: 606/1199 items checked off (50.5%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land.
+**Progress: 608/1199 items checked off (50.7%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land.
 
 Built from your answers in `planning/IMPROVEMENT-IDEAS-ROUND-3.md` (Part 4). Every Round 3 section is now answered (2026-10-07 below the Warframe section); earlier this list held only: **GB** (Canopy gamified), **M** (new games), **N** (seasonal events), **O** (Trade Empire and Continuum replayability), **P/Q/S/T** (Signal, Undersleep, Overclock, Last Line open questions), **X** (Warframe tracker) and **R** (returning later). GC-GI, A-L, U, Z and Y are unanswered and wait for you. The previous list is archived at `planning/todo-archive/260914_260927.md`; anything from it that was moved here is marked "moved" there.
 
@@ -38,7 +38,7 @@ Rules carried over: "yes" items are here, "later" items are parked in `planning/
 
 - [x] GB-1: Wildfire season (opt-in via the difficulty select).
 - [x] GB-2: Golden seedling pop-up.
-- [ ] GB-3: Expedition mode, reframed (you said go with the recommendation, 2026-10-09): a skill-tree Expedition of 12 seasons with fixed, chosen upgrades (no random boons, no roguelike run) and a shareable seed that only decides the map; built as a separate game mode on the shared skill tree.
+- [x] GB-3: Expedition mode, reframed (you said go with the recommendation, 2026-10-09): a skill-tree Expedition of 12 seasons with fixed, chosen upgrades (no random boons, no roguelike run) and a shareable seed that only decides the map; built as a separate game mode on the shared skill tree.
 - [x] GB-4: Tend action with cooldown (hotkey T).
 - [x] GB-5: Neighbour synergy layout puzzle.
 - [x] GB-6: Species on replant (pioneer pine, hardwood oak, orchard).
@@ -56,7 +56,7 @@ Rules carried over: "yes" items are here, "later" items are parked in `planning/
 - [x] GB-18: Undo window after Clear.
 - [x] GB-19: Daily community forest: everyone's play waters one big community plot, with a shared "best day" and an opt-in investment leaderboard (uses the community pools backend from tonight and W-5).
 - [x] GB-20: Rare conditional wildlife in the wildlife log.
-- [ ] GB-21: Clear-cut option, softened (you said go with the recommendation, 2026-10-09): a "clear-cut for a quick payout" choice with no dice: a fixed small bonus now in exchange for a visible, recoverable soil dip that heals over a few seasons, with a badge for the Harvester playstyle.
+- [x] GB-21: Clear-cut option, softened (you said go with the recommendation, 2026-10-09): a "clear-cut for a quick payout" choice with no dice: a fixed small bonus now in exchange for a visible, recoverable soil dip that heals over a few seasons, with a badge for the Harvester playstyle.
 - [x] GB-22: Standing-value milestone celebrations (1k, 2.5k, 5k, 10k), also as achievements if they are not already.
 - [x] GB-23: Weather reads on the grid (rain shimmer, drought tint).
 - [x] GB-24: Wetland/mangrove tidal puzzle (extends the Wetland Forest built as B1; share the tide logic with Tide).
@@ -418,7 +418,7 @@ Your remaining Round 3 answers (Grid to Drift gamified, SOL to Le Champ de Mots,
 - [x] B-4: Add a Canopy shareable forest image: render the final grid, playstyle badge and three headline numbers onto one canvas card (drawn in code, no generated images) with a Download PNG button beside Copy badge; no backend.
 - [x] B-5: Add a Canopy "Forest Lab" sandbox panel with sliders for soil degradation per clear, maturity speed, request frequency and season strength; sandbox sessions are clearly marked and excluded from personal bests, percentiles and leaderboards, and can be saved as harder/gentler Ranger-style variants.
 - [x] B-6: Add a Canopy Settings request-interval selector (Relaxed / Normal / Frequent) that scales STAKEHOLDER_EVENT_INTERVAL_TICKS, saved and recorded with the difficulty tag so stats and percentiles stay honest.
-- [ ] B-7: Finish full keyboard and screen-reader play as a shared component: an aria-live announcer (state changes, incoming requests, season shifts) plus, in Canopy, a visible grid cursor ring and Clear/Replant hotkeys (C/R); then roll the announcer/cursor pattern out to the other grid games. (partly built: index.html B16: arrow-key focus moves across #plot-grid, Enter/Space native, N selects requested plot, tiles have aria-label; T/G/U hotkeys; no C/R keys, focus ring, or aria-live announcer) (needs shared announcer module) (Partly done 2026-10-07: Canopy-local live announcer, C and R hotkeys, thicker focus ring; the shared announcer module is not built, so no other game got it.)
+- [ ] B-7: Finish full keyboard and screen-reader play as a shared component: an aria-live announcer (state changes, incoming requests, season shifts) plus, in Canopy, a visible grid cursor ring and Clear/Replant hotkeys (C/R); then roll the announcer/cursor pattern out to the other grid games. (partly built: index.html B16: arrow-key focus moves across #plot-grid, Enter/Space native, N selects requested plot, tiles have aria-label; T/G/U hotkeys; no C/R keys, focus ring, or aria-live announcer) (needs shared announcer module) (Partly done 2026-10-07: Canopy-local live announcer, C and R hotkeys, thicker focus ring; the shared announcer module is not built, so no other game got it.) (Canopy part DONE 2026-10-10: announcer, cursor ring, C/R/K hotkeys, plot announcements. Left open: the shared announcer component and rolling it out to the other grid games.)
 - [x] B-8: Add a shared high-contrast plot-state option next to text size and reduce motion: bold outlines and text glyphs (B / R / M for Canopy) on every plot tile so state reads without the green gradient; apply it to all games with state-coloured tiles, starting with Canopy. (needs shared settings component) (Canopy-local only.)
 - [x] B-9: Add a Canopy lifetime Statistics tab in the achievements-panel idiom: total plots cleared/replanted, hours played, average standing value by difficulty, playstyle badge distribution bar, best season, and per-request-type accept/decline rate, from local sessions (sandbox excluded).
 - [x] B-10: Add an optional soil-quality heat overlay toggle in Canopy that recolours plot borders by remaining soil quality with numeric badges (accessible, off by default) so multi-clear damage is readable across the grid.
