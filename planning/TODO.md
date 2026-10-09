@@ -1,6 +1,6 @@
 # Site-Wide TODO (round 3)
 
-**Progress: 553/1095 items checked off (50.5%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land.
+**Progress: 554/1095 items checked off (50.6%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land.
 
 Built from your answers in `planning/IMPROVEMENT-IDEAS-ROUND-3.md` (Part 4). Every Round 3 section is now answered (2026-10-07 below the Warframe section); earlier this list held only: **GB** (Canopy gamified), **M** (new games), **N** (seasonal events), **O** (Trade Empire and Continuum replayability), **P/Q/S/T** (Signal, Undersleep, Overclock, Last Line open questions), **X** (Warframe tracker) and **R** (returning later). GC-GI, A-L, U, Z and Y are unanswered and wait for you. The previous list is archived at `planning/todo-archive/260914_260927.md`; anything from it that was moved here is marked "moved" there.
 
@@ -400,7 +400,7 @@ Your remaining Round 3 answers (Grid to Drift gamified, SOL to Le Champ de Mots,
 - [ ] GD-5: Add a Daily Tide seed to Tide: a once-a-day fixed run (sea scenario and storm timing seeded by UTC date) with a shareable result line like 'Day 14: 11 seasons, 2 rows lost, 1 site saved'; optional opt-in daily board. (needs W-5 (optional))
 - [ ] GD-6: Add rival neighbour towns to Tide: a computer-run settlement on a fixed strategy (greedy industrialist, cautious wall-builder, diversifier) shown as a faint second coastline strip; beating each rival's final population/funds unlocks that strategy as a starting preset.
 - [ ] GD-7: Add a Reef Builder side-board to Tide: a 3x4 reef plot under the coastline where Reduction points plant coral tiles that grow, soften storm surge and boost adjacent fish yield, with adjacency bonuses and bleaching when acidity spikes; reuse the grid renderer.
-- [ ] GD-8: Add Trade Winds market events to Tide: telegraphed season events offering a fish-export contract, tourism boom or insurance payout; the player accepts or declines each, deals interact with diversification levels.
+- [x] GD-8: Add Trade Winds market events to Tide: telegraphed season events offering a fish-export contract, tourism boom or insurance payout; the player accepts or declines each, deals interact with diversification levels.
 - [ ] GD-9: Add a Postcard Ending to Tide: at session end render a pixel postcard from real state (walls, reef, heritage, boats, flooded rows as sunken roofs) with a letter grade and nickname; keep a collectable gallery of every postcard variant.
 - [ ] GD-10: Add a Harbor Trials campaign to Tide: hand-made fixed starts (e.g. 15 seasons, 200 funds, high acidity, two heritage sites, 3 invests per season) each with a par score and 3 stars, shown through the level select with every 5th level a new mode or mechanic. (needs W-1)
 - [ ] GD-11: Add Crew and specialists to Tide: hire up to three (Marine Biologist: fish lag one season shorter; Harbor Engineer: tier costs -15%; Broker: better deal terms) each with per-season upkeep so the choice is a build decision. (needs GD-8 (Broker))

@@ -13,6 +13,10 @@
       "entry": "The harbour master now has a one-line quip after each season that reflects what really happened (a flooded row, a storm brewing, thin fish, a quiet stretch, a rescued site); mute it in Settings, and the shared Story toggle hides it too. Secret critters surface when you earn them: a grey seal after five low-acidity seasons, a whale fin when a protected heritage site has come through a storm. Click one to log it in the new Sightings list. Three achievements now unlock scene themes you can pick in Settings: dusk sky (Fortified In Time), storm-glass (Storm-Surge Barriers) and coral-pink sand (Stocks Rebound); locked ones say what unlocks them. Achievement cards got a coral for each earned badge, a dashed hollow-wave look while locked, and a brief ripple when one unlocks. Two small ? buttons under Funds and Ocean acidity explain last season's change line by line (output income, tourism, aquaculture, heritage upkeep, storm repairs; output pushing acidity up and reduction pulling it down)."
     },
     {
+      "date": "2026-10-09",
+      "entry": "New Trade Winds market deals: every fourth season a trader offers a fish-export contract, a tourism boom or (after a row has flooded) an insurance payout, telegraphed the season before. Accept for funds now at a price (more acidity, or a few seasons of slightly lower income) or decline; an unanswered deal lapses. Your aquaculture and tourism levels make the deals pay more."
+    },
+    {
       "date": "2026-10-08",
       "entry": "New: a line under the ocean acidity shows what acidity was three seasons ago and whether it is up, down or unchanged now, so the delay between what you did and what the fish feel is visible as numbers."
     },

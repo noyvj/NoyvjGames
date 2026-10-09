@@ -57,6 +57,10 @@ DOMINO_DISCOUNT_SEASONS = 2
 IRONMAN_SEASONS = 20
 IDLE_CAP_SECONDS = 60  # a gap between clicks counts for at most this long, so walking away does not ruin a run
 SPEEDRUN_KEY = "tide_speedrun_v1"
+# GD-8 (2026-10-09): Trade Winds market events. Every MARKET_EVERY seasons a deal is offered (telegraphed the season before).
+MARKET_EVERY = 4
+MARKET_DIP_FACTOR = 0.9
+MARKET_KINDS = ("export", "tourism", "insurance")
 # GD-27: a heritage site protected when its row would flood within this many seasons counts as a last-second rescue.
 RESCUE_WITHIN_SEASONS = 1
 HERITAGE_UNPROTECTED = "unprotected"
@@ -465,6 +469,11 @@ class SettlementState:
         self.maxtier_seconds = None
         # GD-18: ids of the critters the player has clicked into the Sightings list.
         self.sightings = []
+        # GD-8: the deal on the table right now ({"kind", "gain", "season"} or None), how many deals were accepted,
+        # and the seasons of slower income an accepted deal can leave behind.
+        self.market_event = None
+        self.market_accepted = 0
+        self.income_dip_seasons = 0
         # D-28: where the last season's acidity and funds changes came from (transient, never saved).
         self.last_breakdown = None
         # GD-27: the site most recently saved at the last second (transient, shown once, never saved).
@@ -773,6 +782,66 @@ class SettlementState:
         if scenario not in SEA_SCENARIOS or self.damage_log or self.season != 1:
             return False
         self.sea_scenario = scenario
+        return True
+
+    # ---- GD-8 Trade Winds ----------------------------------------------
+    def market_offer_text(self):
+        event = self.market_event
+        if not event:
+            return ""
+        gain = event["gain"]
+        if event["kind"] == "export":
+            return f"Trade Winds: a fish-export contract pays {gain:.0f} funds now, but the extra boats push acidity up by 0.6."
+        if event["kind"] == "tourism":
+            return f"Trade Winds: a tourism boom pays {gain:.0f} funds now, but overstretched hosts cut next season's income by 10%."
+        return f"Trade Winds: an insurance payout of {gain:.0f} funds is on offer, but the premium cuts the next two seasons' income by 10%."
+
+    def market_telegraph_text(self):
+        if self.market_event is None and self.season % MARKET_EVERY == MARKET_EVERY - 1:
+            return "Trade Winds: a trader is expected next season. Plan for a deal."
+        return ""
+
+    def _market_kind_for(self, season):
+        kinds = [k for k in MARKET_KINDS if k != "insurance" or flooded_row_count(self.sea_level) > 0]
+        return kinds[(season * 7 + season // MARKET_EVERY * 3) % len(kinds)]
+
+    def _market_gain(self, kind):
+        if kind == "export":
+            return round((30 + 10 * self.diversification["aquaculture"]) * self.fish_yield_multiplier(), 1)
+        if kind == "tourism":
+            return float(25 + 25 * self.diversification["tourism"])
+        return float(10 * max(1, flooded_row_count(self.sea_level)) + 5 * (self.diversification["tourism"] + self.diversification["aquaculture"]))
+
+    def _update_market(self):
+        """Called at the end of a resolved season: expire an unanswered deal, then offer the next one when due."""
+        if self.market_event is not None:
+            self._log_ticker("Trade Winds: the trader sailed on; the deal lapsed.")
+            self.market_event = None
+        if self.season % MARKET_EVERY == 0:
+            kind = self._market_kind_for(self.season)
+            self.market_event = {"kind": kind, "gain": self._market_gain(kind), "season": self.season}
+            self._log_ticker(self.market_offer_text())
+
+    def answer_market(self, accept):
+        event = self.market_event
+        if event is None:
+            return False
+        self.market_event = None
+        if not accept:
+            self._log_ticker("Trade Winds: you declined the deal.")
+            return True
+        self.funds += event["gain"]
+        self.max_funds_ever = max(self.max_funds_ever, self.funds)
+        self.market_accepted += 1
+        if event["kind"] == "export":
+            self.acidity += 0.6
+            self.max_acidity_ever = max(self.max_acidity_ever, self.acidity)
+        elif event["kind"] == "tourism":
+            self.income_dip_seasons = max(self.income_dip_seasons, 1)
+        else:
+            self.income_dip_seasons = max(self.income_dip_seasons, 2)
+        self._log_ticker(f"Trade Winds: you took the {event['kind']} deal (+{event['gain']:.0f} funds).")
+        self._chronicle_event(f"A trader's {event['kind']} deal was accepted.")
         return True
 
     def invest_cost(self, category):
@@ -1412,8 +1481,11 @@ class SettlementState:
         self.balance_streak = self.balance_streak + 1 if balanced else 0
         multiplier = BALANCE_MULTIPLIERS[min(self.balance_streak, len(BALANCE_MULTIPLIERS) - 1)]
         self.season_invested = set()
+        if self.income_dip_seasons > 0:  # GD-8: the price of an accepted deal
+            multiplier *= MARKET_DIP_FACTOR
+            self.income_dip_seasons -= 1
         bonus = (income + tourism_income + aquaculture_income) * (multiplier - 1.0)
-        if bonus > 0:
+        if bonus > 0 and multiplier > 1.0:
             self._log_ticker(f"Balanced seasons x{multiplier:.1f}: +{bonus:.0f} income from investing in all three.")
         self.funds += (income + tourism_income + aquaculture_income) * multiplier
         if self.domino_seasons_left > 0:  # GD-28: the comeback discount runs down one season at a time
@@ -1483,6 +1555,7 @@ class SettlementState:
             self._log_ticker(f"\u2693 Ironman: {IRONMAN_SEASONS} seasons in Hard Lag with no Rewind and no checkpoint replay.")
             self._chronicle_event(f"The harbour held for {IRONMAN_SEASONS} seasons of hard lag without turning back the clock.")
 
+        self._update_market()  # GD-8
         new_fish_yield = self.fish_yield_multiplier()
         self.fish_yield_history.append(new_fish_yield)
         self.min_fish_yield_ever = min(self.min_fish_yield_ever, new_fish_yield)
@@ -4611,7 +4684,6 @@ def on_scene_theme_change(event=None):
     if value in SCENE_THEMES and theme_unlocked(value):
         _write_local_storage_item(SCENE_THEME_KEY, value)
     render_scene_theme()
-    render_delta_popover()
 
 
 # D-28 delta breakdown ------------------------------------------------------------------------------------------
@@ -4658,6 +4730,29 @@ def render_delta_popover():
             button.setAttribute("aria-expanded", "true" if kind == name else "false")
 
 
+def render_market():
+    panel, text = document.getElementById("market-panel"), document.getElementById("market-text")
+    offer = state.market_offer_text()
+    hint = state.market_telegraph_text()
+    if panel is not None:
+        panel.hidden = not (offer or hint)
+    if text is not None:
+        text.innerText = offer or hint
+    for button_id in ("market-accept-button", "market-decline-button"):
+        button = document.getElementById(button_id)
+        if button is not None:
+            button.hidden = not offer
+
+
+def on_market_answer(accept):
+    def handler(event=None):
+        if state.answer_market(accept):
+            check_pinned_goal()
+            announce("Deal accepted." if accept else "Deal declined.")
+        render()
+    return handler
+
+
 def render_tide_oct9():
     render_afford()
     render_goal()
@@ -4666,6 +4761,8 @@ def render_tide_oct9():
     render_run_extras()
     render_critters_and_quip()
     render_scene_theme()
+    render_delta_popover()
+    render_market()
 
 
 def render():
@@ -5064,6 +5161,8 @@ def get_state():
             "maxtier_actions": state.maxtier_actions, "maxtier_seconds": state.maxtier_seconds,
         }} if (state.rewind_used or state.ironman_earned or state.actions_count or not state.hard_lag_all_run) else {}),  # GD-20/23/24
         **({"sightings": list(state.sightings)} if state.sightings else {}),  # GD-18
+        **({"market": {"event": copy.deepcopy(state.market_event), "accepted": state.market_accepted, "dip": state.income_dip_seasons}}
+           if (state.market_event or state.market_accepted or state.income_dip_seasons) else {}),  # GD-8
         **({"balance": {"streak": state.balance_streak, "invested": sorted(state.season_invested)}} if (state.balance_streak or state.season_invested) else {}),  # GD-14
         **({"domino": {"left": state.domino_seasons_left, "count": state.domino_count}} if (state.domino_seasons_left or state.domino_count) else {}),  # GD-28
         # Write-only projection (ACHIEVEMENTS-SYSTEM-DESIGN.md §1) —
@@ -5367,6 +5466,16 @@ def load_state(data):
         mt_a, mt_s = saved_run.get("maxtier_actions"), saved_run.get("maxtier_seconds")
         if isinstance(mt_a, int) and not isinstance(mt_a, bool) and 0 <= mt_a < 10**6 and isinstance(mt_s, (int, float)) and not isinstance(mt_s, bool) and 0 <= mt_s < 1e8:
             state.maxtier_actions, state.maxtier_seconds = mt_a, float(mt_s)
+    saved_market = data.get("market")  # GD-8: bad values leave no deal, no dip
+    state.market_event, state.market_accepted, state.income_dip_seasons = None, 0, 0
+    if isinstance(saved_market, dict):
+        state.market_accepted = _clamped_int(saved_market.get("accepted"), 0, 10**4)
+        state.income_dip_seasons = _clamped_int(saved_market.get("dip"), 0, 2)
+        event = saved_market.get("event")
+        if (isinstance(event, dict) and event.get("kind") in MARKET_KINDS
+                and isinstance(event.get("gain"), (int, float)) and not isinstance(event.get("gain"), bool) and 0 <= event["gain"] < 10**5
+                and isinstance(event.get("season"), int) and not isinstance(event.get("season"), bool)):
+            state.market_event = {"kind": event["kind"], "gain": float(event["gain"]), "season": event["season"]}
     saved_sightings = data.get("sightings")  # GD-18: unknown ids and duplicates are dropped
     state.sightings = []
     if isinstance(saved_sightings, list):
@@ -5533,6 +5642,10 @@ def setup():
         why_button = document.getElementById(f"why-{why_name}-button")
         if why_button is not None:
             why_button.addEventListener("click", create_proxy(on_why_button(why_name)))
+    for market_id, market_accept in (("market-accept-button", True), ("market-decline-button", False)):  # GD-8
+        market_button = document.getElementById(market_id)
+        if market_button is not None:
+            market_button.addEventListener("click", create_proxy(on_market_answer(market_accept)))
     theme_select = document.getElementById("scene-theme-select")  # GD-22
     if theme_select is not None:
         theme_select.addEventListener("change", create_proxy(on_scene_theme_change))

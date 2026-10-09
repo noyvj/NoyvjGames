@@ -872,3 +872,118 @@ def test_the_breakdown_is_not_saved(game_env):
     m.state.advance_season()
     assert "last_breakdown" not in str(m.get_state().keys())
     m.load_state(m.get_state())
+
+
+# ---- GD-8 Trade Winds ----
+
+def _to_season(s, n):
+    while s.season < n:
+        s.advance_season()
+        s.market_event = None if s.season != n else s.market_event
+
+
+def test_a_deal_is_offered_every_fourth_season_and_telegraphed_before(game_env):
+    m = game_env.module
+    s = m.state
+    for _ in range(2):
+        s.advance_season()
+    assert s.season == 3 and s.market_event is None and "next season" in s.market_telegraph_text()
+    s.advance_season()
+    assert s.season == m.MARKET_EVERY and s.market_event is not None
+    assert s.market_event["kind"] in m.MARKET_KINDS
+    assert "Trade Winds" in s.market_offer_text() and any("Trade Winds" in line for line in s.ticker_log)
+    assert s.market_telegraph_text() == ""
+
+
+def test_an_unanswered_deal_lapses_when_the_next_season_resolves(game_env):
+    m = game_env.module
+    s = m.state
+    for _ in range(m.MARKET_EVERY - 1):
+        s.advance_season()
+    assert s.market_event is not None
+    s.advance_season()
+    assert s.market_event is None and any("lapsed" in line for line in s.ticker_log)
+
+
+def test_insurance_is_only_offered_when_a_row_has_flooded(game_env):
+    m = game_env.module
+    s = m.state
+    s.sea_level = 0.0
+    assert all(s._market_kind_for(season) != "insurance" for season in range(4, 80, 4))
+    s.sea_level = m.row_flood_threshold(m.COASTLINE_ROWS - 1) + 1
+    assert any(s._market_kind_for(season) == "insurance" for season in range(4, 80, 4))
+
+
+def test_gains_scale_with_diversification(game_env):
+    m = game_env.module
+    s = m.state
+    base_export, base_tour = s._market_gain("export"), s._market_gain("tourism")
+    s.diversification["aquaculture"] = 2
+    s.diversification["tourism"] = 2
+    assert s._market_gain("export") > base_export and s._market_gain("tourism") == base_tour + 50
+
+
+def test_accepting_pays_and_charges_the_price_declining_does_neither(game_env):
+    m = game_env.module
+    s = m.state
+    s.market_event = {"kind": "export", "gain": 40.0, "season": 4}
+    funds, acid = s.funds, s.acidity
+    assert s.answer_market(True) is True
+    assert s.funds == funds + 40 and s.acidity == pytest.approx(acid + 0.6) and s.market_accepted == 1 and s.market_event is None
+    s.market_event = {"kind": "tourism", "gain": 25.0, "season": 8}
+    s.answer_market(True)
+    assert s.income_dip_seasons == 1
+    s.market_event = {"kind": "insurance", "gain": 20.0, "season": 12}
+    s.answer_market(True)
+    assert s.income_dip_seasons == 2
+    s.market_event = {"kind": "export", "gain": 99.0, "season": 16}
+    funds = s.funds
+    s.answer_market(False)
+    assert s.funds == funds and s.market_accepted == 3
+    assert s.answer_market(True) is False  # nothing on the table
+
+
+def test_the_dip_trims_income_for_that_many_seasons(game_env):
+    m = game_env.module
+    s = m.state
+    s.capacity["output"] = 10
+    s.funds = 100
+    s.income_dip_seasons = 1
+    s.advance_season()
+    dipped = s.funds - 100
+    s.funds = 100
+    s.advance_season()
+    normal = s.funds - 100
+    assert dipped == pytest.approx(normal * m.MARKET_DIP_FACTOR, rel=0.05) and s.income_dip_seasons == 0
+
+
+def test_panel_and_buttons(game_env):
+    m = game_env.module
+    s = m.state
+    m.render()
+    assert game_env.elements["market-panel"].hidden is True
+    s.season = 3
+    m.render()
+    assert game_env.elements["market-panel"].hidden is False and game_env.elements["market-accept-button"].hidden is True
+    s.market_event = {"kind": "tourism", "gain": 50.0, "season": 4}
+    s.season = 4
+    m.render()
+    assert game_env.elements["market-accept-button"].hidden is False and "tourism boom" in game_env.elements["market-text"].innerText
+    funds = s.funds
+    game_env.elements["market-accept-button"].dispatch("click", None)
+    assert s.funds == funds + 50 and game_env.elements["market-accept-button"].hidden is True
+
+
+def test_market_state_saves_and_validates(game_env):
+    m = game_env.module
+    s = m.state
+    assert "market" not in m.get_state()
+    s.market_event = {"kind": "export", "gain": 33.0, "season": 4}
+    s.market_accepted, s.income_dip_seasons = 2, 1
+    saved = m.get_state()
+    s.market_event, s.market_accepted, s.income_dip_seasons = None, 0, 0
+    m.load_state(saved)
+    assert s.market_event == {"kind": "export", "gain": 33.0, "season": 4} and (s.market_accepted, s.income_dip_seasons) == (2, 1)
+    saved["market"] = {"event": {"kind": "piracy", "gain": 5, "season": 4}, "accepted": -3, "dip": 99}
+    m.load_state(saved)
+    assert s.market_event is None and s.market_accepted == 0 and s.income_dip_seasons == 2
