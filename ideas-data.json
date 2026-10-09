@@ -198,6 +198,16 @@
        "n": "Pb6",
        "text": "**Pocket Bazaar: on phones the Tutorial, What's New, Settings and About buttons sit at the foot of the page below the crates; is that acceptable?** Recommended: yes, it keeps the board and counter on one screen. Say \"no\" and tell me where they should go instead.",
        "answered": false
+      },
+      {
+       "n": "Dr4",
+       "text": "**Dead Reckoning: should the chart picker be replaced by the shared level select (a special level every fifth chart) when the game is registered in the hub, or keep its own picker where a chapter opens after four charts of the previous one are cleared?** Recommended: keep its own picker (it already works and is tested), and revisit the shared level select later. Say \"yes\" to go with that.",
+       "answered": false
+      },
+      {
+       "n": "Dr5",
+       "text": "**Dead Reckoning: the achievement \"Two at Once\" needs the two-ship mode that is not built yet, so I swapped it for \"Patient Navigator\" (wait at anchor for the tide, then make landfall); is that swap OK until two ships exist?** Recommended: yes, keep Patient Navigator and add Two at Once back when two ships are built.",
+       "answered": false
       }
      ]
     }

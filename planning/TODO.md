@@ -1,6 +1,6 @@
 # Site-Wide TODO (round 3)
 
-**Progress: 561/1095 items checked off (51.2%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land.
+**Progress: 567/1095 items checked off (51.8%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land.
 
 Built from your answers in `planning/IMPROVEMENT-IDEAS-ROUND-3.md` (Part 4). Every Round 3 section is now answered (2026-10-07 below the Warframe section); earlier this list held only: **GB** (Canopy gamified), **M** (new games), **N** (seasonal events), **O** (Trade Empire and Continuum replayability), **P/Q/S/T** (Signal, Undersleep, Overclock, Last Line open questions), **X** (Warframe tracker) and **R** (returning later). GC-GI, A-L, U, Z and Y are unanswered and wait for you. The previous list is archived at `planning/todo-archive/260914_260927.md`; anything from it that was moved here is marked "moved" there.
 
@@ -120,13 +120,13 @@ Rules carried over: "yes" items are here, "later" items are parked in `planning/
 - [x] M-5b-1: Milestone 1, Sim core: `sim.py` vectors, current zones, leeway, hazard intersection, tracks, scoring, text harness; tests for determinism, hazards, vectors.
 - [x] M-5b-2: Milestone 2, Chart SVG: chart renderer (grid, land, hazards, current arrows, scale, rose), one hard-coded chart, static estimated track from a hard-coded plan.
 - [x] M-5b-3: Milestone 3, Plan and sail: leg editor (numeric steppers and quick-turn buttons), live estimated track, Sail, animated true track, reveal overlay with error ribbon and score. Playable slice.
-- [ ] M-5b-4: Milestone 4, Campaign chapters 1-2: 12 authored charts (open water, wind), stars, retry, par-plan reveal, chart validator tests. First complete, playable game.
-- [ ] M-5b-5: Milestone 5, Fixes and watch-by-watch: landmarks, bearing fixes, leg-at-a-time mode, chapter 3.
-- [ ] M-5b-6: Milestone 6, Fog, tides, compass error: chapters 4, 5 and 7, tide tables, uncharted hazards.
+- [x] M-5b-4: Milestone 4, Campaign chapters 1-2: 12 authored charts (open water, wind), stars, retry, par-plan reveal, chart validator tests. First complete, playable game.
+- [x] M-5b-5: Milestone 5, Fixes and watch-by-watch: landmarks, bearing fixes, leg-at-a-time mode, chapter 3.
+- [x] M-5b-6: Milestone 6, Fog, tides, compass error: chapters 4, 5 and 7, tide tables, uncharted hazards.
 - [ ] M-5b-7: Milestone 7, Two ships: multi-ship plan and sim, collision events, chapter 6. Do this later rather than at launch unless FOR-YOU Dr2 says otherwise.
-- [ ] M-5b-8: Milestone 8, Practice generator: seeded chart generator, solvability fuzz, shareable seeds.
-- [ ] M-5b-9: Milestone 9, Standard kit: save widget, settings, confirm dialogs, tutorial, mobile dock/HUD, changelog, info panel with sourced facts and the abstraction disclaimer, feedback, light theme, colorblind audit.
-- [ ] M-5b-10: Milestone 10, Achievements: 14 achievements (`achievements.json`), panel and toast, `achievements_earned` in the save state, favicon `icons/favicon-dead-reckoning.svg`, Desktop boot (`pc-config.json`, its own `pc.html`), the game's CLAUDE.md milestone table, dev logs, tag. All inside the game folder.
+- [x] M-5b-8: Milestone 8, Practice generator: seeded chart generator, solvability fuzz, shareable seeds.
+- [x] M-5b-9: Milestone 9, Standard kit: save widget, settings, confirm dialogs, tutorial, mobile dock/HUD, changelog, info panel with sourced facts and the abstraction disclaimer, feedback, light theme, colorblind audit.
+- [x] M-5b-10: Milestone 10, Achievements: 14 achievements (`achievements.json`), panel and toast, `achievements_earned` in the save state, favicon `icons/favicon-dead-reckoning.svg`, Desktop boot (`pc-config.json`, its own `pc.html`), the game's CLAUDE.md milestone table, dev logs, tag. All inside the game folder.
 - [ ] M-5b-11: Milestone 11, Daily Chart (optional): date-seeded chart, archive, opt-in leaderboard board. Only if wanted later.
 - [ ] M-5b-12: Milestone 12, BLOCKED ON NOY2 (hub registration): the shared registration that must wait until Noy2 releases the hub and shared files: root `index.html` title card and tags, `style.css` thumbnail, `script.js` entries, `sw.js` precache (own game files plus `pc.*`) with a `SW_VERSION` bump, `offline-manifest.json`, `game-manifest.json` / `game-added.json` / `game-last-updated.json` / `game-roadmap-data.json` (rerun the scripts), `game-sessions.json`, `achievements.html`, `leaderboards.html` if it has a board, `admin.html`, `shared/site-settings.js`, `sitemap.xml`, `share/meta` and `share/jsonld` cards (`scripts/generate-share-cards.py`), `scripts/perf-budget.json`, the hub regression and smoke tests (`shared/tests/smoke_support.py`, `test_smoke_everything.py`), the root `CLAUDE.md` games table row, and a check that the game works with Noy2's finished save widget and snapshots. Then run the shared test suite and `scripts/generate-pc-pages.py --check`.
 

@@ -188,3 +188,11 @@ Recommended: slightly faster, about 12 to 14 days, since you like reachable 100%
 
 Recommended: yes, it keeps the board and counter on one screen. Say "no" and tell me where they should go instead.
 
+### Dr4. Dead Reckoning: should the chart picker be replaced by the shared level select (a special level every fifth chart) when the game is registered in the hub, or keep its own picker where a chapter opens after four charts of the previous one are cleared?
+
+Recommended: keep its own picker (it already works and is tested), and revisit the shared level select later. Say "yes" to go with that.
+
+### Dr5. Dead Reckoning: the achievement "Two at Once" needs the two-ship mode that is not built yet, so I swapped it for "Patient Navigator" (wait at anchor for the tide, then make landfall); is that swap OK until two ships exist?
+
+Recommended: yes, keep Patient Navigator and add Two at Once back when two ships are built.
+
