@@ -3068,6 +3068,8 @@ def schedule_entry_text(entry):
 
 def render_schedule_strip():
     strip = document.getElementById("schedule-strip")
+    if strip is None:
+        return  # a cached older page without the strip (service worker serves stale HTML once)
     strip.innerHTML = ""
     entries = schedule_strip_entries(run)
     default_text = ""
@@ -3154,6 +3156,8 @@ def render():
     # driven by the same legacy_event_counts as the chip row above.
     for category, tier in legacy_scar_tiers().items():
         scar_el = document.getElementById(f"settlement-legacy-scar-{category}")
+        if scar_el is None:
+            continue  # a cached older page without this category's scar (service worker serves stale HTML once)
         for t in (1, 2, 3):
             scar_el.classList.remove(f"settlement-legacy-scar--tier-{t}")
         if tier:

@@ -89,3 +89,12 @@ def test_strip_survives_a_load_without_a_log_entry_for_every_index(game_env):
     # no log to read for events 1-2: they show as upcoming rather than crashing
     assert "schedule-chip--upcoming" in chips[0].className
     assert "schedule-chip--next" in chips[2].className
+
+
+def test_render_survives_a_stale_page_missing_the_newer_elements(game_env):
+    """The service worker can serve an older cached index.html next to a newer game.py once."""
+    m = game_env.module
+    del game_env.elements["schedule-strip"]
+    del game_env.elements["settlement-legacy-scar-health"]
+    game_env.module.document.getElementById = lambda id_: game_env.elements.get(id_)
+    m.render()
