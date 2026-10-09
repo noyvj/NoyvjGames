@@ -1,5 +1,9 @@
 [
   {
+    "date": "2026-10-09",
+    "entry": "The feedback box at the end now asks a second question about Herd's own lesson: did decoupling feel like a real strategy, or a tax on growth? Answer both questions and the Submit button unlocks; your comment is still optional."
+  },
+  {
     "date": "2026-10-08",
     "entry": "A batch of play-quality changes. Buy in steps: an x1 / x5 / Max stepper above Grow Herd makes the Grow Herd and the three decoupling buttons buy several units at once and show the total cost first. After each Advance Round, small chips show how Funds, Methane, Welfare and Pressure moved (with a triangle and a sign, so colour is never the only cue); click one to pin it, otherwise it fades. Undo last round rewinds the farm to just before you pressed Advance Round, once per game, for a 25-funds fee. With market and weather variation on, a 12-round calendar shows each coming season's income swing and the plant-based demand surges. The poultry panel has a cattle against poultry table, each breeding line shows a ring counting down its three rounds, every animal in the herd has a name (hover a pasture cow), and the longest-serving animals of a retired generation go into a hall of fame under Collection. A discreet line under the round counter tracks your pace, and every ten rounds in one sitting a toast suggests saving and taking a break."
   },
