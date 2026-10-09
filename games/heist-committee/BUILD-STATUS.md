@@ -1,25 +1,15 @@
 # Heist Committee build status (handoff file)
 
-Last updated: Milestone 8. The user answered He1-He3: yes to all recommendations (cozy caper tone, Daily Job later, invented crew names). planning/PLAYER-PROFILE.md read: no hard-lose states, no timers, predictable and retry-friendly, optional leaderboards, dark/moody look, three visible goals, short wins.
+Last updated: Milestone 9. ALL NINE FOLDER MILESTONES ARE DONE. Nothing half-finished.
 
 ## Done
-- M1 Engine core. M2 Plan UI.
-- M3 Playback + payout: game.py start_heist/step/skip/finish/retry, writeup.py + content/writeups.json, play.js (beat-by-beat log with why-lines, optional auto-advance, payout screen with chain diagram, retry pays only the improvement). Verified live at 1440 and 360.
+- M1 Engine core, M2 Plan UI, M3 Playback + payout, M4 Launch content, M5 Career and meta, M6 Standard kit, M7 Achievements + story, M8 Balance and bots, M9 Own-folder wrap-up (favicon, Desktop boot with pc-config.json/pc.js/pc.css/pc.html, game CLAUDE.md, changelog).
+- Tests: `cd games/heist-committee && python3 -m pytest -q tests` (about 165, about a minute; the browser smoke tests skip offline). Lint: `python3 -m flake8 --max-line-length=140 .`. Shared check: `python3 -m pytest -q shared/tests -k heist`.
 
-- M4 Launch content: 3 targets (Pigeon Museum, Affineur's Cellar, Lucky Barge), 25 complications, 12 crew, 3 gear, board shows all three, tests that every complication can fire. First complete playable game.
-
-- M5 Career and meta: reputation (gain only for improvements), unlocks by reputation (jobs, crew, gear), board of up to 3 rotating by career seed, friends/feud relationships from pair scores, hat-passing safety net, 5 targets, 20 crew, 56 complications, 7 gear.
-
-- M6 Standard kit: opening screen (New Game clears the local resume), save widget contract verified mid-playback, confirm dialogs, tutorial (11 steps), mobile dock for the tray + mobile HUD, keyboard shortcuts help, info panel (info.py), changelog.json, story toggle wired to .ev-flavor, copy-result on the payout.
-- Tests that drive the page must use index.html#play to skip the opening screen.
-
-- M7 Achievements + story: 14 achievements computed from meta (achievements.py + achievements.json, panel, toast, achievements_earned in the save), story.py (debrief banter after each job, seven "Minutes of the Committee" opening by jobs done), story toggle hides .ev-flavor, .story-line and the Minutes panel.
-
-- M8 Balance and bots: auto complications got a `chance` (guards no longer wake every time), bot bands over 1,000 jobs per target (test_balance.py: thoughtful plan 45-92% escape, dice plan under 5%, standby pays for itself, scouting-informed cover not worse), contrast test in both themes + colourblind cue tests (test_accessibility.py), real-browser smoke at 1440 and 360 (test_browser_smoke.py, skips offline), phone touch targets (lane move buttons moved into the inspector on phones).
-- Known design note: a skill-maximising crew can include a trap quirk (e.g. Allergic Pip in the flower dome); that is the discoverable puzzle, background checks cost 10.
-
-## Next
-- M9 own-folder wrap-up: pc-config.json + pc.js/pc.css + pc.html via scratch build("heist-committee", cfg), layout-pref include, final CLAUDE.md, tag, run python3 -m pytest -q shared/tests -k heist.
+## Next (not for this folder's agent)
+- M-1b-11: hub registration, blocked on the session owning the hub/shared files (see CLAUDE.md "Not in this folder"). Also add `games/heist-committee/pc.html`, `pc.css`, `pc.js`, `content/*.json`, all `*.py` to the sw.js precache / offline manifest there.
+- M-1b-10 Daily Job (optional, user said yes to Daily Job later): date-seeded job, archive, opt-in leaderboard.
+- Dev logs for BCM114/BCM206 were not written (outside this folder's brief).
 
 ## Open problems
-- Mobile dock for the tray is wired in M6.
+- None known. A skill-maximising crew can contain a trap quirk (Allergic Pip in the flower dome): intended discoverable puzzle.

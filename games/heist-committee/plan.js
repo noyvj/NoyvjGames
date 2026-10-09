@@ -348,7 +348,7 @@
       return;
     }
     if (e.ctrlKey || e.metaKey) return;
-    if (e.key === "Escape") { if (armed || selected) { e.preventDefault(); disarm(); } return; }
+    if (e.key === "Escape") return;      // handled by the capture listener below
     if (inGrid) {
       var step = { ArrowLeft: [0, -1], ArrowRight: [0, 1], ArrowUp: [-1, 0], ArrowDown: [1, 0] }[e.key];
       if (step) { e.preventDefault(); moveCursor(step[0], step[1]); return; }
@@ -370,6 +370,16 @@
       onTray(view.tray[+e.key - 1].id);
     }
   });
+
+  // Put the action down first. This runs in the capture phase, before the Desktop shell's own capture listener, so a
+  // bare Escape (nothing armed or selected) is the only one that reaches the shell's menu.
+  document.addEventListener("keydown", function (e) {
+    var view = HC.view;
+    if (e.key !== "Escape" || !view || view.phase !== "plan" || !(armed || selected)) return;
+    e.preventDefault();
+    e.stopImmediatePropagation();
+    disarm();
+  }, true);
 
   // ---- buttons -----------------------------------------------------------------------------------
   $("undo-button").addEventListener("click", function () { HC.send({ action: "undo" }); });

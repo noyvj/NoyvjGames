@@ -1,0 +1,68 @@
+/* Heist Committee, Desktop boot (pc.html only). Everything is scoped to the pc layout, so the Classic page is
+   untouched. The stage is the whole job: board, case file, hiring, the plan, the playback and the payout take turns
+   in it. While planning, the timeline sits on top with the inspector and the action tray side by side under it, and
+   the checklist and scouting notes in a column beside it. Minutes, achievements, settings and the rest are windows.
+   Frame, readout chips and windows come from shared/pc-shell.css. */
+
+html[data-layout="pc"] body { padding-bottom: 0; }
+html[data-layout="pc"] #game { padding-bottom: 0.4rem; max-width: none; }
+#pc-topbar { grid-template-columns: auto minmax(0, 1fr); grid-template-areas: "title tools"; padding-right: 7.5rem; }
+#pc-topbar > .game-toolbar { justify-content: flex-end; }
+html[data-layout="pc"] #theme-toggle-floating { top: 0.7rem !important; bottom: auto !important; left: auto !important; right: 1rem !important; }
+.pc-readout-value { font-variant-numeric: tabular-nums; }
+#pc-stagebar:not(:has(*:not(:empty))) { display: none; }
+#pc-stagebar > p { margin: 0; }
+#pc-stagebar > .toast:empty, #pc-stagebar > #engine-status:empty { display: none; }
+
+/* --- stage: one scrolling area, the current phase inside ------------------------------------------ */
+#pc-stage > #main-stage { flex: 1 1 0; min-height: 0; overflow-y: auto; padding-right: 0.2rem; }
+#main-stage > .phase { margin: 0; }
+#main-stage > .phase > h2 { margin-top: 0; }
+#phase-plan > #plan-intro { display: none; }
+#phase-plan .plan-layout { grid-template-columns: minmax(0, 1fr) clamp(17rem, 22vw, 21rem); gap: 0.7rem; }
+#phase-plan .plan-main { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr); gap: 0.6rem; align-items: start; }
+#phase-plan .timeline-wrap { grid-column: 1 / -1; }
+#phase-plan .plan-main > .panel { margin: 0; }
+#phase-plan .cell { min-height: 3.6rem; }
+#phase-plan .timeline { --lane-w: 10.2rem; --cell-w: 5.2rem; }
+#phase-plan .plan-side > .plan-controls { margin: 0 0 0.6rem; position: sticky; top: 0; z-index: 3; background: var(--bg); padding: 0.2rem 0; }
+#phase-plan .plan-side > .plan-controls .primary { margin-left: auto; }
+#phase-plan .tray { grid-template-columns: repeat(auto-fill, minmax(7.6rem, 1fr)); }
+#phase-plan .plan-side > .panel { margin: 0 0 0.6rem; }
+#phase-playback .timeline { --lane-w: 9rem; --cell-w: 5.2rem; }
+#phase-playback .cell { min-height: 3.4rem; }
+#phase-recruit .cards-grid { grid-template-columns: repeat(auto-fill, minmax(17rem, 1fr)); }
+
+/* The page's mobile pieces have no place in the full-window layout. */
+html[data-layout="pc"] #tray-panel.mobile-docked { position: static; }
+html[data-layout="pc"] body.has-docked-tray { padding-bottom: 0; }
+html[data-layout="pc"] #mobile-hud-bar { display: none; }
+
+/* The hint bar under the stage. */
+#pc-hintbar { flex: 0 0 auto; }
+
+/* --- windows: the shell draws a warm dark frame by default; Heist Committee is plum and amber ------- */
+html[data-layout="pc"] .pc-window-frame {
+  --pc-window-bg: #1d2133; --pc-window-bar-bg: #2a1f3d; --pc-window-line: rgba(255, 193, 94, 0.4);
+  color: var(--text);
+}
+html[data-theme="light"][data-layout="pc"] .pc-window-frame {
+  --pc-window-bg: #fffdf8; --pc-window-bar-bg: #efe6d2; --pc-window-line: rgba(122, 74, 0, 0.45);
+  color: var(--text);
+}
+/* A panel inside a window sits flat; its own heading repeats the title bar. */
+.pc-window-frame > .panel { margin: 0; border: 0; border-radius: 0; box-shadow: none; background: transparent; }
+.pc-window-frame > .panel > h2:first-child { display: none; }
+.pc-window-frame a { color: var(--accent); }
+html[data-theme="light"][data-layout="pc"] .pc-readout { background: var(--panel); color: var(--text); }
+html[data-layout="pc"] .pc-readout { color: var(--text); }
+
+@media (max-width: 1100px) {
+  #phase-plan .plan-main { grid-template-columns: minmax(0, 1fr); }
+  #phase-plan .timeline { --cell-w: 4.4rem; }
+  .pc-readout { padding: 0.25rem 0.55rem; font-size: 0.8rem; }
+}
+@media (max-height: 780px) {
+  html[data-layout="pc"] #game { gap: 0.4rem; padding-top: 0.4rem; }
+  #pc-topbar > h1 { margin-top: 0.8rem; font-size: 1.2rem; }
+}

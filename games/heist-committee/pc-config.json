@@ -1,0 +1,144 @@
+{
+  "windows": [
+    [
+      "minutes-panel",
+      "minutes-toggle-button",
+      "Minutes of the Committee"
+    ],
+    [
+      "achievements-panel",
+      "achievements-toggle-button",
+      "Achievements"
+    ],
+    [
+      "changelog-panel",
+      "changelog-toggle-button",
+      "What's New"
+    ],
+    [
+      "settings-panel",
+      "settings-toggle-button",
+      "Settings"
+    ],
+    [
+      "info-page-panel",
+      "info-page-toggle-button",
+      "How it works"
+    ]
+  ],
+  "toolbar": {
+    "icons": [
+      [
+        "minutes-toggle-button",
+        "📜"
+      ],
+      [
+        "achievements-toggle-button",
+        "🏆"
+      ],
+      [
+        "settings-toggle-button",
+        "⚙️"
+      ]
+    ],
+    "menu": [
+      {
+        "heading": "Game",
+        "ids": []
+      },
+      {
+        "heading": "Help",
+        "ids": [
+          "tutorial-restart-button",
+          "info-page-toggle-button",
+          "credits-link"
+        ]
+      },
+      {
+        "heading": "Records",
+        "ids": [
+          "changelog-toggle-button"
+        ]
+      }
+    ]
+  },
+  "composites": [],
+  "adopt": [
+    [
+      ".plan-controls",
+      ".plan-side"
+    ]
+  ],
+  "zones": {
+    "topbar": [
+      ".hub-back-link",
+      "h1",
+      ".game-toolbar"
+    ],
+    "stagebar": [
+      "#toast",
+      "#engine-status"
+    ],
+    "stage": [
+      "#main-stage"
+    ],
+    "side": [],
+    "hidden": [
+      ".tagline",
+      "#hud"
+    ]
+  },
+  "readouts": [
+    [
+      "#hud-cash",
+      "💰",
+      "Cash"
+    ],
+    [
+      "#hud-rep",
+      "⭐",
+      "Reputation"
+    ],
+    [
+      "#hud-status",
+      "🎬",
+      "Now"
+    ]
+  ],
+  "side_label": "Crew and checks",
+  "hints": [
+    [
+      "←↑↓→",
+      "Move over the timeline"
+    ],
+    [
+      "Enter",
+      "Place the armed action"
+    ],
+    [
+      "1-9",
+      "Arm an action"
+    ],
+    [
+      "Del",
+      "Clear a cell"
+    ],
+    [
+      "S",
+      "Standby"
+    ],
+    [
+      "Ctrl+Z",
+      "Undo"
+    ],
+    [
+      "?",
+      "All shortcuts"
+    ],
+    [
+      "Esc",
+      "Menu / close window"
+    ]
+  ],
+  "notify": null
+}

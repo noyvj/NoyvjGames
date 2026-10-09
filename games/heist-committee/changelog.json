@@ -2,6 +2,10 @@
   "changelog": [
     {
       "date": "2026-10-09",
+      "entry": "A Desktop layout for wide windows with a mouse: the whole job fits one screen, with the checklist beside the timeline, readout chips for cash and reputation, and Minutes, Achievements and Settings as windows. Pick it from the opening screen. Escape now puts a held action down before it opens the menu."
+    },
+    {
+      "date": "2026-10-09",
       "entry": "Heist Committee arrives: pick a job, hire five oddballs, plan the timeline, then watch the heist play out beat by beat. Five targets, twenty crew, friendships and feuds that carry from job to job, and a payout screen that shows the chain of events and where it started."
     }
   ]

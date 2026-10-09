@@ -138,6 +138,7 @@
       var heading = $("phase-" + view.phase).querySelector("h2");
       HC.announce(heading ? heading.textContent : view.phase);
       if (window.scrollY > 120) window.scrollTo(0, 0);
+      $("main-stage").scrollTop = 0;       // the Desktop layout scrolls the stage itself
     }
     lastPhase = view.phase;
   };
@@ -398,7 +399,7 @@
     await loadChangelog();
     var reply = HC.send({ action: "info" });
     if (reply && reply.info) renderInfo(reply.info);
-    if (window.GameTutorial) window.GameTutorial.init(TUTORIAL_STEPS, { gameId: "heist-committee" });
+    if (window.GameTutorial) window.GameTutorial.init(window.heistTutorialSteps ? window.heistTutorialSteps(TUTORIAL_STEPS) : TUTORIAL_STEPS, { gameId: "heist-committee" });
     if (window.MobileHud) window.MobileHud.init([{ selector: "#hud-cash", label: "Cash" }, { selector: "#hud-rep", label: "Rep" }, { selector: "#hud-status", label: "Now" }]);
     if (window.MobileDock) window.MobileDock.init("#tray-panel");
   };
