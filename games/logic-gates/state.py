@@ -8,7 +8,6 @@ always comes from the solved levels, never from a stored list. Display settings 
 import math
 
 import levels
-from sim import Prog, flatten
 
 SCHEMA = 1
 SANDBOX = "sandbox"
@@ -92,8 +91,8 @@ def dest_ok(dest, circuit, level):
 
 
 def has_loop(circuit, level):
-    prog = Prog(flatten(circuit, levels.REGISTRY, level["ins"], level["outs"]), level["ins"])
-    return prog.order is None
+    from check import build_prog
+    return build_prog(level, circuit).order is None
 
 
 def clean_circuit(data, level, allowed):

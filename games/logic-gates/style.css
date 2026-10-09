@@ -117,6 +117,8 @@ details.notes ul { margin: 0.3rem 0; padding-left: 1.2rem; font-size: 0.9rem; }
 /* --- parts ------------------------------------------------------------------------------------- */
 .palette { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-bottom: 0.4rem; }
 .palette button { font-size: 0.9rem; padding: 0.3rem 0.6rem; }
+.more-chips { flex: 1 1 100%; }
+.more-chips .palette { margin-top: 0.4rem; }
 .board-actions { display: flex; flex-wrap: wrap; gap: 0.4rem; margin: 0.4rem 0; }
 .cards { display: grid; gap: 0.5rem; margin-top: 0.5rem; }
 .card { border: 1px solid var(--line); border-radius: 10px; padding: 0.4rem 0.6rem; background: var(--surface); }

@@ -54,7 +54,7 @@ Dark, quiet "night blueprint": near-black navy, cyan signal, amber lamps, thin l
 | 2 | Board UI | SVG board, chip cards with source lists, palette, probe, truth table, picker, stats and goals strip, save contract, localStorage | Done |
 | 3 | Chapters 2-3, hints, sandbox | levels 9-24, sequential checking, hint ladder, sandbox with truth-table log | Done |
 | 4 | Chapters 4-5 | levels 25-40, the CPU core, full play-through test, restore and clear | Done |
-| 5 | Standard kit | settings, tutorial, About with live-read sources, changelog, shortcuts, accessibility, light theme, shared includes | Planned |
+| 5 | Standard kit | settings, tutorial, About with live-read sources, changelog, shortcuts, accessibility, light theme, shared includes | Done |
 | 6 | Achievements | 14 achievements, manifest, panel, goals strip, copy result | Planned |
 | 7 | Desktop boot | `pc-config.json`, `pc.css`, `pc.js`, generated `pc.html` | Planned |
 | 8 | Wrap-up | story log, mobile and desktop pass, docs, BUILD-STATUS | Planned |

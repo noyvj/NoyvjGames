@@ -160,10 +160,21 @@
     var active = document.activeElement && document.activeElement.id;
     var pal = $("palette");
     pal.textContent = "";
+    var built = el("details", undefined, "more-chips");
+    var holder = el("div", undefined, "palette");
+    var builtCount = 0;
     view.palette.forEach(function (p) {
       var b = btn("+ " + p.label, "add-" + p.type, function () { send({ action: "add", type: p.type }); }, { title: p.blurb, "aria-label": "Add a " + p.label + " chip" });
-      pal.appendChild(b);
+      if (p.built) { holder.appendChild(b); builtCount += 1; } else pal.appendChild(b);
     });
+    if (builtCount) {
+      built.id = "built-chips";
+      built.open = lsGet("logic-gates:built-open") === "1";
+      built.appendChild(el("summary", "Chips you built (" + builtCount + ")"));
+      built.appendChild(holder);
+      built.addEventListener("toggle", function () { lsSet("logic-gates:built-open", built.open ? "1" : "0"); });
+      pal.appendChild(built);
+    }
     if (!view.palette.length) pal.appendChild(el("span", "No chips yet: this board is only switches and lamps. Solve it to earn the first chip.", "note"));
     setText($("board-count"), "Chips on the board: " + view.board.count + " of " + view.board.cap + ". Wires: " + view.board.wires + ".");
     $("undo-button").setAttribute("aria-disabled", String(!view.can_undo));

@@ -11,8 +11,10 @@ Updated after each milestone. A new agent should read `planning/logic-gates-plan
 
 - Milestone 4 Chapters 4-5: levels 25-40 (adders, register, ALU, program counter, ROM, CPU core, second program, finale); play-through tests (own solutions and hint-ladder-only both reach 40/40); restore after leaving a level.
 
+- Milestone 5 Standard kit: settings, tutorial, About (6 live-read sources dated 2026-10-09), changelog, shortcuts, accessibility tests (contrast, non-colour cues, labels), light theme checked live, compiled-circuit cache, built chips folded into a details list.
+
 ## Next
-- Milestone 5: standard kit checks (accessibility tests, light theme, shortcuts, tutorial, About, changelog).
+- Milestone 6: achievements manifest + panel tests.
 
 ## Open problems
 - None yet.

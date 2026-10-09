@@ -13,7 +13,7 @@ import levels
 import render
 import state
 import words
-from sim import Prog, Sim, flatten
+from sim import Sim
 
 meta = state.new_meta()
 history = []            # earlier boards of the open level, for Undo (not saved)
@@ -77,8 +77,7 @@ def code_name(code):
 
 # ---- probe ---------------------------------------------------------------------------------------
 def _prog():
-    level = _cur()
-    return Prog(flatten(_board(), levels.REGISTRY, level["ins"], level["outs"]), level["ins"])
+    return check.build_prog(_cur(), _board())
 
 
 def _run_script(upto):
@@ -497,7 +496,8 @@ def view():
         "goals": achievements.goals(meta), "achievements": achievements.view(meta),
         "picker": _picker(), "shelf": _shelf(),
         "board": _board_view(), "text": words.describe(circuit, level["outs"]),
-        "palette": [{"type": c, "label": levels.REGISTRY[c]["label"], "blurb": levels.REGISTRY[c]["blurb"]} for c in _allowed()],
+        "palette": [{"type": c, "label": levels.REGISTRY[c]["label"], "blurb": levels.REGISTRY[c]["blurb"], "built": levels.REGISTRY[c]["kind"] == "net"}
+                    for c in _allowed()],
         "probe": {"inputs": {n: 1 if probe["inputs"].get(n) else 0 for n in level["ins"]}, "step": probe["step"],
                   "settled": probe["sim"].settled if probe["sim"] else True},
         "can_undo": bool(history), "can_restore": bool(meta["backup"].get(meta["current"])),

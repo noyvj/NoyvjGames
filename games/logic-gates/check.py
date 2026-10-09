@@ -3,6 +3,7 @@
 Combinational levels are checked on every row of the truth table at once. Sequential levels run their scripted steps from
 power-on (every memory cell 0) and compare the lamps after each step that has an expectation."""
 
+import json
 from functools import lru_cache
 
 from levels import REGISTRY
@@ -11,8 +12,18 @@ from sim import Prog, Sim, flatten
 MAX_WRONG_SHOWN = 8
 
 
+_PROGS = {}
+
+
 def build_prog(level, circuit):
-    return Prog(flatten(circuit, REGISTRY, level["ins"], level["outs"]), level["ins"])
+    """The compiled circuit; the same wiring on the same level is compiled once (a Prog is never changed by running it)."""
+    key = (tuple(level["ins"]), tuple(level["outs"]), json.dumps(circuit, sort_keys=True))
+    prog = _PROGS.get(key)
+    if prog is None:
+        if len(_PROGS) > 64:
+            _PROGS.clear()
+        prog = _PROGS[key] = Prog(flatten(circuit, REGISTRY, level["ins"], level["outs"]), level["ins"])
+    return prog
 
 
 def row_values(ins, r):
