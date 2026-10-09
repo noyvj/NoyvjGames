@@ -196,3 +196,11 @@ Recommended: keep its own picker (it already works and is tested), and revisit t
 
 Recommended: yes, keep Patient Navigator and add Two at Once back when two ships are built.
 
+
+### Qa1. Of the 40 new games you approved from Quick ideas (TODO section QI), which five should I plan and build first?
+
+Name up to five by title (for example "Logic Gates, Robot Script, Station Medic"). Recommended if you have no preference: Logic Gates, Robot Script, Hull Repair, Station Medic and Stranded, because they are small enough to ship a playable game quickly and fit your puzzle, helper and Lifeline tastes.
+
+### Qa2. May I register the four finished new games (Heist Committee, Pocket Bazaar, Dead Reckoning and, once done, Lighthouse) in the hub now (title cards, service worker, offline manifest and the other shared files), since the other session is not running?
+
+Recommended: yes, one game at a time with all tests run after each. Say "no" to leave it until you tell me the other session is back.
