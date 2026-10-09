@@ -1,6 +1,6 @@
 # Site-Wide TODO (round 3)
 
-**Progress: 567/1095 items checked off (51.8%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land.
+**Progress: 567/1153 items checked off (49.2%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land.
 
 Built from your answers in `planning/IMPROVEMENT-IDEAS-ROUND-3.md` (Part 4). Every Round 3 section is now answered (2026-10-07 below the Warframe section); earlier this list held only: **GB** (Canopy gamified), **M** (new games), **N** (seasonal events), **O** (Trade Empire and Continuum replayability), **P/Q/S/T** (Signal, Undersleep, Overclock, Last Line open questions), **X** (Warframe tracker) and **R** (returning later). GC-GI, A-L, U, Z and Y are unanswered and wait for you. The previous list is archived at `planning/todo-archive/260914_260927.md`; anything from it that was moved here is marked "moved" there.
 
@@ -133,6 +133,73 @@ Rules carried over: "yes" items are here, "later" items are parked in `planning/
 
 ---
 
+## QI. Quick ideas approved on 2026-10-09 (58 yes, 1 no)
+
+You said yes to every item except F5 (undo button, no). New games below each need a groundwork plan (`planning/<game>-plan.md`, with a 2-letter code, milestones 1-4 shipping a playable game, then a general and a made-for-you section in the next ideas round) and then a build. Per your 2026-10-09 note, these wait until the current agents (Heist Committee, Lighthouse, idea writers) finish. Site features are listed after the games. Games that need friends use the multiplayer groundwork first (opt-in, no chat).
+
+**New games**
+- [ ] QI-1: Logic Gates (Quick ideas A1): write the groundwork plan, then build it. wire AND, OR, NOT and XOR chips to hit target outputs. Each solved level unlocks a new chip, and the last levels have you build a tiny working computer.
+- [ ] QI-2: Hull Repair (Quick ideas A2): write the groundwork plan, then build it. Flow-Free-style routing of power and pipes across a damaged space-station hull. Every solved board repairs one room on a station map, so the puzzles form a bigger picture.
+- [ ] QI-3: Robot Script (Quick ideas A3): write the groundwork plan, then build it. give a robot a short list of instructions to clear a room (Lightbot style). No timer, medals for using fewer steps, and a free sandbox once you finish.
+- [ ] QI-4: Reaction Bench (Quick ideas A4): write the groundwork plan, then build it. balance chemical reactions to synthesise compounds, and fill a periodic table as you discover each element's uses.
+- [ ] QI-5: Rule Finder (Quick ideas A5): write the groundwork plan, then build it. a sequence of numbers or shapes follows a hidden rule; you test guesses and name the rule.
+- [ ] QI-6: Slingshot (Quick ideas A6): write the groundwork plan, then build it. plan fuel burns and gravity assists to reach moons in a simple but real solar-system model, with the planet data read from a named source.
+- [ ] QI-7: Teach the Machine (Quick ideas A7): write the groundwork plan, then build it. train a tiny classifier by choosing which features it looks at, then see exactly why it gets some cases wrong.
+- [ ] QI-8: Constellations (Quick ideas A8): write the groundwork plan, then build it. connect stars by rules to complete real sky maps, collecting each constellation with a short sourced note.
+- [ ] QI-9: Zero-G Shift (Quick ideas A9): write the groundwork plan, then build it. Sokoban-style crate pushing, but everything keeps sliding until it hits something.
+- [ ] QI-10: Mirror Lab (Quick ideas A10): write the groundwork plan, then build it. place mirrors and prisms so a laser reaches every sensor.
+- [ ] QI-11: Radio Decode (Quick ideas A11): write the groundwork plan, then build it. decode binary, hex and simple ciphers from a drifting signal, each message a short log entry.
+- [ ] QI-12: Picture Grid (Quick ideas A12): write the groundwork plan, then build it. nonograms where each solved picture goes into a gallery you can browse.
+- [ ] QI-13: Station Medic (Quick ideas B1): write the groundwork plan, then build it. help the crew of a space station by solving triage puzzles with limited supplies. Nobody dies on screen; a bad call means "restore and try a different plan".
+- [ ] QI-14: Robot Repair Shop (Quick ideas B2): write the groundwork plan, then build it. fix quirky robots by solving their fault puzzles; each repaired robot becomes a friend that gives you a gift later.
+- [ ] QI-15: Fog Rescue (Quick ideas B3): write the groundwork plan, then build it. guide lost animals or travellers out of a dark foggy forest by lighting the right lanterns in the right order.
+- [ ] QI-16: Water Works (Quick ideas B4): write the groundwork plan, then build it. route clean water to villages with trade-offs between town, farm and wild land, shown from several people's points of view.
+- [ ] QI-17: Derelict Garden (Quick ideas B5): write the groundwork plan, then build it. tend a garden on an abandoned ship, restoring one section at a time, with a steady-progress-that-cannot-be-lost feel.
+- [ ] QI-18: Memory Archivist (Quick ideas B6): write the groundwork plan, then build it. restore corrupted memories from a damaged AI by putting scraps back in order (dark, quiet, science fiction).
+- [ ] QI-19: Food Bank (Quick ideas B7): write the groundwork plan, then build it. plan a week of meals and deliveries for a food bank with a limited budget and several families' needs.
+- [ ] QI-20: Housing Board (Quick ideas B8): write the groundwork plan, then build it. allocate a limited set of homes between competing needs and see how each side judges the result.
+- [ ] QI-21: Anomaly Catalogue (Quick ideas C1): write the groundwork plan, then build it. a fixed set of odd rooms or screens where you spot what changed and file it in a field catalogue (the kind of anomaly games you like to watch).
+- [ ] QI-22: Loadout Lab (Quick ideas C2): write the groundwork plan, then build it. combine parts to reach target numbers, with a catalogue of every combination you have found, including the one overpowered build per challenge.
+- [ ] QI-23: Glitch Hunter (Quick ideas C3): write the groundwork plan, then build it. small levels with deliberate, harmless exploits; the goal is to break the rules and the log records every glitch you found.
+- [ ] QI-24: Space Museum (Quick ideas C4): write the groundwork plan, then build it. curate a museum of objects you have collected across the site, arranged in rooms.
+- [ ] QI-25: Stranded (Quick ideas D1): write the groundwork plan, then build it. you advise a stranded astronaut by text over many branching days; there is no waiting timer, and you can go back and try a different path.
+- [ ] QI-26: The Quiet Program (Quick ideas D2): write the groundwork plan, then build it. advise a broken but gentle program on a failing computer network (a tragic, quiet character in the spirit of the one you like).
+- [ ] QI-27: Night Cameras (Quick ideas D3): write the groundwork plan, then build it. investigate odd events by switching between security cameras; no jump scares, and the answer is a deduction.
+- [ ] QI-28: Three Sides of the Story (Quick ideas D4): write the groundwork plan, then build it. a branching story about a real issue (for example a water shortage), played once from each of three people's viewpoints.
+- [ ] QI-29: Evidence Hunt (Quick ideas D5): write the groundwork plan, then build it. a Phasmophobia-lite deduction game where you collect evidence and name the ghost, solo first with an optional co-op by invite code.
+- [ ] QI-30: Terminal Logs (Quick ideas D6): write the groundwork plan, then build it. a choose-your-own-adventure told only through a computer terminal's logs and your commands.
+- [ ] QI-31: Keep Talking (Quick ideas E1): write the groundwork plan, then build it. two players each see half of a puzzle and have to talk it out (voice or text in whatever app they already use), joined by an invite link.
+- [ ] QI-32: Shared Station (Quick ideas E2): write the groundwork plan, then build it. friends' finished puzzles light up rooms in a shared space station you can visit.
+- [ ] QI-33: Saboteur Puzzle (Quick ideas E3): write the groundwork plan, then build it. a solo logic puzzle where you work out who among the crew is sabotaging the ship from their statements.
+- [ ] QI-34: Repair the Ship's Code (Quick ideas G1): write the groundwork plan, then build it. learn Python by fixing a starship's broken functions, with tests that go green as you fix each one.
+- [ ] QI-35: Query the Archive (Quick ideas G2): write the groundwork plan, then build it. learn simple database queries by finding records in a space-station archive, no deletion allowed.
+- [ ] QI-36: Pattern Match (Quick ideas G3): write the groundwork plan, then build it. learn regular expressions by filtering garbled transmissions.
+- [ ] QI-37: Binary Bakery (Quick ideas G4): write the groundwork plan, then build it. a calm game where you build numbers from binary switches to fill orders.
+- [ ] QI-38: Orbit Maths (Quick ideas G5): write the groundwork plan, then build it. short maths puzzles in a rocket-launch frame (ratios, speeds, fuel).
+- [ ] QI-39: Circuit Playground (Quick ideas G6): write the groundwork plan, then build it. a free sandbox for building circuits with live voltage readouts.
+- [ ] QI-40: AI Mistakes (Quick ideas G7): write the groundwork plan, then build it. spot where a simple AI would go wrong in a series of small cases and say why.
+- [ ] QI-41: Material Match (Quick ideas G8): write the groundwork plan, then build it. pick materials for a tool or building from their real properties, with the numbers read from a named source.
+
+**Site features**
+- [ ] QI-42: (Quick ideas C5) Site Codex: one notebook that fills as you play every game (concepts, facts, characters), with a completion percentage.
+- [ ] QI-43: (Quick ideas C6) Trophy Room: a low-poly room on the hub showing a model for each thing you have earned or finished across the site.
+- [ ] QI-44: (Quick ideas C7) A "100% map" page: every game as a node that fills as you complete it, with a clear list of what is left. Your note: Maybe also set designs like completing canopy, tide, and some others creates a landscape with more trees and deeper water depending on completion %.
+- [ ] QI-45: (Quick ideas C8) A "rarest things you own" strip on the hub, using the existing achievement rarity numbers.
+- [ ] QI-46: (Quick ideas E4) Friends-only boards: a private leaderboard group created with an invite code, with a "hide my score" option.
+- [ ] QI-47: (Quick ideas E5) Hint gift: a friend can send you one hint on a puzzle you are stuck on, no text, just a nudge.
+- [ ] QI-48: (Quick ideas E6) Gift an item: send a collected item to a friend once per day, optional and never needed.
+- [ ] QI-49: (Quick ideas E7) Community bar: one shared progress bar that every player's actions fill together toward a goal, cooperative only.
+- [ ] QI-50: (Quick ideas F1) "How long have you got?" button on the hub: pick 5 minutes, 15 minutes or "all night" and it suggests games that fit.
+- [ ] QI-51: (Quick ideas F2) Half-asleep mode: large buttons, dimmed screen, calm games only, one-handed layout.
+- [ ] QI-52: (Quick ideas F3) Warm night colours after 10pm: the hub and games shift to a dimmer, warmer palette automatically (opt-in).
+- [ ] QI-53: (Quick ideas F4) An Ironman switch per game: opt-in hard fail with no restore, with its own badge, never the default.
+- [ ] QI-54: (Quick ideas F6) A graded hint ladder in puzzle games: a nudge, then a hint, then the answer, so you never have to leave to look it up.
+- [ ] QI-55: (Quick ideas F7) Strategy notes page per game: the known good builds and strategies written into the game, so you never alt-tab.
+- [ ] QI-56: (Quick ideas F8) Watch mode for city and sim games: the settlement plays itself slowly so you can leave it on a second screen.
+- [ ] QI-57: (Quick ideas F9) A personal stats page: what you play, when, and how long, so you can see your own pattern.
+- [ ] QI-58: (Quick ideas F10) A "pick up where you stopped" strip on the hub that also shows the exact thing you were doing in each game.
+
+---
 ## N. Seasonal events (redo the list around real big dates)
 
 - [x] N-1: Redo Round 3 section N with real big-date events per your comment (Christmas, Halloween, New Year, Easter, Hanukkah, Thanksgiving, 4th of July, Valentine's Day, more, internationally inclusive), each finishable in about 15 minutes, with a temporary date-tied stand-in for games with no natural fit.
