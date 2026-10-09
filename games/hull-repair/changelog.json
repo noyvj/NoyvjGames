@@ -2,6 +2,10 @@
   "changelog": [
     {
       "date": "2026-10-10",
+      "entry": "The whole station: forty rooms in five decks. The Crew Deck has holes where the hull is gone, Engineering adds bridges, Life Support adds one-way valves, and The Core adds mixers where two lines meet. Patched rooms light up on a station map and add a line to the repair log, and a free hint ladder (a nudge, a hint, then the answer) is there on every board."
+    },
+    {
+      "date": "2026-10-10",
       "entry": "Hull Repair opens: join matching ports on a damaged space-station board with lines that never cross. The first deck, the Docking Ring, has eight boards. Joining every line patches a room; covering every cell as well restores it. Drag from a port, drag back to shorten a line, tap its end to take a cell back. Nothing is timed."
     }
   ]

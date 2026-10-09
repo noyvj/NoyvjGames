@@ -1,6 +1,7 @@
 """Hull Repair -- the forty boards, grouped into five decks (chapters). Each board's stored `sol` is its one restored
 layout; tests prove it is the only one. A deck opens once OPEN_AT boards of the deck before it are patched."""
 
+import boards_core
 import boards_crew
 import boards_dock
 import boards_engineering
@@ -20,7 +21,7 @@ CHAPTER_DEFS = (
     {"id": "life", "name": "Life Support", "data": boards_life.LIFE,
      "blurb": "Air, water and waste, and the valves that keep them going the right way.",
      "new": "Valves: a line goes straight through, the way the arrow points, travelling from its source (solid) to its sink (ringed)."},
-    {"id": "core", "name": "The Core", "data": [],
+    {"id": "core", "name": "The Core", "data": boards_core.CORE,
      "blurb": "Power and control. Everything you have learned, and the last new part.",
      "new": "Mixers: two named lines both end in the mixer, one from each side."},
 )

@@ -27,7 +27,7 @@ Flow-Free-style routing of power and pipes across a damaged space-station hull: 
 | 1 | Engine | `rules.py`, `play.py`, `tools/solver.py`, `tools/gen.py`, `boards.py` + deck 1 (8 boards), tests | Done |
 | 2 | Board UI | SVG board, pointer and keyboard drawing, result card, board picker, favicon, settings, save contract | Done |
 | 3 | Decks 2-3, map, log, hints | 16 boards, deck gating, station map, repair log, hint ladder, three-goals strip | Done |
-| 4 | Decks 4-5 | 16 boards (40 in all) with valves and mixers. First complete game | Planned |
+| 4 | Decks 4-5 | 16 boards (40 in all) with valves and mixers. First complete game | Done |
 | 5 | Standard kit | Opening screen, tutorial, About, What's New, keyboard help, confirm dialogs, light theme, accessibility pass | Planned |
 | 6 | Achievements | 14 achievements, panel and toast, manifest, reachability test | Planned |
 | 7 | Desktop boot and wrap-up | `pc-config.json`, `pc.css`, `pc.js`, generated `pc.html`, docs, changelog | Planned |
@@ -49,3 +49,8 @@ Flow-Free-style routing of power and pipes across a damaged space-station hull: 
 - Station map (`render.station_svg`): five decks of eight rooms, state by shape (cracked / dashed ring / check mark) as well as light; clicking a room opens it. Repair log (`logbook.py`): one quiet line per room (all 40 written), found when the room is patched.
 - Goals strip: `achievements.goals` gives the next three unearned achievements that can be worked on now (facts only; the manifest, panel and toast arrive in milestone 6).
 - Board finding: `tools/gen.py` widens the letter set while searching (up to 14 lines), then merges lines back down while the layout stays unique, so 6x6 and 7x7 boards with 6 to 8 lines come out fast. 8x8 and 9x9 are much rarer (see BUILD-STATUS).
+
+## Milestone 4 notes
+- Deck 4 (`boards_life.py`): 7x7 and 8x8 boards with valves (every board has load-bearing valves; a test checks at least three boards become ambiguous without theirs). Deck 5 (`boards_core.py`): mixers, with valves, bridges and holes mixed in; six 8x8 and two 9x9 boards (9x9 within the 8-line cap is rare for the generator, so those two lean on valves and holes).
+- The valve is drawn above the lines so its arrow stays readable. The solver prunes with a degree check per open cell, an isolated-region check and a reachability check; every board is proven in about a second in tests. The slow check (`fill=False`, connect-only) is not run per board.
+- Generator tools: `tools/gen.py` (seeded; `make(params, seed)`), `FAIL` counters say why a seed failed.

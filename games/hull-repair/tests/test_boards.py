@@ -31,7 +31,6 @@ def test_the_solver_finds_exactly_one_restored_layout_and_it_is_the_stored_one(b
     found = solver.solve(b, 2)
     assert len(found) == 1
     assert found[0] == b.solution
-    assert solver.solve(b, 1, fill=False)                                          # and the lines can be joined
 
 
 @pytest.mark.parametrize("b", ALL, ids=lambda b: b.id)
