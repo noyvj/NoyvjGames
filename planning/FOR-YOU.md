@@ -216,3 +216,16 @@ Recommended: keep 3 minutes, with 2x and 4x speeds and pause already available.
 ### Fs2. FREN152: the slides folder holds "FREN152 LECTURE 13 (2024)", a 2024 lecture 13 although week 13 has not happened this semester; should I use it as a preview of week 13 or ignore it?
 
 Recommended: ignore it until your 2026 week 13 arrives, since the 2024 content may differ from this year's.
+
+### Lg1. Logic Gates: it ships with a small story (a station called Meridian Relay and a flawed previous engineer called Vale who left notes); keep it, or make the game pure puzzle?
+
+Recommended: keep it (it is switchable in settings, and the engineer is not an all-good hero). Say "yes" to keep it.
+
+### Lg2. Logic Gates: should a level open as soon as the chips it needs are unlocked (so the order is partly free), or strictly one after another?
+
+Recommended: chip-based (the current build), since you like objectives without a strict order. Say "yes" to keep it.
+
+### Lg3. Logic Gates: keep "par" (fewest chips) as an optional second mark on each level?
+
+Recommended: yes, kept generous and optional, never needed to progress.
+
