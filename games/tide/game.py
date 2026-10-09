@@ -2308,6 +2308,7 @@ def show_achievement_toast(message):
     toast.innerText = message
     toast.hidden = False
     toast.classList.add("achievement-toast--visible")
+    toast.classList.add("achievement-toast--ripple")  # D-31: a brief ripple (CSS stops it under reduced motion)
 
     # Never destroy a still-pending timer's proxy: the browser would later
     # call it and Pyodide throws "Object has already been destroyed". Each
@@ -2321,6 +2322,7 @@ def show_achievement_toast(message):
     def _hide():
         if my_gen == _toast_hide_proxy_gen:
             toast.classList.remove("achievement-toast--visible")
+            toast.classList.remove("achievement-toast--ripple")
             toast.hidden = True
         holder[0].destroy()
 
@@ -2356,6 +2358,10 @@ def on_toggle_achievements(event=None):
     update_achievements_display()
 
 
+ACHIEVEMENT_GLYPH_EARNED = "\U0001FAB8"  # coral
+ACHIEVEMENT_GLYPH_LOCKED = "\u3030\ufe0f"  # a wave outline
+
+
 def update_achievements_display():
     toggle = document.getElementById("achievements-toggle-button")
     panel = document.getElementById("achievements-panel")
@@ -2378,6 +2384,12 @@ def update_achievements_display():
             "achievement-card achievement-card--earned" if entry["earned"] else "achievement-card"
         )
         card.dataset.achievementId = entry["id"]
+
+        glyph = document.createElement("span")  # D-31: a coral for each earned badge, a hollow wave while locked
+        glyph.className = "achievement-card-glyph" if entry["earned"] else "achievement-card-glyph achievement-card-glyph--locked"
+        glyph.setAttribute("aria-hidden", "true")
+        glyph.innerText = ACHIEVEMENT_GLYPH_EARNED if entry["earned"] else ACHIEVEMENT_GLYPH_LOCKED
+        card.appendChild(glyph)
 
         label = document.createElement("p")
         label.className = "achievement-card-label"
@@ -4522,6 +4534,58 @@ def render_critters_and_quip():
         quip.innerText = f"\u2693 Harbour master: {_quip['text']}" if _quip["text"] else ""
 
 
+# GD-22 scene themes unlocked by achievements ---------------------------------------------------------------------
+SCENE_THEME_KEY = "tide-scene-theme"
+SCENE_THEMES = {
+    "default": {"label": "Daylight (default)", "achievement": None},
+    "dusk": {"label": "Dusk sky", "achievement": "fortified_in_time"},
+    "storm_glass": {"label": "Storm-glass", "achievement": "tier_storm_surge"},
+    "coral_sand": {"label": "Coral-pink sand", "achievement": "stocks_rebound"},
+}
+
+
+def theme_unlocked(theme_id):
+    entry = SCENE_THEMES.get(theme_id)
+    return bool(entry) and (entry["achievement"] is None or entry["achievement"] in achievement_ids_earned())
+
+
+def chosen_scene_theme():
+    value = _read_local_storage_item(SCENE_THEME_KEY)
+    return value if value in SCENE_THEMES and theme_unlocked(value) else "default"
+
+
+def _achievement_label(achievement_id):
+    entry = next((a for a in achievements_summary() if a["id"] == achievement_id), None)
+    return entry["label"] if entry else achievement_id
+
+
+def render_scene_theme():
+    theme = chosen_scene_theme()
+    root = getattr(document, "documentElement", None)
+    if root is not None and hasattr(root, "setAttribute"):
+        root.setAttribute("data-scene-theme", theme)
+    select = document.getElementById("scene-theme-select")
+    if select is None:
+        return
+    select.innerHTML = ""
+    for theme_id, entry in SCENE_THEMES.items():
+        option = document.createElement("option")
+        option.value = theme_id
+        unlocked = theme_unlocked(theme_id)
+        option.disabled = not unlocked
+        option.innerText = entry["label"] if unlocked else f"{entry['label']} (unlock: {_achievement_label(entry['achievement'])})"
+        select.appendChild(option)
+    select.value = theme
+
+
+def on_scene_theme_change(event=None):
+    select = document.getElementById("scene-theme-select")
+    value = str(getattr(select, "value", "") or "")
+    if value in SCENE_THEMES and theme_unlocked(value):
+        _write_local_storage_item(SCENE_THEME_KEY, value)
+    render_scene_theme()
+
+
 def render_tide_oct9():
     render_afford()
     render_goal()
@@ -4529,6 +4593,7 @@ def render_tide_oct9():
     render_balance()
     render_run_extras()
     render_critters_and_quip()
+    render_scene_theme()
 
 
 def render():
@@ -5392,6 +5457,9 @@ def setup():
     if pin_select is not None:
         load_afford_pin()
         pin_select.addEventListener("change", create_proxy(on_afford_pin_change))
+    theme_select = document.getElementById("scene-theme-select")  # GD-22
+    if theme_select is not None:
+        theme_select.addEventListener("change", create_proxy(on_scene_theme_change))
     goal_select = document.getElementById("goal-select")  # GD-19
     if goal_select is not None:
         goal_select.addEventListener("change", create_proxy(on_goal_change))

@@ -58,6 +58,7 @@ ELEMENT_IDS = [
     "session-summary-panel",
     "session-summary-text",
     "net-funds-chip",
+    "scene-theme-select",
     "critter-seal",
     "critter-whale",
     "harbor-quip",

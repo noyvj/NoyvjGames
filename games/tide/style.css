@@ -1813,6 +1813,24 @@ html[data-anim-paused="true"] *, html[data-anim-paused="true"] *::before, html[d
 .harbor-quip { margin: 0.2rem 0; font-style: italic; }
 .sightings-list { font-size: 0.85rem; }
 
+/* GD-22 (2026-10-09): scene themes. They only recolour the decorative scene. */
+html[data-scene-theme="dusk"] .tide-scene { background: linear-gradient(180deg, #3a2f5c 0%, #c0728a 70%, #f0a97a 100%); }
+html[data-scene-theme="dusk"] .tide-scene-sun { background: radial-gradient(circle, #ffd9c2 0%, #ff9a7a 55%, rgba(255, 154, 122, 0) 75%); box-shadow: 0 0 24px 6px rgba(255, 154, 122, 0.5); }
+html[data-scene-theme="storm_glass"] .tide-scene { background: linear-gradient(180deg, #27323d 0%, #46606e 100%); }
+html[data-scene-theme="storm_glass"] .tide-scene-sun { opacity: 0.25; }
+html[data-scene-theme="coral_sand"] .tide-scene { background: linear-gradient(180deg, #7fc4d6 0%, #f5c7c0 100%); }
+html[data-scene-theme="coral_sand"] .tide-scene-wave--front { background: linear-gradient(180deg, #e8a8a0, #c47f7a); }
+
+/* D-31 (2026-10-09): coral-reef achievement cards and a ripple on unlock. */
+.achievement-card--earned { border-color: #ff8a80; border-left-width: 6px; }
+.achievement-card:not(.achievement-card--earned) { border-style: dashed; }
+.achievement-card-glyph { display: block; font-size: 1.4rem; line-height: 1.2; }
+.achievement-card-glyph--locked { opacity: 0.45; }
+.achievement-toast--ripple { animation: toast-ripple 0.9s ease-out 1; }
+@keyframes toast-ripple { 0% { box-shadow: 0 0 0 0 rgba(255, 138, 128, 0.7); } 100% { box-shadow: 0 0 0 18px rgba(255, 138, 128, 0); } }
+@media (prefers-reduced-motion: reduce) { .achievement-toast--ripple { animation: none; } }
+html[data-reduced-motion="true"] .achievement-toast--ripple { animation: none; }
+
 /* ============================================================
    Y11b light-theme polish (2026-09-27). Light-only rules from a
    computed-style WCAG contrast scan of the light theme (fresh game, 46

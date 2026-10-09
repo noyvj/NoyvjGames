@@ -1,6 +1,6 @@
 # Site-Wide TODO (round 3)
 
-**Progress: 550/1095 items checked off (50.2%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land.
+**Progress: 552/1095 items checked off (50.4%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land.
 
 Built from your answers in `planning/IMPROVEMENT-IDEAS-ROUND-3.md` (Part 4). Every Round 3 section is now answered (2026-10-07 below the Warframe section); earlier this list held only: **GB** (Canopy gamified), **M** (new games), **N** (seasonal events), **O** (Trade Empire and Continuum replayability), **P/Q/S/T** (Signal, Undersleep, Overclock, Last Line open questions), **X** (Warframe tracker) and **R** (returning later). GC-GI, A-L, U, Z and Y are unanswered and wait for you. The previous list is archived at `planning/todo-archive/260914_260927.md`; anything from it that was moved here is marked "moved" there.
 
@@ -393,7 +393,7 @@ Your remaining Round 3 answers (Grid to Drift gamified, SOL to Le Champ de Mots,
 - [ ] D-28: Add a delta breakdown popover to Tide: clicking a meter change (acidity +4) lists the contributors ('+6 output, -2 reduction, +0 aquaculture').
 - [x] D-29: Add a plain-language label mode to Tide Settings that renames jargon (dampening, lag, output mix) to everyday words in buttons and tooltips.
 - [x] D-30: Pause Tide's looping animations (wave cue, tide ripple, scene) when the tab is hidden or the device reports low power, and resume on return.
-- [ ] D-31: Restyle Tide's achievement cards: a coral or wave glyph per earned badge, a coral-reef accent border from the coastline art, and a brief ripple on unlock.
+- [x] D-31: Restyle Tide's achievement cards: a coral or wave glyph per earned badge, a coral-reef accent border from the coastline art, and a brief ripple on unlock.
 - [ ] GD-2: Build Tide's Harbor Charter as a skill tree: finishing runs and achievements earn Charter Marks spent on permanent Tide-only unlocks (starting sandbag tier, second monitor charge, cosmetic pier styles); stored per-browser in Tide's own localStorage. (needs W-3) [reframe: Run-based meta reframed as a skill tree per W-3. The 'new starting Edict slot' unlock is dropped because GD-1 (Edicts) was declined.]
 - [ ] GD-3: Add a Storm Season boss fight to Tide: forecast shows surge height, player gets two seasons to pre-commit funds to a brace allocation (barriers, evacuate heritage, stockpile), then a wave-crash animation on the grid and a tiered result (Shrugged Off / Battered / Breached).
 - [ ] GD-4: Add a 'Tidal Chess' challenge mode to Tide: fish lag plus a new runoff lag (industry pollution feeds acidity 2 seasons late) both active, only the fish-yield warning visible, scored on how few seasons dip below FISH_YIELD_WARNING_THRESHOLD. (needs W-1 (optional, as a level-select mode))
@@ -414,7 +414,7 @@ Your remaining Round 3 answers (Grid to Drift gamified, SOL to Le Champ de Mots,
 - [x] GD-19: Add a pin-a-goal banner to Tide: pick one personal goal from a dropdown ('Keep 4 rows dry', 'Reach 200 population') with a small progress bar under the header and a ping when reached.
 - [x] GD-20: Add Rewind Tide to Tide: one charge per run retracts the last Advance Season and marks the run with a small tin-hat icon in the summary so records stay honest.
 - [x] GD-21: Show the Tide storm forecast as a range with a chance to overtop seawalls ('surge 18-26, 70% to overtop Seawalls') drawn as a small bell-curve chip.
-- [ ] GD-22: Add achievement cosmetic themes to Tide: fortified_in_time, stocks_rebound and similar achievements unlock scene themes (dusk sky, storm-glass, coral-pink sand), selectable in Settings.
+- [x] GD-22: Add achievement cosmetic themes to Tide: fortified_in_time, stocks_rebound and similar achievements unlock scene themes (dusk sky, storm-glass, coral-pink sand), selectable in Settings.
 - [x] GD-23: Add optional speedrun trackers to Tide: fewest clicks and fewest seconds to max adaptation tier, stored beside best-coastline-saved and shown in the session summary.
 - [x] GD-24: Add a hard-lag ironman badge to Tide: finishing a 20-season run in Hard Lag without Rewind or checkpoint replay earns a gold-anchor badge on the header and settlement history. (needs GD-20)
 - [x] GD-25: Add a quiet-seasons counter to Tide's meter view: seasons since the last acidity rise, with a glowing frame at 5 and 10.

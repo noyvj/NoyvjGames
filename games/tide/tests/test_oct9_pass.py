@@ -743,3 +743,66 @@ def test_sightings_save_and_load_safely(game_env):
     saved["sightings"] = "oops"
     m.load_state(saved)
     assert s.sightings == []
+
+
+# ---- GD-22 scene themes, D-31 achievement cards ----
+
+def test_themes_unlock_with_their_achievements(game_env, storage):
+    m = game_env.module
+    assert m.theme_unlocked("default") is True and m.theme_unlocked("dusk") is False
+    m.state.fortified_in_time_earned = True
+    assert "fortified_in_time" in m.achievement_ids_earned()
+    assert m.theme_unlocked("dusk") is True and m.theme_unlocked("coral_sand") is False
+    assert m.theme_unlocked("nope") is False
+
+
+def test_a_locked_or_unknown_choice_falls_back_to_the_default(game_env, storage):
+    m = game_env.module
+    storage[m.SCENE_THEME_KEY] = "dusk"
+    assert m.chosen_scene_theme() == "default"
+    m.state.fortified_in_time_earned = True
+    assert m.chosen_scene_theme() == "dusk"
+    storage[m.SCENE_THEME_KEY] = "kraken"
+    assert m.chosen_scene_theme() == "default"
+
+
+def test_selecting_a_theme_stores_it_and_sets_the_page_attribute(game_env, storage):
+    m = game_env.module
+    m.state.fortified_in_time_earned = True
+    select = game_env.elements["scene-theme-select"]
+    select.value = "dusk"
+    m.on_scene_theme_change()
+    assert storage[m.SCENE_THEME_KEY] == "dusk"
+    root = getattr(m.document, "documentElement", None)
+    if root is not None:
+        assert root.getAttribute("data-scene-theme") == "dusk"
+    select.value = "storm_glass"  # locked: refused
+    m.on_scene_theme_change()
+    assert storage[m.SCENE_THEME_KEY] == "dusk"
+
+
+def test_locked_options_are_disabled_and_name_their_unlock(game_env, storage):
+    m = game_env.module
+    m.render_scene_theme()
+    options = {o.value: o for o in game_env.elements["scene-theme-select"].children}
+    assert options["default"].disabled is False
+    assert options["dusk"].disabled is True and "Fortified In Time" in options["dusk"].innerText
+
+
+def test_achievement_cards_carry_a_coral_or_a_hollow_wave(game_env):
+    m = game_env.module
+    m.achievements_open = True
+    m.update_achievements_display()
+    cards = [c for c in game_env.elements["achievements-panel"].children if "achievement-card" in (c.className or "")]
+    assert cards
+    for card in cards:
+        glyph = card.children[0]
+        earned = "achievement-card--earned" in card.className
+        assert glyph.innerText == (m.ACHIEVEMENT_GLYPH_EARNED if earned else m.ACHIEVEMENT_GLYPH_LOCKED)
+        assert ("--locked" in glyph.className) == (not earned)
+
+
+def test_the_ripple_class_is_added_and_css_stops_it_for_reduced_motion():
+    from pathlib import Path
+    css = (Path(__file__).resolve().parent.parent / "style.css").read_text(encoding="utf-8")
+    assert "achievement-toast--ripple" in css and 'html[data-reduced-motion="true"] .achievement-toast--ripple' in css
