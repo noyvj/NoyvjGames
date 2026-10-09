@@ -241,6 +241,11 @@
            and Flawless Defense line. E-5: event-announcer is the screen-reader live region. -->
       <p id="damage-prevented-popup" class="damage-prevented-popup" hidden></p>
       <p id="damage-streak-display" class="damage-streak-display" hidden></p>
+      <!-- E-18: how the last event's damage was worked out (collapsed; the lines are the text equivalent of the bar). -->
+      <details id="damage-waterfall" class="damage-waterfall" hidden>
+        <summary>How that damage was worked out</summary>
+        <div id="damage-waterfall-body"></div>
+      </details>
       <p id="event-announcer" class="sr-only" role="status" aria-live="polite" aria-atomic="true"></p>
       <details class="info-toggle"><summary>i</summary><p>Event severity (mild/typical/severe) isn't random — it's a fixed pattern per run number, so replaying the same run always faces the same challenge. Your first run is always "typical." From run 2 onward, the spread widens the more resilience skills you've unlocked overall — a stronger skill tree can hit lower lows and higher highs, not just an easier flat curve.</p></details>
       <p id="resources-display" class="status-line">Resources: 200</p>

@@ -113,6 +113,9 @@ ELEMENT_IDS = [
     # E-17: schedule strip.
     "schedule-strip",
     "schedule-detail",
+    # E-18: damage waterfall.
+    "damage-waterfall",
+    "damage-waterfall-body",
     # Round-3 batch: steps, undo, codex, stats, popup, copy, hints.
     "step-x1-button",
     "step-x5-button",

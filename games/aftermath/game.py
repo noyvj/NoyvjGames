@@ -725,16 +725,24 @@ CATEGORY_DAMAGE_BONUS = {
 }
 
 
-def category_mitigation_bonus(event_type):
+def category_skill_bonus(event_type):
+    """The skill-tree part of the category bonus (civic preparedness, climate hardening)."""
     category = EVENT_CATEGORY.get(event_type)
-    bonus = sum(
+    return sum(
         amount
         for skill_id, (cat, amount) in CATEGORY_DAMAGE_BONUS.items()
         if cat == category and skill_id in skill_tree.unlocked
     )
-    if category in societal_memory:
-        bonus += SOCIETAL_MEMORY_BONUS[category]  # E29
-    return bonus
+
+
+def category_memory_bonus(event_type):
+    """E29: the societal-memory part of the category bonus."""
+    category = EVENT_CATEGORY.get(event_type)
+    return SOCIETAL_MEMORY_BONUS[category] if category in societal_memory else 0.0
+
+
+def category_mitigation_bonus(event_type):
+    return category_skill_bonus(event_type) + category_memory_bonus(event_type)
 
 
 def worst_damage_category(event_log):
@@ -800,6 +808,9 @@ class RunState:
         # (kind, units). Not part of get_state(): after a load, or once an
         # event resolves, there is nothing to undo.
         self.allocation_history = []
+        # E-18: how the most recent event's damage was worked out. In memory
+        # only (never saved): after a load there is no breakdown to show.
+        self.last_breakdown = None
 
     def is_complete(self):
         return self.event_index >= len(self.schedule)
@@ -911,6 +922,40 @@ class RunState:
         MAX_MITIGATION so nothing ever reaches full immunity."""
         return min(MAX_MITIGATION, self.mitigation_fraction() + category_mitigation_bonus(event_type))
 
+    def damage_breakdown(self, event_type, severity):
+        """E-18: base damage, the severity change, each mitigation source (in
+        damage points) and the final damage, in the order the rules apply
+        them. general = resilience + early warning + mutual aid is capped at
+        MAX_MITIGATION, then the category bonus is added and the total capped
+        again; `cap_added_back` is whatever those caps gave back."""
+        base = EVENT_BASE_DAMAGE[event_type]
+        unmitigated = base * severity
+        sources = [
+            ("Resilience investment", self.resilience_capacity * RESILIENCE_MITIGATION_PER_UNIT),
+            ("Early Warning Systems", early_warning_mitigation_bonus()),
+            ("Mutual Aid Network", mutual_aid_mitigation_bonus()),
+            ("Category skill", category_skill_bonus(event_type)),
+            ("Societal memory", category_memory_bonus(event_type)),
+        ]
+        general_raw = sources[0][1] + sources[1][1] + sources[2][1]
+        general = min(MAX_MITIGATION, general_raw)
+        total = min(MAX_MITIGATION, general + sources[3][1] + sources[4][1])
+        raw_total = sum(amount for _, amount in sources)
+        return {
+            "type": event_type,
+            "base": base,
+            "severity": severity,
+            "unmitigated": unmitigated,
+            "sources": [
+                {"label": label, "fraction": amount, "damage": unmitigated * amount}
+                for label, amount in sources
+                if amount > 0
+            ],
+            "cap_added_back": unmitigated * (raw_total - total),
+            "mitigation": total,
+            "final": unmitigated * (1 - total),
+        }
+
     def resolve_next_event(self):
         """Applies growth income, then resolves the next scheduled event's
         damage (reduced by resilience mitigation). No-op once the run is
@@ -923,6 +968,7 @@ class RunState:
         event_type = self.schedule[self.event_index]
         severity = event_severity(self.run_number, self.event_index, skill_tree_strength())
         damage = EVENT_BASE_DAMAGE[event_type] * severity * (1 - self.mitigation_for(event_type))
+        self.last_breakdown = self.damage_breakdown(event_type, severity)  # E-18
         self.resources = max(0.0, self.resources - damage)
         self.damage_taken += damage
         self.event_log.append({"type": event_type, "damage": damage, "severity": severity})
@@ -3069,6 +3115,70 @@ def skill_helps_text(skill_id, run_state=None):
     return f"Helps against: {names}. About {saved:.0f} less damage over the rest of this run at your current build."
 
 
+# ---- E-18: damage waterfall -----------------------------------------------
+def waterfall_lines(breakdown):
+    """The text equivalent of the waterfall, one step per line."""
+    lines = [f"Base damage: {breakdown['base']:.0f}"]
+    change = breakdown["unmitigated"] - breakdown["base"]
+    sign = "+" if change >= 0 else "\u2212"
+    lines.append(
+        f"Severity {breakdown['severity']:.2f}\u00d7 ({severity_label(breakdown['severity'])}): "
+        f"{sign}{abs(change):.0f}, so {breakdown['unmitigated']:.0f} before any protection"
+    )
+    for source in breakdown["sources"]:
+        lines.append(f"{source['label']}: \u2212{source['damage']:.0f} ({source['fraction'] * 100:.0f}% of the damage)")
+    if breakdown["cap_added_back"] > 0.5:
+        lines.append(
+            f"Mitigation cap ({MAX_MITIGATION * 100:.0f}%): +{breakdown['cap_added_back']:.0f} damage the protection could not stop"
+        )
+    lines.append(f"Damage taken: {breakdown['final']:.0f}")
+    return lines
+
+
+def waterfall_segments(breakdown):
+    """(label, share of the unmitigated damage 0..1, kind) for the stacked
+    bar: what each source really prevented (scaled down proportionally when
+    the cap bit) and what got through."""
+    unmitigated = breakdown["unmitigated"] or 1.0
+    raw = sum(s["fraction"] for s in breakdown["sources"])
+    scale = (breakdown["mitigation"] / raw) if raw > 0 else 0.0
+    segments = [(s["label"], s["fraction"] * scale, "prevented") for s in breakdown["sources"]]
+    segments.append(("Damage taken", breakdown["final"] / unmitigated, "taken"))
+    return segments
+
+
+def render_damage_waterfall():
+    wrapper = document.getElementById("damage-waterfall")
+    body = document.getElementById("damage-waterfall-body")
+    if wrapper is None or body is None:
+        return
+    breakdown = run.last_breakdown
+    if not run.event_log or breakdown is None:
+        wrapper.hidden = True
+        body.innerHTML = ""
+        return
+    wrapper.hidden = False
+    body.innerHTML = ""
+    bar = document.createElement("div")
+    bar.className = "waterfall-bar"
+    bar.setAttribute("role", "img")
+    bar.setAttribute("aria-label", "; ".join(waterfall_lines(breakdown)))
+    for label, share, kind in waterfall_segments(breakdown):
+        if share <= 0.0005:
+            continue
+        seg = document.createElement("div")
+        seg.className = f"waterfall-seg waterfall-seg--{kind}"
+        seg.style.width = f"{share * 100:.1f}%"
+        seg.title = f"{label}: {share * 100:.0f}%"
+        bar.appendChild(seg)
+    body.appendChild(bar)
+    for text in waterfall_lines(breakdown):
+        line = document.createElement("p")
+        line.className = "waterfall-line"
+        line.innerText = text
+        body.appendChild(line)
+
+
 # ---- E-17: schedule strip -------------------------------------------------
 def schedule_strip_entries(run_state):
     """One entry per event in the run's schedule: what it is, whether it is
@@ -3181,6 +3291,7 @@ def render():
     render_mentor()
     render_real_world()
     render_schedule_strip()
+    render_damage_waterfall()
     document.getElementById("curriculum-display").innerText = curriculum_message()
     document.getElementById("resources-display").innerText = f"Resources: {run.resources:.0f}"
     document.getElementById("resilience-display").innerText = f"Resilience: {run.resilience_capacity}"

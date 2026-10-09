@@ -1786,6 +1786,19 @@ html[data-high-contrast="true"][data-theme="light"] .schedule-chip { background:
 .skill-helps:empty { display: none; }
 html[data-theme="light"] .skill-helps { opacity: 1; color: #46507a; }
 
+/* E-18: damage waterfall -- a stacked bar (what each source prevented, then what got through) with the same
+   numbers written as lines below, so the bar is never the only carrier of meaning. */
+.damage-waterfall { margin: 0 0 0.6rem; font-size: 0.85rem; }
+.damage-waterfall summary { cursor: pointer; }
+.waterfall-bar { display: flex; height: 14px; margin: 0.4rem 0; border: 1px solid currentColor; border-radius: 4px; overflow: hidden; }
+.waterfall-seg { height: 100%; }
+.waterfall-seg--prevented { background: #5fae7c; }
+.waterfall-seg--prevented:nth-child(2n) { background: #7fc79a; }
+.waterfall-seg--taken { background: repeating-linear-gradient(45deg, #d6705a 0 4px, #b4503c 4px 8px); }
+.waterfall-line { margin: 0.1rem 0; }
+html[data-high-contrast="true"] .waterfall-seg--prevented { background: #ffffff; }
+html[data-high-contrast="true"] .waterfall-seg--taken { background: repeating-linear-gradient(45deg, #ffd400 0 4px, #000000 4px 8px); }
+
 /* ============================================================
    Y11b light-theme polish (2026-09-27). Light-only rules from a
    computed-style WCAG contrast scan of the light theme. Dark is
