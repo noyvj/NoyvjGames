@@ -68,143 +68,6 @@ Tell me keep, fix or drop for each.
 
 I wrote them from fetched page summaries, not whole pages, so a skim by you is the check.
 
-### Fg1. Dream game: what working title do you want for the dark foggy forest city builder (a placeholder is fine)?
-
-No recommendation, your call.
-
-### Fg2. Dream game: is the city the main loop, with the mining mode, the helping nodes and the puzzles as side activities that feed it?
-
-Recommend: yes, the city is home and everything else feeds it.
-
-### Fg3. Dream game: which piece do you want built first as its own small game: the per-building puzzles, the bunker mining skill tree, the first-person helping nodes, or the friendship sidequests?
-
-Recommend: the per-building puzzles, since you said they could start as their own games.
-
-### Fg4. Dream game: top-down 2D, or low-poly 3D like Continuum's scene?
-
-Recommend: top-down 2D first (cheaper and faster), with a low-poly look.
-
-### Fg5. Dream game: what does the fog do in play (hides unexplored land, makes some things dangerous, slows travel, only mood)?
-
-Recommend: hides unexplored land and clears as the city grows, never kills you.
-
-### Fg6. Dream game: what lives in the fog (creatures, survivors, machines, nothing but atmosphere)?
-
-Recommend: machines and strange remnants, to match your sci-fi and computers taste.
-
-### Fg7. Dream game: who runs the buildings (humans, robots, a mix)?
-
-Recommend: a mix, so the friendship quests can range from warm to eerie.
-
-### Fg8. Dream game: are there threats to defend against, and if so should failing a defence cost something fixable (restore by doing something) rather than ending the run?
-
-Recommend: yes, threats exist, failures are always repairable.
-
-### Fg9. Dream game: is there any lose state at all?
-
-Recommend: no, only setbacks you can recover from, with an optional hard mode.
-
-### Fg10. Dream game: what counts as a gift to a keeper (resources, crafted items, found objects, lore pages)?
-
-Recommend: found and crafted objects, so collecting feeds friendship.
-
-### Fg11. Dream game: how many keepers (people running buildings) at launch: about 6, 12 or 20?
-
-Recommend: about 6, each with a real questline, then more later.
-
-### Fg12. Dream game: what puzzle kind should each building have (name a kind per building you imagine, or say "you choose")?
-
-Recommend: you choose among your favourites (spatial and logic), I propose a table for you to react to.
-
-### Fg13. Dream game: should the mining mode be a separate screen you open from the city, or a place you walk to inside the city?
-
-Recommend: a separate screen opened from a mine building.
-
-### Fg14. Dream game: how should it support both of your play states, under 20 minutes and over 3 hours (for example a short daily-visit loop and long optimisation sessions)?
-
-Recommend: every building gives a 5 to 15 minute task, with deeper optimisation always available.
-
-### Fg15. Dream game: should the city keep producing while you are away, with a cap?
-
-Recommend: yes with a generous cap and no pressure to return.
-
-### Fg16. Dream game: should friends be able to visit your city or leave a gift (optional, no chat)?
-
-Recommend: later, after the shared run code and friend ties exist.
-
-### Fg17. Dream game: how many branching quest lines (Lifeline-style) should there be at the start?
-
-Recommend: two, then add as the keepers arrive.
-
-### Fg18. Dream game: which existing site game is closest in feel to what you picture (Continuum, SOL, Canopy, another)?
-
-No recommendation.
-
-### Fg19. Dream game: art direction: dark and foggy low-poly, hand-drawn, or something else, and is there a game whose look you want?
-
-Recommend: low-poly dark and foggy.
-
-### Fg20. Dream game: what should the first five minutes be (arrive in the fog, meet the first keeper, place the first building)?
-
-No recommendation, your call.
-
-### Fg21. Dream game: is there an ending, or is it open-ended with a 100% collection goal?
-
-Recommend: open-ended with a collection and completion tracker (easy to 100%).
-
-### Fg22. Dream game: should some of the existing site games appear inside it as building puzzles (for example Signal as a radio tower puzzle, Lexis as a translation hut)?
-
-Recommend: yes, as the cheapest way to get puzzles and link the whole site.
-
-### Fg23. Dream game: what do you want to collect most (people, gifts, recipes, specimens, buildings' upgrades)?
-
-Recommend: people and their gifts, and building upgrades.
-
-### Fg24. Dream game: if it must be smaller, which part do you cut last?
-
-No recommendation.
-
-### Fg25. Dream game: when do you want a first playable, before or after your semester ends?
-
-Honest note: Chronicle, the new puzzle games and the per-game work come first. Recommend: after your semester.
-
-### Cn1. Canopy GB-3: should I still build the Expedition mode (a 12-season roguelike run with boons and a shareable seed), given you dislike roguelikes?
-
-Recommend: no, skip it; the optional modes already built (wildfire, rival company, sandbox, layouts) cover the replay value.
-
-### Cn2. Canopy GB-21: should I still build the Timber gambler clear-cut option (a luck-based bonus or loss when you clear a plot)?
-
-Recommend: no, skip it; it is luck pressure and Canopy's clear choices are meant to be readable in advance.
-
-### Pb4. Pocket Bazaar: on a 1024x700 desktop window the counter cells are about 50px and the stall panel scrolls slightly inside itself; should I widen the side column or shrink the queue to fix it?
-
-Recommended: widen the side column. Say "yes" to go with that, or tell me which you prefer.
-
-### Pb5. Pocket Bazaar: regulars currently reach bond level 3 after about 20 days of play; should bonds be faster?
-
-Recommended: slightly faster, about 12 to 14 days, since you like reachable 100%. Say "yes" to go with that, "no" to keep 20 days.
-
-### Pb6. Pocket Bazaar: on phones the Tutorial, What's New, Settings and About buttons sit at the foot of the page below the crates; is that acceptable?
-
-Recommended: yes, it keeps the board and counter on one screen. Say "no" and tell me where they should go instead.
-
-### Dr4. Dead Reckoning: should the chart picker be replaced by the shared level select (a special level every fifth chart) when the game is registered in the hub, or keep its own picker where a chapter opens after four charts of the previous one are cleared?
-
-Recommended: keep its own picker (it already works and is tested), and revisit the shared level select later. Say "yes" to go with that.
-
-### Dr5. Dead Reckoning: the achievement "Two at Once" needs the two-ship mode that is not built yet, so I swapped it for "Patient Navigator" (wait at anchor for the tide, then make landfall); is that swap OK until two ships exist?
-
-Recommended: yes, keep Patient Navigator and add Two at Once back when two ships are built.
-
-
-### Qa1. Of the 40 new games you approved from Quick ideas (TODO section QI), which five should I plan and build first?
-
-Name up to five by title (for example "Logic Gates, Robot Script, Station Medic"). Recommended if you have no preference: Logic Gates, Robot Script, Hull Repair, Station Medic and Stranded, because they are small enough to ship a playable game quickly and fit your puzzle, helper and Lifeline tastes.
-
-### Qa2. May I register the four finished new games (Heist Committee, Pocket Bazaar, Dead Reckoning and, once done, Lighthouse) in the hub now (title cards, service worker, offline manifest and the other shared files), since the other session is not running?
-
-Recommended: yes, one game at a time with all tests run after each. Say "no" to leave it until you tell me the other session is back.
-
 ### Li4. Lighthouse: it shipped with 21 achievements (11 for keeping the light, 10 story ones, six of them hidden until solved) instead of the plan's 16; should I cut it to 16?
 
 Recommended: keep 21, since you like reachable 100% and every one is earnable in a Quiet year.
@@ -248,3 +111,24 @@ Recommended: bring turning in from room 4 so chapter 1 teaches more. Say "yes" t
 ### Rs5. Robot Script: chapters currently open after 5 of 7 rooms are cleared; do you prefer every room open from the start?
 
 Recommended: open every room from the start, since you like objectives without a strict order. Say "yes" to go with that.
+
+### Dg1. Dream game: which six keepers (people who run buildings) should be there at launch?
+
+My suggestion, since the first is fixed by your answer: the builder (first, wood quest), a woodcutter, a miner, a librarian, a workshop tinkerer and a healer. Say "yes" to go with that, or name your own.
+
+### Dg2. Dream game: should I propose three options for the main story (one paragraph each) for you to pick from, or do you want to describe the idea first?
+
+Recommended: I propose three options. Say "yes" for that, or "no" and describe it in a comment.
+
+### Ap1. App form: if the site gets an installable app, should I look at desktop first or phone first?
+
+Recommended: desktop first (a small desktop wrapper), since you mostly play on PC at night.
+
+### Ap2. App form: may any game be playable only in the app (flagged "App only" on the hub), or should every game stay on the web?
+
+Recommended: keep every game on the web for now; flag a game "best in the app" later if it needs it (the dream game, maybe).
+
+### Ap3. App form: shall I try a small desktop-app experiment with one existing game to see how much work it is?
+
+Recommended: yes, later, after the current game batches finish.
+

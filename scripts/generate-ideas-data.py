@@ -225,6 +225,18 @@ def parse_survey():
     return sections or None
 
 
+def parse_dream_game_ideas():
+    """planning/DREAM-GAME-IDEAS.md as the "Dream game" round (yes / later / no per puzzle idea per building)."""
+    path = PLANNING / "DREAM-GAME-IDEAS.md"
+    if not path.exists():
+        return None
+    sections = parse_questions(path.read_text(encoding="utf-8").splitlines())
+    for section in sections:
+        for item in section["items"]:
+            item["answered"] = False
+    return sections or None
+
+
 def parse_quick_ideas():
     """planning/QUICK-IDEAS.md as the "Quick ideas" round: ordinary yes / later / no items (same item format as
     the ideas rounds), written from the player profile. Answers live only on the page and in the owner account."""
@@ -265,6 +277,10 @@ def main():
     if fy:
         rounds_out.insert(0, {"id": "for-you", "title": "For you", "sections": [fy]})
         answers_out["for-you"] = {}
+    dream = parse_dream_game_ideas()
+    if dream:
+        rounds_out.insert(1 if fy else 0, {"id": "dream-game", "title": "Dream game", "sections": dream})
+        answers_out["dream-game"] = {}
     quick = parse_quick_ideas()
     if quick:
         rounds_out.insert(1 if fy else 0, {"id": "quick-ideas", "title": "Quick ideas", "sections": quick})

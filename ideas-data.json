@@ -50,176 +50,6 @@
        "answered": false
       },
       {
-       "n": "Fg1",
-       "text": "**Dream game: what working title do you want for the dark foggy forest city builder (a placeholder is fine)?** No recommendation, your call.",
-       "answered": false
-      },
-      {
-       "n": "Fg2",
-       "text": "**Dream game: is the city the main loop, with the mining mode, the helping nodes and the puzzles as side activities that feed it?** Recommend: yes, the city is home and everything else feeds it.",
-       "answered": false
-      },
-      {
-       "n": "Fg3",
-       "text": "**Dream game: which piece do you want built first as its own small game: the per-building puzzles, the bunker mining skill tree, the first-person helping nodes, or the friendship sidequests?** Recommend: the per-building puzzles, since you said they could start as their own games.",
-       "answered": false
-      },
-      {
-       "n": "Fg4",
-       "text": "**Dream game: top-down 2D, or low-poly 3D like Continuum's scene?** Recommend: top-down 2D first (cheaper and faster), with a low-poly look.",
-       "answered": false
-      },
-      {
-       "n": "Fg5",
-       "text": "**Dream game: what does the fog do in play (hides unexplored land, makes some things dangerous, slows travel, only mood)?** Recommend: hides unexplored land and clears as the city grows, never kills you.",
-       "answered": false
-      },
-      {
-       "n": "Fg6",
-       "text": "**Dream game: what lives in the fog (creatures, survivors, machines, nothing but atmosphere)?** Recommend: machines and strange remnants, to match your sci-fi and computers taste.",
-       "answered": false
-      },
-      {
-       "n": "Fg7",
-       "text": "**Dream game: who runs the buildings (humans, robots, a mix)?** Recommend: a mix, so the friendship quests can range from warm to eerie.",
-       "answered": false
-      },
-      {
-       "n": "Fg8",
-       "text": "**Dream game: are there threats to defend against, and if so should failing a defence cost something fixable (restore by doing something) rather than ending the run?** Recommend: yes, threats exist, failures are always repairable.",
-       "answered": false
-      },
-      {
-       "n": "Fg9",
-       "text": "**Dream game: is there any lose state at all?** Recommend: no, only setbacks you can recover from, with an optional hard mode.",
-       "answered": false
-      },
-      {
-       "n": "Fg10",
-       "text": "**Dream game: what counts as a gift to a keeper (resources, crafted items, found objects, lore pages)?** Recommend: found and crafted objects, so collecting feeds friendship.",
-       "answered": false
-      },
-      {
-       "n": "Fg11",
-       "text": "**Dream game: how many keepers (people running buildings) at launch: about 6, 12 or 20?** Recommend: about 6, each with a real questline, then more later.",
-       "answered": false
-      },
-      {
-       "n": "Fg12",
-       "text": "**Dream game: what puzzle kind should each building have (name a kind per building you imagine, or say \"you choose\")?** Recommend: you choose among your favourites (spatial and logic), I propose a table for you to react to.",
-       "answered": false
-      },
-      {
-       "n": "Fg13",
-       "text": "**Dream game: should the mining mode be a separate screen you open from the city, or a place you walk to inside the city?** Recommend: a separate screen opened from a mine building.",
-       "answered": false
-      },
-      {
-       "n": "Fg14",
-       "text": "**Dream game: how should it support both of your play states, under 20 minutes and over 3 hours (for example a short daily-visit loop and long optimisation sessions)?** Recommend: every building gives a 5 to 15 minute task, with deeper optimisation always available.",
-       "answered": false
-      },
-      {
-       "n": "Fg15",
-       "text": "**Dream game: should the city keep producing while you are away, with a cap?** Recommend: yes with a generous cap and no pressure to return.",
-       "answered": false
-      },
-      {
-       "n": "Fg16",
-       "text": "**Dream game: should friends be able to visit your city or leave a gift (optional, no chat)?** Recommend: later, after the shared run code and friend ties exist.",
-       "answered": false
-      },
-      {
-       "n": "Fg17",
-       "text": "**Dream game: how many branching quest lines (Lifeline-style) should there be at the start?** Recommend: two, then add as the keepers arrive.",
-       "answered": false
-      },
-      {
-       "n": "Fg18",
-       "text": "**Dream game: which existing site game is closest in feel to what you picture (Continuum, SOL, Canopy, another)?** No recommendation.",
-       "answered": false
-      },
-      {
-       "n": "Fg19",
-       "text": "**Dream game: art direction: dark and foggy low-poly, hand-drawn, or something else, and is there a game whose look you want?** Recommend: low-poly dark and foggy.",
-       "answered": false
-      },
-      {
-       "n": "Fg20",
-       "text": "**Dream game: what should the first five minutes be (arrive in the fog, meet the first keeper, place the first building)?** No recommendation, your call.",
-       "answered": false
-      },
-      {
-       "n": "Fg21",
-       "text": "**Dream game: is there an ending, or is it open-ended with a 100% collection goal?** Recommend: open-ended with a collection and completion tracker (easy to 100%).",
-       "answered": false
-      },
-      {
-       "n": "Fg22",
-       "text": "**Dream game: should some of the existing site games appear inside it as building puzzles (for example Signal as a radio tower puzzle, Lexis as a translation hut)?** Recommend: yes, as the cheapest way to get puzzles and link the whole site.",
-       "answered": false
-      },
-      {
-       "n": "Fg23",
-       "text": "**Dream game: what do you want to collect most (people, gifts, recipes, specimens, buildings' upgrades)?** Recommend: people and their gifts, and building upgrades.",
-       "answered": false
-      },
-      {
-       "n": "Fg24",
-       "text": "**Dream game: if it must be smaller, which part do you cut last?** No recommendation.",
-       "answered": false
-      },
-      {
-       "n": "Fg25",
-       "text": "**Dream game: when do you want a first playable, before or after your semester ends?** Honest note: Chronicle, the new puzzle games and the per-game work come first. Recommend: after your semester.",
-       "answered": false
-      },
-      {
-       "n": "Cn1",
-       "text": "**Canopy GB-3: should I still build the Expedition mode (a 12-season roguelike run with boons and a shareable seed), given you dislike roguelikes?** Recommend: no, skip it; the optional modes already built (wildfire, rival company, sandbox, layouts) cover the replay value.",
-       "answered": false
-      },
-      {
-       "n": "Cn2",
-       "text": "**Canopy GB-21: should I still build the Timber gambler clear-cut option (a luck-based bonus or loss when you clear a plot)?** Recommend: no, skip it; it is luck pressure and Canopy's clear choices are meant to be readable in advance.",
-       "answered": false
-      },
-      {
-       "n": "Pb4",
-       "text": "**Pocket Bazaar: on a 1024x700 desktop window the counter cells are about 50px and the stall panel scrolls slightly inside itself; should I widen the side column or shrink the queue to fix it?** Recommended: widen the side column. Say \"yes\" to go with that, or tell me which you prefer.",
-       "answered": false
-      },
-      {
-       "n": "Pb5",
-       "text": "**Pocket Bazaar: regulars currently reach bond level 3 after about 20 days of play; should bonds be faster?** Recommended: slightly faster, about 12 to 14 days, since you like reachable 100%. Say \"yes\" to go with that, \"no\" to keep 20 days.",
-       "answered": false
-      },
-      {
-       "n": "Pb6",
-       "text": "**Pocket Bazaar: on phones the Tutorial, What's New, Settings and About buttons sit at the foot of the page below the crates; is that acceptable?** Recommended: yes, it keeps the board and counter on one screen. Say \"no\" and tell me where they should go instead.",
-       "answered": false
-      },
-      {
-       "n": "Dr4",
-       "text": "**Dead Reckoning: should the chart picker be replaced by the shared level select (a special level every fifth chart) when the game is registered in the hub, or keep its own picker where a chapter opens after four charts of the previous one are cleared?** Recommended: keep its own picker (it already works and is tested), and revisit the shared level select later. Say \"yes\" to go with that.",
-       "answered": false
-      },
-      {
-       "n": "Dr5",
-       "text": "**Dead Reckoning: the achievement \"Two at Once\" needs the two-ship mode that is not built yet, so I swapped it for \"Patient Navigator\" (wait at anchor for the tide, then make landfall); is that swap OK until two ships exist?** Recommended: yes, keep Patient Navigator and add Two at Once back when two ships are built.",
-       "answered": false
-      },
-      {
-       "n": "Qa1",
-       "text": "**Of the 40 new games you approved from Quick ideas (TODO section QI), which five should I plan and build first?** Name up to five by title (for example \"Logic Gates, Robot Script, Station Medic\"). Recommended if you have no preference: Logic Gates, Robot Script, Hull Repair, Station Medic and Stranded, because they are small enough to ship a playable game quickly and fit your puzzle, helper and Lifeline tastes.",
-       "answered": false
-      },
-      {
-       "n": "Qa2",
-       "text": "**May I register the four finished new games (Heist Committee, Pocket Bazaar, Dead Reckoning and, once done, Lighthouse) in the hub now (title cards, service worker, offline manifest and the other shared files), since the other session is not running?** Recommended: yes, one game at a time with all tests run after each. Say \"no\" to leave it until you tell me the other session is back.",
-       "answered": false
-      },
-      {
        "n": "Li4",
        "text": "**Lighthouse: it shipped with 21 achievements (11 for keeping the light, 10 story ones, six of them hidden until solved) instead of the plan's 16; should I cut it to 16?** Recommended: keep 21, since you like reachable 100% and every one is earnable in a Quiet year.",
        "answered": false
@@ -272,6 +102,31 @@
       {
        "n": "Rs5",
        "text": "**Robot Script: chapters currently open after 5 of 7 rooms are cleared; do you prefer every room open from the start?** Recommended: open every room from the start, since you like objectives without a strict order. Say \"yes\" to go with that.",
+       "answered": false
+      },
+      {
+       "n": "Dg1",
+       "text": "**Dream game: which six keepers (people who run buildings) should be there at launch?** My suggestion, since the first is fixed by your answer: the builder (first, wood quest), a woodcutter, a miner, a librarian, a workshop tinkerer and a healer. Say \"yes\" to go with that, or name your own.",
+       "answered": false
+      },
+      {
+       "n": "Dg2",
+       "text": "**Dream game: should I propose three options for the main story (one paragraph each) for you to pick from, or do you want to describe the idea first?** Recommended: I propose three options. Say \"yes\" for that, or \"no\" and describe it in a comment.",
+       "answered": false
+      },
+      {
+       "n": "Ap1",
+       "text": "**App form: if the site gets an installable app, should I look at desktop first or phone first?** Recommended: desktop first (a small desktop wrapper), since you mostly play on PC at night.",
+       "answered": false
+      },
+      {
+       "n": "Ap2",
+       "text": "**App form: may any game be playable only in the app (flagged \"App only\" on the hub), or should every game stay on the web?** Recommended: keep every game on the web for now; flag a game \"best in the app\" later if it needs it (the dream game, maybe).",
+       "answered": false
+      },
+      {
+       "n": "Ap3",
+       "text": "**App form: shall I try a small desktop-app experiment with one existing game to see how much work it is?** Recommended: yes, later, after the current game batches finish.",
        "answered": false
       }
      ]
@@ -1900,6 +1755,474 @@
        "n": 8,
        "tag": "small",
        "text": "Material Match: pick materials for a tool or building from their real properties, with the numbers read from a named source.",
+       "answered": false
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "dream-game",
+   "title": "Dream game",
+   "sections": [
+    {
+     "code": "BU",
+     "title": "Builder's workshop",
+     "items": [
+      {
+       "n": 1,
+       "tag": "small",
+       "text": "Joinery: fit differently shaped timber pieces into a frame outline with no gaps; each solved frame unlocks a new building type.",
+       "answered": false
+      },
+      {
+       "n": 2,
+       "tag": "small",
+       "text": "Blueprint balance: place beams so the load on every support stays under its limit; a good result gives sturdier buildings.",
+       "answered": false
+      },
+      {
+       "n": 3,
+       "tag": "small",
+       "text": "Cut list: cut planks from a log to fill a list of orders with the least waste.",
+       "answered": false
+      },
+      {
+       "n": 4,
+       "tag": "small",
+       "text": "Scaffold climb: build a path of plank pieces from the ground to a roof gap within a fixed number of planks.",
+       "answered": false
+      },
+      {
+       "n": 5,
+       "tag": "small",
+       "text": "Tool tidy: sort tools into a rack by size and use so everything fits; a tidy rack makes building faster.",
+       "answered": false
+      },
+      {
+       "n": 6,
+       "tag": "big",
+       "text": "Floor plan puzzle: lay out rooms inside a building outline so every room touches the doors and light it needs.",
+       "answered": false
+      }
+     ]
+    },
+    {
+     "code": "SA",
+     "title": "Sawmill and woodcutters",
+     "items": [
+      {
+       "n": 1,
+       "tag": "small",
+       "text": "Log stack: stack uneven logs so the pile does not tip, using a simple balance rule.",
+       "answered": false
+      },
+      {
+       "n": 2,
+       "tag": "small",
+       "text": "Grain reading: match a cut's ring pattern to the right tool and angle.",
+       "answered": false
+      },
+      {
+       "n": 3,
+       "tag": "small",
+       "text": "Sorting belt: route logs by type on a short conveyor with switches.",
+       "answered": false
+      },
+      {
+       "n": 4,
+       "tag": "small",
+       "text": "Replanting map: choose where to replant so the forest edge keeps a clear path to the cabin.",
+       "answered": false
+      },
+      {
+       "n": 5,
+       "tag": "small",
+       "text": "Sharpening: line up a blade's angle by feel (a dial and a visible sparks gauge, no timer).",
+       "answered": false
+      },
+      {
+       "n": 6,
+       "tag": "big",
+       "text": "Forest survey: reveal and mark trees on a fog grid using clues from neighbouring counts (a minesweeper-like deduction).",
+       "answered": false
+      }
+     ]
+    },
+    {
+     "code": "MI",
+     "title": "Mine and bunker",
+     "items": [
+      {
+       "n": 1,
+       "tag": "big",
+       "text": "Vein deduction: numbers on the edges show how much ore lies in each row and column; find the veins (a nonogram-style puzzle).",
+       "answered": false
+      },
+      {
+       "n": 2,
+       "tag": "small",
+       "text": "Shoring: place supports so no tunnel span is too long.",
+       "answered": false
+      },
+      {
+       "n": 3,
+       "tag": "small",
+       "text": "Cart routing: lay track from the face to the lift with turns and switches.",
+       "answered": false
+      },
+      {
+       "n": 4,
+       "tag": "small",
+       "text": "Ventilation: connect fans and shafts so air reaches every working room.",
+       "answered": false
+      },
+      {
+       "n": 5,
+       "tag": "small",
+       "text": "Assay: weigh samples on a balance to find the odd one.",
+       "answered": false
+      },
+      {
+       "n": 6,
+       "tag": "big",
+       "text": "Bunker rooms: open sealed bunker sections by solving each door's lock (logic, symbols or sequences) to unlock a specialisation.",
+       "answered": false
+      }
+     ]
+    },
+    {
+     "code": "LI",
+     "title": "Library and records",
+     "items": [
+      {
+       "n": 1,
+       "tag": "small",
+       "text": "Catalogue sort: shelve books by clues about author, colour and subject.",
+       "answered": false
+      },
+      {
+       "n": 2,
+       "tag": "small",
+       "text": "Torn page: rejoin torn pieces of a page by edges and content.",
+       "answered": false
+      },
+      {
+       "n": 3,
+       "tag": "small",
+       "text": "Cipher margin: decode notes with a key hidden in another book.",
+       "answered": false
+      },
+      {
+       "n": 4,
+       "tag": "small",
+       "text": "Reading order: put a set of letters and journals in the order they must have been written, from the details inside them.",
+       "answered": false
+      },
+      {
+       "n": 5,
+       "tag": "big",
+       "text": "Family tree: fill a tree from scattered records; a completed tree unlocks that family's quest.",
+       "answered": false
+      },
+      {
+       "n": 6,
+       "tag": "small",
+       "text": "Map restoration: place map fragments by matching coastlines and roads.",
+       "answered": false
+      }
+     ]
+    },
+    {
+     "code": "WO",
+     "title": "Workshop and robotics bench",
+     "items": [
+      {
+       "n": 1,
+       "tag": "big",
+       "text": "Circuit bench: build a working circuit from parts to light, move or sense something.",
+       "answered": false
+      },
+      {
+       "n": 2,
+       "tag": "small",
+       "text": "Gear train: connect gears so the output turns at the required speed and direction.",
+       "answered": false
+      },
+      {
+       "n": 3,
+       "tag": "small",
+       "text": "Part salvage: take apart a broken machine into the right parts in the right order.",
+       "answered": false
+      },
+      {
+       "n": 4,
+       "tag": "small",
+       "text": "Calibration: match a gauge reading by adjusting several linked knobs.",
+       "answered": false
+      },
+      {
+       "n": 5,
+       "tag": "big",
+       "text": "Assembly line: arrange stations on a belt to turn parts into a product at the lowest cost (the production line that leads to robots).",
+       "answered": false
+      },
+      {
+       "n": 6,
+       "tag": "small",
+       "text": "Wiring diagram: reconnect a tangled board by following a schematic.",
+       "answered": false
+      }
+     ]
+    },
+    {
+     "code": "FA",
+     "title": "Farm and greenhouse",
+     "items": [
+      {
+       "n": 1,
+       "tag": "small",
+       "text": "Crop rotation: plan which crop goes in which bed over seasons so the soil recovers.",
+       "answered": false
+      },
+      {
+       "n": 2,
+       "tag": "small",
+       "text": "Watering paths: lay channels to reach every bed with limited pipe.",
+       "answered": false
+      },
+      {
+       "n": 3,
+       "tag": "small",
+       "text": "Seed matching: pair seeds to beds by light, soil and season clues.",
+       "answered": false
+      },
+      {
+       "n": 4,
+       "tag": "small",
+       "text": "Frost cover: place covers on beds so every tender plant is covered with the fewest sheets.",
+       "answered": false
+      },
+      {
+       "n": 5,
+       "tag": "small",
+       "text": "Pollination: guide a few bees through flowers in an order that reaches all of them.",
+       "answered": false
+      },
+      {
+       "n": 6,
+       "tag": "small",
+       "text": "Preserving: pack jars into a shelf so they fit and can be reached.",
+       "answered": false
+      }
+     ]
+    },
+    {
+     "code": "AP",
+     "title": "Apothecary and kitchen",
+     "items": [
+      {
+       "n": 1,
+       "tag": "small",
+       "text": "Recipe mix: combine ingredients to reach a target taste or effect (add and balance sliders).",
+       "answered": false
+      },
+      {
+       "n": 2,
+       "tag": "small",
+       "text": "Label the shelf: deduce which herb is which from smell, colour and use clues.",
+       "answered": false
+      },
+      {
+       "n": 3,
+       "tag": "small",
+       "text": "Boil down: reduce a liquid to an exact amount by choosing heat steps.",
+       "answered": false
+      },
+      {
+       "n": 4,
+       "tag": "small",
+       "text": "Pantry fit: pack a larder so the most-used items sit in reach.",
+       "answered": false
+      },
+      {
+       "n": 5,
+       "tag": "small",
+       "text": "Feast plan: plan courses for guests with likes and dislikes (links to gifting).",
+       "answered": false
+      },
+      {
+       "n": 6,
+       "tag": "big",
+       "text": "Remedy book: discover recipes by combining clues from keepers about what ails them.",
+       "answered": false
+      }
+     ]
+    },
+    {
+     "code": "OB",
+     "title": "Observatory and radio tower",
+     "items": [
+      {
+       "n": 1,
+       "tag": "small",
+       "text": "Star map: connect stars into a named pattern by rules.",
+       "answered": false
+      },
+      {
+       "n": 2,
+       "tag": "small",
+       "text": "Tuning: find a station by adjusting two dials against a signal-strength meter.",
+       "answered": false
+      },
+      {
+       "n": 3,
+       "tag": "small",
+       "text": "Decode: turn a repeating signal into a message (binary, Morse-like or glyphs).",
+       "answered": false
+      },
+      {
+       "n": 4,
+       "tag": "small",
+       "text": "Aiming: line up a dish with a moving source using stepped turns.",
+       "answered": false
+      },
+      {
+       "n": 5,
+       "tag": "small",
+       "text": "Lens alignment: stack lenses so a beam reaches a sensor.",
+       "answered": false
+      },
+      {
+       "n": 6,
+       "tag": "big",
+       "text": "Sky catalogue: match observations from different nights to find what moved.",
+       "answered": false
+      }
+     ]
+    },
+    {
+     "code": "TA",
+     "title": "Tavern and meeting hall",
+     "items": [
+      {
+       "n": 1,
+       "tag": "small",
+       "text": "Seating plan: seat guests so likes and dislikes are respected.",
+       "answered": false
+      },
+      {
+       "n": 2,
+       "tag": "small",
+       "text": "Story order: arrange a told story's events using clues from several tellers.",
+       "answered": false
+      },
+      {
+       "n": 3,
+       "tag": "small",
+       "text": "Who said it: match statements to speakers from a few hints.",
+       "answered": false
+      },
+      {
+       "n": 4,
+       "tag": "small",
+       "text": "Table game: a small two-player-style logic game against the keeper, solvable without luck.",
+       "answered": false
+      },
+      {
+       "n": 5,
+       "tag": "small",
+       "text": "Song lines: reorder scrambled lines of a verse by rhyme and rhythm marks.",
+       "answered": false
+      },
+      {
+       "n": 6,
+       "tag": "small",
+       "text": "Rumour chain: trace which rumour started where from who told whom.",
+       "answered": false
+      }
+     ]
+    },
+    {
+     "code": "SM",
+     "title": "Smithy and metalwork",
+     "items": [
+      {
+       "n": 1,
+       "tag": "small",
+       "text": "Heat colours: pick the right heat step for each stage of a piece.",
+       "answered": false
+      },
+      {
+       "n": 2,
+       "tag": "small",
+       "text": "Alloy mix: blend metals to hit target numbers.",
+       "answered": false
+      },
+      {
+       "n": 3,
+       "tag": "small",
+       "text": "Mould fit: choose a mould that fills without gaps from a few pieces.",
+       "answered": false
+      },
+      {
+       "n": 4,
+       "tag": "small",
+       "text": "Forging order: put steps in the right order to avoid cracking (rules shown).",
+       "answered": false
+      },
+      {
+       "n": 5,
+       "tag": "small",
+       "text": "Rivet pattern: place rivets so a plate holds with the fewest.",
+       "answered": false
+      },
+      {
+       "n": 6,
+       "tag": "small",
+       "text": "Repair puzzle: mend a broken tool by fitting back its fragments.",
+       "answered": false
+      }
+     ]
+    },
+    {
+     "code": "HE",
+     "title": "Healer's hut and shrine",
+     "items": [
+      {
+       "n": 1,
+       "tag": "small",
+       "text": "Herb drying: arrange racks so each herb gets the light and air it needs.",
+       "answered": false
+      },
+      {
+       "n": 2,
+       "tag": "small",
+       "text": "Symptom match: deduce what ails a visitor from signs (invented conditions, no real medical advice).",
+       "answered": false
+      },
+      {
+       "n": 3,
+       "tag": "small",
+       "text": "Bandage wrap: a path puzzle where the wrap must cover a shape without overlap.",
+       "answered": false
+      },
+      {
+       "n": 4,
+       "tag": "small",
+       "text": "Candle ritual: light candles in an order that follows a pattern of rules.",
+       "answered": false
+      },
+      {
+       "n": 5,
+       "tag": "small",
+       "text": "Garden of remembrance: place stones and plants by clues about those remembered.",
+       "answered": false
+      },
+      {
+       "n": 6,
+       "tag": "small",
+       "text": "Dream lines: connect matching symbols in a sleeping visitor's dream without crossing.",
        "answered": false
       }
      ]

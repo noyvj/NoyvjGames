@@ -153,3 +153,5 @@ Several items across the ideas file got parked specifically pending this — you
 
 - Lighthouse: later, consider a ship that goes missing for dramatic effect (your Li1 note). For now no ship is ever lost; the plan stays "no on-screen loss, ships get delayed or damaged".
 - **Deep Descent** (roguelite dungeon crawler, plan in `planning/deep-descent-plan.md`): parked because of the no-roguelike rule; you said yes to dropping it from the list (2026-10-08). Revisit only if you ask.
+- **Dream game name** (Fg1, later): call it "dream game" for naming things and ideate a name later.
+- **Dream game interconnected play** (Fg16): everyone in the same lore forest, help each other, fight together; waits on shared run codes, friend ties and the multiplayer groundwork (TODO DG-7).
