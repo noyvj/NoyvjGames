@@ -7,8 +7,10 @@ Updated after each milestone. A new agent should read `planning/logic-gates-plan
 
 - Milestone 2 Board UI: `game.py`, `state.py`, `render.py`, `words.py`, `achievements.py`, `info.py`, `index.html`, `style.css`, `settings.js`, `app.js`, favicon; checked live at 1440x900 and 360x740.
 
+- Milestone 3 Chapters 2-3, hints, sandbox: levels 9-24, hint ladder (nudge/hint/answer + place answer), sandbox with truth-table log and The Sixteen; checked live; `tests/test_content.py`.
+
 ## Next
-- Milestone 3: hint ladder and sandbox are already in the engine; verify in the browser, add sequence-level UI checks, more tests.
+- Milestone 4: full play-through using only the hint ladder, docs.
 
 ## Open problems
 - None yet.
