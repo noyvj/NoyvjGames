@@ -61,6 +61,7 @@ ELEMENT_IDS = [
     "past-runs-toggle-button",
     "past-runs-panel",
     # E-21 / E-22 / E-20: the Past Runs list container and controls.
+    "improvement-streak-display",  # GE-22
     "past-runs-list",
     "past-runs-controls",
     "past-runs-compare",

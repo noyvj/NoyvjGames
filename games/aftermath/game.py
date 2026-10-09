@@ -1980,16 +1980,28 @@ def render_past_run_compare():
     box.appendChild(grid)
 
 
+def streak_log_indexes():
+    """GE-22: positions in run_log_history that belong to the current improvement streak
+    (empty below STREAK_MIN)."""
+    scores = [e.get("score", 0) for e in run_log_history if isinstance(e, dict)]
+    streak = improvement_streak(scores)
+    if streak < STREAK_MIN:
+        return set()
+    return set(range(len(scores) - streak, len(scores)))
+
+
 def _past_run_card(index, entry, is_record):
     run_number = entry["run_number"]
     card = document.createElement("div")
     card.className = "past-run-card past-run-card--record" if is_record else "past-run-card"
     if run_number in meta["archived_runs"]:
         card.className += " past-run-card--archived"
+    if index in streak_log_indexes():
+        card.className += " past-run-card--streak"
     title = document.createElement("p")
     title.className = "past-run-title"
     title.innerText = (
-        f"{'🏆 ' if is_record else ''}Run #{run_number} — score {entry['score']:.0f} "
+        f"{'🏆 ' if is_record else ''}{'🔥 ' if index in streak_log_indexes() else ''}Run #{run_number} — score {entry['score']:.0f} "
         f"(resilience {entry['resilience_capacity']}, growth {entry['growth_capacity']}, "
         f"+{entry['knowledge_earned']} knowledge)"
         f" · {run_mode_label(entry)}" + (" · archived" if run_number in meta["archived_runs"] else "")
@@ -2029,6 +2041,39 @@ def _past_run_card(index, entry, is_record):
     actions.appendChild(archive_button)
     card.appendChild(actions)
     return card
+
+
+# ---- GE-22: run-improvement streak --------------------------------------------
+STREAK_MIN = 2
+
+
+def record_flags(scores):
+    """For each score in completion order: did it beat every earlier run? (The first
+    run has nothing to beat, so it is never a record.)"""
+    flags, best = [], None
+    for score in scores:
+        flags.append(best is not None and score > best)
+        if best is None or score > best:
+            best = score
+    return flags
+
+
+def improvement_streak(scores):
+    """How many of the most recent runs, in a row, each beat the best before them."""
+    count = 0
+    for flag in reversed(record_flags(scores)):
+        if not flag:
+            break
+        count += 1
+    return count
+
+
+def streak_text(scores=None):
+    scores = run_history if scores is None else scores
+    streak = improvement_streak(scores)
+    if streak < STREAK_MIN:
+        return ""
+    return f"\U0001F525 Improvement streak: {streak} runs in a row beat your previous best."
 
 
 def render_past_runs_panel():
@@ -3767,6 +3812,11 @@ def render():
     document.getElementById("progress-comparison-display").innerText = progress_message(
         progress_comparison()
     )
+
+    streak_el = document.getElementById("improvement-streak-display")  # GE-22
+    if streak_el is not None:
+        streak_el.innerText = streak_text()
+        streak_el.hidden = not streak_el.innerText
 
     # E17: toughest run yet.
     toughest = toughest_run_yet()
