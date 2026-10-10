@@ -450,6 +450,17 @@
         <ol id="route-list" class="route-list"></ol>
         <p id="route-summary" class="comparison-message"></p>
       </details>
+      <!-- AN-13: move ONE point from a skill you own to another for a small knowledge fee (never a restart). -->
+      <details id="skill-move" class="skill-move" hidden>
+        <summary>Move a point</summary>
+        <p class="comparison-message">Changed your mind? Swap one skill you own for another. There is no full reset: it costs a small fee, and a skill other skills depend on cannot be moved.</p>
+        <label for="skill-move-from">Give up</label>
+        <select id="skill-move-from"></select>
+        <label for="skill-move-to">Take instead</label>
+        <select id="skill-move-to"></select>
+        <button id="skill-move-button" class="secondary" type="button" disabled>Move this point</button>
+        <p id="skill-move-status" class="comparison-message" role="status" aria-live="polite"></p>
+      </details>
       <!-- E-19: search the skills and filter them by status or type. -->
       <div class="skill-filter-bar">
         <label class="skill-search-label" for="skill-search-input">Find a skill</label>

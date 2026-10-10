@@ -1403,6 +1403,9 @@ class RunState:
         return min(1.0, total / reference)
 
 
+SKILL_MOVE_FEE = 1  # AN-13: knowledge a move of one point costs (the lifetime total never changes)
+
+
 class SkillTreeState:
     """Persistent, separate from RunState — survives across runs and, via
     localStorage, across visits (same browser)."""
@@ -1436,6 +1439,38 @@ class SkillTreeState:
             return False
         self.knowledge_points -= SKILLS[skill_id]["cost"]
         self.unlocked.add(skill_id)
+        self.save()
+        return True
+
+    def move_check(self, from_id, to_id):
+        """AN-13: moving ONE point from an owned skill to another costs SKILL_MOVE_FEE knowledge (never a
+        restart). Returns (ok, reason in plain words). Rules: both must be real skills; the first owned and
+        the second not; nothing else owned may need the first one; the second's prerequisites must still be
+        met without the first; the refund plus the balance must cover the second skill and the fee."""
+        if from_id not in SKILLS or to_id not in SKILLS or from_id == to_id:
+            return False, "Pick one skill you own and a different skill to move to."
+        if from_id not in self.unlocked:
+            return False, f"{SKILLS[from_id]['label']} is not one of your skills."
+        if to_id in self.unlocked:
+            return False, f"{SKILLS[to_id]['label']} is already yours."
+        dependants = [SKILLS[s]["label"] for s in self.unlocked if s != from_id and from_id in SKILLS[s].get("prereqs", [])]
+        if dependants:
+            return False, f"{SKILLS[from_id]['label']} is needed by {', '.join(sorted(dependants))}, so it cannot be moved."
+        missing = [SKILLS[p]["label"] for p in SKILLS[to_id].get("prereqs", []) if p not in self.unlocked or p == from_id]
+        if missing:
+            return False, f"{SKILLS[to_id]['label']} needs {', '.join(missing)} first."
+        left = self.knowledge_points + SKILLS[from_id]["cost"] - SKILLS[to_id]["cost"] - SKILL_MOVE_FEE
+        if left < 0:
+            return False, f"You would be {-left} knowledge short (the move costs {SKILL_MOVE_FEE} on top of the difference)."
+        return True, ""
+
+    def move(self, from_id, to_id):
+        ok, _reason = self.move_check(from_id, to_id)
+        if not ok:
+            return False
+        self.knowledge_points += SKILLS[from_id]["cost"] - SKILLS[to_id]["cost"] - SKILL_MOVE_FEE
+        self.unlocked.discard(from_id)
+        self.unlocked.add(to_id)
         self.save()
         return True
 
@@ -5280,6 +5315,7 @@ def render():
     render_presets()  # E-25
     render_route_planner()  # E-3
     render_builder()  # E-13
+    render_skill_move()  # AN-13
     render_challenge()  # E-4
     document.getElementById("curriculum-display").innerText = curriculum_message()
     document.getElementById("resources-display").innerText = f"Resources: {run.resources:.0f}"
@@ -5786,6 +5822,69 @@ def on_settlement_name_change(event=None):
     render()
 
 
+def render_skill_move():
+    """AN-13: the "Move a point" panel: one owned skill to another, for SKILL_MOVE_FEE knowledge."""
+    panel = _el("skill-move")
+    if panel is None:
+        return
+    owned = [s for s in SKILLS if s in skill_tree.unlocked]
+    panel.hidden = not owned
+    from_select, to_select = _el("skill-move-from"), _el("skill-move-to")
+    if from_select is None or to_select is None:
+        return
+    keep_from, keep_to = from_select.value, to_select.value
+    from_select.innerHTML = ""
+    to_select.innerHTML = ""
+    for skill_id in owned:
+        option = document.createElement("option")
+        option.value = skill_id
+        option.innerText = f"{SKILLS[skill_id]['label']} (costs {SKILLS[skill_id]['cost']})"
+        from_select.appendChild(option)
+    for skill_id in SKILLS:
+        if skill_id in skill_tree.unlocked:
+            continue
+        option = document.createElement("option")
+        option.value = skill_id
+        option.innerText = f"{SKILLS[skill_id]['label']} (costs {SKILLS[skill_id]['cost']})"
+        to_select.appendChild(option)
+    unowned = [s for s in SKILLS if s not in skill_tree.unlocked]
+    from_select.value = keep_from if keep_from in owned else (owned[0] if owned else "")
+    to_select.value = keep_to if keep_to in unowned else (unowned[0] if unowned else "")
+    ok, reason = skill_tree.move_check(from_select.value, to_select.value) if owned and to_select.value else (False, "Nothing to move to.")
+    button = _el("skill-move-button")
+    if button is not None:
+        button.disabled = not ok
+    status = _el("skill-move-status")
+    if status is not None and not skill_move_message:
+        status.innerText = (f"Moving costs {SKILL_MOVE_FEE} knowledge on top of the difference in price. "
+                            + ("" if ok else reason))
+
+
+skill_move_message = ""
+
+
+def on_skill_move(event=None):
+    global skill_move_message
+    from_id = _el("skill-move-from").value
+    to_id = _el("skill-move-to").value
+    if skill_tree.move(from_id, to_id):
+        skill_move_message = f"Moved from {SKILLS[from_id]['label']} to {SKILLS[to_id]['label']}. Knowledge left: {skill_tree.knowledge_points}."
+        announce(skill_move_message)
+    else:
+        skill_move_message = skill_tree.move_check(from_id, to_id)[1] or "That move is not possible."
+    status = _el("skill-move-status")
+    if status is not None:
+        status.innerText = skill_move_message
+    render()
+    skill_move_message = ""
+
+
+def on_skill_move_select(event=None):
+    global skill_move_message
+    skill_move_message = ""
+    render_skill_move()
+
+
 def _make_unlock_handler(skill_id):
     def handler(event=None):
         unlocked = skill_tree.unlock(skill_id)
@@ -5822,6 +5921,9 @@ def _wire_round3_batch2():
     _listen("builder-save-button", "click", on_builder_save)
     _listen("save-health-export-button", "click", on_save_health_export)
     _listen("challenge-leave-button", "click", leave_challenge)
+    _listen("skill-move-button", "click", on_skill_move)
+    _listen("skill-move-from", "change", on_skill_move_select)
+    _listen("skill-move-to", "change", on_skill_move_select)
 
 
 def setup():

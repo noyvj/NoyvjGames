@@ -1,5 +1,9 @@
 [
   {
+    "date": "2026-10-11",
+    "entry": "New: Move a point. In the skill tree, a new panel lets you swap one skill you own for another without a restart. It costs 1 knowledge on top of the price difference, and a skill that other skills depend on cannot be moved. Your lifetime knowledge total is unchanged."
+  },
+  {
     "date": "2026-10-10",
     "entry": "New: a Halloween event, Night of Storms. From about 25 October to 1 November a banner offers a small task: finish one run with resources left. Doing it earns a Halloween badge that shows on your game page and on the hub. Nothing is lost if you skip it, and the badge is kept in your save."
   },

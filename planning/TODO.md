@@ -1,6 +1,6 @@
 # Site-Wide TODO (round 3)
 
-**Progress: 743/1261 items checked off (58.9%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land.
+**Progress: 744/1261 items checked off (59.0%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land.
 
 Built from your answers in `planning/IMPROVEMENT-IDEAS-ROUND-3.md` (Part 4). Every Round 3 section is now answered (2026-10-07 below the Warframe section); earlier this list held only: **GB** (Canopy gamified), **M** (new games), **N** (seasonal events), **O** (Trade Empire and Continuum replayability), **P/Q/S/T** (Signal, Undersleep, Overclock, Last Line open questions), **X** (Warframe tracker) and **R** (returning later). GC-GI, A-L, U, Z and Y are unanswered and wait for you. The previous list is archived at `planning/todo-archive/260914_260927.md`; anything from it that was moved here is marked "moved" there.
 
@@ -210,7 +210,7 @@ Yes answers mean the recommendation; items below are the work they create.
 **Cross-game patterns you agreed to:**
 - [x] AN-11: Signal: the daily puzzle has no streak by default; the archive stays so missing a day costs nothing (Pq1).
 - [x] AN-12: Every hint ladder: each rung opens only when you press "Another hint", and the first rung asks "Would you like a suggestion?" (Pq2).
-- [ ] AN-13: Skill trees with no free refund: allow moving one point for a small in-game cost, never a restart (Pq3).
+- [x] AN-13: Skill trees with no free refund: allow moving one point for a small in-game cost, never a restart (Pq3). (Built 2026-10-11 in Aftermath, whose permanent tree is the one with no refund: `Move a point` costs 1 knowledge plus the price difference, 10 tests. The shared tree component already has refunds and the other games' trees are not permanent ones.)
 - [x] AN-14: Build one test page with three mockups of overlay windows (a side drawer, a centred pop-up and a full-screen menu) so you can pick the style for PC (Pq5). (Built 2026-10-11 as the unlisted `overlay-mockups.html`; tell me which of the three you prefer.)
 - [ ] AN-15: Two-player puzzles work with one friend through an invite link, plus a solo version that plays both halves (Pq7).
 - [ ] AN-16: Titles are account-wide (one titles shelf on your account) and per-game titles are removed (Pq9).
