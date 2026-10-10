@@ -1,0 +1,219 @@
+/* Evidence Hunt. Every colour is a variable so the light theme (html[data-theme="light"], set by shared/theme.js) is a second set of
+   values. State is never told by colour alone: a restless room has a thick border AND the word "Restless", a reading is a word with
+   its own border style, a packed piece of equipment has a thick border AND the words "In the bag", a ruled-out suspect is struck
+   through as well as dimmed. */
+:root {
+  --bg: #0a0d13; --bg-top: #161c29; --panel: #11161f; --panel-fill: rgba(17, 22, 31, 0.95); --surface: #1a2130;
+  --btn: #242d40; --btn-primary: #7a4f12; --on-primary: #fff6e8;
+  --line: #333f55; --edge: #8196b2; --text: #e8edf4; --muted: #aab6c8;
+  --accent: #e0a458; --cool: #b9a3ff; --focus: #ffd666; --hover-edge: #e0a458;
+  --ok: #8fe0a4; --bad: #ff9c8a; --gold: #e0a458; --silver: #cfd8e3; --bronze: #c98b5c;
+  --room-a: #1b2436; --room-b: #121826;
+  --sc-sky: #070a12; --sc-moon: #dfe6f5; --sc-star: #cfe0f2; --sc-roof: #252f45; --sc-wall: #1a2234; --sc-wall-top: #1e283c; --sc-lamp: #e0a458;
+  --sc-pane: #2f3b57; --sc-door: #0e131d; --sc-ground: #0b1019; --sc-tree: #10192a;
+}
+html[data-theme="light"] {
+  --bg: #eef0f4; --bg-top: #fafbfd; --panel: #ffffff; --panel-fill: rgba(255, 255, 255, 0.97); --surface: #e8ecf2;
+  --btn: #dbe2ec; --btn-primary: #8a4f06; --on-primary: #ffffff;
+  --line: #b4c0d0; --edge: #4f6580; --text: #161e2b; --muted: #435165;
+  --accent: #8a4f06; --cool: #5b3fb0; --focus: #6a2f00; --hover-edge: #8a4f06;
+  --ok: #0b6b3a; --bad: #a8412f; --gold: #8a4f06; --silver: #4b5b66; --bronze: #86501f;
+  --room-a: #f4f6fa; --room-b: #dfe5ee;
+  --sc-sky: #28344f; --sc-moon: #f4f7ff; --sc-star: #ffffff; --sc-roof: #46567a; --sc-wall: #6d7ea0; --sc-wall-top: #7a8bad; --sc-lamp: #f5c26b;
+  --sc-pane: #3d4a69; --sc-door: #26304a; --sc-ground: #3a4766; --sc-tree: #2a3652;
+}
+html[data-high-contrast="true"] { --line: #a9bdd6; --edge: #e5edf8; --muted: #e5edf8; }
+html[data-high-contrast="true"][data-theme="light"] { --line: #2d4059; --edge: #161e2b; --muted: #161e2b; }
+html[data-high-contrast="true"] .panel, html[data-high-contrast="true"] button { border-width: 2px; }
+
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html { font-size: calc(100% * var(--text-scale, 1)); color-scheme: dark; }
+html[data-theme="light"] { color-scheme: light; background: var(--bg); }
+body { margin: 0; background: radial-gradient(ellipse at top, var(--bg-top), var(--bg) 60%); color: var(--text);
+  font: 1rem/1.5 system-ui, -apple-system, sans-serif; min-height: 100vh; }
+#game { max-width: 66rem; margin: 0 auto; padding: 1rem 1rem 3rem; display: block; }
+html[data-theme="light"] #game { background: transparent; border: 0; box-shadow: none; }
+.hub-back-link { color: var(--accent); text-decoration: underline; font-size: 0.85rem; }
+html[data-theme="light"] .hub-back-link, html[data-theme="light"] a { color: var(--accent); }
+h1 { margin: 0.3rem 0 0; letter-spacing: 0.14em; font-weight: 300; text-transform: uppercase; font-size: 1.6rem; }
+html[data-theme="light"] h1 { background: none; color: var(--text); -webkit-text-fill-color: currentColor; text-shadow: none; }
+.tagline, .note { color: var(--muted); font-size: 0.9rem; margin: 0.3rem 0; }
+.panel { background: var(--panel-fill); border: 1px solid var(--line); border-radius: 14px; padding: 0.7rem 0.8rem; margin: 0.7rem 0; }
+html[data-theme="light"] .panel { box-shadow: 0 4px 16px rgba(30, 50, 80, 0.1); }
+.panel h2 { margin: 0 0 0.4rem; font-size: 0.95rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent); }
+.sub { margin: 0.7rem 0 0.2rem; font-size: 0.9rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+button, select { font: inherit; color: var(--text); background: var(--btn); border: 1px solid var(--edge); border-radius: 8px; padding: 0.4rem 0.8rem; cursor: pointer; }
+button:hover { border-color: var(--hover-edge); }
+button.primary { background: var(--btn-primary); border-color: var(--hover-edge); color: var(--on-primary); }
+button:focus-visible, select:focus-visible, input:focus-visible, a:focus-visible, summary:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+button[disabled], button[aria-disabled="true"] { opacity: 0.6; cursor: pointer; border-style: dashed; }
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+.skip-link { position: absolute; left: 0.5rem; top: -4rem; z-index: 1000; padding: 0.5rem 0.8rem; border-radius: 8px; background: var(--panel); color: var(--text); border: 2px solid var(--focus); }
+.skip-link:focus { top: 0.5rem; }
+.top-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.3rem 0.8rem; }
+.game-toolbar { display: flex; flex-wrap: wrap; gap: 0.4rem; margin: 0.4rem 0; }
+.toast { min-height: 1.3rem; font-weight: 600; }
+.toast:empty { min-height: 0; margin: 0; }
+.toast.on { background: var(--surface); border: 1px solid var(--ok); border-radius: 8px; padding: 0.25rem 0.6rem; }
+.settings-row { display: flex; gap: 0.6rem; align-items: center; flex-wrap: wrap; margin: 0.5rem 0; }
+.settings-row input[type="checkbox"] { width: 1.25rem; height: 1.25rem; accent-color: var(--btn-primary); vertical-align: middle; }
+.text-size-control { display: inline-flex; gap: 0.3rem; }
+.btn-short { display: none; }
+@media (max-width: 420px) { .btn-long { display: none; } .btn-short { display: inline; } }
+
+.stat-strip { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0.35rem; margin: 0.5rem 0; }
+.stat { background: var(--panel-fill); border: 1px solid var(--line); border-radius: 10px; padding: 0.25rem 0.3rem; text-align: center; min-width: 0; }
+.stat-label { display: block; font-size: 0.62rem; color: var(--muted); letter-spacing: 0.03em; line-height: 1.15; overflow-wrap: anywhere; }
+.stat-value { display: block; font-size: 1.05rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+.stat-value.bump { animation: bump 0.35s ease-out; }
+@keyframes bump { 0% { transform: scale(1); } 40% { transform: scale(1.3); color: var(--accent); } 100% { transform: scale(1); } }
+html[data-reduced-motion="true"] .stat-value.bump, html[data-effects="off"] .stat-value.bump { animation: none; }
+.tally { padding: 0.4rem 0.6rem; }
+.tally summary { cursor: pointer; color: var(--muted); font-size: 0.9rem; }
+.tally-strip { grid-template-columns: repeat(auto-fit, minmax(5.5rem, 1fr)); margin-top: 0.5rem; }
+
+/* The page: the case, then the notebook, sheet and log. Two columns when there is room. */
+#case-panel, #notebook-panel, #sheet-panel, #log-panel { min-width: 0; }
+.side-col { min-width: 0; }
+@media (min-width: 900px) {
+  html:not([data-layout="pc"]) #game { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 0 1rem; align-items: start; }
+  html:not([data-layout="pc"]) #game > * { grid-column: 1 / -1; }
+  html:not([data-layout="pc"]) #game > #case-panel { grid-column: 1; }
+  html:not([data-layout="pc"]) #game > #side-col { grid-column: 2; }
+}
+
+/* The case. */
+.case-chapter { margin: 0; text-transform: uppercase; letter-spacing: 0.06em; font-size: 0.75rem; }
+#case-heading { margin-bottom: 0.2rem; }
+.scene-holder { margin: 0.3rem 0; border-radius: 10px; overflow: hidden; border: 1px solid var(--line); }
+.scene { display: block; width: 100%; height: 5.2rem; }
+.sc-sky { fill: var(--sc-sky); } .sc-moon { fill: var(--sc-moon); } .sc-star { fill: var(--sc-star); } .sc-roof { fill: var(--sc-roof); }
+.sc-wall { fill: var(--sc-wall); } .sc-wall-top { fill: var(--sc-wall-top); } .sc-lamp { fill: var(--sc-lamp); } .sc-pane { fill: var(--sc-pane); }
+.sc-door { fill: var(--sc-door); } .sc-ground { fill: var(--sc-ground); } .sc-tree { fill: var(--sc-tree); }
+.presence-line { margin: 0.2rem 0; font-weight: 600; }
+.bedside-label { margin: 0.5rem 0 0.15rem; font-size: 0.72rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+.account-list { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 0.3rem; }
+.account-list li { border: 2px dashed var(--accent); border-radius: 8px; padding: 0.05rem 0.5rem; font-size: 0.85rem; }
+.story-text { margin: 0.3rem 0; }
+
+/* The floor plan. */
+.house-plan { display: grid; gap: 0.5rem; margin: 0.3rem 0; }
+.floor { border: 1px solid var(--line); border-radius: 12px; padding: 0.4rem 0.5rem; background: var(--surface); }
+.floor h4 { margin: 0 0 0.3rem; font-size: 0.72rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+.floor-grid { display: grid; gap: 0.35rem; }
+.room { min-width: 0; text-align: left; padding: 0.4rem 0.5rem; border-radius: 6px 16px 6px 16px; border: 2px solid var(--edge);
+  background: linear-gradient(135deg, var(--room-a) 0 55%, var(--room-b) 55% 100%); display: flex; flex-direction: column; gap: 0.1rem; min-height: 4rem; }
+.room .rname { font-weight: 700; font-size: 0.88rem; overflow-wrap: anywhere; }
+.room .rstate { font-size: 0.74rem; color: var(--muted); }
+.room .rtag { font-size: 0.7rem; color: var(--accent); }
+.room.unknown { border-style: dashed; }
+.room.restless { border-color: var(--accent); border-width: 4px; }
+.room.still { border-style: dotted; border-width: 3px; }
+.room.here { box-shadow: inset 0 0 0 3px var(--focus); }
+.room .rstate .mark { font-weight: 800; }
+
+/* The bag. */
+.gear-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(8.6rem, 1fr)); gap: 0.35rem; margin: 0.3rem 0; }
+.gear { display: flex; align-items: center; gap: 0.45rem; text-align: left; padding: 0.3rem 0.5rem; border: 2px solid var(--edge); border-radius: 10px; background: var(--surface); min-width: 0; }
+.gear .letter { display: inline-block; min-width: 1.6rem; text-align: center; font-family: ui-monospace, monospace; font-weight: 800; border: 2px solid currentColor; border-radius: 6px; }
+.gear .gname { display: block; font-weight: 700; font-size: 0.85rem; }
+.gear .gev { display: block; font-size: 0.72rem; color: var(--muted); }
+.gear[aria-pressed="true"] { border-color: var(--accent); border-width: 4px; background: var(--panel); }
+.gear.unavailable { border-style: dashed; opacity: 0.7; }
+.van-row { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; margin: 0.3rem 0; }
+
+/* The room you are in. */
+.room-box { border: 1px solid var(--line); border-radius: 12px; padding: 0.5rem 0.7rem; margin: 0.5rem 0; background: var(--surface); }
+.room-name { margin: 0; font-size: 1.05rem; }
+.act-row { display: flex; flex-wrap: wrap; gap: 0.35rem; }
+.act-row button { display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.3rem 0.6rem; }
+.act-row button .letter { display: inline-block; min-width: 1.2rem; text-align: center; font-family: ui-monospace, monospace; font-weight: 800; border: 1px solid currentColor; border-radius: 4px; font-size: 0.78rem; }
+.act-row button .left { font-size: 0.78rem; color: var(--muted); }
+.act-row button.unavailable { border-style: dashed; opacity: 0.7; }
+.action-line { min-height: 1.4em; }
+
+/* Who is it. */
+.accuse-box { border-top: 1px solid var(--line); margin-top: 0.6rem; padding-top: 0.2rem; }
+.could-group { margin: 0.3rem 0; }
+.could-group .clabel { font-size: 0.78rem; color: var(--muted); }
+.chips { list-style: none; margin: 0.15rem 0; padding: 0; display: flex; flex-wrap: wrap; gap: 0.3rem; }
+.chips li { border: 1px solid var(--edge); border-radius: 8px; padding: 0.05rem 0.5rem; font-size: 0.88rem; font-weight: 600; }
+.chips li.certain { border: 3px double var(--ok); }
+.accuse-options { display: flex; flex-wrap: wrap; gap: 0.35rem; margin: 0.3rem 0; }
+.suspect { display: inline-flex; align-items: center; gap: 0.35rem; border: 2px solid var(--edge); border-radius: 10px; background: var(--surface); padding: 0.2rem 0.55rem 0.2rem 0.3rem; }
+.suspect .emblem { width: 1.6rem; height: 1.6rem; }
+.suspect[aria-pressed="true"] { border-color: var(--accent); border-width: 4px; background: var(--panel); }
+.suspect.ruled-out { opacity: 0.55; border-style: dashed; }
+html[data-narrow="on"] .suspect.ruled-out .sname { text-decoration: line-through; }
+html[data-narrow="off"] .suspect.ruled-out { opacity: 1; border-style: solid; }
+.result-card { border: 2px solid var(--ok); border-radius: 12px; padding: 0.5rem 0.8rem; margin: 0.5rem 0; background: var(--surface); text-align: center; }
+.result-title { margin: 0; font-weight: 800; font-size: 1.1rem; }
+.result-grade { margin: 0.2rem 0; font-weight: 700; }
+.result-ending { text-align: left; border-left: 3px solid var(--accent); padding-left: 0.6rem; }
+.result-buttons, .case-buttons { display: flex; gap: 0.5rem; justify-content: center; flex-wrap: wrap; margin-top: 0.4rem; align-items: center; }
+.seal { display: inline-block; min-width: 4.4em; padding: 0 0.6em; border-radius: 999px; border: 2px solid currentColor; font-weight: 800; font-size: 0.78rem; text-align: center; }
+.seal-clean { color: var(--gold); }
+.seal-steady { color: var(--silver); border-style: double; border-width: 4px; }
+.seal-rough { color: var(--bronze); border-style: dashed; }
+.hint-box { margin: 0.5rem 0; text-align: center; }
+.hint-line { margin: 0.3rem 0; }
+
+/* The notebook. */
+.nb-wrap { overflow-x: auto; max-width: 100%; }
+.nb { border-collapse: separate; border-spacing: 2px; width: 100%; table-layout: fixed; font-size: 0.7rem; }
+.nb th { font-weight: 700; color: var(--muted); font-size: 0.64rem; line-height: 1.1; padding: 0.1rem 0; overflow-wrap: anywhere; }
+.nb th.roomcol { text-align: left; width: 28%; }
+.nb th .letter { display: block; font-family: ui-monospace, monospace; color: var(--text); }
+.nb td { text-align: center; padding: 0.2rem 0; border-radius: 6px; border: 1px solid var(--line); font-weight: 700; }
+.nb td.roomcell { text-align: left; border: 0; font-size: 0.78rem; padding-left: 0.1rem; overflow-wrap: anywhere; }
+.nb td.roomcell .rtag { display: block; font-size: 0.66rem; font-weight: 400; color: var(--muted); }
+.nb td.r-2 { border: 2px solid var(--cool); }
+.nb td.r-1 { border-style: dotted; border-width: 2px; }
+.nb td.r-3 { border-style: dashed; border-width: 2px; color: var(--muted); }
+.nb td.r-0 { color: var(--muted); font-weight: 400; border-style: dashed; }
+
+/* The sheet. */
+.sheet { list-style: none; margin: 0.3rem 0; padding: 0; display: grid; gap: 0.35rem; }
+.sheet li { border: 1px solid var(--line); border-radius: 10px; padding: 0.3rem 0.6rem; background: var(--surface); display: grid; grid-template-columns: 2.4rem minmax(0, 1fr); gap: 0.1rem 0.5rem; align-items: start; }
+.sheet .emblem { width: 2.2rem; height: 2.2rem; }
+.sheet li.ruled-out { opacity: 0.55; border-style: dashed; }
+html[data-narrow="on"] .sheet li.ruled-out .cname { text-decoration: line-through; }
+html[data-narrow="off"] .sheet li.ruled-out { opacity: 1; border-style: solid; }
+.sheet .cname { font-weight: 700; }
+.sheet .cline { font-size: 0.82rem; color: var(--muted); display: block; }
+.log { margin: 0.3rem 0; padding-left: 1.2rem; max-height: 15rem; overflow-y: auto; font-size: 0.85rem; }
+.log li { margin: 0.15rem 0; }
+.log li.refused { color: var(--muted); font-style: italic; }
+.log li.cost { font-weight: 600; }
+.log li.cure { color: var(--text); font-weight: 600; }
+
+/* The case picker. */
+.chapter { border-top: 1px solid var(--line); padding-top: 0.5rem; margin-top: 0.6rem; }
+.chapter:first-child { border-top: 0; margin-top: 0; padding-top: 0; }
+.chapter h3 { margin: 0; font-size: 1rem; }
+.case-grid { list-style: none; padding: 0; margin: 0.4rem 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(9.5rem, 1fr)); gap: 0.4rem; }
+.case-btn { width: 100%; text-align: left; display: flex; flex-direction: column; gap: 0.1rem; min-height: 3.4rem; }
+.case-btn.current { border-width: 3px; border-color: var(--accent); }
+.case-btn .rname { font-weight: 700; }
+.case-btn .rmeta { font-size: 0.75rem; color: var(--muted); }
+
+.info-page-framing { margin: 0.3rem 0; }
+.notice { border: 2px dashed var(--accent); border-radius: 10px; padding: 0.4rem 0.6rem; font-weight: 600; }
+.pledge-list { padding-left: 1.2rem; margin: 0.3rem 0 0.8rem; }
+.pledge-list li { margin: 0.3rem 0; }
+#info-page-panel h3 { margin: 0.8rem 0 0.2rem; font-size: 1rem; }
+.changelog-entry { border-top: 1px solid var(--line); padding-top: 0.5rem; margin-top: 0.6rem; }
+.changelog-entry:first-child { border-top: 0; margin-top: 0; padding-top: 0; }
+.changelog-date { font-weight: 700; font-variant-numeric: tabular-nums; }
+
+@media (max-width: 640px) {
+  #game { padding: 0.6rem 0.6rem 2.5rem; }
+  .tagline { display: none; }
+  .scene { height: 3.8rem; }
+  .gear-row { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+/* The shared light theme styles bare lists; these lists are layout, not bulleted text. */
+html[data-theme="light"] ul.chips, html[data-theme="light"] ul.account-list, html[data-theme="light"] ul.sheet,
+html[data-theme="light"] ul.case-grid { list-style: none; padding-left: 0; margin-left: 0; }

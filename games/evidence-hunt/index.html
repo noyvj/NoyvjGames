@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script src="../../shared/layout-pref.js" data-game-id="evidence-hunt" data-pc-page="pc.html" data-classic-page="index.html"></script>
+<title>Evidence Hunt - NoyvjGames</title>
+<meta name="description" content="A quiet investigator's notebook. Walk a dark floor plan, pack a few pieces of equipment, take readings and work out which invented spirit is in the house. Nothing is timed, nobody is harmed, and a wrong name only costs a point on the seal. A fiction game. Working title.">
+<link rel="icon" type="image/svg+xml" href="icons/favicon-evidence-hunt.svg">
+<link rel="stylesheet" href="../../shared/theme-light-games.css">
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="../../shared/info-page.css">
+<script src="../../shared/theme.js"></script>
+<script src="../../shared/lite-mode.js"></script>
+<script src="../../shared/error-boundary.js" data-game-id="evidence-hunt"></script>
+<script src="../../shared/perf-mark.js" data-game-id="evidence-hunt"></script>
+<script src="../../shared/debug-overlay.js"></script>
+<script src="../../shared/info-footer.js" data-game-id="evidence-hunt"></script>
+<script src="../../shared/report-problem.js" data-game-id="evidence-hunt" data-mount=".game-toolbar"></script>
+<script src="../../shared/profile.js" data-game-id="evidence-hunt"></script>
+<script src="../../shared/site-settings.js" data-game-id="evidence-hunt"></script>
+<script src="settings.js"></script>
+<link rel="stylesheet" href="../../ad-bar.css">
+<link rel="manifest" href="../../manifest.json">
+<!-- Pyodide is loaded by app.js after first paint, so this shell is readable before the engine is warm. -->
+<script src="../../shared/achievement-share.js" data-game-id="evidence-hunt" data-game-name="Evidence Hunt"></script>
+<link rel="stylesheet" href="../../shared/a11y.css">
+<link rel="stylesheet" href="../../shared/touch-targets.css">
+<link rel="stylesheet" href="../../shared/lite-mode.css">
+</head>
+<body>
+<a class="skip-link" href="#case-panel">Skip to the house</a>
+<main id="game">
+  <div class="top-row">
+    <a href="../../index.html" class="hub-back-link">&larr; All games</a>
+    <h1>Evidence Hunt</h1>
+  </div>
+  <div class="game-toolbar">
+    <button id="cases-toggle-button" type="button" aria-expanded="false" aria-controls="cases-panel">Cases</button>
+    <button id="changelog-toggle-button" type="button" aria-expanded="false" aria-controls="changelog-panel"><span class="btn-long">What's New</span><span class="btn-short" aria-hidden="true">News</span></button>
+    <button id="settings-toggle-button" type="button" aria-expanded="false" aria-controls="settings-panel">Settings</button>
+    <button id="info-page-toggle-button" type="button" aria-expanded="false" aria-controls="info-page-panel">About</button>
+  </div>
+  <p class="tagline">A quiet investigator's notebook. Walk a dark floor plan, pack a few pieces of equipment, take readings and work out which spirit is in the house. Nothing is timed, nobody is harmed, and a wrong name only costs a point. A fiction game.</p>
+  <section id="cases-panel" class="panel" hidden aria-labelledby="cases-heading">
+    <h2 id="cases-heading">Cases</h2>
+    <p class="note">A chapter opens once five cases of the one before are done. Inside a chapter, take any case in any order. The seal on a case is the best you have earned there.</p>
+    <div id="cases-body" class="cases-body"></div>
+  </section>
+  <section id="info-page-panel" class="panel" hidden aria-labelledby="info-page-heading">
+    <h2 id="info-page-heading">About Evidence Hunt</h2>
+    <p id="info-page-framing" class="info-page-framing"></p>
+    <p id="info-page-notice" class="notice"></p>
+    <h3 id="pledge-heading"></h3>
+    <ul id="pledge-list" class="pledge-list"></ul>
+    <h3 id="how-heading"></h3>
+    <ul id="how-list"></ul>
+  </section>
+  <section id="changelog-panel" class="panel" hidden aria-labelledby="changelog-heading">
+    <h2 id="changelog-heading">What's New</h2>
+    <div id="changelog-entries"></div>
+  </section>
+  <section id="settings-panel" class="panel" hidden aria-labelledby="settings-heading">
+    <h2 id="settings-heading">Settings</h2>
+    <p class="note">Display choices stay on this device. They never change a case or a save.</p>
+    <div class="settings-row">
+      <span id="text-size-label">Text size</span>
+      <div class="text-size-control" role="group" aria-labelledby="text-size-label">
+        <button id="text-size-decrease-button" type="button" aria-label="Decrease text size">A&minus;</button>
+        <button id="text-size-reset-button" type="button" aria-label="Reset text size">A</button>
+        <button id="text-size-increase-button" type="button" aria-label="Increase text size">A+</button>
+      </div>
+    </div>
+    <div class="settings-row"><label><input type="checkbox" id="narrow-checkbox" checked> Rule out for me (dim the suspects on the sheet that your notebook has ruled out)</label></div>
+    <div class="settings-row"><label><input type="checkbox" id="reduced-motion-checkbox"> Reduce motion (follows your system setting until you choose)</label></div>
+    <div class="settings-row"><label><input type="checkbox" id="effects-checkbox" checked> Effects (the lamp glow and the small bump when a number changes)</label></div>
+    <div class="settings-row"><label><input type="checkbox" id="high-contrast-checkbox"> High contrast (brighter text, thicker outlines)</label></div>
+    <div class="settings-row"><button id="theme-setting-button" type="button" aria-pressed="false">Light theme</button></div>
+    <div class="settings-row"><button id="display-reset-button" type="button">Reset display settings</button></div>
+    <div class="settings-row"><button id="reset-button" type="button" data-testid="evidence-hunt-reset">Start the whole book over</button> <span class="note">Erases your seals and guide pages. It asks first.</span></div>
+  </section>
+  <p id="toast" class="note toast" role="status" aria-live="polite" title="Tap to dismiss"></p>
+
+  <section id="stats" class="stat-strip" aria-label="Your progress">
+    <div class="stat"><span class="stat-label">Cases solved</span><span id="stat-cases" class="stat-value">0</span></div>
+    <div class="stat"><span class="stat-label">Clean cases</span><span id="stat-clean" class="stat-value">0</span></div>
+    <div class="stat"><span class="stat-label">Readings taken</span><span id="stat-readings" class="stat-value">0</span></div>
+    <div class="stat"><span class="stat-label">Rooms entered</span><span id="stat-rooms" class="stat-value">0</span></div>
+  </section>
+
+  <section id="case-panel" class="panel" aria-labelledby="case-heading">
+    <p id="case-chapter" class="note case-chapter"></p>
+    <h2 id="case-heading">The Quiet Cottage</h2>
+    <p id="case-client" class="note"></p>
+    <p id="case-intro" class="story-text"></p>
+    <div id="scene-holder" class="scene-holder" aria-hidden="true"></div>
+    <p id="presence-line" class="presence-line"></p>
+    <div id="accounts" class="accounts" hidden>
+      <p class="bedside-label">What the client says</p>
+      <ul id="accounts-list" class="account-list"></ul>
+    </div>
+
+    <h3 class="sub">The house <span id="house-count" class="note"></span></h3>
+    <p class="note">Tap a room to walk in. Walking is free. A restless room has a spirit in it.</p>
+    <div id="house-plan" class="house-plan" role="group" aria-label="Floor plan"></div>
+
+    <h3 class="sub">Your bag <span id="bag-count" class="note"></span></h3>
+    <div id="gear-row" class="gear-row" role="group" aria-label="Equipment"></div>
+    <div class="van-row">
+      <button id="van-button" type="button" data-testid="evidence-hunt-van">Back to the van</button>
+      <span id="van-note" class="note"></span>
+    </div>
+
+    <section id="room-box" class="room-box" aria-labelledby="room-name" aria-live="off">
+      <h3 id="room-name" class="room-name">At the van</h3>
+      <p id="room-text" class="note"></p>
+      <p class="bedside-label">Take a reading</p>
+      <div id="use-row" class="act-row" role="group" aria-label="Readings in this room"></div>
+      <div id="keepsake-row" class="act-row" hidden>
+        <button id="look-button" type="button" data-testid="evidence-hunt-look">Look at the keepsake</button>
+      </div>
+    </section>
+    <p id="action-line" class="note action-line" role="status" aria-live="polite"></p>
+
+    <section id="accuse-box" class="accuse-box" aria-labelledby="accuse-heading">
+      <h3 id="accuse-heading" class="sub">Who is it?</h3>
+      <div id="could-list" class="could-list"></div>
+      <p id="accuse-help" class="note"></p>
+      <div id="accuse-options" class="accuse-options" role="group" aria-label="Suspects on the sheet"></div>
+      <div class="result-buttons">
+        <button id="accuse-button" type="button" class="primary" data-testid="evidence-hunt-accuse">Name the spirit</button>
+      </div>
+    </section>
+
+    <div id="result-card" class="result-card" hidden>
+      <p id="result-title" class="result-title"></p>
+      <p id="result-grade" class="result-grade"></p>
+      <p id="result-text" class="note"></p>
+      <p id="result-ending" class="story-text result-ending"></p>
+      <div class="result-buttons">
+        <button id="return-button" type="button" data-testid="evidence-hunt-return" hidden>Return the keepsake</button>
+        <button id="next-button" type="button" class="primary" data-testid="evidence-hunt-next">Next case</button>
+      </div>
+    </div>
+    <div class="case-buttons">
+      <button id="restore-button" type="button" data-testid="evidence-hunt-restore">Restore the case</button>
+      <span id="cost-line" class="note" aria-live="polite"></span>
+    </div>
+    <div id="hint-box" class="hint-box">
+      <button id="hint-button" type="button" data-testid="evidence-hunt-hint">Need a nudge?</button>
+      <p id="hint-nudge" class="note hint-line" hidden></p>
+      <p id="hint-hint" class="note hint-line" hidden></p>
+      <div id="hint-answer" class="hint-answer" hidden>
+        <p id="hint-answer-text" class="hint-line"></p>
+        <button id="hint-do-button" type="button" data-testid="evidence-hunt-hint-do">Do it for me</button>
+      </div>
+    </div>
+  </section>
+
+  <div id="side-col" class="side-col">
+  <section id="notebook-panel" class="panel" aria-labelledby="notebook-heading">
+    <h2 id="notebook-heading">Notebook</h2>
+    <p class="note">Yes means the reading showed it. No means it did not. Doubtful means the house fooled it, so it tells you nothing about the spirit.</p>
+    <div class="nb-wrap"><table id="notebook-table" class="nb"></table></div>
+    <p id="notebook-empty" class="note"></p>
+    <p id="notebook-keepsake" class="note"></p>
+  </section>
+  <section id="sheet-panel" class="panel" aria-labelledby="sheet-heading">
+    <h2 id="sheet-heading">The client's book of visitors</h2>
+    <p class="note">The kinds that might be in this house. Each has three pieces of evidence and two habits.</p>
+    <ul id="sheet-list" class="sheet"></ul>
+  </section>
+  <section id="log-panel" class="panel" aria-labelledby="log-heading">
+    <h2 id="log-heading">Case log</h2>
+    <ol id="log-list" class="log"></ol>
+  </section>
+  <details id="tally" class="panel tally">
+    <summary>Tally (everything you have done)</summary>
+    <div class="stat-strip tally-strip">
+      <div class="stat"><span class="stat-label">Accusations</span><span id="stat-accusations" class="stat-value">0</span></div>
+      <div class="stat"><span class="stat-label">Second thoughts</span><span id="stat-wrong" class="stat-value">0</span></div>
+      <div class="stat"><span class="stat-label">Restores</span><span id="stat-restores" class="stat-value">0</span></div>
+      <div class="stat"><span class="stat-label">Second trips</span><span id="stat-trips" class="stat-value">0</span></div>
+      <div class="stat"><span class="stat-label">Hints asked</span><span id="stat-hints" class="stat-value">0</span></div>
+      <div class="stat"><span class="stat-label">Steady seals</span><span id="stat-steady" class="stat-value">0</span></div>
+      <div class="stat"><span class="stat-label">Rough seals</span><span id="stat-rough" class="stat-value">0</span></div>
+    </div>
+  </details>
+  </div>
+  <p id="engine-status" class="note" role="status">Lighting the lamps...</p>
+  <p id="announce" class="sr-only" role="status" aria-live="polite"></p>
+</main>
+
+<a id="credits-link" class="credits-link" href="../../credits.html" style="display:block;text-align:center;font-size:0.85rem;margin:0.75rem 0;color:inherit;">Credits</a>
+<div class="ad-bar ad-bar--bottom">
+  <span class="ad-bar-label ad-bar-label-full">Advertisement — not part of the game</span>
+  <span class="ad-bar-label ad-bar-label-short">Ad</span>
+  <!-- Google AdSense manual display ad unit (placeholder client ID until the application is approved) -->
+  <ins class="adsbygoogle"
+       style="display:block; width:320px; height:50px;"
+       data-ad-client="ca-pub-XXXXXXXXXXXXXXXX"
+       data-ad-slot="XXXXXXXXXX"></ins>
+</div>
+<script src="https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.js"></script>
+<script src="../../shared/tutorial.js"></script>
+<script src="../../shared/hub-auth.js"></script>
+<script src="../../shared/save-widget.js" data-game-id="evidence-hunt"></script>
+<script src="../../shared/opening-screen.js" data-game-id="evidence-hunt" data-game-name="Evidence Hunt" data-tagline="A quiet notebook. Nothing is timed."></script>
+<script src="../../shared/story-toggle.js" data-game-id="evidence-hunt" data-story-selectors=".story-text"></script>
+<script src="../../shared/confirm-dialog.js"></script>
+<script>
+  // pc.js (the Desktop boot only) defines window.EVIDENCE_HUNT_PC_TUTORIAL_STEPS, because the Classic walkthrough points at
+  // buttons the Desktop layout turns into icons and windows. app.js asks this function which steps to run.
+  window.evidenceHuntTutorialSteps = function (classicSteps) { return window.EVIDENCE_HUNT_PC_TUTORIAL_STEPS || classicSteps; };
+</script>
+<script src="app.js"></script>
+<script src="../../shared/last-played.js" data-game-id="evidence-hunt"></script>
+<script src="../../shared/whats-new-banner.js" data-game-id="evidence-hunt"></script>
+<script src="../../shared/keyboard-shortcuts.js"></script>
+<script>
+  window.KeyboardShortcuts.init({
+    panels: [
+      { toggle: "cases-toggle-button", panel: "cases-panel" },
+      { toggle: "changelog-toggle-button", panel: "changelog-panel" },
+      { toggle: "settings-toggle-button", panel: "settings-panel" },
+      { toggle: "info-page-toggle-button", panel: "info-page-panel" },
+    ],
+    extra: [
+      "1 to 6: pack or unpack that piece of equipment",
+      "Tab through the rooms and buttons; Enter or Space to use one",
+      "Esc: close the open panel",
+    ],
+  });
+</script>
+<script>
+  if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.register("../../sw.js");
+  }
+</script>
+</body>
+</html>

@@ -57,3 +57,28 @@ def test_the_engine_reads_no_clock_and_no_random_source():
         text = path.read_text(encoding="utf-8")
         assert not re.search(r"^\s*(import|from)\s+(time|datetime|random|secrets|os|sys)\b", text, flags=re.M), path.name
         assert not re.search(r"\b(random|time\.time|datetime\.now|perf_counter)\b\s*\(", text), path.name
+
+
+def test_the_page_uses_no_timers_but_the_screen_reader_announcement_and_no_audio():
+    app = (GAME_DIR / "app.js").read_text(encoding="utf-8")
+    html = (GAME_DIR / "index.html").read_text(encoding="utf-8")
+    uses = re.findall(r"(setInterval|setTimeout)\(", app)
+    assert uses == ["setTimeout"]
+    assert "<audio" not in html and "new Audio" not in app and "AudioContext" not in app
+    assert "Date" not in app and "Math.random" not in app and "performance.now" not in app
+
+
+def test_no_leaderboard_or_network_calls_in_the_game_page():
+    app = (GAME_DIR / "app.js").read_text(encoding="utf-8")
+    html = (GAME_DIR / "index.html").read_text(encoding="utf-8")
+    assert not re.search(r"fetch\([^)]*(http|/app/|leaderboard)", app)
+    assert "leaderboard" not in html.lower()
+
+
+def test_the_save_holds_nothing_about_time():
+    import json
+
+    import game
+    game.game.__init__()
+    game.handle(json.dumps({"action": "go", "room": 2}))
+    assert not re.search(r"time|date|stamp|clock", json.dumps(game.get_state()), flags=re.I)

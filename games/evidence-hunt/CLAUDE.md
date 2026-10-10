@@ -29,7 +29,7 @@ See `planning/evidence-hunt-plan.md` section 8 (the table is copied below and ke
 | # | Milestone | Content | Status |
 |---|-----------|---------|--------|
 | 1 | Engine | lexicon, houses, case rules, solver, all 40 cases, tests | Done |
-| 2 | Case UI | floor plan, kit, notebook, accuse, restore, save contract, favicon. Playable slice | Planned |
+| 2 | Case UI | floor plan, kit, notebook, accuse, restore, save contract, favicon. Playable slice | Done |
 | 3 | Guide and hints | hint ladder, three-goals strip, field guide, keepsake return | Planned |
 | 4 | Sandbox and finale | seeded codes, generator. First complete game | Planned |
 | 5 | Standard kit | opening screen, tutorial, About with the fiction notice, What's New, keyboard help, confirm dialogs, light theme, accessibility | Planned |
@@ -39,3 +39,11 @@ See `planning/evidence-hunt-plan.md` section 8 (the table is copied below and ke
 ## Working conventions
 - Commit only this folder and the plan with a pathspec commit, then tag `evidence-hunt-milestone-0N`. Hub registration is a separate later job.
 - Tests: `python3 -m pytest -q games/evidence-hunt`; lint: `python3 -m flake8 --extend-ignore=E501 games/evidence-hunt`. Local Python is 3.9 (Pyodide runs 3.12): no 3.10+ syntax in engine code.
+
+## Engine and page notes (milestone 2)
+- `game.handle(json)` returns the whole view every time (house floors with per-room state, bag, current room, notebook, accounts, could-be groups, sheet, accuse options, log, result, chapters, totals, tally, hint, about). `app.js` only draws it; the picked suspects are page state.
+- The view never says which rooms are restless before you walk in (`restless` is null until entered), and `could` stays empty until a restless room has been entered. A test checks both.
+- Save (`get_state`): `cur`, `best {case: 1-3}`, `run {case: [action tokens]}` (each unfinished case keeps its actions and is replayed and re-checked on load), `tally`, `met` (kinds named), `seen` (kind -> evidence confirmed, written only when a case is solved so the guide never leaks the truth), `ev`, `eq`, `kept`, `mem`; only non-default keys. Every field is validated on its own.
+- `app.js` builds the floor plan and the bag once per case and updates them in place (focus stays on a tapped room); rebuilt button rows go through `keepFocus`.
+- Settings (`settings.js`): text size, "Rule out for me" (dims and strikes through suspects the notebook has ruled out; default on), reduce motion, effects, high contrast, theme. All per device, not in the save.
+- Layout: `#side-col` wraps the notebook, sheet, log and tally; Classic is two columns from 900px.
