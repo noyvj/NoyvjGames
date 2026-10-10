@@ -2,7 +2,7 @@
 // the precache list; ordinary content deploys don't need it, because
 // same-origin requests are network-first (see the fetch handler below) and
 // so always pick up fresh files whenever the player is online.
-const SW_VERSION = 55;
+const SW_VERSION = 56;
 const CACHE_NAME = "site-cache-v" + SW_VERSION;
 // How long a same-origin network request may take before we give up and
 // serve the cached copy instead (a slow/flaky connection shouldn't hang).
@@ -97,6 +97,9 @@ const PRECACHE_URLS = [
   "shared/perf-mark.js",
   "shared/debug-overlay.js",
   "shared/info-footer.js",
+  // AU-1: sound made in code (no audio files); games load it, the hub Settings page only writes its keys.
+  "shared/sfx.js",
+  "shared/sfx.css",
   "games/sol/index.html",
   "games/sol/style.css",
   "games/sol/game.py",

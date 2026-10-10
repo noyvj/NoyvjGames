@@ -78,6 +78,23 @@
         <select id="settings-lang"></select>
       </div>
       <p class="hub-note" id="settings-lang-note">Translates the buttons and messages every game shares: the save panel, confirmation boxes, tutorial cards and achievement labels. Each game's own story and menus stay in English. English is the default. The Spanish and French texts were written with machine help and have not been proof-read by a person yet. This choice is kept on this device only.</p>
+      <div class="settings-row">
+        <label for="settings-sfx">Sound effects made in code</label>
+        <select id="settings-sfx">
+          <option value="off">Off</option>
+          <option value="on">On</option>
+        </select>
+      </div>
+      <div class="settings-row">
+        <label for="settings-sfx-volume">Sound volume</label>
+        <input type="range" id="settings-sfx-volume" min="0" max="100" step="5" value="50">
+        <output id="settings-sfx-volume-out" for="settings-sfx-volume">50%</output>
+      </div>
+      <div class="settings-row">
+        <label for="settings-sfx-reduce">Reduce sounds</label>
+        <input type="checkbox" id="settings-sfx-reduce">
+      </div>
+      <p class="hub-note" id="settings-sfx-note">Short, soft sounds made by your browser as you play (no sound files are downloaded). Off by default. Nothing plays until you have tapped or pressed a key in a game, it is silent while the tab is hidden, and nothing in any game depends on it. Reduce sounds makes them quieter and shorter and switches off the ambient hum. A few games use them so far; each game's own Settings can change this too.</p>
       <p id="settings-games-status" class="settings-status" role="status"></p>
     </section>
 
@@ -179,7 +196,7 @@
     <section class="hub-card settings-danger" aria-labelledby="settings-clear-h">
       <h2 id="settings-clear-h">Clear local data</h2>
       <div class="settings-row">
-        <span class="settings-label">Reset the hub's own preferences (filters, tour, notices, shortcuts, motion). Keeps your sign-in and every game's data.</span>
+        <span class="settings-label">Reset the hub's own preferences (filters, tour, notices, shortcuts, motion, sound). Keeps your sign-in and every game's data.</span>
         <button type="button" class="secondary" id="settings-clear-prefs">Reset hub preferences</button>
       </div>
       <div class="settings-row">

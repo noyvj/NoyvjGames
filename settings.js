@@ -16,6 +16,7 @@
  *   hub_announcement_dismissed, pwa_install_banner_dismissed, claim_save_nudge_dismissed
  *   hub-foryou-hidden-until (Y-5), hub_collections_v1 / hub_filter_collection (Y-18),
  *   hub_offline_games (Y-9), hub_today_weekly_done (Y-2)
+ *   sfx_enabled, sfx_volume, sfx_reduce   shared/sfx.js (AU-1: sound made in code; off by default, "true" when on)
  *
  * "Defaults for every game" writes the same key into every game, so each game picks it up the next
  * time it loads; the game's own panel can still change it afterwards. Turning a setting back off
@@ -33,6 +34,7 @@
   const AUTH_KEYS = ["hub_bearer_token", "hub_account_username", "hub_account_since"];
   const SECRET_KEYS = ["hub_bearer_token"];
   const NOTICE_KEYS = ["hub_announcement_dismissed", "pwa_install_banner_dismissed", "claim_save_nudge_dismissed", "hub-new-player-banner-dismissed", "hub-foryou-hidden-until"];
+  const SFX_KEYS = ["sfx_enabled", "sfx_volume", "sfx_reduce"];
   const TOUR_KEYS = ["tutorial-seen:hub", "hub-onboarding-seen", "hub-new-player-banner-dismissed"];
 
   const API_BASE = "https://noyvjgames.fastapicloud.dev";
@@ -58,7 +60,7 @@
   const PREFERENCE_EXCEPTIONS = ["hub_collections_v1", "hub_offline_games"];
   function isHubPreferenceKey(key) {
     if (AUTH_KEYS.indexOf(key) !== -1 || PREFERENCE_EXCEPTIONS.indexOf(key) !== -1) return false;
-    return /^hub[_-]/.test(key) || key === "lite-mode" || key === "lite-mode-note-seen" || key === "claim_save_nudge_dismissed" ||
+    return /^hub[_-]/.test(key) || SFX_KEYS.indexOf(key) !== -1 || key === "lite-mode" || key === "lite-mode-note-seen" || key === "claim_save_nudge_dismissed" ||
       key === "pwa_install_banner_dismissed" || key === "tutorial-seen:hub";
   }
 
@@ -195,6 +197,55 @@
       if (!i18n || !i18n.setLang(select.value)) return;
       const chosen = langs.find((l) => l.code === select.value);
       say("settings-games-status", `Language set to ${chosen ? chosen.name : select.value}. Open games pick it up on their next load.`);
+    });
+  }
+
+  // ---------- Sound effects made in code (AU-1) ----------
+  // shared/sfx.js reads these three keys on every play, so a game picks the change up straight away.
+  // The page only writes them (it makes no sound itself); turning a setting off removes its key.
+
+  function sfxVolume() {
+    const v = parseFloat(lsGet("sfx_volume"));
+    return Number.isFinite(v) ? Math.min(1, Math.max(0, v)) : 0.5;
+  }
+
+  function renderSfx() {
+    const select = $("settings-sfx");
+    if (!select) return;
+    const on = lsGet("sfx_enabled") === "true";
+    select.value = on ? "on" : "off";
+    const pct = Math.round(sfxVolume() * 100);
+    $("settings-sfx-volume").value = String(pct);
+    $("settings-sfx-volume").disabled = !on;
+    $("settings-sfx-volume-out").textContent = `${pct}%`;
+    $("settings-sfx-reduce").checked = lsGet("sfx_reduce") === "true";
+    $("settings-sfx-reduce").disabled = !on;
+  }
+
+  function initSfx() {
+    const select = $("settings-sfx");
+    if (!select) return;
+    renderSfx();
+    select.addEventListener("change", () => {
+      if (select.value === "on") lsSet("sfx_enabled", "true"); else lsRemove("sfx_enabled");
+      renderSfx();
+      say("settings-games-status", select.value === "on"
+        ? "Sound effects are on. Games that have them start making soft sounds once you tap or press a key in the game."
+        : "Sound effects are off in every game.");
+    });
+    $("settings-sfx-volume").addEventListener("input", () => {
+      const pct = Number($("settings-sfx-volume").value);
+      lsSet("sfx_volume", String(Math.round(pct) / 100));
+      $("settings-sfx-volume-out").textContent = `${Math.round(pct)}%`;
+    });
+    $("settings-sfx-volume").addEventListener("change", () => {
+      say("settings-games-status", `Sound volume is ${Math.round(sfxVolume() * 100)}%.`);
+    });
+    $("settings-sfx-reduce").addEventListener("change", () => {
+      if ($("settings-sfx-reduce").checked) lsSet("sfx_reduce", "true"); else lsRemove("sfx_reduce");
+      say("settings-games-status", $("settings-sfx-reduce").checked
+        ? "Reduce sounds is on: quieter, shorter, and no ambient hum."
+        : "Reduce sounds is off.");
     });
   }
 
@@ -385,6 +436,7 @@
         if (window.NoyvjLite) window.NoyvjLite.refresh();
         say("settings-clear-status", `Reset ${n} hub preference${n === 1 ? "" : "s"}.`);
         renderMotion();
+        renderSfx();
       });
     });
     $("settings-clear-all").addEventListener("click", () => {
@@ -395,6 +447,7 @@
         say("settings-clear-status", `Erased ${n} items. You are signed out and everything on this page is back to its default.`);
         renderGameDefaults();
         renderMotion();
+        renderSfx();
         renderShortcuts();
         initPrivacyState();
         renderReduceData();
@@ -548,6 +601,7 @@
     initTheme();
     initPrivacy();
     initReduceData();
+    initSfx();
     initTours();
     initShortcuts();
     initClear();

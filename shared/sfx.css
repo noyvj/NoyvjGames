@@ -1,0 +1,10 @@
+/* shared/sfx.js control: the small on/off + volume + reduce control a game mounts in its Settings panel.
+   It takes its colours from the page (currentColor), so it fits every game and both themes. */
+.noyvj-sfx-control { display: grid; gap: 0.35rem; margin: 0.25rem 0; max-width: 34rem; }
+.noyvj-sfx-row { display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap; min-height: 2.75rem; }
+.noyvj-sfx-row input[type="checkbox"] { width: 1.25rem; height: 1.25rem; flex: 0 0 auto; }
+.noyvj-sfx-row input[type="range"] { flex: 1 1 8rem; min-width: 7rem; max-width: 16rem; min-height: 2.75rem; }
+.noyvj-sfx-row input:disabled { opacity: 0.55; }
+.noyvj-sfx-out { min-width: 3ch; font-variant-numeric: tabular-nums; }
+.noyvj-sfx-test { min-height: 2.75rem; }
+.noyvj-sfx-note { margin: 0; font-size: 0.85em; opacity: 0.85; }
