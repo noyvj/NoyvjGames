@@ -21,6 +21,7 @@
 <script src="../../shared/report-problem.js" data-game-id="lighthouse" data-mount=".game-toolbar"></script>
 <script src="../../shared/profile.js" data-game-id="lighthouse"></script>
 <script src="../../shared/site-settings.js" data-game-id="lighthouse"></script>
+<script src="../../shared/sfx.js"></script>
 <script src="settings.js"></script>
 <link rel="stylesheet" href="../../ad-bar.css">
 <link rel="manifest" href="../../manifest.json">
@@ -112,6 +113,9 @@
     <div class="settings-row"><label class="settings-checkbox-label" for="pause-hidden-checkbox"><input type="checkbox" id="pause-hidden-checkbox" checked> Pause when this tab is hidden</label></div>
     <div class="settings-row"><button id="theme-setting-button" type="button" aria-pressed="false">Light theme</button></div>
     <div class="settings-row"><button id="display-reset-button" type="button">Reset display settings</button></div>
+    <h3 class="settings-sub">Sound</h3>
+    <div id="sfx-setting-slot" class="sfx-setting-slot"></div>
+    <div class="settings-row"><label><input type="checkbox" id="sfx-hum-checkbox" checked> Faint ambient hum during the night (only when sound is on)</label></div>
     <h3 class="settings-sub">This keeper</h3>
     <div class="settings-row story-line">
       <label><input type="checkbox" id="eerie-checkbox" checked> Eerie details (the odd things that happen in the night; letters and kind moments stay when this is off)</label>

@@ -1,6 +1,6 @@
 {
   "game": "lighthouse",
-  "updated": "2026-10-10",
+  "updated": "2026-10-11",
   "research": [
     {
       "title": "Fresnel lens",
@@ -31,6 +31,11 @@
       "by": "The Pyodide project",
       "url": "https://pyodide.org/",
       "note": "Runs the game's Python rules in the browser through WebAssembly (version 0.26.4, loaded from a CDN), so the game needs no server of its own and no build step."
+    },
+    {
+      "title": "Generated sound (Web Audio)",
+      "by": "this project",
+      "note": "The optional bell and ambient hum are generated in code with the browser's Web Audio API, from plain sine tones; there are no audio files and nothing is downloaded."
     }
   ]
 }

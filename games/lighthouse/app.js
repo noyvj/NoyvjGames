@@ -8,6 +8,7 @@
   var QUIET_KEY = "lighthouse-quiet";
   var EERIE_KEY = "lighthouse-eerie";
   var NOTE_KEY = "lighthouse-content-note";
+  var HUM_KEY = "lighthouse-sfx-hum";
   var GAME_ID = "lighthouse";
   var BASE_MS = 4000;
   var SVG_NS = "http://www.w3.org/2000/svg";
@@ -1016,6 +1017,24 @@
     renderLog(v);
     renderAchievements(v);
     syncTime(v);
+    soundFor(v);
+  }
+
+  // ---- sound (shared/sfx.js: generated in code, off unless the player turns it on, never the only signal) ----
+  // A soft bell when a ship comes safely past, and (if the hum is not switched off) a faint bed under the night.
+  var shipStates = {};
+  function humPref() { return lsGet(HUM_KEY) !== "off"; }
+  function soundFor(v) {
+    if (!window.NoyvjSfx) return;
+    var night = v.phase === "night";
+    window.NoyvjSfx.play(night && humPref() ? "hum_start" : "hum_stop");
+    if (!night) { shipStates = {}; return; }
+    var rang = false;
+    v.ships.forEach(function (s) {
+      if (shipStates[s.id] && shipStates[s.id] !== "passed" && s.state === "passed") rang = true;
+      shipStates[s.id] = s.state;
+    });
+    if (rang) window.NoyvjSfx.play("bell");
   }
 
   // ---- talking to the engine -------------------------------------------------------------------------
@@ -1105,6 +1124,8 @@
     wirePanelToggle("changelog-toggle-button", "changelog-panel");
     wirePanelToggle("info-page-toggle-button", "info-page-panel");
     $("quiet-checkbox").checked = quietPref();
+    $("sfx-hum-checkbox").checked = humPref();
+    $("sfx-hum-checkbox").addEventListener("change", function () { lsSet(HUM_KEY, $("sfx-hum-checkbox").checked ? "on" : "off"); if (view) soundFor(view); });
     applyEerie(eeriePref(), false);
     $("eerie-toggle-button").addEventListener("click", function () { applyEerie(!eeriePref(), true); announce("Eerie details " + (eeriePref() ? "on" : "off") + "."); });
     $("eerie-checkbox").addEventListener("change", function () { applyEerie($("eerie-checkbox").checked, true); });

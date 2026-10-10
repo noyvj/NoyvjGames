@@ -1,6 +1,10 @@
 {
   "changelog": [
     {
+      "date": "2026-10-11",
+      "entry": "Optional soft sound, off unless you turn it on in Settings (Sound): a quiet bell when a ship comes safely past, and a faint, slow hum under the night that has its own switch and goes quiet in a hidden tab. The sounds are made in your browser (no sound files), have a volume and a Reduce sounds switch, and nothing in the game depends on them."
+    },
+    {
       "date": "2026-10-09",
       "entry": "Twenty-one achievements: eleven for simply keeping the light (every one reachable in a Quiet year) and ten for the story layer, six of them hidden until you solve the mystery they belong to. Earning one shows a toast, and the Achievements panel counts the two groups separately."
     },
