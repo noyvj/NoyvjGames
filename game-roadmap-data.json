@@ -170,6 +170,15 @@
         "Station Medic milestone 5: Standard kit"
       ]
     },
+    "stranded": {
+      "commit_count": 7,
+      "last_updated": "2026-10-10",
+      "recent_commits": [
+        "Stranded milestone 7: Desktop boot",
+        "Stranded milestone 6: Achievements",
+        "Stranded milestone 5: Standard kit"
+      ]
+    },
     "thaw": {
       "commit_count": 76,
       "last_updated": "2026-10-07",

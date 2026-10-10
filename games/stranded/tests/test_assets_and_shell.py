@@ -66,7 +66,7 @@ def test_every_file_the_page_links_exists():
 
 
 def test_the_favicon_is_inside_this_games_own_folder_and_is_code_drawn_svg():
-    assert 'href="icons/favicon-stranded.svg"' in HTML
+    assert 'href="../../icons/favicon-stranded.svg"' in HTML
     svg = (GAME_DIR / "icons" / "favicon-stranded.svg").read_text(encoding="utf-8")
     assert svg.startswith("<svg") and "<image" not in svg and "base64" not in svg
 

@@ -28,7 +28,7 @@ import smoke_support as ss
 # steps per game: more for the fast ones, fewer where one get_state() is slow (Drift, Thaw, Champ).
 STEPS = {"aftermath": 1200, "canopy": 800, "champ-de-mots": 300, "continuum": 600, "drift": 300,
          "grid": 1200, "herd": 1200, "loop": 1000, "sol": 1200, "thaw": 300, "tide": 800, "trade-empire": 800,
-         "signal": 600, "chronicle": 400, "lexis": 400, "heist-committee": 400, "lighthouse": 300, "pocket-bazaar": 600, "dead-reckoning": 300, "logic-gates": 400, "robot-script": 400, "hull-repair": 400, "station-medic": 300}
+         "signal": 600, "chronicle": 400, "lexis": 400, "heist-committee": 400, "lighthouse": 300, "pocket-bazaar": 600, "dead-reckoning": 300, "logic-gates": 400, "robot-script": 400, "hull-repair": 400, "station-medic": 300, "stranded": 300}
 SEEDS = (20261008, 7)
 
 # Extra paths that may legitimately be negative in one game (regex over the state path).

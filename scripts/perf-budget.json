@@ -121,6 +121,12 @@
    "pyodide_ms": 1184,
    "total_kb": 5770.9
   },
+  "stranded": {
+   "first_interactive_ms": 1137,
+   "own_kb": 328.0,
+   "pyodide_ms": 1126,
+   "total_kb": 5768.1
+  },
   "thaw": {
    "first_interactive_ms": 1656,
    "own_kb": 314.7,

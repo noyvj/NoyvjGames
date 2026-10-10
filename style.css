@@ -855,6 +855,26 @@ html[data-theme="light"] .whats-new-thumb[aria-pressed="true"] { color: #2c4a9a;
   background: #7fb3c8;
 }
 
+/* Stranded: a pale moon with a small amber window of light and a grey ridge in
+   front, on a near-black blue sky. Same marks as the game's own favicon. */
+.title-card-thumb--stranded {
+  --thumb-glow: #f0b35a;
+  background: radial-gradient(circle at 70% 36%, #5a70ad 0 26px, #3a4a78 27px 34px, transparent 35px), radial-gradient(1px 1px at 14% 22%, #fff, transparent 100%), radial-gradient(1px 1px at 38% 14%, #fff, transparent 100%), radial-gradient(1px 1px at 90% 70%, #fff, transparent 100%), linear-gradient(180deg, #121a30 0%, #0a0f1c 100%);
+}
+.title-card-thumb--stranded::before {
+  inset: auto 0 0 0;
+  height: 38px;
+  clip-path: polygon(0 40%, 22% 10%, 48% 55%, 78% 25%, 100% 55%, 100% 100%, 0 100%);
+  background: #6c7288;
+}
+.title-card-thumb--stranded::after {
+  inset: auto auto 16px 24%;
+  width: 16px;
+  height: 11px;
+  background: #f0b35a;
+  box-shadow: 0 0 16px 4px rgba(240, 179, 90, 0.55);
+}
+
 /* Trade Empire: a miniature version of the in-game trade map itself —
    route lines connecting colony nodes (the same NODE_COLOR blue used by
    game.py's render_map()) with one gold dot standing in for an automated

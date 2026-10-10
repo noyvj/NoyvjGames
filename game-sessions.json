@@ -25,6 +25,7 @@
     "signal": "short",
     "sol": "long",
     "station-medic": "medium",
+    "stranded": "medium",
     "thaw": "medium",
     "tide": "medium",
     "trade-empire": "long"

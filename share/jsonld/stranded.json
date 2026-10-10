@@ -1,0 +1,40 @@
+{
+  "@context": "https://schema.org",
+  "@type": [
+    "VideoGame",
+    "WebApplication"
+  ],
+  "name": "Stranded",
+  "description": "You are the plain voice on a thin text line to a stubborn, funny engineer alone on a small moon. Twelve days of replies, fifty-nine scenes and nine warm or bittersweet endings. Nothing is timed, nothing is lost, and you can rewind to any of your messages for free. Working title.",
+  "url": "https://noyvj.github.io/NoyvjGames/games/stranded/",
+  "image": "https://noyvj.github.io/NoyvjGames/share/stranded.png",
+  "applicationCategory": "GameApplication",
+  "operatingSystem": "Any modern web browser",
+  "browserRequirements": "Requires JavaScript and WebAssembly",
+  "gamePlatform": "Web browser",
+  "playMode": "SinglePlayer",
+  "inLanguage": "en",
+  "isAccessibleForFree": true,
+  "offers": {
+    "@type": "Offer",
+    "price": "0",
+    "priceCurrency": "USD"
+  },
+  "author": {
+    "@type": "Person",
+    "name": "Noyvj",
+    "url": "https://github.com/noyvj"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "NoyvjGames",
+    "url": "https://noyvj.github.io/NoyvjGames/"
+  },
+  "genre": [
+    "Space",
+    "Short session"
+  ],
+  "dateCreated": "2026-10-10",
+  "dateModified": "2026-10-10",
+  "timeRequired": "PT20M"
+}

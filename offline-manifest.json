@@ -6777,6 +6777,311 @@
    "bytes": 14298948,
    "bytes_complete": true
   },
+  "stranded": {
+   "files": [
+    {
+     "path": "games/stranded/achievements.json",
+     "bytes": 1684,
+     "precached": true
+    },
+    {
+     "path": "games/stranded/achievements.py",
+     "bytes": 2618,
+     "precached": true
+    },
+    {
+     "path": "games/stranded/app.js",
+     "bytes": 25550,
+     "precached": true
+    },
+    {
+     "path": "games/stranded/changelog.json",
+     "bytes": 477,
+     "precached": true
+    },
+    {
+     "path": "games/stranded/explore.py",
+     "bytes": 7276,
+     "precached": true
+    },
+    {
+     "path": "games/stranded/game.py",
+     "bytes": 19119,
+     "precached": true
+    },
+    {
+     "path": "games/stranded/icons/favicon-stranded.svg",
+     "bytes": 647,
+     "precached": false
+    },
+    {
+     "path": "games/stranded/index.html",
+     "bytes": 15242,
+     "precached": true
+    },
+    {
+     "path": "games/stranded/info.py",
+     "bytes": 3399,
+     "precached": true
+    },
+    {
+     "path": "games/stranded/kit.py",
+     "bytes": 3577,
+     "precached": true
+    },
+    {
+     "path": "games/stranded/lore.py",
+     "bytes": 7487,
+     "precached": true
+    },
+    {
+     "path": "games/stranded/pc-config.json",
+     "bytes": 1296,
+     "precached": false
+    },
+    {
+     "path": "games/stranded/pc.css",
+     "bytes": 1651,
+     "precached": true
+    },
+    {
+     "path": "games/stranded/pc.html",
+     "bytes": 17232,
+     "precached": true
+    },
+    {
+     "path": "games/stranded/pc.js",
+     "bytes": 2412,
+     "precached": true
+    },
+    {
+     "path": "games/stranded/render.py",
+     "bytes": 6439,
+     "precached": true
+    },
+    {
+     "path": "games/stranded/settings.js",
+     "bytes": 6909,
+     "precached": true
+    },
+    {
+     "path": "games/stranded/story.py",
+     "bytes": 1560,
+     "precached": true
+    },
+    {
+     "path": "games/stranded/story_1.py",
+     "bytes": 9775,
+     "precached": true
+    },
+    {
+     "path": "games/stranded/story_2.py",
+     "bytes": 11604,
+     "precached": true
+    },
+    {
+     "path": "games/stranded/story_3.py",
+     "bytes": 15289,
+     "precached": true
+    },
+    {
+     "path": "games/stranded/story_4.py",
+     "bytes": 5817,
+     "precached": true
+    },
+    {
+     "path": "games/stranded/style.css",
+     "bytes": 18753,
+     "precached": true
+    },
+    {
+     "path": "games/stranded/walker.py",
+     "bytes": 4893,
+     "precached": true
+    }
+   ],
+   "shared": [
+    {
+     "path": "ad-bar.css",
+     "bytes": 1932,
+     "precached": true
+    },
+    {
+     "path": "icons/favicon-stranded.svg",
+     "bytes": 647,
+     "precached": false
+    },
+    {
+     "path": "manifest.json",
+     "bytes": 338,
+     "precached": true
+    },
+    {
+     "path": "shared/a11y.css",
+     "bytes": 5058,
+     "precached": true
+    },
+    {
+     "path": "shared/achievement-share.js",
+     "bytes": 12575,
+     "precached": true
+    },
+    {
+     "path": "shared/confirm-dialog.js",
+     "bytes": 9825,
+     "precached": false
+    },
+    {
+     "path": "shared/debug-overlay.js",
+     "bytes": 5628,
+     "precached": true
+    },
+    {
+     "path": "shared/error-boundary.js",
+     "bytes": 9714,
+     "precached": true
+    },
+    {
+     "path": "shared/hub-auth.js",
+     "bytes": 1356,
+     "precached": true
+    },
+    {
+     "path": "shared/info-footer.js",
+     "bytes": 6317,
+     "precached": true
+    },
+    {
+     "path": "shared/info-page.css",
+     "bytes": 1092,
+     "precached": true
+    },
+    {
+     "path": "shared/keyboard-shortcuts.js",
+     "bytes": 7262,
+     "precached": false
+    },
+    {
+     "path": "shared/last-played.js",
+     "bytes": 2153,
+     "precached": false
+    },
+    {
+     "path": "shared/layout-pref.js",
+     "bytes": 2407,
+     "precached": true
+    },
+    {
+     "path": "shared/lite-mode.css",
+     "bytes": 3644,
+     "precached": true
+    },
+    {
+     "path": "shared/lite-mode.js",
+     "bytes": 8153,
+     "precached": true
+    },
+    {
+     "path": "shared/opening-screen.js",
+     "bytes": 27851,
+     "precached": false
+    },
+    {
+     "path": "shared/pc-shell.css",
+     "bytes": 7277,
+     "precached": true
+    },
+    {
+     "path": "shared/pc-shell.js",
+     "bytes": 23081,
+     "precached": true
+    },
+    {
+     "path": "shared/perf-mark.js",
+     "bytes": 4209,
+     "precached": true
+    },
+    {
+     "path": "shared/profile.js",
+     "bytes": 9880,
+     "precached": true
+    },
+    {
+     "path": "shared/report-problem.js",
+     "bytes": 22021,
+     "precached": true
+    },
+    {
+     "path": "shared/save-widget.js",
+     "bytes": 72027,
+     "precached": true
+    },
+    {
+     "path": "shared/site-settings.js",
+     "bytes": 6190,
+     "precached": false
+    },
+    {
+     "path": "shared/story-toggle.js",
+     "bytes": 3247,
+     "precached": false
+    },
+    {
+     "path": "shared/theme-light-games.css",
+     "bytes": 7674,
+     "precached": false
+    },
+    {
+     "path": "shared/theme.js",
+     "bytes": 3651,
+     "precached": false
+    },
+    {
+     "path": "shared/touch-targets.css",
+     "bytes": 3271,
+     "precached": true
+    },
+    {
+     "path": "shared/tutorial.js",
+     "bytes": 17014,
+     "precached": false
+    },
+    {
+     "path": "shared/whats-new-banner.js",
+     "bytes": 8822,
+     "precached": false
+    }
+   ],
+   "cdn": [
+    {
+     "url": "https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.js",
+     "bytes": 14761,
+     "kind": "pyodide"
+    },
+    {
+     "url": "https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.asm.js",
+     "bytes": 1229099,
+     "kind": "pyodide"
+    },
+    {
+     "url": "https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.asm.wasm",
+     "bytes": 10088051,
+     "kind": "pyodide"
+    },
+    {
+     "url": "https://cdn.jsdelivr.net/pyodide/v0.26.4/full/python_stdlib.zip",
+     "bytes": 2341872,
+     "kind": "pyodide"
+    },
+    {
+     "url": "https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide-lock.json",
+     "bytes": 106335,
+     "kind": "pyodide"
+    }
+   ],
+   "bytes": 14265140,
+   "bytes_complete": true
+  },
   "trade-empire": {
    "files": [
     {

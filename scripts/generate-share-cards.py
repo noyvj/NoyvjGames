@@ -65,6 +65,7 @@ THEMES = {
     "robot-script": (["#2a3348", "#151a26"], "gridlines", "#8fd4e3", "#1c2230", ("robot",)),
     "hull-repair": (["#2d3948", "#141a26"], "gridlines", "#f2b84b", "#141a26", ("hull",)),
     "station-medic": (["#24313a", "#12181d"], "pulse", "#e0a458", "#12181d", ("medic",)),
+    "stranded": (["#121a30", "#0a0f1c"], "stars", "#f0b35a", "#0e1424", ("moon",)),
     "trade-empire": (["#1a1f3a", "#0d0f1e"], "network", "#e0c34c", "#171b30", ("letter", "$", "#e0c34c")),
 }
 FALLBACK_THEME = (["#1a1f3a", "#0d0f1e"], "stars", "#8fb0e8", "#2c4a7c", ("letter", "?", "#ffffff"))
@@ -359,6 +360,13 @@ def draw_glyph(draw, glyph, scale, tile_color):
         draw.polygon(S([(26, 12), (38, 12), (38, 26), (52, 26), (52, 38), (38, 38), (38, 52), (26, 52), (26, 38), (12, 38), (12, 26), (26, 26)]),
                      fill=rgb("#e0a458"), outline=rgb("#0d1117"))
         draw.ellipse((47 * scale, 11 * scale, 53 * scale, 17 * scale), fill=rgb("#7fb3c8"))
+    elif kind == "moon":
+        draw.polygon(S([(36, 8), (56, 14), (60, 34), (48, 46), (32, 40), (28, 22)]), fill=rgb("#3a4a78"))
+        draw.polygon(S([(36, 8), (56, 14), (48, 26), (32, 22)]), fill=rgb("#5a70ad"))
+        draw.polygon(S([(4, 46), (20, 40), (34, 48), (50, 44), (60, 50), (60, 60), (4, 60)]), fill=rgb("#6c7288"))
+        draw.rectangle((21 * scale, 30 * scale, 23 * scale, 42 * scale), fill=rgb("#cfd6ea"))
+        draw.polygon(S([(15, 28), (27, 24), (25, 32), (17, 33)]), fill=rgb("#f0b35a"))
+        draw.ellipse((41 * scale, 50 * scale, 47 * scale, 56 * scale), fill=rgb("#f0b35a"))
     elif kind == "lexis":
         blue = rgb("#9ad0ff")
         for a, b in (((16, 22), (26, 22)), ((34, 22), (36, 22)), ((42, 22), (48, 22)),

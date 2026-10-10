@@ -2,7 +2,7 @@
 // the precache list; ordinary content deploys don't need it, because
 // same-origin requests are network-first (see the fetch handler below) and
 // so always pick up fresh files whenever the player is online.
-const SW_VERSION = 50;
+const SW_VERSION = 51;
 const CACHE_NAME = "site-cache-v" + SW_VERSION;
 // How long a same-origin network request may take before we give up and
 // serve the cached copy instead (a slow/flaky connection shouldn't hang).
@@ -333,6 +333,25 @@ const PRECACHE_URLS = [
   "games/station-medic/render.py",
   "games/station-medic/hints.py",
   "games/station-medic/info.py",
+  "games/stranded/index.html",
+  "games/stranded/style.css",
+  "games/stranded/game.py",
+  "games/stranded/app.js",
+  "games/stranded/settings.js",
+  "games/stranded/changelog.json",
+  "games/stranded/achievements.json",
+  "games/stranded/kit.py",
+  "games/stranded/story_1.py",
+  "games/stranded/story_2.py",
+  "games/stranded/story_3.py",
+  "games/stranded/story_4.py",
+  "games/stranded/story.py",
+  "games/stranded/walker.py",
+  "games/stranded/explore.py",
+  "games/stranded/lore.py",
+  "games/stranded/info.py",
+  "games/stranded/achievements.py",
+  "games/stranded/render.py",
   // Audit fix 2026-09-27: Trade Empire is hub-linked and has been for a while
   // (see CLAUDE.md's Current games table) -- both were mistakenly left off
   // this list under a stale "not hub-linked yet" comment. Trade Empire has the
@@ -401,6 +420,9 @@ const PRECACHE_URLS = [
   "games/station-medic/pc.html",
   "games/station-medic/pc.css",
   "games/station-medic/pc.js",
+  "games/stranded/pc.html",
+  "games/stranded/pc.css",
+  "games/stranded/pc.js",
   "games/signal/pc.html",
   "games/signal/pc.css",
   "games/signal/pc.js",
