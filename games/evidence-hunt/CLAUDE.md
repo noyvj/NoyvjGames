@@ -31,7 +31,7 @@ See `planning/evidence-hunt-plan.md` section 8 (the table is copied below and ke
 | 1 | Engine | lexicon, houses, case rules, solver, all 40 cases, tests | Done |
 | 2 | Case UI | floor plan, kit, notebook, accuse, restore, save contract, favicon. Playable slice | Done |
 | 3 | Guide and hints | hint ladder, three-goals strip, field guide, keepsake return | Done |
-| 4 | Sandbox and finale | seeded codes, generator. First complete game | Planned |
+| 4 | Sandbox and finale | seeded codes, generator. First complete game | Done |
 | 5 | Standard kit | opening screen, tutorial, About with the fiction notice, What's New, keyboard help, confirm dialogs, light theme, accessibility | Planned |
 | 6 | Achievements | 14 achievements, panel, toast, manifest, reachability test | Planned |
 | 7 | Desktop boot | `pc-config.json`, `pc.css`, `pc.js`, generated `pc.html`, docs | Planned |
@@ -54,3 +54,8 @@ See `planning/evidence-hunt-plan.md` section 8 (the table is copied below and ke
 - "Cover the sheet" (`cover` action, a token in the run): hides the evidence and habit lines of kinds whose guide page is complete. The set of distinct authored cases solved with it covered is `mem` (the From Memory achievement).
 - `achievements.py` holds the 14 achievements (facts, need, chapter gate) and `goals()` (the three always-visible, any-order goals); the in-game panel, toast and `achievements.json` manifest arrive in milestone 6. `achievements_earned` is already written to the save and never read back.
 - `tests/helpers.py`: `solve_with_hints` (the careful plan through the JSON entry point) and `solve_thoroughly` (a player who knows the answer: packs the truth's own evidence, one trip per presence). `test_whole_game.py` plays all 40 cases Clean with the hints, replays every case thoroughly, returns every keepsake and expects 12 complete spirit pages and a full 37-page guide.
+
+## Milestone 4 notes
+- Practice houses (`gen.py`): a code `EH<d>-<base36 seed>` (d = 1-5) is a pure function of (difficulty, seed). `make` builds a house by rejection (layout, truth, restless rooms, features, keepsake, account, sheet), keeps it only if `solver.validate` passes and the smallest working bag lies in the size's range (`SPEC[d]["min_kit"]` to the kit), tries 40 attempts per seed and then nearby seeds, and caches by (difficulty, seed). A small integer hash replaces any random source (a test scans for `random`). Sizes: 1 a small house, 2 a few rooms, 3 fooled readings (maybe a keepsake), 4 two presences, 5 a big house (kit of 4, one or two presences).
+- The game opens a practice house with `practice {difficulty}` (next seed from `next_seed(opened, d)`) or `practice {code}`. A practice case is `cur` like any other (its id is `practice-<d>-<seed36>`), keeps its action tokens in `run` (at most 3 unfinished practice runs are kept), never changes `best`, and when solved adds its code to `sb.done` (distinct codes; the Fresh Eyes achievement). Readings, rooms and guide pages from practice count as usual. `sb.n` counts houses opened by size so the next one is always new.
+- UI: a Practice panel (five size buttons and a code box), the code with a Copy button in the case head, and "Another: <size>" on the result card.

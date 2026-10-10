@@ -238,3 +238,8 @@ html[data-theme="light"] ul.case-grid { list-style: none; padding-left: 0; margi
 .cover-row { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; margin-top: 0.4rem; }
 .cover-row button[aria-pressed="true"] { border-width: 3px; border-color: var(--accent); }
 html[data-theme="light"] ul.goals-list, html[data-theme="light"] ul.guide-list { list-style: none; padding-left: 0; margin-left: 0; }
+
+/* Practice houses. */
+.code-row { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; margin: 0.5rem 0; }
+.code-row input { font: inherit; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text); background: var(--surface); border: 2px solid var(--edge); border-radius: 8px; padding: 0.35rem 0.6rem; width: 11rem; }
+.case-code strong { font-family: ui-monospace, monospace; letter-spacing: 0.08em; user-select: all; }

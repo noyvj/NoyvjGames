@@ -9,8 +9,10 @@ Updated after every milestone. Read `planning/evidence-hunt-plan.md`, `CLAUDE.md
 
 - M3 Guide and hints: codex.py (37 pages), achievements.py (14 facts + goals), Guide panel, three-goals strip, cover-the-sheet toggle, keepsake return, guide-pages stat; 87 tests incl. a whole-game run (40 Clean, 12 complete spirit pages, 37-page guide); Guide panel and goals checked live.
 
+- M4 Sandbox: gen.py (practice codes, generator by rejection, 5 sizes), practice actions, Practice panel, code copy, 98 tests; checked live (opened a size-3 practice house, code shown). The first complete game now exists.
+
 ## Next
-- M4 Sandbox and finale: gen.py (codes EH<d>-<base36>), generator with rejection by the solver, Practice button/panel, tally `sandbox`, tests.
+- M5 Standard kit: tutorial steps (app.js), About page checks, confirm dialogs (done for restore, reset, naming), keyboard help, light theme and accessibility checks, What's New.
 
 ## Open problems / notes
 - Local Python is 3.9: engine code avoids 3.10+ syntax.

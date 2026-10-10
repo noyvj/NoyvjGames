@@ -37,6 +37,7 @@
   </div>
   <div class="game-toolbar">
     <button id="cases-toggle-button" type="button" aria-expanded="false" aria-controls="cases-panel">Cases</button>
+    <button id="practice-toggle-button" type="button" aria-expanded="false" aria-controls="practice-panel">Practice</button>
     <button id="guide-toggle-button" type="button" aria-expanded="false" aria-controls="guide-panel">Guide</button>
     <button id="changelog-toggle-button" type="button" aria-expanded="false" aria-controls="changelog-panel"><span class="btn-long">What's New</span><span class="btn-short" aria-hidden="true">News</span></button>
     <button id="settings-toggle-button" type="button" aria-expanded="false" aria-controls="settings-panel">Settings</button>
@@ -47,6 +48,17 @@
     <h2 id="cases-heading">Cases</h2>
     <p class="note">A chapter opens once five cases of the one before are done. Inside a chapter, take any case in any order. The seal on a case is the best you have earned there.</p>
     <div id="cases-body" class="cases-body"></div>
+  </section>
+  <section id="practice-panel" class="panel" hidden aria-labelledby="practice-heading">
+    <h2 id="practice-heading">Practice houses</h2>
+    <p class="note">A practice house is made from a short code, and the same code always makes the same house. Pick a size, or type a code someone gave you. Practice never changes a seal, but every reading and every guide page it fills still counts.</p>
+    <div id="practice-levels" class="act-row" role="group" aria-label="Sizes of practice house"></div>
+    <div class="code-row">
+      <label for="practice-code">Code</label>
+      <input id="practice-code" type="text" maxlength="12" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="EH3-1K9X2">
+      <button id="practice-open-button" type="button" data-testid="evidence-hunt-open-code">Open this code</button>
+    </div>
+    <p id="practice-note" class="note" role="status"></p>
   </section>
   <section id="guide-panel" class="panel" hidden aria-labelledby="guide-heading">
     <h2 id="guide-heading">Field guide</h2>
@@ -104,6 +116,7 @@
     <h2 id="case-heading">The Quiet Cottage</h2>
     <p id="case-client" class="note"></p>
     <p id="case-intro" class="story-text"></p>
+    <p id="case-code" class="note case-code" hidden>Practice code: <strong id="case-code-text"></strong> <button id="code-copy-button" type="button" data-testid="evidence-hunt-copy-code">Copy code</button></p>
     <div id="scene-holder" class="scene-holder" aria-hidden="true"></div>
     <p id="presence-line" class="presence-line"></p>
     <div id="accounts" class="accounts" hidden>
@@ -149,6 +162,7 @@
       <p id="result-text" class="note"></p>
       <p id="result-ending" class="story-text result-ending"></p>
       <div class="result-buttons">
+        <button id="again-button" type="button" data-testid="evidence-hunt-again" hidden>Another practice house</button>
         <button id="return-button" type="button" data-testid="evidence-hunt-return" hidden>Return the keepsake</button>
         <button id="next-button" type="button" class="primary" data-testid="evidence-hunt-next">Next case</button>
       </div>
@@ -237,6 +251,7 @@
   window.KeyboardShortcuts.init({
     panels: [
       { toggle: "cases-toggle-button", panel: "cases-panel" },
+      { toggle: "practice-toggle-button", panel: "practice-panel" },
       { toggle: "guide-toggle-button", panel: "guide-panel" },
       { toggle: "changelog-toggle-button", panel: "changelog-panel" },
       { toggle: "settings-toggle-button", panel: "settings-panel" },

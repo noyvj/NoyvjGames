@@ -2,7 +2,7 @@
    and forwards what the player does. No game logic lives here. */
 (function () {
   "use strict";
-  var ENGINE_MODULES = ["lexicon.py", "houses.py", "casework.py", "solver.py", "casekit.py", "cases_1.py", "cases_2.py", "cases_3.py", "cases_4.py", "cases_5.py", "cases.py", "progress.py", "codex.py", "achievements.py", "render.py", "hints.py", "info.py"];
+  var ENGINE_MODULES = ["lexicon.py", "houses.py", "casework.py", "solver.py", "casekit.py", "cases_1.py", "cases_2.py", "cases_3.py", "cases_4.py", "cases_5.py", "cases.py", "progress.py", "gen.py", "codex.py", "achievements.py", "render.py", "hints.py", "info.py"];
   var STORE_KEY = "evidence-hunt:state";
   var BACKUP_KEY = "evidence-hunt:state-backup";
   var SHORT = ["Cold", "Charge", "Writing", "Lights", "Prints", "Glow"];
@@ -127,6 +127,8 @@
       $("scene-holder").innerHTML = c.scene;
     }
     setText($("presence-line"), c.presence_line);
+    $("case-code").hidden = !c.practice;
+    setText($("case-code-text"), c.code);
     var acc = view.accounts;
     $("accounts").hidden = !acc.length;
     var list = $("accounts-list");
@@ -374,6 +376,8 @@
     g.appendChild(document.createTextNode(" Cost " + r.cost + (r.new_best ? ". A new best seal for this case." : ". Your best here is " + r.best_name + ".")));
     setText($("result-text"), r.line);
     setText($("result-ending"), r.ending);
+    $("again-button").hidden = !r.again;
+    if (r.again) setText($("again-button"), "Another: " + r.again.name.toLowerCase());
     var ret = $("return-button");
     ret.hidden = !(r.keepsake && !r.keepsake.returned);
     if (r.keepsake) setText(ret, "Return " + r.keepsake.what);
@@ -441,6 +445,29 @@
       d.appendChild(ul);
       body.appendChild(d);
     });
+  }
+  function renderPractice() {
+    var levels = $("practice-levels");
+    if (!levels.children.length) {
+      view.practice.levels.forEach(function (l) {
+        var b = el("button", null, l.difficulty + ". " + l.name);
+        b.type = "button";
+        b.dataset.testid = "evidence-hunt-practice-" + l.difficulty;
+        b.addEventListener("click", function () {
+          send({ action: "practice", difficulty: l.difficulty });
+          closePanel("practice-panel", "practice-toggle-button");
+        });
+        levels.appendChild(b);
+      });
+    }
+    var p = view.practice;
+    setText($("practice-note"), p.done ? "You have solved " + plural(p.done, "practice house", "practice houses") + ". " + (view.case.practice ? "You are in " + view.case.code + " now." : "") : "A new house each time you pick a size. Every size can be done without a wrong guess.");
+  }
+  function closePanel(panelId, buttonId) {
+    $(panelId).hidden = true;
+    $(buttonId).setAttribute("aria-expanded", "false");
+    var anchor = $("case-panel");
+    if (anchor.scrollIntoView) anchor.scrollIntoView({ block: "start" });
   }
   function renderCover() {
     var covered = view.case.covered;
@@ -511,6 +538,7 @@
     renderGoalStrip();
     renderGuide();
     renderCover();
+    renderPractice();
   }
 
   // ---- talking to the engine --------------------------------------------------------------------------------
@@ -554,11 +582,26 @@
   function wire() {
     $("toast").addEventListener("click", function () { showToast(""); });
     wirePanelToggle("cases-toggle-button", "cases-panel");
+    wirePanelToggle("practice-toggle-button", "practice-panel");
     wirePanelToggle("guide-toggle-button", "guide-panel");
     wirePanelToggle("changelog-toggle-button", "changelog-panel");
     wirePanelToggle("info-page-toggle-button", "info-page-panel");
     $("van-button").addEventListener("click", function () { act({ action: "van" }); });
     $("cover-button").addEventListener("click", function () { act({ action: "cover" }); });
+    $("practice-open-button").addEventListener("click", function () {
+      var code = $("practice-code").value.trim();
+      if (!code) { showToast("Type a code first, such as EH3-1K9X2."); return; }
+      var result = send({ action: "practice", code: code });
+      if (result && result.ok) { $("practice-code").value = ""; closePanel("practice-panel", "practice-toggle-button"); }
+    });
+    $("practice-code").addEventListener("keydown", function (e) { if (e.key === "Enter") $("practice-open-button").click(); });
+    $("again-button").addEventListener("click", function () { send({ action: "practice", difficulty: view.result.again.difficulty }); });
+    $("code-copy-button").addEventListener("click", function () {
+      var code = view.case.code;
+      try {
+        navigator.clipboard.writeText(code).then(function () { showToast("Code " + code + " copied."); }, function () { showToast("Select the code to copy it: " + code); });
+      } catch (e) { showToast("Select the code to copy it: " + code); }
+    });
     $("look-button").addEventListener("click", function () { act({ action: "look" }); });
     $("accuse-button").addEventListener("click", function () {
       var n = view.accuse.n;

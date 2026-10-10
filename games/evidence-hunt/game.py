@@ -27,6 +27,7 @@ import json
 import achievements
 import casework as cw
 import codex
+import gen
 import hints
 import houses
 import info
@@ -34,15 +35,18 @@ import lexicon as lx
 import progress
 import render
 
-TALLY_KEYS = ("rooms", "readings", "accusations", "wrong", "restores", "hints", "trips", "sandbox")
+TALLY_KEYS = ("rooms", "readings", "accusations", "wrong", "restores", "hints", "trips")
 GRADE_LABEL = {0: "", 1: "Rough", 2: "Steady", 3: "Clean"}
 MAX_TOKENS = 400
 LOG_KEEP = 40
+KEEP_PRACTICE_RUNS = 3
+MAX_DONE_CODES = 200
 COMPILED = {}
 
 
 def data_of(cid):
-    return progress.DATA.get(cid)
+    """The case data for an authored case id or a practice id; None for anything else."""
+    return progress.DATA.get(cid) or (gen.data_for(cid) if gen.is_practice_id(cid) else None)
 
 
 def compiled(cid):
@@ -73,6 +77,8 @@ class Game:
         self.eq = []                         # evidence ids whose equipment has been used at least once
         self.kept = []                       # keepsake ids returned
         self.mem = []                        # authored case ids solved with the sheet covered
+        self.sbn = {}                        # difficulty -> practice houses opened from a seed the game chose
+        self.sbdone = []                     # practice codes solved
         self.rung = 0
         self._enter(self.cur)
 
@@ -125,6 +131,8 @@ class Game:
             data["kept"] = list(self.kept)
         if self.mem:
             data["mem"] = list(self.mem)
+        if self.sbn or self.sbdone:
+            data["sb"] = {k: v for k, v in (("n", {str(d): n for d, n in self.sbn.items() if n}), ("done", list(self.sbdone))) if v}
         earned = self.earned_ids()
         if earned:
             data["achievements_earned"] = earned       # written for the hub's dashboard, never read back
@@ -153,16 +161,30 @@ class Game:
         self.eq = listed("eq", lx.EV_IDS)
         self.kept = listed("kept", lx.KS_IDS)
         self.mem = [cid for cid in progress.ORDER if isinstance(data.get("mem"), list) and cid in data["mem"] and self.best.get(cid)]
+        raw_sb = data.get("sb") if isinstance(data.get("sb"), dict) else {}
+        raw_n = raw_sb.get("n") if isinstance(raw_sb.get("n"), dict) else {}
+        self.sbn = {d: _int(raw_n.get(str(d)), 0, 10 ** 5) for d in gen.DIFFICULTIES if _int(raw_n.get(str(d)), 0, 10 ** 5)}
+        done = raw_sb.get("done") if isinstance(raw_sb.get("done"), list) else []
+        self.sbdone = []
+        for code in done:
+            parsed = gen.parse(code) if isinstance(code, str) else None
+            if parsed and gen.code_of(*parsed) == code and code not in self.sbdone and len(self.sbdone) < MAX_DONE_CODES:
+                self.sbdone.append(code)
         raw_runs = data.get("run") if isinstance(data.get("run"), dict) else {}
         self.runs = {}
-        for cid in progress.ORDER:
+        practice_ids = [cid for cid in raw_runs if isinstance(cid, str) and gen.is_practice_id(cid)][:KEEP_PRACTICE_RUNS]
+        for cid in list(progress.ORDER) + practice_ids:
             tokens = raw_runs.get(cid)
-            if isinstance(tokens, list) and 0 < len(tokens) <= MAX_TOKENS and progress.case_open(self.best, cid):
+            authored = cid in progress.DATA
+            if isinstance(tokens, list) and 0 < len(tokens) <= MAX_TOKENS and (progress.case_open(self.best, cid) if authored else data_of(cid) is not None):
                 st, _infos = cw.replay(compiled(cid), tokens)
                 if st is not None and not compiled(cid).done(st):
                     self.runs[cid] = list(tokens)
         cur = data.get("cur")
-        if not (cur in progress.DATA and progress.case_open(self.best, cur)):
+        if cur in progress.DATA:
+            if not progress.case_open(self.best, cur):
+                cur = progress.ORDER[0]
+        elif not (isinstance(cur, str) and gen.is_practice_id(cur) and data_of(cur) is not None):
             cur = progress.ORDER[0]
         self._enter(cur)
 
@@ -172,7 +194,7 @@ class Game:
         t = progress.totals(self.best)
         found, _total = codex.counts(self.met, self.ev, self.eq, self.kept, self.best)
         return {"done": t["done"], "clean": t["clean"], "chapters_done": t["chapters_done"], "readings": self.tally["readings"],
-                "spirits_full": codex.spirits_full(self.met, self.seen), "two": t["two"], "kept": len(self.kept), "sandbox": self.tally["sandbox"],
+                "spirits_full": codex.spirits_full(self.met, self.seen), "two": t["two"], "kept": len(self.kept), "sandbox": len(self.sbdone),
                 "mem": len(self.mem), "pages": found}
 
     def open_chapters(self):
@@ -332,7 +354,10 @@ class Game:
         result = None
         if self.result:
             result = dict(self.result)
-            if case.keep_room >= 0:
+            if case.practice:
+                parsed = gen.parse(case.code)
+                result["again"] = {"difficulty": parsed[0], "name": gen.NAMES[parsed[0]]}
+            if case.keep_room >= 0 and not case.practice:
                 result["keepsake"] = {"id": case.keep_id, "name": lx.KS_NAME[case.keep_id], "what": lx.KS_WHAT[case.keep_id], "returned": case.keep_id in self.kept}
         view = {
             "ok": ok, "message": message,
@@ -345,7 +370,8 @@ class Game:
                      "scene": render.scene(min(5, 1 + len(case.rooms) // 3)), "keepsake": bool(case.keep_room >= 0)},
             "house": self._house(), "bag": self._bag(), "room": self._room(), "notebook": self._notebook(), "accounts": self._accounts(),
             "could": could, "sheet": self._sheet(could), "accuse": {"n": case.n, "options": [{"id": k, "i": lx.KIND_INDEX[k], "name": lx.KIND_NAME[k]} for k in case.pool]},
-            "log": self.log[-LOG_KEEP:], "result": result, "chapters": self._chapters_view(), "totals": progress.totals(self.best), "tally": dict(self.tally),
+            "log": self.log[-LOG_KEEP:], "result": result, "chapters": self._chapters_view(), "totals": progress.totals(self.best), "tally": dict(self.tally, sandbox=len(self.sbdone)),
+            "practice": {"levels": [{"difficulty": d, "name": gen.NAMES[d]} for d in gen.DIFFICULTIES], "opened": sum(self.sbn.values()), "done": len(self.sbdone)},
             "hint": self._hint(), "about": info.view(),
             "goals": achievements.goals(self.facts(), self.open_chapters()), "achievements": achievements.view(self.facts()),
             "guide": codex.view(self.met, self.seen, self.ev, self.eq, self.kept, self.best),
@@ -401,9 +427,11 @@ class Game:
         cost = case.total_cost(st)
         grade = cw.grade_of(cost)
         before = self.best.get(self.cur, 0)
-        new_best = grade > before
-        if new_best and self.cur in progress.DATA:
+        new_best = grade > before and self.cur in progress.DATA
+        if new_best:
             self.best[self.cur] = grade
+        if case.practice and case.code not in self.sbdone and len(self.sbdone) < MAX_DONE_CODES:
+            self.sbdone.append(case.code)
         for s, kind in enumerate(case.truth):
             self.met = _ordered(lx.KIND_IDS, set(self.met) | {kind})
             confirmed = {lx.EV_IDS[e] for r in case.slots[s] for e in range(6) if st[cw.NOTES][r * 6 + e] == cw.POSITIVE}
@@ -415,7 +443,7 @@ class Game:
         nxt = progress.next_case(self.best, self.cur)
         line = {3: "A clean case: no wrong name and no second trip.", 2: "Steady. The spirit is named, with a small cost on the case.",
                 1: "Rough, but the spirit is named. Restore the case to try for a cleaner one."}[grade]
-        self.result = {"cost": cost, "grade": grade, "grade_name": GRADE_LABEL[grade], "new_best": new_best, "best_name": GRADE_LABEL[max(grade, before)],
+        self.result = {"cost": cost, "grade": grade, "grade_name": GRADE_LABEL[grade], "new_best": new_best, "best_name": GRADE_LABEL[max(grade, before)] if not case.practice else GRADE_LABEL[grade],
                        "line": line, "ending": case.ending, "next": nxt, "next_name": progress.DATA[nxt]["title"] if nxt else ""}
 
     def _stash(self):
@@ -424,6 +452,13 @@ class Game:
             self.runs[self.cur] = list(self.tokens)
         else:
             self.runs.pop(self.cur, None)
+        practice = [cid for cid in self.runs if cid not in progress.DATA]
+        for cid in practice[:max(0, len(practice) - KEEP_PRACTICE_RUNS)]:
+            self.runs.pop(cid, None)
+
+    def open_practice(self, difficulty, seed):
+        self._stash()
+        self._enter(gen.case_id(difficulty, seed))
 
     def restore(self):
         self.tally["restores"] += 1
@@ -474,6 +509,23 @@ def handle(request_json):
         else:
             g._stash()
             g._enter(nxt)
+    elif action == "practice":
+        code = request.get("code")
+        d = num("difficulty")
+        if isinstance(code, str) and code.strip():
+            parsed = gen.parse(code)
+            if parsed is None or gen.make(*parsed) is None:
+                ok, message = False, "That is not a practice code the game can make. A code looks like EH3-1K9X2."
+            else:
+                g.open_practice(*parsed)
+                message = "Opened the practice house %s." % gen.code_of(*parsed)
+        elif d not in gen.DIFFICULTIES:
+            ok, message = False, "Pick one of the five sizes of practice house."
+        else:
+            seed = gen.next_seed(g.sbn.get(d, 0), d)
+            g.sbn[d] = g.sbn.get(d, 0) + 1
+            g.open_practice(d, seed)
+            message = "Opened the practice house %s." % gen.code_of(d, seed)
     elif action == "restore":
         g.restore()
         message = "Restored."
