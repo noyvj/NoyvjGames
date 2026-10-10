@@ -982,7 +982,7 @@
     },
     {
      "path": "games/tide/index.html",
-     "bytes": 65374,
+     "bytes": 67120,
      "precached": true
     },
     {
@@ -997,7 +997,7 @@
     },
     {
      "path": "games/tide/pc.html",
-     "bytes": 69147,
+     "bytes": 70893,
      "precached": true
     },
     {
@@ -1017,12 +1017,12 @@
     },
     {
      "path": "games/tide/style.css",
-     "bytes": 56817,
+     "bytes": 58397,
      "precached": true
     },
     {
      "path": "games/tide/ui.js",
-     "bytes": 11363,
+     "bytes": 17018,
      "precached": true
     }
    ],
@@ -1250,7 +1250,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14664761,
+   "bytes": 14675488,
    "bytes_complete": true
   },
   "aftermath": {
@@ -1262,17 +1262,17 @@
     },
     {
      "path": "games/aftermath/changelog.json",
-     "bytes": 14231,
+     "bytes": 14570,
      "precached": false
     },
     {
      "path": "games/aftermath/game.py",
-     "bytes": 253964,
+     "bytes": 256193,
      "precached": true
     },
     {
      "path": "games/aftermath/index.html",
-     "bytes": 60216,
+     "bytes": 61991,
      "precached": true
     },
     {
@@ -1287,7 +1287,7 @@
     },
     {
      "path": "games/aftermath/pc.html",
-     "bytes": 64002,
+     "bytes": 65777,
      "precached": true
     },
     {
@@ -1488,6 +1488,21 @@
      "precached": true
     },
     {
+     "path": "shared/seasonal-dates.json",
+     "bytes": 1224,
+     "precached": true
+    },
+    {
+     "path": "shared/seasonal-events.css",
+     "bytes": 3882,
+     "precached": false
+    },
+    {
+     "path": "shared/seasonal-events.js",
+     "bytes": 25112,
+     "precached": true
+    },
+    {
      "path": "shared/site-settings.js",
      "bytes": 6290,
      "precached": false
@@ -1550,7 +1565,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14698100,
+   "bytes": 14734436,
    "bytes_complete": true
   },
   "herd": {

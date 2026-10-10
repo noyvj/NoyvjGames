@@ -1330,6 +1330,7 @@ class RunState:
                 save_run_log_history(run_log_history)
                 highest_awarded_run = self.run_number
                 save_highest_awarded_run(highest_awarded_run)
+                _season_run_finished(self.resources)
                 if not self.custom_events:  # E-13: a hand-built schedule never competes on the board
                     _report_hardest_schedule(self)  # E23
 
@@ -1808,6 +1809,61 @@ def _request_achievement_stats():
     hook = getattr(window, "applyAchievementStats", None)
     if hook is not None:
         hook()
+
+
+# N-2: seasonal event badges (shared/seasonal-events.js grants them; this list is the copy that rides the save).
+EVENT_BADGE_MAX = 40
+event_badges = []
+
+
+def _clean_event_badges(raw):
+    """Keep only well-formed hub badge entries ({id, label, earned_at}); drop duplicates and junk."""
+    out = []
+    seen = set()
+    if not isinstance(raw, list):
+        return out
+    for item in raw:
+        if not isinstance(item, dict):
+            continue
+        badge_id, label, earned = item.get("id"), item.get("label"), item.get("earned_at", "")
+        if not (isinstance(badge_id, str) and 1 <= len(badge_id) <= 64 and badge_id not in seen):
+            continue
+        if not all(c.isascii() and (c.islower() or c.isdigit() or c == "-") for c in badge_id):
+            continue
+        if not (isinstance(label, str) and 1 <= len(label.strip()) <= 80):
+            continue
+        if not (isinstance(earned, str) and len(earned) <= 32):
+            earned = ""
+        seen.add(badge_id)
+        out.append({"id": badge_id, "label": label.strip(), "earned_at": earned})
+        if len(out) >= EVENT_BADGE_MAX:
+            break
+    return out
+
+
+def set_event_badges(badges_json):
+    """Called by the page (shared/seasonal-events.js onGrant) with the whole badge list as JSON text."""
+    global event_badges
+    try:
+        event_badges = _clean_event_badges(json.loads(badges_json))
+    except (TypeError, ValueError):
+        return False
+    return True
+
+
+def _season_hook(name, argument):
+    try:
+        from js import window  # noqa: PLC0415 -- Pyodide-only, deliberately lazy
+    except ImportError:
+        return
+    hook = getattr(window, name, None)
+    if hook is not None:
+        hook(argument)
+
+
+def _season_run_finished(resources_left):
+    """N-2 Halloween task ("Night of Storms"): the page counts a finished run with resources left."""
+    _season_hook("aftermathRunFinished", resources_left)
 
 
 def societal_memory_message():
@@ -5657,6 +5713,7 @@ def get_state():
         # Write-only projection (ACHIEVEMENTS-SYSTEM-DESIGN.md §1) — always
         # freshly recomputed, never read back by load_state() below.
         "achievements_earned": achievement_ids_earned(),
+        **({"event_badges": list(event_badges)} if event_badges else {}),
         # E9: a write-only number for the community resilience index (how many
         # resilience skills this player's tree has unlocked); never read back.
         "skill_tree_strength": skill_tree_strength(),
@@ -5703,6 +5760,10 @@ def load_state(data):
     run.growth_capacity = data["growth_capacity"]
     run.damage_taken = data["damage_taken"]
     run.event_log = copy.deepcopy(data["event_log"])
+    global event_badges
+    event_badges = _clean_event_badges(data.get("event_badges"))
+    if event_badges:
+        _season_hook("aftermathAdoptBadges", json.dumps(event_badges))
     render()
     # "achievements_earned" is intentionally never read back here — see
     # get_state()'s comment and ACHIEVEMENTS-SYSTEM-DESIGN.md §1. Re-seed

@@ -175,3 +175,17 @@ def test_markup_has_the_summary_and_css_has_the_band_rules_without_motion():
     assert "transition" not in block and "animation" not in block
     pc = (Path(__file__).resolve().parent.parent / "pc.css").read_text(encoding="utf-8")
     assert "grid-column: 1 / -1" in pc[pc.index("LM-1"):]
+
+
+def test_slides_topics_land_in_the_semester_two_band_and_the_band_counts_them(game_env):
+    """LM-3: the topics added from the FREN152 slides (ids containing -fs) sit in rows 12 to 23, so they fall in
+    the FREN152 band without any band-specific code, and the band's totals include their plots."""
+    m = game_env.module
+    fs_plots = [p for p in game_env.state.plots if "-fs" in p.plot_id]
+    assert fs_plots, "the slides content should be in the farm"
+    assert all(p.sequence >= 12 for p in fs_plots)
+    bands = {b["course"]: b for b in m.semester_bands()}
+    assert set(p.sequence for p in fs_plots) <= set(bands["FREN152"]["sequences"])
+    in_band = [p for p in game_env.state.plots if p.sequence in bands["FREN152"]["sequences"]]
+    assert set(fs_plots) <= set(in_band)
+    assert not (set(p.sequence for p in fs_plots) & set(bands["FREN151"]["sequences"]))

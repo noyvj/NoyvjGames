@@ -1,6 +1,10 @@
 [
   {
     "date": "2026-10-10",
+    "entry": "New: a Halloween event, Night of Storms. From about 25 October to 1 November a banner offers a small task: finish one run with resources left. Doing it earns a Halloween badge that shows on your game page and on the hub. Nothing is lost if you skip it, and the badge is kept in your save."
+  },
+  {
+    "date": "2026-10-10",
     "entry": "New: run codes and challenges. After a run you can copy a short run code for a friend; paste a friend's code under Run codes and challenges to play the same events in the same order with your own skill tree and memory switched off, so you both start from a fresh settlement. A challenge earns no knowledge and leaves your history alone (it counts toward a Challenge runs finished tally), and the result is a friendly note rather than a ranking. Codes are not checked by a server."
   },
   {

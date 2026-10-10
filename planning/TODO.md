@@ -1,6 +1,6 @@
 # Site-Wide TODO (round 3)
 
-**Progress: 697/1221 items checked off (57.1%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land.
+**Progress: 701/1221 items checked off (57.4%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land.
 
 Built from your answers in `planning/IMPROVEMENT-IDEAS-ROUND-3.md` (Part 4). Every Round 3 section is now answered (2026-10-07 below the Warframe section); earlier this list held only: **GB** (Canopy gamified), **M** (new games), **N** (seasonal events), **O** (Trade Empire and Continuum replayability), **P/Q/S/T** (Signal, Undersleep, Overclock, Last Line open questions), **X** (Warframe tracker) and **R** (returning later). GC-GI, A-L, U, Z and Y are unanswered and wait for you. The previous list is archived at `planning/todo-archive/260914_260927.md`; anything from it that was moved here is marked "moved" there.
 
@@ -95,7 +95,7 @@ The files are in `/Users/alexhart/BCM Project folder/fren152-slides/` (outside t
 - [x] FS-22: Le Champ de Mots: add a practice mode for pair question work (ask and answer a partner's question), a tutorial format that has no matching mode yet, registered in the practice-mode ledger so every action counts toward a visible stat, with tests.
 - [x] FS-23: Le Champ de Mots: the online written exam is Friday 13 November 2026 (2 hours, on Moodle, from the subject outline); offer it as the default date in the exam planner (L-9) when none is set.
 - [ ] FS-24: Le Champ de Mots: farm rows 22 and 23 (irregular participles, être verbs, reflexive passé composé, savoir/connaître, disjunctive pronouns) cannot be checked until you upload weeks 11 to 13; recheck them then.
-- [ ] FS-4: Add the "Lecture 7 supplement" content as its own bonus topic with a note saying where it came from.
+- [x] FS-4: Add the "Lecture 7 supplement" content as its own bonus topic with a note saying where it came from.
 - [x] FS-5: Use the tutorial exercises' formats (for example fill in the blank, matching, sentence building) to check that each has a matching practice mode in the game, and list the missing ones.
 - [ ] FS-6: When weeks 11 to 13 arrive, repeat FS-1 to FS-3 for them (waits on your upload).
 
@@ -105,7 +105,7 @@ The files are in `/Users/alexhart/BCM Project folder/fren152-slides/` (outside t
 
 - [x] LM-1: Separate the semesters more clearly on the farm: today FREN151 and FREN152 run as one continuous farm with only a chapter label between them. Give each semester its own visibly separate band (a heading with the course name, a divider, its own progress line and a collapse/expand control, and a small "Semester 1 / Semester 2" summary), while keeping one continuous sequence underneath so the review order and saves do not change. Keep the farm easy to read at 360px.
 - [x] LM-2: Add a visual-indicators guide: a "What the colours and icons mean" panel (opened from a "?" next to the farm, from the Desktop Menu and from Help) that lists every indicator a plot, row, badge or meter can show (growth stages, watered or thirsty, weeds, golden or boosted, mastered, locked, review due, streak or combo marks, and so on) with a drawn sample of each next to its plain-words meaning, read from the same tables the game draws from so it can never drift from the real indicators; with tests that every indicator the game can render has a legend entry.
-- [ ] LM-3: Check both with the FREN152 slides work (section FS) so new weeks land in the right semester band.
+- [x] LM-3: Check both with the FREN152 slides work (section FS) so new weeks land in the right semester band.
 
 ---
 
@@ -307,8 +307,8 @@ You said yes to every item except F5 (undo button, no). New games below each nee
 ## N. Seasonal events (redo the list around real big dates)
 
 - [x] N-1: Redo Round 3 section N with real big-date events per your comment (Christmas, Halloween, New Year, Easter, Hanukkah, Thanksgiving, 4th of July, Valentine's Day, more, internationally inclusive), each finishable in about 15 minutes, with a temporary date-tied stand-in for games with no natural fit.
-- [ ] N-2: Build the groundwork (W-4) and the first event end to end on one game.
-- [ ] N-3: In the next round's M section, list games that could easily host a mode fitting each big event.
+- [x] N-2: Build the groundwork (W-4) and the first event end to end on one game.
+- [x] N-3: In the next round's M section, list games that could easily host a mode fitting each big event.
 
 ---
 
