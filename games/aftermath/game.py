@@ -5723,6 +5723,16 @@ def start_new_run(event=None):
     _check_new_achievements_for_toast()
 
 
+# B-23: a few honest, already-computed numbers for the hub's Climate Steward page. Written into the save as a
+# read-only `summary` list ({label, value, unit, note?}); never read back by load_state().
+def steward_summary():
+    return [
+        {"label": "Resilience skills unlocked", "value": skill_tree_strength(), "unit": f"of {len(SKILLS)}"},
+        {"label": "Run number", "value": int(run.run_number), "unit": ""},
+        {"label": "Resilience built this run", "value": int(run.resilience_capacity), "unit": ""},
+    ]
+
+
 # SAVE-BUTTON-INTEGRATION.md contract for the shared shared/save-widget.js:
 # get_state()/load_state() cover Aftermath's in-memory *per-run* state
 # only — the current RunState (run_number, event_index, resources,
@@ -5768,6 +5778,7 @@ def get_state():
            if run.custom_events and not run.normalised else {}),
         # Write-only projection (ACHIEVEMENTS-SYSTEM-DESIGN.md §1) — always
         # freshly recomputed, never read back by load_state() below.
+        "summary": steward_summary(),  # B-23: write-only, never read back
         "achievements_earned": achievement_ids_earned(),
         **({"event_badges": list(event_badges)} if event_badges else {}),
         # E9: a write-only number for the community resilience index (how many

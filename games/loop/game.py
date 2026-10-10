@@ -3320,6 +3320,7 @@ def get_state():
         "best_closed_loop_streak": chain.best_closed_loop_streak,
         "chains_completed_count": chains_completed_count,
         "goods_categories_tried": sorted(goods_categories_tried),
+        "summary": steward_summary(),  # B-23: write-only, never read back
         "achievements_earned": achievement_ids_earned(),
     }
     # H13/H23: written only when a mode is on, so older/default saves are unchanged.
@@ -3355,6 +3356,17 @@ def get_state():
     if career:
         state["career"] = career
     return state
+
+
+# B-23: a few honest, already-computed numbers for the hub's Climate Steward page. Written into the save as a
+# read-only `summary` list ({label, value, unit, note?}); never read back by load_state().
+def steward_summary():
+    return [
+        {"label": "Circular share of all production", "value": round(chain.lifetime_circular_fraction() * 100), "unit": "%"},
+        {"label": "Goods categories tried", "value": len(goods_categories_tried & set(GOODS_CATEGORIES)),
+         "unit": f"of {len(GOODS_CATEGORIES)}"},
+        {"label": "Chains completed", "value": int(chains_completed_count), "unit": ""},
+    ]
 
 
 def load_state(data):

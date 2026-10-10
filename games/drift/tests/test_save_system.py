@@ -35,6 +35,7 @@ ALL_STATE_KEYS = {
     "coda_visible",
     "info_page_open",
     "achievements_earned",
+    "summary",
     "wellbeing_score",
     "subscore_log",
     "region_name",

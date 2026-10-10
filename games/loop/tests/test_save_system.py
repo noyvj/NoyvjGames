@@ -28,6 +28,7 @@ def test_get_state_includes_every_expected_key(game_env):
         "chains_completed_count",
         "goods_categories_tried",
         "achievements_earned",
+        "summary",
         "overseas_trade_investment",
         "first_loop_closed_cycle",
         "regional_hint_seen",

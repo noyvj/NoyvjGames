@@ -2,7 +2,7 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://noyvj.github.io/NoyvjGames/</loc>
-    <lastmod>2026-10-10</lastmod>
+    <lastmod>2026-10-11</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
@@ -15,6 +15,11 @@
   <url>
     <loc>https://noyvj.github.io/NoyvjGames/map.html</loc>
     <lastmod>2026-10-10</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://noyvj.github.io/NoyvjGames/steward.html</loc>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>

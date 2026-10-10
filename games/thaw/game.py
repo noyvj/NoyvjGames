@@ -3787,6 +3787,7 @@ def get_state():
         "preset_used_ever": preset_used_ever,
         "worst_case_intro_seen": worst_case_intro_seen,
         "science_log": [dict(entry) for entry in science_log],
+        "summary": steward_summary(),  # B-23: write-only, never read back
         "achievements_earned": achievement_ids_earned(),
     }
     # G27: the forecast record is written only once a forecast has been scored.
@@ -3812,6 +3813,16 @@ def get_state():
     if balance_bonuses > 0:
         state["balance_bonuses"] = balance_bonuses
     return state
+
+
+# B-23: a few honest, already-computed numbers for the hub's Climate Steward page. Written into the save as a
+# read-only `summary` list ({label, value, unit, note?}); never read back by load_state().
+def steward_summary():
+    return [
+        {"label": "Warming held back", "value": round(max(0.0, region.temperature_saved()), 1), "unit": "\u00b0C"},
+        {"label": "Warming pulled back by restoration", "value": round(max(0.0, region.restored_total), 1), "unit": "\u00b0C"},
+        {"label": "Rounds played", "value": max(0, int(region.round_number) - 1), "unit": ""},
+    ]
 
 
 def load_state(data):

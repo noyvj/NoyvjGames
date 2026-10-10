@@ -3522,6 +3522,7 @@ def get_state():
         "regional_cap_enabled": farm.regional_cap_enabled,
         "policy_offer_pending": farm.policy_offer_pending,
         "subsidy_rounds_left": farm.subsidy_rounds_left,
+        "summary": steward_summary(),  # B-23: write-only, never read back
         "achievements_earned": achievement_ids_earned(),
     }
     # F1: satellite state only once the satellite has been opened.
@@ -3747,6 +3748,16 @@ def on_recovery_dismiss(event=None):
     global pending_recovery
     pending_recovery = None
     render_save_recovery()
+
+
+# B-23: a few honest, already-computed numbers for the hub's Climate Steward page. Written into the save as a
+# read-only `summary` list ({label, value, unit, note?}); never read back by load_state().
+def steward_summary():
+    return [
+        {"label": "Methane decoupled from output", "value": round(max(0.0, farm.decoupled_fraction()) * 100), "unit": "%"},
+        {"label": "Breeds collected", "value": len(breeds_collected), "unit": f"of {len(BREEDS)}"},
+        {"label": "Rounds farmed", "value": max(0, int(farm.round_number) - 1), "unit": ""},
+    ]
 
 
 def load_state(data):

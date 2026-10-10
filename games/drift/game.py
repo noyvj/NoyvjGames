@@ -4347,8 +4347,19 @@ def get_state():
         "wellbeing_score": region.wellbeing_score(),
         # Write-only projection (ACHIEVEMENTS-SYSTEM-DESIGN.md §1) — always
         # freshly recomputed, never read back in load_state() below.
+        "summary": steward_summary(),  # B-23: write-only, never read back
         "achievements_earned": achievement_ids_earned(),
     }
+
+
+# B-23: a few honest, already-computed numbers for the hub's Climate Steward page. Written into the save as a
+# read-only `summary` list ({label, value, unit, note?}); never read back by load_state().
+def steward_summary():
+    return [
+        {"label": "Newcomers integrated", "value": round(region.integration_fraction() * 100), "unit": "%"},
+        {"label": "Wellbeing score", "value": round(region.wellbeing_score()), "unit": "of 100"},
+        {"label": "Rounds played", "value": max(0, int(region.round_number) - 1), "unit": ""},
+    ]
 
 
 def load_state(data):

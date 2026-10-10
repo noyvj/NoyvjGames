@@ -6050,6 +6050,18 @@ def resume_note():
     return f"Season {state.season}, funds {round(state.funds)}"
 
 
+# B-23: a few honest, already-computed numbers for the hub's Climate Steward page. Written into the save as a
+# read-only `summary` list ({label, value, unit, note?}); never read back by load_state().
+def steward_summary():
+    dry = sum(1 for row in range(COASTLINE_ROWS) if not state.row_lost(row))
+    return [
+        {"label": "Coastline rows still dry", "value": dry, "unit": f"of {COASTLINE_ROWS}"},
+        {"label": "Settlers housed", "value": int(state.population), "unit": ""},
+        {"label": "Seawall tier", "value": state.current_tier_index(), "unit": f"of {len(ADAPTATION_TIERS) - 1}",
+         "note": state.current_tier()["name"]},
+    ]
+
+
 def get_state():
     return {
         "season": state.season,
@@ -6126,6 +6138,7 @@ def get_state():
            if (state.market_event or state.market_accepted or state.income_dip_seasons) else {}),  # GD-8
         **({"balance": {"streak": state.balance_streak, "invested": sorted(state.season_invested)}} if (state.balance_streak or state.season_invested) else {}),  # GD-14
         **({"domino": {"left": state.domino_seasons_left, "count": state.domino_count}} if (state.domino_seasons_left or state.domino_count) else {}),  # GD-28
+        "summary": steward_summary(),  # B-23: write-only, never read back
         # Write-only projection (ACHIEVEMENTS-SYSTEM-DESIGN.md §1) —
         # always freshly recomputed, never read back in load_state().
         "achievements_earned": achievement_ids_earned(),

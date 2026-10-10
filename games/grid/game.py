@@ -2774,6 +2774,77 @@ def update_summary_panel():
 _achievements_seen_ids = set()
 
 
+# ---- B-7 screen-reader announcements ------------------------------------------------------------
+# What a sighted player sees change after an action is also said, in plain short sentences, through the shared
+# announcer (shared/announcer.js) when the page has it, otherwise through the game's own #sr-announcer region.
+# Only player actions and round results announce; render() never does (the shared announcer joins one tick's
+# messages, so a build that also unlocks an achievement is read as one announcement).
+def _shared_announce(text):
+    """Speak through shared/announcer.js when the page has it (returns True); otherwise the game's own live
+    region is used. Never both, so a screen reader does not read a message twice."""
+    try:
+        from js import window  # noqa: PLC0415 -- Pyodide-only, deliberately lazy
+    except ImportError:
+        return False
+    shared = getattr(window, "NoyvjAnnounce", None)
+    if shared is None:
+        return False
+    try:
+        shared.say(str(text))
+    except Exception:  # noqa: BLE001 -- an announcement must never break the game
+        return False
+    return True
+
+
+def announce(text):
+    """Says text for a screen reader (shared announcer first, the game's own polite region otherwise)."""
+    if not text:
+        return
+    if _shared_announce(text):
+        return
+    region = document.getElementById("sr-announcer")
+    if region is not None:
+        region.innerText = text
+
+
+def _funds_phrase():
+    return "Funds unlimited, sandbox" if sandbox_active else f"Funds {state.funds:.0f}"
+
+
+def round_announcement_text(milestone_new=False):
+    """What a player sees change after a round resolves, as short sentences built from the game's own readouts:
+    the recap line, any disruption or breakdown, the new demand and capacity, the renewable and fossil shares,
+    funds, and any policy lever or grant now on offer. Empty before the first round."""
+    if state.last_round_recap is None:
+        return ""
+    summary, _details = round_recap_text()
+    parts = [f"{summary}. Now round {state.round_number}"]
+    if state.last_event is not None:
+        parts.append(event_message(state.last_event))
+    if state.last_aging_event is not None:
+        plant_name = PLANT_LABEL[state.last_aging_event["plant"]]
+        parts.append(
+            f"Aging breakdown! A {plant_name} plant failed from wear "
+            f"(repair cost {state.last_aging_event['repair_cost']:.0f})"
+        )
+    if state.last_round_recap.get("perfect"):
+        parts.append("A Perfect Round: no disruption, no breakdown, demand fully met")
+    parts.append(f"Demand is now {state.demand} against capacity {state.total_capacity()}")
+    parts.append(
+        f"Renewables are {renewable_capacity_share() * 100:.0f}% of capacity, "
+        f"fossil share {state.fossil_share() * 100:.0f}%"
+    )
+    parts.append(_funds_phrase())
+    if state.policy_lever_available:
+        parts.append("A policy lever is on offer")
+    if state.grant_offer is not None:
+        info = GRANTS[state.grant_offer["id"]]
+        parts.append(f"Offer: {info['title']}. {info['text']}")
+    if milestone_new:
+        parts.append("More than half your grid's capacity is now renewable")
+    return ". ".join(p.rstrip(". ") for p in parts if p) + "."
+
+
 def _seed_achievement_toast_baseline():
     global _achievements_seen_ids
     _achievements_seen_ids = set(achievement_ids_earned())
@@ -2832,8 +2903,10 @@ def _check_new_achievements_for_toast():
         if labels:
             if len(labels) == 1:
                 _display_achievement_toast(f"🏆 Achievement unlocked: {labels[0]}")
+                announce(f"Achievement unlocked: {labels[0]}")
             else:
                 _display_achievement_toast(f"🏆 {len(labels)} achievements unlocked: " + ", ".join(labels))
+                announce(f"{len(labels)} achievements unlocked: " + ", ".join(labels))
     _achievements_seen_ids = earned_now
 
 
@@ -3764,17 +3837,25 @@ def on_undo_build(event=None):
         if last is not None and last.get("kind") == "build" and last.get("type") == record["plant"] \
                 and last.get("round") == record["round"]:
             shadow_actions.pop()
-    state.undo_last_build()
+    record = state.undo_record
+    if state.undo_last_build():
+        announce(
+            f"Took back the {PLANT_LABEL[record['plant']]} build. Refunded {record['cost']:.0f}. {_funds_phrase()}"
+        )
+    else:
+        announce("Nothing to undo: only the last build this round can be taken back")
     render()
 
 
 def on_accept_grant(event=None):
-    state.accept_grant()
+    if state.accept_grant():
+        announce(state.last_grant_message)
     render()
 
 
 def on_decline_grant(event=None):
-    state.decline_grant()
+    if state.decline_grant():
+        announce(state.last_grant_message)
     render()
 
 
@@ -4011,9 +4092,22 @@ def _load_arbitrage_and_emergency(data):
 
 def _make_build_handler(plant_type):
     def handler(event=None):
+        cost = state.plant_cost(plant_type)
+        funds_before = state.funds
         if state.build_plant(plant_type):
             record_shadow_action("build", plant_type)
+            announce(
+                f"Built a {PLANT_LABEL[plant_type]} plant, {state.plant_name_list(plant_type)[-1]}. "
+                f"{state.plant_counts[plant_type]} {PLANT_LABEL[plant_type]} standing. {_funds_phrase()}"
+            )
+        else:
+            announce(
+                f"Cannot build {PLANT_LABEL[plant_type]}: it costs {cost:.0f} and you have {funds_before:.0f}"
+            )
+        reached_before = state.renewable_50_reached
         _check_renewable_milestone()
+        if state.renewable_50_reached and not reached_before:
+            announce("More than half your grid's capacity is now renewable")
         render()
         _check_new_achievements_for_toast()
     return handler
@@ -4124,9 +4218,16 @@ def _make_retire_handler(plant_type):
     def do_retire():
         global retire_callout_visible
         eulogy_before = state.last_eulogy
+        funds_before = state.funds
         succeeded = state.retire_plant(plant_type)
         if succeeded:
             record_shadow_action("retire", plant_type)
+            announce(
+                f"Retired a {PLANT_LABEL[plant_type]} plant. {state.plant_counts[plant_type]} "
+                f"{PLANT_LABEL[plant_type]} standing. Refund {state.funds - funds_before:.0f}. {_funds_phrase()}"
+            )
+        else:
+            announce(f"Cannot retire {PLANT_LABEL[plant_type]}: none are standing")
         if succeeded and state.last_eulogy is not eulogy_before:
             _play_demolition_puff()
         if succeeded and not state.seen_retire_callout:
@@ -4212,6 +4313,18 @@ def _make_maintain_handler(plant_type):
     def handler(event=None):
         global maintain_callout_visible
         succeeded = state.maintain_plant(plant_type)
+        if succeeded:
+            announce(
+                f"Maintained the {PLANT_LABEL[plant_type]} fleet. Wear now {state.wear_percent(plant_type)}%. "
+                f"{_funds_phrase()}"
+            )
+        elif state.plant_counts[plant_type] <= 0:
+            announce(f"Cannot maintain {PLANT_LABEL[plant_type]}: none are standing")
+        else:
+            announce(
+                f"Cannot maintain {PLANT_LABEL[plant_type]}: it costs {state.maintenance_cost(plant_type):.0f} "
+                f"and you have {state.funds:.0f}"
+            )
         if succeeded and not state.seen_maintain_callout:
             state.seen_maintain_callout = True
             maintain_callout_visible = True
@@ -4305,25 +4418,41 @@ def on_toggle_weather_variability(event=None):
 
 def on_invest_demand_response(event=None):
     """TODO-C7: the demand-response lever's own button click."""
-    state.invest_demand_response()
+    cost = state.demand_response_cost()
+    if state.invest_demand_response():
+        announce(
+            f"Invested in demand response, level {state.demand_response_level}. Demand now grows by "
+            f"{state.demand_growth_this_round():g} a round. {_funds_phrase()}"
+        )
+    else:
+        announce(f"Cannot invest in demand response: it costs {cost:.0f} and you have {state.funds:.0f}")
     render()
 
 
 def on_enact_carbon_pricing(event=None):
     """TODO-C19: accept the currently-offered policy lever as carbon pricing."""
-    state.enact_policy("carbon_pricing")
+    if state.enact_policy("carbon_pricing"):
+        announce(f"Carbon pricing enacted: fossil plants cost more to build for {state.active_policy['rounds_remaining']} rounds")
+    else:
+        announce("No policy lever is on offer right now")
     render()
 
 
 def on_enact_renewable_subsidy(event=None):
     """TODO-C19: accept the currently-offered policy lever as a renewable subsidy."""
-    state.enact_policy("renewable_subsidy")
+    if state.enact_policy("renewable_subsidy"):
+        announce(f"Renewable subsidy enacted: renewable plants cost less to build for {state.active_policy['rounds_remaining']} rounds")
+    else:
+        announce("No policy lever is on offer right now")
     render()
 
 
 def on_decline_policy(event=None):
     """TODO-C19: turn down the currently-offered policy lever entirely."""
-    state.decline_policy()
+    if state.decline_policy():
+        announce("Policy lever declined")
+    else:
+        announce("No policy lever is on offer right now")
     render()
 
 
@@ -4599,9 +4728,11 @@ def on_advance_round(event=None):
     global auto_advance_message, last_finish_records
     auto_advance_message = ""
     last_finish_records = []
+    reached_before = state.renewable_50_reached
     state.advance_round()
     _check_renewable_milestone()
     render()
+    announce(round_announcement_text(milestone_new=state.renewable_50_reached and not reached_before))
     _check_disruption_toast()
     _check_new_achievements_for_toast()
 
@@ -4645,14 +4776,18 @@ def auto_advance(max_rounds=AUTO_ADVANCE_ROUNDS, **rngs):
 def on_auto_advance(event=None):
     global auto_advance_message, last_finish_records
     last_finish_records = []
+    reached_before = state.renewable_50_reached
     played, message = auto_advance()
     auto_advance_message = message
     if played:
         render()
+        announce(message)
+        announce(round_announcement_text(milestone_new=state.renewable_50_reached and not reached_before))
         _check_disruption_toast()
         _check_new_achievements_for_toast()
     else:
         render()
+        announce(message)
 
 
 def render_auto_advance():
@@ -4893,6 +5028,7 @@ def get_state():
         "last_grant_message": state.last_grant_message,
         # Write-only projection (ACHIEVEMENTS-SYSTEM-DESIGN.md §1) — always
         # freshly recomputed, never read back in load_state() below.
+        "summary": steward_summary(),  # B-23: write-only, never read back
         "achievements_earned": achievement_ids_earned(),
     }
 
@@ -5162,6 +5298,17 @@ def load_report_text():
         f"Last save loaded: repaired {len(fields)} missing field{'s' if len(fields) != 1 else ''} "
         f"with safe defaults ({shown})."
     )
+
+
+# B-23: a few honest, already-computed numbers for the hub's Climate Steward page. Written into the save as a
+# read-only `summary` list ({label, value, unit, note?}); never read back by load_state().
+def steward_summary():
+    played = len(state.clean_fraction_log)
+    return [
+        {"label": "Renewable share of capacity", "value": round(renewable_capacity_share() * 100), "unit": "%"},
+        {"label": "Rounds played", "value": played, "unit": ""},
+        {"label": "Plants built", "value": int(sum(state.cumulative_built.values())), "unit": ""},
+    ]
 
 
 def load_state(data):

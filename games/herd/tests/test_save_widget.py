@@ -36,6 +36,7 @@ def test_get_state_includes_every_expected_key(game_env):
         "policy_offer_pending",
         "subsidy_rounds_left",
         "achievements_earned",
+        "summary",
     }
 
 

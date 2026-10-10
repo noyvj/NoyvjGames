@@ -219,7 +219,7 @@
     },
     {
      "path": "shared/save-widget.js",
-     "bytes": 106570,
+     "bytes": 106612,
      "precached": true
     },
     {
@@ -300,7 +300,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14797935,
+   "bytes": 14797977,
    "bytes_complete": true
   },
   "canopy": {
@@ -549,7 +549,7 @@
     },
     {
      "path": "shared/save-widget.js",
-     "bytes": 106570,
+     "bytes": 106612,
      "precached": true
     },
     {
@@ -650,7 +650,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 15152893,
+   "bytes": 15152935,
    "bytes_complete": true
   },
   "grid": {
@@ -874,7 +874,7 @@
     },
     {
      "path": "shared/save-widget.js",
-     "bytes": 106570,
+     "bytes": 106612,
      "precached": true
     },
     {
@@ -965,7 +965,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14711332,
+   "bytes": 14711374,
    "bytes_complete": true
   },
   "tide": {
@@ -1194,7 +1194,7 @@
     },
     {
      "path": "shared/save-widget.js",
-     "bytes": 106570,
+     "bytes": 106612,
      "precached": true
     },
     {
@@ -1260,7 +1260,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14764038,
+   "bytes": 14764080,
    "bytes_complete": true
   },
   "aftermath": {
@@ -1499,7 +1499,7 @@
     },
     {
      "path": "shared/save-widget.js",
-     "bytes": 106570,
+     "bytes": 106612,
      "precached": true
     },
     {
@@ -1580,7 +1580,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14786236,
+   "bytes": 14786278,
    "bytes_complete": true
   },
   "herd": {
@@ -1804,7 +1804,7 @@
     },
     {
      "path": "shared/save-widget.js",
-     "bytes": 106570,
+     "bytes": 106612,
      "precached": true
     },
     {
@@ -1875,7 +1875,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14601638,
+   "bytes": 14601680,
    "bytes_complete": true
   },
   "thaw": {
@@ -2084,7 +2084,7 @@
     },
     {
      "path": "shared/save-widget.js",
-     "bytes": 106570,
+     "bytes": 106612,
      "precached": true
     },
     {
@@ -2150,7 +2150,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14527840,
+   "bytes": 14527882,
    "bytes_complete": true
   },
   "loop": {
@@ -2364,7 +2364,7 @@
     },
     {
      "path": "shared/save-widget.js",
-     "bytes": 106570,
+     "bytes": 106612,
      "precached": true
     },
     {
@@ -2435,7 +2435,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14547238,
+   "bytes": 14547280,
    "bytes_complete": true
   },
   "drift": {
@@ -2649,7 +2649,7 @@
     },
     {
      "path": "shared/save-widget.js",
-     "bytes": 106570,
+     "bytes": 106612,
      "precached": true
     },
     {
@@ -2720,7 +2720,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14572389,
+   "bytes": 14572431,
    "bytes_complete": true
   },
   "champ-de-mots": {
@@ -2959,7 +2959,7 @@
     },
     {
      "path": "shared/save-widget.js",
-     "bytes": 106570,
+     "bytes": 106612,
      "precached": true
     },
     {
@@ -3030,7 +3030,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 15584689,
+   "bytes": 15584731,
    "bytes_complete": true
   },
   "continuum": {
@@ -3479,7 +3479,7 @@
     },
     {
      "path": "shared/save-widget.js",
-     "bytes": 106570,
+     "bytes": 106612,
      "precached": true
     },
     {
@@ -3575,7 +3575,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 16206221,
+   "bytes": 16206263,
    "bytes_complete": true
   },
   "signal": {
@@ -3769,7 +3769,7 @@
     },
     {
      "path": "shared/save-widget.js",
-     "bytes": 106570,
+     "bytes": 106612,
      "precached": true
     },
     {
@@ -3804,7 +3804,7 @@
     }
    ],
    "cdn": [],
-   "bytes": 550982,
+   "bytes": 551024,
    "bytes_complete": true
   },
   "lexis": {
@@ -4073,7 +4073,7 @@
     },
     {
      "path": "shared/save-widget.js",
-     "bytes": 106570,
+     "bytes": 106612,
      "precached": true
     },
     {
@@ -4139,7 +4139,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14309249,
+   "bytes": 14309291,
    "bytes_complete": true
   },
   "heist-committee": {
@@ -4443,7 +4443,7 @@
     },
     {
      "path": "shared/save-widget.js",
-     "bytes": 106570,
+     "bytes": 106612,
      "precached": true
     },
     {
@@ -4509,7 +4509,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14484792,
+   "bytes": 14484834,
    "bytes_complete": true
   },
   "lighthouse": {
@@ -4808,7 +4808,7 @@
     },
     {
      "path": "shared/save-widget.js",
-     "bytes": 106570,
+     "bytes": 106612,
      "precached": true
     },
     {
@@ -4894,7 +4894,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14553773,
+   "bytes": 14553815,
    "bytes_complete": true
   },
   "pocket-bazaar": {
@@ -5158,7 +5158,7 @@
     },
     {
      "path": "shared/save-widget.js",
-     "bytes": 106570,
+     "bytes": 106612,
      "precached": true
     },
     {
@@ -5224,7 +5224,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14330609,
+   "bytes": 14330651,
    "bytes_complete": true
   },
   "dead-reckoning": {
@@ -5538,7 +5538,7 @@
     },
     {
      "path": "shared/save-widget.js",
-     "bytes": 106570,
+     "bytes": 106612,
      "precached": true
     },
     {
@@ -5604,7 +5604,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14404048,
+   "bytes": 14404090,
    "bytes_complete": true
   },
   "logic-gates": {
@@ -5858,7 +5858,7 @@
     },
     {
      "path": "shared/save-widget.js",
-     "bytes": 106570,
+     "bytes": 106612,
      "precached": true
     },
     {
@@ -5934,7 +5934,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14350493,
+   "bytes": 14350535,
    "bytes_complete": true
   },
   "robot-script": {
@@ -6218,7 +6218,7 @@
     },
     {
      "path": "shared/save-widget.js",
-     "bytes": 106570,
+     "bytes": 106612,
      "precached": true
     },
     {
@@ -6284,7 +6284,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14341687,
+   "bytes": 14341729,
    "bytes_complete": true
   },
   "hull-repair": {
@@ -6548,7 +6548,7 @@
     },
     {
      "path": "shared/save-widget.js",
-     "bytes": 106570,
+     "bytes": 106612,
      "precached": true
     },
     {
@@ -6624,7 +6624,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14349311,
+   "bytes": 14349353,
    "bytes_complete": true
   },
   "station-medic": {
@@ -6923,7 +6923,7 @@
     },
     {
      "path": "shared/save-widget.js",
-     "bytes": 106570,
+     "bytes": 106612,
      "precached": true
     },
     {
@@ -6989,7 +6989,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14342494,
+   "bytes": 14342536,
    "bytes_complete": true
   },
   "stranded": {
@@ -7233,7 +7233,7 @@
     },
     {
      "path": "shared/save-widget.js",
-     "bytes": 106570,
+     "bytes": 106612,
      "precached": true
     },
     {
@@ -7299,7 +7299,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14315355,
+   "bytes": 14315397,
    "bytes_complete": true
   },
   "evidence-hunt": {
@@ -7593,7 +7593,7 @@
     },
     {
      "path": "shared/save-widget.js",
-     "bytes": 106570,
+     "bytes": 106612,
      "precached": true
     },
     {
@@ -7659,7 +7659,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14391928,
+   "bytes": 14391970,
    "bytes_complete": true
   },
   "trade-empire": {
@@ -7868,7 +7868,7 @@
     },
     {
      "path": "shared/save-widget.js",
-     "bytes": 106570,
+     "bytes": 106612,
      "precached": true
     },
     {
@@ -7954,7 +7954,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14716428,
+   "bytes": 14716470,
    "bytes_complete": true
   }
  }

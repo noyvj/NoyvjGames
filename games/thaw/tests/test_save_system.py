@@ -21,6 +21,7 @@ def test_get_state_includes_every_expected_key(game_env):
         "worst_case_intro_seen",
         "science_log",
         "achievements_earned",
+        "summary",
     }
 
 
