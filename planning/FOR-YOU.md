@@ -239,3 +239,23 @@ Recommended: keep it. Say "yes" to go with that.
 ### Sd6. Stranded: all nine endings are warm or bittersweet and Quiet Line is the saddest; do you want one that is sadder but still gentle?
 
 Recommended: yes, one more, still with no on-screen death. Say "yes" to go with that.
+
+### Eh1. Evidence Hunt: restless rooms mark themselves the moment you step in; should finding them take a reading instead (harder)?
+
+Recommended: keep it simple as is (they mark themselves). Say "yes" to go with that.
+
+### Eh2. Evidence Hunt: the client's account gives a spirit's behaviours for free; should you infer them from room signs instead?
+
+Recommended: keep the free account, and add inferring from room signs as an optional harder way later. Say "yes" to go with that.
+
+### Eh3. Evidence Hunt: a bag holds 3 tools (4 in the big houses), which forces a choice; do you prefer taking everything?
+
+Recommended: keep the limited bag, since the choice is part of the puzzle. Say "yes" to go with that.
+
+### Eh4. Evidence Hunt: a second trip back to the van costs 1; do you prefer it free?
+
+Recommended: make it free, since you dislike costs that feel like punishment. Say "yes" to go with that.
+
+### Eh5. Evidence Hunt: keep the spirit kind names and the warm endings as written?
+
+Recommended: keep them; say "no" and tell me which to change. Say "yes" to go with that.
