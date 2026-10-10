@@ -1,6 +1,6 @@
 # Site-Wide TODO (round 3)
 
-**Progress: 685/1221 items checked off (56.1%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land.
+**Progress: 686/1221 items checked off (56.2%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land.
 
 Built from your answers in `planning/IMPROVEMENT-IDEAS-ROUND-3.md` (Part 4). Every Round 3 section is now answered (2026-10-07 below the Warframe section); earlier this list held only: **GB** (Canopy gamified), **M** (new games), **N** (seasonal events), **O** (Trade Empire and Continuum replayability), **P/Q/S/T** (Signal, Undersleep, Overclock, Last Line open questions), **X** (Warframe tracker) and **R** (returning later). GC-GI, A-L, U, Z and Y are unanswered and wait for you. The previous list is archived at `planning/todo-archive/260914_260927.md`; anything from it that was moved here is marked "moved" there.
 
@@ -293,11 +293,11 @@ You said yes to every item except F5 (undo button, no). New games below each nee
 - [ ] QI-47: (Quick ideas E5) Hint gift: a friend can send you one hint on a puzzle you are stuck on, no text, just a nudge.
 - [ ] QI-48: (Quick ideas E6) Gift an item: send a collected item to a friend once per day, optional and never needed.
 - [ ] QI-49: (Quick ideas E7) Community bar: one shared progress bar that every player's actions fill together toward a goal, cooperative only.
-- [ ] QI-50: (Quick ideas F1) "How long have you got?" button on the hub: pick 5 minutes, 15 minutes or "all night" and it suggests games that fit.
+- [x] QI-50: (Quick ideas F1) "How long have you got?" button on the hub: pick 5 minutes, 15 minutes or "all night" and it suggests games that fit.
 - [ ] QI-51: (Quick ideas F2) Half-asleep mode: large buttons, dimmed screen, calm games only, one-handed layout. (Shared piece built 2026-10-10: `shared/calm-mode.js/.css`, 16 browser tests; not wired into the hub or any game yet, and the hub's calm-only filter needs card tags.)
 - [ ] QI-52: (Quick ideas F3) Warm night colours after 10pm: the hub and games shift to a dimmer, warmer palette automatically (opt-in). (Shared piece built 2026-10-10: `shared/night-mode.js/.css`, 14 browser tests; not wired into the hub or any game yet.)
-- [ ] QI-53: (Quick ideas F4) An Ironman switch per game: opt-in hard fail with no restore, with its own badge, never the default.
-- [ ] QI-54: (Quick ideas F6) A graded hint ladder in puzzle games: a nudge, then a hint, then the answer, so you never have to leave to look it up.
+- [ ] QI-53: (Quick ideas F4) An Ironman switch per game: opt-in hard fail with no restore, with its own badge, never the default. (Partly built 2026-10-10: the shared switch, explanation, guard and badge are `shared/ironman.js`/`.css` with 34 browser tests; no game uses it yet, so the item stays open until at least one game wires its own hard-fail rule and badge.)
+- [ ] QI-54: (Quick ideas F6) A graded hint ladder in puzzle games: a nudge, then a hint, then the answer, so you never have to leave to look it up. (Partly built 2026-10-10: `shared/hint-ladder.js`/`.css` with 35 browser tests; not wired into any puzzle game yet, so the item stays open.)
 - [ ] QI-55: (Quick ideas F7) Strategy notes page per game: the known good builds and strategies written into the game, so you never alt-tab.
 - [ ] QI-56: (Quick ideas F8) Watch mode for city and sim games: the settlement plays itself slowly so you can leave it on a second screen.
 - [ ] QI-57: (Quick ideas F9) A personal stats page: what you play, when, and how long, so you can see your own pattern.

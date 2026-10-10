@@ -1,0 +1,157 @@
+/*
+ * Shared Ironman switch styles (planning/TODO.md QI-53). Every colour is a token on :root so a game can
+ * override one value; the light palette follows html[data-theme="light"] and, when no theme attribute is
+ * set, the OS preference. Nothing is colour-only: the switch says "On" or "Off" in words, the knob moves,
+ * a locked switch carries a written reason, and the badge is a shape plus its name. Motion (the knob
+ * sliding) only runs when neither prefers-reduced-motion nor html[data-reduced-motion="true"] asks for
+ * none.
+ */
+:root {
+  --ni-bg: rgba(20, 24, 42, 0.78);
+  --ni-fg: #e8e9f0;
+  --ni-muted: #aab0c8;
+  --ni-border: rgba(140, 160, 255, 0.45);
+  --ni-accent: #ff9f7a;
+  --ni-track: rgba(10, 12, 24, 0.6);
+  --ni-knob: #e8e9f0;
+  --ni-focus: #ffd866;
+}
+html[data-theme="light"] {
+  --ni-bg: rgba(255, 255, 255, 0.94);
+  --ni-fg: #1b2033;
+  --ni-muted: #4a5275;
+  --ni-border: rgba(60, 85, 160, 0.55);
+  --ni-accent: #9a3412;
+  --ni-track: #e4e8f6;
+  --ni-knob: #1b2033;
+  --ni-focus: #8a5a00;
+}
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme]) {
+    --ni-bg: rgba(255, 255, 255, 0.94);
+    --ni-fg: #1b2033;
+    --ni-muted: #4a5275;
+    --ni-border: rgba(60, 85, 160, 0.55);
+    --ni-accent: #9a3412;
+    --ni-track: #e4e8f6;
+    --ni-knob: #1b2033;
+    --ni-focus: #8a5a00;
+  }
+}
+
+[hidden] { display: none !important; }
+
+.noyvj-ironman {
+  box-sizing: border-box;
+  max-width: 100%;
+  margin: 0.5rem 0;
+  padding: 0.5rem 0.65rem;
+  border: 1px solid var(--ni-border);
+  border-radius: 10px;
+  background: var(--ni-bg);
+  color: var(--ni-fg);
+  font: 0.85rem/1.35 system-ui, sans-serif;
+  text-align: left;
+}
+.noyvj-ironman *,
+.noyvj-ironman *::before,
+.noyvj-ironman *::after { box-sizing: border-box; }
+.noyvj-ironman--on { border-width: 2px; border-color: var(--ni-accent); }
+
+.noyvj-ironman-row {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  min-height: 44px;
+  cursor: pointer;
+}
+.noyvj-ironman--locked .noyvj-ironman-row { cursor: not-allowed; }
+.noyvj-ironman-input {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 52px;
+  height: 44px;
+  margin: 0;
+  opacity: 0;
+  z-index: 1;
+  cursor: inherit;
+}
+.noyvj-ironman-track {
+  flex: none;
+  position: relative;
+  width: 52px;
+  height: 28px;
+  border: 2px solid var(--ni-border);
+  border-radius: 999px;
+  background: var(--ni-track);
+}
+.noyvj-ironman-knob {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--ni-knob);
+}
+.noyvj-ironman-input:checked + .noyvj-ironman-track { border-color: var(--ni-accent); }
+.noyvj-ironman-input:checked + .noyvj-ironman-track .noyvj-ironman-knob { left: 26px; background: var(--ni-accent); }
+.noyvj-ironman-input:focus-visible + .noyvj-ironman-track { outline: 3px solid var(--ni-focus); outline-offset: 2px; }
+.noyvj-ironman-input:disabled + .noyvj-ironman-track { border-style: dashed; opacity: 0.8; }
+.noyvj-ironman-title { font-weight: 700; font-size: 0.95rem; overflow-wrap: anywhere; }
+.noyvj-ironman-state { margin-left: auto; font-weight: 700; color: var(--ni-muted); }
+.noyvj-ironman--on .noyvj-ironman-state { color: var(--ni-accent); }
+.noyvj-ironman-explain { margin: 0.3rem 0 0; color: var(--ni-muted); overflow-wrap: anywhere; }
+.noyvj-ironman-lock { margin: 0.3rem 0 0; font-weight: 600; overflow-wrap: anywhere; }
+.noyvj-ironman-lock::before { content: "\26A0\00a0"; }
+
+.noyvj-ironman-badge {
+  display: inline-block;
+  padding: 0.1rem 0.55rem 0.1rem 0.45rem;
+  border: 2px solid var(--ni-accent);
+  border-radius: 6px;
+  background: var(--ni-bg);
+  color: var(--ni-fg);
+  font: 700 0.8rem/1.4 system-ui, sans-serif;
+  white-space: nowrap;
+}
+.noyvj-ironman-badge::before { content: "\25C6\00a0"; color: var(--ni-accent); }
+
+.noyvj-ironman-notice {
+  position: fixed;
+  left: 50%;
+  bottom: 1rem;
+  transform: translateX(-50%);
+  z-index: 2147483000;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  width: max-content;
+  max-width: calc(100vw - 32px);
+  padding: 0.4rem 0.4rem 0.4rem 0.8rem;
+  border: 2px solid var(--ni-accent);
+  border-radius: 10px;
+  background: var(--ni-bg);
+  color: var(--ni-fg);
+  font: 0.9rem/1.35 system-ui, sans-serif;
+}
+.noyvj-ironman-notice-text { margin: 0; overflow-wrap: anywhere; }
+.noyvj-ironman-notice-close {
+  flex: none;
+  min-width: 44px;
+  min-height: 44px;
+  border: 2px solid var(--ni-border);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--ni-fg);
+  font: 600 0.9rem system-ui, sans-serif;
+  cursor: pointer;
+}
+.noyvj-ironman-notice-close:focus-visible { outline: 3px solid var(--ni-focus); outline-offset: 2px; }
+
+@media (prefers-reduced-motion: no-preference) {
+  html:not([data-reduced-motion="true"]) .noyvj-ironman-knob { transition: left 0.15s ease; }
+}

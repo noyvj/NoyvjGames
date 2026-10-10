@@ -728,6 +728,64 @@ if (randomGameButton) {
   });
 }
 
+// --- QI-50: "How long have you got?" -- 5 minutes, 15 minutes or all night suggests games that fit,
+// read from the same hand-written game-sessions.json tiers as the session-length chip (short about 5
+// minutes, medium about 20, long = long-form). Games the visitor has not started come first. Nothing is
+// stored; the suggestions are plain links.
+const TIME_PICKER_CHOICES = {
+  "5": { tiers: ["short"], note: "Games that fit in about five minutes:" },
+  "15": { tiers: ["short", "medium"], note: "Games you can make real progress in within a quarter of an hour (they save, so stopping early is fine):" },
+  night: { tiers: ["long"], note: "Long-form games, built to be played across many sittings:" },
+};
+const TIME_PICKER_MAX = 6;
+const timePickerButton = document.getElementById("time-picker-button");
+const timePickerPanel = document.getElementById("time-picker");
+const timePickerNote = document.getElementById("time-picker-note");
+const timePickerResults = document.getElementById("time-picker-results");
+function showTimePickerResults(choiceKey) {
+  const choice = TIME_PICKER_CHOICES[choiceKey];
+  if (!choice || !timePickerResults || !timePickerNote) return;
+  timePickerResults.textContent = "";
+  document.querySelectorAll(".time-picker-choice").forEach((b) => {
+    b.setAttribute("aria-pressed", b.dataset.time === choiceKey ? "true" : "false");
+  });
+  if (!gameSessions) {
+    timePickerNote.textContent = "Session lengths are unavailable right now, so I can't match games to your time. Try again in a moment.";
+    return;
+  }
+  const played = playedSlugs();
+  const fits = allTitleCards.filter((card) => choice.tiers.includes(cardSession(card)));
+  const ordered = fits.filter((c) => !played.has(cardSlug(c))).concat(fits.filter((c) => played.has(cardSlug(c))));
+  if (!ordered.length) {
+    timePickerNote.textContent = "No games are listed for that length yet.";
+    return;
+  }
+  const shown = ordered.slice(0, TIME_PICKER_MAX);
+  timePickerNote.textContent = fits.length > shown.length
+    ? `${choice.note} showing ${shown.length} of ${fits.length}, ones you haven't started first.`
+    : choice.note;
+  shown.forEach((card) => {
+    const li = document.createElement("li");
+    const link = document.createElement("a");
+    link.className = "continue-playing-item";
+    link.href = card.querySelector(".title-card-link").getAttribute("href");
+    const tierLabel = gameSessions.tiers[cardSession(card)] || "";
+    link.textContent = `${cardDisplayName(card)}${tierLabel ? ` — ${tierLabel}` : ""}${played.has(cardSlug(card)) ? "" : " (new to you)"}`;
+    li.appendChild(link);
+    timePickerResults.appendChild(li);
+  });
+}
+if (timePickerButton && timePickerPanel) {
+  timePickerButton.addEventListener("click", () => {
+    const open = timePickerPanel.hidden;
+    timePickerPanel.hidden = !open;
+    timePickerButton.setAttribute("aria-expanded", open ? "true" : "false");
+  });
+  document.querySelectorAll(".time-picker-choice").forEach((b) => {
+    b.addEventListener("click", () => showTimePickerResults(b.dataset.time));
+  });
+}
+
 // --- Y27: "Recently Added" -- the newest couple of games by the date
 // their index.html first landed in git (game-added.json, regenerated with
 // the last-updated dates by scripts/generate-last-updated.py).

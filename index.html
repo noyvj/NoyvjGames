@@ -277,6 +277,18 @@
       <option value="">Any collection</option>
     </select>
     <button type="button" id="random-game-button" class="secondary">Random game</button>
+    <button type="button" id="time-picker-button" class="secondary" aria-expanded="false" aria-controls="time-picker">How long have you got?</button>
+  </section>
+
+  <section id="time-picker" class="time-picker" aria-labelledby="time-picker-heading" hidden>
+    <h2 id="time-picker-heading" class="continue-playing-heading">How long have you got?</h2>
+    <div class="time-picker-choices" role="group" aria-label="Time available">
+      <button type="button" class="secondary time-picker-choice" data-time="5">5 minutes</button>
+      <button type="button" class="secondary time-picker-choice" data-time="15">15 minutes</button>
+      <button type="button" class="secondary time-picker-choice" data-time="night">All night</button>
+    </div>
+    <p id="time-picker-note" class="time-picker-note" role="status" aria-live="polite">Pick a length and the games that fit it appear here. Every game saves, so stopping early costs nothing.</p>
+    <ul id="time-picker-results" class="time-picker-results"></ul>
   </section>
   <div id="collection-manage" class="collection-manage" hidden></div>
   <span id="collections-live" class="visually-hidden" role="status"></span>
