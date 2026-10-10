@@ -155,3 +155,5 @@ Several items across the ideas file got parked specifically pending this — you
 - **Deep Descent** (roguelite dungeon crawler, plan in `planning/deep-descent-plan.md`): parked because of the no-roguelike rule; you said yes to dropping it from the list (2026-10-08). Revisit only if you ask.
 - **Dream game name** (Fg1, later): call it "dream game" for naming things and ideate a name later.
 - **Dream game interconnected play** (Fg16): everyone in the same lore forest, help each other, fight together; waits on shared run codes, friend ties and the multiplayer groundwork (TODO DG-7).
+- **Le Champ de Mots weeks 11 to 13** (2026-10-11): the slides are about three weeks away; then repeat the slide analysis and build for weeks 11 to 13 and recheck farm rows 22 and 23 (old TODO FS-6, FS-24).
+- **Hull Repair free workbench mode** (Hr4, yes later): draw your own boards after the last deck.

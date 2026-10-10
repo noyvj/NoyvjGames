@@ -108,3 +108,4 @@ Source: `planning/PLAYER-SURVEY.md` (the questions), answers read from the owner
 - Story vs short log: they prefer pictures and a narrator, but story is only Lifeline style; unclear how much narration other games should get.
 - Co-op and friends: only 2 friends play; unclear how much multiplayer work is worth it versus solo.
 - Asking style: "ask me directly" (FY0e) versus "put it in FOR-YOU and skip it" (Q4); unclear which is for what.
+- **Platforms (Ap1, 2026-10-11):** at night they play more on their iPhone; in class on a Mac; the gaming PC needs a long start-up so it is not the everyday device. Phone web play must stay first-class and a desktop app should target the Mac first.

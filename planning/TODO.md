@@ -1,6 +1,6 @@
 # Site-Wide TODO (round 3)
 
-**Progress: 712/1238 items checked off (57.5%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land.
+**Progress: 715/1257 items checked off (56.9%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land.
 
 Built from your answers in `planning/IMPROVEMENT-IDEAS-ROUND-3.md` (Part 4). Every Round 3 section is now answered (2026-10-07 below the Warframe section); earlier this list held only: **GB** (Canopy gamified), **M** (new games), **N** (seasonal events), **O** (Trade Empire and Continuum replayability), **P/Q/S/T** (Signal, Undersleep, Overclock, Last Line open questions), **X** (Warframe tracker) and **R** (returning later). GC-GI, A-L, U, Z and Y are unanswered and wait for you. The previous list is archived at `planning/todo-archive/260914_260927.md`; anything from it that was moved here is marked "moved" there.
 
@@ -94,10 +94,10 @@ The files are in `/Users/alexhart/BCM Project folder/fren152-slides/` (outside t
 - [x] FS-21: Le Champ de Mots: add a practice mode for reciprocal pronoun completion, a tutorial format that has no matching mode yet, registered in the practice-mode ledger so every action counts toward a visible stat, with tests.
 - [x] FS-22: Le Champ de Mots: add a practice mode for pair question work (ask and answer a partner's question), a tutorial format that has no matching mode yet, registered in the practice-mode ledger so every action counts toward a visible stat, with tests.
 - [x] FS-23: Le Champ de Mots: the online written exam is Friday 13 November 2026 (2 hours, on Moodle, from the subject outline); offer it as the default date in the exam planner (L-9) when none is set.
-- [ ] FS-24: Le Champ de Mots: farm rows 22 and 23 (irregular participles, être verbs, reflexive passé composé, savoir/connaître, disjunctive pronouns) cannot be checked until you upload weeks 11 to 13; recheck them then.
+- (moved to LATER 2026-10-11: weeks 11 to 13 of the slides are about three weeks away.)  Le Champ de Mots: farm rows 22 and 23 (irregular participles, être verbs, reflexive passé composé, savoir/connaître, disjunctive pronouns) cannot be checked until you upload weeks 11 to 13; recheck them then.
 - [x] FS-4: Add the "Lecture 7 supplement" content as its own bonus topic with a note saying where it came from.
 - [x] FS-5: Use the tutorial exercises' formats (for example fill in the blank, matching, sentence building) to check that each has a matching practice mode in the game, and list the missing ones.
-- [ ] FS-6: When weeks 11 to 13 arrive, repeat FS-1 to FS-3 for them (waits on your upload).
+- (moved to LATER 2026-10-11: weeks 11 to 13 of the slides are about three weeks away.)  When weeks 11 to 13 arrive, repeat FS-1 to FS-3 for them (waits on your upload).
 
 ---
 
@@ -186,6 +186,39 @@ Bugs first (user-reported problems are fixed regardless of the QA rule), then qu
 - [ ] GN-15: Hub: the "Today" strip must not include daily things from games unless the player turns tracking of them on.
 - [ ] GN-16: Hub: move the site feedback form up into a shared section at the top beside "Report a problem", since at the bottom nobody sees it.
 - [ ] GN-17: Direction (links to section LZ): shift games with many game modes toward a level-select system, so the main controls are introduced first and the different "game mode" gimmicks are introduced and added slowly.
+
+---
+
+## AN. Your answers on the ideas sheet applied (2026-10-11)
+
+Yes answers mean the recommendation; items below are the work they create.
+**Hull Repair:** keep patched and restored both (Hr1), keep the quiet log with a hide switch (Hr3), a free workbench mode later (Hr4), fine as is (Hr6).
+- [ ] AN-1: Hull Repair: open every board from the start instead of gating decks at 5 of 8 patched (Hr2).
+- [ ] AN-2: Hull Repair: you asked whether valves and mixers arrive late so there is time to learn the other mechanics first (Hr5); keep them where they are and instead add more levels between decks so the new mechanics get more practice boards.
+**Robot Script:** keep Scrap's tone and the medal rule (Rs2, Rs3).
+- [ ] AN-3: Robot Script: open the free sandbox after chapter 3 instead of after the last chapter (Rs1).
+- [ ] AN-4: Robot Script: bring turning (`L R`) in from room 4 of chapter 1 (Rs4).
+- [ ] AN-5: Robot Script: open every room from the start instead of gating chapters at 5 of 7 cleared (Rs5).
+**Station Medic:** keep the rule-out dimming, borrow and comfort care, the names and the crew's flaws (Sm1 to Sm5).
+- [ ] AN-6: Station Medic: open every chapter from the start instead of gating at 5 of 8 shifts (Sm6); a Rough shift still counts (Sm2).
+**Stranded:** keep the locks with visible reasons, the names and the Pavel twist (Sd3 to Sd5).
+- [ ] AN-7: Stranded: make one message per tap the default (Sd1).
+- [ ] AN-8: Stranded: give Harbour a small real flaw that shapes a few choices (Sd2).
+- [ ] AN-9: Stranded: add one more ending that is sadder but still gentle, with no on-screen death (Sd6).
+- [ ] AN-10: Stranded (and the other story games): keep narration silent and in text only; any per-day narrator intro stays off by default (Pq6: no voiced narrator unless real voice acting is ever wanted).
+**Cross-game patterns you agreed to:**
+- [ ] AN-11: Signal: the daily puzzle has no streak by default; the archive stays so missing a day costs nothing (Pq1).
+- [ ] AN-12: Every hint ladder: each rung opens only when you press "Another hint", and the first rung asks "Would you like a suggestion?" (Pq2).
+- [ ] AN-13: Skill trees with no free refund: allow moving one point for a small in-game cost, never a restart (Pq3).
+- [ ] AN-14: Build one test page with three mockups of overlay windows (a side drawer, a centred pop-up and a full-screen menu) so you can pick the style for PC (Pq5).
+- [ ] AN-15: Two-player puzzles work with one friend through an invite link, plus a solo version that plays both halves (Pq7).
+- [ ] AN-16: Titles are account-wide (one titles shelf on your account) and per-game titles are removed (Pq9).
+- [ ] AN-17: Every game offers a difficulty choice at the start (easy, normal, hard), with normal as the default and hard as an option (Pq10).
+- [x] AN-18: Audio explanation (you asked in Pq4 how audio works and whether it can be free): answered in chat on 2026-10-11 (Web Audio for generated sounds with no files, free CC0 sound packs, mute and autoplay rules); audio itself stays parked until you say go.
+**Dream game and app (Dg, Ap answers):**
+- [ ] AN-19: Dream game: draft three main-story options (one paragraph each) for you to pick from, with the six launch keepers (the builder first, then a woodcutter, miner, librarian, workshop tinkerer and healer) (Dg1, Dg2).
+- [ ] AN-20: App form: you play on iPhone at night and on a Mac in class, and your PC needs a long start-up, so a desktop app should target the Mac first and the web phone experience must stay first-class; every game stays on the web and none is app-only (Ap1, Ap2); later, try a small desktop-app experiment with one existing game (Ap3).
+- [x] AN-21: Le Champ de Mots: ignore the stray 2024 lecture 13 until the 2026 week 13 arrives (Fs2).
 
 ---
 
@@ -1298,7 +1331,7 @@ Classic stays the default boot (`index.html`); Desktop is a second boot (`pc.htm
 - [x] PC-14: Le Champ de Mots Desktop (agent-built, reviewed, committed 084a60b; offline cache worker version 27).
 - [x] PC-15: SOL Desktop. Same state as PC-14 (722 tests pass, uncommitted, stopped mid-build).
 - [x] PC-16: Screenshots of every Desktop game sent to you (2026-10-08, 14 games at 1440x900, first load, light theme; Thaw and Continuum were shot from the last commit because their working-tree files were mid-edit). Chronicle has no Desktop boot yet (CH-13).
-- [ ] PC-18: Fix whatever you say feels wrong in the Desktop screenshots (say which game and what), then re-send screenshots of the changed games. Controller support: not yet; audio stays parked.
+- [x] PC-18: Fix whatever you say feels wrong in the Desktop screenshots (say which game and what), then re-send screenshots of the changed games. Controller support: not yet; audio stays parked. (Your Desktop notes arrived as game notes: the Tide spacing is GN-8, the Canopy badge frame is GN-4; nothing else was raised. Done 2026-10-11.)
 - [x] PC-17: Fix SOL's research node buttons staying greyed out as Iron accumulates (Classic bug found by the Desktop agent: `update_research_node_list()` only runs on events, not as Iron grows). Needs a light update of the `disabled` flags in the tick path, not a full list rebuild every tick (that would swallow clicks); then drop the workaround in `games/sol/pc.js`.
 
 ## LX. Lexis (language-deduction puzzle game; plan `planning/lexis-plan.md`, game in `games/lexis/`)
