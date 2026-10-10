@@ -1,6 +1,6 @@
 # Site-Wide TODO (round 3)
 
-**Progress: 716/1257 items checked off (57.0%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land.
+**Progress: 716/1261 items checked off (56.8%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land.
 
 Built from your answers in `planning/IMPROVEMENT-IDEAS-ROUND-3.md` (Part 4). Every Round 3 section is now answered (2026-10-07 below the Warframe section); earlier this list held only: **GB** (Canopy gamified), **M** (new games), **N** (seasonal events), **O** (Trade Empire and Continuum replayability), **P/Q/S/T** (Signal, Undersleep, Overclock, Last Line open questions), **X** (Warframe tracker) and **R** (returning later). GC-GI, A-L, U, Z and Y are unanswered and wait for you. The previous list is archived at `planning/todo-archive/260914_260927.md`; anything from it that was moved here is marked "moved" there.
 
@@ -219,6 +219,16 @@ Yes answers mean the recommendation; items below are the work they create.
 - [ ] AN-19: Dream game: draft three main-story options (one paragraph each) for you to pick from, with the six launch keepers (the builder first, then a woodcutter, miner, librarian, workshop tinkerer and healer) (Dg1, Dg2).
 - [ ] AN-20: App form: you play on iPhone at night and on a Mac in class, and your PC needs a long start-up, so a desktop app should target the Mac first and the web phone experience must stay first-class; every game stays on the web and none is app-only (Ap1, Ap2); later, try a small desktop-app experiment with one existing game (Ap3).
 - [x] AN-21: Le Champ de Mots: ignore the stray 2024 lecture 13 until the 2026 week 13 arrives (Fs2).
+
+---
+
+## AU. Generated sound, no audio files (you, 2026-10-11)
+
+You said: do the audio that needs no files for now (sounds made in code with the browser's Web Audio, free and tiny), and leave recorded sound effects and music files for much later. Sound is off by default, always has a visible mute, never autoplays, never uses notifications or reminders, and every game keeps working in silence (nothing is ever communicated by sound alone).
+- [ ] AU-1: Build `shared/sfx.js`: a small Web Audio synthesizer with named cues (tap, confirm, soft error, success, level complete, unlock, gentle ambient hum), a master on/off (off by default), a volume slider, a "reduce sounds" mode, resume-on-first-tap for browsers' autoplay rule, silent-mode and visibility handling (mute when the tab is hidden), a hub Settings entry under "Defaults for every game", and tests (the pure tone-parameter functions are testable; the audio output itself is checked with a stubbed AudioContext).
+- [ ] AU-2: Wire a first small palette into two or three quiet games as the experiment (suggested: Logic Gates gate clicks, Hull Repair patch tones, Lighthouse a soft bell), each with its own Settings toggle that follows the global one, and a note on the game's Sources page that the sounds are generated in code.
+- [ ] AU-3: Roll the palette out game by game with one or two cues each (the games' own achievements and level completions first), keeping everything short, soft and optional.
+- [ ] AU-4 (LATER): recorded sound effects and music files, with the licence per file recorded on the Sources page; only when you say go.
 
 ---
 
