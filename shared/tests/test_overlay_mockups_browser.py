@@ -38,6 +38,7 @@ def test_tab_stays_inside_the_window_both_ways(harness):
 def test_geometry_of_the_three_styles(harness):
     h = open_page(harness)
     h.page.click('[data-open="drawer"]')
+    h.page.wait_for_timeout(350)                 # the slide-in animation is 180 ms
     box = h.page.evaluate("(() => { const r = document.getElementById('win').getBoundingClientRect(); return [r.left, r.top, r.width, r.height, innerWidth, innerHeight]; })()")
     assert box[3] == box[5] and abs(box[0] + box[2] - box[4]) < 1 and box[2] <= 420
     h.page.keyboard.press("Escape")
@@ -46,6 +47,7 @@ def test_geometry_of_the_three_styles(harness):
     assert box[0] == box[2] and box[1] == box[3]
     h.page.keyboard.press("Escape")
     h.page.click('[data-open="popup"]')
+    h.page.wait_for_timeout(350)
     box = h.page.evaluate("(() => { const r = document.getElementById('win').getBoundingClientRect(); return [r.left, r.width, innerWidth]; })()")
     assert abs((box[0] + box[1] / 2) - box[2] / 2) < 1 and box[1] < box[2]
 

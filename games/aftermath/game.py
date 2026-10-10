@@ -3675,8 +3675,28 @@ def event_announcement(entry):
     return text
 
 
+def _shared_announce(text):
+    """B-7: speak through shared/announcer.js when the page has it (returns True); otherwise the game's own
+    live region is used. Never both, so a screen reader does not read a message twice."""
+    try:
+        from js import window  # noqa: PLC0415 -- Pyodide-only, deliberately lazy
+    except ImportError:
+        return False
+    shared = getattr(window, "NoyvjAnnounce", None)
+    if shared is None:
+        return False
+    try:
+        shared.say(str(text))
+    except Exception:  # noqa: BLE001 -- an announcement must never break the game
+        return False
+    return True
+
+
 def announce(text):
     element = document.getElementById("event-announcer")
+    if text and _shared_announce(text):
+        element.innerText = ""
+        return
     element.innerText = text
 
 

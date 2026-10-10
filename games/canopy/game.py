@@ -6581,12 +6581,31 @@ def _announce(message):
 _announce_flip = False
 
 
+def _shared_announce(text):
+    """B-7: speak through shared/announcer.js when the page has it (returns True); otherwise the game's own
+    live region is used. Never both, so a screen reader does not read a message twice."""
+    try:
+        from js import window  # noqa: PLC0415 -- Pyodide-only, deliberately lazy
+    except ImportError:
+        return False
+    shared = getattr(window, "NoyvjAnnounce", None)
+    if shared is None:
+        return False
+    try:
+        shared.say(str(text))
+    except Exception:  # noqa: BLE001 -- an announcement must never break the game
+        return False
+    return True
+
+
 def render_announcer():
     global _announce_flip
     if not _announce_queue:
         return
     text = ". ".join(m.rstrip(". ") for m in _announce_queue)
     del _announce_queue[:]
+    if _shared_announce(text):
+        return
     element = _el("sr-announcer")
     if element is not None:
         # A live region only speaks when its text changes, so a repeated message (a second refusal, the same
