@@ -710,19 +710,208 @@ def _record_round_events():
                 bump=deg(CASCADE_BUMP),
             )
             science_log.append({"region": label, "round": r.round_number - 1, "text": text})
-    narrative_log.cap_entries(science_log, SCIENCE_LOG_MAX)
+    _cap_science_log()
+
+
+# G-19: a pinned entry survives the 40-entry cap (at most MAX_PINNED pins, so the log can always make
+# room) and is repeated in the Highlights recap. Pins ride the saved log as `"pinned": true`, written
+# only on pinned entries.
+MAX_PINNED = 10
+
+# G-18: filter chips. An entry's kind is read from its text (so entries from older saves sort too):
+# "tipping" (melt, critical, cascades), "milestone" (delays, restoration, balance, escalation, run end)
+# and "invest" (pre-emptive protection, rescues, grants, convoys).
+LOG_FILTERS = ("all", "tipping", "milestone", "invest", "pinned")
+LOG_FILTER_LABEL = {
+    "all": "All", "tipping": "Tipping", "milestone": "Milestones", "invest": "Invest", "pinned": "Pinned",
+}
+_LOG_KIND_WORDS = (
+    ("tipping", ("began melting", "went critical", "cascade")),
+    ("invest", ("pre-emptive", "rescue", "grant", "convoy")),
+    ("milestone", ("delayed reaching", "restoration", "perfect-balance", "escalation", "the run is over")),
+)
+log_filter = "all"
+log_query = ""
+
+
+def log_kind(entry):
+    text = str(entry.get("text", "")).lower()
+    for kind, words in _LOG_KIND_WORDS:
+        if any(word in text for word in words):
+            return kind
+    return "other"
+
+
+def _cap_science_log(limit=None):
+    """Trims the log to `limit` entries (default SCIENCE_LOG_MAX), dropping the oldest unpinned
+    entries first. Pinned entries only go if there is nothing else to drop."""
+    limit = SCIENCE_LOG_MAX if limit is None else limit
+    if not any(entry.get("pinned") for entry in science_log):
+        narrative_log.cap_entries(science_log, limit)  # the shared Z11 helper when nothing is pinned
+        return
+    unpinned = [i for i, entry in enumerate(science_log) if not entry.get("pinned")]
+    excess = len(science_log) - limit
+    if excess <= 0:
+        return
+    drop = set(unpinned[:excess])
+    if len(drop) < excess:
+        drop |= set(range(len(science_log))) - set(unpinned)
+        drop = set(sorted(drop)[:excess])
+    science_log[:] = [entry for i, entry in enumerate(science_log) if i not in drop]
+
+
+def _log_action(label, text):
+    """An invest-kind line for something the player just did between rounds (rescue, grant, convoy)."""
+    _cap_science_log(SCIENCE_LOG_MAX - 1)
+    science_log.append({"region": label, "round": region.round_number, "text": text})
+
+
+def pinned_count():
+    return sum(1 for entry in science_log if entry.get("pinned"))
+
+
+def set_log_pinned(index, pinned):
+    """Pins or unpins the entry at `index` in the stored log. Returns True if it changed."""
+    if not isinstance(index, int) or isinstance(index, bool) or not 0 <= index < len(science_log):
+        return False
+    entry = science_log[index]
+    if pinned:
+        if entry.get("pinned") or pinned_count() >= MAX_PINNED:
+            return False
+        entry["pinned"] = True
+        return True
+    if not entry.get("pinned"):
+        return False
+    del entry["pinned"]
+    return True
+
+
+def set_log_filter(name):
+    global log_filter
+    if name not in LOG_FILTERS:
+        return False
+    log_filter = name
+    return True
+
+
+def set_log_query(text):
+    global log_query
+    log_query = str(text or "").strip().lower()[:60]
+
+
+def filtered_log():
+    """[(stored index, entry)] for the entries the current chip and search let through, oldest first."""
+    rows = []
+    for index, entry in enumerate(science_log):
+        if log_filter == "pinned" and not entry.get("pinned"):
+            continue
+        if log_filter in ("tipping", "milestone", "invest") and log_kind(entry) != log_filter:
+            continue
+        if log_query:
+            haystack = f"round {entry['round']} region {entry['region']} {entry['text']}".lower()
+            if log_query not in haystack:
+                continue
+        rows.append((index, entry))
+    return rows
+
+
+def _escape(text):
+    return str(text).replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
 
 
 def science_log_html():
     if not science_log:
         return "<li>No key moments recorded yet.</li>"
+    rows = filtered_log()
+    if not rows:
+        # empty text on purpose: the Desktop notifier announces row text, and the words come from CSS
+        return '<li class="log-empty" data-empty="No entries match this filter."></li>'
     items = []
-    for entry in reversed(science_log):
-        text = (
-            str(entry["text"]).replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+    for index, entry in reversed(rows):
+        pinned = bool(entry.get("pinned"))
+        label = "Unpin this entry" if pinned else "Pin this entry"
+        items.append(
+            f'<li class="{"log-entry log-entry--pinned" if pinned else "log-entry"}">'
+            f"Round {entry['round']} \u2014 Region {entry['region']}: {_escape(entry['text'])} "
+            f'<button type="button" class="log-pin-button" data-pin-index="{index}" '
+            f'aria-pressed="{"true" if pinned else "false"}" aria-label="{label}" title="{label}">'
+            f"</button></li>"
         )
-        items.append(f"<li>Round {entry['round']} \u2014 Region {entry['region']}: {text}</li>")
     return "".join(items)
+
+
+def science_log_text(only_pinned=False):
+    """Plain text of the whole log (or just the pinned lines), oldest first, one line each."""
+    rows = [e for e in science_log if e.get("pinned")] if only_pinned else list(science_log)
+    return "\n".join(f"Round {e['round']} - Region {e['region']}: {e['text']}" for e in rows)
+
+
+def pinned_highlight_lines():
+    return [f"Pinned, round {e['round']}, Region {e['region']}: {e['text']}" for e in science_log if e.get("pinned")]
+
+
+def render_science_log():
+    document.getElementById("science-log-count").innerText = str(len(science_log))
+    document.getElementById("science-log-list").innerHTML = science_log_html()
+    for name in LOG_FILTERS:
+        chip = document.getElementById(f"log-filter-{name}")
+        label = LOG_FILTER_LABEL[name]
+        chip.innerText = f"{label} ({pinned_count()})" if name == "pinned" else label
+        chip.className = "log-chip log-chip--on" if name == log_filter else "log-chip"
+        chip.setAttribute("aria-pressed", "true" if name == log_filter else "false")
+    document.getElementById("log-pin-note").innerText = (
+        f"Pinned entries ({pinned_count()} of {MAX_PINNED}) stay when older lines scroll off, "
+        f"and appear in the Highlights recap."
+    )
+
+
+def on_log_filter(name):
+    def handler(event=None):
+        if set_log_filter(name):
+            render_science_log()
+    return handler
+
+
+def on_log_search(event=None):
+    set_log_query(document.getElementById("log-search").value)
+    render_science_log()
+
+
+def on_log_list_click(event=None):
+    """One delegated listener for every pin button in the list (the buttons are re-created on each
+    render, so they cannot carry their own listeners)."""
+    target = getattr(event, "target", None)
+    closest = getattr(target, "closest", None)
+    button = closest("button[data-pin-index]") if closest is not None else None
+    if button is None:
+        return
+    try:
+        index = int(button.getAttribute("data-pin-index"))
+    except (TypeError, ValueError, AttributeError):
+        return
+    entry = science_log[index] if 0 <= index < len(science_log) else None
+    if entry is None:
+        return
+    if set_log_pinned(index, not entry.get("pinned")):
+        render()
+    else:
+        document.getElementById("log-status").innerText = (
+            f"You can pin up to {MAX_PINNED} entries; unpin one first." if not entry.get("pinned") else ""
+        )
+
+
+def on_copy_log(event=None):
+    status = document.getElementById("log-status")
+    text = science_log_text()
+    if not text:
+        status.innerText = "The log is empty."
+        return
+    try:
+        from js import navigator  # noqa: PLC0415 -- Pyodide-only, deliberately lazy
+        navigator.clipboard.writeText("Thaw scientist's log\n" + text)
+        status.innerText = "Log copied to the clipboard as plain text."
+    except Exception:  # noqa: BLE001 -- no clipboard (tests, or a blocked page)
+        status.innerText = "Copy isn't available here: select the entries above instead."
 
 
 def _auto_play_worst_case_region():
@@ -1254,6 +1443,7 @@ def spend_carbon_credits(key):
         return False
     carbon_bank -= CARBON_CREDITS_PER_GRANT
     _carbon_target(key).funds += CARBON_GRANT_FUNDS
+    _log_action(key.upper(), f"a carbon-bank grant of {CARBON_GRANT_FUNDS:.0f} funds was spent.")
     return True
 
 
@@ -2405,6 +2595,11 @@ def route_funds(src_key, dst_key):
     _routing_region(dst_key).funds += ROUTING_CONVOY_FUNDS - tax
     convoys_sent += 1
     convoy_tax_lost += tax
+    _log_action(
+        dst_key.upper(),
+        f"a convoy from Region {src_key.upper()} delivered {ROUTING_CONVOY_FUNDS - tax:.0f} funds "
+        f"({tax:.0f} lost to the transport tax).",
+    )
     return True
 
 
@@ -2762,7 +2957,7 @@ def highlights_lines():
 
 
 def highlights_text():
-    return f"Thaw highlights (round {region.round_number}): " + " ".join(highlights_lines())
+    return f"Thaw highlights (round {region.round_number}): " + " ".join(highlights_lines() + pinned_highlight_lines())
 
 
 def share_result():
@@ -2785,6 +2980,8 @@ def share_result():
 
 def render_highlights():
     items = "".join(f"<li>{line}</li>" for line in highlights_lines())
+    # G-19: pinned log entries ride along under the three recap lines.
+    items += "".join(f'<li class="log-entry--pinned">{_escape(line)}</li>' for line in pinned_highlight_lines())
     document.getElementById("highlights-list").innerHTML = items
 
 
@@ -2910,7 +3107,7 @@ def escalation_text():
 def _announce_escalation(level):
     global just_escalated
     just_escalated = level
-    narrative_log.cap_entries(science_log, SCIENCE_LOG_MAX - 1)
+    _cap_science_log(SCIENCE_LOG_MAX - 1)
     science_log.append({
         "region": "ALL",
         "round": region.round_number - 1,
@@ -2932,7 +3129,7 @@ def finish_run(reason):
     run_over = True
     record_field_note()
     title = run_title(run_result["saved"])[0]
-    narrative_log.cap_entries(science_log, SCIENCE_LOG_MAX - 1)
+    _cap_science_log(SCIENCE_LOG_MAX - 1)
     science_log.append({
         "region": "ALL",
         "round": played,
@@ -3600,8 +3797,7 @@ def render():
     )
 
     # G19: scientist's log.
-    document.getElementById("science-log-count").innerText = str(len(science_log))
-    document.getElementById("science-log-list").innerHTML = science_log_html()
+    render_science_log()
 
     # G2: an explicit "which region did best" comparison line, always
     # visible (not gated on an end-of-session state, since this game has
@@ -3665,6 +3861,7 @@ def _make_rescue_handler(prefix):
     def handler(event=None):
         target = region if prefix == "" else SECONDARY_REGIONS[prefix]
         if target.rescue():
+            _log_action((prefix or "a").upper(), "the one-time emergency rescue was used.")
             render()
             _check_new_achievements_for_toast()
     return handler
@@ -4057,10 +4254,18 @@ def load_state(data):
     if isinstance(saved_log, list):
         science_log[:] = [
             {"region": str(e.get("region", "A"))[:3], "round": int(e.get("round", 0)),
-             "text": str(e.get("text", ""))}
+             "text": str(e.get("text", "")), **({"pinned": True} if e.get("pinned") is True else {})}
             for e in saved_log
             if isinstance(e, dict) and isinstance(e.get("round", 0), (int, float))
-        ][-SCIENCE_LOG_MAX:]
+        ]
+        # at most MAX_PINNED pins survive a load, then the usual cap (oldest unpinned first)
+        seen = 0
+        for entry in science_log:
+            if entry.get("pinned"):
+                seen += 1
+                if seen > MAX_PINNED:
+                    del entry["pinned"]
+        _cap_science_log()
     document.getElementById("b-strategy-label-input").value = region_b.strategy_label
     document.getElementById("c-strategy-label-input").value = region_c.strategy_label
     render()
@@ -4084,6 +4289,11 @@ def setup():
     document.getElementById("rate-inspector-region").addEventListener(
         "change", create_proxy(on_rate_inspector_region_change)
     )
+    for name in LOG_FILTERS:
+        document.getElementById(f"log-filter-{name}").addEventListener("click", create_proxy(on_log_filter(name)))
+    document.getElementById("log-search").addEventListener("input", create_proxy(on_log_search))
+    document.getElementById("log-export-button").addEventListener("click", create_proxy(on_copy_log))
+    document.getElementById("science-log-list").addEventListener("click", create_proxy(on_log_list_click))
     document.getElementById("highlights-copy-button").addEventListener(
         "click", create_proxy(on_copy_highlights)
     )

@@ -278,6 +278,20 @@
       </div>
       <details id="science-log-details" class="science-log">
         <summary>📓 Scientist's log (<span id="science-log-count">0</span>)</summary>
+        <!-- G-18 / G-19: filter chips, search, plain-text export and pinning. -->
+        <div class="log-tools">
+          <div class="log-chips" role="group" aria-label="Filter the log">
+            <button type="button" id="log-filter-all" class="log-chip log-chip--on" aria-pressed="true">All</button>
+            <button type="button" id="log-filter-tipping" class="log-chip" aria-pressed="false">Tipping</button>
+            <button type="button" id="log-filter-milestone" class="log-chip" aria-pressed="false">Milestones</button>
+            <button type="button" id="log-filter-invest" class="log-chip" aria-pressed="false">Invest</button>
+            <button type="button" id="log-filter-pinned" class="log-chip" aria-pressed="false">Pinned</button>
+          </div>
+          <input id="log-search" class="log-search" type="search" maxlength="60" placeholder="Search the log" aria-label="Search the log">
+          <button type="button" id="log-export-button" class="secondary">Copy log as text</button>
+        </div>
+        <p id="log-pin-note" class="comparison-message"></p>
+        <p id="log-status" class="comparison-message" role="status"></p>
         <ol id="science-log-list" class="science-log-list"></ol>
       </details>
       <!-- G-1 / G-2: per-run history on this device, and the two-run overlay. -->

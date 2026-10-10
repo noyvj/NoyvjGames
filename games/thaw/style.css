@@ -1317,3 +1317,37 @@ html[data-lite="true"] .achievement-card--earned { box-shadow: none; }
 
 /* G-22 */
 .session-note { margin: 0.1rem 0 0.4rem; font-size: 0.78rem; opacity: 0.75; }
+
+/* G-18 / G-19: log filter chips, search, pin buttons. The pin glyph is CSS content, not text, so the
+   Desktop notifier (which announces row text) does not treat a pin toggle as a new entry. */
+.log-tools { display: flex; flex-wrap: wrap; gap: 0.4rem; align-items: center; margin: 0.4rem 0; }
+.log-chips { display: flex; flex-wrap: wrap; gap: 0.25rem; }
+.log-chip {
+  padding: 0.2rem 0.6rem;
+  border: 1px solid rgba(140, 180, 230, 0.35);
+  border-radius: 999px;
+  background: transparent;
+  color: inherit;
+  font-size: 0.75rem;
+  cursor: pointer;
+}
+.log-chip--on { background: rgba(111, 184, 232, 0.28); border-color: #8fd8ff; font-weight: 600; }
+.log-search { flex: 1 1 8rem; min-width: 7rem; padding: 0.25rem 0.5rem; font-size: 0.8rem; }
+.log-entry { margin-bottom: 0.2rem; }
+.log-entry--pinned { border-left: 3px solid #8fd8ff; padding-left: 0.35rem; }
+.log-pin-button {
+  margin-left: 0.3rem;
+  padding: 0 0.3rem;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: transparent;
+  color: inherit;
+  font-size: 0.8rem;
+  cursor: pointer;
+  opacity: 0.6;
+}
+.log-pin-button:hover, .log-pin-button:focus-visible { opacity: 1; border-color: rgba(140, 180, 230, 0.5); }
+.log-pin-button::before { content: "\1F4CD"; }
+.log-pin-button[aria-pressed="true"] { opacity: 1; }
+.log-pin-button[aria-pressed="true"]::before { content: "\1F4CC"; }
+.log-empty::before { content: attr(data-empty); opacity: 0.7; }

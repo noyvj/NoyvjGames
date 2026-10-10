@@ -130,6 +130,15 @@ ELEMENT_IDS = [
     "temp-unit-select",
     # Oct 11 batch.
     "session-note",
+    "log-filter-all",
+    "log-filter-tipping",
+    "log-filter-milestone",
+    "log-filter-invest",
+    "log-filter-pinned",
+    "log-search",
+    "log-export-button",
+    "log-pin-note",
+    "log-status",
 ]
 for _category in CATEGORIES:
     ELEMENT_IDS += [f"{_category}-name", f"{_category}-count", f"{_category}-invest-button"]
