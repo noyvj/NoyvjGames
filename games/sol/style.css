@@ -1847,6 +1847,17 @@ html:not([data-show-timing="on"]) #splits-panel { display: none; }
 .anomaly-strip--strain { border-left-color: #f2c94c; border-left-style: double; }
 html[data-theme="light"] .anomaly-strip { border-color: rgba(30, 40, 80, 0.35); }
 
+/* --- A-5 / A-13: Charter panel pieces (rings are a conic gradient with the percent as text inside) ---- */
+.mega-ring { position: relative; flex: none; width: 3.4rem; height: 3.4rem; border-radius: 50%; display: grid; place-items: center; font-size: 0.78rem; font-weight: 700; isolation: isolate; }
+.mega-ring::before { content: ""; position: absolute; inset: 0.38rem; border-radius: 50%; background: var(--mega-ring-hole, #141a2c); z-index: -1; }
+.mega-head { display: flex; gap: 0.7rem; align-items: center; margin-bottom: 0.3rem; }
+.mega-line { display: flex; flex-wrap: wrap; align-items: center; gap: 0.3rem 0.6rem; margin: 0.2rem 0; }
+.mega-line .chain-card-count { flex: 1 1 14rem; margin: 0; }
+.overview-rings { display: flex; flex-wrap: wrap; gap: 0.6rem 1rem; margin: 0.4rem 0 0.6rem; }
+.overview-ring-cell { display: inline-flex; align-items: center; gap: 0.4rem; font-size: 0.8rem; }
+.overview-ring-cell .mega-ring { width: 2.6rem; height: 2.6rem; font-size: 0.68rem; }
+.overview-ring-cell .mega-ring::before { inset: 0.3rem; }
+
 /* ============================================================
    Y11b light-theme polish (2026-09-27). Light-only rules from a
    computed-style WCAG contrast scan of the light theme (fresh game, the
@@ -1924,3 +1935,5 @@ html[data-theme="light"] .chain-card-count { opacity: 1; color: #46507a; }
 html[data-theme="light"] .governor-report-card-mood { color: #46507a; }
 
 html[data-theme="light"] .anomaly-strip { border-color: rgba(30, 40, 80, 0.35); }
+
+html[data-theme="light"] { --mega-ring-fill: #2f6fb3; --mega-ring-rest: #c9d3e6; --mega-ring-hole: #f4f6fb; }

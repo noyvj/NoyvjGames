@@ -92,6 +92,8 @@ TRAVEL_BUTTON_ID = {
 # fixture agree on what "the DOM" contains.
 ELEMENT_IDS = [
     "anomaly-strip",
+    "charter-toggle-button",
+    "charter-panel",
     # Round-3 batch (A-22/24/25/26/30/31)
     "trophy-shelf",
     "click-streak",

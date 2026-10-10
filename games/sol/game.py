@@ -834,7 +834,7 @@ def terraform_rate(planet):
     health = state["ecology_health"]
     if health < TERRAFORM_ECOLOGY_THRESHOLD:
         return 0.0
-    return TERRAFORM_BASE_RATE_PER_SEC * (health / 100) * anomaly_factor("terraform")
+    return TERRAFORM_BASE_RATE_PER_SEC * (health / 100) * anomaly_factor("terraform") * megaproject_factor("terraform")
 
 
 def update_resource_display(planet):
@@ -920,7 +920,7 @@ def update_sky_city_display(planet):
     # need Mars materials, not just the local resource.
     cfg = PLANETS[planet]
     state = planet_state[planet]
-    bonus_pct = round(state["sky_city_count"] * cfg["sky_city_production_bonus_per_city"] * 100)
+    bonus_pct = round(state["sky_city_count"] * sky_city_bonus_per_city(planet) * 100)
 
     document.getElementById(_dom_id(planet, "sky-city-count")).innerText = str(state["sky_city_count"])
     document.getElementById(_dom_id(planet, "sky-city-bonus")).innerText = str(bonus_pct)
@@ -2533,7 +2533,7 @@ def _mine(planet, event=None):
     # rule, there must always be a lever.
     global total_manual_clicks, lifetime_resources_mined_by_click, manual_labor_hit
     state = planet_state[planet]
-    gained = 1 * _yield_multiplier() * _streak_click() * anomaly_factor("click")
+    gained = 1 * _yield_multiplier() * _streak_click() * anomaly_factor("click") * (1 + stamp_bonus(planet))
     state["resource_count"] += gained
     total_manual_clicks += 1
     lifetime_resources_mined_by_click += gained
@@ -3241,6 +3241,20 @@ def _build_overview():
     summary = _make_text("overview-summary", "")
     panel.appendChild(summary)
     _overview_refs["_summary"] = summary
+    # A-14: one progress ring per megaproject, so the whole system's effort shows at a glance.
+    rings = document.createElement("div")
+    rings.className = "overview-rings"
+    rings.setAttribute("aria-label", "Megaproject progress")
+    _overview_refs["_rings"] = {}
+    for project in MEGAPROJECTS:
+        cell = document.createElement("span")
+        cell.className = "overview-ring-cell"
+        ring = _ring(megaproject_percent(project["id"]))
+        cell.appendChild(ring)
+        cell.appendChild(_make_text("overview-ring-name", project["label"], "span"))
+        rings.appendChild(cell)
+        _overview_refs["_rings"][project["id"]] = ring
+    panel.appendChild(rings)
 
     for planet in _overview_planets():
         state = planet_state[planet]
@@ -3327,6 +3341,12 @@ def _refresh_overview_values():
             f"{len(planets)}/{len(PLANETS)} worlds unlocked · {gens} generators total · "
             f"average terraforming {round(avg_tf)}%"
         )
+    for pid, ring in _overview_refs.get("_rings", {}).items():
+        percent = megaproject_percent(pid)
+        ring.style.background = (
+            f"conic-gradient(var(--mega-ring-fill, #6fb3ff) {percent * 3.6}deg, var(--mega-ring-rest, #2a3350) 0)")
+        ring.innerText = f"{round(percent)}%"
+        ring.setAttribute("aria-label", f"{round(percent)} percent built")
     for planet in planets:
         refs = _overview_refs.get(planet)
         if refs is None:
@@ -3351,6 +3371,9 @@ def _refresh_overview_values():
         spec = _specialization(planet)
         if spec:
             bits.append(f"Focus: {SPECIALIZATION_LABELS[spec]}")
+        stamps = stamps_for(planet)
+        if stamps:
+            bits.append(f"Charter stamps: {STAMP_STAR * stamps} (+{stamps}% yield)")
         refs["extras"].innerText = " · ".join(bits)
 
 
@@ -3644,6 +3667,11 @@ def update_epilogue_display():
     ]
     if prestige_level > 0:
         paragraphs.insert(3, f"You have started over {prestige_level} time(s) already, and each run left the system tidier.")
+    if megaprojects_all_ever:
+        paragraphs.insert(1, (
+            "And above it all hang the four great works: the Orbital Mirror, the Ring Habitat, the Dyson Sail "
+            "and the Deep Core Tap, built with something from every world. Seen from Pluto, the inner system "
+            "is one slow, patient light."))
     for text in paragraphs:
         body.appendChild(_make_text("epilogue-paragraph", text))
 
@@ -3803,6 +3831,8 @@ def on_prestige(event=None):
         global current_planet, governor_priority, governor_budget_pct, governor_tick_count
         global governor_purchase_count, any_generator_ever_built, prestige_points_earned, sandbox_mode
         global epilogue_open, run_start_tick, run_completed, mutators_run
+        megaproject_progress.clear()  # A-13: a megaproject belongs to the run that built it
+        megaprojects_built.clear()
 
         prestige_level = next_level
         run_start_tick = total_ticks  # R-10: a new run starts its own clock
@@ -3938,9 +3968,7 @@ def _simulate_planet(planet, incoming_trade_restore):
         if multiplier > 0:
             # Sky City bonus (Milestone 10): a no-op multiplier of exactly 1
             # on planets without the sky city keys (the other six planets).
-            sky_city_bonus = 1 + cfg.get("sky_city_production_bonus_per_city", 0) * state.get(
-                "sky_city_count", 0
-            )
+            sky_city_bonus = 1 + sky_city_bonus_per_city(planet) * state.get("sky_city_count", 0)
             spec = _specialization(planet)
             produced = (
                 state["generator_count"]
@@ -3950,6 +3978,8 @@ def _simulate_planet(planet, incoming_trade_restore):
                 * multiplier
                 * _yield_multiplier()
                 * anomaly_factor("produce")
+                * megaproject_factor("produce")
+                * (1 + stamp_bonus(planet))
                 * (1 + SPECIALIZATION_OUTPUT_BONUS if spec == "output" else 1)
                 * (1.2 if prestige_has("governors_mandate") and planet != current_planet else 1)
             )
@@ -3973,7 +4003,7 @@ def _simulate_planet(planet, incoming_trade_restore):
         decay *= 1 + SPECIALIZATION_OUTPUT_DECAY_PENALTY
     elif spec == "stability":
         decay *= 1 - SPECIALIZATION_STABILITY_DECAY_CUT
-    restore = state["recycler_count"] * cfg["recycler_restore_per_sec"] * (TICK_INTERVAL_MS / 1000) * anomaly_factor("recycle")
+    restore = state["recycler_count"] * cfg["recycler_restore_per_sec"] * (TICK_INTERVAL_MS / 1000) * anomaly_factor("recycle") * megaproject_factor("recycle")
     state["ecology_health"] = clamp(
         state["ecology_health"] - decay + restore + incoming_trade_restore, 0.0, ECOLOGY_MAX
     )
@@ -4024,6 +4054,8 @@ def tick(*args):
     update_splits_display()
     update_chains_display()
     update_anomaly_strip()
+    _check_missions()
+    update_charter_display()
     _check_new_achievements_for_toast()
     if total_ticks % 10 == 0:
         _refresh_goals_panel()  # FY-53: once a second is plenty for a progress bar
@@ -4068,6 +4100,8 @@ def _full_render():
     update_chains_display()
     _update_anomaly()
     update_anomaly_strip()
+    _refill_mission_slots()
+    update_charter_display()
     render_trophy_shelf()
     render_click_streak()
     _refresh_all_cost_displays()
@@ -4162,6 +4196,11 @@ def serialize_state():
         **({"run_splits": dict(run_splits)} if run_splits else {}),
         **({"pb_splits": dict(pb_splits)} if pb_splits else {}),
         **({"anomalies_seen": sorted(anomalies_seen)} if anomalies_seen else {}),
+        **({"megaproject_progress": {k: dict(v) for k, v in megaproject_progress.items()}} if megaproject_progress else {}),
+        **({"megaprojects_built": list(megaprojects_built)} if megaprojects_built else {}),
+        **({"megaprojects_all_ever": True} if megaprojects_all_ever else {}),
+        **({"mission_stamps": list(mission_stamps)} if mission_stamps else {}),
+        **({"mission_slots": list(mission_slots)} if mission_slots and not _slots_are_default() else {}),
         **({"mutators_next": list(mutators_next)} if mutators_next else {}),
         **({"mutators_run": list(mutators_run)} if mutators_run else {}),
     }
@@ -4306,6 +4345,10 @@ def _load_session_additions(data):
     saved_anomalies = data.get("anomalies_seen")
     if isinstance(saved_anomalies, list):
         anomalies_seen.update(a for a in saved_anomalies if isinstance(a, str) and a in ANOMALY_BY_ID)
+    _load_megaprojects(data)
+    mission_stamps[:] = _clean_ids(data.get("mission_stamps"), MISSION_BY_ID)
+    mission_slots[:] = [m_id for m_id in _clean_ids(data.get("mission_slots"), MISSION_BY_ID)
+                        if m_id not in mission_stamps][:MISSION_SLOTS]
     mutators_next[:] = _clean_mutators(data.get("mutators_next"))
     mutators_run[:] = _clean_mutators(data.get("mutators_run"))
 
@@ -4735,6 +4778,439 @@ def update_anomaly_strip():
     )
 
 
+# --- A-5 / A-6: the Mission Board and Charter stamps ---------------------------
+# Three optional objectives are posted at a time; finishing one stamps the
+# Charter (kept for life) and posts the next. Nothing is random: missions are
+# offered in catalogue order (worlds you can reach first) and a reroll just moves
+# on to the next one. A stamp is a small permanent perk (+1% yield on its world,
+# +0.5% everywhere for the world-spanning ones) and shows on the Overview card.
+MISSION_SLOTS = 3
+STAMP_STAR = "\u2605"
+MISSION_REROLL_COST = 100  # of whichever resource pile is biggest right now
+_STAMP_BONUS_WORLD = 0.01
+_STAMP_BONUS_ALL = 0.005
+
+
+def _routes(planet):
+    return sum(planet_state[planet]["trade_routes"].values())
+
+
+def _governed_healthy_worlds():
+    return sum(
+        1 for p in PLANETS
+        if p != current_planet and planet_state[p]["generator_count"] >= 1 and planet_state[p]["ecology_health"] >= 60
+    )
+
+
+MISSIONS = [
+    {"id": "earth_crew", "world": "Earth", "target": 8, "label": "Run Earth with 5 Auto-Miners and 3 Recyclers",
+     "measure": lambda: min(planet_state["Earth"]["generator_count"], 5) + min(planet_state["Earth"]["recycler_count"], 3)},
+    {"id": "earth_hoard", "world": "Earth", "target": 2000, "label": "Bank 2,000 Iron on Earth",
+     "measure": lambda: planet_state["Earth"]["resource_count"]},
+    {"id": "earth_lean", "world": "Earth", "target": 25,
+     "label": "Terraform Earth to 25% with no Auto-Miners at all (Recyclers only)",
+     "measure": lambda: planet_state["Earth"]["terraform_progress"] if planet_state["Earth"]["generator_count"] == 0 else 0},
+    {"id": "mars_routes", "world": "Mars", "target": 2, "label": "Build 2 trade routes out of Mars",
+     "measure": lambda: _routes("Mars")},
+    {"id": "mars_calm", "world": "Mars", "target": 6,
+     "label": "Run 6 Auto-Miners on Mars with ecology at 90% or more",
+     "measure": lambda: planet_state["Mars"]["generator_count"] if planet_state["Mars"]["ecology_health"] >= 90 else 0},
+    {"id": "moon_stock", "world": "Moon", "target": 1500, "label": "Bank 1,500 Regolith on the Moon",
+     "measure": lambda: planet_state["Moon"]["resource_count"]},
+    {"id": "moon_green", "world": "Moon", "target": 50,
+     "label": "Terraform the Moon to 50% with 6 Auto-Miners or fewer",
+     "measure": lambda: planet_state["Moon"]["terraform_progress"] if planet_state["Moon"]["generator_count"] <= 6 else 0},
+    {"id": "venus_sixty", "world": "Venus", "target": 60, "label": "Terraform Venus to 60% with ecology at 50% or more",
+     "measure": lambda: planet_state["Venus"]["terraform_progress"] if planet_state["Venus"]["ecology_health"] >= 50 else 0},
+    {"id": "belt_bank", "world": "AsteroidBelt", "target": 2500, "label": "Bank 2,500 Platinum in the Asteroid Belt",
+     "measure": lambda: planet_state["AsteroidBelt"]["resource_count"]},
+    {"id": "belt_routes", "world": "AsteroidBelt", "target": 3, "label": "Build 3 trade routes out of the Asteroid Belt",
+     "measure": lambda: _routes("AsteroidBelt")},
+    {"id": "pluto_green", "world": "Pluto", "target": 40,
+     "label": "Terraform Pluto to 40% with at least 2 Recyclers",
+     "measure": lambda: planet_state["Pluto"]["terraform_progress"] if planet_state["Pluto"]["recycler_count"] >= 2 else 0},
+    {"id": "jupiter_sky", "world": "JupiterMoons", "target": 2, "label": "Build 2 Sky Cities over Jupiter's Moons",
+     "measure": lambda: planet_state["JupiterMoons"].get("sky_city_count", 0)},
+    {"id": "saturn_sky", "world": "SaturnMoons", "target": 2, "label": "Build 2 Sky Cities over Saturn's Moons",
+     "measure": lambda: planet_state["SaturnMoons"].get("sky_city_count", 0)},
+    {"id": "web_of_routes", "world": "all", "target": 6, "label": "Run 6 trade routes in total",
+     "measure": lambda: _total_trade_routes()},
+    {"id": "governed_well", "world": "all", "target": 3,
+     "label": "Have 3 worlds you are not standing on, each with an Auto-Miner and ecology at 60% or more",
+     "measure": lambda: _governed_healthy_worlds()},
+]
+MISSION_BY_ID = {entry["id"]: entry for entry in MISSIONS}
+mission_stamps = []  # lifetime, in the order earned
+mission_slots = []  # the missions on the board right now
+charter_open = False
+_charter_signature = None
+_charter_refs = {}
+
+
+def _clean_ids(raw, known):
+    cleaned = []
+    if isinstance(raw, list):
+        for item in raw:
+            if isinstance(item, str) and item in known and item not in cleaned:
+                cleaned.append(item)
+    return cleaned
+
+
+def stamps_for(world):
+    return sum(1 for m_id in mission_stamps if MISSION_BY_ID[m_id]["world"] == world)
+
+
+def stamp_bonus(planet):
+    return _STAMP_BONUS_WORLD * stamps_for(planet) + _STAMP_BONUS_ALL * stamps_for("all")
+
+
+def mission_progress(mission):
+    return min(max(0, mission["measure"]()), mission["target"])
+
+
+def _mission_world_open(mission):
+    if mission["world"] == "all":
+        return len(_overview_planets()) >= 3
+    return _world_available(mission["world"])
+
+
+def _mission_candidates():
+    return [m for m in MISSIONS
+            if m["id"] not in mission_stamps and m["id"] not in mission_slots and _mission_world_open(m)]
+
+
+def _slots_are_default():
+    """True while the board is exactly what refilling it from scratch would post (so nothing needs saving)."""
+    fresh = [m["id"] for m in MISSIONS if m["id"] not in mission_stamps and _mission_world_open(m)][:MISSION_SLOTS]
+    return list(mission_slots) == fresh
+
+
+def _refill_mission_slots():
+    while len(mission_slots) < MISSION_SLOTS:
+        candidates = _mission_candidates()
+        if not candidates:
+            break
+        mission_slots.append(candidates[0]["id"])
+
+
+def _mission_label_world(mission):
+    return "the whole system" if mission["world"] == "all" else PLANET_DISPLAY_NAMES.get(mission["world"], mission["world"])
+
+
+def _check_missions():
+    _refill_mission_slots()
+    for m_id in list(mission_slots):
+        mission = MISSION_BY_ID[m_id]
+        if mission["measure"]() >= mission["target"]:
+            mission_slots.remove(m_id)
+            mission_stamps.append(m_id)
+            _display_toast(f"Charter stamp earned: {mission['label']}")
+            _refill_mission_slots()
+
+
+def reroll_source():
+    """(planet, amount) the next reroll would spend, or None when no pile has enough."""
+    best = max(_overview_planets(), key=lambda p: planet_state[p]["resource_count"])
+    if planet_state[best]["resource_count"] >= MISSION_REROLL_COST:
+        return best, MISSION_REROLL_COST
+    return None
+
+
+def reroll_mission(mission_id):
+    """Swaps a posted mission for the next one in catalogue order. Returns True when it happened."""
+    if mission_id not in mission_slots:
+        return False
+    source = reroll_source()
+    candidates = _mission_candidates()
+    if source is None or not candidates:
+        return False
+    here = MISSIONS.index(MISSION_BY_ID[mission_id])
+    later = [m for m in candidates if MISSIONS.index(m) > here]
+    chosen = (later or candidates)[0]
+    planet_state[source[0]]["resource_count"] -= source[1]
+    mission_slots[mission_slots.index(mission_id)] = chosen["id"]
+    return True
+
+
+def on_toggle_charter(event=None):
+    global charter_open
+    charter_open = not charter_open
+    update_charter_display()
+
+
+def on_charter_click(event):
+    action = _target_attr(event, "data-action")
+    if action == "reroll":
+        reroll_mission(_target_attr(event, "data-mission"))
+    elif action == "send":
+        send_to_megaproject(_target_attr(event, "data-project"), _target_attr(event, "data-planet"))
+    update_charter_display()
+
+
+def _charter_structure_signature():
+    return (tuple(mission_slots), tuple(mission_stamps), tuple(sorted(anomalies_seen)),
+            tuple(_overview_planets()), tuple(megaprojects_built),
+            tuple((pid, tuple(sorted(v.items()))) for pid, v in sorted(megaproject_progress.items())))
+
+
+def _build_charter():
+    panel = document.getElementById("charter-panel")
+    panel.innerHTML = ""
+    _charter_refs.clear()
+    panel.appendChild(_make_text("stats-panel-heading", "Charter"))
+    panel.appendChild(_make_text(
+        "chains-intro",
+        "Optional objectives. Finish a mission and the Charter is stamped for good: a small permanent yield "
+        "bonus on that world, shown on its Overview card. Nothing here is timed or random.",
+    ))
+    panel.appendChild(_make_text("stats-panel-heading", "Mission Board"))
+    for m_id in mission_slots:
+        mission = MISSION_BY_ID[m_id]
+        card = document.createElement("div")
+        card.className = "chain-card"
+        card.appendChild(_make_text("chain-card-name", f"{mission['label']}"))
+        card.appendChild(_make_text("chain-card-detail", f"World: {_mission_label_world(mission)}"))
+        meter = document.createElement("div")
+        meter.className = "meter overview-meter"
+        fill = document.createElement("div")
+        fill.className = "meter-fill"
+        meter.appendChild(fill)
+        card.appendChild(meter)
+        text = _make_text("chain-card-count", "")
+        card.appendChild(text)
+        reroll = _make_button("Swap for another mission", {"data-action": "reroll", "data-mission": m_id}, None)
+        card.appendChild(reroll)
+        panel.appendChild(card)
+        _charter_refs[m_id] = {"fill": fill, "text": text, "reroll": reroll}
+    if len(mission_slots) < MISSION_SLOTS:
+        panel.appendChild(_make_text(
+            "chains-intro", "More missions are posted as you unlock worlds and finish these."))
+    _build_megaproject_section(panel)
+    _charter_refs["_stamps"] = _make_text("chain-card-count", "")
+    panel.appendChild(_make_text("stats-panel-heading", "Stamps"))
+    panel.appendChild(_charter_refs["_stamps"])
+    panel.appendChild(_make_text("stats-panel-heading", "Anomalies seen"))
+    names = [ANOMALY_BY_ID[a]["label"] if a in anomalies_seen else "?" for a in (e["id"] for e in ANOMALIES)]
+    panel.appendChild(_make_text(
+        "chain-card-detail", f"{len(anomalies_seen)} of {len(ANOMALIES)}: " + ", ".join(names)))
+
+
+def _refresh_charter_values():
+    for m_id in mission_slots:
+        refs = _charter_refs.get(m_id)
+        if refs is None:
+            continue
+        mission = MISSION_BY_ID[m_id]
+        current = mission_progress(mission)
+        pct = 100.0 * current / mission["target"]
+        refs["fill"].style.width = f"{pct}%"
+        shown = math.floor(current + 1e-9) if mission["target"] >= 100 else round(current)
+        refs["text"].innerText = f"{shown} of {mission['target']}"
+        source = reroll_source()
+        refs["reroll"].disabled = source is None or not _mission_candidates()
+        refs["reroll"].innerText = (
+            f"Swap for another mission ({source[1]} {PLANETS[source[0]]['resource_name']})" if source
+            else f"Swap for another mission (needs {MISSION_REROLL_COST} of any resource)"
+        )
+    _refresh_megaproject_values()
+    stamps = _charter_refs.get("_stamps")
+    if stamps is not None:
+        per_world = [f"{PLANET_DISPLAY_NAMES.get(p, p)} {STAMP_STAR * stamps_for(p)}" for p in PLANETS if stamps_for(p)]
+        if stamps_for("all"):
+            per_world.append("System " + STAMP_STAR * stamps_for("all"))
+        stamps.innerText = f"{len(mission_stamps)} of {len(MISSIONS)} stamps" + (
+            ": " + ", ".join(per_world) if per_world else ". Finish a mission to earn the first.")
+
+
+def update_charter_display():
+    global _charter_signature
+    toggle = document.getElementById("charter-toggle-button")
+    panel = document.getElementById("charter-panel")
+    count = f" ({len(mission_stamps)}/{len(MISSIONS)})"
+    toggle.innerText = ("Hide Charter" if charter_open else "\U0001f4dc Charter") + count
+    panel.hidden = not charter_open
+    if not charter_open:
+        _charter_signature = None
+        return
+    signature = _charter_structure_signature()
+    if signature != _charter_signature:
+        _build_charter()
+        _charter_signature = signature
+    _refresh_charter_values()
+
+
+# --- A-13 / A-14: Megaprojects --------------------------------------------------
+# Four late-game works, each fed by resources from several worlds at once. You
+# send what a world has banked ("Send what you can" per line), the ring fills by
+# whichever worlds have contributed, and a finished work gives a game-warping
+# perk for the rest of that run. Building all four (in one run) keeps a secret
+# epilogue variant for good. Per run, so each New Game+ can build them again.
+MEGAPROJECTS = [
+    {"id": "orbital_mirror", "label": "Orbital Mirror", "perk": "Terraforming advances 25% faster everywhere.",
+     "needs": [("Earth", 4000), ("Mars", 2500), ("AsteroidBelt", 1500)]},
+    {"id": "ring_habitat", "label": "Ring Habitat", "perk": "Sky Cities count double.",
+     "needs": [("Moon", 3000), ("Venus", 3000), ("Mars", 3000), ("AsteroidBelt", 2000)]},
+    {"id": "dyson_sail", "label": "Dyson Sail", "perk": "Every Auto-Miner produces 20% more.",
+     "needs": [("AsteroidBelt", 4000), ("JupiterMoons", 2500), ("Earth", 6000), ("Pluto", 1500)]},
+    {"id": "deep_core_tap", "label": "Deep Core Tap", "perk": "Recyclers restore 50% more ecology.",
+     "needs": [("SaturnMoons", 3000), ("Pluto", 2500), ("Venus", 3500), ("JupiterMoons", 2500), ("Moon", 2500)]},
+]
+MEGAPROJECT_BY_ID = {entry["id"]: entry for entry in MEGAPROJECTS}
+megaproject_progress = {}  # project id -> {planet: amount sent}
+megaprojects_built = []  # ids built in this run
+megaprojects_all_ever = False  # lifetime: all four built in one run once
+
+
+def _mega_need(project_id, planet):
+    return dict(MEGAPROJECT_BY_ID[project_id]["needs"]).get(planet, 0)
+
+
+def megaproject_sent(project_id, planet):
+    if project_id in megaprojects_built:
+        return _mega_need(project_id, planet)
+    return megaproject_progress.get(project_id, {}).get(planet, 0.0)
+
+
+def megaproject_percent(project_id):
+    needs = MEGAPROJECT_BY_ID[project_id]["needs"]
+    return 100.0 * sum(min(1.0, megaproject_sent(project_id, p) / amount) for p, amount in needs) / len(needs)
+
+
+def megaproject_factor(key):
+    factor = 1.0
+    if "orbital_mirror" in megaprojects_built and key == "terraform":
+        factor *= 1.25
+    if "dyson_sail" in megaprojects_built and key == "produce":
+        factor *= 1.2
+    if "deep_core_tap" in megaprojects_built and key == "recycle":
+        factor *= 1.5
+    return factor
+
+
+def sky_city_bonus_per_city(planet):
+    base = PLANETS[planet].get("sky_city_production_bonus_per_city", 0)
+    return base * (2 if "ring_habitat" in megaprojects_built else 1)
+
+
+def send_to_megaproject(project_id, planet):
+    """Moves what `planet` has banked toward its line of a project. Returns the amount sent."""
+    global megaprojects_all_ever
+    if project_id not in MEGAPROJECT_BY_ID or project_id in megaprojects_built or not _world_available(planet or ""):
+        return 0
+    need = _mega_need(project_id, planet)
+    if need <= 0:
+        return 0
+    sent = megaproject_progress.setdefault(project_id, {}).get(planet, 0.0)
+    amount = min(math.floor(planet_state[planet]["resource_count"] + 1e-9), need - sent)
+    if amount <= 0:
+        return 0
+    planet_state[planet]["resource_count"] -= amount
+    megaproject_progress[project_id][planet] = sent + amount
+    if all(megaproject_progress[project_id].get(p, 0.0) >= a for p, a in MEGAPROJECT_BY_ID[project_id]["needs"]):
+        megaprojects_built.append(project_id)
+        _display_toast(f"Megaproject built: {MEGAPROJECT_BY_ID[project_id]['label']}. {MEGAPROJECT_BY_ID[project_id]['perk']}")
+        if len(megaprojects_built) == len(MEGAPROJECTS):
+            megaprojects_all_ever = True
+    return amount
+
+
+def _load_megaprojects(data):
+    global megaprojects_all_ever
+    megaproject_progress.clear()
+    raw = data.get("megaproject_progress")
+    if isinstance(raw, dict):
+        for project_id, lines in raw.items():
+            if project_id not in MEGAPROJECT_BY_ID or not isinstance(lines, dict):
+                continue
+            cleaned = {}
+            for planet, amount in lines.items():
+                need = _mega_need(project_id, planet)
+                if need and isinstance(amount, (int, float)) and not isinstance(amount, bool) and 0 < amount < 10 ** 9:
+                    cleaned[planet] = min(float(amount), float(need))
+            if cleaned:
+                megaproject_progress[project_id] = cleaned
+    megaprojects_built[:] = [
+        pid for pid in _clean_ids(data.get("megaprojects_built"), MEGAPROJECT_BY_ID)
+    ]
+    megaprojects_all_ever = data.get("megaprojects_all_ever") is True or len(megaprojects_built) == len(MEGAPROJECTS)
+
+
+def _ring(percent):
+    """A progress ring made from a conic gradient, with the percent as plain text inside."""
+    ring = document.createElement("span")
+    ring.className = "mega-ring"
+    ring.setAttribute("role", "img")
+    ring.setAttribute("aria-label", f"{round(percent)} percent built")
+    ring.style.background = f"conic-gradient(var(--mega-ring-fill, #6fb3ff) {percent * 3.6}deg, var(--mega-ring-rest, #2a3350) 0)"
+    ring.innerText = f"{round(percent)}%"
+    return ring
+
+
+def _build_megaproject_section(panel):
+    panel.appendChild(_make_text("stats-panel-heading", f"Megaprojects ({len(megaprojects_built)}/{len(MEGAPROJECTS)} built this run)"))
+    panel.appendChild(_make_text(
+        "chains-intro",
+        "Each work needs resources from several worlds at once. Send what a world has banked and the ring fills; "
+        "a finished work keeps its perk for the rest of the run. Build all four for a secret ending line.",
+    ))
+    for project in MEGAPROJECTS:
+        pid = project["id"]
+        built = pid in megaprojects_built
+        card = document.createElement("div")
+        card.className = "chain-card chain-card--found" if built else "chain-card"
+        head = document.createElement("div")
+        head.className = "mega-head"
+        ring = _ring(megaproject_percent(pid))
+        head.appendChild(ring)
+        title = document.createElement("div")
+        title.appendChild(_make_text("chain-card-name", project["label"] + (" (built)" if built else "")))
+        title.appendChild(_make_text("chain-card-detail", "Perk: " + project["perk"]))
+        head.appendChild(title)
+        card.appendChild(head)
+        refs = {"ring": ring, "lines": {}}
+        if not built:
+            for planet, amount in project["needs"]:
+                row = document.createElement("div")
+                row.className = "mega-line"
+                text = _make_text("chain-card-count", "")
+                row.appendChild(text)
+                button = _make_button("Send what you can",
+                                      {"data-action": "send", "data-project": pid, "data-planet": planet}, None)
+                row.appendChild(button)
+                card.appendChild(row)
+                refs["lines"][planet] = (text, button)
+        panel.appendChild(card)
+        _charter_refs["mega:" + pid] = refs
+
+
+def _refresh_megaproject_values():
+    for project in MEGAPROJECTS:
+        pid = project["id"]
+        refs = _charter_refs.get("mega:" + pid)
+        if refs is None:
+            continue
+        percent = megaproject_percent(pid)
+        refs["ring"].style.background = (
+            f"conic-gradient(var(--mega-ring-fill, #6fb3ff) {percent * 3.6}deg, var(--mega-ring-rest, #2a3350) 0)")
+        refs["ring"].innerText = f"{round(percent)}%"
+        refs["ring"].setAttribute("aria-label", f"{round(percent)} percent built")
+        for planet, amount in project["needs"]:
+            line = refs["lines"].get(planet)
+            if line is None:
+                continue
+            text, button = line
+            name = PLANET_DISPLAY_NAMES.get(planet, planet)
+            sent = megaproject_sent(pid, planet)
+            resource = PLANETS[planet]["resource_name"]
+            if _world_available(planet):
+                banked = math.floor(planet_state[planet]["resource_count"] + 1e-9)
+                text.innerText = f"{resource} from {name}: {math.floor(sent)} of {amount} sent ({banked} banked)"
+                button.disabled = banked < 1 or sent >= amount
+            else:
+                text.innerText = f"{resource} from {name}: {math.floor(sent)} of {amount} sent (reach {name} first)"
+                button.disabled = True
+
+
 # --- FY-53: "three goals at all times" (shared/goals-panel.js) ---------------
 # The game owns the queue; the panel shows the first three that are not done.
 # Every goal maps to something SOL already measures, so nothing here is new
@@ -5106,6 +5582,8 @@ def setup():
     document.getElementById("build-plan-copy-button").addEventListener("click", create_proxy(on_build_plan_copy))
     document.getElementById("splits-toggle-button").addEventListener("click", create_proxy(on_toggle_splits))
     document.getElementById("chains-toggle-button").addEventListener("click", create_proxy(on_toggle_chains))
+    document.getElementById("charter-toggle-button").addEventListener("click", create_proxy(on_toggle_charter))
+    document.getElementById("charter-panel").addEventListener("click", create_proxy(on_charter_click))
     document.getElementById("prestige-tree-toggle-button").addEventListener(
         "click", create_proxy(on_toggle_prestige_tree)
     )

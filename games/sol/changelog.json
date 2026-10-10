@@ -2,6 +2,10 @@
   "changelog": [
     {
       "date": "2026-10-10",
+      "entry": "New: the Charter. A Mission Board posts three optional objectives at a time (such as banking Iron or terraforming a world a particular way); finishing one stamps the Charter for good with a small permanent yield bonus on that world, shown on its Overview card, and you can swap a mission for the next one for 100 of your biggest resource pile. The Charter also holds four late-game Megaprojects (Orbital Mirror, Ring Habitat, Dyson Sail, Deep Core Tap) built from resources of several worlds at once, with a progress ring each on the Overview and a secret epilogue line for building all four."
+    },
+    {
+      "date": "2026-10-10",
       "entry": "New: System Anomalies. Every five minutes of game time a short anomaly (one minute) changes the rules a little, always the same six in the same order: Comet Pass, Solar Flare, Meteor Shower, Magnetic Storm, Clear Skies and Dust Cloud, alternating a boon and a strain. A line under the toolbar says what is coming and for how long, and you can turn them off in Settings (Timed anomalies)."
     },
     {
