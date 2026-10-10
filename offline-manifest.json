@@ -312,17 +312,17 @@
     },
     {
      "path": "games/canopy/changelog.json",
-     "bytes": 21646,
+     "bytes": 22203,
      "precached": false
     },
     {
      "path": "games/canopy/game.py",
-     "bytes": 479272,
+     "bytes": 480523,
      "precached": true
     },
     {
      "path": "games/canopy/index.html",
-     "bytes": 91601,
+     "bytes": 91787,
      "precached": true
     },
     {
@@ -332,17 +332,17 @@
     },
     {
      "path": "games/canopy/pc-config.json",
-     "bytes": 4061,
+     "bytes": 4266,
      "precached": false
     },
     {
      "path": "games/canopy/pc.css",
-     "bytes": 5314,
+     "bytes": 5673,
      "precached": true
     },
     {
      "path": "games/canopy/pc.html",
-     "bytes": 96152,
+     "bytes": 96503,
      "precached": true
     },
     {
@@ -645,7 +645,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 15112470,
+   "bytes": 15115379,
    "bytes_complete": true
   },
   "grid": {
@@ -972,42 +972,42 @@
     },
     {
      "path": "games/tide/changelog.json",
-     "bytes": 14184,
+     "bytes": 15002,
      "precached": false
     },
     {
      "path": "games/tide/game.py",
-     "bytes": 293641,
+     "bytes": 298105,
      "precached": true
     },
     {
      "path": "games/tide/index.html",
-     "bytes": 69379,
+     "bytes": 69983,
      "precached": true
     },
     {
      "path": "games/tide/pc-config.json",
-     "bytes": 4297,
+     "bytes": 4815,
      "precached": false
     },
     {
      "path": "games/tide/pc.css",
-     "bytes": 5826,
+     "bytes": 6371,
      "precached": true
     },
     {
      "path": "games/tide/pc.html",
-     "bytes": 73198,
+     "bytes": 74180,
      "precached": true
     },
     {
      "path": "games/tide/pc.js",
-     "bytes": 4359,
+     "bytes": 4840,
      "precached": true
     },
     {
      "path": "games/tide/settings.js",
-     "bytes": 6910,
+     "bytes": 7936,
      "precached": false
     },
     {
@@ -1017,7 +1017,7 @@
     },
     {
      "path": "games/tide/style.css",
-     "bytes": 59730,
+     "bytes": 60090,
      "precached": true
     },
     {
@@ -1250,7 +1250,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14719135,
+   "bytes": 14728933,
    "bytes_complete": true
   },
   "aftermath": {
@@ -4511,7 +4511,7 @@
     },
     {
      "path": "games/lighthouse/app.js",
-     "bytes": 75251,
+     "bytes": 76281,
      "precached": true
     },
     {
@@ -4521,7 +4521,7 @@
     },
     {
      "path": "games/lighthouse/changelog.json",
-     "bytes": 3001,
+     "bytes": 3402,
      "precached": true
     },
     {
@@ -4561,7 +4561,7 @@
     },
     {
      "path": "games/lighthouse/index.html",
-     "bytes": 27033,
+     "bytes": 27344,
      "precached": true
     },
     {
@@ -4591,7 +4591,7 @@
     },
     {
      "path": "games/lighthouse/pc.html",
-     "bytes": 29385,
+     "bytes": 29696,
      "precached": true
     },
     {
@@ -4606,7 +4606,7 @@
     },
     {
      "path": "games/lighthouse/settings.js",
-     "bytes": 5991,
+     "bytes": 6161,
      "precached": true
     },
     {
@@ -4621,7 +4621,7 @@
     },
     {
      "path": "games/lighthouse/sources.json",
-     "bytes": 1315,
+     "bytes": 1583,
      "precached": false
     },
     {
@@ -4797,6 +4797,16 @@
      "precached": true
     },
     {
+     "path": "shared/sfx.css",
+     "bytes": 1039,
+     "precached": true
+    },
+    {
+     "path": "shared/sfx.js",
+     "bytes": 24191,
+     "precached": true
+    },
+    {
      "path": "shared/site-settings.js",
      "bytes": 6290,
      "precached": false
@@ -4869,7 +4879,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14497172,
+   "bytes": 14524893,
    "bytes_complete": true
   },
   "pocket-bazaar": {
@@ -4896,7 +4906,7 @@
     },
     {
      "path": "games/pocket-bazaar/changelog.json",
-     "bytes": 843,
+     "bytes": 1299,
      "precached": true
     },
     {
@@ -4951,17 +4961,17 @@
     },
     {
      "path": "games/pocket-bazaar/pc-config.json",
-     "bytes": 1259,
+     "bytes": 1269,
      "precached": false
     },
     {
      "path": "games/pocket-bazaar/pc.css",
-     "bytes": 4050,
+     "bytes": 5231,
      "precached": true
     },
     {
      "path": "games/pocket-bazaar/pc.html",
-     "bytes": 17256,
+     "bytes": 17266,
      "precached": true
     },
     {
@@ -4976,7 +4986,7 @@
     },
     {
      "path": "games/pocket-bazaar/regulars.py",
-     "bytes": 6229,
+     "bytes": 6257,
      "precached": true
     },
     {
@@ -5199,7 +5209,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14300044,
+   "bytes": 14301729,
    "bytes_complete": true
   },
   "dead-reckoning": {
@@ -5596,12 +5606,12 @@
     },
     {
      "path": "games/logic-gates/app.js",
-     "bytes": 27648,
+     "bytes": 28927,
      "precached": true
     },
     {
      "path": "games/logic-gates/changelog.json",
-     "bytes": 176,
+     "bytes": 1109,
      "precached": true
     },
     {
@@ -5626,7 +5636,7 @@
     },
     {
      "path": "games/logic-gates/index.html",
-     "bytes": 14778,
+     "bytes": 15138,
      "precached": true
     },
     {
@@ -5666,27 +5676,27 @@
     },
     {
      "path": "games/logic-gates/pc.css",
-     "bytes": 3844,
+     "bytes": 4011,
      "precached": true
     },
     {
      "path": "games/logic-gates/pc.html",
-     "bytes": 17093,
+     "bytes": 17453,
      "precached": true
     },
     {
      "path": "games/logic-gates/pc.js",
-     "bytes": 2218,
+     "bytes": 2543,
      "precached": true
     },
     {
      "path": "games/logic-gates/render.py",
-     "bytes": 7930,
+     "bytes": 7993,
      "precached": true
     },
     {
      "path": "games/logic-gates/settings.js",
-     "bytes": 5995,
+     "bytes": 6165,
      "precached": true
     },
     {
@@ -5696,7 +5706,7 @@
     },
     {
      "path": "games/logic-gates/sources.json",
-     "bytes": 2202,
+     "bytes": 2471,
      "precached": false
     },
     {
@@ -5711,7 +5721,7 @@
     },
     {
      "path": "games/logic-gates/words.py",
-     "bytes": 1424,
+     "bytes": 2120,
      "precached": true
     }
    ],
@@ -5837,6 +5847,16 @@
      "precached": true
     },
     {
+     "path": "shared/sfx.css",
+     "bytes": 1039,
+     "precached": true
+    },
+    {
+     "path": "shared/sfx.js",
+     "bytes": 24191,
+     "precached": true
+    },
+    {
      "path": "shared/site-settings.js",
      "bytes": 6290,
      "precached": false
@@ -5899,7 +5919,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14291715,
+   "bytes": 14321567,
    "bytes_complete": true
   },
   "robot-script": {
@@ -5911,22 +5931,22 @@
     },
     {
      "path": "games/robot-script/achievements.py",
-     "bytes": 2816,
+     "bytes": 3021,
      "precached": true
     },
     {
      "path": "games/robot-script/app.js",
-     "bytes": 39299,
+     "bytes": 39013,
      "precached": true
     },
     {
      "path": "games/robot-script/changelog.json",
-     "bytes": 1629,
+     "bytes": 2605,
      "precached": true
     },
     {
      "path": "games/robot-script/companion.py",
-     "bytes": 6531,
+     "bytes": 7029,
      "precached": true
     },
     {
@@ -5941,7 +5961,7 @@
     },
     {
      "path": "games/robot-script/game.py",
-     "bytes": 25351,
+     "bytes": 24716,
      "precached": true
     },
     {
@@ -5956,7 +5976,7 @@
     },
     {
      "path": "games/robot-script/index.html",
-     "bytes": 17478,
+     "bytes": 17507,
      "precached": true
     },
     {
@@ -5976,7 +5996,7 @@
     },
     {
      "path": "games/robot-script/pc.html",
-     "bytes": 19540,
+     "bytes": 19569,
      "precached": true
     },
     {
@@ -5986,7 +6006,7 @@
     },
     {
      "path": "games/robot-script/progress.py",
-     "bytes": 2148,
+     "bytes": 2364,
      "precached": true
     },
     {
@@ -6001,7 +6021,7 @@
     },
     {
      "path": "games/robot-script/rooms.py",
-     "bytes": 2782,
+     "bytes": 2805,
      "precached": true
     },
     {
@@ -6021,7 +6041,7 @@
     },
     {
      "path": "games/robot-script/rooms_moving.py",
-     "bytes": 2616,
+     "bytes": 3790,
      "precached": true
     },
     {
@@ -6056,7 +6076,7 @@
     },
     {
      "path": "games/robot-script/style.css",
-     "bytes": 20327,
+     "bytes": 20293,
      "precached": true
     },
     {
@@ -6249,7 +6269,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14310588,
+   "bytes": 14312783,
    "bytes_complete": true
   },
   "hull-repair": {
@@ -6261,17 +6281,17 @@
     },
     {
      "path": "games/hull-repair/achievements.py",
-     "bytes": 2742,
+     "bytes": 2746,
      "precached": true
     },
     {
      "path": "games/hull-repair/app.js",
-     "bytes": 27948,
+     "bytes": 28686,
      "precached": true
     },
     {
      "path": "games/hull-repair/boards.py",
-     "bytes": 2282,
+     "bytes": 2286,
      "precached": true
     },
     {
@@ -6301,12 +6321,12 @@
     },
     {
      "path": "games/hull-repair/changelog.json",
-     "bytes": 1874,
+     "bytes": 2648,
      "precached": true
     },
     {
      "path": "games/hull-repair/game.py",
-     "bytes": 15660,
+     "bytes": 15028,
      "precached": true
     },
     {
@@ -6321,12 +6341,12 @@
     },
     {
      "path": "games/hull-repair/index.html",
-     "bytes": 14263,
+     "bytes": 14379,
      "precached": true
     },
     {
      "path": "games/hull-repair/info.py",
-     "bytes": 2051,
+     "bytes": 2276,
      "precached": true
     },
     {
@@ -6346,7 +6366,7 @@
     },
     {
      "path": "games/hull-repair/pc.html",
-     "bytes": 16269,
+     "bytes": 16385,
      "precached": true
     },
     {
@@ -6361,12 +6381,12 @@
     },
     {
      "path": "games/hull-repair/progress.py",
-     "bytes": 2131,
+     "bytes": 2056,
      "precached": true
     },
     {
      "path": "games/hull-repair/render.py",
-     "bytes": 16095,
+     "bytes": 15999,
      "precached": true
     },
     {
@@ -6376,17 +6396,17 @@
     },
     {
      "path": "games/hull-repair/settings.js",
-     "bytes": 6637,
+     "bytes": 6807,
      "precached": true
     },
     {
      "path": "games/hull-repair/sources.json",
-     "bytes": 628,
+     "bytes": 895,
      "precached": false
     },
     {
      "path": "games/hull-repair/style.css",
-     "bytes": 17395,
+     "bytes": 17252,
      "precached": true
     },
     {
@@ -6517,6 +6537,16 @@
      "precached": true
     },
     {
+     "path": "shared/sfx.css",
+     "bytes": 1039,
+     "precached": true
+    },
+    {
+     "path": "shared/sfx.js",
+     "bytes": 24191,
+     "precached": true
+    },
+    {
      "path": "shared/site-settings.js",
      "bytes": 6290,
      "precached": false
@@ -6579,7 +6609,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14290773,
+   "bytes": 14317471,
    "bytes_complete": true
   },
   "station-medic": {
