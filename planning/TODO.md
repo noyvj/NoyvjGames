@@ -1,6 +1,6 @@
 # Site-Wide TODO (round 3)
 
-**Progress: 706/1221 items checked off (57.8%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land.
+**Progress: 706/1238 items checked off (57.0%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land.
 
 Built from your answers in `planning/IMPROVEMENT-IDEAS-ROUND-3.md` (Part 4). Every Round 3 section is now answered (2026-10-07 below the Warframe section); earlier this list held only: **GB** (Canopy gamified), **M** (new games), **N** (seasonal events), **O** (Trade Empire and Continuum replayability), **P/Q/S/T** (Signal, Undersleep, Overclock, Last Line open questions), **X** (Warframe tracker) and **R** (returning later). GC-GI, A-L, U, Z and Y are unanswered and wait for you. The previous list is archived at `planning/todo-archive/260914_260927.md`; anything from it that was moved here is marked "moved" there.
 
@@ -163,6 +163,29 @@ Many games now carry lots of modes and levels, so the first load keeps growing. 
 ## RV. Round 4 PC-view and mobile-view sections (you, 2026-10-10)
 
 - [ ] RV-1: Add to Round 4, for every game, a "PC view" section and a "mobile view" section of 10 ideas each on how to make the game feel more like a real PC game or a real mobile game (layout, controls, feedback, session shape); codes are the game code plus PC and MO (for example SOPC, SOMO); the generator now accepts up to four letters.
+
+---
+
+## GN. Your game notes (from the Game notes round on the ideas page, 2026-10-10)
+
+Bugs first (user-reported problems are fixed regardless of the QA rule), then questions, then ideas.
+- [ ] GN-1: Canopy bug: achievements seem to reset whenever you start a new level. Reproduce, find the cause (the per-level state versus `achievements_earned`) and fix it so achievements are kept for the whole game, with a regression test.
+- [ ] GN-2: Canopy: the achievements panel only shows what you earned on the level you are on; it should show the whole game's achievements and which are earned.
+- [ ] GN-3: Canopy: add a "Next level" button next to "Leave level" when a level is finished.
+- [ ] GN-4: Canopy: the badge frame squishes the map so it is smaller and harder to see; find a better place for it (for example beside the map on wide windows, or in the achievements panel).
+- [ ] GN-5: Logic Gates: par is not displayed in the Desktop view; show it there as on the Classic page.
+- [ ] GN-6: Logic Gates question answered in the game: explain what the Tie 1 and Tie 0 parts are and why they exist (they are fixed inputs: a wire permanently tied to 1 or to 0, so a circuit can be given a constant); add a short plain-words tooltip on them and a line in the tutorial and the field notes.
+- [ ] GN-7: Site question: the profile shows only 2 games although you have nearly all the Canopy achievements and played some of SOL; find out why (probably it reads only saves made since the profile feature, or reads one slot) and add a backfill from existing saves and achievements.
+- [ ] GN-8: Tide (Desktop view): the Workshop, Restore and Crew buttons sit at the bottom of the screen with odd spacing; move them up into the area with the achievements.
+- [ ] GN-9: Tide: add a "next season if you do nothing" trend to the readouts, so you can see whether spending on Reduction and the other levers is worth it before you buy.
+- [ ] GN-10: Hub: profile page shows like any other player's profile, and if it is yours it has a settings button for "public, private or friends only" and other personal account choices.
+- [ ] GN-11: Hub: show the games in carousels by theme or genre instead of one long list.
+- [ ] GN-12: Hub: put Pick up, Continue and Recently added side by side (or as their own carousels), drop "Continue playing" if "Pick up where you stopped" covers it, and move some of the long set of strips (pick up, continue, recently added, for you, rarest, highlights) into a dropdown so less scrolling is needed to reach the games.
+- [ ] GN-13: Hub: a collapsed game card shows only the picture, the name and "Show more", with the average rating overlaid on the picture like "4.5 stars (2)" (SOL's numbers as the example).
+- [ ] GN-14: Hub: condense the many buttons at the top into dropdowns, for example "Me" (achievements, 100% map, stats) and "Updates" (What's new, roadmap and so on).
+- [ ] GN-15: Hub: the "Today" strip must not include daily things from games unless the player turns tracking of them on.
+- [ ] GN-16: Hub: move the site feedback form up into a shared section at the top beside "Report a problem", since at the bottom nobody sees it.
+- [ ] GN-17: Direction (links to section LZ): shift games with many game modes toward a level-select system, so the main controls are introduced first and the different "game mode" gimmicks are introduced and added slowly.
 
 ---
 
