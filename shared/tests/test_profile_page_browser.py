@@ -31,6 +31,14 @@ def open_profile(harness, query="?u=mara", init=(), size=(1440, 900), **kw):
     return h
 
 
+def open_owner(h):
+    """GN-10: the owner's page shows like anyone's; the controls open from the Profile settings button."""
+    h.page.wait_for_selector("#pf-ownerbar:not([hidden])")
+    if h.page.get_attribute("#pf-settings-toggle", "aria-expanded") != "true":
+        h.page.click("#pf-settings-toggle")
+    h.page.wait_for_selector("#pf-owner:not([hidden])")
+
+
 def paths(h):
     return [(c[0], c[1]) for c in h.api_calls]
 
@@ -98,8 +106,8 @@ def test_owner_sees_a_private_profile_with_the_switch_off(harness):
     h = harness(init_scripts=[TOKEN])
     h.api_responses[("GET", "/users/me/profile")] = (200, OWNER)
     h.goto("/profile.html?u=Mara")                                # any capitalisation of your own name
-    h.page.wait_for_selector("#pf-owner:not([hidden])")
-    assert not h.page.is_checked("#pf-public")
+    open_owner(h)
+    assert not h.page.is_checked("#pf-vis-public") and h.page.is_checked("#pf-vis-private")
     assert "private" in text(h, "#pf-state").lower()
     assert h.page.is_visible("#pf-private-note") and h.page.is_hidden("#pf-share")
     assert h.page.is_visible("#pf-card") and h.page.is_visible("#pf-what-others-see")
@@ -111,9 +119,9 @@ def test_turning_it_on_shows_the_share_link_and_copies_it(harness):
                                      "value: {writeText: (t) => { window.__copied = t; return Promise.resolve(); }}});"])
     h.api_responses[("GET", "/users/me/profile")] = (200, OWNER)
     h.goto("/profile.html?u=mara")
-    h.page.wait_for_selector("#pf-owner:not([hidden])")
+    open_owner(h)
     h.api_responses[("PUT", "/users/me/profile")] = (200, {**OWNER, "is_public": True})
-    h.page.check("#pf-public")
+    h.page.check("#pf-vis-public")
     h.page.wait_for_selector("#pf-share:not([hidden])")
     assert puts(h) == [{"is_public": True}]
     link = h.page.input_value("#pf-link")
@@ -125,7 +133,7 @@ def test_turning_it_on_shows_the_share_link_and_copies_it(harness):
     assert "copied" in text(h, "#pf-owner-status").lower()
     # and off again
     h.api_responses[("PUT", "/users/me/profile")] = (200, {**OWNER, "is_public": False})
-    h.page.uncheck("#pf-public")
+    h.page.check("#pf-vis-private")
     h.page.wait_for_selector("#pf-share", state="hidden")
     assert puts(h)[-1] == {"is_public": False}
 
@@ -134,18 +142,18 @@ def test_a_failed_save_puts_the_switch_back_and_says_so(harness):
     h = harness(init_scripts=[TOKEN])
     h.api_responses[("GET", "/users/me/profile")] = (200, OWNER)
     h.goto("/profile.html?u=mara")
-    h.page.wait_for_selector("#pf-owner:not([hidden])")
+    open_owner(h)
     h.api_responses[("PUT", "/users/me/profile")] = (500, {"detail": "boom"})
-    h.page.check("#pf-public")
+    h.page.check("#pf-vis-public")
     h.page.wait_for_function("document.getElementById('pf-owner-status').textContent.includes('did not save')")
-    assert not h.page.is_checked("#pf-public") and h.page.is_hidden("#pf-share")
+    assert not h.page.is_checked("#pf-vis-public") and h.page.is_checked("#pf-vis-private") and h.page.is_hidden("#pf-share")
 
 
 def test_favourite_game_picker_sends_the_choice_or_null_for_automatic(harness):
     h = harness(init_scripts=[TOKEN])
     h.api_responses[("GET", "/users/me/profile")] = (200, OWNER)
     h.goto("/profile.html?u=mara")
-    h.page.wait_for_selector("#pf-owner:not([hidden])")
+    open_owner(h)
     assert h.page.eval_on_selector("#pf-favourite", "s => s.options[0].textContent").startswith("The one I play most")
     assert h.page.eval_on_selector("#pf-favourite", "s => s.options.length") >= 14
     h.api_responses[("PUT", "/users/me/profile")] = (200, {**OWNER, "favourite_game": "tide", "favourite_game_choice": "tide"})
@@ -170,7 +178,7 @@ def test_no_name_when_signed_in_opens_your_own_page_and_fixes_the_address(harnes
     h = harness(init_scripts=[TOKEN])
     h.api_responses[("GET", "/users/me/profile")] = (200, OWNER)
     h.goto("/profile.html")
-    h.page.wait_for_selector("#pf-owner:not([hidden])")
+    open_owner(h)
     assert h.page.evaluate("location.search") == "?u=mara"
 
 
@@ -178,7 +186,7 @@ def test_a_brand_new_account_gets_honest_empty_states(harness):
     h = harness(init_scripts=[TOKEN])
     h.api_responses[("GET", "/users/me/profile")] = (200, EMPTY_OWNER)
     h.goto("/profile.html")
-    h.page.wait_for_selector("#pf-owner:not([hidden])")
+    open_owner(h)
     assert "No badges yet" in text(h, "#pf-badges")
     assert "Nothing recorded yet" in text(h, "#pf-games") and "signed in" in text(h, "#pf-games")
     assert text(h, "#pf-time") == "none recorded yet" and text(h, "#pf-fav") == "not chosen yet"
@@ -209,22 +217,22 @@ def test_keyboard_alone_can_flip_the_switch(harness):
     h = harness(init_scripts=[TOKEN])
     h.api_responses[("GET", "/users/me/profile")] = (200, OWNER)
     h.goto("/profile.html?u=mara")
-    h.page.wait_for_selector("#pf-owner:not([hidden])")
+    open_owner(h)
     h.api_responses[("PUT", "/users/me/profile")] = (200, {**OWNER, "is_public": True})
-    h.page.focus("#pf-public")
+    h.page.focus("#pf-vis-public")
     h.page.keyboard.press("Space")
     h.page.wait_for_selector("#pf-share:not([hidden])")
-    assert h.page.is_checked("#pf-public")
+    assert h.page.is_checked("#pf-vis-public")
 
 
 def test_it_talks_only_to_the_profile_routes_and_sets_no_tracking(harness):
     h = harness(init_scripts=[TOKEN])
     h.api_responses[("GET", "/users/me/profile")] = (200, OWNER)
     h.goto("/profile.html?u=mara")
-    h.page.wait_for_selector("#pf-owner:not([hidden])")
+    open_owner(h)
     h.page.wait_for_timeout(200)
     own = {p for p in paths(h) if "settings" not in p[1]}     # shared/site-settings.js syncs the theme on its own
-    assert own == {("GET", "/users/me/profile")}
+    assert own == {("GET", "/users/me/profile"), ("POST", "/users/me/profile/backfill")}
     assert h.page.evaluate("document.cookie") == ""
     assert h.page.evaluate("document.querySelectorAll('script[src^=\"http\"]').length") == 0
 
@@ -233,7 +241,7 @@ def test_phone_layout_has_no_sideways_scroll_and_big_targets(harness):
     h = harness(init_scripts=[TOKEN], size=(360, 740), touch=True)
     h.api_responses[("GET", "/users/me/profile")] = (200, {**OWNER, "is_public": True, "username": "a-rather-long-player-name-that-must-wrap-somewhere"})
     h.goto("/profile.html")
-    h.page.wait_for_selector("#pf-owner:not([hidden])")
+    open_owner(h)
     assert h.page.evaluate("document.documentElement.scrollWidth <= 360")
     small = h.page.evaluate("""[...document.querySelectorAll('#pf-owner button, #pf-owner select, #pf-owner input[type=text], label.pf-switch')]
         .filter(e => e.offsetParent !== null && e.getBoundingClientRect().height < 44).map(e => e.id || e.className)""")
@@ -251,3 +259,82 @@ def test_the_page_follows_the_site_theme(harness):
         assert h.page.get_attribute("html", "data-theme") == theme
         seen[theme] = h.page.evaluate("getComputedStyle(document.querySelector('#pf-badges li')).color")
     assert seen["dark"] != seen["light"]
+
+
+# ---- GN-10: the owner's page is a normal profile plus a settings button ----
+
+def test_owner_sees_the_card_first_and_the_controls_only_after_pressing_profile_settings(harness):
+    h = harness(init_scripts=[TOKEN])
+    h.api_responses[("GET", "/users/me/profile")] = (200, OWNER)
+    h.goto("/profile.html?u=mara")
+    h.page.wait_for_selector("#pf-ownerbar:not([hidden])")
+    assert h.page.is_visible("#pf-card") and h.page.is_hidden("#pf-owner")
+    assert h.page.get_attribute("#pf-settings-toggle", "aria-expanded") == "false"
+    assert "Private" in text(h, "#pf-vis-badge")
+    h.page.click("#pf-settings-toggle")
+    assert h.page.is_visible("#pf-owner") and h.page.get_attribute("#pf-settings-toggle", "aria-expanded") == "true"
+    h.page.click("#pf-settings-toggle")
+    assert h.page.is_hidden("#pf-owner")
+
+
+def test_visitors_never_get_the_settings_button(harness):
+    h = harness()
+    h.api_responses[("GET", "/profiles/mara")] = (200, PUBLIC)
+    h.goto("/profile.html?u=mara")
+    h.page.wait_for_selector("#pf-card:not([hidden])")
+    assert h.page.is_hidden("#pf-ownerbar") and h.page.is_hidden("#pf-settings-toggle")
+
+
+def test_visibility_has_private_public_and_a_friends_option_that_says_it_is_not_there_yet(harness):
+    h = harness(init_scripts=[TOKEN])
+    h.api_responses[("GET", "/users/me/profile")] = (200, OWNER)
+    h.goto("/profile.html?u=mara")
+    open_owner(h)
+    assert h.page.is_disabled("#pf-vis-friends")
+    assert "no friends list" in text(h, "#pf-vis-friends-note").lower()
+    h.api_responses[("PUT", "/users/me/profile")] = (200, {**OWNER, "is_public": True})
+    h.page.check("#pf-vis-public")
+    h.page.wait_for_selector("#pf-share:not([hidden])")
+    assert puts(h) == [{"is_public": True}]
+    assert "anyone with your link" in text(h, "#pf-vis-badge").lower()
+
+
+# ---- GN-7: fill the profile in from existing saves ----
+
+def test_signed_in_owner_is_backfilled_once_per_device_and_the_card_updates(harness):
+    h = harness(init_scripts=[TOKEN])
+    h.api_responses[("GET", "/users/me/profile")] = (200, EMPTY_OWNER)
+    filled = {**EMPTY_OWNER, "games": [{"game": "canopy", "seconds": 0, "achievements": 29}], "games_played": 1,
+              "total_achievements": 29}
+    h.api_responses[("POST", "/users/me/profile/backfill")] = (200, {"updated": [{"game": "canopy", "achievements": 29}], "profile": filled})
+    h.goto("/profile.html")
+    open_owner(h)
+    h.page.wait_for_function("document.getElementById('pf-games').textContent.includes('29 achievements')")
+    assert "Updated 1 game" in text(h, "#pf-owner-status")
+    posts = [c for c in h.api_calls if c[0] == "POST" and c[1] == "/users/me/profile/backfill"]
+    assert len(posts) == 1
+    h.page.reload()
+    h.page.wait_for_selector("#pf-ownerbar:not([hidden])")
+    h.page.wait_for_timeout(300)
+    assert len([c for c in h.api_calls if c[0] == "POST" and c[1] == "/users/me/profile/backfill"]) == 1   # not repeated
+
+
+def test_the_backfill_button_works_again_by_hand_and_says_when_nothing_changed(harness):
+    h = harness(init_scripts=[TOKEN, "localStorage.setItem('pf-backfilled:newbie','1')"])
+    h.api_responses[("GET", "/users/me/profile")] = (200, EMPTY_OWNER)
+    h.api_responses[("POST", "/users/me/profile/backfill")] = (200, {"updated": [], "profile": EMPTY_OWNER})
+    h.goto("/profile.html")
+    open_owner(h)
+    assert not [c for c in h.api_calls if c[1] == "/users/me/profile/backfill"]
+    h.page.click("#pf-backfill")
+    h.page.wait_for_function("document.getElementById('pf-owner-status').textContent.includes('already matches')")
+
+
+def test_a_failed_backfill_says_so_and_changes_nothing(harness):
+    h = harness(init_scripts=[TOKEN, "localStorage.setItem('pf-backfilled:newbie','1')"])
+    h.api_responses[("GET", "/users/me/profile")] = (200, EMPTY_OWNER)
+    h.api_responses[("POST", "/users/me/profile/backfill")] = (500, {"detail": "boom"})
+    h.goto("/profile.html")
+    open_owner(h)
+    h.page.click("#pf-backfill")
+    h.page.wait_for_function("document.getElementById('pf-owner-status').textContent.includes('Nothing changed')")

@@ -231,3 +231,59 @@ def test_a_corrupt_stored_row_is_cleaned_on_the_way_out():
     assert [g["game"] for g in body["games"]] == ["ok"]
     assert body["streaks"] == [{"game": "ok", "label": "daily", "value": 3}]
     assert [b["id"] for b in body["badges"] if b["kind"] == "event"] == ["fine-2026"]
+
+
+# ---- GN-7: backfill from existing saves ----
+
+def _save_for(headers, game, data):
+    resp = client.post("/saves", json={"game_id": game, "save_data": data})
+    assert resp.status_code in (200, 201), resp.text
+    code = resp.json()["save_code"]
+    claim = client.post(f"/saves/{code}/claim", headers=headers)
+    assert claim.status_code == 200, claim.text
+    return code
+
+
+def test_backfill_raises_counts_from_the_best_save_per_game_and_never_lowers():
+    headers = _account("pf-backfill")
+    _save_for(headers, "canopy", {"achievements_earned": ["a", "b", "c", "a"]})      # 3 distinct
+    _save_for(headers, "canopy", {"achievements_earned": ["a"]})
+    _save_for(headers, "sol", {"achievements_earned": ["x", "y"]})
+    _save_for(headers, "tide", {"achievements_earned": []})                         # nothing to add
+    _progress(headers, "sol", seconds=120, achievements=5)                           # already higher: stays 5
+    resp = client.post("/users/me/profile/backfill", headers=headers)
+    assert resp.status_code == 200, resp.text
+    body = resp.json()
+    assert body["updated"] == [{"game": "canopy", "achievements": 3}]
+    games = {g["game"]: g for g in body["profile"]["games"]}
+    assert games["canopy"]["achievements"] == 3 and games["sol"]["achievements"] == 5
+    assert games["sol"]["seconds"] == 120 and "tide" not in games
+    again = client.post("/users/me/profile/backfill", headers=headers).json()
+    assert again["updated"] == []
+
+
+def test_backfill_merges_seasonal_badges_by_id_only_and_ignores_junk():
+    headers = _account("pf-backfill-badges")
+    _save_for(headers, "aftermath", {"achievements_earned": ["q"], "event_badges": [
+        {"id": "halloween-2026", "label": "Anything the client says"}, {"id": "BAD ID"}, "new-year-2027", 7, None]})
+    body = client.post("/users/me/profile/backfill", headers=headers).json()
+    ids = {b["id"] for b in body["profile"]["badges"] if b["kind"] == "event"}
+    assert ids == {"halloween-2026", "new-year-2027"}
+    labels = {b["label"] for b in body["profile"]["badges"] if b["kind"] == "event"}
+    assert "Anything the client says" not in labels
+
+
+def test_backfill_needs_sign_in_and_only_reads_the_callers_saves():
+    assert client.post("/users/me/profile/backfill").status_code == 401
+    other = _account("pf-backfill-other")
+    _save_for(other, "canopy", {"achievements_earned": ["a", "b"]})
+    mine = _account("pf-backfill-mine")
+    assert client.post("/users/me/profile/backfill", headers=mine).json()["updated"] == []
+
+
+def test_backfill_is_rate_limited_like_other_profile_writes(monkeypatch):
+    import main
+    headers = _account("pf-backfill-limit")
+    monkeypatch.setattr(main, "PROFILE_UPDATE_LIMITER", main.FailureLimiter(max_failures=1, window_seconds=3600))
+    assert client.post("/users/me/profile/backfill", headers=headers).status_code == 200
+    assert client.post("/users/me/profile/backfill", headers=headers).status_code == 429

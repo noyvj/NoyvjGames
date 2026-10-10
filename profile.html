@@ -39,6 +39,12 @@
   .pf-count { margin-left: auto; font-weight: 700; white-space: nowrap; }
   .pf-private { border-style: dashed; }
   .pf-empty { font-style: italic; opacity: 0.8; }
+  .pf-vis { border: 1px solid rgba(160, 175, 215, 0.3); border-radius: 8px; margin: 0.4rem 0 0.6rem; padding: 0.3rem 0.8rem 0.6rem; }
+  .pf-vis legend { font-weight: 700; padding: 0 0.3rem; }
+  .pf-vis .pf-switch input { width: 1.3rem; height: 1.3rem; }
+  .pf-vis-off { opacity: 0.7; }
+  .pf-ownerbar { display: flex; gap: 0.7rem; align-items: center; flex-wrap: wrap; margin: 0 0 0.6rem; }
+  .pf-vis-badge { font-weight: 600; font-size: 0.9rem; }
   .pf-card h3 { font-size: 0.98rem; margin: 1rem 0 0.2rem; }
   #pf-name { font-size: 1.4rem; margin: 0 0 0.2rem; overflow-wrap: anywhere; }
   [hidden] { display: none !important; }
@@ -68,8 +74,14 @@
     <section id="pf-owner" class="hub-card" aria-labelledby="pf-owner-h" hidden>
       <h2 id="pf-owner-h">Your profile</h2>
       <p id="pf-state" class="pf-state" role="status"></p>
-      <label class="pf-switch" for="pf-public"><input type="checkbox" id="pf-public" aria-describedby="pf-public-hint"> Make my profile public</label>
-      <p id="pf-public-hint" class="hub-note">When this is on, anyone with your link can see exactly what is listed below the line &ldquo;What others see&rdquo;: your username, the month you joined, your favourite game, your badges, your achievement count for each game, your total time played and your longest streaks. Never your email, saves, save codes or password. Turn it off at any time and the page disappears for everyone else straight away.</p>
+      <fieldset class="pf-vis" aria-describedby="pf-public-hint">
+        <legend>Who can see my profile</legend>
+        <label class="pf-switch" for="pf-vis-private"><input type="radio" name="pf-vis" id="pf-vis-private" value="private"> Private (only me)</label>
+        <label class="pf-switch" for="pf-vis-public"><input type="radio" name="pf-vis" id="pf-vis-public" value="public"> Public (anyone with my link)</label>
+        <label class="pf-switch pf-vis-off" for="pf-vis-friends"><input type="radio" name="pf-vis" id="pf-vis-friends" value="friends" disabled aria-describedby="pf-vis-friends-note"> Friends only</label>
+        <p id="pf-vis-friends-note" class="hub-note">Not available yet: there is no friends list on NoyvjGames, so this option switches on when friends exist. Until then a profile is either private or public.</p>
+      </fieldset>
+      <p id="pf-public-hint" class="hub-note">When public, anyone with your link can see exactly what is listed below the line &ldquo;What others see&rdquo;: your username, the month you joined, your favourite game, your badges, your achievement count for each game, your total time played and your longest streaks. Never your email, saves, save codes or password. Set it back to private at any time and the page disappears for everyone else straight away.</p>
       <div id="pf-share" class="pf-share" hidden>
         <label class="visually-hidden" for="pf-link">Your profile link</label>
         <input id="pf-link" type="text" readonly>
@@ -79,11 +91,19 @@
         <label for="pf-favourite" class="settings-label">Favourite game</label>
         <select id="pf-favourite" class="pf-select"></select>
       </div>
+      <div class="settings-row">
+        <button type="button" id="pf-backfill" class="pf-button">Fill in from my saves</button>
+      </div>
+      <p class="hub-note">Counts the achievements in the saves already on your account and raises your profile to match, for games you played before profiles existed. It never lowers a number, and time played cannot be worked out from saves, so that only grows from now on.</p>
       <p id="pf-owner-status" class="settings-status" role="status"></p>
     </section>
 
     <section id="pf-card" class="hub-card pf-card" aria-labelledby="pf-name" hidden>
-      <p id="pf-private-note" class="pf-state pf-private" hidden>This is a preview. Only you can see this page until you switch the profile on above.</p>
+      <p id="pf-private-note" class="pf-state pf-private" hidden>This is a preview. Only you can see this page until you make the profile public in Profile settings.</p>
+      <p id="pf-ownerbar" class="pf-ownerbar" hidden>
+        <button type="button" id="pf-settings-toggle" class="pf-button" aria-expanded="false" aria-controls="pf-owner">Profile settings</button>
+        <span id="pf-vis-badge" class="pf-vis-badge"></span>
+      </p>
       <h2 id="pf-name"></h2>
       <p class="hub-note" id="pf-what-others-see">What others see</p>
       <dl class="pf-facts">

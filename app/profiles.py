@@ -24,7 +24,7 @@ from typing import List, Optional
 from pydantic import BaseModel, Field, StrictBool, StrictInt, field_validator
 from sqlalchemy.orm import Session
 
-from models import User, UserProfile
+from models import Save, User, UserProfile
 
 GAME_SLUG_RE = re.compile(r"^[a-z0-9][a-z0-9-]{0,63}$")
 STREAK_LABEL_RE = re.compile(r"^[a-z0-9_]{1,40}$")
@@ -248,6 +248,55 @@ def _apply_progress(row: UserProfile, progress: ProgressIn) -> None:
             if key in streaks or len(streaks) < MAX_STREAKS:
                 streaks[key] = max(streaks.get(key, 0), number)
         row.streaks_json = streaks
+
+
+def backfill_from_saves(db: Session, user: User) -> list:
+    """GN-7: fill the profile in from the account's EXISTING saves, for games played before the profile
+    feature (or before a game reported its progress). For each game the highest `achievements_earned`
+    count across the account's saves is raised into the profile (it never lowers a number, and time played
+    is not guessed: saves do not hold it). Seasonal badge ids found in a save's `event_badges` are merged
+    too. Only counts and well-formed ids are read; nothing else from a save is looked at.
+    Returns [{"game", "achievements"}] for the games whose stored number went up."""
+    rows = db.query(Save).filter(Save.user_id == user.id).all()
+    best = {}
+    badges = set()
+    for save in rows:
+        data = save.save_data if isinstance(save.save_data, dict) else {}
+        game = save.game_id
+        if not isinstance(game, str) or not GAME_SLUG_RE.match(game):
+            continue
+        earned = data.get("achievements_earned")
+        if isinstance(earned, list):
+            count = len({e for e in earned if isinstance(e, str)})
+            best[game] = max(best.get(game, 0), min(count, MAX_ACHIEVEMENTS_PER_GAME))
+        for entry in data.get("event_badges") if isinstance(data.get("event_badges"), list) else []:
+            badge_id = entry.get("id") if isinstance(entry, dict) else entry
+            if isinstance(badge_id, str) and EVENT_BADGE_RE.match(badge_id):
+                badges.add(badge_id)
+    row = get_row(db, user.id)
+    if row is None:
+        row = UserProfile(user_id=user.id, is_public=False)
+        db.add(row)
+    games = _clean_games(row.games_json)
+    raised = []
+    for game, count in sorted(best.items()):
+        if count <= 0:
+            continue
+        if game not in games and len(games) >= MAX_GAMES:
+            continue
+        entry = games.get(game) or {"seconds": 0, "achievements": 0}
+        if count > entry["achievements"]:
+            entry["achievements"] = count
+            games[game] = entry
+            raised.append({"game": game, "achievements": count})
+    if raised:
+        row.games_json = games
+    if badges:
+        merged = set(_clean_event_badges(row.event_badges_json)) | badges
+        row.event_badges_json = sorted(merged)[:MAX_EVENT_BADGES]
+    db.commit()
+    db.refresh(row)
+    return raised
 
 
 def export_block(db: Session, user: User) -> dict:

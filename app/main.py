@@ -2349,6 +2349,23 @@ def put_my_profile(
     return profiles.summarize(current_user, row, viewer="owner")
 
 
+@app.post("/users/me/profile/backfill")
+def backfill_my_profile(
+    response: Response,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """GN-7: raise the profile's achievement counts (and seasonal badges) from the account's existing saves.
+    Counts only go up; nothing is lowered. Rate limited like other profile writes."""
+    response.headers["Cache-Control"] = "no-store"
+    if PROFILE_UPDATE_LIMITER.blocked(current_user.id):
+        raise HTTPException(status_code=429, detail="Too many profile updates, try again later")
+    PROFILE_UPDATE_LIMITER.record_failure(current_user.id)
+    raised = profiles.backfill_from_saves(db, current_user)
+    row = profiles.get_row(db, current_user.id)
+    return {"updated": raised, "profile": profiles.summarize(current_user, row, viewer="owner")}
+
+
 @app.get("/profiles/{username}")
 def get_public_profile(username: str, request: Request, response: Response, db: Session = Depends(get_db)):
     response.headers["Cache-Control"] = "no-store"

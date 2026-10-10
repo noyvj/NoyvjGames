@@ -63,6 +63,7 @@
   function showMessage(heading, text, actions) {
     $("pf-card").hidden = true;
     $("pf-owner").hidden = true;
+    $("pf-ownerbar").hidden = true;
     $("pf-message").hidden = false;
     $("pf-message-h").textContent = heading;
     $("pf-message-text").textContent = text;
@@ -186,9 +187,13 @@
 
   function renderOwner(data) {
     ownData = data;
-    $("pf-owner").hidden = false;
+    // GN-10: the owner sees their page like anyone else's, plus a "Profile settings" button that opens the controls.
+    $("pf-ownerbar").hidden = false;
+    $("pf-owner").hidden = $("pf-settings-toggle").getAttribute("aria-expanded") !== "true";
     const isPublic = Boolean(data.is_public);
-    $("pf-public").checked = isPublic;
+    $("pf-vis-public").checked = isPublic;
+    $("pf-vis-private").checked = !isPublic;
+    $("pf-vis-badge").textContent = isPublic ? "Visible to anyone with your link" : "Private: only you can see this page";
     $("pf-state").textContent = isPublic
       ? "Your profile is public. Anyone with the link can see it."
       : "Your profile is private. Only you can see this page.";
@@ -252,6 +257,25 @@
     else fallback();
   }
 
+  // GN-7: raise the profile from the saves already on the account. Runs by itself once per device for a
+  // signed-in owner (so games played before profiles existed show up) and on the button.
+  async function backfill(manual) {
+    const status = $("pf-owner-status");
+    if (manual) status.textContent = "Looking at your saves…";
+    const res = await api("/users/me/profile/backfill", { method: "POST", headers: authHeaders() });
+    if (!res.ok || !res.body) {
+      if (manual) status.textContent = res.status === 429 ? "Too many updates just now. Try again later." : "That did not work (the server may be asleep). Nothing changed.";
+      return false;
+    }
+    try { localStorage.setItem("pf-backfilled:" + res.body.profile.username, "1"); } catch (e) { /* convenience */ }
+    const n = (res.body.updated || []).length;
+    if (n || manual) status.textContent = n
+      ? "Updated " + n + " game" + (n === 1 ? "" : "s") + " from your saves."
+      : "Your profile already matches your saves.";
+    if (n) renderOwner(res.body.profile);
+    return true;
+  }
+
   // ---- start --------------------------------------------------------------------------------
   async function start() {
     const params = new URLSearchParams(location.search);
@@ -271,6 +295,9 @@
       setStatus("");
       document.title = own.username + " — Profile — NoyvjGames";
       renderOwner(own);
+      let done = null;
+      try { done = localStorage.getItem("pf-backfilled:" + own.username); } catch (e) { done = null; }
+      if (!done) backfill(false);
       return;
     }
     if (!wanted) {
@@ -299,7 +326,16 @@
     }
   }
 
-  $("pf-public").addEventListener("change", (event) => putProfile({ is_public: event.target.checked }));
+  document.querySelectorAll('input[name="pf-vis"]').forEach((radio) => {
+    radio.addEventListener("change", (event) => { if (event.target.checked) putProfile({ is_public: event.target.value === "public" }); });
+  });
+  $("pf-settings-toggle").addEventListener("click", () => {
+    const open = $("pf-settings-toggle").getAttribute("aria-expanded") !== "true";
+    $("pf-settings-toggle").setAttribute("aria-expanded", open ? "true" : "false");
+    $("pf-owner").hidden = !open;
+    if (open) $("pf-owner").scrollIntoView({ block: "nearest" });
+  });
+  $("pf-backfill").addEventListener("click", () => backfill(true));
   $("pf-favourite").addEventListener("change", (event) => putProfile({ favourite_game: event.target.value || null }));
   $("pf-copy").addEventListener("click", copyLink);
   start();
