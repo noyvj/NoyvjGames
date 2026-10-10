@@ -231,7 +231,7 @@ Many games now carry lots of modes and levels, so the first load keeps growing. 
 
 ## QI. Quick ideas approved on 2026-10-09 (58 yes, 1 no)
 
-You said yes to every item except F5 (undo button, no). New games below each need a groundwork plan (`planning/<game>-plan.md`, with a 2-letter code, milestones 1-4 shipping a playable game, then a general and a made-for-you section in the next ideas round) and then a build. Per your 2026-10-09 note, these wait until the current agents (Heist Committee, Lighthouse, idea writers) finish. Site features are listed after the games. Games that need friends use the multiplayer groundwork first (opt-in, no chat).
+You said yes to every item except F5 (undo button, no). New games below each need a groundwork plan (`planning/<game>-plan.md`, with a 2-letter code, milestones 1-4 shipping a playable game, then a general and a made-for-you section in the next ideas round) and then a build. Per your 2026-10-09 note these waited for the first agents; on 2026-10-10 you said to stop making new games and focus on the CURRENT games once the running agents (Champ slides content, Evidence Hunt) finish, so no further QI games start until the existing games' sections have been worked (QI-1, QI-2, QI-3, QI-13, QI-25 and QI-29 are the only ones built or in progress). Site features are listed after the games. Games that need friends use the multiplayer groundwork first (opt-in, no chat).
 
 **New games**
 - [x] QI-1: Logic Gates (Quick ideas A1): write the groundwork plan, then build it. wire AND, OR, NOT and XOR chips to hit target outputs. Each solved level unlocks a new chip, and the last levels have you build a tiny working computer. (BUILT 2026-10-09, milestones 1-8, 221 tests; hub registration is item QI-1b.)
