@@ -10,6 +10,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 import charts  # noqa: E402
+import fleet  # noqa: E402
 import sim  # noqa: E402
 import solver  # noqa: E402
 
@@ -19,15 +20,35 @@ def par_for(chart):
     return legs
 
 
+def par_for_b(chart):
+    """Ship B's par plan on a two-ship chart: its own waypoints, shot under the true sea (after its own anchored wait)."""
+    ship = fleet.ship_chart(chart, 1)
+    legs, _end = solver.route(ship, [tuple(p) for p in ship["waypoints"]], model="true", seed=fleet.ship_seed(chart.get("seed", 0), 1),
+                              wait=ship.get("par_wait", 0.0))
+    return legs
+
+
 def main(argv):
     write = "--write" in argv
     wanted = [a for a in argv if not a.startswith("--")]
     pars = {}
+    pars2 = {}
     for chart in charts.all_charts():
         if wanted and chart["id"] not in wanted:
             continue
         legs = par_for(chart)
         pars[chart["id"]] = legs
+        if fleet.is_two(chart):
+            legs_b = par_for_b(chart)
+            pars2[chart["id"]] = legs_b
+            both = fleet.sail_fleet(chart, legs, legs_b, seed=chart.get("seed", 0))
+            sc2 = fleet.score_fleet(chart, legs, legs_b, both)
+            print("%-10s   fleet: stars %d, apart %.2f nm at hour %g (rule %g), ship B: %d legs %4.1f h/%g, naive miss %.1f (fails=%s)"
+                  % ("", sc2["stars"], both["approach"]["dist"], both["approach"]["t"], fleet.SEPARATION, len(legs_b), sim.plan_hours(legs_b),
+                     fleet.ship_chart(chart, 1)["deadline"], sc2["ships"][1]["naive_miss_nm"], fleet.ship_chart(chart, 1).get("naive_fails")))
+            if "--legs" in argv:
+                for leg in legs_b:
+                    print("      B", leg)
         res = sim.sail(chart, legs)
         sc = sim.score(chart, legs, res)
         fc_legs, _ = solver.route(chart, [tuple(p) for p in chart["waypoints"]], model="charted", wait=chart.get("par_wait", 0.0))
@@ -51,8 +72,15 @@ def main(argv):
                 lines.append('        {"heading": %d, "speed": %g, "hours": %g},' % (leg["heading"], leg["speed"], leg["hours"]))
             lines.append('    ],')
         lines.append('}')
+        lines.extend(['', 'PARS2 = {    # Ship B on the two-ship charts'])
+        for cid, legs in pars2.items():
+            lines.append('    "%s": [' % cid)
+            for leg in legs:
+                lines.append('        {"heading": %d, "speed": %g, "hours": %g},' % (leg["heading"], leg["speed"], leg["hours"]))
+            lines.append('    ],')
+        lines.append('}')
         Path(__file__).resolve().parent.parent.joinpath("pars.py").write_text("\n".join(lines) + "\n", encoding="utf-8")
-        print("wrote pars.py with %d plans" % len(pars))
+        print("wrote pars.py with %d plans (%d for Ship B)" % (len(pars), len(pars2)))
 
 
 if __name__ == "__main__":

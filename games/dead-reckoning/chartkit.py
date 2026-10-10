@@ -42,6 +42,14 @@ def buoy(lid, name, x, y, visible=5.0):
     return {"id": lid, "name": name, "kind": "buoy", "x": x, "y": y, "visible": visible}
 
 
+def second_ship(start, dest, deadline, waypoints=None, **fields):
+    """Ship B on a two-ship chart: its own start, flag and deadline (and optionally speeds, arrival_radius, par_wait, naive_fails, fair_ok).
+    Everything else on the chart (land, hazards, streams, wind, compass, fog, the tide clock) is shared by both ships."""
+    ship = {"name": "Ship B", "start": list(start), "dest": list(dest), "deadline": deadline, "waypoints": [list(p) for p in (waypoints or [start, dest])]}
+    ship.update(fields)
+    return ship
+
+
 def chart(cid, name, chapter, **fields):
     """A chart with the defaults every chart shares; `waypoints` is the authored route the par plan is shot along."""
     base = {"id": cid, "name": name, "chapter": chapter, "size": 20, "arrival_radius": 1.5, "speeds": [3.0, 7.0], "start_hour": 0.0,
@@ -49,4 +57,7 @@ def chart(cid, name, chapter, **fields):
     base.update(fields)
     if not base["waypoints"]:
         base["waypoints"] = [base["start"], base["dest"]]
+    if "ship2" in base:                                  # a two-ship chart: Ship B inherits what it does not set itself
+        base["ship2"] = dict({"speeds": list(base["speeds"]), "arrival_radius": base["arrival_radius"], "par_wait": 0.0, "naive_fails": False,
+                              "fair_ok": True}, **base["ship2"])
     return base

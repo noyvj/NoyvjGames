@@ -3,7 +3,7 @@
    into chart coordinates, and pacing the playback of a track the engine already computed. */
 (function () {
   "use strict";
-  var ENGINE_MODULES = ["geom.py", "sim.py", "chartkit.py", "charts_open.py", "charts_wind.py", "charts_fixes.py", "charts_fog.py", "charts_tides.py", "charts_compass.py", "gen.py", "info.py", "pars.py", "charts.py", "render.py", "solver.py", "state.py", "progress.py", "achievements.py", "fixes.py", "daily.py"];
+  var ENGINE_MODULES = ["geom.py", "sim.py", "chartkit.py", "charts_open.py", "charts_wind.py", "charts_fixes.py", "charts_fog.py", "charts_tides.py", "charts_compass.py", "charts_two.py", "gen.py", "gentwo.py", "fleet.py", "info.py", "pars.py", "charts.py", "render.py", "solver.py", "state.py", "progress.py", "achievements.py", "fixes.py", "daily.py"];
   var STORE_KEY = "dead-reckoning:state";
 
   var $ = function (id) { return document.getElementById(id); };

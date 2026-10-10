@@ -126,4 +126,67 @@ PARS = {
         {"heading": 353, "speed": 7.5, "hours": 1},
         {"heading": 1, "speed": 5.5, "hours": 1},
     ],
+    "two-01": [
+        {"heading": 90, "speed": 4, "hours": 4},
+    ],
+    "two-02": [
+        {"heading": 0, "speed": 0, "hours": 1.5},
+        {"heading": 53, "speed": 5, "hours": 4},
+    ],
+    "two-03": [
+        {"heading": 101, "speed": 4, "hours": 4},
+    ],
+    "two-04": [
+        {"heading": 0, "speed": 0, "hours": 1.5},
+        {"heading": 28, "speed": 4.5, "hours": 2.5},
+        {"heading": 67, "speed": 6.5, "hours": 0.5},
+        {"heading": 28, "speed": 4.5, "hours": 1},
+    ],
+    "two-05": [
+        {"heading": 38, "speed": 5.5, "hours": 1},
+        {"heading": 42, "speed": 4.5, "hours": 1},
+        {"heading": 55, "speed": 5, "hours": 1},
+        {"heading": 75, "speed": 5.5, "hours": 1},
+    ],
+    "two-06": [
+        {"heading": 89, "speed": 4, "hours": 3.5},
+    ],
+    "two-07": [
+        {"heading": 34, "speed": 5, "hours": 1.5},
+        {"heading": 55, "speed": 4.5, "hours": 1.5},
+        {"heading": 31, "speed": 6, "hours": 1},
+    ],
+}
+
+PARS2 = {    # Ship B on the two-ship charts
+    "two-01": [
+        {"heading": 0, "speed": 0, "hours": 2},
+        {"heading": 0, "speed": 4, "hours": 4},
+    ],
+    "two-02": [
+        {"heading": 307, "speed": 5, "hours": 4},
+    ],
+    "two-03": [
+        {"heading": 0, "speed": 0, "hours": 2},
+        {"heading": 181, "speed": 4.5, "hours": 3},
+    ],
+    "two-04": [
+        {"heading": 320, "speed": 4.5, "hours": 2.5},
+        {"heading": 288, "speed": 6.5, "hours": 0.5},
+        {"heading": 318, "speed": 4.5, "hours": 1},
+    ],
+    "two-05": [
+        {"heading": 0, "speed": 0, "hours": 1.5},
+        {"heading": 140, "speed": 3.5, "hours": 2.5},
+        {"heading": 119, "speed": 5.5, "hours": 2},
+    ],
+    "two-06": [
+        {"heading": 0, "speed": 0, "hours": 3},
+        {"heading": 356, "speed": 4, "hours": 3.5},
+    ],
+    "two-07": [
+        {"heading": 0, "speed": 0, "hours": 1.5},
+        {"heading": 123, "speed": 6, "hours": 1},
+        {"heading": 145, "speed": 4, "hours": 3.5},
+    ],
 }

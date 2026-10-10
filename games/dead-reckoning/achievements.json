@@ -46,6 +46,11 @@
       "description": "Lie at anchor to wait for the tide, then make landfall."
     },
     {
+      "id": "two_at_once",
+      "label": "Two at Once",
+      "description": "Make landfall with both ships on a two-ship chart."
+    },
+    {
       "id": "aground",
       "label": "Aground",
       "description": "Run aground once. Everyone does."

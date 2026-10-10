@@ -21,8 +21,10 @@ Requests carry an `action`:
   set_mode {mode}            "plan" (full plan) or "watch" (Watch-by-watch), before anything is sailed
   take_fix {landmark}        Watch-by-watch: move the plot to where a landmark's bearing and distance put the ship
   anchor                     Watch-by-watch: end the passage where it stands (sail with the legs already sailed)
-  practice {difficulty, seed?, code?}   open a generated practice chart (a share code such as DR3-1K9X2 replays one)
+  practice {difficulty, seed?, code?, two?}   open a generated practice chart (a share code such as DR3-1K9X2 replays one; two=true makes a
+                             two-ship chart, whose codes carry a T: DR3T-1K9X2)
   start_daily {date}         open the Daily Chart for a UTC date (see daily.py)
+  select_ship {ship}         two-ship charts: choose which ship's plan the leg actions edit (0 = Ship A, 1 = Ship B)
 Every request may carry "today" ("YYYY-MM-DD", UTC): the view passes the date in, the engine never reads a clock.
   next_chart                 open the next chart in the campaign (when it is unlocked)
   show_par | use_par         reveal the authored plan after a first attempt / load it into the planner
@@ -35,6 +37,7 @@ import achievements
 import charts
 import daily
 import fixes
+import fleet
 import gen
 import info
 import progress
@@ -57,6 +60,29 @@ CURRENT_HELPER_AFTER = 3   # the "allow for the charted current" helper unlocks 
 # --- helpers -------------------------------------------------------------------------------------
 def _chart():
     return charts.get_chart(run["chart_id"])
+
+
+def _two(chart=None):
+    return fleet.is_two(chart if chart is not None else _chart())
+
+
+def _ship_index(chart=None):
+    """Which ship the leg actions edit: always 0 on a one-ship chart."""
+    return run.get("ship", 0) if _two(chart) else 0
+
+
+def _sc(chart):
+    """The active ship's view of the chart (the chart itself on a one-ship chart)."""
+    return fleet.ship_chart(chart, _ship_index(chart))
+
+
+def _legs_of(ship):
+    return run["legs2"] if ship == 1 else run["legs"]
+
+
+def _legs():
+    """The active ship's list of legs (edited in place)."""
+    return _legs_of(_ship_index())
 
 
 def _record(chart_id):
@@ -114,7 +140,7 @@ def _ensure_run():
 
 
 def _snapshot():
-    history.append([dict(leg) for leg in run["legs"]])
+    history.append([_ship_index(), [dict(leg) for leg in _legs()]])
     del history[:-HISTORY_LIMIT]
 
 
@@ -122,8 +148,9 @@ def _watch():
     return run["mode"] == "watch"
 
 
-def _plot(chart):
-    return sim.estimate(chart, run["legs"], allow=run["allow"], fixes=run["fixes"])
+def _plot(chart, ship=None):
+    ship = _ship_index(chart) if ship is None else ship
+    return sim.estimate(fleet.ship_chart(chart, ship), _legs_of(ship), allow=run["allow"], fixes=run["fixes"] if ship == 0 else ())
 
 
 def _believed(chart):
@@ -142,15 +169,23 @@ def _plot_end(chart):
     return (est[-1][1], est[-1][2])
 
 
+def _goal_lines(chart):
+    return [_goal_text(s) if not _two(chart) else "Ship %s: %s" % (fleet.TAGS[i], _goal_text(s)) for i, s in enumerate(fleet.ships(chart))]
+
+
 def _goal_text(chart):
     return "Reach the flag (within %g nm) in %g hours or less. Speed %s kn." % (
         chart["arrival_radius"], chart["deadline"], render.range_text(chart["speeds"], "").strip())
 
 
+def _fleet_goal(chart):
+    return " ".join(_goal_lines(chart)) + " " + fleet.rule_text()
+
+
 def _chart_info(chart):
     return {"id": chart["id"], "name": chart["name"], "chapter": chart.get("chapter", ""), "deadline": chart["deadline"],
             "arrival_radius": chart["arrival_radius"], "speeds": chart["speeds"], "size": chart["size"],
-            "goal": _goal_text(chart), "intro": chart.get("intro", ""), "mode": run["mode"], "modes": list(chart.get("modes", ["plan"])),
+            "goal": _fleet_goal(chart) if _two(chart) else _goal_text(chart), "two": _two(chart), "intro": chart.get("intro", ""), "mode": run["mode"], "modes": list(chart.get("modes", ["plan"])),
             "start_hour": chart.get("start_hour", 0.0), "practice": _practice_info(chart), "daily": _daily_info(chart)}
 
 
@@ -165,8 +200,8 @@ def _daily_info(chart):
 def _practice_info(chart):
     if not gen.is_practice_id(chart["id"]):
         return None
-    d, seed = gen.parse(chart["id"])
-    return {"difficulty": d, "code": gen.code_of(d, seed), "name": gen.NAMES[d]}
+    d, seed, two = gen.parse_ex(chart["id"])
+    return {"difficulty": d, "code": gen.code_of(d, seed, two), "name": gen.NAMES[d], "two": two}
 
 
 def _frame(chart):
@@ -219,6 +254,11 @@ def _par_view(chart):
         return None
     if not seen:
         return {"available": True, "shown": False}
+    if _two(chart):
+        legs2 = charts.par_legs2(chart["id"]) or []
+        lines = (["Ship A, leg %d: steer %03d at %g kn for %g h." % (i + 1, leg["heading"], leg["speed"], leg["hours"]) for i, leg in enumerate(legs)]
+                 + ["Ship B, leg %d: steer %03d at %g kn for %g h." % (i + 1, leg["heading"], leg["speed"], leg["hours"]) for i, leg in enumerate(legs2)])
+        return {"available": True, "shown": True, "legs": legs, "legs2": legs2, "lines": lines}
     return {"available": True, "shown": True, "legs": legs,
             "lines": ["Leg %d: steer %03d at %g kn for %g h." % (i + 1, leg["heading"], leg["speed"], leg["hours"]) for i, leg in enumerate(legs)]}
 
@@ -261,6 +301,8 @@ def _view_phase():
 
 # --- the planning view ---------------------------------------------------------------------------
 def _plan_view(chart):
+    if _two(chart):
+        return _plan_view_fleet(chart)
     legs = run["legs"]
     est = _plot(chart)
     plot_end = (est[-1][1], est[-1][2])
@@ -281,6 +323,53 @@ def _plan_view(chart):
                    "over": hours > chart["deadline"], "plot_end": [plot_end[0], plot_end[1]],
                    "plot_miss": round(dist(plot_end, chart["dest"]), 1)},
         "limits": {"speeds": chart["speeds"], "max_hours": sim.MAX_LEG_HOURS, "max_legs": state.MAX_LEGS},
+        "helpers": {"naive": True, "current": current_helper_unlocked() and run["allow"],
+                    "current_unlocked": current_helper_unlocked(), "current_after": CURRENT_HELPER_AFTER},
+        "point": pt, "can_undo": bool(history), "stars": _record(chart["id"])["stars"],
+    }
+
+
+def _fleet_plan_line(approach):
+    if approach is None:
+        return "Plan both ships to see how close your plots bring them."
+    if approach["too_close"]:
+        return ("Your plots bring the ships to %.1f nm apart at hour %g: inside the %g nm rule, which would cost a star."
+                % (approach["dist"], approach["t"], fleet.SEPARATION))
+    return "Your plots keep the ships at least %.1f nm apart (closest at hour %g; the rule is %g nm)." % (approach["dist"], approach["t"], fleet.SEPARATION)
+
+
+def _plan_view_fleet(chart):
+    """The planning view of a two-ship chart: the active ship's legs and totals, both plots on the chart, and the plots' own closest approach."""
+    ships = fleet.ships(chart)
+    active = _ship_index(chart)
+    ests = [_plot(chart, 0), _plot(chart, 1)]
+    plans = [run["legs"], run["legs2"]]
+    est = ests[active]
+    plot_end = (est[-1][1], est[-1][2])
+    discovered = _discovered(chart)
+    pt = None
+    if point is not None:
+        pt = {"x": point[0], "y": point[1], "bearing": round(bearing(plot_end, point)) % 360,
+              "distance": round(dist(plot_end, point), 1)}
+    approach = dict(fleet.closest_approach(ests[0], ests[1]), kind="plot") if (plans[0] and plans[1]) else None
+    svg = render.render_chart(chart, est=ests[0], marks=render.plan_marks(plans[0], ests[0]), discovered=discovered, point=point,
+                              ship2={"est": ests[1], "marks": render.plan_marks(plans[1], ests[1])}, approach=approach)
+    per_ship = []
+    for i, ship in enumerate(ships):
+        end = (ests[i][-1][1], ests[i][-1][2])
+        hours = sim.plan_hours(plans[i])
+        per_ship.append({"tag": fleet.TAGS[i], "legs": len(plans[i]), "hours": hours, "deadline": ship["deadline"], "over": hours > ship["deadline"],
+                         "distance": round(sim.plan_distance(plans[i]), 1), "plot_miss": round(dist(end, ship["dest"]), 1)})
+    mine = per_ship[active]
+    return {
+        "phase": "plan", "sailed": 0, "watch": None, "chart": _chart_info(chart), "svg": svg, "frame": _frame(chart),
+        "notes": render.chart_notes(chart, discovered), "legs": plans[active], "allow": run["allow"],
+        "totals": {"legs": mine["legs"], "hours": mine["hours"], "distance": mine["distance"], "deadline": mine["deadline"], "over": mine["over"],
+                   "plot_end": [plot_end[0], plot_end[1]], "plot_miss": mine["plot_miss"]},
+        "fleet": {"active": active, "ships": per_ship, "separation": fleet.SEPARATION, "rule": fleet.rule_text(),
+                  "plot_closest": ({"dist": approach["dist"], "t": approach["t"], "too_close": approach["too_close"]} if approach else None),
+                  "line": _fleet_plan_line(approach)},
+        "limits": {"speeds": ships[active]["speeds"], "max_hours": sim.MAX_LEG_HOURS, "max_legs": state.MAX_LEGS},
         "helpers": {"naive": True, "current": current_helper_unlocked() and run["allow"],
                     "current_unlocked": current_helper_unlocked(), "current_after": CURRENT_HELPER_AFTER},
         "point": pt, "can_undo": bool(history), "stars": _record(chart["id"])["stars"],
@@ -309,7 +398,79 @@ def _stars_text(n):
     return "%d of 3 stars" % n
 
 
+def _ship_line(tag, s, chart):
+    if s["aground"]:
+        return "Ship %s ran aground %.1f nm from its flag. The tide will lift her in a few hours; her passage is over." % (tag, s["miss_nm"])
+    return "Ship %s finished %.1f nm from its flag (arrival radius %g nm)." % (tag, s["miss_nm"], chart["arrival_radius"])
+
+
+def _reveal_view_fleet(chart):
+    known = run.get("known", [])
+    ships = fleet.ships(chart)
+    plans = [run["legs"], run["legs2"]]
+    res = fleet.sail_fleet(chart, plans[0], plans[1], seed=run["seed"], known=known)
+    sc = fleet.score_fleet(chart, plans[0], plans[1], res, known=known, used_helpers=bool(run["helpers"]))
+    ests = [_plot(chart, 0), _plot(chart, 1)]
+    discovered = _discovered(chart)
+    ra, rb = res["ships"]
+    ap = res["approach"]
+    par = _par_view(chart)
+    par_plots = [None, None]
+    if par and par["shown"]:
+        par_plots = [sim.estimate(ships[0], par["legs"], allow=True), sim.estimate(ships[1], par["legs2"], allow=True)]
+    svg = render.render_chart(chart, est=ests[0], marks=render.plan_marks(plans[0], ests[0]), true_track=ra["track"], discovered=discovered,
+                              par_track=par_plots[0], ship2={"est": ests[1], "marks": render.plan_marks(plans[1], ests[1]),
+                                                             "true_track": rb["track"], "par_track": par_plots[1]},
+                              approach=dict(ap, kind="true"))
+    lines = [_ship_line(fleet.TAGS[i], s, ships[i]) for i, s in enumerate(sc["ships"])]
+    if ap["too_close"]:
+        lines.append("The ships came within %.1f nm of each other at hour %g, inside the %g nm rule, which costs one star. Nothing was damaged: "
+                     "a retry is free." % (ap["dist"], ap["t"], fleet.SEPARATION))
+    else:
+        lines.append("The ships came no closer than %.1f nm (at hour %g); the rule is %g nm." % (ap["dist"], ap["t"], fleet.SEPARATION))
+    naive = [s["naive_miss_nm"] for s in sc["ships"]]
+    lines.append("Steering each ship straight at its flag would have missed by %.1f nm (Ship A) and %.1f nm (Ship B)." % tuple(naive))
+    if sc["forecast_error_nm"] is not None:
+        f = [s["forecast_error_nm"] for s in sc["ships"]]
+        lines.append("Your plots put Ship A %.1f nm and Ship B %.1f nm from where each really ended up." % (f[0], f[1]))
+    if sc["arrived"]:
+        title = "Landfall"
+    elif sc["aground"]:
+        title = "Aground"
+    else:
+        title = "Short of the flag"
+    points = [[t, *render.svg_point(chart, x, y)] for t, x, y in ra["track"]]
+    points2 = [[t, *render.svg_point(chart, x, y)] for t, x, y in rb["track"]]
+    events = [{"t": e["t"], "text": e["text"], "public": e["public"]} for e in res["events"]]
+    hours = [sim.plan_hours(p) for p in plans]
+    return {
+        "phase": "reveal", "chart": _chart_info(chart), "svg": svg, "frame": _frame(chart),
+        "notes": render.chart_notes(chart, discovered), "legs": plans[0], "legs2": plans[1], "allow": run["allow"],
+        "totals": {"legs": len(plans[0]) + len(plans[1]), "hours": max(hours), "distance": round(sim.plan_distance(plans[0]) + sim.plan_distance(plans[1]), 1),
+                   "deadline": max(s["deadline"] for s in ships), "over": any(h > s["deadline"] for h, s in zip(hours, ships)),
+                   "plot_end": [ests[0][-1][1], ests[0][-1][2]], "plot_miss": round(dist((ests[0][-1][1], ests[0][-1][2]), ships[0]["dest"]), 1)},
+        "reveal": {"title": title, "stars": sc["stars"], "stars_text": _stars_text(sc["stars"]), "criteria": sc["criteria"],
+                   "lines": lines, "events": events, "points": points, "points2": points2, "hours": res["hours"],
+                   "approach": {"dist": ap["dist"], "t": ap["t"], "too_close": ap["too_close"], "separation": fleet.SEPARATION},
+                   "miss_nm": sc["miss_nm"], "arrived": sc["arrived"], "aground": sc["aground"],
+                   "best_stars": _record(chart["id"])["stars"] if not _scoped(chart["id"]) else 0,
+                   "log": _fleet_log_line(chart, sc), "par": par, "next_chart": _next_playable(chart["id"])},
+        "stars": _record(chart["id"])["stars"],
+    }
+
+
+def _fleet_log_line(chart, sc):
+    log = chart.get("log") or {}
+    if sc["aground"]:
+        return log.get("aground", "")
+    if sc["arrived"]:
+        return log.get("late" if not sc["on_time"] else "arrived", "")
+    return log.get("missed", "")
+
+
 def _reveal_view(chart):
+    if _two(chart):
+        return _reveal_view_fleet(chart)
     legs = run["legs"][:run["sailed"]] if _watch() else run["legs"]
     known = run.get("known", [])
     res = sim.sail(chart, legs, seed=run["seed"], known=known)
@@ -382,13 +543,19 @@ def _finish():
     else:
         run["sailed"] = 0
     legs = run["legs"]
-    res = sim.sail(chart, legs, seed=run["seed"], known=run["known"])
-    sc = sim.score(chart, legs, res, known=run["known"], used_helpers=bool(run["helpers"]))
+    if _two(chart):
+        res = fleet.sail_fleet(chart, legs, run["legs2"], seed=run["seed"], known=run["known"])
+        sc = fleet.score_fleet(chart, legs, run["legs2"], res, known=run["known"], used_helpers=bool(run["helpers"]))
+        groundings = res["groundings"]
+    else:
+        res = sim.sail(chart, legs, seed=run["seed"], known=run["known"])
+        sc = sim.score(chart, legs, res, known=run["known"], used_helpers=bool(run["helpers"]))
+        groundings = [res["aground"]] if res["aground"] else []
     scoped = _scoped(chart["id"])
     progress.record_outcome(meta, chart, run, res, sc, scored=not scoped, fix_taken=bool(run["fixes"]))
     if scoped:
         known = {h["id"] for h in chart["hazards"] if h.get("charted", True)}
-        touched = list(res["close"]) + ([res["aground"]["hazard"]] if res["aground"] else [])
+        touched = list(res["close"]) + [g["hazard"] for g in groundings]
         found = set(run["found"]) | {h for h in touched if h not in known and any(x["id"] == h for x in chart["hazards"])}
         run["found"] = sorted(found)
         if daily.is_daily_id(chart["id"]):
@@ -416,14 +583,15 @@ def _sail_watch(chart):
 # --- the one entry point ---------------------------------------------------------------------------
 def _leg_index(request):
     i = request.get("i")
-    if isinstance(i, bool) or not isinstance(i, int) or not run["sailed"] <= i < len(run["legs"]):
+    if isinstance(i, bool) or not isinstance(i, int) or not run["sailed"] <= i < len(_legs()):
         return None
     return i
 
 
 def _default_leg(chart):
+    ship = _sc(chart)
     end = _believed(chart) if _watch() else _plot_end(chart)
-    return sim.clean_leg(chart, {"heading": round(bearing(end, chart["dest"])), "speed": sim.cruise_speed(chart), "hours": 1.0})
+    return sim.clean_leg(ship, {"heading": round(bearing(end, ship["dest"])), "speed": sim.cruise_speed(ship), "hours": 1.0})
 
 
 def _start_practice(request):
@@ -431,21 +599,22 @@ def _start_practice(request):
     global note
     code = request.get("code")
     if isinstance(code, str) and code.strip():
-        parsed = gen.parse(code)
+        parsed = gen.parse_ex(code)
         chart = gen.make_chart(*parsed) if parsed else None
         if chart is None:
-            note = "That is not a practice code the game can make. A code looks like DR3-1K9X2."
+            note = "That is not a practice code the game can make. A code looks like DR3-1K9X2 (DR3T-1K9X2 for two ships)."
             return False
         _start(chart["id"])
         return True
     d = request.get("difficulty")
     if d not in gen.DIFFICULTIES or isinstance(d, bool):
         return False
+    two = request.get("two") is True
     seed = request.get("seed")
     explicit = isinstance(seed, int) and not isinstance(seed, bool) and 0 <= seed < gen.SEED_LIMIT
     for nonce in range(10):
         s = seed + nonce if explicit else gen.next_seed(meta["practice_seeds_played"], d, nonce)
-        chart = gen.make_chart(d, s % gen.SEED_LIMIT)
+        chart = gen.make_chart(d, s % gen.SEED_LIMIT, two)
         if chart is not None:
             _start(chart["id"])
             return True
@@ -518,6 +687,9 @@ def handle(request_json):
     editing = run["phase"] == "plan"
     if action in ("open", "start", "reset", "practice", "start_daily", None):
         pass
+    elif action == "select_ship":
+        if _two(chart) and request.get("ship") in (0, 1) and not isinstance(request.get("ship"), bool):
+            run["ship"] = request["ship"]
     elif action == "retry":
         run["phase"] = "plan"
         run.pop("known", None)
@@ -537,12 +709,15 @@ def handle(request_json):
             run["phase"] = "plan"
             run.pop("known", None)
             run["legs"] = sim.clean_legs(chart, legs, limit=state.MAX_LEGS)
+            if _two(chart):
+                run["legs2"] = sim.clean_legs(fleet.ship_chart(chart, 1), charts.par_legs2(chart["id"]) or [], limit=state.MAX_LEGS)
             run["helpers"] = ["par"]
             history = []
     elif action == "restart":
         run["phase"] = "plan"
         run.pop("known", None)
         run["legs"] = []
+        run["legs2"] = []
         run["helpers"] = []
         run["sailed"] = 0
         run["fixes"] = []
@@ -558,54 +733,60 @@ def handle(request_json):
     elif not editing:
         return json.dumps({"error": "the passage is over: retry or pick a chart"})
     elif action == "add_wait":
-        if len(run["legs"]) < state.MAX_LEGS and not (_watch() and len(run["legs"]) > run["sailed"]):
+        if len(_legs()) < state.MAX_LEGS and not (_watch() and len(_legs()) > run["sailed"]):
             _snapshot()
-            run["legs"].append({"heading": 0, "speed": 0.0, "hours": 1.0})
+            _legs().append({"heading": 0, "speed": 0.0, "hours": 1.0})
     elif action == "set_mode":
         mode = request.get("mode")
         if mode in chart.get("modes", ("plan",)) and mode != run["mode"] and run["sailed"] == 0:
             run["mode"] = mode
             run["legs"] = []
+            run["legs2"] = []
             run["helpers"] = []
             history = []
     elif action == "take_fix":
         _take_fix(chart, request)
     elif action == "add_leg":
-        if len(run["legs"]) < state.MAX_LEGS and not (_watch() and len(run["legs"]) > run["sailed"]):
+        if len(_legs()) < state.MAX_LEGS and not (_watch() and len(_legs()) > run["sailed"]):
             _snapshot()
-            run["legs"].append(_default_leg(chart))
+            _legs().append(_default_leg(chart))
     elif action == "set_leg":
         i = _leg_index(request)
         if i is not None:
             _snapshot()
-            merged = dict(run["legs"][i])
+            merged = dict(_legs()[i])
             for field in ("heading", "speed", "hours"):
                 if field in request:
                     merged[field] = request[field]
-            run["legs"][i] = sim.clean_leg(chart, merged)
+            _legs()[i] = sim.clean_leg(_sc(chart), merged)
     elif action == "nudge":
         i = _leg_index(request)
         field, delta = request.get("field"), request.get("delta")
         if i is not None and field in ("heading", "speed", "hours") and isinstance(delta, (int, float)) and not isinstance(delta, bool):
             _snapshot()
-            merged = dict(run["legs"][i])
+            merged = dict(_legs()[i])
             merged[field] = merged[field] + delta
-            run["legs"][i] = sim.clean_leg(chart, merged)
+            _legs()[i] = sim.clean_leg(_sc(chart), merged)
     elif action == "remove_leg":
         i = _leg_index(request)
         if i is not None:
             _snapshot()
-            del run["legs"][i]
+            del _legs()[i]
     elif action == "undo":
         if history:
-            prev = history.pop()
-            if prev[:run["sailed"]] == run["legs"][:run["sailed"]] and len(prev) >= run["sailed"]:
+            ship, prev = history.pop()
+            if ship == 0 and prev[:run["sailed"]] == run["legs"][:run["sailed"]] and len(prev) >= run["sailed"]:
                 run["legs"] = prev
+                if _two(chart):
+                    run["ship"] = 0
+            elif ship == 1 and _two(chart):
+                run["legs2"] = prev
+                run["ship"] = 1
     elif action == "clear":
-        if len(run["legs"]) > run["sailed"]:
+        if len(_legs()) > run["sailed"]:
             _snapshot()
-        del run["legs"][run["sailed"]:]
-        if not run["sailed"]:
+        del _legs()[run["sailed"]:]
+        if not run["sailed"] and not (_two(chart) and (run["legs"] or run["legs2"])):
             run["helpers"] = []
     elif action == "allow":
         run["allow"] = request.get("value") is not False
@@ -640,24 +821,25 @@ def _helper(chart, request):
     kind = request.get("kind")
     if kind not in ("naive", "current"):
         return
+    ship = _sc(chart)
     if _watch():
         del run["legs"][run["sailed"]:]
-    if len(run["legs"]) >= state.MAX_LEGS:
+    if len(_legs()) >= state.MAX_LEGS:
         return
-    target = tuple(chart["dest"]) if request.get("target") != "point" or point is None else point
+    target = tuple(ship["dest"]) if request.get("target") != "point" or point is None else point
     here = _believed(chart) if _watch() else _plot_end(chart)
     if dist(here, target) < 0.05:
         return
     if kind == "naive":
-        leg = sim.naive_legs(chart, start=here, target=target)[0]
+        leg = sim.naive_legs(ship, start=here, target=target)[0]
     else:
         if not (current_helper_unlocked() and run["allow"]):
             return
-        leg = solver.shoot(chart, here, target, model="charted", t_start=sim.plan_hours(run["legs"]))
+        leg = solver.shoot(ship, here, target, model="charted", t_start=sim.plan_hours(_legs()))
         if leg is None:
             return
     _snapshot()
-    run["legs"].append(leg)
+    _legs().append(leg)
     if kind not in run["helpers"]:
         run["helpers"].append(kind)
 

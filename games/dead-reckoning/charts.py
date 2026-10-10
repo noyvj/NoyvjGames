@@ -10,7 +10,8 @@ from charts_fixes import CHARTS as _FIXES
 from charts_fog import CHARTS as _FOG
 from charts_tides import CHARTS as _TIDES
 from charts_compass import CHARTS as _COMPASS
-from pars import PARS
+from charts_two import CHARTS as _TWO
+from pars import PARS, PARS2
 import daily
 import gen
 
@@ -27,6 +28,8 @@ CHAPTERS = [
      "charts": _TIDES},
     {"id": "compass", "name": "Compass error", "blurb": "The compass does not read true. Steer the heading that is already corrected.",
      "charts": _COMPASS},
+    {"id": "ships", "name": "Two ships", "blurb": "Plan two vessels on one chart. Each has its own flag and deadline; keep them clear of each other while both are under way.",
+     "charts": _TWO},
 ]
 CLEAR_TO_OPEN_NEXT = 4          # charts cleared (one star or more) in a chapter before the next chapter opens
 
@@ -55,6 +58,15 @@ def par_legs(chart_id):
     if legs is None and (gen.is_practice_id(chart_id) or daily.is_daily_id(chart_id)):
         made = get_chart(chart_id)
         legs = made["par_legs"] if made else None
+    return [dict(leg) for leg in legs] if legs else None
+
+
+def par_legs2(chart_id):
+    """Ship B's authored solution on a two-ship chart (a fresh copy), or None."""
+    legs = PARS2.get(chart_id)
+    if legs is None and (gen.is_practice_id(chart_id) or daily.is_daily_id(chart_id)):
+        made = get_chart(chart_id)
+        legs = (made.get("ship2") or {}).get("par_legs") if made else None
     return [dict(leg) for leg in legs] if legs else None
 
 

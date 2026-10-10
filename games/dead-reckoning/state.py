@@ -9,6 +9,7 @@ one bad entry never costs the good ones.
 import math
 
 import daily
+import fleet
 from sim import clean_legs
 
 SCHEMA = 1
@@ -18,7 +19,7 @@ PHASES = ("plan", "reveal")
 HELPERS = ("naive", "current", "par")
 # Irreversible facts that achievements are built from (achievements.py). Anything else in a loaded save is dropped.
 FLAGS = ("landfall", "dead_on", "trusted", "around_rocks", "set_and_drift", "first_fix", "fog_clear", "riding_tide",
-         "waited", "aground", "long_way")
+         "waited", "aground", "long_way", "two_ships")
 LONG_WAY_NM = 60.0
 CHART_ID_LIMIT = 80
 
@@ -120,8 +121,8 @@ def merge_meta(a, b):
 
 
 def new_run(chart_id, seed=0, mode="plan"):
-    return {"chart_id": chart_id, "seed": seed, "mode": mode, "legs": [], "phase": "plan", "allow": True, "helpers": [],
-            "sailed": 0, "fixes": [], "counted": False, "par": False, "found": []}
+    return {"chart_id": chart_id, "seed": seed, "mode": mode, "legs": [], "legs2": [], "ship": 0, "phase": "plan", "allow": True,
+            "helpers": [], "sailed": 0, "fixes": [], "counted": False, "par": False, "found": []}
 
 
 def clean_fixes(data, sailed, landmark_ids=None, size=40):
@@ -159,7 +160,9 @@ def clean_run(data, get_chart):
     phase = data.get("phase") if data.get("phase") in PHASES else "plan"
     run = new_run(cid, _int(data.get("seed"), 0, 2 ** 31 - 1), mode)
     run["legs"] = clean_legs(chart, data.get("legs"), limit=MAX_LEGS)
-    run["phase"] = phase if run["legs"] else "plan"
+    if fleet.is_two(chart):                                       # Ship B's plan (two-ship charts only; plan mode only)
+        run["legs2"] = clean_legs(fleet.ship_chart(chart, 1), data.get("legs2"), limit=MAX_LEGS)
+    run["phase"] = phase if (run["legs"] or run["legs2"]) else "plan"
     run["allow"] = data.get("allow") is not False
     if mode == "watch" and run["phase"] == "plan":
         run["sailed"] = _int(data.get("sailed"), 0, len(run["legs"]))
@@ -185,6 +188,8 @@ def clean_run(data, get_chart):
 def run_to_dict(run):
     """The run as stored: defaults left out."""
     out = {"chart_id": run["chart_id"], "legs": [dict(leg) for leg in run["legs"]]}
+    if run.get("legs2"):
+        out["legs2"] = [dict(leg) for leg in run["legs2"]]
     if run["seed"]:
         out["seed"] = run["seed"]
     if run["mode"] != "plan":

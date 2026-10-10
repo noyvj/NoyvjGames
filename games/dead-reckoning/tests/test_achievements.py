@@ -18,12 +18,12 @@ def meta_with(stars=None, flags=(), practice=0):
     return m
 
 
-def test_there_are_fourteen_achievements_and_the_manifest_matches_the_module():
-    assert len(achievements.ACHIEVEMENTS) == 14
+def test_there_are_fifteen_achievements_and_the_manifest_matches_the_module():
+    assert len(achievements.ACHIEVEMENTS) == 15
     manifest = json.loads((GAME_DIR / "achievements.json").read_text(encoding="utf-8"))["achievements"]
     assert [(a["id"], a["label"], a["description"]) for a in manifest] == list(achievements.ACHIEVEMENTS)
     ids = [a[0] for a in achievements.ACHIEVEMENTS]
-    assert len(set(ids)) == 14 and set(achievements.FLAG_OF) <= set(ids)
+    assert len(set(ids)) == 15 and set(achievements.FLAG_OF) <= set(ids)
     assert set(achievements.FLAG_OF.values()) <= set(FLAGS)
 
 
@@ -56,7 +56,7 @@ def test_all_stars_needs_three_stars_everywhere():
 
 def test_view_lists_all_with_earned_marks():
     v = achievements.view(meta_with(flags=["landfall"]), CHAPTERS)
-    assert len(v) == 14 and [a["id"] for a in v if a["earned"]] == ["first_landfall"]
+    assert len(v) == 15 and [a["id"] for a in v if a["earned"]] == ["first_landfall"]
 
 
 def test_the_saved_projection_is_written_and_never_read_back(g):
@@ -70,7 +70,7 @@ def test_the_saved_projection_is_written_and_never_read_back(g):
 
 def test_the_view_carries_the_list_for_the_panel(g):
     v = g.call("open")
-    assert len(v["achievements"]) == 14 and not any(a["earned"] for a in v["achievements"])
+    assert len(v["achievements"]) == 15 and not any(a["earned"] for a in v["achievements"])
 
 
 def play_par(g, cid, mode="plan"):
@@ -79,11 +79,17 @@ def play_par(g, cid, mode="plan"):
     for leg in g.charts.par_legs(cid):
         n = len(g.call("add_leg")["legs"])
         g.call("set_leg", i=n - 1, **leg)
+    if g.charts.par_legs2(cid):                      # a two-ship chart: Ship B's plan too
+        g.call("select_ship", ship=1)
+        for leg in g.charts.par_legs2(cid):
+            n = len(g.call("add_leg")["legs"])
+            g.call("set_leg", i=n - 1, **leg)
+        g.call("select_ship", ship=0)
     return g.call("sail")
 
 
 def test_the_whole_game_can_be_one_hundred_percented_with_the_par_plans(g):
-    """Easy to 100%: sail every authored par plan, take a fix once, run aground once and sail ten practice charts."""
+    """Easy to 100%: sail every authored par plan (both ships on the two-ship charts), take a fix once, run aground once and sail ten practice charts."""
     # open every chapter first so the par plans can be started in any order
     for cid in g.charts.ORDER[:12]:
         g.meta["charts"][cid] = dict(new_record(), stars=1)

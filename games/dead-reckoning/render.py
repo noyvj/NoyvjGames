@@ -11,6 +11,7 @@ tracks differ by dash style (the estimate is dashed, the truth solid). Colour co
 import math
 from xml.sax.saxutils import escape
 
+import fleet
 from geom import unit
 
 PX = 480.0          # the drawn size of the sea in viewBox units, whatever the chart's size in nm
@@ -230,15 +231,29 @@ def _compass_label(chart, fr):
 
 
 def _endpoints(chart, fr):
+    if fleet.is_two(chart):
+        return "".join(_endpoint_pair(fleet.ship_chart(chart, i), fr, fleet.TAGS[i], i == 1) for i in (0, 1))
+    return _endpoint_pair(chart, fr, None, False)
+
+
+def _endpoint_pair(chart, fr, tag, second):
+    """A ship's start mark and flag. Ship B's start is a square and its ring a different dash, and every label carries the ship's letter,
+    so the two ships are never told apart by colour alone."""
     sx, sy = fr.xy(chart["start"])
     dx, dy = fr.xy(chart["dest"])
     ring = chart["arrival_radius"] * fr.s
-    out = ['<g class="dr-start"><circle class="dr-start-ring" cx="%s" cy="%s" r="8"/><circle class="dr-start-dot" cx="%s" cy="%s" r="2.5"/>%s</g>'
-           % (f(sx), f(sy), f(sx), f(sy), _label(sx, sy + 24, "Start", "dr-label dr-label-start"))]
-    out.append('<g class="dr-dest"><circle class="dr-arrival-ring" cx="%s" cy="%s" r="%s"/>'
+    suffix = (" " + tag) if tag else ""
+    if second:
+        start = ('<g class="dr-start dr-start-b"><rect class="dr-start-ring" x="%s" y="%s" width="16" height="16"/>'
+                 '<circle class="dr-start-dot" cx="%s" cy="%s" r="2.5"/>%s</g>' % (f(sx - 8), f(sy - 8), f(sx), f(sy), _label(sx, sy + 24, "Start" + suffix, "dr-label dr-label-start")))
+    else:
+        start = ('<g class="dr-start"><circle class="dr-start-ring" cx="%s" cy="%s" r="8"/><circle class="dr-start-dot" cx="%s" cy="%s" r="2.5"/>%s</g>'
+                 % (f(sx), f(sy), f(sx), f(sy), _label(sx, sy + 24, "Start" + suffix, "dr-label dr-label-start")))
+    out = [start]
+    out.append('<g class="dr-dest%s"><circle class="dr-arrival-ring" cx="%s" cy="%s" r="%s"/>'
                '<path class="dr-flag-pole" d="M%s,%s L%s,%s"/><path class="dr-flag" d="M%s,%s L%s,%s L%s,%s Z"/>%s</g>'
-               % (f(dx), f(dy), f(ring), f(dx), f(dy), f(dx), f(dy - 22), f(dx), f(dy - 22), f(dx + 15), f(dy - 17), f(dx), f(dy - 12),
-                  _label(dx, dy + ring + 15, "Landfall", "dr-label dr-label-dest")))
+               % (" dr-dest-b" if second else "", f(dx), f(dy), f(ring), f(dx), f(dy), f(dx), f(dy - 22), f(dx), f(dy - 22), f(dx + 15), f(dy - 17), f(dx), f(dy - 12),
+                  _label(dx, dy + ring + 15, "Landfall" + suffix, "dr-label dr-label-dest")))
     return "".join(out)
 
 
@@ -255,22 +270,28 @@ def plan_marks(legs, est):
     return marks
 
 
-def _plan(fr, est, marks, sailed_legs=0):
+def _plan(fr, est, marks, sailed_legs=0, tag=None, second=False):
     if not est:
         return ""
     pts = [(p[1], p[2]) for p in est]
-    out = ['<g class="dr-plan"><polyline class="dr-est-track" points="%s"/>' % fr.pts(pts)]
+    out = ['<g class="dr-plan%s"><polyline class="dr-est-track%s" points="%s"/>' % (" dr-plan-b" if second else "", " dr-est-track-b" if second else "", fr.pts(pts))]
     for i, (x, y) in enumerate(marks, 1):
         px, py = fr.xy((x, y))
         cls = "dr-leg-mark dr-leg-sailed" if i <= sailed_legs else "dr-leg-mark"
-        out.append('<g class="%s"><circle cx="%s" cy="%s" r="8"/>%s</g>' % (cls, f(px), f(py), _label(px, py + 4, str(i), "dr-leg-number")))
+        if second:
+            cls += " dr-leg-mark-b"
+        shape = '<rect x="%s" y="%s" width="17" height="17" rx="3"/>' % (f(px - 8.5), f(py - 8.5)) if second else '<circle cx="%s" cy="%s" r="8"/>' % (f(px), f(py))
+        out.append('<g class="%s">%s%s</g>' % (cls, shape, _label(px, py + 4, ("%s%d" % (tag, i)) if tag else str(i), "dr-leg-number")))
     out.append('</g>')
     return "".join(out)
 
 
-def _truth(fr, true_track, est):
+def _truth(fr, true_track, est, tag=None, second=False):
+    """The true track with its error ribbons and ship. Ship B's elements carry a -2 suffix on their ids; on a two-ship chart each ship
+    also carries its letter beside it."""
+    sfx = "-2" if second else ""
     pts = [(p[1], p[2]) for p in true_track]
-    out = ['<g class="dr-truth"><g class="dr-ribbons" id="dr-ribbons">']
+    out = ['<g class="dr-truth%s"><g class="dr-ribbons" id="dr-ribbons%s">' % (" dr-truth-b" if second else "", sfx)]
     est_by_t = {round(e[0], 3): e for e in est if not (len(e) > 3 and e[3])}
     for t, x, y in true_track:
         e = est_by_t.get(round(t, 3))
@@ -278,12 +299,33 @@ def _truth(fr, true_track, est):
             continue
         ex, ey = fr.xy((e[1], e[2]))
         tx, ty = fr.xy((x, y))
-        out.append('<line class="dr-ribbon" data-t="%g" x1="%s" y1="%s" x2="%s" y2="%s"/>' % (t, f(ex), f(ey), f(tx), f(ty)))
+        out.append('<line class="dr-ribbon%s" data-t="%g" x1="%s" y1="%s" x2="%s" y2="%s"/>' % (" dr-ribbon-b" if second else "", t, f(ex), f(ey), f(tx), f(ty)))
     out.append('</g>')
-    out.append('<polyline class="dr-true-track" id="dr-true-track" points="%s"/>' % fr.pts(pts))
-    out.append('<g class="dr-ship" id="dr-ship"><path class="dr-ship-shape" d="M0,-9 L6,7 L0,3 L-6,7 Z" transform="translate(%s,%s)"/></g>'
-               % (f(fr.x(pts[-1][0])), f(fr.y(pts[-1][1]))))
+    out.append('<polyline class="dr-true-track%s" id="dr-true-track%s" points="%s"/>' % (" dr-true-track-b" if second else "", sfx, fr.pts(pts)))
+    ex, ey = fr.x(pts[-1][0]), fr.y(pts[-1][1])
+    tag_text = '<text class="dr-ship-tag" x="%s" y="%s" text-anchor="start">%s</text>' % (f(ex + 9), f(ey - 9), escape(tag)) if tag else ""
+    out.append('<g class="dr-ship%s" id="dr-ship%s"><path class="dr-ship-shape" d="M0,-9 L6,7 L0,3 L-6,7 Z" transform="translate(%s,%s)"/>%s</g>'
+               % (" dr-ship-b" if second else "", sfx, f(ex), f(ey), tag_text))
     out.append('</g>')
+    return "".join(out)
+
+
+def _approach(fr, ap, kind):
+    """The two ships at their closest: a short line between them, the separation rule as a ring round Ship A, and a label. `kind` is
+    "true" (the reveal) or "plot" (the planner's warning, from the player's own two plots, never the truth). `data-t` lets the replay
+    show it only once the ships have got that far."""
+    ax, ay = fr.xy(ap["a"])
+    bx, by = fr.xy(ap["b"])
+    hour = ("%g" % ap["t"])
+    word = "Closest" if kind == "true" else "Plots closest"
+    cls = "dr-approach dr-approach-%s%s" % (kind, " dr-approach-near" if ap["too_close"] else "")
+    out = ['<g class="%s" data-t="%g">' % (cls, ap["t"]),
+           '<circle class="dr-approach-ring" cx="%s" cy="%s" r="%s"/>' % (f(ax), f(ay), f(fleet.SEPARATION * fr.s)),
+           '<path class="dr-approach-line" d="M%s,%s L%s,%s"/>' % (f(ax), f(ay), f(bx), f(by)),
+           '<rect class="dr-approach-end" x="%s" y="%s" width="7" height="7"/><rect class="dr-approach-end" x="%s" y="%s" width="7" height="7"/>'
+           % (f(ax - 3.5), f(ay - 3.5), f(bx - 3.5), f(by - 3.5)),
+           _label((ax + bx) / 2.0, (ay + by) / 2.0 - 12, "%s %.1f nm, hour %s" % (word, ap["dist"], hour), "dr-label dr-label-approach"),
+           '</g>']
     return "".join(out)
 
 
@@ -312,14 +354,14 @@ def _fixes(fr, fixes):
     return "".join(out)
 
 
-def _par(fr, par_track):
+def _par(fr, par_track, second=False):
     if not par_track:
         return ""
-    return '<polyline class="dr-par-track" points="%s"/>' % fr.pts([(p[1], p[2]) for p in par_track])
+    return '<polyline class="dr-par-track%s" points="%s"/>' % (" dr-par-track-b" if second else "", fr.pts([(p[1], p[2]) for p in par_track]))
 
 
 def render_chart(chart, est=None, marks=(), sailed_legs=0, true_track=None, discovered=(), reveal=False,
-                 point=None, believed=None, fixes=(), par_track=None):
+                 point=None, believed=None, fixes=(), par_track=None, ship2=None, approach=None):
     """The whole chart as one svg string.
 
     est        the estimated track [[t, x, y, fixed], ...] (the player's own plot)
@@ -328,7 +370,9 @@ def render_chart(chart, est=None, marks=(), sailed_legs=0, true_track=None, disc
     discovered hazard ids the crew has found (uncharted ones then appear)
     reveal     True on the reveal: show every hazard, marked or not
     point      the ruler's marked point, believed the believed position in Watch-by-watch, fixes fix positions
-    par_track  the authored plan's plotted track (a dotted line), drawn only after the player has asked to see it"""
+    par_track  the authored plan's plotted track (a dotted line), drawn only after the player has asked to see it
+    ship2      Ship B on a two-ship chart: {"est", "marks", "true_track", "par_track"} (the same rules as above, each only when due)
+    approach   the closest approach of the two ships, {"kind": "true" | "plot", ...fleet.closest_approach}; "true" only on the reveal"""
     fr = Frame(chart)
     notes = chart_notes(chart, discovered)
     parts = [
@@ -341,11 +385,20 @@ def render_chart(chart, est=None, marks=(), sailed_legs=0, true_track=None, disc
         _grid(fr), _land(chart, fr), _currents(chart, fr), _hazards(chart, fr, discovered, reveal), _landmarks(chart, fr),
         _scale_bar(fr), _wind(chart, fr), _compass_label(chart, fr), _rose(fr), _endpoints(chart, fr),
     ]
+    two = fleet.is_two(chart)
     parts.append(_par(fr, par_track))
+    if two and ship2:
+        parts.append(_par(fr, ship2.get("par_track"), True))
     if est:
-        parts.append(_plan(fr, est, marks, sailed_legs))
+        parts.append(_plan(fr, est, marks, sailed_legs, "A" if two else None))
+    if two and ship2 and ship2.get("est"):
+        parts.append(_plan(fr, ship2["est"], ship2.get("marks", ()), 0, "B", True))
     if true_track:
-        parts.append(_truth(fr, true_track, est or []))
+        parts.append(_truth(fr, true_track, est or [], "A" if two else None))
+    if two and ship2 and ship2.get("true_track"):
+        parts.append(_truth(fr, ship2["true_track"], ship2.get("est") or [], "B", True))
+    if two and approach:
+        parts.append(_approach(fr, approach, approach.get("kind", "true")))
     parts.append(_fixes(fr, fixes))
     parts.append(_point(fr, point))
     parts.append(_believed(fr, believed))
@@ -372,11 +425,19 @@ def tide_table(zone, lo=0.0, hi=24.0):
 
 
 def chart_notes(chart, discovered=()):
-    notes = [
-        "Start at %g east, %g north. The flag is at %g east, %g north; arrive within %g nm of it. Deadline %g hours. Ship speed %s."
-        % (chart["start"][0], chart["start"][1], chart["dest"][0], chart["dest"][1], chart["arrival_radius"], chart["deadline"],
-           range_text(chart["speeds"])),
-    ]
+    if fleet.is_two(chart):
+        notes = []
+        for i, ship in enumerate(fleet.ships(chart)):
+            notes.append("Ship %s starts at %g east, %g north. Its flag is at %g east, %g north; arrive within %g nm of it. Deadline %g hours. Ship speed %s."
+                         % (fleet.TAGS[i], ship["start"][0], ship["start"][1], ship["dest"][0], ship["dest"][1], ship["arrival_radius"],
+                            ship["deadline"], range_text(ship["speeds"])))
+        notes.append(fleet.rule_text())
+    else:
+        notes = [
+            "Start at %g east, %g north. The flag is at %g east, %g north; arrive within %g nm of it. Deadline %g hours. Ship speed %s."
+            % (chart["start"][0], chart["start"][1], chart["dest"][0], chart["dest"][1], chart["arrival_radius"], chart["deadline"],
+               range_text(chart["speeds"])),
+        ]
     for land in chart.get("land", ()):
         xs = [p[0] for p in land["poly"]]
         ys = [p[1] for p in land["poly"]]

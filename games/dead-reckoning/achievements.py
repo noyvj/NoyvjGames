@@ -2,8 +2,8 @@
 save). Everything is computed from the saved record, never stored separately, so a loaded save and a played one cannot disagree.
 All are reachable without luck and none is hidden (easy to 100%).
 
-The plan's ninth achievement, "Two at Once" (complete a two-ship chart), waits for the deferred Two ships milestone; "Patient
-Navigator" takes its place so the list stays at 14 and every one can be earned today."""
+"Two at Once" (the plan's ninth achievement, a two-ship chart) arrived with the Two ships milestone; "Patient Navigator", which had
+taken its place until then, stays, so there are 15."""
 
 PRACTICE_SEEDS = 10
 
@@ -17,6 +17,7 @@ ACHIEVEMENTS = (
     ("fog_of_war_ish", "Fog of War-ish", "Make landfall on a fog chart."),
     ("riding_the_tide", "Riding the Tide", "Make landfall with the tidal stream fair for most of the time you spent in it."),
     ("patient_navigator", "Patient Navigator", "Lie at anchor to wait for the tide, then make landfall."),
+    ("two_at_once", "Two at Once", "Make landfall with both ships on a two-ship chart."),
     ("aground", "Aground", "Run aground once. Everyone does."),
     ("long_way_round", "Long Way Round", "Make landfall on a plan of more than 60 nautical miles through the water."),
     ("chapter_closer", "Chapter Closer", "Make landfall on every chart in a chapter."),
@@ -26,7 +27,7 @@ ACHIEVEMENTS = (
 
 FLAG_OF = {"first_landfall": "landfall", "dead_on": "dead_on", "trust_the_numbers": "trusted", "around_the_rocks": "around_rocks",
            "set_and_drift": "set_and_drift", "first_fix": "first_fix", "fog_of_war_ish": "fog_clear", "riding_the_tide": "riding_tide",
-           "patient_navigator": "waited", "aground": "aground", "long_way_round": "long_way"}
+           "patient_navigator": "waited", "two_at_once": "two_ships", "aground": "aground", "long_way_round": "long_way"}
 
 
 def earned(meta, chapters):

@@ -25,8 +25,8 @@ SPEC = {
     4: dict(size=30, hazards=4, unmarked=0, land=1, currents=2, tide=True, wind=True, compass=True, gusts=0.08, radius=1.5),
     5: dict(size=30, hazards=5, unmarked=2, land=2, currents=2, tide=True, wind=True, compass=True, gusts=0.1, radius=1.5, fog=True),
 }
-CODE_RE = re.compile(r"^DR([1-5])-([0-9A-Z]{1,6})$")
-ID_RE = re.compile(r"^practice-([1-5])-([0-9a-z]{1,6})$")
+CODE_RE = re.compile(r"^DR([1-5])(T?)-([0-9A-Z]{1,6})$")
+ID_RE = re.compile(r"^practice-([1-5])(t?)-([0-9a-z]{1,6})$")
 _CACHE = {}
 
 
@@ -40,24 +40,31 @@ def to_base36(n):
     return out or "0"
 
 
-def chart_id(difficulty, seed):
-    return "practice-%d-%s" % (difficulty, to_base36(seed))
+def chart_id(difficulty, seed, two=False):
+    return "practice-%d%s-%s" % (difficulty, "t" if two else "", to_base36(seed))
 
 
-def code_of(difficulty, seed):
-    return ("DR%d-%s" % (difficulty, to_base36(seed))).upper()
+def code_of(difficulty, seed, two=False):
+    """DR3-1K9X2; a two-ship chart carries a T after the level (DR3T-1K9X2), so every earlier code keeps meaning what it did."""
+    return ("DR%d%s-%s" % (difficulty, "T" if two else "", to_base36(seed))).upper()
 
 
-def parse(text):
-    """(difficulty, seed) from a share code (any case, surrounding spaces ignored) or a chart id, or None."""
+def parse_ex(text):
+    """(difficulty, seed, two) from a share code (any case, surrounding spaces ignored) or a chart id, or None."""
     if not isinstance(text, str):
         return None
     t = text.strip()
     m = CODE_RE.match(t.upper()) or ID_RE.match(t.lower())
     if not m:
         return None
-    seed = int(m.group(2), 36)
-    return (int(m.group(1)), seed) if seed < SEED_LIMIT else None
+    seed = int(m.group(3), 36)
+    return (int(m.group(1)), seed, bool(m.group(2))) if seed < SEED_LIMIT else None
+
+
+def parse(text):
+    """(difficulty, seed) from a ONE-ship share code or chart id, or None (a two-ship code is read by parse_ex)."""
+    parsed = parse_ex(text)
+    return parsed[:2] if parsed and not parsed[2] else None
 
 
 def is_practice_id(text):
@@ -286,15 +293,19 @@ def _build(difficulty, seed, attempt):
     return None
 
 
-def make_chart(difficulty, seed):
-    """The practice chart for (difficulty, seed), or None if no solvable chart came out of the attempts."""
+def make_chart(difficulty, seed, two=False):
+    """The practice chart for (difficulty, seed), or None if no solvable chart came out of the attempts. With `two`, a two-ship chart
+    (gentwo.py: the same sea and Ship A, plus a second ship whose own route is solved and kept clear of the first)."""
     if difficulty not in SPEC or not isinstance(seed, int) or isinstance(seed, bool) or not 0 <= seed < SEED_LIMIT:
         return None
-    key = (difficulty, seed)
+    key = (difficulty, seed, bool(two))
     if key not in _CACHE:
         built = None
         for attempt in range(ATTEMPTS):
             built = _build(difficulty, seed, attempt)
+            if two and built is not None:
+                import gentwo
+                built = gentwo.add_second_ship(built, difficulty, seed, attempt)
             if built is not None:
                 break
         if len(_CACHE) > 40:
@@ -305,7 +316,7 @@ def make_chart(difficulty, seed):
 
 def from_id(text):
     """The chart for a practice chart id or share code, or None."""
-    parsed = parse(text)
+    parsed = parse_ex(text)
     return make_chart(*parsed) if parsed else None
 
 

@@ -195,7 +195,7 @@ COMPASS_IDS = [c["id"] for c in ALL if c.get("compass")]
 
 
 def test_the_later_chapters_exist_in_order():
-    assert [ch["id"] for ch in charts.CHAPTERS] == ["open", "wind", "fixes", "fog", "tides", "compass"]
+    assert [ch["id"] for ch in charts.CHAPTERS] == ["open", "wind", "fixes", "fog", "tides", "compass", "ships"]
     assert len(FOG_IDS) == 4 and len(TIDE_IDS) >= 4 and len(COMPASS_IDS) >= 4
     assert len(ALL) >= 27
 
