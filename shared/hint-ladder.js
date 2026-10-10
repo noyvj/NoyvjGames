@@ -166,7 +166,7 @@
     const tally = el("p", "noyvj-hints-tally", "");
     head.append(title, tally);
     const list = el("ol", "noyvj-hints-list", null, { "aria-labelledby": id + "-t" });
-    const ask = el("button", "noyvj-hints-ask", "Need a hint?", { type: "button" });
+    const ask = el("button", "noyvj-hints-ask", "Would you like a suggestion?", { type: "button" });
     const confirm = el("div", "noyvj-hints-confirm", null, { role: "group", "aria-labelledby": id + "-q" });
     const question = el("p", "noyvj-hints-question", "Show the answer? Seeing it takes the challenge out of this puzzle.", { id: id + "-q" });
     const yes = el("button", "noyvj-hints-yes", "Yes, show it", { type: "button" });
@@ -217,7 +217,7 @@
       if (confirming && !(next && next.key === "answer")) confirming = false;
       confirm.hidden = !confirming;
       ask.hidden = !next || confirming;
-      if (next) ask.textContent = next.key === "answer" && revealed > 0 ? "Show the answer" : revealed === 0 ? "Need a hint?" : "Another hint";
+      if (next) ask.textContent = next.key === "answer" && revealed > 0 ? "Another hint: the answer" : revealed === 0 ? "Would you like a suggestion?" : "Another hint";
     }
 
     function refresh() {

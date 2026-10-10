@@ -1,6 +1,6 @@
 # Site-Wide TODO (round 3)
 
-**Progress: 738/1261 items checked off (58.5%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land.
+**Progress: 742/1261 items checked off (58.8%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land.
 
 Built from your answers in `planning/IMPROVEMENT-IDEAS-ROUND-3.md` (Part 4). Every Round 3 section is now answered (2026-10-07 below the Warframe section); earlier this list held only: **GB** (Canopy gamified), **M** (new games), **N** (seasonal events), **O** (Trade Empire and Continuum replayability), **P/Q/S/T** (Signal, Undersleep, Overclock, Last Line open questions), **X** (Warframe tracker) and **R** (returning later). GC-GI, A-L, U, Z and Y are unanswered and wait for you. The previous list is archived at `planning/todo-archive/260914_260927.md`; anything from it that was moved here is marked "moved" there.
 
@@ -209,16 +209,16 @@ Yes answers mean the recommendation; items below are the work they create.
 - [x] AN-10: Stranded (and the other story games): keep narration silent and in text only; any per-day narrator intro stays off by default (Pq6: no voiced narrator unless real voice acting is ever wanted).
 **Cross-game patterns you agreed to:**
 - [x] AN-11: Signal: the daily puzzle has no streak by default; the archive stays so missing a day costs nothing (Pq1).
-- [ ] AN-12: Every hint ladder: each rung opens only when you press "Another hint", and the first rung asks "Would you like a suggestion?" (Pq2).
+- [x] AN-12: Every hint ladder: each rung opens only when you press "Another hint", and the first rung asks "Would you like a suggestion?" (Pq2).
 - [ ] AN-13: Skill trees with no free refund: allow moving one point for a small in-game cost, never a restart (Pq3).
-- [ ] AN-14: Build one test page with three mockups of overlay windows (a side drawer, a centred pop-up and a full-screen menu) so you can pick the style for PC (Pq5).
+- [x] AN-14: Build one test page with three mockups of overlay windows (a side drawer, a centred pop-up and a full-screen menu) so you can pick the style for PC (Pq5). (Built 2026-10-11 as the unlisted `overlay-mockups.html`; tell me which of the three you prefer.)
 - [ ] AN-15: Two-player puzzles work with one friend through an invite link, plus a solo version that plays both halves (Pq7).
 - [ ] AN-16: Titles are account-wide (one titles shelf on your account) and per-game titles are removed (Pq9).
 - [ ] AN-17: Every game offers a difficulty choice at the start (easy, normal, hard), with normal as the default and hard as an option (Pq10).
 - [x] AN-18: Audio explanation (you asked in Pq4 how audio works and whether it can be free): answered in chat on 2026-10-11 (Web Audio for generated sounds with no files, free CC0 sound packs, mute and autoplay rules); audio itself stays parked until you say go.
 **Dream game and app (Dg, Ap answers):**
-- [ ] AN-19: Dream game: draft three main-story options (one paragraph each) for you to pick from, with the six launch keepers (the builder first, then a woodcutter, miner, librarian, workshop tinkerer and healer) (Dg1, Dg2).
-- [ ] AN-20: App form: you play on iPhone at night and on a Mac in class, and your PC needs a long start-up, so a desktop app should target the Mac first and the web phone experience must stay first-class; every game stays on the web and none is app-only (Ap1, Ap2); later, try a small desktop-app experiment with one existing game (Ap3).
+- [x] AN-19: Dream game: draft three main-story options (one paragraph each) for you to pick from, with the six launch keepers (the builder first, then a woodcutter, miner, librarian, workshop tinkerer and healer) (Dg1, Dg2).
+- [x] AN-20: App form: you play on iPhone at night and on a Mac in class, and your PC needs a long start-up, so a desktop app should target the Mac first and the web phone experience must stay first-class; every game stays on the web and none is app-only (Ap1, Ap2); later, try a small desktop-app experiment with one existing game (Ap3).
 - [x] AN-21: Le Champ de Mots: ignore the stray 2024 lecture 13 until the 2026 week 13 arrives (Fs2).
 
 ---

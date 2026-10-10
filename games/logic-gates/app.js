@@ -260,7 +260,7 @@
     var h = view.hints;
     $("hints-panel").hidden = !h;
     if (!h) return;
-    var labels = ["Show a nudge", "Show a hint", "Show the answer", "That is every hint"];
+    var labels = ["Would you like a suggestion?", "Another hint", "Another hint: the answer", "That is every hint"];
     var b = $("hint-button");
     setText(b, labels[h.rung]);
     b.setAttribute("aria-disabled", String(h.rung >= 3));

@@ -371,7 +371,7 @@
     var btn = $("hint-button");
     var done = view.shift.done;
     btn.hidden = done || h.rung >= 3;
-    setText(btn, h.rung === 0 ? "Need a nudge?" : (h.rung === 1 ? "Another hint" : "Show the answer"));
+    setText(btn, h.rung === 0 ? "Would you like a suggestion?" : (h.rung === 1 ? "Another hint" : "Another hint: the answer"));
     $("hint-nudge").hidden = !h.nudge;
     setText($("hint-nudge"), h.nudge ? "Nudge: " + h.nudge : "");
     $("hint-hint").hidden = !h.hint;

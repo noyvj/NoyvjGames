@@ -20,3 +20,10 @@ Keep every game on the web, and let the app be an optional extra that unlocks bi
 
 ## Questions for you (on the ideas page)
 Whether the app should be desktop first or phone first, whether any game may be app-only, and whether to try a Tauri desktop shell for one existing game as an experiment.
+
+## Your answers (Ap1 to Ap3, applied 2026-10-11)
+
+- **You play on an iPhone at night and on a Mac in class, and your PC takes a long time to start up.** So if there is ever a desktop app, it targets **the Mac first**, and the **phone web experience stays first-class** (every game keeps working and looking right at phone width, with touch targets and no sideways scroll). That is already how every game is tested.
+- **Every game stays on the web and none is app-only** (Ap2). The "best in the app" flag from the middle path above stays an idea for the dream game only, and only if you later say so.
+- **A small desktop-app experiment later** (Ap3): when you say go, wrap one existing game (Canopy or Le Champ de Mots are the likeliest, because both are quiet and offline-friendly) in a Mac shell to see what actually improves (a saves folder you can back up, offline use, full screen). Nothing is built for it yet and it does not change the web version.
+

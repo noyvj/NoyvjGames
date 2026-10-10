@@ -71,7 +71,7 @@ def reveal_all(h):
 def test_starts_with_one_button_and_no_hint_shown(harness):
     h = mount(open_page(harness))
     assert h.page.is_visible(".noyvj-hints")
-    assert button(h) == "Need a hint?"
+    assert button(h) == "Would you like a suggestion?"
     assert shown(h) == []
     assert h.page.is_hidden(".noyvj-hints-list") and h.page.is_hidden(".noyvj-hints-confirm")
     assert h.page.inner_text(".noyvj-hints-tally") == "0 of 3 shown"
@@ -88,7 +88,7 @@ def test_rungs_come_in_order_with_labels_and_button_text(harness):
     assert button(h) == "Another hint"
     press(h)
     assert shown(h) == [["Nudge", P1["nudge"]], ["Hint", P1["hint"]]]
-    assert button(h) == "Show the answer"
+    assert button(h) == "Another hint: the answer"
     assert h.page.inner_text(".noyvj-hints-tally") == "2 of 3 shown"
     assert h.page.evaluate("__ladder.used()") == ["nudge", "hint"] and h.page.evaluate("__ladder.rungShown()") == 2
     assert h.page.is_hidden(".noyvj-hints-confirm")                                # not asked until the answer is next pressed
@@ -121,7 +121,7 @@ def test_not_yet_cancels_and_returns_focus_to_the_button(harness):
     press(h)
     press(h)
     h.page.click(".noyvj-hints-no")
-    assert h.page.is_hidden(".noyvj-hints-confirm") and button(h) == "Show the answer"
+    assert h.page.is_hidden(".noyvj-hints-confirm") and button(h) == "Another hint: the answer"
     assert h.page.evaluate("document.activeElement.className") == "noyvj-hints-ask"
     assert h.page.locator(".noyvj-hints-item").count() == 2
     press(h)
@@ -142,20 +142,20 @@ def test_confirm_answer_false_shows_the_answer_straight_away(harness):
 def test_missing_rungs_just_shorten_the_ladder(harness):
     h = open_page(harness)
     mount(h, {"id": "a", "hint": "Only a hint."})
-    assert button(h) == "Need a hint?" and h.page.inner_text(".noyvj-hints-tally") == "0 of 1 shown"
+    assert button(h) == "Would you like a suggestion?" and h.page.inner_text(".noyvj-hints-tally") == "0 of 1 shown"
     press(h)
     assert shown(h) == [["Hint", "Only a hint."]] and button(h) is None
     h.page.evaluate("__ladder.reset(); __puzzle = {id: 'b', nudge: 'N', answer: 'A'}; __ladder.refresh()")
     assert h.page.inner_text(".noyvj-hints-tally") == "0 of 2 shown"
     press(h)
-    assert button(h) == "Show the answer"                                           # next is the answer, after a nudge
+    assert button(h) == "Another hint: the answer"                                           # next is the answer, after a nudge
     press(h)
     assert h.page.is_visible(".noyvj-hints-confirm")
     h.page.click(".noyvj-hints-yes")
     assert shown(h) == [["Nudge", "N"], ["Answer", "A"]]
     # an answer-only puzzle starts with the plain entry label and then asks
     h.page.evaluate("__puzzle = {id: 'c', answer: 'Z'}; __ladder.refresh()")
-    assert button(h) == "Need a hint?"
+    assert button(h) == "Would you like a suggestion?"
     press(h)
     assert h.page.is_visible(".noyvj-hints-confirm") and shown(h) == []
     h.page.click(".noyvj-hints-yes")
@@ -190,7 +190,7 @@ def test_a_different_puzzle_id_resets_silently_and_the_same_id_keeps_state(harne
     h.page.wait_for_function("document.querySelector('.noyvj-hints-sr').textContent !== ''")
     h.page.evaluate("document.querySelector('.noyvj-hints-sr').textContent = ''")
     h.page.evaluate("__puzzle = " + repr(P2).replace("'", '"') + "; __ladder.refresh()")
-    assert shown(h) == [] and button(h) == "Need a hint?"
+    assert shown(h) == [] and button(h) == "Would you like a suggestion?"
     assert h.page.evaluate("__ladder.rungShown()") == 0
     assert h.page.inner_text(".noyvj-hints-sr") == ""                               # silent
     assert h.page.evaluate("__events.length") == 2                                  # no event for a reset
@@ -203,7 +203,7 @@ def test_reset_hides_the_rungs_again_but_keeps_the_counts(harness):
     press(h)
     h.page.evaluate("__ladder.reset()")
     assert shown(h) == [] and h.page.evaluate("__ladder.used()") == []
-    assert button(h) == "Need a hint?"
+    assert button(h) == "Would you like a suggestion?"
     assert h.page.evaluate("NoyvjHints.stats('logic')") == {"nudges": 1, "hints": 0, "answers": 0, "puzzles": 1}
 
 
@@ -367,7 +367,7 @@ def test_change_event_and_refresh_all_and_destroy(harness):
     h.page.evaluate("__puzzle = " + repr(P2).replace("'", '"') + "; document.dispatchEvent(new CustomEvent('noyvj-hints-change', {detail: {game: 'other'}}))")
     assert shown(h)[0][1] == P1["nudge"]                                            # an event for another game is ignored
     h.page.evaluate("document.dispatchEvent(new CustomEvent('noyvj-hints-change', {detail: {game: 'logic'}}))")
-    assert shown(h) == [] and button(h) == "Need a hint?"                           # now it follows the game's new puzzle
+    assert shown(h) == [] and button(h) == "Would you like a suggestion?"                           # now it follows the game's new puzzle
     press(h)
     h.page.evaluate("__puzzle = " + repr(P1).replace("'", '"') + "; NoyvjHints.refreshAll()")
     assert shown(h) == []
@@ -380,7 +380,7 @@ def test_a_press_after_the_game_moved_on_resets_instead_of_revealing_the_wrong_p
     press(h)
     h.page.evaluate("__puzzle = " + repr(P2).replace("'", '"'))                      # the game forgot to call refresh()
     press(h)
-    assert shown(h) == [] and button(h) == "Need a hint?"
+    assert shown(h) == [] and button(h) == "Would you like a suggestion?"
     assert h.page.evaluate("__revealed") == [["nudge", "L1"]]
     press(h)
     assert shown(h) == [["Nudge", "Second nudge."]]

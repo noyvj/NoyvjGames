@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex">
+<title>Overlay window mockups — NoyvjGames</title>
+<link rel="icon" href="icons/icon-192.png">
+<script src="shared/theme.js"></script>
+<style>
+  :root {
+    --bg: #0e1020; --panel: #181b2b; --ink: #e8e9f0; --soft: #aab0c8; --line: rgba(140, 160, 255, 0.4);
+    --accent: #ffd866; --scrim: rgba(3, 4, 12, 0.62);
+  }
+  html[data-theme="light"] {
+    --bg: #eef2fc; --panel: #ffffff; --ink: #1b2033; --soft: #4a5275; --line: rgba(60, 85, 160, 0.5);
+    --accent: #8a5a00; --scrim: rgba(20, 28, 60, 0.4);
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font-family: system-ui, sans-serif; line-height: 1.5; }
+  main { max-width: 860px; margin: 0 auto; padding: 1.5rem 1.2rem 4rem; }
+  h1 { margin: 0 0 0.3rem; font-size: 1.5rem; }
+  p { margin: 0.4rem 0; }
+  .note { color: var(--soft); font-size: 0.92rem; }
+  .cards { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); margin: 1.2rem 0; }
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 1rem; }
+  .card h2 { margin: 0 0 0.3rem; font-size: 1.05rem; }
+  .card ul { margin: 0.4rem 0 0.8rem; padding-left: 1.1rem; font-size: 0.9rem; color: var(--soft); }
+  button { font: inherit; color: var(--ink); background: transparent; border: 1px solid var(--line); border-radius: 8px;
+    min-height: 44px; padding: 0.4rem 1rem; cursor: pointer; }
+  button:hover { border-style: dashed; }
+  button:focus-visible, a:focus-visible, select:focus-visible, input:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+  button[aria-pressed="true"] { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
+  .row { display: flex; gap: 0.6rem; flex-wrap: wrap; align-items: center; }
+  .scrim { position: fixed; inset: 0; background: var(--scrim); }
+  .win { position: fixed; background: var(--panel); color: var(--ink); border: 1px solid var(--line); display: flex; flex-direction: column; }
+  .win header { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 0.7rem 1rem; border-bottom: 1px solid var(--line); }
+  .win header h2 { margin: 0; font-size: 1.1rem; }
+  .win .body { padding: 1rem; overflow: auto; flex: 1; }
+  .win label { display: block; margin: 0.7rem 0 0.2rem; font-size: 0.92rem; }
+  .win select, .win input[type="text"] { width: 100%; min-height: 44px; font: inherit; color: var(--ink); background: transparent;
+    border: 1px solid var(--line); border-radius: 6px; padding: 0.3rem 0.5rem; }
+  .win select option { color: #1b2033; background: #fff; }
+  .win .check { display: flex; gap: 0.6rem; align-items: center; min-height: 44px; }
+  .win .check input { width: 1.3rem; height: 1.3rem; }
+  /* 1 side drawer */
+  .drawer { top: 0; right: 0; bottom: 0; width: min(420px, 100vw); border-width: 0 0 0 1px; }
+  /* 2 centred pop-up */
+  .popup { top: 50%; left: 50%; width: min(560px, calc(100vw - 2rem)); max-height: min(80vh, 640px); transform: translate(-50%, -50%); border-radius: 14px; }
+  /* 3 full-screen menu */
+  .full { inset: 0; }
+  .full .body { max-width: 720px; width: 100%; margin: 0 auto; }
+  @media (prefers-reduced-motion: no-preference) {
+    html:not([data-reduced-motion="true"]) .drawer { animation: slide-in 0.18s ease-out; }
+    html:not([data-reduced-motion="true"]) .popup { animation: fade-in 0.15s ease-out; }
+  }
+  @keyframes slide-in { from { transform: translateX(24px); opacity: 0; } to { transform: none; opacity: 1; } }
+  @keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+  [hidden] { display: none !important; }
+  #choice-line { font-weight: 700; min-height: 1.5em; }
+</style>
+</head>
+<body>
+  <main id="main">
+    <h1>Overlay window mockups</h1>
+    <p class="note">A test page for the Desktop version: the same sample window shown three ways. Open each, try it with the keyboard (Tab stays inside, Esc closes) and at a narrow width, then press "I prefer this one" on the one you like. It only stores your choice in this browser and shows it below so you can tell me. Nothing is sent anywhere.</p>
+
+    <div class="cards">
+      <section class="card" aria-labelledby="c1">
+        <h2 id="c1">1. Side drawer</h2>
+        <ul><li>Slides in from the right edge</li><li>The game stays visible and a little dimmed on the left</li><li>Good for settings and lists you glance at</li></ul>
+        <div class="row"><button type="button" data-open="drawer">Open the drawer</button><button type="button" data-prefer="drawer" aria-pressed="false">I prefer this one</button></div>
+      </section>
+      <section class="card" aria-labelledby="c2">
+        <h2 id="c2">2. Centred pop-up</h2>
+        <ul><li>A window in the middle with the game dimmed behind</li><li>Feels like a dialog; keeps focus on one thing</li><li>Good for short choices and questions</li></ul>
+        <div class="row"><button type="button" data-open="popup">Open the pop-up</button><button type="button" data-prefer="popup" aria-pressed="false">I prefer this one</button></div>
+      </section>
+      <section class="card" aria-labelledby="c3">
+        <h2 id="c3">3. Full-screen menu</h2>
+        <ul><li>Covers the whole window, content in a calm column</li><li>Most room, best on a phone-sized window</li><li>Good for long menus and settings</li></ul>
+        <div class="row"><button type="button" data-open="full">Open the full screen</button><button type="button" data-prefer="full" aria-pressed="false">I prefer this one</button></div>
+      </section>
+    </div>
+
+    <p id="choice-line" role="status" aria-live="polite"></p>
+    <p class="note">Today's Desktop windows are closest to the centred pop-up. The style you pick would be used for every Menu entry, so the controls inside would stay the same.</p>
+  </main>
+
+  <div id="layer" hidden>
+    <div class="scrim" id="scrim"></div>
+    <div class="win" id="win" role="dialog" aria-modal="true" aria-labelledby="win-title">
+      <header>
+        <h2 id="win-title">Settings (sample)</h2>
+        <button type="button" id="win-close">Close</button>
+      </header>
+      <div class="body">
+        <label for="s-theme">Theme</label>
+        <select id="s-theme"><option>Dark</option><option>Light</option></select>
+        <label for="s-name">Settlement name</label>
+        <input type="text" id="s-name" value="Harbour">
+        <div class="check"><input type="checkbox" id="s-motion"><label for="s-motion" style="margin:0">Reduce motion</label></div>
+        <div class="check"><input type="checkbox" id="s-sound"><label for="s-sound" style="margin:0">Sound (off by default)</label></div>
+        <p class="note">This is sample content. Esc or Close returns you to the page.</p>
+        <p><button type="button" id="win-done">Done</button></p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      "use strict";
+      var KEY = "overlay-mockup-choice";
+      var layer = document.getElementById("layer");
+      var win = document.getElementById("win");
+      var opener = null;
+      var LABELS = { drawer: "Side drawer", popup: "Centred pop-up", full: "Full-screen menu" };
+
+      function focusables() {
+        return Array.prototype.slice.call(win.querySelectorAll("button, select, input, a[href]")).filter(function (n) { return !n.disabled && n.offsetParent !== null; });
+      }
+      function open(kind, from) {
+        opener = from;
+        win.className = "win " + kind;
+        layer.hidden = false;
+        document.getElementById("main").setAttribute("aria-hidden", "true");
+        document.getElementById("win-close").focus();
+      }
+      function close() {
+        if (layer.hidden) return;
+        layer.hidden = true;
+        document.getElementById("main").removeAttribute("aria-hidden");
+        if (opener) opener.focus();
+      }
+      document.querySelectorAll("[data-open]").forEach(function (b) {
+        b.addEventListener("click", function () { open(b.getAttribute("data-open"), b); });
+      });
+      document.getElementById("win-close").addEventListener("click", close);
+      document.getElementById("win-done").addEventListener("click", close);
+      document.getElementById("scrim").addEventListener("click", close);
+      document.addEventListener("keydown", function (e) {
+        if (layer.hidden) return;
+        if (e.key === "Escape") { e.preventDefault(); close(); return; }
+        if (e.key !== "Tab") return;
+        var f = focusables();
+        if (!f.length) return;
+        var first = f[0], last = f[f.length - 1];
+        if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+        else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+      });
+
+      function show(choice) {
+        document.querySelectorAll("[data-prefer]").forEach(function (b) { b.setAttribute("aria-pressed", String(b.getAttribute("data-prefer") === choice)); });
+        document.getElementById("choice-line").textContent = choice ? "Your pick: " + LABELS[choice] + ". Tell me this name." : "";
+      }
+      var saved = null;
+      try { saved = localStorage.getItem(KEY); } catch (e) { saved = null; }
+      if (saved && LABELS[saved]) show(saved);
+      document.querySelectorAll("[data-prefer]").forEach(function (b) {
+        b.addEventListener("click", function () {
+          var choice = b.getAttribute("data-prefer");
+          try { localStorage.setItem(KEY, choice); } catch (e) { /* the line below still shows it */ }
+          show(choice);
+        });
+      });
+    })();
+  </script>
+</body>
+</html>
