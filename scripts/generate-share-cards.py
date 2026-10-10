@@ -66,6 +66,7 @@ THEMES = {
     "hull-repair": (["#2d3948", "#141a26"], "gridlines", "#f2b84b", "#141a26", ("hull",)),
     "station-medic": (["#24313a", "#12181d"], "pulse", "#e0a458", "#12181d", ("medic",)),
     "stranded": (["#121a30", "#0a0f1c"], "stars", "#f0b35a", "#0e1424", ("moon",)),
+    "evidence-hunt": (["#1f2a3c", "#0e131c"], "stars", "#a98bff", "#141a24", ("house",)),
     "trade-empire": (["#1a1f3a", "#0d0f1e"], "network", "#e0c34c", "#171b30", ("letter", "$", "#e0c34c")),
 }
 FALLBACK_THEME = (["#1a1f3a", "#0d0f1e"], "stars", "#8fb0e8", "#2c4a7c", ("letter", "?", "#ffffff"))
@@ -367,6 +368,12 @@ def draw_glyph(draw, glyph, scale, tile_color):
         draw.rectangle((21 * scale, 30 * scale, 23 * scale, 42 * scale), fill=rgb("#cfd6ea"))
         draw.polygon(S([(15, 28), (27, 24), (25, 32), (17, 33)]), fill=rgb("#f0b35a"))
         draw.ellipse((41 * scale, 50 * scale, 47 * scale, 56 * scale), fill=rgb("#f0b35a"))
+    elif kind == "house":
+        draw.polygon(S([(10, 34), (32, 12), (54, 34), (54, 52), (10, 52)]), fill=rgb("#2f3b52"), outline=rgb("#0d1117"))
+        draw.polygon(S([(10, 34), (32, 12), (32, 52), (10, 52)]), fill=rgb("#3b4a66"))
+        draw.polygon(S([(26, 38), (38, 38), (38, 52), (26, 52)]), fill=rgb("#e0a458"))
+        draw.rectangle((15 * scale, 38 * scale, 22 * scale, 44 * scale), fill=rgb("#a98bff"))
+        draw.ellipse((42 * scale, 10 * scale, 52 * scale, 20 * scale), fill=rgb("#d9ccff"))
     elif kind == "lexis":
         blue = rgb("#9ad0ff")
         for a, b in (((16, 22), (26, 22)), ((34, 22), (36, 22)), ((42, 22), (48, 22)),

@@ -875,6 +875,29 @@ html[data-theme="light"] .whats-new-thumb[aria-pressed="true"] { color: #2c4a9a;
   box-shadow: 0 0 16px 4px rgba(240, 179, 90, 0.55);
 }
 
+/* Evidence Hunt: a dark floor-plan house with a warm lit door and a pale violet
+   glow, on a night-blue ground. Same shapes as the game's own favicon. */
+.title-card-thumb--evidence-hunt {
+  --thumb-glow: #a98bff;
+  background: repeating-linear-gradient(90deg, rgba(169, 139, 255, 0.07) 0 1px, transparent 1px 24px), linear-gradient(160deg, #1f2a3c 0%, #0e131c 100%);
+}
+.title-card-thumb--evidence-hunt::before {
+  inset: 50% auto auto 50%;
+  width: 92px;
+  height: 66px;
+  transform: translate(-50%, -46%);
+  clip-path: polygon(0 40%, 50% 0, 100% 40%, 100% 100%, 0 100%);
+  background: linear-gradient(90deg, #3b4a66 0 50%, #2f3b52 50% 100%);
+}
+.title-card-thumb--evidence-hunt::after {
+  inset: 50% auto auto 50%;
+  width: 14px;
+  height: 22px;
+  transform: translate(-50%, 4px);
+  background: #e0a458;
+  box-shadow: -26px -8px 0 -3px rgba(169, 139, 255, 0.85), 52px -52px 0 -2px #d9ccff;
+}
+
 /* Trade Empire: a miniature version of the in-game trade map itself —
    route lines connecting colony nodes (the same NODE_COLOR blue used by
    game.py's render_map()) with one gold dot standing in for an automated

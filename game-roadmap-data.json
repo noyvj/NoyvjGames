@@ -54,6 +54,15 @@
         "Canopy and Drift W2: sourced real-world examples"
       ]
     },
+    "evidence-hunt": {
+      "commit_count": 7,
+      "last_updated": "2026-10-10",
+      "recent_commits": [
+        "Evidence Hunt milestone 7: Desktop boot",
+        "Evidence Hunt milestone 6: Achievements",
+        "Evidence Hunt milestone 5: Standard kit"
+      ]
+    },
     "grid": {
       "commit_count": 80,
       "last_updated": "2026-10-06",

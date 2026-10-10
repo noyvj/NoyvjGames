@@ -25,6 +25,7 @@
     sol: { scale: "sol-text-scale", motion: "sol-reduced-motion" },
     continuum: { scale: "continuum-text-scale", motion: "continuum-reduced-motion" },
     lexis: { scale: "lexis-text-scale", motion: "lexis-reduced-motion" },
+    "evidence-hunt": { scale: "evidence-hunt-text-scale", motion: "evidence-hunt-reduced-motion" },
     "stranded": { scale: "stranded-text-scale", motion: "stranded-reduced-motion" },
     "station-medic": { scale: "station-medic-text-scale", motion: "station-medic-reduced-motion" },
     "hull-repair": { scale: "hull-repair-text-scale", motion: "hull-repair-reduced-motion" },

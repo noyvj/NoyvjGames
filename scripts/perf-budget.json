@@ -43,6 +43,12 @@
    "pyodide_ms": 1254,
    "total_kb": 5778.8
   },
+  "evidence-hunt": {
+   "first_interactive_ms": 1708,
+   "own_kb": 342.3,
+   "pyodide_ms": 1704,
+   "total_kb": 5782.4
+  },
   "grid": {
    "first_interactive_ms": 1492,
    "own_kb": 342.2,

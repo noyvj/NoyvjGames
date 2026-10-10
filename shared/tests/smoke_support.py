@@ -7,7 +7,7 @@ Every older game ships a pytest fixture `game_env` in `games/<slug>/tests/confte
 `game.py` against a fake DOM (`FakeElement`s keyed by id, a fake `js` and `pyodide` module). This
 module imports that conftest under a unique package name and calls the fixture's own function, so
 the games' boot code is exactly the one their own tests use and nothing is duplicated. The
-engine-style games (Signal, Chronicle, Lexis, Heist Committee, Lighthouse, Pocket Bazaar, Dead Reckoning, Logic Gates, Robot Script, Hull Repair, Station Medic, Stranded) have no DOM: their `game.py` is a plain module with
+engine-style games (Signal, Chronicle, Lexis, Heist Committee, Lighthouse, Pocket Bazaar, Dead Reckoning, Logic Gates, Robot Script, Hull Repair, Station Medic, Stranded, Evidence Hunt) have no DOM: their `game.py` is a plain module with
 a request/response entry point, driven here with a small action grammar instead of clicks.
 
 Importing a game's tests package changes `sys.path` and `sys.modules` (every game's module is
@@ -549,6 +549,34 @@ def stranded_request(rng, last):
     return {"action": rng.choice(["hint", "hint", "peek", "loose"])}
 
 
+def evidence_request(rng, last):
+    """Evidence Hunt: pick cases or practice houses, pack a bag, walk rooms, take readings, accuse, restore, climb the hints."""
+    view = last or {}
+    roll = rng.random()
+    rooms = [r["i"] for fl in view.get("house", []) for r in fl.get("rooms", [])] or [0]
+    gear = [g["e"] for g in (view.get("bag") or {}).get("gear", [])] or [0]
+    kinds = [o["i"] for o in (view.get("accuse") or {}).get("options", [])] or [0]
+    if roll < 0.03:
+        return {"action": rng.choice(["open", "reset", "bogus", "next", "restore", "hint", "hint_do", "cover", "return", "look", "van"])}
+    if roll < 0.08:
+        ids = [c["id"] for ch in view.get("chapters", []) for c in ch.get("cases", []) if c.get("open", True)]
+        return {"action": "pick", "case": rng.choice(ids or ["x"])}
+    if roll < 0.11:
+        return {"action": "practice", "difficulty": rng.choice([1, 2, 3, 4, 5, 9]), "code": rng.choice([None, "", "EH3-1K9X2", "bad"])}
+    if roll < 0.30:
+        return {"action": "pack", "e": rng.choice(gear)}
+    if roll < 0.55:
+        return {"action": "go", "room": rng.choice(rooms)}
+    if roll < 0.78:
+        return {"action": "use", "e": rng.choice(gear)}
+    if roll < 0.86:
+        return {"action": rng.choice(["look", "van"])}
+    if roll < 0.94:
+        picks = rng.sample(kinds, min(len(kinds), rng.choice([1, 1, 2])))
+        return {"action": "accuse", "kinds": picks}
+    return {"action": rng.choice(["hint", "hint", "hint_do"])}
+
+
 @contextlib.contextmanager
 def engine_game(slug):
     """Yield (call, get_state, next_request) for an engine-style game, freshly reset."""
@@ -621,6 +649,11 @@ def engine_game(slug):
             import game as module                    # noqa: PLC0415 -- resolved through that path
             module.handle(json.dumps({"action": "reset"}))
             yield (lambda req: json.loads(module.handle(json.dumps(req)))), module.get_state, stranded_request
+        elif slug == "evidence-hunt":
+            load_conftest(slug)                     # puts games/evidence-hunt (and its tools) on sys.path
+            import game as module                    # noqa: PLC0415 -- resolved through that path
+            module.handle(json.dumps({"action": "reset"}))
+            yield (lambda req: json.loads(module.handle(json.dumps(req)))), module.get_state, evidence_request
         else:
             raise KeyError(slug)
 
@@ -629,5 +662,5 @@ def engine_game(slug):
 
 FAKE_DOM_GAMES = ["aftermath", "canopy", "champ-de-mots", "continuum", "drift", "grid", "herd", "loop",
                   "sol", "thaw", "tide", "trade-empire"]
-ENGINE_GAMES = ["signal", "chronicle", "lexis", "heist-committee", "lighthouse", "pocket-bazaar", "dead-reckoning", "logic-gates", "robot-script", "hull-repair", "station-medic", "stranded"]
+ENGINE_GAMES = ["signal", "chronicle", "lexis", "heist-committee", "lighthouse", "pocket-bazaar", "dead-reckoning", "logic-gates", "robot-script", "hull-repair", "station-medic", "stranded", "evidence-hunt"]
 ALL_GAMES = sorted(FAKE_DOM_GAMES + ENGINE_GAMES)

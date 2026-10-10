@@ -71,6 +71,6 @@ def test_shared_includes_are_in_the_standard_order_after_the_page_scripts():
 
 
 def test_the_favicon_lives_in_the_games_own_folder():
-    assert 'href="icons/favicon-evidence-hunt.svg"' in HTML
+    assert 'href="../../icons/favicon-evidence-hunt.svg"' in HTML
     svg = (GAME_DIR / "icons" / "favicon-evidence-hunt.svg").read_text(encoding="utf-8")
     assert svg.startswith("<svg") and "<polygon" in svg

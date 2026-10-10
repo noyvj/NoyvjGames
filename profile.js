@@ -27,6 +27,7 @@
     "hull-repair": "Hull Repair",
     "station-medic": "Station Medic",
     "stranded": "Stranded",
+    "evidence-hunt": "Evidence Hunt",
   };
   let games = [];                       // [{slug, name, href}] from the lobby page
   let ownData = null;                   // the owner's own profile data, when viewing it

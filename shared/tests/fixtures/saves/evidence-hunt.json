@@ -1,0 +1,91 @@
+{
+ "achievements_earned": [
+  "first_case"
+ ],
+ "best": {
+  "1-2": 2,
+  "1-5": 3,
+  "1-7": 3,
+  "1-8": 2
+ },
+ "cur": "1-2",
+ "eq": [
+  "cold",
+  "charge",
+  "glow"
+ ],
+ "met": [
+  "scrivener",
+  "candlewick",
+  "lullwisp",
+  "tangle"
+ ],
+ "run": {
+  "1-1": [
+   "pack:0",
+   "pack:1",
+   "pack:0",
+   "go:2",
+   "pack:5",
+   "go:1",
+   "go:0",
+   "pack:3",
+   "pack:1"
+  ],
+  "1-4": [
+   "go:2",
+   "pack:4",
+   "pack:4",
+   "pack:2",
+   "pack:4"
+  ],
+  "1-6": [
+   "go:1",
+   "pack:5",
+   "pack:1",
+   "pack:1",
+   "accuse:7",
+   "go:2",
+   "pack:0",
+   "pack:1",
+   "go:1"
+  ],
+  "1-8": [
+   "pack:1",
+   "accuse:1",
+   "go:2"
+  ],
+  "practice-1-2ex4": [
+   "accuse:8",
+   "pack:2",
+   "go:0",
+   "pack:2",
+   "pack:2"
+  ],
+  "practice-1-2l13": [
+   "go:0"
+  ],
+  "practice-4-95cj": [
+   "go:7",
+   "pack:1",
+   "pack:3",
+   "pack:1",
+   "go:7",
+   "go:6"
+  ]
+ },
+ "sb": {
+  "n": {
+   "1": 2,
+   "4": 1
+  }
+ },
+ "tally": {
+  "accusations": 10,
+  "hints": 9,
+  "readings": 4,
+  "rooms": 23,
+  "trips": 2,
+  "wrong": 5
+ }
+}

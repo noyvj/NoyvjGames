@@ -2,7 +2,7 @@
 // the precache list; ordinary content deploys don't need it, because
 // same-origin requests are network-first (see the fetch handler below) and
 // so always pick up fresh files whenever the player is online.
-const SW_VERSION = 51;
+const SW_VERSION = 52;
 const CACHE_NAME = "site-cache-v" + SW_VERSION;
 // How long a same-origin network request may take before we give up and
 // serve the cached copy instead (a slow/flaky connection shouldn't hang).
@@ -352,6 +352,31 @@ const PRECACHE_URLS = [
   "games/stranded/info.py",
   "games/stranded/achievements.py",
   "games/stranded/render.py",
+  "games/evidence-hunt/index.html",
+  "games/evidence-hunt/style.css",
+  "games/evidence-hunt/game.py",
+  "games/evidence-hunt/app.js",
+  "games/evidence-hunt/settings.js",
+  "games/evidence-hunt/changelog.json",
+  "games/evidence-hunt/achievements.json",
+  "games/evidence-hunt/lexicon.py",
+  "games/evidence-hunt/houses.py",
+  "games/evidence-hunt/casework.py",
+  "games/evidence-hunt/solver.py",
+  "games/evidence-hunt/casekit.py",
+  "games/evidence-hunt/cases_1.py",
+  "games/evidence-hunt/cases_2.py",
+  "games/evidence-hunt/cases_3.py",
+  "games/evidence-hunt/cases_4.py",
+  "games/evidence-hunt/cases_5.py",
+  "games/evidence-hunt/cases.py",
+  "games/evidence-hunt/progress.py",
+  "games/evidence-hunt/gen.py",
+  "games/evidence-hunt/codex.py",
+  "games/evidence-hunt/achievements.py",
+  "games/evidence-hunt/render.py",
+  "games/evidence-hunt/hints.py",
+  "games/evidence-hunt/info.py",
   // Audit fix 2026-09-27: Trade Empire is hub-linked and has been for a while
   // (see CLAUDE.md's Current games table) -- both were mistakenly left off
   // this list under a stale "not hub-linked yet" comment. Trade Empire has the
@@ -423,6 +448,9 @@ const PRECACHE_URLS = [
   "games/stranded/pc.html",
   "games/stranded/pc.css",
   "games/stranded/pc.js",
+  "games/evidence-hunt/pc.html",
+  "games/evidence-hunt/pc.css",
+  "games/evidence-hunt/pc.js",
   "games/signal/pc.html",
   "games/signal/pc.css",
   "games/signal/pc.js",
