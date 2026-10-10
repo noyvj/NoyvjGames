@@ -2,6 +2,10 @@
   "changelog": [
     {
       "date": "2026-10-11",
+      "entry": "New: an optional Coach. Turn it on in Settings and a small panel gives one plain sentence each time you look: what is short, which fleet is wearing out and what maintaining it costs, what is driving your disruption risk, or that spare funds could go into a renewable that keeps getting cheaper. It never blocks anything and it is off until you switch it on. Settings, Reset to Default now also puts your display choices back."
+    },
+    {
+      "date": "2026-10-11",
       "entry": "Changed: on a phone, the bar that stays pinned at the top while you scroll now shows the round and your capacity as well as funds, demand and emissions (it scrolls sideways when it is full)."
     },
     {

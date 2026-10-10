@@ -211,6 +211,7 @@
       ".meter:has(> #emissions-bar)",
       "#event-display",
       "#aging-event-display",
+      "#coach-panel",
       "#round-recap",
       "#streak-display",
       "#perfect-streak-display",

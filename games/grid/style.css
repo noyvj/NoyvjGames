@@ -1817,3 +1817,7 @@ html[data-reduced-motion="true"] *::after {
 .fleet-overview summary { cursor: pointer; font-size: 0.9rem; min-height: 44px; display: flex; align-items: center; }
 .fleet-sort-button { background: none; border: 0; color: inherit; font: inherit; font-weight: 600; padding: 0.25rem 0.1rem; min-height: 44px; cursor: pointer; text-align: left; text-decoration: underline dotted; }
 .fleet-table th, .fleet-table td { white-space: nowrap; }
+
+/* C-21: the opt-in coach. */
+.coach-panel { border-left: 3px solid #5fd0b0; padding: 0.2rem 0.6rem; margin: 0.4rem 0; background: rgba(95, 208, 176, 0.07); border-radius: 0 6px 6px 0; }
+.coach-panel summary { cursor: pointer; font-weight: 600; min-height: 44px; display: flex; align-items: center; }

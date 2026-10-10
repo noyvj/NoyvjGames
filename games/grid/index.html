@@ -219,6 +219,13 @@
           Reduce motion (disables animations/transitions)
         </label>
       </div>
+      <!-- Display choices kept in game.py (grid_prefs_v1); like the two above they are a browser preference, never part of a save. -->
+      <div class="settings-row">
+        <label class="settings-checkbox-label" for="pref-coach">
+          <input type="checkbox" id="pref-coach">
+          Coach: one plain hint per round about what to look at (never blocks you)
+        </label>
+      </div>
       <div class="settings-row">
         <button id="settings-reset-button" class="secondary" type="button">Reset to Default</button>
       </div>
@@ -328,6 +335,11 @@
       <div id="gauge-table" class="chart-table-wrap" hidden></div>
       <p id="trend-display" class="event-display">Not enough rounds yet to show a trend.</p>
       <p id="aging-event-display" class="event-display">No aging breakdowns last round.</p>
+      <!-- C-21: the opt-in coach: one observation from numbers already on screen. Turn it on in Settings. -->
+      <details id="coach-panel" class="coach-panel" hidden open>
+        <summary>Coach</summary>
+        <p id="coach-text" class="comparison-message"></p>
+      </details>
       <!-- C-8: one expandable recap of last round's funds story. -->
       <details id="round-recap" class="round-recap">
         <summary id="round-recap-summary">Round recap: no round played yet.</summary>
