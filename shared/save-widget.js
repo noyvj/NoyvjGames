@@ -36,6 +36,13 @@
  * itself be undone. window.NoyvjSaveWidget.snapshotNow(reason) lets the opening screen take one
  * before New Game.
  *
+ * B-15 (named local forests): a game can opt in by defining window.NoyvjSaveProfiles BEFORE this file loads
+ * ({noun, defaultName, gameKeys: [localStorage keys], startNew(), afterSwitch(info)}). A browser that is not
+ * signed in then gets up to three named local profiles per game, each owning its own anonymous save code
+ * (savecode:<slug> always holds the ACTIVE one's code, so every other piece keeps working) and the listed
+ * localStorage keys. Signed-in players keep the three account slots and see no profile menu. A game that does
+ * not define the hook is completely unchanged. See the "named local profiles" block near the end.
+ *
  * Dev-server note: this repo's dev server sends no cache-control header, so Chrome can serve a
  * stale copy of this file even after a hard reload. If an edit seems to have no effect, fetch the
  * file with {cache: "no-store"} and compare before assuming the code is wrong.
@@ -239,6 +246,36 @@
       #save-widget.collapsed .noyvj-menu-label { display: none; }
       /* Desktop boot: keep the shell's top bar out of the pill's corner. */
       html[data-layout="pc"] #pc-topbar { padding-right: var(--save-widget-reserve, 0px); }
+      /* B-15: the named local profiles ("forests") menu. 44px targets, plain text, light theme aware. */
+      #save-widget .save-widget-forests { margin: 0.4rem 0 0; }
+      #save-widget .save-widget-forests-toggle { display: flex; align-items: center; justify-content: space-between; gap: 0.4rem;
+        min-height: 44px; margin: 0; text-align: left; overflow-wrap: anywhere; }
+      #save-widget .save-widget-forests-toggle .save-widget-toggle-arrow { transform: none; }
+      #save-widget .save-widget-forests-toggle[aria-expanded="true"] .save-widget-toggle-arrow { transform: rotate(180deg); }
+      #save-widget .save-widget-forest-list { list-style: none; margin: 0.3rem 0 0; padding: 0; display: grid; gap: 0.3rem; }
+      #save-widget .save-widget-forest { display: flex; flex-wrap: wrap; gap: 0.25rem; font-size: 0.72rem;
+        padding: 0.3rem; border: 1px solid #2a3a4c; border-radius: 8px; }
+      #save-widget .save-widget-forest[data-active="true"] { border-color: #6fa0d8; border-width: 2px; padding: calc(0.3rem - 1px); }
+      #save-widget .save-widget-forest-name { flex: 1 1 100%; min-width: 0; overflow-wrap: anywhere; line-height: 1.25; font-weight: 600; }
+      #save-widget .save-widget-forest button, #save-widget .save-widget-forest-new, #save-widget .save-widget-forest-editor button {
+        min-height: 44px; margin: 0; font-size: 0.72rem; padding: 0.3rem 0.2rem; }
+      #save-widget .save-widget-forest button { flex: 1 1 0; width: auto; min-width: 0; }
+      #save-widget .save-widget-forest-new { margin-top: 0.3rem; }
+      #save-widget .save-widget-forest-note, #save-widget .save-widget-forest-live { margin: 0.3rem 0 0; font-size: 0.72rem; opacity: 0.85; overflow-wrap: anywhere; }
+      #save-widget .save-widget-forest-note:empty, #save-widget .save-widget-forest-live:empty { display: none; }
+      #save-widget .save-widget-forest-editor { display: grid; gap: 0.3rem; margin-top: 0.3rem; }
+      #save-widget .save-widget-forest-editor label { font-size: 0.72rem; overflow-wrap: anywhere; }
+      #save-widget .save-widget-forest-editor input { text-transform: none; text-align: left; min-height: 44px; margin: 0; }
+      #save-widget .save-widget-forest-editor-error { margin: 0; font-size: 0.72rem; }
+      #save-widget .save-widget-forest-editor-error:empty { display: none; }
+      #save-widget .save-widget-forest-editor-buttons { display: grid; grid-template-columns: 1fr 1fr; gap: 0.25rem; }
+      html[data-theme="light"] #save-widget .save-widget-forest { border-color: rgba(70, 95, 170, 0.3); }
+      html[data-theme="light"] #save-widget .save-widget-forest[data-active="true"] { border-color: #3a5cb8; }
+      html[data-theme="light"] #save-widget .save-widget-forest button,
+      html[data-theme="light"] #save-widget .save-widget-forests-toggle,
+      html[data-theme="light"] #save-widget .save-widget-forest-new,
+      html[data-theme="light"] #save-widget .save-widget-forest-editor button { background: linear-gradient(135deg, #dbe4fb, #c6d3f5); color: #1b2033; border: 1px solid rgba(70, 95, 170, 0.3); }
+      html[data-theme="light"] #save-widget .save-widget-forest-editor input { background: #fff; color: #1b2033; border-color: rgba(70, 95, 170, 0.4); }
       #save-widget .save-widget-restore-note { margin: 0.4rem 0 0; font-size: 0.72rem; opacity: 0.8; }
       #save-widget .save-widget-restore-note:empty { display: none; }
       #save-widget .save-widget-restore-list { list-style: none; margin: 0.3rem 0 0; padding: 0; display: grid; gap: 0.3rem; }
@@ -336,6 +373,24 @@
     </div>
     <div class="save-widget-body" data-testid="save-widget-body">
       <p class="save-widget-warning" role="status" data-testid="save-widget-warning" hidden>Warning: the last save did not go through. Press Save Progress to try again.</p>
+      <div class="save-widget-forests" data-testid="save-widget-forests" hidden>
+        <button type="button" class="save-widget-forests-toggle" data-testid="save-widget-forests-toggle" aria-expanded="false"><span class="save-widget-forests-toggle-text"></span><span class="save-widget-toggle-arrow" aria-hidden="true">&#9662;</span></button>
+        <div class="save-widget-forests-body" data-testid="save-widget-forests-body" hidden>
+          <ul class="save-widget-forest-list" data-testid="save-widget-forest-list"></ul>
+          <button type="button" class="save-widget-forest-new" data-testid="save-widget-forest-new"></button>
+          <p class="save-widget-forest-note" data-testid="save-widget-forest-note"></p>
+          <form class="save-widget-forest-editor" data-testid="save-widget-forest-editor" hidden>
+            <label class="save-widget-forest-editor-label"></label>
+            <input type="text" class="save-widget-forest-editor-input" data-testid="save-widget-forest-name" maxlength="24" autocomplete="off" spellcheck="false">
+            <p class="save-widget-forest-editor-error" data-testid="save-widget-forest-error" role="alert"></p>
+            <div class="save-widget-forest-editor-buttons">
+              <button type="submit" class="save-widget-forest-editor-ok" data-testid="save-widget-forest-ok">OK</button>
+              <button type="button" class="save-widget-forest-editor-cancel" data-testid="save-widget-forest-cancel">Cancel</button>
+            </div>
+          </form>
+          <p class="save-widget-forest-live" data-testid="save-widget-forest-live" role="status" aria-live="polite"></p>
+        </div>
+      </div>
       <button type="button" class="save-widget-save-button" data-testid="save-widget-save">Save Progress</button>
       <label class="save-widget-autosave-label"><input type="checkbox" class="save-widget-autosave-checkbox" data-testid="save-widget-autosave"> Autosave every 5 minutes</label>
       <p class="save-widget-code" data-testid="save-widget-code" hidden></p>
@@ -1076,6 +1131,17 @@
   function stateJson(state) { return JSON.stringify(state, undefinedToNull); }
   function kbText(n) { return `${(n / 1024).toFixed(n < 10240 ? 1 : 0)} KB`; }
 
+  // B-15: set while a forest switch is saving and loading (the Save button and autosave stand aside),
+  // and the state JSON as of the last save or load (to tell whether anything has changed since).
+  let forestBusy = false;
+  let lastSyncedJson = null;
+  function noteSynced(state) {
+    try {
+      const current = state !== undefined ? state : readGameState();
+      lastSyncedJson = current && typeof current === "object" ? stateJson(current) : null;
+    } catch (err) { lastSyncedJson = null; }
+  }
+
   // The state the game booted with: a snapshot equal to it is "default" and never kept. Captured the
   // first time the state is readable and always before the widget itself loads anything over it.
   let baselineJson = null;
@@ -1099,6 +1165,7 @@
     if (snapshotReason) takeSnapshot(snapshotReason);
     loadState(window.pyodide.toPy(data));
     widgetLoaded = true;
+    noteSynced();
   }
 
   function headlineOf(fields) {
@@ -1375,6 +1442,7 @@
       showActiveCode(body.save_code);
       recordSaveSuccess();
       afterSaveSuccess(state);
+      noteSynced(state);
       return true;
     } catch (err) {
       console.error(`${GAME_ID} save-widget: save failed`, err);
@@ -1384,6 +1452,7 @@
   }
 
   saveButton.addEventListener("click", async () => {
+    if (forestBusy) return;   // B-15: a forest switch is saving and loading right now
     saveButton.disabled = true;
     saveButton.textContent = tr("save.saving", "Saving...");
     const ok = await doSave(() => (statusEl.textContent = tr("save.savingRetry", "Saving... (retrying)")));
@@ -1433,6 +1502,7 @@
     // doSave()'s own console.error; the manual Save button is unaffected
     // and remains the reliable fallback. Only a SUCCESSFUL autosave gets
     // any player-visible feedback, briefly, then reverts.
+    if (forestBusy) return;   // B-15: never save over a forest switch in progress
     const previousStatus = statusEl.textContent;
     maybeAutoSnapshot();
     const ok = await doSave(undefined, true);
@@ -1456,6 +1526,7 @@
   if (autosaveCheckbox.checked) startAutosaveTimer();
 
   loadButton.addEventListener("click", async () => {
+    if (forestBusy) return;   // B-15
     if (!window.pyodide) {
       statusEl.textContent = tr("save.stillLoading", "Still loading — try again in a moment.");
       return;
@@ -1538,11 +1609,450 @@
     }
   });
 
+
+  // ---- B-15: named local profiles ("forests") ---------------------------------------------------
+  // A game opts in with window.NoyvjSaveProfiles (defined before this file loads):
+  //   { noun: "forest", defaultName: "My forest", gameKeys: ["localStorage key", ...],
+  //     startNew() { ...reset the game to a fresh start... }, afterSwitch(info) { ...refresh the page... } }
+  // Not signed in, the player gets up to FOREST_MAX named profiles. Each owns an anonymous save code and the
+  // gameKeys' values; the ACTIVE profile's code stays in savecode:<slug> and its keys stay in localStorage
+  // under their own names, so every other piece of the site (opening screen, loadLatest, the game itself)
+  // keeps working untouched. The inactive profiles' copies live in forests:<slug>. The first profile simply
+  // adopts whatever the browser already holds, so nobody's current progress is orphaned. Signed in, the three
+  // account slots are used and this menu stays hidden. These sentences are English only for now: the
+  // translation files are not touched by this feature, so ftext() is used instead of tr().
+  const FOREST_MAX = 3;
+  const FOREST_NAME_MAX = 24;
+  const FOREST_STORE_KEY = `forests:${GAME_ID}`;
+  const FOREST_VALUE_MAX = 20000;
+  const FOREST_BLOCKED_KEY = /^(hub|savecode:|savedat:|forests:|snapshots:|snapshot-auto-at:|activeslot:|autosave-enabled:|profile-sync:)/i;
+  const forestsEl = root.querySelector(".save-widget-forests");
+  const forestsToggle = root.querySelector(".save-widget-forests-toggle");
+  const forestsToggleText = root.querySelector(".save-widget-forests-toggle-text");
+  const forestsBody = root.querySelector(".save-widget-forests-body");
+  const forestListEl = root.querySelector(".save-widget-forest-list");
+  const forestNewButton = root.querySelector(".save-widget-forest-new");
+  const forestNoteEl = root.querySelector(".save-widget-forest-note");
+  const forestLiveEl = root.querySelector(".save-widget-forest-live");
+  const forestEditor = root.querySelector(".save-widget-forest-editor");
+  const forestEditorLabel = root.querySelector(".save-widget-forest-editor-label");
+  const forestEditorInput = root.querySelector(".save-widget-forest-editor-input");
+  const forestEditorError = root.querySelector(".save-widget-forest-editor-error");
+  let forestData = null;
+  let forestEditing = null;   // { mode: "new" | "rename", id }
+
+  function ftext(english, vars) {
+    return vars ? english.replace(/\{(\w+)\}/g, (m, name) => (name in vars ? String(vars[name]) : m)) : english;
+  }
+  function profileConfig() {
+    const c = window.NoyvjSaveProfiles;
+    return c && typeof c === "object" && typeof c.startNew === "function" ? c : null;
+  }
+  function forestNoun() {
+    const c = profileConfig();
+    const n = c && typeof c.noun === "string" ? c.noun.trim().toLowerCase() : "";
+    return /^[a-z ]{2,20}$/.test(n) ? n : "profile";
+  }
+  function forestNounCap() { const n = forestNoun(); return n.charAt(0).toUpperCase() + n.slice(1); }
+  function cleanForestName(text) {
+    return String(text == null ? "" : text)
+      .replace(/[\u0000-\u001f\u007f-\u009f\u200b-\u200f\u2028-\u202e\u2060-\u206f\ufeff]/g, " ")
+      .replace(/\s+/g, " ").trim();
+  }
+  function defaultForestName() {
+    const c = profileConfig();
+    const name = c && typeof c.defaultName === "string" ? cleanForestName(c.defaultName) : "";
+    return Array.from(name || ftext("My {noun}", { noun: forestNoun() })).slice(0, FOREST_NAME_MAX).join("");
+  }
+  // The localStorage keys a profile owns: only plain strings, never the widget's own keys or the sign-in token.
+  function trackedKeys() {
+    const c = profileConfig();
+    const keys = c && Array.isArray(c.gameKeys) ? c.gameKeys : [];
+    return keys.filter((k) => typeof k === "string" && /^[\w:.-]{1,80}$/.test(k) && !FOREST_BLOCKED_KEY.test(k) && k !== HUB_AUTH_TOKEN_KEY).slice(0, 12);
+  }
+  function storageUsable() {
+    try { localStorage.setItem("forests-probe", "1"); localStorage.removeItem("forests-probe"); return true; } catch (err) { return false; }
+  }
+  function forestsOn() { return !slotMode() && Boolean(profileConfig()) && storageUsable(); }
+  function validCode(code) { return typeof code === "string" && /^[A-Za-z0-9-]{1,32}$/.test(code) ? code : null; }
+
+  // Reads and cleans the stored profiles. Nothing stored (or nothing usable) is the migration case: one profile
+  // holding the default name, which adopts the code and keys the browser already has (they are live).
+  function readForests() {
+    let raw = null;
+    try { raw = JSON.parse(lsGet(FOREST_STORE_KEY)); } catch (err) { raw = null; }
+    const list = [];
+    const seen = new Set();
+    const allowed = trackedKeys();
+    if (raw && Array.isArray(raw.list)) {
+      raw.list.slice(0, 20).forEach((e) => {
+        if (list.length >= FOREST_MAX || !e || typeof e !== "object" || typeof e.id !== "string" || !/^[a-z0-9]{1,16}$/.test(e.id) || seen.has(e.id)) return;
+        seen.add(e.id);
+        const name = Array.from(cleanForestName(e.name)).slice(0, FOREST_NAME_MAX).join("") || ftext("{Noun} {n}", { Noun: forestNounCap(), n: list.length + 1 });
+        const keys = {};
+        if (e.keys && typeof e.keys === "object") {
+          allowed.forEach((k) => { if (typeof e.keys[k] === "string" && e.keys[k].length <= FOREST_VALUE_MAX) keys[k] = e.keys[k]; });
+        }
+        const savedAt = Number(e.savedAt);
+        list.push({ id: e.id, name, code: validCode(e.code), keys, savedAt: Number.isFinite(savedAt) && savedAt > 0 ? savedAt : 0 });
+      });
+    }
+    let fresh = false;
+    if (!list.length) {
+      list.push({ id: "f1", name: defaultForestName(), code: null, keys: {}, savedAt: 0 });
+      fresh = true;
+    }
+    const active = raw && typeof raw.active === "string" && list.some((f) => f.id === raw.active) ? raw.active : list[0].id;
+    return { data: { active, list }, fresh };
+  }
+  function loadForests() {
+    const read = readForests();
+    forestData = read.data;
+    if (read.fresh) writeForests();
+    return forestData;
+  }
+  function writeForests() {
+    lsSet(FOREST_STORE_KEY, JSON.stringify({ v: 1, active: forestData.active, list: forestData.list }));
+  }
+  function activeForest() { return forestData && forestData.list.find((f) => f.id === forestData.active); }
+  function liveKeys() {
+    const out = {};
+    trackedKeys().forEach((k) => { const v = lsGet(k); if (typeof v === "string" && v.length <= FOREST_VALUE_MAX) out[k] = v; });
+    return out;
+  }
+  // Copies what the browser holds right now into a profile's record (done for the one being left).
+  function captureLive(f) {
+    f.code = validCode(lsGet(STORAGE_KEY));
+    f.keys = liveKeys();
+    f.savedAt = lastSaveAt || 0;
+  }
+  function applyKeys(f) {
+    trackedKeys().forEach((k) => {
+      if (Object.prototype.hasOwnProperty.call(f.keys, k)) lsSet(k, f.keys[k]); else lsRemove(k);
+    });
+  }
+  function announceForest(text) {
+    forestLiveEl.textContent = "";
+    forestLiveEl.textContent = text;
+    statusEl.textContent = text;
+  }
+  function hideActiveCode() {
+    codeDisplay.hidden = true;
+    copyButton.hidden = true;
+    newButton.hidden = true;
+    claimButton.hidden = true;
+    loadInput.value = "";
+  }
+  function currentUnsaved() {
+    const state = readGameState();
+    if (!state || typeof state !== "object") return false;
+    if (!isMeaningful(state)) return false;
+    return lastSyncedJson === null || stateJson(state) !== lastSyncedJson;
+  }
+
+  function renderForests() {
+    const on = forestsOn();
+    forestsEl.hidden = !on;
+    if (!on) { forestData = null; return; }
+    if (!forestData) loadForests();
+    const active = activeForest();
+    const noun = forestNoun();
+    forestsToggleText.textContent = ftext("{Noun}: {name}", { Noun: forestNounCap(), name: active.name });
+    forestListEl.innerHTML = "";
+    forestData.list.forEach((f, i) => {
+      const isActive = f.id === active.id;
+      const li = document.createElement("li");
+      li.className = "save-widget-forest";
+      li.setAttribute("data-testid", `save-widget-forest-${i + 1}`);
+      li.setAttribute("data-active", String(isActive));
+      const name = document.createElement("span");
+      name.className = "save-widget-forest-name";
+      name.setAttribute("data-testid", `save-widget-forest-${i + 1}-name`);
+      name.textContent = isActive ? ftext("{name} (current)", { name: f.name }) : f.name;
+      li.appendChild(name);
+      const add = (suffix, label, aria, handler) => {
+        const b = document.createElement("button");
+        b.type = "button";
+        b.setAttribute("data-testid", `save-widget-forest-${i + 1}-${suffix}`);
+        b.textContent = label;
+        b.setAttribute("aria-label", aria);
+        b.disabled = forestBusy;
+        b.addEventListener("click", handler);
+        li.appendChild(b);
+      };
+      if (!isActive) add("open", "Open", ftext("Open {noun} {name}", { noun, name: f.name }), () => switchForest(f.id));
+      add("rename", "Rename", ftext("Rename {noun} {name}", { noun, name: f.name }), () => openForestEditor("rename", f.id));
+      if (!isActive && forestData.list.length > 1) add("delete", "Delete", ftext("Delete {noun} {name}", { noun, name: f.name }), () => deleteForest(f.id));
+      forestListEl.appendChild(li);
+    });
+    const full = forestData.list.length >= FOREST_MAX;
+    forestNewButton.textContent = ftext("New {noun}", { noun });
+    forestNewButton.disabled = forestBusy || full || Boolean(forestEditing);
+    const keepsSettings = trackedKeys().length > 0;
+    forestNoteEl.textContent = ftext("Each {noun} keeps its own save{settings}. Opening another saves the one you are in first.", { noun, settings: keepsSettings ? " and settings" : "" })
+      + (forestData.list.length > 1 ? ftext(" You can delete a {noun} you are not in.", { noun }) : "")
+      + (full ? ftext(" You have {max}, the most this browser keeps. Delete one to make room.", { max: FOREST_MAX }) : "");
+  }
+
+  forestsToggle.addEventListener("click", () => {
+    const open = forestsBody.hidden;
+    forestsBody.hidden = !open;
+    forestsToggle.setAttribute("aria-expanded", String(open));
+  });
+
+  function openForestEditor(mode, id) {
+    if (forestBusy || !forestData) return;
+    forestEditing = { mode, id };
+    const f = forestData.list.find((x) => x.id === id);
+    forestEditorLabel.textContent = mode === "new"
+      ? ftext("Name for the new {noun} (up to {max} characters)", { noun: forestNoun(), max: FOREST_NAME_MAX })
+      : ftext("New name for \"{name}\" (up to {max} characters)", { name: f ? f.name : "", max: FOREST_NAME_MAX });
+    forestEditorInput.value = mode === "rename" && f ? f.name : "";
+    forestEditorInput.setAttribute("aria-label", forestEditorLabel.textContent);
+    forestEditorError.textContent = "";
+    forestEditor.hidden = false;
+    forestNewButton.disabled = true;
+    forestEditorInput.focus();
+    forestEditorInput.select();
+  }
+  function closeForestEditor(returnFocus) {
+    forestEditing = null;
+    forestEditor.hidden = true;
+    forestEditorError.textContent = "";
+    renderForests();
+    if (returnFocus) (forestNewButton.disabled ? forestsToggle : forestNewButton).focus();
+  }
+  function validateForestName(name, exceptId) {
+    if (!name) return ftext("Give it a name of 1 to {max} characters.", { max: FOREST_NAME_MAX });
+    if (name.length > FOREST_NAME_MAX) return ftext("Keep the name to {max} characters or fewer.", { max: FOREST_NAME_MAX });
+    if (forestData.list.some((f) => f.id !== exceptId && f.name.toLowerCase() === name.toLowerCase())) {
+      return ftext("You already have a {noun} with that name.", { noun: forestNoun() });
+    }
+    return "";
+  }
+  forestNewButton.addEventListener("click", () => openForestEditor("new", ""));
+  root.querySelector(".save-widget-forest-editor-cancel").addEventListener("click", () => closeForestEditor(true));
+  forestEditor.addEventListener("keydown", (e) => { if (e.key === "Escape") { e.stopPropagation(); closeForestEditor(true); } });
+  forestEditor.addEventListener("submit", (e) => {
+    e.preventDefault();
+    if (!forestEditing || forestBusy) return;
+    forestData = readForests().data;
+    const name = cleanForestName(forestEditorInput.value);
+    const problem = validateForestName(name, forestEditing.mode === "rename" ? forestEditing.id : "");
+    if (problem) { forestEditorError.textContent = problem; forestEditorInput.focus(); return; }
+    const { mode, id } = forestEditing;
+    if (mode === "rename") {
+      const f = forestData.list.find((x) => x.id === id);
+      if (!f) { closeForestEditor(true); return; }
+      const before = f.name;
+      f.name = name;
+      writeForests();
+      closeForestEditor(true);
+      announceForest(ftext("Renamed \"{before}\" to \"{name}\".", { before, name }));
+      return;
+    }
+    if (forestData.list.length >= FOREST_MAX) { forestEditorError.textContent = ftext("You already have {max} {noun}s.", { max: FOREST_MAX, noun: forestNoun() }); return; }
+    closeForestEditor(false);
+    switchForest(null, { name });
+  });
+
+  function newForestId() {
+    for (let attempt = 0; attempt < 20; attempt++) {
+      const id = `f${Date.now().toString(36)}${Math.random().toString(36).slice(2, 5)}`.slice(0, 16);
+      if (!forestData.list.some((f) => f.id === id)) return id;
+    }
+    return `f${Math.random().toString(36).slice(2, 10)}`;
+  }
+
+  function deleteForest(id) {
+    if (forestBusy || !forestData) return;
+    forestData = readForests().data;
+    const f = forestData.list.find((x) => x.id === id);
+    if (!f || forestData.list.length <= 1 || f.id === forestData.active) return;   // never the last, never the one in use
+    const run = () => {
+      forestData = readForests().data;
+      if (forestData.list.length <= 1 || forestData.active === id) return;
+      forestData.list = forestData.list.filter((x) => x.id !== id);
+      writeForests();
+      renderForests();
+      announceForest(ftext("Deleted \"{name}\".", { name: f.name }));
+      forestsToggle.focus();
+    };
+    const message = ftext("Delete \"{name}\" from this browser?", { name: f.name })
+      + (f.code
+        ? ftext(" Its progress is not erased: it stays on the server under the code {code}, and you can open it again by pasting that code into the Load box. Write the code down first if you want it.", { code: f.code })
+        : " It has no saved progress.");
+    if (window.ConfirmDialog) {
+      window.ConfirmDialog.ask({ id: `${GAME_ID}-save-widget-delete-forest`, message, confirmLabel: ftext("Delete {noun}", { noun: forestNoun() }), allowSkip: false, onConfirm: run });
+    } else {
+      run();
+    }
+  }
+
+  // Opens another profile (id), or a brand-new one ({name}): save the current one first, then load the other.
+  function switchForest(id, created) {
+    if (forestBusy || !forestsOn()) return;
+    if (!window.pyodide || !window.pyodide.globals.get("load_state") || !window.pyodide.globals.get("get_state")) {
+      announceForest("Still loading — try again in a moment.");
+      return;
+    }
+    forestData = readForests().data;
+    const from = activeForest();
+    let target;
+    if (created) {
+      if (forestData.list.length >= FOREST_MAX) return;
+      target = { id: newForestId(), name: created.name, code: null, keys: {}, savedAt: 0 };
+    } else {
+      target = forestData.list.find((f) => f.id === id);
+      if (!target || target.id === from.id) return;
+    }
+    const unsaved = currentUnsaved();
+    const go = () => runSwitch(from.id, from.name, target, Boolean(created), unsaved);
+    if (unsaved && window.ConfirmDialog) {
+      window.ConfirmDialog.ask({
+        id: `${GAME_ID}-save-widget-switch-forest`,
+        message: ftext("{what} \"{to}\"? Your progress in \"{from}\" is saved first, so you can come back to it.", { what: created ? "Start the new " + forestNoun() : "Open", to: target.name, from: from.name }),
+        confirmLabel: "Save and switch",
+        onConfirm: go,
+      });
+    } else {
+      go();
+    }
+  }
+
+  async function runSwitch(fromId, fromName, target, isNew, unsaved) {
+    forestBusy = true;
+    renderForests();
+    if (unsaved) {
+      announceForest(ftext("Saving \"{name}\"…", { name: fromName }));
+      takeSnapshot("forest-switch");   // a safety copy in the "Restore an earlier state" list
+      let ok = false;
+      try { ok = (await doSave()) === true; } catch (err) { ok = false; }
+      if (!ok) {
+        forestBusy = false;
+        renderForests();
+        announceForest(ftext("Couldn't save \"{name}\" just now, so nothing was switched.", { name: fromName }));
+        if (window.ConfirmDialog) {
+          window.ConfirmDialog.ask({
+            id: `${GAME_ID}-save-widget-switch-forest-unsaved`,
+            message: ftext("Couldn't save \"{name}\" just now. If you switch anyway, anything since its last save is lost, though a copy is kept under \"Restore an earlier state\".", { name: fromName }),
+            confirmLabel: "Switch anyway",
+            allowSkip: false,
+            onConfirm: () => finishSwitch(fromId, target, isNew),
+          });
+        }
+        return;
+      }
+    }
+    await finishSwitch(fromId, target, isNew);
+  }
+
+  async function finishSwitch(fromId, target, isNew) {
+    forestBusy = true;
+    renderForests();
+    const cfg = profileConfig();
+    const stayed = (message) => { forestBusy = false; renderForests(); announceForest(message); };
+    forestData = readForests().data;
+    const from = forestData.list.find((f) => f.id === fromId);
+    if (!cfg || !from) { stayed("Couldn't switch just now — try again."); return; }
+    const record = isNew ? target : forestData.list.find((f) => f.id === target.id);
+    if (!record) { stayed("That one is gone — nothing was switched."); return; }
+    const before = readGameState();
+    const beforeJson = before && typeof before === "object" ? stateJson(before) : null;
+    let data = null;
+    if (!isNew && record.code) {
+      try {
+        const res = await fetchWithRetry(`${API_BASE}/saves/${encodeURIComponent(record.code)}`, undefined, () => announceForest("Opening… (retrying)"));
+        if (res.status === 404) { stayed(ftext("The save for \"{name}\" wasn't found on the server, so it can't be opened. You are still in \"{from}\".", { name: record.name, from: from.name })); return; }
+        if (!res.ok) throw new Error(`status ${res.status}`);
+        data = (await res.json()).save_data;
+        if (!data || typeof data !== "object") throw new Error("empty save");
+      } catch (err) {
+        console.error(`${GAME_ID} save-widget: opening a local profile failed`, err);
+        stayed(navigator.onLine === false
+          ? ftext("Couldn't open \"{name}\" — you appear to be offline. You are still in \"{from}\".", { name: record.name, from: from.name })
+          : ftext("Couldn't open \"{name}\" just now. You are still in \"{from}\".", { name: record.name, from: from.name }));
+        return;
+      }
+    }
+    // Commit: remember where the one being left stands, then make the other the live one.
+    forestData = readForests().data;
+    const leaving = forestData.list.find((f) => f.id === fromId);
+    if (leaving) captureLive(leaving);
+    const leftCode = leaving ? leaving.code : null;
+    const leftKeys = leaving ? leaving.keys : {};
+    const leftSavedAt = leaving ? leaving.savedAt : 0;
+    let entry = forestData.list.find((f) => f.id === record.id);
+    if (!entry) { entry = record; forestData.list.push(entry); }
+    forestData.active = entry.id;
+    writeForests();
+    applyKeys(entry);
+    if (entry.code) lsSet(STORAGE_KEY, entry.code); else lsRemove(STORAGE_KEY);
+    lastSaveAt = entry.savedAt || 0;
+    lastSaveFailed = false;
+    if (lastSaveAt) lsSet(SAVED_AT_KEY, String(lastSaveAt)); else lsRemove(SAVED_AT_KEY);
+    renderSavedLine();
+    if (entry.code) { showActiveCode(entry.code); loadInput.value = entry.code; } else hideActiveCode();
+    try {
+      if (data) {
+        const loadState = window.pyodide.globals.get("load_state");
+        applyLoad(loadState, data, null);
+      } else {
+        await cfg.startNew();
+        noteSynced();
+      }
+      if (typeof cfg.afterSwitch === "function") cfg.afterSwitch({ id: entry.id, name: entry.name, isNew: Boolean(isNew) });
+    } catch (err) {
+      console.error(`${GAME_ID} save-widget: switching profile failed, putting the old one back`, err);
+      // Put everything back: the list, the code, the keys and the game state as it was.
+      forestData = readForests().data;
+      if (isNew) forestData.list = forestData.list.filter((f) => f.id !== entry.id);
+      forestData.active = fromId;
+      const back = forestData.list.find((f) => f.id === fromId);
+      if (back) { back.code = leftCode; back.keys = leftKeys; back.savedAt = leftSavedAt; }
+      writeForests();
+      if (back) {
+        applyKeys(back);
+        if (back.code) lsSet(STORAGE_KEY, back.code); else lsRemove(STORAGE_KEY);
+        lastSaveAt = back.savedAt || 0;
+        if (lastSaveAt) lsSet(SAVED_AT_KEY, String(lastSaveAt)); else lsRemove(SAVED_AT_KEY);
+        renderSavedLine();
+        if (back.code) showActiveCode(back.code); else hideActiveCode();
+      }
+      try {
+        if (beforeJson) window.pyodide.globals.get("load_state")(window.pyodide.toPy(JSON.parse(beforeJson)));
+        if (typeof cfg.afterSwitch === "function" && back) cfg.afterSwitch({ id: back.id, name: back.name, isNew: false });
+      } catch (err2) { console.error(`${GAME_ID} save-widget: restoring the old state failed`, err2); }
+      noteSynced();
+      stayed(ftext("Couldn't open \"{name}\". You are back in \"{from}\".", { name: record.name, from: from.name }));
+      return;
+    }
+    forestBusy = false;
+    renderForests();
+    announceForest(isNew
+      ? ftext("Started the new {noun} \"{name}\". \"{from}\" was saved first.", { noun: forestNoun(), name: entry.name, from: from.name })
+      : ftext("Opened \"{name}\".", { name: entry.name }));
+    forestsToggle.focus();
+  }
+
+  window.addEventListener("storage", (e) => {
+    if (e.key === FOREST_STORE_KEY || e.key === HUB_AUTH_TOKEN_KEY || e.key === null) { forestData = null; if (!forestBusy) renderForests(); }
+  });
+  renderForests();
+  document.addEventListener("DOMContentLoaded", renderForests);
+  window.addEventListener("load", renderForests);
+
   // Small public API for the opening screen's "Main menu" re-entry (UX-8).
   window.NoyvjSaveWidget = {
     // Z-10: snapshot the current state now (the opening screen calls this before New Game).
     // Resolves nothing and never throws; true when a snapshot was kept.
     snapshotNow(reason) { return Boolean(takeSnapshot(reason || "manual", { keepalive: true })); },
+    // B-15: the local profiles (null when the game has not opted in or the player is signed in).
+    forests() {
+      if (!forestsOn()) return null;
+      const data = forestData || loadForests();
+      return { active: data.active, list: data.list.map((f) => ({ id: f.id, name: f.name, hasSave: Boolean(f.id === data.active ? lsGet(STORAGE_KEY) : f.code) })) };
+    },
     // This browser's snapshots for this game, newest first (read-only copy).
     localSnapshots() { return readLocalSnaps().map(({ json, ...rest }) => rest); },
     // Loads the account's latest save (signed in) or the remembered save code

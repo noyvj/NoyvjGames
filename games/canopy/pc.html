@@ -1293,6 +1293,27 @@
     per the shared contract; the widget itself is untouched per-game, same
     reference integration pattern as SOL.
   -->
+  <!--
+    B-15: named local forests (up to three per browser, not signed in). The shared save widget reads this before it
+    loads. Difficulty and grid size ride inside each forest's own save; the species choice is the one remembered
+    browser setting each forest carries. start_new_forest() / after_forest_switch() are in game.py.
+  -->
+  <script>
+    window.NoyvjSaveProfiles = {
+      noun: "forest",
+      defaultName: "My forest",
+      gameKeys: ["canopy_species_choice_v1"],
+      startNew: function () {
+        var fn = window.pyodide && window.pyodide.globals.get("start_new_forest");
+        if (!fn) throw new Error("start_new_forest is not ready");
+        fn();
+      },
+      afterSwitch: function () {
+        var fn = window.pyodide && window.pyodide.globals.get("after_forest_switch");
+        if (fn) fn();
+      },
+    };
+  </script>
   <script src="../../shared/hub-auth.js"></script>
   <script src="../../shared/save-widget.js" data-game-id="canopy"></script>
   <script src="../../shared/opening-screen.js" data-game-id="canopy" data-tagline="Clear a forest for quick income, or let it grow and compound." data-game-name="Canopy"></script>

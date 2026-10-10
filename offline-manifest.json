@@ -312,7 +312,7 @@
     },
     {
      "path": "games/canopy/changelog.json",
-     "bytes": 22203,
+     "bytes": 22693,
      "precached": false
     },
     {
@@ -650,7 +650,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 15152935,
+   "bytes": 15153425,
    "bytes_complete": true
   },
   "grid": {
@@ -662,17 +662,17 @@
     },
     {
      "path": "games/grid/changelog.json",
-     "bytes": 8624,
+     "bytes": 9234,
      "precached": false
     },
     {
      "path": "games/grid/game.py",
-     "bytes": 248045,
+     "bytes": 254709,
      "precached": true
     },
     {
      "path": "games/grid/index.html",
-     "bytes": 59624,
+     "bytes": 60159,
      "precached": true
     },
     {
@@ -687,7 +687,7 @@
     },
     {
      "path": "games/grid/pc.html",
-     "bytes": 64089,
+     "bytes": 64624,
      "precached": true
     },
     {
@@ -712,7 +712,7 @@
     },
     {
      "path": "games/grid/style.css",
-     "bytes": 50854,
+     "bytes": 51637,
      "precached": true
     }
    ],
@@ -750,6 +750,11 @@
     {
      "path": "shared/ambient-bg.css",
      "bytes": 16268,
+     "precached": true
+    },
+    {
+     "path": "shared/announcer.js",
+     "bytes": 4713,
      "precached": true
     },
     {
@@ -965,7 +970,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14711374,
+   "bytes": 14725214,
    "bytes_complete": true
   },
   "tide": {
@@ -2447,17 +2452,17 @@
     },
     {
      "path": "games/drift/changelog.json",
-     "bytes": 7978,
+     "bytes": 8517,
      "precached": false
     },
     {
      "path": "games/drift/game.py",
-     "bytes": 207657,
+     "bytes": 214563,
      "precached": true
     },
     {
      "path": "games/drift/index.html",
-     "bytes": 48856,
+     "bytes": 49370,
      "precached": true
     },
     {
@@ -2472,7 +2477,7 @@
     },
     {
      "path": "games/drift/pc.html",
-     "bytes": 51919,
+     "bytes": 52433,
      "precached": true
     },
     {
@@ -2497,7 +2502,7 @@
     },
     {
      "path": "games/drift/style.css",
-     "bytes": 46225,
+     "bytes": 46886,
      "precached": true
     },
     {
@@ -2540,6 +2545,11 @@
     {
      "path": "shared/ambient-bg.css",
      "bytes": 16268,
+     "precached": true
+    },
+    {
+     "path": "shared/announcer.js",
+     "bytes": 4713,
      "precached": true
     },
     {
@@ -2720,7 +2730,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14572431,
+   "bytes": 14586278,
    "bytes_complete": true
   },
   "champ-de-mots": {

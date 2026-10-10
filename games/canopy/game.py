@@ -9362,6 +9362,33 @@ def render_species_note():
         select.value = species_choice
 
 
+# B-15 (2026-10-11): named local forests. The shared save widget (shared/save-widget.js) lets a browser that is not
+# signed in keep up to three named forests, each with its own save code. Difficulty, grid size, pace and challenge
+# are part of every save (current_difficulty, current_grid_size, ...), so each forest keeps its own simply by being
+# saved and loaded. What the widget needs from the game: a way to start a fresh forest, and a way to refresh the
+# page after the species choice (the one remembered per-forest browser setting) was swapped under it.
+FOREST_PROFILE_KEYS = (SPECIES_CHOICE_KEY,)
+
+
+def start_new_forest():
+    """A new, empty forest from the forest menu: the plain starting game (normal grid, difficulty and pace, no
+    challenge, scenario, level, custom layout or expedition). Meta-progress (levels done, Seed Vault, bests) and
+    achievements belong to the browser, not to one forest, and are untouched."""
+    return reset_session(
+        grid_size="normal", difficulty=DIFFICULTY_NORMAL, challenge=CHALLENGE_NONE, pace=PACE_NORMAL,
+        scenario=SCENARIO_NONE, level=None, layout=None, expedition=None,
+    )
+
+
+def after_forest_switch():
+    """Called by the save widget once another forest is open: re-reads the remembered species and shows every
+    setting control as the loaded forest has it."""
+    load_species_choice()
+    render_species_note()
+    render_grid_size_select()
+    return True
+
+
 # B-13 (2026-10-09): Survey mode. The tick is frozen; Clear, Replant and a queued decline of the pending clear request
 # are written into a plan instead of happening. The panel shows what the plan would do (income gained, standing value
 # given up, the gap to the "left standing" forest from the Session Summary, soil quality) and Commit runs it in order.
