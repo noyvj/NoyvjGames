@@ -2,6 +2,10 @@
   "changelog": [
     {
       "date": "2026-10-11",
+      "entry": "New: a city skyline strip. Sixteen buildings light up as your capacity covers demand, dim and flicker after a disruption round, and a haze thickens as your emissions climb. Lit buildings show windows and dark ones are bare outlines, and a line of words says the same thing, so it never relies on colour. It holds still under Reduce motion. Switch it off in Settings."
+    },
+    {
+      "date": "2026-10-11",
       "entry": "New: number choices in Settings. Pick compact numbers (1.2k, 3M) or full ones, and label demand and capacity as MW or plain units. After every round a line says what happened to your funds in words and an arrow (▲ up, ▼ down, ◆ unchanged), so you never have to read a colour to know."
     },
     {

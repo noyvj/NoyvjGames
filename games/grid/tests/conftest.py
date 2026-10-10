@@ -172,7 +172,8 @@ ELEMENT_IDS.append("sr-announcer")
 ELEMENT_IDS += [f"trend-show-{k}" for k in ("emissions", "cost", "benchmark", "funds", "demand", "clean", "ghost")]
 ELEMENT_IDS += ["chart-table-view", "trend-ghost-note", "mix-table", "gauge-table"]
 ELEMENT_IDS += ["pref-coach", "coach-panel", "coach-text", "settings-reset-button", "confirm-reset-button", "confirm-reset-status",
-                "pref-number-format", "pref-unit", "funds-delta-display"]
+                "pref-number-format", "pref-unit", "funds-delta-display",
+                "skyline-strip", "skyline-graphic", "skyline-caption", "pref-skyline"]
 # C-14 fleet overview.
 ELEMENT_IDS += ["fleet-body"] + [f"fleet-sort-{k}" for k in ("plant", "count", "wear", "risk", "next", "revenue")]
 

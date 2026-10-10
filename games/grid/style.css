@@ -1814,13 +1814,13 @@ html[data-reduced-motion="true"] *::after {
 
 /* C-14: the sortable fleet overview. */
 .fleet-overview { margin-top: 0.5rem; }
-.fleet-overview summary { cursor: pointer; font-size: 0.9rem; min-height: 44px; display: flex; align-items: center; }
+.fleet-overview summary { cursor: pointer; font-size: 0.9rem; padding: 0.7rem 0; }
 .fleet-sort-button { background: none; border: 0; color: inherit; font: inherit; font-weight: 600; padding: 0.25rem 0.1rem; min-height: 44px; cursor: pointer; text-align: left; text-decoration: underline dotted; }
 .fleet-table th, .fleet-table td { white-space: nowrap; }
 
 /* C-21: the opt-in coach. */
 .coach-panel { border-left: 3px solid #5fd0b0; padding: 0.2rem 0.6rem; margin: 0.4rem 0; background: rgba(95, 208, 176, 0.07); border-radius: 0 6px 6px 0; }
-.coach-panel summary { cursor: pointer; font-weight: 600; min-height: 44px; display: flex; align-items: center; }
+.coach-panel summary { cursor: pointer; font-weight: 600; padding: 0.7rem 0; }
 
 /* C-6: funds change as arrow plus words; the colour only backs up the arrow and the words. */
 .funds-delta { font-size: 0.9rem; font-weight: 600; margin: 0.2rem 0; }
@@ -1828,3 +1828,20 @@ html[data-reduced-motion="true"] *::after {
 .funds-delta--down { color: #ffb48a; }
 .funds-delta--flat { opacity: 0.85; }
 .settings-row select { min-height: 44px; }
+
+/* GC-8: the city skyline strip. Lit buildings have windows, dark ones are bare outlines (shape, not only colour). */
+.skyline-strip { margin: 0.4rem 0; }
+.skyline-strip[hidden] { display: none; }
+.skyline-graphic { width: 100%; }
+.skyline-svg { width: 100%; height: auto; display: block; max-height: 90px; }
+.sky-building--dark { fill: rgba(30, 34, 52, 0.85); stroke: rgba(140, 160, 255, 0.45); stroke-width: 0.8; }
+.sky-building--lit { fill: rgba(60, 70, 108, 0.95); stroke: rgba(255, 224, 140, 0.6); stroke-width: 0.8; }
+.sky-window { fill: #ffe08a; }
+.sky-window--dim { opacity: 0.5; }
+.sky-haze { fill: #8a8f9c; pointer-events: none; }
+.skyline-caption { font-size: 0.8rem; margin: 0.15rem 0 0; opacity: 0.9; }
+@keyframes skyline-flicker { 0%, 100% { opacity: 1; } 20% { opacity: 0.55; } 45% { opacity: 0.9; } 70% { opacity: 0.45; } }
+.skyline-svg--flicker .sky-window { animation: skyline-flicker 0.9s steps(1, end) 3; }
+@media (prefers-reduced-motion: reduce) {
+  .skyline-svg--flicker .sky-window { animation: none; }
+}

@@ -227,6 +227,12 @@
         </label>
       </div>
       <div class="settings-row">
+        <label class="settings-checkbox-label" for="pref-skyline">
+          <input type="checkbox" id="pref-skyline" checked>
+          City skyline strip (buildings light as demand is met)
+        </label>
+      </div>
+      <div class="settings-row">
         <label class="settings-label" for="pref-number-format">Numbers</label>
         <select id="pref-number-format" aria-label="Number format">
           <option value="full" selected>Full (1500)</option>
@@ -278,6 +284,12 @@
       <div class="grid-visual-wire grid-visual-wire--mid grid-visual-wire--1"></div>
       <div class="grid-visual-wire grid-visual-wire--mid grid-visual-wire--2"></div>
       <div class="grid-visual-current"></div>
+    </div>
+
+    <!-- GC-8: the city the grid serves: buildings light as demand is met, dim after a brownout, haze with emissions. Switch off in Settings. -->
+    <div id="skyline-strip" class="skyline-strip">
+      <div id="skyline-graphic" class="skyline-graphic"></div>
+      <p id="skyline-caption" class="skyline-caption"></p>
     </div>
 
     <button id="info-page-toggle-button" class="secondary info-page-toggle">Loading...</button>
