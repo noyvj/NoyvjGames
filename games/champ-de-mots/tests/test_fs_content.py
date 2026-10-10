@@ -4,6 +4,7 @@ the course's weekly topics in my own wording; nothing here is slide text.
 """
 
 import random
+import re
 
 from .test_report_fixes import _item, _live, _topic
 
@@ -48,6 +49,10 @@ FS_WEEKS = {
         "une tablette de", "une douzaine de", "cent grammes de", "un sachet de", "un sandwich au fromage",
         "marchand de primeurs", "faire les courses", "À qui le tour?", "Ce sera tout.", "du camembert", "un pamplemousse",
         "Je vais le faire.", "J'en veux deux.",
+    ]},
+    10: {"row": 21, "topics": 9, "plots": 45, "must_have": [
+        "regardé", "attendu", "j'ai regardé", "nous avons vendu", "Je n'ai pas fini mes devoirs.", "Sophie l'a écoutée.",
+        "la raclette", "apporter", "C'était très bon, merci.", "J'ai perdu mes clés.",
     ]},
 }
 
@@ -621,6 +626,68 @@ def test_week_9_pronoun_plots_follow_the_aller_and_en_rules(game_env):
         assert not module.is_conjugation_plot(game_env.state.plots_by_id[topic["id"]])
 
 
+# --- week 10 -----------------------------------------------------------------
+
+
+def test_week_10_participles_end_in_the_three_regular_endings(game_env):
+    items = _topic(game_env.module, "fren152-w11-vocab-fs01")["items"]
+    assert len(items) == 17
+    for item in items:
+        assert item["fr"][-1] in {"é", "i", "u"}, item["fr"]
+    assert _live(game_env.module, "fren152-w11-vocab-fs01", 7, "en", "ate")  # mangé
+    assert _live(game_env.module, "fren152-w11-vocab-fs01", 9, "en", "sang")  # chanté
+
+
+def test_week_10_passe_compose_tables_use_avoir_and_one_participle(game_env):
+    module = game_env.module
+    expected_avoir = ["j'ai", "tu as", "il a", "nous avons", "vous avez", "ils ont"]
+    for topic_id, participle in (
+        ("fren152-w11-grammar-fs02", "regardé"), ("fren152-w11-grammar-fs03", "fini"),
+        ("fren152-w11-grammar-fs04", "vendu"),
+    ):
+        plot = game_env.state.plots_by_id[topic_id]
+        assert module.is_conjugation_plot(plot), topic_id
+        forms = [i["fr"] for i in plot.items]
+        assert forms == [f"{a} {participle}" for a in expected_avoir], topic_id
+
+
+def test_week_10_negative_wraps_the_auxiliary(game_env):
+    topic = _topic(game_env.module, "fren152-w11-grammar-fs05")
+    for item in topic["items"]:
+        text = item["fr"]
+        match = re.search(r"n'(ai|a|as|ont|avons|avez)\b", text)
+        assert match and ("pas" in text or "jamais" in text), text
+        assert match.start() < max(text.find("pas"), text.find("jamais"))
+    assert not game_env.module.is_conjugation_plot(game_env.state.plots_by_id[topic["id"]])
+
+
+def test_week_10_pronoun_agreement_plot_shows_masculine_and_feminine_participles(game_env):
+    module = game_env.module
+    topic = _topic(module, "fren152-w11-grammar-fs06")
+    frs = [i["fr"] for i in topic["items"]]
+    assert "Sophie l'a écouté." in frs and "Sophie l'a écoutée." in frs
+    assert "Nous les avons mangés." in frs and "Nous les avons mangées." in frs
+    assert "agrees" in topic["rule"] and not module.is_conjugation_plot(game_env.state.plots_by_id[topic["id"]])
+    # the English keeps masculine and feminine apart so a typed answer can tell them apart
+    assert not _live(module, topic["id"], 1, "en", "Sophie listened to him")
+    assert _live(module, topic["id"], 0, "en", "Sophie listened to him")
+
+
+def test_week_10_restaurant_words_and_dialogue(game_env):
+    module = game_env.module
+    words = {i["fr"]: i["en"] for i in _topic(module, "fren152-w11-vocab-fs07")["items"]}
+    assert words["apporter"] == "to bring" and words["conseiller"] == "to recommend"
+    dialogue = _topic(module, "fren152-w11-phrase-fs08")["items"]
+    assert len(dialogue) == 7 and dialogue[-1]["fr"] == "C'était très bon, merci."
+
+
+def test_week_10_passe_compose_sentences_are_all_past_with_avoir(game_env):
+    for item in _topic(game_env.module, "fren152-w11-phrase-fs09")["items"]:
+        text = " " + item["fr"].replace("'", "' ") + " "
+        assert any(a in text for a in (" ai ", " as ", " a ", " avons ", " avez ", " ont ", "j' ai ")), item["fr"]
+    assert len(_topic(game_env.module, "fren152-w11-phrase-fs09")["items"]) == 8
+
+
 def test_only_the_real_person_by_person_tables_count_as_conjugations(game_env):
     """A sentence list that merely starts with pronouns must not become a conjugation plot (the
     pronoun swap would write nonsense); only the declared tables are."""
@@ -635,4 +702,5 @@ def test_only_the_real_person_by_person_tables_count_as_conjugations(game_env):
 DECLARED_CONJUGATION_TABLES = [
     "fren152-w3-grammar-fs01", "fren152-w3-grammar-fs02", "fren152-w3-grammar-fs03",
     "fren152-w8-grammar-fs09",
+    "fren152-w11-grammar-fs02", "fren152-w11-grammar-fs03", "fren152-w11-grammar-fs04",
 ]

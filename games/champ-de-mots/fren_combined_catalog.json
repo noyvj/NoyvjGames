@@ -14056,6 +14056,707 @@
             }
           ],
           "rule": "Short common adverbs (déjà, bien, souvent, trop, vraiment...) go between avoir and the past participle. Longer adverbs of manner tend to follow the past participle. Time expressions often go at the start or end of the sentence."
+        },
+        {
+          "id": "fren152-w11-vocab-fs01",
+          "topic_type": "vocab",
+          "title": "Past participles of regular verbs",
+          "items": [
+            {
+              "fr": "regardé",
+              "en": "watched",
+              "accepted_en": [
+                "watched",
+                "looked at",
+                "looked",
+                "watching"
+              ]
+            },
+            {
+              "fr": "fini",
+              "en": "finished",
+              "accepted_en": [
+                "finished",
+                "ended"
+              ]
+            },
+            {
+              "fr": "répondu",
+              "en": "answered",
+              "accepted_en": [
+                "answered",
+                "replied",
+                "responded"
+              ]
+            },
+            {
+              "fr": "choisi",
+              "en": "chosen",
+              "accepted_en": [
+                "chosen",
+                "chose",
+                "picked"
+              ]
+            },
+            {
+              "fr": "vendu",
+              "en": "sold"
+            },
+            {
+              "fr": "attendu",
+              "en": "waited",
+              "accepted_en": [
+                "waited",
+                "waited for",
+                "awaited"
+              ]
+            },
+            {
+              "fr": "joué",
+              "en": "played"
+            },
+            {
+              "fr": "mangé",
+              "en": "eaten",
+              "accepted_en": [
+                "eaten",
+                "ate"
+              ]
+            },
+            {
+              "fr": "parlé",
+              "en": "spoken",
+              "accepted_en": [
+                "spoken",
+                "spoke",
+                "talked"
+              ]
+            },
+            {
+              "fr": "chanté",
+              "en": "sung",
+              "accepted_en": [
+                "sung",
+                "sang"
+              ]
+            },
+            {
+              "fr": "écouté",
+              "en": "listened",
+              "accepted_en": [
+                "listened",
+                "listened to"
+              ]
+            },
+            {
+              "fr": "rangé",
+              "en": "tidied",
+              "accepted_en": [
+                "tidied",
+                "tidied up",
+                "put away"
+              ]
+            },
+            {
+              "fr": "visité",
+              "en": "visited"
+            },
+            {
+              "fr": "entendu",
+              "en": "heard"
+            },
+            {
+              "fr": "perdu",
+              "en": "lost"
+            },
+            {
+              "fr": "travaillé",
+              "en": "worked"
+            },
+            {
+              "fr": "commencé",
+              "en": "started",
+              "accepted_en": [
+                "started",
+                "begun",
+                "began"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "fren152-w11-grammar-fs02",
+          "topic_type": "grammar",
+          "title": "The passé composé of regarder",
+          "items": [
+            {
+              "fr": "j'ai regardé",
+              "en": "I watched",
+              "accepted_en": [
+                "I watched",
+                "I have watched",
+                "I looked at",
+                "I have looked at",
+                "I did watch"
+              ]
+            },
+            {
+              "fr": "tu as regardé",
+              "en": "you watched",
+              "accepted_en": [
+                "you watched",
+                "you have watched",
+                "you looked at",
+                "you have looked at",
+                "you did watch"
+              ]
+            },
+            {
+              "fr": "il a regardé",
+              "en": "he watched",
+              "accepted_en": [
+                "he watched",
+                "he has watched",
+                "he looked at",
+                "he has looked at",
+                "he did watch"
+              ]
+            },
+            {
+              "fr": "nous avons regardé",
+              "en": "we watched",
+              "accepted_en": [
+                "we watched",
+                "we have watched",
+                "we looked at",
+                "we have looked at",
+                "we did watch"
+              ]
+            },
+            {
+              "fr": "vous avez regardé",
+              "en": "you watched",
+              "accepted_en": [
+                "you watched",
+                "you have watched",
+                "you looked at",
+                "you have looked at",
+                "you did watch"
+              ]
+            },
+            {
+              "fr": "ils ont regardé",
+              "en": "they watched",
+              "accepted_en": [
+                "they watched",
+                "they have watched",
+                "they looked at",
+                "they have looked at",
+                "they did watch"
+              ]
+            }
+          ],
+          "rule": "The passé composé is the present of avoir plus the past participle. For an -er verb the participle ends in -é: regarder gives regardé. The participle never changes with the subject."
+        },
+        {
+          "id": "fren152-w11-grammar-fs03",
+          "topic_type": "grammar",
+          "title": "The passé composé of finir",
+          "items": [
+            {
+              "fr": "j'ai fini",
+              "en": "I finished",
+              "accepted_en": [
+                "I finished",
+                "I have finished",
+                "I did finish"
+              ]
+            },
+            {
+              "fr": "tu as fini",
+              "en": "you finished",
+              "accepted_en": [
+                "you finished",
+                "you have finished",
+                "you did finish"
+              ]
+            },
+            {
+              "fr": "il a fini",
+              "en": "he finished",
+              "accepted_en": [
+                "he finished",
+                "he has finished",
+                "he did finish"
+              ]
+            },
+            {
+              "fr": "nous avons fini",
+              "en": "we finished",
+              "accepted_en": [
+                "we finished",
+                "we have finished",
+                "we did finish"
+              ]
+            },
+            {
+              "fr": "vous avez fini",
+              "en": "you finished",
+              "accepted_en": [
+                "you finished",
+                "you have finished",
+                "you did finish"
+              ]
+            },
+            {
+              "fr": "ils ont fini",
+              "en": "they finished",
+              "accepted_en": [
+                "they finished",
+                "they have finished",
+                "they did finish"
+              ]
+            }
+          ],
+          "rule": "For an -ir verb the participle ends in -i (fini, choisi). Avoir changes with the subject; the participle stays the same."
+        },
+        {
+          "id": "fren152-w11-grammar-fs04",
+          "topic_type": "grammar",
+          "title": "The passé composé of vendre",
+          "items": [
+            {
+              "fr": "j'ai vendu",
+              "en": "I sold",
+              "accepted_en": [
+                "I sold",
+                "I have sold",
+                "I did sell"
+              ]
+            },
+            {
+              "fr": "tu as vendu",
+              "en": "you sold",
+              "accepted_en": [
+                "you sold",
+                "you have sold",
+                "you did sell"
+              ]
+            },
+            {
+              "fr": "il a vendu",
+              "en": "he sold",
+              "accepted_en": [
+                "he sold",
+                "he has sold",
+                "he did sell"
+              ]
+            },
+            {
+              "fr": "nous avons vendu",
+              "en": "we sold",
+              "accepted_en": [
+                "we sold",
+                "we have sold",
+                "we did sell"
+              ]
+            },
+            {
+              "fr": "vous avez vendu",
+              "en": "you sold",
+              "accepted_en": [
+                "you sold",
+                "you have sold",
+                "you did sell"
+              ]
+            },
+            {
+              "fr": "ils ont vendu",
+              "en": "they sold",
+              "accepted_en": [
+                "they sold",
+                "they have sold",
+                "they did sell"
+              ]
+            }
+          ],
+          "rule": "For an -re verb the participle ends in -u (vendu, attendu, répondu, perdu)."
+        },
+        {
+          "id": "fren152-w11-grammar-fs05",
+          "topic_type": "grammar",
+          "title": "The passé composé in the negative",
+          "items": [
+            {
+              "fr": "Je n'ai pas fini mes devoirs.",
+              "en": "I have not finished my homework.",
+              "accepted_en": [
+                "I have not finished my homework.",
+                "I did not finish my homework",
+                "I haven't finished my homework",
+                "I didn't finish my homework",
+                "I have not finished my assignments",
+                "I haven't finished my assignments"
+              ]
+            },
+            {
+              "fr": "Elle n'a jamais chanté en public.",
+              "en": "She has never sung in public.",
+              "accepted_en": [
+                "She has never sung in public.",
+                "She never sang in public",
+                "She did not ever sing in public"
+              ]
+            },
+            {
+              "fr": "Ils n'ont pas répondu à la lettre.",
+              "en": "They did not answer the letter.",
+              "accepted_en": [
+                "They did not answer the letter.",
+                "They have not answered the letter",
+                "They didn't answer the letter",
+                "They haven't answered the letter",
+                "They did not reply to the letter",
+                "They have not replied to the letter",
+                "They didn't reply to the letter",
+                "They haven't replied to the letter"
+              ]
+            },
+            {
+              "fr": "Vous n'avez pas attendu longtemps?",
+              "en": "Did you not wait long?",
+              "accepted_en": [
+                "Did you not wait long?",
+                "Haven't you waited long",
+                "Have you not waited long",
+                "You did not wait long?",
+                "Didn't you wait long",
+                "You haven't waited long?"
+              ]
+            }
+          ],
+          "rule": "Ne ... pas (or ne ... jamais) wraps the helping verb avoir, and the participle stays after it: je n'ai pas fini."
+        },
+        {
+          "id": "fren152-w11-grammar-fs06",
+          "topic_type": "grammar",
+          "title": "Object pronouns in the passé composé",
+          "items": [
+            {
+              "fr": "Sophie l'a écouté.",
+              "en": "Sophie listened to him.",
+              "accepted_en": [
+                "Sophie listened to him.",
+                "Sophie has listened to him"
+              ]
+            },
+            {
+              "fr": "Sophie l'a écoutée.",
+              "en": "Sophie listened to her.",
+              "accepted_en": [
+                "Sophie listened to her.",
+                "Sophie has listened to her"
+              ]
+            },
+            {
+              "fr": "Nous les avons mangés.",
+              "en": "We ate them (masc.).",
+              "accepted_en": [
+                "We ate them (masc.).",
+                "We have eaten them",
+                "We ate them",
+                "We did eat them"
+              ]
+            },
+            {
+              "fr": "Nous les avons mangées.",
+              "en": "We ate them (fem.).",
+              "accepted_en": [
+                "We ate them (fem.).",
+                "We have eaten them",
+                "We ate them",
+                "We did eat them"
+              ]
+            },
+            {
+              "fr": "Je ne les ai pas finis.",
+              "en": "I did not finish them.",
+              "accepted_en": [
+                "I did not finish them.",
+                "I have not finished them",
+                "I haven't finished them",
+                "I didn't finish them"
+              ]
+            }
+          ],
+          "rule": "The pronoun goes before avoir (je les ai finis). When the direct object comes before the participle, the participle agrees with it: l'a écouté (him) but l'a écoutée (her), les ai mangés (masc.) but mangées (fem.)."
+        },
+        {
+          "id": "fren152-w11-vocab-fs07",
+          "topic_type": "vocab",
+          "title": "Restaurant words: more",
+          "items": [
+            {
+              "fr": "le potage du jour",
+              "en": "the soup of the day",
+              "accepted_en": [
+                "the soup of the day",
+                "the day's soup",
+                "today's soup",
+                "the soup of today",
+                "soup of the day"
+              ]
+            },
+            {
+              "fr": "la raclette",
+              "en": "raclette",
+              "accepted_en": [
+                "raclette",
+                "raclette (melted cheese with potatoes)",
+                "the raclette"
+              ]
+            },
+            {
+              "fr": "la cuisson",
+              "en": "the way it is cooked",
+              "accepted_en": [
+                "the way it is cooked",
+                "the cooking",
+                "the cooking time",
+                "how it is cooked",
+                "how it's cooked",
+                "cooking"
+              ]
+            },
+            {
+              "fr": "la garniture",
+              "en": "the side dish",
+              "accepted_en": [
+                "the side dish",
+                "the trimmings",
+                "the accompaniment",
+                "the garnish",
+                "the side",
+                "the vegetables on the side"
+              ]
+            },
+            {
+              "fr": "apporter",
+              "en": "to bring",
+              "accepted_en": [
+                "to bring",
+                "to bring along",
+                "to carry"
+              ]
+            },
+            {
+              "fr": "conseiller",
+              "en": "to recommend",
+              "accepted_en": [
+                "to recommend",
+                "to advise",
+                "to suggest"
+              ]
+            },
+            {
+              "fr": "un steak au poivre",
+              "en": "a pepper steak",
+              "accepted_en": [
+                "a pepper steak",
+                "a steak with pepper sauce",
+                "a peppered steak",
+                "steak with pepper"
+              ]
+            },
+            {
+              "fr": "chaud devant",
+              "en": "mind your backs",
+              "accepted_en": [
+                "mind your backs",
+                "watch out, hot",
+                "hot coming through",
+                "coming through",
+                "hot behind you"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "fren152-w11-phrase-fs08",
+          "topic_type": "phrase",
+          "title": "At the restaurant: a short dialogue",
+          "items": [
+            {
+              "fr": "Bonsoir, une table pour deux, s'il vous plaît.",
+              "en": "Good evening, a table for two, please.",
+              "accepted_en": [
+                "Good evening, a table for two, please.",
+                "Good evening, table for two, please",
+                "Evening, a table for two, please",
+                "Good evening, a table for two"
+              ]
+            },
+            {
+              "fr": "Qu'est-ce que vous me conseillez?",
+              "en": "What do you recommend?",
+              "accepted_en": [
+                "What do you recommend?",
+                "What would you recommend",
+                "What do you advise",
+                "What do you suggest",
+                "What do you recommend to me",
+                "What would you advise"
+              ]
+            },
+            {
+              "fr": "Je prends le potage du jour, puis un steak à point.",
+              "en": "I will have the soup of the day, then a medium steak.",
+              "accepted_en": [
+                "I will have the soup of the day, then a medium steak.",
+                "I'll have the soup of the day, then a medium steak",
+                "I will take the soup of the day, then a medium steak",
+                "I'll take the soup of the day, then a medium steak",
+                "I am having the soup of the day, then a medium steak",
+                "I'm having the soup of the day, then a medium steak"
+              ]
+            },
+            {
+              "fr": "Qu'est-ce que c'est, la raclette?",
+              "en": "What is raclette?",
+              "accepted_en": [
+                "What is raclette?",
+                "What's raclette",
+                "What is the raclette",
+                "What is a raclette",
+                "What's the raclette"
+              ]
+            },
+            {
+              "fr": "Avec ça, vous voulez de l'eau plate ou gazeuse?",
+              "en": "With that, would you like still or sparkling water?",
+              "accepted_en": [
+                "With that, would you like still or sparkling water?",
+                "With that do you want still or sparkling water",
+                "With it, would you like still or sparkling water",
+                "Would you like still or sparkling water with that",
+                "Do you want still or sparkling water with that"
+              ]
+            },
+            {
+              "fr": "Je vous apporte l'addition tout de suite.",
+              "en": "I will bring you the bill straight away.",
+              "accepted_en": [
+                "I will bring you the bill straight away.",
+                "I'll bring you the bill straight away",
+                "I will bring you the bill right away",
+                "I'll bring you the bill right away",
+                "I will bring you the bill immediately",
+                "I'm bringing you the bill straight away",
+                "I will bring you the check right away",
+                "I'll bring you the check right away"
+              ]
+            },
+            {
+              "fr": "C'était très bon, merci.",
+              "en": "It was very good, thank you.",
+              "accepted_en": [
+                "It was very good, thank you.",
+                "It was very good, thanks",
+                "It was delicious, thank you",
+                "It was very tasty, thank you",
+                "That was very good, thank you"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "fren152-w11-phrase-fs09",
+          "topic_type": "phrase",
+          "title": "Passé composé with avoir: sentences",
+          "items": [
+            {
+              "fr": "Hier, j'ai regardé un film.",
+              "en": "Yesterday I watched a film.",
+              "accepted_en": [
+                "Yesterday I watched a film.",
+                "Yesterday I watched a movie",
+                "Yesterday I looked at a film"
+              ]
+            },
+            {
+              "fr": "Elle a mangé une glace.",
+              "en": "She ate an ice cream.",
+              "accepted_en": [
+                "She ate an ice cream.",
+                "She has eaten an ice cream",
+                "She ate ice cream",
+                "She had an ice cream"
+              ]
+            },
+            {
+              "fr": "Nous avons visité Lyon.",
+              "en": "We visited Lyon.",
+              "accepted_en": [
+                "We visited Lyon.",
+                "We have visited Lyon",
+                "We toured Lyon"
+              ]
+            },
+            {
+              "fr": "Tu as vendu ton vélo?",
+              "en": "Did you sell your bike?",
+              "accepted_en": [
+                "Did you sell your bike?",
+                "Have you sold your bike",
+                "Did you sell your bicycle",
+                "Have you sold your bicycle",
+                "You sold your bike",
+                "You sold your bicycle"
+              ]
+            },
+            {
+              "fr": "Ils ont chanté pendant une heure.",
+              "en": "They sang for an hour.",
+              "accepted_en": [
+                "They sang for an hour.",
+                "They have sung for an hour",
+                "They sang for one hour",
+                "They were singing for an hour"
+              ]
+            },
+            {
+              "fr": "J'ai perdu mes clés.",
+              "en": "I lost my keys.",
+              "accepted_en": [
+                "I lost my keys.",
+                "I have lost my keys",
+                "I've lost my keys",
+                "I lost my key"
+              ]
+            },
+            {
+              "fr": "Le serveur a apporté le dessert.",
+              "en": "The waiter brought the dessert.",
+              "accepted_en": [
+                "The waiter brought the dessert.",
+                "The waiter has brought the dessert",
+                "The waiter brought dessert",
+                "The waiter has brought dessert"
+              ]
+            },
+            {
+              "fr": "Nous avons rangé le salon.",
+              "en": "We tidied the living room.",
+              "accepted_en": [
+                "We tidied the living room.",
+                "We have tidied the living room",
+                "We tidied the lounge",
+                "We tidied up the living room",
+                "We have tidied the lounge",
+                "We tidied the sitting room"
+              ]
+            }
+          ]
         }
       ],
       "bonus_sentences": [
