@@ -17,6 +17,11 @@ window.LOGIC_GATES_PC_TUTORIAL_STEPS = [
     text: "Solid thick wires carry 1, thin dashed wires carry 0. Click a round pin on a source, then a round pin on an input, to connect them. Flip the switches to see what your circuit does.",
   },
   {
+    selector: "#board-panel",
+    title: "Tie 1 and tie 0",
+    text: "The two small boxes marked tie 1 and tie 0 are fixed inputs: a wire tied to 1 or to 0 for good. Use one when a chip needs a constant, for example tie one input of a NAND chip to 1 and it becomes an inverter. Hover a tie box for the same note.",
+  },
+  {
     selector: "#parts-panel",
     title: "Parts",
     text: "Add chips here. Every connection can also be chosen from a list on each chip. Undo, Clear and Restore mean nothing is ever lost. U undoes, N goes to the next level.",

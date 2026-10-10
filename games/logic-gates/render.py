@@ -6,6 +6,7 @@ carries 1 is solid and thick, a wire that carries 0 is thin and dashed: the mean
 from html import escape
 
 from levels import REGISTRY
+from words import TIE_TIPS
 
 CHIP_W = 112
 COL_GAP = 92
@@ -155,7 +156,7 @@ def draw(level, circuit, values, inputs, armed=None, target=None):
         nodes.append(pin("s", f"in:{name}", x + w, y + h / 2))
     for v in ("0", "1"):
         x, y, w, h = pos[("const", v)]
-        nodes.append(f'<g class="lg-node lg-const"><rect x="{x}" y="{y}" width="{w}" height="{h}" rx="6"/><text x="{x + 8}" y="{y + h / 2 + 5}">tie {v}</text></g>')
+        nodes.append(f'<g class="lg-node lg-const"><title>{escape(TIE_TIPS[v])}</title><rect x="{x}" y="{y}" width="{w}" height="{h}" rx="6"/><text x="{x + 8}" y="{y + h / 2 + 5}">tie {v}</text></g>')
         nodes.append(pin("s", f"const:{v}", x + w, y + h / 2))
     for chip in circuit["chips"]:
         key = ("chip", chip["id"])

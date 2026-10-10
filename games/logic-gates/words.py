@@ -3,6 +3,14 @@ hint ladder's answer, and what a screen reader reads."""
 
 from levels import REGISTRY
 
+# GN-6: what the two tie parts on every board are, in plain words (the drawing's tooltip, the board key and the tutorial use these).
+TIE_TIPS = {
+    "1": "Tie 1: a fixed input. A wire tied to 1 for good, so a circuit can be given a constant 1, for example to keep a part switched on or to turn a NAND chip into an inverter.",
+    "0": "Tie 0: a fixed input. A wire tied to 0 for good, so a circuit can be given a constant 0, for example to leave an input of a chip switched off.",
+}
+TIE_KEY = ("Tie 1 and tie 0 are fixed inputs: a wire tied to 1 or to 0 for good, so a circuit can be given a constant "
+           "(for example, tie one input of a NAND chip to 1 and it becomes an inverter).")
+
 
 def chip_name(chip):
     return REGISTRY[chip["type"]]["label"] if chip["type"] in REGISTRY else chip["type"]

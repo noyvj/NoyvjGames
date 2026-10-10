@@ -18,7 +18,9 @@ html[data-layout="pc"] #theme-toggle-floating { top: 0.7rem !important; bottom: 
 #pc-stagebar #goals-list { display: flex; flex-wrap: wrap; gap: 0.1rem 1.2rem; margin: 0; flex: 1 1 24rem; }
 #pc-stagebar #level-head { margin: 0; }
 #pc-stagebar #level-head h2 { display: inline; font-size: 1.1rem; margin: 0 0.6rem 0 0; }
-#pc-stagebar #level-chapter, #pc-stagebar #level-unlock, #pc-stagebar #level-intro, #pc-stagebar #level-log { display: none; }
+#pc-stagebar #level-chapter, #pc-stagebar #level-intro, #pc-stagebar #level-log { display: none; }
+/* GN-5: par (and the board space) shows here as on the Classic page, inline after the goal sentence. */
+#pc-stagebar #level-unlock { display: inline; margin: 0 0 0 0.6rem; font-size: 0.85rem; }
 #pc-stagebar #level-goal { display: inline; margin: 0; font-size: 0.95rem; }
 #pc-stagebar #solved-banner { margin: 0; padding: 0.25rem 0.7rem; }
 #pc-stagebar > .toast:empty, #pc-stagebar > #engine-status:empty { display: none; }
