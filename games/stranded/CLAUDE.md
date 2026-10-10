@@ -1,9 +1,9 @@
 # Stranded (working title)
 
-You are Harbour, the plain voice on a thin text line to Ines Varga, a stubborn, funny field engineer alone on the small moon Orrin at the silent Sparrow Relay. Twelve days, 59 scenes, nine warm or bittersweet endings. Every reply gets an answer, nothing is timed, nothing is ever lost, and you can rewind to any of your messages for free. Personal project, no BCM tag, hub registration not done yet. Plan: `planning/stranded-plan.md` (TODO item QI-25). Read `BUILD-STATUS.md` first.
+You are Harbour, the plain voice on a thin text line to Ines Varga, a stubborn, funny field engineer alone on the small moon Orrin at the silent Sparrow Relay. Twelve days, 59 scenes, ten endings (nine warm or bittersweet, one sadder but gentle). Every reply gets an answer, nothing is timed, nothing is ever lost, and you can rewind to any of your messages for free. Personal project, no BCM tag, hub registration not done yet. Plan: `planning/stranded-plan.md` (TODO item QI-25). Read `BUILD-STATUS.md` first.
 
 ## Rules (owner's hard bans, all enforced by tests)
-- No timers, energy, clocks, grinding, daily mechanics or randomness; replies arrive at once or one per tap (a display setting, no timer).
+- No timers, energy, clocks, grinding, daily mechanics or randomness; replies arrive one per tap by default or all at once (a display setting, no timer).
 - No on-screen death, no all-good hero (Ines overrode a warning light and avoids her brother's message), nothing that loses progress, no audio, no leaderboards, no generated images.
 - Rewinding keeps the map, archive, endings and counters; only the three stats and flags go back (they are the state of that moment).
 
@@ -28,3 +28,4 @@ Add scenes to a story table; every non-ending scene needs 2 to 4 choices, each w
 | 5 | Standard kit | Done |
 | 6 | Achievements | Done |
 | 7 | Desktop boot | Done |
+- AN-7/8/9/10 (2026-10-11): one message per tap is the default (`stranded-reveal`, only the stored value "instant" switches it). Harbour's flaw: flag `quick` set by a too-quick reassurance on d2a, d4b, d6a (each costs trust and Ines says so); d7a offers `need="quick"` to own it (flag `owned`), which adds a line to e_lantern, e_pavel, e_honest and e_asleep. Tenth ending `asleep` (Left in the Window): r11a choice 4, needs `bitgave` (accepted Bit's battery on r9c). The narrator day-note is text only, off by default (`stranded-narrator` setting; hidden lines are filtered in `app.js listOf()` so they never cost a tap; the Story pill can also hide them). Choices were only appended, so old saved paths and taken edges stay valid.

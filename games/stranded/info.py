@@ -11,7 +11,7 @@ FRAMING = ("Stranded is a branching story told as a text conversation. You are H
            "shows the paths you have not tried yet.")
 
 PLEDGE = (
-    "There is no timer and no waiting: replies appear at once, or one at a time when you tap. Nothing happens while you are away.",
+    "There is no timer and no waiting: replies arrive one at a time when you tap (or all at once if you choose that in Settings). Nothing happens while you are away.",
     "Nobody dies on screen. A poor choice costs trust, supplies or hope, and you can always rewind and choose again.",
     "Progress is only ever added. Rewinding never takes away an ending, a collectable or a path you have tried.",
     "No randomness anywhere: the same choices always lead to the same place.",
@@ -24,7 +24,7 @@ HOW = (
     "A reply marked Needs is shut for now. It opens when the stat or the earlier event it names has happened, so a different earlier choice can open it.",
     "Rewind to here (on any of your messages) goes back to that choice. The branch map lists every day, which choices you have tried and the places you have not found yet.",
     "What if opens on a scene once you have tried two different replies there, and shows where each reply would lead.",
-    "Nine endings are warm or bittersweet. The Archive holds Ines's log entries, the things she finds, and her recordings.",
+    "Ten endings: nine warm or bittersweet and one quietly sad. Harbour is not perfect either: now and then the quick kind thing is the wrong thing, and a few replies show it. The Archive holds Ines's log entries, the things she finds, and her recordings.",
 )
 
 FACTS = (

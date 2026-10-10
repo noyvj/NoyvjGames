@@ -28,7 +28,7 @@ def test_every_achievement_has_a_number_a_real_fact_and_a_reachable_target():
     facts = game.game.facts()
     for i, _label, _desc, fact, need in achievements.ACHIEVEMENTS:
         assert fact in facts and need > 0, i
-    assert achievements.EDGES == len(story.EDGES) and achievements.SCENES == len(story.SCENES) and achievements.ENDINGS == 9
+    assert achievements.EDGES == len(story.EDGES) and achievements.SCENES == len(story.SCENES) and achievements.ENDINGS == 10
     assert (achievements.LOGS, achievements.ITEMS, achievements.RECS) == (11, 10, 8)
 
 

@@ -73,9 +73,9 @@
   var effects = applyEffects(get(EFFECTS_KEY) !== "false", false);
   var contrast = applyContrast(get(CONTRAST_KEY) === "true", false);
 
-  // How messages arrive: "instant" shows a reply at once; "tap" shows one message per tap. Neither uses a timer.
+  // How messages arrive: "tap" (the default, AN-7) shows one message per tap; "instant" shows a reply at once. Neither uses a timer.
   var REVEAL_KEY = "stranded-reveal";
-  function readReveal() { return get(REVEAL_KEY) === "tap" ? "tap" : "instant"; }
+  function readReveal() { return get(REVEAL_KEY) === "instant" ? "instant" : "tap"; }
   function applyReveal(mode, remember) {
     root.setAttribute("data-reveal", mode);
     if (remember) set(REVEAL_KEY, mode);
@@ -83,6 +83,16 @@
     return mode;
   }
   var reveal = applyReveal(readReveal(), false);
+
+  // Harbour's one-line log note at the start of each day: text only (never spoken) and OFF by default (AN-10).
+  var NARRATOR_KEY = "stranded-narrator";
+  function applyNarrator(on, remember) {
+    root.setAttribute("data-narrator", on ? "on" : "off");
+    if (remember) set(NARRATOR_KEY, on);
+    document.dispatchEvent(new CustomEvent("stranded-narrator-change"));
+    return on;
+  }
+  var narrator = applyNarrator(get(NARRATOR_KEY) === "true", false);
 
   function init() {
     var panel = document.getElementById("settings-panel");
@@ -92,6 +102,11 @@
     var contrastBox = document.getElementById("high-contrast-checkbox");
     var themeButton = document.getElementById("theme-setting-button");
     var revealSelect = document.getElementById("reveal-select");
+    var narratorBox = document.getElementById("narrator-checkbox");
+    if (narratorBox) {
+      narratorBox.checked = narrator;
+      narratorBox.addEventListener("change", function () { narrator = applyNarrator(narratorBox.checked, true); });
+    }
     if (revealSelect) {
       revealSelect.value = reveal;
       revealSelect.addEventListener("change", function () { reveal = applyReveal(revealSelect.value === "tap" ? "tap" : "instant", true); });
@@ -135,8 +150,11 @@
       remove(EFFECTS_KEY);
       effects = applyEffects(true, false);
       remove(REVEAL_KEY);
-      reveal = applyReveal("instant", false);
-      if (revealSelect) revealSelect.value = "instant";
+      reveal = applyReveal("tap", false);
+      if (revealSelect) revealSelect.value = "tap";
+      remove(NARRATOR_KEY);
+      narrator = applyNarrator(false, false);
+      if (narratorBox) narratorBox.checked = false;
       remove(CONTRAST_KEY);
       contrast = applyContrast(false, false);
       if (motionBox) motionBox.checked = reduced;

@@ -23,6 +23,9 @@ SCENES = [
         C("Everyone has a light they wish they'd obeyed.",
           ["That's the kindest thing anyone has said to me and I'm furious about it."], "d5a", fx="t1 h1", get="log_04"),
         C("Then the cracked lander is on you.", ["Yes. It is. Thank you for the clarity."], "d5a", fx="t-2 h-1"),
+        C("It was one warning. Anyone would have done the same.",
+          ["Anyone would not.", "...You do that. You smooth it over before I've finished saying it, and then I can't finish."],
+          "d5a", fx="t-1", set="quick"),
     ], set="confess"),
     S("d4c", 4, "Unsaid", [
         "Right. Coffee metaphor. Good.",
@@ -100,6 +103,9 @@ SCENES = [
         C("I think you should open it. I'll be here.", ["You'll be here.", "...Okay. Hold on."], "d6c", need="t5"),
         C("Tell me about Pavel.",
           ["He's my younger brother. Older in every way that matters. He flies. He taught me to land a thing without hating it."], "d6d", fx="t1"),
+        C("He'll have forgiven you already. I'm sure it's nothing.",
+          ["You can't know that.", "...You did it again. The kind thing before the true thing.", "I'll leave the tablet where it is."],
+          "d6b", fx="t-1", set="quick"),
     ], get="log_06"),
     S("d6b", 6, "Not Today", [
         "Still closed. I'm putting the tablet in the drawer.",
@@ -135,11 +141,15 @@ SCENES = [
     S("d7a", 7, "The Hatch", [
         "There's a hatch under where the dust blew off. East of the dish. A stencilled number and a lock that has seen better years.",
         "?wiring|The map Bit drew points straight at it.",
+        "?quick|Harbour, I've noticed you rush to say it'll all be fine. I don't mind it. I'd just like you to wait until I've said the bad part.",
         "I'd like to open it, and I'd like someone to tell me whether that's sensible.",
     ], [
         C("Go in.", ["Going in. Torch on."], "d7b"),
         C("Not yet. Look at Kestrel's belly first.", ["Fine. Lander first. It'll be disappointing."], "d7c"),
         C("Let Bit go first.", ["*Bit rolls in, lamp sweeping.*"], "d7d", need="bit"),
+        C("You're right. I reassure too fast. I'll wait for the bad part first.",
+          ["...That's the most honest thing you've said to me.", "All right. Bad part first: it might be nothing, it might be a hole in the floor. Going in. Torch on."],
+          "d7b", fx="t2 h1", need="quick", set="owned"),
     ]),
     S("d7b", 7, "The Core Room", [
         "Round room. Cold. A big sleeping power cell the size of a fridge in the middle, with cables running everywhere like roots.",

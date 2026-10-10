@@ -83,6 +83,10 @@ SCENES = [
           "e_keeper", need="names&h6"),
         C("Let her throw the switch in her own time, quietly.",
           ["Quietly. Good. A lantern doesn't say anything. It just is."], "e_lantern", fx="t1"),
+        C("Ask what Bit needs before the switch is thrown.",
+          ["...Bit gave nearly everything it had to the core. What's left is a trickle.",
+           "It won't have enough to ride out with me. I'd have to leave it to rest in the window."],
+          "e_asleep", fx="t1", need="bitgave"),
     ]),
 
     # ---- the lander arc -------------------------------------------------------------------------------------------------

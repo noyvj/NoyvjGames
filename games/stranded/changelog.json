@@ -1,6 +1,10 @@
 {
   "changelog": [
     {
+      "date": "2026-10-11",
+      "entry": "Messages now arrive one at a time, when you tap, by default (Settings still has All at once). Harbour is no longer perfect: three replies on days 2, 4 and 6 show a habit of saying it will be fine before listening, and on day 7 you can own it, which colours a few endings. A tenth ending, Left in the Window, is sadder but gentle (nobody is lost; reach it by accepting Bit's battery on day 9 and asking what Bit needs on day 11). Harbour's one-line log note at the start of each day is now text only and off until you switch it on in Settings."
+    },
+    {
       "date": "2026-10-10",
       "entry": "Stranded opens: a branching text conversation with Ines, a stubborn, funny field engineer alone on a small moon. Twelve days, fifty-nine scenes, nine endings, and every reply gets an answer. Rewind to any of your messages for free, and nothing you found or tried is ever lost. Nothing is timed: replies appear at once, or one at a time when you tap. Trust, Supplies and Hope are always in view."
     }

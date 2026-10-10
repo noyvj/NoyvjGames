@@ -49,7 +49,7 @@
     <button id="settings-toggle-button" type="button" aria-expanded="false" aria-controls="settings-panel">Settings</button>
     <button id="info-page-toggle-button" type="button" aria-expanded="false" aria-controls="info-page-panel">About</button>
   </div>
-  <p class="tagline">A text line to a stubborn astronaut on a small grey moon. Twelve days, nine endings, every reply answered. Nothing is timed, and you can rewind to any choice for free.</p>
+  <p class="tagline">A text line to a stubborn astronaut on a small grey moon. Twelve days, ten endings, every reply answered. Nothing is timed, and you can rewind to any choice for free.</p>
   <section id="achievements-panel" class="panel" hidden aria-labelledby="ach-heading">
     <h2 id="ach-heading">Achievements</h2>
     <p class="note">Every one can be earned in any order, with no luck and no deadline, and each shows how close you are.</p>
@@ -100,7 +100,8 @@
       </div>
     </div>
     <div class="settings-row"><label for="reveal-select">Messages arrive</label>
-      <select id="reveal-select"><option value="instant">All at once</option><option value="tap">One at a time, when I tap</option></select></div>
+      <select id="reveal-select"><option value="tap">One at a time, when I tap</option><option value="instant">All at once</option></select></div>
+    <div class="settings-row"><label><input type="checkbox" id="narrator-checkbox"> Harbour's log line at the start of each day (text only, off until you turn it on)</label></div>
     <div class="settings-row"><label><input type="checkbox" id="reduced-motion-checkbox"> Reduce motion (follows your system setting until you choose)</label></div>
     <div class="settings-row"><label><input type="checkbox" id="effects-checkbox" checked> Effects (the lamp glow and the small bump when a number changes)</label></div>
     <div class="settings-row"><label><input type="checkbox" id="high-contrast-checkbox"> High contrast (brighter text, thicker outlines)</label></div>
@@ -119,7 +120,7 @@
   <section id="progress" class="stat-strip" aria-label="Your progress">
     <div class="stat"><span class="stat-label">Scenes seen</span><span id="stat-scenes" class="stat-value">1/59</span></div>
     <div class="stat"><span class="stat-label">Paths walked</span><span id="stat-paths" class="stat-value">0</span></div>
-    <div class="stat"><span class="stat-label">Endings</span><span id="stat-endings" class="stat-value">0/9</span></div>
+    <div class="stat"><span class="stat-label">Endings</span><span id="stat-endings" class="stat-value">0/10</span></div>
     <div class="stat"><span class="stat-label">Archive pages</span><span id="stat-archive" class="stat-value">0/29</span></div>
   </section>
   <p class="percent"><span id="percent-label">Completion 0%</span><span class="meter" aria-hidden="true"><span id="percent-fill" class="meter-fill"></span></span></p>

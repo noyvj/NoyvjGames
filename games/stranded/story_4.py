@@ -1,4 +1,4 @@
-"""Stranded -- story data, day 12: the nine endings. Every one is warm or bittersweet; nobody is lost."""
+"""Stranded -- story data, day 12: the ten endings. Nine are warm or bittersweet and one is sadder but still gentle; nobody is lost."""
 
 from kit import S
 
@@ -8,6 +8,7 @@ SCENES = [
         "Marigold turned toward it, slow as a cat, and came to find the light.",
         "?bit|Bit rode out in the crate on my lap, lamp low, cracked stars all over the lid.",
         "?!bit|I looked back at the relay house from the ramp. One window, one green light. Not dark any more.",
+        "?owned|You stopped telling me it would be fine somewhere around the hatch and started waiting for the bad part. That did more than fine ever did.",
         "Harbour, I didn't think a dark thing could be talked back to. You talked.",
         "(Harbour's log: the relay is still lit. The next lonely crew will find a plaque, a paper boat, and a very good name on the wall.)",
     ], end="lantern"),
@@ -23,6 +24,7 @@ SCENES = [
         "It's Pavel. Of course it's Pavel. He's standing there with a helmet under one arm looking like a man who has rehearsed a speech and is about to ignore it.",
         "He said 'You are an enormous idiot.' I said 'I know.' Then we didn't say anything for a long time.",
         "?pavel|I'd opened his message, so I already knew. It still hit like a door.",
+        "?owned|You waited for the bad part before you said anything kind. I noticed. So did he, when I told him.",
         "Harbour, thank you for the line. I'm going home with my brother. He's insufferable and he's right.",
         "(Harbour's log: two people on a ship, arguing quietly about who gets the window seat.)",
     ], end="pavel"),
@@ -69,7 +71,17 @@ SCENES = [
         "The board was quiet, then odd, then kind. They're changing the rule so a pilot can say 'I'm not sure' and have the launch held without anyone calling it a failure.",
         "?pavel|Pavel read the report before I did. He said it was the best thing I'd ever written. He's still insufferable.",
         "?!pavel|I'll write to my brother. I think I might actually open that message now.",
+        "?owned|You told me you reassure too fast. It is easier to tell the truth next to someone who just did.",
         "I was a stubborn idiot. I'm a slightly less stubborn idiot. Thank you for the straight line, Harbour.",
         "(Harbour's log: a small rule was changed because one person told the truth to another.)",
     ], end="honest"),
+    S("e_asleep", 12, "Left in the Window", [
+        "Sparrow is lit. Green and steady, the best-looking thing for half a sky.",
+        "Marigold is here, and there is room for me and not for the crate. Bit's charge is a trickle. It gave the rest to the core and it never said a word.",
+        "I set it in the relay house window, lamp toward the dish, on the trickle. The cracked lamp throws its jagged stars on the glass. It is resting. It is not hurt. It is just not coming.",
+        "?names|I scratched 'Bit was here' on the wall, under 'Harbour was here. Typed.' Nobody else was going to.",
+        "?owned|You didn't tell me it would be fine. You let me be sad first. I won't forget that.",
+        "I told it I'm coming back, Harbour. With a spare cell and a ship with a shelf. It beeped once, very small. I am choosing to say that was a yes.",
+        "(Harbour's log: she is safe, and sad, and already making a list for the way back. The relay is lit. A small lamp keeps it company.)",
+    ], end="asleep"),
 ]

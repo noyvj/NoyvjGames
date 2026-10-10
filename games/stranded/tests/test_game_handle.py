@@ -132,7 +132,7 @@ def test_walking_every_loose_end_reaches_one_hundred_percent():
         raise AssertionError("loose ends never ran out")
     v = call(action="open")
     assert v["progress"]["tried"][0] == v["progress"]["tried"][1] == len(story.EDGES)
-    assert v["progress"]["scenes"][0] == len(story.SCENES) and v["progress"]["endings"] == [9, 9]
+    assert v["progress"]["scenes"][0] == len(story.SCENES) and v["progress"]["endings"] == [10, 10]
     assert v["progress"]["archive"] == [29, 29] and v["progress"]["percent"] == 100
     earned = {a["id"] for a in v["achievements"] if a["earned"]}
     assert earned == set(achievements.IDS) - {"a_look_ahead", "second_thoughts"}, "walking the loose ends never needs a rewind or a peek button"
@@ -232,7 +232,7 @@ def test_the_map_lists_every_day_and_only_names_what_has_been_seen():
 
 def test_the_endings_list_hides_titles_until_found():
     v = fresh()
-    assert len(v["endings"]) == 9 and all(not e["seen"] and e["title"] == "Not found yet" for e in v["endings"])
+    assert len(v["endings"]) == 10 and all(not e["seen"] and e["title"] == "Not found yet" for e in v["endings"])
 
 
 def test_three_goals_are_always_in_view_and_shift_to_what_is_closest():

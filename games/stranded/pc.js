@@ -14,7 +14,7 @@ window.STRANDED_PC_TUTORIAL_STEPS = [
   {
     selector: "#stats",
     title: "Trust, Supplies and Hope",
-    text: "Your replies move these three numbers. They are always shown as a number, a word and a bar. They can open or shut some replies, and they help decide which of the nine endings you reach.",
+    text: "Your replies move these three numbers. They are always shown as a number, a word and a bar. They can open or shut some replies, and they help decide which of the ten endings you reach.",
   },
   {
     selector: "#comms-panel",

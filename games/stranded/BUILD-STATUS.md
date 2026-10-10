@@ -22,3 +22,4 @@ Updated after every milestone. Read `planning/stranded-plan.md`, then this file.
 - Local Python is 3.9: no match statements, no `X | Y` types.
 - Edges are (scene, choice, target) triples: a reply with a conditional route has one edge per target, so "paths walked" and the loose-end finder cover conditional variants. Tests prove every edge reachable.
 - Favicon lives in games/stranded/icons/ (the hub's root icons/ folder is not ours).
+- AN-7/8/9/10 (2026-10-11): tap default, Harbour's quick-reassurance flaw, tenth ending Left in the Window, narrator day-note off by default; 93 tests. Not yet done elsewhere: AN-11 (Signal streak) was NOT started.

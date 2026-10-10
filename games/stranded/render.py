@@ -42,7 +42,7 @@ def scene(day, flags=(), scene_id=""):
         parts.append('<circle class="%s" cx="234" cy="79" r="3"/>' % lamp)
     if day == 5 and "storm" not in flags:
         parts.append('<rect class="sc-dust" x="0" y="0" width="400" height="120"/>')
-    if scene_id in ("e_lantern", "e_keeper", "e_pavel") or scene_id in ("r11a", "r10b"):
+    if scene_id in ("e_lantern", "e_keeper", "e_pavel", "e_asleep") or scene_id in ("r11a", "r10b"):
         parts.append('<polygon class="sc-beam" points="199,48 330,0 400,20 400,60"/>')
     if scene_id in ("e_straight", "e_bit", "e_half"):
         parts.append('<polygon class="sc-trail" points="62,40 50,10 74,10"/>')

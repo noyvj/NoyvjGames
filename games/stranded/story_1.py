@@ -66,6 +66,10 @@ SCENES = [
         C("You know your stores. How are you, though?", ["Fine.", "That's the short answer. The long answer is also fine."], "d2c", fx="t1 h1"),
         C("Tell me about the classified chocolate.",
           ["No.", "...It's the dark one with orange. I'm saving it for something that needs it."], "d2d", fx="h1", get="item_bar"),
+        C("Eleven packs, you'll manage. It'll be fine, Ines. It always is.",
+          ["Don't. 'It'll be fine' is what people say before they have read the number.",
+           "...I know you mean it. I'll say the number myself. Eleven. Nine, if I eat like a bird. Now you know."],
+          "d2d", fx="t-1 h1", set="quick"),
     ]),
     S("d2b", 2, "The Plan", [
         "Three packs a day for three days, then we see.",

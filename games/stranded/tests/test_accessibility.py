@@ -117,3 +117,18 @@ def test_the_about_page_the_whats_new_panel_and_the_shortcut_help_exist():
 def test_every_panel_toggle_is_in_the_keyboard_shortcut_config_so_escape_closes_it():
     for toggle in re.findall(r'id="([\w-]+-toggle-button)"', HTML):
         assert f'toggle: "{toggle}"' in HTML, toggle
+
+
+def test_one_message_per_tap_is_the_default_and_the_narrator_line_is_off_by_default():
+    settings = (GAME_DIR / "settings.js").read_text(encoding="utf-8")
+    assert 'get(REVEAL_KEY) === "instant" ? "instant" : "tap"' in settings          # AN-7
+    assert 'get(NARRATOR_KEY) === "true"' in settings and 'id="narrator-checkbox"' in HTML      # AN-10: off until switched on
+    assert "narratorShown" in APP and "listOf(view.transcript)" in APP               # a hidden line never costs a tap
+
+
+def test_harbours_quick_reassurance_flaw_is_in_the_story_and_the_tenth_ending_is_reachable():
+    import story
+    flagged = [sid for sid, s in story.SCENES.items() if any("quick" in c["set"] for c in s["choices"])]
+    assert flagged == ["d2a", "d4b", "d6a"]
+    assert any(c["need"] and "quick" in c["need"]["all"] and "owned" in c["set"] for c in story.SCENES["d7a"]["choices"])
+    assert "asleep" in story.ENDING_IDS and len(story.ENDING_IDS) == 10

@@ -32,6 +32,16 @@
   }
   function plural(n, one, many) { return n + " " + (n === 1 ? one : many); }
   function tapMode() { return document.documentElement.getAttribute("data-reveal") === "tap"; }
+  // Harbour's day-start log line is text only and off by default (Settings turns it on); the Story pill can also hide it. A hidden line
+  // is dropped from the list here, so it never costs a tap in one-at-a-time mode.
+  function narratorShown() {
+    var root = document.documentElement;
+    return root.getAttribute("data-narrator") === "on" && root.getAttribute("data-story-text") !== "off";
+  }
+  function listOf(transcript) {
+    var keep = narratorShown();
+    return transcript.filter(function (t) { return t.kind !== "narrator" || keep; });
+  }
 
   // ---- panels --------------------------------------------------------------------------------------
   function wirePanelToggle(buttonId, panelId) {
@@ -145,7 +155,7 @@
   }
   function renderChat() {
     var chat = $("chat");
-    var items = view.transcript;
+    var items = listOf(view.transcript);
     var count = Math.min(shown, items.length);
     chat.textContent = "";
     for (var i = 0; i < count; i++) chat.appendChild(bubble(items[i]));
@@ -165,7 +175,7 @@
   function renderChoices() {
     var holder = $("choices");
     holder.textContent = "";
-    var waiting = shown < view.transcript.length;
+    var waiting = shown < listOf(view.transcript).length;
     if (waiting || view.ending) return;
     view.choices.forEach(function (c) {
       var b = el("button", "choice" + (c.ok ? "" : " locked"));
@@ -301,7 +311,7 @@
     var p = view.peek;
     var btn = $("peek-button");
     var list = $("peek-list");
-    var visible = !view.ending && view.choices.length > 0 && shown >= view.transcript.length;
+    var visible = !view.ending && view.choices.length > 0 && shown >= listOf(view.transcript).length;
     $("under-choices").hidden = !visible;
     list.hidden = !(visible && p.showing);
     btn.setAttribute("aria-expanded", String(visible && p.showing));
@@ -420,12 +430,12 @@
     return result;
   }
   function choose(i) {
-    var before = view ? view.transcript.length : 0;
+    var before = view ? listOf(view.transcript).length : 0;
     var oldShown = shown;
     shown = 1e9;
     var result = send({ action: "choose", i: i });
     if (result && result.ok) {
-      var items = result.transcript;
+      var items = listOf(result.transcript);
       var added = items.slice(before).filter(function (t) { return t.kind === "ines" || t.kind === "action" || t.kind === "narrator"; }).map(function (t) { return t.text; });
       if (added.length) announce(added.join(" "));
       if (tapMode()) { shown = Math.min(items.length, before + 1); render(); focusNext(); }
@@ -474,6 +484,8 @@
       askThen("stranded-reset", "Start the whole story over? Your map, archive, endings and counts will be erased.", "Erase it", function () { shown = 1e9; send({ action: "reset" }); });
     });
     document.addEventListener("keydown", onKey);
+    document.addEventListener("stranded-narrator-change", function () { if (view) { shown = 1e9; render(); } });
+    new MutationObserver(function () { if (view) { shown = 1e9; render(); } }).observe(document.documentElement, { attributes: true, attributeFilter: ["data-story-text"] });
     document.addEventListener("stranded-reveal-change", function () { if (view && !tapMode()) { shown = 1e9; render(); } });
     // The save widget loads a save straight into the engine; this redraws afterwards.
     window.strandedRefresh = function () { if (engine) { shown = 1e9; knownEarned = null; send({ action: "open" }); } };
@@ -482,7 +494,7 @@
   var TUTORIAL_STEPS = [
     { title: "Welcome to the line", text: "You are Harbour, the plain voice on a thin text line to Ines, a stubborn field engineer stuck on a small moon. Every reply you send gets an answer. Nothing is timed, and you can go back to any choice for free. Skip any time and reopen this from the Tutorial button." },
     { selector: "#chat", title: "The conversation", text: "Ines speaks on the left, you on the right. Each of your messages has a Rewind to here button: it takes you back to just before that reply, and nothing you found or tried is lost." },
-    { selector: "#stats", title: "Trust, Supplies and Hope", text: "Your replies move these three numbers. They are always shown as a number, a word and a bar. They can open or shut some replies, and they help decide which of the nine endings you reach." },
+    { selector: "#stats", title: "Trust, Supplies and Hope", text: "Your replies move these three numbers. They are always shown as a number, a word and a bar. They can open or shut some replies, and they help decide which of the ten endings you reach." },
     { selector: "#comms-panel", title: "Your replies", text: "Pick one of two to four replies. A reply marked Tried is one you have sent before. A shut reply says why it is shut: a different earlier choice can open it. After two different tries in a scene, What if? shows where each reply leads." },
     { selector: "#map-toggle-button", title: "The branch map", text: "Every day, scene and path. A day lists the scenes you have seen with a Go there button, and Show me a loose end takes you to the nearest path you have not walked." },
     { selector: "#goals", title: "Your goals", text: "Three goals stay in view, in any order. Every reply, rewind and find counts toward something on the screen." },

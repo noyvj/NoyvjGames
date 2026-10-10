@@ -27,6 +27,8 @@ FLAG_NEED = {
     "names": "Needs the wall of names seen (day 7)",
     "confess": "Needs the amber light talked about (day 4)",
     "pavel": "Needs Pavel's message opened (day 6)",
+    "quick": "Needs a too-quick 'it'll be fine' from you earlier (days 2, 4 or 6)",
+    "bitgave": "Needs Bit's offered battery accepted (day 9)",
 }
 FLAG_NOT = {}
 
