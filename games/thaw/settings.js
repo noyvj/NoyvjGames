@@ -127,6 +127,8 @@
     { key: "thaw-blindfold", attr: "data-blindfold", box: "blindfold-checkbox" },
     { key: "thaw-graph-patterns", attr: "data-graph-patterns", box: "graph-patterns-checkbox" },
     { key: "thaw-high-contrast", attr: "data-high-contrast", box: "high-contrast-checkbox" },
+    // GG-12: opt-in shake of a region's card and a crack across its graph when it tips.
+    { key: "thaw-tip-shake", attr: "data-tip-shake", box: "tip-shake-checkbox" },
   ];
 
   function readFlag(flag) {

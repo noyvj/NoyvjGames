@@ -1,6 +1,10 @@
 [
   {
     "date": "2026-10-11",
+    "entry": "New in Settings: Shake and crack, off by default. When a region tips, its card gives a short tremor and a crack flashes across its graph. It never plays with reduced motion or lite mode, and Reset to Default turns it off."
+  },
+  {
+    "date": "2026-10-11",
     "entry": "New: hover (or touch) any region's graph to see a crosshair with the round, the exact temperature and the dampening you had at that point. It works from the keyboard too: tab to a graph and use the left and right arrow keys (Home and End jump to the ends), and a screen reader reads out each round."
   },
   {

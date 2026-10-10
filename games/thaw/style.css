@@ -1459,3 +1459,44 @@ html[data-theme="light"] .gloss-pop { background: #fbf6ec; color: #1b1710; borde
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
 }
 html[data-theme="light"] .graph-readout { background: #fbf6ec; color: #1b1710; }
+
+/* GG-12: opt-in tremor and crack when a region tips (the .tipping-flash class is the existing one-tick
+   cue). Off unless the setting is on, and never with reduced motion or lite mode. */
+@keyframes tip-tremor {
+  0%, 100% { transform: translate(0, 0); }
+  15% { transform: translate(-2px, 1px); }
+  30% { transform: translate(2px, -1px); }
+  45% { transform: translate(-1.5px, -1px); }
+  60% { transform: translate(1.5px, 1px); }
+  80% { transform: translate(-1px, 0); }
+}
+@keyframes tip-crack {
+  0% { opacity: 0; clip-path: inset(0 100% 0 0); }
+  30% { opacity: 0.95; }
+  100% { opacity: 0; clip-path: inset(0 0 0 0); }
+}
+html[data-tip-shake="true"] #game.tipping-flash #status,
+html[data-tip-shake="true"] .region-card.tipping-flash { animation: tip-tremor 0.45s ease-in-out 1; }
+html[data-tip-shake="true"] #game.tipping-flash #graph::after,
+html[data-tip-shake="true"] .region-card.tipping-flash .mini-temp-graph::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 40' preserveAspectRatio='none'><polyline points='0,18 14,22 22,14 38,26 50,12 66,28 80,16 96,30 120,20' fill='none' stroke='%23e8f6ff' stroke-width='2'/></svg>") center / 100% 100% no-repeat;
+  animation: tip-crack 0.9s ease-out 1 forwards;
+}
+html[data-reduced-motion="true"][data-tip-shake="true"] #game.tipping-flash #status,
+html[data-reduced-motion="true"][data-tip-shake="true"] .region-card.tipping-flash,
+html[data-lite="true"][data-tip-shake="true"] #game.tipping-flash #status,
+html[data-lite="true"][data-tip-shake="true"] .region-card.tipping-flash { animation: none; }
+html[data-reduced-motion="true"][data-tip-shake="true"] #game.tipping-flash #graph::after,
+html[data-reduced-motion="true"][data-tip-shake="true"] .region-card.tipping-flash .mini-temp-graph::after,
+html[data-lite="true"][data-tip-shake="true"] #game.tipping-flash #graph::after,
+html[data-lite="true"][data-tip-shake="true"] .region-card.tipping-flash .mini-temp-graph::after { display: none; }
+@media (prefers-reduced-motion: reduce) {
+  html[data-tip-shake="true"] #game.tipping-flash #status,
+  html[data-tip-shake="true"] .region-card.tipping-flash { animation: none; }
+  html[data-tip-shake="true"] #game.tipping-flash #graph::after,
+  html[data-tip-shake="true"] .region-card.tipping-flash .mini-temp-graph::after { display: none; }
+}
