@@ -2,7 +2,7 @@
 // the precache list; ordinary content deploys don't need it, because
 // same-origin requests are network-first (see the fetch handler below) and
 // so always pick up fresh files whenever the player is online.
-const SW_VERSION = 59;
+const SW_VERSION = 60;
 const CACHE_NAME = "site-cache-v" + SW_VERSION;
 // How long a same-origin network request may take before we give up and
 // serve the cached copy instead (a slow/flaky connection shouldn't hang).
@@ -203,6 +203,9 @@ const PRECACHE_URLS = [
   "games/heist-committee/content/writeups.json",
   "games/heist-committee/content.py",
   "games/heist-committee/engine.py",
+  "games/heist-committee/daily.py",
+  "games/heist-committee/daily.js",
+  "games/heist-committee/bots.py",
   "games/heist-committee/plancheck.py",
   "games/heist-committee/planops.py",
   "games/heist-committee/writeup.py",
@@ -244,6 +247,9 @@ const PRECACHE_URLS = [
   "games/pocket-bazaar/rng.py",
   "games/pocket-bazaar/board.py",
   "games/pocket-bazaar/orders.py",
+  "games/pocket-bazaar/market.py",
+  "games/pocket-bazaar/marketbot.py",
+  "games/pocket-bazaar/market.js",
   "games/pocket-bazaar/days.py",
   "games/pocket-bazaar/festival.py",
   "games/pocket-bazaar/renown.py",
@@ -263,6 +269,8 @@ const PRECACHE_URLS = [
   "games/dead-reckoning/achievements.json",
   "games/dead-reckoning/geom.py",
   "games/dead-reckoning/sim.py",
+  "games/dead-reckoning/daily.py",
+  "games/dead-reckoning/daily.js",
   "games/dead-reckoning/chartkit.py",
   "games/dead-reckoning/charts_open.py",
   "games/dead-reckoning/charts_wind.py",

@@ -1892,22 +1892,22 @@
     },
     {
      "path": "games/thaw/changelog.json",
-     "bytes": 8913,
+     "bytes": 13716,
      "precached": false
     },
     {
      "path": "games/thaw/game.py",
-     "bytes": 174895,
+     "bytes": 235975,
      "precached": true
     },
     {
      "path": "games/thaw/index.html",
-     "bytes": 49227,
+     "bytes": 62933,
      "precached": true
     },
     {
      "path": "games/thaw/pc-config.json",
-     "bytes": 3140,
+     "bytes": 3866,
      "precached": false
     },
     {
@@ -1917,17 +1917,17 @@
     },
     {
      "path": "games/thaw/pc.html",
-     "bytes": 52819,
+     "bytes": 67091,
      "precached": true
     },
     {
      "path": "games/thaw/pc.js",
-     "bytes": 5042,
+     "bytes": 6099,
      "precached": true
     },
     {
      "path": "games/thaw/settings.js",
-     "bytes": 8546,
+     "bytes": 8717,
      "precached": false
     },
     {
@@ -1937,7 +1937,7 @@
     },
     {
      "path": "games/thaw/style.css",
-     "bytes": 40995,
+     "bytes": 53141,
      "precached": true
     }
    ],
@@ -2155,7 +2155,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14527882,
+   "bytes": 14635843,
    "bytes_complete": true
   },
   "loop": {
@@ -4166,17 +4166,17 @@
     },
     {
      "path": "games/heist-committee/app.js",
-     "bytes": 26299,
+     "bytes": 27189,
      "precached": true
     },
     {
      "path": "games/heist-committee/bots.py",
      "bytes": 3865,
-     "precached": false
+     "precached": true
     },
     {
      "path": "games/heist-committee/changelog.json",
-     "bytes": 712,
+     "bytes": 1117,
      "precached": true
     },
     {
@@ -4230,13 +4230,23 @@
      "precached": true
     },
     {
+     "path": "games/heist-committee/daily.js",
+     "bytes": 6588,
+     "precached": true
+    },
+    {
+     "path": "games/heist-committee/daily.py",
+     "bytes": 8677,
+     "precached": true
+    },
+    {
      "path": "games/heist-committee/engine.py",
      "bytes": 47614,
      "precached": true
     },
     {
      "path": "games/heist-committee/game.py",
-     "bytes": 35897,
+     "bytes": 43537,
      "precached": true
     },
     {
@@ -4251,12 +4261,12 @@
     },
     {
      "path": "games/heist-committee/index.html",
-     "bytes": 13250,
+     "bytes": 14804,
      "precached": true
     },
     {
      "path": "games/heist-committee/info.py",
-     "bytes": 3175,
+     "bytes": 3764,
      "precached": true
     },
     {
@@ -4271,7 +4281,7 @@
     },
     {
      "path": "games/heist-committee/pc.html",
-     "bytes": 15384,
+     "bytes": 16938,
      "precached": true
     },
     {
@@ -4281,7 +4291,7 @@
     },
     {
      "path": "games/heist-committee/plan.js",
-     "bytes": 22034,
+     "bytes": 22203,
      "precached": true
     },
     {
@@ -4296,7 +4306,7 @@
     },
     {
      "path": "games/heist-committee/play.js",
-     "bytes": 11744,
+     "bytes": 12860,
      "precached": true
     },
     {
@@ -4316,7 +4326,7 @@
     },
     {
      "path": "games/heist-committee/style.css",
-     "bytes": 20263,
+     "bytes": 21546,
      "precached": true
     },
     {
@@ -4519,7 +4529,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14484834,
+   "bytes": 14515299,
    "bytes_complete": true
   },
   "lighthouse": {
@@ -4921,7 +4931,7 @@
     },
     {
      "path": "games/pocket-bazaar/app.js",
-     "bytes": 40234,
+     "bytes": 40542,
      "precached": true
     },
     {
@@ -4931,7 +4941,7 @@
     },
     {
      "path": "games/pocket-bazaar/changelog.json",
-     "bytes": 1299,
+     "bytes": 1622,
      "precached": true
     },
     {
@@ -4956,7 +4966,7 @@
     },
     {
      "path": "games/pocket-bazaar/game.py",
-     "bytes": 21988,
+     "bytes": 27463,
      "precached": true
     },
     {
@@ -4971,12 +4981,27 @@
     },
     {
      "path": "games/pocket-bazaar/index.html",
-     "bytes": 15333,
+     "bytes": 17228,
      "precached": true
     },
     {
      "path": "games/pocket-bazaar/info.py",
-     "bytes": 1005,
+     "bytes": 1237,
+     "precached": true
+    },
+    {
+     "path": "games/pocket-bazaar/market.js",
+     "bytes": 8712,
+     "precached": true
+    },
+    {
+     "path": "games/pocket-bazaar/market.py",
+     "bytes": 9482,
+     "precached": true
+    },
+    {
+     "path": "games/pocket-bazaar/marketbot.py",
+     "bytes": 2560,
      "precached": true
     },
     {
@@ -4996,7 +5021,7 @@
     },
     {
      "path": "games/pocket-bazaar/pc.html",
-     "bytes": 17266,
+     "bytes": 19161,
      "precached": true
     },
     {
@@ -5041,7 +5066,7 @@
     },
     {
      "path": "games/pocket-bazaar/style.css",
-     "bytes": 22773,
+     "bytes": 24280,
      "precached": true
     },
     {
@@ -5234,7 +5259,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14330651,
+   "bytes": 14363040,
    "bytes_complete": true
   },
   "dead-reckoning": {
@@ -5251,12 +5276,12 @@
     },
     {
      "path": "games/dead-reckoning/app.js",
-     "bytes": 37058,
+     "bytes": 37363,
      "precached": true
     },
     {
      "path": "games/dead-reckoning/changelog.json",
-     "bytes": 653,
+     "bytes": 983,
      "precached": true
     },
     {
@@ -5266,7 +5291,7 @@
     },
     {
      "path": "games/dead-reckoning/charts.py",
-     "bytes": 4071,
+     "bytes": 4257,
      "precached": true
     },
     {
@@ -5300,13 +5325,23 @@
      "precached": true
     },
     {
+     "path": "games/dead-reckoning/daily.js",
+     "bytes": 7702,
+     "precached": true
+    },
+    {
+     "path": "games/dead-reckoning/daily.py",
+     "bytes": 8112,
+     "precached": true
+    },
+    {
      "path": "games/dead-reckoning/fixes.py",
      "bytes": 2320,
      "precached": true
     },
     {
      "path": "games/dead-reckoning/game.py",
-     "bytes": 27405,
+     "bytes": 30758,
      "precached": true
     },
     {
@@ -5326,7 +5361,7 @@
     },
     {
      "path": "games/dead-reckoning/index.html",
-     "bytes": 16839,
+     "bytes": 18655,
      "precached": true
     },
     {
@@ -5341,7 +5376,7 @@
     },
     {
      "path": "games/dead-reckoning/pc-config.json",
-     "bytes": 1875,
+     "bytes": 2021,
      "precached": false
     },
     {
@@ -5351,7 +5386,7 @@
     },
     {
      "path": "games/dead-reckoning/pc.html",
-     "bytes": 18866,
+     "bytes": 20798,
      "precached": true
     },
     {
@@ -5391,12 +5426,12 @@
     },
     {
      "path": "games/dead-reckoning/state.py",
-     "bytes": 9563,
+     "bytes": 10118,
      "precached": true
     },
     {
      "path": "games/dead-reckoning/style.css",
-     "bytes": 18327,
+     "bytes": 19487,
      "precached": true
     },
     {
@@ -5614,7 +5649,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14404090,
+   "bytes": 14429687,
    "bytes_complete": true
   },
   "logic-gates": {
