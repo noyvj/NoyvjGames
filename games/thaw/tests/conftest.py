@@ -130,6 +130,7 @@ ELEMENT_IDS = [
     "temp-unit-select",
     # Oct 11 batch.
     "session-note",
+    "headline-ticker",
     "log-filter-all",
     "log-filter-tipping",
     "log-filter-milestone",

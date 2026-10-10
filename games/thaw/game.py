@@ -4217,6 +4217,80 @@ def on_replay_step(delta):
     return handler
 
 
+# ===========================================================================
+# GG-26: a post-round ticker of made-up headlines from "The Tundra Tattler". Each one reacts to the
+# state of the three managed regions; which line shows is fixed by the round number and the mood
+# (no randomness, nothing saved, derived on every render). It is plainly fiction and is hidden by
+# the Story switch. Even the critical headlines point at something the player can do.
+# ===========================================================================
+HEADLINE_MOODS = ("start", "calm", "shield", "melting", "critical", "restoring")
+HEADLINES = {
+    "start": (
+        "Researchers arrive in the tundra and immediately lose a glove to the permafrost.",
+        "Snow hare declines to comment on the weather, citing 'a busy schedule of sitting very still'.",
+        "Local fox rehearses a complaint about mud, just in case.",
+    ),
+    "calm": (
+        "Fox complains about mud, although the ground is still frozen solid.",
+        "Arctic tern files a flight plan; the committee asks for a second copy.",
+        "Snow hare declares the season 'suspiciously fine' and keeps watching the thermometer.",
+        "Lemmings hold a meeting about nothing in particular. Attendance is excellent.",
+        "A very cold puddle is reported. Scientists are delighted.",
+    ),
+    "shield": (
+        "Marmot installs a monitoring dish, files three reports and takes all the credit.",
+        "Owl praises the new preservation crews: 'Finally, someone who reads the manual.'",
+        "Frost heaves politely over a protected peatland. No one is alarmed.",
+        "Local lichen thanks the steward for 'a very stable fortnight'.",
+    ),
+    "melting": (
+        "Fox complains about mud again; this time the mud is, technically, right.",
+        "Ground squirrels reroute the commute as the tundra gets softer underfoot.",
+        "Methane researchers sharpen pencils: 'Now it gets interesting, and a bit bumpy.'",
+        "Hare unpacks rain boots she hoped not to need.",
+        "Reindeer note the ground is squishier. Reindeer, as ever, keep walking.",
+    ),
+    "critical": (
+        "Owl calls an emergency meeting; the agenda is short: protect more peat, and soon.",
+        "Fox stops complaining about mud and starts drawing up a rescue plan.",
+        "Research station lights stay on late, planning exactly where the next unit of protection goes.",
+        "Hare reminds everyone that every degree held back still counts, and she can count.",
+    ),
+    "restoring": (
+        "Peat begins to knit back together. Marmot is asked to stop poking it.",
+        "Fox admits the mud is getting better and refuses to comment further.",
+        "Owl reads the numbers twice: the feedback loop is under control.",
+    ),
+}
+
+
+def headline_mood():
+    managed = (region, region_b, region_c)
+    if region.round_number == 1 and region_b.round_number == 1 and region_c.round_number == 1:
+        return "start"
+    if any(r.is_critical() for r in managed):
+        return "critical"
+    if any(r.restoration_active() for r in managed):
+        return "restoring"
+    if any(r.is_melting() for r in managed):
+        return "melting"
+    if max(r.feedback_dampening_fraction() for r in managed) >= 0.3:
+        return "shield"
+    return "calm"
+
+
+def current_headline():
+    mood = headline_mood()
+    lines = HEADLINES[mood]
+    return lines[(region.round_number - 1) % len(lines)]
+
+
+def render_headline():
+    document.getElementById("headline-ticker").innerText = (
+        f"\U0001F4F0 The Tundra Tattler (fiction): {current_headline()}"
+    )
+
+
 def render():
     render_info_page()
     document.getElementById("round-display").innerText = f"Round {region.round_number}"
@@ -4445,6 +4519,7 @@ def render():
     render_board()  # after the archive update so "best saved" is current
     render_focus()
     render_planner()
+    render_headline()
     render_replay()
     render_undo()
     render_personal_best()
