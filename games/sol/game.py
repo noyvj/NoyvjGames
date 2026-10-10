@@ -4002,6 +4002,8 @@ def tick(*args):
     update_splits_display()
     update_chains_display()
     _check_new_achievements_for_toast()
+    if total_ticks % 10 == 0:
+        _refresh_goals_panel()  # FY-53: once a second is plenty for a progress bar
 
 
 def _full_render():
@@ -4044,6 +4046,7 @@ def _full_render():
     render_trophy_shelf()
     render_click_streak()
     _refresh_all_cost_displays()
+    _refresh_goals_panel()
     document.getElementById("away-report").hidden = True
     # A full render (fresh setup, or a save/load round-trip) always starts
     # with no toast showing and re-seeds the "already earned" baseline to
@@ -4492,6 +4495,78 @@ def load_state(data):
     _full_render()
     _show_welcome_back_toast()
     return True
+
+
+# ===========================================================================
+# Round-4 batch (2026-10-10). FY-53 goals queue first; the Charter, mutators,
+# anomalies, megaprojects, codex, eras and doctrines are appended below it.
+# ===========================================================================
+
+# --- FY-53: "three goals at all times" (shared/goals-panel.js) ---------------
+# The game owns the queue; the panel shows the first three that are not done.
+# Every goal maps to something SOL already measures, so nothing here is new
+# state: it is all derived from planet_state, research and visited_bodies.
+def _research_level_progress(tier_index):
+    nodes = [n for n in RESEARCH_NODES if n["tier"] == tier_index]
+    return sum(1 for n in nodes if n["id"] in researched_nodes), len(nodes)
+
+
+def _world_available(planet):
+    return planet == "Earth" or planet in unlocked_bodies
+
+
+def goals_list():
+    """The ordered goal queue as plain dicts (id, label, current, target, reward, done)."""
+    goals = []
+    earth = planet_state["Earth"]
+    goals.append({"id": "first_miner", "label": "Build your first Auto-Miner on Earth",
+                  "current": min(1, earth["generator_count"]), "target": 1,
+                  "reward": "Iron starts mining itself"})
+    goals.append({"id": "first_recycler", "label": "Build a Recycler on Earth",
+                  "current": min(1, earth["recycler_count"]), "target": 1,
+                  "reward": "Slows the ecology decline"})
+    done, total = _research_level_progress(0)
+    goals.append({"id": "research_near", "label": "Research the Near Bodies level",
+                  "current": done, "target": total, "reward": "Opens the Moon and Mars"})
+    for planet in ("Mars", "Moon"):
+        goals.append({"id": "visit_" + planet.lower(), "label": f"Visit {PLANET_DISPLAY_NAMES.get(planet, planet)}",
+                      "current": 1 if planet in visited_bodies else 0, "target": 1,
+                      "reward": "Counts toward Grand Tour"})
+    done, total = _research_level_progress(1)
+    goals.append({"id": "research_far", "label": "Research the Far Bodies level",
+                  "current": done, "target": total, "reward": "Opens five more worlds"})
+    goals.append({"id": "first_route", "label": "Build a trade route",
+                  "current": min(1, lifetime_trade_routes_built), "target": 1,
+                  "reward": "Ships ecology help to another world"})
+    for planet in PLANETS:
+        if _world_available(planet):
+            name = PLANET_DISPLAY_NAMES.get(planet, planet)
+            goals.append({"id": "terraform_" + planet.lower(), "label": f"Terraform {name} to 100%",
+                          "current": int(planet_state[planet]["terraform_progress"]), "target": 100,
+                          "reward": "Counts toward the whole-system win"})
+    for planet in GAS_GIANT_BODIES:
+        if _world_available(planet):
+            name = PLANET_DISPLAY_NAMES.get(planet, planet)
+            goals.append({"id": "sky_" + planet.lower(), "label": f"Build a Sky City over {name}",
+                          "current": min(1, planet_state[planet].get("sky_city_count", 0)), "target": 1,
+                          "reward": "Boosts that world's output"})
+    return goals
+
+
+def goals_json():
+    return json.dumps(goals_list())
+
+
+def _refresh_goals_panel():
+    """Asks the shared panel (when the page has it) to redraw. Cheap; the fake-js
+    test environment has no NoyvjGoals so this is a no-op there."""
+    try:
+        import js  # noqa: PLC0415 -- Pyodide-only, deliberately lazy
+        panel = getattr(js, "NoyvjGoals", None)
+        if panel is not None:
+            panel.refreshAll()
+    except ImportError:
+        pass
 
 
 def _start_tick_loop():

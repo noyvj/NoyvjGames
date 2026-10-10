@@ -147,3 +147,10 @@ html[data-layout="pc"] .achievement-toast { bottom: 3.4rem; }
 /* --- light theme -------------------------------------------------------------------------------- */
 html[data-theme="light"] .pc-readout { color: #1b2233; }
 html[data-theme="light"] #pc-hintbar { opacity: 1; color: #2a3350; }
+
+/* --- FY-53: the three goals sit in the strip as one row of three, rewards dropped on short windows ------ */
+#pc-stagebar > #goals { flex: 1 1 36rem; min-width: 0; }
+#pc-stagebar > #goals .noyvj-goals { padding: 0.4rem 0.7rem; }
+#pc-stagebar > #goals .noyvj-goals-list { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.5rem; }
+#pc-stagebar > #goals .noyvj-goals-text { font-size: 0.8rem; }
+@media (max-height: 860px) { #pc-stagebar > #goals .noyvj-goals-reward { display: none; } }

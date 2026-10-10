@@ -184,6 +184,7 @@
         TOGGLES.forEach(function (toggle) {
           applyToggle(toggle, toggle.fallback);
         });
+        if (window.SOL_GOALS && window.SOL_GOALS.setEnabled) window.SOL_GOALS.setEnabled(true);
       });
     }
   }

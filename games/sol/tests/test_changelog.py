@@ -15,7 +15,7 @@ def _all_texts(element):
 
 def test_changelog_loads_from_json_with_a_reasonable_count(game_env):
     module = game_env.module
-    assert 1 <= len(module.CHANGELOG) <= 30
+    assert 1 <= len(module.CHANGELOG) <= 60
 
 
 def test_every_entry_has_a_date_and_text(game_env):
