@@ -122,6 +122,14 @@
     return unit ? `${rounded} ${unit}` : String(rounded);
   }
 
+  // K-10: "you vs everyone": how many of the other visible players this one is ahead of. Only said when the
+  // server reports a total (it withholds it below the small-group minimum), never as a promise about ties.
+  function versusEveryone(rank, total) {
+    if (!Number.isFinite(rank) || !Number.isFinite(total) || total < 2 || rank < 1 || rank > total) return "";
+    const ahead = Math.round(((total - rank) / (total - 1)) * 100);
+    return ` You are ahead of about ${ahead}% of the other ${total - 1} player${total - 1 === 1 ? "" : "s"} on this board.`;
+  }
+
   // ---- General boards (POST /scores, GET /leaderboard/<game>/<board>) ----
 
   const ALL_WINDOWS = ["daily", "weekly", "alltime"];
@@ -308,7 +316,8 @@
       }
       if (data.mine) {
         mine.hidden = false;
-        mine.textContent = `Your entry: ${formatScore(data.mine.score, unit)}, rank ${data.mine.rank}, shown as ${data.mine.name}.`;
+        mine.textContent = `Your entry: ${formatScore(data.mine.score, unit)}, rank ${data.mine.rank}, shown as ${data.mine.name}.`
+          + versusEveryone(data.mine.rank, data.total);
       }
     }
     entry.refresh = refresh;

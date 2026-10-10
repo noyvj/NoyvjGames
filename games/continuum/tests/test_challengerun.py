@@ -392,3 +392,49 @@ def test_a_daily_finished_on_a_later_day_does_not_count_for_that_day(game_env):
         assert cr.get(game_env.module.campaign.ui)["result"] is not None
     finally:
         del sys.modules["js"].window
+
+
+def _daily_window(clock, reports, store=None):
+    import types
+
+    return types.SimpleNamespace(
+        NoyvjSeed=types.SimpleNamespace(
+            set=lambda seed: None,
+            daily=types.SimpleNamespace(today=lambda: clock["today"], markCompleted=lambda game, info: None),
+        ),
+        NoyvjLeaderboard=types.SimpleNamespace(report=lambda *args: reports.append(args)),
+        JSON=types.SimpleNamespace(parse=json.loads),
+        localStorage=types.SimpleNamespace(getItem=lambda k: None, setItem=lambda k, v: None),
+    )
+
+
+def test_finishing_todays_daily_offers_the_score_to_the_daily_board(game_env):
+    """K-10: continuum/daily_challenge gets the whole-number points once, for today's daily only."""
+    import sys
+
+    reports = []
+    sys.modules["js"].window = _daily_window({"today": "2026-10-08"}, reports)
+    try:
+        _open_panel(game_env)
+        game_env.elements["challenge-daily-start-button"].dispatch("click", None)
+        game_env.advance_season(cr.DAILY_GOAL)
+        points = cr.get(game_env.module.campaign.ui)["result"]["points"]
+        assert reports == [("continuum", "daily_challenge", int(points), "")]
+    finally:
+        del sys.modules["js"].window
+
+
+def test_a_daily_finished_on_a_later_day_and_a_custom_run_never_reach_the_board(game_env):
+    import sys
+
+    reports = []
+    clock = {"today": "2026-10-08"}
+    sys.modules["js"].window = _daily_window(clock, reports)
+    try:
+        _open_panel(game_env)
+        game_env.elements["challenge-daily-start-button"].dispatch("click", None)
+        clock["today"] = "2026-10-09"
+        game_env.advance_season(cr.DAILY_GOAL)
+        assert reports == []
+    finally:
+        del sys.modules["js"].window

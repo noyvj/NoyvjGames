@@ -178,6 +178,34 @@ def test_a_board_below_the_minimum_says_so_and_still_shows_your_own_entry(browse
     context.close()
 
 
+def test_you_versus_everyone_sentence_uses_rank_and_total_and_stays_quiet_without_them(browser):
+    """K-10: 'ahead of about N% of the other players' only when the server reports a total of at least two."""
+    cases = [
+        (4, 5, "You are ahead of about 25% of the other 4 players on this board."),
+        (1, 11, "You are ahead of about 100% of the other 10 players on this board."),
+        (3, 3, "You are ahead of about 0% of the other 2 players on this board."),
+        (1, 2, "You are ahead of about 100% of the other 1 player on this board."),
+        (1, 1, None),
+        (9, 4, None),
+        (2, None, None),
+    ]
+    for rank, total, expected in cases:
+        api = Api()
+        body = board_body([], mine={"score": 9, "detail": "", "rank": rank, "name": "Player 4K8M"})
+        body["suppressed"] = total is None
+        body["total"] = total
+        api.board["default"] = body
+        context, page = open_page(browser, api)
+        add_board(page)
+        open_panel(page)
+        text = page.locator(".noyvj-leaderboard").inner_text()
+        assert "Your entry: 9 pts, rank %d, shown as Player 4K8M." % rank in text
+        assert ("ahead of about" in text) == (expected is not None)
+        if expected:
+            assert expected in text
+        context.close()
+
+
 def test_your_own_row_is_marked_in_words_not_only_style(browser):
     api = Api()
     api.board["default"] = board_body([

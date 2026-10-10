@@ -799,6 +799,12 @@ def _finish_challenge_run(result):
                 window.NoyvjSeed.daily.markCompleted("continuum", info)
         except Exception:  # noqa: BLE001 -- the hub's Today strip is a nicety
             pass
+        try:  # K-10: offered to the opt-in daily board (the widget only posts for a signed-in, opted-in player)
+            board = getattr(window, "NoyvjLeaderboard", None) if window is not None else None
+            if board is not None:
+                board.report("continuum", "daily_challenge", int(result["points"]), "")
+        except Exception:  # noqa: BLE001 -- a board is a nicety
+            pass
     _display_toast(f"🎯 Challenge run complete: {result['points']} points")
 
 

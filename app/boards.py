@@ -123,6 +123,10 @@ register_board("last-line", "endless_best_wave", label="Endless: best wave reach
                low=1, high=10_000, windows=("weekly", "alltime"), integer=True, unit="waves")
 register_board("thaw", "hold_the_line", label="Hold the Line: rounds survived", order="desc",
                low=1, high=1_000, windows=("weekly", "alltime"), integer=True, unit="rounds")
+# K-10: Continuum's daily challenge (same fixed start for everyone that UTC day, so a daily window is a fair
+# "you vs everyone"). Points = 10 x average sustainability + 5 x people + 20 x discoveries + 150 x eras entered.
+register_board("continuum", "daily_challenge", label="Daily challenge: points", order="desc",
+               low=0, high=1_000_000, windows=("daily",), integer=True, unit="points")
 
 
 # --- the clock (injectable, so windows and throttles are testable) ---
