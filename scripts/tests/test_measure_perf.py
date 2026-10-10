@@ -43,3 +43,33 @@ def test_committed_budget_covers_every_game_with_every_budgeted_metric():
         assert slug in games, "no perf budget for " + slug
         for key in mp.BUDGETED:
             assert isinstance(games[slug].get(key), (int, float)) and games[slug][key] > 0, (slug, key)
+
+
+def test_service_worker_repeat_visit_that_still_downloads_pyodide_fails_loudly():
+    assert mp.sw_problems("sol", {"sw_cdn_kb": 0.0}) == []
+    assert mp.sw_problems("sol", {"sw_cdn_kb": mp.SW_REPEAT_CDN_LIMIT_KB}) == []
+    bad = mp.sw_problems("sol", {"sw_cdn_kb": 5400.0})
+    assert len(bad) == 1 and "sol" in bad[0] and "5400" in bad[0]
+    assert mp.sw_problems("sol", {"sw_note": "the service worker kept only 0 runtime files"})
+    assert mp.sw_problems("sol", {}) == []        # not measured this run: nothing to judge
+
+
+def test_old_report_rows_are_read_back_in_both_layouts(tmp_path, monkeypatch):
+    report = tmp_path / "PERF-BUDGET.md"
+    report.write_text("\n".join([
+        "| Game | a | b | c | d | e | f |", "|---|---|---|---|---|---|---|",
+        "| old | 1173 | 1422 | 367 | 5807 | 1161 | 1422 / 5807 |",
+        "| new | 1000 | 1200 | 300 | 5700 | 900 | 2400 / 0 | 1200 / 5700 |",
+        "| gone | not measured | | | | | | |",
+    ]), encoding="utf-8")
+    monkeypatch.setattr(mp, "REPORT_FILE", report)
+    rows = mp.read_old_rows()
+    assert rows["old"] == {"pyodide_ms": 1173, "first_interactive_ms": 1422, "own_kb": 367,
+                           "total_kb": 5807, "warm_first_interactive_ms": 1161}
+    assert rows["new"]["sw_first_interactive_ms"] == 2400 and rows["new"]["sw_cdn_kb"] == 0
+    assert "gone" not in rows
+
+
+def test_the_report_names_the_service_worker_cache():
+    text = (ROOT / "planning" / "PERF-BUDGET.md").read_text(encoding="utf-8")
+    assert "With service worker" in text and "runtime-cdn-cache-v1" in text

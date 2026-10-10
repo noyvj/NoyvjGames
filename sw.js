@@ -2,11 +2,26 @@
 // the precache list; ordinary content deploys don't need it, because
 // same-origin requests are network-first (see the fetch handler below) and
 // so always pick up fresh files whenever the player is online.
-const SW_VERSION = 53;
+const SW_VERSION = 54;
 const CACHE_NAME = "site-cache-v" + SW_VERSION;
 // How long a same-origin network request may take before we give up and
 // serve the cached copy instead (a slow/flaky connection shouldn't hang).
 const NETWORK_TIMEOUT_MS = 4000;
+// The Pyodide runtime (about 14 MB decoded) and other versioned CDN files live in a cache of their
+// own, NOT in site-cache-v<N>: a SW_VERSION bump deletes the old site cache, which used to throw the
+// runtime away and make every deploy cost everyone a fresh 14 MB download. This name changes only if
+// the policy below changes. (hub-offline.js's LIVE_CACHE_RE only matches site-cache-v<N>, so it never
+// mistakes this for the live cache; its status check uses caches.match, which sees both.)
+const RUNTIME_CACHE = "runtime-cdn-cache-v1";
+// Only exact-versioned files from jsDelivr are treated as immutable: Pyodide's own directory and
+// npm packages pinned to an exact x.y.z (Three.js). "@latest", "@1", query strings and every other
+// cross-origin host (ads, fonts, analytics) stay on the old path or on the network.
+const RUNTIME_URL_RE = /^https:\/\/cdn\.jsdelivr\.net\/(?:pyodide\/v\d+(?:\.\d+)+\/full\/[A-Za-z0-9._+-]+|npm\/[a-z0-9._-]+@\d+(?:\.\d+)+\/[A-Za-z0-9._\/-]+)$/;
+// Bounds: at most this many files (two Pyodide versions plus Three.js fit comfortably), and no single
+// file bigger than this, judged by its Content-Length header when it sends one (the largest real file,
+// pyodide.asm.wasm, is about 10 MB). The oldest entries go first.
+const RUNTIME_MAX_ENTRIES = 24;
+const RUNTIME_MAX_ENTRY_BYTES = 24 * 1024 * 1024;
 // The FastAPI Cloud backend (same host script.js's RATINGS_API_BASE uses).
 const API_ORIGIN = "https://noyvjgames.fastapicloud.dev";
 // Every entry here is relative to sw.js's own location (this file, at the
@@ -502,7 +517,7 @@ self.addEventListener("activate", (event) => {
             ).catch(() => null)
           : Promise.resolve();
         return carry.then(() =>
-          Promise.all(keys.filter((key) => key !== CACHE_NAME).map((key) => caches.delete(key)))
+          Promise.all(keys.filter((key) => key !== CACHE_NAME && key !== RUNTIME_CACHE).map((key) => caches.delete(key)))
         );
       })
       .then(() => self.clients.claim())
@@ -516,10 +531,53 @@ self.addEventListener("activate", (event) => {
 // old "reload twice after a deploy" trap -- the previous stale-while-
 // revalidate strategy always served the *old* cached copy first, so a
 // returning player saw the previous version until their next load.
-// Cross-origin requests (Pyodide's CDN, ad script) stay cache-first with a
-// background refresh: they're versioned/immutable-ish and slow to refetch.
+// Versioned jsDelivr files (Pyodide, Three.js) are cache-first in their own bounded cache (see
+// runtimeResponse above). Any other cross-origin request (the ad script) stays cache-first with a
+// background refresh.
 function cacheable(response) {
   return response && (response.ok || response.type === "opaque");
+}
+
+function runtimeUrl(url) {
+  // Look at origin + path only, so a query string or hash never matches ("?x=1" is not the file).
+  return !url.search && RUNTIME_URL_RE.test(url.origin + url.pathname);
+}
+
+// Keep the runtime cache bounded: drop the oldest entries (the cache lists keys in insertion order).
+function trimRuntimeCache(cache) {
+  return cache.keys().then((requests) =>
+    Promise.all(requests.slice(0, Math.max(0, requests.length - RUNTIME_MAX_ENTRIES)).map((r) => cache.delete(r)))
+  );
+}
+
+// Cache-first for the versioned CDN files: a hit is served without touching the network (the URL
+// carries the version, so the bytes can never change); a miss is fetched once, stored, and served.
+// Offline with nothing stored fails like the browser would without a worker. Files that "Download
+// for offline" put in the live site cache are found there too.
+function runtimeResponse(event) {
+  const request = event.request;
+  return caches.open(RUNTIME_CACHE).then((cache) =>
+    cache.match(request.url).then((hit) => {
+      if (hit) return hit;
+      return caches.open(CACHE_NAME).then((live) => live.match(request.url)).then((held) => {
+        if (held) return held;
+        // A script tag asks in no-cors mode and would get an opaque response (not storable at its
+        // true size, and quota-padded). jsDelivr sends CORS headers, so ask for a readable one; the
+        // browser accepts that for a no-cors request. If that fails, the plain request still gets its go.
+        return fetch(request.url, { mode: "cors", credentials: "omit" })
+          .catch(() => fetch(request))
+          .then((response) => {
+            const size = Number(response.headers.get("content-length"));
+            if (response.ok && response.status === 200 && response.type !== "opaque" && !(size > RUNTIME_MAX_ENTRY_BYTES)) {
+              event.waitUntil(
+                cache.put(request.url, response.clone()).then(() => trimRuntimeCache(cache)).catch(() => null)
+              );
+            }
+            return response;
+          });
+      });
+    })
+  );
 }
 
 self.addEventListener("fetch", (event) => {
@@ -537,6 +595,11 @@ self.addEventListener("fetch", (event) => {
   // until a manual reload (and, worse, an account's authenticated response
   // sat in the browser cache). Leave them entirely to the network.
   if (url.origin === API_ORIGIN || request.headers.has("authorization")) return;
+
+  if (!sameOrigin && runtimeUrl(url)) {
+    event.respondWith(runtimeResponse(event));
+    return;
+  }
 
   if (sameOrigin) {
     event.respondWith(
