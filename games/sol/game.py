@@ -5588,7 +5588,7 @@ def _build_doctrine_panel():
     panel.appendChild(_make_text("stats-panel-heading", f"Governor Doctrines ({len(doctrine_rules)}/{doctrine_rule_limit()} rules)"))
     panel.appendChild(_make_text(
         "chains-intro",
-        "If/then rules for worlds you are not standing on, checked in order every tick. They kept in a save and "
+        "If/then rules for worlds you are not standing on, checked in order every tick. They are kept in a save and "
         "sleep until Automation Basics is researched again after a prestige. Standing Orders in the Prestige "
         "Tree raises the limit from 3 to 5."))
     for index, rule in enumerate(doctrine_rules):
