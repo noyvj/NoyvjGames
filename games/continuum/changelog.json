@@ -1,5 +1,9 @@
 [
   {
+    "date": "2026-10-11",
+    "entry": "New: a practice sandbox. In Settings, pick an era (or your current one) and press Practice sandbox: you get a separate practice settlement with every discovery already known, shelter and stores that never run short, and no way to collapse. A banner says Sandbox: nothing here is saved, nothing in it earns an achievement, banks Legacy, fills the archive or posts a score, and Leave sandbox puts your real settlement back exactly as it was (paused). Saving while you are in it saves your real settlement."
+  },
+  {
     "date": "2026-10-10",
     "entry": "New: a daily board for the challenge. If you are signed in and tick the opt-in box in Challenge Runs, today's challenge score goes on a board that resets every UTC day, and the panel tells you roughly how many of the other players you beat. Everyone plays the same start each day, so it is a fair comparison, and nothing happens if you skip it."
   },

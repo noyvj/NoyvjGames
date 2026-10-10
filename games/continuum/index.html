@@ -102,6 +102,7 @@
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
 <script src="../../shared/seed.js"></script>
 <link rel="stylesheet" href="../../shared/skill-tree.css">
+<link rel="stylesheet" href="../../shared/sandbox-mode.css">
 <script src="../../shared/skill-tree.js"></script>
 <script src="../../shared/copy-result.js" data-game-id="continuum"></script>
 <script src="../../shared/achievement-share.js" data-game-id="continuum" data-game-name="Continuum"></script>
@@ -483,6 +484,25 @@
           <input type="checkbox" id="pause-hidden-checkbox" checked>
           Pause the season clock when this tab is hidden (off lets it keep running in a background tab)
         </label>
+      </div>
+      <!-- Z-18: practice sandbox. Every discovery known, resources never short, no collapse, nothing saved; the real settlement waits untouched. -->
+      <div class="settings-row sandbox-row">
+        <span class="settings-row-label" id="sandbox-heading">Practice sandbox</span>
+        <label class="settings-checkbox-label" for="sandbox-era-select">Practise in
+          <select id="sandbox-era-select" aria-describedby="sandbox-note">
+            <option value="current" selected>my current era</option>
+            <option value="tribal">Tribal</option>
+            <option value="agrarian">Agrarian</option>
+            <option value="classical">Classical</option>
+            <option value="medieval">Medieval</option>
+            <option value="industrial">Industrial</option>
+            <option value="digital">Digital</option>
+            <option value="space">Space Age</option>
+            <option value="relay">Relay Age</option>
+          </select>
+        </label>
+        <button id="sandbox-toggle-button" class="secondary" type="button" data-sandbox-toggle title="Try anything on a practice settlement: every discovery known, no shortages, no collapse, nothing saved. Your real settlement is untouched.">🧪 Practice sandbox</button>
+        <p id="sandbox-note" class="settings-note">A separate practice settlement. Saving while you are in it saves your real settlement.</p>
       </div>
       <div class="settings-row">
         <button id="settings-reset-button" class="secondary" type="button">Reset to Default</button>
@@ -923,7 +943,7 @@
     // Each engine module is written into Pyodide's virtual filesystem (the
     // working directory, which is on sys.path) before game.py runs and
     // imports them. Still no build step — just more than one fetch.
-    const ENGINE_MODULES = ["sim.py", "sustainability.py", "research.py", "log.py", "transition.py", "save.py", "info_content.py", "visual.py", "summary.py", "challenges.py", "trajectory.py", "views.py", "archive.py", "consulting.py", "founding.py", "minutes.py", "hamlet.py", "forecast.py", "statlog.py", "explain.py", "postmortem.py", "naming.py", "dataexport.py", "monuments.py", "par.py", "techdebt.py", "challengerun.py", "timelapse.py", "advisors.py", "eastereggs.py", "dynasty.py", "banners.py", "doctrines.py", "rewind.py", "citizens.py", "neighbours.py", "orders.py", "heritage.py", "beyond.py", "geography.py"];
+    const ENGINE_MODULES = ["sim.py", "sustainability.py", "research.py", "log.py", "transition.py", "save.py", "info_content.py", "visual.py", "summary.py", "challenges.py", "trajectory.py", "views.py", "archive.py", "consulting.py", "founding.py", "minutes.py", "hamlet.py", "forecast.py", "statlog.py", "explain.py", "postmortem.py", "naming.py", "dataexport.py", "monuments.py", "par.py", "techdebt.py", "challengerun.py", "timelapse.py", "advisors.py", "eastereggs.py", "dynasty.py", "banners.py", "doctrines.py", "rewind.py", "citizens.py", "neighbours.py", "orders.py", "heritage.py", "beyond.py", "geography.py", "sandbox.py"];
 
     const CONTINUUM_TUTORIAL_STEPS = [
       {
@@ -1139,6 +1159,8 @@
   -->
   <script src="../../shared/hub-auth.js"></script>
   <script src="../../shared/save-widget.js" data-game-id="continuum"></script>
+  <!-- Z-18: the practice sandbox toggle and its banner (rules in sandbox.py; sandbox_enter / sandbox_leave / sandbox_is_active in game.py). -->
+  <script src="../../shared/sandbox-mode.js" data-game-id="continuum"></script>
   <script src="../../shared/opening-screen.js" data-game-id="continuum" data-tagline="Grow one settlement from a tribe to a region reaching off-world." data-game-name="Continuum"></script>
   <script src="../../shared/story-toggle.js" data-game-id="continuum" data-story-selectors="#log, #advisors-panel, #advisors-toggle-button, #citizens-panel, #citizens-toggle-button, #citizen-spotlight"></script>
   <script src="../../shared/last-played.js" data-game-id="continuum"></script>

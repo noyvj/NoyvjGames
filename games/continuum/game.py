@@ -24,6 +24,7 @@ widget's get_state()/load_state() contract. Phase 2's log and era-transition
 systems land here too, since both are things the player reads.
 """
 
+import copy
 import json
 import os
 import sys
@@ -65,6 +66,7 @@ import par  # noqa: E402
 import postmortem  # noqa: E402
 import narrative_log  # noqa: E402
 import research  # noqa: E402
+import sandbox  # noqa: E402
 import rewind  # noqa: E402
 import save  # noqa: E402
 import sim  # noqa: E402
@@ -249,6 +251,8 @@ def land_health_message(land_health):
 # --- render ------------------------------------------------------------
 def render():
     effects = current_effects()
+    if sandbox_active:  # Z-18: stocks are topped up after every action too, so nothing is ever short
+        sandbox.relief(state, effects)
     render_clock()
 
     document.getElementById("era-display").innerText = f"{sim.ERA_LABEL[state.era]} era"
@@ -645,7 +649,7 @@ def challenge_ledger_load():
 
 def challenge_ledger_store(entries):
     window = _js_window()
-    if window is None:
+    if window is None or sandbox_active:  # Z-18: the sandbox writes no browser storage
         return False
     try:
         window.localStorage.setItem(challengerun.LEDGER_KEY, challengerun.serialize_ledger(entries))
@@ -789,7 +793,7 @@ def _finish_challenge_run(result):
         f"Challenge run complete: {result['points']} points over {result['seasons']} seasons. "
         + challengerun.verdict(result["points"], par_points),
     )
-    if run["kind"] == "daily" and run["date"] == _utc_today():
+    if run["kind"] == "daily" and run["date"] == _utc_today() and not sandbox_active:  # Z-18: never posted from the sandbox
         window = _js_window()
         try:
             if window is not None and getattr(window, "NoyvjSeed", None) is not None:
@@ -1288,7 +1292,7 @@ def archive_load():
 
 def archive_store(records):
     window = _js_window()
-    if window is None:
+    if window is None or sandbox_active:  # Z-18
         return False
     try:
         window.localStorage.setItem(archive.STORAGE_KEY, archive.serialize(records))
@@ -1767,6 +1771,10 @@ def _archive_departing():
 def found_new_settlement():
     """Archive, then reset. Returns True when a new settlement was founded."""
     global found_status, sim_speed, season_progress, _last_tick, _archive_confirm_clear
+    if sandbox_active:  # Z-18: nothing is filed or founded from the sandbox
+        found_status = "Founding a settlement is switched off in the sandbox."
+        render()
+        return False
     if campaign.revisiting is not None:
         found_status = "Return to the present before founding a new settlement."
         render()
@@ -1842,7 +1850,7 @@ def on_found_new_settlement(event=None):
 
 def update_found_display():
     button = document.getElementById("found-settlement-button")
-    button.disabled = campaign.revisiting is not None
+    button.disabled = campaign.revisiting is not None or sandbox_active
     document.getElementById("found-settlement-status").innerText = found_status
     legacy_line = document.getElementById("legacy-display")
     text = founding.status_text(
@@ -3028,6 +3036,8 @@ def achievement_ids_earned():
     input (see get_state() below)."""
     # O-5: badges earned in an earlier settlement (kept in campaign.ui by
     # founding.found_new) stay earned; the live checks add this settlement's.
+    if sandbox_active:  # Z-18: nothing in the sandbox earns anything; the real list is shown as it was
+        return list(_sandbox_real["earned"])
     before = set(founding.earned_before(campaign.ui, [entry["id"] for entry in ACHIEVEMENTS]))
     return [entry["id"] for entry in ACHIEVEMENTS if entry["id"] in before or ACHIEVEMENT_CHECKS[entry["id"]]()]
 
@@ -3190,6 +3200,8 @@ def _check_new_achievements_for_toast():
     advance/era transition/enter revisit) — never from render() itself, for
     the same reason _seed_achievement_toast_baseline() above exists."""
     global _achievements_seen_ids
+    if sandbox_active:  # Z-18: no unlock toasts in the sandbox
+        return
     earned_now = set(achievement_ids_earned())
     newly = earned_now - _achievements_seen_ids
     if newly:
@@ -4488,6 +4500,8 @@ def on_advance_season(event=None):
             effects = current_effects()
     found_status = ""
     report = state.advance_season(effects)
+    if sandbox_active:  # Z-18: resources are not binding and the settlement cannot collapse
+        sandbox.relief(state, effects)
     if campaign.revisiting is None:
         settle = techdebt.after_season(campaign.ui, state)
         if settle["refactored"]:
@@ -4613,7 +4627,7 @@ def _dynasty_local_load():
 
 def _dynasty_local_store():
     window = _js_window()
-    if window is None:
+    if window is None or sandbox_active:  # Z-18
         return
     record = dynasty.get(campaign.ui)
     try:
@@ -4665,7 +4679,9 @@ def on_toggle_dynasty(event=None):
 
 def on_dynasty_bank(event=None):
     global _dynasty_status
-    if campaign.revisiting is not None:
+    if sandbox_active:  # Z-18: no Legacy points come out of a practice settlement
+        _dynasty_status = "Banking Legacy is switched off in the sandbox."
+    elif campaign.revisiting is not None:
         _dynasty_status = "Return to the present before banking."
     else:
         result, _info = _bank_current()
@@ -5660,7 +5676,7 @@ def beyond_ladder_load():
 
 def beyond_ladder_store(rows):
     window = _js_window()
-    if window is None:
+    if window is None or sandbox_active:  # Z-18
         return False
     try:
         window.localStorage.setItem(beyond.LADDER_KEY, json.dumps(beyond.clean_ladder(rows)))
@@ -5924,7 +5940,7 @@ def _extra_dashboard_sections():
 
 def _bank_if_collapsed():
     """A collapsed settlement banks what it reached, once."""
-    if campaign.revisiting is not None or not dynasty.is_collapsed(state):
+    if sandbox_active or campaign.revisiting is not None or not dynasty.is_collapsed(state):
         return
     if dynasty.get_run(campaign.ui)["failed"]:
         return
@@ -5942,6 +5958,8 @@ def _bank_if_collapsed():
 # so Continuum's era-snapshot/revisit structure needs no widget changes —
 # see save.py for the schema itself.
 def get_state():
+    if sandbox_active:  # Z-18: a save, an autosave or a board read while the sandbox is on is the REAL game
+        return copy.deepcopy(_sandbox_real["snapshot"])
     campaign.ui["info_page_open"] = info_page_open
     data = campaign.to_dict()
     # Milestone 15 (ACHIEVEMENTS-SYSTEM-DESIGN.md): a write-only projection,
@@ -5953,7 +5971,10 @@ def get_state():
 
 def load_state(data):
     global info_page_open
+    if sandbox_active:  # Z-18: loading a save always lands in the real game
+        _sandbox_restore_real()
     if not campaign.load_dict(data):
+        _sandbox_notify_page()
         return False
     info_page_open = bool(campaign.ui.get("info_page_open", False))
     _rewind_clear()
@@ -5961,6 +5982,102 @@ def load_state(data):
     sync_name_input()
     render()
     _seed_achievement_toast_baseline()
+    _sandbox_notify_page()
+    return True
+
+
+# --- Z-18: entering and leaving the practice sandbox ---------------------------------------------
+# shared/sandbox-mode.js calls sandbox_enter() / sandbox_leave() / sandbox_is_active() through Pyodide and
+# draws the "Sandbox: nothing here is saved" banner. The rules (every discovery known, resources never
+# binding, no collapse) are in sandbox.py. The real settlement is never edited: the module-level
+# `campaign`, `state`, `tree` and `chronicle` are simply pointed at a separate sandbox campaign, then back.
+sandbox_active = False
+_sandbox_real = None
+_SANDBOX_STASHED = (
+    "info_page_open", "sim_speed", "season_progress", "_rewind_snapshot", "found_status",
+    "_archive_confirm_clear", "orders_status", "beyond_status", "neighbours_status", "heritage_confirm",
+)
+_SANDBOX_RESET_SIGNATURES = (
+    "_orders_signature", "_beyond_signature", "_advisors_signature_seen", "_hamlet_built_key", "_hamlet_town_key",
+)
+
+
+def _sandbox_notify_page():
+    """Tells shared/sandbox-mode.js to re-read sandbox_is_active() (the banner and button follow it)."""
+    window = _js_window()
+    shared = getattr(window, "NoyvjSandbox", None) if window is not None else None
+    if shared is not None:
+        shared.sync()
+
+
+def sandbox_is_active():
+    return sandbox_active
+
+
+def _sandbox_era_choice():
+    """The era picked in Settings, or the real settlement's own era."""
+    element = document.getElementById("sandbox-era-select")
+    value = getattr(element, "value", "") if element is not None else ""
+    return value if value in sim.ERA_ORDER else state.era
+
+
+def _sandbox_swap_in(new_campaign):
+    global campaign, state, tree, chronicle
+    campaign = new_campaign
+    state = campaign.state
+    tree = campaign.tree
+    chronicle = campaign.log
+    for name in _SANDBOX_RESET_SIGNATURES:
+        globals()[name] = None
+
+
+def sandbox_enter():
+    """Sets the real settlement aside and starts a practice one. True when the sandbox is on."""
+    global sandbox_active, _sandbox_real, sim_speed, season_progress, _rewind_snapshot, found_status
+    if sandbox_active:
+        return True
+    era = _sandbox_era_choice()
+    snapshot = get_state()
+    _sandbox_real = {
+        "campaign": campaign,
+        "snapshot": snapshot,
+        "earned": list(snapshot["achievements_earned"]),
+        "globals": {name: globals()[name] for name in _SANDBOX_STASHED},
+        "compare": list(_compare_picks),
+    }
+    sandbox_active = True
+    _sandbox_swap_in(sandbox.new_campaign(era))
+    sim_speed = 0
+    season_progress = 0.0
+    _rewind_snapshot = None
+    found_status = ""
+    sync_name_input()
+    render()
+    return True
+
+
+def _sandbox_restore_real():
+    """Puts the real settlement back exactly as it was (no render; callers do that)."""
+    global sandbox_active, _sandbox_real, sim_speed
+    real = _sandbox_real
+    sandbox_active = False
+    _sandbox_real = None
+    if real is None:
+        return
+    _sandbox_swap_in(real["campaign"])
+    globals().update(real["globals"])
+    _compare_picks[:] = real["compare"]
+    sim_speed = 0  # back paused: nothing moved while the real game was away
+    sync_name_input()
+    _seed_achievement_toast_baseline()
+
+
+def sandbox_leave():
+    """Leaves the sandbox; the real settlement is back and untouched. True when it is."""
+    if not sandbox_active:
+        return True
+    _sandbox_restore_real()
+    render()
     return True
 
 

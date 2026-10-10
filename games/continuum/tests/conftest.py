@@ -27,6 +27,8 @@ if str(SHARED_DIR) not in sys.path:
 
 ELEMENT_IDS = [
     "era-display",
+    "sandbox-era-select",
+    "sandbox-toggle-button",
     "season-display",
     "population-display",
     "housing-display",
