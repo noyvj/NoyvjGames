@@ -153,6 +153,8 @@
       ".tide-scene",
       ".coastline-scene",
       "#ticker-log",
+      ".ticker-live-filter",
+      "#live-filter-status",
       "#population-display",
       "#foresight-display",
       "#sister-display"

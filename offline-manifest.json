@@ -164,7 +164,7 @@
     },
     {
      "path": "shared/leaderboard.js",
-     "bytes": 20253,
+     "bytes": 20875,
      "precached": false
     },
     {
@@ -300,7 +300,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14759142,
+   "bytes": 14759764,
    "bytes_complete": true
   },
   "canopy": {
@@ -469,7 +469,7 @@
     },
     {
      "path": "shared/leaderboard.js",
-     "bytes": 20253,
+     "bytes": 20875,
      "precached": false
     },
     {
@@ -645,7 +645,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 15101254,
+   "bytes": 15101876,
    "bytes_complete": true
   },
   "grid": {
@@ -967,27 +967,27 @@
    "files": [
     {
      "path": "games/tide/achievements.json",
-     "bytes": 3056,
+     "bytes": 6810,
      "precached": false
     },
     {
      "path": "games/tide/changelog.json",
-     "bytes": 13466,
+     "bytes": 14184,
      "precached": false
     },
     {
      "path": "games/tide/game.py",
-     "bytes": 283199,
+     "bytes": 293641,
      "precached": true
     },
     {
      "path": "games/tide/index.html",
-     "bytes": 67120,
+     "bytes": 69379,
      "precached": true
     },
     {
      "path": "games/tide/pc-config.json",
-     "bytes": 4239,
+     "bytes": 4297,
      "precached": false
     },
     {
@@ -997,7 +997,7 @@
     },
     {
      "path": "games/tide/pc.html",
-     "bytes": 70893,
+     "bytes": 73198,
      "precached": true
     },
     {
@@ -1017,12 +1017,12 @@
     },
     {
      "path": "games/tide/style.css",
-     "bytes": 58397,
+     "bytes": 59730,
      "precached": true
     },
     {
      "path": "games/tide/ui.js",
-     "bytes": 17018,
+     "bytes": 30505,
      "precached": true
     }
    ],
@@ -1250,7 +1250,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14675488,
+   "bytes": 14709844,
    "bytes_complete": true
   },
   "aftermath": {
@@ -1419,7 +1419,7 @@
     },
     {
      "path": "shared/leaderboard.js",
-     "bytes": 20253,
+     "bytes": 20875,
      "precached": false
     },
     {
@@ -1565,7 +1565,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14734436,
+   "bytes": 14735058,
    "bytes_complete": true
   },
   "herd": {
@@ -1729,7 +1729,7 @@
     },
     {
      "path": "shared/leaderboard.js",
-     "bytes": 20253,
+     "bytes": 20875,
      "precached": false
     },
     {
@@ -1860,7 +1860,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14562208,
+   "bytes": 14562830,
    "bytes_complete": true
   },
   "thaw": {
@@ -3062,7 +3062,7 @@
     },
     {
      "path": "games/continuum/changelog.json",
-     "bytes": 17430,
+     "bytes": 17825,
      "precached": false
     },
     {
@@ -3112,7 +3112,7 @@
     },
     {
      "path": "games/continuum/game.py",
-     "bytes": 255259,
+     "bytes": 255670,
      "precached": false
     },
     {
@@ -3137,7 +3137,7 @@
     },
     {
      "path": "games/continuum/index.html",
-     "bytes": 81138,
+     "bytes": 81665,
      "precached": true
     },
     {
@@ -3192,7 +3192,7 @@
     },
     {
      "path": "games/continuum/pc.html",
-     "bytes": 85653,
+     "bytes": 86180,
      "precached": true
     },
     {
@@ -3383,6 +3383,11 @@
      "precached": true
     },
     {
+     "path": "shared/leaderboard.js",
+     "bytes": 20875,
+     "precached": false
+    },
+    {
      "path": "shared/lite-mode.css",
      "bytes": 3644,
      "precached": true
@@ -3540,7 +3545,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 16119310,
+   "bytes": 16142045,
    "bytes_complete": true
   },
   "signal": {
@@ -3684,7 +3689,7 @@
     },
     {
      "path": "shared/leaderboard.js",
-     "bytes": 20253,
+     "bytes": 20875,
      "precached": false
     },
     {
@@ -3769,7 +3774,7 @@
     }
    ],
    "cdn": [],
-   "bytes": 509386,
+   "bytes": 510008,
    "bytes_complete": true
   },
   "lexis": {

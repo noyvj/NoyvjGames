@@ -99,6 +99,132 @@
       "id": "fortified_in_time",
       "label": "Fortified In Time",
       "description": "Reach the maximum adaptation tier before a single coastline tile floods."
+    },
+    {
+      "id": "storm_bronze",
+      "label": "Storm Watch: Bronze",
+      "description": "Weather your first storm surge without a breach (turn on Storm seasons to meet one).",
+      "family": "storm",
+      "rank": "bronze"
+    },
+    {
+      "id": "storm_silver",
+      "label": "Storm Watch: Silver",
+      "description": "Weather 3 storm surges without a breach.",
+      "family": "storm",
+      "rank": "silver"
+    },
+    {
+      "id": "storm_gold",
+      "label": "Storm Watch: Gold",
+      "description": "Weather 3 storm surges with no coastline row flooding in those seasons.",
+      "family": "storm",
+      "rank": "gold"
+    },
+    {
+      "id": "heritage_bronze",
+      "label": "Keepers of the Coast: Bronze",
+      "description": "Protect one heritage site.",
+      "family": "heritage",
+      "rank": "bronze"
+    },
+    {
+      "id": "heritage_silver",
+      "label": "Keepers of the Coast: Silver",
+      "description": "Protect every heritage site: the old lighthouse and the oyster-reef nursery.",
+      "family": "heritage",
+      "rank": "silver"
+    },
+    {
+      "id": "heritage_gold",
+      "label": "Keepers of the Coast: Gold",
+      "description": "Keep every heritage site protected through Season 15.",
+      "family": "heritage",
+      "rank": "gold"
+    },
+    {
+      "id": "retreat_bronze",
+      "label": "Orderly Retreat: Bronze",
+      "description": "Carry out one managed retreat.",
+      "family": "retreat",
+      "rank": "bronze"
+    },
+    {
+      "id": "retreat_silver",
+      "label": "Orderly Retreat: Silver",
+      "description": "Carry out both managed retreats.",
+      "family": "retreat",
+      "rank": "silver"
+    },
+    {
+      "id": "retreat_gold",
+      "label": "Orderly Retreat: Gold",
+      "description": "Carry out both managed retreats while at most one row has flooded, ahead of the water.",
+      "family": "retreat",
+      "rank": "gold"
+    },
+    {
+      "id": "diversify_bronze",
+      "label": "Many Boats: Bronze",
+      "description": "Take any income source (tourism or aquaculture) to level 1.",
+      "family": "diversify",
+      "rank": "bronze"
+    },
+    {
+      "id": "diversify_silver",
+      "label": "Many Boats: Silver",
+      "description": "Take one income source to level 3.",
+      "family": "diversify",
+      "rank": "silver"
+    },
+    {
+      "id": "diversify_gold",
+      "label": "Many Boats: Gold",
+      "description": "Take both tourism and aquaculture to level 3.",
+      "family": "diversify",
+      "rank": "gold"
+    },
+    {
+      "id": "monitor_bronze",
+      "label": "Citizen Scientist: Bronze",
+      "description": "Fund your first monitoring report.",
+      "family": "monitor",
+      "rank": "bronze"
+    },
+    {
+      "id": "monitor_silver",
+      "label": "Citizen Scientist: Silver",
+      "description": "Fund 4 monitoring reports.",
+      "family": "monitor",
+      "rank": "silver"
+    },
+    {
+      "id": "monitor_gold",
+      "label": "Citizen Scientist: Gold",
+      "description": "Fund every monitoring report and read every finding.",
+      "family": "monitor",
+      "rank": "gold"
+    },
+    {
+      "id": "population_bronze",
+      "label": "Growing Harbour: Bronze",
+      "description": "Grow the settlement to a peak population of 110.",
+      "family": "population",
+      "rank": "bronze"
+    },
+    {
+      "id": "population_silver",
+      "label": "Growing Harbour: Silver",
+      "description": "Grow the settlement to a peak population of 120.",
+      "family": "population",
+      "rank": "silver"
+    },
+    {
+      "id": "population_gold",
+      "label": "Growing Harbour: Gold",
+      "description": "Grow the settlement to a peak population of 130.",
+      "family": "population",
+      "rank": "gold"
     }
   ]
 }

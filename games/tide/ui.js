@@ -8,7 +8,11 @@
          column by column (one Tab stop per row, every tile focusable and labelled).
    D-21  Graph crosshair: hover, tap or Left/Right on a focused graph shows a vertical line and
          a readout for that season (the text comes from game.py in the graph's data-crosshair).
-   D-27  Each <details> panel remembers its open/closed state across reloads (this browser only). */
+   D-27  Each <details> panel remembers its open/closed state across reloads (this browser only).
+   D-12  Dashboard: choose, pin and reorder the main panels (Standard, Compact, Analyst and Postcard presets),
+         remembered in localStorage. Classic page only.
+   D-26  Phone view: a Coast / Meters / Log switch (All is the default and hides nothing) that a swipe left
+         or right also moves, and a tap on a coastline tile writes that row's note under the grid. */
 (function () {
   "use strict";
 
@@ -261,6 +265,395 @@
   }
   syncAnimationPause();
 
-  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", restoreDetails);
-  else restoreDetails();
+
+
+  // ---- D-12 dashboard: show, pin and reorder the main panels ---------------------------------------
+  // Six panels, each one or two existing elements. Hiding is a data attribute (CSS: display none) and ordering moves the
+  // real elements between two comment markers, so game.py keeps finding every id and the default order is untouched until
+  // a player chooses something. Pinned panels always sit above the others. Never applied on the Desktop page, where the
+  // same panels are windows.
+  const DASH_KEY = "tide-dashboard-v1";
+  const DASH_PANELS = [
+    { id: "meters", label: "Status, meters and ticker", sel: ["#status"] },
+    { id: "sea", label: "Sea level and adaptation", sel: ["#sea-level-section"] },
+    { id: "coast", label: "Coastline", sel: [".coastline-scene", "#community-index"] },
+    { id: "compare", label: "Then vs. now", sel: ["#coastline-comparison"] },
+    { id: "settlement", label: "Settlement and chronicle", sel: ["#settlement-section"] },
+    { id: "programmes", label: "Coastal programmes", sel: ["#programmes-section"] },
+  ];
+  const DASH_DEFAULT_ORDER = DASH_PANELS.map(function (panel) { return panel.id; });
+  const DASH_PRESETS = {
+    standard: { label: "Standard", note: "Every panel, in the original order.", order: DASH_DEFAULT_ORDER.slice(), hidden: [], pinned: [] },
+    compact: {
+      label: "Compact", note: "Coastline, meters and programmes; the rest is hidden.",
+      order: ["coast", "meters", "programmes", "sea", "compare", "settlement"], hidden: ["sea", "compare", "settlement"], pinned: [],
+    },
+    analyst: {
+      label: "Analyst", note: "Every panel, numbers first: meters and sea level pinned on top, then then-vs-now.",
+      order: ["meters", "sea", "compare", "coast", "programmes", "settlement"], hidden: [], pinned: ["meters", "sea"],
+    },
+    postcard: {
+      label: "Postcard", note: "A scenic view: coastline, then-vs-now and the chronicle. Meters, sea level and programmes are hidden.",
+      order: ["coast", "compare", "settlement", "meters", "sea", "programmes"], hidden: ["meters", "sea", "programmes"], pinned: ["coast"],
+    },
+  };
+  let dash = null;       // {preset, order, hidden, pinned}
+  let dashMarkers = null; // {start, end}
+
+  function dashClone(preset, name) {
+    const p = DASH_PRESETS[preset];
+    return { preset: name || preset, order: p.order.slice(), hidden: p.hidden.slice(), pinned: p.pinned.slice() };
+  }
+
+  // Anything unreadable or unknown falls back to Standard; unknown ids are dropped and missing ones appended.
+  function dashClean(raw) {
+    if (!raw || typeof raw !== "object") return dashClone("standard");
+    const known = function (list) {
+      const out = [];
+      (Array.isArray(list) ? list : []).forEach(function (id) {
+        if (DASH_DEFAULT_ORDER.indexOf(id) >= 0 && out.indexOf(id) < 0) out.push(id);
+      });
+      return out;
+    };
+    const order = known(raw.order);
+    DASH_DEFAULT_ORDER.forEach(function (id) { if (order.indexOf(id) < 0) order.push(id); });
+    const preset = typeof raw.preset === "string" && (raw.preset === "custom" || DASH_PRESETS[raw.preset]) ? raw.preset : "custom";
+    return { preset: preset, order: order, hidden: known(raw.hidden), pinned: known(raw.pinned) };
+  }
+
+  function dashLoad() {
+    let raw = null;
+    try { raw = JSON.parse(safeGet(DASH_KEY) || "null"); } catch (e) { raw = null; }
+    return dashClean(raw);
+  }
+
+  // Pinned panels first (in the saved order), then the rest.
+  function dashDisplayOrder(d) {
+    return d.order.filter(function (id) { return d.pinned.indexOf(id) >= 0; })
+      .concat(d.order.filter(function (id) { return d.pinned.indexOf(id) < 0; }));
+  }
+
+  function dashElements(panel) {
+    return panel.sel.map(function (selector) { return document.querySelector(selector); }).filter(Boolean);
+  }
+
+  function dashEnsureMarkers() {
+    if (dashMarkers) return dashMarkers;
+    const first = document.querySelector(DASH_PANELS[0].sel[0]);
+    const lastEls = dashElements(DASH_PANELS[DASH_PANELS.length - 1]);
+    const last = lastEls[lastEls.length - 1];
+    if (!first || !last || first.parentNode !== last.parentNode) return null;
+    const start = document.createComment("dashboard-start");
+    const end = document.createComment("dashboard-end");
+    first.parentNode.insertBefore(start, first);
+    last.parentNode.insertBefore(end, last.nextSibling);
+    dashMarkers = { start: start, end: end };
+    return dashMarkers;
+  }
+
+  function dashApply() {
+    if (document.documentElement.getAttribute("data-layout") === "pc") return;
+    const markers = dashEnsureMarkers();
+    if (markers) {
+      dashDisplayOrder(dash).forEach(function (id) {
+        const panel = DASH_PANELS.filter(function (p) { return p.id === id; })[0];
+        dashElements(panel).forEach(function (el) { markers.end.parentNode.insertBefore(el, markers.end); });
+      });
+    }
+    DASH_PANELS.forEach(function (panel) {
+      const hide = dash.hidden.indexOf(panel.id) >= 0;
+      dashElements(panel).forEach(function (el) {
+        if (hide) el.setAttribute("data-dash-hidden", "true"); else el.removeAttribute("data-dash-hidden");
+      });
+    });
+  }
+
+  function dashSave() {
+    safeSet(DASH_KEY, JSON.stringify(dash));
+    dashApply();
+    dashRender();
+  }
+
+  function dashSetPreset(name) {
+    dash = dashClone(name);
+    dashSave();
+  }
+
+  function dashEdited() {
+    // A manual change turns the preset into "custom" unless it still matches one exactly.
+    dash.preset = "custom";
+    Object.keys(DASH_PRESETS).forEach(function (name) {
+      const p = DASH_PRESETS[name];
+      const same = function (a, b) { return JSON.stringify(a.slice().sort()) === JSON.stringify(b.slice().sort()); };
+      if (JSON.stringify(dash.order) === JSON.stringify(p.order) && same(dash.hidden, p.hidden) && same(dash.pinned, p.pinned)) dash.preset = name;
+    });
+    dashSave();
+  }
+
+  function dashLabel() {
+    return dash.preset === "custom" ? "Custom" : DASH_PRESETS[dash.preset].label;
+  }
+
+  function dashButton(text, label, pressed, onClick, disabled) {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "secondary dashboard-small";
+    button.textContent = text;
+    button.setAttribute("aria-label", label);
+    if (pressed !== null) button.setAttribute("aria-pressed", pressed ? "true" : "false");
+    if (disabled) button.disabled = true;
+    button.addEventListener("click", onClick);
+    return button;
+  }
+
+  function dashRender() {
+    const toggle = document.getElementById("dashboard-toggle-button");
+    const panel = document.getElementById("dashboard-panel");
+    if (!toggle || !panel || !dash) return;
+    const hiddenCount = dash.hidden.length;
+    toggle.textContent = "🧩 Dashboard: " + dashLabel();
+    const note = document.getElementById("dashboard-note");
+    if (note) note.textContent = hiddenCount ? hiddenCount + (hiddenCount === 1 ? " panel is" : " panels are") + " hidden." : "";
+    const showAll = document.getElementById("dashboard-show-all");
+    if (showAll) showAll.hidden = hiddenCount === 0;
+    if (panel.hidden) return;
+
+    const focused = document.activeElement && panel.contains(document.activeElement) ? document.activeElement.getAttribute("data-dash-focus") : null;
+    panel.textContent = "";
+    const heading = document.createElement("h2");
+    heading.className = "settings-panel-heading";
+    heading.textContent = "Dashboard";
+    panel.appendChild(heading);
+    const intro = document.createElement("p");
+    intro.className = "comparison-message";
+    intro.textContent = "Choose which panels to show, pin the ones you want on top and move the rest up or down. Saved in this browser only. The Desktop layout keeps its own windows.";
+    panel.appendChild(intro);
+
+    const presets = document.createElement("div");
+    presets.className = "graph-controls";
+    presets.setAttribute("role", "group");
+    presets.setAttribute("aria-label", "Dashboard presets");
+    Object.keys(DASH_PRESETS).forEach(function (name) {
+      const button = dashButton(DASH_PRESETS[name].label, "Use the " + DASH_PRESETS[name].label + " preset. " + DASH_PRESETS[name].note,
+        dash.preset === name, function () { dashSetPreset(name); announceDash("Dashboard preset " + DASH_PRESETS[name].label + ". " + DASH_PRESETS[name].note); });
+      button.classList.add("graph-chip");
+      button.setAttribute("data-dash-focus", "preset-" + name);
+      presets.appendChild(button);
+    });
+    panel.appendChild(presets);
+    const presetNote = document.createElement("p");
+    presetNote.className = "comparison-message";
+    presetNote.textContent = dash.preset === "custom" ? "Custom: your own choices." : DASH_PRESETS[dash.preset].label + ": " + DASH_PRESETS[dash.preset].note;
+    panel.appendChild(presetNote);
+
+    const list = document.createElement("ol");
+    list.className = "dashboard-list";
+    const shown = dashDisplayOrder(dash);
+    shown.forEach(function (id, index) {
+      const def = DASH_PANELS.filter(function (p) { return p.id === id; })[0];
+      const pinned = dash.pinned.indexOf(id) >= 0;
+      const hidden = dash.hidden.indexOf(id) >= 0;
+      const row = document.createElement("li");
+      row.className = "dashboard-row" + (hidden ? " dashboard-row--hidden" : "");
+      const check = document.createElement("label");
+      check.className = "dashboard-show";
+      const box = document.createElement("input");
+      box.type = "checkbox";
+      box.checked = !hidden;
+      box.setAttribute("data-dash-focus", "show-" + id);
+      box.addEventListener("change", function () {
+        dash.hidden = box.checked ? dash.hidden.filter(function (x) { return x !== id; }) : dash.hidden.concat([id]);
+        dashEdited();
+        announceDash(def.label + (box.checked ? " shown." : " hidden."));
+      });
+      check.appendChild(box);
+      check.appendChild(document.createTextNode(" " + def.label + (hidden ? " (hidden)" : "")));
+      row.appendChild(check);
+      const pin = dashButton(pinned ? "📌 Pinned" : "📌 Pin", (pinned ? "Unpin " : "Pin ") + def.label + (pinned ? "" : " to the top"), pinned, function () {
+        dash.pinned = pinned ? dash.pinned.filter(function (x) { return x !== id; }) : dash.pinned.concat([id]);
+        dashEdited();
+        announceDash(def.label + (pinned ? " unpinned." : " pinned to the top."));
+      });
+      pin.setAttribute("data-dash-focus", "pin-" + id);
+      row.appendChild(pin);
+      // Moving works inside the pinned group or the unpinned group, in the full saved order.
+      const group = shown.filter(function (x) { return (dash.pinned.indexOf(x) >= 0) === pinned; });
+      const at = group.indexOf(id);
+      const move = function (delta) {
+        const neighbour = group[at + delta];
+        const i = dash.order.indexOf(id);
+        const j = dash.order.indexOf(neighbour);
+        dash.order[i] = neighbour;
+        dash.order[j] = id;
+        dashEdited();
+        announceDash(def.label + " moved " + (delta < 0 ? "up" : "down") + ".");
+      };
+      const up = dashButton("▲", "Move " + def.label + " up", null, function () { move(-1); }, at === 0);
+      up.setAttribute("data-dash-focus", "up-" + id);
+      const down = dashButton("▼", "Move " + def.label + " down", null, function () { move(1); }, at === group.length - 1);
+      down.setAttribute("data-dash-focus", "down-" + id);
+      row.appendChild(up);
+      row.appendChild(down);
+      list.appendChild(row);
+    });
+    panel.appendChild(list);
+    const live = document.createElement("p");
+    live.id = "dashboard-live";
+    live.className = "sr-only";
+    live.setAttribute("role", "status");
+    live.setAttribute("aria-live", "polite");
+    panel.appendChild(live);
+    if (dashAnnouncement) { live.textContent = dashAnnouncement; dashAnnouncement = ""; }
+    if (focused) {
+      const again = panel.querySelector('[data-dash-focus="' + focused + '"]');
+      if (again && !again.disabled) again.focus();
+      else {
+        const fallback = panel.querySelector('[data-dash-focus="' + focused.replace(/^(up|down)-/, "pin-") + '"]');
+        if (fallback) fallback.focus();
+      }
+    }
+  }
+
+  let dashAnnouncement = "";
+  function announceDash(text) {
+    dashAnnouncement = text;
+    const live = document.getElementById("dashboard-live");
+    if (live) { live.textContent = ""; live.textContent = text; dashAnnouncement = ""; }
+  }
+
+  function initDashboard() {
+    const toggle = document.getElementById("dashboard-toggle-button");
+    const panel = document.getElementById("dashboard-panel");
+    if (!toggle || !panel) return;
+    dash = dashLoad();
+    toggle.addEventListener("click", function () {
+      panel.hidden = !panel.hidden;
+      toggle.setAttribute("aria-expanded", panel.hidden ? "false" : "true");
+      dashRender();
+    });
+    const showAll = document.getElementById("dashboard-show-all");
+    if (showAll) showAll.addEventListener("click", function () {
+      dash.hidden = [];
+      dashEdited();
+    });
+    dashApply();
+    dashRender();
+    window.TideDashboard = { panels: DASH_PANELS, presets: DASH_PRESETS, current: function () { return JSON.parse(JSON.stringify(dash)); } };
+  }
+
+  // ---- D-26 phone view: All / Coast / Meters / Log, swipe between them, tap a tile for its note -----
+  const MVIEW_ORDER = ["coast", "meters", "log"];
+  const MVIEW_LABEL = { all: "Everything", coast: "Coast", meters: "Meters", log: "Log" };
+  const MVIEW_KEY = "tide-mobile-view";
+  const phoneQuery = window.matchMedia ? window.matchMedia("(max-width: 640px)") : null;
+
+  function phoneViewUsable() {
+    const bar = document.getElementById("mobile-views");
+    return Boolean(bar && phoneQuery && phoneQuery.matches && document.documentElement.getAttribute("data-layout") !== "pc");
+  }
+
+  function setMobileView(view, announce) {
+    if (view !== "all" && MVIEW_ORDER.indexOf(view) < 0) view = "all";
+    document.documentElement.setAttribute("data-mview-active", view);
+    document.querySelectorAll("[data-mview-pick]").forEach(function (button) {
+      button.setAttribute("aria-pressed", button.getAttribute("data-mview-pick") === view ? "true" : "false");
+    });
+    safeSet(MVIEW_KEY, view);
+    const status = document.getElementById("mobile-view-status");
+    if (status && announce) {
+      status.textContent = view === "all" ? "Showing everything." : "Showing " + MVIEW_LABEL[view] + ". Swipe left or right for the next part.";
+    }
+  }
+
+  function initMobileViews() {
+    const bar = document.getElementById("mobile-views");
+    if (!bar) return;
+    bar.addEventListener("click", function (event) {
+      const button = event.target.closest ? event.target.closest("[data-mview-pick]") : null;
+      if (button) setMobileView(button.getAttribute("data-mview-pick"), true);
+    });
+    const saved = safeGet(MVIEW_KEY);
+    setMobileView(saved && (saved === "all" || MVIEW_ORDER.indexOf(saved) >= 0) ? saved : "all", false);
+  }
+
+  // A swipe moves one step along Coast, Meters, Log. It does nothing on "All", and it never starts on
+  // something that already scrolls or drags sideways (graphs, sliders, text fields, tables).
+  const SWIPE_BLOCK = "input, select, textarea, svg[data-crosshair], .mini-graph, table, [role=slider], #actions-dock, #kb-shortcuts-panel, dialog";
+  let swipeStart = null;
+
+  function scrollsSideways(node) {
+    for (let el = node; el && el !== document.body && el.nodeType === 1; el = el.parentElement) {
+      const style = window.getComputedStyle(el);
+      if ((style.overflowX === "auto" || style.overflowX === "scroll") && el.scrollWidth > el.clientWidth + 2) return true;
+    }
+    return false;
+  }
+
+  function onSwipeStart(event) {
+    swipeStart = null;
+    if (!phoneViewUsable() || event.touches.length !== 1) return;
+    const view = document.documentElement.getAttribute("data-mview-active");
+    if (view === "all" || !view) return;
+    const target = event.target;
+    if (target && target.closest && target.closest(SWIPE_BLOCK)) return;
+    if (scrollsSideways(target)) return;
+    const touch = event.touches[0];
+    swipeStart = { x: touch.clientX, y: touch.clientY, time: Date.now() };
+  }
+
+  function onSwipeEnd(event) {
+    const start = swipeStart;
+    swipeStart = null;
+    if (!start || !event.changedTouches.length) return;
+    const touch = event.changedTouches[0];
+    const dx = touch.clientX - start.x;
+    const dy = touch.clientY - start.y;
+    if (Date.now() - start.time > 900 || Math.abs(dx) < 60 || Math.abs(dx) < Math.abs(dy) * 1.6) return;
+    const at = MVIEW_ORDER.indexOf(document.documentElement.getAttribute("data-mview-active"));
+    const next = at + (dx < 0 ? 1 : -1);
+    if (at < 0 || next < 0 || next >= MVIEW_ORDER.length) return;
+    setMobileView(MVIEW_ORDER[next], true);
+    const bar = document.getElementById("mobile-views");
+    // Leave room for the fixed funds / acidity / yield strip at the top of the screen.
+    if (bar && window.scrollTo) window.scrollTo(0, Math.max(0, bar.getBoundingClientRect().top + window.pageYOffset - 52));
+  }
+
+  // Native tooltips never show on a touch screen, so a tap on a coastline tile writes the same note here.
+  function onTileTap(event) {
+    const tile = event.target && event.target.closest ? event.target.closest(".coastline-tile") : null;
+    const grid = tile ? tile.closest("#coastline-grid") : null;
+    if (!tile || !grid) return;
+    let readout = document.getElementById("coastline-tap-readout");
+    if (!readout) {
+      readout = document.createElement("p");
+      readout.id = "coastline-tap-readout";
+      readout.className = "comparison-message coastline-tap-readout";
+      readout.setAttribute("role", "status");
+      grid.parentNode.insertBefore(readout, grid.nextSibling);
+    }
+    readout.textContent = tile.title || tile.getAttribute("aria-label") || "";
+  }
+
+  document.addEventListener("touchstart", onSwipeStart, { passive: true });
+  document.addEventListener("touchend", onSwipeEnd, { passive: true });
+  document.addEventListener("click", onTileTap);
+  if (phoneQuery && phoneQuery.addEventListener) phoneQuery.addEventListener("change", function () {
+    if (!phoneQuery.matches) document.documentElement.removeAttribute("data-mview-active");
+    else initMobileViews();
+  });
+
+  // The grid is rebuilt on every render, so a tapped note would go stale: clear it when the tiles are replaced.
+  function watchTileNote() {
+    const grid = document.getElementById("coastline-grid");
+    if (!grid || !window.MutationObserver) return;
+    new MutationObserver(function () {
+      const readout = document.getElementById("coastline-tap-readout");
+      if (readout) readout.textContent = "";
+    }).observe(grid, { childList: true });
+  }
+
+  function initPage() { restoreDetails(); initDashboard(); initMobileViews(); watchTileNote(); }
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", initPage);
+  else initPage();
 })();
+

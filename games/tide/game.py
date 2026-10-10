@@ -134,6 +134,7 @@ STORM_FUNDS_PER_DAMAGE = 3.0
 # flooded) in exchange for a permanent extra cut to sea-level damage.
 RETREAT_COST = 100
 RETREAT_MAX_STEPS = 2
+RETREAT_EARLY_MAX_FLOODED = 1  # D-10: a retreat counts as "ahead of the sea" while at most this many rows have flooded
 RETREAT_DAMAGE_CUT = 0.2
 
 # D5 / D15: population. It grows toward the housing the dry rows can hold
@@ -444,6 +445,11 @@ class SettlementState:
         # flooded yet -- a genuine "before" fact that flooded_row_count()
         # alone can't recover later once the sea catches up.
         self.fortified_in_time_earned = False
+        # D-10: the ranked achievements need three more "did this ever happen" counters (the rest of their
+        # numbers already exist: protected sites, retreat rows, diversification levels, reports, peak population).
+        self.storms_weathered = 0   # storms that did not breach the defences
+        self.storms_clean = 0       # of those, storms in a season when no coastline row flooded
+        self.early_retreats = 0     # managed retreats taken while at most one row had flooded
 
         # D2: adaptation tier index active during each season, parallel
         # to damage_log, so the worst-season callout can name what was
@@ -566,6 +572,8 @@ class SettlementState:
         if not self.can_retreat():
             return False
         row = self.next_retreat_row()
+        if flooded_row_count(self.sea_level) <= RETREAT_EARLY_MAX_FLOODED:  # D-10
+            self.early_retreats += 1
         self.funds -= RETREAT_COST
         self.retreat_rows.append(row)
         self._log_ticker(
@@ -1705,6 +1713,10 @@ class SettlementState:
         funds_before_storm = self.funds
         if self.storm_this_season():
             self._resolve_storm()
+            if self.last_storm_result != "Breached":  # D-10
+                self.storms_weathered += 1
+                if newly_flooded == 0:
+                    self.storms_clean += 1
         storm_cost = funds_before_storm - self.funds
         self.last_breakdown = {  # D-28
             "acidity": {
@@ -2485,8 +2497,24 @@ STOCKS_REBOUND_CRASH_THRESHOLD = 0.7
 STOCKS_REBOUND_RECOVERY_THRESHOLD = 0.9
 
 
+# D-10: Bronze / Silver / Gold ranks. Every rank is its own flat achievement id (storm_bronze, storm_silver,
+# storm_gold, ...), so the hub's `achievements_earned` stays a plain list of ids and a dashboard that has never heard
+# of ranks still counts them. The extra "family" and "rank" fields in achievements.json are only for this game's panel.
+# All six families are derived from state that never goes backwards, so a rank cannot un-earn itself.
+RANK_NAMES = ("bronze", "silver", "gold")
+RANK_STORMS_WEATHERED = (1, 3)          # bronze, silver; gold is RANK_STORMS_CLEAN clean storms
+RANK_STORMS_CLEAN = 3
+RANK_HERITAGE_GOLD_SEASON = 15
+RANK_MONITOR_REPORTS = (1, 4, len(CITIZEN_SCIENCE_FACTS))
+RANK_POPULATION = (110, 120, 130)
+
+
 def _max_tier_index():
     return len(ADAPTATION_TIERS) - 1
+
+
+def _all_heritage_protected():
+    return state.protected_heritage_count() >= len(HERITAGE_SITES)
 
 
 ACHIEVEMENT_CHECKS = {
@@ -2517,6 +2545,25 @@ ACHIEVEMENT_CHECKS = {
         state.capacity[category] >= WELL_ROUNDED_CAPACITY for category in CATEGORIES
     ),
     "fortified_in_time": lambda: state.fortified_in_time_earned,
+    # D-10 ranks
+    "storm_bronze": lambda: state.storms_weathered >= RANK_STORMS_WEATHERED[0],
+    "storm_silver": lambda: state.storms_weathered >= RANK_STORMS_WEATHERED[1],
+    "storm_gold": lambda: state.storms_clean >= RANK_STORMS_CLEAN,
+    "heritage_bronze": lambda: state.protected_heritage_count() >= 1,
+    "heritage_silver": lambda: _all_heritage_protected(),
+    "heritage_gold": lambda: _all_heritage_protected() and state.season >= RANK_HERITAGE_GOLD_SEASON,
+    "retreat_bronze": lambda: len(state.retreat_rows) >= 1,
+    "retreat_silver": lambda: len(state.retreat_rows) >= RETREAT_MAX_STEPS,
+    "retreat_gold": lambda: state.early_retreats >= RETREAT_MAX_STEPS,
+    "diversify_bronze": lambda: max(state.diversification.values()) >= 1,
+    "diversify_silver": lambda: max(state.diversification.values()) >= DIVERSIFY_MAX_LEVEL,
+    "diversify_gold": lambda: min(state.diversification.values()) >= DIVERSIFY_MAX_LEVEL,
+    "monitor_bronze": lambda: state.monitoring_reports >= RANK_MONITOR_REPORTS[0],
+    "monitor_silver": lambda: state.monitoring_reports >= RANK_MONITOR_REPORTS[1],
+    "monitor_gold": lambda: state.monitoring_reports >= RANK_MONITOR_REPORTS[2],
+    "population_bronze": lambda: state.peak_population >= RANK_POPULATION[0],
+    "population_silver": lambda: state.peak_population >= RANK_POPULATION[1],
+    "population_gold": lambda: state.peak_population >= RANK_POPULATION[2],
 }
 
 # Progress readouts, only for achievements with a natural numeric
@@ -2536,6 +2583,22 @@ ACHIEVEMENT_PROGRESS = {
         min(state.capacity[category] for category in CATEGORIES),
         WELL_ROUNDED_CAPACITY,
     ),
+    # D-10 ranks: how far along each one is
+    "storm_bronze": lambda: (state.storms_weathered, RANK_STORMS_WEATHERED[0]),
+    "storm_silver": lambda: (state.storms_weathered, RANK_STORMS_WEATHERED[1]),
+    "storm_gold": lambda: (state.storms_clean, RANK_STORMS_CLEAN),
+    "heritage_silver": lambda: (state.protected_heritage_count(), len(HERITAGE_SITES)),
+    "heritage_gold": lambda: (min(state.season, RANK_HERITAGE_GOLD_SEASON) if _all_heritage_protected() else 0,
+                              RANK_HERITAGE_GOLD_SEASON),
+    "retreat_silver": lambda: (len(state.retreat_rows), RETREAT_MAX_STEPS),
+    "retreat_gold": lambda: (state.early_retreats, RETREAT_MAX_STEPS),
+    "diversify_silver": lambda: (max(state.diversification.values()), DIVERSIFY_MAX_LEVEL),
+    "diversify_gold": lambda: (sum(state.diversification.values()), 2 * DIVERSIFY_MAX_LEVEL),
+    "monitor_silver": lambda: (state.monitoring_reports, RANK_MONITOR_REPORTS[1]),
+    "monitor_gold": lambda: (state.monitoring_reports, RANK_MONITOR_REPORTS[2]),
+    "population_bronze": lambda: (state.peak_population, RANK_POPULATION[0]),
+    "population_silver": lambda: (state.peak_population, RANK_POPULATION[1]),
+    "population_gold": lambda: (state.peak_population, RANK_POPULATION[2]),
 }
 
 
@@ -2561,9 +2624,28 @@ def achievements_summary():
                 "description": entry["description"],
                 "earned": entry["id"] in earned_ids,
                 "progress": progress_fn() if progress_fn else None,
+                "family": entry.get("family", ""),  # D-10
+                "rank": entry.get("rank", ""),
             }
         )
     return summary
+
+
+def rank_summary():
+    """D-10: one line per ranked family: the best rank earned and how many of its three are done."""
+    earned = set(achievement_ids_earned())
+    families = {}
+    for entry in ACHIEVEMENTS:
+        family = entry.get("family")
+        if not family:
+            continue
+        label = entry["label"].split(":")[0]
+        row = families.setdefault(family, {"family": family, "label": label, "best": "", "done": 0, "total": 0})
+        row["total"] += 1
+        if entry["id"] in earned:
+            row["done"] += 1
+            row["best"] = entry.get("rank", "")
+    return list(families.values())
 
 
 achievements_open = False
@@ -2643,6 +2725,7 @@ def on_toggle_achievements(event=None):
     update_achievements_display()
 
 
+RANK_MEDALS = {"bronze": "\U0001F949", "silver": "\U0001F948", "gold": "\U0001F947"}  # D-10
 ACHIEVEMENT_GLYPH_EARNED = "\U0001FAB8"  # coral
 ACHIEVEMENT_GLYPH_LOCKED = "\u3030\ufe0f"  # a wave outline
 
@@ -2663,12 +2746,24 @@ def update_achievements_display():
         return
 
     panel.innerHTML = ""
+    ranks = [row for row in rank_summary() if row["total"]]
+    if ranks:  # D-10: the ranked families at a glance
+        line = document.createElement("p")
+        line.className = "achievement-rank-summary"
+        line.innerText = "Ranks: " + "; ".join(
+            f"{row['label']} {row['best'].capitalize() if row['best'] else 'none yet'} ({row['done']}/{row['total']})"
+            for row in ranks
+        )
+        panel.appendChild(line)
     for entry in achievements_summary():
         card = document.createElement("div")
         card.className = (
             "achievement-card achievement-card--earned" if entry["earned"] else "achievement-card"
         )
         card.dataset.achievementId = entry["id"]
+        if entry["rank"]:  # D-10: a rank is spelled out in words and by a medal, never by colour alone
+            card.className += f" achievement-card--rank achievement-card--rank-{entry['rank']}"
+            card.dataset.achievementRank = entry["rank"]
 
         glyph = document.createElement("span")  # D-31: a coral for each earned badge, a hollow wave while locked
         glyph.className = "achievement-card-glyph" if entry["earned"] else "achievement-card-glyph achievement-card-glyph--locked"
@@ -2685,6 +2780,12 @@ def update_achievements_display():
         description.className = "achievement-card-description"
         description.innerText = entry["description"]
         card.appendChild(description)
+
+        if entry["rank"]:
+            tag = document.createElement("p")
+            tag.className = "achievement-card-rank"
+            tag.innerText = f"{RANK_MEDALS[entry['rank']]} {entry['rank'].capitalize()} rank"
+            card.appendChild(tag)
 
         if not entry["earned"] and entry["progress"] is not None:
             current, target = entry["progress"]
@@ -2958,6 +3059,93 @@ def on_ticker_search(event):
     global ticker_search
     ticker_search = str(event.target.value or "")
     render_ticker_history()
+
+
+# ---- D-17: chips and search for the short live ticker -----------------------------
+# The live ticker has its OWN filter, separate from the full history's. It starts on All, is closed behind a
+# "Filter this list" summary and is never saved, so a reload always shows every recent message. While a filter
+# is on, a visible line under the ticker (and the summary itself) says how many messages are hidden.
+live_ticker_filter = "all"
+live_ticker_search = ""
+
+
+def filtered_live_ticker(category=None, search=None):
+    category = live_ticker_filter if category is None else category
+    needle = (live_ticker_search if search is None else search or "").strip().lower()
+    messages = []
+    for message in state.ticker_log:
+        if category != "all" and ticker_category(message) != category:
+            continue
+        if needle and needle not in message.lower():
+            continue
+        messages.append(message)
+    return messages
+
+
+def live_ticker_filtering():
+    return live_ticker_filter != "all" or bool(live_ticker_search.strip())
+
+
+def live_filter_label():
+    if not live_ticker_filtering():
+        return "Filter this list"
+    parts = []
+    if live_ticker_filter != "all":
+        parts.append(next(label for key, label in TICKER_FILTERS if key == live_ticker_filter))
+    if live_ticker_search.strip():
+        parts.append("search")
+    return "Filter this list (on: " + " + ".join(parts) + ")"
+
+
+def render_live_ticker():
+    """The short live ticker, narrowed by its own chip and search when a player turns one on."""
+    ticker_el = document.getElementById("ticker-log")
+    if ticker_el is not None:
+        messages = filtered_live_ticker()
+        if not state.ticker_log:
+            ticker_el.innerHTML = "No notable changes yet."
+        elif not messages:
+            ticker_el.innerHTML = "No recent message matches this filter."
+        else:
+            ticker_el.innerHTML = "<br>".join(messages)
+    for key, _label in TICKER_FILTERS:
+        chip = document.getElementById(f"live-filter-{key}")
+        if chip is not None:
+            on = key == live_ticker_filter
+            chip.setAttribute("aria-pressed", "true" if on else "false")
+            if on:
+                chip.classList.add("selected")
+            else:
+                chip.classList.remove("selected")
+    summary = document.getElementById("live-filter-summary")
+    if summary is not None:
+        summary.innerText = live_filter_label()
+    status = document.getElementById("live-filter-status")
+    if status is not None:
+        hidden = len(state.ticker_log) - len(filtered_live_ticker())
+        if not (live_ticker_filtering() and state.ticker_log):
+            status.innerText = ""
+        elif hidden > 0:
+            status.innerText = (
+                f"Filtered: {hidden} of the last {len(state.ticker_log)} message(s) are hidden. "
+                "Choose All and clear the search to see everything."
+            )
+        else:
+            status.innerText = "Filtered: every recent message matches."
+
+
+def _make_live_filter_handler(key):
+    def handler(event=None):
+        global live_ticker_filter
+        live_ticker_filter = key
+        render_live_ticker()
+    return handler
+
+
+def on_live_search(event):
+    global live_ticker_search
+    live_ticker_search = str(event.target.value or "")
+    render_live_ticker()
 
 
 # ---- D-1 Harbor Ledger ----------------------------------------------
@@ -5502,11 +5690,7 @@ def render():
         duration = sea_level_wave_cue_duration(state.sea_level_fraction())
         wave_cue.style.animationDuration = f"{duration:.2f}s"
 
-    ticker_el = document.getElementById("ticker-log")
-    if state.ticker_log:
-        ticker_el.innerHTML = "<br>".join(state.ticker_log)
-    else:
-        ticker_el.innerHTML = "No notable changes yet."
+    render_live_ticker()
     render_ticker_history()
 
     for category in CATEGORIES:
@@ -5784,6 +5968,9 @@ def get_state():
         "max_acidity_ever": state.max_acidity_ever,
         "max_funds_ever": state.max_funds_ever,
         "fortified_in_time_earned": state.fortified_in_time_earned,
+        **({"ranks": {"storms_weathered": state.storms_weathered, "storms_clean": state.storms_clean,
+                      "early_retreats": state.early_retreats}}
+           if (state.storms_weathered or state.storms_clean or state.early_retreats) else {}),  # D-10
         "tier_log": copy.deepcopy(state.tier_log),
         **_tier_first_season_field(),
         "hard_lag_note_seen": state.hard_lag_note_seen,
@@ -6003,6 +6190,10 @@ def load_state(data):
     state.max_funds_ever = max(
         data.get("max_funds_ever", state.max_funds_ever), state.funds
     )
+    saved_ranks = data.get("ranks") if isinstance(data.get("ranks"), dict) else {}  # D-10
+    state.storms_weathered = _clamped_int(saved_ranks.get("storms_weathered"), 0, 10**6)
+    state.storms_clean = min(state.storms_weathered, _clamped_int(saved_ranks.get("storms_clean"), 0, 10**6))
+    state.early_retreats = min(RETREAT_MAX_STEPS, _clamped_int(saved_ranks.get("early_retreats"), 0, 10**6))
     state.fortified_in_time_earned = bool(
         data.get("fortified_in_time_earned", state.fortified_in_time_earned)
     )
@@ -6275,6 +6466,13 @@ def setup():
     search_el = document.getElementById("ticker-search-input")
     if search_el is not None:
         search_el.addEventListener("input", create_proxy(on_ticker_search))
+    for key, _label in TICKER_FILTERS:
+        el = document.getElementById(f"live-filter-{key}")
+        if el is not None:
+            el.addEventListener("click", create_proxy(_make_live_filter_handler(key)))
+    live_search_el = document.getElementById("live-search-input")
+    if live_search_el is not None:
+        live_search_el.addEventListener("input", create_proxy(on_live_search))
     document.getElementById("achievements-toggle-button").addEventListener(
         "click", create_proxy(on_toggle_achievements)
     )

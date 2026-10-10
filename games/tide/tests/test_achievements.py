@@ -19,7 +19,7 @@ def _ids(entries):
 
 def test_catalog_loaded_and_nonempty(game_env):
     m = game_env.module
-    assert 15 <= len(m.ACHIEVEMENTS) <= 25
+    assert 15 <= len(m.ACHIEVEMENTS) <= 45  # D-10 added 18 ranked ones to the original 20
 
 
 def test_every_catalog_id_is_unique(game_env):
@@ -292,7 +292,7 @@ def test_achievements_panel_renders_every_catalog_entry(game_env):
     m = game_env.module
     game_env.toggle_achievements()
     panel = game_env.elements["achievements-panel"]
-    assert len(panel.children) == len(m.ACHIEVEMENTS) + 1  # +1 for the hub-dashboard link
+    assert len(panel.children) == len(m.ACHIEVEMENTS) + 2  # +1 rank summary line (D-10), +1 hub-dashboard link
 
 
 def test_achievements_panel_marks_an_earned_card_distinctly(game_env):

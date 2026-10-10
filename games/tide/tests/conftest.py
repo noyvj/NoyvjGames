@@ -230,6 +230,8 @@ for _key in LEDGER_KEYS:
     ELEMENT_IDS += [f"ledger-sort-{_key}", f"ledger-th-{_key}", f"ledger-chart-{_key}"]
 for _key in ("all", "fish", "sea", "economy", "storm", "chronicle"):
     ELEMENT_IDS.append(f"ticker-filter-{_key}")
+    ELEMENT_IDS.append(f"live-filter-{_key}")  # D-17: the live ticker's own chips
+ELEMENT_IDS += ["live-search-input", "live-filter-status", "live-filter-summary"]
 for _category in CATEGORIES:
     ELEMENT_IDS += [f"{_category}-count", f"{_category}-invest-button"]
 

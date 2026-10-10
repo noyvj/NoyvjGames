@@ -986,6 +986,23 @@ button.primary:active:not(:disabled) {
   font-variant-numeric: tabular-nums;
 }
 
+/* D-10: ranked achievements. The rank is a word and a medal; the border weight is a second, non-colour cue. */
+.achievement-card-rank {
+  margin: 0.35rem 0 0;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+.achievement-card--rank-silver { border-left-width: 4px; }
+.achievement-card--rank-gold { border-left-width: 7px; }
+.achievement-rank-summary {
+  grid-column: 1 / -1;
+  margin: 0 0 0.4rem;
+  font-size: 0.8rem;
+  opacity: 0.85;
+}
+
 /* Z27b: cross-player "Earned by N% of players" line, filled in by
    shared/achievement-stats.js once the aggregate-stats endpoint responds
    -- same muted small-text treatment as .achievement-card-progress, kept
@@ -1849,6 +1866,42 @@ html[data-reduced-motion="true"] .storm-crash { animation: none; }
 html[data-tidal-chess="on"] #acidity-display, html[data-tidal-chess="on"] #acidity-past-display, html[data-tidal-chess="on"] #acidity-bar,
 html[data-tidal-chess="on"] #quiet-seasons-display, html[data-tidal-chess="on"] #why-acidity-button, html[data-tidal-chess="on"] #delayed-consequence-graph,
 html[data-tidal-chess="on"] #delayed-consequence-text { display: none !important; }
+
+/* D-26: phone view and bigger tap targets. Everything here is for narrow screens or touch; a wide window with
+   a mouse looks exactly as before. */
+.mobile-views { display: none; }
+.coastline-tap-readout { margin: 0.2rem 0 0.6rem; font-size: 0.85rem; }
+.coastline-tap-readout:empty { display: none; }
+@media (max-width: 640px), (pointer: coarse) {
+  /* Tiles were ~38 x 25 px at 360 px wide. Each tile is now at least 44 px tall (a row is the real target:
+     any tile of a row says the same thing), and tapping one writes its note under the grid. */
+  .coastline-grid:not(.coastline-grid--mini) .coastline-tile { aspect-ratio: auto; min-height: 44px; cursor: pointer; }
+  .ticker-chip, .graph-chip, .invest-row button, .advance-row button, .why-button, .critter-button { min-height: 44px; }
+}
+@media (max-width: 640px) {
+  html:not([data-layout="pc"]) .mobile-views {
+    display: flex; flex-wrap: wrap; gap: 0.35rem; margin: 0 0 0.6rem;
+    padding: 0.25rem 0;
+  }
+  .mobile-views .graph-chip { flex: 1 1 4.2rem; justify-content: center; min-height: 44px; font-size: 0.85rem; }
+  /* Only the parts that are not picked go away; anything without a data-mview (panels, the dock, the header,
+     the market deal, the feedback prompt) always stays. */
+  html:not([data-layout="pc"])[data-mview-active="coast"] [data-mview]:not([data-mview~="coast"]),
+  html:not([data-layout="pc"])[data-mview-active="meters"] [data-mview]:not([data-mview~="meters"]),
+  html:not([data-layout="pc"])[data-mview-active="log"] [data-mview]:not([data-mview~="log"]) { display: none !important; }
+}
+
+/* D-12: the customizable dashboard (Classic page only). */
+[data-dash-hidden="true"] { display: none !important; }
+.dashboard-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem 0.6rem; margin: 0 0 0.6rem; }
+.dashboard-note { font-size: 0.8rem; opacity: 0.85; }
+.dashboard-panel[hidden], .dashboard-bar [hidden] { display: none; }
+html[data-layout="pc"] .dashboard-bar, html[data-layout="pc"] .dashboard-panel { display: none !important; }
+.dashboard-list { list-style: none; margin: 0.5rem 0 0; padding: 0; display: grid; gap: 0.4rem; }
+.dashboard-row { display: flex; flex-wrap: wrap; align-items: center; gap: 0.35rem; }
+.dashboard-row--hidden { opacity: 0.7; }
+.dashboard-show { flex: 1 1 10rem; font-size: 0.85rem; cursor: pointer; }
+.dashboard-small { padding: 0.25rem 0.6rem; font-size: 0.8rem; min-width: 2.2rem; }
 
 /* ============================================================
    Y11b light-theme polish (2026-09-27). Light-only rules from a

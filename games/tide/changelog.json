@@ -1,6 +1,10 @@
 {
   "changelog": [
     {
+      "date": "2026-10-10",
+      "entry": "New: a Dashboard button lets you show, hide, pin and reorder the main panels, with Standard, Compact, Analyst and Postcard presets, remembered in this browser (Classic page). On a phone, a Coast / Meters / Log switch shows one part at a time and a swipe moves between them (All is the default and hides nothing), coastline tiles are 44 px tall and a tap on one writes its flood note under the grid. 18 new Bronze, Silver and Gold rank achievements cover storms, heritage, retreat, diversification, monitoring and population. The live ticker now has its own optional Fish / Sea / Economy / Storm / Chronicle chips and search, closed and set to All by default."
+    },
+    {
       "date": "2026-10-09",
       "entry": "New: hover or focus an Invest button to see your funds after buying and after this season's heritage upkeep. A new Affordable in how many seasons? panel lists every adaptation tier and diversification level still ahead with how long they would take at your current income, and you can pin one target. Pin one personal goal (such as Keep 4 rows dry or Reach 200 population) under the investments and watch its bar fill; you get one ping when it is reached. The meters now count quiet seasons in a row without an acidity rise, with a star frame at 5 and 10. In the settlement panel, Roll a name picks a fun harbour name and writes it into the chronicle."
     },
