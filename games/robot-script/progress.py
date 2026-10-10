@@ -7,6 +7,7 @@ clears, so a loaded save and a played one cannot disagree and a retuned par re-g
 import rooms
 
 OPEN_AT = 5          # rooms of a chapter that must be cleared to open the next chapter
+SANDBOX_AFTER = 2    # index of the chapter (Loops, the third) whose rooms must all be cleared to open the free sandbox
 
 
 def cleared_in(best, chapter):
@@ -30,8 +31,8 @@ def room_open(best, rid):
 
 
 def sandbox_open(best):
-    """The free sandbox opens once every room of the last chapter is cleared."""
-    return chapter_done(best, len(rooms.CHAPTER_LIST) - 1)
+    """The free sandbox opens once every room of the third chapter is cleared (the first three chapters teach the tools it uses)."""
+    return chapter_done(best, SANDBOX_AFTER)
 
 
 def medal_of(best, rid):

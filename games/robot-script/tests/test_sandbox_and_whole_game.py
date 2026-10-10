@@ -26,6 +26,10 @@ def play_all(ids=None):
         assert run["cleared"] and run["medal_name"] == "gold", rid
 
 
+def first_three_chapters():
+    return [rid for c in rooms.CHAPTER_LIST[:3] for rid in c["rooms"]]
+
+
 def test_a_perfect_player_clears_every_room_with_gold_and_earns_everything_reachable():
     fresh()
     play_all()
@@ -53,19 +57,24 @@ def test_a_perfect_player_clears_every_room_with_gold_and_earns_everything_reach
     assert set(achievements.earned(game.game.facts())) == set(achievements.IDS)
 
 
-def test_the_sandbox_is_locked_until_the_last_chapter_is_cleared():
+def test_the_sandbox_opens_after_the_third_chapter_not_the_last():
     fresh()
     v = call(action="sandbox")
     assert v["ok"] is False and v["room"]["id"] == "wake-up" and v["sandbox"]["open"] is False
-    play_all(rooms.CHAPTER_LIST[5]["rooms"])
-    assert progress.sandbox_open(game.game.best)
+    assert v["sandbox"]["need"] == rooms.CHAPTER_LIST[2]["name"] and "Loops" in v["message"]
+    play_all(rooms.CHAPTER_LIST[0]["rooms"] + rooms.CHAPTER_LIST[1]["rooms"])
+    assert not progress.sandbox_open(game.game.best)                        # two chapters are not enough
+    play_all(rooms.CHAPTER_LIST[2]["rooms"][:-1])
+    assert not progress.sandbox_open(game.game.best)                        # nor all but one room of the third
+    play_all(rooms.CHAPTER_LIST[2]["rooms"][-1:])
+    assert progress.sandbox_open(game.game.best) and not progress.chapter_done(game.game.best, 5)
     v = call(action="sandbox")
     assert v["ok"] and v["room"]["sandbox"] and v["room"]["id"] == "sandbox" and "svg" in v["room"]
 
 
 def test_sandbox_paint_run_and_tally():
     fresh()
-    play_all(rooms.CHAPTER_LIST[5]["rooms"])
+    play_all(first_three_chapters())
     call(action="sandbox")
     v = call(action="sbx_paint", x=2, y=0, tile="#")
     assert v["ok"] and v["room"]["svg"] and v["tally"]["sbx_tiles"] == 1
@@ -74,7 +83,7 @@ def test_sandbox_paint_run_and_tally():
         call(action="insert", kind=k)
     v = call(action="run")
     assert v["run"]["status"] == "halt" and "wall" in v["run"]["message"] and v["run"]["sandbox"]
-    assert v["tally"]["sbx_runs"] == 1 and v["tally"]["runs"] == 5 and v["totals"]["cleared"] == 5
+    assert v["tally"]["sbx_runs"] == 1 and v["tally"]["runs"] == len(first_three_chapters()) and v["totals"]["cleared"] == len(first_three_chapters())
     call(action="clear")
     call(action="insert", kind="R")
     call(action="insert", kind="F")
@@ -84,7 +93,7 @@ def test_sandbox_paint_run_and_tally():
 
 def test_sandbox_refuses_bad_paints_and_keeps_the_robot():
     fresh()
-    play_all(rooms.CHAPTER_LIST[5]["rooms"])
+    play_all(first_three_chapters())
     assert call(action="sbx_paint", x=0, y=0, tile="#")["ok"] is False        # nothing open yet: not in the sandbox
     call(action="sandbox")
     assert call(action="sbx_paint", x=0, y=0, tile="#")["ok"] is False        # that is the robot
@@ -99,7 +108,7 @@ def test_sandbox_refuses_bad_paints_and_keeps_the_robot():
 
 def test_sandbox_presets_and_save_round_trip():
     fresh()
-    play_all(rooms.CHAPTER_LIST[5]["rooms"])
+    play_all(first_three_chapters())
     call(action="sandbox")
     assert call(action="sbx_preset", name="nope")["ok"] is False
     call(action="sbx_preset", name="maze")
@@ -123,7 +132,7 @@ def test_a_save_cannot_open_the_sandbox_early_or_hold_a_bad_room():
 
 def test_sandbox_lists_are_not_limited_by_a_room_toolbox():
     fresh()
-    play_all(rooms.CHAPTER_LIST[5]["rooms"])
+    play_all(first_three_chapters())
     v = call(action="sandbox")
     assert {p["k"] for p in v["program"]["palette"]} >= {"F", "L", "R", "G", "P", "S", "rep", "until", "if", "callA", "callB"}
 

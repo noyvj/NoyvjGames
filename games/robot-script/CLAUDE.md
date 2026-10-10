@@ -3,7 +3,7 @@
 Seed: `planning/robot-script-plan.md` (Quick ideas round A3, TODO QI-3). Personal project, no BCM tag, working title. Built 2026-10-09 by a background agent.
 
 ## One-line pitch
-Give a maintenance robot a short list of instructions to clear a room (Lightbot style): fewer steps earn better medals, nothing is timed, and a free sandbox opens at the end.
+Give a maintenance robot a short list of instructions to clear a room (Lightbot style): fewer steps earn better medals, nothing is timed, and a free sandbox opens after the third chapter (AN-3).
 
 ## Stack
 - Pyodide Python, plain HTML/CSS, no build step. `game.py` is the single engine entry point (`handle(json) -> json`, `get_state()` / `load_state()` for the shared save widget); `app.js` is glue only. Room and robot are SVG strings built in Python (`render.py`) so their markup is unit-tested.
@@ -53,7 +53,7 @@ Give a maintenance robot a short list of instructions to clear a room (Lightbot 
 ## Milestone 4 notes
 - 40 rooms: 7 + 7 + 7 + 7 + 7 + 5. From chapter 3 on every reference is shorter than the shortest flat list (tested with the solver), and chapters 3-5 must use their own tool (repeat, call, until/if). Chapter 6 mixes everything.
 - `tools/author.py` (dev only): expands a reference (repeats and calls, no conditionals) and draws the room where exactly that walk works; conditional rooms were drawn from an equivalent flat walk and verified with the conditional reference.
-- Sandbox: id `sandbox`, 8x8, opens once every room of the last chapter is cleared (`progress.sandbox_open`). Saved as `sbx` (rows, only when not the default), `sdraft` (the unfinished list) and `cur: "sandbox"`; tally keys `sbx_runs` and `sbx_tiles`. Painting works by tapping the room or by column/row fields (the keyboard path). Presets: open, maze, workshop.
+- Sandbox: id `sandbox`, 8x8, opens once every room of the third chapter (Loops, `progress.SANDBOX_AFTER = 2`) is cleared (`progress.sandbox_open`; AN-3, 2026-10-11, was the last chapter). The "Tinkerer" goal is offered only while the sandbox is open (`achievements.SANDBOX` gate). Saved as `sbx` (rows, only when not the default), `sdraft` (the unfinished list) and `cur: "sandbox"`; tally keys `sbx_runs` and `sbx_tiles`. Painting works by tapping the room or by column/row fields (the keyboard path). Presets: open, maze, workshop.
 - A perfect-play test clears all 40 rooms with gold from the references and checks every achievement is reachable.
 
 ## Milestone 5 notes

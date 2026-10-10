@@ -9,7 +9,8 @@ import rooms
 TOTAL_ROOMS = len(rooms.ORDER)
 TOTAL_CHAPTERS = len(rooms.CHAPTER_LIST)
 
-# (id, label, description, fact, need, chapter that must be open before it can be a goal)
+# (id, label, description, fact, need, chapter that must be open before it can be a goal; SANDBOX = the free sandbox must be open)
+SANDBOX = -1
 ACHIEVEMENTS = (
     ("first_light", "First Light", "Clear your first room.", "rooms", 1, 0),
     ("ten_down", "Ten Down", "Clear 10 rooms.", "rooms", 10, 0),
@@ -24,7 +25,7 @@ ACHIEVEMENTS = (
     ("two_minds", "Two Minds", "Clear a room with an if or until block.", "flag_branch", 1, 4),
     ("learned_from_a_bump", "Learned From a Bump", "Clear a room after a run that stopped short.", "flag_comeback", 1, 0),
     ("second_opinion", "Second Opinion", "Climb the whole hint ladder in one room: nudge, hint, answer.", "rung3", 1, 0),
-    ("tinkerer", "Tinkerer", "Run 10 lists in the sandbox.", "sbx", 10, 6),
+    ("tinkerer", "Tinkerer", "Run 10 lists in the sandbox.", "sbx", 10, SANDBOX),
 )
 
 IDS = tuple(a[0] for a in ACHIEVEMENTS)
@@ -44,7 +45,8 @@ def view(facts):
     return out
 
 
-def goals(facts, open_chapters, count=3):
+def goals(facts, open_chapters, count=3, sandbox=False):
     """The next few achievements still to earn that can be worked on now (their chapter is open), in manifest order: the
     always-visible 'what to do next' list. They can be done in any order."""
-    return [a for a in view(facts) if not a["earned"] and a["chapter"] < open_chapters][:count]
+    return [a for a in view(facts) if not a["earned"]
+            and (sandbox if a["chapter"] == SANDBOX else a["chapter"] < open_chapters)][:count]

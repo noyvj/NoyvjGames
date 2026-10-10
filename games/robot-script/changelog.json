@@ -1,6 +1,10 @@
 {
   "changelog": [
     {
+      "date": "2026-10-11",
+      "entry": "The free sandbox now opens after the third chapter (Loops) instead of the last one, so you can paint rooms and try your own lists much earlier. Nothing you have already cleared changes."
+    },
+    {
       "date": "2026-10-09",
       "entry": "Achievements (fourteen, none timed or luck-based) and a Desktop layout for wide windows: the room fills the stage, your list sits in a side column, and the Rooms, Workshop, Achievements and Settings open as windows from icons or the Menu (Esc). It is the same game and the same save; the Classic layout is unchanged and is still what phones use."
     },

@@ -803,7 +803,7 @@
     { selector: "#run-button", title: "Run, Step and Skip", text: "Run plays your list. Step does one action at a time and Skip jumps to the end. If the robot cannot do a step (a wall, a shut door, nothing to pick up), it stops there and says why. Your list stays, so just fix it and run again." },
     { selector: "#size-line", title: "Steps and medals", text: "Fewer steps earn better medals: gold at the reference length, silver a little over, bronze for any clear. Hints are free and never touch a medal." },
     { selector: "#goals", title: "Your goals", text: "Three goals stay in view, and you can do them in any order. Every run, every step you write and every hint you ask for counts toward something on the screen." },
-    { selector: "#rooms-toggle-button", title: "Rooms and Scrap", text: "Rooms lists the chapters. Each room you clear gives Scrap, the salvage drone in the Workshop, a part, and a better list gives the same part a better finish. At the end of the last chapter a free sandbox opens." },
+    { selector: "#rooms-toggle-button", title: "Rooms and Scrap", text: "Rooms lists the chapters. Each room you clear gives Scrap, the salvage drone in the Workshop, a part, and a better list gives the same part a better finish. Once you have cleared every room of Loops, the third chapter, a free sandbox opens." },
     { title: "You are ready", text: "Take your time. Your lists and medals are saved as you go." }
   ];
 

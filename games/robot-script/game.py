@@ -307,14 +307,14 @@ class Game:
                      "w": r.layout.w, "h": r.layout.h, "has_best": r.id in self.best},
             "program": self._program_view(),
             "rooms": self._rooms_view(),
-            "sandbox": {"open": self.sandbox_open(), "current": sbx, "need": rooms.CHAPTER_LIST[-1]["name"],
+            "sandbox": {"open": self.sandbox_open(), "current": sbx, "need": rooms.CHAPTER_LIST[progress.SANDBOX_AFTER]["name"],
                         "tiles": [{"tile": t, "label": label} for t, label in sandbox.TILES], "size": sandbox.SIZE,
                         "presets": [{"id": k, "label": v[0]} for k, v in sandbox.PRESETS.items()]},
             "totals": progress.totals(self.best),
             "tally": dict(self.tally),
             "hint": hints.view(r, 0) if sbx else hints.view(r, self.rungs.get(r.id, 0)),
             "scrap": companion.view(self.best),
-            "goals": achievements.goals(self.facts(), self.open_chapters() + (1 if self.sandbox_open() else 0)),
+            "goals": achievements.goals(self.facts(), self.open_chapters(), sandbox=self.sandbox_open()),
             "achievements": achievements.view(self.facts()),
             "about": info.view(),
             "run": run_result,
@@ -424,7 +424,7 @@ def handle(request_json):
         return json.dumps(g.view())
     if action == "sandbox":
         if not g.sandbox_open():
-            return json.dumps(g.view("The sandbox opens once you have cleared every room of " + rooms.CHAPTER_LIST[-1]["name"] + ".", ok=False))
+            return json.dumps(g.view("The sandbox opens once you have cleared every room of " + rooms.CHAPTER_LIST[progress.SANDBOX_AFTER]["name"] + ".", ok=False))
         g._stash()
         g._enter("sandbox")
         return json.dumps(g.view())
