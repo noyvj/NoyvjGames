@@ -713,17 +713,34 @@ class FarmState:
         comparable."""
         return self.counterfactual_funds - self.counterfactual_methane * METHANE_PENALTY_WEIGHT
 
-    def advance_round(self):
+    def income_breakdown(self):
+        """Every piece of one round's income, in the order the game applies them. advance_round()
+        banks exactly breakdown["total"], so the F-6 inspector can never disagree with the game."""
         fraction = self.plant_based_fraction()
-        income_multiplier = (1 - fraction) + fraction * self.plant_income_multiplier()
+        plant_blend = (1 - fraction) + fraction * self.plant_income_multiplier()
+        certification = self.certification_multiplier()
+        welfare = self.welfare_multiplier()
+        supply = self.supply_chain_multiplier()
         season = 1 + self.season_modifier()
-        raw_income = (
-            self.herd_size * HERD_INCOME_PER_UNIT * income_multiplier
-            * self.certification_multiplier() * self.welfare_multiplier()
-            + self.poultry_net_income() + self.satellite_net_income()
-        ) * self.supply_chain_multiplier() * season
+        herd_base = self.herd_size * HERD_INCOME_PER_UNIT
+        herd_income = self.herd_size * HERD_INCOME_PER_UNIT * plant_blend * certification * welfare
+        poultry = self.poultry_net_income()
+        satellite = self.satellite_net_income()
+        raw_income = (herd_income + poultry + satellite) * supply * season
         pressure = self.pressure_fraction()
-        self.funds += raw_income * (1 - pressure) + self.biogas_sales()
+        biogas = self.biogas_sales()
+        return {
+            "herd_base": herd_base, "plant_fraction": fraction, "plant_blend": plant_blend,
+            "certification": certification, "welfare": welfare, "herd_income": herd_income,
+            "poultry": poultry, "satellite": satellite, "supply": supply, "season": season,
+            "raw": raw_income, "pressure": pressure, "after_pressure": raw_income * (1 - pressure),
+            "biogas": biogas, "total": raw_income * (1 - pressure) + biogas,
+        }
+
+    def advance_round(self):
+        pressure = self.pressure_fraction()
+        season = 1 + self.season_modifier()
+        self.funds += self.income_breakdown()["total"]
         self.methane += self.methane_this_round()
         self.max_pressure_fraction_seen = max(self.max_pressure_fraction_seen, pressure)
 
@@ -2907,6 +2924,148 @@ def on_policy_cash(event=None):
     render()
 
 
+# ===========================================================================
+# Round-5 batch (planning/TODO.md "GF + F. Herd"). F-6: an "explain this number" inspector.
+# ===========================================================================
+EXPLAIN_KINDS = {
+    "income": "Income per round",
+    "methane": "Methane per round",
+    "coupling": "Coupling ratio",
+    "pressure": "Pressure",
+}
+explain_kind = None  # which breakdown is showing; session only, never saved
+
+
+def _node(label, value, note="", children=None):
+    return {"label": label, "value": value, "note": note, "children": children or []}
+
+
+def _tree_html(nodes):
+    if not nodes:
+        return ""
+    items = []
+    for node in nodes:
+        note = f' <span class="explain-note">{html.escape(node["note"])}</span>' if node["note"] else ""
+        items.append(
+            f'<li><span class="explain-label">{html.escape(node["label"])}</span> '
+            f'<span class="explain-value">{html.escape(node["value"])}</span>{note}{_tree_html(node["children"])}</li>'
+        )
+    return f'<ul class="explain-tree">{"".join(items)}</ul>'
+
+
+def _signed(value, digits=1):
+    return f"{value:+.{digits}f}"
+
+
+def explain_income_nodes():
+    b = farm.income_breakdown()
+    herd_children = []
+    if farm.herd_size:
+        herd_children.append(_node("Base income", f"{b['herd_base']:.1f}", f"{farm.herd_size} units x {HERD_INCOME_PER_UNIT} each"))
+        if b["plant_fraction"] > 0:
+            herd_children.append(_node(
+                "Plant-based blend", f"x{b['plant_blend']:.3f}",
+                f"{b['plant_fraction'] * 100:.0f}% of output is plant-based, which earns {farm.plant_income_multiplier():.2f} per unit",
+            ))
+        if farm.certified:
+            herd_children.append(_node("Sustainable certification", f"x{b['certification']:.2f}", "permanent price premium"))
+        if abs(b["welfare"] - 1) > 1e-9:
+            herd_children.append(_node("Welfare", f"x{b['welfare']:.3f}", f"welfare score {farm.welfare():.0f} (neutral is {WELFARE_START:.0f})"))
+    nodes = [_node("Herd income", f"{b['herd_income']:.1f}", "", herd_children)]
+    if farm.poultry_size:
+        nodes.append(_node("Poultry flock", _signed(b["poultry"]), f"{farm.poultry_size} birds, after housing upkeep"))
+    if farm.satellite_size:
+        nodes.append(_node("Satellite farm", _signed(b["satellite"]), f"{farm.satellite_size} units"))
+    if farm.supply_chain_investment:
+        nodes.append(_node("Supply chain", f"x{b['supply']:.2f}", f"{farm.supply_chain_investment} of {SUPPLY_CHAIN_MAX_UNITS} units"))
+    if farm.variation_enabled:
+        nodes.append(_node("Season", f"x{b['season']:.2f}", season_for_round(farm.round_number)[0]))
+    nodes.append(_node("Income before pressure", f"{b['raw']:.1f}"))
+    nodes.append(_node("Market/regulatory pressure", f"-{b['pressure'] * 100:.0f}%", f"takes {b['raw'] * b['pressure']:.1f} of it; see the Pressure breakdown"))
+    if b["biogas"]:
+        nodes.append(_node("Biogas sales", _signed(b["biogas"]), "from capture systems beyond the first two"))
+    return [_node("Funds earned when you advance this round", _signed(b["total"]), "", nodes)]
+
+
+def explain_methane_nodes():
+    herd = _node(
+        "Herd", f"{farm.herd_size * farm.coupling_ratio():.2f}",
+        f"{farm.herd_size} units x {farm.coupling_ratio():.2f} each (the coupling ratio)",
+    )
+    nodes = [herd]
+    if farm.poultry_size:
+        nodes.append(_node("Poultry flock", f"{farm.poultry_size * farm.poultry_coupling_ratio():.2f}", f"{farm.poultry_size} birds x {farm.poultry_coupling_ratio():.2f} each (methane-equivalent)"))
+    if farm.satellite_size:
+        offset = farm.satellite_offset_fraction()
+        nodes.append(_node(
+            "Satellite farm", f"{farm.satellite_size * farm.satellite_coupling_ratio():.2f}",
+            f"{farm.satellite_size} units x {farm.satellite_coupling_ratio():.2f} each ({farm.satellite_own_ratio():.2f} after retrofits, {offset * 100:.0f}% cancelled by the main farm)",
+        ))
+    nodes.append(_node("Added to your total when you advance", f"{farm.methane_this_round():.2f}", f"total so far {farm.methane:.1f}"))
+    return [_node("Methane this round", f"{farm.methane_this_round():.2f}", "", nodes)]
+
+
+def explain_coupling_nodes():
+    children = [_node("Starting level", f"{BASE_COUPLING_RATIO:.2f}", "every herd unit begins fully coupled")]
+    for measure, spec in DECOUPLING_MEASURES.items():
+        count = farm.decoupling_investment[measure]
+        if count:
+            children.append(_node(spec["label"], f"-{count * spec['ratio_reduction']:.2f}", f"{count} units x {spec['ratio_reduction']:.2f}"))
+    if farm.genetics_active:
+        children.append(_node("Breeding program", f"-{farm.genetics_active * GENETICS_RATIO_REDUCTION:.2f}", f"{farm.genetics_active} matured units x {GENETICS_RATIO_REDUCTION:.2f}"))
+    efficiency = farm._efficiency_coupling_ratio()
+    children.append(_node("After efficiency measures", f"{efficiency:.2f}", f"never below {MIN_COUPLING_RATIO:.2f}"))
+    fraction = farm.plant_based_fraction()
+    if fraction > 0:
+        children.append(_node("Plant-based pivot", f"x{(1 - fraction) + fraction * PLANT_BASED_EMISSIONS_MULTIPLIER:.3f}", f"{fraction * 100:.0f}% of output is plant-based and gives off almost nothing"))
+    return [_node("Coupling ratio", f"{farm.coupling_ratio():.2f}", "methane per herd unit per round", children)]
+
+
+def explain_pressure_nodes():
+    children = [
+        _node("All methane so far", f"{farm.methane:.1f}", "never resets"),
+        _node("Divided by", f"{PRESSURE_SCALE:.0f}", "the scale of the pressure curve"),
+        _node("Pressure", f"{farm.methane / PRESSURE_SCALE * 100:.0f}%", f"stops at {MAX_PRESSURE * 100:.0f}%"),
+    ]
+    lost = farm.income_breakdown()
+    children.append(_node("Income lost this round", f"{lost['raw'] * lost['pressure']:.1f}", f"of {lost['raw']:.1f} before pressure"))
+    return [_node("Market/regulatory pressure", f"{farm.pressure_fraction() * 100:.0f}% of income", "", children)]
+
+
+EXPLAIN_BUILDERS = {
+    "income": explain_income_nodes,
+    "methane": explain_methane_nodes,
+    "coupling": explain_coupling_nodes,
+    "pressure": explain_pressure_nodes,
+}
+
+
+def explain_html(kind):
+    builder = EXPLAIN_BUILDERS.get(kind)
+    return _tree_html(builder()) if builder else ""
+
+
+def render_explain():
+    output = document.getElementById("explain-output")
+    output.innerHTML = explain_html(explain_kind) if explain_kind else ""
+    output.hidden = explain_kind is None
+    for kind in EXPLAIN_KINDS:
+        button = document.getElementById(f"explain-{kind}-button")
+        button.setAttribute("aria-pressed", "true" if kind == explain_kind else "false")
+        if kind == explain_kind:
+            button.classList.add("selected")
+        else:
+            button.classList.remove("selected")
+
+
+def _make_explain_handler(kind):
+    def handler(event=None):
+        global explain_kind
+        explain_kind = None if explain_kind == kind else kind
+        render_explain()
+    return handler
+
+
 def render():
     _sync_collection()
     render_info_page()
@@ -3015,6 +3174,7 @@ def render():
     render_extras()
     render_progress_extras()
     render_round_extras()
+    render_explain()
 
 
 # F-18: an optional "ask before a big purchase" setting. The Settings select (settings.js) keeps the
@@ -3773,6 +3933,8 @@ def setup():
             "click", create_proxy(_make_delta_pin_handler(key))
         )
     document.getElementById("undo-round-button").addEventListener("click", create_proxy(on_undo_round))
+    for kind in EXPLAIN_KINDS:
+        document.getElementById(f"explain-{kind}-button").addEventListener("click", create_proxy(_make_explain_handler(kind)))
     render()
     _seed_achievement_toast_baseline()
 

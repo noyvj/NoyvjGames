@@ -100,6 +100,8 @@ ELEMENT_IDS = [
     "genetics-rings", "poultry-compare", "hall-of-fame", "hall-of-fame-list", "pace-note",
     # Round-5 batch.
     "welfare-bar", "supply-chain-bar",
+    "explain-income-button", "explain-methane-button", "explain-coupling-button", "explain-pressure-button",
+    "explain-output", "explain-panel",
     "save-recovery-panel", "save-recovery-reasons", "save-recovery-note",
     "save-recovery-defaults-button", "save-recovery-dismiss-button",
 ]

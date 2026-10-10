@@ -1,6 +1,10 @@
 [
   {
     "date": "2026-10-10",
+    "entry": "New 'Why this number?' panel: pick Income per round, Methane per round, Coupling ratio or Pressure and see exactly where it comes from, piece by piece (herd base income, plant-based blend, certification, welfare, poultry, satellite, supply chain, season, pressure, biogas; methane per animal group; each lever's cut in the coupling ratio; the pressure curve and its cap). It updates live as you play."
+  },
+  {
+    "date": "2026-10-10",
     "entry": "Hard words now explain themselves. In the small 'i' notes, the intro and the How to Play steps, the first mention of coupling ratio, decoupling, baseline farm, welfare, capture systems, pressure, sustainable certification and methane-equivalent has a dotted underline; hover it, tab to it or tap it for a short plain-language definition, and press Esc to close it. How to Play also ends with the whole glossary."
   },
   {

@@ -327,6 +327,18 @@
       <p id="combined-decoupling-display" class="comparison-message">Efficiency measures alone bring you to 1.00 methane/herd/round — the plant-based pivot isn't active yet.</p>
     </div>
 
+    <details id="explain-panel" class="section farm-extras explain-panel">
+      <summary>Why this number?</summary>
+      <p class="comparison-message">Pick a number to see exactly where it comes from, piece by piece. It updates as you play.</p>
+      <div id="explain-buttons" class="explain-buttons" role="group" aria-label="Which number to explain">
+        <button id="explain-income-button" class="secondary" type="button" aria-pressed="false">Income per round</button>
+        <button id="explain-methane-button" class="secondary" type="button" aria-pressed="false">Methane per round</button>
+        <button id="explain-coupling-button" class="secondary" type="button" aria-pressed="false">Coupling ratio</button>
+        <button id="explain-pressure-button" class="secondary" type="button" aria-pressed="false">Pressure</button>
+      </div>
+      <div id="explain-output" class="explain-output" aria-live="polite" hidden></div>
+    </details>
+
     <details id="farm-extras" class="section farm-extras">
       <summary>Farm operations &amp; scenario options</summary>
       <p id="vignette-display" class="comparison-message"></p>

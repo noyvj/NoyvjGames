@@ -1569,3 +1569,13 @@ html[data-high-contrast="true"] #glossary-popover { background: #000; color: #ff
 .howto-glossary h3 { margin: 0 0 0.4rem; font-size: 0.95rem; }
 .howto-glossary dt { font-weight: 700; margin-top: 0.4rem; }
 .howto-glossary dd { margin: 0.1rem 0 0; line-height: 1.4; }
+
+/* F-6: the "Why this number?" inspector tree. */
+.explain-buttons { display: flex; flex-wrap: wrap; gap: 0.4rem; margin: 0.3rem 0 0.5rem; }
+.explain-output { font-size: 0.82rem; }
+.explain-tree { list-style: none; margin: 0.2rem 0 0; padding-left: 1rem; border-left: 2px solid rgba(140, 160, 255, 0.3); }
+.explain-output > .explain-tree { padding-left: 0; border-left: 0; }
+.explain-tree li { margin: 0.3rem 0; line-height: 1.4; }
+.explain-label { font-weight: 600; }
+.explain-value { font-variant-numeric: tabular-nums; padding: 0 0.3rem; border: 1px solid rgba(140, 160, 255, 0.35); border-radius: 4px; }
+.explain-note { opacity: 0.75; }
