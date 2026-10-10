@@ -16,7 +16,7 @@
       ["settings-toggle-button", "⚙️"]
     ],
     "menu": [
-      {"heading": "Empire", "ids": ["captains-toggle-button"]},
+      {"heading": "Empire", "ids": ["captains-toggle-button", "sandbox-toggle-button"]},
       {"heading": "Help", "ids": ["tutorial-restart-button", "howto-toggle-button", "credits-link"]},
       {"heading": "Records", "ids": ["changelog-toggle-button"]}
     ]

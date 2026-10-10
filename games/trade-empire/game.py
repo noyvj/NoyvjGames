@@ -44,6 +44,7 @@ individually simulated colonies -- a deliberate scope cut) that
 trickles in passive revenue. The sandbox itself never ends or locks.
 """
 
+import copy
 import json
 import math
 import random
@@ -1954,7 +1955,7 @@ def legacy_starting_credits(level=None):
 def can_found_new_corporation():
     # O-1: renewal is no longer capped (the legacy BONUS still is, at
     # LEGACY_MAX_LEVEL); the charter tree and ledger keep growing.
-    return endgame_reached and _fresh_state is not None
+    return endgame_reached and _fresh_state is not None and not sandbox_active  # Z-18: no renewal from the sandbox
 
 
 def legacy_summary_text():
@@ -2713,6 +2714,10 @@ def on_toggle_seasonal_demand(event=None):
 
 def on_toggle_route_hazards(event=None):
     global route_hazards_enabled
+    if sandbox_active:  # Z-18: no lost cargo in the sandbox
+        route_hazards_enabled = False
+        render_market()
+        return
     route_hazards_enabled = not route_hazards_enabled
     render_market()
 
@@ -3247,6 +3252,8 @@ def achievement_ids_earned():
     value that rides the existing save/sync mechanism via get_state()'s
     "achievements_earned" field. Always recomputed, never itself a save
     input."""
+    if sandbox_active:  # Z-18: nothing in the sandbox earns anything; the real list is shown as it was
+        return list(_sandbox_real["earned"])
     return [
         entry["id"]
         for entry in ACHIEVEMENTS
@@ -3301,6 +3308,8 @@ def _story_reach_all(earned_ids):
     their own (the Rift Colonies and the Umbral Deep), via the shared
     story-chapters.js. Idempotent and silent: no story script, or a chapter
     id it does not know, simply does nothing. Never touches the save."""
+    if sandbox_active:  # Z-18: chapters belong to the real game
+        return
     try:
         from js import window  # noqa: PLC0415 -- Pyodide-only, deliberately lazy
     except ImportError:
@@ -4036,7 +4045,10 @@ def render():
     # #sale-spark-container inside #profit-display, and overwriting
     # #profit-display's own innerText every render would wipe those children
     # out before their one-shot animation ever gets a frame to paint.
-    document.getElementById("profit-display-text").innerText = f"Total profit: {total_profit} credits"
+    _sandbox_top_up()
+    document.getElementById("profit-display-text").innerText = (
+        "Credits: unlimited (sandbox)" if sandbox_active else f"Total profit: {total_profit} credits"
+    )
     document.getElementById("sale-log").innerText = sale_log[-1] if sale_log else "No sales yet."
     document.getElementById("automation-slots-display").innerText = (
         f"Automation slots: {automated_ship_count()}/{max_automated_ships()} used"
@@ -4420,6 +4432,8 @@ def tick(event=None):
 
 
 def get_state():
+    if sandbox_active:  # Z-18: a save, an autosave or a board read while the sandbox is on is the REAL game
+        return copy.deepcopy(_sandbox_real["snapshot"])
     return {
         "ships": {
             ship_id: {
@@ -4723,6 +4737,15 @@ def _saved_float(value, low, high, default):
 
 
 def load_state(data):
+    """The public entry the save widget calls: leaves the practice sandbox first (Z-18), then loads."""
+    if sandbox_active:
+        _sandbox_restore_real(apply_snapshot=False)
+    result = _apply_state(data)
+    _sandbox_notify_page()
+    return result
+
+
+def _apply_state(data):
     """Exact inverse of get_state(). Colony state for the Kepler Cluster
     is (re)created here if the save has galaxy_expansion unlocked but the
     live module hasn't gotten there yet — mirroring what unlock_research()
@@ -4842,7 +4865,7 @@ def load_state(data):
             saved.get("secondary_need_satisfaction"), 0.0, 1.0, state.secondary_need_satisfaction
         )
         for loyalty_key, limit in (
-            ("neglect_ticks", NEGLECT_DEMAND_TICKS),
+            ("neglect_ticks", TEMPERAMENT_COUNT_MAX),  # keeps counting through a cooldown, so it can pass NEGLECT_DEMAND_TICKS
             ("demand_ticks_left", DEMAND_WINDOW_TICKS),
             ("demand_cooldown", DEMAND_COOLDOWN_TICKS),
         ):
@@ -4951,6 +4974,111 @@ def load_state(data):
     _previously_earned_ids = _earned_snapshot()
 
     render()
+    return True
+
+
+# --- Z-18: entering and leaving the practice sandbox ---------------------------------------------
+# shared/sandbox-mode.js calls sandbox_enter() / sandbox_leave() / sandbox_is_active() through Pyodide and
+# draws the "Sandbox: nothing here is saved" banner. The rules: a large credit balance that never runs out
+# (no bankruptcy), every research node known (so every system and route is open), every ship bought, no
+# route hazards, no corporation renewal, nothing earned. The real game is set aside as a get_state()
+# snapshot and loaded back through the same load_state() a save uses; the sandbox is a fresh corporation
+# loaded the same way, so it can never write into the real one.
+SANDBOX_CREDITS = 1_000_000
+sandbox_active = False
+_sandbox_real = None
+
+
+def _sandbox_notify_page():
+    """Tells shared/sandbox-mode.js to re-read sandbox_is_active() (the banner and button follow it)."""
+    try:
+        from js import window  # noqa: PLC0415 -- Pyodide-only, deliberately lazy
+    except ImportError:
+        return
+    shared = getattr(window, "NoyvjSandbox", None)
+    if shared is not None:
+        shared.sync()
+
+
+def sandbox_is_active():
+    return sandbox_active
+
+
+def _sandbox_top_up():
+    """The balance never drops below SANDBOX_CREDITS (called from every render, so also after each purchase)."""
+    global total_profit, max_profit_ever
+    if sandbox_active and total_profit < SANDBOX_CREDITS:
+        total_profit = SANDBOX_CREDITS
+        max_profit_ever = max(max_profit_ever, total_profit)
+
+
+def _reset_running_tables():
+    """load_state() only updates these tables key by key, so a load would keep whatever the game running before
+    it had put there; put them back to a brand-new game's values first."""
+    fresh = _fresh_state
+    good_profit_recent.clear()
+    need_history.clear()
+    price_history.clear()
+    price_history.update({good: list(values) for good, values in fresh["price_history"].items()})
+    market_multiplier.update(fresh["market_multiplier"])
+    good_profit_total.update(fresh["good_profit_total"])
+    good_trip_count.update(fresh["good_trip_count"])
+    market_crash_ever.update(fresh["market_crash_ever"])
+
+
+def _sandbox_state():
+    """The brand-new corporation the sandbox starts from, as a save dict."""
+    data = copy.deepcopy(_fresh_state)
+    data["unlocked_research"] = sorted(RESEARCH_NODES)
+    data["research_points"] = _fresh_state["research_points"]
+    data["total_profit"] = SANDBOX_CREDITS
+    data["max_profit_ever"] = SANDBOX_CREDITS
+    for ship in data["ships"].values():
+        ship["purchased"] = True
+    data["route_hazards"] = {"hazards": False, "insurance": False, "disruptions": 0, "payouts": 0, "premiums": 0}
+    return data
+
+
+def sandbox_enter():
+    """Sets the real corporation aside and starts a practice one. True when the sandbox is on."""
+    global sandbox_active, _sandbox_real
+    if sandbox_active:
+        return True
+    snapshot = get_state()
+    _sandbox_real = {
+        "snapshot": snapshot,
+        "earned": list(snapshot["achievements_earned"]),
+        "guild_cooldown": guild_cooldown,
+    }
+    sandbox_active = True
+    _reset_running_tables()
+    _apply_state(_sandbox_state())
+    _sandbox_top_up()
+    render()
+    return True
+
+
+def _sandbox_restore_real(apply_snapshot=True):
+    """Puts the real corporation back exactly as it was. With apply_snapshot False the caller loads a save instead."""
+    global sandbox_active, _sandbox_real, guild_cooldown
+    real = _sandbox_real
+    sandbox_active = False
+    _sandbox_real = None
+    if real is None:
+        return
+    if apply_snapshot:
+        _reset_running_tables()
+        _apply_state(copy.deepcopy(real["snapshot"]))
+        guild_cooldown = real["guild_cooldown"]
+    else:
+        _reset_running_tables()
+
+
+def sandbox_leave():
+    """Leaves the sandbox; the real corporation is back and untouched. True when it is."""
+    if not sandbox_active:
+        return True
+    _sandbox_restore_real()
     return True
 
 
