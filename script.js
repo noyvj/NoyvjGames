@@ -539,6 +539,22 @@ function applyGameFilter() {
     ? "No games in this collection match your search and filters. Add games from a card's Show details."
     : "No games match your search.";
   gameFilterEmpty.hidden = visibleCount > 0;
+  if (calmFilter) calmFilter.refresh();
+}
+
+// QI-51: while half-asleep mode is on, the grid shows only the calm games (shared/calm-mode.js; the
+// slug list is its CALM_GAMES). The filter runs after the search/tag/session filters above so they
+// never un-hide a card it hid.
+let calmFilter = null;
+function setUpCalmFilter() {
+  if (!window.NoyvjCalm || !window.NoyvjCalm.CALM_GAMES) return;
+  const calm = new Set(window.NoyvjCalm.CALM_GAMES);
+  allTitleCards.forEach((card) => {
+    if (calm.has(cardSlug(card))) card.dataset.calm = "true";
+  });
+  calmFilter = window.NoyvjCalm.filter(document.getElementById("game-grid"), { itemSelector: ".title-card" });
+  // Switching calm mode off must not un-hide a card the search/tag/session filter hid: recompute everything.
+  window.NoyvjCalm.onChange(() => applyGameFilter());
 }
 
 // --- Y21: sort modes (default / highest rated / most saved) ---
@@ -693,6 +709,7 @@ if (gameSearchInput && gameTagFilter) {
     });
   }
   if (gameSearchInput.value.trim()) loadExtendedSearchIndex();
+  setUpCalmFilter();
   applyGameFilter();
   applySort();
 }

@@ -10,6 +10,8 @@
 <script src="hub-prefs.js"></script>
 <script src="shared/theme.js"></script>
 <script src="shared/lite-mode.js"></script>
+<script src="shared/night-mode.js"></script>
+<script src="shared/calm-mode.js"></script>
 <script src="shared/site-settings.js"></script>
 <link rel="stylesheet" href="shared/a11y.css">
 <link rel="stylesheet" href="shared/lite-mode.css">
@@ -52,6 +54,9 @@
       </div>
       <p class="hub-note" id="settings-lite-note" data-lite-status>Lite mode switches off animations, blurs, moving backgrounds and big shadows on the hub and in every game.</p>
       <p class="hub-note">It turns itself on, with a note, when this browser reports 2 GB of memory or less, two processor cores or fewer, or a data-saver setting. If you are signed in, your choice follows your account. It sits next to each game's own "reduce motion" switch and does not change it.</p>
+      <div id="settings-night-slot"></div>
+      <div id="settings-calm-slot"></div>
+      <p class="hub-note">Warm night colours and half-asleep mode are saved on this device and apply to the hub now; each game picks them up once it loads the same files.</p>
       <p id="settings-appearance-status" class="settings-status" role="status"></p>
     </section>
 
@@ -199,5 +204,9 @@
   <script src="hub-shortcuts.js"></script>
   <script src="hub-offline.js"></script>
   <script src="settings.js"></script>
+  <script>
+    if (window.NoyvjNight) NoyvjNight.mount("#settings-night-slot");
+    if (window.NoyvjCalm) NoyvjCalm.mount("#settings-calm-slot");
+  </script>
 </body>
 </html>
