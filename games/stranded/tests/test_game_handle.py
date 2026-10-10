@@ -233,3 +233,23 @@ def test_the_map_lists_every_day_and_only_names_what_has_been_seen():
 def test_the_endings_list_hides_titles_until_found():
     v = fresh()
     assert len(v["endings"]) == 9 and all(not e["seen"] and e["title"] == "Not found yet" for e in v["endings"])
+
+
+def test_three_goals_are_always_in_view_and_shift_to_what_is_closest():
+    v = fresh()
+    assert len(v["goals"]) == 3 and all(not g["earned"] and g["need"] > 0 for g in v["goals"])
+    v = play("0")
+    assert v["goals"][0]["id"] in ("first_words",) or v["goals"][0]["have"] / v["goals"][0]["need"] >= v["goals"][-1]["have"] / v["goals"][-1]["need"]
+    assert "first_words" not in [g["id"] for g in v["goals"]]
+    ratios = [g["have"] / g["need"] for g in v["goals"]]
+    assert ratios == sorted(ratios, reverse=True)
+
+
+def test_every_new_find_is_filed_in_the_archive_and_counted():
+    fresh()
+    play("0000")                                 # d1d reply 0 files log_01
+    v = call(action="open")
+    assert v["progress"]["archive"][0] == 1
+    assert any(t["kind"] == "found" and "Day 1" in t["text"] for t in v["transcript"])
+    call(action="restart")
+    assert call(action="open")["progress"]["archive"][0] == 1, "rewinding keeps what was found"

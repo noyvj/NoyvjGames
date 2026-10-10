@@ -36,10 +36,16 @@
     <h1>Stranded</h1>
   </div>
   <div class="game-toolbar">
+    <button id="archive-toggle-button" type="button" aria-expanded="false" aria-controls="archive-panel">Archive</button>
     <button id="map-toggle-button" type="button" aria-expanded="false" aria-controls="map-panel">Branch map</button>
     <button id="settings-toggle-button" type="button" aria-expanded="false" aria-controls="settings-panel">Settings</button>
   </div>
   <p class="tagline">A text line to a stubborn astronaut on a small grey moon. Twelve days, nine endings, every reply answered. Nothing is timed, and you can rewind to any choice for free.</p>
+  <section id="archive-panel" class="panel" hidden aria-labelledby="archive-heading">
+    <h2 id="archive-heading">The Archive</h2>
+    <p id="archive-summary" class="note"></p>
+    <div id="archive-body" class="archive-body"></div>
+  </section>
   <section id="map-panel" class="panel" hidden aria-labelledby="map-heading">
     <h2 id="map-heading">Branch map</h2>
     <p class="note">Every day, every scene and every path. A path is walked once you have taken it. Open a day to go back to any scene you have seen, by replies you have already tried.</p>
@@ -89,6 +95,11 @@
   </section>
   <p class="percent"><span id="percent-label">Completion 0%</span><span class="meter" aria-hidden="true"><span id="percent-fill" class="meter-fill"></span></span></p>
 
+  <section id="goals" class="goals" aria-label="Next goals">
+    <strong>Next goals</strong> <span class="note">(any order)</span>
+    <ul id="goals-list" class="goals-list"></ul>
+  </section>
+
   <section id="comms-panel" class="panel" aria-labelledby="comms-heading">
     <h2 id="comms-heading">Sparrow Relay, Orrin</h2>
     <div id="scene-holder" class="scene-holder" aria-hidden="true"></div>
@@ -100,6 +111,15 @@
       <span id="peek-note" class="note"></span>
     </div>
     <ul id="peek-list" class="peek-list" hidden></ul>
+    <div id="hint-box" class="hint-box">
+      <button id="hint-button" type="button" data-testid="stranded-hint">Need a nudge?</button>
+      <p id="hint-nudge" class="note hint-line" hidden></p>
+      <p id="hint-hint" class="note hint-line" hidden></p>
+      <div id="hint-answer" class="hint-answer" hidden>
+        <p id="hint-answer-text" class="hint-line"></p>
+        <button id="hint-do-button" type="button" data-testid="stranded-hint-do">Take me there</button>
+      </div>
+    </div>
     <div id="ending-card" class="ending-card" hidden>
       <p class="note">Ending reached</p>
       <p id="ending-title" class="ending-title"></p>
@@ -111,6 +131,16 @@
     <p id="action-line" class="note action-line" role="status" aria-live="polite"></p>
   </section>
 
+  <details id="tally" class="panel tally">
+    <summary>Tally (everything you have done)</summary>
+    <div class="stat-strip tally-strip">
+      <div class="stat"><span class="stat-label">Replies sent</span><span id="stat-sent" class="stat-value">0</span></div>
+      <div class="stat"><span class="stat-label">Rewinds</span><span id="stat-rewinds" class="stat-value">0</span></div>
+      <div class="stat"><span class="stat-label">What ifs</span><span id="stat-peeks" class="stat-value">0</span></div>
+      <div class="stat"><span class="stat-label">Jumps</span><span id="stat-jumps" class="stat-value">0</span></div>
+      <div class="stat"><span class="stat-label">Hints asked</span><span id="stat-hints" class="stat-value">0</span></div>
+    </div>
+  </details>
   <p id="engine-status" class="note" role="status">Opening the line...</p>
   <p id="announce" class="sr-only" role="status" aria-live="polite"></p>
 </main>
@@ -144,6 +174,7 @@
 <script>
   window.KeyboardShortcuts.init({
     panels: [
+      { toggle: "archive-toggle-button", panel: "archive-panel" },
       { toggle: "map-toggle-button", panel: "map-panel" },
       { toggle: "settings-toggle-button", panel: "settings-panel" },
     ],

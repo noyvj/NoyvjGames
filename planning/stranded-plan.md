@@ -39,7 +39,7 @@ First Words (1 choice); Three Days In; All Twelve Days; Someone Comes (1 ending)
 | 1 | Engine and the whole story | kit, walker, explore (reachability search, routes, loose ends, peek), lore, 59 scenes in four story tables, 9 endings, graph tests | Done |
 | 2 | Comms UI | chat view, stats, choices, rewind, save contract, favicon. Playable slice | Done |
 | 3 | Branch map and what-if | map panel and overview, Go there, loose-end button, what-if peek in the UI | Done |
-| 4 | Archive, goals, hint ladder | collectables panel, three goals, nudges. First complete game | Todo |
+| 4 | Archive, goals, hint ladder | collectables panel, three goals, nudges. First complete game | Done |
 | 5 | Standard kit | opening screen, tutorial, About with fiction notice, What's New, keyboard help, confirm dialogs, light theme, accessibility | Todo |
 | 6 | Achievements | 14 achievements, panel, toast, manifest, reachability test | Todo |
 | 7 | Desktop boot | `pc-config.json`, `pc.css`, `pc.js`, generated `pc.html`, docs | Todo |

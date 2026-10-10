@@ -158,6 +158,75 @@
     setText($("who-line"), "Day " + view.run.day + " · " + view.run.title);
   }
 
+  // ---- goals, hints, the Archive -------------------------------------------------------------------
+  function renderGoals() {
+    var list = $("goals-list");
+    var sig = view.goals.map(function (g) { return g.id + g.have; }).join(",");
+    if (list.dataset.sig === sig) return;
+    list.dataset.sig = sig;
+    list.textContent = "";
+    if (!view.goals.length) { list.appendChild(el("li", null, "Every goal is done. Thank you for taking the whole line.")); return; }
+    view.goals.forEach(function (g) {
+      var li = el("li");
+      li.appendChild(el("strong", null, g.label + ": "));
+      li.appendChild(document.createTextNode(g.description + " "));
+      var bar = el("span", "bar");
+      bar.setAttribute("aria-hidden", "true");
+      var fill = el("span", "bar-fill");
+      fill.style.width = Math.round(100 * g.have / g.need) + "%";
+      bar.appendChild(fill);
+      li.appendChild(bar);
+      li.appendChild(el("span", "goal-count", " " + g.have + "/" + g.need));
+      list.appendChild(li);
+    });
+  }
+  function renderHints() {
+    var h = view.hint;
+    var btn = $("hint-button");
+    btn.hidden = h.rung >= 3;
+    setText(btn, h.rung === 0 ? "Need a nudge?" : (h.rung === 1 ? "Another hint" : "Show the answer"));
+    $("hint-nudge").hidden = !h.nudge;
+    setText($("hint-nudge"), h.nudge ? "Nudge: " + h.nudge : "");
+    $("hint-hint").hidden = !h.hint;
+    setText($("hint-hint"), h.hint ? "Hint: " + h.hint : "");
+    $("hint-answer").hidden = !h.answer;
+    if (h.answer) {
+      setText($("hint-answer-text"), "Answer: " + h.answer);
+      setText($("hint-do-button"), h.do || "Take me there");
+      $("hint-do-button").hidden = h.kind === "none";
+    }
+  }
+  function renderTally() {
+    var t = view.tally;
+    bumpValue("stat-sent", t.sent);
+    bumpValue("stat-rewinds", t.rewinds);
+    bumpValue("stat-peeks", t.peeks);
+    bumpValue("stat-jumps", t.jumps);
+    bumpValue("stat-hints", t.hints);
+  }
+  function renderArchive() {
+    var p = view.progress;
+    var sig = p.archive[0] + ":" + p.archive[1];
+    if ($("archive-body").dataset.sig === sig) return;
+    $("archive-body").dataset.sig = sig;
+    setText($("archive-summary"), p.archive[0] + " of " + p.archive[1] + " pages filed. Pages are found by playing: nothing can be missed for good, and rewinding never takes one away. A page you have not found shows where to look.");
+    var body = $("archive-body");
+    body.textContent = "";
+    view.archive.forEach(function (sec) {
+      var d = el("details", "archive-section");
+      d.appendChild(el("summary", null, sec.name + " (" + sec.found + "/" + sec.total + ")"));
+      var ul = el("ul", "archive-list");
+      sec.entries.forEach(function (e) {
+        var li = el("li", e.found ? "filed" : "unfiled");
+        li.appendChild(el("strong", null, e.title));
+        li.appendChild(el("span", "rtext", e.found ? e.text : "Where to look: " + e.text));
+        ul.appendChild(li);
+      });
+      d.appendChild(ul);
+      body.appendChild(d);
+    });
+  }
+
   // ---- the what-if peek ----------------------------------------------------------------------------
   function renderPeek() {
     var p = view.peek;
@@ -252,6 +321,10 @@
     renderEnding();
     renderPeek();
     renderMap();
+    renderGoals();
+    renderHints();
+    renderTally();
+    renderArchive();
   }
 
   // ---- talking to the engine -----------------------------------------------------------------------
@@ -309,6 +382,9 @@
     $("toast").addEventListener("click", function () { showToast(""); });
     wirePanelToggle("settings-toggle-button", "settings-panel");
     wirePanelToggle("map-toggle-button", "map-panel");
+    wirePanelToggle("archive-toggle-button", "archive-panel");
+    $("hint-button").addEventListener("click", function () { send({ action: "hint" }); });
+    $("hint-do-button").addEventListener("click", function () { shown = 1e9; send({ action: "hint_do" }); });
     $("peek-button").addEventListener("click", function () { send({ action: "peek" }); });
     $("loose-button").addEventListener("click", function () {
       shown = 1e9;

@@ -175,3 +175,23 @@ html[data-effects="off"] .sc-bit-lamp, html[data-reduced-motion="true"] .sc-bit-
 .peek-list { list-style: none; margin: 0.3rem 0; padding: 0.4rem 0.6rem; border: 2px dashed var(--accent); border-radius: 10px; background: var(--surface); display: grid; gap: 0.3rem; font-size: 0.88rem; }
 .peek-list li { display: block; }
 html[data-theme="light"] ul.endings-list, html[data-theme="light"] ul.map-body, html[data-theme="light"] ul.map-choices, html[data-theme="light"] ul.peek-list { list-style: none; padding-left: 0; margin-left: 0; }
+
+/* Goals: three at a time, always in view. */
+.goals { background: var(--panel-fill); border: 1px solid var(--line); border-radius: 12px; padding: 0.4rem 0.7rem; margin: 0.5rem 0; font-size: 0.85rem; }
+.goals-list { list-style: none; margin: 0.2rem 0 0; padding: 0; display: grid; gap: 0.2rem; }
+.goals-list li { display: flex; flex-wrap: wrap; align-items: center; gap: 0.1rem 0.4rem; }
+.goals-list .bar { display: inline-block; flex: 0 0 5rem; height: 0.55rem; border: 1px solid var(--edge); border-radius: 3px; overflow: hidden; background: var(--surface); }
+.bar-fill { display: block; height: 100%; background: var(--accent); }
+.goal-count { font-variant-numeric: tabular-nums; font-weight: 700; }
+@media (max-width: 640px) { .goals { padding: 0.3rem 0.5rem; font-size: 0.78rem; } .goals-list .bar { flex-basis: 3rem; } }
+.hint-box { margin: 0.4rem 0; }
+.hint-line { margin: 0.3rem 0; }
+
+/* The Archive. */
+.archive-section { border-top: 1px solid var(--line); padding: 0.3rem 0; }
+.archive-section summary { cursor: pointer; font-weight: 700; padding: 0.2rem 0; }
+.archive-list { list-style: none; margin: 0.3rem 0; padding: 0; display: grid; gap: 0.3rem; }
+.archive-list li { border: 1px solid var(--line); border-radius: 10px; padding: 0.3rem 0.6rem; background: var(--surface); }
+.archive-list li.unfiled { border-style: dashed; color: var(--muted); }
+.archive-list .rtext { display: block; font-size: 0.85rem; margin-top: 0.15rem; }
+html[data-theme="light"] ul.goals-list, html[data-theme="light"] ul.archive-list { list-style: none; padding-left: 0; margin-left: 0; }

@@ -9,8 +9,10 @@ Updated after every milestone. Read `planning/stranded-plan.md`, then this file.
 
 - M3 Branch map and what-if: Branch map panel (overview svg, endings list, per-day list with Go there, Show me a loose end), What if button and rows, engine `loose` action. 71 tests; checked live.
 
+- M4 Archive, goals, hint ladder: Archive panel (three sections, hint where to look), three-goals strip, hint box (nudge, hint, answer, take me there), Tally details. First complete game. 73 tests; checked live.
+
 ## Next
-- M4 Archive, goals, hint ladder: Archive panel (logs, items, recordings), three goals strip, hint ladder box (nudge, hint, answer + button), tally details; achievements panel is M6.
+- M5 Standard kit: tutorial steps in app.js (GameTutorial.init, strandedTutorialSteps hook already in index.html), About panel (info.view() is already in the view), What's New panel, Tutorial button, keyboard help (already via shared), light-theme and accessibility checks. M6: achievements panel + toast + achievements.json.
 
 ## Open problems / notes
 - Local Python is 3.9: no match statements, no `X | Y` types.
