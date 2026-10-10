@@ -26,6 +26,10 @@ FS_WEEKS = {
         "Tu vas où?", "Que fais-tu dans la vie?", "Combien d'heures par semaine travailles-tu?", "à mon avis", "bon marché",
         "Le train est plus rapide que le bus.",
     ]},
+    5: {"row": 16, "topics": 5, "plots": 33, "must_have": [
+        "un anorak", "des bas", "un tailleur", "porter", "bleu clair", "vert foncé", "Ce sont des collants orange.",
+        "des collants orange", "Cette chemise ne te va pas.", "Quels pulls sont en promotion?",
+    ]},
 }
 
 
@@ -305,6 +309,51 @@ def test_week_4_comparison_words_and_sentences(game_env):
     markers = (" plus ", " moins ", " aussi ", "meilleure", " pire ")
     assert all(any(m in i["fr"] for m in markers) for i in sentences) and len(sentences) == 8
     assert "meilleur" in _topic(module, "fren152-w5-phrase-fs07")["rule"]
+
+
+# --- week 5 ------------------------------------------------------------------
+
+
+def test_week_5_extra_clothes_carry_their_article_and_the_plural_may_drop_it(game_env):
+    module = game_env.module
+    topic = _topic(module, "fren152-w6-vocab-fs01")
+    for item in topic["items"][:-1]:
+        assert item["fr"].split()[0] in {"un", "une", "des"}, item["fr"]
+    assert _live(module, topic["id"], 1, "fr", "bas")  # "des bas" may lose des
+    assert _live(module, topic["id"], 0, "en", "a parka")
+    assert topic["items"][-1] == {"fr": "porter", "en": "to wear", "accepted_en": ["to wear", "to carry", "to bring"]}
+
+
+def test_week_5_light_and_dark_colours_pair_a_colour_with_clair_or_foncé(game_env):
+    for item in _topic(game_env.module, "fren152-w6-vocab-fs02")["items"]:
+        colour, shade = item["fr"].split()
+        assert shade in {"clair", "foncé"}, item["fr"]
+        assert shade == ("clair" if item["en"].startswith(("light", "pale")) else "foncé")
+
+
+def test_week_5_colour_agreement_plot_shows_the_exceptions(game_env):
+    module = game_env.module
+    topic = _topic(module, "fren152-w6-grammar-fs04")
+    frs = [i["fr"] for i in topic["items"]]
+    assert "des collants orange" in frs and "un pull marron" in frs  # orange and marron never change
+    assert "une robe verte" in frs and "des chaussures noires" in frs
+    assert "bleu clair" in " ".join(frs)
+    assert "orange" in topic["rule"].lower() and "clair" in topic["rule"]
+
+
+def test_week_5_clothes_sentences_use_real_colour_agreement(game_env):
+    sentences = {i["fr"]: i["en"] for i in _topic(game_env.module, "fren152-w6-phrase-fs03")["items"]}
+    assert "robe verte" in " ".join(sentences) and "chaussures noires" in " ".join(sentences)
+    assert "Mes chaussettes sont rouges et blanches." in sentences
+    assert len(sentences) == 10
+
+
+def test_week_5_choosing_clothes_phrases_translate_both_ways(game_env):
+    module = game_env.module
+    topic = _topic(module, "fren152-w6-phrase-fs05")
+    assert len(topic["items"]) == 6
+    assert _live(module, topic["id"], 2, "en", "That shirt doesn't suit you")
+    assert _live(module, topic["id"], 1, "en", "Which jumpers are on sale")
 
 
 def test_only_the_real_person_by_person_tables_count_as_conjugations(game_env):

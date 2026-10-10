@@ -8960,6 +8960,390 @@
             }
           ],
           "rule": "Ce (masc.), cet (masc. before vowel/silent h), cette (fem.), ces (plural). Add -ci/-là to the noun to distinguish 'this/these' from 'that/those'."
+        },
+        {
+          "id": "fren152-w6-vocab-fs01",
+          "topic_type": "vocab",
+          "title": "More clothes",
+          "items": [
+            {
+              "fr": "un anorak",
+              "en": "a raincoat",
+              "accepted_en": [
+                "a raincoat",
+                "an anorak",
+                "a rain jacket",
+                "a windbreaker",
+                "a parka",
+                "a waterproof jacket"
+              ]
+            },
+            {
+              "fr": "des bas",
+              "en": "stockings",
+              "accepted_en": [
+                "stockings",
+                "hosiery"
+              ],
+              "accepted_fr": [
+                "des bas",
+                "bas"
+              ]
+            },
+            {
+              "fr": "un tailleur",
+              "en": "a woman's suit",
+              "accepted_en": [
+                "a woman's suit",
+                "a suit",
+                "a women's suit",
+                "a skirt suit",
+                "a trouser suit"
+              ]
+            },
+            {
+              "fr": "une veste",
+              "en": "a jacket",
+              "accepted_en": [
+                "a jacket",
+                "a blazer"
+              ]
+            },
+            {
+              "fr": "un uniforme",
+              "en": "a uniform"
+            },
+            {
+              "fr": "des tennis",
+              "en": "tennis shoes",
+              "accepted_en": [
+                "tennis shoes",
+                "trainers",
+                "sneakers",
+                "runners",
+                "plimsolls"
+              ],
+              "accepted_fr": [
+                "des tennis",
+                "tennis"
+              ]
+            },
+            {
+              "fr": "un gilet",
+              "en": "a cardigan",
+              "accepted_en": [
+                "a cardigan",
+                "a waistcoat"
+              ]
+            },
+            {
+              "fr": "un survêtement",
+              "en": "a tracksuit",
+              "accepted_en": [
+                "a tracksuit",
+                "a track suit",
+                "a jogging suit"
+              ]
+            },
+            {
+              "fr": "porter",
+              "en": "to wear",
+              "accepted_en": [
+                "to wear",
+                "to carry",
+                "to bring"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "fren152-w6-vocab-fs02",
+          "topic_type": "vocab",
+          "title": "Light and dark colours",
+          "items": [
+            {
+              "fr": "bleu clair",
+              "en": "light blue",
+              "accepted_en": [
+                "light blue",
+                "pale blue"
+              ]
+            },
+            {
+              "fr": "bleu foncé",
+              "en": "dark blue",
+              "accepted_en": [
+                "dark blue",
+                "navy blue",
+                "navy",
+                "deep blue"
+              ]
+            },
+            {
+              "fr": "vert clair",
+              "en": "light green",
+              "accepted_en": [
+                "light green",
+                "pale green"
+              ]
+            },
+            {
+              "fr": "vert foncé",
+              "en": "dark green",
+              "accepted_en": [
+                "dark green",
+                "deep green"
+              ]
+            },
+            {
+              "fr": "gris clair",
+              "en": "light grey",
+              "accepted_en": [
+                "light grey",
+                "pale grey",
+                "light gray",
+                "pale gray"
+              ]
+            },
+            {
+              "fr": "rouge foncé",
+              "en": "dark red",
+              "accepted_en": [
+                "dark red",
+                "deep red"
+              ]
+            },
+            {
+              "fr": "jaune clair",
+              "en": "light yellow",
+              "accepted_en": [
+                "light yellow",
+                "pale yellow"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "fren152-w6-phrase-fs03",
+          "topic_type": "phrase",
+          "title": "Clothes in sentences",
+          "items": [
+            {
+              "fr": "Aujourd'hui, je porte un pull bleu clair.",
+              "en": "Today I am wearing a light blue sweater.",
+              "accepted_en": [
+                "Today I am wearing a light blue sweater.",
+                "Today I'm wearing a light blue sweater",
+                "Today I am wearing a light blue jumper",
+                "Today I'm wearing a light blue jumper",
+                "Today I wear a light blue sweater",
+                "Today I am wearing a light blue pullover",
+                "Today I'm wearing a light blue pullover"
+              ]
+            },
+            {
+              "fr": "Elle porte une robe verte et des chaussures noires.",
+              "en": "She is wearing a green dress and black shoes.",
+              "accepted_en": [
+                "She is wearing a green dress and black shoes.",
+                "She's wearing a green dress and black shoes",
+                "She wears a green dress and black shoes"
+              ]
+            },
+            {
+              "fr": "Il met un pantalon gris et une chemise blanche.",
+              "en": "He puts on grey trousers and a white shirt.",
+              "accepted_en": [
+                "He puts on grey trousers and a white shirt.",
+                "He is putting on grey trousers and a white shirt",
+                "He puts on grey pants and a white shirt",
+                "He puts on a grey pair of trousers and a white shirt",
+                "He puts on gray trousers and a white shirt",
+                "He puts on gray pants and a white shirt"
+              ]
+            },
+            {
+              "fr": "Ce sont des collants orange.",
+              "en": "They are orange tights.",
+              "accepted_en": [
+                "They are orange tights.",
+                "These are orange tights",
+                "Those are orange tights",
+                "They're orange tights"
+              ]
+            },
+            {
+              "fr": "C'est une jupe vert foncé.",
+              "en": "It is a dark green skirt.",
+              "accepted_en": [
+                "It is a dark green skirt.",
+                "It's a dark green skirt",
+                "This is a dark green skirt",
+                "That is a dark green skirt"
+              ]
+            },
+            {
+              "fr": "Mes chaussettes sont rouges et blanches.",
+              "en": "My socks are red and white.",
+              "accepted_en": [
+                "My socks are red and white."
+              ]
+            },
+            {
+              "fr": "Pour aller à la plage, je mets un short et un tee-shirt.",
+              "en": "To go to the beach, I put on shorts and a t-shirt.",
+              "accepted_en": [
+                "To go to the beach, I put on shorts and a t-shirt.",
+                "To go to the beach, I put on a pair of shorts and a t-shirt",
+                "To go to the beach I wear shorts and a t-shirt",
+                "For the beach, I put on shorts and a t-shirt"
+              ]
+            },
+            {
+              "fr": "Qu'est-ce que tu mets pour aller à un mariage?",
+              "en": "What do you wear to go to a wedding?",
+              "accepted_en": [
+                "What do you wear to go to a wedding?",
+                "What do you put on to go to a wedding",
+                "What do you wear to a wedding",
+                "What do you put on for a wedding",
+                "What are you wearing to go to a wedding"
+              ]
+            },
+            {
+              "fr": "L'étudiant à ma gauche porte un anorak.",
+              "en": "The student on my left is wearing a raincoat.",
+              "accepted_en": [
+                "The student on my left is wearing a raincoat.",
+                "The student on my left wears a raincoat",
+                "The student on my left is wearing an anorak",
+                "The student on my left wears an anorak"
+              ]
+            },
+            {
+              "fr": "L'étudiante à ma droite porte une veste.",
+              "en": "The student on my right is wearing a jacket.",
+              "accepted_en": [
+                "The student on my right is wearing a jacket.",
+                "The student on my right wears a jacket",
+                "The female student on my right is wearing a jacket"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "fren152-w6-grammar-fs04",
+          "topic_type": "grammar",
+          "title": "Colours: agreement in sentences",
+          "items": [
+            {
+              "fr": "une robe verte",
+              "en": "a green dress"
+            },
+            {
+              "fr": "des chaussures noires",
+              "en": "black shoes"
+            },
+            {
+              "fr": "des collants orange",
+              "en": "orange tights"
+            },
+            {
+              "fr": "un pull marron",
+              "en": "a brown sweater",
+              "accepted_en": [
+                "a brown sweater",
+                "a brown jumper",
+                "a brown pullover"
+              ]
+            },
+            {
+              "fr": "une chemise bleu clair",
+              "en": "a light blue shirt",
+              "accepted_en": [
+                "a light blue shirt",
+                "a pale blue shirt"
+              ]
+            },
+            {
+              "fr": "des bas gris",
+              "en": "grey stockings",
+              "accepted_en": [
+                "grey stockings",
+                "gray stockings"
+              ]
+            }
+          ],
+          "rule": "Colours follow the noun and agree with it (verte, noires). Orange and marron never change; rose and rouge add no -e; gris adds no -s. After clair or foncé the colour stays as it is (une chemise bleu clair)."
+        },
+        {
+          "id": "fren152-w6-phrase-fs05",
+          "topic_type": "phrase",
+          "title": "Choosing and liking clothes",
+          "items": [
+            {
+              "fr": "Quelle écharpe préfères-tu, la rouge ou la verte?",
+              "en": "Which scarf do you prefer, the red one or the green one?",
+              "accepted_en": [
+                "Which scarf do you prefer, the red one or the green one?",
+                "Which scarf do you prefer, the red or the green",
+                "Which scarf do you like better, the red one or the green one"
+              ]
+            },
+            {
+              "fr": "Quels pulls sont en promotion?",
+              "en": "Which sweaters are on sale?",
+              "accepted_en": [
+                "Which sweaters are on sale?",
+                "Which jumpers are on sale",
+                "Which sweaters are on special",
+                "Which pullovers are on sale",
+                "Which jumpers are on special"
+              ]
+            },
+            {
+              "fr": "Cette chemise ne te va pas.",
+              "en": "This shirt does not suit you.",
+              "accepted_en": [
+                "This shirt does not suit you.",
+                "This shirt doesn't suit you",
+                "That shirt does not suit you",
+                "That shirt doesn't suit you",
+                "This shirt does not look good on you"
+              ]
+            },
+            {
+              "fr": "Je n'aime pas ces collants.",
+              "en": "I do not like these tights.",
+              "accepted_en": [
+                "I do not like these tights.",
+                "I don't like these tights",
+                "I do not like those tights",
+                "I don't like those tights"
+              ]
+            },
+            {
+              "fr": "Cet anorak est très élégant.",
+              "en": "This raincoat is very smart.",
+              "accepted_en": [
+                "This raincoat is very smart.",
+                "This anorak is very smart",
+                "This raincoat is very elegant",
+                "This anorak is very elegant",
+                "This raincoat is very stylish",
+                "This anorak is very stylish"
+              ]
+            },
+            {
+              "fr": "Ce manteau-ci est plus cher que ce manteau-là.",
+              "en": "This coat is dearer than that coat.",
+              "accepted_en": [
+                "This coat is dearer than that coat.",
+                "This coat is more expensive than that coat",
+                "This coat costs more than that coat"
+              ]
+            }
+          ]
         }
       ],
       "bonus_sentences": [
