@@ -3843,6 +3843,57 @@ def render_confirmation_settings():
     document.getElementById("confirm-reset-button").disabled = not skipped
 
 
+# ---- C-6 number format, units and funds deltas ---------------------------------------------------------------------
+# Settings choose how the headline numbers read: full (default, exactly as before) or compact (1.2k, 3M), and whether
+# demand and capacity carry a "MW" label (the game's capacity units are nameplate megawatts in spirit; the label is
+# only a label, no rule changes). The funds change of the last round is also written as an arrow plus words.
+def format_amount(value):
+    """A number as the player chose to read it: whole numbers, or compact (1.2k, 3M) from 1,000 up."""
+    n = float(value)
+    if prefs["number_format"] == "compact" and abs(n) >= 1000:
+        for scale, suffix in ((1_000_000_000, "B"), (1_000_000, "M"), (1000, "k")):
+            if abs(n) >= scale:
+                text = f"{n / scale:.1f}".rstrip("0").rstrip(".")
+                return f"{text}{suffix}"
+    return f"{n:.0f}"
+
+
+def format_demand(value):
+    """Demand and capacity: untouched (the raw number) in full mode so the display is exactly what it always was."""
+    if prefs["number_format"] == "compact":
+        return format_amount(value)
+    return f"{value}"
+
+
+def unit_suffix():
+    return " MW" if prefs["unit"] == "mw" else ""
+
+
+def funds_delta_text():
+    """Arrow plus words for the funds change of the last round; "" before any round and in the sandbox."""
+    recap = state.last_round_recap
+    if sandbox_active or not recap:
+        return ""
+    net = int(round(recap["net"]))
+    if net > 0:
+        return f"\u25B2 Funds up {format_amount(net)} last round"
+    if net < 0:
+        return f"\u25BC Funds down {format_amount(-net)} last round"
+    return "\u25C6 Funds unchanged last round"
+
+
+def render_number_settings():
+    document.getElementById("pref-number-format").value = prefs["number_format"]
+    document.getElementById("pref-unit").value = prefs["unit"]
+    delta_el = document.getElementById("funds-delta-display")
+    text = funds_delta_text()
+    delta_el.innerText = text
+    delta_el.hidden = not text
+    delta_el.className = "funds-delta " + (
+        "funds-delta--up" if text.startswith("\u25B2") else ("funds-delta--down" if text.startswith("\u25BC") else "funds-delta--flat")
+    )
+
+
 def render():
     render_info_page()
     render_shadow()
@@ -3854,17 +3905,19 @@ def render():
     update_summary_panel()
     document.getElementById("round-display").innerText = f"Round {state.round_number}"
     demand_el = document.getElementById("demand-display")
-    demand_el.innerText = f"Demand: {state.demand} {demand_growth_arrow()}"
+    demand_el.innerText = f"Demand: {format_demand(state.demand)}{unit_suffix()} {demand_growth_arrow()}"
     demand_el.title = demand_growth_title()
     document.getElementById("streak-display").innerText = (
         f"Clean streak: {state.current_clean_streak} round(s) without a disruption "
         f"(best {state.best_clean_streak})"
     )
     document.getElementById("funds-display").innerText = (
-        "Funds: unlimited (sandbox)" if sandbox_active else f"Funds: {state.funds:.0f}"
+        "Funds: unlimited (sandbox)" if sandbox_active else f"Funds: {format_amount(state.funds)}"
     )
-    document.getElementById("capacity-display").innerText = f"Capacity: {state.total_capacity()}"
-    document.getElementById("emissions-display").innerText = f"Emissions: {state.emissions:.0f}"
+    document.getElementById("capacity-display").innerText = (
+        f"Capacity: {format_demand(state.total_capacity())}{unit_suffix()}"
+    )
+    document.getElementById("emissions-display").innerText = f"Emissions: {format_amount(state.emissions)}"
     document.getElementById("fossil-share-display").innerText = (
         f"Fossil share of grid: {state.fossil_share() * 100:.0f}%"
     )
@@ -3909,6 +3962,7 @@ def render():
     render_chart_tables()
     render_fleet_overview()
     render_coach()
+    render_number_settings()
     render_confirmation_settings()
     document.getElementById("global-comparison-message").innerText = global_comparison_message(
         state.emissions, state.global_reference_emissions
@@ -6169,6 +6223,10 @@ def setup():
     document.getElementById("settings-reset-button").addEventListener("click", create_proxy(on_reset_prefs))
     document.getElementById("confirm-reset-button").addEventListener("click", create_proxy(on_reset_confirmations))
     document.getElementById("pref-coach").addEventListener("change", create_proxy(_make_pref_checkbox_handler("coach")))
+    document.getElementById("pref-number-format").addEventListener(
+        "change", create_proxy(_make_pref_select_handler("number_format"))
+    )
+    document.getElementById("pref-unit").addEventListener("change", create_proxy(_make_pref_select_handler("unit")))
     for fleet_key, _label in FLEET_COLUMNS:
         document.getElementById(f"fleet-sort-{fleet_key}").addEventListener(
             "click", create_proxy(_make_fleet_sort_handler(fleet_key))

@@ -2,6 +2,10 @@
   "changelog": [
     {
       "date": "2026-10-11",
+      "entry": "New: number choices in Settings. Pick compact numbers (1.2k, 3M) or full ones, and label demand and capacity as MW or plain units. After every round a line says what happened to your funds in words and an arrow (▲ up, ▼ down, ◆ unchanged), so you never have to read a colour to know."
+    },
+    {
+      "date": "2026-10-11",
       "entry": "New: in Settings, a Confirmations row lists any question you switched off with 'don't ask again' (finishing a run, retiring the last unit of a plant type) and an Ask me again button turns them all back on. Retiring from two or more units of a type is still instant; only the last unit asks."
     },
     {
