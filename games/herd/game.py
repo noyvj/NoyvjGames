@@ -2003,11 +2003,29 @@ def render_satellite():
     )
 
 
+SATELLITE_LEVER_KEYS = {
+    "open_satellite": "satellite_open",
+    "grow_satellite": "satellite_grow",
+    "retrofit_satellite": "satellite_retrofit",
+}
+
+
+def _satellite_action_cost(action):
+    return {
+        "open_satellite": SATELLITE_OPEN_COST,
+        "grow_satellite": farm.satellite_grow_cost(),
+        "retrofit_satellite": SATELLITE_RETROFIT_COST,
+    }[action]
+
+
 def _make_satellite_handler(action, button_id):
     def handler(event=None):
-        if getattr(farm, action)():
-            _pulse(button_id)
-        render()
+        def do_buy():
+            if getattr(farm, action)():
+                _pulse(button_id)
+            render()
+
+        _guarded_purchase(LEVER_LABELS[SATELLITE_LEVER_KEYS[action]], _satellite_action_cost(action), do_buy)
     return handler
 
 
@@ -2779,29 +2797,41 @@ def round_announcement(funds_before, methane_before):
 
 
 def on_grow_poultry(event=None):
-    if farm.grow_poultry():
-        _pulse("poultry-grow-button")
-    render()
+    def do_buy():
+        if farm.grow_poultry():
+            _pulse("poultry-grow-button")
+        render()
+
+    _guarded_purchase("Grow Flock", farm.poultry_grow_cost(), do_buy)
 
 
 def _make_poultry_handler(measure):
     def handler(event=None):
-        if farm.invest_poultry(measure):
-            _pulse(f"{measure}-count")
-        render()
+        def do_buy():
+            if farm.invest_poultry(measure):
+                _pulse(f"{measure}-count")
+            render()
+
+        _guarded_purchase(POULTRY_MEASURES[measure]["label"], POULTRY_MEASURES[measure]["cost"], do_buy)
     return handler
 
 
 def on_invest_genetics(event=None):
-    if farm.invest_genetics():
-        _pulse("genetics-invest-button")
-    render()
+    def do_buy():
+        if farm.invest_genetics():
+            _pulse("genetics-invest-button")
+        render()
+
+    _guarded_purchase("Breeding Program", GENETICS_COST, do_buy)
 
 
 def on_invest_supply_chain(event=None):
-    if farm.invest_supply_chain():
-        _pulse("supply-chain-invest-button")
-    render()
+    def do_buy():
+        if farm.invest_supply_chain():
+            _pulse("supply-chain-invest-button")
+        render()
+
+    _guarded_purchase("Processing & Distribution", SUPPLY_CHAIN_COST, do_buy)
 
 
 def on_toggle_variation(event=None):
@@ -2934,22 +2964,74 @@ def render():
     render_round_extras()
 
 
+# F-18: an optional "ask before a big purchase" setting. The Settings select (settings.js) keeps the
+# threshold in localStorage as a percentage of current funds; 0 means off, which is the default.
+CONFIRM_THRESHOLD_KEY = "herd-confirm-percent"
+CONFIRM_THRESHOLD_CHOICES = (0, 25, 50, 75)
+
+
+def confirm_threshold_percent():
+    raw = _read_local_storage_item(CONFIRM_THRESHOLD_KEY)
+    try:
+        value = int(raw)
+    except (TypeError, ValueError):
+        return 0
+    return value if value in CONFIRM_THRESHOLD_CHOICES else 0
+
+
+def purchase_needs_confirm(cost):
+    """True when the setting is on and this purchase costs more than the chosen share of the
+    funds the farm has right now."""
+    percent = confirm_threshold_percent()
+    return percent > 0 and cost > 0 and farm.funds > 0 and cost > farm.funds * percent / 100.0 + 1e-9
+
+
+def big_purchase_message(label, cost):
+    share = cost / farm.funds * 100 if farm.funds > 0 else 100
+    return (
+        f"{label} costs {cost:.0f} funds, {share:.0f}% of the {farm.funds:.0f} you have. "
+        f"You asked to be checked before any purchase above {confirm_threshold_percent()}% of your funds."
+    )
+
+
+def _guarded_purchase(label, cost, action):
+    """Runs `action` straight away, or after the shared confirm dialog when the F-18 setting says
+    this purchase is big. The dialog has no "don't ask again" box (the setting itself is the way
+    to turn it off)."""
+    if purchase_needs_confirm(cost):
+        _confirm_dialog_ask(
+            action_id="herd-big-purchase",
+            message=big_purchase_message(label, cost),
+            confirm_label="Buy",
+            on_confirm=action,
+            allow_skip=False,
+        )
+    else:
+        action()
+
+
 def on_grow_herd(event=None):
-    if farm.buy_bulk("herd", bulk_mode):
-        _pulse("grow-herd-button")
-    render()
-    _check_new_achievements_for_toast()
+    def do_buy():
+        if farm.buy_bulk("herd", bulk_mode):
+            _pulse("grow-herd-button")
+        render()
+        _check_new_achievements_for_toast()
+
+    _guarded_purchase("Grow Herd", farm.bulk_plan("herd", bulk_mode)[1], do_buy)
 
 
 def _make_decoupling_handler(measure):
     def handler(event=None):
-        ratio_before = farm.coupling_ratio()
-        if farm.buy_bulk(measure, bulk_mode):
-            _pulse(f"{measure}-count")
-            if farm.coupling_ratio() < ratio_before - 1e-9:
-                _pulse("gauge-range-display")  # F22 — new session-best
-        render()
-        _check_new_achievements_for_toast()
+        def do_buy():
+            ratio_before = farm.coupling_ratio()
+            if farm.buy_bulk(measure, bulk_mode):
+                _pulse(f"{measure}-count")
+                if farm.coupling_ratio() < ratio_before - 1e-9:
+                    _pulse("gauge-range-display")  # F22 — new session-best
+            render()
+            _check_new_achievements_for_toast()
+
+        _guarded_purchase(DECOUPLING_MEASURES[measure]["label"], farm.bulk_plan(measure, bulk_mode)[1], do_buy)
     return handler
 
 
@@ -3132,6 +3214,16 @@ def on_invest_plant_pivot(event=None):
         render()
         _check_new_achievements_for_toast()
 
+    if purchase_needs_confirm(PLANT_PIVOT_COST):
+        # F-18: the setting says this is a big purchase, so ask every time (no "don't ask again").
+        _confirm_dialog_ask(
+            action_id="herd-big-purchase",
+            message=f"{big_purchase_message('Plant-Based Pivot', PLANT_PIVOT_COST)} {plant_pivot_confirm_message()}",
+            confirm_label="Invest",
+            on_confirm=do_invest,
+            allow_skip=False,
+        )
+        return
     _confirm_dialog_ask(
         action_id="herd-plant-pivot-invest",
         message=plant_pivot_confirm_message(),

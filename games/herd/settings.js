@@ -110,6 +110,43 @@
     return on;
   }
 
+  // F-18: "ask before a big purchase" threshold, a percentage of current funds (0 = never).
+  // game.py reads the same localStorage key each time a purchase button is pressed.
+  const CONFIRM_KEY = "herd-confirm-percent";
+  const CONFIRM_CHOICES = ["0", "25", "50", "75"];
+
+  function readConfirmChoice() {
+    try {
+      const raw = window.localStorage.getItem(CONFIRM_KEY);
+      return CONFIRM_CHOICES.indexOf(raw) === -1 ? "0" : raw;
+    } catch (e) {
+      return "0";
+    }
+  }
+
+  function writeConfirmChoice(value) {
+    try {
+      window.localStorage.setItem(CONFIRM_KEY, value);
+    } catch (e) {
+      // The choice still applies until the page is reloaded.
+    }
+  }
+
+  function initConfirmThreshold() {
+    const select = document.getElementById("confirm-threshold-select");
+    if (!select) return;
+    select.value = readConfirmChoice();
+    select.addEventListener("change", function () {
+      writeConfirmChoice(select.value);
+    });
+  }
+
+  function resetConfirmThreshold() {
+    writeConfirmChoice("0");
+    const select = document.getElementById("confirm-threshold-select");
+    if (select) select.value = "0";
+  }
+
   function initDisplayPrefs() {
     DISPLAY_PREFS.forEach(function (pref) {
       const on = applyPref(pref, readPref(pref.key));
@@ -222,6 +259,7 @@
 
   function init() {
     initDisplayPrefs();
+    initConfirmThreshold();
     initKeyboardPlay();
     let scale = readStoredScale();
     applyScale(scale);
@@ -274,6 +312,7 @@
           motionCheckbox.checked = false;
         }
         resetDisplayPrefs();
+        resetConfirmThreshold();
       });
     }
   }

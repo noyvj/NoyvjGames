@@ -1,6 +1,10 @@
 [
   {
     "date": "2026-10-10",
+    "entry": "Settings has a new option, Ask before a big purchase (never, or over 25%, 50% or 75% of your funds). When a purchase, or a whole x5 or Max batch, costs more than that share of the funds you have, a confirmation shows the cost and the share first. It is off by default."
+  },
+  {
+    "date": "2026-10-10",
     "entry": "If a save cannot be read (for example a hand-edited code with a letter where a number belongs), Herd no longer half-loads it. A notice at the top now says in plain words which values are the problem, your current farm stays exactly as it was, and you can either keep it or load the save with a fresh-farm value in place of only the bad fields."
   },
   {
