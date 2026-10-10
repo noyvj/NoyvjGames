@@ -1,5 +1,5 @@
 """Hull Repair -- the forty boards, grouped into five decks (chapters). Each board's stored `sol` is its one restored
-layout; tests prove it is the only one. A deck opens once OPEN_AT boards of the deck before it are patched."""
+layout; tests prove it is the only one. Every deck and board is open from the start (AN-1); the deck order and the map stay."""
 
 import boards_core
 import boards_crew
@@ -25,8 +25,6 @@ CHAPTER_DEFS = (
      "blurb": "Power and control. Everything you have learned, and the last new part.",
      "new": "Mixers: two named lines both end in the mixer, one from each side."},
 )
-OPEN_AT = 5
-
 CHAPTER_LIST = []
 BY_ID = {}
 ORDER = []

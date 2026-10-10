@@ -4,8 +4,6 @@
 
 import boards
 
-OPEN_AT = boards.OPEN_AT
-
 
 def state_of(st, bid):
     return st.get(bid, 0)
@@ -20,19 +18,14 @@ def deck_restored(st, chapter):
 
 
 def chapter_open(st, index):
-    """Deck 1 is always open; the next deck opens once OPEN_AT boards of the one before are patched (or all of them,
-    if the deck has fewer). A deck with no boards is never open."""
-    chapter = boards.CHAPTER_LIST[index]
-    if not chapter["rooms"]:
-        return False
-    if index == 0:
-        return True
-    prev = boards.CHAPTER_LIST[index - 1]
-    return deck_patched(st, prev) >= min(OPEN_AT, len(prev["rooms"]))
+    """Every deck with boards in it is open from the start (AN-1, 2026-10-11); a deck used to open once five boards of the
+    one before were patched. Kept as a function (it ignores `st`) so old callers and old saves, which never stored an
+    unlock, keep working. A deck with no boards is never open."""
+    return 0 <= index < len(boards.CHAPTER_LIST) and bool(boards.CHAPTER_LIST[index]["rooms"])
 
 
 def board_open(st, bid):
-    return chapter_open(st, boards.BY_ID[bid].chapter)
+    return bid in boards.BY_ID
 
 
 def totals(st):

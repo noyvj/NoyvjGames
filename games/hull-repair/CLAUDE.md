@@ -26,7 +26,7 @@ Flow-Free-style routing of power and pipes across a damaged space-station hull: 
 |---|-----------|---------|--------|
 | 1 | Engine | `rules.py`, `play.py`, `tools/solver.py`, `tools/gen.py`, `boards.py` + deck 1 (8 boards), tests | Done |
 | 2 | Board UI | SVG board, pointer and keyboard drawing, result card, board picker, favicon, settings, save contract | Done |
-| 3 | Decks 2-3, map, log, hints | 16 boards, deck gating, station map, repair log, hint ladder, three-goals strip | Done |
+| 3 | Decks 2-3, map, log, hints | 16 boards, station map (deck gating removed by AN-1), repair log, hint ladder, three-goals strip | Done |
 | 4 | Decks 4-5 | 16 boards (40 in all) with valves and mixers. First complete game | Done |
 | 5 | Standard kit | Opening screen, tutorial, About, What's New, keyboard help, confirm dialogs, light theme, accessibility pass | Done |
 | 6 | Achievements | 14 achievements, panel and toast, manifest, reachability test | Done |
@@ -44,7 +44,7 @@ Flow-Free-style routing of power and pipes across a damaged space-station hull: 
 - Keyboard: arrows move a cursor, Enter/Space picks a line up and puts it down, Backspace takes a cell back, Escape lets go, Z undoes. Pointer: pointer capture on `#board-holder`, `touch-action: none`.
 
 ## Milestone 3 notes
-- Decks: 1 plain (`boards_dock.py`), 2 holes (`boards_crew.py`), 3 bridges (`boards_engineering.py`); a deck opens at 5 patched rooms of the one before (`progress.py`). Every bridge board really crosses on a bridge (tested).
+- Decks: 1 plain (`boards_dock.py`), 2 holes (`boards_crew.py`), 3 bridges (`boards_engineering.py`); every deck is open from the start (AN-1, 2026-10-11; it used to open at 5 patched rooms of the one before). Every bridge board really crosses on a bridge (tested).
 - Hints (`hints.py`): rung 1 nudge, rung 2 hint (ghost of the opening cells of the most constrained long line), rung 3 answer (ghost of every line, `load_answer` lays it, undoable). Free, saved per board in `rungs`, never touch a status.
 - Station map (`render.station_svg`): five decks of eight rooms, state by shape (cracked / dashed ring / check mark) as well as light; clicking a room opens it. Repair log (`logbook.py`): one quiet line per room (all 40 written), found when the room is patched.
 - Goals strip: `achievements.goals` gives the next three unearned achievements that can be worked on now (facts only; the manifest, panel and toast arrive in milestone 6).
@@ -68,3 +68,6 @@ Flow-Free-style routing of power and pipes across a damaged space-station hull: 
 
 ## Sound (AU-2, 2026-10-11)
 - Optional generated tones from `shared/sfx.js` (Web Audio, no files; off by default; the Settings panel mounts `NoyvjSfx.control()` in `#sfx-setting-slot`). Cues are called only from `app.js` `soundFor()` after the engine answers, never from the Python engine: `confirm` when a line becomes joined, `click_low` when a joined or started line is cut, taken back or cleared, `bell` when a room becomes fully restored. Nothing is communicated by sound alone, and the About pledge says so. The Sources page lists "Generated sound (Web Audio)".
+
+## AN-1 (2026-10-11): every deck and board open from the start
+- Owner answer Hr2. `progress.chapter_open` is true for any deck that has boards and `board_open` is true for any known board id (`boards.OPEN_AT` is gone); an unlock was never stored in a save (it was computed from `st`), so old saves load unchanged. The rooms view and the map no longer carry `open`/`need`/`prev_name`/`data-open`; the Locked styling and toasts are gone. The deck order, the station map and the "new part" blurbs are unchanged. Achievements no longer have a per-deck gate (`achievements.goals(facts, count)`), and the two whole-station totals follow `len(boards.ORDER)` instead of a literal 40.

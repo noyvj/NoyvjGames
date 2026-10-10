@@ -233,9 +233,9 @@ def _hull_level(patched, restored, total):
 
 def station_svg(decks):
     """The station cutaway: five decks of eight rooms, the first deck at the bottom. `decks` is the game's deck list (each
-    with name, open, rooms [{id, name, number, status, status_name, open, current}]). A room is dark and cracked when open
-    to repair, dashed and half-lit when patched, solid with lit windows and a check mark when restored; a deck that is not
-    open yet is dotted. Everything that tells states apart is shape, not only light."""
+    with name, rooms [{id, name, number, status, status_name, current}]). A room is dark and cracked when open
+    to repair, dashed and half-lit when patched, solid with lit windows and a check mark when restored. Every deck is
+    open from the start (AN-1), so there is no locked look any more. Everything that tells states apart is shape, not only light."""
     total = sum(len(d["rooms"]) for d in decks)
     patched = sum(1 for d in decks for r in d["rooms"] if r["status"] >= 1)
     restored = sum(1 for d in decks for r in d["rooms"] if r["status"] >= 2)
@@ -253,19 +253,19 @@ def station_svg(decks):
         for slot in range(ROOMS_PER_DECK):
             w = widths[slot]
             room = deck["rooms"][slot] if slot < len(deck["rooms"]) else None
-            out.append(_map_room(room, slot + 1, x, y, w, deck["open"]))
+            out.append(_map_room(room, slot + 1, x, y, w))
             x += w + 4
     out.append("</svg>")
     return "".join(out)
 
 
-def _map_room(room, number, x, y, w, deck_open):
+def _map_room(room, number, x, y, w):
     if room is None:
         return '<g class="hr-room hr-room-empty"><rect class="hr-room-body" x="%g" y="%g" width="%d" height="%d" rx="3"/></g>' % (x, y, w, ROW_H)
     status = room["status"]
-    cls = "hr-room s%d%s%s" % (status, "" if deck_open else " locked", " current" if room["current"] else "")
-    words = "%s: %s" % (room["name"], room["status_name"] if deck_open else "locked")
-    parts = ['<g class="%s" data-id="%s" data-open="%d"><title>%s</title>' % (cls, room["id"], 1 if deck_open else 0, words),
+    cls = "hr-room s%d%s" % (status, " current" if room["current"] else "")
+    words = "%s: %s" % (room["name"], room["status_name"])
+    parts = ['<g class="%s" data-id="%s"><title>%s</title>' % (cls, room["id"], words),
              '<rect class="hr-room-body" x="%g" y="%g" width="%d" height="%d" rx="3"/>' % (x, y, w, ROW_H),
              _poly([(x + 2, y + 2), (x + w - 2, y + 2), (x + 2, y + ROW_H - 2)], "hr-room-facet")]
     if status >= 1:

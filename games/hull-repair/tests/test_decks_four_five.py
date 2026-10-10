@@ -71,7 +71,7 @@ def test_the_achievement_totals_match_the_station():
     import achievements
     by_id = {a[0]: a for a in achievements.ACHIEVEMENTS}
     assert by_id["station_lit"][4] == by_id["hull_whole"][4] == len(boards.ORDER)
-    assert by_id["mind_the_valve"][5] == 4 and by_id["colour_theory"][5] == 5
+    assert all(len(row) == 5 for row in achievements.ACHIEVEMENTS), "no per-deck gate on any achievement (AN-1)"
 
 
 def test_a_perfect_player_restores_all_forty_rooms():

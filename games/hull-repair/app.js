@@ -175,15 +175,15 @@
   }
   function renderRooms() {
     var holder = $("rooms-body");
-    var sig = JSON.stringify(view.rooms.map(function (c) { return [c.open, c.rooms.map(function (r) { return r.status + (r.current ? "c" : ""); })]; }));
+    var sig = JSON.stringify(view.rooms.map(function (c) { return c.rooms.map(function (r) { return r.status + (r.current ? "c" : ""); }); }));
     if (holder.dataset.sig === sig) return;
     holder.dataset.sig = sig;
     holder.textContent = "";
     view.rooms.forEach(function (c) {
       if (!c.total) return;
-      var sec = el("section", "chapter" + (c.open ? "" : " locked"));
+      var sec = el("section", "chapter");
       sec.appendChild(el("h3", null, c.name + " (" + c.patched + "/" + c.total + " patched, " + c.restored + " restored)"));
-      sec.appendChild(el("p", "note", c.open ? c.blurb : "Locked: patch " + c.need + " rooms of " + c.prev_name + " to open this deck."));
+      sec.appendChild(el("p", "note", c.blurb));
       var ul = el("ul", "room-grid");
       c.rooms.forEach(function (r) {
         var li = el("li");
@@ -191,11 +191,9 @@
         b.type = "button";
         b.dataset.testid = "hull-repair-room-" + r.id;
         b.appendChild(el("span", "rname", r.number + ". " + r.name));
-        b.appendChild(el("span", "rmeta", r.open ? (r.status_name.charAt(0).toUpperCase() + r.status_name.slice(1) + " · " + r.size + " · " + plural(r.lines, "line", "lines")) : "Locked"));
-        b.setAttribute("aria-label", r.number + ", " + r.name + ". " + (r.open ? r.status_name + ", " + r.size + ", " + plural(r.lines, "line", "lines") : "Locked") + (r.current ? ". Current room" : ""));
-        if (!r.open) b.setAttribute("aria-disabled", "true");
+        b.appendChild(el("span", "rmeta", r.status_name.charAt(0).toUpperCase() + r.status_name.slice(1) + " · " + r.size + " · " + plural(r.lines, "line", "lines")));
+        b.setAttribute("aria-label", r.number + ", " + r.name + ". " + (r.status_name + ", " + r.size + ", " + plural(r.lines, "line", "lines")) + (r.current ? ". Current room" : ""));
         b.addEventListener("click", function () {
-          if (!r.open) { showToast("That deck opens once " + c.need + " rooms of " + c.prev_name + " are patched."); return; }
           send({ action: "pick", board: r.id });
           $("rooms-panel").hidden = true;
           $("rooms-toggle-button").setAttribute("aria-expanded", "false");
@@ -218,7 +216,6 @@
   function onMapClick(e) {
     var room = e.target.closest ? e.target.closest(".hr-room[data-id]") : null;
     if (!room) return;
-    if (room.getAttribute("data-open") !== "1") { showToast("That deck is not open yet: patch five rooms of the deck before it."); return; }
     send({ action: "pick", board: room.getAttribute("data-id") });
     $("rooms-panel").hidden = true;
     $("rooms-toggle-button").setAttribute("aria-expanded", "false");
@@ -279,7 +276,7 @@
     if (list.dataset.sig === sig) return;
     list.dataset.sig = sig;
     list.textContent = "";
-    if (!view.goals.length) { list.appendChild(el("li", null, "Every goal you can reach right now is done. New ones appear as new decks open.")); return; }
+    if (!view.goals.length) { list.appendChild(el("li", null, "Every goal you can reach right now is done. Pick any room to find the next one.")); return; }
     view.goals.forEach(function (g) {
       var li = el("li");
       li.appendChild(el("strong", null, g.label + ": "));
@@ -561,7 +558,7 @@
     { selector: "#board-line", title: "Patched and restored", text: "Joining every line patches the room and lights it dimly. Covering every cell as well restores it fully. The dots mark cells nothing covers yet; every board has exactly one way to cover them all." },
     { selector: "#hint-button", title: "Hints are free", text: "A nudge says where to start, a hint draws the opening of one line as a dotted ghost, and the answer draws the whole layout. Using them never costs anything, and the room still counts." },
     { selector: "#goals", title: "Your goals", text: "Three goals stay in view, in any order. Every line you lay, erase or hint you ask for counts toward something on the screen." },
-    { selector: "#rooms-toggle-button", title: "The station", text: "Station opens the map: every patched room lights up there, and the Repair log keeps a line from the people who left. A deck opens once five of the one before are patched. New parts arrive deck by deck: bridges, valves, mixers." },
+    { selector: "#rooms-toggle-button", title: "The station", text: "Station opens the map: every patched room lights up there, and the Repair log keeps a line from the people who left. Every deck is open from the start, so pick any room. New parts arrive deck by deck: bridges, valves, mixers." },
     { title: "You are ready", text: "Take your time. Your repairs are saved as you go." }
   ];
 

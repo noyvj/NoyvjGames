@@ -36,7 +36,7 @@ def test_open_returns_the_whole_view():
     assert v["board"]["id"] == boards.ORDER[0] and v["board"]["svg"].startswith("<svg") and v["layer"] is not None
     assert v["totals"]["rooms"] == len(boards.ORDER) and v["tally"] == {"laid": 0, "erased": 0, "undos": 0, "hints": 0}
     assert [line["c"] for line in v["board"]["lines"]] == list(boards.ALL_BOARDS[0].lines)
-    assert call(action="open")["rooms"][0]["open"] is True
+    assert all("open" not in deck and all("open" not in r for r in deck["rooms"]) for deck in call(action="open")["rooms"])
 
 
 def test_the_svg_is_sent_only_when_the_board_changes():
@@ -117,11 +117,23 @@ def test_undo_clear_and_clear_line_are_counted_and_never_lose_a_repair():
     assert call(action="undo")["ok"] is False and call(action="clear")["ok"] is False
 
 
-def test_the_next_deck_is_locked_until_five_rooms_are_patched():
+def test_every_deck_and_board_is_open_from_the_start():
+    """AN-1 (owner answer Hr2): nothing is gated on patched rooms."""
     fresh()
-    assert progress.chapter_open(game.game.st, 0) and not progress.chapter_open(game.game.st, 1)
+    assert all(progress.chapter_open(game.game.st, i) for i in range(len(boards.CHAPTER_LIST)))
+    assert all(progress.board_open(game.game.st, bid) for bid in boards.ORDER) and not progress.board_open({}, "no-such-board")
+    last = boards.CHAPTER_LIST[-1]["rooms"][-1]
+    v = call(action="pick", board=last)
+    assert v["ok"] and v["board"]["id"] == last
     v = call(action="pick", board=boards.CHAPTER_LIST[0]["rooms"][3])
     assert v["ok"] and v["board"]["id"] == boards.CHAPTER_LIST[0]["rooms"][3]
+
+
+def test_a_save_that_names_a_board_in_a_once_locked_deck_loads_it():
+    fresh()
+    far = boards.CHAPTER_LIST[3]["rooms"][2]
+    game.load_state({"cur": far, "unlocked": [1, 2, 3], "decks_open": 4})
+    assert call(action="open")["board"]["id"] == far
 
 
 def test_next_goes_to_an_unpatched_open_room():

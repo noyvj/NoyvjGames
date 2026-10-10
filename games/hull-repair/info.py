@@ -18,7 +18,7 @@ HOW = (
     "Join each source port (solid) to the sink port of the same shape and letter (ringed) with a line. Lines move one cell at a time and never cross or share a cell.",
     "Patched means every line is joined. Restored means every open cell is covered as well, and every board has exactly one way to do that.",
     "Holes are hull that is gone. A bridge lets two lines cross, one straight over the other. A valve lets a line through straight, the way its arrow points, from source to sink. A mixer takes two named lines, one from each side.",
-    "A deck opens once five rooms of the one before are patched. Inside a deck, any room in any order.",
+    "Every deck and every room is open from the start, in any order. New parts arrive deck by deck, so the order on the map is a suggestion, never a lock.",
 )
 
 

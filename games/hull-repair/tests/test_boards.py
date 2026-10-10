@@ -15,7 +15,7 @@ def test_the_decks_and_ids_are_consistent():
     assert len(boards.ORDER) == len(set(boards.ORDER)) == sum(len(c["rooms"]) for c in boards.CHAPTER_LIST)
     for c in boards.CHAPTER_LIST:
         assert len(c["rooms"]) in (0, 8)
-    assert boards.OPEN_AT == 5
+    assert not hasattr(boards, "OPEN_AT")           # AN-1: no deck gating any more
 
 
 @pytest.mark.parametrize("b", ALL, ids=lambda b: b.id)

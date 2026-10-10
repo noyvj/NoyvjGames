@@ -2,6 +2,10 @@
   "changelog": [
     {
       "date": "2026-10-11",
+      "entry": "Every deck and room is now open from the start. You no longer patch five rooms to open the next deck: pick any room on the map or in the list, in any order. The deck order and the station map stay as they were, so new parts still arrive deck by deck, but nothing is locked. Your saved rooms are untouched."
+    },
+    {
+      "date": "2026-10-11",
       "entry": "Optional soft sounds, off unless you turn them on in Settings (Sound): a quiet tone when a line is joined, a low click when one is cut or taken back, and a bell when a room is fully restored. They are made in your browser (no sound files), stay silent in a hidden tab, and have a volume and a Reduce sounds switch. Nothing in the game depends on them."
     },
     {

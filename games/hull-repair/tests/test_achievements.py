@@ -35,7 +35,7 @@ def test_totals_follow_the_game_size():
 
 def test_nothing_is_time_luck_or_streak_based():
     allowed = {"patched", "restored", "decks_patched", "flag_bridge", "flag_valve", "flag_mix", "flag_retry", "rung3", "laid"}
-    for _i, label, description, fact, _n, _c in achievements.ACHIEVEMENTS:
+    for _i, label, description, fact, _n in achievements.ACHIEVEMENTS:
         for word in ("day", "week", "streak", "daily", "minute", "second", "random", "luck"):
             assert word not in description.lower().replace("second thoughts", "").split(), (label, word)
         assert fact in allowed

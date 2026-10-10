@@ -5,7 +5,6 @@ import boards
 import game
 import hints
 import logbook
-import progress
 import render
 import rules
 
@@ -36,18 +35,13 @@ def test_the_first_three_decks_are_built_with_their_twists():
         assert rules.flags_of(b, b.solution) == ["bridge"], b.id          # every bridge board really crosses on a bridge
 
 
-def test_decks_open_at_five_patched_rooms_of_the_one_before():
+def test_picking_a_board_in_a_far_deck_works_on_a_fresh_game():
     fresh()
-    first = boards.CHAPTER_LIST[0]["rooms"]
-    for bid in first[:4]:
-        solve_board(bid)
-    assert not progress.chapter_open(game.game.st, 1)
-    assert call(action="pick", board=boards.CHAPTER_LIST[1]["rooms"][0])["ok"] is False
-    solve_board(first[4])
-    assert progress.chapter_open(game.game.st, 1) and not progress.chapter_open(game.game.st, 2)
+    far = boards.CHAPTER_LIST[2]["rooms"][0]
+    v = call(action="pick", board=far)
+    assert v["ok"] and v["board"]["id"] == far and "Bridges" in boards.CHAPTER_LIST[2]["new"]
     v = call(action="pick", board=boards.CHAPTER_LIST[1]["rooms"][0])
-    assert v["ok"] and v["board"]["id"] == boards.CHAPTER_LIST[1]["rooms"][0] and "Holes" in v["board"]["new"]
-    assert v["rooms"][1]["open"] is True and v["rooms"][2]["open"] is False
+    assert v["ok"] and "Holes" in v["board"]["new"]
 
 
 def test_the_hint_ladder_climbs_three_rungs_for_free_and_counts_each_ask():
@@ -126,7 +120,7 @@ def test_the_station_map_shows_every_room_in_its_state():
     svg = render.station_svg(game.game._rooms_view())
     assert "hr-room s2" in svg and "hr-room-check" in svg and "hr-room-crack" in svg
     assert svg.count("data-id=") == len(boards.ORDER)
-    assert "locked" in svg                                      # decks that are not open yet are dotted
+    assert "locked" not in svg and "data-open" not in svg       # every deck is open from the start
 
 
 def test_the_map_marks_patched_with_a_dashed_ring_and_restored_with_a_check_not_only_light():
@@ -137,16 +131,13 @@ def test_the_map_marks_patched_with_a_dashed_ring_and_restored_with_a_check_not_
     assert svg.count("hr-room-empty") == 5
 
 
-def test_three_goals_are_always_offered_and_follow_the_open_decks():
+def test_three_goals_are_always_offered_and_every_achievement_can_be_one():
     fresh()
     v = call(action="open")
     assert len(v["goals"]) == 3 and all(not g["earned"] for g in v["goals"])
-    ids = {g["id"] for g in v["goals"]}
-    assert "over_and_under" not in ids and "mind_the_valve" not in ids
-    assert len(achievements.goals({}, 5)) == 3
-    only = achievements.goals({f: 999 for f in ("patched", "restored", "decks_patched", "rung3", "laid", "flag_retry")}, 5)
+    assert len(achievements.goals({})) == 3 and len(achievements.goals({}, count=20)) == len(achievements.IDS)
+    only = achievements.goals({f: 999 for f in ("patched", "restored", "decks_patched", "rung3", "laid", "flag_retry")})
     assert {a["id"] for a in only} == {"over_and_under", "mind_the_valve", "colour_theory"}
-    assert {a["id"] for a in achievements.goals({f: 999 for f in ("patched", "restored", "decks_patched", "rung3", "laid", "flag_retry")}, 3)} == {"over_and_under"}
 
 
 def test_achievement_facts_follow_play():

@@ -141,7 +141,6 @@ html[data-dots="off"] .hr-dot { display: none; }
 .chapter { border-top: 1px solid var(--line); padding-top: 0.5rem; margin-top: 0.6rem; }
 .chapter:first-child { border-top: 0; margin-top: 0; padding-top: 0; }
 .chapter h3 { margin: 0; font-size: 1rem; }
-.chapter.locked { opacity: 0.8; }
 .room-grid { list-style: none; padding: 0; margin: 0.4rem 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(9.5rem, 1fr)); gap: 0.4rem; }
 .room-btn { width: 100%; text-align: left; display: flex; flex-direction: column; gap: 0.1rem; min-height: 3.4rem; }
 .room-btn.current { border-width: 3px; border-color: var(--accent); }
@@ -189,8 +188,6 @@ html[data-dots="off"] .hr-dot { display: none; }
 .hr-room.s1 .hr-room-body { fill: var(--floor-a); stroke: var(--ok); stroke-dasharray: 5 3; }
 .hr-room.s2 .hr-room-body { fill: var(--floor-a2); stroke: var(--ok); stroke-width: 4; }
 .hr-room.s2 .hr-room-facet { opacity: 0.9; }
-.hr-room.locked { cursor: default; opacity: 0.55; }
-.hr-room.locked .hr-room-body { stroke-dasharray: 2 4; }
 .hr-room.current .hr-room-body { stroke: var(--focus); stroke-width: 4; stroke-dasharray: none; }
 .hr-room-empty .hr-room-body { fill: none; stroke-dasharray: 1 5; opacity: 0.5; }
 .hr-room-num { font: 700 10px system-ui, sans-serif; fill: var(--muted); }

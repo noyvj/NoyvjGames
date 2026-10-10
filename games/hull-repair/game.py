@@ -141,9 +141,6 @@ class Game:
             facts["flag_" + flag] = 1 if flag in self.flags else 0
         return facts
 
-    def open_decks(self):
-        return sum(1 for i in range(len(boards.CHAPTER_LIST)) if progress.chapter_open(self.st, i))
-
     # ---- the view --------------------------------------------------------------------------------------------------
     def _lines_view(self):
         b = self.board
@@ -156,19 +153,15 @@ class Game:
     def _rooms_view(self):
         out = []
         for chapter in boards.CHAPTER_LIST:
-            idx = chapter["index"]
-            is_open = progress.chapter_open(self.st, idx)
             entries = []
             for bid in chapter["rooms"]:
                 b = boards.BY_ID[bid]
-                entries.append({"id": bid, "name": b.name, "number": b.number, "open": is_open, "status": self.st.get(bid, 0),
+                entries.append({"id": bid, "name": b.name, "number": b.number, "status": self.st.get(bid, 0),
                                 "status_name": rules.STATUS_NAMES[self.st.get(bid, 0)], "size": "%dx%d" % (b.w, b.h),
                                 "lines": len(b.lines), "current": bid == self.current})
-            prev = boards.CHAPTER_LIST[idx - 1] if idx else None
-            need = min(progress.OPEN_AT, len(prev["rooms"])) if prev else 0
-            out.append({"id": chapter["id"], "name": chapter["name"], "blurb": chapter["blurb"], "new": chapter["new"], "open": is_open,
+            out.append({"id": chapter["id"], "name": chapter["name"], "blurb": chapter["blurb"], "new": chapter["new"],
                         "patched": progress.deck_patched(self.st, chapter), "restored": progress.deck_restored(self.st, chapter),
-                        "total": len(chapter["rooms"]), "need": need, "prev_name": prev["name"] if prev else "", "rooms": entries})
+                        "total": len(chapter["rooms"]), "rooms": entries})
         return out
 
     def view(self, message="", ok=True, with_svg=False):
@@ -188,7 +181,7 @@ class Game:
             "layer": render.lines_svg(b, paths, ghosts=hints.ghosts(b, self.rungs.get(b.id, 0))),
             "hint": hints.view(b, self.rungs.get(b.id, 0)),
             "log": logbook.entries(self.st),
-            "goals": achievements.goals(self.facts(), self.open_decks()),
+            "goals": achievements.goals(self.facts()),
             "achievements": achievements.view(self.facts()),
             "map": render.station_svg(self._rooms_view()),
             "about": info.view(),
@@ -252,8 +245,6 @@ def handle(request_json):
         bid = request.get("board")
         if bid not in boards.BY_ID:
             return json.dumps(g.view("There is no such room.", ok=False))
-        if not progress.board_open(g.st, bid):
-            return json.dumps(g.view("That deck opens once five rooms of the one before are patched.", ok=False))
         g._stash()
         g._enter(bid)
         return json.dumps(g.view())
