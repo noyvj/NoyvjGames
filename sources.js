@@ -223,6 +223,8 @@
     return fetchJson(`games/${slug}/sources.json`).then((res) => {
       if (res.missing) {
         if (!known) {
+          document.title = "Sources \u2014 NoyvjGames";
+          setPage("Sources & Credits");
           showMessage(root, "No game called that",
             `There is no game "${slug}" on the hub, so there is nothing to list here.`, back.slice(1));
         } else {
