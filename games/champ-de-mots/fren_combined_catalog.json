@@ -10812,6 +10812,730 @@
             }
           ],
           "rule": "Unlike English, French direct object pronouns go BEFORE the verb (Je le prends = I take it). ne...pas wraps both the pronoun and the verb (Nicolas ne m'appelle pas)."
+        },
+        {
+          "id": "fren152-w8-vocab-fs01",
+          "topic_type": "vocab",
+          "title": "Seasons and the sky",
+          "items": [
+            {
+              "fr": "il fait mauvais",
+              "en": "the weather is bad",
+              "accepted_en": [
+                "the weather is bad",
+                "it is bad weather",
+                "it's bad weather",
+                "it is nasty weather",
+                "the weather's bad",
+                "it's nasty weather",
+                "it is bad"
+              ]
+            },
+            {
+              "fr": "le ciel",
+              "en": "the sky"
+            },
+            {
+              "fr": "sans nuages",
+              "en": "cloudless",
+              "accepted_en": [
+                "cloudless",
+                "without clouds",
+                "with no clouds",
+                "clear"
+              ]
+            },
+            {
+              "fr": "au printemps",
+              "en": "in spring",
+              "accepted_en": [
+                "in spring",
+                "in the spring"
+              ]
+            },
+            {
+              "fr": "en été",
+              "en": "in summer",
+              "accepted_en": [
+                "in summer",
+                "in the summer"
+              ]
+            },
+            {
+              "fr": "en automne",
+              "en": "in autumn",
+              "accepted_en": [
+                "in autumn",
+                "in the autumn",
+                "in fall",
+                "in the fall"
+              ]
+            },
+            {
+              "fr": "en hiver",
+              "en": "in winter",
+              "accepted_en": [
+                "in winter",
+                "in the winter"
+              ]
+            },
+            {
+              "fr": "la météo",
+              "en": "the weather forecast",
+              "accepted_en": [
+                "the weather forecast",
+                "the forecast",
+                "the weather report",
+                "the weather"
+              ]
+            },
+            {
+              "fr": "un degré",
+              "en": "a degree"
+            },
+            {
+              "fr": "Il fait vingt degrés.",
+              "en": "It is twenty degrees.",
+              "accepted_en": [
+                "It is twenty degrees.",
+                "It's twenty degrees",
+                "It is 20 degrees",
+                "It's 20 degrees",
+                "It is twenty degrees out"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "fren152-w8-phrase-fs02",
+          "topic_type": "phrase",
+          "title": "Talking about the weather",
+          "items": [
+            {
+              "fr": "Quel temps fait-il en hiver?",
+              "en": "What is the weather like in winter?",
+              "accepted_en": [
+                "What is the weather like in winter?",
+                "What's the weather like in winter",
+                "What is the weather like in the winter",
+                "How is the weather in winter",
+                "What's the weather like in the winter"
+              ]
+            },
+            {
+              "fr": "Il fait très chaud en été.",
+              "en": "It is very hot in summer.",
+              "accepted_en": [
+                "It is very hot in summer.",
+                "It's very hot in summer",
+                "It is very hot in the summer",
+                "It's very hot in the summer"
+              ]
+            },
+            {
+              "fr": "Au printemps, il pleut souvent.",
+              "en": "In spring it often rains.",
+              "accepted_en": [
+                "In spring it often rains.",
+                "In the spring it often rains",
+                "In spring it rains often",
+                "It often rains in spring"
+              ]
+            },
+            {
+              "fr": "Aujourd'hui, il y a du brouillard.",
+              "en": "Today it is foggy.",
+              "accepted_en": [
+                "Today it is foggy.",
+                "Today it's foggy",
+                "Today there is fog",
+                "Today there's fog"
+              ]
+            },
+            {
+              "fr": "Il neige dans les Alpes.",
+              "en": "It is snowing in the Alps.",
+              "accepted_en": [
+                "It is snowing in the Alps.",
+                "It's snowing in the Alps",
+                "It snows in the Alps"
+              ]
+            },
+            {
+              "fr": "Quand il pleut, je reste à la maison.",
+              "en": "When it rains, I stay at home.",
+              "accepted_en": [
+                "When it rains, I stay at home.",
+                "When it is raining, I stay at home",
+                "When it's raining, I stay at home",
+                "When it rains, I stay home"
+              ]
+            },
+            {
+              "fr": "Qu'est-ce que tu portes quand il fait froid?",
+              "en": "What do you wear when it is cold?",
+              "accepted_en": [
+                "What do you wear when it is cold?",
+                "What do you wear when it's cold",
+                "What are you wearing when it is cold",
+                "What do you put on when it is cold"
+              ]
+            },
+            {
+              "fr": "Il fait vingt degrés à Nice.",
+              "en": "It is twenty degrees in Nice.",
+              "accepted_en": [
+                "It is twenty degrees in Nice.",
+                "It's twenty degrees in Nice",
+                "It is 20 degrees in Nice",
+                "It's 20 degrees in Nice"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "fren152-w8-vocab-fs03",
+          "topic_type": "vocab",
+          "title": "More things to pack",
+          "items": [
+            {
+              "fr": "une valise",
+              "en": "a suitcase",
+              "accepted_en": [
+                "a suitcase",
+                "a case",
+                "a bag",
+                "a suit case"
+              ]
+            },
+            {
+              "fr": "emporter",
+              "en": "to take along",
+              "accepted_en": [
+                "to take along",
+                "to take with you",
+                "to take with one",
+                "to bring along",
+                "to take"
+              ]
+            },
+            {
+              "fr": "un appareil photo",
+              "en": "a camera",
+              "accepted_en": [
+                "a camera",
+                "a photo camera"
+              ]
+            },
+            {
+              "fr": "une raquette de tennis",
+              "en": "a tennis racket",
+              "accepted_en": [
+                "a tennis racket",
+                "a tennis racquet"
+              ]
+            },
+            {
+              "fr": "un chargeur",
+              "en": "a charger",
+              "accepted_en": [
+                "a charger",
+                "a phone charger"
+              ]
+            },
+            {
+              "fr": "une bague",
+              "en": "a ring"
+            }
+          ]
+        },
+        {
+          "id": "fren152-w8-phrase-fs04",
+          "topic_type": "phrase",
+          "title": "Packing a suitcase",
+          "items": [
+            {
+              "fr": "Dans ma valise, il y a des tongs et une serviette.",
+              "en": "In my suitcase there are flip-flops and a towel.",
+              "accepted_en": [
+                "In my suitcase there are flip-flops and a towel.",
+                "In my suitcase there are thongs and a towel",
+                "In my case there are flip-flops and a towel"
+              ]
+            },
+            {
+              "fr": "J'emporte mon maillot de bain et ma crème solaire.",
+              "en": "I am taking my swimsuit and my sun cream.",
+              "accepted_en": [
+                "I am taking my swimsuit and my sun cream.",
+                "I'm taking my swimsuit and my sun cream",
+                "I am taking my swimsuit and my sunscreen",
+                "I'm taking my swimsuit and my sunscreen",
+                "I am taking my bathers and my sunscreen",
+                "I'm taking my bathers and my sunscreen",
+                "I am bringing my swimsuit and my sunscreen"
+              ]
+            },
+            {
+              "fr": "Elle emporte un sèche-cheveux.",
+              "en": "She is taking a hairdryer.",
+              "accepted_en": [
+                "She is taking a hairdryer.",
+                "She's taking a hairdryer",
+                "She is taking a hair-dryer",
+                "She's taking a hair-dryer",
+                "She takes a hairdryer",
+                "She is bringing a hairdryer"
+              ]
+            },
+            {
+              "fr": "Tu prends ton appareil photo?",
+              "en": "Are you taking your camera?",
+              "accepted_en": [
+                "Are you taking your camera?",
+                "Do you take your camera",
+                "Are you bringing your camera",
+                "You are taking your camera"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "fren152-w8-grammar-fs05",
+          "topic_type": "grammar",
+          "title": "Object pronouns for people: me, te, nous, vous",
+          "items": [
+            {
+              "fr": "Paul m'appelle.",
+              "en": "Paul calls me.",
+              "accepted_en": [
+                "Paul calls me.",
+                "Paul is calling me",
+                "Paul rings me",
+                "Paul phones me"
+              ]
+            },
+            {
+              "fr": "Léa t'écoute.",
+              "en": "Léa listens to you.",
+              "accepted_en": [
+                "Léa listens to you.",
+                "Léa is listening to you"
+              ]
+            },
+            {
+              "fr": "Mes amis nous invitent.",
+              "en": "My friends invite us.",
+              "accepted_en": [
+                "My friends invite us.",
+                "My friends are inviting us"
+              ]
+            },
+            {
+              "fr": "Je vous respecte.",
+              "en": "I respect you.",
+              "accepted_en": [
+                "I respect you.",
+                "I admire you"
+              ]
+            },
+            {
+              "fr": "Elle ne m'aide pas.",
+              "en": "She does not help me.",
+              "accepted_en": [
+                "She does not help me.",
+                "She doesn't help me",
+                "She is not helping me",
+                "She isn't helping me"
+              ]
+            }
+          ],
+          "rule": "Me (m'), te (t'), nous and vous stand for people and go before the verb. In the negative ne goes before the pronoun and pas after the verb (Elle ne m'aide pas)."
+        },
+        {
+          "id": "fren152-w8-grammar-fs06",
+          "topic_type": "grammar",
+          "title": "Object pronouns for things and people: le, la, l', les",
+          "items": [
+            {
+              "fr": "Je le mange.",
+              "en": "I eat it.",
+              "accepted_en": [
+                "I eat it.",
+                "I am eating it",
+                "I'm eating it"
+              ]
+            },
+            {
+              "fr": "Marc les cherche.",
+              "en": "Marc is looking for them.",
+              "accepted_en": [
+                "Marc is looking for them.",
+                "Marc looks for them",
+                "Marc searches for them"
+              ]
+            },
+            {
+              "fr": "Nous la connaissons.",
+              "en": "We know her.",
+              "accepted_en": [
+                "We know her.",
+                "We know it",
+                "We are acquainted with her"
+              ]
+            },
+            {
+              "fr": "Julie l'aime?",
+              "en": "Does Julie like it?",
+              "accepted_en": [
+                "Does Julie like it?",
+                "Does Julie like him",
+                "Does Julie like her",
+                "Does Julie love it",
+                "Does Julie love him",
+                "Does Julie love her",
+                "Julie likes it?"
+              ]
+            },
+            {
+              "fr": "Mes parents ne les attendent pas.",
+              "en": "My parents are not waiting for them.",
+              "accepted_en": [
+                "My parents are not waiting for them.",
+                "My parents do not wait for them",
+                "My parents aren't waiting for them",
+                "My parents don't wait for them",
+                "My parents are not awaiting them"
+              ]
+            },
+            {
+              "fr": "Chloé ne l'achète pas.",
+              "en": "Chloé is not buying it.",
+              "accepted_en": [
+                "Chloé is not buying it.",
+                "Chloé isn't buying it",
+                "Chloé does not buy it",
+                "Chloé doesn't buy it"
+              ]
+            }
+          ],
+          "rule": "Le, la and les replace a noun that comes straight after the verb and go before the verb; le and la shorten to l' before a vowel. Le and la can stand for people or things; les is plural. They also replace a noun that follows mon, ton, son and the like."
+        },
+        {
+          "id": "fren152-w8-vocab-fs07",
+          "topic_type": "vocab",
+          "title": "Verbs that take a direct object",
+          "items": [
+            {
+              "fr": "aider",
+              "en": "to help"
+            },
+            {
+              "fr": "respecter",
+              "en": "to respect"
+            },
+            {
+              "fr": "remercier",
+              "en": "to thank"
+            },
+            {
+              "fr": "chercher",
+              "en": "to look for",
+              "accepted_en": [
+                "to look for",
+                "to search for",
+                "to fetch",
+                "to seek"
+              ]
+            },
+            {
+              "fr": "admirer",
+              "en": "to admire"
+            },
+            {
+              "fr": "accepter",
+              "en": "to accept"
+            },
+            {
+              "fr": "appeler",
+              "en": "to call",
+              "accepted_en": [
+                "to call",
+                "to phone",
+                "to ring"
+              ]
+            },
+            {
+              "fr": "nettoyer",
+              "en": "to clean",
+              "accepted_en": [
+                "to clean",
+                "to wash"
+              ]
+            },
+            {
+              "fr": "suivre",
+              "en": "to follow"
+            },
+            {
+              "fr": "apprendre",
+              "en": "to learn",
+              "accepted_en": [
+                "to learn",
+                "to teach"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "fren152-w8-vocab-fs08",
+          "topic_type": "vocab",
+          "title": "Student life and things you want to do",
+          "items": [
+            {
+              "fr": "obtenir un diplôme",
+              "en": "to get a degree",
+              "accepted_en": [
+                "to get a degree",
+                "to obtain a degree",
+                "to gain a degree",
+                "to get a diploma",
+                "to earn a degree",
+                "to graduate"
+              ]
+            },
+            {
+              "fr": "rater",
+              "en": "to fail",
+              "accepted_en": [
+                "to fail",
+                "to miss",
+                "to flunk"
+              ]
+            },
+            {
+              "fr": "louer",
+              "en": "to rent",
+              "accepted_en": [
+                "to rent",
+                "to hire",
+                "to let"
+              ]
+            },
+            {
+              "fr": "gagner de l'argent",
+              "en": "to earn money",
+              "accepted_en": [
+                "to earn money",
+                "to make money",
+                "to win money"
+              ]
+            },
+            {
+              "fr": "suivre les cours",
+              "en": "to take classes",
+              "accepted_en": [
+                "to take classes",
+                "to follow classes",
+                "to take courses",
+                "to follow courses",
+                "to attend classes",
+                "to attend lectures"
+              ]
+            },
+            {
+              "fr": "commander",
+              "en": "to order",
+              "accepted_en": [
+                "to order",
+                "to command"
+              ]
+            },
+            {
+              "fr": "végétarien(ne)",
+              "en": "vegetarian"
+            },
+            {
+              "fr": "faire le ménage",
+              "en": "to do the housework",
+              "accepted_en": [
+                "to do the housework",
+                "to do the cleaning",
+                "to clean the house",
+                "to do housework"
+              ]
+            },
+            {
+              "fr": "dépenser",
+              "en": "to spend",
+              "accepted_en": [
+                "to spend",
+                "to spend money"
+              ]
+            },
+            {
+              "fr": "retrouver",
+              "en": "to meet up with",
+              "accepted_en": [
+                "to meet up with",
+                "to find again",
+                "to meet",
+                "to meet up"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "fren152-w8-grammar-fs09",
+          "topic_type": "grammar",
+          "title": "Faire in the present (Lecture 7 supplement)",
+          "items": [
+            {
+              "fr": "je fais",
+              "en": "I do",
+              "accepted_en": [
+                "I do",
+                "I make",
+                "I am doing",
+                "I am making"
+              ]
+            },
+            {
+              "fr": "tu fais",
+              "en": "you do",
+              "accepted_en": [
+                "you do",
+                "you make",
+                "you are doing",
+                "you are making"
+              ]
+            },
+            {
+              "fr": "il fait",
+              "en": "he does",
+              "accepted_en": [
+                "he does",
+                "he makes",
+                "he is doing",
+                "he is making"
+              ]
+            },
+            {
+              "fr": "nous faisons",
+              "en": "we do",
+              "accepted_en": [
+                "we do",
+                "we make",
+                "we are doing",
+                "we are making"
+              ]
+            },
+            {
+              "fr": "vous faites",
+              "en": "you do",
+              "accepted_en": [
+                "you do",
+                "you make",
+                "you are doing",
+                "you are making"
+              ]
+            },
+            {
+              "fr": "ils font",
+              "en": "they do",
+              "accepted_en": [
+                "they do",
+                "they make",
+                "they are doing",
+                "they are making"
+              ]
+            }
+          ],
+          "rule": "Bonus topic from the Lecture 7 supplement (a recap of faire and the weather). Faire is irregular: nous faisons, vous faites and ils font are the odd ones. It also gives the weather: il fait beau, il fait froid."
+        },
+        {
+          "id": "fren152-w8-phrase-fs10",
+          "topic_type": "phrase",
+          "title": "A week's weather forecast (Lecture 7 supplement)",
+          "items": [
+            {
+              "fr": "Lundi, il fait froid.",
+              "en": "On Monday it is cold.",
+              "accepted_en": [
+                "On Monday it is cold.",
+                "Monday it is cold",
+                "On Monday it's cold",
+                "Monday, it's cold"
+              ]
+            },
+            {
+              "fr": "Mardi, il neige.",
+              "en": "On Tuesday it snows.",
+              "accepted_en": [
+                "On Tuesday it snows.",
+                "On Tuesday it is snowing",
+                "On Tuesday it's snowing",
+                "Tuesday it is snowing",
+                "Tuesday, it's snowing"
+              ]
+            },
+            {
+              "fr": "Mercredi, il y a du brouillard.",
+              "en": "On Wednesday it is foggy.",
+              "accepted_en": [
+                "On Wednesday it is foggy.",
+                "On Wednesday there is fog",
+                "Wednesday it is foggy",
+                "On Wednesday it's foggy",
+                "On Wednesday there's fog"
+              ]
+            },
+            {
+              "fr": "Jeudi, il y a du vent.",
+              "en": "On Thursday it is windy.",
+              "accepted_en": [
+                "On Thursday it is windy.",
+                "On Thursday there is wind",
+                "Thursday it is windy",
+                "On Thursday it's windy",
+                "On Thursday there's wind"
+              ]
+            },
+            {
+              "fr": "Vendredi, il fait beau.",
+              "en": "On Friday the weather is fine.",
+              "accepted_en": [
+                "On Friday the weather is fine.",
+                "On Friday it is fine",
+                "On Friday it's fine",
+                "On Friday it is nice",
+                "On Friday it's nice weather",
+                "On Friday the weather is nice",
+                "Friday it is fine"
+              ]
+            },
+            {
+              "fr": "Samedi, il y a des nuages.",
+              "en": "On Saturday it is cloudy.",
+              "accepted_en": [
+                "On Saturday it is cloudy.",
+                "On Saturday there are clouds",
+                "Saturday it is cloudy",
+                "On Saturday it's cloudy"
+              ]
+            },
+            {
+              "fr": "Dimanche, il fait chaud.",
+              "en": "On Sunday it is hot.",
+              "accepted_en": [
+                "On Sunday it is hot.",
+                "Sunday it is hot",
+                "On Sunday it's hot",
+                "On Sunday it is warm",
+                "On Sunday it's warm"
+              ]
+            }
+          ]
         }
       ],
       "bonus_sentences": [

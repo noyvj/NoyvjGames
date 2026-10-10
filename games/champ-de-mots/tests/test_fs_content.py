@@ -34,6 +34,11 @@ FS_WEEKS = {
         "en lin", "uni(e)", "un sac noir en cuir", "affreux / affreuse", "moche / laid(e)", "Je prends celui-ci.",
         "Quelle est votre pointure?", "celle en soie", "Tu vas vraiment porter ça?", "en vitrine", "un portefeuille",
     ]},
+    7: {"row": 18, "topics": 10, "plots": 58, "must_have": [
+        "il fait mauvais", "au printemps", "en hiver", "la météo", "une valise", "emporter", "Il neige dans les Alpes.",
+        "Paul m'appelle.", "Je le mange.", "remercier", "obtenir un diplôme", "louer", "je fais", "ils font",
+        "Lundi, il fait froid.", "Dimanche, il fait chaud.",
+    ]},
 }
 
 
@@ -418,6 +423,69 @@ def test_week_6_shoe_shop_words_are_a_real_vocab_list(game_env):
     assert len(items) == 10
 
 
+# --- week 7 (and the Lecture 7 supplement) -------------------------------------
+
+
+def test_week_7_seasons_use_au_for_spring_and_en_for_the_rest(game_env):
+    items = {i["fr"]: i["en"] for i in _topic(game_env.module, "fren152-w8-vocab-fs01")["items"]}
+    assert items["au printemps"] == "in spring"
+    assert all(items[f"en {s}"].startswith("in ") for s in ("été", "automne", "hiver"))
+    assert _live(game_env.module, "fren152-w8-vocab-fs01", 5, "en", "in fall")
+
+
+def test_week_7_weather_sentences_mention_a_season_a_place_or_a_temperature(game_env):
+    items = _topic(game_env.module, "fren152-w8-phrase-fs02")["items"]
+    assert len(items) == 8
+    assert any("Alpes" in i["fr"] for i in items) and any("degrés" in i["fr"] for i in items)
+
+
+def test_week_7_packing_vocabulary_and_sentences(game_env):
+    module = game_env.module
+    assert _item(module, "fren152-w8-vocab-fs03", 0) == {"fr": "une valise", "en": "a suitcase", "accepted_en": ["a suitcase", "a case", "a bag", "a suit case"]}
+    sentences = _topic(module, "fren152-w8-phrase-fs04")["items"]
+    assert sentences[0]["fr"].startswith("Dans ma valise") and len(sentences) == 4
+
+
+def test_week_7_object_pronoun_plots_put_the_pronoun_before_the_verb(game_env):
+    module = game_env.module
+    for topic_id in ("fren152-w8-grammar-fs05", "fren152-w8-grammar-fs06"):
+        topic = _topic(module, topic_id)
+        assert topic["topic_type"] == "grammar" and len(topic["items"]) >= 5
+        for item in topic["items"]:
+            assert any(p in item["fr"] for p in (" m'", " t'", " nous ", " vous ", " le ", " la ", " l'", " les ", "m'", "l'")), item["fr"]
+    assert "before the verb" in _topic(module, "fren152-w8-grammar-fs05")["rule"]
+
+
+def test_week_7_object_pronoun_sentences_start_with_names_so_they_are_not_conjugation_tables(game_env):
+    module = game_env.module
+    assert not module.is_conjugation_plot(game_env.state.plots_by_id["fren152-w8-grammar-fs05"])
+    assert not module.is_conjugation_plot(game_env.state.plots_by_id["fren152-w8-grammar-fs06"])
+
+
+def test_week_7_verb_lists_are_infinitives_without_overlapping_english(game_env):
+    module = game_env.module
+    verbs = _topic(module, "fren152-w8-vocab-fs07")["items"]
+    assert len(verbs) == 10 and all(not i["fr"].startswith("se ") for i in verbs)
+    glosses = [i["en"] for i in verbs]
+    assert len(set(glosses)) == len(glosses)
+    student = _topic(module, "fren152-w8-vocab-fs08")["items"]
+    assert [i["fr"] for i in student][:2] == ["obtenir un diplôme", "rater"]
+    assert _live(module, "fren152-w8-vocab-fs08", 4, "en", "to attend classes")
+
+
+def test_lecture_7_supplement_is_its_own_bonus_pair_and_says_where_it_came_from(game_env):
+    module = game_env.module
+    faire = _topic(module, "fren152-w8-grammar-fs09")
+    forecast = _topic(module, "fren152-w8-phrase-fs10")
+    for topic in (faire, forecast):
+        assert "Lecture 7 supplement" in topic["title"]
+    assert "Bonus topic from the Lecture 7 supplement" in faire["rule"]
+    assert module.is_conjugation_plot(game_env.state.plots_by_id[faire["id"]])
+    assert [i["fr"] for i in faire["items"]] == ["je fais", "tu fais", "il fait", "nous faisons", "vous faites", "ils font"]
+    days = [i["fr"].split(",")[0] for i in forecast["items"]]
+    assert days == ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche"]
+
+
 def test_only_the_real_person_by_person_tables_count_as_conjugations(game_env):
     """A sentence list that merely starts with pronouns must not become a conjugation plot (the
     pronoun swap would write nonsense); only the declared tables are."""
@@ -431,4 +499,5 @@ def test_only_the_real_person_by_person_tables_count_as_conjugations(game_env):
 
 DECLARED_CONJUGATION_TABLES = [
     "fren152-w3-grammar-fs01", "fren152-w3-grammar-fs02", "fren152-w3-grammar-fs03",
+    "fren152-w8-grammar-fs09",
 ]
