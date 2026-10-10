@@ -1,6 +1,10 @@
 [
   {
     "date": "2026-10-11",
+    "entry": "New: a small note under the round counter says roughly how long a typical session is (about 20 rounds, around 20 minutes, 50 rounds in the long game) and how many rounds are left, and every fifth round it reminds you it is a good moment to save. Nothing is timed; it is only a guide."
+  },
+  {
+    "date": "2026-10-11",
     "entry": "Achievement cards got a makeover: each has an arctic glyph and an icy border, earned ones glow with a short frost flourish (off with reduced motion or lite mode), and locked ones with a numeric goal now show a progress bar, how much is left (for example '12 more rounds to go') and the same detail on hover. Slowing the Runaway, Best in Class and Side by Side gained progress counters too."
   },
   {

@@ -128,6 +128,8 @@ ELEMENT_IDS = [
     "compare-chart",
     "compare-readout",
     "temp-unit-select",
+    # Oct 11 batch.
+    "session-note",
 ]
 for _category in CATEGORIES:
     ELEMENT_IDS += [f"{_category}-name", f"{_category}-count", f"{_category}-invest-button"]

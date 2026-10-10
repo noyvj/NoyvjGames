@@ -1314,3 +1314,6 @@ html[data-high-contrast="true"][data-theme="light"] button { background: #fff; c
 html[data-reduced-motion="true"] .achievement-card--new { animation: none; }
 html[data-lite="true"] .achievement-card--new { animation: none; }
 html[data-lite="true"] .achievement-card--earned { box-shadow: none; }
+
+/* G-22 */
+.session-note { margin: 0.1rem 0 0.4rem; font-size: 0.78rem; opacity: 0.75; }

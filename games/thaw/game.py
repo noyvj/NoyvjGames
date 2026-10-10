@@ -3363,9 +3363,50 @@ def on_toggle_hold_the_line(event=None):
     render()
 
 
+# ===========================================================================
+# G-22: a round-counter note with a rough session length and a gentle "good moment to save" nudge.
+# ===========================================================================
+SESSION_TARGET_ROUNDS = 20  # about 20 minutes (the page says "about 20 minutes"); the long game takes 2.5x
+SESSION_MINUTES_PER_ROUND = 1
+SAVE_NUDGE_EVERY = 5
+
+
+def session_target_rounds():
+    return round(SESSION_TARGET_ROUNDS / LONG_GAME_WARMING_SCALE) if long_game else SESSION_TARGET_ROUNDS
+
+
+def session_note_text():
+    """The line under the round counter. Rounds are counted as rounds played so far."""
+    played = max(0, region.round_number - 1)
+    if run_over:
+        return f"The run is over after {run_result['survived'] if run_result else played} rounds. Nothing is lost: start a new game any time."
+    target = session_target_rounds()
+    if hold_the_line:
+        text = (
+            f"Round {region.round_number}. A Hold the Line run usually lasts 15 to 35 rounds, "
+            f"about a minute each."
+        )
+    elif played >= target:
+        text = (
+            f"Round {region.round_number}: past a typical session of about {target} rounds. "
+            f"A fine place to stop; your progress is kept if you save."
+        )
+    else:
+        left = target - played
+        minutes = left * SESSION_MINUTES_PER_ROUND
+        text = (
+            f"Round {region.round_number} of a typical {target}-round session: about {left} "
+            f"round{'s' if left != 1 else ''} (around {minutes} minute{'s' if minutes != 1 else ''}) to go."
+        )
+    if played > 0 and played % SAVE_NUDGE_EVERY == 0:
+        text += " Good moment to save: use the Save button if you want to stop here."
+    return text
+
+
 def render():
     render_info_page()
     document.getElementById("round-display").innerText = f"Round {region.round_number}"
+    document.getElementById("session-note").innerText = session_note_text()
     document.getElementById("funds-display").innerText = f"Funds: {region.funds:.0f}"
     document.getElementById("temperature-display").innerText = (
         f"Global temperature: {deg(region.temperature, plus=True)}"
