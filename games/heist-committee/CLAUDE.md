@@ -28,6 +28,7 @@ Python via Pyodide, plain HTML/CSS, no build step. `engine.py` is the heist reso
 | 7 | Achievements + story | Done |
 | 8 | Balance and bots | Done |
 | 9 | Own-folder wrap-up | Done |
+| 10 | Daily Job (optional, TODO M-1b-10) | Done, without a leaderboard (see "Daily Job") |
 
 ## How the pieces fit
 - `content/*.json` is all the rules as data (5 targets, 20 crew, 20 traits, 12 actions, 56 complications, 7 gear). `content.py` loads it and `validate()` checks it (every complication has a counter and can fire, every emitted tag is read, windows are in range). A new complication is a JSON entry, no code.
@@ -42,6 +43,16 @@ Python via Pyodide, plain HTML/CSS, no build step. `engine.py` is the heist reso
 - Retrying a job keeps the seed: the same trouble arrives on the same beats, so an improved plan is really improved.
 - Quirks are hidden until they fire in a heist or are paid for (background check); odds in the plan exclude hidden quirks.
 - Reputation only rises when a job goes better than before, and unlocks jobs, crew and gear (derived, not stored).
+
+## Daily Job
+`daily.py` (pure, imports only `bots` and `engine`) makes one job per UTC date from the date text alone (`engine.roll` hashing, no clock, no random source, no server): the target, the night's seed, today's eight candidates (all five roles, the whole roster, career unlocks ignored) and a three-piece van. **Fairness bar:** before a date is accepted, `bots.greedy_plan` (told the three scouted kinds) must take at least 3 different five-crew combinations of the offer through that exact night with an escape and no alarm; a candidate that fails is replaced by the next one derived from the same date (about 1 in 150 dates needs a second try). `par` is the lowest payout among those witnesses; tiers are busted / escaped (alarm) / clean / par.
+- The daily is a standalone night: crew, van and scouting are free, every quirk is on the file, no cash, reputation, friendships, `meta` or achievements change. `Career.job` is a property that returns the open daily job (`career.daily_job`) first, so every existing helper works on it; a daily can only be opened from the board (a career job is never put aside), and `new_career` keeps the date history.
+- The view passes "today" in every request (`HC.send` adds it; tests pass dates explicitly); the engine stores it only as a runtime value (`game._today`). No date means no daily on the board. A save naming a date that is not open yet is dropped.
+- Save keys, written only when non-default: `daily_days` ({date: {tier, net, tries}}, best tier and best payout, validated entry by entry) and `daily_job` (an unfinished daily night, rebuilt from its date on load: target, seed and offer come from `daily.spec`, never from the save). Old saves load unchanged.
+- UI: a panel at the top of the contract board (`#daily-panel`, `daily.js`): Today's job, a month-calendar archive (any date from 2026-10-01 up to today is playable, skipped days cost nothing), a plain-language tally and a small grid of the last 120 days. No streak counter anywhere. Marks are symbols as well as shading.
+- **Leaderboard: NOT built.** Hooks only: `daily.leaderboard_entry(date, record)` (pure; `view.daily.leaderboard`) and `HC.dailyLeaderboardHook` in `daily.js`, called with that entry on a daily payout when something defines it. A future backend board takes `{board: "heist-daily-job", date, score, tier}`.
+- `sw.js` / `offline-manifest.json` (hub files, not edited here) must precache `games/heist-committee/daily.py`, `daily.js`; the page also loads `bots.py` now.
+- Tests: `tests/test_daily.py` (determinism, 300 consecutive dates fairness-proven by replay, an exhaustive cross-check, save round trips and tampering), `tests/test_daily_browser.py` (calendar to payout on both pages at both widths).
 
 ## Desktop boot
 `pc-config.json` + `pc.css` + `pc.js`; `pc.html` is generated (`scripts/generate-pc-pages.py`, never edit by hand). The whole job lives in the stage (board, case file, hiring, plan, playback, payout). Plan: timeline on top, inspector and tray under it, checklist and scouting column on the right with Undo/Redo/Clear/Start Heist adopted to the top of that column. Cash, reputation and stage are readout chips. Minutes, Achievements, What's New, Settings and How it works are windows. Escape puts a held action down first (a capture listener in plan.js), then opens the shell Menu. Known limit: at 1024 wide the stage scrolls inside itself.

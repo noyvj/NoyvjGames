@@ -32,6 +32,12 @@ SECTIONS = (
      "body": "A heist is decided entirely by the plan and the job's seed. Retry the same job and the same trouble "
              "arrives on the same beats, so an improved plan really is an improved plan. A retry only pays what it "
              "adds beyond your best attempt, and only improvements earn reputation, so there is nothing to grind."},
+    {"id": "daily", "heading": "The Daily Job",
+     "body": "Each UTC day has one job, the same for everybody, worked out from the date alone. It comes with a free "
+             "crew of eight and a free van, every quirk on the file, and a promise: before a date is accepted, a plain "
+             "planning bot has to find at least three different crews that get away clean on that exact night. It "
+             "never touches your cash, reputation or friendships. There are no streaks and nothing is lost by "
+             "skipping a day: the archive keeps every past date open."},
     {"id": "nofail", "heading": "There is no game over",
      "body": "A bad night still pays the target's consolation money, a stuck purse is topped up by the committee, "
              "and nobody is ever lost. Failure is a story, and a reason to try again with a better plan."},

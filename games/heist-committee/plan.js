@@ -388,7 +388,7 @@
     HC.ask("heist-clear-plan", "Clear the whole plan? You can undo it.", "Clear it", function () { selected = null; HC.send({ action: "clear_plan" }); });
   });
   $("abandon-button").addEventListener("click", function () {
-    HC.ask("heist-abandon", "Abandon this job? The crew keep their fees and you get nothing.", "Abandon", function () { armed = null; selected = null; HC.send({ action: "abandon" }); });
+    HC.ask("heist-abandon", HC.view && HC.view.daily ? "Set today's plan aside? Nothing is spent or lost, and the job stays open for you to start again." : "Abandon this job? The crew keep their fees and you get nothing.", HC.view && HC.view.daily ? "Set aside" : "Abandon", function () { armed = null; selected = null; HC.send({ action: "abandon" }); });
   });
   $("start-heist-button").addEventListener("click", function () {
     HC.ask("heist-start", "Start the heist? The plan is fixed once it begins.", "Start Heist", function () { armed = null; selected = null; HC.send({ action: "start_heist" }); });

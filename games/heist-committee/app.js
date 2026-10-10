@@ -3,7 +3,7 @@
    Shared pieces live on window.HC so plan.js (the timeline) and play.js (playback and payout) can use them. */
 (function () {
   "use strict";
-  var ENGINE_MODULES = ["content.py", "engine.py", "plancheck.py", "planops.py", "writeup.py", "info.py", "achievements.py", "story.py"];
+  var ENGINE_MODULES = ["content.py", "engine.py", "plancheck.py", "planops.py", "writeup.py", "info.py", "achievements.py", "story.py", "bots.py", "daily.py"];
   var CONTENT_FILES = ["tags", "actions", "traits", "crew", "gear", "complications", "targets", "lines", "writeups"];
   var STORE_KEY = "heist-committee:state";
   var PHASES = ["board", "scout", "recruit", "plan", "playback", "payout"];
@@ -90,8 +90,11 @@
   };
 
   // ---- talking to the engine -------------------------------------------------------------------
+  // The engine never reads the clock: every request carries the UTC date the view sees.
+  HC.utcToday = function () { return new Date().toISOString().slice(0, 10); };
   HC.send = function (request) {
     if (!HC.engine) return null;
+    request.today = HC.utcToday();
     var reply;
     try {
       reply = JSON.parse(HC.engine.handle(JSON.stringify(request)));
@@ -117,12 +120,12 @@
   HC.render = function () {
     var view = HC.view;
     if (!view) return;
-    HC.setText($("hud-cash"), String(view.cash));
-    HC.setText($("hud-rep"), String(view.reputation));
+    HC.setText($("hud-cash"), view.daily ? "free" : String(view.cash));
+    HC.setText($("hud-rep"), view.daily ? "-" : String(view.reputation));
     var hudJob = $("hud-job");
     hudJob.textContent = "";
     if (view.target) {
-      hudJob.appendChild(el("span", { "class": "hud-label" }, ["Job "]));
+      hudJob.appendChild(el("span", { "class": "hud-label" }, [view.daily ? "Daily job " + view.daily.number + ": " : "Job "]));
       hudJob.appendChild(el("b", {}, [view.target.name]));
     }
     var status = { board: "Contract board", scout: "Case file", recruit: "Hiring", plan: "Planning",
@@ -230,7 +233,7 @@
         box.appendChild(ul);
       }
       box.appendChild(el("button", { type: "button", "data-testid": "heist-new-career", text: "Start a new career",
-        onclick: function () { HC.ask("heist-new-career", "Start a brand new career? Cash, reputation and friendships go back to the start.", "Start over", function () { HC.send({ action: "new_career" }); }); } }));
+        onclick: function () { HC.ask("heist-new-career", "Start a brand new career? Cash, reputation and friendships go back to the start. Your Daily Job results stay.", "Start over", function () { HC.send({ action: "new_career" }); }); } }));
     });
   };
 
@@ -265,7 +268,11 @@
 
   HC.renderers.scout = function (view) {
     var root = $("scout-body");
-    HC.fillOnce(root, JSON.stringify([view.scout, view.cash, view.target.id]), function (box) {
+    HC.fillOnce(root, JSON.stringify([view.scout, view.cash, view.target.id, view.daily && view.daily.date]), function (box) {
+      if (view.daily) {
+        box.appendChild(el("p", { "class": "note daily-note", "data-testid": "heist-daily-banner",
+          text: "Daily Job " + view.daily.number + " (" + view.daily.date + "). Scouting, the crew and the van are free today, and every crew member's quirk is on the file." }));
+      }
       box.appendChild(el("div", { "class": "panel" }, [el("h3", { text: view.target.name }),
         el("p", { text: view.target.blurb }), scoutPanel(view, true, true)]));
       box.appendChild(el("div", { "class": "phase-actions" }, [
@@ -297,7 +304,7 @@
         el("button", { type: "button", "class": hired ? "primary" : "", "aria-pressed": hired ? "true" : "false", "data-testid": "heist-hire-" + c.id,
           text: hired ? "Hired (lane " + lane + ")" : "Hire",
           onclick: function () { HC.send({ action: "hire", crew: c.id }); } }),
-        c.quirk_known ? null : el("button", { type: "button", "data-testid": "heist-check-" + c.id, text: "Background check (" + view.background_fee + ")",
+        (c.quirk_known || view.daily) ? null : el("button", { type: "button", "data-testid": "heist-check-" + c.id, text: "Background check (" + view.background_fee + ")",
           onclick: function () { HC.send({ action: "background", crew: c.id }); } })])]);
     return card;
   }
@@ -312,20 +319,21 @@
       var names = view.crew_ids.map(function (id, i) { return (i + 1) + ". " + view.offer.filter(function (c) { return c.id === id; })[0].short; });
       box.appendChild(el("h3", { text: "Your crew: " + view.crew_ids.length + " of 5" }));
       box.appendChild(el("p", { text: names.length ? "Lane order: " + names.join(", ") : "Nobody hired yet." }));
-      box.appendChild(el("h3", { text: "Gear (up to 2, used once each heist)" }));
+      box.appendChild(el("h3", { text: view.daily ? "Today's van (take up to 2, used once each heist)" : "Gear (up to 2, used once each heist)" }));
       var gear = el("div", { "class": "row", style: "display:flex;gap:.5rem;flex-wrap:wrap" });
       view.gear.forEach(function (g) {
         gear.appendChild(el("button", { type: "button", "aria-pressed": g.equipped ? "true" : "false", title: g.text, "data-testid": "heist-gear-" + g.id,
           "aria-disabled": g.locked ? "true" : null,
-          text: g.icon + " " + g.name + (g.locked ? " (opens at reputation " + g.unlock + ")" : " (" + g.cost + ")" + (g.equipped ? " - packed" : "")),
+          text: g.icon + " " + g.name + (g.locked ? " (opens at reputation " + g.unlock + ")" : (view.daily ? "" : " (" + g.cost + ")") + (g.equipped ? " - packed" : "")),
           onclick: function () { if (!g.locked) HC.send({ action: "gear", gear: g.id }); } }));
       });
       box.appendChild(gear);
       box.appendChild(el("ul", { "class": "list-plain" }, view.gear.filter(function (g) { return g.equipped; }).map(function (g) { return el("li", { text: g.name + ": " + g.text }); })));
-      box.appendChild(el("p", { text: "Crew fees " + view.fees + " + gear " + view.gear_cost + " = " + total + ". The committee has " + view.cash + "." }));
+      box.appendChild(el("p", { text: view.daily ? "Today's crew and van are on the house." :
+        "Crew fees " + view.fees + " + gear " + view.gear_cost + " = " + total + ". The committee has " + view.cash + "." }));
       box.appendChild(el("div", { "class": "phase-actions" }, [
         el("button", { type: "button", "class": "primary", "data-testid": "heist-confirm-crew", "aria-disabled": ready && total <= view.cash ? null : "true",
-          text: "Pay the crew and start planning",
+          text: view.daily ? "Start planning" : "Pay the crew and start planning",
           onclick: function () { if (ready) HC.send({ action: "confirm_crew" }); else HC.toast("Choose exactly five crew."); } }),
         el("button", { type: "button", text: "Back to the case file", onclick: function () { HC.send({ action: "back_to_board" }); } })]));
     });

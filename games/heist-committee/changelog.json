@@ -1,6 +1,10 @@
 {
   "changelog": [
     {
+      "date": "2026-10-11",
+      "entry": "The Daily Job: one job a day, the same for everyone, with a free crew of eight and a free van. Every day is checked so that at least three different crews can get away clean. Play any past day from the archive, and see how many days you have played in a small grid. There are no streaks, no pressure, and it never touches your cash or reputation."
+    },
+    {
       "date": "2026-10-09",
       "entry": "A Desktop layout for wide windows with a mouse: the whole job fits one screen, with the checklist beside the timeline, readout chips for cash and reputation, and Minutes, Achievements and Settings as windows. Pick it from the opening screen. Escape now puts a held action down before it opens the menu."
     },

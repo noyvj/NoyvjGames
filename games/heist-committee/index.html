@@ -92,6 +92,26 @@
   <section id="phase-board" class="phase" aria-labelledby="board-heading">
     <h2 id="board-heading">The contract board</h2>
     <p class="note">Pick a job. Every target is invented, every guard is mostly asleep.</p>
+    <section id="daily-panel" class="panel daily-panel" aria-labelledby="daily-heading">
+      <h3 id="daily-heading">The Daily Job</h3>
+      <div id="daily-today"></div>
+      <p class="note">One job a day, the same for everyone, with a free crew and van. It never touches your cash or reputation. There are no streaks: skip as many days as you like, every past day stays open.</p>
+      <div class="phase-actions">
+        <button id="daily-today-button" type="button" class="primary" data-testid="heist-daily-today">Today's job</button>
+        <button id="daily-archive-button" type="button" aria-expanded="false" aria-controls="daily-archive" data-testid="heist-daily-archive">Daily archive</button>
+      </div>
+      <div id="daily-archive" hidden>
+        <div class="daily-cal-head">
+          <button id="daily-cal-prev" type="button" aria-label="Previous month">&lsaquo;</button>
+          <strong id="daily-cal-title" aria-live="polite"></strong>
+          <button id="daily-cal-next" type="button" aria-label="Next month">&rsaquo;</button>
+        </div>
+        <div id="daily-calendar" class="daily-calendar" role="group" aria-label="Daily jobs by date"></div>
+        <p class="note">o came home empty-handed, v got away loudly, * clean getaway, ** clean at par or better. A dot means not played yet; any of them can be played now.</p>
+      </div>
+      <p id="daily-tally" class="note" data-testid="heist-daily-tally"></p>
+      <div id="daily-grid" class="daily-grid" role="img"></div>
+    </section>
     <div id="board-cards" class="card-row"></div>
     <div id="board-standing" class="panel"></div>
   </section>
@@ -191,6 +211,7 @@
 <script src="app.js"></script>
 <script src="plan.js"></script>
 <script src="play.js"></script>
+<script src="daily.js"></script>
 <script src="../../shared/last-played.js" data-game-id="heist-committee"></script>
 <script src="../../shared/whats-new-banner.js" data-game-id="heist-committee"></script>
 <script src="../../shared/keyboard-shortcuts.js"></script>

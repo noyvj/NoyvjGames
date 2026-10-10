@@ -18,6 +18,9 @@ Requests carry `"action"`:
   confirm_crew | place {lane, beat, cell} | clear {lane, beat} | move_lane {lane, dir} | clear_plan
   undo | redo | move_cell {lane, beat, to_lane, to_beat} | abandon | back_to_board
   start_heist | step | skip | finish | retry
+  daily_open {date}            (the Daily Job: a standalone night per UTC date, see daily.py)
+
+Every request may carry "today" ("YYYY-MM-DD", UTC). The engine never reads the clock: the view passes the date in.
 """
 
 import json
@@ -25,6 +28,7 @@ import time
 
 import content as content_mod
 import achievements
+import daily
 import engine
 import info
 import plancheck
@@ -56,12 +60,27 @@ class Career:
         self.cash = START_CASH
         self.jobs_started = 0
         self.meta = _default_meta()
-        self.job = None
+        self._job = None
+        self.daily_job = None      # a Daily Job in progress (only ever opened from the board, so _job is None then)
+        self.daily_days = {}       # {"YYYY-MM-DD": {"tier", "net", "tries"}}, kept across careers
+
+    @property
+    def job(self):
+        """The job the screens show: the daily one while it is open, else the career job."""
+        return self.daily_job if self.daily_job is not None else self._job
+
+    @job.setter
+    def job(self, value):
+        if self.daily_job is not None:
+            self.daily_job = value
+        else:
+            self._job = value
 
 
 career = Career()
 _undo = []
 _redo = []
+_today = None     # the view's UTC date, runtime only (never saved, never read from a clock)
 
 
 # --- small helpers ------------------------------------------------------------------------------
@@ -100,7 +119,7 @@ def _known_complications(job):
     reveal = int(levels[level].get("reveal", 1))
     pool = _pool_sorted(target)
     known = [c["id"] for c in pool[:reveal]]
-    for cid in career.meta["seen_complications"]:
+    for cid in ([] if job.get("daily") else career.meta["seen_complications"]):
         if cid in target.get("pool", []) and cid not in known:
             known.append(cid)
     return known
@@ -108,6 +127,8 @@ def _known_complications(job):
 
 def _offer_for(job):
     """Eight candidates, seeded, always covering all five roles."""
+    if job.get("daily"):
+        return list(daily.spec(C, job["daily"])["offer"])
     ranked = sorted(_unlocked_crew(), key=lambda cid: engine.roll(job["seed"], "offer", cid))
     chosen = []
     for role in C.roles:
@@ -124,11 +145,15 @@ def _offer_for(job):
 
 
 def _hidden_quirks(job):
+    if job.get("daily"):
+        return []                 # the daily file lists every quirk
     known = set(career.meta["known_quirks"])
     return [cid for cid in job.get("crew", []) if cid not in known]
 
 
 def _relations():
+    if career.daily_job is not None:
+        return {}                 # a daily night is separate from the career's friendships and feuds
     return dict(career.meta["relationships"])
 
 
@@ -186,10 +211,14 @@ def _pair_key(a, b):
 
 
 def _gear_cost(job):
+    if job.get("daily"):
+        return 0
     return sum(C.gear[g]["cost"] for g in job.get("gear", []))
 
 
 def _fees(job):
+    if job.get("daily"):
+        return 0
     return sum(C.crew[c]["fee"] for c in job.get("crew", []))
 
 
@@ -223,6 +252,8 @@ def _run(job):
 
 def _learn(job):
     """What the player has now seen: complications, traits and quirks that showed up in the revealed beats."""
+    if job.get("daily"):
+        return                    # a daily night teaches the career nothing
     result = _run(job)
     meta = career.meta
     for ev in result["events"]:
@@ -378,12 +409,39 @@ def _scout_view(job):
         "complications": [{"id": cid, "name": C.complications[cid]["name"], "beats": C.complications[cid]["beats"],
                            "kinds": [{"id": k, "label": C.kinds[k]["label"], "icon": C.kinds[k]["icon"]}
                                      for k in C.complications[cid].get("kinds", []) if k in C.kinds],
-                           "met_before": cid in career.meta["seen_complications"]} for cid in known],
+                           "met_before": (not job.get("daily")) and cid in career.meta["seen_complications"]} for cid in known],
         "unknown_count": max(0, len(target.get("pool", [])) - len(known)),
         "details": shown_details,
         "next": ({"level": level + 1, "cost": levels[level + 1]["cost"] - levels[level]["cost"],
                   "reveal": levels[level + 1]["reveal"]} if level + 1 < len(levels) else None),
     }
+
+
+def _daily_board():
+    """What the board shows for the Daily Job: today's job, the saved results and the tally. None until the view
+    has passed the date in (the engine never reads the clock)."""
+    if _today is None:
+        return None
+    spec = daily.spec(C, _today) if _today >= daily.EPOCH else None
+    days = {d: dict(r) for d, r in career.daily_days.items()}
+    return {"today": _today, "epoch": daily.EPOCH, "number": spec["number"] if spec else 0,
+            "target": _target_card(spec["target"]) if spec else None, "open": spec is not None,
+            "record": days.get(_today), "days": days, "tally": daily.tally(career.daily_days, _today),
+            "tiers": [{"id": t, "label": daily.TIER_LABELS[t]} for t in daily.TIERS]}
+
+
+def _daily_view(job):
+    date = job["daily"]
+    spec = daily.spec(C, date)
+    record = career.daily_days.get(date)
+    entry = {"date": date, "number": spec["number"], "par": spec["par"], "record": record, "can_leave": True,
+             "tiers": [{"id": t, "label": daily.TIER_LABELS[t]} for t in daily.TIERS], "van": list(spec["van"])}
+    if record:
+        entry["leaderboard"] = daily.leaderboard_entry(date, record)   # HOOK only: nothing sends this anywhere
+    if job.get("tier") is not None:
+        entry["tier"] = job["tier"]
+        entry["tier_label"] = daily.TIER_LABELS[job["tier"]]
+    return entry
 
 
 def _relationship_list():
@@ -397,7 +455,8 @@ def _relationship_list():
 
 def _view(note=None):
     job = career.job
-    known = set(career.meta["known_quirks"])
+    is_daily = bool(job and job.get("daily"))
+    known = set(C.crew) if is_daily else set(career.meta["known_quirks"])
     view = {"schema": SCHEMA, "phase": job["phase"] if job else "board", "cash": career.cash,
             "jobs_done": career.meta["jobs_done"], "reputation": _rep(), "note": note or "",
             "achievements": achievements.view(career.meta, C), "minutes": story.minutes(career.meta)}
@@ -406,6 +465,7 @@ def _view(note=None):
         view["reputation"] = _rep()
         view["next_unlock"] = _next_unlock()
         view["relationships"] = _relationship_list()
+        view["daily_board"] = _daily_board()
         return view
     target = C.targets[job["target"]]
     view["target"] = _target_card(job["target"])
@@ -415,15 +475,20 @@ def _view(note=None):
     view["requirements"] = [{"id": r["id"], "label": r["label"], "optional": bool(r.get("optional"))} for r in target["requirements"]]
     view["scout"] = _scout_view(job)
     view["seed"] = job["seed"]
+    if is_daily:
+        view["daily"] = _daily_view(job)
     view["fees"] = _fees(job)
     view["gear_cost"] = _gear_cost(job)
     phase = job["phase"]
     if phase in ("recruit", "plan", "playback", "payout"):
         view["offer"] = [_crew_card(cid, known) for cid in job["offer"]]
         view["crew_ids"] = list(job["crew"])
-        view["gear"] = [{"id": gid, "name": g["name"], "icon": g["icon"], "cost": g["cost"], "text": g["text"],
-                         "equipped": gid in job["gear"], "locked": g.get("min_reputation", 0) > _rep(),
-                         "unlock": g.get("min_reputation", 0)} for gid, g in C.gear.items()]
+        van = daily.spec(C, job["daily"])["van"] if is_daily else list(C.gear)
+        view["gear"] = [{"id": gid, "name": C.gear[gid]["name"], "icon": C.gear[gid]["icon"],
+                         "cost": 0 if is_daily else C.gear[gid]["cost"], "text": C.gear[gid]["text"],
+                         "equipped": gid in job["gear"],
+                         "locked": False if is_daily else C.gear[gid].get("min_reputation", 0) > _rep(),
+                         "unlock": C.gear[gid].get("min_reputation", 0)} for gid in van]
         view["background_fee"] = BACKGROUND_FEE
     if phase in ("plan", "playback", "payout"):
         view["crew"] = [_crew_card(cid, known) for cid in job["crew"]]
@@ -451,8 +516,11 @@ def handle(request_json):
 
 
 def _dispatch(request):
-    global career
+    global career, _today
     action = str(request.get("action", "open"))
+    if "today" in request:
+        _today = request["today"] if daily.valid_date(request["today"]) else None
+    _drop_future_daily()
     job = career.job
     note = ""
     if action == "open":
@@ -461,7 +529,9 @@ def _dispatch(request):
         return {"view": _view(), "info": info.view(career.meta)}
     elif action == "new_career":
         seed = _int(request.get("seed"), 1, 2147483647, int(time.time()) % 2147483647 or 1)
+        old_days = career.daily_days
         career = Career(seed)
+        career.daily_days = old_days         # the daily history is about dates, not about a career
         del _undo[:], _redo[:]
     elif action == "take_job":
         tid = str(request.get("target", ""))
@@ -469,6 +539,8 @@ def _dispatch(request):
             career.job = _new_job(tid)
         else:
             note = "Finish or abandon the current job first."
+    elif action == "daily_open":
+        note = _open_daily(str(request.get("date", "")))
     elif job is None:
         return {"error": "no job in progress", "view": _view()}
     elif action == "scout":
@@ -491,7 +563,8 @@ def _dispatch(request):
     elif action == "abandon":
         career.job = None
         del _undo[:], _redo[:]
-        note = "Job abandoned. The crew fees are gone."
+        note = ("Job abandoned. The crew fees are gone." if not job.get("daily") else
+                "Daily job set aside. Nothing was spent or lost, and it is there whenever you want it.")
     elif action in ("start_heist", "step", "skip", "finish", "retry"):
         note = _do_playback(job, action)
     elif action == "back_to_board":
@@ -501,6 +574,55 @@ def _dispatch(request):
     else:
         return {"error": "unknown action %r" % action, "view": _view()}
     return {"view": _view(note), "ok": not note or note.startswith("Job abandoned")}
+
+
+def _drop_future_daily():
+    """A saved daily job for a date that has not started yet (a hand-edited save) is dropped."""
+    if _today is not None and career.daily_job is not None and not daily.playable(career.daily_job["daily"], _today):
+        career.daily_job = None
+        del _undo[:], _redo[:]
+
+
+def _new_daily_job(spec):
+    return {"phase": "scout", "target": spec["target"], "seed": spec["seed"], "scout": 0, "offer": [],
+            "crew": [], "gear": [], "plan": None, "attempt": 0, "paid": True, "cursor": 0, "best_net": 0,
+            "counted": False, "best_rep": 0, "daily": spec["date"]}
+
+
+def _open_daily(date_text):
+    """Start (or resume) the Daily Job for a date. Only from the board, so a career job is never put aside."""
+    if _today is None:
+        return "The date is not known yet."
+    if not daily.valid_date(date_text):
+        return "That is not a date."
+    if date_text < daily.EPOCH:
+        return "There was no daily job that day."
+    if not daily.playable(date_text, _today):
+        return "That daily job is not out yet."
+    if career.daily_job is not None and career.daily_job["daily"] == date_text:
+        return ""
+    if career._job is not None:
+        return "Finish or abandon the current job first."
+    spec = daily.spec(C, date_text)
+    job = _new_daily_job(spec)
+    job["scout"] = len(_scout_levels(C.targets[spec["target"]])) - 1      # scouting is free in a daily
+    career.daily_job = job
+    del _undo[:], _redo[:]
+    return ""
+
+
+def _finish_daily(job):
+    """A finished daily night: only the date's record changes. No cash, reputation, friendships or achievements."""
+    result = _run(job)
+    out = result["outcome"]
+    spec = daily.spec(C, job["daily"])
+    tier = daily.tier_of(out, spec["par"])
+    job["tier"] = tier
+    job["credited"] = 0
+    job["best_net"] = max(job.get("best_net", 0), out["net"])
+    career.daily_days[job["daily"]] = daily.merge_record(career.daily_days.get(job["daily"]), tier, out["net"])
+    job["cursor"] = len(C.targets[job["target"]]["beats"])
+    job["phase"] = "payout"
 
 
 def _do_playback(job, action):
@@ -522,12 +644,16 @@ def _do_playback(job, action):
             _learn(job)
     elif action == "finish":
         if job["phase"] == "playback" and job["cursor"] >= n:
-            _finish(job)
+            if job.get("daily"):
+                _finish_daily(job)
+            else:
+                _finish(job)
     elif action == "retry":
         if job["phase"] == "payout":
             job["phase"] = "plan"
             job["cursor"] = 0
             job.pop("credited", None)
+            job.pop("tier", None)
     return ""
 
 
@@ -607,7 +733,7 @@ def _update_relationships(job, result):
 
 
 def _do_scout(job, request):
-    if job["phase"] not in ("scout", "recruit", "plan"):
+    if job["phase"] not in ("scout", "recruit", "plan") or job.get("daily"):
         return ""
     target = _target()
     levels = _scout_levels(target)
@@ -625,6 +751,8 @@ def _do_scout(job, request):
 
 def _pass_the_hat(job):
     """Nobody is ever stuck: if the purse cannot cover the five cheapest candidates, the committee tops it up."""
+    if job.get("daily"):
+        return ""
     cheapest = sum(sorted(C.crew[c]["fee"] for c in job["offer"])[:LANES])
     if career.cash >= cheapest:
         return ""
@@ -644,7 +772,7 @@ def _do_hire(job, cid):
 
 
 def _do_background(job, cid):
-    if job["phase"] != "recruit" or cid not in job["offer"] or cid in career.meta["known_quirks"]:
+    if job["phase"] != "recruit" or cid not in job["offer"] or cid in career.meta["known_quirks"] or job.get("daily"):
         return ""
     if career.cash < BACKGROUND_FEE:
         return "Not enough cash for a background check."
@@ -654,7 +782,12 @@ def _do_background(job, cid):
 
 
 def _do_gear(job, gid):
-    if job["phase"] != "recruit" or gid not in C.gear or C.gear[gid].get("min_reputation", 0) > _rep():
+    if job["phase"] != "recruit" or gid not in C.gear:
+        return ""
+    if job.get("daily"):
+        if gid not in daily.spec(C, job["daily"])["van"]:
+            return ""
+    elif C.gear[gid].get("min_reputation", 0) > _rep():
         return ""
     if gid in job["gear"]:
         job["gear"].remove(gid)
@@ -673,7 +806,7 @@ def _do_confirm(job):
     total = _fees(job) + _gear_cost(job)
     if total > career.cash:
         return "The crew and gear cost %d and the committee has %d." % (total, career.cash)
-    career.cash -= total
+    career.cash -= total              # always 0 in a daily: its crew and van are free
     job["paid"] = True
     job["phase"] = "plan"
     job["plan"] = engine.empty_plan(_n_beats())
@@ -754,8 +887,12 @@ def get_state():
     meta = json.loads(json.dumps({k: v for k, v in career.meta.items() if v != _default_meta()[k]}))
     if meta:
         data["meta"] = meta
-    if career.job:
-        data["job"] = json.loads(json.dumps(career.job))
+    if career._job:
+        data["job"] = json.loads(json.dumps(career._job))
+    if career.daily_days:
+        data["daily_days"] = json.loads(json.dumps(career.daily_days))
+    if career.daily_job:
+        data["daily_job"] = json.loads(json.dumps(career.daily_job))
     return data
 
 
@@ -807,6 +944,30 @@ def _clean_job(raw):
     return job
 
 
+def _clean_daily_job(raw):
+    """A saved Daily Job, rebuilt from the date alone: target, seed and offer come from daily.spec, never from the
+    save. Anything that does not fit the date's job is dropped."""
+    if not isinstance(raw, dict) or not daily.valid_date(raw.get("daily")) or raw["daily"] < daily.EPOCH:
+        return None
+    spec = daily.spec(C, raw["daily"])
+    fixed = dict(raw, target=spec["target"], seed=spec["seed"], offer=list(spec["offer"]))
+    job = _clean_job(fixed)
+    if job is None:
+        return None
+    job["daily"] = raw["daily"]
+    job["paid"] = True
+    job["gear"] = [g for g in job["gear"] if g in spec["van"]]
+    job["scout"] = len(_scout_levels(C.targets[spec["target"]])) - 1
+    job["credited"] = 0
+    job["new_unlocks"], job["relations_changed"] = [], []
+    if raw.get("tier") in daily.TIERS and job["phase"] == "payout":
+        job["tier"] = raw["tier"]
+    elif job["phase"] == "payout":
+        job["phase"] = "plan"                 # a payout without its result is replayed from the plan
+        job["cursor"] = 0
+    return job
+
+
 def load_state(data):
     """Replace the career with a saved one. Everything is validated; junk is dropped field by field."""
     global career
@@ -846,6 +1007,9 @@ def load_state(data):
                           "chain_links": _int(best.get("chain_links"), 0, 99, 0),
                           "absorbed": _int(best.get("absorbed"), 0, 99, 0)}
     fresh.job = _clean_job(data.get("job"))
+    fresh.daily_days = daily.clean_days(data.get("daily_days"))
+    if fresh.job is None:
+        fresh.daily_job = _clean_daily_job(data.get("daily_job"))
     career = fresh
     del _undo[:], _redo[:]
     _refresh_view()

@@ -126,27 +126,36 @@
   HC.renderers.payout = function (view) {
     var p = view.payout;
     var root = $("payout-body");
-    HC.fillOnce(root, JSON.stringify([p, view.cash]), function (box) {
+    HC.fillOnce(root, JSON.stringify([p, view.cash, view.daily]), function (box) {
       var b = BANNERS[p.cls];
       box.appendChild(el("div", { "class": "banner", "data-testid": "heist-banner" }, [
         el("h3", { text: b[0] + " " + b[1] + ": " + p.title }),
         el("p", { "class": "note", text: view.target.name + ", attempt " + p.attempt })]));
+      if (view.daily) {
+        box.appendChild(el("div", { "class": "panel daily-result", "data-testid": "heist-daily-result" }, [
+          el("h3", { text: "Daily Job " + view.daily.number + " (" + view.daily.date + "): " + view.daily.tier_label }),
+          el("p", { text: "Payout this attempt " + p.net + ". Par for today is " + view.daily.par + " (a clean getaway that pays at least that)." }),
+          view.daily.record ? el("p", { "class": "note", text: "Your best for this day: " + (view.daily.tiers[view.daily.record.tier] || {}).label + ", payout " + view.daily.record.net + ", " + view.daily.record.tries + (view.daily.record.tries === 1 ? " attempt." : " attempts.") }) : null,
+          el("p", { "class": "note", text: "Nothing here changes your cash or reputation. Retry for a better result, or come back to this day any time." })]));
+      }
       box.appendChild(el("div", { "class": "stats-grid" }, [
         stat("Loot", String(p.loot)), stat("Souvenirs", String(p.souvenirs)), stat("Heat", p.heat + " of 10"),
         stat("Damages", String(p.damages)), stat("Chain", p.chain_links ? p.chain_links + " links" : "none"),
         stat("Absorbed", String(p.absorbed))]));
-      var money = el("div", { "class": "panel" }, [el("h3", { text: "The take" })]);
+      var money = el("div", { "class": "panel" }, [el("h3", { text: view.daily ? "The night's take (not added to your purse)" : "The take" })]);
       money.appendChild(line("Loot and souvenirs", String(p.loot + p.souvenirs)));
       if (p.heat_cost) money.appendChild(line("Heat (" + p.heat + ") takes a cut", "-" + p.heat_cost));
       p.bonuses.forEach(function (bn) { money.appendChild(line(bn.label, sign(bn.amount))); });
       if (p.damages) money.appendChild(line("Damages and plasters", "-" + p.damages));
       money.appendChild(line(p.net === p.consolation && !p.escaped ? "Payout (the committee's consolation minimum)" : "Payout for this attempt", String(p.net), true));
-      if (p.attempt > 1) {
+      if (!view.daily && p.attempt > 1) {
         money.appendChild(line("Best earlier attempt", String(p.best_net - p.credited)));
       }
-      money.appendChild(line("Added to the purse", sign(p.credited), true));
-      money.appendChild(line("Reputation", sign(p.rep_gained) + " (now " + p.reputation + ")"));
-      if (p.attempt > 1) money.appendChild(el("p", { "class": "note", text: "A retry only pays what it adds beyond your best earlier attempt, so you can keep improving without grinding." }));
+      if (!view.daily) {
+        money.appendChild(line("Added to the purse", sign(p.credited), true));
+        money.appendChild(line("Reputation", sign(p.rep_gained) + " (now " + p.reputation + ")"));
+      }
+      if (!view.daily && p.attempt > 1) money.appendChild(el("p", { "class": "note", text: "A retry only pays what it adds beyond your best earlier attempt, so you can keep improving without grinding." }));
       box.appendChild(money);
       var req = el("div", { "class": "panel" }, [el("h3", { text: "Goals" })]);
       var ul = el("ul", { "class": "list-plain" });
@@ -187,9 +196,9 @@
       box.appendChild(el("div", { "class": "panel" }, [el("h3", { text: "The write-up" }), el("p", { "class": "writeup", "data-testid": "heist-writeup", text: p.writeup })]));
       box.appendChild(el("div", { id: "payout-copy-result" }));
       box.appendChild(el("div", { "class": "phase-actions" }, [
-        el("button", { type: "button", "class": "primary", "data-testid": "heist-retry", text: "Retry this target (same crew, same night)",
+        el("button", { type: "button", "class": "primary", "data-testid": "heist-retry", text: view.daily ? "Retry today's night (same crew, same trouble)" : "Retry this target (same crew, same night)",
           onclick: function () { HC.send({ action: "retry" }); } }),
-        el("button", { type: "button", "data-testid": "heist-back-to-board", text: "Back to the board",
+        el("button", { type: "button", "data-testid": "heist-back-to-board", text: view.daily ? "Back to the board and the archive" : "Back to the board",
           onclick: function () { HC.send({ action: "back_to_board" }); } })]));
     });
   };
