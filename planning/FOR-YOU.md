@@ -259,3 +259,12 @@ Recommended: make it free, since you dislike costs that feel like punishment. Sa
 ### Eh5. Evidence Hunt: keep the spirit kind names and the warm endings as written?
 
 Recommended: keep them; say "no" and tell me which to change. Say "yes" to go with that.
+
+### Zl1. Language: the new language chooser (English, Spanish, French) changes the shared game controls in every game, including Le Champ de Mots; should I limit it to the climate games and leave Le Champ de Mots in English only?
+
+Recommended: yes, leave Le Champ de Mots in English, since it teaches French and mixing languages in its controls would be confusing. Say "yes" to go with that.
+
+### Zl2. Language: the Spanish and French texts are machine-assisted and not yet proof-read; do you want to proof-read them yourself (a list of all 106 strings), or should they stay hidden behind the chooser until someone does?
+
+Recommended: leave the chooser available but labelled "beta" until you have looked at the French at least.
+
