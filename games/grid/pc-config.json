@@ -63,7 +63,8 @@
           "steeper-demand-toggle-button",
           "weather-variability-toggle-button",
           "scenario-toggle-button",
-          "career-toggle-button"
+          "career-toggle-button",
+          "sandbox-toggle-button"
         ]
       },
       {

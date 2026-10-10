@@ -1607,6 +1607,64 @@ GRADE_THRESHOLDS = [(0.2, "A"), (0.5, "B"), (0.8, "C"), (1.0, "D")]
 state = GridState()
 
 
+# --- Z-18: the practice sandbox -------------------------------------------------------------------
+# An opt-in mode with no fail states, every tool open and the real game and its achievements left
+# alone. The rules, in one place:
+#   - unlimited funds (the balance never drops below SANDBOX_FUNDS, so every build, maintenance pass and
+#     demand-response purchase is free);
+#   - no disruptions, no aging breakdowns, no surprise grants or fines and an emergency that cannot be
+#     missed: nothing the player does can break the grid;
+#   - every upgrade-tree node is switched on (loadouts, peek forecast, cheaper builds and upkeep), and the
+#     starting scenario can be changed at any time (which starts the sandbox grid over);
+#   - the real game is set aside whole (see sandbox_enter) and put back unchanged on leaving.
+# The sandbox grid is a separate SandboxGridState object, so nothing it does can touch the real one.
+SANDBOX_FUNDS = 1_000_000
+SANDBOX_ALL_PERKS = frozenset(skill_tree.effects(CAREER_TREE, CAREER_UNLOCK_ORDER))
+
+
+class SandboxGridState(GridState):
+    """A grid that cannot fail: see the Z-18 note above."""
+
+    sandbox = True
+
+    @property
+    def funds(self):
+        return self._funds
+
+    @funds.setter
+    def funds(self, value):
+        self._funds = max(float(value), float(SANDBOX_FUNDS))
+
+    def disruption_probability(self):
+        return 0.0
+
+    def aging_breakdown_probability(self):
+        return 0.0
+
+    def breakdown_risk_probability(self, plant_type):
+        return 0.0
+
+    def _maybe_offer_grant(self, round_played):
+        return None
+
+    def _update_emergency(self):
+        """The emergency scenario can still be stabilized, but its clock never runs out."""
+        em = self.emergency
+        if em is None or em["status"] != "active":
+            return
+        em["hold"] = em["hold"] + 1 if self.total_capacity() >= self.demand else 0
+        if em["hold"] >= EMERGENCY_HOLD_ROUNDS:
+            em["status"] = "stabilized"
+
+
+def new_sandbox_state(scenario_id="standard"):
+    """A fresh sandbox grid on the given starting scenario, with every perk on."""
+    fresh = SandboxGridState()
+    fresh.perks = set(SANDBOX_ALL_PERKS)
+    fresh.apply_scenario(scenario_id if scenario_id in SCENARIOS else "standard")
+    return fresh
+
+
 # --- C1: grid operator career ------------------------------------------------
 # Persisted in the browser's localStorage (survives across runs, unlike the
 # per-run save code) and mirrored into get_state() so a save code carries it
@@ -1816,6 +1874,8 @@ def load_career_from_storage():
 
 
 def save_career_to_storage():
+    if sandbox_active:  # Z-18: the sandbox never writes the career
+        return
     storage = _career_storage()
     if storage is None:
         return
@@ -1826,6 +1886,9 @@ def save_career_to_storage():
 
 
 def _sync_perks():
+    if sandbox_active:  # Z-18: every upgrade-tree node is on in the sandbox
+        state.perks = set(SANDBOX_ALL_PERKS)
+        return
     state.perks = set(skill_tree.effects(CAREER_TREE, career["unlocked"]))
 
 
@@ -1851,6 +1914,8 @@ def finish_run():
     """Bank this run into the career and start a fresh run. Returns the
     points banked, or None if the run is too short to count (nothing
     changes in that case)."""
+    if sandbox_active:  # Z-18: a sandbox run never counts towards the career
+        return None
     points, _ = run_career_points()
     if points <= 0 and state.round_number - 1 < CAREER_MIN_ROUNDS:
         return None
@@ -2090,6 +2155,8 @@ def _add_to_lifetime(record):
 
 def unlock_career_perk(perk_id):
     """Buy one node of the upgrade tree with career points (prerequisites must be owned)."""
+    if sandbox_active:  # Z-18: everything is already on, and the career is not touched
+        return False
     result = skill_tree.buy(CAREER_TREE, career["unlocked"], perk_id, career["points"])
     if not result["ok"]:
         return False
@@ -2111,6 +2178,13 @@ def _refresh_unstarted_run():
 
 def set_loadout(option):
     """GC-2b: choose the starting loadout for this run and the next ones (None = no loadout)."""
+    if sandbox_active:  # Z-18: any loadout may be tried; the career's chosen loadout is not touched
+        if option is not None and option not in LOADOUT_NODES:
+            return False
+        if state.unstarted():
+            state.start_option = option
+            state.apply_scenario(state.scenario)
+        return True
     if option is not None and option not in career["unlocked"]:
         return False
     if option is not None and option not in LOADOUT_NODES:
@@ -2542,6 +2616,8 @@ def achievement_ids_earned():
     value that rides the existing save/sync mechanism via get_state()'s
     "achievements_earned" field (ACHIEVEMENTS-SYSTEM-DESIGN.md). Always
     recomputed, never itself a save input."""
+    if sandbox_active:  # Z-18: nothing in the sandbox earns anything; the real game's list is shown as it was
+        return list(_sandbox_real["earned"])
     banked = set(career["achievements"])
     return [entry["id"] for entry in ACHIEVEMENTS if entry["id"] in banked or ACHIEVEMENT_CHECKS[entry["id"]]()]
 
@@ -2593,6 +2669,8 @@ def _request_comparison():
     """C15: asks the page's optional JS hook (window.gridCompare, see
     index.html) to fill #summary-compare with a cross-player percentile.
     Absent hook (pytest, or a page without it) leaves the fallback text."""
+    if sandbox_active:  # Z-18: a practice grid is never compared with real players
+        return
     try:
         from js import window  # noqa: PLC0415 -- Pyodide-only, deliberately lazy
     except ImportError:
@@ -2641,7 +2719,7 @@ def copy_result_fields():
     stats.append(f"{state.emissions_avoided():.0f} emissions avoided")
     stats.append(f"resilience {state.resilience_score()}/100")
     return {
-        "game": "Grid",
+        "game": "Grid (practice sandbox)" if sandbox_active else "Grid",
         "score": round(state.score()),
         "unit": "clean-grid score",
         "stats": stats,
@@ -2722,6 +2800,8 @@ def _story_reach_all(earned_ids):
     """W1: unlocks the story chapter for every earned achievement (and the
     opening one) via the shared story-chapters.js. Idempotent and silent: no
     story script, or a chapter id it does not know, simply does nothing."""
+    if sandbox_active:  # Z-18: chapters belong to the real game
+        return
     try:
         from js import window  # noqa: PLC0415 -- Pyodide-only, deliberately lazy
     except ImportError:
@@ -2741,6 +2821,8 @@ def _check_new_achievements_for_toast():
     achievements already earned must not flood the player with toasts for
     all of them at once (see _seed_achievement_toast_baseline)."""
     global _achievements_seen_ids
+    if sandbox_active:  # Z-18: no toasts, no new chapters
+        return
     earned_now = set(achievement_ids_earned())
     _story_reach_all(earned_now)
     newly = earned_now - _achievements_seen_ids
@@ -3024,7 +3106,9 @@ def render():
         f"Clean streak: {state.current_clean_streak} round(s) without a disruption "
         f"(best {state.best_clean_streak})"
     )
-    document.getElementById("funds-display").innerText = f"Funds: {state.funds:.0f}"
+    document.getElementById("funds-display").innerText = (
+        "Funds: unlimited (sandbox)" if sandbox_active else f"Funds: {state.funds:.0f}"
+    )
     document.getElementById("capacity-display").innerText = f"Capacity: {state.total_capacity()}"
     document.getElementById("emissions-display").innerText = f"Emissions: {state.emissions:.0f}"
     document.getElementById("fossil-share-display").innerText = (
@@ -3116,12 +3200,16 @@ def render():
 
     scenario_button = document.getElementById("scenario-toggle-button")
     scenario_button.innerText = f"Scenario: {SCENARIOS[state.scenario]['label']}"
-    scenario_locked = state.round_number != 1 or any(state.cumulative_built.values())
+    scenario_locked = (state.round_number != 1 or any(state.cumulative_built.values())) and not sandbox_active
     scenario_button.disabled = scenario_locked
     scenario_button.title = (
         "Starting scenario -- locked once you build anything or advance a round."
         if scenario_locked
-        else "Click to cycle the starting scenario (only available before your first build or round)."
+        else (
+            "Sandbox: click to cycle the scenario and start the practice grid over."
+            if sandbox_active
+            else "Click to cycle the starting scenario (only available before your first build or round)."
+        )
     )
 
     document.getElementById("renewable-milestone-callout").hidden = not renewable_milestone_visible
@@ -3471,6 +3559,9 @@ def import_career_from_text(text):
     """C-16: replace the career with pasted JSON. Anything that is not a Grid
     career is refused with a message, and nothing changes."""
     global career, career_data_message
+    if sandbox_active:
+        career_data_message = "Career backups are switched off in the sandbox."
+        return False
     try:
         raw = json.loads(text)
     except (ValueError, TypeError):
@@ -3490,6 +3581,9 @@ def reset_career():
     """C-16: wipe the whole career (points, perks, records, history,
     banked achievements) and return to a fresh start."""
     global career, last_finish_records, career_data_message
+    if sandbox_active:
+        career_data_message = "The career cannot be reset from the sandbox."
+        return
     career = _default_career()
     last_finish_records = []
     _sync_perks()
@@ -3513,7 +3607,7 @@ def update_career_panel():
     flash.innerText = ("New record! " + "; ".join(last_finish_records) + ".") if last_finish_records else ""
     document.getElementById("career-next-perk-display").innerText = career_next_perk_text()
     finish = document.getElementById("career-finish-button")
-    finish.disabled = state.round_number - 1 < CAREER_MIN_ROUNDS
+    finish.disabled = sandbox_active or state.round_number - 1 < CAREER_MIN_ROUNDS
     document.getElementById("career-tree-summary").innerText = career_tree_summary_text()
     _render_career_tree()
 
@@ -3549,7 +3643,7 @@ def on_finish_run(event=None):
         finish_run()
         render()
 
-    if state.round_number - 1 < CAREER_MIN_ROUNDS:
+    if sandbox_active or state.round_number - 1 < CAREER_MIN_ROUNDS:
         return
     points, _ = run_career_points()
     _confirm_dialog_ask(
@@ -3718,7 +3812,7 @@ def peek_text():
 def render_run_setup_and_extras():
     """Everything the 2026-10-08 batch added to the main screen: run setup (loadout, seed, Ironman),
     the undo button, the Perfect Round streak, the grant offer, the peek forecast, plant nicknames."""
-    owned_loadouts = [n for n in LOADOUT_NODES if n in career["unlocked"]]
+    owned_loadouts = list(LOADOUT_NODES) if sandbox_active else [n for n in LOADOUT_NODES if n in career["unlocked"]]
     select = document.getElementById("start-option-select")
     select.value = state.start_option if state.start_option in owned_loadouts else START_OPTION_NONE
     select.disabled = not state.unstarted() or not owned_loadouts
@@ -3948,8 +4042,12 @@ def _pulse_emissions_meter():
 
 def on_cycle_scenario(event=None):
     """C13: cycle to the next starting scenario (only before any build)."""
+    global state
     next_id = SCENARIO_ORDER[(SCENARIO_ORDER.index(state.scenario) + 1) % len(SCENARIO_ORDER)]
-    state.apply_scenario(next_id)
+    if sandbox_active:  # Z-18: any time; the practice grid starts over on the new scenario
+        state = new_sandbox_state(next_id)
+    else:
+        state.apply_scenario(next_id)
     render()
 
 
@@ -4713,6 +4811,8 @@ def render_difficulty_preset():
 # (_merge_plant_dict) rather than replacing them wholesale, so a save
 # missing a plant-type key can't drop that key from live state entirely.
 def get_state():
+    if sandbox_active:  # Z-18: a save, an autosave or a leaderboard read while the sandbox is on is the REAL game
+        return copy.deepcopy(_sandbox_real["snapshot"])
     return {
         "round_number": state.round_number,
         "demand": state.demand,
@@ -5066,6 +5166,8 @@ def load_report_text():
 
 def load_state(data):
     global info_page_open
+    if sandbox_active:  # Z-18: loading a save always lands in the real game
+        _sandbox_restore_real()
     load_report["fields"] = compute_load_report(data) if isinstance(data, dict) else []
     load_report["loaded"] = True
 
@@ -5134,6 +5236,85 @@ def load_state(data):
 
     render()
     _seed_achievement_toast_baseline()
+    _sandbox_notify_page()
+    return True
+
+
+# --- Z-18: entering and leaving the practice sandbox ---------------------------------------------
+# shared/sandbox-mode.js calls sandbox_enter() / sandbox_leave() / sandbox_is_active() through Pyodide and
+# draws the "Sandbox: nothing here is saved" banner. The real game is set aside, never edited: the
+# module-level `state` is simply pointed at a SandboxGridState, and every other piece of module state a
+# save reads (career, the shadow twin, the real-grid compare, the info page flag) is stashed and put back.
+sandbox_active = False
+_sandbox_real = None
+_SANDBOX_STASHED = (
+    "info_page_open", "shadow_scenario", "shadow_actions", "real_grid_choice", "last_finish_records",
+    "auto_advance_message", "run_setup_message", "difficulty_note", "career_data_message",
+    "renewable_milestone_visible", "retire_callout_visible", "maintain_callout_visible", "career",
+)
+
+
+def _sandbox_fresh_globals():
+    return {
+        "shadow_scenario": None, "shadow_actions": [], "real_grid_choice": None, "last_finish_records": [],
+        "auto_advance_message": "", "run_setup_message": "", "difficulty_note": "", "career_data_message": "",
+        "renewable_milestone_visible": False, "retire_callout_visible": False, "maintain_callout_visible": False,
+    }
+
+
+def _sandbox_notify_page():
+    """Tells shared/sandbox-mode.js to re-read sandbox_active() (the banner and button follow it)."""
+    try:
+        from js import window  # noqa: PLC0415 -- Pyodide-only, deliberately lazy
+    except ImportError:
+        return
+    shared = getattr(window, "NoyvjSandbox", None)
+    if shared is not None:
+        shared.sync()
+
+
+def sandbox_is_active():
+    return sandbox_active
+
+
+def sandbox_enter():
+    """Sets the real game aside and starts a practice grid. True when the sandbox is on."""
+    global state, sandbox_active, _sandbox_real
+    if sandbox_active:
+        return True
+    snapshot = get_state()
+    _sandbox_real = {
+        "state": state,
+        "snapshot": snapshot,
+        "earned": list(snapshot["achievements_earned"]),
+        "globals": {name: globals()[name] for name in _SANDBOX_STASHED},
+    }
+    sandbox_active = True
+    state = new_sandbox_state("standard")
+    globals().update(_sandbox_fresh_globals())
+    render()
+    return True
+
+
+def _sandbox_restore_real():
+    """Puts the real game back exactly as it was (no render; callers do that)."""
+    global state, sandbox_active, _sandbox_real
+    real = _sandbox_real
+    sandbox_active = False
+    _sandbox_real = None
+    if real is None:
+        return
+    state = real["state"]
+    globals().update(real["globals"])
+    _seed_achievement_toast_baseline()
+
+
+def sandbox_leave():
+    """Leaves the sandbox; the real game is back and untouched. True when it is."""
+    if not sandbox_active:
+        return True
+    _sandbox_restore_real()
+    render()
     return True
 
 

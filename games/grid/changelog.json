@@ -1,6 +1,10 @@
 {
   "changelog": [
     {
+      "date": "2026-10-11",
+      "entry": "New: a practice sandbox. Press Practice sandbox (Desktop: Menu, Game) to try anything on a separate grid with unlimited funds, no disruptions or breakdowns, every upgrade-tree perk and loadout switched on, and a scenario button that restarts the practice grid at any time. A banner says Sandbox: nothing here is saved, and nothing in it earns an achievement or touches your career. Leave sandbox puts your real game back exactly as it was; saving while you are in it saves your real game."
+    },
+    {
       "date": "2026-10-08",
       "entry": "Big update, three parts. (1) Every run now has a short seed such as GRID-K7F2Q, shown under Run setup: the same seed and the same choices give the same weather, disruptions and breakdowns, and you can type a friend's seed before you build. (2) Your Career is now an upgrade tree: the four old perks are its first nodes, a Projects branch (wind and solar site leases, storage subsidy, R&D grant, policy liaison) lets you buy named permanent modifiers on purpose, a Starting loadout branch (Old Coal Contract, Storage Startup, Diplomatic Immunity) lets you pick how a run begins, and a Meteorology branch unlocks Peek forecast, a small fee to read next round's weather and whether a disruption hits. After you finish a run, a What if panel replays the same seed under three other strategies so you can see what each would have earned. (3) Play changes: a Perfect Round streak raises your revenue after rounds with no disruption and demand met, Undo last build is free within the round (an opt-in Ironman toggle turns it off), every plant has a nickname and the last coal plant gets a eulogy, occasional surprise grants offer a two-button choice, hovering the plant-mix bars shows each type's share of capacity, revenue and emissions, and the What's New panel now says when a loaded save had missing fields repaired."
     },

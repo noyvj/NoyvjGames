@@ -1,0 +1,127 @@
+/*
+ * Shared practice-sandbox styles (planning/TODO.md Z-18; script in shared/sandbox-mode.js).
+ * Every colour is a token on :root; the light palette follows html[data-theme="light"] and, when
+ * no theme attribute is set, the OS preference. The sandbox is never signalled by colour alone:
+ * the banner carries the words "Sandbox: nothing here is saved", and while it is on the whole
+ * window gets a dashed frame (a pattern, not a hue).
+ */
+:root {
+  --sbx-bg: #2a2410;
+  --sbx-fg: #fff3c4;
+  --sbx-border: #f3c64a;
+  --sbx-button-bg: #f3c64a;
+  --sbx-button-fg: #241d05;
+  --sbx-focus: #ffffff;
+}
+html[data-theme="light"] {
+  --sbx-bg: #fff6d6;
+  --sbx-fg: #3b2f00;
+  --sbx-border: #8a6500;
+  --sbx-button-bg: #5c4300;
+  --sbx-button-fg: #ffffff;
+  --sbx-focus: #1b2033;
+}
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme]) {
+    --sbx-bg: #fff6d6;
+    --sbx-fg: #3b2f00;
+    --sbx-border: #8a6500;
+    --sbx-button-bg: #5c4300;
+    --sbx-button-fg: #ffffff;
+    --sbx-focus: #1b2033;
+  }
+}
+
+.noyvj-sandbox-banner[hidden],
+.noyvj-sandbox-live[hidden] { display: none !important; }
+
+/* A fixed overlay, never an in-flow element: several games centre one child in a flex body. It is centred
+   with auto margins (not left:50% + a transform) so it keeps its natural width. */
+.noyvj-sandbox-banner {
+  position: fixed;
+  top: 8px;
+  left: 0;
+  right: 0;
+  margin: 0 auto;
+  width: max-content;
+  z-index: 9995;
+  box-sizing: border-box;
+  max-width: calc(100vw - 16px);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem 0.75rem;
+  padding: 0.4rem 0.75rem;
+  border: 2px solid var(--sbx-border);
+  border-radius: 12px;
+  background: var(--sbx-bg);
+  color: var(--sbx-fg);
+  font: 600 0.9rem/1.3 system-ui, -apple-system, "Segoe UI", sans-serif;
+  text-align: center;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
+}
+.noyvj-sandbox-text { margin: 0; }
+.noyvj-sandbox-text strong { letter-spacing: 0.02em; }
+.noyvj-sandbox-sub { display: block; font-weight: 400; font-size: 0.8rem; opacity: 0.95; }
+.noyvj-sandbox-leave {
+  min-height: 36px;
+  padding: 0.25rem 0.8rem;
+  border: 2px solid var(--sbx-border);
+  border-radius: 8px;
+  background: var(--sbx-button-bg);
+  color: var(--sbx-button-fg);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+.noyvj-sandbox-leave:focus-visible,
+[data-sandbox-toggle]:focus-visible {
+  outline: 3px solid var(--sbx-focus);
+  outline-offset: 2px;
+}
+
+/* Phones: one line, full width, over the very top (it stands in for the 44px mobile HUD strip and the
+   save widget pill while the sandbox is on; the sandbox's own numbers stay in the page). */
+@media (max-width: 640px) {
+  .noyvj-sandbox-banner {
+    top: 0; margin: 0; width: auto; max-width: none; z-index: 10002; flex-wrap: nowrap;
+    justify-content: space-between; gap: 0.5rem; padding: 0.3rem 0.5rem; border-width: 0 0 2px 0;
+    border-radius: 0 0 12px 12px;
+  }
+  .noyvj-sandbox-text { font-size: 0.85rem; text-align: left; }
+  .noyvj-sandbox-sub { display: none; }
+}
+
+/* A dashed frame around the window while the sandbox is on. */
+html[data-sandbox="true"]::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 9994;
+  border: 3px dashed var(--sbx-border);
+  pointer-events: none;
+}
+
+/* The toggle button reads as pressed while the sandbox is on (a border pattern, plus the label change). */
+[data-sandbox-toggle][aria-pressed="true"] {
+  outline: 2px dashed var(--sbx-border);
+  outline-offset: 1px;
+}
+
+.noyvj-sandbox-live {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+@media print {
+  .noyvj-sandbox-banner, .noyvj-sandbox-live { display: none !important; }
+  html[data-sandbox="true"]::after { display: none; }
+}

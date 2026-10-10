@@ -88,6 +88,7 @@
 <script src="settings.js"></script>
 <!-- GC-2b: the career upgrade tree is drawn by the shared skill-tree widget (rules in shared/skill_tree.py, loaded below). -->
 <link rel="stylesheet" href="../../shared/skill-tree.css">
+<link rel="stylesheet" href="../../shared/sandbox-mode.css">
 <script src="../../shared/skill-tree.js"></script>
 <!-- AdSense: placeholder client ID until application is approved -->
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXXXXXX" crossorigin="anonymous"></script>
@@ -118,6 +119,7 @@
       <button id="scenario-toggle-button" class="secondary difficulty-toggle" type="button">Loading...</button>
       <button id="career-toggle-button" class="secondary" type="button">🎖️ Career</button>
       <button id="settings-toggle-button" class="secondary" type="button">⚙️ Settings</button>
+      <button id="sandbox-toggle-button" class="secondary" type="button" data-sandbox-toggle title="Try anything on a practice grid: no fail states, every upgrade on, nothing saved. Your real game is untouched.">🧪 Practice sandbox</button>
     </div>
     <!-- C-10: difficulty presets -- one choice that sets steeper demand, weather variability and the starting scenario together. -->
     <div class="difficulty-preset-row">
@@ -800,6 +802,8 @@
   -->
   <script src="../../shared/hub-auth.js"></script>
   <script src="../../shared/save-widget.js" data-game-id="grid"></script>
+  <!-- Z-18: the practice sandbox toggle and its banner (rules live in game.py: sandbox_enter / sandbox_leave / sandbox_is_active). -->
+  <script src="../../shared/sandbox-mode.js" data-game-id="grid"></script>
   <script src="../../shared/opening-screen.js" data-game-id="grid" data-tagline="Run a power grid through rising demand and aging infrastructure." data-game-name="Grid"></script>
   <script src="../../shared/last-played.js" data-game-id="grid"></script>
   <script src="../../shared/whats-new-banner.js" data-game-id="grid"></script>
