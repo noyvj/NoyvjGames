@@ -2,7 +2,7 @@
 // the precache list; ordinary content deploys don't need it, because
 // same-origin requests are network-first (see the fetch handler below) and
 // so always pick up fresh files whenever the player is online.
-const SW_VERSION = 56;
+const SW_VERSION = 57;
 const CACHE_NAME = "site-cache-v" + SW_VERSION;
 // How long a same-origin network request may take before we give up and
 // serve the cached copy instead (a slow/flaky connection shouldn't hang).
@@ -59,6 +59,9 @@ const PRECACHE_URLS = [
   "./hub-collections.js",
   "./hub-offline.js",
   "./hub-shell.js",
+  "./hub-nav.js",
+  "./map.html",
+  "./my-stats.html",
   "./today.json",
   "./offline-manifest.json",
   "./events.html",
@@ -79,6 +82,15 @@ const PRECACHE_URLS = [
   "shared/info-page.css",
   // Site-wide shared includes (Z-19/21/23/24/25/29/31): in every game page and the hub's.
   "shared/seasonal-events.js",
+  "shared/seasonal-events.css",
+  "shared/announcer.js",
+  "shared/night-mode.js",
+  "shared/night-mode.css",
+  "shared/calm-mode.js",
+  "shared/calm-mode.css",
+  "shared/run-code.js",
+  "shared/run_code.py",
+  "shared/leaderboard.js",
   "shared/seasonal-dates.json",
   "shared/profile.js",
   "shared/report-problem.js",

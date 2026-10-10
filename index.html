@@ -117,16 +117,61 @@
   <a class="skip-link" href="#game-grid">Skip to games</a>
   <div class="space-bg" aria-hidden="true"><div class="space-bg-nebula"></div><div class="space-bg-stars-bright"></div></div>
   <header id="hub-header">
-    <nav class="hub-nav">
-      <a href="achievements.html">Achievements</a>
-      <a href="map.html">100% Map</a>
-      <a href="my-stats.html">My Stats</a>
-      <a href="whats-new.html">What's New<span id="whats-new-badge" class="nav-badge" hidden></span></a>
-      <a href="roadmap.html">Roadmap</a>
-      <a href="events.html">Events</a>
-      <a href="sources.html">Sources &amp; Credits</a>
-      <a href="#site-feedback-section">Feedback / Report a Bug</a>
-      <button type="button" id="tutorial-restart-button" class="hub-nav-button">Take the Tour</button>
+    <nav class="hub-nav" aria-label="Site">
+      <!-- GN-14: the links are grouped into dropdowns (hub-nav.js: one open at a time, Esc closes and returns
+           focus to the button, an outside click or Tab out closes). Each is a plain details/summary, so it also
+           opens from the keyboard with no script. -->
+      <details class="hub-nav-menu" id="nav-me">
+        <summary>Me</summary>
+        <div class="hub-nav-menu-panel">
+          <a href="achievements.html">Achievements</a>
+          <a href="map.html">100% Map</a>
+          <a href="my-stats.html">My Stats</a>
+          <a href="profile.html">Your profile</a>
+        </div>
+      </details>
+      <details class="hub-nav-menu" id="nav-updates">
+        <summary>Updates<span id="updates-nav-badge" class="nav-badge" hidden></span></summary>
+        <div class="hub-nav-menu-panel">
+          <a href="whats-new.html">What's New<span id="whats-new-badge" class="nav-badge" hidden></span></a>
+          <a href="roadmap.html">Roadmap</a>
+          <a href="events.html">Events</a>
+        </div>
+      </details>
+      <details class="hub-nav-menu hub-nav-menu--wide" id="nav-feedback">
+        <summary>Feedback</summary>
+        <div class="hub-nav-menu-panel" id="nav-feedback-panel">
+          <p class="hub-nav-menu-intro">Something broken or confusing? Send a report, or leave general feedback about the hub below.</p>
+          <div id="nav-report-slot" class="hub-nav-report-slot"></div>
+          <!-- GN-16: the site feedback form lives here (it used to sit at the very bottom of the page). script.js's
+               loadSiteFeedback and the submit handler find it by these same ids. -->
+          <section id="site-feedback-section" class="site-feedback-section" aria-labelledby="site-feedback-heading">
+            <h2 id="site-feedback-heading" class="site-feedback-heading">Site Feedback</h2>
+            <p class="site-feedback-subtext">General feedback about the hub itself — not tied to any one game.</p>
+            <div class="star-rating" id="site-feedback-stars" data-rating="0">
+              <button type="button" class="star" data-value="1">&#9733;</button>
+              <button type="button" class="star" data-value="2">&#9733;</button>
+              <button type="button" class="star" data-value="3">&#9733;</button>
+              <button type="button" class="star" data-value="4">&#9733;</button>
+              <button type="button" class="star" data-value="5">&#9733;</button>
+            </div>
+            <textarea id="site-feedback-comment" class="comment-box" placeholder="Leave feedback..." aria-label="Your feedback about the hub"></textarea>
+            <button type="button" id="site-feedback-submit" class="comment-submit">Submit</button>
+            <p id="site-feedback-status" class="account-status" role="status"></p>
+            <ul id="site-feedback-list" class="site-feedback-list"></ul>
+          </section>
+        </div>
+      </details>
+      <details class="hub-nav-menu" id="nav-help">
+        <summary>Help</summary>
+        <div class="hub-nav-menu-panel">
+          <a href="help.html">Help &amp; FAQ</a>
+          <button type="button" id="tutorial-restart-button" class="hub-nav-menu-item">Take the Tour</button>
+          <a href="sources.html">Sources &amp; Credits</a>
+          <a href="credits.html">Credits &amp; Thanks</a>
+          <a href="settings.html">Settings</a>
+        </div>
+      </details>
       <button type="button" class="hub-nav-button theme-toggle">Theme</button>
       <button type="button" id="lite-toggle" class="hub-nav-button" data-lite-toggle aria-describedby="lite-toggle-note">Lite mode: off</button>
       <span id="lite-toggle-note" class="visually-hidden" data-lite-status></span>
@@ -225,41 +270,51 @@
     </div>
   </section>
 
-  <section id="pickup-section" class="continue-playing-section" aria-labelledby="pickup-heading" hidden>
-    <h2 id="pickup-heading" class="continue-playing-heading">Pick up where you stopped</h2>
-    <ul id="pickup-list" class="rarest-list"></ul>
-  </section>
+  <!-- GN-12: the quick routes into a game sit side by side in one row (they wrap on a phone), and the
+       lower-value strips (suggestions, community highlights, rarest) are folded into one "More for you" dropdown, so
+       the games are reached with far less scrolling. "Continue Playing" (your account's saves) is now the second
+       list inside "Pick up where you stopped": the pick-up list only knows this browser, the account list also
+       knows the games you saved on another device. -->
+  <div id="hub-strips" class="hub-strips">
+    <section id="pickup-section" class="continue-playing-section" aria-labelledby="pickup-heading" hidden>
+      <h2 id="pickup-heading" class="continue-playing-heading">Pick up where you stopped</h2>
+      <ul id="pickup-list" class="rarest-list"></ul>
+      <div id="continue-playing-section" class="pickup-account" hidden>
+        <h3 class="pickup-account-heading">Saved to your account</h3>
+        <div id="continue-playing-list" class="continue-playing-list"></div>
+      </div>
+    </section>
 
-  <section id="continue-playing-section" class="continue-playing-section" hidden>
-    <h2 class="continue-playing-heading">Continue Playing</h2>
-    <div id="continue-playing-list" class="continue-playing-list"></div>
-  </section>
+    <section id="recently-added-section" class="continue-playing-section" aria-labelledby="recently-added-heading" hidden>
+      <h2 id="recently-added-heading" class="continue-playing-heading">Recently added</h2>
+      <div id="recently-added-list" class="continue-playing-list"></div>
+    </section>
+  </div>
 
-  <section id="recently-added-section" class="continue-playing-section" hidden>
-    <h2 class="continue-playing-heading">Recently Added</h2>
-    <div id="recently-added-list" class="continue-playing-list"></div>
-  </section>
+  <details id="more-for-you" class="more-for-you">
+    <summary class="more-for-you-summary">More for you</summary>
+    <p class="more-for-you-intro">Game suggestions, what other players are doing, and your rarest finds.</p>
+    <!-- Y-5: "For you" (hub-foryou.js). Rule-based next-game suggestions for a returning player, each with
+         the reason in words. Hidden for first-time visitors and while the survey or tour is open. -->
+    <section id="for-you-section" class="continue-playing-section for-you-section" aria-labelledby="for-you-heading" hidden>
+      <div class="for-you-head">
+        <h2 id="for-you-heading" class="continue-playing-heading">For you</h2>
+        <button type="button" id="for-you-dismiss" class="account-link-button">Hide for two weeks</button>
+      </div>
+      <ul id="for-you-list" class="for-you-list"></ul>
+    </section>
 
-  <!-- Y-5: "For you" (hub-foryou.js). Rule-based next-game suggestions for a returning player, each with
-       the reason in words. Hidden for first-time visitors and while the survey or tour is open. -->
-  <section id="for-you-section" class="continue-playing-section for-you-section" aria-labelledby="for-you-heading" hidden>
-    <div class="for-you-head">
-      <h2 id="for-you-heading" class="continue-playing-heading">For you</h2>
-      <button type="button" id="for-you-dismiss" class="account-link-button">Hide for two weeks</button>
-    </div>
-    <ul id="for-you-list" class="for-you-list"></ul>
-  </section>
+    <section id="community-highlights-section" class="continue-playing-section">
+      <h2 class="continue-playing-heading">Community Highlights</h2>
+      <p id="community-highlights-text" class="community-highlights-text" role="status">Loading community highlights&hellip;</p>
+    </section>
 
-  <section id="community-highlights-section" class="continue-playing-section">
-    <h2 class="continue-playing-heading">Community Highlights</h2>
-    <p id="community-highlights-text" class="community-highlights-text" role="status">Loading community highlights&hellip;</p>
-  </section>
-
-  <section id="rarest-section" class="continue-playing-section" aria-labelledby="rarest-heading" hidden>
-    <h2 id="rarest-heading" class="continue-playing-heading">Rarest things you own</h2>
-    <p id="rarest-note" class="community-highlights-text">Your five rarest achievements, by the share of players who have earned them.</p>
-    <ul id="rarest-list" class="rarest-list"></ul>
-  </section>
+    <section id="rarest-section" class="continue-playing-section" aria-labelledby="rarest-heading" hidden>
+      <h2 id="rarest-heading" class="continue-playing-heading">Rarest things you own</h2>
+      <p id="rarest-note" class="community-highlights-text">Your five rarest achievements, by the share of players who have earned them.</p>
+      <ul id="rarest-list" class="rarest-list"></ul>
+    </section>
+  </details>
 
   <section id="game-filter-bar" class="game-filter-bar">
     <input type="text" id="game-search-input" placeholder="Search games by name or description…" aria-label="Search games">
@@ -316,7 +371,7 @@
     <article class="title-card" data-tags="space deep-systems">
       <a class="title-card-link" href="games/sol/index.html">
         <div class="title-card-thumb title-card-thumb--space"></div>
-        <h2 class="title-card-name">SOL</h2>
+        <h3 class="title-card-name">SOL</h3>
         <p class="title-card-blurb">Solar-system incremental clicker — click, automate, and expand outward through the solar system.</p>
         <div class="title-card-tags"><span class="tag-pill">Space</span><span class="tag-pill">Deep Systems</span></div>
       </a>
@@ -338,7 +393,7 @@
     <article class="title-card" data-tags="climate quick">
       <a class="title-card-link" href="games/canopy/index.html">
         <div class="title-card-thumb title-card-thumb--forest"></div>
-        <h2 class="title-card-name">Canopy</h2>
+        <h3 class="title-card-name">Canopy</h3>
         <p class="title-card-blurb">A forest of plots — clear for quick income, or preserve and let both its value and its biodiversity compound, while the community periodically asks you to clear specific plots for housing or resources. First of the BCM114 climate quartet.</p>
         <p class="title-card-tag">Made for BCM114 Part 1.</p>
         <div class="title-card-tags"><span class="tag-pill">Climate</span><span class="tag-pill">Quick</span></div>
@@ -361,7 +416,7 @@
     <article class="title-card" data-tags="climate quick">
       <a class="title-card-link" href="games/grid/index.html">
         <div class="title-card-thumb title-card-thumb--grid"></div>
-        <h2 class="title-card-name">Grid</h2>
+        <h3 class="title-card-name">Grid</h3>
         <p class="title-card-blurb">Manage a power grid through rising demand and aging infrastructure — fossil is cheap early, renewables get cheaper the more you invest, and your grid's trajectory is tracked against a real global-average benchmark. Second of the BCM114 climate quartet.</p>
         <p class="title-card-tag">Made for BCM114 Part 1.</p>
         <div class="title-card-tags"><span class="tag-pill">Climate</span><span class="tag-pill">Quick</span></div>
@@ -384,7 +439,7 @@
     <article class="title-card" data-tags="climate quick">
       <a class="title-card-link" href="games/tide/index.html">
         <div class="title-card-thumb title-card-thumb--ocean"></div>
-        <h2 class="title-card-name">Tide</h2>
+        <h3 class="title-card-name">Tide</h3>
         <p class="title-card-blurb">Run a coastal settlement against a rising sea and a delayed acidity crisis, investing through a multi-tier seawall system as the water climbs — the damage from today's choices doesn't show up right away. Third of the BCM114 climate quartet.</p>
         <p class="title-card-tag">Made for BCM114 Part 1.</p>
         <div class="title-card-tags"><span class="tag-pill">Climate</span><span class="tag-pill">Quick</span></div>
@@ -407,7 +462,7 @@
     <article class="title-card" data-tags="climate quick">
       <a class="title-card-link" href="games/aftermath/index.html">
         <div class="title-card-thumb title-card-thumb--ember"></div>
-        <h2 class="title-card-name">Aftermath</h2>
+        <h3 class="title-card-name">Aftermath</h3>
         <p class="title-card-blurb">Weather a scheduled run of floods, heatwaves, storms, and supply-chain shocks, then carry a persistent skill tree — and your settlement's own remembered history — into the next run. No run is ever wasted. Fourth of the BCM114 climate quartet.</p>
         <p class="title-card-tag">Made for BCM114 Part 1.</p>
         <div class="title-card-tags"><span class="tag-pill">Climate</span><span class="tag-pill">Quick</span></div>
@@ -430,7 +485,7 @@
     <article class="title-card" data-tags="climate quick">
       <a class="title-card-link" href="games/herd/index.html">
         <div class="title-card-thumb title-card-thumb--pastoral"></div>
-        <h2 class="title-card-name">Herd</h2>
+        <h3 class="title-card-name">Herd</h3>
         <p class="title-card-blurb">Grow a farm — herd size and methane emissions are coupled by default, but a plant-based production pivot (among other measures) proves decoupling them is better management, not a tax on growth. First of a second climate quartet.</p>
         <p class="title-card-tag">Made for BCM114 Part 1.</p>
         <div class="title-card-tags"><span class="tag-pill">Climate</span><span class="tag-pill">Quick</span></div>
@@ -453,7 +508,7 @@
     <article class="title-card" data-tags="climate quick">
       <a class="title-card-link" href="games/thaw/index.html">
         <div class="title-card-thumb title-card-thumb--arctic"></div>
-        <h2 class="title-card-name">Thaw</h2>
+        <h3 class="title-card-name">Thaw</h3>
         <p class="title-card-blurb">Manage three northern regions side by side as global temperature rises largely on its own — watch a slow problem tip into a runaway feedback loop in real time, and see exactly what intervention buys you. Second of a second climate quartet.</p>
         <p class="title-card-tag">Made for BCM114 Part 1.</p>
         <div class="title-card-tags"><span class="tag-pill">Climate</span><span class="tag-pill">Quick</span></div>
@@ -476,7 +531,7 @@
     <article class="title-card" data-tags="climate quick">
       <a class="title-card-link" href="games/loop/index.html">
         <div class="title-card-thumb title-card-thumb--circuit"></div>
-        <h2 class="title-card-name">Loop</h2>
+        <h3 class="title-card-name">Loop</h3>
         <p class="title-card-blurb">Redesign a supply chain — invest in repair, reuse, and recycling, trade surplus capacity with a neighboring network, and close a straight extract-make-use-discard line into a loop that needs no new extraction at all. Third of a second climate quartet.</p>
         <p class="title-card-tag">Made for BCM114 Part 1.</p>
         <div class="title-card-tags"><span class="tag-pill">Climate</span><span class="tag-pill">Quick</span></div>
@@ -499,7 +554,7 @@
     <article class="title-card" data-tags="climate quick">
       <a class="title-card-link" href="games/drift/index.html">
         <div class="title-card-thumb title-card-thumb--dusk"></div>
-        <h2 class="title-card-name">Drift</h2>
+        <h3 class="title-card-name">Drift</h3>
         <p class="title-card-blurb">Manage a receiving region as climate displacement pressure rises, and project your region's outcome generations forward — whether it becomes a crisis or a manageable transition comes down to how well it prepared. Fourth of a second climate quartet.</p>
         <p class="title-card-tag">Made for BCM114 Part 1.</p>
         <div class="title-card-tags"><span class="tag-pill">Climate</span><span class="tag-pill">Quick</span></div>
@@ -522,7 +577,7 @@
     <article class="title-card" data-tags="language-learning deep-systems">
       <a class="title-card-link" href="games/champ-de-mots/index.html">
         <div class="title-card-thumb title-card-thumb--champetre"></div>
-        <h2 class="title-card-name">Le Champ de Mots</h2>
+        <h3 class="title-card-name">Le Champ de Mots</h3>
         <p class="title-card-blurb">Every plot is one real French vocabulary or grammar fact, planted in actual course order — water it to answer a freshly-generated question, and watch correct recall slowly need you less. A personal spaced-repetition study tool, not a course assessment.</p>
         <div class="title-card-tags"><span class="tag-pill">Language Learning</span><span class="tag-pill">Deep Systems</span></div>
       </a>
@@ -544,7 +599,7 @@
     <article class="title-card" data-tags="civilization deep-systems">
       <a class="title-card-link" href="games/continuum/index.html">
         <div class="title-card-thumb title-card-thumb--continuum"></div>
-        <h2 class="title-card-name">Continuum</h2>
+        <h3 class="title-card-name">Continuum</h3>
         <p class="title-card-blurb">Grow one settlement from a tribal community to a space-age civilization across seven eras — a real low-poly 3D city, a research tree spanning the whole arc, and a livability score that gates how big you're actually allowed to get. Flagship BCM114 Round 2 digital artefact.</p>
         <p class="title-card-tag">Made for BCM114 Round 2.</p>
         <div class="title-card-tags"><span class="tag-pill">Civilization</span><span class="tag-pill">Deep Systems</span></div>
@@ -567,7 +622,7 @@
     <article class="title-card" data-tags="quick">
       <a class="title-card-link" href="games/signal/index.html">
         <div class="title-card-thumb title-card-thumb--signal"></div>
-        <h2 class="title-card-name">Signal</h2>
+        <h3 class="title-card-name">Signal</h3>
         <p class="title-card-blurb">A five-minute daily deduction puzzle: ping the grid, read the summed signal, find the hidden transmitters. One new puzzle a day, a calendar archive, and endless practice with shareable codes.</p>
         <div class="title-card-tags"><span class="tag-pill">Quick</span></div>
       </a>
@@ -589,7 +644,7 @@
     <article class="title-card" data-tags="space language-learning deep-systems">
       <a class="title-card-link" href="games/lexis/index.html">
         <div class="title-card-thumb title-card-thumb--lexis"></div>
-        <h2 class="title-card-name">Lexis</h2>
+        <h3 class="title-card-name">Lexis</h3>
         <p class="title-card-blurb">A first-contact language puzzle: you are the communications officer on a survey ship. Learn each planet's language by watching what its signs do, from bare pulses to glyphs where every part means something, then use it to talk back. Working title.</p>
         <div class="title-card-tags"><span class="tag-pill">Space</span><span class="tag-pill">Language Learning</span><span class="tag-pill">Deep Systems</span></div>
       </a>
@@ -611,7 +666,7 @@
     <article class="title-card" data-tags="deep-systems">
       <a class="title-card-link" href="games/heist-committee/index.html">
         <div class="title-card-thumb title-card-thumb--heist-committee"></div>
-        <h2 class="title-card-name">Heist Committee</h2>
+        <h3 class="title-card-name">Heist Committee</h3>
         <p class="title-card-blurb">Pick a target, hire five oddball specialists who do not get along, and drag their actions into a timeline. Then watch the job play out beat by beat as complications and personality clashes chain into each other. A cozy caper with no timers. Working title.</p>
         <div class="title-card-tags"><span class="tag-pill">Deep Systems</span></div>
       </a>
@@ -633,7 +688,7 @@
     <article class="title-card" data-tags="deep-systems">
       <a class="title-card-link" href="games/lighthouse/index.html">
         <div class="title-card-thumb title-card-thumb--lighthouse"></div>
-        <h2 class="title-card-name">Lighthouse</h2>
+        <h3 class="title-card-name">Lighthouse</h3>
         <p class="title-card-blurb">Keep one light on one rock. Storms come, ships pass, oil runs low, and passing sailors leave letters, gifts and things you cannot quite explain. A cozy, slightly eerie keeper sim you cannot lose, with the eerie details switchable off. Working title.</p>
         <div class="title-card-tags"><span class="tag-pill">Deep Systems</span></div>
       </a>
@@ -655,7 +710,7 @@
     <article class="title-card" data-tags="quick">
       <a class="title-card-link" href="games/pocket-bazaar/index.html">
         <div class="title-card-thumb title-card-thumb--pocket-bazaar"></div>
-        <h2 class="title-card-name">Pocket Bazaar</h2>
+        <h3 class="title-card-name">Pocket Bazaar</h3>
         <p class="title-card-blurb">A tiny market stall: customers ask for goods, you merge basic goods on a small board into better ones and hand them over before their patience runs out. Chain sales into combos across a three-to-five-minute market day. No timers that gate play, no energy, no premium currency. Working title.</p>
         <div class="title-card-tags"><span class="tag-pill">Quick</span></div>
       </a>
@@ -677,7 +732,7 @@
     <article class="title-card" data-tags="quick">
       <a class="title-card-link" href="games/dead-reckoning/index.html">
         <div class="title-card-thumb title-card-thumb--dead-reckoning"></div>
-        <h2 class="title-card-name">Dead Reckoning</h2>
+        <h3 class="title-card-name">Dead Reckoning</h3>
         <p class="title-card-blurb">You are a ship's navigator with only speed, heading and time. Plot a course across a chart with currents, wind and hazards, sail it, then see how far your estimate drifted from the truth. A campaign of charts plus endless practice. Working title.</p>
         <div class="title-card-tags"><span class="tag-pill">Quick</span></div>
       </a>
@@ -699,7 +754,7 @@
     <article class="title-card" data-tags="deep-systems">
       <a class="title-card-link" href="games/logic-gates/index.html">
         <div class="title-card-thumb title-card-thumb--logic-gates"></div>
-        <h2 class="title-card-name">Logic Gates</h2>
+        <h3 class="title-card-name">Logic Gates</h3>
         <p class="title-card-blurb">A dead station computer, rebuilt one circuit at a time: wire gates to match a truth table, keep each solved circuit as a chip, and end by wiring a four-instruction computer. Forty circuits and a free sandbox. Working title.</p>
         <div class="title-card-tags"><span class="tag-pill">Deep Systems</span></div>
       </a>
@@ -721,7 +776,7 @@
     <article class="title-card" data-tags="quick">
       <a class="title-card-link" href="games/robot-script/index.html">
         <div class="title-card-thumb title-card-thumb--robot-script"></div>
-        <h2 class="title-card-name">Robot Script</h2>
+        <h3 class="title-card-name">Robot Script</h3>
         <p class="title-card-blurb">Give a maintenance robot a short list of instructions to clear a room. Fewer steps earn better medals, loops and routines let a short list do a lot, and nothing is timed. Forty rooms and a free sandbox. Working title.</p>
         <div class="title-card-tags"><span class="tag-pill">Quick</span></div>
       </a>
@@ -743,7 +798,7 @@
     <article class="title-card" data-tags="quick">
       <a class="title-card-link" href="games/hull-repair/index.html">
         <div class="title-card-thumb title-card-thumb--hull-repair"></div>
-        <h2 class="title-card-name">Hull Repair</h2>
+        <h3 class="title-card-name">Hull Repair</h3>
         <p class="title-card-blurb">Route power and pipes across a damaged space-station hull: join each pair of matching ports without crossing a line. Every board repairs one room on a station map, so forty small puzzles add up to a bigger picture. Nothing is timed. Working title.</p>
         <div class="title-card-tags"><span class="tag-pill">Quick</span></div>
       </a>
@@ -765,7 +820,7 @@
     <article class="title-card" data-tags="quick">
       <a class="title-card-link" href="games/station-medic/index.html">
         <div class="title-card-thumb title-card-thumb--station-medic"></div>
-        <h2 class="title-card-name">Station Medic</h2>
+        <h3 class="title-card-name">Station Medic</h3>
         <p class="title-card-blurb">You are the only medic on a quiet station. Each shift a few crew arrive with signs; read the sheet, choose scans and treatments from a small cabinet that restocks between shifts. A deduction and supply puzzle, never a race. Invented conditions only. Working title.</p>
         <div class="title-card-tags"><span class="tag-pill">Quick</span></div>
       </a>
@@ -787,7 +842,7 @@
     <article class="title-card" data-tags="space quick">
       <a class="title-card-link" href="games/stranded/index.html">
         <div class="title-card-thumb title-card-thumb--stranded"></div>
-        <h2 class="title-card-name">Stranded</h2>
+        <h3 class="title-card-name">Stranded</h3>
         <p class="title-card-blurb">You are the plain voice on a thin text line to a stubborn, funny engineer alone on a small moon. Twelve days of replies, fifty-nine scenes and nine warm or bittersweet endings. Nothing is timed, nothing is lost, and you can rewind to any of your messages for free. Working title.</p>
         <div class="title-card-tags"><span class="tag-pill">Space</span><span class="tag-pill">Quick</span></div>
       </a>
@@ -809,7 +864,7 @@
     <article class="title-card" data-tags="deep-systems">
       <a class="title-card-link" href="games/evidence-hunt/index.html">
         <div class="title-card-thumb title-card-thumb--evidence-hunt"></div>
-        <h2 class="title-card-name">Evidence Hunt</h2>
+        <h3 class="title-card-name">Evidence Hunt</h3>
         <p class="title-card-blurb">A quiet investigator's notebook. Each case is a haunted house drawn as a dark floor plan: pack a few pieces of equipment, walk the rooms, take readings that come back as text, and deduce which of twelve invented spirit kinds is in the house. Working title.</p>
         <div class="title-card-tags"><span class="tag-pill">Deep Systems</span></div>
       </a>
@@ -831,7 +886,7 @@
     <article class="title-card" data-tags="economy deep-systems">
       <a class="title-card-link" href="games/trade-empire/index.html">
         <div class="title-card-thumb title-card-thumb--trade-empire"></div>
-        <h2 class="title-card-name">Trade Empire</h2>
+        <h3 class="title-card-name">Trade Empire</h3>
         <p class="title-card-blurb">Found a private interstellar trading corporation — four ships, five interdependent colonies, and a market that punishes dumping everything on one good. Scale up manually, then research your way to a fleet that runs the whole galaxy on its own. Working title.</p>
         <div class="title-card-tags"><span class="tag-pill">Economy</span><span class="tag-pill">Deep Systems</span></div>
       </a>
@@ -851,26 +906,10 @@
     </article>
   </main>
 
-  <section id="site-feedback-section" class="site-feedback-section">
-    <h2 class="site-feedback-heading">Site Feedback</h2>
-    <p class="site-feedback-subtext">General feedback about the hub itself — not tied to any one game.</p>
-    <div class="star-rating" id="site-feedback-stars" data-rating="0">
-      <button type="button" class="star" data-value="1">&#9733;</button>
-      <button type="button" class="star" data-value="2">&#9733;</button>
-      <button type="button" class="star" data-value="3">&#9733;</button>
-      <button type="button" class="star" data-value="4">&#9733;</button>
-      <button type="button" class="star" data-value="5">&#9733;</button>
-    </div>
-    <textarea id="site-feedback-comment" class="comment-box" placeholder="Leave feedback..."></textarea>
-    <button type="button" id="site-feedback-submit" class="comment-submit">Submit</button>
-    <p id="site-feedback-status" class="account-status"></p>
-    <ul id="site-feedback-list" class="site-feedback-list"></ul>
-  </section>
-
   <footer class="hub-footer">
     <span class="hub-footer-name">NoyvjGames</span>
     <a href="https://github.com/noyvj/NoyvjGames" target="_blank" rel="noopener noreferrer">Source on GitHub</a>
-    <a href="#site-feedback-section">Feedback / Contact</a>
+    <a href="#site-feedback-section" data-open-feedback>Feedback / Contact</a>
     <a href="terms.html">Terms &amp; Privacy</a>
     <a href="achievements.html">Achievements</a>
     <a href="whats-new.html">What's New</a>
@@ -932,6 +971,7 @@
   <script src="shared/hub-auth.js"></script>
   <script src="shared/tutorial.js"></script>
   <script src="shared/owner-links.js"></script>
+  <script src="shared/report-problem.js" data-game-id="hub" data-mount="#nav-report-slot"></script>
 <script src="script.js"></script>
   <script src="shared/seasonal-events.js"></script>
   <script src="hub-today.js"></script>
@@ -939,6 +979,7 @@
   <script src="hub-collections.js"></script>
   <script src="hub-offline.js"></script>
   <script src="hub-shell.js"></script>
+  <script src="hub-nav.js"></script>
   <script src="hub-status.js"></script>
   <script src="hub-shortcuts.js"></script>
   <script>

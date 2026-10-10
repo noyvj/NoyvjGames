@@ -165,7 +165,7 @@
     {
      "path": "shared/leaderboard.js",
      "bytes": 20875,
-     "precached": false
+     "precached": true
     },
     {
      "path": "shared/lite-mode.css",
@@ -219,7 +219,7 @@
     },
     {
      "path": "shared/save-widget.js",
-     "bytes": 77690,
+     "bytes": 106570,
      "precached": true
     },
     {
@@ -300,7 +300,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14769055,
+   "bytes": 14797935,
    "bytes_complete": true
   },
   "canopy": {
@@ -317,12 +317,12 @@
     },
     {
      "path": "games/canopy/game.py",
-     "bytes": 480523,
+     "bytes": 482624,
      "precached": true
     },
     {
      "path": "games/canopy/index.html",
-     "bytes": 91787,
+     "bytes": 92697,
      "precached": true
     },
     {
@@ -342,7 +342,7 @@
     },
     {
      "path": "games/canopy/pc.html",
-     "bytes": 96503,
+     "bytes": 97413,
      "precached": true
     },
     {
@@ -408,6 +408,11 @@
      "precached": true
     },
     {
+     "path": "shared/announcer.js",
+     "bytes": 4713,
+     "precached": true
+    },
+    {
      "path": "shared/community-pool.js",
      "bytes": 4091,
      "precached": false
@@ -470,7 +475,7 @@
     {
      "path": "shared/leaderboard.js",
      "bytes": 20875,
-     "precached": false
+     "precached": true
     },
     {
      "path": "shared/level-select.js",
@@ -544,7 +549,7 @@
     },
     {
      "path": "shared/save-widget.js",
-     "bytes": 77690,
+     "bytes": 106570,
      "precached": true
     },
     {
@@ -645,7 +650,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 15115379,
+   "bytes": 15152893,
    "bytes_complete": true
   },
   "grid": {
@@ -662,7 +667,7 @@
     },
     {
      "path": "games/grid/game.py",
-     "bytes": 247405,
+     "bytes": 248045,
      "precached": true
     },
     {
@@ -869,7 +874,7 @@
     },
     {
      "path": "shared/save-widget.js",
-     "bytes": 77690,
+     "bytes": 106570,
      "precached": true
     },
     {
@@ -960,7 +965,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14681812,
+   "bytes": 14711332,
    "bytes_complete": true
   },
   "tide": {
@@ -977,12 +982,12 @@
     },
     {
      "path": "games/tide/game.py",
-     "bytes": 298105,
+     "bytes": 299513,
      "precached": true
     },
     {
      "path": "games/tide/index.html",
-     "bytes": 69983,
+     "bytes": 70035,
      "precached": true
     },
     {
@@ -997,7 +1002,7 @@
     },
     {
      "path": "games/tide/pc.html",
-     "bytes": 74180,
+     "bytes": 74232,
      "precached": true
     },
     {
@@ -1060,6 +1065,11 @@
     {
      "path": "shared/ambient-bg.css",
      "bytes": 16268,
+     "precached": true
+    },
+    {
+     "path": "shared/announcer.js",
+     "bytes": 4713,
      "precached": true
     },
     {
@@ -1184,7 +1194,7 @@
     },
     {
      "path": "shared/save-widget.js",
-     "bytes": 77690,
+     "bytes": 106570,
      "precached": true
     },
     {
@@ -1250,7 +1260,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14728933,
+   "bytes": 14764038,
    "bytes_complete": true
   },
   "aftermath": {
@@ -1262,17 +1272,17 @@
     },
     {
      "path": "games/aftermath/changelog.json",
-     "bytes": 14570,
+     "bytes": 14887,
      "precached": false
     },
     {
      "path": "games/aftermath/game.py",
-     "bytes": 256193,
+     "bytes": 262408,
      "precached": true
     },
     {
      "path": "games/aftermath/index.html",
-     "bytes": 61991,
+     "bytes": 62872,
      "precached": true
     },
     {
@@ -1287,7 +1297,7 @@
     },
     {
      "path": "games/aftermath/pc.html",
-     "bytes": 65777,
+     "bytes": 66658,
      "precached": true
     },
     {
@@ -1350,6 +1360,11 @@
     {
      "path": "shared/ambient-bg.css",
      "bytes": 16268,
+     "precached": true
+    },
+    {
+     "path": "shared/announcer.js",
+     "bytes": 4713,
      "precached": true
     },
     {
@@ -1420,7 +1435,7 @@
     {
      "path": "shared/leaderboard.js",
      "bytes": 20875,
-     "precached": false
+     "precached": true
     },
     {
      "path": "shared/lite-mode.css",
@@ -1480,11 +1495,11 @@
     {
      "path": "shared/run-code.js",
      "bytes": 26853,
-     "precached": false
+     "precached": true
     },
     {
      "path": "shared/save-widget.js",
-     "bytes": 77690,
+     "bytes": 106570,
      "precached": true
     },
     {
@@ -1495,7 +1510,7 @@
     {
      "path": "shared/seasonal-events.css",
      "bytes": 3882,
-     "precached": false
+     "precached": true
     },
     {
      "path": "shared/seasonal-events.js",
@@ -1565,7 +1580,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14744349,
+   "bytes": 14786236,
    "bytes_complete": true
   },
   "herd": {
@@ -1582,7 +1597,7 @@
     },
     {
      "path": "games/herd/game.py",
-     "bytes": 175170,
+     "bytes": 175807,
      "precached": true
     },
     {
@@ -1730,7 +1745,7 @@
     {
      "path": "shared/leaderboard.js",
      "bytes": 20875,
-     "precached": false
+     "precached": true
     },
     {
      "path": "shared/lite-mode.css",
@@ -1789,7 +1804,7 @@
     },
     {
      "path": "shared/save-widget.js",
-     "bytes": 77690,
+     "bytes": 106570,
      "precached": true
     },
     {
@@ -1860,7 +1875,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14572121,
+   "bytes": 14601638,
    "bytes_complete": true
   },
   "thaw": {
@@ -1877,7 +1892,7 @@
     },
     {
      "path": "games/thaw/game.py",
-     "bytes": 174236,
+     "bytes": 174895,
      "precached": true
     },
     {
@@ -2069,7 +2084,7 @@
     },
     {
      "path": "shared/save-widget.js",
-     "bytes": 77690,
+     "bytes": 106570,
      "precached": true
     },
     {
@@ -2135,7 +2150,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14498301,
+   "bytes": 14527840,
    "bytes_complete": true
   },
   "loop": {
@@ -2152,7 +2167,7 @@
     },
     {
      "path": "games/loop/game.py",
-     "bytes": 164562,
+     "bytes": 165252,
      "precached": true
     },
     {
@@ -2349,7 +2364,7 @@
     },
     {
      "path": "shared/save-widget.js",
-     "bytes": 77690,
+     "bytes": 106570,
      "precached": true
     },
     {
@@ -2420,7 +2435,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14517668,
+   "bytes": 14547238,
    "bytes_complete": true
   },
   "drift": {
@@ -2437,7 +2452,7 @@
     },
     {
      "path": "games/drift/game.py",
-     "bytes": 207035,
+     "bytes": 207657,
      "precached": true
     },
     {
@@ -2634,7 +2649,7 @@
     },
     {
      "path": "shared/save-widget.js",
-     "bytes": 77690,
+     "bytes": 106570,
      "precached": true
     },
     {
@@ -2705,7 +2720,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14542887,
+   "bytes": 14572389,
    "bytes_complete": true
   },
   "champ-de-mots": {
@@ -2944,7 +2959,7 @@
     },
     {
      "path": "shared/save-widget.js",
-     "bytes": 77690,
+     "bytes": 106570,
      "precached": true
     },
     {
@@ -3015,7 +3030,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 15555809,
+   "bytes": 15584689,
    "bytes_complete": true
   },
   "continuum": {
@@ -3390,7 +3405,7 @@
     {
      "path": "shared/leaderboard.js",
      "bytes": 20875,
-     "precached": false
+     "precached": true
     },
     {
      "path": "shared/lite-mode.css",
@@ -3464,7 +3479,7 @@
     },
     {
      "path": "shared/save-widget.js",
-     "bytes": 77690,
+     "bytes": 106570,
      "precached": true
     },
     {
@@ -3560,7 +3575,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 16177341,
+   "bytes": 16206221,
    "bytes_complete": true
   },
   "signal": {
@@ -3705,7 +3720,7 @@
     {
      "path": "shared/leaderboard.js",
      "bytes": 20875,
-     "precached": false
+     "precached": true
     },
     {
      "path": "shared/lite-mode.css",
@@ -3754,7 +3769,7 @@
     },
     {
      "path": "shared/save-widget.js",
-     "bytes": 77690,
+     "bytes": 106570,
      "precached": true
     },
     {
@@ -3789,7 +3804,7 @@
     }
    ],
    "cdn": [],
-   "bytes": 522102,
+   "bytes": 550982,
    "bytes_complete": true
   },
   "lexis": {
@@ -4058,7 +4073,7 @@
     },
     {
      "path": "shared/save-widget.js",
-     "bytes": 77690,
+     "bytes": 106570,
      "precached": true
     },
     {
@@ -4124,7 +4139,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14280369,
+   "bytes": 14309249,
    "bytes_complete": true
   },
   "heist-committee": {
@@ -4428,7 +4443,7 @@
     },
     {
      "path": "shared/save-widget.js",
-     "bytes": 77690,
+     "bytes": 106570,
      "precached": true
     },
     {
@@ -4494,7 +4509,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14455912,
+   "bytes": 14484792,
    "bytes_complete": true
   },
   "lighthouse": {
@@ -4793,7 +4808,7 @@
     },
     {
      "path": "shared/save-widget.js",
-     "bytes": 77690,
+     "bytes": 106570,
      "precached": true
     },
     {
@@ -4879,7 +4894,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14524893,
+   "bytes": 14553773,
    "bytes_complete": true
   },
   "pocket-bazaar": {
@@ -5143,7 +5158,7 @@
     },
     {
      "path": "shared/save-widget.js",
-     "bytes": 77690,
+     "bytes": 106570,
      "precached": true
     },
     {
@@ -5209,7 +5224,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14301729,
+   "bytes": 14330609,
    "bytes_complete": true
   },
   "dead-reckoning": {
@@ -5523,7 +5538,7 @@
     },
     {
      "path": "shared/save-widget.js",
-     "bytes": 77690,
+     "bytes": 106570,
      "precached": true
     },
     {
@@ -5589,7 +5604,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14375168,
+   "bytes": 14404048,
    "bytes_complete": true
   },
   "logic-gates": {
@@ -5606,7 +5621,7 @@
     },
     {
      "path": "games/logic-gates/app.js",
-     "bytes": 28927,
+     "bytes": 28953,
      "precached": true
     },
     {
@@ -5636,7 +5651,7 @@
     },
     {
      "path": "games/logic-gates/index.html",
-     "bytes": 15138,
+     "bytes": 15148,
      "precached": true
     },
     {
@@ -5681,7 +5696,7 @@
     },
     {
      "path": "games/logic-gates/pc.html",
-     "bytes": 17453,
+     "bytes": 17463,
      "precached": true
     },
     {
@@ -5843,7 +5858,7 @@
     },
     {
      "path": "shared/save-widget.js",
-     "bytes": 77690,
+     "bytes": 106570,
      "precached": true
     },
     {
@@ -5919,7 +5934,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14321567,
+   "bytes": 14350493,
    "bytes_complete": true
   },
   "robot-script": {
@@ -5936,7 +5951,7 @@
     },
     {
      "path": "games/robot-script/app.js",
-     "bytes": 39013,
+     "bytes": 39037,
      "precached": true
     },
     {
@@ -6203,7 +6218,7 @@
     },
     {
      "path": "shared/save-widget.js",
-     "bytes": 77690,
+     "bytes": 106570,
      "precached": true
     },
     {
@@ -6269,7 +6284,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14312783,
+   "bytes": 14341687,
    "bytes_complete": true
   },
   "hull-repair": {
@@ -6286,7 +6301,7 @@
     },
     {
      "path": "games/hull-repair/app.js",
-     "bytes": 28758,
+     "bytes": 28782,
      "precached": true
     },
     {
@@ -6533,7 +6548,7 @@
     },
     {
      "path": "shared/save-widget.js",
-     "bytes": 77690,
+     "bytes": 106570,
      "precached": true
     },
     {
@@ -6609,7 +6624,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14320407,
+   "bytes": 14349311,
    "bytes_complete": true
   },
   "station-medic": {
@@ -6626,7 +6641,7 @@
     },
     {
      "path": "games/station-medic/app.js",
-     "bytes": 28489,
+     "bytes": 28513,
      "precached": true
     },
     {
@@ -6908,7 +6923,7 @@
     },
     {
      "path": "shared/save-widget.js",
-     "bytes": 77690,
+     "bytes": 106570,
      "precached": true
     },
     {
@@ -6974,7 +6989,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14313590,
+   "bytes": 14342494,
    "bytes_complete": true
   },
   "stranded": {
@@ -6991,7 +7006,7 @@
     },
     {
      "path": "games/stranded/app.js",
-     "bytes": 26430,
+     "bytes": 26454,
      "precached": true
     },
     {
@@ -7218,7 +7233,7 @@
     },
     {
      "path": "shared/save-widget.js",
-     "bytes": 77690,
+     "bytes": 106570,
      "precached": true
     },
     {
@@ -7284,7 +7299,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14286451,
+   "bytes": 14315355,
    "bytes_complete": true
   },
   "evidence-hunt": {
@@ -7301,7 +7316,7 @@
     },
     {
      "path": "games/evidence-hunt/app.js",
-     "bytes": 35648,
+     "bytes": 35672,
      "precached": true
     },
     {
@@ -7578,7 +7593,7 @@
     },
     {
      "path": "shared/save-widget.js",
-     "bytes": 77690,
+     "bytes": 106570,
      "precached": true
     },
     {
@@ -7644,7 +7659,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14363024,
+   "bytes": 14391928,
    "bytes_complete": true
   },
   "trade-empire": {
@@ -7853,7 +7868,7 @@
     },
     {
      "path": "shared/save-widget.js",
-     "bytes": 77690,
+     "bytes": 106570,
      "precached": true
     },
     {
@@ -7939,7 +7954,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14687548,
+   "bytes": 14716428,
    "bytes_complete": true
   }
  }

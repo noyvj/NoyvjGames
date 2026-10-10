@@ -14,6 +14,11 @@
  *   - The seasonal event that is on today (shared/seasonal-events.js, dates from
  *     shared/seasonal-dates.json, copy and badge mark from events.json) or the next one, plus
  *     whether its badge is earned on this device.
+ * Daily puzzles and the streak are read from the games' own saved data, so (GN-15) they are shown only when
+ * the player has turned that on: settings.html "Show my daily puzzles and streak in the Today strip", stored
+ * as localStorage["hub_today_track_dailies"] = "1" on this device. Off (the default) the strip never opens
+ * those records at all and says so, with a button to turn it on. The weekly challenge and the seasonal event
+ * do not depend on any game's data and always show.
  * Nothing here calls the backend. Every missing piece gets an honest sentence, not a placeholder.
  * "Today" for dailies is the UTC date (Signal resets at UTC midnight). ?event-date=YYYY-MM-DD
  * overrides the date for testing, the same switch the seasonal events use.
@@ -28,6 +33,7 @@
   const DAILY_KEY = "noyvj-daily-v1";
   const SIGNAL_KEY = "signal:state";
   const DONE_KEY = "hub_today_weekly_done";
+  const TRACK_KEY = "hub_today_track_dailies";
   const SIGNAL_MODES = [["easy", "Easy"], ["hard", "Hard"]];
   const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
   const SLUG_RE = /^[a-z0-9-]{1,40}$/;
@@ -35,6 +41,7 @@
   function lsGet(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
   function lsSet(k, v) { try { localStorage.setItem(k, v); } catch (e) { /* convenience only */ } }
   function jsonOf(text) { try { return JSON.parse(text); } catch (e) { return null; } }
+  function trackingOn() { return lsGet(TRACK_KEY) === "1"; }
 
   // ---- dates ------------------------------------------------------------------------------------
 
@@ -242,6 +249,23 @@
     });
   }
 
+  /** GN-15: the one item shown in place of the daily puzzles and the streak while tracking is off. */
+  function trackingOffItem() {
+    const li = item("Daily puzzles and streak");
+    const body = el("span", "today-body");
+    body.appendChild(document.createTextNode("Not tracking. The Today strip is not reading your games' daily puzzles or streaks. "));
+    const on = el("button", "secondary today-track-button", "Turn on daily tracking");
+    on.type = "button";
+    on.addEventListener("click", () => { lsSet(TRACK_KEY, "1"); render(); });
+    body.appendChild(on);
+    body.appendChild(document.createTextNode(" "));
+    const settings = el("a", "today-link", "Settings");
+    settings.href = "settings.html#today-tracking";
+    body.appendChild(settings);
+    li.appendChild(body);
+    return li;
+  }
+
   function streakItem(feed, iso, names) {
     const li = item("Daily streak");
     const body = el("span", "today-body");
@@ -392,27 +416,31 @@
     if (dateEl) dateEl.textContent = longDate(iso) + " (UTC)";
     const events = await eventItem(iso);
     list.textContent = "";
-    dailyItems(feedState.feed, iso, names).forEach((li) => list.appendChild(li));
-    list.appendChild(streakItem(feedState.feed, iso, names));
+    if (trackingOn()) {
+      dailyItems(feedState.feed, iso, names).forEach((li) => list.appendChild(li));
+      list.appendChild(streakItem(feedState.feed, iso, names));
+    } else {
+      list.appendChild(trackingOffItem());
+    }
     list.appendChild(weeklyItem(feedState, iso, names));
     list.appendChild(events);
     const status = document.getElementById("today-status");
     if (status) {
       status.textContent = feedState.error
         ? "The weekly feed could not be loaded; daily status and events below still come from this device."
-        : feedState.feed.sample ? "The weekly challenge is a sample schedule until a real one is published. Daily puzzles reset at midnight UTC."
-          : "Daily puzzles reset at midnight UTC.";
+        : feedState.feed.sample ? "The weekly challenge is a sample schedule until a real one is published." + (trackingOn() ? " Daily puzzles reset at midnight UTC." : "")
+          : (trackingOn() ? "Daily puzzles reset at midnight UTC." : "");
     }
     window.dispatchEvent(new CustomEvent("hub-today-rendered"));
   }
 
-  window.HubToday = { sanitizeFeed, weeklyFor, signalDaily, signalStreak, dailyRecord, utcDate, addDays, render };
+  window.HubToday = { sanitizeFeed, weeklyFor, signalDaily, signalStreak, dailyRecord, utcDate, addDays, render, trackingOn, TRACK_KEY };
 
   function start() {
     render();
     // A finished daily in another tab, or coming back to this one after midnight UTC.
     document.addEventListener("visibilitychange", () => { if (!document.hidden) render(); });
-    window.addEventListener("storage", (ev) => { if (ev.key === SIGNAL_KEY || ev.key === DAILY_KEY) render(); });
+    window.addEventListener("storage", (ev) => { if (ev.key === SIGNAL_KEY || ev.key === DAILY_KEY || ev.key === TRACK_KEY) render(); });
   }
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", start);
   else start();

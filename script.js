@@ -83,6 +83,24 @@ function resetStarRating(ratingWidget) {
 // hard-stop gradient clipped to the text), sitting beside the numeric
 // text rather than replacing it -- the number stays the source of truth
 // for screen readers and anyone who can't tell partial fills apart.
+// GN-13: the average also sits on the card's picture ("4.5 stars (2)") so a collapsed card, which shows only
+// the picture, the name and "Show more", still says how it is rated. It is inside the card's link, so
+// cardBaseText() below leaves it out of the search text.
+function setCardRatingBadge(card, text) {
+  if (!card) return;
+  const thumb = card.querySelector(".title-card-thumb");
+  if (!thumb) return;
+  let badge = thumb.querySelector(".title-card-rating-badge");
+  if (!text) { if (badge) badge.hidden = true; return; }
+  if (!badge) {
+    badge = document.createElement("span");
+    badge.className = "title-card-rating-badge";
+    thumb.appendChild(badge);
+  }
+  badge.hidden = false;
+  badge.textContent = text;
+}
+
 function setRatingDisplay(widget, average, count) {
   const summary = widget.querySelector(".ratings-summary");
   const card = widget.closest(".title-card");
@@ -91,9 +109,11 @@ function setRatingDisplay(widget, average, count) {
   if (!count) {
     summary.textContent = "No reviews yet — be the first.";
     if (card) { card.dataset.avg = "0"; card.dataset.reviewCount = "0"; }
+    setCardRatingBadge(card, "No ratings yet");
     return;
   }
   if (card) { card.dataset.avg = String(average); card.dataset.reviewCount = String(count); }
+  setCardRatingBadge(card, `${average.toFixed(1)} stars (${count})`);
   summary.textContent = "";
   const stars = document.createElement("span");
   stars.className = "avg-stars";
@@ -121,6 +141,7 @@ function showRatingsUnavailable(widget) {
   summary.classList.remove("is-loading");
   summary.removeAttribute("aria-busy");
   summary.textContent = "Reviews unavailable right now.";
+  setCardRatingBadge(widget.closest(".title-card"), "");
 }
 
 // Y-31: ONE small request (GET /ratings-summary: average, count and distribution per game) replaces
@@ -306,6 +327,38 @@ function loadLastPlayedBadges() {
 
 loadLastPlayedBadges();
 
+const continuePlayingSection = document.getElementById("continue-playing-section");
+const continuePlayingList = document.getElementById("continue-playing-list");
+// GN-12: account saves shown in the pick-up strip. Games already listed above them (opened in this browser
+// recently) are left out so nothing appears twice, and at most CONTINUE_MAX are listed, newest first, with a
+// pointer to the full "Your saves" list.
+const CONTINUE_MAX = 4;
+let continueEntries = [];
+function renderPickupAccountSaves() {
+  if (!continuePlayingSection || !continuePlayingList) return;
+  const shownLocally = new Set(Array.from(document.querySelectorAll("#pickup-list a")).map((a) => a.getAttribute("href")));
+  const fresh = continueEntries.filter((id) => !shownLocally.has(gameHrefForId(id)));
+  continuePlayingList.innerHTML = "";
+  fresh.slice(0, CONTINUE_MAX).forEach((gameId) => {
+    const link = document.createElement("a");
+    link.className = "continue-playing-item";
+    link.href = gameHrefForId(gameId);
+    link.textContent = `Continue ${GAME_DISPLAY_NAMES[gameId] || gameId}`;
+    continuePlayingList.appendChild(link);
+  });
+  if (fresh.length > CONTINUE_MAX) {
+    const more = document.createElement("p");
+    more.className = "pickup-account-more";
+    const target = document.createElement("a");
+    target.href = "#account-my-saves-details";
+    target.textContent = "Your saves";
+    more.append(`${fresh.length - CONTINUE_MAX} more saved games: see `, target, ".");
+    continuePlayingList.appendChild(more);
+  }
+  continuePlayingSection.hidden = fresh.length === 0;
+  refreshPickupVisibility();
+}
+
 // QI-58: "Pick up where you stopped" -- the three games opened most recently in this browser (last-played:<slug>,
 // within 60 days), each with the one-line note the game left about what you were doing
 // (resume-note:<slug>, written through shared/last-played.js's NoyvjResume; a game that leaves none shows only
@@ -346,7 +399,17 @@ function loadPickUpStrip() {
     li.appendChild(link);
     list.appendChild(li);
   });
-  section.hidden = list.children.length === 0;
+  refreshPickupVisibility();
+  renderPickupAccountSaves();
+}
+// GN-12: "Continue Playing" (the account's saves) is the second list inside this one strip, so the section
+// shows when either list has something.
+function refreshPickupVisibility() {
+  const section = document.getElementById("pickup-section");
+  const list = document.getElementById("pickup-list");
+  const account = document.getElementById("continue-playing-section");
+  if (!section || !list) return;
+  section.hidden = list.children.length === 0 && (!account || account.hidden);
 }
 loadPickUpStrip();
 
@@ -363,6 +426,110 @@ const gameFilterEmpty = document.getElementById("game-filter-empty");
 const gameGrid = document.getElementById("game-grid");
 const allTitleCards = Array.from(document.querySelectorAll(".title-card"));
 
+// GN-11: the games are shown as one scrolling row per theme: the card's first subject tag, or its depth tag
+// when it has no subject. The real cards stay inside #game-grid (now inside the row tracks) so every filter,
+// the sort and the calm filter keep working on them. Each row has a text heading, a count, and Previous/Next
+// buttons; the track itself is focusable so the arrow keys scroll it, and Tab still moves straight through.
+const GAME_ROW_ORDER = [
+  ["climate", "Climate"], ["space", "Space"], ["economy", "Economy"], ["civilization", "Civilization"],
+  ["language-learning", "Language learning"], ["quick", "Quick games"], ["deep-systems", "Deep systems games"],
+];
+const GAME_ROW_SUBJECTS = ["climate", "space", "economy", "civilization", "language-learning"];
+const gameRows = new Map(); // key -> { section, track, count, prev, next, label }
+function cardRowKey(card) {
+  const tags = (card.dataset.tags || "").split(/\s+/).filter(Boolean);
+  return tags.find((t) => GAME_ROW_SUBJECTS.includes(t)) || tags.find((t) => t === "quick" || t === "deep-systems") || "other";
+}
+function hubMotionReduced() {
+  try {
+    return window.matchMedia("(prefers-reduced-motion: reduce)").matches ||
+      document.documentElement.getAttribute("data-hub-reduced-motion") === "true" ||
+      document.documentElement.getAttribute("data-lite") === "true";
+  } catch (err) { return false; }
+}
+function updateRowScrollState(row) {
+  const t = row.track;
+  const max = t.scrollWidth - t.clientWidth;
+  row.section.classList.toggle("is-fit", max <= 2);
+  row.prev.disabled = t.scrollLeft <= 4;
+  row.next.disabled = t.scrollLeft >= max - 2;
+}
+function buildGameRows() {
+  if (!gameGrid || !allTitleCards.length) return;
+  const keys = GAME_ROW_ORDER.map(([k]) => k);
+  const labels = Object.fromEntries(GAME_ROW_ORDER);
+  allTitleCards.forEach((card) => { const k = cardRowKey(card); if (!keys.includes(k)) { keys.push(k); labels[k] = k; } });
+  keys.forEach((key) => {
+    if (!allTitleCards.some((card) => cardRowKey(card) === key)) return;
+    const label = labels[key];
+    const section = document.createElement("section");
+    section.className = "game-row";
+    section.dataset.row = key;
+    const head = document.createElement("div");
+    head.className = "game-row-head";
+    const title = document.createElement("h2");
+    title.className = "game-row-title";
+    title.id = `game-row-title-${key}`;
+    title.textContent = label;
+    const count = document.createElement("span");
+    count.className = "game-row-count";
+    const controls = document.createElement("div");
+    controls.className = "game-row-controls";
+    const mkButton = (dir, glyph) => {
+      const b = document.createElement("button");
+      b.type = "button";
+      b.textContent = glyph;
+      b.setAttribute("aria-label", `Scroll the ${label} row ${dir}`);
+      return b;
+    };
+    const prev = mkButton("left", "\u2039");
+    const next = mkButton("right", "\u203A");
+    controls.append(prev, next);
+    head.append(title, count, controls);
+    const track = document.createElement("div");
+    track.className = "game-row-track";
+    track.tabIndex = 0;
+    track.setAttribute("role", "region");
+    track.setAttribute("aria-labelledby", title.id);
+    section.append(head, track);
+    const row = { key, section, track, count, prev, next, label };
+    const step = (dir) => () => {
+      track.scrollBy({ left: dir * Math.max(200, Math.round(track.clientWidth * 0.85)), behavior: hubMotionReduced() ? "auto" : "smooth" });
+    };
+    prev.addEventListener("click", step(-1));
+    next.addEventListener("click", step(1));
+    track.addEventListener("scroll", () => updateRowScrollState(row), { passive: true });
+    gameRows.set(key, row);
+  });
+  placeCardsInRows(allTitleCards);
+  gameGrid.classList.add("game-grid--rows");
+  window.addEventListener("resize", () => gameRows.forEach(updateRowScrollState));
+  if (window.ResizeObserver) gameRows.forEach((row) => new ResizeObserver(() => updateRowScrollState(row)).observe(row.track));
+  // Whoever hides a card (search, tag and session filters, the collection filter, calm mode), a row with no
+  // visible card hides itself too. Attribute changes only, and a row is touched only when its state changes.
+  new MutationObserver(refreshRowVisibility).observe(gameGrid, { subtree: true, attributes: true, attributeFilter: ["hidden"] });
+  refreshRowVisibility();
+}
+// Puts the cards, already in the wanted order, into their rows (each row keeps that order) and the rows into
+// the grid in the fixed theme order. One append on the grid per call.
+function placeCardsInRows(ordered) {
+  gameRows.forEach((row) => {
+    row.track.append(...ordered.filter((card) => cardRowKey(card) === row.key));
+  });
+  gameGrid.append(...Array.from(gameRows.values()).map((row) => row.section));
+}
+function refreshRowVisibility() {
+  gameRows.forEach((row) => {
+    const cards = Array.from(row.track.children);
+    const shown = cards.filter((card) => !card.hidden).length;
+    if (row.section.hidden !== (shown === 0)) row.section.hidden = shown === 0;
+    const text = `${shown} ${shown === 1 ? "game" : "games"}`;
+    if (row.count.textContent !== text) row.count.textContent = text;
+    updateRowScrollState(row);
+  });
+}
+buildGameRows();
+
 // Y-26: "reduce data". The explicit choice in settings.html wins ("1" reduce, "0" never); with no
 // choice the browser's own Data Saver flag (navigator.connection.saveData) decides. While it is on the
 // hub skips its community-statistics requests (the highlights line and the sort-leader captions).
@@ -376,11 +543,10 @@ function hubReduceData() {
   return Boolean(conn && conn.saveData);
 }
 
-// U13: collapsible title cards. Compact by default (picture, name, rating
-// stars and summary only); "Show details" on a card, or the filter bar's
-// toggle for all of them, brings back the blurb, tags, badges, comment box
-// and share button. The choice is remembered on this device. The card's
-// link, name and picture still open the game in either mode.
+// U13 / GN-13: collapsible title cards. Compact by default: just the picture (with the average rating on
+// it), the name and a "Show more" button. "Show more" on a card, or the filter bar's toggle for all of
+// them, brings back the blurb, tags, badges, the star rating, comment box and share button. The choice is
+// remembered on this device. The card's link, name and picture still open the game in either mode.
 const CARDS_COMPACT_KEY = "hub_cards_compact";
 let cardsCompact = lsGet(CARDS_COMPACT_KEY) !== "0";
 
@@ -390,8 +556,9 @@ function refreshCardDetailToggles() {
     const button = card.querySelector(".title-card-expand");
     if (!button) return;
     const expanded = !cardsCompact || card.classList.contains("is-expanded");
-    button.textContent = expanded && cardsCompact ? "Hide details" : "Show details";
+    button.textContent = expanded && cardsCompact ? "Show less" : "Show more";
     button.setAttribute("aria-expanded", String(expanded));
+    button.setAttribute("aria-label", `${button.textContent} about ${(card.querySelector(".title-card-name")?.textContent || "this game").trim()}`);
     button.hidden = !cardsCompact;
   });
   const globalToggle = document.getElementById("cards-compact-toggle");
@@ -447,7 +614,10 @@ if (hubGameCount) hubGameCount.textContent = `${allTitleCards.length} games and 
 // would make "share" or "review" match every card.
 function cardBaseText(card) {
   const link = card.querySelector(".title-card-link");
-  return (link ? link.textContent : card.textContent).toLowerCase();
+  if (!link) return card.textContent.toLowerCase();
+  // GN-13: the rating badge on the picture ("4.5 stars (2)") is a label, not part of what a game is about.
+  const badge = link.querySelector(".title-card-rating-badge");
+  return (badge ? link.textContent.replace(badge.textContent, "") : link.textContent).toLowerCase();
 }
 
 // Y19: deeper search. `extraSearchText` maps card -> lowercase text drawn
@@ -580,7 +750,7 @@ function applyGameFilter() {
     if (visible) visibleCount += 1;
   });
   gameFilterEmpty.textContent = collectionWanted
-    ? "No games in this collection match your search and filters. Add games from a card's Show details."
+    ? "No games in this collection match your search and filters. Add games from a card's Show more."
     : "No games match your search.";
   gameFilterEmpty.hidden = visibleCount > 0;
   if (calmFilter) calmFilter.refresh();
@@ -703,7 +873,8 @@ async function applySort() {
       });
     }
   }
-  gameGrid.append(...ordered);
+  if (gameRows.size) placeCardsInRows(ordered);
+  else gameGrid.append(...ordered);
   renderSortLeaders();
 }
 
@@ -903,9 +1074,6 @@ if (accountSavesDetails) {
     lsSet(SAVES_COLLAPSED_KEY, accountSavesDetails.open ? "0" : "1");
   });
 }
-const continuePlayingSection = document.getElementById("continue-playing-section");
-const continuePlayingList = document.getElementById("continue-playing-list");
-
 // --- "Claim your save" nudge for anonymous players (L15) ---
 // Any local `savecode:<slug>` key counts as invested (every save is an explicit action). Hidden once signed in;
 // dismissal is permanent. Declared here because showSignedIn/showSignedOut below call it.
@@ -984,8 +1152,10 @@ function showSignedOut() {
   updateSignedInPill(null);
   accountSignedOut.hidden = false;
   accountSignedIn.hidden = true;
+  continueEntries = [];
   continuePlayingSection.hidden = true;
   continuePlayingList.innerHTML = "";
+  refreshPickupVisibility();
   const rarestSection = document.getElementById("rarest-section");
   if (rarestSection) rarestSection.hidden = true;
   maybeShowClaimSaveNudge();
@@ -1290,8 +1460,8 @@ async function loadContinuePlaying() {
     const gameIds = [...new Set(saves.map((s) => s.game_id))];
     gameIds.forEach((id) => claimedGameIds.add(id));
     if (!gameIds.length) {
-      continuePlayingSection.hidden = true;
-      continuePlayingList.innerHTML = "";
+      continueEntries = [];
+      renderPickupAccountSaves();
       return;
     }
     const entries = gameIds
@@ -1302,22 +1472,16 @@ async function loadContinuePlaying() {
         const bTime = new Date(b.save.updated_at || b.save.created_at).getTime();
         return bTime - aTime;
       });
-    continuePlayingList.innerHTML = "";
-    entries.forEach(({ gameId }) => {
-      const link = document.createElement("a");
-      link.className = "continue-playing-item";
-      link.href = gameHrefForId(gameId);
-      link.textContent = `Continue ${GAME_DISPLAY_NAMES[gameId] || gameId}`;
-      continuePlayingList.appendChild(link);
-    });
-    continuePlayingSection.hidden = false;
+    continueEntries = entries.map((e) => e.gameId);
+    renderPickupAccountSaves();
   } catch (err) {
     // Silent, non-critical — the full game grid below still works, and a
     // signed-in player without a fetchable saves list just doesn't get
     // this convenience section this load, same failure posture the
     // achievements dashboard and My Saves list already take.
     console.error("loadContinuePlaying failed:", err);
-    continuePlayingSection.hidden = true;
+    continueEntries = [];
+    renderPickupAccountSaves();
   }
 }
 
@@ -1718,6 +1882,9 @@ async function loadWhatsNewBadge() {
       badge.textContent = label;
       badge.title = `${label} update${count === 1 && !truncated ? "" : "s"} since your last visit`;
       badge.hidden = false;
+      // GN-14: What's New now sits inside the "Updates" dropdown, so the same count shows on its button.
+      const menuBadge = document.getElementById("updates-nav-badge");
+      if (menuBadge) { menuBadge.textContent = label; menuBadge.title = badge.title; menuBadge.hidden = false; }
     }
   } catch (err) {
     console.error("loadWhatsNewBadge failed:", err);
@@ -1797,7 +1964,7 @@ const HUB_TOUR_STEPS = [
   {
     selector: ".title-card",
     title: "Title cards",
-    text: "Each game gets its own card: a short blurb, tags, when it was last updated, and a star-rating/comment box right on the card.",
+    text: "Games sit in a scrolling row for each theme. A card shows its picture, its name and the average rating; \"Show more\" opens the blurb, tags, the star-rating and a comment box right on the card.",
   },
   {
     selector: "#account-section",
@@ -1805,19 +1972,19 @@ const HUB_TOUR_STEPS = [
     text: "Sign in to sync saves and achievement progress across devices — or skip it entirely and just play. Save codes work without an account too.",
   },
   {
-    selector: "#community-highlights-section",
-    title: "Community Highlights",
-    text: "A rotating, anonymized fact drawn from real aggregate player data across the site, once enough saves exist to share one safely.",
+    selector: "#more-for-you > summary",
+    title: "More for you",
+    text: "Open this for game suggestions, Community Highlights (a rotating, anonymized fact drawn from real aggregate player data, once enough saves exist to share one safely) and your rarest finds.",
   },
   {
-    selector: "a[href='whats-new.html']",
-    title: "What's New",
-    text: "A live changelog of what actually shipped recently, parsed straight from this project's own dev logs.",
+    selector: "#nav-updates > summary",
+    title: "Updates",
+    text: "What's New is a live changelog of what actually shipped recently, parsed straight from this project's own dev logs. The Roadmap and Events are here too.",
   },
   {
-    selector: "#site-feedback-section",
+    selector: "#nav-feedback > summary",
     title: "Feedback",
-    text: "General feedback about the hub itself (not one specific game) goes here. Thanks for stopping by!",
+    text: "Report a problem, or leave general feedback about the hub itself (not one specific game), from this menu. Thanks for stopping by!",
   },
 ];
 // Z13's onboarding survey (below) is also a first-visit modal -- to avoid

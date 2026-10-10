@@ -3,7 +3,7 @@
  *
  * A collection is a list of games the player groups for themselves ("Cozy", "Play on phone",
  * "Class evidence"). They never change the shared tags on the title cards, which stay the same for
- * everyone. A card's "Collections" menu (inside Show details) adds or removes that game; once at
+ * everyone. A card's "Collections" menu (inside Show more) adds or removes that game; once at
  * least one collection exists the lobby filter bar gets an "Any collection" dropdown.
  *
  * Stored on this device only, in localStorage["hub_collections_v1"]:

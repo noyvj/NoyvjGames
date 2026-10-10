@@ -46,6 +46,9 @@ def test_lists_the_rarest_earned_first_and_caps_at_five(harness):
     assert len(out) == 5
     assert out[0].startswith(labels[ids[6]]) and "1.1%" in out[0] and "Gold" in out[0]
     assert "Bronze" not in " ".join(out[:3])
+    # GN-12: the strip now lives in the "More for you" fold, closed until the player opens it
+    assert h.page.is_hidden("#rarest-section")
+    h.page.click("#more-for-you > summary")
     assert h.page.is_visible("#rarest-section")
 
 

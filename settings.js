@@ -257,6 +257,20 @@
     box.addEventListener("change", () => lsSet("hub_pageview_opt_in", box.checked ? "1" : "0"));
   }
 
+  // ---------- Today strip (GN-15) ----------
+
+  function initTodayTracking() {
+    const box = $("settings-today-dailies");
+    if (!box) return;
+    box.checked = lsGet("hub_today_track_dailies") === "1";
+    box.addEventListener("change", () => {
+      lsSet("hub_today_track_dailies", box.checked ? "1" : "0");
+      say("settings-today-status", box.checked
+        ? "On. The Today strip will show your daily puzzles and streak."
+        : "Off. The Today strip will not read your daily puzzles or streak.");
+    });
+  }
+
   // ---------- Tours and notices ----------
 
   function initTours() {
@@ -600,6 +614,7 @@
   async function boot() {
     initTheme();
     initPrivacy();
+    initTodayTracking();
     initReduceData();
     initSfx();
     initTours();

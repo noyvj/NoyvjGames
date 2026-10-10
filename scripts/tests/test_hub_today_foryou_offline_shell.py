@@ -18,6 +18,8 @@ from hub_browser_fixtures import chromium, harness  # noqa: F401  (pytest fixtur
 ROOT = Path(__file__).resolve().parents[2]
 INDEX = (ROOT / "index.html").read_text(encoding="utf-8")
 SEEN = "localStorage.setItem('hub-onboarding-seen','1');localStorage.setItem('tutorial-seen:hub','1');"
+# GN-15: the Today strip reads the games' daily records only once the player has turned that on.
+TRACK = "localStorage.setItem('hub_today_track_dailies','1');"
 
 
 def last_played(*slugs):
@@ -131,13 +133,39 @@ def test_reduced_motion_and_phone_only_css():
 
 def today_page(h, path="/index.html?event-date=2026-10-08"):
     page = h.goto(path)
-    page.wait_for_function("document.getElementById('today-items').children.length >= 4")
+    # the daily puzzles, streak, weekly challenge and event (or, with tracking off, one "not tracking" item
+    # in place of the first two)
+    page.wait_for_function("document.getElementById('today-items').children.length >= 3")
     return page
 
 
-def test_today_empty_states_are_honest(harness):
-    h = harness(init_scripts=[SEEN])
+def test_today_does_not_read_daily_records_until_tracking_is_turned_on(harness):
+    """GN-15: with the (default) setting off the strip names no game's daily puzzle or streak, whatever the games saved."""
+    state = {"days": {"2026-10-08:easy": {"kind": "daily", "result": "won", "pings": [[0, 0, 1]]}}}
+    record = {"version": 1, "date": "2026-10-08", "runs": {"tide": {"text": "4,210 pts"}},
+              "streaks": {"tide": {"count": 4, "best": 6, "last": "2026-10-08"}}}
+    h = harness(init_scripts=[SEEN, f"localStorage.setItem('signal:state', {json.dumps(json.dumps(state))});"
+                                    f"localStorage.setItem('noyvj-daily-v1', {json.dumps(json.dumps(record))});"])
     page = today_page(h)
+    text = page.inner_text("#today-strip")
+    low = text.lower()   # the item labels are upper-cased by the stylesheet
+    assert "not tracking" in low and "turn on daily tracking" in low
+    for word in ("not played yet", "done today", "days in a row", "no streak", "signal", "4,210"):
+        assert word not in low, word
+    assert "weekly challenge" in low and "seasonal event" in low, "the site's own items still show"
+    assert page.locator("#today-items > li").count() == 3
+    # the button turns tracking on for this device, and the strip then reads the games' records
+    page.click(".today-track-button")
+    page.wait_for_function("document.getElementById('today-items').textContent.includes('Partly done')")
+    assert page.evaluate("localStorage.getItem('hub_today_track_dailies')") == "1"
+    assert "4 days in a row in Tide" in page.inner_text("#today-strip")
+    assert h.errors == []
+
+
+def test_today_empty_states_are_honest(harness):
+    h = harness(init_scripts=[SEEN, TRACK])
+    page = today_page(h)
+    page.wait_for_function("document.getElementById('today-items').children.length >= 4")
     text = page.inner_text("#today-strip")
     assert "Not played yet" in text and "No streak yet" in text
     assert page.locator(".today-sample").count() == 1 and "sample schedule" in text, "the shipped schedule is flagged as a sample"
@@ -150,7 +178,7 @@ def test_today_reads_signal_done_and_streak(harness):
         "2026-10-07:easy": {"kind": "daily", "result": "won", "pings": [[0, 0, 1]]},
         "2026-10-08:easy": {"kind": "daily", "result": "won", "pings": [[0, 0, 1], [1, 1, 2], [2, 2, 3]]},
     }}
-    h = harness(init_scripts=[SEEN, f"localStorage.setItem('signal:state', {json.dumps(json.dumps(state))});"])
+    h = harness(init_scripts=[SEEN, TRACK, f"localStorage.setItem('signal:state', {json.dumps(json.dumps(state))});"])
     page = today_page(h)
     text = page.inner_text("#today-strip")
     assert "Partly done" in text and "Easy won in 3 pings" in text and "Hard not played" in text
@@ -160,7 +188,7 @@ def test_today_reads_signal_done_and_streak(harness):
 def test_today_streak_stops_after_a_missed_day_and_a_loss_today(harness):
     state = {"days": {"2026-10-05:easy": {"kind": "daily", "result": "won", "pings": []},
                       "2026-10-06:easy": {"kind": "daily", "result": "won", "pings": []}}}
-    h = harness(init_scripts=[SEEN, f"localStorage.setItem('signal:state', {json.dumps(json.dumps(state))});"])
+    h = harness(init_scripts=[SEEN, TRACK, f"localStorage.setItem('signal:state', {json.dumps(json.dumps(state))});"])
     page = today_page(h)
     assert "No streak running. Your best is 2 days" in page.inner_text("#today-strip")
     assert page.evaluate("HubToday.signalStreak({days:{'2026-10-07:easy':{kind:'daily',result:'won'},'2026-10-08:easy':{kind:'daily',result:'lost'}}}, '2026-10-08').count") == 0
@@ -171,7 +199,7 @@ def test_today_uses_the_shared_daily_record_for_other_games(harness):
               "runs": {"tide": {"seed": "TIDE-X54PB", "completed_at": "2026-10-08T01:00:00Z", "text": "4,210 pts"}},
               "streaks": {"tide": {"count": 4, "best": 6, "last": "2026-10-08"}}}
     feed = {"version": 1, "sample": False, "daily": [{"game": "tide", "label": "Tide daily"}], "weekly": []}
-    h = harness(init_scripts=[SEEN, f"localStorage.setItem('noyvj-daily-v1', {json.dumps(json.dumps(record))});"])
+    h = harness(init_scripts=[SEEN, TRACK, f"localStorage.setItem('noyvj-daily-v1', {json.dumps(json.dumps(record))});"])
     h.pages["/today.json"] = json.dumps(feed)
     page = today_page(h)
     text = page.inner_text("#today-strip")
@@ -210,7 +238,7 @@ def test_today_event_on_and_off_days(harness):
     assert "Halloween is on until" in text and "Badge: Halloween 2026 (not earned yet)" in text
     assert "No game hosts this event yet" in text
     page = h.goto("/index.html?event-date=2026-09-10")
-    page.wait_for_function("document.getElementById('today-items').children.length >= 4")
+    page.wait_for_function("document.getElementById('today-items').children.length >= 3")
     page.wait_for_function("document.getElementById('today-items').textContent.includes('Next:') || document.getElementById('today-items').textContent.includes('is on until')")
     assert "No event today. Next:" in page.inner_text("#today-strip")
 
@@ -218,7 +246,7 @@ def test_today_event_on_and_off_days(harness):
 def test_today_survives_blocked_storage(harness):
     h = harness(init_scripts=["Object.defineProperty(window,'localStorage',{get(){throw new DOMException('denied','SecurityError')}});"])
     page = today_page(h)
-    assert "Not played yet" in page.inner_text("#today-strip")
+    assert "Not tracking" in page.inner_text("#today-strip")   # blocked storage cannot hold the setting, so it is off
     assert h.errors == []
 
 
@@ -261,6 +289,8 @@ def test_foryou_row_hidden_for_new_players_shown_for_returning(harness):
     h2 = harness(init_scripts=[SEEN, last_played("canopy")])
     page = h2.goto("/index.html")
     page.wait_for_function("!document.getElementById('for-you-section').hidden")
+    assert page.evaluate("document.getElementById('more-for-you').open") is False, "GN-12: folded away until asked for"
+    page.click("#more-for-you > summary")
     text = page.inner_text("#for-you-list")
     assert "Because you played Canopy" in text
     assert page.evaluate("document.querySelectorAll('#for-you-list a').length") == 3
@@ -271,6 +301,7 @@ def test_foryou_dismiss_is_remembered_and_survey_blocks_it(harness):
     h = harness(init_scripts=[SEEN, last_played("canopy")])
     page = h.goto("/index.html")
     page.wait_for_function("!document.getElementById('for-you-section').hidden")
+    page.click("#more-for-you > summary")
     page.click("#for-you-dismiss")
     assert page.evaluate("document.getElementById('for-you-section').hidden") is True
     page.reload()

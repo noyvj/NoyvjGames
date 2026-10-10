@@ -523,7 +523,7 @@
       const staleNote = stale ? " " + stale + " needs downloading again (an update cleared the stored files)." : "";
       total.textContent = ready
         ? ready + (ready === 1 ? " game is" : " games are") + " stored for offline use, taking " + formatBytes(stored) + " of extra space." + staleNote + use
-        : "No games are stored for offline use." + staleNote + use + " Open the hub, choose Show details on a game and press Download for offline.";
+        : "No games are stored for offline use." + staleNote + use + " Open the hub, choose Show more on a game and press Download for offline.";
     }
     await render();
   }

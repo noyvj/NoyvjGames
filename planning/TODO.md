@@ -1,6 +1,6 @@
 # Site-Wide TODO (round 3)
 
-**Progress: 744/1261 items checked off (59.0%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land.
+**Progress: 750/1261 items checked off (59.5%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land.
 
 Built from your answers in `planning/IMPROVEMENT-IDEAS-ROUND-3.md` (Part 4). Every Round 3 section is now answered (2026-10-07 below the Warframe section); earlier this list held only: **GB** (Canopy gamified), **M** (new games), **N** (seasonal events), **O** (Trade Empire and Continuum replayability), **P/Q/S/T** (Signal, Undersleep, Overclock, Last Line open questions), **X** (Warframe tracker) and **R** (returning later). GC-GI, A-L, U, Z and Y are unanswered and wait for you. The previous list is archived at `planning/todo-archive/260914_260927.md`; anything from it that was moved here is marked "moved" there.
 
@@ -180,12 +180,12 @@ Bugs first (user-reported problems are fixed regardless of the QA rule), then qu
 - [x] GN-9: Tide: add a "next season if you do nothing" trend to the readouts, so you can see whether spending on Reduction and the other levers is worth it before you buy.
 (Planning notes from an agent that read the hub code on 2026-10-11, no edits made: GN-11 keep the real cards inside `#game-grid` as one row per first subject tag (depth tag if none), `applySort` appends cards so it must place them per row, hide a row whose cards are all filtered out. GN-13 cards are already compact with "Show details": rename to "Show more", add the "4.5 stars (2)" badge from `setRatingDisplay`, keep it out of search text (`cardBaseText`). GN-16 `shared/report-problem.js` is not loaded on the hub yet: mount it in a top Feedback dropdown with `data-game-id="hub"` (the backend accepts `hub`); the form is `#site-feedback-section`, handlers in `loadSiteFeedback` in `script.js`. GN-12 the strips are `#pickup-section` (the richer one), `#continue-playing-section`, `#recently-added-section`, `#for-you-section`, `#community-highlights-section`, `#rarest-section`. GN-14 `.hub-nav` in `index.html`; leave `shared/owner-links.js` alone. GN-15 daily items are built in `hub-today.js`; setting goes in `settings.html/js`. GN-10 `profile.js`, `profile.html`, `shared/profile.js` are unread; check `app/` for profile visibility fields first.)
 - [x] GN-10: Hub: profile page shows like any other player's profile, and if it is yours it has a settings button for "public, private or friends only" and other personal account choices.
-- [ ] GN-11: Hub: show the games in carousels by theme or genre instead of one long list.
-- [ ] GN-12: Hub: put Pick up, Continue and Recently added side by side (or as their own carousels), drop "Continue playing" if "Pick up where you stopped" covers it, and move some of the long set of strips (pick up, continue, recently added, for you, rarest, highlights) into a dropdown so less scrolling is needed to reach the games.
-- [ ] GN-13: Hub: a collapsed game card shows only the picture, the name and "Show more", with the average rating overlaid on the picture like "4.5 stars (2)" (SOL's numbers as the example).
-- [ ] GN-14: Hub: condense the many buttons at the top into dropdowns, for example "Me" (achievements, 100% map, stats) and "Updates" (What's new, roadmap and so on).
-- [ ] GN-15: Hub: the "Today" strip must not include daily things from games unless the player turns tracking of them on.
-- [ ] GN-16: Hub: move the site feedback form up into a shared section at the top beside "Report a problem", since at the bottom nobody sees it.
+- [x] GN-11: Hub: show the games in carousels by theme or genre instead of one long list.
+- [x] GN-12: Hub: put Pick up, Continue and Recently added side by side (or as their own carousels), drop "Continue playing" if "Pick up where you stopped" covers it, and move some of the long set of strips (pick up, continue, recently added, for you, rarest, highlights) into a dropdown so less scrolling is needed to reach the games.
+- [x] GN-13: Hub: a collapsed game card shows only the picture, the name and "Show more", with the average rating overlaid on the picture like "4.5 stars (2)" (SOL's numbers as the example).
+- [x] GN-14: Hub: condense the many buttons at the top into dropdowns, for example "Me" (achievements, 100% map, stats) and "Updates" (What's new, roadmap and so on).
+- [x] GN-15: Hub: the "Today" strip must not include daily things from games unless the player turns tracking of them on.
+- [x] GN-16: Hub: move the site feedback form up into a shared section at the top beside "Report a problem", since at the bottom nobody sees it.
 - [ ] GN-17: Direction (links to section LZ): shift games with many game modes toward a level-select system, so the main controls are introduced first and the different "game mode" gimmicks are introduced and added slowly.
 
 ---
