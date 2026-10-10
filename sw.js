@@ -2,7 +2,7 @@
 // the precache list; ordinary content deploys don't need it, because
 // same-origin requests are network-first (see the fetch handler below) and
 // so always pick up fresh files whenever the player is online.
-const SW_VERSION = 49;
+const SW_VERSION = 50;
 const CACHE_NAME = "site-cache-v" + SW_VERSION;
 // How long a same-origin network request may take before we give up and
 // serve the cached copy instead (a slow/flaky connection shouldn't hang).
@@ -306,6 +306,33 @@ const PRECACHE_URLS = [
   "games/hull-repair/logbook.py",
   "games/hull-repair/achievements.py",
   "games/hull-repair/info.py",
+  "games/station-medic/index.html",
+  "games/station-medic/style.css",
+  "games/station-medic/game.py",
+  "games/station-medic/app.js",
+  "games/station-medic/settings.js",
+  "games/station-medic/changelog.json",
+  "games/station-medic/achievements.json",
+  "games/station-medic/lexicon.py",
+  "games/station-medic/cast.py",
+  "games/station-medic/shift.py",
+  "games/station-medic/solver.py",
+  "games/station-medic/casekit.py",
+  "games/station-medic/cases_1.py",
+  "games/station-medic/cases_2.py",
+  "games/station-medic/cases_3.py",
+  "games/station-medic/cases_4.py",
+  "games/station-medic/cases_5.py",
+  "games/station-medic/cases_6.py",
+  "games/station-medic/cases_7.py",
+  "games/station-medic/cases_8.py",
+  "games/station-medic/cases.py",
+  "games/station-medic/progress.py",
+  "games/station-medic/codex.py",
+  "games/station-medic/achievements.py",
+  "games/station-medic/render.py",
+  "games/station-medic/hints.py",
+  "games/station-medic/info.py",
   // Audit fix 2026-09-27: Trade Empire is hub-linked and has been for a while
   // (see CLAUDE.md's Current games table) -- both were mistakenly left off
   // this list under a stale "not hub-linked yet" comment. Trade Empire has the
@@ -371,6 +398,9 @@ const PRECACHE_URLS = [
   "games/hull-repair/pc.html",
   "games/hull-repair/pc.css",
   "games/hull-repair/pc.js",
+  "games/station-medic/pc.html",
+  "games/station-medic/pc.css",
+  "games/station-medic/pc.js",
   "games/signal/pc.html",
   "games/signal/pc.css",
   "games/signal/pc.js",

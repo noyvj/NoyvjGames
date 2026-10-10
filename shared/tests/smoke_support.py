@@ -7,7 +7,7 @@ Every older game ships a pytest fixture `game_env` in `games/<slug>/tests/confte
 `game.py` against a fake DOM (`FakeElement`s keyed by id, a fake `js` and `pyodide` module). This
 module imports that conftest under a unique package name and calls the fixture's own function, so
 the games' boot code is exactly the one their own tests use and nothing is duplicated. The
-engine-style games (Signal, Chronicle, Lexis, Heist Committee, Lighthouse, Pocket Bazaar, Dead Reckoning, Logic Gates, Robot Script, Hull Repair) have no DOM: their `game.py` is a plain module with
+engine-style games (Signal, Chronicle, Lexis, Heist Committee, Lighthouse, Pocket Bazaar, Dead Reckoning, Logic Gates, Robot Script, Hull Repair, Station Medic) have no DOM: their `game.py` is a plain module with
 a request/response entry point, driven here with a small action grammar instead of clicks.
 
 Importing a game's tests package changes `sys.path` and `sys.modules` (every game's module is
@@ -503,6 +503,33 @@ def hull_request(rng, last):
     return {"action": "end"}
 
 
+def medic_request(rng, last):
+    """Station Medic: pick shifts, then scan, treat, band, robot, isolate, release, comfort and borrow, restore, climb the hints."""
+    view = last or {}
+    roll = rng.random()
+    patients = max(1, len(view.get("patients", [])))
+    cabinet = view.get("cabinet") or {}
+    p = rng.randrange(patients)
+    if roll < 0.03:
+        return {"action": rng.choice(["open", "reset", "bogus", "next", "restore", "hint", "hint_do"])}
+    if roll < 0.08:
+        ids = [s["id"] for ch in view.get("rooms", []) for s in ch.get("shifts", []) if s.get("open")]
+        return {"action": "pick", "shift": rng.choice(ids or ["x"])}
+    if roll < 0.12:
+        return {"action": rng.choice(["hint", "hint", "hint_do", "restore"])}
+    if roll < 0.40:
+        tests = max(1, len(cabinet.get("tests", [])))
+        return {"action": "scan", "p": p, "t": rng.randrange(tests)}
+    if roll < 0.70:
+        tx = max(1, len(cabinet.get("tx", [])))
+        return {"action": "treat", "p": p, "x": rng.randrange(tx)}
+    if roll < 0.78:
+        return {"action": rng.choice(["band", "robot", "isolate", "release", "comfort"]), "p": p}
+    if roll < 0.84:
+        return {"action": "borrow", "item": rng.randrange(max(1, len(cabinet.get("items", []))))}
+    return {"action": rng.choice(["scan", "treat"]), "p": "x", "t": None, "x": 1.5}
+
+
 @contextlib.contextmanager
 def engine_game(slug):
     """Yield (call, get_state, next_request) for an engine-style game, freshly reset."""
@@ -565,6 +592,11 @@ def engine_game(slug):
             import game as module                    # noqa: PLC0415 -- resolved through that path
             module.handle(json.dumps({"action": "reset"}))
             yield (lambda req: json.loads(module.handle(json.dumps(req)))), module.get_state, hull_request
+        elif slug == "station-medic":
+            load_conftest(slug)                     # puts games/station-medic (and its tools) on sys.path
+            import game as module                    # noqa: PLC0415 -- resolved through that path
+            module.handle(json.dumps({"action": "reset"}))
+            yield (lambda req: json.loads(module.handle(json.dumps(req)))), module.get_state, medic_request
         else:
             raise KeyError(slug)
 
@@ -573,5 +605,5 @@ def engine_game(slug):
 
 FAKE_DOM_GAMES = ["aftermath", "canopy", "champ-de-mots", "continuum", "drift", "grid", "herd", "loop",
                   "sol", "thaw", "tide", "trade-empire"]
-ENGINE_GAMES = ["signal", "chronicle", "lexis", "heist-committee", "lighthouse", "pocket-bazaar", "dead-reckoning", "logic-gates", "robot-script", "hull-repair"]
+ENGINE_GAMES = ["signal", "chronicle", "lexis", "heist-committee", "lighthouse", "pocket-bazaar", "dead-reckoning", "logic-gates", "robot-script", "hull-repair", "station-medic"]
 ALL_GAMES = sorted(FAKE_DOM_GAMES + ENGINE_GAMES)

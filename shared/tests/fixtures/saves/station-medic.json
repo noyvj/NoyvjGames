@@ -1,0 +1,53 @@
+{
+ "achievements_earned": [
+  "first_shift"
+ ],
+ "best": {
+  "1-1": 3,
+  "1-2": 3,
+  "1-3": 3
+ },
+ "cur": "1-5",
+ "cured": [
+  "coil",
+  "vent",
+  "mothrash",
+  "coldh",
+  "lampeye",
+  "ring",
+  "hollow"
+ ],
+ "cures": [
+  "gel",
+  "wrap",
+  "loz"
+ ],
+ "run": {
+  "1-1": [
+   "treat:0:1"
+  ],
+  "1-4": [
+   "borrow:2",
+   "treat:0:1"
+  ],
+  "1-5": [
+   "borrow:2",
+   "treat:1:2"
+  ],
+  "1-6": [
+   "treat:2:0"
+  ],
+  "1-7": [
+   "comfort:3",
+   "treat:0:3",
+   "borrow:2"
+  ]
+ },
+ "tally": {
+  "borrows": 4,
+  "comforts": 1,
+  "hints": 3,
+  "restores": 4,
+  "treats": 17
+ }
+}

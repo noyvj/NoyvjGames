@@ -297,7 +297,7 @@ def test_foryou_uses_account_progress_for_finished(harness):
 
 def offline_page(h, size=None):
     page = h.goto("/index.html")
-    page.wait_for_function("document.querySelectorAll('.offline-button').length >= 21")
+    page.wait_for_function("document.querySelectorAll('.offline-button').length >= 22")
     return page
 
 
@@ -322,7 +322,7 @@ def test_offline_download_and_remove(harness):
     assert any(u.endswith("pyodide.asm.wasm") for u in store)
     assert "canopy" in json.loads(page.evaluate("localStorage.getItem('hub_offline_games')"))
     page.wait_for_function("!document.getElementById('offline-storage-line').hidden")
-    assert "1 of 21 games downloaded" in page.inner_text("#offline-storage-line")
+    assert "1 of 22 games downloaded" in page.inner_text("#offline-storage-line")
     # Remove: the game's own downloaded files and the runtime go, precached files stay.
     precached = page.evaluate("HubOffline.loadManifest().then(m => m.games.canopy.files.filter(f => f.precached).map(f => f.path))")
     card.locator(".offline-button").click()
@@ -543,7 +543,7 @@ def test_collections_create_add_filter_delete(harness):
     assert page.evaluate("document.querySelector('.review-widget[data-game-slug=canopy]').closest('.title-card').dataset.tags") == "climate quick"
     page.click("#collection-manage button:has-text('Delete collection')")
     page.click("#collection-manage button:has-text('Yes, delete')")
-    assert page.evaluate("[...document.querySelectorAll('.title-card')].filter(c => !c.hidden).length") == 21
+    assert page.evaluate("[...document.querySelectorAll('.title-card')].filter(c => !c.hidden).length") == 22
     assert page.evaluate("document.getElementById('game-collection-filter').hidden") is True
     assert h.errors == []
 

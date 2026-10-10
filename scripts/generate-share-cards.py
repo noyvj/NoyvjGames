@@ -64,6 +64,7 @@ THEMES = {
     "logic-gates": (["#14233a", "#0a1220"], "gridlines", "#5fd4e6", "#0a1220", ("gate",)),
     "robot-script": (["#2a3348", "#151a26"], "gridlines", "#8fd4e3", "#1c2230", ("robot",)),
     "hull-repair": (["#2d3948", "#141a26"], "gridlines", "#f2b84b", "#141a26", ("hull",)),
+    "station-medic": (["#24313a", "#12181d"], "pulse", "#e0a458", "#12181d", ("medic",)),
     "trade-empire": (["#1a1f3a", "#0d0f1e"], "network", "#e0c34c", "#171b30", ("letter", "$", "#e0c34c")),
 }
 FALLBACK_THEME = (["#1a1f3a", "#0d0f1e"], "stars", "#8fb0e8", "#2c4a7c", ("letter", "?", "#ffffff"))
@@ -354,6 +355,10 @@ def draw_glyph(draw, glyph, scale, tile_color):
         draw.rectangle((43 * scale, 21 * scale, 53 * scale, 31 * scale), outline=gold, width=max(1, int(3 * scale)))
         stroke(draw, S([(16, 26), (26, 26)]), 5 * scale, cyan)
         draw.polygon(S([(12, 52), (22, 52), (17, 58)]), fill=cyan)
+    elif kind == "medic":
+        draw.polygon(S([(26, 12), (38, 12), (38, 26), (52, 26), (52, 38), (38, 38), (38, 52), (26, 52), (26, 38), (12, 38), (12, 26), (26, 26)]),
+                     fill=rgb("#e0a458"), outline=rgb("#0d1117"))
+        draw.ellipse((47 * scale, 11 * scale, 53 * scale, 17 * scale), fill=rgb("#7fb3c8"))
     elif kind == "lexis":
         blue = rgb("#9ad0ff")
         for a, b in (((16, 22), (26, 22)), ((34, 22), (36, 22)), ((42, 22), (48, 22)),

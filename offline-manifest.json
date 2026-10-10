@@ -209,7 +209,7 @@
     },
     {
      "path": "shared/site-settings.js",
-     "bytes": 6005,
+     "bytes": 6105,
      "precached": false
     },
     {
@@ -285,7 +285,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14642387,
+   "bytes": 14642487,
    "bytes_complete": true
   },
   "canopy": {
@@ -534,7 +534,7 @@
     },
     {
      "path": "shared/site-settings.js",
-     "bytes": 6005,
+     "bytes": 6105,
      "precached": false
     },
     {
@@ -625,7 +625,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 15091519,
+   "bytes": 15091619,
    "bytes_complete": true
   },
   "grid": {
@@ -844,7 +844,7 @@
     },
     {
      "path": "shared/site-settings.js",
-     "bytes": 6005,
+     "bytes": 6105,
      "precached": false
     },
     {
@@ -925,7 +925,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14642346,
+   "bytes": 14642446,
    "bytes_complete": true
   },
   "tide": {
@@ -1149,7 +1149,7 @@
     },
     {
      "path": "shared/site-settings.js",
-     "bytes": 6005,
+     "bytes": 6105,
      "precached": false
     },
     {
@@ -1210,7 +1210,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14656965,
+   "bytes": 14657065,
    "bytes_complete": true
   },
   "aftermath": {
@@ -1439,7 +1439,7 @@
     },
     {
      "path": "shared/site-settings.js",
-     "bytes": 6005,
+     "bytes": 6105,
      "precached": false
     },
     {
@@ -1500,7 +1500,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14559810,
+   "bytes": 14559910,
    "bytes_complete": true
   },
   "herd": {
@@ -1724,7 +1724,7 @@
     },
     {
      "path": "shared/site-settings.js",
-     "bytes": 6005,
+     "bytes": 6105,
      "precached": false
     },
     {
@@ -1790,7 +1790,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14495595,
+   "bytes": 14495695,
    "bytes_complete": true
   },
   "thaw": {
@@ -1999,7 +1999,7 @@
     },
     {
      "path": "shared/site-settings.js",
-     "bytes": 6005,
+     "bytes": 6105,
      "precached": false
     },
     {
@@ -2060,7 +2060,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14480692,
+   "bytes": 14480792,
    "bytes_complete": true
   },
   "loop": {
@@ -2274,7 +2274,7 @@
     },
     {
      "path": "shared/site-settings.js",
-     "bytes": 6005,
+     "bytes": 6105,
      "precached": false
     },
     {
@@ -2340,7 +2340,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14500670,
+   "bytes": 14500770,
    "bytes_complete": true
   },
   "drift": {
@@ -2554,7 +2554,7 @@
     },
     {
      "path": "shared/site-settings.js",
-     "bytes": 6005,
+     "bytes": 6105,
      "precached": false
     },
     {
@@ -2620,7 +2620,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14523581,
+   "bytes": 14523681,
    "bytes_complete": true
   },
   "champ-de-mots": {
@@ -3359,7 +3359,7 @@
     },
     {
      "path": "shared/site-settings.js",
-     "bytes": 6005,
+     "bytes": 6105,
      "precached": false
     },
     {
@@ -3440,7 +3440,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 16095640,
+   "bytes": 16095740,
    "bytes_complete": true
   },
   "signal": {
@@ -3634,7 +3634,7 @@
     },
     {
      "path": "shared/site-settings.js",
-     "bytes": 6005,
+     "bytes": 6105,
      "precached": false
     },
     {
@@ -3664,7 +3664,7 @@
     }
    ],
    "cdn": [],
-   "bytes": 503021,
+   "bytes": 503121,
    "bytes_complete": true
   },
   "lexis": {
@@ -3933,7 +3933,7 @@
     },
     {
      "path": "shared/site-settings.js",
-     "bytes": 6005,
+     "bytes": 6105,
      "precached": false
     },
     {
@@ -3994,7 +3994,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14264079,
+   "bytes": 14264179,
    "bytes_complete": true
   },
   "heist-committee": {
@@ -4298,7 +4298,7 @@
     },
     {
      "path": "shared/site-settings.js",
-     "bytes": 6005,
+     "bytes": 6105,
      "precached": false
     },
     {
@@ -4359,7 +4359,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14441322,
+   "bytes": 14441422,
    "bytes_complete": true
   },
   "lighthouse": {
@@ -4658,7 +4658,7 @@
     },
     {
      "path": "shared/site-settings.js",
-     "bytes": 6005,
+     "bytes": 6105,
      "precached": false
     },
     {
@@ -4729,7 +4729,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14481668,
+   "bytes": 14481768,
    "bytes_complete": true
   },
   "pocket-bazaar": {
@@ -4993,7 +4993,7 @@
     },
     {
      "path": "shared/site-settings.js",
-     "bytes": 6005,
+     "bytes": 6105,
      "precached": false
     },
     {
@@ -5054,7 +5054,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14285456,
+   "bytes": 14285556,
    "bytes_complete": true
   },
   "dead-reckoning": {
@@ -5368,7 +5368,7 @@
     },
     {
      "path": "shared/site-settings.js",
-     "bytes": 6005,
+     "bytes": 6105,
      "precached": false
     },
     {
@@ -5429,7 +5429,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14358471,
+   "bytes": 14358571,
    "bytes_complete": true
   },
   "logic-gates": {
@@ -5683,7 +5683,7 @@
     },
     {
      "path": "shared/site-settings.js",
-     "bytes": 6005,
+     "bytes": 6105,
      "precached": false
     },
     {
@@ -5744,7 +5744,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14275324,
+   "bytes": 14275424,
    "bytes_complete": true
   },
   "robot-script": {
@@ -6028,7 +6028,7 @@
     },
     {
      "path": "shared/site-settings.js",
-     "bytes": 6005,
+     "bytes": 6105,
      "precached": false
     },
     {
@@ -6089,7 +6089,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14295763,
+   "bytes": 14295863,
    "bytes_complete": true
   },
   "hull-repair": {
@@ -6353,7 +6353,7 @@
     },
     {
      "path": "shared/site-settings.js",
-     "bytes": 6005,
+     "bytes": 6105,
      "precached": false
     },
     {
@@ -6414,7 +6414,367 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14275956,
+   "bytes": 14276056,
+   "bytes_complete": true
+  },
+  "station-medic": {
+   "files": [
+    {
+     "path": "games/station-medic/achievements.json",
+     "bytes": 1785,
+     "precached": true
+    },
+    {
+     "path": "games/station-medic/achievements.py",
+     "bytes": 2905,
+     "precached": true
+    },
+    {
+     "path": "games/station-medic/app.js",
+     "bytes": 28711,
+     "precached": true
+    },
+    {
+     "path": "games/station-medic/casekit.py",
+     "bytes": 686,
+     "precached": true
+    },
+    {
+     "path": "games/station-medic/cases.py",
+     "bytes": 1477,
+     "precached": true
+    },
+    {
+     "path": "games/station-medic/cases_1.py",
+     "bytes": 3579,
+     "precached": true
+    },
+    {
+     "path": "games/station-medic/cases_2.py",
+     "bytes": 3861,
+     "precached": true
+    },
+    {
+     "path": "games/station-medic/cases_3.py",
+     "bytes": 4431,
+     "precached": true
+    },
+    {
+     "path": "games/station-medic/cases_4.py",
+     "bytes": 4540,
+     "precached": true
+    },
+    {
+     "path": "games/station-medic/cases_5.py",
+     "bytes": 4379,
+     "precached": true
+    },
+    {
+     "path": "games/station-medic/cases_6.py",
+     "bytes": 4077,
+     "precached": true
+    },
+    {
+     "path": "games/station-medic/cases_7.py",
+     "bytes": 3155,
+     "precached": true
+    },
+    {
+     "path": "games/station-medic/cases_8.py",
+     "bytes": 4549,
+     "precached": true
+    },
+    {
+     "path": "games/station-medic/cast.py",
+     "bytes": 10908,
+     "precached": true
+    },
+    {
+     "path": "games/station-medic/changelog.json",
+     "bytes": 841,
+     "precached": true
+    },
+    {
+     "path": "games/station-medic/codex.py",
+     "bytes": 6468,
+     "precached": true
+    },
+    {
+     "path": "games/station-medic/game.py",
+     "bytes": 21357,
+     "precached": true
+    },
+    {
+     "path": "games/station-medic/hints.py",
+     "bytes": 3152,
+     "precached": true
+    },
+    {
+     "path": "games/station-medic/icons/favicon-station-medic.svg",
+     "bytes": 390,
+     "precached": false
+    },
+    {
+     "path": "games/station-medic/index.html",
+     "bytes": 16144,
+     "precached": true
+    },
+    {
+     "path": "games/station-medic/info.py",
+     "bytes": 2002,
+     "precached": true
+    },
+    {
+     "path": "games/station-medic/lexicon.py",
+     "bytes": 10788,
+     "precached": true
+    },
+    {
+     "path": "games/station-medic/pc-config.json",
+     "bytes": 1328,
+     "precached": false
+    },
+    {
+     "path": "games/station-medic/pc.css",
+     "bytes": 1725,
+     "precached": true
+    },
+    {
+     "path": "games/station-medic/pc.html",
+     "bytes": 18166,
+     "precached": true
+    },
+    {
+     "path": "games/station-medic/pc.js",
+     "bytes": 2446,
+     "precached": true
+    },
+    {
+     "path": "games/station-medic/progress.py",
+     "bytes": 2074,
+     "precached": true
+    },
+    {
+     "path": "games/station-medic/render.py",
+     "bytes": 5518,
+     "precached": true
+    },
+    {
+     "path": "games/station-medic/settings.js",
+     "bytes": 6924,
+     "precached": true
+    },
+    {
+     "path": "games/station-medic/shift.py",
+     "bytes": 17179,
+     "precached": true
+    },
+    {
+     "path": "games/station-medic/solver.py",
+     "bytes": 8329,
+     "precached": true
+    },
+    {
+     "path": "games/station-medic/style.css",
+     "bytes": 17412,
+     "precached": true
+    },
+    {
+     "path": "games/station-medic/tools/check.py",
+     "bytes": 1158,
+     "precached": false
+    },
+    {
+     "path": "games/station-medic/tools/setstock.py",
+     "bytes": 1098,
+     "precached": false
+    },
+    {
+     "path": "games/station-medic/tools/shrink.py",
+     "bytes": 1314,
+     "precached": false
+    }
+   ],
+   "shared": [
+    {
+     "path": "ad-bar.css",
+     "bytes": 1932,
+     "precached": true
+    },
+    {
+     "path": "icons/favicon-station-medic.svg",
+     "bytes": 390,
+     "precached": false
+    },
+    {
+     "path": "manifest.json",
+     "bytes": 338,
+     "precached": true
+    },
+    {
+     "path": "shared/a11y.css",
+     "bytes": 5058,
+     "precached": true
+    },
+    {
+     "path": "shared/achievement-share.js",
+     "bytes": 12575,
+     "precached": true
+    },
+    {
+     "path": "shared/confirm-dialog.js",
+     "bytes": 9825,
+     "precached": false
+    },
+    {
+     "path": "shared/debug-overlay.js",
+     "bytes": 5628,
+     "precached": true
+    },
+    {
+     "path": "shared/error-boundary.js",
+     "bytes": 9714,
+     "precached": true
+    },
+    {
+     "path": "shared/hub-auth.js",
+     "bytes": 1356,
+     "precached": true
+    },
+    {
+     "path": "shared/info-footer.js",
+     "bytes": 6317,
+     "precached": true
+    },
+    {
+     "path": "shared/info-page.css",
+     "bytes": 1092,
+     "precached": true
+    },
+    {
+     "path": "shared/keyboard-shortcuts.js",
+     "bytes": 7262,
+     "precached": false
+    },
+    {
+     "path": "shared/last-played.js",
+     "bytes": 2153,
+     "precached": false
+    },
+    {
+     "path": "shared/layout-pref.js",
+     "bytes": 2407,
+     "precached": true
+    },
+    {
+     "path": "shared/lite-mode.css",
+     "bytes": 3644,
+     "precached": true
+    },
+    {
+     "path": "shared/lite-mode.js",
+     "bytes": 8153,
+     "precached": true
+    },
+    {
+     "path": "shared/opening-screen.js",
+     "bytes": 27851,
+     "precached": false
+    },
+    {
+     "path": "shared/pc-shell.css",
+     "bytes": 7277,
+     "precached": true
+    },
+    {
+     "path": "shared/pc-shell.js",
+     "bytes": 23081,
+     "precached": true
+    },
+    {
+     "path": "shared/perf-mark.js",
+     "bytes": 4209,
+     "precached": true
+    },
+    {
+     "path": "shared/profile.js",
+     "bytes": 9880,
+     "precached": true
+    },
+    {
+     "path": "shared/report-problem.js",
+     "bytes": 22021,
+     "precached": true
+    },
+    {
+     "path": "shared/save-widget.js",
+     "bytes": 72027,
+     "precached": true
+    },
+    {
+     "path": "shared/site-settings.js",
+     "bytes": 6105,
+     "precached": false
+    },
+    {
+     "path": "shared/story-toggle.js",
+     "bytes": 3247,
+     "precached": false
+    },
+    {
+     "path": "shared/theme-light-games.css",
+     "bytes": 7674,
+     "precached": false
+    },
+    {
+     "path": "shared/theme.js",
+     "bytes": 3651,
+     "precached": false
+    },
+    {
+     "path": "shared/touch-targets.css",
+     "bytes": 3271,
+     "precached": true
+    },
+    {
+     "path": "shared/tutorial.js",
+     "bytes": 17014,
+     "precached": false
+    },
+    {
+     "path": "shared/whats-new-banner.js",
+     "bytes": 8822,
+     "precached": false
+    }
+   ],
+   "cdn": [
+    {
+     "url": "https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.js",
+     "bytes": 14761,
+     "kind": "pyodide"
+    },
+    {
+     "url": "https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.asm.js",
+     "bytes": 1229099,
+     "kind": "pyodide"
+    },
+    {
+     "url": "https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.asm.wasm",
+     "bytes": 10088051,
+     "kind": "pyodide"
+    },
+    {
+     "url": "https://cdn.jsdelivr.net/pyodide/v0.26.4/full/python_stdlib.zip",
+     "bytes": 2341872,
+     "kind": "pyodide"
+    },
+    {
+     "url": "https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide-lock.json",
+     "bytes": 106335,
+     "kind": "pyodide"
+    }
+   ],
+   "bytes": 14298948,
    "bytes_complete": true
   },
   "trade-empire": {
@@ -6613,7 +6973,7 @@
     },
     {
      "path": "shared/site-settings.js",
-     "bytes": 6005,
+     "bytes": 6105,
      "precached": false
     },
     {
@@ -6694,7 +7054,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14651382,
+   "bytes": 14651482,
    "bytes_complete": true
   }
  }

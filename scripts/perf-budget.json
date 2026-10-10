@@ -115,6 +115,12 @@
    "pyodide_ms": 1416,
    "total_kb": 5854.0
   },
+  "station-medic": {
+   "first_interactive_ms": 1187,
+   "own_kb": 330.9,
+   "pyodide_ms": 1184,
+   "total_kb": 5770.9
+  },
   "thaw": {
    "first_interactive_ms": 1656,
    "own_kb": 314.7,

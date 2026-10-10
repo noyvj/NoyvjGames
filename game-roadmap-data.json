@@ -161,6 +161,15 @@
         "SOL R-9/R-10: welcome-back machine and click delta, personal-best playthrough"
       ]
     },
+    "station-medic": {
+      "commit_count": 7,
+      "last_updated": "2026-10-10",
+      "recent_commits": [
+        "Station Medic milestone 7: Desktop boot and wrap-up",
+        "Station Medic milestone 6: Achievements",
+        "Station Medic milestone 5: Standard kit"
+      ]
+    },
     "thaw": {
       "commit_count": 76,
       "last_updated": "2026-10-07",

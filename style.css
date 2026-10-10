@@ -832,6 +832,28 @@ html[data-theme="light"] .whats-new-thumb[aria-pressed="true"] { color: #2c4a9a;
   box-shadow: 0 36px 0 #4fd0e8, 80px 0 0 #4fd0e8;
 }
 
+/* Station Medic: an amber cross on a deep teal-grey ground with one pale blue
+   dot. Same shapes as the game's own favicon. */
+.title-card-thumb--station-medic {
+  --thumb-glow: #e0a458;
+  background: linear-gradient(160deg, #24313a 0%, #12181d 100%);
+}
+.title-card-thumb--station-medic::before {
+  inset: 50% auto auto 50%;
+  width: 66px;
+  height: 66px;
+  transform: translate(-50%, -50%);
+  background: #e0a458;
+  clip-path: polygon(33% 0, 67% 0, 67% 33%, 100% 33%, 100% 67%, 67% 67%, 67% 100%, 33% 100%, 33% 67%, 0 67%, 0 33%, 33% 33%);
+}
+.title-card-thumb--station-medic::after {
+  inset: 22% 22% auto auto;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #7fb3c8;
+}
+
 /* Trade Empire: a miniature version of the in-game trade map itself —
    route lines connecting colony nodes (the same NODE_COLOR blue used by
    game.py's render_map()) with one gold dot standing in for an automated

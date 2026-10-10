@@ -1,0 +1,39 @@
+{
+  "@context": "https://schema.org",
+  "@type": [
+    "VideoGame",
+    "WebApplication"
+  ],
+  "name": "Station Medic",
+  "description": "You are the only medic on a quiet station. Each shift a few crew arrive with signs; read the sheet, choose scans and treatments from a small cabinet that restocks between shifts. A deduction and supply puzzle, never a race. Invented conditions only. Working title.",
+  "url": "https://noyvj.github.io/NoyvjGames/games/station-medic/",
+  "image": "https://noyvj.github.io/NoyvjGames/share/station-medic.png",
+  "applicationCategory": "GameApplication",
+  "operatingSystem": "Any modern web browser",
+  "browserRequirements": "Requires JavaScript and WebAssembly",
+  "gamePlatform": "Web browser",
+  "playMode": "SinglePlayer",
+  "inLanguage": "en",
+  "isAccessibleForFree": true,
+  "offers": {
+    "@type": "Offer",
+    "price": "0",
+    "priceCurrency": "USD"
+  },
+  "author": {
+    "@type": "Person",
+    "name": "Noyvj",
+    "url": "https://github.com/noyvj"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "NoyvjGames",
+    "url": "https://noyvj.github.io/NoyvjGames/"
+  },
+  "genre": [
+    "Short session"
+  ],
+  "dateCreated": "2026-10-10",
+  "dateModified": "2026-10-10",
+  "timeRequired": "PT20M"
+}
