@@ -7,14 +7,18 @@ from §3 — nothing about an incorrect answer ever visually demotes a plant.
 
 import pytest
 
+from .conftest import catalog_counts
+
 
 def test_catalog_loads_the_real_continuous_timeline(game_env):
     catalog = game_env.module.CATALOG
     assert catalog["courses"] == ["FREN151", "FREN152"]
     assert len(catalog["weeks"]) == 23
     assert [w["sequence"] for w in catalog["weeks"]] == list(range(1, 24))
-    assert sum(len(t["items"]) for w in catalog["weeks"] for t in w["topics"]) == 1047
-    assert sum(len(w["topics"]) for w in catalog["weeks"]) == 138
+    counts = catalog_counts()
+    assert sum(len(t["items"]) for w in catalog["weeks"] for t in w["topics"]) == counts["items"]
+    assert sum(len(w["topics"]) for w in catalog["weeks"]) == counts["topics"]
+    assert counts["items"] >= 1047 and counts["topics"] >= 138  # FS additions only ever add
 
 
 def test_rows_run_continuously_across_both_courses(game_env):
@@ -34,7 +38,7 @@ def test_plot_granularity_is_per_item_except_grammar_rules(game_env):
     for week in game_env.module.CATALOG["weeks"]:
         for topic in week["topics"]:
             expected += 1 if topic["topic_type"] == "grammar" else len(topic["items"])
-    assert len(state.plots) == expected == 790
+    assert len(state.plots) == expected == catalog_counts()["plots"]
     assert len(state.plots_by_id) == len(state.plots)
 
 

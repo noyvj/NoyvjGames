@@ -22,6 +22,9 @@ that CLAUDE.md says is kept on purpose never actually fires now that
 """
 
 
+from .conftest import catalog_counts
+
+
 def sprout_row(game_env, sequence):
     for plot in game_env.state.row_plots(sequence):
         game_env.state.review(plot.plot_id, True)
@@ -55,7 +58,7 @@ def test_every_plot_is_available_and_due_on_a_fresh_farm(game_env):
     assertions in test_polish.py."""
     state = game_env.state
     total_plots = sum(len(r.plot_ids) for r in state.rows)
-    assert total_plots == 790
+    assert total_plots == catalog_counts()["plots"]
     assert len(state.available_plots()) == total_plots
     assert len(state.due_plots()) == total_plots
     assert any(p.sequence == 23 for p in state.due_plots())

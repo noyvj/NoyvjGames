@@ -23,6 +23,8 @@ from pathlib import Path
 
 import pytest
 
+from .conftest import catalog_counts
+
 REVIEW_PATH = Path(__file__).resolve().parent / "report_review.json"
 
 
@@ -579,7 +581,7 @@ def test_catalog_counts_unchanged(game_env):
     topics = [t for w in module.CATALOG["weeks"] for t in w["topics"]]
     assert len(module.CATALOG["weeks"]) == 23
     assert len(topics) == sum(1 for _ in topics)
-    assert sum(len(t["items"]) for t in topics) == 1047
+    assert sum(len(t["items"]) for t in topics) == catalog_counts()["items"]
 
 
 # --------------------------------------------------------------------------

@@ -26,6 +26,26 @@ if str(SHARED_DIR) not in sys.path:
 # catalog rather than a stub.
 CATALOG_JSON = CATALOG_PATH.read_text(encoding="utf-8")
 
+# FS (FREN152 slides) additions: topics whose id carries "-fs" were added after the original
+# 23-week catalogue. The original counts are fixed here; every added topic is counted from the
+# catalogue itself, so the farm's headline numbers may grow without a test pinning an old size.
+BASE_COUNTS = {"weeks": 23, "topics": 138, "items": 1047, "plots": 790}
+
+
+def catalog_counts():
+    import json
+
+    weeks = json.loads(CATALOG_JSON)["weeks"]
+    topics = [t for w in weeks for t in w["topics"]]
+    plots = sum(1 if t["topic_type"] == "grammar" else len(t["items"]) for t in topics)
+    return {
+        "weeks": len(weeks),
+        "topics": len(topics),
+        "items": sum(len(t["items"]) for t in topics),
+        "plots": plots,
+    }
+
+
 ELEMENT_IDS = [
     "farm",
     "semester-summary",

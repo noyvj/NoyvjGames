@@ -8,6 +8,8 @@ anywhere in the interface.
 
 from pathlib import Path
 
+from .conftest import catalog_counts
+
 GAME_DIR = Path(__file__).resolve().parent.parent
 
 
@@ -29,7 +31,7 @@ def test_the_due_counter_reads_as_a_sentence_not_a_scoreboard(game_env):
     see game.py's `is_row_unlocked()`/`_compute_unlocked()` and CLAUDE.md's
     L4a build note."""
     text = game_env.elements["due-display"].innerText
-    assert text == "790 plots are ready for water today."
+    assert text == f"{catalog_counts()['plots']} plots are ready for water today."
 
 
 def test_the_due_counter_gets_the_singular_right(game_env):
@@ -75,7 +77,7 @@ def test_the_stage_tally_accounts_for_every_plot(game_env):
     text = game_env.elements["stage-summary-display"].innerText
     for stage in module.STAGE_ORDER:
         assert module.STAGE_ICON[stage] in text
-    assert "790" in text  # every plot starts as a seed
+    assert str(catalog_counts()["plots"]) in text  # every plot starts as a seed
 
 
 def test_the_stage_tally_follows_a_plot_up_the_ladder(game_env):
@@ -88,7 +90,7 @@ def test_the_stage_tally_follows_a_plot_up_the_ladder(game_env):
 
     text = game_env.elements["stage-summary-display"].innerText
     assert f"{module.STAGE_ICON[module.STAGE_AUTOMATED]} 1" in text
-    assert f"{module.STAGE_ICON[module.STAGE_SEED]} 789" in text
+    assert f"{module.STAGE_ICON[module.STAGE_SEED]} {catalog_counts()['plots'] - 1}" in text
 
 
 # --- per-row detail --------------------------------------------------------

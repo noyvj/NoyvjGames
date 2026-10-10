@@ -5179,6 +5179,472 @@
             }
           ],
           "rule": "-ir verbs (like finir): stem + is, is, it, issons, issez, issent. -re verbs (like vendre): stem + s, s, [nothing], ons, ez, ent."
+        },
+        {
+          "id": "fren152-w2-vocab-fs01",
+          "topic_type": "vocab",
+          "title": "Time words: quarters, halves and minutes",
+          "items": [
+            {
+              "fr": "et quart",
+              "en": "quarter past",
+              "accepted_en": [
+                "quarter past",
+                "a quarter past",
+                "quarter after",
+                "a quarter after",
+                "and a quarter"
+              ]
+            },
+            {
+              "fr": "et demie",
+              "en": "half past",
+              "accepted_en": [
+                "half past",
+                "half past the hour",
+                "and a half"
+              ]
+            },
+            {
+              "fr": "moins le quart",
+              "en": "quarter to",
+              "accepted_en": [
+                "quarter to",
+                "a quarter to",
+                "quarter of",
+                "a quarter of",
+                "quarter before"
+              ]
+            },
+            {
+              "fr": "moins dix",
+              "en": "ten to",
+              "accepted_en": [
+                "ten to",
+                "ten of",
+                "ten minutes to",
+                "ten before"
+              ]
+            },
+            {
+              "fr": "moins vingt",
+              "en": "twenty to",
+              "accepted_en": [
+                "twenty to",
+                "twenty of",
+                "twenty minutes to",
+                "twenty before"
+              ]
+            },
+            {
+              "fr": "moins cinq",
+              "en": "five to",
+              "accepted_en": [
+                "five to",
+                "five of",
+                "five minutes to",
+                "five before"
+              ]
+            },
+            {
+              "fr": "du matin",
+              "en": "in the morning (a.m.)",
+              "accepted_en": [
+                "in the morning (a.m.)",
+                "in the morning",
+                "a.m.",
+                "am"
+              ]
+            },
+            {
+              "fr": "de l'après-midi",
+              "en": "in the afternoon (p.m.)",
+              "accepted_en": [
+                "in the afternoon (p.m.)",
+                "in the afternoon",
+                "p.m.",
+                "pm"
+              ]
+            },
+            {
+              "fr": "du soir",
+              "en": "in the evening (p.m.)",
+              "accepted_en": [
+                "in the evening (p.m.)",
+                "in the evening",
+                "p.m.",
+                "pm",
+                "at night"
+              ]
+            }
+          ],
+          "rule": "On the 12-hour clock the minutes after the half hour are counted backwards with moins (moins vingt, moins le quart). The 24-hour clock just counts forward (quarante, quarante-cinq). Midi and minuit never need du matin or du soir."
+        },
+        {
+          "id": "fren152-w2-phrase-fs02",
+          "topic_type": "phrase",
+          "title": "Telling the time: example times",
+          "items": [
+            {
+              "fr": "Il est trois heures et demie.",
+              "en": "It is 3:30.",
+              "accepted_en": [
+                "It is 3:30.",
+                "It's 3:30",
+                "It is half past three",
+                "It's half past three",
+                "It is half past 3"
+              ]
+            },
+            {
+              "fr": "Il est dix heures moins le quart.",
+              "en": "It is 9:45.",
+              "accepted_en": [
+                "It is 9:45.",
+                "It's 9:45",
+                "It is quarter to ten",
+                "It's a quarter to ten",
+                "It is a quarter to ten"
+              ]
+            },
+            {
+              "fr": "Il est sept heures vingt.",
+              "en": "It is 7:20.",
+              "accepted_en": [
+                "It is 7:20.",
+                "It's 7:20",
+                "It is twenty past seven",
+                "It's twenty past seven"
+              ]
+            },
+            {
+              "fr": "Il est midi moins cinq.",
+              "en": "It is 11:55.",
+              "accepted_en": [
+                "It is 11:55.",
+                "It's 11:55",
+                "It is five to twelve",
+                "It's five to twelve",
+                "It is five to noon"
+              ]
+            },
+            {
+              "fr": "Il est minuit et quart.",
+              "en": "It is a quarter past midnight.",
+              "accepted_en": [
+                "It is a quarter past midnight.",
+                "It's a quarter past midnight",
+                "It is quarter past midnight",
+                "It is 12:15 a.m.",
+                "It's 12:15 am"
+              ]
+            },
+            {
+              "fr": "Il est quinze heures trente.",
+              "en": "It is 15:30 (24-hour clock).",
+              "accepted_en": [
+                "It is 15:30 (24-hour clock).",
+                "It is 15:30",
+                "It's 15:30",
+                "It's 3:30 pm",
+                "It is half past three in the afternoon"
+              ]
+            },
+            {
+              "fr": "Il est vingt et une heures quarante-cinq.",
+              "en": "It is 21:45 (24-hour clock).",
+              "accepted_en": [
+                "It is 21:45 (24-hour clock).",
+                "It is 21:45",
+                "It's 21:45",
+                "It's 9:45 pm",
+                "It is a quarter to ten in the evening"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "fren152-w2-phrase-fs03",
+          "topic_type": "phrase",
+          "title": "Asking and saying when something happens",
+          "items": [
+            {
+              "fr": "À quelle heure est le cours?",
+              "en": "What time is the class?",
+              "accepted_en": [
+                "What time is the class?",
+                "What time is the lesson",
+                "At what time is the class",
+                "At what time is the lesson",
+                "What time is class"
+              ]
+            },
+            {
+              "fr": "Le cours est à dix heures.",
+              "en": "The class is at ten o'clock.",
+              "accepted_en": [
+                "The class is at ten o'clock.",
+                "The class is at 10",
+                "The class is at 10:00",
+                "The class is at ten",
+                "The lesson is at ten o'clock",
+                "The lesson is at ten",
+                "The lesson is at 10"
+              ]
+            },
+            {
+              "fr": "De neuf heures à dix heures.",
+              "en": "From nine to ten o'clock.",
+              "accepted_en": [
+                "From nine to ten o'clock.",
+                "From nine to ten",
+                "From 9 to 10",
+                "From 9 to 10 o'clock",
+                "From nine until ten"
+              ]
+            },
+            {
+              "fr": "À quelle heure finit le cours?",
+              "en": "What time does the class end?",
+              "accepted_en": [
+                "What time does the class end?",
+                "What time does the lesson end",
+                "At what time does the class end",
+                "What time does class finish",
+                "What time does the class finish",
+                "What time does the lesson finish"
+              ]
+            },
+            {
+              "fr": "Il est une heure du matin.",
+              "en": "It is one o'clock in the morning.",
+              "accepted_en": [
+                "It is one o'clock in the morning.",
+                "It is 1 a.m.",
+                "It's 1 am",
+                "It is 1am",
+                "It is one a.m.",
+                "It's one in the morning",
+                "It is one in the morning"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "fren152-w2-vocab-fs04",
+          "topic_type": "vocab",
+          "title": "More regular -er verbs",
+          "items": [
+            {
+              "fr": "dîner",
+              "en": "to have dinner",
+              "accepted_en": [
+                "to have dinner",
+                "to dine",
+                "to eat dinner",
+                "to have supper",
+                "to eat supper"
+              ]
+            },
+            {
+              "fr": "déjeuner",
+              "en": "to have lunch",
+              "accepted_en": [
+                "to have lunch",
+                "to eat lunch",
+                "to lunch"
+              ]
+            },
+            {
+              "fr": "préparer",
+              "en": "to prepare",
+              "accepted_en": [
+                "to prepare",
+                "to get ready",
+                "to make ready"
+              ]
+            },
+            {
+              "fr": "ranger",
+              "en": "to tidy up",
+              "accepted_en": [
+                "to tidy up",
+                "to tidy",
+                "to put away",
+                "to clean up"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "fren152-w2-vocab-fs05",
+          "topic_type": "vocab",
+          "title": "Regular -ir verbs",
+          "items": [
+            {
+              "fr": "finir",
+              "en": "to finish",
+              "accepted_en": [
+                "to finish",
+                "to end"
+              ]
+            },
+            {
+              "fr": "choisir",
+              "en": "to choose",
+              "accepted_en": [
+                "to choose",
+                "to pick",
+                "to select"
+              ]
+            },
+            {
+              "fr": "réfléchir à",
+              "en": "to think about",
+              "accepted_en": [
+                "to think about",
+                "to think over",
+                "to reflect on",
+                "to reflect about"
+              ]
+            },
+            {
+              "fr": "réussir",
+              "en": "to succeed",
+              "accepted_en": [
+                "to succeed",
+                "to be successful"
+              ]
+            },
+            {
+              "fr": "réussir à",
+              "en": "to pass (an exam)",
+              "accepted_en": [
+                "to pass (an exam)",
+                "to pass",
+                "to succeed in",
+                "to pass an exam"
+              ]
+            },
+            {
+              "fr": "grossir",
+              "en": "to put on weight",
+              "accepted_en": [
+                "to put on weight",
+                "to gain weight",
+                "to get fat",
+                "to get fatter"
+              ]
+            },
+            {
+              "fr": "maigrir",
+              "en": "to lose weight",
+              "accepted_en": [
+                "to lose weight",
+                "to get thin",
+                "to get thinner",
+                "to slim"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "fren152-w2-vocab-fs06",
+          "topic_type": "vocab",
+          "title": "Regular -re verbs",
+          "items": [
+            {
+              "fr": "attendre",
+              "en": "to wait for",
+              "accepted_en": [
+                "to wait for",
+                "to wait",
+                "to await"
+              ]
+            },
+            {
+              "fr": "entendre",
+              "en": "to hear"
+            },
+            {
+              "fr": "perdre",
+              "en": "to lose",
+              "accepted_en": [
+                "to lose",
+                "to waste (time)"
+              ]
+            },
+            {
+              "fr": "rendre",
+              "en": "to give back",
+              "accepted_en": [
+                "to give back",
+                "to return",
+                "to hand back"
+              ]
+            },
+            {
+              "fr": "rendre visite à",
+              "en": "to visit (a person)",
+              "accepted_en": [
+                "to visit (a person)",
+                "to visit",
+                "to pay a visit to",
+                "to call on"
+              ]
+            },
+            {
+              "fr": "répondre à",
+              "en": "to answer",
+              "accepted_en": [
+                "to answer",
+                "to reply to",
+                "to reply",
+                "to respond to",
+                "to respond"
+              ]
+            },
+            {
+              "fr": "vendre",
+              "en": "to sell"
+            }
+          ]
+        },
+        {
+          "id": "fren152-w2-grammar-fs07",
+          "topic_type": "grammar",
+          "title": "Plurals in big numbers",
+          "items": [
+            {
+              "fr": "quatre-vingts",
+              "en": "eighty"
+            },
+            {
+              "fr": "quatre-vingt-un",
+              "en": "eighty-one"
+            },
+            {
+              "fr": "deux cents",
+              "en": "two hundred"
+            },
+            {
+              "fr": "deux cent un",
+              "en": "two hundred and one"
+            },
+            {
+              "fr": "trois mille euros",
+              "en": "three thousand euros"
+            },
+            {
+              "fr": "deux millions d'habitants",
+              "en": "two million inhabitants"
+            },
+            {
+              "fr": "un milliard de dollars",
+              "en": "one billion dollars"
+            }
+          ],
+          "rule": "Vingt and cent take an s only when multiplied and nothing follows (quatre-vingts, deux cents). Mille never takes an s. Million and milliard do, and are followed by de before a noun."
         }
       ],
       "bonus_sentences": [
