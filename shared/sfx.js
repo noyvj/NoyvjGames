@@ -456,13 +456,13 @@
     wrap.setAttribute("data-testid", "sfx-control");
 
     var rowOn = element("div", "noyvj-sfx-row");
+    var onLabel = element("label", "noyvj-sfx-check");
     var on = element("input");
     on.type = "checkbox";
     on.id = id + "-on";
     on.setAttribute("data-testid", "sfx-enabled");
-    var onLabel = element("label", "", opts.label || "Sound effects made in code (off by default)");
-    onLabel.setAttribute("for", on.id);
-    rowOn.appendChild(on);
+    onLabel.appendChild(on);
+    onLabel.appendChild(element("span", "", opts.label || "Sound effects made in code (off by default)"));
     rowOn.appendChild(onLabel);
 
     var rowVol = element("div", "noyvj-sfx-row");
@@ -482,13 +482,13 @@
     rowVol.appendChild(volOut);
 
     var rowReduce = element("div", "noyvj-sfx-row");
+    var redLabel = element("label", "noyvj-sfx-check");
     var red = element("input");
     red.type = "checkbox";
     red.id = id + "-reduce";
     red.setAttribute("data-testid", "sfx-reduce");
-    var redLabel = element("label", "", "Reduce sounds (quieter, shorter, no ambient hum)");
-    redLabel.setAttribute("for", red.id);
-    rowReduce.appendChild(red);
+    redLabel.appendChild(red);
+    redLabel.appendChild(element("span", "", "Reduce sounds (quieter, shorter, no ambient hum)"));
     rowReduce.appendChild(redLabel);
 
     var rowTest = element("div", "noyvj-sfx-row");
