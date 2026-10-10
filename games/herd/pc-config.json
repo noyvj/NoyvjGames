@@ -70,6 +70,7 @@
     "stagebar": [],
     "stage": [".pasture-visual", "#gauge-section"],
     "side": [
+      "#save-recovery-panel",
       "#advance-round-button",
       "#round-delta-strip",
       "#actions",

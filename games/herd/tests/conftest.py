@@ -100,6 +100,8 @@ ELEMENT_IDS = [
     "genetics-rings", "poultry-compare", "hall-of-fame", "hall-of-fame-list", "pace-note",
     # Round-5 batch.
     "welfare-bar", "supply-chain-bar",
+    "save-recovery-panel", "save-recovery-reasons", "save-recovery-note",
+    "save-recovery-defaults-button", "save-recovery-dismiss-button",
 ]
 for _measure in MEASURE_IDS:
     ELEMENT_IDS += [f"{_measure}-name", f"{_measure}-count", f"{_measure}-invest-button"]

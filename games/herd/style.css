@@ -1539,3 +1539,8 @@ html[data-hatch-patterns="true"] .meter-fill--supply {
 .howto-keys li { margin: 0.2rem 0; line-height: 1.4; }
 .howto-keys kbd { font: inherit; font-weight: 700; padding: 0 0.35rem; border: 1px solid rgba(140, 160, 255, 0.45); border-radius: 4px; }
 .howto-keys p { margin: 0; opacity: 0.8; }
+
+/* F-30: the friendly notice for a save that could not be loaded. */
+.save-recovery-panel { border: 2px solid #e0c24c; }
+.save-recovery-reasons { margin: 0.2rem 0 0.5rem; padding-left: 1.2rem; font-size: 0.82rem; line-height: 1.4; }
+.save-recovery-panel button { margin: 0.4rem 0.4rem 0 0; }

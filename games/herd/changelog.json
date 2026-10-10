@@ -1,6 +1,10 @@
 [
   {
     "date": "2026-10-10",
+    "entry": "If a save cannot be read (for example a hand-edited code with a letter where a number belongs), Herd no longer half-loads it. A notice at the top now says in plain words which values are the problem, your current farm stays exactly as it was, and you can either keep it or load the save with a fresh-farm value in place of only the bad fields."
+  },
+  {
+    "date": "2026-10-10",
     "entry": "Herd is now fully playable from the keyboard. On any buy button (Grow Herd, Feed Additives, Herd Caps, Capture Systems, the pivot and the extras) the Up and Down arrows move to the next or previous buy button and Home and End jump to the first or last; on x1, x5 and Max the Left and Right arrows pick how many units each purchase buys. How to Play ends with a short keyboard cheat sheet, and the ? shortcut list gains the same two lines."
   },
   {

@@ -3313,9 +3313,163 @@ def _load_progress_fields(data):
         hall_of_fame.sort(key=lambda e: (-e[1], e[2]))
 
 
-def load_state(data):
+# ===========================================================================
+# F-30: friendly save recovery. A save that fails validation never touches the farm: the player
+# sees a plain reason for each problem and can keep the current farm or load the save with
+# defaults in place of just the bad fields. The widget around load_state() reports "Load failed"
+# because load_state() raises ValueError for such a save; the panel explains why.
+# ===========================================================================
+# key: (plain label, minimum, whole number only, default for a fresh farm)
+SAVE_NUMBER_FIELDS = {
+    "round_number": ("Round number", 1, True, 1),
+    "funds": ("Funds", None, False, STARTING_FUNDS),
+    "herd_size": ("Herd size", 0, True, 0),
+    "methane": ("Methane", 0, False, 0.0),
+    "plant_pivot_investment": ("Plant-based pivot units", 0, True, 0),
+    "counterfactual_funds": ("Baseline funds", None, False, STARTING_FUNDS),
+    "counterfactual_methane": ("Baseline methane", 0, False, 0.0),
+    "max_pressure_fraction_seen": ("Worst pressure seen", 0, False, 0.0),
+}
+RECOVERY_MAX_REASONS = 6
+pending_recovery = None  # {"data": dict | None, "problems": [(key, reason)]}, never saved
+
+
+def _is_finite_number(value):
+    return (
+        isinstance(value, (int, float)) and not isinstance(value, bool)
+        and value == value and abs(value) != float("inf")
+    )
+
+
+def _shown(value):
+    text = json.dumps(value, default=str) if not isinstance(value, str) else f'"{value}"'
+    return text if len(text) <= 24 else text[:21] + "..."
+
+
+def _number_problem(label, value, minimum, whole):
+    """A plain-language reason this value cannot be used, or None when it is fine."""
+    if not _is_finite_number(value):
+        return f"{label} should be a number, but the save has {_shown(value)}."
+    if whole and value != int(value):
+        return f"{label} should be a whole number, but the save has {_shown(value)}."
+    if minimum is not None and value < minimum:
+        return f"{label} should be {minimum} or more, but the save has {_shown(value)}."
+    return None
+
+
+def check_save(data):
+    """List of (key, reason) for every field that is present but unusable. A field that is simply
+    missing is not a problem (older saves lack newer fields and load with defaults, as always)."""
     if not isinstance(data, dict):
-        return False
+        return [("", "This is not a Herd save (it is not a set of named values).")]
+    problems = []
+    for key, (label, minimum, whole, _default) in SAVE_NUMBER_FIELDS.items():
+        if key in data:
+            reason = _number_problem(label, data[key], minimum, whole)
+            if reason:
+                problems.append((key, reason))
+    investment = data.get("decoupling_investment")
+    if "decoupling_investment" in data and not isinstance(investment, dict):
+        problems.append(("decoupling_investment", "The decoupling investments should be a list of counts, but the save has something else."))
+    elif isinstance(investment, dict):
+        for measure in DECOUPLING_MEASURES:
+            if measure in investment:
+                reason = _number_problem(f"{DECOUPLING_MEASURES[measure]['label']} units", investment[measure], 0, True)
+                if reason:
+                    problems.append((f"decoupling_investment.{measure}", reason))
+    history = data.get("methane_history")
+    if "methane_history" in data and (
+        not isinstance(history, list) or not history or not all(_is_finite_number(v) for v in history)
+    ):
+        problems.append(("methane_history", "The methane history should be a list of numbers, but the save has something else."))
+    return problems
+
+
+def sanitize_save(data, problems):
+    """A copy of the save with a fresh-farm default in place of just the bad fields."""
+    clean = copy.deepcopy(data)
+    for key, _reason in problems:
+        if key in SAVE_NUMBER_FIELDS:
+            clean[key] = SAVE_NUMBER_FIELDS[key][3]
+        elif key == "decoupling_investment":
+            clean[key] = {m: 0 for m in DECOUPLING_MEASURES}
+        elif key.startswith("decoupling_investment."):
+            clean["decoupling_investment"][key.split(".", 1)[1]] = 0
+        elif key == "methane_history":
+            clean[key] = [0.0]
+    return clean
+
+
+def render_save_recovery():
+    panel = document.getElementById("save-recovery-panel")
+    panel.hidden = pending_recovery is None
+    if pending_recovery is None:
+        return
+    reasons = [reason for _key, reason in pending_recovery["problems"][:RECOVERY_MAX_REASONS]]
+    extra = len(pending_recovery["problems"]) - len(reasons)
+    if extra > 0:
+        reasons.append(f"...and {extra} more.")
+    document.getElementById("save-recovery-reasons").innerHTML = "".join(
+        f"<li>{html.escape(r)}</li>" for r in reasons
+    )
+    can_default = pending_recovery["data"] is not None
+    document.getElementById("save-recovery-defaults-button").hidden = not can_default
+    document.getElementById("save-recovery-note").innerText = (
+        "Your current farm has not been changed. You can keep it, or load this save with a fresh-farm "
+        "value in place of only the fields listed above."
+        if can_default else "Your current farm has not been changed."
+    )
+
+
+def _offer_recovery(data, problems):
+    global pending_recovery
+    pending_recovery = {"data": data if isinstance(data, dict) else None, "problems": problems}
+    render_save_recovery()
+    _display_milestone_toast("That save could not be loaded as it is. See the notice at the top for why.")
+
+
+def on_recovery_defaults(event=None):
+    global pending_recovery
+    if pending_recovery is None or pending_recovery["data"] is None:
+        return
+    clean = sanitize_save(pending_recovery["data"], pending_recovery["problems"])
+    pending_recovery = None
+    render_save_recovery()
+    _apply_state(clean)
+
+
+def on_recovery_dismiss(event=None):
+    global pending_recovery
+    pending_recovery = None
+    render_save_recovery()
+
+
+def load_state(data):
+    """Validates first, so a broken save never leaves the farm half-loaded. A problem save raises
+    ValueError (the save widget then says "Load failed") after the recovery panel explains why.
+    If something unforeseen goes wrong while applying a save that passed the checks, the farm is put
+    back exactly as it was and the same panel is shown."""
+    global pending_recovery
+    problems = check_save(data)
+    if problems:
+        _offer_recovery(data, problems)
+        if not isinstance(data, dict):
+            return False
+        raise ValueError("Save not loaded: " + " ".join(reason for _key, reason in problems[:3]))
+    backup = get_state()
+    try:
+        result = _apply_state(data)
+    except Exception:
+        _apply_state(backup)
+        _offer_recovery(None, [("", "Something in this save could not be read, so it was not loaded.")])
+        raise
+    if pending_recovery is not None:
+        pending_recovery = None
+        render_save_recovery()
+    return result
+
+
+def _apply_state(data):
     # Every top-level field uses a .get() fallback (to the farm's current
     # live value) rather than bare data["key"] indexing -- a save missing
     # any single field (an older save predating that field, e.g. one from
@@ -3410,6 +3564,9 @@ def setup():
     # nothing in a real browser, where it's already true.
     document.getElementById("achievement-toast").hidden = True
     document.getElementById("milestone-toast").hidden = True
+    document.getElementById("save-recovery-defaults-button").addEventListener("click", create_proxy(on_recovery_defaults))
+    document.getElementById("save-recovery-dismiss-button").addEventListener("click", create_proxy(on_recovery_dismiss))
+    document.getElementById("save-recovery-panel").hidden = True
     document.getElementById("grow-herd-button").addEventListener(
         "click", create_proxy(on_grow_herd)
     )
