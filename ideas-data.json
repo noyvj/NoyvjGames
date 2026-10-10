@@ -7931,6 +7931,204 @@
      ]
     },
     {
+     "code": "CHMG",
+     "title": "Le Champ de Mots: minigame ideas by week",
+     "items": [
+      {
+       "n": 1,
+       "tag": "small",
+       "text": "Week 1, Clock Tower: read a clock face and tap the French time (minutes, quarter, half, \"moins\"), with each right answer adding a bell to the tower on your farm and counting toward the practice score.",
+       "answered": false
+      },
+      {
+       "n": 2,
+       "tag": "small",
+       "text": "Week 1, Timetable Dash: slide event cards onto the right hour of a day planner using 24-hour French times; every placed card counts as a watering.",
+       "answered": false
+      },
+      {
+       "n": 3,
+       "tag": "small",
+       "text": "Week 2, Morning Routine Builder: drag the reflexive verbs of a morning routine (se lever, se laver, s'habiller) into order and conjugate each for a given person; a finished routine becomes a small scene on your farm.",
+       "answered": false
+      },
+      {
+       "n": 4,
+       "tag": "small",
+       "text": "Week 2, Never Ever: a catch-the-sentence game where you place \"ne ... jamais\" around the verb in a moving line of sentences.",
+       "answered": false
+      },
+      {
+       "n": 5,
+       "tag": "small",
+       "text": "Week 3, Gym Bag: pack a bag for a leisure plan by matching items and activities to the French words; every packed item adds to your vocabulary count.",
+       "answered": false
+      },
+      {
+       "n": 6,
+       "tag": "small",
+       "text": "Week 3, Weekend Plans Match: pair people with the leisure activity they describe in a short French message.",
+       "answered": false
+      },
+      {
+       "n": 7,
+       "tag": "small",
+       "text": "Week 4, Ask Me Anything: turn answers into questions with the right question word, including the question word at the end of a sentence; each question counts as a watering.",
+       "answered": false
+      },
+      {
+       "n": 8,
+       "tag": "small",
+       "text": "Week 4, Calendar Day One: pick the right date for the first of the month (\"le premier\") among tricky date phrases in a stack of event cards.",
+       "answered": false
+      },
+      {
+       "n": 9,
+       "tag": "small",
+       "text": "Week 5, Fashion Show: dress a figure from a French description (colour and clothing words) and score by how many details you match.",
+       "answered": false
+      },
+      {
+       "n": 10,
+       "tag": "small",
+       "text": "Week 5, Colour Agreement: choose the right form of a colour or adjective for the noun it describes, in a quick card sweep.",
+       "answered": false
+      },
+      {
+       "n": 11,
+       "tag": "small",
+       "text": "Week 6, Boutique Opinions: give an opinion about an item in a shop window using the right shop and opinion phrase.",
+       "answered": false
+      },
+      {
+       "n": 12,
+       "tag": "small",
+       "text": "Week 6, Word Order Builder: rebuild a scrambled French sentence by dragging words into the correct order.",
+       "answered": false
+      },
+      {
+       "n": 13,
+       "tag": "small",
+       "text": "Week 7, Weather Wardrobe: look at a weather card and pick what to wear and pack, using the season phrases (\"au printemps\", \"en été\").",
+       "answered": false
+      },
+      {
+       "n": 14,
+       "tag": "small",
+       "text": "Week 7, Seven-Day Forecast: read a forecast and answer questions about each day, from the supplement's style of table.",
+       "answered": false
+      },
+      {
+       "n": 15,
+       "tag": "small",
+       "text": "Week 8, Market Stall: sort 50 food words into shelves and then buy a basket using the partitive and its exceptions (du, de la, des, \"pas de\").",
+       "answered": false
+      },
+      {
+       "n": 16,
+       "tag": "small",
+       "text": "Week 8, Likes and Dislikes Dinner: seat guests by what they like to eat and drink, using the liking verbs.",
+       "answered": false
+      },
+      {
+       "n": 17,
+       "tag": "small",
+       "text": "Week 9, Shopping List Run: fill a shopping list with the right quantities and fillings (\"un kilo de\", \"à + article\") across different shops.",
+       "answered": false
+      },
+      {
+       "n": 18,
+       "tag": "small",
+       "text": "Week 9, Replace It: swap a noun for \"le, la, les\" or \"en\" in a sentence, including with the futur proche.",
+       "answered": false
+      },
+      {
+       "n": 19,
+       "tag": "small",
+       "text": "Week 10, Passé Composé Postcards: write what happened by choosing the right helper verb and participle, with agreement of the object pronoun.",
+       "answered": false
+      },
+      {
+       "n": 20,
+       "tag": "small",
+       "text": "Week 10, Restaurant Order: take an order in French at a restaurant and answer the waiter with the right pronouns.",
+       "answered": false
+      },
+      {
+       "n": 21,
+       "tag": "big",
+       "text": "Cross-week, Story Chain: each round adds one sentence to a growing French story, and each sentence uses grammar from a different week, so the story becomes a record of everything you have practised.",
+       "answered": false
+      },
+      {
+       "n": 22,
+       "tag": "small",
+       "text": "Cross-week, Spot the Odd One: pick the word that does not belong from a mix of topics across several weeks, to tell similar topics apart.",
+       "answered": false
+      },
+      {
+       "n": 23,
+       "tag": "small",
+       "text": "Cross-week, Memory Pairs: match French words with English meanings or pictures from a chosen range of weeks.",
+       "answered": false
+      },
+      {
+       "n": 24,
+       "tag": "small",
+       "text": "Cross-week, Speed Sort: sort a deck of words into their weeks' topics, showing which topics are your weakest.",
+       "answered": false
+      },
+      {
+       "n": 25,
+       "tag": "big",
+       "text": "Cross-week, Day in Paris: a short guided day (wake up, shop, eat, talk about the weather and plans) that pulls questions from the weeks you pick, with a postcard at the end.",
+       "answered": false
+      },
+      {
+       "n": 26,
+       "tag": "small",
+       "text": "Cross-week, Verb Gym: conjugate verbs from several weeks in a short circuit, with a set count of reps and no timer.",
+       "answered": false
+      },
+      {
+       "n": 27,
+       "tag": "small",
+       "text": "Cross-week, Mistake Detective: find and fix the single error in a French sentence (agreement, word order, wrong helper verb) from any week.",
+       "answered": false
+      },
+      {
+       "n": 28,
+       "tag": "small",
+       "text": "Cross-week, Exam Warm-Up: a short mixed set shaped like the online written exam, built from the weeks covered so far, with a score you can compare over time.",
+       "answered": false
+      },
+      {
+       "n": 29,
+       "tag": "small",
+       "text": "Cross-week, Gender Garden: sort nouns from all weeks into le and la beds as they grow, tracking your gender accuracy.",
+       "answered": false
+      },
+      {
+       "n": 30,
+       "tag": "big",
+       "text": "Cross-week, Tutorial Remix: replay the question formats your own tutorials use (fill in the blank, matching, sentence rewrite) over words from the weeks you choose.",
+       "answered": false
+      },
+      {
+       "n": 31,
+       "tag": "small",
+       "text": "Cross-week, Pronoun Pinball: send each sentence's noun to the right pronoun slot (le, la, les, lui, en, y) as the ball bounces, calm and untimed.",
+       "answered": false
+      },
+      {
+       "n": 32,
+       "tag": "small",
+       "text": "Cross-week, Semester Map: a drawn map of the whole semester where each week is a town and each minigame played there lights it up, so you can see where you have practised least.",
+       "answered": false
+      }
+     ]
+    },
+    {
      "code": "SI",
      "title": "Signal: general ideas",
      "items": [

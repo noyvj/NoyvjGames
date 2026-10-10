@@ -1,6 +1,6 @@
 # Improvement ideas, Round 4
 
-Written 2026-10-09. Two kinds of section for every game, kept apart on purpose (like Round 3's "gamified" sections): **general ideas** (would make the game better for any player; not shaped by your taste) and **made for you** (built from `planning/PLAYER-PROFILE.md`: your collecting, helper-role, three-goals, dark space-and-robots, calm-watching and short-win tastes). The first two sections are for the whole site. Every game has a 2-letter code (the general section) and the same code plus P (made for you); the older made-for-you sections keep their first codes (PS, PC, ...) so earlier answers stay attached. Every game has a 2-letter code (the general section) and the same code plus P (made for you); the older made-for-you sections keep their first codes (PS, PC, ...) so earlier answers stay attached. Each idea is one yes / later / no item with an optional comment; "yes" goes into `planning/TODO.md`, "later" into `planning/LATER.md`. Ideas that read facts from a named outside source (for example NASA pages) need that source confirmed before anything is built.
+Written 2026-10-09. Two kinds of section for every game, kept apart on purpose (like Round 3's "gamified" sections): **general ideas** (would make the game better for any player; not shaped by your taste) and **made for you** (built from `planning/PLAYER-PROFILE.md`: your collecting, helper-role, three-goals, dark space-and-robots, calm-watching and short-win tastes). The first two sections are for the whole site. Every game has a 2-letter code (the general section) and the same code plus P (made for you); the older made-for-you sections keep their first codes (PS, PC, ...) so earlier answers stay attached. Every game has a 2-letter code (the general section) and the same code plus P (made for you); the older made-for-you sections keep their first codes (PS, PC, ...) so earlier answers stay attached. Every game has a 2-letter code (the general section) and the same code plus P (made for you); the older made-for-you sections keep their first codes (PS, PC, ...) so earlier answers stay attached. Each idea is one yes / later / no item with an optional comment; "yes" goes into `planning/TODO.md`, "later" into `planning/LATER.md`. Ideas that read facts from a named outside source (for example NASA pages) need that source confirmed before anything is built.
 
 Item counts are scaled to how finished each game is. Every idea was checked against the existing TODO, LATER and Rounds 2 and 3 so none repeats, but the audit was by search, so tell me if one already exists.
 
@@ -1030,6 +1030,41 @@ Item counts are scaled to how finished each game is. Every idea was checked agai
 8. **[SMALL]** Add an offline set of the next week's words that you can study fully without a connection. Study works on the bus.
 9. **[SMALL]** Add a night-study mode that dims the farm, enlarges the cards and shows one question at a time. It suits bed-time play.
 10. **[SMALL]** Add a landscape typing layout where the question sits above and the keyboard area shrinks to fit. Typing on a phone is less cramped.
+
+## CHMG. Le Champ de Mots: minigame ideas by week
+
+1. **[SMALL]** Week 1, Clock Tower: read a clock face and tap the French time (minutes, quarter, half, "moins"), with each right answer adding a bell to the tower on your farm and counting toward the practice score.
+2. **[SMALL]** Week 1, Timetable Dash: slide event cards onto the right hour of a day planner using 24-hour French times; every placed card counts as a watering.
+3. **[SMALL]** Week 2, Morning Routine Builder: drag the reflexive verbs of a morning routine (se lever, se laver, s'habiller) into order and conjugate each for a given person; a finished routine becomes a small scene on your farm.
+4. **[SMALL]** Week 2, Never Ever: a catch-the-sentence game where you place "ne ... jamais" around the verb in a moving line of sentences.
+5. **[SMALL]** Week 3, Gym Bag: pack a bag for a leisure plan by matching items and activities to the French words; every packed item adds to your vocabulary count.
+6. **[SMALL]** Week 3, Weekend Plans Match: pair people with the leisure activity they describe in a short French message.
+7. **[SMALL]** Week 4, Ask Me Anything: turn answers into questions with the right question word, including the question word at the end of a sentence; each question counts as a watering.
+8. **[SMALL]** Week 4, Calendar Day One: pick the right date for the first of the month ("le premier") among tricky date phrases in a stack of event cards.
+9. **[SMALL]** Week 5, Fashion Show: dress a figure from a French description (colour and clothing words) and score by how many details you match.
+10. **[SMALL]** Week 5, Colour Agreement: choose the right form of a colour or adjective for the noun it describes, in a quick card sweep.
+11. **[SMALL]** Week 6, Boutique Opinions: give an opinion about an item in a shop window using the right shop and opinion phrase.
+12. **[SMALL]** Week 6, Word Order Builder: rebuild a scrambled French sentence by dragging words into the correct order.
+13. **[SMALL]** Week 7, Weather Wardrobe: look at a weather card and pick what to wear and pack, using the season phrases ("au printemps", "en été").
+14. **[SMALL]** Week 7, Seven-Day Forecast: read a forecast and answer questions about each day, from the supplement's style of table.
+15. **[SMALL]** Week 8, Market Stall: sort 50 food words into shelves and then buy a basket using the partitive and its exceptions (du, de la, des, "pas de").
+16. **[SMALL]** Week 8, Likes and Dislikes Dinner: seat guests by what they like to eat and drink, using the liking verbs.
+17. **[SMALL]** Week 9, Shopping List Run: fill a shopping list with the right quantities and fillings ("un kilo de", "à + article") across different shops.
+18. **[SMALL]** Week 9, Replace It: swap a noun for "le, la, les" or "en" in a sentence, including with the futur proche.
+19. **[SMALL]** Week 10, Passé Composé Postcards: write what happened by choosing the right helper verb and participle, with agreement of the object pronoun.
+20. **[SMALL]** Week 10, Restaurant Order: take an order in French at a restaurant and answer the waiter with the right pronouns.
+21. **[BIG]** Cross-week, Story Chain: each round adds one sentence to a growing French story, and each sentence uses grammar from a different week, so the story becomes a record of everything you have practised.
+22. **[SMALL]** Cross-week, Spot the Odd One: pick the word that does not belong from a mix of topics across several weeks, to tell similar topics apart.
+23. **[SMALL]** Cross-week, Memory Pairs: match French words with English meanings or pictures from a chosen range of weeks.
+24. **[SMALL]** Cross-week, Speed Sort: sort a deck of words into their weeks' topics, showing which topics are your weakest.
+25. **[BIG]** Cross-week, Day in Paris: a short guided day (wake up, shop, eat, talk about the weather and plans) that pulls questions from the weeks you pick, with a postcard at the end.
+26. **[SMALL]** Cross-week, Verb Gym: conjugate verbs from several weeks in a short circuit, with a set count of reps and no timer.
+27. **[SMALL]** Cross-week, Mistake Detective: find and fix the single error in a French sentence (agreement, word order, wrong helper verb) from any week.
+28. **[SMALL]** Cross-week, Exam Warm-Up: a short mixed set shaped like the online written exam, built from the weeks covered so far, with a score you can compare over time.
+29. **[SMALL]** Cross-week, Gender Garden: sort nouns from all weeks into le and la beds as they grow, tracking your gender accuracy.
+30. **[BIG]** Cross-week, Tutorial Remix: replay the question formats your own tutorials use (fill in the blank, matching, sentence rewrite) over words from the weeks you choose.
+31. **[SMALL]** Cross-week, Pronoun Pinball: send each sentence's noun to the right pronoun slot (le, la, les, lui, en, y) as the ball bounces, calm and untimed.
+32. **[SMALL]** Cross-week, Semester Map: a drawn map of the whole semester where each week is a town and each minigame played there lights it up, so you can see where you have practised least.
 
 ## SI. Signal: general ideas
 
