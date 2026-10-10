@@ -558,7 +558,7 @@
     { selector: "#board-line", title: "Patched and restored", text: "Joining every line patches the room and lights it dimly. Covering every cell as well restores it fully. The dots mark cells nothing covers yet; every board has exactly one way to cover them all." },
     { selector: "#hint-button", title: "Hints are free", text: "A nudge says where to start, a hint draws the opening of one line as a dotted ghost, and the answer draws the whole layout. Using them never costs anything, and the room still counts." },
     { selector: "#goals", title: "Your goals", text: "Three goals stay in view, in any order. Every line you lay, erase or hint you ask for counts toward something on the screen." },
-    { selector: "#rooms-toggle-button", title: "The station", text: "Station opens the map: every patched room lights up there, and the Repair log keeps a line from the people who left. Every deck is open from the start, so pick any room. New parts arrive deck by deck: bridges, valves, mixers." },
+    { selector: "#rooms-toggle-button", title: "The station", text: "Station opens the map: every patched room lights up there, and the Repair log keeps a line from the people who left. Every deck is open from the start, so pick any room. New parts arrive deck by deck: bridges, valves, mixers, and the valve and mixer decks open with two small practice boards each." },
     { title: "You are ready", text: "Take your time. Your repairs are saved as you go." }
   ];
 

@@ -10,7 +10,7 @@ PLEDGE = (
     "The answer is one tap away whenever you want it. Using it is never hidden or shamed, and the room still counts.",
 )
 
-FRAMING = ("Hull Repair is a small invented place: a dark station called Tern, forty rooms that need their power and pipes laid "
+FRAMING = ("Hull Repair is a small invented place: a dark station called Tern, forty-four rooms that need their power and pipes laid "
            "again, and a repair log written by the people who left. It is a routing puzzle in the spirit of the old "
            "connect-the-matching-ports games. Nothing in it comes from a real station or a real person.")
 
@@ -18,7 +18,7 @@ HOW = (
     "Join each source port (solid) to the sink port of the same shape and letter (ringed) with a line. Lines move one cell at a time and never cross or share a cell.",
     "Patched means every line is joined. Restored means every open cell is covered as well, and every board has exactly one way to do that.",
     "Holes are hull that is gone. A bridge lets two lines cross, one straight over the other. A valve lets a line through straight, the way its arrow points, from source to sink. A mixer takes two named lines, one from each side.",
-    "Every deck and every room is open from the start, in any order. New parts arrive deck by deck, so the order on the map is a suggestion, never a lock.",
+    "Every deck and every room is open from the start, in any order. New parts arrive deck by deck, so the order on the map is a suggestion, never a lock. The valve deck and the mixer deck each begin with two small practice boards, so the new part is easy to learn before the big ones.",
 )
 
 

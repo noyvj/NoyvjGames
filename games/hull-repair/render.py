@@ -219,9 +219,19 @@ def cell_words(board, paths, cell):
 
 # ---- the station map ---------------------------------------------------------------------------------------------------
 MAP_W, MAP_H = 640, 424
-ROOM_WIDTHS = (70, 56, 80, 62, 54, 78, 50, 58)          # eight rooms a deck, 508 wide with 4 between
+ROOM_WIDTHS = (70, 56, 80, 62, 54, 78, 50, 58)          # eight rooms a deck, 508 wide with 4 between; a deck with more rooms shares the same 536 pixels
 ROW_H, ROW_GAP, MAP_TOP, MAP_LEFT = 64, 14, 22, 92
-ROOMS_PER_DECK = 8
+ROOMS_PER_DECK = 8        # the least number of slots a deck row draws (empty ones are dotted)
+ROW_SPAN = sum(ROOM_WIDTHS) + 4 * (ROOMS_PER_DECK - 1)
+
+
+def _widths(slots, index):
+    """Room widths for a deck row of `slots` rooms: the eight-room pattern (rotated per deck) squeezed to fit the same span."""
+    base = [ROOM_WIDTHS[(i + index) % len(ROOM_WIDTHS)] for i in range(slots)]
+    room = ROW_SPAN - 4 * (slots - 1)
+    widths = [max(40, int(w * room / float(sum(base)))) for w in base]
+    widths[-1] += room - sum(widths)
+    return widths
 
 
 def _hull_level(patched, restored, total):
@@ -232,7 +242,7 @@ def _hull_level(patched, restored, total):
 
 
 def station_svg(decks):
-    """The station cutaway: five decks of eight rooms, the first deck at the bottom. `decks` is the game's deck list (each
+    """The station cutaway: five decks of eight to ten rooms, the first deck at the bottom. `decks` is the game's deck list (each
     with name, rooms [{id, name, number, status, status_name, current}]). A room is dark and cracked when open
     to repair, dashed and half-lit when patched, solid with lit windows and a check mark when restored. Every deck is
     open from the start (AN-1), so there is no locked look any more. Everything that tells states apart is shape, not only light."""
@@ -241,7 +251,7 @@ def station_svg(decks):
     restored = sum(1 for d in decks for r in d["rooms"] if r["status"] >= 2)
     level = _hull_level(patched - restored, restored, total)
     out = ['<svg class="hr-map" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 %d %d" role="img" aria-label="Station map: %d of %d rooms patched, %d restored" focusable="false">' % (
-        MAP_W, MAP_H, patched, total or 40, restored),
+        MAP_W, MAP_H, patched, total, restored),
         '<polygon class="hr-hull hr-hull-%d" points="%s"/>' % (level, _pts([(84, 30), (120, 8), (612, 8), (638, 30), (638, 394), (612, 416), (120, 416), (84, 394)]))]
     for index, deck in enumerate(decks):
         y = MAP_TOP + (len(decks) - 1 - index) * (ROW_H + ROW_GAP)
@@ -249,8 +259,9 @@ def station_svg(decks):
         out.append('<text class="hr-deck-name" x="6" y="%g">%s</text><text class="hr-deck-count" x="6" y="%g">%d/%d patched</text>' % (
             y + 26, deck["name"], y + 42, done, len(deck["rooms"]) or ROOMS_PER_DECK))
         x = MAP_LEFT
-        widths = ROOM_WIDTHS[index % ROOMS_PER_DECK:] + ROOM_WIDTHS[:index % ROOMS_PER_DECK]
-        for slot in range(ROOMS_PER_DECK):
+        slots = max(ROOMS_PER_DECK, len(deck["rooms"]))
+        widths = _widths(slots, index)
+        for slot in range(slots):
             w = widths[slot]
             room = deck["rooms"][slot] if slot < len(deck["rooms"]) else None
             out.append(_map_room(room, slot + 1, x, y, w))

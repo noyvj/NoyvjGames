@@ -1,4 +1,4 @@
-"""Hull Repair -- the forty boards, grouped into five decks (chapters). Each board's stored `sol` is its one restored
+"""Hull Repair -- the forty-four boards, grouped into five decks (chapters). Each board's stored `sol` is its one restored
 layout; tests prove it is the only one. Every deck and board is open from the start (AN-1); the deck order and the map stay."""
 
 import boards_core
@@ -19,10 +19,10 @@ CHAPTER_DEFS = (
      "blurb": "Pumps, cables and cabinets. Lines need to cross, and this deck has the parts for it.",
      "new": "Bridges: two lines may cross in a bridge cell, one straight across and one straight up and down."},
     {"id": "life", "name": "Life Support", "data": boards_life.LIFE,
-     "blurb": "Air, water and waste, and the valves that keep them going the right way.",
+     "blurb": "Air, water and waste, and the valves that keep them going the right way. Two small practice boards with one valve each come first.",
      "new": "Valves: a line goes straight through, the way the arrow points, travelling from its source (solid) to its sink (ringed)."},
     {"id": "core", "name": "The Core", "data": boards_core.CORE,
-     "blurb": "Power and control. Everything you have learned, and the last new part.",
+     "blurb": "Power and control. Everything you have learned, and the last new part. Two small practice boards with one mixer each come first.",
      "new": "Mixers: two named lines both end in the mixer, one from each side."},
 )
 CHAPTER_LIST = []

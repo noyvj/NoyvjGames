@@ -17,6 +17,7 @@ Updated after every milestone. Read `planning/hull-repair-plan.md`, `CLAUDE.md` 
 
 - M7 Desktop boot: pc-config.json, pc.css, pc.js, generated pc.html, desktop tests; shared `-k hull` tests and the generator check pass; 255 tests; checked live at 1440x900 (stage, side tally, Station window).
 - AN-1 (2026-10-11): every deck and board open from the start; the deck gate, locked styling, toasts and per-deck achievement gate removed; old saves load (tested).
+- AN-2 (2026-10-11): four practice boards (two valve, two mixer) at the start of decks 4 and 5; 44 boards, decks 8/8/8/10/10; map handles ten rooms; 274 tests.
 
 ## Next
 - Nothing in this folder. Hub registration is the hub session's job (title card, sw.js, game-*.json, CLAUDE.md row, share cards); the plan's last section lists the owner's questions.

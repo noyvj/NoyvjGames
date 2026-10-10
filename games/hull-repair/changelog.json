@@ -2,6 +2,10 @@
   "changelog": [
     {
       "date": "2026-10-11",
+      "entry": "Four new practice boards, two before the first valve and two before the first mixer. Life Support now opens with two small boards that each have a single valve, and The Core opens with two small boards that each have a single mixer, so you can learn the new part before the big boards. The valves and mixers themselves have not moved. The station is now 44 rooms, and the map and the repair log have the four new rooms. Your saved rooms are untouched."
+    },
+    {
+      "date": "2026-10-11",
       "entry": "Every deck and room is now open from the start. You no longer patch five rooms to open the next deck: pick any room on the map or in the list, in any order. The deck order and the station map stay as they were, so new parts still arrive deck by deck, but nothing is locked. Your saved rooms are untouched."
     },
     {

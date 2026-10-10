@@ -29,7 +29,7 @@ def test_every_achievement_has_a_visible_number_and_none_is_hidden():
 
 def test_totals_follow_the_game_size():
     by_id = {a[0]: a for a in achievements.ACHIEVEMENTS}
-    assert by_id["station_lit"][4] == by_id["hull_whole"][4] == len(boards.ORDER) == 40
+    assert by_id["station_lit"][4] == by_id["hull_whole"][4] == len(boards.ORDER) == 44
     assert by_id["three_decks"][4] < len(boards.CHAPTER_LIST)
 
 
