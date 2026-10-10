@@ -1531,3 +1531,11 @@ html[data-hatch-patterns="true"] .meter-fill--welfare {
 html[data-hatch-patterns="true"] .meter-fill--supply {
   background-image: repeating-linear-gradient(90deg, rgba(0, 0, 0, 0.55) 0 2px, transparent 2px 7px), linear-gradient(90deg, #b87900, #e69f00);
 }
+
+/* F-10: the keyboard cheat sheet at the foot of How to Play. */
+.howto-keys { margin-top: 0.8rem; padding-top: 0.5rem; border-top: 1px solid rgba(140, 160, 255, 0.18); font-size: 0.82rem; }
+.howto-keys h3 { margin: 0 0 0.4rem; font-size: 0.95rem; }
+.howto-keys ul { margin: 0 0 0.4rem; padding-left: 1.1rem; }
+.howto-keys li { margin: 0.2rem 0; line-height: 1.4; }
+.howto-keys kbd { font: inherit; font-weight: 700; padding: 0 0.35rem; border: 1px solid rgba(140, 160, 255, 0.45); border-radius: 4px; }
+.howto-keys p { margin: 0; opacity: 0.8; }

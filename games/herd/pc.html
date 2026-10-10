@@ -269,7 +269,8 @@
         <button id="bulk-5-button" class="secondary bulk-step" type="button" aria-pressed="false">x5</button>
         <button id="bulk-max-button" class="secondary bulk-step" type="button" aria-pressed="false">Max</button>
       </div>
-      <button id="grow-herd-button" class="secondary" disabled>Loading...</button>
+      <button id="grow-herd-button" class="secondary" disabled aria-describedby="lever-keys-hint">Loading...</button>
+      <span id="lever-keys-hint" class="sr-only">Keyboard tip: the Up and Down arrow keys move between the buy buttons.</span>
       <p id="grow-consequence-preview" class="grow-consequence-preview">Loading...</p>
       <p id="bulk-note" class="bulk-note"></p>
     </div>
@@ -617,6 +618,10 @@
   <script src="../../shared/keyboard-shortcuts.js"></script>
   <script>
     window.KeyboardShortcuts.init({
+      extra: [
+        "Up / Down arrow: move between the buy buttons (Home and End jump to the first or last)",
+        "Left / Right arrow on x1, x5, Max: choose how many units each purchase buys",
+      ],
       panels: [
         { toggle: "howto-toggle-button", panel: "howto-panel" },
         { toggle: "achievements-toggle-button", panel: "achievements-panel" },

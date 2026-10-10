@@ -130,8 +130,99 @@
     });
   }
 
+  // F-10: keyboard play. Up/Down (and Home/End) move between the buy buttons, Left/Right moves
+  // inside the x1 / x5 / Max stepper, and the How to Play panel ends with a plain cheat sheet.
+  // Disabled buttons are skipped because the browser cannot focus them; Tab still reaches
+  // everything in page order, so the arrows are a shortcut, never the only way.
+  const LEVER_SELECTOR = [
+    "#grow-herd-button", "#feed-invest-button", "#caps-invest-button", "#capture-invest-button",
+    "#plant-pivot-invest-button", "#genetics-invest-button", "#supply-chain-invest-button",
+    "#poultry-grow-button", "#litter-invest-button", "#biofilter-invest-button",
+    "#satellite-open-button", "#satellite-grow-button", "#satellite-retrofit-button",
+  ].join(",");
+  const STEPPER_SELECTOR = "#bulk-stepper button";
+
+  function usable(el) {
+    return !el.disabled && !el.hidden && el.getClientRects().length > 0;
+  }
+
+  function moveFocus(list, current, key) {
+    const items = list.filter(usable);
+    if (!items.length) return false;
+    const at = items.indexOf(current);
+    let next;
+    if (key === "Home") next = items[0];
+    else if (key === "End") next = items[items.length - 1];
+    else if (key === "ArrowDown" || key === "ArrowRight") next = items[(at + 1) % items.length];
+    else next = items[(at - 1 + items.length) % items.length];
+    next.focus();
+    return true;
+  }
+
+  function onLeverKey(event) {
+    if (event.defaultPrevented || event.altKey || event.ctrlKey || event.metaKey) return;
+    const target = event.target;
+    if (!target || target.nodeType !== 1) return;
+    const key = event.key;
+    if (target.matches && target.matches(STEPPER_SELECTOR)) {
+      if (["ArrowLeft", "ArrowRight", "Home", "End"].indexOf(key) === -1) return;
+      const stepper = Array.prototype.slice.call(document.querySelectorAll(STEPPER_SELECTOR));
+      if (moveFocus(stepper, target, key)) event.preventDefault();
+      return;
+    }
+    if (target.matches && target.matches(LEVER_SELECTOR)) {
+      if (["ArrowUp", "ArrowDown", "Home", "End"].indexOf(key) === -1) return;
+      const levers = Array.prototype.slice.call(document.querySelectorAll(LEVER_SELECTOR));
+      if (moveFocus(levers, target, key)) event.preventDefault();
+    }
+  }
+
+  const CHEAT_SHEET_ITEMS = [
+    ["Tab / Shift + Tab", "move to the next or previous button; Enter or Space presses it"],
+    ["Up / Down arrow", "on a buy button (Grow Herd, Feed Additives, Herd Caps, ...): move to the next or previous buy button"],
+    ["Home / End", "on a buy button: jump to the first or last one"],
+    ["Left / Right arrow", "on x1, x5 or Max: choose how many units each purchase buys"],
+    ["?", "show or hide the list of shortcuts"],
+    ["Esc", "close the panel that is open"],
+  ];
+
+  function buildCheatSheet() {
+    const box = document.createElement("div");
+    box.className = "howto-keys";
+    const heading = document.createElement("h3");
+    heading.textContent = "Keyboard play";
+    box.appendChild(heading);
+    const list = document.createElement("ul");
+    CHEAT_SHEET_ITEMS.forEach(function (item) {
+      const li = document.createElement("li");
+      const kbd = document.createElement("kbd");
+      kbd.textContent = item[0];
+      li.appendChild(kbd);
+      li.appendChild(document.createTextNode(" " + item[1]));
+      list.appendChild(li);
+    });
+    box.appendChild(list);
+    const note = document.createElement("p");
+    note.textContent = "A screen reader reads out the result of each round after you press Advance Round.";
+    box.appendChild(note);
+    return box;
+  }
+
+  function initKeyboardPlay() {
+    document.addEventListener("keydown", onLeverKey);
+    const howto = document.getElementById("howto-panel");
+    if (!howto) return;
+    function ensure() {
+      if (howto.querySelector(":scope > .howto-keys")) return;
+      howto.appendChild(buildCheatSheet());
+    }
+    ensure();
+    new MutationObserver(ensure).observe(howto, { childList: true });
+  }
+
   function init() {
     initDisplayPrefs();
+    initKeyboardPlay();
     let scale = readStoredScale();
     applyScale(scale);
     let reduced = readStoredMotion();
@@ -193,5 +284,8 @@
     init();
   }
 
-  window.HerdSettings = { applyScale: applyScale, applyMotion: applyMotion, MIN_SCALE: MIN_SCALE, MAX_SCALE: MAX_SCALE };
+  window.HerdSettings = {
+    applyScale: applyScale, applyMotion: applyMotion, MIN_SCALE: MIN_SCALE, MAX_SCALE: MAX_SCALE,
+    cheatSheetItems: CHEAT_SHEET_ITEMS,
+  };
 })();
