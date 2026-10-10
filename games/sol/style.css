@@ -1869,6 +1869,8 @@ html[data-era-look="on"][data-era="steward"] .prestige-badge { border-color: #7f
 html[data-era-look="on"][data-era="architect"] .prestige-badge { border-color: #8fb4ff; }
 html[data-era-look="on"][data-era="custodian"] .prestige-badge { border-color: #d9b3ff; }
 
+.build-plan-row--ghost { opacity: 0.65; border-style: dashed; }
+
 /* ============================================================
    Y11b light-theme polish (2026-09-27). Light-only rules from a
    computed-style WCAG contrast scan of the light theme (fresh game, the

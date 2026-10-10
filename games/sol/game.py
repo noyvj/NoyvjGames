@@ -5634,6 +5634,134 @@ def update_doctrine_display():
         element.innerText = f"Fired {n} time{'s' if n != 1 else ''} this session"
 
 
+# --- A-23: Blueprint Swap ------------------------------------------------------
+# One short text code holds a build plan (the step texts, never the ticks), the
+# Doctrine rules and the mutator picks. Importing never changes anything by
+# itself: the code shows up as a faint "ghost" list under the Build Plan, and each
+# part is adopted with its own button (steps are added to the end of your plan,
+# rules only up to your limit, mutator picks replace the picks for the next run).
+# Local only: no backend, nothing is saved, the ghost is gone on reload.
+BLUEPRINT_PREFIX = "SOLPLAN1:"
+_ghost = {"steps": [], "rules": [], "mutators": []}
+
+
+def blueprint_code():
+    payload = {
+        "p": [step["text"] for step in build_plan],
+        "d": [dict(rule) for rule in doctrine_rules],
+        "m": list(mutators_next),
+    }
+    return export_progress.encode_progress_code(payload, prefix=BLUEPRINT_PREFIX)
+
+
+def parse_blueprint(code):
+    """Returns (True, {"steps", "rules", "mutators"}) or (False, message). Never raises."""
+    ok, payload = export_progress.decode_progress_code(
+        (code or "").strip(), prefix=BLUEPRINT_PREFIX, bad_format_message="That does not look like a SOL blueprint code.")
+    if not ok:
+        return False, payload
+    steps = []
+    raw_steps = payload.get("p")
+    if isinstance(raw_steps, list):
+        for text in raw_steps[:BUILD_PLAN_MAX_STEPS]:
+            if isinstance(text, str) and text.strip():
+                steps.append(text.strip()[:BUILD_PLAN_MAX_LEN])
+    rules = _clean_doctrine_rules(payload.get("d"))
+    mutators = _clean_mutators(payload.get("m"))
+    if not (steps or rules or mutators):
+        return False, "That blueprint is empty."
+    return True, {"steps": steps, "rules": rules, "mutators": mutators}
+
+
+def _blueprint_status(text):
+    document.getElementById("blueprint-status").innerText = text
+
+
+def on_blueprint_make(event=None):
+    code = blueprint_code()
+    output = document.getElementById("blueprint-output")
+    output.value = code
+    output.hidden = False
+    try:
+        import js  # noqa: PLC0415
+
+        js.navigator.clipboard.writeText(code)
+        _blueprint_status("Blueprint made and copied. Share the code; the other player pastes it under Import.")
+    except (ImportError, AttributeError):
+        _blueprint_status("Blueprint made: select the code below and copy it.")
+
+
+def on_blueprint_import(event=None):
+    ok, result = parse_blueprint(document.getElementById("blueprint-input").value)
+    if not ok:
+        _blueprint_status(result)
+        return
+    _ghost["steps"], _ghost["rules"], _ghost["mutators"] = result["steps"], result["rules"], result["mutators"]
+    _blueprint_status("Blueprint loaded as a ghost below. Nothing has changed in your game yet.")
+    update_blueprint_ghost()
+
+
+def on_blueprint_ghost_click(event):
+    action = _target_attr(event, "data-action")
+    if action == "clear":
+        _ghost["steps"], _ghost["rules"], _ghost["mutators"] = [], [], []
+    elif action == "add-step":
+        raw = _target_attr(event, "data-step")
+        index = int(raw) if raw and raw.isdigit() else -1
+        if 0 <= index < len(_ghost["steps"]):
+            _add_build_step(_ghost["steps"][index])
+    elif action == "add-all":
+        for text in _ghost["steps"]:
+            if text not in {step["text"] for step in build_plan}:
+                _add_build_step(text)
+    elif action == "adopt-rules":
+        room = DOCTRINE_MAX_RULES - len(doctrine_rules)
+        have = {tuple(sorted(rule.items())) for rule in doctrine_rules}
+        added = 0
+        for rule in _ghost["rules"]:
+            if added < room and tuple(sorted(rule.items())) not in have:
+                doctrine_rules.append(dict(rule))
+                added += 1
+        if added:
+            _doctrine_reset_runtime()
+        _blueprint_status(f"Added {added} rule(s) to your Doctrines. Rules above your limit wait until it is raised.")
+    elif action == "use-mutators":
+        mutators_next[:] = list(_ghost["mutators"])
+        _blueprint_status("Your mutator picks for the next run now match the blueprint.")
+    update_blueprint_ghost()
+    update_build_plan_display()
+    update_doctrine_display()
+
+
+def update_blueprint_ghost():
+    box = document.getElementById("blueprint-ghost")
+    box.innerHTML = ""
+    if not (_ghost["steps"] or _ghost["rules"] or _ghost["mutators"]):
+        box.hidden = True
+        return
+    box.hidden = False
+    box.appendChild(_make_text("stats-panel-heading", "Ghost blueprint (not part of your game yet)"))
+    mine = {step["text"] for step in build_plan}
+    for index, text in enumerate(_ghost["steps"]):
+        row = document.createElement("div")
+        row.className = "build-plan-row build-plan-row--ghost"
+        row.appendChild(_make_text("build-plan-text", ("\u2713 " if text in mine else "\u25cb ") + text, "span"))
+        if text not in mine:
+            row.appendChild(_make_button("Add to my plan", {"data-action": "add-step", "data-step": str(index)}, None))
+        box.appendChild(row)
+    if _ghost["steps"]:
+        box.appendChild(_make_button("Add every step", {"data-action": "add-all"}, None))
+    for rule in _ghost["rules"]:
+        box.appendChild(_make_text("build-plan-text", "Rule: " + doctrine_rule_text(rule)))
+    if _ghost["rules"]:
+        box.appendChild(_make_button("Add these rules to my Doctrines", {"data-action": "adopt-rules"}, None))
+    if _ghost["mutators"]:
+        names = ", ".join(MUTATOR_BY_ID[m_id]["label"] for m_id in _ghost["mutators"])
+        box.appendChild(_make_text("build-plan-text", f"Mutator picks: {names}"))
+        box.appendChild(_make_button("Use these mutator picks", {"data-action": "use-mutators"}, None))
+    box.appendChild(_make_button("Clear the ghost", {"data-action": "clear"}, None))
+
+
 # --- A-19 / A-20: the hidden Codex -----------------------------------------------
 # Seven worlds end their Overview note with one odd sentence. Doing what it
 # hints at (nothing is timed, random or lost) records a silly Codex curio. The
@@ -6098,6 +6226,9 @@ def setup():
     document.getElementById("build-plan-copy-button").addEventListener("click", create_proxy(on_build_plan_copy))
     document.getElementById("splits-toggle-button").addEventListener("click", create_proxy(on_toggle_splits))
     document.getElementById("chains-toggle-button").addEventListener("click", create_proxy(on_toggle_chains))
+    document.getElementById("blueprint-make-button").addEventListener("click", create_proxy(on_blueprint_make))
+    document.getElementById("blueprint-import-button").addEventListener("click", create_proxy(on_blueprint_import))
+    document.getElementById("blueprint-ghost").addEventListener("click", create_proxy(on_blueprint_ghost_click))
     document.getElementById("doctrine-toggle-button").addEventListener("click", create_proxy(on_toggle_doctrine))
     document.getElementById("doctrine-panel").addEventListener("click", create_proxy(on_doctrine_click))
     document.getElementById("charter-toggle-button").addEventListener("click", create_proxy(on_toggle_charter))

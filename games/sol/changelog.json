@@ -2,6 +2,10 @@
   "changelog": [
     {
       "date": "2026-10-10",
+      "entry": "New: Blueprint Swap. The Build Plan can turn your plan steps, Doctrine rules and next-run mutator picks into one short code to share, and a pasted code shows up as a faint ghost list you adopt piece by piece. Nothing is ever applied by itself and nothing leaves your device."
+    },
+    {
+      "date": "2026-10-10",
       "entry": "New: Governor Doctrines. Once Automation Basics is researched, a Doctrines panel lets you write up to three if/then rules for worlds you are not standing on (for example: on Mars, if ecology is below 30%, buy a Recycler; or if stock is above 2,000, start a trade route to the neediest world). The Governor Report shows which rule fired last on each world, and Try for 30 ticks tells you how often your rules would fire without changing anything. A new Prestige Tree node, Standing Orders, raises the limit to five."
     },
     {

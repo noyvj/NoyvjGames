@@ -272,6 +272,15 @@
       <button id="build-plan-copy-button" class="secondary" type="button">Copy as spreadsheet text</button>
       <p id="build-plan-copy-status" class="copy-share-card-status" role="status"></p>
       <textarea id="build-plan-copy-output" class="stats-code-textarea" readonly hidden aria-label="Build plan as tab-separated text"></textarea>
+      <!-- A-23: Blueprint Swap (plan steps, Doctrine rules and mutator picks in one short code). -->
+      <p class="stats-panel-heading">Blueprint swap</p>
+      <p class="build-plan-hint">Make a short code from your plan, Doctrine rules and mutator picks, or paste someone else's to see it as a ghost list you can adopt piece by piece.</p>
+      <button id="blueprint-make-button" class="secondary" type="button">Make a blueprint code</button>
+      <textarea id="blueprint-output" class="stats-code-textarea" readonly hidden aria-label="Your blueprint code"></textarea>
+      <textarea id="blueprint-input" class="stats-code-textarea" placeholder="Paste a blueprint code to import" aria-label="Blueprint code to import"></textarea>
+      <button id="blueprint-import-button" class="secondary" type="button">Show it as a ghost</button>
+      <p id="blueprint-status" class="copy-share-card-status" role="status"></p>
+      <div id="blueprint-ghost" class="build-plan-list" hidden></div>
     </div>
 
     <!-- A1/A3: Prestige tree (only reachable once at least one prestige is done). -->

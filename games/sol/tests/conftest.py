@@ -93,6 +93,12 @@ TRAVEL_BUTTON_ID = {
 ELEMENT_IDS = [
     "anomaly-strip",
     "era-tagline",
+    "blueprint-make-button",
+    "blueprint-output",
+    "blueprint-input",
+    "blueprint-import-button",
+    "blueprint-status",
+    "blueprint-ghost",
     "doctrine-toggle-button",
     "doctrine-panel",
     "charter-toggle-button",
