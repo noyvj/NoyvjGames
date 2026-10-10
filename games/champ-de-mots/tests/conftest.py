@@ -28,6 +28,10 @@ CATALOG_JSON = CATALOG_PATH.read_text(encoding="utf-8")
 
 ELEMENT_IDS = [
     "farm",
+    "semester-summary",
+    "legend-panel",
+    "legend-toggle-button",
+    "farm-legend-button",
     "growth-marker-practice",
     "growth-marker-review",
     "growth-marker-proficiency",

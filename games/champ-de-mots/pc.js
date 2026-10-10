@@ -27,7 +27,7 @@ window.CHAMP_DE_MOTS_PC_TUTORIAL_STEPS = [
   {
     selector: "#legend",
     title: "Growth Stages",
-    text: "A plot climbs from Seed to Sprout to Budding to Blooming to Automated as it is recalled correctly over spaced-out visits. Automated plots need only rare maintenance checks. A plot that has gone overdue just droops a little; that is a gentle nudge, not a penalty, and one correct answer clears it. The tally and bar above the farm show how many plots sit at each stage.",
+    text: "A plot climbs from Seed to Sprout to Budding to Blooming to Automated as it is recalled correctly over spaced-out visits. Automated plots need only rare maintenance checks. A plot that has gone overdue just droops a little; that is a gentle nudge, not a penalty, and one correct answer clears it. The tally and bar above the farm show how many plots sit at each stage. The ? Colours and icons button above the farm (or Menu, Help) lists every other mark.",
   },
   {
     selector: "#accent-toggle-checkbox",

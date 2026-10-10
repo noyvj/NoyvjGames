@@ -1,5 +1,13 @@
 [
   {
+    "date": "2026-10-10",
+    "entry": "A guide to every colour and icon on the farm. The new Colours and icons panel (the ? button beside the farm, the toolbar, or Menu then Help on the Desktop page) lists each growth stage, mark, border, week-row badge, meter and tag with a small drawn sample next to a plain-words meaning. The samples are drawn the way the farm draws them, so the guide always matches what you see on the plots."
+  },
+  {
+    "date": "2026-10-10",
+    "entry": "The two semesters now have their own bands on the farm. Semester 1 (FREN151) and Semester 2 (FREN152) each get a heading with the course name, a divider, a progress line and meter of their own, and a Hide weeks / Show weeks button, plus a one-line summary of both above the farm. It is still one continuous farm underneath: the review order, the unlock chain and your save are exactly as before, and which band is folded away is remembered in this browser only. Sorting by weakest, most overdue or type mixes the semesters on purpose, so the bands step aside then and a note says so."
+  },
+  {
     "date": "2026-10-09",
     "entry": "Coins and a Faux Amis game. Every full watering (the first correct answer for a plot each day) now earns one coin, shown under the daily goals; spend coins in the new Farm shop on cosmetic plot skins (terracotta pots, stone tiles, wooden crates, lantern glow, berry hedge, gilded frames). Skins only change how the plots are framed. Faux Amis is a new ten-question game about French words that look like an English word but mean something else (the least look-alike first, the near-twins last). Its list is read live from the French Wiktionary's false-friends page, named on screen with a link, and plots on your farm whose French word is on that list carry a small corner mark and a tooltip saying what it really means. It does not grow plots; your answers count toward the practice score."
   },

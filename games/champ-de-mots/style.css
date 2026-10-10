@@ -1618,3 +1618,38 @@ html #howto-panel .howto-step-number { opacity: 1; }
 .plot--amis.plot--leech {
   background-image: linear-gradient(315deg, transparent 68%, #5a1f1f 68%), linear-gradient(135deg, transparent 62%, #7a2e2e 62%);
 }
+
+/* LM-1: semester bands. A band is a wrapper (heading card, then its weeks) shown only in Syllabus order.
+   The heading reuses the .row card and the .row-label / .row-chapter / .row-progress inks, so every visual
+   style and both themes already colour it; the only new rules here are layout. Static, no motion. */
+.semester-summary { display: flex; flex-wrap: wrap; gap: 0.3rem 0.6rem; margin: 0 0 0.5rem; font-size: 0.8rem; }
+.semester-chip { padding: 0.15rem 0.6rem; border: 1px solid currentColor; border-radius: 999px; }
+.semester-note { flex: 1 0 100%; font-size: 0.75rem; opacity: 0.85; }
+.semester { display: flex; flex-direction: column; gap: 0.55rem; }
+.semester + .semester { margin-top: 0.9rem; padding-top: 0.9rem; border-top: 2px solid rgba(140, 160, 255, 0.4); }
+html[data-theme="light"] .semester + .semester { border-top-color: rgba(60, 70, 110, 0.35); }
+.semester-rows { display: flex; flex-direction: column; gap: 0.55rem; }
+.semester-head { display: flex; flex-direction: column; align-items: stretch; gap: 0.3rem; border-left-width: 5px; }
+.semester-top { display: flex; align-items: center; justify-content: space-between; gap: 0.6rem; flex-wrap: wrap; }
+.semester-title { margin: 0; font-size: 1.05rem; line-height: 1.25; }
+.semester-toggle { flex: 0 0 auto; }
+.semester-sub { flex: 0 0 auto; }
+.semester-meter { margin-top: 2px; }
+
+/* LM-2: the colours-and-icons guide. A sample is drawn with the farm's own classes (.plot--*, .row-*,
+   .growth-marker), so only the layout around it is new. Static, no motion. */
+.legend-heading { margin: 0 0 0.3rem; }
+.legend-group-title { margin: 0.9rem 0 0.3rem; }
+.legend-item { display: flex; align-items: flex-start; gap: 0.7rem; padding: 0.3rem 0; border-top: 1px solid rgba(90, 76, 56, 0.2); }
+.legend-sample { flex: 0 0 12rem; display: flex; align-items: center; min-height: 28px; }
+.legend-sample .plot { display: inline-flex; align-items: center; justify-content: center; }
+.legend-row-sample { display: inline-block; padding: 0.25rem 0.5rem; }
+.legend-meter { display: block; width: 9rem; margin: 0; }
+.legend-meter .automated-bar { display: block; }
+.legend-sample-text { font-size: 0.78rem; line-height: 1.3; }
+.legend-words { flex: 1 1 auto; min-width: 0; font-size: 0.88rem; line-height: 1.35; }
+.farm-legend-button { padding: 0.3rem 0.7rem; font-size: 0.82rem; }
+@media (max-width: 480px) {
+  .legend-item { flex-direction: column; gap: 0.2rem; }
+  .legend-sample { flex: 0 0 auto; }
+}

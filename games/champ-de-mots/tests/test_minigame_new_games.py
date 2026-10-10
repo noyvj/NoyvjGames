@@ -264,7 +264,7 @@ def test_gaps_ends_on_lives_and_on_time_with_the_credit_line(game_env):
 
 
 def test_gaps_can_ask_for_a_typed_answer_for_a_grown_plot(game_env):
-    module, state = game_env.module, game_env.state
+    module = game_env.module
     game = _game(module, "gaps")
     module.wants_typed = lambda plot: True
     for _ in range(60):

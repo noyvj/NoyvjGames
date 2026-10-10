@@ -198,7 +198,7 @@ def test_quick_multiple_choice_is_five_plots_all_multiple_choice(game_env):
 
 
 def test_typing_water_is_five_plots_all_typed(game_env):
-    module, state = game_env.module, game_env.state
+    module = game_env.module
     assert module.start_water_session(module.WATER_TYPED_MODE) == module.WATER_QUICK_COUNT
     seen = 0
     while module.review_question is not None:
@@ -212,7 +212,7 @@ def test_typing_water_is_five_plots_all_typed(game_env):
 
 
 def test_listening_water_speaks_and_hides_the_text_until_asked(game_env, monkeypatch):
-    module, state = game_env.module, game_env.state
+    module = game_env.module
     spoken = []
     monkeypatch.setattr(module, "speech_available", lambda: True)
     monkeypatch.setattr(module, "speak_french", lambda text, slow=False: spoken.append((text, slow)) or True)

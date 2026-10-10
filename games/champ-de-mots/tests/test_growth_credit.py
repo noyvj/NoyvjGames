@@ -41,7 +41,6 @@ def test_every_question_activity_has_a_marker_in_both_pages_and_the_table():
 
 
 def test_marker_text_says_grows_or_does_not_grow_and_says_how(game_env):
-    module = game_env.module
     for key in ACTIVITIES:
         element = game_env.elements[f"growth-marker-{key}"]
         text = element.innerText

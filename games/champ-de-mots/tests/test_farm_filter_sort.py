@@ -17,7 +17,11 @@ def _row_plot_ids(env, sequence):
 
 
 def _row_order(env):
-    return [child.id for child in env.elements["farm"].children]
+    # LM-1: display order, whether the weeks sit in semester bands or loose in the farm.
+    return [
+        e.id for e in env.elements["farm"].descendants()
+        if e.id and e.id.startswith("row-") and e.id[4:].isdigit()
+    ]
 
 
 def _visible_ids(env):
@@ -159,7 +163,7 @@ def test_reordering_moves_nodes_it_never_duplicates_them(game_env):
     module, state = game_env.module, game_env.state
     for key in ("weakest", "overdue", "type", "syllabus"):
         module.set_farm_sort(key)
-        rows = game_env.elements["farm"].children
+        rows = [e for e in game_env.elements["farm"].descendants() if e.id and e.id.startswith("row-") and e.id[4:].isdigit()]
         assert len(rows) == len(state.rows) == len({r.id for r in rows})
         total = 0
         seen = set()

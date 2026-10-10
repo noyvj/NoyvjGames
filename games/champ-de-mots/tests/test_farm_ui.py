@@ -45,9 +45,11 @@ def answer_current_incorrectly(game_env):
 
 def test_farm_renders_one_row_per_sequence_number(game_env):
     farm = game_env.elements["farm"]
-    assert len(farm.children) == 23
+    # LM-1: the weeks sit inside their semester's band, still one continuous sequence.
+    shown = [e for e in farm.descendants() if e.id and e.id.startswith("row-") and e.id[4:].isdigit()]
+    assert len(shown) == 23
     for index, row in enumerate(game_env.state.rows):
-        assert game_env.elements[f"row-{row.sequence}"] is farm.children[index]
+        assert game_env.elements[f"row-{row.sequence}"] is shown[index]
 
 
 def test_rows_are_labelled_by_sequence_course_and_week(game_env):

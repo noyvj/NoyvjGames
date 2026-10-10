@@ -3356,7 +3356,6 @@ def fetch_amis(force=False):
     amis_error = ""
 
     def on_text(text):
-        global amis_status, amis_error
         try:
             import json  # noqa: PLC0415
             content = json.loads(str(text))["query"]["pages"][0]["revisions"][0]["slots"]["main"]["content"]

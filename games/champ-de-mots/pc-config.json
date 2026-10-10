@@ -36,6 +36,11 @@
       "What's New"
     ],
     [
+      "legend-panel",
+      "legend-toggle-button",
+      "What the colours and icons mean"
+    ],
+    [
       "report-log-panel",
       "report-log-toggle-button",
       "My Reports"
@@ -181,6 +186,7 @@
         "ids": [
           "tutorial-restart-button",
           "howto-toggle-button",
+          "legend-toggle-button",
           "credits-link"
         ]
       },
@@ -233,6 +239,7 @@
       "#farm-controls"
     ],
     "stage": [
+      "#semester-summary",
       "#farm",
       "#legend + details",
       "#legend"

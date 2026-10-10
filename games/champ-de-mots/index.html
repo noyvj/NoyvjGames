@@ -117,6 +117,8 @@
            origin K16): same hidden-until-opened idiom as Achievements
            above, populated from changelog.json newest-first. -->
       <button id="changelog-toggle-button" class="secondary" type="button">📋 What's New</button>
+      <!-- LM-2: "What the colours and icons mean", a guide to every mark on the farm. Also opened by the "?" beside the farm. -->
+      <button id="legend-toggle-button" class="secondary" type="button">🎨 Colours and icons</button>
       <!-- "My Reports" (Z11, planning/TODO.md, site-wide goal): a small
            dated feed of report-button confirmations, built on the shared
            shared/narrative_log.py component -- see game.py's own Z11 build
@@ -237,6 +239,8 @@
     <!-- "What's New" changelog panel (origin K16): rows are built by
          game.py — see render_changelog(). -->
     <div id="changelog-panel" class="dashboard-panel" hidden></div>
+    <!-- LM-2: filled by game.py's render_legend_guide() from legend_indicators(). -->
+    <div id="legend-panel" class="dashboard-panel legend-panel" hidden></div>
     <!-- "My Reports" (Z11): rows are built by game.py's render_report_log()
          via the shared shared/narrative_log.py render() helper. -->
     <div id="report-log-panel" class="dashboard-panel" hidden></div>
@@ -965,8 +969,11 @@
           <option value="type">By type</option>
         </select>
       </label>
+      <button id="farm-legend-button" class="secondary farm-legend-button" type="button" title="What the colours and icons on the farm mean">? Colours and icons</button>
       <span id="farm-filter-count" class="farm-filter-count" aria-live="polite"></span>
     </div>
+    <!-- LM-1: a one-line summary per semester (built by game.py's render_semesters()); the bands themselves are inside #farm. -->
+    <div id="semester-summary" class="semester-summary" role="group" aria-label="Semester summary"></div>
     <div id="farm" class="farm"></div>
   </div>
 
@@ -1097,7 +1104,7 @@
       {
         selector: "#legend",
         title: "Growth Stages",
-        text: "A plot climbs from Seed to Sprout to Budding to Blooming to Automated as it's recalled correctly over spaced-out visits — Automated plots need only rare maintenance checks. A plot that's gone overdue for review just droops a little; that's a gentle nudge, not a penalty, and one correct answer clears it.",
+        text: "A plot climbs from Seed to Sprout to Budding to Blooming to Automated as it's recalled correctly over spaced-out visits — Automated plots need only rare maintenance checks. A plot that's gone overdue for review just droops a little; that's a gentle nudge, not a penalty, and one correct answer clears it. The ? Colours and icons button beside the farm lists every other mark you can see.",
       },
       {
         selector: "#next-day-button",
@@ -1287,6 +1294,7 @@
         { toggle: "phrasebook-toggle-button", panel: "phrasebook-panel" },
         { toggle: "achievements-toggle-button", panel: "achievements-panel" },
         { toggle: "changelog-toggle-button", panel: "changelog-panel" },
+        { toggle: "legend-toggle-button", panel: "legend-panel" },
         { toggle: "report-log-toggle-button", panel: "report-log-panel" },
         { toggle: "blitz-toggle-button", panel: "blitz-panel" },
         { toggle: "racer-toggle-button", panel: "racer-panel" },

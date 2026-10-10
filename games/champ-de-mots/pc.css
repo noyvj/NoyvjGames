@@ -238,3 +238,20 @@ html[data-visual-style="highdef"]:not([data-theme="light"]) .pc-window-frame :is
 .pc-readout:has(.pc-readout-value:empty) { display: none; }
 /* L-24: the farm filter and sort sit in the stage bar. */
 #pc-stagebar > #farm-controls { margin: 0; }
+
+/* LM-1: in the Desktop farm a semester band spans the whole grid and tiles its own weeks into the same columns. */
+#pc-stage > #farm > .semester { grid-column: 1 / -1; display: block; margin: 0; padding: 0; border-top: 0; }
+#pc-stage > #farm > .semester + .semester { margin-top: 0.4rem; padding-top: 0.6rem; border-top: 2px solid rgba(140, 160, 255, 0.4); }
+#pc-stage > #farm .semester-sub { flex: 0 0 auto; }
+#pc-stage > #farm .semester-head { margin: 0 0 0.5rem; backdrop-filter: none; -webkit-backdrop-filter: none; }
+#pc-stage > #farm .semester-rows {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 26rem), 1fr));
+  align-items: stretch;
+  gap: 0.5rem;
+}
+#pc-stage > #farm .semester-rows > .row { margin: 0; min-width: 0; backdrop-filter: none; -webkit-backdrop-filter: none; }
+#pc-stage > #semester-summary { order: 0; margin: 0; }
+@media (max-width: 1280px) {
+  #pc-stage > #farm .semester-rows { grid-template-columns: repeat(auto-fill, minmax(min(100%, 22rem), 1fr)); }
+}

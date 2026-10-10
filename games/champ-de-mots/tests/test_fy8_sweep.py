@@ -12,7 +12,7 @@ import re
 
 import pytest
 
-from .test_report_fixes import _all_items, _in_array, _live
+from .test_report_fixes import _all_items, _live
 
 
 # --------------------------------------------------------------------------
@@ -294,7 +294,6 @@ def _swept_items(module):
 
 
 def test_no_gloss_in_the_swept_weeks_has_meta_text_outside_brackets(game_env):
-    module = game_env.module
     seen = 0
     for topic, idx, item in _swept_items(game_env.module):
         outside = re.sub(r"\([^)]*\)", "", item["en"])
