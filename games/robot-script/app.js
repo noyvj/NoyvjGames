@@ -549,14 +549,14 @@
     renderSandboxEntry();
     renderSandboxTools();
     var holder = $("rooms-body");
-    var sig = JSON.stringify(view.rooms.map(function (c) { return c.rooms.map(function (r) { return r.medal + (r.current ? "c" : "") + (r.open ? "o" : ""); }); }));
+    var sig = JSON.stringify(view.rooms.map(function (c) { return c.rooms.map(function (r) { return r.medal + (r.current ? "c" : ""); }); }));
     if (holder.dataset.sig === sig) return;
     holder.dataset.sig = sig;
     holder.textContent = "";
     view.rooms.forEach(function (c) {
-      var sec = el("section", "chapter" + (c.open ? "" : " locked"));
+      var sec = el("section", "chapter");
       sec.appendChild(el("h3", null, c.name + " (" + c.cleared + "/" + c.total + ")"));
-      sec.appendChild(el("p", "note", c.open ? c.blurb : "Opens when " + c.need + " rooms of " + c.prev_name + " are cleared."));
+      sec.appendChild(el("p", "note", c.blurb));
       var ul = el("ul", "room-grid");
       c.rooms.forEach(function (r) {
         var li = el("li");
@@ -569,13 +569,11 @@
           meta.appendChild(medalNode(["", "bronze", "silver", "gold"][r.medal]));
           meta.appendChild(document.createTextNode(" " + r.best + " steps, par " + r.par));
         } else {
-          meta.textContent = r.open ? "Not cleared, par " + r.par : "Locked";
+          meta.textContent = "Not cleared, par " + r.par;
         }
         b.appendChild(meta);
-        b.setAttribute("aria-label", r.number + ", " + r.name + ". " + (r.medal ? ["", "Bronze", "Silver", "Gold"][r.medal] + " medal, " + r.best + " steps, par " + r.par : (r.open ? "Not cleared, par " + r.par : "Locked")) + (r.current ? ". Current room" : ""));
-        if (!r.open) b.setAttribute("aria-disabled", "true");
+        b.setAttribute("aria-label", r.number + ", " + r.name + ". " + (r.medal ? ["", "Bronze", "Silver", "Gold"][r.medal] + " medal, " + r.best + " steps, par " + r.par : ("Not cleared, par " + r.par)) + (r.current ? ". Current room" : ""));
         b.addEventListener("click", function () {
-          if (!r.open) { showToast("That chapter opens once " + c.need + " rooms of " + c.prev_name + " are cleared."); return; }
           send({ action: "pick", room: r.id });
           $("rooms-panel").hidden = true;
           $("rooms-toggle-button").setAttribute("aria-expanded", "false");
@@ -598,7 +596,7 @@
     if (list.dataset.sig === sig) return;
     list.dataset.sig = sig;
     list.textContent = "";
-    if (!view.goals.length) { list.appendChild(el("li", null, "Every goal you can reach right now is done. New ones appear as new chapters open.")); return; }
+    if (!view.goals.length) { list.appendChild(el("li", null, "Every goal you can reach right now is done. The sandbox goal appears once the sandbox is open.")); return; }
     view.goals.forEach(function (g) {
       var li = el("li");
       li.appendChild(el("strong", null, g.label + ": "));
@@ -798,12 +796,12 @@
   var TUTORIAL_STEPS = [
     { title: "Welcome to the deck", text: "A maintenance robot does exactly what your list says. Write the list, press Run, and watch. Nothing is timed, and a run that goes wrong costs nothing. Skip any time and reopen this from the Tutorial button." },
     { selector: "#room-panel", title: "The room", text: "The robot starts on its tile facing the way its nose points. The checklist above the room says what the room needs: here, reach the glowing exit pad. Parts are diamonds, sockets are dashed frames, switches are numbered plates and doors are barred and lettered." },
-    { selector: "#palette", title: "Instructions", text: "Tap an instruction to add it to your list. The robot only has what this room allows; more appear as you clear rooms. Forward moves one tile, and every instruction you add is one step." },
+    { selector: "#palette", title: "Instructions", text: "Tap an instruction to add it to your list. The robot only has what this room allows; later chapters add more. Forward moves one tile, and every instruction you add is one step." },
     { selector: "#program", title: "Your list", text: "The marked gap shows where the next step goes. Tap another gap to add somewhere else, the arrows move a step, and the x removes it. Undo takes back your last change." },
     { selector: "#run-button", title: "Run, Step and Skip", text: "Run plays your list. Step does one action at a time and Skip jumps to the end. If the robot cannot do a step (a wall, a shut door, nothing to pick up), it stops there and says why. Your list stays, so just fix it and run again." },
     { selector: "#size-line", title: "Steps and medals", text: "Fewer steps earn better medals: gold at the reference length, silver a little over, bronze for any clear. Hints are free and never touch a medal." },
     { selector: "#goals", title: "Your goals", text: "Three goals stay in view, and you can do them in any order. Every run, every step you write and every hint you ask for counts toward something on the screen." },
-    { selector: "#rooms-toggle-button", title: "Rooms and Scrap", text: "Rooms lists the chapters. Each room you clear gives Scrap, the salvage drone in the Workshop, a part, and a better list gives the same part a better finish. Once you have cleared every room of Loops, the third chapter, a free sandbox opens." },
+    { selector: "#rooms-toggle-button", title: "Rooms and Scrap", text: "Rooms lists every chapter, and every room is open from the start. Each room you clear gives Scrap, the salvage drone in the Workshop, a part, and a better list gives the same part a better finish. Once you have cleared every room of Loops, the third chapter, a free sandbox opens." },
     { title: "You are ready", text: "Take your time. Your lists and medals are saved as you go." }
   ];
 

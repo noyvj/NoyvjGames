@@ -224,9 +224,6 @@ class Game:
             facts["flag_" + flag] = 1 if flag in self.flags else 0
         return facts
 
-    def open_chapters(self):
-        return sum(1 for i in range(len(rooms.CHAPTER_LIST)) if progress.chapter_open(self.best, i))
-
     # ---- the view --------------------------------------------------------------------------------------------------
     def _list_view(self, items, laddr):
         out = []
@@ -275,19 +272,14 @@ class Game:
     def _rooms_view(self):
         out = []
         for chapter in rooms.CHAPTER_LIST:
-            idx = chapter["index"]
-            is_open = progress.chapter_open(self.best, idx)
             entries = []
             for number, rid in enumerate(chapter["rooms"], start=1):
                 r = rooms.BY_ID[rid]
-                entries.append({"id": rid, "name": r.name, "number": number, "par": r.par, "open": is_open,
+                entries.append({"id": rid, "name": r.name, "number": number, "par": r.par,
                                 "medal": progress.medal_of(self.best, rid), "best": self.best[rid]["n"] if rid in self.best else None,
                                 "current": rid == self.current})
-            prev = rooms.CHAPTER_LIST[idx - 1] if idx else None
-            need = min(progress.OPEN_AT, len(prev["rooms"])) if prev else 0
-            out.append({"id": chapter["id"], "name": chapter["name"], "blurb": chapter["blurb"], "open": is_open,
-                        "cleared": progress.cleared_in(self.best, chapter), "total": len(chapter["rooms"]), "need": need,
-                        "prev_name": prev["name"] if prev else "", "rooms": entries})
+            out.append({"id": chapter["id"], "name": chapter["name"], "blurb": chapter["blurb"],
+                        "cleared": progress.cleared_in(self.best, chapter), "total": len(chapter["rooms"]), "rooms": entries})
         return out
 
     def view(self, message="", ok=True, run_result=None, with_svg=False):
@@ -314,7 +306,7 @@ class Game:
             "tally": dict(self.tally),
             "hint": hints.view(r, 0) if sbx else hints.view(r, self.rungs.get(r.id, 0)),
             "scrap": companion.view(self.best),
-            "goals": achievements.goals(self.facts(), self.open_chapters(), sandbox=self.sandbox_open()),
+            "goals": achievements.goals(self.facts(), sandbox=self.sandbox_open()),
             "achievements": achievements.view(self.facts()),
             "about": info.view(),
             "run": run_result,
@@ -417,8 +409,6 @@ def handle(request_json):
         rid = request.get("room")
         if rid not in rooms.BY_ID:
             return json.dumps(g.view("There is no such room.", ok=False))
-        if not progress.room_open(g.best, rid):
-            return json.dumps(g.view("That chapter opens once five rooms of the one before are cleared.", ok=False))
         g._stash()
         g._enter(rid)
         return json.dumps(g.view())

@@ -62,23 +62,30 @@ def test_each_chapter_teaches_with_the_tool_it_adds():
             assert set(rooms.BY_ID[rid].allow.split()) == set(tools.split()) or idx == 0, rid
 
 
-def test_chapters_open_at_five_cleared_and_never_need_all():
+def test_every_chapter_and_room_is_open_from_the_start():
+    """AN-5 (owner answer Rs5): no chapter gating, so an empty save can open and play any room."""
     fresh()
-    best = {}
-    ch1 = rooms.CHAPTER_LIST[0]["rooms"]
-    assert not progress.chapter_open(best, 1)
-    for rid in ch1[:4]:
-        best[rid] = {"n": 1, "t": ""}
-    assert not progress.chapter_open(best, 1)
-    best[ch1[4]] = {"n": 1, "t": ""}
-    assert progress.chapter_open(best, 1) and not progress.chapter_open(best, 2)
+    assert all(progress.chapter_open({}, i) for i in range(len(rooms.CHAPTER_LIST)))
+    assert all(progress.room_open({}, rid) for rid in rooms.ORDER) and not progress.room_open({}, "no-such-room")
+    v = call(action="open")
+    for chapter in v["rooms"]:
+        assert "open" not in chapter and "need" not in chapter and all("open" not in r for r in chapter["rooms"])
+    last = rooms.CHAPTER_LIST[-1]["rooms"][-1]
+    v = call(action="pick", room=last)
+    assert v["ok"] and v["room"]["id"] == last
 
 
-def test_picking_a_locked_room_is_refused_with_a_reason():
+def test_old_saves_with_unlock_bookkeeping_still_load():
+    """Older saves never stored an unlock, but a save that still carries one (or a cur in a once-locked chapter) must load."""
     fresh()
-    v = call(action="pick", room=rooms.CHAPTER_LIST[1]["rooms"][0])
-    assert v["ok"] is False and "opens once five rooms" in v["message"]
-    assert v["room"]["id"] == "wake-up"
+    game.load_state({"cur": rooms.CHAPTER_LIST[4]["rooms"][2], "unlocked": [1, 2], "chapters_open": 3, "best": {}})
+    v = call(action="open")
+    assert v["room"]["id"] == rooms.CHAPTER_LIST[4]["rooms"][2]
+
+
+def test_next_room_offers_the_following_room_across_chapters():
+    best = {rid: {"n": 1, "t": ""} for rid in rooms.CHAPTER_LIST[0]["rooms"][:-1]}
+    assert progress.next_room(best, rooms.CHAPTER_LIST[0]["rooms"][0]) == rooms.CHAPTER_LIST[0]["rooms"][-1]
 
 
 def test_the_hint_ladder_climbs_one_rung_at_a_time_and_never_touches_a_medal():
@@ -150,8 +157,9 @@ def test_goals_show_up_to_three_reachable_ones():
     v = call(action="open")
     ids = [g["id"] for g in v["goals"]]
     assert len(ids) == 3 and ids[0] == "first_light"
-    assert "loop_the_loop" not in [a["id"] for a in achievements.goals({}, 1, count=20)]
-    assert "loop_the_loop" in [a["id"] for a in achievements.goals({}, 3, count=20)]
+    every = [a["id"] for a in achievements.goals({}, count=20)]
+    assert "loop_the_loop" in every and "two_minds" in every             # all chapters are open from the start
+    assert "tinkerer" not in every and "tinkerer" in [a["id"] for a in achievements.goals({}, count=20, sandbox=True)]
 
 
 def test_goals_never_list_something_already_earned():

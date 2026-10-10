@@ -18,6 +18,7 @@ Updated after every milestone. Read `planning/robot-script-plan.md`, `CLAUDE.md`
 - M7 Desktop boot: pc-config.json, pc.css, pc.js, generated pc.html, desktop tests; shared pc tests -k robot pass; 266 tests collected.
 
 - AN-3 (2026-10-11): sandbox opens after chapter 3 (Loops); tinkerer goal gated on the sandbox, not on chapter 6; tests updated.
+- AN-5 (2026-10-11): all chapters and rooms open from the start; tutorial, rooms panel, goals empty-state text updated; old saves load (tested).
 
 ## Next
 - Nothing in this folder. Hub registration is the hub session's job (title card, sw.js, game-*.json, CLAUDE.md row, dev logs); the plan's last section lists questions for the owner.

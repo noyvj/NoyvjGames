@@ -2,6 +2,10 @@
   "changelog": [
     {
       "date": "2026-10-11",
+      "entry": "Every chapter and room is now open from the start. There is no more clearing five rooms to open the next chapter: pick any room in any order and come back to the hard ones whenever you like. Your medals and saved lists are untouched."
+    },
+    {
+      "date": "2026-10-11",
       "entry": "The free sandbox now opens after the third chapter (Loops) instead of the last one, so you can paint rooms and try your own lists much earlier. Nothing you have already cleared changes."
     },
     {

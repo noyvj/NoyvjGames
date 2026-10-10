@@ -1,12 +1,11 @@
 """Robot Script -- progress rules: which chapters are open, how far along the player is.
 
-Nothing here is stored: it is all computed from `best`, the dict {room id: {"n": steps, "t": program text}} of the best
+Every room is open from the start. Nothing here is stored: it is all computed from `best`, the dict {room id: {"n": steps, "t": program text}} of the best
 clears, so a loaded save and a played one cannot disagree and a retuned par re-grades the medals on its own.
 """
 
 import rooms
 
-OPEN_AT = 5          # rooms of a chapter that must be cleared to open the next chapter
 SANDBOX_AFTER = 2    # index of the chapter (Loops, the third) whose rooms must all be cleared to open the free sandbox
 
 
@@ -15,10 +14,9 @@ def cleared_in(best, chapter):
 
 
 def chapter_open(best, index):
-    if index == 0:
-        return True
-    prev = rooms.CHAPTER_LIST[index - 1]
-    return cleared_in(best, prev) >= min(OPEN_AT, len(prev["rooms"]))
+    """Every chapter is open from the start (AN-5, 2026-10-11); it used to open at five rooms cleared in the one before.
+    Kept as a function (it ignores `best`) so older callers and saves, which never stored an unlock, keep working."""
+    return 0 <= index < len(rooms.CHAPTER_LIST)
 
 
 def chapter_done(best, index):
@@ -27,7 +25,7 @@ def chapter_done(best, index):
 
 
 def room_open(best, rid):
-    return chapter_open(best, rooms.BY_ID[rid].chapter)
+    return rid in rooms.BY_ID
 
 
 def sandbox_open(best):

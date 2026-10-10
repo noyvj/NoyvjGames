@@ -64,7 +64,7 @@ def test_a_halt_is_not_a_dead_end_and_is_counted():
     assert v["run"]["at"].startswith("main/")
 
 
-def test_chapter_gating_and_picking():
+def test_picking_a_room_by_id():
     fresh()
     v = call(action="pick", room="no-such")
     assert v["ok"] is False
@@ -157,7 +157,7 @@ def test_every_chapter_one_room_can_be_cleared_in_order_by_reference_play():
     for rid in rooms.CHAPTER_LIST[0]["rooms"]:
         v = solve_keep(rid)
         assert v["run"]["medal_name"] == "gold"
-    assert call(action="open")["totals"]["gold"] == 7
+    assert call(action="open")["totals"]["gold"] == len(rooms.CHAPTER_LIST[0]["rooms"])
 
 
 def solve_keep(rid):

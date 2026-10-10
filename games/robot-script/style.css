@@ -182,7 +182,6 @@ html[data-effects="off"] .rs-room .rs-switch.lit { filter: none; }
 .chapter { border-top: 1px solid var(--line); padding-top: 0.5rem; margin-top: 0.6rem; }
 .chapter:first-child { border-top: 0; margin-top: 0; padding-top: 0; }
 .chapter h3 { margin: 0; font-size: 1rem; }
-.chapter.locked { opacity: 0.8; }
 .room-grid { list-style: none; padding: 0; margin: 0.4rem 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(9.5rem, 1fr)); gap: 0.4rem; }
 .room-btn { width: 100%; text-align: left; display: flex; flex-direction: column; gap: 0.1rem; min-height: 3.4rem; }
 .room-btn.current { border-width: 3px; border-color: var(--accent); }
