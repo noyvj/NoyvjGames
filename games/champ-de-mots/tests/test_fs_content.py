@@ -30,6 +30,10 @@ FS_WEEKS = {
         "un anorak", "des bas", "un tailleur", "porter", "bleu clair", "vert foncé", "Ce sont des collants orange.",
         "des collants orange", "Cette chemise ne te va pas.", "Quels pulls sont en promotion?",
     ]},
+    6: {"row": 17, "topics": 7, "plots": 40, "must_have": [
+        "en lin", "uni(e)", "un sac noir en cuir", "affreux / affreuse", "moche / laid(e)", "Je prends celui-ci.",
+        "Quelle est votre pointure?", "celle en soie", "Tu vas vraiment porter ça?", "en vitrine", "un portefeuille",
+    ]},
 }
 
 
@@ -354,6 +358,64 @@ def test_week_5_choosing_clothes_phrases_translate_both_ways(game_env):
     assert len(topic["items"]) == 6
     assert _live(module, topic["id"], 2, "en", "That shirt doesn't suit you")
     assert _live(module, topic["id"], 1, "en", "Which jumpers are on sale")
+
+
+# --- week 6 ------------------------------------------------------------------
+
+
+def test_week_6_word_order_plot_puts_colour_before_material_and_pattern(game_env):
+    module = game_env.module
+    topic = _topic(module, "fren152-w7-grammar-fs02")
+    assert topic["topic_type"] == "grammar" and len(topic["items"]) == 6
+    colours = {"noir", "grise", "violets", "rouge", "blanche", "beige"}
+    for item in topic["items"]:
+        words = item["fr"].split()
+        assert (" en " in item["fr"]) or (" à " in item["fr"]), item["fr"]
+        assert colours & set(words), item["fr"]
+    assert "un pull en coton beige" in [i["fr"] for i in topic["items"]]  # material first is allowed too
+    assert "en + material" in topic["rule"] or "en + material" in topic["rule"].replace("noun + colour + ", "")
+
+
+def test_week_6_new_materials_and_styles_are_single_prepositional_phrases(game_env):
+    items = _topic(game_env.module, "fren152-w7-vocab-fs01")["items"]
+    frs = [i["fr"] for i in items]
+    assert frs[:2] == ["uni(e)", "à manches courtes"]
+    assert all(f.startswith("en ") for f in frs[2:])
+
+
+def test_week_6_opinion_words_have_distinct_english(game_env):
+    items = _topic(game_env.module, "fren152-w7-vocab-fs03")["items"]
+    glosses = [i["en"] for i in items]
+    assert len(set(glosses)) == len(glosses)
+    assert _live(game_env.module, "fren152-w7-vocab-fs03", 1, "en", "ugly")
+    assert _live(game_env.module, "fren152-w7-vocab-fs03", 1, "fr", "laid")  # either side of the slash
+
+
+def test_week_6_shop_talk_has_ten_phrases_and_the_polite_closing(game_env):
+    module = game_env.module
+    topic = _topic(module, "fren152-w7-phrase-fs04")
+    assert len(topic["items"]) == 10
+    assert topic["items"][-1]["fr"] == "Merci, bonne journée!"
+    assert _live(module, topic["id"], 8, "en", "I'll take this one")
+
+
+def test_week_6_opinion_questions_use_plaire_in_both_numbers(game_env):
+    frs = [i["fr"] for i in _topic(game_env.module, "fren152-w7-phrase-fs05")["items"]]
+    assert any("te plaît" in f for f in frs) and any("te plaisent" in f for f in frs)
+    assert len(frs) == 6
+
+
+def test_week_6_demonstrative_pronoun_uses_cover_de_qui_en_and_ci_la(game_env):
+    topic = _topic(game_env.module, "fren152-w7-grammar-fs06")
+    frs = [i["fr"] for i in topic["items"]]
+    assert frs[0].startswith("celui de") and "qui" in frs[2] and " en " in frs[1] and "-ci" in frs[4]
+    assert all(f.split()[0].startswith(("celui", "celle", "ceux", "celles")) for f in frs)
+
+
+def test_week_6_shoe_shop_words_are_a_real_vocab_list(game_env):
+    items = _topic(game_env.module, "fren152-w7-vocab-fs07")["items"]
+    assert [i["fr"] for i in items][:2] == ["en vitrine", "la pointure au-dessus"]
+    assert len(items) == 10
 
 
 def test_only_the_real_person_by_person_tables_count_as_conjugations(game_env):

@@ -9913,6 +9913,532 @@
               ]
             }
           ]
+        },
+        {
+          "id": "fren152-w7-vocab-fs01",
+          "topic_type": "vocab",
+          "title": "Materials, patterns and styles: more",
+          "items": [
+            {
+              "fr": "uni(e)",
+              "en": "plain",
+              "accepted_en": [
+                "plain",
+                "one-colour",
+                "solid-coloured",
+                "solid colour"
+              ]
+            },
+            {
+              "fr": "à manches courtes",
+              "en": "short-sleeved",
+              "accepted_en": [
+                "short-sleeved",
+                "with short sleeves"
+              ]
+            },
+            {
+              "fr": "en lin",
+              "en": "linen",
+              "accepted_en": [
+                "linen",
+                "made of linen",
+                "in linen"
+              ]
+            },
+            {
+              "fr": "en lycra",
+              "en": "lycra",
+              "accepted_en": [
+                "lycra",
+                "made of lycra",
+                "in lycra"
+              ]
+            },
+            {
+              "fr": "en plastique",
+              "en": "plastic",
+              "accepted_en": [
+                "plastic",
+                "made of plastic",
+                "in plastic"
+              ]
+            },
+            {
+              "fr": "en imitation cuir",
+              "en": "imitation leather",
+              "accepted_en": [
+                "imitation leather",
+                "faux leather",
+                "fake leather",
+                "made of imitation leather",
+                "synthetic leather"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "fren152-w7-grammar-fs02",
+          "topic_type": "grammar",
+          "title": "Word order: noun, colour, material or pattern",
+          "items": [
+            {
+              "fr": "un sac noir en cuir",
+              "en": "a black leather bag"
+            },
+            {
+              "fr": "une écharpe grise en laine",
+              "en": "a grey woollen scarf",
+              "accepted_en": [
+                "a grey woollen scarf",
+                "a gray woolen scarf",
+                "a grey wool scarf",
+                "a grey woolly scarf",
+                "a gray wool scarf",
+                "a grey woolen scarf",
+                "a gray woollen scarf"
+              ]
+            },
+            {
+              "fr": "des gants violets en soie",
+              "en": "purple silk gloves"
+            },
+            {
+              "fr": "une veste rouge à carreaux",
+              "en": "a red checked jacket",
+              "accepted_en": [
+                "a red checked jacket",
+                "a red check jacket",
+                "a red plaid jacket",
+                "a red chequered jacket"
+              ]
+            },
+            {
+              "fr": "une chemise blanche à pois",
+              "en": "a white spotted shirt",
+              "accepted_en": [
+                "a white spotted shirt",
+                "a white polka dot shirt",
+                "a white shirt with spots"
+              ]
+            },
+            {
+              "fr": "un pull en coton beige",
+              "en": "a beige cotton sweater",
+              "accepted_en": [
+                "a beige cotton sweater",
+                "a beige cotton jumper",
+                "a beige cotton pullover"
+              ]
+            }
+          ],
+          "rule": "The usual order is noun + colour + en + material (un sac noir en cuir) or noun + à + pattern. You can also put the material first (un pull en coton beige), which stresses the material."
+        },
+        {
+          "id": "fren152-w7-vocab-fs03",
+          "topic_type": "vocab",
+          "title": "Opinion words",
+          "items": [
+            {
+              "fr": "affreux / affreuse",
+              "en": "awful",
+              "accepted_en": [
+                "awful",
+                "terrible",
+                "dreadful",
+                "hideous",
+                "ghastly",
+                "horrible"
+              ]
+            },
+            {
+              "fr": "moche / laid(e)",
+              "en": "ugly",
+              "accepted_en": [
+                "ugly",
+                "unattractive"
+              ]
+            },
+            {
+              "fr": "branché(e)",
+              "en": "trendy",
+              "accepted_en": [
+                "trendy",
+                "fashionable",
+                "hip",
+                "stylish",
+                "in fashion"
+              ]
+            },
+            {
+              "fr": "super / chouette",
+              "en": "great",
+              "accepted_en": [
+                "great",
+                "super",
+                "neat",
+                "cool",
+                "lovely",
+                "fab"
+              ]
+            },
+            {
+              "fr": "génial(e)",
+              "en": "fantastic",
+              "accepted_en": [
+                "fantastic",
+                "brilliant",
+                "awesome",
+                "terrific",
+                "ingenious"
+              ]
+            },
+            {
+              "fr": "pas mal",
+              "en": "not bad",
+              "accepted_en": [
+                "not bad",
+                "quite good",
+                "not too bad"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "fren152-w7-phrase-fs04",
+          "topic_type": "phrase",
+          "title": "Shop talk: more phrases",
+          "items": [
+            {
+              "fr": "Je peux essayer ces sandales?",
+              "en": "Can I try on these sandals?",
+              "accepted_en": [
+                "Can I try on these sandals?",
+                "May I try on these sandals",
+                "Can I try these sandals on",
+                "May I try these sandals on",
+                "Could I try on these sandals"
+              ]
+            },
+            {
+              "fr": "Quelle est votre pointure?",
+              "en": "What is your shoe size?",
+              "accepted_en": [
+                "What is your shoe size?",
+                "What size shoe are you",
+                "What shoe size do you take",
+                "What shoe size are you",
+                "What size shoes do you wear"
+              ]
+            },
+            {
+              "fr": "Elles me plaisent.",
+              "en": "I like them.",
+              "accepted_en": [
+                "I like them.",
+                "They please me",
+                "I like those",
+                "I am pleased with them"
+              ]
+            },
+            {
+              "fr": "Avez-vous la pointure au-dessus?",
+              "en": "Do you have the next size up?",
+              "accepted_en": [
+                "Do you have the next size up?",
+                "Have you got the next size up",
+                "Do you have a size up",
+                "Have you the next size up"
+              ]
+            },
+            {
+              "fr": "Il est un peu étroit.",
+              "en": "It is a bit tight.",
+              "accepted_en": [
+                "It is a bit tight.",
+                "It's a bit tight",
+                "It is a little tight",
+                "It's a little tight",
+                "It is a bit narrow",
+                "It's a bit narrow",
+                "It is slightly tight"
+              ]
+            },
+            {
+              "fr": "C'est un peu trop cher pour moi.",
+              "en": "It is a little too expensive for me.",
+              "accepted_en": [
+                "It is a little too expensive for me.",
+                "It's a little too expensive for me",
+                "It is a bit too expensive for me",
+                "It's a bit too expensive for me",
+                "It is a bit too dear for me"
+              ]
+            },
+            {
+              "fr": "Nous avons ce modèle en bleu.",
+              "en": "We have this style in blue.",
+              "accepted_en": [
+                "We have this style in blue.",
+                "We have this model in blue",
+                "We have this design in blue",
+                "We've got this style in blue",
+                "We've got this model in blue"
+              ]
+            },
+            {
+              "fr": "Je propose cette veste.",
+              "en": "I suggest this jacket.",
+              "accepted_en": [
+                "I suggest this jacket.",
+                "I recommend this jacket",
+                "I propose this jacket",
+                "I'd suggest this jacket",
+                "I would suggest this jacket"
+              ]
+            },
+            {
+              "fr": "Je prends celui-ci.",
+              "en": "I will take this one.",
+              "accepted_en": [
+                "I will take this one.",
+                "I'll take this one",
+                "I am taking this one",
+                "I'm taking this one",
+                "I take this one",
+                "I'll take this one here"
+              ]
+            },
+            {
+              "fr": "Merci, bonne journée!",
+              "en": "Thank you, have a good day!",
+              "accepted_en": [
+                "Thank you, have a good day!",
+                "Thanks, have a good day",
+                "Thank you, have a nice day",
+                "Thanks, have a nice day"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "fren152-w7-phrase-fs05",
+          "topic_type": "phrase",
+          "title": "Asking for and giving opinions",
+          "items": [
+            {
+              "fr": "Comment trouves-tu ce style?",
+              "en": "What do you think of this style?",
+              "accepted_en": [
+                "What do you think of this style?",
+                "How do you find this style",
+                "What do you think about this style",
+                "What do you make of this style"
+              ]
+            },
+            {
+              "fr": "Ce pull-ci, il te plaît?",
+              "en": "This sweater, do you like it?",
+              "accepted_en": [
+                "This sweater, do you like it?",
+                "This jumper, do you like it",
+                "This pullover, do you like it"
+              ]
+            },
+            {
+              "fr": "Ces bottes, elles te plaisent?",
+              "en": "These boots, do you like them?",
+              "accepted_en": [
+                "These boots, do you like them?"
+              ]
+            },
+            {
+              "fr": "Je trouve cette jupe affreuse.",
+              "en": "I think this skirt is awful.",
+              "accepted_en": [
+                "I think this skirt is awful.",
+                "I find this skirt awful",
+                "I think this skirt is terrible",
+                "I find this skirt terrible",
+                "I think this skirt is dreadful",
+                "I find this skirt dreadful"
+              ]
+            },
+            {
+              "fr": "Je trouve que la couleur est jolie.",
+              "en": "I think the colour is pretty.",
+              "accepted_en": [
+                "I think the colour is pretty.",
+                "I think the color is pretty",
+                "I find the colour pretty",
+                "I find that the colour is pretty",
+                "I think that the colour is pretty",
+                "I think the colour is nice"
+              ]
+            },
+            {
+              "fr": "Tu vas vraiment porter ça?",
+              "en": "Are you really going to wear that?",
+              "accepted_en": [
+                "Are you really going to wear that?",
+                "Are you really going to wear it",
+                "You are really going to wear that",
+                "Are you seriously going to wear that"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "fren152-w7-grammar-fs06",
+          "topic_type": "grammar",
+          "title": "Demonstrative pronouns in use",
+          "items": [
+            {
+              "fr": "celui de Paul",
+              "en": "Paul's (the one)",
+              "accepted_en": [
+                "Paul's (the one)",
+                "Paul's one",
+                "the one of Paul",
+                "the one that is Paul's",
+                "Paul's"
+              ]
+            },
+            {
+              "fr": "celle en soie",
+              "en": "the silk one",
+              "accepted_en": [
+                "the silk one",
+                "the one in silk",
+                "the one made of silk",
+                "the silk one (fem.)"
+              ]
+            },
+            {
+              "fr": "ceux qui sont en noir",
+              "en": "the ones that are in black",
+              "accepted_en": [
+                "the ones that are in black",
+                "the ones in black",
+                "those that are in black",
+                "those in black",
+                "the ones which are in black"
+              ]
+            },
+            {
+              "fr": "celles de ma sœur",
+              "en": "my sister's (ones)",
+              "accepted_en": [
+                "my sister's (ones)",
+                "my sister's",
+                "those of my sister",
+                "my sister's ones",
+                "the ones of my sister"
+              ]
+            },
+            {
+              "fr": "celui-ci ou celui-là?",
+              "en": "this one or that one?",
+              "accepted_en": [
+                "this one or that one?",
+                "this one here or that one there"
+              ]
+            }
+          ],
+          "rule": "A demonstrative pronoun (celui, celle, ceux, celles) replaces a noun and agrees with it, and it needs something after it: de + the owner, qui, a phrase with en, or -ci / -là."
+        },
+        {
+          "id": "fren152-w7-vocab-fs07",
+          "topic_type": "vocab",
+          "title": "Shoe shop and gift words",
+          "items": [
+            {
+              "fr": "en vitrine",
+              "en": "in the shop window",
+              "accepted_en": [
+                "in the shop window",
+                "in the window",
+                "on display",
+                "in the display window"
+              ]
+            },
+            {
+              "fr": "la pointure au-dessus",
+              "en": "the next size up",
+              "accepted_en": [
+                "the next size up",
+                "the size up",
+                "one size up",
+                "the next shoe size up"
+              ]
+            },
+            {
+              "fr": "un marchand de chaussures",
+              "en": "a shoe seller",
+              "accepted_en": [
+                "a shoe seller",
+                "a shoe shop",
+                "a shoe salesman",
+                "a shoe dealer",
+                "a shoe merchant"
+              ]
+            },
+            {
+              "fr": "essayer",
+              "en": "to try on",
+              "accepted_en": [
+                "to try on",
+                "to try",
+                "to test"
+              ]
+            },
+            {
+              "fr": "coûter",
+              "en": "to cost"
+            },
+            {
+              "fr": "une étagère",
+              "en": "a shelf",
+              "accepted_en": [
+                "a shelf",
+                "a rack",
+                "a bookshelf"
+              ]
+            },
+            {
+              "fr": "le prix",
+              "en": "the price",
+              "accepted_en": [
+                "the price",
+                "the cost"
+              ]
+            },
+            {
+              "fr": "un portefeuille",
+              "en": "a wallet",
+              "accepted_en": [
+                "a wallet",
+                "a billfold"
+              ]
+            },
+            {
+              "fr": "un parfum",
+              "en": "a perfume",
+              "accepted_en": [
+                "a perfume",
+                "a scent",
+                "a fragrance"
+              ]
+            },
+            {
+              "fr": "un cadeau",
+              "en": "a present",
+              "accepted_en": [
+                "a present",
+                "a gift"
+              ]
+            }
+          ]
         }
       ],
       "bonus_sentences": [
