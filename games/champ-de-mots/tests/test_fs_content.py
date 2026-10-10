@@ -15,7 +15,11 @@ FS_WEEKS = {
     ]},
     2: {"row": 13, "topics": 10, "plots": 48, "must_have": [
         "je me lave", "je me lève", "je m'habille", "se promener", "se démaquiller", "d'abord", "en semaine",
-        "quatre fois par an", "Je ne fais jamais de sport.", "Aujourd'hui, c'est lundi.", "Le réveil sonne à six heures.",
+        "quatre fois par an", "Je ne fais jamais de ski.", "Aujourd'hui, c'est lundi.", "Le réveil sonne à six heures.",
+    ]},
+    3: {"row": 14, "topics": 7, "plots": 47, "must_have": [
+        "faire du yoga", "faire des promenades", "jouer aux cartes", "jouer du violon", "le karaté", "un rendez-vous",
+        "chez le dentiste", "Qu'est-ce que tu fais jeudi?", "partir en vacances", "sortir les poubelles",
     ]},
 }
 
@@ -183,3 +187,84 @@ def test_week_2_routine_words_and_frequency_have_their_english(game_env):
     freq = {i["fr"]: i["en"] for i in _topic(module, "fren152-w3-vocab-fs07")["items"]}
     assert freq["quatre fois par an"] == "four times a year" and freq["presque"] == "almost"
     assert _live(module, "fren152-w3-vocab-fs06", 3, "en", "afterwards")
+
+
+# --- week 3 ------------------------------------------------------------------
+
+
+def test_week_3_faire_items_take_the_right_little_word(game_env):
+    for item in _topic(game_env.module, "fren152-w4-vocab-fs01")["items"]:
+        words = item["fr"].split()
+        assert words[0] == "faire" and words[1] in {"du", "de", "des"}, item["fr"]
+        if words[1] == "de":
+            assert words[2] == "la", item["fr"]
+
+
+def test_week_3_jouer_items_separate_games_from_instruments(game_env):
+    module = game_env.module
+    for item in _topic(module, "fren152-w4-vocab-fs02")["items"]:
+        words = item["fr"].split()
+        assert words[0] == "jouer"
+        game_like = words[1] in {"au", "aux", "à"}
+        instrument_like = words[1] in {"du", "de"}
+        assert game_like != instrument_like, item["fr"]
+        assert ("to play the" in item["en"]) == instrument_like or "play" in item["en"]
+    # every instrument gloss names the instrument with its article
+    glosses = {i["fr"]: i["en"] for i in _topic(module, "fren152-w4-vocab-fs02")["items"]}
+    assert glosses["jouer du violon"] == "to play the violin"
+    assert glosses["jouer de la batterie"] == "to play the drums"
+
+
+def test_week_3_gym_and_appointment_words(game_env):
+    module = game_env.module
+    gym = {i["fr"]: i["en"] for i in _topic(module, "fren152-w4-vocab-fs03")["items"]}
+    assert gym["la gymnastique"] == "gymnastics" and gym["le judo"] == "judo"
+    appointments = [i["fr"] for i in _topic(module, "fren152-w4-vocab-fs04")["items"]]
+    assert "un rendez-vous" in appointments and "une soirée déguisée" in appointments
+    assert _live(module, "fren152-w4-vocab-fs04", 5, "en", "at the dentist")
+
+
+def test_week_3_plans_use_a_time_or_a_place(game_env):
+    module = game_env.module
+    sentences = _topic(module, "fren152-w4-phrase-fs05")["items"]
+    assert len(sentences) == 7
+    assert any("heures" in i["fr"] for i in sentences)
+    assert _live(module, "fren152-w4-phrase-fs05", 1, "en", "My judo class is at five pm")
+    assert _live(module, "fren152-w4-phrase-fs05", 6, "en", "I'm going to the market at the weekend")
+
+
+def test_week_3_jouer_grammar_plot_pairs_each_preposition_with_its_kind(game_env):
+    topic = _topic(game_env.module, "fren152-w4-grammar-fs06")
+    assert topic["topic_type"] == "grammar" and len(topic["items"]) == 6
+    kinds = {i["fr"]: i["en"] for i in topic["items"]}
+    assert kinds["Mon frère joue de la batterie."] == "My brother plays the drums."
+    assert kinds["Ma sœur joue aux cartes."] == "My sister plays cards."
+    assert "instrument" in topic["rule"] and "game" in topic["rule"]
+
+
+def test_week_3_sortir_family_keeps_the_infinitive_endings(game_env):
+    items = _topic(game_env.module, "fren152-w4-vocab-fs07")["items"]
+    verbs = [i["fr"].split()[0] for i in items]
+    assert verbs[:4] == ["sortir", "partir", "dormir", "servir"] and all(v.endswith("ir") for v in verbs[:4])
+    assert [i["fr"] for i in items][-1] == "sortir les poubelles"
+
+
+def test_week_2_never_example_was_reworded_not_copied(game_env):
+    first = _topic(game_env.module, "fren152-w3-grammar-fs08")["items"][0]
+    assert first["fr"] == "Je ne fais jamais de ski." and first["en"] == "I never go skiing."
+
+
+def test_only_the_real_person_by_person_tables_count_as_conjugations(game_env):
+    """A sentence list that merely starts with pronouns must not become a conjugation plot (the
+    pronoun swap would write nonsense); only the declared tables are."""
+    module = game_env.module
+    found = sorted(
+        p.topic_id for p in game_env.state.plots
+        if "-fs" in p.topic_id and module.is_conjugation_plot(p)
+    )
+    assert found == sorted(DECLARED_CONJUGATION_TABLES)
+
+
+DECLARED_CONJUGATION_TABLES = [
+    "fren152-w3-grammar-fs01", "fren152-w3-grammar-fs02", "fren152-w3-grammar-fs03",
+]

@@ -292,7 +292,7 @@ def test_cafe_correct_order_waters_the_dish_plot_and_a_twist_waters_the_grammar_
     mg = module.minigames
     mg.start_cafe()
     order = mg.cafe_order
-    dish_plot = module._plot_by_fr()[" ".join(order["credit_fr"][0].split()).lower()]
+    dish_plot = module.plot_for_fr(order["credit_fr"][0])  # a "a / b" dish finds either side
     assert dish_plot.stage == module.STAGE_SEED
     mg.submit_cafe_item_choice(order["answer"])
     assert dish_plot.stage == module.STAGE_SPROUT

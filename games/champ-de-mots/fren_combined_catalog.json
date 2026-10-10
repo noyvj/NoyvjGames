@@ -6723,14 +6723,12 @@
           "title": "Never: ne ... jamais",
           "items": [
             {
-              "fr": "Je ne fais jamais de sport.",
-              "en": "I never do sport.",
+              "fr": "Je ne fais jamais de ski.",
+              "en": "I never go skiing.",
               "accepted_en": [
-                "I never do sport.",
-                "I never play sport",
-                "I never do sports",
-                "I never play sports",
-                "I never exercise"
+                "I never go skiing.",
+                "I never ski",
+                "I never do skiing"
               ]
             },
             {
@@ -7313,6 +7311,484 @@
             }
           ],
           "rule": "Superlative uses definite article + plus/moins + adjective; 'de' after the superlative translates 'in' (la plus grande ville du monde). meilleur/pire and BAGS-type adjectives (beau, nouveau, vieux, bon, gentil, mauvais, grand, petit, gros, haut, large, bref) go BEFORE the noun even in the superlative."
+        },
+        {
+          "id": "fren152-w4-vocab-fs01",
+          "topic_type": "vocab",
+          "title": "Leisure activities with faire",
+          "items": [
+            {
+              "fr": "faire de la natation",
+              "en": "to go swimming",
+              "accepted_en": [
+                "to go swimming",
+                "to swim",
+                "to do swimming"
+              ]
+            },
+            {
+              "fr": "faire du bricolage",
+              "en": "to do DIY",
+              "accepted_en": [
+                "to do DIY",
+                "to do home improvements",
+                "to do odd jobs",
+                "to tinker",
+                "to do do-it-yourself"
+              ]
+            },
+            {
+              "fr": "faire de la danse",
+              "en": "to go dancing",
+              "accepted_en": [
+                "to go dancing",
+                "to dance",
+                "to do dance",
+                "to do dancing"
+              ]
+            },
+            {
+              "fr": "faire de la musculation",
+              "en": "to do weight training",
+              "accepted_en": [
+                "to do weight training",
+                "to do body-building",
+                "to do bodybuilding",
+                "to lift weights",
+                "to do strength training"
+              ]
+            },
+            {
+              "fr": "faire du jardinage",
+              "en": "to do gardening",
+              "accepted_en": [
+                "to do gardening",
+                "to garden",
+                "to do the gardening"
+              ]
+            },
+            {
+              "fr": "faire du surf",
+              "en": "to go surfing",
+              "accepted_en": [
+                "to go surfing",
+                "to surf",
+                "to do surfing"
+              ]
+            },
+            {
+              "fr": "faire des promenades",
+              "en": "to go for walks",
+              "accepted_en": [
+                "to go for walks",
+                "to go on walks",
+                "to take walks",
+                "to walk"
+              ]
+            },
+            {
+              "fr": "faire du yoga",
+              "en": "to do yoga"
+            },
+            {
+              "fr": "faire du ski",
+              "en": "to go skiing",
+              "accepted_en": [
+                "to go skiing",
+                "to ski",
+                "to do skiing"
+              ]
+            },
+            {
+              "fr": "faire des crêpes",
+              "en": "to make pancakes",
+              "accepted_en": [
+                "to make pancakes",
+                "to make crepes"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "fren152-w4-vocab-fs02",
+          "topic_type": "vocab",
+          "title": "Playing games, sports and instruments",
+          "items": [
+            {
+              "fr": "jouer aux cartes",
+              "en": "to play cards"
+            },
+            {
+              "fr": "jouer aux jeux vidéo",
+              "en": "to play video games",
+              "accepted_en": [
+                "to play video games",
+                "to play computer games"
+              ]
+            },
+            {
+              "fr": "jouer à l'ordinateur",
+              "en": "to play on the computer",
+              "accepted_en": [
+                "to play on the computer",
+                "to play on a computer",
+                "to play computer games"
+              ]
+            },
+            {
+              "fr": "jouer au basket",
+              "en": "to play basketball",
+              "accepted_en": [
+                "to play basketball",
+                "to play basket"
+              ]
+            },
+            {
+              "fr": "jouer au foot",
+              "en": "to play football",
+              "accepted_en": [
+                "to play football",
+                "to play soccer",
+                "to play footy"
+              ]
+            },
+            {
+              "fr": "jouer du violon",
+              "en": "to play the violin",
+              "accepted_en": [
+                "to play the violin",
+                "to play violin"
+              ]
+            },
+            {
+              "fr": "jouer de la clarinette",
+              "en": "to play the clarinet",
+              "accepted_en": [
+                "to play the clarinet",
+                "to play clarinet"
+              ]
+            },
+            {
+              "fr": "jouer de la batterie",
+              "en": "to play the drums",
+              "accepted_en": [
+                "to play the drums",
+                "to play drums"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "fren152-w4-vocab-fs03",
+          "topic_type": "vocab",
+          "title": "At the gym: classes",
+          "items": [
+            {
+              "fr": "le judo",
+              "en": "judo"
+            },
+            {
+              "fr": "le karaté",
+              "en": "karate"
+            },
+            {
+              "fr": "le yoga",
+              "en": "yoga"
+            },
+            {
+              "fr": "la gymnastique",
+              "en": "gymnastics",
+              "accepted_en": [
+                "gymnastics",
+                "gym",
+                "keep fit"
+              ]
+            },
+            {
+              "fr": "le squash",
+              "en": "squash"
+            },
+            {
+              "fr": "la musculation",
+              "en": "weight training",
+              "accepted_en": [
+                "weight training",
+                "body-building",
+                "bodybuilding",
+                "strength training",
+                "weights"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "fren152-w4-vocab-fs04",
+          "topic_type": "vocab",
+          "title": "Appointments and parties",
+          "items": [
+            {
+              "fr": "un rendez-vous",
+              "en": "an appointment",
+              "accepted_en": [
+                "an appointment",
+                "a meeting",
+                "a date"
+              ]
+            },
+            {
+              "fr": "un cours",
+              "en": "a class",
+              "accepted_en": [
+                "a class",
+                "a lesson",
+                "a course"
+              ]
+            },
+            {
+              "fr": "une soirée",
+              "en": "an evening party",
+              "accepted_en": [
+                "an evening party",
+                "a party",
+                "an evening"
+              ]
+            },
+            {
+              "fr": "une soirée déguisée",
+              "en": "a costume party",
+              "accepted_en": [
+                "a costume party",
+                "a fancy dress party",
+                "a dress-up party"
+              ]
+            },
+            {
+              "fr": "chez le coiffeur",
+              "en": "at the hairdresser's",
+              "accepted_en": [
+                "at the hairdresser's",
+                "at the hairdresser",
+                "at the hairdressers",
+                "at the barber's",
+                "to the hairdresser's"
+              ]
+            },
+            {
+              "fr": "chez le dentiste",
+              "en": "at the dentist's",
+              "accepted_en": [
+                "at the dentist's",
+                "at the dentist",
+                "at the dentists",
+                "to the dentist's"
+              ]
+            },
+            {
+              "fr": "un anniversaire",
+              "en": "a birthday",
+              "accepted_en": [
+                "a birthday",
+                "an anniversary"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "fren152-w4-phrase-fs05",
+          "topic_type": "phrase",
+          "title": "Making plans and giving times",
+          "items": [
+            {
+              "fr": "À quelle heure est ton rendez-vous?",
+              "en": "What time is your appointment?",
+              "accepted_en": [
+                "What time is your appointment?",
+                "What time is your meeting",
+                "At what time is your appointment",
+                "When is your appointment"
+              ]
+            },
+            {
+              "fr": "Mon cours de judo est à dix-sept heures.",
+              "en": "My judo class is at 17:00.",
+              "accepted_en": [
+                "My judo class is at 17:00.",
+                "My judo class is at five pm",
+                "My judo class is at 5 pm",
+                "My judo class is at five in the afternoon",
+                "My judo class is at 17h",
+                "My judo lesson is at 17:00",
+                "My judo class is at five o'clock"
+              ]
+            },
+            {
+              "fr": "Mon cours est de dix heures à onze heures.",
+              "en": "My class is from ten to eleven.",
+              "accepted_en": [
+                "My class is from ten to eleven.",
+                "My class is from 10 to 11",
+                "My lesson is from ten to eleven",
+                "My class is from ten until eleven"
+              ]
+            },
+            {
+              "fr": "Qu'est-ce que tu fais jeudi?",
+              "en": "What are you doing on Thursday?",
+              "accepted_en": [
+                "What are you doing on Thursday?",
+                "What are you doing Thursday",
+                "What do you do on Thursday",
+                "What are you doing this Thursday"
+              ]
+            },
+            {
+              "fr": "Je vais chez le dentiste.",
+              "en": "I am going to the dentist's.",
+              "accepted_en": [
+                "I am going to the dentist's.",
+                "I'm going to the dentist's",
+                "I am going to the dentist",
+                "I'm going to the dentist",
+                "I go to the dentist's"
+              ]
+            },
+            {
+              "fr": "Je vais à une soirée déguisée.",
+              "en": "I am going to a costume party.",
+              "accepted_en": [
+                "I am going to a costume party.",
+                "I'm going to a costume party",
+                "I am going to a fancy dress party",
+                "I'm going to a fancy dress party",
+                "I go to a costume party"
+              ]
+            },
+            {
+              "fr": "Je vais au marché ce week-end.",
+              "en": "I am going to the market this weekend.",
+              "accepted_en": [
+                "I am going to the market this weekend.",
+                "I'm going to the market this weekend",
+                "I am going to the market at the weekend",
+                "I'm going to the market at the weekend"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "fren152-w4-grammar-fs06",
+          "topic_type": "grammar",
+          "title": "Jouer à, jouer de or faire de?",
+          "items": [
+            {
+              "fr": "Ma sœur joue aux cartes.",
+              "en": "My sister plays cards."
+            },
+            {
+              "fr": "Mon frère joue de la batterie.",
+              "en": "My brother plays the drums."
+            },
+            {
+              "fr": "Nous jouons au tennis.",
+              "en": "We play tennis."
+            },
+            {
+              "fr": "Léa joue du piano.",
+              "en": "Léa plays the piano."
+            },
+            {
+              "fr": "Ils font de la natation.",
+              "en": "They go swimming.",
+              "accepted_en": [
+                "They go swimming.",
+                "They swim",
+                "They do swimming"
+              ]
+            },
+            {
+              "fr": "Paul fait du vélo.",
+              "en": "Paul goes cycling.",
+              "accepted_en": [
+                "Paul goes cycling.",
+                "Paul cycles",
+                "Paul rides a bike",
+                "Paul goes biking"
+              ]
+            }
+          ],
+          "rule": "Jouer à + a game or sport (au, à la, aux, à l'). Jouer de + an instrument (du, de la, des, de l'). Faire de + an activity you do rather than play (du vélo, de la natation); team sports can take either jouer à or faire de."
+        },
+        {
+          "id": "fren152-w4-vocab-fs07",
+          "topic_type": "vocab",
+          "title": "Verbs like sortir, and daily habits",
+          "items": [
+            {
+              "fr": "sortir",
+              "en": "to go out",
+              "accepted_en": [
+                "to go out",
+                "to exit"
+              ]
+            },
+            {
+              "fr": "partir",
+              "en": "to leave",
+              "accepted_en": [
+                "to leave",
+                "to go away",
+                "to depart"
+              ]
+            },
+            {
+              "fr": "dormir",
+              "en": "to sleep"
+            },
+            {
+              "fr": "servir",
+              "en": "to serve"
+            },
+            {
+              "fr": "prendre une douche",
+              "en": "to take a shower",
+              "accepted_en": [
+                "to take a shower",
+                "to have a shower",
+                "to shower"
+              ]
+            },
+            {
+              "fr": "sortir en boîte",
+              "en": "to go clubbing",
+              "accepted_en": [
+                "to go clubbing",
+                "to go to a nightclub",
+                "to go out clubbing",
+                "to go to a club"
+              ]
+            },
+            {
+              "fr": "partir en vacances",
+              "en": "to go on holiday",
+              "accepted_en": [
+                "to go on holiday",
+                "to leave on holiday",
+                "to go on vacation",
+                "to leave on vacation"
+              ]
+            },
+            {
+              "fr": "sortir les poubelles",
+              "en": "to take the bins out",
+              "accepted_en": [
+                "to take the bins out",
+                "to take out the rubbish",
+                "to take out the trash",
+                "to take out the garbage",
+                "to put the bins out"
+              ]
+            }
+          ]
         }
       ],
       "bonus_sentences": [
