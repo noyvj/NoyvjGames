@@ -124,3 +124,44 @@ def test_the_notebook_table_has_headers_and_the_page_does_not_scroll_sideways():
 
 def test_destructive_actions_ask_first():
     assert 'askThen("evidence-hunt-reset"' in APP and 'askThen("evidence-hunt-restore"' in APP and 'askThen("evidence-hunt-accuse"' in APP
+
+
+def test_the_tutorial_only_points_at_things_the_page_has():
+    ids = set(re.findall(r'(?<![-\w])id="([^"]+)"', HTML))
+    steps = APP.split("var TUTORIAL_STEPS = [")[1].split("];")[0]
+    selectors = re.findall(r'selector: "#([\w-]+)"', steps)
+    assert len(selectors) >= 8 and set(selectors) <= ids
+    assert 'id="tutorial-restart-button"' in HTML and "evidenceHuntTutorialSteps" in HTML and "tutorial.js" in HTML
+    assert "GameTutorial.init" in APP and 'gameId: "evidence-hunt"' in APP
+    assert steps.count("title:") == steps.count("text:") >= 10
+
+
+def test_the_about_page_states_the_fiction_notice_and_the_pledge():
+    import info
+    assert "fiction game" in info.NOTICE and "invented" in info.NOTICE
+    assert 'id="info-page-notice"' in HTML and "fiction game" in HTML.lower()
+    assert len(info.PLEDGE) >= 6 and any("No audio" in p for p in info.PLEDGE) and any("wrong spirit" in p.lower() or "wrong" in p.lower() for p in info.PLEDGE)
+    assert len(info.HOW) >= 5
+
+
+def test_the_keyboard_help_lists_the_shortcuts_the_page_really_has():
+    assert "1 to 6: pack or unpack" in HTML and "n >= 1 && n <= 6" in APP
+    for toggle in ("cases-toggle-button", "practice-toggle-button", "guide-toggle-button", "changelog-toggle-button", "settings-toggle-button", "info-page-toggle-button"):
+        assert '{ toggle: "%s"' % toggle in HTML
+
+
+def test_the_light_theme_restyles_the_bare_lists_and_sets_every_variable():
+    dark = set(re.findall(r"--([a-z-]+):", CSS.split(":root {")[1].split("}")[0]))
+    light = set(re.findall(r"--([a-z-]+):", CSS.split('html[data-theme="light"] {')[1].split("}")[0]))
+    assert dark == light, dark ^ light
+    assert 'html[data-theme="light"] ul.chips' in CSS and 'html[data-theme="light"] ul.guide-list' in CSS
+
+
+def test_display_settings_are_per_device_and_not_in_the_save():
+    js = (GAME_DIR / "settings.js").read_text(encoding="utf-8")
+    assert "evidence-hunt-text-scale" in js and "NOT part of get_state" in js and "prefers-reduced-motion" in js
+    import json
+
+    import game
+    game.game.__init__()
+    assert not re.search(r"scale|motion|contrast|theme|narrow", json.dumps(game.get_state()), flags=re.I)

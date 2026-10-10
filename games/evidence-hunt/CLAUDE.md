@@ -32,7 +32,7 @@ See `planning/evidence-hunt-plan.md` section 8 (the table is copied below and ke
 | 2 | Case UI | floor plan, kit, notebook, accuse, restore, save contract, favicon. Playable slice | Done |
 | 3 | Guide and hints | hint ladder, three-goals strip, field guide, keepsake return | Done |
 | 4 | Sandbox and finale | seeded codes, generator. First complete game | Done |
-| 5 | Standard kit | opening screen, tutorial, About with the fiction notice, What's New, keyboard help, confirm dialogs, light theme, accessibility | Planned |
+| 5 | Standard kit | opening screen, tutorial, About with the fiction notice, What's New, keyboard help, confirm dialogs, light theme, accessibility | Done |
 | 6 | Achievements | 14 achievements, panel, toast, manifest, reachability test | Planned |
 | 7 | Desktop boot | `pc-config.json`, `pc.css`, `pc.js`, generated `pc.html`, docs | Planned |
 
@@ -59,3 +59,7 @@ See `planning/evidence-hunt-plan.md` section 8 (the table is copied below and ke
 - Practice houses (`gen.py`): a code `EH<d>-<base36 seed>` (d = 1-5) is a pure function of (difficulty, seed). `make` builds a house by rejection (layout, truth, restless rooms, features, keepsake, account, sheet), keeps it only if `solver.validate` passes and the smallest working bag lies in the size's range (`SPEC[d]["min_kit"]` to the kit), tries 40 attempts per seed and then nearby seeds, and caches by (difficulty, seed). A small integer hash replaces any random source (a test scans for `random`). Sizes: 1 a small house, 2 a few rooms, 3 fooled readings (maybe a keepsake), 4 two presences, 5 a big house (kit of 4, one or two presences).
 - The game opens a practice house with `practice {difficulty}` (next seed from `next_seed(opened, d)`) or `practice {code}`. A practice case is `cur` like any other (its id is `practice-<d>-<seed36>`), keeps its action tokens in `run` (at most 3 unfinished practice runs are kept), never changes `best`, and when solved adds its code to `sb.done` (distinct codes; the Fresh Eyes achievement). Readings, rooms and guide pages from practice count as usual. `sb.n` counts houses opened by size so the next one is always new.
 - UI: a Practice panel (five size buttons and a code box), the code with a Copy button in the case head, and "Another: <size>" on the result card.
+
+## Milestone 5 notes
+- Standard kit: the shared opening screen (Continue / New Game / Saves), a 13-step tutorial (`TUTORIAL_STEPS` in app.js, reopened from the Tutorial button; `window.evidenceHuntTutorialSteps` lets the Desktop boot swap in its own steps), About with the fiction notice and the pledge, What's New + the shared banner, keyboard help (1 to 6 pack or unpack), confirm dialogs for Restore, naming a spirit (with "don't ask again") and the whole-book reset, the story toggle on the story lines, a light theme with every variable set twice (a test compares the two lists).
+- `tests/test_accessibility.py` computes contrast from the CSS variables in both themes and checks the shape and word cues (restless rooms with a thick border and the word, packed equipment with a thick border and "In the bag", readings by border style, struck-through ruled-out suspects, emblems with names).

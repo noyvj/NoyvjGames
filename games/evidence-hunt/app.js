@@ -631,6 +631,22 @@
     window.evidenceHuntRefresh = function () { if (engine) { caseId = null; send({ action: "open" }); } };
   }
 
+  var TUTORIAL_STEPS = [
+    { title: "Welcome to the notebook", text: "You are the quiet investigator a client calls when a house feels wrong. Each case is a house drawn as a floor plan, and you work out which kind of spirit is in it. Nothing is timed, nobody is harmed, and a wrong name only costs a point. The spirits and rules are invented. Skip any time and reopen this from the Tutorial button." },
+    { selector: "#house-plan", title: "The house", text: "Tap a room to walk in. Walking is free. The moment you step in, the room tells you whether it is restless (a spirit is there) or still. Walk every room first." },
+    { selector: "#gear-row", title: "Your bag", text: "Pack a few pieces of equipment before your first reading. The bag holds only a few, so pick the ones that tell the suspects apart. Once you take a reading the bag is locked, and a different bag is a second trip that costs 1." },
+    { selector: "#room-box", title: "A reading", text: "In a restless room, use a piece of equipment from your bag. A reading is yes, no, or doubtful. Doubtful means the house fooled it (a draught, old wiring, a keepsake), so it tells you nothing about the spirit." },
+    { selector: "#notebook-panel", title: "The notebook", text: "Every reading is written here, room by room. A restless room is marked with a thick border and the word Restless." },
+    { selector: "#sheet-panel", title: "The book of visitors", text: "These are the kinds that might be in this house, each with three pieces of evidence and two habits. Kinds your notebook rules out are struck through. The client's account and any keepsake line are true." },
+    { selector: "#accuse-box", title: "Name the spirit", text: "When only one kind fits, pick it and name it. A wrong name costs 1 and nothing else: your notebook stays and you can try again. The case always ends with a quiet note about who the spirit was." },
+    { selector: "#restore-button", title: "Restore", text: "You can restore a case to its start at any time, for free, and try a different plan. Your seals are kept." },
+    { selector: "#hint-button", title: "Hints", text: "Stuck? Ask for a nudge, then a hint, then the answer. Hints are free, only when you ask, and never touch a seal." },
+    { selector: "#goals", title: "Your goals", text: "Three goals stay in view, in any order. Every room, reading and name counts toward something on the screen." },
+    { selector: "#guide-toggle-button", title: "The field guide", text: "Every spirit you name, every kind of evidence you read, every piece of equipment you use and every keepsake you return is filed in the guide. Nothing is missable." },
+    { selector: "#practice-toggle-button", title: "Practice houses", text: "Pick a size, or type a code, for a house made from that code. The same code always makes the same house." },
+    { title: "You are ready", text: "Take your time. Your seals and guide pages are saved as you go." }
+  ];
+
   async function boot() {
     var changelog = loadChangelog();
     var pyodide = await window.loadPyodide();
@@ -649,6 +665,7 @@
     $("engine-status").textContent = "";
     send({ action: "open" });
     await changelog;
+    if (window.GameTutorial) window.GameTutorial.init(window.evidenceHuntTutorialSteps ? window.evidenceHuntTutorialSteps(TUTORIAL_STEPS) : TUTORIAL_STEPS, { gameId: "evidence-hunt" });
   }
 
   wire();

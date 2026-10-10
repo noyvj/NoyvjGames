@@ -11,8 +11,10 @@ Updated after every milestone. Read `planning/evidence-hunt-plan.md`, `CLAUDE.md
 
 - M4 Sandbox: gen.py (practice codes, generator by rejection, 5 sizes), practice actions, Practice panel, code copy, 98 tests; checked live (opened a size-3 practice house, code shown). The first complete game now exists.
 
+- M5 Standard kit: 13-step tutorial, About checks, keyboard help test, light-theme variable parity test, display settings test; 103 tests; tutorial and light theme checked live.
+
 ## Next
-- M5 Standard kit: tutorial steps (app.js), About page checks, confirm dialogs (done for restore, reset, naming), keyboard help, light theme and accessibility checks, What's New.
+- M6 Achievements: panel (`#achievements-panel`, button), toast on a new achievement, `achievements.json` manifest generated from `achievements.py` plus a test that keeps them equal, whole-game test earns all 14 (needs 3 practice solves and 5 covered solves).
 
 ## Open problems / notes
 - Local Python is 3.9: engine code avoids 3.10+ syntax.
