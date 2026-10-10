@@ -1554,3 +1554,18 @@ html[data-hatch-patterns="true"] .meter-fill--supply {
 .achievement-card:hover .achievement-card-left, .achievement-card:focus .achievement-card-left, .achievement-card:focus-within .achievement-card-left { opacity: 1; }
 .achievement-card:focus-visible { outline: 2px solid #e0c24c; outline-offset: 2px; }
 @media (hover: none) { .achievement-card-bar, .achievement-card-left { opacity: 1; } }
+
+/* F-29: dotted-underline glossary words, their popover, and the glossary at the foot of How to Play. */
+.glossary-term { border-bottom: 1px dotted currentColor; cursor: help; }
+.glossary-term:hover, .glossary-term:focus-visible { background: rgba(224, 194, 76, 0.18); outline: none; }
+.glossary-term:focus-visible { box-shadow: 0 0 0 2px #e0c24c; border-radius: 2px; }
+#glossary-popover {
+  position: fixed; z-index: 3000; padding: 0.5rem 0.65rem; border-radius: 8px; font-size: 0.8rem; line-height: 1.4;
+  background: #14161f; color: #f1f2f8; border: 1px solid rgba(224, 194, 76, 0.7); box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45); pointer-events: none;
+}
+html[data-theme="light"] #glossary-popover { background: #fffdf6; color: #1b1710; border-color: rgba(122, 74, 18, 0.55); }
+html[data-high-contrast="true"] #glossary-popover { background: #000; color: #fff; border: 2px solid #ffd400; }
+.howto-glossary { margin-top: 0.8rem; padding-top: 0.5rem; border-top: 1px solid rgba(140, 160, 255, 0.18); font-size: 0.82rem; }
+.howto-glossary h3 { margin: 0 0 0.4rem; font-size: 0.95rem; }
+.howto-glossary dt { font-weight: 700; margin-top: 0.4rem; }
+.howto-glossary dd { margin: 0.1rem 0 0; line-height: 1.4; }

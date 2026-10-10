@@ -245,6 +245,164 @@
     return box;
   }
 
+  // F-29: plain-language glossary. The first mention of each hard word in the explainer text
+  // (the "i" notes, the intro blurb, the How to Play steps) gets a dotted underline; hover, focus or
+  // tap opens a short definition, and How to Play ends with the whole glossary. The words are found
+  // in static text only, so the game's own live readouts are never rewritten.
+  const GLOSSARY = [
+    { key: "coupling", name: "Coupling ratio", pattern: /coupling ratio/i,
+      text: "How much methane one herd unit gives off in a round. 1.00 is the starting level; every decoupling investment pushes it down." },
+    { key: "decoupling", name: "Decoupling", pattern: /decoupl(?:ing|ed|e)\b/i,
+      text: "Cutting the methane each animal gives off without shrinking the herd, so the farm can grow without its emissions growing at the same rate." },
+    { key: "baseline", name: "Baseline farm (counterfactual)", pattern: /baseline farm|counterfactual|pure-growth/i,
+      text: "An imaginary second farm with the same herd that never spent anything on decoupling. Comparing with it shows whether your spending paid off." },
+    { key: "welfare", name: "Welfare", pattern: /welfare/i,
+      text: "A 0 to 100 score for how well the animals are kept. Better feed, herd caps and breeding raise it, and above 50 it lifts income by up to 10%." },
+    { key: "capture", name: "Capture systems", pattern: /capture systems?/i,
+      text: "Equipment that traps methane from manure and barns. The first two units are used on the farm itself; extra units let you sell biogas." },
+    { key: "pressure", name: "Pressure", pattern: /(?:market\/regulatory )?pressure/i,
+      text: "Income lost to market and regulator pushback. It grows with all the methane you have ever added, never resets, and stops at 80%." },
+    { key: "certification", name: "Sustainable certification", pattern: /(?:sustainable )?certif\w+/i,
+      text: "A permanent +10% price premium, earned by holding a coupling ratio of 0.50 or lower for 5 rounds in a row." },
+    { key: "equivalent", name: "Methane-equivalent", pattern: /methane-equivalent/i,
+      text: "Poultry emissions are mostly other gases, so the game turns them into one methane-like number you can compare with cattle." },
+  ];
+  const GLOSSARY_SCOPE = ".info-toggle p, .context-blurb, #howto-panel .howto-step p";
+  let glossaryPopover = null;
+  let glossaryOwner = null;
+
+  function glossaryEntry(key) {
+    for (let i = 0; i < GLOSSARY.length; i++) if (GLOSSARY[i].key === key) return GLOSSARY[i];
+    return null;
+  }
+
+  function markGlossaryTerms(container) {
+    if (container.dataset.glossaryDone === "1") return;
+    container.dataset.glossaryDone = "1";
+    const nodes = [];
+    const walker = document.createTreeWalker(container, NodeFilter.SHOW_TEXT);
+    while (walker.nextNode()) nodes.push(walker.currentNode);
+    const used = {};
+    nodes.forEach(function (node) {
+      let current = node;
+      GLOSSARY.forEach(function (entry) {
+        if (used[entry.key] || !current || !current.parentNode) return;
+        const match = entry.pattern.exec(current.nodeValue);
+        if (!match) return;
+        used[entry.key] = true;
+        const after = current.splitText(match.index + match[0].length);
+        const hit = current.splitText(match.index);
+        const span = document.createElement("span");
+        span.className = "glossary-term";
+        span.setAttribute("tabindex", "0");
+        span.setAttribute("role", "button");
+        span.setAttribute("data-glossary", entry.key);
+        span.setAttribute("aria-label", entry.name + ": " + entry.text);
+        hit.parentNode.replaceChild(span, hit);
+        span.appendChild(hit);
+        current = after;
+      });
+    });
+  }
+
+  function scanGlossary() {
+    document.querySelectorAll(GLOSSARY_SCOPE).forEach(markGlossaryTerms);
+  }
+
+  function hideGlossaryPopover() {
+    if (glossaryPopover) glossaryPopover.hidden = true;
+    glossaryOwner = null;
+  }
+
+  function showGlossaryPopover(term) {
+    const entry = glossaryEntry(term.getAttribute("data-glossary"));
+    if (!entry) return;
+    if (!glossaryPopover) {
+      glossaryPopover = document.createElement("div");
+      glossaryPopover.id = "glossary-popover";
+      glossaryPopover.setAttribute("role", "tooltip");
+      glossaryPopover.hidden = true;
+      document.body.appendChild(glossaryPopover);
+    }
+    glossaryPopover.textContent = "";
+    const title = document.createElement("strong");
+    title.textContent = entry.name;
+    glossaryPopover.appendChild(title);
+    glossaryPopover.appendChild(document.createElement("br"));
+    glossaryPopover.appendChild(document.createTextNode(entry.text));
+    glossaryPopover.hidden = false;
+    glossaryOwner = term;
+    const rect = term.getBoundingClientRect();
+    const width = Math.min(280, window.innerWidth - 16);
+    glossaryPopover.style.width = width + "px";
+    const left = Math.max(8, Math.min(rect.left, window.innerWidth - width - 8));
+    glossaryPopover.style.left = left + "px";
+    const below = rect.bottom + 6;
+    const height = glossaryPopover.offsetHeight;
+    glossaryPopover.style.top = (below + height > window.innerHeight ? Math.max(8, rect.top - height - 6) : below) + "px";
+  }
+
+  function buildGlossaryBlock() {
+    const box = document.createElement("div");
+    box.className = "howto-glossary";
+    const heading = document.createElement("h3");
+    heading.textContent = "Glossary";
+    box.appendChild(heading);
+    const list = document.createElement("dl");
+    GLOSSARY.forEach(function (entry) {
+      const dt = document.createElement("dt");
+      dt.textContent = entry.name;
+      const dd = document.createElement("dd");
+      dd.textContent = entry.text;
+      list.appendChild(dt);
+      list.appendChild(dd);
+    });
+    box.appendChild(list);
+    return box;
+  }
+
+  function initGlossary() {
+    scanGlossary();
+    document.addEventListener("mouseover", function (event) {
+      const term = event.target.closest && event.target.closest(".glossary-term");
+      if (term) showGlossaryPopover(term);
+    });
+    document.addEventListener("mouseout", function (event) {
+      const term = event.target.closest && event.target.closest(".glossary-term");
+      if (term && term === glossaryOwner && document.activeElement !== term) hideGlossaryPopover();
+    });
+    document.addEventListener("focusin", function (event) {
+      const term = event.target.closest && event.target.closest(".glossary-term");
+      if (term) showGlossaryPopover(term);
+    });
+    document.addEventListener("focusout", function (event) {
+      if (event.target.closest && event.target.closest(".glossary-term")) hideGlossaryPopover();
+    });
+    document.addEventListener("click", function (event) {
+      const term = event.target.closest && event.target.closest(".glossary-term");
+      if (term) {
+        if (glossaryOwner === term && !glossaryPopover.hidden) hideGlossaryPopover();
+        else showGlossaryPopover(term);
+      } else {
+        hideGlossaryPopover();
+      }
+    });
+    document.addEventListener("keydown", function (event) {
+      if (event.key === "Escape" && glossaryPopover && !glossaryPopover.hidden) {
+        hideGlossaryPopover();
+        event.stopPropagation();
+      }
+    }, true);
+    const howto = document.getElementById("howto-panel");
+    if (howto) {
+      new MutationObserver(function () {
+        scanGlossary();
+        if (!howto.querySelector(":scope > .howto-glossary")) howto.appendChild(buildGlossaryBlock());
+      }).observe(howto, { childList: true });
+      if (!howto.querySelector(":scope > .howto-glossary")) howto.appendChild(buildGlossaryBlock());
+    }
+  }
+
   function initKeyboardPlay() {
     document.addEventListener("keydown", onLeverKey);
     const howto = document.getElementById("howto-panel");
@@ -261,6 +419,7 @@
     initDisplayPrefs();
     initConfirmThreshold();
     initKeyboardPlay();
+    initGlossary();
     let scale = readStoredScale();
     applyScale(scale);
     let reduced = readStoredMotion();
@@ -326,5 +485,6 @@
   window.HerdSettings = {
     applyScale: applyScale, applyMotion: applyMotion, MIN_SCALE: MIN_SCALE, MAX_SCALE: MAX_SCALE,
     cheatSheetItems: CHEAT_SHEET_ITEMS,
+    glossary: GLOSSARY,
   };
 })();
