@@ -13080,6 +13080,745 @@
             }
           ],
           "rule": "'En' replaces a partitive or quantity expression + noun, and goes before the verb. It has no direct English equivalent (often 'of it/them', frequently dropped in English)."
+        },
+        {
+          "id": "fren152-w10-vocab-fs01",
+          "topic_type": "vocab",
+          "title": "Quantity words: more",
+          "items": [
+            {
+              "fr": "une tablette de",
+              "en": "a bar of",
+              "accepted_en": [
+                "a bar of",
+                "a block of",
+                "a slab of"
+              ]
+            },
+            {
+              "fr": "une carafe de",
+              "en": "a carafe of",
+              "accepted_en": [
+                "a carafe of",
+                "a jug of",
+                "a pitcher of"
+              ]
+            },
+            {
+              "fr": "cent grammes de",
+              "en": "a hundred grams of",
+              "accepted_en": [
+                "a hundred grams of",
+                "100 grams of",
+                "one hundred grams of",
+                "a hundred grammes of",
+                "100 g of"
+              ]
+            },
+            {
+              "fr": "une douzaine de",
+              "en": "a dozen",
+              "accepted_en": [
+                "a dozen",
+                "a dozen of",
+                "twelve"
+              ]
+            },
+            {
+              "fr": "une livre de",
+              "en": "a pound of",
+              "accepted_en": [
+                "a pound of",
+                "500 grams of",
+                "half a kilo of"
+              ]
+            },
+            {
+              "fr": "une demi-livre de",
+              "en": "half a pound of",
+              "accepted_en": [
+                "half a pound of",
+                "250 grams of",
+                "a half pound of"
+              ]
+            },
+            {
+              "fr": "un sachet de",
+              "en": "a sachet of",
+              "accepted_en": [
+                "a sachet of",
+                "a bag of",
+                "a pouch of"
+              ]
+            },
+            {
+              "fr": "une barquette de",
+              "en": "a tub of",
+              "accepted_en": [
+                "a tub of",
+                "a punnet of",
+                "a tray of",
+                "a carton of"
+              ]
+            },
+            {
+              "fr": "une cuillère de",
+              "en": "a spoonful of",
+              "accepted_en": [
+                "a spoonful of",
+                "a spoon of",
+                "a tablespoon of"
+              ]
+            },
+            {
+              "fr": "une part de",
+              "en": "a portion of",
+              "accepted_en": [
+                "a portion of",
+                "a piece of",
+                "a serving of",
+                "a share of"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "fren152-w10-phrase-fs02",
+          "topic_type": "phrase",
+          "title": "Quantities in sentences",
+          "items": [
+            {
+              "fr": "Je voudrais une tablette de chocolat.",
+              "en": "I would like a bar of chocolate.",
+              "accepted_en": [
+                "I would like a bar of chocolate.",
+                "I'd like a bar of chocolate",
+                "I want a bar of chocolate",
+                "I would like a block of chocolate",
+                "I'd like a block of chocolate"
+              ]
+            },
+            {
+              "fr": "Il faut une douzaine d'œufs.",
+              "en": "We need a dozen eggs.",
+              "accepted_en": [
+                "We need a dozen eggs.",
+                "I need a dozen eggs",
+                "You need a dozen eggs",
+                "A dozen eggs are needed",
+                "One needs a dozen eggs",
+                "It takes a dozen eggs",
+                "We need twelve eggs"
+              ]
+            },
+            {
+              "fr": "Elle achète deux cents grammes de fromage.",
+              "en": "She buys two hundred grams of cheese.",
+              "accepted_en": [
+                "She buys two hundred grams of cheese.",
+                "She is buying two hundred grams of cheese",
+                "She buys 200 grams of cheese",
+                "She's buying 200 grams of cheese",
+                "She is buying 200 grams of cheese",
+                "She buys two hundred grammes of cheese"
+              ]
+            },
+            {
+              "fr": "Ils boivent une carafe d'eau.",
+              "en": "They drink a carafe of water.",
+              "accepted_en": [
+                "They drink a carafe of water.",
+                "They are drinking a carafe of water",
+                "They drink a jug of water",
+                "They're drinking a carafe of water"
+              ]
+            },
+            {
+              "fr": "Nous mangeons trop de bonbons.",
+              "en": "We eat too many sweets.",
+              "accepted_en": [
+                "We eat too many sweets.",
+                "We are eating too many sweets",
+                "We eat too much candy",
+                "We eat too many candies",
+                "We are eating too much candy"
+              ]
+            },
+            {
+              "fr": "Tu as assez de pain?",
+              "en": "Do you have enough bread?",
+              "accepted_en": [
+                "Do you have enough bread?",
+                "Have you got enough bread",
+                "Do you have enough of bread",
+                "You have enough bread"
+              ]
+            },
+            {
+              "fr": "Il y a peu de lait.",
+              "en": "There is little milk.",
+              "accepted_en": [
+                "There is little milk.",
+                "There's little milk",
+                "There is not much milk",
+                "There isn't much milk",
+                "There is hardly any milk",
+                "There's not much milk"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "fren152-w10-grammar-fs03",
+          "topic_type": "grammar",
+          "title": "Fillings and flavours with à",
+          "items": [
+            {
+              "fr": "un sandwich au fromage",
+              "en": "a cheese sandwich"
+            },
+            {
+              "fr": "une glace à la fraise",
+              "en": "a strawberry ice cream",
+              "accepted_en": [
+                "a strawberry ice cream",
+                "a strawberry icecream"
+              ]
+            },
+            {
+              "fr": "des pâtes aux légumes",
+              "en": "pasta with vegetables",
+              "accepted_en": [
+                "pasta with vegetables",
+                "vegetable pasta",
+                "pasta with veggies"
+              ]
+            },
+            {
+              "fr": "une tarte aux pommes",
+              "en": "an apple tart",
+              "accepted_en": [
+                "an apple tart",
+                "an apple pie",
+                "a tart with apples"
+              ]
+            },
+            {
+              "fr": "une omelette au jambon",
+              "en": "a ham omelette",
+              "accepted_en": [
+                "a ham omelette",
+                "a ham omelet",
+                "an omelette with ham"
+              ]
+            },
+            {
+              "fr": "un gâteau à l'orange",
+              "en": "an orange cake",
+              "accepted_en": [
+                "an orange cake",
+                "a cake with orange"
+              ]
+            }
+          ],
+          "rule": "À + the article (au, à la, à l', aux) joins a dish to its main filling or flavour: un sandwich au fromage, une glace à la fraise. De stands for the container, not the content: un verre de lait."
+        },
+        {
+          "id": "fren152-w10-vocab-fs04",
+          "topic_type": "vocab",
+          "title": "Food shops and supermarket sections",
+          "items": [
+            {
+              "fr": "marchand de primeurs",
+              "en": "greengrocer",
+              "accepted_en": [
+                "greengrocer",
+                "fruit and vegetable seller",
+                "fruit and veg seller",
+                "greengrocer's",
+                "produce seller"
+              ]
+            },
+            {
+              "fr": "les produits laitiers",
+              "en": "dairy products",
+              "accepted_en": [
+                "dairy products",
+                "dairy produce",
+                "dairy goods"
+              ],
+              "accepted_fr": [
+                "les produits laitiers",
+                "produits laitiers"
+              ]
+            },
+            {
+              "fr": "les boissons alcoolisées",
+              "en": "alcoholic drinks",
+              "accepted_en": [
+                "alcoholic drinks",
+                "alcoholic beverages",
+                "alcohol"
+              ],
+              "accepted_fr": [
+                "les boissons alcoolisées",
+                "boissons alcoolisées"
+              ]
+            },
+            {
+              "fr": "les sucreries",
+              "en": "sweets",
+              "accepted_en": [
+                "sweets",
+                "sweet things",
+                "confectionery",
+                "candy",
+                "lollies"
+              ],
+              "accepted_fr": [
+                "les sucreries",
+                "sucreries"
+              ]
+            },
+            {
+              "fr": "sucré(e)",
+              "en": "sweet",
+              "accepted_en": [
+                "sweet",
+                "sugary"
+              ]
+            },
+            {
+              "fr": "salé(e)",
+              "en": "savoury",
+              "accepted_en": [
+                "savoury",
+                "salty",
+                "savory",
+                "salted"
+              ]
+            },
+            {
+              "fr": "une librairie",
+              "en": "a bookshop",
+              "accepted_en": [
+                "a bookshop",
+                "a bookstore",
+                "a book shop",
+                "a book store"
+              ]
+            },
+            {
+              "fr": "la crémerie",
+              "en": "the dairy shop",
+              "accepted_en": [
+                "the dairy shop",
+                "the dairy",
+                "the dairy store",
+                "the dairy bar",
+                "the creamery"
+              ]
+            },
+            {
+              "fr": "faire les courses",
+              "en": "to do the shopping",
+              "accepted_en": [
+                "to do the shopping",
+                "to go shopping",
+                "to go grocery shopping",
+                "to do the grocery shopping",
+                "to shop for groceries",
+                "to do the groceries",
+                "to go food shopping"
+              ]
+            },
+            {
+              "fr": "un rayon",
+              "en": "a department",
+              "accepted_en": [
+                "a department",
+                "an aisle",
+                "a section",
+                "a counter",
+                "a shelf"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "fren152-w10-phrase-fs05",
+          "topic_type": "phrase",
+          "title": "What you can buy where",
+          "items": [
+            {
+              "fr": "On peut y acheter du pain.",
+              "en": "You can buy bread there.",
+              "accepted_en": [
+                "You can buy bread there.",
+                "One can buy bread there",
+                "We can buy bread there",
+                "You can buy some bread there",
+                "You can purchase bread there",
+                "People can buy bread there"
+              ]
+            },
+            {
+              "fr": "À la poissonnerie, on achète du poisson.",
+              "en": "At the fishmonger's you buy fish.",
+              "accepted_en": [
+                "At the fishmonger's you buy fish.",
+                "At the fish shop you buy fish",
+                "At the fishmonger's one buys fish",
+                "At the fishmonger you buy fish",
+                "At the fish market you buy fish"
+              ]
+            },
+            {
+              "fr": "Chez le marchand de primeurs, on trouve des fruits.",
+              "en": "At the greengrocer's you find fruit.",
+              "accepted_en": [
+                "At the greengrocer's you find fruit.",
+                "At the greengrocer's one finds fruit",
+                "At the greengrocer you find fruit",
+                "At the greengrocer's you can find fruit",
+                "At the fruit and veg shop you find fruit"
+              ]
+            },
+            {
+              "fr": "Tu vas à la boucherie? Oui, j'y vais.",
+              "en": "Are you going to the butcher's? Yes, I am going there.",
+              "accepted_en": [
+                "Are you going to the butcher's? Yes, I am going there.",
+                "Are you going to the butcher's? Yes, I'm going there",
+                "Are you going to the butcher? Yes, I am going there",
+                "Are you going to the butcher? Yes, I'm going there",
+                "Are you going to the butcher's? Yes, I go there"
+              ]
+            },
+            {
+              "fr": "Elle y va tous les samedis.",
+              "en": "She goes there every Saturday.",
+              "accepted_en": [
+                "She goes there every Saturday.",
+                "She goes there on Saturdays",
+                "She is going there every Saturday",
+                "She goes there each Saturday",
+                "She goes there every Saturdays"
+              ]
+            },
+            {
+              "fr": "Nous y allons demain matin.",
+              "en": "We are going there tomorrow morning.",
+              "accepted_en": [
+                "We are going there tomorrow morning.",
+                "We're going there tomorrow morning",
+                "We go there tomorrow morning",
+                "We will go there tomorrow morning"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "fren152-w10-phrase-fs06",
+          "topic_type": "phrase",
+          "title": "In a food shop: buyer and seller",
+          "items": [
+            {
+              "fr": "À qui le tour?",
+              "en": "Whose turn is it?",
+              "accepted_en": [
+                "Whose turn is it?",
+                "Who is next",
+                "Who's next",
+                "Whose turn"
+              ]
+            },
+            {
+              "fr": "C'est à moi.",
+              "en": "It is my turn.",
+              "accepted_en": [
+                "It is my turn.",
+                "It's my turn",
+                "That's mine",
+                "It is mine",
+                "It's mine",
+                "It's me"
+              ]
+            },
+            {
+              "fr": "Avec ceci?",
+              "en": "Anything else with that?",
+              "accepted_en": [
+                "Anything else with that?",
+                "Anything with that",
+                "And with this",
+                "Anything else",
+                "With this"
+              ]
+            },
+            {
+              "fr": "Vous désirez autre chose?",
+              "en": "Would you like anything else?",
+              "accepted_en": [
+                "Would you like anything else?",
+                "Do you want anything else",
+                "Would you like something else",
+                "Do you want something else",
+                "Anything else"
+              ]
+            },
+            {
+              "fr": "Ce sera tout.",
+              "en": "That will be all.",
+              "accepted_en": [
+                "That will be all.",
+                "That'll be all",
+                "That is all",
+                "That's all",
+                "That will be everything"
+              ]
+            },
+            {
+              "fr": "Ça fait combien?",
+              "en": "How much does that come to?",
+              "accepted_en": [
+                "How much does that come to?",
+                "How much is that",
+                "How much is it altogether",
+                "How much does that make",
+                "What does that come to",
+                "How much does it come to"
+              ]
+            },
+            {
+              "fr": "Environ deux cents grammes.",
+              "en": "About two hundred grams.",
+              "accepted_en": [
+                "About two hundred grams.",
+                "Approximately two hundred grams",
+                "Roughly two hundred grams",
+                "About 200 grams",
+                "Around two hundred grams",
+                "About two hundred grammes"
+              ]
+            },
+            {
+              "fr": "Je suis désolé, il n'y en a plus.",
+              "en": "I am sorry, there is none left.",
+              "accepted_en": [
+                "I am sorry, there is none left.",
+                "I'm sorry, there is none left",
+                "I'm sorry, there's none left",
+                "I am sorry, there isn't any left",
+                "I'm sorry, there isn't any left",
+                "I am sorry, we have no more",
+                "Sorry, there is none left"
+              ]
+            },
+            {
+              "fr": "Avez-vous du camembert?",
+              "en": "Do you have any camembert?",
+              "accepted_en": [
+                "Do you have any camembert?",
+                "Have you got any camembert",
+                "Do you have some camembert",
+                "Do you have camembert"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "fren152-w10-vocab-fs07",
+          "topic_type": "vocab",
+          "title": "Cheese and fresh produce",
+          "items": [
+            {
+              "fr": "du camembert",
+              "en": "camembert"
+            },
+            {
+              "fr": "du gruyère",
+              "en": "gruyère",
+              "accepted_en": [
+                "gruyère",
+                "Gruyère cheese"
+              ]
+            },
+            {
+              "fr": "du roquefort",
+              "en": "roquefort",
+              "accepted_en": [
+                "roquefort",
+                "Roquefort cheese",
+                "blue cheese"
+              ]
+            },
+            {
+              "fr": "du fromage de chèvre",
+              "en": "goat's cheese",
+              "accepted_en": [
+                "goat's cheese",
+                "goats cheese",
+                "goat cheese",
+                "goat's milk cheese"
+              ]
+            },
+            {
+              "fr": "un raisin",
+              "en": "a grape"
+            },
+            {
+              "fr": "un pamplemousse",
+              "en": "a grapefruit"
+            },
+            {
+              "fr": "la pièce",
+              "en": "each",
+              "accepted_en": [
+                "each",
+                "per piece",
+                "a piece",
+                "apiece",
+                "per item"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "fren152-w10-grammar-fs08",
+          "topic_type": "grammar",
+          "title": "Object pronouns with the futur proche",
+          "items": [
+            {
+              "fr": "Je vais le faire.",
+              "en": "I am going to do it.",
+              "accepted_en": [
+                "I am going to do it.",
+                "I'm going to do it",
+                "I am going to make it",
+                "I'm going to make it"
+              ]
+            },
+            {
+              "fr": "Sophie va les inviter.",
+              "en": "Sophie is going to invite them.",
+              "accepted_en": [
+                "Sophie is going to invite them.",
+                "Sophie will invite them"
+              ]
+            },
+            {
+              "fr": "Nous allons la regarder.",
+              "en": "We are going to watch it.",
+              "accepted_en": [
+                "We are going to watch it.",
+                "We're going to watch it",
+                "We are going to look at it",
+                "We're going to look at it",
+                "We are going to watch her",
+                "We're going to watch her"
+              ]
+            },
+            {
+              "fr": "Tu ne vas pas l'acheter?",
+              "en": "Are you not going to buy it?",
+              "accepted_en": [
+                "Are you not going to buy it?",
+                "Aren't you going to buy it",
+                "You are not going to buy it",
+                "You aren't going to buy it",
+                "Are you not going to buy him",
+                "Are you not going to buy her",
+                "You're not going to buy it"
+              ]
+            },
+            {
+              "fr": "Mes amis vont nous aider.",
+              "en": "My friends are going to help us.",
+              "accepted_en": [
+                "My friends are going to help us.",
+                "My friends will help us"
+              ]
+            }
+          ],
+          "rule": "With aller + infinitive, the object pronoun goes right before the infinitive (je vais le faire), not before aller. In the negative, ne ... pas wraps aller (tu ne vas pas l'acheter)."
+        },
+        {
+          "id": "fren152-w10-grammar-fs09",
+          "topic_type": "grammar",
+          "title": "The pronoun en with quantities",
+          "items": [
+            {
+              "fr": "J'en veux deux.",
+              "en": "I want two (of them).",
+              "accepted_en": [
+                "I want two (of them).",
+                "I want two",
+                "I want two of them",
+                "I would like two"
+              ]
+            },
+            {
+              "fr": "Nous en prenons une bouteille.",
+              "en": "We take a bottle (of it).",
+              "accepted_en": [
+                "We take a bottle (of it).",
+                "We take a bottle",
+                "We are taking a bottle",
+                "We'll take a bottle",
+                "We take a bottle of it",
+                "We are taking a bottle of it"
+              ]
+            },
+            {
+              "fr": "Paul n'en a pas.",
+              "en": "Paul does not have any.",
+              "accepted_en": [
+                "Paul does not have any.",
+                "Paul doesn't have any",
+                "Paul has none",
+                "Paul hasn't any",
+                "Paul has not got any",
+                "Paul doesn't have any of it",
+                "Paul hasn't got any"
+              ]
+            },
+            {
+              "fr": "Marie en mange trop.",
+              "en": "Marie eats too much of it.",
+              "accepted_en": [
+                "Marie eats too much of it.",
+                "Marie eats too many of them",
+                "Marie is eating too much of it",
+                "Marie eats too much",
+                "Marie eats too many",
+                "Marie's eating too much of it"
+              ]
+            },
+            {
+              "fr": "Tu en veux combien?",
+              "en": "How many do you want?",
+              "accepted_en": [
+                "How many do you want?",
+                "How much do you want",
+                "How many of them do you want",
+                "How many do you want of them",
+                "How much of it do you want"
+              ]
+            },
+            {
+              "fr": "Léa en a assez.",
+              "en": "Léa has enough (of it).",
+              "accepted_en": [
+                "Léa has enough (of it).",
+                "Léa has enough",
+                "Léa has enough of it",
+                "Léa has had enough",
+                "Léa has enough of them"
+              ]
+            }
+          ],
+          "rule": "En replaces a noun introduced by du, de la, des, de or a number, and goes before the verb. With a number or a quantity, keep that word after the verb: j'en veux deux, nous en prenons une bouteille. In the negative, en stays inside ne ... pas."
         }
       ],
       "bonus_sentences": [

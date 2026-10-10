@@ -44,6 +44,11 @@ FS_WEEKS = {
         "au petit-déjeuner", "comme plat principal", "du couscous", "Non merci, pas de sel.", "J'adore les croissants.",
         "surveiller", "la santé",
     ]},
+    9: {"row": 20, "topics": 9, "plots": 52, "must_have": [
+        "une tablette de", "une douzaine de", "cent grammes de", "un sachet de", "un sandwich au fromage",
+        "marchand de primeurs", "faire les courses", "À qui le tour?", "Ce sera tout.", "du camembert", "un pamplemousse",
+        "Je vais le faire.", "J'en veux deux.",
+    ]},
 }
 
 
@@ -554,6 +559,66 @@ def test_week_8_ordering_phrases_and_health_words(game_env):
     assert len(_topic(module, "fren152-w9-phrase-fs09")["items"]) == 7
     health = {i["fr"]: i["en"] for i in _topic(module, "fren152-w9-vocab-fs12")["items"]}
     assert health["la santé"] == "health" and "n'oubliez pas" in health
+
+
+# --- week 9 ------------------------------------------------------------------
+
+
+def test_week_9_quantity_words_all_end_in_de(game_env):
+    for item in _topic(game_env.module, "fren152-w10-vocab-fs01")["items"]:
+        assert item["fr"].split()[-1] == "de", item["fr"]
+    assert _live(game_env.module, "fren152-w10-vocab-fs01", 3, "en", "twelve")
+
+
+def test_week_9_quantity_sentences_use_de_not_the_partitive(game_env):
+    for item in _topic(game_env.module, "fren152-w10-phrase-fs02")["items"]:
+        text = " " + item["fr"].lower().replace("'", "' ") + " "
+        assert " du " not in text and " des " not in text and " de la " not in text, item["fr"]
+
+
+def test_week_9_fillings_rule_pairs_a_with_the_content(game_env):
+    topic = _topic(game_env.module, "fren152-w10-grammar-fs03")
+    assert topic["topic_type"] == "grammar" and len(topic["items"]) == 6
+    for item in topic["items"]:
+        assert any(p in item["fr"] for p in (" au ", " aux ", " à la ", " à l'")), item["fr"]
+    assert "un verre de lait" in topic["rule"]
+
+
+def test_week_9_shop_words_and_supermarket_sections(game_env):
+    module = game_env.module
+    items = {i["fr"]: i["en"] for i in _topic(module, "fren152-w10-vocab-fs04")["items"]}
+    assert items["salé(e)"] == "savoury" and items["sucré(e)"] == "sweet"
+    assert _live(module, "fren152-w10-vocab-fs04", 8, "en", "to go grocery shopping")
+
+
+def test_week_9_y_sentences_name_where_you_go(game_env):
+    items = _topic(game_env.module, "fren152-w10-phrase-fs05")["items"]
+    assert sum(1 for i in items if " y " in i["fr"] or "j'y" in i["fr"]) >= 4
+    assert len(items) == 6
+
+
+def test_week_9_food_shop_dialogue_has_buyer_and_seller_lines(game_env):
+    module = game_env.module
+    items = {i["fr"]: i["en"] for i in _topic(module, "fren152-w10-phrase-fs06")["items"]}
+    assert len(items) == 9
+    assert items["À qui le tour?"] == "Whose turn is it?"
+    assert _live(module, "fren152-w10-phrase-fs06", 4, "en", "that's all")
+
+
+def test_week_9_cheese_and_produce_words(game_env):
+    items = [i["fr"] for i in _topic(game_env.module, "fren152-w10-vocab-fs07")["items"]]
+    assert items[:4] == ["du camembert", "du gruyère", "du roquefort", "du fromage de chèvre"]
+
+
+def test_week_9_pronoun_plots_follow_the_aller_and_en_rules(game_env):
+    module = game_env.module
+    futur = _topic(module, "fren152-w10-grammar-fs08")
+    assert "right before the infinitive" in futur["rule"]
+    assert all(" va" in i["fr"] or "vais" in i["fr"] or "allons" in i["fr"] or "vont" in i["fr"] for i in futur["items"])
+    en = _topic(module, "fren152-w10-grammar-fs09")
+    assert all(" en " in " " + i["fr"].replace("'", "' ") + " " or "'en" in i["fr"] for i in en["items"])
+    for topic in (futur, en):
+        assert not module.is_conjugation_plot(game_env.state.plots_by_id[topic["id"]])
 
 
 def test_only_the_real_person_by_person_tables_count_as_conjugations(game_env):
