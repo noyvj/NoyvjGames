@@ -235,6 +235,36 @@
       $("hint-do-button").hidden = h.kind === "none";
     }
   }
+  var knownEarned = null;
+  function renderAchievements() {
+    var list = $("achievements-list");
+    var earnedNow = [];
+    var sig = view.achievements.map(function (a) { return a.id + a.have; }).join(",");
+    if (list.dataset.sig !== sig) {
+      list.dataset.sig = sig;
+      list.textContent = "";
+      view.achievements.forEach(function (a) {
+        var li = el("li", a.earned ? "earned" : "");
+        li.setAttribute("data-achievement-id", a.id);
+        li.appendChild(el("span", "tick", a.earned ? "Earned" : a.have + "/" + a.need));
+        var name = el("strong", null, " " + a.label + " ");
+        name.setAttribute("data-achievement-label", "");
+        li.appendChild(name);
+        li.appendChild(el("span", null, a.description));
+        list.appendChild(li);
+      });
+    }
+    view.achievements.forEach(function (a) { if (a.earned) earnedNow.push(a.id); });
+    $("achievements-toggle-button").textContent = "Achievements (" + earnedNow.length + "/" + view.achievements.length + ")";
+    if (knownEarned !== null) {
+      earnedNow.filter(function (id) { return knownEarned.indexOf(id) === -1; }).forEach(function (id) {
+        var a = view.achievements.filter(function (x) { return x.id === id; })[0];
+        showToast("Achievement unlocked: " + a.label + ".");
+        announce("Achievement unlocked: " + a.label + ".");
+      });
+    }
+    knownEarned = earnedNow;
+  }
   function renderTally() {
     var t = view.tally;
     bumpValue("stat-sent", t.sent);
@@ -365,6 +395,7 @@
     renderHints();
     renderTally();
     renderArchive();
+    renderAchievements();
   }
 
   // ---- talking to the engine -----------------------------------------------------------------------
@@ -423,6 +454,7 @@
     wirePanelToggle("settings-toggle-button", "settings-panel");
     wirePanelToggle("map-toggle-button", "map-panel");
     wirePanelToggle("archive-toggle-button", "archive-panel");
+    wirePanelToggle("achievements-toggle-button", "achievements-panel");
     wirePanelToggle("changelog-toggle-button", "changelog-panel");
     wirePanelToggle("info-page-toggle-button", "info-page-panel");
     $("hint-button").addEventListener("click", function () { send({ action: "hint" }); });
@@ -444,7 +476,7 @@
     document.addEventListener("keydown", onKey);
     document.addEventListener("stranded-reveal-change", function () { if (view && !tapMode()) { shown = 1e9; render(); } });
     // The save widget loads a save straight into the engine; this redraws afterwards.
-    window.strandedRefresh = function () { if (engine) { shown = 1e9; send({ action: "open" }); } };
+    window.strandedRefresh = function () { if (engine) { shown = 1e9; knownEarned = null; send({ action: "open" }); } };
   }
 
   var TUTORIAL_STEPS = [

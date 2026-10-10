@@ -1,0 +1,74 @@
+{
+  "achievements": [
+    {
+      "id": "first_words",
+      "label": "First Words",
+      "description": "Send your first reply."
+    },
+    {
+      "id": "three_days",
+      "label": "Three Days In",
+      "description": "Reach day 3."
+    },
+    {
+      "id": "all_days",
+      "label": "All Twelve Days",
+      "description": "Reach day 12."
+    },
+    {
+      "id": "someone_comes",
+      "label": "Someone Comes",
+      "description": "Reach an ending."
+    },
+    {
+      "id": "four_ways",
+      "label": "Four Ways Home",
+      "description": "Reach 4 different endings."
+    },
+    {
+      "id": "every_road",
+      "label": "Every Road Home",
+      "description": "Reach every ending."
+    },
+    {
+      "id": "second_thoughts",
+      "label": "Second Thoughts",
+      "description": "Rewind to an earlier choice."
+    },
+    {
+      "id": "a_look_ahead",
+      "label": "A Look Ahead",
+      "description": "Use What if on a scene."
+    },
+    {
+      "id": "half_the_map",
+      "label": "Half the Map",
+      "description": "Walk half of all the paths on the branch map."
+    },
+    {
+      "id": "every_path",
+      "label": "Every Path",
+      "description": "Walk every path on the branch map."
+    },
+    {
+      "id": "every_place",
+      "label": "Every Place",
+      "description": "See every scene."
+    },
+    {
+      "id": "log_keeper",
+      "label": "Log Keeper",
+      "description": "Collect every log entry."
+    },
+    {
+      "id": "pocket_full",
+      "label": "Pocket Full",
+      "description": "Collect every found item."
+    },
+    {
+      "id": "her_voice",
+      "label": "Her Voice",
+      "description": "Collect every recording."
+    }
+  ]
+}
