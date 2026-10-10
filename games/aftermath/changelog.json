@@ -1,5 +1,29 @@
 [
   {
+    "date": "2026-10-10",
+    "entry": "New: run codes and challenges. After a run you can copy a short run code for a friend; paste a friend's code under Run codes and challenges to play the same events in the same order with your own skill tree and memory switched off, so you both start from a fresh settlement. A challenge earns no knowledge and leaves your history alone (it counts toward a Challenge runs finished tally), and the result is a friendly note rather than a ranking. Codes are not checked by a server."
+  },
+  {
+    "date": "2026-10-10",
+    "entry": "New: a Schedule builder. Pick 3 to 7 events from the event library, reorder them, save the schedule by name, run it (your skill tree applies) and share a code for the schedule alone. Runs on a built schedule are tagged Custom schedule in Review Past Runs, never go on the hardest-schedule board, and earn knowledge in proportion to the damage the schedule throws compared with the Classic mix."
+  },
+  {
+    "date": "2026-10-10",
+    "entry": "New: a difficulty-adjusted score. Every run now shows its raw score and an adjusted one, which asks how you would have done if every event had struck at the typical 1.00x severity (harsher draws are credited, gentler ones discounted). It appears in the run summary, Review Past Runs (which can also sort by it), the toughest run line, the toughest-run badge and the copied summary."
+  },
+  {
+    "date": "2026-10-10",
+    "entry": "New: allocation presets. Name a set of units such as Flood plan: 3 resilience, 1 growth, then apply it in one click (U undoes it as one click); it buys what you can afford and stops at the 85% cap. Make them in the Allocation presets panel, which can fill the numbers from what you bought this turn."
+  },
+  {
+    "date": "2026-10-10",
+    "entry": "New: a save health badge under Runs completed. It says Saved Ns ago, or warns in words when this browser's storage is full or blocked or the stored copy no longer matches this page, and then offers one click to export your progress code."
+  },
+  {
+    "date": "2026-10-10",
+    "entry": "New in the skill tree: a search box and filter chips (Affordable, Pinned, Owned, and by type: Weather, Social, All events, Starting build), plus a Purchase route under your pinned skills that lists what to buy in order, prerequisites first, with a running knowledge total and an estimate of how many more runs it will take. Also: arrow keys move between skills, Enter unlocks and P pins; panels take keyboard focus when they open and give it back when they close; and the schedule is available as plain text."
+  },
+  {
     "date": "2026-10-09",
     "entry": "New: a closing line on the run summary, chosen from a bank of 36 lines to match how the run went (a flawless defence, a surplus, a resilience-heavy or growth-heavy build, a steady run, plus a few place-specific lines). Lines for a hard run are kept gentle. You can hide it with the new Settings checkbox Hide the closing line on the run summary."
   },

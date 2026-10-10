@@ -145,3 +145,9 @@ html[data-theme="light"] #pc-hintbar { opacity: 1; color: #2a3350; background: r
 
 /* The window title already says "Disaster Codex" / "Lifetime Stats". */
 .pc-window-frame .codex-heading, .pc-window-frame .stats-heading { display: none; }
+
+/* Batch 2: the window title already names the Allocation presets, Schedule builder and Run codes panels, and
+   they start open in a window, so their own summary line would only repeat the title. */
+.pc-window-frame #presets-panel > summary,
+.pc-window-frame #builder-panel > summary,
+.pc-window-frame #challenge-panel > summary { display: none; }

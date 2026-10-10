@@ -91,6 +91,33 @@
       "label": "🌍 Community"
     },
     {
+      "id": "pc-presets-panel",
+      "title": "Allocation presets",
+      "members": [
+        "#presets-panel"
+      ],
+      "group": "Game",
+      "label": "🎚️ Allocation presets"
+    },
+    {
+      "id": "pc-builder-panel",
+      "title": "Schedule builder",
+      "members": [
+        "#builder-panel"
+      ],
+      "group": "Game",
+      "label": "🧱 Schedule builder"
+    },
+    {
+      "id": "pc-challenge-panel",
+      "title": "Run codes and challenges",
+      "members": [
+        "#challenge-panel"
+      ],
+      "group": "Records",
+      "label": "🤝 Run codes"
+    },
+    {
       "id": "pc-backup-panel",
       "title": "Backup / transfer progress",
       "members": [
@@ -137,6 +164,7 @@
     "stage": [
       "#status",
       "#runs-completed-display",
+      "#save-health",
       "#legacy-display",
       "#societal-memory-display",
       "#legacy-history-panel",

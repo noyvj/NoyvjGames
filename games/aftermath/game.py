@@ -11,9 +11,12 @@ milestone history.
 import math
 import copy
 import json
+import time
 
 import export_progress
 import info_page
+import run_code as shared_run_code
+import seed as shared_seed
 from js import document, localStorage, setTimeout
 from pyodide.ffi import create_proxy
 
@@ -212,6 +215,120 @@ SEVERITY_VARIATION_MAX = 1.15
 SEVERITY_VARIATION_RANGE_PER_SKILL = 0.05
 
 
+# ---------------------------------------------------------------------------
+# E-30: save health. Every write to the browser's localStorage goes through
+# _storage_write(), which remembers when the last write succeeded and which
+# keys failed (a full or blocked store throws), so the badge can say "Saved 12s
+# ago", "Not saved: storage full or blocked" or "Unsaved changes" truthfully.
+# ---------------------------------------------------------------------------
+STORAGE_PROBE_KEY = "aftermath_storage_probe"
+_storage_state = {"last_ok": None, "failed": {}}
+
+
+def _now():
+    """Seconds since the epoch (tests replace this to move the clock)."""
+    return time.time()
+
+
+def _storage_write(key, value):
+    """localStorage.setItem that never raises: returns True when the write went through."""
+    try:
+        localStorage.setItem(key, value)
+    except Exception as error:  # a JsException (quota or blocked) in Pyodide; any error here means "not saved"
+        _storage_state["failed"][key] = str(error)[:120] or "storage error"
+        return False
+    _storage_state["failed"].pop(key, None)
+    _storage_state["last_ok"] = _now()
+    return True
+
+
+def probe_storage():
+    """Tries a tiny write and delete. A failure is remembered under STORAGE_PROBE_KEY and cleared
+    again by the next probe that works, so the badge recovers after space is freed."""
+    try:
+        localStorage.setItem(STORAGE_PROBE_KEY, "1")
+        localStorage.removeItem(STORAGE_PROBE_KEY)
+    except Exception as error:
+        _storage_state["failed"][STORAGE_PROBE_KEY] = str(error)[:120] or "storage error"
+        return False
+    _storage_state["failed"].pop(STORAGE_PROBE_KEY, None)
+    return True
+
+
+def format_age(seconds):
+    """'just now', '12s ago', '3 min ago', '2 h ago' (ui.js keeps the same wording while the page is open)."""
+    seconds = max(0, int(seconds))
+    if seconds < 5:
+        return "just now"
+    if seconds < 60:
+        return f"{seconds}s ago"
+    if seconds < 3600:
+        return f"{seconds // 60} min ago"
+    return f"{seconds // 3600} h ago"
+
+
+def _read_json(key):
+    """(found, value): the parsed stored JSON, (False, None) when absent, (None, None) when unreadable."""
+    try:
+        raw = localStorage.getItem(key)
+    except Exception:
+        return None, None
+    if not raw:
+        return False, None
+    try:
+        return True, json.loads(raw)
+    except ValueError:
+        return None, None
+
+
+def unsaved_progress():
+    """Which kinds of progress in memory differ from what the browser has stored. Normally empty:
+    every change is written at once. Not empty if the stored copy was cleared or replaced from outside
+    (another tab, browser tools, storage eviction) or a write silently did not stick."""
+    problems = []
+    found, stored = _read_json(SKILL_TREE_STORAGE_KEY)
+    mine = skill_tree.to_dict()
+    if found is None:
+        problems.append("skill tree")
+    elif found and (
+        not isinstance(stored, dict)
+        or stored.get("knowledge_points", 0) != mine["knowledge_points"]
+        or sorted(stored.get("unlocked", [])) != mine["unlocked"]
+    ):
+        problems.append("skill tree")
+    elif not found and (mine["knowledge_points"] or mine["unlocked"]):
+        problems.append("skill tree")
+    found, stored = _read_json(RUN_HISTORY_STORAGE_KEY)
+    if found is None or (found and stored != run_history) or (not found and run_history):
+        problems.append("run history")
+    found, stored = _read_json(META_STORAGE_KEY)
+    if found is None or (found and _sanitize_meta(stored) != meta) or (not found and meta != _default_meta()):
+        problems.append("settlement notes and presets")
+    return problems
+
+
+def storage_health():
+    """(state, text): state is 'failed', 'unsaved', 'saved' or 'ready'."""
+    if _storage_state["failed"]:
+        if STORAGE_PROBE_KEY in _storage_state["failed"]:
+            probe_storage()  # space may have been freed since
+        if _storage_state["failed"]:
+            return "failed", (
+                "\u26a0 Not saved: this browser's storage is full or blocked, so new progress is only "
+                "kept until you close the page. Export your progress now."
+            )
+    problems = unsaved_progress()
+    if problems:
+        return "unsaved", (
+            "\u26a0 Unsaved changes: your " + ", ".join(problems) + " on this page differ from what this browser has "
+            "stored. Export your progress to be safe."
+        )
+    last = _storage_state["last_ok"]
+    if last is None:
+        return "ready", "\u2713 Progress saves to this browser automatically."
+    return "saved", f"\u2713 Saved {format_age(_now() - last)}"
+
+
 def skill_tree_strength():
     """How many resilience skills are unlocked overall — the signal Pass
     3 uses to widen event-severity variation so a stronger skill tree
@@ -245,11 +362,11 @@ def severity_bounds(skill_strength=0, lifetime_runs=None):
     return center - half_width, center + half_width
 
 
-def event_severity(run_number, event_index, skill_strength=0):
+def event_severity(run_number, event_index, skill_strength=0, lifetime_runs=None):
     if run_number <= 1:
         return 1.0
     seed = (run_number * 97 + event_index * 31) % 100
-    variation_min, variation_max = severity_bounds(skill_strength)
+    variation_min, variation_max = severity_bounds(skill_strength, lifetime_runs)
     return variation_min + (seed / 100) * (variation_max - variation_min)
 
 
@@ -308,6 +425,33 @@ def held_streak(event_log):
             break
         streak += 1
     return streak
+
+
+def adjusted_score(score, event_log):
+    """E-9: the score as if every event had struck at the typical 1.00x
+    severity. Each event's damage divided by its severity is what it would
+    have cost at 1.00x, so the adjustment is the sum of damage x (1 - 1/severity):
+    positive when the draws were harsher than typical (the run is credited for
+    that), negative when they were gentler. It uses only the stored
+    event_log entries (type, damage, severity), so every logged run can be
+    adjusted, and the severity already contains the skill-strength and
+    lifetime widening, so those are normalised away too. Never below zero."""
+    extra = 0.0
+    for entry in event_log or []:
+        if not isinstance(entry, dict):
+            continue
+        severity = entry.get("severity", 1.0)
+        if isinstance(severity, (int, float)) and severity > 0:
+            extra += entry.get("damage", 0.0) * (1.0 - 1.0 / severity)
+    return max(0.0, score + extra)
+
+
+def adjusted_text(score, event_log):
+    """'adjusted 134 for 1.08x average severity' (E-9), the same words wherever it is shown."""
+    if not event_log:
+        return f"adjusted {score:.0f}"
+    average = sum(e.get("severity", 1.0) for e in event_log) / len(event_log)
+    return f"adjusted {adjusted_score(score, event_log):.0f} for {average:.2f}\u00d7 average severity"
 
 
 # Skill tree — lives outside the run loop entirely, persisting between
@@ -424,7 +568,7 @@ def load_highest_awarded_run():
 
 
 def save_highest_awarded_run(run_number):
-    localStorage.setItem(AWARDED_RUN_STORAGE_KEY, json.dumps(run_number))
+    _storage_write(AWARDED_RUN_STORAGE_KEY, json.dumps(run_number))
 
 
 def load_legacy_events():
@@ -438,7 +582,7 @@ def load_legacy_events():
 
 
 def save_legacy_events(events):
-    localStorage.setItem(LEGACY_STORAGE_KEY, json.dumps(sorted(events)))
+    _storage_write(LEGACY_STORAGE_KEY, json.dumps(sorted(events)))
 
 
 # E29: societal memory. A settlement that comes through a run in ruins does
@@ -476,7 +620,7 @@ def load_societal_memory():
 
 
 def save_societal_memory(categories):
-    localStorage.setItem(SOCIETAL_MEMORY_STORAGE_KEY, json.dumps(sorted(categories)))
+    _storage_write(SOCIETAL_MEMORY_STORAGE_KEY, json.dumps(sorted(categories)))
 
 
 # E19: the resilience curriculum. A guided sequence of runs, each with one
@@ -535,7 +679,7 @@ def load_curriculum_progress():
 
 
 def save_curriculum_progress(value):
-    localStorage.setItem(CURRICULUM_STORAGE_KEY, str(value))
+    _storage_write(CURRICULUM_STORAGE_KEY, str(value))
 
 
 def curriculum_current():
@@ -584,7 +728,7 @@ def load_run_history():
 
 
 def save_run_history(history):
-    localStorage.setItem(RUN_HISTORY_STORAGE_KEY, json.dumps(history))
+    _storage_write(RUN_HISTORY_STORAGE_KEY, json.dumps(history))
 
 
 def load_legacy_event_counts():
@@ -604,7 +748,7 @@ def load_legacy_event_counts():
 
 
 def save_legacy_event_counts(counts):
-    localStorage.setItem(LEGACY_COUNTS_STORAGE_KEY, json.dumps(counts))
+    _storage_write(LEGACY_COUNTS_STORAGE_KEY, json.dumps(counts))
 
 
 def load_run_log_history():
@@ -624,7 +768,7 @@ def load_run_log_history():
 
 
 def save_run_log_history(history):
-    localStorage.setItem(RUN_LOG_HISTORY_STORAGE_KEY, json.dumps(history))
+    _storage_write(RUN_LOG_HISTORY_STORAGE_KEY, json.dumps(history))
 
 
 # Small persistent "settlement meta" dict (E25 settlement name, E30b pinned
@@ -648,7 +792,78 @@ def _default_meta():
         # run numbers the player has archived from the Past Runs list.
         "run_notes": {},
         "archived_runs": [],
+        # E-25: named allocation presets ([{"name", "resilience", "growth"}]).
+        "presets": [],
+        # E-13: named player-built schedules ([{"name", "events"}]).
+        "custom_schedules": [],
+        # E-4: how many friend challenges have been finished, and the best score per code.
+        "challenge_runs": 0,
+        "challenge_best": {},
     }
+
+
+PRESET_MAX = 8
+PRESET_NAME_MAX = 24
+PRESET_UNITS_MAX = 20
+CUSTOM_SCHEDULES_MAX = 12
+CUSTOM_NAME_MAX = 24
+CUSTOM_MIN_EVENTS = 3
+CUSTOM_MAX_EVENTS = 7
+CHALLENGE_BEST_MAX = 40
+
+
+def _clean_name(text, limit):
+    return " ".join(str(text or "").split())[:limit]
+
+
+def _units(value):
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        return None
+    value = int(value)
+    return value if 0 <= value <= PRESET_UNITS_MAX else None
+
+
+def _sanitize_presets(value):
+    out = []
+    if not isinstance(value, list):
+        return out
+    for item in value:
+        if not isinstance(item, dict):
+            continue
+        name = _clean_name(item.get("name"), PRESET_NAME_MAX)
+        resilience, growth = _units(item.get("resilience")), _units(item.get("growth"))
+        if not name or resilience is None or growth is None or resilience + growth < 1:
+            continue
+        if any(p["name"].casefold() == name.casefold() for p in out):
+            continue
+        out.append({"name": name, "resilience": resilience, "growth": growth})
+        if len(out) >= PRESET_MAX:
+            break
+    return out
+
+
+def _sanitize_custom_schedules(value):
+    out = []
+    if not isinstance(value, list):
+        return out
+    for item in value:
+        if not isinstance(item, dict):
+            continue
+        name = _clean_name(item.get("name"), CUSTOM_NAME_MAX)
+        events = item.get("events")
+        if (
+            not name
+            or not isinstance(events, list)
+            or not CUSTOM_MIN_EVENTS <= len(events) <= CUSTOM_MAX_EVENTS
+            or not all(isinstance(e, str) and e in EVENT_LABEL for e in events)
+        ):
+            continue
+        if any(c["name"].casefold() == name.casefold() for c in out):
+            continue
+        out.append({"name": name, "events": list(events)})
+        if len(out) >= CUSTOM_SCHEDULES_MAX:
+            break
+    return out
 
 
 def _sanitize_meta(data):
@@ -671,6 +886,16 @@ def _sanitize_meta(data):
     archived = data.get("archived_runs", [])
     if isinstance(archived, list):
         meta["archived_runs"] = sorted({a for a in archived if isinstance(a, int) and not isinstance(a, bool) and a > 0})
+    meta["presets"] = _sanitize_presets(data.get("presets", []))
+    meta["custom_schedules"] = _sanitize_custom_schedules(data.get("custom_schedules", []))
+    played = data.get("challenge_runs", 0)
+    if isinstance(played, int) and not isinstance(played, bool) and played > 0:
+        meta["challenge_runs"] = played
+    best = data.get("challenge_best", {})
+    if isinstance(best, dict):
+        for code, value in list(best.items())[:CHALLENGE_BEST_MAX]:
+            if isinstance(code, str) and isinstance(value, (int, float)) and not isinstance(value, bool) and value >= 0:
+                meta["challenge_best"][code[:90]] = int(value)
     return meta
 
 
@@ -685,22 +910,29 @@ def load_meta():
 
 
 def save_meta():
-    localStorage.setItem(META_STORAGE_KEY, json.dumps(meta))
+    _storage_write(META_STORAGE_KEY, json.dumps(meta))
 
 
 meta = load_meta()
 
 
-def starting_resources_bonus():
-    return 50 if "community_reserves" in skill_tree.unlocked else 0
+# E-4: every helper below reads the skill tree through an optional `unlocked`
+# argument, so a challenge run (which ignores the player's tree) can pass an
+# empty set instead of switching on global state.
+def _unlocked_or_tree(unlocked):
+    return skill_tree.unlocked if unlocked is None else unlocked
 
 
-def starting_resilience_bonus():
-    return 2 if "reinforced_infrastructure" in skill_tree.unlocked else 0
+def starting_resources_bonus(unlocked=None):
+    return 50 if "community_reserves" in _unlocked_or_tree(unlocked) else 0
 
 
-def early_warning_mitigation_bonus():
-    return 0.10 if "early_warning" in skill_tree.unlocked else 0.0
+def starting_resilience_bonus(unlocked=None):
+    return 2 if "reinforced_infrastructure" in _unlocked_or_tree(unlocked) else 0
+
+
+def early_warning_mitigation_bonus(unlocked=None):
+    return 0.10 if "early_warning" in _unlocked_or_tree(unlocked) else 0.0
 
 
 def growth_income_now(growth_capacity):
@@ -719,17 +951,17 @@ def growth_button_label(growth_capacity, units=1):
     )
 
 
-def adaptive_growth_bonus():
+def adaptive_growth_bonus(unlocked=None):
     """E2: the fourth skill node -- a starting-growth-capacity bonus,
     mirroring reinforced_infrastructure/community_reserves' starting-stat
     shape but on the growth side instead of resilience/resources."""
-    return 1 if "adaptive_growth" in skill_tree.unlocked else 0
+    return 1 if "adaptive_growth" in _unlocked_or_tree(unlocked) else 0
 
 
-def mutual_aid_mitigation_bonus():
+def mutual_aid_mitigation_bonus(unlocked=None):
     """E2: the fifth skill node -- flat mitigation like early_warning's,
     but gated behind E3's prereq structure (both foundational skills)."""
-    return 0.05 if "mutual_aid_network" in skill_tree.unlocked else 0.0
+    return 0.05 if "mutual_aid_network" in _unlocked_or_tree(unlocked) else 0.0
 
 
 # E1/E3: per-category damage reduction from the two specialization nodes.
@@ -739,24 +971,26 @@ CATEGORY_DAMAGE_BONUS = {
 }
 
 
-def category_skill_bonus(event_type):
+def category_skill_bonus(event_type, unlocked=None):
     """The skill-tree part of the category bonus (civic preparedness, climate hardening)."""
     category = EVENT_CATEGORY.get(event_type)
+    tree = _unlocked_or_tree(unlocked)
     return sum(
         amount
         for skill_id, (cat, amount) in CATEGORY_DAMAGE_BONUS.items()
-        if cat == category and skill_id in skill_tree.unlocked
+        if cat == category and skill_id in tree
     )
 
 
-def category_memory_bonus(event_type):
+def category_memory_bonus(event_type, memory=None):
     """E29: the societal-memory part of the category bonus."""
     category = EVENT_CATEGORY.get(event_type)
-    return SOCIETAL_MEMORY_BONUS[category] if category in societal_memory else 0.0
+    remembered = societal_memory if memory is None else memory
+    return SOCIETAL_MEMORY_BONUS[category] if category in remembered else 0.0
 
 
-def category_mitigation_bonus(event_type):
-    return category_skill_bonus(event_type) + category_memory_bonus(event_type)
+def category_mitigation_bonus(event_type, unlocked=None, memory=None):
+    return category_skill_bonus(event_type, unlocked) + category_memory_bonus(event_type, memory)
 
 
 def worst_damage_category(event_log):
@@ -785,7 +1019,8 @@ def record_societal_memory(event_log, score):
 
 
 class RunState:
-    def __init__(self, run_number=1, extended=False, scenario=DEFAULT_SCENARIO):
+    def __init__(self, run_number=1, extended=False, scenario=DEFAULT_SCENARIO,
+                 normalised=False, draw=None, custom_events=None, custom_name=None, challenge=None):
         """Reads current skill-tree bonuses at creation time — a new run
         starts a little more capable than the last, per unlocked skills.
 
@@ -804,10 +1039,24 @@ class RunState:
         self.scenario = scenario if isinstance(scenario, str) and scenario in SCENARIOS else DEFAULT_SCENARIO
         base_schedule = SCENARIOS[self.scenario]["schedule"]
         self.schedule = base_schedule * 2 if extended else base_schedule
+        # E-13: a player-built schedule replaces the scenario's (never extended).
+        self.custom_events = None
+        self.custom_name = None
+        if custom_events and all(e in EVENT_LABEL for e in custom_events):
+            self.custom_events = list(custom_events)
+            self.custom_name = custom_name if isinstance(custom_name, str) and custom_name else None
+            self.schedule = list(custom_events)
+            self.extended = False
+        # E-4: a challenge run (a friend's run code) ignores the player's own tree: no starting
+        # bonuses, no skill or memory mitigation, severity from the code's draw at the
+        # un-widened band. `challenge` keeps the code and the sender's result for comparison.
+        self.normalised = bool(normalised)
+        self.draw = int(draw) if draw is not None else run_number
+        self.challenge = challenge if self.normalised and isinstance(challenge, dict) else None
         self.event_index = 0
-        self.resources = STARTING_RESOURCES + starting_resources_bonus()
-        self.resilience_capacity = starting_resilience_bonus()
-        self.growth_capacity = adaptive_growth_bonus()
+        self.resources = STARTING_RESOURCES + starting_resources_bonus(self._unlocked())
+        self.resilience_capacity = starting_resilience_bonus(self._unlocked())
+        self.growth_capacity = adaptive_growth_bonus(self._unlocked())
         self.damage_taken = 0.0
         self.event_log = []
         # Achievements ("profitable_run") need to compare a run's *final*
@@ -825,6 +1074,23 @@ class RunState:
         # E-18: how the most recent event's damage was worked out. In memory
         # only (never saved): after a load there is no breakdown to show.
         self.last_breakdown = None
+
+    def _unlocked(self):
+        return frozenset() if self.normalised else skill_tree.unlocked
+
+    def _memory(self):
+        return frozenset() if self.normalised else societal_memory
+
+    def category_bonus(self, event_type):
+        return category_mitigation_bonus(event_type, self._unlocked(), self._memory())
+
+    def severity_at(self, index):
+        """The severity multiplier for event `index` of this run: the player's own pattern
+        (widened by their tree and career), or, in a challenge run, the code's fixed draw at the
+        plain band so both players face the same numbers."""
+        if self.normalised:
+            return event_severity(self.draw, index, 0, 0)
+        return event_severity(self.run_number, index, skill_tree_strength())
 
     def is_complete(self):
         return self.event_index >= len(self.schedule)
@@ -872,6 +1138,11 @@ class RunState:
         if kind == "resilience":
             self.resilience_capacity -= units
             self.resources += RESILIENCE_COST * units
+        elif kind == "preset":  # E-25: one click bought resilience and growth together
+            self.resilience_capacity -= units[0]
+            self.resources += RESILIENCE_COST * units[0]
+            self.growth_capacity -= units[1]
+            self.resources += GROWTH_COST * units[1]
         else:
             self.growth_capacity -= units
             self.resources += GROWTH_COST * units
@@ -881,8 +1152,8 @@ class RunState:
     def _raw_mitigation(self):
         return (
             self.resilience_capacity * RESILIENCE_MITIGATION_PER_UNIT
-            + early_warning_mitigation_bonus()
-            + mutual_aid_mitigation_bonus()
+            + early_warning_mitigation_bonus(self._unlocked())
+            + mutual_aid_mitigation_bonus(self._unlocked())
         )
 
     def resilience_units_to_cap(self):
@@ -923,18 +1194,37 @@ class RunState:
             self._record_allocation(kind, bought)
         return bought
 
+    def invest_preset(self, resilience, growth):
+        """E-25: buys up to `resilience` then `growth` units as ONE undoable click, limited by the
+        resources in hand (and, for resilience, by the 85% cap, like x5 and Max). Returns the units
+        actually bought as (resilience, growth)."""
+        if self.is_complete():
+            return 0, 0
+        bought_r = bought_g = 0
+        for _ in range(min(resilience, self.resilience_units_to_cap())):
+            if not self.invest_resilience(record=False):
+                break
+            bought_r += 1
+        for _ in range(growth):
+            if not self.invest_growth(record=False):
+                break
+            bought_g += 1
+        if bought_r or bought_g:
+            self._record_allocation("preset", (bought_r, bought_g))
+        return bought_r, bought_g
+
     def mitigation_fraction(self):
         from_resilience = self.resilience_capacity * RESILIENCE_MITIGATION_PER_UNIT
         return min(
             MAX_MITIGATION,
-            from_resilience + early_warning_mitigation_bonus() + mutual_aid_mitigation_bonus(),
+            from_resilience + early_warning_mitigation_bonus(self._unlocked()) + mutual_aid_mitigation_bonus(self._unlocked()),
         )
 
     def mitigation_for(self, event_type):
         """Total damage reduction for one event: the general mitigation
         plus any category-specific specialization bonus, still capped at
         MAX_MITIGATION so nothing ever reaches full immunity."""
-        return min(MAX_MITIGATION, self.mitigation_fraction() + category_mitigation_bonus(event_type))
+        return min(MAX_MITIGATION, self.mitigation_fraction() + self.category_bonus(event_type))
 
     def damage_breakdown(self, event_type, severity):
         """E-18: base damage, the severity change, each mitigation source (in
@@ -946,10 +1236,10 @@ class RunState:
         unmitigated = base * severity
         sources = [
             ("Resilience investment", self.resilience_capacity * RESILIENCE_MITIGATION_PER_UNIT),
-            ("Early Warning Systems", early_warning_mitigation_bonus()),
-            ("Mutual Aid Network", mutual_aid_mitigation_bonus()),
-            ("Category skill", category_skill_bonus(event_type)),
-            ("Societal memory", category_memory_bonus(event_type)),
+            ("Early Warning Systems", early_warning_mitigation_bonus(self._unlocked())),
+            ("Mutual Aid Network", mutual_aid_mitigation_bonus(self._unlocked())),
+            ("Category skill", category_skill_bonus(event_type, self._unlocked())),
+            ("Societal memory", category_memory_bonus(event_type, self._memory())),
         ]
         general_raw = sources[0][1] + sources[1][1] + sources[2][1]
         general = min(MAX_MITIGATION, general_raw)
@@ -980,7 +1270,7 @@ class RunState:
         self.resources += self.growth_capacity * GROWTH_INCOME_PER_UNIT
 
         event_type = self.schedule[self.event_index]
-        severity = event_severity(self.run_number, self.event_index, skill_tree_strength())
+        severity = self.severity_at(self.event_index)
         damage = EVENT_BASE_DAMAGE[event_type] * severity * (1 - self.mitigation_for(event_type))
         self.last_breakdown = self.damage_breakdown(event_type, severity)  # E-18
         self.resources = max(0.0, self.resources - damage)
@@ -995,7 +1285,9 @@ class RunState:
         if severity_label(severity) == "severe" and self.resources > 0:
             _note_achievement_progress(ever_survived_severe_event=True)
 
-        if self.is_complete():
+        if self.is_complete() and self.normalised:
+            _note_challenge_result(self)  # E-4: a friend's challenge earns nothing for the tree
+        elif self.is_complete():
             global highest_awarded_run
             if self.run_number > highest_awarded_run:
                 skill_tree.add_knowledge(self.knowledge_points_earned())
@@ -1004,7 +1296,7 @@ class RunState:
                 save_run_history(run_history)
                 global memory_just_formed, curriculum_just_completed
                 memory_just_formed = record_societal_memory(self.event_log, self.run_score())  # E29
-                curriculum_just_completed = note_curriculum_run(self)  # E19
+                curriculum_just_completed = None if self.custom_events else note_curriculum_run(self)  # E19
                 legacy_events.update(entry["type"] for entry in self.event_log)
                 save_legacy_events(legacy_events)
                 # E4: build out the legacy system beyond its original
@@ -1031,12 +1323,15 @@ class RunState:
                         # (older logs lack it and are left out of the band stat).
                         "skill_strength": skill_tree_strength(),
                         "event_log": copy.deepcopy(self.event_log),
+                        # E-13: runs on a player-built schedule are tagged (older logs lack the field).
+                        **({"custom_schedule": self.custom_name or "Unnamed"} if self.custom_events else {}),
                     }
                 )
                 save_run_log_history(run_log_history)
                 highest_awarded_run = self.run_number
                 save_highest_awarded_run(highest_awarded_run)
-                _report_hardest_schedule(self)  # E23
+                if not self.custom_events:  # E-13: a hand-built schedule never competes on the board
+                    _report_hardest_schedule(self)  # E23
 
                 # Playstyle achievements -- only recorded the first time a
                 # given run_number genuinely completes (same guard as the
@@ -1079,6 +1374,9 @@ class RunState:
         """E-23: where the run's knowledge points come from."""
         raw = round(self.run_score() / 20)
         base = max(1, raw)
+        factor = self.custom_knowledge_factor()
+        if factor < 1.0:
+            base = max(1, round(base * factor))
         flawless = flawless_count(self.event_log)
         bonus = flawless * FLAWLESS_BONUS_KNOWLEDGE
         return {
@@ -1089,7 +1387,19 @@ class RunState:
             "flawless": flawless,
             "flawless_bonus": bonus,
             "total": base + bonus,
+            "schedule_factor": factor,
         }
+
+    def custom_knowledge_factor(self):
+        """E-13: a hand-built schedule earns knowledge in proportion to how much damage it throws
+        compared with the Classic mix (at most the full amount), so a short, gentle schedule
+        cannot be farmed for knowledge. Every built-in scenario and the extended run are
+        untouched (factor 1.0)."""
+        if not self.custom_events:
+            return 1.0
+        total = sum(EVENT_BASE_DAMAGE[e] for e in self.custom_events)
+        reference = sum(EVENT_BASE_DAMAGE[e] for e in EVENT_SCHEDULE)
+        return min(1.0, total / reference)
 
 
 class SkillTreeState:
@@ -1140,7 +1450,7 @@ class SkillTreeState:
         }
 
     def save(self):
-        localStorage.setItem(SKILL_TREE_STORAGE_KEY, json.dumps(self.to_dict()))
+        _storage_write(SKILL_TREE_STORAGE_KEY, json.dumps(self.to_dict()))
 
     @classmethod
     def load(cls):
@@ -1275,7 +1585,7 @@ def load_achievement_progress():
 
 
 def save_achievement_progress():
-    localStorage.setItem(ACHIEVEMENT_PROGRESS_STORAGE_KEY, json.dumps(achievement_progress))
+    _storage_write(ACHIEVEMENT_PROGRESS_STORAGE_KEY, json.dumps(achievement_progress))
 
 
 achievement_progress = load_achievement_progress()
@@ -1754,7 +2064,7 @@ def render_mentor():
 def on_toggle_mentor(event=None):
     global mentor_enabled
     mentor_enabled = document.getElementById("mentor-toggle").checked
-    localStorage.setItem(MENTOR_STORAGE_KEY, "1" if mentor_enabled else "0")
+    _storage_write(MENTOR_STORAGE_KEY, "1" if mentor_enabled else "0")
     render_mentor()
 
 
@@ -1803,7 +2113,7 @@ def new_record_run_indexes():
 # ---- E-22 / E-21 / E-20: notes, sort, filter, archive and compare in Past Runs ----
 # All view state lives in memory (it is a way of looking at the list, not progress).
 # The notes and the archive list live in `meta`, so they ride the progress export.
-PAST_RUN_SORTS = ("newest", "oldest", "score_high", "score_low", "mode")
+PAST_RUN_SORTS = ("newest", "oldest", "score_high", "score_low", "score_adjusted", "mode")
 past_runs_sort = "newest"
 past_runs_filter = "all"  # "all", "standard", "extended" or "scenario:<key>"
 past_runs_show_archived = False
@@ -1815,6 +2125,9 @@ def run_mode(entry):
     no scenario field): the scenario whose schedule it matches (or None) and whether it
     is an Extended Run (the schedule twice over)."""
     types = [e.get("type") for e in (entry.get("event_log") or []) if isinstance(e, dict)]
+    custom = entry.get("custom_schedule")  # E-13: runs on a built schedule are tagged when logged
+    if isinstance(custom, str) and custom:
+        return {"scenario": None, "extended": False, "custom": custom}
     length = len(SCENARIOS[DEFAULT_SCENARIO]["schedule"])
     extended = len(types) == 2 * length and types[:length] == types[length:]
     base = types[:length] if extended else types
@@ -1824,6 +2137,8 @@ def run_mode(entry):
 
 def run_mode_label(entry):
     mode = run_mode(entry)
+    if mode.get("custom"):
+        return f"Custom schedule: {mode['custom']}"
     label = SCENARIOS[mode["scenario"]]["label"] if mode["scenario"] else "Custom schedule"
     return label + (", extended" if mode["extended"] else "")
 
@@ -1867,6 +2182,8 @@ def past_runs_view(history=None):
         if entry["run_number"] in archived and not past_runs_show_archived:
             continue
         mode = run_mode(entry)
+        if past_runs_filter == "custom" and not (mode.get("custom") or mode["scenario"] is None):
+            continue
         if past_runs_filter == "extended" and not mode["extended"]:
             continue
         if past_runs_filter == "standard" and mode["extended"]:
@@ -1880,6 +2197,8 @@ def past_runs_view(history=None):
         rows.sort(key=lambda r: (-r[1].get("score", 0), -r[0]))
     elif past_runs_sort == "score_low":
         rows.sort(key=lambda r: (r[1].get("score", 0), -r[0]))
+    elif past_runs_sort == "score_adjusted":  # E-9
+        rows.sort(key=lambda r: (-adjusted_score(r[1].get("score", 0), r[1].get("event_log")), -r[0]))
     elif past_runs_sort == "mode":
         rows.sort(key=lambda r: (run_mode_label(r[1]), -r[0]))
     else:
@@ -2002,7 +2321,7 @@ def _past_run_card(index, entry, is_record):
     title.className = "past-run-title"
     title.innerText = (
         f"{'🏆 ' if is_record else ''}{'🔥 ' if index in streak_log_indexes() else ''}Run #{run_number} — score {entry['score']:.0f} "
-        f"(resilience {entry['resilience_capacity']}, growth {entry['growth_capacity']}, "
+        f"({adjusted_text(entry['score'], entry.get('event_log'))}; resilience {entry['resilience_capacity']}, growth {entry['growth_capacity']}, "
         f"+{entry['knowledge_earned']} knowledge)"
         f" · {run_mode_label(entry)}" + (" · archived" if run_number in meta["archived_runs"] else "")
     )
@@ -2150,7 +2469,7 @@ def on_past_runs_controls_change(event=None):
         past_runs_sort = sort_el.value
     if filter_el is not None:
         value = filter_el.value
-        if value in ("all", "standard", "extended") or (value.startswith("scenario:") and value.split(":", 1)[1] in SCENARIOS):
+        if value in ("all", "standard", "extended", "custom") or (value.startswith("scenario:") and value.split(":", 1)[1] in SCENARIOS):
             past_runs_filter = value
     if archived_el is not None:
         past_runs_show_archived = bool(archived_el.checked)
@@ -2253,7 +2572,7 @@ def expected_next_event_damage(run_state):
     if run_state.is_complete():
         return None
     event_type = run_state.next_event_type()
-    severity = event_severity(run_state.run_number, run_state.event_index, skill_tree_strength())
+    severity = run_state.severity_at(run_state.event_index)
     damage = EVENT_BASE_DAMAGE[event_type] * severity * (1 - run_state.mitigation_for(event_type))
     return damage, severity
 
@@ -2265,6 +2584,10 @@ def expected_damage_range(run_state):
     exact for this run number; the range shows how much a different run
     number could swing the same event."""
     event_type = run_state.next_event_type()
+    if run_state.normalised:
+        # E-4: the draw is fixed, so the number is exact.
+        exact = EVENT_BASE_DAMAGE[event_type] * run_state.severity_at(run_state.event_index) * (1 - run_state.mitigation_for(event_type))
+        return exact, exact
     if run_state.run_number <= 1:
         exact = EVENT_BASE_DAMAGE[event_type] * (1 - run_state.mitigation_for(event_type))
         return exact, exact
@@ -2330,6 +2653,8 @@ def toughest_run_text():
     text = f"Toughest run yet: Run #{toughest[0]} scored {toughest[1]:.0f}"
     sequence = toughest_run_sequence()
     if sequence:
+        text += f" ({adjusted_text(toughest[1], sequence)})"  # E-9
+    if sequence:
         parts = [f"{EVENT_ICON[e['type']]} {EVENT_LABEL[e['type']]}" for e in sequence if e["type"] in EVENT_LABEL]
         text += " — " + " → ".join(parts)
     return text
@@ -2369,6 +2694,18 @@ def toughest_survived_run_badge_earned():
         if entry.get("score", 0) > 0 and severity_label(average_severity(entry.get("event_log", []))) == "severe":
             return True
     return False
+
+
+def toughest_badge_title():
+    """E-9: the badge's tooltip. Earned: names the run and shows the raw and adjusted score;
+    not yet: says what earns it."""
+    for entry in run_log_history:
+        if entry.get("score", 0) > 0 and severity_label(average_severity(entry.get("event_log", []))) == "severe":
+            return (
+                f"Survived a run at severe average intensity: run {entry.get('run_number', '?')} scored "
+                f"{entry['score']:.0f} ({adjusted_text(entry['score'], entry.get('event_log'))})"
+            )
+    return "Survived a run at severe average intensity (not earned yet)"
 
 
 def runs_completed_text():
@@ -2865,7 +3202,7 @@ def set_invest_step(value):
     if value not in INVEST_STEPS:
         return False
     invest_step = value
-    localStorage.setItem(INVEST_STEP_STORAGE_KEY, str(value))
+    _storage_write(INVEST_STEP_STORAGE_KEY, str(value))
     return True
 
 
@@ -3284,6 +3621,11 @@ def render_damage_popup():
 def knowledge_breakdown_lines(run_state):
     info = run_state.knowledge_breakdown()
     lines = [f"Resources left {info['resources']:.0f} ÷ 20 = {info['raw']} knowledge"]
+    if info.get("schedule_factor", 1.0) < 1.0:
+        lines.append(
+            f"Custom schedule: {info['schedule_factor'] * 100:.0f}% of the Classic mix's damage, "
+            "so the base knowledge is scaled to match"
+        )
     if info["floor_applied"]:
         lines.append("Minimum of 1 applied: no run ever earns nothing")
     if info["flawless"]:
@@ -3312,6 +3654,7 @@ def run_summary_text(run_state=None):
         f"Aftermath: {name}, run {run_state.run_number} ({scenario}{', extended' if run_state.extended else ''})"
         + ("" if done else " - in progress"),
         f"{'Score' if done else 'Resources so far'}: {run_state.run_score():.0f}"
+        + (f" ({adjusted_text(run_state.run_score(), run_state.event_log)})" if done else "")
         + (f" | Knowledge earned: {run_state.knowledge_points_earned()}" if done else ""),
         f"Resilience {run_state.resilience_capacity}, growth {run_state.growth_capacity}, "
         f"damage taken {run_state.damage_taken:.0f}",
@@ -3415,7 +3758,6 @@ def skill_helps_against(skill_id, run_state=None):
         return None
     run_state = run_state or run
     category, amount = rule
-    strength = skill_tree_strength()
     counts = {}
     saved = 0.0
     for index in range(run_state.event_index, len(run_state.schedule)):
@@ -3424,7 +3766,7 @@ def skill_helps_against(skill_id, run_state=None):
             continue
         current = run_state.mitigation_for(event_type)
         gain = min(MAX_MITIGATION, current + amount) - current
-        severity = event_severity(run_state.run_number, index, strength)
+        severity = run_state.severity_at(index)
         saved += EVENT_BASE_DAMAGE[event_type] * severity * gain
         counts[EVENT_LABEL[event_type]] = counts.get(EVENT_LABEL[event_type], 0) + 1
     return counts, saved
@@ -3435,6 +3777,8 @@ def skill_helps_text(skill_id, run_state=None):
     if skill_id in skill_tree.unlocked:
         return ""
     run_state = run_state or run
+    if run_state.normalised:
+        return "Skills are switched off in a challenge run."
     result = skill_helps_against(skill_id, run_state)
     if result is None:
         if skill_id == "reinforced_infrastructure":
@@ -3617,7 +3961,6 @@ def schedule_strip_entries(run_state):
     done / next / upcoming, and the numbers to show. Upcoming damage is exact
     for this run number (severity is deterministic) at the CURRENT build, so
     it moves as the player invests."""
-    strength = skill_tree_strength()
     entries = []
     for index, event_type in enumerate(run_state.schedule):
         category = EVENT_CATEGORY[event_type]
@@ -3628,7 +3971,7 @@ def schedule_strip_entries(run_state):
             "label": EVENT_LABEL[event_type],
             "icon": EVENT_ICON[event_type],
             "category": category,
-            "category_bonus": category_mitigation_bonus(event_type),
+            "category_bonus": run_state.category_bonus(event_type),
         }
         if index < run_state.event_index and index < len(run_state.event_log):
             logged = run_state.event_log[index]
@@ -3639,7 +3982,7 @@ def schedule_strip_entries(run_state):
                 mitigation=entry_mitigation(logged),
             )
         else:
-            severity = event_severity(run_state.run_number, index, strength)
+            severity = run_state.severity_at(index)
             mitigation = run_state.mitigation_for(event_type)
             entry.update(
                 state="next" if index == run_state.event_index else "upcoming",
@@ -3695,6 +4038,1158 @@ def render_schedule_strip():
     detail.setAttribute("data-default", default_text)
 
 
+# ---------------------------------------------------------------------------
+# Round-3 batch 2 (2026-10-10): E-19 tree search/filters, E-25 allocation presets, E-30 save
+# health badge, E-3 purchase route planner, E-13 schedule builder, E-4 shareable run codes and the
+# last E-5 pieces (plain-text schedule). Each section says what it owns.
+# ---------------------------------------------------------------------------
+def _el(element_id):
+    """getElementById that returns None for an id a cached older page does not have (the real DOM
+    returns null; the test fake raises KeyError)."""
+    try:
+        return document.getElementById(element_id)
+    except KeyError:
+        return None
+
+
+def _focus(element):
+    try:
+        element.focus()
+    except Exception:
+        pass
+
+
+# ---- E-19: skill tree search and filter chips ------------------------------
+SKILL_GROUP = {
+    "reinforced_infrastructure": "starting",
+    "community_reserves": "starting",
+    "adaptive_growth": "starting",
+    "early_warning": "mitigation",
+    "mutual_aid_network": "mitigation",
+    "climate_hardening": "weather",
+    "civic_preparedness": "social",
+}
+SKILL_GROUP_LABEL = {"weather": "Weather", "social": "Social", "mitigation": "All events", "starting": "Starting build"}
+SKILL_STATUS_FILTERS = (("all", "All"), ("affordable", "Affordable"), ("pinned", "Pinned"), ("owned", "Owned"))
+SKILL_GROUP_FILTERS = (("any", "Any type"),) + tuple(SKILL_GROUP_LABEL.items())
+skill_search_text = ""
+skill_filter_status = "all"
+skill_filter_group = "any"
+
+
+def skill_matches(skill_id, query=None, status=None, group=None):
+    """True when the skill passes the search words (every word must appear in its name, effect,
+    real-world note or type), the status chip (Affordable = can be unlocked right now, Pinned,
+    Owned) and the type chip."""
+    query = skill_search_text if query is None else query
+    status = skill_filter_status if status is None else status
+    group = skill_filter_group if group is None else group
+    skill = SKILLS[skill_id]
+    owned = skill_id in skill_tree.unlocked
+    if status == "owned" and not owned:
+        return False
+    if status == "affordable" and not skill_tree.can_unlock(skill_id):
+        return False
+    if status == "pinned" and not (skill_id in meta["pinned_skills"] and not owned):
+        return False
+    if group != "any" and SKILL_GROUP.get(skill_id) != group:
+        return False
+    words = str(query or "").casefold().split()
+    if words:
+        haystack = " ".join(
+            [skill["label"], skill["description"], skill["real_practice"], SKILL_GROUP_LABEL.get(SKILL_GROUP.get(skill_id), "")]
+        ).casefold()
+        if not all(word in haystack for word in words):
+            return False
+    return True
+
+
+def visible_skill_ids():
+    return [skill_id for skill_id in SKILLS if skill_matches(skill_id)]
+
+
+def skill_filters_active():
+    return bool(skill_search_text.strip()) or skill_filter_status != "all" or skill_filter_group != "any"
+
+
+def skill_filter_summary():
+    shown = len(visible_skill_ids())
+    if shown == 0:
+        return "No skills match. Clear the search or pick All."
+    if not skill_filters_active():
+        return f"Showing all {len(SKILLS)} skills."
+    return f"Showing {shown} of {len(SKILLS)} skills."
+
+
+def set_skill_filter(kind, value):
+    global skill_filter_status, skill_filter_group
+    if kind == "status" and value in dict(SKILL_STATUS_FILTERS):
+        skill_filter_status = value
+    elif kind == "group" and value in dict(SKILL_GROUP_FILTERS):
+        skill_filter_group = value
+    else:
+        return False
+    return True
+
+
+def clear_skill_filters():
+    global skill_search_text, skill_filter_status, skill_filter_group
+    skill_search_text, skill_filter_status, skill_filter_group = "", "all", "any"
+    search = _el("skill-search-input")
+    if search is not None:
+        search.value = ""
+
+
+def on_skill_search(event=None):
+    global skill_search_text
+    search = _el("skill-search-input")
+    skill_search_text = str(search.value or "") if search is not None else ""
+    render()
+
+
+def _make_skill_filter_handler(kind, value):
+    def handler(event=None):
+        set_skill_filter(kind, value)
+        render()
+    return handler
+
+
+def on_skill_filter_clear(event=None):
+    clear_skill_filters()
+    render()
+
+
+def build_skill_filter_chips():
+    """Builds the chip buttons once (so keyboard focus survives every render)."""
+    holder = _el("skill-filter-chips")
+    if holder is None:
+        return
+    holder.innerHTML = ""
+    for kind, options in (("status", SKILL_STATUS_FILTERS), ("group", SKILL_GROUP_FILTERS)):
+        group_el = document.createElement("div")
+        group_el.className = "skill-filter-group"
+        group_el.setAttribute("role", "group")
+        group_el.setAttribute("aria-label", "Show by status" if kind == "status" else "Show by type")
+        for value, label in options:
+            chip = document.createElement("button")
+            chip.className = "secondary skill-filter-chip"
+            chip.setAttribute("type", "button")
+            chip.setAttribute("data-filter-kind", kind)
+            chip.setAttribute("data-filter-value", value)
+            chip.setAttribute("aria-pressed", "false")
+            chip.innerText = label
+            chip.addEventListener("click", create_proxy(_make_skill_filter_handler(kind, value)))
+            group_el.appendChild(chip)
+        holder.appendChild(group_el)
+
+
+def render_skill_filters():
+    holder = _el("skill-filter-chips")
+    if holder is not None:
+        for group_el in holder.children:
+            for chip in group_el.children:
+                kind = chip.getAttribute("data-filter-kind")
+                value = chip.getAttribute("data-filter-value")
+                active = (skill_filter_status if kind == "status" else skill_filter_group) == value
+                chip.setAttribute("aria-pressed", "true" if active else "false")
+                if active:
+                    chip.classList.add("selected")
+                else:
+                    chip.classList.remove("selected")
+    visible = set(visible_skill_ids())
+    for skill_id in SKILLS:
+        row = _el(f"skill-{skill_id}-row")
+        if row is not None:
+            row.hidden = skill_id not in visible
+    summary = _el("skill-filter-summary")
+    if summary is not None:
+        summary.innerText = skill_filter_summary()
+    clear = _el("skill-filter-clear")
+    if clear is not None:
+        clear.hidden = not skill_filters_active()
+
+
+# ---- E-25: named allocation presets -----------------------------------------
+preset_selected = ""
+preset_status_text = ""
+
+
+def preset_text(preset):
+    parts = []
+    if preset["resilience"]:
+        parts.append(f"{preset['resilience']} resilience")
+    if preset["growth"]:
+        parts.append(f"{preset['growth']} growth")
+    return f"{preset['name']}: {', '.join(parts)}"
+
+
+def _preset_named(name):
+    key = _clean_name(name, PRESET_NAME_MAX).casefold()
+    for preset in meta["presets"]:
+        if preset["name"].casefold() == key:
+            return preset
+    return None
+
+
+def save_preset(name, resilience, growth):
+    """Adds or replaces (same name, any case) a preset. Returns (ok, message)."""
+    name = _clean_name(name, PRESET_NAME_MAX)
+    if not name:
+        return False, "Give the preset a name."
+    try:
+        resilience, growth = int(resilience), int(growth)
+    except (TypeError, ValueError):
+        return False, "Units must be whole numbers."
+    if _units(resilience) is None or _units(growth) is None:
+        return False, f"Units must be between 0 and {PRESET_UNITS_MAX}."
+    if resilience + growth < 1:
+        return False, "Choose at least one unit of resilience or growth."
+    existing = _preset_named(name)
+    if existing is None and len(meta["presets"]) >= PRESET_MAX:
+        return False, f"You can keep up to {PRESET_MAX} presets. Delete one first."
+    entry = {"name": name, "resilience": resilience, "growth": growth}
+    if existing is None:
+        meta["presets"].append(entry)
+    else:
+        meta["presets"][meta["presets"].index(existing)] = entry
+    save_meta()
+    return True, f"{'Updated' if existing else 'Saved'} preset: {preset_text(entry)}."
+
+
+def delete_preset(name):
+    existing = _preset_named(name)
+    if existing is None:
+        return False
+    meta["presets"].remove(existing)
+    save_meta()
+    return True
+
+
+def apply_preset(name, run_state=None):
+    """Buys a preset's units as ONE undoable click: resilience first (stopping at the 85% cap),
+    then growth, each limited by the resources in hand. Returns (message, bought_resilience,
+    bought_growth)."""
+    run_state = run_state or run
+    preset = _preset_named(name)
+    if preset is None:
+        return "That preset no longer exists.", 0, 0
+    if run_state.is_complete():
+        return "This run is over: start a new run to use a preset.", 0, 0
+    bought_r, bought_g = run_state.invest_preset(preset["resilience"], preset["growth"])
+    if bought_r == preset["resilience"] and bought_g == preset["growth"]:
+        return f"Applied {preset['name']}: bought {bought_r} resilience, {bought_g} growth.", bought_r, bought_g
+    if not bought_r and not bought_g:
+        return f"{preset['name']}: nothing bought, not enough resources.", 0, 0
+    reasons = []
+    if bought_r < preset["resilience"]:
+        reasons.append("resilience is at its 85% cap" if run_state.resilience_units_to_cap() == 0 and run_state.resources >= RESILIENCE_COST else "not enough resources")
+    if bought_g < preset["growth"] and "not enough resources" not in reasons:
+        reasons.append("not enough resources")
+    return (
+        f"Applied {preset['name']} in part: bought {bought_r} of {preset['resilience']} resilience and "
+        f"{bought_g} of {preset['growth']} growth ({'; '.join(reasons)}).",
+        bought_r,
+        bought_g,
+    )
+
+
+def this_turn_allocation(run_state=None):
+    """(resilience, growth) units bought since the last event: what 'Use this turn' copies."""
+    run_state = run_state or run
+    resilience = growth = 0
+    for kind, units in run_state.allocation_history:
+        if kind == "resilience":
+            resilience += units
+        elif kind == "growth":
+            growth += units
+        else:  # a preset click
+            resilience += units[0]
+            growth += units[1]
+    return resilience, growth
+
+
+def _int_or_zero(text):
+    try:
+        return int(str(text).strip() or 0)
+    except ValueError:
+        return -1
+
+
+def on_preset_save(event=None):
+    global preset_status_text, preset_selected
+    name_el = _el("preset-name-input")
+    ok, message = save_preset(
+        name_el.value if name_el is not None else "",
+        _int_or_zero(_el("preset-resilience-input").value),
+        _int_or_zero(_el("preset-growth-input").value),
+    )
+    preset_status_text = message
+    if ok:
+        preset_selected = _clean_name(name_el.value, PRESET_NAME_MAX)
+    render()
+    announce(message)
+
+
+def on_preset_from_turn(event=None):
+    global preset_status_text
+    resilience, growth = this_turn_allocation()
+    _el("preset-resilience-input").value = str(resilience)
+    _el("preset-growth-input").value = str(growth)
+    preset_status_text = (
+        f"Filled in {resilience} resilience, {growth} growth from this turn. Name it and press Save."
+        if resilience or growth else "Nothing bought this turn yet: buy some units first, or type the numbers."
+    )
+    render()
+
+
+def on_preset_apply(event=None):
+    global preset_status_text
+    select = _el("preset-select")
+    name = select.value if select is not None else preset_selected
+    message, _r, _g = apply_preset(name)
+    preset_status_text = message
+    render()
+    announce(message)
+    _check_new_achievements_for_toast()
+
+
+def on_preset_select(event=None):
+    global preset_selected
+    select = _el("preset-select")
+    if select is not None:
+        preset_selected = select.value
+
+
+def on_preset_list_event(event=None):
+    global preset_status_text
+    target = getattr(event, "target", None)
+    if target is None:
+        return
+    action, name = target.getAttribute("data-action"), target.getAttribute("data-name")
+    if not action or not name:
+        return
+    if action == "apply":
+        message, _r, _g = apply_preset(name)
+        preset_status_text = message
+        announce(message)
+        _check_new_achievements_for_toast()
+    elif action == "delete" and delete_preset(name):
+        preset_status_text = f"Deleted preset {name}."
+        announce(preset_status_text)
+    render()
+
+
+def render_presets():
+    global preset_selected
+    presets = meta["presets"]
+    if preset_selected and _preset_named(preset_selected) is None:
+        preset_selected = ""
+    if not preset_selected and presets:
+        preset_selected = presets[0]["name"]
+    row = _el("preset-apply-row")
+    if row is not None:
+        row.hidden = not presets or run.is_complete()
+    select = _el("preset-select")
+    if select is not None:
+        select.innerHTML = ""
+        for preset in presets:
+            option = document.createElement("option")
+            option.value = preset["name"]
+            option.innerText = preset_text(preset)
+            select.appendChild(option)
+        select.value = preset_selected
+    apply_button = _el("preset-apply-button")
+    if apply_button is not None:
+        apply_button.disabled = not presets or run.is_complete()
+    listing = _el("preset-list")
+    if listing is not None:
+        listing.innerHTML = ""
+        if not presets:
+            empty = document.createElement("li")
+            empty.innerText = "No presets yet. Buy some units, press Use this turn, name it and Save."
+            listing.appendChild(empty)
+        for preset in presets:
+            item = document.createElement("li")
+            item.className = "preset-item"
+            label = document.createElement("span")
+            label.className = "preset-item-label"
+            label.innerText = preset_text(preset)
+            item.appendChild(label)
+            for action, text, extra in (("apply", "Apply", ""), ("delete", "Delete", " preset-delete")):
+                button = document.createElement("button")
+                button.className = "secondary preset-item-button" + extra
+                button.setAttribute("type", "button")
+                button.setAttribute("data-action", action)
+                button.setAttribute("data-name", preset["name"])
+                button.setAttribute("aria-label", f"{text} preset {preset['name']}")
+                button.innerText = text
+                button.disabled = action == "apply" and run.is_complete()
+                item.appendChild(button)
+            listing.appendChild(item)
+    status = _el("preset-status")
+    if status is not None:
+        status.innerText = preset_status_text
+
+
+# ---- E-30: save health badge --------------------------------------------------
+save_health_announced = ""
+
+
+def render_save_health():
+    global save_health_announced
+    badge = _el("save-health")
+    if badge is None:
+        return
+    state, text = storage_health()
+    badge.setAttribute("data-state", state)
+    last = _storage_state["last_ok"]
+    badge.setAttribute("data-saved-at", str(int(last * 1000)) if last is not None else "")
+    text_el = _el("save-health-text")
+    if text_el is not None:
+        text_el.innerText = text
+    export_button = _el("save-health-export-button")
+    if export_button is not None:
+        export_button.hidden = state not in ("failed", "unsaved")
+    alert = _el("save-health-alert")
+    if alert is not None and state != save_health_announced:
+        # A polite live region, written only when the state changes, so the ticking age never talks.
+        alert.innerText = text if state in ("failed", "unsaved") else ("Progress is saving again." if save_health_announced in ("failed", "unsaved") else "")
+    save_health_announced = state
+
+
+def on_save_health_export(event=None):
+    """One click: builds the progress code, shows it selected in a box and tries the clipboard."""
+    area = _el("save-health-code")
+    status = _el("save-health-code-status")
+    code = export_progress_code()
+    if area is not None:
+        area.hidden = False
+        area.value = code
+        _focus(area)
+        try:
+            area.select()
+        except Exception:
+            pass
+    copied = _copy_to_clipboard(code)
+    if status is not None:
+        status.innerText = (
+            "Copied your progress code. Paste it somewhere safe; Import Progress restores it."
+            if copied else
+            "Copy this code and keep it somewhere safe; Import Progress (Backup / Transfer) restores it."
+        )
+
+
+# ---- E-3: purchase route planner ----------------------------------------------
+def purchase_route(pinned=None):
+    """Ordered skill ids to buy for the pinned skills: each pinned skill (in pin order) preceded
+    by any prerequisite not yet owned or already in the list, so the order always respects the
+    tree. Owned skills are skipped."""
+    pinned = list(meta["pinned_skills"]) if pinned is None else list(pinned)
+    order = []
+
+    def visit(skill_id):
+        if skill_id not in SKILLS or skill_id in skill_tree.unlocked or skill_id in order:
+            return
+        for prereq in SKILLS[skill_id].get("prereqs", []):
+            visit(prereq)
+        order.append(skill_id)
+
+    for skill_id in pinned:
+        visit(skill_id)
+    return order
+
+
+def route_rows():
+    """One row per step: the skill, its cost, the running total, how many more knowledge points
+    that total still needs beyond what is in hand and the estimated further runs (None while no
+    run has been completed, since there is no earning rate yet)."""
+    pinned = set(meta["pinned_skills"])
+    rate = average_knowledge_per_run()
+    rows, running = [], 0
+    for skill_id in purchase_route():
+        cost = SKILLS[skill_id]["cost"]
+        running += cost
+        short = max(0, running - skill_tree.knowledge_points)
+        if short == 0:
+            runs = 0
+        elif rate and rate > 0:
+            runs = max(1, math.ceil(short / rate))
+        else:
+            runs = None
+        rows.append(
+            {
+                "skill_id": skill_id,
+                "label": SKILLS[skill_id]["label"],
+                "cost": cost,
+                "running_total": running,
+                "short": short,
+                "runs": runs,
+                "prerequisite_only": skill_id not in pinned,
+            }
+        )
+    return rows
+
+
+def route_row_text(index, row):
+    when = "affordable now" if row["runs"] == 0 else (
+        "complete a run for an estimate" if row["runs"] is None
+        else f"about {row['runs']} more run{'s' if row['runs'] != 1 else ''}"
+    )
+    extra = " (needed first)" if row["prerequisite_only"] else ""
+    return (
+        f"{index}. {row['label']}{extra}: {row['cost']} knowledge, running total {row['running_total']}, "
+        f"{when}"
+    )
+
+
+def route_summary_text():
+    rows = route_rows()
+    if not rows:
+        return "Pin skills to plan a route."
+    total = rows[-1]["running_total"]
+    have = skill_tree.knowledge_points
+    last = rows[-1]
+    if last["runs"] == 0:
+        ending = "you can afford the whole route now."
+    elif last["runs"] is None:
+        ending = "complete a run to estimate how long it will take."
+    else:
+        ending = f"about {last['runs']} more run{'s' if last['runs'] != 1 else ''} at your average of {average_knowledge_per_run():.1f} knowledge per run."
+    return f"Route total {total} knowledge, {have} in hand: {ending}"
+
+
+def render_route_planner():
+    panel = _el("route-planner")
+    if panel is None:
+        return
+    rows = route_rows()
+    panel.hidden = not rows
+    listing = _el("route-list")
+    if listing is not None:
+        listing.innerHTML = ""
+        for index, row in enumerate(rows, start=1):
+            item = document.createElement("li")
+            item.className = "route-step" + (" route-step--prereq" if row["prerequisite_only"] else "")
+            item.innerText = route_row_text(index, row)
+            listing.appendChild(item)
+    summary = _el("route-summary")
+    if summary is not None:
+        summary.innerText = route_summary_text()
+    title = _el("route-planner-summary")
+    if title is not None:
+        title.innerText = f"Purchase route ({len(rows)} step{'s' if len(rows) != 1 else ''})" if rows else "Purchase route"
+
+
+# ---- E-5: plain-text schedule --------------------------------------------------
+def schedule_plain_text(run_state=None):
+    """The whole schedule as words, one line, no colours or icons needed."""
+    run_state = run_state or run
+    parts = []
+    for entry in schedule_strip_entries(run_state):
+        if entry["state"] == "done":
+            note = f"faced, {entry['damage']:.0f} damage"
+        elif entry["state"] == "next":
+            note = f"next, about {entry['damage']:.0f} damage"
+        else:
+            note = f"upcoming, about {entry['damage']:.0f} damage"
+        parts.append(f"{entry['number']}. {entry['label']} ({note})")
+    return "; ".join(parts) + "."
+
+
+def render_schedule_text():
+    text_el = _el("schedule-text")
+    if text_el is not None:
+        text_el.innerText = schedule_plain_text(run)
+
+
+# ---- E-4: shareable run codes (shared/run_code.py) and challenge runs -------------------------------
+# A run code carries: a seed (5 characters), a mode word (a-z0-9, up to 8), a score and two numbers.
+# Aftermath uses them like this:
+#   mode   the scenario word ("classic", "coastal", ..., "heatsea"), plus a trailing "x" for an
+#          Extended Run, or "custom" for a player-built schedule;
+#   seed   the severity DRAW (a whole number written in the seed alphabet; the sender's run number,
+#          because severity is a fixed pattern per run number), or, for "custom", the schedule itself
+#          (up to 7 events, 3 bits each, with a leading 1 so the length is kept);
+#   score  the sender's resources left; stats: their adjusted score (E-9) and the damage they took.
+# A friend who pastes the code can PLAY the same schedule as a challenge run: the same events in the
+# same order struck by the same draw pattern at the plain severity band, with their own skill tree,
+# starting bonuses and society memory switched off, so both of you start from a fresh settlement.
+# Challenge runs earn no knowledge and write nothing to the run history; they count toward a visible
+# "challenge runs finished" tally and a best score per code.
+RUN_CODE_GAME = "aftermath"
+SCENARIO_CODE_WORD = {
+    "classic": "classic", "coastal": "coastal", "inland": "inland", "urban": "urban",
+    "san_francisco": "sanfran", "houston": "houston", "phoenix": "phoenix", "chicago": "chicago",
+    "heat_season": "heatsea",
+}
+CODE_WORD_SCENARIO = {word: scenario for scenario, word in SCENARIO_CODE_WORD.items()}
+CUSTOM_CODE_WORD = "custom"
+# The position of an event type in a custom schedule's seed. Only ever APPEND here (and the digit
+# base of 8 leaves room for exactly one more), because shared codes would otherwise change meaning.
+EVENT_CODE_ORDER = (
+    "flood", "heatwave", "storm", "supply_chain", "infrastructure_failure", "civil_unrest", "heat_mortality",
+)
+
+
+def run_code_mode_names():
+    """Mode word -> display name, for the page's 'Their run: ...' line (read through pyodide)."""
+    names = {}
+    for word, scenario in CODE_WORD_SCENARIO.items():
+        label = SCENARIOS[scenario]["label"]
+        names[word] = label
+        names[word + "x"] = f"{label}, extended"
+    names[CUSTOM_CODE_WORD] = "Custom schedule"
+    return names
+
+
+def seed_text_for_int(number):
+    """The 5-character seed for a whole number (base 31, the seed alphabet), as AFTERMATH-XXXXX."""
+    base = len(shared_seed.ALPHABET)
+    if not isinstance(number, int) or number < 0 or number >= base ** shared_seed.CODE_LEN:
+        return None
+    chars = []
+    for _ in range(shared_seed.CODE_LEN):
+        number, remainder = divmod(number, base)
+        chars.append(shared_seed.ALPHABET[remainder])
+    return f"{shared_seed.prefix_for(RUN_CODE_GAME)}-{''.join(reversed(chars))}"
+
+
+def int_from_seed_text(text):
+    code = str(text).split("-")[-1]
+    number = 0
+    for ch in code:
+        number = number * len(shared_seed.ALPHABET) + shared_seed.ALPHABET.index(ch)
+    return number
+
+
+def custom_schedule_number(events):
+    """A custom schedule as one whole number: a leading 1 then each event's position in base 8."""
+    if not events or len(events) > CUSTOM_MAX_EVENTS or any(e not in EVENT_CODE_ORDER for e in events):
+        return None
+    number = 1
+    for event_type in events:
+        number = number * 8 + EVENT_CODE_ORDER.index(event_type)
+    return number
+
+
+def custom_schedule_from_number(number):
+    """The inverse; None unless it is a well-formed schedule of CUSTOM_MIN_EVENTS..CUSTOM_MAX_EVENTS."""
+    digits = []
+    while number > 1:
+        number, digit = divmod(number, 8)
+        if digit >= len(EVENT_CODE_ORDER):
+            return None
+        digits.append(EVENT_CODE_ORDER[digit])
+    if number != 1 or not CUSTOM_MIN_EVENTS <= len(digits) <= CUSTOM_MAX_EVENTS:
+        return None
+    return list(reversed(digits))
+
+
+def run_code_mode(run_state):
+    if run_state.custom_events:
+        return CUSTOM_CODE_WORD
+    return SCENARIO_CODE_WORD[run_state.scenario] + ("x" if run_state.extended else "")
+
+
+def run_code_seed_number(run_state):
+    if run_state.custom_events:
+        return custom_schedule_number(run_state.custom_events)
+    return run_state.draw if run_state.normalised else run_state.run_number
+
+
+def run_code_fields(run_state=None):
+    """The fields for shared/run-code.js's copy box (the page reads this through pyodide): a FINISHED
+    run only, else None. The score is the resources left; the two stats are the adjusted score and
+    the damage taken."""
+    run_state = run_state or run
+    if not run_state.is_complete():
+        return None
+    seed_text = seed_text_for_int(run_code_seed_number(run_state))
+    if seed_text is None:
+        return None
+    return {
+        "seed": seed_text,
+        "mode": run_code_mode(run_state),
+        "score": int(round(max(0.0, run_state.run_score()))),
+        "stats": [
+            int(round(adjusted_score(run_state.run_score(), run_state.event_log))),
+            int(round(max(0.0, run_state.damage_taken))),
+        ],
+    }
+
+
+def make_run_code(run_state=None):
+    fields = run_code_fields(run_state)
+    if fields is None:
+        return None
+    return shared_run_code.encode({"game": RUN_CODE_GAME, **fields})
+
+
+def schedule_code(events):
+    """A code for a schedule alone (no result), to hand a friend before anyone has played it."""
+    number = custom_schedule_number(events)
+    seed_text = seed_text_for_int(number) if number is not None else None
+    if seed_text is None:
+        return None
+    return shared_run_code.encode({"game": RUN_CODE_GAME, "seed": seed_text, "mode": CUSTOM_CODE_WORD})
+
+
+def challenge_spec(decoded):
+    """(spec, error) from a decoded run code: what to play. spec has scenario, extended, draw and
+    custom_events."""
+    if not decoded.get("ok"):
+        return None, decoded.get("message") or "That is not a run code."
+    mode, seed_text = decoded.get("mode", ""), decoded.get("seed", "")
+    if not seed_text:
+        return None, "That code has no schedule to play. Ask for a code from a finished run or a saved schedule."
+    number = int_from_seed_text(seed_text)
+    if mode == CUSTOM_CODE_WORD:
+        events = custom_schedule_from_number(number)
+        if events is None:
+            return None, "That custom schedule code is not valid."
+        return {"scenario": DEFAULT_SCENARIO, "extended": False, "draw": 1, "custom_events": events}, ""
+    extended = False
+    word = mode
+    if word not in CODE_WORD_SCENARIO and word.endswith("x") and word[:-1] in CODE_WORD_SCENARIO:
+        word, extended = word[:-1], True
+    if word not in CODE_WORD_SCENARIO:
+        return None, "That code is for a mode this version of Aftermath does not know."
+    return {"scenario": CODE_WORD_SCENARIO[word], "extended": extended, "draw": number, "custom_events": None}, ""
+
+
+def _challenge_info(decoded):
+    stats = decoded.get("stats") or []
+    return {
+        "code": decoded["code"],
+        "their_score": decoded.get("score"),
+        "their_adjusted": stats[0] if len(stats) > 0 else None,
+        "their_damage": stats[1] if len(stats) > 1 else None,
+    }
+
+
+def challenge_run_from_code(code):
+    """(RunState, error) for a pasted code; the run is NOT installed."""
+    decoded = shared_run_code.decode(code, RUN_CODE_GAME)
+    spec, error = challenge_spec(decoded)
+    if spec is None:
+        return None, error
+    state = RunState(
+        run_number=max(1, highest_awarded_run),
+        extended=spec["extended"],
+        scenario=spec["scenario"],
+        normalised=True,
+        draw=spec["draw"],
+        custom_events=spec["custom_events"],
+        custom_name="Friend's schedule" if spec["custom_events"] else None,
+        challenge=_challenge_info(decoded),
+    )
+    return state, ""
+
+
+challenge_status_text = ""
+
+
+def _reset_run_ui_state():
+    """What starting or swapping a run clears (shared by new runs, challenges and built schedules)."""
+    global callout_message, last_knowledge_preview
+    callout_message = ""
+    last_knowledge_preview = None
+    document.getElementById("copy-run-summary-status").innerText = ""
+    document.getElementById("copy-run-summary-area").hidden = True
+    announce("")
+
+
+def start_challenge(code):
+    """Plays a friend's run code as a challenge run. Only between runs (a finished run or one with
+    no event faced yet), so nothing in progress is ever thrown away. Returns the message shown."""
+    global run, challenge_status_text
+    if not (run.is_complete() or run.event_index == 0):
+        message = "Finish your current run first (or save it with the Save button), then play the challenge."
+    else:
+        state, error = challenge_run_from_code(code)
+        if state is None:
+            message = error
+        else:
+            run = state
+            _reset_run_ui_state()
+            message = (
+                f"Challenge started: {len(run.schedule)} events, your skills and memory are switched off, "
+                "no knowledge is earned."
+            )
+    challenge_status_text = message
+    render()
+    announce(message)
+    return message
+
+
+def leave_challenge(event=None):
+    """Drops an unfinished challenge and starts the next normal run."""
+    global run, challenge_status_text
+    if not run.normalised:
+        return
+    extended = _el("extended-run-toggle")
+    scenario = _el("scenario-select")
+    run = RunState(
+        run_number=highest_awarded_run + 1,
+        extended=bool(extended.checked) if extended is not None else False,
+        scenario=scenario.value if scenario is not None and scenario.value in SCENARIOS else DEFAULT_SCENARIO,
+    )
+    _reset_run_ui_state()
+    challenge_status_text = "Left the challenge: back to your own settlement."
+    render()
+
+
+def _note_challenge_result(run_state):
+    """A finished challenge counts toward the visible tally and keeps the best score per code."""
+    meta["challenge_runs"] += 1
+    info = run_state.challenge or {}
+    code = info.get("code")
+    if code:
+        score = int(round(max(0.0, run_state.run_score())))
+        best = meta["challenge_best"]
+        best[code] = max(score, best.get(code, 0))
+        while len(best) > CHALLENGE_BEST_MAX:
+            best.pop(next(iter(best)))
+    save_meta()
+
+
+def challenge_result_text(run_state):
+    info = run_state.challenge or {}
+    mine = int(round(run_state.run_score()))
+    text = (
+        f"Challenge finished: you ended with {mine} resources ({adjusted_text(run_state.run_score(), run_state.event_log)}). "
+    )
+    theirs = info.get("their_score")
+    if theirs is not None:
+        extra = f", {info['their_adjusted']} adjusted" if info.get("their_adjusted") is not None else ""
+        text += (
+            f"Their run ended with {theirs}{extra}. They played with their own skill tree and you started fresh, "
+            "so read it as a friendly note, not a ranking. "
+        )
+    return text + "Challenge runs earn no knowledge and leave your history alone."
+
+
+def challenge_stats_text():
+    played = meta["challenge_runs"]
+    text = f"Challenge runs finished: {played}."
+    if run.normalised and run.challenge:
+        best = meta["challenge_best"].get(run.challenge.get("code"))
+        if best is not None:
+            text += f" Your best on this code: {best}."
+    return text
+
+
+def challenge_banner_text(run_state=None):
+    run_state = run_state or run
+    if not run_state.normalised:
+        return ""
+    info = run_state.challenge or {}
+    theirs = f" Their run ended with {info['their_score']}." if info.get("their_score") is not None else ""
+    return (
+        f"Challenge run: a friend's schedule, {len(run_state.schedule)} events, with your skill tree and "
+        f"memory switched off. No knowledge is earned.{theirs}"
+    )
+
+
+def render_challenge():
+    banner = _el("challenge-banner")
+    if banner is not None:
+        banner.innerText = challenge_banner_text()
+        banner.hidden = not run.normalised
+    leave = _el("challenge-leave-button")
+    if leave is not None:
+        leave.hidden = not (run.normalised and not run.is_complete())
+    stats = _el("challenge-stats")
+    if stats is not None:
+        stats.innerText = challenge_stats_text()
+    status = _el("challenge-status")
+    if status is not None:
+        status.innerText = challenge_status_text
+    wrap = _el("run-end-code-wrap")
+    if wrap is not None:
+        wrap.hidden = not run.is_complete()
+    note = _el("run-end-code-note")
+    if note is not None:
+        note.innerText = (
+            "" if run.is_complete() else "Finish a run to get its run code, then copy it for a friend."
+        )
+    try:
+        from js import window  # noqa: PLC0415 -- Pyodide-only, deliberately lazy
+    except ImportError:
+        return
+    update = getattr(window, "aftermathRunCodeUpdate", None)
+    if update is not None:
+        try:
+            update()
+        except Exception:
+            pass
+
+
+# ---- E-13: schedule builder --------------------------------------------------------------------------
+builder_draft = []
+builder_status_text = ""
+
+
+def builder_total_damage(events=None):
+    return sum(EVENT_BASE_DAMAGE[e] for e in (builder_draft if events is None else events))
+
+
+def builder_knowledge_share(events=None):
+    events = builder_draft if events is None else events
+    reference = sum(EVENT_BASE_DAMAGE[e] for e in EVENT_SCHEDULE)
+    return min(1.0, builder_total_damage(events) / reference) if events else 0.0
+
+
+def builder_summary_text():
+    count = len(builder_draft)
+    if not count:
+        return f"Empty. Add {CUSTOM_MIN_EVENTS} to {CUSTOM_MAX_EVENTS} events from the library."
+    return (
+        f"{count} of {CUSTOM_MAX_EVENTS} events, {builder_total_damage():.0f} base damage "
+        f"(Classic mix: {sum(EVENT_BASE_DAMAGE[e] for e in EVENT_SCHEDULE):.0f}). "
+        f"A run on it earns {builder_knowledge_share() * 100:.0f}% of the usual knowledge."
+    )
+
+
+def builder_add(event_type):
+    if event_type not in EVENT_LABEL or len(builder_draft) >= CUSTOM_MAX_EVENTS:
+        return False
+    builder_draft.append(event_type)
+    return True
+
+
+def builder_remove(index):
+    if 0 <= index < len(builder_draft):
+        builder_draft.pop(index)
+        return True
+    return False
+
+
+def builder_move(index, delta):
+    target = index + delta
+    if 0 <= index < len(builder_draft) and 0 <= target < len(builder_draft):
+        builder_draft[index], builder_draft[target] = builder_draft[target], builder_draft[index]
+        return True
+    return False
+
+
+def _custom_named(name):
+    key = _clean_name(name, CUSTOM_NAME_MAX).casefold()
+    for entry in meta["custom_schedules"]:
+        if entry["name"].casefold() == key:
+            return entry
+    return None
+
+
+def save_custom_schedule(name, events=None):
+    """Saves the draft (or `events`) under a name; the same name (any case) is replaced."""
+    events = list(builder_draft if events is None else events)
+    name = _clean_name(name, CUSTOM_NAME_MAX)
+    if not name:
+        return False, "Give the schedule a name."
+    if not CUSTOM_MIN_EVENTS <= len(events) <= CUSTOM_MAX_EVENTS:
+        return False, f"A schedule needs {CUSTOM_MIN_EVENTS} to {CUSTOM_MAX_EVENTS} events."
+    existing = _custom_named(name)
+    if existing is None and len(meta["custom_schedules"]) >= CUSTOM_SCHEDULES_MAX:
+        return False, f"You can keep up to {CUSTOM_SCHEDULES_MAX} saved schedules. Delete one first."
+    entry = {"name": name, "events": events}
+    if existing is None:
+        meta["custom_schedules"].append(entry)
+    else:
+        meta["custom_schedules"][meta["custom_schedules"].index(existing)] = entry
+    save_meta()
+    return True, f"{'Updated' if existing else 'Saved'} schedule {name} ({len(events)} events)."
+
+
+def delete_custom_schedule(name):
+    existing = _custom_named(name)
+    if existing is None:
+        return False
+    meta["custom_schedules"].remove(existing)
+    save_meta()
+    return True
+
+
+def start_custom_run(name):
+    """Runs a saved schedule as a normal run (your tree applies; it is tagged 'custom schedule'),
+    only between runs. Returns the message shown."""
+    global run
+    entry = _custom_named(name)
+    if entry is None:
+        return "That schedule no longer exists."
+    if not (run.is_complete() or run.event_index == 0):
+        return "Finish your current run first (or save it with the Save button), then run a custom schedule."
+    number = max(run.run_number, highest_awarded_run) + 1 if run.is_complete() else run.run_number
+    if run.normalised:
+        number = highest_awarded_run + 1
+    run = RunState(run_number=number, custom_events=entry["events"], custom_name=entry["name"])
+    _reset_run_ui_state()
+    return f"Started a run on {entry['name']}: {len(entry['events'])} events. It is tagged as a custom schedule."
+
+
+def _builder_message(message):
+    global builder_status_text
+    builder_status_text = message
+    render()
+    announce(message)
+
+
+def _make_library_handler(event_type):
+    def handler(event=None):
+        if builder_add(event_type):
+            _builder_message(f"Added {EVENT_LABEL[event_type]}. {len(builder_draft)} of {CUSTOM_MAX_EVENTS} events.")
+        else:
+            _builder_message(f"The schedule is full: {CUSTOM_MAX_EVENTS} events at most.")
+    return handler
+
+
+def on_builder_clear(event=None):
+    del builder_draft[:]
+    _builder_message("Cleared the draft.")
+
+
+def on_builder_save(event=None):
+    name_el = _el("builder-name-input")
+    ok, message = save_custom_schedule(name_el.value if name_el is not None else "")
+    _builder_message(message)
+
+
+def on_builder_draft_event(event=None):
+    target = getattr(event, "target", None)
+    if target is None:
+        return
+    action, raw = target.getAttribute("data-action"), target.getAttribute("data-index")
+    if not action or raw is None or not str(raw).isdigit():
+        return
+    index = int(raw)
+    if action == "remove" and builder_remove(index):
+        _builder_message(f"Removed event {index + 1}. {len(builder_draft)} of {CUSTOM_MAX_EVENTS} events.")
+        _focus(_el("builder-draft"))
+    elif action in ("up", "down") and builder_move(index, -1 if action == "up" else 1):
+        _builder_message(f"Moved event {index + 1} {action}.")
+        _focus(_el("builder-draft"))
+
+
+def on_builder_saved_event(event=None):
+    target = getattr(event, "target", None)
+    if target is None:
+        return
+    action, name = target.getAttribute("data-action"), target.getAttribute("data-name")
+    entry = _custom_named(name) if name else None
+    if not action or entry is None:
+        return
+    if action == "load":
+        builder_draft[:] = list(entry["events"])
+        name_el = _el("builder-name-input")
+        if name_el is not None:
+            name_el.value = entry["name"]
+        _builder_message(f"Loaded {entry['name']} into the draft.")
+    elif action == "run":
+        message = start_custom_run(entry["name"])
+        _builder_message(message)
+    elif action == "delete":
+        delete_custom_schedule(entry["name"])
+        _builder_message(f"Deleted schedule {entry['name']}.")
+    elif action == "share":
+        code = schedule_code(entry["events"])
+        area = _el("builder-code")
+        if area is not None and code:
+            area.hidden = False
+            area.value = code
+            _focus(area)
+            try:
+                area.select()
+            except Exception:
+                pass
+        copied = bool(code) and _copy_to_clipboard(code)
+        _builder_message(
+            f"Copied the code for {entry['name']}: a friend can paste it under Run codes and challenges." if copied
+            else f"The code for {entry['name']} is in the box below: copy it and send it to a friend."
+        )
+
+
+def build_library_buttons():
+    holder = _el("builder-library")
+    if holder is None:
+        return
+    holder.innerHTML = ""
+    for event_type in EVENT_CODE_ORDER:
+        button = document.createElement("button")
+        button.className = f"secondary builder-library-button event-category--{EVENT_CATEGORY[event_type]}"
+        button.setAttribute("type", "button")
+        button.setAttribute("data-event", event_type)
+        button.innerText = f"+ {EVENT_ICON[event_type]} {EVENT_LABEL[event_type]}"
+        button.addEventListener("click", create_proxy(_make_library_handler(event_type)))
+        holder.appendChild(button)
+
+
+def render_builder():
+    holder = _el("builder-library")
+    full = len(builder_draft) >= CUSTOM_MAX_EVENTS
+    if holder is not None:
+        for button in holder.children:
+            button.disabled = full
+    draft = _el("builder-draft")
+    if draft is not None:
+        draft.innerHTML = ""
+        for index, event_type in enumerate(builder_draft):
+            item = document.createElement("li")
+            item.className = f"builder-item event-category--{EVENT_CATEGORY[event_type]}"
+            label = document.createElement("span")
+            label.className = "builder-item-label"
+            label.innerText = f"{EVENT_ICON[event_type]} {EVENT_LABEL[event_type]} ({EVENT_BASE_DAMAGE[event_type]:.0f})"
+            item.appendChild(label)
+            for action, text, aria in (("up", "↑", "Move up"), ("down", "↓", "Move down"), ("remove", "✕", "Remove")):
+                button = document.createElement("button")
+                button.className = "secondary builder-item-button"
+                button.setAttribute("type", "button")
+                button.setAttribute("data-action", action)
+                button.setAttribute("data-index", str(index))
+                button.setAttribute("aria-label", f"{aria} event {index + 1}, {EVENT_LABEL[event_type]}")
+                button.innerText = text
+                button.disabled = (action == "up" and index == 0) or (action == "down" and index == len(builder_draft) - 1)
+                item.appendChild(button)
+            draft.appendChild(item)
+    summary = _el("builder-summary")
+    if summary is not None:
+        summary.innerText = builder_summary_text()
+    save = _el("builder-save-button")
+    if save is not None:
+        save.disabled = len(builder_draft) < CUSTOM_MIN_EVENTS
+    clear = _el("builder-clear-button")
+    if clear is not None:
+        clear.disabled = not builder_draft
+    saved = _el("builder-saved-list")
+    if saved is not None:
+        saved.innerHTML = ""
+        if not meta["custom_schedules"]:
+            empty = document.createElement("li")
+            empty.innerText = "No saved schedules yet."
+            saved.appendChild(empty)
+        can_run = run.is_complete() or run.event_index == 0
+        for entry in meta["custom_schedules"]:
+            item = document.createElement("li")
+            item.className = "builder-saved-item"
+            label = document.createElement("span")
+            label.className = "builder-item-label"
+            label.innerText = f"{entry['name']}: " + " → ".join(EVENT_LABEL[e] for e in entry["events"])
+            item.appendChild(label)
+            for action, text in (("run", "Run it"), ("load", "Edit"), ("share", "Code"), ("delete", "Delete")):
+                button = document.createElement("button")
+                button.className = "secondary builder-item-button"
+                button.setAttribute("type", "button")
+                button.setAttribute("data-action", action)
+                button.setAttribute("data-name", entry["name"])
+                button.setAttribute("aria-label", f"{text}: {entry['name']}")
+                button.innerText = text
+                button.disabled = action == "run" and not can_run
+                item.appendChild(button)
+            saved.appendChild(item)
+    status = _el("builder-status")
+    if status is not None:
+        status.innerText = builder_status_text
+
+
 # ---- GE-18 / E-15 handlers ---------------------------------------------
 def on_undo_allocation(event=None):
     if run.undo_last_allocation():
@@ -3723,7 +5218,13 @@ def render():
     render_mentor()
     render_real_world()
     render_schedule_strip()
+    render_schedule_text()  # E-5
     render_damage_waterfall()
+    render_skill_filters()  # E-19
+    render_presets()  # E-25
+    render_route_planner()  # E-3
+    render_builder()  # E-13
+    render_challenge()  # E-4
     document.getElementById("curriculum-display").innerText = curriculum_message()
     document.getElementById("resources-display").innerText = f"Resources: {run.resources:.0f}"
     document.getElementById("resilience-display").innerText = f"Resilience: {run.resilience_capacity}"
@@ -3732,8 +5233,10 @@ def render():
     )
     document.getElementById("runs-completed-display").innerText = runs_completed_text()  # E4/E25
     document.getElementById("settlement-badge-toughest").classList.remove("settlement-badge--earned")
+    badge = document.getElementById("settlement-badge-toughest")
+    badge.title = toughest_badge_title()  # E-9
     if toughest_survived_run_badge_earned():  # E12
-        document.getElementById("settlement-badge-toughest").classList.add("settlement-badge--earned")
+        badge.classList.add("settlement-badge--earned")
     callout_el = document.getElementById("callout-display")
     callout_el.innerText = callout_message
     callout_el.hidden = not callout_message
@@ -3775,6 +5278,7 @@ def render():
         document.getElementById("flawless-hint-display").innerText = ""
         document.getElementById("knowledge-preview-display").innerText = ""
         document.getElementById("run-summary-display").innerText = (
+            challenge_result_text(run) if run.normalised else
             f"Score: {run.run_score():.0f} — "
             f"earned {run.knowledge_points_earned()} resilience knowledge point"
             f"{'s' if run.knowledge_points_earned() != 1 else ''}."
@@ -3787,7 +5291,8 @@ def render():
         stats.className = "run-summary-stats"
         stats.innerText = (
             f"Final resilience: {run.resilience_capacity} · Final growth: {run.growth_capacity} · "
-            f"Total damage taken: {run.damage_taken:.0f}"
+            f"Total damage taken: {run.damage_taken:.0f} · Score {run.run_score():.0f}, "
+            f"{adjusted_text(run.run_score(), run.event_log)}"  # E-9
         )
         run_summary_panel.appendChild(stats)
         _render_event_breakdown_lines(run_summary_panel, run.event_log)
@@ -3803,13 +5308,14 @@ def render():
             line.className = "knowledge-breakdown-line"
             line.innerText = text
             breakdown.appendChild(line)
-        run_summary_panel.appendChild(breakdown)
-        if not epitaph_hidden():  # GE-21
+        if not run.normalised:  # E-4: a challenge run earns no knowledge, so no breakdown
+            run_summary_panel.appendChild(breakdown)
+        if not run.normalised and not epitaph_hidden():  # GE-21
             epitaph_el = document.createElement("p")
             epitaph_el.className = "run-epitaph"
             epitaph_el.innerText = epitaph_text(run)
             run_summary_panel.appendChild(epitaph_el)
-        epilogue = extended_epilogue_text(run)
+        epilogue = extended_epilogue_text(run) if not run.normalised else ""
         if epilogue:
             epilogue_el = document.createElement("p")
             epilogue_el.className = "run-epilogue"
@@ -3836,7 +5342,10 @@ def render():
             f"range {low:.0f}–{high:.0f})"
         )
         expected_el.className = f"status-line severity--{severity_label(severity)}"
-        expected_el.title = severity_tooltip_text(run.run_number)
+        expected_el.title = (
+            "Challenge runs use a fixed severity pattern shared with the friend who made the code."
+            if run.normalised else severity_tooltip_text(run.run_number)
+        )
         document.getElementById("flawless-hint-display").innerText = flawless_hint_text(run)  # GE-15
 
         # E20: a live preview of the knowledge points a run would award
@@ -3844,6 +5353,7 @@ def render():
         knowledge_now = run.knowledge_points_earned()
         preview_el = document.getElementById("knowledge-preview-display")
         preview_el.innerText = (
+            "Challenge runs earn no knowledge points." if run.normalised else
             f"If the run ended now: {knowledge_now} knowledge point{'s' if knowledge_now != 1 else ''}"
             + knowledge_preview_detail(run)  # E-23
         )
@@ -3897,15 +5407,19 @@ def render():
     resolve_button.disabled = run.is_complete()
 
     document.getElementById("new-run-button").hidden = not run.is_complete()
+    render_save_health()  # E-30
     document.getElementById("extended-run-toggle-wrapper").hidden = not run.is_complete()
     # E17a: the scenario can be picked before a run's first event or between runs.
-    document.getElementById("scenario-wrapper").hidden = not (run.is_complete() or run.event_index == 0)
+    document.getElementById("scenario-wrapper").hidden = (
+        not (run.is_complete() or run.event_index == 0) or (run.normalised and not run.is_complete())
+    )
     scenario_select = document.getElementById("scenario-select")
     if run.event_index == 0 and not run.is_complete():
         scenario_select.value = run.scenario
-    document.getElementById("scenario-blurb").innerText = SCENARIOS[
-        scenario_select.value if scenario_select.value in SCENARIOS else run.scenario
-    ]["blurb"]
+    document.getElementById("scenario-blurb").innerText = (
+        f"Custom schedule: {run.custom_name or 'built by you'} ({len(run.schedule)} events)." if (run.custom_events and not run.is_complete())
+        else SCENARIOS[scenario_select.value if scenario_select.value in SCENARIOS else run.scenario]["blurb"]
+    )
     document.getElementById("progress-comparison-display").innerText = progress_message(
         progress_comparison()
     )
@@ -4060,7 +5574,7 @@ def on_scenario_change(event=None):
     run is underway the choice can no longer change it."""
     global run
     value = document.getElementById("scenario-select").value
-    if value in SCENARIOS and run.event_index == 0 and not run.is_complete():
+    if value in SCENARIOS and run.event_index == 0 and not run.is_complete() and not run.normalised:
         run = RunState(run_number=run.run_number, extended=run.extended, scenario=value)
     render()
 
@@ -4085,15 +5599,14 @@ def start_new_run(event=None):
     run uses the doubled-length schedule (RunState's own `extended` flag)
     -- opt-in, and only ever read at the moment a new run starts, so it
     has no effect on a run already in progress."""
-    global run, callout_message, last_knowledge_preview
-    callout_message = ""
-    last_knowledge_preview = None
-    document.getElementById("copy-run-summary-status").innerText = ""
-    document.getElementById("copy-run-summary-area").hidden = True
-    announce("")
+    global run, challenge_status_text
+    _reset_run_ui_state()
+    challenge_status_text = ""
     extended = document.getElementById("extended-run-toggle").checked
     scenario = document.getElementById("scenario-select").value
-    run = RunState(run_number=max(run.run_number, highest_awarded_run) + 1, extended=extended, scenario=scenario)
+    # A finished challenge run never counted as a numbered run, so the next real one follows the last awarded.
+    base = highest_awarded_run if run.normalised else run.run_number
+    run = RunState(run_number=max(base, highest_awarded_run) + 1, extended=extended, scenario=scenario)
     render()
     _check_new_achievements_for_toast()
 
@@ -4136,6 +5649,11 @@ def get_state():
         # here deliberately gets.
         "extended": run.extended,
         **({"scenario": run.scenario} if run.scenario != DEFAULT_SCENARIO else {}),
+        # E-4 / E-13: a challenge run keeps its run code (the schedule and draw are rebuilt from it) and a
+        # run on a built schedule keeps the events and name. Absent for ordinary runs.
+        **({"challenge_code": run.challenge["code"]} if run.normalised and run.challenge else {}),
+        **({"custom_events": list(run.custom_events), "custom_name": run.custom_name or ""}
+           if run.custom_events and not run.normalised else {}),
         # Write-only projection (ACHIEVEMENTS-SYSTEM-DESIGN.md §1) — always
         # freshly recomputed, never read back by load_state() below.
         "achievements_earned": achievement_ids_earned(),
@@ -4165,10 +5683,20 @@ def load_state(data):
     # comment on this one field: it postdates this save contract, and an
     # older save code simply never was an extended run.
     saved_scenario = data.get("scenario")
-    run = RunState(
-        run_number=data["run_number"], extended=data.get("extended", False),
-        scenario=saved_scenario if isinstance(saved_scenario, str) else DEFAULT_SCENARIO,
-    )
+    restored = None
+    if isinstance(data.get("challenge_code"), str):  # E-4: rebuild the challenge from its code
+        restored, _error = challenge_run_from_code(data["challenge_code"])
+        if restored is not None:
+            restored.run_number = data["run_number"]
+    if restored is None:
+        custom = data.get("custom_events")
+        restored = RunState(
+            run_number=data["run_number"], extended=data.get("extended", False),
+            scenario=saved_scenario if isinstance(saved_scenario, str) else DEFAULT_SCENARIO,
+            custom_events=custom if isinstance(custom, list) else None,
+            custom_name=data.get("custom_name") if isinstance(data.get("custom_name"), str) else None,
+        )
+    run = restored
     run.event_index = data["event_index"]
     run.resources = data["resources"]
     run.resilience_capacity = data["resilience_capacity"]
@@ -4205,6 +5733,34 @@ def _make_unlock_handler(skill_id):
             _display_skill_unlock_toast(skill_id)
         _check_new_achievements_for_toast()
     return handler
+
+
+def _listen(element_id, event_name, handler):
+    element = _el(element_id)
+    if element is not None:
+        element.addEventListener(event_name, create_proxy(handler))
+
+
+def _wire_round3_batch2():
+    """Event wiring and one-time construction for E-19, E-25, E-30, E-13 and E-4 (each tolerates a
+    cached older page that lacks the element)."""
+    probe_storage()
+    build_skill_filter_chips()
+    build_library_buttons()
+    _listen("skill-search-input", "input", on_skill_search)
+    _listen("skill-filter-clear", "click", on_skill_filter_clear)
+    _listen("preset-save-button", "click", on_preset_save)
+    _listen("preset-from-turn-button", "click", on_preset_from_turn)
+    _listen("preset-apply-button", "click", on_preset_apply)
+    _listen("preset-select", "change", on_preset_select)
+    for event_name in ("click",):
+        _listen("preset-list", event_name, on_preset_list_event)
+        _listen("builder-draft", event_name, on_builder_draft_event)
+        _listen("builder-saved-list", event_name, on_builder_saved_event)
+    _listen("builder-clear-button", "click", on_builder_clear)
+    _listen("builder-save-button", "click", on_builder_save)
+    _listen("save-health-export-button", "click", on_save_health_export)
+    _listen("challenge-leave-button", "click", leave_challenge)
 
 
 def setup():
@@ -4277,6 +5833,7 @@ def setup():
         "click", create_proxy(on_copy_run_summary)
     )
     document.getElementById("copy-run-summary-area").hidden = True
+    _wire_round3_batch2()
     document.getElementById("achievement-toast").hidden = True
     document.getElementById("skill-unlock-toast").hidden = True
     render()

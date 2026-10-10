@@ -142,6 +142,48 @@ ELEMENT_IDS = [
     "copy-run-summary-button",
     "copy-run-summary-status",
     "copy-run-summary-area",
+    # Batch 2 (2026-10-10): E-19 tree filters, E-25 presets, E-30 save health, E-3 route planner,
+    # E-5 plain-text schedule, E-4 run codes and challenges, E-13 schedule builder.
+    "skill-search-input",
+    "skill-filter-chips",
+    "skill-filter-clear",
+    "skill-filter-summary",
+    "preset-apply-row",
+    "preset-select",
+    "preset-apply-button",
+    "preset-name-input",
+    "preset-resilience-input",
+    "preset-growth-input",
+    "preset-from-turn-button",
+    "preset-save-button",
+    "preset-list",
+    "preset-status",
+    "save-health",
+    "save-health-text",
+    "save-health-export-button",
+    "save-health-alert",
+    "save-health-code",
+    "save-health-code-status",
+    "route-planner",
+    "route-planner-summary",
+    "route-list",
+    "route-summary",
+    "schedule-text",
+    "challenge-banner",
+    "challenge-leave-button",
+    "challenge-stats",
+    "challenge-status",
+    "run-end-code-wrap",
+    "run-end-code-note",
+    "builder-library",
+    "builder-draft",
+    "builder-summary",
+    "builder-name-input",
+    "builder-save-button",
+    "builder-clear-button",
+    "builder-saved-list",
+    "builder-code",
+    "builder-status",
 ]
 for _skill in SKILL_IDS:
     ELEMENT_IDS += [
@@ -154,6 +196,7 @@ for _skill in SKILL_IDS:
         # E30a/E30b: pin button + runs-until-affordable estimate.
         f"skill-{_skill}-pin-button",
         f"skill-{_skill}-eta",
+        f"skill-{_skill}-row",  # E-19
     ]
 
 INITIALLY_DISABLED_IDS = [

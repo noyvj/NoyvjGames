@@ -86,6 +86,7 @@
 <script src="../../shared/mobile-hud.js"></script>
 <script src="../../shared/mobile-dock.js"></script>
 <script src="../../shared/confirm-dialog.js"></script>
+<script src="../../shared/run-code.js"></script>
 <script src="settings.js"></script>
 <script src="ui.js" defer></script>
 <!-- AdSense: placeholder client ID until application is approved -->
@@ -177,6 +178,14 @@
     <p class="tagline">A settlement facing a scheduled run of extreme weather. Build resilience to weather it, or growth to afford more later.</p>
     <p class="context-blurb">Climate adaptation and disaster resilience are their own necessary response category — distinct from mitigation, and not a failure state. Real-world investment in early warning and resilient infrastructure has repeatedly been shown to pay for itself many times over in damage avoided.</p>
     <p id="runs-completed-display" class="runs-completed-display" title="Runs this settlement has fully completed, across all sessions">Runs completed: 0</p>
+    <!-- E-30: does the browser still hold this settlement's progress? (state in words and a mark, never colour alone) -->
+    <div id="save-health" class="save-health" data-state="ready" data-saved-at="">
+      <span id="save-health-text" class="save-health-text">Progress saves to this browser automatically.</span>
+      <button id="save-health-export-button" class="secondary save-health-button" type="button" hidden>Export my progress now</button>
+      <p id="save-health-alert" class="sr-only" role="status" aria-live="polite"></p>
+      <textarea id="save-health-code" class="copy-text-area" rows="3" readonly hidden aria-label="Your progress code. Copy it and keep it somewhere safe."></textarea>
+      <p id="save-health-code-status" class="comparison-message" role="status"></p>
+    </div>
     <p id="legacy-display" class="legacy-display">No history yet — this is the settlement's first trial.</p>
       <p id="societal-memory-display" class="comparison-message"></p>
       <p id="curriculum-display" class="comparison-message curriculum-display"></p>
@@ -208,6 +217,7 @@
             <option value="oldest">Oldest first</option>
             <option value="score_high">Score, high to low</option>
             <option value="score_low">Score, low to high</option>
+            <option value="score_adjusted">Adjusted score, high to low</option>
             <option value="mode">Mode (scenario)</option>
           </select>
         </label>
@@ -216,6 +226,7 @@
             <option value="all">All runs</option>
             <option value="standard">Standard length</option>
             <option value="extended">Extended runs</option>
+            <option value="custom">Custom schedules</option>
             <option value="scenario:classic">Classic mix</option>
             <option value="scenario:coastal">Coastal</option>
             <option value="scenario:inland">Inland</option>
@@ -254,6 +265,8 @@
     </div>
 
     <div id="status" class="section">
+      <!-- E-4: shown while a friend's run code is being played. -->
+      <p id="challenge-banner" class="challenge-banner" hidden></p>
       <p id="progress-display" class="status-line">Event 1 of 7</p>
       <p id="next-event-display" class="status-line">Next: Flood</p>
       <!-- E8/E16: expected-damage-this-event preview with numeric severity. -->
@@ -265,6 +278,11 @@
         <p class="meter-label" id="schedule-strip-label">Schedule</p>
         <ol id="schedule-strip" class="schedule-strip" aria-labelledby="schedule-strip-label"></ol>
         <p id="schedule-detail" class="schedule-detail" data-default=""></p>
+        <!-- E-5: the same schedule in words only (no chips, colours or icons). -->
+        <details id="schedule-text-details" class="schedule-text-details">
+          <summary>Schedule as plain text</summary>
+          <p id="schedule-text" class="schedule-text"></p>
+        </details>
       </div>
       <div class="event-visual" aria-hidden="true">
         <div class="event-visual-storm">
@@ -371,6 +389,12 @@
         <button id="resilience-invest-button" class="secondary" disabled>Loading...</button>
         <button id="growth-invest-button" class="secondary" disabled>Loading...</button>
         <details class="info-toggle"><summary>i</summary><p>Growth doesn't protect you from event damage at all — each unit just adds 8 resources of passive income every time you face an event. It's a bet that the extra income outweighs skipping a point of damage mitigation.</p></details>
+        <!-- E-25: apply a named allocation preset in one click (made in the Allocation presets panel). -->
+        <div id="preset-apply-row" class="preset-apply-row" hidden>
+          <label for="preset-select" class="step-label">Preset</label>
+          <select id="preset-select" class="preset-select" aria-label="Allocation preset"></select>
+          <button id="preset-apply-button" class="secondary preset-apply-button" type="button" title="Buy this preset's units now (U undoes it as one click)">Apply</button>
+        </div>
       </div>
 
       <button id="resolve-event-button" class="primary">Face Next Event</button>
@@ -401,12 +425,41 @@
       </label>
     </div>
 
+    <!-- E-25: create, apply and delete allocation presets. They are kept with this browser's settlement notes (and travel in the progress export). -->
+    <details id="presets-panel" class="section progress-code-toggle presets-panel">
+      <summary>🎚️ Allocation presets</summary>
+      <p class="progress-code-label">A preset buys a set of units in one click, for example "Flood plan: 3 resilience, 1 growth". It stops at what you can afford and at the 85% resilience cap, and U undoes it as one click.</p>
+      <div class="preset-form">
+        <label>Name <input type="text" id="preset-name-input" maxlength="24" placeholder="Flood plan" autocomplete="off"></label>
+        <label>Resilience <input type="number" id="preset-resilience-input" min="0" max="20" value="0" inputmode="numeric"></label>
+        <label>Growth <input type="number" id="preset-growth-input" min="0" max="20" value="0" inputmode="numeric"></label>
+        <button id="preset-from-turn-button" class="secondary" type="button">Use this turn</button>
+        <button id="preset-save-button" class="secondary" type="button">Save preset</button>
+      </div>
+      <ul id="preset-list" class="preset-list"></ul>
+      <p id="preset-status" class="comparison-message" role="status"></p>
+    </details>
+
     <div id="skill-tree" class="section" tabindex="-1">
       <p id="knowledge-points-display" class="status-line">Resilience knowledge: 0</p>
       <p id="skills-unlocked-display" class="status-line"></p>
       <p id="pinned-skills-display" class="status-line pinned-skills-display" title="Skills you've pinned, with an estimate of runs until each is affordable"></p>
+      <!-- E-3: the pinned skills as an ordered buy list (prerequisites first) with a running knowledge total. -->
+      <details id="route-planner" class="route-planner" hidden>
+        <summary id="route-planner-summary">Purchase route</summary>
+        <ol id="route-list" class="route-list"></ol>
+        <p id="route-summary" class="comparison-message"></p>
+      </details>
+      <!-- E-19: search the skills and filter them by status or type. -->
+      <div class="skill-filter-bar">
+        <label class="skill-search-label" for="skill-search-input">Find a skill</label>
+        <input type="search" id="skill-search-input" class="skill-search-input" placeholder="Search by name, effect or note" autocomplete="off">
+        <div id="skill-filter-chips" class="skill-filter-chips"></div>
+        <button id="skill-filter-clear" class="secondary skill-filter-clear" type="button" hidden>Clear filters</button>
+        <p id="skill-filter-summary" class="comparison-message" role="status" aria-live="polite"></p>
+      </div>
       <details class="info-toggle"><summary>i</summary><p>Knowledge earned per run is your leftover resources divided by 20, rounded — but never zero, even after a terrible run. Unlocked skills below are permanent: they carry into every future run, unlike Resilience/Growth investment, which resets to a fresh start each run. Some skills require others to be unlocked first.</p></details>
-      <div class="skill-row" data-skill="reinforced_infrastructure">
+      <div class="skill-row" id="skill-reinforced_infrastructure-row" data-skill="reinforced_infrastructure">
         <span class="skill-node" aria-hidden="true"></span>
         <span class="skill-status" id="skill-reinforced_infrastructure-status">Reinforced Infrastructure — +2 starting resilience capacity</span>
         <button id="skill-reinforced_infrastructure-unlock-button" class="secondary" disabled>Loading...</button>
@@ -415,7 +468,7 @@
         <p class="skill-helps" id="skill-reinforced_infrastructure-helps"></p>
         <p class="skill-practice" id="skill-reinforced_infrastructure-practice"></p>
       </div>
-      <div class="skill-row" data-skill="community_reserves">
+      <div class="skill-row" id="skill-community_reserves-row" data-skill="community_reserves">
         <span class="skill-node" aria-hidden="true"></span>
         <span class="skill-status" id="skill-community_reserves-status">Community Reserves — +50 starting resources</span>
         <button id="skill-community_reserves-unlock-button" class="secondary" disabled>Loading...</button>
@@ -424,7 +477,7 @@
         <p class="skill-helps" id="skill-community_reserves-helps"></p>
         <p class="skill-practice" id="skill-community_reserves-practice"></p>
       </div>
-      <div class="skill-row" data-skill="early_warning">
+      <div class="skill-row" id="skill-early_warning-row" data-skill="early_warning">
         <span class="skill-node" aria-hidden="true"></span>
         <span class="skill-status" id="skill-early_warning-status">Early Warning Systems — +10% mitigation on all events</span>
         <button id="skill-early_warning-unlock-button" class="secondary" disabled>Loading...</button>
@@ -433,7 +486,7 @@
         <p class="skill-helps" id="skill-early_warning-helps"></p>
         <p class="skill-practice" id="skill-early_warning-practice"></p>
       </div>
-      <div class="skill-row" data-skill="adaptive_growth">
+      <div class="skill-row" id="skill-adaptive_growth-row" data-skill="adaptive_growth">
         <span class="skill-node" aria-hidden="true"></span>
         <span class="skill-status" id="skill-adaptive_growth-status">Adaptive Growth Practices — +1 starting growth capacity</span>
         <button id="skill-adaptive_growth-unlock-button" class="secondary" disabled>Loading...</button>
@@ -442,7 +495,7 @@
         <p class="skill-helps" id="skill-adaptive_growth-helps"></p>
         <p class="skill-practice" id="skill-adaptive_growth-practice"></p>
       </div>
-      <div class="skill-row" data-skill="mutual_aid_network">
+      <div class="skill-row" id="skill-mutual_aid_network-row" data-skill="mutual_aid_network">
         <span class="skill-node" aria-hidden="true"></span>
         <span class="skill-status" id="skill-mutual_aid_network-status">Mutual Aid Network — +5% mitigation on all events</span>
         <button id="skill-mutual_aid_network-unlock-button" class="secondary" disabled>Loading...</button>
@@ -452,7 +505,7 @@
         <p class="skill-practice" id="skill-mutual_aid_network-practice"></p>
       </div>
       <!-- E1/E3: specialization branches (social-shock / weather). -->
-      <div class="skill-row" data-skill="civic_preparedness">
+      <div class="skill-row" id="skill-civic_preparedness-row" data-skill="civic_preparedness">
         <span class="skill-node" aria-hidden="true"></span>
         <span class="skill-status" id="skill-civic_preparedness-status">Civic Preparedness — -35% damage from social-shock events (Civil Unrest)</span>
         <button id="skill-civic_preparedness-unlock-button" class="secondary" disabled>Loading...</button>
@@ -461,7 +514,7 @@
         <p class="skill-helps" id="skill-civic_preparedness-helps"></p>
         <p class="skill-practice" id="skill-civic_preparedness-practice"></p>
       </div>
-      <div class="skill-row" data-skill="climate_hardening">
+      <div class="skill-row" id="skill-climate_hardening-row" data-skill="climate_hardening">
         <span class="skill-node" aria-hidden="true"></span>
         <span class="skill-status" id="skill-climate_hardening-status">Climate Hardening — -20% damage from weather events (Flood, Heatwave, Storm)</span>
         <button id="skill-climate_hardening-unlock-button" class="secondary" disabled>Loading...</button>
@@ -475,6 +528,37 @@
            in-UI two-click confirm before shared/confirm-dialog.js existed). -->
       <button id="reset-skill-tree-button" class="secondary" type="button">Reset Skill Tree</button>
     </div>
+
+    <!-- E-13: compose, save and run a custom schedule from the event library. -->
+    <details id="builder-panel" class="section progress-code-toggle builder-panel">
+      <summary>🧱 Schedule builder</summary>
+      <p class="progress-code-label">Build your own event order (3 to 7 events), save it by name and run it. A run on it uses your skill tree, is tagged "custom schedule" in Past Runs and never goes on the hardest-schedule board; because you choose the events, its knowledge is scaled to the damage it throws compared with the Classic mix. The Code button gives a friend a code for the schedule alone.</p>
+      <div id="builder-library" class="builder-library" role="group" aria-label="Event library: add an event to the draft"></div>
+      <p class="meter-label" id="builder-draft-label">Draft schedule</p>
+      <ol id="builder-draft" class="builder-draft" aria-labelledby="builder-draft-label" tabindex="-1"></ol>
+      <p id="builder-summary" class="comparison-message"></p>
+      <div class="preset-form">
+        <label>Name <input type="text" id="builder-name-input" maxlength="24" placeholder="Triple flood" autocomplete="off"></label>
+        <button id="builder-save-button" class="secondary" type="button" disabled>Save schedule</button>
+        <button id="builder-clear-button" class="secondary" type="button" disabled>Clear draft</button>
+      </div>
+      <p class="meter-label" id="builder-saved-label">Saved schedules</p>
+      <ul id="builder-saved-list" class="preset-list" aria-labelledby="builder-saved-label"></ul>
+      <textarea id="builder-code" class="copy-text-area" rows="2" readonly hidden aria-label="Schedule code to copy"></textarea>
+      <p id="builder-status" class="comparison-message" role="status"></p>
+    </details>
+
+    <!-- E-4: send a friend your finished run's code, or paste theirs to play the same schedule. -->
+    <details id="challenge-panel" class="section progress-code-toggle challenge-panel">
+      <summary>🤝 Run codes and challenges</summary>
+      <p class="progress-code-label">A run code carries a schedule and a result. Paste a friend's code to play the same events in the same order, struck by the same severity pattern, with your skill tree and memory switched off, so you both start from a fresh settlement. A challenge earns no knowledge and does not touch your history. Their result came from their own build, so it is a friendly note, never a ranking.</p>
+      <p id="run-end-code-note" class="comparison-message"></p>
+      <div id="run-end-code-wrap"><div id="run-end-code"></div></div>
+      <div id="friends-ghost"></div>
+      <button id="challenge-leave-button" class="secondary" type="button" hidden>Leave this challenge</button>
+      <p id="challenge-stats" class="comparison-message"></p>
+      <p id="challenge-status" class="comparison-message" role="status"></p>
+    </details>
 
     <!-- E12: export/import code for the localStorage-based skill tree,
          run history, legacy system, and achievement progress -- the
@@ -591,6 +675,11 @@
       // above, so `import export_progress` resolves normally from game.py.
       const exportProgressSource = await (await fetch("../../shared/export_progress.py")).text();
       pyodide.FS.writeFile("export_progress.py", exportProgressSource, { encoding: "utf8" });
+      // E-4: the shared run-code module needs seed.py next to it (alphabet, prefix rule, hash).
+      for (const f of ["seed.py", "run_code.py"]) {
+        const src = await (await fetch("../../shared/" + f)).text();
+        pyodide.FS.writeFile(f, src, { encoding: "utf8" });
+      }
       // Achievements catalog (ACHIEVEMENTS-SYSTEM-DESIGN.md §2) -- fetched
       // and handed to Python as a window global before game.py runs, same
       // three-line convention every other achievements-rollout game uses.
@@ -699,6 +788,52 @@
     })();
   </script>
 <!-- wiring-oct8:end -->
+  <!-- E-4: shared run-code boxes. game.py owns every rule (run_code_fields, start_challenge); this only mounts the boxes. -->
+  <script>
+    (function () {
+      if (!window.NoyvjRunCode) return;
+      var modes = {};
+      var describe = { unit: "resources", stats: ["adjusted", "damage taken"], modes: modes };
+      function py(name) {
+        try { return window.pyodide && window.pyodide.globals.get(name); } catch (e) { return null; }
+      }
+      function plain(proxy) {
+        if (proxy == null) return null;
+        var value = proxy.toJs ? proxy.toJs({ dict_converter: Object.fromEntries }) : proxy;
+        if (proxy.destroy) proxy.destroy();
+        return value;
+      }
+      function currentRun() {
+        var fn = py("run_code_fields");
+        if (!fn) return {};
+        var out = plain(fn());
+        fn.destroy();
+        return out || {};
+      }
+      var copy = NoyvjRunCode.mountCopy("#run-end-code", {
+        game: "aftermath", describe: describe, label: "Your run code", buttonLabel: "Copy run code",
+        getRun: currentRun,
+      });
+      var lastRun = JSON.stringify(currentRun());
+      NoyvjRunCode.mountPaste("#friends-ghost", {
+        game: "aftermath", describe: describe, label: "Paste a friend's run code", buttonLabel: "View run",
+        onPlaySeed: function (seed, ghost) {
+          var fn = py("start_challenge");
+          if (fn) { fn(ghost.code); fn.destroy(); }
+        },
+      });
+      // game.py calls this after every render: it refreshes the copy box and fills in the mode names.
+      window.aftermathRunCodeUpdate = function () {
+        if (!Object.keys(modes).length) {
+          var names = py("run_code_mode_names");
+          if (names) { Object.assign(modes, plain(names())); names.destroy(); }
+        }
+        // Only rebuild the box when the run changed, so its "Copied" note is not wiped by every click.
+        var now = JSON.stringify(currentRun());
+        if (copy && now !== lastRun) { lastRun = now; copy.update(); }
+      };
+    })();
+  </script>
   <script src="../../shared/community-index.js" data-game-id="aftermath" data-target="#community-index" data-template="Community resilience index: across {count} players, a skill tree holds an average of {skill_tree_strength:mean} resilience skills (median {skill_tree_strength:p50})."></script>
   <script src="../../shared/leaderboard.js" data-game-id="aftermath" data-board="hardest_schedule" data-order="desc" data-title="hardest schedule survived" data-unit="x severity" data-mount="#leaderboard-mount"></script>
   <!-- Z4 (site-wide goal): "?" shows a keyboard-shortcuts help overlay,
@@ -711,6 +846,7 @@
         "Enter — Face Next Event (when no button is focused)",
         "U — undo your last investment click",
         "T — jump to the skill tree",
+        "Up / Down arrows — move between skills in the tree; Enter unlocks, P pins",
         "H — open or close Past Runs",
         "C — open or close the Disaster Codex",
         "S — open or close Lifetime Stats",

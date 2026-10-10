@@ -1822,6 +1822,122 @@ html[data-high-contrast="true"] .waterfall-seg--taken { background: repeating-li
 .run-epitaph { margin: 0.5rem 0 0; font-style: italic; font-size: 0.85rem; }
 
 /* ============================================================
+   Round-3 batch 2 (2026-10-10): E-19 tree search and filters, E-25 allocation presets, E-30 save
+   health badge, E-3 route planner, E-13 schedule builder, E-4 run codes and challenges, E-5 plain-text
+   schedule. State is always written in words and a mark; colour only reinforces it.
+   ============================================================ */
+.skill-row[hidden] { display: none; }
+
+/* E-19 */
+.skill-filter-bar { margin: 0.4rem 0 0.6rem; display: flex; flex-direction: column; gap: 0.35rem; }
+.skill-search-label { font-size: 0.8rem; opacity: 0.85; }
+.skill-search-input {
+  width: 100%; box-sizing: border-box; padding: 0.45rem 0.6rem; border-radius: 8px; min-height: 2.2rem;
+  border: 1px solid rgba(140, 160, 255, 0.3); background: rgba(5, 6, 13, 0.5); color: inherit; font: inherit; font-size: 0.85rem;
+}
+.skill-filter-chips { display: flex; flex-wrap: wrap; gap: 0.3rem 0.8rem; }
+.skill-filter-group { display: flex; flex-wrap: wrap; gap: 0.3rem; }
+.skill-filter-chip, .skill-filter-clear {
+  width: auto; flex: 0 0 auto; padding: 0.25rem 0.65rem; font-size: 0.78rem; min-height: 2rem; border-radius: 999px;
+}
+.skill-filter-chip, .skill-filter-clear { white-space: nowrap; }
+.skill-filter-chip::before, .skill-filter-clear::before { content: none; }
+.skill-filter-chip.selected {
+  background: linear-gradient(135deg, #6a8f5a, #3f6a45); border-color: rgba(190, 255, 190, 0.55); color: #ffffff; font-weight: 600;
+}
+.skill-filter-chip[aria-pressed="true"]::after { content: " \2713"; }
+@media (pointer: coarse), (max-width: 640px) {
+  .skill-filter-chip, .skill-filter-clear { min-height: 44px; min-width: 44px; }
+  .skill-search-input { min-height: 44px; }
+}
+
+/* E-3 */
+.route-planner { margin: 0.2rem 0 0.4rem; font-size: 0.82rem; }
+.route-planner[hidden] { display: none; }
+.route-planner > summary { cursor: pointer; opacity: 0.95; }
+.route-list { margin: 0.35rem 0; padding-left: 1.3rem; }
+.route-step { margin: 0.15rem 0; }
+.route-step--prereq { font-style: italic; }
+
+/* E-25, E-13 forms and lists */
+.preset-apply-row { flex: 0 0 100%; display: flex; align-items: center; gap: 0.35rem; flex-wrap: wrap; }
+.preset-apply-row[hidden] { display: none; }
+.preset-select {
+  flex: 1 1 8rem; min-width: 0; padding: 0.3rem 0.4rem; border-radius: 8px; min-height: 2rem;
+  border: 1px solid rgba(140, 160, 255, 0.3); background: rgba(5, 6, 13, 0.5); color: inherit; font: inherit; font-size: 0.8rem;
+}
+/* The docked action bar already fills about 40% of a phone screen, so on narrow windows the quick-apply row stays out
+   of it: each preset's own Apply button in the Allocation presets panel does the same job there. */
+@media (max-width: 640px) { #actions-dock .preset-apply-row { display: none; } }
+#actions .preset-apply-row button.secondary { flex: 0 0 auto; width: auto; padding: 0.3rem 0.65rem; font-size: 0.8rem; min-height: 2rem; }
+#actions .preset-apply-row button.secondary::before { content: none; }
+.preset-form { display: flex; flex-wrap: wrap; gap: 0.5rem 0.8rem; align-items: flex-end; margin: 0.3rem 0 0.6rem; font-size: 0.82rem; }
+.preset-form label { display: flex; flex-direction: column; gap: 0.15rem; }
+.preset-form input[type="text"], .preset-form input[type="number"] {
+  padding: 0.35rem 0.5rem; border-radius: 8px; min-height: 2rem; box-sizing: border-box; font: inherit;
+  border: 1px solid rgba(140, 160, 255, 0.3); background: rgba(5, 6, 13, 0.5); color: inherit;
+}
+.preset-form input[type="number"] { width: 5rem; }
+.preset-form button { width: auto; padding: 0.4rem 0.8rem; }
+.preset-list { list-style: none; margin: 0.3rem 0; padding: 0; display: flex; flex-direction: column; gap: 0.3rem; }
+.preset-item, .builder-saved-item, .builder-item { display: flex; flex-wrap: wrap; align-items: center; gap: 0.35rem; font-size: 0.82rem; }
+.preset-item-label, .builder-item-label { flex: 1 1 10rem; }
+.preset-item-button, .builder-item-button { width: auto; flex: 0 0 auto; padding: 0.25rem 0.6rem; font-size: 0.78rem; min-height: 2rem; }
+.preset-item-button::before, .builder-item-button::before { content: none; }
+.builder-library { display: flex; flex-wrap: wrap; gap: 0.3rem; margin: 0.3rem 0; }
+.builder-library-button { width: auto; flex: 0 0 auto; padding: 0.3rem 0.65rem; font-size: 0.78rem; min-height: 2rem; border-radius: 999px; }
+.builder-library-button::before { content: none; }
+.builder-draft { margin: 0.3rem 0; padding-left: 1.3rem; display: flex; flex-direction: column; gap: 0.25rem; }
+.builder-draft:focus { outline: none; }
+.builder-draft:empty::before { content: "No events yet."; opacity: 0.7; font-size: 0.82rem; }
+@media (pointer: coarse), (max-width: 640px) {
+  .preset-item-button, .builder-item-button, .builder-library-button, #actions .preset-apply-row button.secondary { min-height: 44px; min-width: 44px; }
+  .preset-select, .preset-form input[type="text"], .preset-form input[type="number"] { min-height: 44px; }
+}
+
+/* E-30 */
+.save-health { margin: 0.2rem 0 0.4rem; font-size: 0.82rem; display: flex; flex-wrap: wrap; gap: 0.4rem 0.8rem; align-items: center; }
+.save-health-text { opacity: 0.9; }
+.save-health[data-state="failed"], .save-health[data-state="unsaved"] {
+  padding: 0.4rem 0.6rem; border: 2px dashed currentColor; border-radius: 8px; opacity: 1;
+}
+.save-health[data-state="failed"] .save-health-text, .save-health[data-state="unsaved"] .save-health-text { font-weight: 700; opacity: 1; }
+.save-health-button { width: auto; padding: 0.35rem 0.8rem; font-size: 0.8rem; }
+.save-health-button[hidden], .save-health [hidden] { display: none; }
+.save-health .copy-text-area { flex: 1 0 100%; }
+
+/* E-4 */
+.challenge-banner { margin: 0 0 0.4rem; padding: 0.4rem 0.6rem; border: 2px dashed currentColor; border-radius: 8px; font-size: 0.85rem; font-weight: 600; }
+.challenge-banner[hidden] { display: none; }
+#run-end-code-wrap[hidden], #challenge-leave-button[hidden] { display: none; }
+
+/* E-5 */
+.schedule-text-details { font-size: 0.82rem; margin: 0.2rem 0; }
+.schedule-text-details > summary { cursor: pointer; opacity: 0.9; }
+.schedule-text { margin: 0.3rem 0 0; line-height: 1.45; }
+
+/* Light theme and high contrast */
+html[data-theme="light"] .skill-search-input, html[data-theme="light"] .preset-select,
+html[data-theme="light"] .preset-form input[type="text"], html[data-theme="light"] .preset-form input[type="number"] {
+  background: #ffffff; color: #1b2233; border-color: #8a97c4;
+}
+html[data-theme="light"] .skill-filter-chip.selected { background: linear-gradient(135deg, #3f7a4a, #2c5e36); color: #ffffff; }
+html[data-high-contrast="true"] .skill-filter-chip.selected { background: #ffffff; color: #000000; }
+html[data-high-contrast="true"][data-theme="light"] .skill-filter-chip.selected { background: #000000; color: #ffffff; }
+html[data-high-contrast="true"] .skill-search-input, html[data-high-contrast="true"] .preset-select,
+html[data-high-contrast="true"] .preset-form input[type="text"], html[data-high-contrast="true"] .preset-form input[type="number"] {
+  background: #000000; color: #ffffff; border: 2px solid #ffffff;
+}
+html[data-high-contrast="true"][data-theme="light"] .skill-search-input, html[data-high-contrast="true"][data-theme="light"] .preset-select,
+html[data-high-contrast="true"][data-theme="light"] .preset-form input[type="text"], html[data-high-contrast="true"][data-theme="light"] .preset-form input[type="number"] {
+  background: #ffffff; color: #000000; border: 2px solid #000000;
+}
+.skill-row:focus-visible, #builder-draft:focus-visible { outline: 3px solid #ffd400; outline-offset: 2px; }
+.skill-row:focus:not(:focus-visible) { outline: none; }
+#howto-panel:focus, #settings-panel:focus, #info-page-panel:focus, #achievements-panel:focus, #past-runs-panel:focus,
+#codex-panel:focus, #stats-panel:focus, #changelog-panel:focus { outline: 2px solid rgba(255, 212, 0, 0.7); outline-offset: 2px; }
+
+/* ============================================================
    Y11b light-theme polish (2026-09-27). Light-only rules from a
    computed-style WCAG contrast scan of the light theme. Dark is
    untouched. Findings: the four status-line "dark glass" pills
@@ -1862,6 +1978,7 @@ html[data-theme="light"] .event-category--health { color: #0b6b5a; text-shadow: 
 html[data-theme="light"] .past-run-event { opacity: 1; }
 html[data-theme="light"] .severity--mild { opacity: 0.85; }
 html[data-theme="light"] .feedback-buttons .secondary.selected { color: #ffffff; }
+
 
 
 
