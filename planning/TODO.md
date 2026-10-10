@@ -1,6 +1,6 @@
 # Site-Wide TODO (round 3)
 
-**Progress: 753/1261 items checked off (59.7%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land.
+**Progress: 788/1541 items checked off (51.1%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land.
 
 Built from your answers in `planning/IMPROVEMENT-IDEAS-ROUND-3.md` (Part 4). Every Round 3 section is now answered (2026-10-07 below the Warframe section); earlier this list held only: **GB** (Canopy gamified), **M** (new games), **N** (seasonal events), **O** (Trade Empire and Continuum replayability), **P/Q/S/T** (Signal, Undersleep, Overclock, Last Line open questions), **X** (Warframe tracker) and **R** (returning later). GC-GI, A-L, U, Z and Y are unanswered and wait for you. The previous list is archived at `planning/todo-archive/260914_260927.md`; anything from it that was moved here is marked "moved" there.
 
@@ -309,47 +309,362 @@ You said yes to every item except F5 (undo button, no). New games below each nee
 - [x] QI-2b: Register Hull Repair in the hub (same steps as the earlier new games).
 - [x] QI-3: Robot Script (Quick ideas A3): write the groundwork plan, then build it. give a robot a short list of instructions to clear a room (Lightbot style). No timer, medals for using fewer steps, and a free sandbox once you finish. (BUILT 2026-10-09, milestones 1-7, 240 tests; hub registration is item QI-3b.)
 - [x] QI-3b: Register Robot Script in the hub (same steps as the hub registration of the four earlier new games).
-- [ ] QI-4: Reaction Bench (Quick ideas A4): write the groundwork plan, then build it. balance chemical reactions to synthesise compounds, and fill a periodic table as you discover each element's uses.
-- [ ] QI-5: Rule Finder (Quick ideas A5): write the groundwork plan, then build it. a sequence of numbers or shapes follows a hidden rule; you test guesses and name the rule.
-- [ ] QI-6: Slingshot (Quick ideas A6): write the groundwork plan, then build it. plan fuel burns and gravity assists to reach moons in a simple but real solar-system model, with the planet data read from a named source.
-- [ ] QI-7: Teach the Machine (Quick ideas A7): write the groundwork plan, then build it. train a tiny classifier by choosing which features it looks at, then see exactly why it gets some cases wrong.
-- [ ] QI-8: Constellations (Quick ideas A8): write the groundwork plan, then build it. connect stars by rules to complete real sky maps, collecting each constellation with a short sourced note.
-- [ ] QI-9: Zero-G Shift (Quick ideas A9): write the groundwork plan, then build it. Sokoban-style crate pushing, but everything keeps sliding until it hits something.
-- [ ] QI-10: Mirror Lab (Quick ideas A10): write the groundwork plan, then build it. place mirrors and prisms so a laser reaches every sensor.
-- [ ] QI-11: Radio Decode (Quick ideas A11): write the groundwork plan, then build it. decode binary, hex and simple ciphers from a drifting signal, each message a short log entry.
-- [ ] QI-12: Picture Grid (Quick ideas A12): write the groundwork plan, then build it. nonograms where each solved picture goes into a gallery you can browse.
+- QI-4 Reaction Bench (Quick ideas A4): balance chemical reactions to synthesise compounds, and fill a periodic table as you discover each element's uses. Plan: `planning/reaction-bench-plan.md`.
+- [x] QI-4-0: Reaction Bench: groundwork plan written (2026-10-11).
+- [ ] QI-4-1: Reaction Bench milestone 1, Engine: Formula parser, ledger, nullspace balancer, banned-list lint, chapter 1 (8 reactions) with proofs
+- [ ] QI-4-2: Reaction Bench milestone 2, Bench UI: SVG bench, coefficient dials with keyboard and touch, atom ledger, Run and Shelf, save contract. Playable slice
+- [ ] QI-4-3: Reaction Bench milestone 3, Chapters 2-3 and table: 16 more reactions, product-choice rounds, bracket groups, the periodic table panel and element cards, chapter gating
+- [ ] QI-4-4: Reaction Bench milestone 4, Chapters 4-5, hints, goals: 16 more reactions (40 total), two-step routes, hint ladder, three-goals strip, live PubChem facts. First complete game
+- [ ] QI-4-5: Reaction Bench milestone 5, Standard kit: Opening screen, tutorial, About with Sources, What's New, keyboard help, confirm dialogs, light theme, accessibility pass
+- [ ] QI-4-6: Reaction Bench milestone 6, Achievements: 14 achievements, panel and toast, manifest, reachability test
+- [ ] QI-4-7: Reaction Bench milestone 7, Desktop boot and wrap-up: `pc-config.json`, `pc.css`, `pc.js`, generated `pc.html`, docs, changelog
+- [ ] QI-4-R: Reaction Bench: register in the hub (same steps as the earlier new games).
+- QI-5 Rule Finder (Quick ideas A5): a sequence of numbers or shapes follows a hidden rule; you test guesses and name the rule. Plan: `planning/rule-finder-plan.md`.
+- [x] QI-5-0: Rule Finder: groundwork plan written (2026-10-11).
+- [ ] QI-5-1: Rule Finder milestone 1, Rule language and prover: Evaluator, rule enumerator, par-test finder, drawer 1 (8 cases) with proofs and tests
+- [ ] QI-5-2: Rule Finder milestone 2, Sorter UI: Item builder, Send, gate animation, Rule Builder, near-miss counter-example, save contract. Playable slice
+- [ ] QI-5-3: Rule Finder milestone 3, Drawers 2-4: 24 more cases, Shape and Not clauses, drawer gating, Rule Codex
+- [ ] QI-5-4: Rule Finder milestone 4, Drawers 5-6, hints, goals: 16 more cases (48 total), patterns, odd gate, hint ladder, three-goals strip, medals. First complete game
+- [ ] QI-5-5: Rule Finder milestone 5, Standard kit: Opening screen, tutorial, About with Sources, What's New, keyboard help, confirm dialogs, light theme, accessibility
+- [ ] QI-5-6: Rule Finder milestone 6, Achievements: 14 achievements, panel and toast, manifest, reachability test
+- [ ] QI-5-7: Rule Finder milestone 7, Desktop boot and wrap-up: `pc-config.json`, `pc.css`, `pc.js`, generated `pc.html`, docs, changelog
+- [ ] QI-5-R: Rule Finder: register in the hub (same steps as the earlier new games).
+- QI-6 Slingshot (Quick ideas A6): plan fuel burns and gravity assists to reach moons in a simple but real solar-system model, with the planet data read from a named source. Plan: `planning/slingshot-plan.md`.
+- [x] QI-6-0: Slingshot: groundwork plan written (2026-10-11).
+- [ ] QI-6-1: Slingshot milestone 1, Physics core: Planet data module, integrator, burns, patched-conic capture, reference-plan checker, chapter 1 (7 missions) with proofs
+- [ ] QI-6-2: Slingshot milestone 2, Planner UI: Chart, burn editor, Fly, scrubber, predicted path, results card, save contract. Playable slice
+- [ ] QI-6-3: Slingshot milestone 3, Chapters 2-3: 15 more missions, Mars moons, gravity assists, mission picker, Moon Atlas
+- [ ] QI-6-4: Slingshot milestone 4, Chapters 4-5, hints, goals: 14 more missions (36 total), giants and far shore, hint ladder, three-goals strip, live data. First complete game
+- [ ] QI-6-5: Slingshot milestone 5, Standard kit: Opening screen, tutorial, About with Sources, What's New, keyboard help, confirm dialogs, light theme, accessibility
+- [ ] QI-6-6: Slingshot milestone 6, Achievements: 14 achievements, panel and toast, manifest, reachability test
+- [ ] QI-6-7: Slingshot milestone 7, Desktop boot and wrap-up: `pc-config.json`, `pc.css`, `pc.js`, generated `pc.html`, docs, changelog
+- [ ] QI-6-R: Slingshot: register in the hub (same steps as the earlier new games).
+- QI-7 Teach the Machine (Quick ideas A7): train a tiny classifier by choosing which features it looks at, then see exactly why it gets some cases wrong. Plan: `planning/teach-the-machine-plan.md`.
+- [x] QI-7-0: Teach the Machine: groundwork plan written (2026-10-11).
+- [ ] QI-7-1: Teach the Machine milestone 1, Learner and prover: Tree trainer, case tables, Why classifier, subset search, shelf 1 (8 lessons) with proofs
+- [ ] QI-7-2: Teach the Machine milestone 2, Workshop UI: Feature switches, Train, Test, Why panel with tree path, save contract. Playable slice
+- [ ] QI-7-3: Teach the Machine milestone 3, Shelves 2-3: 16 more lessons, distractions, Failure Notebook
+- [ ] QI-7-4: Teach the Machine milestone 4, Shelves 4-5, hints, goals: 16 more lessons (40), shortcuts and fair treatment, hint ladder, three-goals strip. First complete game
+- [ ] QI-7-5: Teach the Machine milestone 5, Standard kit: Opening screen, tutorial, About with Sources, What's New, keyboard help, confirm dialogs, light theme, accessibility
+- [ ] QI-7-6: Teach the Machine milestone 6, Achievements: 14 achievements, panel and toast, manifest, reachability test
+- [ ] QI-7-7: Teach the Machine milestone 7, Desktop boot and wrap-up: `pc-config.json`, `pc.css`, `pc.js`, generated `pc.html`, docs, changelog
+- [ ] QI-7-R: Teach the Machine: register in the hub (same steps as the earlier new games).
+- QI-8 Constellations (Quick ideas A8): connect stars by rules to complete real sky maps, collecting each constellation with a short sourced note. Plan: `planning/constellations-plan.md`.
+- [x] QI-8-0: Constellations: groundwork plan written (2026-10-11).
+- [ ] QI-8-1: Constellations milestone 1, Engine and prover: Star data, edge validator, crossing test, uniqueness solver, season 1 (8 charts) with proofs
+- [ ] QI-8-2: Constellations milestone 2, Chart UI: SVG sky, drag lines, pointer and keyboard, done card, save contract. Playable slice
+- [ ] QI-8-3: Constellations milestone 3, Seasons 2-3: 16 more charts, Sky Atlas panel and cards, season gating
+- [ ] QI-8-4: Constellations milestone 4, Seasons 4-5, hints, goals: 16 more charts (40), southern sky, hint ladder, three-goals strip, live data. First complete game
+- [ ] QI-8-5: Constellations milestone 5, Standard kit: Opening screen, tutorial, About with Sources, What's New, keyboard help, confirm dialogs, light theme, accessibility
+- [ ] QI-8-6: Constellations milestone 6, Achievements: 14 achievements, panel and toast, manifest, reachability test
+- [ ] QI-8-7: Constellations milestone 7, Desktop boot and wrap-up: `pc-config.json`, `pc.css`, `pc.js`, generated `pc.html`, docs, changelog
+- [ ] QI-8-R: Constellations: register in the hub (same steps as the earlier new games).
+- QI-9 Zero-G Shift (Quick ideas A9): Sokoban-style crate pushing, but everything keeps sliding until it hits something. Plan: `planning/zero-g-shift-plan.md`.
+- [x] QI-9-0: Zero-G Shift: groundwork plan written (2026-10-11).
+- [ ] QI-9-1: Zero-G Shift milestone 1, Engine and solver: Slide rules, BFS solver, dead-state check, deck 1 (8 bays) with proofs
+- [ ] QI-9-2: Zero-G Shift milestone 2, Bay UI: SVG bay, swipe and keys, slide animation (toggleable), step back and restart, save contract. Playable slice
+- [ ] QI-9-3: Zero-G Shift milestone 3, Decks 2-4: 24 more bays, posts, pads, hatches, manifest panel, deck gating
+- [ ] QI-9-4: Zero-G Shift milestone 4, Decks 5-6, hints, goals: 16 more bays (48), bumpers and doors, hint ladder, three-goals strip, par medals. First complete game
+- [ ] QI-9-5: Zero-G Shift milestone 5, Standard kit: Opening screen, tutorial, About with Sources, What's New, keyboard help, confirm dialogs, light theme, accessibility
+- [ ] QI-9-6: Zero-G Shift milestone 6, Achievements: 14 achievements, panel and toast, manifest, reachability test
+- [ ] QI-9-7: Zero-G Shift milestone 7, Desktop boot and wrap-up: `pc-config.json`, `pc.css`, `pc.js`, generated `pc.html`, docs, changelog
+- [ ] QI-9-R: Zero-G Shift: register in the hub (same steps as the earlier new games).
+- QI-10 Mirror Lab (Quick ideas A10): place mirrors and prisms so a laser reaches every sensor. Plan: `planning/mirror-lab-plan.md`.
+- [x] QI-10-0: Mirror Lab: groundwork plan written (2026-10-11).
+- [ ] QI-10-1: Mirror Lab milestone 1, Ray tracer and solver: Tracer, pieces, placement solver, chapter 1 (8 benches) with proofs
+- [ ] QI-10-2: Mirror Lab milestone 2, Bench UI: SVG bench, tray, drag or tap-place, live beam redraw, keyboard placement, save contract. Playable slice
+- [ ] QI-10-3: Mirror Lab milestone 3, Chapters 2-3: 16 more benches, splitters, prisms and S/L sensors, Bench Log
+- [ ] QI-10-4: Mirror Lab milestone 4, Chapters 4-5, hints, goals: 16 more benches (40), filters, decoys, hint ladder, three-goals strip. First complete game
+- [ ] QI-10-5: Mirror Lab milestone 5, Standard kit: Opening screen, tutorial, About with Sources, What's New, keyboard help, confirm dialogs, light theme, accessibility
+- [ ] QI-10-6: Mirror Lab milestone 6, Achievements: 14 achievements, panel and toast, manifest, reachability test
+- [ ] QI-10-7: Mirror Lab milestone 7, Desktop boot and wrap-up: `pc-config.json`, `pc.css`, `pc.js`, generated `pc.html`, docs, changelog
+- [ ] QI-10-R: Mirror Lab: register in the hub (same steps as the earlier new games).
+- QI-11 Radio Decode (Quick ideas A11): decode binary, hex and simple ciphers from a drifting signal, each message a short log entry. Plan: `planning/radio-decode-plan.md`.
+- [x] QI-11-0: Radio Decode: groundwork plan written (2026-10-11).
+- [ ] QI-11-1: Radio Decode milestone 1, Codecs and checks: Encoders and decoders, noise function, band data, band 1 (10 messages) with round-trip and uniqueness tests
+- [ ] QI-11-2: Radio Decode milestone 2, Receiver UI: Dial, scope, decoder bench, helper tools, Logbook entry, save contract. Playable slice
+- [ ] QI-11-3: Radio Decode milestone 3, Bands 2-3: 20 more messages, Morse, shift wheel, Atbash, Toolkit shelf
+- [ ] QI-11-4: Radio Decode milestone 4, Bands 4-5, hints, goals: 20 more (50), rail, reverse, two-step, keyword ciphers, hint ladder, three-goals strip. First complete game
+- [ ] QI-11-5: Radio Decode milestone 5, Standard kit: Opening screen, tutorial, About with Sources, What's New, keyboard help, confirm dialogs, light theme, accessibility
+- [ ] QI-11-6: Radio Decode milestone 6, Achievements: 14 achievements, panel and toast, manifest, reachability test
+- [ ] QI-11-7: Radio Decode milestone 7, Desktop boot and wrap-up: `pc-config.json`, `pc.css`, `pc.js`, generated `pc.html`, docs, changelog
+- [ ] QI-11-R: Radio Decode: register in the hub (same steps as the earlier new games).
+- QI-12 Picture Grid (Quick ideas A12): nonograms where each solved picture goes into a gallery you can browse. Plan: `planning/picture-grid-plan.md`.
+- [x] QI-12-0: Picture Grid: groundwork plan written (2026-10-11).
+- [ ] QI-12-1: Picture Grid milestone 1, Engine and solvers: Clue generator, line-logic solver, exhaustive counter, gallery 1 (10 pictures) with proofs
+- [ ] QI-12-2: Picture Grid milestone 2, Frame UI: SVG grid, drag fill and dot, keyboard cursor, assists, save contract. Playable slice
+- [ ] QI-12-3: Picture Grid milestone 3, Galleries 2-3: 20 more pictures, the Gallery wall and large view, gating
+- [ ] QI-12-4: Picture Grid milestone 4, Galleries 4-6, hints, goals: 30 more pictures (60), hint ladder, three-goals strip, slideshow. First complete game
+- [ ] QI-12-5: Picture Grid milestone 5, Standard kit: Opening screen, tutorial, About with Sources, What's New, keyboard help, confirm dialogs, light theme, accessibility
+- [ ] QI-12-6: Picture Grid milestone 6, Achievements: 14 achievements, panel and toast, manifest, reachability test
+- [ ] QI-12-7: Picture Grid milestone 7, Desktop boot and wrap-up: `pc-config.json`, `pc.css`, `pc.js`, generated `pc.html`, docs, changelog
+- [ ] QI-12-R: Picture Grid: register in the hub (same steps as the earlier new games).
 - [x] QI-13: Station Medic (Quick ideas B1): write the groundwork plan, then build it. help the crew of a space station by solving triage puzzles with limited supplies. Nobody dies on screen; a bad call means "restore and try a different plan". (BUILT 2026-10-10, milestones 1-7, 103 tests; hub registration is item QI-13b.)
 - [x] QI-13b: Register Station Medic in the hub (same steps as the earlier new games).
-- [ ] QI-14: Robot Repair Shop (Quick ideas B2): write the groundwork plan, then build it. fix quirky robots by solving their fault puzzles; each repaired robot becomes a friend that gives you a gift later.
-- [ ] QI-15: Fog Rescue (Quick ideas B3): write the groundwork plan, then build it. guide lost animals or travellers out of a dark foggy forest by lighting the right lanterns in the right order.
-- [ ] QI-16: Water Works (Quick ideas B4): write the groundwork plan, then build it. route clean water to villages with trade-offs between town, farm and wild land, shown from several people's points of view.
-- [ ] QI-17: Derelict Garden (Quick ideas B5): write the groundwork plan, then build it. tend a garden on an abandoned ship, restoring one section at a time, with a steady-progress-that-cannot-be-lost feel.
-- [ ] QI-18: Memory Archivist (Quick ideas B6): write the groundwork plan, then build it. restore corrupted memories from a damaged AI by putting scraps back in order (dark, quiet, science fiction).
-- [ ] QI-19: Food Bank (Quick ideas B7): write the groundwork plan, then build it. plan a week of meals and deliveries for a food bank with a limited budget and several families' needs.
-- [ ] QI-20: Housing Board (Quick ideas B8): write the groundwork plan, then build it. allocate a limited set of homes between competing needs and see how each side judges the result.
-- [ ] QI-21: Anomaly Catalogue (Quick ideas C1): write the groundwork plan, then build it. a fixed set of odd rooms or screens where you spot what changed and file it in a field catalogue (the kind of anomaly games you like to watch).
-- [ ] QI-22: Loadout Lab (Quick ideas C2): write the groundwork plan, then build it. combine parts to reach target numbers, with a catalogue of every combination you have found, including the one overpowered build per challenge.
-- [ ] QI-23: Glitch Hunter (Quick ideas C3): write the groundwork plan, then build it. small levels with deliberate, harmless exploits; the goal is to break the rules and the log records every glitch you found.
-- [ ] QI-24: Space Museum (Quick ideas C4): write the groundwork plan, then build it. curate a museum of objects you have collected across the site, arranged in rooms.
+- QI-14 Robot Repair Shop (Quick ideas B2): fix quirky robots by solving their fault puzzles; each repaired robot becomes a friend that gives you a gift later. Plan: `planning/robot-repair-shop-plan.md`.
+- [x] QI-14-0: Robot Repair Shop: groundwork plan written (2026-10-11).
+- [ ] QI-14-1: Robot Repair Shop milestone 1, Engine and checker: Wiring model, probes, parts, consistent-wiring search, shelf 1 (6 robots) with proofs
+- [ ] QI-14-2: Robot Repair Shop milestone 2, Bay UI: SVG patch bay, probe buttons, cable dragging and keyboard, Test Rig, save contract. Playable slice
+- [ ] QI-14-3: Robot Repair Shop milestone 3, Shelves 2-4: 18 more robots, inverters and stuck wires, Friends shelf and visit queue
+- [ ] QI-14-4: Robot Repair Shop milestone 4, Shelves 5-6, gifts, hints, goals: 12 more robots (36), 36 gifts, hint ladder, three-goals strip. First complete game
+- [ ] QI-14-5: Robot Repair Shop milestone 5, Standard kit: Opening screen, tutorial, About with Sources, What's New, keyboard help, confirm dialogs, light theme, accessibility
+- [ ] QI-14-6: Robot Repair Shop milestone 6, Achievements: 14 achievements, panel and toast, manifest, reachability test
+- [ ] QI-14-7: Robot Repair Shop milestone 7, Desktop boot and wrap-up: `pc-config.json`, `pc.css`, `pc.js`, generated `pc.html`, docs, changelog
+- [ ] QI-14-R: Robot Repair Shop: register in the hub (same steps as the earlier new games).
+- QI-15 Fog Rescue (Quick ideas B3): guide lost animals or travellers out of a dark foggy forest by lighting the right lanterns in the right order. Plan: `planning/fog-rescue-plan.md`.
+- [x] QI-15-0: Fog Rescue: groundwork plan written (2026-10-11).
+- [ ] QI-15-1: Fog Rescue milestone 1, Engine and solver: Graph, lantern and creature rules, BFS solver, dead-state check, chapter 1 (8 woods) with proofs
+- [ ] QI-15-2: Fog Rescue milestone 2, Wood UI: SVG wood and fog, tap-to-light, glow animation (toggleable), step back and restore, save contract. Playable slice
+- [ ] QI-15-3: Fog Rescue milestone 3, Chapters 2-3: 16 more woods, Owl, reach and blocked paths, Lost and Found board
+- [ ] QI-15-4: Fog Rescue milestone 4, Chapters 4-5, hints, goals: 16 more woods (40), Fox and Lamb, Cast book, hint ladder, three-goals strip. First complete game
+- [ ] QI-15-5: Fog Rescue milestone 5, Standard kit: Opening screen, tutorial, About with Sources, What's New, keyboard help, confirm dialogs, light theme, accessibility
+- [ ] QI-15-6: Fog Rescue milestone 6, Achievements: 14 achievements, panel and toast, manifest, reachability test
+- [ ] QI-15-7: Fog Rescue milestone 7, Desktop boot and wrap-up: `pc-config.json`, `pc.css`, `pc.js`, generated `pc.html`, docs, changelog
+- [ ] QI-15-R: Fog Rescue: register in the hub (same steps as the earlier new games).
+- QI-16 Water Works (Quick ideas B4): route clean water to villages with trade-offs between town, farm and wild land, shown from several people's points of view. Plan: `planning/water-works-plan.md`.
+- [x] QI-16-0: Water Works: groundwork plan written (2026-10-11).
+- [ ] QI-16-1: Water Works milestone 1, Flow model and judges: Graph, flow rule, voices and verdicts, plan enumerator, chapter 1 (7 valleys) with proofs
+- [ ] QI-16-2: Water Works milestone 2, Map UI: SVG map, buying links and parts, share dials, Voices panel with reasons, save contract. Playable slice
+- [ ] QI-16-3: Water Works milestone 3, Chapters 2-3: 15 more valleys, farm and wild voices, Valley Atlas
+- [ ] QI-16-4: Water Works milestone 4, Chapters 4-5, hints, goals: 14 more valleys (36), downstream and dry years, Voices Book, hint ladder, three-goals strip, live facts. First complete game
+- [ ] QI-16-5: Water Works milestone 5, Standard kit: Opening screen, tutorial, About with Sources, What's New, keyboard help, confirm dialogs, light theme, accessibility
+- [ ] QI-16-6: Water Works milestone 6, Achievements: 14 achievements, panel and toast, manifest, reachability test
+- [ ] QI-16-7: Water Works milestone 7, Desktop boot and wrap-up: `pc-config.json`, `pc.css`, `pc.js`, generated `pc.html`, docs, changelog
+- [ ] QI-16-R: Water Works: register in the hub (same steps as the earlier new games).
+- QI-17 Derelict Garden (Quick ideas B5): tend a garden on an abandoned ship, restoring one section at a time, with a steady-progress-that-cannot-be-lost feel. Plan: `planning/derelict-garden-plan.md`.
+- [x] QI-17-0: Derelict Garden: groundwork plan written (2026-10-11).
+- [ ] QI-17-1: Derelict Garden milestone 1, Engine and solver: Need model, fixtures, growth steps, placement solver, sections 1-3 with proofs and the monotone-progress test
+- [ ] QI-17-2: Derelict Garden milestone 2, Garden UI: SVG deck, drag or tap-place fixtures, growth animation (toggleable), save contract. Playable slice
+- [ ] QI-17-3: Derelict Garden milestone 3, Sections 4-8: 5 more sections, shade and neighbour needs, Greenhouse Book and plant cards
+- [ ] QI-17-4: Derelict Garden milestone 4, Sections 9-12, hints, goals: 4 more sections (12), ship rarities, hint ladder, three-goals strip, live GBIF facts. First complete game
+- [ ] QI-17-5: Derelict Garden milestone 5, Standard kit: Opening screen, tutorial, About with Sources, What's New, keyboard help, confirm dialogs, light theme, accessibility
+- [ ] QI-17-6: Derelict Garden milestone 6, Achievements: 14 achievements, panel and toast, manifest, reachability test
+- [ ] QI-17-7: Derelict Garden milestone 7, Desktop boot and wrap-up: `pc-config.json`, `pc.css`, `pc.js`, generated `pc.html`, docs, changelog
+- [ ] QI-17-R: Derelict Garden: register in the hub (same steps as the earlier new games).
+- QI-18 Memory Archivist (Quick ideas B6): restore corrupted memories from a damaged AI by putting scraps back in order (dark, quiet, science fiction). Plan: `planning/memory-archivist-plan.md`.
+- [x] QI-18-0: Memory Archivist: groundwork plan written (2026-10-11).
+- [ ] QI-18-1: Memory Archivist milestone 1, Constraint engine and prover: Scrap tags, constraint derivation, permutation counter, propagation solver, bank 1 (8 memories) with proofs
+- [ ] QI-18-2: Memory Archivist milestone 2, Core UI: Scrap slabs, timeline slots, drag and keyboard reordering, Check, Notes pane, save contract. Playable slice
+- [ ] QI-18-3: Memory Archivist milestone 3, Banks 2-3: 16 more memories, corruption levels and Clean, the Archive corridor
+- [ ] QI-18-4: Memory Archivist milestone 4, Banks 4-5, hints, goals: 16 more memories (40), the timeline view, hint ladder, three-goals strip. First complete game
+- [ ] QI-18-5: Memory Archivist milestone 5, Standard kit: Opening screen, tutorial, About with Sources, What's New, keyboard help, confirm dialogs, light theme, accessibility
+- [ ] QI-18-6: Memory Archivist milestone 6, Achievements: 14 achievements, panel and toast, manifest, reachability test
+- [ ] QI-18-7: Memory Archivist milestone 7, Desktop boot and wrap-up: `pc-config.json`, `pc.css`, `pc.js`, generated `pc.html`, docs, changelog
+- [ ] QI-18-R: Memory Archivist: register in the hub (same steps as the earlier new games).
+- QI-19 Food Bank (Quick ideas B7): plan a week of meals and deliveries for a food bank with a limited budget and several families' needs. Plan: `planning/food-bank-plan.md`.
+- [x] QI-19-0: Food Bank: groundwork plan written (2026-10-11).
+- [ ] QI-19-1: Food Bank milestone 1, Rules and planner: Items, needs, spoilage, packing and delivery rules, plan search, season 1 (6 weeks) with proofs
+- [ ] QI-19-2: Food Bank milestone 2, Pantry UI: Day view, shelf and box panels, family cards, delivery planner, reset to any day, save contract. Playable slice
+- [ ] QI-19-3: Food Bank milestone 3, Seasons 2-4: 18 more weeks, new needs, Pantry Wall and Neighbours book
+- [ ] QI-19-4: Food Bank milestone 4, Seasons 5-6, hints, goals: 12 more weeks (36), summer gap and big week, hint ladder, three-goals strip, live facts. First complete game
+- [ ] QI-19-5: Food Bank milestone 5, Standard kit: Opening screen, tutorial, About with Sources, What's New, keyboard help, confirm dialogs, light theme, accessibility
+- [ ] QI-19-6: Food Bank milestone 6, Achievements: 14 achievements, panel and toast, manifest, reachability test
+- [ ] QI-19-7: Food Bank milestone 7, Desktop boot and wrap-up: `pc-config.json`, `pc.css`, `pc.js`, generated `pc.html`, docs, changelog
+- [ ] QI-19-R: Food Bank: register in the hub (same steps as the earlier new games).
+- QI-20 Housing Board (Quick ideas B8): allocate a limited set of homes between competing needs and see how each side judges the result. Plan: `planning/housing-board-plan.md`.
+- [x] QI-20-0: Housing Board: groundwork plan written (2026-10-11).
+- [ ] QI-20-1: Housing Board milestone 1, Rules and judges: Homes, households, five voices, verdict engine, assignment brute-forcer, chapter 1 (6 rounds) with proofs
+- [ ] QI-20-2: Housing Board milestone 2, Board UI: Home cards, household portraits, drag assign, voices panel with reasons, reset, save contract. Playable slice
+- [ ] QI-20-3: Housing Board milestone 3, Chapters 2-3: 12 more rounds, waiting lists and access, Case Book
+- [ ] QI-20-4: Housing Board milestone 4, Chapters 4-5, hints, goals: 12 more rounds (30), finance voice, whole estate, town map, hint ladder, three-goals strip, live facts. First complete game
+- [ ] QI-20-5: Housing Board milestone 5, Standard kit: Opening screen, tutorial, About with Sources, What's New, keyboard help, confirm dialogs, light theme, accessibility
+- [ ] QI-20-6: Housing Board milestone 6, Achievements: 14 achievements, panel and toast, manifest, reachability test
+- [ ] QI-20-7: Housing Board milestone 7, Desktop boot and wrap-up: `pc-config.json`, `pc.css`, `pc.js`, generated `pc.html`, docs, changelog
+- [ ] QI-20-R: Housing Board: register in the hub (same steps as the earlier new games).
+- QI-21 Anomaly Catalogue (Quick ideas C1): a fixed set of odd rooms or screens where you spot what changed and file it in a field catalogue (the kind of anomaly games you like to watch). Plan: `planning/anomaly-catalogue-plan.md`.
+- [x] QI-21-0: Anomaly Catalogue: groundwork plan written (2026-10-11).
+- [ ] QI-21-1: Anomaly Catalogue milestone 1, Scene engine and checks: Scene data model, diff comparer, anomaly kinds, geometry lints, floor 1 (4 rooms) with proofs
+- [ ] QI-21-2: Anomaly Catalogue milestone 2, Room UI: SVG scene view, Compare toggle, Look closer, filing dialog, save contract. Playable slice
+- [ ] QI-21-3: Anomaly Catalogue milestone 3, Floors 2-4: 12 more rooms, more kinds, Field Catalogue binder
+- [ ] QI-21-4: Anomaly Catalogue milestone 4, Floors 5-6, hints, goals: 8 more rooms (24), cross-references, hint ladder, three-goals strip. First complete game
+- [ ] QI-21-5: Anomaly Catalogue milestone 5, Standard kit: Opening screen, tutorial, About with Sources, What's New, keyboard help, confirm dialogs, light theme, accessibility
+- [ ] QI-21-6: Anomaly Catalogue milestone 6, Achievements: 14 achievements, panel and toast, manifest, reachability test
+- [ ] QI-21-7: Anomaly Catalogue milestone 7, Desktop boot and wrap-up: `pc-config.json`, `pc.css`, `pc.js`, generated `pc.html`, docs, changelog
+- [ ] QI-21-R: Anomaly Catalogue: register in the hub (same steps as the earlier new games).
+- QI-22 Loadout Lab (Quick ideas C2): combine parts to reach target numbers, with a catalogue of every combination you have found, including the one overpowered build per challenge. Plan: `planning/loadout-lab-plan.md`.
+- [x] QI-22-0: Loadout Lab: groundwork plan written (2026-10-11).
+- [ ] QI-22-1: Loadout Lab milestone 1, Stat engine and enumerator: Parts, synergy rules, evaluator, full-build enumerator, chapter 1 (8 challenges) with proofs
+- [ ] QI-22-2: Loadout Lab milestone 2, Workshop UI: Slots and part tiles, live stat panel with Why lines, Run, save contract. Playable slice
+- [ ] QI-22-3: Loadout Lab milestone 3, Chapters 2-3: 16 more challenges, bounds and pair bonuses, Build Book
+- [ ] QI-22-4: Loadout Lab milestone 4, Chapters 4-5, hints, goals: 16 more challenges (40), conversions, Broken stamps, hint ladder including the Broken clue, three-goals strip. First complete game
+- [ ] QI-22-5: Loadout Lab milestone 5, Standard kit: Opening screen, tutorial, About with Sources, What's New, keyboard help, confirm dialogs, light theme, accessibility
+- [ ] QI-22-6: Loadout Lab milestone 6, Achievements: 14 achievements, panel and toast, manifest, reachability test
+- [ ] QI-22-7: Loadout Lab milestone 7, Desktop boot and wrap-up: `pc-config.json`, `pc.css`, `pc.js`, generated `pc.html`, docs, changelog
+- [ ] QI-22-R: Loadout Lab: register in the hub (same steps as the earlier new games).
+- QI-23 Glitch Hunter (Quick ideas C3): small levels with deliberate, harmless exploits; the goal is to break the rules and the log records every glitch you found. Plan: `planning/glitch-hunter-plan.md`.
+- [x] QI-23-0: Glitch Hunter: groundwork plan written (2026-10-11).
+- [ ] QI-23-1: Glitch Hunter milestone 1, Engine: Room rules, quirk flags, breadth-first glitch solver, chapter 1 (6 rooms) with proofs and tests
+- [ ] QI-23-2: Glitch Hunter milestone 2, Room UI: SVG room, move and keyboard input, rule card, glitch stamp and replay clip, Reset, save contract. Playable slice
+- [ ] QI-23-3: Glitch Hunter milestone 3, Chapters 2-4 and the log: 18 more rooms, Glitch Log, Defect Wall, hint ladder, three-goals strip
+- [ ] QI-23-4: Glitch Hunter milestone 4, Chapters 5-6 and the finale: 12 more rooms (36 in all), decoys, Free Poke, The Original Build. First complete game
+- [ ] QI-23-5: Glitch Hunter milestone 5, Standard kit: Opening screen, tutorial, settings, About with live-read sources, What's New, confirm dialogs, light theme, accessibility pass
+- [ ] QI-23-6: Glitch Hunter milestone 6, Achievements: 14 achievements, panel and toast, manifest, reachability test
+- [ ] QI-23-7: Glitch Hunter milestone 7, Desktop boot and wrap-up: `pc-config.json`, `pc.css`, `pc.js`, generated `pc.html`, docs, changelog
+- [ ] QI-23-R: Glitch Hunter: register in the hub (same steps as the earlier new games).
+- QI-24 Space Museum (Quick ideas C4): curate a museum of objects you have collected across the site, arranged in rooms. Plan: `planning/space-museum-plan.md`.
+- [x] QI-24-0: Space Museum: groundwork plan written (2026-10-11).
+- [ ] QI-24-1: Space Museum milestone 1, Engine: Catalogue builder, tags, brief checks, layout rules, solver proof that every brief is satisfiable from finds alone, 4 rooms
+- [ ] QI-24-2: Space Museum milestone 2, Room UI: SVG rooms, drag and keyboard placing, object cards, lamp, tray, save contract. Playable slice
+- [ ] QI-24-3: Space Museum milestone 3, All 12 rooms and finds: Remaining rooms, 36 arrangements, museum finds, labels, Floor Plan, three-goals strip, hint ladder
+- [ ] QI-24-4: Space Museum milestone 4, Site objects: Reader for other games' saves, donations shelf, new-arrivals tray, missing-object repair. First complete game
+- [ ] QI-24-5: Space Museum milestone 5, Standard kit: Opening screen, tutorial, settings, About, What's New, keyboard help, light theme, accessibility pass
+- [ ] QI-24-6: Space Museum milestone 6, Achievements: 14 achievements, panel and toast, manifest, reachability test
+- [ ] QI-24-7: Space Museum milestone 7, Desktop boot and wrap-up: `pc-config.json`, `pc.css`, `pc.js`, generated `pc.html`, docs, changelog
+- [ ] QI-24-R: Space Museum: register in the hub (same steps as the earlier new games).
 - [x] QI-25: Stranded (Quick ideas D1): write the groundwork plan, then build it. you advise a stranded astronaut by text over many branching days; there is no waiting timer, and you can go back and try a different path. (BUILT 2026-10-10, milestones 1-7, 91 tests; hub registration is item QI-25b.)
 - [x] QI-25b: Register Stranded in the hub (same steps as the earlier new games).
-- [ ] QI-26: The Quiet Program (Quick ideas D2): write the groundwork plan, then build it. advise a broken but gentle program on a failing computer network (a tragic, quiet character in the spirit of the one you like).
-- [ ] QI-27: Night Cameras (Quick ideas D3): write the groundwork plan, then build it. investigate odd events by switching between security cameras; no jump scares, and the answer is a deduction.
-- [ ] QI-28: Three Sides of the Story (Quick ideas D4): write the groundwork plan, then build it. a branching story about a real issue (for example a water shortage), played once from each of three people's viewpoints.
+- QI-26 The Quiet Program (Quick ideas D2): advise a broken but gentle program on a failing computer network (a tragic, quiet character in the spirit of the one you like). Plan: `planning/the-quiet-program-plan.md`.
+- [x] QI-26-0: The Quiet Program: groundwork plan written (2026-10-11).
+- [ ] QI-26-1: The Quiet Program milestone 1, Engine: Net, link and beat rules, Wick faults, solver proof, chapter 1 (6 Evenings) with tests
+- [ ] QI-26-2: The Quiet Program milestone 2, Evening UI: SVG net, advice lines, beat playback, Wick lamp, result card, Restore, save contract. Playable slice
+- [ ] QI-26-3: The Quiet Program milestone 3, Chapters 2-3, fragments, hints: 12 more Evenings, memory fragments, net map, hint ladder, three-goals strip
+- [ ] QI-26-4: The Quiet Program milestone 4, Chapters 4-5 and endings: 12 more Evenings (30 in all), Quiet Hours, three endings. First complete game
+- [ ] QI-26-5: The Quiet Program milestone 5, Standard kit: Opening screen, tutorial, settings, About with the fiction note, What's New, confirm dialogs, light theme, accessibility pass
+- [ ] QI-26-6: The Quiet Program milestone 6, Achievements: 14 achievements, panel and toast, manifest, reachability test
+- [ ] QI-26-7: The Quiet Program milestone 7, Desktop boot and wrap-up: `pc-config.json`, `pc.css`, `pc.js`, generated `pc.html`, docs, changelog
+- [ ] QI-26-R: The Quiet Program: register in the hub (same steps as the earlier new games).
+- QI-27 Night Cameras (Quick ideas D3): investigate odd events by switching between security cameras; no jump scares, and the answer is a deduction. Plan: `planning/night-cameras-plan.md`.
+- [x] QI-27-0: Night Cameras: groundwork plan written (2026-10-11).
+- [ ] QI-27-1: Night Cameras milestone 1, Engine: World graph, schedules, camera coverage, frame builder, hypothesis solver, chapter 1 (6 cases) with proofs and tests
+- [ ] QI-27-2: Night Cameras milestone 2, Desk UI: Monitor wall, scrub bar, floor plan, notebook grid, answer and result card, save contract. Playable slice
+- [ ] QI-27-3: Night Cameras milestone 3, Chapters 2-4, Night Book, hints: 18 more cases, Night Book, annex map, hint ladder, three-goals strip
+- [ ] QI-27-4: Night Cameras milestone 4, Chapters 5-6: 12 more cases (36 in all), camera-down cases, chained cases. First complete game
+- [ ] QI-27-5: Night Cameras milestone 5, Standard kit: Opening screen, tutorial, settings, About, What's New, keyboard help, confirm dialogs, light theme, accessibility pass
+- [ ] QI-27-6: Night Cameras milestone 6, Achievements: 14 achievements, panel and toast, manifest, reachability test
+- [ ] QI-27-7: Night Cameras milestone 7, Desktop boot and wrap-up: `pc-config.json`, `pc.css`, `pc.js`, generated `pc.html`, docs, changelog
+- [ ] QI-27-R: Night Cameras: register in the hub (same steps as the earlier new games).
+- QI-28 Three Sides of the Story (Quick ideas D4): a branching story about a real issue (for example a water shortage), played once from each of three people's viewpoints. Plan: `planning/three-sides-of-the-story-plan.md`.
+- [x] QI-28-0: Three Sides of the Story: groundwork plan written (2026-10-11).
+- [ ] QI-28-1: Three Sides of the Story milestone 1, Engine: Graph walker, stats, fixed events, ledger and reachability validators, Ilse's view (14 scenes) with tests
+- [ ] QI-28-2: Three Sides of the Story milestone 2, Thread UI: Message thread, choices, week map, rewind, reservoir gauge, save contract. Playable slice
+- [ ] QI-28-3: Three Sides of the Story milestone 3, Dev and Rosa: The other two views (28 scenes), fixed events told three ways, Compare panel, hint ladder, three-goals strip
+- [ ] QI-28-4: Three Sides of the Story milestone 4, Council: The Council meeting (8 scenes), 12 endings, notebook. First complete game
+- [ ] QI-28-5: Three Sides of the Story milestone 5, Standard kit: Opening screen, tutorial, settings, About with live-read sources and fiction notice, What's New, keyboard help, light theme, accessibility pass
+- [ ] QI-28-6: Three Sides of the Story milestone 6, Achievements: 14 achievements, panel and toast, manifest, reachability test
+- [ ] QI-28-7: Three Sides of the Story milestone 7, Desktop boot and wrap-up: `pc-config.json`, `pc.css`, `pc.js`, generated `pc.html`, docs, changelog
+- [ ] QI-28-R: Three Sides of the Story: register in the hub (same steps as the earlier new games).
 - [x] QI-29: Evidence Hunt (Quick ideas D5): write the groundwork plan, then build it. a Phasmophobia-lite deduction game where you collect evidence and name the ghost, solo first with an optional co-op by invite code. (BUILT 2026-10-10, solo, milestones 1-7, 115 tests; hub registration is item QI-29b; co-op stays parked.)
 - [x] QI-29b: Register Evidence Hunt in the hub (same steps as the earlier new games).
-- [ ] QI-30: Terminal Logs (Quick ideas D6): write the groundwork plan, then build it. a choose-your-own-adventure told only through a computer terminal's logs and your commands.
-- [ ] QI-31: Keep Talking (Quick ideas E1): write the groundwork plan, then build it. two players each see half of a puzzle and have to talk it out (voice or text in whatever app they already use), joined by an invite link.
-- [ ] QI-32: Shared Station (Quick ideas E2): write the groundwork plan, then build it. friends' finished puzzles light up rooms in a shared space station you can visit.
-- [ ] QI-33: Saboteur Puzzle (Quick ideas E3): write the groundwork plan, then build it. a solo logic puzzle where you work out who among the crew is sabotaging the ship from their statements.
-- [ ] QI-34: Repair the Ship's Code (Quick ideas G1): write the groundwork plan, then build it. learn Python by fixing a starship's broken functions, with tests that go green as you fix each one.
-- [ ] QI-35: Query the Archive (Quick ideas G2): write the groundwork plan, then build it. learn simple database queries by finding records in a space-station archive, no deletion allowed.
-- [ ] QI-36: Pattern Match (Quick ideas G3): write the groundwork plan, then build it. learn regular expressions by filtering garbled transmissions.
-- [ ] QI-37: Binary Bakery (Quick ideas G4): write the groundwork plan, then build it. a calm game where you build numbers from binary switches to fill orders.
-- [ ] QI-38: Orbit Maths (Quick ideas G5): write the groundwork plan, then build it. short maths puzzles in a rocket-launch frame (ratios, speeds, fuel).
-- [ ] QI-39: Circuit Playground (Quick ideas G6): write the groundwork plan, then build it. a free sandbox for building circuits with live voltage readouts.
-- [ ] QI-40: AI Mistakes (Quick ideas G7): write the groundwork plan, then build it. spot where a simple AI would go wrong in a series of small cases and say why.
-- [ ] QI-41: Material Match (Quick ideas G8): write the groundwork plan, then build it. pick materials for a tool or building from their real properties, with the numbers read from a named source.
+- QI-30 Terminal Logs (Quick ideas D6): a choose-your-own-adventure told only through a computer terminal's logs and your commands. Plan: `planning/terminal-logs-plan.md`.
+- [x] QI-30-0: Terminal Logs: groundwork plan written (2026-10-11).
+- [ ] QI-30-1: Terminal Logs milestone 1, Engine: File system, command rules, graph validator, first two directories (about 30 files) with tests
+- [ ] QI-30-2: Terminal Logs milestone 2, Terminal UI: Terminal frame, command palette, file list, rewind, ship map, save contract. Playable slice
+- [ ] QI-30-3: Terminal Logs milestone 3, The ship fills in: Remaining directories, scripts, forks, Archive Index, hint ladder, three-goals strip
+- [ ] QI-30-4: Terminal Logs milestone 4, Endings: The five endings, par paths, final polish of the logs. First complete game
+- [ ] QI-30-5: Terminal Logs milestone 5, Standard kit: Opening screen, tutorial, settings, About with live-read sources and fiction notice, What's New, keyboard help, light theme, accessibility pass
+- [ ] QI-30-6: Terminal Logs milestone 6, Achievements: 14 achievements, panel and toast, manifest, reachability test
+- [ ] QI-30-7: Terminal Logs milestone 7, Desktop boot and wrap-up: `pc-config.json`, `pc.css`, `pc.js`, generated `pc.html`, docs, changelog
+- [ ] QI-30-R: Terminal Logs: register in the hub (same steps as the earlier new games).
+- QI-31 Keep Talking (Quick ideas E1): two players each see half of a puzzle and have to talk it out (voice or text in whatever app they already use), joined by an invite link. Plan: `planning/keep-talking-plan.md`.
+- [x] QI-31-0: Keep Talking: groundwork plan written (2026-10-11).
+- [ ] QI-31-1: Keep Talking milestone 1, Engine: Seed to job, Wires and Symbol Pad generators, information-split proofs, 12 jobs with tests
+- [ ] QI-31-2: Keep Talking milestone 2, Solo UI: Panel and Manual screens, Pim, solo roles, answer entry, save contract. Playable slice (solo)
+- [ ] QI-31-3: Keep Talking milestone 3, More modules: Dials, Lamps, Maze, 24 more jobs (36 in all), hint ladder, three-goals strip. First complete game
+- [ ] QI-31-4: Keep Talking milestone 4, Invite links: Invite link parsing, role choice, two-browser play, tamper-proof link validator, Endless mode
+- [ ] QI-31-5: Keep Talking milestone 5, Standard kit: Opening screen, tutorial, settings, About, What's New, keyboard help, light theme, accessibility pass
+- [ ] QI-31-6: Keep Talking milestone 6, Achievements: 14 achievements, panel and toast, manifest, reachability test
+- [ ] QI-31-7: Keep Talking milestone 7, Desktop boot and wrap-up: `pc-config.json`, `pc.css`, `pc.js`, generated `pc.html`, docs, changelog
+- [ ] QI-31-R: Keep Talking: register in the hub (same steps as the earlier new games).
+- QI-32 Shared Station (Quick ideas E2): friends' finished puzzles light up rooms in a shared space station you can visit. Plan: `planning/shared-station-plan.md`.
+- [x] QI-32-0: Shared Station: groundwork plan written (2026-10-11).
+- [ ] QI-32-1: Shared Station milestone 1, Engine: Deed table, reader, lit-set rules, validation against the repo, ring layout with tests
+- [ ] QI-32-2: Shared Station milestone 2, Station UI: SVG station, camera moves between rooms, plaques, save contract. Playable slice
+- [ ] QI-32-3: Shared Station milestone 3, All 60 rooms: Full deed table and plaques, Next lights, percentage bar, hint ladder, three-goals strip. First complete game
+- [ ] QI-32-4: Shared Station milestone 4, Visitor mode: Station Card codec, sample crews, waves and guest shelf
+- [ ] QI-32-5: Shared Station milestone 5, Standard kit: Opening screen, tutorial, settings, About with the privacy note, What's New, keyboard help, light theme, accessibility pass
+- [ ] QI-32-6: Shared Station milestone 6, Achievements: 14 achievements, panel and toast, manifest, reachability test
+- [ ] QI-32-7: Shared Station milestone 7, Desktop boot and wrap-up: `pc-config.json`, `pc.css`, `pc.js`, generated `pc.html`, docs, changelog
+- [ ] QI-32-R: Shared Station: register in the hub (same steps as the earlier new games).
+- QI-33 Saboteur Puzzle (Quick ideas E3): a solo logic puzzle where you work out who among the crew is sabotaging the ship from their statements. Plan: `planning/saboteur-puzzle-plan.md`.
+- [x] QI-33-0: Saboteur Puzzle: groundwork plan written (2026-10-11).
+- [ ] QI-33-1: Saboteur Puzzle milestone 1, Engine: Statement forms, role rules, constraint solver, chapter 1 (8 cases) with uniqueness proofs
+- [ ] QI-33-2: Saboteur Puzzle milestone 2, Case UI: Deck plan, statement sheet, notebook grid, naming and result card, save contract. Playable slice
+- [ ] QI-33-3: Saboteur Puzzle milestone 3, Chapters 2-4, crew files, hints: 24 more cases, crew files, Pallas log, contradiction check, hint ladder, three-goals strip
+- [ ] QI-33-4: Saboteur Puzzle milestone 4, Chapter 5 and Endless: 8 more cases (40 in all), seeded generator with solver gate, seed codes. First complete game
+- [ ] QI-33-5: Saboteur Puzzle milestone 5, Standard kit: Opening screen, tutorial, settings, About, What's New, keyboard help, confirm dialogs, light theme, accessibility pass
+- [ ] QI-33-6: Saboteur Puzzle milestone 6, Achievements: 14 achievements, panel and toast, manifest, reachability test
+- [ ] QI-33-7: Saboteur Puzzle milestone 7, Desktop boot and wrap-up: `pc-config.json`, `pc.css`, `pc.js`, generated `pc.html`, docs, changelog
+- [ ] QI-33-R: Saboteur Puzzle: register in the hub (same steps as the earlier new games).
+- QI-34 Repair the Ship's Code (Quick ideas G1): learn Python by fixing a starship's broken functions, with tests that go green as you fix each one. Plan: `planning/repair-the-ships-code-plan.md`.
+- [x] QI-34-0: Repair the Ship's Code: groundwork plan written (2026-10-11).
+- [ ] QI-34-1: Repair the Ship's Code milestone 1, Engine: Sandbox runner with step budget, level format, checker, chapter 1 (6 levels) with fix, bug-diff and mutation proofs
+- [ ] QI-34-2: Repair the Ship's Code milestone 2, Editor UI: Editor, tests list, Run and Reset, ship cutaway, phone token mode, save contract. Playable slice
+- [ ] QI-34-3: Repair the Ship's Code milestone 3, Chapters 2-4, bestiary, hints: 18 more levels, Bug Bestiary, hint ladder, three-goals strip
+- [ ] QI-34-4: Repair the Ship's Code milestone 4, Chapters 5-6 and Home Run: 12 more levels (36 in all), final level. First complete game
+- [ ] QI-34-5: Repair the Ship's Code milestone 5, Standard kit: Opening screen, tutorial, settings, About with live-read sources, What's New, keyboard help, light theme, accessibility pass
+- [ ] QI-34-6: Repair the Ship's Code milestone 6, Achievements: 14 achievements, panel and toast, manifest, reachability test
+- [ ] QI-34-7: Repair the Ship's Code milestone 7, Desktop boot and wrap-up: `pc-config.json`, `pc.css`, `pc.js`, generated `pc.html`, docs, changelog
+- [ ] QI-34-R: Repair the Ship's Code: register in the hub (same steps as the earlier new games).
+- QI-35 Query the Archive (Quick ideas G2): learn simple database queries by finding records in a space-station archive, no deletion allowed. Plan: `planning/query-the-archive-plan.md`.
+- [x] QI-35-0: Query the Archive: groundwork plan written (2026-10-11).
+- [ ] QI-35-1: Query the Archive milestone 1, Engine: Seeded archive and twin, read-only guard, checker, chapter 1 (6 slips) with near-miss and safety proofs
+- [ ] QI-35-2: Query the Archive milestone 2, Clerk UI: Editor, clause chips, result table, slip stamp, save contract. Playable slice
+- [ ] QI-35-3: Query the Archive milestone 3, Chapters 2-4, drawer, hints: 18 more slips, Clause Drawer, hint ladder, three-goals strip
+- [ ] QI-35-4: Query the Archive milestone 4, Chapters 5-6: 12 more slips (36 in all), grouping and joins. First complete game
+- [ ] QI-35-5: Query the Archive milestone 5, Standard kit: Opening screen, tutorial, settings, About with live-read sources, What's New, keyboard help, light theme, accessibility pass
+- [ ] QI-35-6: Query the Archive milestone 6, Achievements: 14 achievements, panel and toast, manifest, reachability test
+- [ ] QI-35-7: Query the Archive milestone 7, Desktop boot and wrap-up: `pc-config.json`, `pc.css`, `pc.js`, generated `pc.html`, docs, changelog
+- [ ] QI-35-R: Query the Archive: register in the hub (same steps as the earlier new games).
+- QI-36 Pattern Match (Quick ideas G3): learn regular expressions by filtering garbled transmissions. Plan: `planning/pattern-match-plan.md`.
+- [x] QI-36-0: Pattern Match: groundwork plan written (2026-10-11).
+- [ ] QI-36-1: Pattern Match milestone 1, Engine: Matcher with step budget, conformance tests against `re`, tape checker, chapter 1 (6 tapes) with tempting-wrong proofs
+- [ ] QI-36-2: Pattern Match milestone 2, Receiver UI: Pattern field, live marking, status words, signal log, save contract. Playable slice
+- [ ] QI-36-3: Pattern Match milestone 3, Chapters 2-4, toolbox, hints: 18 more tapes, Toolbox, hint ladder, three-goals strip
+- [ ] QI-36-4: Pattern Match milestone 4, Chapters 5-6 and Practice Static: 12 more tapes (36 in all), extract tapes, seeded practice. First complete game
+- [ ] QI-36-5: Pattern Match milestone 5, Standard kit: Opening screen, tutorial, settings, About with live-read sources, What's New, keyboard help, light theme, accessibility pass
+- [ ] QI-36-6: Pattern Match milestone 6, Achievements: 14 achievements, panel and toast, manifest, reachability test
+- [ ] QI-36-7: Pattern Match milestone 7, Desktop boot and wrap-up: `pc-config.json`, `pc.css`, `pc.js`, generated `pc.html`, docs, changelog
+- [ ] QI-36-R: Pattern Match: register in the hub (same steps as the earlier new games).
+- QI-37 Binary Bakery (Quick ideas G4): a calm game where you build numbers from binary switches to fill orders. Plan: `planning/binary-bakery-plan.md`.
+- [x] QI-37-0: Binary Bakery: groundwork plan written (2026-10-11).
+- [ ] QI-37-1: Binary Bakery milestone 1, Engine: Bit rows, order kinds, exhaustive solver, chapters 1-2 (14 slips) with proofs
+- [ ] QI-37-2: Binary Bakery milestone 2, Counter UI: SVG counter, trays and switches, order spike, bell, save contract. Playable slice
+- [ ] QI-37-3: Binary Bakery milestone 3, Chapters 3-5, Bake Book, hints: 21 more slips, Bake Book, shop front, hint ladder, three-goals strip
+- [ ] QI-37-4: Binary Bakery milestone 4, Chapter 6 and Practice Counter: 7 more slips (42 in all), letter cakes and hex icing, seeded practice. First complete game
+- [ ] QI-37-5: Binary Bakery milestone 5, Standard kit: Opening screen, tutorial, settings, About with live-read sources, What's New, keyboard help, light theme, accessibility pass
+- [ ] QI-37-6: Binary Bakery milestone 6, Achievements: 14 achievements, panel and toast, manifest, reachability test
+- [ ] QI-37-7: Binary Bakery milestone 7, Desktop boot and wrap-up: `pc-config.json`, `pc.css`, `pc.js`, generated `pc.html`, docs, changelog
+- [ ] QI-37-R: Binary Bakery: register in the hub (same steps as the earlier new games).
+- QI-38 Orbit Maths (Quick ideas G5): short maths puzzles in a rocket-launch frame (ratios, speeds, fuel). Plan: `planning/orbit-maths-plan.md`.
+- [x] QI-38-0: Orbit Maths: groundwork plan written (2026-10-11).
+- [ ] QI-38-1: Orbit Maths milestone 1, Engine: Sheet format, exact checker, units checker, sufficiency lint, stage 1 (8 sheets) with proofs
+- [ ] QI-38-2: Orbit Maths milestone 2, Sheet UI: Sheet layout, number pad and dial, calculator panel, method reveal, pad view, save contract. Playable slice
+- [ ] QI-38-3: Orbit Maths milestone 3, Stages 2-4, notebook, hints: 24 more sheets, Notebook, hint ladder, three-goals strip
+- [ ] QI-38-4: Orbit Maths milestone 4, Stage 5 and the launch: 8 more sheets (40 in all), Practice Pad, launch reveal. First complete game
+- [ ] QI-38-5: Orbit Maths milestone 5, Standard kit: Opening screen, tutorial, settings, About with live-read sources, What's New, keyboard help, light theme, accessibility pass
+- [ ] QI-38-6: Orbit Maths milestone 6, Achievements: 14 achievements, panel and toast, manifest, reachability test; Real figures sheets
+- [ ] QI-38-7: Orbit Maths milestone 7, Desktop boot and wrap-up: `pc-config.json`, `pc.css`, `pc.js`, generated `pc.html`, docs, changelog
+- [ ] QI-38-R: Orbit Maths: register in the hub (same steps as the earlier new games).
+- QI-39 Circuit Playground (Quick ideas G6): a free sandbox for building circuits with live voltage readouts. Plan: `planning/circuit-playground-plan.md`.
+- [x] QI-39-0: Circuit Playground: groundwork plan written (2026-10-11).
+- [ ] QI-39-1: Circuit Playground milestone 1, Engine: Parts, nets, nodal solver, diode and capacitor steps, Kirchhoff property tests, reference circuits
+- [ ] QI-39-2: Circuit Playground milestone 2, Bench UI: SVG board, part drawer, wire drawing, live readouts, undo and clear, save contract. Playable slice (the sandbox)
+- [ ] QI-39-3: Circuit Playground milestone 3, Jobs and Discoveries: 30 Workbench jobs, 20 Discoveries, Workshop Wall, hint ladder, three-goals strip
+- [ ] QI-39-4: Circuit Playground milestone 4, Parts and polish: Remaining parts (potentiometer, push button, capacitor Step), warnings, Parts Drawer. First complete game
+- [ ] QI-39-5: Circuit Playground milestone 5, Standard kit: Opening screen, tutorial, settings, About with live-read sources, What's New, keyboard help, light theme, accessibility pass
+- [ ] QI-39-6: Circuit Playground milestone 6, Achievements: 14 achievements, panel and toast, manifest, reachability test
+- [ ] QI-39-7: Circuit Playground milestone 7, Desktop boot and wrap-up: `pc-config.json`, `pc.css`, `pc.js`, generated `pc.html`, docs, changelog
+- [ ] QI-39-R: Circuit Playground: register in the hub (same steps as the earlier new games).
+- QI-40 AI Mistakes (Quick ideas G7): spot where a simple AI would go wrong in a series of small cases and say why. Plan: `planning/ai-mistakes-plan.md`.
+- [x] QI-40-0: AI Mistakes: groundwork plan written (2026-10-11).
+- [ ] QI-40-1: AI Mistakes milestone 1, Engine: Tiny models, case format, counterfactual and rubric proofs, chapter 1 (6 cases) with tests
+- [ ] QI-40-2: AI Mistakes milestone 2, Bench UI: Pip, training grid, verdict and kind pickers, Fix step, result card, save contract. Playable slice
+- [ ] QI-40-3: AI Mistakes milestone 3, Chapters 2-4, field guide, hints: 18 more cases, Field Guide, hint ladder, three-goals strip
+- [ ] QI-40-4: AI Mistakes milestone 4, Chapters 5-6: 12 more cases (36 in all), all 12 failure kinds. First complete game
+- [ ] QI-40-5: AI Mistakes milestone 5, Standard kit: Opening screen, tutorial, settings, About with live-read sources, What's New, keyboard help, light theme, accessibility pass
+- [ ] QI-40-6: AI Mistakes milestone 6, Achievements: 14 achievements, panel and toast, manifest, reachability test
+- [ ] QI-40-7: AI Mistakes milestone 7, Desktop boot and wrap-up: `pc-config.json`, `pc.css`, `pc.js`, generated `pc.html`, docs, changelog
+- [ ] QI-40-R: AI Mistakes: register in the hub (same steps as the earlier new games).
+- QI-41 Material Match (Quick ideas G8): pick materials for a tool or building from their real properties, with the numbers read from a named source. Plan: `planning/material-match-plan.md`.
+- [x] QI-41-0: Material Match: groundwork plan written (2026-10-11).
+- [ ] QI-41-1: Material Match milestone 1, Engine: Materials table with sources, brief format, checker, margin solver, chapter 1 (8 briefs) with proofs
+- [ ] QI-41-2: Material Match milestone 2, Shelf UI: Material cards, sort and filter, assign, verdict note, workshop floor, save contract. Playable slice
+- [ ] QI-41-3: Material Match milestone 3, Chapters 2-4, book, hints: 24 more briefs, Materials Book, point-of-view notes, hint ladder, three-goals strip
+- [ ] QI-41-4: Material Match milestone 4, Chapter 5: 8 more briefs (40 in all), pick-two briefs. First complete game
+- [ ] QI-41-5: Material Match milestone 5, Standard kit: Opening screen, tutorial, settings, About with live-read sources and value check, What's New, keyboard help, light theme, accessibility pass
+- [ ] QI-41-6: Material Match milestone 6, Achievements: 14 achievements, panel and toast, manifest, reachability test
+- [ ] QI-41-7: Material Match milestone 7, Desktop boot and wrap-up: `pc-config.json`, `pc.css`, `pc.js`, generated `pc.html`, docs, changelog
+- [ ] QI-41-R: Material Match: register in the hub (same steps as the earlier new games).
 
 **Site features**
 - [ ] QI-42: (Quick ideas C5) Site Codex: one notebook that fills as you play every game (concepts, facts, characters), with a completion percentage.

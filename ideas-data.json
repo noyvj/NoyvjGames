@@ -88,6 +88,346 @@
        "n": "Sx1",
        "text": "**Sound: please try the new generated sounds yourself (turn on \"Sound effects made in code\" in the hub Settings, then play Logic Gates, Hull Repair and Lighthouse) and tell me how they sound.** I cannot hear audio, so only you can judge it. Say \"yes\" if the tones are fine as they are. Otherwise say what to change in a comment: too loud or too quiet, too sharp or too dull, which cue (gate click, patch tone, bell, hum) or which game, and whether the Lighthouse hum should stay on by default.",
        "answered": false
+      },
+      {
+       "n": "Q4_1",
+       "text": "**Reaction Bench: should the table cover only the 36 bench elements for 100%, or all 118 with the unused ones also given a use card?** Default: 36, the rest faint and optional. Say \"yes\" to go with that.",
+       "answered": false
+      },
+      {
+       "n": "Q4_2",
+       "text": "**Reaction Bench: is a free sandbox bench (type any formulas and have the ledger check them) wanted after chapter 5?** Default: no. Say \"yes\" to go with that.",
+       "answered": false
+      },
+      {
+       "n": "Q5_1",
+       "text": "**Rule Finder: should a wrong name ever show the hidden rule's words after several near misses?** Default: no, only the Answer rung does. Say \"yes\" to go with that.",
+       "answered": false
+      },
+      {
+       "n": "Q5_2",
+       "text": "**Rule Finder: add a free \"write your own rule and test a friend\" mode?** Default: no. Say \"yes\" to go with that.",
+       "answered": false
+      },
+      {
+       "n": "Q6_1",
+       "text": "**Slingshot: is 2D circular-orbit \"simple but real\" the right level, or do you want elliptical orbits for the inner planets?** Default: circular, said plainly on About. Say \"yes\" to go with that.",
+       "answered": false
+      },
+      {
+       "n": "Q6_2",
+       "text": "**Slingshot: reached-with-any-fuel counts as 100%; is \"Thrifty\" only a bonus?** Default: yes, bonus only. Say \"yes\" to go with that.",
+       "answered": false
+      },
+      {
+       "n": "Q7_1",
+       "text": "**Teach the Machine: is a small decision tree the right \"tiny classifier\", or do you want a nearest-neighbour model Pip can show as \"looks most like these\"?** Default: decision tree. Say \"yes\" to go with that.",
+       "answered": false
+      },
+      {
+       "n": "Q7_2",
+       "text": "**Teach the Machine: should the Fair Treatment shelf stay inside the game or become an optional extra shelf?** Default: inside, switchable off in settings. Say \"yes\" to go with that.",
+       "answered": false
+      },
+      {
+       "n": "Q8_1",
+       "text": "**Constellations: western (IAU) constellations only, or also a few figures from other sky traditions with their sources?** Default: IAU only for now. Say \"yes\" to go with that.",
+       "answered": false
+      },
+      {
+       "n": "Q8_2",
+       "text": "**Constellations: should the atlas show the real sky for the player's hemisphere?** Default: no, one fixed atlas. Say \"yes\" to go with that.",
+       "answered": false
+      },
+      {
+       "n": "Q9_1",
+       "text": "**Zero-G Shift: is a free Step back fine in a move-by-move puzzle (it is not a story choice)?** Default: yes, with Restart always free too. Say \"yes\" to go with that.",
+       "answered": false
+      },
+      {
+       "n": "Q9_2",
+       "text": "**Zero-G Shift: should the player also slide when they push a crate (recoil)?** Default: no, the player stops. Say \"yes\" to go with that.",
+       "answered": false
+      },
+      {
+       "n": "Q10_1",
+       "text": "**Mirror Lab: are decoy \"must stay dark\" sensors welcome, or should every sensor simply need lighting?** Default: decoys only in chapter 4 and after. Say \"yes\" to go with that.",
+       "answered": false
+      },
+      {
+       "n": "Q11_1",
+       "text": "**Radio Decode: should Wren's thread be a real story with an ending, or only loose log entries?** Default: loose threads per band with a short quiet ending line in the last message. Say \"yes\" to go with that.",
+       "answered": false
+      },
+      {
+       "n": "Q12_1",
+       "text": "**Picture Grid: mono pictures with a final tint, or true multi-colour nonograms for the last gallery?** Default: mono with tint (clearer, easier to read on dark). Say \"yes\" to go with that.",
+       "answered": false
+      },
+      {
+       "n": "Q12_2",
+       "text": "**Picture Grid: should Check mistakes be on by default for the first gallery?** Default: off, offered once in the tutorial. Say \"yes\" to go with that.",
+       "answered": false
+      },
+      {
+       "n": "Q14_1",
+       "text": "**Robot Repair Shop: should a friend's visit also unlock a tiny optional favour (like a free extra probe type), or stay purely a keepsake?** Default: a few gifts are tools, the rest keepsakes. Say \"yes\" to go with that.",
+       "answered": false
+      },
+      {
+       "n": "Q15_1",
+       "text": "**Fog Rescue: should this stay a standalone game or be set aside to become part of the foggy-forest dream game later?** Default: standalone now, reusable later. Say \"yes\" to go with that.",
+       "answered": false
+      },
+      {
+       "n": "Q16_1",
+       "text": "**Water Works: should every valley have a Fair share plan (everyone Content), or should a few late valleys be honest \"no perfect plan\" cases where Common ground is the best?** Default: a Fair share plan always exists, but the late ones are tight. Say \"yes\" to go with that.",
+       "answered": false
+      },
+      {
+       "n": "Q16_2",
+       "text": "**Water Works: should the voices be able to disagree with each other in text (a short exchange) or only react to the plan?** Default: react to the plan only. Say \"yes\" to go with that.",
+       "answered": false
+      },
+      {
+       "n": "Q17_1",
+       "text": "**Derelict Garden: should plants ever show a passive visual change over real time (a slow sway), or stay still unless you act?** Default: gentle sway only, toggleable, never progress. Say \"yes\" to go with that.",
+       "answered": false
+      },
+      {
+       "n": "Q17_2",
+       "text": "**Derelict Garden: is a free \"decorate\" mode (move rocks and benches for looks only) wanted after a section is restored?** Default: no, to avoid perfectionism. Say \"yes\" to go with that.",
+       "answered": false
+      },
+      {
+       "n": "Q18_1",
+       "text": "**Memory Archivist: is a 40-memory story about a flawed caretaker AI the right tone, or should HALCY be gentler with less of a mistake behind it?** Default: a small, forgivable mistake, never a disaster. Say \"yes\" to go with that.",
+       "answered": false
+      },
+      {
+       "n": "Q18_2",
+       "text": "**Memory Archivist: should Check show how many scraps are right, or only Right or Not yet?** Default: the number. Say \"yes\" to go with that.",
+       "answered": false
+      },
+      {
+       "n": "Q19_1",
+       "text": "**Food Bank: should the diet and allergy rules use real-world categories (nut allergy, halal, vegetarian) or invented ones?** Default: a small set of real categories, handled respectfully. Say \"yes\" to go with that.",
+       "answered": false
+      },
+      {
+       "n": "Q19_2",
+       "text": "**Food Bank: is a \"what would you change\" voice from volunteers or families after each week wanted?** Default: yes, one short line per family. Say \"yes\" to go with that.",
+       "answered": false
+      },
+      {
+       "n": "Q20_1",
+       "text": "**Housing Board: should one late chapter include a round with no Common Ground (an honest tension) where Settlement is the best possible?** Default: no, every round has a Settlement and most have Common Ground. Say \"yes\" to go with that.",
+       "answered": false
+      },
+      {
+       "n": "Q20_2",
+       "text": "**Housing Board: is a policy-flavoured country setting (UK, US, neutral invented) preferred?** Default: a neutral invented town. Say \"yes\" to go with that.",
+       "answered": false
+      },
+      {
+       "n": "Q21_1",
+       "text": "**Anomaly Catalogue: should a few late rooms be gently unsettling (a figure that is there only in the Now frame) or stay strictly odd objects?** Default: odd objects only, nothing that harms or chases. Say \"yes\" to go with that.",
+       "answered": false
+      },
+      {
+       "n": "Q21_2",
+       "text": "**Anomaly Catalogue: is a hold-to-zoom lens enough for accessibility, or should every room offer a list-view of objects too?** Default: add the list view as the screen-reader path. Say \"yes\" to go with that.",
+       "answered": false
+      },
+      {
+       "n": "Q22_1",
+       "text": "**Loadout Lab: should finding every pass of a challenge count towards 100%, or stay a bonus?** Default: bonus only, so 100% stays easy. Say \"yes\" to go with that.",
+       "answered": false
+      },
+      {
+       "n": "Q22_2",
+       "text": "**Loadout Lab: should the Broken Build ever be nerfed or banned from a \"fair\" challenge variant?** Default: no, Broken is always allowed and celebrated. Say \"yes\" to go with that.",
+       "answered": false
+      },
+      {
+       "n": "Q23_1",
+       "text": "**Glitch Hunter: should the tester's log notes be dry and dark in voice, or plainer?** Default: dry and short, behind the Story toggle. Say \"yes\" to go with that.",
+       "answered": false
+      },
+      {
+       "n": "Q23_2",
+       "text": "**Glitch Hunter: should \"decoy\" rooms (no glitch to find) exist at all, or does every room hide one?** Default: 3 decoys across the game. Say \"yes\" to go with that.",
+       "answered": false
+      },
+      {
+       "n": "Q24_1",
+       "text": "**Space Museum: should the museum percentage count only the museum's own finds and rooms (so 100% never needs other games), with site objects a separate bonus shelf?** Default: yes. Say \"yes\" to go with that.",
+       "answered": false
+      },
+      {
+       "n": "Q24_2",
+       "text": "**Space Museum: should an object name be taken straight from the achievement title, or should I hand-write a nicer object for every achievement (about 300 short lines)?** Default: titles with about 60 hand-written overrides. Say \"yes\" to go with that.",
+       "answered": false
+      },
+      {
+       "n": "Q24_3",
+       "text": "**Space Museum: should visitors see someone else's museum (an invite-link snapshot, like Shared Station)?** Default: no, that stays in Shared Station. Say \"yes\" to go with that.",
+       "answered": false
+      },
+      {
+       "n": "Q26_1",
+       "text": "**The Quiet Program: wick is steady and kind rather than sad; its decline is gradual forgetting. Is that the right tragic level, or should it be sadder or lighter?** Default: as written. Say \"yes\" to go with that.",
+       "answered": false
+      },
+      {
+       "n": "Q26_2",
+       "text": "**The Quiet Program: should Wick's apologies and thanks be spoken in short lines for every Evening, or only on the first and last of each chapter?** Default: short every Evening, behind the Story toggle. Say \"yes\" to go with that.",
+       "answered": false
+      },
+      {
+       "n": "Q27_1",
+       "text": "**Night Cameras: should the game mark contradictions between your notes and the footage for you (a setting), on or off by default?** Default: on. Say \"yes\" to go with that.",
+       "answered": false
+      },
+      {
+       "n": "Q27_2",
+       "text": "**Night Cameras: is a mundane or gently sad explanation for every case right, or should a few cases stay unexplained (an anomaly note, like Lighthouse's optional layer)?** Default: every case explained. Say \"yes\" to go with that.",
+       "answered": false
+      },
+      {
+       "n": "Q28_1",
+       "text": "**Three Sides of the Story: are a fruit farmer, a water engineer and a clinic nurse the right three viewpoints for a water shortage, or would you swap one (for example a shopkeeper or a council member)?** Default: as written. Say \"yes\" to go with that.",
+       "answered": false
+      },
+      {
+       "n": "Q28_2",
+       "text": "**Three Sides of the Story: should the Council meeting be a fourth playable thread, or just an ending screen that summarises what the three sides chose?** Default: a short playable thread. Say \"yes\" to go with that.",
+       "answered": false
+      },
+      {
+       "n": "Q28_3",
+       "text": "**Three Sides of the Story: should fact cards be on by default or switched on in Settings?** Default: on, with a setting to hide. Say \"yes\" to go with that.",
+       "answered": false
+      },
+      {
+       "n": "Q30_1",
+       "text": "**Terminal Logs: buttons only, or also a real typing line for commands (with autocomplete) on desktop?** Default: both, typing optional. Say \"yes\" to go with that.",
+       "answered": false
+      },
+      {
+       "n": "Q30_2",
+       "text": "**Terminal Logs: should the ship's daemon speak (short lines in its own log voice) or should there be no voice at all, only files?** Default: short daemon lines, behind the Story toggle. Say \"yes\" to go with that.",
+       "answered": false
+      },
+      {
+       "n": "Q31_1",
+       "text": "**Keep Talking: is \"no server, each device checks its own answer\" fine, knowing a determined cheat could peek?** Default: yes (no leaderboards, so nothing to cheat). Say \"yes\" to go with that.",
+       "answered": false
+      },
+      {
+       "n": "Q31_2",
+       "text": "**Keep Talking: should a friend job be started from a short code you can read aloud as well as an invite link?** Default: both (code is the seed). Say \"yes\" to go with that.",
+       "answered": false
+      },
+      {
+       "n": "Q32_1",
+       "text": "**Shared Station: shared Station and Space Museum both celebrate what you have done on the site (rooms lit versus objects placed). Keep both as separate games, or merge them?** Default: keep both; the station shows status, the museum shows arranging. Say \"yes\" to go with that.",
+       "answered": false
+      },
+      {
+       "n": "Q32_2",
+       "text": "**Shared Station: should visitors be able to leave one of 12 fixed \"waves\", or no gifts at all in v1?** Default: waves in, free text never. Say \"yes\" to go with that.",
+       "answered": false
+      },
+      {
+       "n": "Q32_3",
+       "text": "**Shared Station: should the Station Card include a display name, or only the lit rooms?** Default: a name from a short closed word list. Say \"yes\" to go with that.",
+       "answered": false
+      },
+      {
+       "n": "Q33_1",
+       "text": "**Saboteur Puzzle: should each saboteur have a small sympathetic reason shown after the case (a debt, a fear), or should the reason stay unknown?** Default: a small reason shown. Say \"yes\" to go with that.",
+       "answered": false
+      },
+      {
+       "n": "Q33_2",
+       "text": "**Saboteur Puzzle: should the contradiction check be on by default, with a setting to turn it off for a harder game?** Default: on. Say \"yes\" to go with that.",
+       "answered": false
+      },
+      {
+       "n": "Q34_1",
+       "text": "**Repair the Ship's Code: should phones get the tap-a-token editor only, or a normal keyboard editor too?** Default: both, token mode first on small screens. Say \"yes\" to go with that.",
+       "answered": false
+      },
+      {
+       "n": "Q35_1",
+       "text": "**Query the Archive: should a \"free query\" practice desk (no slip, just explore the Archive) be added after the last slip?** Default: yes, a read-only sandbox that still counts clauses used toward the Drawer. Say \"yes\" to go with that.",
+       "answered": false
+      },
+      {
+       "n": "Q35_2",
+       "text": "**Query the Archive: clause chips for beginners can be switched off for a typed-only game. Default: chips on until chapter 3, then optional.** Recommended: the default written in the plan. Say \"yes\" to go with that.",
+       "answered": false
+      },
+      {
+       "n": "Q36_1",
+       "text": "**Pattern Match: the game uses its own matcher for safety, which supports a clearly listed subset of regular expressions. Is that fine, or should it use the full Python engine with a hard cap on pattern length?** Default: own matcher. Say \"yes\" to go with that.",
+       "answered": false
+      },
+      {
+       "n": "Q36_2",
+       "text": "**Pattern Match: par marks reward the shortest pattern. Keep them as an optional small mark, or drop them to keep it pure puzzle?** Default: keep, optional. Say \"yes\" to go with that.",
+       "answered": false
+      },
+      {
+       "n": "Q37_1",
+       "text": "**Binary Bakery: should helper displays (running sum, binary string) be on by default, with a setting to hide them for a harder game?** Default: on. Say \"yes\" to go with that.",
+       "answered": false
+      },
+      {
+       "n": "Q37_2",
+       "text": "**Binary Bakery: should negative numbers (two's complement) be a late optional chapter?** Default: no, kept out. Say \"yes\" to go with that.",
+       "answered": false
+      },
+      {
+       "n": "Q38_1",
+       "text": "**Orbit Maths: should the physics stay at ratios, speeds and fuel with given numbers (no formulas to memorise), or include the real rocket equation with logarithms in the last stage?** Default: simple steps with given numbers; no logarithms. Say \"yes\" to go with that.",
+       "answered": false
+      },
+      {
+       "n": "Q38_2",
+       "text": "**Orbit Maths: should a built-in calculator be allowed on every sheet, or only on the last two stages?** Default: every sheet. Say \"yes\" to go with that.",
+       "answered": false
+      },
+      {
+       "n": "Q39_1",
+       "text": "**Circuit Playground: should the board stay at 24 parts (works well on phones), or allow bigger boards on desktop?** Default: 24 on every device. Say \"yes\" to go with that.",
+       "answered": false
+      },
+      {
+       "n": "Q39_2",
+       "text": "**Circuit Playground: should AC (a swinging source) ever be added, or keep everything DC?** Default: DC only. Say \"yes\" to go with that.",
+       "answered": false
+      },
+      {
+       "n": "Q40_1",
+       "text": "**AI Mistakes: should cases stay in toy domains (animals, foods, weather) with real-world incidents only in the Field Guide notes, or should some cases use a realistic setting (for example a job-application screener)?** Default: toy domains only. Say \"yes\" to go with that.",
+       "answered": false
+      },
+      {
+       "n": "Q40_2",
+       "text": "**AI Mistakes: should the Fix step (change one example and re-run Pip) be on from the start or appear only after the first chapter?** Default: from the start. Say \"yes\" to go with that.",
+       "answered": false
+      },
+      {
+       "n": "Q41_1",
+       "text": "**Material Match: which named source should be the main one for the numbers?** Default: a public engineering reference (Engineering ToolBox) cross-checked against the Wikipedia reference values. Say \"yes\" to go with that.",
+       "answered": false
+      },
+      {
+       "n": "Q41_2",
+       "text": "**Material Match: should the cost word (cheap to dear) be included, given it varies by place and year?** Default: yes as a relative word with a date, never a price. Say \"yes\" to go with that.",
+       "answered": false
       }
      ]
     }
