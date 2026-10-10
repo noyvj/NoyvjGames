@@ -221,7 +221,7 @@ def test_footer_names_the_game_changelog_date_and_site_url(harness):
     h.goto("/games/thaw/t.html")
     h.page.wait_for_selector("#howto-panel .noyvj-info-footer")
     text = h.page.inner_text("#howto-panel .noyvj-info-footer")
-    assert text == f"NoyvjGames · Thaw · updated 2026-10-07 · {ORIGIN}/"
+    assert text == f"NoyvjGames · Thaw · updated 2026-10-07 · {ORIGIN}/ · Sources"
     assert h.page.query_selector("#info-page-panel .noyvj-info-footer") is None, "an empty panel gets no footer"
     assert h.page.evaluate("document.getElementById('howto-panel').lastElementChild.className") == "noyvj-info-footer"
 

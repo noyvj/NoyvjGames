@@ -15,8 +15,11 @@
  *   seed         only when the game has one: window.NoyvjSeed.current(), window.NOYVJ_SEED, the
  *                <html data-seed> attribute, or ?seed= in the address (Z-1 will supply these)
  *   site URL     this site's address, worked out from where this script itself was loaded
+ *   Sources      a link at the end to sources.html?game=<slug> (SR-1): the game's research,
+ *                inspiration and credits page; left out when the game id is not known
  *
  * The text is set with textContent; the footer prints (it is the point) and has its own styles.
+ * NoyvjInfoFooter.text() is the plain line without the link; NoyvjInfoFooter.sourcesHref() is the link.
  */
 (function () {
   "use strict";
@@ -82,12 +85,35 @@
     return parts.join(" · ");
   }
 
+  function sourcesHref() {
+    return SLUG ? siteUrl() + "sources.html?game=" + encodeURIComponent(SLUG) : "";
+  }
+
+  // Rebuilt only when the text or the link changes, so the panel observer does not loop on itself.
+  function renderFooter(footer) {
+    const text = footerText();
+    const href = sourcesHref();
+    const key = text + "\n" + href;
+    if (footer.getAttribute("data-noyvj-key") === key) return;
+    footer.setAttribute("data-noyvj-key", key);
+    footer.textContent = text;
+    if (href) {
+      footer.appendChild(document.createTextNode(" \u00b7 "));
+      const a = document.createElement("a");
+      a.className = "noyvj-info-footer-link";
+      a.href = href;
+      a.textContent = "Sources";
+      footer.appendChild(a);
+    }
+  }
+
   function injectStyle() {
     if (document.getElementById("noyvj-info-footer-style")) return;
     const style = document.createElement("style");
     style.id = "noyvj-info-footer-style";
     style.textContent = ".noyvj-info-footer { margin: 1rem 0 0; padding-top: 0.5rem; border-top: 1px solid currentColor; " +
       "font-size: 0.72rem; line-height: 1.4; opacity: 0.7; word-break: break-word; } " +
+      ".noyvj-info-footer-link { color: inherit; text-decoration: underline; } " +
       "@media (prefers-contrast: more) { .noyvj-info-footer { opacity: 1; } }";
     document.head.appendChild(style);
   }
@@ -105,8 +131,7 @@
       footer.className = "noyvj-info-footer";
       footer.setAttribute("data-noyvj-footer", "");
     }
-    const text = footerText();
-    if (footer.textContent !== text) footer.textContent = text;
+    renderFooter(footer);
     if (panel.lastElementChild !== footer) panel.appendChild(footer);
   }
 
@@ -143,7 +168,7 @@
     }, 500);
   }
 
-  window.NoyvjInfoFooter = { text: footerText, refresh: scan };
+  window.NoyvjInfoFooter = { text: footerText, sourcesHref, refresh: scan };
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", start, { once: true });
   else start();
 })();

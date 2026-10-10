@@ -1,0 +1,21 @@
+{
+  "game": "hull-repair",
+  "updated": "2026-10-10",
+  "research": [],
+  "inspiration": [
+    {
+      "title": "Flow Free",
+      "kind": "game",
+      "by": "Big Duck Games",
+      "note": "The core idea of joining matching ports with lines that must cover the whole board; Hull Repair adds bridges, valves and mixers and ties each board to a room on a station map."
+    }
+  ],
+  "other": [
+    {
+      "title": "Pyodide",
+      "by": "The Pyodide project",
+      "url": "https://pyodide.org/",
+      "note": "Runs the game's Python rules and board solver in the browser, so there is no server and no build step."
+    }
+  ]
+}

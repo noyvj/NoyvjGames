@@ -25,6 +25,7 @@
 <link rel="icon" href="icons/icon-192.png">
 <link rel="stylesheet" href="shared/space-bg.css">
 <link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="sources.css">
 <script src="hub-prefs.js"></script>
 <script src="shared/theme.js"></script>
 <script src="shared/lite-mode.js"></script>
@@ -38,37 +39,26 @@
   <header id="hub-header">
     <nav class="hub-nav">
       <a href="index.html">&larr; Back to NoyvjGames</a>
+      <a href="credits.html">Credits &amp; Thanks</a>
       <a href="whats-new.html">What's New</a>
       <a href="achievements.html">Achievements</a>
       <a href="roadmap.html">Roadmap</a>
       <a href="index.html#site-feedback-section">Feedback / Report a Bug</a>
       <button type="button" class="hub-nav-button theme-toggle">Theme</button>
     </nav>
-    <h1>Sources &amp; Credits</h1>
-    <p id="hub-tagline">The real-world research behind every game that draws on one — gathered in one place instead of scattered across nine "The Real Story" panels.</p>
+    <h1 id="sources-title">Sources &amp; Credits</h1>
+    <p id="hub-tagline">What every game used: research with the date it was read, the games and media that inspired it, and the tools behind it.</p>
   </header>
 
-  <main id="sources-main" tabindex="-1" class="whats-new-main sources-main">
-    <p class="sources-intro">
-      Nine of the twelve NoyvjGames titles are built around a real climate or civic issue, and each
-      one cites the actual research its mechanics are grounded in — the eight climate-quartet games
-      via an in-game "The Real Story" panel, and Continuum via a per-era real-world info panel. This
-      page is that same content, pulled together across every game so it can be read (or checked) in
-      one place. SOL, Trade Empire and Le Champ de Mots aren't listed below — they're fictional
-      sandboxes / a language-study tool, not built around a specific real-world source base.
-    </p>
-    <p class="sources-caveat">
-      This is a plain hand-written page, not a live-parsed one like <a href="whats-new.html">What's New</a>
-      or <a href="roadmap.html">Roadmap</a> — those two pull from a dev log and a CLAUDE.md table, both
-      plain text a browser can fetch and parse directly. A game's actual source list lives inside its
-      Python <code>game.py</code> (or, for Continuum, <code>info_content.py</code>), and reliably
-      parsing a Python dict literal out of source text in client-side JavaScript would be far more
-      fragile than the payoff is worth for a list that changes only when a game's research base
-      changes — rare, and always a deliberate edit. So this page is copied from that same canonical
-      Python data by hand, kept in sync manually going forward, same as this hub's other few fully
-      static pages (<a href="terms.html">Terms &amp; Privacy</a>). Every link below was live in each
-      game's own source list at the time it was added there.
-    </p>
+  <main id="sources-main" tabindex="-1" class="hub-page-main sources-main">
+    <div id="sources-root" aria-live="polite">
+      <p class="hub-note">Loading the sources&hellip;</p>
+    </div>
+    <noscript><p class="hub-note">This page lists each game's sources from a small data file, which needs JavaScript. The older hand-written list of the climate and city games' research is below.</p></noscript>
+
+    <details id="src-legacy" class="src-legacy">
+      <summary>Earlier hand-written research list (climate quartet, Herd, Thaw, Loop, Drift and Continuum)</summary>
+      <p class="hub-note">Kept while each game's own sources file is being filled in. Once a game's file lists the same research, it appears above and this copy can go.</p>
 
     <section class="sources-game-card">
       <h2><a href="games/canopy/index.html">Canopy</a></h2>
@@ -221,7 +211,19 @@
     </section>
 
     <p class="sources-updated">Gathered 2026-09-21 from each game's own <code>game.py</code> <code>INFO_PAGE</code> dict (the climate quartet) and Continuum's <code>info_content.py</code> — the same data each game's own in-game panel renders. If a game's source list changes, this page needs a matching manual update.</p>
+    </details>
   </main>
+
+  <footer class="hub-footer">
+    <span class="hub-footer-name">NoyvjGames</span>
+    <a href="index.html">Games</a>
+    <a href="credits.html">Credits &amp; Thanks</a>
+    <a href="help.html">Help &amp; FAQ</a>
+    <a href="terms.html">Terms &amp; Privacy</a>
+  </footer>
+
+  <script src="hub-games.js"></script>
   <script src="hub-shortcuts.js"></script>
+  <script src="sources.js"></script>
 </body>
 </html>

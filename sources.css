@@ -1,0 +1,57 @@
+/* sources.html (SR-1/SR-2): the shared Sources page. Builds on style.css's .hub-page-main / .hub-card /
+   .faq-search; only the pieces this page adds live here. The old hand-written list at the bottom keeps
+   its .sources-* styles in style.css. */
+
+.src-back { font-size: 0.85rem; margin: 0 0 0.9rem; }
+.src-summary { margin: 0 0 0.8rem; }
+
+.src-tools { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: flex-start; margin: 0 0 0.4rem; }
+.src-tools .src-filter { flex: 1 1 14rem; margin: 0; min-width: 0; }
+.src-toggle {
+  background: transparent; border: 1px solid rgba(140, 160, 255, 0.35); border-radius: 10px;
+  color: inherit; font: inherit; font-size: 0.82rem; padding: 0.55rem 0.9rem; min-height: 44px; cursor: pointer;
+}
+.src-toggle:hover, .src-toggle[aria-pressed="true"] { background: rgba(140, 160, 255, 0.16); border-color: rgba(140, 160, 255, 0.6); }
+.src-status { margin: 0.2rem 0 0.9rem; }
+
+.src-game[hidden], .src-group[hidden], .src-item[hidden] { display: none; }
+.src-game-h { margin: 0 0 0.25rem; }
+.src-game-h a { color: inherit; text-decoration: none; }
+.src-game-h a:hover, .src-game-h a:focus-visible { text-decoration: underline; }
+.src-counts { display: flex; flex-wrap: wrap; gap: 0.35rem; margin: 0.1rem 0 0.5rem; }
+.src-count {
+  font-size: 0.74rem; padding: 0.1rem 0.6rem; border-radius: 999px; opacity: 0.85;
+  border: 1px solid rgba(140, 160, 255, 0.28); background: rgba(140, 160, 255, 0.08);
+}
+.src-details > summary { cursor: pointer; font-size: 0.85rem; padding: 0.3rem 0; min-height: 24px; }
+.src-details[open] > summary { margin-bottom: 0.4rem; }
+
+.src-group { margin: 1.1rem 0 0; }
+.src-group:first-child { margin-top: 0; }
+.src-group-h { margin: 0 0 0.1rem; font-size: 1rem; }
+.src-details .src-group-h { font-size: 0.92rem; }
+.src-group-blurb { margin: 0 0 0.4rem; }
+.src-list { list-style: none; margin: 0; padding: 0; }
+.src-item { padding: 0.6rem 0; border-top: 1px solid rgba(140, 160, 255, 0.14); overflow-wrap: anywhere; }
+.src-list > .src-item:first-child { border-top: 0; }
+.src-item-title { font-weight: 600; font-size: 0.92rem; line-height: 1.4; }
+.src-domain { font-weight: 400; font-size: 0.78rem; opacity: 0.65; }
+.src-item-meta { font-size: 0.78rem; opacity: 0.7; margin: 0.1rem 0 0; }
+.src-item-note { margin: 0.25rem 0 0; }
+.src-empty { font-style: italic; opacity: 0.75; margin: 0.3rem 0 0; }
+
+.src-message h2 { margin-top: 0; }
+
+.src-legacy { margin: 1.6rem 0 0; }
+.src-legacy > summary { cursor: pointer; font-weight: 600; font-size: 0.9rem; padding: 0.4rem 0; }
+.src-legacy[hidden] { display: none; }
+
+html[data-theme="light"] .src-toggle { border-color: rgba(70, 95, 170, 0.45); }
+html[data-theme="light"] .src-toggle:hover, html[data-theme="light"] .src-toggle[aria-pressed="true"] { background: rgba(70, 95, 170, 0.14); border-color: rgba(70, 95, 170, 0.7); }
+html[data-theme="light"] .src-count { border-color: rgba(70, 95, 170, 0.35); background: rgba(70, 95, 170, 0.08); }
+html[data-theme="light"] .src-item { border-top-color: rgba(70, 95, 170, 0.2); }
+
+@media (max-width: 480px) {
+  .src-tools .src-filter { flex-basis: 100%; }
+  .src-toggle { width: 100%; }
+}

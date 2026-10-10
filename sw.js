@@ -2,7 +2,7 @@
 // the precache list; ordinary content deploys don't need it, because
 // same-origin requests are network-first (see the fetch handler below) and
 // so always pick up fresh files whenever the player is online.
-const SW_VERSION = 52;
+const SW_VERSION = 53;
 const CACHE_NAME = "site-cache-v" + SW_VERSION;
 // How long a same-origin network request may take before we give up and
 // serve the cached copy instead (a slow/flaky connection shouldn't hang).
@@ -27,6 +27,9 @@ const PRECACHE_URLS = [
   "./help.js",
   "./help-data.json",
   "./credits.html",
+  "./sources.html",
+  "./sources.js",
+  "./sources.css",
   "./hub-status.js",
   "./hub-shortcuts.js",
   "./hub-prefs.js",
