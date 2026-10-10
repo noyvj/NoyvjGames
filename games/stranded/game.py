@@ -11,8 +11,9 @@ Actions (every request is {"action": ..., ...}; every reply is the whole view):
   restart             rewind to the very beginning (free, same as rewind 0)
   goto {scene}        go to a scene already seen, by a route of replies already tried
   peek                open the what-if peek on this scene (needs two different replies tried here)
+  loose               take me to the nearest path not walked yet (rewind along this run, or a route by paths already walked)
   hint                climb one rung of the hint ladder (nudge, hint, answer)
-  hint_do             take me to the loose end the answer rung names
+  hint_do             the same as loose, offered by the answer rung
   reset               erase everything and start over
 """
 
@@ -292,6 +293,25 @@ class Game:
             msg += " Ending: " + self.scene["title"] + "."
         return True, msg
 
+    def go_loose(self):
+        """Move to the nearest untried path. The player still has to choose the reply: this only puts them where it is."""
+        le = self._loose()
+        if le is None:
+            return False, "Every path has been walked. The map is complete."
+        scene = story.SCENES[le["scene"]]
+        where = "Day %d, %s" % (scene["day"], scene["title"])
+        if le["kind"] == "rewind":
+            self.path = self.path[:le["step"]]
+            self.tally["rewinds"] += 1
+        else:
+            self.path = le["path"]
+            self.tally["jumps"] += 1
+        self.rung = 0
+        self._sync()
+        if le["kind"] == "locked":
+            return True, "%s. Reply %d is shut for now: %s." % (where, le["choice"] + 1, le["why"].lower())
+        return True, "%s. Reply %d has not been tried." % (where, le["choice"] + 1)
+
     def rewind(self, step):
         if isinstance(step, bool) or not isinstance(step, int) or not 0 <= step < len(self.path):
             return False, "There is nothing to rewind to there."
@@ -358,20 +378,13 @@ def handle(request_json):
         else:
             g.rung += 1
             g.tally["hints"] += 1
+    elif action == "loose":
+        ok, message = g.go_loose()
     elif action == "hint_do":
-        le = g._loose() if g.rung >= 3 else None
-        if g.rung < 3 or le is None:
+        if g.rung < 3:
             ok, message = False, "Climb to the answer first."
         else:
-            if le["kind"] == "rewind":
-                g.path = g.path[:le["step"]]
-                g.tally["rewinds"] += 1
-            else:
-                g.path = le["path"]
-                g.tally["jumps"] += 1
-            g.rung = 0
-            g._sync()
-            message = "Here is the loose end."
+            ok, message = g.go_loose()
     else:
         return json.dumps({"error": "unknown action " + repr(action)})
     return json.dumps(g.view(message, ok))

@@ -201,3 +201,35 @@ def test_unknown_requests_get_an_error_not_a_crash():
     assert "error" in json.loads(game.handle("not json"))
     assert "error" in json.loads(game.handle("[]"))
     assert "error" in json.loads(game.handle('{"action": "dance"}'))
+
+
+def test_the_loose_end_button_walks_you_to_something_untried_and_counts():
+    fresh()
+    play("0")
+    v = call(action="loose")
+    assert v["ok"] and v["run"]["scene"] == "d1b" and "has not been tried" in v["message"] and v["tally"]["rewinds"] == 1
+    call(action="choose", i=0)
+    call(action="restart")
+    v = call(action="loose")                  # d1a's replies 0 is tried, 1 and 2 are not: it points back here
+    assert v["ok"] and v["run"]["scene"] == "d1a" and v["tally"]["rewinds"] == 3
+
+
+def test_the_map_lists_every_day_and_only_names_what_has_been_seen():
+    fresh()
+    v = play("00")
+    days = v["map"]
+    assert [d["day"] for d in days] == list(range(1, 13)) and sum(len(d["nodes"]) for d in days) == len(story.SCENES)
+    unseen = [n for d in days for n in d["nodes"] if not n["seen"]]
+    assert unseen and all(n["title"] == "" and n["choices"] == [] for n in unseen)
+    seen = [n for d in days for n in d["nodes"] if n["seen"]]
+    assert {n["id"] for n in seen} == {"d1a", "d1b", "d1d", "d2a"} or len(seen) >= 3
+    here = [n for d in days for n in d["nodes"] if n["current"]]
+    assert len(here) == 1
+    assert v["map_svg"].startswith("<svg") and v["map_svg"].count("<circle") == len(story.SCENES)
+    tried = [c for n in seen for c in n["choices"] if c["tried"]]
+    assert tried and all(c["text"] for c in tried)
+
+
+def test_the_endings_list_hides_titles_until_found():
+    v = fresh()
+    assert len(v["endings"]) == 9 and all(not e["seen"] and e["title"] == "Not found yet" for e in v["endings"])

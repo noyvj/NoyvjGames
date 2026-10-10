@@ -145,3 +145,33 @@ html[data-effects="off"] .sc-bit-lamp, html[data-reduced-motion="true"] .sc-bit-
   .chat { max-height: 20rem; }
 }
 .who-name, .who-line { display: block; }
+
+/* The branch map and the what-if peek. */
+.map-actions { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; margin: 0.4rem 0; }
+.map-overview { border: 1px solid var(--line); border-radius: 10px; background: var(--surface); padding: 0.3rem; overflow-x: auto; }
+.map-svg { display: block; width: 100%; min-width: 22rem; height: auto; }
+.map-day { fill: var(--muted); font-size: 9px; }
+.map-node { fill: none; stroke: var(--edge); stroke-width: 1.5; }
+.map-node.seen { fill: var(--cool); }
+.map-node.end { stroke-width: 2.5; }
+.map-node.here { stroke: var(--accent); stroke-width: 3; }
+.map-node.loose { stroke-dasharray: 2 2; stroke: var(--accent); }
+.map-node.here { stroke-dasharray: none; stroke-width: 4; }
+.endings-list, .map-body { list-style: none; margin: 0.3rem 0; padding: 0; display: grid; gap: 0.3rem; }
+.endings-list li { border: 1px solid var(--line); border-radius: 10px; padding: 0.25rem 0.6rem; background: var(--surface); display: flex; justify-content: space-between; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
+.endings-list li.unseen { border-style: dashed; color: var(--muted); }
+.map-day-block { border: 1px solid var(--line); border-radius: 10px; background: var(--surface); padding: 0.2rem 0.6rem; }
+.map-day-block summary { cursor: pointer; font-weight: 700; padding: 0.25rem 0; }
+.map-scene { border-top: 1px solid var(--line); padding: 0.35rem 0; }
+.map-scene:first-of-type { border-top: 0; }
+.map-scene.unseen { color: var(--muted); font-style: italic; }
+.map-scene-head { display: flex; flex-wrap: wrap; gap: 0.4rem; align-items: center; justify-content: space-between; }
+.map-scene-title { font-weight: 700; }
+.map-scene .here-tag { font-size: 0.72rem; font-weight: 700; border: 2px solid var(--accent); border-radius: 999px; padding: 0 0.4rem; }
+.map-choices { list-style: none; margin: 0.2rem 0 0; padding: 0; display: grid; gap: 0.15rem; font-size: 0.82rem; }
+.map-choices li { border-left: 3px solid var(--cool); padding-left: 0.5rem; }
+.map-choices li.untried { border-left-style: dashed; border-left-color: var(--accent); color: var(--muted); }
+.map-go { font-size: 0.8rem; padding: 0.1rem 0.6rem; }
+.peek-list { list-style: none; margin: 0.3rem 0; padding: 0.4rem 0.6rem; border: 2px dashed var(--accent); border-radius: 10px; background: var(--surface); display: grid; gap: 0.3rem; font-size: 0.88rem; }
+.peek-list li { display: block; }
+html[data-theme="light"] ul.endings-list, html[data-theme="light"] ul.map-body, html[data-theme="light"] ul.map-choices, html[data-theme="light"] ul.peek-list { list-style: none; padding-left: 0; margin-left: 0; }

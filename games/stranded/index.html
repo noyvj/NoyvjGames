@@ -36,9 +36,23 @@
     <h1>Stranded</h1>
   </div>
   <div class="game-toolbar">
+    <button id="map-toggle-button" type="button" aria-expanded="false" aria-controls="map-panel">Branch map</button>
     <button id="settings-toggle-button" type="button" aria-expanded="false" aria-controls="settings-panel">Settings</button>
   </div>
   <p class="tagline">A text line to a stubborn astronaut on a small grey moon. Twelve days, nine endings, every reply answered. Nothing is timed, and you can rewind to any choice for free.</p>
+  <section id="map-panel" class="panel" hidden aria-labelledby="map-heading">
+    <h2 id="map-heading">Branch map</h2>
+    <p class="note">Every day, every scene and every path. A path is walked once you have taken it. Open a day to go back to any scene you have seen, by replies you have already tried.</p>
+    <div class="map-actions">
+      <button id="loose-button" type="button" class="primary" data-testid="stranded-loose">Show me a loose end</button>
+      <span id="map-summary" class="note"></span>
+    </div>
+    <div id="map-overview" class="map-overview"></div>
+    <p class="note">Filled dot: seen. Hollow: not found yet. Thick ring: an ending. Heavy gold ring: where you are. Dashed gold ring: it still has paths you have not walked.</p>
+    <h3 class="sub">Endings <span id="endings-count" class="note"></span></h3>
+    <ul id="endings-list" class="endings-list"></ul>
+    <div id="map-body" class="map-body"></div>
+  </section>
   <section id="settings-panel" class="panel" hidden aria-labelledby="settings-heading">
     <h2 id="settings-heading">Settings</h2>
     <p class="note">Display choices stay on this device. They never change the story or a save.</p>
@@ -81,6 +95,11 @@
     <div class="who"><span id="who-portrait"></span><div><span class="who-name">Ines Varga</span><span id="who-line" class="who-line"></span></div></div>
     <div id="chat" class="chat" role="log" aria-live="off" aria-label="The conversation" tabindex="0"></div>
     <div id="choices" class="choices" role="group" aria-label="Your reply"></div>
+    <div class="under-choices" id="under-choices">
+      <button id="peek-button" type="button" data-testid="stranded-peek" aria-expanded="false" aria-controls="peek-list">What if?</button>
+      <span id="peek-note" class="note"></span>
+    </div>
+    <ul id="peek-list" class="peek-list" hidden></ul>
     <div id="ending-card" class="ending-card" hidden>
       <p class="note">Ending reached</p>
       <p id="ending-title" class="ending-title"></p>
@@ -125,6 +144,7 @@
 <script>
   window.KeyboardShortcuts.init({
     panels: [
+      { toggle: "map-toggle-button", panel: "map-panel" },
       { toggle: "settings-toggle-button", panel: "settings-panel" },
     ],
     extra: [

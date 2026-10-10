@@ -114,7 +114,7 @@
       var next = el("button", "next-msg primary", "Next message");
       next.type = "button";
       next.dataset.testid = "stranded-next";
-      next.addEventListener("click", function () { shown = Math.min(items.length, shown + 1); renderChat(); renderChoices(); focusNext(); });
+      next.addEventListener("click", function () { shown = Math.min(items.length, shown + 1); renderChat(); renderChoices(); renderPeek(); focusNext(); });
       chat.appendChild(next);
     }
     chat.scrollTop = chat.scrollHeight;
@@ -158,12 +158,100 @@
     setText($("who-line"), "Day " + view.run.day + " · " + view.run.title);
   }
 
+  // ---- the what-if peek ----------------------------------------------------------------------------
+  function renderPeek() {
+    var p = view.peek;
+    var btn = $("peek-button");
+    var list = $("peek-list");
+    var visible = !view.ending && view.choices.length > 0 && shown >= view.transcript.length;
+    $("under-choices").hidden = !visible;
+    list.hidden = !(visible && p.showing);
+    btn.setAttribute("aria-expanded", String(visible && p.showing));
+    btn.classList.toggle("locked", !p.open);
+    btn.setAttribute("aria-disabled", p.open ? "false" : "true");
+    setText($("peek-note"), p.open ? "" : "Opens once you have tried " + plural(p.need, "more different reply", "more different replies") + " in this scene.");
+    list.textContent = "";
+    if (!p.showing) return;
+    p.rows.forEach(function (r) {
+      var c = view.choices[r.i];
+      var li = el("li");
+      li.appendChild(el("strong", null, (r.i + 1) + ". "));
+      li.appendChild(document.createTextNode(c.text + " \u2192 " + (r.locked ? "shut for now: " + r.locked : r.to) + (r.tried ? " (tried)" : " (not tried)")));
+      list.appendChild(li);
+    });
+  }
+
+  // ---- the branch map ------------------------------------------------------------------------------
+  function renderMap() {
+    var p = view.progress;
+    setText($("map-summary"), plural(p.scenes[0], "scene", "scenes") + " seen of " + p.scenes[1] + ", " + p.tried[0] + " of " + p.tried[1] + " paths walked.");
+    $("map-overview").innerHTML = view.map_svg;
+    setText($("endings-count"), "(" + p.endings[0] + "/" + p.endings[1] + ")");
+    var ends = $("endings-list");
+    ends.textContent = "";
+    view.endings.forEach(function (e) {
+      var li = el("li", e.seen ? "seen" : "unseen");
+      li.appendChild(el("span", null, e.seen ? e.title : "Not found yet"));
+      if (e.seen) li.appendChild(goButton(e.scene, e.title));
+      ends.appendChild(li);
+    });
+    var body = $("map-body");
+    var open = {};
+    Array.prototype.forEach.call(body.querySelectorAll("details"), function (d) { open[d.dataset.day] = d.open; });
+    body.textContent = "";
+    view.map.forEach(function (d) {
+      var here = d.nodes.some(function (n) { return n.current; });
+      var loose = d.nodes.some(function (n) { return n.loose; });
+      var det = el("details", "map-day-block");
+      det.dataset.day = String(d.day);
+      det.open = open[d.day] !== undefined ? open[d.day] : here;
+      var found = d.nodes.length - d.unseen;
+      det.appendChild(el("summary", null, "Day " + d.day + ": " + d.title + " (" + found + "/" + d.nodes.length + " scenes" + (loose ? ", loose ends" : "") + ")"));
+      d.nodes.forEach(function (n) {
+        var row = el("div", "map-scene" + (n.seen ? "" : " unseen"));
+        var head = el("div", "map-scene-head");
+        head.appendChild(el("span", "map-scene-title", n.seen ? n.title + (n.end ? " (ending)" : "") : "Not found yet"));
+        if (n.current) head.appendChild(el("span", "here-tag", "You are here"));
+        else if (n.seen) head.appendChild(goButton(n.id, n.title));
+        row.appendChild(head);
+        if (n.seen && n.choices.length) {
+          var ul = el("ul", "map-choices");
+          n.choices.forEach(function (c) {
+            var li = el("li", c.tried ? "tried" : "untried");
+            if (c.tried) li.textContent = "Reply " + (c.i + 1) + ", walked: " + c.text + (c.to.length ? " \u2192 " + c.to.join(" / ") : "") + (c.paths_left ? " (another path from this reply is not walked yet)" : "");
+            else li.textContent = "Reply " + (c.i + 1) + ": not tried yet";
+            ul.appendChild(li);
+          });
+          row.appendChild(ul);
+        }
+        det.appendChild(row);
+      });
+      body.appendChild(det);
+    });
+  }
+  function goButton(sceneId, title) {
+    var b = el("button", "map-go", "Go there");
+    b.type = "button";
+    b.dataset.testid = "stranded-go-" + sceneId;
+    b.setAttribute("aria-label", "Go to " + title);
+    b.addEventListener("click", function () {
+      shown = 1e9;
+      send({ action: "goto", scene: sceneId });
+      $("map-panel").hidden = true;
+      $("map-toggle-button").setAttribute("aria-expanded", "false");
+      $("comms-panel").scrollIntoView && $("comms-panel").scrollIntoView({ block: "start" });
+    });
+    return b;
+  }
+
   function render() {
     renderStats();
     renderHead();
     renderChat();
     renderChoices();
     renderEnding();
+    renderPeek();
+    renderMap();
   }
 
   // ---- talking to the engine -----------------------------------------------------------------------
@@ -220,6 +308,17 @@
   function wire() {
     $("toast").addEventListener("click", function () { showToast(""); });
     wirePanelToggle("settings-toggle-button", "settings-panel");
+    wirePanelToggle("map-toggle-button", "map-panel");
+    $("peek-button").addEventListener("click", function () { send({ action: "peek" }); });
+    $("loose-button").addEventListener("click", function () {
+      shown = 1e9;
+      var r = send({ action: "loose" });
+      if (r && r.ok) {
+        $("map-panel").hidden = true;
+        $("map-toggle-button").setAttribute("aria-expanded", "false");
+        $("comms-panel").scrollIntoView && $("comms-panel").scrollIntoView({ block: "start" });
+      }
+    });
     $("restart-button").addEventListener("click", function () { shown = 1e9; send({ action: "restart" }); });
     $("reset-button").addEventListener("click", function () {
       askThen("stranded-reset", "Start the whole story over? Your map, archive, endings and counts will be erased.", "Erase it", function () { shown = 1e9; send({ action: "reset" }); });

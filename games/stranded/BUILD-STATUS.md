@@ -7,8 +7,10 @@ Updated after every milestone. Read `planning/stranded-plan.md`, then this file.
 
 - M2 Comms UI: index.html (full shared includes in the standard order), style.css (dark and light themes), app.js (chat, stats, choices, ending card, rewind buttons, one-message-per-tap setting, keyboard 1 to 4), settings.js, icons/favicon-stranded.svg, changelog.json. 68 tests incl. shell and accessibility; checked live at 1440x900 and 360x740 (choose, rewind, tap mode, no horizontal scroll); `shared/tests -k stranded` passes.
 
+- M3 Branch map and what-if: Branch map panel (overview svg, endings list, per-day list with Go there, Show me a loose end), What if button and rows, engine `loose` action. 71 tests; checked live.
+
 ## Next
-- M3 Branch map and what-if: Map toolbar button + panel (per-day list, overview svg, Go there, loose-end button), What if button + rows in the comms panel.
+- M4 Archive, goals, hint ladder: Archive panel (logs, items, recordings), three goals strip, hint ladder box (nudge, hint, answer + button), tally details; achievements panel is M6.
 
 ## Open problems / notes
 - Local Python is 3.9: no match statements, no `X | Y` types.
