@@ -1637,7 +1637,75 @@ ACHIEVEMENT_PROGRESS = {
     "degree_saved_20": lambda: (max(0, min(20, round(region.temperature_saved()))), 20),
     "well_funded": lambda: (max(0, min(WELL_FUNDED_TARGET, round(region.funds))), WELL_FUNDED_TARGET),
     "long_haul": lambda: (min(region.round_number, LONG_HAUL_ROUND_TARGET), LONG_HAUL_ROUND_TARGET),
+    # G-27: three more with a real numeric scale.
+    "slow_burn": lambda: (
+        0 if region.melt_started_round is None
+        else max(0, min(SLOW_BURN_ROUNDS_AFTER_MELT, region.round_number - region.melt_started_round)),
+        SLOW_BURN_ROUNDS_AFTER_MELT,
+    ),
+    "beat_both_regions": lambda: (min(region.round_number, BEAT_BOTH_REGIONS_MIN_ROUND), BEAT_BOTH_REGIONS_MIN_ROUND),
+    "comparison_engaged": lambda: (
+        (1 if sum(region_b.capacity.values()) >= 1 else 0) + (1 if sum(region_c.capacity.values()) >= 1 else 0),
+        2,
+    ),
 }
+
+# G-27 / G-31: what the progress number counts, so the remaining-amount line and the hover detail can
+# say "12 more per cent of dampening" instead of a bare number. (singular unit, plural unit)
+ACHIEVEMENT_UNITS = {
+    "triple_threat": ("category left to invest in", "categories left to invest in"),
+    "quarter_dampening": ("more per cent of dampening", "more per cent of dampening"),
+    "half_dampening": ("more per cent of dampening", "more per cent of dampening"),
+    "max_dampening": ("more per cent of dampening", "more per cent of dampening"),
+    "degree_saved_5": ("more degree saved", "more degrees saved"),
+    "degree_saved_10": ("more degree saved", "more degrees saved"),
+    "degree_saved_20": ("more degree saved", "more degrees saved"),
+    "well_funded": ("more fund", "more funds"),
+    "long_haul": ("more round", "more rounds"),
+    "slow_burn": ("more round of holding the loop down", "more rounds of holding the loop down"),
+    "beat_both_regions": ("more round before the comparison counts", "more rounds before the comparison counts"),
+    "comparison_engaged": ("region left to invest in", "regions left to invest in"),
+}
+
+# G-31: an arctic glyph per achievement, shown in place of the old trophy on earned cards and as a
+# dimmed outline on locked ones. Plain emoji, no images.
+ACHIEVEMENT_GLYPHS = {
+    "first_output": "\U0001F3ED",
+    "first_intervention": "\U0001F332",
+    "triple_threat": "\u2744\uFE0F",
+    "quarter_dampening": "\U0001F6E1\uFE0F",
+    "half_dampening": "\U0001F6E1\uFE0F",
+    "max_dampening": "\U0001F3F0",
+    "tipping_point_witnessed": "\U0001F4A7",
+    "early_investor": "\U0001F9CA",
+    "degree_saved_5": "\U0001F321\uFE0F",
+    "degree_saved_10": "\u2744\uFE0F",
+    "degree_saved_20": "\U0001F3D4\uFE0F",
+    "slow_burn": "\U0001F525",
+    "well_funded": "\U0001F4B0",
+    "long_haul": "\u23F3",
+    "beat_both_regions": "\U0001F947",
+    "comparison_engaged": "\u2696\uFE0F",
+    "preset_strategist": "\U0001F39B\uFE0F",
+    "worst_case_witnessed": "\U0001F480",
+}
+DEFAULT_ACHIEVEMENT_GLYPH = "\u2744\uFE0F"
+
+
+def achievement_glyph(achievement_id):
+    return ACHIEVEMENT_GLYPHS.get(achievement_id, DEFAULT_ACHIEVEMENT_GLYPH)
+
+
+def achievement_remaining_text(achievement_id, progress):
+    """G-27: "12 more per cent of dampening to go", or "" when there is no scale or it is met."""
+    if progress is None:
+        return ""
+    current, target = progress
+    left = max(0, target - current)
+    if left <= 0:
+        return ""
+    singular, plural = ACHIEVEMENT_UNITS.get(achievement_id, ("more", "more"))
+    return f"{left} {singular if left == 1 else plural} to go"
 
 
 def achievement_ids_earned():
@@ -1668,6 +1736,7 @@ def achievements_summary():
 
 
 achievements_open = False
+_flourished_achievements = set()
 
 
 def on_toggle_achievements(event=None):
@@ -1693,11 +1762,21 @@ def update_achievements_display():
     for entry in achievements_summary():
         card = document.createElement("div")
         card.className = "achievement-card achievement-card--earned" if entry["earned"] else "achievement-card"
+        # G-31: the unlock flourish plays once per card per page load, not on every re-render.
+        if entry["earned"] and entry["id"] not in _flourished_achievements:
+            _flourished_achievements.add(entry["id"])
+            card.className += " achievement-card--new"
         card.dataset.achievementId = entry["id"]
+
+        glyph = document.createElement("span")
+        glyph.className = "achievement-card-glyph"
+        glyph.innerText = achievement_glyph(entry["id"])
+        glyph.setAttribute("aria-hidden", "true")
+        card.appendChild(glyph)
 
         label = document.createElement("p")
         label.className = "achievement-card-label"
-        label.innerText = f"🏆 {entry['label']}" if entry["earned"] else entry["label"]
+        label.innerText = f"Earned: {entry['label']}" if entry["earned"] else entry["label"]
         card.appendChild(label)
 
         description = document.createElement("p")
@@ -1709,8 +1788,19 @@ def update_achievements_display():
             current, target = entry["progress"]
             progress = document.createElement("p")
             progress.className = "achievement-card-progress"
-            progress.innerText = f"{current} of {target}"
+            remaining = achievement_remaining_text(entry["id"], entry["progress"])
+            progress.innerText = f"{current} of {target}" + (f" \u2014 {remaining}" if remaining else "")
             card.appendChild(progress)
+            # G-27: a bar under the numbers (the numbers carry the meaning; the bar is a shape cue),
+            # and the same detail on hover for the whole card.
+            bar = document.createElement("div")
+            bar.className = "achievement-card-bar"
+            fill = document.createElement("div")
+            fill.className = "achievement-card-bar-fill"
+            fill.style.width = f"{min(100, max(0, current / target * 100)):.0f}%" if target else "0%"
+            bar.appendChild(fill)
+            card.appendChild(bar)
+            card.title = f"{entry['label']}: {current} of {target}" + (f", {remaining}" if remaining else "")
 
         panel.appendChild(card)
 

@@ -1268,3 +1268,49 @@ html[data-high-contrast="true"][data-theme="light"] .region-card,
 html[data-high-contrast="true"][data-theme="light"] .context-blurb { background: #fff; color: #000; border-color: #000; }
 html[data-high-contrast="true"][data-theme="light"] #game * { color: #000; }
 html[data-high-contrast="true"][data-theme="light"] button { background: #fff; color: #000; border-color: #000; }
+
+/* ============================================================
+   G-27 / G-31: achievement cards. Frost glyph, icy border, a progress bar on locked cards with a
+   numeric goal, and a brief unlock flourish (off under reduced motion and lite mode).
+   ============================================================ */
+.achievements-panel { display: grid; gap: 0.6rem; grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr)); }
+.achievements-panel[hidden] { display: none; }
+.achievement-card {
+  position: relative;
+  padding: 0.7rem 0.9rem 0.7rem 2.7rem;
+  border: 1px solid rgba(140, 180, 230, 0.22);
+  border-left: 4px solid rgba(140, 180, 230, 0.35);
+  border-radius: 12px;
+  background: linear-gradient(160deg, rgba(20, 30, 52, 0.55), rgba(10, 14, 28, 0.45));
+}
+.achievement-card--earned {
+  border-color: rgba(170, 225, 255, 0.55);
+  border-left-color: #8fd8ff;
+  background: linear-gradient(160deg, rgba(60, 110, 150, 0.4), rgba(20, 40, 70, 0.5));
+  box-shadow: 0 0 12px rgba(143, 216, 255, 0.18);
+}
+.achievement-card--new { animation: achievement-frost-in 0.9s ease-out 1; }
+.achievement-card-glyph {
+  position: absolute;
+  left: 0.65rem;
+  top: 0.6rem;
+  font-size: 1.35rem;
+  line-height: 1;
+  filter: grayscale(1) opacity(0.5);
+}
+.achievement-card--earned .achievement-card-glyph { filter: none; }
+.achievement-card-label { margin: 0 0 0.2rem; font-weight: 600; font-size: 0.9rem; }
+.achievement-card-description { margin: 0; font-size: 0.8rem; opacity: 0.8; }
+.achievement-card-progress { margin: 0.35rem 0 0.2rem; font-size: 0.75rem; opacity: 0.85; }
+.achievement-card-bar { height: 6px; border-radius: 3px; background: rgba(140, 180, 230, 0.18); overflow: hidden; }
+.achievement-card-bar-fill { height: 100%; background: linear-gradient(90deg, #6fb8e8, #bfe8ff); border-radius: 3px; }
+.achievements-hub-link { grid-column: 1 / -1; font-size: 0.8rem; }
+@keyframes achievement-frost-in {
+  0% { box-shadow: 0 0 0 rgba(143, 216, 255, 0); transform: scale(0.98); }
+  40% { box-shadow: 0 0 22px rgba(190, 235, 255, 0.55); transform: scale(1.01); }
+  100% { box-shadow: 0 0 12px rgba(143, 216, 255, 0.18); transform: scale(1); }
+}
+@media (prefers-reduced-motion: reduce) { .achievement-card--new { animation: none; } }
+html[data-reduced-motion="true"] .achievement-card--new { animation: none; }
+html[data-lite="true"] .achievement-card--new { animation: none; }
+html[data-lite="true"] .achievement-card--earned { box-shadow: none; }

@@ -1,5 +1,9 @@
 [
   {
+    "date": "2026-10-11",
+    "entry": "Achievement cards got a makeover: each has an arctic glyph and an icy border, earned ones glow with a short frost flourish (off with reduced motion or lite mode), and locked ones with a numeric goal now show a progress bar, how much is left (for example '12 more rounds to go') and the same detail on hover. Slowing the Runaway, Best in Class and Side by Side gained progress counters too."
+  },
+  {
     "date": "2026-10-08",
     "entry": "New: Hold the Line, a run mode you switch on in the Game options before round 1. Keep at least two of the three regions out of the critical tier for as many rounds as you can while escalation events (a heat dome, a wildfire season and more, in a fixed order) raise the background warming and lower how much protection can hold. A finished run earns a title from Ice Cube up to Cryosphere Guardian, shows which of three fixed AI stewards (Cautious Kai, Rash Rasmus, Balanced Bea) you beat, and is saved as a Field Notes entry on this device. Field Notes charts your runs and overlays any two on one graph, or a run against what would have happened with no action. Settings gained a temperature unit (Celsius, Fahrenheit or Kelvin), a blindfold mode that hides the graphs, different dash patterns and end markers for each region's line, and a high-contrast readable-font theme."
   },
