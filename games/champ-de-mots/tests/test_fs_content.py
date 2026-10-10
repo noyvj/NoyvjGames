@@ -21,6 +21,11 @@ FS_WEEKS = {
         "faire du yoga", "faire des promenades", "jouer aux cartes", "jouer du violon", "le karaté", "un rendez-vous",
         "chez le dentiste", "Qu'est-ce que tu fais jeudi?", "partir en vacances", "sortir les poubelles",
     ]},
+    4: {"row": 15, "topics": 7, "plots": 41, "must_have": [
+        "quand", "pourquoi", "qu'est-ce que", "à quelle heure", "C'est le premier avril.", "le premier mai",
+        "Tu vas où?", "Que fais-tu dans la vie?", "Combien d'heures par semaine travailles-tu?", "à mon avis", "bon marché",
+        "Le train est plus rapide que le bus.",
+    ]},
 }
 
 
@@ -252,6 +257,54 @@ def test_week_3_sortir_family_keeps_the_infinitive_endings(game_env):
 def test_week_2_never_example_was_reworded_not_copied(game_env):
     first = _topic(game_env.module, "fren152-w3-grammar-fs08")["items"][0]
     assert first["fr"] == "Je ne fais jamais de ski." and first["en"] == "I never go skiing."
+
+
+# --- week 4 ------------------------------------------------------------------
+
+
+def test_week_4_question_words_cover_the_basic_set(game_env):
+    glosses = {i["fr"]: i["en"] for i in _topic(game_env.module, "fren152-w5-vocab-fs01")["items"]}
+    assert glosses["où"] == "where" and glosses["pourquoi"] == "why" and glosses["comment"] == "how"
+    assert glosses["combien"] == "how much"
+    assert _live(game_env.module, "fren152-w5-vocab-fs01", 5, "en", "how many")
+
+
+def test_week_4_dates_use_the_first_as_an_ordinal_and_other_days_as_numbers(game_env):
+    module = game_env.module
+    items = {i["fr"]: i["en"] for i in _topic(module, "fren152-w5-grammar-fs03")["items"]}
+    assert items["le premier mai"] == "the first of May"
+    others = [fr for fr in items if "premier" not in fr]
+    assert len(others) == 3 and all(fr.startswith("le ") for fr in others)
+    assert "premier" in _topic(module, "fren152-w5-grammar-fs03")["rule"]
+    assert _live(module, "fren152-w5-phrase-fs02", 0, "en", "It's April first")
+    assert _live(module, "fren152-w5-phrase-fs02", 3, "en", "My birthday is May 12th")
+
+
+def test_week_4_question_patterns_include_formal_and_informal(game_env):
+    module = game_env.module
+    topic = _topic(module, "fren152-w5-grammar-fs04")
+    assert topic["topic_type"] == "grammar" and len(topic["items"]) == 6
+    frs = [i["fr"] for i in topic["items"]]
+    assert "Tu vas où?" in frs and "Que fais-tu dans la vie?" in frs
+    assert sum(1 for f in frs if f.endswith("?")) == 6
+    assert "(formal)" in topic["items"][4]["en"]
+    assert _live(module, topic["id"], 4, "en", "What do you do for a living")
+
+
+def test_week_4_how_often_sentences_carry_their_numbers(game_env):
+    items = _topic(game_env.module, "fren152-w5-phrase-fs05")["items"]
+    assert [("combien" in i["fr"].lower()) for i in items][:2] == [True, True]
+    assert _live(game_env.module, "fren152-w5-phrase-fs05", 2, "en", "I work 14 hours a week")
+
+
+def test_week_4_comparison_words_and_sentences(game_env):
+    module = game_env.module
+    words = {i["fr"]: i["en"] for i in _topic(module, "fren152-w5-vocab-fs06")["items"]}
+    assert words["bon marché"] == "cheap" and words["à mon avis"] == "in my opinion"
+    sentences = _topic(module, "fren152-w5-phrase-fs07")["items"]
+    markers = (" plus ", " moins ", " aussi ", "meilleure", " pire ")
+    assert all(any(m in i["fr"] for m in markers) for i in sentences) and len(sentences) == 8
+    assert "meilleur" in _topic(module, "fren152-w5-phrase-fs07")["rule"]
 
 
 def test_only_the_real_person_by_person_tables_count_as_conjugations(game_env):

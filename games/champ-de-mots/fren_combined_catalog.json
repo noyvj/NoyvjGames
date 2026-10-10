@@ -8056,6 +8056,476 @@
             }
           ],
           "rule": "When inverting a verb and il/elle/on, insert '-t-' between them UNLESS the verb already ends in -d or -t (both pronounced as a 't' sound) — this avoids an awkward vowel clash between two vowel sounds."
+        },
+        {
+          "id": "fren152-w5-vocab-fs01",
+          "topic_type": "vocab",
+          "title": "Question words",
+          "items": [
+            {
+              "fr": "quand",
+              "en": "when"
+            },
+            {
+              "fr": "comment",
+              "en": "how"
+            },
+            {
+              "fr": "pourquoi",
+              "en": "why"
+            },
+            {
+              "fr": "où",
+              "en": "where"
+            },
+            {
+              "fr": "qui",
+              "en": "who",
+              "accepted_en": [
+                "who",
+                "whom"
+              ]
+            },
+            {
+              "fr": "combien",
+              "en": "how much",
+              "accepted_en": [
+                "how much",
+                "how many"
+              ]
+            },
+            {
+              "fr": "quel(le)",
+              "en": "which"
+            },
+            {
+              "fr": "qu'est-ce que",
+              "en": "what"
+            },
+            {
+              "fr": "à quelle heure",
+              "en": "at what time",
+              "accepted_en": [
+                "at what time",
+                "at which time",
+                "what time"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "fren152-w5-phrase-fs02",
+          "topic_type": "phrase",
+          "title": "Dates and birthdays: more",
+          "items": [
+            {
+              "fr": "C'est le premier avril.",
+              "en": "It is the first of April.",
+              "accepted_en": [
+                "It is the first of April.",
+                "It's the first of April",
+                "It is April 1st",
+                "It's April first",
+                "It is the 1st of April",
+                "It's the 1st of April",
+                "It is April the first"
+              ]
+            },
+            {
+              "fr": "C'est samedi le vingt-cinq juillet.",
+              "en": "It is Saturday the twenty-fifth of July.",
+              "accepted_en": [
+                "It is Saturday the twenty-fifth of July.",
+                "It's Saturday the twenty-fifth of July",
+                "It is Saturday the 25th of July",
+                "It's Saturday the 25th of July",
+                "It is Saturday 25 July",
+                "It's Saturday 25 July",
+                "It is Saturday July 25th"
+              ]
+            },
+            {
+              "fr": "Quelle est la date aujourd'hui?",
+              "en": "What is the date today?",
+              "accepted_en": [
+                "What is the date today?",
+                "What's the date today",
+                "What is today's date",
+                "What's today's date",
+                "What date is it today"
+              ]
+            },
+            {
+              "fr": "Mon anniversaire est le douze mai.",
+              "en": "My birthday is on the twelfth of May.",
+              "accepted_en": [
+                "My birthday is on the twelfth of May.",
+                "My birthday is the twelfth of May",
+                "My birthday is on 12 May",
+                "My birthday is 12 May",
+                "My birthday is the 12th of May",
+                "My birthday is on the 12th of May",
+                "My birthday is May 12th"
+              ]
+            },
+            {
+              "fr": "le trente et un décembre",
+              "en": "the thirty-first of December",
+              "accepted_en": [
+                "the thirty-first of December",
+                "the 31st of December",
+                "December 31st"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "fren152-w5-grammar-fs03",
+          "topic_type": "grammar",
+          "title": "The first of the month",
+          "items": [
+            {
+              "fr": "le premier mai",
+              "en": "the first of May",
+              "accepted_en": [
+                "the first of May",
+                "May 1st",
+                "May first",
+                "the 1st of May"
+              ]
+            },
+            {
+              "fr": "le deux mai",
+              "en": "the second of May",
+              "accepted_en": [
+                "the second of May",
+                "May 2nd",
+                "May second",
+                "the 2nd of May",
+                "2 May"
+              ]
+            },
+            {
+              "fr": "le quinze août",
+              "en": "the fifteenth of August",
+              "accepted_en": [
+                "the fifteenth of August",
+                "August 15th",
+                "the 15th of August",
+                "15 August",
+                "August fifteenth"
+              ]
+            },
+            {
+              "fr": "le trente juin",
+              "en": "the thirtieth of June",
+              "accepted_en": [
+                "the thirtieth of June",
+                "June 30th",
+                "the 30th of June",
+                "30 June",
+                "June thirtieth"
+              ]
+            }
+          ],
+          "rule": "Only the first of the month is an ordinal number (le premier). Every other date is an ordinary number: le deux, le quinze, le trente. Days and months have no capital letter in French."
+        },
+        {
+          "id": "fren152-w5-grammar-fs04",
+          "topic_type": "grammar",
+          "title": "Questions in other ways",
+          "items": [
+            {
+              "fr": "Tu parles français?",
+              "en": "Do you speak French?",
+              "accepted_en": [
+                "Do you speak French?",
+                "You speak French"
+              ]
+            },
+            {
+              "fr": "Tu vas où?",
+              "en": "Where are you going?",
+              "accepted_en": [
+                "Where are you going?",
+                "Where do you go",
+                "Where are you going to"
+              ]
+            },
+            {
+              "fr": "Tu pars quand?",
+              "en": "When are you leaving?",
+              "accepted_en": [
+                "When are you leaving?",
+                "When do you leave",
+                "When are you going"
+              ]
+            },
+            {
+              "fr": "Tu travailles avec qui?",
+              "en": "Who do you work with?",
+              "accepted_en": [
+                "Who do you work with?",
+                "Who are you working with",
+                "Whom do you work with",
+                "With whom do you work"
+              ]
+            },
+            {
+              "fr": "Que fais-tu dans la vie?",
+              "en": "What do you do for a living? (formal)",
+              "accepted_en": [
+                "What do you do for a living? (formal)",
+                "What do you do for a living",
+                "What do you do in life",
+                "What do you do for work"
+              ]
+            },
+            {
+              "fr": "Où travaille ton père?",
+              "en": "Where does your father work?",
+              "accepted_en": [
+                "Where does your father work?",
+                "Where is your father working",
+                "Where does your dad work"
+              ]
+            }
+          ],
+          "rule": "Informal questions: raise your voice on a statement, or put the question word at the end. Formal: que or another question word + the verb and pronoun swapped (Que fais-tu?). Qu'est-ce que keeps normal word order. A short noun can swap too (Où travaille ton père?)."
+        },
+        {
+          "id": "fren152-w5-phrase-fs05",
+          "topic_type": "phrase",
+          "title": "Asking how often and how long",
+          "items": [
+            {
+              "fr": "Combien de fois par semaine vas-tu au cinéma?",
+              "en": "How many times a week do you go to the cinema?",
+              "accepted_en": [
+                "How many times a week do you go to the cinema?",
+                "How many times per week do you go to the cinema",
+                "How many times a week do you go to the movies",
+                "How often a week do you go to the cinema"
+              ]
+            },
+            {
+              "fr": "Combien d'heures par semaine travailles-tu?",
+              "en": "How many hours a week do you work?",
+              "accepted_en": [
+                "How many hours a week do you work?",
+                "How many hours per week do you work",
+                "How many hours a week are you working"
+              ]
+            },
+            {
+              "fr": "Je travaille quatorze heures par semaine.",
+              "en": "I work fourteen hours a week.",
+              "accepted_en": [
+                "I work fourteen hours a week.",
+                "I work 14 hours a week",
+                "I work fourteen hours per week",
+                "I work 14 hours per week"
+              ]
+            },
+            {
+              "fr": "Je vais au cinéma deux fois par mois.",
+              "en": "I go to the cinema twice a month.",
+              "accepted_en": [
+                "I go to the cinema twice a month.",
+                "I go to the cinema two times a month",
+                "I go to the movies twice a month",
+                "I go to the cinema twice per month"
+              ]
+            },
+            {
+              "fr": "À quelle heure est-ce que tu joues au rugby?",
+              "en": "What time do you play rugby?",
+              "accepted_en": [
+                "What time do you play rugby?",
+                "At what time do you play rugby",
+                "What time are you playing rugby",
+                "When do you play rugby"
+              ]
+            },
+            {
+              "fr": "Combien de temps dors-tu?",
+              "en": "How long do you sleep?",
+              "accepted_en": [
+                "How long do you sleep?",
+                "How much time do you sleep",
+                "How long do you sleep for"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "fren152-w5-vocab-fs06",
+          "topic_type": "vocab",
+          "title": "Comparing: useful words",
+          "items": [
+            {
+              "fr": "à mon avis",
+              "en": "in my opinion",
+              "accepted_en": [
+                "in my opinion",
+                "I think",
+                "as I see it"
+              ]
+            },
+            {
+              "fr": "selon moi",
+              "en": "in my view",
+              "accepted_en": [
+                "in my view",
+                "according to me",
+                "to my mind"
+              ]
+            },
+            {
+              "fr": "cher / chère",
+              "en": "expensive",
+              "accepted_en": [
+                "expensive",
+                "dear",
+                "costly"
+              ]
+            },
+            {
+              "fr": "bon marché",
+              "en": "cheap",
+              "accepted_en": [
+                "cheap",
+                "inexpensive",
+                "good value"
+              ]
+            },
+            {
+              "fr": "lent(e)",
+              "en": "slow"
+            },
+            {
+              "fr": "démodé(e)",
+              "en": "old-fashioned",
+              "accepted_en": [
+                "old-fashioned",
+                "out of date",
+                "outdated",
+                "dated",
+                "unfashionable"
+              ]
+            },
+            {
+              "fr": "silencieux / silencieuse",
+              "en": "quiet",
+              "accepted_en": [
+                "quiet",
+                "silent"
+              ]
+            },
+            {
+              "fr": "fort(e)",
+              "en": "strong"
+            },
+            {
+              "fr": "propre",
+              "en": "clean"
+            },
+            {
+              "fr": "une amitié",
+              "en": "a friendship",
+              "accepted_en": [
+                "a friendship",
+                "friendship"
+              ]
+            },
+            {
+              "fr": "une note",
+              "en": "a mark",
+              "accepted_en": [
+                "a mark",
+                "a grade",
+                "a score"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "fren152-w5-phrase-fs07",
+          "topic_type": "phrase",
+          "title": "Comparing and ranking: examples",
+          "items": [
+            {
+              "fr": "Le train est plus rapide que le bus.",
+              "en": "The train is faster than the bus.",
+              "accepted_en": [
+                "The train is faster than the bus.",
+                "The train is quicker than the bus"
+              ]
+            },
+            {
+              "fr": "Ma sœur est moins sportive que mon frère.",
+              "en": "My sister is less sporty than my brother.",
+              "accepted_en": [
+                "My sister is less sporty than my brother.",
+                "My sister is less athletic than my brother"
+              ]
+            },
+            {
+              "fr": "Cette glace est aussi bonne que ce gâteau.",
+              "en": "This ice cream is as good as this cake.",
+              "accepted_en": [
+                "This ice cream is as good as this cake."
+              ]
+            },
+            {
+              "fr": "Ces chaussures sont plus chères que ces baskets.",
+              "en": "These shoes are more expensive than these trainers.",
+              "accepted_en": [
+                "These shoes are more expensive than these trainers.",
+                "These shoes are dearer than these trainers",
+                "These shoes are more expensive than these runners",
+                "These shoes cost more than these trainers"
+              ]
+            },
+            {
+              "fr": "Ce film est pire que le livre.",
+              "en": "This film is worse than the book.",
+              "accepted_en": [
+                "This film is worse than the book.",
+                "This movie is worse than the book"
+              ]
+            },
+            {
+              "fr": "Paul est le plus gentil garçon du club.",
+              "en": "Paul is the nicest boy in the club.",
+              "accepted_en": [
+                "Paul is the nicest boy in the club.",
+                "Paul is the kindest boy in the club",
+                "Paul is the nicest boy of the club"
+              ]
+            },
+            {
+              "fr": "C'est la meilleure boulangerie du quartier.",
+              "en": "It is the best bakery in the neighbourhood.",
+              "accepted_en": [
+                "It is the best bakery in the neighbourhood.",
+                "It's the best bakery in the neighbourhood",
+                "It is the best bakery in the area",
+                "It's the best bakery in the area",
+                "It is the best bakery in the neighborhood"
+              ]
+            },
+            {
+              "fr": "Le lundi est le jour le plus long de la semaine.",
+              "en": "Monday is the longest day of the week.",
+              "accepted_en": [
+                "Monday is the longest day of the week.",
+                "Mondays are the longest day of the week",
+                "Monday is the longest day in the week"
+              ]
+            }
+          ],
+          "rule": "Comparative: plus / moins / aussi + adjective + que. Superlative: le, la or les + plus or moins + adjective, then de for in or of. Bon becomes meilleur, and meilleur and the short adjectives that stand before the noun need only one article."
         }
       ],
       "bonus_sentences": [
