@@ -1845,3 +1845,7 @@ html[data-reduced-motion="true"] *::after {
 @media (prefers-reduced-motion: reduce) {
   .skyline-svg--flicker .sky-window { animation: none; }
 }
+
+/* GC-19: Gridley's one dry line. */
+.gridley-line { font-style: italic; font-size: 0.9rem; margin: 0.2rem 0; opacity: 0.92; }
+.gridley-line[hidden] { display: none; }

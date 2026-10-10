@@ -3977,6 +3977,85 @@ def render_skyline():
     document.getElementById("skyline-caption").innerText = skyline_caption(status)
 
 
+# ---- GC-19 Gridley, the dry one-line commentator --------------------------------------------------------------
+# A single wry line about how the last round went, in a fixed dry voice (never about the player, never a number, never
+# a hint). Which line is picked comes from the run's seed and the round (a stateless stream), so the same run says the
+# same things. Off with the Settings checkbox; it never touches a rule and nothing is saved.
+GRIDLEY_LINES = {
+    "welcome": (
+        "Gridley here. Demand only goes up, so I would build something.",
+        "Gridley, your grid's commentator. I comment, you build. We will see who has the harder job.",
+        "Welcome to the control room. The coffee is cold and demand is rising, both on schedule.",
+    ),
+    "brownout": (
+        "That was a brownout. The grid sends its regrets, and so does your balance sheet.",
+        "The lights flickered out. Somewhere a kettle is going to need an explanation.",
+        "A disruption. The emissions meter had been trying to tell you, politely.",
+    ),
+    "damage": (
+        "A plant gave up on the spot. It had a decent run.",
+        "Equipment damage. The insurance form is, as ever, longer than the repair.",
+        "One unit lost to the storm of your own making. Dignified, in its way.",
+    ),
+    "aging": (
+        "A tired old unit retired itself without paperwork.",
+        "An aging breakdown. Maintenance was available, as I recall.",
+        "Something rusty finally let go. We will miss it for about a round.",
+    ),
+    "perfect": (
+        "Nothing broke and everyone had power. I am almost suspicious.",
+        "A perfect round. Please write down what you did before it wears off.",
+        "Smooth. Even the transformers are quietly pleased.",
+    ),
+    "short": (
+        "Demand is ahead of you. It usually is.",
+        "The gap between supply and demand is open for business again.",
+        "More people want power than you have built. A fine problem, as problems go.",
+    ),
+    "clean": (
+        "More than half renewable. The coal plant is pretending not to notice.",
+        "A mostly clean grid. The sky has stopped filing complaints.",
+        "Cheap clean power, as foretold by every learning curve ever drawn.",
+    ),
+    "quiet": (
+        "A quiet round. Enjoy it, the demand curve does not take days off.",
+        "Nothing happened. Grid operators call this a good day.",
+        "The lights stayed on. It is an underrated achievement.",
+    ),
+}
+
+
+def gridley_category():
+    if not state.clean_fraction_log:
+        return "welcome"
+    event = state.last_event
+    if event is not None:
+        return "damage" if event.get("type") == "damage" else "brownout"
+    if state.last_aging_event is not None:
+        return "aging"
+    recap = state.last_round_recap
+    if recap and recap.get("perfect"):
+        return "perfect"
+    if state.total_capacity() < state.demand:
+        return "short"
+    if renewable_capacity_share() >= 0.5:
+        return "clean"
+    return "quiet"
+
+
+def gridley_line():
+    category = gridley_category()
+    pool = GRIDLEY_LINES[category]
+    return pool[int(state.stream("gridley", len(state.clean_fraction_log)).random() * len(pool)) % len(pool)]
+
+
+def render_gridley():
+    document.getElementById("pref-gridley").checked = prefs["gridley"]
+    line = document.getElementById("gridley-line")
+    line.hidden = not prefs["gridley"]
+    line.innerText = f"Gridley: {gridley_line()}" if prefs["gridley"] else ""
+
+
 def render():
     render_info_page()
     render_shadow()
@@ -4045,6 +4124,7 @@ def render():
     render_chart_tables()
     render_fleet_overview()
     render_coach()
+    render_gridley()
     render_skyline()
     render_number_settings()
     render_confirmation_settings()
@@ -6307,6 +6387,9 @@ def setup():
     document.getElementById("settings-reset-button").addEventListener("click", create_proxy(on_reset_prefs))
     document.getElementById("confirm-reset-button").addEventListener("click", create_proxy(on_reset_confirmations))
     document.getElementById("pref-coach").addEventListener("change", create_proxy(_make_pref_checkbox_handler("coach")))
+    document.getElementById("pref-gridley").addEventListener(
+        "change", create_proxy(_make_pref_checkbox_handler("gridley"))
+    )
     document.getElementById("pref-skyline").addEventListener(
         "change", create_proxy(_make_pref_checkbox_handler("skyline"))
     )

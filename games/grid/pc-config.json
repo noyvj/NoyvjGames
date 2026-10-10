@@ -212,6 +212,7 @@
       ".meter:has(> #emissions-bar)",
       "#event-display",
       "#aging-event-display",
+      "#gridley-line",
       "#funds-delta-display",
       "#coach-panel",
       "#round-recap",

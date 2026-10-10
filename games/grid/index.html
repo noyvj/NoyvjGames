@@ -227,6 +227,12 @@
         </label>
       </div>
       <div class="settings-row">
+        <label class="settings-checkbox-label" for="pref-gridley">
+          <input type="checkbox" id="pref-gridley" checked>
+          Gridley: a dry one-line comment on each round
+        </label>
+      </div>
+      <div class="settings-row">
         <label class="settings-checkbox-label" for="pref-skyline">
           <input type="checkbox" id="pref-skyline" checked>
           City skyline strip (buildings light as demand is met)
@@ -364,6 +370,8 @@
       <div id="gauge-table" class="chart-table-wrap" hidden></div>
       <p id="trend-display" class="event-display">Not enough rounds yet to show a trend.</p>
       <p id="aging-event-display" class="event-display">No aging breakdowns last round.</p>
+      <!-- GC-19: Gridley, a dry one-line comment on how the last round went. Switch off in Settings. -->
+      <p id="gridley-line" class="gridley-line"></p>
       <!-- C-6: the funds change of the last round, as an arrow plus words (never colour alone). -->
       <p id="funds-delta-display" class="funds-delta" hidden></p>
       <!-- C-21: the opt-in coach: one observation from numbers already on screen. Turn it on in Settings. -->
