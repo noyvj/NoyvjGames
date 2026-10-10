@@ -1849,3 +1849,6 @@ html[data-reduced-motion="true"] *::after {
 /* GC-19: Gridley's one dry line. */
 .gridley-line { font-style: italic; font-size: 0.9rem; margin: 0.2rem 0; opacity: 0.92; }
 .gridley-line[hidden] { display: none; }
+
+/* C-18: the next-milestone line at the top of the achievements panel. */
+.achievement-next { font-weight: 600; margin: 0.2rem 0 0.5rem; }

@@ -2,6 +2,10 @@
   "changelog": [
     {
       "date": "2026-10-11",
+      "entry": "New: more achievements show how close you are. Zero Fossil shows your clean share, Learning Curve Paid Off how far down the cost curve you have come, Fossil Phase-Out how many fossil units you have retired, and the 20-round and 10-round ones count your rounds. The Achievements panel now opens with a Next milestone line naming the locked achievement you are furthest along."
+    },
+    {
+      "date": "2026-10-11",
       "entry": "New: Gridley, a dry one-line commentator. After each round he says one short line about how it went (a brownout, a breakdown, a perfect round, demand running ahead, a mostly clean grid, or just a quiet day). The same run always hears the same lines, he never gives hints, and you can switch him off in Settings."
     },
     {

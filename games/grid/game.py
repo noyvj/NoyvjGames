@@ -2904,7 +2904,72 @@ ACHIEVEMENT_PROGRESS = {
         MAINTENANCE_ACHIEVEMENT_TARGET,
     ),
     "grid_at_scale": lambda: (min(state.total_capacity(), GRID_AT_SCALE_TARGET), GRID_AT_SCALE_TARGET),
+    # C-18: the remaining countable ones.
+    "fully_renewable": lambda: _progress_fully_renewable(),
+    "learning_curve_floored": lambda: _progress_learning_curve(),
+    "fossil_phase_out": lambda: _progress_fossil_phase_out(),
+    "no_damage_20": lambda: _progress_no_damage(),
+    "ahead_of_the_curve": lambda: _progress_ahead_of_curve(),
 }
+
+
+def _progress_fully_renewable():
+    """Share of standing capacity that is not coal or gas, out of 100 (nothing standing reads 0)."""
+    if state.total_capacity() <= 0:
+        return (0, 100)
+    return (min(100, int(round((1 - state.fossil_share()) * 100))), 100)
+
+
+def _progress_learning_curve():
+    """How far the most-built renewable type has come down the learning curve towards its price floor, as a
+    percentage of the whole way (100 = at the floor). Reads the learning-curve price, never a policy discount."""
+    best = 0.0
+    for plant_type in RENEWABLE_TYPES:
+        multiplier = state._learning_curve_cost(plant_type) / PLANT_BASE_COST[plant_type]
+        best = max(best, (1 - multiplier) / (1 - MIN_COST_MULTIPLIER))
+    return (max(0, min(100, int(round(best * 100)))), 100)
+
+
+def _progress_fossil_phase_out():
+    """First build three fossil plants (counted as built, ever); then the count is how many of those fossil units
+    have been retired so far, out of all that were built."""
+    built = state.cumulative_built["coal"] + state.cumulative_built["gas"]
+    if built < 3:
+        return (built, 3)
+    standing = state.plant_counts["coal"] + state.plant_counts["gas"]
+    return (max(0, min(built, built - standing)), built)
+
+
+def _progress_no_damage():
+    """Rounds reached out of 21 while no plant has been damaged; None once one has (the run can no longer earn it)."""
+    if any(e.get("type") == "damage" for e in state.event_log):
+        return None
+    return (min(state.round_number, NO_DAMAGE_ROUND_TARGET), NO_DAMAGE_ROUND_TARGET)
+
+
+def _progress_ahead_of_curve():
+    """Rounds reached out of 11; after that the question is whether emissions are below the benchmark, which is not
+    a count, so there is no readout."""
+    if state.round_number >= AHEAD_OF_CURVE_MIN_ROUND:
+        return None
+    return (state.round_number, AHEAD_OF_CURVE_MIN_ROUND)
+
+
+def next_milestone():
+    """C-18: the locked achievement that is furthest along (largest fraction of its readout, below the whole), as
+    its summary entry, or None when none has a readout in progress."""
+    best = None
+    best_fraction = -1.0
+    for entry in achievements_summary():
+        if entry["earned"] or entry["progress"] is None:
+            continue
+        current, target = entry["progress"]
+        if target <= 0 or current >= target:
+            continue
+        fraction = current / target
+        if current > 0 and fraction > best_fraction:
+            best, best_fraction = entry, fraction
+    return best
 
 
 def achievement_ids_earned():
@@ -3226,6 +3291,13 @@ def update_achievements_display():
         return
 
     panel.innerHTML = ""
+    upcoming = next_milestone()
+    if upcoming is not None:
+        current, target = upcoming["progress"]
+        note = document.createElement("p")
+        note.className = "achievement-next"
+        note.innerText = f"Next milestone: {upcoming['label']} ({current} of {target})"
+        panel.appendChild(note)
     for entry in achievements_summary():
         card = document.createElement("div")
         card.className = "achievement-card achievement-card--earned" if entry["earned"] else "achievement-card"
