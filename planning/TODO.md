@@ -1,6 +1,6 @@
 # Site-Wide TODO (round 3)
 
-**Progress: 711/1238 items checked off (57.4%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land.
+**Progress: 712/1238 items checked off (57.5%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land.
 
 Built from your answers in `planning/IMPROVEMENT-IDEAS-ROUND-3.md` (Part 4). Every Round 3 section is now answered (2026-10-07 below the Warframe section); earlier this list held only: **GB** (Canopy gamified), **M** (new games), **N** (seasonal events), **O** (Trade Empire and Continuum replayability), **P/Q/S/T** (Signal, Undersleep, Overclock, Last Line open questions), **X** (Warframe tracker) and **R** (returning later). GC-GI, A-L, U, Z and Y are unanswered and wait for you. The previous list is archived at `planning/todo-archive/260914_260927.md`; anything from it that was moved here is marked "moved" there.
 
@@ -162,7 +162,7 @@ Many games now carry lots of modes and levels, so the first load keeps growing. 
 
 ## RV. Round 4 PC-view and mobile-view sections (you, 2026-10-10)
 
-- [ ] RV-1: Add to Round 4, for every game, a "PC view" section and a "mobile view" section of 10 ideas each on how to make the game feel more like a real PC game or a real mobile game (layout, controls, feedback, session shape); codes are the game code plus PC and MO (for example SOPC, SOMO); the generator now accepts up to four letters.
+- [x] RV-1: Add to Round 4, for every game, a "PC view" section and a "mobile view" section of 10 ideas each on how to make the game feel more like a real PC game or a real mobile game (layout, controls, feedback, session shape); codes are the game code plus PC and MO (for example SOPC, SOMO); the generator now accepts up to four letters.
 
 ---
 
