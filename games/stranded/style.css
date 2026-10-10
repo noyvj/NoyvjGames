@@ -84,7 +84,7 @@ html[data-reduced-motion="true"] .stat-value.bump, html[data-effects="off"] .sta
 .tally-strip { grid-template-columns: repeat(auto-fit, minmax(5.5rem, 1fr)); margin-top: 0.5rem; }
 
 /* The comms screen. */
-.scene-holder { margin: 0 0 0.4rem; border-radius: 10px; overflow: hidden; border: 1px solid var(--line); }
+.scene-holder { background: var(--sc-space); margin: 0 0 0.4rem; border-radius: 10px; overflow: hidden; border: 1px solid var(--line); }
 .scene { display: block; width: 100%; height: 6.5rem; }
 .sc-space { fill: var(--sc-space); } .sc-star { fill: var(--sc-star); } .sc-giant { fill: var(--sc-giant); } .sc-giant-lit { fill: var(--sc-giant-lit); }
 .sc-giant-dark { fill: var(--sc-giant-dark); } .sc-ring { fill: var(--sc-ring); opacity: 0.8; } .sc-ground { fill: var(--sc-ground); }

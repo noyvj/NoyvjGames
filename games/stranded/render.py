@@ -12,7 +12,7 @@ def scene(day, flags=(), scene_id=""):
     """A 400x120 moonscape. The sky, planet and ground are fixed; the camp changes with the story: Bit's lamp once awake, the
     storm haze on day 5, the relay beam once the relay is lit, and the lander lifting on the lander ending."""
     flags = set(flags)
-    parts = ['<svg class="scene" viewBox="0 0 400 120" preserveAspectRatio="xMidYMid slice" role="img" aria-label="Sparrow Relay on Orrin, day %d" xmlns="http://www.w3.org/2000/svg">' % day,
+    parts = ['<svg class="scene" viewBox="0 0 400 120" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Sparrow Relay on Orrin, day %d" xmlns="http://www.w3.org/2000/svg">' % day,
              '<rect class="sc-space" x="0" y="0" width="400" height="120"/>']
     for x, y in STARS:
         parts.append('<rect class="sc-star" x="%d" y="%d" width="2" height="2"/>' % (x, y))

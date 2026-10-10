@@ -1,0 +1,40 @@
+{
+  "windows": [
+    ["map-panel", "map-toggle-button", "Branch map"],
+    ["archive-panel", "archive-toggle-button", "The Archive"],
+    ["achievements-panel", "achievements-toggle-button", "Achievements"],
+    ["changelog-panel", "changelog-toggle-button", "What's New"],
+    ["settings-panel", "settings-toggle-button", "Settings"],
+    ["info-page-panel", "info-page-toggle-button", "About Stranded"]
+  ],
+  "toolbar": {
+    "icons": [
+      ["map-toggle-button", "🗺️"],
+      ["archive-toggle-button", "📖"],
+      ["achievements-toggle-button", "🏆"],
+      ["settings-toggle-button", "⚙️"]
+    ],
+    "menu": [
+      {"heading": "Help", "ids": ["tutorial-restart-button", "info-page-toggle-button", "credits-link"]},
+      {"heading": "Records", "ids": ["changelog-toggle-button"]}
+    ]
+  },
+  "composites": [],
+  "adopt": [],
+  "zones": {
+    "topbar": [".hub-back-link", "h1", ".game-toolbar"],
+    "stagebar": ["#stats"],
+    "stage": ["#comms-panel"],
+    "side": ["#goals", "#progress", ".percent", "#tally"],
+    "hidden": [".tagline"]
+  },
+  "readouts": [],
+  "side_label": "Goals and progress",
+  "hints": [
+    ["1 to 4", "Send that reply"],
+    ["Tab", "Move between buttons"],
+    ["Esc", "Menu / close window"],
+    ["?", "All shortcuts"]
+  ],
+  "notify": null
+}

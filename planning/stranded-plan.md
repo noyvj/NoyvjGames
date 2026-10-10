@@ -42,7 +42,7 @@ First Words (1 choice); Three Days In; All Twelve Days; Someone Comes (1 ending)
 | 4 | Archive, goals, hint ladder | collectables panel, three goals, nudges. First complete game | Done |
 | 5 | Standard kit | opening screen, tutorial, About with fiction notice, What's New, keyboard help, confirm dialogs, light theme, accessibility | Done |
 | 6 | Achievements | 14 achievements, panel, toast, manifest, reachability test | Done |
-| 7 | Desktop boot | `pc-config.json`, `pc.css`, `pc.js`, generated `pc.html`, docs | Todo |
+| 7 | Desktop boot | `pc-config.json`, `pc.css`, `pc.js`, generated `pc.html`, docs | Done |
 
 ## 8. Open questions for the owner (defaults used meanwhile)
 1. Replies arrive at once by default, with a "one message per tap" setting. Prefer tap by default? Default: at once.

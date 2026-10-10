@@ -130,3 +130,15 @@ def test_the_save_holds_nothing_about_time():
     call(action="reset")
     call(action="choose", i=0)
     assert not re.search(r"time|date|stamp|clock|hour|expire", json.dumps(game.get_state()), flags=re.I)
+
+
+def test_the_page_scripts_use_no_clock_no_random_no_audio_and_one_timeout_for_the_screen_reader():
+    app = (GAME_DIR / "app.js").read_text(encoding="utf-8")
+    html = (GAME_DIR / "index.html").read_text(encoding="utf-8")
+    assert re.findall(r"(setInterval|setTimeout)\(", app) == ["setTimeout"]
+    assert "Date" not in app and "Math.random" not in app and "performance.now" not in app and "requestAnimationFrame" not in app
+    for name in ("settings.js", "pc.js"):
+        text = (GAME_DIR / name).read_text(encoding="utf-8")
+        assert not re.search(r"setInterval|setTimeout|Math\.random|Date\b", text), name
+    assert "<audio" not in html and "new Audio" not in app and "AudioContext" not in app
+    assert not re.search(r"fetch\([^)]*(http|/app/|leaderboard)", app) and "leaderboard" not in html.lower()

@@ -1,0 +1,24 @@
+/* Stranded, Desktop boot (pc.html only). Everything is scoped to the pc layout, so the Classic page is untouched.
+   The conversation is the stage and fills the height; the three goals, the progress numbers and the tally sit in a side column;
+   Trust, Supplies and Hope stay above the stage. The frame, windows and Menu come from shared/pc-shell.css. */
+
+html[data-layout="pc"] #game { padding-bottom: 0.4rem; max-width: none; }
+#pc-topbar { grid-template-columns: auto minmax(0, 1fr); grid-template-areas: "title tools"; padding-right: 9rem; }
+#pc-topbar > .game-toolbar { justify-content: flex-end; }
+#pc-topbar > h1 { font-size: 1.4rem; letter-spacing: 0.12em; }
+
+#pc-stagebar #stats { margin: 0; grid-template-columns: repeat(4, minmax(0, 1fr)); }
+html[data-layout="pc"] .stat { display: flex; flex-direction: column; }
+
+#pc-stage > #comms-panel { flex: 1 1 0; min-height: 0; overflow-y: auto; margin: 0; display: flex; flex-direction: column; }
+#pc-stage > #comms-panel .chat { flex: 1 1 auto; max-height: none; min-height: 7rem; }
+#pc-stage > #comms-panel .choices { flex: 0 0 auto; }
+html[data-layout="pc"] .scene { height: 5.6rem; }
+
+#pc-body.pc-has-side { grid-template-columns: minmax(0, 1fr) clamp(17rem, 26vw, 23rem); }
+#pc-side { min-width: 0; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; gap: 0.6rem; padding-right: 0.2rem; }
+#pc-side > .panel, #pc-side > .goals { margin: 0; }
+#pc-side #progress { grid-template-columns: repeat(2, minmax(0, 1fr)); margin: 0; }
+
+html[data-layout="pc"] #story-toggle { top: 0.6rem !important; left: auto !important; right: 12rem !important; }
+#pc-hintbar { flex: 0 0 auto; }

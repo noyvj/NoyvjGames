@@ -13,8 +13,10 @@ Updated after every milestone. Read `planning/stranded-plan.md`, then this file.
 
 - M5 Standard kit: Tutorial (9 steps, Tutorial button), About (fiction notice, pledge, how it works, two sourced facts dated 2026-10-10), What's New panel, keyboard help and Esc through the shared helper, confirm dialog on reset, light theme checked. 76 tests; checked live (tutorial, About, light theme).
 
+- M7 Desktop boot: pc-config.json, pc.css, pc.js (8-step Desktop tutorial), generated pc.html, desktop tests, CLAUDE.md for the game. 91 tests; `scripts/generate-pc-pages.py --check` and `shared/tests -k stranded` (13) pass; checked live at 1440x900 (pc.html) and 360x740 (classic, no horizontal scroll with the map or achievements open).
+
 ## Next
-- M6 achievements: achievements.json (must match achievements.py exactly), Achievements button + panel + toast in app.js, test_achievements.py. M7 Desktop boot: pc-config.json, pc.css, pc.js, generate pc.html with importlib build('stranded', cfg).
+- Nothing in this folder. Hub registration is the hub session's job (title card, sw.js, offline-manifest, game-*.json, site-settings key map, share cards, root CLAUDE.md row; the favicon may be copied to the hub's icons/ if the hub wants one there). The plan's last section lists questions for the owner.
 
 ## Open problems / notes
 - Local Python is 3.9: no match statements, no `X | Y` types.
