@@ -2,6 +2,10 @@
   "changelog": [
     {
       "date": "2026-10-11",
+      "entry": "Changed: on a phone, the bar that stays pinned at the top while you scroll now shows the round and your capacity as well as funds, demand and emissions (it scrolls sideways when it is full)."
+    },
+    {
+      "date": "2026-10-11",
       "entry": "New: Fleet overview, a sortable table under Plant Mix. Every plant type on one row: units, wear, the chance of an aging breakdown, when its auto-maintain pass next runs, and what it earns per round. Press a column heading to sort by it, press again to reverse."
     },
     {

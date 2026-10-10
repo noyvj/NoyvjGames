@@ -808,9 +808,12 @@
         GameTutorial.init(window.GRID_PC_TUTORIAL_STEPS || GRID_TUTORIAL_STEPS, { gameId: "grid" });
       }
       if (window.MobileHud) {
+        // C-20: round and capacity join funds, demand and emissions (the bar scrolls sideways when it is full).
         MobileHud.init([
+          { selector: "#round-display", label: "Round" },
           { selector: "#funds-display", label: "Funds" },
           { selector: "#demand-display", label: "Demand" },
+          { selector: "#capacity-display", label: "Capacity" },
           { selector: "#emissions-display", label: "Emissions" },
         ]);
       }
