@@ -36,9 +36,12 @@
     <h1>Stranded</h1>
   </div>
   <div class="game-toolbar">
+    <button id="tutorial-restart-button" type="button" aria-label="Tutorial"><span class="btn-long">Tutorial</span><span class="btn-short" aria-hidden="true">Tour</span></button>
     <button id="archive-toggle-button" type="button" aria-expanded="false" aria-controls="archive-panel">Archive</button>
     <button id="map-toggle-button" type="button" aria-expanded="false" aria-controls="map-panel">Branch map</button>
+    <button id="changelog-toggle-button" type="button" aria-expanded="false" aria-controls="changelog-panel"><span class="btn-long">What's New</span><span class="btn-short" aria-hidden="true">News</span></button>
     <button id="settings-toggle-button" type="button" aria-expanded="false" aria-controls="settings-panel">Settings</button>
+    <button id="info-page-toggle-button" type="button" aria-expanded="false" aria-controls="info-page-panel">About</button>
   </div>
   <p class="tagline">A text line to a stubborn astronaut on a small grey moon. Twelve days, nine endings, every reply answered. Nothing is timed, and you can rewind to any choice for free.</p>
   <section id="archive-panel" class="panel" hidden aria-labelledby="archive-heading">
@@ -58,6 +61,21 @@
     <h3 class="sub">Endings <span id="endings-count" class="note"></span></h3>
     <ul id="endings-list" class="endings-list"></ul>
     <div id="map-body" class="map-body"></div>
+  </section>
+  <section id="info-page-panel" class="panel" hidden aria-labelledby="info-page-heading">
+    <h2 id="info-page-heading">About Stranded</h2>
+    <p id="info-page-framing" class="info-page-framing"></p>
+    <p id="info-page-notice" class="notice"></p>
+    <h3 id="pledge-heading"></h3>
+    <ul id="pledge-list" class="pledge-list"></ul>
+    <h3 id="how-heading"></h3>
+    <ul id="how-list"></ul>
+    <h3 id="facts-heading"></h3>
+    <ul id="facts-list" class="facts-list"></ul>
+  </section>
+  <section id="changelog-panel" class="panel" hidden aria-labelledby="changelog-heading">
+    <h2 id="changelog-heading">What's New</h2>
+    <div id="changelog-entries"></div>
   </section>
   <section id="settings-panel" class="panel" hidden aria-labelledby="settings-heading">
     <h2 id="settings-heading">Settings</h2>
@@ -176,7 +194,9 @@
     panels: [
       { toggle: "archive-toggle-button", panel: "archive-panel" },
       { toggle: "map-toggle-button", panel: "map-panel" },
+      { toggle: "changelog-toggle-button", panel: "changelog-panel" },
       { toggle: "settings-toggle-button", panel: "settings-panel" },
+      { toggle: "info-page-toggle-button", panel: "info-page-panel" },
     ],
     extra: [
       "1 to 4: send that reply",

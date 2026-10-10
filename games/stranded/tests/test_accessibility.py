@@ -98,3 +98,22 @@ def test_touch_targets_are_covered_by_the_shared_sheet():
 def test_destructive_actions_ask_first_and_rewinding_does_not_need_to():
     assert 'askThen("stranded-reset"' in APP
     assert "askThen" not in APP.split("Rewind to here")[1].split("return node")[0]
+
+
+def test_the_tutorial_only_points_at_things_the_page_has():
+    ids = set(re.findall(r'(?<![-\w])id="([^"]+)"', HTML))
+    steps = APP.split("var TUTORIAL_STEPS = [")[1].split("];")[0]
+    selectors = re.findall(r'selector: "#([\w-]+)"', steps)
+    assert len(selectors) >= 5 and set(selectors) <= ids
+    assert 'id="tutorial-restart-button"' in HTML and "strandedTutorialSteps" in HTML and "tutorial.js" in HTML
+
+
+def test_the_about_page_the_whats_new_panel_and_the_shortcut_help_exist():
+    for needle in ('id="info-page-panel"', 'id="info-page-notice"', 'id="facts-list"', 'id="changelog-panel"', 'id="changelog-entries"', "KeyboardShortcuts.init", "1 to 4: send that reply"):
+        assert needle in HTML
+    assert "Read on " in APP and 'link.rel = "noopener noreferrer"' in APP
+
+
+def test_every_panel_toggle_is_in_the_keyboard_shortcut_config_so_escape_closes_it():
+    for toggle in re.findall(r'id="([\w-]+-toggle-button)"', HTML):
+        assert f'toggle: "{toggle}"' in HTML, toggle

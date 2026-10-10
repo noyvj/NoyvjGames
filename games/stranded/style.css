@@ -195,3 +195,9 @@ html[data-theme="light"] ul.endings-list, html[data-theme="light"] ul.map-body, 
 .archive-list li.unfiled { border-style: dashed; color: var(--muted); }
 .archive-list .rtext { display: block; font-size: 0.85rem; margin-top: 0.15rem; }
 html[data-theme="light"] ul.goals-list, html[data-theme="light"] ul.archive-list { list-style: none; padding-left: 0; margin-left: 0; }
+
+.facts-list { list-style: none; margin: 0.3rem 0; padding: 0; display: grid; gap: 0.5rem; }
+.facts-list li { border: 1px solid var(--line); border-radius: 10px; padding: 0.4rem 0.7rem; background: var(--surface); }
+.facts-list .fact-head { font-weight: 700; display: block; }
+.facts-list .fact-source { display: block; font-size: 0.82rem; color: var(--muted); margin-top: 0.2rem; }
+html[data-theme="light"] ul.facts-list { list-style: none; padding-left: 0; margin-left: 0; }

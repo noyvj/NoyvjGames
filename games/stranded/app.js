@@ -40,10 +40,49 @@
       $(buttonId).setAttribute("aria-expanded", String(!$(panelId).hidden));
     });
   }
+  function renderAbout() {
+    var about = view.about;
+    if (!about || $("pledge-list").dataset.done) return;
+    $("pledge-list").dataset.done = "1";
+    setText($("info-page-framing"), about.framing);
+    setText($("info-page-notice"), about.notice);
+    setText($("pledge-heading"), about.pledge_heading);
+    setText($("how-heading"), about.how_heading);
+    setText($("facts-heading"), about.facts_heading);
+    about.pledge.forEach(function (line) { $("pledge-list").appendChild(el("li", null, line)); });
+    about.how.forEach(function (line) { $("how-list").appendChild(el("li", null, line)); });
+    about.facts.forEach(function (f) {
+      var li = el("li");
+      li.appendChild(el("span", "fact-head", f.heading));
+      li.appendChild(el("span", null, f.fact + " "));
+      li.appendChild(el("span", "note", f.tie_in));
+      var src = el("span", "fact-source", "Source: ");
+      var link = el("a", null, f.source.title);
+      link.href = f.source.url; link.target = "_blank"; link.rel = "noopener noreferrer";
+      src.appendChild(link);
+      src.appendChild(document.createTextNode(", " + f.source.publisher + ". Read on " + f.source.date_read + "."));
+      li.appendChild(src);
+      $("facts-list").appendChild(li);
+    });
+  }
+  function renderChangelog(entries) {
+    var holder = $("changelog-entries");
+    holder.textContent = "";
+    entries.forEach(function (entry) {
+      var row = el("article", "changelog-entry");
+      row.appendChild(el("div", "changelog-date", entry.date));
+      row.appendChild(el("p", "changelog-text", entry.entry));
+      holder.appendChild(row);
+    });
+    document.querySelector("#changelog-toggle-button .btn-long").textContent = "What's New (" + entries.length + ")";
+  }
   function loadChangelog() {
     return fetch("changelog.json").then(function (r) { return r.text(); }).then(function (text) {
       window.CHANGELOG_JSON = text;
-    }).catch(function () { /* the panel just stays empty */ });
+      var data = JSON.parse(text);
+      var list = Array.isArray(data) ? data : (data && data.changelog) || [];
+      renderChangelog(list.slice().sort(function (a, b) { return a.date < b.date ? 1 : -1; }));
+    }).catch(function () { renderChangelog([]); });
   }
 
   // ---- numbers -------------------------------------------------------------------------------------
@@ -314,6 +353,7 @@
   }
 
   function render() {
+    renderAbout();
     renderStats();
     renderHead();
     renderChat();
@@ -383,6 +423,8 @@
     wirePanelToggle("settings-toggle-button", "settings-panel");
     wirePanelToggle("map-toggle-button", "map-panel");
     wirePanelToggle("archive-toggle-button", "archive-panel");
+    wirePanelToggle("changelog-toggle-button", "changelog-panel");
+    wirePanelToggle("info-page-toggle-button", "info-page-panel");
     $("hint-button").addEventListener("click", function () { send({ action: "hint" }); });
     $("hint-do-button").addEventListener("click", function () { shown = 1e9; send({ action: "hint_do" }); });
     $("peek-button").addEventListener("click", function () { send({ action: "peek" }); });
@@ -405,6 +447,18 @@
     window.strandedRefresh = function () { if (engine) { shown = 1e9; send({ action: "open" }); } };
   }
 
+  var TUTORIAL_STEPS = [
+    { title: "Welcome to the line", text: "You are Harbour, the plain voice on a thin text line to Ines, a stubborn field engineer stuck on a small moon. Every reply you send gets an answer. Nothing is timed, and you can go back to any choice for free. Skip any time and reopen this from the Tutorial button." },
+    { selector: "#chat", title: "The conversation", text: "Ines speaks on the left, you on the right. Each of your messages has a Rewind to here button: it takes you back to just before that reply, and nothing you found or tried is lost." },
+    { selector: "#stats", title: "Trust, Supplies and Hope", text: "Your replies move these three numbers. They are always shown as a number, a word and a bar. They can open or shut some replies, and they help decide which of the nine endings you reach." },
+    { selector: "#comms-panel", title: "Your replies", text: "Pick one of two to four replies. A reply marked Tried is one you have sent before. A shut reply says why it is shut: a different earlier choice can open it. After two different tries in a scene, What if? shows where each reply leads." },
+    { selector: "#map-toggle-button", title: "The branch map", text: "Every day, scene and path. A day lists the scenes you have seen with a Go there button, and Show me a loose end takes you to the nearest path you have not walked." },
+    { selector: "#goals", title: "Your goals", text: "Three goals stay in view, in any order. Every reply, rewind and find counts toward something on the screen." },
+    { selector: "#archive-toggle-button", title: "The Archive", text: "Ines's log entries, the things she finds and her recordings are filed here as you play. Nothing can be missed for good." },
+    { selector: "#hint-box", title: "Need a nudge?", text: "Only when you ask: a nudge, a hint, then the answer, and a button that takes you there." },
+    { title: "You are ready", text: "Take your time. Your map and archive are saved as you go." }
+  ];
+
   async function boot() {
     var changelog = loadChangelog();
     var pyodide = await window.loadPyodide();
@@ -424,6 +478,7 @@
     shown = 1e9;
     send({ action: "open" });
     await changelog;
+    if (window.GameTutorial) window.GameTutorial.init(window.strandedTutorialSteps ? window.strandedTutorialSteps(TUTORIAL_STEPS) : TUTORIAL_STEPS, { gameId: "stranded" });
   }
 
   wire();

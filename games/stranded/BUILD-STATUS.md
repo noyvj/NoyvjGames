@@ -11,8 +11,10 @@ Updated after every milestone. Read `planning/stranded-plan.md`, then this file.
 
 - M4 Archive, goals, hint ladder: Archive panel (three sections, hint where to look), three-goals strip, hint box (nudge, hint, answer, take me there), Tally details. First complete game. 73 tests; checked live.
 
+- M5 Standard kit: Tutorial (9 steps, Tutorial button), About (fiction notice, pledge, how it works, two sourced facts dated 2026-10-10), What's New panel, keyboard help and Esc through the shared helper, confirm dialog on reset, light theme checked. 76 tests; checked live (tutorial, About, light theme).
+
 ## Next
-- M5 Standard kit: tutorial steps in app.js (GameTutorial.init, strandedTutorialSteps hook already in index.html), About panel (info.view() is already in the view), What's New panel, Tutorial button, keyboard help (already via shared), light-theme and accessibility checks. M6: achievements panel + toast + achievements.json.
+- M6 achievements: achievements.json (must match achievements.py exactly), Achievements button + panel + toast in app.js, test_achievements.py. M7 Desktop boot: pc-config.json, pc.css, pc.js, generate pc.html with importlib build('stranded', cfg).
 
 ## Open problems / notes
 - Local Python is 3.9: no match statements, no `X | Y` types.
