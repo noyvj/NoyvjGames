@@ -91,6 +91,7 @@ TRAVEL_BUTTON_ID = {
 # Element IDs wired up in index.html — kept in one place so tests and the
 # fixture agree on what "the DOM" contains.
 ELEMENT_IDS = [
+    "anomaly-strip",
     # Round-3 batch (A-22/24/25/26/30/31)
     "trophy-shelf",
     "click-streak",
@@ -999,6 +1000,7 @@ def game_env():
     # fixture starts with both switched off; their own tests switch them on (tests/test_round3.py).
     local_storage.setItem("sol-click-streak", "off")
     local_storage.setItem("sol-chain-bonus", "off")
+    local_storage.setItem("sol-anomalies", "off")  # round 4: the timed anomalies would change older tests' numbers
     _install_pyodide_fakes(elements, timers, local_storage)
 
     spec = importlib.util.spec_from_file_location("game", GAME_PY)

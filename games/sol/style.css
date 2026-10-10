@@ -1840,6 +1840,13 @@ html:not([data-show-timing="on"]) #splits-panel { display: none; }
 /* A-22: the Governor's mood line. */
 .governor-report-card-mood { margin: 0.15rem 0 0; font-size: 0.78rem; font-style: italic; }
 
+/* --- A-2: the anomaly forecast strip (text only, no motion) ---------------------------------------- */
+.anomaly-strip { margin: 0.4rem 0; padding: 0.4rem 0.7rem; border: 1px solid rgba(160, 175, 220, 0.3); border-left-width: 4px; border-radius: 8px; font-size: 0.85rem; text-align: left; }
+.anomaly-strip[hidden] { display: none; }
+.anomaly-strip--boon { border-left-color: #6fcf97; }
+.anomaly-strip--strain { border-left-color: #f2c94c; border-left-style: double; }
+html[data-theme="light"] .anomaly-strip { border-color: rgba(30, 40, 80, 0.35); }
+
 /* ============================================================
    Y11b light-theme polish (2026-09-27). Light-only rules from a
    computed-style WCAG contrast scan of the light theme (fresh game, the
@@ -1915,3 +1922,5 @@ html[data-theme="light"] .chains-intro,
 html[data-theme="light"] .splits-intro,
 html[data-theme="light"] .chain-card-count { opacity: 1; color: #46507a; }
 html[data-theme="light"] .governor-report-card-mood { color: #46507a; }
+
+html[data-theme="light"] .anomaly-strip { border-color: rgba(30, 40, 80, 0.35); }

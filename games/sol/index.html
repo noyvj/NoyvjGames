@@ -120,6 +120,8 @@
     <div id="time-controls"></div>
     <!-- FY-53: three goals at all times (shared/goals-panel.js); the queue comes from game.py's goals_json(). -->
     <div id="goals"></div>
+    <!-- A-2: the next System Anomaly and what it does, in words (off in Settings: Timed anomalies). -->
+    <p id="anomaly-strip" class="anomaly-strip" role="status" hidden></p>
     <div id="howto-panel" class="section" hidden></div>
     <!-- Settings panel (site-wide goal, planning/TODO.md): text-scale + reduced-motion,
          consolidated into one panel per settings.js. A browser preference, not game
@@ -182,6 +184,12 @@
         <label class="settings-checkbox-label" for="pause-hidden-checkbox">
           <input type="checkbox" id="pause-hidden-checkbox" checked>
           Pause when this tab is hidden (nothing ticks in a background tab; off keeps the old behaviour)
+        </label>
+      </div>
+      <div class="settings-row">
+        <label class="settings-checkbox-label" for="anomalies-checkbox">
+          <input type="checkbox" id="anomalies-checkbox" checked>
+          Timed anomalies (a short boon or strain every five minutes of game time, announced ahead)
         </label>
       </div>
       <div class="settings-row">

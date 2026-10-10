@@ -2,6 +2,10 @@
   "changelog": [
     {
       "date": "2026-10-10",
+      "entry": "New: System Anomalies. Every five minutes of game time a short anomaly (one minute) changes the rules a little, always the same six in the same order: Comet Pass, Solar Flare, Meteor Shower, Magnetic Storm, Clear Skies and Dust Cloud, alternating a boon and a strain. A line under the toolbar says what is coming and for how long, and you can turn them off in Settings (Timed anomalies)."
+    },
+    {
+      "date": "2026-10-10",
       "entry": "New: Mutators for New Game+. In the Prestige Tree, pick up to three optional rule twists for your next run (Thin Atmosphere, One-Way Trade, Blind Governor, Costly Machinery); each one pays an extra Prestige Point when you prestige out of that run, and a small symbol next to the title and a Run rules line on the share card show which are on. Nothing is random and you can change the picks before you prestige."
     },
     {

@@ -834,7 +834,7 @@ def terraform_rate(planet):
     health = state["ecology_health"]
     if health < TERRAFORM_ECOLOGY_THRESHOLD:
         return 0.0
-    return TERRAFORM_BASE_RATE_PER_SEC * (health / 100)
+    return TERRAFORM_BASE_RATE_PER_SEC * (health / 100) * anomaly_factor("terraform")
 
 
 def update_resource_display(planet):
@@ -2533,7 +2533,7 @@ def _mine(planet, event=None):
     # rule, there must always be a lever.
     global total_manual_clicks, lifetime_resources_mined_by_click, manual_labor_hit
     state = planet_state[planet]
-    gained = 1 * _yield_multiplier() * _streak_click()
+    gained = 1 * _yield_multiplier() * _streak_click() * anomaly_factor("click")
     state["resource_count"] += gained
     total_manual_clicks += 1
     lifetime_resources_mined_by_click += gained
@@ -3925,7 +3925,7 @@ def _incoming_trade_restore(planet):
         total += count * TRADE_ROUTE_RESTORE_PER_SEC * (TICK_INTERVAL_MS / 1000)
     if mutator_active("one_way_trade"):
         total *= MUTATOR_ONE_WAY_FACTOR
-    return total
+    return total * anomaly_factor("trade")
 
 
 def _simulate_planet(planet, incoming_trade_restore):
@@ -3949,6 +3949,7 @@ def _simulate_planet(planet, incoming_trade_restore):
                 * (TICK_INTERVAL_MS / 1000)
                 * multiplier
                 * _yield_multiplier()
+                * anomaly_factor("produce")
                 * (1 + SPECIALIZATION_OUTPUT_BONUS if spec == "output" else 1)
                 * (1.2 if prestige_has("governors_mandate") and planet != current_planet else 1)
             )
@@ -3966,12 +3967,13 @@ def _simulate_planet(planet, incoming_trade_restore):
         decay *= 0.85
     if mutator_active("thin_atmosphere"):
         decay *= MUTATOR_THIN_DECAY_FACTOR
+    decay *= anomaly_factor("decay")
     spec = _specialization(planet)
     if spec == "output":
         decay *= 1 + SPECIALIZATION_OUTPUT_DECAY_PENALTY
     elif spec == "stability":
         decay *= 1 - SPECIALIZATION_STABILITY_DECAY_CUT
-    restore = state["recycler_count"] * cfg["recycler_restore_per_sec"] * (TICK_INTERVAL_MS / 1000)
+    restore = state["recycler_count"] * cfg["recycler_restore_per_sec"] * (TICK_INTERVAL_MS / 1000) * anomaly_factor("recycle")
     state["ecology_health"] = clamp(
         state["ecology_health"] - decay + restore + incoming_trade_restore, 0.0, ECOLOGY_MAX
     )
@@ -3986,6 +3988,7 @@ def _simulate_planet(planet, incoming_trade_restore):
 def tick(*args):
     global total_ticks
     total_ticks += 1
+    _update_anomaly()
 
     # Trade contributions are computed from pre-tick trade_routes before
     # anything mutates this tick, so every planet's routes are based on
@@ -4020,6 +4023,7 @@ def tick(*args):
     update_epilogue_display()
     update_splits_display()
     update_chains_display()
+    update_anomaly_strip()
     _check_new_achievements_for_toast()
     if total_ticks % 10 == 0:
         _refresh_goals_panel()  # FY-53: once a second is plenty for a progress bar
@@ -4062,6 +4066,8 @@ def _full_render():
     update_epilogue_display()
     update_splits_display()
     update_chains_display()
+    _update_anomaly()
+    update_anomaly_strip()
     render_trophy_shelf()
     render_click_streak()
     _refresh_all_cost_displays()
@@ -4155,6 +4161,7 @@ def serialize_state():
         **({"recent_trophies": list(recent_trophies)} if recent_trophies else {}),
         **({"run_splits": dict(run_splits)} if run_splits else {}),
         **({"pb_splits": dict(pb_splits)} if pb_splits else {}),
+        **({"anomalies_seen": sorted(anomalies_seen)} if anomalies_seen else {}),
         **({"mutators_next": list(mutators_next)} if mutators_next else {}),
         **({"mutators_run": list(mutators_run)} if mutators_run else {}),
     }
@@ -4295,6 +4302,10 @@ def _load_session_additions(data):
         # A save from before the shelf existed: the most recent earned ones, in catalog order.
         recent_trophies.extend(achievement_ids_earned()[-TROPHY_HISTORY_MAX:])
 
+    anomalies_seen.clear()
+    saved_anomalies = data.get("anomalies_seen")
+    if isinstance(saved_anomalies, list):
+        anomalies_seen.update(a for a in saved_anomalies if isinstance(a, str) and a in ANOMALY_BY_ID)
     mutators_next[:] = _clean_mutators(data.get("mutators_next"))
     mutators_run[:] = _clean_mutators(data.get("mutators_run"))
 
@@ -4623,6 +4634,105 @@ def _build_mutator_cards(panel):
             "Picked for next run" if picked else ("Limit reached" if full else "Pick for next run"),
             {"data-action": "mutator", "data-mutator": entry["id"]}, None, selected=picked, disabled=full))
         panel.appendChild(card)
+
+
+# --- A-2 / FY-50: System Anomalies on a fixed schedule ------------------------
+# Plain timed modifiers, never random and never blocking: the run clock
+# (game ticks since this run began, so a pause or a hidden tab adds nothing)
+# starts calm for ANOMALY_FIRST_AT ticks, then one anomaly of ANOMALY_LENGTH ticks
+# opens every ANOMALY_PERIOD ticks, walking the same six in the same order
+# (boon, strain, boon, strain, boon, strain). The forecast strip says what is
+# next and for how long, in words, so nothing is a surprise. Off switch:
+# Settings "Timed anomalies" (`localStorage["sol-anomalies"]`); not applied in the
+# post-win sandbox.
+ANOMALY_FIRST_AT = 3000  # 5 minutes of game time
+ANOMALY_PERIOD = 3000  # one every 5 minutes
+ANOMALY_LENGTH = 600  # lasting 1 minute
+ANOMALY_KEY = "sol-anomalies"
+ANOMALIES = [
+    {"id": "comet_pass", "label": "Comet Pass", "kind": "boon", "effects": {"produce": 1.25},
+     "text": "every Auto-Miner produces 25% more"},
+    {"id": "solar_flare", "label": "Solar Flare", "kind": "strain", "effects": {"decay": 1.5},
+     "text": "ecology decays 50% faster everywhere"},
+    {"id": "meteor_shower", "label": "Meteor Shower", "kind": "boon", "effects": {"click": 2.0},
+     "text": "every hand-mined click gives double"},
+    {"id": "magnetic_storm", "label": "Magnetic Storm", "kind": "strain", "effects": {"trade": 0.5},
+     "text": "trade routes restore half as much ecology"},
+    {"id": "clear_skies", "label": "Clear Skies", "kind": "boon", "effects": {"recycle": 1.5},
+     "text": "Recyclers restore 50% more ecology"},
+    {"id": "dust_cloud", "label": "Dust Cloud", "kind": "strain", "effects": {"terraform": 0.5},
+     "text": "terraforming advances at half speed (it never goes backwards)"},
+]
+ANOMALY_BY_ID = {entry["id"]: entry for entry in ANOMALIES}
+anomalies_seen = set()  # lifetime collection; saved only when non-empty
+_active_anomaly = None  # id of the anomaly in effect this tick, or None
+
+
+def _run_ticks():
+    return max(0, total_ticks - run_start_tick)
+
+
+def anomaly_schedule(run_ticks):
+    """(active_id or None, ticks left in it, next_id, ticks until the next one starts)."""
+    if run_ticks < ANOMALY_FIRST_AT:
+        return None, 0, ANOMALIES[0]["id"], ANOMALY_FIRST_AT - run_ticks
+    index, offset = divmod(run_ticks - ANOMALY_FIRST_AT, ANOMALY_PERIOD)
+    if offset < ANOMALY_LENGTH:
+        nxt = ANOMALIES[(index + 1) % len(ANOMALIES)]["id"]
+        return ANOMALIES[index % len(ANOMALIES)]["id"], ANOMALY_LENGTH - offset, nxt, ANOMALY_PERIOD - offset
+    return None, 0, ANOMALIES[(index + 1) % len(ANOMALIES)]["id"], ANOMALY_PERIOD - offset
+
+
+def _anomalies_enabled():
+    return _setting_on(ANOMALY_KEY) and not _sandbox_active()
+
+
+def _update_anomaly():
+    global _active_anomaly
+    if not _anomalies_enabled():
+        _active_anomaly = None
+        return
+    _active_anomaly = anomaly_schedule(_run_ticks())[0]
+    if _active_anomaly is not None:
+        anomalies_seen.add(_active_anomaly)
+
+
+def anomaly_factor(key):
+    if _active_anomaly is None:
+        return 1.0
+    return ANOMALY_BY_ID[_active_anomaly]["effects"].get(key, 1.0)
+
+
+def _mmss(ticks):
+    seconds = int(math.ceil(ticks * TICK_INTERVAL_MS / 1000))
+    return f"{seconds // 60}:{seconds % 60:02d}"
+
+
+def anomaly_strip_text():
+    """The one-line forecast ("" when anomalies are off)."""
+    if not _anomalies_enabled():
+        return ""
+    active, left, nxt, until = anomaly_schedule(_run_ticks())
+    next_entry = ANOMALY_BY_ID[nxt]
+    if active is not None:
+        entry = ANOMALY_BY_ID[active]
+        mark = "\u25b2 Boon" if entry["kind"] == "boon" else "\u25bc Strain"
+        return (f"{mark}: {entry['label']} for {_mmss(left)} more, {entry['text']}. "
+                f"Next: {next_entry['label']} in {_mmss(until)}.")
+    return (f"Next anomaly: {next_entry['label']} in {_mmss(until)} "
+            f"({'a boon' if next_entry['kind'] == 'boon' else 'a strain'}: {next_entry['text']}, for {_mmss(ANOMALY_LENGTH)}).")
+
+
+def update_anomaly_strip():
+    strip = document.getElementById("anomaly-strip")
+    text = anomaly_strip_text()
+    if strip.innerText != text:
+        strip.innerText = text
+    strip.hidden = not text
+    strip.className = "anomaly-strip" + (
+        " anomaly-strip--boon" if _active_anomaly and ANOMALY_BY_ID[_active_anomaly]["kind"] == "boon"
+        else " anomaly-strip--strain" if _active_anomaly else ""
+    )
 
 
 # --- FY-53: "three goals at all times" (shared/goals-panel.js) ---------------
