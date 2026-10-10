@@ -1,6 +1,6 @@
 # Site-Wide TODO (round 3)
 
-**Progress: 716/1261 items checked off (56.8%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land.
+**Progress: 717/1261 items checked off (56.9%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land.
 
 Built from your answers in `planning/IMPROVEMENT-IDEAS-ROUND-3.md` (Part 4). Every Round 3 section is now answered (2026-10-07 below the Warframe section); earlier this list held only: **GB** (Canopy gamified), **M** (new games), **N** (seasonal events), **O** (Trade Empire and Continuum replayability), **P/Q/S/T** (Signal, Undersleep, Overclock, Last Line open questions), **X** (Warframe tracker) and **R** (returning later). GC-GI, A-L, U, Z and Y are unanswered and wait for you. The previous list is archived at `planning/todo-archive/260914_260927.md`; anything from it that was moved here is marked "moved" there.
 
@@ -277,7 +277,7 @@ You said: do the audio that needs no files for now (sounds made in code with the
 - [x] M-4b-7: Milestone 7, Achievements + story: 14 achievements, panel and toast, regulars, story toggle wiring.
 - [x] M-4b-8: Milestone 8, Own-folder wrap-up: favicon `icons/favicon-pocket-bazaar.svg`, Desktop boot (`pc-config.json`, its own `pc.html`), the game's CLAUDE.md milestone table, dev logs, tag. Everything inside the game folder, so no waiting.
 - [ ] M-4b-9: Milestone 9, Daily Market (optional): date-seeded day, archive, opt-in leaderboard board. Only if FOR-YOU Pb3 says yes.
-- [ ] M-4b-11: Pocket Bazaar tweaks from your answers (2026-10-09): widen the Desktop side column so the counter cells are bigger at 1024x700 (Pb4), make regulars bond faster so level 3 takes about 12 to 14 days (Pb5), keep the phone toolbar below the crates (Pb6, no change).
+- [x] M-4b-11: Pocket Bazaar tweaks from your answers (2026-10-09): widen the Desktop side column so the counter cells are bigger at 1024x700 (Pb4), make regulars bond faster so level 3 takes about 12 to 14 days (Pb5), keep the phone toolbar below the crates (Pb6, no change).
 - [x] M-4b-10: Milestone 10, Hub registration (unblocked 2026-10-09: Noy2 is not running and you approved it; an agent is doing it): root `index.html` title card and tags, `style.css` thumbnail, `script.js` entries, `sw.js` precache (own game files plus `pc.*`) with a `SW_VERSION` bump, `offline-manifest.json`, `game-manifest.json` / `game-added.json` / `game-last-updated.json` / `game-roadmap-data.json` (rerun the scripts), `game-sessions.json`, `achievements.html`, `leaderboards.html` if it has a board, `admin.html`, `shared/site-settings.js`, `sitemap.xml`, `share/meta` and `share/jsonld` cards (`scripts/generate-share-cards.py`), `scripts/perf-budget.json`, the hub regression and smoke tests (`shared/tests/smoke_support.py`, `test_smoke_everything.py`), the root `CLAUDE.md` games table row, and a check that the game works with Noy2's finished save widget and snapshots. Then run the shared test suite and `scripts/generate-pc-pages.py --check`.
 
 **Dead Reckoning** (`planning/dead-reckoning-plan.md`; code in a new `games/dead-reckoning/`; commit + tag each milestone as `dead-reckoning-milestone-0N`; milestones 1-4 ship a complete, playable game)
