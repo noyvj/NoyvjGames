@@ -1,0 +1,41 @@
+# Evidence Hunt
+
+Seed: `planning/evidence-hunt-plan.md` (Quick ideas round D5, TODO QI-29). Personal project, no BCM tag, working title. Built 2026-10-10 by a background agent. Read `BUILD-STATUS.md` here first. SOLO only; co-op by invite code is parked.
+
+## One-line pitch
+A quiet investigator's notebook. Each case is a haunted house drawn as a dark floor plan; you pack a few pieces of equipment, walk the rooms, take readings that come back as text, and deduce which of twelve invented spirit kinds is in the house. A solved case ends with a warm note about who the spirit was.
+
+## Stack
+- Pyodide Python, plain HTML/CSS, no build step. `game.py` is the single engine entry point (`handle(json) -> json`, `get_state()` / `load_state()` for the shared save widget); `app.js` is glue only. No audio, ever.
+- Fiction notice: the spirits, rules and houses are all invented.
+
+## Core constraints (do not violate without asking)
+1. `Case.apply` is a pure function of the case, the state and the action: no clock, no randomness (a test scans the engine).
+2. No timers, energy limits, grinding, loss of progress, roguelike or card mechanics, audio, mandatory leaderboard, jump scares, gore or on-screen harm.
+3. A wrong name is never a dead end: the notebook stays, you can name again, and Restore is free. Seals only rise.
+4. Every authored case must be FAIR (see below), checked by `solver.py` in the tests on every case.
+5. No colour-only encoding: a reading is a word plus a border style, a restless room is a word plus a mark.
+
+## Rules as built (milestone 1)
+- Six evidence (cold, charge, script, lights, prints, glow), each read with one piece of equipment (same index). Twelve kinds in `lexicon.py`, each with exactly 3 evidence and 2 behaviours (tidy, mover, shy, curious, fond = exactly one restless room, roamer = two or more).
+- A `Case` (casework.py) compiles an authored dict (casekit `C`): a house layout (`houses.py`), the sheet (pool), the truth (1 or 2 kinds), restless rooms per presence, room features (each fools one reading), an optional keepsake (masks its room, looking gives one more line of testimony), the kit size and the client's account lines (behaviour, room or None).
+- State tuple: kit bitmask, room, read, trips, wrong, solved, covered, looked, returned, entered bitmask, notes (6 cells per room: 0 unknown, 1 clear, 2 positive, 3 doubtful). Actions: pack, van, go, use, look, accuse, cover, return. Cost = wrong accusations + extra trips; seal 0 Clean, 1-2 Steady, 3+ Rough.
+- FAIR: `solver.analyse` finds every bag of at most `kit` pieces that tells the remaining candidates apart in the restless room(s) (using only readings the features do not spoil). `validate` also needs the true kind to survive the file's own testimony and the answer to be unique once everything is read. `next_action` is the careful plan (enter every room, look at the keepsake, pack the smallest working bag, read, name); a test follows it through every case and expects Clean.
+- Authoring aids in `tools/`: `specs.py` (skeletons), `design.py` (finds a sheet and account), `texts.py` (the words), `build_cases.py` (writes `cases_1..5.py`). The chapter files are plain data and are what the game reads.
+
+## Milestones
+See `planning/evidence-hunt-plan.md` section 8 (the table is copied below and kept current).
+
+| # | Milestone | Content | Status |
+|---|-----------|---------|--------|
+| 1 | Engine | lexicon, houses, case rules, solver, all 40 cases, tests | Done |
+| 2 | Case UI | floor plan, kit, notebook, accuse, restore, save contract, favicon. Playable slice | Planned |
+| 3 | Guide and hints | hint ladder, three-goals strip, field guide, keepsake return | Planned |
+| 4 | Sandbox and finale | seeded codes, generator. First complete game | Planned |
+| 5 | Standard kit | opening screen, tutorial, About with the fiction notice, What's New, keyboard help, confirm dialogs, light theme, accessibility | Planned |
+| 6 | Achievements | 14 achievements, panel, toast, manifest, reachability test | Planned |
+| 7 | Desktop boot | `pc-config.json`, `pc.css`, `pc.js`, generated `pc.html`, docs | Planned |
+
+## Working conventions
+- Commit only this folder and the plan with a pathspec commit, then tag `evidence-hunt-milestone-0N`. Hub registration is a separate later job.
+- Tests: `python3 -m pytest -q games/evidence-hunt`; lint: `python3 -m flake8 --extend-ignore=E501 games/evidence-hunt`. Local Python is 3.9 (Pyodide runs 3.12): no 3.10+ syntax in engine code.
