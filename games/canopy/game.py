@@ -10138,6 +10138,11 @@ def _number_or(value, default, low=0.0, high=None):
     return value if high is None else min(high, value)
 
 
+def resume_note():
+    """QI-58: one plain line for the hub's "Pick up where you stopped" strip (read by shared/last-played.js)."""
+    return f"{len(plots)} plots, forest worth {round(standing_forest_value())}"
+
+
 def get_state():
     return {
         "plots": [

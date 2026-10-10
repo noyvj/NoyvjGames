@@ -306,6 +306,50 @@ function loadLastPlayedBadges() {
 
 loadLastPlayedBadges();
 
+// QI-58: "Pick up where you stopped" -- the three games opened most recently in this browser (last-played:<slug>,
+// within 60 days), each with the one-line note the game left about what you were doing
+// (resume-note:<slug>, written through shared/last-played.js's NoyvjResume; a game that leaves none shows only
+// when you last played). Local to this browser; nothing is sent anywhere.
+const PICKUP_MAX = 3;
+const PICKUP_WINDOW_MS = 60 * 24 * 3600 * 1000;
+function loadPickUpStrip() {
+  const section = document.getElementById("pickup-section");
+  const list = document.getElementById("pickup-list");
+  if (!section || !list) return;
+  const rows = [];
+  document.querySelectorAll(".title-card").forEach((card) => {
+    const slug = card.querySelector(".review-widget")?.dataset.gameSlug;
+    if (!slug) return;
+    let stamp = 0;
+    let note = "";
+    try {
+      stamp = Number(localStorage.getItem("last-played:" + slug)) || 0;
+    } catch (err) {
+      return;
+    }
+    try {
+      const parsed = JSON.parse(localStorage.getItem("resume-note:" + slug) || "null");
+      if (parsed && typeof parsed.text === "string") note = parsed.text.replace(/\s+/g, " ").trim().slice(0, 80);
+    } catch (err) { /* an unreadable note just means no note */ }
+    if (!stamp || Date.now() - stamp > PICKUP_WINDOW_MS) return;
+    rows.push({ card, stamp, note });
+  });
+  rows.sort((a, b) => b.stamp - a.stamp);
+  list.textContent = "";
+  rows.slice(0, PICKUP_MAX).forEach(({ card, stamp, note }) => {
+    const li = document.createElement("li");
+    const link = document.createElement("a");
+    link.className = "continue-playing-item";
+    link.href = card.querySelector(".title-card-link").getAttribute("href");
+    const name = (card.querySelector(".title-card-name")?.textContent || "").trim();
+    link.textContent = `${name}${note ? ` \u2014 ${note}` : ""} (${relativeLastPlayedText(stamp).replace("Last played", "last played")})`;
+    li.appendChild(link);
+    list.appendChild(li);
+  });
+  section.hidden = list.children.length === 0;
+}
+loadPickUpStrip();
+
 // --- Hub lobby search/tag filter (L11/L12) ---
 // Tags are a space-separated `data-tags` attribute on each `.title-card`, also shown as pills. Two axes:
 // subject ("climate", "civilization", "economy", "language-learning", "space") and depth ("quick" for the

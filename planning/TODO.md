@@ -301,7 +301,7 @@ You said yes to every item except F5 (undo button, no). New games below each nee
 - [ ] QI-55: (Quick ideas F7) Strategy notes page per game: the known good builds and strategies written into the game, so you never alt-tab.
 - [ ] QI-56: (Quick ideas F8) Watch mode for city and sim games: the settlement plays itself slowly so you can leave it on a second screen.
 - [ ] QI-57: (Quick ideas F9) A personal stats page: what you play, when, and how long, so you can see your own pattern.
-- [ ] QI-58: (Quick ideas F10) A "pick up where you stopped" strip on the hub that also shows the exact thing you were doing in each game.
+- [ ] QI-58: (Quick ideas F10) A "pick up where you stopped" strip on the hub that also shows the exact thing you were doing in each game. (Built 2026-10-10: the hub strip shows the three most recent games with a one-line note; `shared/last-played.js` gained `NoyvjResume.set(text)` and reads an optional Python `resume_note()` when the page is hidden; Canopy, Tide and Le Champ de Mots define it. The other games still need a `resume_note()` of their own, so the item stays open. 7 browser tests plus one per game.)
 
 ---
 ## N. Seasonal events (redo the list around real big dates)

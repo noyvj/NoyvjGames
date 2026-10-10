@@ -10130,6 +10130,12 @@ def _reset_plot(plot):
     plot.nudged_day = None
 
 
+def resume_note():
+    """QI-58: one plain line for the hub's "Pick up where you stopped" strip (read by shared/last-played.js)."""
+    due = len(state.due_plots())
+    return f"Day {state.current_day}, {due} plot{'s' if due != 1 else ''} ready for water"
+
+
 def get_state():
     # A plot counts as touched once it has been reviewed at all — including a
     # review that went wrong, which leaves streak 0 and stage Seed but a real

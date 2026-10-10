@@ -5748,6 +5748,11 @@ def _tier_first_season_field():
     return {"tier_first_season": first} if first else {}
 
 
+def resume_note():
+    """QI-58: one plain line for the hub's "Pick up where you stopped" strip (read by shared/last-played.js)."""
+    return f"Season {state.season}, funds {round(state.funds)}"
+
+
 def get_state():
     return {
         "season": state.season,
