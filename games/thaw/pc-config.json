@@ -37,6 +37,13 @@
       "label": "📊 Board room"
     },
     {
+      "id": "pc-focus-panel",
+      "title": "Focus view",
+      "members": ["#focus-view"],
+      "group": "Details",
+      "label": "🔍 Focus on one region"
+    },
+    {
       "id": "pc-story-panel",
       "title": "Four regions, one story",
       "members": ["#shared-research"],

@@ -1,6 +1,10 @@
 [
   {
     "date": "2026-10-11",
+    "entry": "New: a Focus view window shows one region at full width: a larger temperature graph with labelled axes and the +10 melt and +15 milestone lines, every readout in one list, and the invest and emergency-rescue buttons right underneath, for Region A, B or C."
+  },
+  {
+    "date": "2026-10-11",
     "entry": "New: a Board room table puts every region side by side: temperature, acceleration, dampening, funds, rounds since the last tipping event and your best degrees saved on this device, each with a small trend line. Click any heading to sort (click again to reverse). Region D joins as a greyed-out last row once you have revealed it."
   },
   {

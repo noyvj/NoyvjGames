@@ -3732,6 +3732,138 @@ def _make_board_sort_handler(key):
     return handler
 
 
+# ===========================================================================
+# G-17: the single-region focus view. One region's graph at full width with axis labels, the
+# melt threshold and the second milestone marked, all its readouts in a list and its lever buttons
+# right underneath, so a long look at one region needs no scrolling between graph and controls.
+# ===========================================================================
+FOCUS_W = 320
+FOCUS_H = 120
+FOCUS_PAD_LEFT = 34
+FOCUS_PAD_BOTTOM = 16
+FOCUS_KEYS = ("a", "b", "c")
+
+
+def _focus_region_for(key):
+    return {"a": region, "b": region_b, "c": region_c}.get(key, region)
+
+
+def _focus_key():
+    key = document.getElementById("focus-region").value
+    return key if key in FOCUS_KEYS else "a"
+
+
+def focus_graph_svg(values, name, key):
+    """A larger, labelled version of the region's temperature line: y labels in the chosen unit,
+    first and last round, the melt threshold and the second milestone as dashed lines."""
+    if len(values) < 2:
+        return ""
+    top = max(max(values), SECOND_WARMING_MILESTONE) * 1.08
+    plot_w = FOCUS_W - FOCUS_PAD_LEFT - 4
+    plot_h = FOCUS_H - FOCUS_PAD_BOTTOM - 4
+
+    def y_of(v):
+        return 4 + plot_h - (v / top) * plot_h
+
+    n = len(values)
+    xs = [FOCUS_PAD_LEFT + i * plot_w / (n - 1) for i in range(n)]
+    points = " ".join(f"{x:.1f},{y_of(v):.1f}" for x, v in zip(xs, values))
+    guides = ""
+    for value, css in ((MELT_THRESHOLD, "focus-guide focus-guide--melt"), (SECOND_WARMING_MILESTONE, "focus-guide focus-guide--second")):
+        y = y_of(value)
+        guides += (
+            f'<line x1="{FOCUS_PAD_LEFT}" y1="{y:.1f}" x2="{FOCUS_W - 4}" y2="{y:.1f}" class="{css}" />'
+            f'<text x="{FOCUS_PAD_LEFT - 3}" y="{y + 3:.1f}" class="focus-tick" text-anchor="end">{deg(value, 0, plus=True)}</text>'
+        )
+    base_y = y_of(0)
+    ticks = (
+        f'<line x1="{FOCUS_PAD_LEFT}" y1="{base_y:.1f}" x2="{FOCUS_W - 4}" y2="{base_y:.1f}" class="focus-axis" />'
+        f'<text x="{FOCUS_PAD_LEFT - 3}" y="{base_y + 3:.1f}" class="focus-tick" text-anchor="end">{deg(0, 0, plus=True)}</text>'
+        f'<text x="{FOCUS_PAD_LEFT}" y="{FOCUS_H - 3}" class="focus-tick" text-anchor="start">R1</text>'
+        f'<text x="{FOCUS_W - 4}" y="{FOCUS_H - 3}" class="focus-tick" text-anchor="end">R{n}</text>'
+    )
+    summary = _escape(graph_summary_text(name, values))
+    end_marker = _graph_end_marker(key, xs[-1], y_of(values[-1]))
+    return (
+        f'<svg viewBox="0 0 {FOCUS_W} {FOCUS_H}" class="focus-graph-svg mini-temp-graph-svg graph-region-{key}" '
+        f'role="img" aria-label="{summary}"><title>{summary}</title>'
+        f"{ticks}{guides}"
+        f'<polyline points="{points}" class="mini-temp-line" />'
+        f"{end_marker}</svg>"
+    )
+
+
+def focus_readouts(r):
+    """The focus list: (label, value) pairs for one region."""
+    status = _melt_status_label(r)
+    rows = [
+        ("Temperature", deg(r.temperature, plus=True)),
+        ("Status", status.capitalize()),
+        ("Funds", f"{r.funds:.0f}"),
+        ("Warming rate", f"{deg(r.current_rise_rate(), 2)}/round ({r.acceleration_factor():.2f}x background)"),
+        ("Feedback dampening", f"{r.feedback_dampening_fraction() * 100:.0f}%"),
+        ("Saved versus no action", deg(max(0.0, r.temperature_saved()))),
+        ("Units", " / ".join(f"{r.capacity[c]} {c}" for c in CATEGORIES)),
+        ("Rounds since a tipping event", str(r.rounds_since_tipping_event) + ("" if r.tipping_events else " (none yet)")),
+    ]
+    rescue = _rescue_status_text(r)
+    if rescue:
+        rows.append(("Emergency rescue", rescue))
+    if r.restored_total > 0:
+        rows.append(("Restoration", f"{deg(r.restored_total)} pulled back so far"))
+    return rows
+
+
+def render_focus():
+    key = _focus_key()
+    r = _focus_region_for(key)
+    name = f"Region {key.upper()}"
+    document.getElementById("focus-graph").innerHTML = focus_graph_svg(r.temperature_history, name, key) or (
+        '<p class="comparison-message">The graph appears after the second round.</p>'
+    )
+    document.getElementById("focus-readouts").innerHTML = "".join(
+        f"<li><span>{_escape(label)}</span><span>{_escape(value)}</span></li>" for label, value in focus_readouts(r)
+    )
+    for category in CATEGORIES:
+        button = document.getElementById(f"focus-invest-{category}")
+        button.innerText = f"{CATEGORY_ICON[category]} {CATEGORY_LABEL[category]} ({INVEST_COST[category]})"
+        button.disabled = r.funds < INVEST_COST[category] or run_over
+    rescue = document.getElementById("focus-rescue-button")
+    rescue.hidden = not (r.is_critical() and not r.rescue_used)
+    rescue.disabled = not r.can_rescue()
+    rescue.innerText = f"\U0001F6DF Emergency rescue ({RESCUE_COST:.0f})"
+    document.getElementById("focus-title").innerText = f"{name}: {REGION_FLAVOR_FOR_FOCUS[key]}"
+
+
+REGION_FLAVOR_FOR_FOCUS = {
+    "a": "high-arctic peatland, your home region",
+    "b": REGION_FLAVOR["b"].split(" \u2014 ")[0].lower(),
+    "c": REGION_FLAVOR["c"].split(" \u2014 ")[0].lower(),
+}
+
+
+def on_focus_region_change(event=None):
+    render_focus()
+
+
+def _make_focus_invest_handler(category):
+    def handler(event=None):
+        if run_over:
+            return
+        _focus_region_for(_focus_key()).invest(category)
+        render()
+        _check_new_achievements_for_toast()
+    return handler
+
+
+def on_focus_rescue(event=None):
+    r = _focus_region_for(_focus_key())
+    if r.rescue():
+        _log_action(_focus_key().upper(), "the one-time emergency rescue was used.")
+        render()
+        _check_new_achievements_for_toast()
+
+
 def render():
     render_info_page()
     document.getElementById("round-display").innerText = f"Round {region.round_number}"
@@ -3957,6 +4089,7 @@ def render():
     _maybe_update_personal_best()
     _maybe_update_climate_archive()
     render_board()  # after the archive update so "best saved" is current
+    render_focus()
     render_personal_best()
     render_climate_archive()
     update_achievements_display()
@@ -4424,6 +4557,12 @@ def setup():
     )
     for name in LOG_FILTERS:
         document.getElementById(f"log-filter-{name}").addEventListener("click", create_proxy(on_log_filter(name)))
+    document.getElementById("focus-region").addEventListener("change", create_proxy(on_focus_region_change))
+    for category in CATEGORIES:
+        document.getElementById(f"focus-invest-{category}").addEventListener(
+            "click", create_proxy(_make_focus_invest_handler(category))
+        )
+    document.getElementById("focus-rescue-button").addEventListener("click", create_proxy(on_focus_rescue))
     for key, _label in BOARD_COLUMNS:
         document.getElementById(f"board-sort-{key}").addEventListener(
             "click", create_proxy(_make_board_sort_handler(key))

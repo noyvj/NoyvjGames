@@ -515,6 +515,27 @@
       </div>
     </details>
 
+    <!-- G-17: one region at full width with its levers underneath (see game.py). -->
+    <details id="focus-view" class="section tool-section">
+      <summary>🔍 Focus view: one region, full width</summary>
+      <label class="rate-inspector-label" for="focus-region">Region
+        <select id="focus-region">
+          <option value="a">A</option>
+          <option value="b">B</option>
+          <option value="c">C</option>
+        </select>
+      </label>
+      <p id="focus-title" class="comparison-message"></p>
+      <div id="focus-graph" class="focus-graph"></div>
+      <ul id="focus-readouts" class="focus-readouts"></ul>
+      <div class="focus-levers">
+        <button type="button" id="focus-invest-output" class="secondary" disabled>Output</button>
+        <button type="button" id="focus-invest-preserve" class="secondary" disabled>Preservation</button>
+        <button type="button" id="focus-invest-monitor" class="secondary" disabled>Monitoring</button>
+        <button type="button" id="focus-rescue-button" class="secondary rescue-button" hidden>Emergency rescue</button>
+      </div>
+    </details>
+
     <div id="worst-case-section" class="section">
       <button id="worst-case-toggle-button" class="secondary" type="button">Loading...</button>
       <div id="worst-case-panel" class="worst-case-panel" hidden>

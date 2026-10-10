@@ -1364,3 +1364,16 @@ html[data-lite="true"] .achievement-card--earned { box-shadow: none; }
 .board-spark { width: 4.5rem; height: 1.2rem; display: block; }
 .board-spark-line { fill: none; stroke: #8fd8ff; stroke-width: 1.5; vector-effect: non-scaling-stroke; }
 .board-nospark { font-size: 0.7rem; opacity: 0.6; }
+
+/* G-17: single-region focus view */
+.focus-graph { margin: 0.5rem 0; }
+.focus-graph-svg { width: 100%; height: auto; max-height: 15rem; }
+.focus-tick { font-size: 7px; fill: currentColor; opacity: 0.75; }
+.focus-axis { stroke: currentColor; stroke-width: 0.6; opacity: 0.4; }
+.focus-guide { stroke: currentColor; stroke-width: 0.6; stroke-dasharray: 3 2; opacity: 0.45; }
+.focus-guide--second { stroke-dasharray: 1 2; }
+.focus-readouts { list-style: none; margin: 0 0 0.6rem; padding: 0; display: grid; gap: 0.15rem; font-size: 0.85rem; }
+.focus-readouts li { display: flex; justify-content: space-between; gap: 0.75rem; padding: 0.2rem 0.5rem; border-radius: 6px; background: rgba(120, 160, 215, 0.1); }
+.focus-readouts li span:last-child { text-align: right; font-variant-numeric: tabular-nums; }
+.focus-levers { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+.focus-levers button[hidden] { display: none; }
