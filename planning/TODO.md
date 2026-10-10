@@ -1,6 +1,6 @@
 # Site-Wide TODO (round 3)
 
-**Progress: 730/1261 items checked off (57.9%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land.
+**Progress: 735/1261 items checked off (58.3%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land.
 
 Built from your answers in `planning/IMPROVEMENT-IDEAS-ROUND-3.md` (Part 4). Every Round 3 section is now answered (2026-10-07 below the Warframe section); earlier this list held only: **GB** (Canopy gamified), **M** (new games), **N** (seasonal events), **O** (Trade Empire and Continuum replayability), **P/Q/S/T** (Signal, Undersleep, Overclock, Last Line open questions), **X** (Warframe tracker) and **R** (returning later). GC-GI, A-L, U, Z and Y are unanswered and wait for you. The previous list is archived at `planning/todo-archive/260914_260927.md`; anything from it that was moved here is marked "moved" there.
 
@@ -201,12 +201,12 @@ Yes answers mean the recommendation; items below are the work they create.
 - [x] AN-4: Robot Script: bring turning (`L R`) in from room 4 of chapter 1 (Rs4).
 - [x] AN-5: Robot Script: open every room from the start instead of gating chapters at 5 of 7 cleared (Rs5).
 **Station Medic:** keep the rule-out dimming, borrow and comfort care, the names and the crew's flaws (Sm1 to Sm5).
-- [ ] AN-6: Station Medic: open every chapter from the start instead of gating at 5 of 8 shifts (Sm6); a Rough shift still counts (Sm2).
+- [x] AN-6: Station Medic: open every chapter from the start instead of gating at 5 of 8 shifts (Sm6); a Rough shift still counts (Sm2).
 **Stranded:** keep the locks with visible reasons, the names and the Pavel twist (Sd3 to Sd5).
-- [ ] AN-7: Stranded: make one message per tap the default (Sd1).
-- [ ] AN-8: Stranded: give Harbour a small real flaw that shapes a few choices (Sd2).
-- [ ] AN-9: Stranded: add one more ending that is sadder but still gentle, with no on-screen death (Sd6).
-- [ ] AN-10: Stranded (and the other story games): keep narration silent and in text only; any per-day narrator intro stays off by default (Pq6: no voiced narrator unless real voice acting is ever wanted).
+- [x] AN-7: Stranded: make one message per tap the default (Sd1).
+- [x] AN-8: Stranded: give Harbour a small real flaw that shapes a few choices (Sd2).
+- [x] AN-9: Stranded: add one more ending that is sadder but still gentle, with no on-screen death (Sd6).
+- [x] AN-10: Stranded (and the other story games): keep narration silent and in text only; any per-day narrator intro stays off by default (Pq6: no voiced narrator unless real voice acting is ever wanted).
 **Cross-game patterns you agreed to:**
 - [ ] AN-11: Signal: the daily puzzle has no streak by default; the archive stays so missing a day costs nothing (Pq1).
 - [ ] AN-12: Every hint ladder: each rung opens only when you press "Another hint", and the first rung asks "Would you like a suggestion?" (Pq2).
