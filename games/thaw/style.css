@@ -1302,7 +1302,7 @@ html[data-high-contrast="true"][data-theme="light"] button { background: #fff; c
 .achievement-card-label { margin: 0 0 0.2rem; font-weight: 600; font-size: 0.9rem; }
 .achievement-card-description { margin: 0; font-size: 0.8rem; opacity: 0.8; }
 .achievement-card-progress { margin: 0.35rem 0 0.2rem; font-size: 0.75rem; opacity: 0.85; }
-.achievement-card-bar { height: 6px; border-radius: 3px; background: rgba(140, 180, 230, 0.18); overflow: hidden; }
+.achievement-card-bar { height: 6px; border-radius: 3px; background: rgba(120, 160, 215, 0.32); overflow: hidden; }
 .achievement-card-bar-fill { height: 100%; background: linear-gradient(90deg, #6fb8e8, #bfe8ff); border-radius: 3px; }
 .achievements-hub-link { grid-column: 1 / -1; font-size: 0.8rem; }
 @keyframes achievement-frost-in {
@@ -1351,3 +1351,16 @@ html[data-lite="true"] .achievement-card--earned { box-shadow: none; }
 .log-pin-button[aria-pressed="true"] { opacity: 1; }
 .log-pin-button[aria-pressed="true"]::before { content: "\1F4CC"; }
 .log-empty::before { content: attr(data-empty); opacity: 0.7; }
+
+/* G-12: board-room table */
+.tool-section > summary { cursor: pointer; font-weight: 600; font-size: 0.9rem; }
+.board-scroll { overflow-x: auto; margin-top: 0.5rem; }
+.board-table { width: 100%; border-collapse: collapse; font-size: 0.8rem; font-variant-numeric: tabular-nums; }
+.board-table th, .board-table td { padding: 0.3rem 0.45rem; text-align: left; border-bottom: 1px solid rgba(140, 180, 230, 0.18); white-space: nowrap; }
+.board-table tbody th { font-weight: 600; }
+.board-sort { padding: 0; border: 0; background: none; color: inherit; font: inherit; font-weight: 600; cursor: pointer; text-decoration: underline dotted; }
+.board-sort--on { text-decoration: none; color: #8fd8ff; }
+.board-row--grey { opacity: 0.55; font-style: italic; }
+.board-spark { width: 4.5rem; height: 1.2rem; display: block; }
+.board-spark-line { fill: none; stroke: #8fd8ff; stroke-width: 1.5; vector-effect: non-scaling-stroke; }
+.board-nospark { font-size: 0.7rem; opacity: 0.6; }

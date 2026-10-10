@@ -139,6 +139,22 @@ ELEMENT_IDS = [
     "log-export-button",
     "log-pin-note",
     "log-status",
+    "board-body",
+    "board-caption",
+    "board-th-region",
+    "board-sort-region",
+    "board-th-temp",
+    "board-sort-temp",
+    "board-th-accel",
+    "board-sort-accel",
+    "board-th-damp",
+    "board-sort-damp",
+    "board-th-funds",
+    "board-sort-funds",
+    "board-th-since",
+    "board-sort-since",
+    "board-th-best",
+    "board-sort-best",
 ]
 for _category in CATEGORIES:
     ELEMENT_IDS += [f"{_category}-name", f"{_category}-count", f"{_category}-invest-button"]

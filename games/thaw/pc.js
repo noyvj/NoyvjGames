@@ -66,3 +66,9 @@ document.addEventListener("keydown", (e) => {
   const help = document.getElementById("kb-shortcuts-panel");
   if (help && !help.hidden) e.__pcMenuOpened = true;
 }, true);
+
+// The Classic page keeps the tool sections (board room, planner, ...) as collapsed <details>; in a
+// Desktop window the window title already names them, so open them once the shell has built the windows.
+window.addEventListener("load", () => {
+  document.querySelectorAll(".pc-composite details.tool-section").forEach((d) => { d.open = true; });
+});

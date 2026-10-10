@@ -3600,6 +3600,138 @@ def session_note_text():
     return text
 
 
+# ===========================================================================
+# G-12: the board-room table. All four regions in one sortable table: temperature, acceleration,
+# dampening, funds, rounds since the last tipping event and the best degrees saved ever recorded on
+# this device, each row with a small temperature sparkline. Region D is a greyed row at the bottom
+# (only once its reveal button has been used, like everywhere else) and is never part of the sort.
+# ===========================================================================
+BOARD_COLUMNS = (
+    ("region", "Region"),
+    ("temp", "Temperature"),
+    ("accel", "Acceleration"),
+    ("damp", "Dampening"),
+    ("funds", "Funds"),
+    ("since", "Rounds since tipping"),
+    ("best", "Best saved"),
+)
+board_sort = "region"
+board_descending = False
+TINY_WIDTH = 60
+TINY_HEIGHT = 16
+
+
+def board_rows():
+    """One dict per region (A, B, C, then D when revealed) with raw sortable values and display text."""
+    rows = []
+    regions = [("A", region), ("B", region_b), ("C", region_c)]
+    if worst_case_region_revealed:
+        regions.append(("D", region_d))
+    for label, r in regions:
+        managed = label != "D"
+        best = climate_archive[label]["best_saved"] if managed else None
+        rows.append({
+            "label": label,
+            "managed": managed,
+            "region": label,
+            "temp": r.temperature,
+            "accel": r.acceleration_factor(),
+            "damp": r.feedback_dampening_fraction(),
+            "funds": r.funds,
+            "since": r.rounds_since_tipping_event,
+            "best": best,
+            "history": list(r.temperature_history),
+            "text": {
+                "region": f"Region {label}" + ("" if managed else " (worst case)"),
+                "temp": deg(r.temperature, plus=True),
+                "accel": f"{r.acceleration_factor():.2f}x",
+                "damp": f"{r.feedback_dampening_fraction() * 100:.0f}%",
+                "funds": f"{r.funds:.0f}",
+                "since": str(r.rounds_since_tipping_event) + ("" if r.tipping_events else " (none yet)"),
+                "best": deg(best) if best is not None else "\u2014",
+            },
+        })
+    return rows
+
+
+def sorted_board_rows():
+    """Managed regions sorted by the chosen column (ties keep A, B, C order); D always last."""
+    rows = board_rows()
+    managed = [row for row in rows if row["managed"]]
+    managed.sort(key=lambda row: row[board_sort], reverse=board_descending)
+    return managed + [row for row in rows if not row["managed"]]
+
+
+def set_board_sort(key):
+    """Picks a column; picking the current one again flips the direction. Returns True if valid."""
+    global board_sort, board_descending
+    if key not in dict(BOARD_COLUMNS):
+        return False
+    if key == board_sort:
+        board_descending = not board_descending
+    else:
+        board_sort, board_descending = key, False
+    return True
+
+
+def tiny_line_svg(values, label):
+    """A small, axis-free temperature line for a table row (no marker, no threshold)."""
+    if len(values) < 2:
+        return ""
+    lo, hi = min(values), max(values)
+    span = hi - lo
+    ys = [TINY_HEIGHT / 2 if span < 1e-9 else TINY_HEIGHT - 1 - ((v - lo) / span) * (TINY_HEIGHT - 2) for v in values]
+    xs = [i * (TINY_WIDTH / (len(values) - 1)) for i in range(len(values))]
+    points = " ".join(f"{x:.1f},{y:.1f}" for x, y in zip(xs, ys))
+    return (
+        f'<svg viewBox="0 0 {TINY_WIDTH} {TINY_HEIGHT}" class="board-spark" role="img" aria-label="{_escape(label)}">'
+        f'<polyline points="{points}" class="board-spark-line" /></svg>'
+    )
+
+
+def board_html():
+    parts = []
+    for row in sorted_board_rows():
+        cells = [f'<th scope="row">{_escape(row["text"]["region"])}</th>']
+        for key, _label in BOARD_COLUMNS[1:]:
+            cells.append(f"<td>{_escape(row['text'][key])}</td>")
+        spark = tiny_line_svg(
+            row["history"], graph_summary_text(f"Region {row['label']}", row["history"])
+        ) or '<span class="board-nospark">after round 2</span>'
+        cells.append(f"<td>{spark}</td>")
+        parts.append(f'<tr class="{"board-row" if row["managed"] else "board-row board-row--grey"}">{"".join(cells)}</tr>')
+    return "".join(parts)
+
+
+def render_board():
+    direction = "descending" if board_descending else "ascending"
+    for key, label in BOARD_COLUMNS:
+        th = document.getElementById(f"board-th-{key}")
+        button = document.getElementById(f"board-sort-{key}")
+        if key == board_sort:
+            th.setAttribute("aria-sort", direction)
+            arrow = "\u25BC" if board_descending else "\u25B2"
+            button.innerText = f"{label} {arrow}"
+            button.className = "board-sort board-sort--on"
+        else:
+            th.setAttribute("aria-sort", "none")
+            button.innerText = label
+            button.className = "board-sort"
+    document.getElementById("board-body").innerHTML = board_html()
+    document.getElementById("board-caption").innerText = (
+        f"Sorted by {dict(BOARD_COLUMNS)[board_sort].lower()}, {direction}. Click a heading to re-sort; "
+        f"click it again to reverse."
+        + ("" if worst_case_region_revealed else " Region D joins the table, greyed out, once you reveal it.")
+    )
+
+
+def _make_board_sort_handler(key):
+    def handler(event=None):
+        if set_board_sort(key):
+            render_board()
+    return handler
+
+
 def render():
     render_info_page()
     document.getElementById("round-display").innerText = f"Round {region.round_number}"
@@ -3824,6 +3956,7 @@ def render():
 
     _maybe_update_personal_best()
     _maybe_update_climate_archive()
+    render_board()  # after the archive update so "best saved" is current
     render_personal_best()
     render_climate_archive()
     update_achievements_display()
@@ -4291,6 +4424,10 @@ def setup():
     )
     for name in LOG_FILTERS:
         document.getElementById(f"log-filter-{name}").addEventListener("click", create_proxy(on_log_filter(name)))
+    for key, _label in BOARD_COLUMNS:
+        document.getElementById(f"board-sort-{key}").addEventListener(
+            "click", create_proxy(_make_board_sort_handler(key))
+        )
     document.getElementById("log-search").addEventListener("input", create_proxy(on_log_search))
     document.getElementById("log-export-button").addEventListener("click", create_proxy(on_copy_log))
     document.getElementById("science-log-list").addEventListener("click", create_proxy(on_log_list_click))

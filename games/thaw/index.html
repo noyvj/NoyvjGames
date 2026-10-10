@@ -494,6 +494,27 @@
       <span id="best-region-hidden" hidden></span>
     </div>
 
+    <!-- G-12: all regions in one sortable table (see game.py). -->
+    <details id="board-room" class="section tool-section">
+      <summary>📊 Board room: all regions side by side</summary>
+      <p id="board-caption" class="comparison-message"></p>
+      <div class="board-scroll">
+        <table id="board-table" class="board-table">
+          <thead><tr>
+          <th scope="col" id="board-th-region" aria-sort="none"><button type="button" id="board-sort-region" class="board-sort">Region</button></th>
+          <th scope="col" id="board-th-temp" aria-sort="none"><button type="button" id="board-sort-temp" class="board-sort">Temperature</button></th>
+          <th scope="col" id="board-th-accel" aria-sort="none"><button type="button" id="board-sort-accel" class="board-sort">Acceleration</button></th>
+          <th scope="col" id="board-th-damp" aria-sort="none"><button type="button" id="board-sort-damp" class="board-sort">Dampening</button></th>
+          <th scope="col" id="board-th-funds" aria-sort="none"><button type="button" id="board-sort-funds" class="board-sort">Funds</button></th>
+          <th scope="col" id="board-th-since" aria-sort="none"><button type="button" id="board-sort-since" class="board-sort">Rounds since tipping</button></th>
+          <th scope="col" id="board-th-best" aria-sort="none"><button type="button" id="board-sort-best" class="board-sort">Best saved</button></th>
+          <th scope="col">Trend</th>
+          </tr></thead>
+          <tbody id="board-body"></tbody>
+        </table>
+      </div>
+    </details>
+
     <div id="worst-case-section" class="section">
       <button id="worst-case-toggle-button" class="secondary" type="button">Loading...</button>
       <div id="worst-case-panel" class="worst-case-panel" hidden>

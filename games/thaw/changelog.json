@@ -1,6 +1,10 @@
 [
   {
     "date": "2026-10-11",
+    "entry": "New: a Board room table puts every region side by side: temperature, acceleration, dampening, funds, rounds since the last tipping event and your best degrees saved on this device, each with a small trend line. Click any heading to sort (click again to reverse). Region D joins as a greyed-out last row once you have revealed it."
+  },
+  {
+    "date": "2026-10-11",
     "entry": "The scientist's log has filter chips (All, Tipping, Milestones, Invest, Pinned), a search box and a Copy log as text button. You can pin up to ten lines with the pin icon: pinned lines never scroll off the 40-line log and are repeated under the Highlights recap. Rescues, carbon-bank grants and convoys now write a line in the log too."
   },
   {
