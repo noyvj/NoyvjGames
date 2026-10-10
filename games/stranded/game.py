@@ -258,7 +258,7 @@ class Game:
                     "scene": scene["id"], "title": scene["title"], "flags": list(self.state[2])},
             "stats": self._stats(), "choices": self._choices(), "transcript": self._transcript(),
             "ending": ({"id": scene["end"], "title": scene["title"]} if scene["end"] else None),
-            "art": render.scene(scene["day"], self.state[2], scene["id"]), "peek": {"open": peek["open"], "need": peek["need"], "showing": showing, "rows": peek["rows"] if showing else []},
+            "art": render.scene(scene["day"], self.state[2], scene["id"]), "portrait": render.ines(), "peek": {"open": peek["open"], "need": peek["need"], "showing": showing, "rows": peek["rows"] if showing else []},
             "progress": {"scenes": [len(self.seen), len(story.SCENES)], "tried": [len(self.taken), len(story.EDGES)],
                          "endings": [len(self.endings), len(story.ENDING_IDS)], "archive": [len(self.found), len(lore.COLLECT)],
                          "percent": int(100 * done / TOTAL_THINGS)},

@@ -1,0 +1,84 @@
+"""The page is plain files with no build step, so the easy mistakes are a module the page forgets to load or an id
+the script expects that the HTML lacks. Catch both here."""
+
+import re
+from pathlib import Path
+
+GAME_DIR = Path(__file__).resolve().parent.parent
+HTML = (GAME_DIR / "index.html").read_text(encoding="utf-8")
+APP = (GAME_DIR / "app.js").read_text(encoding="utf-8")
+DEV_ONLY = {"game"}                                    # the entry point is run last
+LOCAL = {p.stem for p in GAME_DIR.glob("*.py") if p.stem not in DEV_ONLY}
+
+
+def _module_list():
+    block = APP.split("ENGINE_MODULES = [")[1].split("]")[0]
+    return re.findall(r'"([a-z_0-9]+)\.py"', block)
+
+
+def test_the_page_loads_every_engine_module_and_no_stray_ones():
+    listed = set(_module_list())
+    assert listed == LOCAL, f"app.js loads {sorted(listed)}, engine modules are {sorted(LOCAL)}"
+
+
+def test_every_local_import_is_loaded_before_the_module_that_needs_it():
+    order = _module_list()
+    for path in GAME_DIR.glob("*.py"):
+        if path.stem in DEV_ONLY:
+            continue
+        for imported in re.findall(r"^(?:from|import)\s+([a-z_0-9]+)", path.read_text(encoding="utf-8"), flags=re.M):
+            if imported in LOCAL:
+                assert order.index(imported) < order.index(path.stem), f"{path.name} imports {imported}"
+
+
+def test_game_py_imports_only_loaded_modules():
+    for imported in re.findall(r"^(?:from|import)\s+([a-z_0-9]+)", (GAME_DIR / "game.py").read_text(encoding="utf-8"), flags=re.M):
+        if imported in LOCAL:
+            assert imported in _module_list()
+
+
+def test_every_id_app_js_uses_exists_in_the_page():
+    ids = set(re.findall(r'(?<![-\w])id="([^"]+)"', HTML))
+    used = set(re.findall(r'\$\("([^"]+)"\)', APP))
+    assert used, "expected $('id') lookups"
+    dynamic = {"stat-" + n + suffix for n in ("trust", "supplies", "hope") for suffix in ("", "-value", "-word", "-fill")}
+    assert used - dynamic <= ids, f"app.js uses ids the page lacks: {sorted(used - dynamic - ids)}"
+    assert dynamic <= ids
+
+
+def test_ids_in_the_page_are_unique():
+    ids = re.findall(r'(?<![-\w])id="([^"]+)"', HTML)
+    assert len(ids) == len(set(ids))
+
+
+def test_shared_head_includes_keep_the_site_wide_order():
+    head = HTML[: HTML.index("</head>")]
+    order = ["shared/theme.js", "shared/lite-mode.js", "shared/error-boundary.js", "shared/perf-mark.js", "shared/site-settings.js"]
+    positions = [head.index(name) for name in order]
+    assert positions == sorted(positions)
+    assert head.rstrip().endswith('lite-mode.css">')
+    assert 'data-game-id="stranded"' in head
+
+
+def test_every_file_the_page_links_exists():
+    for ref in re.findall(r'(?:src|href)="((?!https?:|#)[^"]+)"', HTML):
+        assert (GAME_DIR / ref).resolve().exists(), ref
+
+
+def test_the_favicon_is_inside_this_games_own_folder_and_is_code_drawn_svg():
+    assert 'href="icons/favicon-stranded.svg"' in HTML
+    svg = (GAME_DIR / "icons" / "favicon-stranded.svg").read_text(encoding="utf-8")
+    assert svg.startswith("<svg") and "<image" not in svg and "base64" not in svg
+
+
+def test_shared_includes_are_in_the_standard_order_after_the_page_scripts():
+    tail = HTML[HTML.index("pyodide.js"):]
+    order = ["shared/tutorial.js", "shared/hub-auth.js", "shared/save-widget.js", "shared/opening-screen.js", "shared/story-toggle.js",
+             "shared/confirm-dialog.js", 'src="app.js"', "shared/last-played.js", "shared/whats-new-banner.js", "shared/keyboard-shortcuts.js"]
+    positions = [tail.index(name) for name in order]
+    assert positions == sorted(positions)
+
+
+def test_the_narrator_is_covered_by_the_story_toggle_and_nothing_needed_to_play_is():
+    assert 'data-story-selectors=".narrator"' in HTML
+    assert 'el("div", "narrator"' in APP and '"msg ines"' in APP
