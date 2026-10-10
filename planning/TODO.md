@@ -1,6 +1,6 @@
 # Site-Wide TODO (round 3)
 
-**Progress: 706/1238 items checked off (57.0%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land.
+**Progress: 708/1238 items checked off (57.2%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land.
 
 Built from your answers in `planning/IMPROVEMENT-IDEAS-ROUND-3.md` (Part 4). Every Round 3 section is now answered (2026-10-07 below the Warframe section); earlier this list held only: **GB** (Canopy gamified), **M** (new games), **N** (seasonal events), **O** (Trade Empire and Continuum replayability), **P/Q/S/T** (Signal, Undersleep, Overclock, Last Line open questions), **X** (Warframe tracker) and **R** (returning later). GC-GI, A-L, U, Z and Y are unanswered and wait for you. The previous list is archived at `planning/todo-archive/260914_260927.md`; anything from it that was moved here is marked "moved" there.
 
@@ -169,8 +169,8 @@ Many games now carry lots of modes and levels, so the first load keeps growing. 
 ## GN. Your game notes (from the Game notes round on the ideas page, 2026-10-10)
 
 Bugs first (user-reported problems are fixed regardless of the QA rule), then questions, then ideas.
-- [ ] GN-1: Canopy bug: achievements seem to reset whenever you start a new level. Reproduce, find the cause (the per-level state versus `achievements_earned`) and fix it so achievements are kept for the whole game, with a regression test.
-- [ ] GN-2: Canopy: the achievements panel only shows what you earned on the level you are on; it should show the whole game's achievements and which are earned.
+- [x] GN-1: Canopy bug: achievements seem to reset whenever you start a new level. Reproduce, find the cause (the per-level state versus `achievements_earned`) and fix it so achievements are kept for the whole game, with a regression test.
+- [x] GN-2: Canopy: the achievements panel only shows what you earned on the level you are on; it should show the whole game's achievements and which are earned.
 - [ ] GN-3: Canopy: add a "Next level" button next to "Leave level" when a level is finished.
 - [ ] GN-4: Canopy: the badge frame squishes the map so it is smaller and harder to see; find a better place for it (for example beside the map on wide windows, or in the achievements panel).
 - [ ] GN-5: Logic Gates: par is not displayed in the Desktop view; show it there as on the Classic page.
