@@ -128,6 +128,7 @@ ELEMENT_IDS = [
     "planner-panel",
     "planner-date-input",
     "planner-clear-button",
+    "planner-default-button",
     "planner-minutes-input",
     "planner-minutes-label",
     "planner-summary",
@@ -266,6 +267,24 @@ ELEMENT_IDS = [
     "quick-water-button",
     "sentence-builder-button",
     "conversation-button",
+    "formats-button",
+    "growth-marker-formats",
+    "formats-panel",
+    "formats-progress",
+    "formats-picker",
+    "formats-card",
+    "formats-instruction",
+    "formats-context",
+    "formats-clock",
+    "formats-prompt",
+    "formats-choices",
+    "formats-typed-row",
+    "formats-input",
+    "formats-submit-button",
+    "formats-feedback",
+    "formats-next-button",
+    "formats-summary",
+    "formats-close-button",
     "listening-button",
     "listening-panel",
     "listening-progress",
@@ -578,7 +597,7 @@ def _remove_pyodide_fakes():
     # alive across every test in this file, silently leaking state from one
     # test's farm into the next. Popping it here gives every test a
     # genuinely fresh minigames module, exactly like "game" already gets.
-    for name in ("js", "pyodide", "pyodide.ffi", "game", "minigames"):
+    for name in ("js", "pyodide", "pyodide.ffi", "game", "minigames", "formats"):
         sys.modules.pop(name, None)
 
 

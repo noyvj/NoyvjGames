@@ -222,6 +222,7 @@
           <input type="date" id="planner-date-input" class="planner-date">
         </label>
         <button id="planner-clear-button" class="secondary" type="button">Clear date</button>
+        <button id="planner-default-button" class="secondary" type="button">Use the exam date from the subject outline</button>
       </div>
       <div class="planner-row">
         <label class="planner-field" for="planner-minutes-input">What if I study
@@ -579,6 +580,7 @@
         <button id="shop-toggle-button" class="secondary" type="button" title="Spend the coins you earn from watering on cosmetic plot skins. Skins only change how the plots are framed.">🪙 Farm shop</button>
         <button id="quick-water-button" class="secondary" title="One question on your most overdue plot: the quickest way to water something during a short break.">💧 Quick water</button>
         <button id="sentence-builder-button" class="secondary" title="Build French sentences from word tiles, from any week you have unlocked. Open it any time.">🧩 Sentence builder</button>
+        <button id="formats-button" class="secondary" title="Exam formats from the tutorials: clock reading, true or false, rewriting a sentence, answering with a pronoun, reciprocal pronouns and pair questions.">📝 Exam formats</button>
         <button id="conversation-button" class="secondary" title="A short scripted exchange: pick the French line that fits each turn. Opens once the weeks whose phrases it uses are unlocked.">💬 Conversation</button>
         <button id="listening-button" class="secondary" title="Hear a French sentence read aloud and pick what it means. Uses your browser's own voices, so it needs speech synthesis.">🎧 Listening</button>
         <button id="placement-button" class="secondary" title="Already know some French? Take a short mixed test that samples every stretch of the course and lets you skip the weeks you know. Opt-in; it never lowers or removes anything you have grown.">🎯 Placement test</button>
@@ -879,6 +881,28 @@
       <button id="conversation-close-button" class="secondary practice-close">Close</button>
     </div>
 
+    <div id="formats-panel" class="section practice" hidden>
+      <p id="growth-marker-formats" class="growth-marker"></p>
+      <div class="panel-hero panel-hero--bonus" aria-hidden="true">📝</div>
+      <p id="formats-progress" class="practice-context"></p>
+      <div id="formats-picker" class="bonus-tile-row" role="group" aria-label="Exam format"></div>
+      <div id="formats-card" class="question-card" hidden>
+        <p id="formats-instruction" class="practice-instruction"></p>
+        <p id="formats-context" class="practice-context"></p>
+        <div id="formats-clock" class="formats-clock-box"></div>
+        <p id="formats-prompt" class="practice-prompt"></p>
+        <div id="formats-choices" class="bonus-tile-row"></div>
+        <div id="formats-typed-row" class="practice-typed-row" hidden>
+          <input id="formats-input" class="practice-input" type="text" autocomplete="off" aria-label="Your answer">
+          <button id="formats-submit-button" class="primary" type="button">Check</button>
+        </div>
+        <p id="formats-feedback" class="practice-feedback"></p>
+        <button id="formats-next-button" class="secondary" hidden>Next</button>
+      </div>
+      <p id="formats-summary" class="practice-feedback" hidden></p>
+      <button id="formats-close-button" class="secondary practice-close">Close</button>
+    </div>
+
     <div id="builder-panel" class="section practice" hidden>
       <p id="growth-marker-builder" class="growth-marker"></p>
       <div class="panel-hero panel-hero--bonus" aria-hidden="true">🧩</div>
@@ -1144,6 +1168,7 @@
         achievementsJson,
         changelogJson,
         minigamesCode,
+        formatsCode,
         narrativeLogCode,
         code,
       ] = await Promise.all([
@@ -1152,6 +1177,7 @@
         fetch("achievements.json").then((response) => response.text()),
         fetch("changelog.json").then((response) => response.text()),
         fetch("minigames.py").then((response) => response.text()),
+        fetch("formats.py").then((response) => response.text()),
         // Shared narrative-log widget (Z11, see shared/narrative_log.py):
         // this game's "My Reports" panel is the third integration, after
         // Continuum's own Chronicle and Thaw's scientist's log. Written
@@ -1177,6 +1203,7 @@
       // the browser, the same way it already resolves under pytest via a
       // real file on disk.
       pyodide.FS.writeFile("minigames.py", minigamesCode);
+      pyodide.FS.writeFile("formats.py", formatsCode);
       pyodide.FS.writeFile("narrative_log.py", narrativeLogCode);
       await pyodide.runPythonAsync(code);
 

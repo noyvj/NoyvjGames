@@ -1,6 +1,6 @@
 # Site-Wide TODO (round 3)
 
-**Progress: 677/1221 items checked off (55.4%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land.
+**Progress: 685/1221 items checked off (56.1%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land.
 
 Built from your answers in `planning/IMPROVEMENT-IDEAS-ROUND-3.md` (Part 4). Every Round 3 section is now answered (2026-10-07 below the Warframe section); earlier this list held only: **GB** (Canopy gamified), **M** (new games), **N** (seasonal events), **O** (Trade Empire and Continuum replayability), **P/Q/S/T** (Signal, Undersleep, Overclock, Last Line open questions), **X** (Warframe tracker) and **R** (returning later). GC-GI, A-L, U, Z and Y are unanswered and wait for you. The previous list is archived at `planning/todo-archive/260914_260927.md`; anything from it that was moved here is marked "moved" there.
 
@@ -87,16 +87,16 @@ The files are in `/Users/alexhart/BCM Project folder/fren152-slides/` (outside t
 - [x] FS-14: Le Champ de Mots, Week 8: add about 60 food items and the partitive exceptions as new topics and plots in the row that matches that slide week, with your own wording and examples (never the slides' text), tests for the catalogue and the question generator, and a changelog line.
 - [x] FS-15: Le Champ de Mots, Week 9: add quantities, fillings ("à + article"), shops and shop phrases as new topics and plots in the row that matches that slide week, with your own wording and examples (never the slides' text), tests for the catalogue and the question generator, and a changelog line.
 - [x] FS-16: Le Champ de Mots, Week 10: add the participle verb list, object pronouns in the passé composé (with agreement), restaurant extras as new topics and plots in the row that matches that slide week, with your own wording and examples (never the slides' text), tests for the catalogue and the question generator, and a changelog line.
-- [ ] FS-17: Le Champ de Mots: add a practice mode for clock reading (read a clock face and write the time), a tutorial format that has no matching mode yet, registered in the practice-mode ledger so every action counts toward a visible stat, with tests.
-- [ ] FS-18: Le Champ de Mots: add a practice mode for true/false reading (judge statements about a short text), a tutorial format that has no matching mode yet, registered in the practice-mode ledger so every action counts toward a visible stat, with tests.
-- [ ] FS-19: Le Champ de Mots: add a practice mode for sentence rewriting (rewrite a sentence in another form), a tutorial format that has no matching mode yet, registered in the practice-mode ledger so every action counts toward a visible stat, with tests.
-- [ ] FS-20: Le Champ de Mots: add a practice mode for answering with a pronoun (replace the noun in your answer), a tutorial format that has no matching mode yet, registered in the practice-mode ledger so every action counts toward a visible stat, with tests.
-- [ ] FS-21: Le Champ de Mots: add a practice mode for reciprocal pronoun completion, a tutorial format that has no matching mode yet, registered in the practice-mode ledger so every action counts toward a visible stat, with tests.
-- [ ] FS-22: Le Champ de Mots: add a practice mode for pair question work (ask and answer a partner's question), a tutorial format that has no matching mode yet, registered in the practice-mode ledger so every action counts toward a visible stat, with tests.
-- [ ] FS-23: Le Champ de Mots: the online written exam is Friday 13 November 2026 (2 hours, on Moodle, from the subject outline); offer it as the default date in the exam planner (L-9) when none is set.
+- [x] FS-17: Le Champ de Mots: add a practice mode for clock reading (read a clock face and write the time), a tutorial format that has no matching mode yet, registered in the practice-mode ledger so every action counts toward a visible stat, with tests.
+- [x] FS-18: Le Champ de Mots: add a practice mode for true/false reading (judge statements about a short text), a tutorial format that has no matching mode yet, registered in the practice-mode ledger so every action counts toward a visible stat, with tests.
+- [x] FS-19: Le Champ de Mots: add a practice mode for sentence rewriting (rewrite a sentence in another form), a tutorial format that has no matching mode yet, registered in the practice-mode ledger so every action counts toward a visible stat, with tests.
+- [x] FS-20: Le Champ de Mots: add a practice mode for answering with a pronoun (replace the noun in your answer), a tutorial format that has no matching mode yet, registered in the practice-mode ledger so every action counts toward a visible stat, with tests.
+- [x] FS-21: Le Champ de Mots: add a practice mode for reciprocal pronoun completion, a tutorial format that has no matching mode yet, registered in the practice-mode ledger so every action counts toward a visible stat, with tests.
+- [x] FS-22: Le Champ de Mots: add a practice mode for pair question work (ask and answer a partner's question), a tutorial format that has no matching mode yet, registered in the practice-mode ledger so every action counts toward a visible stat, with tests.
+- [x] FS-23: Le Champ de Mots: the online written exam is Friday 13 November 2026 (2 hours, on Moodle, from the subject outline); offer it as the default date in the exam planner (L-9) when none is set.
 - [ ] FS-24: Le Champ de Mots: farm rows 22 and 23 (irregular participles, être verbs, reflexive passé composé, savoir/connaître, disjunctive pronouns) cannot be checked until you upload weeks 11 to 13; recheck them then.
 - [ ] FS-4: Add the "Lecture 7 supplement" content as its own bonus topic with a note saying where it came from.
-- [ ] FS-5: Use the tutorial exercises' formats (for example fill in the blank, matching, sentence building) to check that each has a matching practice mode in the game, and list the missing ones.
+- [x] FS-5: Use the tutorial exercises' formats (for example fill in the blank, matching, sentence building) to check that each has a matching practice mode in the game, and list the missing ones.
 - [ ] FS-6: When weeks 11 to 13 arrive, repeat FS-1 to FS-3 for them (waits on your upload).
 
 ---

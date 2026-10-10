@@ -1653,3 +1653,8 @@ html[data-theme="light"] .semester + .semester { border-top-color: rgba(60, 70, 
   .legend-item { flex-direction: column; gap: 0.2rem; }
   .legend-sample { flex: 0 0 auto; }
 }
+
+/* FS-17 to FS-22: the exam formats panel. Static; the clock is drawn with plain lines. */
+.formats-clock-box { max-width: 160px; margin: 0.3rem 0; }
+.formats-clock { width: 100%; height: auto; display: block; }
+.practice-typed-row { display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; }

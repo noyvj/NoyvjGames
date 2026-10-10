@@ -56,6 +56,16 @@ except ImportError:  # pragma: no cover -- exercised by every test run
 # plain re-export here. This is a name binding, not a call to any of the
 # banned timer APIs, so it doesn't trip test_nothing_in_the_game_runs_on_a_timer's
 # substring scan over this file.
+try:
+    import formats  # FS-17 to FS-22: the exam practice formats (pure, DOM-free)
+except ImportError:  # pragma: no cover -- pytest-harness fallback, same as minigames above
+    import os as _os2
+    import sys as _sys2
+
+    _GAME_DIR2 = _os2.path.dirname(_os2.path.abspath(__file__))
+    if _GAME_DIR2 not in _sys2.path:
+        _sys2.path.insert(0, _GAME_DIR2)
+    import formats
 blitz_tick = minigames.blitz_tick
 racer_tick = minigames.racer_tick
 boutique_tick = minigames.boutique_tick
@@ -2736,6 +2746,13 @@ PRACTICE_MODES = {
     "bonus": "Bonus sentences",
     "golden": "Golden plot of the day",
     "quests": "Daily goals",
+    # FS-17 to FS-22: the six exam formats (formats.py), one ledger entry each
+    "clock": "Clock reading",
+    "truefalse": "True or false reading",
+    "rewrite": "Sentence rewriting",
+    "pronoun": "Answer with a pronoun",
+    "reciprocal": "Reciprocal pronouns",
+    "pairq": "Pair questions",
 }
 # L-17 / L-14: a golden-plot answer and a finished daily goal each earn two
 # points instead of one. The caps above still apply, so the most any mode can
@@ -5245,6 +5262,7 @@ def render():
     render_bonus()
     render_builder()
     render_conversation()
+    render_formats()
     render_listening()
     render_placement()
     render_cultural_notes()
@@ -6183,6 +6201,11 @@ GROWTH_INFO = {
         "none",
         "Does not grow plots",
         "These sound-rule questions are hand-written and are not tied to any plot, so there is nothing to grow. Your answers still count toward your practice score.",
+    ),
+    "formats": (
+        "none",
+        "Does not grow plots",
+        "These exam-format questions are made from patterns (times, short texts, rewriting rules), not from plots on the farm, so there is nothing to grow. Your answers still count toward your practice score, one entry for each format.",
     ),
 }
 GROWTH_SURFACES = (
@@ -8984,6 +9007,189 @@ def render_conversation():
     _element("conversation-next-button").hidden = conversation_result is None
 
 
+# ===========================================================================
+# FS-17 to FS-22 -- exam formats: clock reading, true/false reading, sentence
+# rewriting, answering with a pronoun, reciprocal pronouns and pair questions,
+# the tutorial exercise formats that had no matching practice mode. The
+# questions come from formats.py (pure data from a seeded random generator);
+# this block is the thin panel around it. Each format has its own ledger
+# entry (record_practice(<format>, ok)), so every answer counts toward the
+# visible practice score. Nothing here is a plot: SRS state is never touched.
+# ===========================================================================
+formats_active = False
+formats_format = None
+formats_queue = []
+formats_index = 0
+formats_result = None
+formats_given = None
+formats_score = {"correct": 0, "total": 0}
+formats_proxies = []
+FORMATS_RNG = random.Random()
+FORMATS_SUMMARY = "{label} complete: {correct}/{total} right."
+
+
+def _destroy_formats_proxies():
+    for proxy in formats_proxies:
+        proxy.destroy()
+    formats_proxies.clear()
+
+
+def start_formats(format_id=None):
+    """Opens the panel; with a format id it starts that format's session straight away."""
+    global formats_active, formats_format, formats_queue, formats_index, formats_result, formats_given, formats_score
+    formats_active = True
+    formats_result = None
+    formats_given = None
+    formats_score = {"correct": 0, "total": 0}
+    formats_index = 0
+    if format_id in formats.FORMATS:
+        formats_format = format_id
+        formats_queue = formats.make_session(format_id, FORMATS_RNG)
+    else:
+        formats_format = None
+        formats_queue = []
+    try:
+        _element("formats-input").value = ""
+    except KeyError:
+        pass
+    render()
+    return formats_queue
+
+
+def on_open_formats(event=None):
+    start_formats(None)
+
+
+def on_pick_format(format_id):
+    def handler(event=None):
+        start_formats(format_id)
+    return handler
+
+
+def submit_formats_answer(given):
+    """Grades one answer with the game's own normaliser; True/False, or None when nothing is open."""
+    global formats_result, formats_given
+    if not formats_active or formats_format is None or formats_result is not None or formats_index >= len(formats_queue):
+        return None
+    question = formats_queue[formats_index]
+    if question["typed"] and not str(given).strip():
+        return None
+    formats_given = str(given)
+    formats_result = formats.check(question, given, lambda text: normalize_answer(text, fold_accents=not ACCENT_SENSITIVE))
+    formats_score["total"] += 1
+    if formats_result:
+        formats_score["correct"] += 1
+    record_practice(formats.FORMATS[formats_format]["mode"], formats_result)
+    render()
+    return formats_result
+
+
+def next_formats_question(event=None):
+    global formats_index, formats_result, formats_given
+    if not formats_active or formats_result is None:
+        return None
+    formats_index += 1
+    formats_result = None
+    formats_given = None
+    _element("formats-input").value = ""
+    render()
+    return formats_index < len(formats_queue)
+
+
+def close_formats(event=None):
+    global formats_active, formats_format, formats_queue, formats_index, formats_result, formats_given
+    formats_active = False
+    formats_format = None
+    formats_queue = []
+    formats_index = 0
+    formats_result = None
+    formats_given = None
+    render()
+
+
+def _make_formats_choice_handler(choice):
+    def handler(event=None):
+        submit_formats_answer(choice)
+    return handler
+
+
+def on_formats_submit(event=None):
+    submit_formats_answer(_element("formats-input").value)
+
+
+def on_formats_keydown(event=None):
+    if getattr(event, "key", None) == "Enter":
+        on_formats_submit()
+
+
+def render_formats():
+    panel = _element("formats-panel")
+    picker = _element("formats-picker")
+    choices_box = _element("formats-choices")
+    _destroy_formats_proxies()
+    choices_box.innerHTML = ""
+    picker.innerHTML = ""
+    if not formats_active:
+        panel.hidden = True
+        return
+    panel.hidden = False
+    for format_id in formats.FORMAT_ORDER:
+        entry = formats.FORMATS[format_id]
+        button = document.createElement("button")
+        button.id = f"formats-pick-{format_id}"
+        button.className = "secondary" + (" selected" if format_id == formats_format else "")
+        button.innerText = entry["label"]
+        button.setAttribute("aria-pressed", "true" if format_id == formats_format else "false")
+        proxy = create_proxy(on_pick_format(format_id))
+        button.addEventListener("click", proxy)
+        formats_proxies.append(proxy)
+        picker.appendChild(button)
+    card, summary = _element("formats-card"), _element("formats-summary")
+    if formats_format is None:
+        card.hidden = True
+        summary.hidden = True
+        _element("formats-progress").innerText = "Pick a format to practise."
+        return
+    entry = formats.FORMATS[formats_format]
+    if formats_index >= len(formats_queue):
+        card.hidden = True
+        summary.hidden = False
+        summary.innerText = FORMATS_SUMMARY.format(label=entry["label"], **formats_score)
+        _element("formats-progress").innerText = ""
+        return
+    card.hidden = False
+    summary.hidden = True
+    question = formats_queue[formats_index]
+    _element("formats-progress").innerText = f"{entry['label']}: question {formats_index + 1} of {len(formats_queue)}"
+    _element("formats-instruction").innerText = entry["instruction"]
+    _element("formats-context").innerText = question.get("context", "")
+    _element("formats-clock").innerHTML = question.get("svg", "")
+    _element("formats-prompt").innerText = question["prompt"]
+    typed = bool(question["typed"])
+    _element("formats-typed-row").hidden = not typed
+    _element("formats-input").disabled = formats_result is not None
+    _element("formats-submit-button").disabled = formats_result is not None
+    if not typed:
+        for index, choice in enumerate(question["choices"]):
+            button = document.createElement("button")
+            button.id = f"formats-choice-{index}"
+            button.className = "secondary"
+            button.innerText = choice
+            button.disabled = formats_result is not None
+            proxy = create_proxy(_make_formats_choice_handler(choice))
+            button.addEventListener("click", proxy)
+            formats_proxies.append(proxy)
+            choices_box.appendChild(button)
+    feedback = _element("formats-feedback")
+    if formats_result is None:
+        feedback.innerText = ""
+    elif formats_result:
+        feedback.innerText = "Yes. " + question["explain"]
+    else:
+        feedback.innerText = "Not quite. " + question["explain"]
+    _element("formats-next-button").hidden = formats_result is None
+
+
 def render_builder():
     panel = _element("builder-panel")
     pool_box = _element("builder-pool")
@@ -9246,6 +9452,9 @@ PLANNER_TARGET_PERCENT = 80
 PLANNER_MAX_DAYS = 400
 PLANNER_MISS_EVERY = 4
 
+# FS-23: the real written exam (from the subject outline). Offered as one click while no date is set; never set for you.
+EXAM_DEFAULT_DATE = "2026-11-13"
+EXAM_DEFAULT_NOTE = "Fri 13 Nov 2026, online written exam on Moodle, 2 hours"
 exam_date = None  # "YYYY-MM-DD" or None
 exam_minutes = PLANNER_DEFAULT_MINUTES
 planner_open = False
@@ -9460,6 +9669,11 @@ def on_planner_minutes_change(event=None):
     set_exam_minutes(_element("planner-minutes-input").value)
 
 
+def on_planner_default(event=None):
+    """FS-23: one click to use the outline's exam date."""
+    set_exam_date(EXAM_DEFAULT_DATE)
+
+
 def on_planner_clear(event=None):
     _element("planner-date-input").value = ""
     set_exam_date("")
@@ -9497,8 +9711,12 @@ def render_planner():
 
     days = exam_days_left()
     summary, projection_line, suggestion = "", "", ""
+    default_button = _element("planner-default-button")
+    if default_button is not None:
+        default_button.hidden = exam_date is not None
+        default_button.innerText = f"Use the exam date from the subject outline ({EXAM_DEFAULT_NOTE})"
     if exam_date is None:
-        summary = "Pick your exam date to see what a few minutes a day adds up to."
+        summary = "Pick your exam date to see what a few minutes a day adds up to, or use the date from the subject outline."
     elif days is None:
         summary = "Today's date is not available here, so the countdown cannot be worked out."
     elif days < 0:
@@ -9675,6 +9893,7 @@ def setup():
     _element("planner-minutes-input").addEventListener("input", create_proxy(on_planner_minutes_change))
     _element("planner-minutes-input").addEventListener("change", create_proxy(on_planner_minutes_change))
     _element("planner-clear-button").addEventListener("click", create_proxy(on_planner_clear))
+    _element("planner-default-button").addEventListener("click", create_proxy(on_planner_default))
     _populate_cram_selects()
     _populate_water_selects()
     ALWAYS_MULTIPLE_CHOICE = pref_get(PREF_ALWAYS_MC) == "1"
@@ -9713,6 +9932,11 @@ def setup():
     _element("quick-water-button").addEventListener("click", create_proxy(on_quick_water))
     _element("sentence-builder-button").addEventListener("click", create_proxy(start_sentence_builder))
     _element("conversation-button").addEventListener("click", create_proxy(start_conversation))
+    _element("formats-button").addEventListener("click", create_proxy(on_open_formats))  # FS-17 to FS-22
+    _element("formats-next-button").addEventListener("click", create_proxy(next_formats_question))
+    _element("formats-close-button").addEventListener("click", create_proxy(close_formats))
+    _element("formats-submit-button").addEventListener("click", create_proxy(on_formats_submit))
+    _element("formats-input").addEventListener("keydown", create_proxy(on_formats_keydown))
     _element("listening-button").addEventListener("click", create_proxy(start_listening))
     _element("placement-button").addEventListener("click", create_proxy(start_placement))
     _element("placement-start-button").addEventListener("click", create_proxy(begin_placement_test))

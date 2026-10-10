@@ -96,6 +96,11 @@
       "Conversation"
     ],
     [
+      "formats-panel",
+      "formats-close-button",
+      "Exam formats"
+    ],
+    [
       "builder-panel",
       "builder-close-button",
       "Sentence builder"
