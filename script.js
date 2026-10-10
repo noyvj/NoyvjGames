@@ -942,6 +942,8 @@ function showSignedOut() {
   accountSignedIn.hidden = true;
   continuePlayingSection.hidden = true;
   continuePlayingList.innerHTML = "";
+  const rarestSection = document.getElementById("rarest-section");
+  if (rarestSection) rarestSection.hidden = true;
   maybeShowClaimSaveNudge();
 }
 
@@ -1279,6 +1281,56 @@ async function loadContinuePlaying() {
 // and read by hub-foryou.js ("because you finished ...").
 const hubAchievementProgress = {};
 
+// QI-45: "Rarest things you own" -- the five rarest achievements this account has earned, ranked by the
+// public earned_pct numbers (GET /stats/achievements, one request). An achievement whose percentage the
+// backend withholds (too few earners to be anonymous) is never ranked, so nothing is shown as 0%. Skipped
+// while reduce-data is on. Rarity wording matches shared/achievement-stats.js (Gold up to 10%, Silver up to
+// 35%, otherwise Bronze), as text plus a glyph, never colour alone.
+const RAREST_COUNT = 5;
+function rarityWord(pct) {
+  if (pct <= 10) return "\u2605 Gold (rare)";
+  if (pct <= 35) return "\u25C6 Silver (uncommon)";
+  return "\u25CF Bronze (common)";
+}
+async function renderRarestStrip(games, token) {
+  const section = document.getElementById("rarest-section");
+  const list = document.getElementById("rarest-list");
+  if (!section || !list) return;
+  section.hidden = true;
+  if (hubReduceData()) return;
+  try {
+    const res = await fetch(`${RATINGS_API_BASE}/stats/achievements`);
+    if (!res.ok) throw new Error(`status ${res.status}`);
+    const stats = await res.json();
+    if (signedInToken() !== token) return;
+    const rows = [];
+    games.forEach(({ gameId, catalog, earned }) => {
+      const info = stats && stats.games && stats.games[gameId];
+      if (!info || info.suppressed || !catalog || !Array.isArray(catalog.achievements)) return;
+      earned.forEach((id) => {
+        const stat = info.achievements && info.achievements[id];
+        const entry = catalog.achievements.find((a) => a.id === id);
+        if (!stat || typeof stat.earned_pct !== "number" || !entry) return;
+        rows.push({ gameId, label: entry.label || id, pct: stat.earned_pct });
+      });
+    });
+    rows.sort((a, b) => a.pct - b.pct || a.label.localeCompare(b.label));
+    list.textContent = "";
+    rows.slice(0, RAREST_COUNT).forEach((r) => {
+      const li = document.createElement("li");
+      const link = document.createElement("a");
+      link.className = "continue-playing-item";
+      link.href = `achievements.html#${r.gameId}`;
+      link.textContent = `${r.label} \u2014 ${GAME_DISPLAY_NAMES[r.gameId] || r.gameId}: ${r.pct}% of players, ${rarityWord(r.pct)}`;
+      li.appendChild(link);
+      list.appendChild(li);
+    });
+    section.hidden = rows.length === 0;
+  } catch (err) {
+    console.error("renderRarestStrip failed:", err);
+  }
+}
+
 async function loadAchievementsDashboard() {
   const token = signedInToken();
   const gameIds = await loadAchievementGameIds();
@@ -1364,6 +1416,15 @@ async function loadAchievementsDashboard() {
     divider.textContent = "Overall";
     accountAchievementsDashboard.appendChild(divider);
     renderProgressBar(accountAchievementsDashboard, "All games", totalEarned, totalPossible, "achievements.html");
+
+    renderRarestStrip(gameIds.map((gameId, i) => ({
+      gameId,
+      catalog: catalogResults[i],
+      earned: (() => {
+        const save = mostRecentSaveForGame(saves, gameId);
+        return save && save.save_data && Array.isArray(save.save_data.achievements_earned) ? save.save_data.achievements_earned : [];
+      })(),
+    })), token);
 
     window.dispatchEvent(new CustomEvent("hub-achievements-progress"));
     perGameSummary.textContent = `Per-game breakdown (${gamesRendered} games)`;

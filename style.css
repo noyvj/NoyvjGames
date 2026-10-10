@@ -2406,3 +2406,6 @@ body .ad-bar.ad-bar--bottom { height: calc(50px + env(safe-area-inset-bottom, 0p
   .signed-in-pill { top: calc(0.75rem + env(safe-area-inset-top, 0px)); }
 }
 @media (prefers-reduced-motion: reduce) { .pull-refresh, .app-nav-item { transition: none; } }
+
+/* QI-45: rarest things you own */
+.rarest-list { list-style: none; margin: 0.4rem 0 0; padding: 0; display: flex; flex-direction: column; gap: 0.35rem; }

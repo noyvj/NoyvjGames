@@ -1,6 +1,6 @@
 # Site-Wide TODO (round 3)
 
-**Progress: 686/1221 items checked off (56.2%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land.
+**Progress: 687/1221 items checked off (56.3%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land.
 
 Built from your answers in `planning/IMPROVEMENT-IDEAS-ROUND-3.md` (Part 4). Every Round 3 section is now answered (2026-10-07 below the Warframe section); earlier this list held only: **GB** (Canopy gamified), **M** (new games), **N** (seasonal events), **O** (Trade Empire and Continuum replayability), **P/Q/S/T** (Signal, Undersleep, Overclock, Last Line open questions), **X** (Warframe tracker) and **R** (returning later). GC-GI, A-L, U, Z and Y are unanswered and wait for you. The previous list is archived at `planning/todo-archive/260914_260927.md`; anything from it that was moved here is marked "moved" there.
 
@@ -288,7 +288,7 @@ You said yes to every item except F5 (undo button, no). New games below each nee
 - [ ] QI-42: (Quick ideas C5) Site Codex: one notebook that fills as you play every game (concepts, facts, characters), with a completion percentage.
 - [ ] QI-43: (Quick ideas C6) Trophy Room: a low-poly room on the hub showing a model for each thing you have earned or finished across the site.
 - [ ] QI-44: (Quick ideas C7) A "100% map" page: every game as a node that fills as you complete it, with a clear list of what is left. Your note: Maybe also set designs like completing canopy, tide, and some others creates a landscape with more trees and deeper water depending on completion %.
-- [ ] QI-45: (Quick ideas C8) A "rarest things you own" strip on the hub, using the existing achievement rarity numbers.
+- [x] QI-45: (Quick ideas C8) A "rarest things you own" strip on the hub, using the existing achievement rarity numbers.
 - [ ] QI-46: (Quick ideas E4) Friends-only boards: a private leaderboard group created with an invite code, with a "hide my score" option.
 - [ ] QI-47: (Quick ideas E5) Hint gift: a friend can send you one hint on a puzzle you are stuck on, no text, just a nudge.
 - [ ] QI-48: (Quick ideas E6) Gift an item: send a collected item to a friend once per day, optional and never needed.
