@@ -8,7 +8,7 @@ Rules carried over: "yes" items are here, "later" items are parked in `planning/
 
 ---
 
-**Work order (you, 2026-10-10): 1. section SR (Sources pages), 2. finish K, PC, Z, M and B (Continuum, Desktop boot, cross-game patterns, new games, Canopy regular), 3. everything else. Two agents at a time.**
+**Work order (you, 2026-10-11): focus on sections that are EASY TO 100% first: AN (answers applied), GN (your game notes), M (the last four optional new-game items), B (Canopy regular, 3 left), R, AU and the small Y items; then the large Z items and the low-percentage game sections. SR, K, PC, RV, LM, N are done. Two agents at a time.**
 
 ## Standing decisions from your Round 3 answers (apply everywhere)
 
