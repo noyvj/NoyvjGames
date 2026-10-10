@@ -1,6 +1,6 @@
 # Site-Wide TODO (round 3)
 
-**Progress: 610/1201 items checked off (50.8%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land.
+**Progress: 612/1201 items checked off (51.0%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land.
 
 Built from your answers in `planning/IMPROVEMENT-IDEAS-ROUND-3.md` (Part 4). Every Round 3 section is now answered (2026-10-07 below the Warframe section); earlier this list held only: **GB** (Canopy gamified), **M** (new games), **N** (seasonal events), **O** (Trade Empire and Continuum replayability), **P/Q/S/T** (Signal, Undersleep, Overclock, Last Line open questions), **X** (Warframe tracker) and **R** (returning later). GC-GI, A-L, U, Z and Y are unanswered and wait for you. The previous list is archived at `planning/todo-archive/260914_260927.md`; anything from it that was moved here is marked "moved" there.
 
@@ -219,7 +219,7 @@ You said yes to every item except F5 (undo button, no). New games below each nee
 - [x] QI-1: Logic Gates (Quick ideas A1): write the groundwork plan, then build it. wire AND, OR, NOT and XOR chips to hit target outputs. Each solved level unlocks a new chip, and the last levels have you build a tiny working computer. (BUILT 2026-10-09, milestones 1-8, 221 tests; hub registration is item QI-1b.)
 - [x] QI-1b: Register Logic Gates in the hub (same steps as the hub registration of the four earlier new games).
 - [x] QI-2: Hull Repair (Quick ideas A2): write the groundwork plan, then build it. Flow-Free-style routing of power and pipes across a damaged space-station hull. Every solved board repairs one room on a station map, so the puzzles form a bigger picture. (BUILT 2026-10-10, milestones 1-7, 255 tests; hub registration is item QI-2b.)
-- [ ] QI-2b: Register Hull Repair in the hub (same steps as the earlier new games).
+- [x] QI-2b: Register Hull Repair in the hub (same steps as the earlier new games).
 - [x] QI-3: Robot Script (Quick ideas A3): write the groundwork plan, then build it. give a robot a short list of instructions to clear a room (Lightbot style). No timer, medals for using fewer steps, and a free sandbox once you finish. (BUILT 2026-10-09, milestones 1-7, 240 tests; hub registration is item QI-3b.)
 - [x] QI-3b: Register Robot Script in the hub (same steps as the hub registration of the four earlier new games).
 - [ ] QI-4: Reaction Bench (Quick ideas A4): write the groundwork plan, then build it. balance chemical reactions to synthesise compounds, and fill a periodic table as you discover each element's uses.
@@ -232,7 +232,7 @@ You said yes to every item except F5 (undo button, no). New games below each nee
 - [ ] QI-11: Radio Decode (Quick ideas A11): write the groundwork plan, then build it. decode binary, hex and simple ciphers from a drifting signal, each message a short log entry.
 - [ ] QI-12: Picture Grid (Quick ideas A12): write the groundwork plan, then build it. nonograms where each solved picture goes into a gallery you can browse.
 - [x] QI-13: Station Medic (Quick ideas B1): write the groundwork plan, then build it. help the crew of a space station by solving triage puzzles with limited supplies. Nobody dies on screen; a bad call means "restore and try a different plan". (BUILT 2026-10-10, milestones 1-7, 103 tests; hub registration is item QI-13b.)
-- [ ] QI-13b: Register Station Medic in the hub (same steps as the earlier new games).
+- [x] QI-13b: Register Station Medic in the hub (same steps as the earlier new games).
 - [ ] QI-14: Robot Repair Shop (Quick ideas B2): write the groundwork plan, then build it. fix quirky robots by solving their fault puzzles; each repaired robot becomes a friend that gives you a gift later.
 - [ ] QI-15: Fog Rescue (Quick ideas B3): write the groundwork plan, then build it. guide lost animals or travellers out of a dark foggy forest by lighting the right lanterns in the right order.
 - [ ] QI-16: Water Works (Quick ideas B4): write the groundwork plan, then build it. route clean water to villages with trade-offs between town, farm and wild land, shown from several people's points of view.
