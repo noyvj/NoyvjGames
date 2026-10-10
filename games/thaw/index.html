@@ -583,6 +583,13 @@
 
     <button id="advance-round-button" class="primary">Advance Round</button>
 
+    <!-- GG-17: one rewind per run (see game.py). -->
+    <div id="undo" class="section undo">
+      <button id="undo-button" class="secondary" type="button" disabled>Rewind last round</button>
+      <p id="undo-display" class="comparison-message"></p>
+    </div>
+
+
     <div id="feedback-prompt" class="section">
       <p class="feedback-question">Did this change how you think about permafrost thaw &amp; climate feedback loops?</p>
       <div class="feedback-buttons">

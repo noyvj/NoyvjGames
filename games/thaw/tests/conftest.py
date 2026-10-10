@@ -155,6 +155,8 @@ ELEMENT_IDS = [
     "planner-chart",
     "planner-readout",
     "planner-reset-button",
+    "undo-button",
+    "undo-display",
     "board-body",
     "board-caption",
     "board-th-region",

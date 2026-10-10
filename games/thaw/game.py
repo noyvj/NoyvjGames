@@ -4004,6 +4004,77 @@ def outlook_lines():
     return f"In {PLANNER_ROUNDS} rounds with no change: " + ", ".join(parts)
 
 
+# ===========================================================================
+# GG-17: one rewind per run. Just before every Advance Round the whole game is snapshotted; the
+# "Rewind" button puts it back as it stood right before that click, once, for UNDO_COST funds from
+# Region A. Nothing is random and nothing is lost: the investments made that round are still there.
+# A finished Hold the Line run cannot be rewound (its result is already recorded). Records kept in
+# the browser (personal best, archive) are bests and stay as they are.
+# ===========================================================================
+UNDO_COST = 40.0
+
+undo_used = False
+_undo_snapshot = None
+
+
+def can_undo():
+    if undo_used or run_over or _undo_snapshot is None:
+        return False
+    snap_region = _undo_snapshot.get("region", {})
+    return snap_region.get("funds", 0) >= UNDO_COST
+
+
+def undo_text():
+    if undo_used:
+        return "Rewind used: this run's one rewind has been spent."
+    if run_over:
+        return "The run is over, so there is nothing to rewind."
+    if _undo_snapshot is None:
+        return (
+            f"Once per run you can rewind the last round for {UNDO_COST:.0f} funds from Region A. "
+            f"It becomes available after your first Advance Round."
+        )
+    if not can_undo():
+        return f"Rewinding costs {UNDO_COST:.0f} funds from Region A, and Region A did not have that much before the round."
+    return (
+        f"Rewind puts everything back to just before you pressed Advance Round "
+        f"(round {_undo_snapshot['region']['round_number']}), once per run, for {UNDO_COST:.0f} funds from Region A."
+    )
+
+
+def undo_last_round():
+    """Restores the pre-Advance snapshot and charges the cost. Returns True if it happened."""
+    global undo_used, _undo_snapshot, info_page_open, worst_case_region_revealed, worst_case_intro_seen
+    if not can_undo():
+        return False
+    snapshot = json.loads(json.dumps(_undo_snapshot))
+    # interface choices that are not part of the round stay as the player has them now
+    keep_info, keep_d, keep_d_intro = info_page_open, worst_case_region_revealed, worst_case_intro_seen
+    keep_labels = (region_b.strategy_label, region_c.strategy_label)
+    load_state(snapshot)
+    info_page_open, worst_case_region_revealed, worst_case_intro_seen = keep_info, keep_d, keep_d_intro
+    region_b.strategy_label, region_c.strategy_label = keep_labels
+    document.getElementById("b-strategy-label-input").value = region_b.strategy_label
+    document.getElementById("c-strategy-label-input").value = region_c.strategy_label
+    region.funds -= UNDO_COST
+    undo_used = True
+    _undo_snapshot = None
+    document.getElementById("sr-announcer").innerText = f"Rewound to round {region.round_number}."
+    render()
+    return True
+
+
+def render_undo():
+    button = document.getElementById("undo-button")
+    button.disabled = not can_undo()
+    button.innerText = "Rewind used" if undo_used else f"Rewind last round ({UNDO_COST:.0f} funds, once)"
+    document.getElementById("undo-display").innerText = undo_text()
+
+
+def on_undo(event=None):
+    undo_last_round()
+
+
 def render():
     render_info_page()
     document.getElementById("round-display").innerText = f"Round {region.round_number}"
@@ -4232,6 +4303,7 @@ def render():
     render_board()  # after the archive update so "best saved" is current
     render_focus()
     render_planner()
+    render_undo()
     render_personal_best()
     render_climate_archive()
     update_achievements_display()
@@ -4307,8 +4379,11 @@ def on_toggle_worst_case_region(event=None):
 
 
 def on_advance_round(event=None):
+    global _undo_snapshot
     if run_over:
         return
+    # GG-17: remember exactly how things stand before this round (one rewind per run uses it).
+    _undo_snapshot = json.loads(json.dumps(get_state()))
     level_before = escalation_level(region.round_number)
     region.advance_round()
     resolve_forecast()
@@ -4548,6 +4623,9 @@ def get_state():
         state["routing"] = {"convoys": convoys_sent, "tax_lost": convoy_tax_lost}
     if balance_bonuses > 0:
         state["balance_bonuses"] = balance_bonuses
+    # GG-17: written only once the run's one rewind has been spent.
+    if undo_used:
+        state["undo_used"] = True
     return state
 
 
@@ -4576,9 +4654,11 @@ def load_state(data):
     global info_page_open, worst_case_region_revealed, preset_used_ever
     global worst_case_intro_seen, forecast_guess, forecast_total, forecast_hits, forecast_last
     global framing, carbon_bank, long_game, convoys_sent, convoy_tax_lost, balance_bonuses, just_balanced
-    global hold_the_line, run_over, run_result, just_escalated
+    global hold_the_line, run_over, run_result, just_escalated, undo_used, _undo_snapshot
     if not isinstance(data, dict):
         return False
+    undo_used = data.get("undo_used") is True
+    _undo_snapshot = None
     long_game = data.get("long_game") is True
     # GG-2: strict bool; never together with the long game; the run result only counts if the mode
     # is on and every field is in range.
@@ -4694,6 +4774,7 @@ def setup():
     )
     for select_id in ("routing-source", "routing-dest"):
         document.getElementById(select_id).addEventListener("change", create_proxy(on_routing_change))
+    document.getElementById("undo-button").addEventListener("click", create_proxy(on_undo))
     document.getElementById("rate-inspector-region").addEventListener(
         "change", create_proxy(on_rate_inspector_region_change)
     )

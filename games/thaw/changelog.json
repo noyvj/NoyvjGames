@@ -1,6 +1,10 @@
 [
   {
     "date": "2026-10-11",
+    "entry": "New: one Rewind per run. Under Advance Round, the Rewind button puts everything back to just before you pressed Advance Round (your investments that round are still in place) for 40 funds from Region A. It is spent after one use, and a finished Hold the Line run cannot be rewound. Nothing is random, so replaying the round gives the same result."
+  },
+  {
+    "date": "2026-10-11",
     "entry": "New: a Forecast planner lets you try a funding split without spending anything. Pick a region, type how many Output, Preservation and Monitoring units you would buy (once, or every round), and a dashed line shows the next 10 rounds against the same region if nothing changes, with a plain-words readout. The Advance Round hover now also lists where each region lands in 10 rounds with no change."
   },
   {

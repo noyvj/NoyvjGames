@@ -91,7 +91,7 @@
     "topbar": [".hub-back-link", "h1", ".game-toolbar"],
     "stagebar": [],
     "stage": [".permafrost-scene", "#status", "#region-comparison"],
-    "side": ["#advance-round-button", "#investments", "#carbon-bank", "#routing", "#forecast", "#policy-stance"],
+    "side": ["#advance-round-button", "#undo", "#investments", "#carbon-bank", "#routing", "#forecast", "#policy-stance"],
     "hidden": ["#round-display", "#funds-display"]
   },
   "readouts": [
