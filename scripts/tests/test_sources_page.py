@@ -191,6 +191,8 @@ def test_a_game_page_renders_the_three_groups_escapes_text_and_links_safely(harn
 
 def test_a_game_without_a_file_gets_a_friendly_message(harness):
     h = harness()
+    # every game now has a real file, so simulate a game that has none
+    h.page.route("**/games/canopy/sources.json", lambda route: route.fulfill(status=404, body=""))
     h.goto("/sources.html?game=canopy")
     h.page.wait_for_selector(".src-message")
     assert h.page.inner_text("h1") == "Sources: Canopy"
@@ -222,6 +224,7 @@ def test_a_broken_file_shows_a_message_not_a_blank_page(harness):
 def test_the_index_lists_every_game_with_counts_and_filters(harness):
     h = harness()
     serve(h, "hull-repair", SAMPLE)
+    h.page.route("**/games/sol/sources.json", lambda route: route.fulfill(status=404, body=""))
     h.goto("/sources.html")
     h.page.wait_for_selector(".src-game")
     cards = h.page.eval_on_selector_all(".src-game", "els => els.map(e => e.dataset.slug)")
