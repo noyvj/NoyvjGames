@@ -65,6 +65,13 @@
       "label": "💬 Share your feedback"
     },
     {
+      "id": "pc-rank-panel",
+      "title": "Forest Rank and badge frame",
+      "members": ["#forest-rank-panel"],
+      "group": "Records",
+      "label": "🏅 Forest Rank and badge frame"
+    },
+    {
       "id": "pc-stats-panel",
       "title": "Forest summary",
       "members": ["#stats"],

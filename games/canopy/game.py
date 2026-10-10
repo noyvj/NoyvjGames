@@ -7726,6 +7726,22 @@ def on_leave_level(event=None):
     return True
 
 
+def next_level_id():
+    """GN-3: the level after the current one in the level list, or None (no level running, or the last one)."""
+    if current_level not in LEVEL_SPECS:
+        return None
+    index = LEVEL_ORDER.index(current_level) + 1
+    return LEVEL_ORDER[index] if index < len(LEVEL_ORDER) else None
+
+
+def on_next_level(event=None):
+    """GN-3: from a finished level straight into the next one (only when this level is done and the next is unlocked)."""
+    next_id = next_level_id()
+    if next_id is None or level_done_tick is None or level_lock_reason(next_id):
+        return False
+    return start_level(next_id)
+
+
 def _burn_level_start():
     """Levels with a bare_fraction begin with that share of plots bare (hash-picked, soil untouched)."""
     spec = LEVEL_SPECS.get(current_level)
@@ -8075,6 +8091,16 @@ def render_level_status():
     for name in ("poacher", "storm", "spirit"):
         _set_class(box, f"level-box--{name}", mode == name)
     _set_class(box, "level-box--done", level_done_tick is not None)
+    next_button = _el("level-next-button")  # GN-3
+    if next_button is not None:
+        next_id = next_level_id()
+        next_button.hidden = not (current_level is not None and level_done_tick is not None and next_id is not None)
+        if not next_button.hidden:
+            reason = level_lock_reason(next_id)
+            next_button.disabled = bool(reason)
+            title = LEVEL_SPECS[next_id]["title"]
+            next_button.innerText = f"Next level: {title}"
+            next_button.title = reason or f"Start level {level_number(next_id)}: {title}"
 
 
 def _set_class(element, name, on):
@@ -10757,6 +10783,7 @@ def setup():
         ("expedition-start-button", "click", on_expedition_start),
         ("expedition-leave-button", "click", on_leave_expedition),
         ("level-leave-button", "click", on_leave_level),
+        ("level-next-button", "click", on_next_level),
         ("forest-name-input", "change", on_forest_name_change),
         ("plot-nickname-input", "change", on_plot_nickname_change),
     ):

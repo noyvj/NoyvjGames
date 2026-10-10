@@ -15,7 +15,7 @@ CONFIG = json.loads((HERE / "pc-config.json").read_text(encoding="utf-8"))
 
 NEW_IDS = [
     "levels-open-button", "vault-toggle-button", "vault-panel", "vault-summary", "vault-crews", "vault-note",
-    "vault-tree", "level-box", "level-status", "spirit-line", "level-leave-button", "level-effects-checkbox",
+    "vault-tree", "level-box", "level-status", "spirit-line", "level-leave-button", "level-next-button", "level-effects-checkbox",
 ]
 
 

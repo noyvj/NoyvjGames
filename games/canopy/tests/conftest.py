@@ -231,6 +231,7 @@ ELEMENT_IDS = [
     "level-status",
     "spirit-line",
     "level-leave-button",
+    "level-next-button",
     # GB-3: the Expedition
     "expedition-toggle-button",
     "expedition-panel",

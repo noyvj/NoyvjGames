@@ -70,6 +70,10 @@ html[data-layout="pc"] #action-dock-more { display: none !important; }
 #pc-stats-panel #stats { margin: 0; border-left: 0; padding: 0; background: none; box-shadow: none; }
 #pc-stats-panel #stats p { margin: 0 0 0.45rem; }
 #pc-about-panel #forest-visual { height: 70px; }
+/* GN-4: the badge frame and palette picker live in this window, not under the map. */
+#pc-rank-panel #forest-rank-panel { margin: 0; border: 0; padding: 0; background: none; box-shadow: none; backdrop-filter: none; }
+#pc-rank-panel #forest-rank-panel label { margin-right: 0.3rem; }
+#pc-rank-panel #forest-rank-panel select { margin: 0.2rem 1rem 0.2rem 0; }
 
 /* Windows holding several sections: they sit flat inside the window. */
 .pc-composite > * { margin-bottom: 0.9rem; }

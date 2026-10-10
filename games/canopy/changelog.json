@@ -2,6 +2,10 @@
   "changelog": [
     {
       "date": "2026-10-11",
+      "entry": "New: when you finish a level there is now a Next level button beside Leave level. It starts the following level straight away (and says why it is greyed out if that level is still locked); Leave level still takes you back to free play on the same forest. Changed: the Badge frame and Palette pickers no longer sit above the map. On Desktop they are in a Forest Rank and badge frame window (Menu, Records), which gives the map back its room; on the Classic page they sit under the map and the stats."
+    },
+    {
+      "date": "2026-10-11",
       "entry": "Fixed: achievements no longer vanish when you start a new level. Once you have earned one, it stays earned for the whole game, and the achievements panel now shows the whole game's list with everything you have earned. Saves from before this fix bring back whatever they had listed as earned."
     },
     {

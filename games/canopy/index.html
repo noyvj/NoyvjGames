@@ -311,23 +311,6 @@
       </div>
       <button type="button" id="plot-sheet-close" class="secondary">Close</button>
     </div>
-    <!-- B-19: long-term Forest Rank (cosmetic frames and palettes only), shown under the achievements. -->
-    <div id="forest-rank-panel" class="section forest-rank-panel">
-      <p id="forest-rank-text" class="forest-rank-text"></p>
-      <label for="forest-frame-select">Badge frame</label>
-      <select id="forest-frame-select">
-        <option value="none">Plain</option>
-        <option value="leaf">Leaf (dashed edge)</option>
-        <option value="vine">Vine (double edge)</option>
-        <option value="crest">Crest (heavy edge)</option>
-      </select>
-      <label for="forest-palette-select">Palette</label>
-      <select id="forest-palette-select">
-        <option value="default">Default</option>
-        <option value="dusk">Dusk</option>
-        <option value="meadow">Meadow</option>
-      </select>
-    </div>
     <!-- "What's New" changelog panel (site-wide goal, planning/TODO.md, origin K16):
          newest-first highlights pulled from CLAUDE.md's own milestone table, not a
          full duplicate of the dev logs. Same hidden-until-opened .section idiom as
@@ -579,6 +562,7 @@
     <div id="level-box" class="level-box" hidden>
       <p id="level-status" class="level-status" role="status"></p>
       <p id="spirit-line" class="spirit-line" hidden></p>
+      <button id="level-next-button" type="button" hidden>Next level</button>
       <button id="level-leave-button" class="secondary" type="button">Leave level</button>
     </div>
     <!-- B-7: polite live region; game.py speaks clears, replants, requests, seasons and discoveries here. -->
@@ -621,6 +605,23 @@
       </div>
     </div>
 
+    <!-- B-19: long-term Forest Rank (cosmetic frames and palettes only), GN-4: sits below the map and stats (it used to sit above the map and pushed it down; in the Desktop layout it is the Forest Rank window). -->
+    <div id="forest-rank-panel" class="section forest-rank-panel">
+      <p id="forest-rank-text" class="forest-rank-text"></p>
+      <label for="forest-frame-select">Badge frame</label>
+      <select id="forest-frame-select">
+        <option value="none">Plain</option>
+        <option value="leaf">Leaf (dashed edge)</option>
+        <option value="vine">Vine (double edge)</option>
+        <option value="crest">Crest (heavy edge)</option>
+      </select>
+      <label for="forest-palette-select">Palette</label>
+      <select id="forest-palette-select">
+        <option value="default">Default</option>
+        <option value="dusk">Dusk</option>
+        <option value="meadow">Meadow</option>
+      </select>
+    </div>
     <!-- B12: a floating badge that appears only while a stakeholder
          request is pending AND the panel itself has scrolled out of
          view -- so a player deep in the plot grid or the action panel
