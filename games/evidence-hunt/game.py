@@ -24,7 +24,9 @@ Actions (every request is {"action": ..., ...}; every reply is the whole view):
 
 import json
 
+import achievements
 import casework as cw
+import codex
 import hints
 import houses
 import info
@@ -164,9 +166,20 @@ class Game:
             cur = progress.ORDER[0]
         self._enter(cur)
 
-    # ---- facts, goals, achievements (filled in by later milestones) ----------------------------------------------------------
+    # ---- facts, goals, achievements ------------------------------------------------------------------------------------------
+    def facts(self):
+        """What the goals and achievements are computed from."""
+        t = progress.totals(self.best)
+        found, _total = codex.counts(self.met, self.ev, self.eq, self.kept, self.best)
+        return {"done": t["done"], "clean": t["clean"], "chapters_done": t["chapters_done"], "readings": self.tally["readings"],
+                "spirits_full": codex.spirits_full(self.met, self.seen), "two": t["two"], "kept": len(self.kept), "sandbox": self.tally["sandbox"],
+                "mem": len(self.mem), "pages": found}
+
+    def open_chapters(self):
+        return sum(1 for c in progress.CHAPTERS if progress.chapter_open(self.best, c["index"]))
+
     def earned_ids(self):
-        return []
+        return achievements.earned(self.facts())
 
     # ---- the view --------------------------------------------------------------------------------------------------
     def _reading_words(self, v):
@@ -334,6 +347,8 @@ class Game:
             "could": could, "sheet": self._sheet(could), "accuse": {"n": case.n, "options": [{"id": k, "i": lx.KIND_INDEX[k], "name": lx.KIND_NAME[k]} for k in case.pool]},
             "log": self.log[-LOG_KEEP:], "result": result, "chapters": self._chapters_view(), "totals": progress.totals(self.best), "tally": dict(self.tally),
             "hint": self._hint(), "about": info.view(),
+            "goals": achievements.goals(self.facts(), self.open_chapters()), "achievements": achievements.view(self.facts()),
+            "guide": codex.view(self.met, self.seen, self.ev, self.eq, self.kept, self.best),
         }
         return view
 

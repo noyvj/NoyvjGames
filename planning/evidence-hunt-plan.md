@@ -44,7 +44,7 @@ Fiction notice on the About page: the spirits and rules are made up and the game
 |---|-----------|---------|--------|
 | 1 | Engine | lexicon, houses, case rules, solver, all 40 cases, tests | Done |
 | 2 | Case UI | floor plan, kit, notebook, accuse, restore, save contract, favicon. Playable slice | Done |
-| 3 | Guide and hints | hint ladder, three-goals strip, field guide, keepsake return | Planned |
+| 3 | Guide and hints | hint ladder, three-goals strip, field guide, keepsake return | Done |
 | 4 | Sandbox and finale | seeded codes, generator, last case. First complete game | Planned |
 | 5 | Standard kit | opening screen, tutorial, About with the fiction notice, What's New, keyboard help, confirm dialogs, light theme, accessibility | Planned |
 | 6 | Achievements | 14 achievements, panel, toast, manifest, reachability test | Planned |

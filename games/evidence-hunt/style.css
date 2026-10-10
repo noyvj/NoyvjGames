@@ -217,3 +217,24 @@ html[data-narrow="off"] .sheet li.ruled-out { opacity: 1; border-style: solid; }
 /* The shared light theme styles bare lists; these lists are layout, not bulleted text. */
 html[data-theme="light"] ul.chips, html[data-theme="light"] ul.account-list, html[data-theme="light"] ul.sheet,
 html[data-theme="light"] ul.case-grid { list-style: none; padding-left: 0; margin-left: 0; }
+
+/* Goals: three at a time, always in view. */
+.goals { background: var(--panel-fill); border: 1px solid var(--line); border-radius: 12px; padding: 0.4rem 0.7rem; margin: 0.5rem 0; font-size: 0.85rem; }
+.goals-list { list-style: none; margin: 0.2rem 0 0; padding: 0; display: grid; gap: 0.2rem; }
+.goals-list li { display: flex; flex-wrap: wrap; align-items: center; gap: 0.1rem 0.4rem; }
+.goals-list .bar { display: inline-block; flex: 0 0 5rem; height: 0.55rem; border: 1px solid var(--edge); border-radius: 3px; overflow: hidden; background: var(--surface); }
+.bar-fill { display: block; height: 100%; background: var(--accent); }
+.goal-count { font-variant-numeric: tabular-nums; font-weight: 700; }
+@media (max-width: 640px) { .goals { padding: 0.3rem 0.5rem; font-size: 0.78rem; } .goals-list .bar { flex-basis: 3rem; } }
+
+/* The field guide. */
+.guide-section { border-top: 1px solid var(--line); padding: 0.3rem 0; }
+.guide-section summary { cursor: pointer; font-weight: 700; padding: 0.2rem 0; }
+.guide-list { list-style: none; margin: 0.3rem 0; padding: 0; display: grid; gap: 0.3rem; }
+.guide-list li { border: 1px solid var(--line); border-radius: 10px; padding: 0.3rem 0.6rem; background: var(--surface); }
+.guide-list li.unfiled { border-style: dashed; color: var(--muted); }
+.guide-list .rtext, .guide-list .rline { display: block; font-size: 0.85rem; margin-top: 0.15rem; }
+.guide-list li.filed .rtext { color: var(--text); }
+.cover-row { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; margin-top: 0.4rem; }
+.cover-row button[aria-pressed="true"] { border-width: 3px; border-color: var(--accent); }
+html[data-theme="light"] ul.goals-list, html[data-theme="light"] ul.guide-list { list-style: none; padding-left: 0; margin-left: 0; }

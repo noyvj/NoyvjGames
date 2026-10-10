@@ -2,7 +2,7 @@
    and forwards what the player does. No game logic lives here. */
 (function () {
   "use strict";
-  var ENGINE_MODULES = ["lexicon.py", "houses.py", "casework.py", "solver.py", "casekit.py", "cases_1.py", "cases_2.py", "cases_3.py", "cases_4.py", "cases_5.py", "cases.py", "progress.py", "render.py", "hints.py", "info.py"];
+  var ENGINE_MODULES = ["lexicon.py", "houses.py", "casework.py", "solver.py", "casekit.py", "cases_1.py", "cases_2.py", "cases_3.py", "cases_4.py", "cases_5.py", "cases.py", "progress.py", "codex.py", "achievements.py", "render.py", "hints.py", "info.py"];
   var STORE_KEY = "evidence-hunt:state";
   var BACKUP_KEY = "evidence-hunt:state-backup";
   var SHORT = ["Cold", "Charge", "Writing", "Lights", "Prints", "Glow"];
@@ -101,6 +101,7 @@
     bumpStat("stat-cases", t.done + "/" + t.cases);
     bumpStat("stat-clean", t.clean);
     bumpStat("stat-readings", view.tally.readings);
+    bumpStat("stat-pages", view.guide.found + "/" + view.guide.total);
     bumpStat("stat-rooms", view.tally.rooms);
     bumpStat("stat-accusations", view.tally.accusations);
     bumpStat("stat-wrong", view.tally.wrong);
@@ -395,6 +396,60 @@
       setText($("hint-do-button"), h.kind === "restore" ? "Restore the case" : "Do it for me");
     }
   }
+  function renderGoalStrip() {
+    var list = $("goals-list");
+    var sig = view.goals.map(function (g) { return g.id + g.have; }).join(",");
+    if (list.dataset.sig === sig) return;
+    list.dataset.sig = sig;
+    list.textContent = "";
+    if (!view.goals.length) { list.appendChild(el("li", null, "Every goal you can reach right now is done. New ones appear as new chapters open.")); return; }
+    view.goals.forEach(function (g) {
+      var li = el("li");
+      li.appendChild(el("strong", null, g.label + ": "));
+      li.appendChild(document.createTextNode(g.description + " "));
+      var bar = el("span", "bar");
+      bar.setAttribute("aria-hidden", "true");
+      var fill = el("span", "bar-fill");
+      fill.style.width = Math.round(100 * g.have / g.need) + "%";
+      bar.appendChild(fill);
+      li.appendChild(bar);
+      li.appendChild(el("span", "goal-count", " " + g.have + "/" + g.need));
+      list.appendChild(li);
+    });
+  }
+  function renderGuide() {
+    var g = view.guide;
+    var sig = g.found + ":" + g.complete + ":" + g.sections.map(function (s) { return s.found; }).join(",");
+    if ($("guide-body").dataset.sig === sig) return;
+    $("guide-body").dataset.sig = sig;
+    setText($("guide-notice"), g.notice);
+    setText($("guide-summary"), g.found + " of " + g.total + " pages filed, " + g.complete + " of 12 spirit pages complete. Pages are filed by playing: nothing is missable and nothing runs out.");
+    var body = $("guide-body");
+    body.textContent = "";
+    g.sections.forEach(function (sec) {
+      var d = el("details", "guide-section");
+      if (sec.found < sec.total && sec.id === "spirits") d.open = true;
+      d.appendChild(el("summary", null, sec.name + " (" + sec.found + "/" + sec.total + ")"));
+      var ul = el("ul", "guide-list");
+      sec.entries.forEach(function (e) {
+        var li = el("li", e.unlocked ? "filed" : "unfiled");
+        li.appendChild(el("strong", null, e.title));
+        li.appendChild(el("span", "rtext", e.text));
+        e.lines.forEach(function (l) { li.appendChild(el("span", "rline", l)); });
+        ul.appendChild(li);
+      });
+      d.appendChild(ul);
+      body.appendChild(d);
+    });
+  }
+  function renderCover() {
+    var covered = view.case.covered;
+    var btn = $("cover-button");
+    btn.setAttribute("aria-pressed", String(covered));
+    setText(btn, covered ? "Uncover the sheet" : "Cover the sheet");
+    var full = view.guide.complete;
+    setText($("cover-note"), full ? "From memory: hides the kinds whose guide page is complete. Nothing is lost." : "From memory: hides the kinds whose guide page is complete. None is complete yet, so nothing is hidden.");
+  }
   function renderCases() {
     var holder = $("cases-body");
     holder.textContent = "";
@@ -453,6 +508,9 @@
     renderResult();
     renderHints();
     renderCases();
+    renderGoalStrip();
+    renderGuide();
+    renderCover();
   }
 
   // ---- talking to the engine --------------------------------------------------------------------------------
@@ -496,9 +554,11 @@
   function wire() {
     $("toast").addEventListener("click", function () { showToast(""); });
     wirePanelToggle("cases-toggle-button", "cases-panel");
+    wirePanelToggle("guide-toggle-button", "guide-panel");
     wirePanelToggle("changelog-toggle-button", "changelog-panel");
     wirePanelToggle("info-page-toggle-button", "info-page-panel");
     $("van-button").addEventListener("click", function () { act({ action: "van" }); });
+    $("cover-button").addEventListener("click", function () { act({ action: "cover" }); });
     $("look-button").addEventListener("click", function () { act({ action: "look" }); });
     $("accuse-button").addEventListener("click", function () {
       var n = view.accuse.n;

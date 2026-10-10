@@ -30,7 +30,7 @@ See `planning/evidence-hunt-plan.md` section 8 (the table is copied below and ke
 |---|-----------|---------|--------|
 | 1 | Engine | lexicon, houses, case rules, solver, all 40 cases, tests | Done |
 | 2 | Case UI | floor plan, kit, notebook, accuse, restore, save contract, favicon. Playable slice | Done |
-| 3 | Guide and hints | hint ladder, three-goals strip, field guide, keepsake return | Planned |
+| 3 | Guide and hints | hint ladder, three-goals strip, field guide, keepsake return | Done |
 | 4 | Sandbox and finale | seeded codes, generator. First complete game | Planned |
 | 5 | Standard kit | opening screen, tutorial, About with the fiction notice, What's New, keyboard help, confirm dialogs, light theme, accessibility | Planned |
 | 6 | Achievements | 14 achievements, panel, toast, manifest, reachability test | Planned |
@@ -47,3 +47,10 @@ See `planning/evidence-hunt-plan.md` section 8 (the table is copied below and ke
 - `app.js` builds the floor plan and the bag once per case and updates them in place (focus stays on a tapped room); rebuilt button rows go through `keepFocus`.
 - Settings (`settings.js`): text size, "Rule out for me" (dims and strikes through suspects the notebook has ruled out; default on), reduce motion, effects, high contrast, theme. All per device, not in the save.
 - Layout: `#side-col` wraps the notebook, sheet, log and tally; Classic is two columns from 900px.
+
+## Milestone 3 notes
+- The field guide (`codex.py`): Spirits (12; filed when first named, COMPLETE when positive readings in solved cases have confirmed all three of its evidence, then it shows "(complete)"), Evidence (6, first positive reading), Equipment (6, first use), Keepsakes (8, returned), House notes (5, a chapter's cases all done) = 37 pages. All derived from the save's facts (`met`, `seen`, `ev`, `eq`, `kept`, `best`). `seen` is only written at solve time so the guide never gives the answer away mid-case.
+- Keepsake return: a button on the result card, and the `return` action also works later from any solved case (best seal above 0), so a reload after solving never loses it.
+- "Cover the sheet" (`cover` action, a token in the run): hides the evidence and habit lines of kinds whose guide page is complete. The set of distinct authored cases solved with it covered is `mem` (the From Memory achievement).
+- `achievements.py` holds the 14 achievements (facts, need, chapter gate) and `goals()` (the three always-visible, any-order goals); the in-game panel, toast and `achievements.json` manifest arrive in milestone 6. `achievements_earned` is already written to the save and never read back.
+- `tests/helpers.py`: `solve_with_hints` (the careful plan through the JSON entry point) and `solve_thoroughly` (a player who knows the answer: packs the truth's own evidence, one trip per presence). `test_whole_game.py` plays all 40 cases Clean with the hints, replays every case thoroughly, returns every keepsake and expects 12 complete spirit pages and a full 37-page guide.

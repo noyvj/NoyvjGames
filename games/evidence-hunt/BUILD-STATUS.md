@@ -7,8 +7,10 @@ Updated after every milestone. Read `planning/evidence-hunt-plan.md`, `CLAUDE.md
 
 - M2 Case UI: game.py, render.py, hints.py, info.py, index.html, app.js, style.css, settings.js, changelog.json, favicon; 76 tests; checked live at 1440x900 and 360x740 (walk, pack, read, wrong name, right name, no horizontal scroll).
 
+- M3 Guide and hints: codex.py (37 pages), achievements.py (14 facts + goals), Guide panel, three-goals strip, cover-the-sheet toggle, keepsake return, guide-pages stat; 87 tests incl. a whole-game run (40 Clean, 12 complete spirit pages, 37-page guide); Guide panel and goals checked live.
+
 ## Next
-- M3 Guide and hints: the field guide (codex.py), three-goals strip (achievements facts), Guide panel, keepsake return in the result card, cover-the-sheet toggle, guide-pages stat.
+- M4 Sandbox and finale: gen.py (codes EH<d>-<base36>), generator with rejection by the solver, Practice button/panel, tally `sandbox`, tests.
 
 ## Open problems / notes
 - Local Python is 3.9: engine code avoids 3.10+ syntax.
