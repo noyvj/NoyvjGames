@@ -673,3 +673,22 @@ panel.refresh();
 ```
 
 Per game, the later wiring step only has to decide the queue (examples, not decisions: SOL, the next building or research tier; Trade Empire, the next route, post or charter perk; Continuum, the next era requirement or civic target; Loop, the next unlock), put `<div id="goals">` where it is always visible (the stage bar or HUD), add the include lines, a settings checkbox and, for the Desktop boot, the new element id in both `index.html` and `pc.html` (`shared/tests/test_pc_games.py` checks that). Every goal should map to something the game already measures, so what the player sees always counts toward a visible stat.
+
+## Warm night colours (`shared/night-mode.js` + `.css`, TODO QI-52)
+
+Opt-in, off by default. "Warm night colours after 10pm: the hub and games shift to a dimmer, warmer palette automatically." One fixed, `aria-hidden`, click-through overlay multiplies the whole page by a warm amber (`mix-blend-mode: multiply`), so a game needs no CSS and no game colour is edited. Modes: `off`, `auto` (on between 22:00 and 06:00 by the device clock; the window wraps midnight and can be changed) and `on`; strengths `soft`, `medium` (default), `deep`. The tint is switched off for `prefers-contrast: more` and forced colours. Stored per browser in `localStorage["noyvj-night:mode"]` and `["noyvj-night:level"]`. The clock is read on load, when the tab becomes visible, on `pageshow` and on focus; there are **no timers** (a page left open through 10pm shifts when you come back to it). Tests: `shared/tests/test_night_mode_browser.py` (14). Not wired into the hub or any game yet.
+
+```html
+<link rel="stylesheet" href="../../shared/night-mode.css">   <!-- optional: the script links it itself -->
+<script src="../../shared/night-mode.js"></script>
+<div id="night-settings"></div>
+<script>NoyvjNight.mount("#night-settings");</script>        <!-- or NoyvjNight.bindSelect("#my-select") -->
+```
+
+`window.NoyvjNight`: `getMode()/setMode(m)`, `getLevel()/setLevel(l)`, `isActive()`, `isNight(date?)`, `configure({start, end, now})`, `apply()`, `mount(container, {title})` (two selects plus a polite status sentence, 44 px controls), `bindSelect(select, {level})`, `onChange(fn)` (returns an unsubscribe function). `html[data-night="on|off"]` and `html[data-night-level]` are set, and a `noyvj-night-change` event fires on `document` once per real change. Text is written with `textContent` only.
+
+## Half-asleep ("calm") mode (`shared/calm-mode.js` + `.css`, TODO QI-51)
+
+Opt-in, off by default (`localStorage["noyvj-calm"]`). "Large buttons, dimmed screen, calm games only, one-handed layout." While on, `html[data-calm="true"]` makes buttons and controls at least 56 px tall with slightly bigger text, stops all motion, dims the screen with a fixed click-through black layer (never a CSS `filter`, which would break fixed children) and offers a thumb dock and a calm-only list filter. Tests: `shared/tests/test_calm_mode_browser.py` (16). Not wired into the hub or any game yet.
+
+`window.NoyvjCalm`: `isOn()/setOn(b)/toggle()`, `getHand()/setHand("right"|"left")`, `setDock([{id, label, onClick}])` (a fixed bottom bar of up to four 64 px buttons, shown only while calm is on; the game passes its main actions; `clearDock()`), `filter(container, {itemSelector, getTags, calmTags, note})` (hides items that are not calm while on: an item is calm when its tags include one of `calmTags`, default `["calm"]`, read from `data-tags` or `getTags(node)`, or it has `data-calm="true"`; it only un-hides what it hid; returns `{refresh, shown, total, destroy}` and shows "Calm games only: showing N of M."), `CALM_GAMES` (a suggested starting list of calm slugs for the hub), `mount(container, {title})` (labelled switch, hand select, a plain list of what changes), `bindCheckbox(checkbox)`, `onChange(fn)` (returns an unsubscribe function), and a `noyvj-calm-change` event. Contrast-more users get no dim. Adoption notes: a game's dock needs only `NoyvjCalm.setDock([...])` once; the hub marks cards with `data-tags` and calls `NoyvjCalm.filter("#game-grid", {itemSelector: ".title-card"})`. Both new files still need adding to `sw.js`'s precache list when whoever owns that file next edits it (until then they load from the network, which fails soft offline).

@@ -1,0 +1,128 @@
+/*
+ * Shared half-asleep ("calm") mode (planning/TODO.md QI-51): large buttons, a dimmed screen, calm games
+ * only and a one-handed layout. Everything keys off html[data-calm="true"], set by calm-mode.js, so a game
+ * needs no CSS of its own. Bigger targets and slightly bigger text, motion off, a soft dim overlay (fixed,
+ * click-through) and an optional thumb dock fixed to the bottom of the screen. API and tests:
+ * planning/SHARED-COMPONENTS.md ("Half-asleep mode"), shared/tests/test_calm_mode_browser.py.
+ */
+:root {
+  --nc-bg: rgba(20, 24, 42, 0.9);
+  --nc-fg: #e8e9f0;
+  --nc-muted: #aab0c8;
+  --nc-border: rgba(140, 160, 255, 0.55);
+  --nc-accent: #9fe0ab;
+  --nc-focus: #ffd866;
+}
+html[data-theme="light"] {
+  --nc-bg: rgba(255, 255, 255, 0.96);
+  --nc-fg: #1b2033;
+  --nc-muted: #4a5275;
+  --nc-border: rgba(60, 85, 160, 0.6);
+  --nc-accent: #1f6b3a;
+  --nc-focus: #8a5a00;
+}
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme]) {
+    --nc-bg: rgba(255, 255, 255, 0.96);
+    --nc-fg: #1b2033;
+    --nc-muted: #4a5275;
+    --nc-border: rgba(60, 85, 160, 0.6);
+    --nc-accent: #1f6b3a;
+    --nc-focus: #8a5a00;
+  }
+}
+
+[hidden] { display: none !important; }
+
+/* Large targets and slightly larger text. */
+html[data-calm="true"] { font-size: 112.5%; }
+html[data-calm="true"] button,
+html[data-calm="true"] [role="button"],
+html[data-calm="true"] summary,
+html[data-calm="true"] select,
+html[data-calm="true"] input:not([type="range"]):not([type="hidden"]),
+html[data-calm="true"] textarea,
+html[data-calm="true"] a.button,
+html[data-calm="true"] a[role="button"] {
+  min-height: 56px;
+  min-width: 56px;
+  font-size: 1.05rem;
+}
+html[data-calm="true"] input[type="checkbox"],
+html[data-calm="true"] input[type="radio"] { min-height: 28px; min-width: 28px; }
+
+/* No motion at all. */
+html[data-calm="true"] *,
+html[data-calm="true"] *::before,
+html[data-calm="true"] *::after {
+  animation-duration: 0.001ms !important;
+  animation-iteration-count: 1 !important;
+  animation-delay: 0s !important;
+  transition-duration: 0.001ms !important;
+  scroll-behavior: auto !important;
+}
+
+/* A soft dim: a fixed black layer, never a filter on the page (a filter would break fixed children). */
+.noyvj-calm-dim {
+  position: fixed;
+  inset: 0;
+  z-index: 2147482900;
+  pointer-events: none;
+  background: #000;
+  opacity: 0;
+}
+html[data-calm="true"] .noyvj-calm-dim { opacity: 0.32; }
+@media (prefers-contrast: more), (forced-colors: active) {
+  html[data-calm="true"] .noyvj-calm-dim { opacity: 0; }
+}
+
+/* The one-handed dock: big buttons along the bottom edge, in the thumb's reach. */
+.noyvj-calm-dock {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 2147482950;
+  display: flex;
+  gap: 0.6rem;
+  padding: 0.6rem 0.8rem calc(0.6rem + env(safe-area-inset-bottom, 0px));
+  background: var(--nc-bg);
+  border-top: 2px solid var(--nc-border);
+  box-sizing: border-box;
+  justify-content: flex-end;
+}
+.noyvj-calm-dock[data-hand="left"] { justify-content: flex-start; }
+.noyvj-calm-dock button,
+html[data-calm="true"] .noyvj-calm-dock button {
+  flex: 1 1 0;
+  max-width: 14rem;
+  min-height: 64px;
+  font: inherit;
+  font-size: 1.1rem;
+  color: var(--nc-fg);
+  background: transparent;
+  border: 2px solid var(--nc-border);
+  border-radius: 12px;
+  cursor: pointer;
+}
+.noyvj-calm-dock button:focus-visible { outline: 3px solid var(--nc-focus); outline-offset: 2px; }
+html[data-calm="true"] body.noyvj-calm-has-dock { padding-bottom: 96px; }
+
+/* The settings switch built by NoyvjCalm.mount */
+.noyvj-calm-control {
+  background: var(--nc-bg);
+  color: var(--nc-fg);
+  border: 1px solid var(--nc-border);
+  border-radius: 10px;
+  padding: 0.75rem 0.9rem;
+  max-width: 36rem;
+  box-sizing: border-box;
+}
+.noyvj-calm-control h3 { margin: 0 0 0.4rem; font-size: 1rem; }
+.noyvj-calm-control p, .noyvj-calm-control li { color: var(--nc-muted); font-size: 0.9rem; line-height: 1.4; }
+.noyvj-calm-control ul { margin: 0.3rem 0 0.6rem; padding-left: 1.2rem; }
+.noyvj-calm-control label { display: flex; align-items: center; gap: 0.6rem; min-height: 44px; cursor: pointer; font-size: 1rem; }
+.noyvj-calm-control input[type="checkbox"] { width: 24px; height: 24px; flex: none; }
+.noyvj-calm-control select { min-height: 44px; font: inherit; color: var(--nc-fg); background: transparent; border: 1px solid var(--nc-border); border-radius: 6px; padding: 0.3rem 0.5rem; }
+.noyvj-calm-control :focus-visible { outline: 3px solid var(--nc-focus); outline-offset: 2px; }
+.noyvj-calm-count { font-weight: 600; color: var(--nc-fg); }

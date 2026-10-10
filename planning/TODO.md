@@ -294,8 +294,8 @@ You said yes to every item except F5 (undo button, no). New games below each nee
 - [ ] QI-48: (Quick ideas E6) Gift an item: send a collected item to a friend once per day, optional and never needed.
 - [ ] QI-49: (Quick ideas E7) Community bar: one shared progress bar that every player's actions fill together toward a goal, cooperative only.
 - [ ] QI-50: (Quick ideas F1) "How long have you got?" button on the hub: pick 5 minutes, 15 minutes or "all night" and it suggests games that fit.
-- [ ] QI-51: (Quick ideas F2) Half-asleep mode: large buttons, dimmed screen, calm games only, one-handed layout.
-- [ ] QI-52: (Quick ideas F3) Warm night colours after 10pm: the hub and games shift to a dimmer, warmer palette automatically (opt-in).
+- [ ] QI-51: (Quick ideas F2) Half-asleep mode: large buttons, dimmed screen, calm games only, one-handed layout. (Shared piece built 2026-10-10: `shared/calm-mode.js/.css`, 16 browser tests; not wired into the hub or any game yet, and the hub's calm-only filter needs card tags.)
+- [ ] QI-52: (Quick ideas F3) Warm night colours after 10pm: the hub and games shift to a dimmer, warmer palette automatically (opt-in). (Shared piece built 2026-10-10: `shared/night-mode.js/.css`, 14 browser tests; not wired into the hub or any game yet.)
 - [ ] QI-53: (Quick ideas F4) An Ironman switch per game: opt-in hard fail with no restore, with its own badge, never the default.
 - [ ] QI-54: (Quick ideas F6) A graded hint ladder in puzzle games: a nudge, then a hint, then the answer, so you never have to leave to look it up.
 - [ ] QI-55: (Quick ideas F7) Strategy notes page per game: the known good builds and strategies written into the game, so you never alt-tab.

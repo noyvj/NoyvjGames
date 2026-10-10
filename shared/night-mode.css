@@ -1,0 +1,84 @@
+/*
+ * Shared warm night colours (planning/TODO.md QI-52). While night mode is active a fixed, click-through
+ * overlay multiplies the whole page by a warm amber, which dims it and removes blue light without any
+ * per-game CSS (the overlay is the only thing that changes; no game colour is edited). Strength has three
+ * levels. The overlay is switched off for people who ask for more contrast (prefers-contrast: more) and
+ * for forced-colours users. API and tests: planning/SHARED-COMPONENTS.md ("Warm night colours"),
+ * shared/tests/test_night_mode_browser.py.
+ */
+:root {
+  --nn-bg: rgba(20, 24, 42, 0.78);
+  --nn-fg: #e8e9f0;
+  --nn-muted: #aab0c8;
+  --nn-border: rgba(140, 160, 255, 0.45);
+  --nn-focus: #ffd866;
+}
+html[data-theme="light"] {
+  --nn-bg: rgba(255, 255, 255, 0.94);
+  --nn-fg: #1b2033;
+  --nn-muted: #4a5275;
+  --nn-border: rgba(60, 85, 160, 0.55);
+  --nn-focus: #8a5a00;
+}
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme]) {
+    --nn-bg: rgba(255, 255, 255, 0.94);
+    --nn-fg: #1b2033;
+    --nn-muted: #4a5275;
+    --nn-border: rgba(60, 85, 160, 0.55);
+    --nn-focus: #8a5a00;
+  }
+}
+
+[hidden] { display: none !important; }
+
+.noyvj-night-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 2147483000;
+  pointer-events: none;
+  mix-blend-mode: multiply;
+  background: rgb(255, 196, 140);
+  opacity: 0;
+}
+html[data-night="on"] .noyvj-night-overlay { opacity: 0.75; }
+html[data-night="on"][data-night-level="soft"] .noyvj-night-overlay { background: rgb(255, 214, 176); opacity: 0.55; }
+html[data-night="on"][data-night-level="deep"] .noyvj-night-overlay { background: rgb(255, 170, 100); opacity: 0.9; }
+
+@media (prefers-reduced-motion: no-preference) {
+  html:not([data-reduced-motion="true"]) .noyvj-night-overlay { transition: opacity 0.6s ease; }
+}
+@media (prefers-contrast: more), (forced-colors: active) {
+  html[data-night="on"] .noyvj-night-overlay { opacity: 0; }
+}
+
+/* The settings control built by NoyvjNight.mount */
+.noyvj-night-control {
+  background: var(--nn-bg);
+  color: var(--nn-fg);
+  border: 1px solid var(--nn-border);
+  border-radius: 10px;
+  padding: 0.75rem 0.9rem;
+  max-width: 36rem;
+  box-sizing: border-box;
+}
+.noyvj-night-control h3 { margin: 0 0 0.4rem; font-size: 1rem; }
+.noyvj-night-control p { margin: 0.3rem 0; color: var(--nn-muted); font-size: 0.9rem; line-height: 1.4; }
+.noyvj-night-control label { display: block; margin: 0.5rem 0 0.2rem; font-size: 0.9rem; }
+.noyvj-night-control select {
+  min-height: 44px;
+  width: 100%;
+  max-width: 22rem;
+  font: inherit;
+  color: var(--nn-fg);
+  background: transparent;
+  border: 1px solid var(--nn-border);
+  border-radius: 6px;
+  padding: 0.3rem 0.5rem;
+  box-sizing: border-box;
+}
+.noyvj-night-control select:focus-visible { outline: 3px solid var(--nn-focus); outline-offset: 2px; }
+.noyvj-night-state { font-weight: 600; color: var(--nn-fg); }
+@media (max-width: 400px) {
+  .noyvj-night-control { padding: 0.6rem 0.65rem; }
+}

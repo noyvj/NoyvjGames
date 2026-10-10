@@ -91,6 +91,18 @@
   #export-text { width: 100%; min-height: 18rem; background: var(--panel-2); border: 1px solid var(--line); border-radius: 8px;
     padding: 0.6rem; font: 0.85rem/1.45 ui-monospace, Menlo, monospace; color: var(--text); }
   .dialog-row { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 0.7rem; align-items: center; }
+  /* Game notes: a free place for comments, thoughts and feedback per game. */
+  body[data-mode="notes"] #filter-label, body[data-mode="notes"] #tag-label, body[data-mode="notes"] #search, body[data-mode="notes"] #progress { display: none; }
+  .note-form { background: var(--panel); border: 1px solid var(--accent); border-radius: 12px; padding: 0.8rem 1rem; margin: 0.6rem 0 1rem; }
+  .note-form .row { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; margin-top: 0.5rem; }
+  .note-form textarea { width: 100%; min-height: 6rem; resize: vertical; background: var(--panel-2); border: 1px solid var(--line); border-radius: 8px; padding: 0.5rem 0.6rem; }
+  .note-form .primary { background: var(--accent); color: #0b0d1c; border-color: transparent; font-weight: 600; }
+  :root[data-theme="light"] .note-form .primary { color: #fff; }
+  .note { background: var(--panel); border: 1px solid var(--line); border-left: 4px solid var(--accent); border-radius: 12px; padding: 0.7rem 1rem; margin-bottom: 0.6rem; }
+  .note-head { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; font-size: 0.78rem; color: var(--muted); }
+  .note textarea { width: 100%; margin-top: 0.4rem; min-height: 3.6rem; resize: vertical; background: var(--panel-2); border: 1px solid var(--line); border-radius: 8px; padding: 0.4rem 0.6rem; }
+  .note .link { background: transparent; border-color: transparent; color: var(--no); padding: 0 0.3rem; font-size: 0.8rem; }
+  .chip.kind { color: var(--accent); }
   @media (max-width: 760px) {
     .layout { grid-template-columns: 1fr; padding: 0.7rem; }
     nav#sections { position: static; flex-direction: row; overflow-x: auto; max-height: none; padding-bottom: 0.4rem; }
@@ -106,12 +118,12 @@
 <header class="bar">
   <h1>Ideas answer sheet</h1>
   <label>Round <select id="round-select"></select></label>
-  <label>Show <select id="filter-select">
+  <label id="filter-label">Show <select id="filter-select">
     <option value="open">Unanswered</option>
     <option value="all">Everything</option>
     <option value="answered">Already answered</option>
   </select></label>
-  <label>Size <select id="tag-select">
+  <label id="tag-label">Size <select id="tag-select">
     <option value="">All</option><option value="big">Big</option><option value="small">Small</option>
   </select></label>
   <input id="search" type="search" placeholder="Search ideas" aria-label="Search ideas">
@@ -152,7 +164,7 @@
   let data = null;          // {rounds: [...]}
   let baseline = {};        // answers already in the docs (local checkout only)
   let mine = {};            // {roundId: {code: {n: {c, m}}}} -- what was typed on this page
-  let ui = { round: ALL, section: "", filter: "open", tag: "", q: "" };
+  let ui = { round: ALL, section: "", filter: "open", tag: "", q: "", noteGame: "*" };
   const touched = new Set(); // "code:n" keys edited this visit, kept visible under the "unanswered" filter
 
   try { mine = JSON.parse(lsGet(STORE_KEY) || "{}") || {}; } catch (e) { mine = {}; }
@@ -297,6 +309,166 @@
   function toast(msg) {
     const t = $("toast"); t.textContent = msg; t.hidden = false;
     clearTimeout(toast.t); toast.t = setTimeout(() => { t.hidden = true; }, 2200);
+  }
+
+  // ---- game notes -------------------------------------------------------------------
+  // A free place for comments, thoughts, bugs and feedback per game (and one for the whole site), added
+  // as you play. Kept in this browser (localStorage) and saved to the owner account as the note
+  // "game-notes" (PUT /owner/notes/game-notes), the same way the answers are, so the assistant can read
+  // them. Each note has an id; the newer edit wins on merge; deleting leaves a tombstone so a delete on one
+  // device is not undone by another.
+  const NOTES_ROUND = "notes";
+  const NOTES_KEY = "ideas-game-notes-v1";
+  const NOTE_API = API + "/owner/notes/game-notes";
+  const SITE = "site";
+  const KINDS = [["thought", "Thought"], ["feedback", "Feedback"], ["bug", "Bug"], ["idea", "Idea"], ["question", "Question for Claude"]];
+  const GAME_NAMES = { "champ-de-mots": "Le Champ de Mots", sol: "SOL", "trade-empire": "Trade Empire", "evidence-hunt": "Evidence Hunt" };
+  const FALLBACK_GAMES = ["aftermath", "canopy", "champ-de-mots", "chronicle", "continuum", "dead-reckoning", "drift", "evidence-hunt", "grid", "heist-committee",
+    "herd", "hull-repair", "lexis", "lighthouse", "logic-gates", "loop", "pocket-bazaar", "robot-script", "signal", "sol", "station-medic", "stranded", "thaw", "tide", "trade-empire"];
+  let noteGames = FALLBACK_GAMES.slice();
+  let notes = {};
+  try { notes = JSON.parse(lsGet(NOTES_KEY) || "{}") || {}; } catch (e) { notes = {}; }
+  let notePushTimer = null;
+  const gameName = (slug) => slug === SITE ? "Whole site" : GAME_NAMES[slug] || slug.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+  const liveNotes = (slug) => Object.entries(notes).filter(([, n]) => !n.d && (!slug || n.g === slug)).map(([id, n]) => Object.assign({ id }, n))
+    .sort((a, b) => (b.c || 0) - (a.c || 0));
+  const noteId = () => "n" + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+  function saveNotes() { lsSet(NOTES_KEY, JSON.stringify(notes)); scheduleNotePush(); }
+  function scheduleNotePush() { setSync("Saving\u2026"); clearTimeout(notePushTimer); notePushTimer = setTimeout(pushNotes, 1200); }
+  async function pushNotes() {
+    const headers = authHeaders();
+    if (!headers) { setSync("Not synced: sign in on the hub"); return; }
+    try {
+      const res = await fetch(NOTE_API, { method: "PUT", headers, body: JSON.stringify({ value: { version: 1, notes: notes } }) });
+      if (res.ok) setSync("Notes saved to your account at " + clock());
+      else setSync("Not synced (" + res.status + "), kept in this browser");
+    } catch (e) { setSync("Not synced (offline), kept in this browser"); }
+  }
+  async function pullNotes() {
+    const headers = authHeaders();
+    if (!headers) return;
+    try {
+      const res = await fetch(NOTE_API, { headers, cache: "no-store" });
+      if (!res.ok) return;
+      const body = await res.json();
+      const remote = (body.value && body.value.notes) || {};
+      let changed = false;
+      for (const [id, theirs] of Object.entries(remote)) {
+        const mineNote = notes[id];
+        if (!mineNote || (theirs.u || 0) > (mineNote.u || 0)) { notes[id] = theirs; changed = true; }
+      }
+      if (changed) { lsSet(NOTES_KEY, JSON.stringify(notes)); if (ui.round === NOTES_ROUND) render(); }
+      if (Object.keys(notes).some((id) => !remote[id] || (notes[id].u || 0) > (remote[id].u || 0))) await pushNotes();
+    } catch (e) { /* offline: the browser copy stays */ }
+  }
+  function addNote(game, kind, text) {
+    const t = String(text || "").trim();
+    if (!t) return null;
+    const now = Date.now();
+    const id = noteId();
+    notes[id] = { g: game, k: kind, m: t, c: now, u: now };
+    saveNotes();
+    return id;
+  }
+  function editNote(id, patch) {
+    if (!notes[id]) return;
+    notes[id] = Object.assign({}, notes[id], patch, { u: Date.now() });
+    saveNotes();
+  }
+  function noteSections() {
+    const all = liveNotes();
+    const out = [{ code: "*", title: "Everything", count: all.length }, { code: SITE, title: "Whole site", count: liveNotes(SITE).length }];
+    for (const g of noteGames) out.push({ code: g, title: gameName(g), count: liveNotes(g).length });
+    return out;
+  }
+  function renderNotesNav() {
+    const nav = $("sections"); nav.textContent = "";
+    const mk = (sec) => {
+      const b = document.createElement("button"); b.type = "button"; b.dataset.code = sec.code;
+      if (sec.code === ui.noteGame) b.setAttribute("aria-current", "true");
+      const name = document.createElement("span"); name.textContent = sec.title;
+      const count = document.createElement("span"); count.className = "count" + (sec.count ? "" : " done"); count.textContent = sec.count ? String(sec.count) : "";
+      b.append(name, count);
+      b.addEventListener("click", () => { ui.noteGame = sec.code; saveUi(); render(); window.scrollTo({ top: 0 }); });
+      return b;
+    };
+    const secs = noteSections();
+    const g1 = document.createElement("div"); g1.className = "nav-group"; g1.textContent = "Notes"; nav.appendChild(g1);
+    nav.appendChild(mk(secs[0])); nav.appendChild(mk(secs[1]));
+    const g2 = document.createElement("div"); g2.className = "nav-group"; g2.textContent = "Games"; nav.appendChild(g2);
+    for (const s of secs.slice(2)) nav.appendChild(mk(s));
+  }
+  function fmtDate(ms) { try { return new Date(ms).toLocaleDateString([], { day: "numeric", month: "short" }) + " " + new Date(ms).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }); } catch (e) { return ""; } }
+  function renderNotesMain() {
+    const main = $("content"); main.textContent = "";
+    const all = ui.noteGame === "*";
+    const h = document.createElement("h2"); h.textContent = all ? "Everything you have noted" : "Notes: " + gameName(ui.noteGame); main.appendChild(h);
+    const intro = document.createElement("p"); intro.className = "section-note";
+    intro.textContent = "Write anything about a game here as you play: a thought, a bug, feedback, an idea or a question. It saves as you go and the assistant reads it, so there is nothing to export.";
+    main.appendChild(intro);
+    // quick-add form
+    const form = document.createElement("div"); form.className = "note-form";
+    const gameLabel = document.createElement("label"); gameLabel.className = "hint"; gameLabel.style.display = "inline-flex"; gameLabel.style.gap = "0.4rem";
+    gameLabel.append(document.createTextNode("About "));
+    const gsel = document.createElement("select"); gsel.id = "note-game";
+    for (const [slug, title] of [[SITE, "Whole site"]].concat(noteGames.map((g) => [g, gameName(g)]))) { const o = document.createElement("option"); o.value = slug; o.textContent = title; gsel.appendChild(o); }
+    gsel.value = all ? (ui.lastNoteGame || SITE) : ui.noteGame;
+    gameLabel.appendChild(gsel);
+    const ta = document.createElement("textarea"); ta.id = "note-text"; ta.placeholder = "What do you want to say about this game?"; ta.setAttribute("aria-label", "New note");
+    const row = document.createElement("div"); row.className = "row";
+    const ksel = document.createElement("select"); ksel.id = "note-kind"; ksel.setAttribute("aria-label", "Kind of note");
+    for (const [k, label] of KINDS) { const o = document.createElement("option"); o.value = k; o.textContent = label; ksel.appendChild(o); }
+    ksel.value = ui.lastKind || "thought";
+    const add = document.createElement("button"); add.type = "button"; add.className = "primary"; add.textContent = "Add note";
+    const hint = document.createElement("span"); hint.className = "hint"; hint.textContent = "Ctrl or Cmd + Enter adds it too.";
+    const submit = () => {
+      if (!ta.value.trim()) { ta.focus(); return; }
+      ui.lastKind = ksel.value; ui.lastNoteGame = gsel.value; saveUi();
+      addNote(gsel.value, ksel.value, ta.value);
+      toast("Note added");
+      render();
+      const t2 = $("note-text"); if (t2) t2.focus();
+    };
+    add.addEventListener("click", submit);
+    ta.addEventListener("keydown", (e) => { if ((e.ctrlKey || e.metaKey) && e.key === "Enter") { e.preventDefault(); submit(); } });
+    row.append(ksel, add, hint);
+    form.append(gameLabel, ta, row);
+    main.appendChild(form);
+    // list
+    const list = liveNotes(all ? null : ui.noteGame);
+    if (!list.length) {
+      const e = document.createElement("p"); e.className = "empty"; e.textContent = "No notes here yet."; main.appendChild(e);
+    }
+    for (const n of list) {
+      const art = document.createElement("article"); art.className = "note"; art.dataset.noteId = n.id;
+      const head = document.createElement("div"); head.className = "note-head";
+      const kind = document.createElement("select"); kind.setAttribute("aria-label", "Kind of note");
+      for (const [k, label] of KINDS) { const o = document.createElement("option"); o.value = k; o.textContent = label; kind.appendChild(o); }
+      kind.value = KINDS.some(([k]) => k === n.k) ? n.k : "thought";
+      kind.addEventListener("change", () => editNote(n.id, { k: kind.value }));
+      head.appendChild(kind);
+      if (all) { const g = document.createElement("span"); g.className = "chip kind"; g.textContent = gameName(n.g); head.appendChild(g); }
+      const when = document.createElement("span"); when.textContent = fmtDate(n.c); head.appendChild(when);
+      const sp = document.createElement("span"); sp.className = "spacer"; head.appendChild(sp);
+      const del = document.createElement("button"); del.type = "button"; del.className = "link"; del.textContent = "Delete";
+      del.addEventListener("click", () => { if (!confirm("Delete this note?")) return; editNote(n.id, { d: 1 }); render(); });
+      head.appendChild(del);
+      const body = document.createElement("textarea"); body.value = n.m || ""; body.setAttribute("aria-label", "Note text");
+      body.addEventListener("input", () => editNote(n.id, { m: body.value }));
+      art.append(head, body);
+      main.appendChild(art);
+    }
+  }
+  function notesAsMarkdown() {
+    const lines = ["# Game notes", ""];
+    for (const sec of noteSections().slice(1)) {
+      const list = liveNotes(sec.code);
+      if (!list.length) continue;
+      lines.push("## " + sec.title, "");
+      for (const n of list) lines.push("- [" + n.k + ", " + new Date(n.c).toISOString().slice(0, 10) + "] " + String(n.m).replace(/\n+/g, " "));
+      lines.push("");
+    }
+    return lines.join("\n");
   }
 
   // ---- rendering -------------------------------------------------------
@@ -454,7 +626,15 @@
   }
 
   function saveUi() { lsSet(UI_KEY, JSON.stringify(ui)); }
-  function render() { renderNav(); renderMain(); updateChrome(); }
+  function render() {
+    document.body.dataset.mode = ui.round === NOTES_ROUND ? "notes" : "ideas";
+    if (ui.round === NOTES_ROUND) {
+      renderNotesNav(); renderNotesMain();
+      $("export-btn").textContent = "Copy notes (" + liveNotes().length + ")";
+      return;
+    }
+    renderNav(); renderMain(); updateChrome();
+  }
 
   // ---- export ----------------------------------------------------------
   function buildExport() {
@@ -514,18 +694,22 @@
   function wire() {
     const rs = $("round-select");
     buildAll();
+    const nOpt = document.createElement("option"); nOpt.value = NOTES_ROUND; nOpt.textContent = "Game notes (write your own comments)"; rs.appendChild(nOpt);
     const first = document.createElement("option"); first.value = ALL; first.textContent = "All unanswered (everything, every file)"; rs.appendChild(first);
     for (const r of data.rounds) { const o = document.createElement("option"); o.value = r.id; o.textContent = r.title; rs.appendChild(o); }
-    if (ui.round !== ALL && !data.rounds.some((r) => r.id === ui.round)) ui.round = ALL;
+    if (ui.round !== ALL && ui.round !== NOTES_ROUND && !data.rounds.some((r) => r.id === ui.round)) ui.round = ALL;
     rs.value = ui.round;
-    rs.addEventListener("change", () => { ui.round = rs.value; ui.section = ""; touched.clear(); pickSection(); saveUi(); render(); });
+    rs.addEventListener("change", () => { ui.round = rs.value; ui.section = ""; touched.clear(); if (ui.round !== NOTES_ROUND) pickSection(); saveUi(); render(); });
     $("filter-select").value = ui.filter;
     $("filter-select").addEventListener("change", (e) => { ui.filter = e.target.value; saveUi(); renderMain(); });
     $("tag-select").value = ui.tag;
     $("tag-select").addEventListener("change", (e) => { ui.tag = e.target.value; saveUi(); renderMain(); });
     $("search").value = ui.q;
     $("search").addEventListener("input", (e) => { ui.q = e.target.value; saveUi(); renderMain(); });
-    $("export-btn").addEventListener("click", openExport);
+    $("export-btn").addEventListener("click", async () => {
+      if (ui.round === NOTES_ROUND) { toast((await copyText(notesAsMarkdown())) ? "Notes copied. Paste them into the chat." : "Copy failed."); return; }
+      openExport();
+    });
     $("close-btn").addEventListener("click", () => $("export-dialog").close());
     $("copy-btn").addEventListener("click", async () => toast((await copyText($("export-text").value)) ? "Copied. Paste it into the chat." : "Copy failed: select the text and copy it by hand."));
     $("download-btn").addEventListener("click", () => {
@@ -539,9 +723,11 @@
       schedulePush();
     });
     // Cross-tab safety: another tab answering the same sheet should not be silently overwritten.
+    window.addEventListener("storage", (e) => { if (e.key === NOTES_KEY) { try { notes = JSON.parse(e.newValue || "{}") || {}; } catch (x) { notes = {}; } if (ui.round === NOTES_ROUND) render(); } });
     window.addEventListener("storage", (e) => { if (e.key === STORE_KEY) { try { mine = JSON.parse(e.newValue || "{}") || {}; } catch (x) { mine = {}; } render(); } });
   }
   function pickSection() {
+    if (ui.round === NOTES_ROUND) return;
     const secs = round().sections;
     if (secs.some((s) => s.code === ui.section)) return;
     const first = secs.find((s) => s.items.some((i) => isOpen(s.code, i))) || secs[0];
@@ -559,8 +745,13 @@
       const r = await fetch("ideas-answers.local.json", { cache: "no-cache" });
       if (r.ok) baseline = await r.json();
     } catch (e) { /* not available on the public site, and that is fine */ }
+    try {
+      const r2 = await fetch("game-last-updated.json", { cache: "no-cache" });
+      if (r2.ok) { const slugs = Object.keys(await r2.json()).sort(); if (slugs.length) noteGames = slugs; }
+    } catch (e) { /* the built-in list is used */ }
     wire(); pickSection(); render();
     pull();
+    pullNotes();
   }
   load();
 })();
