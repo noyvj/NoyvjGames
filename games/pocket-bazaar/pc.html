@@ -133,8 +133,30 @@
         <p class="note">Purely for show, bought with coins and never needed. One of each kind is out at a time.</p>
         <div id="decor-list" class="decor-list"></div>
       </div>
+      <section id="market-panel" class="market-panel" aria-labelledby="market-heading" hidden>
+        <h3 id="market-heading">The Daily Market</h3>
+        <div id="market-result" class="market-result" data-testid="pocket-bazaar-market-result" hidden></div>
+        <p id="market-today"></p>
+        <p class="note">One plain market day for each date, the same for everyone: a fixed stall with no upgrades, and nothing from it is added to your stall. It pays nothing extra. There are no streaks: skip as many days as you like, and every past day stays open.</p>
+        <div class="closed-buttons">
+          <button id="market-today-button" type="button" class="big" data-testid="pocket-bazaar-market-today">Today's market</button>
+          <button id="market-archive-button" type="button" class="big" aria-expanded="false" aria-controls="market-archive" data-testid="pocket-bazaar-market-archive">Market archive</button>
+        </div>
+        <div id="market-archive" hidden>
+          <div class="market-cal-head">
+            <button id="market-cal-prev" type="button" aria-label="Previous month">&lsaquo;</button>
+            <strong id="market-cal-title" aria-live="polite"></strong>
+            <button id="market-cal-next" type="button" aria-label="Next month">&rsaquo;</button>
+          </div>
+          <div id="market-calendar" class="market-calendar" role="group" aria-label="Daily markets by date"></div>
+          <p class="note">A dot means not played yet; stars show your best result for that date. Any of them can be played now.</p>
+        </div>
+        <p id="market-tally" class="note" data-testid="pocket-bazaar-market-tally"></p>
+        <div id="market-grid" class="market-grid" role="img"></div>
+      </section>
     </div>
     <div id="open-area" hidden>
+      <p id="market-open-banner" class="note market-open-banner" data-testid="pocket-bazaar-market-banner" hidden></p>
       <div id="queue" class="queue" role="group" aria-label="Customers at the stall"></div>
       <p id="queue-line" class="note queue-line"></p>
       <div id="counter" class="counter">
@@ -200,6 +222,7 @@
   // buttons the Desktop layout turns into icons and windows. app.js asks this function which steps to run.
   window.pocketBazaarTutorialSteps = function (classicSteps) { return window.POCKET_BAZAAR_PC_TUTORIAL_STEPS || classicSteps; };
 </script>
+<script src="market.js"></script>
 <script src="app.js"></script>
 <script src="../../shared/last-played.js" data-game-id="pocket-bazaar"></script>
 <script src="../../shared/whats-new-banner.js" data-game-id="pocket-bazaar"></script>

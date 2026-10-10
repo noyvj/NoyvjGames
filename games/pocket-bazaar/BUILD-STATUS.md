@@ -20,10 +20,12 @@ Daily Market (M-4b-9) are NOT part of this build.
 
 - M8 Own-folder wrap-up: pc-config.json, pc.css, pc.js, pc.html (built with a scratch script calling build('pocket-bazaar', cfg) only), layout-pref.js, desktop tests, changelog entry, CLAUDE.md; 236 tests, shared tests -k bazaar 11 passed
 
+- M-4b-9 Daily Market: market.py, marketbot.py, market.js, game.py (`start_market`, `market_days`/`market_day` save keys), index.html panel, pc.html regenerated, info/changelog, tests test_market*.py
+
 - M-4b-11 tweaks (Pb4 wider Desktop counter, Pb5 regulars bond at 1/2/3 visits): pc.css, pc-config.json, pc.html regenerated, regulars.py, tests updated plus 2 new; 238 tests
 
 ## Next
-- Nothing in this folder. Hub registration (M-4b-10) and the Daily Market (M-4b-9) are other people's.
+- Nothing in this folder. The Daily Market (M-4b-9) is DONE (2026-10-11, see CLAUDE.md "Daily Market"); its opt-in leaderboard is a separate backend job (hooks `market.leaderboard_entry` and `PocketBazaarMarket.leaderboardHook`). The hub's `sw.js`/`offline-manifest.json` must precache `market.py`, `marketbot.py`, `market.js`.
 - Optional polish if time: manual pre-release checklist play-through (CLAUDE.md), real-device touch drag check.
 
 ## Open problems / notes

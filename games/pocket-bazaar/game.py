@@ -16,16 +16,21 @@ Actions (every request is {"action": ..., ...}; every reply is the whole view):
   buy {id}                    buy a stall upgrade with coins (between days only)
   buy_decor {id}              buy a decoration (cosmetic) and put it out
   put_decor {id}              put an owned decoration out in its slot
-  reset                       start over (everything)
+  reset                       start over (everything but the Daily Market results, which belong to dates)
+  start_market {date}         open the Daily Market for a date (from the closed stall only; see market.py)
+
+Every request may carry "today" ("YYYY-MM-DD", UTC): the view passes the date in, the engine never reads a clock.
 """
 
 import json
+import re
 
 import achievements
 import decorations
 import festival
 import goods
 import info
+import market
 import regulars
 import renown
 import shop
@@ -70,8 +75,13 @@ class Stall:
         self.shelf = None           # the good kept on the display shelf between days
         self.day = None
         self.last = None            # the summary of the day that just ended, until the next one opens
+        self.market = None          # the date of the Daily Market the open day belongs to (None: a campaign day)
+        self.market_days = {}       # {"YYYY-MM-DD": best result}; belongs to dates, so it survives a reset
+        self.market_result = None   # the market that just ended, for the closed card (never saved)
 
     def families(self):
+        if self.market:
+            return tuple(market.spec(self.market)["families"])
         return tuple(renown.families(self.renown))
 
     def facts(self):
@@ -129,8 +139,12 @@ class Stall:
             data["achievements_earned"] = earned       # written for the hub's dashboard, never read back
         if self.shelf is not None:
             data["shelf"] = {"f": self.shelf[0], "t": self.shelf[1]}
-        if self.day is not None:
+        if self.day is not None and not self.market:
             data["day"] = self.day.to_dict()
+        if self.market and self.day is not None:
+            data["market_day"] = {"date": self.market, "day": self.day.to_dict()}
+        if self.market_days:
+            data["market_days"] = {d: dict(r) for d, r in self.market_days.items()}
         if self.last:
             data["last"] = dict(self.last)
         return data
@@ -172,6 +186,18 @@ class Stall:
                 self.day = Day.from_dict(data["day"], self.families(), self.rules_for(_int(data["day"].get("number"), 1, 10 ** 5, 1)))
             except (ValueError, TypeError, KeyError, AttributeError):
                 self.day = None
+        self.market, self.market_result = None, None
+        self.market_days = market.clean_days(data.get("market_days"))
+        raw_market = data.get("market_day")
+        if self.day is None and isinstance(raw_market, dict) and market.valid_date(raw_market.get("date")) \
+                and raw_market["date"] >= market.EPOCH:
+            date = raw_market["date"]
+            try:
+                day = Day.from_dict(raw_market.get("day"), market.spec(date)["families"], market.rules_for(date))
+                if day.number == market.day_number(date):
+                    self.day, self.market = day, date
+            except (ValueError, TypeError, KeyError, AttributeError):
+                self.day, self.market = None, None
         self.last = None
         last = data.get("last")
         if isinstance(last, dict):
@@ -212,6 +238,27 @@ class Stall:
             customer.name, customer.reg = name, rid
             if family in self.families():
                 customer.items = [[family, t, 0] for _f, t, _d in customer.items]
+
+    def open_market(self, date):
+        """The Daily Market for a date: a fixed, fair stall (no upgrades, shelf or regulars) that changes nothing else."""
+        self.day = market.new_day(date)
+        self.market = date
+        self.market_result = None
+        return self.day
+
+    def close_market(self):
+        """The market is over: only the date's best result is kept. No coins, renown, tally, flags or bests move."""
+        day = self.day
+        summary = day.summary()
+        before = self.market_days.get(self.market)
+        record = market.merge_record(before, summary)
+        self.market_days[self.market] = record
+        self.market_result = {"date": self.market, "stars": summary["stars"], "served": summary["served"],
+                              "left": summary["left"], "total": summary["total"], "coins": summary["coins"],
+                              "beats": summary["beats"], "best_chain": summary["best_chain"],
+                              "best": record, "improved": record != before}
+        self.market = None
+        self.day = None
 
     def close_day(self):
         """Called when the last customer has gone: bank the day and show its summary."""
@@ -280,6 +327,25 @@ def _festival_view(number):
     return festival.info(festival.for_day(number))
 
 
+_today = None     # the view's UTC date, runtime only (never saved, never read from a clock)
+
+
+def _market_view():
+    """What the closed stall shows for the Daily Market. None until the view has passed the date in."""
+    if _today is None:
+        return None
+    open_today = market.playable(_today, _today) and _today >= market.EPOCH
+    spec = market.spec(_today) if open_today else None
+    days_done = {d: dict(r) for d, r in stall.market_days.items()}
+    entry = {"today": _today, "epoch": market.EPOCH, "open": open_today, "number": spec["number"] if spec else 0,
+             "festival": festival.info(spec["festival"]) if spec else None,
+             "customers": spec["customers"] if spec else 0, "record": days_done.get(_today), "days": days_done,
+             "tally": market.tally(stall.market_days, _today), "active": stall.market, "result": stall.market_result}
+    if stall.market_result:
+        entry["entry"] = market.leaderboard_entry(stall.market_result["date"], stall.market_result["best"])   # HOOK only
+    return entry
+
+
 def _campaign_view(number):
     return {"mode": "campaign" if number <= CAMPAIGN_DAYS else "free", "day": number, "of": CAMPAIGN_DAYS}
 
@@ -300,8 +366,9 @@ def _view(message="", ok=True, event=None):
         "regulars": regulars.view(stall.visits), "regulars_met": len(stall.visits),
         "renown": stall.renown, "next_unlock": renown.next_unlock(stall.renown), "unlock_names": dict(renown.UNLOCK_NAMES), "best": dict(stall.best),
         "unlocked_families": list(stall.families()), "upgrades": shop.view(stall.upgrades, stall.coins),
-        "festival": _festival_view(day.number if day else stall.next_day),
-        "campaign": _campaign_view(day.number if day else stall.next_day),
+        "festival": festival.info(day.festival) if day else _festival_view(stall.next_day),
+        "campaign": _campaign_view(stall.next_day if stall.market or not day else day.number),
+        "market": _market_view(),
         "summary_festival": _festival_view(stall.last["number"]) if stall.last else None,
     }
     if day is None:
@@ -323,7 +390,7 @@ def _view(message="", ok=True, event=None):
     view["day"] = {"number": day.number, "total": day.total, "served": day.served, "left": day.left,
                    "waiting": day.waiting(), "coins": day.coins, "beat": day.beat, "window": WINDOW,
                    "streak": day.streak, "mult": day.multiplier(), "to_next": day.to_next(), "chain_coins": day.chain_coins}
-    upcoming = day.queue[WINDOW] if "preview" in stall.upgrades and len(day.queue) > WINDOW else None
+    upcoming = day.queue[WINDOW] if "preview" in stall.upgrades and not stall.market and len(day.queue) > WINDOW else None
     view["upcoming"] = _customer_view(WINDOW, upcoming) if upcoming else None
     return view
 
@@ -331,9 +398,11 @@ def _view(message="", ok=True, event=None):
 def _apply(outcome):
     """Fold an action's outcome into the stall (coins, tally) and write the reply message."""
     day = stall.day
-    stall.coins = min(MAX_COINS, stall.coins + outcome.get("coins", 0) + outcome.get("sold", 0))
+    in_market = stall.market is not None
+    if not in_market:
+        stall.coins = min(MAX_COINS, stall.coins + outcome.get("coins", 0) + outcome.get("sold", 0))
     event = outcome.get("event")
-    if outcome["ok"] and event:
+    if outcome["ok"] and event and not in_market:
         kind = event["kind"]
         if kind == "crate":
             stall.tally["crates"] += 1
@@ -356,7 +425,7 @@ def _apply(outcome):
                 stall.tally["wilds"] += 1
     flavor = list(outcome.get("flavor", []))
     reg = outcome.get("served_reg")
-    if reg and reg in regulars.BY_ID:
+    if reg and reg in regulars.BY_ID and not in_market:
         before = stall.visits.get(reg, 0)
         stall.visits[reg] = min(10 ** 4, before + 1)
         new_level = regulars.level(stall.visits[reg])
@@ -368,9 +437,15 @@ def _apply(outcome):
     left_now = sum(1 for n in outcome["notes"] if "could not wait" in n)
     if served_now or left_now:
         event = dict(event or {}, served=bool(served_now), left=left_now)
+    if in_market and re.search(r" for \d+ coins?\.", message):
+        message = re.sub(r" for \d+ coins?\.", " off the counter.", message)          # a market pays nothing for sales
     if day.is_over():
-        stall.close_day()
-        message += f" Day {stall.last['number']} is done."
+        if in_market:
+            stall.close_market()
+            message += " The Daily Market is done."
+        else:
+            stall.close_day()
+            message += f" Day {stall.last['number']} is done."
     view = _view(message, outcome["ok"], event)
     view["flavor"] = flavor
     return view
@@ -382,12 +457,34 @@ def handle(request_json):
         action = request.get("action")
     except (ValueError, AttributeError):
         return json.dumps({"error": "bad request"})
+    global _today
+    if "today" in request:
+        _today = request["today"] if market.valid_date(request["today"]) else None
     if action == "open":
         return json.dumps(_view())
     if action == "reset":
+        kept = stall.market_days
         stall.__init__()
+        stall.market_days = kept
         return json.dumps(_view("Starting over."))
+    if action == "start_market":
+        if _today is None:
+            return json.dumps(_view("The date is not known yet.", ok=False))
+        date = request.get("date")
+        if not market.valid_date(date) or date < market.EPOCH:
+            return json.dumps(_view("There was no market on that date.", ok=False))
+        if not market.playable(date, _today):
+            return json.dumps(_view("That market is not open yet.", ok=False))
+        if stall.day is not None and stall.market != date:
+            return json.dumps(_view("Finish the open day first.", ok=False))
+        if stall.day is None:
+            stall.open_market(date)
+        fest = festival.info(stall.day.festival)
+        return json.dumps(_view(f"Daily Market {stall.day.number}: {fest['name']}. {fest['blurb']}"))
     if action == "start_day":
+        if stall.market:
+            return json.dumps(_view("A Daily Market is open. Finish it first.", ok=False))
+        stall.market_result = None
         if stall.day is None:
             stall.open_day()
         fest = festival.info(festival.for_day(stall.day.number))

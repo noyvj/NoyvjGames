@@ -3,7 +3,7 @@
    cells could this good merge with", which the engine sends as `partners`). */
 (function () {
   "use strict";
-  var ENGINE_MODULES = ["goods.py", "rng.py", "board.py", "orders.py", "days.py", "festival.py", "renown.py", "shop.py", "pledge.py", "info.py", "achievements.py", "decorations.py", "regulars.py", "day.py"];
+  var ENGINE_MODULES = ["goods.py", "rng.py", "board.py", "orders.py", "days.py", "festival.py", "renown.py", "shop.py", "pledge.py", "info.py", "achievements.py", "decorations.py", "regulars.py", "day.py", "marketbot.py", "market.py"];
   var STORE_KEY = "pocket-bazaar:state";
   var BACKUP_KEY = "pocket-bazaar:state-backup";
   var DRAG_THRESHOLD = 8;
@@ -549,7 +549,8 @@
     $("closed-card").hidden = open;
     $("open-area").hidden = !open;
     renderStats();
-    if (!open) { renderClosed(); return; }
+    if (!open) { renderClosed(); if (window.PocketBazaarMarket) window.PocketBazaarMarket.render(view, send); return; }
+    if (window.PocketBazaarMarket) window.PocketBazaarMarket.render(view, send);
     renderQueue();
     renderBoard();
     renderCrates();
@@ -576,6 +577,7 @@
   }
   function send(request) {
     if (!engine) return null;
+    if (window.PocketBazaarMarket) request.today = window.PocketBazaarMarket.today();     // the view passes the date in
     var result = JSON.parse(engine.handle(JSON.stringify(request)));
     if (result.error) { $("engine-status").textContent = "Something went wrong: " + result.error; return null; }
     view = result;

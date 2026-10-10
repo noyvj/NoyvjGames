@@ -11,6 +11,8 @@ HOW = (
     "Combos, chains and wildcards reward good play inside a day. Nothing carries over between days except what you "
     "own, your renown and your personal bests.",
     "Renown only goes up and opens new crates and customers. Coins buy permanent upgrades and decorations.",
+    "The Daily Market is one plain market day for each date, the same for everyone, on a stall with no upgrades. It "
+    "pays nothing extra and changes nothing else. Skipping a day costs nothing, and every past date stays open.",
 )
 
 

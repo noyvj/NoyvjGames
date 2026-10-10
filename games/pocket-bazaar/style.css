@@ -287,3 +287,20 @@ html[data-effects="off"] *, html[data-effects="off"] *::before, html[data-effect
 #toast.on { display: block; }
 /* The shared story switch would sit over the crates on a phone; park it beside the back link. */
 #story-toggle { bottom: auto !important; top: 0.5rem !important; left: 7rem !important; }
+
+/* Daily Market (closed-stall card). Marks are stars and numbers as well as shading: nothing is colour-only. */
+.market-panel { margin: 0.8rem 0; padding: 0.7rem 0.8rem; border: 1px solid var(--line, currentColor); border-radius: 12px; }
+.market-panel h3 { margin-top: 0; }
+.market-result { border-left: 3px solid currentColor; padding-left: 0.6rem; margin: 0 0 0.6rem; }
+.market-result h4 { margin: 0 0 0.3rem; }
+.market-open-banner { margin: 0 0 0.4rem; }
+.market-cal-head { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; margin: 0.5rem 0; }
+.market-calendar { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 3px; max-width: 28rem; }
+.market-dow { text-align: center; font-size: 0.75rem; opacity: 0.75; }
+.market-day { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 2.75rem; padding: 0.15rem; line-height: 1.1; }
+.market-day .mark { font-size: 0.65rem; min-height: 0.9rem; }
+.market-day.today { outline: 2px solid currentColor; outline-offset: -2px; }
+.market-day[disabled] { opacity: 0.35; }
+.market-grid { display: flex; flex-wrap: wrap; gap: 2px; margin-top: 0.4rem; max-width: 28rem; }
+.market-cell { width: 0.8rem; height: 0.8rem; border: 1px solid currentColor; border-radius: 2px; opacity: 0.45; font-size: 0.6rem; line-height: 0.8rem; text-align: center; overflow: hidden; }
+.market-cell.done { opacity: 1; background: var(--text, currentColor); color: var(--bg, #fff); font-weight: 700; }
