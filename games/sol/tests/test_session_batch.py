@@ -200,7 +200,7 @@ def test_badge_and_bonus_tag(game_env):
     assert game_env.elements["prestige-badge"].hidden is True
     m.prestige_level = 2
     m.update_win_display()
-    assert game_env.elements["prestige-badge"].innerText == "Prestige 2"
+    assert game_env.elements["prestige-badge"].innerText == "Steward \u00b7 Prestige 2"
     assert "+20%" in game_env.elements["mars-prestige-bonus"].innerText
     assert game_env.elements["prestige-bonus"].hidden is False
 

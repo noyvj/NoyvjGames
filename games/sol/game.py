@@ -1186,7 +1186,11 @@ def update_win_display():
     # world's resource label, where the gains actually show up.
     badge = document.getElementById("prestige-badge")
     badge.hidden = prestige_level <= 0
-    badge.innerText = f"Prestige {prestige_level}{mutator_glyphs(mutators_run)}" if prestige_level > 0 else ""
+    badge.innerText = (
+        f"{era_for_level(prestige_level)['label']} \u00b7 Prestige {prestige_level}{mutator_glyphs(mutators_run)}"
+        if prestige_level > 0 else ""
+    )
+    _apply_era()
     badge.title = ("Your current Prestige level" + mutator_rules_text(mutators_run)) if prestige_level > 0 else ""
     bonus_text = f"+{round(PRESTIGE_BONUS_PER_LEVEL * prestige_level * 100)}% Prestige bonus on yields"
     for planet in PLANETS:
@@ -4694,6 +4698,46 @@ def _build_mutator_cards(panel):
             "Picked for next run" if picked else ("Limit reached" if full else "Pick for next run"),
             {"data-action": "mutator", "data-mutator": entry["id"]}, None, selected=picked, disabled=full))
         panel.appendChild(card)
+
+
+# --- A-21: prestige Eras --------------------------------------------------------
+# The flat "Prestige N" counter gains a name by level: Pioneer (never prestiged),
+# Steward (1-2), Architect (3-5), Custodian (6+). From Steward on, the shell
+# shifts hue a little, the dimmer stars get a touch quieter and a one-line
+# tagline appears under the title. All of it is static styling (nothing moves, so
+# Reduce motion needs no special case) and Settings "Era look" turns the look
+# off; the name stays in the badge either way. No rule or number changes.
+ERA_LOOK_KEY = "sol-era-look"
+ERAS = [
+    {"min_level": 0, "id": "pioneer", "label": "Pioneer", "tagline": ""},
+    {"min_level": 1, "id": "steward", "label": "Steward",
+     "tagline": "Era of the Steward: you came back to tend what you built."},
+    {"min_level": 3, "id": "architect", "label": "Architect",
+     "tagline": "Era of the Architect: every world is a drawing you can redraw."},
+    {"min_level": 6, "id": "custodian", "label": "Custodian",
+     "tagline": "Era of the Custodian: nothing to prove, a great deal to keep."},
+]
+
+
+def era_for_level(level):
+    chosen = ERAS[0]
+    for era in ERAS:
+        if level >= era["min_level"]:
+            chosen = era
+    return chosen
+
+
+def _apply_era():
+    """Sets `data-era` on <html> (read by style.css) and the tagline under the title."""
+    era = era_for_level(prestige_level)
+    themed = _setting_on(ERA_LOOK_KEY) and era["tagline"] != ""
+    try:
+        document.documentElement.setAttribute("data-era", era["id"])
+    except AttributeError:
+        pass  # the fake DOM of older tests has no <html> element
+    tagline = document.getElementById("era-tagline")
+    tagline.innerText = era["tagline"] if themed else ""
+    tagline.hidden = not themed
 
 
 # --- A-2 / FY-50: System Anomalies on a fixed schedule ------------------------

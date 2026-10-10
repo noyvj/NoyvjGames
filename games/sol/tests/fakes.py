@@ -102,6 +102,7 @@ class FakeElement:
 class FakeDocument:
     def __init__(self, elements):
         self._elements = elements
+        self.documentElement = FakeElement("html")
 
     def getElementById(self, id_):
         return self._elements[id_]

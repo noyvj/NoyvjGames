@@ -2,6 +2,10 @@
   "changelog": [
     {
       "date": "2026-10-10",
+      "entry": "New: prestige Eras. Your title badge now names your era (Pioneer, Steward, Architect, Custodian) next to your Prestige level, and each era gives the sky a quiet colour shift and a one-line tagline under the title. It is only a look, nothing in the rules changes, and Settings has an Era look switch to turn the colours and the tagline off."
+    },
+    {
+      "date": "2026-10-10",
       "entry": "New: field notes and a hidden Codex. Each world in the Overview now has a short note, and seven of them end with one odd sentence. Do what it hints at and a silly Codex entry appears in the Charter (a hint is one button away once the Codex shows up). Four new collector achievements too: Codex Keeper, Weather Watcher, Charter Member and The Great Works."
     },
     {

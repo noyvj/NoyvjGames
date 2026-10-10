@@ -53,7 +53,7 @@
   "adopt": [],
   "zones": {
     "topbar": [".hub-back-link", "h1", ".game-toolbar"],
-    "stagebar": ["#time-controls", "#goals", "#anomaly-strip", "#captains-log-latest", "#trophy-shelf", "#click-streak", "#away-report", "#win-banner"],
+    "stagebar": ["#time-controls", "#era-tagline", "#goals", "#anomaly-strip", "#captains-log-latest", "#trophy-shelf", "#click-streak", "#away-report", "#win-banner"],
     "stage": ["#earth-view", "#mars-view", "#moon-view", "#venus-view", "#asteroidbelt-view", "#pluto-view", "#jupitermoons-view", "#saturnmoons-view", "#away-view"],
     "hidden": []
   },

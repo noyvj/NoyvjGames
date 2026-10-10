@@ -120,7 +120,7 @@ def test_badge_and_share_text_show_the_rules(game_env):
     _pick(game_env, "thin_atmosphere")
     game_env.prestige()
     badge = game_env.elements["prestige-badge"]
-    assert badge.innerText.startswith("Prestige 1") and "☁" in badge.innerText
+    assert badge.innerText.startswith("Steward \u00b7 Prestige 1") and "☁" in badge.innerText
     assert "Thin Atmosphere" in badge.title
     card = m.build_share_card_text()
     assert "Run rules:" in card and "Thin Atmosphere" in card
