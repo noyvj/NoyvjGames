@@ -242,7 +242,7 @@ def test_badges_outlive_the_session_and_show_in_the_almanac(game_env):
     panel = game_env.elements["almanac-panel"]
     headings = [c.innerText for c in panel.children if c.className == "almanac-heading"]
     assert "Challenge badges (1/4)" in headings
-    assert "challenge_pacifist" not in m.achievement_ids_earned()  # the in-session achievement is per run
+    assert "challenge_pacifist" in m.achievement_ids_earned()  # GN-1: earned achievements are kept for the whole game
 
 
 def test_corrupt_challenge_records_are_ignored(game_env):

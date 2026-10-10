@@ -154,14 +154,22 @@ def test_balanced_ledger_needs_both_sides(game_env):
 
 def test_true_conservationist_requires_zero_clears(game_env):
     m = game_env.module
-    for plot in m.plots:
-        plot.value = m.TRUE_CONSERVATIONIST_STANDING_THRESHOLD
-    assert "true_conservationist" in m.achievement_ids_earned()
     game_env.select(0)
     game_env.clear()
     for plot in m.plots:
         plot.value = m.TRUE_CONSERVATIONIST_STANDING_THRESHOLD
     assert "true_conservationist" not in m.achievement_ids_earned()
+
+
+def test_true_conservationist_once_earned_stays_earned_after_a_later_clear(game_env):
+    """GN-1: earned achievements are kept for the whole game; a later clear does not take it back."""
+    m = game_env.module
+    for plot in m.plots:
+        plot.value = m.TRUE_CONSERVATIONIST_STANDING_THRESHOLD
+    assert "true_conservationist" in m.achievement_ids_earned()
+    game_env.select(0)
+    game_env.clear()
+    assert "true_conservationist" in m.achievement_ids_earned()
 
 
 def test_resourceful_extractor_counts_clears_across_the_forest(game_env):
@@ -232,11 +240,14 @@ def test_principled_refusal_ten_declines(game_env):
 
 def test_flourishing_canopy_needs_no_bare_or_replanting_plus_value(game_env):
     m = game_env.module
+    m.plots[0].state = m.BARE
     for plot in m.plots:
         plot.value = m.FLOURISHING_CANOPY_STANDING_THRESHOLD
-    assert "flourishing_canopy" in m.achievement_ids_earned()
-    m.plots[0].state = m.BARE
     assert "flourishing_canopy" not in m.achievement_ids_earned()
+    m.plots[0].state = m.RECOVERED
+    assert "flourishing_canopy" in m.achievement_ids_earned()
+    m.plots[0].state = m.BARE  # GN-1: once earned it stays earned
+    assert "flourishing_canopy" in m.achievement_ids_earned()
 
 
 def test_every_stage_at_once(game_env):
@@ -434,14 +445,40 @@ def test_old_save_missing_achievement_fields_does_not_crash(game_env):
     assert m.plots_with_wildlife_ever == set()
 
 
-def test_achievements_earned_is_never_read_back_on_load(game_env):
+def test_a_loaded_save_keeps_only_the_known_earned_ids(game_env):
+    """GN-1 replaced the old 'never read back' rule: the saved earned list seeds the whole-game ledger, but only
+    ids that exist in the catalogue are kept."""
     m = game_env.module
-    save_claiming_everything_earned = m.get_state()
-    save_claiming_everything_earned["achievements_earned"] = [
-        entry["id"] for entry in m.ACHIEVEMENTS
-    ]
-    m.load_state(save_claiming_everything_earned)
-    # Nothing about the fresh game's real state changed, so the freshly
-    # recomputed earned list must still be empty regardless of what the
-    # (fabricated) save's achievements_earned claimed.
-    assert m.achievement_ids_earned() == []
+    saved = m.get_state()
+    saved["achievements_earned"] = [entry["id"] for entry in m.ACHIEVEMENTS][:3] + ["bogus"]
+    m.load_state(saved)
+    assert m.achievement_ids_earned() == [entry["id"] for entry in m.ACHIEVEMENTS][:3]
+
+
+def test_achievements_survive_starting_a_new_level_and_a_save_round_trip(game_env):
+    """GN-1 (user report): achievements used to reset whenever a new level started."""
+    m = game_env.module
+    m.total_income = m.QUICK_MONEY_THRESHOLD
+    assert "quick_money" in m.achievement_ids_earned()
+    m.reset_session(_render_after=False)  # what starting a level does
+    assert m.total_income == 0 or "quick_money" not in {e["id"] for e in m.ACHIEVEMENTS if m.ACHIEVEMENT_CHECKS[e["id"]]()}
+    assert "quick_money" in m.achievement_ids_earned()
+    summary = {entry["id"]: entry["earned"] for entry in m.achievements_summary()}
+    assert summary["quick_money"] is True
+    saved = m.get_state()
+    assert "quick_money" in saved["achievements_earned"]
+    m.achievement_ledger.clear()
+    m.reset_session(_render_after=False)
+    assert "quick_money" not in m.achievement_ids_earned()
+    assert m.load_state(saved)
+    assert "quick_money" in m.achievement_ids_earned()
+
+
+def test_a_save_with_junk_in_achievements_earned_loads_only_known_ids(game_env):
+    m = game_env.module
+    saved = m.get_state()
+    saved["achievements_earned"] = ["quick_money", "not_a_real_achievement", 7, None]
+    m.achievement_ledger.clear()
+    assert m.load_state(saved)
+    assert "quick_money" in m.achievement_ids_earned()
+    assert "not_a_real_achievement" not in m.achievement_ids_earned()

@@ -4597,12 +4597,20 @@ ACHIEVEMENT_PROGRESS = {
 }
 
 
+# GN-1 (user report 2026-10-10): achievements used to be recomputed from the live session only, so starting a new
+# level (a fresh session) made every one of them vanish. This ledger keeps every id the player has ever had satisfied;
+# it survives reset_session(), is written out through "achievements_earned" and seeded back from a loaded save.
+achievement_ledger = set()
+
+
 def achievement_ids_earned():
     """Every achievement id currently satisfied, in catalog order — the
     value that rides the existing save/sync mechanism via get_state()'s
     "achievements_earned" field. Always recomputed, never itself a save
     input."""
-    return [entry["id"] for entry in ACHIEVEMENTS if ACHIEVEMENT_CHECKS[entry["id"]]()]
+    now = {entry["id"] for entry in ACHIEVEMENTS if ACHIEVEMENT_CHECKS[entry["id"]]()}
+    achievement_ledger.update(now)  # GN-1: once earned, earned for the whole game
+    return [entry["id"] for entry in ACHIEVEMENTS if entry["id"] in achievement_ledger]
 
 
 def achievements_summary():
@@ -10475,6 +10483,12 @@ def load_state(data):
     # calls _sync_earned_and_toast(), so a loaded save's already-earned
     # achievements don't all fire toasts on load.
     _load_gb_state(data)  # GB batch 1: names, discoveries, tiers, tend, streak (validated)
+    # GN-1: the saved list of earned ids seeds the ledger (known ids only), so earlier levels' achievements come back.
+    saved_earned = data.get("achievements_earned")
+    known_ids = {entry["id"] for entry in ACHIEVEMENTS}
+    achievement_ledger.clear()
+    if isinstance(saved_earned, list):
+        achievement_ledger.update(item for item in saved_earned if isinstance(item, str) and item in known_ids)
     _previously_earned_ids = _earned_snapshot()
     _story_reach_all(_previously_earned_ids)  # W1: a loaded save's earned chapters come back too
 

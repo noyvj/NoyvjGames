@@ -1,6 +1,10 @@
 {
   "changelog": [
     {
+      "date": "2026-10-11",
+      "entry": "Fixed: achievements no longer vanish when you start a new level. Once you have earned one, it stays earned for the whole game, and the achievements panel now shows the whole game's list with everything you have earned. Saves from before this fix bring back whatever they had listed as earned."
+    },
+    {
       "date": "2026-10-10",
       "entry": "Keyboard and screen-reader play: selecting a plot (Enter, Space or a click) now tells the screen-reader live region which plot it is, what state it is in and which keys act on it, and C, K or R on a plot where they cannot work now say why (already bare, still replanting, the Heart Tree is never felled, only a bare plot can be replanted) instead of staying silent. A repeated message is spoken again. The gold cursor ring on the plot the arrow keys are on, and the C (clear), K (clear-cut) and R (replant) hotkeys, are unchanged and listed in the ? overlay. The phone action dock also fits again: its buttons scroll sideways and the tree picker and plot note fold behind the ... button."
     },
