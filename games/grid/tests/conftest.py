@@ -167,6 +167,7 @@ for _plant in GENERATION_PLANT_TYPES:
 for _plant in PLANT_TYPES:
     ELEMENT_IDS.append(f"{_plant}-row")
 ELEMENT_IDS.append("mix-hover-readout")
+ELEMENT_IDS.append("sr-announcer")
 
 INITIALLY_DISABLED_IDS = (
     [f"{p}-build-button" for p in PLANT_TYPES]

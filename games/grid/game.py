@@ -2829,7 +2829,7 @@ def round_announcement_text(milestone_new=False):
         )
     if state.last_round_recap.get("perfect"):
         parts.append("A Perfect Round: no disruption, no breakdown, demand fully met")
-    parts.append(f"Demand is now {state.demand} against capacity {state.total_capacity()}")
+    parts.append(f"Demand is now {state.demand:g} against capacity {state.total_capacity():g}")
     parts.append(
         f"Renewables are {renewable_capacity_share() * 100:.0f}% of capacity, "
         f"fossil share {state.fossil_share() * 100:.0f}%"

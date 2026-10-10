@@ -18,6 +18,7 @@ if str(SHARED_DIR) not in sys.path:
     sys.path.insert(0, str(SHARED_DIR))
 
 ELEMENT_IDS = [
+    "sr-announcer",
     "round-display",
     "funds-display",
     "total-capacity-display",

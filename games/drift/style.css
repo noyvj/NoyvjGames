@@ -1573,3 +1573,25 @@ html.easy-read-font .comparison-message { font-style: normal; }
 .autopilot-log { margin: 0.4rem 0 0; padding-left: 1.1rem; font-size: 0.85em; max-height: 12em; overflow-y: auto; }
 .council-tree, .council-tree ul { margin: 0.2rem 0; padding-left: 1.1rem; }
 #calendar-brace-button { margin-top: 0.4rem; }
+
+/* B-7: visually hidden but read by screen readers (the game's own live region, used when the shared announcer is absent). */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* B-7: Drift has no tile map; its controls are the invest / policy buttons in each row, all native buttons
+   reached with Tab. A thick, high-contrast ring shows which one the keyboard is on. */
+.invest-row button:focus-visible,
+.invest-row select:focus-visible,
+#advance-round-button:focus-visible {
+  outline: 3px solid #f0e442;
+  outline-offset: 2px;
+}

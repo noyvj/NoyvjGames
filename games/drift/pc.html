@@ -395,7 +395,7 @@
 
     <div id="capacity" class="section">
       <p class="meter-label">Capacity investments</p>
-      <div class="invest-row">
+      <div class="invest-row" role="group" aria-labelledby="housing-name">
         <div class="invest-icon invest-icon--housing" aria-hidden="true">🏠</div>
         <div class="invest-fields">
           <span id="housing-name" class="invest-name">🏠 Housing</span>
@@ -404,7 +404,7 @@
           <p id="housing-effect-display" class="invest-effect">Reduces strain. Doesn't speed up integration.</p>
         </div>
       </div>
-      <div class="invest-row">
+      <div class="invest-row" role="group" aria-labelledby="services-name">
         <div class="invest-icon invest-icon--services" aria-hidden="true">📚</div>
         <div class="invest-fields">
           <span id="services-name" class="invest-name">📚 Integration Services</span>
@@ -413,7 +413,7 @@
           <p id="services-effect-display" class="invest-effect">Reduces strain, and is the only capacity that moves pending arrivals to integrated.</p>
         </div>
       </div>
-      <div class="invest-row">
+      <div class="invest-row" role="group" aria-labelledby="infrastructure-name">
         <div class="invest-icon invest-icon--infrastructure" aria-hidden="true">🛠️</div>
         <div class="invest-fields">
           <span id="infrastructure-name" class="invest-name">🛠️ Infrastructure</span>
@@ -424,21 +424,21 @@
       </div>
       <p class="meter-label">Policy toolkit</p>
       <p class="comparison-message">Real-world institutional levers, funded separately from capacity. Each can be strengthened up to three times.</p>
-      <div class="invest-row">
+      <div class="invest-row" role="group" aria-labelledby="policy-credentialing-name">
         <div class="invest-fields">
           <span id="policy-credentialing-name" class="invest-name">Streamlined Credentialing</span>
           <button id="policy-credentialing-button" class="secondary" type="button">Fund (60)</button>
           <p class="invest-effect">+15% funds contributed back by integrated people, per level.</p>
         </div>
       </div>
-      <div class="invest-row">
+      <div class="invest-row" role="group" aria-labelledby="policy-language-access-name">
         <div class="invest-fields">
           <span id="policy-language-access-name" class="invest-name">Language-Access Funding</span>
           <button id="policy-language-access-button" class="secondary" type="button">Fund (60)</button>
           <p class="invest-effect">+15% integration throughput, per level.</p>
         </div>
       </div>
-      <div class="invest-row">
+      <div class="invest-row" role="group" aria-labelledby="policy-sponsorship-name">
         <div class="invest-fields">
           <span id="policy-sponsorship-name" class="invest-name">Community Sponsorship</span>
           <button id="policy-sponsorship-button" class="secondary" type="button">Fund (60)</button>
@@ -496,7 +496,7 @@
         <button id="play-rounds-button" class="secondary" type="button" title="Advance up to 5 rounds with your current allocation. Stops early if strain rises a level or a forecast event arrives.">⏩ Play 5 rounds</button>
         <button id="copy-summary-button" class="secondary" type="button" title="Copy a plain-text summary of this run: region, band, a block-character wellbeing curve, setup and stars.">📋 Copy run summary</button>
       </div>
-      <p id="round-tools-note" class="comparison-message" role="status" aria-live="polite" hidden></p>
+      <p id="round-tools-note" class="comparison-message" hidden></p>
       <textarea id="summary-copy-area" class="ledger-copy-area" readonly hidden aria-label="Run summary as text"></textarea>
       <details id="round-recap-details" class="context-toggle" open hidden>
         <summary>Last round recap</summary>
@@ -512,7 +512,7 @@
         <button id="calendar-toggle-button" class="secondary difficulty-toggle" type="button" title="Optional: fixed, telegraphed events (surges, budget cuts, floods, bumper harvests, three Surge Tests). Off by default.">Crisis Calendar: OFF</button>
         <p id="calendar-display" class="comparison-message"></p>
         <button id="calendar-brace-button" class="secondary" type="button" hidden>Nothing to brace for</button>
-        <p id="calendar-note" class="comparison-message" role="status" aria-live="polite" hidden></p>
+        <p id="calendar-note" class="comparison-message" hidden></p>
       </details>
       <details class="context-toggle">
         <summary>Mayor's Council</summary>
@@ -565,6 +565,8 @@
       </details>
     </div>
 
+    <!-- B-7: the game's own screen-reader live region; used only when shared/announcer.js is not on the page. -->
+    <div id="sr-announcer" class="sr-only" role="status" aria-live="polite" aria-atomic="true"></div>
     <button id="advance-round-button" class="primary">Advance Round</button>
 
     <div id="feedback-prompt" class="section">
@@ -690,6 +692,7 @@
   <script src="../../shared/opening-screen.js" data-game-id="drift" data-tagline="Manage a region as climate displacement pressure rises." data-game-name="Drift"></script>
   <script src="../../shared/story-toggle.js" data-game-id="drift" data-story-selectors="#thriving-vignette-box, #story-chapters"></script>
   <script src="../../shared/story-chapters.js" data-game-id="drift" data-story="story.json"></script>
+  <script src="../../shared/announcer.js"></script>
   <script src="../../shared/last-played.js" data-game-id="drift"></script>
   <script src="../../shared/whats-new-banner.js" data-game-id="drift"></script>
   <script src="../../shared/achievement-stats.js" data-game-id="drift"></script>

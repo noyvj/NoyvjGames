@@ -10,6 +10,7 @@ capacity at all."
 
 import copy
 import json
+import re
 
 import info_page
 from js import document, setTimeout
@@ -1981,6 +1982,81 @@ achievements_open = False
 _achievements_seen_ids = set()
 
 
+# ---- B-7 screen-reader announcements ------------------------------------------------------------
+# What a sighted player sees change after an action is also said, in plain short sentences, through the shared
+# announcer (shared/announcer.js) when the page has it, otherwise through the game's own #sr-announcer region.
+# Only player actions and round results announce; render() never does (the shared announcer joins one tick's
+# messages, so an invest that also unlocks an achievement is read as one announcement).
+def _shared_announce(text):
+    """Speak through shared/announcer.js when the page has it (returns True); otherwise the game's own live
+    region is used. Never both, so a screen reader does not read a message twice."""
+    try:
+        from js import window  # noqa: PLC0415 -- Pyodide-only, deliberately lazy
+    except ImportError:
+        return False
+    shared = getattr(window, "NoyvjAnnounce", None)
+    if shared is None:
+        return False
+    try:
+        shared.say(str(text))
+    except Exception:  # noqa: BLE001 -- an announcement must never break the game
+        return False
+    return True
+
+
+_EMOJI_RE = re.compile("[\U0001F000-\U0001FFFF\u2600-\u27BF\u2B00-\u2BFF\uFE0F\u200D]")
+
+
+def _plain(text):
+    """Drops emoji and symbol pictographs so a screen reader does not read their names aloud."""
+    return re.sub(r"\s+", " ", _EMOJI_RE.sub("", str(text))).strip()
+
+
+def announce(text):
+    """Says text for a screen reader (shared announcer first, the game's own polite region otherwise)."""
+    text = _plain(text) if text else ""
+    if not text:
+        return
+    if _shared_announce(text):
+        return
+    region_el = document.getElementById("sr-announcer")
+    if region_el is not None:
+        region_el.innerText = text
+
+
+def _round_marks():
+    """The one-time round-end facts worth saying only when they change: second-wave status and the two
+    milestone rounds. Taken before a round and compared after."""
+    return (region.second_wave_status, region.net_positive_round, region.thriving_round)
+
+
+def round_announcement_text(marks_before=None):
+    """What a player sees change after a round resolves, as short sentences built from the game's own readouts:
+    the round recap line, a calendar event's result, a second wave or milestone that just changed, the new
+    round's arrivals, funds and wellbeing. Empty before the first round."""
+    recap = latest_recap()
+    if recap is None:
+        return ""
+    parts = [recap]
+    if region.calendar_enabled and region.calendar_log:
+        last = region.calendar_log[-1]
+        if last["round"] == region.round_number - 1:
+            parts.append(calendar_result_message(last))
+    before = marks_before if marks_before is not None else _round_marks()
+    if region.second_wave_status != before[0] and region.second_wave_message():
+        parts.append(region.second_wave_message())
+    if before[1] is None and region.net_positive_round is not None:
+        parts.append(integration_turning_point_message(region))
+    if before[2] is None and region.thriving_round is not None:
+        parts.append(thriving_callout_message(region))
+    parts.append(
+        f"Round {region.round_number} begins: {region.arrivals_this_round():.0f} people arriving. "
+        f"Funds {region.funds:.0f}. Strain {region.strain_fraction() * 100:.0f}% ({region.strain_level()}). "
+        f"Wellbeing score {region.wellbeing_score():.0f}"
+    )
+    return " ".join(p.strip() if p.strip().endswith((".", "!", "?")) else p.strip() + "." for p in parts if p)
+
+
 def _seed_achievement_toast_baseline():
     global _achievements_seen_ids
     _achievements_seen_ids = set(achievement_ids_earned())
@@ -2052,8 +2128,10 @@ def _check_new_achievements_for_toast():
         if labels:
             if len(labels) == 1:
                 _display_achievement_toast(f"🏆 Achievement unlocked: {labels[0]}")
+                announce(f"Achievement unlocked: {labels[0]}")
             else:
                 _display_achievement_toast(f"🏆 {len(labels)} achievements unlocked: " + ", ".join(labels))
+                announce(f"{len(labels)} achievements unlocked: " + ", ".join(labels))
     _achievements_seen_ids = earned_now
 
 
@@ -2660,7 +2738,11 @@ def on_reset_round(event=None):
     if reset_round():
         round_tools_message = "This round's decisions were refunded. Funds and capacity are back to the start of the round."
         _seed_achievement_toast_baseline()
+        render()
+        announce(round_tools_message)
+        return
     render()
+    announce("Nothing to reset: you have not made a decision this round")
 
 
 def on_rewind(event=None):
@@ -2670,6 +2752,7 @@ def on_rewind(event=None):
     if not rewind_armed:
         rewind_armed = True
         render_round_tools()
+        announce("Press Rewind again to confirm undoing the last Advance Round")
         return
     use_rewind_token()
     round_tools_message = (
@@ -2678,6 +2761,7 @@ def on_rewind(event=None):
     )
     _seed_achievement_toast_baseline()
     render()
+    announce(round_tools_message)
 
 
 # ---- GI-30: Play 5 rounds ----------------------------------------------------
@@ -2765,6 +2849,7 @@ def play_rounds(count=PLAY_ROUNDS_COUNT):
 def on_play_rounds(event=None):
     global round_tools_message, collection_note
     collection_note = ""
+    marks_before = _round_marks()
     advanced, reason = play_rounds()
     unit = "round" if advanced == 1 else "rounds"
     if reason:
@@ -2772,6 +2857,9 @@ def on_play_rounds(event=None):
     else:
         round_tools_message = f"Played {advanced} {unit} with your current allocation."
     render()
+    announce(round_tools_message)
+    if advanced:
+        announce(round_announcement_text(marks_before))
     _check_new_achievements_for_toast()
 
 
@@ -3205,6 +3293,14 @@ def on_brace(event=None):
     target = region.brace_target()
     if target is not None and region.brace():
         calendar_note_text = f"Braced for {target['name']}. {CALENDAR_KINDS[target['kind']]['brace_cost']:.0f} funds spent."
+        announce(calendar_note_text)
+    elif target is None:
+        announce("Nothing to brace for right now")
+    else:
+        announce(
+            f"Cannot brace for {target['name']}: it costs {CALENDAR_KINDS[target['kind']]['brace_cost']:.0f} "
+            f"and you have {region.funds:.0f}"
+        )
     render()
 
 
@@ -3429,6 +3525,7 @@ def _to_int(value, default):
 def on_autopilot_run(event=None):
     global round_tools_message, collection_note
     collection_note = ""
+    marks_before = _round_marks()
     advanced, reason = autopilot_run()
     unit = "round" if advanced == 1 else "rounds"
     round_tools_message = (
@@ -3436,6 +3533,9 @@ def on_autopilot_run(event=None):
         else f"Autopilot ran {advanced} {unit}."
     )
     render()
+    announce(round_tools_message)
+    if advanced:
+        announce(round_announcement_text(marks_before))
     _check_new_achievements_for_toast()
 
 
@@ -3934,12 +4034,14 @@ def on_advance_round(event=None):
     _sync_spillover()
     rewind_snapshot = _take_full_snapshot()  # GI-18: the state just before this advance
     completed_round = region.round_number
+    marks_before = _round_marks()
     region.advance_round()
     if neighbor is not None:
         neighbor.advance_round()
     round_start_snapshot = _take_round_start_snapshot()  # I-15: the new round's starting point
     _collect_after_round(completed_round)
     render()
+    announce(round_announcement_text(marks_before))
     _check_new_achievements_for_toast()
 
 
@@ -4010,25 +4112,43 @@ def render_neighbor():
 
 
 def on_open_neighbor(event=None):
-    open_neighbor()
+    if open_neighbor():
+        announce("Neighbouring district opened. It runs beside your region every round")
     render()
 
 
 def on_support_neighbor(event=None):
-    support_neighbor()
+    if support_neighbor():
+        announce(f"Sent {NEIGHBOR_SUPPORT_AMOUNT:.0f} funds to the neighbouring district. Funds {region.funds:.0f}")
+    else:
+        announce("Cannot send support: your region must be calm and keep a cushion of funds first")
     render()
 
 
 def _make_neighbor_invest_handler(capacity_type):
     def handler(event=None):
-        invest_neighbor(capacity_type)
+        if invest_neighbor(capacity_type):
+            announce(
+                f"Neighbouring district invested in {CAPACITY_LABEL[capacity_type]}. "
+                f"Its funds are {neighbor.funds:.0f}"
+            )
+        else:
+            announce(f"The neighbouring district cannot afford {CAPACITY_LABEL[capacity_type]}")
         render()
     return handler
 
 
 def _make_policy_handler(policy):
     def handler(event=None):
-        region.invest_policy(policy)
+        label = POLICIES[policy]["label"]
+        if region.invest_policy(policy):
+            announce(
+                f"Funded {label}, level {region.policy_level[policy]} of {POLICY_MAX_LEVEL}. Funds {region.funds:.0f}"
+            )
+        elif region.policy_level[policy] >= POLICY_MAX_LEVEL:
+            announce(f"{label} is already at its top level")
+        else:
+            announce(f"Cannot fund {label}: it costs {region.policy_cost(policy):.0f} and you have {region.funds:.0f}")
         render()
         _check_new_achievements_for_toast()
     return handler
@@ -4036,7 +4156,17 @@ def _make_policy_handler(policy):
 
 def _make_invest_handler(capacity_type):
     def handler(event=None):
-        region.invest(capacity_type)
+        label = CAPACITY_LABEL[capacity_type]
+        if region.invest(capacity_type):
+            announce(
+                f"Invested in {label}: now {region.capacity[capacity_type]:.0f}. "
+                f"Total capacity {region.total_capacity():.0f}. Funds {region.funds:.0f}. "
+                f"Strain {region.strain_fraction() * 100:.0f}% ({region.strain_level()})"
+            )
+        else:
+            announce(
+                f"Cannot invest in {label}: it costs {INVEST_COST[capacity_type]:.0f} and you have {region.funds:.0f}"
+            )
         render()
         _check_new_achievements_for_toast()
     return handler
@@ -4082,7 +4212,17 @@ def on_toggle_crisis_start(event=None):
 def on_reallocate(event=None):
     from_type = getattr(document.getElementById("realloc-from"), "value", "housing")
     to_type = getattr(document.getElementById("realloc-to"), "value", "services")
-    region.reallocate(from_type, to_type)
+    if region.reallocate(from_type, to_type):
+        announce(
+            f"Moved {REALLOCATION_UNITS:.0f} capacity from {CAPACITY_LABEL[from_type]} to {CAPACITY_LABEL[to_type]}. "
+            f"Cost {REALLOCATION_FUNDS_COST:.0f} funds. Funds {region.funds:.0f}"
+        )
+    elif from_type == to_type:
+        announce("Choose two different capacity types to move capacity between")
+    elif region.capacity.get(from_type, 0) < REALLOCATION_UNITS:
+        announce(f"Cannot move capacity: {CAPACITY_LABEL.get(from_type, from_type)} has less than {REALLOCATION_UNITS:.0f}")
+    else:
+        announce(f"Cannot move capacity: it costs {REALLOCATION_FUNDS_COST:.0f} funds and you have {region.funds:.0f}")
     render()
 
 

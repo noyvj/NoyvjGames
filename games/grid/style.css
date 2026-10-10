@@ -1762,3 +1762,28 @@ html[data-reduced-motion="true"] *::after {
 .plant-row.plant-row--highlight { box-shadow: 0 0 0 2px rgba(111, 179, 255, 0.85); border-radius: 8px; }
 .mix-hover-readout { min-height: 2.4em; margin: 0.2rem 0 0.4rem; }
 .changelog-load-note { font-size: 0.82rem; margin: 0.2rem 0 0.6rem; padding: 0.3rem 0.5rem; border-left: 3px solid rgba(240, 228, 66, 0.7); }
+
+/* B-7: visually hidden but read by screen readers (the game's own live region, used when the shared announcer is absent). */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* B-7: Grid has no tile map; its controls are the build / retire / maintain buttons in each plant row, all native
+   buttons reached with Tab. A thick, high-contrast ring shows which one the keyboard is on. */
+.plant-row button:focus-visible,
+.plant-row select:focus-visible,
+#advance-round-button:focus-visible,
+#auto-advance-button:focus-visible,
+#demand-response-button:focus-visible,
+#undo-build-button:focus-visible {
+  outline: 3px solid #f0e442;
+  outline-offset: 2px;
+}

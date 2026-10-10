@@ -2,6 +2,10 @@
   "changelog": [
     {
       "date": "2026-10-11",
+      "entry": "New: a screen reader now hears what changes. After you build, retire or maintain a plant, advance or auto-advance rounds, invest in demand response, answer a policy lever or grant, or unlock an achievement, a short plain sentence says what happened: the round recap, any disruption or breakdown, demand against capacity, the renewable and fossil shares and your funds. A refused action says why. Each plant row is now a named group so its Build, Retire and Maintain buttons say which plant they belong to, and keyboard focus shows a thick yellow ring."
+    },
+    {
+      "date": "2026-10-11",
       "entry": "New: a practice sandbox. Press Practice sandbox (Desktop: Menu, Game) to try anything on a separate grid with unlimited funds, no disruptions or breakdowns, every upgrade-tree perk and loadout switched on, and a scenario button that restarts the practice grid at any time. A banner says Sandbox: nothing here is saved, and nothing in it earns an achievement or touches your career. Leave sandbox puts your real game back exactly as it was; saving while you are in it saves your real game."
     },
     {

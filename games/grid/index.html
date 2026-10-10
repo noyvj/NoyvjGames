@@ -288,7 +288,7 @@
           <button id="grant-decline-button" class="secondary" type="button">Decline</button>
         </div>
       </div>
-      <p id="grant-message-display" class="comparison-message" role="status" hidden></p>
+      <p id="grant-message-display" class="comparison-message" hidden></p>
       <!-- GC-11: Peek forecast (Meteorology branch of the upgrade tree). -->
       <button id="peek-forecast-button" class="secondary" type="button" hidden>Peek forecast</button>
       <p id="peek-forecast-display" class="comparison-message"></p>
@@ -381,7 +381,7 @@
       </p>
       <!-- GC-4: a short eulogy (and a puff) when the last coal plant is retired. -->
       <p id="eulogy-display" class="eulogy-display" role="status" hidden></p>
-      <div class="plant-row" id="coal-row" data-plant="coal">
+      <div class="plant-row" id="coal-row" data-plant="coal" role="group" aria-labelledby="coal-name">
         <div class="plant-row-top">
           <div class="plant-icon plant-icon--coal" aria-hidden="true">
             <div class="plant-icon-stack"></div>
@@ -408,7 +408,7 @@
           </label>
         </div>
       </div>
-      <div class="plant-row" id="gas-row" data-plant="gas">
+      <div class="plant-row" id="gas-row" data-plant="gas" role="group" aria-labelledby="gas-name">
         <div class="plant-row-top">
           <div class="plant-icon plant-icon--gas" aria-hidden="true">
             <div class="plant-icon-tank"></div>
@@ -434,7 +434,7 @@
           </label>
         </div>
       </div>
-      <div class="plant-row" id="nuclear-row" data-plant="nuclear">
+      <div class="plant-row" id="nuclear-row" data-plant="nuclear" role="group" aria-labelledby="nuclear-name">
         <div class="plant-row-top">
           <div class="plant-icon plant-icon--nuclear" aria-hidden="true">
             <div class="plant-icon-dome"></div>
@@ -460,7 +460,7 @@
           </label>
         </div>
       </div>
-      <div class="plant-row" id="solar-row" data-plant="solar">
+      <div class="plant-row" id="solar-row" data-plant="solar" role="group" aria-labelledby="solar-name">
         <div class="plant-row-top">
           <div class="plant-icon plant-icon--solar" aria-hidden="true">
             <div class="plant-icon-panel"></div>
@@ -486,7 +486,7 @@
           </label>
         </div>
       </div>
-      <div class="plant-row" id="wind-row" data-plant="wind">
+      <div class="plant-row" id="wind-row" data-plant="wind" role="group" aria-labelledby="wind-name">
         <div class="plant-row-top">
           <div class="plant-icon plant-icon--wind" aria-hidden="true">
             <div class="plant-icon-pole"></div>
@@ -516,7 +516,7 @@
           </label>
         </div>
       </div>
-      <div class="plant-row" id="hydro-row" data-plant="hydro">
+      <div class="plant-row" id="hydro-row" data-plant="hydro" role="group" aria-labelledby="hydro-name">
         <div class="plant-row-top">
           <div class="plant-icon plant-icon--hydro" aria-hidden="true">
             <div class="plant-icon-dam"></div>
@@ -542,7 +542,7 @@
           </label>
         </div>
       </div>
-      <div class="plant-row" id="battery-row" data-plant="battery">
+      <div class="plant-row" id="battery-row" data-plant="battery" role="group" aria-labelledby="battery-name">
         <div class="plant-row-top">
           <div class="plant-icon plant-icon--battery" aria-hidden="true">
             <div class="plant-icon-battery-body"></div>
@@ -626,10 +626,12 @@
       </details>
     </div>
 
+    <!-- B-7: the game's own screen-reader live region; used only when shared/announcer.js is not on the page. -->
+    <div id="sr-announcer" class="sr-only" role="status" aria-live="polite" aria-atomic="true"></div>
     <button id="advance-round-button" class="primary">Advance Round</button>
     <!-- GC-17: play up to five rounds in one click, stopping at the first disruption, breakdown or policy offer. -->
     <button id="auto-advance-button" class="secondary" type="button">Auto-advance up to 5 rounds</button>
-    <p id="auto-advance-status" class="comparison-message" role="status" hidden></p>
+    <p id="auto-advance-status" class="comparison-message" hidden></p>
 
     <div id="feedback-prompt" class="section">
       <p class="feedback-question">Did this change how you think about energy transition &amp; emissions?</p>
@@ -805,6 +807,7 @@
   <!-- Z-18: the practice sandbox toggle and its banner (rules live in game.py: sandbox_enter / sandbox_leave / sandbox_is_active). -->
   <script src="../../shared/sandbox-mode.js" data-game-id="grid"></script>
   <script src="../../shared/opening-screen.js" data-game-id="grid" data-tagline="Run a power grid through rising demand and aging infrastructure." data-game-name="Grid"></script>
+  <script src="../../shared/announcer.js"></script>
   <script src="../../shared/last-played.js" data-game-id="grid"></script>
   <script src="../../shared/whats-new-banner.js" data-game-id="grid"></script>
   <script src="../../shared/achievement-stats.js" data-game-id="grid"></script>

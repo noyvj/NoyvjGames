@@ -719,6 +719,6 @@ def test_civic_tools_sit_in_the_desktop_side_column():
 
 def test_changelog_mentions_the_new_features():
     entries = json.loads((GAME_DIR / "changelog.json").read_text(encoding="utf-8"))
-    newest = entries[0]["entry"]
+    newest = next(e for e in entries if e["date"] == "2026-10-08" and "Perfect Fit" in e["entry"])["entry"]
     for word in ("Perfect Fit", "Crisis Calendar", "Council", "Autopilot", "stars"):
         assert word in newest
