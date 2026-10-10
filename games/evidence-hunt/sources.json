@@ -1,0 +1,20 @@
+{
+  "game": "evidence-hunt",
+  "updated": "2026-10-10",
+  "research": [],
+  "inspiration": [
+    {
+      "title": "Phasmophobia",
+      "kind": "game",
+      "note": "The feel of collecting evidence with equipment and naming the ghost; Evidence Hunt makes it a quiet deduction puzzle with no frights, no timer and gentle outcomes."
+    }
+  ],
+  "other": [
+    {
+      "title": "Pyodide",
+      "by": "The Pyodide project",
+      "url": "https://pyodide.org/",
+      "note": "Runs the game's Python rules in the browser through WebAssembly (version 0.26.4, loaded from a CDN), so the game needs no server of its own and no build step."
+    }
+  ]
+}

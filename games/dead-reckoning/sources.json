@@ -1,0 +1,57 @@
+{
+  "game": "dead-reckoning",
+  "updated": "2026-10-10",
+  "research": [
+    {
+      "title": "Dead reckoning",
+      "by": "Wikipedia",
+      "url": "https://en.wikipedia.org/wiki/Dead_reckoning",
+      "read": "2026-10-09",
+      "note": "Supplies the About page fact \"Estimating where you are\": Your dashed plot is exactly that, and the switch that allows for the chart is the game's way of adding what a careful navigator would add."
+    },
+    {
+      "title": "Nautical mile",
+      "by": "Wikipedia",
+      "url": "https://en.wikipedia.org/wiki/Nautical_mile",
+      "read": "2026-10-09",
+      "note": "Supplies the About page fact \"How long a nautical mile is\": Every distance on the chart is in these miles, and every speed in these knots."
+    },
+    {
+      "title": "Chip log",
+      "by": "Wikipedia",
+      "url": "https://en.wikipedia.org/wiki/Chip_log",
+      "read": "2026-10-09",
+      "note": "Supplies the About page fact \"Where the knot comes from\": Your speed and your time are all the game gives you, as they were all a navigator had."
+    },
+    {
+      "title": "Leeway",
+      "by": "Wikipedia",
+      "url": "https://en.wikipedia.org/wiki/Leeway",
+      "read": "2026-10-09",
+      "note": "Supplies the About page fact \"Sliding sideways\": In the game the slip is a fixed share of the wind across the ship, a simplification. The currents are charted as a set (the way they run) and a drift (how fast)."
+    },
+    {
+      "title": "Magnetic declination",
+      "by": "Wikipedia",
+      "url": "https://en.wikipedia.org/wiki/Magnetic_declination",
+      "read": "2026-10-09",
+      "note": "Supplies the About page fact \"A compass that does not read true\": The compass chapter prints one error as a range and asks you to steer the heading that is already corrected."
+    },
+    {
+      "title": "Marine chronometer",
+      "by": "Wikipedia",
+      "url": "https://en.wikipedia.org/wiki/Marine_chronometer",
+      "read": "2026-10-09",
+      "note": "Supplies the About page fact \"Longitude and the clock\": The game never asks you to find longitude from the stars; this is only a reminder of how hard knowing where you are once was."
+    }
+  ],
+  "inspiration": [],
+  "other": [
+    {
+      "title": "Pyodide",
+      "by": "The Pyodide project",
+      "url": "https://pyodide.org/",
+      "note": "Runs the game's Python rules in the browser through WebAssembly (version 0.26.4, loaded from a CDN), so the game needs no server of its own and no build step."
+    }
+  ]
+}

@@ -1,0 +1,20 @@
+{
+  "game": "robot-script",
+  "updated": "2026-10-10",
+  "research": [],
+  "inspiration": [
+    {
+      "title": "Lightbot",
+      "kind": "game",
+      "note": "The core idea of giving a robot a short list of instructions to clear a room, kept timer-free with medals for fewer steps and a free sandbox once you finish."
+    }
+  ],
+  "other": [
+    {
+      "title": "Pyodide",
+      "by": "The Pyodide project",
+      "url": "https://pyodide.org/",
+      "note": "Runs the game's Python rules in the browser through WebAssembly (version 0.26.4, loaded from a CDN), so the game needs no server of its own and no build step."
+    }
+  ]
+}

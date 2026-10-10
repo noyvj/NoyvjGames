@@ -1,0 +1,88 @@
+{
+  "game": "aftermath",
+  "updated": "2026-10-10",
+  "research": [
+    {
+      "title": "Climate Change 2022: Impacts, Adaptation and Vulnerability",
+      "by": "IPCC AR6 Working Group II",
+      "url": "https://www.ipcc.ch/report/ar6/wg2/",
+      "note": "The authoritative global reference on adaptation as a distinct climate response, backing Aftermath's core framing."
+    },
+    {
+      "title": "Accelerating Climate-resilient Infrastructure Investment in China",
+      "by": "World Resources Institute",
+      "url": "https://www.wri.org/research/accelerating-climate-resilient-infrastructure-investment-china",
+      "note": "A real resilience-infrastructure investment case study, grounding Aftermath's resource-allocation mechanic."
+    },
+    {
+      "title": "Driving System Shifts for Climate Resilience (Bhutan, Ethiopia, Costa Rica)",
+      "by": "World Resources Institute",
+      "url": "https://www.wri.org/research/driving-system-shifts-climate-resilience-case-studies-transformative-adaptation-bhutan",
+      "note": "Real communities' documented adaptation journeys; strong backing for the \"look how far you've come\" hope angle."
+    },
+    {
+      "title": "Success Stories",
+      "by": "EU Mission on Adaptation to Climate Change",
+      "url": "https://mission-adaptation-portal.ec.europa.eu/stories-0_en",
+      "note": "A running collection of real municipal adaptation wins; concrete \"this actually worked\" examples."
+    },
+    {
+      "title": "Room for the River",
+      "by": "Wikipedia",
+      "url": "https://en.wikipedia.org/wiki/Room_for_the_River",
+      "read": "2026-09-26",
+      "note": "The game's \"In the real world\" note about floods takes its facts from this page."
+    },
+    {
+      "title": "2003 European heat wave",
+      "by": "Wikipedia",
+      "url": "https://en.wikipedia.org/wiki/2003_European_heat_wave",
+      "read": "2026-09-26",
+      "note": "The game's \"In the real world\" note about heat waves takes its facts from this page."
+    },
+    {
+      "title": "Cyclone Preparedness Programme",
+      "by": "Wikipedia",
+      "url": "https://en.wikipedia.org/wiki/Cyclone_Preparedness_Programme",
+      "read": "2026-09-26",
+      "note": "The game's \"In the real world\" note about storms takes its facts from this page."
+    },
+    {
+      "title": "2021 Suez Canal obstruction",
+      "by": "Wikipedia",
+      "url": "https://en.wikipedia.org/wiki/2021_Suez_Canal_obstruction",
+      "read": "2026-09-26",
+      "note": "The game's \"In the real world\" note about supply-chain shocks takes its facts from this page."
+    },
+    {
+      "title": "Northeast blackout of 2003",
+      "by": "Wikipedia",
+      "url": "https://en.wikipedia.org/wiki/Northeast_blackout_of_2003",
+      "read": "2026-09-26",
+      "note": "The game's \"In the real world\" note about infrastructure failures takes its facts from this page."
+    },
+    {
+      "title": "Student Volunteer Army",
+      "by": "Wikipedia",
+      "url": "https://en.wikipedia.org/wiki/Student_Volunteer_Army",
+      "read": "2026-09-26",
+      "note": "The game's \"In the real world\" note about civil unrest takes its facts from this page."
+    },
+    {
+      "title": "1995 Chicago heat wave",
+      "by": "Wikipedia",
+      "url": "https://en.wikipedia.org/wiki/1995_Chicago_heat_wave",
+      "read": "2026-10-09",
+      "note": "The game's \"In the real world\" note about heat-related deaths takes its facts from this page."
+    }
+  ],
+  "inspiration": [],
+  "other": [
+    {
+      "title": "Pyodide",
+      "by": "The Pyodide project",
+      "url": "https://pyodide.org/",
+      "note": "Runs the game's Python rules in the browser through WebAssembly (version 0.26.4, loaded from a CDN), so the game needs no server of its own and no build step."
+    }
+  ]
+}

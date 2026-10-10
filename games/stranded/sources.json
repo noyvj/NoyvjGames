@@ -1,0 +1,35 @@
+{
+  "game": "stranded",
+  "updated": "2026-10-10",
+  "research": [
+    {
+      "title": "Lunar distance",
+      "by": "Wikipedia",
+      "url": "https://en.wikipedia.org/wiki/Lunar_distance",
+      "read": "2026-10-10",
+      "note": "Supplies the About page fact \"A line to the Moon\": Orrin is much farther than that, which is why the line is thin and text-only, but nothing in the story waits on a delay."
+    },
+    {
+      "title": "Queqiao relay satellite",
+      "by": "Wikipedia",
+      "url": "https://en.wikipedia.org/wiki/Queqiao_relay_satellite",
+      "read": "2026-10-10",
+      "note": "Supplies the About page fact \"Why a relay\": Sparrow is a dark relay, and lighting it is one of three ways home."
+    }
+  ],
+  "inspiration": [
+    {
+      "title": "Lifeline",
+      "kind": "game",
+      "note": "The shape of a story told as a text conversation with many branching choices; Stranded adds no waiting timer and a free rewind to try a different path."
+    }
+  ],
+  "other": [
+    {
+      "title": "Pyodide",
+      "by": "The Pyodide project",
+      "url": "https://pyodide.org/",
+      "note": "Runs the game's Python rules in the browser through WebAssembly (version 0.26.4, loaded from a CDN), so the game needs no server of its own and no build step."
+    }
+  ]
+}

@@ -1,0 +1,33 @@
+{
+  "game": "herd",
+  "updated": "2026-10-10",
+  "research": [
+    {
+      "title": "Livestock and enteric methane",
+      "by": "FAO",
+      "url": "https://www.fao.org/in-action/enteric-methane/en",
+      "note": "The definitive real-world figures behind Herd's core mechanic; agriculture's share of methane emissions and where it comes from."
+    },
+    {
+      "title": "Accelerating climate solutions in agriculture",
+      "by": "Clean Air Task Force",
+      "url": "https://www.catf.us/2024/10/accelerating-climate-solutions-agriculture-why-reducing-methane-livestock-urgent-opportunity/",
+      "note": "Documents a real ~42% methane-intensity reduction from better farm practices; directly supports Herd's decoupling hope angle."
+    },
+    {
+      "title": "Agriculture and Aquaculture: Food for Thought",
+      "by": "US EPA",
+      "url": "https://www.epa.gov/snep/agriculture-and-aquaculture-food-thought",
+      "note": "Explains why methane's short-lived-but-potent warming profile makes it a distinct lever from CO2."
+    }
+  ],
+  "inspiration": [],
+  "other": [
+    {
+      "title": "Pyodide",
+      "by": "The Pyodide project",
+      "url": "https://pyodide.org/",
+      "note": "Runs the game's Python rules in the browser through WebAssembly (version 0.26.4, loaded from a CDN), so the game needs no server of its own and no build step."
+    }
+  ]
+}

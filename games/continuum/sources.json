@@ -1,0 +1,280 @@
+{
+  "game": "continuum",
+  "updated": "2026-10-10",
+  "research": [
+    {
+      "title": "\"Political Systems\" (Introduction to Anthropology)",
+      "by": "Pressbooks Nebraska",
+      "url": "https://pressbooks.nebraska.edu/anth110/chapter/political-systems/",
+      "note": "Tribal era: The real anthropological distinction between bands and tribes, and how village growth and architecture marked the shift; the real-world basis for this era's population and settlement mechanics."
+    },
+    {
+      "title": "Neolithic Site of Çatalhöyük",
+      "by": "UNESCO World Heritage Centre",
+      "url": "https://whc.unesco.org/en/list/1405/",
+      "note": "Tribal era: One of the earliest known settlements, notable for its egalitarian layout; comparably-sized dwellings, no social hierarchy visible in the architecture; a direct anchor for the Tribal era's non-hierarchical starting roles."
+    },
+    {
+      "title": "\"The study of early human settlement preference and settlement prediction in Xinjiang, China\"",
+      "by": "PMC",
+      "url": "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC8948180/",
+      "note": "Tribal era: How early humans actually chose settlement locations based on geography and environment; the real-world counterpart to this game's land-health/sustainable-yield system."
+    },
+    {
+      "title": "Dunbar's Number",
+      "by": "Research Outreach / Medium",
+      "url": "https://researchoutreach.org/articles/size-matters-social-groups-human-evolution/",
+      "note": "Tribal era: The real cognitive/social limit on stable group size (~150, in a layered structure of 5/15/50/150/500/1500); the basis for calibrating this era's population thresholds."
+    },
+    {
+      "title": "\"What was the Neolithic Revolution?\"",
+      "by": "National Geographic",
+      "url": "https://www.nationalgeographic.com/culture/article/neolithic-agricultural-revolution",
+      "note": "Agrarian era: How early farmers produced storable surplus in the first place; the direct real-world basis for this era's surplus/storage mechanics."
+    },
+    {
+      "title": "\"Neolithic Revolution\"",
+      "by": "HISTORY",
+      "url": "https://www.history.com/articles/neolithic-revolution",
+      "note": "Agrarian era: The shift from nomadic to settled farming life, with Çatalhöyük (the Tribal era's own anchor) as the bridge example; good grounding for the Tribal-to-Agrarian transition specifically."
+    },
+    {
+      "title": "\"Neolithic Revolution\"",
+      "by": "EBSCO Research Starters",
+      "url": "https://www.ebsco.com/research-starters/agriculture-and-agribusiness/neolithic-revolution",
+      "note": "Agrarian era: Specialized tools, pottery, and early urbanization as direct consequences of food surplus; the real basis for this era's research-tree nodes (Plow and Furrow, Market Custom, and the rest)."
+    },
+    {
+      "title": "\"The Neolithic Revolution\" (World History)",
+      "by": "TxWes Pressbooks",
+      "url": "https://txwes.pressbooks.pub/internationalstudies/chapter/2-3-the-neolithic-revolution-world-history-volume-1-to-1500-openstax/",
+      "note": "Agrarian era: Surplus specifically creating the first social hierarchies and property accumulation; the direct real-world basis for the sustainability score's surplus-hoarding equity penalty this era."
+    },
+    {
+      "title": "\"Mesopotamia: Civilization Begins\"",
+      "by": "The Getty",
+      "url": "https://www.getty.edu/art/exhibitions/mesopotamia/explore.html",
+      "note": "Classical era: Uruk's growth into a walled city of roughly 100,000 via intensive irrigation agriculture directed by temple estates; the real model for this era's shift from Agrarian surplus to coordinated civic infrastructure, and the direct basis for Temple Administration in the research tree."
+    },
+    {
+      "title": "\"What Can Uruk and Ur Teach Us About the Birth of Civilization?\"",
+      "by": "TheCollector",
+      "url": "https://www.thecollector.com/uruk-and-ur-birth-of-civilization/",
+      "note": "Classical era: Canal management required centralized planning and coordinated labor; the direct real-world basis for why Canals need Administrators staffing them to deliver their yield bonus at all."
+    },
+    {
+      "title": "\"Morphodynamic Foundations of Sumer\"",
+      "by": "PLOS One",
+      "url": "https://journals.plos.org/plosone/article?id=10.1371%2Fjournal.pone.0329084",
+      "note": "Classical era: Recent research proposing that natural tidal irrigation, not just human planning, jumpstarted Sumerian urbanization; a useful check on how much of this era's scale to credit to coordinated labor versus the land itself."
+    },
+    {
+      "title": "\"Uruk Period\"",
+      "by": "GlobalSecurity.org",
+      "url": "https://www.globalsecurity.org/military/world/iraq/history-uruk.htm",
+      "note": "Classical era: Concrete scale figures; population around 45,000, a trade network stretching from Turkey to Iran; the real-world basis for calibrating this era's city scale and for the Trade Networks research node."
+    },
+    {
+      "title": "\"Inside a Medieval City: Public Health, Housing, and Everyday Regulations\"",
+      "by": "Popular Archaeology",
+      "url": "https://popular-archaeology.com/article/inside-a-medieval-city-public-health-housing-and-everyday-regulations/",
+      "note": "Medieval era: Real medieval sanitation regulation; waste fines, zoning toxic trades away from drinking water; the direct real-world basis for the Zoned Trades and Public Sanitation research nodes."
+    },
+    {
+      "title": "Coomans & Hermenault, \"Public Works, Spatial Strategies, and Mobility in Late Medieval Ghent\"",
+      "by": "SAGE Journals",
+      "url": "https://journals.sagepub.com/doi/10.1177/00961442221124892",
+      "note": "Medieval era: Academic analysis of medieval public-works investment used specifically to mitigate risk; floods, disease, military vulnerability; rather than to grow output. The direct real-world basis for Public Works being a resilience bonus rather than a production building."
+    },
+    {
+      "title": "Magnusson, \"Urban Infrastructure in Medieval England: Sustainability and Resilience\"",
+      "by": "Johns Hopkins University Press",
+      "url": "https://press.jhu.edu/books/title/12618/urban-infrastructure-medieval-england",
+      "note": "Medieval era: A recent academic study literally framed around sustainability and resilience in medieval public works; this era's clearest direct bridge to the game's own SDG 11 framing."
+    },
+    {
+      "title": "\"Urban Revival and the Growth of Cities\" (European History 1000-1500)",
+      "by": "Fiveable",
+      "url": "https://fiveable.me/europe-1000-1500/unit-7/urban-revival-growth-cities/study-guide/91Ey4PdQIbJK9yOx",
+      "note": "Medieval era: Guild specialisation and municipal charters granting real self-governance; the real-world basis for the Guildmasters role and for the community branch's Municipal Charter / Free City Charter research nodes."
+    },
+    {
+      "title": "\"Urban Planning: Industrialization, Infrastructure, Cities\"",
+      "by": "Britannica",
+      "url": "https://www.britannica.com/topic/urban-planning/The-era-of-industrialization",
+      "note": "Industrial era: 19th-century industrial growth outpacing planning, producing slums and disease before sanitation reform caught up; the real-world basis for Factory Workers outpacing Sanitation Works unless the settlement deliberately builds it."
+    },
+    {
+      "title": "\"Coal Smoke, City Growth, and the Costs of the Industrial Revolution\"",
+      "by": "The Economic Journal (Oxford Academic)",
+      "url": "https://academic.oup.com/ej/article-abstract/130/626/462/5602598",
+      "note": "Industrial era: Rigorous economic research showing industrial pollution measurably reduced long-run city growth; the direct real-world basis for pollution's growth-side penalty, not only its sustainability-score one."
+    },
+    {
+      "title": "\"The Evolution of Industrial Cities\"",
+      "by": "Sociology.Institute",
+      "url": "https://sociology.institute/urban-sociology/evolution-industrial-cities-work-urban-environment/",
+      "note": "Industrial era: Global urban population rising from 3% (1800) to nearly 50% (2000); the real scale this era's population thresholds and transition beat are meant to gesture at."
+    },
+    {
+      "title": "\"Bibliometric Analysis and Research Trend Forecast of Healthy Urban Planning for 40 Years\"",
+      "by": "PMC",
+      "url": "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC8464861/",
+      "note": "Industrial era: How modern urban planning as a discipline emerged directly in response to industrial-era public health crises; the real bridge from this era's Public Health Acts node into the Digital era's more formalized SDG 11 framing."
+    },
+    {
+      "title": "\"SDG 11: Sustainable Cities and Communities\"",
+      "by": "UN DESA",
+      "url": "https://desapublications.un.org/publications/sdgs/SDG%2011%20Sustainable%20Cities%20and%20Communities",
+      "note": "Digital era: The official UN publication on this goal; the most direct, authoritative source for the era the whole game's SDG framing is built around."
+    },
+    {
+      "title": "\"Make Cities Inclusive, Safe, Resilient and Sustainable\"",
+      "by": "Our World in Data",
+      "url": "https://ourworldindata.org/sdgs/sustainable-cities",
+      "note": "Digital era: Breaks SDG 11 into its actual 10 targets and 16 measurable indicators; the real-world reason this panel talks about housing, transport and green space specifically, even though the game's own score stays one headline number."
+    },
+    {
+      "title": "\"Sustainable Development Goal 11: Sustainable Cities and Communities\"",
+      "by": "National Geographic Education",
+      "url": "https://education.nationalgeographic.org/resource/sustainable-development-goal-11-sustainable-cities-and-communities/",
+      "note": "Digital era: Urban areas grew 1.28 times faster than their populations between 2000 and 2014; the direct real-world basis for the sprawl mechanic Urban Planners and Transit Hubs both exist to manage."
+    },
+    {
+      "title": "\"Sustainable Cities and Communities\"",
+      "by": "Agenda 2030 in Latin America and the Caribbean (ECLAC)",
+      "url": "https://agenda2030lac.org/en/sdg/11-sustainable-cities-and-communities",
+      "note": "Digital era: Concrete present-day figures; 70% of people projected to live in cities by 2050, 1.1 billion currently in slum or slum-like conditions; the direct real-world basis for sprawl's equity-side cost in the sustainability score."
+    },
+    {
+      "title": "The Sustainable Development Goals Report 2025 (Current Day)",
+      "by": "UN",
+      "note": "Digital era: A dedicated 'right now' source, distinct from the four above: the tenth annual global stocktaking of SDG progress, delivering an explicitly present-moment verdict; real gains made, but the current pace isn't enough to meet the 2030 targets."
+    },
+    {
+      "title": "\"Urban planning in space: 3 off-world designs for future cities\"",
+      "by": "Big Think",
+      "url": "https://bigthink.com/hard-science/urban-planning-in-space/",
+      "note": "Space Age era: Covers three real design concepts; NASA's 1977 rotating habitat study, MIT's Mars City 'Redwood Forest' competition winner, and ring habitats; the direct real-world basis for calling this era's signature building a Habitat Ring rather than inventing a shape with no precedent."
+    },
+    {
+      "title": "\"NASA's Urban Plan for Space Settlements\"",
+      "by": "Planetizen",
+      "url": "https://www.planetizen.com/news/2018/12/101790-nasas-urban-plan-space-settlements",
+      "note": "Space Age era: Frames NASA's 1977 'Space Settlements: A Design Study' as literally a city-planning policy document; the clearest source for why this era's mechanics stay continuous with ordinary urban planning rather than treating 'off-world' as a total departure from it."
+    },
+    {
+      "title": "Scharmen, \"Space Settlements\"",
+      "by": "Columbia University Press",
+      "url": "https://cup.columbia.edu/book/space-settlements/9781941332498/",
+      "note": "Space Age era: An academic architectural history taking NASA's 1975 Summer Study designs seriously as real design problems; the basis for treating this era's content as grounded speculation, not science fiction."
+    },
+    {
+      "title": "\"Designing for Usability in Modular Space Habitats: A Space Syntax Perspective\"",
+      "by": "Dagstuhl / SpaceCHI 2025",
+      "url": "https://drops.dagstuhl.de/storage/01oasics/oasics-vol130-spacechi2025/OASIcs.SpaceCHI.2025.4/OASIcs.SpaceCHI.2025.4.pdf",
+      "note": "Space Age era: Current (2025) research on how modular space habitat layouts affect real usability at scale; the direct basis for Habitat Architects and the habitat-layout provision they determine, and the one source here that isn't 1970s-era material."
+    },
+    {
+      "title": "Goal 11 (Sustainable cities and communities)",
+      "by": "UN DESA",
+      "url": "https://sdgs.un.org/goals/goal11",
+      "note": "Relay Age era: The official goal page; target 11.a is the real-world framing for treating the region, not the single city, as the thing to plan and sustain."
+    },
+    {
+      "title": "Core–periphery structure",
+      "by": "Wikipedia",
+      "url": "https://en.wikipedia.org/wiki/Core%E2%80%93periphery_structure",
+      "note": "Relay Age era: Defines the economic-geography idea behind the inter-site equity gap: some areas become rich and industrialised while others stay resource-dependent, and peripheral regions tend to supply the core."
+    },
+    {
+      "title": "Commercial Resupply Services",
+      "by": "Wikipedia",
+      "url": "https://en.wikipedia.org/wiki/Commercial_Resupply_Services",
+      "note": "Relay Age era: NASA's real model for keeping an outpost alive: a series of commercial flights delivering cargo and supplies to the International Space Station, the basis for what Relay Stations and Wayfinders do."
+    },
+    {
+      "title": "Lunar Gateway",
+      "by": "Wikipedia",
+      "url": "https://en.wikipedia.org/wiki/Lunar_Gateway",
+      "note": "Relay Age era: A real off-world staging-point design: a modular station planned for a near-rectilinear halo orbit around the Moon, intended as somewhere crews and landers meet. The article describes it as planned and, in its own wording, one that would have been built, so it is cited as a design, not a fixture."
+    },
+    {
+      "title": "Göbekli Tepe",
+      "by": "Wikipedia",
+      "url": "https://en.wikipedia.org/wiki/G%C3%B6bekli_Tepe",
+      "read": "2026-09-27",
+      "note": "The Tribal era's \"In the real world\" note (Göbekli Tepe, a monumental site built before farming) takes its facts from this page."
+    },
+    {
+      "title": "Çatalhöyük",
+      "by": "Wikipedia",
+      "url": "https://en.wikipedia.org/wiki/%C3%87atalh%C3%B6y%C3%BCk",
+      "read": "2026-09-27",
+      "note": "The Agrarian era's \"In the real world\" note (Çatalhöyük, an early farming town) takes its facts from this page."
+    },
+    {
+      "title": "Uruk",
+      "by": "Wikipedia",
+      "url": "https://en.wikipedia.org/wiki/Uruk",
+      "read": "2026-09-27",
+      "note": "The Classical era's \"In the real world\" note (Uruk's canals and temple records) takes its facts from this page."
+    },
+    {
+      "title": "Guilds of Florence",
+      "by": "Wikipedia",
+      "url": "https://en.wikipedia.org/wiki/Guilds_of_Florence",
+      "read": "2026-09-27",
+      "note": "The Medieval era's \"In the real world\" note (The guilds of Florence) takes its facts from this page."
+    },
+    {
+      "title": "Great Stink",
+      "by": "Wikipedia",
+      "url": "https://en.wikipedia.org/wiki/Great_Stink",
+      "read": "2026-09-27",
+      "note": "The Industrial era's \"In the real world\" note (London's Great Stink and Bazalgette's sewers) takes its facts from this page."
+    },
+    {
+      "title": "Curitiba",
+      "by": "Wikipedia",
+      "url": "https://en.wikipedia.org/wiki/Curitiba",
+      "read": "2026-09-27",
+      "note": "The Digital era's \"In the real world\" note (Curitiba's planned transit and limits on sprawl) takes its facts from this page."
+    },
+    {
+      "title": "International Space Station",
+      "by": "NASA",
+      "url": "https://www.nasa.gov/international-space-station/",
+      "read": "2026-09-27",
+      "note": "The Space Age era's \"In the real world\" note (The International Space Station) takes its facts from this page."
+    },
+    {
+      "title": "Commercial Resupply Services",
+      "by": "Wikipedia",
+      "url": "https://en.wikipedia.org/wiki/Commercial_Resupply_Services",
+      "read": "2026-09-27",
+      "note": "The Relay Age era's \"In the real world\" note (NASA's Commercial Resupply Services) takes its facts from this page."
+    }
+  ],
+  "inspiration": [
+    {
+      "title": "SimCity",
+      "kind": "game",
+      "note": "The isometric camera preset is a deliberate nod to the isometric look of SimCity-era city builders."
+    }
+  ],
+  "other": [
+    {
+      "title": "Pyodide",
+      "by": "The Pyodide project",
+      "url": "https://pyodide.org/",
+      "note": "Runs the game's Python rules in the browser through WebAssembly (version 0.26.4, loaded from a CDN), so the game needs no server of its own and no build step."
+    },
+    {
+      "title": "three.js",
+      "by": "The three.js authors",
+      "url": "https://threejs.org/",
+      "note": "Draws the low-poly 3D scene for each era (version r128, loaded from a CDN); the game falls back to a flat 2D view when WebGL is unavailable."
+    }
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "game": "heist-committee",
+  "updated": "2026-10-10",
+  "research": [],
+  "inspiration": [],
+  "other": [
+    {
+      "title": "Pyodide",
+      "by": "The Pyodide project",
+      "url": "https://pyodide.org/",
+      "note": "Runs the game's Python rules in the browser through WebAssembly (version 0.26.4, loaded from a CDN), so the game needs no server of its own and no build step."
+    }
+  ]
+}

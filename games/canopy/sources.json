@@ -1,0 +1,81 @@
+{
+  "game": "canopy",
+  "updated": "2026-10-10",
+  "research": [
+    {
+      "title": "Forests in the IPCC Special Report on Land Use: 7 Things to Know",
+      "by": "World Resources Institute",
+      "url": "https://www.wri.org/insights/forests-ipcc-special-report-land-use-7-things-know",
+      "note": "Explains why deforestation and forest carbon sinks are two sides of the same coin; maps directly to Canopy's clear/preserve tension."
+    },
+    {
+      "title": "How Effective Is Land At Removing Carbon Pollution? The IPCC Weighs In",
+      "by": "World Resources Institute",
+      "url": "https://www.wri.org/insights/how-effective-land-removing-carbon-pollution-ipcc-weighs",
+      "note": "Real reforestation carbon-removal potential; grounds the \"replanting works, just slower\" hope angle in actual IPCC figures."
+    },
+    {
+      "title": "Land Use, Land-Use Change and Forestry (LULUCF)",
+      "by": "UNFCCC",
+      "url": "https://unfccc.int/topics/land-use/workstreams/land-use--land-use-change-and-forestry-lulucf",
+      "note": "The formal policy framework for tracking forest carbon sinks internationally; why Canopy treats plots as carbon-relevant assets, not scenery."
+    },
+    {
+      "title": "Deforestation & Reforestation",
+      "by": "Climate Change Resources",
+      "url": "https://climatechangeresources.org/learn-more/science/reforestation-deforestation/",
+      "note": "Accessible overview with links to real reforestation organizations, for players who want to go from facts to action."
+    },
+    {
+      "title": "Deforestation",
+      "by": "Wikipedia",
+      "url": "https://en.wikipedia.org/wiki/Deforestation",
+      "read": "2026-09-27",
+      "note": "The game's \"In the real world\" note about clearing a plot takes its facts from this page."
+    },
+    {
+      "title": "Atlantic Forest",
+      "by": "Wikipedia",
+      "url": "https://en.wikipedia.org/wiki/Atlantic_Forest",
+      "read": "2026-09-27",
+      "note": "The game's \"In the real world\" note about replanting takes its facts from this page."
+    },
+    {
+      "title": "Secondary forest",
+      "by": "Wikipedia",
+      "url": "https://en.wikipedia.org/wiki/Secondary_forest",
+      "read": "2026-09-27",
+      "note": "The game's \"In the real world\" note about preserved plots and wildlife takes its facts from this page."
+    },
+    {
+      "title": "Carbon sink",
+      "by": "Wikipedia",
+      "url": "https://en.wikipedia.org/wiki/Carbon_sink",
+      "read": "2026-09-27",
+      "note": "The game's \"In the real world\" note about mature plots takes its facts from this page."
+    },
+    {
+      "title": "Community forestry in Nepal",
+      "by": "Wikipedia",
+      "url": "https://en.wikipedia.org/wiki/Community_forestry_in_Nepal",
+      "read": "2026-09-27",
+      "note": "The game's \"In the real world\" note about a community request to clear a plot takes its facts from this page."
+    },
+    {
+      "title": "Great Green Wall (Africa)",
+      "by": "Wikipedia",
+      "url": "https://en.wikipedia.org/wiki/Great_Green_Wall_(Africa)",
+      "read": "2026-09-27",
+      "note": "The game's \"In the real world\" note about a replant-fund offer takes its facts from this page."
+    }
+  ],
+  "inspiration": [],
+  "other": [
+    {
+      "title": "Pyodide",
+      "by": "The Pyodide project",
+      "url": "https://pyodide.org/",
+      "note": "Runs the game's Python rules in the browser through WebAssembly (version 0.26.4, loaded from a CDN), so the game needs no server of its own and no build step."
+    }
+  ]
+}

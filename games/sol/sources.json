@@ -1,0 +1,20 @@
+{
+  "game": "sol",
+  "updated": "2026-10-10",
+  "research": [],
+  "inspiration": [
+    {
+      "title": "Universal Paperclips",
+      "kind": "game",
+      "note": "The shape of the whole game: an incremental clicker that starts with one click and grows through automation and a multi-resource economy, here themed on the solar system."
+    }
+  ],
+  "other": [
+    {
+      "title": "Pyodide",
+      "by": "The Pyodide project",
+      "url": "https://pyodide.org/",
+      "note": "Runs the game's Python rules in the browser through WebAssembly (version 0.26.4, loaded from a CDN), so the game needs no server of its own and no build step."
+    }
+  ]
+}

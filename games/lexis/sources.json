@@ -1,0 +1,73 @@
+{
+  "game": "lexis",
+  "updated": "2026-10-10",
+  "research": [
+    {
+      "title": "Binary number",
+      "by": "Wikipedia",
+      "url": "https://en.wikipedia.org/wiki/Binary_number",
+      "read": "2026-10-07",
+      "note": "Supplies the About page fact \"Numbers by position\": Planet 1 spells its numbers with three marks in exactly this way."
+    },
+    {
+      "title": "Chinese character classification",
+      "by": "Wikipedia",
+      "url": "https://en.wikipedia.org/wiki/Chinese_character_classification",
+      "read": "2026-10-07",
+      "note": "Supplies the About page fact \"Signs built from meaningful parts\": Planet 2's signs are built from parts too, though there every part carries meaning and none carries sound."
+    },
+    {
+      "title": "Coding of Nominal Plurality (chapter by Matthew S. Dryer)",
+      "by": "World Atlas of Language Structures Online",
+      "url": "https://wals.info/chapter/33",
+      "read": "2026-10-07",
+      "note": "Supplies the About page fact \"Saying there is more than one\": Planet 3 uses a separate small sign after the noun."
+    },
+    {
+      "title": "Negative Morphemes (chapter by Matthew S. Dryer)",
+      "by": "World Atlas of Language Structures Online",
+      "url": "https://wals.info/chapter/112",
+      "read": "2026-10-07",
+      "note": "Supplies the About page fact \"Saying no\": Planet 3's negation is simpler than that: it removes a thing, not a whole statement."
+    },
+    {
+      "title": "Linear B",
+      "by": "Wikipedia",
+      "url": "https://en.wikipedia.org/wiki/Linear_B",
+      "read": "2026-10-07",
+      "note": "Supplies the About page fact \"Reading a script nobody could read\": You are working the same way: patterns and context, with no dictionary to hand."
+    },
+    {
+      "title": "Arecibo message",
+      "by": "Wikipedia",
+      "url": "https://en.wikipedia.org/wiki/Arecibo_message",
+      "read": "2026-10-07",
+      "note": "Supplies the About page fact \"A message meant for strangers\": Numbers and pictures were chosen because they might survive a trip between minds that share no language."
+    }
+  ],
+  "inspiration": [
+    {
+      "title": "Chants of Sennaar",
+      "kind": "game",
+      "note": "The idea of learning a language by watching how its glyphs are used and filling in a notebook of guesses, with the game's own invented languages and story."
+    },
+    {
+      "title": "The Message from Deep Space",
+      "kind": "other",
+      "note": "Named alongside Chants of Sennaar as the kind of deduction puzzle wanted; Lexis keeps its own original premise of a message that has to be understood."
+    },
+    {
+      "title": "Star Trek",
+      "kind": "show",
+      "note": "The first-contact survey ship premise, a crew opening a conversation on each new planet, is Star Trek-flavoured in spirit with an original ship, crew and worlds."
+    }
+  ],
+  "other": [
+    {
+      "title": "Pyodide",
+      "by": "The Pyodide project",
+      "url": "https://pyodide.org/",
+      "note": "Runs the game's Python rules in the browser through WebAssembly (version 0.26.4, loaded from a CDN), so the game needs no server of its own and no build step."
+    }
+  ]
+}

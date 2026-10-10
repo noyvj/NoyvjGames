@@ -1,0 +1,36 @@
+{
+  "game": "lighthouse",
+  "updated": "2026-10-10",
+  "research": [
+    {
+      "title": "Fresnel lens",
+      "by": "Wikipedia",
+      "url": "https://en.wikipedia.org/wiki/Fresnel_lens",
+      "read": "2026-10-09",
+      "note": "Supplies the About page fact \"A lens that makes a beam\": The Better lens upgrade makes the beam carry one step further."
+    },
+    {
+      "title": "Lighthouse",
+      "by": "Wikipedia",
+      "url": "https://en.wikipedia.org/wiki/Lighthouse",
+      "read": "2026-10-09",
+      "note": "The About page facts on winding the clockwork and on what the lamp burned: the clockwork runs down unless you wind it, and oil is the thing you can never have enough of."
+    },
+    {
+      "title": "Fog signal",
+      "by": "Wikipedia",
+      "url": "https://en.wikipedia.org/wiki/Fog_signal",
+      "read": "2026-10-09",
+      "note": "Supplies the About page fact \"Bells for the fog\": The Fog bell upgrade takes some of the fog's cost off your beam."
+    }
+  ],
+  "inspiration": [],
+  "other": [
+    {
+      "title": "Pyodide",
+      "by": "The Pyodide project",
+      "url": "https://pyodide.org/",
+      "note": "Runs the game's Python rules in the browser through WebAssembly (version 0.26.4, loaded from a CDN), so the game needs no server of its own and no build step."
+    }
+  ]
+}

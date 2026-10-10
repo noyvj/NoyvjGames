@@ -1,0 +1,32 @@
+{
+  "game": "champ-de-mots",
+  "updated": "2026-10-10",
+  "research": [
+    {
+      "title": "Annexe:Faux-amis anglais-français",
+      "by": "French Wiktionary (CC BY-SA)",
+      "url": "https://fr.wiktionary.org/wiki/Annexe:Faux-amis_anglais-fran%C3%A7ais",
+      "note": "The false-friends list behind the Faux Amis game and the false-friend badge on farm plots, read live in the browser each time it is used and named on screen."
+    }
+  ],
+  "inspiration": [
+    {
+      "title": "SM-2 spaced repetition",
+      "kind": "other",
+      "note": "The watering schedule is a lightweight SM-2-style scheduler: an ease factor, intervals that grow after each correct recall and a reset to one day after a miss."
+    }
+  ],
+  "other": [
+    {
+      "title": "Pyodide",
+      "by": "The Pyodide project",
+      "url": "https://pyodide.org/",
+      "note": "Runs the game's Python rules in the browser through WebAssembly (version 0.26.4, loaded from a CDN), so the game needs no server of its own and no build step."
+    },
+    {
+      "title": "FREN151 and FREN152 course workbook and lecture slides",
+      "by": "The courses' teacher and workbook",
+      "note": "The farm's words, grammar points and their order come from the workbook, cross-checked against the teacher's own lecture slides for FREN151 and for FREN152 weeks 1 to 7 plus week 13."
+    }
+  ]
+}

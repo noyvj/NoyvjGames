@@ -1,0 +1,39 @@
+{
+  "game": "tide",
+  "updated": "2026-10-10",
+  "research": [
+    {
+      "title": "Understanding Ocean Acidification",
+      "by": "NOAA Fisheries",
+      "url": "https://www.fisheries.noaa.gov/insight/understanding-ocean-acidification",
+      "note": "Explains the shellfish/reef impact mechanism directly; the real process behind Tide's fish-stock crash."
+    },
+    {
+      "title": "Global Mean Sea Level",
+      "by": "NASA Sea Level Change Portal",
+      "url": "https://sealevel.nasa.gov/understanding-sea-level/key-indicators/global-mean-sea-level/",
+      "note": "Real satellite-measured sea-level data and rate-of-rise figures, informing the pacing of Tide's background timeline."
+    },
+    {
+      "title": "Climate Change: Global Sea Level",
+      "by": "NOAA Climate.gov",
+      "url": "https://www.climate.gov/news-features/understanding-climate/climate-change-global-sea-level",
+      "note": "Explains both causes of sea-level rise (thermal expansion + ice melt) in plain language."
+    },
+    {
+      "title": "Ocean Acidification",
+      "by": "Smithsonian Ocean Portal",
+      "url": "https://ocean.si.edu/ocean-life/invertebrates/ocean-acidification",
+      "note": "A clear, visual explanation of the acidification chemistry, most accessible of the four sources."
+    }
+  ],
+  "inspiration": [],
+  "other": [
+    {
+      "title": "Pyodide",
+      "by": "The Pyodide project",
+      "url": "https://pyodide.org/",
+      "note": "Runs the game's Python rules in the browser through WebAssembly (version 0.26.4, loaded from a CDN), so the game needs no server of its own and no build step."
+    }
+  ]
+}

@@ -1,0 +1,87 @@
+{
+  "game": "drift",
+  "updated": "2026-10-10",
+  "research": [
+    {
+      "title": "Climate change and displacement",
+      "by": "UNHCR",
+      "url": "https://www.unhcr.org/us/what-we-do/build-better-futures/climate-change-and-displacement",
+      "note": "The authoritative agency perspective, framing displacement institutionally; consistent with Drift's own framing."
+    },
+    {
+      "title": "Climate Migration 101: An Explainer",
+      "by": "Migration Policy Institute",
+      "url": "https://www.migrationpolicy.org/journal/feature/climate-migration-101-explainer",
+      "note": "Real projections (44-216 million internal migrants by 2050) that echo Drift's \"preparedness changes the outcome\" hope angle."
+    },
+    {
+      "title": "Who Counts as a Climate Migrant?",
+      "by": "Migration Policy Institute",
+      "url": "https://www.migrationpolicy.org/article/who-is-a-climate-migrant",
+      "note": "Explains the legal/definitional gap behind why Drift frames this as a systems/capacity problem, not a legal one."
+    },
+    {
+      "title": "The climate crisis, migration, and refugees",
+      "by": "Brookings",
+      "url": "https://www.brookings.edu/articles/the-climate-crisis-migration-and-refugees/",
+      "note": "Policy-level analysis of the institutional response gap, grounding Drift's receiving-region capacity mechanic."
+    },
+    {
+      "title": "How Are Refugees Faring? Integration at U.S. and State Levels",
+      "by": "Migration Policy Institute",
+      "url": "https://www.migrationpolicy.org/publication/how-are-refugees-faring-integration-us-and-state-levels",
+      "note": "Source for the in-game real-world resettlement-outcome benchmark (89% employment among recently-resettled working-age refugees, 2023)."
+    },
+    {
+      "title": "Refugees in Uganda",
+      "by": "Wikipedia",
+      "url": "https://en.wikipedia.org/wiki/Refugees_in_Uganda",
+      "read": "2026-09-27",
+      "note": "The game's \"In the real world\" note about housing and settlement takes its facts from this page."
+    },
+    {
+      "title": "Integration course",
+      "by": "Wikipedia",
+      "url": "https://en.wikipedia.org/wiki/Integration_course",
+      "read": "2026-09-27",
+      "note": "The game's \"In the real world\" note about language-access funding takes its facts from this page."
+    },
+    {
+      "title": "Recognition of foreign professional qualifications",
+      "by": "BAMF (German Federal Office for Migration and Refugees)",
+      "url": "https://www.bamf.de/EN/Themen/Integration/ZugewanderteTeilnehmende/AnerkennungBerufsabschluesse/anerkennungberufsabschluesse-node.html",
+      "read": "2026-09-27",
+      "note": "The game's \"In the real world\" note about streamlined credentialing takes its facts from this page."
+    },
+    {
+      "title": "Private Sponsorship of Refugees Program",
+      "by": "Wikipedia",
+      "url": "https://en.wikipedia.org/wiki/Private_Sponsorship_of_Refugees_Program",
+      "read": "2026-09-27",
+      "note": "The game's \"In the real world\" note about community sponsorship takes its facts from this page."
+    },
+    {
+      "title": "Temporary Protection Directive",
+      "by": "Wikipedia",
+      "url": "https://en.wikipedia.org/wiki/Temporary_Protection_Directive",
+      "read": "2026-09-27",
+      "note": "The game's \"In the real world\" note about a second wave of arrivals takes its facts from this page."
+    },
+    {
+      "title": "Syrian refugees in Jordan",
+      "by": "Wikipedia",
+      "url": "https://en.wikipedia.org/wiki/Syrian_refugees_in_Jordan",
+      "read": "2026-09-27",
+      "note": "The game's \"In the real world\" note about strain on services takes its facts from this page."
+    }
+  ],
+  "inspiration": [],
+  "other": [
+    {
+      "title": "Pyodide",
+      "by": "The Pyodide project",
+      "url": "https://pyodide.org/",
+      "note": "Runs the game's Python rules in the browser through WebAssembly (version 0.26.4, loaded from a CDN), so the game needs no server of its own and no build step."
+    }
+  ]
+}

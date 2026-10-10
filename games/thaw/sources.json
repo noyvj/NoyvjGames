@@ -1,0 +1,52 @@
+{
+  "game": "thaw",
+  "updated": "2026-10-10",
+  "research": [
+    {
+      "title": "Is methane release from the Arctic unstoppable?",
+      "by": "MIT Climate Portal",
+      "url": "https://climate.mit.edu/ask-mit/methane-release-arctic-unstoppable",
+      "note": "The clearest source for Thaw's hope angle; frames the feedback loop as a dimmer switch, not an on/off switch."
+    },
+    {
+      "title": "Seasonal increase of methane emissions linked to warming in Siberian tundra",
+      "by": "Nature Climate Change",
+      "url": "https://www.nature.com/articles/s41558-022-01512-4",
+      "note": "Real observational evidence (not just modeling) of the feedback loop already measurably happening."
+    },
+    {
+      "title": "Thawing permafrost",
+      "by": "WWF Arctic",
+      "url": "https://www.arcticwwf.org/the-circle/stories/thawing-permafrost/",
+      "note": "An accessible explainer connecting permafrost thaw to real Arctic communities' lived experience."
+    },
+    {
+      "title": "21st-century modeled permafrost carbon emissions accelerated by abrupt thaw beneath lakes",
+      "by": "PMC/NCBI",
+      "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC6093858/",
+      "note": "A more technical source on abrupt (not just gradual) thaw mechanisms, tying to Thaw's tipping-point moment."
+    },
+    {
+      "title": "Trends in Atmospheric Methane (CH4)",
+      "by": "NOAA Global Monitoring Laboratory",
+      "url": "https://gml.noaa.gov/ccgg/trends_ch4/",
+      "read": "2026-09-26",
+      "note": "The yearly growth rates of global atmospheric methane, 1984 to 2025, shown in the Climate Scientist data view beside the in-game graph."
+    },
+    {
+      "title": "Climate Change: Global Temperature",
+      "by": "NOAA Climate.gov",
+      "url": "https://www.climate.gov/news-features/understanding-climate/climate-change-global-temperature",
+      "note": "Its recent warming rate of 0.20 degrees C per decade is how the game works out that one round stands for about 50 real years."
+    }
+  ],
+  "inspiration": [],
+  "other": [
+    {
+      "title": "Pyodide",
+      "by": "The Pyodide project",
+      "url": "https://pyodide.org/",
+      "note": "Runs the game's Python rules in the browser through WebAssembly (version 0.26.4, loaded from a CDN), so the game needs no server of its own and no build step."
+    }
+  ]
+}

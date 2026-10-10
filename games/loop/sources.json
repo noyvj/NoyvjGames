@@ -1,0 +1,39 @@
+{
+  "game": "loop",
+  "updated": "2026-10-10",
+  "research": [
+    {
+      "title": "The Circular Economy: Definition & Model Explained",
+      "by": "Ellen MacArthur Foundation",
+      "url": "https://www.ellenmacarthurfoundation.org/topics/circular-economy-introduction/overview",
+      "note": "The standard-setting definition of circular economy; Loop's core mechanic is a direct translation of this framework."
+    },
+    {
+      "title": "Circular Economy Principles",
+      "by": "Ellen MacArthur Foundation",
+      "url": "https://www.ellenmacarthurfoundation.org/circular-economy-principles",
+      "note": "Breaks circularity into three concrete design principles, structuring Loop's three types of circularity investment."
+    },
+    {
+      "title": "The circular economy: Sustainable solutions to solve planetary overshoot?",
+      "by": "Mongabay",
+      "url": "https://news.mongabay.com/2023/07/the-circular-economy-sustainable-solutions-to-solve-planetary-overshoot/",
+      "note": "Accessible journalism with a concrete example (recycled steel's emissions/water savings) for the framing paragraph."
+    },
+    {
+      "title": "Waste metrics in the framework of circular economy",
+      "by": "PMC/NCBI",
+      "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC10693739/",
+      "note": "A more academic treatment connecting overconsumption directly to circular economy metrics."
+    }
+  ],
+  "inspiration": [],
+  "other": [
+    {
+      "title": "Pyodide",
+      "by": "The Pyodide project",
+      "url": "https://pyodide.org/",
+      "note": "Runs the game's Python rules in the browser through WebAssembly (version 0.26.4, loaded from a CDN), so the game needs no server of its own and no build step."
+    }
+  ]
+}

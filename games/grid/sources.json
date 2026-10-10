@@ -1,0 +1,39 @@
+{
+  "game": "grid",
+  "updated": "2026-10-10",
+  "research": [
+    {
+      "title": "Rapid rollout of clean technologies makes energy cheaper, not more costly",
+      "by": "IEA",
+      "url": "https://www.iea.org/news/rapid-rollout-of-clean-technologies-makes-energy-cheaper-not-more-costly",
+      "note": "Real-world backing for Grid's central claim: leaning renewable is the cheaper long-run path, not a sacrifice."
+    },
+    {
+      "title": "A critical assessment of learning curves for solar and wind",
+      "by": "Oxford Institute for Energy Studies",
+      "url": "https://www.oxfordenergy.org/publications/a-critical-assessment-of-learning-curves-for-solar-and-wind-power-technologies/",
+      "note": "A balanced, critical look at the same cost-decline concept Grid's core mechanic is built on."
+    },
+    {
+      "title": "Learning a Better Way To Forecast Wind and Solar Energy Costs",
+      "by": "US DOE / Lawrence Berkeley National Lab",
+      "url": "https://www.energy.gov/cmei/solar/articles/learning-better-way-forecast-wind-and-solar-energy-costs",
+      "note": "The actual learning-rate figures (wind ~15%, solar ~24% per capacity doubling) behind Grid's cost curve."
+    },
+    {
+      "title": "Breakthrough Agenda Report 2025: Power",
+      "by": "IEA",
+      "url": "https://www.iea.org/reports/breakthrough-agenda-report-2025/power",
+      "note": "Current real-world electricity cost figures, grounding the global-comparison line."
+    }
+  ],
+  "inspiration": [],
+  "other": [
+    {
+      "title": "Pyodide",
+      "by": "The Pyodide project",
+      "url": "https://pyodide.org/",
+      "note": "Runs the game's Python rules in the browser through WebAssembly (version 0.26.4, loaded from a CDN), so the game needs no server of its own and no build step."
+    }
+  ]
+}

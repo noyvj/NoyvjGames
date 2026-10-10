@@ -1,0 +1,50 @@
+{
+  "game": "logic-gates",
+  "updated": "2026-10-10",
+  "research": [
+    {
+      "title": "Logic gate",
+      "by": "Wikipedia",
+      "url": "https://en.wikipedia.org/wiki/Logic_gate",
+      "read": "2026-10-09",
+      "note": "The About page facts on what a gate is and why NAND alone is enough: the seven starting chips are exactly these gates, and every one of The Sixteen two-input functions can be built from NAND chips in the sandbox."
+    },
+    {
+      "title": "Claude Shannon",
+      "by": "Wikipedia",
+      "url": "https://en.wikipedia.org/wiki/Claude_Shannon",
+      "read": "2026-10-09",
+      "note": "Supplies the About page fact \"Switches that do algebra\": Every level is that idea: a truth table on one side, switches and lamps on the other, and a circuit that makes them agree."
+    },
+    {
+      "title": "Flip-flop (electronics)",
+      "by": "Wikipedia",
+      "url": "https://en.wikipedia.org/wiki/Flip-flop_(electronics)",
+      "read": "2026-10-09",
+      "note": "Supplies the About page fact \"Memory from a loop\": Latch Up is exactly this loop. Edge Catcher builds the clock-edge version from two latches."
+    },
+    {
+      "title": "Adder (electronics)",
+      "by": "Wikipedia",
+      "url": "https://en.wikipedia.org/wiki/Adder_(electronics)",
+      "read": "2026-10-09",
+      "note": "Supplies the About page fact \"Adding in columns\": The Adders chapter is this ladder: half adder, full adder, then four columns in a row."
+    },
+    {
+      "title": "Apollo Guidance Computer",
+      "by": "Wikipedia",
+      "url": "https://en.wikipedia.org/wiki/Apollo_Guidance_Computer",
+      "read": "2026-10-09",
+      "note": "Supplies the About page fact \"A real computer made of NOR gates\": Your tiny computer has four-bit words and four instructions, but it is the same kind of machine: gates, remembered bits, and a counter."
+    }
+  ],
+  "inspiration": [],
+  "other": [
+    {
+      "title": "Pyodide",
+      "by": "The Pyodide project",
+      "url": "https://pyodide.org/",
+      "note": "Runs the game's Python rules in the browser through WebAssembly (version 0.26.4, loaded from a CDN), so the game needs no server of its own and no build step."
+    }
+  ]
+}
