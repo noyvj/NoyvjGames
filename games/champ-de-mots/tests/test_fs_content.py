@@ -39,6 +39,11 @@ FS_WEEKS = {
         "Paul m'appelle.", "Je le mange.", "remercier", "obtenir un diplôme", "louer", "je fais", "ils font",
         "Lundi, il fait froid.", "Dimanche, il fait chaud.",
     ]},
+    8: {"row": 19, "topics": 12, "plots": 80, "must_have": [
+        "une cerise", "des épinards", "du saucisson", "de la tarte", "du sel", "du lait écrémé", "un croissant",
+        "au petit-déjeuner", "comme plat principal", "du couscous", "Non merci, pas de sel.", "J'adore les croissants.",
+        "surveiller", "la santé",
+    ]},
 }
 
 
@@ -484,6 +489,71 @@ def test_lecture_7_supplement_is_its_own_bonus_pair_and_says_where_it_came_from(
     assert [i["fr"] for i in faire["items"]] == ["je fais", "tu fais", "il fait", "nous faisons", "vous faites", "ils font"]
     days = [i["fr"].split(",")[0] for i in forecast["items"]]
     assert days == ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche"]
+
+
+# --- week 8 ------------------------------------------------------------------
+
+
+def test_week_8_food_lists_are_large_and_use_the_partitive_or_a_count_article(game_env):
+    module = game_env.module
+    food = [
+        "fren152-w9-vocab-fs01", "fren152-w9-vocab-fs02", "fren152-w9-vocab-fs03", "fren152-w9-vocab-fs04",
+        "fren152-w9-vocab-fs05", "fren152-w9-vocab-fs06", "fren152-w9-vocab-fs08",
+    ]
+    total = 0
+    for topic_id in food:
+        for item in _topic(module, topic_id)["items"]:
+            total += 1
+            assert item["fr"].split()[0] in {"un", "une", "des", "du", "de", "les", "le", "la", "l'"} or item["fr"].startswith("de l'"), item["fr"]
+    assert total >= 50  # "about 60 food items" in the plan: 50 food plots plus the meal words
+
+
+def test_week_8_plural_food_words_accept_the_bare_noun(game_env):
+    module = game_env.module
+    for topic_id, idx, bare in (("fren152-w9-vocab-fs02", 0, "épinards"), ("fren152-w9-vocab-fs03", 1, "saucisses"),
+                                ("fren152-w9-vocab-fs04", 6, "bonbons")):
+        assert _live(module, topic_id, idx, "fr", bare), (topic_id, idx)
+
+
+def test_week_8_milk_kinds_have_three_distinct_answers(game_env):
+    module = game_env.module
+    items = _topic(module, "fren152-w9-vocab-fs06")["items"][:3]
+    assert [i["fr"] for i in items] == ["du lait entier", "du lait demi-écrémé", "du lait écrémé"]
+    assert _live(module, "fren152-w9-vocab-fs06", 0, "en", "whole milk")
+    assert _live(module, "fren152-w9-vocab-fs06", 2, "en", "skim milk")
+    assert not _live(module, "fren152-w9-vocab-fs06", 2, "en", "whole milk")
+
+
+def test_week_8_meal_words_use_au_and_comme(game_env):
+    items = _topic(game_env.module, "fren152-w9-vocab-fs07")["items"]
+    frs = [i["fr"] for i in items]
+    assert frs[:3] == ["au petit-déjeuner", "au déjeuner", "au dîner"]
+    assert [f.split()[0] for f in frs[3:7]] == ["comme"] * 4
+
+
+def test_week_8_partitive_exception_plot_covers_pas_plus_etre_and_quantity(game_env):
+    topic = _topic(game_env.module, "fren152-w9-grammar-fs10")
+    frs = [i["fr"] for i in topic["items"]]
+    assert any(" pas de " in f or "pas d'" in f for f in frs)
+    assert any("plus de" in f for f in frs)
+    assert any(f.startswith("Ce n'est pas du") for f in frs)  # être keeps the partitive
+    assert any("beaucoup de" in f for f in frs)
+    assert "être" in topic["rule"]
+
+
+def test_week_8_liking_verbs_plot_keeps_to_the_definite_article(game_env):
+    topic = _topic(game_env.module, "fren152-w9-grammar-fs11")
+    for item in topic["items"]:
+        assert not any(w in item["fr"].split() for w in ("du", "de", "des")), item["fr"]
+        assert any(w in item["fr"] for w in (" le ", " la ", " les ")), item["fr"]
+    assert not game_env.module.is_conjugation_plot(game_env.state.plots_by_id[topic["id"]])
+
+
+def test_week_8_ordering_phrases_and_health_words(game_env):
+    module = game_env.module
+    assert len(_topic(module, "fren152-w9-phrase-fs09")["items"]) == 7
+    health = {i["fr"]: i["en"] for i in _topic(module, "fren152-w9-vocab-fs12")["items"]}
+    assert health["la santé"] == "health" and "n'oubliez pas" in health
 
 
 def test_only_the_real_person_by_person_tables_count_as_conjugations(game_env):

@@ -11876,6 +11876,828 @@
               ]
             }
           ]
+        },
+        {
+          "id": "fren152-w9-vocab-fs01",
+          "topic_type": "vocab",
+          "title": "Fruit",
+          "items": [
+            {
+              "fr": "une cerise",
+              "en": "a cherry"
+            },
+            {
+              "fr": "une banane",
+              "en": "a banana"
+            },
+            {
+              "fr": "une framboise",
+              "en": "a raspberry"
+            },
+            {
+              "fr": "une pomme",
+              "en": "an apple"
+            },
+            {
+              "fr": "une orange",
+              "en": "an orange"
+            },
+            {
+              "fr": "un citron",
+              "en": "a lemon"
+            },
+            {
+              "fr": "une fraise",
+              "en": "a strawberry"
+            },
+            {
+              "fr": "une poire",
+              "en": "a pear"
+            }
+          ]
+        },
+        {
+          "id": "fren152-w9-vocab-fs02",
+          "topic_type": "vocab",
+          "title": "Vegetables",
+          "items": [
+            {
+              "fr": "des épinards",
+              "en": "spinach",
+              "accepted_fr": [
+                "des épinards",
+                "épinards"
+              ]
+            },
+            {
+              "fr": "des champignons",
+              "en": "mushrooms",
+              "accepted_fr": [
+                "des champignons",
+                "champignons"
+              ]
+            },
+            {
+              "fr": "une carotte",
+              "en": "a carrot"
+            },
+            {
+              "fr": "un chou-fleur",
+              "en": "a cauliflower",
+              "accepted_en": [
+                "a cauliflower",
+                "cauliflower"
+              ]
+            },
+            {
+              "fr": "du persil",
+              "en": "parsley"
+            },
+            {
+              "fr": "des haricots verts",
+              "en": "green beans",
+              "accepted_en": [
+                "green beans",
+                "string beans",
+                "French beans"
+              ],
+              "accepted_fr": [
+                "des haricots verts",
+                "haricots verts"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "fren152-w9-vocab-fs03",
+          "topic_type": "vocab",
+          "title": "Meat, fish and cold meats",
+          "items": [
+            {
+              "fr": "du saucisson",
+              "en": "dry sausage",
+              "accepted_en": [
+                "dry sausage",
+                "salami",
+                "sliced sausage",
+                "cured sausage"
+              ]
+            },
+            {
+              "fr": "des saucisses",
+              "en": "sausages",
+              "accepted_en": [
+                "sausages",
+                "uncooked sausages",
+                "fresh sausages"
+              ],
+              "accepted_fr": [
+                "des saucisses",
+                "saucisses"
+              ]
+            },
+            {
+              "fr": "du foie gras",
+              "en": "foie gras",
+              "accepted_en": [
+                "foie gras",
+                "fatty goose liver",
+                "goose liver pâté"
+              ]
+            },
+            {
+              "fr": "du rosbif",
+              "en": "roast beef"
+            },
+            {
+              "fr": "de la sole",
+              "en": "sole",
+              "accepted_en": [
+                "sole",
+                "dover sole"
+              ]
+            },
+            {
+              "fr": "des huîtres",
+              "en": "oysters",
+              "accepted_fr": [
+                "des huîtres",
+                "huîtres"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "fren152-w9-vocab-fs04",
+          "topic_type": "vocab",
+          "title": "Sweet things",
+          "items": [
+            {
+              "fr": "de la tarte",
+              "en": "tart",
+              "accepted_en": [
+                "tart",
+                "pie",
+                "a tart"
+              ]
+            },
+            {
+              "fr": "du chocolat",
+              "en": "chocolate"
+            },
+            {
+              "fr": "du miel",
+              "en": "honey"
+            },
+            {
+              "fr": "une noix",
+              "en": "a walnut",
+              "accepted_en": [
+                "a walnut",
+                "a nut"
+              ]
+            },
+            {
+              "fr": "de la chantilly",
+              "en": "whipped cream",
+              "accepted_en": [
+                "whipped cream",
+                "chantilly cream",
+                "chantilly"
+              ]
+            },
+            {
+              "fr": "de la crème fraîche",
+              "en": "fresh cream",
+              "accepted_en": [
+                "fresh cream",
+                "crème fraîche",
+                "sour cream",
+                "thick cream"
+              ]
+            },
+            {
+              "fr": "des bonbons",
+              "en": "sweets",
+              "accepted_en": [
+                "sweets",
+                "candy",
+                "lollies",
+                "candies"
+              ],
+              "accepted_fr": [
+                "des bonbons",
+                "bonbons"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "fren152-w9-vocab-fs05",
+          "topic_type": "vocab",
+          "title": "Seasonings and sauces",
+          "items": [
+            {
+              "fr": "du sel",
+              "en": "salt"
+            },
+            {
+              "fr": "du poivre",
+              "en": "pepper"
+            },
+            {
+              "fr": "de la farine",
+              "en": "flour"
+            },
+            {
+              "fr": "de la vinaigrette",
+              "en": "vinaigrette",
+              "accepted_en": [
+                "vinaigrette",
+                "salad dressing",
+                "dressing",
+                "French dressing"
+              ]
+            },
+            {
+              "fr": "du ketchup",
+              "en": "ketchup",
+              "accepted_en": [
+                "ketchup",
+                "tomato sauce"
+              ]
+            },
+            {
+              "fr": "de la moutarde",
+              "en": "mustard"
+            },
+            {
+              "fr": "de la margarine",
+              "en": "margarine"
+            },
+            {
+              "fr": "de la mayonnaise",
+              "en": "mayonnaise",
+              "accepted_en": [
+                "mayonnaise",
+                "mayo"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "fren152-w9-vocab-fs06",
+          "topic_type": "vocab",
+          "title": "Milk, bread and breakfast extras",
+          "items": [
+            {
+              "fr": "du lait entier",
+              "en": "full-cream milk",
+              "accepted_en": [
+                "full-cream milk",
+                "whole milk",
+                "full fat milk"
+              ]
+            },
+            {
+              "fr": "du lait demi-écrémé",
+              "en": "semi-skimmed milk",
+              "accepted_en": [
+                "semi-skimmed milk",
+                "lite milk",
+                "low-fat milk",
+                "reduced-fat milk"
+              ]
+            },
+            {
+              "fr": "du lait écrémé",
+              "en": "skimmed milk",
+              "accepted_en": [
+                "skimmed milk",
+                "skim milk",
+                "fat-reduced milk",
+                "non-fat milk"
+              ]
+            },
+            {
+              "fr": "une tartine",
+              "en": "a slice of bread and spread",
+              "accepted_en": [
+                "a slice of bread and spread",
+                "a slice of bread with butter",
+                "bread and butter",
+                "a slice of bread with a spread",
+                "a buttered slice of bread"
+              ]
+            },
+            {
+              "fr": "un croissant",
+              "en": "a croissant"
+            },
+            {
+              "fr": "une baguette",
+              "en": "a baguette",
+              "accepted_en": [
+                "a baguette",
+                "a French stick",
+                "a stick of bread",
+                "a loaf of French bread"
+              ]
+            },
+            {
+              "fr": "du pain complet",
+              "en": "wholemeal bread",
+              "accepted_en": [
+                "wholemeal bread",
+                "whole wheat bread",
+                "wholewheat bread",
+                "wholegrain bread",
+                "brown bread"
+              ]
+            },
+            {
+              "fr": "du chocolat chaud",
+              "en": "hot chocolate",
+              "accepted_en": [
+                "hot chocolate",
+                "drinking chocolate",
+                "hot cocoa"
+              ]
+            },
+            {
+              "fr": "du café au lait",
+              "en": "coffee with milk",
+              "accepted_en": [
+                "coffee with milk",
+                "white coffee",
+                "milky coffee",
+                "a coffee with milk"
+              ]
+            },
+            {
+              "fr": "du yaourt nature",
+              "en": "plain yoghurt",
+              "accepted_en": [
+                "plain yoghurt",
+                "plain yogurt",
+                "natural yoghurt",
+                "natural yogurt"
+              ]
+            },
+            {
+              "fr": "du thé au citron",
+              "en": "lemon tea",
+              "accepted_en": [
+                "lemon tea",
+                "tea with lemon",
+                "a lemon tea"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "fren152-w9-vocab-fs07",
+          "topic_type": "vocab",
+          "title": "Meals and courses",
+          "items": [
+            {
+              "fr": "au petit-déjeuner",
+              "en": "for breakfast",
+              "accepted_en": [
+                "for breakfast",
+                "at breakfast",
+                "during breakfast"
+              ]
+            },
+            {
+              "fr": "au déjeuner",
+              "en": "for lunch",
+              "accepted_en": [
+                "for lunch",
+                "at lunch",
+                "during lunch"
+              ]
+            },
+            {
+              "fr": "au dîner",
+              "en": "for dinner",
+              "accepted_en": [
+                "for dinner",
+                "at dinner",
+                "during dinner",
+                "for supper",
+                "at supper"
+              ]
+            },
+            {
+              "fr": "comme entrée",
+              "en": "as a starter",
+              "accepted_en": [
+                "as a starter",
+                "for starter",
+                "as an entrée",
+                "for a starter",
+                "as an appetiser",
+                "as an appetizer"
+              ]
+            },
+            {
+              "fr": "comme plat principal",
+              "en": "as a main course",
+              "accepted_en": [
+                "as a main course",
+                "for the main course",
+                "as a main dish",
+                "for main course",
+                "as the main course"
+              ]
+            },
+            {
+              "fr": "comme dessert",
+              "en": "for dessert",
+              "accepted_en": [
+                "for dessert",
+                "as dessert",
+                "as a dessert"
+              ]
+            },
+            {
+              "fr": "comme boisson",
+              "en": "to drink",
+              "accepted_en": [
+                "to drink",
+                "as a drink",
+                "for a drink",
+                "as a beverage"
+              ]
+            },
+            {
+              "fr": "un goûter",
+              "en": "an afternoon snack",
+              "accepted_en": [
+                "an afternoon snack",
+                "a snack",
+                "an after-school snack",
+                "a snack in the afternoon"
+              ]
+            },
+            {
+              "fr": "un plat",
+              "en": "a dish",
+              "accepted_en": [
+                "a dish",
+                "a course"
+              ]
+            },
+            {
+              "fr": "une boisson",
+              "en": "a drink",
+              "accepted_en": [
+                "a drink",
+                "a beverage"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "fren152-w9-vocab-fs08",
+          "topic_type": "vocab",
+          "title": "Food words from the lunch menu",
+          "items": [
+            {
+              "fr": "du couscous",
+              "en": "couscous"
+            },
+            {
+              "fr": "des escargots",
+              "en": "snails",
+              "accepted_fr": [
+                "des escargots",
+                "escargots"
+              ]
+            },
+            {
+              "fr": "une omelette",
+              "en": "an omelette",
+              "accepted_en": [
+                "an omelette",
+                "an omelet"
+              ]
+            },
+            {
+              "fr": "un sandwich",
+              "en": "a sandwich"
+            },
+            {
+              "fr": "une crêpe",
+              "en": "a pancake",
+              "accepted_en": [
+                "a pancake",
+                "a crepe"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "fren152-w9-phrase-fs09",
+          "topic_type": "phrase",
+          "title": "Ordering and answering with the partitive",
+          "items": [
+            {
+              "fr": "Voulez-vous du thé ou du café?",
+              "en": "Would you like tea or coffee?",
+              "accepted_en": [
+                "Would you like tea or coffee?",
+                "Do you want tea or coffee",
+                "Would you like some tea or some coffee",
+                "Do you want some tea or some coffee"
+              ]
+            },
+            {
+              "fr": "Je voudrais de la soupe, s'il vous plaît.",
+              "en": "I would like some soup, please.",
+              "accepted_en": [
+                "I would like some soup, please.",
+                "I'd like some soup, please",
+                "I would like soup, please",
+                "I'd like soup, please",
+                "Some soup, please"
+              ]
+            },
+            {
+              "fr": "Je mange du pain et du fromage.",
+              "en": "I eat bread and cheese.",
+              "accepted_en": [
+                "I eat bread and cheese.",
+                "I am eating bread and cheese",
+                "I'm eating bread and cheese",
+                "I eat some bread and some cheese",
+                "I am eating some bread and some cheese"
+              ]
+            },
+            {
+              "fr": "Elle boit de l'eau et du jus de pomme.",
+              "en": "She drinks water and apple juice.",
+              "accepted_en": [
+                "She drinks water and apple juice.",
+                "She is drinking water and apple juice",
+                "She's drinking water and apple juice",
+                "She drinks some water and some apple juice"
+              ]
+            },
+            {
+              "fr": "Pour le goûter, les enfants prennent du chocolat.",
+              "en": "For their snack the children have chocolate.",
+              "accepted_en": [
+                "For their snack the children have chocolate.",
+                "For the snack the children have chocolate",
+                "For the afternoon snack the children have chocolate",
+                "For snack the children have chocolate"
+              ]
+            },
+            {
+              "fr": "Au dîner, nous prenons de la soupe et des pâtes.",
+              "en": "At dinner we have soup and pasta.",
+              "accepted_en": [
+                "At dinner we have soup and pasta.",
+                "For dinner we have soup and pasta",
+                "At dinner we are having soup and pasta"
+              ]
+            },
+            {
+              "fr": "Comme boisson, je prends de l'eau.",
+              "en": "To drink I have water.",
+              "accepted_en": [
+                "To drink I have water.",
+                "As a drink I have water",
+                "For a drink I have water",
+                "I have water to drink"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "fren152-w9-grammar-fs10",
+          "topic_type": "grammar",
+          "title": "The partitive becomes de",
+          "items": [
+            {
+              "fr": "Elle ne mange pas de viande.",
+              "en": "She does not eat meat.",
+              "accepted_en": [
+                "She does not eat meat.",
+                "She doesn't eat meat",
+                "She is not eating meat",
+                "She isn't eating meat",
+                "She does not eat any meat",
+                "She doesn't eat any meat"
+              ]
+            },
+            {
+              "fr": "Je n'ai plus de sucre.",
+              "en": "I have no sugar left.",
+              "accepted_en": [
+                "I have no sugar left.",
+                "I have no more sugar",
+                "I do not have any sugar left",
+                "I don't have any sugar left",
+                "I have no sugar any more",
+                "I don't have any more sugar",
+                "I haven't any sugar left"
+              ]
+            },
+            {
+              "fr": "Ce n'est pas du porc, c'est du bœuf.",
+              "en": "It is not pork, it is beef.",
+              "accepted_en": [
+                "It is not pork, it is beef.",
+                "It's not pork, it's beef",
+                "It isn't pork, it's beef",
+                "It is not pork, it's beef",
+                "That is not pork, it is beef"
+              ]
+            },
+            {
+              "fr": "Il boit beaucoup de lait.",
+              "en": "He drinks a lot of milk.",
+              "accepted_en": [
+                "He drinks a lot of milk.",
+                "He is drinking a lot of milk",
+                "He drinks lots of milk",
+                "He drinks much milk",
+                "He is drinking lots of milk",
+                "He drinks plenty of milk"
+              ]
+            },
+            {
+              "fr": "Nous n'avons pas d'oignons.",
+              "en": "We do not have any onions.",
+              "accepted_en": [
+                "We do not have any onions.",
+                "We don't have any onions",
+                "We have no onions",
+                "We haven't any onions",
+                "We have not got any onions",
+                "We haven't got any onions"
+              ]
+            },
+            {
+              "fr": "Non merci, pas de sel.",
+              "en": "No thank you, no salt.",
+              "accepted_en": [
+                "No thank you, no salt.",
+                "No thanks, no salt",
+                "No thank you, not any salt",
+                "No thanks, no salt please",
+                "No thank you, no salt please"
+              ]
+            }
+          ],
+          "rule": "After ne ... pas, ne ... plus and ne ... jamais the partitive (du, de la, des) becomes de or d' (pas de viande). The exception is être: ce n'est pas du porc. Quantity words ending in de, such as beaucoup de, also take plain de."
+        },
+        {
+          "id": "fren152-w9-grammar-fs11",
+          "topic_type": "grammar",
+          "title": "Liking verbs take le, la, les",
+          "items": [
+            {
+              "fr": "J'adore les croissants.",
+              "en": "I love croissants.",
+              "accepted_en": [
+                "I love croissants.",
+                "I adore croissants",
+                "I really love croissants"
+              ]
+            },
+            {
+              "fr": "Il n'aime pas le café.",
+              "en": "He does not like coffee.",
+              "accepted_en": [
+                "He does not like coffee.",
+                "He doesn't like coffee",
+                "He dislikes coffee"
+              ]
+            },
+            {
+              "fr": "Elle préfère les pommes.",
+              "en": "She prefers apples.",
+              "accepted_en": [
+                "She prefers apples.",
+                "She likes apples better",
+                "She would rather have apples"
+              ]
+            },
+            {
+              "fr": "Mes amis détestent le poisson.",
+              "en": "My friends hate fish.",
+              "accepted_en": [
+                "My friends hate fish.",
+                "My friends detest fish",
+                "My friends can't stand fish",
+                "My friends dislike fish"
+              ]
+            }
+          ],
+          "rule": "Verbs of liking and disliking (adorer, aimer, préférer, détester) speak about food in general, so they take le, la or les, never du, de la or des. Verbs of wanting, having and eating (vouloir, prendre, manger, boire) take the partitive."
+        },
+        {
+          "id": "fren152-w9-vocab-fs12",
+          "topic_type": "vocab",
+          "title": "Healthy eating words",
+          "items": [
+            {
+              "fr": "consommer",
+              "en": "to consume",
+              "accepted_en": [
+                "to consume",
+                "to eat",
+                "to have"
+              ]
+            },
+            {
+              "fr": "contenir",
+              "en": "to contain",
+              "accepted_en": [
+                "to contain",
+                "to hold"
+              ]
+            },
+            {
+              "fr": "calorique",
+              "en": "high in calories",
+              "accepted_en": [
+                "high in calories",
+                "calorific",
+                "fattening",
+                "full of calories",
+                "rich in calories",
+                "caloric"
+              ]
+            },
+            {
+              "fr": "un conseil",
+              "en": "a piece of advice",
+              "accepted_en": [
+                "a piece of advice",
+                "advice",
+                "a tip"
+              ]
+            },
+            {
+              "fr": "remplacer",
+              "en": "to replace",
+              "accepted_en": [
+                "to replace",
+                "to substitute"
+              ]
+            },
+            {
+              "fr": "les féculents",
+              "en": "starchy foods",
+              "accepted_en": [
+                "starchy foods",
+                "starches",
+                "carbohydrates",
+                "carbs"
+              ],
+              "accepted_fr": [
+                "les féculents",
+                "féculents"
+              ]
+            },
+            {
+              "fr": "surveiller",
+              "en": "to keep an eye on",
+              "accepted_en": [
+                "to keep an eye on",
+                "to monitor",
+                "to watch",
+                "to watch over",
+                "to supervise"
+              ]
+            },
+            {
+              "fr": "la santé",
+              "en": "health"
+            },
+            {
+              "fr": "le plaisir",
+              "en": "pleasure",
+              "accepted_en": [
+                "pleasure",
+                "enjoyment"
+              ]
+            },
+            {
+              "fr": "n'oubliez pas",
+              "en": "do not forget",
+              "accepted_en": [
+                "do not forget",
+                "don't forget",
+                "remember"
+              ]
+            }
+          ]
         }
       ],
       "bonus_sentences": [
