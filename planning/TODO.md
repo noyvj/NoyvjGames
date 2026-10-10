@@ -1,6 +1,6 @@
 # Site-Wide TODO (round 3)
 
-**Progress: 617/1219 items checked off (50.6%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land.
+**Progress: 618/1220 items checked off (50.7%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land.
 
 Built from your answers in `planning/IMPROVEMENT-IDEAS-ROUND-3.md` (Part 4). Every Round 3 section is now answered (2026-10-07 below the Warframe section); earlier this list held only: **GB** (Canopy gamified), **M** (new games), **N** (seasonal events), **O** (Trade Empire and Continuum replayability), **P/Q/S/T** (Signal, Undersleep, Overclock, Last Line open questions), **X** (Warframe tracker) and **R** (returning later). GC-GI, A-L, U, Z and Y are unanswered and wait for you. The previous list is archived at `planning/todo-archive/260914_260927.md`; anything from it that was moved here is marked "moved" there.
 
@@ -262,7 +262,8 @@ You said yes to every item except F5 (undo button, no). New games below each nee
 - [ ] QI-22: Loadout Lab (Quick ideas C2): write the groundwork plan, then build it. combine parts to reach target numbers, with a catalogue of every combination you have found, including the one overpowered build per challenge.
 - [ ] QI-23: Glitch Hunter (Quick ideas C3): write the groundwork plan, then build it. small levels with deliberate, harmless exploits; the goal is to break the rules and the log records every glitch you found.
 - [ ] QI-24: Space Museum (Quick ideas C4): write the groundwork plan, then build it. curate a museum of objects you have collected across the site, arranged in rooms.
-- [ ] QI-25: Stranded (Quick ideas D1): write the groundwork plan, then build it. you advise a stranded astronaut by text over many branching days; there is no waiting timer, and you can go back and try a different path.
+- [x] QI-25: Stranded (Quick ideas D1): write the groundwork plan, then build it. you advise a stranded astronaut by text over many branching days; there is no waiting timer, and you can go back and try a different path. (BUILT 2026-10-10, milestones 1-7, 91 tests; hub registration is item QI-25b.)
+- [ ] QI-25b: Register Stranded in the hub (same steps as the earlier new games).
 - [ ] QI-26: The Quiet Program (Quick ideas D2): write the groundwork plan, then build it. advise a broken but gentle program on a failing computer network (a tragic, quiet character in the spirit of the one you like).
 - [ ] QI-27: Night Cameras (Quick ideas D3): write the groundwork plan, then build it. investigate odd events by switching between security cameras; no jump scares, and the answer is a deduction.
 - [ ] QI-28: Three Sides of the Story (Quick ideas D4): write the groundwork plan, then build it. a branching story about a real issue (for example a water shortage), played once from each of three people's viewpoints.

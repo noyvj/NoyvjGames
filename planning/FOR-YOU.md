@@ -215,3 +215,27 @@ Recommended: keep all of them, since you want characters who are not all good. S
 ### Sm6. Station Medic: chapters open after 5 of 8 shifts are done; do you prefer every chapter open from the start?
 
 Recommended: open every chapter from the start, since you like objectives without a strict order. Say "yes" to go with that.
+
+### Sd1. Stranded: replies currently appear at once, with a "one message per tap" setting; should one message per tap be the default?
+
+Recommended: yes, one message per tap, since it reads like a conversation and has no timer. Say "yes" to go with that.
+
+### Sd2. Stranded: Ines is the flawed one and Harbour (you, the voice) is plain; should Harbour have a real flaw too?
+
+Recommended: yes, a small one that shapes a few choices. Say "yes" to go with that.
+
+### Sd3. Stranded: some replies and endings are locked behind Trust, Supplies or Hope, always with a visible reason and an open alternative; keep that or have no locks at all?
+
+Recommended: keep the visible-reason locks. Say "yes" to go with that.
+
+### Sd4. Stranded: keep the names Ines Varga, Orrin, Sparrow Relay, Kestrel, Marigold, Bit and Pavel?
+
+Recommended: keep them; say "no" and give new names if you want. Say "yes" to go with that.
+
+### Sd5. Stranded: the reveal that Pavel flies the relief ship only happens if she opens his message or at the door; keep the twist?
+
+Recommended: keep it. Say "yes" to go with that.
+
+### Sd6. Stranded: all nine endings are warm or bittersweet and Quiet Line is the saddest; do you want one that is sadder but still gentle?
+
+Recommended: yes, one more, still with no on-screen death. Say "yes" to go with that.
