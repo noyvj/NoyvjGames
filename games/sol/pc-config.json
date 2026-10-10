@@ -12,7 +12,8 @@
     ["epilogue-panel", "epilogue-button", "Epilogue"],
     ["chains-panel", "chains-toggle-button", "Chain Reactions"],
     ["splits-panel", "splits-toggle-button", "Speedrun splits"],
-    ["charter-panel", "charter-toggle-button", "Charter"]
+    ["charter-panel", "charter-toggle-button", "Charter"],
+    ["doctrine-panel", "doctrine-toggle-button", "Governor Doctrines"]
   ],
   "toolbar": {
     "icons": [
@@ -22,7 +23,7 @@
       ["settings-toggle-button", "⚙️"]
     ],
     "menu": [
-      {"heading": "Game", "ids": ["build-plan-toggle-button", "charter-toggle-button", "chains-toggle-button", "prestige-tree-toggle-button", "governor-report-toggle-button"]},
+      {"heading": "Game", "ids": ["build-plan-toggle-button", "charter-toggle-button", "doctrine-toggle-button", "chains-toggle-button", "prestige-tree-toggle-button", "governor-report-toggle-button"]},
       {"heading": "Help", "ids": ["tutorial-restart-button", "howto-toggle-button"]},
       {"heading": "Records", "ids": ["changelog-toggle-button", "splits-toggle-button"]}
     ]

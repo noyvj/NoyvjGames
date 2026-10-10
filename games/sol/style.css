@@ -1838,7 +1838,7 @@ html:not([data-show-timing="on"]) #splits-toggle-button,
 html:not([data-show-timing="on"]) #splits-panel { display: none; }
 
 /* A-22: the Governor's mood line. */
-.governor-report-card-mood { margin: 0.15rem 0 0; font-size: 0.78rem; font-style: italic; }
+.governor-report-card-mood, .governor-report-card-doctrine { margin: 0.15rem 0 0; font-size: 0.78rem; font-style: italic; }
 
 /* --- A-2: the anomaly forecast strip (text only, no motion) ---------------------------------------- */
 .anomaly-strip { margin: 0.4rem 0; padding: 0.4rem 0.7rem; border: 1px solid rgba(160, 175, 220, 0.3); border-left-width: 4px; border-radius: 8px; font-size: 0.85rem; text-align: left; }
@@ -1943,7 +1943,7 @@ html[data-theme="light"] .chain-card--found { background: #e3f5ea; border-color:
 html[data-theme="light"] .chains-intro,
 html[data-theme="light"] .splits-intro,
 html[data-theme="light"] .chain-card-count { opacity: 1; color: #46507a; }
-html[data-theme="light"] .governor-report-card-mood { color: #46507a; }
+html[data-theme="light"] .governor-report-card-mood, html[data-theme="light"] .governor-report-card-doctrine { color: #46507a; }
 
 html[data-theme="light"] .anomaly-strip { border-color: rgba(30, 40, 80, 0.35); }
 

@@ -93,6 +93,8 @@ TRAVEL_BUTTON_ID = {
 ELEMENT_IDS = [
     "anomaly-strip",
     "era-tagline",
+    "doctrine-toggle-button",
+    "doctrine-panel",
     "charter-toggle-button",
     "charter-panel",
     # Round-3 batch (A-22/24/25/26/30/31)

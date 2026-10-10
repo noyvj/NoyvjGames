@@ -110,6 +110,7 @@
       <button id="build-plan-toggle-button" class="secondary" type="button">📝 Build Plan</button>
       <button id="chains-toggle-button" class="secondary" type="button">⚡ Chain Reactions</button>
       <button id="charter-toggle-button" class="secondary" type="button">📜 Charter</button>
+      <button id="doctrine-toggle-button" class="secondary" type="button" hidden>📐 Doctrines</button>
       <button id="splits-toggle-button" class="secondary" type="button">⏱️ Splits</button>
       <button id="prestige-tree-toggle-button" class="secondary" type="button" hidden>🌳 Prestige Tree</button>
       <button id="achievements-toggle-button" class="secondary" type="button">🏆 Achievements</button>
@@ -244,6 +245,8 @@
     <div id="splits-panel" class="section splits-panel" hidden></div>
     <!-- A-5 / A-6: the Charter (Mission Board and stamps; megaprojects and anomalies seen are added below). -->
     <div id="charter-panel" class="section chains-panel" hidden></div>
+    <!-- A-7 / A-8: Governor Doctrines (shown once Automation Basics is researched). -->
+    <div id="doctrine-panel" class="section chains-panel" hidden></div>
     <!-- "What's New" changelog panel (site-wide goal, planning/TODO.md, origin K16):
          newest-first highlights pulled from CLAUDE.md's own milestone table, not a
          full duplicate of the dev logs. Same hidden-until-opened .section idiom as
@@ -1527,6 +1530,7 @@
         { toggle: "chains-toggle-button", panel: "chains-panel" },
         { toggle: "splits-toggle-button", panel: "splits-panel" },
         { toggle: "charter-toggle-button", panel: "charter-panel" },
+        { toggle: "doctrine-toggle-button", panel: "doctrine-panel" },
         { toggle: "prestige-tree-toggle-button", panel: "prestige-tree-panel" },
         { toggle: "epilogue-button", panel: "epilogue-panel" },
       ],

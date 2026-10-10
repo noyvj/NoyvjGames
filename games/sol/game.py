@@ -395,6 +395,8 @@ PRESTIGE_TREE = [
      "desc": "Each research investment adds 50% more progress."},
     {"id": "governors_mandate", "tier": 2, "cost": 2, "min_level": PRESTIGE_TIER_2_LEVEL,
      "label": "Governor's Mandate", "desc": "Worlds you are not standing on produce 20% more."},
+    {"id": "standing_orders", "tier": 2, "cost": 2, "min_level": PRESTIGE_TIER_2_LEVEL, "label": "Standing Orders",
+     "desc": "Governor Doctrines hold 5 rules instead of 3."},
     {"id": "ng_challenge", "tier": 3, "cost": 2, "min_level": 2, "label": "New Game+ Challenge",
      "desc": "Unlocks a harder-replay toggle: generators and Recyclers get pricier faster, "
              "and prestiging while it is on earns 1 extra point."},
@@ -2292,6 +2294,12 @@ def update_governor_report_display():
         mood.innerText = f"Mood: {governor_mood(planet)}"
         card.appendChild(mood)
 
+        if doctrines_unlocked():
+            doctrine_line = document.createElement("p")
+            doctrine_line.className = "governor-report-card-doctrine"
+            doctrine_line.innerText = doctrine_report_line(planet)
+            card.appendChild(doctrine_line)
+
         panel.appendChild(card)
 
     if not governed_planets:
@@ -3927,6 +3935,8 @@ def governor_step():
     for planet in governed_planets:
         if _sandbox_active():
             continue  # A15: costs are zero in sandbox, so the Governor would buy without limit
+        if _doctrine_step(planet):
+            continue  # A-7: a Doctrine rule paused the Governor's own buying here
         # A7: each world may carry its own personality preset; otherwise it
         # follows the global dial exactly as before.
         priority, budget_pct = governor_settings(planet)
@@ -3949,7 +3959,8 @@ def governor_step():
                 governor_purchase_count += 1
                 lifetime_generators_built += 1
                 any_generator_ever_built = True
-                update_generator_display(planet)
+                if not _dry_run:
+                    update_generator_display(planet)
         else:
             cost = recycler_cost(planet)
             if cost <= budget:
@@ -3957,7 +3968,8 @@ def governor_step():
                 state["recycler_count"] += 1
                 governor_purchase_count += 1
                 lifetime_recyclers_built += 1
-                update_ecology_display(planet)
+                if not _dry_run:
+                    update_ecology_display(planet)
 
 
 def _incoming_trade_restore(planet):
@@ -4074,6 +4086,7 @@ def tick(*args):
     _check_missions()
     _check_codex()
     update_charter_display()
+    update_doctrine_display()
     _check_new_achievements_for_toast()
     if total_ticks % 10 == 0:
         _refresh_goals_panel()  # FY-53: once a second is plenty for a progress bar
@@ -4121,6 +4134,7 @@ def _full_render():
     _terraform_done_seen.update(p for p in PLANETS if planet_state[p]["terraform_progress"] >= TERRAFORM_MAX)
     _refill_mission_slots()
     update_charter_display()
+    update_doctrine_display()
     render_trophy_shelf()
     render_click_streak()
     _refresh_all_cost_displays()
@@ -4216,6 +4230,7 @@ def serialize_state():
         **({"pb_splits": dict(pb_splits)} if pb_splits else {}),
         **({"anomalies_seen": sorted(anomalies_seen)} if anomalies_seen else {}),
         **({"codex_found": list(codex_found)} if codex_found else {}),
+        **({"doctrine_rules": [dict(rule) for rule in doctrine_rules]} if doctrine_rules else {}),
         **({"megaproject_progress": {k: dict(v) for k, v in megaproject_progress.items()}} if megaproject_progress else {}),
         **({"megaprojects_built": list(megaprojects_built)} if megaprojects_built else {}),
         **({"megaprojects_all_ever": True} if megaprojects_all_ever else {}),
@@ -4367,6 +4382,8 @@ def _load_session_additions(data):
         anomalies_seen.update(a for a in saved_anomalies if isinstance(a, str) and a in ANOMALY_BY_ID)
     _load_megaprojects(data)
     codex_found[:] = _clean_ids(data.get("codex_found"), CLUE_BY_ID)
+    doctrine_rules[:] = _clean_doctrine_rules(data.get("doctrine_rules"))
+    _doctrine_reset_runtime()
     mission_stamps[:] = _clean_ids(data.get("mission_stamps"), MISSION_BY_ID)
     mission_slots[:] = [m_id for m_id in _clean_ids(data.get("mission_slots"), MISSION_BY_ID)
                         if m_id not in mission_stamps][:MISSION_SLOTS]
@@ -5278,6 +5295,345 @@ def _refresh_megaproject_values():
                 button.disabled = True
 
 
+# --- A-7 / A-8: Governor Doctrines ------------------------------------------------
+# Per-world if/then rules the Governor follows on worlds you are NOT standing on
+# (it governs nothing else). Unlocked by researching Automation Basics (a Near
+# Bodies node), 3 rules, 5 with the Prestige Tree's Standing Orders. Rules are
+# kept when you prestige but sleep until Automation Basics is researched again.
+# Each tick, for each governed world, the rules run in order; a "pause" rule that
+# holds stops the Governor's own buying there that tick, the others buy or ship
+# something when they can afford it. The Governor Report shows the rule that
+# fired last on each world. A-8: "Try for 30 ticks" runs the rules headless on a
+# copy of the numbers (nothing real changes) and says how often each would fire.
+DOCTRINE_UNLOCK_NODE = "automation_basics"
+DOCTRINE_BASE_RULES = 3
+DOCTRINE_MAX_RULES = 5
+DRY_RUN_TICKS = 30
+DOCTRINE_RELIEF_COST = 100
+DOCTRINE_RELIEF_ECOLOGY = 10.0
+DOCTRINE_RELIEF_COOLDOWN_TICKS = 200
+DOCTRINE_CONDITIONS = {
+    "ecology_below": {"levels": [30, 50, 70], "label": "ecology is below {level}%"},
+    "stock_above": {"levels": [500, 2000, 5000], "label": "its stock is above {level} {resource}"},
+}
+DOCTRINE_ACTIONS = {
+    "pause": "pause the Governor's own buying",
+    "recycler": "buy a Recycler",
+    "generator": "buy an Auto-Miner",
+    "relief": f"ship relief (+{round(DOCTRINE_RELIEF_ECOLOGY)}% ecology, costs {DOCTRINE_RELIEF_COST} of your biggest pile)",
+    "route": "start a trade route to the neediest world",
+}
+doctrine_rules = []  # [{"planet", "cond", "level", "action"}], in priority order
+doctrine_open = False
+_doctrine_draft = {"planet": "Earth", "cond": "ecology_below", "level": 30, "action": "recycler"}
+_doctrine_fired_counts = {}  # rule index -> times fired (per session; reset when the list changes)
+_doctrine_last_fired = {}  # planet -> (rule text, game tick)
+_doctrine_relief_ready = {}  # planet -> tick when relief may fire again
+_doctrine_dry_text = ""
+_doctrine_signature = None
+_doctrine_refs = {}
+_dry_run = False
+
+
+def doctrines_unlocked():
+    return DOCTRINE_UNLOCK_NODE in researched_nodes
+
+
+def doctrine_rule_limit():
+    return DOCTRINE_MAX_RULES if prestige_has("standing_orders") else DOCTRINE_BASE_RULES
+
+
+def _doctrine_reset_runtime():
+    global _doctrine_dry_text
+    _doctrine_fired_counts.clear()
+    _doctrine_last_fired.clear()
+    _doctrine_relief_ready.clear()
+    _doctrine_dry_text = ""
+
+
+def _clean_doctrine_rules(raw):
+    cleaned = []
+    if isinstance(raw, list):
+        for rule in raw:
+            if not isinstance(rule, dict):
+                continue
+            planet, cond, level, action = rule.get("planet"), rule.get("cond"), rule.get("level"), rule.get("action")
+            if (planet in PLANETS and cond in DOCTRINE_CONDITIONS and action in DOCTRINE_ACTIONS
+                    and isinstance(level, int) and not isinstance(level, bool)
+                    and level in DOCTRINE_CONDITIONS[cond]["levels"]):
+                cleaned.append({"planet": planet, "cond": cond, "level": level, "action": action})
+    return cleaned[:DOCTRINE_MAX_RULES]
+
+
+def doctrine_rule_text(rule):
+    name = PLANET_DISPLAY_NAMES.get(rule["planet"], rule["planet"])
+    cond = DOCTRINE_CONDITIONS[rule["cond"]]["label"].format(
+        level=f"{rule['level']:,}", resource=PLANETS[rule["planet"]]["resource_name"])
+    return f"On {name}, if {cond}, {DOCTRINE_ACTIONS[rule['action']]}."
+
+
+def _doctrine_holds(rule):
+    state = planet_state[rule["planet"]]
+    if rule["cond"] == "ecology_below":
+        return state["ecology_health"] < rule["level"]
+    return state["resource_count"] > rule["level"]
+
+
+def _doctrine_mark_fired(index, rule):
+    _doctrine_fired_counts[index] = _doctrine_fired_counts.get(index, 0) + 1
+    _doctrine_last_fired[rule["planet"]] = (doctrine_rule_text(rule), total_ticks)
+
+
+def _doctrine_buy(planet, kind):
+    global governor_purchase_count, lifetime_generators_built, lifetime_recyclers_built, any_generator_ever_built
+    state = planet_state[planet]
+    if kind == "generator":
+        cost = generator_cost(planet)
+        if state["resource_count"] < cost:
+            return False
+        state["resource_count"] -= cost
+        state["generator_count"] += 1
+        lifetime_generators_built += 1
+        any_generator_ever_built = True
+    else:
+        cost = recycler_cost(planet)
+        if state["resource_count"] < cost:
+            return False
+        state["resource_count"] -= cost
+        state["recycler_count"] += 1
+        lifetime_recyclers_built += 1
+    governor_purchase_count += 1
+    if not _dry_run:
+        update_generator_display(planet)
+        update_ecology_display(planet)
+    return True
+
+
+def _doctrine_relief(planet):
+    ready = _doctrine_relief_ready.get(planet, 0)
+    if total_ticks < ready:
+        return False
+    sources = [p for p in _overview_planets() if p != planet and planet_state[p]["resource_count"] >= DOCTRINE_RELIEF_COST]
+    if not sources:
+        return False
+    source = max(sources, key=lambda p: planet_state[p]["resource_count"])
+    planet_state[source]["resource_count"] -= DOCTRINE_RELIEF_COST
+    state = planet_state[planet]
+    state["ecology_health"] = clamp(state["ecology_health"] + DOCTRINE_RELIEF_ECOLOGY, 0.0, ECOLOGY_MAX)
+    _doctrine_relief_ready[planet] = total_ticks + DOCTRINE_RELIEF_COOLDOWN_TICKS
+    return True
+
+
+def _doctrine_route(planet):
+    global lifetime_trade_routes_built
+    others = [p for p in _overview_planets() if p != planet]
+    if not others:
+        return False
+    destination = min(others, key=lambda p: planet_state[p]["ecology_health"])
+    cost = trade_route_cost(planet, destination)
+    state = planet_state[planet]
+    if state["resource_count"] < cost:
+        return False
+    state["resource_count"] -= cost
+    state["trade_routes"][destination] = state["trade_routes"].get(destination, 0) + 1
+    lifetime_trade_routes_built += 1
+    return True
+
+
+def _doctrine_step(planet):
+    """Runs this world's rules for one tick. Returns True when a pause rule holds (the Governor then skips its own buying)."""
+    if not doctrines_unlocked():
+        return False
+    paused = False
+    for index, rule in enumerate(doctrine_rules[:doctrine_rule_limit()]):
+        if rule["planet"] != planet or not _doctrine_holds(rule):
+            continue
+        action = rule["action"]
+        if action == "pause":
+            paused = True
+            fired = True
+        elif action in ("recycler", "generator"):
+            fired = _doctrine_buy(planet, action)
+        elif action == "relief":
+            fired = _doctrine_relief(planet)
+        else:
+            fired = _doctrine_route(planet)
+        if fired:
+            _doctrine_mark_fired(index, rule)
+    return paused
+
+
+def doctrine_report_line(planet):
+    last = _doctrine_last_fired.get(planet)
+    if last is None:
+        return "Doctrine: no rule has fired here yet."
+    seconds = max(0, (total_ticks - last[1]) * TICK_INTERVAL_MS // 1000)
+    return f"Doctrine fired {seconds}s ago: {last[0]}"
+
+
+def doctrine_dry_run():
+    """A-8: runs the rules for DRY_RUN_TICKS on a copy of the numbers. Returns (total fires, per-rule counts)."""
+    global _dry_run, _doctrine_fired_counts, _doctrine_last_fired, _doctrine_relief_ready
+    global governor_purchase_count, governor_tick_count, lifetime_generators_built, lifetime_recyclers_built
+    global lifetime_trade_routes_built, lifetime_resources_generated_by_automation, any_generator_ever_built
+    snapshot = (
+        copy.deepcopy(planet_state), governor_purchase_count, governor_tick_count, lifetime_generators_built,
+        lifetime_recyclers_built, lifetime_trade_routes_built, lifetime_resources_generated_by_automation,
+        any_generator_ever_built, dict(_doctrine_fired_counts), dict(_doctrine_last_fired), dict(_doctrine_relief_ready),
+    )
+    _doctrine_fired_counts = {}
+    _dry_run = True
+    try:
+        for _ in range(DRY_RUN_TICKS):
+            incoming = {p: _incoming_trade_restore(p) for p in PLANETS}
+            for planet in PLANETS:
+                _simulate_planet(planet, incoming[planet])
+            governor_step()
+        counts = dict(_doctrine_fired_counts)
+    finally:
+        _dry_run = False
+        (saved_state, governor_purchase_count, governor_tick_count, lifetime_generators_built,
+         lifetime_recyclers_built, lifetime_trade_routes_built, lifetime_resources_generated_by_automation,
+         any_generator_ever_built, _doctrine_fired_counts, _doctrine_last_fired, _doctrine_relief_ready) = snapshot
+        for planet, values in saved_state.items():
+            planet_state[planet].clear()
+            planet_state[planet].update(values)
+    return sum(counts.values()), counts
+
+
+def on_toggle_doctrine(event=None):
+    global doctrine_open
+    doctrine_open = not doctrine_open
+    update_doctrine_display()
+
+
+def on_doctrine_click(event):
+    global _doctrine_dry_text, _doctrine_signature
+    action = _target_attr(event, "data-action")
+    value = _target_attr(event, "data-value")
+    if action == "draft-planet" and value in PLANETS:
+        _doctrine_draft["planet"] = value
+    elif action == "draft-cond" and value and ":" in value:
+        cond, _, level = value.partition(":")
+        if cond in DOCTRINE_CONDITIONS and level.isdigit() and int(level) in DOCTRINE_CONDITIONS[cond]["levels"]:
+            _doctrine_draft["cond"], _doctrine_draft["level"] = cond, int(level)
+    elif action == "draft-action" and value in DOCTRINE_ACTIONS:
+        _doctrine_draft["action"] = value
+    elif action == "add":
+        if len(doctrine_rules) < doctrine_rule_limit():
+            doctrine_rules.append(dict(_doctrine_draft))
+            _doctrine_reset_runtime()
+    elif action == "remove":
+        index = int(value) if value and value.isdigit() else -1
+        if 0 <= index < len(doctrine_rules):
+            del doctrine_rules[index]
+            _doctrine_reset_runtime()
+    elif action == "dry-run":
+        total, counts = doctrine_dry_run()
+        _doctrine_dry_text = (
+            f"Over the next {DRY_RUN_TICKS} ticks ({DRY_RUN_TICKS * TICK_INTERVAL_MS / 1000:g} seconds) these rules "
+            f"would have fired {total} time{'s' if total != 1 else ''}"
+            + (": " + ", ".join(f"rule {i + 1} x{n}" for i, n in sorted(counts.items())) if counts else "")
+            + ". Nothing was changed."
+        )
+    _doctrine_signature = None
+    update_doctrine_display()
+
+
+def _doctrine_structure_signature():
+    return (doctrines_unlocked(), doctrine_rule_limit(), tuple(tuple(sorted(r.items())) for r in doctrine_rules),
+            tuple(sorted(_doctrine_draft.items())), tuple(_overview_planets()), _doctrine_dry_text, current_planet)
+
+
+def _doctrine_pill(text, attrs, selected):
+    return _make_button(text, attrs, None, selected=selected)
+
+
+def _build_doctrine_panel():
+    panel = document.getElementById("doctrine-panel")
+    panel.innerHTML = ""
+    _doctrine_refs.clear()
+    panel.appendChild(_make_text("stats-panel-heading", f"Governor Doctrines ({len(doctrine_rules)}/{doctrine_rule_limit()} rules)"))
+    panel.appendChild(_make_text(
+        "chains-intro",
+        "If/then rules for worlds you are not standing on, checked in order every tick. They kept in a save and "
+        "sleep until Automation Basics is researched again after a prestige. Standing Orders in the Prestige "
+        "Tree raises the limit from 3 to 5."))
+    for index, rule in enumerate(doctrine_rules):
+        card = document.createElement("div")
+        card.className = "chain-card chain-card--found"
+        card.appendChild(_make_text("chain-card-name", f"{index + 1}. {doctrine_rule_text(rule)}"))
+        fired = _make_text("chain-card-count", "")
+        card.appendChild(fired)
+        if rule["planet"] == current_planet:
+            card.appendChild(_make_text("chain-card-detail", "You are standing here, so the Governor is not running this rule right now."))
+        if index >= doctrine_rule_limit():
+            card.appendChild(_make_text("chain-card-detail", "Over the limit, so this rule is not running."))
+        card.appendChild(_make_button("Remove", {"data-action": "remove", "data-value": str(index)}, None))
+        panel.appendChild(card)
+        _doctrine_refs[index] = fired
+    if not doctrine_rules:
+        panel.appendChild(_make_text("chains-intro", "No rules yet. Build one below."))
+    panel.appendChild(_make_text("stats-panel-heading", "New rule"))
+    row = document.createElement("div")
+    row.className = "overview-actions"
+    row.appendChild(_make_text("overview-actions-label", "World:", "span"))
+    for planet in _overview_planets():
+        row.appendChild(_doctrine_pill(PLANET_DISPLAY_NAMES.get(planet, planet),
+                                       {"data-action": "draft-planet", "data-value": planet},
+                                       _doctrine_draft["planet"] == planet))
+    panel.appendChild(row)
+    row = document.createElement("div")
+    row.className = "overview-actions"
+    row.appendChild(_make_text("overview-actions-label", "When:", "span"))
+    resource = PLANETS[_doctrine_draft["planet"]]["resource_name"] if _doctrine_draft["planet"] in PLANETS else "stock"
+    for cond, spec in DOCTRINE_CONDITIONS.items():
+        for level in spec["levels"]:
+            label = spec["label"].format(level=f"{level:,}", resource=resource)
+            row.appendChild(_doctrine_pill(label[0].upper() + label[1:],
+                                           {"data-action": "draft-cond", "data-value": f"{cond}:{level}"},
+                                           _doctrine_draft["cond"] == cond and _doctrine_draft["level"] == level))
+    panel.appendChild(row)
+    row = document.createElement("div")
+    row.className = "overview-actions"
+    row.appendChild(_make_text("overview-actions-label", "Then:", "span"))
+    for key, text in DOCTRINE_ACTIONS.items():
+        row.appendChild(_doctrine_pill(text[0].upper() + text[1:], {"data-action": "draft-action", "data-value": key},
+                                       _doctrine_draft["action"] == key))
+    panel.appendChild(row)
+    panel.appendChild(_make_text("chain-card-detail", "Preview: " + doctrine_rule_text(_doctrine_draft)))
+    actions = document.createElement("div")
+    actions.className = "overview-actions"
+    actions.appendChild(_make_button("Add rule", {"data-action": "add"}, None,
+                                     disabled=len(doctrine_rules) >= doctrine_rule_limit()))
+    actions.appendChild(_make_button(f"Try for {DRY_RUN_TICKS} ticks", {"data-action": "dry-run"},
+                                     "Runs your rules on a copy of the numbers and says how often each would fire. Nothing real changes."))
+    panel.appendChild(actions)
+    if _doctrine_dry_text:
+        dry = _make_text("chain-card-count", _doctrine_dry_text)
+        dry.setAttribute("role", "status")
+        panel.appendChild(dry)
+
+
+def update_doctrine_display():
+    global _doctrine_signature
+    toggle = document.getElementById("doctrine-toggle-button")
+    panel = document.getElementById("doctrine-panel")
+    toggle.hidden = not doctrines_unlocked()
+    toggle.innerText = "Hide Doctrines" if doctrine_open else f"\U0001f4d0 Doctrines ({len(doctrine_rules)}/{doctrine_rule_limit()})"
+    panel.hidden = not (doctrine_open and doctrines_unlocked())
+    if panel.hidden:
+        _doctrine_signature = None
+        return
+    signature = _doctrine_structure_signature()
+    if signature != _doctrine_signature:
+        _build_doctrine_panel()
+        _doctrine_signature = signature
+    for index, element in _doctrine_refs.items():
+        n = _doctrine_fired_counts.get(index, 0)
+        element.innerText = f"Fired {n} time{'s' if n != 1 else ''} this session"
+
+
 # --- A-19 / A-20: the hidden Codex -----------------------------------------------
 # Seven worlds end their Overview note with one odd sentence. Doing what it
 # hints at (nothing is timed, random or lost) records a silly Codex curio. The
@@ -5742,6 +6098,8 @@ def setup():
     document.getElementById("build-plan-copy-button").addEventListener("click", create_proxy(on_build_plan_copy))
     document.getElementById("splits-toggle-button").addEventListener("click", create_proxy(on_toggle_splits))
     document.getElementById("chains-toggle-button").addEventListener("click", create_proxy(on_toggle_chains))
+    document.getElementById("doctrine-toggle-button").addEventListener("click", create_proxy(on_toggle_doctrine))
+    document.getElementById("doctrine-panel").addEventListener("click", create_proxy(on_doctrine_click))
     document.getElementById("charter-toggle-button").addEventListener("click", create_proxy(on_toggle_charter))
     document.getElementById("charter-panel").addEventListener("click", create_proxy(on_charter_click))
     document.getElementById("prestige-tree-toggle-button").addEventListener(

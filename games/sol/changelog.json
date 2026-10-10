@@ -2,6 +2,10 @@
   "changelog": [
     {
       "date": "2026-10-10",
+      "entry": "New: Governor Doctrines. Once Automation Basics is researched, a Doctrines panel lets you write up to three if/then rules for worlds you are not standing on (for example: on Mars, if ecology is below 30%, buy a Recycler; or if stock is above 2,000, start a trade route to the neediest world). The Governor Report shows which rule fired last on each world, and Try for 30 ticks tells you how often your rules would fire without changing anything. A new Prestige Tree node, Standing Orders, raises the limit to five."
+    },
+    {
+      "date": "2026-10-10",
       "entry": "New: prestige Eras. Your title badge now names your era (Pioneer, Steward, Architect, Custodian) next to your Prestige level, and each era gives the sky a quiet colour shift and a one-line tagline under the title. It is only a look, nothing in the rules changes, and Settings has an Era look switch to turn the colours and the tagline off."
     },
     {
