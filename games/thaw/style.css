@@ -1432,3 +1432,7 @@ html[data-theme="light"] .gloss-pop { background: #fbf6ec; color: #1b1710; borde
 .glossary-list { margin: 0.5rem 0 0; font-size: 0.85rem; }
 .glossary-list dt { font-weight: 600; margin-top: 0.5rem; }
 .glossary-list dd { margin: 0.1rem 0 0; opacity: 0.85; }
+
+/* G-29 */
+.load-notice { border-left: 4px solid #e6c35c; }
+.load-notice[hidden] { display: none; }
