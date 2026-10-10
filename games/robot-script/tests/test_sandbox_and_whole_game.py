@@ -34,8 +34,8 @@ def test_a_perfect_player_clears_every_room_with_gold_and_earns_everything_reach
     fresh()
     play_all()
     v = call(action="open")
-    assert v["totals"]["cleared"] == 40 and v["totals"]["gold"] == 40 and v["totals"]["chapters_done"] == 6
-    assert v["scrap"]["found"] == 40 and v["scrap"]["polished"] == 40
+    assert v["totals"]["cleared"] == len(rooms.ORDER) == 42 and v["totals"]["gold"] == 42 and v["totals"]["chapters_done"] == 6
+    assert v["scrap"]["found"] == 42 and v["scrap"]["polished"] == 42
     call(action="sandbox")
     for _ in range(10):
         call(action="insert", kind="F")
@@ -146,7 +146,7 @@ def test_goals_after_everything_are_empty_or_reachable():
 
 
 def test_every_part_has_a_distinct_name_and_zone_totals_match():
-    names = [n for _z, n in companion.PARTS]
-    assert len(names) == len(set(names)) == 40
+    names = [companion.part_for(rid)[1] for rid in rooms.ORDER]
+    assert len(names) == len(set(names)) == 42
     zones = companion.zones_view(companion.parts_view({}))
-    assert sum(z["need"] for z in zones) == 40 and all(z["need"] == n for z, (_i, _n, n) in zip(zones, companion.ZONES))
+    assert sum(z["need"] for z in zones) == 42 and all(z["need"] == n for z, (_i, _n, n) in zip(zones, companion.ZONES))

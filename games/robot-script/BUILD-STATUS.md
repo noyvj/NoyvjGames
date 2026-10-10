@@ -19,6 +19,7 @@ Updated after every milestone. Read `planning/robot-script-plan.md`, `CLAUDE.md`
 
 - AN-3 (2026-10-11): sandbox opens after chapter 3 (Loops); tinkerer goal gated on the sandbox, not on chapter 6; tests updated.
 - AN-5 (2026-10-11): all chapters and rooms open from the start; tutorial, rooms panel, goals empty-state text updated; old saves load (tested).
+- AN-4 (2026-10-11): chapter 1 gains two turning rooms (Face the Pad, Left at the Corner) in positions 4-5 and its older rooms allow L R; 42 rooms, 42 parts; 250 tests.
 
 ## Next
 - Nothing in this folder. Hub registration is the hub session's job (title card, sw.js, game-*.json, CLAUDE.md row, dev logs); the plan's last section lists questions for the owner.

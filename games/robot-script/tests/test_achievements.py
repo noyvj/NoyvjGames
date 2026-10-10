@@ -29,7 +29,7 @@ def test_every_achievement_has_a_visible_number_and_none_is_hidden():
 
 def test_totals_follow_the_game_size():
     by_id = {a[0]: a for a in achievements.ACHIEVEMENTS}
-    assert by_id["perfect_script"][4] == len(rooms.ORDER) == 40
+    assert by_id["perfect_script"][4] == len(rooms.ORDER) == 42
     assert by_id["shift_done"][4] == len(rooms.CHAPTER_LIST) == 6
 
 

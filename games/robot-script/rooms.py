@@ -17,7 +17,7 @@ import rooms_routines
 import rooms_turning
 
 CHAPTERS = (
-    ("moving", "Moving", "Straight corridors: count your steps, light a switch, carry a part.", rooms_moving),
+    ("moving", "Moving", "Straight corridors, then your first turns: count your steps, light a switch, carry a part.", rooms_moving),
     ("turning", "Turning", "Left and right: corners, detours and two trips with one pair of hands.", rooms_turning),
     ("loops", "Loops", "Repeat blocks: say it once, do it many times.", rooms_loops),
     ("routines", "Sub-routines", "Save a few steps under a name and call them wherever they are needed.", rooms_routines),

@@ -38,9 +38,9 @@ def test_compressed_rooms_really_need_the_chapters_idea_for_gold():
                 assert "call" in dsl.uses(r.ref), rid
 
 
-def test_the_forty_rooms_in_six_chapters():
-    assert len(rooms.ORDER) == 40 and [len(c["rooms"]) for c in rooms.CHAPTER_LIST] == [7, 7, 7, 7, 7, 5]
-    assert len(companion.PARTS) == 40
+def test_the_forty_two_rooms_in_six_chapters():
+    assert len(rooms.ORDER) == 42 and [len(c["rooms"]) for c in rooms.CHAPTER_LIST] == [9, 7, 7, 7, 7, 5]
+    assert len(companion.PARTS) + len(companion.NEW_PARTS) == 42
 
 
 def test_toolbox_grows_chapter_by_chapter():
@@ -122,7 +122,7 @@ def test_rungs_are_saved_per_room_and_validated():
 
 
 def test_scrap_gets_one_part_per_room_and_the_finish_follows_the_medal():
-    assert len(companion.PARTS) >= len(rooms.ORDER)
+    assert len(companion.PARTS) + len(companion.NEW_PARTS) == len(rooms.ORDER)
     fresh()
     v = clear_with_ref("wake-up")
     assert v["run"]["part"] == {"name": "Left drive roller", "finish": "polished", "first": True}

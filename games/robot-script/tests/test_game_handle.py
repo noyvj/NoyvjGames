@@ -1,6 +1,7 @@
 import json
 
 import dsl
+import companion
 import game
 import rooms
 
@@ -164,3 +165,12 @@ def solve_keep(rid):
     game.game._enter(rid)
     game.game.ed.load(rooms.BY_ID[rid].ref)
     return call(action="run")
+
+
+def test_a_save_made_before_the_turning_rooms_loads_with_its_bests_and_parts():
+    """AN-4: the two new rooms sit in chapter 1 after Stop Short; older bests (a straight list in First Switch) still count."""
+    fresh()
+    game.load_state({"best": {"first-switch": {"n": 6, "t": "main: F F S F F F"}, "the-shaft": {"n": 13, "t": rooms.BY_ID["the-shaft"].ref_text}}})
+    v = call(action="open")
+    assert v["totals"]["cleared"] == 2 and v["totals"]["gold"] == 2
+    assert companion.part_for("first-switch") == ("treads", "Axle bearing") and companion.part_for("the-shaft")[1] == "Cooling fan"

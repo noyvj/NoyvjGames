@@ -1,4 +1,9 @@
-"""Chapter 1, Moving: straight corridors. The robot cannot turn yet, so every room is a line."""
+"""Chapter 1, Moving: straight corridors first, then the first quarter turns (AN-4, owner answer Rs4).
+
+Rooms 1-3 are plain lines and the robot cannot turn. From room 4 on the toolbox also holds Left and Right: two new
+gentle rooms introduce them (one right turn on the spot, one left turn at a corner), and the four older rooms (switch,
+delivery, order, shaft) keep their ids and layouts, so every best list saved before this change still clears them, and
+now allow turning as well."""
 
 ROOMS = [
     {"id": "wake-up", "name": "Wake Up", "allow": "F",
@@ -16,24 +21,34 @@ ROOMS = [
      "ref": "main: F F F", "par": 3,
      "nudge": "The pad is not at the end of the hall. The robot has to stop on it, not run past it.",
      "intro": "A service shaft. The pad sits halfway down, like a bad joke."},
-    {"id": "first-switch", "name": "First Switch", "allow": "F S",
+    {"id": "face-the-pad", "name": "Face the Pad", "allow": "F L R",
+     "rows": [">#", ".#", "E#"],
+     "ref": "main: R F F", "par": 3,
+     "nudge": "The robot is facing the wall. Right turns it a quarter turn clockwise, so it faces down the corridor. Then walk to the pad.",
+     "intro": "The pad is straight down the hall, and the robot is looking the other way. A new button on the panel: Right."},
+    {"id": "left-at-the-corner", "name": "Left at the Corner", "allow": "F L R",
+     "rows": ["##E", ">.."],
+     "ref": "main: F F L F", "par": 4,
+     "nudge": "Walk along the bottom, then turn Left a quarter turn to face up the hall, and step onto the pad.",
+     "intro": "The first corner. Left is the mirror of Right, and the hall ends one step up."},
+    {"id": "first-switch", "name": "First Switch", "allow": "F L R S",
      "rows": ["########", ">.1.AE.#", "########"],
      "ref": "main: F F S F F F", "par": 6,
      "nudge": "The door is shut until the switch is lit. Stand on the switch and use Switch.",
      "intro": "A door with a lock that the station never fixed. The switch next to it still works."},
-    {"id": "first-delivery", "name": "First Delivery", "allow": "F G P",
+    {"id": "first-delivery", "name": "First Delivery", "allow": "F L R G P",
      "rows": ["#########", ">.p.o.E.#", "#########"],
      "ref": "main: F F G F F P F F", "par": 8,
      "nudge": "Pick the part up on its tile, carry it forward, and place it in the socket. Then go on to the pad.",
      "intro": "Somebody left a power cell on the floor. The socket two tiles on needs it."},
-    {"id": "in-order", "name": "In Order", "allow": "F G P S",
+    {"id": "in-order", "name": "In Order", "allow": "F L R G P S",
      "rows": ["##########", ">p.1Ao.E.#", "##########"],
      "ref": "main: F G F F S F F P F F", "par": 10,
      "nudge": "The part is right next to you. Take it first, then light the switch to open the door in your way.",
      "intro": "Order matters. The robot does not improvise, which is the whole problem."},
-    {"id": "the-shaft", "name": "The Shaft", "allow": "F G P S",
+    {"id": "the-shaft", "name": "The Shaft", "allow": "F L R G P S",
      "rows": ["#v#", "#1#", "#.#", "#A#", "#p#", "#2#", "#B#", "#o#", "#.#", "#E#"],
      "ref": "main: F S F F F G F S F F P F F", "par": 13,
      "nudge": "Two switches, two doors, one part. Work from the top: switch, door, part, switch, door, socket, pad.",
-     "intro": "The last straight run. After this the corridors start to bend."},
+     "intro": "The last straight run. After this the corridors bend a lot more."},
 ]

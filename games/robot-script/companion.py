@@ -1,4 +1,4 @@
-"""Robot Script -- Scrap, the salvage drone you rebuild, one part per room (40 parts in ten zones).
+"""Robot Script -- Scrap, the salvage drone you rebuild, one part per room (42 parts in ten zones).
 
 A part is found by clearing its room and its finish follows the medal on that room (bronze rusted, silver clean, gold
 polished), so a better list upgrades the same part: there is nothing to grind and nothing is missable. Scrap's drawing
@@ -13,12 +13,16 @@ FINISH = {1: "rusted", 2: "clean", 3: "polished"}
 
 # zone id, name, how many parts
 ZONES = (
-    ("treads", "Treads", 4), ("chassis", "Chassis", 6), ("arm_l", "Left arm", 4), ("arm_r", "Right arm", 4),
+    ("treads", "Treads", 6), ("chassis", "Chassis", 6), ("arm_l", "Left arm", 4), ("arm_r", "Right arm", 4),
     ("head", "Head", 5), ("lens", "Lenses", 3), ("antenna", "Antenna", 3), ("lamp", "Lamp", 3),
     ("plating", "Plating", 5), ("voice", "Voice box", 3),
 )
 
-# One part per room, in room order (zone, name). 40 in all.
+# Parts for the two rooms added in AN-4 (chapter 1's first turning rooms). They are keyed by room id and sit outside PARTS
+# so that every older room keeps the part it always had (a saved game never swaps one part for another).
+NEW_PARTS = {"face-the-pad": ("treads", "Idler wheel"), "left-at-the-corner": ("treads", "Drive sprocket")}
+
+# One part per room, in the original room order (zone, name). 40 here, 42 in all with NEW_PARTS.
 PARTS = (
     ("treads", "Left drive roller"), ("treads", "Right drive roller"), ("treads", "Track pin set"), ("treads", "Axle bearing"),
     ("chassis", "Frame spar"), ("chassis", "Battery cradle"), ("chassis", "Cooling fan"),
@@ -54,8 +58,13 @@ LINES = {
 }
 
 
+_BASE_ORDER = [rid for rid in rooms.ORDER if rid not in NEW_PARTS]
+
+
 def part_for(rid):
-    return PARTS[rooms.ORDER.index(rid)] if rooms.ORDER.index(rid) < len(PARTS) else ("chassis", "Spare part")
+    if rid in NEW_PARTS:
+        return NEW_PARTS[rid]
+    return PARTS[_BASE_ORDER.index(rid)] if _BASE_ORDER.index(rid) < len(PARTS) else ("chassis", "Spare part")
 
 
 def line_for(rid, medal):

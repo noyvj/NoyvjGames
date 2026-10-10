@@ -47,14 +47,14 @@ Give a maintenance robot a short list of instructions to clear a room (Lightbot 
 ## Milestone 3 notes
 - Chapter 2 rooms are flat: their par is the breadth-first minimum (tested). Chapter 3 rooms are each shorter with `rep` than any flat list (tested against the solver).
 - Hints: `hint` climbs one rung per call (nudge, hint, answer), saved per room in `rungs`; `load_answer` needs rung 3. Hints never touch a medal.
-- Scrap: one part per room (40 in `companion.PARTS`, ten zones); the finish follows the room's medal; drawing and list are computed from `best`. Lines sit behind the story toggle (`.scrap-line`, `.story-text`).
+- Scrap: one part per room (40 in `companion.PARTS` plus 2 in `companion.NEW_PARTS` keyed by room id, 42 in ten zones); the finish follows the room's medal; drawing and list are computed from `best`. Lines sit behind the story toggle (`.scrap-line`, `.story-text`).
 - Goals strip: the next three unearned achievements whose chapter is open (`achievements.goals`); the achievements themselves (panel, toast, manifest) arrive in milestone 6.
 
 ## Milestone 4 notes
-- 40 rooms: 7 + 7 + 7 + 7 + 7 + 5. From chapter 3 on every reference is shorter than the shortest flat list (tested with the solver), and chapters 3-5 must use their own tool (repeat, call, until/if). Chapter 6 mixes everything.
+- 42 rooms since AN-4 (was 40): 9 + 7 + 7 + 7 + 7 + 5. From chapter 3 on every reference is shorter than the shortest flat list (tested with the solver), and chapters 3-5 must use their own tool (repeat, call, until/if). Chapter 6 mixes everything.
 - `tools/author.py` (dev only): expands a reference (repeats and calls, no conditionals) and draws the room where exactly that walk works; conditional rooms were drawn from an equivalent flat walk and verified with the conditional reference.
 - Sandbox: id `sandbox`, 8x8, opens once every room of the third chapter (Loops, `progress.SANDBOX_AFTER = 2`) is cleared (`progress.sandbox_open`; AN-3, 2026-10-11, was the last chapter). The "Tinkerer" goal is offered only while the sandbox is open (`achievements.SANDBOX` gate). Saved as `sbx` (rows, only when not the default), `sdraft` (the unfinished list) and `cur: "sandbox"`; tally keys `sbx_runs` and `sbx_tiles`. Painting works by tapping the room or by column/row fields (the keyboard path). Presets: open, maze, workshop.
-- A perfect-play test clears all 40 rooms with gold from the references and checks every achievement is reachable.
+- A perfect-play test clears all 42 rooms with gold from the references and checks every achievement is reachable.
 
 ## Milestone 5 notes
 - `tests/test_accessibility.py` computes contrast from the CSS variables (both themes) for text, controls, and every room object against the floor; `tests/test_pledge.py` scans for banned words, clocks and randomness, counts the only two interval timers (cosmetic playback), and checks that a stopped run never costs the list or a medal and that every action moves a visible number.
@@ -67,3 +67,8 @@ Give a maintenance robot a short list of instructions to clear a room (Lightbot 
 
 ## AN-5 (2026-10-11): every room open from the start
 - Owner answer Rs5. `progress.chapter_open` is always true for a real chapter and `room_open` is true for any known room id; nothing about an unlock was ever stored in a save (opening was computed from `best`), so old saves load unchanged. The rooms view no longer carries `open`/`need`/`prev_name`; `achievements.goals(facts, count, sandbox)` gates only the Tinkerer goal on the sandbox (the achievement tuple's last field is `gate`, `""` or `"sandbox"`). The Locked styling, toasts and "N rooms of X" text are gone from `app.js`/`index.html`/`style.css`.
+
+## AN-4 (2026-10-11): turning from room 4 of chapter 1
+- Owner answer Rs4. Chapter 1 is now 9 rooms: Wake Up, Long Hall, Stop Short (rooms 1-3 stay straight lines, no Left/Right in the toolbox), then two new rooms, Face the Pad (`R F F`, par 3: the robot starts facing a wall) and Left at the Corner (`F F L F`, par 4), then the four older rooms (First Switch, First Delivery, In Order, The Shaft). From room 4 on every chapter 1 toolbox is `F L R` plus whatever the room already had. The older four keep their ids and layouts untouched so any saved best (a straight list) still clears them; they simply also allow turning now. Pars are still the breadth-first minimum (the existing flat-room test), and a new test checks each new room really needs its turn.
+- Scrap: the two new rooms carry the extra Treads parts (Idler wheel, Drive sprocket) from `companion.NEW_PARTS`, so no older room's part changed (Treads zone is 6 parts). Totals are 42 rooms and 42 parts.
+- Not in this folder, to be updated by the hub session: any hub title card / roadmap text that says "40 rooms".
