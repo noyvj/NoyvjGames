@@ -1480,6 +1480,32 @@ ACHIEVEMENT_PROGRESS = {
     "long_haul": lambda: (min(farm.round_number, LONG_HAUL_TARGET), LONG_HAUL_TARGET),
     "century_farm": lambda: (min(farm.round_number, CENTURY_FARM_TARGET), CENTURY_FARM_TARGET),
     "score_400": lambda: (max(0, min(round(farm.score()), SCORE_400_TARGET)), SCORE_400_TARGET),
+    # F-27: the remaining numeric achievements, so every card that is not earned shows how far along it is.
+    "first_herd": lambda: (min(farm.herd_size, 1), 1),
+    "first_decoupling": lambda: (min(sum(farm.decoupling_investment.values()), 1), 1),
+    "all_three_measures": lambda: (sum(1 for m in DECOUPLING_MEASURES if farm.decoupling_investment[m] >= 1), len(DECOUPLING_MEASURES)),
+    "sustainably_certified": lambda: (
+        min(farm.certification_streak, CERTIFICATION_ROUNDS_REQUIRED), CERTIFICATION_ROUNDS_REQUIRED
+    ),
+    "plant_pioneer": lambda: (min(farm.plant_pivot_investment, 1), 1),
+    "outperforming_baseline": lambda: (
+        max(0, min(farm.round_number - 1, OUTPERFORMING_BASELINE_MIN_ROUND)), OUTPERFORMING_BASELINE_MIN_ROUND
+    ),
+    # Clean Operator is lost for this farm once pressure has gone past the limit: no progress line then.
+    "clean_operator": lambda: (
+        (min(farm.round_number, CLEAN_OPERATOR_MIN_ROUND), CLEAN_OPERATOR_MIN_ROUND)
+        if farm.max_pressure_fraction_seen < CLEAN_OPERATOR_MAX_PRESSURE else None
+    ),
+}
+
+# What one step of each progress readout counts, for the "N to go" line on a card.
+ACHIEVEMENT_PROGRESS_UNITS = {
+    "growing_operation": " herd units", "major_operation": " herd units", "first_herd": " herd unit",
+    "quarter_decoupled": "%", "half_decoupled": "%", "fully_decoupled": "%", "half_plant_based": "%",
+    "max_plant_pivot": "%", "real_world_match": "%", "decoupling_dividend": " points", "score_400": " points",
+    "long_haul": " rounds", "century_farm": " rounds", "clean_operator": " rounds", "outperforming_baseline": " rounds",
+    "sustainably_certified": " rounds", "all_three_measures": " measures", "first_decoupling": " investment",
+    "plant_pioneer": " investment",
 }
 
 
@@ -1505,9 +1531,20 @@ def achievements_summary():
                 "description": entry["description"],
                 "earned": entry["id"] in earned_ids,
                 "progress": progress_fn() if progress_fn else None,
+                "unit": ACHIEVEMENT_PROGRESS_UNITS.get(entry["id"], ""),
             }
         )
     return summary
+
+
+def progress_percent(current, target):
+    return 0.0 if target <= 0 else max(0.0, min(100.0, current / target * 100.0))
+
+
+def progress_left_text(current, target, unit=""):
+    """"N to go" with the unit the achievement counts in (the exact amount left, never rounded up)."""
+    left = max(0, target - current)
+    return f"{left}{unit} to go ({current} of {target})"
 
 
 achievements_open = False
@@ -1554,6 +1591,22 @@ def update_achievements_display():
             progress.className = "achievement-card-progress"
             progress.innerText = f"{current} of {target}"
             card.appendChild(progress)
+            # F-27: a mini bar and the exact amount left, shown on hover or keyboard focus (the
+            # card takes focus, so a tap on a phone works too). The text is always in the page.
+            card.setAttribute("tabindex", "0")
+            card.setAttribute("aria-label", f"{entry['label']}: {progress_left_text(current, target, entry['unit'])}")
+            bar = document.createElement("div")
+            bar.className = "achievement-card-bar"
+            bar.setAttribute("role", "presentation")
+            fill = document.createElement("div")
+            fill.className = "achievement-card-bar-fill"
+            fill.style.width = f"{progress_percent(current, target):.0f}%"
+            bar.appendChild(fill)
+            card.appendChild(bar)
+            left = document.createElement("p")
+            left.className = "achievement-card-left"
+            left.innerText = progress_left_text(current, target, entry["unit"])
+            card.appendChild(left)
 
         panel.appendChild(card)
 

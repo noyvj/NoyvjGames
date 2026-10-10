@@ -1544,3 +1544,13 @@ html[data-hatch-patterns="true"] .meter-fill--supply {
 .save-recovery-panel { border: 2px solid #e0c24c; }
 .save-recovery-reasons { margin: 0.2rem 0 0.5rem; padding-left: 1.2rem; font-size: 0.82rem; line-height: 1.4; }
 .save-recovery-panel button { margin: 0.4rem 0.4rem 0 0; }
+
+/* F-27: the mini progress bar and the exact amount left appear on hover or keyboard focus. */
+.achievement-card[tabindex] { cursor: default; }
+.achievement-card-bar { height: 6px; margin-top: 0.4rem; border-radius: 3px; background: rgba(140, 160, 255, 0.18); overflow: hidden; opacity: 0; transition: opacity 0.15s ease; }
+.achievement-card-bar-fill { height: 100%; background: repeating-linear-gradient(45deg, #7fd6a3 0 4px, #4c9c6e 4px 8px); }
+.achievement-card-left { margin: 0.2rem 0 0; font-size: 0.72rem; font-weight: 600; opacity: 0; transition: opacity 0.15s ease; font-variant-numeric: tabular-nums; }
+.achievement-card:hover .achievement-card-bar, .achievement-card:focus .achievement-card-bar, .achievement-card:focus-within .achievement-card-bar,
+.achievement-card:hover .achievement-card-left, .achievement-card:focus .achievement-card-left, .achievement-card:focus-within .achievement-card-left { opacity: 1; }
+.achievement-card:focus-visible { outline: 2px solid #e0c24c; outline-offset: 2px; }
+@media (hover: none) { .achievement-card-bar, .achievement-card-left { opacity: 1; } }

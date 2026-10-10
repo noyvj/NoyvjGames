@@ -1,6 +1,10 @@
 [
   {
     "date": "2026-10-10",
+    "entry": "Every achievement you have not earned now shows how far along you are. Hover over a card (or tab to it, or tap it on a phone) and a small bar fills in with the exact amount left, such as '8 herd units to go (2 of 10)'. This now covers First Herd, First Steps, Full Toolkit, Sustainably Certified, Plant Pioneer, Beating the Baseline and Clean Operator as well as the percentage and count achievements that already had a line."
+  },
+  {
+    "date": "2026-10-10",
     "entry": "Settings has a new option, Ask before a big purchase (never, or over 25%, 50% or 75% of your funds). When a purchase, or a whole x5 or Max batch, costs more than that share of the funds you have, a confirmation shows the cost and the share first. It is off by default."
   },
   {
