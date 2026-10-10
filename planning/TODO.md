@@ -8,6 +8,8 @@ Rules carried over: "yes" items are here, "later" items are parked in `planning/
 
 ---
 
+**Work order (you, 2026-10-10): 1. section SR (Sources pages), 2. finish K, PC, Z, M and B (Continuum, Desktop boot, cross-game patterns, new games, Canopy regular), 3. everything else. Two agents at a time.**
+
 ## Standing decisions from your Round 3 answers (apply everywhere)
 
 - **Audio:** not being considered yet (R1-R8 all dropped for now), but raise it again in every ideas document until the user says yes (user, 2026-10-06).
