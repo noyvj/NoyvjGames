@@ -238,3 +238,15 @@ html[data-effects="off"] *, html[data-effects="off"] *::before, html[data-effect
 .practice-levels button { text-align: left; }
 .practice-levels button b { display: block; }
 #practice-code { width: 9rem; text-transform: uppercase; }
+
+/* Daily Chart (panel, calendar, tally grid). Marks are stars and numbers as well as shading: nothing is colour-only. */
+.daily-cal-head { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; margin: 0.5rem 0; }
+.daily-calendar { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 3px; max-width: 28rem; }
+.daily-dow { text-align: center; font-size: 0.75rem; opacity: 0.75; }
+.daily-day { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 2.75rem; padding: 0.15rem; line-height: 1.1; }
+.daily-day .mark { font-size: 0.65rem; min-height: 0.9rem; }
+.daily-day.today { outline: 2px solid currentColor; outline-offset: -2px; }
+.daily-day[disabled] { opacity: 0.35; }
+.daily-grid { display: flex; flex-wrap: wrap; gap: 2px; margin-top: 0.4rem; max-width: 28rem; }
+.daily-cell { width: 0.8rem; height: 0.8rem; border: 1px solid currentColor; border-radius: 2px; opacity: 0.45; font-size: 0.6rem; line-height: 0.8rem; text-align: center; overflow: hidden; }
+.daily-cell.done { opacity: 1; background: var(--text, currentColor); color: var(--bg, #fff); font-weight: 700; }

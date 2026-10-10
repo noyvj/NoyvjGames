@@ -8,6 +8,7 @@ one bad entry never costs the good ones.
 
 import math
 
+import daily
 from sim import clean_legs
 
 SCHEMA = 1
@@ -23,7 +24,8 @@ CHART_ID_LIMIT = 80
 
 
 def new_meta():
-    return {"charts": {}, "practice_seeds_played": 0, "flags": [], "best": {"smallest_final_error_nm": None, "longest_route_nm": 0.0}}
+    return {"charts": {}, "practice_seeds_played": 0, "flags": [], "best": {"smallest_final_error_nm": None, "longest_route_nm": 0.0},
+            "daily_days": {}}
 
 
 def new_record():
@@ -76,6 +78,7 @@ def clean_meta(data, known_charts):
     flags = data.get("flags")
     if isinstance(flags, list):
         meta["flags"] = [f for f in FLAGS if f in flags]
+    meta["daily_days"] = daily.clean_days(data.get("daily_days"))
     best = data.get("best")
     if isinstance(best, dict):
         meta["best"]["smallest_final_error_nm"] = _float(best.get("smallest_final_error_nm"), 0.0, 1000.0, None)
@@ -104,6 +107,11 @@ def merge_meta(a, b):
         else:
             out["charts"][cid] = dict((a["charts"].get(cid) or b["charts"][cid]))
     out["practice_seeds_played"] = max(a["practice_seeds_played"], b["practice_seeds_played"])
+    for date in sorted(set(a["daily_days"]) | set(b["daily_days"])):
+        if date in a["daily_days"] and date in b["daily_days"]:
+            out["daily_days"][date] = daily.better(a["daily_days"][date], b["daily_days"][date])
+        else:
+            out["daily_days"][date] = dict(a["daily_days"].get(date) or b["daily_days"][date])
     out["flags"] = [f for f in FLAGS if f in a["flags"] or f in b["flags"]]
     errs = [e for e in (a["best"]["smallest_final_error_nm"], b["best"]["smallest_final_error_nm"]) if e is not None]
     out["best"]["smallest_final_error_nm"] = min(errs) if errs else None
@@ -224,4 +232,6 @@ def meta_to_dict(meta):
         best["longest_route_nm"] = meta["best"]["longest_route_nm"]
     if best:
         out["best"] = best
+    if meta["daily_days"]:
+        out["daily_days"] = {d: dict(r) for d, r in meta["daily_days"].items()}
     return out

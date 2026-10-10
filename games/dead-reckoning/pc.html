@@ -4,7 +4,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<script>window.NOYVJ_LAYOUT = "pc"; window.NOYVJ_PC_WINDOWS = [{"panel": "picker-panel", "toggle": "picker-toggle-button", "title": "Charts"}, {"panel": "achievements-panel", "toggle": "achievements-toggle-button", "title": "Achievements"}, {"panel": "log-panel", "toggle": "log-toggle-button", "title": "Captain's log"}, {"panel": "changelog-panel", "toggle": "changelog-toggle-button", "title": "What's New"}, {"panel": "settings-panel", "toggle": "settings-toggle-button", "title": "Settings"}, {"panel": "info-page-panel", "toggle": "info-page-toggle-button", "title": "About Dead Reckoning"}]; window.NOYVJ_PC_ZONES = {"topbar": [".hub-back-link", "h1", ".game-toolbar"], "stagebar": ["#chart-head", "#toast", "#engine-status"], "stage": ["#chart-panel"], "side": ["#planner-panel", "#result-panel"], "hidden": [".tagline"]}; window.NOYVJ_PC_HINTS = [["A / Enter", "Add a leg"], ["S", "Sail"], ["Z", "Undo"], ["?", "All shortcuts"], ["Esc", "Menu / close window"]]; window.NOYVJ_PC_NOTIFY = null; window.NOYVJ_PC_TOOLBAR = {"icons": [["picker-toggle-button", "🗺️"], ["achievements-toggle-button", "🏆"], ["settings-toggle-button", "⚙️"]], "menu": [{"heading": "Game", "ids": []}, {"heading": "Help", "ids": ["tutorial-restart-button", "info-page-toggle-button", "credits-link", "noyvj-report-menu-button"]}, {"heading": "Records", "ids": ["log-toggle-button", "changelog-toggle-button"]}]}; window.NOYVJ_PC_COMPOSITES = []; window.NOYVJ_PC_ADOPT = []; window.NOYVJ_PC_READOUTS = []; window.NOYVJ_PC_SIDE_LABEL = "Plan and result";</script>
+<script>window.NOYVJ_LAYOUT = "pc"; window.NOYVJ_PC_WINDOWS = [{"panel": "picker-panel", "toggle": "picker-toggle-button", "title": "Charts"}, {"panel": "daily-panel", "toggle": "daily-toggle-button", "title": "Daily chart"}, {"panel": "achievements-panel", "toggle": "achievements-toggle-button", "title": "Achievements"}, {"panel": "log-panel", "toggle": "log-toggle-button", "title": "Captain's log"}, {"panel": "changelog-panel", "toggle": "changelog-toggle-button", "title": "What's New"}, {"panel": "settings-panel", "toggle": "settings-toggle-button", "title": "Settings"}, {"panel": "info-page-panel", "toggle": "info-page-toggle-button", "title": "About Dead Reckoning"}]; window.NOYVJ_PC_ZONES = {"topbar": [".hub-back-link", "h1", ".game-toolbar"], "stagebar": ["#chart-head", "#toast", "#engine-status"], "stage": ["#chart-panel"], "side": ["#planner-panel", "#result-panel"], "hidden": [".tagline"]}; window.NOYVJ_PC_HINTS = [["A / Enter", "Add a leg"], ["S", "Sail"], ["Z", "Undo"], ["?", "All shortcuts"], ["Esc", "Menu / close window"]]; window.NOYVJ_PC_NOTIFY = null; window.NOYVJ_PC_TOOLBAR = {"icons": [["picker-toggle-button", "🗺️"], ["daily-toggle-button", "📅"], ["achievements-toggle-button", "🏆"], ["settings-toggle-button", "⚙️"]], "menu": [{"heading": "Game", "ids": []}, {"heading": "Help", "ids": ["tutorial-restart-button", "info-page-toggle-button", "credits-link", "noyvj-report-menu-button"]}, {"heading": "Records", "ids": ["log-toggle-button", "changelog-toggle-button"]}]}; window.NOYVJ_PC_COMPOSITES = []; window.NOYVJ_PC_ADOPT = []; window.NOYVJ_PC_READOUTS = []; window.NOYVJ_PC_SIDE_LABEL = "Plan and result";</script>
 <script src="pc.js"></script>
 <script src="../../shared/layout-pref.js" data-game-id="dead-reckoning" data-pc-page="pc.html" data-classic-page="index.html"></script>
 <title>Dead Reckoning - NoyvjGames (Desktop)</title>
@@ -43,6 +43,7 @@
   <div class="game-toolbar">
     <button id="tutorial-restart-button" type="button">Tutorial</button>
     <button id="picker-toggle-button" type="button" aria-expanded="false" aria-controls="picker-panel">Charts</button>
+    <button id="daily-toggle-button" type="button" aria-expanded="false" aria-controls="daily-panel" data-testid="dead-reckoning-daily-toggle">Daily chart</button>
     <button id="achievements-toggle-button" type="button" hidden aria-expanded="false" aria-controls="achievements-panel">Achievements</button>
     <button id="log-toggle-button" type="button" aria-expanded="false" aria-controls="log-panel">Captain's log</button>
     <button id="changelog-toggle-button" type="button" aria-expanded="false" aria-controls="changelog-panel">What's New</button>
@@ -63,6 +64,26 @@
       </div>
     </section>
     <p id="progress-line" class="note" aria-live="polite"></p>
+  </section>
+  <section id="daily-panel" class="panel" hidden aria-labelledby="daily-heading">
+    <h2 id="daily-heading">Daily chart</h2>
+    <p class="note">One chart a day, the same sea for everyone, always solvable. It never touches your campaign stars or your practice total. There are no streaks: skip as many days as you like, and every past day stays open.</p>
+    <p id="daily-today"></p>
+    <div class="ruler-fields">
+      <button id="daily-today-button" type="button" class="primary" data-testid="dead-reckoning-daily-today">Today's chart</button>
+      <button id="daily-archive-button" type="button" aria-expanded="false" aria-controls="daily-archive" data-testid="dead-reckoning-daily-archive">Archive</button>
+    </div>
+    <div id="daily-archive" hidden>
+      <div class="daily-cal-head">
+        <button id="daily-cal-prev" type="button" aria-label="Previous month">&lsaquo;</button>
+        <strong id="daily-cal-title" aria-live="polite"></strong>
+        <button id="daily-cal-next" type="button" aria-label="Next month">&rsaquo;</button>
+      </div>
+      <div id="daily-calendar" class="daily-calendar" role="group" aria-label="Daily charts by date"></div>
+      <p class="note">A dot means not played yet; stars show your best result for that date. Any of them can be played now.</p>
+    </div>
+    <p id="daily-tally" class="note" data-testid="dead-reckoning-daily-tally"></p>
+    <div id="daily-grid" class="daily-grid" role="img"></div>
   </section>
   <section id="log-panel" class="panel" hidden aria-labelledby="log-heading">
     <h2 id="log-heading">Captain's log</h2>
@@ -105,6 +126,7 @@
     <h2 id="chart-title">Gull Sound</h2>
     <p id="chart-goal" class="note goal" aria-live="polite"></p>
     <p id="practice-line" class="note" hidden></p>
+    <p id="daily-line" class="note" data-testid="dead-reckoning-daily-line" hidden></p>
     <p id="chart-intro" class="story-text"></p>
   </section>
 
@@ -245,6 +267,7 @@
   // panels the Desktop layout moves around. app.js asks this function which steps to run.
   window.deadReckoningTutorialSteps = function (classicSteps) { return window.DEAD_RECKONING_PC_TUTORIAL_STEPS || classicSteps; };
 </script>
+<script src="daily.js"></script>
 <script src="app.js"></script>
 <script src="../../shared/last-played.js" data-game-id="dead-reckoning"></script>
 <script src="../../shared/whats-new-banner.js" data-game-id="dead-reckoning"></script>
@@ -253,6 +276,7 @@
   window.KeyboardShortcuts.init({
     panels: [
       { toggle: "picker-toggle-button", panel: "picker-panel" },
+      { toggle: "daily-toggle-button", panel: "daily-panel" },
       { toggle: "achievements-toggle-button", panel: "achievements-panel" },
       { toggle: "log-toggle-button", panel: "log-panel" },
       { toggle: "changelog-toggle-button", panel: "changelog-panel" },

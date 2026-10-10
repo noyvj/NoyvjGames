@@ -6,6 +6,11 @@
       "Charts"
     ],
     [
+      "daily-panel",
+      "daily-toggle-button",
+      "Daily chart"
+    ],
+    [
       "achievements-panel",
       "achievements-toggle-button",
       "Achievements"
@@ -36,6 +41,10 @@
       [
         "picker-toggle-button",
         "🗺️"
+      ],
+      [
+        "daily-toggle-button",
+        "📅"
       ],
       [
         "achievements-toggle-button",

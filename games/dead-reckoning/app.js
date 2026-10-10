@@ -3,7 +3,7 @@
    into chart coordinates, and pacing the playback of a track the engine already computed. */
 (function () {
   "use strict";
-  var ENGINE_MODULES = ["geom.py", "sim.py", "chartkit.py", "charts_open.py", "charts_wind.py", "charts_fixes.py", "charts_fog.py", "charts_tides.py", "charts_compass.py", "gen.py", "info.py", "pars.py", "charts.py", "render.py", "solver.py", "state.py", "progress.py", "achievements.py", "fixes.py"];
+  var ENGINE_MODULES = ["geom.py", "sim.py", "chartkit.py", "charts_open.py", "charts_wind.py", "charts_fixes.py", "charts_fog.py", "charts_tides.py", "charts_compass.py", "gen.py", "info.py", "pars.py", "charts.py", "render.py", "solver.py", "state.py", "progress.py", "achievements.py", "fixes.py", "daily.py"];
   var STORE_KEY = "dead-reckoning:state";
 
   var $ = function (id) { return document.getElementById(id); };
@@ -581,6 +581,7 @@
     renderInfo();
     renderPicker();
     renderPractice();
+    if (window.DeadReckoningDaily) window.DeadReckoningDaily.render(view, send, function () { selected = 0; });
     renderLog();
     if (view.note) showToast(view.note);
     if (view.phase === "plan") renderPlanner();
@@ -597,6 +598,7 @@
     } catch (e) { /* the save widget is the real save */ }
   }
   function send(request) {
+    if (window.DeadReckoningDaily) request.today = window.DeadReckoningDaily.today();      // the view passes the date in
     var result = JSON.parse(engine.handle(JSON.stringify(request)));
     if (result.error) { $("engine-status").textContent = "Something went wrong: " + result.error; return null; }
     $("engine-status").textContent = "";
@@ -668,6 +670,7 @@
     guard("par-button", function () { send({ action: "show_par" }); });
     guard("use-par-button", function () { selected = 0; send({ action: "use_par" }); });
     wirePanelToggle("picker-toggle-button", "picker-panel");
+    wirePanelToggle("daily-toggle-button", "daily-panel");
     wirePanelToggle("log-toggle-button", "log-panel");
     wirePanelToggle("info-page-toggle-button", "info-page-panel");
     wirePanelToggle("changelog-toggle-button", "changelog-panel");

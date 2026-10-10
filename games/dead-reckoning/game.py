@@ -22,6 +22,8 @@ Requests carry an `action`:
   take_fix {landmark}        Watch-by-watch: move the plot to where a landmark's bearing and distance put the ship
   anchor                     Watch-by-watch: end the passage where it stands (sail with the legs already sailed)
   practice {difficulty, seed?, code?}   open a generated practice chart (a share code such as DR3-1K9X2 replays one)
+  start_daily {date}         open the Daily Chart for a UTC date (see daily.py)
+Every request may carry "today" ("YYYY-MM-DD", UTC): the view passes the date in, the engine never reads a clock.
   next_chart                 open the next chart in the campaign (when it is unlocked)
   show_par | use_par         reveal the authored plan after a first attempt / load it into the planner
   reset                      forget all progress
@@ -31,6 +33,7 @@ import json
 
 import achievements
 import charts
+import daily
 import fixes
 import gen
 import info
@@ -44,6 +47,7 @@ from geom import bearing, dist
 meta = state.new_meta()
 run = None
 point = None
+today = None            # the view's UTC date, runtime only (never saved, never read from a clock)
 note = ""               # a one-line message about the last request (never saved)
 history = []            # earlier leg lists, for Undo (never saved)
 HISTORY_LIMIT = 40
@@ -59,17 +63,22 @@ def _record(chart_id):
     return meta["charts"].get(chart_id) or state.new_record()
 
 
+def _scoped(chart_id):
+    """A practice chart or a Daily Chart: made on demand, never scored in the campaign records; its found hazards live in the run."""
+    return gen.is_practice_id(chart_id) or daily.is_daily_id(chart_id)
+
+
 def _practice():
     return run is not None and gen.is_practice_id(run["chart_id"])
 
 
 def _discovered(chart):
     """The hazards the crew has found on this chart: remembered per chart in the campaign, per run in practice."""
-    return list(run["found"]) if gen.is_practice_id(chart["id"]) else _record(chart["id"])["discovered"]
+    return list(run["found"]) if _scoped(chart["id"]) else _record(chart["id"])["discovered"]
 
 
 def _attempts(chart):
-    if gen.is_practice_id(chart["id"]):
+    if _scoped(chart["id"]):
         return 1 if run["counted"] else 0
     return _record(chart["id"])["attempts"]
 
@@ -142,7 +151,15 @@ def _chart_info(chart):
     return {"id": chart["id"], "name": chart["name"], "chapter": chart.get("chapter", ""), "deadline": chart["deadline"],
             "arrival_radius": chart["arrival_radius"], "speeds": chart["speeds"], "size": chart["size"],
             "goal": _goal_text(chart), "intro": chart.get("intro", ""), "mode": run["mode"], "modes": list(chart.get("modes", ["plan"])),
-            "start_hour": chart.get("start_hour", 0.0), "practice": _practice_info(chart)}
+            "start_hour": chart.get("start_hour", 0.0), "practice": _practice_info(chart), "daily": _daily_info(chart)}
+
+
+def _daily_info(chart):
+    if not daily.is_daily_id(chart["id"]):
+        return None
+    date = daily.date_of(chart["id"])
+    s = daily.spec(date)
+    return {"date": date, "number": s["number"], "difficulty": s["difficulty"], "name": gen.NAMES[s["difficulty"]]}
 
 
 def _practice_info(chart):
@@ -196,7 +213,7 @@ def _log_line(chart, sc):
 
 def _par_view(chart):
     """The par plan as text (and the data to draw it) once the player has made an attempt, or just whether it can be shown."""
-    seen = run["par"] if gen.is_practice_id(chart["id"]) else _record(chart["id"])["par_seen"]
+    seen = run["par"] if _scoped(chart["id"]) else _record(chart["id"])["par_seen"]
     legs = charts.par_legs(chart["id"])
     if not legs or _attempts(chart) < 1:
         return None
@@ -206,8 +223,25 @@ def _par_view(chart):
             "lines": ["Leg %d: steer %03d at %g kn for %g h." % (i + 1, leg["heading"], leg["speed"], leg["hours"]) for i, leg in enumerate(legs)]}
 
 
+def _daily_view():
+    """What the Daily Chart panel shows: today's chart, the saved results and the tally. None until the view passes the date in."""
+    if today is None:
+        return None
+    open_today = today >= daily.EPOCH
+    s = daily.spec(today) if open_today else None
+    days_done = {d: dict(r) for d, r in meta["daily_days"].items()}
+    active = daily.date_of(run["chart_id"]) if run is not None else None
+    out = {"today": today, "epoch": daily.EPOCH, "open": open_today, "number": s["number"] if s else 0,
+           "level": {"difficulty": s["difficulty"], "name": gen.NAMES[s["difficulty"]]} if s else None,
+           "record": days_done.get(today), "days": days_done, "tally": daily.tally(meta["daily_days"], today), "active": active}
+    if active and run["phase"] == "reveal" and active in days_done:
+        out["entry"] = daily.leaderboard_entry(active, days_done[active])      # HOOK only: nothing sends this anywhere
+    return out
+
+
 def _view():
     view = _view_phase()
+    view["daily"] = _daily_view()
     view["picker"] = _picker()
     view["story"] = {"intro": _chart().get("intro", ""), "log": _story()}
     view["progress"] = _progress()
@@ -324,14 +358,14 @@ def _reveal_view(chart):
         "reveal": {"title": title, "stars": sc["stars"], "stars_text": _stars_text(sc["stars"]), "criteria": sc["criteria"],
                    "lines": lines, "events": events, "points": points, "hours": res["hours"],
                    "miss_nm": sc["miss_nm"], "arrived": sc["arrived"], "aground": sc["aground"],
-                   "best_stars": _record(chart["id"])["stars"], "log": _log_line(chart, sc), "par": par,
+                   "best_stars": (meta["daily_days"].get(daily.date_of(chart["id"]), {}).get("stars", 0) if daily.is_daily_id(chart["id"]) else _record(chart["id"])["stars"]), "log": _log_line(chart, sc), "par": par,
                    "next_chart": _next_playable(chart["id"])},
         "stars": _record(chart["id"])["stars"],
     }
 
 
 def _next_playable(chart_id):
-    if gen.is_practice_id(chart_id):
+    if _scoped(chart_id):
         return None
     nxt = charts.next_chart_id(chart_id)
     if nxt is None or _record(chart_id)["stars"] < 1 or not charts.is_unlocked(nxt, meta["charts"]):
@@ -350,14 +384,19 @@ def _finish():
     legs = run["legs"]
     res = sim.sail(chart, legs, seed=run["seed"], known=run["known"])
     sc = sim.score(chart, legs, res, known=run["known"], used_helpers=bool(run["helpers"]))
-    practice = gen.is_practice_id(chart["id"])
-    progress.record_outcome(meta, chart, run, res, sc, scored=not practice, fix_taken=bool(run["fixes"]))
-    if practice:
+    scoped = _scoped(chart["id"])
+    progress.record_outcome(meta, chart, run, res, sc, scored=not scoped, fix_taken=bool(run["fixes"]))
+    if scoped:
         known = {h["id"] for h in chart["hazards"] if h.get("charted", True)}
         touched = list(res["close"]) + ([res["aground"]["hazard"]] if res["aground"] else [])
         found = set(run["found"]) | {h for h in touched if h not in known and any(x["id"] == h for x in chart["hazards"])}
         run["found"] = sorted(found)
-        if not run["counted"]:
+        if daily.is_daily_id(chart["id"]):
+            # Only the date's own record changes: the practice total and the campaign records stay as they were.
+            date = daily.date_of(chart["id"])
+            meta["daily_days"][date] = daily.merge_record(meta["daily_days"].get(date), sc["stars"], sc["miss_nm"], sc["arrived"])
+            run["counted"] = True
+        elif not run["counted"]:
             run["counted"] = True
             meta["practice_seeds_played"] += 1
     run["phase"] = "reveal"
@@ -414,6 +453,25 @@ def _start_practice(request):
     return False
 
 
+def _start_daily(request):
+    """Open the Daily Chart for a date (any date from the epoch to today). The plan on the page is replaced."""
+    global note
+    if today is None:
+        note = "The date is not known yet."
+        return False
+    date = request.get("date")
+    if not daily.valid_date(date) or date < daily.EPOCH:
+        note = "There was no daily chart on that date."
+        return False
+    if not daily.playable(date, today):
+        note = "That daily chart is not out yet."
+        return False
+    if run is not None and run["chart_id"] == daily.chart_id(date):
+        return True
+    _start(daily.chart_id(date))
+    return True
+
+
 def _chapter_ids():
     return [[c["id"] for c in chapter["charts"]] for chapter in charts.CHAPTERS]
 
@@ -428,13 +486,17 @@ def _progress():
 
 
 def handle(request_json):
-    global run, point, meta, history, note
+    global run, point, meta, history, note, today
     note = ""
     try:
         request = json.loads(request_json)
         action = request.get("action")
     except (ValueError, AttributeError):
         return json.dumps({"error": "bad request"})
+    if "today" in request:
+        today = request["today"] if daily.valid_date(request["today"]) else None
+    if run is not None and daily.is_daily_id(run["chart_id"]) and today is not None and not daily.playable(daily.date_of(run["chart_id"]), today):
+        run = None                                  # a saved daily for a date that has not started yet is dropped
     if action == "reset":
         meta = state.new_meta()
         run = None
@@ -442,6 +504,8 @@ def handle(request_json):
         history = []
     elif action == "practice":
         _start_practice(request)
+    elif action == "start_daily":
+        _start_daily(request)
     elif action == "start":
         cid = request.get("chart_id")
         if not isinstance(cid, str) or charts.get_chart(cid) is None:
@@ -452,7 +516,7 @@ def handle(request_json):
     _ensure_run()
     chart = _chart()
     editing = run["phase"] == "plan"
-    if action in ("open", "start", "reset", "practice", None):
+    if action in ("open", "start", "reset", "practice", "start_daily", None):
         pass
     elif action == "retry":
         run["phase"] = "plan"
@@ -463,7 +527,7 @@ def handle(request_json):
             _start(nxt["id"])
     elif action == "show_par":
         if _par_view(chart):
-            if gen.is_practice_id(chart["id"]):
+            if _scoped(chart["id"]):
                 run["par"] = True
             else:
                 meta["charts"].setdefault(chart["id"], state.new_record())["par_seen"] = True

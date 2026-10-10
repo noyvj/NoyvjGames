@@ -11,6 +11,7 @@ from charts_fog import CHARTS as _FOG
 from charts_tides import CHARTS as _TIDES
 from charts_compass import CHARTS as _COMPASS
 from pars import PARS
+import daily
 import gen
 
 CHAPTERS = [
@@ -39,6 +40,8 @@ def get_chart(chart_id):
     chart = CHARTS.get(chart_id)
     if chart is None and gen.is_practice_id(chart_id):
         chart = gen.from_id(chart_id)
+    if chart is None and daily.is_daily_id(chart_id):
+        chart = daily.chart_for(daily.date_of(chart_id))
     return chart
 
 
@@ -49,8 +52,8 @@ def all_charts():
 def par_legs(chart_id):
     """The authored solution, as a list of legs (a fresh copy), or None."""
     legs = PARS.get(chart_id)
-    if legs is None and gen.is_practice_id(chart_id):
-        made = gen.from_id(chart_id)
+    if legs is None and (gen.is_practice_id(chart_id) or daily.is_daily_id(chart_id)):
+        made = get_chart(chart_id)
         legs = made["par_legs"] if made else None
     return [dict(leg) for leg in legs] if legs else None
 
@@ -86,6 +89,6 @@ def unlocked_chapters(records):
 
 
 def is_unlocked(chart_id, records):
-    if gen.is_practice_id(chart_id):
+    if gen.is_practice_id(chart_id) or daily.is_daily_id(chart_id):
         return True
     return CHAPTER_OF.get(chart_id) in unlocked_chapters(records)
