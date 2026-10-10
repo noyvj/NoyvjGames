@@ -6211,6 +6211,686 @@
               ]
             }
           ]
+        },
+        {
+          "id": "fren152-w3-grammar-fs01",
+          "topic_type": "grammar",
+          "title": "Reflexive verbs in the present (se laver)",
+          "items": [
+            {
+              "fr": "je me lave",
+              "en": "I wash (myself)",
+              "accepted_en": [
+                "I wash (myself)",
+                "I wash myself",
+                "I am washing myself",
+                "I get washed",
+                "I wash"
+              ]
+            },
+            {
+              "fr": "tu te laves",
+              "en": "you wash (yourself)",
+              "accepted_en": [
+                "you wash (yourself)",
+                "you wash yourself",
+                "you are washing yourself",
+                "you get washed",
+                "you wash"
+              ]
+            },
+            {
+              "fr": "il se lave",
+              "en": "he washes (himself)",
+              "accepted_en": [
+                "he washes (himself)",
+                "he washes himself",
+                "he is washing himself",
+                "he gets washed",
+                "he washes"
+              ]
+            },
+            {
+              "fr": "nous nous lavons",
+              "en": "we wash (ourselves)",
+              "accepted_en": [
+                "we wash (ourselves)",
+                "we wash ourselves",
+                "we are washing ourselves",
+                "we get washed",
+                "we wash"
+              ]
+            },
+            {
+              "fr": "vous vous lavez",
+              "en": "you wash (yourselves)",
+              "accepted_en": [
+                "you wash (yourselves)",
+                "you wash yourselves",
+                "you are washing yourselves",
+                "you get washed",
+                "you wash"
+              ]
+            },
+            {
+              "fr": "ils se lavent",
+              "en": "they wash (themselves)",
+              "accepted_en": [
+                "they wash (themselves)",
+                "they wash themselves",
+                "they are washing themselves",
+                "they get washed",
+                "they wash"
+              ]
+            }
+          ],
+          "rule": "A reflexive verb takes a pronoun that matches the subject: me, te, se, nous, vous, se, placed before the verb. In the infinitive the pronoun is se (se laver). Nous and vous use the same word as the subject pronoun."
+        },
+        {
+          "id": "fren152-w3-grammar-fs02",
+          "topic_type": "grammar",
+          "title": "Reflexive verbs with a stem change (se lever)",
+          "items": [
+            {
+              "fr": "je me lève",
+              "en": "I get up",
+              "accepted_en": [
+                "I get up",
+                "I am getting up",
+                "I rise"
+              ]
+            },
+            {
+              "fr": "tu te lèves",
+              "en": "you get up",
+              "accepted_en": [
+                "you get up",
+                "you are getting up",
+                "you rise"
+              ]
+            },
+            {
+              "fr": "il se lève",
+              "en": "he gets up",
+              "accepted_en": [
+                "he gets up",
+                "he is getting up",
+                "he rises"
+              ]
+            },
+            {
+              "fr": "nous nous levons",
+              "en": "we get up",
+              "accepted_en": [
+                "we get up",
+                "we are getting up",
+                "we rise"
+              ]
+            },
+            {
+              "fr": "vous vous levez",
+              "en": "you get up",
+              "accepted_en": [
+                "you get up",
+                "you are getting up",
+                "you rise"
+              ]
+            },
+            {
+              "fr": "ils se lèvent",
+              "en": "they get up",
+              "accepted_en": [
+                "they get up",
+                "they are getting up",
+                "they rise"
+              ]
+            }
+          ],
+          "rule": "Se lever takes a grave accent (è) where the ending is silent: je, tu, il and ils. Nous and vous keep a plain e. Se promener works the same way (je me promène, nous nous promenons)."
+        },
+        {
+          "id": "fren152-w3-grammar-fs03",
+          "topic_type": "grammar",
+          "title": "Reflexive verbs before a vowel (s'habiller)",
+          "items": [
+            {
+              "fr": "je m'habille",
+              "en": "I get dressed",
+              "accepted_en": [
+                "I get dressed",
+                "I am getting dressed",
+                "I dress"
+              ]
+            },
+            {
+              "fr": "tu t'habilles",
+              "en": "you get dressed",
+              "accepted_en": [
+                "you get dressed",
+                "you are getting dressed",
+                "you dress"
+              ]
+            },
+            {
+              "fr": "il s'habille",
+              "en": "he gets dressed",
+              "accepted_en": [
+                "he gets dressed",
+                "he is getting dressed",
+                "he dresses"
+              ]
+            },
+            {
+              "fr": "nous nous habillons",
+              "en": "we get dressed",
+              "accepted_en": [
+                "we get dressed",
+                "we are getting dressed",
+                "we dress"
+              ]
+            },
+            {
+              "fr": "vous vous habillez",
+              "en": "you get dressed",
+              "accepted_en": [
+                "you get dressed",
+                "you are getting dressed",
+                "you dress"
+              ]
+            },
+            {
+              "fr": "ils s'habillent",
+              "en": "they get dressed",
+              "accepted_en": [
+                "they get dressed",
+                "they are getting dressed",
+                "they dress"
+              ]
+            }
+          ],
+          "rule": "Me, te and se shorten to m', t' and s' before a vowel or a silent h (je m'habille, il s'endort). Nous and vous never shorten."
+        },
+        {
+          "id": "fren152-w3-phrase-fs04",
+          "topic_type": "phrase",
+          "title": "Reflexive verbs and parts of the body",
+          "items": [
+            {
+              "fr": "Je me brosse les dents.",
+              "en": "I brush my teeth.",
+              "accepted_en": [
+                "I brush my teeth.",
+                "I am brushing my teeth",
+                "I clean my teeth"
+              ]
+            },
+            {
+              "fr": "Elle se lave les mains.",
+              "en": "She washes her hands.",
+              "accepted_en": [
+                "She washes her hands.",
+                "She is washing her hands"
+              ]
+            },
+            {
+              "fr": "Il se brosse les cheveux.",
+              "en": "He brushes his hair.",
+              "accepted_en": [
+                "He brushes his hair.",
+                "He is brushing his hair"
+              ]
+            },
+            {
+              "fr": "Nous nous lavons les mains.",
+              "en": "We wash our hands.",
+              "accepted_en": [
+                "We wash our hands.",
+                "We are washing our hands"
+              ]
+            }
+          ],
+          "rule": "With a reflexive verb and a part of the body French uses the (les, la, le), not my or his: the reflexive pronoun already says whose it is."
+        },
+        {
+          "id": "fren152-w3-vocab-fs05",
+          "topic_type": "vocab",
+          "title": "More daily-routine verbs",
+          "items": [
+            {
+              "fr": "se promener",
+              "en": "to go for a walk",
+              "accepted_en": [
+                "to go for a walk",
+                "to take a walk",
+                "to walk",
+                "to go for walks",
+                "to stroll"
+              ]
+            },
+            {
+              "fr": "se reposer",
+              "en": "to rest",
+              "accepted_en": [
+                "to rest",
+                "to relax",
+                "to have a rest"
+              ]
+            },
+            {
+              "fr": "se dépêcher",
+              "en": "to hurry",
+              "accepted_en": [
+                "to hurry",
+                "to hurry up",
+                "to rush"
+              ]
+            },
+            {
+              "fr": "se disputer avec",
+              "en": "to argue with",
+              "accepted_en": [
+                "to argue with",
+                "to have an argument with",
+                "to quarrel with",
+                "to fight with"
+              ]
+            },
+            {
+              "fr": "se changer",
+              "en": "to get changed",
+              "accepted_en": [
+                "to get changed",
+                "to change",
+                "to change clothes"
+              ]
+            },
+            {
+              "fr": "se démaquiller",
+              "en": "to take off one's make-up",
+              "accepted_en": [
+                "to take off one's make-up",
+                "to remove one's make-up",
+                "to take off makeup",
+                "to remove makeup",
+                "to take off your make-up",
+                "to remove your make-up"
+              ]
+            },
+            {
+              "fr": "se déshabiller",
+              "en": "to get undressed",
+              "accepted_en": [
+                "to get undressed",
+                "to undress",
+                "to take one's clothes off"
+              ]
+            },
+            {
+              "fr": "s'embrasser",
+              "en": "to kiss each other",
+              "accepted_en": [
+                "to kiss each other",
+                "to kiss",
+                "to hug each other",
+                "to kiss one another"
+              ]
+            },
+            {
+              "fr": "se préparer",
+              "en": "to get ready",
+              "accepted_en": [
+                "to get ready",
+                "to prepare oneself",
+                "to prepare",
+                "to get oneself ready"
+              ]
+            },
+            {
+              "fr": "se parfumer",
+              "en": "to put on perfume",
+              "accepted_en": [
+                "to put on perfume",
+                "to put perfume on",
+                "to wear perfume"
+              ]
+            },
+            {
+              "fr": "se brosser les cheveux",
+              "en": "to brush one's hair",
+              "accepted_en": [
+                "to brush one's hair",
+                "to brush your hair",
+                "to brush my hair",
+                "to brush hair"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "fren152-w3-vocab-fs06",
+          "topic_type": "vocab",
+          "title": "Routine: order and timing words",
+          "items": [
+            {
+              "fr": "d'abord",
+              "en": "first",
+              "accepted_en": [
+                "first",
+                "first of all",
+                "at first"
+              ]
+            },
+            {
+              "fr": "ensuite",
+              "en": "then",
+              "accepted_en": [
+                "then",
+                "next",
+                "after that"
+              ]
+            },
+            {
+              "fr": "et puis",
+              "en": "and then",
+              "accepted_en": [
+                "and then",
+                "and after that"
+              ]
+            },
+            {
+              "fr": "après",
+              "en": "after",
+              "accepted_en": [
+                "after",
+                "afterwards"
+              ]
+            },
+            {
+              "fr": "avant",
+              "en": "before",
+              "accepted_en": [
+                "before",
+                "beforehand"
+              ]
+            },
+            {
+              "fr": "tôt",
+              "en": "early"
+            },
+            {
+              "fr": "tard",
+              "en": "late"
+            },
+            {
+              "fr": "vite",
+              "en": "quickly",
+              "accepted_en": [
+                "quickly",
+                "fast"
+              ]
+            },
+            {
+              "fr": "au réveil",
+              "en": "on waking up",
+              "accepted_en": [
+                "on waking up",
+                "when waking up",
+                "upon waking up",
+                "on waking",
+                "when I wake up"
+              ]
+            },
+            {
+              "fr": "en semaine",
+              "en": "during the week",
+              "accepted_en": [
+                "during the week",
+                "on weekdays",
+                "in the week",
+                "weekdays"
+              ]
+            },
+            {
+              "fr": "le week-end",
+              "en": "at the weekend",
+              "accepted_en": [
+                "at the weekend",
+                "on the weekend",
+                "at weekends",
+                "on weekends",
+                "weekends",
+                "the weekend"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "fren152-w3-vocab-fs07",
+          "topic_type": "vocab",
+          "title": "Frequency: more words",
+          "items": [
+            {
+              "fr": "quatre fois par an",
+              "en": "four times a year",
+              "accepted_en": [
+                "four times a year",
+                "four times per year",
+                "four times every year"
+              ]
+            },
+            {
+              "fr": "une fois par an",
+              "en": "once a year",
+              "accepted_en": [
+                "once a year",
+                "once per year",
+                "one time a year"
+              ]
+            },
+            {
+              "fr": "au moins",
+              "en": "at least"
+            },
+            {
+              "fr": "seulement",
+              "en": "only",
+              "accepted_en": [
+                "only",
+                "just"
+              ]
+            },
+            {
+              "fr": "presque",
+              "en": "almost",
+              "accepted_en": [
+                "almost",
+                "nearly"
+              ]
+            },
+            {
+              "fr": "combien de temps",
+              "en": "how long",
+              "accepted_en": [
+                "how long",
+                "how much time"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "fren152-w3-grammar-fs08",
+          "topic_type": "grammar",
+          "title": "Never: ne ... jamais",
+          "items": [
+            {
+              "fr": "Je ne fais jamais de sport.",
+              "en": "I never do sport.",
+              "accepted_en": [
+                "I never do sport.",
+                "I never play sport",
+                "I never do sports",
+                "I never play sports",
+                "I never exercise"
+              ]
+            },
+            {
+              "fr": "Elle ne se lève jamais tôt.",
+              "en": "She never gets up early.",
+              "accepted_en": [
+                "She never gets up early."
+              ]
+            },
+            {
+              "fr": "Nous ne mangeons jamais d'escargots.",
+              "en": "We never eat snails.",
+              "accepted_en": [
+                "We never eat snails."
+              ]
+            },
+            {
+              "fr": "Tu ne regardes jamais la télé?",
+              "en": "Do you never watch TV?",
+              "accepted_en": [
+                "Do you never watch TV?",
+                "Do you never watch television",
+                "You never watch TV",
+                "You never watch television"
+              ]
+            }
+          ],
+          "rule": "Ne and jamais wrap the verb exactly like ne ... pas. Jamais can also stand alone as a short answer (Jamais!). After ne ... jamais the partitive becomes de (jamais de sport)."
+        },
+        {
+          "id": "fren152-w3-phrase-fs09",
+          "topic_type": "phrase",
+          "title": "Talking about days",
+          "items": [
+            {
+              "fr": "Quel jour est-ce?",
+              "en": "What day is it?",
+              "accepted_en": [
+                "What day is it?",
+                "Which day is it",
+                "What day is it today"
+              ]
+            },
+            {
+              "fr": "Aujourd'hui, c'est lundi.",
+              "en": "Today is Monday.",
+              "accepted_en": [
+                "Today is Monday.",
+                "Today it is Monday",
+                "Today it's Monday"
+              ]
+            },
+            {
+              "fr": "Demain, c'est mardi.",
+              "en": "Tomorrow is Tuesday.",
+              "accepted_en": [
+                "Tomorrow is Tuesday.",
+                "Tomorrow it is Tuesday",
+                "Tomorrow it's Tuesday"
+              ]
+            },
+            {
+              "fr": "mardi matin",
+              "en": "Tuesday morning",
+              "accepted_en": [
+                "Tuesday morning",
+                "on Tuesday morning"
+              ]
+            },
+            {
+              "fr": "le jeudi après-midi",
+              "en": "on Thursday afternoons",
+              "accepted_en": [
+                "on Thursday afternoons",
+                "Thursday afternoons",
+                "on Thursday afternoon",
+                "every Thursday afternoon"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "fren152-w3-phrase-fs10",
+          "topic_type": "phrase",
+          "title": "Describing a morning routine",
+          "items": [
+            {
+              "fr": "Je me réveille à sept heures.",
+              "en": "I wake up at seven.",
+              "accepted_en": [
+                "I wake up at seven.",
+                "I wake up at 7",
+                "I wake up at seven o'clock",
+                "I wake up at 7 o'clock",
+                "I am waking up at seven"
+              ]
+            },
+            {
+              "fr": "D'abord, je me douche, ensuite je m'habille.",
+              "en": "First I take a shower, then I get dressed.",
+              "accepted_en": [
+                "First I take a shower, then I get dressed.",
+                "First I shower, then I get dressed",
+                "First I have a shower, then I get dressed",
+                "First I take a shower and then I get dressed"
+              ]
+            },
+            {
+              "fr": "Le réveil sonne à six heures.",
+              "en": "The alarm clock rings at six.",
+              "accepted_en": [
+                "The alarm clock rings at six.",
+                "The alarm clock goes off at six",
+                "The alarm rings at six",
+                "The alarm goes off at six",
+                "The alarm clock rings at 6"
+              ]
+            },
+            {
+              "fr": "Je me couche avant onze heures.",
+              "en": "I go to bed before eleven.",
+              "accepted_en": [
+                "I go to bed before eleven.",
+                "I go to bed before 11",
+                "I go to bed before eleven o'clock",
+                "I go to sleep before eleven"
+              ]
+            },
+            {
+              "fr": "Le week-end, je me lève tard.",
+              "en": "At the weekend I get up late.",
+              "accepted_en": [
+                "At the weekend I get up late.",
+                "On the weekend I get up late",
+                "At weekends I get up late",
+                "On weekends I get up late"
+              ]
+            },
+            {
+              "fr": "En semaine, je me dépêche.",
+              "en": "During the week I hurry.",
+              "accepted_en": [
+                "During the week I hurry.",
+                "During the week I hurry up",
+                "On weekdays I hurry",
+                "On weekdays I rush"
+              ]
+            },
+            {
+              "fr": "Je me repose le dimanche.",
+              "en": "I rest on Sundays.",
+              "accepted_en": [
+                "I rest on Sundays.",
+                "I relax on Sundays",
+                "I rest on Sunday",
+                "I relax on Sunday",
+                "I have a rest on Sundays"
+              ]
+            }
+          ]
         }
       ],
       "bonus_sentences": [

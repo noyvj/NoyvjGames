@@ -67,7 +67,8 @@ def test_conjugation_topics_get_the_pronoun_swap_variants(game_env):
     # verb topics pack a whole table (or two verbs) into a single string
     # ("je bois / tu bois / il boit") or are sentence examples — swapping a
     # pronoun into those would produce nonsense, so they must not qualify.
-    assert len(conj) == 10
+    # (FS additions, ids with "-fs", add further person-by-person tables; the original ten stay ten.)
+    assert len([p for p in conj if "-fs" not in p.topic_id]) == 10
     for plot in conj:
         assert module.V_CONJUGATION_SWAP in module.variants_for(plot)
 

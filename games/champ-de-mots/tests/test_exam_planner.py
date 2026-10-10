@@ -130,7 +130,8 @@ def test_projection_counts_what_is_automated_already(game_env):
         plot.interval_days = 30
         plot.correct_streak = 5
     projection = module.planner_projection(5)
-    assert projection["current"] > 12
+    # 100 of the farm's plots are automated: about 12.7% of the original 790, less as the farm grows.
+    assert projection["current"] > 100 / len(state.plots) * 100 - 0.5
     assert projection["cautious"] >= projection["current"] - 0.001
 
 

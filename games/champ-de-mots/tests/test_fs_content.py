@@ -13,6 +13,10 @@ FS_WEEKS = {
         "et quart", "moins le quart", "du soir", "Il est midi moins cinq.", "À quelle heure est le cours?",
         "réfléchir à", "réussir à", "rendre visite à", "répondre à", "maigrir", "dîner",
     ]},
+    2: {"row": 13, "topics": 10, "plots": 48, "must_have": [
+        "je me lave", "je me lève", "je m'habille", "se promener", "se démaquiller", "d'abord", "en semaine",
+        "quatre fois par an", "Je ne fais jamais de sport.", "Aujourd'hui, c'est lundi.", "Le réveil sonne à six heures.",
+    ]},
 }
 
 
@@ -124,3 +128,58 @@ def test_week_1_number_plurals_is_one_grammar_plot_with_a_rule(game_env):
     topic = _topic(module, "fren152-w2-grammar-fs07")
     assert topic["topic_type"] == "grammar" and "mille" in topic["rule"].lower()
     assert "fren152-w2-grammar-fs07" in game_env.state.plots_by_id
+
+
+# --- week 2 ------------------------------------------------------------------
+
+
+def test_week_2_reflexive_tables_are_person_by_person_conjugation_plots(game_env):
+    module = game_env.module
+    for topic_id in ("fren152-w3-grammar-fs01", "fren152-w3-grammar-fs02", "fren152-w3-grammar-fs03"):
+        plot = game_env.state.plots_by_id[topic_id]
+        assert module.is_conjugation_plot(plot), topic_id
+        assert module.V_CONJUGATION_SWAP in module.variants_for(plot)
+        assert [i["fr"].split()[0] for i in plot.items] == ["je", "tu", "il", "nous", "vous", "ils"]
+
+
+def test_week_2_reflexive_pronouns_match_their_subjects(game_env):
+    module = game_env.module
+    expected = {"je": "me", "tu": "te", "il": "se", "nous": "nous", "vous": "vous", "ils": "se"}
+    for topic_id in ("fren152-w3-grammar-fs01", "fren152-w3-grammar-fs02"):
+        for item in _topic(module, topic_id)["items"]:
+            subject, pronoun = item["fr"].split()[:2]
+            assert pronoun == expected[subject], item["fr"]
+    elided = {"je": "m'", "tu": "t'", "il": "s'", "ils": "s'"}
+    for item in _topic(module, "fren152-w3-grammar-fs03")["items"]:
+        words = item["fr"].split()
+        if words[0] in elided:
+            assert words[1].startswith(elided[words[0]]), item["fr"]
+        else:
+            assert words[1] == words[0], item["fr"]  # nous nous / vous vous never shorten
+
+
+def test_week_2_se_lever_carries_the_grave_accent_where_it_should(game_env):
+    forms = [i["fr"] for i in _topic(game_env.module, "fren152-w3-grammar-fs02")["items"]]
+    assert [("è" in f) for f in forms] == [True, True, True, False, False, True]
+
+
+def test_week_2_body_part_sentences_use_the_article_not_a_possessive(game_env):
+    for item in _topic(game_env.module, "fren152-w3-phrase-fs04")["items"]:
+        assert " les " in item["fr"], item["fr"]
+        assert not any(w in item["fr"].lower().split() for w in ("mes", "ses", "mon", "son", "ma", "sa"))
+
+
+def test_week_2_ne_jamais_sentences_really_wrap_the_verb(game_env):
+    for item in _topic(game_env.module, "fren152-w3-grammar-fs08")["items"]:
+        text = item["fr"].lower()
+        assert ("ne " in text or "n'" in text) and "jamais" in text, item["fr"]
+        assert text.index("jamais") > text.replace("n'", "ne ").index("ne")
+
+
+def test_week_2_routine_words_and_frequency_have_their_english(game_env):
+    module = game_env.module
+    glosses = {i["fr"]: i["en"] for i in _topic(module, "fren152-w3-vocab-fs06")["items"]}
+    assert glosses["tôt"] == "early" and glosses["tard"] == "late" and glosses["d'abord"] == "first"
+    freq = {i["fr"]: i["en"] for i in _topic(module, "fren152-w3-vocab-fs07")["items"]}
+    assert freq["quatre fois par an"] == "four times a year" and freq["presque"] == "almost"
+    assert _live(module, "fren152-w3-vocab-fs06", 3, "en", "afterwards")
