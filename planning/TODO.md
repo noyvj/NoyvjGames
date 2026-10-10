@@ -1,6 +1,6 @@
 # Site-Wide TODO (round 3)
 
-**Progress: 631/1221 items checked off (51.7%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land.
+**Progress: 639/1221 items checked off (52.3%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land.
 
 Built from your answers in `planning/IMPROVEMENT-IDEAS-ROUND-3.md` (Part 4). Every Round 3 section is now answered (2026-10-07 below the Warframe section); earlier this list held only: **GB** (Canopy gamified), **M** (new games), **N** (seasonal events), **O** (Trade Empire and Continuum replayability), **P/Q/S/T** (Signal, Undersleep, Overclock, Last Line open questions), **X** (Warframe tracker) and **R** (returning later). GC-GI, A-L, U, Z and Y are unanswered and wait for you. The previous list is archived at `planning/todo-archive/260914_260927.md`; anything from it that was moved here is marked "moved" there.
 
@@ -666,19 +666,19 @@ Your remaining Round 3 answers (Grid to Drift gamified, SOL to Le Champ de Mots,
 - [ ] F-3: Add Herd round replay: a timeline scrubber replaying pasture cows, gauge, haze and funds per round with markers for lever purchases and advisor choices; needs a per-round state record.
 - [ ] F-4: Add a Herd shareable farm card PNG export (gauge, trend sparkline, score vs baseline, levers, achievements count) from the report card, reusing the shared print-summary component. (partly built: Z21 print-friendly report card (print-summary.css); no image export.)
 - [ ] F-5: Add Herd 'Farm Snapshots': export a mid-run state as a challenge code with the sender's best result attached as the score to beat, using the save-widget code path. (partly built: Shared save-widget save codes (get_state/load_state) already share any state.)
-- [ ] F-6: Add a Herd 'explain this number' inspector: click income, methane, coupling ratio or pressure loss for a breakdown tree (base, each lever, season, welfare, supply chain), reusing the consequence-preview math.
+- [x] F-6: Add a Herd 'explain this number' inspector: click income, methane, coupling ratio or pressure loss for a breakdown tree (base, each lever, season, welfare, supply chain), reusing the consequence-preview math.
 - [ ] F-7: Add a Herd dry-run planner drawer: queue several rounds of purchases on a scratch copy and see projected gauge, funds and methane for 5-10 rounds, with the counterfactual line for reference.
 - [ ] F-8: Add a Herd mixed-herd allocation UI: after poultry unlocks, one allocation slider across beef/dairy, poultry and plant-based with a live stacked bar of income, methane and welfare per segment.
 - [ ] F-9: Add a Herd policy-advisor offer pool (carbon-credit contract, feed-price hedge, organic label trial, welfare grant) drawn without repeats, an advisor history list with real-world tags, and report-card display.
-- [ ] F-10: Complete Herd keyboard and screen-reader play: every lever and Advance Round keyboard reachable with visible focus, arrow-key control on the lever list, aria-live round-result announcements, and a shortcut cheat sheet in How to Play. (partly built: Z15 audit of panels (no gap), Z4 ?/Esc shortcuts via shared/keyboard-shortcuts.js; Z28 focus ring.) (Partly done 2026-10-07: polite live region reads the round result; still open: arrow-key control on the lever list, a visible-focus audit, the shortcut cheat sheet.)
+- [x] F-10: Complete Herd keyboard and screen-reader play: every lever and Advance Round keyboard reachable with visible focus, arrow-key control on the lever list, aria-live round-result announcements, and a shortcut cheat sheet in How to Play. (partly built: Z15 audit of panels (no gap), Z4 ?/Esc shortcuts via shared/keyboard-shortcuts.js; Z28 focus ring.) (Partly done 2026-10-07: polite live region reads the round result; still open: arrow-key control on the lever list, a visible-focus audit, the shortcut cheat sheet.)
 - [ ] F-11: Add Herd Beginner/Standard/Expert profiles at new game: Beginner shows a next-best-lever hint chip, Expert hides previews and tooltips, built as toggled layers over existing content.
 - [ ] F-12: Add offline-first polish across games: precache Pyodide, an 'offline, community stats paused' status pill, and a queued stats/feedback submit that flushes on reconnect; start with Herd. (partly built: sw.js: network-first with offline fallback, precaches game shells (site milestone 10); Pyodide CDN cache-first at runtime, no precache or status pill.)
 - [x] F-13: Add a Herd 'funds per methane saved' figure to each lever in the lever list, from the existing preview formulas.
-- [ ] F-14: Add Herd optional colourblind-safe hatch patterns and shape markers for the methane trend graph, welfare bar and supply-chain bar, toggled in Settings.
-- [ ] F-15: Add Herd high-contrast theme and dyslexia-friendly font toggles in Settings, persisted via the same localStorage path as text scale.
+- [x] F-14: Add Herd optional colourblind-safe hatch patterns and shape markers for the methane trend graph, welfare bar and supply-chain bar, toggled in Settings.
+- [x] F-15: Add Herd high-contrast theme and dyslexia-friendly font toggles in Settings, persisted via the same localStorage path as text scale.
 - [ ] F-16: Add a Herd pin-a-stat header: pin up to three readouts (funds, welfare, income per round) into a sticky strip visible while the extras panel is open.
 - [x] F-17: Add a Herd lever history log: a collapsible list of purchases ('Round 4: bought Capture Systems (-40)') under the extras panel, filterable by lever.
-- [ ] F-18: Add a Herd Settings option to require confirmation for any purchase above N percent of current funds, using the shared confirm dialog. (partly built: Shared confirm-dialog already guards the Plant-Based Pivot (F16) only.)
+- [x] F-18: Add a Herd Settings option to require confirmation for any purchase above N percent of current funds, using the shared confirm dialog. (partly built: Shared confirm-dialog already guards the Plant-Based Pivot (F16) only.)
 - [x] F-19: Add a Herd x1/x5/max bulk-buy stepper beside Grow Herd and lever buttons showing total cost before clicking, reusing the rising-cost preview.
 - [x] F-20: Add Herd round-delta chips (+/-) beside funds, methane, welfare and pressure after each Advance Round that fade after a few seconds, with a pin click.
 - [x] F-21: Add a Herd 12-round season calendar strip in seasons mode showing upcoming income swing and plant-demand surge as colour- and icon-coded cells.
@@ -687,10 +687,10 @@ Your remaining Round 3 answers (Grid to Drift gamified, SOL to Le Champ de Mots,
 - [x] F-24: Add a Herd cap-mode headroom bar under the 20-methane cap with 'rounds until you must decouple' at the current growth pace.
 - [ ] F-25: Add Herd settings export/import: one button copies all local settings (text scale, motion, toggles, personal bests) as a short code, another restores it, using shared/export_progress.py.
 - [ ] F-26: Add a Herd slow-device lite mode toggle (haze, methane wisps, cow-graze off, static pasture), and make it a shared setting in shared/site-settings.js offered to the other games.
-- [ ] F-27: Add Herd achievement hover progress: mini progress bar and exact amount left on hover/focus, extending ACHIEVEMENT_PROGRESS to the remaining numeric achievements. (partly built: ACHIEVEMENT_PROGRESS gives unearned cards an 'N of M' line for ~6 numeric achievements; no hover bar.)
+- [x] F-27: Add Herd achievement hover progress: mini progress bar and exact amount left on hover/focus, extending ACHIEVEMENT_PROGRESS to the remaining numeric achievements. (partly built: ACHIEVEMENT_PROGRESS gives unearned cards an 'N of M' line for ~6 numeric achievements; no hover bar.)
 - [x] F-28: Add a discreet Herd pace note on the round counter and a save-and-quit nudge every 10 rounds.
-- [ ] F-29: Add Herd plain-language glossary popovers (coupling ratio, counterfactual, welfare, capture) via dotted underlines with a full glossary in How to Play.
-- [ ] F-30: Add Herd friendly save-recovery: when a save fails validation in load_state, show a plain reason and an option to load with defaults.
+- [x] F-29: Add Herd plain-language glossary popovers (coupling ratio, counterfactual, welfare, capture) via dotted underlines with a full glossary in How to Play.
+- [x] F-30: Add Herd friendly save-recovery: when a save fails validation in load_state, show a plain reason and an option to load with defaults.
 - [ ] F-31: Restyle Herd achievement cards: livestock/pasture glyph per earned badge, barnyard-accent border and a brief unlock flourish (reduced-motion respecting).
 - [ ] GF-2: Extend Herd's succession legacy perks into a visible upgrade tree: start with one capture unit, a second policy-advisor option, a rare breed with better breeding odds, a farmhouse skin; make certification and poultry early goals each generation chase. (partly built: F25 succession: hand_over_farm(), legacy_points, LEGACY_PERKS (Family Savings, Heritage Flock, Mentor's Methods), #succession-panel; test_succession.py.) (needs W-3)
 - [ ] GF-3: Add Herd Auditor boss rounds: every 10th round a regulator audit with a visible target (e.g. coupling under 0.6 and welfare over 60), 3 rounds of warning; pass earns a permanent perk, fail costs a fine and a market-trust hit.
