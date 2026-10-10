@@ -21,7 +21,7 @@ STILL_TO_WIRE = set()
 GAME_SCRIPTS = ["lite-mode.js", "error-boundary.js", "perf-mark.js", "debug-overlay.js", "info-footer.js"]
 GAME_STYLES = ["a11y.css", "touch-targets.css", "lite-mode.css"]
 HUB_PAGES = ["index.html", "settings.html", "help.html", "credits.html", "achievements.html",
-             "map.html", "whats-new.html", "roadmap.html", "sources.html", "terms.html"]
+             "map.html", "my-stats.html", "whats-new.html", "roadmap.html", "sources.html", "terms.html"]
 SHARED_FILES = GAME_SCRIPTS + GAME_STYLES
 # Z-17 Report a problem and Z-7 profile helper: on every game page (Classic and Desktop). Not in the
 # service worker's precache list yet (that file belongs to the main session), so they are kept apart

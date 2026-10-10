@@ -72,6 +72,68 @@
     } catch (err) { /* a game's note must never break the page */ }
   }
   window.NoyvjResume = { set: setNote, pull: pullFromGame, key: NOTE_KEY };
+
+  // QI-57: the personal stats page (my-stats.html) is built from a small local play log, kept per browser in
+  // localStorage["play-log:<slug>"] as {days: {"YYYY-MM-DD": {s: seconds, n: opens}}, hours: [24 numbers of
+  // seconds by hour of day]}. Time is counted only while the page is visible, added when it is hidden or left
+  // (no timers), and one visible stretch counts at most 30 minutes (a tab left open on a second screen is not
+  // play). Only the newest 120 days are kept. Never sent anywhere, never in a save. Turn it off with
+  // localStorage["play-log:off"] = "1" (my-stats.html has the switch).
+  const LOG_KEY = "play-log:" + GAME_ID;
+  const LOG_OFF_KEY = "play-log:off";
+  const STRETCH_CAP_S = 1800;
+  const KEEP_DAYS = 120;
+  let visibleSince = document.visibilityState === "hidden" ? null : Date.now();
+  function dayKey(d) {
+    return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+  }
+  function readLog() {
+    try {
+      const parsed = JSON.parse(localStorage.getItem(LOG_KEY) || "null");
+      if (parsed && typeof parsed === "object" && parsed.days && typeof parsed.days === "object") {
+        if (!Array.isArray(parsed.hours) || parsed.hours.length !== 24) parsed.hours = new Array(24).fill(0);
+        return parsed;
+      }
+    } catch (err) { /* start a fresh log */ }
+    return { days: {}, hours: new Array(24).fill(0) };
+  }
+  function writeLog(log) {
+    const keys = Object.keys(log.days).sort();
+    while (keys.length > KEEP_DAYS) delete log.days[keys.shift()];
+    try { localStorage.setItem(LOG_KEY, JSON.stringify(log)); } catch (err) { /* storage blocked */ }
+  }
+  function logEnabled() {
+    try { return localStorage.getItem(LOG_OFF_KEY) !== "1"; } catch (err) { return false; }
+  }
+  function addOpen() {
+    if (!logEnabled()) return;
+    const log = readLog();
+    const key = dayKey(new Date(Date.now()));
+    const day = log.days[key] || (log.days[key] = { s: 0, n: 0 });
+    day.n += 1;
+    writeLog(log);
+  }
+  function addVisibleTime() {
+    if (visibleSince === null) return;
+    const started = visibleSince;
+    visibleSince = null;
+    if (!logEnabled()) return;
+    const seconds = Math.min(STRETCH_CAP_S, Math.max(0, Math.round((Date.now() - started) / 1000)));
+    if (seconds < 1) return;
+    const log = readLog();
+    const when = new Date(started);
+    const key = dayKey(when);
+    const day = log.days[key] || (log.days[key] = { s: 0, n: 0 });
+    day.s += seconds;
+    log.hours[when.getHours()] += seconds;
+    writeLog(log);
+  }
+  addOpen();
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "hidden") addVisibleTime();
+    else if (visibleSince === null) visibleSince = Date.now();
+  });
+  window.addEventListener("pagehide", addVisibleTime);
   document.addEventListener("visibilitychange", () => { if (document.visibilityState === "hidden") pullFromGame(); });
   window.addEventListener("pagehide", pullFromGame);
 })();

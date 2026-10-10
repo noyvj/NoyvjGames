@@ -1,6 +1,6 @@
 # Site-Wide TODO (round 3)
 
-**Progress: 688/1221 items checked off (56.3%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land.
+**Progress: 689/1221 items checked off (56.4%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land.
 
 Built from your answers in `planning/IMPROVEMENT-IDEAS-ROUND-3.md` (Part 4). Every Round 3 section is now answered (2026-10-07 below the Warframe section); earlier this list held only: **GB** (Canopy gamified), **M** (new games), **N** (seasonal events), **O** (Trade Empire and Continuum replayability), **P/Q/S/T** (Signal, Undersleep, Overclock, Last Line open questions), **X** (Warframe tracker) and **R** (returning later). GC-GI, A-L, U, Z and Y are unanswered and wait for you. The previous list is archived at `planning/todo-archive/260914_260927.md`; anything from it that was moved here is marked "moved" there.
 
@@ -300,7 +300,7 @@ You said yes to every item except F5 (undo button, no). New games below each nee
 - [ ] QI-54: (Quick ideas F6) A graded hint ladder in puzzle games: a nudge, then a hint, then the answer, so you never have to leave to look it up. (Partly built 2026-10-10: `shared/hint-ladder.js`/`.css` with 35 browser tests; not wired into any puzzle game yet, so the item stays open.)
 - [ ] QI-55: (Quick ideas F7) Strategy notes page per game: the known good builds and strategies written into the game, so you never alt-tab.
 - [ ] QI-56: (Quick ideas F8) Watch mode for city and sim games: the settlement plays itself slowly so you can leave it on a second screen.
-- [ ] QI-57: (Quick ideas F9) A personal stats page: what you play, when, and how long, so you can see your own pattern.
+- [x] QI-57: (Quick ideas F9) A personal stats page: what you play, when, and how long, so you can see your own pattern. (BUILT 2026-10-10 as `my-stats.html`, fed by a small per-browser play log that `shared/last-played.js` keeps: opens, visible seconds by day and by hour, one stretch capped at 30 minutes, 120 days kept, switchable off and clearable on the page, never sent anywhere; 8 browser tests.)
 - [ ] QI-58: (Quick ideas F10) A "pick up where you stopped" strip on the hub that also shows the exact thing you were doing in each game. (Built 2026-10-10: the hub strip shows the three most recent games with a one-line note; `shared/last-played.js` gained `NoyvjResume.set(text)` and reads an optional Python `resume_note()` when the page is hidden; Canopy, Tide and Le Champ de Mots define it. The other games still need a `resume_note()` of their own, so the item stays open. 7 browser tests plus one per game.)
 
 ---
