@@ -30,7 +30,7 @@ part that must never drift:
                                      "pings_used": n, "par": n|null}},
       "practice": null | {"code", "mode", "kind": "practice", ...same fields...},
       "practice_stats": {"easy": {"played", "won", "pings_hist"}, ...},
-      "settings": {"mode", "assist_shading", "ascii_share", "last_preset"},
+      "settings": {"mode", "assist_shading", "ascii_share", "show_streaks", "last_preset"},
       "earned": {"achievement_id": "YYYY-MM-DD"},
       "flags": {"shared": bool},
       "onboarding_seen": bool,
@@ -652,7 +652,7 @@ def flavour_for_reading(reading, radius, salt):
 # --------------------------------------------------------------------------
 # Engine state
 
-_DEFAULT_SETTINGS = {"mode": "easy", "assist_shading": True, "ascii_share": False, "last_preset": "easy"}
+_DEFAULT_SETTINGS = {"mode": "easy", "assist_shading": True, "ascii_share": False, "show_streaks": False, "last_preset": "easy"}
 
 
 def _fresh_state():
@@ -943,15 +943,18 @@ def evaluate_achievements():
     if archive_finished >= 10:
         _earn("archivist", newly)
 
-    best = 0
-    for m in DAILY_MODES:
-        best = max(best, compute_stats(m, "daily", today)["best_streak"])
-    if best >= 3:
-        _earn("three_in_a_row", newly)
-    if best >= 7:
-        _earn("week_on_air", newly)
-    if best >= 30:
-        _earn("month_on_air", newly)
+    # AN-11: no streak by default. The three streak badges are earned only while "Show my daily streak" is on
+    # (they are recomputed from the played days, so switching it on later awards what the history already earned).
+    if S["settings"].get("show_streaks"):
+        best = 0
+        for m in DAILY_MODES:
+            best = max(best, compute_stats(m, "daily", today)["best_streak"])
+        if best >= 3:
+            _earn("three_in_a_row", newly)
+        if best >= 7:
+            _earn("week_on_air", newly)
+        if best >= 30:
+            _earn("month_on_air", newly)
 
     won_by_date = {}
     for key, rec in S["days"].items():
@@ -1317,7 +1320,7 @@ def _finish(rec, won, today_text, gave_up=False):
     else:
         line = _pick("lose", salt)
     newly = evaluate_achievements()
-    if rec["kind"] == "daily" and won:
+    if rec["kind"] == "daily" and won and S["settings"].get("show_streaks"):
         best = overall_best_streak(today_text)
         if best >= 1:
             events.append({
@@ -1365,11 +1368,12 @@ def _action_share(req):
     return _response(message="Result copied.", newly=newly, dirty=True, extra={"text": text})
 
 
-_SETTING_TYPES = {"assist_shading": bool, "ascii_share": bool}
+_SETTING_TYPES = {"assist_shading": bool, "ascii_share": bool, "show_streaks": bool}
 
 
-def _action_settings(req):
+def _action_settings(req, today_text=None):
     changed = False
+    before_streaks = S["settings"].get("show_streaks")
     for key, kind in _SETTING_TYPES.items():
         if key in req:
             if not isinstance(req[key], kind):
@@ -1382,7 +1386,10 @@ def _action_settings(req):
             return _response(False, "Unknown preset.")
         S["settings"]["last_preset"] = value
         changed = True
-    return _response(dirty=changed)
+    newly = None
+    if today_text is not None and S["settings"].get("show_streaks") and not before_streaks:
+        newly = evaluate_achievements()      # AN-11: switching streaks on awards what the history already earned
+    return _response(newly=newly, dirty=changed)
 
 
 def _action_stats(today_text):
@@ -1393,7 +1400,7 @@ def _action_stats(today_text):
             entry["daily"] = compute_stats(m, "daily", today_text)
             entry["archive"] = compute_stats(m, "archive", today_text)
         modes[m] = entry
-    return _response(extra={"stats": modes, "best_streak": overall_best_streak(today_text)})
+    return _response(extra={"stats": modes, "best_streak": overall_best_streak(today_text) if S["settings"].get("show_streaks") else None})
 
 
 def handle_dict(req):
@@ -1433,7 +1440,7 @@ def handle_dict(req):
     if action == "share":
         return _action_share(req)
     if action == "settings":
-        return _action_settings(req)
+        return _action_settings(req, today_text)
     if action == "stats":
         return _action_stats(today_text)
     if action == "achievements":
@@ -1513,7 +1520,7 @@ def _clean_settings(raw):
     mode = raw.get("mode")
     if isinstance(mode, str) and mode in DAILY_MODES:
         out["mode"] = mode
-    for key in ("assist_shading", "ascii_share"):
+    for key in ("assist_shading", "ascii_share", "show_streaks"):
         if isinstance(raw.get(key), bool):
             out[key] = raw[key]
     last = raw.get("last_preset")

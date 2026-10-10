@@ -170,7 +170,11 @@ def test_settings_are_validated_field_by_field(g):
         "mode": ["hard"], "assist_shading": 1, "ascii_share": "yes", "last_preset": {"a": 1}}})
     assert g.m.S["settings"] == g.m._DEFAULT_SETTINGS
     g.m.load_state({"schema": 1, "settings": {"mode": "hard", "assist_shading": False, "ascii_share": True, "last_preset": "bigsky"}})
-    assert g.m.S["settings"] == {"mode": "hard", "assist_shading": False, "ascii_share": True, "last_preset": "bigsky"}
+    assert g.m.S["settings"] == {"mode": "hard", "assist_shading": False, "ascii_share": True, "show_streaks": False, "last_preset": "bigsky"}
+    g.m.load_state({"schema": 1, "settings": {"show_streaks": True}})
+    assert g.m.S["settings"]["show_streaks"] is True
+    g.m.load_state({"schema": 1, "settings": {"show_streaks": "yes"}})
+    assert g.m.S["settings"]["show_streaks"] is False
     g.m.load_state({"schema": 1, "settings": {"mode": "wide"}})  # wide is not a daily mode
     assert g.m.S["settings"]["mode"] == "easy"
 

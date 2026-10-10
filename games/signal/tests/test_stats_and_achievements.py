@@ -43,6 +43,8 @@ def test_a_loss_breaks_the_streak_immediately(g):
 
 
 def test_streaks_are_per_mode_and_recomputed_not_trusted(g):
+    g.call("boot")
+    g.call("settings", show_streaks=True)
     for offset in range(3):
         play_day(g, offset, mode="hard")
     stats = g.call("stats")
@@ -66,6 +68,8 @@ def test_histogram_buckets_wins_by_pings_used(g):
 
 
 def test_leaderboard_event_reports_best_streak_on_daily_wins_only(g):
+    g.call("boot")
+    g.call("settings", show_streaks=True)
     play_day(g, 0)
     resp = play_day(g, 1)
     ev = [e for e in resp["events"] if e["type"] == "leaderboard"]
@@ -126,6 +130,8 @@ def test_both_bands_needs_the_same_day(g):
 
 
 def test_streak_achievements_thresholds(g):
+    g.call("boot")
+    g.call("settings", show_streaks=True)
     for offset in range(2):
         play_day(g, offset)
     assert "three_in_a_row" not in earned(g)
@@ -137,6 +143,8 @@ def test_streak_achievements_thresholds(g):
 
 
 def test_month_on_air_after_thirty_days(g):
+    g.call("boot")
+    g.call("settings", show_streaks=True)
     for offset in range(30):
         play_day(g, offset)
     assert "month_on_air" in earned(g)
@@ -210,3 +218,34 @@ def test_new_achievements_are_reported_once(g):
     resp = play_day(g, 0, pings=1)
     assert {a["id"] for a in resp["new"]} >= {"first_contact", "lucky_guess"}
     assert g.call("view")["new"] == []
+
+
+# ---- AN-11: no streak by default ----
+
+def test_streaks_are_off_by_default_nothing_is_shown_or_reported_or_earned(g):
+    g.call("boot")
+    assert g.m.S["settings"]["show_streaks"] is False
+    for offset in range(8):
+        resp = play_day(g, offset)
+        assert [e for e in resp["events"] if e["type"] == "leaderboard"] == []
+    assert g.call("stats")["best_streak"] is None
+    got = earned(g)
+    assert not ({"three_in_a_row", "week_on_air", "month_on_air"} & got)
+
+
+def test_switching_streaks_on_later_awards_what_the_history_already_earned_and_nothing_was_lost(g):
+    g.call("boot")
+    for offset in range(8):
+        play_day(g, offset)
+    resp = g.call("settings", show_streaks=True)
+    assert {a["id"] for a in resp["new"]} == {"three_in_a_row", "week_on_air"}
+    assert g.call("stats")["best_streak"] == 8
+    off = g.call("settings", show_streaks=False)
+    assert off["new"] == [] and g.call("stats")["best_streak"] is None
+    assert {"three_in_a_row", "week_on_air"} <= earned(g)          # earned badges are permanent
+
+
+def test_show_streaks_must_be_a_real_boolean(g):
+    g.call("boot")
+    assert g.call("settings", show_streaks="yes")["ok"] is False
+    assert g.m.S["settings"]["show_streaks"] is False

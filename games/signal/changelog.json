@@ -1,6 +1,10 @@
 {
   "changelog": [
     {
+      "date": "2026-10-11",
+      "entry": "Changed: no daily streak unless you want one. The streak and best-streak tiles, the three streak badges and the streak leaderboard line are now off by default, so missing a day costs nothing. Switch on \"Show my daily streak\" in Settings and your history is counted: nothing was lost, and any streak badges your past days already earned are awarded then."
+    },
+    {
       "date": "2026-10-08",
       "entry": "New: earned achievements now have a Share button that copies a line you can paste, and a Credits link sits at the bottom of the page (in the Help menu on Desktop)."
     },

@@ -146,6 +146,8 @@
       <div class="settings-row"><button id="theme-setting-button" class="secondary" type="button">Toggle light / dark theme</button></div>
       <div class="settings-row"><label><input type="checkbox" id="assist-checkbox" checked> Easy mode: hatch tiles the readings have ruled out</label></div>
       <div class="settings-row"><label><input type="checkbox" id="ascii-checkbox"> Share as plain text (. : + #) instead of block glyphs</label></div>
+      <div class="settings-row"><label><input type="checkbox" id="streak-checkbox" aria-describedby="streak-note"> Show my daily streak</label></div>
+      <p id="streak-note" class="panel-note">Off by default, so missing a day costs nothing. Turn it on to see your streak and best streak, earn the three streak badges and offer your longest streak to the optional leaderboard. Your played days are always kept, so nothing is lost either way.</p>
       <div class="settings-row">
         <button id="display-reset-button" class="secondary" type="button">Reset display settings</button>
         <button id="reset-progress-button" class="secondary" type="button">Reset all Signal progress</button>
@@ -160,8 +162,8 @@
         <li>Every puzzle is generated from its date, offline, and checked by a solver so there is always a way to find the answer within your pings.</li>
         <li>Par is how many pings a greedy solver needed. It is an upper bound on the true minimum, so beating it is possible.</li>
         <li>The signal rule is invented for this game: a transmitter's strength at a tile is max(0, radius minus the Manhattan distance). It is not a model of real radio propagation.</li>
-        <li>Streaks count wins on the daily puzzle only. Archive and practice never touch them.</li>
-        <li>The leaderboard, if you opt in, shows your longest daily streak. Scores are reported by your browser, so it is a friendly board, not an anti-cheat one.</li>
+        <li>There is no streak unless you switch on "Show my daily streak" in Settings. When it is on, streaks count wins on the daily puzzle only; the archive and practice never touch them.</li>
+        <li>The leaderboard, if you opt in and have the streak switched on, shows your longest daily streak. Scores are reported by your browser, so it is a friendly board, not an anti-cheat one.</li>
         <li>Puzzles are generated in your browser by Python running in WebAssembly (Pyodide). The board draws instantly; the first ping of a cold visit waits for that engine to finish loading.</li>
       </ul>
     </div>

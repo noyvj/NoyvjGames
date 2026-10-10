@@ -32,6 +32,7 @@ def test_past_date_is_an_archive_and_todays_is_a_daily(g):
 
 def test_archive_wins_never_touch_the_streak(g):
     boot(g)
+    g.call("settings", show_streaks=True)
     g.set_day(3)
     for offset in range(3):
         date = "2026-09-%d" % (27 + offset)

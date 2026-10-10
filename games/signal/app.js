@@ -94,7 +94,7 @@
       session: { type: "daily", date: utcToday(), mode: "easy", label: "Signal · Easy · Daily", number: null, code: null },
       board: { n: 9, k: 2, radius: 4, budget: 8, par: null, top: 5, assist: true, spacing: 3, mode_label: "Easy" },
       pings: [], marks: [], status: "inprogress", pings_left: 8, can_commit: false, possible: null,
-      truth: null, guess: null, result: null, stats: null, ach: null, settings: { mode: "easy", assist_shading: true, ascii_share: false, last_preset: "easy" },
+      truth: null, guess: null, result: null, stats: null, ach: null, settings: { mode: "easy", assist_shading: true, ascii_share: false, show_streaks: false, last_preset: "easy" },
       today: utcToday(), epoch: EPOCH, next_utc: null, first_run: true, ascii: false,
     };
   }
@@ -241,6 +241,7 @@
     if (view.ach) $("achievements-toggle-button").textContent = "🏆 Achievements (" + view.ach.earned + "/" + view.ach.total + ")";
     $("assist-checkbox").checked = !!view.settings.assist_shading;
     $("ascii-checkbox").checked = !!view.settings.ascii_share;
+    $("streak-checkbox").checked = !!view.settings.show_streaks;
     $("assist-checkbox").disabled = !view.board.assist;
     var sel = $("practice-preset");
     if (document.activeElement !== sel && view.settings.last_preset) sel.value = view.settings.last_preset;
@@ -400,7 +401,10 @@
       panel.appendChild(el("p", "panel-note", "Stats appear once the receiver has warmed up..."));
       return;
     }
-    panel.appendChild(el("p", "panel-note", "Longest daily streak (any mode): " + resp.best_streak + " day(s). Daily streaks count wins on the daily puzzle only."));
+    var showStreaks = resp.best_streak !== null && resp.best_streak !== undefined;
+    panel.appendChild(el("p", "panel-note", showStreaks
+      ? "Longest daily streak (any mode): " + resp.best_streak + " day(s). Daily streaks count wins on the daily puzzle only."
+      : "Daily streaks are off, so missing a day costs nothing. You can switch them on in Settings."));
     Object.keys(resp.stats).forEach(function (mode) {
       var s = resp.stats[mode];
       var block = el("div", "stat-block");
@@ -408,7 +412,7 @@
       if (s.daily) {
         var d = s.daily;
         var grid = el("div", "stat-grid");
-        [["Played", d.played], ["Win %", d.played ? Math.round(100 * d.won / d.played) : 0], ["Streak", d.streak], ["Best", d.best_streak]].forEach(function (pair) {
+        [["Played", d.played], ["Win %", d.played ? Math.round(100 * d.won / d.played) : 0]].concat(showStreaks ? [["Streak", d.streak], ["Best", d.best_streak]] : []).forEach(function (pair) {
           var cellBox = el("div");
           cellBox.appendChild(el("b", "", String(pair[1])));
           cellBox.appendChild(el("span", "", pair[0]));
@@ -758,6 +762,7 @@
     }
     $("assist-checkbox").addEventListener("change", function (ev) { engineSetting("assist_shading", ev.target.checked); });
     $("ascii-checkbox").addEventListener("change", function (ev) { engineSetting("ascii_share", ev.target.checked); });
+    $("streak-checkbox").addEventListener("change", function (ev) { engineSetting("show_streaks", ev.target.checked); requestStats(); });
     $("theme-setting-button").addEventListener("click", function () { if (window.NoyvjTheme) window.NoyvjTheme.toggle(); });
     $("reset-progress-button").addEventListener("click", function () {
       confirmThen("signal-reset", "Erase ALL Signal progress in this browser (streaks, archive results, achievements)? A save code you already made can still restore it.", "Erase everything", false, async function () {

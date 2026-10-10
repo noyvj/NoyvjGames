@@ -1,6 +1,6 @@
 # Site-Wide TODO (round 3)
 
-**Progress: 737/1261 items checked off (58.4%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land.
+**Progress: 738/1261 items checked off (58.5%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land.
 
 Built from your answers in `planning/IMPROVEMENT-IDEAS-ROUND-3.md` (Part 4). Every Round 3 section is now answered (2026-10-07 below the Warframe section); earlier this list held only: **GB** (Canopy gamified), **M** (new games), **N** (seasonal events), **O** (Trade Empire and Continuum replayability), **P/Q/S/T** (Signal, Undersleep, Overclock, Last Line open questions), **X** (Warframe tracker) and **R** (returning later). GC-GI, A-L, U, Z and Y are unanswered and wait for you. The previous list is archived at `planning/todo-archive/260914_260927.md`; anything from it that was moved here is marked "moved" there.
 
@@ -208,7 +208,7 @@ Yes answers mean the recommendation; items below are the work they create.
 - [x] AN-9: Stranded: add one more ending that is sadder but still gentle, with no on-screen death (Sd6).
 - [x] AN-10: Stranded (and the other story games): keep narration silent and in text only; any per-day narrator intro stays off by default (Pq6: no voiced narrator unless real voice acting is ever wanted).
 **Cross-game patterns you agreed to:**
-- [ ] AN-11: Signal: the daily puzzle has no streak by default; the archive stays so missing a day costs nothing (Pq1).
+- [x] AN-11: Signal: the daily puzzle has no streak by default; the archive stays so missing a day costs nothing (Pq1).
 - [ ] AN-12: Every hint ladder: each rung opens only when you press "Another hint", and the first rung asks "Would you like a suggestion?" (Pq2).
 - [ ] AN-13: Skill trees with no free refund: allow moving one point for a small in-game cost, never a restart (Pq3).
 - [ ] AN-14: Build one test page with three mockups of overlay windows (a side drawer, a centred pop-up and a full-screen menu) so you can pick the style for PC (Pq5).

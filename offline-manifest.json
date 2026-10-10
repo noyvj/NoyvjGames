@@ -3572,22 +3572,22 @@
     },
     {
      "path": "games/signal/app.js",
-     "bytes": 39349,
+     "bytes": 39805,
      "precached": true
     },
     {
      "path": "games/signal/changelog.json",
-     "bytes": 1131,
+     "bytes": 1545,
      "precached": false
     },
     {
      "path": "games/signal/game.py",
-     "bytes": 56934,
+     "bytes": 57719,
      "precached": true
     },
     {
      "path": "games/signal/index.html",
-     "bytes": 18569,
+     "bytes": 19143,
      "precached": true
     },
     {
@@ -3602,7 +3602,7 @@
     },
     {
      "path": "games/signal/pc.html",
-     "bytes": 21390,
+     "bytes": 21964,
      "precached": true
     },
     {
@@ -3789,7 +3789,7 @@
     }
    ],
    "cdn": [],
-   "bytes": 519299,
+   "bytes": 522102,
    "bytes_complete": true
   },
   "lexis": {
@@ -6286,17 +6286,17 @@
     },
     {
      "path": "games/hull-repair/app.js",
-     "bytes": 28686,
+     "bytes": 28758,
      "precached": true
     },
     {
      "path": "games/hull-repair/boards.py",
-     "bytes": 2286,
+     "bytes": 2407,
      "precached": true
     },
     {
      "path": "games/hull-repair/boards_core.py",
-     "bytes": 3306,
+     "bytes": 3829,
      "precached": true
     },
     {
@@ -6316,12 +6316,12 @@
     },
     {
      "path": "games/hull-repair/boards_life.py",
-     "bytes": 2687,
+     "bytes": 3142,
      "precached": true
     },
     {
      "path": "games/hull-repair/changelog.json",
-     "bytes": 2648,
+     "bytes": 3158,
      "precached": true
     },
     {
@@ -6346,12 +6346,12 @@
     },
     {
      "path": "games/hull-repair/info.py",
-     "bytes": 2276,
+     "bytes": 2412,
      "precached": true
     },
     {
      "path": "games/hull-repair/logbook.py",
-     "bytes": 6440,
+     "bytes": 6983,
      "precached": true
     },
     {
@@ -6386,7 +6386,7 @@
     },
     {
      "path": "games/hull-repair/render.py",
-     "bytes": 15999,
+     "bytes": 16575,
      "precached": true
     },
     {
@@ -6609,7 +6609,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14317471,
+   "bytes": 14320407,
    "bytes_complete": true
   },
   "station-medic": {
@@ -6626,7 +6626,7 @@
     },
     {
      "path": "games/station-medic/app.js",
-     "bytes": 28711,
+     "bytes": 28489,
      "precached": true
     },
     {
@@ -6686,7 +6686,7 @@
     },
     {
      "path": "games/station-medic/changelog.json",
-     "bytes": 841,
+     "bytes": 1158,
      "precached": true
     },
     {
@@ -6696,7 +6696,7 @@
     },
     {
      "path": "games/station-medic/game.py",
-     "bytes": 21357,
+     "bytes": 21106,
      "precached": true
     },
     {
@@ -6711,7 +6711,7 @@
     },
     {
      "path": "games/station-medic/index.html",
-     "bytes": 16144,
+     "bytes": 16138,
      "precached": true
     },
     {
@@ -6736,7 +6736,7 @@
     },
     {
      "path": "games/station-medic/pc.html",
-     "bytes": 18166,
+     "bytes": 18160,
      "precached": true
     },
     {
@@ -6746,7 +6746,7 @@
     },
     {
      "path": "games/station-medic/progress.py",
-     "bytes": 2074,
+     "bytes": 2396,
      "precached": true
     },
     {
@@ -6974,7 +6974,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14313436,
+   "bytes": 14313590,
    "bytes_complete": true
   },
   "stranded": {
@@ -6991,12 +6991,12 @@
     },
     {
      "path": "games/stranded/app.js",
-     "bytes": 25550,
+     "bytes": 26430,
      "precached": true
     },
     {
      "path": "games/stranded/changelog.json",
-     "bytes": 477,
+     "bytes": 1078,
      "precached": true
     },
     {
@@ -7016,12 +7016,12 @@
     },
     {
      "path": "games/stranded/index.html",
-     "bytes": 15242,
+     "bytes": 15422,
      "precached": true
     },
     {
      "path": "games/stranded/info.py",
-     "bytes": 3399,
+     "bytes": 3568,
      "precached": true
     },
     {
@@ -7046,22 +7046,22 @@
     },
     {
      "path": "games/stranded/pc.html",
-     "bytes": 17232,
+     "bytes": 17412,
      "precached": true
     },
     {
      "path": "games/stranded/pc.js",
-     "bytes": 2412,
+     "bytes": 2411,
      "precached": true
     },
     {
      "path": "games/stranded/render.py",
-     "bytes": 6439,
+     "bytes": 6451,
      "precached": true
     },
     {
      "path": "games/stranded/settings.js",
-     "bytes": 6909,
+     "bytes": 7759,
      "precached": true
     },
     {
@@ -7071,27 +7071,27 @@
     },
     {
      "path": "games/stranded/story.py",
-     "bytes": 1560,
+     "bytes": 1707,
      "precached": true
     },
     {
      "path": "games/stranded/story_1.py",
-     "bytes": 9775,
+     "bytes": 10102,
      "precached": true
     },
     {
      "path": "games/stranded/story_2.py",
-     "bytes": 11604,
+     "bytes": 12542,
      "precached": true
     },
     {
      "path": "games/stranded/story_3.py",
-     "bytes": 15289,
+     "bytes": 15589,
      "precached": true
     },
     {
      "path": "games/stranded/story_4.py",
-     "bytes": 5817,
+     "bytes": 7255,
      "precached": true
     },
     {
@@ -7284,7 +7284,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14280430,
+   "bytes": 14286451,
    "bytes_complete": true
   },
   "evidence-hunt": {
