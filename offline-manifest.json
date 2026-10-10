@@ -7626,12 +7626,12 @@
     },
     {
      "path": "games/trade-empire/changelog.json",
-     "bytes": 10421,
+     "bytes": 11349,
      "precached": false
     },
     {
      "path": "games/trade-empire/game.py",
-     "bytes": 224733,
+     "bytes": 224808,
      "precached": true
     },
     {
@@ -7909,7 +7909,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14686545,
+   "bytes": 14687548,
    "bytes_complete": true
   }
  }
