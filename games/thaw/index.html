@@ -224,6 +224,8 @@
       <p id="round-display" class="status-line">Round 1</p>
       <!-- G-22: rough session length and a gentle save nudge. -->
       <p id="session-note" class="session-note"></p>
+      <!-- G-28: key terms with one-line pop-ups, and the full glossary (see game.py). -->
+      <p id="glossary-strip" class="glossary-strip"><span class="glossary-strip-label">Key terms:</span> <span id="glossary-strip-terms"></span></p>
       <!-- GG-26: a made-up headline per round; hidden by the Story switch. -->
       <p id="headline-ticker" class="headline-ticker"></p>
       <p id="funds-display" class="status-line">Funds: 300</p>
@@ -407,6 +409,11 @@
       </div>
       <p id="policy-stance-display" class="comparison-message"></p>
     </div>
+
+    <details id="glossary-details" class="section tool-section">
+      <summary>📖 Key terms: the full glossary</summary>
+      <dl id="glossary-list" class="glossary-list"></dl>
+    </details>
 
     <div id="investments" class="section">
       <div class="invest-row" data-category="output">
@@ -697,6 +704,10 @@
         selector: "#advance-round-button",
         title: "Advance Round",
         text: "When you're done investing, click here to advance all three regions by one round — funds are collected, temperature rises, and melt/feedback is recalculated for each.",
+      },
+      {
+        title: "Key terms",
+        text: "Melt threshold: the temperature (+10°) past which permafrost starts to melt and methane begins adding to the warming rate. Feedback dampening: how much of the methane feedback your Preservation and Monitoring units remove; it never touches the fixed background rise. Acceleration factor: how many times faster than the steady background rise warming is going right now; 1x means no feedback yet. Monitoring & Response: units that each remove a little of the feedback (4%) and add to the shared research station; they never earn funds. The Key terms list in the game has the rest, and the underlined terms near the top of Region A pop up a one-line definition.",
       },
       {
         title: "You're ready",

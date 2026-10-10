@@ -81,7 +81,7 @@
     {
       "id": "pc-about-panel",
       "title": "About Thaw",
-      "members": [".tagline", ".context-blurb"],
+      "members": [".tagline", ".context-blurb", "#glossary-details"],
       "group": "Help",
       "label": "ℹ️ About Thaw"
     },

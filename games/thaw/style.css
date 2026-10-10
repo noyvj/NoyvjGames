@@ -1403,3 +1403,32 @@ html[data-lite="true"] .achievement-card--earned { box-shadow: none; }
 
 /* GG-26 */
 .headline-ticker { margin: 0.1rem 0 0.5rem; padding: 0.35rem 0.6rem; font-size: 0.8rem; font-style: italic; border-left: 3px solid #8fd8ff; background: rgba(120, 160, 215, 0.1); border-radius: 0 6px 6px 0; }
+
+/* G-28: glossary pop-ups (CSS only: hover or keyboard focus) and the full list */
+.glossary-strip { margin: 0.1rem 0 0.45rem; font-size: 0.78rem; opacity: 0.9; }
+.glossary-strip-label { opacity: 0.7; }
+.gloss-wrap { position: relative; display: inline-block; margin-right: 0.5rem; }
+.gloss { padding: 0; border: 0; background: none; color: inherit; font: inherit; text-decoration: underline dotted; cursor: help; }
+.gloss-pop {
+  display: none;
+  position: absolute;
+  left: 0;
+  top: 1.4em;
+  z-index: 30;
+  width: max-content;
+  max-width: min(18rem, 80vw);
+  padding: 0.45rem 0.6rem;
+  border-radius: 8px;
+  border: 1px solid rgba(140, 180, 230, 0.5);
+  background: #14203a;
+  color: #eef4ff;
+  font-size: 0.78rem;
+  font-style: normal;
+  line-height: 1.35;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
+}
+.gloss-wrap:hover .gloss-pop, .gloss-wrap:focus-within .gloss-pop { display: block; }
+html[data-theme="light"] .gloss-pop { background: #fbf6ec; color: #1b1710; border-color: rgba(122, 74, 18, 0.45); }
+.glossary-list { margin: 0.5rem 0 0; font-size: 0.85rem; }
+.glossary-list dt { font-weight: 600; margin-top: 0.5rem; }
+.glossary-list dd { margin: 0.1rem 0 0; opacity: 0.85; }

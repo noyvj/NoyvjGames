@@ -167,6 +167,8 @@ ELEMENT_IDS = [
     "replay-chart",
     "replay-readouts",
     "replay-log",
+    "glossary-strip-terms",
+    "glossary-list",
     "board-body",
     "board-caption",
     "board-th-region",

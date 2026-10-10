@@ -4291,6 +4291,67 @@ def render_headline():
     )
 
 
+# ===========================================================================
+# G-28: glossary. Four underlined key terms near the top of Region A's block pop up a one-line
+# definition on hover or keyboard focus (CSS only), and a "Key terms" disclosure lists the whole
+# glossary. The same wording closes the How to Play walkthrough (index.html and pc.js).
+# ===========================================================================
+# (key, term, one-line definition); "{melt}" and "{second}" are filled in with the chosen unit.
+GLOSSARY = (
+    ("melt", "Melt threshold",
+     "The temperature ({melt}) past which permafrost starts to melt and methane begins adding to the warming rate."),
+    ("dampening", "Feedback dampening",
+     "How much of the methane feedback your Preservation and Monitoring units remove; it never touches the fixed background rise."),
+    ("acceleration", "Acceleration factor",
+     "How many times faster than the steady background rise warming is going right now; 1x means no feedback yet."),
+    ("monitoring", "Monitoring & Response",
+     "Units that each remove a little of the feedback (4%) and add to the shared research station; they never earn funds."),
+    ("preservation", "Permafrost Preservation",
+     "Units that each remove more of the feedback (8%) and, once the loop is held steady, power restoration."),
+    ("background", "Background rise",
+     "The fixed warming every round that nothing you invest in can change; only the methane feedback on top of it can be slowed."),
+    ("tipping", "Tipping event",
+     "Permafrost starting to melt, or warming going critical. The game counts the rounds since the last one."),
+    ("critical", "Critical tier",
+     "Acceleration at 2x the background rate or more. The one-time emergency rescue becomes available while a region is critical."),
+    ("saved", "Degrees saved",
+     "How much cooler a region is than its shadow twin, which faced the same background but never invested in protection."),
+    ("restoration", "Restoration",
+     "After three steady rounds with the loop held down, each Preservation unit pulls a little melt-driven warming back."),
+)
+STRIP_TERMS = ("melt", "dampening", "acceleration", "monitoring")
+
+
+def glossary_definition(key):
+    for entry_key, _term, text in GLOSSARY:
+        if entry_key == key:
+            return text.format(melt=deg(MELT_THRESHOLD, 0, plus=True))
+    return ""
+
+
+def glossary_strip_html():
+    parts = []
+    for key, term, _text in GLOSSARY:
+        if key in STRIP_TERMS:
+            definition = _escape(glossary_definition(key))
+            parts.append(
+                f'<span class="gloss-wrap"><button type="button" class="gloss" aria-describedby="gloss-pop-{key}">{_escape(term)}</button>'
+                f'<span class="gloss-pop" role="tooltip" id="gloss-pop-{key}">{definition}</span></span>'
+            )
+    return "".join(parts)
+
+
+def glossary_list_html():
+    return "".join(
+        f"<dt>{_escape(term)}</dt><dd>{_escape(glossary_definition(key))}</dd>" for key, term, _text in GLOSSARY
+    )
+
+
+def render_glossary():
+    document.getElementById("glossary-strip-terms").innerHTML = glossary_strip_html()
+    document.getElementById("glossary-list").innerHTML = glossary_list_html()
+
+
 def render():
     render_info_page()
     document.getElementById("round-display").innerText = f"Round {region.round_number}"
@@ -4519,6 +4580,7 @@ def render():
     render_board()  # after the archive update so "best saved" is current
     render_focus()
     render_planner()
+    render_glossary()
     render_headline()
     render_replay()
     render_undo()

@@ -53,6 +53,10 @@ window.THAW_PC_TUTORIAL_STEPS = [
     text: "The three icons are Achievements, the Climate Scientist (real NOAA methane data) and Settings. The Menu (or Escape, when nothing else is open) holds everything else: the climate archive and scientist's log, Four regions one story, Region D, long-game and framing options, community comparison, How to Play, the real-world story, What's New and feedback. Each opens as a window over the game, and Escape closes the top one. Key moments in your regions also pop up as notifications over the stage.",
   },
   {
+    title: "Key terms",
+    text: "Melt threshold: the temperature (+10°) past which permafrost starts to melt and methane begins adding to the warming rate. Feedback dampening: how much of the methane feedback your Preservation and Monitoring units remove; it never touches the fixed background rise. Acceleration factor: how many times faster than the steady background rise warming is going right now; 1x means no feedback yet. Monitoring & Response: units that each remove a little of the feedback (4%) and add to the shared research station; they never earn funds. The Key terms window in the Menu has the rest, and the underlined terms in Region A's block pop up a one-line definition.",
+  },
+  {
     title: "You're ready",
     text: "That's the whole loop: watch the background trajectory rise, invest in Preservation and Monitoring to dampen the feedback loop before it tips, and advance rounds to see the gap between intervention and inaction grow. Good luck out there.",
   },
