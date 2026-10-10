@@ -984,7 +984,7 @@ async function loadMySaves() {
 // below keeps the dashboard working.
 const ACHIEVEMENT_GAMES_FALLBACK = [
   "sol", "continuum", "canopy", "grid", "trade-empire", "tide",
-  "aftermath", "herd", "thaw", "loop", "drift", "champ-de-mots", "signal", "lexis", "heist-committee", "lighthouse", "pocket-bazaar", "dead-reckoning", "logic-gates", "robot-script",
+  "aftermath", "herd", "thaw", "loop", "drift", "champ-de-mots", "signal", "lexis", "heist-committee", "lighthouse", "pocket-bazaar", "dead-reckoning", "logic-gates", "robot-script", "hull-repair",
 ];
 
 async function loadAchievementGameIds() {
@@ -1024,6 +1024,7 @@ const GAME_DISPLAY_NAMES = {
   "dead-reckoning": "Dead Reckoning",
   "logic-gates": "Logic Gates",
   "robot-script": "Robot Script",
+  "hull-repair": "Hull Repair",
 };
 
 // --- R2-Z23b: earned holiday-event badges (data contract v1) ---

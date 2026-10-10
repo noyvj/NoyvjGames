@@ -24,6 +24,7 @@
     "dead-reckoning": "Dead Reckoning",
     "logic-gates": "Logic Gates",
     "robot-script": "Robot Script",
+    "hull-repair": "Hull Repair",
   };
   let games = [];                       // [{slug, name, href}] from the lobby page
   let ownData = null;                   // the owner's own profile data, when viewing it

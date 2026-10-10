@@ -1,0 +1,39 @@
+{
+  "@context": "https://schema.org",
+  "@type": [
+    "VideoGame",
+    "WebApplication"
+  ],
+  "name": "Hull Repair",
+  "description": "Route power and pipes across a damaged space-station hull: join each pair of matching ports without crossing a line. Every board repairs one room on a station map, so forty small puzzles add up to a bigger picture. Nothing is timed. Working title.",
+  "url": "https://noyvj.github.io/NoyvjGames/games/hull-repair/",
+  "image": "https://noyvj.github.io/NoyvjGames/share/hull-repair.png",
+  "applicationCategory": "GameApplication",
+  "operatingSystem": "Any modern web browser",
+  "browserRequirements": "Requires JavaScript and WebAssembly",
+  "gamePlatform": "Web browser",
+  "playMode": "SinglePlayer",
+  "inLanguage": "en",
+  "isAccessibleForFree": true,
+  "offers": {
+    "@type": "Offer",
+    "price": "0",
+    "priceCurrency": "USD"
+  },
+  "author": {
+    "@type": "Person",
+    "name": "Noyvj",
+    "url": "https://github.com/noyvj"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "NoyvjGames",
+    "url": "https://noyvj.github.io/NoyvjGames/"
+  },
+  "genre": [
+    "Short session"
+  ],
+  "dateCreated": "2026-10-10",
+  "dateModified": "2026-10-10",
+  "timeRequired": "PT20M"
+}

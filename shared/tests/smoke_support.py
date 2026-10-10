@@ -7,7 +7,7 @@ Every older game ships a pytest fixture `game_env` in `games/<slug>/tests/confte
 `game.py` against a fake DOM (`FakeElement`s keyed by id, a fake `js` and `pyodide` module). This
 module imports that conftest under a unique package name and calls the fixture's own function, so
 the games' boot code is exactly the one their own tests use and nothing is duplicated. The
-engine-style games (Signal, Chronicle, Lexis, Heist Committee, Lighthouse, Pocket Bazaar, Dead Reckoning, Logic Gates, Robot Script) have no DOM: their `game.py` is a plain module with
+engine-style games (Signal, Chronicle, Lexis, Heist Committee, Lighthouse, Pocket Bazaar, Dead Reckoning, Logic Gates, Robot Script, Hull Repair) have no DOM: their `game.py` is a plain module with
 a request/response entry point, driven here with a small action grammar instead of clicks.
 
 Importing a game's tests package changes `sys.path` and `sys.modules` (every game's module is
@@ -58,7 +58,7 @@ def isolated_imports():
     """Restore sys.path and sys.modules on exit, so whatever a game's conftest imported (or
     inserted into the path) disappears again."""
     saved_path = list(sys.path)
-    saved_modules = set(sys.modules)
+    saved_modules = dict(sys.modules)
     try:
         yield
     finally:
@@ -66,6 +66,7 @@ def isolated_imports():
         for name in list(sys.modules):
             if name not in saved_modules:
                 del sys.modules[name]
+        sys.modules.update(saved_modules)      # a game module that shadowed an already-imported name goes away again
 
 
 def load_conftest(slug):
@@ -473,6 +474,35 @@ def robot_request(rng, last):
     return {"action": "run"}
 
 
+def hull_request(rng, last):
+    """Hull Repair: pick rooms, lay lines by touching a port and dragging over neighbouring cells, undo, clear, climb the hints."""
+    view = last or {}
+    roll = rng.random()
+    board = view.get("board") or {}
+    w, h = int(board.get("w", 5)), int(board.get("h", 5))
+    if roll < 0.03:
+        return {"action": rng.choice(["open", "reset", "bogus", "undo", "clear", "next", "hint", "load_answer"])}
+    if roll < 0.08:
+        ids = [r["id"] for deck in view.get("rooms", []) for r in deck.get("rooms", []) if r.get("open")]
+        return {"action": "pick", "board": rng.choice(ids or ["x"])}
+    if roll < 0.14:
+        return {"action": rng.choice(["hint", "load_answer", "clear", "undo", "cell"]), "x": rng.randrange(w), "y": rng.randrange(h)}
+    if roll < 0.18:
+        return {"action": "clear_line", "line": rng.choice([ln["c"] for ln in board.get("lines", [])] or ["A"])}
+    if roll < 0.42:
+        ports = [tuple(p) for ln in board.get("lines", []) for p in (ln["src"], ln["dst"])] or [(0, 0)]
+        x, y = rng.choice(ports)
+        return {"action": "begin", "x": x, "y": y}
+    if roll < 0.85:
+        x, y, cells = rng.randrange(w), rng.randrange(h), []
+        for _ in range(rng.randrange(1, 7)):
+            dx, dy = rng.choice([(1, 0), (-1, 0), (0, 1), (0, -1)])
+            x, y = min(max(x + dx, 0), w - 1), min(max(y + dy, 0), h - 1)
+            cells.append([x, y])
+        return {"action": "move", "cells": cells}
+    return {"action": "end"}
+
+
 @contextlib.contextmanager
 def engine_game(slug):
     """Yield (call, get_state, next_request) for an engine-style game, freshly reset."""
@@ -529,6 +559,12 @@ def engine_game(slug):
             import game as module                    # noqa: PLC0415 -- resolved through that path
             module.handle(json.dumps({"action": "reset"}))
             yield (lambda req: json.loads(module.handle(json.dumps(req)))), module.get_state, robot_request
+        elif slug == "hull-repair":
+            load_conftest(slug)                     # puts games/hull-repair (and its tools) on sys.path
+            sys.modules.pop("boards", None)         # the backend's leaderboard `boards` may already be imported by another test file
+            import game as module                    # noqa: PLC0415 -- resolved through that path
+            module.handle(json.dumps({"action": "reset"}))
+            yield (lambda req: json.loads(module.handle(json.dumps(req)))), module.get_state, hull_request
         else:
             raise KeyError(slug)
 
@@ -537,5 +573,5 @@ def engine_game(slug):
 
 FAKE_DOM_GAMES = ["aftermath", "canopy", "champ-de-mots", "continuum", "drift", "grid", "herd", "loop",
                   "sol", "thaw", "tide", "trade-empire"]
-ENGINE_GAMES = ["signal", "chronicle", "lexis", "heist-committee", "lighthouse", "pocket-bazaar", "dead-reckoning", "logic-gates", "robot-script"]
+ENGINE_GAMES = ["signal", "chronicle", "lexis", "heist-committee", "lighthouse", "pocket-bazaar", "dead-reckoning", "logic-gates", "robot-script", "hull-repair"]
 ALL_GAMES = sorted(FAKE_DOM_GAMES + ENGINE_GAMES)

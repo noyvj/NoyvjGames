@@ -81,6 +81,15 @@
         "Herd R-23: reactive tagline"
       ]
     },
+    "hull-repair": {
+      "commit_count": 8,
+      "last_updated": "2026-10-10",
+      "recent_commits": [
+        "Hull Repair milestone 7: Desktop boot and wrap-up",
+        "Hull Repair milestone 6: Achievements",
+        "Hull Repair milestone 5: Standard kit"
+      ]
+    },
     "lexis": {
       "commit_count": 11,
       "last_updated": "2026-10-07",

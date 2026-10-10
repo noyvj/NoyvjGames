@@ -63,6 +63,7 @@ THEMES = {
     "dead-reckoning": (["#17405e", "#07131f"], "gridlines", "#7fd1ff", "#10283d", ("compass",)),
     "logic-gates": (["#14233a", "#0a1220"], "gridlines", "#5fd4e6", "#0a1220", ("gate",)),
     "robot-script": (["#2a3348", "#151a26"], "gridlines", "#8fd4e3", "#1c2230", ("robot",)),
+    "hull-repair": (["#2d3948", "#141a26"], "gridlines", "#f2b84b", "#141a26", ("hull",)),
     "trade-empire": (["#1a1f3a", "#0d0f1e"], "network", "#e0c34c", "#171b30", ("letter", "$", "#e0c34c")),
 }
 FALLBACK_THEME = (["#1a1f3a", "#0d0f1e"], "stars", "#8fb0e8", "#2c4a7c", ("letter", "?", "#ffffff"))
@@ -345,6 +346,14 @@ def draw_glyph(draw, glyph, scale, tile_color):
         for cx in (26, 38):
             draw.ellipse(((cx - 3.2) * scale, 29.8 * scale, (cx + 3.2) * scale, 36.2 * scale), fill=rgb("#f0b04a"))
         stroke(draw, S([(24, 46), (40, 46)]), 3 * scale, rgb("#0f141d"))
+    elif kind == "hull":
+        gold, cyan = rgb("#f2b84b"), rgb("#4fd0e8")
+        draw.rectangle((10 * scale, 18 * scale, 54 * scale, 46 * scale), fill=rgb("#26303d"), outline=rgb("#3d5068"), width=max(1, int(2 * scale)))
+        stroke(draw, S([(16, 38), (30, 38), (30, 26), (48, 26)]), 5 * scale, gold)
+        draw.ellipse((11 * scale, 33 * scale, 21 * scale, 43 * scale), fill=gold, outline=rgb("#0d1117"), width=max(1, int(2 * scale)))
+        draw.rectangle((43 * scale, 21 * scale, 53 * scale, 31 * scale), outline=gold, width=max(1, int(3 * scale)))
+        stroke(draw, S([(16, 26), (26, 26)]), 5 * scale, cyan)
+        draw.polygon(S([(12, 52), (22, 52), (17, 58)]), fill=cyan)
     elif kind == "lexis":
         blue = rgb("#9ad0ff")
         for a, b in (((16, 22), (26, 22)), ((34, 22), (36, 22)), ((42, 22), (48, 22)),

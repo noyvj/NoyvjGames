@@ -61,6 +61,12 @@
    "pyodide_ms": 1264,
    "total_kb": 5788.0
   },
+  "hull-repair": {
+   "first_interactive_ms": 1556,
+   "own_kb": 329.0,
+   "pyodide_ms": 1544,
+   "total_kb": 5769.1
+  },
   "lexis": {
    "first_interactive_ms": 1237,
    "own_kb": 262.0,

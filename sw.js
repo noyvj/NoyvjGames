@@ -2,7 +2,7 @@
 // the precache list; ordinary content deploys don't need it, because
 // same-origin requests are network-first (see the fetch handler below) and
 // so always pick up fresh files whenever the player is online.
-const SW_VERSION = 48;
+const SW_VERSION = 49;
 const CACHE_NAME = "site-cache-v" + SW_VERSION;
 // How long a same-origin network request may take before we give up and
 // serve the cached copy instead (a slow/flaky connection shouldn't hang).
@@ -285,6 +285,27 @@ const PRECACHE_URLS = [
   "games/robot-script/companion.py",
   "games/robot-script/achievements.py",
   "games/robot-script/sandbox.py",
+  "games/hull-repair/index.html",
+  "games/hull-repair/style.css",
+  "games/hull-repair/game.py",
+  "games/hull-repair/app.js",
+  "games/hull-repair/settings.js",
+  "games/hull-repair/changelog.json",
+  "games/hull-repair/achievements.json",
+  "games/hull-repair/rules.py",
+  "games/hull-repair/play.py",
+  "games/hull-repair/boards_dock.py",
+  "games/hull-repair/boards_crew.py",
+  "games/hull-repair/boards_engineering.py",
+  "games/hull-repair/boards_life.py",
+  "games/hull-repair/boards_core.py",
+  "games/hull-repair/boards.py",
+  "games/hull-repair/progress.py",
+  "games/hull-repair/render.py",
+  "games/hull-repair/hints.py",
+  "games/hull-repair/logbook.py",
+  "games/hull-repair/achievements.py",
+  "games/hull-repair/info.py",
   // Audit fix 2026-09-27: Trade Empire is hub-linked and has been for a while
   // (see CLAUDE.md's Current games table) -- both were mistakenly left off
   // this list under a stale "not hub-linked yet" comment. Trade Empire has the
@@ -347,6 +368,9 @@ const PRECACHE_URLS = [
   "games/robot-script/pc.html",
   "games/robot-script/pc.css",
   "games/robot-script/pc.js",
+  "games/hull-repair/pc.html",
+  "games/hull-repair/pc.css",
+  "games/hull-repair/pc.js",
   "games/signal/pc.html",
   "games/signal/pc.css",
   "games/signal/pc.js",

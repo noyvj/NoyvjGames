@@ -209,7 +209,7 @@
     },
     {
      "path": "shared/site-settings.js",
-     "bytes": 5911,
+     "bytes": 6005,
      "precached": false
     },
     {
@@ -285,7 +285,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14642293,
+   "bytes": 14642387,
    "bytes_complete": true
   },
   "canopy": {
@@ -534,7 +534,7 @@
     },
     {
      "path": "shared/site-settings.js",
-     "bytes": 5911,
+     "bytes": 6005,
      "precached": false
     },
     {
@@ -625,7 +625,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 15091425,
+   "bytes": 15091519,
    "bytes_complete": true
   },
   "grid": {
@@ -844,7 +844,7 @@
     },
     {
      "path": "shared/site-settings.js",
-     "bytes": 5911,
+     "bytes": 6005,
      "precached": false
     },
     {
@@ -925,7 +925,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14642252,
+   "bytes": 14642346,
    "bytes_complete": true
   },
   "tide": {
@@ -1149,7 +1149,7 @@
     },
     {
      "path": "shared/site-settings.js",
-     "bytes": 5911,
+     "bytes": 6005,
      "precached": false
     },
     {
@@ -1210,7 +1210,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14656871,
+   "bytes": 14656965,
    "bytes_complete": true
   },
   "aftermath": {
@@ -1439,7 +1439,7 @@
     },
     {
      "path": "shared/site-settings.js",
-     "bytes": 5911,
+     "bytes": 6005,
      "precached": false
     },
     {
@@ -1500,7 +1500,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14559716,
+   "bytes": 14559810,
    "bytes_complete": true
   },
   "herd": {
@@ -1724,7 +1724,7 @@
     },
     {
      "path": "shared/site-settings.js",
-     "bytes": 5911,
+     "bytes": 6005,
      "precached": false
     },
     {
@@ -1790,7 +1790,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14495501,
+   "bytes": 14495595,
    "bytes_complete": true
   },
   "thaw": {
@@ -1999,7 +1999,7 @@
     },
     {
      "path": "shared/site-settings.js",
-     "bytes": 5911,
+     "bytes": 6005,
      "precached": false
     },
     {
@@ -2060,7 +2060,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14480598,
+   "bytes": 14480692,
    "bytes_complete": true
   },
   "loop": {
@@ -2274,7 +2274,7 @@
     },
     {
      "path": "shared/site-settings.js",
-     "bytes": 5911,
+     "bytes": 6005,
      "precached": false
     },
     {
@@ -2340,7 +2340,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14500576,
+   "bytes": 14500670,
    "bytes_complete": true
   },
   "drift": {
@@ -2554,7 +2554,7 @@
     },
     {
      "path": "shared/site-settings.js",
-     "bytes": 5911,
+     "bytes": 6005,
      "precached": false
     },
     {
@@ -2620,7 +2620,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14523487,
+   "bytes": 14523581,
    "bytes_complete": true
   },
   "champ-de-mots": {
@@ -2854,7 +2854,7 @@
     },
     {
      "path": "shared/site-settings.js",
-     "bytes": 5911,
+     "bytes": 6005,
      "precached": false
     },
     {
@@ -2920,7 +2920,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 15281612,
+   "bytes": 15281706,
    "bytes_complete": true
   },
   "continuum": {
@@ -3359,7 +3359,7 @@
     },
     {
      "path": "shared/site-settings.js",
-     "bytes": 5911,
+     "bytes": 6005,
      "precached": false
     },
     {
@@ -3440,7 +3440,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 16095546,
+   "bytes": 16095640,
    "bytes_complete": true
   },
   "signal": {
@@ -3634,7 +3634,7 @@
     },
     {
      "path": "shared/site-settings.js",
-     "bytes": 5911,
+     "bytes": 6005,
      "precached": false
     },
     {
@@ -3664,7 +3664,7 @@
     }
    ],
    "cdn": [],
-   "bytes": 502927,
+   "bytes": 503021,
    "bytes_complete": true
   },
   "lexis": {
@@ -3933,7 +3933,7 @@
     },
     {
      "path": "shared/site-settings.js",
-     "bytes": 5911,
+     "bytes": 6005,
      "precached": false
     },
     {
@@ -3994,7 +3994,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14263985,
+   "bytes": 14264079,
    "bytes_complete": true
   },
   "heist-committee": {
@@ -4298,7 +4298,7 @@
     },
     {
      "path": "shared/site-settings.js",
-     "bytes": 5911,
+     "bytes": 6005,
      "precached": false
     },
     {
@@ -4359,7 +4359,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14441228,
+   "bytes": 14441322,
    "bytes_complete": true
   },
   "lighthouse": {
@@ -4658,7 +4658,7 @@
     },
     {
      "path": "shared/site-settings.js",
-     "bytes": 5911,
+     "bytes": 6005,
      "precached": false
     },
     {
@@ -4729,7 +4729,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14481574,
+   "bytes": 14481668,
    "bytes_complete": true
   },
   "pocket-bazaar": {
@@ -4993,7 +4993,7 @@
     },
     {
      "path": "shared/site-settings.js",
-     "bytes": 5911,
+     "bytes": 6005,
      "precached": false
     },
     {
@@ -5054,7 +5054,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14285362,
+   "bytes": 14285456,
    "bytes_complete": true
   },
   "dead-reckoning": {
@@ -5368,7 +5368,7 @@
     },
     {
      "path": "shared/site-settings.js",
-     "bytes": 5911,
+     "bytes": 6005,
      "precached": false
     },
     {
@@ -5429,7 +5429,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14358377,
+   "bytes": 14358471,
    "bytes_complete": true
   },
   "logic-gates": {
@@ -5683,7 +5683,7 @@
     },
     {
      "path": "shared/site-settings.js",
-     "bytes": 5911,
+     "bytes": 6005,
      "precached": false
     },
     {
@@ -5744,7 +5744,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14275230,
+   "bytes": 14275324,
    "bytes_complete": true
   },
   "robot-script": {
@@ -6028,7 +6028,7 @@
     },
     {
      "path": "shared/site-settings.js",
-     "bytes": 5911,
+     "bytes": 6005,
      "precached": false
     },
     {
@@ -6089,7 +6089,332 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14295669,
+   "bytes": 14295763,
+   "bytes_complete": true
+  },
+  "hull-repair": {
+   "files": [
+    {
+     "path": "games/hull-repair/achievements.json",
+     "bytes": 1842,
+     "precached": true
+    },
+    {
+     "path": "games/hull-repair/achievements.py",
+     "bytes": 2742,
+     "precached": true
+    },
+    {
+     "path": "games/hull-repair/app.js",
+     "bytes": 27948,
+     "precached": true
+    },
+    {
+     "path": "games/hull-repair/boards.py",
+     "bytes": 2282,
+     "precached": true
+    },
+    {
+     "path": "games/hull-repair/boards_core.py",
+     "bytes": 3306,
+     "precached": true
+    },
+    {
+     "path": "games/hull-repair/boards_crew.py",
+     "bytes": 2252,
+     "precached": true
+    },
+    {
+     "path": "games/hull-repair/boards_dock.py",
+     "bytes": 1912,
+     "precached": true
+    },
+    {
+     "path": "games/hull-repair/boards_engineering.py",
+     "bytes": 2340,
+     "precached": true
+    },
+    {
+     "path": "games/hull-repair/boards_life.py",
+     "bytes": 2687,
+     "precached": true
+    },
+    {
+     "path": "games/hull-repair/changelog.json",
+     "bytes": 1874,
+     "precached": true
+    },
+    {
+     "path": "games/hull-repair/game.py",
+     "bytes": 15660,
+     "precached": true
+    },
+    {
+     "path": "games/hull-repair/hints.py",
+     "bytes": 2567,
+     "precached": true
+    },
+    {
+     "path": "games/hull-repair/icons/favicon-hull-repair.svg",
+     "bytes": 733,
+     "precached": false
+    },
+    {
+     "path": "games/hull-repair/index.html",
+     "bytes": 14263,
+     "precached": true
+    },
+    {
+     "path": "games/hull-repair/info.py",
+     "bytes": 2051,
+     "precached": true
+    },
+    {
+     "path": "games/hull-repair/logbook.py",
+     "bytes": 6440,
+     "precached": true
+    },
+    {
+     "path": "games/hull-repair/pc-config.json",
+     "bytes": 1320,
+     "precached": false
+    },
+    {
+     "path": "games/hull-repair/pc.css",
+     "bytes": 1668,
+     "precached": true
+    },
+    {
+     "path": "games/hull-repair/pc.html",
+     "bytes": 16269,
+     "precached": true
+    },
+    {
+     "path": "games/hull-repair/pc.js",
+     "bytes": 2547,
+     "precached": true
+    },
+    {
+     "path": "games/hull-repair/play.py",
+     "bytes": 9262,
+     "precached": true
+    },
+    {
+     "path": "games/hull-repair/progress.py",
+     "bytes": 2131,
+     "precached": true
+    },
+    {
+     "path": "games/hull-repair/render.py",
+     "bytes": 16095,
+     "precached": true
+    },
+    {
+     "path": "games/hull-repair/rules.py",
+     "bytes": 12238,
+     "precached": true
+    },
+    {
+     "path": "games/hull-repair/settings.js",
+     "bytes": 6637,
+     "precached": true
+    },
+    {
+     "path": "games/hull-repair/style.css",
+     "bytes": 17395,
+     "precached": true
+    },
+    {
+     "path": "games/hull-repair/tools/gen.py",
+     "bytes": 13937,
+     "precached": false
+    },
+    {
+     "path": "games/hull-repair/tools/solver.py",
+     "bytes": 11223,
+     "precached": false
+    }
+   ],
+   "shared": [
+    {
+     "path": "ad-bar.css",
+     "bytes": 1932,
+     "precached": true
+    },
+    {
+     "path": "icons/favicon-hull-repair.svg",
+     "bytes": 733,
+     "precached": false
+    },
+    {
+     "path": "manifest.json",
+     "bytes": 338,
+     "precached": true
+    },
+    {
+     "path": "shared/a11y.css",
+     "bytes": 5058,
+     "precached": true
+    },
+    {
+     "path": "shared/achievement-share.js",
+     "bytes": 12575,
+     "precached": true
+    },
+    {
+     "path": "shared/confirm-dialog.js",
+     "bytes": 9825,
+     "precached": false
+    },
+    {
+     "path": "shared/debug-overlay.js",
+     "bytes": 5628,
+     "precached": true
+    },
+    {
+     "path": "shared/error-boundary.js",
+     "bytes": 9714,
+     "precached": true
+    },
+    {
+     "path": "shared/hub-auth.js",
+     "bytes": 1356,
+     "precached": true
+    },
+    {
+     "path": "shared/info-footer.js",
+     "bytes": 6317,
+     "precached": true
+    },
+    {
+     "path": "shared/info-page.css",
+     "bytes": 1092,
+     "precached": true
+    },
+    {
+     "path": "shared/keyboard-shortcuts.js",
+     "bytes": 7262,
+     "precached": false
+    },
+    {
+     "path": "shared/last-played.js",
+     "bytes": 2153,
+     "precached": false
+    },
+    {
+     "path": "shared/layout-pref.js",
+     "bytes": 2407,
+     "precached": true
+    },
+    {
+     "path": "shared/lite-mode.css",
+     "bytes": 3644,
+     "precached": true
+    },
+    {
+     "path": "shared/lite-mode.js",
+     "bytes": 8153,
+     "precached": true
+    },
+    {
+     "path": "shared/opening-screen.js",
+     "bytes": 27851,
+     "precached": false
+    },
+    {
+     "path": "shared/pc-shell.css",
+     "bytes": 7277,
+     "precached": true
+    },
+    {
+     "path": "shared/pc-shell.js",
+     "bytes": 23081,
+     "precached": true
+    },
+    {
+     "path": "shared/perf-mark.js",
+     "bytes": 4209,
+     "precached": true
+    },
+    {
+     "path": "shared/profile.js",
+     "bytes": 9880,
+     "precached": true
+    },
+    {
+     "path": "shared/report-problem.js",
+     "bytes": 22021,
+     "precached": true
+    },
+    {
+     "path": "shared/save-widget.js",
+     "bytes": 72027,
+     "precached": true
+    },
+    {
+     "path": "shared/site-settings.js",
+     "bytes": 6005,
+     "precached": false
+    },
+    {
+     "path": "shared/story-toggle.js",
+     "bytes": 3247,
+     "precached": false
+    },
+    {
+     "path": "shared/theme-light-games.css",
+     "bytes": 7674,
+     "precached": false
+    },
+    {
+     "path": "shared/theme.js",
+     "bytes": 3651,
+     "precached": false
+    },
+    {
+     "path": "shared/touch-targets.css",
+     "bytes": 3271,
+     "precached": true
+    },
+    {
+     "path": "shared/tutorial.js",
+     "bytes": 17014,
+     "precached": false
+    },
+    {
+     "path": "shared/whats-new-banner.js",
+     "bytes": 8822,
+     "precached": false
+    }
+   ],
+   "cdn": [
+    {
+     "url": "https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.js",
+     "bytes": 14761,
+     "kind": "pyodide"
+    },
+    {
+     "url": "https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.asm.js",
+     "bytes": 1229099,
+     "kind": "pyodide"
+    },
+    {
+     "url": "https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.asm.wasm",
+     "bytes": 10088051,
+     "kind": "pyodide"
+    },
+    {
+     "url": "https://cdn.jsdelivr.net/pyodide/v0.26.4/full/python_stdlib.zip",
+     "bytes": 2341872,
+     "kind": "pyodide"
+    },
+    {
+     "url": "https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide-lock.json",
+     "bytes": 106335,
+     "kind": "pyodide"
+    }
+   ],
+   "bytes": 14275956,
    "bytes_complete": true
   },
   "trade-empire": {
@@ -6288,7 +6613,7 @@
     },
     {
      "path": "shared/site-settings.js",
-     "bytes": 5911,
+     "bytes": 6005,
      "precached": false
     },
     {
@@ -6369,7 +6694,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14651288,
+   "bytes": 14651382,
    "bytes_complete": true
   }
  }
