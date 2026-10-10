@@ -116,7 +116,7 @@ For each remaining era (Agrarian through Space Age), repeat this pattern:
 
 - Hub-nav integration: **Done** (Milestone 14) — title card + review widget, same pattern as every other game.
 - Post-Phase-6 backlog items (`planning/TODO.md` K-series), numbered as milestones 15-24 in the table below: achievements, Look Back UI, research search, camera presets, settings panel, mobile dock, tooltip audit, changelog panel, summary/scenarios/hard mode/snapshot/seasonal lighting, and the UI decluttering pass.
-- Full playthrough testing (tribal through space age) for save/revisit integrity: **still open** — no single test drives all six transitions in one continuous run, though each era's own test file pushes to and through its transition and Phase 4 audited revisit against real transition traffic.
+- Full playthrough testing (tribal through the Relay Age) for save/revisit integrity: **done 2026-10-11** (R-13, `tests/test_full_playthrough.py`, 4 tests: every transition clicked through in one run with a real JSON save and reload after each, every completed era looked back at and returned from with the forward state unchanged, no revisit of an unreached era, one transition log beat per era surviving reloads). It needs the settlement tended between legs (food and stores topped up), as a player would; earlier note follows:  — no single test drives all six transitions in one continuous run, though each era's own test file pushes to and through its transition and Phase 4 audited revisit against real transition traffic.
 - Maximize test coverage: **ongoing** — 723 tests across 30 test files; `render3d.js`/`settings.js` remain verified-live only (no WebGL/real DOM in the harness).
 
 ### Milestones 14-24 (backlog-driven, post-Phase 6)

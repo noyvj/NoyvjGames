@@ -1498,3 +1498,8 @@ Added readability and feedback features to Thaw without adding screen clutter: t
 **Game:** continuum
 **Did:** Finished the second half of K-10. The daily challenge already had a seeded start, par and a ledger; it now also offers its points to a new opt-in daily board (`continuum/daily_challenge`, UTC day, registered in `app/boards.py`) and the Challenge panel shows the shared board widget, which now says roughly how many of the other players you are ahead of. Only today's daily is reported, and a missing widget changes nothing.
 **Result:** Continuum tests 1273 to 1275, backend board tests 4 new, widget test 1 new. Not checked live against the real backend (it deploys on the owner's push); the board needs at least a few opted-in players before it lists anyone.
+
+### 2026-10-11 (Continuum, R-13 full-playthrough test)
+**Game:** continuum
+**Did:** Added `tests/test_full_playthrough.py`: one continuous run from the Tribal era to the Relay Age through the real UI, with a real JSON save and reload after each transition, then a walk back through every completed era with the Look Back revisit (saving inside a revisit, playing in the past, returning) checking the present settlement is unchanged, plus the transition log beats and the rule that an unreached era cannot be revisited. Found that the seasons played between legs starve the settlement unless it is tended, so the test tops up food and stores between legs, as a player would.
+**Result:** Continuum tests 1307 to 1311, all green. No game code changed.
