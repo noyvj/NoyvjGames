@@ -95,3 +95,8 @@ Recommended: yes, leave Le Champ de Mots in English, since it teaches French and
 ### Zl2. Language: the Spanish and French texts are machine-assisted and not yet proof-read; do you want to proof-read them yourself (a list of all 106 strings), or should they stay hidden behind the chooser until someone does?
 
 Recommended: leave the chooser available but labelled "beta" until you have looked at the French at least.
+
+### Sx1. Sound: please try the new generated sounds yourself (turn on "Sound effects made in code" in the hub Settings, then play Logic Gates, Hull Repair and Lighthouse) and tell me how they sound.
+
+I cannot hear audio, so only you can judge it. Say "yes" if the tones are fine as they are. Otherwise say what to change in a comment: too loud or too quiet, too sharp or too dull, which cue (gate click, patch tone, bell, hum) or which game, and whether the Lighthouse hum should stay on by default.
+
