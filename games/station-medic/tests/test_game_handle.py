@@ -2,6 +2,7 @@
 
 import json
 
+import achievements
 import game
 import progress
 
@@ -18,7 +19,7 @@ def fresh():
 def test_open_shows_the_first_shift_with_everything_the_page_draws():
     v = fresh()
     assert v["shift"]["id"] == "1-1" and v["patients"] and v["sheet"] and v["cabinet"]["items"]
-    assert v["totals"]["done"] == 0 and v["rooms"][0]["open"] and not v["rooms"][1]["open"]
+    assert v["totals"]["done"] == 0 and all(r["open"] for r in v["rooms"])
     assert "portrait" in v["patients"][0] and v["about"]["notice"]
 
 
@@ -62,13 +63,26 @@ def test_borrowing_adds_one_and_costs_one_so_a_short_shelf_is_never_a_dead_end()
     assert v["shift"]["cost"] == 1 and v["cabinet"]["items"][0]["count"] == 2 and v["tally"]["borrows"] == 1
 
 
-def test_chapters_gate_and_next_goes_to_an_open_undone_shift():
-    fresh()
-    assert not call(action="pick", shift="2-1")["ok"]
-    for sid in progress.CHAPTERS[0]["shifts"][:5]:
-        game.game.best[sid] = 3
-    assert call(action="pick", shift="2-1")["ok"]
+def test_every_chapter_is_open_from_the_start_and_next_goes_to_an_undone_shift():
+    v = fresh()
+    assert all(r["open"] and all(s["open"] for s in r["shifts"]) for r in v["rooms"])
+    assert all(progress.chapter_open({}, c["index"]) for c in progress.CHAPTERS)
+    last = progress.CHAPTERS[-1]["shifts"][-1]
+    assert call(action="pick", shift=last)["ok"] and call(action="pick", shift="2-1")["ok"]
+    assert not call(action="pick", shift="no-such")["ok"]
+    game.game.best["2-1"] = 3
     assert call(action="next")["shift"]["id"] != "2-1"
+
+
+def test_a_rough_shift_counts_as_done_for_every_total_and_old_saves_load_open():
+    fresh()
+    game.game.best.update({"1-1": 1, "1-2": 1, "3-1": 1})
+    t = call(action="open")["totals"]
+    assert t["done"] == 3 and t["rough"] == 3 and t["clean"] == 0
+    assert achievements.earned(game.game.facts()) == ["first_shift"]
+    game.load_state({"best": {"1-1": 3}})        # a save from when later chapters were locked
+    v = call(action="open")
+    assert v["totals"]["done"] == 1 and all(r["open"] for r in v["rooms"])
 
 
 def test_an_unfinished_shift_keeps_its_actions_when_you_leave_and_come_back():
@@ -121,7 +135,7 @@ def test_save_round_trip_and_tampering():
     game.load_state(json.loads(json.dumps(state)))
     v = call(action="open")
     assert v["shift"]["id"] == "1-2" and v["patients"][1]["closed"] and v["totals"]["clean"] == 1
-    for bad in (None, 5, "x", [], {"best": {"1-1": 9, "zz": 3}, "run": {"1-2": ["scan:0:0"]}, "cur": "2-8", "tally": {"scans": -4, "treats": True},
+    for bad in (None, 5, "x", [], {"best": {"1-1": 9, "zz": 3}, "run": {"1-2": ["scan:0:0"]}, "cur": "zz-9", "tally": {"scans": -4, "treats": True},
                                    "cured": "x", "flags": [1], "tests": ["nope"]}):
         game.game.__init__()
         game.load_state(bad)

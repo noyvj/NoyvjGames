@@ -273,7 +273,7 @@
     if (list.dataset.sig === sig) return;
     list.dataset.sig = sig;
     list.textContent = "";
-    if (!view.goals.length) { list.appendChild(el("li", null, "Every goal you can reach right now is done. New ones appear as new chapters open.")); return; }
+    if (!view.goals.length) { list.appendChild(el("li", null, "Every goal you can reach right now is done. New ones appear as you play.")); return; }
     view.goals.forEach(function (g) {
       var li = el("li");
       li.appendChild(el("strong", null, g.label + ": "));
@@ -389,7 +389,7 @@
       var sec = el("section", "chapter" + (c.open ? "" : " locked"));
       var h = el("h3", null, c.name + " (" + c.done + "/" + c.total + ")");
       sec.appendChild(h);
-      sec.appendChild(el("p", "note", c.open ? c.blurb : "Locked: done " + c.need + " shifts of " + c.prev_name + " to open this."));
+      sec.appendChild(el("p", "note", c.blurb));
       var ul = el("ul", "shift-grid");
       c.shifts.forEach(function (r) {
         var li = el("li");
@@ -404,7 +404,6 @@
         b.setAttribute("aria-label", r.number + ", " + r.name + ". " + (r.grade ? r.grade_name + " seal" : (r.open ? "Not done" : "Locked")) + (r.current ? ". Current shift" : ""));
         if (!r.open) b.setAttribute("aria-disabled", "true");
         b.addEventListener("click", function () {
-          if (!r.open) { showToast("That chapter opens once " + c.need + " shifts of " + c.prev_name + " are done."); return; }
           sel = 0;
           send({ action: "pick", shift: r.id });
           $("shifts-panel").hidden = true;

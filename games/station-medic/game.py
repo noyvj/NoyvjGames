@@ -250,7 +250,6 @@ class Game:
         out = []
         for c in progress.CHAPTERS:
             is_open = progress.chapter_open(self.best, c["index"])
-            prev = progress.CHAPTERS[c["index"] - 1] if c["index"] else None
             entries = []
             for number, sid in enumerate(c["shifts"], start=1):
                 d = progress.DATA[sid]
@@ -258,8 +257,7 @@ class Game:
                                 "grade_name": GRADE_LABEL[self.best.get(sid, 0)], "current": sid == self.cur,
                                 "patients": len(d["patients"]), "started": sid in self.runs and sid != self.cur})
             out.append({"id": c["id"], "name": c["name"], "blurb": c["blurb"], "open": is_open, "done": progress.done_in(self.best, c),
-                        "total": len(c["shifts"]), "need": min(progress.OPEN_AT, len(prev["shifts"])) if prev else 0,
-                        "prev_name": prev["name"] if prev else "", "shifts": entries})
+                        "total": len(c["shifts"]), "shifts": entries})
         return out
 
     def view(self, message="", ok=True):
@@ -385,7 +383,7 @@ def handle(request_json):
         if sid not in progress.DATA:
             ok, message = False, "There is no such shift."
         elif not progress.shift_open(g.best, sid):
-            ok, message = False, "That chapter opens once five shifts of the one before are done."
+            ok, message = False, "There is no such shift."
         else:
             g._stash()
             g._enter(sid)

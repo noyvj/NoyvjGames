@@ -23,3 +23,4 @@ Updated after every milestone. Read `planning/station-medic-plan.md`, `CLAUDE.md
 ## Open problems / notes
 - Local Python is 3.9: engine code avoids 3.10+ syntax.
 - Fairness is strict (every look-alike world must finish clean), so stocks are tight; use tools/shrink.py to find minimal stocks when authoring.
+- AN-6 (2026-10-11): every chapter open from the start, no 5-of-8 gate; Rough shifts count as done; Shifts panel/index text updated; 104 tests.

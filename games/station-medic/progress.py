@@ -1,9 +1,10 @@
-"""Station Medic -- progress: which chapters are open, what is done, which shift comes next. A shift is done at any grade; the
-best grade is kept and only rises (3 clean, 2 steady, 1 rough)."""
+"""Station Medic -- progress: what is done and which shift comes next. Every chapter is open from the start (AN-6), so the
+player can take any shift in any order. A shift is done at any grade, a Rough seal included, and counts toward every total;
+the best grade is kept and only rises (3 clean, 2 steady, 1 rough)."""
 
 import cases
 
-OPEN_AT = 5      # a chapter opens when this many shifts of the one before are done
+OPEN_AT = 0      # shifts of the previous chapter that must be done to open a chapter: none (every chapter is open from the start)
 
 CHAPTERS = [{"index": i, "id": cid, "name": name, "blurb": blurb, "shifts": [d["id"] for d in shifts]}
             for i, (cid, name, blurb, shifts) in enumerate(cases.CHAPTER_DATA)]
@@ -17,8 +18,9 @@ def done_in(best, chapter):
 
 
 def chapter_open(best, index):
-    if index == 0:
-        return True
+    """Every chapter is open from the start. Old saves with chapters that used to be locked simply load open."""
+    if index == 0 or OPEN_AT <= 0:
+        return 0 <= index < len(CHAPTERS)
     prev = CHAPTERS[index - 1]
     return done_in(best, prev) >= min(OPEN_AT, len(prev["shifts"]))
 
