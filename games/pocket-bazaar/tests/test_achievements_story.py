@@ -211,18 +211,18 @@ def test_a_day_two_queue_has_the_regulars_named_and_with_their_favourite_goods()
 def test_serving_a_regular_raises_the_bond_with_a_message_and_a_story_line_at_each_level():
     open_with([C([("produce", 1)], name="Mira", reg="mira") for _ in range(6)], "P1 P1 P1 P1 P1\nP1 .. .. .. ..")
     levels = []
-    for visit in range(5):
+    for visit in range(3):
         v = call(action="deliver", **{"from": visit, "to": 0})
         levels.append(regulars.level(game.stall.visits["mira"]))
         if regulars.level(game.stall.visits["mira"]) > (levels[-2] if len(levels) > 1 else 0):
             assert "bond level" in v["message"] and v["flavor"] and v["flavor"][-1].startswith("Mira: ")
-    assert levels == [1, 1, 2, 2, 3] and "regular" in ids()
+    assert levels == [1, 2, 3] and "regular" in ids()
 
 
 def test_the_regulars_page_hides_lines_not_yet_earned_and_names_unmet_regulars_as_unmet():
-    game.stall.visits = {"mira": 3}
+    game.stall.visits = {"mira": 2}
     page = {r["id"]: r for r in call(action="open")["regulars"]}
-    assert page["mira"]["level"] == 2 and len(page["mira"]["lines"]) == 2 and page["mira"]["next_at"] == 5
+    assert page["mira"]["level"] == 2 and len(page["mira"]["lines"]) == 2 and page["mira"]["next_at"] == 3
     assert page["brandt"]["visits"] == 0 and page["brandt"]["lines"] == []
     assert call(action="open")["regulars_met"] == 1
 

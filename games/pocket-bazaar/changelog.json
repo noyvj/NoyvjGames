@@ -1,6 +1,10 @@
 {
   "changelog": [
     {
+      "date": "2026-10-11",
+      "entry": "Regulars bond faster: a regular now reaches bond level 1, 2 and 3 after one, two and three visits (it was one, three and five), so the first level 3 comes around day 10 to 14 instead of day 20. Visits you already have keep counting. In the Desktop layout the counter is bigger (the coins, day and served numbers moved into the side column) and nothing scrolls inside the stall while a day is open."
+    },
+    {
       "date": "2026-10-09",
       "entry": "Desktop layout for wide windows: the customers stand in a column beside a larger counter, the crates, Sell and Broom sit in a side column, and the achievements, regulars, settings and the rest open as windows from icons or the Menu (Esc). It is the same game and the same save; the Classic layout is unchanged and is still what phones use."
     },

@@ -7,7 +7,7 @@ a regular who leaves unserved costs you nothing but that visit. The lines are st
 them); the bond level and the count of visits are plain numbers that always show.
 """
 
-BOND_AT = (1, 3, 5)              # visits served for bond levels 1, 2, 3
+BOND_AT = (1, 2, 3)              # visits served for bond levels 1, 2, 3 (was 1, 3, 5 until M-4b-11)
 PER_DAY = 3
 
 # (id, name, family, role, (line at level 1, line at level 2, line at level 3))

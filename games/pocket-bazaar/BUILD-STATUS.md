@@ -20,6 +20,8 @@ Daily Market (M-4b-9) are NOT part of this build.
 
 - M8 Own-folder wrap-up: pc-config.json, pc.css, pc.js, pc.html (built with a scratch script calling build('pocket-bazaar', cfg) only), layout-pref.js, desktop tests, changelog entry, CLAUDE.md; 236 tests, shared tests -k bazaar 11 passed
 
+- M-4b-11 tweaks (Pb4 wider Desktop counter, Pb5 regulars bond at 1/2/3 visits): pc.css, pc-config.json, pc.html regenerated, regulars.py, tests updated plus 2 new; 238 tests
+
 ## Next
 - Nothing in this folder. Hub registration (M-4b-10) and the Daily Market (M-4b-9) are other people's.
 - Optional polish if time: manual pre-release checklist play-through (CLAUDE.md), real-device touch drag check.

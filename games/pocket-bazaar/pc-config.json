@@ -21,9 +21,9 @@
   "adopt": [],
   "zones": {
     "topbar": [".hub-back-link", "h1", ".game-toolbar"],
-    "stagebar": ["#stats"],
+    "stagebar": [],
     "stage": ["#stall-panel"],
-    "side": ["#tools", "#selection-info", "#tally"],
+    "side": ["#stats", "#tools", "#selection-info", "#tally", ".how"],
     "hidden": [".tagline"]
   },
   "readouts": [],
