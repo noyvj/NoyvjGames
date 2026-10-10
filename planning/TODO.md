@@ -1,6 +1,6 @@
 # Site-Wide TODO (round 3)
 
-**Progress: 639/1221 items checked off (52.3%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land.
+**Progress: 657/1221 items checked off (53.8%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land.
 
 Built from your answers in `planning/IMPROVEMENT-IDEAS-ROUND-3.md` (Part 4). Every Round 3 section is now answered (2026-10-07 below the Warframe section); earlier this list held only: **GB** (Canopy gamified), **M** (new games), **N** (seasonal events), **O** (Trade Empire and Continuum replayability), **P/Q/S/T** (Signal, Undersleep, Overclock, Last Line open questions), **X** (Warframe tracker) and **R** (returning later). GC-GI, A-L, U, Z and Y are unanswered and wait for you. The previous list is archived at `planning/todo-archive/260914_260927.md`; anything from it that was moved here is marked "moved" there.
 
@@ -401,33 +401,33 @@ Your remaining Round 3 answers (Grid to Drift gamified, SOL to Le Champ de Mots,
 
 ## A. SOL (Round 3 answers, 2026-10-07)
 
-- [ ] A-2: Add a slim SOL toolbar strip forecasting the next System Anomaly a few ticks ahead (e.g. 'Flare in 12 ticks'); anomalies are plain timed modifiers (no contingency cards, never blocking progress), forecast is text-only under reduce motion. (you confirmed 2026-10-07: build simple timed anomalies without cards, even though A-1 was declined)
-- [ ] A-3: Add SOL prestige Mutators: before each New Game+ run pick 0-3 opt-in rule twists (Thin Atmosphere: ecology decays 40% faster; One-Way Trade; Blind Governor) each raising the run's prestige-point payout; generalises the existing Challenge toggle into a dial, all easy to 100% and never luck-gated.
-- [ ] A-4: Show a tiny glyph per active SOL mutator beside the prestige badge in the title and on the Stats & Share card text so screenshots show the run's rules. (needs A-3)
-- [ ] A-5: Add a SOL Mission Board of rotating optional per-planet objectives (e.g. 'Terraform Mars with zero Sky Cities', 'Venus 60% terraform with ecology >= 50%'); completing one grants a permanent cosmetic-plus-small-perk Charter stamp shown in the Overview planet cards.
-- [ ] A-6: Add a 'reroll mission' button to the SOL Mission Board costing a small amount of a currently-abundant resource. (needs A-5)
-- [ ] A-7: Add SOL Governor Doctrines: research-unlocked per-planet if/then rule list (e.g. if ecology < 30% pause purchases and ship Water from richest planet), max 3 rules early, more via the Prestige Tree, with the Governor Report showing which rule fired; pairs with trade-route automation.
-- [ ] A-8: Add a dry-run button to the SOL Doctrine editor that simulates 30 ticks headless on a copy of state and prints 'would have fired N times'. (needs A-7)
+- [x] A-2: Add a slim SOL toolbar strip forecasting the next System Anomaly a few ticks ahead (e.g. 'Flare in 12 ticks'); anomalies are plain timed modifiers (no contingency cards, never blocking progress), forecast is text-only under reduce motion. (you confirmed 2026-10-07: build simple timed anomalies without cards, even though A-1 was declined)
+- [x] A-3: Add SOL prestige Mutators: before each New Game+ run pick 0-3 opt-in rule twists (Thin Atmosphere: ecology decays 40% faster; One-Way Trade; Blind Governor) each raising the run's prestige-point payout; generalises the existing Challenge toggle into a dial, all easy to 100% and never luck-gated.
+- [x] A-4: Show a tiny glyph per active SOL mutator beside the prestige badge in the title and on the Stats & Share card text so screenshots show the run's rules. (needs A-3)
+- [x] A-5: Add a SOL Mission Board of rotating optional per-planet objectives (e.g. 'Terraform Mars with zero Sky Cities', 'Venus 60% terraform with ecology >= 50%'); completing one grants a permanent cosmetic-plus-small-perk Charter stamp shown in the Overview planet cards.
+- [x] A-6: Add a 'reroll mission' button to the SOL Mission Board costing a small amount of a currently-abundant resource. (needs A-5)
+- [x] A-7: Add SOL Governor Doctrines: research-unlocked per-planet if/then rule list (e.g. if ecology < 30% pause purchases and ship Water from richest planet), max 3 rules early, more via the Prestige Tree, with the Governor Report showing which rule fired; pairs with trade-route automation.
+- [x] A-8: Add a dry-run button to the SOL Doctrine editor that simulates 30 ticks headless on a copy of state and prints 'would have fired N times'. (needs A-7)
 - [ ] A-9: Add a SOL Observatory meta-layer shared across prestiges: each prestige yields Survey Data, spent to unmask one more hidden anomaly on a star chart (Lagrange Points = bonus building slots, rogue comets = one-shot windfalls); a long-term collection of the map.
 - [ ] A-10: Show an Observatory comet windfall in SOL as a tappable streak on the Overview that fades if ignored for a while; no idle gate, keyboard-accessible, text-only under reduce motion. (needs A-9)
 - [ ] A-11: Add a SOL Scarcity Run mode: fixed daily challenge seeded from the UTC date (resource mix, ecology decay, starting planet loadout), same puzzle for everyone, completion time posted to an opt-in leaderboard. (needs leaderboard backend (exists), shared/community-pool.js)
 - [ ] A-12: Show 'Today's seed' as a short pronounceable word triple (e.g. amber-orbit-7) on SOL's Stats & Share card for the Scarcity Run. (needs A-11)
-- [ ] A-13: Add 3-4 SOL late-game Megaprojects (Orbital Mirror, Ring Habitat, Dyson Sail, Deep Core Tap), each needing resources from many planets at once for a game-warping perk (e.g. Sky Cities count double); building all four unlocks a secret epilogue variant.
-- [ ] A-14: Show a construction progress ring per SOL Megaproject on the Overview, filled by whichever planets contribute that tick, with a text percent fallback. (needs A-13)
+- [x] A-13: Add 3-4 SOL late-game Megaprojects (Orbital Mirror, Ring Habitat, Dyson Sail, Deep Core Tap), each needing resources from many planets at once for a game-warping perk (e.g. Sky Cities count double); building all four unlocks a secret epilogue variant.
+- [x] A-14: Show a construction progress ring per SOL Megaproject on the Overview, filled by whichever planets contribute that tick, with a text percent fallback. (needs A-13)
 - [ ] A-15: Add SOL Rival Colonies: three named non-hostile AI corporations that claim Lagrange Points and push shared-market trade prices down unless the player specialises; no timers, recoverable, player may contest, ignore or partner. (needs A-9 (Lagrange Points))
 - [ ] A-16: Add one-line rival ticker gossip to SOL's log (e.g. 'Helios Combine reports record Belt yields') with zero mechanical effect. (needs A-15)
 - [ ] A-17: Add SOL Time Capsules: freeze current state as a named capsule (max 3), replay from it in a sandbox branch and compare outcomes; branch never counts for achievements, leaderboards or the real save.
 - [ ] A-18: Add a one-click 'diff vs capsule' line in SOL showing resource and terraform gap between now and a capsule after N ticks. (needs A-17)
-- [ ] A-19: Add a hidden SOL Codex of 7 cryptic clues (odd trailing sentence in each planet description) that unlock a silly secret building or fake achievement when acted on (e.g. Pluto at 0% ecology, 13 of one building, terraform Venus last); every clue must be hinted so it stays easy to 100%.
-- [ ] A-20: Show a 'clues found: N/7' line in the SOL Codex hidden until the first clue is discovered. (needs A-19)
-- [ ] A-21: Add SOL prestige Eras (Pioneer, Steward, Architect, Custodian) replacing the flat level counter, each re-theming the shell (palette shift, title tagline, quiet visual-only starfield tweak, no audio), toggleable and respecting light theme and reduce motion.
+- [x] A-19: Add a hidden SOL Codex of 7 cryptic clues (odd trailing sentence in each planet description) that unlock a silly secret building or fake achievement when acted on (e.g. Pluto at 0% ecology, 13 of one building, terraform Venus last); every clue must be hinted so it stays easy to 100%.
+- [x] A-20: Show a 'clues found: N/7' line in the SOL Codex hidden until the first clue is discovered. (needs A-19)
+- [x] A-21: Add SOL prestige Eras (Pioneer, Steward, Architect, Custodian) replacing the flat level counter, each re-theming the shell (palette shift, title tagline, quiet visual-only starfield tweak, no audio), toggleable and respecting light theme and reduce motion.
 - [x] A-22: Add a cheeky per-planet 'Governor mood' one-liner in SOL's Governor Report that varies with personality and how much the player micromanages that planet.
-- [ ] A-23: Add SOL Blueprint Swap: serialise build plan plus Doctrine list plus mutator picks into a short shareable code, importable as a ghost overlay in the Build Plan checklist; no backend. (needs A-3, A-7 for the Doctrine/mutator parts)
+- [x] A-23: Add SOL Blueprint Swap: serialise build plan plus Doctrine list plus mutator picks into a short shareable code, importable as a ghost overlay in the Build Plan checklist; no backend. (needs A-3, A-7 for the Doctrine/mutator parts)
 - [x] A-24: Add a 'copy as text spreadsheet' button to SOL's Build Plan (tab-separated step/done rows via clipboard with manual-copy fallback).
 - [x] A-25: Add SOL Chain Reactions: performing the right sequence of actions across planets in a short window (e.g. dump Ice on Venus, trade Water to Earth, click Mars) triggers a small bonus, discovered by experiment, with a 'combos found' collection page and hints so it stays easy to 100%.
 - [x] A-26: Add a soft SOL click-streak meter giving a very small yield bonus for staying in rhythm, with a text-only reduce-motion fallback and a Settings off switch; must never beat or replace normal play.
-- [ ] A-27: Add an optional SOL Ecology Stress Test endgame arena: a one-shot scenario where a cascade of anomalies hits every planet and the player must hold combined ecology above a line using only already-set Governors/Doctrines (no clicking), scored by margin held. (needs A-7 (Doctrines), anomaly system from A-2)
-- [ ] A-28: After a SOL Stress Test show a per-planet heatmap strip of when each planet's ecology dipped, with text/pattern cues (not colour alone). (needs A-27)
+- [x] A-27: Add an optional SOL Ecology Stress Test endgame arena: a one-shot scenario where a cascade of anomalies hits every planet and the player must hold combined ecology above a line using only already-set Governors/Doctrines (no clicking), scored by margin held. (needs A-7 (Doctrines), anomaly system from A-2)
+- [x] A-28: After a SOL Stress Test show a per-planet heatmap strip of when each planet's ecology dipped, with text/pattern cues (not colour alone). (needs A-27)
 - [ ] A-29: Add a SOL Ghost Run mode: race a recorded replay of your personal best (or an imported friend's blueprint code) on a split track showing lead/lag in terraform percent every 25 ticks; local only. (needs A-23, A-30)
 - [x] A-30: Add a SOL speedrun splits panel with a lap time per planet unlocked and a delta vs personal best (marked with +/- text as well as colour), hidden unless a 'Show timing' Settings option is on.
 - [x] A-31: Add a SOL trophy-shelf strip of the most recently earned achievement badges near the top toolbar, each in SOL's gradient-glow style, plus a brief toggleable glow/particle flourish on unlock (off under reduce motion); toast stays.
@@ -1466,12 +1466,12 @@ One checkbox per pass per area. A pass is not done until its fixes are committed
 - [ ] FY-45: Co2: Continuum: build neighbouring settlements as computer-controlled neighbours first, before any multiplayer (you said yes: yes.)
 - [ ] FY-46: Ca1: Le Champ de Mots: add coins earned from watering that unlock cosmetic skins (you said yes: yes, cosmetic only.) (Partly done 2026-10-09, see L-1.)
 - [x] FY-47: Ca2: Le Champ de Mots: add a false-friends set, built from a reputable list read live and named on screen (you said yes: yes.)
-- [ ] FY-49: So1: SOL: may I write the balance for prestige mutators myself (you said yes: yes.)
-- [ ] FY-50: So2: SOL: build the anomaly system on a fixed schedule rather than random (you said yes: yes.)
+- [x] FY-49: So1: SOL: may I write the balance for prestige mutators myself (you said yes: yes.)
+- [x] FY-50: So2: SOL: build the anomaly system on a fixed schedule rather than random (you said yes: yes.)
 
 - [ ] FY-51: Lifeline-style choose-your-own-adventure game (you said yes): sci-fi, dark tone, many branching paths, optional reading, a main character who makes mistakes; plan first (planning file, M convention), built after Chronicle.
 - [ ] FY-52: A coding or logic-circuit puzzle game as the first of the coding, maths and chemistry games (you said yes); plan first.
-- [ ] FY-53: One shared "three goals at all times" panel (you said yes) built in `shared/` and fed by each game's own goals, then wired into SOL, Trade Empire, Continuum and Loop. (Shared panel built 2026-10-09: shared/goals-panel.js and .css; wiring into SOL, Trade Empire, Continuum and Loop still to do, see SHARED-COMPONENTS section 12.)
+- [x] FY-53: One shared "three goals at all times" panel (you said yes) built in `shared/` and fed by each game's own goals, then wired into SOL, Trade Empire, Continuum and Loop. (Shared panel built 2026-10-09: shared/goals-panel.js and .css; wiring into SOL, Trade Empire, Continuum and Loop still to do, see SHARED-COMPONENTS section 12.)
 - [ ] FY-54: One small optional fast timed reaction game with a slower mode like the Champ minigames (you said yes); plan first.
 - [ ] FY-55: Optional friend ties (shared run codes, friend list, ghost runs, no messaging, never required, no worst-score shaming) after the shared run code FY-7 exists (you said yes).
 - [ ] FY-56: Dream game (the dark foggy forest city builder): you want a large set of design questions answered before any planning doc. The 25 questions are FOR-YOU items Fg1 to Fg25; write `planning/<name>-plan.md` only after they are answered, and consider building the per-building puzzles as their own small games first.
