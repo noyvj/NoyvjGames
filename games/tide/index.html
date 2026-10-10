@@ -159,6 +159,13 @@
           Plain-language labels (everyday words instead of jargon like dampening and lag)
         </label>
       </div>
+      <!-- GN-9: the "next season if you do nothing" line beside the readouts (on by default). -->
+      <div class="settings-row">
+        <label class="settings-checkbox-label" for="forecast-checkbox">
+          <input type="checkbox" id="forecast-checkbox" checked>
+          Show "next season if you do nothing" beside the readouts (a projection; nothing is spent)
+        </label>
+      </div>
       <!-- GD-17: the harbour master's one-line quips; the shared Story toggle hides them too. -->
       <div class="settings-row">
         <label class="settings-checkbox-label" for="quips-mute-checkbox">
@@ -406,6 +413,8 @@
       <!-- D5/D15: settlement growth and displacement. -->
       <p id="population-display" data-mview="meters" class="comparison-message population-display" title="Population grows toward the housing your dry rows can hold (denser behind higher adaptation tiers) while fish yield stays healthy. Lost rows push the excess out as displaced people."></p>
       <p id="foresight-display" data-mview="meters" class="comparison-message foresight-display"></p>
+      <!-- GN-9: the readouts one season on if you invest nothing more (a projection on a copy; Settings can hide it). -->
+      <p id="forecast-line" data-mview="meters" class="forecast-line" hidden></p>
       <p id="funds-display" data-mview="meters" class="status-line">Funds: 300</p>
       <button id="why-funds-button" data-mview="meters" class="secondary why-button" type="button" aria-expanded="false" aria-controls="delta-popover" title="Where did last season's funds change come from?">? Funds</button>
       <p id="acidity-display" data-mview="meters" class="status-line">Ocean acidity: 0.0</p>

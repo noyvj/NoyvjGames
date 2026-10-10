@@ -5580,7 +5580,101 @@ def render_chess():
         root.setAttribute("data-tidal-chess", "on" if state.chess_mode else "off")
 
 
+# ===========================================================================
+# 2026-10-11 pass: GN-9 "next season if you do nothing"
+# ===========================================================================
+
+FORECAST_KEY = "tide-season-forecast"  # "off" hides the line (Settings); absent means on
+
+
+def forecast_on():
+    return _read_local_storage_item(FORECAST_KEY) != "off"
+
+
+def _forecast_numbers(sim):
+    return {
+        "funds": sim.funds, "acidity": sim.acidity, "fish_yield": sim.fish_yield_multiplier(),
+        "sea_level": sim.sea_level, "damage": sim.cumulative_damage, "rows_dry": sim.rows_dry_count(),
+    }
+
+
+def season_forecast():
+    """What the next season would leave if you invested nothing more and just advanced: {"now": {...}, "next": {...}}.
+    The game's own advance_season() runs on a deep COPY of the settlement (the same way the Season Planner projects), so
+    income, upkeep, wages, the fish lag, the sea, storms and deals all follow the real rules and the real run is never touched."""
+    global state
+    real = state
+    now = _forecast_numbers(real)
+    simulated = copy.deepcopy(real)
+    state = simulated
+    try:
+        simulated.advance_season()
+        after = _forecast_numbers(simulated)
+    finally:
+        state = real
+    return {"now": now, "next": after}
+
+
+def _forecast_delta_text(delta, digits):
+    text = f"{delta:+.{digits}f}"
+    if float(text) == 0 and abs(delta) > 1e-9:
+        text = f"{delta:+.{digits + 1}f}"
+    return text.replace("-", "\u2212")
+
+
+FORECAST_CHIPS = (
+    ("funds", "\U0001F4B0", "Funds", 0, "Funds: this season's income from output, tourism and aquaculture, less heritage upkeep, crew wages and any storm repairs."),
+    ("acidity", "\U0001F9EA", "Acidity", 1, "Ocean acidity: what output pushes up less what your reduction pulls down."),
+    ("fish_yield", "\U0001F41F", "Fishing yield", 0, "Fishing yield: it follows the acidity from several seasons ago, so today's choices barely move it yet."),
+    ("sea_level", "\U0001F30A", "Sea level", 0, "Sea level: it rises every season whatever you do; adaptation only cuts the damage it does."),
+    ("damage", "\u26A0\uFE0F", "Damage", 0, "Cumulative damage from the rising sea, after your adaptation tier's dampening."),
+)
+
+
+def forecast_chips():
+    """[(key, text, tooltip)] for the line beside the readouts. Arrows say up, down or no change in words as well as shape."""
+    data = season_forecast()
+    now, after = data["now"], data["next"]
+    chips = []
+    for key, icon, label, digits, tip in FORECAST_CHIPS:
+        scale = 100.0 if key == "fish_yield" else 1.0
+        unit = "%" if key == "fish_yield" else ""
+        a, b = now[key] * scale, after[key] * scale
+        delta = b - a
+        arrow = "\u25B2" if round(delta, digits + 1) > 0 else "\u25BC" if round(delta, digits + 1) < 0 else "\u2022"
+        change = _forecast_delta_text(delta, digits) + unit if arrow != "\u2022" else "no change"
+        text = f"{icon} {label} {a:.{digits}f}{unit} \u2192 {b:.{digits}f}{unit} {arrow} {change}"
+        chips.append((key, text, f"{tip} Worked out with the game's own rules on a copy of your settlement; nothing is spent or changed."))
+    if now["rows_dry"] != after["rows_dry"]:
+        lost = after["rows_dry"] - now["rows_dry"]
+        chips.append(("rows_dry", f"\U0001F5FA\uFE0F Dry rows {now['rows_dry']} \u2192 {after['rows_dry']} \u25BC {_forecast_delta_text(lost, 0)}",
+                      "Coastline rows still above water: the sea would take this many next season."))
+    return chips
+
+
+def render_forecast():
+    line = document.getElementById("forecast-line")
+    if line is None:
+        return
+    if not forecast_on():
+        line.hidden = True
+        line.innerHTML = ""
+        return
+    chips = forecast_chips()
+    line.hidden = False
+    line.setAttribute("aria-label", "Next season if you do nothing: " + "; ".join(text for _key, text, _tip in chips))
+    line.innerHTML = (
+        '<span class="forecast-lead" title="Advance now without investing anything more and this is what the readouts would show. '
+        'It is a projection, not a promise: a deal, a storm or a crew change you make first can change it.">Next season if you do nothing:</span> '
+        + " ".join(
+            f'<span class="forecast-chip forecast-chip--{key}" title="{html.escape(tip, quote=True)}">{html.escape(text)}</span>'
+            for key, text, tip in chips
+        )
+    )
+
+
 def render_tide_oct9():
+    render_forecast()
     render_afford()
     render_goal()
     render_quiet()

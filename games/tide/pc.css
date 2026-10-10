@@ -120,3 +120,12 @@ html[data-theme="light"] #pc-stage > #population-display { color: #1b2233; opaci
    coastline; with it gone the caption would hang over the history disclosure. */
 #pc-status-panel #status > .meter-label:has(+ .ticker-history-toggle) { display: none; }
 .pc-window-frame > #community-index { margin: 0; padding: 0 1.1rem 0.9rem; }
+
+/* GN-8: the Workshop, Restore and Crew folds are one window (Menu > Game), not three lines under the page. */
+#pc-tools-panel > details { margin: 0 0 0.6rem; }
+#pc-tools-panel > details > summary { font-weight: 600; }
+
+/* GN-9: the projection sits in the stage bar next to the scenario picker. */
+#pc-stagebar > #forecast-line { margin: 0; font-size: 0.8rem; flex: 1 1 24rem; }
+#pc-tools-panel .workshop-panel label { display: block; margin-top: 0.4rem; }
+#pc-tools-panel .workshop-panel input[type="range"] { width: 100%; max-width: 28rem; }

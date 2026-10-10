@@ -1,6 +1,10 @@
 {
   "changelog": [
     {
+      "date": "2026-10-11",
+      "entry": "New: a line beside the readouts says what next season would look like if you invest nothing more and just advance: funds, acidity, fishing yield, sea level and damage, each as now to next with an arrow and the change (plus a call-out when a coastline row would go under). It is worked out with the game's own rules on a copy of your settlement, so it matches what really happens and spends or changes nothing; hover any part for what it counts. It is on by default and Settings can hide it. On the Desktop page the Tide Workshop, Restore a previous save and Harbour crew folds are now one window, Workshop, restore and crew, in the Menu under Game, instead of three lines at the bottom of the screen, and the wildlife sightings list is a window under Records."
+    },
+    {
       "date": "2026-10-10",
       "entry": "New: a Dashboard button lets you show, hide, pin and reorder the main panels, with Standard, Compact, Analyst and Postcard presets, remembered in this browser (Classic page). On a phone, a Coast / Meters / Log switch shows one part at a time and a swipe moves between them (All is the default and hides nothing), coastline tiles are 44 px tall and a tap on one writes its flood note under the grid. 18 new Bronze, Silver and Gold rank achievements cover storms, heritage, retreat, diversification, monitoring and population. The live ticker now has its own optional Fish / Sea / Economy / Storm / Chronicle chips and search, closed and set to All by default."
     },

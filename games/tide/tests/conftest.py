@@ -106,6 +106,7 @@ ELEMENT_IDS = [
     "critter-whale",
     "harbor-quip",
     "sightings-list",
+    "forecast-line",
     "storm-bell",
     "rewind-button",
     "ironman-badge",

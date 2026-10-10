@@ -112,6 +112,18 @@
         if (render) render();
       });
     }
+    const forecastCheckbox = document.getElementById("forecast-checkbox");
+    if (forecastCheckbox) {
+      var FORECAST_KEY = "tide-season-forecast";
+      var forecastOn = true;
+      try { forecastOn = window.localStorage.getItem(FORECAST_KEY) !== "off"; } catch (e) { forecastOn = true; }
+      forecastCheckbox.checked = forecastOn;
+      forecastCheckbox.addEventListener("change", function () {
+        try { window.localStorage.setItem(FORECAST_KEY, forecastCheckbox.checked ? "on" : "off"); } catch (e) { /* not saved */ }
+        var render = window.pyodide && window.pyodide.globals && window.pyodide.globals.get("render");
+        if (render) render();
+      });
+    }
     const plainCheckbox = document.getElementById("plain-labels-checkbox");
     if (plainCheckbox) {
       var PLAIN_KEY = "tide-plain-labels";
@@ -170,6 +182,12 @@
         reduced = applyMotion(false);
         if (motionCheckbox) {
           motionCheckbox.checked = false;
+        }
+        if (forecastCheckbox) {
+          forecastCheckbox.checked = true;
+          try { window.localStorage.setItem("tide-season-forecast", "on"); } catch (e) { /* not saved */ }
+          var renderAgain = window.pyodide && window.pyodide.globals && window.pyodide.globals.get("render");
+          if (renderAgain) renderAgain();
         }
       });
     }

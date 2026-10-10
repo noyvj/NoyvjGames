@@ -54,3 +54,13 @@ document.addEventListener("keydown", (e) => {
   const graph = e.target && e.target.closest ? e.target.closest("svg[data-crosshair]") : null;
   if (graph && graph.__crosshairIndex != null) e.__pcMenuOpened = true;
 }, true);
+
+// GN-8: "Workshop, restore and crew" is one window in this layout, so its three folds open unfolded
+// (they are only <details> folds on the Classic page, where they sit under the coastline).
+(function () {
+  function unfold() {
+    document.querySelectorAll("#pc-tools-panel details").forEach((d) => { d.open = true; });
+  }
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", () => setTimeout(unfold, 0));
+  else setTimeout(unfold, 0);
+})();
