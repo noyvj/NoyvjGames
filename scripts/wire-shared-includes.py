@@ -26,7 +26,7 @@ ROOT = Path(__file__).resolve().parent.parent
 EXCLUDE_GAMES = set()
 # Hub pages that load shared/theme.js and are public (owner pages and the 404 shell are left out).
 HUB_PAGES = ["index.html", "settings.html", "help.html", "credits.html", "achievements.html",
-             "whats-new.html", "roadmap.html", "sources.html", "terms.html"]
+             "map.html", "whats-new.html", "roadmap.html", "sources.html", "terms.html"]
 
 THEME_TAG = re.compile(r'^([ \t]*)<script src="((?:\.\./\.\./)?shared/)theme\.js"[^>]*></script>[ \t]*\n', re.M)
 

@@ -30,6 +30,8 @@ PUBLIC_PAGES = [
     ("index.html", "NoyvjGames", None, True),
     ("achievements.html", "Achievements - NoyvjGames",
      "Every achievement in every NoyvjGames game in one place, with how many players earned each.", True),
+    ("map.html", "100% Map - NoyvjGames",
+     "Every NoyvjGames game as a ring that fills as you earn its achievements, with a plain list of what is left in each.", True),
     ("whats-new.html", "What's New - NoyvjGames",
      "A running record of updates across the NoyvjGames hub and every game, pulled from the site's own dev logs.", True),
     ("roadmap.html", "Roadmap - NoyvjGames",
