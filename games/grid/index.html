@@ -641,6 +641,17 @@
           <span class="mix-pct" id="hydro-mix-pct">0%</span>
         </div>
       </details>
+      <!-- C-14: every plant type side by side; press a column heading to sort. -->
+      <details id="fleet-overview" class="fleet-overview">
+        <summary>Fleet overview (sortable)</summary>
+        <div class="chart-table-wrap">
+          <table class="chart-table fleet-table">
+            <caption>Every plant type at a glance. Press a column heading to sort by it; press again to reverse.</caption>
+            <thead><tr><th scope="col"><button id="fleet-sort-plant" class="fleet-sort-button" type="button">Plant</button></th><th scope="col"><button id="fleet-sort-count" class="fleet-sort-button" type="button">Units</button></th><th scope="col"><button id="fleet-sort-wear" class="fleet-sort-button" type="button">Wear</button></th><th scope="col"><button id="fleet-sort-risk" class="fleet-sort-button" type="button">Breakdown risk</button></th><th scope="col"><button id="fleet-sort-next" class="fleet-sort-button" type="button">Next maintenance</button></th><th scope="col"><button id="fleet-sort-revenue" class="fleet-sort-button" type="button">Revenue per round</button></th></tr></thead>
+            <tbody id="fleet-body"></tbody>
+          </table>
+        </div>
+      </details>
     </div>
 
     <!-- B-7: the game's own screen-reader live region; used only when shared/announcer.js is not on the page. -->

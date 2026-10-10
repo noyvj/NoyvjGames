@@ -1811,3 +1811,9 @@ html[data-reduced-motion="true"] *::after {
   outline: 3px solid #f0e442;
   outline-offset: 2px;
 }
+
+/* C-14: the sortable fleet overview. */
+.fleet-overview { margin-top: 0.5rem; }
+.fleet-overview summary { cursor: pointer; font-size: 0.9rem; min-height: 44px; display: flex; align-items: center; }
+.fleet-sort-button { background: none; border: 0; color: inherit; font: inherit; font-weight: 600; padding: 0.25rem 0.1rem; min-height: 44px; cursor: pointer; text-align: left; text-decoration: underline dotted; }
+.fleet-table th, .fleet-table td { white-space: nowrap; }

@@ -171,6 +171,8 @@ ELEMENT_IDS.append("sr-announcer")
 # Display preferences (C-12 trend lines, GC-9 ghost, C-19 table view).
 ELEMENT_IDS += [f"trend-show-{k}" for k in ("emissions", "cost", "benchmark", "funds", "demand", "clean", "ghost")]
 ELEMENT_IDS += ["chart-table-view", "trend-ghost-note", "mix-table", "gauge-table"]
+# C-14 fleet overview.
+ELEMENT_IDS += ["fleet-body"] + [f"fleet-sort-{k}" for k in ("plant", "count", "wear", "risk", "next", "revenue")]
 
 INITIALLY_DISABLED_IDS = (
     [f"{p}-build-button" for p in PLANT_TYPES]
