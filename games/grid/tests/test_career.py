@@ -13,6 +13,9 @@ class FakeStorage:
     def setItem(self, key, value):
         self.data[key] = value
 
+    def removeItem(self, key):
+        self.data.pop(key, None)
+
 
 def _install_storage(initial=None):
     storage = FakeStorage(initial)

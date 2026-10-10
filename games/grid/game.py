@@ -3774,6 +3774,75 @@ def render_coach():
         document.getElementById("coach-text").innerText = coach_observation()
 
 
+# ---- C-22 / FY-24 skipped confirmations --------------------------------------------------------------------------
+# Grid asks before two things only: finishing a run, and retiring the LAST unit of a plant type (any other retire is
+# instant -- the owner's answer to FY-24 is "last plant only"). Each question has a "don't ask again" box kept by
+# shared/confirm-dialog.js under confirm-dialog:skip:<id>. This lists which ones were switched off and lets the
+# player switch them all back on. The career import and reset questions can never be skipped, so are not listed.
+CONFIRM_SKIP_PREFIX = "confirm-dialog:skip:"
+SKIPPABLE_CONFIRMATIONS = (
+    [("grid-finish-run", "finishing a run")]
+    + [(f"grid-retire-last-{t}", f"retiring the last {PLANT_LABEL[t]} unit") for t in PLANT_TYPES]
+)
+
+
+def skipped_confirmations():
+    """Labels of the Grid questions the player has switched off with 'don't ask again'."""
+    storage = _career_storage()
+    if storage is None:
+        return []
+    out = []
+    for action_id, label in SKIPPABLE_CONFIRMATIONS:
+        try:
+            if storage.getItem(CONFIRM_SKIP_PREFIX + action_id) == "true":
+                out.append(label)
+        except Exception:  # noqa: BLE001 -- blocked storage reads as "none skipped"
+            return []
+    return out
+
+
+def reset_skipped_confirmations():
+    """Switch every skipped Grid question back on. Returns how many were switched off before."""
+    skipped = skipped_confirmations()
+    storage = _career_storage()
+    if storage is not None:
+        for action_id, _label in SKIPPABLE_CONFIRMATIONS:
+            try:
+                storage.removeItem(CONFIRM_SKIP_PREFIX + action_id)
+            except Exception:  # noqa: BLE001
+                pass
+    return len(skipped)
+
+
+confirm_reset_message = ""
+
+
+def confirmations_status_text():
+    if confirm_reset_message:
+        return confirm_reset_message
+    skipped = skipped_confirmations()
+    if not skipped:
+        return "Grid asks before finishing a run and before retiring the last unit of a plant type. Nothing is switched off."
+    return "Switched off with 'don't ask again': " + ", ".join(skipped) + "."
+
+
+def on_reset_confirmations(event=None):
+    global confirm_reset_message
+    count = reset_skipped_confirmations()
+    confirm_reset_message = (
+        f"Done: {count} question(s) will be asked again." if count else "Nothing was switched off, so nothing changed."
+    )
+    announce(confirm_reset_message)
+    render()
+    confirm_reset_message = ""
+
+
+def render_confirmation_settings():
+    skipped = skipped_confirmations()
+    document.getElementById("confirm-reset-status").innerText = confirmations_status_text()
+    document.getElementById("confirm-reset-button").disabled = not skipped and not confirm_reset_message
+
+
 def render():
     render_info_page()
     render_shadow()
@@ -3840,6 +3909,7 @@ def render():
     render_chart_tables()
     render_fleet_overview()
     render_coach()
+    render_confirmation_settings()
     document.getElementById("global-comparison-message").innerText = global_comparison_message(
         state.emissions, state.global_reference_emissions
     )
@@ -6097,6 +6167,7 @@ def setup():
             "change", create_proxy(_make_maintenance_schedule_handler(plant_type))
         )
     document.getElementById("settings-reset-button").addEventListener("click", create_proxy(on_reset_prefs))
+    document.getElementById("confirm-reset-button").addEventListener("click", create_proxy(on_reset_confirmations))
     document.getElementById("pref-coach").addEventListener("change", create_proxy(_make_pref_checkbox_handler("coach")))
     for fleet_key, _label in FLEET_COLUMNS:
         document.getElementById(f"fleet-sort-{fleet_key}").addEventListener(
