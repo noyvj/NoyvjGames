@@ -748,6 +748,8 @@ def _dom_id(planet, suffix):
 
 def _machinery_discount():
     base = 0.9 if prestige_has("cheaper_machinery") else 1.0
+    if mutator_active("costly_machinery"):
+        base *= MUTATOR_COSTLY_FACTOR  # A-3: an opt-in rule twist, paid for in prestige points
     return base * (1.0 - research_effect("machinery_discount"))
 
 
@@ -1184,7 +1186,8 @@ def update_win_display():
     # world's resource label, where the gains actually show up.
     badge = document.getElementById("prestige-badge")
     badge.hidden = prestige_level <= 0
-    badge.innerText = f"Prestige {prestige_level}" if prestige_level > 0 else ""
+    badge.innerText = f"Prestige {prestige_level}{mutator_glyphs(mutators_run)}" if prestige_level > 0 else ""
+    badge.title = ("Your current Prestige level" + mutator_rules_text(mutators_run)) if prestige_level > 0 else ""
     bonus_text = f"+{round(PRESTIGE_BONUS_PER_LEVEL * prestige_level * 100)}% Prestige bonus on yields"
     for planet in PLANETS:
         tag = document.getElementById(_dom_id(planet, "prestige-bonus"))
@@ -2339,6 +2342,9 @@ def build_share_card_text():
         f"Achievements: {len(achievement_ids_earned())}/{len(ACHIEVEMENTS)}",
         f"Prestige level: {prestige_level}",
     ]
+    if mutators_run:
+        lines.append(f"Run rules: {mutator_glyphs(mutators_run).strip()} " + ", ".join(
+            MUTATOR_BY_ID[m_id]["label"] for m_id in mutators_run))
     return "\n".join(lines)
 
 
@@ -2356,6 +2362,8 @@ def copy_result_fields():
     ]
     if prestige_level > 0:
         stats.append(f"prestige {prestige_level}")
+    if mutators_run:
+        stats.append("rules: " + ", ".join(MUTATOR_BY_ID[m_id]["label"] for m_id in mutators_run))
     return {"game": "SOL", "score": f"{average}%", "unit": "terraformed", "stats": stats}
 
 
@@ -3523,10 +3531,11 @@ def _node_unlockable(node):
 def update_prestige_tree_display(rebuild=True):
     toggle = document.getElementById("prestige-tree-toggle-button")
     panel = document.getElementById("prestige-tree-panel")
-    toggle.hidden = prestige_level <= 0
+    # A-3: the mutator picks are made here, so the panel is also open to a player who is about to prestige.
+    toggle.hidden = prestige_level <= 0 and not _prestige_available()
     available = prestige_points_available()
     toggle.innerText = "Hide Prestige Tree" if prestige_tree_open else f"🌳 Prestige Tree ({available})"
-    panel.hidden = not (prestige_tree_open and prestige_level > 0)
+    panel.hidden = not (prestige_tree_open and not toggle.hidden)
     if panel.hidden or not rebuild:
         return
     panel.innerHTML = ""
@@ -3537,6 +3546,7 @@ def update_prestige_tree_display(rebuild=True):
             "Each prestige earns 1; unlocks are permanent and survive every prestige.",
         )
     )
+    _build_mutator_cards(panel)
     for tier in (1, 2, 3):
         panel.appendChild(_make_text("stats-panel-heading", PRESTIGE_TIER_LABELS[tier]))
         for node in [n for n in PRESTIGE_TREE if n["tier"] == tier]:
@@ -3577,6 +3587,8 @@ def on_prestige_tree_click(event):
             prestige_nodes.add(node["id"])
     elif action == "challenge" and prestige_has("ng_challenge"):
         ng_challenge_active = not ng_challenge_active
+    elif action == "mutator":
+        _toggle_mutator_pick(_target_attr(event, "data-mutator"))
     update_prestige_tree_display()
     _refresh_all_cost_displays()
 
@@ -3790,7 +3802,7 @@ def on_prestige(event=None):
         global prestige_level, unlocked_bodies, visited_bodies
         global current_planet, governor_priority, governor_budget_pct, governor_tick_count
         global governor_purchase_count, any_generator_ever_built, prestige_points_earned, sandbox_mode
-        global epilogue_open, run_start_tick, run_completed
+        global epilogue_open, run_start_tick, run_completed, mutators_run
 
         prestige_level = next_level
         run_start_tick = total_ticks  # R-10: a new run starts its own clock
@@ -3799,7 +3811,8 @@ def on_prestige(event=None):
         del _action_log[:]
         _chain_cooldown_until.clear()
         # A1/A3: 1 tree point per prestige, +1 if the New Game+ Challenge was on.
-        prestige_points_earned += 1 + (1 if _challenge_on() else 0)
+        prestige_points_earned += 1 + (1 if _challenge_on() else 0) + mutator_points(mutators_run)
+        mutators_run = list(mutators_next)  # A-3: the picks are locked in the moment a new run starts
         sandbox_mode = False
         epilogue_open = False
         _forget_close_call_history()
@@ -3841,8 +3854,8 @@ def on_prestige(event=None):
             f"Prestige into a New Game+? Every world resets to its starting state -- "
             f"research, travel, and the Governor included -- and you keep a permanent "
             f"+{next_bonus_pct}% resource yield (Prestige Level {next_level}) and a Prestige Tree "
-            "point. Lifetime stats, tree unlocks and every achievement you've already earned are kept. "
-            "This cannot be undone."
+            "point" + _mutator_confirm_note() + ". Lifetime stats, tree unlocks and every achievement you've "
+            "already earned are kept. This cannot be undone."
         ),
         confirm_label="Prestige into New Game+",
         on_confirm=_do_prestige,
@@ -3870,6 +3883,8 @@ def governor_step():
         # A7: each world may carry its own personality preset; otherwise it
         # follows the global dial exactly as before.
         priority, budget_pct = governor_settings(planet)
+        if mutator_active("blind_governor"):
+            priority, budget_pct = "balance", min(budget_pct, MUTATOR_BLIND_BUDGET_CAP)
         if priority == "growth":
             buy_generator_turn = True
         elif priority == "ecology":
@@ -3908,6 +3923,8 @@ def _incoming_trade_restore(planet):
             continue
         count = planet_state[sender]["trade_routes"].get(planet, 0)
         total += count * TRADE_ROUTE_RESTORE_PER_SEC * (TICK_INTERVAL_MS / 1000)
+    if mutator_active("one_way_trade"):
+        total *= MUTATOR_ONE_WAY_FACTOR
     return total
 
 
@@ -3947,6 +3964,8 @@ def _simulate_planet(planet, incoming_trade_restore):
     decay = state["generator_count"] * cfg["ecology_decay_per_generator_per_sec"] * (TICK_INTERVAL_MS / 1000)
     if prestige_has("eco_conscious"):
         decay *= 0.85
+    if mutator_active("thin_atmosphere"):
+        decay *= MUTATOR_THIN_DECAY_FACTOR
     spec = _specialization(planet)
     if spec == "output":
         decay *= 1 + SPECIALIZATION_OUTPUT_DECAY_PENALTY
@@ -4136,6 +4155,8 @@ def serialize_state():
         **({"recent_trophies": list(recent_trophies)} if recent_trophies else {}),
         **({"run_splits": dict(run_splits)} if run_splits else {}),
         **({"pb_splits": dict(pb_splits)} if pb_splits else {}),
+        **({"mutators_next": list(mutators_next)} if mutators_next else {}),
+        **({"mutators_run": list(mutators_run)} if mutators_run else {}),
     }
 
 
@@ -4273,6 +4294,9 @@ def _load_session_additions(data):
     else:
         # A save from before the shelf existed: the most recent earned ones, in catalog order.
         recent_trophies.extend(achievement_ids_earned()[-TROPHY_HISTORY_MAX:])
+
+    mutators_next[:] = _clean_mutators(data.get("mutators_next"))
+    mutators_run[:] = _clean_mutators(data.get("mutators_run"))
 
     saved_story = data.get("story_log")
     story_log.clear()
@@ -4501,6 +4525,105 @@ def load_state(data):
 # Round-4 batch (2026-10-10). FY-53 goals queue first; the Charter, mutators,
 # anomalies, megaprojects, codex, eras and doctrines are appended below it.
 # ===========================================================================
+
+# --- A-3 / A-4 / FY-49: prestige mutators -----------------------------------
+# Before a New Game+ run the player may pick 0-3 opt-in rule twists. The picks
+# (`mutators_next`) are locked in when the next run starts (`mutators_run`), and
+# the points are paid when that run is prestiged out of, so a twist can never be
+# switched off mid-run to keep the reward. Balance is the owner's "you write it"
+# (FY-49): every twist is worth exactly 1 point, none stacks with itself, and
+# none can lock a world (the worst case is a slower run; ecology and trade keep
+# their usual floors). Nothing here is luck.
+MUTATOR_MAX_PICKS = 3
+MUTATOR_THIN_DECAY_FACTOR = 1.4  # ecology decays 40% faster
+MUTATOR_ONE_WAY_FACTOR = 0.5  # trade routes restore half as much ecology
+MUTATOR_BLIND_BUDGET_CAP = 25.0  # the Governor spends at most a quarter of a world's stock
+MUTATOR_COSTLY_FACTOR = 1.15  # Auto-Miners and Recyclers cost 15% more
+MUTATORS = [
+    {"id": "thin_atmosphere", "label": "Thin Atmosphere", "glyph": "\u2601", "points": 1,
+     "desc": "Ecology decays 40% faster on every world."},
+    {"id": "one_way_trade", "label": "One-Way Trade", "glyph": "\u2192", "points": 1,
+     "desc": "Trade routes restore only half as much ecology."},
+    {"id": "blind_governor", "label": "Blind Governor", "glyph": "\u25d0", "points": 1,
+     "desc": "The Governor ignores your priority and its personalities, alternates its buys and spends "
+             "at most a quarter of a world's stock."},
+    {"id": "costly_machinery", "label": "Costly Machinery", "glyph": "\u2699", "points": 1,
+     "desc": "Auto-Miners and Recyclers cost 15% more."},
+]
+MUTATOR_BY_ID = {entry["id"]: entry for entry in MUTATORS}
+mutators_next = []  # the picks for the run that starts at the next prestige
+mutators_run = []  # the rules the run in progress is being played under
+
+
+def mutator_active(mutator_id):
+    return mutator_id in mutators_run
+
+
+def mutator_points(ids):
+    return sum(MUTATOR_BY_ID[m_id]["points"] for m_id in ids if m_id in MUTATOR_BY_ID)
+
+
+def mutator_glyphs(ids):
+    """A tiny glyph per rule, with a leading space, for the badge and the share card ("" when none)."""
+    return "".join(" " + MUTATOR_BY_ID[m_id]["glyph"] for m_id in ids if m_id in MUTATOR_BY_ID)
+
+
+def mutator_rules_text(ids):
+    names = [MUTATOR_BY_ID[m_id]["label"] for m_id in ids if m_id in MUTATOR_BY_ID]
+    return (". Run rules: " + ", ".join(names)) if names else ""
+
+
+def _clean_mutators(raw):
+    cleaned = []
+    if isinstance(raw, list):
+        for m_id in raw:
+            if isinstance(m_id, str) and m_id in MUTATOR_BY_ID and m_id not in cleaned:
+                cleaned.append(m_id)
+    return cleaned[:MUTATOR_MAX_PICKS]
+
+
+def _mutator_confirm_note():
+    if not mutators_next:
+        return ""
+    return (f" and, for the new run, the rule twists you picked ({', '.join(MUTATOR_BY_ID[m]['label'] for m in mutators_next)}), "
+            f"which pay {mutator_points(mutators_next)} extra point(s) when you prestige out of that run")
+
+
+def _toggle_mutator_pick(mutator_id):
+    if mutator_id not in MUTATOR_BY_ID:
+        return
+    if mutator_id in mutators_next:
+        mutators_next.remove(mutator_id)
+    elif len(mutators_next) < MUTATOR_MAX_PICKS:
+        mutators_next.append(mutator_id)
+
+
+def _build_mutator_cards(panel):
+    panel.appendChild(_make_text("stats-panel-heading", "Mutators for your next run (optional)"))
+    panel.appendChild(_make_text(
+        "prestige-node-desc",
+        f"Pick up to {MUTATOR_MAX_PICKS} rule twists. They apply from the moment your next New Game+ starts, "
+        "and each pays 1 extra Prestige Point when you prestige out of that run. Nothing is luck, "
+        "no world can be locked out, and you can change the picks any time before you prestige.",
+    ))
+    if mutators_run:
+        panel.appendChild(_make_text(
+            "prestige-node-status",
+            "This run is being played with: " + ", ".join(MUTATOR_BY_ID[m]["label"] for m in mutators_run)
+            + f" (worth {mutator_points(mutators_run)} point(s) when you prestige).",
+        ))
+    for entry in MUTATORS:
+        picked = entry["id"] in mutators_next
+        card = document.createElement("div")
+        card.className = "prestige-node" + (" prestige-node--unlocked" if picked else "")
+        card.appendChild(_make_text("prestige-node-name", f"{entry['glyph']} {entry['label']} (+{entry['points']} pt)"))
+        card.appendChild(_make_text("prestige-node-desc", entry["desc"]))
+        full = not picked and len(mutators_next) >= MUTATOR_MAX_PICKS
+        card.appendChild(_make_button(
+            "Picked for next run" if picked else ("Limit reached" if full else "Pick for next run"),
+            {"data-action": "mutator", "data-mutator": entry["id"]}, None, selected=picked, disabled=full))
+        panel.appendChild(card)
+
 
 # --- FY-53: "three goals at all times" (shared/goals-panel.js) ---------------
 # The game owns the queue; the panel shows the first three that are not done.

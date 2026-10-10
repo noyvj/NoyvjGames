@@ -2,6 +2,10 @@
   "changelog": [
     {
       "date": "2026-10-10",
+      "entry": "New: Mutators for New Game+. In the Prestige Tree, pick up to three optional rule twists for your next run (Thin Atmosphere, One-Way Trade, Blind Governor, Costly Machinery); each one pays an extra Prestige Point when you prestige out of that run, and a small symbol next to the title and a Run rules line on the share card show which are on. Nothing is random and you can change the picks before you prestige."
+    },
+    {
+      "date": "2026-10-10",
       "entry": "New: a Goals panel under the toolbar always shows the next three things to do (build an Auto-Miner, research a level, visit a world, terraform a world) with a progress bar for each, and the next goal appears as you finish one. Turn it off in Settings."
     },
     {
