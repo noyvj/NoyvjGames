@@ -1439,3 +1439,95 @@ html[data-reduced-motion="true"] .breed-ring-fill { transition: none; }
 /* Site-wide: a bare `display:` rule on a class must never defeat the HTML hidden attribute
    (playtest audit 2026-10-06, S2: Continuum, Aftermath, Drift, Champ de Mots, hub). */
 [hidden] { display: none !important; }
+
+/* ---- Round-5 display preferences (settings.js sets these data attributes on <html>) ---- */
+
+/* F-15 high contrast: a black page, white text, solid panels with strong outlines, and a thick
+   yellow focus ring. It beats the glass panels and the light theme alike. */
+html[data-high-contrast="true"],
+html[data-high-contrast="true"][data-theme="light"] { background: #000 !important; color-scheme: dark; }
+html[data-high-contrast="true"] body,
+html[data-high-contrast="true"][data-theme="light"] body { color: #fff !important; }
+html[data-high-contrast="true"] .ambient-bg { display: none; }
+/* Blanket pass so no glass panel, readout chip or shell window keeps a pale light-theme fill. The
+   pasture picture, the meters and the gauge are left alone because they carry information. */
+html[data-high-contrast="true"][data-high-contrast] #game *:not(.pasture-visual):not(.pasture-visual *):not(.meter-fill):not(svg *):not(button):not(.achievement-toast):not(.milestone-toast):not(.pc-window-frame):not(.pc-window-bar),
+html[data-high-contrast="true"][data-high-contrast] .pc-window-frame *:not(svg *):not(button):not(.meter-fill):not(.pc-window-bar),
+html[data-high-contrast="true"][data-high-contrast] #pc-readouts *,
+html[data-high-contrast="true"][data-high-contrast] #pc-hintbar,
+html[data-high-contrast="true"][data-high-contrast] #pc-hintbar * {
+  background-color: transparent !important; color: #fff !important; text-shadow: none !important;
+}
+html[data-high-contrast="true"][data-high-contrast] #game .pc-window-frame,
+html[data-high-contrast="true"][data-high-contrast] .pc-window-frame { --pc-window-bg: #000; --pc-window-bar-bg: #000; --pc-window-line: #fff; color: #fff; background-color: #000 !important; }
+html[data-high-contrast="true"][data-high-contrast] #game .pc-window-frame .pc-window-bar { background-color: #000 !important; border-bottom: 2px solid #fff; }
+html[data-high-contrast="true"][data-high-contrast] .pc-readout { background: #000; border: 2px solid #fff; }
+html[data-high-contrast="true"][data-high-contrast] .achievement-toast,
+html[data-high-contrast="true"][data-high-contrast] .milestone-toast { background: #000 !important; color: #fff !important; border: 2px solid #ffd400 !important; }
+
+html[data-high-contrast="true"] #game,
+html[data-high-contrast="true"][data-theme="light"] #game {
+  background: #000 !important; border: 2px solid #fff !important; box-shadow: none !important; backdrop-filter: none !important;
+}
+html[data-high-contrast="true"] .section,
+html[data-high-contrast="true"][data-theme="light"] .section,
+html[data-high-contrast="true"] .achievement-card,
+html[data-high-contrast="true"] .changelog-panel,
+html[data-high-contrast="true"] .achievements-panel {
+  background: #000 !important; color: #fff !important; border: 2px solid #fff !important; box-shadow: none !important; backdrop-filter: none !important;
+}
+html[data-high-contrast="true"] button,
+html[data-high-contrast="true"] button.secondary,
+html[data-high-contrast="true"] button.primary,
+html[data-high-contrast="true"][data-theme="light"] button.secondary,
+html[data-high-contrast="true"][data-theme="light"] button.primary {
+  background: #000 !important; color: #fff !important; border: 2px solid #fff !important; box-shadow: none !important; filter: none !important;
+}
+html[data-high-contrast="true"] button:hover:not(:disabled),
+html[data-high-contrast="true"] button.selected { background: #fff !important; color: #000 !important; }
+html[data-high-contrast="true"] button:disabled { color: #bbb !important; border-style: dashed !important; opacity: 1; }
+html[data-high-contrast="true"] .meter { background: #000; border: 2px solid #fff; }
+html[data-high-contrast="true"] .meter-fill--methane { background: #ffd400; box-shadow: none; }
+html[data-high-contrast="true"] .meter-fill--welfare { background: #5fd0ff; }
+html[data-high-contrast="true"] .meter-fill--supply { background: #ffb000; }
+html[data-high-contrast="true"] .methane-trend-line { stroke: #ffd400; stroke-width: 3; }
+html[data-high-contrast="true"] .comparison-message,
+html[data-high-contrast="true"] .meter-label,
+html[data-high-contrast="true"] .achievement-card-description,
+html[data-high-contrast="true"] .achievement-card-progress,
+html[data-high-contrast="true"] .context-blurb,
+html[data-high-contrast="true"] .tagline { color: #fff !important; opacity: 1 !important; }
+html[data-high-contrast="true"] a { color: #8fd0ff; text-decoration: underline; }
+html[data-high-contrast="true"] :focus-visible { outline: 4px solid #ffd400 !important; outline-offset: 2px; }
+
+/* F-15 easy-read font: a clear sans-serif stack (no font download) with wider letter and word
+   spacing and more line height, as plain-language reading guidance suggests. */
+html[data-dyslexia-font="true"] body,
+html[data-dyslexia-font="true"] button,
+html[data-dyslexia-font="true"] input,
+html[data-dyslexia-font="true"] select,
+html[data-dyslexia-font="true"] textarea {
+  font-family: "OpenDyslexic", "Atkinson Hyperlegible", "Lexend", "Verdana", "Trebuchet MS", sans-serif !important;
+  letter-spacing: 0.04em;
+  word-spacing: 0.12em;
+}
+html[data-dyslexia-font="true"] body { line-height: 1.6; }
+
+/* F-14 pattern fills and shape markers: each bar gets its own texture, so the three bars and the
+   methane graph can be told apart without relying on colour. */
+.meter-fill--welfare { background: linear-gradient(90deg, #2f86b8, #56b4e9); }
+.meter-fill--supply { background: linear-gradient(90deg, #b87900, #e69f00); }
+.trend-marker { display: none; fill: #e8e9f0; stroke: #b06fd6; stroke-width: 1; }
+.trend-marker--flat { fill: #b06fd6; }
+.trend-marker--latest { fill: #e0c24c; stroke: #000; }
+html[data-hatch-patterns="true"] .trend-marker { display: inline; }
+html[data-hatch-patterns="true"] .meter-fill--methane {
+  background-image: repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.55) 0 3px, transparent 3px 8px), linear-gradient(90deg, #8a4fb0, #b06fd6);
+}
+html[data-hatch-patterns="true"] .meter-fill--welfare {
+  background-image: radial-gradient(circle, rgba(255, 255, 255, 0.7) 0 1.6px, transparent 2px), linear-gradient(90deg, #2f86b8, #56b4e9);
+  background-size: 8px 8px, 100% 100%;
+}
+html[data-hatch-patterns="true"] .meter-fill--supply {
+  background-image: repeating-linear-gradient(90deg, rgba(0, 0, 0, 0.55) 0 2px, transparent 2px 7px), linear-gradient(90deg, #b87900, #e69f00);
+}

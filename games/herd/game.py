@@ -1087,8 +1087,34 @@ def methane_trend_graph_svg(history):
     return (
         f'<svg viewBox="0 0 {TREND_GRAPH_WIDTH} {TREND_GRAPH_HEIGHT}" class="methane-trend-graph-svg">'
         f'<polyline points="{points}" class="methane-trend-line" />'
+        f"{trend_markers_svg(xs, ys, history)}"
         f"</svg>"
     )
+
+
+def trend_markers_svg(xs, ys, history):
+    """F-14: shape markers on the methane trend graph, drawn always but only visible when the
+    pattern-fills setting is on (style.css). A square marks a round that added LESS methane than
+    the round before (the curve flattening), a circle any other round, and the latest round is a
+    larger diamond. Shape, never colour, carries the meaning. Rounds are capped to the last 40 so
+    a long game does not draw hundreds of tiny shapes."""
+    n = len(history)
+    first = max(0, n - 40)
+    marks = []
+    for i in range(first, n):
+        x, y = xs[i], ys[i]
+        if i == n - 1:
+            marks.append(
+                f'<polygon class="trend-marker trend-marker--latest" '
+                f'points="{x:.1f},{y - 4:.1f} {x + 4:.1f},{y:.1f} {x:.1f},{y + 4:.1f} {x - 4:.1f},{y:.1f}" />'
+            )
+            continue
+        flattened = i >= 2 and (history[i] - history[i - 1]) < (history[i - 1] - history[i - 2]) - 1e-9
+        if flattened:
+            marks.append(f'<rect class="trend-marker trend-marker--flat" x="{x - 2.5:.1f}" y="{y - 2.5:.1f}" width="5" height="5" />')
+        else:
+            marks.append(f'<circle class="trend-marker trend-marker--rise" cx="{x:.1f}" cy="{y:.1f}" r="2.5" />')
+    return "".join(marks)
 
 
 # ===========================================================================
@@ -1898,6 +1924,11 @@ def render_extras():
     supply_button.innerText = f"Processing & Distribution ({SUPPLY_CHAIN_COST})"
     supply_button.disabled = farm.funds < SUPPLY_CHAIN_COST or farm.supply_chain_investment >= SUPPLY_CHAIN_MAX_UNITS
     document.getElementById("biogas-display").innerText = biogas_message()
+    # F-14: the two small bars (welfare out of 100, supply chain out of its maximum).
+    document.getElementById("welfare-bar").style.width = f"{farm.welfare() / WELFARE_MAX * 100:.0f}%"
+    document.getElementById("supply-chain-bar").style.width = (
+        f"{farm.supply_chain_investment / SUPPLY_CHAIN_MAX_UNITS * 100:.0f}%"
+    )
     document.getElementById("variation-checkbox").checked = farm.variation_enabled
     document.getElementById("cap-checkbox").checked = farm.regional_cap_enabled
     document.getElementById("cap-display").innerText = (
@@ -2880,7 +2911,11 @@ def render():
     document.getElementById("baseline-methane-display").innerText = f"Methane: {farm.counterfactual_methane:.0f}"
     document.getElementById("baseline-score-display").innerText = f"Score: {farm.counterfactual_score():.0f}"
 
-    # F3 — report card panel, kept in sync if left open across a render.
+    # F3 — report card panel, kept in sync if left open across a render. The toggle's label is
+    # always set so a fresh page never shows the "Loading..." placeholder from index.html.
+    document.getElementById("report-card-toggle-button").innerText = (
+        "Hide Report Card" if report_card_open else "📊 Report Card"
+    )
     if report_card_open:
         document.getElementById("report-card-panel").innerHTML = report_card_html()
         _request_comparison()  # F7 -- re-asks the hook; JS side caches/dedupes

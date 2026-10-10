@@ -98,6 +98,8 @@ ELEMENT_IDS = [
     "round-delta-strip", "delta-chip-funds", "delta-chip-methane", "delta-chip-welfare",
     "delta-chip-pressure", "undo-panel", "undo-round-button", "undo-note", "season-calendar",
     "genetics-rings", "poultry-compare", "hall-of-fame", "hall-of-fame-list", "pace-note",
+    # Round-5 batch.
+    "welfare-bar", "supply-chain-bar",
 ]
 for _measure in MEASURE_IDS:
     ELEMENT_IDS += [f"{_measure}-name", f"{_measure}-count", f"{_measure}-invest-button"]

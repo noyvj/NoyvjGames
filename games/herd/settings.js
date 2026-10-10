@@ -84,7 +84,54 @@
     return reduced;
   }
 
+  // F-15 / F-14: extra display preferences, each a plain on/off stored in localStorage and
+  // mirrored as a data attribute on <html> that style.css reads. Browser-level, never in a save.
+  const DISPLAY_PREFS = [
+    { key: "herd-high-contrast", attr: "data-high-contrast", checkbox: "high-contrast-checkbox" },
+    { key: "herd-dyslexia-font", attr: "data-dyslexia-font", checkbox: "dyslexia-font-checkbox" },
+    { key: "herd-hatch-patterns", attr: "data-hatch-patterns", checkbox: "hatch-patterns-checkbox" },
+  ];
+
+  function readPref(key) {
+    try {
+      return window.localStorage.getItem(key) === "true";
+    } catch (e) {
+      return false;
+    }
+  }
+
+  function applyPref(pref, on) {
+    document.documentElement.setAttribute(pref.attr, on ? "true" : "false");
+    try {
+      window.localStorage.setItem(pref.key, String(on));
+    } catch (e) {
+      // Losing persistence is fine; the toggle still works for this page load.
+    }
+    return on;
+  }
+
+  function initDisplayPrefs() {
+    DISPLAY_PREFS.forEach(function (pref) {
+      const on = applyPref(pref, readPref(pref.key));
+      const box = document.getElementById(pref.checkbox);
+      if (!box) return;
+      box.checked = on;
+      box.addEventListener("change", function () {
+        applyPref(pref, box.checked);
+      });
+    });
+  }
+
+  function resetDisplayPrefs() {
+    DISPLAY_PREFS.forEach(function (pref) {
+      applyPref(pref, false);
+      const box = document.getElementById(pref.checkbox);
+      if (box) box.checked = false;
+    });
+  }
+
   function init() {
+    initDisplayPrefs();
     let scale = readStoredScale();
     applyScale(scale);
     let reduced = readStoredMotion();
@@ -135,6 +182,7 @@
         if (motionCheckbox) {
           motionCheckbox.checked = false;
         }
+        resetDisplayPrefs();
       });
     }
   }

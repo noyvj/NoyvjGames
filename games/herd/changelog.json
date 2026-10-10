@@ -1,5 +1,9 @@
 [
   {
+    "date": "2026-10-10",
+    "entry": "Settings has three new switches. High contrast turns the page black with white text, solid outlines and a thick yellow focus ring. Easy-read font swaps in a clear sans-serif stack with wider letter and word spacing. Pattern fills and shape markers give the methane bar a diagonal stripe, the new welfare bar dots and the new supply-chain bar vertical stripes, and mark every round on the methane graph with a shape (a square when the round added less methane than the one before, a circle otherwise, a diamond for the latest), so colour is never the only cue. Reset to Default turns all three off. The Report Card button also no longer says Loading... when the page first opens."
+  },
+  {
     "date": "2026-10-09",
     "entry": "The feedback box at the end now asks a second question about Herd's own lesson: did decoupling feel like a real strategy, or a tax on growth? Answer both questions and the Submit button unlocks; your comment is still optional."
   },
