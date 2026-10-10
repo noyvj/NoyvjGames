@@ -49,6 +49,7 @@ class FakeElement:
         self.children = []
         self.attributes = {}
         self.open = False
+        self.checked = False
         self._listeners = {}
         if id_ is not None and registry is not None:
             registry[id_] = self

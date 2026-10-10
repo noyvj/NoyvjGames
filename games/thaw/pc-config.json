@@ -44,6 +44,13 @@
       "label": "🔍 Focus on one region"
     },
     {
+      "id": "pc-planner-panel",
+      "title": "Forecast planner",
+      "members": ["#planner"],
+      "group": "Details",
+      "label": "🧮 Forecast planner"
+    },
+    {
       "id": "pc-story-panel",
       "title": "Four regions, one story",
       "members": ["#shared-research"],

@@ -536,6 +536,35 @@
       </div>
     </details>
 
+    <!-- G-5: a what-if planner on a scratch copy of one region (see game.py). -->
+    <details id="planner" class="section tool-section">
+      <summary>🧮 Forecast planner: try a funding split</summary>
+      <p class="comparison-message">Pick a region and type how many units you would buy. The dashed line is the next 10 rounds with your plan, the solid line is the same region if nothing changes. Nothing here spends anything.</p>
+      <div class="planner-row">
+        <label for="planner-region">Region
+          <select id="planner-region">
+            <option value="a">A</option>
+            <option value="b">B</option>
+            <option value="c">C</option>
+          </select>
+        </label>
+        <label for="planner-output">Output
+          <input id="planner-output" class="planner-input" type="number" min="0" max="99" step="1" inputmode="numeric" placeholder="0">
+        </label>
+        <label for="planner-preserve">Preservation
+          <input id="planner-preserve" class="planner-input" type="number" min="0" max="99" step="1" inputmode="numeric" placeholder="0">
+        </label>
+        <label for="planner-monitor">Monitoring
+          <input id="planner-monitor" class="planner-input" type="number" min="0" max="99" step="1" inputmode="numeric" placeholder="0">
+        </label>
+      </div>
+      <label class="planner-repeat" for="planner-repeat"><input type="checkbox" id="planner-repeat"> Repeat the plan every round (as far as funds allow)</label>
+      <div id="planner-chart" class="planner-chart"></div>
+      <p class="comparison-message compare-key">Solid line: no change. Dashed line: your plan. Dotted line: the +10 degree melt threshold. Tipping cascades, convoys and carbon grants are not modelled.</p>
+      <p id="planner-readout" class="comparison-message"></p>
+      <button type="button" id="planner-reset-button" class="secondary">Clear the plan</button>
+    </details>
+
     <div id="worst-case-section" class="section">
       <button id="worst-case-toggle-button" class="secondary" type="button">Loading...</button>
       <div id="worst-case-panel" class="worst-case-panel" hidden>

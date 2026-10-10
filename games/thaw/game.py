@@ -3864,6 +3864,146 @@ def on_focus_rescue(event=None):
         _check_new_achievements_for_toast()
 
 
+# ===========================================================================
+# G-5: the forecast planner. Draw a hypothetical funding split for one region (units of Output,
+# Preservation and Monitoring to buy now, optionally repeated every round) and see a dashed
+# 10-round temperature projection beside the "no change" one. It runs on a scratch copy of the
+# region, so nothing about the real game changes. Tipping cascades, convoys and carbon grants are
+# not modelled (they would make the line depend on the other regions), which the page says.
+# ===========================================================================
+PLANNER_ROUNDS = 10
+PLANNER_MAX_UNITS = 99
+PLANNER_W = 320
+PLANNER_H = 110
+PLAN_ORDER = ("preserve", "monitor", "output")  # what gets bought first when funds run short
+
+
+def _plan_int(raw):
+    """A units box as a whole number 0..PLANNER_MAX_UNITS (blank, text and negatives become 0)."""
+    try:
+        value = int(float(str(raw).strip() or "0"))
+    except (TypeError, ValueError, OverflowError):
+        return 0
+    return max(0, min(PLANNER_MAX_UNITS, value))
+
+
+def _scratch_copy(r):
+    scratch = RegionState()
+    _apply_region_state(scratch, _region_state_dict(r))
+    return scratch
+
+
+def _buy_plan(scratch, plan):
+    """Buys what the plan asks for and the scratch region can afford; returns the units skipped."""
+    skipped = 0
+    for category in PLAN_ORDER:
+        for _ in range(plan.get(category, 0)):
+            if not scratch.invest(category):
+                skipped += 1
+    return skipped
+
+
+def planner_projection(r, plan, repeat=False, rounds=PLANNER_ROUNDS):
+    """The region's temperature now and after each of the next `rounds` rounds if it buys `plan`
+    first (and again every round when `repeat`). Returns (temperatures, units skipped overall)."""
+    scratch = _scratch_copy(r)
+    skipped = _buy_plan(scratch, plan)
+    temps = [scratch.temperature]
+    for _ in range(rounds):
+        scratch.advance_round()
+        if repeat:
+            skipped += _buy_plan(scratch, plan)
+        temps.append(scratch.temperature)
+    return temps, skipped
+
+
+def plan_cost(plan):
+    return sum(INVEST_COST[c] * plan.get(c, 0) for c in CATEGORIES)
+
+
+def planner_chart_svg(base, planned, name):
+    values = list(base) + list(planned)
+    top = max(max(values), MELT_THRESHOLD) * 1.08
+    plot_w, plot_h = PLANNER_W - 34 - 4, PLANNER_H - 16 - 4
+
+    def point(i, v):
+        return f"{34 + i * plot_w / max(len(base) - 1, 1):.1f},{4 + plot_h - v / top * plot_h:.1f}"
+
+    melt_y = 4 + plot_h - MELT_THRESHOLD / top * plot_h
+    label = _escape(
+        f"{name}, next {len(base) - 1} rounds: with no change the temperature ends at {deg(base[-1], plus=True)}; "
+        f"with your plan it ends at {deg(planned[-1], plus=True)}."
+    )
+    return (
+        f'<svg viewBox="0 0 {PLANNER_W} {PLANNER_H}" class="planner-svg" role="img" aria-label="{label}"><title>{label}</title>'
+        f'<line x1="34" y1="{melt_y:.1f}" x2="{PLANNER_W - 4}" y2="{melt_y:.1f}" class="focus-guide focus-guide--melt" />'
+        f'<text x="31" y="{melt_y + 3:.1f}" class="focus-tick" text-anchor="end">{deg(MELT_THRESHOLD, 0, plus=True)}</text>'
+        f'<text x="34" y="{PLANNER_H - 3}" class="focus-tick" text-anchor="start">now</text>'
+        f'<text x="{PLANNER_W - 4}" y="{PLANNER_H - 3}" class="focus-tick" text-anchor="end">+{len(base) - 1} rounds</text>'
+        f'<polyline points="{" ".join(point(i, v) for i, v in enumerate(base))}" class="compare-line compare-line--first" />'
+        f'<polyline points="{" ".join(point(i, v) for i, v in enumerate(planned))}" class="compare-line compare-line--second" />'
+        f"</svg>"
+    )
+
+
+def planner_readout(r, key, plan, repeat, base, planned, skipped):
+    parts = [f"Region {key.upper()} in {PLANNER_ROUNDS} rounds: {deg(base[-1], plus=True)} if nothing changes."]
+    if not any(plan.values()):
+        parts.append("Type a number of units below to see what a different split would do.")
+        return " ".join(parts)
+    diff = base[-1] - planned[-1]
+    if abs(diff) < 0.05:
+        parts.append(f"Your plan ends at {deg(planned[-1], plus=True)}: no real difference over {PLANNER_ROUNDS} rounds.")
+    elif diff > 0:
+        parts.append(f"Your plan ends at {deg(planned[-1], plus=True)}, {deg(diff)} cooler.")
+    else:
+        parts.append(f"Your plan ends at {deg(planned[-1], plus=True)}, {deg(-diff)} warmer (Output earns funds, not protection).")
+    cost = plan_cost(plan)
+    parts.append(
+        f"The plan costs {cost} funds{' each round' if repeat else ''}; Region {key.upper()} has {r.funds:.0f}."
+    )
+    if skipped:
+        parts.append(f"{skipped} unit{'s' if skipped != 1 else ''} could not be afforded and are left out.")
+    return " ".join(parts)
+
+
+def _planner_inputs():
+    key = document.getElementById("planner-region").value
+    key = key if key in FOCUS_KEYS else "a"
+    plan = {c: _plan_int(document.getElementById(f"planner-{c}").value) for c in CATEGORIES}
+    repeat = bool(document.getElementById("planner-repeat").checked)
+    return key, plan, repeat
+
+
+def render_planner():
+    key, plan, repeat = _planner_inputs()
+    r = _focus_region_for(key)
+    base, _none = planner_projection(r, {c: 0 for c in CATEGORIES})
+    planned, skipped = planner_projection(r, plan, repeat)
+    document.getElementById("planner-chart").innerHTML = planner_chart_svg(base, planned, f"Region {key.upper()}")
+    document.getElementById("planner-readout").innerText = planner_readout(r, key, plan, repeat, base, planned, skipped)
+
+
+def on_planner_change(event=None):
+    render_planner()
+
+
+def on_planner_reset(event=None):
+    for category in CATEGORIES:
+        document.getElementById(f"planner-{category}").value = ""
+    document.getElementById("planner-repeat").checked = False
+    render_planner()
+
+
+def outlook_lines():
+    """The 10-round no-change outlook for the three managed regions, for the Advance Round tooltip."""
+    parts = []
+    for label, r in (("A", region), ("B", region_b), ("C", region_c)):
+        temps, _none = planner_projection(r, {c: 0 for c in CATEGORIES})
+        parts.append(f"{label} {deg(temps[-1], plus=True)}")
+    return f"In {PLANNER_ROUNDS} rounds with no change: " + ", ".join(parts)
+
+
 def render():
     render_info_page()
     document.getElementById("round-display").innerText = f"Round {region.round_number}"
@@ -4084,12 +4224,14 @@ def render():
             f"(to {deg(r.temperature + r.current_rise_rate(), plus=True)})"
             for label, r in (("A", region), ("B", region_b), ("C", region_c))
         ]
+        + [outlook_lines()]  # G-5: the 10-round outlook beside the next-round numbers
     )
 
     _maybe_update_personal_best()
     _maybe_update_climate_archive()
     render_board()  # after the archive update so "best saved" is current
     render_focus()
+    render_planner()
     render_personal_best()
     render_climate_archive()
     update_achievements_display()
@@ -4558,6 +4700,10 @@ def setup():
     for name in LOG_FILTERS:
         document.getElementById(f"log-filter-{name}").addEventListener("click", create_proxy(on_log_filter(name)))
     document.getElementById("focus-region").addEventListener("change", create_proxy(on_focus_region_change))
+    for name in ("planner-region", "planner-output", "planner-preserve", "planner-monitor", "planner-repeat"):
+        document.getElementById(name).addEventListener("change", create_proxy(on_planner_change))
+        document.getElementById(name).addEventListener("input", create_proxy(on_planner_change))
+    document.getElementById("planner-reset-button").addEventListener("click", create_proxy(on_planner_reset))
     for category in CATEGORIES:
         document.getElementById(f"focus-invest-{category}").addEventListener(
             "click", create_proxy(_make_focus_invest_handler(category))

@@ -1,6 +1,10 @@
 [
   {
     "date": "2026-10-11",
+    "entry": "New: a Forecast planner lets you try a funding split without spending anything. Pick a region, type how many Output, Preservation and Monitoring units you would buy (once, or every round), and a dashed line shows the next 10 rounds against the same region if nothing changes, with a plain-words readout. The Advance Round hover now also lists where each region lands in 10 rounds with no change."
+  },
+  {
+    "date": "2026-10-11",
     "entry": "New: a Focus view window shows one region at full width: a larger temperature graph with labelled axes and the +10 melt and +15 milestone lines, every readout in one list, and the invest and emergency-rescue buttons right underneath, for Region A, B or C."
   },
   {
