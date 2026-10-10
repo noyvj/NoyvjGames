@@ -2,6 +2,10 @@
   "changelog": [
     {
       "date": "2026-10-10",
+      "entry": "New: the Ecology Stress Test, an optional endgame arena in the Charter. Once every world is terraformed you can run a three-minute cascade of anomalies on a copy of your system, with only your Governor settings and Doctrines acting, and see how far above a 40% average ecology line it held, with a strip per world showing when each one dipped. Nothing in your real game changes."
+    },
+    {
+      "date": "2026-10-10",
       "entry": "New: Blueprint Swap. The Build Plan can turn your plan steps, Doctrine rules and next-run mutator picks into one short code to share, and a pasted code shows up as a faint ghost list you adopt piece by piece. Nothing is ever applied by itself and nothing leaves your device."
     },
     {

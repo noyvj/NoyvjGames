@@ -4231,6 +4231,7 @@ def serialize_state():
         **({"anomalies_seen": sorted(anomalies_seen)} if anomalies_seen else {}),
         **({"codex_found": list(codex_found)} if codex_found else {}),
         **({"doctrine_rules": [dict(rule) for rule in doctrine_rules]} if doctrine_rules else {}),
+        **({"stress_best_margin": stress_best_margin} if stress_best_margin is not None else {}),
         **({"megaproject_progress": {k: dict(v) for k, v in megaproject_progress.items()}} if megaproject_progress else {}),
         **({"megaprojects_built": list(megaprojects_built)} if megaprojects_built else {}),
         **({"megaprojects_all_ever": True} if megaprojects_all_ever else {}),
@@ -4341,7 +4342,7 @@ def _load_session_additions(data):
     global prestige_points_earned, prestige_nodes, ng_challenge_active, sandbox_mode
     global close_call_hit, back_from_brink_hit, _departure_snapshots
     global full_system_completed_tick, _leaderboard_reported
-    global run_start_tick, run_completed, best_run_ticks, best_click_streak, _trophy_fresh_id
+    global run_start_tick, run_completed, best_run_ticks, best_click_streak, _trophy_fresh_id, stress_best_margin
 
     def _tick_count(value):
         return value if isinstance(value, int) and not isinstance(value, bool) and 0 <= value < 10 ** 12 else None
@@ -4383,6 +4384,13 @@ def _load_session_additions(data):
     _load_megaprojects(data)
     codex_found[:] = _clean_ids(data.get("codex_found"), CLUE_BY_ID)
     doctrine_rules[:] = _clean_doctrine_rules(data.get("doctrine_rules"))
+    saved_margin = data.get("stress_best_margin")
+    stress_best_margin = (
+        round(float(saved_margin), 1)
+        if isinstance(saved_margin, (int, float)) and not isinstance(saved_margin, bool)
+        and -100.0 <= saved_margin <= 100.0 and saved_margin == saved_margin
+        else None
+    )
     _doctrine_reset_runtime()
     mission_stamps[:] = _clean_ids(data.get("mission_stamps"), MISSION_BY_ID)
     mission_slots[:] = [m_id for m_id in _clean_ids(data.get("mission_slots"), MISSION_BY_ID)
@@ -4786,6 +4794,7 @@ ANOMALIES = [
 ]
 ANOMALY_BY_ID = {entry["id"]: entry for entry in ANOMALIES}
 anomalies_seen = set()  # lifetime collection; saved only when non-empty
+_stress_factors = {}  # A-27: the cascade's multipliers while a headless Stress Test run is going
 _active_anomaly = None  # id of the anomaly in effect this tick, or None
 
 
@@ -4819,9 +4828,10 @@ def _update_anomaly():
 
 
 def anomaly_factor(key):
+    factor = _stress_factors.get(key, 1.0)  # only ever non-empty inside a headless Stress Test run
     if _active_anomaly is None:
-        return 1.0
-    return ANOMALY_BY_ID[_active_anomaly]["effects"].get(key, 1.0)
+        return factor
+    return factor * ANOMALY_BY_ID[_active_anomaly]["effects"].get(key, 1.0)
 
 
 def _mmss(ticks):
@@ -5021,6 +5031,8 @@ def on_charter_click(event):
     action = _target_attr(event, "data-action")
     if action == "reroll":
         reroll_mission(_target_attr(event, "data-mission"))
+    elif action == "stress":
+        run_stress_test()
     elif action == "hint":
         clue_id = _target_attr(event, "data-clue")
         if clue_id in CLUE_BY_ID:
@@ -5033,6 +5045,7 @@ def on_charter_click(event):
 def _charter_structure_signature():
     return (tuple(mission_slots), tuple(mission_stamps), tuple(sorted(anomalies_seen)),
             tuple(_overview_planets()), tuple(megaprojects_built), tuple(codex_found), tuple(sorted(_codex_hints)),
+            _stress_run_id, stress_best_margin, _prestige_available(),
             tuple((pid, tuple(sorted(v.items()))) for pid, v in sorted(megaproject_progress.items())))
 
 
@@ -5070,6 +5083,7 @@ def _build_charter():
             "chains-intro", "More missions are posted as you unlock worlds and finish these."))
     _build_megaproject_section(panel)
     _build_codex_section(panel)
+    _build_stress_section(panel)
     _charter_refs["_stamps"] = _make_text("chain-card-count", "")
     panel.appendChild(_make_text("stats-panel-heading", "Stamps"))
     panel.appendChild(_charter_refs["_stamps"])
@@ -5471,33 +5485,51 @@ def doctrine_report_line(planet):
     return f"Doctrine fired {seconds}s ago: {last[0]}"
 
 
-def doctrine_dry_run():
-    """A-8: runs the rules for DRY_RUN_TICKS on a copy of the numbers. Returns (total fires, per-rule counts)."""
-    global _dry_run, _doctrine_fired_counts, _doctrine_last_fired, _doctrine_relief_ready
+def _run_headless(ticks, on_tick=None, all_governed=False):
+    """Runs `ticks` of simulate plus Governor (and Doctrines) on a copy of the numbers: the DOM is never touched
+    and every number is put back in a `finally`. `on_tick(i)` is called after each tick. With `all_governed`
+    nobody is standing anywhere, so the Governor runs every world (and the sandbox is off). Returns the
+    per-rule fire counts of the run."""
+    global _dry_run, _doctrine_fired_counts, _doctrine_last_fired, _doctrine_relief_ready, _active_anomaly
     global governor_purchase_count, governor_tick_count, lifetime_generators_built, lifetime_recyclers_built
     global lifetime_trade_routes_built, lifetime_resources_generated_by_automation, any_generator_ever_built
+    global total_ticks, current_planet, sandbox_mode
     snapshot = (
         copy.deepcopy(planet_state), governor_purchase_count, governor_tick_count, lifetime_generators_built,
         lifetime_recyclers_built, lifetime_trade_routes_built, lifetime_resources_generated_by_automation,
-        any_generator_ever_built, dict(_doctrine_fired_counts), dict(_doctrine_last_fired), dict(_doctrine_relief_ready),
+        any_generator_ever_built, dict(_doctrine_fired_counts), dict(_doctrine_last_fired),
+        dict(_doctrine_relief_ready), total_ticks, current_planet, sandbox_mode, _active_anomaly,
     )
     _doctrine_fired_counts = {}
     _dry_run = True
     try:
-        for _ in range(DRY_RUN_TICKS):
+        if all_governed:
+            current_planet, sandbox_mode, _active_anomaly = "Deep space", False, None
+        for index in range(ticks):
+            total_ticks += 1
             incoming = {p: _incoming_trade_restore(p) for p in PLANETS}
             for planet in PLANETS:
                 _simulate_planet(planet, incoming[planet])
             governor_step()
+            if on_tick is not None:
+                on_tick(index)
         counts = dict(_doctrine_fired_counts)
     finally:
         _dry_run = False
+        _stress_factors.clear()
         (saved_state, governor_purchase_count, governor_tick_count, lifetime_generators_built,
          lifetime_recyclers_built, lifetime_trade_routes_built, lifetime_resources_generated_by_automation,
-         any_generator_ever_built, _doctrine_fired_counts, _doctrine_last_fired, _doctrine_relief_ready) = snapshot
+         any_generator_ever_built, _doctrine_fired_counts, _doctrine_last_fired, _doctrine_relief_ready,
+         total_ticks, current_planet, sandbox_mode, _active_anomaly) = snapshot
         for planet, values in saved_state.items():
             planet_state[planet].clear()
             planet_state[planet].update(values)
+    return counts
+
+
+def doctrine_dry_run():
+    """A-8: runs the rules for DRY_RUN_TICKS on a copy of the numbers. Returns (total fires, per-rule counts)."""
+    counts = _run_headless(DRY_RUN_TICKS)
     return sum(counts.values()), counts
 
 
@@ -5632,6 +5664,98 @@ def update_doctrine_display():
     for index, element in _doctrine_refs.items():
         n = _doctrine_fired_counts.get(index, 0)
         element.innerText = f"Fired {n} time{'s' if n != 1 else ''} this session"
+
+
+# --- A-27 / A-28: Ecology Stress Test ------------------------------------------
+# An optional endgame arena, open once every world is terraformed. It runs on a
+# copy of your numbers (nothing real changes, no achievements or boards are
+# touched): for three minutes of game time a cascade of anomalies hits every world
+# (decay x1.5, then x2 with trade restore halved, then x2.5), nobody is standing
+# anywhere, and only your Governor settings and Doctrines act. The line is an
+# average ecology of STRESS_LINE% across all eight worlds; the score is how far
+# above the line the worst moment stayed (negative = it dipped under). A-28: a
+# strip per world of 12 blocks (the lowest ecology in each 15 seconds), height
+# plus "!" under 10% and "x" at 0%, so it reads without colour.
+STRESS_TICKS = 1800
+STRESS_SAMPLE_EVERY = 150
+STRESS_LINE = 40.0
+STRESS_PHASES = [(0, {"decay": 1.5}), (600, {"decay": 2.0, "trade": 0.5}), (1200, {"decay": 2.5, "trade": 0.5})]
+STRESS_BLOCKS = "\u2581\u2582\u2583\u2584\u2585\u2586\u2587\u2588"
+stress_best_margin = None  # lifetime best margin, saved when set
+_stress_last = None
+_stress_run_id = 0
+
+
+def stress_block(ecology):
+    if ecology <= 0:
+        return "x"
+    if ecology < LOW_ECOLOGY_THRESHOLD:
+        return "!"
+    return STRESS_BLOCKS[min(len(STRESS_BLOCKS) - 1, int(ecology / (ECOLOGY_MAX / len(STRESS_BLOCKS))))]
+
+
+def run_stress_test():
+    """Runs the test. Returns the result dict, or None when the system is not fully terraformed yet."""
+    global stress_best_margin, _stress_last, _stress_run_id
+    if not _prestige_available():
+        return None
+    buckets = STRESS_TICKS // STRESS_SAMPLE_EVERY
+    lows = {p: [100.0] * buckets for p in PLANETS}
+    worst = [100.0]
+
+    def sample(index):
+        for phase_start, factors in STRESS_PHASES:
+            if index >= phase_start:
+                _stress_factors.clear()
+                _stress_factors.update(factors)
+        bucket = min(buckets - 1, index // STRESS_SAMPLE_EVERY)
+        total = 0.0
+        for planet in PLANETS:
+            ecology = planet_state[planet]["ecology_health"]
+            total += ecology
+            lows[planet][bucket] = min(lows[planet][bucket], ecology)
+        worst[0] = min(worst[0], total / len(PLANETS))
+
+    _stress_factors.update(STRESS_PHASES[0][1])
+    _run_headless(STRESS_TICKS, on_tick=sample, all_governed=True)
+    margin = round(worst[0] - STRESS_LINE, 1)
+    _stress_last = {"margin": margin, "lowest": round(worst[0], 1), "rows": lows}
+    if stress_best_margin is None or margin > stress_best_margin:
+        stress_best_margin = margin
+    _stress_run_id += 1
+    return _stress_last
+
+
+def _build_stress_section(panel):
+    panel.appendChild(_make_text("stats-panel-heading", "Ecology Stress Test"))
+    panel.appendChild(_make_text(
+        "chains-intro",
+        f"An optional endgame arena. For {STRESS_TICKS * TICK_INTERVAL_MS // 60000} minutes of game time a cascade of "
+        "anomalies hits every world and only your Governor settings and Doctrines act: no clicking. The line is an "
+        f"average ecology of {round(STRESS_LINE)}% across all worlds. It runs on a copy, so nothing in your game "
+        "changes."))
+    if stress_best_margin is not None:
+        panel.appendChild(_make_text("chain-card-count", f"Best so far: {stress_best_margin:+.1f} points from the line."))
+    ready = _prestige_available()
+    panel.appendChild(_make_button("Run the stress test" if ready else "Opens when every world is terraformed",
+                                   {"data-action": "stress"}, None, disabled=not ready))
+    if _stress_last is None:
+        return
+    verdict = "held the line" if _stress_last["margin"] >= 0 else "dipped under the line"
+    result = _make_text(
+        "chain-card-count",
+        f"Result: {verdict}. Worst average ecology {_stress_last['lowest']}%, which is "
+        f"{_stress_last['margin']:+.1f} points from the line.")
+    result.setAttribute("role", "status")
+    panel.appendChild(result)
+    panel.appendChild(_make_text(
+        "chain-card-detail",
+        "Each block is the lowest ecology in 15 seconds: taller is healthier, ! is under 10% (output penalty), x is 0%."))
+    for planet in PLANETS:
+        values = _stress_last["rows"][planet]
+        strip = "".join(stress_block(v) for v in values)
+        panel.appendChild(_make_text(
+            "stress-strip", f"{PLANET_DISPLAY_NAMES.get(planet, planet)}: {strip} lowest {round(min(values))}%"))
 
 
 # --- A-23: Blueprint Swap ------------------------------------------------------

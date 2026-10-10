@@ -1871,6 +1871,8 @@ html[data-era-look="on"][data-era="custodian"] .prestige-badge { border-color: #
 
 .build-plan-row--ghost { opacity: 0.65; border-style: dashed; }
 
+.stress-strip { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.8rem; margin: 0.15rem 0; text-align: left; }
+
 /* ============================================================
    Y11b light-theme polish (2026-09-27). Light-only rules from a
    computed-style WCAG contrast scan of the light theme (fresh game, the
