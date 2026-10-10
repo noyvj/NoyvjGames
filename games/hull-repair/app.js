@@ -318,6 +318,29 @@
     renderHints();
   }
 
+  // ---- sound (shared/sfx.js: generated in code, off unless the player turns it on, never the only signal) ----
+  function lineStates(v) {
+    var out = {};
+    if (v && v.board && v.board.lines) v.board.lines.forEach(function (l) { out[l.c] = l.state; });
+    return out;
+  }
+  function soundFor(request, previous) {
+    if (!window.NoyvjSfx || !previous || !view || !previous.board || previous.board.id !== view.board.id) return;
+    if (["begin", "move", "end", "undo", "clear", "clear_line"].indexOf(request.action) < 0) return;
+    var was = lineStates(previous);
+    var now = lineStates(view);
+    var joined = false;
+    var cut = false;
+    Object.keys(now).forEach(function (c) {
+      if (was[c] !== "connected" && now[c] === "connected") joined = true;
+      if ((was[c] && was[c] !== "open" && now[c] === "open") || (was[c] === "connected" && now[c] !== "connected")) cut = true;
+    });
+    var restored = request.action === "end" && view.result && view.result.status === 2 && !(previous.result && previous.result.status === 2);
+    if (restored) window.NoyvjSfx.play("bell");
+    else if (joined) window.NoyvjSfx.play("confirm");
+    else if (cut) window.NoyvjSfx.play("click_low");
+  }
+
   // ---- talking to the engine --------------------------------------------------------------------------------
   function persist() {
     try {
@@ -340,6 +363,7 @@
     if (request.action === "end" && view.result && (!previous || !previous.result || previous.result.status !== view.result.status)) {
       announce(view.result.status === 2 ? "Room restored." : "Room patched. " + plural(view.result.empty, "cell", "cells") + " still empty.");
     }
+    soundFor(request, previous);
     if (request.action === "end" || request.action === "undo" || request.action === "clear" || request.action === "clear_line" || request.action === "pick" || request.action === "next" || request.action === "hint" || request.action === "load_answer") persist();
     return result;
   }

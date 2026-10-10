@@ -1,6 +1,10 @@
 {
   "changelog": [
     {
+      "date": "2026-10-11",
+      "entry": "Optional soft sounds, off unless you turn them on in Settings (Sound): a quiet tone when a line is joined, a low click when one is cut or taken back, and a bell when a room is fully restored. They are made in your browser (no sound files), stay silent in a hidden tab, and have a volume and a Reduce sounds switch. Nothing in the game depends on them."
+    },
+    {
       "date": "2026-10-10",
       "entry": "A Desktop layout for wide windows: the board fills the stage, the tally sits in a side column, and the Station map, Repair log, Achievements and Settings open as windows from icons or the Menu (Esc). It is the same game and the same save; the Classic layout is unchanged and is still what phones use."
     },

@@ -53,6 +53,15 @@ def test_the_page_only_uses_one_cosmetic_timeout_and_no_interval_and_no_audio():
     assert "<audio" not in HTML and "new Audio" not in APP and "AudioContext" not in APP
 
 
+def test_sound_is_only_the_optional_shared_synth_called_from_the_view():
+    """AU-2: the owner approved sound generated in code. It may only be reached through the shared NoyvjSfx calls in
+    app.js (never an Audio element, a context of our own, or any call from the Python engine)."""
+    assert set(re.findall(r'NoyvjSfx\.play\("([a-z_]+)"\)', APP)) == {"bell", "confirm", "click_low"}
+    assert '<script src="../../shared/sfx.js"></script>' in HTML and HTML.count("sfx.js") == 1
+    for path in GAME_DIR.glob("*.py"):
+        assert "sfx" not in path.read_text(encoding="utf-8").lower(), path.name
+
+
 def test_validation_is_a_pure_function_of_board_and_layout():
     for b in boards.ALL_BOARDS:
         assert rules.status(b, b.solution) == rules.status(b, json.loads(json.dumps({c: p for c, p in b.solution.items()}))) == rules.RESTORED

@@ -5,7 +5,8 @@ PLEDGE = (
     "A wrong line costs nothing. Lines can be trimmed, cut, undone or cleared, hints are free, and nothing can be lost by trying.",
     "Progress is only ever added. A patched room stays patched, a restored room stays restored, and nothing expires or can be missed.",
     "No randomness anywhere: every board is hand-checked to have exactly one restored layout, and the same drawing always gives the same result.",
-    "No audio, no ads inside the game, no purchases, and no leaderboards.",
+    "No audio files and no sound unless you turn it on: the few soft tones are made in your browser, off by default, "
+    "never the only signal for anything, and silent in a hidden tab. No ads inside the game, no purchases, and no leaderboards.",
     "The answer is one tap away whenever you want it. Using it is never hidden or shamed, and the room still counts.",
 )
 

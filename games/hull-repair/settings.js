@@ -90,6 +90,8 @@
     var contrastBox = document.getElementById("high-contrast-checkbox");
     var dotsBox = document.getElementById("dots-checkbox");
     var themeButton = document.getElementById("theme-setting-button");
+    var sfxSlot = document.getElementById("sfx-setting-slot");
+    if (sfxSlot && window.NoyvjSfx && !sfxSlot.firstChild) sfxSlot.appendChild(window.NoyvjSfx.control());
     if (motionBox) motionBox.checked = reduced;
     if (effectsBox) effectsBox.checked = effects;
     if (contrastBox) contrastBox.checked = contrast;

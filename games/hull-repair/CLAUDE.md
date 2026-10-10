@@ -7,11 +7,11 @@ Flow-Free-style routing of power and pipes across a damaged space-station hull: 
 
 ## Stack
 - Pyodide Python, plain HTML/CSS, no build step. `game.py` is the single engine entry point (`handle(json) -> json`, `get_state()` / `load_state()` for the shared save widget); `app.js` is glue only. Board, lines and map are SVG strings built in Python (`render.py`) so their markup is unit-tested.
-- Runs from any static server. No audio, ever. Python 3.9 locally (Pyodide 3.12): no 3.10+ syntax in engine code.
+- Runs from any static server. No audio files, ever; the only sound is the optional generated palette below (off by default). Python 3.9 locally (Pyodide 3.12): no 3.10+ syntax in engine code.
 
 ## Core constraints (do not violate without asking)
 1. Rules, validation and solving are pure and deterministic: no clock, no randomness in the engine (a test scans it). `tools/gen.py` uses a seeded `random` to FIND boards; its output is frozen in `boards_*.py`.
-2. No timers, energy, grinding or progress loss; no roguelike, deck or card mechanics; no audio; no mandatory leaderboard; no all-good hero.
+2. No timers, energy, grinding or progress loss; no roguelike, deck or card mechanics; no audio files (optional generated tones only, see Sound); no mandatory leaderboard; no all-good hero.
 3. A failed or wrong drawing is never a dead end: lines can be trimmed, cut, undone or cleared; hints are free; states only go up.
 4. Every board has exactly one restored layout (every line joined, every open cell covered), stored in `sol`, and the solver proves it in tests.
 5. No colour-only encoding: every line has its own port shape and letter.
@@ -65,3 +65,6 @@ Flow-Free-style routing of power and pipes across a damaged space-station hull: 
 - Desktop boot: the board is the stage, the tally is the side column, the stats strip and the three goals sit above the stage; Station, Repair log, Achievements, What's New, Settings and About open as windows. `pc.html` is generated for this game only (`importlib` on `scripts/generate-pc-pages.py`, `build("hull-repair", cfg)` written to `pc.html`); `python3 scripts/generate-pc-pages.py --check` and `python3 -m pytest -q shared/tests -k hull` pass.
 - Hub registration (title card, `sw.js` precache, `game-*.json`, root CLAUDE.md row, share cards, dev logs) is still to do and is not part of this folder. The owner's questions are the last section of `planning/hull-repair-plan.md`.
 - Manual checks worth a human pass: real-device touch drawing (drag with a finger, tap the end of a line), a screen-reader walk through the keyboard cursor, and the opening-screen "Switch to Desktop layout" button on a wide window.
+
+## Sound (AU-2, 2026-10-11)
+- Optional generated tones from `shared/sfx.js` (Web Audio, no files; off by default; the Settings panel mounts `NoyvjSfx.control()` in `#sfx-setting-slot`). Cues are called only from `app.js` `soundFor()` after the engine answers, never from the Python engine: `confirm` when a line becomes joined, `click_low` when a joined or started line is cut, taken back or cleared, `bell` when a room becomes fully restored. Nothing is communicated by sound alone, and the About pledge says so. The Sources page lists "Generated sound (Web Audio)".

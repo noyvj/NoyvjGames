@@ -1,6 +1,6 @@
 {
   "game": "hull-repair",
-  "updated": "2026-10-10",
+  "updated": "2026-10-11",
   "research": [],
   "inspiration": [
     {
@@ -16,6 +16,11 @@
       "by": "The Pyodide project",
       "url": "https://pyodide.org/",
       "note": "Runs the game's Python rules and board solver in the browser, so there is no server and no build step."
+    },
+    {
+      "title": "Generated sound (Web Audio)",
+      "by": "this project",
+      "note": "The optional sounds are generated in code with the browser's Web Audio API, from plain sine and triangle tones; there are no audio files and nothing is downloaded."
     }
   ]
 }
