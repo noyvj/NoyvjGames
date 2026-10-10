@@ -36,6 +36,14 @@
   const API_BASE = "https://noyvjgames.fastapicloud.dev";
   const WAIT_MS = 1500;   // how long a click waits for stats that have not arrived yet
 
+  // Z-13: the button and its messages come from shared/i18n.js when it is on the page and a language other
+  // than English is chosen. The line that is COPIED ("I earned X in Y") stays English: it goes to other people.
+  function tr(key, english, vars) {
+    const i18n = window.NoyvjI18n;
+    if (i18n) return i18n.t(key, english, vars);
+    return vars ? english.replace(/\{(\w+)\}/g, (m, name) => (name in vars ? String(vars[name]) : m)) : english;
+  }
+
   function oneLine(t) { return String(t).replace(/\s+/g, " ").trim(); }
 
   function prettyName(slug) {
@@ -167,8 +175,8 @@ html[data-theme="light"] .noyvj-as{--as-fg:#1b2033;--as-border:rgba(60,85,160,.7
     const btn = document.createElement("button");
     btn.type = "button";
     btn.className = "noyvj-as-btn";
-    btn.textContent = "↗ Share";
-    btn.setAttribute("aria-label", `Share: ${oneLine(o.label || o.achievementId)}`);
+    btn.textContent = tr("share.button", "↗ Share");
+    btn.setAttribute("aria-label", tr("share.aria", "Share: {label}", { label: oneLine(o.label || o.achievementId) }));
     const status = document.createElement("span");
     status.className = "noyvj-as-status";
     status.setAttribute("role", "status");
@@ -181,7 +189,7 @@ html[data-theme="light"] .noyvj-as{--as-fg:#1b2033;--as-border:rgba(60,85,160,.7
       share(o).then((r) => {
         if (r.ok) {
           if (box) { box.remove(); box = null; }
-          status.textContent = "✓ Copied to your clipboard";
+          status.textContent = tr("share.copied", "✓ Copied to your clipboard");
           if (o.onShare) o.onShare(r.text);
         } else {
           if (!box) {
@@ -189,13 +197,13 @@ html[data-theme="light"] .noyvj-as{--as-fg:#1b2033;--as-border:rgba(60,85,160,.7
             box.className = "noyvj-as-box";
             box.readOnly = true;
             box.rows = 3;
-            box.setAttribute("aria-label", "Share text to copy");
+            box.setAttribute("aria-label", tr("share.boxAria", "Share text to copy"));
             root.appendChild(box);
           }
           box.value = r.text;
           box.focus();
           box.select();
-          status.textContent = "Press Ctrl+C (or ⌘C) to copy the selected text.";
+          status.textContent = tr("share.pressCopy", "Press Ctrl+C (or ⌘C) to copy the selected text.");
         }
       });
     });

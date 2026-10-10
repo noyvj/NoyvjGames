@@ -35,6 +35,15 @@
   const GAME_ID = SCRIPT && SCRIPT.dataset.gameId;
   const API_BASE = "https://noyvjgames.fastapicloud.dev";
 
+  // Z-13: the words on the achievements panel (earn rate, rarity names) come from shared/i18n.js when it
+  // is on the page and a language other than English is chosen; the English text passed here is the
+  // default and the fallback. RARITY_INFO below stays the English reference.
+  function tr(key, english, vars) {
+    const i18n = window.NoyvjI18n;
+    if (i18n) return i18n.t(key, english, vars);
+    return vars ? english.replace(/\{(\w+)\}/g, (m, name) => (name in vars ? String(vars[name]) : m)) : english;
+  }
+
   // ---- Rarity thresholds: THE one place to tune them (Z-15) -------------------------------
   // A label applies when earned_pct is at or below the number, checked rarest first; anything
   // above the last number is Bronze. Percentages come live from the stats endpoint, so as more
@@ -110,8 +119,8 @@
   function statTextFor(data, achievementId) {
     if (!data || data.suppressed) return null; // too few saves for this game at all -- say nothing
     const pct = earnedPct(data, achievementId);
-    if (pct !== null) return `Earned by ${pct}% of players.`;
-    return "Not enough data yet on this achievement.";
+    if (pct !== null) return tr("ach.earnedBy", "Earned by {pct}% of players.", { pct });
+    return tr("ach.notEnoughData", "Not enough data yet on this achievement.");
   }
 
   // ---- Hidden achievements (Z-15) -------------------------------------------------------------
@@ -194,7 +203,7 @@ html[data-theme="light"] .achievement-rarity[data-rarity="bronze"]{--ar-edge:#8a
     glyph.setAttribute("aria-hidden", "true");
     glyph.textContent = info.glyph + " ";
     span.appendChild(glyph);
-    span.appendChild(document.createTextNode(`${info.name} · ${info.note}`));
+    span.appendChild(document.createTextNode(`${tr("ach." + kind, info.name)} · ${tr("ach." + kind + "Note", info.note)}`));
     return span;
   }
 
@@ -235,6 +244,14 @@ html[data-theme="light"] .achievement-rarity[data-rarity="bronze"]{--ar-edge:#8a
       });
     });
   };
+
+  // A language file that arrives after the panel was drawn: redraw the lines this script added.
+  document.addEventListener("noyvj-i18n-change", () => {
+    const panel = document.getElementById("achievements-panel");
+    if (!panel || !GAME_ID || !panel.querySelector(".achievement-earn-rate")) return;
+    panel.querySelectorAll(".achievement-earn-rate, .achievement-rarity").forEach((el) => el.remove());
+    window.applyAchievementStats();
+  });
 
   window.NoyvjAchievementStats = {
     RARITY_THRESHOLDS, RARITY_INFO, setRarityThresholds, rarityFor,

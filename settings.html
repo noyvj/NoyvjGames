@@ -13,6 +13,7 @@
 <script src="shared/night-mode.js"></script>
 <script src="shared/calm-mode.js"></script>
 <script src="shared/site-settings.js"></script>
+<script src="shared/i18n.js"></script>
 <link rel="stylesheet" href="shared/a11y.css">
 <link rel="stylesheet" href="shared/lite-mode.css">
 </head>
@@ -72,6 +73,11 @@
         <select id="settings-autosave"></select>
       </div>
       <p class="hub-note">When on, a game uploads your progress to the save server every five minutes while it is open (to your account if you are signed in, otherwise under a save code). It is off unless you turn it on. Each game's Save panel can still switch it per game.</p>
+      <div class="settings-row">
+        <label for="settings-lang">Language of the shared game controls</label>
+        <select id="settings-lang"></select>
+      </div>
+      <p class="hub-note" id="settings-lang-note">Translates the buttons and messages every game shares: the save panel, confirmation boxes, tutorial cards and achievement labels. Each game's own story and menus stay in English. English is the default. The Spanish and French texts were written with machine help and have not been proof-read by a person yet. This choice is kept on this device only.</p>
       <p id="settings-games-status" class="settings-status" role="status"></p>
     </section>
 

@@ -12,6 +12,7 @@ import pytest
 ROOT = Path(__file__).resolve().parents[2]
 SW = (ROOT / "sw.js").read_text(encoding="utf-8")
 PYO = "https://cdn.jsdelivr.net/pyodide/v0.26.4/full/"
+LIVE = "site-cache-v" + re.search(r"SW_VERSION = (\d+)", SW).group(1)
 
 HARNESS = """
 async (src) => {
@@ -110,12 +111,12 @@ def test_offline_repeat_visit_is_served_from_the_cache_and_unseen_files_fail_lik
 
 def test_files_from_download_for_offline_in_the_live_cache_are_found(page):
     out = run(page, """async (send, lifecycle, log, stores, setOffline) => {
-      const c = await caches_open(stores, 'site-cache-v54');
+      const c = await caches_open(stores, '%s');
       c.set('%spyodide.asm.js', new Response('offline copy'));
       setOffline(true);
       return await send('%spyodide.asm.js');
       function caches_open(s, n) { if (!s.has(n)) s.set(n, new Map()); return s.get(n); }
-    }""" % (PYO, PYO))
+    }""" % (LIVE, PYO, PYO))
     assert out["text"] == "offline copy"
 
 
@@ -164,11 +165,11 @@ def test_cache_is_bounded_oldest_first_and_huge_files_are_not_stored(page):
 def test_a_version_bump_keeps_the_runtime_cache_and_drops_other_old_caches(page):
     out = run(page, """async (send, lifecycle, log, stores) => {
       await send('%spyodide.js');
-      stores.set('site-cache-v1', new Map()); stores.set('site-cache-v54', new Map()); stores.set('stray', new Map());
+      stores.set('site-cache-v1', new Map()); stores.set('%s', new Map()); stores.set('stray', new Map());
       await lifecycle('activate');
       return [...stores.keys()].sort();
-    }""" % PYO)
-    assert "runtime-cdn-cache-v1" in out and "site-cache-v54" in out
+    }""" % (PYO, LIVE))
+    assert "runtime-cdn-cache-v1" in out and LIVE in out
     assert "site-cache-v1" not in out and "stray" not in out
 
 

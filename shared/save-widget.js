@@ -65,6 +65,27 @@
   // for the hub's own sign-in UI, so the two can't drift out of sync on
   // the localStorage key or header shape.
 
+  // Z-13: every sentence the player reads goes through tr(key, english, vars). The English text is
+  // right here, so with no translation (English chosen, shared/i18n.js absent or not loaded yet, a key
+  // missing from the language file) the widget reads exactly as it always did. A language other than
+  // English asks for shared/i18n.js itself, so no game page needs a new <script> tag; when the strings
+  // arrive, relabelStatic() fixes the parts already on screen.
+  function tr(key, english, vars) {
+    const i18n = window.NoyvjI18n;
+    if (i18n) return i18n.t(key, english, vars);
+    return vars ? english.replace(/\{(\w+)\}/g, (m, name) => (name in vars ? String(vars[name]) : m)) : english;
+  }
+  (function bootI18n() {
+    try {
+      const chosen = localStorage.getItem("hub_lang");
+      if (!window.NoyvjI18n && chosen && chosen !== "en" && document.currentScript && document.currentScript.src) {
+        const tag = document.createElement("script");
+        tag.src = new URL("i18n.js", document.currentScript.src).href;
+        document.head.appendChild(tag);
+      }
+    } catch (err) { /* storage blocked: stay in English */ }
+  })();
+
   const RETRY_DELAYS_MS = [700, 1500];
 
   function sleep(ms) {
@@ -336,6 +357,19 @@
   function mount() {
     document.body.appendChild(root);
   }
+  // The labels written into the markup above, set again whenever the language changes.
+  function relabelStatic() {
+    const set = (selector, text) => { const el = root.querySelector(selector); if (el) el.textContent = text; };
+    set(".save-widget-warning", tr("save.warning", "Warning: the last save did not go through. Press Save Progress to try again."));
+    if (!root.querySelector(".save-widget-save-button").disabled) set(".save-widget-save-button", tr("save.saveButton", "Save Progress"));
+    const autosaveLabel = root.querySelector(".save-widget-autosave-label");
+    if (autosaveLabel && autosaveLabel.lastChild) autosaveLabel.lastChild.textContent = " " + tr("save.autosave", "Autosave every 5 minutes");
+    set(".save-widget-copy-button", tr("save.copyCode", "Copy code"));
+    set(".save-widget-claim-button", tr("save.claim", "Claim this save to your account"));
+    set(".save-widget-new-button", tr("save.newSave", "Start a new save (forget this code)"));
+    set(".save-widget-restore-toggle", tr("save.restoreToggle", "Restore an earlier state"));
+    if (!root.querySelector(".save-widget-load-button").disabled) set(".save-widget-load-button", tr("save.load", "Load"));
+  }
   if (document.body) mount();
   else document.addEventListener("DOMContentLoaded", mount);
 
@@ -355,7 +389,7 @@
   function syncToggleState() {
     const collapsed = root.classList.contains("collapsed");
     toggleButton.setAttribute("aria-expanded", String(!collapsed));
-    toggleButton.title = collapsed ? "Show save/load options" : "Hide save/load options";
+    toggleButton.title = collapsed ? tr("save.showOptions", "Show save/load options") : tr("save.hideOptions", "Hide save/load options");
     updatePlacement();
   }
   toggleButton.addEventListener("click", () => {
@@ -373,11 +407,18 @@
 
   function agoShort(ms) {
     const seconds = Math.max(0, (Date.now() - ms) / 1000);
-    if (seconds < 45) return { short: "just now", long: "just now" };
-    if (seconds < 5400) { const n = Math.max(1, Math.round(seconds / 60)); return { short: `${n} min ago`, long: `${n} ${n === 1 ? "minute" : "minutes"} ago` }; }
-    if (seconds < 129600) { const n = Math.round(seconds / 3600); return { short: `${n} h ago`, long: `${n} ${n === 1 ? "hour" : "hours"} ago` }; }
+    const now = tr("save.agoJustNow", "just now");
+    if (seconds < 45) return { short: tr("save.pillJustNow", "just now"), long: now };
+    if (seconds < 5400) {
+      const n = Math.max(1, Math.round(seconds / 60));
+      return { short: tr("save.pillMin", "{n} min ago", { n }), long: n === 1 ? tr("save.agoMinuteLong", "1 minute ago") : tr("save.agoMinutesLong", "{n} minutes ago", { n }) };
+    }
+    if (seconds < 129600) {
+      const n = Math.round(seconds / 3600);
+      return { short: tr("save.pillHour", "{n} h ago", { n }), long: n === 1 ? tr("save.agoHourLong", "1 hour ago") : tr("save.agoHoursLong", "{n} hours ago", { n }) };
+    }
     const n = Math.round(seconds / 86400);
-    return { short: `${n} d ago`, long: `${n} ${n === 1 ? "day" : "days"} ago` };
+    return { short: tr("save.pillDay", "{n} d ago", { n }), long: n === 1 ? tr("save.agoDayLong", "1 day ago") : tr("save.agoDaysLong", "{n} days ago", { n }) };
   }
 
   // Plain words, never colour alone: the failure text replaces the time.
@@ -385,19 +426,20 @@
     let shortText;
     let longText;
     if (lastSaveFailed) {
-      shortText = "Save failed — try again";
-      longText = lastSaveAt ? `Save failed. Last saved ${agoShort(lastSaveAt).long}` : "Save failed";
+      shortText = tr("save.pillFailed", "Save failed — try again");
+      longText = lastSaveAt ? tr("save.failedLastSaved", "Save failed. Last saved {ago}", { ago: agoShort(lastSaveAt).long }) : tr("save.failed", "Save failed");
     } else if (!lastSaveAt) {
-      shortText = longText = "Not saved yet";
+      shortText = tr("save.pillNotSaved", "Not saved yet");
+      longText = tr("save.notSavedYet", "Not saved yet");
     } else {
       const ago = agoShort(lastSaveAt);
-      shortText = `Saved ${ago.short}`;
-      longText = `Saved ${ago.long}`;
+      shortText = tr("save.pillSaved", "Saved {ago}", { ago: ago.short });
+      longText = tr("save.saved", "Saved {ago}", { ago: ago.long });
     }
     savedLineEl.textContent = shortText;
     savedLineEl.setAttribute("data-state", lastSaveFailed ? "failed" : lastSaveAt ? "saved" : "none");
     savedLineEl.title = longText;
-    toggleButton.setAttribute("aria-label", `Save and load options. ${longText}`);
+    toggleButton.setAttribute("aria-label", tr("save.optionsAria", "Save and load options. {state}", { state: longText }));
     warningEl.hidden = !lastSaveFailed;
     updatePlacement();
   }
@@ -501,9 +543,19 @@
   renderSavedLine();
   syncToggleState();
 
+  // Z-13: a language file that arrives after the widget was built relabels what is already on screen.
+  if (window.NoyvjI18n && window.NoyvjI18n.lang() !== "en") relabelStatic();
+  document.addEventListener("noyvj-i18n-change", () => {
+    relabelStatic();
+    renderSavedLine();
+    syncToggleState();
+    if (!codeDisplay.hidden) { const remembered = lsGet(STORAGE_KEY); if (remembered) codeDisplay.textContent = tr("save.code", "Code: {code}", { code: remembered }); }
+    if (slotMode() && Object.keys(slotRows).length) renderSlots();
+  });
+
   // `owned` = the code came from this account's own slots, so there is nothing to claim.
   function showActiveCode(code, owned) {
-    codeDisplay.textContent = `Code: ${code}`;
+    codeDisplay.textContent = tr("save.code", "Code: {code}", { code });
     codeDisplay.hidden = false;
     copyButton.hidden = false;
     newButton.hidden = false;
@@ -601,7 +653,7 @@
     // so it's already claimed to this account. Offering to claim it again
     // would be redundant (and confusing) even though it's a harmless no-op.
     claimButton.hidden = true;
-    statusEl.textContent = message || "Continued your most recent save.";
+    statusEl.textContent = message || tr("save.continued", "Continued your most recent save.");
     return true;
   }
 
@@ -641,19 +693,19 @@
     claimButton.hidden = true;
     loadInput.value = "";
     forgetSavedTime();
-    statusEl.textContent = "Next save starts a fresh code.";
+    statusEl.textContent = tr("save.freshCode", "Next save starts a fresh code.");
   }
 
   newButton.addEventListener("click", () => {
     if (window.ConfirmDialog) {
       window.ConfirmDialog.ask({
         id: `${GAME_ID}-save-widget-forget-code`,
-        message:
+        message: tr("save.newSaveConfirm",
           "Start a new save? This forgets your current save code in this browser -- " +
           "your progress under that code isn't deleted from the server and can still " +
           "be loaded later by pasting the code back in, but you'll need to have saved " +
-          "it somewhere first. This browser won't remember it anymore.",
-        confirmLabel: "Start a new save",
+          "it somewhere first. This browser won't remember it anymore."),
+        confirmLabel: tr("save.newSaveGo", "Start a new save"),
         onConfirm: forgetSavedCode,
       });
     } else {
@@ -688,11 +740,11 @@
         legacyCopy(code);
       } catch (fallbackErr) {
         console.error(`${GAME_ID} save-widget: clipboard copy failed`, err, fallbackErr);
-        statusEl.textContent = "Couldn't copy — code is shown above.";
+        statusEl.textContent = tr("save.copyFailed", "Couldn't copy — code is shown above.");
         return;
       }
     }
-    statusEl.textContent = "Code copied!";
+    statusEl.textContent = tr("save.copied", "Code copied!");
   });
 
   // Pyodide's PyProxy.toJs() converts a Python `None` to JS `undefined`,
@@ -772,10 +824,10 @@
   function timeAgo(iso) {
     if (!iso) return "";
     const seconds = Math.max(0, (Date.now() - parseTime(iso)) / 1000);
-    if (seconds < 90) return "just now";
-    if (seconds < 5400) return `${Math.round(seconds / 60)} min ago`;
-    if (seconds < 129600) return `${Math.round(seconds / 3600)} h ago`;
-    return `${Math.round(seconds / 86400)} d ago`;
+    if (seconds < 90) return tr("save.agoJustNow", "just now");
+    if (seconds < 5400) return tr("save.agoMin", "{n} min ago", { n: Math.round(seconds / 60) });
+    if (seconds < 129600) return tr("save.agoHour", "{n} h ago", { n: Math.round(seconds / 3600) });
+    return tr("save.agoDay", "{n} d ago", { n: Math.round(seconds / 86400) });
   }
 
   // Re-reads this account's slot rows. Returns true when the rows are fresh. On a
@@ -792,7 +844,7 @@
       if (!raw) {
         const res = await fetchWithRetry(`${API_BASE}/users/me/saves`, { headers: hubAuthHeaders(), cache: "no-store" });
         if (res.status === 401) {
-          setFailure("Your sign-in has expired — sign in again from the hub.");
+          setFailure(tr("save.signInExpired", "Your sign-in has expired — sign in again from the hub."));
           return false;
         }
         if (!res.ok) throw new Error(`status ${res.status}`);
@@ -811,7 +863,7 @@
       }
     } catch (err) {
       console.error(`${GAME_ID} save-widget: refreshing save slots failed`, err);
-      if (!slotsKnown) setFailure("Couldn't reach your saves just now — try again.");
+      if (!slotsKnown) setFailure(tr("save.savesUnreachable", "Couldn't reach your saves just now — try again."));
       return false;
     }
     renderSlots();
@@ -828,21 +880,21 @@
       const label = document.createElement("span");
       label.className = "save-widget-slot-label";
       label.textContent = row
-        ? `${n}${activeSlot === n ? " ●" : ""} ${row.slot_name || "Save " + n} · ${timeAgo(row.updated_at || row.created_at)}`
-        : `${n}${activeSlot === n ? " ●" : ""} Empty`;
+        ? `${n}${activeSlot === n ? " ●" : ""} ${row.slot_name || tr("save.slotName", "Save {n}", { n })} · ${timeAgo(row.updated_at || row.created_at)}`
+        : `${n}${activeSlot === n ? " ●" : ""} ${tr("save.slotEmpty", "Empty")}`;
       line.appendChild(label);
       if (row) {
         const load = document.createElement("button");
         load.type = "button";
         load.setAttribute("data-testid", `save-widget-slot-${n}-load`);
-        load.textContent = "Load";
+        load.textContent = tr("save.load", "Load");
         load.addEventListener("click", () => slotLoad(n));
         line.appendChild(load);
       }
       const save = document.createElement("button");
       save.type = "button";
       save.setAttribute("data-testid", `save-widget-slot-${n}-save`);
-      save.textContent = "Save here";
+      save.textContent = tr("save.saveHere", "Save here");
       save.addEventListener("click", async () => {
         // An explicit tap on a slot that holds something else (not the one this game
         // was loaded from or last saved to) asks first, so a mis-tap can't replace it.
@@ -850,10 +902,10 @@
           const go = await confirmOverwrite(n);
           if (!go) return;
         }
-        statusEl.textContent = "Saving...";
+        statusEl.textContent = tr("save.saving", "Saving...");
         saveFailureNote = "";
         const ok = await slotSave(n);
-        statusEl.textContent = ok ? `Saved to slot ${n}!` : (saveFailureNote || "Save failed — try again.");
+        statusEl.textContent = ok ? tr("save.savedToSlot", "Saved to slot {n}!", { n }) : (saveFailureNote || tr("save.failedTryAgain", "Save failed — try again."));
       });
       line.appendChild(save);
       slotsEl.appendChild(line);
@@ -872,8 +924,9 @@
       const row = slotRows[n];
       window.ConfirmDialog.ask({
         id: `${GAME_ID}-save-widget-overwrite-slot`,
-        message: `Overwrite slot ${n} (${(row && row.slot_name) || "Save " + n}, ${timeAgo(row && (row.updated_at || row.created_at))}) with your current progress? The old save in that slot is replaced.`,
-        confirmLabel: `Overwrite slot ${n}`,
+        message: tr("save.overwriteConfirm", "Overwrite slot {n} ({name}, {ago}) with your current progress? The old save in that slot is replaced.",
+          { n, name: (row && row.slot_name) || tr("save.slotName", "Save {n}", { n }), ago: timeAgo(row && (row.updated_at || row.created_at)) }),
+        confirmLabel: tr("save.overwriteGo", "Overwrite slot {n}", { n }),
         allowSkip: false,
         onConfirm: () => resolve(true),
       });
@@ -882,8 +935,8 @@
 
   async function slotSave(n) {
     const state = readGameState();
-    if (state === null) { setFailure("Still loading — try again in a moment."); return false; }
-    if (state === undefined) { setFailure("This game hasn't wired up saving yet."); return false; }
+    if (state === null) { setFailure(tr("save.stillLoading", "Still loading — try again in a moment.")); return false; }
+    if (state === undefined) { setFailure(tr("save.notWiredSave", "This game hasn't wired up saving yet.")); return false; }
     try {
       const res = await fetchWithRetry(
         `${API_BASE}/users/me/saves/${encodeURIComponent(GAME_ID)}/slots/${n}`,
@@ -894,7 +947,7 @@
         }
       );
       if (res.status === 401) {
-        setFailure("Your sign-in has expired — sign in again from the hub.");
+        setFailure(tr("save.signInExpired", "Your sign-in has expired — sign in again from the hub."));
         recordSaveFailure();
         return false;
       }
@@ -922,20 +975,20 @@
     // panel last looked. If the refresh fails, fall back to what is on screen.
     await refreshSlots();
     const row = slotRows[n];
-    if (!row) { statusEl.textContent = `Slot ${n} is empty now.`; return; }
-    if (!window.pyodide) { statusEl.textContent = "Still loading — try again in a moment."; return; }
+    if (!row) { statusEl.textContent = tr("save.slotEmptyNow", "Slot {n} is empty now.", { n }); return; }
+    if (!window.pyodide) { statusEl.textContent = tr("save.stillLoading", "Still loading — try again in a moment."); return; }
     const loadState = window.pyodide.globals.get("load_state");
-    if (!loadState) { statusEl.textContent = "This game hasn't wired up loading yet."; return; }
+    if (!loadState) { statusEl.textContent = tr("save.notWiredLoad", "This game hasn't wired up loading yet."); return; }
     try {
       applyLoad(loadState, row.save_data, "load");
       setActiveSlot(n, true);
       try { lsSet(STORAGE_KEY, row.save_code); } catch (e) { /* convenience only */ }
       showActiveCode(row.save_code, true);
       renderSlots();
-      statusEl.textContent = `Loaded slot ${n}!`;
+      statusEl.textContent = tr("save.loadedSlot", "Loaded slot {n}!", { n });
     } catch (err) {
       console.error(`${GAME_ID} save-widget: slot load failed`, err);
-      statusEl.textContent = "Load failed — try again.";
+      statusEl.textContent = tr("save.loadFailed", "Load failed — try again.");
     }
   }
 
@@ -950,7 +1003,7 @@
       card.setAttribute("role", "dialog");
       card.setAttribute("aria-modal", "true");
       const heading = document.createElement("p");
-      heading.textContent = "Your account already has saves for this game. Where should this one go?";
+      heading.textContent = tr("save.chooserHeading", "Your account already has saves for this game. Where should this one go?");
       card.appendChild(heading);
       const done = (value) => { document.removeEventListener("keydown", onKey, true); overlay.remove(); resolve(value); };
       const onKey = (e) => { if (e.key === "Escape") { e.stopPropagation(); done(null); } };
@@ -960,14 +1013,16 @@
         const button = document.createElement("button");
         button.type = "button";
         button.setAttribute("data-testid", `save-widget-chooser-slot-${n}`);
-        button.textContent = row ? `Overwrite slot ${n}: ${row.slot_name || "Save " + n} (${timeAgo(row.updated_at || row.created_at)})` : `Save to empty slot ${n}`;
+        button.textContent = row
+          ? tr("save.chooserOverwrite", "Overwrite slot {n}: {name} ({ago})", { n, name: row.slot_name || tr("save.slotName", "Save {n}", { n }), ago: timeAgo(row.updated_at || row.created_at) })
+          : tr("save.chooserEmpty", "Save to empty slot {n}", { n });
         button.addEventListener("click", () => done(n));
         card.appendChild(button);
       }
       const cancel = document.createElement("button");
       cancel.type = "button";
       cancel.setAttribute("data-testid", "save-widget-chooser-cancel");
-      cancel.textContent = "Cancel";
+      cancel.textContent = tr("save.cancel", "Cancel");
       cancel.addEventListener("click", () => done(null));
       card.appendChild(cancel);
       overlay.appendChild(card);
@@ -1195,7 +1250,7 @@
 
   async function renderRestoreList() {
     const mine = ++restoreRender;
-    restoreNote.textContent = "Loading…";
+    restoreNote.textContent = tr("save.loadingDots", "Loading…");
     restoreList.innerHTML = "";
     let items = readLocalSnaps().map((e) => ({ t: e.t, slot: e.slot, summary: e.summary, size: e.size, local: e, rid: e.rid }));
     let remoteFailed = false;
@@ -1215,21 +1270,21 @@
     items.sort((a, b) => b.t - a.t);
     items = items.slice(0, SNAP_LIST_MAX);
     restoreNote.textContent = items.length
-      ? (remoteFailed ? "Couldn't reach your account's snapshots, so this lists the ones in this browser." : "")
-      : "No earlier states yet. One is kept before a load or a new game, and while autosave is on.";
+      ? (remoteFailed ? tr("save.snapshotsUnreachable", "Couldn't reach your account's snapshots, so this lists the ones in this browser.") : "")
+      : tr("save.noSnapshots", "No earlier states yet. One is kept before a load or a new game, and while autosave is on.");
     items.forEach((item, i) => {
       const li = document.createElement("li");
       li.className = "save-widget-restore-item";
       li.setAttribute("data-testid", `save-widget-restore-item-${i + 1}`);
       const when = document.createElement("span");
       when.className = "save-widget-restore-item-when";
-      when.textContent = `${whenText(item.t)}${item.slot ? ` · slot ${item.slot}` : ""}`;
+      when.textContent = `${whenText(item.t)}${item.slot ? ` · ${tr("save.slotWord", "slot {n}", { n: item.slot })}` : ""}`;
       const summary = document.createElement("span");
       summary.className = "save-widget-restore-item-summary";
-      summary.textContent = item.summary || "Earlier state";
+      summary.textContent = item.summary || tr("save.earlierState", "Earlier state");
       const button = document.createElement("button");
       button.type = "button";
-      button.textContent = "Restore";
+      button.textContent = tr("save.restore", "Restore");
       button.setAttribute("data-testid", `save-widget-restore-item-${i + 1}-restore`);
       button.addEventListener("click", () => askRestore(item));
       li.append(when, summary, button);
@@ -1245,11 +1300,12 @@
   });
 
   function askRestore(item) {
-    const message = `Restore the state from ${whenText(item.t)} (${item.summary || "earlier state"})? ` +
-      "Your current progress is snapshotted first, so you can undo this from the same list.";
+    const message = tr("save.restoreConfirm",
+      "Restore the state from {when} ({summary})? Your current progress is snapshotted first, so you can undo this from the same list.",
+      { when: whenText(item.t), summary: item.summary || tr("save.earlierStateLower", "earlier state") });
     if (window.ConfirmDialog) {
       window.ConfirmDialog.ask({
-        id: `${GAME_ID}-save-widget-restore`, message, confirmLabel: "Restore", allowSkip: false,
+        id: `${GAME_ID}-save-widget-restore`, message, confirmLabel: tr("save.restore", "Restore"), allowSkip: false,
         onConfirm: () => doRestore(item),
       });
     } else {
@@ -1258,9 +1314,9 @@
   }
 
   async function doRestore(item) {
-    if (!window.pyodide) { statusEl.textContent = "Still loading — try again in a moment."; return; }
+    if (!window.pyodide) { statusEl.textContent = tr("save.stillLoading", "Still loading — try again in a moment."); return; }
     const loadState = window.pyodide.globals.get("load_state");
-    if (!loadState) { statusEl.textContent = "This game hasn't wired up loading yet."; return; }
+    if (!loadState) { statusEl.textContent = tr("save.notWiredLoad", "This game hasn't wired up loading yet."); return; }
     let data;
     try {
       if (item.local) data = JSON.parse(item.local.json);
@@ -1271,15 +1327,15 @@
       }
     } catch (err) {
       console.error(`${GAME_ID} save-widget: fetching a snapshot failed`, err);
-      statusEl.textContent = "Couldn't fetch that snapshot — try again.";
+      statusEl.textContent = tr("save.snapshotFetchFailed", "Couldn't fetch that snapshot — try again.");
       return;
     }
     try {
       applyLoad(loadState, data, "before-restore");
-      statusEl.textContent = "Restored. Your previous state is first in the list, so you can undo this.";
+      statusEl.textContent = tr("save.restored", "Restored. Your previous state is first in the list, so you can undo this.");
     } catch (err) {
       console.error(`${GAME_ID} save-widget: restore failed`, err);
-      statusEl.textContent = "Restore failed — try again.";
+      statusEl.textContent = tr("save.restoreFailed", "Restore failed — try again.");
     }
     if (!restoreBox.hidden) renderRestoreList();
   }
@@ -1292,11 +1348,11 @@
     if (slotMode()) return doSlotSave(Boolean(silent));
     const state = readGameState();
     if (state === null) {
-      setFailure("Still loading — try again in a moment.");
+      setFailure(tr("save.stillLoading", "Still loading — try again in a moment."));
       return false;
     }
     if (state === undefined) {
-      setFailure("This game hasn't wired up saving yet.");
+      setFailure(tr("save.notWiredSave", "This game hasn't wired up saving yet."));
       return false;
     }
     try {
@@ -1329,11 +1385,11 @@
 
   saveButton.addEventListener("click", async () => {
     saveButton.disabled = true;
-    saveButton.textContent = "Saving...";
-    const ok = await doSave(() => (statusEl.textContent = "Saving... (retrying)"));
-    statusEl.textContent = ok === null ? "" : ok ? `Saved at ${new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}` : (saveFailureNote || "Save failed — try again.");
+    saveButton.textContent = tr("save.saving", "Saving...");
+    const ok = await doSave(() => (statusEl.textContent = tr("save.savingRetry", "Saving... (retrying)")));
+    statusEl.textContent = ok === null ? "" : ok ? tr("save.savedAt", "Saved at {time}", { time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) }) : (saveFailureNote || tr("save.failedTryAgain", "Save failed — try again."));
     saveButton.disabled = false;
-    saveButton.textContent = "Save Progress";
+    saveButton.textContent = tr("save.saveButton", "Save Progress");
   });
 
   // Opt-in autosave every 5 minutes, default OFF (the one exception to "no auto-save", see
@@ -1381,9 +1437,10 @@
     maybeAutoSnapshot();
     const ok = await doSave(undefined, true);
     if (!ok) return;
-    statusEl.textContent = "Autosaved";
+    const autosavedText = tr("save.autosaved", "Autosaved");
+    statusEl.textContent = autosavedText;
     setTimeout(() => {
-      if (statusEl.textContent === "Autosaved") statusEl.textContent = previousStatus;
+      if (statusEl.textContent === autosavedText) statusEl.textContent = previousStatus;
     }, 4000);
   }
 
@@ -1400,24 +1457,24 @@
 
   loadButton.addEventListener("click", async () => {
     if (!window.pyodide) {
-      statusEl.textContent = "Still loading — try again in a moment.";
+      statusEl.textContent = tr("save.stillLoading", "Still loading — try again in a moment.");
       return;
     }
     const loadState = window.pyodide.globals.get("load_state");
     if (!loadState) {
-      statusEl.textContent = "This game hasn't wired up loading yet.";
+      statusEl.textContent = tr("save.notWiredLoad", "This game hasn't wired up loading yet.");
       return;
     }
     const code = loadInput.value.trim().toUpperCase();
     if (!code) {
-      statusEl.textContent = "Enter a save code first.";
+      statusEl.textContent = tr("save.enterCode", "Enter a save code first.");
       return;
     }
     loadButton.disabled = true;
-    loadButton.textContent = "Loading...";
+    loadButton.textContent = tr("save.loading", "Loading...");
     try {
       const res = await fetchWithRetry(`${API_BASE}/saves/${code}`, undefined, () => (
-        statusEl.textContent = "Loading... (retrying)"
+        statusEl.textContent = tr("save.loadingRetry", "Loading... (retrying)")
       ));
       if (!res.ok) throw new Error(`status ${res.status}`);
       const body = await res.json();
@@ -1425,15 +1482,15 @@
       lsSet(STORAGE_KEY, body.save_code);
       showActiveCode(body.save_code);
       loadInput.value = "";
-      statusEl.textContent = "Loaded!";
+      statusEl.textContent = tr("save.loaded", "Loaded!");
     } catch (err) {
       console.error(`${GAME_ID} save-widget: load failed for code ${code}`, err);
       statusEl.textContent = navigator.onLine === false
-        ? "Load failed — you appear to be offline."
-        : "Load failed — check the code (format XXXX-XXXX) and try again.";
+        ? tr("save.loadOffline", "Load failed — you appear to be offline.")
+        : tr("save.loadBadCode", "Load failed — check the code (format XXXX-XXXX) and try again.");
     } finally {
       loadButton.disabled = false;
-      loadButton.textContent = "Load";
+      loadButton.textContent = tr("save.load", "Load");
     }
   });
 
@@ -1441,22 +1498,22 @@
     const code = lsGet(STORAGE_KEY);
     if (!code) return;
     claimButton.disabled = true;
-    claimButton.textContent = "Claiming...";
+    claimButton.textContent = tr("save.claiming", "Claiming...");
     try {
       const res = await fetchWithRetry(
         `${API_BASE}/saves/${code}/claim`,
         { method: "POST", headers: hubAuthHeaders() },
-        () => (statusEl.textContent = "Claiming... (retrying)")
+        () => (statusEl.textContent = tr("save.claimingRetry", "Claiming... (retrying)"))
       );
       if (res.status === 409) {
         // Either every slot for this game is taken, or the code is another account's.
         let detail = "";
         try { detail = (await res.json()).detail || ""; } catch (e) { /* no body */ }
         statusEl.textContent = /slots/i.test(detail)
-          ? "All 3 save slots are full — use \"Save here\" on a slot to replace one instead."
-          : "That save already belongs to another account.";
+          ? tr("save.slotsFull", "All 3 save slots are full — use \"Save here\" on a slot to replace one instead.")
+          : tr("save.otherAccount", "That save already belongs to another account.");
         claimButton.disabled = false;
-        claimButton.textContent = "Claim this save to your account";
+        claimButton.textContent = tr("save.claim", "Claim this save to your account");
         return;
       }
       if (!res.ok) throw new Error(`status ${res.status}`);
@@ -1464,20 +1521,20 @@
       try { claimed = await res.json(); } catch (e) { /* the claim itself worked */ }
       claimButton.hidden = true;
       claimButton.disabled = false;
-      claimButton.textContent = "Claim this save to your account";
+      claimButton.textContent = tr("save.claim", "Claim this save to your account");
       if (claimed && claimed.slot) {
         // The claimed save took a slot; that is now the one being played.
         setActiveSlot(claimed.slot, true);
         await refreshSlots();
-        statusEl.textContent = `Save claimed to your account (slot ${claimed.slot})!`;
+        statusEl.textContent = tr("save.claimedSlot", "Save claimed to your account (slot {n})!", { n: claimed.slot });
       } else {
-        statusEl.textContent = "Save claimed to your account!";
+        statusEl.textContent = tr("save.claimed", "Save claimed to your account!");
       }
     } catch (err) {
       console.error(`${GAME_ID} save-widget: claim failed for code ${code}`, err);
-      statusEl.textContent = "Claim failed — try again.";
+      statusEl.textContent = tr("save.claimFailed", "Claim failed — try again.");
       claimButton.disabled = false;
-      claimButton.textContent = "Claim this save to your account";
+      claimButton.textContent = tr("save.claim", "Claim this save to your account");
     }
   });
 
@@ -1492,7 +1549,7 @@
     // (anonymous). Resolves true if something was loaded.
     async loadLatest() {
       if (slotMode()) {
-        const ok = await loadLatestFromAccount("Loaded your latest save.");
+        const ok = await loadLatestFromAccount(tr("save.loadedLatest", "Loaded your latest save."));
         if (ok) await refreshSlots();
         return ok;
       }

@@ -49,6 +49,14 @@
   if (window.ConfirmDialog) return;   // a second copy would only replace a working one
   const STORAGE_PREFIX = "confirm-dialog:skip:";
 
+  // Z-13: the words in this dialog come from shared/i18n.js when it is on the page and a language other
+  // than English is chosen; the English text passed here is the default and the fallback.
+  function tr(key, english, vars) {
+    const i18n = window.NoyvjI18n;
+    if (i18n) return i18n.t(key, english, vars);
+    return vars ? english.replace(/\{(\w+)\}/g, (m, name) => (name in vars ? String(vars[name]) : m)) : english;
+  }
+
   // Storage can throw (blocked site data). A blocked read means "no skip flag", a blocked write
   // just means the opt-out is not remembered: the guarded action itself must still go ahead.
   function lsGet(key) { try { return localStorage.getItem(key); } catch (err) { return null; } }
@@ -209,12 +217,22 @@
       ensureBuilt();
       pendingId = id;
       pendingOnConfirm = onConfirm;
-      messageEl.textContent = message || "Are you sure?";
-      confirmButton.textContent = confirmLabel || "Confirm";
-      cancelButton.textContent = cancelLabel || "Cancel";
+      messageEl.textContent = message || tr("confirm.areYouSure", "Are you sure?");
+      confirmButton.textContent = confirmLabel || tr("confirm.confirm", "Confirm");
+      cancelButton.textContent = cancelLabel || tr("confirm.cancel", "Cancel");
       skipCheckbox.checked = false;
       const skipRow = overlay.querySelector("#confirm-dialog-skip-row");
-      if (skipRow) skipRow.hidden = !allowSkip;
+      if (skipRow) {
+        skipRow.hidden = !allowSkip;
+        // The label's own text sits after the checkbox; keep the markup's English until a translation exists.
+        const skipText = skipRow.lastChild;
+        if (skipText && skipText.nodeType === 3) {
+          if (skipText.__english === undefined) skipText.__english = skipText.textContent;
+          const english = skipText.__english.trim();
+          const label = tr("confirm.skip", "Don't ask me again for this");
+          skipText.textContent = label === english ? skipText.__english : "\n            " + label + "\n          ";
+        }
+      }
       overlay.hidden = false;
     },
 

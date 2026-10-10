@@ -8,6 +8,7 @@
  *   <slug>-text-scale              each game's settings.js
  *   <slug>-reduced-motion          each game's settings.js
  *   autosave-enabled:<slug>        shared/save-widget.js
+ *   hub_lang                       shared/i18n.js (language of the shared game controls; this device only)
  *   hub_pageview_opt_in            script.js
  *   hub_reduce_data                script.js ("1" reduce, "0" never, absent = follow the browser's Data Saver)
  *   hub_shortcuts                  hub-shortcuts.js
@@ -178,6 +179,23 @@
         : "Autosave is off in every game.");
     });
     renderGameDefaults();
+  }
+
+  // ---------- Language of the shared game controls (Z-13) ----------
+
+  function initLanguage() {
+    const select = $("settings-lang");
+    if (!select) return;
+    const i18n = window.NoyvjI18n;
+    const langs = i18n && i18n.LANGS ? i18n.LANGS : [{ code: "en", name: "English" }];
+    fillSelect(select, langs.map((l) => ({ value: l.code, label: l.name })), "");
+    select.value = i18n ? i18n.lang() : "en";
+    select.disabled = !i18n;
+    select.addEventListener("change", () => {
+      if (!i18n || !i18n.setLang(select.value)) return;
+      const chosen = langs.find((l) => l.code === select.value);
+      say("settings-games-status", `Language set to ${chosen ? chosen.name : select.value}. Open games pick it up on their next load.`);
+    });
   }
 
   // ---------- Privacy ----------
@@ -538,6 +556,7 @@
     games = await window.HubGames.load();
     initMotion();
     initGameDefaults();
+    initLanguage();
     initAccount();
     // The hub-only preference works without the list; the rest of the page is already usable.
     if (location.hash === "#shortcuts") {

@@ -46,6 +46,15 @@
   const STYLE_ID = "tutorial-widget-styles";
   const Z_OVERLAY = 10000;
 
+  // Z-13: the words this engine puts on the card (Step n of N, Back, Next, Done, Skip tutorial) come from
+  // shared/i18n.js when it is on the page and a language other than English is chosen; the English text
+  // passed here is the default and the fallback. A game's own step titles and text are its own content.
+  function tr(key, english, vars) {
+    const i18n = window.NoyvjI18n;
+    if (i18n) return i18n.t(key, english, vars);
+    return vars ? english.replace(/\{(\w+)\}/g, (m, name) => (name in vars ? String(vars[name]) : m)) : english;
+  }
+
   function injectStyles() {
     if (document.getElementById(STYLE_ID)) return;
     const style = document.createElement("style");
@@ -198,6 +207,9 @@
       return `tutorial-seen:${gameId}`;
     }
 
+    // A language file that arrives while a card is open relabels it.
+    document.addEventListener("noyvj-i18n-change", () => { if (overlay && !overlay.hidden) renderStep(); });
+
     function markSeen() {
       try {
         localStorage.setItem(storageKey(), "1");
@@ -324,14 +336,14 @@
       const counter = el("p", {
         id: "tutorial-step-counter",
         testid: "tutorial-step-counter",
-        innerText: `Step ${index + 1} of ${steps.length}`,
+        innerText: tr("tutorial.step", "Step {n} of {total}", { n: index + 1, total: steps.length }),
       });
       const title = el("p", { id: "tutorial-title", testid: "tutorial-title", innerText: step.title });
       const text = el("p", { id: "tutorial-text", testid: "tutorial-text", innerText: step.text });
       const buttons = el("div", { id: "tutorial-card-buttons", testid: "tutorial-card-buttons" });
 
       if (index > 0) {
-        const backBtn = el("button", { className: "secondary", testid: "tutorial-back", innerText: "Back" });
+        const backBtn = el("button", { className: "secondary", testid: "tutorial-back", innerText: tr("tutorial.back", "Back") });
         backBtn.type = "button";
         backBtn.addEventListener("click", back);
         buttons.appendChild(backBtn);
@@ -339,13 +351,13 @@
       const nextBtn = el("button", {
         className: "secondary tutorial-next-button",
         testid: "tutorial-next",
-        innerText: index === steps.length - 1 ? "Done" : "Next",
+        innerText: index === steps.length - 1 ? tr("tutorial.done", "Done") : tr("tutorial.next", "Next"),
       });
       nextBtn.type = "button";
       nextBtn.addEventListener("click", next);
       buttons.appendChild(nextBtn);
 
-      const skipBtn = el("button", { id: "tutorial-skip-button", testid: "tutorial-skip", innerText: "Skip tutorial" });
+      const skipBtn = el("button", { id: "tutorial-skip-button", testid: "tutorial-skip", innerText: tr("tutorial.skip", "Skip tutorial") });
       skipBtn.type = "button";
       skipBtn.addEventListener("click", () => close(true));
       buttons.appendChild(skipBtn);
@@ -424,7 +436,7 @@
           const willOpen = howtoPanel.hidden;
           if (willOpen) renderHowTo(options.howtoPanelId || "howto-panel");
           howtoPanel.hidden = !willOpen;
-          howtoBtn.innerText = willOpen ? `Hide ${openLabel}` : openLabel;
+          howtoBtn.innerText = willOpen ? tr("tutorial.hide", "Hide {label}", { label: openLabel }) : openLabel;
         });
       }
     }

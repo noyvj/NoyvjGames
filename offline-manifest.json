@@ -94,17 +94,17 @@
     },
     {
      "path": "shared/achievement-share.js",
-     "bytes": 12575,
+     "bytes": 13153,
      "precached": true
     },
     {
      "path": "shared/achievement-stats.js",
-     "bytes": 11448,
+     "bytes": 12523,
      "precached": false
     },
     {
      "path": "shared/confirm-dialog.js",
-     "bytes": 9825,
+     "bytes": 10900,
      "precached": false
     },
     {
@@ -219,7 +219,7 @@
     },
     {
      "path": "shared/save-widget.js",
-     "bytes": 72027,
+     "bytes": 77690,
      "precached": true
     },
     {
@@ -264,7 +264,7 @@
     },
     {
      "path": "shared/tutorial.js",
-     "bytes": 17014,
+     "bytes": 17914,
      "precached": false
     },
     {
@@ -300,7 +300,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14759764,
+   "bytes": 14769055,
    "bytes_complete": true
   },
   "canopy": {
@@ -312,12 +312,12 @@
     },
     {
      "path": "games/canopy/changelog.json",
-     "bytes": 21295,
+     "bytes": 21646,
      "precached": false
     },
     {
      "path": "games/canopy/game.py",
-     "bytes": 478320,
+     "bytes": 479272,
      "precached": true
     },
     {
@@ -394,12 +394,12 @@
     },
     {
      "path": "shared/achievement-share.js",
-     "bytes": 12575,
+     "bytes": 13153,
      "precached": true
     },
     {
      "path": "shared/achievement-stats.js",
-     "bytes": 11448,
+     "bytes": 12523,
      "precached": false
     },
     {
@@ -414,7 +414,7 @@
     },
     {
      "path": "shared/confirm-dialog.js",
-     "bytes": 9825,
+     "bytes": 10900,
      "precached": false
     },
     {
@@ -544,7 +544,7 @@
     },
     {
      "path": "shared/save-widget.js",
-     "bytes": 72027,
+     "bytes": 77690,
      "precached": true
     },
     {
@@ -609,7 +609,7 @@
     },
     {
      "path": "shared/tutorial.js",
-     "bytes": 17014,
+     "bytes": 17914,
      "precached": false
     },
     {
@@ -645,7 +645,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 15101876,
+   "bytes": 15112470,
    "bytes_complete": true
   },
   "grid": {
@@ -657,7 +657,7 @@
     },
     {
      "path": "games/grid/changelog.json",
-     "bytes": 8077,
+     "bytes": 8624,
      "precached": false
     },
     {
@@ -734,12 +734,12 @@
     },
     {
      "path": "shared/achievement-share.js",
-     "bytes": 12575,
+     "bytes": 13153,
      "precached": true
     },
     {
      "path": "shared/achievement-stats.js",
-     "bytes": 11448,
+     "bytes": 12523,
      "precached": false
     },
     {
@@ -754,7 +754,7 @@
     },
     {
      "path": "shared/confirm-dialog.js",
-     "bytes": 9825,
+     "bytes": 10900,
      "precached": false
     },
     {
@@ -869,7 +869,7 @@
     },
     {
      "path": "shared/save-widget.js",
-     "bytes": 72027,
+     "bytes": 77690,
      "precached": true
     },
     {
@@ -924,7 +924,7 @@
     },
     {
      "path": "shared/tutorial.js",
-     "bytes": 17014,
+     "bytes": 17914,
      "precached": false
     },
     {
@@ -960,7 +960,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14671974,
+   "bytes": 14681812,
    "bytes_complete": true
   },
   "tide": {
@@ -1049,12 +1049,12 @@
     },
     {
      "path": "shared/achievement-share.js",
-     "bytes": 12575,
+     "bytes": 13153,
      "precached": true
     },
     {
      "path": "shared/achievement-stats.js",
-     "bytes": 11448,
+     "bytes": 12523,
      "precached": false
     },
     {
@@ -1069,7 +1069,7 @@
     },
     {
      "path": "shared/confirm-dialog.js",
-     "bytes": 9825,
+     "bytes": 10900,
      "precached": false
     },
     {
@@ -1184,7 +1184,7 @@
     },
     {
      "path": "shared/save-widget.js",
-     "bytes": 72027,
+     "bytes": 77690,
      "precached": true
     },
     {
@@ -1214,7 +1214,7 @@
     },
     {
      "path": "shared/tutorial.js",
-     "bytes": 17014,
+     "bytes": 17914,
      "precached": false
     },
     {
@@ -1250,7 +1250,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14709844,
+   "bytes": 14719135,
    "bytes_complete": true
   },
   "aftermath": {
@@ -1339,12 +1339,12 @@
     },
     {
      "path": "shared/achievement-share.js",
-     "bytes": 12575,
+     "bytes": 13153,
      "precached": true
     },
     {
      "path": "shared/achievement-stats.js",
-     "bytes": 11448,
+     "bytes": 12523,
      "precached": false
     },
     {
@@ -1359,7 +1359,7 @@
     },
     {
      "path": "shared/confirm-dialog.js",
-     "bytes": 9825,
+     "bytes": 10900,
      "precached": false
     },
     {
@@ -1484,7 +1484,7 @@
     },
     {
      "path": "shared/save-widget.js",
-     "bytes": 72027,
+     "bytes": 77690,
      "precached": true
     },
     {
@@ -1529,7 +1529,7 @@
     },
     {
      "path": "shared/tutorial.js",
-     "bytes": 17014,
+     "bytes": 17914,
      "precached": false
     },
     {
@@ -1565,7 +1565,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14735058,
+   "bytes": 14744349,
    "bytes_complete": true
   },
   "herd": {
@@ -1654,12 +1654,12 @@
     },
     {
      "path": "shared/achievement-share.js",
-     "bytes": 12575,
+     "bytes": 13153,
      "precached": true
     },
     {
      "path": "shared/achievement-stats.js",
-     "bytes": 11448,
+     "bytes": 12523,
      "precached": false
     },
     {
@@ -1674,7 +1674,7 @@
     },
     {
      "path": "shared/confirm-dialog.js",
-     "bytes": 9825,
+     "bytes": 10900,
      "precached": false
     },
     {
@@ -1789,7 +1789,7 @@
     },
     {
      "path": "shared/save-widget.js",
-     "bytes": 72027,
+     "bytes": 77690,
      "precached": true
     },
     {
@@ -1824,7 +1824,7 @@
     },
     {
      "path": "shared/tutorial.js",
-     "bytes": 17014,
+     "bytes": 17914,
      "precached": false
     },
     {
@@ -1860,7 +1860,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14562830,
+   "bytes": 14572121,
    "bytes_complete": true
   },
   "thaw": {
@@ -1944,12 +1944,12 @@
     },
     {
      "path": "shared/achievement-share.js",
-     "bytes": 12575,
+     "bytes": 13153,
      "precached": true
     },
     {
      "path": "shared/achievement-stats.js",
-     "bytes": 11448,
+     "bytes": 12523,
      "precached": false
     },
     {
@@ -1959,7 +1959,7 @@
     },
     {
      "path": "shared/confirm-dialog.js",
-     "bytes": 9825,
+     "bytes": 10900,
      "precached": false
     },
     {
@@ -2069,7 +2069,7 @@
     },
     {
      "path": "shared/save-widget.js",
-     "bytes": 72027,
+     "bytes": 77690,
      "precached": true
     },
     {
@@ -2099,7 +2099,7 @@
     },
     {
      "path": "shared/tutorial.js",
-     "bytes": 17014,
+     "bytes": 17914,
      "precached": false
     },
     {
@@ -2135,7 +2135,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14489010,
+   "bytes": 14498301,
    "bytes_complete": true
   },
   "loop": {
@@ -2229,12 +2229,12 @@
     },
     {
      "path": "shared/achievement-share.js",
-     "bytes": 12575,
+     "bytes": 13153,
      "precached": true
     },
     {
      "path": "shared/achievement-stats.js",
-     "bytes": 11448,
+     "bytes": 12523,
      "precached": false
     },
     {
@@ -2249,7 +2249,7 @@
     },
     {
      "path": "shared/confirm-dialog.js",
-     "bytes": 9825,
+     "bytes": 10900,
      "precached": false
     },
     {
@@ -2349,7 +2349,7 @@
     },
     {
      "path": "shared/save-widget.js",
-     "bytes": 72027,
+     "bytes": 77690,
      "precached": true
     },
     {
@@ -2384,7 +2384,7 @@
     },
     {
      "path": "shared/tutorial.js",
-     "bytes": 17014,
+     "bytes": 17914,
      "precached": false
     },
     {
@@ -2420,7 +2420,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14508377,
+   "bytes": 14517668,
    "bytes_complete": true
   },
   "drift": {
@@ -2514,12 +2514,12 @@
     },
     {
      "path": "shared/achievement-share.js",
-     "bytes": 12575,
+     "bytes": 13153,
      "precached": true
     },
     {
      "path": "shared/achievement-stats.js",
-     "bytes": 11448,
+     "bytes": 12523,
      "precached": false
     },
     {
@@ -2534,7 +2534,7 @@
     },
     {
      "path": "shared/confirm-dialog.js",
-     "bytes": 9825,
+     "bytes": 10900,
      "precached": false
     },
     {
@@ -2634,7 +2634,7 @@
     },
     {
      "path": "shared/save-widget.js",
-     "bytes": 72027,
+     "bytes": 77690,
      "precached": true
     },
     {
@@ -2669,7 +2669,7 @@
     },
     {
      "path": "shared/tutorial.js",
-     "bytes": 17014,
+     "bytes": 17914,
      "precached": false
     },
     {
@@ -2705,7 +2705,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14533596,
+   "bytes": 14542887,
    "bytes_complete": true
   },
   "champ-de-mots": {
@@ -2824,12 +2824,12 @@
     },
     {
      "path": "shared/achievement-share.js",
-     "bytes": 12575,
+     "bytes": 13153,
      "precached": true
     },
     {
      "path": "shared/achievement-stats.js",
-     "bytes": 11448,
+     "bytes": 12523,
      "precached": false
     },
     {
@@ -2839,7 +2839,7 @@
     },
     {
      "path": "shared/confirm-dialog.js",
-     "bytes": 9825,
+     "bytes": 10900,
      "precached": false
     },
     {
@@ -2944,7 +2944,7 @@
     },
     {
      "path": "shared/save-widget.js",
-     "bytes": 72027,
+     "bytes": 77690,
      "precached": true
     },
     {
@@ -2979,7 +2979,7 @@
     },
     {
      "path": "shared/tutorial.js",
-     "bytes": 17014,
+     "bytes": 17914,
      "precached": false
     },
     {
@@ -3015,7 +3015,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 15546518,
+   "bytes": 15555809,
    "bytes_complete": true
   },
   "continuum": {
@@ -3062,7 +3062,7 @@
     },
     {
      "path": "games/continuum/changelog.json",
-     "bytes": 17825,
+     "bytes": 18379,
      "precached": false
     },
     {
@@ -3112,7 +3112,7 @@
     },
     {
      "path": "games/continuum/game.py",
-     "bytes": 255670,
+     "bytes": 260525,
      "precached": false
     },
     {
@@ -3137,7 +3137,7 @@
     },
     {
      "path": "games/continuum/index.html",
-     "bytes": 81665,
+     "bytes": 83375,
      "precached": true
     },
     {
@@ -3192,7 +3192,7 @@
     },
     {
      "path": "games/continuum/pc.html",
-     "bytes": 86180,
+     "bytes": 87890,
      "precached": true
     },
     {
@@ -3218,6 +3218,11 @@
     {
      "path": "games/continuum/rewind.py",
      "bytes": 5981,
+     "precached": false
+    },
+    {
+     "path": "games/continuum/sandbox.py",
+     "bytes": 3800,
      "precached": false
     },
     {
@@ -3314,12 +3319,12 @@
     },
     {
      "path": "shared/achievement-share.js",
-     "bytes": 12575,
+     "bytes": 13153,
      "precached": true
     },
     {
      "path": "shared/achievement-stats.js",
-     "bytes": 11448,
+     "bytes": 12523,
      "precached": false
     },
     {
@@ -3334,7 +3339,7 @@
     },
     {
      "path": "shared/confirm-dialog.js",
-     "bytes": 9825,
+     "bytes": 10900,
      "precached": false
     },
     {
@@ -3448,8 +3453,18 @@
      "precached": true
     },
     {
+     "path": "shared/sandbox-mode.css",
+     "bytes": 3817,
+     "precached": false
+    },
+    {
+     "path": "shared/sandbox-mode.js",
+     "bytes": 9559,
+     "precached": false
+    },
+    {
      "path": "shared/save-widget.js",
-     "bytes": 72027,
+     "bytes": 77690,
      "precached": true
     },
     {
@@ -3504,7 +3519,7 @@
     },
     {
      "path": "shared/tutorial.js",
-     "bytes": 17014,
+     "bytes": 17914,
      "precached": false
     },
     {
@@ -3545,7 +3560,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 16142045,
+   "bytes": 16177341,
    "bytes_complete": true
   },
   "signal": {
@@ -3634,17 +3649,17 @@
     },
     {
      "path": "shared/achievement-share.js",
-     "bytes": 12575,
+     "bytes": 13153,
      "precached": true
     },
     {
      "path": "shared/achievement-stats.js",
-     "bytes": 11448,
+     "bytes": 12523,
      "precached": false
     },
     {
      "path": "shared/confirm-dialog.js",
-     "bytes": 9825,
+     "bytes": 10900,
      "precached": false
     },
     {
@@ -3739,7 +3754,7 @@
     },
     {
      "path": "shared/save-widget.js",
-     "bytes": 72027,
+     "bytes": 77690,
      "precached": true
     },
     {
@@ -3764,7 +3779,7 @@
     },
     {
      "path": "shared/tutorial.js",
-     "bytes": 17014,
+     "bytes": 17914,
      "precached": false
     },
     {
@@ -3774,7 +3789,7 @@
     }
    ],
    "cdn": [],
-   "bytes": 510008,
+   "bytes": 519299,
    "bytes_complete": true
   },
   "lexis": {
@@ -3953,7 +3968,7 @@
     },
     {
      "path": "shared/achievement-share.js",
-     "bytes": 12575,
+     "bytes": 13153,
      "precached": true
     },
     {
@@ -4043,7 +4058,7 @@
     },
     {
      "path": "shared/save-widget.js",
-     "bytes": 72027,
+     "bytes": 77690,
      "precached": true
     },
     {
@@ -4073,7 +4088,7 @@
     },
     {
      "path": "shared/tutorial.js",
-     "bytes": 17014,
+     "bytes": 17914,
      "precached": false
     },
     {
@@ -4109,7 +4124,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14273228,
+   "bytes": 14280369,
    "bytes_complete": true
   },
   "heist-committee": {
@@ -4308,12 +4323,12 @@
     },
     {
      "path": "shared/achievement-share.js",
-     "bytes": 12575,
+     "bytes": 13153,
      "precached": true
     },
     {
      "path": "shared/confirm-dialog.js",
-     "bytes": 9825,
+     "bytes": 10900,
      "precached": false
     },
     {
@@ -4413,7 +4428,7 @@
     },
     {
      "path": "shared/save-widget.js",
-     "bytes": 72027,
+     "bytes": 77690,
      "precached": true
     },
     {
@@ -4443,7 +4458,7 @@
     },
     {
      "path": "shared/tutorial.js",
-     "bytes": 17014,
+     "bytes": 17914,
      "precached": false
     },
     {
@@ -4479,7 +4494,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14447696,
+   "bytes": 14455912,
    "bytes_complete": true
   },
   "lighthouse": {
@@ -4663,7 +4678,7 @@
     },
     {
      "path": "shared/achievement-share.js",
-     "bytes": 12575,
+     "bytes": 13153,
      "precached": true
     },
     {
@@ -4673,7 +4688,7 @@
     },
     {
      "path": "shared/confirm-dialog.js",
-     "bytes": 9825,
+     "bytes": 10900,
      "precached": false
     },
     {
@@ -4778,7 +4793,7 @@
     },
     {
      "path": "shared/save-widget.js",
-     "bytes": 72027,
+     "bytes": 77690,
      "precached": true
     },
     {
@@ -4818,7 +4833,7 @@
     },
     {
      "path": "shared/tutorial.js",
-     "bytes": 17014,
+     "bytes": 17914,
      "precached": false
     },
     {
@@ -4854,7 +4869,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14488956,
+   "bytes": 14497172,
    "bytes_complete": true
   },
   "pocket-bazaar": {
@@ -5023,12 +5038,12 @@
     },
     {
      "path": "shared/achievement-share.js",
-     "bytes": 12575,
+     "bytes": 13153,
      "precached": true
     },
     {
      "path": "shared/confirm-dialog.js",
-     "bytes": 9825,
+     "bytes": 10900,
      "precached": false
     },
     {
@@ -5118,7 +5133,7 @@
     },
     {
      "path": "shared/save-widget.js",
-     "bytes": 72027,
+     "bytes": 77690,
      "precached": true
     },
     {
@@ -5148,7 +5163,7 @@
     },
     {
      "path": "shared/tutorial.js",
-     "bytes": 17014,
+     "bytes": 17914,
      "precached": false
     },
     {
@@ -5184,7 +5199,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14291828,
+   "bytes": 14300044,
    "bytes_complete": true
   },
   "dead-reckoning": {
@@ -5393,12 +5408,12 @@
     },
     {
      "path": "shared/achievement-share.js",
-     "bytes": 12575,
+     "bytes": 13153,
      "precached": true
     },
     {
      "path": "shared/confirm-dialog.js",
-     "bytes": 9825,
+     "bytes": 10900,
      "precached": false
     },
     {
@@ -5498,7 +5513,7 @@
     },
     {
      "path": "shared/save-widget.js",
-     "bytes": 72027,
+     "bytes": 77690,
      "precached": true
     },
     {
@@ -5528,7 +5543,7 @@
     },
     {
      "path": "shared/tutorial.js",
-     "bytes": 17014,
+     "bytes": 17914,
      "precached": false
     },
     {
@@ -5564,7 +5579,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14366952,
+   "bytes": 14375168,
    "bytes_complete": true
   },
   "logic-gates": {
@@ -5723,12 +5738,12 @@
     },
     {
      "path": "shared/achievement-share.js",
-     "bytes": 12575,
+     "bytes": 13153,
      "precached": true
     },
     {
      "path": "shared/confirm-dialog.js",
-     "bytes": 9825,
+     "bytes": 10900,
      "precached": false
     },
     {
@@ -5818,7 +5833,7 @@
     },
     {
      "path": "shared/save-widget.js",
-     "bytes": 72027,
+     "bytes": 77690,
      "precached": true
     },
     {
@@ -5848,7 +5863,7 @@
     },
     {
      "path": "shared/tutorial.js",
-     "bytes": 17014,
+     "bytes": 17914,
      "precached": false
     },
     {
@@ -5884,7 +5899,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14283499,
+   "bytes": 14291715,
    "bytes_complete": true
   },
   "robot-script": {
@@ -6078,12 +6093,12 @@
     },
     {
      "path": "shared/achievement-share.js",
-     "bytes": 12575,
+     "bytes": 13153,
      "precached": true
     },
     {
      "path": "shared/confirm-dialog.js",
-     "bytes": 9825,
+     "bytes": 10900,
      "precached": false
     },
     {
@@ -6168,7 +6183,7 @@
     },
     {
      "path": "shared/save-widget.js",
-     "bytes": 72027,
+     "bytes": 77690,
      "precached": true
     },
     {
@@ -6198,7 +6213,7 @@
     },
     {
      "path": "shared/tutorial.js",
-     "bytes": 17014,
+     "bytes": 17914,
      "precached": false
     },
     {
@@ -6234,7 +6249,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14302372,
+   "bytes": 14310588,
    "bytes_complete": true
   },
   "hull-repair": {
@@ -6408,12 +6423,12 @@
     },
     {
      "path": "shared/achievement-share.js",
-     "bytes": 12575,
+     "bytes": 13153,
      "precached": true
     },
     {
      "path": "shared/confirm-dialog.js",
-     "bytes": 9825,
+     "bytes": 10900,
      "precached": false
     },
     {
@@ -6498,7 +6513,7 @@
     },
     {
      "path": "shared/save-widget.js",
-     "bytes": 72027,
+     "bytes": 77690,
      "precached": true
     },
     {
@@ -6528,7 +6543,7 @@
     },
     {
      "path": "shared/tutorial.js",
-     "bytes": 17014,
+     "bytes": 17914,
      "precached": false
     },
     {
@@ -6564,7 +6579,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14282557,
+   "bytes": 14290773,
    "bytes_complete": true
   },
   "station-medic": {
@@ -6773,12 +6788,12 @@
     },
     {
      "path": "shared/achievement-share.js",
-     "bytes": 12575,
+     "bytes": 13153,
      "precached": true
     },
     {
      "path": "shared/confirm-dialog.js",
-     "bytes": 9825,
+     "bytes": 10900,
      "precached": false
     },
     {
@@ -6863,7 +6878,7 @@
     },
     {
      "path": "shared/save-widget.js",
-     "bytes": 72027,
+     "bytes": 77690,
      "precached": true
     },
     {
@@ -6893,7 +6908,7 @@
     },
     {
      "path": "shared/tutorial.js",
-     "bytes": 17014,
+     "bytes": 17914,
      "precached": false
     },
     {
@@ -6929,7 +6944,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14305220,
+   "bytes": 14313436,
    "bytes_complete": true
   },
   "stranded": {
@@ -7083,12 +7098,12 @@
     },
     {
      "path": "shared/achievement-share.js",
-     "bytes": 12575,
+     "bytes": 13153,
      "precached": true
     },
     {
      "path": "shared/confirm-dialog.js",
-     "bytes": 9825,
+     "bytes": 10900,
      "precached": false
     },
     {
@@ -7173,7 +7188,7 @@
     },
     {
      "path": "shared/save-widget.js",
-     "bytes": 72027,
+     "bytes": 77690,
      "precached": true
     },
     {
@@ -7203,7 +7218,7 @@
     },
     {
      "path": "shared/tutorial.js",
-     "bytes": 17014,
+     "bytes": 17914,
      "precached": false
     },
     {
@@ -7239,7 +7254,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14272214,
+   "bytes": 14280430,
    "bytes_complete": true
   },
   "evidence-hunt": {
@@ -7443,12 +7458,12 @@
     },
     {
      "path": "shared/achievement-share.js",
-     "bytes": 12575,
+     "bytes": 13153,
      "precached": true
     },
     {
      "path": "shared/confirm-dialog.js",
-     "bytes": 9825,
+     "bytes": 10900,
      "precached": false
     },
     {
@@ -7533,7 +7548,7 @@
     },
     {
      "path": "shared/save-widget.js",
-     "bytes": 72027,
+     "bytes": 77690,
      "precached": true
     },
     {
@@ -7563,7 +7578,7 @@
     },
     {
      "path": "shared/tutorial.js",
-     "bytes": 17014,
+     "bytes": 17914,
      "precached": false
     },
     {
@@ -7599,7 +7614,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14354808,
+   "bytes": 14363024,
    "bytes_complete": true
   },
   "trade-empire": {
@@ -7616,17 +7631,17 @@
     },
     {
      "path": "games/trade-empire/game.py",
-     "bytes": 219770,
+     "bytes": 224733,
      "precached": true
     },
     {
      "path": "games/trade-empire/index.html",
-     "bytes": 88650,
+     "bytes": 89206,
      "precached": true
     },
     {
      "path": "games/trade-empire/pc-config.json",
-     "bytes": 2527,
+     "bytes": 2552,
      "precached": false
     },
     {
@@ -7636,7 +7651,7 @@
     },
     {
      "path": "games/trade-empire/pc.html",
-     "bytes": 91709,
+     "bytes": 92290,
      "precached": true
     },
     {
@@ -7688,17 +7703,17 @@
     },
     {
      "path": "shared/achievement-share.js",
-     "bytes": 12575,
+     "bytes": 13153,
      "precached": true
     },
     {
      "path": "shared/achievement-stats.js",
-     "bytes": 11448,
+     "bytes": 12523,
      "precached": false
     },
     {
      "path": "shared/confirm-dialog.js",
-     "bytes": 9825,
+     "bytes": 10900,
      "precached": false
     },
     {
@@ -7797,8 +7812,18 @@
      "precached": true
     },
     {
+     "path": "shared/sandbox-mode.css",
+     "bytes": 3817,
+     "precached": false
+    },
+    {
+     "path": "shared/sandbox-mode.js",
+     "bytes": 9559,
+     "precached": false
+    },
+    {
      "path": "shared/save-widget.js",
-     "bytes": 72027,
+     "bytes": 77690,
      "precached": true
     },
     {
@@ -7848,7 +7873,7 @@
     },
     {
      "path": "shared/tutorial.js",
-     "bytes": 17014,
+     "bytes": 17914,
      "precached": false
     },
     {
@@ -7884,7 +7909,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14657753,
+   "bytes": 14686545,
    "bytes_complete": true
   }
  }

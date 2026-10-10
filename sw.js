@@ -2,7 +2,7 @@
 // the precache list; ordinary content deploys don't need it, because
 // same-origin requests are network-first (see the fetch handler below) and
 // so always pick up fresh files whenever the player is online.
-const SW_VERSION = 54;
+const SW_VERSION = 55;
 const CACHE_NAME = "site-cache-v" + SW_VERSION;
 // How long a same-origin network request may take before we give up and
 // serve the cached copy instead (a slow/flaky connection shouldn't hang).
@@ -67,6 +67,11 @@ const PRECACHE_URLS = [
   "shared/space-bg.css",
   "shared/ambient-bg.css",
   "shared/save-widget.js",
+  // Z-13 translations of the shared components' words (English needs no file; es/fr load on demand).
+  "shared/i18n.js",
+  "shared/strings/en.json",
+  "shared/strings/es.json",
+  "shared/strings/fr.json",
   "shared/layout-pref.js",
   "shared/pc-shell.js",
   "shared/pc-shell.css",
