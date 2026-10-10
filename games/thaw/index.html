@@ -565,6 +565,25 @@
       <button type="button" id="planner-reset-button" class="secondary">Clear the plan</button>
     </details>
 
+    <!-- G-3: scrub back through the rounds played (see game.py). -->
+    <details id="replay" class="section tool-section">
+      <summary>⏪ Round replay: scrub through the rounds</summary>
+      <p class="comparison-message">Slide back to see where each region stood in an earlier round. Triangles on the chart mark rounds with a scientist's log entry. Looking back changes nothing.</p>
+      <div class="replay-controls">
+        <button type="button" id="replay-first" class="secondary" aria-label="First round">⏮</button>
+        <button type="button" id="replay-back" class="secondary" aria-label="Back one round">◀</button>
+        <input type="range" id="replay-slider" min="1" max="1" step="1" value="1" aria-label="Round to look at" aria-describedby="replay-label">
+        <button type="button" id="replay-forward" class="secondary" aria-label="Forward one round">▶</button>
+        <button type="button" id="replay-last" class="secondary" aria-label="Latest round">⏭</button>
+      </div>
+      <p id="replay-label" class="comparison-message" role="status"></p>
+      <div id="replay-chart" class="replay-chart"></div>
+      <p class="comparison-message compare-key">Solid: Region A. Dashed: Region B. Dotted: Region C.</p>
+      <ul id="replay-readouts" class="focus-readouts"></ul>
+      <p class="meter-label">In this round</p>
+      <ul id="replay-log" class="science-log-list replay-log"></ul>
+    </details>
+
     <div id="worst-case-section" class="section">
       <button id="worst-case-toggle-button" class="secondary" type="button">Loading...</button>
       <div id="worst-case-panel" class="worst-case-panel" hidden>

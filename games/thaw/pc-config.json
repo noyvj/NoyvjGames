@@ -51,6 +51,13 @@
       "label": "🧮 Forecast planner"
     },
     {
+      "id": "pc-replay-panel",
+      "title": "Round replay",
+      "members": ["#replay"],
+      "group": "Details",
+      "label": "⏪ Round replay"
+    },
+    {
       "id": "pc-story-panel",
       "title": "Four regions, one story",
       "members": ["#shared-research"],

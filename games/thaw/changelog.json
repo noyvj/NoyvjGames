@@ -1,6 +1,10 @@
 [
   {
     "date": "2026-10-11",
+    "entry": "New: a Round replay scrubber. Slide (or step with the arrow buttons) back through the rounds you have played to see where Regions A, B and C stood in any round, with triangles on the chart marking rounds that have a scientist's log entry and the entries for the chosen round listed underneath. Looking back changes nothing."
+  },
+  {
+    "date": "2026-10-11",
     "entry": "New: one Rewind per run. Under Advance Round, the Rewind button puts everything back to just before you pressed Advance Round (your investments that round are still in place) for 40 funds from Region A. It is spent after one use, and a finished Hold the Line run cannot be rewound. Nothing is random, so replaying the round gives the same result."
   },
   {

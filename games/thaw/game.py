@@ -4075,6 +4075,148 @@ def on_undo(event=None):
     undo_last_round()
 
 
+# ===========================================================================
+# G-3: the round-replay scrubber. A slider over the rounds played so far shows where each of the
+# three regions stood at that round, with the scientist's-log entries that still exist pinned at
+# their rounds on the chart. Read-only: it never changes the game. The log keeps only its newest 40
+# entries (plus pins), so older rounds simply have no marker.
+# ===========================================================================
+REPLAY_W = 320
+REPLAY_H = 120
+replay_follow = True  # true while the slider sits at the latest round, so it follows new rounds
+
+
+def replay_rounds():
+    """How many rounds can be scrubbed (rounds played by Region A)."""
+    return len(region.temperature_history)
+
+
+def replay_selected():
+    raw = document.getElementById("replay-slider").value
+    try:
+        value = int(float(str(raw)))
+    except (TypeError, ValueError, OverflowError):
+        value = replay_rounds()
+    return max(1, min(max(1, replay_rounds()), value))
+
+
+def replay_state_at(r, round_number):
+    """(temperature, status word, change since the round before) for region `r` at `round_number`,
+    or None when it has no record that far."""
+    history = r.temperature_history
+    if not 1 <= round_number <= len(history):
+        return None
+    temp = history[round_number - 1]
+    before = history[round_number - 2] if round_number >= 2 else 0.0
+    status = "melting" if temp >= MELT_THRESHOLD else "stable"
+    return temp, status, temp - before
+
+
+def replay_log_at(round_number):
+    """Log entries written for exactly this round, oldest first."""
+    return [e for e in science_log if e["round"] == round_number]
+
+
+def replay_chart_svg(round_number):
+    n = replay_rounds()
+    if n < 2:
+        return ""
+    series = [("a", region), ("b", region_b), ("c", region_c)]
+    top = max(max(r.temperature_history or [0.0]) for _k, r in series)
+    top = max(top, MELT_THRESHOLD) * 1.08
+    left, plot_w, plot_h = 34, REPLAY_W - 34 - 4, REPLAY_H - 22 - 4
+
+    def x_of(i):
+        return left + i * plot_w / (n - 1)
+
+    def y_of(v):
+        return 4 + plot_h - v / top * plot_h
+
+    lines = ""
+    for key, r in series:
+        pts = " ".join(f"{x_of(i):.1f},{y_of(v):.1f}" for i, v in enumerate(r.temperature_history[:n]))
+        lines += f'<polyline points="{pts}" class="replay-line replay-line--{key}" />'
+    marks = ""
+    for entry in science_log:
+        rnd = entry["round"]
+        if 1 <= rnd <= n:
+            marks += f'<polygon points="{x_of(rnd - 1) - 2.5:.1f},3 {x_of(rnd - 1) + 2.5:.1f},3 {x_of(rnd - 1):.1f},8" class="replay-mark" />'
+    cx = x_of(round_number - 1)
+    melt_y = y_of(MELT_THRESHOLD)
+    label = _escape(
+        f"Temperature of Regions A, B and C over {n} rounds; the cursor is at round {round_number}. "
+        f"The triangles mark rounds that have a scientist's log entry."
+    )
+    return (
+        f'<svg viewBox="0 0 {REPLAY_W} {REPLAY_H}" class="replay-svg" role="img" aria-label="{label}"><title>{label}</title>'
+        f'<line x1="{left}" y1="{melt_y:.1f}" x2="{REPLAY_W - 4}" y2="{melt_y:.1f}" class="focus-guide focus-guide--melt" />'
+        f'<text x="{left - 3}" y="{melt_y + 3:.1f}" class="focus-tick" text-anchor="end">{deg(MELT_THRESHOLD, 0, plus=True)}</text>'
+        f'<text x="{left}" y="{REPLAY_H - 4}" class="focus-tick" text-anchor="start">R1</text>'
+        f'<text x="{REPLAY_W - 4}" y="{REPLAY_H - 4}" class="focus-tick" text-anchor="end">R{n}</text>'
+        f"{lines}{marks}"
+        f'<line x1="{cx:.1f}" y1="8" x2="{cx:.1f}" y2="{4 + plot_h}" class="replay-cursor" />'
+        f"</svg>"
+    )
+
+
+def render_replay():
+    n = replay_rounds()
+    slider = document.getElementById("replay-slider")
+    slider.max = str(max(1, n))
+    slider.disabled = n < 1
+    if replay_follow or not str(slider.value).strip():
+        slider.value = str(max(1, n))
+    chosen = replay_selected()
+    slider.value = str(chosen)
+    if n < 1:
+        document.getElementById("replay-label").innerText = "Play a round and the replay appears here."
+        document.getElementById("replay-chart").innerHTML = ""
+        document.getElementById("replay-readouts").innerHTML = ""
+        document.getElementById("replay-log").innerHTML = ""
+        return
+    document.getElementById("replay-label").innerText = f"Round {chosen} of {n}"
+    document.getElementById("replay-chart").innerHTML = replay_chart_svg(chosen)
+    regions = [("A", region), ("B", region_b), ("C", region_c)]
+    if worst_case_region_revealed:
+        regions.append(("D", region_d))
+    rows = []
+    for label, r in regions:
+        got = replay_state_at(r, chosen)
+        if got is None:
+            rows.append(f"<li><span>Region {label}</span><span>no record</span></li>")
+            continue
+        temp, status, change = got
+        rows.append(
+            f"<li><span>Region {label}</span><span>{deg(temp, plus=True)} ({deg(change, 2, plus=True)} that round), {status}</span></li>"
+        )
+    document.getElementById("replay-readouts").innerHTML = "".join(rows)
+    entries = replay_log_at(chosen)
+    if entries:
+        log_html = "".join(f"<li>Region {e['region']}: {_escape(e['text'])}</li>" for e in entries)
+    else:
+        log_html = '<li class="replay-quiet">Nothing was logged in this round.</li>'
+    document.getElementById("replay-log").innerHTML = log_html
+
+
+def on_replay_change(event=None):
+    global replay_follow
+    replay_follow = replay_selected() >= replay_rounds()
+    render_replay()
+
+
+def on_replay_step(delta):
+    def handler(event=None):
+        global replay_follow
+        n = replay_rounds()
+        if n < 1:
+            return
+        target = replay_selected() + delta if delta not in ("first", "last") else (1 if delta == "first" else n)
+        document.getElementById("replay-slider").value = str(max(1, min(n, target)))
+        replay_follow = replay_selected() >= n
+        render_replay()
+    return handler
+
+
 def render():
     render_info_page()
     document.getElementById("round-display").innerText = f"Round {region.round_number}"
@@ -4303,6 +4445,7 @@ def render():
     render_board()  # after the archive update so "best saved" is current
     render_focus()
     render_planner()
+    render_replay()
     render_undo()
     render_personal_best()
     render_climate_archive()
@@ -4775,6 +4918,10 @@ def setup():
     for select_id in ("routing-source", "routing-dest"):
         document.getElementById(select_id).addEventListener("change", create_proxy(on_routing_change))
     document.getElementById("undo-button").addEventListener("click", create_proxy(on_undo))
+    document.getElementById("replay-slider").addEventListener("input", create_proxy(on_replay_change))
+    document.getElementById("replay-slider").addEventListener("change", create_proxy(on_replay_change))
+    for name, delta in (("first", "first"), ("back", -1), ("forward", 1), ("last", "last")):
+        document.getElementById(f"replay-{name}").addEventListener("click", create_proxy(on_replay_step(delta)))
     document.getElementById("rate-inspector-region").addEventListener(
         "change", create_proxy(on_rate_inspector_region_change)
     )

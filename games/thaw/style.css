@@ -1385,3 +1385,18 @@ html[data-lite="true"] .achievement-card--earned { box-shadow: none; }
 .planner-input { width: 4.5rem; padding: 0.25rem 0.4rem; font-size: 0.9rem; }
 .planner-chart { margin: 0.5rem 0; }
 .planner-svg { width: 100%; height: auto; max-height: 13rem; }
+
+/* G-3: round replay */
+.replay-controls { display: flex; gap: 0.35rem; align-items: center; margin: 0.4rem 0; }
+.replay-controls input[type="range"] { flex: 1 1 auto; min-width: 0; }
+.replay-controls button { padding: 0.3rem 0.55rem; }
+.replay-chart { margin: 0.4rem 0; }
+.replay-svg { width: 100%; height: auto; max-height: 14rem; }
+.replay-line { fill: none; stroke-width: 1.6; vector-effect: non-scaling-stroke; }
+.replay-line--a { stroke: #e0674c; }
+.replay-line--b { stroke: #8fc7ff; stroke-dasharray: 6 3; }
+.replay-line--c { stroke: #e6c35c; stroke-dasharray: 1.5 3; stroke-linecap: round; }
+.replay-mark { fill: #8fd8ff; opacity: 0.9; }
+.replay-cursor { stroke: currentColor; stroke-width: 1; opacity: 0.6; }
+.replay-quiet { opacity: 0.65; list-style: none; margin-left: -1rem; }
+.replay-log { max-height: none; }
