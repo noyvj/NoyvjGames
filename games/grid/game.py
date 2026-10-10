@@ -3840,7 +3840,7 @@ def on_reset_confirmations(event=None):
 def render_confirmation_settings():
     skipped = skipped_confirmations()
     document.getElementById("confirm-reset-status").innerText = confirmations_status_text()
-    document.getElementById("confirm-reset-button").disabled = not skipped and not confirm_reset_message
+    document.getElementById("confirm-reset-button").disabled = not skipped
 
 
 def render():
