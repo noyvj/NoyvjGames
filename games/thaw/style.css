@@ -1500,3 +1500,7 @@ html[data-lite="true"][data-tip-shake="true"] .region-card.tipping-flash .mini-t
   html[data-tip-shake="true"] #game.tipping-flash #graph::after,
   html[data-tip-shake="true"] .region-card.tipping-flash .mini-temp-graph::after { display: none; }
 }
+
+/* keep the wide board table scrolling inside its own box on narrow screens */
+.tool-section { min-width: 0; max-width: 100%; }
+.board-scroll { width: 100%; max-width: 100%; }
