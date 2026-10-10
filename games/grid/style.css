@@ -200,6 +200,30 @@ h1 {
   fill: #e0674c;
 }
 
+/* C-12: three more optional lines, each with its own colour AND its own dash pattern (never colour alone):
+   funds gold with dash-dot, demand violet dotted, clean share teal with long dashes. */
+.trend-line--funds { stroke: #e9c46a; stroke-dasharray: 6 2 1 2; }
+.trend-line--demand { stroke: #c9a0ff; stroke-dasharray: 1 3; stroke-linecap: round; }
+.trend-line--clean { stroke: #5fd0b0; stroke-dasharray: 8 3; }
+.trend-point--funds { fill: #e9c46a; }
+.trend-point--demand { fill: #c9a0ff; }
+.trend-point--clean { fill: #5fd0b0; }
+/* GC-9: the ghost of the best earlier run, faint and fine-dashed, in the same hue as the line it ghosts. */
+.trend-line--ghost { opacity: 0.45; stroke-width: 1.5; }
+.trend-line--clean-ghost { stroke: #5fd0b0; stroke-dasharray: 3 3; }
+.trend-line--funds-ghost { stroke: #e9c46a; stroke-dasharray: 3 3; }
+.trend-controls { border: 1px solid rgba(140, 160, 255, 0.25); border-radius: 8px; margin: 0.25rem 0 0.5rem; padding: 0.4rem 0.6rem; display: flex; flex-wrap: wrap; gap: 0.2rem 1rem; }
+.trend-controls legend { font-size: 0.8rem; opacity: 0.85; padding: 0 0.3rem; }
+.trend-check { display: inline-flex; align-items: center; gap: 0.35rem; font-size: 0.85rem; min-height: 44px; cursor: pointer; }
+.trend-swatch { width: 24px; height: 6px; flex: none; }
+.trend-swatch .trend-line { stroke-width: 2.5; }
+/* C-19: the plain-table view of a chart. */
+.chart-table { border-collapse: collapse; width: 100%; font-size: 0.8rem; margin: 0.25rem 0; }
+.chart-table caption { text-align: left; font-size: 0.8rem; opacity: 0.85; padding-bottom: 0.2rem; }
+.chart-table th, .chart-table td { border: 1px solid rgba(140, 160, 255, 0.2); padding: 0.15rem 0.35rem; text-align: right; }
+.chart-table th[scope="col"], .chart-table th[scope="row"] { text-align: left; font-weight: 600; }
+.chart-table-wrap { overflow-x: auto; max-width: 100%; }
+
 .trend-point--cost {
   fill: #4fa8dd;
 }

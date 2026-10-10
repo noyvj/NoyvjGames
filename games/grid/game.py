@@ -1892,6 +1892,98 @@ def _sync_perks():
     state.perks = set(skill_tree.effects(CAREER_TREE, career["unlocked"]))
 
 
+# ---- Display preferences (C-12, C-19, C-6, C-21, GC-19, GC-8, GC-9) ----------------------------------------------
+# What the player chooses to SEE (which trend lines, tables instead of graphs, number format, the coach, the
+# commentary, the skyline). Like the text-size and reduced-motion settings these are a browser preference kept in
+# localStorage under their own key; they are never part of get_state(), so a save code stays portable and loading a
+# save can never change how the page looks. Nothing here touches the rules.
+PREFS_STORAGE_KEY = "grid_prefs_v1"
+PREF_DEFAULTS = {
+    "trend_emissions": True,
+    "trend_cost": True,
+    "trend_benchmark": True,
+    "trend_funds": False,
+    "trend_demand": False,
+    "trend_clean": False,
+    "trend_ghost": False,
+    "table_view": False,
+    "number_format": "full",
+    "unit": "units",
+    "coach": False,
+    "gridley": True,
+    "skyline": True,
+}
+PREF_CHOICES = {"number_format": ("full", "compact"), "unit": ("units", "mw")}
+prefs = dict(PREF_DEFAULTS)
+
+
+def validate_prefs(raw):
+    """Every key falls back to its default; unknown keys and wrong types are dropped."""
+    out = dict(PREF_DEFAULTS)
+    if not isinstance(raw, dict):
+        return out
+    for key, default in PREF_DEFAULTS.items():
+        value = raw.get(key)
+        if key in PREF_CHOICES:
+            if value in PREF_CHOICES[key]:
+                out[key] = value
+        elif isinstance(value, bool):
+            out[key] = value
+    return out
+
+
+def load_prefs_from_storage():
+    storage = _career_storage()
+    if storage is None:
+        return dict(PREF_DEFAULTS)
+    try:
+        raw = storage.getItem(PREFS_STORAGE_KEY)
+        return validate_prefs(json.loads(raw)) if raw else dict(PREF_DEFAULTS)
+    except Exception:  # noqa: BLE001 -- private mode / corrupt JSON: defaults
+        return dict(PREF_DEFAULTS)
+
+
+def save_prefs_to_storage():
+    storage = _career_storage()
+    if storage is None:
+        return
+    try:
+        storage.setItem(PREFS_STORAGE_KEY, json.dumps(prefs))
+    except Exception:  # noqa: BLE001 -- a refused write must never break play
+        pass
+
+
+def set_pref(key, value):
+    """Change one display preference. Returns False (and changes nothing) for an unknown key or a bad value."""
+    if key not in PREF_DEFAULTS:
+        return False
+    if key in PREF_CHOICES:
+        if value not in PREF_CHOICES[key]:
+            return False
+    elif not isinstance(value, bool):
+        return False
+    prefs[key] = value
+    save_prefs_to_storage()
+    return True
+
+
+def _make_pref_checkbox_handler(key):
+    def handler(event=None):
+        target = getattr(event, "target", None)
+        checked = getattr(target, "checked", None)
+        set_pref(key, (not prefs[key]) if checked is None else bool(checked))
+        render()
+    return handler
+
+
+def _make_pref_select_handler(key):
+    def handler(event=None):
+        target = getattr(event, "target", None)
+        set_pref(key, getattr(target, "value", None))
+        render()
+    return handler
+
+
 def run_career_points():
     """Points finishing the current run would bank, with a short breakdown
     list; (0, [reason]) if the run is too short to count."""
@@ -2324,73 +2416,205 @@ def _normalize_series(series, height, lo=None, hi=None):
     return [height - ((v - lo) / (hi - lo)) * height for v in series]
 
 
-def trend_graph_svg(emissions_history, cost_history, global_reference_history, clean_fraction_history=None):
-    """Three-line trend graph: emissions (rising, red) vs. average
-    renewable cost (falling as investment compounds, green) vs. a
-    hardcoded global-average emissions benchmark (dashed grey) — the
-    Pass 2 addition that gives the player's own emissions line something
-    concrete to be measured against, not just a shape in isolation.
-    Capped at three lines so it stays legible.
+TREND_LINE_KEYS = ("emissions", "cost", "benchmark", "funds", "demand", "clean")
+TREND_LINE_LABEL = {
+    "emissions": "Your emissions",
+    "cost": "Avg renewable cost",
+    "benchmark": "Global-average benchmark",
+    "funds": "Funds",
+    "demand": "Demand",
+    "clean": "Clean share",
+}
+# C-12: what the graph shows when nothing is passed in (the three lines it always had).
+DEFAULT_TREND_LINES = frozenset({"emissions", "cost", "benchmark"})
+TREND_TABLE_MAX_ROWS = 15
 
-    C15: every point on every line also gets a small hoverable marker
-    carrying the exact round/value in a native <title> tooltip, so a
-    player who wants a precise number isn't limited to reading it off
-    the shape of the line.
 
-    Z17 (site-wide goal): the emissions-vs-global-reference pair -- this
-    game's own C15/Pass-2 "global comparison" line, the feature the
-    shared shared/comparison_chart.py component was generalized FROM --
-    is now built by composing that module's normalize_together()/
-    marker_fragment() building blocks rather than this file's own
-    (now-removed) combined-min-max/marker code. The avg-renewable-cost
-    line stays local: it's a third, unrelated series, not part of the
-    "you vs. a reference" comparison shape the shared component covers,
-    so this function doesn't use the module's higher-level
-    two_series_chart_svg() wrapper (Continuum's/Herd's simpler two-series
-    charts do -- see those games' own code)."""
+def visible_trend_lines():
+    """C-12: the trend lines the player has switched on."""
+    return {key for key in TREND_LINE_KEYS if prefs.get("trend_" + key)}
+
+
+def ghost_value(series, rounds, round_number):
+    """GC-9: the saved (thinned) series of a finished run read at one 1-based round. A run of at most
+    CAREER_SERIES_POINTS rounds was saved point for point; a longer one was thinned evenly, so the read is
+    spread over its length. None once the ghost's run had already ended."""
+    n = len(series)
+    if n == 0 or round_number < 1 or round_number > rounds:
+        return None
+    if rounds <= n:
+        return series[round_number - 1]
+    return series[int(round((round_number - 1) * (n - 1) / (rounds - 1)))]
+
+
+def ghost_record():
+    """GC-9: the best finished run in the career (highest score, the latest on a tie) with a usable
+    clean-share series, as a small dict, or None if there is none yet."""
+    best = None
+    best_index = -1
+    for index, record in enumerate(career["history"]):
+        if len(record["clean"]) < 2 or record["rounds"] < 2:
+            continue
+        if best is None or record["score"] >= best["score"]:
+            best, best_index = record, index
+    if best is None:
+        return None
+    return {
+        "label": _run_label(career["history"], best_index),
+        "grade": best["grade"],
+        "score": best["score"],
+        "rounds": best["rounds"],
+        "clean": list(best["clean"]),
+        "funds": list(best["funds_series"]),
+    }
+
+
+def ghost_delta_text(clean_history, funds_history, ghost):
+    """GC-9: where the run stands against the ghost at the latest round, in words (ahead or behind, in numbers)."""
+    if not ghost:
+        return "No finished run to race yet. Finish a run from the Career panel and your best one appears here as a ghost."
+    n = len(clean_history)
+    head = f"Ghost: {ghost['label']} (grade {ghost['grade']}, score {ghost['score']:.0f}/100, {ghost['rounds']} rounds)."
+    if n == 0:
+        return head + " Play a round to start the comparison."
+    ghost_clean = ghost_value(ghost["clean"], ghost["rounds"], n)
+    if ghost_clean is None:
+        return head + f" That run ended before round {n}, so there is nothing to compare with now."
+    mine = clean_history[-1] * 100
+    gap = mine - ghost_clean
+    side = "ahead of" if gap > 0.5 else ("behind" if gap < -0.5 else "level with")
+    text = f"{head} At round {n} your clean share is {mine:.0f}% against {ghost_clean:.0f}%"
+    text += f" ({abs(gap):.0f} points {side} the ghost)." if side != "level with" else " (level with the ghost)."
+    ghost_funds = ghost_value(ghost["funds"], ghost["rounds"], n)
+    if funds_history and len(funds_history) == n and ghost_funds is not None:
+        fgap = funds_history[-1] - ghost_funds
+        fside = "ahead of" if fgap > 0.5 else ("behind" if fgap < -0.5 else "level with")
+        text += f" Funds: {funds_history[-1]:.0f} against {ghost_funds:.0f}"
+        text += f" ({abs(fgap):.0f} {fside} the ghost)." if fside != "level with" else " (level with the ghost)."
+    return text
+
+
+def trend_series(emissions_history, cost_history, global_reference_history, clean_fraction_history,
+                 funds_history, demand_history):
+    """C-12 / C-19: every trend series as plain lists aligned to the emissions history (a series that is not
+    the same length, such as the funds of a save from before they were kept, is None)."""
+    n = len(emissions_history)
+
+    def aligned(values, scale=1.0):
+        if values is None or len(values) != n:
+            return None
+        return [v * scale for v in values]
+
+    return {
+        "emissions": list(emissions_history),
+        "cost": aligned(cost_history),
+        "benchmark": aligned(global_reference_history),
+        "funds": aligned(funds_history),
+        "demand": aligned(demand_history),
+        "clean": aligned(clean_fraction_history, 100.0),
+    }
+
+
+def trend_graph_svg(emissions_history, cost_history, global_reference_history, clean_fraction_history=None,
+                    visible=None, funds_history=None, demand_history=None, ghost=None):
+    """Trend graph. Always built from the player's emissions (rising, red), average renewable cost (falling
+    as investment compounds) and a hardcoded global-average emissions benchmark (dashed grey) -- the Pass 2
+    addition that gives the player's own emissions line something concrete to be measured against.
+
+    C-12: `visible` (a set of TREND_LINE_KEYS, default the three above) switches lines on or off, and three
+    more lines can be shown: funds, demand and clean share. Each line has its own colour AND its own dash
+    pattern. The best-round diamond stays on whichever visible line is first in the order emissions, clean
+    share, cost, funds, demand, benchmark, so it is never lost when a line is hidden.
+    GC-9: `ghost` (see ghost_record()) draws the best earlier run's clean share and funds as faint lines.
+
+    C15: every point on every line also gets a small hoverable marker carrying the exact round/value in a
+    native <title> tooltip.
+
+    Z17: the emissions-vs-global-reference pair is built from shared/comparison_chart.py's
+    normalize_together()/marker_fragment() building blocks."""
     if len(emissions_history) < 2:
         return ""
-
+    visible = DEFAULT_TREND_LINES if visible is None else set(visible)
     n = len(emissions_history)
+    series = trend_series(
+        emissions_history, cost_history, global_reference_history, clean_fraction_history,
+        funds_history, demand_history,
+    )
     xs = comparison_chart.xs_for(n, TREND_GRAPH_WIDTH)
-    # Normalized together (not each series against its own min/max) so
-    # the player's emissions line and the global-reference line stay
-    # comparable to each other on the same scale.
+    # Normalized together (not each series against its own min/max) so the player's emissions line and the
+    # global-reference line stay comparable to each other on the same scale, whichever of the two is hidden.
     emissions_ys, global_ys = comparison_chart.normalize_together(
         emissions_history, global_reference_history, TREND_GRAPH_HEIGHT
     )
-    cost_ys = _normalize_series(cost_history, TREND_GRAPH_HEIGHT)
+    ys = {"emissions": emissions_ys, "benchmark": global_ys}
+    if series["cost"] is not None:
+        ys["cost"] = _normalize_series(series["cost"], TREND_GRAPH_HEIGHT)
+    if series["demand"] is not None:
+        ys["demand"] = _normalize_series(series["demand"], TREND_GRAPH_HEIGHT)
+    if series["clean"] is not None:
+        ys["clean"] = _normalize_series(series["clean"], TREND_GRAPH_HEIGHT, 0.0, 100.0)
 
-    emissions_points = " ".join(f"{x:.1f},{y:.1f}" for x, y in zip(xs, emissions_ys))
-    cost_points = " ".join(f"{x:.1f},{y:.1f}" for x, y in zip(xs, cost_ys))
-    global_points = " ".join(f"{x:.1f},{y:.1f}" for x, y in zip(xs, global_ys))
+    ghost_parts = []
+    ghost_funds_points = []
+    if series["funds"] is not None:
+        funds_lo, funds_hi = min(series["funds"]), max(series["funds"])
+        if ghost and "funds" in visible:
+            ghost_funds_points = [
+                (i, ghost_value(ghost["funds"], ghost["rounds"], i + 1)) for i in range(n)
+            ]
+            ghost_funds_points = [(i, v) for i, v in ghost_funds_points if v is not None]
+            if ghost_funds_points:
+                funds_lo = min(funds_lo, min(v for _, v in ghost_funds_points))
+                funds_hi = max(funds_hi, max(v for _, v in ghost_funds_points))
+        ys["funds"] = _normalize_series(series["funds"], TREND_GRAPH_HEIGHT, funds_lo, funds_hi)
+        if ghost_funds_points:
+            gpts = " ".join(
+                f"{xs[i]:.1f},{_normalize_series([v], TREND_GRAPH_HEIGHT, funds_lo, funds_hi)[0]:.1f}"
+                for i, v in ghost_funds_points
+            )
+            ghost_parts.append(
+                f'<polyline points="{gpts}" class="trend-line trend-line--ghost trend-line--funds-ghost">'
+                f"<title>Ghost funds ({ghost['label']})</title></polyline>"
+            )
+    if ghost and "clean" in visible:
+        clean_points = [(i, ghost_value(ghost["clean"], ghost["rounds"], i + 1)) for i in range(n)]
+        clean_points = [(i, v) for i, v in clean_points if v is not None]
+        if clean_points:
+            gpts = " ".join(
+                f"{xs[i]:.1f},{_normalize_series([v], TREND_GRAPH_HEIGHT, 0.0, 100.0)[0]:.1f}"
+                for i, v in clean_points
+            )
+            ghost_parts.append(
+                f'<polyline points="{gpts}" class="trend-line trend-line--ghost trend-line--clean-ghost">'
+                f"<title>Ghost clean share ({ghost['label']})</title></polyline>"
+            )
 
-    # C15: a small hoverable marker at every data point, each carrying a
-    # native SVG <title> tooltip with that round's exact value. No JS
-    # event wiring needed -- the browser's own hover-title behavior does
-    # the work, consistent with this module keeping real logic in Python
-    # rather than adding a parallel JS layer for something this simple.
-    markers = (
-        comparison_chart.marker_fragment(
-            xs, global_ys, global_reference_history, "trend-point trend-point--global",
-            "Global-average benchmark", index_label="Round", value_format="{:.0f}",
+    lines = ""
+    markers = ""
+    formats = {"emissions": "{:.0f}", "cost": "{:.0f}", "benchmark": "{:.0f}", "funds": "{:.0f}",
+               "demand": "{:.0f}", "clean": "{:.0f}%"}
+    # Drawing order is the original one (benchmark, emissions, cost) and the new lines after it.
+    for key in ("benchmark", "emissions", "cost", "funds", "demand", "clean"):
+        if key not in visible or key not in ys or series[key] is None:
+            continue
+        points = " ".join(f"{x:.1f},{y:.1f}" for x, y in zip(xs, ys[key]))
+        css = "global" if key == "benchmark" else key
+        lines += f'<polyline points="{points}" class="trend-line trend-line--{css}" />'
+        marker_class = f"trend-point trend-point--{css}"
+        markers += comparison_chart.marker_fragment(
+            xs, ys[key], series[key], marker_class, TREND_LINE_LABEL[key], index_label="Round",
+            value_format=formats[key],
         )
-        + comparison_chart.marker_fragment(
-            xs, emissions_ys, emissions_history, "trend-point trend-point--emissions",
-            "Your emissions", index_label="Round", value_format="{:.0f}",
-        )
-        + comparison_chart.marker_fragment(
-            xs, cost_ys, cost_history, "trend-point trend-point--cost",
-            "Avg renewable cost", index_label="Round", value_format="{:.0f}",
-        )
-    )
 
-    # C12: a diamond marker (shape, not just color) on the emissions line at
-    # the player's best round -- highest clean share, earliest on ties.
+    # C12: a diamond marker (shape, not just color) at the player's best round -- highest clean share,
+    # earliest on ties. C-12 (checkboxes): it moves to the first visible line so hiding emissions keeps it.
     best_marker = ""
     if clean_fraction_history and len(clean_fraction_history) == n and max(clean_fraction_history) > 0:
         best_i = clean_fraction_history.index(max(clean_fraction_history))
-        bx, by = xs[best_i], emissions_ys[best_i]
+        anchor = next((k for k in ("emissions", "clean", "cost", "funds", "demand", "benchmark")
+                       if k in visible and k in ys), None)
+        bx = xs[best_i]
+        by = ys[anchor][best_i] if anchor else TREND_GRAPH_HEIGHT / 2
         best_marker = (
             f'<polygon points="{bx:.1f},{by - 6:.1f} {bx + 5:.1f},{by:.1f} {bx:.1f},{by + 6:.1f} {bx - 5:.1f},{by:.1f}" '
             f'class="trend-best-marker"><title>Best round: Round {best_i + 1} '
@@ -2399,12 +2623,71 @@ def trend_graph_svg(emissions_history, cost_history, global_reference_history, c
 
     return (
         f'<svg viewBox="0 0 {TREND_GRAPH_WIDTH} {TREND_GRAPH_HEIGHT}" class="trend-graph-svg">'
-        f'<polyline points="{global_points}" class="trend-line trend-line--global" />'
-        f'<polyline points="{emissions_points}" class="trend-line trend-line--emissions" />'
-        f'<polyline points="{cost_points}" class="trend-line trend-line--cost" />'
+        f"{''.join(ghost_parts)}"
+        f"{lines}"
         f"{markers}"
         f"{best_marker}"
         f"</svg>"
+    )
+
+
+def _trend_direction(values, unit=""):
+    first, last = values[0], values[-1]
+    word = "rose" if last > first else ("fell" if last < first else "held at")
+    if word == "held at":
+        return f"held at {last:.0f}{unit}"
+    return f"{word} from {first:.0f}{unit} to {last:.0f}{unit}"
+
+
+def trend_description(series, visible):
+    """C-19: the trend in a sentence or two, for the table view (and for anyone who does not use the graph)."""
+    n = len(series["emissions"])
+    if n < 2:
+        return "Not enough rounds yet to describe a trend."
+    parts = []
+    for key in TREND_LINE_KEYS:
+        if key not in visible or series[key] is None:
+            continue
+        unit = "%" if key == "clean" else ""
+        parts.append(f"{TREND_LINE_LABEL[key].lower()} {_trend_direction(series[key], unit)}")
+    if not parts:
+        return "No lines are switched on, so there is nothing to describe."
+    return f"Over {n} rounds: " + "; ".join(parts) + "."
+
+
+def trend_table_html(series, visible, clean_fraction_history=None, ghost=None):
+    """C-19: the trend graph's numbers as a plain table (last TREND_TABLE_MAX_ROWS rounds, newest last)."""
+    n = len(series["emissions"])
+    if n < 1:
+        return ""
+    keys = [k for k in TREND_LINE_KEYS if k in visible and series[k] is not None]
+    best_i = None
+    if clean_fraction_history and len(clean_fraction_history) == n and max(clean_fraction_history) > 0:
+        best_i = clean_fraction_history.index(max(clean_fraction_history))
+    head = "<th scope=\"col\">Round</th>" + "".join(f'<th scope="col">{TREND_LINE_LABEL[k]}</th>' for k in keys)
+    if ghost and "clean" in visible:
+        head += '<th scope="col">Ghost clean share</th>'
+    if ghost and "funds" in visible:
+        head += '<th scope="col">Ghost funds</th>'
+    rows = []
+    first = max(0, n - TREND_TABLE_MAX_ROWS)
+    for i in range(first, n):
+        best = " (best round)" if best_i == i else ""
+        cells = f'<th scope="row">{i + 1}{best}</th>'
+        for k in keys:
+            unit = "%" if k == "clean" else ""
+            cells += f"<td>{series[k][i]:.0f}{unit}</td>"
+        if ghost and "clean" in visible:
+            g = ghost_value(ghost["clean"], ghost["rounds"], i + 1)
+            cells += f"<td>{'-' if g is None else f'{g:.0f}%'}</td>"
+        if ghost and "funds" in visible:
+            g = ghost_value(ghost["funds"], ghost["rounds"], i + 1)
+            cells += f"<td>{'-' if g is None else f'{g:.0f}'}</td>"
+        rows.append(f"<tr>{cells}</tr>")
+    note = f" Showing the last {TREND_TABLE_MAX_ROWS} of {n} rounds." if n > TREND_TABLE_MAX_ROWS else ""
+    return (
+        f'<table class="chart-table"><caption>Trend numbers by round.{note}</caption>'
+        f"<thead><tr>{head}</tr></thead><tbody>{''.join(rows)}</tbody></table>"
     )
 
 
@@ -3162,6 +3445,123 @@ def wear_tooltip(plant_type):
     )
 
 
+TREND_CHECKBOX_PREFS = tuple(
+    [(f"trend-show-{key}", f"trend_{key}") for key in TREND_LINE_KEYS]
+    + [("trend-show-ghost", "trend_ghost"), ("chart-table-view", "table_view")]
+)
+TREND_DEFAULT_MESSAGE = (
+    "Your emissions (red) vs. a global-average-fossil-mix benchmark (dashed grey) vs. average renewable cost "
+    "(blue, fine dashes) over time."
+)
+
+
+def render_trend():
+    """C-12 / C-19 / GC-9: the trend graph (or its table), the line checkboxes and the ghost line."""
+    for element_id, pref_key in TREND_CHECKBOX_PREFS:
+        document.getElementById(element_id).checked = prefs[pref_key]
+    visible = visible_trend_lines()
+    ghost = ghost_record() if prefs["trend_ghost"] else None
+    svg = trend_graph_svg(
+        state.emissions_history,
+        state.avg_renewable_cost_history,
+        state.global_reference_emissions_history,
+        state.clean_fraction_log,
+        visible=visible,
+        funds_history=state.funds_history,
+        demand_history=state.demand_history,
+        ghost=ghost,
+    )
+    series = trend_series(
+        state.emissions_history, state.avg_renewable_cost_history, state.global_reference_emissions_history,
+        state.clean_fraction_log, state.funds_history, state.demand_history,
+    )
+    graph_el = document.getElementById("trend-graph")
+    message_el = document.getElementById("trend-graph-message")
+    if not svg:
+        graph_el.innerHTML = ""
+        message_el.innerText = "Not enough rounds yet to show an emissions/cost trend."
+    elif prefs["table_view"]:
+        graph_el.innerHTML = trend_table_html(series, visible, state.clean_fraction_log, ghost)
+        message_el.innerText = trend_description(series, visible)
+    else:
+        graph_el.innerHTML = svg
+        if not visible:
+            message_el.innerText = "No lines are switched on. Use the checkboxes above to show some."
+        elif visible == DEFAULT_TREND_LINES:
+            message_el.innerText = TREND_DEFAULT_MESSAGE
+        else:
+            shown = ", ".join(TREND_LINE_LABEL[k].lower() for k in TREND_LINE_KEYS if k in visible)
+            message_el.innerText = f"Showing {shown} over time."
+    note_el = document.getElementById("trend-ghost-note")
+    note_el.hidden = not prefs["trend_ghost"]
+    if prefs["trend_ghost"]:
+        text = ghost_delta_text(state.clean_fraction_log, state.funds_history, ghost)
+        if ghost and not ({"clean", "funds"} & visible):
+            text += " Switch on Clean share or Funds to see the ghost line."
+        note_el.innerText = text
+
+
+def mix_table_html():
+    """C-19: the plant-mix chart as a plain table (units, share of capacity, of revenue, of emissions)."""
+    total_capacity = state.total_capacity()
+    emissions_total = sum(
+        state.plant_counts[t] * PLANT_CAPACITY[t] * EMISSIONS_FACTOR[t] for t in GENERATION_TYPES
+    )
+    rows = []
+    for plant_type in GENERATION_TYPES:
+        share = state.capacity_share(plant_type) * 100
+        emissions = state.plant_counts[plant_type] * PLANT_CAPACITY[plant_type] * EMISSIONS_FACTOR[plant_type]
+        emission_share = (emissions / emissions_total * 100) if emissions_total > 0 else 0.0
+        rows.append(
+            f'<tr><th scope="row">{PLANT_LABEL[plant_type]}</th><td>{state.plant_counts[plant_type]}</td>'
+            f"<td>{share:.0f}%</td><td>{share:.0f}%</td><td>{emission_share:.0f}%</td></tr>"
+        )
+    note = (
+        "No generation on the grid yet." if total_capacity <= 0
+        else f"Revenue share equals capacity share: every unit of output sold earns the same. Total capacity {total_capacity}."
+    )
+    return (
+        f'<table class="chart-table"><caption>Plant mix. {note}</caption><thead><tr>'
+        '<th scope="col">Plant</th><th scope="col">Units</th><th scope="col">Share of capacity</th>'
+        '<th scope="col">Share of revenue</th><th scope="col">Share of emissions</th></tr></thead>'
+        f"<tbody>{''.join(rows)}</tbody></table>"
+    )
+
+
+def gauge_table_html():
+    """C-19: the meters (emissions, clean-grid score, disruption risk, fossil share, supply against demand) as
+    a plain table with the same numbers the bars draw."""
+    emissions_pct = min(1.0, state.emissions / EMISSIONS_METER_MAX) * 100
+    capacity = state.total_capacity()
+    cover = (capacity / state.demand * 100) if state.demand > 0 else 0.0
+    rows = [
+        ("Emissions meter", f"{state.emissions:.0f} of {EMISSIONS_METER_MAX:.0f}", f"{emissions_pct:.0f}% full"),
+        ("Sustained clean-grid score", f"{state.score():.0f} of 100", f"{state.score():.0f}% full"),
+        ("Disruption risk next round", f"{state.disruption_probability() * 100:.0f}%", "chance"),
+        ("Fossil share of grid", f"{state.fossil_share() * 100:.0f}%", "of capacity"),
+        ("Supply against demand", f"{capacity} of {state.demand:.0f}", f"{cover:.0f}% covered"),
+    ]
+    body = "".join(f'<tr><th scope="row">{a}</th><td>{b}</td><td>{c}</td></tr>' for a, b, c in rows)
+    return (
+        '<table class="chart-table"><caption>The gauges as numbers.</caption><thead><tr><th scope="col">Gauge</th>'
+        '<th scope="col">Value</th><th scope="col">Reading</th></tr></thead>'
+        f"<tbody>{body}</tbody></table>"
+    )
+
+
+def render_chart_tables():
+    """C-19: with 'Show charts as tables' on, the plant-mix bars and the gauges also get a plain table."""
+    on = prefs["table_view"]
+    mix_table = document.getElementById("mix-table")
+    mix_table.hidden = not on
+    mix_table.innerHTML = mix_table_html() if on else ""
+    for plant_type in GENERATION_TYPES:
+        document.getElementById(f"{plant_type}-mix-row").hidden = on
+    gauge_table = document.getElementById("gauge-table")
+    gauge_table.hidden = not on
+    gauge_table.innerHTML = gauge_table_html() if on else ""
+
+
 def render():
     render_info_page()
     render_shadow()
@@ -3224,17 +3624,8 @@ def render():
     else:
         weather_button.classList.remove("active")
 
-    svg = trend_graph_svg(
-        state.emissions_history,
-        state.avg_renewable_cost_history,
-        state.global_reference_emissions_history,
-        state.clean_fraction_log,
-    )
-    document.getElementById("trend-graph").innerHTML = svg
-    document.getElementById("trend-graph-message").innerText = (
-        "Your emissions (red) vs. a global-average-fossil-mix benchmark (dashed grey) vs. average renewable cost (green) over time."
-        if svg else "Not enough rounds yet to show an emissions/cost trend."
-    )
+    render_trend()
+    render_chart_tables()
     document.getElementById("global-comparison-message").innerText = global_comparison_message(
         state.emissions, state.global_reference_emissions
     )
@@ -5466,8 +5857,9 @@ def sandbox_leave():
 
 
 def setup():
-    global career
+    global career, prefs
     career = load_career_from_storage()
+    prefs = load_prefs_from_storage()
     _sync_perks()
     state.apply_scenario("standard")
     # index.html already marks this hidden via the `hidden` attribute, but
@@ -5489,6 +5881,10 @@ def setup():
         )
         document.getElementById(f"{plant_type}-maintenance-schedule-select").addEventListener(
             "change", create_proxy(_make_maintenance_schedule_handler(plant_type))
+        )
+    for element_id, pref_key in TREND_CHECKBOX_PREFS:
+        document.getElementById(element_id).addEventListener(
+            "change", create_proxy(_make_pref_checkbox_handler(pref_key))
         )
     document.getElementById("shadow-select").addEventListener("change", create_proxy(on_shadow_change))
     document.getElementById("real-grid-select").addEventListener("change", create_proxy(on_real_grid_change))

@@ -211,7 +211,7 @@ def test_the_games_own_status_lines_are_not_second_live_regions():
     what they say, so they would be read twice."""
     html = (Path(__file__).resolve().parent.parent / "index.html").read_text(encoding="utf-8")
     for note in ("auto-advance-status", "grant-message-display"):
-        line = next(l for l in html.splitlines() if f'id="{note}"' in l)
+        line = next(ln for ln in html.splitlines() if f'id="{note}"' in ln)
         assert "role=" not in line and "aria-live" not in line
     assert '<script src="../../shared/announcer.js"></script>' in html
     assert html.index("shared/announcer.js") < html.index("shared/last-played.js")

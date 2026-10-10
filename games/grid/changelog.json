@@ -2,6 +2,10 @@
   "changelog": [
     {
       "date": "2026-10-11",
+      "entry": "New: you choose what the trend graph shows. Tick or untick Emissions, Renewable cost, Global benchmark, plus three new lines (Funds, Demand and Clean share); each line has its own colour and its own dash pattern, and the best-round diamond stays on whichever line is showing. Ghost run draws your best earlier run's clean share and funds as faint lines and says in words whether you are ahead or behind it. Show charts as tables swaps the trend graph, the plant-mix bars and the gauges for plain tables with a one-line description of the trend. Your choices are kept on this device."
+    },
+    {
+      "date": "2026-10-11",
       "entry": "New: a screen reader now hears what changes. After you build, retire or maintain a plant, advance or auto-advance rounds, invest in demand response, answer a policy lever or grant, or unlock an achievement, a short plain sentence says what happened: the round recap, any disruption or breakdown, demand against capacity, the renewable and fossil shares and your funds. A refused action says why. Each plant row is now a named group so its Build, Retire and Maintain buttons say which plant they belong to, and keyboard focus shows a thick yellow ring."
     },
     {

@@ -168,6 +168,9 @@ for _plant in PLANT_TYPES:
     ELEMENT_IDS.append(f"{_plant}-row")
 ELEMENT_IDS.append("mix-hover-readout")
 ELEMENT_IDS.append("sr-announcer")
+# Display preferences (C-12 trend lines, GC-9 ghost, C-19 table view).
+ELEMENT_IDS += [f"trend-show-{k}" for k in ("emissions", "cost", "benchmark", "funds", "demand", "clean", "ghost")]
+ELEMENT_IDS += ["chart-table-view", "trend-ghost-note", "mix-table", "gauge-table"]
 
 INITIALLY_DISABLED_IDS = (
     [f"{p}-build-button" for p in PLANT_TYPES]

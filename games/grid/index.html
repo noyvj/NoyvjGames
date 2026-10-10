@@ -324,6 +324,8 @@
       <p id="score-display" class="status-line">Sustained clean-grid score: 0</p>
       <details class="info-toggle"><summary>i</summary><p>This score averages how clean your grid's mix has been across every round you've played, not just where it stands right now — a late clean sprint can't fully erase a dirty start, and a dirty finish can't erase an early clean run either.</p></details>
       <div class="meter"><div id="score-bar" class="meter-fill meter-fill--score"></div></div>
+      <!-- C-19: the gauges as a plain table when "Show charts as tables" is on. -->
+      <div id="gauge-table" class="chart-table-wrap" hidden></div>
       <p id="trend-display" class="event-display">Not enough rounds yet to show a trend.</p>
       <p id="aging-event-display" class="event-display">No aging breakdowns last round.</p>
       <!-- C-8: one expandable recap of last round's funds story. -->
@@ -331,9 +333,22 @@
         <summary id="round-recap-summary">Round recap: no round played yet.</summary>
         <p id="round-recap-body" class="round-recap-body"></p>
       </details>
-      <p class="meter-label">Emissions vs. global-average benchmark vs. renewable cost</p>
+      <p class="meter-label">Trend graph</p>
+      <!-- C-12: choose which lines the graph shows (the best-round diamond always stays); GC-9: the ghost of your best earlier run; C-19: a table view of every chart. -->
+      <fieldset id="trend-controls" class="trend-controls">
+        <legend>Lines on the graph</legend>
+        <label class="trend-check"><input type="checkbox" id="trend-show-emissions"><svg class="trend-swatch" viewBox="0 0 24 6" aria-hidden="true"><line x1="0" y1="3" x2="24" y2="3" class="trend-line trend-line--emissions" /></svg> Emissions</label>
+        <label class="trend-check"><input type="checkbox" id="trend-show-cost"><svg class="trend-swatch" viewBox="0 0 24 6" aria-hidden="true"><line x1="0" y1="3" x2="24" y2="3" class="trend-line trend-line--cost" /></svg> Renewable cost</label>
+        <label class="trend-check"><input type="checkbox" id="trend-show-benchmark"><svg class="trend-swatch" viewBox="0 0 24 6" aria-hidden="true"><line x1="0" y1="3" x2="24" y2="3" class="trend-line trend-line--global" /></svg> Global benchmark</label>
+        <label class="trend-check"><input type="checkbox" id="trend-show-funds"><svg class="trend-swatch" viewBox="0 0 24 6" aria-hidden="true"><line x1="0" y1="3" x2="24" y2="3" class="trend-line trend-line--funds" /></svg> Funds</label>
+        <label class="trend-check"><input type="checkbox" id="trend-show-demand"><svg class="trend-swatch" viewBox="0 0 24 6" aria-hidden="true"><line x1="0" y1="3" x2="24" y2="3" class="trend-line trend-line--demand" /></svg> Demand</label>
+        <label class="trend-check"><input type="checkbox" id="trend-show-clean"><svg class="trend-swatch" viewBox="0 0 24 6" aria-hidden="true"><line x1="0" y1="3" x2="24" y2="3" class="trend-line trend-line--clean" /></svg> Clean share</label>
+        <label class="trend-check"><input type="checkbox" id="trend-show-ghost"> Ghost run (your best earlier run)</label>
+        <label class="trend-check"><input type="checkbox" id="chart-table-view"> Show charts as tables</label>
+      </fieldset>
       <div id="trend-graph"></div>
       <p id="trend-graph-message" class="comparison-message">Not enough rounds yet to show an emissions/cost trend.</p>
+      <p id="trend-ghost-note" class="comparison-message" hidden></p>
       <p id="global-comparison-message" class="comparison-message">Not enough rounds yet to compare against the global average.</p>
       <!-- C21: the shadow grid: a non-interactive twin on a different starting scenario that copies your moves. -->
       <p class="meter-label">Shadow grid (compare your choices from a different start)</p>
@@ -593,6 +608,8 @@
         <summary>Show breakdown</summary>
         <!-- C-4: hover or focus a bar to see that plant type's share of capacity, revenue and emissions, and highlight its row. -->
         <p id="mix-hover-readout" class="comparison-message mix-hover-readout" aria-live="polite">Hover or focus a bar to see that plant type's share of capacity, revenue and emissions.</p>
+        <!-- C-19: the same numbers as a plain table when "Show charts as tables" is on. -->
+        <div id="mix-table" class="chart-table-wrap" hidden></div>
         <div class="mix-row" id="coal-mix-row" data-plant="coal" tabindex="0">
           <span class="mix-label" title="Fossil">🏭 Coal</span>
           <div class="mix-bar-track"><div id="coal-mix-bar" class="mix-bar mix-bar--coal"></div></div>
