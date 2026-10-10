@@ -1436,3 +1436,26 @@ html[data-theme="light"] .gloss-pop { background: #fbf6ec; color: #1b1710; borde
 /* G-29 */
 .load-notice { border-left: 4px solid #e6c35c; }
 .load-notice[hidden] { display: none; }
+
+/* G-16: crosshair on the mini graphs (moved by the page script; hidden until used) */
+.mini-temp-graph { position: relative; }
+.mini-temp-graph-svg[data-pts] { cursor: crosshair; }
+.mini-temp-graph-svg[data-pts]:focus-visible { outline: 2px solid #8fd8ff; outline-offset: 2px; }
+.mini-cross { display: none; stroke: currentColor; stroke-width: 0.8; opacity: 0.7; pointer-events: none; }
+.mini-dot { display: none; fill: #8fd8ff; stroke: #0b1220; stroke-width: 0.6; pointer-events: none; }
+.graph-readout {
+  position: absolute;
+  left: 0;
+  bottom: calc(100% + 2px);
+  z-index: 20;
+  margin: 0;
+  padding: 0.15rem 0.45rem;
+  border-radius: 6px;
+  background: #14203a;
+  color: #eef4ff;
+  font-size: 0.72rem;
+  white-space: nowrap;
+  pointer-events: none;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+}
+html[data-theme="light"] .graph-readout { background: #fbf6ec; color: #1b1710; }

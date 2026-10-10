@@ -343,6 +343,9 @@ class RegionState:
         # (or rescue) pulled the projected next-round acceleration back under
         # the critical tier. Transient: never saved.
         self.just_pulled_back = False
+        # G-16: the feedback dampening in effect at the end of each round, parallel to
+        # temperature_history (older saves have none, which the hover readout says plainly).
+        self.dampening_history = []
 
     def base_rise(self):
         """The background rise for this region's current round."""
@@ -585,6 +588,7 @@ class RegionState:
 
         self.round_number += 1
         self.temperature_history.append(self.temperature)
+        self.dampening_history.append(round(self.feedback_dampening_fraction(), 3))
         self.acceleration_history.append(round(self.acceleration_factor(), 3))
         del self.acceleration_history[:-ACCEL_HISTORY_MAX]
 
@@ -1054,7 +1058,30 @@ MINI_GRAPH_WIDTH = 120
 MINI_GRAPH_HEIGHT = 40
 
 
-def mini_temp_graph_svg(history, name=None):
+def _crosshair_points(history, dampening, xs, ys):
+    """G-16: [x, y, label] for up to CROSSHAIR_MAX_POINTS evenly spread points (always the last), as
+    JSON the page's hover script reads. A point's label is its round, temperature and dampening."""
+    n = len(history)
+    stride = max(1, -(-n // CROSSHAIR_MAX_POINTS))
+    indexes = list(range(0, n, stride))
+    if indexes[-1] != n - 1:
+        indexes.append(n - 1)
+    offset = n - len(dampening) if dampening is not None else None
+    points = []
+    for i in indexes:
+        label = f"Round {i + 1}: {deg(history[i], plus=True)}"
+        if dampening is not None and offset is not None and 0 <= i - offset < len(dampening):
+            label += f", dampening {dampening[i - offset] * 100:.0f}%"
+        elif dampening is not None:
+            label += ", dampening not recorded"
+        points.append([round(xs[i], 1), round(ys[i], 1), label])
+    return json.dumps(points, ensure_ascii=False, separators=(",", ":"))
+
+
+CROSSHAIR_MAX_POINTS = 80
+
+
+def mini_temp_graph_svg(history, name=None, dampening=None):
     """A compact single-line temperature trend for one region's card —
     deliberately tiny and unlabeled beyond its axis-free shape, since the
     point is the divergence *between* regions' graphs, not reading any
@@ -1064,7 +1091,10 @@ def mini_temp_graph_svg(history, name=None):
     that value falls within the graph's current visible range, so the
     moment a region's curve crosses the melt threshold is legible on the
     mini-graph itself, not just inferable from the melt-status text next
-    to it."""
+    to it.
+
+    G-16: a named graph is also a hover and keyboard crosshair (see the page script): it carries
+    its points as `data-pts` and a hidden cross line and dot the script moves."""
     if len(history) < 2:
         return ""
     n = len(history)
@@ -1089,18 +1119,27 @@ def mini_temp_graph_svg(history, name=None):
     aria = ""
     key = ""
     marker = ""
+    cross = ""
     if name:
         summary = graph_summary_text(name, history)
-        aria = f' role="img" aria-label="{summary}"'
+        aria = (
+            f' role="img" aria-label="{summary} Focus the graph and use the left and right arrow keys '
+            f'to read each round." tabindex="0" '
+            f"data-pts='{_escape(_crosshair_points(history, dampening, xs, ys)).replace(chr(39), '&#39;')}'"
+        )
         key = GRAPH_REGION_KEYS.get(name, "")
         if key:
             key = f" graph-region-{key}"
             marker = _graph_end_marker(key[-1], xs[-1], ys[-1])
+        cross = (
+            f'<line x1="0" y1="0" x2="0" y2="{MINI_GRAPH_HEIGHT}" class="mini-cross" />'
+            f'<circle cx="0" cy="0" r="2.2" class="mini-dot" />'
+        )
     return (
         f'<svg viewBox="0 0 {MINI_GRAPH_WIDTH} {MINI_GRAPH_HEIGHT}" class="mini-temp-graph-svg{key}"{aria}>'
         f"{threshold_line}"
         f'<polyline points="{points}" class="mini-temp-line" />'
-        f"{marker}"
+        f"{marker}{cross}"
         f"</svg>"
     )
 
@@ -1250,7 +1289,7 @@ def render_secondary_region(prefix, r):
         )
     document.getElementById(f"{prefix}-funds-display").innerText = f"Funds: {r.funds:.0f}"
     document.getElementById(f"{prefix}-graph").innerHTML = mini_temp_graph_svg(
-        r.temperature_history, f"Region {prefix.upper()}"
+        r.temperature_history, f"Region {prefix.upper()}", r.dampening_history
     )
     document.getElementById(f"{prefix}-dampening-display").innerText = (
         f"Dampening: {r.feedback_dampening_fraction() * 100:.0f}%"
@@ -1290,7 +1329,9 @@ def render_worst_case_region():
     r = region_d
     document.getElementById("d-temperature-display").innerText = deg(r.temperature, plus=True)
     document.getElementById("d-funds-display").innerText = f"Funds: {r.funds:.0f}"
-    document.getElementById("d-graph").innerHTML = mini_temp_graph_svg(r.temperature_history, "Region D")
+    document.getElementById("d-graph").innerHTML = mini_temp_graph_svg(
+        r.temperature_history, "Region D", r.dampening_history
+    )
 
     status = _melt_status_label(r)
     melt_status_el = document.getElementById("d-melt-status-display")
@@ -4366,7 +4407,7 @@ FIELD_LABELS = {
     "tipping_events": "tipping events", "average_acceleration_factor": "average acceleration",
     "acceleration_samples": "acceleration samples", "rescue_used": "rescue used",
     "rescue_rounds_left": "rescue rounds left", "policy_stance": "policy stance",
-    "stabilized_rounds": "steady rounds", "restored_total": "restored warming",
+    "dampening_history": "dampening history", "stabilized_rounds": "steady rounds", "restored_total": "restored warming",
     "best_stable_streak": "best stable streak", "acceleration_history": "acceleration history",
     "just_started_melting": "melt flag", "just_invested_intervention": "investment flag",
     "just_delayed_milestone": "milestone flag", "milestone_delay_announced": "milestone note flag",
@@ -4391,6 +4432,7 @@ _REGION_RULES = {
     "restored_total": ("num", 0, 1000000),
     "best_stable_streak": ("int", 0, 100000),
     "acceleration_history": ("list", 0, 0),
+    "dampening_history": ("list", 0, 0),
     "just_started_melting": ("bool", 0, 0),
     "just_invested_intervention": ("bool", 0, 0),
     "just_delayed_milestone": ("bool", 0, 0),
@@ -4666,7 +4708,9 @@ def render():
     document.getElementById("temperature-bar").style.width = (
         f"{min(1.0, region.temperature / TEMPERATURE_METER_MAX) * 100:.0f}%"
     )
-    document.getElementById("graph").innerHTML = mini_temp_graph_svg(region.temperature_history, "Region A")
+    document.getElementById("graph").innerHTML = mini_temp_graph_svg(
+        region.temperature_history, "Region A", region.dampening_history
+    )
     document.getElementById("acceleration-sparkline").innerHTML = accel_sparkline_svg(region.acceleration_history)
     document.getElementById("ice-age-display").innerText = ice_age_text(region)
 
@@ -4905,6 +4949,9 @@ def _region_state_dict(r):
         data["best_stable_streak"] = r.best_stable_streak
     if r.acceleration_history:
         data["acceleration_history"] = list(r.acceleration_history)
+    # G-16: written only once a round has been played.
+    if r.dampening_history:
+        data["dampening_history"] = list(r.dampening_history)
     return data
 
 
@@ -5014,6 +5061,15 @@ def _apply_region_state(r, data):
     else:
         r.acceleration_history = []
     r.just_pulled_back = False
+    saved_damp = data.get("dampening_history")
+    if (
+        isinstance(saved_damp, list)
+        and len(saved_damp) <= len(r.temperature_history)
+        and all(_is_num(v) and 0 <= v <= 1 for v in saved_damp)
+    ):
+        r.dampening_history = [float(v) for v in saved_damp]
+    else:
+        r.dampening_history = []
     saved_stance = data.get("policy_stance")
     if isinstance(saved_stance, str) and saved_stance in POLICY_STANCES:
         r.policy_stance = saved_stance

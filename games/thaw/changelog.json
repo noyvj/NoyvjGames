@@ -1,6 +1,10 @@
 [
   {
     "date": "2026-10-11",
+    "entry": "New: hover (or touch) any region's graph to see a crosshair with the round, the exact temperature and the dampening you had at that point. It works from the keyboard too: tab to a graph and use the left and right arrow keys (Home and End jump to the ends), and a screen reader reads out each round."
+  },
+  {
+    "date": "2026-10-11",
     "entry": "Better save loading: if part of a save cannot be read (a number that is text, a region block that went missing and so on), the game now loads everything it can, keeps its own value for each unreadable field and shows a notice naming exactly which fields were replaced, instead of failing or loading nonsense. Nothing in the saved file itself is changed."
   },
   {
