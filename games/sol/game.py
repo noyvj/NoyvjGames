@@ -1348,6 +1348,11 @@ ACHIEVEMENT_CHECKS = {
     # Round-3 batch: both are lifetime records, so a prestige never un-earns them.
     "in_rhythm": lambda: best_click_streak >= IN_RHYTHM_STREAK,
     "chain_reactor": lambda: chains_found() >= len(CHAINS),
+    # Round-4 batch: all four are lifetime collections, so a prestige never un-earns them.
+    "codex_keeper": lambda: len(codex_found) >= len(CLUES),
+    "weather_watcher": lambda: len(anomalies_seen) >= len(ANOMALIES),
+    "charter_member": lambda: len(mission_stamps) >= CHARTER_MEMBER_STAMPS,
+    "great_works": lambda: megaprojects_all_ever,
 }
 
 # Progress readouts, only for achievements with a natural numeric scale-up —
@@ -1364,6 +1369,9 @@ ACHIEVEMENT_PROGRESS = {
     "full_system_terraformed": lambda: (_terraformed_planet_count(), len(PLANETS)),
     "in_rhythm": lambda: (min(best_click_streak, IN_RHYTHM_STREAK), IN_RHYTHM_STREAK),
     "chain_reactor": lambda: (chains_found(), len(CHAINS)),
+    "codex_keeper": lambda: (len(codex_found), len(CLUES)),
+    "weather_watcher": lambda: (len(anomalies_seen), len(ANOMALIES)),
+    "charter_member": lambda: (min(len(mission_stamps), CHARTER_MEMBER_STAMPS), CHARTER_MEMBER_STAMPS),
 }
 
 
@@ -3241,6 +3249,9 @@ def _build_overview():
     summary = _make_text("overview-summary", "")
     panel.appendChild(summary)
     _overview_refs["_summary"] = summary
+    panel.appendChild(_make_text(
+        "overview-card-note",
+        "Field notes: a few worlds end their note with an odd sentence. Somebody should try doing what it says."))
     # A-14: one progress ring per megaproject, so the whole system's effort shows at a glance.
     rings = document.createElement("div")
     rings.className = "overview-rings"
@@ -3266,6 +3277,8 @@ def _build_overview():
             PLANET_DISPLAY_NAMES.get(planet, planet) + (" (you are here)" if planet == current_planet else ""),
         )
         card.appendChild(title)
+        if planet in WORLD_NOTES:
+            card.appendChild(_make_text("overview-card-note", WORLD_NOTES[planet]))
         stats = _make_text("overview-card-stats", "")
         card.appendChild(stats)
 
@@ -4055,6 +4068,7 @@ def tick(*args):
     update_chains_display()
     update_anomaly_strip()
     _check_missions()
+    _check_codex()
     update_charter_display()
     _check_new_achievements_for_toast()
     if total_ticks % 10 == 0:
@@ -4100,6 +4114,7 @@ def _full_render():
     update_chains_display()
     _update_anomaly()
     update_anomaly_strip()
+    _terraform_done_seen.update(p for p in PLANETS if planet_state[p]["terraform_progress"] >= TERRAFORM_MAX)
     _refill_mission_slots()
     update_charter_display()
     render_trophy_shelf()
@@ -4196,6 +4211,7 @@ def serialize_state():
         **({"run_splits": dict(run_splits)} if run_splits else {}),
         **({"pb_splits": dict(pb_splits)} if pb_splits else {}),
         **({"anomalies_seen": sorted(anomalies_seen)} if anomalies_seen else {}),
+        **({"codex_found": list(codex_found)} if codex_found else {}),
         **({"megaproject_progress": {k: dict(v) for k, v in megaproject_progress.items()}} if megaproject_progress else {}),
         **({"megaprojects_built": list(megaprojects_built)} if megaprojects_built else {}),
         **({"megaprojects_all_ever": True} if megaprojects_all_ever else {}),
@@ -4346,6 +4362,7 @@ def _load_session_additions(data):
     if isinstance(saved_anomalies, list):
         anomalies_seen.update(a for a in saved_anomalies if isinstance(a, str) and a in ANOMALY_BY_ID)
     _load_megaprojects(data)
+    codex_found[:] = _clean_ids(data.get("codex_found"), CLUE_BY_ID)
     mission_stamps[:] = _clean_ids(data.get("mission_stamps"), MISSION_BY_ID)
     mission_slots[:] = [m_id for m_id in _clean_ids(data.get("mission_slots"), MISSION_BY_ID)
                         if m_id not in mission_stamps][:MISSION_SLOTS]
@@ -4785,6 +4802,7 @@ def update_anomaly_strip():
 # on to the next one. A stamp is a small permanent perk (+1% yield on its world,
 # +0.5% everywhere for the world-spanning ones) and shows on the Overview card.
 MISSION_SLOTS = 3
+CHARTER_MEMBER_STAMPS = 5
 STAMP_STAR = "\u2605"
 MISSION_REROLL_COST = 100  # of whichever resource pile is biggest right now
 _STAMP_BONUS_WORLD = 0.01
@@ -4942,6 +4960,10 @@ def on_charter_click(event):
     action = _target_attr(event, "data-action")
     if action == "reroll":
         reroll_mission(_target_attr(event, "data-mission"))
+    elif action == "hint":
+        clue_id = _target_attr(event, "data-clue")
+        if clue_id in CLUE_BY_ID:
+            _codex_hints.add(clue_id)
     elif action == "send":
         send_to_megaproject(_target_attr(event, "data-project"), _target_attr(event, "data-planet"))
     update_charter_display()
@@ -4949,7 +4971,7 @@ def on_charter_click(event):
 
 def _charter_structure_signature():
     return (tuple(mission_slots), tuple(mission_stamps), tuple(sorted(anomalies_seen)),
-            tuple(_overview_planets()), tuple(megaprojects_built),
+            tuple(_overview_planets()), tuple(megaprojects_built), tuple(codex_found), tuple(sorted(_codex_hints)),
             tuple((pid, tuple(sorted(v.items()))) for pid, v in sorted(megaproject_progress.items())))
 
 
@@ -4986,6 +5008,7 @@ def _build_charter():
         panel.appendChild(_make_text(
             "chains-intro", "More missions are posted as you unlock worlds and finish these."))
     _build_megaproject_section(panel)
+    _build_codex_section(panel)
     _charter_refs["_stamps"] = _make_text("chain-card-count", "")
     panel.appendChild(_make_text("stats-panel-heading", "Stamps"))
     panel.appendChild(_charter_refs["_stamps"])
@@ -5209,6 +5232,99 @@ def _refresh_megaproject_values():
             else:
                 text.innerText = f"{resource} from {name}: {math.floor(sent)} of {amount} sent (reach {name} first)"
                 button.disabled = True
+
+
+# --- A-19 / A-20: the hidden Codex -----------------------------------------------
+# Seven worlds end their Overview note with one odd sentence. Doing what it
+# hints at (nothing is timed, random or lost) records a silly Codex curio. The
+# Codex section of the Charter stays hidden, and so does its "found n/7" count,
+# until the first clue is found; after that every clue that is still open shows
+# its odd sentence and a "Show a hint" button that spells out what to do. All
+# seven are live conditions on state, except Venus-last, which watches worlds
+# finishing terraforming in order (a loaded save counts worlds already done as
+# earlier). Collector achievement: Codex Keeper.
+WORLD_NOTES = {
+    "Moon": "Low gravity, long shadows, patient dust. Thirteen is a number that keeps its promises.",
+    "Mars": "Red dust and an old riverbed. Seven kettles will always find Earth.",
+    "Venus": "A furnace under a cloud deck. Venus would like to be remembered as the last to finish.",
+    "AsteroidBelt": "Rubble that never became a planet. The Belt always counts one short, and likes it.",
+    "Pluto": "Cold, far and a little offended. When Pluto goes quiet, it will tell you it is fine.",
+    "JupiterMoons": "Floating cities over a storm. A choir with no Recycler hums the loudest.",
+    "SaturnMoons": "Ring dust and methane lakes. Round numbers are a kind of respect.",
+}
+CLUES = [
+    {"id": "bakers_dozen", "world": "Moon", "name": "The Baker's Dozen",
+     "curio": "Thirteen Auto-Miners on one world. Nobody asked, and it ran fine.",
+     "hint": "Own exactly 13 Auto-Miners on a single world.",
+     "check": lambda: any(planet_state[p]["generator_count"] == 13 for p in PLANETS)},
+    {"id": "seven_kettles", "world": "Mars", "name": "Seven Kettles",
+     "curio": "Seven routes lead into Earth. The kettle is always on.",
+     "hint": "Have at least 7 trade routes in total that all deliver to Earth.",
+     "check": lambda: sum(planet_state[p]["trade_routes"].get("Earth", 0) for p in PLANETS if p != "Earth") >= 7},
+    {"id": "last_on_purpose", "world": "Venus", "name": "Last, On Purpose",
+     "curio": "Venus finished after everyone else, and has not stopped mentioning it.",
+     "hint": "Terraform every other world to 100% first, then finish Venus.",
+     "check": lambda: False},  # decided by _check_codex() watching the order worlds finish
+    {"id": "off_by_one", "world": "AsteroidBelt", "name": "Off By One",
+     "curio": "One Recycler fewer than machines. The Belt counted twice.",
+     "hint": "On the Asteroid Belt, own at least 5 Auto-Miners and exactly one fewer Recycler.",
+     "check": lambda: planet_state["AsteroidBelt"]["generator_count"] >= 5
+     and planet_state["AsteroidBelt"]["recycler_count"] == planet_state["AsteroidBelt"]["generator_count"] - 1},
+    {"id": "pluto_is_fine", "world": "Pluto", "name": "Pluto Is Fine",
+     "curio": "Ecology at zero and the log says everything is fine. Restore it before it says that again.",
+     "hint": "Let Pluto's ecology fall to 0% (it recovers; production just pauses until you rebuild it).",
+     "check": lambda: planet_state["Pluto"]["generator_count"] >= 1 and planet_state["Pluto"]["ecology_health"] <= 0},
+    {"id": "quiet_choir", "world": "JupiterMoons", "name": "The Quiet Choir",
+     "curio": "Three Sky Cities and not one Recycler. They hum anyway.",
+     "hint": "Over Jupiter's Moons, build 3 Sky Cities while owning no Recyclers there.",
+     "check": lambda: planet_state["JupiterMoons"].get("sky_city_count", 0) >= 3
+     and planet_state["JupiterMoons"]["recycler_count"] == 0},
+    {"id": "round_number", "world": "SaturnMoons", "name": "Round Number",
+     "curio": "Ten thousand Methane in the bank, on purpose.",
+     "hint": "Hold 10,000 Methane on Saturn's Moons at once (the Governor spends banked stock, so turn its budget down first).",
+     "check": lambda: planet_state["SaturnMoons"]["resource_count"] >= 10000},
+]
+CLUE_BY_ID = {entry["id"]: entry for entry in CLUES}
+codex_found = []  # lifetime, in the order found
+_codex_hints = set()  # clues whose hint the player asked for this session
+_terraform_done_seen = set()  # worlds already at 100% as of the last tick (transient)
+
+
+def _check_codex():
+    global _terraform_done_seen
+    done_now = {p for p in PLANETS if planet_state[p]["terraform_progress"] >= TERRAFORM_MAX}
+    others = set(PLANETS) - {"Venus"}
+    venus_last = "Venus" in done_now and "Venus" not in _terraform_done_seen and others <= _terraform_done_seen
+    _terraform_done_seen = done_now
+    for clue in CLUES:
+        if clue["id"] in codex_found:
+            continue
+        if (venus_last if clue["id"] == "last_on_purpose" else clue["check"]()):
+            codex_found.append(clue["id"])
+            _display_toast(f"Codex entry found: {clue['name']}")
+
+
+def _build_codex_section(panel):
+    if not codex_found:
+        return  # the whole section, and its count, stay hidden until the first clue is found
+    panel.appendChild(_make_text("stats-panel-heading", f"Codex: {len(codex_found)} of {len(CLUES)} clues found"))
+    for clue in CLUES:
+        found = clue["id"] in codex_found
+        card = document.createElement("div")
+        card.className = "chain-card chain-card--found" if found else "chain-card"
+        if found:
+            card.appendChild(_make_text("chain-card-name", f"\U0001f4d6 {clue['name']}"))
+            card.appendChild(_make_text("chain-card-detail", clue["curio"]))
+        else:
+            card.appendChild(_make_text("chain-card-name", "Not found yet"))
+            note = WORLD_NOTES[clue["world"]]
+            card.appendChild(_make_text(
+                "chain-card-detail", f"{PLANET_DISPLAY_NAMES.get(clue['world'], clue['world'])} note: \u201c{note.split('. ')[-1]}\u201d"))
+            if clue["id"] in _codex_hints:
+                card.appendChild(_make_text("chain-card-count", "Hint: " + clue["hint"]))
+            else:
+                card.appendChild(_make_button("Show a hint", {"data-action": "hint", "data-clue": clue["id"]}, None))
+        panel.appendChild(card)
 
 
 # --- FY-53: "three goals at all times" (shared/goals-panel.js) ---------------

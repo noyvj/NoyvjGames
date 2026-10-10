@@ -2,6 +2,10 @@
   "changelog": [
     {
       "date": "2026-10-10",
+      "entry": "New: field notes and a hidden Codex. Each world in the Overview now has a short note, and seven of them end with one odd sentence. Do what it hints at and a silly Codex entry appears in the Charter (a hint is one button away once the Codex shows up). Four new collector achievements too: Codex Keeper, Weather Watcher, Charter Member and The Great Works."
+    },
+    {
+      "date": "2026-10-10",
       "entry": "New: the Charter. A Mission Board posts three optional objectives at a time (such as banking Iron or terraforming a world a particular way); finishing one stamps the Charter for good with a small permanent yield bonus on that world, shown on its Overview card, and you can swap a mission for the next one for 100 of your biggest resource pile. The Charter also holds four late-game Megaprojects (Orbital Mirror, Ring Habitat, Dyson Sail, Deep Core Tap) built from resources of several worlds at once, with a progress ring each on the Overview and a secret epilogue line for building all four."
     },
     {

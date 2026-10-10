@@ -129,6 +129,26 @@
       "id": "chain_reactor",
       "label": "Chain Reactor",
       "description": "Find every chain reaction: the short action sequences listed on the Chain Reactions page."
+    },
+    {
+      "id": "codex_keeper",
+      "label": "Codex Keeper",
+      "description": "Find all seven hidden Codex entries: the odd sentences at the end of the world notes in the Overview."
+    },
+    {
+      "id": "weather_watcher",
+      "label": "Weather Watcher",
+      "description": "Live through all six System Anomalies: Comet Pass, Solar Flare, Meteor Shower, Magnetic Storm, Clear Skies and Dust Cloud."
+    },
+    {
+      "id": "charter_member",
+      "label": "Charter Member",
+      "description": "Earn 5 Charter stamps by finishing missions on the Mission Board."
+    },
+    {
+      "id": "great_works",
+      "label": "The Great Works",
+      "description": "Build all four Megaprojects in a single run: Orbital Mirror, Ring Habitat, Dyson Sail and Deep Core Tap."
     }
   ]
 }
