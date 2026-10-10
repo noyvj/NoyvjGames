@@ -448,6 +448,23 @@
     if (view.note) { showToast(view.note); announce(view.note); }
   }
 
+  // ---- sound (shared/sfx.js: generated in code, off unless the player turns it on, never the only signal) ----
+  // Soft gate clicks as wires are made and broken, a gentle confirm when the circuit first matches and a bell for a new chip.
+  function soundFor(request, previous) {
+    if (!window.NoyvjSfx || !previous || !view || previous.level.id !== view.level.id) return;
+    var sfx = window.NoyvjSfx;
+    var passedNow = Boolean(view.table && view.table.ok) && !(previous.table && previous.table.ok);
+    if (passedNow) {
+      sfx.play("confirm");
+      var was = previous.level.record || {};
+      var now = view.level.record || {};
+      if (view.level.unlock && now.solved && !was.solved) sfx.play("bell", { delay: 0.3 });
+      return;
+    }
+    if (view.board.wires > previous.board.wires) sfx.play("click_high");
+    else if (view.board.wires < previous.board.wires) sfx.play("click_low");
+  }
+
   function persist() {
     try {
       var proxy = engine.getState();
@@ -460,8 +477,10 @@
     var result = JSON.parse(engine.handle(JSON.stringify(request)));
     if (result.error) { $("engine-status").textContent = "Something went wrong: " + result.error; return null; }
     $("engine-status").textContent = "";
+    var previous = view;
     view = result;
     render();
+    soundFor(request, previous);
     persist();
     return result;
   }
