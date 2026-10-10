@@ -1,6 +1,6 @@
 # Site-Wide TODO (round 3)
 
-**Progress: 715/1257 items checked off (56.9%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land.
+**Progress: 716/1257 items checked off (57.0%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land.
 
 Built from your answers in `planning/IMPROVEMENT-IDEAS-ROUND-3.md` (Part 4). Every Round 3 section is now answered (2026-10-07 below the Warframe section); earlier this list held only: **GB** (Canopy gamified), **M** (new games), **N** (seasonal events), **O** (Trade Empire and Continuum replayability), **P/Q/S/T** (Signal, Undersleep, Overclock, Last Line open questions), **X** (Warframe tracker) and **R** (returning later). GC-GI, A-L, U, Z and Y are unanswered and wait for you. The previous list is archived at `planning/todo-archive/260914_260927.md`; anything from it that was moved here is marked "moved" there.
 
@@ -1297,7 +1297,7 @@ Dropped or parked: audio items R1-R8 (revisit round 6), R24 and R26 (Thaw/Drift 
 - [ ] R-31: Aftermath mutual-aid network positive event (needs W-6 scoping).
 - [ ] R-33: Continuum peer-city ghost overlay (needs W-6 scoping).
 - [x] R-39: Write the multiplayer scoping document (= W-6).
-- [ ] R-clean: remove the stale `planning/LATER.md` entries for R16, R17, R35, R36 and the items now built.
+- [x] R-clean: remove the stale `planning/LATER.md` entries for R16, R17, R35, R36 and the items now built. (Checked 2026-10-11: LATER.md holds no R16, R17, R35 or R36 entries any more, so nothing was left to remove.)
 
 ---
 
