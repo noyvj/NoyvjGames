@@ -1,0 +1,42 @@
+{
+  "windows": [
+    ["cases-panel", "cases-toggle-button", "Cases"],
+    ["guide-panel", "guide-toggle-button", "Field guide"],
+    ["achievements-panel", "achievements-toggle-button", "Achievements"],
+    ["practice-panel", "practice-toggle-button", "Practice houses"],
+    ["changelog-panel", "changelog-toggle-button", "What's New"],
+    ["settings-panel", "settings-toggle-button", "Settings"],
+    ["info-page-panel", "info-page-toggle-button", "About Evidence Hunt"]
+  ],
+  "toolbar": {
+    "icons": [
+      ["cases-toggle-button", "📋"],
+      ["guide-toggle-button", "📖"],
+      ["achievements-toggle-button", "🏆"],
+      ["practice-toggle-button", "🔑"],
+      ["settings-toggle-button", "⚙️"]
+    ],
+    "menu": [
+      {"heading": "Help", "ids": ["tutorial-restart-button", "info-page-toggle-button", "credits-link"]},
+      {"heading": "Records", "ids": ["changelog-toggle-button"]}
+    ]
+  },
+  "composites": [],
+  "adopt": [],
+  "zones": {
+    "topbar": [".hub-back-link", "h1", ".game-toolbar"],
+    "stagebar": ["#stats", "#goals"],
+    "stage": ["#case-panel"],
+    "side": ["#notebook-panel", "#sheet-panel", "#log-panel", "#tally"],
+    "hidden": [".tagline", "#side-col"]
+  },
+  "readouts": [],
+  "side_label": "Notebook, sheet and log",
+  "hints": [
+    ["1 to 6", "Pack or unpack equipment"],
+    ["Tab", "Move between buttons"],
+    ["Esc", "Menu / close window"],
+    ["?", "All shortcuts"]
+  ],
+  "notify": null
+}

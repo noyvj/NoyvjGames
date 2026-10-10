@@ -15,8 +15,10 @@ Updated after every milestone. Read `planning/evidence-hunt-plan.md`, `CLAUDE.md
 
 - M6 Achievements: achievements.json, panel, toast, manifest and reachability tests (all 14 earned from a clean save); 109 tests.
 
+- M7 Desktop boot: pc-config.json, pc.css, pc.js, generated pc.html, desktop tests; `generate-pc-pages.py --check` and `shared/tests -k evidence` (13) pass; 115 tests; Desktop checked live at 1440x900, Classic at 360x740 (keepsake look, two-presence naming, no horizontal scroll).
+
 ## Next
-- M7 Desktop boot: pc-config.json, pc.css, pc.js (Desktop tutorial steps), generated pc.html (importlib on scripts/generate-pc-pages.py, `build("evidence-hunt", cfg)`, written by hand for this game only), desktop tests, `generate-pc-pages.py --check` and `shared/tests -k evidence`, docs.
+- Nothing in this folder. Hub registration is the hub session's job (title card, sw.js, offline-manifest, game-*.json, favicon copy, share cards, perf budget, root CLAUDE.md row). The plan's last section lists questions for the owner.
 
 ## Open problems / notes
 - Local Python is 3.9: engine code avoids 3.10+ syntax.

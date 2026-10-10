@@ -1,0 +1,27 @@
+/* Evidence Hunt, Desktop boot (pc.html only). Everything is scoped to the pc layout, so the Classic page is untouched.
+   The case (house plan, bag, room, naming, result and hints) is the stage; the notebook, the sheet and the log are a side column; the
+   stats strip and the three goals sit above the stage. The frame, windows and Menu come from shared/pc-shell.css. */
+
+html[data-layout="pc"] #game { padding-bottom: 0.4rem; max-width: none; }
+#pc-topbar { grid-template-columns: auto minmax(0, 1fr); grid-template-areas: "title tools"; padding-right: 9rem; }
+#pc-topbar > .game-toolbar { justify-content: flex-end; }
+#pc-topbar > h1 { font-size: 1.4rem; letter-spacing: 0.12em; }
+
+/* Across the top of the stage: the four numbers, then the three goals beside them. */
+#pc-stagebar { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 0.6rem; align-items: start; }
+#pc-stagebar #stats { margin: 0; grid-template-columns: repeat(4, minmax(0, 1fr)); }
+#pc-stagebar #goals { margin: 0; }
+html[data-layout="pc"] .stat { display: flex; flex-direction: column; }
+
+/* The stage: the case panel fills the space and scrolls inside itself. */
+#pc-stage > #case-panel { flex: 1 1 0; min-height: 0; overflow-y: auto; margin: 0; }
+html[data-layout="pc"] .scene { height: 4.2rem; }
+html[data-layout="pc"] .gear-row { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+
+#pc-body.pc-has-side { grid-template-columns: minmax(0, 1fr) clamp(20rem, 30vw, 28rem); }
+#pc-side { min-width: 0; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; gap: 0.6rem; padding-right: 0.2rem; }
+#pc-side > .panel { margin: 0; }
+#pc-side .log { max-height: 12rem; }
+
+html[data-layout="pc"] #story-toggle { top: 0.6rem !important; left: auto !important; right: 12rem !important; }
+#pc-hintbar { flex: 0 0 auto; }

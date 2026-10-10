@@ -48,7 +48,7 @@ Fiction notice on the About page: the spirits and rules are made up and the game
 | 4 | Sandbox and finale | seeded codes, generator, last case. First complete game | Done |
 | 5 | Standard kit | opening screen, tutorial, About with the fiction notice, What's New, keyboard help, confirm dialogs, light theme, accessibility | Done |
 | 6 | Achievements | 14 achievements, panel, toast, manifest, reachability test | Done |
-| 7 | Desktop boot | `pc-config.json`, `pc.css`, `pc.js`, generated `pc.html`, docs | Planned |
+| 7 | Desktop boot | `pc-config.json`, `pc.css`, `pc.js`, generated `pc.html`, docs | Done |
 
 ## 9. Open questions for the owner (defaults used meanwhile)
 1. Restless rooms mark themselves the moment you step in. Prefer finding them only by taking readings (harder)? Default: marked, with a later optional hard setting.

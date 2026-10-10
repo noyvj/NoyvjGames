@@ -34,7 +34,7 @@ See `planning/evidence-hunt-plan.md` section 8 (the table is copied below and ke
 | 4 | Sandbox and finale | seeded codes, generator. First complete game | Done |
 | 5 | Standard kit | opening screen, tutorial, About with the fiction notice, What's New, keyboard help, confirm dialogs, light theme, accessibility | Done |
 | 6 | Achievements | 14 achievements, panel, toast, manifest, reachability test | Done |
-| 7 | Desktop boot | `pc-config.json`, `pc.css`, `pc.js`, generated `pc.html`, docs | Planned |
+| 7 | Desktop boot | `pc-config.json`, `pc.css`, `pc.js`, generated `pc.html`, docs | Done |
 
 ## Working conventions
 - Commit only this folder and the plan with a pathspec commit, then tag `evidence-hunt-milestone-0N`. Hub registration is a separate later job.
@@ -66,3 +66,8 @@ See `planning/evidence-hunt-plan.md` section 8 (the table is copied below and ke
 
 ## Milestone 6 notes
 - `achievements.json` (the hub manifest) is generated from `achievements.py` (a test keeps them equal). The panel shows a number on every achievement (earned, or have/need), a toast announces a new one (also to screen readers), and `achievements_earned` is written to the save and never read back. `tests/test_achievements.py` earns all 14 from a clean save: 40 Clean cases (five with the sheet covered), three practice houses and a thorough replay of every case so every spirit page completes and every keepsake is returned.
+
+## Milestone 7 notes and pre-release checklist
+- Desktop boot: the case panel (house plan, bag, room, naming, result, hints) is the stage; the notebook, the sheet, the log and the tally are the side column; the stats strip and the three goals sit above the stage (`#side-col`, the Classic wrapper, is moved to the hidden zone). `pc.html` is generated for this game only (`importlib` on `scripts/generate-pc-pages.py`, `build("evidence-hunt", cfg)` written to `pc.html`); `python3 scripts/generate-pc-pages.py --check` and `python3 -m pytest -q shared/tests -k evidence` pass. The Classic two-column grid in `style.css` is scoped to `html:not([data-layout="pc"])`.
+- Hub registration (title card, `sw.js` precache, `offline-manifest.json`, `game-*.json`, `icons/favicon-evidence-hunt.svg` copy to the root icons folder, share cards, root CLAUDE.md row, dev logs) is not part of this folder. The owner's questions are the last section of `planning/evidence-hunt-plan.md`.
+- Manual checks worth a human pass: a screen reader walk through the floor plan and the notebook table, real-device touch on the six equipment tiles, the Desktop tutorial steps, and the opening-screen "Switch to Desktop layout" button on a wide window. Co-op by invite code is parked.
