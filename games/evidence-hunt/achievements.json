@@ -1,0 +1,74 @@
+{
+  "achievements": [
+    {
+      "id": "first_case",
+      "label": "First Case",
+      "description": "Solve your first case."
+    },
+    {
+      "id": "ten_cases",
+      "label": "Ten Cases",
+      "description": "Solve 10 cases."
+    },
+    {
+      "id": "chapter_closed",
+      "label": "Chapter Closed",
+      "description": "Solve every case of one chapter."
+    },
+    {
+      "id": "three_chapters",
+      "label": "Three Chapters",
+      "description": "Solve every case of 3 chapters."
+    },
+    {
+      "id": "last_house",
+      "label": "The Last House",
+      "description": "Solve every case."
+    },
+    {
+      "id": "clean_work",
+      "label": "Clean Work",
+      "description": "Earn 5 Clean seals."
+    },
+    {
+      "id": "spotless_book",
+      "label": "Spotless Book",
+      "description": "Earn a Clean seal on every case."
+    },
+    {
+      "id": "careful_notes",
+      "label": "Careful Notes",
+      "description": "Take 60 readings."
+    },
+    {
+      "id": "every_spirit",
+      "label": "Every Spirit",
+      "description": "Complete the guide page of every kind of spirit."
+    },
+    {
+      "id": "two_at_once",
+      "label": "Two at Once",
+      "description": "Solve 4 cases with two presences."
+    },
+    {
+      "id": "keepsakes_home",
+      "label": "Keepsakes Home",
+      "description": "Return all 8 keepsakes."
+    },
+    {
+      "id": "fresh_eyes",
+      "label": "Fresh Eyes",
+      "description": "Solve 3 practice cases from codes."
+    },
+    {
+      "id": "from_memory",
+      "label": "From Memory",
+      "description": "Solve 5 different cases with the sheet covered."
+    },
+    {
+      "id": "whole_guide",
+      "label": "The Whole Guide",
+      "description": "File every page of the field guide."
+    }
+  ]
+}

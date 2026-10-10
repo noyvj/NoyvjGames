@@ -165,3 +165,9 @@ def test_display_settings_are_per_device_and_not_in_the_save():
     import game
     game.game.__init__()
     assert not re.search(r"scale|motion|contrast|theme|narrow", json.dumps(game.get_state()), flags=re.I)
+
+
+def test_the_achievements_panel_and_toast_exist_and_announce_new_ones():
+    assert 'id="achievements-panel"' in HTML and 'id="achievements-toggle-button"' in HTML and 'id="achievements-list"' in HTML
+    assert "Achievement unlocked: " in APP and "announce(" in APP and 'el("span", "tick", x.earned ? "Earned" : x.have + "/" + x.need)' in APP
+    assert ".ach-list li.earned .tick { border-style: double;" in CSS

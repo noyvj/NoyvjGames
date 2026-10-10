@@ -243,3 +243,11 @@ html[data-theme="light"] ul.goals-list, html[data-theme="light"] ul.guide-list {
 .code-row { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; margin: 0.5rem 0; }
 .code-row input { font: inherit; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text); background: var(--surface); border: 2px solid var(--edge); border-radius: 8px; padding: 0.35rem 0.6rem; width: 11rem; }
 .case-code strong { font-family: ui-monospace, monospace; letter-spacing: 0.08em; user-select: all; }
+
+/* Achievements. */
+.ach-list { list-style: none; margin: 0.4rem 0; padding: 0; display: grid; gap: 0.35rem; }
+.ach-list li { border: 1px solid var(--line); border-radius: 10px; padding: 0.35rem 0.6rem; background: var(--surface); }
+.ach-list li.earned { border-color: var(--ok); border-width: 2px; }
+.ach-list .tick { display: inline-block; min-width: 4rem; text-align: center; font-weight: 700; font-size: 0.78rem; border: 1px solid var(--edge); border-radius: 999px; padding: 0 0.4rem; font-variant-numeric: tabular-nums; }
+.ach-list li.earned .tick { border-style: double; border-width: 3px; }
+html[data-theme="light"] ul.ach-list { list-style: none; padding-left: 0; margin-left: 0; }

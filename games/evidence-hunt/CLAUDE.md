@@ -33,7 +33,7 @@ See `planning/evidence-hunt-plan.md` section 8 (the table is copied below and ke
 | 3 | Guide and hints | hint ladder, three-goals strip, field guide, keepsake return | Done |
 | 4 | Sandbox and finale | seeded codes, generator. First complete game | Done |
 | 5 | Standard kit | opening screen, tutorial, About with the fiction notice, What's New, keyboard help, confirm dialogs, light theme, accessibility | Done |
-| 6 | Achievements | 14 achievements, panel, toast, manifest, reachability test | Planned |
+| 6 | Achievements | 14 achievements, panel, toast, manifest, reachability test | Done |
 | 7 | Desktop boot | `pc-config.json`, `pc.css`, `pc.js`, generated `pc.html`, docs | Planned |
 
 ## Working conventions
@@ -63,3 +63,6 @@ See `planning/evidence-hunt-plan.md` section 8 (the table is copied below and ke
 ## Milestone 5 notes
 - Standard kit: the shared opening screen (Continue / New Game / Saves), a 13-step tutorial (`TUTORIAL_STEPS` in app.js, reopened from the Tutorial button; `window.evidenceHuntTutorialSteps` lets the Desktop boot swap in its own steps), About with the fiction notice and the pledge, What's New + the shared banner, keyboard help (1 to 6 pack or unpack), confirm dialogs for Restore, naming a spirit (with "don't ask again") and the whole-book reset, the story toggle on the story lines, a light theme with every variable set twice (a test compares the two lists).
 - `tests/test_accessibility.py` computes contrast from the CSS variables in both themes and checks the shape and word cues (restless rooms with a thick border and the word, packed equipment with a thick border and "In the bag", readings by border style, struck-through ruled-out suspects, emblems with names).
+
+## Milestone 6 notes
+- `achievements.json` (the hub manifest) is generated from `achievements.py` (a test keeps them equal). The panel shows a number on every achievement (earned, or have/need), a toast announces a new one (also to screen readers), and `achievements_earned` is written to the save and never read back. `tests/test_achievements.py` earns all 14 from a clean save: 40 Clean cases (five with the sheet covered), three practice houses and a thorough replay of every case so every spirit page completes and every keepsake is returned.

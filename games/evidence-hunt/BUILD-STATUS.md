@@ -13,8 +13,10 @@ Updated after every milestone. Read `planning/evidence-hunt-plan.md`, `CLAUDE.md
 
 - M5 Standard kit: 13-step tutorial, About checks, keyboard help test, light-theme variable parity test, display settings test; 103 tests; tutorial and light theme checked live.
 
+- M6 Achievements: achievements.json, panel, toast, manifest and reachability tests (all 14 earned from a clean save); 109 tests.
+
 ## Next
-- M6 Achievements: panel (`#achievements-panel`, button), toast on a new achievement, `achievements.json` manifest generated from `achievements.py` plus a test that keeps them equal, whole-game test earns all 14 (needs 3 practice solves and 5 covered solves).
+- M7 Desktop boot: pc-config.json, pc.css, pc.js (Desktop tutorial steps), generated pc.html (importlib on scripts/generate-pc-pages.py, `build("evidence-hunt", cfg)`, written by hand for this game only), desktop tests, `generate-pc-pages.py --check` and `shared/tests -k evidence`, docs.
 
 ## Open problems / notes
 - Local Python is 3.9: engine code avoids 3.10+ syntax.

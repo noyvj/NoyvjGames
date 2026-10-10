@@ -446,6 +446,36 @@
       body.appendChild(d);
     });
   }
+  var knownEarned = null;
+  function renderAchievements() {
+    var list = $("achievements-list");
+    var earnedNow = [];
+    var sig = view.achievements.map(function (x) { return x.id + x.have; }).join(",");
+    if (list.dataset.sig !== sig) {
+      list.dataset.sig = sig;
+      list.textContent = "";
+      view.achievements.forEach(function (x) {
+        var li = el("li", x.earned ? "earned" : "");
+        li.setAttribute("data-achievement-id", x.id);
+        li.appendChild(el("span", "tick", x.earned ? "Earned" : x.have + "/" + x.need));
+        var name = el("strong", null, " " + x.label + " ");
+        name.setAttribute("data-achievement-label", "");
+        li.appendChild(name);
+        li.appendChild(el("span", null, x.description));
+        list.appendChild(li);
+      });
+    }
+    view.achievements.forEach(function (x) { if (x.earned) earnedNow.push(x.id); });
+    $("achievements-toggle-button").textContent = "Achievements (" + earnedNow.length + "/" + view.achievements.length + ")";
+    if (knownEarned !== null) {
+      earnedNow.filter(function (id) { return knownEarned.indexOf(id) === -1; }).forEach(function (id) {
+        var x = view.achievements.filter(function (y) { return y.id === id; })[0];
+        showToast("Achievement unlocked: " + x.label + ".");
+        announce("Achievement unlocked: " + x.label + ".");
+      });
+    }
+    knownEarned = earnedNow;
+  }
   function renderPractice() {
     var levels = $("practice-levels");
     if (!levels.children.length) {
@@ -539,6 +569,7 @@
     renderGuide();
     renderCover();
     renderPractice();
+    renderAchievements();
   }
 
   // ---- talking to the engine --------------------------------------------------------------------------------
@@ -582,6 +613,7 @@
   function wire() {
     $("toast").addEventListener("click", function () { showToast(""); });
     wirePanelToggle("cases-toggle-button", "cases-panel");
+    wirePanelToggle("achievements-toggle-button", "achievements-panel");
     wirePanelToggle("practice-toggle-button", "practice-panel");
     wirePanelToggle("guide-toggle-button", "guide-panel");
     wirePanelToggle("changelog-toggle-button", "changelog-panel");
