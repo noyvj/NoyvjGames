@@ -165,6 +165,7 @@
     ["past-runs-toggle-button", "past-runs-panel"],
     ["codex-toggle-button", "codex-panel"],
     ["stats-toggle-button", "stats-panel"],
+    ["chronicle-toggle-button", "chronicle-panel"],
     ["changelog-toggle-button", "changelog-panel"],
   ];
 

@@ -1,6 +1,14 @@
 [
   {
     "date": "2026-10-11",
+    "entry": "New: the Settlement Chronicle (a Chronicle button, or Menu > Records on the Desktop layout). A scrollable timeline across all your runs, built from what you have already played so old saves have one at once: the first time you weathered each kind of event, the worst disaster so far, each new best score, your first Flawless Defense, and, as you go, the skills you adopt, points you move, memories your settlement forms, curriculum lessons you finish and any Second Founding. Copy the chronicle as plain text to keep or share."
+  },
+  {
+    "date": "2026-10-11",
+    "entry": "Phones: the bar pinned to the bottom of the screen now also repeats your numbers on its first line ('Resources 200 · Resilience 0 · Growth 0') next to Face Next Event, and the controls that were smaller than a fingertip (the text-size buttons, Pin buttons, schedule chips, achievement nodes and a few links) were enlarged to at least 44 pixels or given a larger invisible tap area."
+  },
+  {
+    "date": "2026-10-11",
     "entry": "New: your achievements as a small tree under the toolbar (in the stage bar on the Desktop layout). Six branches (Getting started, Keep going, Skill tree, Playstyles, Hard hits, Codex) each say how many you have ('Getting started 3/4'), and every achievement is a node: earned ones are filled gold with a tick, unearned ones are hollow and dashed, so it never relies on colour alone. Hover or focus a node to read its name and what it asks for."
   },
   {

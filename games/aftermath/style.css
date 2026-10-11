@@ -2204,6 +2204,14 @@ html[data-effects="false"] .schedule-strip .schedule-chip--next { animation: non
   .skill-pin-button, .step-button, .preset-apply-button { min-width: 44px; }
   .real-world-source, .achievements-hub-link, #info-page-sources a { display: inline-flex; align-items: center; min-height: 44px; }
 }
+/* E-7: the Settlement Chronicle, a scrollable timeline. */
+.chronicle-heading { margin: 0 0 0.3rem; font-size: 1.1rem; }
+.chronicle-list { list-style: none; margin: 0.4rem 0; padding: 0 0 0 0.8rem; max-height: 22rem; overflow-y: auto; border-left: 2px solid rgba(212, 175, 55, 0.6); }
+.chronicle-entry { position: relative; display: flex; flex-wrap: wrap; gap: 0.1rem 0.6rem; padding: 0.2rem 0; font-size: 0.88rem; }
+.chronicle-entry::before { content: ""; position: absolute; left: -1.05rem; top: 0.75rem; width: 0.5rem; height: 0.5rem; border-radius: 50%; background: #d4af37; }
+.chronicle-entry-label { min-width: 7.5rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+.chronicle-entry-text { flex: 1 1 14rem; }
+.chronicle-empty { font-style: italic; opacity: 0.85; }
 /* BATCH3-END */
 
 /* ============================================================
@@ -2250,3 +2258,5 @@ html[data-theme="light"] .feedback-buttons .secondary.selected { color: #ffffff;
 html[data-theme="light"] .achievement-node { border-color: #5a6590; }
 html[data-theme="light"] .achievement-node--earned { border-color: #8a6a00; }
 html[data-theme="light"] .achievement-strip, html[data-theme="light"] .achievement-branch::before { border-color: #8a6a00; }
+html[data-theme="light"] .chronicle-list { border-left-color: #8a6a00; }
+html[data-theme="light"] .chronicle-entry::before { background: #8a6a00; }

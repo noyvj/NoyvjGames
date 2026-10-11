@@ -234,6 +234,13 @@ ELEMENT_IDS = [
     "achievement-strip-detail",
     # E-26: the resources line in the docked bar.
     "dock-resources",
+    # E-7: the Settlement Chronicle.
+    "chronicle-toggle-button",
+    "chronicle-panel",
+    "chronicle-list",
+    "chronicle-copy-button",
+    "chronicle-copy-status",
+    "chronicle-copy-area",
 ]
 for _skill in SKILL_IDS:
     ELEMENT_IDS += [

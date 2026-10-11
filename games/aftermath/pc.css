@@ -165,3 +165,6 @@ html[data-theme="light"] #pc-hintbar { opacity: 1; color: #2a3350; background: r
 #pc-stagebar > #achievement-tree { flex: 1 1 100%; margin: 0; }
 #pc-stagebar .achievement-strip { display: flex; flex-wrap: wrap; gap: 0.2rem 1.1rem; }
 #pc-stagebar .achievement-branch-name { min-width: 0; }
+
+/* E-7: the chronicle's own heading repeats the window title on the Desktop layout. */
+html[data-layout="pc"] .chronicle-heading { display: none; }

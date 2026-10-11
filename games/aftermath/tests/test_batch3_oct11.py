@@ -459,3 +459,145 @@ def test_a_cached_page_without_the_dock_line_still_renders(game_env):
     real = m._el
     m._el = lambda element_id: None if element_id == "dock-resources" else real(element_id)
     m.render_dock_resources()
+
+
+# ------------------------------------------------------------------------------------------- E-7
+def _entry(number, types_damage, score=100, **extra):
+    return {
+        "run_number": number, "score": score, "resilience_capacity": 0, "growth_capacity": 0, "damage_taken": 1.0, "knowledge_earned": 1,
+        "event_log": [{"type": t, "damage": d, "severity": 1.0} for t, d in types_damage], **extra,
+    }
+
+
+def test_the_chronicle_is_empty_before_any_run_and_says_so(game_env):
+    m, e = game_env.module, game_env.elements
+    assert m.chronicle_entries() == []
+    assert e["chronicle-toggle-button"].innerText == "\U0001f4d6 Chronicle (0)"
+    e["chronicle-toggle-button"].dispatch("click", None)
+    assert e["chronicle-panel"].hidden is False and "Nothing written yet" in e["chronicle-list"].children[0].innerText
+    assert e["chronicle-toggle-button"].innerText == "Hide Chronicle"
+    e["chronicle-toggle-button"].dispatch("click", None)
+    assert e["chronicle-panel"].hidden is True
+
+
+def test_old_history_already_has_a_chronicle_worked_out_from_it(game_env):
+    m = game_env.module
+    m.run_log_history[:] = [
+        _entry(1, [("flood", 40.0), ("storm", 50.0)], score=90),
+        _entry(2, [("flood", 36.0), ("heatwave", 20.0)], score=120),   # a record, no worse disaster
+        _entry(3, [("storm", 62.0)], score=100),                         # worst disaster yet, not a record
+        _entry(4, [("flood", 5.0)], score=200),                          # flawless (5 <= 15% of 40), a record
+    ]
+    lines = m.chronicle_derived()
+    text = [(n, t) for n, _k, t in lines]
+    assert (1, "The first trial is over: score 90.") in text
+    assert (1, "First Flood weathered: 40 damage.") in text and (1, "First Storm weathered: 50 damage.") in text
+    assert (2, "First Heatwave weathered: 20 damage.") in text
+    assert (2, "New best score: 120.") in text and (4, "New best score: 200.") in text
+    assert (3, "Worst disaster yet: Storm, 62 damage.") in text
+    assert not any("Worst disaster yet" in t for n, t in text if n in (1, 2, 4))  # the first run only sets the baseline
+    assert (4, "First Flawless Defense: Flood held to 5 damage.") in text
+    assert [t for n, t in text if "best score" in t and n == 1] == []
+    assert sum(1 for _n, t in text if t.startswith("First Flood")) == 1  # each event type once
+    assert [n for n, _k, _t in lines] == sorted(n for n, _k, _t in lines)
+
+
+def test_runs_helped_by_neighbour_aid_set_no_best_score_line_and_damaged_entries_are_skipped(game_env):
+    m = game_env.module
+    m.run_log_history[:] = [
+        _entry(1, [("flood", 40.0)], score=50),
+        _entry(2, [("flood", 40.0)], score=500, neighbour_aid=20),
+        "junk", None, {"run_number": "x"}, {"run_number": 0, "event_log": []}, {"run_number": True},
+        _entry(3, [("nonsense", 9.0), ("flood", "NaN")], score=60),
+    ]
+    text = [t for _n, _k, t in m.chronicle_derived()]
+    assert not any("New best score: 500" in t for t in text)
+    assert "New best score: 60." in text
+    assert not any("nonsense" in t.lower() for t in text)
+
+
+def test_skills_moves_and_a_second_founding_are_stored_and_sort_after_the_run_they_followed(game_env):
+    m = game_env.module
+    m.run_log_history[:] = [_entry(1, [("flood", 40.0)]), _entry(2, [("flood", 30.0)], score=130)]
+    m.highest_awarded_run = 1
+    m.skill_tree.knowledge_points = 50
+    game_env.unlock_skill("reinforced_infrastructure")
+    m.highest_awarded_run = 2
+    m.chronicle_note("move", "Moved a point from A to B.")
+    labels = [(e["label"], e["text"]) for e in m.chronicle_entries()]
+    assert ("After run 1", "Adopted Reinforced Infrastructure (3 knowledge).") in labels
+    assert ("After run 2", "Moved a point from A to B.") in labels
+    order = [text for _l, text in labels]
+    assert order.index("Adopted Reinforced Infrastructure (3 knowledge).") > order.index("First Flood weathered: 40 damage.")
+    assert order.index("New best score: 130.") < order.index("Moved a point from A to B.")
+    assert [m.meta["chronicle"][0]["kind"], m.meta["chronicle"][0]["after"]] == ["skill", 1]
+    m.highest_awarded_run = 0
+    m.chronicle_note("skill", "Early.")
+    assert m.chronicle_entries()[0]["label"] == "Before the first run"
+
+
+def test_a_memory_that_forms_and_a_lesson_finished_at_payout_are_written_once_per_paid_out_run(game_env):
+    m = game_env.module
+    m.skill_tree.unlocked = set()
+    m.run.resources = 0.0
+    m.run.resilience_capacity = 0
+    for _ in range(len(m.run.schedule)):
+        game_env.resolve_event()
+    kinds = [item["kind"] for item in m.meta["chronicle"]]
+    assert "memory" in kinds or "lesson" in kinds
+    count = len(m.meta["chronicle"])
+    state = m.get_state()
+    for _ in range(2):  # replaying a stale save of the same run number pays out nothing a second time
+        m.load_state(dict(state, event_index=len(state["event_log"]) - 1, event_log=state["event_log"][:-1]))
+        game_env.resolve_event()
+    assert len(m.meta["chronicle"]) == count
+    assert all(item["after"] == 1 for item in m.meta["chronicle"] if item["kind"] in ("memory", "lesson"))
+
+
+def test_stored_lines_are_validated_on_load_and_old_saves_load_unchanged(game_env):
+    m = game_env.module
+    assert m._sanitize_meta({})["chronicle"] == []
+    assert m._sanitize_meta("garbage") == m._default_meta() and m._default_meta()["chronicle"] == []
+    good = {"after": 3, "kind": "skill", "text": "  Adopted   it. "}
+    bad = [None, 5, "x", {"after": -1, "kind": "skill", "text": "a"}, {"after": 2, "kind": "bogus", "text": "a"}, {"after": True, "kind": "skill", "text": "a"},
+           {"after": 2, "kind": "skill", "text": ""}, {"after": 2, "kind": "skill", "text": 7}, {"after": 10 ** 9, "kind": "skill", "text": "a"}, {"kind": "skill", "text": "a"}]
+    cleaned = m._sanitize_chronicle([good] + bad)
+    assert cleaned == [{"after": 3, "kind": "skill", "text": "Adopted it."}]
+    assert m._sanitize_chronicle("nope") == [] and m._sanitize_chronicle({"a": 1}) == []
+    long = [{"after": i, "kind": "move", "text": "x" * 400} for i in range(m.CHRONICLE_MAX + 25)]
+    out = m._sanitize_chronicle(long)
+    assert len(out) == m.CHRONICLE_MAX and out[-1]["after"] == m.CHRONICLE_MAX + 24 and len(out[0]["text"]) == m.CHRONICLE_TEXT_MAX
+    assert m._sanitize_meta({"chronicle": [good]})["chronicle"] == [{"after": 3, "kind": "skill", "text": "Adopted it."}]
+
+
+def test_the_chronicle_rides_the_progress_export_and_import(game_env):
+    m = game_env.module
+    m.chronicle_note("skill", "Adopted Something (3 knowledge).", after=2)
+    code = game_env.export_progress()
+    m.meta["chronicle"] = []
+    game_env.import_progress(code)
+    assert [item["text"] for item in m.meta["chronicle"]] == ["Adopted Something (3 knowledge)."]
+
+
+def test_the_panel_lists_every_line_and_the_copy_text_names_the_settlement(game_env):
+    m, e = game_env.module, game_env.elements
+    m.run_log_history[:] = [_entry(1, [("flood", 40.0)], score=90)]
+    m.set_settlement_name("Saltmarsh")
+    m.chronicle_note("skill", "Adopted Early Warning Systems (5 knowledge).", after=1)
+    e["chronicle-toggle-button"].dispatch("click", None)
+    rows = e["chronicle-list"].children
+    assert len(rows) == len(m.chronicle_entries()) == 3
+    assert rows[0].children[0].innerText == "Run 1" and rows[-1].children[0].innerText == "After run 1"
+    text = m.chronicle_text()
+    assert text.splitlines()[0] == "Aftermath: the chronicle of Saltmarsh" and "After run 1: Adopted Early Warning Systems (5 knowledge)." in text
+    e["chronicle-copy-button"].dispatch("click", None)  # no clipboard in the test: falls back to the text box
+    assert e["chronicle-copy-area"].hidden is False and e["chronicle-copy-area"].value == text
+    assert "copy it yourself" in e["chronicle-copy-status"].innerText
+
+
+def test_a_cached_page_without_the_chronicle_still_renders(game_env):
+    m = game_env.module
+    real = m._el
+    m._el = lambda element_id: None if element_id.startswith("chronicle-") else real(element_id)
+    m.render_chronicle()
+    game_env.resolve_event()

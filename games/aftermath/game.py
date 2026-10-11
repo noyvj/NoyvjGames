@@ -804,6 +804,8 @@ def _default_meta():
         "skill_progress": {},
         # GE-10: Founding stars and the Founding skills owned ({"stars", "owned"}).
         "founding": {"stars": 0, "owned": []},
+        # E-7: the chronicle's lines that cannot be worked out from the run history ([{"after", "kind", "text"}]).
+        "chronicle": [],
     }
 
 
@@ -869,6 +871,36 @@ def _sanitize_custom_schedules(value):
         if len(out) >= CUSTOM_SCHEDULES_MAX:
             break
     return out
+
+
+# E-7: the Settlement Chronicle. Most of its lines are WORKED OUT from the run history (first of each event, worst
+# disaster, new best score, first Flawless Defense), so every old save already has a chronicle. The few things the
+# history cannot know (a skill adopted, a point moved, a memory formed, a lesson finished, a Second Founding) are
+# stored here: `after` = how many runs had been paid out when it happened, `kind` one of CHRONICLE_KINDS, `text` the line.
+CHRONICLE_KINDS = {"skill": "\U0001f9e0", "move": "\U0001f501", "memory": "\U0001f56f", "lesson": "\U0001f393", "founding": "\u2b50"}
+CHRONICLE_MAX = 300
+CHRONICLE_TEXT_MAX = 160
+CHRONICLE_AFTER_MAX = 1_000_000
+
+
+def _sanitize_chronicle(value):
+    """Known kinds only, `after` a whole number 0 to 1,000,000, text a non-empty string cut to 160 characters; anything
+    else is dropped, and only the newest CHRONICLE_MAX lines are kept."""
+    out = []
+    if not isinstance(value, list):
+        return out
+    for item in value:
+        if not isinstance(item, dict):
+            continue
+        kind, after, text = item.get("kind"), item.get("after"), item.get("text")
+        if (
+            not isinstance(kind, str) or kind not in CHRONICLE_KINDS
+            or isinstance(after, bool) or not isinstance(after, (int, float)) or not 0 <= after <= CHRONICLE_AFTER_MAX
+            or not isinstance(text, str) or not text.strip()
+        ):
+            continue
+        out.append({"after": int(after), "kind": kind, "text": " ".join(text.split())[:CHRONICLE_TEXT_MAX]})
+    return out[-CHRONICLE_MAX:]
 
 
 SKILL_PROGRESS_MAX = 1_000_000
@@ -977,6 +1009,7 @@ def _sanitize_meta(data):
                 meta["challenge_best"][code[:90]] = int(value)
     meta["skill_progress"] = _sanitize_skill_progress(data.get("skill_progress", {}))
     meta["founding"] = _sanitize_founding(data.get("founding", {}))
+    meta["chronicle"] = _sanitize_chronicle(data.get("chronicle", []))
     return meta
 
 
@@ -1753,6 +1786,7 @@ class RunState:
                 save_run_log_history(run_log_history)
                 highest_awarded_run = self.run_number
                 save_highest_awarded_run(highest_awarded_run)
+                _chronicle_payout_notes(self)  # E-7: a memory that formed and a lesson that was finished
                 record_skill_progress(self)  # E-11: proven use of the skills owned, once per paid-out run
                 _season_run_finished(self.resources)
                 if not self.custom_events:  # E-13: a hand-built schedule never competes on the board
@@ -2617,6 +2651,8 @@ def new_record_run_indexes():
     records = set()
     best = None
     for index, entry in enumerate(run_log_history):
+        if not isinstance(entry, dict):
+            continue  # a damaged stored entry never breaks the list
         if entry.get("neighbour_aid"):  # R-31: a run helped by neighbour aid is never a record and sets no bar
             continue
         score = entry.get("score", 0)
@@ -5818,6 +5854,7 @@ def render():
     render_hit_number()  # GE-14
     render_run_timer()  # GE-23
     render_dock_resources()  # E-26
+    render_chronicle()  # E-7
     render_challenge()  # E-4
     document.getElementById("curriculum-display").innerText = curriculum_message()
     document.getElementById("resources-display").innerText = f"Resources: {run.resources:.0f}"
@@ -6402,6 +6439,7 @@ def on_skill_move(event=None):
     to_id = _el("skill-move-to").value
     if skill_tree.move(from_id, to_id):
         skill_move_message = f"Moved from {SKILLS[from_id]['label']} to {SKILLS[to_id]['label']}. Knowledge left: {skill_tree.knowledge_points}."
+        chronicle_note("move", f"Moved a point from {SKILLS[from_id]['label']} to {SKILLS[to_id]['label']}.")  # E-7
         note_skill_reveal(to_id)  # GE-16
         announce(skill_move_message + " " + reveal_text())
     else:
@@ -6423,6 +6461,7 @@ def _make_unlock_handler(skill_id):
     def handler(event=None):
         unlocked = skill_tree.unlock(skill_id)
         if unlocked:
+            chronicle_note("skill", f"Adopted {SKILLS[skill_id]['label']} ({SKILLS[skill_id]['cost']} knowledge).")  # E-7
             note_skill_reveal(skill_id)  # GE-16: before render, so the map and the list light up the new children
         render()
         if unlocked:
@@ -7206,6 +7245,7 @@ def begin_second_founding():
     skill_tree.save()
     meta["founding"] = {"stars": meta["founding"]["stars"] + 1, "owned": []}
     save_meta()
+    chronicle_note("founding", f"Began a Second Founding: Founding star {meta['founding']['stars']} of {FOUNDING_MAX_STARS}.")  # E-7
     skill_map_selected = None
     skill_map_reveal = None
     founding_message_text = (
@@ -7641,6 +7681,167 @@ def render_dock_resources():
 
 
 # ---------------------------------------------------------------------------
+# E-7: the Settlement Chronicle. A scrollable timeline across runs: the first time each event was weathered,
+# the worst disaster so far (when a later run beats it), new best scores, the first Flawless Defense (all worked
+# out from the run history) and the lines in meta["chronicle"] (skills adopted, points moved, a societal memory
+# that formed, a curriculum lesson finished, a Second Founding). Viewable in a panel and copyable as text.
+# ---------------------------------------------------------------------------
+def chronicle_note(kind, text, after=None):
+    """Adds one stored line (the newest CHRONICLE_MAX are kept) and saves."""
+    if kind not in CHRONICLE_KINDS:
+        return False
+    cleaned = _sanitize_chronicle([{"after": highest_awarded_run if after is None else after, "kind": kind, "text": text}])
+    if not cleaned:
+        return False
+    meta["chronicle"] = (meta["chronicle"] + cleaned)[-CHRONICLE_MAX:]
+    save_meta()
+    return True
+
+
+def _chronicle_payout_notes(finished_run):
+    """Called once per paid-out run (inside the same run-number guard as the knowledge payout)."""
+    if memory_just_formed:
+        bonus = round(SOCIETAL_MEMORY_BONUS[memory_just_formed] * 100)
+        chronicle_note(
+            "memory", f"The settlement will remember {SOCIETAL_MEMORY_LABEL[memory_just_formed]}: {bonus}% less damage from that kind of shock.",
+            after=finished_run.run_number,
+        )
+    if curriculum_just_completed:
+        chronicle_note("lesson", f"Curriculum lesson complete: {curriculum_just_completed['title']}.", after=finished_run.run_number)
+
+
+def _chronicle_events(entry):
+    return [e for e in (entry.get("event_log") or []) if isinstance(e, dict) and e.get("type") in EVENT_LABEL
+            and isinstance(e.get("damage"), (int, float)) and not isinstance(e.get("damage"), bool)]
+
+
+def chronicle_derived():
+    """[(run number, kind, text)] worked out from run_log_history, oldest first. The first run only sets the
+    baselines: it has no 'worst so far' and no 'best score' line, because there was nothing to beat."""
+    lines = []
+    records = new_record_run_indexes()
+    seen_types = set()
+    worst = None
+    flawless_done = False
+    first = True
+    for index, entry in enumerate(run_log_history):
+        if not isinstance(entry, dict):
+            continue
+        number = entry.get("run_number")
+        if isinstance(number, bool) or not isinstance(number, int) or number < 1:
+            continue
+        log = _chronicle_events(entry)
+        score = entry.get("score", 0)
+        if isinstance(score, bool) or not isinstance(score, (int, float)):
+            score = 0
+        if first:
+            lines.append((number, "run", f"The first trial is over: score {score:.0f}."))
+            first = False
+        for event in log:
+            if event["type"] not in seen_types:
+                seen_types.add(event["type"])
+                lines.append((number, "first", f"First {EVENT_LABEL[event['type']]} weathered: {event['damage']:.0f} damage."))
+        if log:
+            top = max(log, key=lambda e: e["damage"])
+            if worst is not None and top["damage"] > worst + 0.5:
+                lines.append((number, "worst", f"Worst disaster yet: {EVENT_LABEL[top['type']]}, {top['damage']:.0f} damage."))
+            worst = top["damage"] if worst is None else max(worst, top["damage"])
+        if not flawless_done:
+            for event in log:
+                if entry_is_flawless(event):
+                    flawless_done = True
+                    lines.append((number, "flawless", f"First Flawless Defense: {EVENT_LABEL[event['type']]} held to {event['damage']:.0f} damage."))
+                    break
+        if index in records:
+            lines.append((number, "record", f"New best score: {score:.0f}."))
+    return lines
+
+
+CHRONICLE_DERIVED_ICONS = {"run": "\U0001f3d8", "first": "\U0001f4cd", "worst": "\u26a0", "flawless": "\U0001f6e1", "record": "\U0001f3c5"}
+CHRONICLE_RUN_KINDS = ("memory", "lesson")  # stored lines that belong to a run itself, not to the gap after it
+
+
+def chronicle_entries():
+    """The whole timeline as [{"label", "icon", "text"}], oldest first: a run's own lines (worked out or stored at
+    payout), then what was done after it (skills adopted, points moved, a Second Founding)."""
+    rows = []
+    for position, (number, kind, text) in enumerate(chronicle_derived()):
+        rows.append(((number, 0, position), f"Run {number}", CHRONICLE_DERIVED_ICONS[kind], text))
+    for position, item in enumerate(meta["chronicle"]):
+        in_run = item["kind"] in CHRONICLE_RUN_KINDS
+        label = f"Run {item['after']}" if in_run else (f"After run {item['after']}" if item["after"] else "Before the first run")
+        rows.append(((item["after"], 1 if in_run else 2, position), label, CHRONICLE_KINDS[item["kind"]], item["text"]))
+    rows.sort(key=lambda r: r[0])
+    return [{"label": label, "icon": icon, "text": text} for _key, label, icon, text in rows]
+
+
+def chronicle_text():
+    name = meta["settlement_name"] or "My settlement"
+    lines = [f"Aftermath: the chronicle of {name}"]
+    lines += [f"{e['label']}: {e['text']}" for e in chronicle_entries()]
+    return "\n".join(lines)
+
+
+chronicle_open = False
+
+
+def on_toggle_chronicle(event=None):
+    global chronicle_open
+    chronicle_open = not chronicle_open
+    render_chronicle()
+
+
+def on_copy_chronicle(event=None):
+    text = chronicle_text()
+    status = _el("chronicle-copy-status")
+    area = _el("chronicle-copy-area")
+    if _copy_to_clipboard(text):
+        if area is not None:
+            area.hidden = True
+        if status is not None:
+            status.innerText = "Copied the chronicle to the clipboard."
+    else:
+        if area is not None:
+            area.hidden = False
+            area.value = text
+        if status is not None:
+            status.innerText = "Could not copy automatically. Select the text below and copy it yourself."
+
+
+def render_chronicle():
+    toggle = _el("chronicle-toggle-button")
+    panel = _el("chronicle-panel")
+    if toggle is None or panel is None:
+        return  # a cached older page without the chronicle
+    entries = chronicle_entries()
+    toggle.innerText = "Hide Chronicle" if chronicle_open else f"\U0001f4d6 Chronicle ({len(entries)})"
+    panel.hidden = not chronicle_open
+    if not chronicle_open:
+        return
+    list_el = _el("chronicle-list")
+    if list_el is None:
+        return
+    list_el.innerHTML = ""
+    if not entries:
+        empty = document.createElement("li")
+        empty.className = "chronicle-empty"
+        empty.innerText = "Nothing written yet. Finish a run and its first lines appear here; skills you adopt are added as you buy them."
+        list_el.appendChild(empty)
+    for entry in entries:
+        item = document.createElement("li")
+        item.className = "chronicle-entry"
+        label = document.createElement("span")
+        label.className = "chronicle-entry-label"
+        label.innerText = entry["label"]
+        item.appendChild(label)
+        text = document.createElement("span")
+        text.className = "chronicle-entry-text"
+        text.innerText = f"{entry['icon']} {entry['text']}"
+        item.appendChild(text)
+        list_el.appendChild(item)
+
+
+# ---------------------------------------------------------------------------
 # GE-14: per-category event hit effects. When an event resolves the settlement art gets one short effect
 # for that kind of event (a ripple for floods, a heat pulse for heatwaves and heat-health emergencies, a
 # shake and flash for storms, a flicker for infrastructure failure, a dim for supply-chain trouble, a red
@@ -7749,6 +7950,8 @@ def _wire_round3_batch2():
     _listen("skill-move-to", "change", on_skill_move_select)
     _listen("neighbour-aid-checkbox", "change", on_neighbour_aid_setting)  # R-31
     _listen("run-timer-checkbox", "change", on_run_timer_setting)  # GE-23
+    _listen("chronicle-toggle-button", "click", on_toggle_chronicle)  # E-7
+    _listen("chronicle-copy-button", "click", on_copy_chronicle)
 
 
 def setup():

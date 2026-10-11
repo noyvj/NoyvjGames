@@ -26,6 +26,11 @@
       "Lifetime Stats"
     ],
     [
+      "chronicle-panel",
+      "chronicle-toggle-button",
+      "Settlement Chronicle"
+    ],
+    [
       "changelog-panel",
       "changelog-toggle-button",
       "What's New"
@@ -74,6 +79,7 @@
         "ids": [
           "codex-toggle-button",
           "stats-toggle-button",
+          "chronicle-toggle-button",
           "changelog-toggle-button"
         ]
       }

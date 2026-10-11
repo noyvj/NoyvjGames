@@ -112,6 +112,8 @@
       <!-- E-12 / E-1: the Disaster Codex (collector page per event type) and lifetime statistics. -->
       <button id="codex-toggle-button" class="secondary" type="button">📖 Disaster Codex</button>
       <button id="stats-toggle-button" class="secondary" type="button">📊 Lifetime Stats</button>
+      <!-- E-7: the Settlement Chronicle, a timeline across runs. -->
+      <button id="chronicle-toggle-button" class="secondary" type="button">📖 Chronicle</button>
       <!-- K16 (planning/TODO.md "What's New" changelog, site-wide goal):
            a small in-game highlights panel, same hidden-until-opened idiom
            as achievements/past-runs above. -->
@@ -275,6 +277,14 @@
     </div>
     <div id="codex-panel" class="section codex-panel" hidden></div>
     <div id="stats-panel" class="section stats-panel" hidden></div>
+    <div id="chronicle-panel" class="section chronicle-panel" hidden>
+      <h2 class="chronicle-heading">Settlement Chronicle</h2>
+      <p class="comparison-message">Worked out from your runs and what you did between them: firsts, the worst disaster so far, new best scores, skills adopted and lessons finished.</p>
+      <ol id="chronicle-list" class="chronicle-list"></ol>
+      <button id="chronicle-copy-button" class="secondary" type="button">Copy the chronicle</button>
+      <p id="chronicle-copy-status" class="comparison-message" role="status"></p>
+      <textarea id="chronicle-copy-area" class="copy-text-area" rows="8" readonly hidden aria-label="Chronicle text to copy"></textarea>
+    </div>
     <div id="changelog-panel" class="section changelog-panel" hidden></div>
 
     <!-- Achievement-unlock toast (ACHIEVEMENTS-SYSTEM-DESIGN.md's
