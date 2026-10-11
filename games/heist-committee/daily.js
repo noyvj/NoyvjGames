@@ -110,8 +110,20 @@
     $("daily-cal-next").addEventListener("click", function () { step(1); });
   }
 
+  // Z-5b: today's Daily Job finished -> the shared "noyvj-daily-v1" record the hub's Today strip reads. Counts once
+  // per day, only for today's date (an archive date never counts), and nothing in the game changes or is shown.
+  function recordSharedDaily(d) {
+    try {
+      var S = window.NoyvjSeed;
+      if (!S || !S.daily || !d || !d.record || d.date !== S.daily.today()) return;
+      var tier = d.tiers && d.tiers[d.record.tier];
+      S.daily.markCompleted("heist-committee", { text: (tier ? tier.label : "Played") + ", best payout " + d.record.net });
+    } catch (e) { /* the shared record is a courtesy and must never break the page */ }
+  }
+
   HC.onRender.push(function (view) {
     render(view);
+    if (view.phase === "payout" && view.daily) recordSharedDaily(view.daily);
     // In a daily the abandon button says what it really does (nothing is lost).
     var ab = $("abandon-button");
     if (ab) ab.textContent = view.daily ? "Set the daily job aside" : "Abandon job";

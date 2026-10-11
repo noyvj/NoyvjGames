@@ -217,7 +217,7 @@
   };
 
   HC.renderers.board_extra = function (view) {
-    HC.fillOnce($("board-standing"), JSON.stringify([view.reputation, view.next_unlock, view.relationships, view.jobs_done]), function (box) {
+    HC.fillOnce($("board-standing"), JSON.stringify([view.reputation, view.next_unlock, view.relationships, view.jobs_done, view.career_seed_text, view.career_untouched]), function (box) {
       box.appendChild(el("h3", { text: "The committee's standing" }));
       box.appendChild(el("p", { text: "Reputation " + view.reputation + ", " + view.jobs_done + (view.jobs_done === 1 ? " job" : " jobs") + " done." }));
       if (view.next_unlock) {
@@ -233,9 +233,49 @@
         box.appendChild(ul);
       }
       box.appendChild(el("button", { type: "button", "data-testid": "heist-new-career", text: "Start a new career",
-        onclick: function () { HC.ask("heist-new-career", "Start a brand new career? Cash, reputation and friendships go back to the start. Your Daily Job results stay.", "Start over", function () { HC.send({ action: "new_career" }); }); } }));
+        onclick: function () { HC.ask("heist-new-career", "Start a brand new career? Cash, reputation and friendships go back to the start. Your Daily Job results stay.", "Start over", function () { HC.send(HC.careerRequest("new_career")); }); } }));
+      mountCareerSeed(box, view);
     });
   };
+
+  // ---- the career seed (Z-1c) -------------------------------------------------------------------
+  // Every career has a shared seed text (shared/seed.js); the engine's number is derived from the text, so the
+  // same text always gives the same board, offers and job seeds. Without the shared script nothing changes.
+  var SEED_GAME = "heist-committee";
+  HC.careerRequest = function (action, text) {
+    var req = { action: action };
+    if (window.NoyvjSeed) {
+      var t = text || window.NoyvjSeed.newSeed(SEED_GAME);
+      req.seed = window.NoyvjSeed.rng(t).randint(1, 2147483647);
+      req.seed_text = t;
+    }
+    return req;
+  };
+  function mountCareerSeed(box, view) {
+    if (!window.NoyvjSeed) return;
+    var wrap = el("div", { "class": "career-seed", "data-testid": "heist-career-seed" });
+    box.appendChild(wrap);
+    window.NoyvjSeed.mountCopy(wrap, { seed: view.career_seed_text || "", label: "Career seed" });
+    if (!view.career_seed_text && !view.career_untouched) {
+      wrap.appendChild(el("p", { "class": "note", text: "This career began before shared seeds, so it has no seed to copy. A new career gets one." }));
+    }
+    window.NoyvjSeed.mountStart(wrap, { game: SEED_GAME, buttonLabel: "Start a career from this seed",
+      onStart: function (text) {
+        var go = function () { HC.send(HC.careerRequest("new_career", text)); };
+        if (HC.view && HC.view.career_untouched) go();
+        else HC.ask("heist-seed-career", "Start a new career from seed " + text + "? Cash, reputation and friendships go back to the start. Your Daily Job results stay.", "Start over", go);
+      } });
+  }
+  var seedAdopted = false;
+  HC.onRender.push(function (view) {
+    if (!window.NoyvjSeed) return;
+    window.NoyvjSeed.set(view.career_seed_text || "");
+    // A career nothing has happened in yet is given its shareable seed once (an older save keeps what it has).
+    if (!view.career_seed_text && view.career_untouched && !seedAdopted) {
+      seedAdopted = true;
+      setTimeout(function () { HC.send(HC.careerRequest("seed_career")); }, 0);   // after this render has finished
+    }
+  });
 
   // ---- the case file (scouting) -----------------------------------------------------------------
   function scoutPanel(view, withButtons, withIntro) {

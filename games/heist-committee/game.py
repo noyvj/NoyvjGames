@@ -41,6 +41,10 @@ C = content_mod.load()
 
 SCHEMA = 1
 START_CASH = 300
+# Z-1c: a career may carry the shared seed text (shared/seed.js format, e.g. HEISTCOMMITT-K7F2Q) it was started from.
+# The number above is what the engine uses; the text is what the player copies, stored only when valid.
+SEED_PREFIX = "HEISTCOMMITT"
+SEED_ALPHABET = "23456789ABCDEFGHJKMNPQRSTUVWXYZ"
 BACKGROUND_FEE = 10
 MAX_GEAR = 2
 OFFER_SIZE = 8
@@ -57,6 +61,7 @@ def _default_meta():
 class Career:
     def __init__(self, seed=1):
         self.career_seed = seed
+        self.seed_text = ""
         self.cash = START_CASH
         self.jobs_started = 0
         self.meta = _default_meta()
@@ -88,6 +93,20 @@ def _int(value, lo, hi, default):
     if isinstance(value, bool) or not isinstance(value, int):
         return default
     return max(lo, min(hi, value))
+
+
+def _clean_seed_text(value):
+    """A seed text such as HEISTCOMMITT-K7F2Q, or "" for anything else (including another game's seed)."""
+    n = len(SEED_PREFIX)
+    if not isinstance(value, str) or len(value) != n + 6 or value[:n] != SEED_PREFIX or value[n] != "-":
+        return ""
+    return value if all(c in SEED_ALPHABET for c in value[n + 1:]) else ""
+
+
+def _career_untouched():
+    """True for a career nothing has happened in yet (so its seed may be swapped without losing anything)."""
+    return (career.job is None and career.jobs_started == 0 and career.cash == START_CASH
+            and career.meta == _default_meta())
 
 
 def _job_seed():
@@ -459,7 +478,8 @@ def _view(note=None):
     known = set(C.crew) if is_daily else set(career.meta["known_quirks"])
     view = {"schema": SCHEMA, "phase": job["phase"] if job else "board", "cash": career.cash,
             "jobs_done": career.meta["jobs_done"], "reputation": _rep(), "note": note or "",
-            "achievements": achievements.view(career.meta, C), "minutes": story.minutes(career.meta)}
+            "achievements": achievements.view(career.meta, C), "minutes": story.minutes(career.meta),
+            "career_seed_text": career.seed_text, "career_untouched": _career_untouched()}
     if not job:
         view["board"] = [_target_card(t) for t in _board_targets()]
         view["reputation"] = _rep()
@@ -531,8 +551,16 @@ def _dispatch(request):
         seed = _int(request.get("seed"), 1, 2147483647, int(time.time()) % 2147483647 or 1)
         old_days = career.daily_days
         career = Career(seed)
+        career.seed_text = _clean_seed_text(request.get("seed_text"))
         career.daily_days = old_days         # the daily history is about dates, not about a career
         del _undo[:], _redo[:]
+    elif action == "seed_career":
+        # Gives a brand-new career its shareable seed; refused (silently) once anything has happened in it.
+        text = _clean_seed_text(request.get("seed_text"))
+        if text and _career_untouched() and not career.seed_text:
+            career.career_seed = _int(request.get("seed"), 1, 2147483647, 1)
+            career.seed_text = text
+            del _undo[:], _redo[:]
     elif action == "take_job":
         tid = str(request.get("target", ""))
         if job is None and tid in _board_targets():
@@ -877,6 +905,8 @@ def get_state_json():
 
 def get_state():
     data = {"schema": SCHEMA, "career_seed": career.career_seed}
+    if career.seed_text:
+        data["career_seed_text"] = career.seed_text
     earned = achievements.earned(career.meta, C)
     if earned:
         data["achievements_earned"] = earned       # a write-only projection for the hub dashboard, never read back
@@ -974,6 +1004,7 @@ def load_state(data):
     if not isinstance(data, dict):
         return
     fresh = Career(_int(data.get("career_seed"), 1, 2147483647, 1))
+    fresh.seed_text = _clean_seed_text(data.get("career_seed_text"))
     fresh.cash = _int(data.get("cash"), 0, 10 ** 9, START_CASH)
     fresh.jobs_started = _int(data.get("jobs_started"), 0, 10 ** 6, 0)
     meta = data.get("meta") if isinstance(data.get("meta"), dict) else {}

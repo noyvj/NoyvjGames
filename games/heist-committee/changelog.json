@@ -1,6 +1,10 @@
 {
   "changelog": [
     {
+      "date": "2026-10-12",
+      "entry": "Every career now has a seed you can copy from the board (Career seed), and you can start a career from someone else's seed to see the same contracts, offers and trouble. Your Daily Job results stay. Older careers keep working as they were."
+    },
+    {
       "date": "2026-10-11",
       "entry": "The Daily Job: one job a day, the same for everyone, with a free crew of eight and a free van. Every day is checked so that at least three different crews can get away clean. Play any past day from the archive, and see how many days you have played in a small grid. There are no streaks, no pressure, and it never touches your cash or reputation."
     },

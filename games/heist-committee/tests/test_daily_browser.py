@@ -79,3 +79,86 @@ def test_play_an_archive_day_from_the_calendar(base, page_name, width, height):
         assert "Played 1 of 20" in page.inner_text("[data-testid=heist-daily-tally]")
         browser.close()
     assert errors == []
+
+
+def _play_daily_to_payout(page, date):
+    page.evaluate("HC.send({action: 'daily_open', date: '%s'})" % date)
+    page.click("[data-testid=heist-to-recruit]")
+    for cid in page.evaluate("HC.view.offer.map(c => c.id)")[:5]:
+        page.click("[data-testid=heist-hire-%s]" % cid)
+    page.click("[data-testid=heist-confirm-crew]")
+    page.evaluate("HC.send({action: 'start_heist'})")
+    page.evaluate("HC.send({action: 'skip'})")
+    page.evaluate("HC.send({action: 'finish'})")
+    assert page.evaluate("HC.view.phase") == "payout"
+
+
+@pytest.mark.parametrize("width,height", [(1440, 900), (360, 740)])
+def test_todays_job_is_told_to_the_shared_daily_record_and_an_archive_job_is_not(base, width, height):
+    """Z-5b: finishing TODAY's Daily Job writes noyvj-daily-v1 once; an older job from the calendar never does."""
+    errors = []
+    with sync_playwright() as p:
+        browser = p.chromium.launch()
+        ctx = browser.new_context(viewport={"width": width, "height": height}, service_workers="block")
+        ctx.clock.set_fixed_time("2026-10-20T09:00:00Z")
+        page = ctx.new_page()
+        page.on("pageerror", lambda e: errors.append(str(e)))
+        page.goto(base + "index.html#play")
+        page.evaluate("localStorage.clear()")
+        page.reload()
+        page.wait_for_function("window.HC && window.HC.view", timeout=90000)
+        _play_daily_to_payout(page, "2026-10-05")
+        assert page.evaluate("localStorage.getItem('noyvj-daily-v1')") is None
+        page.click("[data-testid=heist-back-to-board]")
+        _play_daily_to_payout(page, "2026-10-20")
+        record = page.evaluate("JSON.parse(localStorage.getItem('noyvj-daily-v1'))")
+        assert record["date"] == "2026-10-20" and list(record["runs"]) == ["heist-committee"]
+        assert "best payout" in record["runs"]["heist-committee"]["text"]
+        assert record["streaks"]["heist-committee"]["count"] == 1
+        browser.close()
+    assert errors == []
+
+
+@pytest.mark.parametrize("width,height", [(1440, 900), (360, 740)])
+def test_the_career_seed_is_given_shown_copied_and_can_be_started_from(base, width, height):
+    """Z-1c: a fresh career gets a shareable seed, a typed seed gives the same board every time, and it survives a reload."""
+    errors = []
+    with sync_playwright() as p:
+        browser = p.chromium.launch()
+        ctx = browser.new_context(viewport={"width": width, "height": height}, service_workers="block")
+        ctx.grant_permissions(["clipboard-read", "clipboard-write"])
+        page = ctx.new_page()
+        page.on("pageerror", lambda e: errors.append(str(e)))
+        page.goto(base + "index.html#play")
+        page.evaluate("localStorage.clear()")
+        page.reload()
+        page.wait_for_function("window.HC && window.HC.view && window.HC.view.career_seed_text", timeout=90000)
+        first = page.evaluate("HC.view.career_seed_text")
+        assert first.startswith("HEISTCOMMITT-") and page.evaluate("NoyvjSeed.current()") == first
+        assert first in page.inner_text("[data-testid=heist-career-seed]")
+        page.click("[data-testid=heist-career-seed] .noyvj-seed-copy button")
+        assert page.evaluate("navigator.clipboard.readText()") == first
+
+        def board_for(text):
+            page.fill("[data-testid=heist-career-seed] input", text)
+            page.click("[data-testid=heist-career-seed] button[type=submit]")
+            confirm = page.locator("button:has-text('Start over')")
+            if confirm.count():
+                confirm.first.click()
+            full = text.upper() if "-" in text else "HEISTCOMMITT-" + text.upper()
+            page.wait_for_function("HC.view.career_seed_text === %s" % repr(full), timeout=10000)
+            return page.evaluate("HC.view.board.map(t => t.id)")
+
+        a = board_for("k7f2q")
+        assert page.evaluate("HC.view.career_seed_text") == "HEISTCOMMITT-K7F2Q"
+        b = board_for("HEISTCOMMITT-K7F2Q")
+        assert a == b
+        page.fill("[data-testid=heist-career-seed] input", "TIDE-K7F2Q")
+        page.click("[data-testid=heist-career-seed] button[type=submit]")
+        assert "for TIDE" in page.inner_text("[data-testid=heist-career-seed] .noyvj-seed-error")
+        page.reload()
+        page.wait_for_function("window.HC && window.HC.view", timeout=90000)
+        assert page.evaluate("HC.view.career_seed_text") == "HEISTCOMMITT-K7F2Q"
+        assert page.evaluate("document.documentElement.scrollWidth - document.documentElement.clientWidth") <= 1
+        browser.close()
+    assert errors == []
