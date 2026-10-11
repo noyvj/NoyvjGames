@@ -84,6 +84,7 @@ const PRECACHE_URLS = [
   "shared/info-page.css",
   // Site-wide shared includes (Z-19/21/23/24/25/29/31): in every game page and the hub's.
   "shared/seasonal-events.js",
+  "shared/skill_tree.py",
   "shared/seasonal-events.css",
   "shared/announcer.js",
   "shared/night-mode.js",

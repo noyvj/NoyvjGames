@@ -189,6 +189,29 @@ ELEMENT_IDS = [
     "builder-saved-list",
     "builder-code",
     "builder-status",
+    # E-2 skill map, E-11 skill ranks, GE-16 unlock reveal (2026-10-11).
+    "skill-map-panel",
+    "skill-map-canvas",
+    "skill-map-viewport",
+    "skill-map-detail",
+    "skill-map-reveal",
+    "skill-map-filter-summary",
+    "skill-map-filter-clear",
+    "skill-map-search-input",
+    "skill-map-chips",
+    "skill-map-clear-button",
+    "skill-map-unlock-button",
+    "skill-map-pin-button",
+    "skill-map-text",
+    "skill-rank-rules",
+    "skill-ranks-summary",
+    # GE-10: the Second Founding.
+    "founding-panel",
+    "founding-status",
+    "founding-kept-lost",
+    "founding-begin-button",
+    "founding-skills",
+    "founding-message",
 ]
 for _skill in SKILL_IDS:
     ELEMENT_IDS += [
@@ -202,6 +225,7 @@ for _skill in SKILL_IDS:
         f"skill-{_skill}-pin-button",
         f"skill-{_skill}-eta",
         f"skill-{_skill}-row",  # E-19
+        f"skill-{_skill}-rank",  # E-11
     ]
 
 INITIALLY_DISABLED_IDS = [

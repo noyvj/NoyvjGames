@@ -73,10 +73,10 @@ document.addEventListener("keydown", (e) => {
   if (help && !help.hidden) e.__pcMenuOpened = true;
 }, true);
 
-// The three panels added in batch 2 are <details> in the Classic page (collapsed there to keep the page short). In
+// The panels added in batch 2 (and the skill map) are <details> in the Classic page (collapsed there to keep the page short). In
 // the Desktop layout each sits alone in its own window, so open them by default.
 document.addEventListener("DOMContentLoaded", () => {
-  ["presets-panel", "builder-panel", "challenge-panel"].forEach((id) => {
+  ["presets-panel", "builder-panel", "challenge-panel", "skill-map-panel", "founding-panel"].forEach((id) => {
     const panel = document.getElementById(id);
     if (panel) panel.open = true;
   });

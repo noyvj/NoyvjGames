@@ -100,6 +100,24 @@
       "label": "🎚️ Allocation presets"
     },
     {
+      "id": "pc-skillmap-panel",
+      "title": "Skill map",
+      "members": [
+        "#skill-map-panel"
+      ],
+      "group": "Game",
+      "label": "🗺️ Skill map"
+    },
+    {
+      "id": "pc-founding-panel",
+      "title": "Second Founding",
+      "members": [
+        "#founding-panel"
+      ],
+      "group": "Game",
+      "label": "⭐ Second Founding"
+    },
+    {
       "id": "pc-builder-panel",
       "title": "Schedule builder",
       "members": [

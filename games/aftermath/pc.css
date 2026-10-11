@@ -123,6 +123,7 @@ html[data-layout="pc"] .mobile-hud, html[data-layout="pc"] #mobile-hud-bar { dis
 #pc-side > #skill-tree .skill-row button.secondary { width: auto; flex: none; margin: 0; padding: 0.4rem 0.7rem; }
 #pc-side > #skill-tree .skill-row .skill-eta,
 #pc-side > #skill-tree .skill-row .skill-helps,
+#pc-side > #skill-tree .skill-row .skill-rank,
 #pc-side > #skill-tree .skill-row .skill-practice { grid-column: 1 / -1; margin: 0; }
 #pc-side > #skill-tree .skill-row .skill-eta:empty { display: none; }
 
@@ -151,3 +152,11 @@ html[data-theme="light"] #pc-hintbar { opacity: 1; color: #2a3350; background: r
 .pc-window-frame #presets-panel > summary,
 .pc-window-frame #builder-panel > summary,
 .pc-window-frame #challenge-panel > summary { display: none; }
+
+/* E-2: the skill map is a Menu window (Game > Skill map). It opens already expanded, so its summary line would
+   only repeat the title; the map's own search and filter chips show here because the skill list in the side column
+   is behind the window while it is open. */
+.pc-window-frame #skill-map-panel > summary,
+.pc-window-frame #founding-panel > summary { display: none; }
+.pc-window-frame .skill-map-filters { display: flex; }
+.pc-window-frame .skill-map-viewport { height: min(34rem, 62vh); }

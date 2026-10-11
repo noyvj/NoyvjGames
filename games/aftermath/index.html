@@ -443,6 +443,8 @@
     <div id="skill-tree" class="section" tabindex="-1">
       <p id="knowledge-points-display" class="status-line">Resilience knowledge: 0</p>
       <p id="skills-unlocked-display" class="status-line"></p>
+      <!-- E-11: ranks earned by using the skills (optional, shown on each skill and on the map). -->
+      <p id="skill-ranks-summary" class="status-line skill-ranks-summary"></p>
       <p id="pinned-skills-display" class="status-line pinned-skills-display" title="Skills you've pinned, with an estimate of runs until each is affordable"></p>
       <!-- E-3: the pinned skills as an ordered buy list (prerequisites first) with a running knowledge total. -->
       <details id="route-planner" class="route-planner" hidden>
@@ -477,6 +479,7 @@
         <button id="skill-reinforced_infrastructure-pin-button" class="secondary skill-pin-button" type="button" hidden>Pin</button>
         <span class="skill-eta" id="skill-reinforced_infrastructure-eta"></span>
         <p class="skill-helps" id="skill-reinforced_infrastructure-helps"></p>
+        <p class="skill-rank" id="skill-reinforced_infrastructure-rank"></p>
         <p class="skill-practice" id="skill-reinforced_infrastructure-practice"></p>
       </div>
       <div class="skill-row" id="skill-community_reserves-row" data-skill="community_reserves">
@@ -486,6 +489,7 @@
         <button id="skill-community_reserves-pin-button" class="secondary skill-pin-button" type="button" hidden>Pin</button>
         <span class="skill-eta" id="skill-community_reserves-eta"></span>
         <p class="skill-helps" id="skill-community_reserves-helps"></p>
+        <p class="skill-rank" id="skill-community_reserves-rank"></p>
         <p class="skill-practice" id="skill-community_reserves-practice"></p>
       </div>
       <div class="skill-row" id="skill-early_warning-row" data-skill="early_warning">
@@ -495,6 +499,7 @@
         <button id="skill-early_warning-pin-button" class="secondary skill-pin-button" type="button" hidden>Pin</button>
         <span class="skill-eta" id="skill-early_warning-eta"></span>
         <p class="skill-helps" id="skill-early_warning-helps"></p>
+        <p class="skill-rank" id="skill-early_warning-rank"></p>
         <p class="skill-practice" id="skill-early_warning-practice"></p>
       </div>
       <div class="skill-row" id="skill-adaptive_growth-row" data-skill="adaptive_growth">
@@ -504,6 +509,7 @@
         <button id="skill-adaptive_growth-pin-button" class="secondary skill-pin-button" type="button" hidden>Pin</button>
         <span class="skill-eta" id="skill-adaptive_growth-eta"></span>
         <p class="skill-helps" id="skill-adaptive_growth-helps"></p>
+        <p class="skill-rank" id="skill-adaptive_growth-rank"></p>
         <p class="skill-practice" id="skill-adaptive_growth-practice"></p>
       </div>
       <div class="skill-row" id="skill-mutual_aid_network-row" data-skill="mutual_aid_network">
@@ -513,6 +519,7 @@
         <button id="skill-mutual_aid_network-pin-button" class="secondary skill-pin-button" type="button" hidden>Pin</button>
         <span class="skill-eta" id="skill-mutual_aid_network-eta"></span>
         <p class="skill-helps" id="skill-mutual_aid_network-helps"></p>
+        <p class="skill-rank" id="skill-mutual_aid_network-rank"></p>
         <p class="skill-practice" id="skill-mutual_aid_network-practice"></p>
       </div>
       <!-- E1/E3: specialization branches (social-shock / weather). -->
@@ -523,6 +530,7 @@
         <button id="skill-civic_preparedness-pin-button" class="secondary skill-pin-button" type="button" hidden>Pin</button>
         <span class="skill-eta" id="skill-civic_preparedness-eta"></span>
         <p class="skill-helps" id="skill-civic_preparedness-helps"></p>
+        <p class="skill-rank" id="skill-civic_preparedness-rank"></p>
         <p class="skill-practice" id="skill-civic_preparedness-practice"></p>
       </div>
       <div class="skill-row" id="skill-climate_hardening-row" data-skill="climate_hardening">
@@ -532,6 +540,7 @@
         <button id="skill-climate_hardening-pin-button" class="secondary skill-pin-button" type="button" hidden>Pin</button>
         <span class="skill-eta" id="skill-climate_hardening-eta"></span>
         <p class="skill-helps" id="skill-climate_hardening-helps"></p>
+        <p class="skill-rank" id="skill-climate_hardening-rank"></p>
         <p class="skill-practice" id="skill-climate_hardening-practice"></p>
       </div>
       <!-- E13: reset skill tree, gated behind the shared ConfirmDialog
@@ -539,6 +548,56 @@
            in-UI two-click confirm before shared/confirm-dialog.js existed). -->
       <button id="reset-skill-tree-button" class="secondary" type="button">Reset Skill Tree</button>
     </div>
+
+    <!-- E-2: the skill tree as a map (pan, zoom, the route to a locked skill and the total knowledge it needs),
+         E-11: skill ranks, GE-16: the unlock reveal. The skill list above stays the plain-text version of all of it. -->
+    <details id="skill-map-panel" class="section progress-code-toggle skill-map-panel">
+      <summary>🗺️ Skill map</summary>
+      <p class="progress-code-label">The same skills as a map: arrows point from a skill to what it unlocks. Select a locked skill to light the route to it and see the total knowledge it needs. Everything here is also written out in the skill list and in the words under the map.</p>
+      <div class="skill-map-filters">
+        <label class="skill-search-label" for="skill-map-search-input">Find a skill</label>
+        <input type="search" id="skill-map-search-input" class="skill-search-input" placeholder="Search by name, effect or note" autocomplete="off">
+        <div id="skill-map-chips" class="skill-filter-chips"></div>
+        <button id="skill-map-filter-clear" class="secondary skill-filter-clear" type="button" hidden>Clear filters</button>
+      </div>
+      <p id="skill-map-filter-summary" class="comparison-message" role="status" aria-live="polite"></p>
+      <div class="skill-map-toolbar" role="group" aria-label="Map view">
+        <button id="skill-map-zoom-out" class="secondary" type="button" aria-label="Zoom out" title="Zoom out (-)">&minus;</button>
+        <button id="skill-map-zoom-in" class="secondary" type="button" aria-label="Zoom in" title="Zoom in (+)">+</button>
+        <button id="skill-map-fit" class="secondary" type="button" title="Fit the whole map (0)">Fit map</button>
+        <button id="skill-map-clear-button" class="secondary" type="button" title="Clear the selection (Esc)" disabled>Clear selection</button>
+      </div>
+      <p id="skill-map-help" class="skill-map-help">Keys: arrow keys move between skills, Enter selects, + and - zoom, 0 fits the map, Shift with an arrow pans, Escape clears the selection. With a mouse: drag to pan, hold Ctrl and scroll to zoom.</p>
+      <div id="skill-map-viewport" class="skill-map-viewport" role="group" aria-label="Skill map" aria-describedby="skill-map-help" data-current="">
+        <div id="skill-map-canvas" class="skill-map-canvas"></div>
+      </div>
+      <p id="skill-map-detail" class="skill-map-detail"></p>
+      <div class="skill-map-actions">
+        <button id="skill-map-unlock-button" class="secondary" type="button" hidden>Unlock</button>
+        <button id="skill-map-pin-button" class="secondary" type="button" hidden>Pin</button>
+      </div>
+      <p id="skill-map-reveal" class="skill-map-reveal" hidden></p>
+      <details class="skill-map-more">
+        <summary>How skill ranks are earned</summary>
+        <p class="comparison-message">Each skill has three ranks, earned by using it in real runs. Progress is added when a run finishes, only for the skills you own at that moment, and only for normal runs (a friend's challenge and a schedule you built do not count). A rank is never lost, even if you reset the tree or move a point, it changes nothing in a run, and nothing needs it to finish the game.</p>
+        <ul id="skill-rank-rules" class="skill-rank-rules"></ul>
+      </details>
+      <details class="skill-map-more">
+        <summary>The map in words</summary>
+        <ul id="skill-map-text" class="skill-map-text"></ul>
+      </details>
+    </details>
+
+    <!-- GE-10: the Second Founding, an optional prestige for a player who owns every skill. -->
+    <details id="founding-panel" class="section progress-code-toggle founding-panel">
+      <summary>⭐ Second Founding</summary>
+      <p class="progress-code-label">Optional, and nothing in the game needs it. Once you own every skill you can give the whole tree up for a permanent Founding star (up to three): a small starting perk, and three Founding-only skills, each with a strong trade-off. The panel says exactly what is lost and what is kept before you confirm.</p>
+      <p id="founding-status" class="comparison-message"></p>
+      <p id="founding-kept-lost" class="founding-kept-lost"></p>
+      <button id="founding-begin-button" class="secondary" type="button" disabled>Begin a Second Founding</button>
+      <ul id="founding-skills" class="founding-skills"></ul>
+      <p id="founding-message" class="comparison-message" role="status" aria-live="polite"></p>
+    </details>
 
     <!-- E-13: compose, save and run a custom schedule from the event library. -->
     <details id="builder-panel" class="section progress-code-toggle builder-panel">
@@ -687,7 +746,8 @@
       const exportProgressSource = await (await fetch("../../shared/export_progress.py")).text();
       pyodide.FS.writeFile("export_progress.py", exportProgressSource, { encoding: "utf8" });
       // E-4: the shared run-code module needs seed.py next to it (alphabet, prefix rule, hash).
-      for (const f of ["seed.py", "run_code.py"]) {
+      // E-2/E-11/GE-16: skill_tree.py is the shared skill-tree rules module (W-3), used for the skill map's states, tiers and checks.
+      for (const f of ["seed.py", "run_code.py", "skill_tree.py"]) {
         const src = await (await fetch("../../shared/" + f)).text();
         pyodide.FS.writeFile(f, src, { encoding: "utf8" });
       }
@@ -890,6 +950,7 @@
         "Enter — Face Next Event (when no button is focused)",
         "U — undo your last investment click",
         "T — jump to the skill tree",
+        "M — open the skill map (arrows move between skills, Enter selects, + and - zoom, 0 fits, Esc clears)",
         "Up / Down arrows — move between skills in the tree; Enter unlocks, P pins",
         "H — open or close Past Runs",
         "C — open or close the Disaster Codex",

@@ -17,6 +17,7 @@ import export_progress
 import info_page
 import run_code as shared_run_code
 import seed as shared_seed
+import skill_tree as shared_skill_tree  # W-3: the shared skill-tree rules (status, tier, validate)
 from js import document, localStorage, setTimeout
 from pyodide.ffi import create_proxy
 
@@ -799,6 +800,10 @@ def _default_meta():
         # E-4: how many friend challenges have been finished, and the best score per code.
         "challenge_runs": 0,
         "challenge_best": {},
+        # E-11: proven-use progress per skill ({skill_id: count}); a skill's rank is read from its count.
+        "skill_progress": {},
+        # GE-10: Founding stars and the Founding skills owned ({"stars", "owned"}).
+        "founding": {"stars": 0, "owned": []},
     }
 
 
@@ -866,6 +871,80 @@ def _sanitize_custom_schedules(value):
     return out
 
 
+SKILL_PROGRESS_MAX = 1_000_000
+
+
+def _sanitize_skill_progress(value):
+    """E-11: known skill ids only, each a whole number from 0 to SKILL_PROGRESS_MAX (anything else is dropped,
+    so a hand-edited or damaged code can never invent a rank)."""
+    out = {}
+    if not isinstance(value, dict):
+        return out
+    for skill_id, count in value.items():
+        if skill_id not in SKILLS or isinstance(count, bool) or not isinstance(count, (int, float)):
+            continue
+        count = int(count)
+        if count > 0:
+            out[skill_id] = min(count, SKILL_PROGRESS_MAX)
+    return out
+
+
+# GE-10: the Second Founding. An OPTIONAL prestige: once every skill is owned the tree can be given up for a
+# permanent Founding star (a small starting perk) and three Founding-only skills with strong trade-offs. They
+# live apart from SKILLS (so "X of 7 skills", every old save and the tree's storage are untouched) in
+# meta["founding"] = {"stars": 0..3, "owned": [ids]}. Every effect is a flat, deterministic number.
+FOUNDING_MAX_STARS = 3
+FOUNDING_STAR_RESOURCES = 10  # starting resources per star, for good
+FOUNDING_SKILLS = {
+    "stormwall_doctrine": {
+        "label": "Stormwall Doctrine",
+        "cost": 8,
+        "gain": "Flood, Heatwave and Storm damage -40% (it adds to Climate Hardening)",
+        "price": "you start every run with 80 fewer resources",
+    },
+    "open_granaries": {
+        "label": "Open Granaries",
+        "cost": 8,
+        "gain": "Supply-chain, infrastructure-failure and heat-health damage -30%",
+        "price": "you start every run with 60 fewer resources",
+    },
+    "frontier_charter": {
+        "label": "Frontier Charter",
+        "cost": 10,
+        "gain": "+100 starting resources and +2 starting growth",
+        "price": "Early Warning Systems and Mutual Aid Network stop adding any mitigation",
+    },
+}
+FOUNDING_START_RESOURCES = {"stormwall_doctrine": -80, "open_granaries": -60, "frontier_charter": 100}
+FOUNDING_START_GROWTH = {"frontier_charter": 2}
+FOUNDING_CATEGORY_BONUS = (
+    ("stormwall_doctrine", "weather", 0.40),
+    ("open_granaries", "non-weather", 0.30),
+    ("open_granaries", "health", 0.30),
+)
+FOUNDING_SILENCES = {"frontier_charter": ("early_warning", "mutual_aid_network")}
+
+
+def _default_founding():
+    return {"stars": 0, "owned": []}
+
+
+def _sanitize_founding(value):
+    """Stars 0 to FOUNDING_MAX_STARS (whole numbers), owned = known Founding skill ids, no repeats, and none at all
+    without a star (a hand-edited code cannot hand out Founding skills)."""
+    out = _default_founding()
+    if not isinstance(value, dict):
+        return out
+    stars = value.get("stars", 0)
+    if isinstance(stars, bool) or not isinstance(stars, (int, float)):
+        return out
+    out["stars"] = max(0, min(FOUNDING_MAX_STARS, int(stars)))
+    owned = value.get("owned", [])
+    if out["stars"] >= 1 and isinstance(owned, list):
+        out["owned"] = [s for s in FOUNDING_SKILLS if s in owned]
+    return out
+
+
 def _sanitize_meta(data):
     meta = _default_meta()
     if not isinstance(data, dict):
@@ -896,6 +975,8 @@ def _sanitize_meta(data):
         for code, value in list(best.items())[:CHALLENGE_BEST_MAX]:
             if isinstance(code, str) and isinstance(value, (int, float)) and not isinstance(value, bool) and value >= 0:
                 meta["challenge_best"][code[:90]] = int(value)
+    meta["skill_progress"] = _sanitize_skill_progress(data.get("skill_progress", {}))
+    meta["founding"] = _sanitize_founding(data.get("founding", {}))
     return meta
 
 
@@ -919,20 +1000,44 @@ meta = load_meta()
 # E-4: every helper below reads the skill tree through an optional `unlocked`
 # argument, so a challenge run (which ignores the player's tree) can pass an
 # empty set instead of switching on global state.
+def founding_owned():
+    """GE-10: the Founding skills held (empty without a star)."""
+    founding = meta["founding"]
+    return frozenset(founding["owned"]) if founding["stars"] >= 1 else frozenset()
+
+
 def _unlocked_or_tree(unlocked):
-    return skill_tree.unlocked if unlocked is None else unlocked
+    """The skills in force: the ones passed in (a challenge run passes none), else the player's tree plus any
+    Founding skills (GE-10). Every bonus helper below reads skills through this, so a Founding skill is just
+    one more id they know about."""
+    return (skill_tree.unlocked | founding_owned()) if unlocked is None else unlocked
+
+
+def founding_star_resources():
+    """GE-10: the permanent starting-resources perk of the Founding stars."""
+    return meta["founding"]["stars"] * FOUNDING_STAR_RESOURCES
 
 
 def starting_resources_bonus(unlocked=None):
-    return 50 if "community_reserves" in _unlocked_or_tree(unlocked) else 0
+    tree = _unlocked_or_tree(unlocked)
+    bonus = 50 if "community_reserves" in tree else 0
+    return bonus + sum(amount for skill_id, amount in FOUNDING_START_RESOURCES.items() if skill_id in tree)
 
 
 def starting_resilience_bonus(unlocked=None):
     return 2 if "reinforced_infrastructure" in _unlocked_or_tree(unlocked) else 0
 
 
+def founding_silenced(unlocked=None):
+    """GE-10: the skills a held Founding skill switches off (Frontier Charter silences Early Warning Systems and
+    Mutual Aid Network): they stay owned but add no mitigation."""
+    tree = _unlocked_or_tree(unlocked)
+    return {silenced for skill_id, targets in FOUNDING_SILENCES.items() if skill_id in tree for silenced in targets}
+
+
 def early_warning_mitigation_bonus(unlocked=None):
-    return 0.10 if "early_warning" in _unlocked_or_tree(unlocked) else 0.0
+    tree = _unlocked_or_tree(unlocked)
+    return 0.10 if "early_warning" in tree and "early_warning" not in founding_silenced(tree) else 0.0
 
 
 def growth_income_now(growth_capacity):
@@ -955,13 +1060,15 @@ def adaptive_growth_bonus(unlocked=None):
     """E2: the fourth skill node -- a starting-growth-capacity bonus,
     mirroring reinforced_infrastructure/community_reserves' starting-stat
     shape but on the growth side instead of resilience/resources."""
-    return 1 if "adaptive_growth" in _unlocked_or_tree(unlocked) else 0
+    tree = _unlocked_or_tree(unlocked)
+    return (1 if "adaptive_growth" in tree else 0) + sum(amount for skill_id, amount in FOUNDING_START_GROWTH.items() if skill_id in tree)
 
 
 def mutual_aid_mitigation_bonus(unlocked=None):
     """E2: the fifth skill node -- flat mitigation like early_warning's,
     but gated behind E3's prereq structure (both foundational skills)."""
-    return 0.05 if "mutual_aid_network" in _unlocked_or_tree(unlocked) else 0.0
+    tree = _unlocked_or_tree(unlocked)
+    return 0.05 if "mutual_aid_network" in tree and "mutual_aid_network" not in founding_silenced(tree) else 0.0
 
 
 # E1/E3: per-category damage reduction from the two specialization nodes.
@@ -979,7 +1086,7 @@ def category_skill_bonus(event_type, unlocked=None):
         amount
         for skill_id, (cat, amount) in CATEGORY_DAMAGE_BONUS.items()
         if cat == category and skill_id in tree
-    )
+    ) + sum(amount for skill_id, cat, amount in FOUNDING_CATEGORY_BONUS if cat == category and skill_id in tree)  # GE-10
 
 
 def category_memory_bonus(event_type, memory=None):
@@ -1054,7 +1161,10 @@ class RunState:
         self.draw = int(draw) if draw is not None else run_number
         self.challenge = challenge if self.normalised and isinstance(challenge, dict) else None
         self.event_index = 0
-        self.resources = STARTING_RESOURCES + starting_resources_bonus(self._unlocked())
+        self.resources = (
+            STARTING_RESOURCES + starting_resources_bonus(self._unlocked())
+            + (0 if self.normalised else founding_star_resources())  # GE-10: the Founding stars' perk
+        )
         self.resilience_capacity = starting_resilience_bonus(self._unlocked())
         self.growth_capacity = adaptive_growth_bonus(self._unlocked())
         self.damage_taken = 0.0
@@ -1076,7 +1186,7 @@ class RunState:
         self.last_breakdown = None
 
     def _unlocked(self):
-        return frozenset() if self.normalised else skill_tree.unlocked
+        return frozenset() if self.normalised else (skill_tree.unlocked | founding_owned())
 
     def _memory(self):
         return frozenset() if self.normalised else societal_memory
@@ -1330,6 +1440,7 @@ class RunState:
                 save_run_log_history(run_log_history)
                 highest_awarded_run = self.run_number
                 save_highest_awarded_run(highest_awarded_run)
+                record_skill_progress(self)  # E-11: proven use of the skills owned, once per paid-out run
                 _season_run_finished(self.resources)
                 if not self.custom_events:  # E-13: a hand-built schedule never competes on the board
                     _report_hardest_schedule(self)  # E23
@@ -3890,6 +4001,8 @@ def skill_helps_text(skill_id, run_state=None):
     run_state = run_state or run
     if run_state.normalised:
         return "Skills are switched off in a challenge run."
+    if skill_id in founding_silenced():  # GE-10
+        return "Your Frontier Charter switches this skill's mitigation off, so buying it would add nothing."
     result = skill_helps_against(skill_id, run_state)
     if result is None:
         if skill_id == "reinforced_infrastructure":
@@ -4246,14 +4359,23 @@ def set_skill_filter(kind, value):
 def clear_skill_filters():
     global skill_search_text, skill_filter_status, skill_filter_group
     skill_search_text, skill_filter_status, skill_filter_group = "", "all", "any"
-    search = _el("skill-search-input")
-    if search is not None:
-        search.value = ""
+    for input_id in ("skill-search-input", "skill-map-search-input"):
+        search = _el(input_id)
+        if search is not None:
+            search.value = ""
 
 
 def on_skill_search(event=None):
     global skill_search_text
     search = _el("skill-search-input")
+    skill_search_text = str(search.value or "") if search is not None else ""
+    render()
+
+
+def on_skill_map_search(event=None):
+    """E-2: the map's own search box feeds the same search text as the list's."""
+    global skill_search_text
+    search = _el("skill-map-search-input")
     skill_search_text = str(search.value or "") if search is not None else ""
     render()
 
@@ -4270,33 +4392,40 @@ def on_skill_filter_clear(event=None):
     render()
 
 
+SKILL_CHIP_HOLDERS = ("skill-filter-chips", "skill-map-chips")  # E-2: the map window carries its own copy of the same chips
+
+
 def build_skill_filter_chips():
-    """Builds the chip buttons once (so keyboard focus survives every render)."""
-    holder = _el("skill-filter-chips")
-    if holder is None:
-        return
-    holder.innerHTML = ""
-    for kind, options in (("status", SKILL_STATUS_FILTERS), ("group", SKILL_GROUP_FILTERS)):
-        group_el = document.createElement("div")
-        group_el.className = "skill-filter-group"
-        group_el.setAttribute("role", "group")
-        group_el.setAttribute("aria-label", "Show by status" if kind == "status" else "Show by type")
-        for value, label in options:
-            chip = document.createElement("button")
-            chip.className = "secondary skill-filter-chip"
-            chip.setAttribute("type", "button")
-            chip.setAttribute("data-filter-kind", kind)
-            chip.setAttribute("data-filter-value", value)
-            chip.setAttribute("aria-pressed", "false")
-            chip.innerText = label
-            chip.addEventListener("click", create_proxy(_make_skill_filter_handler(kind, value)))
-            group_el.appendChild(chip)
-        holder.appendChild(group_el)
+    """Builds the chip buttons once (so keyboard focus survives every render), in the skill list's filter bar and
+    in the map's, which act on the same filter state."""
+    for holder_id in SKILL_CHIP_HOLDERS:
+        holder = _el(holder_id)
+        if holder is None:
+            continue
+        holder.innerHTML = ""
+        for kind, options in (("status", SKILL_STATUS_FILTERS), ("group", SKILL_GROUP_FILTERS)):
+            group_el = document.createElement("div")
+            group_el.className = "skill-filter-group"
+            group_el.setAttribute("role", "group")
+            group_el.setAttribute("aria-label", "Show by status" if kind == "status" else "Show by type")
+            for value, label in options:
+                chip = document.createElement("button")
+                chip.className = "secondary skill-filter-chip"
+                chip.setAttribute("type", "button")
+                chip.setAttribute("data-filter-kind", kind)
+                chip.setAttribute("data-filter-value", value)
+                chip.setAttribute("aria-pressed", "false")
+                chip.innerText = label
+                chip.addEventListener("click", create_proxy(_make_skill_filter_handler(kind, value)))
+                group_el.appendChild(chip)
+            holder.appendChild(group_el)
 
 
 def render_skill_filters():
-    holder = _el("skill-filter-chips")
-    if holder is not None:
+    for holder_id in SKILL_CHIP_HOLDERS:
+        holder = _el(holder_id)
+        if holder is None:
+            continue
         for group_el in holder.children:
             for chip in group_el.children:
                 kind = chip.getAttribute("data-filter-kind")
@@ -4307,6 +4436,10 @@ def render_skill_filters():
                     chip.classList.add("selected")
                 else:
                     chip.classList.remove("selected")
+    for input_id in ("skill-search-input", "skill-map-search-input"):  # the two boxes always show the same words
+        box = _el(input_id)
+        if box is not None and str(box.value or "") != skill_search_text:
+            box.value = skill_search_text
     visible = set(visible_skill_ids())
     for skill_id in SKILLS:
         row = _el(f"skill-{skill_id}-row")
@@ -5336,6 +5469,9 @@ def render():
     render_route_planner()  # E-3
     render_builder()  # E-13
     render_skill_move()  # AN-13
+    render_skill_ranks()  # E-11
+    render_skill_map()  # E-2 / GE-16
+    render_founding()  # GE-10
     render_challenge()  # E-4
     document.getElementById("curriculum-display").innerText = curriculum_message()
     document.getElementById("resources-display").innerText = f"Resources: {run.resources:.0f}"
@@ -5422,6 +5558,12 @@ def render():
             breakdown.appendChild(line)
         if not run.normalised:  # E-4: a challenge run earns no knowledge, so no breakdown
             run_summary_panel.appendChild(breakdown)
+        rank_text = skill_rank_callout_text() if not run.normalised else ""  # E-11
+        if rank_text:
+            rank_el = document.createElement("p")
+            rank_el.className = "skill-rank-callout"
+            rank_el.innerText = "\u2b50 " + rank_text
+            run_summary_panel.appendChild(rank_el)
         if not run.normalised and not epitaph_hidden():  # GE-21
             epitaph_el = document.createElement("p")
             epitaph_el.className = "run-epitaph"
@@ -5569,7 +5711,7 @@ def render():
             eta_el.innerText = ""
             pin_button.hidden = True
         else:
-            eta_el.innerText = _eta_text(skill_id)  # E30a
+            eta_el.innerText = ("Now available. " if skill_map_reveal and skill_id in skill_map_reveal["children"] else "") + _eta_text(skill_id)  # E30a / GE-16
             pin_button.hidden = False
             pinned = skill_id in meta["pinned_skills"]
             pin_button.innerText = "📌 Pinned" if pinned else "📍 Pin"
@@ -5676,7 +5818,8 @@ def _resolve_event_now():
     _maybe_trigger_callouts(run)
     render()
     if len(run.event_log) > before:
-        announce(event_announcement(run.event_log[-1]))  # E-5
+        rank_text = skill_rank_callout_text() if run.is_complete() else ""
+        announce(event_announcement(run.event_log[-1]) + (" " + rank_text if rank_text else ""))  # E-5 / E-11
     _check_new_achievements_for_toast()
 
 
@@ -5711,7 +5854,8 @@ def start_new_run(event=None):
     run uses the doubled-length schedule (RunState's own `extended` flag)
     -- opt-in, and only ever read at the moment a new run starts, so it
     has no effect on a run already in progress."""
-    global run, challenge_status_text
+    global run, challenge_status_text, skill_ranks_just_gained
+    skill_ranks_just_gained = []  # E-11: the rank callout belongs to the run that just ended
     _reset_run_ui_state()
     challenge_status_text = ""
     extended = document.getElementById("extended-run-toggle").checked
@@ -5900,7 +6044,8 @@ def on_skill_move(event=None):
     to_id = _el("skill-move-to").value
     if skill_tree.move(from_id, to_id):
         skill_move_message = f"Moved from {SKILLS[from_id]['label']} to {SKILLS[to_id]['label']}. Knowledge left: {skill_tree.knowledge_points}."
-        announce(skill_move_message)
+        note_skill_reveal(to_id)  # GE-16
+        announce(skill_move_message + " " + reveal_text())
     else:
         skill_move_message = skill_tree.move_check(from_id, to_id)[1] or "That move is not possible."
     status = _el("skill-move-status")
@@ -5919,11 +6064,941 @@ def on_skill_move_select(event=None):
 def _make_unlock_handler(skill_id):
     def handler(event=None):
         unlocked = skill_tree.unlock(skill_id)
+        if unlocked:
+            note_skill_reveal(skill_id)  # GE-16: before render, so the map and the list light up the new children
         render()
         if unlocked:
             _display_skill_unlock_toast(skill_id)
         _check_new_achievements_for_toast()
     return handler
+
+
+# ===========================================================================
+# E-2 skill-tree map, E-11 skill ranks, GE-16 unlock reveal (2026-10-11).
+#
+# The rules come from the shared skill-tree module (shared/skill_tree.py, W-3): Aftermath's SKILLS are
+# described to it as plain data (SKILL_TREE_DATA) and it answers status, tier and validity. The state is
+# untouched: SkillTreeState (knowledge points, unlocked, lifetime_knowledge) and its storage format are
+# exactly as before. The shared module counts "points earned minus spent", Aftermath keeps a spendable
+# balance, so the map passes earned = balance + spent and the two always agree (a move or a reset never
+# drifts them).
+# ===========================================================================
+SKILL_TREE_DATA = {
+    "id": "aftermath",
+    "title": "Aftermath skills",
+    "currency": "knowledge",
+    "branches": [{"id": key, "title": label} for key, label in SKILL_GROUP_LABEL.items()],
+    "nodes": [
+        {
+            "id": skill_id,
+            "branch": SKILL_GROUP.get(skill_id, ""),
+            "cost": skill["cost"],
+            "label": skill["label"],
+            "description": skill["description"],
+            "requires": list(skill.get("prereqs", [])),
+        }
+        for skill_id, skill in SKILLS.items()
+    ],
+}
+
+SKILL_STATE_WORD = {
+    "owned": "Owned",
+    "available": "Available now",
+    "unaffordable": "Not affordable yet",
+    "locked": "Locked",
+}
+SKILL_STATE_GLYPH = {"owned": "✓", "available": "◆", "unaffordable": "◇", "locked": "▪"}
+
+
+def _tree_owned():
+    return sorted(s for s in skill_tree.unlocked if s in SKILLS)
+
+
+def _tree_earned():
+    """Knowledge 'ever given' as the shared module counts it: the balance in hand plus what the owned skills cost."""
+    return skill_tree.knowledge_points + shared_skill_tree.spent(SKILL_TREE_DATA, _tree_owned())
+
+
+def skill_status(skill_id):
+    """owned / available / unaffordable / locked, from the shared module."""
+    return shared_skill_tree.status(SKILL_TREE_DATA, _tree_owned(), skill_id, _tree_earned())
+
+
+def skill_leads_to(skill_id):
+    """The skills that list skill_id as a prerequisite, in catalogue order."""
+    return [s for s, skill in SKILLS.items() if skill_id in skill.get("prereqs", [])]
+
+
+def route_to(skill_id):
+    """E-2: what it takes to reach a skill, in the order to buy it. A skill needs ALL of its prerequisites,
+    so there is exactly one route (and so it is also the cheapest): every prerequisite, all the way down, that
+    is not owned yet, then the skill itself. Sorted by tier (a prerequisite is always a lower tier) then
+    catalogue order. An owned or unknown skill has no route."""
+    if skill_id not in SKILLS or skill_id in skill_tree.unlocked:
+        return []
+    need, stack = set(), [skill_id]
+    while stack:
+        current = stack.pop()
+        if current in need or current in skill_tree.unlocked:
+            continue
+        need.add(current)
+        stack.extend(SKILLS[current].get("prereqs", []))
+    order = list(SKILLS)
+    return sorted(need, key=lambda s: (shared_skill_tree.tier_of(SKILL_TREE_DATA, s), order.index(s)))
+
+
+def _runs_phrase(short):
+    if short <= 0:
+        return "affordable now"
+    rate = average_knowledge_per_run()
+    if not rate or rate <= 0:
+        return "complete a run for an estimate of how long"
+    runs = max(1, math.ceil(short / rate))
+    return f"about {runs} more run{'s' if runs != 1 else ''} at your average of {rate:.1f} knowledge per run"
+
+
+def route_info(skill_id):
+    """The route as numbers: steps [{id, label, cost, running_total}], the total knowledge needed, the balance
+    in hand and how much is still short."""
+    steps, running = [], 0
+    for step_id in route_to(skill_id):
+        running += SKILLS[step_id]["cost"]
+        steps.append({"id": step_id, "label": SKILLS[step_id]["label"], "cost": SKILLS[step_id]["cost"], "running_total": running})
+    have = skill_tree.knowledge_points
+    return {"steps": steps, "total": running, "have": have, "short": max(0, running - have)}
+
+
+def route_text(skill_id):
+    info = route_info(skill_id)
+    if not info["steps"]:
+        return ""
+    parts = ", then ".join(f"{s['label']} ({s['cost']})" for s in info["steps"])
+    if len(info["steps"]) == 1:
+        return f"Unlock {parts}."
+    return f"Route: {parts}."
+
+
+# ---- layout: tiers left to right, rows in a fixed, crossing-light order -------------------------------
+SKILL_MAP_ORDER = (
+    "early_warning",
+    "reinforced_infrastructure",
+    "community_reserves",
+    "adaptive_growth",
+    "climate_hardening",
+    "mutual_aid_network",
+    "civic_preparedness",
+)
+MAP_NODE_W, MAP_NODE_H = 164, 100
+MAP_GAP_X, MAP_GAP_Y = 72, 18
+MAP_PAD = 28
+
+
+def skill_map_layout():
+    """{skill_id: (x, y, tier)} in map pixels. Tier is the column (the shared module's depth); rows follow
+    SKILL_MAP_ORDER (any skill not listed goes last, so a future skill still lands somewhere); a column shorter
+    than the tallest is centred."""
+    listed = [s for s in SKILL_MAP_ORDER if s in SKILLS] + [s for s in SKILLS if s not in SKILL_MAP_ORDER]
+    columns = {}
+    for skill_id in listed:
+        tier = shared_skill_tree.tier_of(SKILL_TREE_DATA, skill_id)
+        columns.setdefault(tier, []).append(skill_id)
+    tallest = max((len(ids) for ids in columns.values()), default=1)
+    layout = {}
+    for tier, ids in columns.items():
+        offset = (tallest - len(ids)) * (MAP_NODE_H + MAP_GAP_Y) / 2
+        for row, skill_id in enumerate(ids):
+            x = MAP_PAD + (tier - 1) * (MAP_NODE_W + MAP_GAP_X)
+            y = MAP_PAD + offset + row * (MAP_NODE_H + MAP_GAP_Y)
+            layout[skill_id] = (int(x), int(y), tier)
+    return layout
+
+
+def skill_map_size():
+    layout = skill_map_layout()
+    width = max(x for x, _y, _t in layout.values()) + MAP_NODE_W + MAP_PAD
+    height = max(y for _x, y, _t in layout.values()) + MAP_NODE_H + MAP_PAD
+    return int(width), int(height)
+
+
+# ---- state of the map (view state only; nothing is saved) -----------------------------------------------
+skill_map_selected = None
+skill_map_reveal = None  # GE-16: {"skill": id, "children": [ids]} until the next map action
+skill_map_status_text = ""
+
+
+def newly_available_children(skill_id):
+    """GE-16: the skills that have skill_id as a prerequisite and whose prerequisites are ALL owned now (call
+    after the skill is owned): the ones that just stopped being locked."""
+    return [
+        child for child in skill_leads_to(skill_id)
+        if child not in skill_tree.unlocked and all(p in skill_tree.unlocked for p in SKILLS[child].get("prereqs", []))
+    ]
+
+
+def reveal_text(reveal=None):
+    reveal = skill_map_reveal if reveal is None else reveal
+    if not reveal:
+        return ""
+    label = SKILLS[reveal["skill"]]["label"]
+    children = [SKILLS[c]["label"] for c in reveal["children"]]
+    if children:
+        return f"{label} unlocked. Now available: {', '.join(children)}."
+    return f"{label} unlocked. No new skills open up from it."
+
+
+def note_skill_reveal(skill_id):
+    """GE-16: remember the skill that was just bought, mark the children it opened, and say so through the
+    announcer (always as text, so it does not depend on the animation or on motion settings)."""
+    global skill_map_reveal
+    if skill_id not in SKILLS or skill_id not in skill_tree.unlocked:
+        return ""
+    skill_map_reveal = {"skill": skill_id, "children": newly_available_children(skill_id)}
+    text = reveal_text()
+    announce(text)
+    return text
+
+
+def skill_map_filtered_out(skill_id):
+    return not skill_matches(skill_id)
+
+
+def skill_map_detail_text(skill_id=None):
+    """The words for the selected skill: what it is, its state and, for a locked skill, the route and the total
+    knowledge needed."""
+    skill_id = skill_map_selected if skill_id is None else skill_id
+    if skill_id not in SKILLS:
+        return ("Select a skill to see what it needs. Arrow keys move between skills, Enter selects, plus and minus zoom, "
+                "0 fits the map, Escape clears.")
+    skill = SKILLS[skill_id]
+    status = skill_status(skill_id)
+    head = f"{skill['label']}: {skill['description']}."
+    rank = skill_rank_line(skill_id)
+    rank_part = f" {rank}." if rank and skill_id in skill_tree.unlocked else ""
+    if status == "owned":
+        leads = [SKILLS[c]["label"] for c in skill_leads_to(skill_id)]
+        return f"{head} Yours already.{rank_part} " + (f"It leads to: {', '.join(leads)}." if leads else "Nothing else builds on it.")
+    info = route_info(skill_id)
+    have = skill_tree.knowledge_points
+    if status == "available":
+        return f"{head} You can unlock it now for {skill['cost']} knowledge (you have {have})."
+    if status == "unaffordable":
+        return (f"{head} Costs {skill['cost']} knowledge and you have {have}, so {info['short']} short: "
+                f"{_runs_phrase(info['short'])}.")
+    steps = ", then ".join(f"{s['label']} ({s['cost']})" for s in info["steps"])
+    return (f"{head} Locked. The route is the only way in, because a skill needs all of its prerequisites: {steps}. "
+            f"Total knowledge needed: {info['total']}; you have {have}, so {info['short']} short"
+            f"{' (' + _runs_phrase(info['short']) + ')' if info['short'] else ''}.")
+
+
+def skill_map_node_label(skill_id, route_ids=()):
+    """The accessible name of a map node: everything the picture says, in words."""
+    skill = SKILLS[skill_id]
+    status = skill_status(skill_id)
+    parts = [skill["label"], SKILL_STATE_WORD[status], f"cost {skill['cost']} knowledge",
+             SKILL_GROUP_LABEL.get(SKILL_GROUP.get(skill_id), "")]
+    needs = skill.get("prereqs", [])
+    parts.append("needs " + ", ".join(SKILLS[p]["label"] + (" (owned)" if p in skill_tree.unlocked else "") for p in needs)
+                 if needs else "no prerequisites")
+    rank = skill_rank_short(skill_id)
+    if rank:
+        parts.append(rank)
+    if skill_id in route_ids:
+        parts.append(f"step {list(route_ids).index(skill_id) + 1} of {len(route_ids)} on the route")
+    if skill_map_reveal and skill_id in skill_map_reveal["children"]:
+        parts.append("now available")
+    if skill_map_filtered_out(skill_id):
+        parts.append("does not match the current filters")
+    return ". ".join(p for p in parts if p)
+
+
+def skill_map_model():
+    """Everything the map shows, as data (the DOM code only applies it): per node its state, classes, accessible
+    name and route step; per link its classes; plus the detail text. Pure given the game's state."""
+    global skill_map_selected, skill_map_reveal
+    if skill_map_selected is not None and skill_map_selected not in SKILLS:
+        skill_map_selected = None
+    if skill_map_reveal and (skill_map_reveal["skill"] not in skill_tree.unlocked):
+        skill_map_reveal = None
+    layout = skill_map_layout()
+    route = route_to(skill_map_selected) if skill_map_selected else []
+    revealed = skill_map_reveal or {"skill": None, "children": []}
+    nodes, links = {}, {}
+    for skill_id in SKILLS:
+        status = skill_status(skill_id)
+        classes = ["skill-map-node", f"skill-map-node--{status}"]
+        if skill_id == skill_map_selected:
+            classes.append("skill-map-node--selected")
+        if skill_id in route:
+            classes.append("skill-map-node--route")
+        if skill_map_filtered_out(skill_id):
+            classes.append("skill-map-node--filtered")
+        if skill_id == revealed["skill"]:
+            classes.append("skill-map-node--just-bought")
+        if skill_id in revealed["children"]:
+            classes.append("skill-map-node--now-available")
+        x, y, tier = layout[skill_id]
+        nodes[skill_id] = {
+            "status": status,
+            "classes": classes,
+            "x": x, "y": y, "tier": tier,
+            "filtered": skill_map_filtered_out(skill_id),
+            "step": route.index(skill_id) + 1 if skill_id in route else None,
+            "label": skill_map_node_label(skill_id, route),
+            "rank": skill_rank_short(skill_id),
+        }
+    for skill_id, skill in SKILLS.items():
+        for pre in skill.get("prereqs", []):
+            classes = ["skill-map-link"]
+            if pre in skill_tree.unlocked and skill_id in skill_tree.unlocked:
+                classes.append("skill-map-link--owned")
+            if skill_id in route:
+                classes.append("skill-map-link--route")
+            if pre == revealed["skill"] and skill_id in revealed["children"]:
+                classes.append("skill-map-link--lit")
+            if nodes[pre]["filtered"] or nodes[skill_id]["filtered"]:
+                classes.append("skill-map-link--filtered")
+            links[(pre, skill_id)] = {"classes": classes}
+    return {
+        "nodes": nodes,
+        "links": links,
+        "route": route,
+        "detail": skill_map_detail_text(),
+        "reveal": reveal_text(),
+        "summary": skill_filter_summary(),
+    }
+
+
+# ---- DOM: the map is built once, then updated in place (so keyboard focus and the pan/zoom survive) ----
+_skill_map_parts = {}  # skill_id -> {"button", "glyph", "state", "rank", "step"}; "links" -> {(pre, id): element}
+_skill_map_built = False
+SVG_NS = "http://www.w3.org/2000/svg"
+
+
+def _svg(tag):
+    create_ns = getattr(document, "createElementNS", None)
+    return create_ns(SVG_NS, tag) if create_ns is not None else document.createElement(tag)
+
+
+def _span(css_class, text=""):
+    span = document.createElement("span")
+    span.className = css_class
+    span.innerText = text
+    return span
+
+
+def _link_path(pre, skill_id, layout):
+    x1 = layout[pre][0] + MAP_NODE_W
+    y1 = layout[pre][1] + MAP_NODE_H / 2
+    x2 = layout[skill_id][0]
+    y2 = layout[skill_id][1] + MAP_NODE_H / 2
+    bend = (x2 - x1) / 2
+    return f"M {x1:.0f} {y1:.0f} C {x1 + bend:.0f} {y1:.0f}, {x2 - bend:.0f} {y2:.0f}, {x2 - 6:.0f} {y2:.0f}"
+
+
+def build_skill_map():
+    """Builds the nodes and links once. Every handler is wired here; render_skill_map() only changes
+    classes and text afterwards."""
+    global _skill_map_built
+    canvas = _el("skill-map-canvas")
+    if canvas is None or _skill_map_built:
+        return
+    _skill_map_built = True
+    width, height = skill_map_size()
+    canvas.innerHTML = ""
+    canvas.style.width = f"{width}px"
+    canvas.style.height = f"{height}px"
+    layout = skill_map_layout()
+
+    svg = _svg("svg")
+    svg.setAttribute("class", "skill-map-links")
+    svg.setAttribute("width", str(width))
+    svg.setAttribute("height", str(height))
+    svg.setAttribute("viewBox", f"0 0 {width} {height}")
+    svg.setAttribute("aria-hidden", "true")
+    defs = _svg("defs")
+    marker = _svg("marker")
+    marker.setAttribute("id", "skill-map-arrow")
+    marker.setAttribute("viewBox", "0 0 10 10")
+    marker.setAttribute("refX", "8")
+    marker.setAttribute("refY", "5")
+    marker.setAttribute("markerWidth", "7")
+    marker.setAttribute("markerHeight", "7")
+    marker.setAttribute("orient", "auto-start-reverse")
+    arrow = _svg("path")
+    arrow.setAttribute("d", "M 0 0 L 10 5 L 0 10 z")
+    arrow.setAttribute("class", "skill-map-arrow")
+    marker.appendChild(arrow)
+    defs.appendChild(marker)
+    svg.appendChild(defs)
+    _skill_map_parts["links"] = {}
+    for skill_id, skill in SKILLS.items():
+        for pre in skill.get("prereqs", []):
+            path = _svg("path")
+            path.setAttribute("d", _link_path(pre, skill_id, layout))
+            path.setAttribute("class", "skill-map-link")
+            path.setAttribute("marker-end", "url(#skill-map-arrow)")
+            path.setAttribute("data-from", pre)
+            path.setAttribute("data-to", skill_id)
+            svg.appendChild(path)
+            _skill_map_parts["links"][(pre, skill_id)] = path
+    canvas.appendChild(svg)
+
+    for skill_id, skill in SKILLS.items():
+        x, y, _tier = layout[skill_id]
+        button = document.createElement("button")
+        button.id = f"skill-map-node-{skill_id}"
+        button.setAttribute("type", "button")
+        button.setAttribute("data-skill", skill_id)
+        button.setAttribute("tabindex", "-1")
+        button.setAttribute("aria-pressed", "false")
+        button.style.left = f"{x}px"
+        button.style.top = f"{y}px"
+        button.style.width = f"{MAP_NODE_W}px"
+        button.style.height = f"{MAP_NODE_H}px"
+        glyph = _span("skill-map-glyph")
+        glyph.setAttribute("aria-hidden", "true")
+        name = _span("skill-map-name", skill["label"])
+        group = SKILL_GROUP_LABEL.get(SKILL_GROUP.get(skill_id), "")
+        meta_line = _span("skill-map-meta", f"Cost {skill['cost']} · {group}" if group else f"Cost {skill['cost']}")
+        state = _span("skill-map-state")
+        rank = _span("skill-map-rank")
+        step = _span("skill-map-step")
+        for part in (glyph, name, meta_line, state, rank, step):
+            button.appendChild(part)
+        button.addEventListener("click", create_proxy(_make_skill_map_select(skill_id)))
+        canvas.appendChild(button)
+        _skill_map_parts[skill_id] = {"button": button, "glyph": glyph, "state": state, "rank": rank, "step": step}
+
+
+def _make_skill_map_select(skill_id):
+    def handler(event=None):
+        select_skill_on_map(skill_id)
+    return handler
+
+
+def select_skill_on_map(skill_id):
+    """Enter or a click on a node: select it. The detail line and the route follow; the node keeps keyboard
+    focus because the nodes are updated in place."""
+    global skill_map_selected, skill_map_reveal
+    if skill_id not in SKILLS:
+        return False
+    skill_map_selected = skill_id
+    skill_map_reveal = None
+    render()
+    detail = skill_map_detail_text(skill_id)
+    announce(detail)
+    return True
+
+
+def clear_skill_map_selection(event=None):
+    global skill_map_selected, skill_map_reveal
+    skill_map_selected = None
+    skill_map_reveal = None
+    render()
+    announce("Selection cleared.")
+    return True
+
+
+def on_skill_map_unlock(event=None):
+    if skill_map_selected in SKILLS:
+        _make_unlock_handler(skill_map_selected)()
+
+
+def on_skill_map_pin(event=None):
+    if skill_map_selected in SKILLS:
+        toggle_pin_skill(skill_map_selected)
+        render()
+
+
+def render_skill_map():
+    canvas = _el("skill-map-canvas")
+    if canvas is None:
+        return
+    if not _skill_map_built:
+        build_skill_map()
+    model = skill_map_model()
+    viewport = _el("skill-map-viewport")
+    keep = viewport.getAttribute("data-current") if viewport is not None else None
+    usable = [s for s in SKILLS if not model["nodes"][s]["filtered"]]
+    if keep not in usable:
+        keep = skill_map_selected if skill_map_selected in usable else (usable[0] if usable else None)
+        if viewport is not None and keep:
+            viewport.setAttribute("data-current", keep)
+    for skill_id, info in model["nodes"].items():
+        parts = _skill_map_parts.get(skill_id)
+        if parts is None:
+            continue
+        button = parts["button"]
+        button.setAttribute("class", " ".join(info["classes"]))
+        button.setAttribute("aria-label", info["label"])
+        button.setAttribute("aria-pressed", "true" if skill_id == skill_map_selected else "false")
+        button.setAttribute("tabindex", "0" if skill_id == keep else "-1")
+        button.setAttribute("data-filtered", "true" if info["filtered"] else "false")
+        button.setAttribute("data-status", info["status"])
+        parts["glyph"].innerText = SKILL_STATE_GLYPH[info["status"]]
+        parts["state"].innerText = SKILL_STATE_WORD[info["status"]]
+        parts["rank"].innerText = info["rank"]
+        if info["step"] is not None:
+            parts["step"].innerText = f"Route step {info['step']}"
+        elif skill_map_reveal and skill_id in skill_map_reveal["children"]:
+            parts["step"].innerText = "Now available"
+        elif skill_map_reveal and skill_id == skill_map_reveal["skill"]:
+            parts["step"].innerText = "Just unlocked"
+        else:
+            parts["step"].innerText = ""
+    for key, path in _skill_map_parts.get("links", {}).items():
+        path.setAttribute("class", " ".join(model["links"][key]["classes"]))
+    detail = _el("skill-map-detail")
+    if detail is not None:
+        detail.innerText = model["detail"]
+    reveal = _el("skill-map-reveal")
+    if reveal is not None:
+        reveal.innerText = model["reveal"]
+        reveal.hidden = not model["reveal"]
+    summary = _el("skill-map-filter-summary")
+    if summary is not None:
+        summary.innerText = model["summary"]
+    unlock = _el("skill-map-unlock-button")
+    selected = skill_map_selected
+    if unlock is not None:
+        show = selected in SKILLS and skill_status(selected) == "available"
+        unlock.hidden = not show
+        if show:
+            unlock.innerText = f"Unlock {SKILLS[selected]['label']} ({SKILLS[selected]['cost']})"
+    pin = _el("skill-map-pin-button")
+    if pin is not None:
+        show = selected in SKILLS and selected not in skill_tree.unlocked
+        pin.hidden = not show
+        if show:
+            pinned = selected in meta["pinned_skills"]
+            pin.innerText = "\U0001F4CC Pinned" if pinned else "\U0001F4CD Pin"
+    clear = _el("skill-map-clear-button")
+    if clear is not None:
+        clear.disabled = selected is None and not skill_map_reveal
+    text_list = _el("skill-map-text")
+    if text_list is not None:
+        text_list.innerHTML = ""
+        for line in skill_map_text_lines():
+            item = document.createElement("li")
+            item.innerText = line
+            text_list.appendChild(item)
+    clear_filters = _el("skill-map-filter-clear")
+    if clear_filters is not None:
+        clear_filters.hidden = not skill_filters_active()
+    for skill_id in SKILLS:  # GE-16: the list highlights the same newly available skills
+        row = _el(f"skill-{skill_id}-row")
+        if row is not None:
+            if skill_map_reveal and skill_id in skill_map_reveal["children"]:
+                row.classList.add("skill-row--now-available")
+            else:
+                row.classList.remove("skill-row--now-available")
+
+
+def skill_map_text_lines():
+    """The plain-words version of the picture: one sentence per skill with its state, cost, what it needs and
+    what it leads to."""
+    lines = []
+    for skill_id, skill in SKILLS.items():
+        needs = skill.get("prereqs", [])
+        needs_text = "needs " + " and ".join(SKILLS[p]["label"] for p in needs) if needs else "has no prerequisites"
+        leads = [SKILLS[c]["label"] for c in skill_leads_to(skill_id)]
+        leads_text = "leads to " + " and ".join(leads) if leads else "leads nowhere further"
+        lines.append(
+            f"{skill['label']} ({SKILL_GROUP_LABEL.get(SKILL_GROUP.get(skill_id), '')}): "
+            f"{SKILL_STATE_WORD[skill_status(skill_id)].lower()}, cost {skill['cost']}, {needs_text}, {leads_text}."
+        )
+    return lines
+
+
+# ---- E-11: skill ranks, earned by proven use --------------------------------------------------------------
+# Three ranks per skill. Progress is counted ONCE when a run pays out (the same guard as knowledge, so
+# reloading an old save cannot count twice), only for the skills owned at that moment, and only for real
+# runs: a friend's challenge run and a player-built schedule do not count. The numbers come from fields the
+# game already records for every run (the event log: type, damage, severity; and the final resilience, growth
+# and resources). A rank is read from the stored count: it only goes up, is never lost (a reset or a move of a
+# point keeps it), changes nothing in a run and is never needed to finish the game. No luck is involved: the
+# same run always adds the same amount.
+SKILL_RANK_NAMES = ("No rank yet", "Rank 1", "Rank 2", "Rank 3")
+SKILL_BUILD_UNITS = 2  # a starting-build skill counts a run when you built this many units of your own on top of it
+SKILL_RANK_RULES = {
+    "early_warning": {
+        "unit": "accurate previews",
+        "thresholds": (10, 25, 50),
+        "how": ("Every event you face with Early Warning Systems owned counts as one accurate preview: the damage in the "
+                "Expected damage line is the exact figure the event then deals, so a preview you act on is accurate."),
+    },
+    "mutual_aid_network": {
+        "unit": "events held",
+        "thresholds": (8, 20, 40),
+        "how": "Every event you face with Mutual Aid Network owned where your defences prevented at least half its damage.",
+    },
+    "climate_hardening": {
+        "unit": "weather damage prevented",
+        "thresholds": (100, 300, 600),
+        "how": "Damage points prevented from Flood, Heatwave and Storm events while Climate Hardening is owned (base damage times severity, minus what got through).",
+    },
+    "civic_preparedness": {
+        "unit": "unrest damage prevented",
+        "thresholds": (50, 150, 300),
+        "how": "Damage points prevented from Civil Unrest events while Civic Preparedness is owned.",
+    },
+    "reinforced_infrastructure": {
+        "unit": "runs with 4+ resilience",
+        "thresholds": (2, 5, 10),
+        "how": "Runs that end with Resilience at 4 or more (the 2 it gives plus 2 units you built) while Reinforced Infrastructure is owned.",
+    },
+    "community_reserves": {
+        "unit": "runs ending with 50+ resources",
+        "thresholds": (2, 5, 10),
+        "how": "Runs that end with at least 50 resources left (the reserve it gives, still standing) while Community Reserves is owned.",
+    },
+    "adaptive_growth": {
+        "unit": "runs with 3+ growth",
+        "thresholds": (2, 5, 10),
+        "how": "Runs that end with Growth at 3 or more (the 1 it gives plus 2 units you built) while Adaptive Growth Practices is owned.",
+    },
+}
+skill_ranks_just_gained = []  # [(skill_id, new_rank)] from the run that just paid out, for one callout
+
+
+def skill_rank_progress(skill_id):
+    return meta["skill_progress"].get(skill_id, 0) if skill_id in SKILLS else 0
+
+
+def skill_rank(skill_id):
+    rule = SKILL_RANK_RULES.get(skill_id)
+    if rule is None:
+        return 0
+    count = skill_rank_progress(skill_id)
+    return sum(1 for threshold in rule["thresholds"] if count >= threshold)
+
+
+def skill_rank_gains(event_log, resilience, growth, resources, unlocked):
+    """What one finished run adds to each OWNED skill's progress (a dict of whole numbers). Pure: the same
+    inputs always give the same answer."""
+    gains = {}
+    log = [e for e in event_log if isinstance(e, dict) and e.get("type") in EVENT_BASE_DAMAGE]
+    if "early_warning" in unlocked:
+        gains["early_warning"] = len(log)
+    if "mutual_aid_network" in unlocked:
+        gains["mutual_aid_network"] = sum(
+            1 for e in log if (entry_mitigation(e) or 0.0) + 1e-9 >= HELD_PREVENTED_FRACTION
+        )
+    for skill_id, (category, _amount) in CATEGORY_DAMAGE_BONUS.items():
+        if skill_id in unlocked:
+            gains[skill_id] = int(round(sum(entry_prevented(e) for e in log if EVENT_CATEGORY.get(e["type"]) == category)))
+    if "reinforced_infrastructure" in unlocked:
+        gains["reinforced_infrastructure"] = 1 if resilience >= starting_resilience_bonus({"reinforced_infrastructure"}) + SKILL_BUILD_UNITS else 0
+    if "community_reserves" in unlocked:
+        gains["community_reserves"] = 1 if resources >= starting_resources_bonus({"community_reserves"}) else 0
+    if "adaptive_growth" in unlocked:
+        gains["adaptive_growth"] = 1 if growth >= adaptive_growth_bonus({"adaptive_growth"}) + SKILL_BUILD_UNITS else 0
+    return {skill_id: amount for skill_id, amount in gains.items() if amount > 0}
+
+
+def record_skill_progress(run_state):
+    """Adds a paid-out run to the skills' progress. Never raises (ranks are an extra, not part of the run)."""
+    global skill_ranks_just_gained
+    skill_ranks_just_gained = []
+    try:
+        if run_state.normalised or run_state.custom_events:
+            return []
+        owned = {s for s in skill_tree.unlocked if s in SKILLS}
+        gains = skill_rank_gains(run_state.event_log, run_state.resilience_capacity, run_state.growth_capacity,
+                                 run_state.resources, owned)
+        before = {skill_id: skill_rank(skill_id) for skill_id in gains}
+        for skill_id, amount in gains.items():
+            meta["skill_progress"][skill_id] = min(SKILL_PROGRESS_MAX, skill_rank_progress(skill_id) + amount)
+        if gains:
+            save_meta()
+        skill_ranks_just_gained = [(s, skill_rank(s)) for s in gains if skill_rank(s) > before[s]]
+    except Exception:  # noqa: BLE001
+        skill_ranks_just_gained = []
+    return skill_ranks_just_gained
+
+
+def skill_rank_pips(skill_id):
+    rank = skill_rank(skill_id)
+    return "●" * rank + "○" * (3 - rank)
+
+
+def skill_rank_line(skill_id):
+    """'Rank 1 of 3: 12/25 accurate previews toward rank 2', or '' for a skill with no progress yet."""
+    rule = SKILL_RANK_RULES.get(skill_id)
+    if rule is None:
+        return ""
+    count, rank = skill_rank_progress(skill_id), skill_rank(skill_id)
+    if count <= 0 and skill_id not in skill_tree.unlocked:
+        return ""
+    label = SKILL_RANK_NAMES[rank] if rank == 0 else f"Rank {rank} of 3"
+    if rank >= 3:
+        return f"{skill_rank_pips(skill_id)} {label} (top rank): {count} {rule['unit']}"
+    return f"{skill_rank_pips(skill_id)} {label}: {count}/{rule['thresholds'][rank]} {rule['unit']} toward rank {rank + 1}"
+
+
+def skill_rank_short(skill_id):
+    rule = SKILL_RANK_RULES.get(skill_id)
+    if rule is None or (skill_rank_progress(skill_id) <= 0 and skill_id not in skill_tree.unlocked):
+        return ""
+    count, rank = skill_rank_progress(skill_id), skill_rank(skill_id)
+    if rank >= 3:
+        return f"{skill_rank_pips(skill_id)} Rank 3/3"
+    return f"{skill_rank_pips(skill_id)} Rank {rank}/3 · {count}/{rule['thresholds'][rank]}"
+
+
+def skill_ranks_total():
+    """(ranks earned, ranks possible) across the whole tree, for the completion line."""
+    return sum(skill_rank(s) for s in SKILLS), 3 * len(SKILLS)
+
+
+def skill_ranks_summary_text():
+    earned, possible = skill_ranks_total()
+    return f"Skill ranks: {earned} of {possible} earned by using your skills (optional, nothing needs them)."
+
+
+def skill_rank_callout_text():
+    if not skill_ranks_just_gained:
+        return ""
+    parts = [f"{SKILLS[s]['label']} reached rank {rank}" for s, rank in skill_ranks_just_gained]
+    return "Skill rank up: " + "; ".join(parts) + "."
+
+
+def skill_rank_rule_lines():
+    lines = []
+    for skill_id in SKILLS:
+        rule = SKILL_RANK_RULES[skill_id]
+        a, b, c = rule["thresholds"]
+        lines.append(f"{SKILLS[skill_id]['label']}: rank 1 at {a}, rank 2 at {b}, rank 3 at {c} {rule['unit']}. {rule['how']}")
+    return lines
+
+
+def render_skill_ranks():
+    for skill_id in SKILLS:
+        rank_el = _el(f"skill-{skill_id}-rank")
+        if rank_el is not None:
+            rank_el.innerText = skill_rank_line(skill_id)
+    summary = _el("skill-ranks-summary")
+    if summary is not None:
+        summary.innerText = skill_ranks_summary_text()
+    rules = _el("skill-rank-rules")
+    if rules is not None and not rules.children:
+        for line in skill_rank_rule_lines():
+            item = document.createElement("li")
+            item.innerText = line
+            rules.appendChild(item)
+
+
+
+
+# ===========================================================================
+# GE-10: the Second Founding (optional prestige). Constants, the saved shape (meta["founding"]) and the
+# bonus hooks are above (before _sanitize_meta and _unlocked_or_tree); this is the action and the panel.
+# Strictly optional: nothing in the game asks for it, every effect is a flat number, a Founding skill can be put
+# away for a full refund, and a challenge run ignores all of it (like the rest of the tree).
+# ===========================================================================
+founding_message_text = ""
+
+
+def founding_ready():
+    """The Second Founding opens once EVERY skill is owned and a star is still to be had."""
+    return len(skill_tree.unlocked & set(SKILLS)) == len(SKILLS) and meta["founding"]["stars"] < FOUNDING_MAX_STARS
+
+
+def founding_stars_text():
+    stars = meta["founding"]["stars"]
+    return "★" * stars + "☆" * (FOUNDING_MAX_STARS - stars) + f" {stars} of {FOUNDING_MAX_STARS} Founding stars"
+
+
+def founding_status_text():
+    owned = len(skill_tree.unlocked & set(SKILLS))
+    stars = meta["founding"]["stars"]
+    if stars >= FOUNDING_MAX_STARS:
+        return f"{founding_stars_text()}: all three earned. There is nothing further to begin."
+    if founding_ready():
+        return f"{founding_stars_text()}. You own all {len(SKILLS)} skills, so you may begin a Second Founding whenever you like."
+    return f"{founding_stars_text()}. Own all {len(SKILLS)} skills to begin one ({owned} of {len(SKILLS)} so far)."
+
+
+def founding_refund_total():
+    return sum(FOUNDING_SKILLS[s]["cost"] for s in founding_owned())
+
+
+def founding_kept_lost_text():
+    """What the confirm dialog and the panel say, in the same words: what is lost, what is kept, what is gained."""
+    spent = sum(SKILLS[s]["cost"] for s in skill_tree.unlocked if s in SKILLS)
+    stars = meta["founding"]["stars"] + 1
+    held = founding_owned()
+    lost = (f"Lost: all {len(skill_tree.unlocked & set(SKILLS))} skills you own, and the {spent} knowledge they cost "
+            "is not refunded, so you buy the tree again from the start.")
+    if held:
+        lost += f" Any Founding skills you hold are put away for a full refund ({founding_refund_total()} knowledge)."
+    kept = (f"Kept: the {skill_tree.knowledge_points + founding_refund_total()} knowledge you will have in hand, your lifetime knowledge, "
+            "skill ranks, run history, achievements, settlement memory and legacy, presets, schedules and notes.")
+    gained = (f"Gained: Founding star {stars} of {FOUNDING_MAX_STARS} (+{FOUNDING_STAR_RESOURCES} starting resources every run, "
+              "for good) and the three Founding skills to buy, each with a strong trade-off.")
+    return " ".join((lost, kept, gained))
+
+
+def begin_second_founding():
+    """Gives the tree up for a Founding star. Returns (ok, message)."""
+    global founding_message_text, skill_map_selected, skill_map_reveal
+    if not founding_ready():
+        return False, "A Second Founding needs all skills owned and a star still to earn."
+    refund = founding_refund_total()
+    skill_tree.unlocked = set()
+    skill_tree.knowledge_points += refund
+    skill_tree.save()
+    meta["founding"] = {"stars": meta["founding"]["stars"] + 1, "owned": []}
+    save_meta()
+    skill_map_selected = None
+    skill_map_reveal = None
+    founding_message_text = (
+        f"The Second Founding has begun. Founding star {meta['founding']['stars']} of {FOUNDING_MAX_STARS} is yours, "
+        f"you start every run with {founding_star_resources()} more resources, and the Founding skills can be bought. "
+        f"Knowledge in hand: {skill_tree.knowledge_points}."
+    )
+    announce(founding_message_text)
+    return True, founding_message_text
+
+
+def founding_skill_status(skill_id):
+    """locked (no star yet) / owned / affordable / short."""
+    if skill_id not in FOUNDING_SKILLS or meta["founding"]["stars"] < 1:
+        return "locked"
+    if skill_id in founding_owned():
+        return "owned"
+    return "affordable" if skill_tree.knowledge_points >= FOUNDING_SKILLS[skill_id]["cost"] else "short"
+
+
+def buy_founding_skill(skill_id):
+    if founding_skill_status(skill_id) != "affordable":
+        return False
+    skill_tree.knowledge_points -= FOUNDING_SKILLS[skill_id]["cost"]
+    skill_tree.save()
+    meta["founding"]["owned"] = [s for s in FOUNDING_SKILLS if s in founding_owned() or s == skill_id]
+    save_meta()
+    return True
+
+
+def put_away_founding_skill(skill_id):
+    """A Founding skill can be swapped any time for a full refund (they are trade-offs, so trying them is free)."""
+    if skill_id not in founding_owned():
+        return False
+    skill_tree.knowledge_points += FOUNDING_SKILLS[skill_id]["cost"]
+    skill_tree.save()
+    meta["founding"]["owned"] = [s for s in FOUNDING_SKILLS if s in founding_owned() and s != skill_id]
+    save_meta()
+    return True
+
+
+def founding_skill_text(skill_id):
+    skill = FOUNDING_SKILLS[skill_id]
+    state = founding_skill_status(skill_id)
+    head = f"{skill['label']} (costs {skill['cost']} knowledge): {skill['gain']}. The price: {skill['price']}."
+    if state == "locked":
+        return head + " Locked until you have a Founding star."
+    if state == "owned":
+        return head + " Yours. Put it away for a full refund any time."
+    if state == "short":
+        return head + f" You need {skill['cost'] - skill_tree.knowledge_points} more knowledge."
+    return head + " You can buy it now."
+
+
+_founding_parts = {}
+
+
+def build_founding_panel():
+    holder = _el("founding-skills")
+    if holder is None or _founding_parts:
+        return
+    holder.innerHTML = ""
+    for skill_id in FOUNDING_SKILLS:
+        item = document.createElement("li")
+        item.className = "founding-skill"
+        text = document.createElement("p")
+        text.className = "founding-skill-text"
+        buy = document.createElement("button")
+        buy.className = "secondary"
+        buy.setAttribute("type", "button")
+        buy.setAttribute("data-action", "buy")
+        buy.setAttribute("data-founding", skill_id)
+        away = document.createElement("button")
+        away.className = "secondary"
+        away.setAttribute("type", "button")
+        away.setAttribute("data-action", "away")
+        away.setAttribute("data-founding", skill_id)
+        item.appendChild(text)
+        item.appendChild(buy)
+        item.appendChild(away)
+        holder.appendChild(item)
+        _founding_parts[skill_id] = {"item": item, "text": text, "buy": buy, "away": away}
+
+
+def render_founding():
+    status = _el("founding-status")
+    if status is None:
+        return
+    build_founding_panel()
+    status.innerText = founding_status_text()
+    kept = _el("founding-kept-lost")
+    if kept is not None:
+        kept.innerText = founding_kept_lost_text() if founding_ready() else (
+            "Beginning one would cost you every skill you own (their knowledge is not refunded) and give you a permanent "
+            f"Founding star, +{FOUNDING_STAR_RESOURCES} starting resources every run and three Founding skills. "
+            "Everything else is kept: knowledge in hand, lifetime knowledge, ranks, run history, achievements, memory, presets and notes."
+        )
+    begin = _el("founding-begin-button")
+    if begin is not None:
+        begin.disabled = not founding_ready()
+    message = _el("founding-message")
+    if message is not None:
+        message.innerText = founding_message_text
+    for skill_id, parts in _founding_parts.items():
+        state = founding_skill_status(skill_id)
+        parts["text"].innerText = founding_skill_text(skill_id)
+        parts["item"].setAttribute("data-state", state)
+        parts["buy"].innerText = f"Buy ({FOUNDING_SKILLS[skill_id]['cost']})"
+        parts["buy"].hidden = state in ("locked", "owned")
+        parts["buy"].disabled = state != "affordable"
+        parts["away"].innerText = f"Put away (refund {FOUNDING_SKILLS[skill_id]['cost']})"
+        parts["away"].hidden = state != "owned"
+
+
+def on_founding_begin(event=None):
+    if not founding_ready():
+        return
+
+    def _do():
+        global founding_message_text
+        ok, text = begin_second_founding()
+        founding_message_text = text
+        render()
+
+    _confirm_dialog_ask(
+        action_id="aftermath-second-founding",
+        message="Begin a Second Founding? " + founding_kept_lost_text() + " This cannot be undone, and nothing in the game needs it.",
+        confirm_label="Begin the Second Founding",
+        on_confirm=_do,
+        allow_skip=False,
+    )
+
+
+def on_founding_event(event=None):
+    global founding_message_text
+    target = getattr(event, "target", None)
+    if target is None:
+        return
+    action, skill_id = target.getAttribute("data-action"), target.getAttribute("data-founding")
+    if skill_id not in FOUNDING_SKILLS:
+        return
+    if action == "buy" and buy_founding_skill(skill_id):
+        founding_message_text = f"{FOUNDING_SKILLS[skill_id]['label']} is yours. {FOUNDING_SKILLS[skill_id]['gain']}; the price: {FOUNDING_SKILLS[skill_id]['price']}."
+    elif action == "away" and put_away_founding_skill(skill_id):
+        founding_message_text = f"{FOUNDING_SKILLS[skill_id]['label']} put away; {FOUNDING_SKILLS[skill_id]['cost']} knowledge refunded."
+    else:
+        return
+    announce(founding_message_text)
+    render()
 
 
 def _listen(element_id, event_name, handler):
@@ -5952,6 +7027,14 @@ def _wire_round3_batch2():
     _listen("builder-save-button", "click", on_builder_save)
     _listen("save-health-export-button", "click", on_save_health_export)
     _listen("challenge-leave-button", "click", leave_challenge)
+    _listen("skill-map-search-input", "input", on_skill_map_search)
+    _listen("skill-map-filter-clear", "click", on_skill_filter_clear)
+    _listen("skill-map-clear-button", "click", clear_skill_map_selection)
+    _listen("skill-map-unlock-button", "click", on_skill_map_unlock)
+    _listen("skill-map-pin-button", "click", on_skill_map_pin)
+    build_skill_map()  # E-2
+    _listen("founding-begin-button", "click", on_founding_begin)
+    _listen("founding-skills", "click", on_founding_event)
     _listen("skill-move-button", "click", on_skill_move)
     _listen("skill-move-from", "change", on_skill_move_select)
     _listen("skill-move-to", "change", on_skill_move_select)

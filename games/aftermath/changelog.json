@@ -1,6 +1,14 @@
 [
   {
     "date": "2026-10-11",
+    "entry": "New: an optional Second Founding. Once you own every skill, a new panel lets you give the whole tree up for a permanent Founding star (up to three): you start every run with 10 more resources per star, and three Founding-only skills open up, each with a strong trade-off (Stormwall Doctrine: weather damage down 40% but 80 fewer starting resources; Open Granaries: supply-chain, infrastructure and heat-health damage down 30% but 60 fewer starting resources; Frontier Charter: 100 more starting resources and 2 more growth, but Early Warning Systems and Mutual Aid Network stop adding mitigation). The panel and the confirm say exactly what is lost (the skills, with no refund) and what is kept (your knowledge in hand, lifetime knowledge, ranks, history, achievements and the rest). Founding skills can be put away for a full refund at any time, and nothing in the game needs any of it."
+  },
+  {
+    "date": "2026-10-11",
+    "entry": "New: a skill map, skill ranks and an unlock reveal. The skill map (a Skill map section, or Menu > Skill map on the Desktop layout; press M) shows the tree as connected nodes you can drag, zoom (+, - and 0, or the buttons) and move around with the arrow keys. Select a locked skill and the whole route to it lights up, numbered, with the total knowledge it needs and how much you are short; the same search and filter chips as the skill list apply, and the map is also written out in words. Each skill now has three ranks, earned by using it in real runs (for example Early Warning Systems ranks up after 10, 25 and 50 accurate previews, Climate Hardening after preventing 100, 300 and 600 weather damage): they are optional, never lost, change nothing in a run and are not needed for anything. When you unlock a skill it glow-pulses (a plain highlight if you reduce motion), the links to what it opened light up, and a line says Now available with the names."
+  },
+  {
+    "date": "2026-10-11",
     "entry": "New: Move a point. In the skill tree, a new panel lets you swap one skill you own for another without a restart. It costs 1 knowledge on top of the price difference, and a skill that other skills depend on cannot be moved. Your lifetime knowledge total is unchanged."
   },
   {
