@@ -5673,6 +5673,7 @@ def render():
     render_skill_ranks()  # E-11
     render_skill_map()  # E-2 / GE-16
     render_founding()  # GE-10
+    render_mood_strip()  # GE-20
     render_challenge()  # E-4
     document.getElementById("curriculum-display").innerText = curriculum_message()
     document.getElementById("resources-display").innerText = f"Resources: {run.resources:.0f}"
@@ -6992,8 +6993,6 @@ def render_skill_ranks():
             rules.appendChild(item)
 
 
-
-
 # ===========================================================================
 # GE-10: the Second Founding (optional prestige). Constants, the saved shape (meta["founding"]) and the
 # bonus hooks are above (before _sanitize_meta and _unlocked_or_tree); this is the action and the panel.
@@ -7203,6 +7202,70 @@ def on_founding_event(event=None):
         return
     announce(founding_message_text)
     render()
+
+
+# ---------------------------------------------------------------------------
+# GE-20: the settlement mood strip. Five tiny citizens whose faces move from grinning to grim as the
+# run's resources and mitigation change. Purely a readout (no number in the game reads it), always
+# also written as words, and redrawn by every render() so each allocation click moves it.
+# ---------------------------------------------------------------------------
+MOOD_FACES = ("\U0001F600", "\U0001F642", "\U0001F610", "\U0001F61F", "\U0001F628")  # grinning .. fearful
+MOOD_WORDS = ("cheerful", "content", "uneasy", "worried", "frightened")
+MOOD_CITIZENS = 5
+# Each citizen leans a little differently, so the strip changes one face at a time rather than all at once.
+MOOD_LEANS = (-0.10, -0.04, 0.0, 0.05, 0.11)
+MOOD_RESOURCE_FULL = 200.0  # resources that count as "comfortable" (the classic starting purse)
+
+
+def settlement_mood_score(run_state):
+    """0.0 (grim) to 1.0 (grinning): half from resources in hand against a comfortable purse, half from
+    how much of the damage the settlement is currently shrugging off (mitigation against its 85% cap)."""
+    purse = min(1.0, max(0.0, run_state.resources / MOOD_RESOURCE_FULL))
+    shelter = min(1.0, max(0.0, run_state.mitigation_fraction() / MAX_MITIGATION))
+    return 0.5 * purse + 0.5 * shelter
+
+
+def mood_levels(score):
+    """One face level per citizen, 0 (grinning) to 4 (fearful)."""
+    levels = []
+    for lean in MOOD_LEANS:
+        value = min(0.999, max(0.0, score + lean))
+        levels.append(min(len(MOOD_FACES) - 1, int((1.0 - value) * len(MOOD_FACES))))
+    return levels
+
+
+def mood_summary(run_state):
+    """(faces, label) for the strip: the faces in order and the text that says the same in words."""
+    levels = mood_levels(settlement_mood_score(run_state))
+    smiling = sum(1 for level in levels if level <= 1)
+    average = round(sum(levels) / len(levels))
+    word = MOOD_WORDS[min(len(MOOD_WORDS) - 1, max(0, average))]
+    label = f"Settlement mood: {word}. {smiling} of {len(levels)} citizens are smiling."
+    return [MOOD_FACES[level] for level in levels], label
+
+
+_mood_parts = []
+
+
+def render_mood_strip():
+    strip = _el("mood-strip")
+    caption = _el("mood-caption")
+    if strip is None:
+        return  # a cached older page without the strip
+    if not _mood_parts:
+        for _ in range(MOOD_CITIZENS):
+            face = document.createElement("span")
+            face.className = "mood-face"
+            face.setAttribute("aria-hidden", "true")
+            strip.appendChild(face)
+            _mood_parts.append(face)
+    faces, label = mood_summary(run)
+    for part, glyph in zip(_mood_parts, faces):
+        part.innerText = glyph
+    strip.setAttribute("aria-label", label)
+    strip.title = label
+    if caption is not None:
+        caption.innerText = label
 
 
 def _listen(element_id, event_name, handler):

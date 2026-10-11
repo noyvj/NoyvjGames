@@ -1,6 +1,10 @@
 [
   {
     "date": "2026-10-11",
+    "entry": "New: a settlement mood strip. Five tiny citizens sit under the Growth line and their faces move from grinning to fearful as your resources and your mitigation change, redrawn on every allocation click. It is only a readout (nothing in the game reads it) and the same thing is always written beside it in words, with a screen-reader label: 'Settlement mood: content. 3 of 5 citizens are smiling.'"
+  },
+  {
+    "date": "2026-10-11",
     "entry": "New, off by default: Mutual aid from neighbouring towns (Settings). Once players' average resilience across the site reaches 3 of 7 skills, each of your runs gets one fixed gift of 15, 20 or 25 resources just before one fixed event. Which event and how much depend only on the run number, so it is never luck and the page tells you before the run starts (and why, when no help is coming). A run that received aid is marked: it stays off the hardest-schedule board, is not a Past Runs record, earns no toughest-run badge and has no run code. No achievement needs it, and challenge runs and built schedules never get aid."
   },
   {

@@ -2115,3 +2115,13 @@ html[data-theme="light"] .event-category--health { color: #0b6b5a; text-shadow: 
 html[data-theme="light"] .past-run-event { opacity: 1; }
 html[data-theme="light"] .severity--mild { opacity: 0.85; }
 html[data-theme="light"] .feedback-buttons .secondary.selected { color: #ffffff; }
+
+/* ============================================================
+   Batch 3 (2026-10-11): GE-20 mood strip, GE-25 settlement looks, GE-14 hit effects, GE-26 countdown,
+   GE-23 run timer, E-31 achievements strip, E-7 chronicle, E-26 tap targets.
+   ============================================================ */
+/* GE-20 */
+.mood-wrap { display: flex; flex-wrap: wrap; align-items: center; gap: 0.35rem 0.6rem; }
+.mood-strip { display: inline-flex; gap: 0.1rem; font-size: 1.25rem; line-height: 1.2; }
+.mood-face { display: inline-block; min-width: 1.4em; text-align: center; }
+.mood-caption { font-size: 0.85rem; }

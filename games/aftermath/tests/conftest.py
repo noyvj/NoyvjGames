@@ -215,6 +215,9 @@ ELEMENT_IDS = [
     # R-31: mutual aid from neighbouring towns.
     "neighbour-aid-checkbox",
     "neighbour-aid-display",
+    # Batch 3 (2026-10-11): GE-20 mood strip.
+    "mood-strip",
+    "mood-caption",
 ]
 for _skill in SKILL_IDS:
     ELEMENT_IDS += [
