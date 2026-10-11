@@ -436,6 +436,7 @@ OVERSEAS_IMPORT_SUPPLY_PER_UNIT = 15.0
 
 # Round-2 (H6/H26/H27/H28): UI-only tuning.
 PARTNER_COSTS = {"trade": TRADE_LINK_COST, "regional": REGIONAL_TRADE_COST, "overseas": OVERSEAS_TRADE_COST}
+GAME_ID = "loop"
 STRAIN_TIER_THRESHOLDS = (0.05, 0.15, 0.3, 0.5)  # GH-16: strain levels where each crack tier starts
 BUY_MULTIPLES = (1, 5, 10)  # H-14: the x1 / x5 / x10 chips
 PARTNER_LABELS = {"trade": "Trade Link", "regional": "Regional Partner", "overseas": "Overseas Consortium"}
@@ -3982,6 +3983,25 @@ def on_dismiss_regional_hint(event=None):
     render()
 
 
+def on_replay_tips(event=None):
+    """H-30: brings the one-time tips back. The Regional Partner hint (kept in the save) shows again
+    the next time the partner is affordable, and the tutorial offers itself again on the next visit
+    (its seen flag lives in the browser). Nothing about the game itself changes."""
+    global regional_hint_seen
+    regional_hint_seen = False
+    window = _window()
+    if window is not None:
+        try:
+            window.localStorage.removeItem(f"tutorial-seen:{GAME_ID}")
+        except Exception:  # noqa: BLE001 -- no storage (private mode): the in-game hint still resets
+            pass
+    render()
+    document.getElementById("replay-tips-status").innerText = (
+        "Tips reset. The Regional Partner hint will show again once you can afford it, and the tutorial will "
+        "offer itself again on your next visit (or press Tutorial to run it now)."
+    )
+
+
 def _make_relabel_handler(category):
     """H4: cosmetic-only -- changes labels/vignette item, deliberately
     does NOT add to goods_categories_tried (that counter and the
@@ -4521,6 +4541,7 @@ def setup():
     document.getElementById("overseas-trade-invest-button").addEventListener(
         "click", create_proxy(on_invest_overseas_trade)
     )
+    document.getElementById("replay-tips-button").addEventListener("click", create_proxy(on_replay_tips))
     document.getElementById("regional-hint-dismiss-button").addEventListener(
         "click", create_proxy(on_dismiss_regional_hint)
     )

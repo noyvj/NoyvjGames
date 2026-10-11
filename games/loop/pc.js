@@ -56,8 +56,12 @@ window.LOOP_PC_TUTORIAL_STEPS = [
 // The Supply map fold-out holds the text map and the visual-view toggle that make up the trade panel's
 // lower half; on a wide window there is room, so it starts open.
 document.addEventListener("DOMContentLoaded", () => {
+  // Only a default: a fold-out the player has opened or shut before keeps their choice (settings.js).
+  const remembered = (id) => {
+    try { return window.localStorage.getItem("loop-panel-open:" + id) !== null; } catch (e) { return false; }
+  };
   const map = document.getElementById("network-map-panel");
-  if (map) map.open = true;
+  if (map && !remembered("network-map-panel")) map.open = true;
   const relabel = document.getElementById("relabel-goods-panel");
-  if (relabel) relabel.open = true; // it lives in its own window here, so no need to unfold it first
+  if (relabel && !remembered("relabel-goods-panel")) relabel.open = true; // its own window here, so no need to unfold it first
 });

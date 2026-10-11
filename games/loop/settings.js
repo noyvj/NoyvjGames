@@ -208,7 +208,75 @@
     return parseInt(text, 10);
   }
 
+  // H-21: every fold-out with an id remembers whether it was left open, and (Classic layout only) the main
+  // panels get a chevron that collapses them. Browser preferences, kept in localStorage, never in a save.
+  const PANEL_PREFIX = "loop-panel-open:";
+  const COLLAPSE_PREFIX = "loop-panel-collapsed:";
+  const CHEVRON_PANELS = [
+    ["chain-flow-section", "The chain"],
+    ["status", "Dashboard"],
+    ["circularity", "Investments"],
+    ["trade-network", "Trade network"],
+    ["pool-section", "Regional pool"],
+  ];
+
+  function storedFlag(key) {
+    try {
+      const raw = window.localStorage.getItem(key);
+      if (raw === "1") return true;
+      if (raw === "0") return false;
+    } catch (e) {
+      // no storage: the panel keeps its markup default
+    }
+    return null;
+  }
+
+  function rememberFoldouts() {
+    document.querySelectorAll("details[id]").forEach(function (details) {
+      const saved = storedFlag(PANEL_PREFIX + details.id);
+      if (saved !== null) details.open = saved;
+      details.addEventListener("toggle", function () {
+        writeStored(PANEL_PREFIX + details.id, details.open ? "1" : "0");
+      });
+    });
+  }
+
+  function addChevrons() {
+    if (document.documentElement.getAttribute("data-layout") === "pc") return;
+    CHEVRON_PANELS.forEach(function (entry) {
+      const section = document.getElementById(entry[0]);
+      if (!section || section.querySelector(":scope > .panel-chevron")) return;
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "panel-chevron";
+      button.setAttribute("aria-controls", entry[0]);
+      const icon = document.createElement("span");
+      icon.className = "panel-chevron-icon";
+      icon.setAttribute("aria-hidden", "true");
+      const label = document.createElement("span");
+      label.className = "panel-chevron-label";
+      label.textContent = entry[1];
+      button.appendChild(icon);
+      button.appendChild(label);
+      function paint(collapsed) {
+        section.classList.toggle("is-collapsed", collapsed);
+        button.setAttribute("aria-expanded", collapsed ? "false" : "true");
+        button.setAttribute("aria-label", (collapsed ? "Expand " : "Collapse ") + entry[1]);
+        icon.textContent = collapsed ? "\u25B8" : "\u25BE";
+      }
+      paint(storedFlag(COLLAPSE_PREFIX + entry[0]) === true);
+      button.addEventListener("click", function () {
+        const collapsed = !section.classList.contains("is-collapsed");
+        paint(collapsed);
+        writeStored(COLLAPSE_PREFIX + entry[0], collapsed ? "1" : "0");
+      });
+      section.insertBefore(button, section.firstChild);
+    });
+  }
+
   function init() {
+    rememberFoldouts();
+    addChevrons();
     let scale = readStoredScale();
     applyScale(scale);
     let reduced = readStoredMotion();

@@ -184,6 +184,9 @@ ELEMENT_IDS = [
     "invest-ripple",
     "invest-float",
     "game",
+    # H-30: replay tips.
+    "replay-tips-button",
+    "replay-tips-status",
 ]
 
 

@@ -1865,11 +1865,11 @@ html[data-theme="light"] {
   --crack-c: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='84' height='84' viewBox='0 0 84 84'%3E%3Cpath d='M0 0 L14 12 L10 20 L22 28' fill='none' stroke='rgb(40,36,50)' stroke-width='1.3' stroke-linejoin='bevel' stroke-linecap='round'/%3E%3Cpath d='M14 12 L22 8' fill='none' stroke='rgb(40,36,50)' stroke-width='1.3' stroke-linejoin='bevel' stroke-linecap='round'/%3E%3C/svg%3E");
   --crack-d: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='84' height='84' viewBox='0 0 84 84'%3E%3Cpath d='M84 84 L70 70 L74 62 L62 54' fill='none' stroke='rgb(40,36,50)' stroke-width='1.3' stroke-linejoin='bevel' stroke-linecap='round'/%3E%3Cpath d='M70 70 L62 76' fill='none' stroke='rgb(40,36,50)' stroke-width='1.3' stroke-linejoin='bevel' stroke-linecap='round'/%3E%3C/svg%3E");
 }
-#chain-flow-section, #status, #circularity, #pool-section { position: relative; }
-#game[data-damage-tier="1"] :is(#chain-flow-section, #status, #circularity, #pool-section)::after,
-#game[data-damage-tier="2"] :is(#chain-flow-section, #status, #circularity, #pool-section)::after,
-#game[data-damage-tier="3"] :is(#chain-flow-section, #status, #circularity, #pool-section)::after,
-#game[data-damage-tier="4"] :is(#chain-flow-section, #status, #circularity, #pool-section)::after {
+#chain-flow-section, #status, #circularity, #trade-network, #pool-section { position: relative; }
+#game[data-damage-tier="1"] :is(#chain-flow-section, #status, #circularity, #trade-network, #pool-section)::after,
+#game[data-damage-tier="2"] :is(#chain-flow-section, #status, #circularity, #trade-network, #pool-section)::after,
+#game[data-damage-tier="3"] :is(#chain-flow-section, #status, #circularity, #trade-network, #pool-section)::after,
+#game[data-damage-tier="4"] :is(#chain-flow-section, #status, #circularity, #trade-network, #pool-section)::after {
   content: "";
   position: absolute;
   inset: 0;
@@ -1879,11 +1879,11 @@ html[data-theme="light"] {
   background-position: top right, bottom left, top left, bottom right;
   transition: opacity 1.2s ease;
 }
-#game[data-damage-tier="1"] :is(#chain-flow-section, #status, #circularity, #pool-section)::after { background-image: var(--crack-a); opacity: 0.5; }
-#game[data-damage-tier="2"] :is(#chain-flow-section, #status, #circularity, #pool-section)::after { background-image: var(--crack-a), var(--crack-b); opacity: 0.6; }
-#game[data-damage-tier="3"] :is(#chain-flow-section, #status, #circularity, #pool-section)::after { background-image: var(--crack-a), var(--crack-b), var(--crack-c); opacity: 0.7; }
-#game[data-damage-tier="4"] :is(#chain-flow-section, #status, #circularity, #pool-section)::after { background-image: var(--crack-a), var(--crack-b), var(--crack-c), var(--crack-d); opacity: 0.85; }
-html[data-cracks="off"] #game :is(#chain-flow-section, #status, #circularity, #pool-section)::after { display: none; }
+#game[data-damage-tier="1"] :is(#chain-flow-section, #status, #circularity, #trade-network, #pool-section)::after { background-image: var(--crack-a); opacity: 0.5; }
+#game[data-damage-tier="2"] :is(#chain-flow-section, #status, #circularity, #trade-network, #pool-section)::after { background-image: var(--crack-a), var(--crack-b); opacity: 0.6; }
+#game[data-damage-tier="3"] :is(#chain-flow-section, #status, #circularity, #trade-network, #pool-section)::after { background-image: var(--crack-a), var(--crack-b), var(--crack-c); opacity: 0.7; }
+#game[data-damage-tier="4"] :is(#chain-flow-section, #status, #circularity, #trade-network, #pool-section)::after { background-image: var(--crack-a), var(--crack-b), var(--crack-c), var(--crack-d); opacity: 0.85; }
+html[data-cracks="off"] #game :is(#chain-flow-section, #status, #circularity, #trade-network, #pool-section)::after { display: none; }
 /* the starfield dims a little as strain grows */
 .ambient-bg { transition: filter 1.5s ease; }
 body:has(#game[data-damage-tier="3"]) .ambient-bg { filter: brightness(0.82) saturate(0.85); }
@@ -1927,3 +1927,17 @@ html[data-particle-shapes="on"] .import-flow-particle {
 html[data-particle-shapes="on"] .chain-flow--closed .flow-particle,
 html[data-particle-shapes="on"] .return-flow-particle { color: #4c9c6e; }
 html[data-particle-shapes="on"] .import-flow-particle { color: #4c8ed8; }
+
+/* H-21: collapse chevrons on the main panels (Classic only; the Desktop layout has its own windows). Each
+   panel and fold-out remembers whether you left it open or shut. */
+.panel-chevron {
+  position: absolute; top: 0.3rem; right: 0.4rem; z-index: 4;
+  display: inline-flex; align-items: center; gap: 0.35rem;
+  min-width: 2rem; padding: 0.15rem 0.5rem; font-size: 0.85rem; line-height: 1.2;
+  background: rgba(24, 27, 43, 0.6); border: 1px solid rgba(140, 160, 255, 0.3); border-radius: 8px; color: inherit; cursor: pointer;
+}
+.panel-chevron-label { display: none; font-weight: 600; }
+.section.is-collapsed > .panel-chevron { position: static; display: flex; width: 100%; justify-content: flex-start; }
+.section.is-collapsed > .panel-chevron .panel-chevron-label { display: inline; }
+.section.is-collapsed > :not(.panel-chevron):not(.sr-only) { display: none !important; }
+html[data-layout="pc"] .panel-chevron { display: none; }

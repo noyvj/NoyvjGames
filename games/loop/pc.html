@@ -193,6 +193,10 @@
           <option value="90">When a purchase is over 90% of my funds</option>
         </select>
       </div>
+      <div class="settings-row settings-row--stack">
+        <button id="replay-tips-button" class="secondary" type="button">Replay tips</button>
+        <p id="replay-tips-status" class="comparison-message" role="status"></p>
+      </div>
       <div class="settings-row">
         <button id="settings-reset-button" class="secondary" type="button">Reset to Default</button>
       </div>
@@ -354,7 +358,7 @@
           <ul id="rival-lines" class="passport-list"></ul>
         </div>
       </details>
-      <details class="stats-detail-toggle">
+      <details id="stats-panel" class="stats-detail-toggle">
         <summary>📊 Streak, trend &amp; real-world comparison</summary>
         <div class="stats-detail-body">
           <p id="streak-display" class="status-line">Closed-loop streak: 0 cycle(s) (best: 0)</p>

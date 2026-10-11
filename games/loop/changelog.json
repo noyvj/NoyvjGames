@@ -1,6 +1,10 @@
 [
   {
     "date": "2026-10-11",
+    "entry": "New: every fold-out panel now remembers whether you left it open or shut, and in the Classic layout the chain, dashboard, investments, trade network and regional pool each get a small chevron that collapses the whole panel (it stays collapsed next visit). Settings gains Replay tips, which brings back the one-time Regional Partner hint and offers the tutorial again on your next visit."
+  },
+  {
+    "date": "2026-10-11",
     "entry": "New feel and display options, all in Settings and all easy to switch off: Purchase effects (buying snaps its ring node, ripples outward and floats a '-N raw' number showing how much new extraction you just avoided; silent under Reduce motion), Strain cracks (panels crack and the stars dim a little while damage is high and the loop is open, easing back as you close it), Shaped particles (rings for circular paths, squares for straight ones, so they read apart without colour) and Vibration on purchases and at each 25% mark on phones that allow it (off by default)."
   },
   {
