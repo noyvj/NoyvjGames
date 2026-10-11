@@ -21,6 +21,7 @@ Actions (every request is {"action": ..., ...}; every reply is the whole view):
 
 import json
 
+import achievements
 import benches
 import goals
 import hints
@@ -123,6 +124,9 @@ class Game:
         rungs = {bid: n for bid, n in self.rungs.items() if n}
         if rungs:
             data["rungs"] = rungs
+        earned = achievements.earned(achievements.facts(self.cleared))
+        if earned:
+            data["achievements_earned"] = earned       # written for the hub's dashboard, never read back (load() has no line for it)
         if data:
             data["schema"] = SCHEMA
         return data
@@ -198,11 +202,12 @@ class Game:
     def view(self, message="", ok=True):
         tr = self._trace()
         chapters = self._chapters_view()
+        facts = achievements.facts(self.cleared)
         log = {"shelf": logbook.shelf(self.used), "cards": logbook.cards(self.cleared), "summary": logbook.summary(self.used, self.cleared)}
         return {"ok": ok, "message": message, "bench": self._bench_view(tr, chapters), "verdict": self.verdict, "chapters": chapters,
                 "map": render.map_svg(chapters), "log": log, "totals": progress.totals(self.cleared), "tally": dict(self.tally),
                 "goals": goals.next_goals(self.cleared, self.used), "goals_summary": goals.summary(self.cleared, self.used), "info": info.view(),
-                "difficulty": difficulty}
+                "difficulty": difficulty, "achievements": achievements.view(facts), "achievements_summary": achievements.summary(facts)}
 
     # ---- judging a change ------------------------------------------------------------------------------------------
     def _judge(self):

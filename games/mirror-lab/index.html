@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script src="../../shared/layout-pref.js" data-game-id="mirror-lab" data-pc-page="pc.html" data-classic-page="index.html"></script>
 <title>Mirror Lab - NoyvjGames</title>
 <meta name="description" content="A dark optics bench: place mirrors, splitters and prisms so one beam lights every sensor. Nothing is timed. Working title.">
 <link rel="icon" type="image/svg+xml" href="icons/favicon-mirror-lab.svg">
@@ -23,6 +24,7 @@
 <link rel="stylesheet" href="../../ad-bar.css">
 <link rel="manifest" href="../../manifest.json">
 <!-- Pyodide is loaded by app.js after first paint, so this shell is readable before the engine is warm. -->
+<script src="../../shared/achievement-share.js" data-game-id="mirror-lab" data-game-name="Mirror Lab"></script>
 <link rel="stylesheet" href="../../shared/a11y.css">
 <link rel="stylesheet" href="../../shared/touch-targets.css">
 <link rel="stylesheet" href="../../shared/lite-mode.css">
@@ -38,6 +40,7 @@
     <button id="tutorial-restart-button" type="button">Tutorial</button>
     <button id="benches-toggle-button" type="button" aria-expanded="false" aria-controls="benches-panel">Benches</button>
     <button id="log-toggle-button" type="button" aria-expanded="false" aria-controls="log-panel">Bench Log</button>
+    <button id="achievements-toggle-button" type="button" aria-expanded="false" aria-controls="achievements-panel">Achievements</button>
     <button id="changelog-toggle-button" type="button" aria-expanded="false" aria-controls="changelog-panel">What's New</button>
     <button id="settings-toggle-button" type="button" aria-expanded="false" aria-controls="settings-panel">Settings</button>
     <button id="info-page-toggle-button" type="button" aria-expanded="false" aria-controls="info-page-panel">About</button>
@@ -57,6 +60,12 @@
     <ul id="shelf-list" class="shelf-list"></ul>
     <h3>Circuit cards</h3>
     <ul id="cards-list" class="cards-list"></ul>
+  </section>
+  <section id="achievements-panel" class="panel" hidden aria-labelledby="ach-heading">
+    <h2 id="ach-heading">Achievements</h2>
+    <p id="achievements-count" class="note achievements-count"></p>
+    <p class="note">Every one can be earned in any order, on any difficulty, with no luck and no deadline, and each shows how close you are.</p>
+    <ul id="achievements-list" class="ach-list"></ul>
   </section>
   <section id="info-page-panel" class="panel" hidden aria-labelledby="info-page-heading">
     <h2 id="info-page-heading">About Mirror Lab</h2>
@@ -186,6 +195,11 @@
 <script src="../../shared/story-toggle.js" data-game-id="mirror-lab" data-story-selectors=".story-text"></script>
 <script src="../../shared/confirm-dialog.js"></script>
 <script src="../../shared/difficulty.js"></script>
+<script>
+  // pc.js (the Desktop boot only) defines window.MIRROR_LAB_PC_TUTORIAL_STEPS, because the Classic walkthrough points at
+  // buttons the Desktop layout turns into icons and windows. app.js asks this function which steps to run.
+  window.mirrorLabTutorialSteps = function (classicSteps) { return window.MIRROR_LAB_PC_TUTORIAL_STEPS || classicSteps; };
+</script>
 <script src="app.js"></script>
 <script src="../../shared/whats-new-banner.js" data-game-id="mirror-lab"></script>
 <script src="../../shared/keyboard-shortcuts.js"></script>
@@ -194,6 +208,7 @@
     panels: [
       { toggle: "benches-toggle-button", panel: "benches-panel" },
       { toggle: "log-toggle-button", panel: "log-panel" },
+      { toggle: "achievements-toggle-button", panel: "achievements-panel" },
       { toggle: "changelog-toggle-button", panel: "changelog-panel" },
       { toggle: "settings-toggle-button", panel: "settings-panel" },
       { toggle: "info-page-toggle-button", panel: "info-page-panel" },

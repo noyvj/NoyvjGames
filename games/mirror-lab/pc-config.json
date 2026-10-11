@@ -1,0 +1,42 @@
+{
+  "windows": [
+    ["benches-panel", "benches-toggle-button", "Benches"],
+    ["log-panel", "log-toggle-button", "Optics Bench Log"],
+    ["achievements-panel", "achievements-toggle-button", "Achievements"],
+    ["changelog-panel", "changelog-toggle-button", "What's New"],
+    ["settings-panel", "settings-toggle-button", "Settings"],
+    ["info-page-panel", "info-page-toggle-button", "About Mirror Lab"]
+  ],
+  "toolbar": {
+    "icons": [
+      ["benches-toggle-button", "🗺️"],
+      ["log-toggle-button", "📓"],
+      ["achievements-toggle-button", "🏆"],
+      ["settings-toggle-button", "⚙️"]
+    ],
+    "menu": [
+      {"heading": "Help", "ids": ["tutorial-restart-button", "info-page-toggle-button", "credits-link"]},
+      {"heading": "Records", "ids": ["changelog-toggle-button"]}
+    ]
+  },
+  "composites": [],
+  "adopt": [],
+  "zones": {
+    "topbar": [".hub-back-link", "h1", ".game-toolbar"],
+    "stagebar": ["#stats", "#goals"],
+    "stage": ["#bench-panel"],
+    "side": ["#tray", "#tool-line", ".bench-buttons", "#verdict-card", "#hint-box", "#sensors-heading", "#sensor-list", "#emitter-line", ".legend", "#difficulty-panel", "#tally"],
+    "hidden": [".tagline"]
+  },
+  "readouts": [],
+  "side_label": "Tray, hints and sensors",
+  "hints": [
+    ["Arrows", "Move the ring on the bench"],
+    ["Enter", "Place the chosen piece / flip"],
+    ["1-9", "Choose a tray piece"],
+    ["P", "Pick up"],
+    ["Esc", "Put a piece down / menu / close window"],
+    ["?", "All shortcuts"]
+  ],
+  "notify": null
+}

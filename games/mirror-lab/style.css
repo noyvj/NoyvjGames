@@ -203,6 +203,14 @@ html[data-effects="off"] .ml-sensor.lit { filter: none; }
 .cards-list li .card-line { font-style: italic; margin: 0.2rem 0 0; }
 .cards-list li .tag { display: inline-block; border: 2px solid var(--gold); border-radius: 999px; padding: 0 0.5rem; font-size: 0.75rem; font-weight: 700; color: var(--gold); margin-left: 0.3rem; }
 
+/* Achievements. */
+.ach-list { list-style: none; margin: 0.4rem 0; padding: 0; display: grid; gap: 0.35rem; }
+.ach-list li { border: 1px solid var(--line); border-radius: 10px; padding: 0.35rem 0.6rem; background: var(--surface); }
+.ach-list li.earned { border-color: var(--ok); border-width: 2px; }
+.ach-list .tick { display: inline-block; min-width: 4rem; text-align: center; font-weight: 700; font-size: 0.78rem; border: 1px solid var(--edge); border-radius: 999px; padding: 0 0.4rem; font-variant-numeric: tabular-nums; }
+.ach-list li.earned .tick { border-style: double; border-width: 3px; }
+.achievements-count { font-weight: 700; }
+
 /* Goals strip, hint ladder, ghosts, What's New, About. */
 .goals { background: var(--panel-fill); border: 1px solid var(--line); border-radius: 12px; padding: 0.4rem 0.7rem; margin: 0.5rem 0; font-size: 0.85rem; }
 .goals-list { list-style: none; margin: 0.2rem 0 0; padding: 0; display: grid; gap: 0.2rem; }

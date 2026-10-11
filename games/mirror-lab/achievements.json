@@ -1,0 +1,74 @@
+{
+  "achievements": [
+    {
+      "id": "first_beam",
+      "label": "First Beam",
+      "description": "Clear your first bench."
+    },
+    {
+      "id": "ten_benches",
+      "label": "Ten Benches",
+      "description": "Clear 10 benches."
+    },
+    {
+      "id": "twenty_benches",
+      "label": "Twenty Benches",
+      "description": "Clear 20 benches."
+    },
+    {
+      "id": "all_forty",
+      "label": "All Forty",
+      "description": "Clear every bench."
+    },
+    {
+      "id": "mirror_maker",
+      "label": "Mirror Maker",
+      "description": "Clear every bench in Flat Mirrors."
+    },
+    {
+      "id": "splitting_hairs",
+      "label": "Splitting Hairs",
+      "description": "Clear every bench in Splitters."
+    },
+    {
+      "id": "rainbow",
+      "label": "Rainbow",
+      "description": "Clear every bench in Prisms."
+    },
+    {
+      "id": "clear_filter",
+      "label": "Clear Filter",
+      "description": "Clear every bench in Filters and Decoys."
+    },
+    {
+      "id": "the_long_run",
+      "label": "The Long Run",
+      "description": "Clear every bench in The Long Run."
+    },
+    {
+      "id": "fewest_pieces",
+      "label": "Fewest Pieces",
+      "description": "Earn 5 Fewest pieces tags."
+    },
+    {
+      "id": "fewest_pieces_again",
+      "label": "Fewest Pieces Again",
+      "description": "Earn 20 Fewest pieces tags."
+    },
+    {
+      "id": "double_bounce",
+      "label": "Double Bounce",
+      "description": "Clear a bench where one beam turns 6 times."
+    },
+    {
+      "id": "light_both",
+      "label": "Light Both",
+      "description": "Clear a bench where a prism lights both an S and an L sensor."
+    },
+    {
+      "id": "quiet_decoys",
+      "label": "Quiet Decoys",
+      "description": "Clear a bench that has a decoy, keeping it dark."
+    }
+  ]
+}

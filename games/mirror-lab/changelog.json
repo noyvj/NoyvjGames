@@ -2,6 +2,14 @@
   "changelog": [
     {
       "date": "2026-10-12",
+      "entry": "A Desktop layout for wide windows: the bench fills the stage, the tray stands in a column beside it with the hints, the sensors in words and the tally, and the Benches map, Bench Log, Achievements and Settings open as windows from icons or the Menu (Esc). It is the same game and the same save; the Classic layout is unchanged and is still what phones use."
+    },
+    {
+      "date": "2026-10-12",
+      "entry": "Fourteen achievements, none timed or luck-based, each with a visible count, in a new Achievements panel with a share button and a small note when one unlocks. Clearing benches, finishing each chapter, earning Fewest pieces tags, sending one beam round six turns, lighting an S and an L sensor from one prism and keeping a decoy dark all count. Every one can be earned on Easy, Normal or Hard."
+    },
+    {
+      "date": "2026-10-12",
       "entry": "Mirror Lab now has a front door and a manual: an opening screen with a short tutorial you can skip, an About page that names the real optics behind the game and where each fact was read, this What's New list, a keyboard help card (press ?) and a question before the destructive buttons. The light theme, text size and reduced motion were already in; the focus order and labels were tidied."
     },
     {

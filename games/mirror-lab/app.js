@@ -9,7 +9,7 @@
     normal: "The game as designed: a nudge, then a hint, then the whole answer, and Place them asks first.",
     hard: "No answer step: the nudge and the hint are all the help there is. Benches, tags and records are the same on all three; nothing is locked."
   };
-  var ENGINE_MODULES = ["optics.py", "bench.py", "benches_ch1.py", "benches_ch2.py", "benches_ch3.py", "benches_ch4.py", "benches_ch5.py", "benches.py", "progress.py", "render.py", "logbook.py", "trace_text.py", "hints.py", "goals.py", "info.py"];
+  var ENGINE_MODULES = ["optics.py", "bench.py", "benches_ch1.py", "benches_ch2.py", "benches_ch3.py", "benches_ch4.py", "benches_ch5.py", "benches.py", "progress.py", "render.py", "logbook.py", "trace_text.py", "hints.py", "goals.py", "achievements.py", "info.py"];
   var STORE_KEY = "mirror-lab:state";
   var BACKUP_KEY = "mirror-lab:state-backup";
   var DIR_NAMES = ["north", "east", "south", "west"];
@@ -24,6 +24,7 @@
   var cursor = { r: 0, c: 0 };
   var drag = null;               // a drag in progress: {from, piece, r, c, x, y, started, ghost}
   var suppressClick = false;
+  var knownEarned = null;        // the achievement ids earned in the last view (null until the first view, so loading never toasts)
 
   function lsGet(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
   function lsSet(k, v) { try { localStorage.setItem(k, v); } catch (e) { /* convenience only */ } }
@@ -320,6 +321,36 @@
       h.answer_lines.forEach(function (t) { list.appendChild(el("li", null, t)); });
     }
   }
+  function renderAchievements() {
+    var list = $("achievements-list");
+    var earnedNow = [];
+    var sig = view.achievements.map(function (a) { return a.id + a.have; }).join(",");
+    if (list.dataset.sig !== sig) {
+      list.dataset.sig = sig;
+      list.textContent = "";
+      view.achievements.forEach(function (a) {
+        var li = el("li", a.earned ? "earned" : "");
+        li.setAttribute("data-achievement-id", a.id);
+        li.appendChild(el("span", "tick", a.earned ? "Earned" : a.have + "/" + a.need));
+        var name = el("strong", null, " " + a.label + " ");
+        name.setAttribute("data-achievement-label", "");
+        li.appendChild(name);
+        li.appendChild(el("span", null, a.description));
+        list.appendChild(li);
+      });
+    }
+    view.achievements.forEach(function (a) { if (a.earned) earnedNow.push(a.id); });
+    setText($("achievements-count"), view.achievements_summary.text);
+    setText($("achievements-toggle-button"), "Achievements (" + earnedNow.length + "/" + view.achievements.length + ")");
+    if (knownEarned !== null) {
+      earnedNow.filter(function (id) { return knownEarned.indexOf(id) === -1; }).forEach(function (id) {
+        var a = view.achievements.filter(function (x) { return x.id === id; })[0];
+        showToast("Achievement unlocked: " + a.label + ".");
+        announce("Achievement unlocked: " + a.label + ".");
+      });
+    }
+    knownEarned = earnedNow;
+  }
   function renderInfo() {
     var info = view.info;
     if (!info) return;
@@ -384,6 +415,7 @@
     renderLog();
     renderGoals();
     renderHints();
+    renderAchievements();
     renderInfo();
   }
 
@@ -401,8 +433,9 @@
     var result = JSON.parse(engine.handle(JSON.stringify(request)));
     if (result.error) { $("engine-status").textContent = "Something went wrong: " + result.error; return null; }
     view = result;
+    showToast("");
     render();
-    showToast(result.ok ? "" : result.message);
+    if (!result.ok) showToast(result.message);
     if (request.action !== "open" && request.action !== "pick" && request.action !== "next" && result.message) announce(result.message);
     if (result.verdict && result.verdict.kind === "cleared") announce("Bench cleared. " + (result.verdict.line || ""));
     if (request.action !== "open") persist();
@@ -545,7 +578,7 @@
     if (e.type === "keydown" && e.key !== "Enter" && e.key !== " ") return;
     if (e.type === "keydown") e.preventDefault();
     send({ action: "pick", bench: node.getAttribute("data-id") });
-    $("bench-panel").scrollIntoView && $("bench-panel").scrollIntoView({ block: "start" });
+    if (window.NOYVJ_LAYOUT !== "pc" && $("bench-panel").scrollIntoView) $("bench-panel").scrollIntoView({ block: "start" });      // the Desktop layout never scrolls the page
   }
 
   function askThen(id, message, confirmLabel, go) {
@@ -581,6 +614,7 @@
     $("toast").addEventListener("click", function () { showToast(""); });
     wirePanelToggle("benches-toggle-button", "benches-panel");
     wirePanelToggle("log-toggle-button", "log-panel");
+    wirePanelToggle("achievements-toggle-button", "achievements-panel");
     wirePanelToggle("changelog-toggle-button", "changelog-panel");
     wirePanelToggle("info-page-toggle-button", "info-page-panel");
     wireDifficulty();
@@ -611,10 +645,10 @@
     $("map-holder").addEventListener("keydown", onPick);
     $("benches-body").addEventListener("click", onPick);
     $("reset-button").addEventListener("click", function () {
-      askThen("mirror-lab-reset", "Start the whole lab over? Your cleared benches, Bench Log and tally will be erased.", "Erase it", function () { send({ action: "reset" }); held = null; });
+      askThen("mirror-lab-reset", "Start the whole lab over? Your cleared benches, Bench Log and tally will be erased.", "Erase it", function () { knownEarned = null; send({ action: "reset" }); held = null; });
     });
     // The save widget loads a save straight into the engine; this redraws afterwards.
-    window.mirrorLabRefresh = function () { if (engine) { benchId = null; send({ action: "open" }); } };
+    window.mirrorLabRefresh = function () { if (engine) { benchId = null; knownEarned = null; send({ action: "open" }); } };
   }
 
   async function boot() {
@@ -635,7 +669,7 @@
     $("engine-status").textContent = "";
     sendDifficulty();
     await changelog;
-    if (window.GameTutorial) window.GameTutorial.init(TUTORIAL_STEPS, { gameId: "mirror-lab" });
+    if (window.GameTutorial) window.GameTutorial.init(window.mirrorLabTutorialSteps ? window.mirrorLabTutorialSteps(TUTORIAL_STEPS) : TUTORIAL_STEPS, { gameId: "mirror-lab" });
   }
 
   wire();

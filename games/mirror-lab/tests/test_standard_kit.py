@@ -26,7 +26,7 @@ def test_the_opening_screen_is_wired_the_way_the_siblings_do_it():
 
 
 def test_the_tutorial_is_skippable_reopenable_and_points_at_real_elements():
-    assert "tutorial-restart-button" in IDS and 'GameTutorial.init(TUTORIAL_STEPS, { gameId: "mirror-lab" })' in APP
+    assert "tutorial-restart-button" in IDS and 'GameTutorial.init(window.mirrorLabTutorialSteps ? window.mirrorLabTutorialSteps(TUTORIAL_STEPS) : TUTORIAL_STEPS, { gameId: "mirror-lab" })' in APP
     block = APP.split("var TUTORIAL_STEPS = [")[1].split("];")[0]
     selectors = re.findall(r'selector: "#([^"]+)"', block)
     assert len(selectors) >= 6 and len(re.findall(r"title:", block)) >= 8
@@ -49,7 +49,7 @@ def test_whats_new_has_a_panel_a_changelog_and_the_shared_banner():
 def test_the_keyboard_help_lists_every_panel_toggle_and_the_bench_keys():
     block = HTML.split("KeyboardShortcuts.init(")[1].split("</script>")[0]
     pairs = re.findall(r'toggle: "([^"]+)", panel: "([^"]+)"', block)
-    assert len(pairs) == 5
+    assert len(pairs) == 6
     for toggle, panel in pairs:
         assert toggle in IDS and panel in IDS
         assert re.search(r'id="%s"[^>]*aria-controls="%s"' % (toggle, panel), HTML)
@@ -103,4 +103,5 @@ def test_the_hint_controls_say_it_in_words_and_never_in_colour_alone():
 
 def test_the_page_never_registers_a_service_worker_or_the_hub_only_includes_yet():
     assert "serviceWorker" not in HTML + APP
-    assert "last-played.js" not in HTML and "layout-pref" not in HTML                    # hub registration (QI-10-R) and the Desktop boot (QI-10-7) add these
+    assert "last-played.js" not in HTML                    # hub registration (QI-10-R) adds this
+    assert 'src="../../shared/layout-pref.js" data-game-id="mirror-lab" data-pc-page="pc.html" data-classic-page="index.html"' in HTML      # the Desktop boot (QI-10-7)

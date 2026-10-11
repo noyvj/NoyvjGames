@@ -1,0 +1,37 @@
+/* Mirror Lab, Desktop boot only (loaded by pc.html). Everything is scoped to the pc layout, so the Classic page is untouched.
+   The bench (heading, brief, the board, the lit count, the result card and the legend) is the stage and fills it; the side column
+   holds the tray as a stack of pieces, the pick up tools, the hint ladder, the sensors in words, the difficulty choice and the
+   tally; the stats strip and the three goals sit above the stage. The frame, windows and Menu come from shared/pc-shell.css. */
+
+html[data-layout="pc"] #game { padding-bottom: 0.4rem; max-width: none; }
+#pc-topbar { grid-template-columns: auto minmax(0, 1fr); grid-template-areas: "title tools"; padding-right: 9rem; }
+#pc-topbar > .game-toolbar { justify-content: flex-end; }
+#pc-topbar > h1 { font-size: 1.4rem; letter-spacing: 0.12em; }
+
+#pc-stagebar { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 0.6rem; align-items: start; }
+#pc-stagebar #stats { margin: 0; grid-template-columns: repeat(4, minmax(0, 1fr)); }
+#pc-stagebar #goals { margin: 0; }
+html[data-layout="pc"] .stat { display: flex; flex-direction: column; }
+
+#pc-stage > #bench-panel { flex: 1 1 0; min-height: 0; overflow-y: auto; margin: 0; }
+html[data-layout="pc"] .bench-holder { max-width: min(100%, max(20rem, calc(100vh - 28rem))); }
+html[data-layout="pc"] .lit-line { margin: 0.2rem 0; }
+html[data-layout="pc"] .bench-chapter { margin: 0 0 0.1rem; }
+html[data-layout="pc"] #bench-panel h2 { margin-bottom: 0.1rem; }
+
+#pc-body.pc-has-side { grid-template-columns: minmax(0, 1fr) clamp(15rem, 22vw, 21rem); }
+#pc-side { min-width: 0; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; gap: 0.5rem; padding-right: 0.2rem; }
+#pc-side > * { margin-top: 0; margin-bottom: 0; flex: 0 0 auto; }
+#pc-side .tray { flex-direction: column; flex-wrap: nowrap; margin: 0; }
+#pc-side .tray-btn { width: 100%; }
+#pc-side .bench-buttons { justify-content: stretch; margin: 0; }
+#pc-side .bench-buttons button { flex: 1 1 auto; }
+#pc-side .verdict-card { margin: 0; }
+#pc-side .legend { margin: 0; font-size: 0.85rem; }
+#pc-side .hint-box { margin: 0; }
+#pc-side #sensors-heading { margin: 0.2rem 0 0; }
+#pc-side #sensor-list { margin: 0; }
+#pc-side #difficulty-panel, #pc-side #tally { margin: 0; }
+
+html[data-layout="pc"] #story-toggle { top: 0.6rem !important; left: auto !important; right: 12rem !important; }
+html[data-layout="pc"] .map-holder { max-width: 36rem; }
