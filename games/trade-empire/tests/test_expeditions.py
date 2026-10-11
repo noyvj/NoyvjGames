@@ -329,7 +329,7 @@ def test_tampered_curios_and_counters_are_cleaned(game_env, raw):
     m.load_state(state)
     assert all(c in m.CURIO_IDS for c in m.records["curios"])
     assert len(m.records["curios"]) == len(set(m.records["curios"]))
-    assert all(isinstance(v, int) and v >= 0 for k, v in m.records.items() if k != "curios")
+    assert all(isinstance(v, int) and v >= 0 for k, v in m.records.items() if k not in ("curios", "crisis_best"))
 
 
 def test_the_cabinet_and_count_survive_a_renewal_but_a_trip_in_progress_does_not(game_env):

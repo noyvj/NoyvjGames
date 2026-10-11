@@ -189,6 +189,16 @@
       "id": "board_member",
       "label": "Board Member",
       "description": "Make five moves on the Cartel Board, across any charters."
+    },
+    {
+      "id": "crisis_averted",
+      "label": "Crisis Averted",
+      "description": "Solve a Trade Crisis in the Fleet Lab, with any medal or none."
+    },
+    {
+      "id": "gold_standard",
+      "label": "Gold Standard",
+      "description": "Earn a gold medal on all three Trade Crises."
     }
   ]
 }

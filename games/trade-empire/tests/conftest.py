@@ -126,6 +126,9 @@ for _g in (
     "crystal", "polymer", "antimatter", "neutronium", "superfluid", "aerogel",
 ):
     ELEMENT_IDS += [f"cartel-{_g}-row", f"cartel-{_g}-text", f"cartel-{_g}-squeeze-button", f"cartel-{_g}-dump-button"]
+ELEMENT_IDS += ["crisis-status", "crisis-restart-button", "crisis-leave-button"]
+for _c in ("grain_famine", "isotope_glut", "broken_network"):
+    ELEMENT_IDS += [f"crisis-{_c}-text", f"crisis-{_c}-start-button"]
 for _i in range(4):
     ELEMENT_IDS += [f"bp-design-{_i}-row", f"bp-design-{_i}-text", f"bp-design-{_i}-delete-button"]
     ELEMENT_IDS += [f"ship-5-bp{_i}-option", f"ship-6-bp{_i}-option"]

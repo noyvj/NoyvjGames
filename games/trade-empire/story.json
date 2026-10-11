@@ -205,6 +205,16 @@
       "id": "board_member",
       "title": "A seat at the board",
       "text": "The Cartel Board is a long table with no chairs on your side. You make five moves anyway: a squeeze here, a dump there, a patient wait for a window to close. Nothing breaks. The prices behave, mostly, and the room goes very quiet in the way rooms do when someone has done the arithmetic."
+    },
+    {
+      "id": "crisis_averted",
+      "title": "A bad morning, handled",
+      "text": "The reports arrive all at once and none of them is good: a famine here, a glut there, a network that has decided to run the wrong routes. You set the real company aside, take the problem on its own terms and fix it. The ledger notes it as an incident, which is the highest compliment it gives."
+    },
+    {
+      "id": "gold_standard",
+      "title": "Three clean mornings",
+      "text": "Three crises, three gold medals, each solved before the coffee went cold. The Guild has started describing your fixes as procedures. You have started to suspect that is how procedures get written."
     }
   ]
 }

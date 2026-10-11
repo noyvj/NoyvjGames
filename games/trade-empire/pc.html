@@ -459,6 +459,18 @@
         <div id="bp-design-2-row" class="bp-design-row" hidden><span id="bp-design-2-text"></span> <button id="bp-design-2-delete-button" class="secondary" type="button">Delete</button></div>
         <div id="bp-design-3-row" class="bp-design-row" hidden><span id="bp-design-3-text"></span> <button id="bp-design-3-delete-button" class="secondary" type="button">Delete</button></div>
       </div>
+      <div id="lab-crises" class="lab-section">
+        <p class="panel-label lab-heading">Trade Crises</p>
+        <p class="map-caption">Three handcrafted starting boards with a clear goal and par times for gold, silver and bronze. Your real corporation is set aside and comes back unchanged; nothing in a crisis can be lost, there is no timer to beat and no fail state. Press R to restart the crisis you are playing.</p>
+        <p id="crisis-status" class="lab-status" aria-live="polite"></p>
+        <div class="crisis-card"><p id="crisis-grain_famine-text" class="map-caption"></p><button id="crisis-grain_famine-start-button" class="secondary" type="button">Play</button></div>
+        <div class="crisis-card"><p id="crisis-isotope_glut-text" class="map-caption"></p><button id="crisis-isotope_glut-start-button" class="secondary" type="button">Play</button></div>
+        <div class="crisis-card"><p id="crisis-broken_network-text" class="map-caption"></p><button id="crisis-broken_network-start-button" class="secondary" type="button">Play</button></div>
+        <div class="lab-actions">
+          <button id="crisis-restart-button" class="secondary" type="button" hidden>Restart crisis (R)</button>
+          <button id="crisis-leave-button" class="secondary" type="button" hidden>Leave crisis</button>
+        </div>
+      </div>
       <div id="lab-hub" class="lab-section">
         <p class="panel-label lab-heading">Hub &amp; Spoke</p>
         <p class="map-caption">Pick one colony as your Distribution Hub: trips between it and its neighbours in the same system take half as long, but its own good holds less in the stockpile. Fleet Priority takes the hub into account.</p>
@@ -1308,8 +1320,19 @@
   <script src="../../shared/pause-hidden.js" data-game-id="trade-empire"></script>
   <script src="../../shared/keyboard-shortcuts.js"></script>
   <script>
+    /* J-10: R restarts the Trade Crisis being played (the button is only visible while one runs). */
+    document.addEventListener("keydown", function (e) {
+      if (e.key !== "r" && e.key !== "R") return;
+      if (e.ctrlKey || e.metaKey || e.altKey) return;
+      var t = e.target;
+      if (t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.tagName === "SELECT" || t.isContentEditable)) return;
+      var b = document.getElementById("crisis-restart-button");
+      if (b && !b.hidden && !b.disabled) { e.preventDefault(); b.click(); }
+    });
+  </script>
+  <script>
     window.KeyboardShortcuts.init({
-      extra: ["Space — pause or resume time", "[ and ] — slower or faster (1x, 2x, 4x)"],
+      extra: ["Space — pause or resume time", "[ and ] — slower or faster (1x, 2x, 4x)", "R — restart the Trade Crisis you are playing"],
       panels: [
         { toggle: "howto-toggle-button", panel: "howto-panel" },
         { toggle: "achievements-toggle-button", panel: "achievements-panel" },

@@ -1,6 +1,10 @@
 [
   {
     "date": "2026-10-11",
+    "entry": "New: Trade Crises, in the Fleet Lab window. Three handcrafted starting boards (Grain Famine at Aurum, Isotope Glut in Kepler, Broken Automation Network), each with a clear goal and par times for gold, silver and bronze. Your real corporation is set aside and comes back unchanged; there is no fail state and no timer to beat. Restart with the R key (listed in the ? help) or the button, and each card shows your best medal as a shape and a word. Two new achievements."
+  },
+  {
+    "date": "2026-10-11",
     "entry": "New: Meridian Freight and the Cartel Board, in the Market Desk window. Meridian is an optional, non-violent rival firm: every 50 ticks it contests one good for 25 ticks and your price for it softens 12%. You see it only as a price move you did not cause; answer by undercutting it (60 credits), signing an exclusive Guild contract for that good, dumping the good, or just ignore it. The rival ledger line is a rumour until you have Market Intel (Market Insight research, or a 200-credit intel desk), then it shows the real figures. The Cartel Board (open with the commodities exchange, or after the endgame) lets you squeeze a good for +30% for 20 ticks or dump a stockpile; moving the same good twice within 80 ticks backfires, and the window is shown plainly. Two new achievements."
   },
   {
