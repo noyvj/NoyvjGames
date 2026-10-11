@@ -346,7 +346,7 @@ def rules_are_custom():
 
 def rules_unranked():
     """True for a run that started or ran under non-standard Ranch Rules (it stays unranked for good)."""
-    return farm.custom_rules_used or rules_are_custom()
+    return farm.custom_rules_used or rules_are_custom() or farm.loadout != "standard"
 
 
 def pressure_scale():
@@ -453,6 +453,9 @@ class FarmState:
         self.best_perfect_streak = 0
         self.last_round_perfect = False  # one-tick, not saved
         self.just_streak_bonus = None  # one-tick (streak, bonus), not saved
+
+        # GF-23: the starting loadout this farm began with ("standard" = none).
+        self.loadout = "standard"
 
         # GF-28: an opt-in blind run hides the baseline comparison until it is revealed.
         self.blind_run = False
@@ -711,7 +714,7 @@ class FarmState:
     def poultry_unlocked(self):
         # F25: a heritage flock (legacy perk) carries the unlock to every
         # later generation without needing to re-earn certification.
-        return self.certified or legacy_perks.get("heritage_flock", 0) > 0
+        return self.certified or legacy_perks.get("heritage_flock", 0) > 0 or self.loadout == "poultry_start"
 
     def poultry_coupling_ratio(self):
         reduction = sum(
@@ -1370,6 +1373,12 @@ def counterfactual_comparison_message():
 
 COMPARE_FALLBACK = "Comparison with other farms isn't available yet."
 UNRANKED_COMPARE_NOTE = "Custom ranch rules: this run is unranked, so it is not compared with other farms."
+LOADOUT_UNRANKED_NOTE = "Starting loadout: this run is unranked, so it is not compared with other farms."
+
+
+def unranked_compare_note():
+    """Why this run is not compared with other farms: custom rules first, else a starting loadout."""
+    return UNRANKED_COMPARE_NOTE if (farm.custom_rules_used or rules_are_custom()) else LOADOUT_UNRANKED_NOTE
 
 
 def _request_comparison():
@@ -1440,7 +1449,7 @@ def report_card_html():
         ]
         lines.insert(1, rating_message())
         body = "".join(f'<p class="status-line summary-line">{line}</p>' for line in lines)
-        return body + f'<p id="report-card-compare" class="status-line summary-line">{UNRANKED_COMPARE_NOTE if rules_unranked() else COMPARE_FALLBACK}</p>' + highlights_html()
+        return body + f'<p id="report-card-compare" class="status-line summary-line">{unranked_compare_note() if rules_unranked() else COMPARE_FALLBACK}</p>' + highlights_html()
     lines = [
         f"Round {farm.round_number} — your score: {farm.score():.0f} vs. pure-growth baseline: {farm.counterfactual_score():.0f}",
         f"Same herd size ({farm.herd_size}), but your methane is {farm.methane:.0f} vs. the baseline's {farm.counterfactual_methane:.0f} — {methane_avoided:.0f} avoided.",
@@ -1461,7 +1470,7 @@ def report_card_html():
     # F7: filled in by index.html's window.herdCompare() when the shared
     # stats endpoint (planning/TODO.md Z1) is reachable; otherwise this
     # fallback text simply stays.
-    compare_text = UNRANKED_COMPARE_NOTE if rules_unranked() else COMPARE_FALLBACK
+    compare_text = unranked_compare_note() if rules_unranked() else COMPARE_FALLBACK
     return body + f'<p id="report-card-compare" class="status-line summary-line">{compare_text}</p>' + highlights_html()
 
 
@@ -2617,6 +2626,7 @@ def _sync_collection(award=True):
                 farm.funds += COMBO_REWARD_FUNDS
             found.append(f"combo {combo['label']}" + (f" (+{COMBO_REWARD_FUNDS} funds)" if award else ""))
     found.extend(_sync_barns())
+    found.extend(_sync_loadouts())
     if award and found:
         _display_milestone_toast("\U0001F4D6 Collection: " + ", ".join(found) + ".")
     return found
@@ -3036,12 +3046,12 @@ def undo_last_round():
     """Puts the farm back to the moment before the last Advance Round and charges the fee.
     Succession (generation, legacy points and perks, hall of fame) and collected breeds are
     kept as they are now; everything on the farm itself comes from the snapshot."""
-    global generation, legacy_points, legacy_perks, hall_of_fame, last_deltas, delta_faded, barn_skin
+    global generation, legacy_points, legacy_perks, hall_of_fame, last_deltas, delta_faded, barn_skin, loadout_choice
     if not can_undo():
         return False
     snapshot = farm.undo_snapshot
     kept = (generation, legacy_points, dict(legacy_perks), list(hall_of_fame), list(breeds_collected))
-    kept_barns = (list(barns_unlocked), barn_skin)  # GF-17: unlocked barns are collected for good too
+    kept_barns = (list(barns_unlocked), barn_skin, list(loadouts_unlocked), loadout_choice)  # GF-17: unlocked barns are collected for good too
     load_state(snapshot)
     generation, legacy_points, legacy_perks, hall_of_fame = kept[0], kept[1], kept[2], kept[3]
     for breed_id in kept[4]:
@@ -3051,6 +3061,10 @@ def undo_last_round():
         if barn_id not in barns_unlocked:
             barns_unlocked.append(barn_id)
     barn_skin = kept_barns[1]
+    for loadout_id in kept_barns[2]:
+        if loadout_id not in loadouts_unlocked:
+            loadouts_unlocked.append(loadout_id)
+    loadout_choice = kept_barns[3]
     farm.funds -= UNDO_PENALTY_FUNDS
     if farm.funds_history:
         farm.funds_history[-1] = farm.funds
@@ -3503,9 +3517,10 @@ def format_rule(name, value):
 
 def farm_is_pristine():
     """No round played, nothing bought: the only moment a changed starting purse can still apply."""
+    granted = LOADOUTS[farm.loadout] if farm.loadout in LOADOUTS else LOADOUTS["standard"]  # GF-23: a loadout's gifts are not "play"
     return (
-        farm.round_number == 1 and farm.herd_size == 0 and not farm.lever_log
-        and farm.poultry_size == 0 and farm.plant_pivot_investment == 0
+        farm.round_number == 1 and farm.herd_size == granted.get("herd", 0) and not farm.lever_log
+        and farm.poultry_size == granted.get("poultry", 0) and farm.plant_pivot_investment == 0
     )
 
 
@@ -3560,11 +3575,17 @@ def rules_summary_message():
         )
     if farm.custom_rules_used:
         return "The rules are standard again, but this run already used custom rules, so it stays unranked."
+    if farm.loadout != "standard":
+        return "Standard rules, but a starting loadout makes this run unranked."
     return "Standard rules: this run can be ranked."
 
 
 def rules_badge_message():
-    return "Custom ranch rules: this run is unranked." if rules_unranked() else ""
+    if not rules_unranked():
+        return ""
+    if farm.custom_rules_used or rules_are_custom():
+        return "Custom ranch rules: this run is unranked."
+    return "Starting loadout: this run is unranked."
 
 
 def rules_start_note():
@@ -4506,6 +4527,7 @@ def render():
     render_barns()
     render_golden_cow()
     render_blind_run()
+    render_loadouts()
 
 
 # F-18: an optional "ask before a big purchase" setting. The Settings select (settings.js) keeps the
@@ -4695,6 +4717,9 @@ def hand_over_farm():
     for name, level in legacy_perks.items():
         for _ in range(level):
             _apply_perk_to_farm(name)
+    if loadout_choice != "standard" and loadout_is_unlocked(loadout_choice):
+        _shift_loadout(farm, loadout_choice, +1)  # GF-23: the chosen starting loadout opens the new generation
+        farm.loadout = loadout_choice
     return earned
 
 
@@ -4904,6 +4929,13 @@ def get_state():
         state["hall_of_fame"] = [list(entry) for entry in hall_of_fame]
     if farm.undo_used:
         state["undo_used"] = True
+    # GF-23: starting loadouts, only when there is something to keep.
+    if farm.loadout != "standard":
+        state["loadout"] = farm.loadout
+    if loadouts_unlocked:
+        state["loadouts_unlocked"] = list(loadouts_unlocked)
+    if loadout_choice != "standard":
+        state["loadout_choice"] = loadout_choice
     # GF-28: blind-run flags, only when set.
     if farm.blind_run:
         state["blind_run"] = True
@@ -5054,6 +5086,7 @@ def _load_progress_fields(data):
     farm.undo_used = data.get("undo_used") is True
     farm.undo_snapshot = None
     _load_barns(data)
+    _load_loadouts(data)
     farm.blind_run = data.get("blind_run") is True
     farm.blind_revealed = farm.blind_run and data.get("blind_revealed") is True
     farm.golden_claimed = _safe_int(data.get("golden_claimed"), 0)
@@ -5769,6 +5802,157 @@ def on_reveal_blind_run(event=None):
     )
 
 
+# ---- GF-23 starting loadouts -------------------------------------------------------------------
+# Four ways to open a farm, each unlocked by an achievement and kept for good. A loadout bends the
+# opening funds and levers (every one is a trade, not a free gift) and applies to an untouched farm
+# right away and to every later generation. A run with a loadout is unranked, like custom ranch rules.
+# Deltas are written once and applied or taken back symmetrically, so changing the choice on an
+# untouched farm never leaves anything behind (legacy perks already on the farm are not touched).
+LOADOUTS = {
+    "standard": {"label": "Standard start", "unlock": None, "herd": 0, "funds": 0, "cf_funds": 0, "levers": {}, "poultry": 0,
+                 "methane": 0.0, "blurb": "The farm as it always began."},
+    "big_herd": {"label": "Big Herd", "unlock": "major_operation", "herd": 4, "funds": -90, "cf_funds": -90, "levers": {},
+                 "poultry": 0, "methane": 0.0, "blurb": "Four animals already in the paddock for 90 less funds (their emissions start at once)."},
+    "lean_green": {"label": "Lean Green", "unlock": "all_three_measures", "herd": 0, "funds": -50, "cf_funds": 0,
+                   "levers": {"feed": 1, "caps": 1, "capture": 1}, "poultry": 0, "methane": 0.0,
+                   "blurb": "One of each decoupling measure fitted on day one for 50 funds, but no herd yet."},
+    "poultry_start": {"label": "Poultry Start", "unlock": "sustainably_certified", "herd": 0, "funds": -25, "cf_funds": -25,
+                      "levers": {}, "poultry": 2, "methane": 0.0,
+                      "blurb": "The poultry flock is open from round 1 with two birds already in, for 25 funds."},
+    "cash_rich": {"label": "Cash Rich", "unlock": "score_400", "herd": 0, "funds": 150, "cf_funds": 150, "levers": {},
+                  "poultry": 0, "methane": 12.0, "blurb": "150 more funds to start, but 12 methane already on the books from old operations."},
+}
+LOADOUT_IDS = list(LOADOUTS)
+loadouts_unlocked = []  # unlocked loadout ids other than standard; survives a handover
+loadout_choice = "standard"  # applied to an untouched farm now and to every later generation
+loadout_status_text = ""
+_loadout_options_key = ""
+
+
+def loadout_is_unlocked(loadout_id):
+    return loadout_id == "standard" or loadout_id in loadouts_unlocked
+
+
+def _shift_loadout(target, loadout_id, sign):
+    """Applies (+1) or takes back (-1) one loadout's changes on a farm object."""
+    spec = LOADOUTS[loadout_id]
+    target.herd_size += sign * spec["herd"]
+    target.funds += sign * spec["funds"]
+    target.counterfactual_funds += sign * spec["cf_funds"]
+    for measure, units in spec["levers"].items():
+        target.decoupling_investment[measure] += sign * units
+    target.poultry_size += sign * spec["poultry"]
+    target.methane += sign * spec["methane"]
+    target.counterfactual_methane += sign * spec["methane"]
+    if target.methane_history:
+        target.methane_history[-1] += sign * spec["methane"]
+    if target.funds_history and target.funds_history[-1] is not None:
+        target.funds_history[-1] += sign * spec["funds"]
+
+
+def loadout_can_apply_now():
+    """True while the farm is still the one the loadout opened with (round 1, nothing bought)."""
+    return farm_is_pristine()
+
+
+def _sync_loadouts():
+    new = []
+    earned = None
+    for loadout_id, spec in LOADOUTS.items():
+        if spec["unlock"] is None or loadout_id in loadouts_unlocked:
+            continue
+        if earned is None:
+            earned = set(achievement_ids_earned())
+        if spec["unlock"] in earned:
+            loadouts_unlocked.append(loadout_id)
+            new.append(f"new starting loadout {spec['label']}")
+    return new
+
+
+def _load_loadouts(data):
+    global loadouts_unlocked, loadout_choice
+    raw = data.get("loadouts_unlocked")
+    loadouts_unlocked = []
+    if isinstance(raw, list):
+        for value in raw:
+            if isinstance(value, str) and value in LOADOUTS and value != "standard" and value not in loadouts_unlocked:
+                loadouts_unlocked.append(value)
+    chosen = data.get("loadout_choice")
+    loadout_choice = chosen if isinstance(chosen, str) and chosen in LOADOUTS and loadout_is_unlocked(chosen) else "standard"
+    own = data.get("loadout")
+    farm.loadout = own if isinstance(own, str) and own in LOADOUTS else "standard"
+
+
+def choose_loadout(loadout_id):
+    """Picks the starting loadout. On an untouched farm it applies at once (the old one is taken back);
+    otherwise it waits for the next generation. Returns "applied", "saved" or None when refused."""
+    global loadout_choice
+    if loadout_id not in LOADOUTS or not loadout_is_unlocked(loadout_id):
+        return None
+    loadout_choice = loadout_id
+    if loadout_can_apply_now():
+        if farm.loadout != loadout_id:
+            _shift_loadout(farm, farm.loadout, -1)
+            _shift_loadout(farm, loadout_id, +1)
+            farm.loadout = loadout_id
+        return "applied"
+    return "saved"
+
+
+def loadout_message():
+    spec = LOADOUTS[loadout_choice]
+    here = LOADOUTS[farm.loadout]["label"]
+    if farm.loadout == loadout_choice:
+        where = f"This farm began with: {here}."
+    else:
+        where = f"This farm began with: {here}. {spec['label']} opens your next generation."
+    return f"{spec['blurb']} {where}"
+
+
+def loadout_list_html():
+    rows = []
+    for loadout_id, spec in LOADOUTS.items():
+        if loadout_is_unlocked(loadout_id):
+            note = "unlocked" if spec["unlock"] else "always available"
+        else:
+            note = f"locked: earn {_achievement_label(spec['unlock'])}"
+        rows.append(f'<li><strong>{spec["label"]}</strong>: {spec["blurb"]} ({note})</li>')
+    return "".join(rows)
+
+
+def render_loadouts():
+    select = document.getElementById("loadout-select")
+    options = "".join(
+        f'<option value="{loadout_id}"{" selected" if loadout_id == loadout_choice else ""}{"" if loadout_is_unlocked(loadout_id) else " disabled"}>'
+        f'{spec["label"]}{"" if loadout_is_unlocked(loadout_id) else " (locked)"}</option>'
+        for loadout_id, spec in LOADOUTS.items()
+    )
+    global _loadout_options_key
+    if options != _loadout_options_key:  # rebuild only when something unlocked, so an open list is not disturbed
+        select.innerHTML = options
+        _loadout_options_key = options
+    select.value = loadout_choice
+    document.getElementById("loadout-summary").innerText = (
+        f"Starting loadouts unlocked: {1 + len(loadouts_unlocked)} of {len(LOADOUTS)}. A loadout makes the run unranked."
+    )
+    document.getElementById("loadout-note").innerText = loadout_message()
+    document.getElementById("loadout-list").innerHTML = loadout_list_html()
+    document.getElementById("loadout-status").innerText = loadout_status_text
+
+
+def on_loadout_change(event=None):
+    global loadout_status_text
+    value = document.getElementById("loadout-select").value
+    result = choose_loadout(value)
+    if result == "applied":
+        loadout_status_text = f"{LOADOUTS[loadout_choice]['label']} applied to this farm."
+    elif result == "saved":
+        loadout_status_text = f"{LOADOUTS[loadout_choice]['label']} will open your next generation (this farm has already started)."
+    else:
+        loadout_status_text = "That loadout is still locked."
+    render()
+
+
 def setup():
     # index.html already marks these hidden via the `hidden` attribute,
     # but that markup default doesn't exist for the pytest fake-DOM
@@ -5857,6 +6041,7 @@ def setup():
     document.getElementById("cow-listen-button").addEventListener("click", create_proxy(on_cow_listen))
     for skin in BARN_SKINS:
         document.getElementById(f"barn-use-{skin['id']}").addEventListener("click", create_proxy(_make_barn_handler(skin["id"])))
+    document.getElementById("loadout-select").addEventListener("change", create_proxy(on_loadout_change))
     document.getElementById("blind-run-checkbox").addEventListener("click", create_proxy(on_toggle_blind_run))
     document.getElementById("blind-reveal-button").addEventListener("click", create_proxy(on_reveal_blind_run))
     document.getElementById("golden-cow-claim-button").addEventListener("click", create_proxy(on_welcome_golden_cow))

@@ -1,6 +1,14 @@
 [
   {
     "date": "2026-10-11",
+    "entry": "Starting loadouts: Big Herd, Lean Green, Poultry Start and Cash Rich are unlocked by achievements and bend the opening funds and levers (each is a trade, not a gift). Pick one under Starting loadouts: it applies at once to a farm that has not started and opens every later generation. A run with a loadout is unranked, like custom ranch rules."
+  },
+  {
+    "date": "2026-10-11",
+    "entry": "New: balance sliders in the practice sandbox. While you are in the sandbox, four sliders let you move how fast renewables get cheaper per unit built, the chance of an aging breakdown (0 is the usual nothing-breaks), how far demand grows each round and what a unit of demand met earns, with a Reset button. They only exist in the sandbox, which never counts toward career points, achievements or community stats."
+  },
+  {
+    "date": "2026-10-11",
     "entry": "Blind run, an optional hard mode: switch it on in Farm operations before round 1 and the baseline comparison stays hidden (the baseline card, the ahead/behind lines, the gauge's best and baseline markers, the report card comparison and the planner's baseline line). Reveal it any time, or file the farm or hand it over, and you get the full comparison in plain words."
   },
   {

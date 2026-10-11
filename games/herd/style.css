@@ -1777,3 +1777,7 @@ html[data-reduced-motion="true"] .golden-cow-glider, html[data-lite="true"] .gol
 /* ---- Round 7: GF-28 blind run ---- */
 .blind-run-panel { margin: 0.4rem 0; padding: 0.5rem 0.6rem; border: 2px dashed rgba(127, 127, 127, 0.7); border-radius: 8px; }
 .blind-run-panel button { margin-top: 0.4rem; }
+
+/* ---- Round 7: GF-23 starting loadouts ---- */
+.loadout-list { margin: 0.4rem 0 0; padding-left: 1.1rem; font-size: 0.82rem; }
+.loadout-list li { margin: 0.2rem 0; }
