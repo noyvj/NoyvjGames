@@ -1680,3 +1680,16 @@ html[data-reduced-motion="true"] .achievement-card--new .achievement-card-glyph,
 html[data-lite="true"] .achievement-card--new,
 html[data-lite="true"] .achievement-card--new .achievement-card-glyph { animation: none; }
 html[data-high-contrast="true"] .achievement-card-glyph { filter: none; opacity: 1; }
+
+/* GF-12 cow reactions: hop when well and clean, nap when strained, a one-liner on click or Listen. */
+.pasture-visual-cow { cursor: pointer; }
+.pasture-visual-cow.cow-mood-hop { animation: cow-hop 1.1s ease-in-out infinite; }
+.pasture-visual-cow.cow-mood-nap { animation: none; }
+.pasture-visual-cow.cow-mood-nap::after { content: "z z"; position: absolute; top: -17px; right: -2px; font-size: 0.6rem; font-weight: 700; color: #fff; text-shadow: 0 0 2px #000; letter-spacing: 1px; }
+@keyframes cow-hop { 0%, 100% { transform: translateY(0); } 40% { transform: translateY(-7px); } 70% { transform: translateY(0); } }
+@media (prefers-reduced-motion: reduce) { .pasture-visual-cow.cow-mood-hop { animation: none; } }
+html[data-reduced-motion="true"] .pasture-visual-cow.cow-mood-hop,
+html[data-lite="true"] .pasture-visual-cow.cow-mood-hop { animation: none; }
+.cow-chat { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; margin: 0 0 0.6rem; }
+.cow-listen-button { font-size: 0.78rem; }
+.cow-bubble { margin: 0; padding: 0.3rem 0.6rem; font-size: 0.8rem; font-style: italic; border: 1px solid rgba(224, 194, 76, 0.55); border-radius: 12px 12px 12px 2px; }

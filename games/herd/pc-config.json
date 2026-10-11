@@ -68,7 +68,7 @@
   "zones": {
     "topbar": [".hub-back-link", "h1", ".game-toolbar"],
     "stagebar": [],
-    "stage": [".pasture-visual", "#gauge-section"],
+    "stage": [".pasture-visual", ".cow-chat", "#gauge-section"],
     "side": [
       "#pinned-strip",
       "#save-recovery-panel",

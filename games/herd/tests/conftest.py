@@ -126,6 +126,8 @@ ELEMENT_IDS = [
     # GF-10 story.
     "family-story", "family-story-summary", "family-story-status", "family-story-text", "family-story-choices", "family-story-choice-a",
     "family-story-choice-b", "family-story-choice-c", "family-story-retell-button", "family-story-endings",
+    # GF-12 cow reactions.
+    "cow-listen-button", "cow-bubble",
 ]
 for _measure in MEASURE_IDS:
     ELEMENT_IDS += [f"{_measure}-name", f"{_measure}-count", f"{_measure}-invest-button"]
