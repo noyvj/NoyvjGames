@@ -858,7 +858,8 @@ def seasonal_multiplier(good):
 
 
 def current_sell_price(good):
-    return max(1, round(SELL_PRICE[good] * market_multiplier[good] * seasonal_multiplier(good) * weather_multiplier(good)))
+    return max(1, round(SELL_PRICE[good] * market_multiplier[good] * seasonal_multiplier(good) * weather_multiplier(good)
+               * meridian_multiplier(good) * cartel_multiplier(good)))
 
 
 def apply_market_sale(good, qty):
@@ -3293,6 +3294,8 @@ ACHIEVEMENT_CHECKS = {
     "first_fill": lambda: records["exchange_fills"] >= 1,  # J-27
     "hull_designer": lambda: len(blueprints) >= 1,  # J-19
     "first_hub": lambda: records["hubs_set"] >= 1,  # J-21
+    "rival_answered": lambda: records["meridian_answers"] >= MERIDIAN_ANSWER_ACHIEVEMENT,  # J-11
+    "board_member": lambda: records["cartel_moves"] >= CARTEL_ACHIEVEMENT_MOVES,  # J-3
     "custom_fleet": lambda: any(ship.hull is not None for ship in ships.values()),
     "market_maker": lambda: records["exchange_fills"] >= EXCHANGE_MARKET_MAKER_FILLS,
     "curio_cabinet": lambda: len(records["curios"]) >= len(CURIO_IDS),
@@ -3310,6 +3313,7 @@ ACHIEVEMENT_PROGRESS = {
     "storm_watcher": lambda: (min(records["weather_events"], WEATHER_ACHIEVEMENT_EVENTS), WEATHER_ACHIEVEMENT_EVENTS),
     "curio_cabinet": lambda: (len(records["curios"]), len(CURIO_IDS)),
     "market_maker": lambda: (min(records["exchange_fills"], EXCHANGE_MARKET_MAKER_FILLS), EXCHANGE_MARKET_MAKER_FILLS),
+    "board_member": lambda: (min(records["cartel_moves"], CARTEL_ACHIEVEMENT_MOVES), CARTEL_ACHIEVEMENT_MOVES),
 }
 
 
@@ -4405,6 +4409,8 @@ def tick(event=None):
     if seasonal_demand_enabled:
         season_ticks += 1
     weather_tick()
+    meridian_tick()
+    cartel_tick()
     expedition_tick()
     for ship in ships.values():
         result = ship.advance_transit()
@@ -4504,6 +4510,7 @@ def _fresh_records():
     return {
         "dark_runs": 0, "weather_events": 0, "expeditions": 0, "expedition_nothing_streak": 0,
         "expedition_since_curio": 0, "curios": [], "exchange_fills": 0, "hubs_set": 0,
+        "meridian_contests": 0, "meridian_answers": 0, "cartel_moves": 0,
     }
 
 
@@ -5287,6 +5294,8 @@ def render_desk():
     panel.hidden = not desk_open
     if not desk_open:
         return
+    render_meridian()
+    render_cartel()
     render_exchange()
 
 
@@ -5669,6 +5678,348 @@ def render_hub():
         button.innerText = f"{verb} {colony['name']} ({HUB_COST})"
 
 
+# ---------------------------------------------------------------------------
+# J-11 / J-12 -- Meridian Freight (Market Desk window, opt-in, off by default): a non-violent shadow firm
+# that contests the same routes. Every MERIDIAN_CYCLE ticks it contests one good for MERIDIAN_CONTEST_TICKS
+# ticks and your price for that good softens by MERIDIAN_PRESSURE; there is no combat and no piracy, it is
+# only ever seen through a price move you did not cause. Three honest answers: undercut it (a small fee ends
+# the contest and shields that good for MERIDIAN_SHIELD_TICKS), sign an exclusive Trade Guild contract for the
+# contested good (Meridian stays away while it is active), or ignore it (it costs only the dip). The rival
+# ledger line says how many units Meridian moved this cycle: a rumoured, unverified number until you have
+# Market Intel (Market Insight research, or a one-time Intel desk purchase for the other research path), then
+# the real figure and the good and dip behind it. Everything is derived from the founding seed and the cycle
+# number, so it is deterministic.
+# ---------------------------------------------------------------------------
+MERIDIAN_CYCLE = 50
+MERIDIAN_CONTEST_TICKS = 25
+MERIDIAN_PRESSURE = 0.12
+MERIDIAN_SHIELD_TICKS = 40
+MERIDIAN_UNDERCUT_COST = 60
+MERIDIAN_UNITS_CONTESTING = 14
+MERIDIAN_UNITS_QUIET = 4
+MERIDIAN_INTEL_COST = 200
+MERIDIAN_ANSWER_ACHIEVEMENT = 1
+meridian_enabled = False
+meridian_ticks = 0  # the rival's clock; only runs while the mode is on
+meridian_contest = None  # {"good", "left"} while it is contesting a good
+meridian_shield = None  # {"good", "left"} a good it will not contest for a while
+meridian_units = 0  # units it has moved in the current cycle
+meridian_intel_bought = False
+
+
+def meridian_has_intel():
+    return "market_insight" in unlocked_research or meridian_intel_bought
+
+
+def meridian_exclusive_good():
+    """The good an active exclusive Trade Guild contract covers (Meridian keeps away from it), or None."""
+    return guild_contract["good"] if guild_state == "active" else None
+
+
+def meridian_active_contest():
+    if not meridian_enabled or meridian_contest is None:
+        return None
+    if meridian_contest["good"] == meridian_exclusive_good():
+        return None
+    return meridian_contest
+
+
+def meridian_multiplier(good):
+    contest = meridian_active_contest()
+    return 1.0 - MERIDIAN_PRESSURE if contest is not None and contest["good"] == good else 1.0
+
+
+def _meridian_pick(cycle):
+    goods = seasonal_reachable_goods()
+    if not goods:
+        return None
+    return goods[_mix(founding_seed, cycle, 31) % len(goods)]
+
+
+def meridian_tick():
+    global meridian_ticks, meridian_contest, meridian_shield, meridian_units
+    if not meridian_enabled:
+        return
+    meridian_ticks += 1
+    if meridian_shield is not None:
+        meridian_shield["left"] -= 1
+        if meridian_shield["left"] <= 0:
+            meridian_shield = None
+    if meridian_contest is not None:
+        meridian_contest["left"] -= 1
+        if meridian_contest["left"] <= 0:
+            meridian_contest = None
+    meridian_units += MERIDIAN_UNITS_CONTESTING if meridian_contest is not None else MERIDIAN_UNITS_QUIET
+    if meridian_ticks % MERIDIAN_CYCLE == 0:
+        meridian_units = 0
+        good = _meridian_pick(meridian_ticks // MERIDIAN_CYCLE)
+        if good is not None and not (meridian_shield is not None and meridian_shield["good"] == good):
+            meridian_contest = {"good": good, "left": MERIDIAN_CONTEST_TICKS}
+            if good == meridian_exclusive_good() and not sandbox_active:
+                records["meridian_answers"] = min(RECORDS_COUNT_MAX, records["meridian_answers"] + 1)
+            if not sandbox_active:
+                records["meridian_contests"] = min(RECORDS_COUNT_MAX, records["meridian_contests"] + 1)
+
+
+def can_undercut_meridian():
+    return meridian_active_contest() is not None and total_profit >= MERIDIAN_UNDERCUT_COST
+
+
+def undercut_meridian():
+    global total_profit, meridian_contest, meridian_shield
+    if not can_undercut_meridian():
+        return False
+    good = meridian_contest["good"]
+    total_profit -= MERIDIAN_UNDERCUT_COST
+    meridian_contest = None
+    meridian_shield = {"good": good, "left": MERIDIAN_SHIELD_TICKS}
+    if not sandbox_active:
+        records["meridian_answers"] = min(RECORDS_COUNT_MAX, records["meridian_answers"] + 1)
+    return True
+
+
+def meridian_ledger_line():
+    """J-12: 'Meridian moved N units this cycle', rumoured until Market Intel, real afterwards."""
+    cycle = meridian_ticks // MERIDIAN_CYCLE
+    if not meridian_has_intel():
+        guess = 150 + _mix(founding_seed, cycle, 53) % 300
+        return f"Rumour: Meridian moved about {guess} units this cycle (unverified; Market Intel would show the real figure)."
+    contest = meridian_contest
+    detail = ""
+    if contest is not None:
+        shown = "dormant (your exclusive contract)" if meridian_active_contest() is None else f"your price {-MERIDIAN_PRESSURE * 100:.0f}%"
+        detail = f" Contesting {GOOD_LABEL[contest['good']]}, {contest['left']} tick(s) left, {shown}."
+    elif meridian_shield is not None:
+        detail = f" Held off from {GOOD_LABEL[meridian_shield['good']]} for {meridian_shield['left']} more tick(s)."
+    return f"Intel: Meridian moved {meridian_units} units this cycle.{detail}"
+
+
+def meridian_status_text():
+    if not meridian_enabled:
+        return (
+            f"Optional rival firm: every {MERIDIAN_CYCLE} ticks Meridian Freight contests one good for "
+            f"{MERIDIAN_CONTEST_TICKS} ticks and your price for it softens {MERIDIAN_PRESSURE * 100:.0f}%. No combat, no piracy. "
+            "Answer by undercutting it, signing an exclusive Trade Guild contract for that good, or ignore it."
+        )
+    return (
+        f"Meridian contests so far: {records['meridian_contests']}, answered: {records['meridian_answers']}. "
+        + meridian_ledger_line()
+    )
+
+
+def on_toggle_meridian(event=None):
+    global meridian_enabled
+    meridian_enabled = not meridian_enabled
+    render()
+
+
+def on_undercut_meridian(event=None):
+    if undercut_meridian():
+        render()
+
+
+def on_buy_meridian_intel(event=None):
+    global meridian_intel_bought, total_profit
+    if meridian_has_intel() or total_profit < MERIDIAN_INTEL_COST:
+        return
+    total_profit -= MERIDIAN_INTEL_COST
+    meridian_intel_bought = True
+    render()
+
+
+def render_meridian():
+    status = document.getElementById("meridian-status")
+    if status is None:
+        return
+    toggle = document.getElementById("meridian-toggle-button")
+    toggle.innerText = f"Meridian Freight: {'on' if meridian_enabled else 'off'}"
+    toggle.setAttribute("aria-pressed", "true" if meridian_enabled else "false")
+    status.innerText = meridian_status_text()
+    undercut = document.getElementById("meridian-undercut-button")
+    undercut.hidden = meridian_active_contest() is None
+    undercut.disabled = not can_undercut_meridian()
+    undercut.innerText = f"Undercut Meridian ({MERIDIAN_UNDERCUT_COST})"
+    undercut.title = f"Ends the contest now and keeps Meridian off that good for {MERIDIAN_SHIELD_TICKS} ticks."
+    intel = document.getElementById("meridian-intel-button")
+    intel.hidden = not meridian_enabled or meridian_has_intel()
+    intel.disabled = total_profit < MERIDIAN_INTEL_COST
+    intel.innerText = f"Open an intel desk ({MERIDIAN_INTEL_COST})"
+
+
+# ---------------------------------------------------------------------------
+# J-3 -- the Cartel Board (Market Desk window): deliberate market moves for the late game, open once the
+# commodities exchange is (the Umbral Deep) or the endgame has been reached. A SQUEEZE buys up CARTEL_SQUEEZE_UNITS
+# units' worth of a good (credits) and its price premium is +30% for 20 ticks. A DUMP sells your whole stockpile of
+# a good at once: the price crashes (the ordinary sale impact) and, if Meridian is contesting that good, the dump
+# ends it and shields the good. The backlash rule, shown plainly: moving the same good twice (squeeze or dump)
+# within CARTEL_BACKLASH_WINDOW ticks backfires: a repeat squeeze turns into a -25% slump for 30 ticks (the credits
+# are still spent) and a repeat dump shields nothing and knocks a further 10 points off the price. The J-4 ghost line
+# remembers the price from before each move. Moves are counted (Cartel moves) toward an achievement.
+# ---------------------------------------------------------------------------
+CARTEL_SQUEEZE_UNITS = 8
+CARTEL_SPIKE = 0.30
+CARTEL_SPIKE_TICKS = 20
+CARTEL_SLUMP = -0.25
+CARTEL_SLUMP_TICKS = 30
+CARTEL_BACKLASH_WINDOW = 80
+CARTEL_DUMP_EXTRA_DROP = 0.10
+CARTEL_ACHIEVEMENT_MOVES = 5
+cartel_effects = {}  # good -> {"kind": "spike" | "slump", "left": ticks}
+cartel_last = {}  # good -> ticks since the last cartel move on it (only while inside the window)
+
+
+def cartel_open():
+    return exchange_open() or endgame_reached
+
+
+def cartel_backlash_left(good):
+    """Ticks of backlash window left for `good` (0 = a move now is safe)."""
+    if good not in cartel_last:
+        return 0
+    return max(0, CARTEL_BACKLASH_WINDOW - cartel_last[good])
+
+
+def cartel_multiplier(good):
+    effect = cartel_effects.get(good)
+    if effect is None:
+        return 1.0
+    return 1.0 + (CARTEL_SPIKE if effect["kind"] == "spike" else CARTEL_SLUMP)
+
+
+def cartel_squeeze_cost(good):
+    return CARTEL_SQUEEZE_UNITS * current_sell_price(good)
+
+
+def _cartel_good_ok(good):
+    return isinstance(good, str) and good in SELL_PRICE and colony_producing(good) in active_colony_ids()
+
+
+def can_squeeze(good):
+    return cartel_open() and _cartel_good_ok(good) and total_profit >= cartel_squeeze_cost(good)
+
+
+def can_dump(good):
+    return cartel_open() and _cartel_good_ok(good) and stockpile.get(good, 0) > 0
+
+
+def _cartel_note_move(good):
+    cartel_last[good] = 0
+    if not sandbox_active:
+        records["cartel_moves"] = min(RECORDS_COUNT_MAX, records["cartel_moves"] + 1)
+
+
+def squeeze(good):
+    """Returns 'spike' or 'backlash' (what the move turned into), or None when it could not be done."""
+    global total_profit
+    if not can_squeeze(good):
+        return None
+    backfires = cartel_backlash_left(good) > 0
+    total_profit -= cartel_squeeze_cost(good)
+    price_memory[good] = market_multiplier[good]
+    cartel_effects[good] = {"kind": "slump" if backfires else "spike", "left": CARTEL_SLUMP_TICKS if backfires else CARTEL_SPIKE_TICKS}
+    _cartel_note_move(good)
+    return "backlash" if backfires else "spike"
+
+
+def dump(good):
+    """Returns 'shielded', 'sold' (nothing to shield) or 'backlash', or None when it could not be done."""
+    global meridian_contest, meridian_shield
+    if not can_dump(good):
+        return None
+    backfires = cartel_backlash_left(good) > 0
+    sell_stockpile(good)  # price_memory is set there
+    if backfires:
+        market_multiplier[good] = max(MIN_PRICE_MULTIPLIER, market_multiplier[good] - CARTEL_DUMP_EXTRA_DROP)
+    _cartel_note_move(good)
+    result = "backlash" if backfires else "sold"
+    if not backfires and meridian_enabled and meridian_contest is not None and meridian_contest["good"] == good:
+        meridian_contest = None
+        meridian_shield = {"good": good, "left": MERIDIAN_SHIELD_TICKS}
+        result = "shielded"
+        if not sandbox_active:
+            records["meridian_answers"] = min(RECORDS_COUNT_MAX, records["meridian_answers"] + 1)
+    return result
+
+
+def cartel_tick():
+    for good in list(cartel_effects):
+        cartel_effects[good]["left"] -= 1
+        if cartel_effects[good]["left"] <= 0:
+            del cartel_effects[good]
+    for good in list(cartel_last):
+        cartel_last[good] += 1
+        if cartel_last[good] >= CARTEL_BACKLASH_WINDOW:
+            del cartel_last[good]
+
+
+def cartel_row_text(good):
+    parts = [f"{GOOD_LABEL[good]}: {current_sell_price(good)} credits/unit"]
+    effect = cartel_effects.get(good)
+    if effect is not None:
+        word = "squeeze premium" if effect["kind"] == "spike" else "BACKLASH slump"
+        parts.append(f"{word} {(cartel_multiplier(good) - 1) * 100:+.0f}% for {effect['left']} more tick(s)")
+    left = cartel_backlash_left(good)
+    parts.append(f"backlash window: {left} tick(s), a move now backfires" if left else "no backlash window, safe to move")
+    return "; ".join(parts) + "."
+
+
+def cartel_status_text():
+    if not cartel_open():
+        return "Locked: the Cartel Board opens with the commodities exchange (the Umbral Deep) or after the endgame."
+    return (
+        f"Cartel moves made: {records['cartel_moves']}. A squeeze costs {CARTEL_SQUEEZE_UNITS} units' worth and gives "
+        f"{CARTEL_SPIKE * 100:+.0f}% for {CARTEL_SPIKE_TICKS} ticks. A dump sells your whole stockpile of the good. "
+        f"Moving the same good twice within {CARTEL_BACKLASH_WINDOW} ticks backfires: a squeeze becomes a "
+        f"{CARTEL_SLUMP * 100:+.0f}% slump for {CARTEL_SLUMP_TICKS} ticks and a dump knocks the price down a further "
+        f"{CARTEL_DUMP_EXTRA_DROP * 100:.0f} points."
+    )
+
+
+def _make_cartel_handler(kind, good):
+    def do_it():
+        (squeeze if kind == "squeeze" else dump)(good)
+        render()
+
+    def handler(event=None):
+        if not (can_squeeze(good) if kind == "squeeze" else can_dump(good)):
+            return
+        left = cartel_backlash_left(good)
+        if left:
+            _confirm_dialog_ask(
+                f"trade-empire-cartel-{kind}",
+                f"{GOOD_LABEL[good]} was moved {CARTEL_BACKLASH_WINDOW - left} tick(s) ago, so this {kind} will BACKFIRE "
+                f"for the next {left} tick(s) of the window. Do it anyway?",
+                "Do it anyway", do_it, allow_skip=False,
+            )
+        else:
+            do_it()
+    return handler
+
+
+def render_cartel():
+    status = document.getElementById("cartel-status")
+    if status is None:
+        return
+    status.innerText = cartel_status_text()
+    controls = document.getElementById("cartel-controls")
+    if controls is not None:
+        controls.hidden = not cartel_open()
+    for good in SELL_PRICE:
+        row = document.getElementById(f"cartel-{good}-row")
+        if row is None:
+            continue
+        shown = cartel_open() and _cartel_good_ok(good)
+        row.hidden = not shown
+        if not shown:
+            continue
+        document.getElementById(f"cartel-{good}-text").innerText = cartel_row_text(good)
+        document.getElementById(f"cartel-{good}-squeeze-button").disabled = not can_squeeze(good)
+        dump_button = document.getElementById(f"cartel-{good}-dump-button")
+        dump_button.disabled = not can_dump(good)
+        dump_button.innerText = f"Dump {stockpile.get(good, 0)}"
+        document.getElementById(f"cartel-{good}-squeeze-button").innerText = f"Squeeze ({cartel_squeeze_cost(good)})"
+
+
 # @@NEW-FEATURES-END@@ (new feature blocks are inserted above this line)
 
 
@@ -5826,6 +6177,21 @@ def get_state():
         **({"expedition": dict(expedition)} if expedition is not None else {}),
         **({"blueprints": [dict(d) for d in blueprints]} if blueprints else {}),
         **({"hub": hub_colony} if hub_colony is not None else {}),
+        **(
+            {"meridian": {
+                "enabled": meridian_enabled, "ticks": meridian_ticks, "units": meridian_units,
+                "contest": dict(meridian_contest) if meridian_contest is not None else None,
+                "shield": dict(meridian_shield) if meridian_shield is not None else None,
+                "intel": meridian_intel_bought,
+            }}
+            if meridian_enabled or meridian_ticks or meridian_intel_bought
+            else {}
+        ),
+        **(
+            {"cartel": {"effects": {g: dict(e) for g, e in cartel_effects.items()}, "last": dict(cartel_last)}}
+            if cartel_effects or cartel_last
+            else {}
+        ),
         **(
             {"exchange": {"orders": [dict(o) for o in exchange_orders], "fills": [dict(f) for f in exchange_fills]}}
             if exchange_orders or exchange_fills
@@ -6001,6 +6367,54 @@ def _load_expedition(raw):
     if ship is None or not left or not ship.purchased or ship.location is None or ship.loaded:
         return
     expedition = {"ship": ship_id, "left": left}
+
+
+def _load_timed_good(raw, longest):
+    """{"good", "left"} from an untrusted save value, or None."""
+    if not isinstance(raw, dict):
+        return None
+    good, left = raw.get("good"), _saved_int(raw.get("left"), 1, longest, 0)
+    if not isinstance(good, str) or good not in SELL_PRICE or colony_producing(good) not in active_colony_ids() or not left:
+        return None
+    return {"good": good, "left": left}
+
+
+def _load_meridian(raw):
+    """J-11 -- the rival firm's clock, contest and shield from an untrusted save value."""
+    global meridian_enabled, meridian_ticks, meridian_contest, meridian_shield, meridian_units, meridian_intel_bought
+    meridian_enabled, meridian_ticks, meridian_contest, meridian_shield = False, 0, None, None
+    meridian_units, meridian_intel_bought = 0, False
+    if not isinstance(raw, dict):
+        return
+    meridian_enabled = raw.get("enabled") is True
+    meridian_ticks = _saved_int(raw.get("ticks"), 0, 100_000_000)
+    meridian_units = _saved_int(raw.get("units"), 0, 100_000)
+    meridian_intel_bought = raw.get("intel") is True
+    meridian_contest = _load_timed_good(raw.get("contest"), MERIDIAN_CONTEST_TICKS)
+    meridian_shield = _load_timed_good(raw.get("shield"), MERIDIAN_SHIELD_TICKS)
+
+
+def _load_cartel(raw):
+    """J-3 -- active cartel effects and backlash windows from an untrusted save value."""
+    cartel_effects.clear()
+    cartel_last.clear()
+    if not isinstance(raw, dict):
+        return
+    effects, last = raw.get("effects"), raw.get("last")
+    if isinstance(effects, dict):
+        for good, effect in effects.items():
+            if not isinstance(good, str) or good not in SELL_PRICE or colony_producing(good) not in active_colony_ids():
+                continue
+            if not isinstance(effect, dict) or effect.get("kind") not in ("spike", "slump"):
+                continue
+            longest = CARTEL_SPIKE_TICKS if effect["kind"] == "spike" else CARTEL_SLUMP_TICKS
+            left = _saved_int(effect.get("left"), 1, longest, 0)
+            if left:
+                cartel_effects[good] = {"kind": effect["kind"], "left": left}
+    if isinstance(last, dict):
+        for good, age in last.items():
+            if isinstance(good, str) and good in SELL_PRICE and _saved_int(age, 0, CARTEL_BACKLASH_WINDOW - 1, -1) >= 0:
+                cartel_last[good] = age
 
 
 def _load_hub(raw):
@@ -6326,6 +6740,8 @@ def _apply_state(data):
     _load_exchange(data.get("exchange"))
     _load_blueprints(data.get("blueprints"))
     _load_hub(data.get("hub"))
+    _load_meridian(data.get("meridian"))
+    _load_cartel(data.get("cartel"))
     _load_blackout(data.get("blackout"))
     _load_weather(data.get("weather"))
     price_memory.clear()
@@ -6580,6 +6996,16 @@ def setup():
     document.getElementById("weather-toggle-button").addEventListener("click", create_proxy(on_toggle_weather))
     document.getElementById("lab-toggle-button").addEventListener("click", create_proxy(on_toggle_lab))
     document.getElementById("desk-toggle-button").addEventListener("click", create_proxy(on_toggle_desk))
+    document.getElementById("meridian-toggle-button").addEventListener("click", create_proxy(on_toggle_meridian))
+    document.getElementById("meridian-undercut-button").addEventListener("click", create_proxy(on_undercut_meridian))
+    document.getElementById("meridian-intel-button").addEventListener("click", create_proxy(on_buy_meridian_intel))
+    for good in SELL_PRICE:
+        document.getElementById(f"cartel-{good}-squeeze-button").addEventListener(
+            "click", create_proxy(_make_cartel_handler("squeeze", good))
+        )
+        document.getElementById(f"cartel-{good}-dump-button").addEventListener(
+            "click", create_proxy(_make_cartel_handler("dump", good))
+        )
     document.getElementById("hub-clear-button").addEventListener("click", create_proxy(on_clear_hub))
     for colony_id in ALL_COLONIES:
         document.getElementById(f"hub-set-{colony_id}-button").addEventListener(

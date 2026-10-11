@@ -504,6 +504,33 @@
       <p class="panel-label">Market Desk
         <details class="info-toggle"><summary>i</summary><p>Optional market tools. Nothing here is required to finish the game.</p></details>
       </p>
+      <div id="desk-meridian" class="lab-section">
+        <p class="panel-label lab-heading">Meridian Freight (rival firm)</p>
+        <button id="meridian-toggle-button" class="secondary" type="button" aria-pressed="false">Meridian Freight: off</button>
+        <button id="meridian-undercut-button" class="secondary" type="button" hidden>Undercut Meridian (60)</button>
+        <button id="meridian-intel-button" class="secondary" type="button" hidden>Open an intel desk (200)</button>
+        <p id="meridian-status" class="lab-status" aria-live="polite"></p>
+      </div>
+      <div id="desk-cartel" class="lab-section">
+        <p class="panel-label lab-heading">Cartel Board</p>
+        <p id="cartel-status" class="lab-status" aria-live="polite"></p>
+        <div id="cartel-controls" hidden>
+          <div id="cartel-ore-row" class="cartel-row" hidden><span id="cartel-ore-text"></span> <button id="cartel-ore-squeeze-button" class="secondary" type="button">Squeeze</button> <button id="cartel-ore-dump-button" class="secondary" type="button">Dump</button></div>
+          <div id="cartel-grain-row" class="cartel-row" hidden><span id="cartel-grain-text"></span> <button id="cartel-grain-squeeze-button" class="secondary" type="button">Squeeze</button> <button id="cartel-grain-dump-button" class="secondary" type="button">Dump</button></div>
+          <div id="cartel-machinery-row" class="cartel-row" hidden><span id="cartel-machinery-text"></span> <button id="cartel-machinery-squeeze-button" class="secondary" type="button">Squeeze</button> <button id="cartel-machinery-dump-button" class="secondary" type="button">Dump</button></div>
+          <div id="cartel-water-row" class="cartel-row" hidden><span id="cartel-water-text"></span> <button id="cartel-water-squeeze-button" class="secondary" type="button">Squeeze</button> <button id="cartel-water-dump-button" class="secondary" type="button">Dump</button></div>
+          <div id="cartel-energy-row" class="cartel-row" hidden><span id="cartel-energy-text"></span> <button id="cartel-energy-squeeze-button" class="secondary" type="button">Squeeze</button> <button id="cartel-energy-dump-button" class="secondary" type="button">Dump</button></div>
+          <div id="cartel-rare_metals-row" class="cartel-row" hidden><span id="cartel-rare_metals-text"></span> <button id="cartel-rare_metals-squeeze-button" class="secondary" type="button">Squeeze</button> <button id="cartel-rare_metals-dump-button" class="secondary" type="button">Dump</button></div>
+          <div id="cartel-biomass-row" class="cartel-row" hidden><span id="cartel-biomass-text"></span> <button id="cartel-biomass-squeeze-button" class="secondary" type="button">Squeeze</button> <button id="cartel-biomass-dump-button" class="secondary" type="button">Dump</button></div>
+          <div id="cartel-isotopes-row" class="cartel-row" hidden><span id="cartel-isotopes-text"></span> <button id="cartel-isotopes-squeeze-button" class="secondary" type="button">Squeeze</button> <button id="cartel-isotopes-dump-button" class="secondary" type="button">Dump</button></div>
+          <div id="cartel-crystal-row" class="cartel-row" hidden><span id="cartel-crystal-text"></span> <button id="cartel-crystal-squeeze-button" class="secondary" type="button">Squeeze</button> <button id="cartel-crystal-dump-button" class="secondary" type="button">Dump</button></div>
+          <div id="cartel-polymer-row" class="cartel-row" hidden><span id="cartel-polymer-text"></span> <button id="cartel-polymer-squeeze-button" class="secondary" type="button">Squeeze</button> <button id="cartel-polymer-dump-button" class="secondary" type="button">Dump</button></div>
+          <div id="cartel-antimatter-row" class="cartel-row" hidden><span id="cartel-antimatter-text"></span> <button id="cartel-antimatter-squeeze-button" class="secondary" type="button">Squeeze</button> <button id="cartel-antimatter-dump-button" class="secondary" type="button">Dump</button></div>
+          <div id="cartel-neutronium-row" class="cartel-row" hidden><span id="cartel-neutronium-text"></span> <button id="cartel-neutronium-squeeze-button" class="secondary" type="button">Squeeze</button> <button id="cartel-neutronium-dump-button" class="secondary" type="button">Dump</button></div>
+          <div id="cartel-superfluid-row" class="cartel-row" hidden><span id="cartel-superfluid-text"></span> <button id="cartel-superfluid-squeeze-button" class="secondary" type="button">Squeeze</button> <button id="cartel-superfluid-dump-button" class="secondary" type="button">Dump</button></div>
+          <div id="cartel-aerogel-row" class="cartel-row" hidden><span id="cartel-aerogel-text"></span> <button id="cartel-aerogel-squeeze-button" class="secondary" type="button">Squeeze</button> <button id="cartel-aerogel-dump-button" class="secondary" type="button">Dump</button></div>
+        </div>
+      </div>
       <div id="desk-exchange" class="lab-section">
         <p class="panel-label lab-heading">Commodities exchange</p>
         <p class="map-caption">Standing buy and sell orders on your stockpiles that fill on their own each tick, by the same rules and fee as trading by hand.</p>

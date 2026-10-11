@@ -119,6 +119,13 @@ ELEMENT_IDS = [
     "bp-eff-value", "bp-eff-down-button", "bp-eff-up-button",
 ]
 ELEMENT_IDS += ["hub-status", "hub-clear-button"] + [f"hub-set-{_c}-button" for _c in ALL_COLONY_IDS]
+ELEMENT_IDS += ["meridian-toggle-button", "meridian-undercut-button", "meridian-intel-button", "meridian-status",
+                "cartel-status", "cartel-controls"]
+for _g in (
+    "ore", "grain", "machinery", "water", "energy", "rare_metals", "biomass", "isotopes",
+    "crystal", "polymer", "antimatter", "neutronium", "superfluid", "aerogel",
+):
+    ELEMENT_IDS += [f"cartel-{_g}-row", f"cartel-{_g}-text", f"cartel-{_g}-squeeze-button", f"cartel-{_g}-dump-button"]
 for _i in range(4):
     ELEMENT_IDS += [f"bp-design-{_i}-row", f"bp-design-{_i}-text", f"bp-design-{_i}-delete-button"]
     ELEMENT_IDS += [f"ship-5-bp{_i}-option", f"ship-6-bp{_i}-option"]

@@ -195,6 +195,16 @@
       "id": "first_hub",
       "title": "One busy dock",
       "text": "One dock becomes the place everything passes through, and the ships start arriving at it in half the time and leaving it with the same complaints. The warehouse there holds less than it used to, which the harbourmaster takes personally. The map gets a thick ring and the word HUB, and everyone agrees it looks official."
+    },
+    {
+      "id": "rival_answered",
+      "title": "The firm nobody has met",
+      "text": "Prices moved, and not because of anything you did. You never saw a ship, a flag or a face; you saw a number that was supposed to be higher. Then you answered, and the number came back, and somewhere a ledger you will never read made a small, polite note of it."
+    },
+    {
+      "id": "board_member",
+      "title": "A seat at the board",
+      "text": "The Cartel Board is a long table with no chairs on your side. You make five moves anyway: a squeeze here, a dump there, a patient wait for a window to close. Nothing breaks. The prices behave, mostly, and the room goes very quiet in the way rooms do when someone has done the arithmetic."
     }
   ]
 }

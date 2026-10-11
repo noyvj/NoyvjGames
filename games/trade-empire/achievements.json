@@ -179,6 +179,16 @@
       "id": "first_hub",
       "label": "Spoke and Wheel",
       "description": "Designate a Distribution Hub in the Fleet Lab."
+    },
+    {
+      "id": "rival_answered",
+      "label": "Outpriced",
+      "description": "Answer Meridian Freight: undercut it, shield a good with an exclusive Guild contract, or dump it out of a good."
+    },
+    {
+      "id": "board_member",
+      "label": "Board Member",
+      "description": "Make five moves on the Cartel Board, across any charters."
     }
   ]
 }
