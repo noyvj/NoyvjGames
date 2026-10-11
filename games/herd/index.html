@@ -380,6 +380,7 @@
     <div id="policy-panel" class="section" hidden>
       <p class="meter-label">Policy advisor</p>
       <p id="policy-display" class="comparison-message"></p>
+      <p id="policy-real-display" class="comparison-message policy-real"></p>
       <button id="policy-subsidy-button" class="secondary">Take the decoupling subsidy</button>
       <button id="policy-cash-button" class="secondary">Take the cash bonus</button>
     </div>
@@ -411,7 +412,7 @@
     </div>
 
     <details id="collection-extras" class="section farm-extras collection-extras">
-      <summary>Collection: breeds, combos and lever history</summary>
+      <summary>Collection: breeds, combos, advisor and lever history</summary>
       <p id="collection-summary" class="comparison-message"></p>
       <div id="breed-shelf" class="collection-block">
         <p class="meter-label">Breed shelf (collected for good, across generations)</p>
@@ -424,6 +425,10 @@
       <div id="hall-of-fame" class="collection-block">
         <p class="meter-label">Hall of fame (longest-serving animals of retired generations)</p>
         <ul id="hall-of-fame-list" class="hall-of-fame-list"></ul>
+      </div>
+      <div id="policy-history" class="collection-block">
+        <p class="meter-label">Advisor history (what each policy advisor offered and what you took)</p>
+        <ul id="policy-history-list" class="policy-history-list"></ul>
       </div>
       <div id="lever-history" class="collection-block">
         <p class="meter-label">Lever history</p>

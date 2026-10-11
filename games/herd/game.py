@@ -200,6 +200,49 @@ POLICY_SUBSIDY_DISCOUNT = 0.30
 POLICY_SUBSIDY_ROUNDS = 5
 POLICY_CASH_BONUS = 40
 
+# F-9 -- the policy advisor draws its two offers from a pool of six options, without repeats
+# until the pool has been used, in a fixed order (no luck). Each option has a plain real-world tag
+# (a kind of scheme that exists, with no figures) shown next to it and in the advisor history.
+POLICY_ORDER = ["subsidy", "cash", "carbon_credit", "feed_hedge", "organic_trial", "welfare_grant"]
+POLICY_OPTIONS = {
+    "subsidy": {
+        "label": "Decoupling subsidy", "tag": "Subsidy programme",
+        "blurb": f"{POLICY_SUBSIDY_DISCOUNT * 100:.0f}% off every decoupling lever for {POLICY_SUBSIDY_ROUNDS} rounds",
+        "real": "Real-world idea: public programmes that help pay for methane-reduction equipment on farms.",
+    },
+    "cash": {
+        "label": "Cash bonus", "tag": "Direct payment", "blurb": f"{POLICY_CASH_BONUS} funds now",
+        "real": "Real-world idea: direct payments to farmers.",
+    },
+    "carbon_credit": {
+        "label": "Carbon-credit contract", "tag": "Carbon market",
+        "blurb": "funds now, more the further you are below baseline emissions",
+        "real": "Real-world idea: voluntary carbon-credit contracts that pay a farm for emission cuts that are checked.",
+    },
+    "feed_hedge": {
+        "label": "Feed-price hedge", "tag": "Price hedge", "blurb": "Feed Additives half price for 6 rounds",
+        "real": "Real-world idea: forward contracts that fix a feed price in advance.",
+    },
+    "organic_trial": {
+        "label": "Organic label trial", "tag": "Eco-label", "blurb": "+8% herd income for 4 rounds",
+        "real": "Real-world idea: eco-labels that let a farm sell at a small premium while it is certified.",
+    },
+    "welfare_grant": {
+        "label": "Welfare grant", "tag": "Welfare payment",
+        "blurb": "funds now, more the higher your herd welfare is above 50",
+        "real": "Real-world idea: payments that reward higher animal-welfare standards.",
+    },
+}
+POLICY_HEDGE_DISCOUNT = 0.5
+POLICY_HEDGE_ROUNDS = 6
+POLICY_LABEL_BONUS = 0.08
+POLICY_LABEL_ROUNDS = 4
+POLICY_CARBON_BASE = 20
+POLICY_CARBON_PER_DECOUPLED = 80
+POLICY_WELFARE_BASE = 10
+POLICY_WELFARE_PER_POINT = 1.2
+POLICY_HISTORY_MAX = 40
+
 
 # GF-15 -- perfect-round streak: a round is "perfect" when the methane it added
 # fell below the previous round's AND funds ended the round higher than they ended
@@ -368,6 +411,13 @@ class FarmState:
         self.regional_cap_enabled = False
         self.policy_offer_pending = False
         self.subsidy_rounds_left = 0
+        # F-9: the two options on the table, those already offered this cycle, a short history
+        # of what was taken, and the two new timed effects.
+        self.policy_offer = []
+        self.policy_seen = []
+        self.policy_history = []  # [round, taken id, other id]
+        self.hedge_rounds_left = 0
+        self.label_rounds_left = 0
 
         # F1 satellite farm.
         self.satellite_open = False
@@ -555,19 +605,59 @@ class FarmState:
     def decoupling_cost(self, measure):
         cost = DECOUPLING_MEASURES[measure]["cost"]
         if self.subsidy_rounds_left > 0:
-            return cost * (1 - POLICY_SUBSIDY_DISCOUNT)
+            cost *= 1 - POLICY_SUBSIDY_DISCOUNT
+        if measure == "feed" and self.hedge_rounds_left > 0:
+            cost *= 1 - POLICY_HEDGE_DISCOUNT
         return cost
 
+    def label_multiplier(self):
+        return 1 + POLICY_LABEL_BONUS if self.label_rounds_left > 0 else 1.0
+
+    def current_policy_offer(self):
+        """The two option ids on the table (the original pair when an older save has none stored)."""
+        if len(self.policy_offer) == 2:
+            return list(self.policy_offer)
+        return ["subsidy", "cash"]
+
+    def draw_policy_offer(self):
+        """Two options from the pool, in the fixed order, none repeated until the pool is used up."""
+        unseen = [o for o in POLICY_ORDER if o not in self.policy_seen]
+        if len(unseen) < 2:
+            self.policy_seen = []
+            unseen = list(POLICY_ORDER)
+        first = unseen[0]
+        second = unseen[1 + len(self.policy_history) % (len(unseen) - 1)]
+        self.policy_seen += [first, second]
+        return [first, second]
+
+    def carbon_credit_value(self):
+        return round(POLICY_CARBON_BASE + POLICY_CARBON_PER_DECOUPLED * max(0.0, self.decoupled_fraction()))
+
+    def welfare_grant_value(self):
+        return round(POLICY_WELFARE_BASE + POLICY_WELFARE_PER_POINT * max(0.0, self.welfare() - WELFARE_START))
+
     def choose_policy(self, choice):
-        if not self.policy_offer_pending:
+        if not self.policy_offer_pending or choice not in self.current_policy_offer():
             return False
         if choice == "subsidy":
             self.subsidy_rounds_left = POLICY_SUBSIDY_ROUNDS
         elif choice == "cash":
             self.funds += POLICY_CASH_BONUS
+        elif choice == "carbon_credit":
+            self.funds += self.carbon_credit_value()
+        elif choice == "feed_hedge":
+            self.hedge_rounds_left = POLICY_HEDGE_ROUNDS
+        elif choice == "organic_trial":
+            self.label_rounds_left = POLICY_LABEL_ROUNDS
+        elif choice == "welfare_grant":
+            self.funds += self.welfare_grant_value()
         else:
             return False
+        other = [o for o in self.current_policy_offer() if o != choice][0]
+        self.policy_history.append([self.round_number, choice, other])
+        del self.policy_history[:-POLICY_HISTORY_MAX]
         self.policy_offer_pending = False
+        self.policy_offer = []
         return True
 
     # ---- F23 poultry ----
@@ -773,13 +863,14 @@ class FarmState:
         herd_income = self.herd_size * HERD_INCOME_PER_UNIT * plant_blend * certification * welfare
         poultry = self.poultry_net_income()
         satellite = self.satellite_net_income()
-        raw_income = (herd_income + poultry + satellite) * supply * season
+        label = self.label_multiplier()
+        raw_income = (herd_income + poultry + satellite) * supply * season * label
         pressure = self.pressure_fraction()
         biogas = self.biogas_sales()
         return {
             "herd_base": herd_base, "plant_fraction": fraction, "plant_blend": plant_blend,
             "certification": certification, "welfare": welfare, "herd_income": herd_income,
-            "poultry": poultry, "satellite": satellite, "supply": supply, "season": season,
+            "poultry": poultry, "satellite": satellite, "supply": supply, "season": season, "label": label,
             "raw": raw_income, "pressure": pressure, "after_pressure": raw_income * (1 - pressure),
             "biogas": biogas, "total": raw_income * (1 - pressure) + biogas,
         }
@@ -813,8 +904,13 @@ class FarmState:
         self.genetics_pending = [r for r in self.genetics_pending if r > 0]
         if self.subsidy_rounds_left > 0:
             self.subsidy_rounds_left -= 1
+        if self.hedge_rounds_left > 0:
+            self.hedge_rounds_left -= 1
+        if self.label_rounds_left > 0:
+            self.label_rounds_left -= 1
         if (self.round_number + 1) % POLICY_EVENT_INTERVAL == 0:
             self.policy_offer_pending = True
+            self.policy_offer = self.draw_policy_offer()
 
         self.round_number += 1
         prev_increment = (
@@ -1296,6 +1392,7 @@ def report_card_html():
         ),
         beat_percentage_message(),
         investment_summary_message(),
+        policy_report_line(),
         real_world_comparison_message(),
     ]
     lines.insert(1, rating_message())
@@ -2044,15 +2141,63 @@ def biogas_message():
     return f"Biogas sales: {surplus} surplus capture unit(s) earn {farm.biogas_sales():.1f} funds per round."
 
 
+def policy_option_blurb(option_id):
+    """What the option would do right now, with today's numbers."""
+    spec = POLICY_OPTIONS[option_id]
+    if option_id == "carbon_credit":
+        return f"{farm.carbon_credit_value()} funds now ({spec['blurb']})"
+    if option_id == "welfare_grant":
+        return f"{farm.welfare_grant_value()} funds now ({spec['blurb']})"
+    return spec["blurb"]
+
+
+def policy_active_message():
+    parts = []
+    if farm.subsidy_rounds_left > 0:
+        parts.append(f"decoupling subsidy, {farm.subsidy_rounds_left} rounds left")
+    if farm.hedge_rounds_left > 0:
+        parts.append(f"feed-price hedge, {farm.hedge_rounds_left} rounds left")
+    if farm.label_rounds_left > 0:
+        parts.append(f"organic label trial, {farm.label_rounds_left} rounds left")
+    return ("Active: " + "; ".join(parts) + ".") if parts else ""
+
+
 def policy_message():
     if farm.policy_offer_pending:
+        first, second = farm.current_policy_offer()
         return (
-            f"Policy advisor: choose a {POLICY_SUBSIDY_DISCOUNT * 100:.0f}% decoupling subsidy for "
-            f"{POLICY_SUBSIDY_ROUNDS} rounds, or a flat {POLICY_CASH_BONUS} cash bonus."
+            f"Policy advisor: pick one. {POLICY_OPTIONS[first]['label']}: {policy_option_blurb(first)}. "
+            f"Or {POLICY_OPTIONS[second]['label']}: {policy_option_blurb(second)}."
         )
-    if farm.subsidy_rounds_left > 0:
-        return f"Decoupling subsidy active: {farm.subsidy_rounds_left} rounds left."
-    return ""
+    return policy_active_message()
+
+
+def policy_real_message():
+    if not farm.policy_offer_pending:
+        return ""
+    return " ".join(POLICY_OPTIONS[o]["real"] for o in farm.current_policy_offer())
+
+
+def policy_history_html():
+    if not farm.policy_history:
+        return (
+            f"<li>No advisor offers taken yet. An advisor visits every {POLICY_EVENT_INTERVAL} rounds "
+            "with two options from a pool of six.</li>"
+        )
+    rows = []
+    for rnd, taken, other in reversed(farm.policy_history):
+        t, o = POLICY_OPTIONS[taken], POLICY_OPTIONS[other]
+        rows.append(
+            f"<li>Round {rnd}: took {t['label']} ({t['tag']}), passed on {o['label']} ({o['tag']}).</li>"
+        )
+    return "".join(rows)
+
+
+def policy_report_line():
+    if not farm.policy_history:
+        return "Advisor choices: none yet."
+    names = ", ".join(POLICY_OPTIONS[t]["label"] for _r, t, _o in farm.policy_history[-4:])
+    return f"Advisor choices ({len(farm.policy_history)} so far, latest last): {names}."
 
 
 def render_extras():
@@ -2085,6 +2230,13 @@ def render_extras():
     # F27 policy advisor
     document.getElementById("policy-panel").hidden = not farm.policy_offer_pending
     document.getElementById("policy-display").innerText = policy_message()
+    document.getElementById("policy-real-display").innerText = policy_real_message()
+    for slot, button_id in enumerate(("policy-subsidy-button", "policy-cash-button")):
+        option = POLICY_OPTIONS[farm.current_policy_offer()[slot]]
+        button = document.getElementById(button_id)
+        button.innerText = f"Take: {option['label']} ({option['tag']})"
+        button.title = option["real"]
+    document.getElementById("policy-history-list").innerHTML = policy_history_html()
     render_succession()
     render_satellite()
     document.getElementById("tagline-display").innerText = tagline_message()
@@ -2994,14 +3146,11 @@ def on_toggle_cap(event=None):
     render()
 
 
-def on_policy_subsidy(event=None):
-    farm.choose_policy("subsidy")
-    render()
-
-
-def on_policy_cash(event=None):
-    farm.choose_policy("cash")
-    render()
+def _make_policy_handler(slot):
+    def handler(event=None):
+        farm.choose_policy(farm.current_policy_offer()[slot])
+        render()
+    return handler
 
 
 # ===========================================================================
@@ -3060,6 +3209,8 @@ def explain_income_nodes():
         nodes.append(_node("Supply chain", f"x{b['supply']:.2f}", f"{farm.supply_chain_investment} of {SUPPLY_CHAIN_MAX_UNITS} units"))
     if farm.variation_enabled:
         nodes.append(_node("Season", f"x{b['season']:.2f}", season_for_round(farm.round_number)[0]))
+    if farm.label_rounds_left > 0:
+        nodes.append(_node("Organic label trial", f"x{b['label']:.2f}", f"{farm.label_rounds_left} rounds left"))
     nodes.append(_node("Income before pressure", f"{b['raw']:.1f}"))
     nodes.append(_node("Market/regulatory pressure", f"-{b['pressure'] * 100:.0f}%", f"takes {b['raw'] * b['pressure']:.1f} of it; see the Pressure breakdown"))
     if b["biogas"]:
@@ -3744,6 +3895,17 @@ def get_state():
         state["hall_of_fame"] = [list(entry) for entry in hall_of_fame]
     if farm.undo_used:
         state["undo_used"] = True
+    # F-9: advisor pool state, written only once there is something to keep.
+    if farm.policy_offer_pending and len(farm.policy_offer) == 2:
+        state["policy_offer"] = list(farm.policy_offer)
+    if farm.policy_seen:
+        state["policy_seen"] = list(farm.policy_seen)
+    if farm.policy_history:
+        state["policy_history"] = [list(entry) for entry in farm.policy_history]
+    if farm.hedge_rounds_left > 0:
+        state["hedge_rounds_left"] = farm.hedge_rounds_left
+    if farm.label_rounds_left > 0:
+        state["label_rounds_left"] = farm.label_rounds_left
     # F-1: ranch rules and the unranked flag, only when something is non-standard.
     custom = {n: v for n, v in ranch_rules.items() if abs(v - RULE_SPECS[n]["default"]) > 1e-9}
     if custom:
@@ -3768,6 +3930,31 @@ def _safe_int(value, default):
     if value != value or value in (float("inf"), float("-inf")):
         return default
     return max(0, int(value))
+
+
+def _policy_ids(raw):
+    """Option ids from untrusted save data, kept only when they are real options."""
+    if not isinstance(raw, list):
+        return []
+    return [o for o in raw if isinstance(o, str) and o in POLICY_OPTIONS]
+
+
+def _load_policy_fields(data):
+    offer = _policy_ids(data.get("policy_offer"))
+    farm.policy_offer = offer if len(offer) == 2 and offer[0] != offer[1] else []
+    seen = _policy_ids(data.get("policy_seen"))
+    farm.policy_seen = [o for i, o in enumerate(seen) if o not in seen[:i]]
+    farm.policy_history = []
+    history = data.get("policy_history")
+    if isinstance(history, list):
+        for entry in history[-POLICY_HISTORY_MAX:]:
+            if (
+                isinstance(entry, (list, tuple)) and len(entry) == 3 and _is_finite_number(entry[0])
+                and entry[1] in POLICY_OPTIONS and entry[2] in POLICY_OPTIONS and entry[1] != entry[2]
+            ):
+                farm.policy_history.append([max(1, int(entry[0])), entry[1], entry[2]])
+    farm.hedge_rounds_left = min(POLICY_HEDGE_ROUNDS, _safe_int(data.get("hedge_rounds_left"), 0))
+    farm.label_rounds_left = min(POLICY_LABEL_ROUNDS, _safe_int(data.get("label_rounds_left"), 0))
 
 
 def _load_progress_fields(data):
@@ -4068,6 +4255,7 @@ def _apply_state(data):
     farm.regional_cap_enabled = data.get("regional_cap_enabled") is True
     farm.policy_offer_pending = data.get("policy_offer_pending") is True
     farm.subsidy_rounds_left = _safe_int(data.get("subsidy_rounds_left"), 0)
+    _load_policy_fields(data)
     # achievements_earned is deliberately never read back here -- it's a
     # write-only projection recomputed fresh by get_state() every save,
     # per ACHIEVEMENTS-SYSTEM-DESIGN.md.
@@ -4123,8 +4311,8 @@ def setup():
         ("supply-chain-invest-button", on_invest_supply_chain),
         ("variation-checkbox", on_toggle_variation),
         ("cap-checkbox", on_toggle_cap),
-        ("policy-subsidy-button", on_policy_subsidy),
-        ("policy-cash-button", on_policy_cash),
+        ("policy-subsidy-button", _make_policy_handler(0)),
+        ("policy-cash-button", _make_policy_handler(1)),
     ):
         document.getElementById(element_id).addEventListener("click", create_proxy(handler))
     for element_id, action in (

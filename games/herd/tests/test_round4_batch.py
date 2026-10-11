@@ -635,5 +635,5 @@ def test_collection_is_a_desktop_window_and_the_classic_wrapper_is_hidden_there(
     cfg = json.loads((GAME_DIR / "pc-config.json").read_text(encoding="utf-8"))
     collection = [c for c in cfg["composites"] if c["id"] == "pc-collection-panel"]
     assert collection and set(collection[0]["members"]) == {
-        "#collection-summary", "#breed-shelf", "#combo-book", "#hall-of-fame", "#lever-history"}
+        "#collection-summary", "#breed-shelf", "#combo-book", "#hall-of-fame", "#policy-history", "#lever-history"}
     assert "#collection-extras" in cfg["zones"]["hidden"]

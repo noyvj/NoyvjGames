@@ -108,6 +108,8 @@ ELEMENT_IDS = [
     "rule-starting-funds", "rule-starting-funds-value", "rule-season-swing", "rule-season-swing-value",
     "rule-pressure-strength", "rule-pressure-strength-value", "rule-growth-slope", "rule-growth-slope-value",
     "rules-summary", "rules-start-note", "rules-reset-button", "rules-badge",
+    # F-9 policy pool.
+    "policy-real-display", "policy-history-list",
 ]
 for _measure in MEASURE_IDS:
     ELEMENT_IDS += [f"{_measure}-name", f"{_measure}-count", f"{_measure}-invest-button"]

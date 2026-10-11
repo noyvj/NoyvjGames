@@ -1589,3 +1589,8 @@ html[data-high-contrast="true"] #glossary-popover { background: #000; color: #ff
 .ranch-rules input[type="range"] { width: 100%; min-height: 28px; }
 .ranch-rules button { margin-top: 0.5rem; }
 .rules-badge { margin: 0 0 0.5rem; padding: 0.25rem 0.5rem; font-size: 0.78rem; font-weight: 700; border: 1px dashed #e0c24c; border-radius: 6px; }
+
+/* F-9 policy advisor: the real-world line and the history list. */
+.policy-real { font-size: 0.74rem; opacity: 0.75; }
+.policy-history-list { padding-left: 1.2rem !important; font-size: 0.8rem; }
+#policy-panel button { margin: 0.3rem 0.4rem 0 0; }
