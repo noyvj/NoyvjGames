@@ -94,3 +94,49 @@ def test_sail_an_archive_chart_from_the_calendar(base, page_name, width, height)
         assert "Played 1 of 20" in page.inner_text("[data-testid=dead-reckoning-daily-tally]")
         browser.close()
     assert errors == []
+
+
+def _sail_par(page):
+    page.evaluate("""() => {
+        window.pyodide.runPython("legs = charts.par_legs(run['chart_id'])\\nrun['legs'] = sim.clean_legs(_chart(), legs, limit=12)");
+        window.deadReckoningRefresh();
+    }""")
+    page.click("#sail-button")
+    page.click("#skip-button")
+
+
+@pytest.mark.parametrize("width,height", [(1440, 900), (360, 740)])
+def test_todays_chart_is_told_to_the_shared_daily_record_and_an_archive_chart_is_not(base, width, height):
+    """Z-5b: finishing TODAY's Daily Chart writes noyvj-daily-v1 once; an older chart from the calendar never does."""
+    errors = []
+    with sync_playwright() as p:
+        browser = p.chromium.launch()
+        ctx = browser.new_context(viewport={"width": width, "height": height}, service_workers="block")
+        ctx.clock.set_fixed_time("2026-10-20T09:00:00Z")
+        ctx.route("**/*fastapicloud*/**", lambda route: route.abort())
+        page = ctx.new_page()
+        page.on("pageerror", lambda e: errors.append(str(e)))
+        page.goto(base + "index.html#play")
+        page.evaluate("localStorage.clear()")
+        page.reload()
+        page.wait_for_function(READY, timeout=90000)
+        page.click("#daily-toggle-button")
+        page.click("[data-testid=dead-reckoning-daily-archive]")
+        page.click("[data-date='2026-10-05']")
+        page.wait_for_function("document.querySelector('#chart-title').textContent === 'Daily Chart 5'", timeout=30000)
+        _sail_par(page)
+        assert page.inner_text("#result-stars-text").startswith("3 of 3 stars")
+        assert page.evaluate("localStorage.getItem('noyvj-daily-v1')") is None
+        page.click("#daily-toggle-button")
+        page.click("[data-testid=dead-reckoning-daily-today]")
+        page.wait_for_function("document.querySelector('#chart-title').textContent === 'Daily Chart 20'", timeout=30000)
+        _sail_par(page)
+        record = page.evaluate("JSON.parse(localStorage.getItem('noyvj-daily-v1'))")
+        assert record["date"] == "2026-10-20" and list(record["runs"]) == ["dead-reckoning"]
+        assert record["runs"]["dead-reckoning"]["text"].startswith("3 of 3 stars")
+        assert record["streaks"]["dead-reckoning"]["count"] == 1
+        page.reload()
+        page.wait_for_function(READY, timeout=90000)
+        assert page.evaluate("JSON.parse(localStorage.getItem('noyvj-daily-v1')).streaks['dead-reckoning'].count") == 1
+        browser.close()
+    assert errors == []

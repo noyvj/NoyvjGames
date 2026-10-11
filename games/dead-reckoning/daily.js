@@ -38,6 +38,17 @@
     } else go();
   }
 
+  /* Z-5b: today's Daily Chart revealed -> the shared "noyvj-daily-v1" record the hub's Today strip reads. Counts once
+     per day and only for today's date (an older chart from the archive never counts); nothing in the game changes. */
+  function recordSharedDaily(entry) {
+    try {
+      var S = window.NoyvjSeed;
+      if (!S || !S.daily || !entry || entry.date !== S.daily.today()) return;
+      var text = entry.stars + " of 3 stars" + (typeof entry.error_nm === "number" ? ", " + entry.error_nm + " nm off" : "");
+      S.daily.markCompleted("dead-reckoning", { text: text });
+    } catch (e) { /* the shared record is a courtesy and must never break the page */ }
+  }
+
   function renderToday(d) {
     var line = $("daily-today");
     if (!d.open) { setText(line, "The first Daily Chart opens on " + d.epoch + "."); $("daily-today-button").disabled = true; return; }
@@ -121,6 +132,7 @@
     renderToday(d);
     renderGrid(d);
     if (!$("daily-archive").hidden) renderCalendar(d);
+    if (view.phase === "reveal" && d.entry) recordSharedDaily(d.entry);
     if (view.phase === "reveal" && d.entry && typeof api.leaderboardHook === "function") {
       try { api.leaderboardHook(d.entry); } catch (e) { /* a hook must never break the page */ }
     }
