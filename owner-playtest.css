@@ -1,0 +1,58 @@
+/* GN-18: the owner's Playtest queue on the hub (owner-playtest.js). Built like the game rows: a heading with
+   44px scroll buttons and a focusable, scrolling track. Dark by default, html[data-theme="light"] below. */
+.owner-playtest { max-width: 1400px; margin: 0 auto 1.5rem; padding: 0 1.5rem; }
+.owner-playtest[hidden] { display: none; }
+.owner-playtest-inner { border: 1px solid rgba(140, 160, 255, 0.3); border-radius: 14px; padding: 0.9rem 1rem 1rem; background: rgba(20, 26, 48, 0.55); }
+.owner-playtest-head { display: flex; align-items: center; gap: 0.6rem; margin: 0 0 0.4rem; }
+.owner-playtest-title { margin: 0; font-size: 1.15rem; letter-spacing: 0.03em; }
+.owner-playtest-count { font-size: 0.8rem; opacity: 0.75; }
+.owner-playtest-controls { margin-left: auto; display: flex; gap: 0.4rem; }
+.owner-playtest-inner.is-fit .owner-playtest-controls { display: none; }
+.owner-playtest-controls button {
+  min-width: 44px; min-height: 44px; border-radius: 999px; border: 1px solid rgba(140, 160, 255, 0.3);
+  background: rgba(140, 160, 255, 0.08); color: inherit; font: inherit; font-size: 1.1rem; cursor: pointer;
+}
+.owner-playtest-controls button:hover:not(:disabled) { background: rgba(140, 160, 255, 0.2); }
+.owner-playtest-controls button:disabled { opacity: 0.35; cursor: default; }
+.owner-playtest-intro { margin: 0 0 0.6rem; font-size: 0.85rem; opacity: 0.8; max-width: 70ch; }
+.owner-playtest-track {
+  display: flex; gap: 1rem; align-items: flex-start;
+  overflow-x: auto; overscroll-behavior-x: contain; scroll-snap-type: x proximity;
+  padding: 0.4rem 0.4rem 0.8rem; margin: 0 -0.4rem; scroll-padding-inline: 0.4rem; scrollbar-width: thin;
+}
+.owner-playtest-track:focus-visible { outline: 2px solid #8fb0e8; outline-offset: 2px; border-radius: 12px; }
+.owner-playtest-card {
+  flex: 0 0 min(360px, 86vw); scroll-snap-align: start; box-sizing: border-box;
+  border: 1px solid rgba(140, 160, 255, 0.28); border-radius: 12px; padding: 0.9rem 1rem 1rem;
+  background: rgba(10, 14, 30, 0.7); font-size: 0.88rem; line-height: 1.45;
+}
+.owner-playtest-card-title { margin: 0 0 0.3rem; font-size: 1rem; line-height: 1.3; }
+.owner-playtest-meta { margin: 0 0 0.5rem; font-size: 0.8rem; opacity: 0.85; }
+.owner-playtest-game { display: inline-flex; align-items: center; min-height: 44px; color: #a9c3ff; font-weight: 600; }
+.owner-playtest-why, .owner-playtest-how { margin: 0 0 0.5rem; overflow-wrap: anywhere; }
+.owner-playtest-questions { margin: 0.6rem 0; padding-left: 1.3rem; }
+.owner-playtest-question { margin: 0 0 0.7rem; }
+.owner-playtest-qlabel { display: block; margin: 0 0 0.25rem; font-weight: 600; overflow-wrap: anywhere; }
+.owner-playtest-answer {
+  display: block; box-sizing: border-box; width: 100%; min-height: 44px; resize: vertical;
+  font: inherit; font-size: 0.85rem; padding: 0.4rem 0.5rem; border-radius: 8px;
+  border: 1px solid rgba(140, 160, 255, 0.4); background: rgba(8, 10, 22, 0.8); color: inherit;
+}
+.owner-playtest-answer:focus-visible { outline: 2px solid #8fb0e8; outline-offset: 1px; }
+.owner-playtest-done { display: inline-flex; align-items: center; gap: 0.5rem; min-height: 44px; cursor: pointer; font-weight: 600; }
+.owner-playtest-done input { width: 22px; height: 22px; margin: 0; }
+.owner-playtest-card--collapsed { flex-basis: min(260px, 80vw); display: flex; align-items: center; gap: 0.6rem; justify-content: space-between; padding: 0.3rem 0.8rem; opacity: 0.75; }
+.owner-playtest-card--collapsed .owner-playtest-card-title { margin: 0; font-size: 0.85rem; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+.owner-playtest-foot { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem 1rem; }
+.owner-playtest-copy { min-height: 44px; }
+.owner-playtest-status { margin: 0; font-size: 0.82rem; opacity: 0.85; min-height: 1.2em; }
+
+html[data-theme="light"] .owner-playtest-inner { border-color: rgba(70, 95, 170, 0.4); background: rgba(255, 255, 255, 0.8); }
+html[data-theme="light"] .owner-playtest-card { border-color: rgba(70, 95, 170, 0.4); background: #fff; color: #1b2033; }
+html[data-theme="light"] .owner-playtest-controls button { border-color: rgba(70, 95, 170, 0.4); background: rgba(70, 95, 170, 0.06); }
+html[data-theme="light"] .owner-playtest-answer { border-color: rgba(70, 95, 170, 0.5); background: #f6f8ff; color: #1b2033; }
+html[data-theme="light"] .owner-playtest-game { color: #2c4a9a; }
+
+@media (prefers-reduced-motion: reduce) { .owner-playtest-track { scroll-behavior: auto; scroll-snap-type: none; } }
+html[data-hub-reduced-motion="true"] .owner-playtest-track, html[data-lite="true"] .owner-playtest-track { scroll-behavior: auto; scroll-snap-type: none; }
+@media (max-width: 480px) { .owner-playtest { padding: 0 1rem; } .owner-playtest-inner { padding: 0.7rem 0.7rem 0.8rem; } }
