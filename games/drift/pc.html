@@ -366,9 +366,26 @@
       <!-- I17: a passive, entirely unmanaged region for contrast -- same
            background pressure, zero investment. -->
       <p id="control-region-contrast-display" class="comparison-message" hidden></p>
-      <div id="trend-graph" class="trend-graph"></div>
+      <!-- I-16: range chips; I-12: layer toggles (game.py renders the graph and keeps aria-pressed current). -->
+      <div class="trend-controls" role="group" aria-label="Trend graph range and layers">
+        <span class="trend-controls-label">Range</span>
+        <button id="trend-range-10-button" class="secondary chip" type="button" aria-pressed="false">Last 10</button>
+        <button id="trend-range-25-button" class="secondary chip" type="button" aria-pressed="false">Last 25</button>
+        <button id="trend-range-all-button" class="secondary chip active" type="button" aria-pressed="true">All</button>
+        <span class="trend-controls-label">Show</span>
+        <button id="trend-layer-strain-button" class="secondary chip active" type="button" aria-pressed="true">Strain</button>
+        <button id="trend-layer-wellbeing-button" class="secondary chip active" type="button" aria-pressed="true">Wellbeing</button>
+        <button id="trend-layer-control-button" class="secondary chip active" type="button" aria-pressed="true">Passive region</button>
+        <button id="trend-layer-roi-button" class="secondary chip" type="button" aria-pressed="false">ROI</button>
+        <button id="trend-layer-events-button" class="secondary chip active" type="button" aria-pressed="true">Events</button>
+      </div>
+      <div class="trend-graph-wrap">
+        <div id="trend-graph" class="trend-graph" tabindex="0" role="group" aria-label="Trend graph. Hover, or press the left and right arrow keys, to read the exact values for each round."></div>
+        <p id="trend-tooltip" class="trend-tooltip" hidden></p>
+        <span id="trend-sr" class="sr-only" role="status" aria-live="polite"></span>
+      </div>
       <p id="trend-graph-message" class="trend-graph-message">Not enough rounds yet to show a trend.</p>
-      <p class="trend-legend">Solid line: strain. Dashed: your wellbeing. Dotted grey: the passive unmanaged region's wellbeing.</p>
+      <p id="trend-legend" class="trend-legend">Solid line: strain. Dashed: your wellbeing. Dotted grey: the passive unmanaged region's wellbeing.</p>
     </div>
 
     <button id="coda-button" class="secondary" hidden>View Long-Horizon Outcomes</button>

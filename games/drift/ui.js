@@ -3,7 +3,10 @@
 
    I-13  Game keys: 1 / 2 / 3 buy Housing / Integration Services / Infrastructure, Enter Advance Round,
          U Reset this round, P Play 5 rounds, L Round Ledger, C Region Collection. They are listed in the
-         shared "?" overlay (index.html passes them as `extra`) and in the Desktop hint bar. */
+         shared "?" overlay (index.html passes them as `extra`) and in the Desktop hint bar.
+   I-16  Trend graph crosshair: game.py draws invisible `.trend-hit` columns carrying the exact values per
+         round (data-tip); hovering, touching, or pressing the left and right arrow keys (Home and End jump)
+         while the graph has focus moves a crosshair line and shows that round's values. */
 (function () {
   "use strict";
 
@@ -62,4 +65,73 @@
       press("advance-round-button");
     }
   });
+
+  // ---- I-16: trend graph crosshair --------------------------------------------------------------
+  (function trendCrosshair() {
+    const host = document.getElementById("trend-graph");
+    const tip = document.getElementById("trend-tooltip");
+    const live = document.getElementById("trend-sr");
+    if (!host || !tip) return;
+    let index = -1;
+
+    function columns() {
+      return Array.from(host.querySelectorAll(".trend-hit"));
+    }
+
+    function hide() {
+      index = -1;
+      tip.hidden = true;
+      const line = host.querySelector(".trend-crosshair");
+      if (line) line.style.display = "none";
+    }
+
+    function show(rect, speak) {
+      const svg = rect.ownerSVGElement;
+      const line = svg && svg.querySelector(".trend-crosshair");
+      const x = rect.getAttribute("data-x") || "0";
+      if (line) {
+        line.setAttribute("x1", x);
+        line.setAttribute("x2", x);
+        line.style.display = "block";
+      }
+      const text = rect.getAttribute("data-tip") || "";
+      tip.textContent = text;
+      tip.hidden = false;
+      // Keep the tooltip over the graph, flipping to the left half's right edge near the right side.
+      const box = host.getBoundingClientRect();
+      const viewWidth = svg && svg.viewBox && svg.viewBox.baseVal ? svg.viewBox.baseVal.width : 280;
+      const px = (parseFloat(x) / viewWidth) * box.width;
+      tip.style.left = Math.max(0, Math.min(box.width - tip.offsetWidth, px - tip.offsetWidth / 2)) + "px";
+      if (speak && live) live.textContent = text;
+    }
+
+    host.addEventListener("pointermove", function (event) {
+      const rect = event.target && event.target.closest ? event.target.closest(".trend-hit") : null;
+      if (!rect) return;
+      index = columns().indexOf(rect);
+      show(rect, false);
+    });
+    host.addEventListener("pointerleave", function () {
+      if (document.activeElement !== host) hide();
+    });
+    host.addEventListener("blur", hide);
+    host.addEventListener("keydown", function (event) {
+      const cols = columns();
+      if (!cols.length) return;
+      let next = index;
+      if (event.key === "ArrowLeft") next = index < 0 ? cols.length - 1 : Math.max(0, index - 1);
+      else if (event.key === "ArrowRight") next = index < 0 ? cols.length - 1 : Math.min(cols.length - 1, index + 1);
+      else if (event.key === "Home") next = 0;
+      else if (event.key === "End") next = cols.length - 1;
+      else if (event.key === "Escape") { hide(); return; }
+      else return;
+      event.preventDefault();
+      event.stopPropagation();
+      index = next;
+      show(cols[index], true);
+    });
+    // game.py redraws the graph on every action: a crosshair left over from the old drawing is gone, so
+    // clear the state when the host's content changes.
+    new MutationObserver(function () { index = -1; tip.hidden = true; }).observe(host, { childList: true });
+  })();
 })();

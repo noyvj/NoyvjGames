@@ -638,6 +638,10 @@ class RegionState:
         self.autopilot = dict(AUTOPILOT_DEFAULT_RULES)
         # GI-21: the round the run's stars were banked into the run history (None = not yet).
         self.stars_banked = None
+        # I-12: per-round ROI (integration paid back per fund invested) for the trend graph's ROI layer, and
+        # the round the second wave began (for its event marker).
+        self.roi_log = []
+        self.second_wave_start_round = None
 
     def total_capacity(self):
         return sum(self.capacity[t] for t in CAPACITY_TYPES)
@@ -954,6 +958,10 @@ class RegionState:
         if self.thriving_round is None and self.wellbeing_score() >= THRIVING_WELLBEING_SCORE:
             self.thriving_round = completed_round
 
+        # I-12: ROI after this round's settled numbers, for the trend graph's ROI layer.
+        self.roi_log.append(round(self.investment_roi() or 0.0, 3))
+        del self.roi_log[:-DRIFT_LOG_MAX_ENTRIES]
+
         # I1: logged last, once every other round-end value is final.
         self.wellbeing_log.append(self.wellbeing_score())
         del self.wellbeing_log[:-DRIFT_LOG_MAX_ENTRIES]
@@ -1046,6 +1054,7 @@ class RegionState:
                 )
         elif self.second_wave_status == "warned":
             self.second_wave_status = "active"
+            self.second_wave_start_round = completed_round
             self.second_wave_rounds_left = SECOND_WAVE_ROUNDS
             self.second_wave_peak_strain = strain
         elif (
@@ -1241,53 +1250,208 @@ def _normalize_series(series, height, lo=None, hi=None):
     return [height - ((v - lo) / (hi - lo)) * height for v in series]
 
 
-def trend_graph_svg(strain_history, wellbeing_history, control_wellbeing_history=None):
-    """Two-line trend graph: strain (0-100%, rising is worse) vs.
-    composite wellbeing (0-100, rising is better) — both already on a
-    0-100 scale, so they're normalized against that fixed range rather
-    than each other's min/max, keeping round-to-round shape meaningful
-    rather than always stretched to fill the graph."""
-    if len(strain_history) < 2:
+TREND_LAYER_ORDER = ["strain", "wellbeing", "control", "roi", "events"]
+TREND_LAYER_LABEL = {
+    "strain": "Strain", "wellbeing": "Wellbeing", "control": "Passive region", "roi": "ROI", "events": "Events",
+}
+TREND_LAYER_DEFAULT = {"strain": True, "wellbeing": True, "control": True, "roi": False, "events": True}
+TREND_RANGES = {"10": 10, "25": 25, "all": None}
+TREND_ROI_SCALE = 8.0  # the ROI layer draws 0 to this many funds back per fund invested, or to its own peak if higher
+TREND_TOP_MARGIN = 10  # room above the lines for the event markers
+TREND_EVENT_KINDS = {
+    "net_positive": "first net-positive round",
+    "band": "wellbeing band change",
+    "strain_peak": "strain peak",
+    "realloc": "capacity moved",
+    "second_wave": "second wave began",
+}
+TREND_EVENT_SYMBOL = {"net_positive": "◆", "band": "▲", "strain_peak": "■", "realloc": "✚", "second_wave": "⚑"}
+
+
+def _trend_event_path(kind, x):
+    """A small shape per kind (different outlines, so the markers read without colour)."""
+    if kind == "net_positive":
+        return f"M{x:.1f},-9 L{x + 4:.1f},-5 L{x:.1f},-1 L{x - 4:.1f},-5 Z"
+    if kind == "band":
+        return f"M{x - 4:.1f},-1 L{x + 4:.1f},-1 L{x:.1f},-9 Z"
+    if kind == "strain_peak":
+        return f"M{x - 3.5:.1f},-8.5 h7 v7 h-7 Z"
+    if kind == "realloc":
+        return f"M{x - 4:.1f},-5 h8 M{x:.1f},-9 v8"
+    return f"M{x - 3:.1f},-1 L{x - 3:.1f},-9 L{x + 4:.1f},-6 L{x - 3:.1f},-3"  # second_wave: a pennant
+
+
+def trend_events(region_state):
+    """I-12: the run's notable rounds as [{"round", "kind", "text"}], oldest first: the first net-positive
+    round, each change of wellbeing band, the strain peak, every capacity move and the second wave's start."""
+    events = []
+    first = region_state.round_number - len(region_state.wellbeing_log)
+    previous = None
+    for index, score in enumerate(region_state.wellbeing_log):
+        band = wellbeing_band(score)
+        if previous is not None and band != previous:
+            events.append({
+                "round": first + index, "kind": "band",
+                "text": f"wellbeing moved from {previous} to {band} ({score:.0f})",
+            })
+        previous = band
+    if region_state.net_positive_round is not None:
+        events.append({
+            "round": region_state.net_positive_round, "kind": "net_positive",
+            "text": "integration became a net gain: contributions have paid back the services investment",
+        })
+    strain = region_state.strain_log
+    if strain and max(strain) >= STRAIN_LEVEL_THRESHOLDS[1][0]:
+        peak_index = strain.index(max(strain))
+        events.append({
+            "round": region_state.round_number - len(strain) + peak_index, "kind": "strain_peak",
+            "text": f"strain peaked at {max(strain) * 100:.0f}%",
+        })
+    for row in region_state.ledger:
+        if row.get("realloc", 0) > 0:
+            events.append({"round": row["round"], "kind": "realloc", "text": "capacity moved between types"})
+    if region_state.second_wave_start_round is not None:
+        events.append({"round": region_state.second_wave_start_round, "kind": "second_wave", "text": "the second wave began"})
+    events.sort(key=lambda event: (event["round"], list(TREND_EVENT_KINDS).index(event["kind"])))
+    return events
+
+
+def trend_legend_text(layers):
+    parts = []
+    if layers.get("strain", True):
+        parts.append("Solid line: strain.")
+    if layers.get("wellbeing", True):
+        parts.append("Dashed: your wellbeing.")
+    if layers.get("control", True):
+        parts.append("Dotted grey: the passive unmanaged region's wellbeing.")
+    if layers.get("roi"):
+        parts.append(f"Thin dash-dot line: ROI, funds paid back per fund invested (drawn from 0 up to {TREND_ROI_SCALE:.0f} or its own peak, whichever is higher).")
+    if layers.get("events", True):
+        shapes = ", ".join(f"{TREND_EVENT_SYMBOL[kind]} {label}" for kind, label in TREND_EVENT_KINDS.items())
+        parts.append(f"Markers along the top: {shapes}.")
+    return " ".join(parts)
+
+
+def trend_graph_svg(
+    strain_history, wellbeing_history, control_wellbeing_history=None,
+    first_round=1, layers=None, events=None, roi_history=None, view_rounds=None,
+):
+    """Trend graph: strain (0-100%, rising is worse) vs. composite wellbeing (0-100, rising is better) —
+    both already on a 0-100 scale, so they're normalized against that fixed range rather than each other's
+    min/max, keeping round-to-round shape meaningful rather than always stretched to fill the graph.
+
+    I-12/I-16 add, all optional: `layers` (which lines and the event strip to draw), `events` (see
+    trend_events), `roi_history` (right-aligned to the other series), `view_rounds` (only the last N rounds)
+    and `first_round` (the round number of the first history entry, for labels). Invisible hit columns carry
+    the exact values per round for the crosshair tooltip (ui.js)."""
+    n_all = len(strain_history)
+    if n_all < 2:
         return ""
-
-    n = len(strain_history)
+    layers = dict(TREND_LAYER_DEFAULT, **(layers or {}))
+    start = max(0, n_all - max(2, view_rounds)) if view_rounds else 0
+    n = n_all - start
+    strain_series = list(strain_history[start:])
+    wellbeing_series = list(wellbeing_history[start:])
     xs = [i * (TREND_GRAPH_WIDTH / (n - 1)) for i in range(n)]
-    strain_pct = [s * 100 for s in strain_history]
+    strain_pct = [s * 100 for s in strain_series]
     strain_ys = _normalize_series(strain_pct, TREND_GRAPH_HEIGHT, 0, 100)
-    wellbeing_ys = _normalize_series(wellbeing_history, TREND_GRAPH_HEIGHT, 0, 100)
+    wellbeing_ys = _normalize_series(wellbeing_series, TREND_GRAPH_HEIGHT, 0, 100)
+    round_of = [first_round + start + i for i in range(n)]
 
-    strain_points = " ".join(f"{x:.1f},{y:.1f}" for x, y in zip(xs, strain_ys))
-    wellbeing_points = " ".join(f"{x:.1f},{y:.1f}" for x, y in zip(xs, wellbeing_ys))
+    def _points(ys):
+        return " ".join(f"{x:.1f},{y:.1f}" for x, y in zip(xs, ys))
 
     def _markers(ys, values, css_class, label):
         return "".join(
             f'<circle cx="{x:.1f}" cy="{y:.1f}" r="3" class="trend-point {css_class}">'
-            f"<title>Round {i + 1} -- {label}: {v:.0f}</title>"
+            f"<title>Round {round_of[i]} -- {label}: {v:.0f}</title>"
             f"</circle>"
             for i, (x, y, v) in enumerate(zip(xs, ys, values))
         )
 
-    markers = _markers(strain_ys, strain_pct, "trend-point--strain", "Strain") + _markers(
-        wellbeing_ys, wellbeing_history, "trend-point--wellbeing", "Wellbeing"
-    )
+    drawn = []
+    if layers["strain"]:
+        drawn.append(f'<polyline points="{_points(strain_ys)}" class="trend-line trend-line--strain" />')
+    if layers["wellbeing"]:
+        drawn.append(f'<polyline points="{_points(wellbeing_ys)}" class="trend-line trend-line--wellbeing" />')
 
-    # I2: the passive unmanaged control region's wellbeing, drawn as a
-    # third, muted dotted line (no point markers -- context, not a
-    # second thing to inspect). Needs 2+ points to be a line.
-    control_line = ""
-    if control_wellbeing_history and len(control_wellbeing_history) >= 2:
-        m = min(n, len(control_wellbeing_history))
-        control_ys = _normalize_series(control_wellbeing_history[:m], TREND_GRAPH_HEIGHT, 0, 100)
-        control_points = " ".join(f"{x:.1f},{y:.1f}" for x, y in zip(xs, control_ys))
-        control_line = f'<polyline points="{control_points}" class="trend-line trend-line--control" />'
+    # I2: the passive unmanaged control region's wellbeing, drawn as a third, muted dotted line (no point
+    # markers -- context, not a second thing to inspect). Needs 2+ points to be a line.
+    control_series = None
+    if layers["control"] and control_wellbeing_history and len(control_wellbeing_history) >= 2:
+        if len(control_wellbeing_history) == n_all:
+            control_series = list(control_wellbeing_history[start:])
+        else:
+            control_series = list(control_wellbeing_history[:min(n, len(control_wellbeing_history))])
+        control_ys = _normalize_series(control_series, TREND_GRAPH_HEIGHT, 0, 100)
+        drawn.append(
+            f'<polyline points="{_points(control_ys)}" class="trend-line trend-line--control" />'
+        )
+
+    # I-12: the ROI layer, right-aligned when an older save has fewer entries than rounds.
+    roi_series = [None] * n
+    if layers["roi"] and roi_history:
+        padded = [None] * max(0, n_all - len(roi_history)) + list(roi_history[-n_all:])
+        roi_series = padded[start:]
+        roi_top = max([TREND_ROI_SCALE] + [v for v in roi_series if v is not None])
+        roi_points = [
+            (x, TREND_GRAPH_HEIGHT - max(0.0, v) / roi_top * TREND_GRAPH_HEIGHT)
+            for x, v in zip(xs, roi_series) if v is not None
+        ]
+        if len(roi_points) >= 2:
+            joined = " ".join(f"{x:.1f},{y:.1f}" for x, y in roi_points)
+            drawn.append(f'<polyline points="{joined}" class="trend-line trend-line--roi" />')
+
+    if layers["strain"]:
+        drawn.append(_markers(strain_ys, strain_pct, "trend-point--strain", "Strain"))
+    if layers["wellbeing"]:
+        drawn.append(_markers(wellbeing_ys, wellbeing_series, "trend-point--wellbeing", "Wellbeing"))
+
+    # I-12: event markers along the top strip, one shape per kind; each also lists in its round's tooltip.
+    events_by_round = {}
+    if layers["events"]:
+        for event in events or []:
+            index = event["round"] - first_round - start
+            if 0 <= index < n:
+                events_by_round.setdefault(index, []).append(event)
+                x = xs[index]
+                drawn.append(
+                    f'<g class="trend-event trend-event--{event["kind"]}">'
+                    f'<title>Round {event["round"]}: {event["text"]}</title>'
+                    f'<path d="{_trend_event_path(event["kind"], x)}" /></g>'
+                )
+
+    # I-16: invisible hit columns + a crosshair line (ui.js moves it and shows data-tip).
+    step = TREND_GRAPH_WIDTH / (n - 1)
+    hits = []
+    for i in range(n):
+        parts = [f"Round {round_of[i]}"]
+        if layers["strain"]:
+            parts.append(f"strain {strain_pct[i]:.0f}%")
+        if layers["wellbeing"] and i < len(wellbeing_series):
+            parts.append(f"wellbeing {wellbeing_series[i]:.0f}")
+        if control_series is not None and i < len(control_series):
+            parts.append(f"passive region {control_series[i]:.0f}")
+        if roi_series[i] is not None:
+            parts.append(f"ROI {roi_series[i]:.1f}")
+        for event in events_by_round.get(i, []):
+            parts.append(event["text"])
+        left = max(0.0, xs[i] - step / 2)
+        right = min(float(TREND_GRAPH_WIDTH), xs[i] + step / 2)
+        tip = "; ".join(parts[:1] + [", ".join(parts[1:])]) if len(parts) > 1 else parts[0]
+        hits.append(
+            f'<rect class="trend-hit" x="{left:.1f}" y="{-TREND_TOP_MARGIN}" width="{right - left:.1f}" '
+            f'height="{TREND_GRAPH_HEIGHT + TREND_TOP_MARGIN}" data-x="{xs[i]:.1f}" data-round="{round_of[i]}" '
+            f'data-tip="{tip}" />'
+        )
 
     return (
-        f'<svg viewBox="0 0 {TREND_GRAPH_WIDTH} {TREND_GRAPH_HEIGHT}" class="trend-graph-svg">'
-        f'<polyline points="{strain_points}" class="trend-line trend-line--strain" />'
-        f'<polyline points="{wellbeing_points}" class="trend-line trend-line--wellbeing" />'
-        f"{control_line}"
-        f"{markers}"
-        f"</svg>"
+        f'<svg viewBox="0 {-TREND_TOP_MARGIN} {TREND_GRAPH_WIDTH} {TREND_GRAPH_HEIGHT + TREND_TOP_MARGIN}" '
+        f'class="trend-graph-svg">'
+        + "".join(drawn)
+        + f'<line class="trend-crosshair" x1="0" x2="0" y1="{-TREND_TOP_MARGIN}" y2="{TREND_GRAPH_HEIGHT}" />'
+        + "".join(hits)
+        + "</svg>"
     )
 
 
@@ -3849,6 +4013,63 @@ def render_civic_tools():
 
 
 # ---- I-24: live tab title ----------------------------------------------------
+# I-12 / I-16: what the trend graph shows. Display choices only: never saved, back to the defaults on reload.
+trend_range = "all"
+trend_layers = dict(TREND_LAYER_DEFAULT)
+
+
+def render_trend_graph():
+    control_wellbeing = None
+    if region.round_number > 2:
+        control_wellbeing = _simulate_control_region(
+            region.round_number, region.accelerated_severity_enabled, region.calendar_enabled
+        ).wellbeing_log
+    trend_svg = trend_graph_svg(
+        region.strain_log, region.wellbeing_log, control_wellbeing,
+        first_round=region.round_number - len(region.strain_log),
+        layers=trend_layers,
+        events=trend_events(region) if trend_layers["events"] else [],
+        roi_history=region.roi_log,
+        view_rounds=TREND_RANGES[trend_range],
+    )
+    document.getElementById("trend-graph").innerHTML = trend_svg
+    document.getElementById("trend-graph-message").innerText = (
+        "" if trend_svg else "Not enough rounds yet to show a trend."
+    )
+    document.getElementById("trend-legend").innerText = trend_legend_text(trend_layers)
+    for key in TREND_RANGES:
+        button = document.getElementById(f"trend-range-{key}-button")
+        _set_pressed(button, key == trend_range)
+    for key in TREND_LAYER_ORDER:
+        _set_pressed(document.getElementById(f"trend-layer-{key}-button"), trend_layers[key])
+
+
+def _set_pressed(button, on):
+    button.setAttribute("aria-pressed", "true" if on else "false")
+    if on:
+        button.classList.add("active")
+    else:
+        button.classList.remove("active")
+
+
+def _make_trend_range_handler(key):
+    def handler(event=None):
+        global trend_range
+        trend_range = key
+        render_trend_graph()
+        label = "all rounds" if TREND_RANGES[key] is None else f"the last {TREND_RANGES[key]} rounds"
+        announce(f"Trend graph shows {label}")
+    return handler
+
+
+def _make_trend_layer_handler(key):
+    def handler(event=None):
+        trend_layers[key] = not trend_layers[key]
+        render_trend_graph()
+        announce(f"{TREND_LAYER_LABEL[key]} {'shown' if trend_layers[key] else 'hidden'} on the trend graph")
+    return handler
+
+
 def tab_title():
     name = f" - {region.region_name}" if region.region_name else ""
     return f"Drift - R{region.round_number} - {region.strain_level().capitalize()}{name}"
@@ -4069,17 +4290,8 @@ def render():
         building_el.hidden = index >= visible_building_count
         building_el.style.transform = f"scaleY({building_height_scale:.2f})"
 
-    # I1: strain/wellbeing trend graph.
-    control_wellbeing = None
-    if region.round_number > 2:
-        control_wellbeing = _simulate_control_region(
-            region.round_number, region.accelerated_severity_enabled, region.calendar_enabled
-        ).wellbeing_log
-    trend_svg = trend_graph_svg(region.strain_log, region.wellbeing_log, control_wellbeing)
-    document.getElementById("trend-graph").innerHTML = trend_svg
-    document.getElementById("trend-graph-message").innerText = (
-        "" if trend_svg else "Not enough rounds yet to show a trend."
-    )
+    # I1: strain/wellbeing trend graph (I-12 layers and event markers, I-16 range and crosshair).
+    render_trend_graph()
 
     coda_button = document.getElementById("coda-button")
     coda_button.hidden = not region.has_long_horizon_story()
@@ -4431,6 +4643,14 @@ def _finite_number(value, default, low=0.0):
     return max(low, float(value))
 
 
+def _load_roi_log(saved):
+    """I-12: a list of finite non-negative numbers (anything else is dropped), at most DRIFT_LOG_MAX_ENTRIES."""
+    if not isinstance(saved, list):
+        return []
+    values = [_finite_number(v, None) for v in saved]
+    return [round(v, 3) for v in values if v is not None and v <= 1e6][-DRIFT_LOG_MAX_ENTRIES:]
+
+
 def _load_neighbor(saved):
     global neighbor, neighbor_support_sent
     if not isinstance(saved, dict):
@@ -4608,9 +4828,11 @@ def get_state():
             {"second_wave": {
                 "status": region.second_wave_status, "rounds_left": region.second_wave_rounds_left,
                 "peak_strain": region.second_wave_peak_strain, "result": region.second_wave_result,
+                **({"start_round": region.second_wave_start_round} if region.second_wave_start_round is not None else {}),
             }}
             if region.second_wave_status is not None else {}
         ),
+        **({"roi_log": list(region.roi_log)} if region.roi_log else {}),
         **_neighbor_state_fields(),
         **_ledger_state_fields(),
         "coda_visible": coda_visible,
@@ -4719,6 +4941,7 @@ def load_state(data):
     region.second_wave_rounds_left = 0
     region.second_wave_peak_strain = 0.0
     region.second_wave_result = None
+    region.second_wave_start_round = None
     saved_wave = data.get("second_wave")
     if isinstance(saved_wave, dict):
         status = saved_wave.get("status")
@@ -4735,6 +4958,10 @@ def load_state(data):
                 region.second_wave_peak_strain = float(peak)
             if status == "done":
                 region.second_wave_result = result if result in ("held", "strained") else "strained"
+            start_round = saved_wave.get("start_round")
+            if _small_int(start_round, 1):
+                region.second_wave_start_round = start_round
+    region.roi_log = _load_roi_log(data.get("roi_log"))
     region.policy_level = {p: 0 for p in POLICIES}
     saved_policies = data.get("policy_level")
     if isinstance(saved_policies, dict):
@@ -4838,6 +5065,14 @@ def setup():
         "autopilot-share-select", "autopilot-surplus-select", "autopilot-reserve-select", "autopilot-rounds-select",
     ):
         document.getElementById(select_id).addEventListener("change", create_proxy(on_autopilot_change))
+    for range_key in TREND_RANGES:
+        document.getElementById(f"trend-range-{range_key}-button").addEventListener(
+            "click", create_proxy(_make_trend_range_handler(range_key))
+        )
+    for layer_key in TREND_LAYER_ORDER:
+        document.getElementById(f"trend-layer-{layer_key}-button").addEventListener(
+            "click", create_proxy(_make_trend_layer_handler(layer_key))
+        )
     document.getElementById("summary-copy-area").hidden = True
     document.getElementById("ledger-sort-select").addEventListener("change", create_proxy(on_ledger_sort))
     document.getElementById("ledger-filter-select").addEventListener("change", create_proxy(on_ledger_filter))

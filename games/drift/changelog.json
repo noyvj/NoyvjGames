@@ -1,6 +1,10 @@
 [
   {
     "date": "2026-10-11",
+    "entry": "New: a closer look at the trend graph. Range chips (Last 10, Last 25, All) zoom in on recent rounds, and toggles show or hide each layer: strain, wellbeing, the passive region, a new ROI line (funds paid back per fund invested) and event markers along the top. The markers have a different shape each (first net-positive round, a wellbeing band change, the strain peak, a capacity move, the start of the second wave) and hovering, touching or pressing the arrow keys on the graph draws a crosshair with the exact values for that round."
+  },
+  {
+    "date": "2026-10-11",
     "entry": "New: three readouts. Under Pending integration a small bar splits the people still waiting by how long they have waited (the latest round, 2 to 3 rounds, 4 or more; drawn as if the longest-waiting are integrated first, with the numbers in a line below). Each wellbeing gauge gets a tiny 20-round line beside its trend arrow. On a phone the sticky bar now shows the round, funds, strain and the wellbeing score with its band name (Struggling, Managing, Thriving or Model Region)."
   },
   {
