@@ -1760,3 +1760,16 @@ html[data-lite="true"] #game, html[data-lite="true"] .pinned-strip { backdrop-fi
 .barn-swatch--sunflower { --swatch-wall: #e2b934; --swatch-roof: #8a5a14; }
 .barn-swatch--moonlit { --swatch-wall: #3b4a7a; --swatch-roof: #232b4d; }
 .barn-swatch--gold { --swatch-wall: #d6a92f; --swatch-roof: #f0d36a; }
+
+/* ---- Round 7: GF-21 golden cow ---- */
+.golden-cow-glider {
+  position: absolute; bottom: 20px; left: -14%; z-index: 3; font-size: 1.5rem; line-height: 1; cursor: pointer;
+  filter: sepia(1) saturate(5) hue-rotate(-12deg) brightness(1.15) drop-shadow(0 0 6px rgba(255, 215, 0, 0.9));
+  animation: golden-glide 14s linear infinite;
+}
+.golden-cow-glider[hidden] { display: none; }
+.golden-cow-glider:hover { animation-play-state: paused; }
+@keyframes golden-glide { from { left: -14%; } to { left: 104%; } }
+@media (prefers-reduced-motion: reduce) { .golden-cow-glider { animation: none; left: 52%; } }
+html[data-reduced-motion="true"] .golden-cow-glider, html[data-lite="true"] .golden-cow-glider { animation: none; left: 52%; }
+.golden-cow-panel button { width: 100%; }

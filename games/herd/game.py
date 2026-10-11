@@ -454,6 +454,10 @@ class FarmState:
         self.last_round_perfect = False  # one-tick, not saved
         self.just_streak_bonus = None  # one-tick (streak, bonus), not saved
 
+        # GF-21: golden cows welcomed on this farm and the funds they brought (a visible tally).
+        self.golden_claimed = 0
+        self.golden_funds = 0.0
+
         # GF-18: one rewind per game. undo_snapshot (the state just before the last
         # Advance Round) is never saved; undo_used is, once it is true.
         self.undo_used = False
@@ -4472,6 +4476,7 @@ def render():
     render_family_story()
     render_profile()
     render_barns()
+    render_golden_cow()
 
 
 # F-18: an optional "ask before a big purchase" setting. The Settings select (settings.js) keeps the
@@ -4867,6 +4872,10 @@ def get_state():
         state["hall_of_fame"] = [list(entry) for entry in hall_of_fame]
     if farm.undo_used:
         state["undo_used"] = True
+    # GF-21: the golden-cow tally, only once a cow has been welcomed.
+    if farm.golden_claimed > 0:
+        state["golden_claimed"] = farm.golden_claimed
+        state["golden_funds"] = round(farm.golden_funds, 2)
     # GF-17: barn skins unlocked and the one in use, written only when there is something to keep.
     if barns_unlocked:
         state["barns_unlocked"] = list(barns_unlocked)
@@ -5008,6 +5017,9 @@ def _load_progress_fields(data):
     farm.undo_used = data.get("undo_used") is True
     farm.undo_snapshot = None
     _load_barns(data)
+    farm.golden_claimed = _safe_int(data.get("golden_claimed"), 0)
+    golden_funds = data.get("golden_funds")
+    farm.golden_funds = float(golden_funds) if farm.golden_claimed > 0 and _is_finite_number(golden_funds) and golden_funds >= 0 else 0.0
     farm.custom_rules_used = data.get("custom_rules_used") is True or rules_are_custom()
     hall_of_fame = []
     saved_hall = data.get("hall_of_fame")
@@ -5554,6 +5566,72 @@ def _make_barn_handler(barn_id):
     return handler
 
 
+# ---- GF-21 golden cow --------------------------------------------------------------------------
+# Every GOLDEN_COW_EVERY rounds a golden cow comes to the gate. It waits there until you welcome it
+# (a button, always available; there is no timer and no luck), and a visit that was not collected is
+# never lost: visits pile up. When motion is allowed a golden cow also glides across the pasture and
+# clicking it does the same thing. The welcome pays a small one-off bonus to the real farm only.
+GOLDEN_COW_EVERY = 8
+GOLDEN_COW_MIN = 15
+GOLDEN_COW_INCOME_SHARE = 0.15
+GOLDEN_COW_MAX = 60
+golden_cow_status_text = ""
+
+
+def golden_cows_due():
+    """Visits that have come to the gate and not yet been welcomed."""
+    return max(0, (farm.round_number - 1) // GOLDEN_COW_EVERY - farm.golden_claimed)
+
+
+def golden_cow_bonus():
+    """Funds for the next welcome: a share of this round's income, never below the minimum or above the cap."""
+    share = farm.income_breakdown()["total"] * GOLDEN_COW_INCOME_SHARE
+    return float(max(GOLDEN_COW_MIN, min(GOLDEN_COW_MAX, round(share))))
+
+
+def welcome_golden_cow():
+    """Takes one waiting visit. Returns the funds paid, or None when no cow is waiting."""
+    if golden_cows_due() < 1:
+        return None
+    bonus = golden_cow_bonus()
+    farm.funds += bonus
+    if farm.funds_history:
+        farm.funds_history[-1] = farm.funds_history[-1] + bonus if farm.funds_history[-1] is not None else None
+    farm.golden_claimed += 1
+    farm.golden_funds += bonus
+    return bonus
+
+
+def golden_cow_summary_message():
+    if farm.golden_claimed:
+        return f"Golden cows welcomed: {farm.golden_claimed} (+{farm.golden_funds:g} funds in all)."
+    return "A golden cow visits every 8 rounds."
+
+
+def render_golden_cow():
+    due = golden_cows_due()
+    panel = document.getElementById("golden-cow-panel")
+    panel.hidden = due < 1 and farm.golden_claimed < 1
+    document.getElementById("golden-cow-summary").innerText = golden_cow_summary_message()
+    button = document.getElementById("golden-cow-claim-button")
+    button.hidden = due < 1
+    if due >= 1:
+        waiting = f" ({due} waiting)" if due > 1 else ""
+        button.innerText = f"\u2728 A golden cow is at the gate: welcome it, +{golden_cow_bonus():g} funds{waiting}"
+    glider = document.getElementById("golden-cow-glider")
+    glider.hidden = due < 1
+    document.getElementById("golden-cow-status").innerText = golden_cow_status_text
+
+
+def on_welcome_golden_cow(event=None):
+    global golden_cow_status_text
+    paid = welcome_golden_cow()
+    if paid is not None:
+        golden_cow_status_text = f"The golden cow left {paid:g} funds behind. Welcomed so far: {farm.golden_claimed}."
+        _display_milestone_toast(f"\u2728 Golden cow welcomed: +{paid:g} funds.")
+    render()
+
+
 def setup():
     # index.html already marks these hidden via the `hidden` attribute,
     # but that markup default doesn't exist for the pytest fake-DOM
@@ -5642,6 +5720,8 @@ def setup():
     document.getElementById("cow-listen-button").addEventListener("click", create_proxy(on_cow_listen))
     for skin in BARN_SKINS:
         document.getElementById(f"barn-use-{skin['id']}").addEventListener("click", create_proxy(_make_barn_handler(skin["id"])))
+    document.getElementById("golden-cow-claim-button").addEventListener("click", create_proxy(on_welcome_golden_cow))
+    document.getElementById("golden-cow-glider").addEventListener("click", create_proxy(on_welcome_golden_cow))
     document.getElementById("settings-export-button").addEventListener("click", create_proxy(on_settings_export))
     document.getElementById("settings-import-button").addEventListener("click", create_proxy(on_settings_import))
     document.getElementById("profile-select").addEventListener("change", create_proxy(on_profile_change))

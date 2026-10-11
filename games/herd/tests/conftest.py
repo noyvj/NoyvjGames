@@ -130,6 +130,8 @@ ELEMENT_IDS = [
     "cow-listen-button", "cow-bubble",
     # F-11 profiles.
     "profile-select", "next-lever-hint", "settings-reset-button",
+    # GF-21 golden cow.
+    "golden-cow-panel", "golden-cow-summary", "golden-cow-claim-button", "golden-cow-status", "golden-cow-glider",
     # GF-17 barns.
     "pasture-visual", "barn-summary", "barn-status", "barn-panel", "barn-use-red", "barn-note-red", "barn-use-stone", "barn-note-stone", "barn-use-green", "barn-note-green", "barn-use-sunflower", "barn-note-sunflower", "barn-use-moonlit", "barn-note-moonlit", "barn-use-gold", "barn-note-gold",
     # F-25 settings code.
