@@ -1915,6 +1915,7 @@ PREF_DEFAULTS = {
     "gauge_effects": True,
     "rank_theme": "default",
     "chart_theme": "default",
+    "unlock_flash": True,
 }
 RANK_THEMES = ("default", "teal", "amber", "violet", "rose", "gold")
 # C-28: how the trend graph and the plant-mix bars are coloured. "contrast" uses brighter, thicker lines and bars;
@@ -3229,6 +3230,7 @@ def round_announcement_text(milestone_new=False):
 def _seed_achievement_toast_baseline():
     global _achievements_seen_ids
     _achievements_seen_ids = set(achievement_ids_earned())
+    _achievement_powerup_ids.clear()  # C-31: a loaded save's achievements are old news, no flash
     _story_reach_all(_achievements_seen_ids)  # W1: a loaded save's earned chapters come back too
 
 
@@ -3279,6 +3281,7 @@ def _check_new_achievements_for_toast():
     _story_reach_all(earned_now)
     newly = earned_now - _achievements_seen_ids
     if newly:
+        _achievement_powerup_ids.update(newly)
         by_id = {entry["id"]: entry for entry in ACHIEVEMENTS}
         labels = [by_id[aid]["label"] for aid in newly if aid in by_id]
         if labels:
@@ -3289,6 +3292,44 @@ def _check_new_achievements_for_toast():
                 _display_achievement_toast(f"🏆 {len(labels)} achievements unlocked: " + ", ".join(labels))
                 announce(f"{len(labels)} achievements unlocked: " + ", ".join(labels))
     _achievements_seen_ids = earned_now
+
+
+# ---- C-31 achievement cards in the skyline look ---------------------------------------------------------------------
+# Each achievement is a little building from the city skyline (the shape depends on its place in the list). Earned: a lit
+# building with windows. Not earned: the same building as a dark outline with no windows, so the state is shape and words
+# as well as colour. A card earned since the panel was last drawn also gets a one-off "power up" flash (windows switch
+# on in turn) and the words "Just powered up"; the flash is off under reduced motion and with the Settings checkbox.
+_achievement_powerup_ids = set()
+
+
+def achievement_building_index(achievement_id):
+    """The skyline building an achievement wears: its position in the manifest, wrapped over the 16 shapes."""
+    for position, entry in enumerate(ACHIEVEMENTS):
+        if entry["id"] == achievement_id:
+            return position % len(SKYLINE_BUILDINGS)
+    return 0
+
+
+def achievement_icon_svg(achievement_id, earned):
+    _x, _width, height = SKYLINE_BUILDINGS[achievement_building_index(achievement_id)]
+    body_h = 10 + round(height * 0.36)  # 20 to 29 tall inside a 32-high icon
+    top = 32 - body_h
+    state = "earned" if earned else "locked"
+    parts = [f'<rect x="4" y="{top}" width="16" height="{body_h}" class="sky-building sky-building--{"lit" if earned else "dark"}" />']
+    if earned:
+        index = 0
+        for row in range(max(1, (body_h - 4) // 8)):
+            for col in range(3):
+                parts.append(
+                    f'<rect x="{6 + col * 5}" y="{top + 3 + row * 8}" width="3" height="4" '
+                    f'class="sky-window ach-window" style="animation-delay:{index * 0.12:.2f}s" />'
+                )
+                index += 1
+    label = "Earned" if earned else "Not earned yet"
+    return (
+        f'<svg viewBox="0 0 24 32" class="achievement-icon achievement-icon--{state}" role="img" '
+        f'aria-label="{label}">{"".join(parts)}</svg>'
+    )
 
 
 def on_toggle_achievements(event=None):
@@ -3318,15 +3359,31 @@ def update_achievements_display():
         note.className = "achievement-next"
         note.innerText = f"Next milestone: {upcoming['label']} ({current} of {target})"
         panel.appendChild(note)
+    flash_ids = set(_achievement_powerup_ids)
+    _achievement_powerup_ids.clear()
     for entry in achievements_summary():
         card = document.createElement("div")
         card.className = "achievement-card achievement-card--earned" if entry["earned"] else "achievement-card"
         card.dataset.achievementId = entry["id"]
+        flash = entry["earned"] and entry["id"] in flash_ids
+        if flash:
+            card.className += " achievement-card--powerup" + ("" if prefs["unlock_flash"] else " achievement-card--still")
+
+        icon = document.createElement("span")
+        icon.className = "achievement-card-icon"
+        icon.innerHTML = achievement_icon_svg(entry["id"], entry["earned"])
+        card.appendChild(icon)
 
         label = document.createElement("p")
         label.className = "achievement-card-label"
-        label.innerText = f"🏆 {entry['label']}" if entry["earned"] else entry["label"]
+        label.innerText = entry["label"]
         card.appendChild(label)
+
+        if flash:
+            fresh = document.createElement("p")
+            fresh.className = "achievement-card-fresh"
+            fresh.innerText = "Just powered up"
+            card.appendChild(fresh)
 
         description = document.createElement("p")
         description.className = "achievement-card-description"
@@ -3661,6 +3718,10 @@ def render_chart_theme():
     for element_id in ("trend-graph", "trend-controls", "plant-mix"):
         document.getElementById(element_id).dataset.chartTheme = theme
     document.getElementById("pref-chart-theme").value = theme
+
+
+def render_unlock_flash_setting():
+    document.getElementById("pref-unlock-flash").checked = prefs["unlock_flash"]
 
 
 def render_chart_tables():
@@ -4382,6 +4443,7 @@ def render():
 
     render_trend()
     render_chart_theme()
+    render_unlock_flash_setting()
     render_chart_tables()
     render_fleet_overview()
     render_coach()
@@ -6664,6 +6726,9 @@ def setup():
         "change", create_proxy(_make_pref_select_handler("number_format"))
     )
     document.getElementById("pref-unit").addEventListener("change", create_proxy(_make_pref_select_handler("unit")))
+    document.getElementById("pref-unlock-flash").addEventListener(
+        "change", create_proxy(_make_pref_checkbox_handler("unlock_flash"))
+    )
     document.getElementById("pref-chart-theme").addEventListener(
         "change", create_proxy(_make_pref_select_handler("chart_theme"))
     )

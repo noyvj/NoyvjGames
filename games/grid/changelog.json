@@ -2,6 +2,10 @@
   "changelog": [
     {
       "date": "2026-10-11",
+      "entry": "New: achievement cards are little city buildings. An earned achievement is a lit building with windows, one not yet earned is a dark dashed outline, and the card says Earned or Not earned yet for screen readers. A card earned since you last looked switches its windows on one by one and says Just powered up. The flash is off under Reduce motion and has its own Settings checkbox; the words stay."
+    },
+    {
+      "date": "2026-10-11",
       "entry": "New: chart colour themes. Settings has a Chart colours choice for the trend graph and the plant-mix bars: Default, High contrast (brighter, thicker lines and outlined bars) and Grayscale with patterns, where every line keeps its own dash style and every plant type gets its own fill (stripes, dots, hatching), so nothing depends on colour. It is a display choice only and is not part of a save."
     },
     {
