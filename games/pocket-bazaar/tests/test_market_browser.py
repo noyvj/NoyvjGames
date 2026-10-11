@@ -83,3 +83,89 @@ def test_play_an_archive_market_from_the_calendar(base, page_name, width, height
         assert "Played 1 of 20" in page.inner_text("[data-testid=pocket-bazaar-market-tally]")
         browser.close()
     assert errors == []
+
+
+FINISH_MARKET = """() => {
+    window.pyodide.runPython("import marketbot\\nmarketbot.play(stall.day, list(stall.families()))\\nstall.close_market()");
+    window.pocketBazaarRefresh();
+}"""
+
+
+@pytest.mark.parametrize("width,height", [(1440, 900), (360, 740)])
+def test_todays_market_is_told_to_the_shared_daily_record_and_an_archive_market_is_not(base, width, height):
+    """Z-5b: finishing TODAY's Daily Market writes noyvj-daily-v1 once; an older market from the calendar never does."""
+    errors = []
+    with sync_playwright() as p:
+        browser = p.chromium.launch()
+        ctx = browser.new_context(viewport={"width": width, "height": height}, service_workers="block")
+        ctx.clock.set_fixed_time("2026-10-20T09:00:00Z")
+        page = ctx.new_page()
+        page.on("pageerror", lambda e: errors.append(str(e)))
+        page.goto(base + "index.html#play")
+        page.evaluate("localStorage.clear()")
+        page.reload()
+        page.wait_for_function(READY, timeout=90000)
+        page.click("[data-testid=pocket-bazaar-market-archive]")
+        page.click("[data-date='2026-10-05']")
+        page.click("#crates button >> nth=0")
+        page.evaluate(FINISH_MARKET)
+        assert "Market 2026-10-05 is done" in page.inner_text("[data-testid=pocket-bazaar-market-result]")
+        assert page.evaluate("localStorage.getItem('noyvj-daily-v1')") is None
+        page.click("[data-testid=pocket-bazaar-market-today]")
+        page.click("#crates button >> nth=0")
+        page.evaluate(FINISH_MARKET)
+        assert "Market 2026-10-20 is done" in page.inner_text("[data-testid=pocket-bazaar-market-result]")
+        record = page.evaluate("JSON.parse(localStorage.getItem('noyvj-daily-v1'))")
+        assert record["date"] == "2026-10-20" and list(record["runs"]) == ["pocket-bazaar"]
+        assert "of 3 stars" in record["runs"]["pocket-bazaar"]["text"] and "served" in record["runs"]["pocket-bazaar"]["text"]
+        assert record["streaks"]["pocket-bazaar"]["count"] == 1
+        browser.close()
+    assert errors == []
+
+
+@pytest.mark.parametrize("width,height", [(1440, 900), (360, 740)])
+def test_the_stall_seed_is_shown_copied_and_can_be_started_from(base, width, height):
+    """Z-1c: the standard stall shows POCKETBAZAAR-STAND; a typed seed starts a stall with those customers, again and after a reload."""
+    errors = []
+    with sync_playwright() as p:
+        browser = p.chromium.launch()
+        ctx = browser.new_context(viewport={"width": width, "height": height}, service_workers="block")
+        ctx.grant_permissions(["clipboard-read", "clipboard-write"])
+        page = ctx.new_page()
+        page.on("pageerror", lambda e: errors.append(str(e)))
+        page.goto(base + "index.html#play")
+        page.evaluate("localStorage.clear()")
+        page.reload()
+        page.wait_for_function(READY, timeout=90000)
+        page.evaluate("document.getElementById('settings-panel').hidden = false")
+        assert "POCKETBAZAAR-STAND" in page.inner_text("#seed-copy-slot")
+        page.click("#seed-copy-slot button")
+        assert page.evaluate("navigator.clipboard.readText()") == "POCKETBAZAAR-STAND"
+
+        def queue_after(text):
+            page.fill("#seed-start-slot input", text)
+            page.click("#seed-start-slot button[type=submit]")
+            page.click("button:has-text('Erase it and start')")
+            assert page.evaluate("NoyvjSeed.current()") == text.upper() if "-" in text else True
+            page.click("[data-testid=pocket-bazaar-start-day]")
+            q = page.inner_text("#queue")
+            page.evaluate("pocketBazaarRefresh()")
+            return q
+
+        standard_first = queue_after("POCKETBAZAAR-STAND")
+        page.evaluate("document.getElementById('settings-panel').hidden = false")
+        seeded = queue_after("k7f2q")
+        assert page.evaluate("NoyvjSeed.current()") == "POCKETBAZAAR-K7F2Q"
+        page.evaluate("document.getElementById('settings-panel').hidden = false")
+        assert queue_after("POCKETBAZAAR-K7F2Q") == seeded
+        assert seeded != standard_first
+        page.evaluate("document.getElementById('settings-panel').hidden = false")
+        page.fill("#seed-start-slot input", "TIDE-K7F2Q")
+        page.click("#seed-start-slot button[type=submit]")
+        assert "for TIDE" in page.inner_text("#seed-start-slot .noyvj-seed-error")
+        page.reload()                                           # a day is open here, so the closed card (READY) is not on screen
+        page.wait_for_function("document.querySelector('#engine-status').textContent === ''", timeout=90000)
+        assert page.evaluate("NoyvjSeed.current()") == "POCKETBAZAAR-K7F2Q"
+        assert page.evaluate("document.documentElement.scrollWidth - document.documentElement.clientWidth") <= 1
+        browser.close()
+    assert errors == []

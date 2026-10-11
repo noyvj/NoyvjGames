@@ -1,6 +1,10 @@
 {
   "changelog": [
     {
+      "date": "2026-10-12",
+      "entry": "The stall has a seed, shown in Settings (Stall seed). Everyone starts on the standard stall; type or paste a seed to run a stall with different customers, and share yours so a friend can run the same one. Daily Markets do not use it. Older saves are the standard stall."
+    },
+    {
       "date": "2026-10-11",
       "entry": "The Daily Market: one plain market day for each date, the same for everyone, on a stall with no upgrades. It pays nothing extra, there are no streaks and no pressure, and every past date stays open in the archive. A small grid shows how many dates you have played."
     },

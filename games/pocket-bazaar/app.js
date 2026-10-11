@@ -541,6 +541,7 @@
   }
 
   function render(event) {
+    renderSeed();
     renderAbout();
     renderAchievements();
     renderRegulars();
@@ -743,6 +744,33 @@
     }
   }
 
+  // Z-1c: the stall's seed. The standard stall (the default, and every older save) shows POCKETBAZAAR-STAND; any other
+  // valid seed text starts a fresh stall whose customers are drawn from the number derived from that text.
+  var STANDARD_SEED = "POCKETBAZAAR-STAND";
+  var seedCopy = null;
+  function seedNumber(text) { return window.NoyvjSeed.rng(text).below(4294967296); }
+  function startFromSeed(text) {
+    selected = null;
+    if (text === STANDARD_SEED) send({ action: "reset" });
+    else send({ action: "reset", seed: seedNumber(text), seed_text: text });
+    showMessage("A fresh stall begins from seed " + text + ".");
+  }
+  function mountSeeds() {
+    if (!window.NoyvjSeed) return;
+    seedCopy = window.NoyvjSeed.mountCopy("#seed-copy-slot", { seed: "", label: "This stall's seed" });
+    window.NoyvjSeed.mountStart("#seed-start-slot", {
+      game: "pocket-bazaar", buttonLabel: "Start a stall from this seed",
+      onStart: function (text) {
+        askThen("pocket-bazaar-reset", "Start a new stall from seed " + text + "? Your coins, upgrades, renown and personal bests will be erased.", "Erase it and start", function () { startFromSeed(text); });
+      },
+    });
+  }
+  function renderSeed() {
+    if (!window.NoyvjSeed || !view) return;
+    window.NoyvjSeed.set(view.seed_text || "");
+    if (seedCopy) seedCopy.update(view.seed_text || "");
+  }
+
   function wire() {
     $("toast").addEventListener("click", function () { showToast(""); });
     $("start-day-button").addEventListener("click", function () { send({ action: "start_day" }); });
@@ -750,6 +778,7 @@
     wirePanelToggle("achievements-toggle-button", "achievements-panel");
     wirePanelToggle("regulars-toggle-button", "regulars-panel");
     wirePanelToggle("info-page-toggle-button", "info-page-panel");
+    mountSeeds();
     $("reset-button").addEventListener("click", function () {
       askThen("pocket-bazaar-reset", "Start the whole stall over? Your coins, upgrades, renown and personal bests will be erased.", "Erase it", function () {
         selected = null;

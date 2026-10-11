@@ -29,6 +29,16 @@
 
   function stars(n) { return STARS[n] || ""; }
 
+  /* Z-5b: today's Daily Market finished -> the shared "noyvj-daily-v1" record the hub's Today strip reads. Counts once
+     per day and only for today's date (an older date from the archive never counts); nothing in the game changes. */
+  function recordSharedDaily(m) {
+    try {
+      var S = window.NoyvjSeed, r = m && m.result;
+      if (!S || !S.daily || !r || r.date !== S.daily.today()) return;
+      S.daily.markCompleted("pocket-bazaar", { text: stars(r.stars) + " (" + r.stars + " of 3 stars), " + r.served + " of " + r.total + " served" });
+    } catch (e) { /* the shared record is a courtesy and must never break the page */ }
+  }
+
   function renderToday(m) {
     var line = $("market-today");
     if (!m.open) { setText(line, "The first Daily Market opens on " + m.epoch + "."); return; }
@@ -130,6 +140,7 @@
     renderToday(m);
     renderResult(m);
     renderGrid(m);
+    if (m.result) recordSharedDaily(m);
     if (m.result) {                                  // the market result replaces the campaign day's summary
       $("summary").hidden = true;
       setText($("closed-heading"), "The Daily Market is done");

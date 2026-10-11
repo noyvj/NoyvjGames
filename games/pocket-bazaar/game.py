@@ -47,6 +47,23 @@ SUMMARY_KEYS = ("number", "served", "left", "total", "coins", "beats", "best_cha
                 "wilds", "twins", "best_mult", "renown_gain")
 NEW_BEST_IDS = ("combo", "day_coins")
 MAX_COINS = 10 ** 9
+# Z-1c: the stall's seed. The standard stall (everyone's default, and every older save) uses DEFAULT_SEED and shows
+# STANDARD_SEED_TEXT; a stall started from another shared seed text (shared/seed.js format) uses the number the page
+# derived from it. The text is stored only when it is not the standard one, and only when valid.
+DEFAULT_SEED = 0xBA2AA2
+SEED_PREFIX = "POCKETBAZAAR"
+STANDARD_SEED_TEXT = SEED_PREFIX + "-STAND"
+SEED_ALPHABET = "23456789ABCDEFGHJKMNPQRSTUVWXYZ"
+
+
+def clean_seed_text(value):
+    """A seed text such as POCKETBAZAAR-K7F2Q, or "" for anything else (another game's seed, bad characters, the standard one)."""
+    n = len(SEED_PREFIX)
+    if not isinstance(value, str) or len(value) != n + 6 or value[:n] != SEED_PREFIX or value[n] != "-":
+        return ""
+    if any(c not in SEED_ALPHABET for c in value[n + 1:]) or value == STANDARD_SEED_TEXT:
+        return ""
+    return value
 
 
 def _int(value, low=0, high=MAX_COINS, default=0):
@@ -60,6 +77,8 @@ class Stall:
 
     def __init__(self):
         self.coins = 0
+        self.seed = DEFAULT_SEED
+        self.seed_text = ""         # "" is the standard stall
         self.tally = {key: 0 for key in TALLY_KEYS}
         self.best_chain = 0
         self.days_played = 0
@@ -108,6 +127,9 @@ class Stall:
     def to_dict(self):
         """Only what differs from a fresh game is written, so old and new saves stay compatible."""
         data = {}
+        if self.seed_text:
+            data["seed_text"] = self.seed_text
+            data["seed"] = self.seed
         if self.coins:
             data["coins"] = self.coins
         tally = {k: v for k, v in self.tally.items() if v}
@@ -153,6 +175,8 @@ class Stall:
         """Take a saved dict, checking every field on its own; a bad field falls back to its default."""
         data = data if isinstance(data, dict) else {}
         self.coins = _int(data.get("coins"))
+        self.seed_text = clean_seed_text(data.get("seed_text"))
+        self.seed = _int(data.get("seed"), 0, 2 ** 32 - 1, DEFAULT_SEED) if self.seed_text else DEFAULT_SEED
         tally = data.get("tally") if isinstance(data.get("tally"), dict) else {}
         self.tally = {key: _int(tally.get(key)) for key in TALLY_KEYS}
         self.best_chain = _int(data.get("best_chain"), high=goods.MAX_TIER)
@@ -214,7 +238,7 @@ class Stall:
     def open_day(self):
         number = self.next_day
         rules = self.rules_for(number)
-        rng = Rng(mix(number, 0xBA2AA2))
+        rng = Rng(mix(number, self.seed))
         day_spec = festival.apply_spec(spec(number, extras=renown.archetypes(self.renown)), rules["festival"])
         queue = make_queue(rng, day_spec, list(self.families()))
         self._place_regulars(queue, number)
@@ -357,6 +381,7 @@ def _view(message="", ok=True, event=None):
         "phase": "open" if day else "closed",
         "crates": [{"family": f, "name": FAMILY_INFO[f]["name"], "letter": FAMILY_INFO[f]["letter"],
                     "shape": FAMILY_INFO[f]["shape"]} for f in stall.families()],
+        "seed_text": stall.seed_text or STANDARD_SEED_TEXT,
         "coins": stall.coins, "tally": dict(stall.tally), "best_chain": stall.best_chain,
         "days_played": stall.days_played, "next_day": stall.next_day, "summary": stall.last,
         "archetypes": {k: v["name"] for k, v in ARCHETYPES.items()},
@@ -466,6 +491,12 @@ def handle(request_json):
         kept = stall.market_days
         stall.__init__()
         stall.market_days = kept
+        text = clean_seed_text(request.get("seed_text"))
+        if text:                                  # a stall started from a shared seed text; anything else is the standard stall
+            stall.seed_text = text
+            stall.seed = _int(request.get("seed"), 0, 2 ** 32 - 1, DEFAULT_SEED)
+            if stall.seed == DEFAULT_SEED:
+                stall.seed_text = ""
         return json.dumps(_view("Starting over."))
     if action == "start_market":
         if _today is None:

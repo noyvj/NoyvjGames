@@ -25,6 +25,7 @@
 <script src="../../shared/report-problem.js" data-button="none" data-game-id="pocket-bazaar" data-mount=".game-toolbar"></script>
 <script src="../../shared/profile.js" data-game-id="pocket-bazaar"></script>
 <script src="../../shared/site-settings.js" data-game-id="pocket-bazaar"></script>
+<script src="../../shared/seed.js"></script>
 <script src="settings.js"></script>
 <link rel="stylesheet" href="../../ad-bar.css">
 <link rel="manifest" href="../../manifest.json">
@@ -88,6 +89,10 @@
     <div class="settings-row"><label><input type="checkbox" id="high-contrast-checkbox"> High contrast (brighter text, thicker outlines)</label></div>
     <div class="settings-row"><button id="theme-setting-button" type="button" aria-pressed="false">Light theme</button></div>
     <div class="settings-row"><button id="display-reset-button" type="button">Reset display settings</button></div>
+    <h3 class="settings-sub">Stall seed</h3>
+    <p class="note">The seed decides which customers come and what they order. Everyone starts on the standard stall; share a seed to let someone run the same stall. Daily Markets do not use it.</p>
+    <div id="seed-copy-slot" data-testid="pocket-bazaar-seed-copy"></div>
+    <div id="seed-start-slot" data-testid="pocket-bazaar-seed-start"></div>
     <div class="settings-row"><button id="reset-button" type="button" data-testid="pocket-bazaar-reset">Start the whole stall over</button> <span class="note">Erases coins, upgrades and renown. It asks first.</span></div>
   </section>
   <p id="toast" class="note toast" role="status" aria-live="polite" title="Tap to dismiss"></p>
