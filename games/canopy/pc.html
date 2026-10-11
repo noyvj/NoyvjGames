@@ -383,7 +383,10 @@
           <option value="biodiversity">Biodiversity</option>
           <option value="relations">Community relations</option>
         </select>
+        <label class="ghost-toggle-label"><input type="checkbox" id="ghost-toggle" checked> Show the ghost of my best session</label>
         <div id="timeline-chart" class="timeline-chart"></div>
+        <!-- Z-3e: whether this session is ahead of your best earlier one (words for the dashed ghost line). -->
+        <p id="ghost-note" class="timeline-legend ghost-note" role="status"></p>
         <p id="timeline-legend" class="timeline-legend"></p>
       </details>
       <details class="summary-details">
@@ -861,6 +864,9 @@
       // Shared seeded-run helper (shared/seed.py): the Expedition's seed (GB-3) only decides the map.
       const seedSource = await (await fetch("../../shared/seed.py")).text();
       pyodide.FS.writeFile("seed.py", seedSource, { encoding: "utf8" });
+      // Z-3e: shared best-session ghost (shared/ghost.py): the standing value per tick is recorded and compared through it.
+      const ghostSource = await (await fetch("../../shared/ghost.py")).text();
+      pyodide.FS.writeFile("ghost.py", ghostSource, { encoding: "utf8" });
       // ACHIEVEMENTS-SYSTEM-DESIGN.md's loading contract: fetch the static
       // catalog and hand it to Python as a window global *before* game.py
       // runs, same pattern SOL's reference integration established.

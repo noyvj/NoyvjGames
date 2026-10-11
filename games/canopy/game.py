@@ -12,6 +12,7 @@ import json
 import math
 import time
 
+import ghost as ghost_lib  # Z-3e: the shared best-session ghost (shared/ghost.py)
 import info_page
 import seed as seed_lib
 import skill_tree
@@ -574,6 +575,13 @@ _session_ticks = 0
 _value_history = []
 VALUE_HISTORY_MAX_POINTS = 120  # ~2 minutes at one point/tick, TICK_INTERVAL_MS==1000
 
+# Z-3e: the live side of the ghost (shared/ghost.py): the standing value after every tick of this session, capped at
+# GHOST_LIVE_CAP ticks. Ephemeral like the histories above (a loaded save starts a fresh one); the best earlier session
+# is kept per device in its own localStorage key, see the "Z-3e" block further down.
+GHOST_LIVE_CAP = 5000
+_ghost_live = []
+_ghost_state = {"peak": 0.0, "tainted": False}
+
 # B13: three parallel per-tick series (biodiversity, standing value, community
 # relations) for the report card's small trend graphs. Ephemeral for the same
 # reason as _value_history above.
@@ -935,6 +943,7 @@ def reset_session(grid_size=None, _render_after=True, difficulty=None, challenge
     # before the module has ever had a session), so there's nothing to
     # bank yet.
     if plots:
+        _bank_ghost()  # Z-3e: before the session's numbers are cleared below
         _bank_lifetime()  # B-9
         _bank_legacy_value()
         legacy_multiplier = load_legacy_bonus()
@@ -1023,6 +1032,7 @@ def reset_session(grid_size=None, _render_after=True, difficulty=None, challenge
     _session_ticks = 0
     _value_history.clear()
     _report_history.clear()
+    _reset_ghost_session()  # Z-3e
     _replay_frames.clear()  # B-3
     blight_pressure.clear()  # GB-7
     _reset_fire()  # GB-1
@@ -5242,6 +5252,161 @@ def badge_share_text():
     return f"{BADGE_ICON[badge]} Canopy playstyle badge: {badge} ({_total_clear_count()} clears{cuts} across {active_plot_count()} plots)"
 
 
+# Z-3e: the ghost of your best session (shared/ghost.py) ----------------------------------------------------------
+# One number per tick: the standing forest value. When a session ends (Reset Session, or any setting that starts a new
+# forest) and it ran at least GHOST_MIN_TICKS ticks, its trace is kept per device (localStorage, like the personal best
+# and lifetime totals; the key exists only once a ghost does) when its highest standing value is at least as high as the
+# stored one for the same settings. The Timeline chart (standing value) then draws it as a faint dashed line and
+# `#ghost-note` says in the shared wording whether you are ahead of it. Challenges, levels, Expeditions, scenarios, custom
+# layouts and the Forest Lab are left out (their forests are not comparable). The ghost never changes any number.
+GHOST_STORAGE_KEY = "canopy_ghost_v1"
+GHOST_PREF_KEY = "canopy_ghost_on"
+GHOST_MIN_TICKS = 30
+GHOST_MAX_MODES = 24
+GHOST_LABEL = "your best session"
+
+
+def ghost_mode_key():
+    """The settings a session must share to be compared ("normal:normal:normal" = difficulty:grid size:request pace),
+    or None when this session is not comparable."""
+    if (lab_active() or layout_active() or current_challenge != CHALLENGE_NONE or current_scenario != SCENARIO_NONE
+            or current_level is not None or current_expedition is not None):
+        return None
+    return f"{current_difficulty}:{current_grid_size}:{current_pace}"
+
+
+def _valid_ghost_key(key):
+    return (isinstance(key, str) and len(key) <= 40 and key.count(":") == 2
+            and all(part and part.replace("_", "").replace("-", "").isalnum() for part in key.split(":")))
+
+
+def load_ghosts():
+    """The stored best sessions, {mode key: {"score", "trace"}}, every entry cleaned through ghost.load; anything
+    unreadable, over-long or hand-edited is dropped (no ghost, nothing breaks)."""
+    raw = _read_local_storage_item(GHOST_STORAGE_KEY)
+    if not raw:
+        return {}
+    try:
+        data = json.loads(raw)
+    except (ValueError, TypeError):
+        return {}
+    out = {}
+    if not isinstance(data, dict):
+        return out
+    for key, item in list(data.items())[:GHOST_MAX_MODES]:
+        if not _valid_ghost_key(key) or not isinstance(item, dict):
+            continue
+        trace = ghost_lib.load(item.get("trace"))
+        score = ghost_lib.clean_number(item.get("score"))
+        if trace is not None and score is not None and trace["turns"] <= GHOST_LIVE_CAP:
+            out[key] = {"score": score, "trace": trace}
+    return out
+
+
+def ghost_entry():
+    key = ghost_mode_key()
+    return None if key is None else load_ghosts().get(key)
+
+
+def _reset_ghost_session():
+    _ghost_live.clear()
+    _ghost_state["peak"] = 0.0
+    _ghost_state["tainted"] = False
+
+
+def _record_ghost_tick(value):
+    if ghost_mode_key() is None:
+        _ghost_state["tainted"] = True   # a session that was ever not comparable is never kept
+        return
+    number = ghost_lib.clean_number(value)
+    if number is None or len(_ghost_live) >= GHOST_LIVE_CAP:
+        return
+    _ghost_live.append(number)
+    _ghost_state["peak"] = max(_ghost_state["peak"], number)
+
+
+def _bank_ghost():
+    """Keep the session that is about to end as the ghost for its settings when it is long enough and its highest
+    standing value is at least as high as the stored one (the latest wins a tie). Returns True when it was kept."""
+    key = ghost_mode_key()
+    if key is None or _ghost_state["tainted"] or len(_ghost_live) < GHOST_MIN_TICKS:
+        return False
+    recorder = ghost_lib.Recorder()
+    for value in _ghost_live:
+        recorder.record(value)
+    trace = recorder.trace("best session")
+    peak = ghost_lib.clean_number(_ghost_state["peak"])
+    if trace is None or peak is None:
+        return False
+    ghosts = load_ghosts()
+    if key in ghosts and peak < ghosts[key]["score"]:
+        return False
+    ghosts[key] = {"score": peak, "trace": trace}
+    if len(ghosts) > GHOST_MAX_MODES:
+        ghosts = dict(list(ghosts.items())[-GHOST_MAX_MODES:])
+    _write_local_storage_item(GHOST_STORAGE_KEY, json.dumps(ghosts))
+    return True
+
+
+def ghost_enabled():
+    return _read_local_storage_item(GHOST_PREF_KEY) != "0"
+
+
+def ghost_result():
+    """ghost.compare for this session so far against the stored ghost, or None."""
+    entry = ghost_entry()
+    if entry is None or not _ghost_live:
+        return None
+    return ghost_lib.compare(_ghost_live, entry["trace"])
+
+
+def _rounded_result(result, digits):
+    """A ghost.compare result with its lead rounded the way the game shows its numbers; under half a unit is level."""
+    if result is None or result["status"] not in ("ahead", "behind"):
+        return result
+    lead = round(result["lead"], digits)
+    return dict(result, status="level", lead=0) if lead == 0 else dict(result, lead=lead)
+
+
+def ghost_note_text():
+    """The sentence under the timeline chart: the shared ghost wording, or a plain reason there is none."""
+    if ghost_mode_key() is None:
+        return "Ghost: not kept for challenges, levels, expeditions, scenarios, custom layouts or the Forest Lab, because those forests are not comparable."
+    entry = ghost_entry()
+    if entry is None:
+        return (f"Ghost: when you start a new forest after a session of {GHOST_MIN_TICKS} ticks or more, its standing value "
+                "is kept here as a faint line to race next time, one number per tick.")
+    if not _ghost_live:
+        return (f"Ghost: your best session on these settings peaked at {ghost_lib.format_number(entry['score'])} standing value "
+                f"over {entry['trace']['turns']} ticks. This session is compared with it every tick.")
+    return ghost_lib.summary(_rounded_result(ghost_result(), 1), label=GHOST_LABEL).replace("ghost: ", "Ghost: ", 1) + "."
+
+
+def ghost_chart_points(count):
+    """[(index into the chart's last `count` points, ghost value)] for the points the ghost has a number for. Chart point
+    i of `count` is session tick `turns - (count - 1 - i)`; points before this session started (a loaded save) get none."""
+    entry = ghost_entry()
+    if entry is None or not _ghost_live or not ghost_enabled():
+        return []
+    turns = len(_ghost_live)
+    out = []
+    for i in range(count):
+        session_tick = turns - (count - 1 - i)
+        if session_tick < 1:
+            continue
+        value = ghost_lib.value_at(entry["trace"], session_tick)
+        if value is not None:
+            out.append((i, value))
+    return out
+
+
+def on_toggle_ghost(event=None):
+    toggle = _el("ghost-toggle")
+    on = True if toggle is None else bool(toggle.checked)
+    _write_local_storage_item(GHOST_PREF_KEY, "1" if on else "0")
+    render_timeline_chart()
+
+
 # B13 ------------------------------------------------------------------------
 
 REPORT_CARD_GRAPHS = [
@@ -5351,7 +5516,8 @@ def timeline_chart_svg(metric="standing"):
     plot_w, plot_h = width - TIMELINE_PAD_LEFT, height - TIMELINE_PAD_BOTTOM
     first_tick, last_tick = points[0][0], points[-1][0]
     span = max(1, last_tick - first_tick)
-    top = max(max(v for _t, v in points), 1e-9)
+    ghost_points = ghost_chart_points(len(points)) if model["metric"] == "standing" else []   # Z-3e
+    top = max(max(v for _t, v in points), max((v for _i, v in ghost_points), default=0.0), 1e-9)
 
     def x_of(tick):
         return TIMELINE_PAD_LEFT + (tick - first_tick) / span * plot_w
@@ -5360,7 +5526,8 @@ def timeline_chart_svg(metric="standing"):
         return plot_h - value / top * plot_h
 
     parts = [f'<svg viewBox="0 0 {width} {height}" class="timeline-svg" role="img" '
-             f'aria-label="{label} timeline from tick {first_tick} to {last_tick}, now {points[-1][1]:.1f}">']
+             f'aria-label="{label} timeline from tick {first_tick} to {last_tick}, now {points[-1][1]:.1f}'
+             f'{". " + _svg_text(ghost_note_text()) if ghost_points else ""}">']
     for i, band in enumerate(model["bands"]):
         x0, x1 = x_of(band["start"]), x_of(band["end"] + 1 if band["end"] < last_tick else band["end"])
         opacity = "0.10" if i % 2 == 0 else "0.04"
@@ -5369,6 +5536,11 @@ def timeline_chart_svg(metric="standing"):
     parts.append(f'<text x="2" y="12" font-size="10" fill="currentColor">{top:.0f}</text>')
     parts.append(f'<text x="2" y="{plot_h}" font-size="10" fill="currentColor">0</text>')
     line = " ".join(f"{x_of(t):.1f},{y_of(v):.1f}" for t, v in points)
+    if ghost_points:   # Z-3e: dashed, faint and labelled, so it never relies on colour alone
+        ghost_line = " ".join(f"{x_of(points[i][0]):.1f},{y_of(v):.1f}" for i, v in ghost_points)
+        parts.append(f'<g class="ghost-line" data-testid="ghost-line"><polyline points="{ghost_line}" fill="none" stroke="currentColor" '
+                     f'stroke-width="2" stroke-dasharray="6 4" opacity="0.55"><title>{_svg_text(ghost_note_text())}</title></polyline>'
+                     f'<text x="{width - 4}" y="12" font-size="10" text-anchor="end" fill="currentColor" opacity="0.8">Ghost: best session (dashed)</text></g>')
     parts.append(f'<polyline points="{line}" fill="none" stroke="{color}" stroke-width="2"/>')
     for t, v in points:  # invisible hover targets giving each tick's exact value
         parts.append(f'<circle cx="{x_of(t):.1f}" cy="{y_of(v):.1f}" r="3" fill="{color}" opacity="0"><title>Tick {t}: {v:.1f}</title></circle>')
@@ -5400,6 +5572,13 @@ def render_timeline_chart():
         container.innerText = "Not enough time has passed yet to chart a timeline."
     else:
         container.innerHTML = svg
+    note, toggle = _el("ghost-note"), _el("ghost-toggle")   # Z-3e
+    if toggle is not None:
+        toggle.checked = ghost_enabled()
+    if note is not None:
+        text = ghost_note_text() if ghost_enabled() and metric == "standing" else ""
+        note.innerText = text
+        note.hidden = not text
     legend = _el("timeline-legend")
     if legend is not None:
         lines = timeline_marker_lines(metric)
@@ -10128,6 +10307,7 @@ def tick(event=None):
     _value_history.append((total_income, standing_forest_value()))
     _report_history.append((total_biodiversity(), standing_forest_value(), community_relations))
     del _report_history[:-VALUE_HISTORY_MAX_POINTS]
+    _record_ghost_tick(standing_forest_value())  # Z-3e
     _record_replay_frame()  # B-3
     del _value_history[:-VALUE_HISTORY_MAX_POINTS]  # no-op once under the cap
     # B3: checked every tick regardless of whether it's already unlocked
@@ -10386,6 +10566,7 @@ def on_dismiss_coach_hints(event=None):
 
 def load_state(data):
     global current_scenario
+    _reset_ghost_session()  # Z-3e: a loaded save starts a fresh session for the ghost, like the other histories
     global selected_index, total_income, community_relations
     global pending_stakeholder_request, _ticks_since_last_request
     global _stakeholder_request_count, info_page_open
@@ -10799,6 +10980,9 @@ def setup():
     timeline_select = _el("timeline-metric")  # B-21
     if timeline_select is not None:
         timeline_select.addEventListener("change", create_proxy(lambda event=None: render_timeline_chart()))
+    ghost_toggle = _el("ghost-toggle")  # Z-3e
+    if ghost_toggle is not None:
+        ghost_toggle.addEventListener("change", create_proxy(on_toggle_ghost))
     for select_id in ("request-history-sort", "request-history-kind"):  # B-14
         select = _el(select_id)
         if select is not None:

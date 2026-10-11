@@ -1,6 +1,10 @@
 {
   "changelog": [
     {
+      "date": "2026-10-12",
+      "entry": "New: a ghost of your best session. Under Session summary, Timeline chart (Standing value), your best earlier session on the same settings is drawn as a faint dashed line labelled Ghost, and a sentence says whether you are ahead of it, level or behind at the same tick (for example: ghost: you are 12 ahead of your best session at turn 80). A session is kept as the ghost when you start a new forest after at least 30 ticks. Challenges, levels, expeditions, scenarios, custom layouts and the Forest Lab are left out, and a checkbox switches the ghost off. Nothing about your forest changes."
+    },
+    {
       "date": "2026-10-11",
       "entry": "New: up to three named forests on one browser, such as \"Ranger practice\". Open the save pill (top right), then Forest, to start a new one, rename it, switch between them or delete one. Each forest keeps its own save, difficulty, grid size and tree choice, and switching saves the one you are in first. The first one, My forest, simply keeps the progress you already have. Signed-in players keep their three account slots instead."
     },

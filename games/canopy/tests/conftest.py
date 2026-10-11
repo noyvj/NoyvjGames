@@ -196,6 +196,8 @@ ELEMENT_IDS = [
     "timeline-metric",
     "timeline-chart",
     "timeline-legend",
+    "ghost-note",
+    "ghost-toggle",
     "forest-frame-select",
     "forest-palette-select",
     "stakeholder-counter-button",
