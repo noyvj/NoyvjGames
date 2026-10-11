@@ -9,7 +9,7 @@ window.DEAD_RECKONING_PC_TUTORIAL_STEPS = [
   {
     selector: "#chart-goal",
     title: "The goal",
-    text: "Reach the flag, inside its ring, before the deadline. The deadline is in hours of sailing, never real time: nothing here is timed.",
+    text: "Reach the flag, inside its ring, before the deadline. The deadline is in hours of sailing, never real time: nothing here is timed. On a two-ship chart each ship has its own flag and deadline, and the two must stay at least a mile apart: the Ship A and Ship B buttons (keys 1 and 2) choose which one you are planning.",
   },
   {
     selector: "#chart-holder",
@@ -34,7 +34,7 @@ window.DEAD_RECKONING_PC_TUTORIAL_STEPS = [
   {
     selector: "#pc-menu-button",
     title: "Icons and the Menu",
-    text: "The icons open the Charts (six chapters and a practice mode), your Achievements and Settings. The Menu, or Escape when nothing else is open, holds the rest: this tutorial, About Dead Reckoning with its named sources, the Captain's log and What's New. Each opens as a window over the game, and Escape closes the top one.",
+    text: "The icons open the Charts (seven chapters, the last with two ships to plan at once, and a practice mode), your Achievements and Settings. The Menu, or Escape when nothing else is open, holds the rest: this tutorial, About Dead Reckoning with its named sources, the Captain's log and What's New. Each opens as a window over the game, and Escape closes the top one.",
   },
   {
     title: "You are ready",

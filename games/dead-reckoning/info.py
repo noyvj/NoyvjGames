@@ -8,7 +8,7 @@ DATE_READ = "2026-10-09"
 
 FRAMING = ("Dead Reckoning is a game, not a simulator. Its sea, its numbers and its charts are invented and simplified: the share of the "
            "wind that becomes leeway, the size of a fix's error and the shape of its tides are game rules, and nothing here claims the accuracy "
-           "of a real passage. The ideas behind it are real, and these are some of the places they come from.")
+           "of a real passage. The mile of clear water two ships must keep between them on the two-ship charts is a game rule too, not a claim about real collision regulations. The ideas behind it are real, and these are some of the places they come from.")
 
 FACTS = (
     {

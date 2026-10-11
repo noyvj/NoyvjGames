@@ -21,12 +21,14 @@ Updated after each milestone. A new agent should read `planning/dead-reckoning-p
 
 - Milestone 11 Daily Chart: `daily.py`, `daily.js`, `game.py` (`start_daily`, `daily_days`), `state.py`, `charts.py`, index.html panel, pc-config + pc.html regenerated, changelog, tests test_daily*.py.
 
+- Milestone 7 Two ships: `fleet.py`, `gentwo.py`, `charts_two.py` (7 charts), `pars.py` PARS2, two-ship planner/reveal UI, practice toggle, achievement Two at Once (15 in all), `tests/test_fleet*.py`.
+
 ## Next
-- Nothing in this folder. The Daily Chart (M-5b-11) is DONE (2026-10-11, see CLAUDE.md "Daily Chart"); its opt-in leaderboard is a separate backend job (hooks `daily.leaderboard_entry` and `DeadReckoningDaily.leaderboardHook`). The hub's `sw.js`/`offline-manifest.json` must precache `daily.py` and `daily.js`. Remaining: Two ships (M-5b-7).
+- Nothing in this folder. The Daily Chart (M-5b-11) is DONE (2026-10-11, see CLAUDE.md "Daily Chart"); its opt-in leaderboard is a separate backend job (hooks `daily.leaderboard_entry` and `DeadReckoningDaily.leaderboardHook`). The hub's `sw.js`/`offline-manifest.json` must precache `daily.py` and `daily.js`.
 
 ## Open problems
 - The shared `level-select.js` is not used (own picker instead). Ask the hub session whether to adopt it at registration time.
-- The plan's achievement 9 (Two at Once) is replaced by Patient Navigator until Two ships exists.
+- The hub must precache the new engine files `fleet.py`, `gentwo.py`, `charts_two.py` (and the changed `pars.py`), as well as `daily.py`/`daily.js`.
 - Dev tip: the hub service worker and HTTP cache serve stale app.js; unregister the SW and `fetch(f, {cache: "reload"})` each file before reloading in the browser pane.
 
 ## Notes for whoever continues

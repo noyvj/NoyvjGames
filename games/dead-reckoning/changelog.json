@@ -2,6 +2,10 @@
   "changelog": [
     {
       "date": "2026-10-11",
+      "entry": "Two ships: a seventh chapter of seven charts where you plan the courses of two vessels on one chart, each with its own flag, speed and deadline. Keep them at least a mile apart while both are under way; a closer approach costs a star, never the passage, and a retry is free. The planner warns you from your own two plots, the reveal shows both true tracks and both errors with the closest point marked, and the par plan covers both ships. Practice can make a two-ship chart too (tick Two ships; its codes carry a T, such as DR3T-1K9X2, and every earlier code works as before). A new achievement, Two at Once."
+    },
+    {
+      "date": "2026-10-11",
       "entry": "The Daily Chart: one chart a day, the same sea for everyone, always solvable. Play any past day from the archive, and see how many days you have played in a small grid. There are no streaks and no pressure, and it never touches your campaign stars or your practice total."
     },
     {

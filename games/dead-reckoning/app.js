@@ -594,13 +594,13 @@
 
   var TUTORIAL_STEPS = [
     { title: "Welcome, navigator", text: "You know your speed, your heading and the time, and nothing else about where the ship is. Plot a course, sail it, then see how far the sea moved you from your estimate. Skip any time and reopen this from the Tutorial button." },
-    { selector: "#chart-goal", title: "The goal", text: "Reach the flag, within its ring, before the deadline. The deadline is in hours of sailing, never real time: nothing here is timed." },
+    { selector: "#chart-goal", title: "The goal", text: "Reach the flag, within its ring, before the deadline. The deadline is in hours of sailing, never real time: nothing here is timed. On a two-ship chart each ship has its own flag and deadline, and the two must stay at least a mile apart: choose which ship you are planning with the Ship A and Ship B buttons (keys 1 and 2)." },
     { selector: "#chart-holder", title: "The chart", text: "Hazards are hatched or dotted shapes with names. A stream is a dashed zone with an arrow and a range in knots; the truth lies somewhere in the range. Tap the chart to mark a point for the ruler." },
     { selector: "#planner-panel", title: "Your plan", text: "A plan is a list of legs: a heading in degrees, a speed in knots and a time in hours. The dashed line on the chart is your plot of where you think each leg takes you." },
     { selector: "#allow-checkbox", title: "Allow for the chart", text: "With this on, your plot adds the middle of every range the chart prints (streams, wind, compass error). Off, it is plain dead reckoning: heading, speed and time only." },
     { selector: "#naive-flag-button", title: "Helpers", text: "Steering straight at the flag ignores every current: a starting guess, not the answer. A second helper that allows for the chart unlocks after you clear three charts." },
     { selector: "#sail-button", title: "Sail", text: "Sail shows the real track as a solid line, with the gap to your plot marked each hour, and tells you exactly how the stars were earned. You may retry with the same plan and tune it." },
-    { selector: "#picker-toggle-button", title: "Charts and practice", text: "Six chapters of charts, and a practice mode that makes a fresh chart on demand. A chapter opens once you have cleared four charts of the one before." },
+    { selector: "#picker-toggle-button", title: "Charts and practice", text: "Seven chapters of charts, the last with two ships to plan at once, and a practice mode that makes a fresh chart on demand (tick Two ships for a pair). A chapter opens once you have cleared four charts of the one before." },
     { selector: "#info-page-toggle-button", title: "About", text: "The real ideas behind the game, each with its source named. The game itself is a simplified game, not a simulator." },
     { title: "You are ready", text: "Fair weather. Take your time." },
   ];
