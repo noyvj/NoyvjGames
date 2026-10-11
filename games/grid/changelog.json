@@ -1,6 +1,10 @@
 {
   "changelog": [
     {
+      "date": "2026-10-12",
+      "entry": "Changed: the ghost of your best run now uses the same shared recorder as the other games' ghosts. Your best finished run is kept as a trace of its clean share and funds, and the ghost note says whether you are ahead, behind or level in plain words (a gap is read in whole points). Older saves keep their ghost: it is rebuilt from the run history you already had."
+    },
+    {
       "date": "2026-10-11",
       "entry": "New: achievement cards are little city buildings. An earned achievement is a lit building with windows, one not yet earned is a dark dashed outline, and the card says Earned or Not earned yet for screen readers. A card earned since you last looked switches its windows on one by one and says Just powered up. The flash is off under Reduce motion and has its own Settings checkbox; the words stay."
     },

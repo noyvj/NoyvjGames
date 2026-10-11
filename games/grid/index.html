@@ -957,6 +957,9 @@
       // game.py's `import seed` / `import skill_tree` resolve from the virtual filesystem the same way.
       const seedSource = await (await fetch("../../shared/seed.py")).text();
       pyodide.FS.writeFile("seed.py", seedSource, { encoding: "utf8" });
+      // Shared ghost-run trace (shared/ghost.py, Z-3c): the best run's clean share and funds are recorded and compared through it.
+      const ghostSource = await (await fetch("../../shared/ghost.py")).text();
+      pyodide.FS.writeFile("ghost.py", ghostSource, { encoding: "utf8" });
       const skillTreeSource = await (await fetch("../../shared/skill_tree.py")).text();
       pyodide.FS.writeFile("skill_tree.py", skillTreeSource, { encoding: "utf8" });
       const [achievementsJson, changelogJson, code] = await Promise.all([

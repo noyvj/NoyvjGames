@@ -12,6 +12,7 @@ import json
 import random
 
 import comparison_chart
+import ghost as ghost_lib
 import info_page
 import seed as seed_lib
 import skill_tree
@@ -1873,6 +1874,63 @@ def _validate_lifetime(raw):
     return out
 
 
+def _validate_career_ghost(raw):
+    """Z-3c: the saved best-run ghost -> a clean dict, or None. Every field is checked; the two traces go
+    through the shared ghost.load, so a tampered or oversized one is thinned or dropped, never trusted."""
+    if not isinstance(raw, dict):
+        return None
+    grade = raw.get("grade")
+    clean = ghost_lib.load(raw.get("clean"))
+    if grade not in CAREER_GRADE_POINTS or clean is None:
+        return None
+    return {
+        "label": ghost_lib.clean_label(raw.get("label")) or "Best run",
+        "grade": grade,
+        "score": round(float(_career_number(raw.get("score"), 0.0, 0.0, 100.0)), 1),
+        "clean": clean,
+        "funds": ghost_lib.load(raw.get("funds")),
+    }
+
+
+def _ghost_from_history(history, runs):
+    """Z-3c: the best finished run in a history list (highest score, the latest on a tie, at least two
+    rounds and two clean-share points) as a ghost dict built from the series it already stored, or None.
+    This is how a save from before the shared ghost loads: nothing is lost, the old series become the trace."""
+    best, best_index = None, -1
+    for index, record in enumerate(history):
+        if len(record["clean"]) < 2 or record["rounds"] < 2:
+            continue
+        if best is None or record["score"] >= best["score"]:
+            best, best_index = record, index
+    if best is None:
+        return None
+    label = f"Run {max(0, runs - len(history)) + best_index + 1}"
+    clean = ghost_lib.make_trace(best["clean"], turns=best["rounds"], label=label)
+    if clean is None:
+        return None
+    return {
+        "label": label,
+        "grade": best["grade"],
+        "score": best["score"],
+        "clean": clean,
+        "funds": ghost_lib.make_trace(best["funds_series"], turns=best["rounds"], label=label),
+    }
+
+
+def run_ghost_traces(clean_fractions, funds, label=""):
+    """Z-3c: the finished run's clean share (percent) and funds as two shared ghost traces, fed one round at
+    a time through ghost.Recorder. None when the run was too short (fewer than two rounds)."""
+    clean_rec, funds_rec = ghost_lib.Recorder(), ghost_lib.Recorder()
+    for fraction in clean_fractions:
+        clean_rec.record(fraction * 100.0)
+    for value in funds:
+        funds_rec.record(max(0, value))
+    clean = clean_rec.trace(label)
+    if clean is None:
+        return None
+    return {"clean": clean, "funds": funds_rec.trace(label) if len(funds) == len(clean_fractions) else None}
+
+
 def validate_career(raw):
     """Coerce anything (corrupt JSON, hand-edited save) into a valid career
     dict; every bad field falls back to its default."""
@@ -1902,6 +1960,13 @@ def validate_career(raw):
         valid = [_validate_run_record(entry) for entry in history]
         out["history"] = [entry for entry in valid if entry is not None][-CAREER_HISTORY_MAX:]
     out["lifetime"] = _validate_lifetime(raw.get("lifetime"))
+    # Z-3c: the shared best-run ghost. A save from before it existed has none, so it is migrated from the
+    # best finished run in the history (the one ghost_record() used to pick); a bad one is dropped the same way.
+    ghost_saved = _validate_career_ghost(raw.get("ghost"))
+    if ghost_saved is None:
+        ghost_saved = _ghost_from_history(out["history"], out["runs"])
+    if ghost_saved is not None:
+        out["ghost"] = ghost_saved
     # Never let unlocks exceed what the earned points could have paid for: unknown ids, repeats and
     # nodes whose prerequisites are not owned are dropped, and an overspend is trimmed from the newest end.
     out["unlocked"] = skill_tree.sanitize_owned(CAREER_TREE, out["unlocked"], out["points"], overspend="trim")
@@ -2127,7 +2192,9 @@ def finish_run():
         career["best_rounds_to_90"] = r90
     banked = set(career["achievements"]) | set(achievement_ids_earned())
     career["achievements"] = [e["id"] for e in ACHIEVEMENTS if e["id"] in banked]
+    previous_ghost = ghost_record()
     career["history"] = (career["history"] + [record])[-CAREER_HISTORY_MAX:]
+    _file_run_ghost(record, previous_ghost)
     _add_to_lifetime(record)
     last_finish_records = broken
     save_career_to_storage()
@@ -2144,6 +2211,19 @@ def _thin(values, scale=1.0):
         idx = [round(i * (n - 1) / (CAREER_SERIES_POINTS - 1)) for i in range(CAREER_SERIES_POINTS)]
         values = [values[i] for i in idx]
     return [int(round(v * scale)) for v in values]
+
+
+def _file_run_ghost(record, previous):
+    """Z-3c: keep this run's trace as the best-run ghost when it scores at least as well as the ghost it
+    would replace (the latest wins a tie, as before). Called with the run just filed in the history."""
+    if record["rounds"] < 2 or (previous is not None and record["score"] < previous["score"]):
+        return
+    label = _run_label(career["history"], len(career["history"]) - 1)
+    traces = run_ghost_traces(state.clean_fraction_log, state.funds_history, label)
+    if traces is None:
+        return
+    career["ghost"] = {"label": label, "grade": record["grade"], "score": record["score"],
+                       "clean": traces["clean"], "funds": traces["funds"]}
 
 
 def run_record(points, grade):
@@ -2522,62 +2602,50 @@ def visible_trend_lines():
     return {key for key in TREND_LINE_KEYS if prefs.get("trend_" + key)}
 
 
-def ghost_value(series, rounds, round_number):
-    """GC-9: the saved (thinned) series of a finished run read at one 1-based round. A run of at most
-    CAREER_SERIES_POINTS rounds was saved point for point; a longer one was thinned evenly, so the read is
-    spread over its length. None once the ghost's run had already ended."""
-    n = len(series)
-    if n == 0 or round_number < 1 or round_number > rounds:
-        return None
-    if rounds <= n:
-        return series[round_number - 1]
-    return series[int(round((round_number - 1) * (n - 1) / (rounds - 1)))]
-
-
 def ghost_record():
-    """GC-9: the best finished run in the career (highest score, the latest on a tie) with a usable
-    clean-share series, as a small dict, or None if there is none yet."""
-    best = None
-    best_index = -1
-    for index, record in enumerate(career["history"]):
-        if len(record["clean"]) < 2 or record["rounds"] < 2:
-            continue
-        if best is None or record["score"] >= best["score"]:
-            best, best_index = record, index
-    if best is None:
+    """GC-9 / Z-3c: the best finished run in the career as a small dict (label, grade, score, rounds and the
+    clean-share and funds ghost traces, funds None when it was not kept), or None if there is none yet. The
+    stored career ghost wins; a career that has none (a save from before it) is read from the history."""
+    saved = career.get("ghost")
+    found = _validate_career_ghost(saved) if saved is not None else None
+    if found is None:
+        found = _ghost_from_history(career["history"], career["runs"])
+    if found is None:
         return None
-    return {
-        "label": _run_label(career["history"], best_index),
-        "grade": best["grade"],
-        "score": best["score"],
-        "rounds": best["rounds"],
-        "clean": list(best["clean"]),
-        "funds": list(best["funds_series"]),
-    }
+    found["rounds"] = found["clean"]["turns"]
+    return found
+
+
+def _whole_points(result):
+    """Grid reads its gaps in whole points: a gap under one half is level, any other is rounded."""
+    if result is None or result["status"] in ("ended", "level"):
+        return result
+    lead = int(round(result["lead"]))
+    if lead == 0:
+        return dict(result, status="level", lead=0)
+    return dict(result, lead=lead)
 
 
 def ghost_delta_text(clean_history, funds_history, ghost):
-    """GC-9: where the run stands against the ghost at the latest round, in words (ahead or behind, in numbers)."""
+    """GC-9: where the run stands against the ghost at the latest round, in words. Z-3c: the ahead/behind/level
+    sentences are the shared ghost.summary ones, one for the clean share and one for funds."""
     if not ghost:
         return "No finished run to race yet. Finish a run from the Career panel and your best one appears here as a ghost."
     n = len(clean_history)
     head = f"Ghost: {ghost['label']} (grade {ghost['grade']}, score {ghost['score']:.0f}/100, {ghost['rounds']} rounds)."
     if n == 0:
         return head + " Play a round to start the comparison."
-    ghost_clean = ghost_value(ghost["clean"], ghost["rounds"], n)
-    if ghost_clean is None:
+    name = ghost["label"]
+    clean = _whole_points(ghost_lib.compare([v * 100 for v in clean_history], ghost["clean"]))
+    if clean is None or clean["status"] == "ended":
         return head + f" That run ended before round {n}, so there is nothing to compare with now."
-    mine = clean_history[-1] * 100
-    gap = mine - ghost_clean
-    side = "ahead of" if gap > 0.5 else ("behind" if gap < -0.5 else "level with")
-    text = f"{head} At round {n} your clean share is {mine:.0f}% against {ghost_clean:.0f}%"
-    text += f" ({abs(gap):.0f} points {side} the ghost)." if side != "level with" else " (level with the ghost)."
-    ghost_funds = ghost_value(ghost["funds"], ghost["rounds"], n)
-    if funds_history and len(funds_history) == n and ghost_funds is not None:
-        fgap = funds_history[-1] - ghost_funds
-        fside = "ahead of" if fgap > 0.5 else ("behind" if fgap < -0.5 else "level with")
-        text += f" Funds: {funds_history[-1]:.0f} against {ghost_funds:.0f}"
-        text += f" ({abs(fgap):.0f} {fside} the ghost)." if fside != "level with" else " (level with the ghost)."
+    text = f"{head} Clean share (now {clean_history[-1] * 100:.0f}%, ghost {clean['ghost']:.0f}%): " \
+        + ghost_lib.summary(clean, label=name, unit=" points") + "."
+    if ghost.get("funds") and funds_history and len(funds_history) == n:
+        funds = _whole_points(ghost_lib.compare(funds_history, ghost["funds"]))
+        if funds is not None and funds["status"] != "ended":
+            text += f" Funds (now {funds_history[-1]:.0f}, ghost {funds['ghost']:.0f}): " \
+                + ghost_lib.summary(funds, label=name) + "."
     return text
 
 
@@ -2645,9 +2713,9 @@ def trend_graph_svg(emissions_history, cost_history, global_reference_history, c
     ghost_funds_points = []
     if series["funds"] is not None:
         funds_lo, funds_hi = min(series["funds"]), max(series["funds"])
-        if ghost and "funds" in visible:
+        if ghost and ghost.get("funds") and "funds" in visible:
             ghost_funds_points = [
-                (i, ghost_value(ghost["funds"], ghost["rounds"], i + 1)) for i in range(n)
+                (i, ghost_lib.value_at(ghost["funds"], i + 1)) for i in range(n)
             ]
             ghost_funds_points = [(i, v) for i, v in ghost_funds_points if v is not None]
             if ghost_funds_points:
@@ -2664,7 +2732,7 @@ def trend_graph_svg(emissions_history, cost_history, global_reference_history, c
                 f"<title>Ghost funds ({ghost['label']})</title></polyline>"
             )
     if ghost and "clean" in visible:
-        clean_points = [(i, ghost_value(ghost["clean"], ghost["rounds"], i + 1)) for i in range(n)]
+        clean_points = [(i, ghost_lib.value_at(ghost["clean"], i + 1)) for i in range(n)]
         clean_points = [(i, v) for i, v in clean_points if v is not None]
         if clean_points:
             gpts = " ".join(
@@ -2765,10 +2833,10 @@ def trend_table_html(series, visible, clean_fraction_history=None, ghost=None):
             unit = "%" if k == "clean" else ""
             cells += f"<td>{series[k][i]:.0f}{unit}</td>"
         if ghost and "clean" in visible:
-            g = ghost_value(ghost["clean"], ghost["rounds"], i + 1)
+            g = ghost_lib.value_at(ghost["clean"], i + 1)
             cells += f"<td>{'-' if g is None else f'{g:.0f}%'}</td>"
         if ghost and "funds" in visible:
-            g = ghost_value(ghost["funds"], ghost["rounds"], i + 1)
+            g = ghost_lib.value_at(ghost.get("funds"), i + 1)
             cells += f"<td>{'-' if g is None else f'{g:.0f}'}</td>"
         rows.append(f"<tr>{cells}</tr>")
     note = f" Showing the last {TREND_TABLE_MAX_ROWS} of {n} rounds." if n > TREND_TABLE_MAX_ROWS else ""

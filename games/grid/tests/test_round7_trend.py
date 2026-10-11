@@ -132,13 +132,13 @@ def test_checkbox_state_follows_a_loaded_preference(game_env):
 
 # --- GC-9 ghost run ----------------------------------------------------------
 
-def test_ghost_value_reads_short_and_long_runs(game_env):
+def test_ghost_traces_read_short_and_long_runs(game_env):
     g = game_env.module
-    assert g.ghost_value([10, 20, 30], 3, 2) == 20
-    assert g.ghost_value([10, 20, 30], 3, 4) is None and g.ghost_value([10, 20, 30], 3, 0) is None
-    long_series = list(range(30))  # a 59-round run thinned to 30 points
-    assert g.ghost_value(long_series, 59, 1) == 0 and g.ghost_value(long_series, 59, 59) == 29
-    assert g.ghost_value([], 5, 1) is None
+    short = g.ghost_lib.make_trace([10, 20, 30], turns=3)
+    assert g.ghost_lib.value_at(short, 2) == 20
+    assert g.ghost_lib.value_at(short, 4) is None and g.ghost_lib.value_at(short, 0) is None
+    long_trace = g.ghost_lib.make_trace(list(range(30)), turns=59)  # a 59-round run thinned to 30 points
+    assert g.ghost_lib.value_at(long_trace, 1) == 0 and g.ghost_lib.value_at(long_trace, 59) == 29
 
 
 def test_ghost_record_is_the_best_finished_run(game_env):
@@ -162,8 +162,9 @@ def test_ghost_lines_and_delta_text(game_env):
     assert "trend-line--clean-ghost" in html and "trend-line--funds-ghost" in html
     note = game_env.elements["trend-ghost-note"]
     assert note.hidden is False
-    assert "Ghost: Run" in note.innerText and "At round 6 your clean share" in note.innerText
-    assert "Funds:" in note.innerText
+    assert "Ghost: Run" in note.innerText and "Clean share (now" in note.innerText
+    assert "ghost: " in note.innerText and "points" in note.innerText and "at turn 6" in note.innerText
+    assert "Funds (now" in note.innerText
 
 
 def test_ghost_without_a_finished_run_says_so(game_env):
