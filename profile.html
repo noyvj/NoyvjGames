@@ -47,6 +47,9 @@
   .pf-vis-badge { font-weight: 600; font-size: 0.9rem; }
   .pf-card h3 { font-size: 0.98rem; margin: 1rem 0 0.2rem; }
   #pf-name { font-size: 1.4rem; margin: 0 0 0.2rem; overflow-wrap: anywhere; }
+  .pf-title-line { margin: 0 0 0.4rem; font-size: 1.05rem; font-weight: 600; }
+  .pf-title-off { opacity: 0.85; }
+  .pf-title-current { border-width: 2px !important; }
   [hidden] { display: none !important; }
 </style>
 <link rel="stylesheet" href="shared/a11y.css">
@@ -81,7 +84,7 @@
         <label class="pf-switch pf-vis-off" for="pf-vis-friends"><input type="radio" name="pf-vis" id="pf-vis-friends" value="friends" disabled aria-describedby="pf-vis-friends-note"> Friends only</label>
         <p id="pf-vis-friends-note" class="hub-note">Not available yet: there is no friends list on NoyvjGames, so this option switches on when friends exist. Until then a profile is either private or public.</p>
       </fieldset>
-      <p id="pf-public-hint" class="hub-note">When public, anyone with your link can see exactly what is listed below the line &ldquo;What others see&rdquo;: your username, the month you joined, your favourite game, your badges, your achievement count for each game, your total time played and your longest streaks. Never your email, saves, save codes or password. Set it back to private at any time and the page disappears for everyone else straight away.</p>
+      <p id="pf-public-hint" class="hub-note">When public, anyone with your link can see exactly what is listed below the line &ldquo;What others see&rdquo;: your username, the month you joined, your favourite game, your title, your badges, your achievement count for each game, your total time played and your longest streaks. Never your email, saves, save codes or password. Set it back to private at any time and the page disappears for everyone else straight away.</p>
       <div id="pf-share" class="pf-share" hidden>
         <label class="visually-hidden" for="pf-link">Your profile link</label>
         <input id="pf-link" type="text" readonly>
@@ -105,12 +108,18 @@
         <span id="pf-vis-badge" class="pf-vis-badge"></span>
       </p>
       <h2 id="pf-name"></h2>
+      <p id="pf-title" class="pf-title-line" hidden></p>
       <p class="hub-note" id="pf-what-others-see">What others see</p>
       <dl class="pf-facts">
         <dt>Member since</dt><dd id="pf-since"></dd>
         <dt>Favourite game</dt><dd id="pf-fav"></dd>
         <dt>Time played</dt><dd id="pf-time"></dd>
       </dl>
+      <div id="pf-titles-wrap" hidden>
+        <h3>Titles</h3>
+        <p class="hub-note" id="pf-titles-note">One shelf of titles for the whole account. They come from your achievements, games tried and time played, so nothing is compared with other players.</p>
+        <ul id="pf-titles" class="pf-list" aria-label="Titles"></ul>
+      </div>
       <h3>Badges</h3>
       <ul id="pf-badges" class="pf-list" aria-label="Badges"></ul>
       <h3>Achievements by game</h3>

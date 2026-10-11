@@ -84,7 +84,7 @@ def test_public_view_never_contains_secrets_or_other_accounts_data():
         assert word not in text, word
     assert set(client.get("/profiles/pf-secret").json()) == {
         "username", "member_since", "favourite_game", "favourite_is_most_played", "games", "total_seconds",
-        "total_achievements", "games_played", "streaks", "badges",
+        "total_achievements", "games_played", "streaks", "badges", "titles", "title",
     }
     assert "id" not in client.get("/profiles/pf-secret").json()
 
@@ -180,6 +180,82 @@ def test_streak_badges():
     assert "streak-7" in {b["id"] for b in out["badges"]} and "streak-30" not in {b["id"] for b in out["badges"]}
     out = _progress(headers, "signal", 5, streaks={"daily": 31})
     assert {"streak-7", "streak-30"} <= {b["id"] for b in out["badges"]}
+
+
+# --- AN-16: account-wide titles ----------------------------------------------------------------
+
+
+def _title_of(body):
+    return body["title"]["id"]
+
+
+def test_a_profile_with_nothing_still_has_the_first_title_and_the_whole_shelf():
+    mine = client.get("/users/me/profile", headers=_account("pf-title-empty")).json()
+    assert _title_of(mine) == "newcomer" and mine["title"]["label"] == "Newcomer"
+    assert [t["id"] for t in mine["titles"]] == [
+        "newcomer", "tinkerer", "regular", "collector", "wayfinder", "curator", "archivist", "keeper"]
+    assert [t["earned"] for t in mine["titles"]] == [True] + [False] * 7
+    assert all(t["detail"] for t in mine["titles"])
+
+
+def test_title_thresholds_by_achievements():
+    headers = _account("pf-title-ach")
+    expect = {1: "tinkerer", 9: "tinkerer", 10: "regular", 24: "regular", 25: "collector", 49: "collector",
+              50: "wayfinder", 99: "wayfinder", 100: "curator", 149: "curator", 150: "archivist",
+              199: "archivist", 200: "keeper", 400: "keeper"}
+    for count, title in expect.items():
+        # one game, so this is the achievements path alone (games_played stays 1)
+        body = _progress(headers, "only", 0, min(count, 1000))
+        assert _title_of(body) == title, (count, title)
+    # the sum across games counts, not the best single game
+    two = _account("pf-title-sum")
+    _progress(two, "g1", 0, 6)
+    assert _title_of(_progress(two, "g2", 0, 5)) == "regular"
+
+
+def test_title_can_also_be_earned_by_games_tried_and_hours_played():
+    headers = _account("pf-title-explorer")
+    for n in range(1, 4):
+        body = _progress(headers, f"x{n}", 1200)                     # 3 games, 1 hour, 0 achievements
+    assert _title_of(body) == "tinkerer"                              # 2+ games and an hour, no achievements
+    body = _progress(headers, "x1", 2 * 3600)                         # 3 hours in total across 3 games
+    assert _title_of(body) == "regular" and body["total_achievements"] == 0
+    # games without the hours, or hours without the games, do not count
+    few = _account("pf-title-hours-only")
+    assert _title_of(_progress(few, "solo", 3 * 3600)) == "newcomer"
+    assert _title_of(_progress(few, "second", 60)) == "tinkerer"       # a second game and the hour are both there now
+
+
+def test_titles_never_have_a_gap_and_only_the_highest_is_the_current_one():
+    headers = _account("pf-title-order")
+    body = _progress(headers, "big", 0, 150)
+    flags = [t["earned"] for t in body["titles"]]
+    assert flags == [True] * 7 + [False]
+    assert _title_of(body) == "archivist"
+    assert flags == sorted(flags, reverse=True)
+
+
+def test_titles_are_the_same_on_the_public_page_and_cannot_be_sent_by_a_client():
+    headers = _account("pf-title-public")
+    _progress(headers, "pub", 0, 12, is_public=True)
+    mine = client.get("/users/me/profile", headers=headers).json()
+    public = client.get("/profiles/pf-title-public").json()
+    assert public["title"] == mine["title"] and public["titles"] == mine["titles"]
+    assert _title_of(public) == "regular"
+    # a client that tries to set its own title is ignored (unknown keys are dropped, nothing is stored)
+    client.put("/users/me/profile", json={"title": "keeper", "titles": []}, headers=headers)
+    assert _title_of(client.get("/profiles/pf-title-public").json()) == "regular"
+
+
+def test_the_title_ladder_definition_is_ordered_and_plain():
+    from profiles import TITLES, compute_titles
+    needs = [need for _i, _l, need, _alt in TITLES]
+    assert needs == sorted(needs) and needs[0] == 0 and 6 <= len(TITLES) <= 8
+    assert len({t[0] for t in TITLES}) == len(TITLES)
+    shelf, current = compute_titles({"total_achievements": 25, "games_played": 0, "total_seconds": 0, "longest_streak": 0})
+    assert current["id"] == "collector" and shelf[3]["detail"].startswith("Earn 25 achievements")
+    assert "6 games" in shelf[3]["detail"] and "10 hours" in shelf[3]["detail"]
+    assert shelf[1]["detail"].startswith("Earn 1 achievement across all games") and "an hour" in shelf[1]["detail"]
 
 
 def test_a_profile_cannot_grow_without_bound():

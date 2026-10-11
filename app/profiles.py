@@ -13,7 +13,9 @@ What is stored per account (all of it numbers, game slugs and short ids, never f
   * event_badges     seasonal badge ids ("halloween-2026"); the label is derived from the id here,
                      never taken from the client, so a public page can only show wording made here.
 Badges beyond the seasonal ones are computed from the numbers (see MILESTONES), so there is one
-definition and nothing to forge. The public view never contains an email, a save, a save code, a
+definition and nothing to forge. So are the account-wide titles (see TITLES, AN-16): one small ladder
+of names for the whole account, worked out from the same numbers, never stored and never compared
+between players. The public view never contains an email, a save, a save code, a
 session token or the account's internal id.
 """
 
@@ -112,6 +114,57 @@ MILESTONES = (
 )
 
 
+# --- account-wide titles (AN-16) ---------------------------------------------------------------
+
+# (id, label, achievements needed, games tried + hours played for the other way in, or None).
+# A title is earned with the achievement count alone, OR with the "tried this many games and played
+# this many hours" pair, so a player who mostly explores still climbs. Collection and completion
+# framing only: it is a shelf to fill, not a rank against anybody.
+TITLES = (
+    ("newcomer", "Newcomer", 0, None),
+    ("tinkerer", "Tinkerer", 1, (2, 1)),
+    ("regular", "Regular", 10, (3, 3)),
+    ("collector", "Collector", 25, (6, 10)),
+    ("wayfinder", "Wayfinder", 50, (9, 25)),
+    ("curator", "Curator", 100, (12, 50)),
+    ("archivist", "Archivist", 150, (16, 100)),
+    ("keeper", "Keeper of the Hub", 200, None),
+)
+
+
+def _plural(n: int, word: str) -> str:
+    return f"{n} {word}" if n == 1 else f"{n} {word}s"
+
+
+def title_detail(achievements: int, alt) -> str:
+    """How a title is earned, in plain words, built from the same numbers the test uses."""
+    if achievements <= 0:
+        return "Everyone starts here."
+    text = f"Earn {_plural(achievements, 'achievement')} across all games"
+    if alt:
+        games, hours = alt
+        text += f", or try {games} games and play for {'an hour' if hours == 1 else str(hours) + ' hours'} in total"
+    return text + "."
+
+
+def compute_titles(numbers: dict) -> tuple:
+    """(all titles with `earned`, the highest earned one) from the summary numbers.
+    A title counts as earned when its own test passes or any higher title is earned, so the shelf
+    never has a gap."""
+    passed = []
+    for _tid, _label, need, alt in TITLES:
+        ok = numbers["total_achievements"] >= need
+        if not ok and alt:
+            ok = numbers["games_played"] >= alt[0] and numbers["total_seconds"] >= alt[1] * 3600
+        passed.append(ok)
+    highest = max((i for i, ok in enumerate(passed) if ok), default=0)
+    shelf = [
+        {"id": tid, "label": label, "detail": title_detail(need, alt), "earned": i <= highest}
+        for i, (tid, label, need, alt) in enumerate(TITLES)
+    ]
+    return shelf, {k: shelf[highest][k] for k in ("id", "label", "detail")}
+
+
 def event_badge_label(badge_id: str) -> str:
     """'halloween-2026' -> 'Halloween 2026'. Built from the id alone."""
     return " ".join(part.capitalize() if not part.isdigit() else part for part in badge_id.split("-") if part)
@@ -167,6 +220,7 @@ def summarize(user: User, row: Optional[UserProfile], viewer: str = "public", no
         {"id": b, "label": event_badge_label(b), "detail": "A seasonal event badge.", "kind": "event"}
         for b in sorted(events)
     ]
+    titles, title = compute_titles(numbers)
     member_since = user.created_at.date().isoformat() if getattr(user, "created_at", None) else None
     out = {
         "username": user.username,
@@ -186,6 +240,8 @@ def summarize(user: User, row: Optional[UserProfile], viewer: str = "public", no
             key=lambda e: (-e["value"], e["game"], e["label"]),
         )[:10],
         "badges": badges,
+        "titles": titles,
+        "title": title,
     }
     if viewer == "owner":
         out["is_public"] = bool(row.is_public) if row else False

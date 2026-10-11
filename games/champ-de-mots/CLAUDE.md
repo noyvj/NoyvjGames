@@ -984,10 +984,8 @@ Built: L-9 exam planner, L-28 header exam countdown, L-24 farm filter and sort, 
 - **Save keys added:** `exam_plan` {date, minutes} only when a date is set (validated: real date, int minutes clamped and snapped, bools/strings dropped). Nothing else is saved.
 - Tests: `test_exam_planner.py` (21), `test_farm_filter_sort.py` (15), `test_accent_bar.py` (10); suite 761 -> 808.
 
-### Player titles (L-26, 2026-10-07)
-`PLAYER_TITLES` (Apprenti 0, Jardinier 25, Fermier 150, Maître de Ferme 600 practice points) and `player_title()` / `player_title_text()` in `game.py` derive a title from `practice_score()`; `render_practice_score()` writes it to `#player-title-display` (a second line in the practice tile, a "Title" chip on the Desktop page). Nothing is saved (no new save key), SRS is untouched, the top title needs 600 of the 1,400 points the capped ledger can reach. Not done from the item: showing the title "on shared cards" (no shared card exists in this game yet; add it when the weekly recap card, L-21, is built). Tests: `tests/test_player_titles.py`.
-
-
+### Player titles (L-26, 2026-10-07) -- REMOVED 2026-10-11 (AN-16)
+The per-game title (`PLAYER_TITLES`, `player_title()`, `player_title_text()`, the `#player-title-display` line in the practice tile and the Desktop "Title" chip) was replaced by account-wide titles: one titles shelf on the profile page (`profile.html`, ladder in `app/profiles.py` `TITLES`), computed from the account's total achievements, games tried and hours played. The owner dislikes per-game titles. The practice score itself (`#practice-score-display`, `practice_score()`) is untouched; no save key was ever added for the title, so old saves need no migration. `tests/test_player_titles.py` was replaced by `tests/test_no_per_game_title.py`, which pins that the title is gone.
 
 ## Round 3 batch 2 (L-17, L-14, L-18, L-19, L-27, L-29, 2026-10-08)
 

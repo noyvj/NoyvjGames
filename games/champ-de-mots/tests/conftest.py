@@ -100,7 +100,6 @@ ELEMENT_IDS = [
     "automated-meter",
     "automated-bar",
     "practice-score-display",
-    "player-title-display",
     "study-buddy-toggle-button",
     "study-buddy-display",
     "stage-summary-display",

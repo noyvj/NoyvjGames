@@ -19,10 +19,27 @@ PUBLIC = {
         {"id": "halloween-2026", "label": "Halloween 2026", "detail": "A seasonal event badge.", "kind": "event"},
     ],
 }
+LADDER = [  # AN-16: the same shape the backend sends (app/profiles.py TITLES)
+    ("newcomer", "Newcomer", "Everyone starts here."),
+    ("tinkerer", "Tinkerer", "Earn 1 achievement across all games, or try 2 games and play for an hour in total."),
+    ("regular", "Regular", "Earn 10 achievements across all games, or try 3 games and play for 3 hours in total."),
+    ("collector", "Collector", "Earn 25 achievements across all games, or try 6 games and play for 10 hours in total."),
+    ("keeper", "Keeper of the Hub", "Earn 200 achievements across all games."),
+]
+
+
+def with_titles(data, earned_count):
+    """`data` plus a titles shelf where the first `earned_count` titles are earned."""
+    shelf = [{"id": i, "label": l, "detail": d, "earned": n < earned_count} for n, (i, l, d) in enumerate(LADDER)]
+    top = shelf[earned_count - 1]
+    return {**data, "titles": shelf, "title": {k: top[k] for k in ("id", "label", "detail")}}
+
+
+PUBLIC = with_titles(PUBLIC, 3)
 OWNER = {**PUBLIC, "is_public": False, "favourite_game_choice": None}
-EMPTY_OWNER = {"username": "newbie", "member_since": "2026-10-01", "favourite_game": None, "favourite_is_most_played": False,
+EMPTY_OWNER = with_titles({"username": "newbie", "member_since": "2026-10-01", "favourite_game": None, "favourite_is_most_played": False,
                "games": [], "total_seconds": 0, "total_achievements": 0, "games_played": 0, "streaks": [], "badges": [],
-               "is_public": False, "favourite_game_choice": None}
+               "is_public": False, "favourite_game_choice": None}, 1)
 
 
 def open_profile(harness, query="?u=mara", init=(), size=(1440, 900), **kw):
@@ -338,3 +355,83 @@ def test_a_failed_backfill_says_so_and_changes_nothing(harness):
     open_owner(h)
     h.page.click("#pf-backfill")
     h.page.wait_for_function("document.getElementById('pf-owner-status').textContent.includes('Nothing changed')")
+
+
+# ---- AN-16: account-wide titles ----
+
+def titles_rows(h):
+    return h.page.eval_on_selector_all("#pf-titles li", "els => els.map(e => e.textContent.replace(/\\s+/g, ' ').trim())")
+
+
+def test_the_current_title_sits_under_the_name_and_the_shelf_lists_every_title(harness):
+    h = harness()
+    h.api_responses[("GET", "/profiles/mara")] = (200, PUBLIC)
+    h.goto("/profile.html?u=mara")
+    h.page.wait_for_selector("#pf-card:not([hidden])")
+    assert text(h, "#pf-title") == "Title: Regular"
+    below = h.page.evaluate("""document.getElementById('pf-name').nextElementSibling.id""")
+    assert below == "pf-title"
+    rows = titles_rows(h)
+    assert len(rows) == 5 and h.page.is_visible("#pf-titles-wrap")
+    for row, (_i, label, _d) in zip(rows, LADDER):
+        assert label in row
+
+
+def test_earned_titles_are_marked_in_text_and_a_glyph_and_the_rest_say_what_earns_them(harness):
+    h = harness()
+    h.api_responses[("GET", "/profiles/mara")] = (200, PUBLIC)
+    h.goto("/profile.html?u=mara")
+    h.page.wait_for_selector("#pf-card:not([hidden])")
+    rows = titles_rows(h)
+    for row in rows[:3]:
+        assert row.startswith("✓") and row.endswith("Earned")
+    assert "Current title." in rows[2] and "Current title." not in rows[1]
+    for row, (_i, label, detail) in zip(rows[3:], LADDER[3:]):
+        assert row.startswith("○") and row.endswith("Not yet") and label in row
+        assert "How to earn it: " + detail in row
+    assert "Earn 25 achievements across all games" in rows[3]
+    # the glyphs are decoration; the words carry the meaning for a screen reader
+    assert h.page.eval_on_selector_all("#pf-titles .pf-glyph", "els => els.every(e => e.getAttribute('aria-hidden') === 'true')")
+
+
+def test_the_owner_sees_the_same_shelf_and_a_brand_new_account_starts_as_newcomer(harness):
+    h = harness(init_scripts=[TOKEN])
+    h.api_responses[("GET", "/users/me/profile")] = (200, EMPTY_OWNER)
+    h.goto("/profile.html")
+    open_owner(h)
+    assert text(h, "#pf-title") == "Title: Newcomer"
+    rows = titles_rows(h)
+    assert rows[0].startswith("✓") and all(r.startswith("○") for r in rows[1:])
+
+
+def test_a_response_with_no_titles_still_renders_without_a_title_or_shelf(harness):
+    older = {k: v for k, v in PUBLIC.items() if k not in ("titles", "title")}
+    h = harness()
+    h.api_responses[("GET", "/profiles/mara")] = (200, older)
+    h.goto("/profile.html?u=mara")
+    h.page.wait_for_selector("#pf-card:not([hidden])")
+    assert h.page.is_hidden("#pf-title") and h.page.is_hidden("#pf-titles-wrap")
+    assert text(h, "#pf-name") == "mara" and len(h.page.query_selector_all("#pf-badges li")) == 3
+    assert h.errors == []
+
+
+def test_title_names_are_text_not_markup(harness):
+    h = harness()
+    data = with_titles(PUBLIC, 2)
+    data["titles"][1]["label"] = "<img src=x onerror=window.__pwned=1>"
+    data["title"]["label"] = "<b>bold</b>"
+    h.api_responses[("GET", "/profiles/x")] = (200, data)
+    h.goto("/profile.html?u=x")
+    h.page.wait_for_selector("#pf-card:not([hidden])")
+    assert h.page.evaluate("window.__pwned") is None
+    assert h.page.query_selector("#pf-title b, #pf-titles img") is None
+    assert text(h, "#pf-title") == "Title: <b>bold</b>"
+
+
+def test_the_titles_shelf_fits_a_phone(harness):
+    h = harness(size=(360, 740), touch=True)
+    h.api_responses[("GET", "/profiles/mara")] = (200, with_titles(PUBLIC, 4))
+    h.goto("/profile.html?u=mara")
+    h.page.wait_for_selector("#pf-card:not([hidden])")
+    assert h.page.evaluate("document.documentElement.scrollWidth <= 360")
+    assert len(titles_rows(h)) == 5

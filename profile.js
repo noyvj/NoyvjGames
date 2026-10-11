@@ -126,6 +126,28 @@
     return li;
   }
 
+  // AN-16: the account-wide title under the name, and the shelf of every title. An older server may
+  // send no `titles`; then both stay hidden rather than showing something half-empty.
+  function renderTitles(data) {
+    const titles = Array.isArray(data.titles) ? data.titles.filter((t) => t && typeof t.label === "string") : [];
+    const line = $("pf-title");
+    const wrap = $("pf-titles-wrap");
+    const shelf = $("pf-titles");
+    shelf.textContent = "";
+    const current = data.title && typeof data.title.label === "string" ? data.title : null;
+    line.hidden = !current;
+    line.textContent = current ? "Title: " + current.label : "";
+    wrap.hidden = !titles.length;
+    titles.forEach((t) => {
+      const isCurrent = Boolean(current) && current.id === t.id;
+      const sub = t.earned
+        ? (isCurrent ? "Current title. " : "") + (t.detail || "")
+        : "How to earn it: " + (t.detail || "");
+      shelf.append(listItem(t.earned ? "✓" : "○", t.label, sub, t.earned ? "Earned" : "Not yet",
+        (t.earned ? "pf-title-earned" : "pf-title-off") + (isCurrent ? " pf-title-current" : "")));
+    });
+  }
+
   function renderCard(data, isOwner) {
     shown = data;
     $("pf-card").hidden = false;
@@ -144,6 +166,8 @@
       fav.textContent = "not chosen yet";
     }
     $("pf-time").textContent = timeText(data.total_seconds, data.games_played || (data.games || []).length);
+
+    renderTitles(data);
 
     const badges = $("pf-badges");
     badges.textContent = "";
