@@ -2,7 +2,7 @@
 // the precache list; ordinary content deploys don't need it, because
 // same-origin requests are network-first (see the fetch handler below) and
 // so always pick up fresh files whenever the player is online.
-const SW_VERSION = 61;
+const SW_VERSION = 62;
 const CACHE_NAME = "site-cache-v" + SW_VERSION;
 // How long a same-origin network request may take before we give up and
 // serve the cached copy instead (a slow/flaky connection shouldn't hang).
@@ -87,6 +87,9 @@ const PRECACHE_URLS = [
   "shared/skill_tree.py",
   "shared/seasonal-events.css",
   "shared/announcer.js",
+  "shared/lazy-packs.js",
+  "shared/lazy-packs.css",
+  "shared/lazy_packs.py",
   "shared/night-mode.js",
   "shared/night-mode.css",
   "shared/calm-mode.js",

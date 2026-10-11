@@ -5701,12 +5701,12 @@
     },
     {
      "path": "games/logic-gates/app.js",
-     "bytes": 28953,
+     "bytes": 30551,
      "precached": true
     },
     {
      "path": "games/logic-gates/changelog.json",
-     "bytes": 1109,
+     "bytes": 1618,
      "precached": true
     },
     {
@@ -5721,7 +5721,7 @@
     },
     {
      "path": "games/logic-gates/game.py",
-     "bytes": 21701,
+     "bytes": 24033,
      "precached": true
     },
     {
@@ -5731,7 +5731,7 @@
     },
     {
      "path": "games/logic-gates/index.html",
-     "bytes": 15148,
+     "bytes": 15381,
      "precached": true
     },
     {
@@ -5766,7 +5766,7 @@
     },
     {
      "path": "games/logic-gates/pc-config.json",
-     "bytes": 1583,
+     "bytes": 1604,
      "precached": false
     },
     {
@@ -5776,7 +5776,7 @@
     },
     {
      "path": "games/logic-gates/pc.html",
-     "bytes": 17463,
+     "bytes": 17717,
      "precached": true
     },
     {
@@ -5806,7 +5806,7 @@
     },
     {
      "path": "games/logic-gates/state.py",
-     "bytes": 7809,
+     "bytes": 10160,
      "precached": true
     },
     {
@@ -5855,6 +5855,16 @@
      "path": "shared/debug-overlay.js",
      "bytes": 5628,
      "precached": true
+    },
+    {
+     "path": "shared/difficulty.css",
+     "bytes": 3643,
+     "precached": false
+    },
+    {
+     "path": "shared/difficulty.js",
+     "bytes": 13054,
+     "precached": false
     },
     {
      "path": "shared/error-boundary.js",
@@ -6014,7 +6024,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14350535,
+   "bytes": 14374530,
    "bytes_complete": true
   },
   "robot-script": {
@@ -6031,12 +6041,12 @@
     },
     {
      "path": "games/robot-script/app.js",
-     "bytes": 39037,
+     "bytes": 40872,
      "precached": true
     },
     {
      "path": "games/robot-script/changelog.json",
-     "bytes": 2605,
+     "bytes": 3096,
      "precached": true
     },
     {
@@ -6056,12 +6066,12 @@
     },
     {
      "path": "games/robot-script/game.py",
-     "bytes": 24716,
+     "bytes": 27307,
      "precached": true
     },
     {
      "path": "games/robot-script/hints.py",
-     "bytes": 1893,
+     "bytes": 2015,
      "precached": true
     },
     {
@@ -6071,7 +6081,7 @@
     },
     {
      "path": "games/robot-script/index.html",
-     "bytes": 17507,
+     "bytes": 17872,
      "precached": true
     },
     {
@@ -6081,7 +6091,7 @@
     },
     {
      "path": "games/robot-script/pc-config.json",
-     "bytes": 1380,
+     "bytes": 1401,
      "precached": false
     },
     {
@@ -6091,7 +6101,7 @@
     },
     {
      "path": "games/robot-script/pc.html",
-     "bytes": 19569,
+     "bytes": 19955,
      "precached": true
     },
     {
@@ -6101,7 +6111,7 @@
     },
     {
      "path": "games/robot-script/progress.py",
-     "bytes": 2364,
+     "bytes": 3607,
      "precached": true
     },
     {
@@ -6116,7 +6126,7 @@
     },
     {
      "path": "games/robot-script/rooms.py",
-     "bytes": 2805,
+     "bytes": 3808,
      "precached": true
     },
     {
@@ -6220,6 +6230,16 @@
      "path": "shared/debug-overlay.js",
      "bytes": 5628,
      "precached": true
+    },
+    {
+     "path": "shared/difficulty.css",
+     "bytes": 3643,
+     "precached": false
+    },
+    {
+     "path": "shared/difficulty.js",
+     "bytes": 13054,
+     "precached": false
     },
     {
      "path": "shared/error-boundary.js",
@@ -6364,7 +6384,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14341729,
+   "bytes": 14366483,
    "bytes_complete": true
   },
   "hull-repair": {
@@ -6381,7 +6401,7 @@
     },
     {
      "path": "games/hull-repair/app.js",
-     "bytes": 28782,
+     "bytes": 29913,
      "precached": true
     },
     {
@@ -6416,17 +6436,17 @@
     },
     {
      "path": "games/hull-repair/changelog.json",
-     "bytes": 3158,
+     "bytes": 3622,
      "precached": true
     },
     {
      "path": "games/hull-repair/game.py",
-     "bytes": 15028,
+     "bytes": 16101,
      "precached": true
     },
     {
      "path": "games/hull-repair/hints.py",
-     "bytes": 2567,
+     "bytes": 2977,
      "precached": true
     },
     {
@@ -6436,7 +6456,7 @@
     },
     {
      "path": "games/hull-repair/index.html",
-     "bytes": 14379,
+     "bytes": 14744,
      "precached": true
     },
     {
@@ -6451,7 +6471,7 @@
     },
     {
      "path": "games/hull-repair/pc-config.json",
-     "bytes": 1320,
+     "bytes": 1341,
      "precached": false
     },
     {
@@ -6461,7 +6481,7 @@
     },
     {
      "path": "games/hull-repair/pc.html",
-     "bytes": 16385,
+     "bytes": 16771,
      "precached": true
     },
     {
@@ -6550,6 +6570,16 @@
      "path": "shared/debug-overlay.js",
      "bytes": 5628,
      "precached": true
+    },
+    {
+     "path": "shared/difficulty.css",
+     "bytes": 3643,
+     "precached": false
+    },
+    {
+     "path": "shared/difficulty.js",
+     "bytes": 13054,
+     "precached": false
     },
     {
      "path": "shared/error-boundary.js",
@@ -6704,7 +6734,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14349353,
+   "bytes": 14369900,
    "bytes_complete": true
   },
   "station-medic": {
@@ -6721,7 +6751,7 @@
     },
     {
      "path": "games/station-medic/app.js",
-     "bytes": 28513,
+     "bytes": 30097,
      "precached": true
     },
     {
@@ -6781,7 +6811,7 @@
     },
     {
      "path": "games/station-medic/changelog.json",
-     "bytes": 1158,
+     "bytes": 1628,
      "precached": true
     },
     {
@@ -6791,12 +6821,12 @@
     },
     {
      "path": "games/station-medic/game.py",
-     "bytes": 21106,
+     "bytes": 24331,
      "precached": true
     },
     {
      "path": "games/station-medic/hints.py",
-     "bytes": 3152,
+     "bytes": 3255,
      "precached": true
     },
     {
@@ -6806,7 +6836,7 @@
     },
     {
      "path": "games/station-medic/index.html",
-     "bytes": 16138,
+     "bytes": 16503,
      "precached": true
     },
     {
@@ -6821,7 +6851,7 @@
     },
     {
      "path": "games/station-medic/pc-config.json",
-     "bytes": 1328,
+     "bytes": 1349,
      "precached": false
     },
     {
@@ -6831,7 +6861,7 @@
     },
     {
      "path": "games/station-medic/pc.html",
-     "bytes": 18160,
+     "bytes": 18546,
      "precached": true
     },
     {
@@ -6841,7 +6871,7 @@
     },
     {
      "path": "games/station-medic/progress.py",
-     "bytes": 2396,
+     "bytes": 3257,
      "precached": true
     },
     {
@@ -6856,7 +6886,7 @@
     },
     {
      "path": "games/station-medic/shift.py",
-     "bytes": 17179,
+     "bytes": 17910,
      "precached": true
     },
     {
@@ -6925,6 +6955,16 @@
      "path": "shared/debug-overlay.js",
      "bytes": 5628,
      "precached": true
+    },
+    {
+     "path": "shared/difficulty.css",
+     "bytes": 3643,
+     "precached": false
+    },
+    {
+     "path": "shared/difficulty.js",
+     "bytes": 13054,
+     "precached": false
     },
     {
      "path": "shared/error-boundary.js",
@@ -7069,7 +7109,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14342536,
+   "bytes": 14366979,
    "bytes_complete": true
   },
   "stranded": {
@@ -7086,22 +7126,22 @@
     },
     {
      "path": "games/stranded/app.js",
-     "bytes": 26454,
+     "bytes": 27776,
      "precached": true
     },
     {
      "path": "games/stranded/changelog.json",
-     "bytes": 1078,
+     "bytes": 1678,
      "precached": true
     },
     {
      "path": "games/stranded/explore.py",
-     "bytes": 7276,
+     "bytes": 7312,
      "precached": true
     },
     {
      "path": "games/stranded/game.py",
-     "bytes": 19119,
+     "bytes": 20697,
      "precached": true
     },
     {
@@ -7111,7 +7151,7 @@
     },
     {
      "path": "games/stranded/index.html",
-     "bytes": 15422,
+     "bytes": 15948,
      "precached": true
     },
     {
@@ -7131,7 +7171,7 @@
     },
     {
      "path": "games/stranded/pc-config.json",
-     "bytes": 1296,
+     "bytes": 1317,
      "precached": false
     },
     {
@@ -7141,7 +7181,7 @@
     },
     {
      "path": "games/stranded/pc.html",
-     "bytes": 17412,
+     "bytes": 17959,
      "precached": true
     },
     {
@@ -7237,6 +7277,16 @@
      "precached": true
     },
     {
+     "path": "shared/difficulty.css",
+     "bytes": 3643,
+     "precached": false
+    },
+    {
+     "path": "shared/difficulty.js",
+     "bytes": 13054,
+     "precached": false
+    },
+    {
      "path": "shared/error-boundary.js",
      "bytes": 9714,
      "precached": true
@@ -7379,7 +7429,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14315397,
+   "bytes": 14336724,
    "bytes_complete": true
   },
   "evidence-hunt": {
@@ -7396,7 +7446,7 @@
     },
     {
      "path": "games/evidence-hunt/app.js",
-     "bytes": 35672,
+     "bytes": 37256,
      "precached": true
     },
     {
@@ -7436,12 +7486,12 @@
     },
     {
      "path": "games/evidence-hunt/casework.py",
-     "bytes": 14127,
+     "bytes": 14784,
      "precached": true
     },
     {
      "path": "games/evidence-hunt/changelog.json",
-     "bytes": 827,
+     "bytes": 1297,
      "precached": true
     },
     {
@@ -7451,7 +7501,7 @@
     },
     {
      "path": "games/evidence-hunt/game.py",
-     "bytes": 28826,
+     "bytes": 32166,
      "precached": true
     },
     {
@@ -7461,7 +7511,7 @@
     },
     {
      "path": "games/evidence-hunt/hints.py",
-     "bytes": 4153,
+     "bytes": 4256,
      "precached": true
     },
     {
@@ -7476,7 +7526,7 @@
     },
     {
      "path": "games/evidence-hunt/index.html",
-     "bytes": 18184,
+     "bytes": 18549,
      "precached": true
     },
     {
@@ -7491,7 +7541,7 @@
     },
     {
      "path": "games/evidence-hunt/pc-config.json",
-     "bytes": 1454,
+     "bytes": 1475,
      "precached": false
     },
     {
@@ -7501,7 +7551,7 @@
     },
     {
      "path": "games/evidence-hunt/pc.html",
-     "bytes": 20350,
+     "bytes": 20736,
      "precached": true
     },
     {
@@ -7511,7 +7561,7 @@
     },
     {
      "path": "games/evidence-hunt/progress.py",
-     "bytes": 2030,
+     "bytes": 2890,
      "precached": true
     },
     {
@@ -7597,6 +7647,16 @@
      "precached": true
     },
     {
+     "path": "shared/difficulty.css",
+     "bytes": 3643,
+     "precached": false
+    },
+    {
+     "path": "shared/difficulty.js",
+     "bytes": 13054,
+     "precached": false
+    },
+    {
      "path": "shared/error-boundary.js",
      "bytes": 9714,
      "precached": true
@@ -7739,7 +7799,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14391970,
+   "bytes": 14416453,
    "bytes_complete": true
   },
   "trade-empire": {

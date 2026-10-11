@@ -73,6 +73,27 @@ def sw_precache():
     return urls
 
 
+def pack_files(slug: str):
+    """LZ-3: every pack listed in games/<slug>/modules.json (shared/lazy-packs.js). Returns {file path: pack id}.
+    A pack whose file is missing, or lies outside the repo, is a build error: 'Download for offline' must not
+    silently skip content the game will ask for."""
+    manifest = ROOT / "games" / slug / "modules.json"
+    if not manifest.is_file():
+        return {}
+    data = json.loads(manifest.read_text(encoding="utf-8"))
+    out = {}
+    for pack in data.get("packs", []):
+        target = (manifest.parent / pack["url"].split("?")[0].split("#")[0]).resolve()
+        try:
+            target.relative_to(ROOT)
+        except ValueError:
+            raise SystemExit(f"{slug}: pack {pack.get('id')} points outside the repository: {pack['url']}")
+        if not target.is_file():
+            raise SystemExit(f"{slug}: pack {pack.get('id')} points at a missing file: {pack['url']}")
+        out[target] = pack["id"]
+    return out
+
+
 def rel(path: Path) -> str:
     return path.relative_to(ROOT).as_posix()
 
@@ -162,6 +183,9 @@ def build():
             cdn |= urls
         for extra in list(files):
             files |= shared_followups(extra)
+        packs = pack_files(slug)        # LZ-3
+        files |= set(packs)
+        pack_ids = {rel(p): pid for p, pid in packs.items()}
         # css files pull their own @import / url() siblings in rare cases; none are used today.
         own, shared = [], []
         for path in sorted(files, key=lambda p: rel(p)):
@@ -169,6 +193,8 @@ def build():
             if not r.startswith(f"games/{slug}/") and (path.suffix == ".html" or path.name == "sw.js"):
                 continue  # navigation links and the worker's own registration, not files the game loads
             entry = {"path": r, "bytes": path.stat().st_size, "precached": r in precached}
+            if r in pack_ids:
+                entry["pack"] = pack_ids[r]
             (own if r.startswith(f"games/{slug}/") else shared).append(entry)
         runtime = cdn_entries(cdn)
         total_known = sum(e["bytes"] or 0 for e in own + shared + runtime)

@@ -1,0 +1,109 @@
+/*
+ * Styles for the lazy content-pack loading card (shared/lazy-packs.js, planning/TODO.md LZ-2). Every colour is
+ * a token on :root so a game can override one value; the light palette follows html[data-theme="light"] and,
+ * when no theme attribute is set, the OS preference. The card is a plain box at the bottom of the window: text
+ * first (the words always say what is happening), a progress bar and a percentage as extras, buttons 44 px
+ * tall. There is deliberately no animation, so reduced motion needs no special case.
+ */
+:root {
+  --np-bg: rgba(20, 24, 42, 0.97);
+  --np-fg: #e8e9f0;
+  --np-muted: #aab0c8;
+  --np-border: rgba(140, 160, 255, 0.55);
+  --np-track: rgba(140, 160, 255, 0.22);
+  --np-fill: #8fb0ff;
+  --np-error: #ffb4a8;
+  --np-button-bg: rgba(110, 150, 255, 0.2);
+  --np-focus: #ffd866;
+}
+html[data-theme="light"] {
+  --np-bg: rgba(255, 255, 255, 0.98);
+  --np-fg: #1b2033;
+  --np-muted: #4a5275;
+  --np-border: rgba(60, 85, 160, 0.6);
+  --np-track: rgba(60, 85, 160, 0.18);
+  --np-fill: #2f55c8;
+  --np-error: #9a2a14;
+  --np-button-bg: rgba(60, 100, 220, 0.1);
+  --np-focus: #8a5a00;
+}
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme]) {
+    --np-bg: rgba(255, 255, 255, 0.98);
+    --np-fg: #1b2033;
+    --np-muted: #4a5275;
+    --np-border: rgba(60, 85, 160, 0.6);
+    --np-track: rgba(60, 85, 160, 0.18);
+    --np-fill: #2f55c8;
+    --np-error: #9a2a14;
+    --np-button-bg: rgba(60, 100, 220, 0.1);
+    --np-focus: #8a5a00;
+  }
+}
+
+[hidden] { display: none !important; }
+
+.noyvj-pack-card {
+  position: fixed;
+  left: 50%;
+  bottom: 16px;
+  transform: translateX(-50%);
+  z-index: 9000;
+  box-sizing: border-box;
+  width: min(440px, calc(100vw - 24px));
+  max-height: 60vh;
+  overflow: auto;
+  padding: 0.6rem 0.75rem;
+  border: 1px solid var(--np-border);
+  border-radius: 12px;
+  background: var(--np-bg);
+  color: var(--np-fg);
+  font: 0.9rem/1.4 system-ui, sans-serif;
+  text-align: left;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.35);
+}
+.noyvj-pack-card *,
+.noyvj-pack-card *::before,
+.noyvj-pack-card *::after { box-sizing: border-box; }
+
+.noyvj-pack-row + .noyvj-pack-row {
+  margin-top: 0.6rem;
+  padding-top: 0.6rem;
+  border-top: 1px solid var(--np-track);
+}
+.noyvj-pack-text { margin: 0 0 0.35rem; overflow-wrap: anywhere; }
+.noyvj-pack-failed .noyvj-pack-text { color: var(--np-error); }
+.noyvj-pack-meter { display: flex; align-items: center; gap: 0.6rem; }
+.noyvj-pack-bar {
+  flex: 1 1 auto;
+  min-width: 0;
+  height: 10px;
+  appearance: none;
+  -webkit-appearance: none;
+  border: 0;
+  border-radius: 5px;
+  background: var(--np-track);
+  color: var(--np-fill);
+  overflow: hidden;
+}
+.noyvj-pack-bar::-webkit-progress-bar { background: var(--np-track); border-radius: 5px; }
+.noyvj-pack-bar::-webkit-progress-value { background: var(--np-fill); border-radius: 5px; }
+.noyvj-pack-bar::-moz-progress-bar { background: var(--np-fill); border-radius: 5px; }
+.noyvj-pack-pct { flex: 0 0 auto; min-width: 3ch; color: var(--np-muted); font-variant-numeric: tabular-nums; }
+.noyvj-pack-actions { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.4rem; }
+.noyvj-pack-actions button {
+  min-height: 44px;
+  min-width: 44px;
+  padding: 0.4rem 0.9rem;
+  border: 1px solid var(--np-border);
+  border-radius: 8px;
+  background: var(--np-button-bg);
+  color: var(--np-fg);
+  font: inherit;
+  cursor: pointer;
+}
+.noyvj-pack-actions button:focus-visible { outline: 3px solid var(--np-focus); outline-offset: 2px; }
+
+@media (max-width: 480px) {
+  .noyvj-pack-card { bottom: 8px; width: calc(100vw - 16px); }
+}
