@@ -203,6 +203,9 @@ ELEMENT_IDS = [
     "history-readout",
     "skin-select",
     "skin-note",
+    "crate-display",
+    "crate-open-button",
+    "crate-visual",
 ]
 for _category in CATEGORIES:
     ELEMENT_IDS += [f"{_category}-name", f"{_category}-count", f"{_category}-invest-button"]

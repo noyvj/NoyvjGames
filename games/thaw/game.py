@@ -732,7 +732,7 @@ LOG_FILTER_LABEL = {
 }
 _LOG_KIND_WORDS = (
     ("tipping", ("began melting", "went critical", "cascade")),
-    ("invest", ("pre-emptive", "rescue", "grant", "convoy")),
+    ("invest", ("pre-emptive", "rescue", "grant", "convoy", "supply crate")),
     ("milestone", ("delayed reaching", "restoration", "perfect-balance", "escalation", "the run is over")),
 )
 log_filter = "all"
@@ -1845,6 +1845,126 @@ def _make_carbon_handler(key):
         if spend_carbon_credits(key):
             render()
     return handler
+
+
+# ===========================================================================
+# GG-22: supply crates. After every sixth round a crate arrives and waits (it never expires). Opening
+# one gives a perk that is fixed in advance: crates cycle Preserve unit, Monitor unit, funds box, and the
+# page always says what the next one holds and which region it would go to. Nothing about it is random.
+# ===========================================================================
+CRATE_EVERY = 6
+CRATE_FUNDS = 50.0
+CRATE_PERKS = (  # (key, what it is, plural-free shelf name)
+    ("preserve", "a Preserve unit", "Preserve"),
+    ("monitor", "a Monitor unit", "Monitor"),
+    ("funds", f"{CRATE_FUNDS:.0f} funds", "funds"),
+)
+CRATE_MAX = 100000
+crates_delivered = 0
+crates_opened = 0
+_crate_just_opened = None  # one render's worth of "lid pops open", set by open_crate()
+
+
+def crate_perk(number):
+    """The perk of the `number`th crate (1-based): a fixed rotation."""
+    return CRATE_PERKS[(number - 1) % len(CRATE_PERKS)]
+
+
+def crates_ready():
+    return crates_delivered - crates_opened
+
+
+def next_crate_round():
+    """The round number at which the next crate arrives (a crate lands when the round counter reaches
+    7, 13, 19 ...)."""
+    return ((region.round_number - 1) // CRATE_EVERY + 1) * CRATE_EVERY + 1
+
+
+def _crate_target(kind):
+    """The managed region a perk goes to: the one with the least dampening (units) or the fewest funds
+    (a funds box); ties go to the earlier region, A first."""
+    managed = (("A", region), ("B", region_b), ("C", region_c))
+    if kind == "funds":
+        return min(managed, key=lambda pair: pair[1].funds)
+    return min(managed, key=lambda pair: pair[1].feedback_dampening_fraction())
+
+
+def deliver_crate_if_due():
+    """Called once per Advance Round after the rounds have moved: a crate lands when the round counter
+    reaches 7, 13, 19 ... Returns True when one arrived."""
+    global crates_delivered
+    if region.round_number <= 1 or (region.round_number - 1) % CRATE_EVERY != 0:
+        return False
+    if crates_delivered >= CRATE_MAX:
+        return False
+    crates_delivered += 1
+    _log_action("A", "a supply crate arrived at the station (open it from the Supply crates box).")
+    return True
+
+
+def open_crate():
+    """Opens the oldest waiting crate and applies its perk. Returns (label, text) or None when no crate waits."""
+    global crates_opened, _crate_just_opened
+    if crates_ready() <= 0:
+        return None
+    key, what, _shelf = crate_perk(crates_opened + 1)
+    label, target = _crate_target(key)
+    if key == "funds":
+        target.funds += CRATE_FUNDS
+    else:
+        target.capacity[key] += 1
+        target.just_invested_intervention = True
+    crates_opened += 1
+    _crate_just_opened = key
+    text = f"supply crate opened: {what} for Region {label}."
+    _log_action(label, text)
+    return label, text
+
+
+def crate_shelf_counts():
+    """How many of each perk have been opened so far, in rotation order."""
+    counts = {key: 0 for key, _w, _s in CRATE_PERKS}
+    for number in range(1, crates_opened + 1):
+        counts[crate_perk(number)[0]] += 1
+    return counts
+
+
+def crate_text():
+    """Short readout: crates waiting, what the next one holds and where it would go, and the shelf."""
+    ready = crates_ready()
+    key, what, _shelf = crate_perk(crates_opened + 1)
+    label, _target = _crate_target(key)
+    if ready > 0:
+        first = f"{ready} supply crate{'s' if ready != 1 else ''} waiting."
+        second = f"The next one holds {what}, for Region {label} right now."
+    else:
+        first = "No supply crate waiting."
+        second = f"The next arrives in round {next_crate_round()} and holds {what} (Region {label} right now)."
+    counts = crate_shelf_counts()
+    shelf = ", ".join(f"{counts[k]} {shelf_name}" for k, _w, shelf_name in CRATE_PERKS)
+    return f"{first} {second} Opened so far: {crates_opened} ({shelf})."
+
+
+def render_crate():
+    global _crate_just_opened
+    document.getElementById("crate-display").innerText = crate_text()
+    button = document.getElementById("crate-open-button")
+    button.disabled = crates_ready() <= 0
+    button.innerText = "Open crate" if crates_ready() <= 1 else f"Open crate ({crates_ready()} waiting)"
+    visual = document.getElementById("crate-visual")
+    visual.className = "crate-visual" + (" crate-opening" if _crate_just_opened else "") + (
+        " crate-waiting" if crates_ready() > 0 else ""
+    )
+    _crate_just_opened = None
+
+
+def on_open_crate(event=None):
+    result = open_crate()
+    if result is None:
+        return
+    document.getElementById("sr-announcer").innerText = f"Supply crate opened. {result[1]}"
+    render()
+    _check_new_achievements_for_toast()
 
 
 # ===========================================================================
@@ -3368,6 +3488,8 @@ def round_announcement():
             parts.append(f"Region {label} went critical.")
     if just_balanced:
         parts.append("Perfect balance bonus earned.")
+    if crates_ready() > 0 and region.round_number > 1 and (region.round_number - 1) % CRATE_EVERY == 0:
+        parts.append("A supply crate arrived.")
     if just_escalated and hold_the_line:
         parts.append(f"Escalation: {escalation_event_name(just_escalated)}.")
     if run_over:
@@ -4985,6 +5107,7 @@ _TOP_RULES = {
     "undo_used": ("bool", 0, 0, "rewind flag"),
     "hard_mode": ("bool", 0, 0, "hard mode flag"),
     "custom_preset": ("dict", 0, 0, "custom preset"),
+    "crates": ("dict", 0, 0, "supply crates"),
 }
 load_problems = []  # human-readable names of the fields the last load had to replace
 
@@ -5121,6 +5244,7 @@ def render():
     _render_long_game()
     render_shared_research()
     render_carbon_bank()
+    render_crate()
     render_routing()
     render_balance()
     render_rate_inspector()
@@ -5451,6 +5575,7 @@ def on_advance_round(event=None):
     apply_tipping_cascades()
     bank_carbon_credits()
     apply_balance_bonus()
+    deliver_crate_if_due()  # GG-22
     _auto_play_worst_case_region()
     _record_round_events()
     if escalation_level(region.round_number) > level_before:
@@ -6193,6 +6318,9 @@ def get_state():
     # GG-17: written only once the run's one rewind has been spent.
     if undo_used:
         state["undo_used"] = True
+    # GG-22: written only once a crate has arrived.
+    if crates_delivered > 0:
+        state["crates"] = {"delivered": crates_delivered, "opened": crates_opened}
     # FY-32: write-only marker for the shared stats; never read back (load_state recomputes it).
     if run_unranked():
         state["unranked"] = True
@@ -6225,7 +6353,7 @@ def load_state(data):
     global worst_case_intro_seen, forecast_guess, forecast_total, forecast_hits, forecast_last
     global framing, carbon_bank, long_game, convoys_sent, convoy_tax_lost, balance_bonuses, just_balanced
     global hold_the_line, run_over, run_result, just_escalated, undo_used, _undo_snapshot
-    global hard_mode, forecast_miss_total, custom_preset
+    global hard_mode, forecast_miss_total, custom_preset, crates_delivered, crates_opened, _crate_just_opened
     if not isinstance(data, dict):
         load_problems[:] = ["the whole save (it is not a game save at all)"]
         render_load_notice()
@@ -6299,6 +6427,22 @@ def load_state(data):
         ):
             convoys_sent = convoys
             convoy_tax_lost = float(lost)
+    crates_delivered = 0
+    crates_opened = 0
+    _crate_just_opened = None
+    saved_crates = data.get("crates")
+    if isinstance(saved_crates, dict):
+        delivered = saved_crates.get("delivered")
+        opened = saved_crates.get("opened")
+        if (
+            isinstance(delivered, int) and not isinstance(delivered, bool)
+            and isinstance(opened, int) and not isinstance(opened, bool)
+            and 0 <= opened <= delivered <= CRATE_MAX
+        ):
+            crates_delivered = delivered
+            crates_opened = opened
+        else:
+            load_problems.append("supply crates")
     saved_balance = data.get("balance_bonuses")
     if isinstance(saved_balance, int) and not isinstance(saved_balance, bool) and 0 <= saved_balance <= 1000000:
         balance_bonuses = saved_balance
@@ -6348,6 +6492,7 @@ def setup():
     global confirm_threshold
     confirm_threshold = load_confirm_threshold()
     load_skins()  # GG-18
+    document.getElementById("crate-open-button").addEventListener("click", create_proxy(on_open_crate))
     document.getElementById("skin-select").addEventListener("change", create_proxy(on_skin_change))
     document.getElementById("confirm-threshold-select").addEventListener(
         "change", create_proxy(on_confirm_threshold_change)

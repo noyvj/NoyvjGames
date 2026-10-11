@@ -1630,3 +1630,30 @@ html[data-lite="true"] .mascot .mascot-face { animation: none; }
     radial-gradient(ellipse 9px 6px at 18% 38%, rgba(30, 24, 20, 0.7) 0 60%, transparent 62%) 0 0/46px 34px,
     linear-gradient(180deg, #cdbfa6 0%, #a39478 34%, #7a6a52 72%, #34291d 100%);
 }
+
+/* ============================================================
+   GG-22: supply crates. The box tilts gently while a crate waits and pops open once when one is opened;
+   both are off under reduced motion and lite mode.
+   ============================================================ */
+.crate-visual { display: inline-block; transform-origin: 50% 90%; }
+.crate-visual.crate-waiting { animation: crate-wobble 2.4s ease-in-out infinite; }
+.crate-visual.crate-opening { animation: crate-pop 800ms ease; }
+@keyframes crate-wobble {
+  0%, 70%, 100% { transform: rotate(0deg); }
+  78% { transform: rotate(-9deg); }
+  86% { transform: rotate(8deg); }
+  94% { transform: rotate(-4deg); }
+}
+@keyframes crate-pop {
+  0% { transform: scale(1) rotate(0deg); }
+  30% { transform: scale(1.5) rotate(-12deg); }
+  60% { transform: scale(1.25) rotate(8deg); }
+  100% { transform: scale(1) rotate(0deg); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .crate-visual.crate-waiting, .crate-visual.crate-opening { animation: none; }
+}
+:root[data-reduced-motion="true"] .crate-visual.crate-waiting,
+:root[data-reduced-motion="true"] .crate-visual.crate-opening,
+html[data-lite="true"] .crate-visual.crate-waiting,
+html[data-lite="true"] .crate-visual.crate-opening { animation: none; }

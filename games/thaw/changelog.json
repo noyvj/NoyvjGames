@@ -1,6 +1,10 @@
 [
   {
     "date": "2026-10-11",
+    "entry": "New: supply crates. After every sixth round a crate arrives and waits for you. Opening one gives a Preserve unit, a Monitor unit or a box of funds, always in that order, and the Supply crates box tells you what the next one holds and which region it would go to. Nothing is random."
+  },
+  {
+    "date": "2026-10-11",
     "entry": "New: map skins. Pick one in Settings to re-dress the permafrost picture: Aurora borealis (earn Half Shield), Tundra at dusk (The Long Haul), 8-bit tundra (Deep Reserves) and the Snow Leopard station, which comes with a new secret achievement for standing 8 degrees or more cooler than Region D by round 20. Unlocked skins stay yours on this device."
   },
   {
