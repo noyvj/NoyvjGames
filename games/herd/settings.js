@@ -403,6 +403,103 @@
     }
   }
 
+  // GF-14: a round celebration. After Advance Round game.py calls HerdFx.roundGain(earned, beat): the
+  // income of the round counts up under the button, and a small confetti burst plays when the round
+  // earned more than the one before. On by default, switched off in Settings (stored as "false" in
+  // localStorage["herd-cha-ching"]). With reduced motion, lite mode or the OS reduced-motion setting
+  // the number simply appears (no count-up, no confetti). Decorative only: the round result is already
+  // read out by the polite live region, so this element is aria-hidden.
+  const CHA_KEY = "herd-cha-ching";
+  let chaTimer = null;
+
+  function chaChingOn() {
+    try {
+      return window.localStorage.getItem(CHA_KEY) !== "false";
+    } catch (e) {
+      return true;
+    }
+  }
+
+  function setChaChing(on) {
+    try {
+      window.localStorage.setItem(CHA_KEY, on ? "true" : "false");
+    } catch (e) {
+      // The choice still applies until the page is reloaded.
+    }
+  }
+
+  function motionAllowed() {
+    const root = document.documentElement;
+    if (root.getAttribute("data-reduced-motion") === "true") return false;
+    if (root.getAttribute("data-lite") === "true") return false;
+    return !(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+  }
+
+  function chaChingElement() {
+    let el = document.getElementById("cha-ching");
+    if (el) return el;
+    const anchor = document.getElementById("advance-round-button");
+    if (!anchor || !anchor.parentNode) return null;
+    el = document.createElement("div");
+    el.id = "cha-ching";
+    el.className = "cha-ching";
+    el.setAttribute("aria-hidden", "true");
+    el.hidden = true;
+    anchor.parentNode.insertBefore(el, anchor.nextSibling);
+    return el;
+  }
+
+  function confettiBurst(host) {
+    const colours = ["#e0c24c", "#7fd6a3", "#56b4e9", "#e69f00", "#d98bd0"];
+    for (let i = 0; i < 16; i++) {
+      const piece = document.createElement("span");
+      piece.className = "cha-confetti" + (i % 2 ? " cha-confetti--round" : "");
+      piece.style.left = (6 + Math.random() * 88) + "%";
+      piece.style.background = colours[i % colours.length];
+      piece.style.animationDelay = (Math.random() * 0.2) + "s";
+      piece.style.setProperty("--cha-drift", (Math.random() * 60 - 30) + "px");
+      host.appendChild(piece);
+    }
+    window.setTimeout(function () {
+      Array.prototype.slice.call(host.querySelectorAll(".cha-confetti")).forEach(function (n) { n.remove(); });
+    }, 1500);
+  }
+
+  function roundGain(earned, beat) {
+    if (!chaChingOn()) return false;
+    const el = chaChingElement();
+    if (!el || !isFinite(earned)) return false;
+    if (chaTimer) window.clearTimeout(chaTimer);
+    const target = Math.max(0, Math.round(earned));
+    const label = function (n) { return "Earned +" + n + " funds" + (beat ? " \u2014 more than last round!" : ""); };
+    el.hidden = false;
+    el.textContent = "";
+    const text = document.createElement("span");
+    el.appendChild(text);
+    if (!motionAllowed()) {
+      text.textContent = label(target);
+    } else {
+      const start = window.performance.now();
+      const span = 700;
+      const step = function (now) {
+        const t = Math.min(1, (now - start) / span);
+        text.textContent = label(Math.round(target * (1 - Math.pow(1 - t, 3))));
+        if (t < 1) window.requestAnimationFrame(step);
+      };
+      window.requestAnimationFrame(step);
+      if (beat) confettiBurst(el);
+    }
+    chaTimer = window.setTimeout(function () { el.hidden = true; }, 3500);
+    return true;
+  }
+
+  function initChaChing() {
+    const box = document.getElementById("cha-ching-checkbox");
+    if (!box) return;
+    box.checked = chaChingOn();
+    box.addEventListener("change", function () { setChaChing(box.checked); });
+  }
+
   function initKeyboardPlay() {
     document.addEventListener("keydown", onLeverKey);
     const howto = document.getElementById("howto-panel");
@@ -419,6 +516,7 @@
     initDisplayPrefs();
     initConfirmThreshold();
     initKeyboardPlay();
+    initChaChing();
     initGlossary();
     let scale = readStoredScale();
     applyScale(scale);
@@ -472,6 +570,9 @@
         }
         resetDisplayPrefs();
         resetConfirmThreshold();
+        setChaChing(true);
+        const chaBox = document.getElementById("cha-ching-checkbox");
+        if (chaBox) chaBox.checked = true;
       });
     }
   }
@@ -487,4 +588,5 @@
     cheatSheetItems: CHEAT_SHEET_ITEMS,
     glossary: GLOSSARY,
   };
+  window.HerdFx = { roundGain: roundGain, chaChingOn: chaChingOn };
 })();

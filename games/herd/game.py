@@ -4286,8 +4286,27 @@ def _report_decoupling_gap():
         board.report("herd", "decoupling_gap", round(gap, 1), f"round {farm.round_number}")
 
 
+last_round_income = None  # GF-14: the income of the round before, for the "best round" burst
+
+
+def celebrate_round(income, beat):
+    """GF-14: hands the round's income to the page's optional HerdFx hook (settings.js), which counts it up
+    under the Advance Round button and bursts confetti when `beat` is true. A page without the hook, or the
+    pytest harness, is a silent no-op."""
+    try:
+        from js import window  # noqa: PLC0415 -- Pyodide-only, deliberately lazy
+    except ImportError:
+        return False
+    hook = getattr(window, "HerdFx", None)
+    if hook is None:
+        return False
+    hook.roundGain(float(income), bool(beat))
+    return True
+
+
 def on_advance_round(event=None):
-    global last_deltas, session_rounds
+    global last_deltas, session_rounds, last_round_income
+    income_this_round = farm.income_breakdown()["total"]
     funds_before, methane_before = farm.funds, farm.methane
     welfare_before, pressure_before = farm.welfare(), farm.pressure_fraction()
     farm.undo_snapshot = get_state()  # GF-18: the state to rewind to
@@ -4297,6 +4316,9 @@ def on_advance_round(event=None):
     _schedule_delta_fade()
     _report_decoupling_gap()
     render()
+    beat = last_round_income is not None and income_this_round > last_round_income + 1e-9
+    last_round_income = income_this_round
+    celebrate_round(income_this_round, beat)
     document.getElementById("round-announcer").innerText = round_announcement(funds_before, methane_before)
     nudge = save_nudge_message()
     if farm.just_streak_bonus is not None:
