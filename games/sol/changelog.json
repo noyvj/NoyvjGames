@@ -2,6 +2,10 @@
   "changelog": [
     {
       "date": "2026-10-11",
+      "entry": "New: Time Capsules. Freeze every world as a named capsule (up to three, kept in this browser) without changing your game. Replay runs three minutes on a copy with nobody at the controls, just the Governor and your Doctrines, and Compare with now sets how far you have come since the capsule beside what the Governor alone would have done in the same time. A replay never touches your achievements, boards or save."
+    },
+    {
+      "date": "2026-10-11",
       "entry": "New: Rival Colonies. Three friendly corporations (Helios Combine, Ceres Freight Guild, Outer Reach Syndicate) already hold three of the Observatory's four Lagrange Points. While they do, trade routes restore a little less ecology (8% per point) on any world with no Focus. You can ignore them, pay to share a point (the pressure goes and you get half a relay) or pay to take it over (a full relay). A Focus on a world shields it, nothing is timed, and a new Settings switch turns the pressure and the ticker off. Their gossip shows up as one-line Ticker entries in the captain's log and does nothing else. New achievement: Relay Network."
     },
     {

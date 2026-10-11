@@ -111,6 +111,7 @@
       <button id="chains-toggle-button" class="secondary" type="button">⚡ Chain Reactions</button>
       <button id="charter-toggle-button" class="secondary" type="button">📜 Charter</button>
       <button id="observatory-toggle-button" class="secondary" type="button">🔭 Observatory</button>
+      <button id="capsules-toggle-button" class="secondary" type="button">⏳ Time Capsules</button>
       <button id="doctrine-toggle-button" class="secondary" type="button" hidden>📐 Doctrines</button>
       <button id="splits-toggle-button" class="secondary" type="button">⏱️ Splits</button>
       <button id="prestige-tree-toggle-button" class="secondary" type="button" hidden>🌳 Prestige Tree</button>
@@ -256,6 +257,8 @@
     <div id="charter-panel" class="section chains-panel" hidden></div>
     <!-- A-9 / A-10: the Observatory (Survey Data, the star chart, relays and comets). -->
     <div id="observatory-panel" class="section chains-panel" hidden></div>
+    <!-- A-17 / A-18: Time Capsules (frozen copies of every world, a Governor-only replay and a comparison; this browser only). -->
+    <div id="capsules-panel" class="section chains-panel" hidden></div>
     <!-- A-7 / A-8: Governor Doctrines (shown once Automation Basics is researched). -->
     <div id="doctrine-panel" class="section chains-panel" hidden></div>
     <!-- "What's New" changelog panel (site-wide goal, planning/TODO.md, origin K16):
@@ -1551,6 +1554,7 @@
         { toggle: "splits-toggle-button", panel: "splits-panel" },
         { toggle: "charter-toggle-button", panel: "charter-panel" },
         { toggle: "observatory-toggle-button", panel: "observatory-panel" },
+        { toggle: "capsules-toggle-button", panel: "capsules-panel" },
         { toggle: "doctrine-toggle-button", panel: "doctrine-panel" },
         { toggle: "prestige-tree-toggle-button", panel: "prestige-tree-panel" },
         { toggle: "epilogue-button", panel: "epilogue-panel" },

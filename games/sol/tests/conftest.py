@@ -105,6 +105,8 @@ ELEMENT_IDS = [
     "charter-panel",
     "observatory-toggle-button",
     "observatory-panel",
+    "capsules-toggle-button",
+    "capsules-panel",
     "comet-strip",
     # Round-3 batch (A-22/24/25/26/30/31)
     "trophy-shelf",
