@@ -1747,7 +1747,7 @@ Classic stays the default boot (`index.html`); Desktop is a second boot (`pc.htm
 
 ## QA. Quality passes: code review, bug check, bloat cleanup and load time for everything (user request 2026-10-08)
 
-One checkbox per pass per area. A pass is not done until its fixes are committed with tests green and its findings (fixed, deferred and why) are written in the dev log. Run these after the big feature waves land; do the hub, backend and shared passes first because every game depends on them. Never weaken a test to make a pass finish; if a rule looks wrong, ask in FOR-YOU.
+**QA rule (you, 2026-10-11): a game's QA passes may start as soon as THAT game's own section reaches 100%** (the per-game section in the chart above, for example "GE + E. Aftermath"); the hub, backend and shared passes are already allowed. Games whose sections are not at 100% keep waiting. One checkbox per pass per area. A pass is not done until its fixes are committed with tests green and its findings (fixed, deferred and why) are written in the dev log. Run these after the big feature waves land; do the hub, backend and shared passes first because every game depends on them. Never weaken a test to make a pass finish; if a rule looks wrong, ask in FOR-YOU.
 
 - [ ] QA-1: Code review for every game and the site: read the whole thing as a reviewer: correctness bugs, risky patterns, duplicated logic, unclear names, missing tests for important rules; fix what is clearly wrong and list what needs a decision.
   - [ ] QA-1 SOL
