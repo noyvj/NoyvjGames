@@ -1977,3 +1977,13 @@ html[data-theme="light"] .achievement-card-fresh { color: #7a5200; }
 .sandbox-balance-row label { grid-column: 1 / -1; font-size: 0.85rem; }
 .sandbox-balance-row input[type="range"] { width: 100%; min-height: 32px; }
 .sandbox-balance-row output { font-variant-numeric: tabular-nums; min-width: 3.2rem; text-align: right; font-weight: 600; }
+
+/* C-11: the single-line schematic. The picture is self-contained (attributes only); the flowing dashes are page-only. */
+.schematic-panel { margin: 0.4rem 0; text-align: left; }
+.schematic-panel summary { cursor: pointer; font-weight: 600; min-height: 44px; display: flex; align-items: center; }
+.schematic-graphic { max-width: 560px; }
+.schematic-svg { width: 100%; height: auto; display: block; }
+@keyframes sch-dash { to { stroke-dashoffset: -20; } }
+.sch-flow { animation: sch-dash 0.8s linear 4; }
+@media (prefers-reduced-motion: reduce) { .sch-flow { animation: none; } }
+html[data-reduced-motion="true"] .sch-flow { animation: none; }

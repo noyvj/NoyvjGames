@@ -175,7 +175,8 @@ ELEMENT_IDS += ["pref-coach", "coach-panel", "coach-text", "settings-reset-butto
                 "pref-number-format", "pref-unit", "funds-delta-display",
                 "skyline-strip", "skyline-graphic", "skyline-caption", "pref-skyline", "gridley-line", "pref-gridley",
                 "needle-gauge", "needle-gauge-needle", "needle-gauge-caption", "needle-gauge-graphic", "pref-gauge-effects",
-                "pref-chart-theme", "pref-unlock-flash", "round-animation", "pref-round-animation", "sandbox-balance", "sandbox-bal-reset", "sandbox-bal-note",
+                "pref-chart-theme", "pref-unlock-flash", "round-animation", "pref-round-animation", "schematic-panel", "schematic-graphic", "schematic-caption", "schematic-save-button", "schematic-save-status",
+                "sandbox-balance", "sandbox-bal-reset", "sandbox-bal-note",
                 "sandbox-bal-cost-decay", "sandbox-bal-cost-decay-out", "sandbox-bal-breakdown", "sandbox-bal-breakdown-out",
                 "sandbox-bal-growth", "sandbox-bal-growth-out", "sandbox-bal-revenue", "sandbox-bal-revenue-out", "trend-controls", "plant-mix",
                 "rank-display", "career-rank-display", "rank-theme-select", "rank-theme-note"]

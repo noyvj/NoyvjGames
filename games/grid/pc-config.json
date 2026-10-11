@@ -212,6 +212,7 @@
       "#peek-forecast-button",
       "#peek-forecast-display",
       "#needle-gauge",
+      "#schematic-panel",
       "#disruption-risk-display",
       ".meter:has(> #emissions-bar)",
       "#event-display",

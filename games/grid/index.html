@@ -344,6 +344,15 @@
     <!-- C-23: a short picture after Advance Round (sun arc, wind streaks, the demand curve drawing itself); decoration only. -->
     <div id="round-animation" class="round-animation" aria-hidden="true" hidden></div>
 
+    <!-- C-11: the grid as a single-line schematic (generators, bus, demand block, battery tank); the button saves it as a PNG. -->
+    <details id="schematic-panel" class="schematic-panel">
+      <summary>Grid schematic (single line)</summary>
+      <div id="schematic-graphic" class="schematic-graphic"></div>
+      <p id="schematic-caption" class="comparison-message"></p>
+      <button id="schematic-save-button" class="secondary" type="button">Save schematic image</button>
+      <p id="schematic-save-status" class="comparison-message" role="status"></p>
+    </details>
+
     <!-- C-27: sandbox balance sliders. Hidden except in the practice sandbox, where they never count for career points, achievements or community stats. -->
     <details id="sandbox-balance" class="sandbox-balance" hidden open>
       <summary>Sandbox balance (practice only)</summary>
@@ -1058,6 +1067,40 @@
       }
       ensure();
       new MutationObserver(ensure).observe(panel, { childList: true });
+    })();
+    // C-11: "Save schematic image" turns the schematic SVG (plain attributes, so it stands alone) into a PNG for download; if the
+    // browser cannot draw it to a canvas the SVG file is offered instead. Nothing leaves the page.
+    (function () {
+      var button = document.getElementById("schematic-save-button");
+      var status = document.getElementById("schematic-save-status");
+      if (!button) return;
+      function save(blob, name) {
+        var url = URL.createObjectURL(blob);
+        var link = document.createElement("a");
+        link.href = url; link.download = name;
+        document.body.appendChild(link); link.click(); link.remove();
+        setTimeout(function () { URL.revokeObjectURL(url); }, 2000);
+      }
+      button.addEventListener("click", function () {
+        var svg = document.querySelector("#schematic-graphic svg");
+        if (!svg) { status.textContent = "Nothing to save yet."; return; }
+        var text = new XMLSerializer().serializeToString(svg);
+        var svgBlob = new Blob([text], { type: "image/svg+xml;charset=utf-8" });
+        var img = new Image();
+        img.onload = function () {
+          try {
+            var canvas = document.createElement("canvas");
+            canvas.width = img.width || 600; canvas.height = img.height || 300;
+            canvas.getContext("2d").drawImage(img, 0, 0, canvas.width, canvas.height);
+            canvas.toBlob(function (png) {
+              if (png) { save(png, "grid-schematic.png"); status.textContent = "Saved grid-schematic.png."; }
+              else { save(svgBlob, "grid-schematic.svg"); status.textContent = "Saved grid-schematic.svg."; }
+            }, "image/png");
+          } catch (e) { save(svgBlob, "grid-schematic.svg"); status.textContent = "Saved grid-schematic.svg."; }
+        };
+        img.onerror = function () { save(svgBlob, "grid-schematic.svg"); status.textContent = "Saved grid-schematic.svg."; };
+        img.src = URL.createObjectURL(svgBlob);
+      });
     })();
   </script>
   <script src="../../shared/story-toggle.js" data-game-id="grid" data-story-selectors="#story-chapters"></script>
