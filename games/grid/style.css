@@ -1874,3 +1874,12 @@ html[data-reduced-motion="true"] *::after {
   .needle-gauge-needle { transition: none; }
   .needle-gauge .needle-gauge-svg { animation: none !important; }
 }
+
+/* C-17: rank accents (cosmetic). */
+[data-rank-theme="teal"] { --rank-accent: #5fd0b0; }
+[data-rank-theme="amber"] { --rank-accent: #f0a04b; }
+[data-rank-theme="violet"] { --rank-accent: #b48cff; }
+[data-rank-theme="rose"] { --rank-accent: #ff8fb0; }
+[data-rank-theme="gold"] { --rank-accent: #f0e442; }
+.rank-display { font-weight: 600; border-left: 3px solid var(--rank-accent, transparent); padding-left: 0.4rem; }
+.career-panel[data-rank-theme] { border-left: 4px solid var(--rank-accent, transparent); }

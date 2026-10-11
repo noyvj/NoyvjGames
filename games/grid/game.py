@@ -1913,8 +1913,14 @@ PREF_DEFAULTS = {
     "gridley": True,
     "skyline": True,
     "gauge_effects": True,
+    "rank_theme": "default",
 }
-PREF_CHOICES = {"number_format": ("full", "compact"), "unit": ("units", "mw")}
+RANK_THEMES = ("default", "teal", "amber", "violet", "rose", "gold")
+PREF_CHOICES = {
+    "number_format": ("full", "compact"),
+    "unit": ("units", "mw"),
+    "rank_theme": RANK_THEMES,
+}
 prefs = dict(PREF_DEFAULTS)
 
 
@@ -4203,6 +4209,99 @@ def render_needle_gauge():
     document.getElementById("needle-gauge-graphic").title = text
 
 
+# ---- C-17 operator ranks -------------------------------------------------------------------------------------------
+# A long-term title earned from lifetime play: experience = rounds played across finished runs + 15 for every grade point
+# (A is 4 ... F is 0) those runs earned. Ranks only change a header title and unlock cosmetic accent colours for the
+# header and the Career panel. They give no advantage in play: nothing in the rules reads them, and they are
+# derived from the career each time, never stored.
+RANK_GRADE_WEIGHT = 15
+OPERATOR_RANKS = (
+    (0, "Junior Dispatcher"),
+    (40, "Dispatcher"),
+    (120, "Senior Dispatcher"),
+    (260, "Shift Supervisor"),
+    (450, "Control Room Lead"),
+    (700, "Chief Engineer"),
+)
+
+
+def operator_experience():
+    life = career["lifetime"]
+    grade_points = sum(entry["points"] for entry in life["scenario_grades"].values())
+    return int(life["rounds"] + RANK_GRADE_WEIGHT * grade_points)
+
+
+def operator_rank_index(experience=None):
+    xp = operator_experience() if experience is None else experience
+    index = 0
+    for i, (threshold, _name) in enumerate(OPERATOR_RANKS):
+        if xp >= threshold:
+            index = i
+    return index
+
+
+def operator_rank_name(experience=None):
+    return OPERATOR_RANKS[operator_rank_index(experience)][1]
+
+
+def unlocked_rank_themes(experience=None):
+    """Themes unlocked so far: the default, then one more per rank above the first."""
+    return RANK_THEMES[: operator_rank_index(experience) + 1]
+
+
+def current_rank_theme():
+    theme = prefs["rank_theme"]
+    return theme if theme in unlocked_rank_themes() else "default"
+
+
+def operator_rank_text():
+    xp = operator_experience()
+    index = operator_rank_index(xp)
+    text = f"Operator rank: {OPERATOR_RANKS[index][1]} (experience {xp})."
+    if index + 1 < len(OPERATOR_RANKS):
+        threshold, name = OPERATOR_RANKS[index + 1]
+        text += f" Next: {name} at {threshold} ({threshold - xp} to go)."
+    else:
+        text += " That is the highest rank."
+    text += (
+        " Experience is rounds played in finished runs plus "
+        f"{RANK_GRADE_WEIGHT} for every grade point (A is 4). Ranks are for show: they change no rule."
+    )
+    return text
+
+
+rank_theme_message = ""
+
+
+def on_rank_theme_change(event=None):
+    global rank_theme_message
+    target = getattr(event, "target", None)
+    choice = getattr(target, "value", None)
+    if choice not in RANK_THEMES:
+        return
+    if choice not in unlocked_rank_themes():
+        needed = OPERATOR_RANKS[RANK_THEMES.index(choice)][1]
+        rank_theme_message = f"The {choice} theme unlocks at the rank {needed}."
+    else:
+        rank_theme_message = ""
+        set_pref("rank_theme", choice)
+    render()
+
+
+def render_rank():
+    theme = current_rank_theme()
+    header = document.getElementById("rank-display")
+    header.innerText = f"Rank: {operator_rank_name()}"
+    header.dataset.rankTheme = theme
+    panel_note = document.getElementById("career-rank-display")
+    panel_note.innerText = operator_rank_text()
+    document.getElementById("career-panel").dataset.rankTheme = theme
+    document.getElementById("rank-theme-select").value = theme
+    document.getElementById("rank-theme-note").innerText = rank_theme_message or (
+        f"{len(unlocked_rank_themes())} of {len(RANK_THEMES)} accent colours unlocked."
+    )
+
+
 def render():
     render_info_page()
     render_shadow()
@@ -4271,6 +4370,7 @@ def render():
     render_chart_tables()
     render_fleet_overview()
     render_coach()
+    render_rank()
     render_needle_gauge()
     render_gridley()
     render_skyline()
@@ -6538,6 +6638,7 @@ def setup():
     document.getElementById("pref-gauge-effects").addEventListener(
         "change", create_proxy(_make_pref_checkbox_handler("gauge_effects"))
     )
+    document.getElementById("rank-theme-select").addEventListener("change", create_proxy(on_rank_theme_change))
     document.getElementById("pref-gridley").addEventListener(
         "change", create_proxy(_make_pref_checkbox_handler("gridley"))
     )

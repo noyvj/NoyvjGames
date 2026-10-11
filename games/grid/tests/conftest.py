@@ -174,7 +174,8 @@ ELEMENT_IDS += ["chart-table-view", "trend-ghost-note", "mix-table", "gauge-tabl
 ELEMENT_IDS += ["pref-coach", "coach-panel", "coach-text", "settings-reset-button", "confirm-reset-button", "confirm-reset-status",
                 "pref-number-format", "pref-unit", "funds-delta-display",
                 "skyline-strip", "skyline-graphic", "skyline-caption", "pref-skyline", "gridley-line", "pref-gridley",
-                "needle-gauge", "needle-gauge-needle", "needle-gauge-caption", "needle-gauge-graphic", "pref-gauge-effects"]
+                "needle-gauge", "needle-gauge-needle", "needle-gauge-caption", "needle-gauge-graphic", "pref-gauge-effects",
+                "rank-display", "career-rank-display", "rank-theme-select", "rank-theme-note"]
 # C-14 fleet overview.
 ELEMENT_IDS += ["fleet-body"] + [f"fleet-sort-{k}" for k in ("plant", "count", "wear", "risk", "next", "revenue")]
 

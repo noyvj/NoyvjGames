@@ -106,6 +106,8 @@
     <h1>Grid</h1>
     <!-- C-10: the difficulty preset in force (derived from the three difficulty controls). -->
     <p id="difficulty-header-display" class="difficulty-header">Difficulty: Standard</p>
+    <!-- C-17: the operator rank from lifetime play; cosmetic only. -->
+    <p id="rank-display" class="difficulty-header rank-display">Rank: Junior Dispatcher</p>
 
     <div class="game-toolbar">
       <button id="tutorial-restart-button" class="secondary" type="button">🎓 Tutorial</button>
@@ -164,6 +166,19 @@
       <p id="career-records-display" class="status-line"></p>
       <p id="career-record-flash" class="record-flash" role="status" hidden></p>
       <p id="career-next-perk-display" class="comparison-message"></p>
+      <!-- C-17: operator rank and its cosmetic accent colours. -->
+      <p id="career-rank-display" class="comparison-message"></p>
+      <label class="difficulty-preset-label">Accent colour:
+        <select id="rank-theme-select" aria-label="Accent colour for the rank title and this panel">
+          <option value="default" selected>Default</option>
+          <option value="teal">Teal (Dispatcher)</option>
+          <option value="amber">Amber (Senior Dispatcher)</option>
+          <option value="violet">Violet (Shift Supervisor)</option>
+          <option value="rose">Rose (Control Room Lead)</option>
+          <option value="gold">Gold (Chief Engineer)</option>
+        </select>
+      </label>
+      <p id="rank-theme-note" class="comparison-message" role="status"></p>
       <button id="career-finish-button" class="secondary" type="button" title="Bank this run's career points and start a fresh grid. Career points, perks and achievements are kept.">Finish run &amp; bank points</button>
       <!-- GC-2b / GC-1 / GC-11: the operator upgrade tree (Operations, Projects, Starting loadout, Meteorology). -->
       <p id="career-tree-summary" class="comparison-message"></p>

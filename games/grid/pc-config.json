@@ -184,6 +184,7 @@
       ".hub-back-link",
       "h1",
       "#difficulty-header-display",
+      "#rank-display",
       ".game-toolbar:has(#tutorial-restart-button)"
     ],
     "stagebar": [],
