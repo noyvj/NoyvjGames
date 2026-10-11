@@ -130,6 +130,8 @@ ELEMENT_IDS = [
     "cow-listen-button", "cow-bubble",
     # F-11 profiles.
     "profile-select", "next-lever-hint", "settings-reset-button",
+    # GF-28 blind run.
+    "blind-run-checkbox", "blind-run-note", "blind-run-panel", "blind-reveal-text", "blind-reveal-button",
     # GF-21 golden cow.
     "golden-cow-panel", "golden-cow-summary", "golden-cow-claim-button", "golden-cow-status", "golden-cow-glider",
     # GF-17 barns.

@@ -454,6 +454,10 @@ class FarmState:
         self.last_round_perfect = False  # one-tick, not saved
         self.just_streak_bonus = None  # one-tick (streak, bonus), not saved
 
+        # GF-28: an opt-in blind run hides the baseline comparison until it is revealed.
+        self.blind_run = False
+        self.blind_revealed = False
+
         # GF-21: golden cows welcomed on this farm and the funds they brought (a visible tally).
         self.golden_claimed = 0
         self.golden_funds = 0.0
@@ -1234,7 +1238,7 @@ def render_record_coupling_ratio():
     element = document.getElementById("coupling-gauge-record-display")
     if element is None:
         return
-    if record_coupling_ratio is None:
+    if record_coupling_ratio is None or blind_hidden():
         element.hidden = True
         return
     element.hidden = False
@@ -1354,6 +1358,8 @@ def trend_markers_svg(xs, ys, history):
 def counterfactual_comparison_message():
     """F1 — a live, one-line comparison versus a pure-growth farm with
     the exact same herd size and no decoupling investment ever made."""
+    if blind_hidden():
+        return BLIND_HIDDEN_NOTE
     if farm.round_number <= 1:
         return "Advance a round to see how your farm compares to a pure-growth baseline."
     gap = farm.score() - farm.counterfactual_score()
@@ -1409,7 +1415,7 @@ def copy_result_fields():
         RATING_TITLES[rating_index()][0],
         f"round {farm.round_number}",
         f"{farm.decoupled_fraction() * 100:.0f}% decoupled",
-        f"{methane_avoided:.0f} methane avoided",
+        "blind run" if blind_hidden() else f"{methane_avoided:.0f} methane avoided",
     ]
     if rules_unranked():
         stats.append("custom rules, unranked")
@@ -1424,6 +1430,17 @@ def report_card_html():
     own always-visible readouts."""
     gap = farm.score() - farm.counterfactual_score()
     methane_avoided = max(0.0, farm.counterfactual_methane - farm.methane)
+    if blind_hidden():
+        lines = [
+            f"Round {farm.round_number} — your score: {farm.score():.0f}. The comparison with the pure-growth baseline is hidden during your blind run; reveal it from the Baseline Farm card whenever you like.",
+            investment_summary_message(),
+            policy_report_line(),
+            mixer_stats_message(),
+            real_world_comparison_message(),
+        ]
+        lines.insert(1, rating_message())
+        body = "".join(f'<p class="status-line summary-line">{line}</p>' for line in lines)
+        return body + f'<p id="report-card-compare" class="status-line summary-line">{UNRANKED_COMPARE_NOTE if rules_unranked() else COMPARE_FALLBACK}</p>' + highlights_html()
     lines = [
         f"Round {farm.round_number} — your score: {farm.score():.0f} vs. pure-growth baseline: {farm.counterfactual_score():.0f}",
         f"Same herd size ({farm.herd_size}), but your methane is {farm.methane:.0f} vs. the baseline's {farm.counterfactual_methane:.0f} — {methane_avoided:.0f} avoided.",
@@ -3684,14 +3701,14 @@ def plan_table_html(result):
         '<caption>Projected farm after each round</caption><thead><tr><th scope="col">Round</th>'
         '<th scope="col">Funds</th><th scope="col">Methane per round</th><th scope="col">Coupling</th>'
         '<th scope="col">Score</th><th scope="col">Score vs doing nothing</th>'
-        '<th scope="col">Score vs pure-growth baseline</th></tr></thead>'
+        + ('' if blind_hidden() else '<th scope="col">Score vs pure-growth baseline</th>') + '</tr></thead>'
     )
     body = ""
     for row, idle in zip(result["rows"], result["idle"]):
         body += (
             f'<tr><th scope="row">{row["round"]}</th><td>{row["funds"]:.0f}</td><td>{row["per_round"]:.1f}</td>'
             f'<td>{row["coupling"]:.2f}</td><td>{row["score"]:.0f}</td><td>{row["score"] - idle["score"]:+.0f}</td>'
-            f'<td>{row["score"] - row["baseline"]:+.0f}</td></tr>'
+            + ('' if blind_hidden() else f'<td>{row["score"] - row["baseline"]:+.0f}</td>') + '</tr>'
         )
     return f'<table class="compare-table plan-table">{head}<tbody>{body}</tbody></table>'
 
@@ -3705,6 +3722,8 @@ def plan_chart_svg(result):
         ("doing nothing", "N", [r["score"] for r in result["idle"]], "plan-line--idle"),
         ("pure-growth baseline", "B", [r["baseline"] for r in result["rows"]], "plan-line--base"),
     )
+    if blind_hidden():
+        series = series[:2]
     values = [v for _n, _l, vs, _c in series for v in vs]
     low, high = min(values), max(values)
     span = (high - low) or 1.0
@@ -3722,7 +3741,10 @@ def plan_chart_svg(result):
             f'<polyline class="plan-line {css}" points="{path}"><title>{name}</title></polyline>'
             f'<text class="plan-line-letter" x="{ex + 3:.1f}" y="{ey + 3:.1f}">{letter}</text>'
         )
-    label = "Projected score by round: plan (P, solid), doing nothing (N, dashed), pure-growth baseline (B, dotted)."
+    label = (
+        "Projected score by round: plan (P, solid), doing nothing (N, dashed)." if blind_hidden()
+        else "Projected score by round: plan (P, solid), doing nothing (N, dashed), pure-growth baseline (B, dotted)."
+    )
     return (
         f'<svg viewBox="0 0 {width} {height}" class="plan-chart-svg" role="img" aria-label="{label}">'
         f'<title>{label}</title>{"".join(parts)}</svg>'
@@ -3731,10 +3753,13 @@ def plan_chart_svg(result):
 
 def plan_summary_message(result):
     last, idle = result["rows"][-1], result["idle"][-1]
+    reference = (
+        f"doing nothing: {idle['score']:.0f}" if blind_hidden()
+        else f"doing nothing: {idle['score']:.0f}, pure-growth baseline: {last['baseline']:.0f}"
+    )
     text = (
-        f"After {plan_horizon} rounds the plan reaches a score of {last['score']:.0f} (doing nothing: "
-        f"{idle['score']:.0f}, pure-growth baseline: {last['baseline']:.0f}), with {last['per_round']:.1f} methane "
-        f"per round and {last['funds']:.0f} funds."
+        f"After {plan_horizon} rounds the plan reaches a score of {last['score']:.0f} ({reference}), "
+        f"with {last['per_round']:.1f} methane per round and {last['funds']:.0f} funds."
     )
     if result["skipped"]:
         text += " " + " ".join(result["skipped"]) + "."
@@ -3952,8 +3977,9 @@ def on_ledger_filter(event=None):
 
 
 def on_ledger_add(event=None):
+    reveal_blind_run()  # GF-28: filing a farm ends a blind run (the ledger line carries the baseline gap)
     ledger_record(ledger_entry(finished=False))
-    render_ledger()
+    render()
     _display_milestone_toast("Filed this farm in the Ranch Ledger.")
 
 
@@ -4365,7 +4391,7 @@ def render():
     _maybe_update_record_coupling_ratio()
     coupling_fraction = farm.coupling_ratio() / BASE_COUPLING_RATIO
     document.getElementById("coupling-gauge").innerHTML = coupling_gauge_svg(
-        coupling_fraction, record_coupling_ratio
+        coupling_fraction, None if blind_hidden() else record_coupling_ratio
     )
     document.getElementById("coupling-gauge-label").innerText = (
         f"Emissions per herd unit: {farm.coupling_ratio():.2f} methane/round"
@@ -4427,7 +4453,8 @@ def render():
     # so the session's best-ever value is simply the current one, and the
     # worst-ever is always the fixed baseline.
     document.getElementById("gauge-range-display").innerText = (
-        f"Session best: {farm.coupling_ratio():.2f}  |  Baseline: {BASE_COUPLING_RATIO:.2f}"
+        "Session best and baseline markers are hidden during a blind run."
+        if blind_hidden() else f"Session best: {farm.coupling_ratio():.2f}  |  Baseline: {BASE_COUPLING_RATIO:.2f}"
     )
 
     # F15 — the real-world 42% comparison.
@@ -4441,10 +4468,11 @@ def render():
 
     # F1/F13 — live pure-growth counterfactual + persistent baseline-farm card.
     document.getElementById("counterfactual-comparison-display").innerText = counterfactual_comparison_message()
+    blind = blind_hidden()
     document.getElementById("baseline-herd-display").innerText = f"Herd size: {farm.herd_size}"
-    document.getElementById("baseline-funds-display").innerText = f"Funds: {farm.counterfactual_funds:.0f}"
-    document.getElementById("baseline-methane-display").innerText = f"Methane: {farm.counterfactual_methane:.0f}"
-    document.getElementById("baseline-score-display").innerText = f"Score: {farm.counterfactual_score():.0f}"
+    document.getElementById("baseline-funds-display").innerText = "Funds: hidden" if blind else f"Funds: {farm.counterfactual_funds:.0f}"
+    document.getElementById("baseline-methane-display").innerText = "Methane: hidden" if blind else f"Methane: {farm.counterfactual_methane:.0f}"
+    document.getElementById("baseline-score-display").innerText = "Score: hidden" if blind else f"Score: {farm.counterfactual_score():.0f}"
 
     # F3 — report card panel, kept in sync if left open across a render. The toggle's label is
     # always set so a fresh page never shows the "Loading..." placeholder from index.html.
@@ -4477,6 +4505,7 @@ def render():
     render_profile()
     render_barns()
     render_golden_cow()
+    render_blind_run()
 
 
 # F-18: an optional "ask before a big purchase" setting. The Settings select (settings.js) keeps the
@@ -4654,6 +4683,9 @@ def hand_over_farm():
     if not can_hand_over():
         return None
     earned = handover_points()
+    if blind_hidden():
+        reveal_blind_run()  # GF-28: the blind run ends with the farm; say how it went before it is retired
+        _display_milestone_toast(blind_reveal_message())
     ledger_record(ledger_entry(finished=True))  # F-2: the finished farm is filed before it is retired
     retire_herd_to_hall()  # GF-13: the longest-serving animals are honoured before the herd is retired
     legacy_points += earned
@@ -4872,6 +4904,11 @@ def get_state():
         state["hall_of_fame"] = [list(entry) for entry in hall_of_fame]
     if farm.undo_used:
         state["undo_used"] = True
+    # GF-28: blind-run flags, only when set.
+    if farm.blind_run:
+        state["blind_run"] = True
+        if farm.blind_revealed:
+            state["blind_revealed"] = True
     # GF-21: the golden-cow tally, only once a cow has been welcomed.
     if farm.golden_claimed > 0:
         state["golden_claimed"] = farm.golden_claimed
@@ -5017,6 +5054,8 @@ def _load_progress_fields(data):
     farm.undo_used = data.get("undo_used") is True
     farm.undo_snapshot = None
     _load_barns(data)
+    farm.blind_run = data.get("blind_run") is True
+    farm.blind_revealed = farm.blind_run and data.get("blind_revealed") is True
     farm.golden_claimed = _safe_int(data.get("golden_claimed"), 0)
     golden_funds = data.get("golden_funds")
     farm.golden_funds = float(golden_funds) if farm.golden_claimed > 0 and _is_finite_number(golden_funds) and golden_funds >= 0 else 0.0
@@ -5632,6 +5671,104 @@ def on_welcome_golden_cow(event=None):
     render()
 
 
+# ---- GF-28 blind run ---------------------------------------------------------------------------
+# An opt-in hard mode: the pure-growth baseline (its card, the "ahead of / behind" lines, the best-ever
+# and baseline markers on the gauge, the report card's comparison and the planner's baseline line) stays
+# hidden, so you steer by your own numbers. It can only be switched on before the first round is played
+# and only ends by being revealed: the Reveal button, filing the farm in the Ranch Ledger, or a handover.
+# The reveal then spells out the whole comparison. Nothing about the sim changes (a blind farm is still
+# ranked); achievements keep working, so Outperforming Baseline can still unlock and hint at the result.
+BLIND_HIDDEN_NOTE = "Blind run: the baseline comparison is hidden until you reveal it."
+blind_status_text = ""
+
+
+def blind_hidden():
+    return farm.blind_run and not farm.blind_revealed
+
+
+def can_start_blind_run():
+    return farm.round_number == 1 and not farm.blind_revealed
+
+
+def set_blind_run(on):
+    """Switches the blind run on or off. Allowed only before the first round is played. True when changed."""
+    on = bool(on)
+    if on == farm.blind_run or not can_start_blind_run():
+        return False
+    farm.blind_run = on
+    farm.blind_revealed = False
+    return True
+
+
+def reveal_blind_run():
+    """Ends a blind run for good. True when something was revealed."""
+    if not blind_hidden():
+        return False
+    farm.blind_revealed = True
+    return True
+
+
+def blind_reveal_message():
+    gap = farm.score() - farm.counterfactual_score()
+    avoided = max(0.0, farm.counterfactual_methane - farm.methane)
+    baseline = farm.counterfactual_score()
+    verdict = (
+        f"You finished {gap:.0f} points ahead of the pure-growth baseline"
+        if gap >= 0 else f"You finished {abs(gap):.0f} points behind the pure-growth baseline"
+    )
+    if abs(baseline) > 1e-9:
+        verdict += f" ({(farm.score() - baseline) / abs(baseline) * 100:+.1f}%)"
+    return (
+        f"Blind run revealed at round {farm.round_number}. Your score was {farm.score():.0f} against {baseline:.0f}. "
+        f"{verdict}. Your methane was {farm.methane:.0f} against the baseline's {farm.counterfactual_methane:.0f}, "
+        f"so you avoided {avoided:.0f}, and your coupling ratio ended at {farm.coupling_ratio():.2f} "
+        f"({farm.decoupled_fraction() * 100:.0f}% below the baseline's {BASE_COUPLING_RATIO:.2f})."
+    )
+
+
+def render_blind_run():
+    box = document.getElementById("blind-run-checkbox")
+    box.checked = farm.blind_run
+    box.disabled = not can_start_blind_run()
+    note = document.getElementById("blind-run-note")
+    if farm.blind_run and farm.blind_revealed:
+        note.innerText = "This farm's blind run has been revealed."
+    elif farm.blind_run:
+        note.innerText = "Blind run on: it ends when you reveal it, file this farm in the Ranch Ledger or hand the farm over."
+    elif can_start_blind_run():
+        note.innerText = "Optional hard mode. Only before the first round; it hides the baseline until you reveal it."
+    else:
+        note.innerText = "Blind run can only be switched on before the first round is played."
+    panel = document.getElementById("blind-run-panel")
+    panel.hidden = not farm.blind_run
+    document.getElementById("blind-reveal-button").hidden = not blind_hidden()
+    text = document.getElementById("blind-reveal-text")
+    text.innerText = blind_reveal_message() if farm.blind_run and farm.blind_revealed else BLIND_HIDDEN_NOTE if blind_hidden() else ""
+    document.getElementById("ledger-add-button").innerText = (
+        "File this farm now (reveals the blind run)" if blind_hidden() else "File this farm now"
+    )
+
+
+def on_toggle_blind_run(event=None):
+    set_blind_run(document.getElementById("blind-run-checkbox").checked)
+    render()
+
+
+def on_reveal_blind_run(event=None):
+    def do_reveal():
+        if reveal_blind_run():
+            _display_milestone_toast("Blind run revealed. Open the Baseline Farm card for the full comparison.")
+        render()
+
+    _confirm_dialog_ask(
+        action_id="herd-blind-reveal",
+        message="Reveal the baseline comparison? The blind run ends for this farm and it cannot be hidden again.",
+        confirm_label="Reveal",
+        on_confirm=do_reveal,
+        allow_skip=False,
+    )
+
+
 def setup():
     # index.html already marks these hidden via the `hidden` attribute,
     # but that markup default doesn't exist for the pytest fake-DOM
@@ -5720,6 +5857,8 @@ def setup():
     document.getElementById("cow-listen-button").addEventListener("click", create_proxy(on_cow_listen))
     for skin in BARN_SKINS:
         document.getElementById(f"barn-use-{skin['id']}").addEventListener("click", create_proxy(_make_barn_handler(skin["id"])))
+    document.getElementById("blind-run-checkbox").addEventListener("click", create_proxy(on_toggle_blind_run))
+    document.getElementById("blind-reveal-button").addEventListener("click", create_proxy(on_reveal_blind_run))
     document.getElementById("golden-cow-claim-button").addEventListener("click", create_proxy(on_welcome_golden_cow))
     document.getElementById("golden-cow-glider").addEventListener("click", create_proxy(on_welcome_golden_cow))
     document.getElementById("settings-export-button").addEventListener("click", create_proxy(on_settings_export))

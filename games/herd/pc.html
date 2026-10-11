@@ -326,6 +326,10 @@
     <div id="baseline-farm-card" class="section baseline-farm-card">
       <p class="meter-label">Baseline Farm — same herd size, no decoupling ever invested</p>
       <p id="counterfactual-comparison-display" class="comparison-message">Advance a round to see how your farm compares to a pure-growth baseline.</p>
+      <div id="blind-run-panel" class="blind-run-panel" hidden>
+        <p id="blind-reveal-text" class="comparison-message" role="status" aria-live="polite"></p>
+        <button id="blind-reveal-button" class="secondary" type="button" hidden>Reveal the baseline (ends the blind run)</button>
+      </div>
       <!-- UI decluttering pass (planning/TODO.md closing task): the raw
            herd/funds/methane/score breakdown below is collapsed by
            default -- it's the same information the on-demand Report Card
@@ -535,6 +539,8 @@
       <p class="meter-label">Scenario options</p>
       <label class="settings-checkbox-label"><input type="checkbox" id="variation-checkbox"> Market &amp; weather variation (seasons swing income; plant-based demand surges)</label>
       <label class="settings-checkbox-label"><input type="checkbox" id="cap-checkbox"> Regional methane cap (growth blocked past the cap)</label>
+      <label class="settings-checkbox-label"><input type="checkbox" id="blind-run-checkbox"> Blind run (hides the baseline comparison until you reveal it; switch on before round 1)</label>
+      <p id="blind-run-note" class="comparison-message"></p>
       <p id="cap-display" class="comparison-message"></p>
       <div id="cap-headroom-meter" class="meter cap-headroom-meter" role="img" aria-label="Share of the regional cap in use" hidden><div id="cap-headroom-bar" class="meter-fill meter-fill--methane"></div></div>
       <p id="cap-headroom-display" class="comparison-message"></p>

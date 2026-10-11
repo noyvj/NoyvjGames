@@ -1773,3 +1773,7 @@ html[data-lite="true"] #game, html[data-lite="true"] .pinned-strip { backdrop-fi
 @media (prefers-reduced-motion: reduce) { .golden-cow-glider { animation: none; left: 52%; } }
 html[data-reduced-motion="true"] .golden-cow-glider, html[data-lite="true"] .golden-cow-glider { animation: none; left: 52%; }
 .golden-cow-panel button { width: 100%; }
+
+/* ---- Round 7: GF-28 blind run ---- */
+.blind-run-panel { margin: 0.4rem 0; padding: 0.5rem 0.6rem; border: 2px dashed rgba(127, 127, 127, 0.7); border-radius: 8px; }
+.blind-run-panel button { margin-top: 0.4rem; }
