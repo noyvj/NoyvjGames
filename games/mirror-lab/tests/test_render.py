@@ -84,8 +84,8 @@ def test_the_relay_map_marks_cleared_fewest_current_and_locked_by_shape_and_word
     chapters[0]["benches"][1].update(cleared=True, fewest=True)
     svg = render.map_svg(chapters)
     xml.dom.minidom.parseString(svg)
-    assert svg.count("map-node ") == 24 and "Locked" in svg and "node-tick" in svg and "node-ring" in svg and "node-num" in svg
-    assert svg.count('aria-disabled="true"') == 16
+    assert svg.count("map-node ") == 40 and "Locked" in svg and "node-tick" in svg and "node-ring" in svg and "node-num" in svg
+    assert svg.count('aria-disabled="true"') == 32
 
 
 def test_the_shelf_fills_on_first_use_and_the_cards_fill_on_clear():
@@ -96,10 +96,10 @@ def test_the_shelf_fills_on_first_use_and_the_cards_fill_on_clear():
     assert shelf[1]["text"].startswith("An empty page") and "quarter turn" in shelf[0]["text"]
     cleared = {"c1-1": benches.BY_ID["c1-1"].solution_layout()}
     cards = logbook.cards(cleared)
-    assert len(cards) == 24 and cards[0]["filled"] and cards[0]["fewest"] and cards[0]["pieces"] == 1 and "1 mirror" in cards[0]["used"]
+    assert len(cards) == 40 and cards[0]["filled"] and cards[0]["fewest"] and cards[0]["pieces"] == 1 and "1 mirror" in cards[0]["used"]
     assert not cards[1]["filled"] and not cards[1]["locked"] and cards[8]["locked"] and cards[16]["locked"]
     assert logbook.families_used(["filter_s", "filter_l", "absorber", "lens"]) == {"filter", "absorber"}
-    assert logbook.summary({"mirror"}, cleared) == {"pages": 1, "pages_total": 5, "cards": 1, "cards_total": 24}
+    assert logbook.summary({"mirror"}, cleared) == {"pages": 1, "pages_total": 5, "cards": 1, "cards_total": 40}
 
 
 def test_totals_and_tags():

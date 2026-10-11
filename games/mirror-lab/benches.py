@@ -1,8 +1,10 @@
-"""Mirror Lab -- the benches in play order, grouped in chapters of eight. Chapter n+1 opens when 5 of chapter n are cleared."""
+"""Mirror Lab -- the benches in play order, grouped in five chapters of eight. Chapter n+1 opens when 5 of chapter n are cleared."""
 
 import benches_ch1
 import benches_ch2
 import benches_ch3
+import benches_ch4
+import benches_ch5
 from bench import Bench
 
 OPEN_AT = 5                       # benches cleared in a chapter to open the next one
@@ -11,8 +13,10 @@ CHAPTER_INFO = (
     {"number": 1, "name": "Flat Mirrors", "blurb": "One beam, a few mirrors. Tap a placed mirror to flip it between / and \\."},
     {"number": 2, "name": "Splitters", "blurb": "A splitter lets the beam go on and sends a copy off to the left of its travel."},
     {"number": 3, "name": "Prisms", "blurb": "A prism splits white light into a short (S) and a long (L) beam, one to each side. Tap it to swap the sides."},
+    {"number": 4, "name": "Filters and Decoys", "blurb": "An S filter turns a white beam short and stops a long one; an L filter does the opposite. An absorber stops any beam. A crossed sensor is a decoy and must stay dark."},
+    {"number": 5, "name": "The Long Run", "blurb": "Mirrors, splitters, prisms, filters, absorbers and decoys all at once. The boards are no bigger; the mix is harder."},
 )
-_DATA = (benches_ch1.BENCHES, benches_ch2.BENCHES, benches_ch3.BENCHES)
+_DATA = (benches_ch1.BENCHES, benches_ch2.BENCHES, benches_ch3.BENCHES, benches_ch4.BENCHES, benches_ch5.BENCHES)
 
 CHAPTERS = []
 ALL_BENCHES = []

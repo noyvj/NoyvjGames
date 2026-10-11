@@ -1,0 +1,43 @@
+{
+  "game": "mirror-lab",
+  "updated": "2026-10-12",
+  "research": [
+    {
+      "title": "Specular reflection",
+      "by": "Wikipedia",
+      "url": "https://en.wikipedia.org/wiki/Specular_reflection",
+      "read": "2026-10-12",
+      "note": "Supplies the About page fact \"Why a mirror turns the beam\": On the bench the angle is always a quarter turn: a slash or a backslash mirror sends a beam off at a right angle."
+    },
+    {
+      "title": "Dispersion (optics)",
+      "by": "Wikipedia",
+      "url": "https://en.wikipedia.org/wiki/Dispersion_(optics)",
+      "read": "2026-10-12",
+      "note": "Supplies the About page fact \"Why a prism splits white light\": The prism here is simplified to two beams, S for short and L for long, one leaving on each side. Real light does not split into just two."
+    },
+    {
+      "title": "Optical filter",
+      "by": "Wikipedia",
+      "url": "https://en.wikipedia.org/wiki/Optical_filter",
+      "read": "2026-10-12",
+      "note": "Supplies the About page fact \"What a filter does\": An S filter and an L filter work the same way on the bench: they keep one kind of beam and stop the other."
+    },
+    {
+      "title": "Lunar Laser Ranging experiment",
+      "by": "Wikipedia",
+      "url": "https://en.wikipedia.org/wiki/Lunar_Laser_Ranging_experiment",
+      "read": "2026-10-12",
+      "note": "Supplies the About page fact \"Mirrors left on the Moon\": A beam, a few mirrors and a sensor that waits to be lit: the bench is the smallest version of the same set-up."
+    }
+  ],
+  "inspiration": [],
+  "other": [
+    {
+      "title": "Pyodide",
+      "by": "The Pyodide project",
+      "url": "https://pyodide.org/",
+      "note": "Runs the game's Python rules in the browser through WebAssembly (version 0.26.4, loaded from a CDN), so the game needs no server of its own and no build step."
+    }
+  ]
+}

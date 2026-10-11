@@ -13,21 +13,31 @@ Actions (every request is {"action": ..., ...}; every reply is the whole view):
   pickup {r, c}                 take a placed piece back to the tray
   move {r, c, to_r, to_c}       pick a piece up and put it on another empty slot
   clear_bench                   take every piece back to the tray
+  hint                          open the next rung of this bench's hint ladder (nudge, hint, answer); counted in the tally
+  place_answer                  put the stored answer on the bench (only once the answer rung is open; never needed to clear anything)
+  difficulty {level}            easy | normal | hard, told to the engine by the page (a per-browser choice, never saved)
   reset                         start over (everything)
 """
 
 import json
 
 import benches
+import goals
+import hints
+import info
 import logbook
 import optics
 import progress
 import render
 import trace_text
 
-TALLY_KEYS = ("placed", "picked", "flips")
+TALLY_KEYS = ("placed", "picked", "flips", "hints")
 MAX_COUNT = 10 ** 9
 SCHEMA = 1
+# AN-17: easy | normal | hard, told to the engine by the page and never saved. Normal is the game as designed; the level only changes
+# the hint ladder (see hints.py), never a bench, a rule, a record or a tag.
+difficulty = "normal"
+DIFFICULTIES = ("easy", "normal", "hard")
 
 
 def _int(value, low=0, high=MAX_COUNT, default=None):
@@ -68,6 +78,7 @@ class Game:
         self.layouts = {}                # bench id -> the layout currently on the bench
         self.tally = {key: 0 for key in TALLY_KEYS}
         self.used = set()                # shelf page ids filled (first use of a kind of piece)
+        self.rungs = {}                  # bench id -> hint rungs opened (1 to 3)
         self.current = benches.ORDER[0]
         self.verdict = None              # the last clearing result (not saved)
         self.last_trace = None
@@ -109,6 +120,9 @@ class Game:
         used = [fid for fid, _t, _p, _w in logbook.SHELF if fid in self.used]
         if used:
             data["used"] = used
+        rungs = {bid: n for bid, n in self.rungs.items() if n}
+        if rungs:
+            data["rungs"] = rungs
         if data:
             data["schema"] = SCHEMA
         return data
@@ -136,6 +150,8 @@ class Game:
         self.used = {x for x in raw if isinstance(x, str) and x in known}
         for layout in list(self.cleared.values()) + list(self.layouts.values()):       # a page is filled by any piece the save shows in use
             self.used |= logbook.families_used(p for p, _s in layout.values())
+        raw = data.get("rungs") if isinstance(data.get("rungs"), dict) else {}
+        self.rungs = {bid: _int(n, 1, 3) for bid, n in raw.items() if bid in benches.BY_ID and _int(n, 1, 3)}
         cur = data.get("cur")
         self._enter(cur if isinstance(cur, str) and progress.bench_open(self.cleared, cur) else benches.ORDER[0])
 
@@ -165,11 +181,13 @@ class Game:
                              "total": b.tray[piece], "flips": optics.PIECE_STATES[piece] > 1})
         done = self.cleared.get(b.id)
         label = trace_text.bench_label(b, tr, layout)
+        hint = hints.view(b, self.rungs.get(b.id, 0), difficulty)
+        ghosts = [(g["r"], g["c"], g["piece"], g["state"]) for g in hint["ghosts"] if layout.get((g["r"], g["c"])) != (g["piece"], g["state"])]
         return {
             "id": b.id, "name": b.name, "number": b.number, "of": len(benches.CHAPTERS[b.chapter - 1]["benches"]), "chapter": b.chapter,
             "chapter_name": benches.CHAPTERS[b.chapter - 1]["name"], "blurb": benches.CHAPTERS[b.chapter - 1]["blurb"],
             "brief": trace_text.brief(b), "rows": list(b.rows), "w": b.board.w, "h": b.board.h, "cell": render.U, "pad": render.PAD,
-            "svg": render.bench_svg(b.board, layout, tr, label), "label": label, "tray": tray, "placed": placed,
+            "svg": render.bench_svg(b.board, layout, tr, label, ghosts), "label": label, "hint": hint, "tray": tray, "placed": placed,
             "sensors": trace_text.sensor_lines(b.board, tr), "emitters": trace_text.emitter_lines(b.board),
             "lit": len(tr.lit), "need": len(b.board.required), "decoys_hit": len(tr.dark_hit), "solved_now": tr.ok,
             "status": "cleared" if done else "open", "best": len(done) if done else None, "par": b.par,
@@ -182,7 +200,9 @@ class Game:
         chapters = self._chapters_view()
         log = {"shelf": logbook.shelf(self.used), "cards": logbook.cards(self.cleared), "summary": logbook.summary(self.used, self.cleared)}
         return {"ok": ok, "message": message, "bench": self._bench_view(tr, chapters), "verdict": self.verdict, "chapters": chapters,
-                "map": render.map_svg(chapters), "log": log, "totals": progress.totals(self.cleared), "tally": dict(self.tally)}
+                "map": render.map_svg(chapters), "log": log, "totals": progress.totals(self.cleared), "tally": dict(self.tally),
+                "goals": goals.next_goals(self.cleared, self.used), "goals_summary": goals.summary(self.cleared, self.used), "info": info.view(),
+                "difficulty": difficulty}
 
     # ---- judging a change ------------------------------------------------------------------------------------------
     def _judge(self):
@@ -230,13 +250,13 @@ class Game:
             return self.view("%s is not a slot. Pieces go on the dashed squares." % optics.cell_name(*cell).capitalize(), ok=False)
         here = self.layout.get(cell)
         if here is not None and here[0] == piece:
-            return self.view("There is already a %s at %s." % (optics.PIECE_LABEL[piece].lower(), optics.cell_name(*cell)), ok=False)
+            return self.view("There is already a %s at %s." % (optics.piece_name(piece), optics.cell_name(*cell)), ok=False)
         if self._stock(piece) <= 0:
-            return self.view("The tray has no %s left. Pick one up to move it." % optics.PIECE_LABEL[piece].lower(), ok=False)
+            return self.view("The tray has no %s left. Pick one up to move it." % optics.piece_name(piece), ok=False)
         swapped = ""
         if here is not None:
             self.tally["picked"] += 1
-            swapped = " The %s went back to the tray." % optics.PIECE_LABEL[here[0]].lower()
+            swapped = " The %s went back to the tray." % optics.piece_name(here[0])
         self.layout[cell] = (piece, 0)
         self.tally["placed"] += 1
         self.used |= logbook.families_used([piece])
@@ -250,7 +270,7 @@ class Game:
             return self.view("There is no piece there to flip.", ok=False)
         piece, state = here
         if optics.PIECE_STATES[piece] < 2:
-            return self.view("A %s does not flip." % optics.PIECE_LABEL[piece].lower(), ok=False)
+            return self.view("A %s does not flip." % optics.piece_name(piece), ok=False)
         self.layout[cell] = (piece, (state + 1) % optics.PIECE_STATES[piece])
         self.tally["flips"] += 1
         return self._changed("%s at %s flipped: now %s." % (optics.PIECE_LABEL[piece], optics.cell_name(*cell), render.state_words(piece, self.layout[cell][1])))
@@ -280,6 +300,35 @@ class Game:
         self.tally["picked"] += 1
         self.tally["placed"] += 1
         return self._changed("%s moved to %s." % (optics.PIECE_LABEL[here[0]], optics.cell_name(*dst)))
+
+    def hint(self):
+        """Open the next rung of this bench's ladder. Free, never touches a record, counted once per press."""
+        b = self.bench
+        rung = min(self.rungs.get(b.id, 0), hints.rung_cap(difficulty))
+        new = hints.next_rung(rung, difficulty)
+        if new is None:
+            if difficulty == "hard":
+                return self.view("Hard has no answer step: the nudge and the hint are every hint there is. Switch to Normal or Easy in the Difficulty panel if you want it.", ok=False)
+            return self.view("That is every hint there is for this bench.", ok=False)
+        self.rungs[b.id] = new
+        self.tally["hints"] += 1
+        words = {1: "Nudge opened.", 2: "Hint opened: one piece is drawn as a ghost on the bench.", 3: "The answer is drawn as ghosts on the bench."}[new]
+        if new == 2 and rung == 0:
+            words = "Nudge and hint opened: one piece is drawn as a ghost on the bench."
+        return self.view(words)
+
+    def place_answer(self):
+        """Put the stored solution on the bench, replacing what is there (every piece goes back to the tray first). Counted like any placing."""
+        b = self.bench
+        if self.rungs.get(b.id, 0) < 3 or difficulty == "hard":
+            return self.view("The answer step is not open." if difficulty != "hard" else "Hard has no answer step.", ok=False)
+        self.tally["picked"] += len(self.layout)
+        self.layout.clear()
+        for r, c, piece, state in b.solution:
+            self.layout[(r, c)] = (piece, state)
+            self.tally["placed"] += 1
+            self.used |= logbook.families_used([piece])
+        return self._changed("The stored answer is on the bench, %d piece%s." % (len(b.solution), "" if len(b.solution) == 1 else "s"))
 
     def clear_bench(self):
         n = len(self.layout)
@@ -329,6 +378,17 @@ def handle(request_json):
         return json.dumps(g.move(request.get("r"), request.get("c"), request.get("to_r"), request.get("to_c")))
     if action == "clear_bench":
         return json.dumps(g.clear_bench())
+    if action == "hint":
+        return json.dumps(g.hint())
+    if action == "place_answer":
+        return json.dumps(g.place_answer())
+    if action == "difficulty":
+        global difficulty
+        level = request.get("level")
+        if level not in DIFFICULTIES:
+            return json.dumps(g.view("That is not a difficulty.", ok=False))
+        difficulty = level
+        return json.dumps(g.view())
     return json.dumps({"error": "unknown action " + repr(action)})
 
 

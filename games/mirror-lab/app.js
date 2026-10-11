@@ -3,7 +3,13 @@
    ring. No game logic lives here: where a beam goes and whether a sensor is lit is always the engine's answer. */
 (function () {
   "use strict";
-  var ENGINE_MODULES = ["optics.py", "bench.py", "benches_ch1.py", "benches_ch2.py", "benches_ch3.py", "benches.py", "progress.py", "render.py", "logbook.py", "trace_text.py"];
+  var DIFF_GAME = "mirror-lab";
+  var DIFF_TEXT = {
+    easy: "The first hint press opens the nudge and the hint together, and Place them needs no question first.",
+    normal: "The game as designed: a nudge, then a hint, then the whole answer, and Place them asks first.",
+    hard: "No answer step: the nudge and the hint are all the help there is. Benches, tags and records are the same on all three; nothing is locked."
+  };
+  var ENGINE_MODULES = ["optics.py", "bench.py", "benches_ch1.py", "benches_ch2.py", "benches_ch3.py", "benches_ch4.py", "benches_ch5.py", "benches.py", "progress.py", "render.py", "logbook.py", "trace_text.py", "hints.py", "goals.py", "info.py"];
   var STORE_KEY = "mirror-lab:state";
   var BACKUP_KEY = "mirror-lab:state-backup";
   var DIR_NAMES = ["north", "east", "south", "west"];
@@ -72,6 +78,7 @@
     bumpStat("stat-fewest", t.fewest);
     bumpStat("stat-picked", view.tally.picked);
     bumpStat("stat-flips", view.tally.flips);
+    bumpStat("stat-hints", view.tally.hints);
   }
 
   // ---- the bench -----------------------------------------------------------------------------------
@@ -271,6 +278,103 @@
       cards.appendChild(li);
     });
   }
+  // ---- goals, hints and the About page -------------------------------------------------------------
+  function renderGoals() {
+    var list = $("goals-list");
+    var sig = view.goals.map(function (g) { return g.id + g.have; }).join(",");
+    if (list.dataset.sig === sig) return;
+    list.dataset.sig = sig;
+    list.textContent = "";
+    if (!view.goals.length) { list.appendChild(el("li", null, "Every goal is done. Every bench is cleared and tagged.")); return; }
+    view.goals.forEach(function (g) {
+      var li = el("li");
+      li.appendChild(el("strong", null, g.label + ": "));
+      li.appendChild(document.createTextNode(g.description + " "));
+      var bar = el("span", "bar");
+      bar.setAttribute("aria-hidden", "true");
+      var fill = el("span", "bar-fill");
+      fill.style.width = Math.round(100 * g.have / g.need) + "%";
+      bar.appendChild(fill);
+      li.appendChild(bar);
+      li.appendChild(el("span", "goal-count", " " + g.have + "/" + g.need));
+      list.appendChild(li);
+    });
+  }
+  function renderHints() {
+    var h = view.bench.hint;
+    var btn = $("hint-button");
+    btn.hidden = !h.can_ask;
+    setText(btn, h.rung === 0 ? "Would you like a suggestion?" : (h.rung === 1 ? "Another hint" : "Another hint: the answer"));
+    $("hint-limit").hidden = !(h.max < 3 && h.rung >= h.max);
+    $("hint-nudge").hidden = !h.nudge;
+    setText($("hint-nudge"), h.nudge ? "Nudge: " + h.nudge : "");
+    $("hint-hint").hidden = !h.hint;
+    setText($("hint-hint"), h.hint ? "Hint: " + h.hint : "");
+    $("hint-answer").hidden = !h.answer;
+    $("place-answer-button").hidden = !h.answer;
+    var list = $("hint-answer-list");
+    var sig = h.answer_lines.join("|");
+    if (list.dataset.sig !== sig) {
+      list.dataset.sig = sig;
+      list.textContent = "";
+      h.answer_lines.forEach(function (t) { list.appendChild(el("li", null, t)); });
+    }
+  }
+  function renderInfo() {
+    var info = view.info;
+    if (!info) return;
+    setText($("info-page-framing"), info.framing);
+    setText($("how-heading"), info.how_heading);
+    setText($("pledge-heading"), info.pledge_heading);
+    if ($("info-page-sources").dataset.built === "1") return;
+    $("info-page-sources").dataset.built = "1";
+    fillList($("how-list"), info.how);
+    fillList($("pledge-list"), info.pledge);
+    var list = $("info-page-sources");
+    list.textContent = "";
+    info.facts.forEach(function (fact) {
+      var item = el("li", "info-page-source");
+      item.appendChild(el("strong", null, fact.heading));
+      item.appendChild(el("p", "info-page-framing", fact.fact));
+      item.appendChild(el("p", "info-page-tie-in", fact.tie_in));
+      var link = el("a", null, fact.source.title);
+      link.href = fact.source.url;
+      link.target = "_blank";
+      link.rel = "noopener noreferrer";
+      var src = el("p", "info-page-source-note");
+      src.appendChild(document.createTextNode("Source: "));
+      src.appendChild(link);
+      src.appendChild(document.createTextNode(", " + fact.source.publisher + ". Read on " + fact.source.date_read + "."));
+      item.appendChild(src);
+      list.appendChild(item);
+    });
+  }
+  function fillList(list, lines) {
+    list.textContent = "";
+    lines.forEach(function (t) { list.appendChild(el("li", null, t)); });
+  }
+
+  // ---- what's new: the page sets window.CHANGELOG_JSON (the raw text of changelog.json) for shared/whats-new-banner.js ----
+  function renderChangelog(entries) {
+    var holder = $("changelog-entries");
+    holder.textContent = "";
+    entries.forEach(function (entry) {
+      var row = el("article", "changelog-entry");
+      row.appendChild(el("div", "changelog-date", entry.date));
+      row.appendChild(el("p", "changelog-text", entry.entry));
+      holder.appendChild(row);
+    });
+    $("changelog-toggle-button").textContent = "What's New (" + entries.length + ")";
+  }
+  function loadChangelog() {
+    return fetch("changelog.json").then(function (r) { return r.text(); }).then(function (text) {
+      window.CHANGELOG_JSON = text;
+      var data = JSON.parse(text);
+      var list = Array.isArray(data) ? data : (data && data.changelog) || [];
+      renderChangelog(list.slice().sort(function (a, b) { return a.date < b.date ? 1 : -1; }));
+    }).catch(function () { renderChangelog([]); });
+  }
+
   function render() {
     renderBench();
     renderTray();
@@ -278,6 +382,9 @@
     renderVerdict();
     renderBenches();
     renderLog();
+    renderGoals();
+    renderHints();
+    renderInfo();
   }
 
   // ---- talking to the engine -----------------------------------------------------------------------
@@ -446,10 +553,51 @@
     else go();
   }
 
+  // ---- difficulty (AN-17, shared/difficulty.js): the page keeps the choice, the engine applies it and is never told to save it ----
+  function sendDifficulty() {
+    if (!engine) return null;
+    if (!window.NoyvjDifficulty) return send({ action: "open" });
+    return send({ action: "difficulty", level: window.NoyvjDifficulty.get(DIFF_GAME) });
+  }
+  function wireDifficulty() {
+    if (!window.NoyvjDifficulty) return;
+    window.NoyvjDifficulty.mount("#difficulty-slot", { game: DIFF_GAME, collapsible: true, descriptions: DIFF_TEXT });
+    window.NoyvjDifficulty.onChange(function (d) { if (d.game === DIFF_GAME) sendDifficulty(); });
+  }
+
+  var TUTORIAL_STEPS = [
+    { title: "Welcome to Arden Relay", text: "The light guides here were smashed. On each bench a beam leaves the emitter and you place pieces so it reaches every sensor. Nothing is timed and nothing is lost: any piece can be picked up again. Skip any time and reopen this from the Tutorial button." },
+    { selector: "#tray", title: "The tray", text: "These are the pieces you have for this bench. Tap one to choose it, or drag it with a mouse. The count says how many are left." },
+    { selector: "#bench-holder", title: "The bench", text: "Dashed squares are slots. Tap a slot to place the chosen piece and the beam redraws at once. Tap a placed mirror or prism to flip it. A white beam is a thin solid line, an S beam is short dashes marked S and an L beam is long dashes marked L." },
+    { selector: "#sensor-list", title: "Sensors, in words", text: "Every sensor is listed here in words as well as on the picture. A lit sensor is filled with a tick. A sensor with a cross is a decoy and must stay dark. A sensor never stops a beam." },
+    { selector: "#hint-button", title: "Hints are free", text: "A nudge says which piece matters and roughly where, a hint draws one piece as a dotted ghost, and the answer draws them all. They only come when you press, and the bench still counts." },
+    { selector: "#goals", title: "Your goals", text: "Three goals stay in view, in any order. Pieces you place, benches you clear and hints you ask for all count toward something on the screen." },
+    { selector: "#benches-toggle-button", title: "Benches", text: "Clear 5 benches of a chapter to open the next chapter. Inside a chapter, play the benches in any order. A ring on the map means you cleared a bench with the fewest pieces." },
+    { selector: "#difficulty-panel", title: "Easy, Normal or Hard", text: "Normal is the game as designed. Easy and Hard only change how much help the hint ladder gives. Nothing is locked by any choice." },
+    { title: "You are ready", text: "Take your time. Your benches are saved as you go." }
+  ];
+
   function wire() {
     $("toast").addEventListener("click", function () { showToast(""); });
     wirePanelToggle("benches-toggle-button", "benches-panel");
     wirePanelToggle("log-toggle-button", "log-panel");
+    wirePanelToggle("changelog-toggle-button", "changelog-panel");
+    wirePanelToggle("info-page-toggle-button", "info-page-panel");
+    wireDifficulty();
+    $("hint-button").addEventListener("click", function () {
+      var btn = $("hint-button");
+      send({ action: "hint" });
+      if (btn.hidden && document.activeElement === document.body) {
+        var next = $("place-answer-button").hidden ? $("hint-box") : $("place-answer-button");
+        next.focus();
+      }
+    });
+    $("place-answer-button").addEventListener("click", function () {
+      var go = function () { send({ action: "place_answer" }); };
+      if (view.difficulty !== "easy" && window.ConfirmDialog) {
+        window.ConfirmDialog.ask({ id: "mirror-lab-place-answer", message: "Place the stored answer on the bench? It replaces the pieces on this bench (they go back to the tray) and this bench still counts.", confirmLabel: "Place them", allowSkip: false, onConfirm: go });
+      } else go();
+    });
     var holder = $("bench-holder");
     holder.addEventListener("click", onBenchClick);
     holder.addEventListener("keydown", onBenchKey);
@@ -470,6 +618,7 @@
   }
 
   async function boot() {
+    var changelog = loadChangelog();
     var pyodide = await window.loadPyodide();
     for (var i = 0; i < ENGINE_MODULES.length; i++) {
       var source = await (await fetch(ENGINE_MODULES[i], { cache: "no-cache" })).text();
@@ -484,7 +633,9 @@
       try { engine.loadState(pyodide.toPy(JSON.parse(saved))); } catch (e) { /* a bad save never blocks play */ }
     }
     $("engine-status").textContent = "";
-    send({ action: "open" });
+    sendDifficulty();
+    await changelog;
+    if (window.GameTutorial) window.GameTutorial.init(TUTORIAL_STEPS, { gameId: "mirror-lab" });
   }
 
   wire();

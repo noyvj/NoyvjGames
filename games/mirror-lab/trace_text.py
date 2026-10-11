@@ -19,7 +19,7 @@ def brief(bench):
     text = "Light %s sensor%s" % ("the" if n == 1 else "all %d" % n, "" if n == 1 else "s")
     if board.decoys:
         text += " and keep the decoy%s dark" % ("" if len(board.decoys) == 1 else "s")
-    pieces = ", ".join("%d %s" % (count, optics.PIECE_LABEL[p].lower() + ("" if count == 1 else "s")) for p, count in sorted(bench.tray.items()))
+    pieces = ", ".join("%d %s" % (count, optics.piece_name(p) + ("" if count == 1 else "s")) for p, count in sorted(bench.tray.items()))
     return "%s. Tray: %s." % (text, pieces)
 
 

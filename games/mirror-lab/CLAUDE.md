@@ -1,6 +1,6 @@
 # Mirror Lab (working title)
 
-Seed: `planning/mirror-lab-plan.md` (Quick ideas round A10, TODO QI-10). Personal project, no BCM tag. Milestones 1 to 3 built 2026-10-12 by a background agent. NOT registered in the hub yet (QI-10-R).
+Seed: `planning/mirror-lab-plan.md` (Quick ideas round A10, TODO QI-10). Personal project, no BCM tag. Milestones 1 to 5 built 2026-10-12 by background agents. NOT registered in the hub yet (QI-10-R).
 
 ## One-line pitch
 A dark optics bench: place mirrors, splitters and prisms so one beam lights every sensor.
@@ -18,7 +18,7 @@ You are the optics technician at Arden Relay, whose light guides were smashed. E
 3. No state is told by colour alone: beam kinds are a dash pattern plus a letter, a lit sensor is filled and ticked, slots are dashed squares, a flipped piece is a mirror image, and a text sensor list says the same in words.
 4. Every bench is PROVED (see below) and re-checked by `tests/test_benches.py`.
 5. Chapter n+1 opens when 5 of chapter n are cleared (as the plan says); inside a chapter, any order.
-6. Benches are at most 7 columns wide so a cell is at least 44 px on a 360 px phone. Chapters 4 and 5 (up to 9x9 in the plan) need a decision, see "What milestone 4 needs".
+6. Benches are at most 7 columns wide so a cell is at least 44 px on a 360 px phone (about 46 px measured live). DECISION (milestone 4): chapters 4 and 5 stay at 7x7 at most, not the plan's 9x9; chapter 5 is hard through piece mix and decoys, not size.
 
 ## The optics (optics.py)
 - Grid of cells; a beam moves one cell at a time (0 north, 1 east, 2 south, 3 west). Board characters: `.` floor, `o` slot, `#` wall, `^ > v <` emitter, `/ \` fixed mirror, `A` sensor (any beam), `S` / `L` sensor (that beam kind only), `X` decoy (must stay dark).
@@ -29,7 +29,7 @@ You are the optics technician at Arden Relay, whose light guides were smashed. E
 ## How correctness is PROVED (tools/solve.py, tools/build_benches.py)
 - `solve(board, tray)` enumerates every canonical solution: it traces the partial layout with undecided slots held back, branches on the first slot a beam reaches (empty, or any piece in any state still in stock), and never decides slots no light reaches, so a spare piece left in the dark is not a separate solution ("modulo unused pieces").
 - Each bench is a PICTURE in `tools/specs.py` (the intended solution drawn in with piece letters). `python3 tools/build_benches.py [chapter]` strips the pieces out, solves the bench, asserts the drawn solution is one of the solutions, that the tray is NOT padded (fewest pieces any solution uses = pieces drawn = tray size = the "Fewest pieces" tag, `par`), that the empty bench is not solved, and writes the frozen `benches_ch<N>.py` (stored solution, `par`, solution count). Do not edit those by hand.
-- `tests/test_benches.py` re-solves all 24 benches: at least one solution, the stored one valid, counts and `par` equal the solver's, removing any stored piece breaks it, removing any one piece from the tray leaves no solution, the empty bench is unsolved, at least 12 benches are single-answer (exactly one solution) and the rest have 2 to 4, flipping any flippable piece of a single-answer bench breaks it.
+- `tests/test_benches.py` re-solves all 40 benches: at least one solution, the stored one valid, counts and `par` equal the solver's, removing any stored piece breaks it, removing any one piece from the tray leaves no solution, the empty bench is unsolved, at least 12 benches are single-answer (exactly one solution) and the rest have 2 to 4, flipping any flippable piece of a single-answer bench breaks it.
 - `tests/test_optics.py`: law of reflection table (all 8 cases), mirror is its own inverse, splitter straight-and-left in all 4 directions, prism short-left/long-right in both states in all 4 directions, bend-only for S/L beams, filters, absorber, decoys, loop cut and the state bound, determinism.
 
 ## Milestones
@@ -38,8 +38,8 @@ You are the optics technician at Arden Relay, whose light guides were smashed. E
 | 1 | Ray tracer and solver | Tracer, pieces, placement solver, chapter 1 (8 benches) with proofs | Done |
 | 2 | Bench UI | SVG bench, tray, drag or tap-place, live beam redraw, keyboard placement, save contract. Playable slice | Done |
 | 3 | Chapters 2-3 | 16 more benches, splitters, prisms and S/L sensors, Bench Log | Done |
-| 4 | Chapters 4-5, hints, goals | 16 more benches (40), filters, decoys, hint ladder, three-goals strip. First complete game | Not started |
-| 5 | Standard kit | Opening screen, tutorial, About with Sources, What's New, keyboard help, confirm dialogs, light theme, accessibility | Not started (a light theme and basic a11y are already in) |
+| 4 | Chapters 4-5, hints, goals | 16 more benches (40), filters, decoys, hint ladder, three-goals strip, Easy/Normal/Hard picker. First complete game | Done |
+| 5 | Standard kit | Opening screen, tutorial, About with Sources, What's New, keyboard help, confirm dialogs, light theme, accessibility | Done |
 | 6 | Achievements | 14 achievements, panel and toast, manifest, reachability test | Not started |
 | 7 | Desktop boot and wrap-up | `pc-config.json`, `pc.css`, `pc.js`, generated `pc.html`, docs, changelog | Not started |
 
@@ -50,16 +50,29 @@ You are the optics technician at Arden Relay, whose light guides were smashed. E
 - Save (`get_state`): `schema` 1, `cur`, `cleared {bench: [[r,c,code,state],...]}` (each layout is re-traced on load, a layout that does not light its bench is dropped), `layouts` (the pieces currently on each bench, validated placement by placement against slots, tray counts and states), `tally`, `used` (shelf pages filled). Only non-default keys; a fresh game is `{}`. `cur` is kept only if its chapter is open.
 - Page: tray buttons choose a piece (a one-piece-type bench holds it automatically); tap a slot to place, tap a placed mirror/prism to flip (a splitter tapped with nothing chosen is picked up and held, to move it), "Pick up tool" then tap to take a piece back, "Pick up everything". Mouse drag from the tray or from a placed piece (dropping it off the bench picks it up); touch uses tap. Keyboard: arrows move a visible ring, Enter places/flips, P/Delete picks up, F flips, 1-9 choose a tray piece, 0 or U the pick-up tool, Escape puts the piece down. A polite announcer line says every action in plain text, and the sensor list says every sensor's state in words.
 - Bench Log: a shelf with one page per piece kind (mirror, splitter, prism, filter, absorber; fills on first placement) and a circuit card per bench (fills on clear, with the operator's dry log line and a Fewest-pieces tag). The relay map is the Benches panel header (cleared = ticked node, fewest = extra ring, locked chapter = dim with the word Locked).
-- Files the page fetches at load (for the later service-worker precache): `index.html`, `style.css`, `settings.js`, `app.js`, `icons/favicon-mirror-lab.svg`, `game.py` and the engine modules `optics.py`, `bench.py`, `benches_ch1.py`, `benches_ch2.py`, `benches_ch3.py`, `benches.py`, `progress.py`, `render.py`, `logbook.py`, `trace_text.py`. `tools/` is never loaded.
+- Files the page fetches at load (for the later service-worker precache): `index.html`, `style.css`, `settings.js`, `app.js`, `icons/favicon-mirror-lab.svg`, `game.py` and the engine modules `optics.py`, `bench.py`, `benches_ch1.py`, `benches_ch2.py`, `benches_ch3.py`, `benches_ch4.py`, `benches_ch5.py`, `benches.py`, `progress.py`, `render.py`, `logbook.py`, `trace_text.py`, `hints.py`, `goals.py`, `info.py`, plus `changelog.json`. `tools/` is never loaded.
 
-## Content (24 benches)
-- Chapter 1 Flat Mirrors (mirror only, 1 to 4 mirrors, fixed mirrors, walls, 1 to 4 sensors on a route), chapter 2 Splitters (the splitter turns left; includes a mirror ring, "Echo", that exercises cycle detection), chapter 3 Prisms (S and L sensors, flipping, a prism bending an S beam, splitter plus prism). Each chapter ends in a "Relay" bench. 17 single-answer benches, 7 with 2 or 3 solutions.
+## Content (40 benches)
+- Chapter 1 Flat Mirrors, 2 Splitters, 3 Prisms (see milestone 3 notes above), each ending in a "Relay" bench.
+- Chapter 4 Filters and Decoys (8 benches): S/L filters, absorbers and decoy `X` sensors (a beam entering one lights it and the bench cannot clear). It teaches that a sensor never stops a beam (After the Lamp), that a filter keeps one kind and stops the other (Wrong Side, Keep Dark), and ends with Relay Four.
+- Chapter 5 The Long Run (8 benches, 7x7, every one with decoys, 3 to 7 pieces, five or more with three or more kinds of piece): The Long Way (4 mirrors), Prism Chain, Cross Fire, Colour Bars, Crossing (a sensor lit only by the filtered route), Filter Maze, Mixed Bag (a wall), Relay Five (7 pieces). Hard by mix and decoys, not size.
+- All 40 PROVED by the solver: 39 single-answer, one (c5-6 Filter Maze) with 2 solutions; every tray unpadded (removing any one piece leaves no solution); tests re-solve all 40 on every run.
+
+## Hint ladder, goals, difficulty (milestone 4)
+- `hints.py`: pure functions of the stored solution. Rung 1 nudge (the most telling piece kind and an AREA of the bench, never a cell), rung 2 hint (the first piece the beam needs, drawn as a dotted ghost, named by cell in words), rung 3 answer (every solution piece as ghosts plus a text list and a "Place them" button; the page asks via `ConfirmDialog` first except on Easy). Rungs are saved per bench (`rungs`), `hints` is in the tally ("Hints asked" in the Tally panel). Hints never change a clear, a record or a Fewest-pieces tag. Ghost = dotted frame (always) + see-through piece (only on an empty cell).
+- `goals.py`: the next 3 not-done goals from a fixed list of 16 (open/finish each chapter, 10/20/40 benches, shelf pages, 5/20/40 tags), bars plus text, any order.
+- Difficulty (`shared/difficulty.js`, `NoyvjDifficulty.mount`, engine global `difficulty`, never saved): Normal as designed; Easy = first hint press opens nudge and hint together and Place them needs no confirm; Hard = no rung 3 (no answer, no Place them). Benches, rules, clears, tags and goals are identical on all three; records are never lowered.
+- Ghost drawing is `render.bench_svg(..., ghosts)`; new engine modules `hints.py`, `goals.py`, `info.py`, `benches_ch4.py`, `benches_ch5.py` are in `ENGINE_MODULES`.
+
+## Standard kit (milestone 5)
+- Opening screen (`shared/opening-screen.js`, New Game offers the tutorial), skippable 9-step tutorial (`shared/tutorial.js`, Tutorial button reopens it), About panel (`info.py`: framing that says plainly the game is a simplification, how it works, 4 real-world facts read live on 2026-10-12 from Wikipedia: Specular reflection, Dispersion (optics), Optical filter, Lunar Laser Ranging experiment, each with source link and read date; a pledge), `sources.json` kept in step by a test, What's New (`changelog.json`, in-game panel and `shared/whats-new-banner.js`), keyboard help (`shared/keyboard-shortcuts.js`: ? and Esc, five panels), confirm dialogs for reset and Place them, light theme (dark/light variable sets tested equal), accessibility (labelled panels, labelled checkboxes, 44 px buttons, focus ring, hint-box focus target, announcer line, reduced motion/effects/high contrast).
+- Deliberately NOT included yet: `last-played.js`, `layout-pref.js`, service-worker registration (hub registration QI-10-R and Desktop boot QI-10-7). "New Game" on the opening screen, like the siblings, does not clear local progress.
+
+## What milestones 6 and 7 still need
+- 6: 14 achievements (`achievements.json` + `achievements.py`, panel and toast, `achievements_earned` in the save, manifest, reachability test); the plan's list is in `planning/mirror-lab-plan.md` section 7. Facts needed: the engine already exposes `Trace.max_turns` (Double Bounce needs a beam with 6 turns; no bench reaches 6 turns yet, c5-1 reaches 4, so a bench or a counted-turns rule must be decided), lit S and L sensors on one bench (Light Both), decoy benches cleared, chapter and tag counts.
+- 7: `pc-config.json`, `pc.css`, `pc.js`, generated `pc.html` (the Desktop boot needs every id used by app.js in both pages and the panels reachable from the Menu), `layout-pref.js`, docs, changelog.
 
 ## Working conventions
 - Commit only this folder with a pathspec commit, then tag `mirror-lab-milestone-0N`. Hub registration (QI-10-R) is a separate later job.
 - Tests: `python3 -m pytest -q games/mirror-lab`; lint: `python3 -m flake8 --extend-ignore=E501 games/mirror-lab`.
 - To change a bench: edit its picture in `tools/specs.py`, run `python3 tools/build_benches.py <chapter>`, then the tests.
-
-## What milestone 4 needs
-- Chapters 4 (Filters and Decoys) and 5 (The Long Run): 16 benches with S/L filters, absorbers and decoy `X` sensors (all supported by the tracer, solver, renderer and Bench Log already; only specs are needed, plus `benches_ch4/5.py` imports in `benches.py`, `app.js` ENGINE_MODULES and the chapter blurbs). Open decision for the owner: boards up to 9x9 in the plan do not fit 44 px cells at 360 px; either cap at 7 columns or let the bench scroll sideways.
-- Hint ladder (nudge / ghost piece / full ghost layout with "Place them", saved per bench, tally of hints) using `bench.solution`; three-goals strip and stats; decoy copy in the brief and legend.

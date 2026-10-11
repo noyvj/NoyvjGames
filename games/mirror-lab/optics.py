@@ -43,6 +43,12 @@ EMITTER_DIR = {"^": 0, ">": 1, "v": 2, "<": 3}
 LEGAL_CHARS = ".o#/\\" + SENSOR_CHARS + "^>v<"
 
 
+def piece_name(piece):
+    """A piece kind in running text: "mirror", "splitter", "S filter" (the letter of a filter stays a capital)."""
+    label = PIECE_LABEL[piece]
+    return label if label[:2] in ("S ", "L ") else label.lower()
+
+
 def cell_name(r, c):
     """Row and column, counted from 1, the way every message and label says it."""
     return "row %d, column %d" % (r + 1, c + 1)

@@ -48,7 +48,7 @@ def cards(cleared):
             for piece, _state in layout.values():
                 used[piece] = used.get(piece, 0) + 1
             card.update({"pieces": len(layout), "fewest": len(layout) <= b.par, "line": b.line,
-                         "used": ", ".join("%d %s" % (n, optics.PIECE_LABEL[p].lower()) for p, n in sorted(used.items()))})
+                         "used": ", ".join("%d %s" % (n, optics.piece_name(p)) for p, n in sorted(used.items()))})
         out.append(card)
     return out
 

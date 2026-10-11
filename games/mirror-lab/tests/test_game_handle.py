@@ -26,10 +26,10 @@ def test_open_returns_the_whole_view():
     b = v["bench"]
     assert v["ok"] and b["id"] == "c1-1" and b["status"] == "open" and b["svg"].startswith("<svg") and b["rows"][3] == ">ooom".replace("m", "o")
     assert b["tray"][0]["piece"] == "mirror" and b["tray"][0]["left"] == 1 and b["need"] == 1 and b["lit"] == 0
-    assert v["totals"] == {"benches": 24, "cleared": 0, "sensors": 0, "fewest": 0, "chapters": 3, "chapters_cleared": 0}
-    assert v["tally"] == {"placed": 0, "picked": 0, "flips": 0} and v["verdict"] is None
-    assert len(v["chapters"]) == 3 and [c["open"] for c in v["chapters"]] == [True, False, False]
-    assert v["map"].startswith("<svg") and len(v["log"]["shelf"]) == 5 and len(v["log"]["cards"]) == 24
+    assert v["totals"] == {"benches": 40, "cleared": 0, "sensors": 0, "fewest": 0, "chapters": 5, "chapters_cleared": 0}
+    assert v["tally"] == {"placed": 0, "picked": 0, "flips": 0, "hints": 0} and v["verdict"] is None
+    assert len(v["chapters"]) == 5 and [c["open"] for c in v["chapters"]] == [True, False, False, False, False]
+    assert v["map"].startswith("<svg") and len(v["log"]["shelf"]) == 5 and len(v["log"]["cards"]) == 40
 
 
 def test_placing_the_stored_solution_clears_the_bench_and_names_the_result():

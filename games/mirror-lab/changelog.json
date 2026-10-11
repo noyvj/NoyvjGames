@@ -1,0 +1,16 @@
+{
+  "changelog": [
+    {
+      "date": "2026-10-12",
+      "entry": "Mirror Lab now has a front door and a manual: an opening screen with a short tutorial you can skip, an About page that names the real optics behind the game and where each fact was read, this What's New list, a keyboard help card (press ?) and a question before the destructive buttons. The light theme, text size and reduced motion were already in; the focus order and labels were tidied."
+    },
+    {
+      "date": "2026-10-12",
+      "entry": "Sixteen new benches take Mirror Lab to forty: Filters and Decoys (S and L filters, absorbers and crossed decoy sensors that must stay dark) and The Long Run (everything at once, on the same size of bench). A solver has proved every bench solvable with exactly the pieces in its tray."
+    },
+    {
+      "date": "2026-10-12",
+      "entry": "A hint ladder on every bench, only when you ask: a nudge, then one piece drawn as a dotted ghost, then the whole answer with a Place them button. A strip of three goals stays in view, hints are counted in the tally, and an Easy, Normal or Hard choice sets how much help the ladder gives. Records and tags are the same on all three."
+    }
+  ]
+}

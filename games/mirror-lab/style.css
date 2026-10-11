@@ -203,6 +203,29 @@ html[data-effects="off"] .ml-sensor.lit { filter: none; }
 .cards-list li .card-line { font-style: italic; margin: 0.2rem 0 0; }
 .cards-list li .tag { display: inline-block; border: 2px solid var(--gold); border-radius: 999px; padding: 0 0.5rem; font-size: 0.75rem; font-weight: 700; color: var(--gold); margin-left: 0.3rem; }
 
+/* Goals strip, hint ladder, ghosts, What's New, About. */
+.goals { background: var(--panel-fill); border: 1px solid var(--line); border-radius: 12px; padding: 0.4rem 0.7rem; margin: 0.5rem 0; font-size: 0.85rem; }
+.goals-list { list-style: none; margin: 0.2rem 0 0; padding: 0; display: grid; gap: 0.2rem; }
+.goals-list li { display: flex; flex-wrap: wrap; align-items: center; gap: 0.1rem 0.4rem; }
+.goals-list .bar { display: inline-block; flex: 0 0 5rem; height: 0.55rem; border: 1px solid var(--edge); border-radius: 3px; overflow: hidden; background: var(--surface); }
+.bar-fill { display: block; height: 100%; background: var(--accent); }
+.goal-count { font-variant-numeric: tabular-nums; font-weight: 700; }
+.hint-box { margin: 0.6rem 0; padding: 0.2rem 0; border-top: 1px solid var(--line); }
+.hint-box:focus-visible { outline: 3px solid var(--focus); outline-offset: 3px; }
+.hint-buttons { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+.hint-line { margin: 0.3rem 0; }
+.hint-answer { margin: 0.4rem 0; }
+.hint-answer-list { margin: 0.2rem 0; padding-left: 1.4rem; font-size: 0.9rem; }
+.ml-ghost { pointer-events: none; }
+.ml-ghost-frame { fill: none; stroke: var(--focus); stroke-width: 2.5; stroke-dasharray: 2 5; stroke-linecap: round; }
+.ml-ghost-piece { opacity: 0.5; }
+.changelog-entry { border-top: 1px solid var(--line); padding-top: 0.5rem; margin-top: 0.6rem; }
+.changelog-entry:first-child { border-top: 0; margin-top: 0; padding-top: 0; }
+.changelog-date { font-weight: 700; font-variant-numeric: tabular-nums; }
+.pledge-list, .how-list { padding-left: 1.2rem; margin: 0.3rem 0 0.8rem; }
+.pledge-list li, .how-list li { margin: 0.3rem 0; }
+@media (max-width: 640px) { .goals { padding: 0.3rem 0.5rem; font-size: 0.78rem; } .goals-list .bar { flex-basis: 3rem; } }
+
 @media (max-width: 640px) {
   #game { padding: 0.5rem 0.4rem 2.5rem; }
   .panel { padding: 0.5rem 0.4rem; }

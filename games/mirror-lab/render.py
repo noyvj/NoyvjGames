@@ -81,7 +81,7 @@ def piece_words(piece, state):
 
 
 def optics_label(piece):
-    return optics.PIECE_LABEL[piece].lower()
+    return optics.piece_name(piece)
 
 
 def _beam_points(seg):
@@ -96,8 +96,9 @@ def _beam_points(seg):
     return pts
 
 
-def bench_svg(board, placed, tr, label=""):
-    """The whole bench as one SVG string. `placed` is {(r, c): (piece, state)}; `tr` the optics.Trace of that layout."""
+def bench_svg(board, placed, tr, label="", ghosts=()):
+    """The whole bench as one SVG string. `placed` is {(r, c): (piece, state)}; `tr` the optics.Trace of that layout; `ghosts` are hint pieces
+    (row, col, piece, state) drawn as dotted, see-through pieces under a dotted outline (the outline is what says "ghost" when the piece is hidden)."""
     width, height = PAD * 2 + board.w * U, PAD * 2 + board.h * U
     out = ['<svg class="ml-bench" viewBox="0 0 %d %d" role="img" aria-label="%s" focusable="false">' % (width, height, esc(label))]
     # floor, slots, walls
@@ -159,6 +160,13 @@ def bench_svg(board, placed, tr, label=""):
     # placed pieces
     for (r, c), (piece, state) in sorted(placed.items()):
         out.append('<g class="ml-piece ml-piece-%s" data-piece="%s" transform="translate(%d %d)">%s</g>' % (piece, piece, PAD + c * U, PAD + r * U, glyph(piece, state)))
+    # hint ghosts: a dotted frame in every case, the piece itself only on an empty cell
+    for (r, c, piece, state) in ghosts:
+        x, y = PAD + c * U, PAD + r * U
+        inner = '<rect class="ml-ghost-frame" x="3" y="3" width="%d" height="%d" rx="8"/>' % (U - 6, U - 6)
+        if (r, c) not in placed:
+            inner += '<g class="ml-ghost-piece">%s</g>' % glyph(piece, state)
+        out.append('<g class="ml-ghost" data-piece="%s" data-r="%d" data-c="%d" transform="translate(%d %d)">%s</g>' % (piece, r, c, x, y, inner))
     # hit targets (the page puts its clicks and the keyboard cursor here)
     for r in range(board.h):
         for c in range(board.w):

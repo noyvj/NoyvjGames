@@ -12,12 +12,12 @@ import build_benches
 SOLVED = {b.id: solve.solve(b.board, b.tray) for b in benches.ALL_BENCHES}
 
 
-def test_there_are_three_chapters_of_eight_benches_with_unique_ids_and_names():
-    assert [len(ch["benches"]) for ch in benches.CHAPTERS] == [8, 8, 8]
-    assert len(benches.ALL_BENCHES) == 24
+def test_there_are_five_chapters_of_eight_benches_with_unique_ids_and_names():
+    assert [len(ch["benches"]) for ch in benches.CHAPTERS] == [8, 8, 8, 8, 8]
+    assert len(benches.ALL_BENCHES) == 40
     ids = [b.id for b in benches.ALL_BENCHES]
-    assert len(set(ids)) == 24 and ids == benches.ORDER
-    assert len({b.name for b in benches.ALL_BENCHES}) == 24
+    assert len(set(ids)) == 40 and ids == benches.ORDER
+    assert len({b.name for b in benches.ALL_BENCHES}) == 40
     assert [b.number for b in benches.CHAPTERS[1]["benches"]] == list(range(1, 9))
 
 
@@ -106,13 +106,20 @@ def test_chapter_content_matches_its_theme():
         assert any(k in "SL" for k in b.board.sensors.values())
     chapter3_sensor_kinds = {k for b in benches.CHAPTERS[2]["benches"] for k in b.board.sensors.values()}
     assert {"S", "L"} <= chapter3_sensor_kinds
-    assert {k for b in benches.ALL_BENCHES for k in b.tray} == {"mirror", "splitter", "prism"}
+    for b in benches.CHAPTERS[3]["benches"]:
+        assert b.board.decoys or {"filter_s", "filter_l", "absorber"} & set(b.tray), b.id             # chapter 4 is about filters and decoys
+    assert any(b.board.decoys for b in benches.CHAPTERS[3]["benches"]) and {"filter_s", "filter_l", "absorber"} <= {k for b in benches.CHAPTERS[3]["benches"] for k in b.tray}
+    for b in benches.CHAPTERS[4]["benches"]:
+        assert b.board.decoys and len(b.tray) >= 1 and b.tray_size >= 3, b.id                       # chapter 5: decoys on every bench, real piece counts
+    assert sum(1 for b in benches.CHAPTERS[4]["benches"] if len(b.tray) >= 3) >= 5                   # and a real mix of piece kinds
+    assert {k for b in benches.ALL_BENCHES for k in b.tray} == set(optics.PIECES)
+    assert not any(b.board.decoys for ch in benches.CHAPTERS[:3] for b in ch["benches"])              # decoys start in chapter 4
 
 
 def test_the_chapter_gate_opens_at_five_of_eight():
     ids = [b.id for b in benches.CHAPTERS[0]["benches"]]
     cleared = {}
-    assert progress.chapter_open(cleared, 1) and not progress.chapter_open(cleared, 2) and not progress.chapter_open(cleared, 3)
+    assert progress.chapter_open(cleared, 1) and not any(progress.chapter_open(cleared, n) for n in (2, 3, 4, 5))
     for i, bid in enumerate(ids[:4]):
         cleared[bid] = benches.BY_ID[bid].solution_layout()
     assert not progress.chapter_open(cleared, 2)
