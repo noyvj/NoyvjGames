@@ -45,13 +45,24 @@ def bar(pct, width=10):
     return "█" * filled + "░" * (width - filled)
 
 
+def code(name):
+    """The short section code: the text before the first '.' (for example 'GB' from 'GB. Canopy, gamified')."""
+    m = re.match(r"^([^.\s]+(?: \+ [^.\s]+)?)\.", name)
+    return m.group(1) if m else short(name)
+
+
 def chart(secs):
     total = sum(s[2] for s in secs)
     done = sum(s[1] for s in secs)
+    open_secs = [s for s in secs if s[1] < s[2]]
+    finished = [s for s in secs if s[1] == s[2]]
     rows = ["| Section | Done | % | |", "|---|---:|---:|---|"]
-    for name, d, a in sorted(secs, key=lambda s: (-(s[1] / s[2]), -s[2])):
+    for name, d, a in sorted(open_secs, key=lambda s: (-(s[1] / s[2]), -s[2])):
         pct = d / a * 100
         rows.append(f"| {short(name)} | {d}/{a} | {pct:.0f}% | {bar(pct)} |")
+    if finished:
+        items = sum(s[2] for s in finished)
+        rows.append(f"| **Done: {len(finished)} sections at 100%** ({', '.join(code(s[0]) for s in finished)}) | {items}/{items} | 100% | {bar(100)} |")
     rows.append(f"| **All sections** | **{done}/{total}** | **{done / total * 100:.1f}%** | {bar(done / total * 100)} |")
     return done, total, "\n".join(rows)
 
@@ -61,7 +72,7 @@ def main():
     text = TODO.read_text(encoding="utf-8")
     done, total, table = chart(sections(text))
     prog = f"**Progress: {done}/{total} items checked off ({done / total * 100:.1f}%).**"
-    block = f"{START}\n\n**Per-section progress (finished sections first):**\n\n{table}\n\n{END}"
+    block = f"{START}\n\n**Per-section progress (open sections first; every section at 100% is merged into one \"Done\" line at the bottom):**\n\n{table}\n\n{END}"
     new = re.sub(r"\*\*Progress: \d+/\d+ items checked off \([\d.]+%\)\.\*\*", prog, text, count=1)
     if START in new:
         new = re.sub(re.escape(START) + r".*?" + re.escape(END), lambda m: block, new, count=1, flags=re.S)
