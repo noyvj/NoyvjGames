@@ -180,6 +180,16 @@
       "id": "market_maker",
       "title": "The quiet book",
       "text": "Twenty-five fills in, the order book has stopped feeling like machinery and started feeling like a habit. Prices dip, a lot is bought, prices climb, a stockpile goes out. Somewhere in the Umbral Deep a clerk who does not exist writes down each one."
+    },
+    {
+      "id": "hull_designer",
+      "title": "A name on the drawing",
+      "text": "The first design goes into the drawer with a name on it, which is the part nobody warned you about. Points have to go somewhere: some into the hold, a little into the engines, the rest into a promise about efficiency. It is a drawing of a ship that does not exist yet and already has opinions."
+    },
+    {
+      "id": "custom_fleet",
+      "title": "Built to your own drawing",
+      "text": "The new ship slides out of dock wearing the name you gave its drawing. It is not better than the others, only differently good, and a little proud of it. Somewhere in the ledger a column that used to say balanced now says a word you made up."
     }
   ]
 }

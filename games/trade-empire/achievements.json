@@ -164,6 +164,16 @@
       "id": "market_maker",
       "label": "Market Maker",
       "description": "See 25 standing orders fill on the commodities exchange, across any charters."
+    },
+    {
+      "id": "hull_designer",
+      "label": "Hull Designer",
+      "description": "Save your first custom hull design in the Blueprint Lab."
+    },
+    {
+      "id": "custom_fleet",
+      "label": "Custom Fleet",
+      "description": "Own a ship built to one of your own hull designs."
     }
   ]
 }

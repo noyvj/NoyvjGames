@@ -112,7 +112,15 @@ ELEMENT_IDS = [
     "exchange-pct-select",
     "exchange-add-button",
     "exchange-book",
+    # Blueprint Lab (J-19, J-20).
+    "bp-status", "bp-controls", "bp-chart", "bp-name-input", "bp-save-button", "bp-reset-button",
+    "bp-hold-value", "bp-hold-down-button", "bp-hold-up-button",
+    "bp-speed-value", "bp-speed-down-button", "bp-speed-up-button",
+    "bp-eff-value", "bp-eff-down-button", "bp-eff-up-button",
 ]
+for _i in range(4):
+    ELEMENT_IDS += [f"bp-design-{_i}-row", f"bp-design-{_i}-text", f"bp-design-{_i}-delete-button"]
+    ELEMENT_IDS += [f"ship-5-bp{_i}-option", f"ship-6-bp{_i}-option"]
 for _i in range(5):
     ELEMENT_IDS += [f"exchange-order-{_i}-row", f"exchange-order-{_i}-text", f"exchange-order-{_i}-remove-button"]
 for _s in SHIP_IDS:

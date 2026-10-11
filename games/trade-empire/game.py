@@ -1183,6 +1183,9 @@ DEFAULT_ARCHETYPE = "balanced"
 
 
 def archetype_for(ship):
+    hull = getattr(ship, "hull", None)
+    if hull is not None:  # J-19: a custom hull from the Blueprint Lab
+        return hull_effects(hull)
     return SHIP_ARCHETYPES.get(getattr(ship, "archetype", DEFAULT_ARCHETYPE), SHIP_ARCHETYPES[DEFAULT_ARCHETYPE])
 
 
@@ -1208,6 +1211,7 @@ class Ship:
         # was before this feature existed.
         self.purchased = True
         self.archetype = DEFAULT_ARCHETYPE  # J5
+        self.hull = None  # J-19: {"name", "hold", "speed", "eff"} for a custom hull (archetype "custom")
         # J10 — player-chosen display name, defaults to "Ship N".
         self.name = f"Ship {ship_id}"
         # J15 — consecutive ticks this ship has spent docked, empty, and
@@ -1326,6 +1330,7 @@ class Ship:
             profit = int(round(
                 qty * current_sell_price(good) * diplomacy_multiplier() * legacy_sale_multiplier() * efficiency
                 * captain_proceeds_multiplier(self, destination, good) * colony_premium_multiplier(destination)
+                * archetype_for(self).get("proceeds", 1.0)
             ))
             if route_hazards_enabled and hazard_rng.random() < ROUTE_HAZARD_CHANCE:
                 # J11 -- a route disruption: the cargo is lost, nothing is
@@ -1569,7 +1574,13 @@ def purchase_ship(ship_id, archetype=DEFAULT_ARCHETYPE):
         return False
     total_profit -= SHIP_PURCHASE_COST[ship_id]
     ships[ship_id].purchased = True
-    ships[ship_id].archetype = archetype if archetype in SHIP_ARCHETYPES else DEFAULT_ARCHETYPE
+    design = _blueprint_for_choice(archetype)
+    if design is not None:  # J-19: a saved design; the hull is copied onto the ship
+        ships[ship_id].archetype = "custom"
+        ships[ship_id].hull = dict(design)
+    else:
+        ships[ship_id].archetype = archetype if archetype in SHIP_ARCHETYPES else DEFAULT_ARCHETYPE
+        ships[ship_id].hull = None
     return True
 
 
@@ -3269,6 +3280,8 @@ ACHIEVEMENT_CHECKS = {
     "storm_watcher": lambda: records["weather_events"] >= WEATHER_ACHIEVEMENT_EVENTS,  # J-17
     "first_expedition": lambda: records["expeditions"] >= 1,  # J-23
     "first_fill": lambda: records["exchange_fills"] >= 1,  # J-27
+    "hull_designer": lambda: len(blueprints) >= 1,  # J-19
+    "custom_fleet": lambda: any(ship.hull is not None for ship in ships.values()),
     "market_maker": lambda: records["exchange_fills"] >= EXCHANGE_MARKET_MAKER_FILLS,
     "curio_cabinet": lambda: len(records["curios"]) >= len(CURIO_IDS),
 }
@@ -4135,6 +4148,7 @@ def render():
     render_blackout()
     render_weather()
     render_lab()
+    render_blueprint_options()
     render_desk()
     throughput_el = document.getElementById("throughput-display")
     if throughput_el is not None:
@@ -5091,6 +5105,7 @@ def render_lab():
     panel.hidden = not lab_open
     if not lab_open:
         return
+    render_blueprints()
     render_expedition()
 
 
@@ -5262,6 +5277,242 @@ def render_desk():
     render_exchange()
 
 
+# ---------------------------------------------------------------------------
+# J-19 / J-20 -- the Blueprint Lab (Fleet Lab window), open once Fast Ships I and the Hauler-Class
+# Refit are researched. Spend a fixed budget of design points on three stats (hold, speed, efficiency,
+# 1-6 each) to design, name and save custom hulls (up to four per charter), then pick one from the
+# ship-type picker when buying ship 5 or 6. The "average hull" is 3/3/3 (exactly the Balanced type), so
+# every stat is compared with it in a text bar chart with value labels (no colour needed). The effects
+# are deliberately small: hold +-6% cargo per point from 3, speed 1-2 one tick slower and 5-6 one tick
+# faster, efficiency +-2% on the ship's sales per point from 3; with a budget of 9 no design beats every
+# trade-off, and the hull is stored on the ship, so deleting a design never changes a ship.
+# ---------------------------------------------------------------------------
+BLUEPRINT_POINTS = 9
+BLUEPRINT_STAT_MIN = 1
+BLUEPRINT_STAT_MAX = 6
+BLUEPRINT_AVERAGE = 3
+BLUEPRINT_MAX_DESIGNS = 4
+BLUEPRINT_CARGO_PER_POINT = 0.06
+BLUEPRINT_SALES_PER_POINT = 0.02
+BLUEPRINT_STATS = (
+    ("hold", "Hold"),
+    ("speed", "Speed"),
+    ("eff", "Efficiency"),
+)
+BLUEPRINT_STAT_KEYS = tuple(key for key, _label in BLUEPRINT_STATS)
+blueprints = []  # saved designs: {"name", "hold", "speed", "eff"}
+blueprint_draft = {"hold": 3, "speed": 3, "eff": 3, "name": ""}
+
+
+def blueprint_lab_open():
+    return "fast_ships" in unlocked_research and "hauler" in unlocked_research
+
+
+def _hull_ok(hull):
+    return (
+        isinstance(hull, dict)
+        and all(
+            isinstance(hull.get(k), int) and not isinstance(hull.get(k), bool)
+            and BLUEPRINT_STAT_MIN <= hull.get(k) <= BLUEPRINT_STAT_MAX
+            for k in BLUEPRINT_STAT_KEYS
+        )
+        and sum(hull[k] for k in BLUEPRINT_STAT_KEYS) <= BLUEPRINT_POINTS
+        and isinstance(hull.get("name"), str) and 0 < len(hull["name"].strip()) <= MAX_SHIP_NAME_LENGTH
+    )
+
+
+def hull_effects(hull):
+    """The archetype-shaped effects (label, cargo multiplier, tick delta, sales multiplier) of a custom hull."""
+    speed = hull["speed"]
+    return {
+        "label": hull["name"],
+        "cargo": 1.0 + BLUEPRINT_CARGO_PER_POINT * (hull["hold"] - BLUEPRINT_AVERAGE),
+        "ticks": 1 if speed <= 2 else (0 if speed <= 4 else -1),
+        "proceeds": 1.0 + BLUEPRINT_SALES_PER_POINT * (hull["eff"] - BLUEPRINT_AVERAGE),
+    }
+
+
+def blueprint_points_left(draft=None):
+    draft = blueprint_draft if draft is None else draft
+    return BLUEPRINT_POINTS - sum(draft[k] for k in BLUEPRINT_STAT_KEYS)
+
+
+def can_adjust_blueprint(stat, delta):
+    if stat not in BLUEPRINT_STAT_KEYS or delta not in (-1, 1):
+        return False
+    value = blueprint_draft[stat] + delta
+    if not BLUEPRINT_STAT_MIN <= value <= BLUEPRINT_STAT_MAX:
+        return False
+    return delta < 0 or blueprint_points_left() > 0
+
+
+def adjust_blueprint(stat, delta):
+    if not blueprint_lab_open() or not can_adjust_blueprint(stat, delta):
+        return False
+    blueprint_draft[stat] += delta
+    return True
+
+
+def reset_blueprint_draft():
+    blueprint_draft.update({"hold": 3, "speed": 3, "eff": 3, "name": ""})
+
+
+def can_save_blueprint():
+    return blueprint_lab_open() and len(blueprints) < BLUEPRINT_MAX_DESIGNS
+
+
+def save_blueprint(name=None):
+    """Saves the draft as a named design. A blank name becomes 'Design N'. Returns the design or None."""
+    if not can_save_blueprint():
+        return None
+    raw = blueprint_draft["name"] if name is None else name
+    clean = " ".join(str(raw).split())[:MAX_SHIP_NAME_LENGTH]
+    design = {"name": clean or f"Design {len(blueprints) + 1}"}
+    design.update({k: blueprint_draft[k] for k in BLUEPRINT_STAT_KEYS})
+    if not _hull_ok(design):
+        return None
+    blueprints.append(design)
+    return design
+
+
+def delete_blueprint(index):
+    if not isinstance(index, int) or isinstance(index, bool) or not 0 <= index < len(blueprints):
+        return False
+    del blueprints[index]
+    return True
+
+
+def blueprint_effect_text(hull):
+    fx = hull_effects(hull)
+    trips = {1: "one tick slower", 0: "same trip time", -1: "one tick faster"}[fx["ticks"]]
+    return (
+        f"cargo {(fx['cargo'] - 1) * 100:+.0f}%, {trips}, sales {(fx['proceeds'] - 1) * 100:+.0f}% "
+        "(compared with the average hull)"
+    )
+
+
+def blueprint_chart_html(hull):
+    """J-20: each stat against the average hull, as a labelled bar with a marked average line."""
+    rows = []
+    for key, label in BLUEPRINT_STATS:
+        value = hull[key]
+        diff = value - BLUEPRINT_AVERAGE
+        word = "same as average" if diff == 0 else f"{diff:+d} vs average"
+        fill = value / BLUEPRINT_STAT_MAX * 100
+        mark = BLUEPRINT_AVERAGE / BLUEPRINT_STAT_MAX * 100
+        rows.append(
+            f'<div class="bp-bar" role="img" aria-label="{label} {value} of {BLUEPRINT_STAT_MAX}, {word}">'
+            f'<span class="bp-bar-label">{label} {value} ({word})</span>'
+            f'<span class="bp-bar-track"><span class="bp-bar-fill" style="width:{fill:.0f}%"></span>'
+            f'<span class="bp-bar-avg" style="left:{mark:.0f}%" title="average hull"></span></span></div>'
+        )
+    return "".join(rows)
+
+
+def _blueprint_for_choice(choice):
+    """The saved design a ship-type picker value like 'bp1' names, or None."""
+    if isinstance(choice, str) and choice.startswith("bp") and choice[2:].isdigit():
+        index = int(choice[2:])
+        if 0 <= index < len(blueprints):
+            return blueprints[index]
+    return None
+
+
+def on_blueprint_adjust(stat, delta):
+    def handler(event=None):
+        if adjust_blueprint(stat, delta):
+            render()
+    return handler
+
+
+def on_blueprint_save(event=None):
+    input_el = document.getElementById("bp-name-input")
+    if input_el is not None:
+        blueprint_draft["name"] = str(input_el.value or "")
+    if save_blueprint() is not None:
+        reset_blueprint_draft()
+        if input_el is not None:
+            input_el.value = ""
+        render()
+
+
+def on_blueprint_reset(event=None):
+    reset_blueprint_draft()
+    render()
+
+
+def _make_blueprint_delete_handler(index):
+    def handler(event=None):
+        if delete_blueprint(index):
+            render()
+    return handler
+
+
+def render_blueprints():
+    status = document.getElementById("bp-status")
+    if status is None:
+        return
+    open_now = blueprint_lab_open()
+    controls = document.getElementById("bp-controls")
+    if controls is not None:
+        controls.hidden = not open_now
+    if not open_now:
+        status.innerText = "Locked: research Fast Ships I and the Hauler-Class Refit to open the Blueprint Lab."
+        chart = document.getElementById("bp-chart")
+        if chart is not None:
+            chart.innerHTML = ""
+        for i in range(BLUEPRINT_MAX_DESIGNS):
+            row = document.getElementById(f"bp-design-{i}-row")
+            if row is not None:
+                row.hidden = True
+        return
+    left = blueprint_points_left()
+    status.innerText = (
+        f"Design points left: {left} of {BLUEPRINT_POINTS}. Each stat runs {BLUEPRINT_STAT_MIN} to {BLUEPRINT_STAT_MAX}; "
+        f"the average hull is {BLUEPRINT_AVERAGE}/{BLUEPRINT_AVERAGE}/{BLUEPRINT_AVERAGE}. "
+        f"{blueprint_effect_text(blueprint_draft)}. Saved designs: {len(blueprints)}/{BLUEPRINT_MAX_DESIGNS}; "
+        "pick one from the ship-type list when you buy ship 5 or 6."
+    )
+    for key, label in BLUEPRINT_STATS:
+        value_el = document.getElementById(f"bp-{key}-value")
+        if value_el is not None:
+            value_el.innerText = f"{label}: {blueprint_draft[key]}"
+        down = document.getElementById(f"bp-{key}-down-button")
+        up = document.getElementById(f"bp-{key}-up-button")
+        if down is not None:
+            down.disabled = not can_adjust_blueprint(key, -1)
+        if up is not None:
+            up.disabled = not can_adjust_blueprint(key, 1)
+    chart = document.getElementById("bp-chart")
+    if chart is not None:
+        chart.innerHTML = blueprint_chart_html(blueprint_draft)
+    save = document.getElementById("bp-save-button")
+    if save is not None:
+        save.disabled = not can_save_blueprint()
+    for i in range(BLUEPRINT_MAX_DESIGNS):
+        row = document.getElementById(f"bp-design-{i}-row")
+        text = document.getElementById(f"bp-design-{i}-text")
+        if row is None or text is None:
+            continue
+        row.hidden = i >= len(blueprints)
+        if i < len(blueprints):
+            d = blueprints[i]
+            text.innerText = f"{d['name']}: hold {d['hold']}, speed {d['speed']}, efficiency {d['eff']} ({blueprint_effect_text(d)})"
+
+
+def render_blueprint_options():
+    """The saved designs in the ship-5/6 type pickers (kept current even while the Fleet Lab is closed)."""
+    for ship_id in PURCHASABLE_SHIP_IDS:
+        for i in range(BLUEPRINT_MAX_DESIGNS):
+            option = document.getElementById(f"ship-{ship_id}-bp{i}-option")
+            if option is None:
+                continue
+            option.hidden = i >= len(blueprints)
+            option.disabled = i >= len(blueprints)
+            if i < len(blueprints):
+                option.innerText = f"Custom: {blueprints[i]['name']}"
+
+
 # @@NEW-FEATURES-END@@ (new feature blocks are inserted above this line)
 
 
@@ -5296,6 +5547,7 @@ def get_state():
                 "automated": ship.automated,
                 "purchased": ship.purchased,
                 "archetype": ship.archetype,
+                **({"hull": dict(ship.hull)} if ship.hull is not None else {}),
                 "name": ship.name,
                 "idle_ticks": ship.idle_ticks,
                 "route_key": sorted(ship.route_key) if ship.route_key else None,
@@ -5416,6 +5668,7 @@ def get_state():
         ),
         **({"records": _records_for_save()} if _records_for_save() else {}),
         **({"expedition": dict(expedition)} if expedition is not None else {}),
+        **({"blueprints": [dict(d) for d in blueprints]} if blueprints else {}),
         **(
             {"exchange": {"orders": [dict(o) for o in exchange_orders], "fills": [dict(f) for f in exchange_fills]}}
             if exchange_orders or exchange_fills
@@ -5591,6 +5844,18 @@ def _load_expedition(raw):
     if ship is None or not left or not ship.purchased or ship.location is None or ship.loaded:
         return
     expedition = {"ship": ship_id, "left": left}
+
+
+def _load_blueprints(raw):
+    """J-19 -- the saved hull designs from an untrusted save value (only valid ones, at most four)."""
+    blueprints.clear()
+    reset_blueprint_draft()
+    if not isinstance(raw, list):
+        return
+    for item in raw[:BLUEPRINT_MAX_DESIGNS * 2]:
+        if _hull_ok(item) and len(blueprints) < BLUEPRINT_MAX_DESIGNS:
+            blueprints.append({k: item[k] for k in (*BLUEPRINT_STAT_KEYS, "name")})
+            blueprints[-1]["name"] = blueprints[-1]["name"].strip()
 
 
 def _load_exchange(raw):
@@ -5851,6 +6116,12 @@ def _apply_state(data):
         ship.purchased = saved.get("purchased", ship.purchased)
         saved_archetype = saved.get("archetype")
         ship.archetype = saved_archetype if isinstance(saved_archetype, str) and saved_archetype in SHIP_ARCHETYPES else DEFAULT_ARCHETYPE
+        ship.hull = None
+        hull_raw = saved.get("hull")
+        if saved_archetype == "custom" and _hull_ok(hull_raw):  # J-19: a custom hull, fully re-validated
+            ship.archetype = "custom"
+            ship.hull = {k: hull_raw[k] for k in (*BLUEPRINT_STAT_KEYS, "name")}
+            ship.hull["name"] = ship.hull["name"].strip()
         ship.name = saved.get("name", ship.name)
         ship.idle_ticks = saved.get("idle_ticks", ship.idle_ticks)
         saved_key = saved.get("route_key")
@@ -5890,6 +6161,7 @@ def _apply_state(data):
     _load_records(data.get("records"))
     _load_expedition(data.get("expedition"))
     _load_exchange(data.get("exchange"))
+    _load_blueprints(data.get("blueprints"))
     _load_blackout(data.get("blackout"))
     _load_weather(data.get("weather"))
     price_memory.clear()
@@ -6144,6 +6416,19 @@ def setup():
     document.getElementById("weather-toggle-button").addEventListener("click", create_proxy(on_toggle_weather))
     document.getElementById("lab-toggle-button").addEventListener("click", create_proxy(on_toggle_lab))
     document.getElementById("desk-toggle-button").addEventListener("click", create_proxy(on_toggle_desk))
+    for stat_key in BLUEPRINT_STAT_KEYS:
+        document.getElementById(f"bp-{stat_key}-down-button").addEventListener(
+            "click", create_proxy(on_blueprint_adjust(stat_key, -1))
+        )
+        document.getElementById(f"bp-{stat_key}-up-button").addEventListener(
+            "click", create_proxy(on_blueprint_adjust(stat_key, 1))
+        )
+    document.getElementById("bp-save-button").addEventListener("click", create_proxy(on_blueprint_save))
+    document.getElementById("bp-reset-button").addEventListener("click", create_proxy(on_blueprint_reset))
+    for i in range(BLUEPRINT_MAX_DESIGNS):
+        document.getElementById(f"bp-design-{i}-delete-button").addEventListener(
+            "click", create_proxy(_make_blueprint_delete_handler(i))
+        )
     document.getElementById("exchange-add-button").addEventListener("click", create_proxy(on_add_exchange_order))
     for i in range(EXCHANGE_MAX_SLOTS):
         document.getElementById(f"exchange-order-{i}-remove-button").addEventListener(

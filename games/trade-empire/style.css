@@ -1771,6 +1771,17 @@ button.secondary:disabled::after {
 .exchange-book-table th, .exchange-book-table td { padding: 2px 10px 2px 0; text-align: left; }
 #exchange-controls label { display: inline-flex; gap: 4px; align-items: center; font-size: 0.85rem; }
 
+/* Blueprint Lab (J-19, J-20). */
+.bp-stat-row { display: flex; gap: 8px; align-items: center; margin: 4px 0; }
+.bp-stat-value { display: inline-block; min-width: 8em; font-weight: 600; }
+.bp-chart { margin: 8px 0; max-width: 360px; }
+.bp-bar { margin: 4px 0; }
+.bp-bar-label { display: block; font-size: 0.8rem; }
+.bp-bar-track { position: relative; display: block; height: 10px; border: 1px solid rgba(140, 160, 255, 0.5); border-radius: 3px; }
+.bp-bar-fill { position: absolute; left: 0; top: 0; bottom: 0; background: #6f8fe0; }
+.bp-bar-avg { position: absolute; top: -3px; bottom: -3px; width: 0; border-left: 2px dashed #f4e9b8; }
+.bp-design-row { margin: 4px 0; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; font-size: 0.85rem; }
+
 /* ============================================================
    Y11b light-theme polish (2026-09-27). Light-only rules from a
    computed-style WCAG contrast scan of the light theme (fresh game,
@@ -1835,3 +1846,7 @@ html[data-theme="light"] .news-ticker { color: #1c2750; background: rgba(228, 23
 
 html[data-theme="light"] .curio { color: #46506f; opacity: 1; }
 html[data-theme="light"] .curio--found { color: #1c2750; }
+
+html[data-theme="light"] .bp-bar-fill { background: #3556b8; }
+html[data-theme="light"] .bp-bar-avg { border-left-color: #8a5a00; }
+html[data-theme="light"] .bp-bar-track { border-color: rgba(40, 60, 140, 0.6); }

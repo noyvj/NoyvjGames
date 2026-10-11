@@ -434,6 +434,26 @@
       <p class="panel-label">Fleet Lab
         <details class="info-toggle"><summary>i</summary><p>Optional extras for your fleet. Nothing here is required to finish the game and nothing here can be lost for good.</p></details>
       </p>
+      <div id="lab-blueprints" class="lab-section">
+        <p class="panel-label lab-heading">Blueprint Lab</p>
+        <p class="map-caption">Design your own hull: spend 9 points on hold, speed and efficiency, name it, save it, and pick it when you buy ship 5 or 6. No design beats every trade-off.</p>
+        <p id="bp-status" class="lab-status" aria-live="polite"></p>
+        <div id="bp-controls" hidden>
+          <div class="bp-stat-row"><span id="bp-hold-value" class="bp-stat-value"></span> <button id="bp-hold-down-button" class="secondary" type="button" aria-label="Lower hold">-</button> <button id="bp-hold-up-button" class="secondary" type="button" aria-label="Raise hold">+</button></div>
+          <div class="bp-stat-row"><span id="bp-speed-value" class="bp-stat-value"></span> <button id="bp-speed-down-button" class="secondary" type="button" aria-label="Lower speed">-</button> <button id="bp-speed-up-button" class="secondary" type="button" aria-label="Raise speed">+</button></div>
+          <div class="bp-stat-row"><span id="bp-eff-value" class="bp-stat-value"></span> <button id="bp-eff-down-button" class="secondary" type="button" aria-label="Lower efficiency">-</button> <button id="bp-eff-up-button" class="secondary" type="button" aria-label="Raise efficiency">+</button></div>
+          <div id="bp-chart" class="bp-chart" aria-label="Draft hull compared with the average hull"></div>
+          <div class="lab-actions">
+            <input id="bp-name-input" type="text" class="ship-name-input" placeholder="Name this design" maxlength="24">
+            <button id="bp-save-button" class="secondary" type="button">Save design</button>
+            <button id="bp-reset-button" class="secondary" type="button">Reset to average</button>
+          </div>
+        </div>
+        <div id="bp-design-0-row" class="bp-design-row" hidden><span id="bp-design-0-text"></span> <button id="bp-design-0-delete-button" class="secondary" type="button">Delete</button></div>
+        <div id="bp-design-1-row" class="bp-design-row" hidden><span id="bp-design-1-text"></span> <button id="bp-design-1-delete-button" class="secondary" type="button">Delete</button></div>
+        <div id="bp-design-2-row" class="bp-design-row" hidden><span id="bp-design-2-text"></span> <button id="bp-design-2-delete-button" class="secondary" type="button">Delete</button></div>
+        <div id="bp-design-3-row" class="bp-design-row" hidden><span id="bp-design-3-text"></span> <button id="bp-design-3-delete-button" class="secondary" type="button">Delete</button></div>
+      </div>
       <div id="lab-expedition" class="lab-section">
         <p class="panel-label lab-heading">Expeditions</p>
         <p class="map-caption">Send one idle, hand-flown ship far from the routes. It cannot trade while it is away; it comes back with a reward and a count on your record.</p>
@@ -1015,6 +1035,10 @@
         <option value="balanced">Balanced</option>
         <option value="cargo">Cargo-heavy (+50% cargo, 1 tick slower)</option>
         <option value="fast">Fast (1 tick quicker, -25% cargo)</option>
+        <option id="ship-5-bp0-option" value="bp0" hidden disabled>Custom design 1</option>
+        <option id="ship-5-bp1-option" value="bp1" hidden disabled>Custom design 2</option>
+        <option id="ship-5-bp2-option" value="bp2" hidden disabled>Custom design 3</option>
+        <option id="ship-5-bp3-option" value="bp3" hidden disabled>Custom design 4</option>
       </select>
       <button id="ship-5-purchase-button" class="secondary purchase-button" disabled hidden>Loading...</button>
       <div class="action-buttons">
@@ -1055,6 +1079,10 @@
         <option value="balanced">Balanced</option>
         <option value="cargo">Cargo-heavy (+50% cargo, 1 tick slower)</option>
         <option value="fast">Fast (1 tick quicker, -25% cargo)</option>
+        <option id="ship-6-bp0-option" value="bp0" hidden disabled>Custom design 1</option>
+        <option id="ship-6-bp1-option" value="bp1" hidden disabled>Custom design 2</option>
+        <option id="ship-6-bp2-option" value="bp2" hidden disabled>Custom design 3</option>
+        <option id="ship-6-bp3-option" value="bp3" hidden disabled>Custom design 4</option>
       </select>
       <button id="ship-6-purchase-button" class="secondary purchase-button" disabled hidden>Loading...</button>
       <div class="action-buttons">
