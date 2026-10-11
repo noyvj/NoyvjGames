@@ -1,6 +1,10 @@
 [
   {
     "date": "2026-10-11",
+    "entry": "New: every achievement card now carries a small drawn glyph in the region's own skyline style (a shield for Crisis Averted, a rising route for Sustained Transition, a star over the skyline for Model Region and so on). Earned badges are solid green and locked ones dashed, and a badge you have just earned draws itself in once when you open the panel."
+  },
+  {
+    "date": "2026-10-11",
     "entry": "New: region skins. Four skyline palettes (Seaside, Alpine, Desert and Neon Future) open as you earn Full Portfolio, The Turning Point, Crisis Averted and Thriving, and you pick one in Settings (Dusk, the original, is always there). They are cosmetic only, drawn in code, kept on this browser, and a locked skin tells you which achievement opens it."
   },
   {

@@ -2412,6 +2412,10 @@ def _check_new_achievements_for_toast():
                 announce(f"{len(labels)} achievements unlocked: " + ", ".join(labels))
     _note_new_skins(earned_now)
     _achievements_seen_ids = earned_now
+    if newly:
+        fresh_glyph_ids.update(newly)
+        if achievements_open:
+            update_achievements_display()  # draw the new badge in now, while the panel is open
 
 
 def _note_new_skins(earned_ids):
@@ -2429,6 +2433,47 @@ def on_toggle_achievements(event=None):
     global achievements_open
     achievements_open = not achievements_open
     update_achievements_display()
+
+
+# I-31: a small code-drawn glyph on every achievement card, one route or milestone picture per badge in the
+# region's own skyline language (36 by 36, currentColour strokes). Earned badges are drawn solid in the
+# earned green, locked ones dashed and dim; a badge earned this session draws itself in once when the
+# panel next shows it (a short flourish that Reduce Motion and Animation speed Off remove).
+GLYPH_GROUND = '<path class="g-ground" d="M3,30 H33" />'
+ACHIEVEMENT_GLYPHS = {
+    "first_investment": '<rect x="13" y="12" width="10" height="18" /><path d="M16,17 h1 M19,17 h1 M16,22 h1 M19,22 h1" />',
+    "full_capacity_portfolio": '<rect x="5" y="20" width="7" height="10" /><rect x="14" y="11" width="8" height="19" /><rect x="24" y="16" width="7" height="14" />',
+    "services_backbone": '<rect x="10" y="26" width="16" height="4" /><rect x="10" y="22" width="16" height="4" /><rect x="10" y="18" width="16" height="4" /><rect x="10" y="14" width="16" height="4" /><rect x="10" y="10" width="16" height="4" />',
+    "built_to_scale": '<rect x="4" y="24" width="4" height="6" /><rect x="9" y="21" width="4" height="9" /><rect x="14" y="17" width="4" height="13" /><rect x="19" y="13" width="4" height="17" /><rect x="24" y="9" width="4" height="21" /><rect x="29" y="5" width="4" height="25" />',
+    "century_arrivals": ''.join(f'<circle cx="{5 + i * 4.3:.1f}" cy="{22 if i % 2 else 17}" r="1.7" />' for i in range(7)),
+    "crisis_averted": '<path d="M18,5 L29,10 V19 C29,25 24,28 18,30 C12,28 7,25 7,19 V10 Z" /><path d="M12,18 L16.5,22 L24,13" />',
+    "full_recovery": '<path d="M5,12 L12,25 L18,21 L25,11 L31,7" /><path d="M26,6 H31.5 V11.5" />',
+    "turning_point_reached": '<path class="g-dash" d="M4,20 H32" /><path d="M5,29 C14,28 18,22 31,8" /><circle cx="20" cy="20" r="2.6" />',
+    "ahead_of_schedule": '<path d="M26,30 V7 L33,11 L26,15" /><path class="g-dash" d="M4,26 H22" />',
+    "century_integrated": '<circle cx="9" cy="18" r="5" /><circle cx="18" cy="18" r="5" /><circle cx="27" cy="18" r="5" />',
+    "backlog_cleared": '<circle cx="8" cy="24" r="2" /><circle cx="15" cy="24" r="2" /><circle cx="22" cy="24" r="2" /><circle cx="29" cy="24" r="2" /><path d="M9,13 L15,19 L28,6" />',
+    "balanced_region": '<rect x="5" y="14" width="6" height="16" /><rect x="15" y="14" width="6" height="16" /><rect x="25" y="14" width="6" height="16" /><path class="g-dash" d="M3,10 H33" />',
+    "thriving_region": '<circle cx="18" cy="12" r="4.5" /><path d="M18,3 v2 M18,19 v2 M9,12 h2 M25,12 h2 M11.5,5.5 l1.4,1.4 M23.1,17.1 l1.4,1.4 M24.5,5.5 l-1.4,1.4 M12.9,17.1 l-1.4,1.4" /><rect x="8" y="23" width="6" height="7" /><rect x="22" y="21" width="6" height="9" />',
+    "model_region": '<polygon points="18.0,4.0 20.6,10.4 27.5,10.9 22.2,15.4 23.9,22.1 18.0,18.4 12.1,22.1 13.8,15.4 8.5,10.9 15.4,10.4" /><rect x="7" y="24" width="6" height="6" /><rect x="15" y="21" width="6" height="9" /><rect x="23" y="24" width="6" height="6" />',
+    "economic_engine": '<circle cx="18" cy="17" r="11" /><path d="M18,24 V11 M12,17 L18,11 L24,17" />',
+    "steady_ground": '<path d="M4,19 H32" /><path d="M7,15 v8 M12.5,15 v8 M18,15 v8 M23.5,15 v8 M29,15 v8" />',
+    "long_horizon_reached": '<path d="M3,20 C9,9 27,9 33,20 C27,29 9,29 3,20 Z" /><circle cx="18" cy="19.5" r="3.4" />',
+    "sustained_transition": '<path d="M5,28 L14,22 L22,16 L31,8" /><circle cx="5" cy="28" r="2" /><circle cx="14" cy="22" r="2" /><circle cx="22" cy="16" r="2" /><circle cx="31" cy="8" r="2" />',
+}
+fresh_glyph_ids = set()  # badges earned this session whose glyph has not been drawn in yet (transient)
+
+
+def achievement_glyph_svg(achievement_id, earned=False, fresh=False):
+    """The card glyph for one achievement ("" for an id with no drawing)."""
+    body = ACHIEVEMENT_GLYPHS.get(achievement_id)
+    if body is None:
+        return ""
+    state = "earned" if earned else "locked"
+    extra = " achievement-glyph--fresh" if fresh and earned else ""
+    return (
+        f'<svg viewBox="0 0 36 36" width="36" height="36" class="achievement-glyph achievement-glyph--{state}{extra}" '
+        f'focusable="false" aria-hidden="true">{GLYPH_GROUND}{body}</svg>'
+    )
 
 
 def update_achievements_display():
@@ -2450,6 +2495,11 @@ def update_achievements_display():
         card.className = "achievement-card achievement-card--earned" if entry["earned"] else "achievement-card"
         card.dataset.achievementId = entry["id"]
 
+        glyph = document.createElement("span")
+        glyph.className = "achievement-glyph-slot"
+        glyph.innerHTML = achievement_glyph_svg(entry["id"], entry["earned"], entry["id"] in fresh_glyph_ids)
+        card.appendChild(glyph)
+
         label = document.createElement("p")
         label.className = "achievement-card-label"
         label.innerText = f"🏆 {entry['label']}" if entry["earned"] else entry["label"]
@@ -2468,6 +2518,7 @@ def update_achievements_display():
             card.appendChild(progress)
 
         panel.appendChild(card)
+    fresh_glyph_ids.clear()  # each new badge's flourish plays once
 
     # A link out to the hub-wide achievements dashboard (root index.html's
     # #account-achievements-dashboard, ACHIEVEMENTS-SYSTEM-DESIGN.md §5).
