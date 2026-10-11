@@ -2,6 +2,10 @@
   "changelog": [
     {
       "date": "2026-10-12",
+      "entry": "New: a Today's run button at the top of the Expedition panel. It starts an Expedition on the UTC date's seed, so everyone who plays it that day gets the same map of rich soil, thin soil and bare plots. Starting it asks first if you would give up a forest, and pressing it while that very run is under way changes nothing. Finishing the twelve seasons counts once for the day in the hub's Today strip. A day you skip costs nothing."
+    },
+    {
+      "date": "2026-10-12",
       "entry": "New: a ghost of your best session. Under Session summary, Timeline chart (Standing value), your best earlier session on the same settings is drawn as a faint dashed line labelled Ghost, and a sentence says whether you are ahead of it, level or behind at the same tick (for example: ghost: you are 12 ahead of your best session at turn 80). A session is kept as the ghost when you start a new forest after at least 30 ticks. Challenges, levels, expeditions, scenarios, custom layouts and the Forest Lab are left out, and a checkbox switches the ghost off. Nothing about your forest changes."
     },
     {

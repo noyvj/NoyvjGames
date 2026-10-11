@@ -9005,6 +9005,7 @@ def _finish_expedition():
     _save_expedition_meta()
     note = "a new best on this seed" if new_best and previous is not None else (f"your best here is {previous}" if previous is not None else "your first run on this seed")
     _log_event("expedition", f"Expedition {seed_text} complete: score {score} ({note})", None)
+    _record_shared_daily(seed_text, score)  # Z-5c: a run on today's shared seed counts once in the shared daily record
     _gb_toast(f"\U0001F9ED Expedition complete: score {score} ({note}). Keep playing, or leave from the Expedition panel")
 
 
@@ -9104,6 +9105,83 @@ def on_expedition_start(event=None):
         "Start Expedition",
         lambda: start_expedition(seed_text),
     )
+
+
+def _record_shared_daily(seed_text, score):
+    """Z-5c: a finished Expedition whose seed is TODAY's shared seed counts once for the day in the record the hub's Today strip
+    reads (`localStorage["noyvj-daily-v1"]`, written by `NoyvjSeed.daily.markCompleted`). The page decides what today is
+    (`isDaily`), so an older day's seed or any other seed records nothing. Fails soft: no shared script (pytest, an old page) or
+    any error means nothing, and finishing the Expedition is never affected."""
+    window = _js_window()
+    try:
+        daily = getattr(getattr(window, "NoyvjSeed", None), "daily", None)
+        if daily is None or not daily.isDaily(SEED_GAME, seed_text):
+            return
+        from js import Object  # noqa: PLC0415 -- Pyodide-only, deliberately lazy
+        info = Object.new()
+        info.score = int(score)
+        info.text = f"Expedition score {int(score)}"
+        daily.markCompleted(SEED_GAME, info)
+    except Exception:  # noqa: BLE001 -- a courtesy record must never break finishing an Expedition
+        pass
+
+
+def _tell_footer_seed():
+    """Put the Expedition's own seed back in the info footer (the shared button shows today's seed the moment it is pressed)."""
+    window = _js_window()
+    try:
+        seed_api = getattr(window, "NoyvjSeed", None)
+        if seed_api is not None:
+            seed_api.set(current_expedition["seed"] if current_expedition is not None else "")
+    except Exception:  # noqa: BLE001 -- the footer's seed line is a courtesy
+        pass
+
+
+def start_todays_run(seed_text):
+    """Z-5c: the "Today's run" button (shared/seed.js, inside the Expedition panel) hands over the UTC date's shared seed. Today's
+    run is an Expedition on that seed: the same map for everyone that day. It asks first (the usual Expedition question) when a
+    forest would be given up, does nothing when this very run is already under way, and never touches a save. Returns the
+    sentence shown in the panel."""
+    global _expedition_message
+    check = seed_lib.validate(str(seed_text or ""), SEED_GAME)
+    if not check["ok"]:
+        _expedition_message = check["message"]
+        _tell_footer_seed()
+        render_expedition()
+        return _expedition_message
+    seed_text = check["seed"]
+    if current_expedition is not None and current_expedition["seed"] == seed_text and not expedition_finished():
+        _expedition_message = f"You are already playing today's run (season {expedition_season()} of {EXPEDITION_SEASONS}). Nothing was changed."
+        _tell_footer_seed()
+        render_expedition()
+        return _expedition_message
+
+    def begin():
+        global _expedition_message
+        if start_expedition(seed_text) is None:
+            _expedition_message = "Today's run could not start. Nothing was changed."
+        else:
+            _expedition_message = (
+                f"Today's run is on: Expedition {seed_text}, {EXPEDITION_SEASONS} seasons on the day's shared map, the same for everyone today. "
+                "Finishing it counts for today."
+            )
+        _tell_footer_seed()
+        render_expedition()
+
+    if standing_forest_value() <= 0 and total_income <= 0:
+        begin()
+        return _expedition_message
+    _expedition_message = "Nothing has changed yet: confirm the question to start today's run, or cancel to keep your forest as it is."
+    _tell_footer_seed()
+    render_expedition()
+    _confirm_dialog_ask(
+        "canopy-todays-run",
+        f"Start today's run (Expedition {seed_text})? It begins a new forest, so you will give up {standing_forest_value():.1f} standing value"
+        f" and {total_income:.1f} income. Saves you have already made are not touched, and you can leave the Expedition for normal play at any time.",
+        "Start today's run",
+        begin,
+    )
+    return _expedition_message
 
 
 def _expedition_callbacks():

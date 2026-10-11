@@ -334,6 +334,8 @@
     <!-- GB-3: the Expedition. The seed only decides the map; the upgrade tree is drawn by shared/skill-tree.js into #expedition-tree. -->
     <div id="expedition-panel" class="section expedition-panel" hidden>
       <p class="vault-summary">An Expedition is a 12-season run (about 8 minutes at normal speed) on a map decided by a seed. You choose upgrades from a skill tree as you go: 3 points at the start and one more every season. Nothing is random and nothing is lost: the seed only decides which plots are rich or thin soil and which start bare, taking an upgrade back is free, and there is no way to fail. Share the seed to compare scores on the same map. Seed Vault perks rest during an Expedition so every run stays comparable.</p>
+      <!-- Z-5c: "Today's run" (shared/seed.js): an Expedition on the UTC date's seed, the same map for everyone that day. game.py's start_todays_run owns every rule; its sentence shows in #expedition-seed-message. -->
+      <div id="todays-run-slot"></div>
       <div class="expedition-seed-row">
         <label for="expedition-seed-input">Seed</label>
         <input id="expedition-seed-input" class="expedition-seed-input" type="text" maxlength="24" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="CANOPY-K7F2Q">
@@ -1319,6 +1321,27 @@
         if (fn) fn();
       },
     };
+  </script>
+  <script src="../../shared/seed.js"></script>
+  <script>
+    // Z-5c: the "Today's run" button in the Expedition panel. The seed is the UTC date's shared seed; game.py's start_todays_run
+    // decides what happens (it asks first when a forest would be given up) and its sentence shows in the panel's message line.
+    (function () {
+      if (!window.NoyvjSeed || !window.NoyvjSeed.daily) return;
+      window.NoyvjSeed.daily.mountButton("#todays-run-slot", {
+        game: "canopy",
+        onStart: function (seed) {
+          var note = document.getElementById("expedition-seed-message");
+          try {
+            var fn = window.pyodide.globals.get("start_todays_run");
+            fn(seed);
+            fn.destroy();
+          } catch (e) {
+            if (note) note.textContent = "The forest is still starting up. Try again in a moment.";
+          }
+        }
+      });
+    })();
   </script>
   <script src="../../shared/hub-auth.js"></script>
   <script src="../../shared/save-widget.js" data-game-id="canopy"></script>
