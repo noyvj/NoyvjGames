@@ -142,6 +142,9 @@
       </label>
       <p class="comparison-message difficulty-preset-help">Relaxed: greenfield start, steady demand, no weather swings. Standard: the default. Operator: steeper demand and weather variability. The starting scenario can only change before you build or advance a round.</p>
       <p id="difficulty-preset-note" class="comparison-message"></p>
+      <!-- Z-5c: "Today's run" (shared/seed.js): the UTC date's seed for a fresh run, the same for everyone that day. -->
+      <div id="todays-run-slot"></div>
+      <p id="todays-run-note" class="comparison-message" role="status"></p>
       <details class="run-setup-details">
         <summary>Run setup: loadout, seed, Ironman</summary>
       <!-- GC-2b: starting loadout (bought in the Career upgrade tree), the run seed, and the opt-in Ironman toggle (GC-21). -->
@@ -1010,6 +1013,27 @@
     every game. game.py exposes get_state()/load_state(); the widget
     itself is untouched per-game.
   -->
+  <script src="../../shared/seed.js"></script>
+  <script>
+    // Z-5c: the "Today's run" button. The seed is the UTC date's shared seed; game.py's start_todays_run decides whether the
+    // run can take it (only before anything is built or advanced) and says so. Finishing the run records it (game.py).
+    (function () {
+      if (!window.NoyvjSeed || !window.NoyvjSeed.daily) return;
+      window.NoyvjSeed.daily.mountButton("#todays-run-slot", {
+        game: "grid",
+        onStart: function (seed) {
+          var note = document.getElementById("todays-run-note");
+          try {
+            var fn = window.pyodide.globals.get("start_todays_run");
+            note.textContent = fn(seed);
+            fn.destroy();
+          } catch (e) {
+            note.textContent = "The grid is still starting up. Try again in a moment.";
+          }
+        }
+      });
+    })();
+  </script>
   <script src="../../shared/hub-auth.js"></script>
   <script src="../../shared/save-widget.js" data-game-id="grid"></script>
   <!-- Z-18: the practice sandbox toggle and its banner (rules live in game.py: sandbox_enter / sandbox_leave / sandbox_is_active). -->

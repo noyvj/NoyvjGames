@@ -2198,8 +2198,56 @@ def finish_run():
     _add_to_lifetime(record)
     last_finish_records = broken
     save_career_to_storage()
+    _record_shared_daily(state.seed, grade, score)
     _start_new_run()
     return points
+
+
+def _record_shared_daily(seed_text, grade, score):
+    """Z-5c: a finished run whose seed is TODAY's shared seed counts once for the day in the record the hub's Today strip
+    reads (`localStorage["noyvj-daily-v1"]`, written by `NoyvjSeed.daily.markCompleted`). The page decides what today is
+    (`isDaily`), so a run begun on an older day's seed, or any ordinary run, records nothing. Fails soft: no shared script
+    (pytest, an old page) or any error means nothing, and the run's own result is never affected."""
+    try:
+        import js  # noqa: PLC0415 -- Pyodide-only, deliberately lazy
+        daily = getattr(getattr(js.window, "NoyvjSeed", None), "daily", None)
+        if daily is None or not daily.isDaily(SEED_GAME, seed_text):
+            return
+        info = js.Object.new()
+        info.text = f"Grade {grade}, clean score {score:.0f} of 100"
+        daily.markCompleted(SEED_GAME, info)
+    except Exception:  # noqa: BLE001 -- a courtesy record must never break finishing a run
+        pass
+
+
+def start_todays_run(seed_text):
+    """Z-5c: the "Today's run" button (shared/seed.js) hands over the UTC date's shared seed. It becomes this run's seed only
+    while nothing has been built or advanced, exactly like the "Use a seed" box, and never in the sandbox. A run already under
+    way is left alone (the button says how to start a fresh one), so nothing is lost. Returns the sentence to show."""
+    result = seed_lib.validate(seed_text, SEED_GAME)
+    if not result["ok"]:
+        return result["message"]
+    if sandbox_active:
+        return "Today's run does not count in the sandbox. Switch the sandbox off, then press the button again."
+    if not state.unstarted():
+        _tell_footer_seed()
+        return ("Today's run starts a fresh run, and this one is under way. Nothing was changed. "
+                "Finish it first (Career, Finish run), then press the button again.")
+    state.set_seed(result["seed"])
+    render()
+    _tell_footer_seed()
+    return f"Today's run is set: seed {state.seed}. Build and advance as usual; finishing the run (Career, Finish run) counts it for today."
+
+
+def _tell_footer_seed():
+    """Put the run's own seed back in the info footer (the shared button shows today's seed the moment it is pressed)."""
+    try:
+        import js  # noqa: PLC0415 -- Pyodide-only, deliberately lazy
+        seed_api = getattr(js.window, "NoyvjSeed", None)
+        if seed_api is not None:
+            seed_api.set(state.seed)
+    except Exception:  # noqa: BLE001 -- the footer's seed line is a courtesy
+        pass
 
 
 def _thin(values, scale=1.0):

@@ -2,6 +2,10 @@
   "changelog": [
     {
       "date": "2026-10-12",
+      "entry": "New: a Today's run button above Run setup. It puts the UTC date's seed on a fresh run, so everyone who plays it that day faces the same weather, disruptions and breakdowns. It only works on a run you have not started (a run under way is never replaced, and the button tells you how to start a fresh one), and finishing a run on today's seed counts once for the day in the hub's Today strip. A day you skip costs nothing."
+    },
+    {
+      "date": "2026-10-12",
       "entry": "Changed: the ghost of your best run now uses the same shared recorder as the other games' ghosts. Your best finished run is kept as a trace of its clean share and funds, and the ghost note says whether you are ahead, behind or level in plain words (a gap is read in whole points). Older saves keep their ghost: it is rebuilt from the run history you already had."
     },
     {
