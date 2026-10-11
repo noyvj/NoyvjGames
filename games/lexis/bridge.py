@@ -33,21 +33,21 @@ class Stock:
 
     def with_count(self, label, count):
         count = max(0, min(count, MAX_PER_ITEM))
-        rest = [(l, c) for l, c in self.items if l != label]
+        rest = [(name, c) for name, c in self.items if name != label]
         if label in dict(self.items):
-            rest = [(l, count if l == label else c) for l, c in self.items]
+            rest = [(name, count if name == label else c) for name, c in self.items]
         elif count:
             rest.append((label, count))
-        return Stock(tuple((l, c) for l, c in rest if c > 0))
+        return Stock(tuple((name, c) for name, c in rest if c > 0))
 
     def to_dict(self):
-        return {"items": [{"label": l, "count": c} for l, c in self.items]}
+        return {"items": [{"label": name, "count": c} for name, c in self.items]}
 
 
 def describe_stock(stock):
     if not stock.items:
         return "The counter is empty."
-    return "On the counter: " + ", ".join(f"{c} {l}" for l, c in stock.items) + "."
+    return "On the counter: " + ", ".join(f"{c} {name}" for name, c in stock.items) + "."
 
 
 @dataclass(frozen=True)
@@ -67,7 +67,9 @@ def _noun(token):
 
 
 def _is_number(token):
-    return PULSE.is_number_token(token)
+    """A Pulse number token: right length and class mark, and only marks the channel carries. Without the
+    last check a token such as 0abc passed and crashed the binary decoder."""
+    return PULSE.is_number_token(token) and set(token) <= set("01")
 
 
 def react(message, stock):

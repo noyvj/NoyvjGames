@@ -42,7 +42,7 @@ def earned(state, station, tray):
         got.add("sharp_ear")
     if state.contact.get("pulse"):
         got.add("first_contact")
-    if any(g in {"ku", "tu"} for g in state.compound_spoken) and state.flags.get("understood_unseen"):
+    if state.flags.get("understood_unseen"):        # a one-way flag: the spoken list is a rolling window
         got.add("unseen_sign")
     if state.contact.get("compound"):
         got.add("second_contact")

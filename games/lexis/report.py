@@ -56,8 +56,13 @@ def build(state, achievements_view, scenes_total):
     if not state.contact.get("bridge"):
         return None
     pulse_truth = state.notebook.truth
-    compound_truth = lambda form: (COMPONENTS.get(form) or (None,))[0]
-    bridge_truth = lambda form: MARKERS.get(form)
+
+    def compound_truth(form):
+        return (COMPONENTS.get(form) or (None,))[0]
+
+    def bridge_truth(form):
+        return MARKERS.get(form)
+
     rows = {
         "pulse": _notebook_row("pulse", state.notebook, pulse_truth, state.scenes_seen,
                                scenes_total["pulse"], state.spoken),

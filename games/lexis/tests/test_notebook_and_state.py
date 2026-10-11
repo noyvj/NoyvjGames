@@ -1,5 +1,5 @@
 from notebook import LexisState, Notebook
-from pulse import PULSE, spell_number
+from pulse import spell_number
 
 
 def test_the_notebook_stores_guesses_without_judging_them():

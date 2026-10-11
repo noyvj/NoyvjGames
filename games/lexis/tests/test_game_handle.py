@@ -272,3 +272,44 @@ def test_loading_garbage_for_planet_three_never_raises_and_loading_merges():
     game.load_state({"bridge": {"notebook": {"entries": {"n": "ask", "q": "ask"}}}})
     nb = call(action="open", planet="bridge")["notebook"]
     assert nb["n"] == "negate" and nb["q"] == "ask"
+
+
+# --- QA-1 code review regressions ------------------------------------------------------------------
+def test_a_bridge_number_with_non_mark_characters_is_answered_in_world_not_a_crash():
+    call(action="reset")
+    game.state.contact["pulse"] = True
+    game.state.contact["compound"] = True
+    for bad in ("ku p 0abc", "ku p 0222", "ku p 0 1 1"):
+        view = call(action="speak", planet="bridge", message=bad)
+        assert view["reaction"]["understood"] is False
+        assert view["reaction"]["reason"] in ("plural_needs_count", "extra")
+        assert view["stock"] == []
+
+
+def test_confirm_counts_a_repeated_entry_once_so_it_cannot_fake_a_perfect_check():
+    call(action="reset")
+    call(action="write", form="1000", gloss="lamp")
+    out = call(action="confirm", forms=["1000", "1000", "1000"])
+    assert out == {"right": 1, "chosen": 1}
+    assert "perfect_check" not in game.state.flags
+    assert call(action="confirm", forms="1000")["chosen"] == 0           # not a list: nothing chosen, no crash
+
+
+def test_a_saved_station_the_world_could_not_reach_is_ignored():
+    call(action="reset")
+    call(action="speak", marks=say_lamps(3))
+    game.load_state({"station": {"lamps": 99, "door": "ajar"}})
+    assert game.station.lamps == 3 and game.station.door == "shut"
+    game.load_state({"station": {"lamps": -1, "door": "open"}})
+    assert game.station.lamps == 3
+
+
+def test_never_shown_stays_earned_after_the_spoken_list_rolls_over():
+    call(action="reset")
+    game.state.contact["pulse"] = True
+    call(action="speak", planet="compound", glyph="ku")
+    assert "unseen_sign" in {a["id"] for a in call(action="open")["achievements"] if a["earned"]}
+    for _ in range(205):
+        call(action="speak", planet="compound", glyph="ko")
+    assert "ku" not in game.state.compound_spoken
+    assert "unseen_sign" in game.get_state()["achievements_earned"]

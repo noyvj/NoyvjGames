@@ -247,7 +247,10 @@ def handle(request_json):
         elif form and set(form) <= set("01") and len(form) == LANGUAGE.token_len:
             state.notebook.write(form, gloss)
     elif action == "confirm":
-        forms = [str(f) for f in request.get("forms", [])]
+        raw = request.get("forms", [])
+        # One entry counts once however often it is named (a repeated right entry must not fake a
+        # "three entries, all right" Check).
+        forms = list(dict.fromkeys(str(f) for f in raw)) if isinstance(raw, list) else []
         if bridge_planet:
             right = state.bridge_notebook.confirm(forms, truth=_bridge_truth)
         elif compound_planet:

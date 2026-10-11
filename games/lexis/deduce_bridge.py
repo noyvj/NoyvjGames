@@ -11,7 +11,7 @@ agrees on every sentence the language can form.
 import itertools
 from dataclasses import dataclass
 
-from bridge import MARKERS, MAX_PER_ITEM, Stock, describe_stock
+from bridge import MARKERS, Stock
 from compound import GlyphError, all_valid_glyphs, read_glyph
 from pulse import PULSE, spell_number
 

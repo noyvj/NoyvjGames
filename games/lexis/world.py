@@ -21,7 +21,12 @@ class Station:
 
     @staticmethod
     def from_dict(data):
-        return Station(int(data["lamps"]), str(data["door"]))
+        """Rebuild a saved station. Raises ValueError for a lamp count or door the station cannot have, so a
+        hand-edited save never puts the world into a state no signal could reach."""
+        lamps, door = int(data["lamps"]), str(data["door"])
+        if not 0 <= lamps <= MAX_NUMBER or door not in ("open", "shut"):
+            raise ValueError("not a station state")
+        return Station(lamps, door)
 
 
 @dataclass(frozen=True)
