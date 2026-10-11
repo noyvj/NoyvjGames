@@ -2595,6 +2595,7 @@ def _sync_collection(award=True):
             if award:
                 farm.funds += COMBO_REWARD_FUNDS
             found.append(f"combo {combo['label']}" + (f" (+{COMBO_REWARD_FUNDS} funds)" if award else ""))
+    found.extend(_sync_barns())
     if award and found:
         _display_milestone_toast("\U0001F4D6 Collection: " + ", ".join(found) + ".")
     return found
@@ -3014,16 +3015,21 @@ def undo_last_round():
     """Puts the farm back to the moment before the last Advance Round and charges the fee.
     Succession (generation, legacy points and perks, hall of fame) and collected breeds are
     kept as they are now; everything on the farm itself comes from the snapshot."""
-    global generation, legacy_points, legacy_perks, hall_of_fame, last_deltas, delta_faded
+    global generation, legacy_points, legacy_perks, hall_of_fame, last_deltas, delta_faded, barn_skin
     if not can_undo():
         return False
     snapshot = farm.undo_snapshot
     kept = (generation, legacy_points, dict(legacy_perks), list(hall_of_fame), list(breeds_collected))
+    kept_barns = (list(barns_unlocked), barn_skin)  # GF-17: unlocked barns are collected for good too
     load_state(snapshot)
     generation, legacy_points, legacy_perks, hall_of_fame = kept[0], kept[1], kept[2], kept[3]
     for breed_id in kept[4]:
         if breed_id not in breeds_collected:
             breeds_collected.append(breed_id)
+    for barn_id in kept_barns[0]:
+        if barn_id not in barns_unlocked:
+            barns_unlocked.append(barn_id)
+    barn_skin = kept_barns[1]
     farm.funds -= UNDO_PENALTY_FUNDS
     if farm.funds_history:
         farm.funds_history[-1] = farm.funds
@@ -4465,6 +4471,7 @@ def render():
     render_mixer()
     render_family_story()
     render_profile()
+    render_barns()
 
 
 # F-18: an optional "ask before a big purchase" setting. The Settings select (settings.js) keeps the
@@ -4860,6 +4867,11 @@ def get_state():
         state["hall_of_fame"] = [list(entry) for entry in hall_of_fame]
     if farm.undo_used:
         state["undo_used"] = True
+    # GF-17: barn skins unlocked and the one in use, written only when there is something to keep.
+    if barns_unlocked:
+        state["barns_unlocked"] = list(barns_unlocked)
+    if barn_skin != DEFAULT_BARN:
+        state["barn_skin"] = barn_skin
     # F-9: advisor pool state, written only once there is something to keep.
     if farm.policy_offer_pending and len(farm.policy_offer) == 2:
         state["policy_offer"] = list(farm.policy_offer)
@@ -4995,6 +5007,7 @@ def _load_progress_fields(data):
     combos_found = _valid_ids(data.get("combos_found"), COMBOS)
     farm.undo_used = data.get("undo_used") is True
     farm.undo_snapshot = None
+    _load_barns(data)
     farm.custom_rules_used = data.get("custom_rules_used") is True or rules_are_custom()
     hall_of_fame = []
     saved_hall = data.get("hall_of_fame")
@@ -5428,6 +5441,119 @@ def on_settings_import(event=None):
         render()
 
 
+# ---- GF-17 cosmetic barns ----------------------------------------------------------------------
+# Earning certain achievements unlocks a barn style (barn, fence and tractor tint together) for the
+# pasture picture. Purely cosmetic: nothing here touches a number. Unlocks are kept for good, across
+# generations (like breeds), and are recorded silently when a save loads.
+DEFAULT_BARN = "red"
+BARN_SKINS = [
+    {"id": "red", "label": "Red Barn", "glyph": "\U0001F404", "unlock": None},
+    {"id": "stone", "label": "Stone Barn", "glyph": "\U0001FAA8", "unlock": "growing_operation"},
+    {"id": "green", "label": "Green-Roof Barn", "glyph": "\U0001F33F", "unlock": "sustainably_certified"},
+    {"id": "sunflower", "label": "Sunflower Barn", "glyph": "\U0001F33B", "unlock": "plant_pioneer"},
+    {"id": "moonlit", "label": "Moonlit Barn", "glyph": "\U0001F319", "unlock": "long_haul"},
+    {"id": "gold", "label": "Golden Barn", "glyph": "⭐", "unlock": "decoupling_dividend"},
+]
+BARN_IDS = [skin["id"] for skin in BARN_SKINS]
+barns_unlocked = []  # unlocked skin ids other than the default; survives a handover
+barn_skin = DEFAULT_BARN
+barn_status_text = ""
+
+
+def barn_by_id(barn_id):
+    for skin in BARN_SKINS:
+        if skin["id"] == barn_id:
+            return skin
+    return None
+
+
+def barn_is_unlocked(barn_id):
+    return barn_id == DEFAULT_BARN or barn_id in barns_unlocked
+
+
+def _achievement_label(achievement_id):
+    for entry in ACHIEVEMENTS:
+        if entry["id"] == achievement_id:
+            return entry["label"]
+    return achievement_id
+
+
+def _sync_barns():
+    """Unlocks every barn whose achievement is earned right now. Returns labels of new ones."""
+    new = []
+    earned = None
+    for skin in BARN_SKINS:
+        if skin["unlock"] is None or skin["id"] in barns_unlocked:
+            continue
+        if earned is None:
+            earned = set(achievement_ids_earned())
+        if skin["unlock"] in earned:
+            barns_unlocked.append(skin["id"])
+            new.append(f"new barn {skin['label']}")
+    return new
+
+
+def _load_barns(data):
+    global barns_unlocked, barn_skin
+    barns_unlocked = [b for b in _valid_barn_ids(data.get("barns_unlocked")) if b != DEFAULT_BARN]
+    chosen = data.get("barn_skin")
+    barn_skin = chosen if isinstance(chosen, str) and chosen in BARN_IDS and barn_is_unlocked(chosen) else DEFAULT_BARN
+
+
+def _valid_barn_ids(raw):
+    if not isinstance(raw, list):
+        return []
+    result = []
+    for value in raw:
+        if isinstance(value, str) and value in BARN_IDS and value not in result:
+            result.append(value)
+    return result
+
+
+def choose_barn(barn_id):
+    """Picks an unlocked barn. Returns True when the choice changed."""
+    global barn_skin
+    if barn_id not in BARN_IDS or not barn_is_unlocked(barn_id) or barn_id == barn_skin:
+        return False
+    barn_skin = barn_id
+    return True
+
+
+def barn_card_state(skin):
+    """(button text, disabled, note) for one barn row."""
+    if skin["id"] == barn_skin:
+        return "In use", True, "Your barn right now."
+    if barn_is_unlocked(skin["id"]):
+        return "Use this barn", False, "Unlocked." if skin["unlock"] else "The one every farm starts with."
+    return "Locked", True, f"Earn the achievement {_achievement_label(skin['unlock'])}."
+
+
+def barn_summary_message():
+    return f"Barn styles unlocked: {1 + len(barns_unlocked)} of {len(BARN_SKINS)}. In use: {barn_by_id(barn_skin)['label']}."
+
+
+def render_barns():
+    visual = document.getElementById("pasture-visual")
+    visual.setAttribute("data-barn", barn_skin)
+    document.getElementById("barn-summary").innerText = barn_summary_message()
+    for skin in BARN_SKINS:
+        text, disabled, note = barn_card_state(skin)
+        button = document.getElementById(f"barn-use-{skin['id']}")
+        button.innerText = text
+        button.disabled = disabled
+        document.getElementById(f"barn-note-{skin['id']}").innerText = note
+    document.getElementById("barn-status").innerText = barn_status_text
+
+
+def _make_barn_handler(barn_id):
+    def handler(event=None):
+        global barn_status_text
+        if choose_barn(barn_id):
+            barn_status_text = f"{barn_by_id(barn_id)['label']} chosen. It only changes how the pasture looks."
+        render()
+    return handler
+
+
 def setup():
     # index.html already marks these hidden via the `hidden` attribute,
     # but that markup default doesn't exist for the pytest fake-DOM
@@ -5514,6 +5640,8 @@ def setup():
     for slot, (cow_id, _threshold) in enumerate(PASTURE_COW_THRESHOLDS):
         document.getElementById(cow_id).addEventListener("click", create_proxy(_make_cow_click_handler(slot)))
     document.getElementById("cow-listen-button").addEventListener("click", create_proxy(on_cow_listen))
+    for skin in BARN_SKINS:
+        document.getElementById(f"barn-use-{skin['id']}").addEventListener("click", create_proxy(_make_barn_handler(skin["id"])))
     document.getElementById("settings-export-button").addEventListener("click", create_proxy(on_settings_export))
     document.getElementById("settings-import-button").addEventListener("click", create_proxy(on_settings_import))
     document.getElementById("profile-select").addEventListener("change", create_proxy(on_profile_change))

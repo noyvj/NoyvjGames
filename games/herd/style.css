@@ -1733,3 +1733,30 @@ html[data-lite="true"] #game, html[data-lite="true"] .pinned-strip { backdrop-fi
   border: 1px solid rgba(127, 127, 127, 0.55); border-radius: 6px; resize: vertical; word-break: break-all;
 }
 .settings-code-buttons { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.5rem; }
+
+/* ---- Round 7: GF-17 cosmetic barns ---- */
+.pasture-visual { --barn-wall: #b5382c; --barn-roof: #6b2a22; --barn-trim: #fff4e6; --fence: #e9dcc0; --barn-mark: "\1F404"; --tractor-filter: none; }
+.pasture-visual[data-barn="stone"] { --barn-wall: #9a9a94; --barn-roof: #55555a; --barn-trim: #e6e6e0; --fence: #8a8a85; --barn-mark: "\1FAA8"; --tractor-filter: grayscale(0.7); }
+.pasture-visual[data-barn="green"] { --barn-wall: #4f8a5c; --barn-roof: #2f5f3a; --barn-trim: #f3f3e8; --fence: #cdb98a; --barn-mark: "\1F33F"; --tractor-filter: hue-rotate(70deg); }
+.pasture-visual[data-barn="sunflower"] { --barn-wall: #e2b934; --barn-roof: #8a5a14; --barn-trim: #fff7d6; --fence: #f3e0a0; --barn-mark: "\1F33B"; --tractor-filter: hue-rotate(25deg) saturate(1.3); }
+.pasture-visual[data-barn="moonlit"] { --barn-wall: #3b4a7a; --barn-roof: #232b4d; --barn-trim: #cfd8ff; --fence: #6f7aa8; --barn-mark: "\1F319"; --tractor-filter: hue-rotate(200deg); }
+.pasture-visual[data-barn="gold"] { --barn-wall: #d6a92f; --barn-roof: #f0d36a; --barn-trim: #fff3b0; --fence: #f0d36a; --barn-mark: "\2B50"; --tractor-filter: sepia(1) saturate(3); }
+.pasture-barn { position: absolute; right: 10px; bottom: 30px; width: 46px; height: 32px; background: var(--barn-wall); border: 2px solid var(--barn-trim); border-radius: 2px 2px 0 0; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3); z-index: 1; }
+.pasture-barn-roof { position: absolute; left: -7px; right: -7px; top: -13px; height: 12px; background: var(--barn-roof); clip-path: polygon(0 100%, 50% 0, 100% 100%); }
+.pasture-barn-door { position: absolute; left: 50%; bottom: -2px; width: 20px; height: 20px; margin-left: -10px; background: var(--barn-roof); border: 2px solid var(--barn-trim); border-bottom: 0; text-align: center; font-size: 11px; line-height: 17px; overflow: hidden; }
+.pasture-barn-door::after { content: var(--barn-mark); }
+.pasture-fence { position: absolute; left: 0; right: 0; bottom: 36px; height: 9px; z-index: 1; pointer-events: none;
+  background: repeating-linear-gradient(90deg, var(--fence) 0 3px, transparent 3px 11px); border-top: 2px solid var(--fence); opacity: 0.9; }
+.pasture-tractor { filter: var(--tractor-filter, none); }
+.barn-list { list-style: none; margin: 0.4rem 0 0; padding: 0; display: grid; gap: 0.4rem; }
+.barn-row { display: grid; grid-template-columns: 1.6rem 1fr auto; align-items: center; gap: 0.1rem 0.5rem; padding: 0.35rem 0.5rem; border: 1px solid rgba(127, 127, 127, 0.35); border-radius: 8px; }
+.barn-row .barn-name { font-weight: 700; font-size: 0.9rem; }
+.barn-row .barn-note { grid-column: 2; font-size: 0.78rem; opacity: 0.85; }
+.barn-row button { grid-column: 3; grid-row: 1 / span 2; margin: 0; min-width: 7rem; }
+.barn-swatch { grid-row: 1 / span 2; width: 1.4rem; height: 1.2rem; border-radius: 2px; border: 2px solid var(--swatch-trim, #fff); background: var(--swatch-wall, #b5382c); position: relative; }
+.barn-swatch::after { content: ""; position: absolute; left: -3px; right: -3px; top: -6px; height: 6px; background: var(--swatch-roof, #6b2a22); clip-path: polygon(0 100%, 50% 0, 100% 100%); }
+.barn-swatch--stone { --swatch-wall: #9a9a94; --swatch-roof: #55555a; }
+.barn-swatch--green { --swatch-wall: #4f8a5c; --swatch-roof: #2f5f3a; }
+.barn-swatch--sunflower { --swatch-wall: #e2b934; --swatch-roof: #8a5a14; }
+.barn-swatch--moonlit { --swatch-wall: #3b4a7a; --swatch-roof: #232b4d; }
+.barn-swatch--gold { --swatch-wall: #d6a92f; --swatch-roof: #f0d36a; }

@@ -1,6 +1,14 @@
 [
   {
     "date": "2026-10-11",
+    "entry": "Barn styles: five new barns (Stone, Green-Roof, Sunflower, Moonlit and Golden) are unlocked by earning achievements, each with its own fence and tractor tint and a small symbol on the barn door. Pick one in Barn styles; it only changes how the pasture looks, and unlocked barns are yours for good."
+  },
+  {
+    "date": "2026-10-11",
+    "entry": "New: a short round animation. After Advance Round a picture plays for under a second: a sun crossing its arc if you have solar, wind streaks if you have wind (more turbines, more streaks, up to four) and the demand curve drawing itself. It changes nothing in the game. Switch it off in Settings; it never plays under Reduce motion."
+  },
+  {
+    "date": "2026-10-11",
     "entry": "Settings code: one button makes a short code from your text size, display switches, play style, ranch rules, pinned stats and best coupling ratio, and another restores it on a second device. A bad code changes nothing, and it never contains your farm."
   },
   {
