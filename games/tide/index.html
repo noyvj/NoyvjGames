@@ -123,6 +123,7 @@
       <button id="planner-toggle-button" class="secondary" type="button">🧭 Season Planner</button>
       <button id="library-toggle-button" class="secondary" type="button">📚 Session Library</button>
       <button id="almanac-toggle-button" class="secondary" type="button">📖 Harbor Almanac</button>
+      <button id="daily-toggle-button" class="secondary" type="button" title="An optional once-a-day run: a seeded coastline, sea and storm forecast, any past day open, no streak.">📅 Daily Tide</button>
     </div>
     <!-- D-12: choose, pin and reorder the main panels (ui.js builds the controls and remembers them in this browser).
          Classic page only: the Desktop page arranges the same panels as windows. -->
@@ -314,6 +315,38 @@
       <p id="library-compare-caption" class="comparison-message"></p>
       <label class="library-overlay-label" for="library-overlay-select">Also show a saved session as dashed lines on the main graph
         <select id="library-overlay-select"></select></label>
+
+      <!-- D-3: share this run as a code, or view a friend's run as a read-only ghost. Nothing here changes your own run or save. -->
+      <div class="run-code-box" id="run-code-box">
+        <h3 class="run-code-heading">Share this run</h3>
+        <label for="run-code-output">Your run code (select it, or use the copy button)</label>
+        <textarea id="run-code-output" class="run-code-text" rows="3" readonly spellcheck="false"></textarea>
+        <div id="run-code-copy" class="run-code-copy"></div>
+        <p id="run-code-status" class="comparison-message" role="status"></p>
+        <h3 class="run-code-heading">View a friend's run</h3>
+        <label for="run-code-input">Paste a run code</label>
+        <input id="run-code-input" class="run-code-input" type="text" maxlength="400" autocomplete="off" spellcheck="false" placeholder="RUN-TIDE-...">
+        <div class="run-code-buttons">
+          <button id="run-code-load-button" class="secondary" type="button">Load ghost</button>
+          <button id="run-code-clear-button" class="secondary" type="button" hidden>Remove loaded ghosts</button>
+        </div>
+        <p id="run-code-message" class="comparison-message" role="status"></p>
+        <p class="comparison-message">A ghost is replayed from your friend's choices and shown dashed beside your own run, or as session B in the comparison above. It is never playable and never changes your run or save.</p>
+      </div>
+    </div>
+
+    <!-- GD-5: the Daily Tide. Optional, no streak, any past day is open. -->
+    <div id="daily-panel" class="section daily-panel" hidden>
+      <h2 class="ledger-heading">Daily Tide</h2>
+      <p class="comparison-message">One fixed run per UTC day: the date picks the coastline, the sea scenario and when the storms come, the same for everyone. Skipping a day costs nothing and there is no streak: any past day can be played whenever you like. Starting one replaces your current run (save it first if you want it).</p>
+      <label for="daily-date-input">Day to play (today or any earlier day)</label>
+      <input id="daily-date-input" class="daily-date" type="date" min="2026-01-01">
+      <p id="daily-plan" class="comparison-message"></p>
+      <button id="daily-start-button" class="secondary" type="button">Play today's daily</button>
+      <p id="daily-message" class="comparison-message" role="status"></p>
+      <p id="daily-status" class="comparison-message"></p>
+      <div id="daily-copy" class="daily-copy" hidden></div>
+      <p id="daily-archive" class="comparison-message"></p>
     </div>
 
     <!-- D-9: lifetime totals and personal bests for this browser. -->
@@ -516,6 +549,17 @@
           <option value="severe">Severe (high-emissions pathway, 6.5/season)</option>
         </select>
       </label>
+      <!-- D-8: named coastlines (elevation, heritage, economy, storms); locked once the first season is played. -->
+      <label class="sea-scenario-label" for="coastline-select" title="Choose the shape of the coast before the first season: each has its own elevation, heritage sites, economy and storm rhythm. Locked once the first season is played.">Coastline
+        <select id="coastline-select">
+          <option value="open" selected>Open coast (the standard game)</option>
+          <option value="delta">Low delta town</option>
+          <option value="headland">Rocky headland</option>
+          <option value="atoll">Atoll</option>
+          <option value="port">Dredged port</option>
+        </select>
+      </label>
+      <p id="coastline-blurb" class="comparison-message coastline-blurb"></p>
       <p id="damage-display" class="status-line">Cumulative damage: 0</p>
       <p id="damage-saved-display" class="comparison-message">No adaptation investment yet — every season of sea-level rise is hitting at full force.</p>
       <p id="damage-trend-display" class="comparison-message">Not enough seasons yet to show a trend.</p>
@@ -819,6 +863,11 @@
       // ENGINE_MODULES loop.
       const infoPageSource = await (await fetch("../../shared/info_page.py")).text();
       pyodide.FS.writeFile("info_page.py", infoPageSource, { encoding: "utf8" });
+      // D-3 / GD-5: the shared run-code and seed modules (run_code.py needs seed.py next to it).
+      for (const f of ["seed.py", "run_code.py"]) {
+        const src = await (await fetch("../../shared/" + f)).text();
+        pyodide.FS.writeFile(f, src, { encoding: "utf8" });
+      }
       // Achievements (ACHIEVEMENTS-SYSTEM-DESIGN.md): fetched alongside
       // game.py and handed in as a window global before it runs, same
       // contract SOL's reference integration established -- see
@@ -865,6 +914,7 @@
   <script src="../../shared/achievement-stats.js" data-game-id="tide"></script>
 <!-- wiring-oct8:start -->
   <!-- Z-20 shared Copy result button, Z-27 achievement Share buttons, Y-29 Credits link (2026-10-08). -->
+  <script src="../../shared/seed.js"></script>
   <script src="../../shared/copy-result.js" data-game-id="tide"></script>
   <script src="../../shared/achievement-share.js" data-game-id="tide" data-game-name="Tide"></script>
   <script>
@@ -919,6 +969,26 @@
         new MutationObserver(ensure).observe(panel, { childList: true });
       }
       mountCopy("session-summary-panel");
+      // D-3 / GD-5: one shared Copy result button for the run code and one for a finished Daily Tide line.
+      function pyFields(name) {
+        return function () {
+          try {
+            var fn = window.pyodide.globals.get(name);
+            var result = fn();
+            var out = result.toJs({ dict_converter: Object.fromEntries });
+            result.destroy();
+            fn.destroy();
+            return out;
+          } catch (e) {
+            return {};
+          }
+        };
+      }
+      if (window.NoyvjCopyResult) {
+        var CR = window.NoyvjCopyResult;
+        CR.mountButton("#run-code-copy", { label: "Copy run code", getResult: pyFields("run_code_copy_fields") });
+        CR.mountButton("#daily-copy", { label: "Copy daily result", getResult: pyFields("daily_copy_fields") });
+      }
       addCredits("howto-panel");
       addCredits("info-page-panel");
     })();
@@ -949,6 +1019,7 @@
         { toggle: "planner-toggle-button", panel: "planner-panel" },
         { toggle: "library-toggle-button", panel: "library-panel" },
         { toggle: "almanac-toggle-button", panel: "almanac-panel" },
+        { toggle: "daily-toggle-button", panel: "daily-panel" },
         { toggle: "info-page-toggle-button", panel: "info-page-panel" },
         { toggle: "dashboard-toggle-button", panel: "dashboard-panel" },
       ],

@@ -2,6 +2,18 @@
   "changelog": [
     {
       "date": "2026-10-11",
+      "entry": "New: choose a coastline before your first season. Open coast is the game as it always was; Low delta town floods early but fishes well and storms come every 4 seasons; Rocky headland floods late but earns less from fishing and more from visitors; Atoll holds its land for a long while and then loses it almost at once, with a calm lagoon for aquaculture; Dredged port is rich in Output and poor in tourism. Each has its own heritage sites, and the choice is locked once a run starts. Your best-run records stay for the Open coast."
+    },
+    {
+      "date": "2026-10-11",
+      "entry": "New: share a run. In the Session Library, Share this run makes a short run code (with a copy button) from your choices season by season; a friend pastes it under View a friend's run and Load ghost to see it as dashed lines on the graphs and as session B. It is replayed from the choices, held in memory only and never touches your own run or saves. Codes that are mistyped, cut off or changed are refused with a plain message, and nothing is checked on a server, so treat a friend's result as a friendly look, not proof."
+    },
+    {
+      "date": "2026-10-11",
+      "entry": "New: Daily Tide, an optional once-a-day run of 12 seasons. The date picks the coastline, the sea scenario and when three storms arrive, the same for everyone. There is no streak and nothing is lost by missing a day: any earlier day can be played whenever you like. A finished day gives a line to copy, such as \"Tide daily 2026-10-11: 12 seasons, 2 rows lost, 1 site saved\"."
+    },
+    {
+      "date": "2026-10-11",
       "entry": "New: a line beside the readouts says what next season would look like if you invest nothing more and just advance: funds, acidity, fishing yield, sea level and damage, each as now to next with an arrow and the change (plus a call-out when a coastline row would go under). It is worked out with the game's own rules on a copy of your settlement, so it matches what really happens and spends or changes nothing; hover any part for what it counts. It is on by default and Settings can hide it. On the Desktop page the Tide Workshop, Restore a previous save and Harbour crew folds are now one window, Workshop, restore and crew, in the Menu under Game, instead of three lines at the bottom of the screen, and the wildlife sightings list is a window under Records."
     },
     {

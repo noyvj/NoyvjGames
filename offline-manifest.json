@@ -987,22 +987,22 @@
     },
     {
      "path": "games/tide/changelog.json",
-     "bytes": 15002,
+     "bytes": 16603,
      "precached": false
     },
     {
      "path": "games/tide/game.py",
-     "bytes": 299513,
+     "bytes": 337773,
      "precached": true
     },
     {
      "path": "games/tide/index.html",
-     "bytes": 70035,
+     "bytes": 74817,
      "precached": true
     },
     {
      "path": "games/tide/pc-config.json",
-     "bytes": 4815,
+     "bytes": 4929,
      "precached": false
     },
     {
@@ -1012,7 +1012,7 @@
     },
     {
      "path": "games/tide/pc.html",
-     "bytes": 74232,
+     "bytes": 79119,
      "precached": true
     },
     {
@@ -1032,7 +1032,7 @@
     },
     {
      "path": "games/tide/style.css",
-     "bytes": 60090,
+     "bytes": 61589,
      "precached": true
     },
     {
@@ -1208,6 +1208,11 @@
      "precached": true
     },
     {
+     "path": "shared/seed.js",
+     "bytes": 29042,
+     "precached": true
+    },
+    {
      "path": "shared/site-settings.js",
      "bytes": 6290,
      "precached": false
@@ -1270,7 +1275,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14764080,
+   "bytes": 14844265,
    "bytes_complete": true
   },
   "aftermath": {
@@ -1287,32 +1292,32 @@
     },
     {
      "path": "games/aftermath/game.py",
-     "bytes": 262408,
+     "bytes": 297094,
      "precached": true
     },
     {
      "path": "games/aftermath/index.html",
-     "bytes": 62872,
+     "bytes": 67260,
      "precached": true
     },
     {
      "path": "games/aftermath/pc-config.json",
-     "bytes": 4318,
+     "bytes": 4505,
      "precached": false
     },
     {
      "path": "games/aftermath/pc.css",
-     "bytes": 7811,
+     "bytes": 8270,
      "precached": true
     },
     {
      "path": "games/aftermath/pc.html",
-     "bytes": 66658,
+     "bytes": 71177,
      "precached": true
     },
     {
      "path": "games/aftermath/pc.js",
-     "bytes": 6402,
+     "bytes": 6435,
      "precached": true
     },
     {
@@ -1327,12 +1332,12 @@
     },
     {
      "path": "games/aftermath/style.css",
-     "bytes": 69615,
+     "bytes": 78427,
      "precached": true
     },
     {
      "path": "games/aftermath/ui.js",
-     "bytes": 11274,
+     "bytes": 21403,
      "precached": true
     }
    ],
@@ -1590,7 +1595,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14786278,
+   "bytes": 14849491,
    "bytes_complete": true
   },
   "herd": {
@@ -1602,22 +1607,22 @@
     },
     {
      "path": "games/herd/changelog.json",
-     "bytes": 12871,
+     "bytes": 15629,
      "precached": false
     },
     {
      "path": "games/herd/game.py",
-     "bytes": 175807,
+     "bytes": 229692,
      "precached": true
     },
     {
      "path": "games/herd/index.html",
-     "bytes": 51942,
+     "bytes": 61389,
      "precached": true
     },
     {
      "path": "games/herd/pc-config.json",
-     "bytes": 3121,
+     "bytes": 3233,
      "precached": false
     },
     {
@@ -1627,7 +1632,7 @@
     },
     {
      "path": "games/herd/pc.html",
-     "bytes": 55399,
+     "bytes": 64934,
      "precached": true
     },
     {
@@ -1637,7 +1642,7 @@
     },
     {
      "path": "games/herd/settings.js",
-     "bytes": 19499,
+     "bytes": 26377,
      "precached": false
     },
     {
@@ -1652,7 +1657,7 @@
     },
     {
      "path": "games/herd/style.css",
-     "bytes": 51485,
+     "bytes": 56783,
      "precached": true
     }
    ],
@@ -1885,7 +1890,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14601680,
+   "bytes": 14689593,
    "bytes_complete": true
   },
   "thaw": {
@@ -2167,27 +2172,27 @@
    "files": [
     {
      "path": "games/loop/achievements.json",
-     "bytes": 4632,
+     "bytes": 5192,
      "precached": false
     },
     {
      "path": "games/loop/changelog.json",
-     "bytes": 8569,
+     "bytes": 13992,
      "precached": false
     },
     {
      "path": "games/loop/game.py",
-     "bytes": 165252,
+     "bytes": 216586,
      "precached": true
     },
     {
      "path": "games/loop/index.html",
-     "bytes": 48246,
+     "bytes": 56533,
      "precached": true
     },
     {
      "path": "games/loop/pc-config.json",
-     "bytes": 3007,
+     "bytes": 3128,
      "precached": false
     },
     {
@@ -2197,12 +2202,12 @@
     },
     {
      "path": "games/loop/pc.html",
-     "bytes": 51039,
+     "bytes": 59407,
      "precached": true
     },
     {
      "path": "games/loop/pc.js",
-     "bytes": 5448,
+     "bytes": 5759,
      "precached": true
     },
     {
@@ -2212,7 +2217,7 @@
     },
     {
      "path": "games/loop/settings.js",
-     "bytes": 8029,
+     "bytes": 15499,
      "precached": false
     },
     {
@@ -2222,12 +2227,12 @@
     },
     {
      "path": "games/loop/story.json",
-     "bytes": 7843,
+     "bytes": 8758,
      "precached": false
     },
     {
      "path": "games/loop/style.css",
-     "bytes": 57507,
+     "bytes": 71762,
      "precached": true
     }
    ],
@@ -2445,7 +2450,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14547280,
+   "bytes": 14644324,
    "bytes_complete": true
   },
   "drift": {
@@ -2457,17 +2462,17 @@
     },
     {
      "path": "games/drift/changelog.json",
-     "bytes": 8517,
+     "bytes": 12166,
      "precached": false
     },
     {
      "path": "games/drift/game.py",
-     "bytes": 214563,
+     "bytes": 256828,
      "precached": true
     },
     {
      "path": "games/drift/index.html",
-     "bytes": 49370,
+     "bytes": 57592,
      "precached": true
     },
     {
@@ -2482,7 +2487,7 @@
     },
     {
      "path": "games/drift/pc.html",
-     "bytes": 52433,
+     "bytes": 60655,
      "precached": true
     },
     {
@@ -2492,7 +2497,7 @@
     },
     {
      "path": "games/drift/settings.js",
-     "bytes": 7595,
+     "bytes": 11734,
      "precached": false
     },
     {
@@ -2507,12 +2512,12 @@
     },
     {
      "path": "games/drift/style.css",
-     "bytes": 46886,
+     "bytes": 61257,
      "precached": true
     },
     {
      "path": "games/drift/ui.js",
-     "bytes": 2684,
+     "bytes": 5880,
      "precached": true
     }
    ],
@@ -2735,7 +2740,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14586278,
+   "bytes": 14670342,
    "bytes_complete": true
   },
   "champ-de-mots": {
@@ -2747,7 +2752,7 @@
     },
     {
      "path": "games/champ-de-mots/changelog.json",
-     "bytes": 21703,
+     "bytes": 22050,
      "precached": false
     },
     {
@@ -2767,12 +2772,12 @@
     },
     {
      "path": "games/champ-de-mots/game.py",
-     "bytes": 423772,
+     "bytes": 422545,
      "precached": true
     },
     {
      "path": "games/champ-de-mots/index.html",
-     "bytes": 91493,
+     "bytes": 91371,
      "precached": true
     },
     {
@@ -2787,7 +2792,7 @@
     },
     {
      "path": "games/champ-de-mots/pc-config.json",
-     "bytes": 6218,
+     "bytes": 6146,
      "precached": false
     },
     {
@@ -2797,7 +2802,7 @@
     },
     {
      "path": "games/champ-de-mots/pc.html",
-     "bytes": 97337,
+     "bytes": 97171,
      "precached": true
     },
     {
@@ -3045,7 +3050,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 15584731,
+   "bytes": 15583491,
    "bytes_complete": true
   },
   "continuum": {
@@ -7731,37 +7736,37 @@
    "files": [
     {
      "path": "games/trade-empire/achievements.json",
-     "bytes": 4241,
+     "bytes": 4921,
      "precached": false
     },
     {
      "path": "games/trade-empire/changelog.json",
-     "bytes": 11349,
+     "bytes": 13006,
      "precached": false
     },
     {
      "path": "games/trade-empire/game.py",
-     "bytes": 224808,
+     "bytes": 256451,
      "precached": true
     },
     {
      "path": "games/trade-empire/index.html",
-     "bytes": 89206,
+     "bytes": 92535,
      "precached": true
     },
     {
      "path": "games/trade-empire/pc-config.json",
-     "bytes": 2552,
+     "bytes": 2626,
      "precached": false
     },
     {
      "path": "games/trade-empire/pc.css",
-     "bytes": 11872,
+     "bytes": 12003,
      "precached": true
     },
     {
      "path": "games/trade-empire/pc.html",
-     "bytes": 92290,
+     "bytes": 95717,
      "precached": true
     },
     {
@@ -7781,12 +7786,12 @@
     },
     {
      "path": "games/trade-empire/story.json",
-     "bytes": 9453,
+     "bytes": 10885,
      "precached": false
     },
     {
      "path": "games/trade-empire/style.css",
-     "bytes": 56964,
+     "bytes": 58158,
      "precached": true
     }
    ],
@@ -8019,7 +8024,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14716470,
+   "bytes": 14760037,
    "bytes_complete": true
   }
  }

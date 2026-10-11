@@ -36,6 +36,11 @@
       "Session Library"
     ],
     [
+      "daily-panel",
+      "daily-toggle-button",
+      "Daily Tide"
+    ],
+    [
       "almanac-panel",
       "almanac-toggle-button",
       "Harbor Almanac"
@@ -72,7 +77,8 @@
         "ids": [
           "planner-toggle-button",
           "sister-enable-button",
-          "hard-lag-toggle-button"
+          "hard-lag-toggle-button",
+          "daily-toggle-button"
         ]
       },
       {

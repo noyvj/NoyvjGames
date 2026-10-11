@@ -7,12 +7,16 @@ sea-level rise, and the tile-grid coastline land in later milestones.
 """
 
 import copy
+import datetime
 import html
 import json
 import math
+import re
 import time
 
 import info_page
+import run_code as shared_run_code
+import seed as shared_seed
 import js as _js
 from js import document, setTimeout
 from pyodide.ffi import create_proxy
@@ -360,31 +364,120 @@ def sea_level_wave_cue_duration(fraction):
     return SEA_LEVEL_WAVE_CUE_MAX_DURATION - span * fraction
 
 
-def row_flood_threshold(row):
-    elevation = COASTLINE_ROWS - row  # bottom row (index ROWS-1) = elevation 1
-    return elevation * ROW_FLOOD_STEP
+# D-8 (2026-10-11): named coastlines. Each has its own elevation profile (the sea level at which each row floods, row 0
+# at the top), heritage sites, economy weights (multipliers on Output, tourism and aquaculture income), storm interval
+# and surge size. "open" is the standard game and reproduces every number the game used before coastlines existed.
+DEFAULT_COASTLINE = "open"
+_OPEN_THRESHOLDS = tuple((COASTLINE_ROWS - row) * ROW_FLOOD_STEP for row in range(COASTLINE_ROWS))
+COASTLINES = {
+    "open": {
+        "label": "Open coast (the standard game)",
+        "blurb": "A gently sloping shore: one row floods about every three seasons.",
+        "thresholds": _OPEN_THRESHOLDS,
+        "heritage": HERITAGE_SITES,
+        "output": 1.0, "tourism": 1.0, "aquaculture": 1.0,
+        "storm_interval": STORM_INTERVAL, "surge": 1.0,
+    },
+    "delta": {
+        "label": "Low delta town",
+        "blurb": "Flat, fertile and close to the water: rows go under early, but the fishing is rich.",
+        "thresholds": (72.0, 60.0, 48.0, 35.0, 23.0, 10.0),
+        "heritage": [
+            {"id": "grain-hall", "name": "Old grain hall", "emoji": "\U0001F3DB\ufe0f", "row": 3, "cost": 110},
+            {"id": "ferry", "name": "Ferry landing", "emoji": "\u26F4\ufe0f", "row": 5, "cost": 150},
+        ],
+        "output": 1.2, "tourism": 0.9, "aquaculture": 1.1,
+        "storm_interval": 4, "surge": 1.0,
+    },
+    "headland": {
+        "label": "Rocky headland",
+        "blurb": "Steep ground that floods late, a thin fishery and a scenic harbour: strong tourism, and storms from the open sea.",
+        "thresholds": (120.0, 100.0, 80.0, 60.0, 45.0, 30.0),
+        "heritage": [
+            {"id": "watchtower", "name": "Cliff watchtower", "emoji": "\U0001F3F0", "row": 3, "cost": 130},
+            {"id": "chapel", "name": "Harbour chapel", "emoji": "\u26EA", "row": 4, "cost": 100},
+        ],
+        "output": 0.8, "tourism": 1.5, "aquaculture": 0.8,
+        "storm_interval": 4, "surge": 1.15,
+    },
+    "atoll": {
+        "label": "Atoll",
+        "blurb": "A narrow ring of land that stays dry for a long while, then goes almost all at once. A sheltered lagoon suits aquaculture and visitors, and storms are rarer.",
+        "thresholds": (80.0, 73.0, 66.0, 59.0, 52.0, 45.0),
+        "heritage": [
+            {"id": "coral-shrine", "name": "Coral shrine", "emoji": "\U0001F41A", "row": 3, "cost": 100},
+            {"id": "lagoon-school", "name": "Lagoon school", "emoji": "\U0001F3EB", "row": 4, "cost": 140},
+        ],
+        "output": 0.85, "tourism": 1.2, "aquaculture": 1.5,
+        "storm_interval": 6, "surge": 1.0,
+    },
+    "port": {
+        "label": "Dredged port",
+        "blurb": "Reclaimed land behind a working quay: the best Output income, little tourism and a cheap, exposed first row.",
+        "thresholds": (85.0, 70.0, 55.0, 40.0, 30.0, 20.0),
+        "heritage": [
+            {"id": "customs-house", "name": "Old customs house", "emoji": "\U0001F3E2", "row": 3, "cost": 120},
+            {"id": "crane", "name": "Steam crane", "emoji": "\U0001F3D7\ufe0f", "row": 5, "cost": 160},
+        ],
+        "output": 1.3, "tourism": 0.6, "aquaculture": 0.7,
+        "storm_interval": 5, "surge": 1.0,
+    },
+}
+COASTLINE_IDS = tuple(COASTLINES)
 
 
-def tile_row_state(row, sea_level):
-    return FLOODED if sea_level >= row_flood_threshold(row) else LAND
+def clean_coastline(coastline_id):
+    return coastline_id if isinstance(coastline_id, str) and coastline_id in COASTLINES else DEFAULT_COASTLINE
 
 
-def coastline_grid(sea_level):
+def _coast_id(coast_id=None):
+    """The coastline in force: the one given, else the running settlement's."""
+    if coast_id is None:
+        coast_id = getattr(globals().get("state"), "coastline", DEFAULT_COASTLINE)
+    return clean_coastline(coast_id)
+
+
+def coast_info(coast_id=None):
+    return COASTLINES[_coast_id(coast_id)]
+
+
+def heritage_sites(coast_id=None):
+    return coast_info(coast_id)["heritage"]
+
+
+def coast_meter_max(coast_id=None):
+    """The sea level at which even the highest row is flooded (the sea-level meter's full scale)."""
+    return max(coast_info(coast_id)["thresholds"])
+
+
+def coast_storm_interval(coast_id=None):
+    return coast_info(coast_id)["storm_interval"]
+
+
+def row_flood_threshold(row, coast_id=None):
+    return coast_info(coast_id)["thresholds"][row]
+
+
+def tile_row_state(row, sea_level, coast_id=None):
+    return FLOODED if sea_level >= row_flood_threshold(row, coast_id) else LAND
+
+
+def coastline_grid(sea_level, coast_id=None):
     """COASTLINE_ROWS x COASTLINE_COLS grid of "land"/"flooded" strings —
     pure state, no DOM — so the flood thresholds are testable without a
     browser."""
     return [
-        [tile_row_state(row, sea_level) for _ in range(COASTLINE_COLS)]
+        [tile_row_state(row, sea_level, coast_id) for _ in range(COASTLINE_COLS)]
         for row in range(COASTLINE_ROWS)
     ]
 
 
-def flooded_row_count(sea_level):
+def flooded_row_count(sea_level, coast_id=None):
     """How many of the COASTLINE_ROWS rows are flooded at a given sea
     level -- every row shares one state across all COASTLINE_COLS
     columns, so counting rows (not tiles) is the meaningful unit for
     "how much coastline is gone" (D4/D11/achievements all read this)."""
-    return sum(1 for row in range(COASTLINE_ROWS) if tile_row_state(row, sea_level) == FLOODED)
+    return sum(1 for row in range(COASTLINE_ROWS) if tile_row_state(row, sea_level, coast_id) == FLOODED)
 
 
 class SettlementState:
@@ -463,12 +556,20 @@ class SettlementState:
         self.recovery_celebrated_season = 0
         # D19: sea-level-rise scenario (locked after the first season).
         self.sea_scenario = DEFAULT_SEA_SCENARIO
+        # D-8: the named coastline (elevation, heritage, economy, storms); locked after the first season like the scenario.
+        self.coastline = DEFAULT_COASTLINE
+        # GD-5: a Daily Tide run ({"date", "seed", "storms", "done", ...}) or None for an ordinary run.
+        self.daily = None
+        # D-3: purchases per resolved season ([output, reduction, adaptation]) and the running season's counts, so a
+        # finished run can be shared as a run code.
+        self.season_buys = []
+        self.buys_now = [0, 0, 0]
         # D29: a light diegetic layer -- an optional player-chosen name
         # plus a short chronicle of the settlement's notable moments.
         self.settlement_name = ""
         self.chronicle = []
         # D17: id -> HERITAGE_* status.
-        self.heritage = {site["id"]: HERITAGE_UNPROTECTED for site in HERITAGE_SITES}
+        self.heritage = {site["id"]: HERITAGE_UNPROTECTED for site in heritage_sites(self.coastline)}
         # D21: how many facts revealed, and the season of the last report.
         self.monitoring_reports = 0
         self.monitoring_last_season = 0
@@ -553,7 +654,7 @@ class SettlementState:
     # ---- D1 managed retreat ------------------------------------------
     def row_lost(self, row):
         """True for a flooded row and for one given up by managed retreat."""
-        return row in self.retreat_rows or tile_row_state(row, self.sea_level) == FLOODED
+        return row in self.retreat_rows or tile_row_state(row, self.sea_level, self.coastline) == FLOODED
 
     def next_retreat_row(self):
         for row in range(COASTLINE_ROWS - 1, -1, -1):
@@ -572,7 +673,7 @@ class SettlementState:
         if not self.can_retreat():
             return False
         row = self.next_retreat_row()
-        if flooded_row_count(self.sea_level) <= RETREAT_EARLY_MAX_FLOODED:  # D-10
+        if flooded_row_count(self.sea_level, self.coastline) <= RETREAT_EARLY_MAX_FLOODED:  # D-10
             self.early_retreats += 1
         self.funds -= RETREAT_COST
         self.retreat_rows.append(row)
@@ -640,8 +741,12 @@ class SettlementState:
             TOURISM_INCOME_PER_LEVEL * land_rows / COASTLINE_ROWS
             + TOURISM_HERITAGE_BONUS * self.protected_heritage_count()
         )
+        if self.coast_weight("tourism") != 1.0:  # D-8
+            tourism *= self.coast_weight("tourism")
         multiplier = max(AQUACULTURE_MIN_MULTIPLIER, 1 - self.acidity / AQUACULTURE_ACIDITY_SCALE)
         aquaculture = self.diversification["aquaculture"] * AQUACULTURE_INCOME_PER_LEVEL * multiplier
+        if self.coast_weight("aquaculture") != 1.0:  # D-8
+            aquaculture *= self.coast_weight("aquaculture")
         return tourism, aquaculture
 
     # ---- D27 checkpoint replay ---------------------------------------
@@ -674,7 +779,7 @@ class SettlementState:
 
     # ---- D17 heritage ------------------------------------------------
     def protect_heritage(self, site_id):
-        site = next((x for x in HERITAGE_SITES if x["id"] == site_id), None)
+        site = next((x for x in heritage_sites(self.coastline) if x["id"] == site_id), None)
         if site is None or self.heritage.get(site_id) != HERITAGE_UNPROTECTED:
             return False
         if self.funds < site["cost"] or self.row_lost(site["row"]):
@@ -695,7 +800,7 @@ class SettlementState:
     def _update_heritage(self):
         """Unprotected sites whose row has flooded are lost; protected ones
         cost upkeep (never below zero funds)."""
-        for site in HERITAGE_SITES:
+        for site in heritage_sites(self.coastline):
             if (
                 self.heritage.get(site["id"]) == HERITAGE_UNPROTECTED
                 and self.row_lost(site["row"])
@@ -728,19 +833,26 @@ class SettlementState:
 
     # ---- D13 storms --------------------------------------------------
     def set_storm_mode(self, enabled):
-        self.storm_mode = bool(enabled)
+        self.storm_mode = bool(enabled) or bool(self.daily)  # GD-5: a daily's storms stay on
 
     def storm_this_season(self):
-        return self.storm_mode and self.season % STORM_INTERVAL == 0
+        if self.daily and self.daily.get("storms"):  # GD-5: the day's seeded storm seasons
+            return self.storm_mode and self.season in self.daily["storms"]
+        return self.storm_mode and self.season % coast_storm_interval(self.coastline) == 0
 
     def seasons_until_storm(self):
         """0 if the storm lands when this season resolves; None when off."""
         if not self.storm_mode:
             return None
-        return (-self.season) % STORM_INTERVAL
+        if self.daily and self.daily.get("storms"):
+            ahead = [s - self.season for s in self.daily["storms"] if s >= self.season]
+            return min(ahead) if ahead else None
+        return (-self.season) % coast_storm_interval(self.coastline)
 
     def storm_surge_strength(self):
-        return (STORM_BASE_SURGE + STORM_SURGE_GROWTH * len(self.storm_log)) * self.workshop["surge"]
+        base = (STORM_BASE_SURGE + STORM_SURGE_GROWTH * len(self.storm_log)) * self.workshop["surge"]
+        weight = COASTLINES[self.coastline]["surge"]
+        return base * weight if weight != 1.0 else base
 
     # ---- GD-3 bracing ------------------------------------------------------
     def can_brace_storm(self):
@@ -757,7 +869,7 @@ class SettlementState:
             self.brace[kind] += BRACE_STEP
             return True
         if kind == "evacuate":
-            exposed = [x for x in HERITAGE_SITES if self.heritage.get(x["id"]) == HERITAGE_UNPROTECTED]
+            exposed = [x for x in heritage_sites(self.coastline) if self.heritage.get(x["id"]) == HERITAGE_UNPROTECTED]
             if self.brace["evacuate"] or not exposed or self.funds < EVACUATE_COST:
                 return False
             self.funds -= EVACUATE_COST
@@ -786,7 +898,7 @@ class SettlementState:
         ratio = taken / surge if surge else 0.0
         self.last_storm_result = next(label for limit, label in STORM_RESULT_TIERS if ratio < limit)
         if self.last_storm_result == "Breached":
-            for site in HERITAGE_SITES:
+            for site in heritage_sites(self.coastline):
                 if self.heritage.get(site["id"]) == HERITAGE_UNPROTECTED and not self.brace["evacuate"]:
                     self.heritage[site["id"]] = HERITAGE_LOST
                     self._log_ticker(f"The {site['name'].lower()} was lost when the storm breached the defences.")
@@ -843,7 +955,7 @@ class SettlementState:
         return [
             row
             for row in range(COASTLINE_ROWS)
-            if self.sea_level < row_flood_threshold(row) <= effective
+            if self.sea_level < row_flood_threshold(row, self.coastline) <= effective
         ]
 
     def tide_text(self):
@@ -881,6 +993,10 @@ class SettlementState:
         """True for any run with non-standard rules: Workshop dials or the Tidal Chess challenge."""
         return self.chess_mode or any(self.workshop[k] != WORKSHOP_DEFAULTS[k] for k in WORKSHOP_DEFAULTS)
 
+    def keeps_records_out(self):
+        """Custom-rule runs and Daily Tide runs stay out of the Almanac, the personal best and the library."""
+        return self.workshop_active() or bool(self.daily)
+
     def set_chess_mode(self, enabled):
         if self.season > 1 and enabled != self.chess_mode:
             return False  # only before the first season resolves, so the score is comparable
@@ -895,10 +1011,24 @@ class SettlementState:
     def set_sea_scenario(self, scenario):
         """D19: only while nothing has been played yet -- changing the
         trajectory mid-run would silently rewrite history."""
-        if scenario not in SEA_SCENARIOS or self.damage_log or self.season != 1:
+        if scenario not in SEA_SCENARIOS or self.damage_log or self.season != 1 or self.daily:
             return False
         self.sea_scenario = scenario
         return True
+
+    def set_coastline(self, coastline_id):
+        """D-8: like the sea scenario, only before anything has been played (the elevation, heritage and economy
+        would otherwise rewrite history)."""
+        if coastline_id not in COASTLINES or self.damage_log or self.season != 1 or self.daily:
+            return False
+        if coastline_id != self.coastline:
+            self.coastline = coastline_id
+            self.heritage = {site["id"]: HERITAGE_UNPROTECTED for site in heritage_sites(coastline_id)}
+        return True
+
+    def coast_weight(self, kind):
+        """The economy weight of this coastline for "output", "tourism" or "aquaculture" (1.0 on the open coast)."""
+        return COASTLINES[self.coastline][kind]
 
     # ---- GD-8 Trade Winds ----------------------------------------------
     def market_offer_text(self):
@@ -921,7 +1051,7 @@ class SettlementState:
         return ""
 
     def _market_kind_for(self, season):
-        kinds = [k for k in MARKET_KINDS if k != "insurance" or flooded_row_count(self.sea_level) > 0]
+        kinds = [k for k in MARKET_KINDS if k != "insurance" or flooded_row_count(self.sea_level, self.coastline) > 0]
         return kinds[(season * 7 + season // MARKET_EVERY * 3) % len(kinds)]
 
     def _market_gain(self, kind):
@@ -929,7 +1059,7 @@ class SettlementState:
             return round((30 + 10 * self.diversification["aquaculture"]) * self.fish_yield_multiplier(), 1)
         if kind == "tourism":
             return float(25 + 25 * self.diversification["tourism"])
-        return float(10 * max(1, flooded_row_count(self.sea_level)) + 5 * (self.diversification["tourism"] + self.diversification["aquaculture"]))
+        return float(10 * max(1, flooded_row_count(self.sea_level, self.coastline)) + 5 * (self.diversification["tourism"] + self.diversification["aquaculture"]))
 
     def _update_market(self):
         """Called at the end of a resolved season: expire an unanswered deal, then offer the next one when due."""
@@ -987,6 +1117,7 @@ class SettlementState:
         old_tier_index = self.current_tier_index() if category == "adaptation" else None
         self.funds -= cost
         self.capacity[category] += 1
+        self.buys_now[CATEGORIES.index(category)] += 1  # D-3
         self.season_invested.add(category)  # GD-14
         if category == "adaptation":
             new_tier_index = self.current_tier_index()
@@ -997,7 +1128,7 @@ class SettlementState:
                     self.maxtier_seconds = round(self.active_seconds, 1)
                 if (
                     new_tier_index == len(ADAPTATION_TIERS) - 1
-                    and flooded_row_count(self.sea_level) == 0
+                    and flooded_row_count(self.sea_level, self.coastline) == 0
                 ):
                     self.fortified_in_time_earned = True
         return True
@@ -1135,7 +1266,7 @@ class SettlementState:
 
     def sister_rows_flooded(self):
         """How many of the sister's COASTLINE_ROWS rows the sea has reached."""
-        return sum(1 for row in range(COASTLINE_ROWS) if self.sister_sea_level() >= row_flood_threshold(row))
+        return sum(1 for row in range(COASTLINE_ROWS) if self.sister_sea_level() >= row_flood_threshold(row, self.coastline))
 
     def _advance_sister(self, rise):
         """D3: this season's effect of the sister on the shared funds. Called
@@ -1192,7 +1323,7 @@ class SettlementState:
         """0..1 — sea level relative to the point where even the highest
         coastline row would flood. Iteration-pass addition, giving the
         sea-level indicator its own meter distinct from acidity/fish."""
-        return min(1.0, self.sea_level / SEA_LEVEL_METER_MAX)
+        return min(1.0, self.sea_level / coast_meter_max(self.coastline))
 
     def next_flood_estimate(self):
         """D3: seasons remaining (rounded up) until the next currently-
@@ -1201,7 +1332,7 @@ class SettlementState:
         is already flooded -- "estimate" bottoms out at "already
         happened" rather than returning a nonsensical negative or None."""
         for row in range(COASTLINE_ROWS - 1, -1, -1):
-            threshold = row_flood_threshold(row)
+            threshold = row_flood_threshold(row, self.coastline)
             if self.sea_level < threshold:
                 remaining = threshold - self.sea_level
                 return math.ceil(remaining / self.sea_rise_per_season())
@@ -1221,7 +1352,7 @@ class SettlementState:
     def seasons_until_flood(self, row):
         """D26: seasons left at the current pace before `row` floods (0
         once it already has)."""
-        remaining = row_flood_threshold(row) - self.sea_level
+        remaining = row_flood_threshold(row, self.coastline) - self.sea_level
         if remaining <= 0:
             return 0
         return math.ceil(remaining / self.sea_rise_per_season())
@@ -1254,6 +1385,8 @@ class SettlementState:
         income = self.capacity["output"] * OUTPUT_INCOME_PER_UNIT * (
             share * self.fish_yield_multiplier() + (1 - share)
         )
+        if self.coast_weight("output") != 1.0:  # D-8
+            income *= self.coast_weight("output")
         acidity = (
             self.capacity["output"] * ACIDITY_RISE_PER_OUTPUT * cfg["acidity_multiplier"]
             - self.capacity["reduction"] * ACIDITY_FALL_PER_REDUCTION
@@ -1265,8 +1398,8 @@ class SettlementState:
         grids -- rows flooded and damage taken, measured against whatever
         baseline_* currently points at (Season 1 by default, or a
         player-chosen checkpoint via set_comparison_baseline())."""
-        then_flooded = flooded_row_count(self.baseline_sea_level)
-        now_flooded = flooded_row_count(self.sea_level)
+        then_flooded = flooded_row_count(self.baseline_sea_level, self.coastline)
+        now_flooded = flooded_row_count(self.sea_level, self.coastline)
         damage_since_baseline = self.cumulative_damage - self.baseline_damage
         return (
             f"Then (Season {self.baseline_season}): {then_flooded}/{COASTLINE_ROWS} rows flooded. "
@@ -1380,7 +1513,7 @@ class SettlementState:
         """What the ledger cannot rebuild: the sea level, which heritage
         sites were safe, and which rows had been given up, as of the end of
         the season just resolved."""
-        code = "".join(HERITAGE_CODES.get(self.heritage.get(site["id"]), "u") for site in HERITAGE_SITES)
+        code = "".join(HERITAGE_CODES.get(self.heritage.get(site["id"]), "u") for site in heritage_sites(self.coastline))
         self.season_snapshots.append(
             [resolved_season, round(self.sea_level, 1), code, list(self.retreat_rows)]
         )
@@ -1393,7 +1526,7 @@ class SettlementState:
         fixed starting state."""
         if not isinstance(position, int) or position < 1 or position >= self.season:
             return None
-        heritage = {site["id"]: HERITAGE_UNPROTECTED for site in HERITAGE_SITES}
+        heritage = {site["id"]: HERITAGE_UNPROTECTED for site in heritage_sites(self.coastline)}
         if position == 1:
             return {
                 "season": 1, "funds": float(STARTING_FUNDS), "acidity": 0.0, "fish_yield": 1.0,
@@ -1405,7 +1538,7 @@ class SettlementState:
         snap = next((x for x in self.season_snapshots if x[0] == resolved), None)
         if entry is None or snap is None or len(self.damage_log) < resolved:
             return None
-        for site, letter in zip(HERITAGE_SITES, snap[2]):
+        for site, letter in zip(heritage_sites(self.coastline), snap[2]):
             heritage[site["id"]] = next((k for k, v in HERITAGE_CODES.items() if v == letter), HERITAGE_UNPROTECTED)
         return {
             "season": position, "funds": entry["funds"], "acidity": entry["acidity"],
@@ -1421,7 +1554,7 @@ class SettlementState:
     def scrub_text(self, snap):
         tier = ADAPTATION_TIERS[snap["tier"]]
         sites = "; ".join(
-            f"{site['name'].lower()} {snap['heritage'][site['id']]}" for site in HERITAGE_SITES
+            f"{site['name'].lower()} {snap['heritage'][site['id']]}" for site in heritage_sites(self.coastline)
         )
         return (
             f"Start of Season {snap['season']} (read-only, your live run is untouched): "
@@ -1447,7 +1580,7 @@ class SettlementState:
         player can afford to protect right now."""
         return [
             site
-            for site in HERITAGE_SITES
+            for site in heritage_sites(self.coastline)
             if self.heritage.get(site["id"]) == HERITAGE_UNPROTECTED
             and not self.row_lost(site["row"])
             and self.funds >= site["cost"]
@@ -1510,7 +1643,7 @@ class SettlementState:
         view = view or self.coast_view()
         if row in view["retreat_rows"]:
             status = "cleared by managed retreat"
-        elif tile_row_state(row, view["sea_level"]) == FLOODED:
+        elif tile_row_state(row, view["sea_level"], self.coastline) == FLOODED:
             status = "flooded"
         else:
             status = "dry"
@@ -1518,7 +1651,7 @@ class SettlementState:
         tier_index = view["tier"]
         if tier_index and _is_seawall_row(row, tier_index):
             parts.append(f"seawall tier {tier_index}")
-        site = next((x for x in HERITAGE_SITES if x["row"] == row), None)
+        site = next((x for x in heritage_sites(self.coastline) if x["row"] == row), None)
         if site is not None and (col is None or col == HERITAGE_COL):
             heritage = view["heritage"].get(site["id"])
             parts.append(f"{site['name'].lower()} {heritage}")
@@ -1638,7 +1771,7 @@ class SettlementState:
         settlement, ever."""
         if self.first_flood_announced:
             return
-        if flooded_row_count(self.sea_level) >= 1:
+        if flooded_row_count(self.sea_level, self.coastline) >= 1:
             self.first_flood_announced = True
             self._log_ticker(
                 "The first coastline tile has flooded — the sea has arrived."
@@ -1646,12 +1779,17 @@ class SettlementState:
             self._chronicle_event("The first stretch of coast went under.")
 
     def advance_season(self):
+        self.season_buys.append(list(self.buys_now))  # D-3: what was bought in the season now resolving
+        self.season_buys = self.season_buys[-LEDGER_LIMIT:]
+        self.buys_now = [0, 0, 0]
         old_fish_yield = self.fish_yield_multiplier()
         mix = OUTPUT_MIX[self.output_mix]
         fishing_share = mix["fishing_share"]
         income = self.capacity["output"] * OUTPUT_INCOME_PER_UNIT * (
             fishing_share * old_fish_yield + (1 - fishing_share)
         )
+        if self.coast_weight("output") != 1.0:  # D-8
+            income *= self.coast_weight("output")
         tourism_income, aquaculture_income = self.diversified_income()
         funds_start = self.funds  # D-28
         # GD-14: investing in all three categories this season extends the balanced streak; skipping one breaks it.
@@ -1668,7 +1806,7 @@ class SettlementState:
         self.funds += (income + tourism_income + aquaculture_income) * multiplier
         if self.domino_seasons_left > 0:  # GD-28: the comeback discount runs down one season at a time
             self.domino_seasons_left -= 1
-        rows_flooded_before = flooded_row_count(self.sea_level)
+        rows_flooded_before = flooded_row_count(self.sea_level, self.coastline)
         self.max_funds_ever = max(self.max_funds_ever, self.funds)
 
         output_rise = self.capacity["output"] * ACIDITY_RISE_PER_OUTPUT * mix["acidity_multiplier"]
@@ -1689,7 +1827,7 @@ class SettlementState:
 
         rise = self.sea_rise_per_season()
         self.sea_level += rise
-        newly_flooded = flooded_row_count(self.sea_level) - rows_flooded_before
+        newly_flooded = flooded_row_count(self.sea_level, self.coastline) - rows_flooded_before
         if newly_flooded >= DOMINO_MIN_ROWS:  # GD-28: a disaster that becomes a pivot
             self.domino_seasons_left = DOMINO_DISCOUNT_SEASONS
             self.domino_count += 1
@@ -1855,7 +1993,7 @@ def _resync_previous_flooded_rows():
 def heritage_site_at(row, col):
     if col != HERITAGE_COL:
         return None
-    for site in HERITAGE_SITES:
+    for site in heritage_sites():
         if site["row"] == row:
             return site
     return None
@@ -2398,7 +2536,7 @@ def _maybe_update_best_coastline_saved():
     """Called every render(); bumps + persists the record whenever the
     live session's damage_saved() exceeds it."""
     global best_coastline_saved
-    if state.workshop_active():  # D-5: custom rules never set the standard best
+    if state.keeps_records_out():  # D-5 / GD-5: custom rules and daily runs never set the standard best
         return
     saved = state.damage_saved()
     if saved > best_coastline_saved:
@@ -2514,7 +2652,7 @@ def _max_tier_index():
 
 
 def _all_heritage_protected():
-    return state.protected_heritage_count() >= len(HERITAGE_SITES)
+    return state.protected_heritage_count() >= len(heritage_sites())
 
 
 ACHIEVEMENT_CHECKS = {
@@ -2587,7 +2725,7 @@ ACHIEVEMENT_PROGRESS = {
     "storm_bronze": lambda: (state.storms_weathered, RANK_STORMS_WEATHERED[0]),
     "storm_silver": lambda: (state.storms_weathered, RANK_STORMS_WEATHERED[1]),
     "storm_gold": lambda: (state.storms_clean, RANK_STORMS_CLEAN),
-    "heritage_silver": lambda: (state.protected_heritage_count(), len(HERITAGE_SITES)),
+    "heritage_silver": lambda: (state.protected_heritage_count(), len(heritage_sites())),
     "heritage_gold": lambda: (min(state.season, RANK_HERITAGE_GOLD_SEASON) if _all_heritage_protected() else 0,
                               RANK_HERITAGE_GOLD_SEASON),
     "retreat_silver": lambda: (len(state.retreat_rows), RETREAT_MAX_STEPS),
@@ -2986,7 +3124,7 @@ def ticker_category(message):
         text.startswith(("monitoring report", "checkpoint", "replaying", "managed retreat"))
         or "people had to leave" in text
         or "founded" in text
-        or any(site["name"].lower() in text for site in HERITAGE_SITES)
+        or any(site["name"].lower() in text for site in heritage_sites())
     ):
         return "chronicle"
     if any(word in text for word in ("fish", "acidity", "stock", "yield")):
@@ -3413,6 +3551,7 @@ library_b = ""
 library_overlay_id = ""
 _library_status = ""
 _library_proxies = []
+_ghosts = {}  # D-3: friends' runs loaded from run codes ("g1", "g2", ...): memory only, never saved, never playable
 
 
 def _clean_series(values):
@@ -3439,6 +3578,7 @@ def _validate_session_record(item):
         or not isinstance(rows_dry, int) or isinstance(rows_dry, bool) or not 0 <= rows_dry <= COASTLINE_ROWS
         or not isinstance(tier, int) or isinstance(tier, bool) or not 0 <= tier < len(ADAPTATION_TIERS)
         or item.get("scenario") not in SEA_SCENARIOS
+        or item.get("coast", DEFAULT_COASTLINE) not in COASTLINES
         or item.get("lag") not in ("standard", "hard")
         or not isinstance(item.get("storms"), bool)
         or not _finite_number(item.get("score"), -1e9, 1e9)
@@ -3447,7 +3587,7 @@ def _validate_session_record(item):
         return None
     return {
         "id": rid, "name": " ".join(name.split())[:SETTLEMENT_NAME_MAX] or f"Session {rid}",
-        "seasons": seasons, "scenario": item["scenario"], "lag": item["lag"],
+        "seasons": seasons, "scenario": item["scenario"], "lag": item["lag"], "coast": item.get("coast", DEFAULT_COASTLINE),
         "storms": item["storms"], "score": round(float(item["score"]), 1),
         "rows_dry": rows_dry, "tier": tier, "acidity": acidity, "fish": fish,
     }
@@ -3476,7 +3616,7 @@ def live_session_record():
     """The running session in the same shape as a saved one."""
     return {
         "id": LIBRARY_CURRENT, "name": state.display_name(), "seasons": max(0, state.season - 1),
-        "scenario": state.sea_scenario, "lag": "hard" if state.hard_lag_mode else "standard",
+        "scenario": state.sea_scenario, "lag": "hard" if state.hard_lag_mode else "standard", "coast": state.coastline,
         "storms": bool(state.storm_mode), "score": round(state.damage_saved(), 1),
         "rows_dry": state.rows_dry_count(), "tier": state.current_tier_index(),
         "acidity": [round(min(1.0, a / FISH_DAMAGE_SCALE), 3) for a in state.acidity_history][-LEDGER_LIMIT:],
@@ -3487,6 +3627,8 @@ def live_session_record():
 def library_get(session_id):
     if session_id == LIBRARY_CURRENT:
         return live_session_record()
+    if str(session_id) in _ghosts:  # D-3: a friend's run loaded from a code (memory only)
+        return _ghosts[str(session_id)]
     for record in library_records():
         if str(record["id"]) == str(session_id):
             return record
@@ -3505,8 +3647,10 @@ def library_overlay_record():
 def library_summary_text(record):
     lag = "harder lag" if record["lag"] == "hard" else "standard lag"
     storms = ", storm seasons on" if record["storms"] else ""
+    coast = record.get("coast", DEFAULT_COASTLINE)
+    coast_text = f"{COASTLINES[coast]['label']}, " if coast != DEFAULT_COASTLINE else ""
     return (
-        f"{record['name']}: {record['seasons']} seasons, {record['scenario']} sea, {lag}{storms}. "
+        f"{record['name']}: {record['seasons']} seasons, {coast_text}{record['scenario']} sea, {lag}{storms}. "
         f"Damage avoided {record['score']:.0f}, {record['rows_dry']} of {COASTLINE_ROWS} rows dry, "
         f"tier {TIER_BADGES[record['tier']]} {ADAPTATION_TIERS[record['tier']]['name']}."
     )
@@ -3516,8 +3660,8 @@ def library_save_current():
     """D-2: stores the running session (its settings, outcome and the acidity and fish-yield
     series) in this browser. Needs a few seasons so a saved session is worth comparing."""
     global _library_status, library_b
-    if state.workshop_active():  # D-5
-        _library_status = "Runs with custom Workshop rules are not saved to the library."
+    if state.keeps_records_out():  # D-5 / GD-5
+        _library_status = "Runs with custom Workshop rules, and Daily Tide runs, are not saved to the library."
         return False
     if state.season - 1 < LIBRARY_MIN_SEASONS:
         _library_status = f"Play at least {LIBRARY_MIN_SEASONS} seasons before saving a session to the library."
@@ -3592,7 +3736,7 @@ def _session_options(records, blank=None, include_current=True):
         options.append(f'<option value="">{html.escape(blank)}</option>')
     if include_current:
         options.append(f'<option value="{LIBRARY_CURRENT}">Current session (Season {state.season})</option>')
-    for record in records:
+    for record in list(records) + list(_ghosts.values()):
         options.append(
             f'<option value="{record["id"]}">{html.escape(record["name"])} '
             f"({record['seasons']} seasons)</option>"
@@ -3611,7 +3755,7 @@ def render_library():
     if not library_open:
         return
     records = library_records()
-    valid = {str(r["id"]) for r in records}
+    valid = {str(r["id"]) for r in records} | set(_ghosts)
     if library_a != LIBRARY_CURRENT and library_a not in valid:
         library_a = LIBRARY_CURRENT
     if library_b not in valid:
@@ -3656,6 +3800,7 @@ def render_library():
             item.appendChild(text)
             item.appendChild(remove)
             listing.appendChild(item)
+    render_run_code_box()
     compare = document.getElementById("library-compare-graph")
     if compare is not None:
         svg = library_compare_svg(library_get(library_a), library_get(library_b) if library_b else None)
@@ -3696,6 +3841,614 @@ def _make_library_select_handler(name):
             render_graphs()
         render_library()
     return handler
+
+
+# ---- D-3 shareable run codes (shared/run_code.py) --------------------------------------------------------------
+# A finished run becomes a short text a friend pastes in the Session Library to view it as a "ghost": a read-only
+# overlay (and a per-season crosshair read-out) against their own run. A ghost is replayed from the choices into the
+# same record shape the library uses; it is never a playable state and never touches the viewer's run or save.
+#
+# The shared format carries a mode word (8 symbols), a score and two numbers. Tide packs a bit stream into them:
+#   header (39 bits): coastline 3, sea scenario 2, harder lag 1, storm seasons 1, output mix 2, seasons played 6,
+#                     seasons in the code 6, damage avoided 12, rows dry 3, tier 3
+#   then per season, three Elias-gamma numbers: Output, Reduction and Adaptation purchases that season.
+# Mode word = the first 40 bits (8 symbols of 5 bits), then score, stat 1 and stat 2 = 48 bits each: 184 bits in all.
+# When a long run does not fit, the code holds its first seasons (the header says how many of how many).
+RUN_CODE_GAME = "tide"
+RUN_CODE_ALPHABET = "0123456789abcdefghjkmnpqrstvwxyz"  # 32 symbols, 5 bits each (lower-case a-z0-9 as the mode word allows)
+RUN_CODE_BITS = 40 + 48 * 3
+RUN_CODE_HEADER_BITS = 39
+RUN_CODE_MIN_SEASONS = 3
+RUN_CODE_MAX_INPUT = 400
+RUN_CODE_BUY_CAP = 63  # purchases per category per season held in a code
+RUN_CODE_NOTE = ("Run codes are not checked against a server: anyone can write one with any result, so treat it as a "
+                 "friendly look at their run, not proof.")
+GHOST_LIMIT = 6
+_ghost_seq = [0]
+_run_code_message = ["", False]  # text, is-a-problem
+
+
+def _bits_of(value, width):
+    return [(value >> (width - 1 - i)) & 1 for i in range(width)]
+
+
+def _gamma_bits(value):
+    n = value + 1
+    return [0] * (n.bit_length() - 1) + _bits_of(n, n.bit_length())
+
+
+def _take(bits, pos, width):
+    if pos + width > len(bits):
+        return None, pos
+    value = 0
+    for b in bits[pos:pos + width]:
+        value = (value << 1) | b
+    return value, pos + width
+
+
+def _take_gamma(bits, pos):
+    zeros = 0
+    while True:
+        if pos >= len(bits) or zeros > 7:
+            return None, pos
+        if bits[pos]:
+            break
+        zeros += 1
+        pos += 1
+    value, pos = _take(bits, pos, zeros + 1)
+    if value is None:
+        return None, pos
+    return value - 1, pos
+
+
+def run_code_blocker():
+    """"" when this run can be shared, else the plain reason it cannot."""
+    if state.workshop_active() or state.acid_boss_mode:
+        return "Runs with custom Workshop rules, Tidal Chess or the Acid Tide boss are not shared as codes."
+    if state.daily:
+        return "Daily Tide results are shared with the Copy result button instead."
+    seasons = state.season - 1
+    if seasons < RUN_CODE_MIN_SEASONS:
+        return f"Play at least {RUN_CODE_MIN_SEASONS} seasons to make a run code."
+    if len(state.season_buys) < seasons or seasons > 63:
+        return ("This run began before purchases were logged (or is longer than 63 seasons), so it cannot be shared. "
+                "A new run can.")
+    return ""
+
+
+def _pack_run(params):
+    """params -> the 184-bit list, or None. `buys` is a list of [output, reduction, adaptation] counts."""
+    buys = params["buys"]
+    shown = len(buys)
+    while True:
+        bits = []
+        for value, width in (
+            (COASTLINE_IDS.index(params["coast"]), 3), (list(SEA_SCENARIOS).index(params["scenario"]), 2),
+            (1 if params["lag"] == "hard" else 0, 1), (1 if params["storms"] else 0, 1),
+            (list(OUTPUT_MIX).index(params["mix"]), 2), (params["played"], 6), (shown, 6),
+            (min(4095, max(0, int(round(params["score"])))), 12), (params["rows_dry"], 3), (params["tier"], 3),
+        ):
+            bits += _bits_of(value, width)
+        for row in buys[:shown]:
+            for count in row:
+                bits += _gamma_bits(min(RUN_CODE_BUY_CAP, count))
+        if len(bits) <= RUN_CODE_BITS:
+            return bits + [0] * (RUN_CODE_BITS - len(bits)), shown
+        shown -= 1
+        if shown < 1:
+            return None, 0
+
+
+def _bits_to_fields(bits):
+    mode = "".join(RUN_CODE_ALPHABET[int("".join(map(str, bits[i:i + 5])), 2)] for i in range(0, 40, 5))
+    parts = [int("".join(map(str, bits[40 + 48 * i:88 + 48 * i])), 2) for i in range(3)]
+    return mode, parts
+
+
+def _fields_to_bits(mode, parts):
+    bits = []
+    for ch in mode:
+        bits += _bits_of(RUN_CODE_ALPHABET.index(ch), 5)
+    for value in parts:
+        bits += _bits_of(value, 48)
+    return bits
+
+
+def _current_run_params():
+    return {
+        "coast": state.coastline, "scenario": state.sea_scenario, "lag": "hard" if state.hard_lag_mode else "standard",
+        "storms": bool(state.storm_mode), "mix": state.output_mix, "played": state.season - 1,
+        "score": state.damage_saved(), "rows_dry": state.rows_dry_count(), "tier": state.current_tier_index(),
+        "buys": [list(row) for row in state.season_buys[:state.season - 1]],
+    }
+
+
+def build_run_code():
+    """(code, "") for the running session, or ("", why not)."""
+    why = run_code_blocker()
+    if why:
+        return "", why
+    bits, shown = _pack_run(_current_run_params())
+    if bits is None:
+        return "", "This run is too large to fit in a code."
+    mode, parts = _bits_to_fields(bits)
+    try:
+        return shared_run_code.encode({"game": RUN_CODE_GAME, "mode": mode, "score": parts[0], "stats": parts[1:]}), ""
+    except ValueError as error:  # RunCodeError is a ValueError
+        return "", f"This run could not be turned into a code ({error})."
+
+
+def run_code_preview(params, shown=None):
+    seasons = params["played"]
+    coast = COASTLINES[params["coast"]]["label"]
+    lag = "harder lag" if params["lag"] == "hard" else "standard lag"
+    tier = ADAPTATION_TIERS[params["tier"]]["name"]
+    text = (f"{coast}, {params['scenario']} sea, {lag}{', storm seasons on' if params['storms'] else ''}: {seasons} seasons, "
+            f"{params['score']:.0f} damage avoided, {params['rows_dry']} of {COASTLINE_ROWS} rows dry, {tier}.")
+    if shown is not None and shown < seasons:
+        text += f" The code holds the first {shown} seasons of choices."
+    return text
+
+
+def decode_run_code(text):
+    """Reads a pasted code. Returns {"ok", "message", "params"}; never raises, never changes any game state."""
+    if not isinstance(text, str) or not text.strip():
+        return {"ok": False, "message": "Paste a run code first.", "params": None}
+    if len(text) > RUN_CODE_MAX_INPUT:
+        return {"ok": False, "message": f"That is too long to be a run code (over {RUN_CODE_MAX_INPUT} characters). Nothing was read.", "params": None}
+    decoded = shared_run_code.decode(text, RUN_CODE_GAME)
+    if not decoded.get("ok") and decoded.get("error") == "format":
+        match = re.search(r"RUN-TIDE(?:-[A-Z0-9]+)+", text.upper())  # "Tide run code, RUN-TIDE-..." as copied
+        if match:
+            decoded = shared_run_code.decode(match.group(0), RUN_CODE_GAME)
+    if not decoded.get("ok"):
+        message = decoded.get("message") or "That does not look like a Tide run code."
+        if decoded.get("error") == "checksum":
+            message = "That code has a typing mistake or was cut off or changed, so it was not loaded. Check it against the original."
+        return {"ok": False, "message": message, "params": None}
+    stats = decoded.get("stats") or []
+    mode = decoded.get("mode") or ""
+    if len(stats) != 2 or len(mode) != 8 or any(ch not in RUN_CODE_ALPHABET for ch in mode) or decoded.get("seed"):
+        return {"ok": False, "message": "That is a run code, but not from this version of Tide's run codes, so it was not loaded.", "params": None}
+    bits = _fields_to_bits(mode, [decoded["score"], stats[0], stats[1]])
+    problem = "The contents of that code do not look like a real Tide run, so it was not loaded."
+    pos = 0
+    values = []
+    for width in (3, 2, 1, 1, 2, 6, 6, 12, 3, 3):
+        value, pos = _take(bits, pos, width)
+        values.append(value)
+    coast_i, scen_i, lag, storms, mix_i, played, shown, score, rows_dry, tier = values
+    if (coast_i >= len(COASTLINE_IDS) or scen_i >= len(SEA_SCENARIOS) or mix_i >= len(OUTPUT_MIX) or not 1 <= shown <= played <= 63
+            or shown > played or rows_dry > COASTLINE_ROWS or tier >= len(ADAPTATION_TIERS) or played < RUN_CODE_MIN_SEASONS):
+        return {"ok": False, "message": problem, "params": None}
+    buys = []
+    for _season in range(shown):
+        row = []
+        for _cat in range(3):
+            count, pos = _take_gamma(bits, pos)
+            if count is None or count > RUN_CODE_BUY_CAP:
+                return {"ok": False, "message": problem, "params": None}
+            row.append(count)
+        buys.append(row)
+    if any(bits[pos:]) or sum(sum(r) for r in buys) > 600:
+        return {"ok": False, "message": problem, "params": None}
+    params = {
+        "coast": COASTLINE_IDS[coast_i], "scenario": list(SEA_SCENARIOS)[scen_i], "lag": "hard" if lag else "standard",
+        "storms": bool(storms), "mix": list(OUTPUT_MIX)[mix_i], "played": played, "shown": shown, "score": float(score),
+        "rows_dry": rows_dry, "tier": tier, "buys": buys,
+    }
+    return {"ok": True, "message": "", "params": params}
+
+
+def replay_run(params):
+    """The curves of a decoded run, replayed through the game's own season rules on a scratch settlement (the
+    running state is swapped out only for the length of the call). Returns the library-shaped acidity and fish series."""
+    global state
+    real = state
+    scratch = SettlementState()
+    scratch.sea_scenario = params["scenario"]
+    scratch.set_coastline(params["coast"])
+    scratch.hard_lag_mode = params["lag"] == "hard"
+    scratch.output_mix = params["mix"]
+    state = scratch
+    try:
+        for row in params["buys"]:
+            for index, count in enumerate(row):
+                scratch.capacity[CATEGORIES[index]] += count
+            scratch.advance_season()
+    finally:
+        state = real
+    return (
+        [round(min(1.0, a / FISH_DAMAGE_SCALE), 3) for a in scratch.acidity_history],
+        [round(v, 3) for v in scratch.fish_yield_history],
+    )
+
+
+def load_ghost(text):
+    """Pastes a code: on success adds a ghost, shows it as the dashed overlay and in the comparison; on any problem
+    says so in plain words and changes nothing."""
+    global library_b, library_overlay_id
+    result = decode_run_code(text)
+    if not result["ok"]:
+        _run_code_message[:] = [result["message"], True]
+        return False
+    params = result["params"]
+    try:
+        acidity, fish = replay_run(params)
+    except Exception:  # noqa: BLE001 -- a code that cannot be replayed is refused, not half-loaded
+        _run_code_message[:] = ["That code could not be replayed, so it was not loaded.", True]
+        return False
+    _ghost_seq[0] += 1
+    ghost_id = f"g{_ghost_seq[0]}"
+    _ghosts[ghost_id] = {
+        "id": ghost_id, "name": f"Friend's run {_ghost_seq[0]}", "seasons": params["shown"], "scenario": params["scenario"],
+        "lag": params["lag"], "coast": params["coast"], "storms": params["storms"], "score": round(params["score"], 1),
+        "rows_dry": params["rows_dry"], "tier": params["tier"], "acidity": acidity, "fish": fish, "ghost": True,
+        "played": params["played"],
+    }
+    while len(_ghosts) > GHOST_LIMIT:
+        del _ghosts[next(iter(_ghosts))]
+    library_b = ghost_id
+    library_overlay_id = ghost_id
+    _run_code_message[:] = [
+        f"Loaded {_ghosts[ghost_id]['name']}: {run_code_preview(params, params['shown'])} It is shown as dashed lines on the "
+        "graphs and as session B; your own run is untouched.", False,
+    ]
+    return True
+
+
+def clear_ghosts():
+    global library_a, library_b, library_overlay_id
+    _ghosts.clear()
+    for name in ("library_a", "library_b", "library_overlay_id"):
+        if globals()[name].startswith("g"):
+            globals()[name] = LIBRARY_CURRENT if name == "library_a" else ""
+    _run_code_message[:] = ["Removed the loaded friend runs.", False]
+
+
+def run_code_copy_fields():
+    """For the shared Copy result button: "Tide run code, RUN-TIDE-..." (empty when this run cannot be shared)."""
+    code, _why = build_run_code()
+    return {"game": "Tide run code", "stats": [code]} if code else {}
+
+
+def render_run_code_box():
+    out = document.getElementById("run-code-output")
+    if out is None:
+        return
+    code, why = build_run_code()
+    out.value = code
+    status = document.getElementById("run-code-status")
+    if status is not None:
+        if code:
+            decoded = decode_run_code(code)
+            status.innerText = ("A friend will see: " + run_code_preview(decoded["params"], decoded["params"]["shown"])
+                                + " " + RUN_CODE_NOTE) if decoded["ok"] else ""
+        else:
+            status.innerText = why
+    copy_host = document.getElementById("run-code-copy")
+    if copy_host is not None:
+        copy_host.hidden = not code
+    message = document.getElementById("run-code-message")
+    if message is not None:
+        message.innerText = ("! " if _run_code_message[1] else "") + _run_code_message[0]
+        message.setAttribute("role", "alert" if _run_code_message[1] else "status")
+    field = document.getElementById("run-code-input")
+    if field is not None:
+        field.setAttribute("aria-invalid", "true" if _run_code_message[1] else "false")
+    clear = document.getElementById("run-code-clear-button")
+    if clear is not None:
+        clear.hidden = not _ghosts
+
+
+def on_run_code_load(event=None):
+    field = document.getElementById("run-code-input")
+    text = str(getattr(field, "value", "") or "")
+    if load_ghost(text):
+        if field is not None:
+            field.value = ""
+        render_graphs()
+    render_library()
+
+
+def on_run_code_clear(event=None):
+    clear_ghosts()
+    render_graphs()
+    render_library()
+
+
+# ---- GD-5 Daily Tide -----------------------------------------------------------------------------------------------
+# An opt-in, fixed run: DAILY_SEASONS seasons on a coastline, sea scenario and storm timing taken from the UTC date's
+# seed (shared/seed.py, the same seed everybody gets). No streak, nothing lost by missing a day, and any past date can be
+# played from the archive. A finished day keeps its result in this browser and offers a one-line result to copy.
+DAILY_SEASONS = 12
+DAILY_KEY = "tide_daily_v1"
+DAILY_EARLIEST = "2026-01-01"
+DAILY_STORM_WINDOWS = ((3, 3), (7, 3), (10, 3))  # (first season, how many seasons it may start within)
+DAILY_RECORD_LIMIT = 400
+HUB_TRACK_KEY = "hub_today_track_dailies"
+_DATE_PATTERN = re.compile(r"^\d{4}-\d{2}-\d{2}$")
+_daily_today_override = [None]  # tests set a date here
+_daily_ui = {"message": "", "confirm_date": ""}
+daily_open = False
+
+
+def daily_today():
+    """Today's date in UTC (the day changes at 00:00 UTC for everybody)."""
+    return _daily_today_override[0] or time.strftime("%Y-%m-%d", time.gmtime())
+
+
+def daily_date_ok(text):
+    """True for a real date between DAILY_EARLIEST and today (UTC): the archive never reaches into the future."""
+    if not isinstance(text, str) or not _DATE_PATTERN.match(text):
+        return False
+    try:
+        datetime.date.fromisoformat(text)
+    except ValueError:
+        return False
+    return DAILY_EARLIEST <= text <= daily_today()
+
+
+def daily_plan(date_text):
+    """The day's run, or None for a date that is not allowed: {"date", "seed", "scenario", "coast", "storms"}."""
+    if not daily_date_ok(date_text):
+        return None
+    seed = shared_seed.daily_seed(RUN_CODE_GAME, date_text)
+    rng = shared_seed.Rng(seed)
+    scenario = rng.choice(list(SEA_SCENARIOS))
+    coast = rng.choice(list(COASTLINE_IDS))
+    weather = rng.fork("weather")
+    storms = [first + weather.below(spread) for first, spread in DAILY_STORM_WINDOWS]
+    return {"date": date_text, "seed": seed, "scenario": scenario, "coast": coast, "storms": storms}
+
+
+def daily_plan_text(plan):
+    return (f"{plan['date']}: {COASTLINES[plan['coast']]['label']}, {plan['scenario']} sea, "
+            f"storms forecast for seasons {', '.join(str(s) for s in plan['storms'])}. {DAILY_SEASONS} seasons.")
+
+
+def _daily_clean_result(item):
+    if not isinstance(item, dict):
+        return None
+    seasons, rows, sites = item.get("seasons"), item.get("rows_lost"), item.get("sites_saved")
+    score = item.get("score")
+    if (not all(isinstance(v, int) and not isinstance(v, bool) for v in (seasons, rows, sites))
+            or not 0 <= seasons <= 999 or not 0 <= rows <= COASTLINE_ROWS or not 0 <= sites <= 20
+            or not _finite_number(score, -1e9, 1e9)):
+        return None
+    return {"seasons": seasons, "rows_lost": rows, "sites_saved": sites, "score": round(float(score), 1)}
+
+
+def daily_records():
+    """{date: result} of the days finished in this browser (damaged entries are skipped)."""
+    raw = _read_local_storage_item(DAILY_KEY)
+    if not raw:
+        return {}
+    try:
+        data = json.loads(raw)
+    except (ValueError, TypeError):
+        return {}
+    days = data.get("days") if isinstance(data, dict) else None
+    if not isinstance(days, dict):
+        return {}
+    out = {}
+    for date_text, item in days.items():
+        if isinstance(date_text, str) and _DATE_PATTERN.match(date_text):
+            result = _daily_clean_result(item)
+            if result is not None:
+                out[date_text] = result
+    return out
+
+
+def daily_record_save(date_text, result):
+    records = daily_records()
+    records[date_text] = result
+    keep = dict(sorted(records.items())[-DAILY_RECORD_LIMIT:])
+    _write_local_storage_item(DAILY_KEY, json.dumps({"days": keep}, separators=(",", ":")))
+
+
+def _plural(n, one, many):
+    return f"{n} {one if n == 1 else many}"
+
+
+def daily_result_line(date_text, result):
+    """'Tide daily 2026-10-11: 12 seasons, 2 rows lost, 1 site saved'."""
+    return (f"Tide daily {date_text}: {_plural(result['seasons'], 'season', 'seasons')}, "
+            f"{_plural(result['rows_lost'], 'row lost', 'rows lost')}, {_plural(result['sites_saved'], 'site saved', 'sites saved')}")
+
+
+def daily_current_result():
+    return {
+        "seasons": max(0, state.season - 1), "rows_lost": COASTLINE_ROWS - state.rows_dry_count(),
+        "sites_saved": state.protected_heritage_count(), "score": round(state.damage_saved(), 1),
+    }
+
+
+def clean_daily(item):
+    """Save-field validator: a live Daily Tide run, or None."""
+    if not isinstance(item, dict):
+        return None
+    date_text, seed, storms = item.get("date"), item.get("seed"), item.get("storms")
+    if not isinstance(date_text, str) or not _DATE_PATTERN.match(date_text) or not isinstance(seed, str):
+        return None
+    try:
+        datetime.date.fromisoformat(date_text)
+    except ValueError:
+        return None
+    if not isinstance(storms, list) or not 1 <= len(storms) <= 6 or not all(
+            isinstance(s, int) and not isinstance(s, bool) and 1 <= s <= 99 for s in storms):
+        return None
+    cleaned = {"date": date_text, "seed": seed[:24], "storms": sorted(set(storms)), "done": item.get("done") is True}
+    result = _daily_clean_result(item.get("result"))
+    if cleaned["done"] and result is not None:
+        cleaned["result"] = result
+    return cleaned
+
+
+def _daily_mark_hub(date_text, seed):
+    """Tells the shared hub Today record that today's daily is done, but only when the player has switched dailies
+    tracking on at the hub, only for today's own seed, and never for an archive day."""
+    try:
+        window = getattr(_js, "window", None)
+        if window is None or date_text != daily_today():
+            return False
+        if window.localStorage.getItem(HUB_TRACK_KEY) != "1":
+            return False
+        seed_js = getattr(window, "NoyvjSeed", None)
+        if seed_js is None or not seed_js.daily.isDaily(RUN_CODE_GAME, seed):
+            return False
+        result = state.daily.get("result") or daily_current_result()
+        info = window.JSON.parse(json.dumps({"score": result["score"], "text": daily_result_line(date_text, result)[:120]}))
+        seed_js.daily.markCompleted(RUN_CODE_GAME, info)
+        return True
+    except Exception:  # noqa: BLE001 -- the hub's Today strip is a nicety
+        return False
+
+
+def daily_check_complete():
+    """Called from render(): books the day's result once its seasons have been played (idempotent)."""
+    daily = state.daily
+    if not daily or daily.get("done") or state.season - 1 < DAILY_SEASONS:
+        return False
+    result = daily_current_result()
+    result["seasons"] = DAILY_SEASONS
+    daily["done"] = True
+    daily["result"] = result
+    daily_record_save(daily["date"], result)
+    state._log_ticker(f"Daily Tide {daily['date']} complete. {daily_result_line(daily['date'], result)}. You can keep playing; the result is kept.")
+    _daily_mark_hub(daily["date"], daily["seed"])
+    return True
+
+
+def _install_state(fresh):
+    """Swaps in a fresh settlement and resets the per-run helpers (shared by Workshop runs and Daily Tide)."""
+    global state
+    state = fresh
+    _rewind_snapshot[0] = None
+    _last_action_at[0] = None
+    _quip.update({"text": "", "last": ""})
+    _delta_open["kind"] = ""
+    _resync_previous_flooded_rows()
+    almanac_resync()
+
+
+def start_daily(date_text):
+    """Starts the Daily Tide for a date (today or any past day). The old run is replaced: use the save widget first."""
+    plan = daily_plan(date_text)
+    if plan is None:
+        _daily_ui["message"] = f"Pick a date from {DAILY_EARLIEST} up to today ({daily_today()})."
+        return False
+    fresh = SettlementState()
+    fresh.sea_scenario = plan["scenario"]
+    fresh.set_coastline(plan["coast"])
+    fresh.storm_mode = True
+    fresh.daily = {"date": plan["date"], "seed": plan["seed"], "storms": list(plan["storms"]), "done": False}
+    _install_state(fresh)
+    _daily_ui["message"] = f"Started the daily for {plan['date']}. {daily_plan_text(plan)}"
+    _daily_ui["confirm_date"] = ""
+    render()
+    return True
+
+
+def daily_copy_fields():
+    """For the shared Copy result button: the finished day's line (empty before it is finished)."""
+    daily = state.daily
+    if not daily or not daily.get("done") or not daily.get("result"):
+        return {}
+    result = daily["result"]
+    return {
+        "game": f"Tide daily {daily['date']}",
+        "stats": [{"n": result["seasons"], "one": "season", "many": "seasons"},
+                  {"n": result["rows_lost"], "one": "row lost", "many": "rows lost"},
+                  {"n": result["sites_saved"], "one": "site saved", "many": "sites saved"}],
+        "seed": daily["seed"],
+    }
+
+
+def daily_status_text():
+    daily = state.daily
+    if not daily:
+        return "No daily is running. Pick a day below to start one; your current run is replaced, so save it first if you want it."
+    if daily.get("done") and daily.get("result"):
+        return (f"Finished: {daily_result_line(daily['date'], daily['result'])}. "
+                "Keep playing if you like; this result stays as it was.")
+    left = max(0, DAILY_SEASONS - (state.season - 1))
+    return (f"Daily {daily['date']} (seed {daily['seed']}): {left} season(s) left. Storms are on and follow the day's forecast "
+            f"(seasons {', '.join(str(s) for s in daily['storms'])}). Not counted in the Almanac, bests or library.")
+
+
+def render_daily():
+    toggle = document.getElementById("daily-toggle-button")
+    panel = document.getElementById("daily-panel")
+    if toggle is None or panel is None:
+        return
+    toggle.innerText = "Hide Daily Tide" if daily_open else "📅 Daily Tide"
+    panel.hidden = not daily_open
+    if not daily_open:
+        return
+    today = daily_today()
+    picker = document.getElementById("daily-date-input")
+    if picker is not None:
+        picker.setAttribute("min", DAILY_EARLIEST)
+        picker.setAttribute("max", today)
+        if not getattr(picker, "value", ""):
+            picker.value = today
+    chosen = str(getattr(picker, "value", "") or today)
+    plan = daily_plan(chosen)
+    records = daily_records()
+    info = document.getElementById("daily-plan")
+    if info is not None:
+        if plan is None:
+            info.innerText = f"Pick a date from {DAILY_EARLIEST} up to today ({today}); the future is not available."
+        else:
+            done = records.get(chosen)
+            info.innerText = daily_plan_text(plan) + (f" Finished before: {daily_result_line(chosen, done)}." if done else "")
+    start = document.getElementById("daily-start-button")
+    if start is not None:
+        start.disabled = plan is None
+        pending = _daily_ui["confirm_date"] == chosen and state.season > 1
+        start.innerText = ("Press again to replace the current run" if pending
+                           else ("Play today's daily" if chosen == today else f"Play the daily for {chosen}"))
+    status = document.getElementById("daily-status")
+    if status is not None:
+        status.innerText = daily_status_text()
+    message = document.getElementById("daily-message")
+    if message is not None:
+        message.innerText = _daily_ui["message"]
+    archive = document.getElementById("daily-archive")
+    if archive is not None:
+        if records:
+            archive.innerText = "Days you have finished: " + "; ".join(
+                daily_result_line(d, r).replace("Tide daily ", "") for d, r in sorted(records.items(), reverse=True)[:10]
+            ) + "."
+        else:
+            archive.innerText = "No finished days yet. Any past day is open whenever you like, and skipping a day costs nothing."
+    copy_host = document.getElementById("daily-copy")
+    if copy_host is not None:
+        copy_host.hidden = not (state.daily and state.daily.get("done"))
+
+
+def on_toggle_daily(event=None):
+    global daily_open
+    daily_open = not daily_open
+    render_daily()
+
+
+def on_daily_date_change(event=None):
+    _daily_ui["confirm_date"] = ""
+    _daily_ui["message"] = ""
+    render_daily()
+
+
+def on_daily_start(event=None):
+    picker = document.getElementById("daily-date-input")
+    chosen = str(getattr(picker, "value", "") or daily_today())
+    if state.season > 1 and _daily_ui["confirm_date"] != chosen:
+        _daily_ui["confirm_date"] = chosen
+        _daily_ui["message"] = "This replaces your current run. Save it first with the save buttons if you want to keep it."
+        render_daily()
+        return
+    start_daily(chosen)
 
 
 # ---- D-9 Harbor Almanac ----------------------------------------------------
@@ -3743,7 +4496,7 @@ def _load_almanac():
                     "retreat": _clamped_int(entry.get("retreat"), 0, RETREAT_MAX_STEPS),
                     "tourism": _clamped_int(entry.get("tourism"), 0, DIVERSIFY_MAX_LEVEL),
                     "aquaculture": _clamped_int(entry.get("aquaculture"), 0, DIVERSIFY_MAX_LEVEL),
-                    "heritage": _clamped_int(entry.get("heritage"), 0, len(HERITAGE_SITES)),
+                    "heritage": _clamped_int(entry.get("heritage"), 0, len(heritage_sites())),
                 }
     return data
 
@@ -3768,7 +4521,7 @@ def almanac_sync():
     """Adds whatever happened since the last call to the lifetime totals and updates the
     personal best for this scenario and lag mode. Called from render(), so it is idempotent."""
     cursor = _almanac_cursor
-    if state.workshop_active():  # D-5: custom-rule runs are not counted in the Almanac
+    if state.keeps_records_out():  # D-5 / GD-5: custom-rule and daily runs are not counted in the Almanac
         cursor["season"] = state.season
         return
     if state.season < cursor["season"]:
@@ -3790,7 +4543,7 @@ def almanac_sync():
         almanac["heritage"] += protected - cursor["protected"]
         changed = True
     cursor["protected"] = protected
-    if new_seasons > 0:
+    if new_seasons > 0 and state.coastline == DEFAULT_COASTLINE:  # D-8: bests are for the standard coastline
         score = round(state.damage_saved(), 1)
         key = almanac_combo_key()
         best = almanac["best"].get(key)
@@ -4225,7 +4978,29 @@ def render_sea_scenario_controls():
     select = document.getElementById("sea-scenario-select")
     if select is not None:
         select.value = state.sea_scenario
-        select.disabled = bool(state.damage_log) or state.season != 1
+        select.disabled = bool(state.damage_log) or state.season != 1 or bool(state.daily)
+    render_coastline_controls()
+
+
+def coastline_blurb_text(coast_id):
+    info = COASTLINES[coast_id]
+    sites = " and ".join(site["name"].lower() for site in info["heritage"])
+    weights = (f"Output income x{info['output']:g}, tourism x{info['tourism']:g}, aquaculture x{info['aquaculture']:g}; "
+               f"storms every {info['storm_interval']} seasons" + (f", surges x{info['surge']:g}" if info["surge"] != 1.0 else ""))
+    first = min(info["thresholds"])
+    last = max(info["thresholds"])
+    return (f"{info['blurb']} Rows flood at sea level {first:g} up to {last:g}. Heritage: {sites}. {weights}.")
+
+
+def render_coastline_controls():
+    """D-8: syncs the coastline <select> and its description; locked once play has begun, like the sea scenario."""
+    select = document.getElementById("coastline-select")
+    if select is not None:
+        select.value = state.coastline
+        select.disabled = bool(state.damage_log) or state.season != 1 or bool(state.daily)
+    blurb = document.getElementById("coastline-blurb")
+    if blurb is not None:
+        blurb.innerText = coastline_blurb_text(state.coastline)
 
 
 def render_settlement_history():
@@ -4247,7 +5022,7 @@ def render_settlement_history():
 def render_programmes():
     """D17 / D21 / D13 (and later additions): the collapsed "Coastal
     programmes" section's readouts and button states."""
-    for i, site in enumerate(HERITAGE_SITES):
+    for i, site in enumerate(heritage_sites()):
         status_el = document.getElementById(f"heritage-status-{i}")
         if status_el is not None:
             status_el.innerText = heritage_status_text(site)
@@ -4334,7 +5109,9 @@ def render_programmes():
         foresight_el.innerText = state.foresight_text()
     storm_button = document.getElementById("storm-toggle-button")
     if storm_button is not None:
-        storm_button.innerText = "Storm seasons: On (turn off)" if state.storm_mode else "Storm seasons: Off (turn on)"
+        storm_button.innerText = ("Storm seasons: On (set by the daily)" if state.daily
+                                  else "Storm seasons: On (turn off)" if state.storm_mode else "Storm seasons: Off (turn on)")
+        storm_button.disabled = bool(state.daily)
     storm_el = document.getElementById("storm-forecast")
     if storm_el is not None:
         storm_el.innerText = storm_forecast_text()
@@ -4397,8 +5174,11 @@ def storm_bell_svg():
 
 def storm_forecast_text():
     wait = state.seasons_until_storm()
+    if wait is None and state.storm_mode:  # GD-5: a daily's storms are all behind you
+        return "No more storms are forecast for this run."
     if wait is None:
-        return "Storm seasons are off. Turn them on for a surge every 5 seasons that tests your adaptation tier."
+        return (f"Storm seasons are off. Turn them on for a surge every {coast_storm_interval(state.coastline)} seasons "
+                "that tests your adaptation tier.")
     surge = state.storm_surge_strength()
     held = surge * state.dampening_fraction()
     when = "this season's end" if wait == 0 else f"{wait} season(s) from now"
@@ -4482,6 +5262,8 @@ def season_net_income():
     income = state.capacity["output"] * OUTPUT_INCOME_PER_UNIT * (
         mix["fishing_share"] * state.fish_yield_multiplier() + (1 - mix["fishing_share"])
     )
+    if state.coast_weight("output") != 1.0:  # D-8
+        income *= state.coast_weight("output")
     tourism, aquaculture = state.diversified_income()
     return income + tourism + aquaculture - HERITAGE_UPKEEP * state.protected_heritage_count()
 
@@ -4772,7 +5554,7 @@ def render_rescue_burst():
     el = document.getElementById("rescue-burst")
     if el is None or state.last_rescue is None:
         return
-    site = next((x for x in HERITAGE_SITES if x["id"] == state.last_rescue), None)
+    site = next((x for x in heritage_sites() if x["id"] == state.last_rescue), None)
     state.last_rescue = None
     if site is None:
         return
@@ -5303,13 +6085,7 @@ def start_new_run(values):
     fresh.workshop = {k: clean_workshop_value(k, values.get(k, WORKSHOP_DEFAULTS[k])) for k in WORKSHOP_DEFAULTS}
     fresh.funds = fresh.workshop["funds"]
     fresh.max_funds_ever = fresh.funds
-    state = fresh
-    _rewind_snapshot[0] = None
-    _last_action_at[0] = None
-    _quip.update({"text": "", "last": ""})
-    _delta_open["kind"] = ""
-    _resync_previous_flooded_rows()
-    almanac_resync()
+    _install_state(fresh)
     render()
     return True
 
@@ -5390,7 +6166,7 @@ def postcard_nickname():
         return "The Drowned Quay"
     if s.fish_yield_multiplier() < 0.6:
         return "The Quiet Nets"
-    if s.protected_heritage_count() == len(HERITAGE_SITES):
+    if s.protected_heritage_count() == len(heritage_sites()):
         return "Keeper of Lights"
     if len(s.crew) >= 2:
         return "The Busy Harbour"
@@ -5420,7 +6196,7 @@ def postcard_svg():
                 parts.append(f'<rect x="{18 + col * 22}" y="{y + 5}" width="8" height="6" fill="#b5651d"/>')
     if tier:
         parts.append(f'<rect x="8" y="24" width="{2 + tier * 2}" height="{COASTLINE_ROWS * band}" fill="#6b6b6b"/>')
-    for site in HERITAGE_SITES:
+    for site in heritage_sites():
         if s.heritage.get(site["id"]) == HERITAGE_PROTECTED:
             parts.append(f'<text x="168" y="{24 + site["row"] * band + 12}" font-size="12">{site["emoji"]}</text>')
     boats = min(4, max(0, int(s.population / 60))) if s.fish_yield_multiplier() > 0.3 else 0
@@ -5713,6 +6489,7 @@ def render_tide_oct9():
 
 
 def render():
+    daily_check_complete()  # GD-5
     render_info_page()
     render_sister()
     document.getElementById("season-display").innerText = f"Season {state.season}"
@@ -5830,6 +6607,7 @@ def render():
     render_ledger()
     render_scrubber()
     render_library()
+    render_daily()
     render_planner()
     almanac_sync()
     render_almanac()
@@ -5906,6 +6684,12 @@ def on_output_mix_change(event):
 
 def on_sea_scenario_change(event):
     state.set_sea_scenario(event.target.value)
+    render()
+
+
+def on_coastline_change(event):
+    if state.set_coastline(str(getattr(event.target, "value", ""))):
+        _resync_previous_flooded_rows()
     render()
 
 
@@ -6102,6 +6886,10 @@ def get_state():
         "fish_crash_open": state.fish_crash_open,
         "recovery_celebrated_season": state.recovery_celebrated_season,
         "sea_scenario": state.sea_scenario,
+        **({"coastline": state.coastline} if state.coastline != DEFAULT_COASTLINE else {}),  # D-8
+        **({"daily": copy.deepcopy(state.daily)} if state.daily else {}),  # GD-5
+        **({"buys": {"log": [list(r) for r in state.season_buys], "now": list(state.buys_now)}}
+           if (state.season_buys or any(state.buys_now)) else {}),  # D-3
         "settlement_name": state.settlement_name,
         "chronicle": copy.deepcopy(state.chronicle),
         "heritage": copy.deepcopy(state.heritage),
@@ -6224,7 +7012,7 @@ def _load_snapshots(saved):
         if (
             isinstance(season, int) and not isinstance(season, bool) and 1 <= season <= 10**6
             and _finite_number(sea, 0, 1e6)
-            and isinstance(code, str) and len(code) == len(HERITAGE_SITES) and set(code) <= allowed
+            and isinstance(code, str) and len(code) == len(heritage_sites()) and set(code) <= allowed
             and isinstance(retreat, list) and len(retreat) <= RETREAT_MAX_STEPS
             and all(isinstance(r, int) and not isinstance(r, bool) and 0 <= r < COASTLINE_ROWS for r in retreat)
         ):
@@ -6254,6 +7042,7 @@ def load_state(data):
         _autosave_info["load_failed"] = True  # D-11: the restore panel opens itself
         return False
     state.season = data.get("season", state.season)
+    state.coastline = clean_coastline(data.get("coastline"))  # D-8: before anything reads the heritage sites or rows
     state.funds = data.get("funds", state.funds)
     saved_capacity = data.get("capacity")
     if isinstance(saved_capacity, dict):
@@ -6354,9 +7143,9 @@ def load_state(data):
         state.chronicle = []
 
     saved_heritage = data.get("heritage")
-    state.heritage = {site["id"]: HERITAGE_UNPROTECTED for site in HERITAGE_SITES}
+    state.heritage = {site["id"]: HERITAGE_UNPROTECTED for site in heritage_sites()}
     if isinstance(saved_heritage, dict):
-        for site in HERITAGE_SITES:
+        for site in heritage_sites():
             if saved_heritage.get(site["id"]) in (HERITAGE_UNPROTECTED, HERITAGE_PROTECTED, HERITAGE_LOST):
                 state.heritage[site["id"]] = saved_heritage[site["id"]]
     state.monitoring_reports = _clamped_int(
@@ -6513,6 +7302,19 @@ def load_state(data):
         state.pinned_goal = saved_goal["id"]
         state.pinned_goal_reached = saved_goal.get("reached") is True
 
+    state.daily = clean_daily(data.get("daily"))  # GD-5
+    saved_buys = data.get("buys")  # D-3: bad shapes are dropped, which only means this run cannot be shared as a code
+    state.season_buys, state.buys_now = [], [0, 0, 0]
+    if isinstance(saved_buys, dict):
+        log, now = saved_buys.get("log"), saved_buys.get("now")
+        if isinstance(log, list):
+            state.season_buys = [
+                [_clamped_int(n, 0, 10**4) for n in row] for row in log[-LEDGER_LIMIT:]
+                if isinstance(row, list) and len(row) == 3
+            ]
+        if isinstance(now, list) and len(now) == 3:
+            state.buys_now = [_clamped_int(n, 0, 10**4) for n in now]
+
     # D8's flash-tracking global and the achievements toast-diffing
     # baseline both need to resync to the just-loaded state before
     # render() below draws anything or checks for newly-earned
@@ -6614,11 +7416,24 @@ def setup():
     scenario_select = document.getElementById("sea-scenario-select")
     if scenario_select is not None:
         scenario_select.addEventListener("change", create_proxy(on_sea_scenario_change))
+    coastline_select = document.getElementById("coastline-select")  # D-8
+    if coastline_select is not None:
+        coastline_select.addEventListener("change", create_proxy(on_coastline_change))
+    for element_id, event_name, handler in (  # D-3 run codes and GD-5 Daily Tide
+        ("run-code-load-button", "click", on_run_code_load),
+        ("run-code-clear-button", "click", on_run_code_clear),
+        ("daily-toggle-button", "click", on_toggle_daily),
+        ("daily-start-button", "click", on_daily_start),
+        ("daily-date-input", "change", on_daily_date_change),
+    ):
+        el = document.getElementById(element_id)
+        if el is not None:
+            el.addEventListener(event_name, create_proxy(handler))
     document.getElementById("sister-enable-button").addEventListener("click", create_proxy(on_enable_sister))
     document.getElementById("hard-lag-toggle-button").addEventListener(
         "click", create_proxy(on_toggle_hard_lag)
     )
-    for i, site in enumerate(HERITAGE_SITES):
+    for i, site in enumerate(heritage_sites()):
         protect_button = document.getElementById(f"heritage-protect-{i}")
         if protect_button is not None:
             protect_button.addEventListener("click", create_proxy(_make_heritage_handler(site["id"])))
