@@ -426,6 +426,7 @@ const PRECACHE_URLS = [
   "games/evidence-hunt/cases.py",
   "games/evidence-hunt/progress.py",
   "games/evidence-hunt/gen.py",
+  "games/evidence-hunt/today.js",
   "games/evidence-hunt/codex.py",
   "games/evidence-hunt/achievements.py",
   "games/evidence-hunt/render.py",

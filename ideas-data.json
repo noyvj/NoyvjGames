@@ -493,6 +493,11 @@
        "n": "Qr3",
        "text": "**Signal: should loading a save re-check the readings of the puzzle you had open (so a hand-edited save cannot keep fake readings)?** Recommended: no, it is a local game and the check already runs when a puzzle opens. Say \"yes\" to add the re-check anyway.",
        "answered": false
+      },
+      {
+       "n": "Eh6",
+       "text": "**Evidence Hunt: its pledge says nothing can be missed and bans the word \"streak\", but the new shared Today's run button shows a line like \"3 days in a row\"; should I hide that streak line in this game?** Recommended: yes, hide it (keep the button and the daily house, drop the streak line) so the game's pledge stays true. Say \"no\" to show it like other games.",
+       "answered": false
       }
      ]
     }

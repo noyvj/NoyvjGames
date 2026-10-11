@@ -424,3 +424,6 @@ Recommended: no, the daily should count: change the order so the daily wins. Say
 
 Recommended: no, it is a local game and the check already runs when a puzzle opens. Say "yes" to add the re-check anyway.
 
+### Eh6. Evidence Hunt: its pledge says nothing can be missed and bans the word "streak", but the new shared Today's run button shows a line like "3 days in a row"; should I hide that streak line in this game?
+
+Recommended: yes, hide it (keep the button and the daily house, drop the streak line) so the game's pledge stays true. Say "no" to show it like other games.
