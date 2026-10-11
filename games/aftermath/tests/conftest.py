@@ -228,6 +228,10 @@ ELEMENT_IDS = [
     # GE-23: the optional run timer.
     "run-timer-display",
     "run-timer-checkbox",
+    # E-31: the achievements tree strip.
+    "achievement-strip",
+    "achievement-strip-summary",
+    "achievement-strip-detail",
 ]
 for _skill in SKILL_IDS:
     ELEMENT_IDS += [

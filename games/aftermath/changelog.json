@@ -1,6 +1,10 @@
 [
   {
     "date": "2026-10-11",
+    "entry": "New: your achievements as a small tree under the toolbar (in the stage bar on the Desktop layout). Six branches (Getting started, Keep going, Skill tree, Playstyles, Hard hits, Codex) each say how many you have ('Getting started 3/4'), and every achievement is a node: earned ones are filled gold with a tick, unearned ones are hollow and dashed, so it never relies on colour alone. Hover or focus a node to read its name and what it asks for."
+  },
+  {
+    "date": "2026-10-11",
     "entry": "New, off by default: a run timer (Settings). When on, the status shows how long the run has taken from your first move, the finished time is kept with the run, and Past Runs lists it, marks your fastest run and has a new 'Fastest finish' sort. Time never changes a score, knowledge, an achievement or a board; waiting at the opening screen or leaving the tab open costs nothing (each step counts at most five seconds), and a run that began with the timer off is simply not timed."
   },
   {

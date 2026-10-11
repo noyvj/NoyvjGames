@@ -122,6 +122,12 @@
            accessibility.js this pattern is modeled on. -->
       <button id="settings-toggle-button" class="secondary" type="button">⚙️ Settings</button>
     </div>
+    <!-- E-31: every achievement as a node on a small tree (lit and ticked when earned); names on hover and focus. -->
+    <div id="achievement-tree" class="achievement-tree">
+      <p id="achievement-strip-summary" class="achievement-strip-summary"></p>
+      <div id="achievement-strip" class="achievement-strip" role="group" aria-label="Achievements as a tree"></div>
+      <p id="achievement-strip-detail" class="achievement-strip-detail" data-default="Hover or focus a node to read its achievement."></p>
+    </div>
     <div id="howto-panel" class="section" hidden></div>
     <div id="settings-panel" class="section" hidden>
       <h2 class="settings-panel-heading">Settings</h2>

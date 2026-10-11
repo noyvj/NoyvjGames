@@ -177,7 +177,8 @@
       ".game-toolbar"
     ],
     "stagebar": [
-      ".mentor-toggle-label"
+      ".mentor-toggle-label",
+      "#achievement-tree"
     ],
     "stage": [
       "#status",

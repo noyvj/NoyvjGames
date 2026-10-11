@@ -381,3 +381,54 @@ def test_past_runs_show_the_time_mark_the_fastest_and_sort_by_it(game_env):
     assert [entry["run_number"] for _i, entry in m.past_runs_view()] == [2, 3, 1, 4]  # untimed runs follow
     assert m.entry_seconds({"seconds": "9"}) is None and m.entry_seconds({"seconds": 0}) is None and m.entry_seconds({"seconds": True}) is None
     assert m.format_duration(59) == "0:59" and m.format_duration(3725) == "1:02:05"
+
+
+# ------------------------------------------------------------------------------------------ E-31
+def test_every_achievement_sits_on_exactly_one_branch_in_catalog_order(game_env):
+    m = game_env.module
+    branches = m.achievement_tree_branches()
+    placed = [entry["id"] for _label, entries in branches for entry in entries]
+    assert sorted(placed) == sorted(a["id"] for a in m.ACHIEVEMENTS) and len(placed) == len(set(placed))
+    assert [label for label, _e in branches][0] == "Getting started" and len(branches) == 6
+    listed = {i for _label, ids in m.ACHIEVEMENT_BRANCHES for i in ids}
+    assert listed <= {a["id"] for a in m.ACHIEVEMENTS}  # no typo in a branch list
+    assert not any(label == "More" for label, _e in branches)  # nothing fell through today
+
+
+def test_an_achievement_nobody_listed_lands_on_a_more_branch(game_env):
+    m = game_env.module
+    summary = m.achievements_summary() + [{"id": "future_one", "label": "Future", "description": "d", "earned": False, "progress": None}]
+    branches = m.achievement_tree_branches(summary)
+    assert branches[-1][0] == "More" and [e["id"] for e in branches[-1][1]] == ["future_one"]
+
+
+def test_the_strip_lights_earned_nodes_in_words_and_shape_and_redraws_only_on_change(game_env):
+    m, e = game_env.module, game_env.elements
+    strip = e["achievement-strip"]
+    assert e["achievement-strip-summary"].innerText.endswith("Achievements: 0 of 26 earned")
+    assert len(strip.children) == 6
+    assert sum(len(branch.children[1].children) for branch in strip.children) == 26
+    before = strip.children
+    m.render()
+    assert strip.children is before  # same drawing: nothing earned in between
+    game_env.invest_resilience()
+    game_env.invest_growth()
+    game_env.resolve_event()
+    assert "earned" in e["achievement-strip-summary"].innerText and "0 of 26" not in e["achievement-strip-summary"].innerText
+    first = strip.children[0]
+    assert first.children[0].innerText.startswith("Getting started 3/4")
+    nodes = first.children[1].children
+    lit = [n for n in nodes if "achievement-node--earned" in n.className]
+    assert len(lit) == 3 and all(n.innerText == "✓" for n in lit)  # a check mark, not only a colour
+    assert all(n.innerText == "" for n in nodes if n not in lit)
+    assert "Facing It Head-On: earned" in [n.getAttribute("aria-label") for n in nodes]
+    assert any(n.getAttribute("aria-label").endswith("not earned yet") for n in nodes)
+    assert first.getAttribute("aria-label") == "Getting started: 3 of 4 earned"
+
+
+def test_a_cached_page_without_the_strip_still_renders(game_env):
+    m = game_env.module
+    real = m._el
+    m._el = lambda element_id: None if element_id.startswith("achievement-strip") else real(element_id)
+    m._achievement_strip_signature = None
+    m.render_achievement_strip()

@@ -160,3 +160,8 @@ html[data-theme="light"] #pc-hintbar { opacity: 1; color: #2a3350; background: r
 .pc-window-frame #founding-panel > summary { display: none; }
 .pc-window-frame .skill-map-filters { display: flex; }
 .pc-window-frame .skill-map-viewport { height: min(34rem, 62vh); }
+
+/* E-31: the achievements tree sits in the stage bar, branches side by side so it stays short. */
+#pc-stagebar > #achievement-tree { flex: 1 1 100%; margin: 0; }
+#pc-stagebar .achievement-strip { display: flex; flex-wrap: wrap; gap: 0.2rem 1.1rem; }
+#pc-stagebar .achievement-branch-name { min-width: 0; }

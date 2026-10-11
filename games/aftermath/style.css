@@ -2167,6 +2167,28 @@ html[data-effects="false"] .schedule-strip .schedule-chip--next { animation: non
 }
 /* GE-23: the optional run timer. */
 .run-timer-display { font-size: 0.85rem; font-variant-numeric: tabular-nums; }
+/* E-31: the achievements tree. A trunk (the left rule) with a branch per group; nodes are hollow dashed circles,
+   earned ones filled gold with a tick, so the shape differs as well as the colour. */
+.achievement-tree { margin: 0.5rem 0; font-size: 0.8rem; }
+.achievement-strip-summary { margin: 0 0 0.3rem; font-weight: 600; }
+.achievement-strip {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr)); gap: 0.25rem 0.9rem;
+  border-left: 2px solid rgba(212, 175, 55, 0.6); padding-left: 0.7rem; margin-left: 0.3rem;
+}
+.achievement-branch { position: relative; display: flex; flex-wrap: wrap; align-items: center; gap: 0.1rem 0.5rem; }
+.achievement-branch::before { content: ""; position: absolute; left: -0.7rem; top: 50%; width: 0.6rem; border-top: 2px solid rgba(212, 175, 55, 0.6); }
+.achievement-branch-name { min-width: 7.5rem; }
+.achievement-branch-nodes { display: inline-flex; flex-wrap: wrap; gap: 0.25rem; }
+.achievement-node {
+  display: inline-flex; align-items: center; justify-content: center; width: 1.1rem; height: 1.1rem; border-radius: 50%;
+  border: 2px dashed rgba(180, 190, 220, 0.7); font-size: 0.7rem; line-height: 1; font-weight: 800; box-sizing: border-box;
+}
+.achievement-node--earned {
+  border: 2px solid #d4af37; background: radial-gradient(circle, #ffe9a0, #d4af37); color: #3a2a00;
+  box-shadow: 0 0 6px rgba(212, 175, 55, 0.85);
+}
+.achievement-node:focus-visible { outline: 3px solid #ffd400; outline-offset: 1px; }
+.achievement-strip-detail { margin: 0.3rem 0 0; min-height: 1.1em; opacity: 0.85; }
 /* BATCH3-END */
 
 /* ============================================================
@@ -2210,3 +2232,6 @@ html[data-theme="light"] .event-category--health { color: #0b6b5a; text-shadow: 
 html[data-theme="light"] .past-run-event { opacity: 1; }
 html[data-theme="light"] .severity--mild { opacity: 0.85; }
 html[data-theme="light"] .feedback-buttons .secondary.selected { color: #ffffff; }
+html[data-theme="light"] .achievement-node { border-color: #5a6590; }
+html[data-theme="light"] .achievement-node--earned { border-color: #8a6a00; }
+html[data-theme="light"] .achievement-strip, html[data-theme="light"] .achievement-branch::before { border-color: #8a6a00; }

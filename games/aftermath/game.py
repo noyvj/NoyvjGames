@@ -5791,6 +5791,7 @@ def _make_step_handler(step):
 def render():
     render_info_page()
     update_achievements_display()
+    render_achievement_strip()  # E-31
     render_past_runs_panel()
     render_codex_panel()
     render_stats_panel()
@@ -7532,6 +7533,92 @@ def on_run_timer_setting(event=None):
         run.timed = False
         run._timer_last = None
     render()
+
+
+# ---------------------------------------------------------------------------
+# E-31: the achievements as a small tree beside the toolbar. A trunk with six branches (grouped by what the
+# achievement is about, from the ids; an id nobody listed lands on "More"), every achievement a node: earned
+# nodes are lit and filled with a check mark, unearned ones hollow, and the shape differs as well as the
+# colour. Each branch says "3/4" in words and every node has its name as a label (and shows it on hover or
+# focus). It only reads what the catalog already knows; nothing is stored.
+# ---------------------------------------------------------------------------
+ACHIEVEMENT_BRANCHES = (
+    ("Getting started", ("first_event_faced", "first_resilience_investment", "first_growth_investment", "run_complete_1")),
+    ("Keep going", ("run_complete_5", "run_complete_10", "knowledge_25", "knowledge_100", "come_back_stronger")),
+    ("Skill tree", ("unlock_reinforced_infrastructure", "unlock_community_reserves", "unlock_early_warning", "full_skill_tree")),
+    ("Playstyles", ("iron_defenses", "profitable_run", "growth_focused", "resilience_focused", "balanced_strategy",
+                    "deep_specialist", "broad_generalist", "both_paths")),
+    ("Hard hits", ("severe_survivor", "flawless_defense")),
+    ("Codex", ("codex_complete", "heat_health_faced", "codex_full_record")),
+)
+_achievement_strip_signature = None
+
+
+def achievement_tree_branches(summary=None):
+    """[(branch label, [summary entries])] in catalog order inside each branch; branches with nothing in the
+    catalog are left out and every catalog entry appears exactly once (unlisted ones under "More")."""
+    summary = achievements_summary() if summary is None else summary
+    by_id = {entry["id"]: entry for entry in summary}
+    placed = set()
+    branches = []
+    for label, ids in ACHIEVEMENT_BRANCHES:
+        entries = [by_id[i] for i in ids if i in by_id and i not in placed]
+        placed.update(entry["id"] for entry in entries)
+        if entries:
+            branches.append((label, entries))
+    rest = [entry for entry in summary if entry["id"] not in placed]
+    if rest:
+        branches.append(("More", rest))
+    return branches
+
+
+def achievement_tree_summary_text(summary=None):
+    summary = achievements_summary() if summary is None else summary
+    earned = sum(1 for entry in summary if entry["earned"])
+    return f"Achievements: {earned} of {len(summary)} earned"
+
+
+def render_achievement_strip():
+    strip = _el("achievement-strip")
+    if strip is None:
+        return  # a cached older page without the strip
+    global _achievement_strip_signature
+    signature = tuple(achievement_ids_earned())
+    if signature == _achievement_strip_signature:
+        return  # nothing earned since the last drawing
+    _achievement_strip_signature = signature
+    summary = achievements_summary()
+    text = achievement_tree_summary_text(summary)
+    summary_el = _el("achievement-strip-summary")
+    if summary_el is not None:
+        summary_el.innerText = "\U0001f3c6 " + text
+    strip.setAttribute("aria-label", text)
+    strip.innerHTML = ""
+    for label, entries in achievement_tree_branches(summary):
+        earned = sum(1 for entry in entries if entry["earned"])
+        branch = document.createElement("div")
+        branch.className = "achievement-branch"
+        branch.setAttribute("role", "group")
+        branch.setAttribute("aria-label", f"{label}: {earned} of {len(entries)} earned")
+        name = document.createElement("span")
+        name.className = "achievement-branch-name"
+        name.innerText = f"{label} {earned}/{len(entries)}"
+        branch.appendChild(name)
+        nodes = document.createElement("span")
+        nodes.className = "achievement-branch-nodes"
+        for entry in entries:
+            node = document.createElement("span")
+            node.className = "achievement-node achievement-node--earned" if entry["earned"] else "achievement-node"
+            node.innerText = "\u2713" if entry["earned"] else ""
+            state = "earned" if entry["earned"] else "not earned yet"
+            node.setAttribute("role", "img")
+            node.setAttribute("tabindex", "0")
+            node.setAttribute("aria-label", f"{entry['label']}: {state}")
+            node.setAttribute("data-detail", f"{entry['label']} ({state}): {entry['description']}")
+            node.title = f"{entry['label']} ({state})"
+            nodes.appendChild(node)
+        branch.appendChild(nodes)
+        strip.appendChild(branch)
 
 
 # ---------------------------------------------------------------------------

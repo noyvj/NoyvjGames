@@ -10,6 +10,7 @@
    E-2   The skill map: pan (drag, Shift+arrows), zoom (+ / - / 0, the buttons, Ctrl+scroll) and arrow-key
          movement between nodes. game.py owns the nodes, the route and every rule; this only moves the view
          and focus, and clicks the buttons game.py wires (Enter on a node is a plain button press). M opens it.
+   E-31  The achievements tree strip shows a node's name and description on hover or focus.
    GE-13 The "-58 damage prevented!" line counts up from 0 when a new event resolves (skipped under
          reduced motion; the final text is always already in the page, so this is only a flourish). */
 (function () {
@@ -470,8 +471,29 @@
     }, 5000);
   }
 
+  // E-31: hovering or focusing a node on the achievements tree reads its name and description in the
+  // line under it; leaving restores the hint. Each node already carries its name as its aria-label and
+  // title, so nothing depends on this script.
+  function watchAchievementStrip() {
+    const strip = document.getElementById("achievement-strip");
+    const detail = document.getElementById("achievement-strip-detail");
+    if (!strip || !detail) return;
+    function show(event) {
+      const node = event.target && event.target.closest ? event.target.closest("[data-detail]") : null;
+      if (node) detail.textContent = node.getAttribute("data-detail");
+    }
+    function reset() {
+      detail.textContent = detail.getAttribute("data-default") || "";
+    }
+    strip.addEventListener("mouseover", show);
+    strip.addEventListener("focusin", show);
+    strip.addEventListener("mouseleave", reset);
+    strip.addEventListener("focusout", reset);
+  }
+
   function start() {
     watchPopup();
+    watchAchievementStrip();
     watchSchedule();
     watchPanelFocus();
     watchTree();
