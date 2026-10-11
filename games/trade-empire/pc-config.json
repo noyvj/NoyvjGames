@@ -7,6 +7,7 @@
     ["charter-panel", "charter-toggle-button", "Charter"],
     ["captains-panel", "captains-toggle-button", "Fleet Captains"],
     ["lab-panel", "lab-toggle-button", "Fleet Lab"],
+    ["desk-panel", "desk-toggle-button", "Market Desk"],
     ["settings-panel", "settings-toggle-button", "Settings"]
   ],
   "toolbar": {
@@ -17,7 +18,7 @@
       ["settings-toggle-button", "⚙️"]
     ],
     "menu": [
-      {"heading": "Empire", "ids": ["captains-toggle-button", "lab-toggle-button", "sandbox-toggle-button"]},
+      {"heading": "Empire", "ids": ["captains-toggle-button", "lab-toggle-button", "desk-toggle-button", "sandbox-toggle-button"]},
       {"heading": "Help", "ids": ["tutorial-restart-button", "howto-toggle-button", "credits-link"]},
       {"heading": "Records", "ids": ["changelog-toggle-button"]}
     ]

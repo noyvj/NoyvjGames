@@ -170,6 +170,16 @@
       "id": "curio_cabinet",
       "title": "A cabinet of small odd things",
       "text": "Twelve small things now sit in the cabinet on the office wall: a polite beacon, a patient clock, a chipped moon. None of them is worth a credit and nobody can explain why you would not sell the lot for the shelf space."
+    },
+    {
+      "id": "first_fill",
+      "title": "Orders that fill themselves",
+      "text": "You write the first standing order the way you would write a note to a very reliable stranger: buy grain when it is cheap, sell when it is not. In the morning the stockpile has changed and nobody has asked you anything. It is the strangest kind of trust, and the ledger approves of it."
+    },
+    {
+      "id": "market_maker",
+      "title": "The quiet book",
+      "text": "Twenty-five fills in, the order book has stopped feeling like machinery and started feeling like a habit. Prices dip, a lot is bought, prices climb, a stockpile goes out. Somewhere in the Umbral Deep a clerk who does not exist writes down each one."
     }
   ]
 }

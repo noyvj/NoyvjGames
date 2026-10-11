@@ -1,6 +1,10 @@
 [
   {
     "date": "2026-10-11",
+    "entry": "New: the Commodities Exchange, in the new Market Desk window (toolbar, Desktop: Menu, Empire), open once the Umbral Deep is reachable. Set standing buy and sell orders on your stockpiles (one slot, plus one per trade post, up to five) and they fill on their own each tick by the same rules and fee as trading by hand. A mini order book lists the last five fills, and Exchange fills counts toward two new achievements."
+  },
+  {
+    "date": "2026-10-11",
     "entry": "New: Expeditions, in the new Fleet Lab (toolbar, Desktop: Menu, Empire). Send one idle, hand-flown ship away from the routes for 12 ticks; it cannot trade meanwhile (that is the cost) and comes back with credits, research points, a curio for your 12-piece cabinet, or just the view. The odds are written next to the button and in its tooltip, and nothing is ever unlucky twice running: after two empty trips the next always finds something, and every fifth trip without a curio always finds one. Two new achievements."
   },
   {

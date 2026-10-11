@@ -1765,6 +1765,12 @@ button.secondary:disabled::after {
 .curio { opacity: 0.7; }
 .curio--found { opacity: 1; font-weight: 600; }
 
+/* Commodities exchange (J-27, J-28). */
+.exchange-order-row { margin: 4px 0; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.exchange-book-table { border-collapse: collapse; font-size: 0.85rem; min-width: 280px; }
+.exchange-book-table th, .exchange-book-table td { padding: 2px 10px 2px 0; text-align: left; }
+#exchange-controls label { display: inline-flex; gap: 4px; align-items: center; font-size: 0.85rem; }
+
 /* ============================================================
    Y11b light-theme polish (2026-09-27). Light-only rules from a
    computed-style WCAG contrast scan of the light theme (fresh game,

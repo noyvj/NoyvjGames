@@ -102,7 +102,19 @@ ELEMENT_IDS = [
     "expedition-status",
     "expedition-odds",
     "expedition-curios",
+    # Market Desk (J-3, J-11, J-12, J-27, J-28).
+    "desk-toggle-button",
+    "desk-panel",
+    "exchange-status",
+    "exchange-controls",
+    "exchange-kind-select",
+    "exchange-good-select",
+    "exchange-pct-select",
+    "exchange-add-button",
+    "exchange-book",
 ]
+for _i in range(5):
+    ELEMENT_IDS += [f"exchange-order-{_i}-row", f"exchange-order-{_i}-text", f"exchange-order-{_i}-remove-button"]
 for _s in SHIP_IDS:
     ELEMENT_IDS.append(f"expedition-ship-{_s}-button")
 CAPTAIN_PERK_IDS = ["frugal", "lucky", "night_owl", "perfectionist"]

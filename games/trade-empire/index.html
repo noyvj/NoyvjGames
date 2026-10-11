@@ -112,6 +112,7 @@
       <button id="charter-toggle-button" class="secondary" type="button" aria-controls="charter-panel" aria-expanded="false">📜 Charter</button>
       <button id="captains-toggle-button" class="secondary" type="button" aria-controls="captains-panel" aria-expanded="false">🎖️ Captains</button>
       <button id="lab-toggle-button" class="secondary" type="button" aria-controls="lab-panel" aria-expanded="false">🛠️ Fleet Lab</button>
+      <button id="desk-toggle-button" class="secondary" type="button" aria-controls="desk-panel" aria-expanded="false">🏛️ Market Desk</button>
       <!-- Site-wide settings panel (TODO.md origin A9): text-scale +
            reduce-motion. Deliberately independent of Pyodide/game.py
            entirely -- see settings.js -- same pattern Continuum's Phase
@@ -448,6 +449,31 @@
         </div>
         <p class="panel-label lab-heading">Curio cabinet</p>
         <ul id="expedition-curios" class="curio-list" aria-label="Curios found on expeditions"></ul>
+      </div>
+    </div>
+
+    <!-- J-3, J-11, J-12, J-27, J-28: the Market Desk (exchange, rival firm, cartel board). -->
+    <div id="desk-panel" class="section desk-panel" hidden>
+      <p class="panel-label">Market Desk
+        <details class="info-toggle"><summary>i</summary><p>Optional market tools. Nothing here is required to finish the game.</p></details>
+      </p>
+      <div id="desk-exchange" class="lab-section">
+        <p class="panel-label lab-heading">Commodities exchange</p>
+        <p class="map-caption">Standing buy and sell orders on your stockpiles that fill on their own each tick, by the same rules and fee as trading by hand.</p>
+        <p id="exchange-status" class="lab-status" aria-live="polite"></p>
+        <div id="exchange-controls" class="lab-actions" hidden>
+          <label>Order <select id="exchange-kind-select"><option value="buy">Buy a lot</option><option value="sell">Sell stockpile</option></select></label>
+          <label>Good <select id="exchange-good-select"><option value="ore">Ore</option><option value="grain">Grain</option><option value="machinery">Machinery</option><option value="water">Water</option><option value="energy">Energy</option><option value="rare_metals">Rare metals</option><option value="biomass">Biomass</option><option value="isotopes">Isotopes</option><option value="crystal">Crystal</option><option value="polymer">Polymer</option><option value="antimatter">Antimatter</option><option value="neutronium">Neutronium</option><option value="superfluid">Superfluid</option><option value="aerogel">Aerogel</option></select></label>
+          <label>at <select id="exchange-pct-select"><option value="40">40%</option><option value="50">50%</option><option value="60">60%</option><option value="70" selected>70%</option><option value="80">80%</option><option value="90">90%</option><option value="100">100%</option></select> of baseline</label>
+          <button id="exchange-add-button" class="secondary" type="button">Add order</button>
+        </div>
+        <div id="exchange-order-0-row" class="exchange-order-row" hidden><span id="exchange-order-0-text"></span> <button id="exchange-order-0-remove-button" class="secondary" type="button">Remove</button></div>
+        <div id="exchange-order-1-row" class="exchange-order-row" hidden><span id="exchange-order-1-text"></span> <button id="exchange-order-1-remove-button" class="secondary" type="button">Remove</button></div>
+        <div id="exchange-order-2-row" class="exchange-order-row" hidden><span id="exchange-order-2-text"></span> <button id="exchange-order-2-remove-button" class="secondary" type="button">Remove</button></div>
+        <div id="exchange-order-3-row" class="exchange-order-row" hidden><span id="exchange-order-3-text"></span> <button id="exchange-order-3-remove-button" class="secondary" type="button">Remove</button></div>
+        <div id="exchange-order-4-row" class="exchange-order-row" hidden><span id="exchange-order-4-text"></span> <button id="exchange-order-4-remove-button" class="secondary" type="button">Remove</button></div>
+        <p class="panel-label lab-heading">Order book: last five fills</p>
+        <div id="exchange-book"></div>
       </div>
     </div>
 
@@ -1211,6 +1237,7 @@
         { toggle: "charter-toggle-button", panel: "charter-panel" },
         { toggle: "captains-toggle-button", panel: "captains-panel" },
         { toggle: "lab-toggle-button", panel: "lab-panel" },
+        { toggle: "desk-toggle-button", panel: "desk-panel" },
       ],
     });
   </script>

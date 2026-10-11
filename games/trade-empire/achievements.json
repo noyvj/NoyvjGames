@@ -154,6 +154,16 @@
       "id": "curio_cabinet",
       "label": "Curio Cabinet",
       "description": "Collect all twelve curios from expeditions, across any charters."
+    },
+    {
+      "id": "first_fill",
+      "label": "First Fill",
+      "description": "Have a standing order on the commodities exchange fill on its own."
+    },
+    {
+      "id": "market_maker",
+      "label": "Market Maker",
+      "description": "See 25 standing orders fill on the commodities exchange, across any charters."
     }
   ]
 }

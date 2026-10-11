@@ -3268,6 +3268,8 @@ ACHIEVEMENT_CHECKS = {
     "dark_run": lambda: records["dark_runs"] >= 1,  # J-30
     "storm_watcher": lambda: records["weather_events"] >= WEATHER_ACHIEVEMENT_EVENTS,  # J-17
     "first_expedition": lambda: records["expeditions"] >= 1,  # J-23
+    "first_fill": lambda: records["exchange_fills"] >= 1,  # J-27
+    "market_maker": lambda: records["exchange_fills"] >= EXCHANGE_MARKET_MAKER_FILLS,
     "curio_cabinet": lambda: len(records["curios"]) >= len(CURIO_IDS),
 }
 
@@ -3282,6 +3284,7 @@ ACHIEVEMENT_PROGRESS = {
     "full_roster": lambda: (len(captains_met), len(CAPTAINS)),
     "storm_watcher": lambda: (min(records["weather_events"], WEATHER_ACHIEVEMENT_EVENTS), WEATHER_ACHIEVEMENT_EVENTS),
     "curio_cabinet": lambda: (len(records["curios"]), len(CURIO_IDS)),
+    "market_maker": lambda: (min(records["exchange_fills"], EXCHANGE_MARKET_MAKER_FILLS), EXCHANGE_MARKET_MAKER_FILLS),
 }
 
 
@@ -4132,6 +4135,7 @@ def render():
     render_blackout()
     render_weather()
     render_lab()
+    render_desk()
     throughput_el = document.getElementById("throughput-display")
     if throughput_el is not None:
         throughput_el.innerText = throughput_text()
@@ -4423,6 +4427,7 @@ def tick(event=None):
         colony_state.decay()
         colony_state.update_loyalty()
     recover_market()
+    exchange_tick()  # J-27
     total_profit += trade_post_income_per_tick()
 
     # J15 — idle-ticks bookkeeping: counts up only while a ship is
@@ -4472,7 +4477,7 @@ RECORDS_COUNT_MAX = 1_000_000
 def _fresh_records():
     return {
         "dark_runs": 0, "weather_events": 0, "expeditions": 0, "expedition_nothing_streak": 0,
-        "expedition_since_curio": 0, "curios": [],
+        "expedition_since_curio": 0, "curios": [], "exchange_fills": 0,
     }
 
 
@@ -5089,6 +5094,174 @@ def render_lab():
     render_expedition()
 
 
+# ---------------------------------------------------------------------------
+# J-27 / J-28 -- the Second Economy: an interstellar commodities exchange, open once the Umbral Deep
+# is reachable. It ties trade posts, speculation and automation together: you set standing buy and
+# sell orders on the stockpiles (J9) and they fill on their own each tick, using exactly the same
+# rules, limits, fee and price impact as buying or selling by hand (so it is no money loop). A buy
+# order buys a lot when the price falls to its percentage of baseline or below, a sell order sells
+# the whole stockpile when the price rises to its percentage or above. Slots: one, plus one per
+# trade post (up to five). The mini order book lists the last five fills in words, and every fill
+# counts in Exchange fills (a visible stat that feeds two achievements).
+# ---------------------------------------------------------------------------
+EXCHANGE_MAX_SLOTS = 5
+EXCHANGE_BOOK_ROWS = 5
+EXCHANGE_PERCENTS = (40, 50, 60, 70, 80, 90, 100)
+EXCHANGE_MARKET_MAKER_FILLS = 25
+exchange_orders = []  # [{"kind": "buy" | "sell", "good": id, "pct": int}]
+exchange_fills = []  # newest last: [{"kind", "good", "qty", "price"}] (price = credits per unit paid or received)
+
+
+def exchange_open():
+    return umbral_reach_unlocked()
+
+
+def exchange_slots():
+    return min(EXCHANGE_MAX_SLOTS, 1 + len(trade_posts))
+
+
+def can_add_exchange_order(kind, good, pct):
+    return (
+        exchange_open() and kind in ("buy", "sell") and good in SELL_PRICE and pct in EXCHANGE_PERCENTS
+        and colony_producing(good) in active_colony_ids() and len(exchange_orders) < exchange_slots()
+        and not any(o["kind"] == kind and o["good"] == good for o in exchange_orders)
+    )
+
+
+def add_exchange_order(kind, good, pct):
+    if not can_add_exchange_order(kind, good, pct):
+        return False
+    exchange_orders.append({"kind": kind, "good": good, "pct": pct})
+    return True
+
+
+def remove_exchange_order(index):
+    if not isinstance(index, int) or isinstance(index, bool) or not 0 <= index < len(exchange_orders):
+        return False
+    del exchange_orders[index]
+    return True
+
+
+def _exchange_note_fill(kind, good, qty, unit_price):
+    exchange_fills.append({"kind": kind, "good": good, "qty": qty, "price": unit_price})
+    del exchange_fills[:-EXCHANGE_BOOK_ROWS]
+    if not sandbox_active:
+        records["exchange_fills"] = min(RECORDS_COUNT_MAX, records["exchange_fills"] + 1)
+
+
+def exchange_tick():
+    """Fills what the standing orders ask for this tick: at most one fill per order."""
+    if not exchange_open():
+        return
+    for order in exchange_orders:
+        good = order["good"]
+        pct = market_multiplier[good] * 100
+        if order["kind"] == "buy":
+            if pct <= order["pct"] and can_stockpile_buy(good):
+                before, price = stockpile[good], current_sell_price(good)
+                if buy_stockpile(good):
+                    _exchange_note_fill("buy", good, stockpile[good] - before, price)
+        elif stockpile.get(good, 0) > 0 and pct >= order["pct"]:
+            qty, value = stockpile[good], stockpile_sale_value(good)
+            if sell_stockpile(good):
+                _exchange_note_fill("sell", good, qty, int(round(value / qty)))
+
+
+def exchange_order_text(order):
+    verb = "Buy a lot when" if order["kind"] == "buy" else "Sell the stockpile when"
+    side = "falls to" if order["kind"] == "buy" else "rises to"
+    return f"{verb} {GOOD_LABEL[order['good']]} {side} {order['pct']}% of baseline"
+
+
+def exchange_book_html():
+    if not exchange_fills:
+        return "<p class=\"map-caption\">No fills yet.</p>"
+    rows = ["<table class=\"exchange-book-table\"><thead><tr><th>Side</th><th>Good</th><th>Units</th><th>Credits each</th></tr></thead><tbody>"]
+    for fill in reversed(exchange_fills):
+        side = "Bought" if fill["kind"] == "buy" else "Sold"
+        rows.append(
+            f"<tr><td>{side}</td><td>{GOOD_LABEL[fill['good']]}</td><td>{fill['qty']}</td><td>{fill['price']}</td></tr>"
+        )
+    rows.append("</tbody></table>")
+    return "".join(rows)
+
+
+def exchange_status_text():
+    if not exchange_open():
+        return "Locked: the exchange opens once the Umbral Deep is reachable (research Umbral Reach)."
+    return (
+        f"Standing orders: {len(exchange_orders)}/{exchange_slots()} slots (one slot, plus one per trade post). "
+        f"Exchange fills: {records['exchange_fills']}. Orders trade your stockpiles by the same rules and fee as "
+        "doing it by hand, so a careless pair of orders can lose credits."
+    )
+
+
+def on_add_exchange_order(event=None):
+    kind = document.getElementById("exchange-kind-select").value
+    good = document.getElementById("exchange-good-select").value
+    try:
+        pct = int(document.getElementById("exchange-pct-select").value)
+    except (TypeError, ValueError):
+        return
+    if add_exchange_order(kind, good, pct):
+        render()
+
+
+def _make_exchange_remove_handler(index):
+    def handler(event=None):
+        if remove_exchange_order(index):
+            render()
+    return handler
+
+
+def render_exchange():
+    status = document.getElementById("exchange-status")
+    if status is None:
+        return
+    status.innerText = exchange_status_text()
+    controls = document.getElementById("exchange-controls")
+    if controls is not None:
+        controls.hidden = not exchange_open()
+    add = document.getElementById("exchange-add-button")
+    if add is not None:
+        add.disabled = not (exchange_open() and len(exchange_orders) < exchange_slots())
+    for i in range(EXCHANGE_MAX_SLOTS):
+        row = document.getElementById(f"exchange-order-{i}-row")
+        text = document.getElementById(f"exchange-order-{i}-text")
+        if row is None or text is None:
+            continue
+        shown = exchange_open() and i < len(exchange_orders)
+        row.hidden = not shown
+        if shown:
+            text.innerText = exchange_order_text(exchange_orders[i])
+    book = document.getElementById("exchange-book")
+    if book is not None:
+        book.innerHTML = exchange_book_html() if exchange_open() else ""
+
+
+# --- the Market Desk window (J-3, J-11, J-12, J-27, J-28): one panel, a section per feature ------
+desk_open = False
+
+
+def on_toggle_desk(event=None):
+    global desk_open
+    desk_open = not desk_open
+    render_desk()
+
+
+def render_desk():
+    toggle = document.getElementById("desk-toggle-button")
+    panel = document.getElementById("desk-panel")
+    if toggle is None or panel is None:
+        return
+    toggle.innerText = "Hide Market Desk" if desk_open else "\U0001F3DB\ufe0f Market Desk"
+    toggle.setAttribute("aria-expanded", "true" if desk_open else "false")
+    panel.hidden = not desk_open
+    if not desk_open:
+        return
+    render_exchange()
+
+
 # @@NEW-FEATURES-END@@ (new feature blocks are inserted above this line)
 
 
@@ -5243,6 +5416,11 @@ def get_state():
         ),
         **({"records": _records_for_save()} if _records_for_save() else {}),
         **({"expedition": dict(expedition)} if expedition is not None else {}),
+        **(
+            {"exchange": {"orders": [dict(o) for o in exchange_orders], "fills": [dict(f) for f in exchange_fills]}}
+            if exchange_orders or exchange_fills
+            else {}
+        ),
         "route_hazards": {
             "hazards": route_hazards_enabled,
             "insurance": route_insurance_enabled,
@@ -5413,6 +5591,38 @@ def _load_expedition(raw):
     if ship is None or not left or not ship.purchased or ship.location is None or ship.loaded:
         return
     expedition = {"ship": ship_id, "left": left}
+
+
+def _load_exchange(raw):
+    """J-27 -- standing orders and the order book from an untrusted save value (only valid, in-range entries)."""
+    exchange_orders.clear()
+    exchange_fills.clear()
+    if not isinstance(raw, dict) or not exchange_open():
+        return
+    orders = raw.get("orders")
+    if isinstance(orders, list):
+        for item in orders[:EXCHANGE_MAX_SLOTS * 2]:
+            if not isinstance(item, dict):
+                continue
+            kind, good, pct = item.get("kind"), item.get("good"), item.get("pct")
+            if (
+                kind in ("buy", "sell") and isinstance(good, str) and good in SELL_PRICE
+                and colony_producing(good) in active_colony_ids()
+                and isinstance(pct, int) and not isinstance(pct, bool) and pct in EXCHANGE_PERCENTS
+                and not any(o["kind"] == kind and o["good"] == good for o in exchange_orders)
+                and len(exchange_orders) < min(EXCHANGE_MAX_SLOTS, 1 + len(trade_posts))
+            ):
+                exchange_orders.append({"kind": kind, "good": good, "pct": pct})
+    fills = raw.get("fills")
+    if isinstance(fills, list):
+        for item in fills[-EXCHANGE_BOOK_ROWS:]:
+            if not isinstance(item, dict):
+                continue
+            kind, good = item.get("kind"), item.get("good")
+            qty = _saved_int(item.get("qty"), 1, STOCKPILE_CAPACITY, 0)
+            price = _saved_int(item.get("price"), 0, 1_000_000, -1)
+            if kind in ("buy", "sell") and isinstance(good, str) and good in SELL_PRICE and qty and price >= 0:
+                exchange_fills.append({"kind": kind, "good": good, "qty": qty, "price": price})
 
 
 def _load_weather(raw):
@@ -5679,6 +5889,7 @@ def _apply_state(data):
     _load_captains(data.get("captains"))
     _load_records(data.get("records"))
     _load_expedition(data.get("expedition"))
+    _load_exchange(data.get("exchange"))
     _load_blackout(data.get("blackout"))
     _load_weather(data.get("weather"))
     price_memory.clear()
@@ -5932,6 +6143,12 @@ def setup():
     document.getElementById("blackout-toggle-button").addEventListener("click", create_proxy(on_toggle_blackout))
     document.getElementById("weather-toggle-button").addEventListener("click", create_proxy(on_toggle_weather))
     document.getElementById("lab-toggle-button").addEventListener("click", create_proxy(on_toggle_lab))
+    document.getElementById("desk-toggle-button").addEventListener("click", create_proxy(on_toggle_desk))
+    document.getElementById("exchange-add-button").addEventListener("click", create_proxy(on_add_exchange_order))
+    for i in range(EXCHANGE_MAX_SLOTS):
+        document.getElementById(f"exchange-order-{i}-remove-button").addEventListener(
+            "click", create_proxy(_make_exchange_remove_handler(i))
+        )
     for ship_id in ships:
         document.getElementById(f"expedition-ship-{ship_id}-button").addEventListener(
             "click", create_proxy(_make_expedition_handler(ship_id))
