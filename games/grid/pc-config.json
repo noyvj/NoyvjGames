@@ -185,6 +185,10 @@
     [
       "Esc",
       "Menu / close window"
+    ],
+    [
+      "← →",
+      "Retire / build (focus a plant)"
     ]
   ],
   "notify": null,

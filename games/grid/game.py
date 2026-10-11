@@ -5984,6 +5984,71 @@ def mix_hover_text(plant_type):
     )
 
 
+# ---- C-5 arrow keys on the plant rows --------------------------------------------------------------------------------
+# With focus anywhere inside a plant row (its Build, Retire or Maintain button, or the row itself): Right arrow builds one
+# unit, Left arrow retires one (through exactly the same handlers as the buttons, so a last-unit warning, the refund and
+# the spoken result are the same), and Up/Down move focus to the plant above or below, keeping the same kind of control.
+# The row's own Auto-maintain select keeps its native arrow keys, any key with Ctrl, Alt or Meta is left alone, and a held
+# (auto-repeating) key builds or retires only once.
+PLANT_KEY_ACTIONS = {"ArrowRight": "build", "ArrowLeft": "retire"}
+PLANT_KEY_MOVES = {"ArrowUp": -1, "ArrowDown": 1}
+PLANT_KEY_HINT = (
+    "Keyboard: with focus on a plant, Right arrow builds one, Left arrow retires one, "
+    "Up and Down arrows move between plants."
+)
+
+
+def plant_key_command(key, plant_type, target_id="", tag="", ctrl=False, alt=False, meta=False):
+    """What a key press on a plant row means: ("build" | "retire", plant) or ("move", plant) or None (not ours)."""
+    if ctrl or alt or meta or str(tag).upper() in ("SELECT", "INPUT", "TEXTAREA"):
+        return None
+    if key in PLANT_KEY_ACTIONS:
+        return (PLANT_KEY_ACTIONS[key], plant_type)
+    if key in PLANT_KEY_MOVES:
+        order = list(PLANT_TYPES)
+        neighbour = order.index(plant_type) + PLANT_KEY_MOVES[key]
+        if 0 <= neighbour < len(order):
+            return ("move", order[neighbour])
+        return ("move", plant_type)  # at the top or bottom: stay put
+    return None
+
+
+def _control_kind(target_id):
+    for kind in ("build", "retire", "maintain"):
+        if str(target_id).endswith(f"-{kind}-button"):
+            return kind
+    return "build"
+
+
+def _make_plant_key_handler(plant_type):
+    def handler(event=None):
+        if event is None:
+            return
+        target = getattr(event, "target", None)
+        target_id = getattr(target, "id", "") or ""
+        command = plant_key_command(
+            getattr(event, "key", ""), plant_type, target_id, getattr(target, "tagName", ""),
+            bool(getattr(event, "ctrlKey", False)), bool(getattr(event, "altKey", False)), bool(getattr(event, "metaKey", False)),
+        )
+        if command is None:
+            return
+        prevent = getattr(event, "preventDefault", None)
+        if prevent is not None:
+            prevent()
+        action, plant = command
+        if action in ("build", "retire") and getattr(event, "repeat", False):
+            return  # a held key must not spend funds round after round
+        if action == "build":
+            _make_build_handler(plant)(None)
+        elif action == "retire":
+            _make_retire_handler(plant)(None)
+        else:
+            focus = getattr(document.getElementById(f"{plant}-{_control_kind(target_id)}-button"), "focus", None)
+            if focus is not None:
+                focus()
+    return handler
+
+
 def _make_mix_hover_handler(plant_type, entering):
     def handler(event=None):
         readout = document.getElementById("mix-hover-readout")
@@ -7403,6 +7468,10 @@ def setup():
     )
     document.getElementById("career-toggle-button").addEventListener("click", create_proxy(on_toggle_career))
     document.getElementById("career-finish-button").addEventListener("click", create_proxy(on_finish_run))
+    for plant_type in PLANT_TYPES:
+        document.getElementById(f"{plant_type}-row").addEventListener(
+            "keydown", create_proxy(_make_plant_key_handler(plant_type))
+        )
     for plant_type in GENERATION_TYPES:
         mix_row = document.getElementById(f"{plant_type}-mix-row")
         for event_name, entering in (("mouseenter", True), ("focus", True), ("mouseleave", False), ("blur", False)):

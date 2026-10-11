@@ -563,6 +563,8 @@
       </p>
       <!-- GC-4: a short eulogy (and a puff) when the last coal plant is retired. -->
       <p id="eulogy-display" class="eulogy-display" role="status" hidden></p>
+      <!-- C-5: keyboard model for the plant rows (also listed in the "?" help). -->
+      <p id="plant-keys-hint" class="comparison-message plant-keys-hint">Keyboard: with focus on a plant, Right arrow builds one, Left arrow retires one, Up and Down arrows move between plants.</p>
       <div class="plant-row" id="coal-row" data-plant="coal" role="group" aria-labelledby="coal-name">
         <div class="plant-row-top">
           <div class="plant-icon plant-icon--coal" aria-hidden="true">
@@ -1139,6 +1141,11 @@
         { toggle: "weather-log-toggle-button", panel: "weather-log-panel" },
         { toggle: "info-page-toggle-button", panel: "info-page-panel" },
         { toggle: "career-toggle-button", panel: "career-panel" },
+      ],
+      extra: [
+        "Right arrow (focus on a plant) — build one",
+        "Left arrow (focus on a plant) — retire one",
+        "Up / Down arrow (focus on a plant) — move between plants",
       ],
     });
   </script>
