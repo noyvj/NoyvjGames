@@ -1,6 +1,18 @@
 [
   {
     "date": "2026-10-11",
+    "entry": "Practice sandbox: set the herd, the methane and every lever with sliders and watch the gauge, the pressure and the income react, with unlimited funds. Nothing in it is scored, saved, earned or compared with other farms, and your real farm comes back exactly as it was when you leave."
+  },
+  {
+    "date": "2026-10-11",
+    "entry": "New: arrow keys on the plant rows. With focus on a plant, Right arrow builds one, Left arrow retires one (the last-unit warning still asks) and Up and Down move to the plant above or below, staying on the same kind of button. A held key acts only once, the Auto-maintain dropdown keeps its own arrow keys, and every result is spoken as with the buttons. The keys are listed under the plants and in the ? shortcut help."
+  },
+  {
+    "date": "2026-10-11",
+    "entry": "New: three run slots, no sign-in needed. Run slots (this browser) holds up to three named runs, each with its own scenario and progress. Save here puts the run on screen into a slot and from then on the slot saves itself after every round; Load slot switches to another run (the current one is saved into its slot first); New run here starts a fresh run in a slot; Clear slot empties one. Anything that would replace a run you have not saved, or overwrite or clear a slot, asks first."
+  },
+  {
+    "date": "2026-10-11",
     "entry": "Regulator audits: at the end of every 10th round an inspector checks two targets that are always on screen (a coupling ratio low enough and welfare high enough; they tighten each audit to 0.60 and 60). Pass and you earn a permanent perk for the farm; miss and you pay a fine of one round's income and a few rounds of shaken market trust. A farm that earns nothing owes nothing."
   },
   {

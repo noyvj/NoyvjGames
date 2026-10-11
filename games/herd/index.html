@@ -82,6 +82,7 @@
 <link rel="stylesheet" href="../../shared/print-summary.css" media="print">
 <link rel="stylesheet" href="../../shared/info-page.css">
 <link rel="stylesheet" href="../../shared/personal-best.css">
+<link rel="stylesheet" href="../../shared/sandbox-mode.css">
 <link rel="manifest" href="../../manifest.json">
 <script src="../../shared/tutorial.js"></script>
 <script src="../../shared/mobile-hud.js"></script>
@@ -115,6 +116,7 @@
            text-scale + reduced-motion controls. See settings.js -- plain JS,
            independent of Pyodide, same as Continuum's Phase 5
            accessibility.js/Aftermath's settings.js this pattern is modeled on. -->
+      <button id="sandbox-toggle-button" class="secondary" type="button" data-sandbox-toggle title="Set the herd, methane and levers freely and watch the gauge react: unlimited funds, nothing scored or saved. Your real farm is untouched.">🧪 Practice sandbox</button>
       <button id="settings-toggle-button" class="secondary" type="button">⚙️ Settings</button>
     </div>
     <div id="howto-panel" class="section" hidden></div>
@@ -649,6 +651,27 @@
       </div>
     </details>
 
+    <div id="sandbox-panel" class="section sandbox-panel" hidden>
+      <p class="meter-label">Practice sandbox</p>
+      <p class="comparison-message">Set the herd, the methane and the levers freely and watch the gauge, the pressure and the income react. Funds are unlimited; the buy buttons and Advance Round also work. Nothing here is scored, saved or compared with other farms.</p>
+      <label class="rule-row" for="sandbox-herd">Herd size <output id="sandbox-herd-value" for="sandbox-herd">0</output></label>
+      <input type="range" id="sandbox-herd" min="0" max="80" step="1" value="0">
+      <label class="rule-row" for="sandbox-methane">Total methane <output id="sandbox-methane-value" for="sandbox-methane">0</output></label>
+      <input type="range" id="sandbox-methane" min="0" max="300" step="5" value="0">
+      <label class="rule-row" for="sandbox-feed">Feed Additives <output id="sandbox-feed-value" for="sandbox-feed">0</output></label>
+      <input type="range" id="sandbox-feed" min="0" max="15" step="1" value="0">
+      <label class="rule-row" for="sandbox-caps">Herd Caps <output id="sandbox-caps-value" for="sandbox-caps">0</output></label>
+      <input type="range" id="sandbox-caps" min="0" max="15" step="1" value="0">
+      <label class="rule-row" for="sandbox-capture">Capture Systems <output id="sandbox-capture-value" for="sandbox-capture">0</output></label>
+      <input type="range" id="sandbox-capture" min="0" max="10" step="1" value="0">
+      <label class="rule-row" for="sandbox-pivot">Plant-Based Pivot units <output id="sandbox-pivot-value" for="sandbox-pivot">0</output></label>
+      <input type="range" id="sandbox-pivot" min="0" max="12" step="1" value="0">
+      <label class="rule-row" for="sandbox-poultry">Poultry flock <output id="sandbox-poultry-value" for="sandbox-poultry">0</output></label>
+      <input type="range" id="sandbox-poultry" min="0" max="30" step="1" value="0">
+      <p id="sandbox-note" class="comparison-message" role="status" aria-live="polite"></p>
+      <button id="sandbox-reset-button" class="secondary" type="button">Start the practice farm over</button>
+    </div>
+
     <div id="audit-panel" class="section audit-panel">
       <p class="meter-label">Regulator audit</p>
       <p id="audit-headline" class="comparison-message audit-headline"></p>
@@ -801,6 +824,8 @@
   -->
   <script src="../../shared/hub-auth.js"></script>
   <script src="../../shared/save-widget.js" data-game-id="herd"></script>
+  <!-- GF-24: the practice sandbox toggle and its banner (the rules live in game.py: sandbox_enter / sandbox_leave / sandbox_is_active). -->
+  <script src="../../shared/sandbox-mode.js" data-game-id="herd"></script>
   <script src="../../shared/opening-screen.js" data-game-id="herd" data-tagline="Grow a farm and decouple herd size from methane." data-game-name="Herd"></script>
   <script src="../../shared/story-toggle.js" data-game-id="herd" data-story-selectors="#vignette-display, #story-chapters, #family-story"></script>
   <script src="../../shared/story-chapters.js" data-game-id="herd" data-story="story.json"></script>

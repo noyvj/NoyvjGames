@@ -130,6 +130,8 @@ ELEMENT_IDS = [
     "cow-listen-button", "cow-bubble",
     # F-11 profiles.
     "profile-select", "next-lever-hint", "settings-reset-button",
+    # GF-24 sandbox.
+    "sandbox-panel", "sandbox-note", "sandbox-reset-button", "sandbox-herd", "sandbox-herd-value", "sandbox-methane", "sandbox-methane-value", "sandbox-feed", "sandbox-feed-value", "sandbox-caps", "sandbox-caps-value", "sandbox-capture", "sandbox-capture-value", "sandbox-pivot", "sandbox-pivot-value", "sandbox-poultry", "sandbox-poultry-value",
     # GF-3 audits.
     "audit-panel", "audit-headline", "audit-target-coupling", "audit-target-welfare", "audit-reward", "audit-record",
     # GF-23 loadouts.

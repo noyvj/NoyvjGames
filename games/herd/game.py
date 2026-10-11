@@ -346,7 +346,7 @@ def rules_are_custom():
 
 def rules_unranked():
     """True for a run that started or ran under non-standard Ranch Rules (it stays unranked for good)."""
-    return farm.custom_rules_used or rules_are_custom() or farm.loadout != "standard"
+    return sandbox_active or farm.custom_rules_used or rules_are_custom() or farm.loadout != "standard"
 
 
 def pressure_scale():
@@ -391,6 +391,8 @@ def audit_welfare_target(number):
 
 
 class FarmState:
+    sandbox = False  # GF-24: true only on the practice sandbox's farm (SandboxFarmState)
+
     def __init__(self):
         self.round_number = 1
         self.funds = rule("starting_funds")
@@ -797,7 +799,7 @@ class FarmState:
     def poultry_unlocked(self):
         # F25: a heritage flock (legacy perk) carries the unlock to every
         # later generation without needing to re-earn certification.
-        return self.certified or legacy_perks.get("heritage_flock", 0) > 0 or self.loadout == "poultry_start"
+        return self.certified or legacy_perks.get("heritage_flock", 0) > 0 or self.loadout == "poultry_start" or self.sandbox
 
     def poultry_coupling_ratio(self):
         reduction = sum(
@@ -1225,6 +1227,8 @@ def _read_local_storage_item(key):
 
 
 def _write_local_storage_item(key, value):
+    if sandbox_active:  # GF-24: nothing the practice sandbox does is ever written to browser storage
+        return
     try:
         import js  # noqa: PLC0415
     except ImportError:
@@ -1298,6 +1302,8 @@ def _maybe_update_record_coupling_ratio():
     at all, per this feature's own "record only appears once a record
     exists" requirement."""
     global record_coupling_ratio
+    if sandbox_active:  # GF-24: a practice farm never sets a record
+        return
     current = farm.coupling_ratio()
     if current >= BASE_COUPLING_RATIO - 1e-9:
         return
@@ -1519,7 +1525,7 @@ def copy_result_fields():
     ]
     if rules_unranked():
         stats.append("custom rules, unranked")
-    return {"game": "Herd", "score": round(farm.score()), "unit": "score", "stats": stats}
+    return {"game": "Herd (practice sandbox)" if sandbox_active else "Herd", "score": round(farm.score()), "unit": "score", "stats": stats}
 
 
 def report_card_html():
@@ -1867,6 +1873,8 @@ def achievement_ids_earned():
     value that rides the existing save/sync mechanism via get_state()'s
     "achievements_earned" field (ACHIEVEMENTS-SYSTEM-DESIGN.md). Always
     recomputed, never itself a save input."""
+    if sandbox_active:  # GF-24: nothing in the sandbox earns anything; the real farm's list is shown as it was
+        return list(_sandbox_real["earned"])
     return [entry["id"] for entry in ACHIEVEMENTS if ACHIEVEMENT_CHECKS[entry["id"]]()]
 
 
@@ -1883,7 +1891,7 @@ def achievements_summary():
                 "label": entry["label"],
                 "description": entry["description"],
                 "earned": entry["id"] in earned_ids,
-                "progress": progress_fn() if progress_fn else None,
+                "progress": progress_fn() if progress_fn and not sandbox_active else None,
                 "unit": ACHIEVEMENT_PROGRESS_UNITS.get(entry["id"], ""),
             }
         )
@@ -2707,6 +2715,8 @@ def _sync_collection(award=True):
     (normal play) a new combo pays its reward and a toast names what was found;
     with award=False (loading a save) it only records, so a load never changes
     funds. Returns the list of newly found labels."""
+    if sandbox_active:  # GF-24: no breed, combo, barn or loadout is ever found in the sandbox
+        return []
     found = []
     for breed in BREEDS:
         if breed["id"] not in breeds_collected and breed["check"](farm):
@@ -3113,6 +3123,8 @@ UNDO_NOTE_READY = (
 
 
 def can_undo():
+    if sandbox_active:
+        return False
     snapshot = farm.undo_snapshot
     return (
         not farm.undo_used and isinstance(snapshot, dict)
@@ -3628,7 +3640,7 @@ def set_rule(name, value):
     """Changes one rule. Returns True when the value really changed. Pace and penalty rules apply at
     once; a new starting purse applies right away only to a farm that has not started."""
     cleaned = clean_rule_value(name, value)
-    if cleaned is None or abs(cleaned - ranch_rules[name]) < 1e-9:
+    if sandbox_active or cleaned is None or abs(cleaned - ranch_rules[name]) < 1e-9:  # GF-24: rules are locked in the sandbox
         return False
     old = ranch_rules[name]
     ranch_rules[name] = cleaned
@@ -4088,7 +4100,8 @@ def render_ledger():
         "Nothing filed yet." if total == 0 else
         f"{total} farm{'s' if total != 1 else ''} filed in this browser; best result against the baseline: {best:+.0f}."
     )
-    document.getElementById("ledger-clear-button").disabled = total == 0
+    document.getElementById("ledger-clear-button").disabled = total == 0 or sandbox_active
+    document.getElementById("ledger-add-button").disabled = sandbox_active
 
 
 def on_ledger_filter(event=None):
@@ -4099,6 +4112,8 @@ def on_ledger_filter(event=None):
 
 
 def on_ledger_add(event=None):
+    if sandbox_active:
+        return
     reveal_blind_run()  # GF-28: filing a farm ends a blind run (the ledger line carries the baseline gap)
     ledger_record(ledger_entry(finished=False))
     render()
@@ -4106,6 +4121,8 @@ def on_ledger_add(event=None):
 
 
 def _clear_ledger():
+    if sandbox_active:
+        return
     _write_local_storage_item(LEDGER_STORAGE_KEY, "[]")
     render_ledger()
 
@@ -4126,12 +4143,12 @@ def on_ledger_clear(event=None):
 PINS_STORAGE_KEY = "herd-pinned-stats"
 PIN_MAX = 3
 PIN_STATS = {
-    "funds": ("Funds", lambda: f"{farm.funds:.0f}"),
+    "funds": ("Funds", lambda: "unlimited" if sandbox_active else f"{farm.funds:.0f}"),
     "income": ("Income per round", lambda: f"{farm.income_breakdown()['total']:.1f}"),
     "welfare": ("Welfare", lambda: f"{farm.welfare():.0f}/100"),
     "methane_round": ("Methane per round", lambda: f"{farm.methane_this_round():.1f}"),
     "methane": ("Total methane", lambda: f"{farm.methane:.0f}"),
-    "score": ("Score", lambda: f"{farm.score():.0f}"),
+    "score": ("Score", lambda: "not counted" if sandbox_active else f"{farm.score():.0f}"),
     "herd": ("Herd", lambda: f"{farm.herd_size}"),
     "pressure": ("Pressure", lambda: f"{farm.pressure_fraction() * 100:.0f}% income loss"),
 }
@@ -4525,7 +4542,7 @@ def render():
     )
 
     document.getElementById("round-display").innerText = f"Round {farm.round_number}"
-    document.getElementById("funds-display").innerText = f"Funds: {farm.funds:.0f}"
+    document.getElementById("funds-display").innerText = "Funds: unlimited (sandbox)" if sandbox_active else f"Funds: {farm.funds:.0f}"
     document.getElementById("herd-display").innerText = f"Herd size: {farm.herd_size}"
     document.getElementById("methane-display").innerText = f"Methane: {farm.methane:.0f}"
     document.getElementById("coupling-display").innerText = (
@@ -4537,7 +4554,7 @@ def render():
     document.getElementById("methane-bar").style.width = (
         f"{min(1.0, farm.methane / pressure_scale()) * 100:.0f}%"
     )
-    document.getElementById("score-display").innerText = f"Score: {farm.score():.0f}"
+    document.getElementById("score-display").innerText = "Score: not counted (sandbox)" if sandbox_active else f"Score: {farm.score():.0f}"
 
     grow_cost = farm.grow_herd_cost()
     grow_button = document.getElementById("grow-herd-button")
@@ -4630,6 +4647,7 @@ def render():
     render_blind_run()
     render_loadouts()
     render_audit()
+    render_sandbox()
 
 
 # F-18: an optional "ask before a big purchase" setting. The Settings select (settings.js) keeps the
@@ -4764,7 +4782,7 @@ legacy_perks = {}
 
 
 def can_hand_over():
-    return farm.certified
+    return farm.certified and not sandbox_active
 
 
 def handover_points():
@@ -4946,7 +4964,7 @@ def on_advance_round(event=None):
     income_this_round = farm.income_breakdown()["total"]
     funds_before, methane_before = farm.funds, farm.methane
     welfare_before, pressure_before = farm.welfare(), farm.pressure_fraction()
-    farm.undo_snapshot = get_state()  # GF-18: the state to rewind to
+    farm.undo_snapshot = None if sandbox_active else get_state()  # GF-18: the state to rewind to
     farm.advance_round()
     session_rounds += 1
     last_deltas = round_deltas(funds_before, methane_before, welfare_before, pressure_before)
@@ -4985,6 +5003,8 @@ def on_advance_round(event=None):
 # serialize_state() docstring. info_page_open is deliberately excluded —
 # it's a cosmetic panel toggle, not tracked game progress.
 def get_state():
+    if sandbox_active:  # GF-24: a save, an autosave or a leaderboard read while the sandbox is on is the REAL game
+        return copy.deepcopy(_sandbox_real["snapshot"])
     state = {
         "round_number": farm.round_number,
         "funds": farm.funds,
@@ -5374,6 +5394,8 @@ def load_state(data):
         if not isinstance(data, dict):
             return False
         raise ValueError("Save not loaded: " + " ".join(reason for _key, reason in problems[:3]))
+    if sandbox_active:  # GF-24: loading a save always lands in the real game
+        _sandbox_restore_real()
     backup = get_state()
     try:
         result = _apply_state(data)
@@ -5384,6 +5406,7 @@ def load_state(data):
     if pending_recovery is not None:
         pending_recovery = None
         render_save_recovery()
+    _sandbox_notify_page()
     return result
 
 
@@ -5545,6 +5568,8 @@ def import_settings_code(code):
     """Applies a settings code. Returns (True, plain summary) or (False, plain reason); nothing is
     changed unless the code is sound and carries at least one usable value."""
     global pinned_stats, record_coupling_ratio
+    if sandbox_active:
+        return False, "Leave the practice sandbox first; settings are not changed from inside it."
     ok, payload = export_progress.decode_progress_code(
         code, SETTINGS_CODE_PREFIX,
         "That does not look like a Herd settings code. It should start with " + SETTINGS_CODE_PREFIX + " and be copied whole.",
@@ -6168,6 +6193,193 @@ def render_audit():
     document.getElementById("audit-record").innerText = record
 
 
+# ---- GF-24 practice sandbox --------------------------------------------------------------------
+# A place to set the herd, the methane and the levers freely and watch the gauge, the pressure and the
+# income react, with unlimited funds. shared/sandbox-mode.js draws the button, banner and frame and calls
+# sandbox_enter() / sandbox_leave() / sandbox_is_active(); everything else stays here. The rules:
+#   - the real farm is set aside whole (never edited) and put back as the very same object on leaving, so
+#     get_state() is byte-identical before and after;
+#   - get_state() answers with the REAL game while the sandbox is on, so Save, the autosave and the
+#     leaderboard hooks can never write the sandbox;
+#   - nothing in the sandbox earns an achievement, a breed, combo, barn or loadout, sets a record, files a
+#     ledger line or writes browser storage (_write_local_storage_item is a no-op), and it is never
+#     compared with other farms (rules_unranked() is true);
+#   - loading a save leaves the sandbox first. It lives in memory only: a reload is the real game.
+SANDBOX_FUNDS = 1_000_000
+SANDBOX_CONTROLS = {
+    # name: (minimum, maximum, step)
+    "herd": (0, 80, 1), "methane": (0, 300, 5), "feed": (0, 15, 1), "caps": (0, 15, 1), "capture": (0, 10, 1),
+    "pivot": (0, 12, 1), "poultry": (0, 30, 1),
+}
+
+
+class SandboxFarmState(FarmState):
+    """The practice farm: the balance never drops below SANDBOX_FUNDS, so anything can be bought."""
+    sandbox = True
+
+    @property
+    def funds(self):
+        return self._funds
+
+    @funds.setter
+    def funds(self, value):
+        self._funds = max(float(value), float(SANDBOX_FUNDS))
+
+
+sandbox_active = False
+_sandbox_real = None
+_SANDBOX_COPIED = (
+    "ranch_rules", "legacy_perks", "breeds_collected", "combos_found", "hall_of_fame", "family_endings",
+    "barns_unlocked", "loadouts_unlocked", "pinned_stats",
+)
+_SANDBOX_STASHED = _SANDBOX_COPIED + (
+    "generation", "legacy_points", "barn_skin", "loadout_choice", "record_coupling_ratio", "last_deltas",
+    "delta_pinned", "delta_faded", "plan_steps", "explain_kind", "mixer_message", "golden_cow_status_text",
+    "loadout_status_text", "barn_status_text", "last_round_income",
+)
+
+
+def _sandbox_fresh_globals():
+    return {
+        "last_deltas": {}, "delta_pinned": set(), "delta_faded": False, "plan_steps": [], "explain_kind": None,
+        "mixer_message": "", "golden_cow_status_text": "", "loadout_status_text": "", "barn_status_text": "",
+        "last_round_income": None,
+    }
+
+
+def new_sandbox_farm():
+    fresh = SandboxFarmState()
+    fresh.audit_perks = []
+    return fresh
+
+
+def _sandbox_notify_page():
+    """Tells shared/sandbox-mode.js to re-read sandbox_is_active() (the banner and button follow it)."""
+    try:
+        from js import window  # noqa: PLC0415 -- Pyodide-only, deliberately lazy
+    except ImportError:
+        return
+    shared = getattr(window, "NoyvjSandbox", None)
+    if shared is not None:
+        shared.sync()
+
+
+def sandbox_is_active():
+    return sandbox_active
+
+
+def sandbox_enter():
+    """Sets the real farm aside and starts a practice farm. True when the sandbox is on."""
+    global farm, sandbox_active, _sandbox_real
+    if sandbox_active:
+        return True
+    snapshot = get_state()
+    stash = {name: globals()[name] for name in _SANDBOX_STASHED}
+    _sandbox_real = {"farm": farm, "snapshot": snapshot, "earned": list(snapshot["achievements_earned"]), "globals": stash}
+    sandbox_active = True
+    for name in _SANDBOX_COPIED:  # the sandbox works on copies; the originals wait untouched
+        globals()[name] = copy.deepcopy(stash[name])
+    globals().update(_sandbox_fresh_globals())
+    farm = new_sandbox_farm()
+    render()
+    return True
+
+
+def _sandbox_restore_real():
+    """Puts the real farm and every stashed value back exactly as it was (no render; callers do that)."""
+    global farm, sandbox_active, _sandbox_real
+    real = _sandbox_real
+    sandbox_active = False
+    _sandbox_real = None
+    if real is None:
+        return
+    farm = real["farm"]
+    globals().update(real["globals"])
+    _seed_achievement_toast_baseline()
+
+
+def sandbox_leave():
+    """Back to the real farm, unchanged. True when the real game is back."""
+    if not sandbox_active:
+        return True
+    _sandbox_restore_real()
+    render()
+    return True
+
+
+def sandbox_control_id(name):
+    return "sandbox-" + name
+
+
+def sandbox_current_value(name):
+    if name == "herd":
+        return farm.herd_size
+    if name == "methane":
+        return farm.methane
+    if name == "pivot":
+        return farm.plant_pivot_investment
+    if name == "poultry":
+        return farm.poultry_size
+    return farm.decoupling_investment[name]
+
+
+def set_sandbox_value(name, value):
+    """Sets one slider's quantity on the practice farm (clamped to its range). True when it changed."""
+    if not sandbox_active or name not in SANDBOX_CONTROLS or not _is_finite_number(value):
+        return False
+    low, high, step = SANDBOX_CONTROLS[name]
+    value = max(low, min(high, round(value / step) * step))
+    if abs(value - sandbox_current_value(name)) < 1e-9:
+        return False
+    if name == "herd":
+        farm.herd_size = int(value)
+    elif name == "methane":
+        farm.methane = float(value)
+        farm.methane_history[-1] = float(value)
+    elif name == "pivot":
+        farm.plant_pivot_investment = int(value)
+    elif name == "poultry":
+        farm.poultry_size = int(value)
+    else:
+        farm.decoupling_investment[name] = int(value)
+    return True
+
+
+def render_sandbox():
+    panel = document.getElementById("sandbox-panel")
+    panel.hidden = not sandbox_active
+    if not sandbox_active:
+        return
+    for name in SANDBOX_CONTROLS:
+        value = sandbox_current_value(name)
+        document.getElementById(sandbox_control_id(name)).value = f"{value:g}"
+        document.getElementById(sandbox_control_id(name) + "-value").innerText = f"{value:g}"
+    document.getElementById("sandbox-note").innerText = (
+        f"Coupling ratio {farm.coupling_ratio():.2f}, methane per round {farm.methane_this_round():.1f}, pressure "
+        f"{farm.pressure_fraction() * 100:.0f}% income loss, income per round {farm.income_breakdown()['total']:.1f}. "
+        "Nothing here is scored, saved or compared with other farms."
+    )
+
+
+def _make_sandbox_handler(name):
+    def handler(event=None):
+        try:
+            value = float(document.getElementById(sandbox_control_id(name)).value)
+        except (TypeError, ValueError):
+            return
+        set_sandbox_value(name, value)
+        render()
+    return handler
+
+
+def on_sandbox_reset(event=None):
+    global farm
+    if not sandbox_active:
+        return
+    farm = new_sandbox_farm()
+    render()
+
+
 def setup():
     # index.html already marks these hidden via the `hidden` attribute,
     # but that markup default doesn't exist for the pytest fake-DOM
@@ -6256,6 +6468,9 @@ def setup():
     document.getElementById("cow-listen-button").addEventListener("click", create_proxy(on_cow_listen))
     for skin in BARN_SKINS:
         document.getElementById(f"barn-use-{skin['id']}").addEventListener("click", create_proxy(_make_barn_handler(skin["id"])))
+    for name in SANDBOX_CONTROLS:
+        document.getElementById(sandbox_control_id(name)).addEventListener("input", create_proxy(_make_sandbox_handler(name)))
+    document.getElementById("sandbox-reset-button").addEventListener("click", create_proxy(on_sandbox_reset))
     document.getElementById("loadout-select").addEventListener("change", create_proxy(on_loadout_change))
     document.getElementById("blind-run-checkbox").addEventListener("click", create_proxy(on_toggle_blind_run))
     document.getElementById("blind-reveal-button").addEventListener("click", create_proxy(on_reveal_blind_run))

@@ -1786,3 +1786,9 @@ html[data-reduced-motion="true"] .golden-cow-glider, html[data-lite="true"] .gol
 .audit-targets { margin: 0.3rem 0; padding-left: 1.1rem; font-size: 0.85rem; }
 .audit-panel.audit-warning { border: 2px solid #e69f00; }
 .audit-panel.audit-warning .audit-headline::before { content: "\26A0\FE0F "; }
+
+/* ---- Round 7: GF-24 practice sandbox ---- */
+.sandbox-panel input[type="range"] { width: 100%; min-height: 28px; }
+.sandbox-panel .rule-row { display: flex; justify-content: space-between; gap: 0.5rem; margin-top: 0.5rem; font-size: 0.85rem; }
+.sandbox-panel output { font-variant-numeric: tabular-nums; font-weight: 700; }
+.sandbox-panel button { margin-top: 0.5rem; }
