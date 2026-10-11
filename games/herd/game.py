@@ -1785,6 +1785,24 @@ def on_toggle_achievements(event=None):
     update_achievements_display()
 
 
+# F-31 -- a livestock or pasture glyph for every achievement card, a barnyard border on earned cards, and a
+# short flourish the first time a card is drawn after its achievement was earned (once per card).
+ACHIEVEMENT_GLYPHS = {
+    "first_herd": "\U0001F404", "growing_operation": "\U0001F402", "major_operation": "\U0001F69C",
+    "first_decoupling": "\U0001F33E", "all_three_measures": "\U0001F340", "quarter_decoupled": "\U0001F331",
+    "half_decoupled": "\U0001F33F", "fully_decoupled": "\U0001F333", "sustainably_certified": "\U0001F3E1",
+    "plant_pioneer": "\U0001F955", "half_plant_based": "\U0001F96C", "max_plant_pivot": "\U0001F33B",
+    "real_world_match": "\U0001F41D", "outperforming_baseline": "\U0001F95B", "decoupling_dividend": "\U0001F9C0",
+    "clean_operator": "\U0001F9FA", "long_haul": "\U0001F413", "century_farm": "\U0001F411", "score_400": "\U0001F410",
+}
+ACHIEVEMENT_GLYPH_DEFAULT = "\U0001F404"
+achievement_flourish_ids = set()  # earned since the panel last drew them; session only
+
+
+def achievement_glyph(achievement_id):
+    return ACHIEVEMENT_GLYPHS.get(achievement_id, ACHIEVEMENT_GLYPH_DEFAULT)
+
+
 def update_achievements_display():
     toggle = document.getElementById("achievements-toggle-button")
     panel = document.getElementById("achievements-panel")
@@ -1802,7 +1820,16 @@ def update_achievements_display():
     for entry in achievements_summary():
         card = document.createElement("div")
         card.className = "achievement-card achievement-card--earned" if entry["earned"] else "achievement-card"
+        if entry["earned"] and entry["id"] in achievement_flourish_ids:
+            card.className += " achievement-card--new"
+            achievement_flourish_ids.discard(entry["id"])
         card.dataset.achievementId = entry["id"]
+
+        glyph = document.createElement("span")
+        glyph.className = "achievement-card-glyph"
+        glyph.setAttribute("aria-hidden", "true")
+        glyph.innerText = achievement_glyph(entry["id"])
+        card.appendChild(glyph)
 
         label = document.createElement("p")
         label.className = "achievement-card-label"
@@ -1927,6 +1954,9 @@ def _check_new_achievements_for_toast():
     earned_now = set(achievement_ids_earned())
     _story_reach_all(earned_now)
     newly = earned_now - _achievements_seen_ids
+    achievement_flourish_ids.update(newly)
+    if newly and achievements_open:
+        update_achievements_display()  # draw the new cards now, so the flourish plays when they are earned
     if newly:
         by_id = {entry["id"]: entry for entry in ACHIEVEMENTS}
         labels = [by_id[aid]["label"] for aid in newly if aid in by_id]

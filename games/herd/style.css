@@ -1657,3 +1657,26 @@ html[data-reduced-motion="true"] .cha-confetti, html[data-lite="true"] .cha-conf
 .family-story-text { font-size: 0.88rem; line-height: 1.5; margin: 0.4rem 0; font-style: italic; }
 .family-story-choices { display: flex; flex-direction: column; gap: 0.4rem; margin: 0.5rem 0; }
 .family-story-choices button { text-align: left; }
+
+/* F-31 achievement cards: a livestock/pasture glyph, a barnyard border and a one-off unlock flourish. */
+.achievement-card { position: relative; padding-left: 3rem; }
+.achievement-card-glyph { position: absolute; left: 0.7rem; top: 0.8rem; font-size: 1.5rem; line-height: 1; filter: grayscale(1); opacity: 0.4; }
+.achievement-card--earned .achievement-card-glyph { filter: none; opacity: 1; }
+.achievement-card--earned {
+  border: 2px solid #b5483a; border-left-width: 6px; border-top: 4px double #d9a24a;
+  background-image: repeating-linear-gradient(90deg, rgba(181, 72, 58, 0.07) 0 6px, transparent 6px 12px);
+}
+.achievement-card--new { animation: achievement-flourish 0.9s ease-out 1; }
+.achievement-card--new .achievement-card-glyph { animation: achievement-hop 0.9s ease-out 1; }
+@keyframes achievement-flourish {
+  0% { box-shadow: 0 0 0 0 rgba(224, 194, 76, 0.9); transform: scale(0.97); }
+  60% { box-shadow: 0 0 0 10px rgba(224, 194, 76, 0); transform: scale(1.02); }
+  100% { box-shadow: 0 0 18px rgba(76, 156, 110, 0.12); transform: scale(1); }
+}
+@keyframes achievement-hop { 0%, 100% { transform: translateY(0); } 40% { transform: translateY(-8px); } 70% { transform: translateY(0); } }
+@media (prefers-reduced-motion: reduce) { .achievement-card--new, .achievement-card--new .achievement-card-glyph { animation: none; } }
+html[data-reduced-motion="true"] .achievement-card--new,
+html[data-reduced-motion="true"] .achievement-card--new .achievement-card-glyph,
+html[data-lite="true"] .achievement-card--new,
+html[data-lite="true"] .achievement-card--new .achievement-card-glyph { animation: none; }
+html[data-high-contrast="true"] .achievement-card-glyph { filter: none; opacity: 1; }
