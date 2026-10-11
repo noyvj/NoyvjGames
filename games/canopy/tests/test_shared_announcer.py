@@ -1,5 +1,6 @@
 """B-7: the game speaks through shared/announcer.js when the page loads it, else through its own live region."""
 
+
 def test_announcements_go_through_the_shared_announcer_when_the_page_has_it(game_env):
     import sys
     import types

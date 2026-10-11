@@ -59,7 +59,6 @@ def test_forecast_text_follows_the_clock_each_tick(game_env):
 # --- B-16: the plot card ---------------------------------------------------------------------------------------------
 
 def test_plot_card_has_a_second_line_with_age_biodiversity_and_clears(game_env):
-    m = game_env.module
     game_env.tick(7)
     card = tile(game_env, 0).getAttribute("data-tooltip")
     first, second = card.split("\n")

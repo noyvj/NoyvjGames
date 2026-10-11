@@ -1791,7 +1791,11 @@ def _clean_series(raw):
 def _clean_forest_record(raw):
     if not isinstance(raw, dict):
         return None
-    number = lambda key: float(raw[key]) if isinstance(raw.get(key), (int, float)) and not isinstance(raw.get(key), bool) and abs(raw[key]) < 1e9 else 0.0
+
+    def number(key):
+        value = raw.get(key)
+        return float(value) if isinstance(value, (int, float)) and not isinstance(value, bool) and abs(value) < 1e9 else 0.0
+
     series = raw.get("series") if isinstance(raw.get("series"), dict) else {}
     return {
         "id": _nonneg_int(raw.get("id")),
@@ -2201,8 +2205,8 @@ def save_layout(name, cells):
         return None
     name = " ".join(str(name or "").split())[:20] or f"Layout {len(load_saved_layouts()) + 1}"
     layouts = load_saved_layouts()
-    previous = next((l for l in layouts if l["name"] == name), None)
-    layouts = [l for l in layouts if l["name"] != name]
+    previous = next((entry for entry in layouts if entry["name"] == name), None)
+    layouts = [entry for entry in layouts if entry["name"] != name]
     layouts.append({"name": name, "rows": GRID_ROWS, "cols": GRID_COLS, "cells": cells, "best": previous["best"] if previous else 0.0})
     _write_local_storage_item(LAYOUT_STORAGE_KEY, json.dumps(layouts[-LAYOUT_MAX_SAVED:]))
     return name
@@ -2225,7 +2229,7 @@ def layout_best_text():
     if current_layout is None:
         return ""
     name = current_layout.get("name") or "unnamed"
-    layout = next((l for l in load_saved_layouts() if l["name"] == current_layout.get("name")), None)
+    layout = next((entry for entry in load_saved_layouts() if entry["name"] == current_layout.get("name")), None)
     best = layout["best"] if layout else 0.0
     return f"{name}: best standing {best:.1f}" if best > 0 else f"{name}: no best yet"
 
@@ -2291,7 +2295,7 @@ def on_layout_save(event=None):
 def on_layout_load(event=None):
     global layout_draft
     select = _el("layout-select")
-    chosen = next((l for l in load_saved_layouts() if l["name"] == getattr(select, "value", "")), None)
+    chosen = next((entry for entry in load_saved_layouts() if entry["name"] == getattr(select, "value", "")), None)
     if chosen is not None and chosen["rows"] == GRID_ROWS and chosen["cols"] == GRID_COLS:
         layout_draft = chosen["cells"]
         name_box = _el("layout-name")
@@ -9745,7 +9749,9 @@ def _fire_tick():
     global fire_warning, dampen_cooldown
     if not wildfire_enabled():
         if fires or fire_warning or fire_damp:
-            fires.clear(); fire_damp.clear(); fire_warning = None
+            fires.clear()
+            fire_damp.clear()
+            fire_warning = None
         return
     dampen_cooldown = max(0, dampen_cooldown - 1)
     for index in list(fire_damp):
@@ -10165,6 +10171,7 @@ def _plot_to_dict(plot):
         "specialization": plot.specialization,
         **({"species": plot.species} if plot.species else {}),  # GB-6: only when a species was chosen
         **({"soil_dip_ticks": plot.soil_dip_ticks} if plot.soil_dip_ticks > 0 else {}),  # GB-21: only while healing
+        **({"partner_share": plot.partner_share} if plot.partner_share else {}),  # B11: the partner's cut is permanent, so it must survive a save
     }
 
 
@@ -10172,23 +10179,35 @@ def _apply_plot_dict(plot, plot_data):
     """Safe-defaulting inverse of _plot_to_dict(): every key falls back to
     the plot's live value, so a save predating any field (mature_celebrated
     and requests_survived are newer than the rest) still loads."""
-    plot.index = plot_data.get("index", plot.index)
-    plot.state = plot_data.get("state", plot.state)
-    plot.value = plot_data.get("value", plot.value)
-    plot.ticks_intact = plot_data.get("ticks_intact", plot.ticks_intact)
-    plot.clear_count = plot_data.get("clear_count", plot.clear_count)
-    plot.replant_ticks_remaining = plot_data.get("replant_ticks_remaining", plot.replant_ticks_remaining)
-    plot.just_recovered = plot_data.get("just_recovered", plot.just_recovered)
-    plot.biodiversity = plot_data.get("biodiversity", plot.biodiversity)
-    plot.mature_celebrated = plot_data.get("mature_celebrated", plot.mature_celebrated)
-    plot.requests_survived = plot_data.get("requests_survived", plot.requests_survived)
+    # QA-1: every field is checked, so a hand-edited or damaged save keeps the plot's live value for a bad
+    # field instead of storing a string or NaN that breaks the next tick.
+    if not isinstance(plot_data, dict):
+        return
+    plot.index = int(_number_or(plot_data.get("index"), plot.index, 0, 10 ** 6))
+    saved_state = plot_data.get("state")
+    plot.state = saved_state if isinstance(saved_state, str) and saved_state in (PRESERVED, BARE, REPLANTING, RECOVERED) else plot.state
+    plot.value = _number_or(plot_data.get("value"), plot.value, 0.0, 1e12)
+    plot.ticks_intact = int(_number_or(plot_data.get("ticks_intact"), plot.ticks_intact, 0, 10 ** 9))
+    plot.clear_count = int(_number_or(plot_data.get("clear_count"), plot.clear_count, 0, 10 ** 6))
+    plot.replant_ticks_remaining = int(_number_or(
+        plot_data.get("replant_ticks_remaining"), plot.replant_ticks_remaining, 0, 10 ** 6))
+    saved_flag = plot_data.get("just_recovered")
+    plot.just_recovered = saved_flag if isinstance(saved_flag, bool) else plot.just_recovered
+    plot.biodiversity = _number_or(plot_data.get("biodiversity"), plot.biodiversity, 0.0, 1e9)
+    saved_flag = plot_data.get("mature_celebrated")
+    plot.mature_celebrated = saved_flag if isinstance(saved_flag, bool) else plot.mature_celebrated
+    plot.requests_survived = int(_number_or(plot_data.get("requests_survived"), plot.requests_survived, 0, 10 ** 6))
     saved_spec = plot_data.get("specialization", plot.specialization)
-    plot.specialization = saved_spec if saved_spec in SPECIALIZATION_LABEL else None
+    plot.specialization = saved_spec if isinstance(saved_spec, str) and saved_spec in SPECIALIZATION_LABEL else None
     saved_species = plot_data.get("species")  # GB-6
-    plot.species = saved_species if saved_species in SPECIES and saved_species != SPECIES_STANDARD else None
+    plot.species = saved_species if isinstance(saved_species, str) and saved_species in SPECIES and saved_species != SPECIES_STANDARD else None
     plot.replant_ticks_total = max(RECOVERY_TICKS, plot.replant_ticks_remaining)
     # GB-21: a save is authoritative, so a missing or malformed key means no dip (a bool or NaN never counts).
     plot.soil_dip_ticks = int(_number_or(plot_data.get("soil_dip_ticks"), 0, 0, CLEAR_CUT_HEAL_TICKS))
+    # QA-1: partner_share used to be missing from the save, so saving and loading quietly ended a reforestation
+    # partnership (the plot kept the faster recovery and lost the permanent revenue share). Authoritative like
+    # soil_dip_ticks: a save without it means no partner.
+    plot.partner_share = float(_number_or(plot_data.get("partner_share"), 0.0, 0.0, 1.0))
 
 
 def _wetland_state_fields():
@@ -10216,6 +10235,36 @@ def _number_or(value, default, low=0.0, high=None):
         return default
     value = max(low, value)
     return value if high is None else min(high, value)
+
+
+def _index_or_none(value, size):
+    """`value` when it is an int index into a list of `size` things, else None (bools and floats do not count)."""
+    if isinstance(value, int) and not isinstance(value, bool) and 0 <= value < size:
+        return value
+    return None
+
+
+def _clean_stakeholder_request(raw, size):
+    """A saved pending request, or None when it is not one the game could have made (it would otherwise be
+    indexed as plots[raw["plot_index"]] when the player answers it)."""
+    if not isinstance(raw, dict):
+        return None
+    index = _index_or_none(raw.get("plot_index"), size)
+    reason, kind = raw.get("reason"), raw.get("kind", STAKEHOLDER_KIND_CLEAR)
+    if index is None or not isinstance(reason, str) or not isinstance(kind, str):
+        return None
+    # The message and the answer handlers look the reason up by kind, so an unknown pair would raise later.
+    if kind == STAKEHOLDER_KIND_CLEAR:
+        known = reason in STAKEHOLDER_REASON_TEXT
+    elif kind == STAKEHOLDER_KIND_INCENTIVE:
+        known = reason in STAKEHOLDER_INCENTIVE_REASON_TEXT
+    else:
+        known = kind == STAKEHOLDER_KIND_REPLANT_GRANT
+    if not known:
+        return None
+    clean = copy.deepcopy(raw)
+    clean["plot_index"] = index
+    return clean
 
 
 def resume_note():
@@ -10357,10 +10406,16 @@ def load_state(data):
     # already does exactly that rebuild; skip its own render() since the
     # real one happens at the end of this function once every field below
     # is actually restored.
+    if not isinstance(data, dict):
+        return False
     saved_grid_size = data.get("current_grid_size", "normal")
+    if not isinstance(saved_grid_size, str) or saved_grid_size not in GRID_SIZE_PRESETS:
+        saved_grid_size = "normal"
     saved_difficulty = data.get("current_difficulty", DIFFICULTY_NORMAL)
-    if saved_difficulty not in DEGRADE_PER_CLEAR_BY_DIFFICULTY:
+    if not isinstance(saved_difficulty, str) or saved_difficulty not in DEGRADE_PER_CLEAR_BY_DIFFICULTY:
         saved_difficulty = DIFFICULTY_NORMAL
+    saved_plots = data.get("plots")
+    saved_plots = saved_plots if isinstance(saved_plots, list) else []
     saved_challenge = _saved_challenge_id(data)
     saved_pace = _saved_pace(data)
     if (
@@ -10368,21 +10423,23 @@ def load_state(data):
         or saved_difficulty != current_difficulty
         or saved_challenge != current_challenge
         or saved_pace != current_pace
-        or len(data.get("plots", [])) != len(plots)
+        or len(saved_plots) != len(plots)
     ):
         reset_session(
             grid_size=saved_grid_size, _render_after=False, difficulty=saved_difficulty,
             challenge=saved_challenge, pace=saved_pace,
         )
 
-    for plot, plot_data in zip(plots, data.get("plots", [])):
+    for plot, plot_data in zip(plots, saved_plots):
         _apply_plot_dict(plot, plot_data)
 
     # Forest log / adoption (B3/B23/B27): an older save lacks all three, so
     # the (fresh or reset) live values stand.
     raw_log = data.get("forest_log", forest_log)
+    raw_log = raw_log if isinstance(raw_log, list) else []
     forest_log = [
-        {"tick": int(e.get("tick", 0)), "kind": str(e.get("kind", "")), "plot": e.get("plot"), "text": str(e.get("text", ""))}
+        {"tick": int(_number_or(e.get("tick"), 0, 0, 10 ** 9)), "kind": str(e.get("kind", "")),
+         "plot": _index_or_none(e.get("plot"), len(plots)), "text": str(e.get("text", ""))}
         for e in raw_log
         if isinstance(e, dict)
     ][-FOREST_LOG_MAX_ENTRIES:]
@@ -10438,7 +10495,8 @@ def load_state(data):
     species_planted.clear()  # GB-6
     blight_pressure.clear()  # GB-7
     _reset_fire()  # GB-1
-    fires.clear(); fire_damp.clear()  # GB-1
+    fires.clear()  # GB-1
+    fire_damp.clear()
     saved_planted = data.get("species_planted")
     if isinstance(saved_planted, list):
         species_planted.update(x for x in saved_planted if x in SPECIES and x != SPECIES_STANDARD)
@@ -10466,37 +10524,35 @@ def load_state(data):
         except (KeyError, TypeError, ValueError):
             continue
     del request_history[:-REQUEST_HISTORY_MAX]
-    forest_tick = data.get("forest_tick", forest_tick)
-    adopted_plot_index = data.get("adopted_plot_index", adopted_plot_index)
-    if adopted_plot_index is not None and not (0 <= adopted_plot_index < len(plots)):
-        adopted_plot_index = None
+    # QA-1: the scalars below are checked one by one (a bad value keeps the live one), so a damaged save can no
+    # longer put a string, None or an out-of-range index where the next tick does arithmetic or indexing.
+    forest_tick = int(_number_or(data.get("forest_tick"), forest_tick, 0, 10 ** 9))
+    adopted_plot_index = _index_or_none(data.get("adopted_plot_index", adopted_plot_index), len(plots))
 
-    selected_index = data.get("selected_index", selected_index)
-    total_income = data.get("total_income", total_income)
-    community_relations = data.get("community_relations", community_relations)
-    pending_stakeholder_request = copy.deepcopy(
-        data.get("pending_stakeholder_request", pending_stakeholder_request)
-    )
-    _ticks_since_last_request = data.get("_ticks_since_last_request", _ticks_since_last_request)
-    _stakeholder_request_count = data.get("_stakeholder_request_count", _stakeholder_request_count)
-    info_page_open = data.get("info_page_open", info_page_open)
+    selected_index = _index_or_none(data.get("selected_index", selected_index), len(plots))
+    total_income = _number_or(data.get("total_income"), total_income, 0.0, 1e15)
+    community_relations = int(_number_or(data.get("community_relations"), community_relations, 0, 100))
+    if "pending_stakeholder_request" in data:
+        pending_stakeholder_request = _clean_stakeholder_request(data["pending_stakeholder_request"], len(plots))
+    _ticks_since_last_request = int(_number_or(data.get("_ticks_since_last_request"), _ticks_since_last_request, 0, 10 ** 9))
+    _stakeholder_request_count = int(_number_or(data.get("_stakeholder_request_count"), _stakeholder_request_count, 0, 10 ** 9))
+    saved_open = data.get("info_page_open")
+    info_page_open = saved_open if isinstance(saved_open, bool) else info_page_open
 
     # Achievements' new tracked state (see the module-level declarations
     # above) — a save predating this feature simply lacks these keys, so
     # each falls back to whatever's already live (the fresh-module
     # default) rather than crashing on a missing key.
-    total_replants = data.get("total_replants", total_replants)
-    total_recoveries = data.get("total_recoveries", total_recoveries)
-    plots_with_wildlife_ever = set(
-        data.get("plots_with_wildlife_ever", plots_with_wildlife_ever)
-    )
-    stakeholder_grants_count = data.get("stakeholder_grants_count", stakeholder_grants_count)
-    stakeholder_declines_count = data.get(
-        "stakeholder_declines_count", stakeholder_declines_count
-    )
-    community_relations_min_ever = data.get(
-        "community_relations_min_ever", community_relations_min_ever
-    )
+    total_replants = int(_number_or(data.get("total_replants"), total_replants, 0, 10 ** 9))
+    total_recoveries = int(_number_or(data.get("total_recoveries"), total_recoveries, 0, 10 ** 9))
+    saved_wildlife = data.get("plots_with_wildlife_ever")
+    if isinstance(saved_wildlife, list):
+        plots_with_wildlife_ever = {i for i in saved_wildlife if _index_or_none(i, len(plots)) is not None}
+    stakeholder_grants_count = int(_number_or(data.get("stakeholder_grants_count"), stakeholder_grants_count, 0, 10 ** 9))
+    stakeholder_declines_count = int(_number_or(
+        data.get("stakeholder_declines_count"), stakeholder_declines_count, 0, 10 ** 9))
+    community_relations_min_ever = int(_number_or(
+        data.get("community_relations_min_ever"), community_relations_min_ever, 0, 100))
     # Belt-and-suspenders backfill (same idea as SOL's visited_bodies): an
     # old save predating this field can't have recorded a low watermark,
     # but its restored community_relations value is itself a valid lower
@@ -10509,10 +10565,12 @@ def load_state(data):
     # grid and highland_unlocked False, exactly the correct pre-B3 state,
     # so the .get() fallbacks below are true no-ops for such a save
     # rather than needing special-casing.
-    highland_unlocked = data.get("highland_unlocked", highland_unlocked)
-    highland_selected_index = data.get("highland_selected_index", highland_selected_index)
-    highland_income = data.get("highland_income", highland_income)
-    for plot, plot_data in zip(highland_plots, data.get("highland_plots", [])):
+    saved_unlocked = data.get("highland_unlocked")
+    highland_unlocked = saved_unlocked if isinstance(saved_unlocked, bool) else highland_unlocked
+    highland_selected_index = _index_or_none(data.get("highland_selected_index", highland_selected_index), len(highland_plots))
+    highland_income = _number_or(data.get("highland_income"), highland_income, 0.0, 1e15)
+    saved_highland = data.get("highland_plots")
+    for plot, plot_data in zip(highland_plots, saved_highland if isinstance(saved_highland, list) else []):
         _apply_plot_dict(plot, plot_data)
 
     # B1: Wetland Forest. Absent keys mean "never reached it" (reset_session
@@ -10558,7 +10616,8 @@ def load_state(data):
     # GN-1: the saved list of earned ids seeds the ledger (known ids only), so earlier levels' achievements come back.
     saved_earned = data.get("achievements_earned")
     known_ids = {entry["id"] for entry in ACHIEVEMENTS}
-    achievement_ledger.clear()
+    # QA-1: union, not replace. Achievements belong to the browser (the B-15 forest menu says so), so opening another
+    # forest's save or a save from another device must not take back ones this browser already earned.
     if isinstance(saved_earned, list):
         achievement_ledger.update(item for item in saved_earned if isinstance(item, str) and item in known_ids)
     _previously_earned_ids = _earned_snapshot()

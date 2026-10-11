@@ -639,7 +639,7 @@ def test_rank_info_adds_badge_bonus_and_the_live_session(game_env):
 
 def test_locked_cosmetics_fall_back_and_options_are_disabled(game_env):
     m = game_env.module
-    store = _memory_storage(m)
+    _memory_storage(m)
     m.ui_pref = lambda key, default=None: "crest" if key == m.UI_PREF_FRAME else default
     assert m.chosen_cosmetic(m.UI_PREF_FRAME, m.FRAME_UNLOCKS, "none", 0) == "none"
     assert m.chosen_cosmetic(m.UI_PREF_FRAME, m.FRAME_UNLOCKS, "none", 5) == "crest"
@@ -1194,6 +1194,7 @@ def test_species_change_recovery_time(game_env):
 
 def test_species_value_and_biodiversity_rules(game_env):
     m = game_env.module
+
     def grown(species, ticks=40):
         plot = m.Plot(0)
         plot.state = m.RECOVERED
@@ -2035,10 +2036,11 @@ def test_a_new_utc_day_starts_from_zero_and_bad_data_is_ignored(game_env):
 
 def test_a_missing_or_broken_shared_script_never_breaks_a_tick(game_env):
     m = game_env.module
-    store = _memory_storage(m)
+    _memory_storage(m)
     m.ui_pref = lambda key, default="": "true" if key == m.UI_PREF_COMMUNITY else default
     m._community_js = lambda: None
     assert m._community_tick() > 0
+
     class Boom:
         def add(self, *a):
             raise RuntimeError("network")
