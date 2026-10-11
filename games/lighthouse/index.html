@@ -22,6 +22,7 @@
 <script src="../../shared/profile.js" data-game-id="lighthouse"></script>
 <script src="../../shared/site-settings.js" data-game-id="lighthouse"></script>
 <script src="../../shared/sfx.js"></script>
+<script src="../../shared/seed.js"></script>
 <script src="settings.js"></script>
 <link rel="stylesheet" href="../../ad-bar.css">
 <link rel="manifest" href="../../manifest.json">
@@ -116,6 +117,10 @@
     <h3 class="settings-sub">Sound</h3>
     <div id="sfx-setting-slot" class="sfx-setting-slot"></div>
     <div class="settings-row"><label><input type="checkbox" id="sfx-hum-checkbox" checked> Faint ambient hum during the night (only when sound is on)</label></div>
+    <h3 class="settings-sub">Run seed</h3>
+    <p class="note">The seed decides the weather, the ships and the year's story beats. Share it to let someone sail the same year.</p>
+    <div id="seed-copy-slot"></div>
+    <div id="seed-start-slot"></div>
     <h3 class="settings-sub">This keeper</h3>
     <div class="settings-row story-line">
       <label><input type="checkbox" id="eerie-checkbox" checked> Eerie details (the odd things that happen in the night; letters and kind moments stay when this is off)</label>
@@ -336,6 +341,7 @@
       <p id="yearend-text"></p>
       <dl id="yearend-facts" class="facts"></dl>
       <div id="yearend-copy-result"></div>
+      <div id="yearend-seed"></div>
       <button id="continue-button" type="button" class="primary">Keep the light</button>
     </section>
   </div>

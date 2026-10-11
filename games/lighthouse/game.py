@@ -10,7 +10,7 @@ endless mode.
 
 Actions (every request is {"action": ..., ...}; every answer is the whole view plus "ok" and "message"):
   open                         the current view
-  new_game {seed, quiet}       a fresh run (lifetime meta is kept)
+  new_game {seed, seed_text, quiet}  a fresh run (lifetime meta is kept); seed_text is the shared seed it came from, optional
   abandon {seed}               same as new_game: give up this run
   reset {seed}                 wipe everything, meta included
   plan {levels, tasks, ration, focus}   edit tonight's plan (any phase but yearend)
@@ -30,7 +30,7 @@ import day
 import sim
 import story
 import view
-from state import Keep
+from state import Keep, clean_seed_text
 
 keep = Keep(1)
 settings = {"eerie": True}
@@ -43,10 +43,11 @@ def _fresh_seed(request):
     return int(seed) % (2 ** 31 - 1)
 
 
-def _begin_run(seed, quiet, keep_meta=True):
+def _begin_run(seed, quiet, keep_meta=True, seed_text=""):
     global keep
     old_meta = keep.meta
     keep = Keep(seed)
+    keep.seed_text = clean_seed_text(seed_text)
     if keep_meta:
         keep.meta = old_meta
     keep.quiet = bool(quiet)
@@ -105,10 +106,10 @@ def _act(action, request):
     if action == "open":
         return True, ""
     if action in ("new_game", "abandon"):
-        _begin_run(_fresh_seed(request), request.get("quiet"))
+        _begin_run(_fresh_seed(request), request.get("quiet"), seed_text=request.get("seed_text"))
         return True, ""
     if action == "reset":
-        _begin_run(_fresh_seed(request), request.get("quiet"), keep_meta=False)
+        _begin_run(_fresh_seed(request), request.get("quiet"), keep_meta=False, seed_text=request.get("seed_text"))
         return True, ""
     if action == "plan":
         return _plan(request)

@@ -1,6 +1,10 @@
 {
   "changelog": [
     {
+      "date": "2026-10-12",
+      "entry": "Every year now has a seed you can copy from Settings (Run seed), and you can start a year from someone else's seed to sail the same weather, ships and story beats. Your records and achievements are kept. Older saves load as before."
+    },
+    {
       "date": "2026-10-11",
       "entry": "Optional soft sound, off unless you turn it on in Settings (Sound): a quiet bell when a ship comes safely past, and a faint, slow hum under the night that has its own switch and goes quiet in a hidden tab. The sounds are made in your browser (no sound files), have a volume and a Reduce sounds switch, and nothing in the game depends on them."
     },

@@ -26,6 +26,10 @@ FOCUS_CHOICES = ("worst",) + PARTS
 COUNTER_NAMES = ("quiet_nights", "fog_clears", "storm_wardens", "tidy_days", "frugal_seasons", "empty_nights",
                  "wound_streak", "best_wound_streak", "calm_years", "eerie_off_streak")
 MAX_SEED = 2 ** 31 - 1
+# Z-1c: a run may carry the shared seed text (shared/seed.js format) it was started from; the number above is
+# what the engine uses, the text is only what the player copies, so it is stored only when valid and present.
+SEED_PREFIX = "LIGHTHOUSE"
+SEED_ALPHABET = "23456789ABCDEFGHJKMNPQRSTUVWXYZ"
 
 
 # ---- tolerant readers ----------------------------------------------------------------------------------
@@ -41,6 +45,16 @@ def num(value, lo, hi, default, integer=True):
 
 def text(value, limit=200, default=""):
     return value[:limit] if isinstance(value, str) else default
+
+
+def clean_seed_text(value):
+    """A seed text such as LIGHTHOUSE-K7F2Q, or "" for anything else (including another game's seed)."""
+    if not isinstance(value, str) or len(value) != len(SEED_PREFIX) + 6:
+        return ""
+    prefix, dash, code = value[:len(SEED_PREFIX)], value[len(SEED_PREFIX)], value[len(SEED_PREFIX) + 1:]
+    if prefix != SEED_PREFIX or dash != "-" or any(c not in SEED_ALPHABET for c in code):
+        return ""
+    return value
 
 
 def pick_one(value, choices, default):
@@ -74,6 +88,7 @@ class Keep(object):
     # ---- a fresh run -----------------------------------------------------------------------------------
     def new_run(self, seed):
         self.seed = num(seed, 0, MAX_SEED, 1)
+        self.seed_text = ""
         self.night = 1
         self.phase = "evening"
         self.tick = 0
@@ -133,6 +148,8 @@ class Keep(object):
             "energy": round(self.energy, 1), "reputation": self.reputation, "comfort": self.comfort,
             "salvage": self.salvage, "plan": {"levels": [LEVELS[i] for i in self.levels], "tasks": dict(self.tasks)},
         }
+        if self.seed_text:
+            run["seed_text"] = self.seed_text
         if self.ration:
             run["plan"]["ration"] = self.ration
         if self.focus != "worst":
@@ -192,6 +209,7 @@ class Keep(object):
         if not run:
             return keep
         keep.seed = num(run.get("seed"), 0, MAX_SEED, 1)
+        keep.seed_text = clean_seed_text(run.get("seed_text"))
         keep.night = num(run.get("night"), 1, 100000, 1)
         keep.phase = pick_one(run.get("phase"), PHASES, "evening")
         length = night_len(keep.night)

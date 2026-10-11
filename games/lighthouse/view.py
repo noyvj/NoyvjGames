@@ -108,7 +108,7 @@ def build(keep, settings):
         "season": clock.season_name(night), "season_index": clock.season_of(night), "year": clock.year_of(night),
         "night_in_season": clock.night_in_season(night), "year_night": clock.year_night(night), "nights_per_year": data.NIGHTS_PER_YEAR,
         "start_min": data.NIGHT_START_MIN[clock.season_of(night)], "tick_minutes": data.TICK_MINUTES,
-        "mode": keep.mode, "quiet": keep.quiet, "festival": clock.is_festival(night),
+        "mode": keep.mode, "quiet": keep.quiet, "seed_text": keep.seed_text, "festival": clock.is_festival(night),
         "sky": sky_for(keep), "darkness": round(clock.darkness(night, tick), 3) if in_night else (0.15 if keep.phase == "evening" else 0.0),
         "cond": cond, "cond_label": COND_LABELS[cond], "cond_icon": COND_ICONS[cond], "wind": wind,
         "block": clock.block_of(night, tick) if in_night else 0,

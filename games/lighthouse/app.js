@@ -1018,6 +1018,7 @@
     renderAchievements(v);
     syncTime(v);
     soundFor(v);
+    renderSeed(v);
   }
 
   // ---- sound (shared/sfx.js: generated in code, off unless the player turns it on, never the only signal) ----
@@ -1068,6 +1069,44 @@
   function randomSeed() {
     try { var a = new Uint32Array(1); window.crypto.getRandomValues(a); return a[0] % 2147483646 + 1; } catch (e) { return Math.floor(Math.random() * 2147483646) + 1; }
   }
+  // Z-1c: every new year gets a shared seed text (shared/seed.js); the engine's number is derived from the text,
+  // so the same text always gives the same year. Without the shared script it falls back to a plain number.
+  function seedNumber(text) { return window.NoyvjSeed.rng(text).randint(1, 2147483646); }
+  function runSeed(text) {
+    if (window.NoyvjSeed) {
+      var t = text || window.NoyvjSeed.newSeed(GAME_ID);
+      return { seed: seedNumber(t), seed_text: t };
+    }
+    return { seed: randomSeed() };
+  }
+  function newRunRequest(action, text) {
+    var r = runSeed(text);
+    r.action = action;
+    r.quiet = quietPref();
+    return r;
+  }
+  var seedCopies = [];
+  function mountSeeds() {
+    if (!window.NoyvjSeed) return;
+    ["#seed-copy-slot", "#yearend-seed"].forEach(function (sel) {
+      if (document.querySelector(sel)) seedCopies.push(window.NoyvjSeed.mountCopy(sel, { seed: "", label: "This year's seed" }));
+    });
+    if (document.querySelector("#seed-start-slot")) {
+      window.NoyvjSeed.mountStart("#seed-start-slot", {
+        game: GAME_ID, buttonLabel: "Sail this seed",
+        onStart: function (text) {
+          var go = function () { orderDraft = null; lastPhase = null; send(newRunRequest("abandon", text), true); showToast("A fresh year begins from seed " + text + ". Your records are kept."); };
+          if (window.ConfirmDialog) window.ConfirmDialog.ask({ id: GAME_ID + "-seed-start", message: "Abandon this year and sail seed " + text + "? Your lifetime records and achievements are kept.", confirmLabel: "Start from this seed", allowSkip: false, onConfirm: go });
+          else go();
+        },
+      });
+    }
+  }
+  function renderSeed(v) {
+    if (!window.NoyvjSeed) return;
+    window.NoyvjSeed.set(v.seed_text || "");
+    seedCopies.forEach(function (c) { if (c) c.update(v.seed_text || ""); });
+  }
   function quietPref() { return lsGet(QUIET_KEY) === "on"; }
   function eeriePref() { return lsGet(EERIE_KEY) !== "off"; }
   function applyEerie(on, tell) {
@@ -1089,6 +1128,7 @@
     if (!v) return {};
     return {
       game: "Lighthouse",
+      seed: v.seed_text || "",
       score: v.mode === "endless" || v.phase === "yearend" ? "Year " + v.year + ", night " + v.night : "Night " + v.night,
       stats: [
         { n: v.meta.ships_passed, one: "ship brought safely past", many: "ships brought safely past" },
@@ -1107,6 +1147,7 @@
   // ---- wiring -----------------------------------------------------------------------------------------
   function wire() {
     mountCopyResult();
+    mountSeeds();
     guard("light-lamp-button", function () { send({ action: "start_night" }, true); });
     guard("morning-continue-button", function () { send({ action: "end_morning" }, true); });
     guard("end-day-button", function () { orderDraft = null; send({ action: "end_day" }, true); });
@@ -1133,12 +1174,12 @@
     $("content-note-eerie-off").addEventListener("click", function () { lsSet(NOTE_KEY, "seen"); $("content-note-panel").hidden = true; applyEerie(false, true); });
     $("quiet-checkbox").addEventListener("change", function () { lsSet(QUIET_KEY, $("quiet-checkbox").checked ? "on" : "off"); });
     guard("abandon-button", function () {
-      var go = function () { orderDraft = null; lastPhase = null; send({ action: "abandon", seed: randomSeed(), quiet: quietPref() }, true); showToast("A fresh year begins. Your records are kept."); };
+      var go = function () { orderDraft = null; lastPhase = null; send(newRunRequest("abandon"), true); showToast("A fresh year begins. Your records are kept."); };
       if (window.ConfirmDialog) window.ConfirmDialog.ask({ id: GAME_ID + "-abandon", message: "Abandon this year and start another? Your lifetime records and achievements are kept.", confirmLabel: "Abandon the year", allowSkip: false, onConfirm: go });
       else go();
     });
     guard("reset-button", function () {
-      var go = function () { orderDraft = null; lastPhase = null; knownEarned = null; send({ action: "reset", seed: randomSeed(), quiet: quietPref() }, true); lsRemove(STORE_KEY); showToast("Everything is reset."); };
+      var go = function () { orderDraft = null; lastPhase = null; knownEarned = null; send(newRunRequest("reset"), true); lsRemove(STORE_KEY); showToast("Everything is reset."); };
       if (window.ConfirmDialog) window.ConfirmDialog.ask({ id: GAME_ID + "-reset", message: "Reset all progress, including records and achievements? This cannot be undone.", confirmLabel: "Reset everything", allowSkip: false, onConfirm: go });
       else go();
     });
@@ -1207,7 +1248,7 @@
     setBusy(false);
     reducedMotion = document.documentElement.getAttribute("data-reduced-motion") === "true";
     engine.handle(JSON.stringify({ action: "settings", eerie: eeriePref() }));
-    if (!restored) send({ action: "new_game", seed: randomSeed(), quiet: quietPref() }, false);
+    if (!restored) send(newRunRequest("new_game"), false);
     else {
       send({ action: "open" }, false);
       if (view.meta.nights_kept > 0 || view.night > 1) showToast("Welcome back. The light is just as you left it.");
