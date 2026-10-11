@@ -7302,6 +7302,24 @@ def leave_scarcity_run(render=True):
     return True
 
 
+def _record_shared_daily(date_text, words, ticks, under_par):
+    """Z-5b: when TODAY's Scarcity Run is finished, tell the shared record the hub's Today strip reads
+    (`localStorage["noyvj-daily-v1"]`, written by `NoyvjSeed.daily.markCompleted`, which counts once per day). An older
+    date from the calendar never counts. Fails soft: no shared script (pytest, an old page) or any error means nothing."""
+    if date_text != _today_utc():
+        return
+    try:
+        import js  # noqa: PLC0415 -- Pyodide-only, deliberately lazy
+        daily = getattr(getattr(js.window, "NoyvjSeed", None), "daily", None)
+        if daily is None:
+            return
+        info = js.Object.new()
+        info.text = f"Scarcity Run {words} in {_split_time(ticks)}" + (", under par" if under_par else "")
+        daily.markCompleted("sol", info)
+    except Exception:  # noqa: BLE001 -- a courtesy record must never break the run's own result
+        pass
+
+
 def _scarcity_finish():
     run = _scarcity
     date_text = run["spec"]["date"]
@@ -7309,6 +7327,7 @@ def _scarcity_finish():
     scarcity_days[date_text] = challenges.merge_record(scarcity_days.get(date_text), total_ticks, run["spec"]["par"])
     _keep_daily_ghost(date_text, total_ticks, run["samples"])
     under = total_ticks < run["spec"]["par"]
+    _record_shared_daily(date_text, run["spec"]["words"], total_ticks, under)
     _display_toast(
         f"\U0001f3af Scarcity Run done in {_split_time(total_ticks)}"
         + (" - faster than the Governor alone!" if under else f" (the Governor alone: {_split_time(run['spec']['par'])})."))

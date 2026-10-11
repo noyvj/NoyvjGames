@@ -612,3 +612,67 @@ def test_every_new_element_exists_on_both_pages_and_the_new_files_are_fetched():
 def test_the_stats_card_and_game_have_no_real_world_tie_in():
     source = (GAME_DIR / "challenges.py").read_text().lower()
     assert "http" not in source and "fetch" not in source
+
+
+# --- Z-5b: finishing TODAY's run is told to the shared daily record the hub's Today strip reads -------------------
+def _fake_shared_daily(game_env):
+    import sys
+    calls = []
+
+    class Obj:
+        @classmethod
+        def new(cls):
+            return types.SimpleNamespace()
+
+    js = sys.modules["js"]
+    js.Object = Obj
+    js.window = types.SimpleNamespace(NoyvjSeed=types.SimpleNamespace(
+        daily=types.SimpleNamespace(markCompleted=lambda game, info: calls.append((game, info.text)))))
+    return calls
+
+
+def _finish_run(m, date):
+    m.start_scarcity_run(date)
+    for world in m._scarcity["spec"]["targets"]:
+        m.planet_state[world]["terraform_progress"] = float(m._scarcity["spec"]["target_pct"]) + 5
+    m.tick()
+    assert m._scarcity["done"] is not None
+
+
+def test_finishing_todays_run_marks_the_shared_daily_once(game_env):
+    m = game_env.module
+    _today(game_env)
+    calls = _fake_shared_daily(game_env)
+    _finish_run(m, TODAY)
+    assert len(calls) == 1 and calls[0][0] == "sol"
+    assert calls[0][1].startswith("Scarcity Run " + challenges.seed_words(TODAY) + " in ")
+    assert len(calls[0][1]) <= 120
+
+
+def test_an_older_day_from_the_calendar_never_marks_the_shared_daily(game_env):
+    m = game_env.module
+    _today(game_env)
+    calls = _fake_shared_daily(game_env)
+    _finish_run(m, "2026-10-03")
+    assert calls == []
+
+
+def test_a_page_without_the_shared_script_still_finishes_the_run(game_env):
+    m = game_env.module
+    _today(game_env)
+    _finish_run(m, TODAY)
+    assert TODAY in m.scarcity_days
+
+
+def test_a_failing_shared_record_never_breaks_the_result(game_env):
+    import sys
+    m = game_env.module
+    _today(game_env)
+    calls = _fake_shared_daily(game_env)
+
+    def boom(game, info):
+        raise RuntimeError("storage is full")
+
+    sys.modules["js"].window.NoyvjSeed.daily.markCompleted = boom
+    _finish_run(m, TODAY)
+    assert TODAY in m.scarcity_days and calls == []
