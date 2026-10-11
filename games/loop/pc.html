@@ -160,6 +160,30 @@
           <button id="flow-speed-fast-button" class="secondary" type="button" aria-pressed="false">Fast</button>
         </div>
       </div>
+      <div class="settings-row">
+        <label class="settings-checkbox-label" for="effects-checkbox">
+          <input type="checkbox" id="effects-checkbox" checked>
+          Purchase effects (the ring snaps and a number floats up when you buy)
+        </label>
+      </div>
+      <div class="settings-row">
+        <label class="settings-checkbox-label" for="cracks-checkbox">
+          <input type="checkbox" id="cracks-checkbox" checked>
+          Strain cracks (panels crack and the stars dim while damage is high and the loop is open)
+        </label>
+      </div>
+      <div class="settings-row">
+        <label class="settings-checkbox-label" for="particle-shapes-checkbox">
+          <input type="checkbox" id="particle-shapes-checkbox">
+          Shaped particles (rings for circular paths, squares for straight ones)
+        </label>
+      </div>
+      <div class="settings-row">
+        <label class="settings-checkbox-label" for="haptics-checkbox">
+          <input type="checkbox" id="haptics-checkbox">
+          Vibration on purchases and at 25% marks (phones that allow it)
+        </label>
+      </div>
       <div class="settings-row settings-row--stack">
         <label class="settings-label" for="confirm-threshold-select">Ask before big purchases</label>
         <select id="confirm-threshold-select">
@@ -398,6 +422,8 @@
         <div id="loop-ring-node-repair" class="loop-ring-node loop-ring-node--repair">🔧</div>
         <div id="loop-ring-node-reuse" class="loop-ring-node loop-ring-node--reuse">🔄</div>
         <div id="loop-ring-node-recycle" class="loop-ring-node loop-ring-node--recycle">♻️</div>
+        <div id="invest-ripple" class="invest-ripple"></div>
+        <div id="invest-float" class="invest-float"></div>
         <div class="loop-ring-core">
           <span class="loop-ring-core-glyph">♻</span>
         </div>

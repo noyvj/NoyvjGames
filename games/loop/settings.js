@@ -142,6 +142,54 @@
     return value;
   }
 
+  // GH-13 / GH-16 / H-19 / GH-29: four more browser-level display preferences. `fallback` is the
+  // value when nothing is stored, so purchase effects and cracks default ON, shapes and haptics OFF.
+  const TOGGLES = [
+    { key: "loop-effects", attr: "data-effects", box: "effects-checkbox", fallback: true, on: "on", off: "off" },
+    { key: "loop-cracks", attr: "data-cracks", box: "cracks-checkbox", fallback: true, on: "on", off: "off" },
+    { key: "loop-particle-shapes", attr: "data-particle-shapes", box: "particle-shapes-checkbox", fallback: false, on: "on", off: "off" },
+    { key: "loop-haptics", attr: "data-haptics", box: "haptics-checkbox", fallback: false, on: "on", off: "off" },
+  ];
+
+  function readToggle(toggle) {
+    try {
+      const raw = window.localStorage.getItem(toggle.key);
+      if (raw === "true") return true;
+      if (raw === "false") return false;
+    } catch (e) {
+      // fall through to the default
+    }
+    return toggle.fallback;
+  }
+
+  function applyToggle(toggle, on) {
+    document.documentElement.setAttribute(toggle.attr, on ? toggle.on : toggle.off);
+    writeStored(toggle.key, on);
+    const box = document.getElementById(toggle.box);
+    if (box) box.checked = on;
+    return on;
+  }
+
+  function isOn(attr) {
+    return document.documentElement.getAttribute(attr) === "on";
+  }
+
+  // What game.py asks: are purchase effects wanted right now (switched on and not under reduced motion)?
+  function effectsOn() {
+    const reduced = document.documentElement.getAttribute("data-reduced-motion") === "true"
+      || (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+    return isOn("data-effects") && !reduced;
+  }
+
+  // GH-29: a short vibration where the browser allows it and the player opted in.
+  function haptic(pattern) {
+    try {
+      if (isOn("data-haptics") && navigator.vibrate) navigator.vibrate(pattern);
+    } catch (e) {
+      // not allowed here: nothing to do
+    }
+  }
+
   function readConfirmThreshold() {
     try {
       const raw = window.localStorage.getItem(CONFIRM_KEY);
@@ -203,6 +251,16 @@
       }
     });
 
+    TOGGLES.forEach(function (toggle) {
+      applyToggle(toggle, readToggle(toggle));
+      const box = document.getElementById(toggle.box);
+      if (box) {
+        box.addEventListener("change", function () {
+          applyToggle(toggle, box.checked);
+        });
+      }
+    });
+
     const confirmSelect = document.getElementById("confirm-threshold-select");
     if (confirmSelect) {
       confirmSelect.value = String(readConfirmThreshold());
@@ -249,6 +307,9 @@
         applyDyslexia(false);
         applyFlowSpeed(DEFAULT_FLOW_SPEED);
         applyConfirmThreshold(0);
+        TOGGLES.forEach(function (toggle) {
+          applyToggle(toggle, toggle.fallback);
+        });
         if (contrastCheckbox) contrastCheckbox.checked = false;
         if (dyslexiaCheckbox) dyslexiaCheckbox.checked = false;
       });
@@ -269,6 +330,8 @@
     applyFlowSpeed: applyFlowSpeed,
     applyConfirmThreshold: applyConfirmThreshold,
     confirmThreshold: readConfirmThreshold,
+    effectsOn: effectsOn,
+    haptic: haptic,
     MIN_SCALE: MIN_SCALE,
     MAX_SCALE: MAX_SCALE,
   };

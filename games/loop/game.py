@@ -436,6 +436,7 @@ OVERSEAS_IMPORT_SUPPLY_PER_UNIT = 15.0
 
 # Round-2 (H6/H26/H27/H28): UI-only tuning.
 PARTNER_COSTS = {"trade": TRADE_LINK_COST, "regional": REGIONAL_TRADE_COST, "overseas": OVERSEAS_TRADE_COST}
+STRAIN_TIER_THRESHOLDS = (0.05, 0.15, 0.3, 0.5)  # GH-16: strain levels where each crack tier starts
 BUY_MULTIPLES = (1, 5, 10)  # H-14: the x1 / x5 / x10 chips
 PARTNER_LABELS = {"trade": "Trade Link", "regional": "Regional Partner", "overseas": "Overseas Consortium"}
 
@@ -3603,6 +3604,7 @@ def render():
     document.title = f"Loop - C{chain.cycle_number} - {chain.circular_fraction_this_cycle() * 100:.0f}% circular"
     render_career()
     render_ledger_and_past()
+    document.getElementById("game").setAttribute("data-damage-tier", str(damage_strain_tier()))
     document.getElementById("rank-badge").innerText = f"\U0001F396\uFE0F {founder_rank()[1]}"
     document.getElementById("rank-detail").innerText = founder_text()
 
@@ -3829,6 +3831,74 @@ def _setting_number(name, default=0):
     return value if value == value else default
 
 
+def _setting_flag(name, default=False):
+    """A yes/no read from a LoopSettings getter (settings.js); `default` without the bridge (pytest)."""
+    window = _window()
+    getter = getattr(getattr(window, "LoopSettings", None), name, None) if window is not None else None
+    if getter is None:
+        return default
+    try:
+        return bool(getter())
+    except (TypeError, ValueError):
+        return default
+
+
+def _haptic(pattern):
+    """GH-29: a short vibration when the player has switched it on (settings.js decides; silent otherwise)."""
+    window = _window()
+    settings = getattr(window, "LoopSettings", None) if window is not None else None
+    buzz = getattr(settings, "haptic", None)
+    if buzz is not None:
+        try:
+            buzz(pattern)
+        except Exception:  # noqa: BLE001 -- a vibration must never break a purchase
+            pass
+
+
+JUICE_NODE_MS = 600
+JUICE_RIPPLE_MS = 750
+JUICE_FLOAT_MS = 1150
+
+
+def _pulse_class(element_id, class_name, duration_ms, restart=True):
+    """Adds `class_name` to an element for `duration_ms`, then removes it."""
+    element = document.getElementById(element_id)
+    if restart:
+        element.classList.remove(class_name)
+    element.classList.add(class_name)
+
+    def _clear(*args):
+        element.classList.remove(class_name)
+        proxy.destroy()
+
+    proxy = create_proxy(_clear)
+    setTimeout(proxy, duration_ms)
+
+
+def _invest_juice(kind, units_saved):
+    """GH-13: the ring node snaps (measures only), a ripple spreads and '-N raw' floats up, where N is how
+    much new extraction the purchase took off this cycle. Silent when switched off or under reduced motion."""
+    if not _setting_flag("effectsOn", False):
+        return
+    if kind in CIRCULARITY_INVESTMENTS:
+        _pulse_class(f"loop-ring-node-{kind}", "loop-ring-node--snap", JUICE_NODE_MS)
+    _pulse_class("invest-ripple", "invest-ripple--go", JUICE_RIPPLE_MS)
+    if units_saved > 0.5:
+        document.getElementById("invest-float").innerText = f"-{units_saved:.0f} raw"
+        _pulse_class("invest-float", "invest-float--go", JUICE_FLOAT_MS)
+
+
+def damage_strain_tier():
+    """GH-16: 0..4, from the damage still hanging over an OPEN loop (damage x (1 - circular share)), so the
+    cracks fade again as the loop closes even though the damage itself never heals."""
+    strain = chain.damage_fraction() * (1.0 - chain.circular_fraction_this_cycle())
+    tier = 0
+    for threshold in STRAIN_TIER_THRESHOLDS:
+        if strain >= threshold:
+            tier += 1
+    return tier
+
+
 # H-14: the x1 / x5 / x10 chips (a browser-session choice, not saved).
 buy_multiple = 1
 
@@ -3864,7 +3934,10 @@ def _purchase(kind, label, event=None):
     percent = _setting_number("confirmThreshold", 0)
 
     def _do():
+        before = chain.new_extraction_needed()
         _run_action(lambda: chain.invest_many(kind, count))
+        _invest_juice(kind, before - chain.new_extraction_needed())  # GH-13
+        _haptic(20)  # GH-29
 
     if percent > 0 and chain.funds > 0 and total > chain.funds * percent / 100.0:
         _confirm_dialog_ask(
@@ -4125,6 +4198,7 @@ def _run_action(mutate_fn):
     # H6: burst on crossing upward through a 25% step (not on every render).
     if _milestone_step(chain.circular_fraction_this_cycle()) > step_before:
         _trigger_circular_burst()
+        _haptic([30, 40, 30])  # GH-29: a double tap at each 25% mark
 
     if chain.lifetime_export_revenue > export_before:
         _trigger_funds_burst()

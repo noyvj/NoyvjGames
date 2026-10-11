@@ -1,6 +1,10 @@
 [
   {
     "date": "2026-10-11",
+    "entry": "New feel and display options, all in Settings and all easy to switch off: Purchase effects (buying snaps its ring node, ripples outward and floats a '-N raw' number showing how much new extraction you just avoided; silent under Reduce motion), Strain cracks (panels crack and the stars dim a little while damage is high and the loop is open, easing back as you close it), Shaped particles (rings for circular paths, squares for straight ones, so they read apart without colour) and Vibration on purchases and at each 25% mark on phones that allow it (off by default)."
+  },
+  {
+    "date": "2026-10-11",
     "entry": "New: a Founder rank. A badge at the top of the status block (and the Career panel) shows how far you have come across all your chains: Apprentice, Fitter, Technician, Engineer, Lead Engineer, Director, Chief Circularity Officer and Founder. It is built from the cycles you have run, the chains you have closed and the goods you have mastered, never changes anything in the game, and the Career panel shows how many points the next rank needs."
   },
   {

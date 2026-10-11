@@ -1850,3 +1850,80 @@ html[data-high-contrast="true"] a { color: var(--hc-accent); text-decoration: un
 
 /* H-12: the Founder rank badge (a label only). */
 .rank-badge { display: inline-block; margin: 0 0 0.4rem; padding: 0.15rem 0.7rem; border-radius: 999px; font-size: 0.85rem; font-weight: 700; border: 1px solid rgba(224, 194, 76, 0.65); background: rgba(224, 194, 76, 0.1); }
+
+/* GH-16: damage cracks. data-damage-tier (0-4) on #game comes from damage x (1 - circular share), so the cracks ease
+   back as the loop closes. Decorative, no numbers; Settings can switch them off. */
+:root {
+  --crack-a: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='84' height='84' viewBox='0 0 84 84'%3E%3Cpath d='M84 0 L64 17 L70 26 L50 40 L55 50 L38 66' fill='none' stroke='white' stroke-width='1.3' stroke-linejoin='bevel' stroke-linecap='round'/%3E%3Cpath d='M64 17 L56 9' fill='none' stroke='white' stroke-width='1.3' stroke-linejoin='bevel' stroke-linecap='round'/%3E%3Cpath d='M50 40 L40 38' fill='none' stroke='white' stroke-width='1.3' stroke-linejoin='bevel' stroke-linecap='round'/%3E%3C/svg%3E");
+  --crack-b: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='84' height='84' viewBox='0 0 84 84'%3E%3Cpath d='M0 84 L18 66 L12 58 L30 46 L26 36 L42 24' fill='none' stroke='white' stroke-width='1.3' stroke-linejoin='bevel' stroke-linecap='round'/%3E%3Cpath d='M18 66 L26 72' fill='none' stroke='white' stroke-width='1.3' stroke-linejoin='bevel' stroke-linecap='round'/%3E%3Cpath d='M30 46 L40 50' fill='none' stroke='white' stroke-width='1.3' stroke-linejoin='bevel' stroke-linecap='round'/%3E%3C/svg%3E");
+  --crack-c: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='84' height='84' viewBox='0 0 84 84'%3E%3Cpath d='M0 0 L14 12 L10 20 L22 28' fill='none' stroke='white' stroke-width='1.3' stroke-linejoin='bevel' stroke-linecap='round'/%3E%3Cpath d='M14 12 L22 8' fill='none' stroke='white' stroke-width='1.3' stroke-linejoin='bevel' stroke-linecap='round'/%3E%3C/svg%3E");
+  --crack-d: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='84' height='84' viewBox='0 0 84 84'%3E%3Cpath d='M84 84 L70 70 L74 62 L62 54' fill='none' stroke='white' stroke-width='1.3' stroke-linejoin='bevel' stroke-linecap='round'/%3E%3Cpath d='M70 70 L62 76' fill='none' stroke='white' stroke-width='1.3' stroke-linejoin='bevel' stroke-linecap='round'/%3E%3C/svg%3E");
+}
+html[data-theme="light"] {
+  --crack-a: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='84' height='84' viewBox='0 0 84 84'%3E%3Cpath d='M84 0 L64 17 L70 26 L50 40 L55 50 L38 66' fill='none' stroke='rgb(40,36,50)' stroke-width='1.3' stroke-linejoin='bevel' stroke-linecap='round'/%3E%3Cpath d='M64 17 L56 9' fill='none' stroke='rgb(40,36,50)' stroke-width='1.3' stroke-linejoin='bevel' stroke-linecap='round'/%3E%3Cpath d='M50 40 L40 38' fill='none' stroke='rgb(40,36,50)' stroke-width='1.3' stroke-linejoin='bevel' stroke-linecap='round'/%3E%3C/svg%3E");
+  --crack-b: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='84' height='84' viewBox='0 0 84 84'%3E%3Cpath d='M0 84 L18 66 L12 58 L30 46 L26 36 L42 24' fill='none' stroke='rgb(40,36,50)' stroke-width='1.3' stroke-linejoin='bevel' stroke-linecap='round'/%3E%3Cpath d='M18 66 L26 72' fill='none' stroke='rgb(40,36,50)' stroke-width='1.3' stroke-linejoin='bevel' stroke-linecap='round'/%3E%3Cpath d='M30 46 L40 50' fill='none' stroke='rgb(40,36,50)' stroke-width='1.3' stroke-linejoin='bevel' stroke-linecap='round'/%3E%3C/svg%3E");
+  --crack-c: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='84' height='84' viewBox='0 0 84 84'%3E%3Cpath d='M0 0 L14 12 L10 20 L22 28' fill='none' stroke='rgb(40,36,50)' stroke-width='1.3' stroke-linejoin='bevel' stroke-linecap='round'/%3E%3Cpath d='M14 12 L22 8' fill='none' stroke='rgb(40,36,50)' stroke-width='1.3' stroke-linejoin='bevel' stroke-linecap='round'/%3E%3C/svg%3E");
+  --crack-d: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='84' height='84' viewBox='0 0 84 84'%3E%3Cpath d='M84 84 L70 70 L74 62 L62 54' fill='none' stroke='rgb(40,36,50)' stroke-width='1.3' stroke-linejoin='bevel' stroke-linecap='round'/%3E%3Cpath d='M70 70 L62 76' fill='none' stroke='rgb(40,36,50)' stroke-width='1.3' stroke-linejoin='bevel' stroke-linecap='round'/%3E%3C/svg%3E");
+}
+#chain-flow-section, #status, #circularity, #pool-section { position: relative; }
+#game[data-damage-tier="1"] :is(#chain-flow-section, #status, #circularity, #pool-section)::after,
+#game[data-damage-tier="2"] :is(#chain-flow-section, #status, #circularity, #pool-section)::after,
+#game[data-damage-tier="3"] :is(#chain-flow-section, #status, #circularity, #pool-section)::after,
+#game[data-damage-tier="4"] :is(#chain-flow-section, #status, #circularity, #pool-section)::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background-repeat: no-repeat;
+  background-position: top right, bottom left, top left, bottom right;
+  transition: opacity 1.2s ease;
+}
+#game[data-damage-tier="1"] :is(#chain-flow-section, #status, #circularity, #pool-section)::after { background-image: var(--crack-a); opacity: 0.5; }
+#game[data-damage-tier="2"] :is(#chain-flow-section, #status, #circularity, #pool-section)::after { background-image: var(--crack-a), var(--crack-b); opacity: 0.6; }
+#game[data-damage-tier="3"] :is(#chain-flow-section, #status, #circularity, #pool-section)::after { background-image: var(--crack-a), var(--crack-b), var(--crack-c); opacity: 0.7; }
+#game[data-damage-tier="4"] :is(#chain-flow-section, #status, #circularity, #pool-section)::after { background-image: var(--crack-a), var(--crack-b), var(--crack-c), var(--crack-d); opacity: 0.85; }
+html[data-cracks="off"] #game :is(#chain-flow-section, #status, #circularity, #pool-section)::after { display: none; }
+/* the starfield dims a little as strain grows */
+.ambient-bg { transition: filter 1.5s ease; }
+body:has(#game[data-damage-tier="3"]) .ambient-bg { filter: brightness(0.82) saturate(0.85); }
+body:has(#game[data-damage-tier="4"]) .ambient-bg { filter: brightness(0.62) saturate(0.7); }
+html[data-cracks="off"] body .ambient-bg { filter: none !important; }
+
+/* GH-13: purchase juice. The ring node snaps, a ripple spreads and "-N raw" floats up. Settings can switch it
+   off, and reduced motion silences it. */
+.loop-ring-node--snap { animation: loop-node-snap 0.55s ease-out; }
+@keyframes loop-node-snap {
+  0% { transform: translate(-50%, -50%) scale(1.55); }
+  60% { transform: translate(-50%, -50%) scale(0.9); }
+  100% { transform: translate(-50%, -50%) scale(1); }
+}
+.invest-ripple { position: absolute; inset: 6%; border-radius: 50%; border: 2px solid rgba(76, 156, 110, 0.85); opacity: 0; pointer-events: none; z-index: 1; }
+.invest-ripple--go { animation: invest-ripple 0.7s ease-out; }
+@keyframes invest-ripple { 0% { transform: scale(0.4); opacity: 0.9; } 100% { transform: scale(1.4); opacity: 0; } }
+.invest-float { position: absolute; left: 50%; top: 34%; transform: translateX(-50%); font-weight: 700; font-size: 0.85rem; pointer-events: none; opacity: 0; z-index: 3; white-space: nowrap; text-shadow: 0 1px 3px rgba(0, 0, 0, 0.7); }
+.invest-float--go { animation: invest-float 1.1s ease-out; }
+@keyframes invest-float {
+  0% { opacity: 0; transform: translate(-50%, 10px); }
+  15% { opacity: 1; }
+  100% { opacity: 0; transform: translate(-50%, -34px); }
+}
+html[data-effects="off"] .invest-ripple, html[data-effects="off"] .invest-float,
+html[data-reduced-motion="true"] .invest-ripple, html[data-reduced-motion="true"] .invest-float { display: none; }
+html[data-effects="off"] .loop-ring-node--snap, html[data-reduced-motion="true"] .loop-ring-node--snap { animation: none; }
+@media (prefers-reduced-motion: reduce) {
+  .invest-ripple, .invest-float { display: none; }
+  .loop-ring-node--snap { animation: none; }
+}
+
+/* H-19: shape-coded particles (optional). Squares for straight-line paths, rings for circular ones, so the
+   two read apart without colour. */
+html[data-particle-shapes="on"] .flow-particle { border-radius: 0; width: 5px; height: 5px; }
+html[data-particle-shapes="on"] .chain-flow--closed .flow-particle,
+html[data-particle-shapes="on"] .return-flow-particle,
+html[data-particle-shapes="on"] .import-flow-particle {
+  border-radius: 50%; width: 8px; height: 8px; background: transparent; border: 2px solid currentColor;
+}
+html[data-particle-shapes="on"] .chain-flow--closed .flow-particle,
+html[data-particle-shapes="on"] .return-flow-particle { color: #4c9c6e; }
+html[data-particle-shapes="on"] .import-flow-particle { color: #4c8ed8; }

@@ -180,6 +180,10 @@ ELEMENT_IDS = [
     # H-12: Founder rank.
     "rank-badge",
     "rank-detail",
+    # GH-13 / GH-16: purchase juice and the strain cracks.
+    "invest-ripple",
+    "invest-float",
+    "game",
 ]
 
 
