@@ -2152,6 +2152,19 @@ html[data-effects="false"] .settlement-visual, html[data-effects="false"] .settl
 @media (prefers-reduced-motion: reduce) {
   .settlement-visual, .settlement-visual::after, .hit-number { animation: none !important; }
 }
+/* GE-26: the countdown pulse on the schedule strip's next chip. Three stages by purchases left; always also
+   written in #countdown-note. Off with the Settings effects switch and with Reduce motion. */
+.countdown-note { margin: 0.2rem 0 0.4rem; font-size: 0.8rem; opacity: 0.85; }
+.schedule-strip[data-countdown="1"] .schedule-chip--next { animation: countdown-pulse-1 3.2s ease-in-out infinite; }
+.schedule-strip[data-countdown="2"] .schedule-chip--next { animation: countdown-pulse-2 2.2s ease-in-out infinite; }
+.schedule-strip[data-countdown="3"] .schedule-chip--next { animation: countdown-pulse-3 1.4s ease-in-out infinite; }
+@keyframes countdown-pulse-1 { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.03); } }
+@keyframes countdown-pulse-2 { 0%, 100% { transform: scale(1.03); } 50% { transform: scale(1.08); } }
+@keyframes countdown-pulse-3 { 0%, 100% { transform: scale(1.08); box-shadow: 0 0 0 rgba(212, 175, 55, 0); } 50% { transform: scale(1.14); box-shadow: 0 0 10px rgba(212, 175, 55, 0.75); } }
+html[data-effects="false"] .schedule-strip .schedule-chip--next { animation: none; transform: none; box-shadow: none; }
+@media (prefers-reduced-motion: reduce) {
+  .schedule-strip .schedule-chip--next { animation: none; transform: none; box-shadow: none; }
+}
 /* BATCH3-END */
 
 /* ============================================================

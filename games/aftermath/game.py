@@ -4512,6 +4512,12 @@ def render_schedule_strip():
     detail = document.getElementById("schedule-detail")
     detail.innerText = default_text
     detail.setAttribute("data-default", default_text)
+    stage = countdown_stage(run)  # GE-26
+    strip.setAttribute("data-countdown", str(stage))
+    note = _el("countdown-note")
+    if note is not None:
+        note.innerText = countdown_note_text(run)
+        note.hidden = stage == 0
 
 
 # ---------------------------------------------------------------------------
@@ -7349,6 +7355,41 @@ def render_settlement_look():
     text = _el("settlement-look-display")
     if text is not None:
         text.innerText = look_text(run)
+
+
+# ---------------------------------------------------------------------------
+# GE-26: the countdown pulse. The next event's chip on the schedule strip pulses gently, and grows a little
+# more the closer the player is to having nothing left to do but Face Next Event: the "countdown" is the
+# purchases the resources can still make (stage 1: four or more, stage 2: one to three, stage 3: none, so
+# Resolve is the natural next step). A hint in words says the same, always. CSS-only; the Settings effects
+# switch and Reduce motion turn the animation off and leave the words.
+# ---------------------------------------------------------------------------
+COUNTDOWN_STAGE_1_UNITS = 4
+
+
+def purchases_left(run_state):
+    """How many more single units the current resources could buy at the cheaper price (growth)."""
+    return int(max(0.0, run_state.resources) // min(RESILIENCE_COST, GROWTH_COST))
+
+
+def countdown_stage(run_state):
+    """0 once the run is over, else 1 (plenty left to spend), 2 (a few purchases left) or 3 (nothing left to buy)."""
+    if run_state.is_complete():
+        return 0
+    left = purchases_left(run_state)
+    if left >= COUNTDOWN_STAGE_1_UNITS:
+        return 1
+    return 2 if left >= 1 else 3
+
+
+def countdown_note_text(run_state):
+    stage = countdown_stage(run_state)
+    if stage == 0:
+        return ""
+    if stage == 3:
+        return f"Nothing left you can afford: {EVENT_LABEL[run_state.next_event_type()]} is the next step."
+    left = purchases_left(run_state)
+    return f"You could still buy up to {left} unit{'s' if left != 1 else ''} before {EVENT_LABEL[run_state.next_event_type()]}."
 
 
 # ---------------------------------------------------------------------------

@@ -193,3 +193,46 @@ def test_a_page_without_the_hit_elements_still_resolves_events(game_env):
     m._el = lambda element_id: None if element_id in ("hit-number", "settlement-visual") else real(element_id)
     game_env.resolve_event()
     assert len(m.run.event_log) == 1
+
+
+# ------------------------------------------------------------------------------------------ GE-26
+def test_countdown_stages_follow_what_the_resources_can_still_buy(game_env):
+    m = game_env.module
+    stage = {}
+    for resources in (200, 80, 79, 60, 59, 40, 20, 19, 0):
+        m.run.resources = float(resources)
+        stage[resources] = m.countdown_stage(m.run)
+    assert stage == {200: 1, 80: 1, 79: 2, 60: 2, 59: 2, 40: 2, 20: 2, 19: 3, 0: 3}
+    m.run.event_index = len(m.run.schedule)
+    assert m.countdown_stage(m.run) == 0 and m.countdown_note_text(m.run) == ""
+
+
+def test_the_strip_carries_the_stage_and_a_hint_in_words(game_env):
+    m, e = game_env.module, game_env.elements
+    assert e["schedule-strip"].getAttribute("data-countdown") == "1"
+    assert "up to 10 units" in e["countdown-note"].innerText and "Flood" in e["countdown-note"].innerText
+    m.run.resources = 20.0
+    m.render()
+    assert e["schedule-strip"].getAttribute("data-countdown") == "2" and "up to 1 unit " in e["countdown-note"].innerText
+    m.run.resources = 5.0
+    m.render()
+    assert e["schedule-strip"].getAttribute("data-countdown") == "3"
+    assert e["countdown-note"].innerText == "Nothing left you can afford: Flood is the next step." and e["countdown-note"].hidden is False
+    for _ in range(len(m.run.schedule)):
+        game_env.resolve_event()
+    assert e["schedule-strip"].getAttribute("data-countdown") == "0" and e["countdown-note"].hidden is True
+
+
+def test_the_pulse_is_css_only_and_guarded_by_both_switches():
+    css = (GAME_DIR / "style.css").read_text(encoding="utf-8")
+    assert 'html[data-effects="false"] .schedule-strip .schedule-chip--next' in css
+    block = css[css.index("GE-26: the countdown pulse"):css.index("BATCH3-END")]
+    assert "prefers-reduced-motion: reduce" in block and "animation: none" in block
+    assert "data-countdown" not in (GAME_DIR / "ui.js").read_text(encoding="utf-8")
+
+
+def test_a_cached_page_without_the_countdown_note_still_renders(game_env):
+    m = game_env.module
+    real = m._el
+    m._el = lambda element_id: None if element_id == "countdown-note" else real(element_id)
+    m.render_schedule_strip()

@@ -223,6 +223,8 @@ ELEMENT_IDS = [
     "settlement-look-display",
     # GE-14: the large damage number.
     "hit-number",
+    # GE-26: the countdown note under the schedule strip.
+    "countdown-note",
 ]
 for _skill in SKILL_IDS:
     ELEMENT_IDS += [

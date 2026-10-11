@@ -1,6 +1,10 @@
 [
   {
     "date": "2026-10-11",
+    "entry": "New: a countdown pulse on the schedule strip. The next event's chip pulses gently and grows a little more as you run out of things you can afford to buy before facing it, and a line under the strip says the same in words ('Nothing left you can afford: Flood is the next step.'). It uses the same Settings switch as the event hit effects, and Reduce motion turns the animation off and leaves the words."
+  },
+  {
+    "date": "2026-10-11",
     "entry": "New: each kind of event now hits the settlement art in its own way, with a large damage number beside it. A flood sends a blue ripple, a heatwave or heat-health emergency an orange pulse, a storm a shake and white flash, infrastructure failure a yellow flicker, supply-chain trouble a dimming, and civil unrest a red shudder. They last under a second, and the Last-event line says the same in words. A new Settings switch ('Screen shake, flashes and pulses') turns them off, and Reduce motion always does."
   },
   {
