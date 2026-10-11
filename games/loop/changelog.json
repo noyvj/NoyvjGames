@@ -1,6 +1,10 @@
 [
   {
     "date": "2026-10-11",
+    "entry": "New: a Rewind token. Once per chain you can undo your last Advance Cycle, along with anything you bought since, and go back to the start of that cycle. It shows as a chip in the header (Rewind: 1 left) and as a button in the investments column, asks before it spends the token, and a new chain gives you a new one. Records you have already earned are kept; a cycle that gave surplus to the regional pool cannot be rewound."
+  },
+  {
+    "date": "2026-10-11",
     "entry": "New: buy several at once. Pick x1, x5 or x10 above the investments (or shift-click for five) and each buy button shows what the whole purchase will cost. It applies to repair, reuse, recycling and all three trade partners, and buys as many as you can afford. Settings gains 'Ask before big purchases', which checks with you when one purchase would take more than half, 75% or 90% of your funds (off by default)."
   },
   {

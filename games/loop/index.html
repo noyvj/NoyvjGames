@@ -261,6 +261,7 @@
       </div>
       <p id="cycle-display" class="status-line">Cycle 1</p>
       <p id="funds-display" class="status-line">Funds: 300</p>
+      <p id="rewind-token-display" class="status-line">Rewind: 1 left</p>
       <p id="production-display" class="status-line">Production target: 50 units/cycle</p>
       <p id="extraction-display" class="status-line">New extraction this cycle: 50 units</p>
       <!-- GH-25: a "so close" note with the cheapest single fix, shown only when within a few units. -->
@@ -402,6 +403,12 @@
         <span class="invest-name">🛡️ Streak insurance</span>
         <button id="insurance-button" class="secondary" type="button">Streak insurance (10)</button>
         <p id="insurance-status" class="invest-stats"></p>
+      </div>
+      <!-- GH-18 / FY-39: one rewind per chain, undoing the last Advance Cycle. -->
+      <div class="invest-row invest-row--culture">
+        <span class="invest-name">&#8617; Rewind token</span>
+        <button id="rewind-button" class="secondary" type="button" disabled>Rewind last cycle</button>
+        <p id="rewind-status" class="invest-stats"></p>
       </div>
       <!-- GH-15, H-9, H-23: name plates, the secret category, per-category records and a copyable summary. -->
       <details id="career-panel" class="stats-detail-toggle">

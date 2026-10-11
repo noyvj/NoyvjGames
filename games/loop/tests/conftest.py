@@ -153,6 +153,10 @@ ELEMENT_IDS = [
     "buy-x1-button",
     "buy-x5-button",
     "buy-x10-button",
+    # GH-18: rewind token.
+    "rewind-button",
+    "rewind-status",
+    "rewind-token-display",
 ]
 
 

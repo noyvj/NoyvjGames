@@ -515,6 +515,10 @@ class ChainState:
         # GH-20: the chain's first close, for the speed achievements (saved when set).
         self.first_close_extracted = None
         self.first_close_trade_free = None
+        # GH-18 / FY-39: one rewind per chain. The undo point is a transient copy of the whole chain
+        # taken just before each Advance Cycle (never saved); only the spent token is saved.
+        self.rewind_used = False
+        self.rewind_snapshot = None
 
     def can_choose_mode(self):
         """H13/H23: the modes change the rules of the whole chain, so they
@@ -827,7 +831,38 @@ class ChainState:
     def extraction_cost_multiplier(self):
         return 1.0 + self.damage_fraction() * (MAX_COST_MULTIPLIER - 1.0)
 
+    def _snapshot(self):
+        """A deep copy of every chain field except the undo point itself."""
+        return copy.deepcopy({k: v for k, v in self.__dict__.items() if k != "rewind_snapshot"})
+
+    def rewind_block_reason(self):
+        """GH-18: None when a rewind is possible, else a short plain reason."""
+        if self.rewind_used:
+            return "used"
+        if self.rewind_snapshot is None:
+            return "no_point"
+        if self.last_donation > 0:
+            return "donated"
+        return None
+
+    def can_rewind(self):
+        return self.rewind_block_reason() is None
+
+    def rewind(self):
+        """GH-18 / FY-39: one per chain. Puts the chain back exactly as it was before the last
+        Advance Cycle (purchases made since are undone too) and spends the token. The career
+        records, name plates and goods tried are NOT taken back: they record what happened."""
+        if not self.can_rewind():
+            return False
+        saved = self.rewind_snapshot
+        self.__dict__.clear()
+        self.__dict__.update(copy.deepcopy(saved))
+        self.rewind_used = True
+        self.rewind_snapshot = None
+        return True
+
     def advance_cycle(self):
+        self.rewind_snapshot = self._snapshot()
         extraction = self.new_extraction_needed()
         cost = extraction * EXTRACTION_COST_PER_UNIT * self.extraction_cost_multiplier()
         revenue = PRODUCTION_TARGET * SALE_PRICE_PER_UNIT
@@ -2552,6 +2587,48 @@ def insurance_text():
     )
 
 
+def rewind_token_text():
+    return "Rewind: spent" if chain.rewind_used else "Rewind: 1 left"
+
+
+def rewind_text():
+    """GH-18: what the rewind token can do right now."""
+    reason = chain.rewind_block_reason()
+    if reason == "used":
+        return "The rewind token on this chain is spent. A new chain gets a new one."
+    if reason == "no_point":
+        return "One rewind per chain. The undo point is set each time you advance a cycle, so advance one to use it."
+    if reason == "donated":
+        return "That cycle gave surplus to the regional pool, which cannot be taken back, so it cannot be rewound."
+    return (
+        f"One rewind per chain: go back to the start of cycle {chain.rewind_snapshot['cycle_number']}, "
+        "undoing the last Advance Cycle and anything you bought since."
+    )
+
+
+def on_rewind(event=None):
+    """GH-18 / FY-39: spend the chain's one rewind token (asks first, since it is used up)."""
+    if not chain.can_rewind():
+        render()
+        return
+    target = chain.rewind_snapshot["cycle_number"]
+
+    def _confirmed():
+        _run_action(chain.rewind)
+        _seed_achievement_toast_baseline()
+        document.getElementById("cycle-live-summary").innerText = f"Rewound to the start of cycle {target}."
+
+    _confirm_dialog_ask(
+        action_id="loop-rewind",
+        message=(
+            f"Rewind to the start of cycle {target}? The last cycle and anything you bought since are undone, "
+            "and this chain's rewind token is spent."
+        ),
+        confirm_label="Rewind",
+        on_confirm=_confirmed,
+    )
+
+
 def summary_blocks(fractions, width=40):
     """H-23: a block-character row, one block per cycle (the last `width`)."""
     blocks = "\u2581\u2582\u2583\u2584\u2585\u2586\u2587\u2588"
@@ -2852,6 +2929,12 @@ def render():
         insurance_button.innerText = f"Streak insurance ({INSURANCE_COST})"
     insurance_button.disabled = not chain.can_buy_insurance()
     document.getElementById("insurance-status").innerText = insurance_text()
+    # GH-18 / FY-39: the one rewind token.
+    document.getElementById("rewind-token-display").innerText = rewind_token_text()
+    rewind_button = document.getElementById("rewind-button")
+    rewind_button.innerText = "Rewind used" if chain.rewind_used else "Rewind last cycle"
+    rewind_button.disabled = not chain.can_rewind()
+    document.getElementById("rewind-status").innerText = rewind_text()
     # H-4: the same numbers as a plain list (screen readers, and anyone who prefers text).
     document.getElementById("a11y-chain-list").innerHTML = "".join(
         f"<li>{html.escape(line)}</li>" for line in accessible_chain_lines()
@@ -3470,6 +3553,8 @@ def get_state():
         state["first_close_extracted"] = chain.first_close_extracted
     if chain.first_close_trade_free is not None:
         state["first_close_trade_free"] = chain.first_close_trade_free
+    if chain.rewind_used:
+        state["rewind_used"] = True
     career = career_state()
     if career:
         state["career"] = career
@@ -3576,6 +3661,8 @@ def load_state(data):
     chain.last_cycle_mix = None
     chain.last_combo_gain = 0.0
     chain.last_insurance_saved = False
+    chain.rewind_used = data.get("rewind_used") is True
+    chain.rewind_snapshot = None  # the undo point is a visit-only thing: advance a cycle to set a new one
     load_career(data.get("career"))
     chain.lifetime_investment_spend = data.get("lifetime_investment_spend", 0.0)
     chain.lifetime_export_revenue = data.get("lifetime_export_revenue", 0.0)
@@ -3638,6 +3725,7 @@ def setup():
             "click", create_proxy(_make_goods_category_handler(category))
         )
     document.getElementById("insurance-button").addEventListener("click", create_proxy(on_buy_insurance))
+    document.getElementById("rewind-button").addEventListener("click", create_proxy(on_rewind))
     document.getElementById("copy-summary-button").addEventListener("click", create_proxy(on_copy_summary))
     document.getElementById("culture-invest-button").addEventListener("click", create_proxy(on_invest_culture))
     for measure in CIRCULARITY_INVESTMENTS:
