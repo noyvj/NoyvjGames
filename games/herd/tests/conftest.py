@@ -130,6 +130,8 @@ ELEMENT_IDS = [
     "cow-listen-button", "cow-bubble",
     # F-11 profiles.
     "profile-select", "next-lever-hint", "settings-reset-button",
+    # F-25 settings code.
+    "settings-code-box", "settings-export-button", "settings-import-button", "settings-code-status",
 ]
 for _measure in MEASURE_IDS:
     ELEMENT_IDS += [f"{_measure}-name", f"{_measure}-count", f"{_measure}-invest-button"]

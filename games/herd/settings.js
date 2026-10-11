@@ -678,6 +678,49 @@
     new MutationObserver(ensure).observe(howto, { childList: true });
   }
 
+  // F-25: after the settings code is imported, game.py has written the values to localStorage; this
+  // reads them back and brings the page (data attributes and every control) in line, without a reload.
+  function reloadFromStorage() {
+    DISPLAY_PREFS.forEach(function (pref) {
+      const on = applyPref(pref, readPref(pref.key));
+      const box = document.getElementById(pref.checkbox);
+      if (box) box.checked = on;
+    });
+    const confirmSelect = document.getElementById("confirm-threshold-select");
+    if (confirmSelect) confirmSelect.value = readConfirmChoice();
+    const profile = applyProfile(readProfile());
+    const profileSelect = document.getElementById("profile-select");
+    if (profileSelect) profileSelect.value = profile;
+    const tactileBox = document.getElementById("tactile-checkbox");
+    setTactile(tactileOn());
+    if (tactileBox) tactileBox.checked = tactileOn();
+    const chaBox = document.getElementById("cha-ching-checkbox");
+    if (chaBox) chaBox.checked = chaChingOn();
+    applyScale(readStoredScale());
+    const reducedNow = applyMotion(readStoredMotion());
+    const motionBox = document.getElementById("reduced-motion-checkbox");
+    if (motionBox) motionBox.checked = reducedNow;
+    return true;
+  }
+
+  // F-25: copy a text to the clipboard where the browser allows it, then say so in the status line.
+  // The code is also left in the text box, so a refused clipboard just means "select it and copy".
+  function copyText(text, statusId) {
+    const status = statusId ? document.getElementById(statusId) : null;
+    function done(ok) {
+      if (status && ok) status.textContent = "Copied to the clipboard. Paste it on the other device and press Restore.";
+    }
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(function () { done(true); }, function () { done(false); });
+        return true;
+      }
+    } catch (e) {
+      // fall through: the code stays in the box
+    }
+    return false;
+  }
+
   function init() {
     initDisplayPrefs();
     initConfirmThreshold();
@@ -762,6 +805,7 @@
     applyScale: applyScale, applyMotion: applyMotion, MIN_SCALE: MIN_SCALE, MAX_SCALE: MAX_SCALE,
     cheatSheetItems: CHEAT_SHEET_ITEMS,
     glossary: GLOSSARY,
+    reloadFromStorage: reloadFromStorage, copyText: copyText,
   };
   window.HerdFx = { driveTractor: driveTractor, tactileOn: tactileOn, roundGain: roundGain, chaChingOn: chaChingOn, mixerQuality: mixerQuality };
 })();

@@ -1724,3 +1724,12 @@ html[data-lite="true"] .pasture-visual-cloud { display: none !important; }
 html[data-lite="true"] .pasture-visual-cow { animation: none !important; }
 html[data-lite="true"] #game, html[data-lite="true"] .pinned-strip { backdrop-filter: none !important; -webkit-backdrop-filter: none !important; }
 .settings-row select { max-width: 100%; }
+
+/* ---- Round 7: F-25 settings code ---- */
+.settings-code { display: block; }
+.settings-code textarea {
+  width: 100%; box-sizing: border-box; margin-top: 0.35rem; padding: 0.4rem; font: inherit; font-size: 0.8rem;
+  font-family: ui-monospace, Menlo, Consolas, monospace; color: inherit; background: rgba(127, 127, 127, 0.15);
+  border: 1px solid rgba(127, 127, 127, 0.55); border-radius: 6px; resize: vertical; word-break: break-all;
+}
+.settings-code-buttons { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.5rem; }
