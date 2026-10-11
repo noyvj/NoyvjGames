@@ -39,6 +39,34 @@ def medal_of(best, rid):
     return rooms.medal(rooms.BY_ID[rid].par, entry["n"]) if entry else 0
 
 
+def tier_size(best, hbest, rid, difficulty):
+    """The fewest steps that counts on a difficulty, or None. Normal and Easy read the one best list (a looser bar is just another
+    name for the same number); Hard reads only what was cleared on Hard, which can never beat the Normal best."""
+    if difficulty == "hard":
+        return hbest.get(rid)
+    entry = best.get(rid)
+    return entry["n"] if entry else None
+
+
+def medal_in(best, hbest, rid, difficulty):
+    """0 not cleared on this difficulty, else 1 bronze, 2 silver, 3 gold."""
+    if difficulty == "normal":
+        return medal_of(best, rid)
+    size = tier_size(best, hbest, rid, difficulty)
+    return rooms.medal_for(rooms.BY_ID[rid].par, size, difficulty) if size is not None else 0
+
+
+def tier_totals(best, hbest, difficulty):
+    """`totals` for the difficulty in use; Normal is exactly `totals`."""
+    base = totals(best)
+    if difficulty == "normal":
+        return base
+    medals = [medal_in(best, hbest, rid, difficulty) for rid in rooms.ORDER]
+    base.update({"cleared": sum(1 for m in medals if m), "gold": sum(1 for m in medals if m == 3),
+                 "silver": sum(1 for m in medals if m == 2), "bronze": sum(1 for m in medals if m == 1)})
+    return base
+
+
 def totals(best):
     medals = [medal_of(best, rid) for rid in rooms.ORDER]
     return {"cleared": sum(1 for m in medals if m), "gold": sum(1 for m in medals if m == 3),

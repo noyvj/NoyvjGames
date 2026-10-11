@@ -39,6 +39,21 @@ def grade_of(cost):
     return 3 if cost <= 0 else 2 if cost <= 2 else 1
 
 
+# AN-17 difficulty. Normal is `grade_of` above, unchanged. The cost of a shift is the same fact on every difficulty; Easy and Hard only
+# change how many points of cost each seal allows: Easy one more (clean at 1 or less, steady at 3 or less), Hard one fewer (steady
+# only at 1, so 2 or more is rough). A seal of any kind is still a finished shift.
+DIFFICULTIES = ("easy", "normal", "hard")
+
+
+def grade_for(cost, difficulty="normal"):
+    """3 clean, 2 steady, 1 rough for a cost on a difficulty; Normal is exactly `grade_of`."""
+    if difficulty == "easy":
+        return 3 if cost <= 1 else 2 if cost <= 3 else 1
+    if difficulty == "hard":
+        return 3 if cost <= 0 else 2 if cost <= 1 else 1
+    return grade_of(cost)
+
+
 class Patient:
     __slots__ = ("crew", "name", "first", "role", "truth", "traits", "forbids", "signs", "say", "shaking", "spreads",
                  "cands", "cand_spreads", "truth_read", "truth_ix")

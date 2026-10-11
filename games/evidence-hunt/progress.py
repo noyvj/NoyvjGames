@@ -27,6 +27,25 @@ def case_open(best, cid):
     return cid in CHAPTER_OF and chapter_open(best, CHAPTER_OF[cid])
 
 
+def effective(best, tiers, cid, difficulty):
+    """The seal a case shows on a difficulty. Normal reads `best`. Easy reads the better of the Easy record and the Normal seal (a
+    looser bar can only be at least as good). Hard reads only what was earned on Hard, which a Normal seal never grants."""
+    if difficulty == "normal":
+        return best.get(cid, 0)
+    if difficulty == "easy":
+        return max(best.get(cid, 0), tiers["easy"].get(cid, 0))
+    return tiers["hard"].get(cid, 0)
+
+
+def effective_map(best, tiers, difficulty):
+    return {cid: g for cid in ORDER for g in [effective(best, tiers, cid, difficulty)] if g}
+
+
+def tier_totals(best, tiers, difficulty):
+    """`totals` for the difficulty in use; Normal is exactly `totals(best)`."""
+    return totals(best) if difficulty == "normal" else totals(effective_map(best, tiers, difficulty))
+
+
 def totals(best):
     grades = [best.get(cid, 0) for cid in ORDER]
     chapters_done = sum(1 for c in CHAPTERS if done_in(best, c) == len(c["cases"]))

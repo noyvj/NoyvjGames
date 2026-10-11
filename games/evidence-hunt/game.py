@@ -35,6 +35,7 @@ import lexicon as lx
 import progress
 import render
 
+difficulty = "normal"   # AN-17: easy | normal | hard, told to the engine by the page (a per-browser choice, never saved)
 TALLY_KEYS = ("rooms", "readings", "accusations", "wrong", "restores", "hints", "trips")
 GRADE_LABEL = {0: "", 1: "Rough", 2: "Steady", 3: "Clean"}
 MAX_TOKENS = 400
@@ -79,7 +80,9 @@ class Game:
         self.mem = []                        # authored case ids solved with the sheet covered
         self.sbn = {}                        # difficulty -> practice houses opened from a seed the game chose
         self.sbdone = []                     # practice codes solved
+        self.tiers = {"easy": {}, "hard": {}}  # case id -> best seal earned on that difficulty (Normal seals are `best`)
         self.rung = 0
+        self.helped = False                  # the answer rung did something on this case (not saved): no Hard seal for it
         self._enter(self.cur)
 
     # ---- the current case -------------------------------------------------------------------------------------------
@@ -98,6 +101,7 @@ class Game:
         self.log = [{"msg": i["msg"], "kind": i["kind"], "ok": True} for i in infos][-LOG_KEEP:]
         self.result = None
         self.rung = 0
+        self.helped = False
         if self.case.done(self.st):          # a saved run that is already finished is not kept
             self.tokens, self.st, self.log = [], self.case.new_state(), []
             self.runs.pop(cid, None)
@@ -131,6 +135,9 @@ class Game:
             data["kept"] = list(self.kept)
         if self.mem:
             data["mem"] = list(self.mem)
+        tiers = {k: dict(v) for k, v in self.tiers.items() if v}
+        if tiers:
+            data["tiers"] = tiers
         if self.sbn or self.sbdone:
             data["sb"] = {k: v for k, v in (("n", {str(d): n for d, n in self.sbn.items() if n}), ("done", list(self.sbdone))) if v}
         earned = self.earned_ids()
@@ -143,6 +150,15 @@ class Game:
         data = data if isinstance(data, dict) else {}
         raw = data.get("best") if isinstance(data.get("best"), dict) else {}
         self.best = {cid: raw[cid] for cid in progress.ORDER if raw.get(cid) in (1, 2, 3) and not isinstance(raw.get(cid), bool)}
+        self.tiers = {"easy": {}, "hard": {}}
+        raw_tiers = data.get("tiers") if isinstance(data.get("tiers"), dict) else {}
+        for tier in ("easy", "hard"):
+            blob = raw_tiers.get(tier) if isinstance(raw_tiers.get(tier), dict) else {}
+            for cid in progress.ORDER:
+                g = blob.get(cid)
+                # a tier seal needs a Normal seal under it (every finish also counts on Normal); Hard can never beat it
+                if cid in self.best and g in (1, 2, 3) and not isinstance(g, bool) and (tier == "easy" or g <= self.best[cid]):
+                    self.tiers[tier][cid] = g
         tally = data.get("tally") if isinstance(data.get("tally"), dict) else {}
         self.tally = {key: _int(tally.get(key)) for key in TALLY_KEYS}
 
@@ -319,13 +335,14 @@ class Game:
 
     def _hint(self):
         if not self.rung:
-            return {"rung": 0}
+            return {"rung": 0, "max": _rung_cap()}
         act = hints.next_action(self.case, self.st)
         d = hints.describe(self.case, self.st, act)
-        out = {"rung": self.rung, "nudge": d["nudge"], "kind": d["kind"]}
-        if self.rung >= 2:
+        rung = min(self.rung, _rung_cap())
+        out = {"rung": rung, "nudge": d["nudge"], "kind": d["kind"], "max": _rung_cap()}
+        if rung >= 2:
             out["hint"] = d["hint"]
-        if self.rung >= 3:
+        if rung >= 3:
             out["answer"] = d["answer"]
             out["label"] = d["label"]
         return out
@@ -338,10 +355,11 @@ class Game:
             entries = []
             for number, cid in enumerate(c["cases"], start=1):
                 d = progress.DATA[cid]
-                entries.append({"id": cid, "name": d["title"], "number": number, "open": is_open, "grade": self.best.get(cid, 0),
-                                "grade_name": GRADE_LABEL[self.best.get(cid, 0)], "current": cid == self.cur, "presences": len(d["truth"]),
+                g = progress.effective(self.best, self.tiers, cid, difficulty)
+                entries.append({"id": cid, "name": d["title"], "number": number, "open": is_open, "grade": g,
+                                "grade_name": GRADE_LABEL[g], "current": cid == self.cur, "presences": len(d["truth"]),
                                 "rooms": houses.size_of(d["layout"]), "started": cid in self.runs and cid != self.cur})
-            out.append({"id": c["id"], "name": c["name"], "blurb": c["blurb"], "open": is_open, "done": progress.done_in(self.best, c),
+            out.append({"id": c["id"], "name": c["name"], "blurb": c["blurb"], "open": is_open, "done": sum(1 for e in entries if e["grade"]),
                         "total": len(c["cases"]), "need": min(progress.OPEN_AT, len(prev["cases"])) if prev else 0,
                         "prev_name": prev["name"] if prev else "", "cases": entries})
         return out
@@ -359,18 +377,19 @@ class Game:
                 result["again"] = {"difficulty": parsed[0], "name": gen.NAMES[parsed[0]]}
             if case.keep_room >= 0 and not case.practice:
                 result["keepsake"] = {"id": case.keep_id, "name": lx.KS_NAME[case.keep_id], "what": lx.KS_WHAT[case.keep_id], "returned": case.keep_id in self.kept}
+        seal = progress.effective(self.best, self.tiers, self.cur, difficulty)
         view = {
-            "ok": ok, "message": message,
+            "ok": ok, "message": message, "difficulty": difficulty,
             "case": {"id": self.cur, "title": case.title, "client": case.client, "intro": case.intro, "chapter": ch["name"] if ch else "Practice",
                      "number": ch["cases"].index(self.cur) + 1 if ch else 0, "of": len(ch["cases"]) if ch else 0,
-                     "best": self.best.get(self.cur, 0), "best_name": GRADE_LABEL[self.best.get(self.cur, 0)], "cost": cost,
-                     "grade_now_name": GRADE_LABEL[cw.grade_of(cost)], "done": case.done(st), "trips": st[cw.TRIPS], "wrong": st[cw.WRONG],
+                     "best": seal, "best_name": GRADE_LABEL[seal], "cost": cost,
+                     "grade_now_name": GRADE_LABEL[cw.grade_for(cost, difficulty)], "done": case.done(st), "trips": st[cw.TRIPS], "wrong": st[cw.WRONG],
                      "n": case.n, "presence_line": "One presence in this house." if case.n == 1 else "Two presences, one in each of two rooms. Name both.",
                      "covered": bool(st[cw.COVERED]), "practice": case.practice, "code": case.code,
                      "scene": render.scene(min(5, 1 + len(case.rooms) // 3)), "keepsake": bool(case.keep_room >= 0)},
             "house": self._house(), "bag": self._bag(), "room": self._room(), "notebook": self._notebook(), "accounts": self._accounts(),
             "could": could, "sheet": self._sheet(could), "accuse": {"n": case.n, "options": [{"id": k, "i": lx.KIND_INDEX[k], "name": lx.KIND_NAME[k]} for k in case.pool]},
-            "log": self.log[-LOG_KEEP:], "result": result, "chapters": self._chapters_view(), "totals": progress.totals(self.best), "tally": dict(self.tally, sandbox=len(self.sbdone)),
+            "log": self.log[-LOG_KEEP:], "result": result, "chapters": self._chapters_view(), "totals": progress.tier_totals(self.best, self.tiers, difficulty), "tally": dict(self.tally, sandbox=len(self.sbdone)),
             "practice": {"levels": [{"difficulty": d, "name": gen.NAMES[d]} for d in gen.DIFFICULTIES], "opened": sum(self.sbn.values()), "done": len(self.sbdone)},
             "hint": self._hint(), "about": info.view(),
             "goals": achievements.goals(self.facts(), self.open_chapters()), "achievements": achievements.view(self.facts()),
@@ -425,11 +444,25 @@ class Game:
     def _finish(self):
         case, st = self.case, self.st
         cost = case.total_cost(st)
-        grade = cw.grade_of(cost)
+        normal_grade = cw.grade_of(cost)
         before = self.best.get(self.cur, 0)
-        new_best = grade > before and self.cur in progress.DATA
-        if new_best:
-            self.best[self.cur] = grade
+        authored = self.cur in progress.DATA
+        new_best = normal_grade > before and authored
+        if new_best:                                 # the Normal seal is always judged from the cost, whatever the difficulty
+            self.best[self.cur] = normal_grade
+        grade, note = normal_grade, ""
+        if difficulty != "normal":
+            grade = cw.grade_for(cost, difficulty)
+            if not authored:
+                new_best = False
+            elif difficulty == "hard" and self.helped:
+                note = "The answer step was used on this case, so it does not count for Hard."
+                new_best = False
+            else:
+                old = self.tiers["hard"].get(self.cur, 0) if difficulty == "hard" else max(before, self.tiers["easy"].get(self.cur, 0))
+                new_best = grade > old
+                if grade > self.tiers[difficulty].get(self.cur, 0):
+                    self.tiers[difficulty][self.cur] = grade
         if case.practice and case.code not in self.sbdone and len(self.sbdone) < MAX_DONE_CODES:
             self.sbdone.append(case.code)
         for s, kind in enumerate(case.truth):
@@ -441,9 +474,12 @@ class Game:
             self.mem = _ordered(progress.ORDER, set(self.mem) | {self.cur})
         self.runs.pop(self.cur, None)
         nxt = progress.next_case(self.best, self.cur)
+        shown = progress.effective(self.best, self.tiers, self.cur, difficulty) if authored else grade
         line = {3: "A clean case: no wrong name and no second trip.", 2: "Steady. The spirit is named, with a small cost on the case.",
                 1: "Rough, but the spirit is named. Restore the case to try for a cleaner one."}[grade]
-        self.result = {"cost": cost, "grade": grade, "grade_name": GRADE_LABEL[grade], "new_best": new_best, "best_name": GRADE_LABEL[max(grade, before)] if not case.practice else GRADE_LABEL[grade],
+        self.result = {"cost": cost, "grade": grade, "grade_name": GRADE_LABEL[grade], "new_best": new_best,
+                       "best_name": GRADE_LABEL[max(shown, before) if difficulty == "normal" else shown] if not case.practice else GRADE_LABEL[grade],
+                       "difficulty": difficulty, "note": note, "normal_grade_name": GRADE_LABEL[normal_grade] if difficulty != "normal" else "",
                        "line": line, "ending": case.ending, "next": nxt, "next_name": progress.DATA[nxt]["title"] if nxt else ""}
 
     def _stash(self):
@@ -467,13 +503,20 @@ class Game:
         self.log = [{"msg": "The case is restored to its start.", "kind": "restore", "ok": True}]
         self.result = None
         self.rung = 0
+        self.helped = False
         self.runs.pop(self.cur, None)
 
 
 game = Game()
 
 
+def _rung_cap():
+    """The last hint rung on offer: Hard has no answer step."""
+    return 2 if difficulty == "hard" else 3
+
+
 def handle(request_json):
+    global difficulty
     try:
         request = json.loads(request_json)
     except ValueError:
@@ -538,18 +581,28 @@ def handle(request_json):
                 message = lx.KS_RETURN[g.case.keep_id]
         else:
             ok, message = False, "There is nothing to return yet. Solve the case first."
+    elif action == "difficulty":
+        if request.get("level") not in cw.DIFFICULTIES:
+            ok, message = False, "That is not a difficulty."
+        else:
+            difficulty = request.get("level")
     elif action == "hint":
         if g.case.done(g.st):
             ok, message = False, "The case is finished."
-        elif g.rung >= 3:
-            ok, message = False, "That is every rung: the answer is showing."
+        elif g.rung >= _rung_cap():
+            ok, message = False, ("That is every rung: the answer is showing." if _rung_cap() == 3 else "That is every rung on Hard: there is no answer step.")
         else:
             g.rung += 1
+            if difficulty == "easy" and g.rung == 1:
+                g.rung = hints.EASY_OPEN          # Easy: the first press opens the nudge and the hint together
             g.tally["hints"] += 1
     elif action == "hint_do":
-        if g.rung < 3:
+        if difficulty == "hard":
+            ok, message = False, "Hard has no answer step. Switch to Normal or Easy in the Difficulty panel if you want it."
+        elif g.rung < 3:
             ok, message = False, "Climb to the answer first."
         else:
+            g.helped = True
             act = hints.next_action(g.case, g.st)
             if act is None:
                 g.restore()

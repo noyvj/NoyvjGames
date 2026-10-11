@@ -138,14 +138,14 @@ def loose_end(taken, path):
     return locked
 
 
-def peek(state, taken):
-    """The what-if peek for the scene the player is in. Open once two different choices of this scene have been tried. For each
+def peek(state, taken, need=2):
+    """The what-if peek for the scene the player is in. Open once `need` (two; one on Easy) different choices of this scene have been tried. For each
     choice: where it would lead from this exact state (day and title; an ending is only called 'an ending') or why it is locked."""
     scene = story.SCENES[state[0]]
     done = _tried_choices(taken)
     tried = [i for i in range(len(scene["choices"])) if (state[0], i) in done]
-    if len(tried) < 2:
-        return {"open": False, "need": 2 - len(tried), "rows": []}
+    if len(tried) < need:
+        return {"open": False, "need": need - len(tried), "rows": []}
     rows = []
     for i, choice in enumerate(scene["choices"]):
         ok, why = walker.available(state, i)

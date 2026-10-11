@@ -3,6 +3,12 @@
    logic lives here. */
 (function () {
   "use strict";
+  var DIFF_GAME = "hull-repair";
+  var DIFF_TEXT = {
+    easy: "The first hint press opens the nudge and the hint together, and the hint shows twice as much of the starting line.",
+    normal: "The game as designed: a nudge, then a hint, then the answer.",
+    hard: "No answer step: the nudge and the hint are all the help there is. Boards are restored exactly the same way on every difficulty.",
+  };
   var ENGINE_MODULES = ["rules.py", "play.py", "boards_dock.py", "boards_crew.py", "boards_engineering.py", "boards_life.py", "boards_core.py", "boards.py", "progress.py", "render.py", "hints.py", "logbook.py", "achievements.py", "info.py"];
   var STORE_KEY = "hull-repair:state";
   var BACKUP_KEY = "hull-repair:state-backup";
@@ -294,7 +300,8 @@
   function renderHints() {
     var h = view.hint;
     var btn = $("hint-button");
-    btn.hidden = h.rung >= 3;
+    btn.hidden = h.rung >= h.max;
+    $("hint-limit").hidden = !(h.max < 3 && h.rung >= h.max);
     setText(btn, h.rung === 0 ? "Would you like a suggestion?" : (h.rung === 1 ? "Another hint" : "Another hint: the answer"));
     $("hint-nudge").hidden = !h.nudge;
     setText($("hint-nudge"), h.nudge ? "Nudge: " + h.nudge : "");
@@ -522,7 +529,20 @@
     else go();
   }
 
+  // ---- difficulty (AN-17, shared/difficulty.js): the page keeps the choice, the engine applies it and is never told to save it ----
+  function sendDifficulty() {
+    if (!engine) return null;
+    if (!window.NoyvjDifficulty) return send({ action: "open" });
+    return send({ action: "difficulty", level: window.NoyvjDifficulty.get(DIFF_GAME) });
+  }
+  function wireDifficulty() {
+    if (!window.NoyvjDifficulty) return;
+    window.NoyvjDifficulty.mount("#difficulty-slot", { game: DIFF_GAME, collapsible: true, descriptions: DIFF_TEXT });
+    window.NoyvjDifficulty.onChange(function (d) { if (d.game === DIFF_GAME) sendDifficulty(); });
+  }
+
   function wire() {
+    wireDifficulty();
     $("toast").addEventListener("click", function () { showToast(""); });
     wirePanelToggle("rooms-toggle-button", "rooms-panel");
     wirePanelToggle("log-toggle-button", "log-panel");
@@ -578,7 +598,7 @@
       try { engine.loadState(pyodide.toPy(JSON.parse(saved))); } catch (e) { /* a bad save never blocks play */ }
     }
     $("engine-status").textContent = "";
-    send({ action: "open" });
+    sendDifficulty();
     await changelog;
     if (window.GameTutorial) window.GameTutorial.init(window.hullRepairTutorialSteps ? window.hullRepairTutorialSteps(TUTORIAL_STEPS) : TUTORIAL_STEPS, { gameId: "hull-repair" });
   }

@@ -25,7 +25,7 @@
     "topbar": [".hub-back-link", "h1", ".game-toolbar"],
     "stagebar": ["#stats", "#goals"],
     "stage": ["#room-panel"],
-    "side": ["#editor-panel", "#tally"],
+    "side": ["#difficulty-panel", "#editor-panel", "#tally"],
     "hidden": [".tagline"]
   },
   "readouts": [],

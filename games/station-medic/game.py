@@ -32,6 +32,7 @@ import render
 import shift as sh
 import solver as sv
 
+difficulty = "normal"   # AN-17: easy | normal | hard, told to the engine by the page (a per-browser choice, never saved)
 TALLY_KEYS = ("scans", "treats", "restores", "borrows", "hints", "comforts")
 GRADE_LABEL = {0: "", 1: "Rough", 2: "Steady", 3: "Clean"}
 MAX_TOKENS = 300
@@ -64,7 +65,9 @@ class Game:
         self.rec_cured = []                  # condition ids cured at least once
         self.rec_cures = []                  # treatment ids that cured something
         self.rec_tests = []                  # scan ids run at least once
+        self.tiers = {"easy": {}, "hard": {}}  # shift id -> best seal earned on that difficulty (Normal seals are `best`)
         self.rung = 0
+        self.helped = False                  # the answer rung did something on this shift (not saved): no Hard seal for it
         self._enter(self.cur)
 
     # ---- the current shift --------------------------------------------------------------------------------------------
@@ -83,6 +86,7 @@ class Game:
         self.log = [{"msg": i["msg"], "kind": i["kind"], "ok": True} for i in infos][-LOG_KEEP:]
         self.result = None
         self.rung = 0
+        self.helped = False
         self.solver = None
         if self.case.done(self.st):          # a saved run that is already finished is not kept
             self.tokens, self.st, self.log = [], self.case.new_state(), []
@@ -115,6 +119,9 @@ class Game:
             data["cures"] = list(self.rec_cures)
         if self.rec_tests:
             data["tests"] = list(self.rec_tests)
+        tiers = {k: dict(v) for k, v in self.tiers.items() if v}
+        if tiers:
+            data["tiers"] = tiers
         earned = achievements.earned(self.facts())
         if earned:
             data["achievements_earned"] = earned       # written for the hub's dashboard, never read back
@@ -130,6 +137,15 @@ class Game:
         for attr, key, universe in (("rec_cured", "cured", lx.COND_IDS), ("rec_cures", "cures", lx.TX_IDS), ("rec_tests", "tests", lx.TEST_IDS)):
             value = data.get(key)
             setattr(self, attr, [x for x in universe if isinstance(value, list) and x in value])
+        self.tiers = {"easy": {}, "hard": {}}
+        raw_tiers = data.get("tiers") if isinstance(data.get("tiers"), dict) else {}
+        for tier in ("easy", "hard"):
+            blob = raw_tiers.get(tier) if isinstance(raw_tiers.get(tier), dict) else {}
+            for sid in progress.ORDER:
+                g = blob.get(sid)
+                # a tier seal needs a Normal seal under it (every finish also counts on Normal); Hard can never beat it
+                if sid in self.best and g in (1, 2, 3) and not isinstance(g, bool) and (tier == "easy" or g <= self.best[sid]):
+                    self.tiers[tier][sid] = g
         raw_runs = data.get("run") if isinstance(data.get("run"), dict) else {}
         self.runs = {}
         for sid in progress.ORDER:
@@ -235,13 +251,14 @@ class Game:
 
     def _hint(self):
         if not self.rung:
-            return {"rung": 0}
+            return {"rung": 0, "max": _rung_cap()}
         act = hints.next_action(self.case, self.st, self._solver())
         d = hints.describe(self.case, self.st, act)
-        out = {"rung": self.rung, "nudge": d["nudge"], "kind": d["kind"]}
-        if self.rung >= 2:
+        rung = min(self.rung, _rung_cap())
+        out = {"rung": rung, "nudge": d["nudge"], "kind": d["kind"], "max": _rung_cap()}
+        if rung >= 2:
             out["hint"] = d["hint"]
-        if self.rung >= 3:
+        if rung >= 3:
             out["answer"] = d["answer"]
             out["label"] = d["label"]
         return out
@@ -253,10 +270,12 @@ class Game:
             entries = []
             for number, sid in enumerate(c["shifts"], start=1):
                 d = progress.DATA[sid]
-                entries.append({"id": sid, "name": d["title"], "number": number, "open": is_open, "grade": self.best.get(sid, 0),
-                                "grade_name": GRADE_LABEL[self.best.get(sid, 0)], "current": sid == self.cur,
+                g = progress.effective(self.best, self.tiers, sid, difficulty)
+                entries.append({"id": sid, "name": d["title"], "number": number, "open": is_open, "grade": g,
+                                "grade_name": GRADE_LABEL[g], "current": sid == self.cur,
                                 "patients": len(d["patients"]), "started": sid in self.runs and sid != self.cur})
-            out.append({"id": c["id"], "name": c["name"], "blurb": c["blurb"], "open": is_open, "done": progress.done_in(self.best, c),
+            out.append({"id": c["id"], "name": c["name"], "blurb": c["blurb"], "open": is_open,
+                        "done": sum(1 for e in entries if e["grade"]),
                         "total": len(c["shifts"]), "shifts": entries})
         return out
 
@@ -266,16 +285,17 @@ class Game:
         d = progress.DATA[self.cur]
         done = case.done(self.st)
         cost = case.total_cost(self.st)
+        seal = progress.effective(self.best, self.tiers, self.cur, difficulty)
         view = {
-            "ok": ok, "message": message,
+            "ok": ok, "message": message, "difficulty": difficulty,
             "shift": {"id": self.cur, "title": case.title, "intro": case.intro, "chapter": ch["name"], "number": ch["shifts"].index(self.cur) + 1,
-                      "of": len(ch["shifts"]), "best": self.best.get(self.cur, 0), "best_name": GRADE_LABEL[self.best.get(self.cur, 0)],
-                      "cost": cost, "grade_now": sh.grade_of(cost), "grade_now_name": GRADE_LABEL[sh.grade_of(cost)], "done": done,
+                      "of": len(ch["shifts"]), "best": seal, "best_name": GRADE_LABEL[seal],
+                      "cost": cost, "grade_now": sh.grade_for(cost, difficulty), "grade_now_name": GRADE_LABEL[sh.grade_for(cost, difficulty)], "done": done,
                       "borrowed": self.st[2], "scene": render.scene(case.beds), "patients_n": len(d["patients"])},
             "patients": [self._patient_view(p) for p in range(len(case.patients))],
             "sheet": self._sheet(), "cabinet": self._cabinet(),
             "log": self.log[-LOG_KEEP:], "result": self.result,
-            "rooms": self._rooms_view(), "totals": progress.totals(self.best), "tally": dict(self.tally),
+            "rooms": self._rooms_view(), "totals": progress.tier_totals(self.best, self.tiers, difficulty), "tally": dict(self.tally),
             "hint": self._hint(), "about": info.view(),
             "goals": achievements.goals(self.facts(), self.open_chapters()), "achievements": achievements.view(self.facts()),
             "record": codex.view(self.rec_cured, self.rec_cures, self.rec_tests, self.best),
@@ -327,11 +347,24 @@ class Game:
     def _finish(self):
         case = self.case
         cost = case.total_cost(self.st)
-        grade = sh.grade_of(cost)
+        normal_grade = sh.grade_of(cost)
         before = self.best.get(self.cur, 0)
-        new_best = grade > before
-        if new_best:
-            self.best[self.cur] = grade
+        if normal_grade > before:                  # the Normal seal is always judged from the cost, whatever the difficulty
+            self.best[self.cur] = normal_grade
+        grade, note = normal_grade, ""
+        new_best = normal_grade > before
+        if difficulty != "normal":
+            grade = sh.grade_for(cost, difficulty)
+            if difficulty == "hard" and self.helped:
+                note = "The answer step was used on this shift, so it does not count for Hard."
+                new_best = False
+            else:
+                old = progress.effective(self.best, self.tiers, self.cur, difficulty) if difficulty == "hard" else \
+                    max(before, self.tiers["easy"].get(self.cur, 0))
+                new_best = grade > old
+                if grade > self.tiers[difficulty].get(self.cur, 0):
+                    self.tiers[difficulty][self.cur] = grade
+        shown = progress.effective(self.best, self.tiers, self.cur, difficulty)
         self.runs.pop(self.cur, None)
         nxt = progress.next_shift(self.best, self.cur)
         if grade == 3:
@@ -340,8 +373,9 @@ class Game:
             line = "Steady. Everyone was settled, with a small cost on the shift."
         else:
             line = "Rough, but everyone is settled. Restore the shift to try for a cleaner one."
-        self.result = {"cost": cost, "grade": grade, "grade_name": GRADE_LABEL[grade], "new_best": new_best, "best": self.best[self.cur],
-                       "best_name": GRADE_LABEL[self.best[self.cur]], "line": line, "beats": codex.beats_for(self.cur), "next": nxt, "next_name": progress.DATA[nxt]["title"] if nxt else ""}
+        self.result = {"cost": cost, "grade": grade, "grade_name": GRADE_LABEL[grade], "new_best": new_best, "best": shown,
+                       "best_name": GRADE_LABEL[shown], "line": line, "difficulty": difficulty, "note": note,
+                       "normal_grade_name": GRADE_LABEL[normal_grade] if difficulty != "normal" else "", "beats": codex.beats_for(self.cur), "next": nxt, "next_name": progress.DATA[nxt]["title"] if nxt else ""}
 
     def _stash(self):
         """Keep the unfinished actions of the shift being left."""
@@ -357,13 +391,20 @@ class Game:
         self.log = [{"msg": "The shift is restored to its start.", "kind": "restore", "ok": True}]
         self.result = None
         self.rung = 0
+        self.helped = False
         self.runs.pop(self.cur, None)
 
 
 game = Game()
 
 
+def _rung_cap():
+    """The last hint rung on offer: Hard has no answer step."""
+    return 2 if difficulty == "hard" else 3
+
+
 def handle(request_json):
+    global difficulty
     try:
         request = json.loads(request_json)
     except ValueError:
@@ -397,18 +438,28 @@ def handle(request_json):
     elif action == "restore":
         g.restore()
         message = "Restored."
+    elif action == "difficulty":
+        if request.get("level") not in sh.DIFFICULTIES:
+            ok, message = False, "That is not a difficulty."
+        else:
+            difficulty = request.get("level")
     elif action == "hint":
         if g.case.done(g.st):
             ok, message = False, "The shift is finished."
-        elif g.rung >= 3:
-            ok, message = False, "That is every rung: the answer is showing."
+        elif g.rung >= _rung_cap():
+            ok, message = False, ("That is every rung: the answer is showing." if _rung_cap() == 3 else "That is every rung on Hard: there is no answer step.")
         else:
             g.rung += 1
+            if difficulty == "easy" and g.rung == 1:
+                g.rung = hints.EASY_OPEN          # Easy: the first press opens the nudge and the hint together
             g.tally["hints"] += 1
     elif action == "hint_do":
-        if g.rung < 3:
+        if difficulty == "hard":
+            ok, message = False, "Hard has no answer step. Switch to Normal or Easy in the Difficulty panel if you want it."
+        elif g.rung < 3:
             ok, message = False, "Climb to the answer first."
         else:
+            g.helped = True
             act = hints.next_action(g.case, g.st, g._solver())
             if act is None:
                 g.restore()

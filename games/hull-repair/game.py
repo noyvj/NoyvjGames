@@ -30,6 +30,8 @@ import progress
 import render
 import rules
 
+difficulty = "normal"   # AN-17: easy | normal | hard, told to the engine by the page (a per-browser choice, never saved)
+DIFFICULTIES = ("easy", "normal", "hard")
 TALLY_KEYS = ("laid", "erased", "undos", "hints")
 FLAGS = ("bridge", "valve", "mix", "retry")
 MAX_COUNT = 10 ** 9
@@ -178,8 +180,9 @@ class Game:
                       "status": status, "status_name": rules.STATUS_NAMES[status], "best_status": self.st.get(b.id, 0),
                       "empty": len(missing), "cells": len(b.need), "words": render.describe(b),
                       "paths": {c: [list(p) for p in cells] for c, cells in paths.items()}},
-            "layer": render.lines_svg(b, paths, ghosts=hints.ghosts(b, self.rungs.get(b.id, 0))),
-            "hint": hints.view(b, self.rungs.get(b.id, 0)),
+            "layer": render.lines_svg(b, paths, ghosts=hints.ghosts(b, self.rungs.get(b.id, 0), _rung_cap(), difficulty == "easy")),
+            "hint": hints.view(b, self.rungs.get(b.id, 0), _rung_cap(), difficulty == "easy"),
+            "difficulty": difficulty,
             "log": logbook.entries(self.st),
             "goals": achievements.goals(self.facts()),
             "achievements": achievements.view(self.facts()),
@@ -227,7 +230,13 @@ class Game:
 game = Game()
 
 
+def _rung_cap():
+    """The last hint rung on offer: Hard has no answer step."""
+    return 2 if difficulty == "hard" else 3
+
+
 def handle(request_json):
+    global difficulty
     try:
         request = json.loads(request_json)
         action = request.get("action")
@@ -241,6 +250,11 @@ def handle(request_json):
     if action == "reset":
         g.__init__()
         return json.dumps(g.view("Starting over.", with_svg=True))
+    if action == "difficulty":
+        if request.get("level") not in DIFFICULTIES:
+            return json.dumps(g.view("That is not a difficulty.", ok=False))
+        difficulty = request.get("level")
+        return json.dumps(g.view())
     if action == "pick":
         bid = request.get("board")
         if bid not in boards.BY_ID:
@@ -299,13 +313,17 @@ def handle(request_json):
         g.result = None
     elif action == "hint":
         rung = g.rungs.get(g.current, 0)
-        if rung >= 3:
-            ok, message = False, "That is every rung: the answer is showing."
+        if rung >= _rung_cap():
+            ok, message = False, ("That is every rung: the answer is showing." if _rung_cap() == 3 else "That is every rung on Hard: there is no answer step.")
         else:
             g.rungs[g.current] = rung + 1
+            if difficulty == "easy" and rung == 0:
+                g.rungs[g.current] = 2          # Easy: the first press opens the nudge and the hint together
             g.tally["hints"] += 1
     elif action == "load_answer":
-        if g.rungs.get(g.current, 0) < 3:
+        if difficulty == "hard":
+            ok, message = False, "Hard has no answer step. Switch to Normal or Easy in the Difficulty panel if you want it."
+        elif g.rungs.get(g.current, 0) < 3:
             ok, message = False, "Climb to the answer first."
         else:
             d.load_answer(g.board.solution)

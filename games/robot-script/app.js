@@ -4,6 +4,12 @@
   "use strict";
   var ENGINE_MODULES = ["dsl.py", "room.py", "run.py", "editor.py", "render.py", "progress.py", "info.py", "hints.py", "rooms_moving.py", "rooms_turning.py", "rooms_loops.py", "rooms_routines.py", "rooms_branches.py", "rooms_capstone.py", "rooms.py", "companion.py", "achievements.py", "sandbox.py"];
   var STORE_KEY = "robot-script:state";
+  var DIFF_GAME = "robot-script";
+  var DIFF_TEXT = {
+    easy: "The first hint press opens the nudge and the hint together, and the medal bars are two steps looser (gold at the reference length plus 2).",
+    normal: "The game as designed: gold at the reference length, silver a little over, bronze for any clear.",
+    hard: "No answer step (nudge and hint only), and silver is tighter. Hard medals are kept on their own record, so your Normal medals never change.",
+  };
   var BACKUP_KEY = "robot-script:state-backup";
   var TILE = 48;
   var SPEED_MS = { slow: 600, normal: 280, fast: 90, instant: 0 };
@@ -254,9 +260,12 @@
     if (t.cleared) {
       setText($("result-title"), "Room cleared");
       medal.appendChild(medalNode(t.medal_name));
-      medal.appendChild(document.createTextNode(" " + plural(t.size, "step", "steps") + " (par " + t.par + ")"));
-      var more = t.medal === 3 ? "That is gold." : t.medal === 2 ? "Gold needs " + t.par + " or fewer steps." : "Silver needs " + t.silver + " or fewer steps, gold needs " + t.par + ".";
-      setText($("result-text"), (t.new_best ? "A new best for this room. " : "Your best here is " + t.best + ". ") + more);
+      var ladder = t.difficulty === "easy" ? " on Easy" : t.difficulty === "hard" ? " on Hard" : "";
+      medal.appendChild(document.createTextNode(" " + plural(t.size, "step", "steps") + " (par " + t.par + ")" + ladder));
+      var more = t.medal === 3 ? "That is gold." : t.medal === 2 ? "Gold needs " + t.gold + " or fewer steps." : "Silver needs " + t.silver + " or fewer steps, gold needs " + t.gold + ".";
+      if (t.difficulty !== "normal" && t.normal_medal_name !== "none" && t.normal_medal_name) more += " On Normal this room stands at " + t.normal_medal_name + ".";
+      if (t.note) more = t.note + " " + more;
+      setText($("result-text"), (t.new_best ? "A new best for this room" + ladder + ". " : "Your best here" + ladder + " is " + t.best + ". ") + more);
     } else if (halted) {
       setText($("result-title"), "The robot stopped");
       setText($("result-text"), t.message + " Nothing is lost: change the list and run it again.");
@@ -456,7 +465,8 @@
   function renderProgram() {
     var p = view.program;
     var r = view.room;
-    var line = r.sandbox ? plural(p.size, "step", "steps") + " in your list (up to " + p.max + ")." : plural(p.size, "step", "steps") + " in your list. Gold at " + r.par + " or fewer, silver at " + r.silver + "." + (r.best !== null ? " Your best: " + r.best + "." : "");
+    var tier = view.difficulty === "easy" ? " (Easy)" : view.difficulty === "hard" ? " (Hard)" : "";
+    var line = r.sandbox ? plural(p.size, "step", "steps") + " in your list (up to " + p.max + ")." : plural(p.size, "step", "steps") + " in your list. Gold at " + r.gold + " or fewer, silver at " + r.silver + tier + "." + (r.best !== null ? " Your best" + tier + ": " + r.best + "." : "");
     setText($("size-line"), line);
     var tabs = $("routine-tabs");
     tabs.textContent = "";
@@ -549,7 +559,7 @@
     renderSandboxEntry();
     renderSandboxTools();
     var holder = $("rooms-body");
-    var sig = JSON.stringify(view.rooms.map(function (c) { return c.rooms.map(function (r) { return r.medal + (r.current ? "c" : ""); }); }));
+    var sig = view.difficulty + JSON.stringify(view.rooms.map(function (c) { return c.rooms.map(function (r) { return r.medal + (r.current ? "c" : ""); }); }));
     if (holder.dataset.sig === sig) return;
     holder.dataset.sig = sig;
     holder.textContent = "";
@@ -569,10 +579,10 @@
           meta.appendChild(medalNode(["", "bronze", "silver", "gold"][r.medal]));
           meta.appendChild(document.createTextNode(" " + r.best + " steps, par " + r.par));
         } else {
-          meta.textContent = "Not cleared, par " + r.par;
+          meta.textContent = (view.difficulty === "hard" ? "Not cleared on Hard, par " : "Not cleared, par ") + r.par;
         }
         b.appendChild(meta);
-        b.setAttribute("aria-label", r.number + ", " + r.name + ". " + (r.medal ? ["", "Bronze", "Silver", "Gold"][r.medal] + " medal, " + r.best + " steps, par " + r.par : ("Not cleared, par " + r.par)) + (r.current ? ". Current room" : ""));
+        b.setAttribute("aria-label", r.number + ", " + r.name + ". " + (r.medal ? ["", "Bronze", "Silver", "Gold"][r.medal] + " medal, " + r.best + " steps, par " + r.par : ((view.difficulty === "hard" ? "Not cleared on Hard, par " : "Not cleared, par ") + r.par)) + (r.current ? ". Current room" : ""));
         b.addEventListener("click", function () {
           send({ action: "pick", room: r.id });
           $("rooms-panel").hidden = true;
@@ -663,7 +673,8 @@
   function renderHints() {
     var h = view.hint;
     var btn = $("hint-button");
-    btn.hidden = h.rung >= 3;
+    btn.hidden = h.rung >= h.max;
+    $("hint-limit").hidden = !(h.max < 3 && h.rung >= h.max);
     setText(btn, h.rung === 0 ? "Would you like a suggestion?" : (h.rung === 1 ? "Another hint" : "Another hint: the answer"));
     $("hint-nudge").hidden = !h.nudge;
     setText($("hint-nudge"), h.nudge ? "Nudge: " + h.nudge : "");
@@ -759,7 +770,20 @@
     else go();
   }
 
+  // ---- difficulty (AN-17, shared/difficulty.js): the page keeps the choice, the engine applies it and is never told to save it ----
+  function sendDifficulty() {
+    if (!engine) return null;
+    if (!window.NoyvjDifficulty) return send({ action: "open" });
+    return send({ action: "difficulty", level: window.NoyvjDifficulty.get(DIFF_GAME) });
+  }
+  function wireDifficulty() {
+    if (!window.NoyvjDifficulty) return;
+    window.NoyvjDifficulty.mount("#difficulty-slot", { game: DIFF_GAME, collapsible: true, descriptions: DIFF_TEXT });
+    window.NoyvjDifficulty.onChange(function (d) { if (d.game === DIFF_GAME) { invalidateRun(); sendDifficulty(); } });
+  }
+
   function wire() {
+    wireDifficulty();
     $("toast").addEventListener("click", function () { showToast(""); });
     wirePanelToggle("rooms-toggle-button", "rooms-panel");
     wirePanelToggle("workshop-toggle-button", "workshop-panel");
@@ -821,7 +845,7 @@
       try { engine.loadState(pyodide.toPy(JSON.parse(saved))); } catch (e) { /* a bad save never blocks play */ }
     }
     $("engine-status").textContent = "";
-    send({ action: "open" });
+    sendDifficulty();
     await changelog;
     if (window.GameTutorial) window.GameTutorial.init(window.robotScriptTutorialSteps ? window.robotScriptTutorialSteps(TUTORIAL_STEPS) : TUTORIAL_STEPS, { gameId: "robot-script" });
   }

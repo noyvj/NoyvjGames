@@ -22,6 +22,7 @@ target = None           # an input pin picked, waiting for a source
 note = ""
 last_result = None
 probe = {"inputs": {}, "sim": None, "step": None, "prog": None}
+difficulty = "normal"   # AN-17: easy | normal | hard, told to the engine by the page (a per-browser choice, never saved); Normal is the game as it was
 
 SIXTEEN = ("FALSE", "A AND B", "A AND NOT B", "A", "NOT A AND B", "B", "A XOR B", "A OR B",
            "A NOR B", "A XNOR B", "NOT B", "A OR NOT B", "NOT A", "NOT A OR B", "A NAND B", "TRUE")
@@ -136,9 +137,30 @@ def _evaluate():
         if count <= level["par"] and not rec["answer"] and not rec["par"]:
             rec["par"] = True
             note = note or (f"Par: {count} chips." if not first else "")
+        _tier_credit(level, rec, count)
         if first:
             gift = f" You keep the {levels.REGISTRY[level['unlock']]['label']} chip." if level["unlock"] else ""
             note = f"Level solved with {count} chips.{gift}" + (" That is par." if rec["par"] else "")
+
+
+def _tier_credit(level, rec, count):
+    """Easy and Hard keep their own record next to the Normal one. The Normal record above is always updated exactly as before (an
+    objective result: fewest chips, reference par, no answer used), so a clear on any difficulty never lowers it."""
+    if difficulty == "normal":
+        return
+    trec = meta["tiers"][difficulty].setdefault(level["id"], state.new_tier_record())
+    trec["chips"] = count if trec["chips"] is None else min(trec["chips"], count)
+    if count <= state.tier_par(level, difficulty) and not rec["answer"] and not trec["par"]:
+        trec["par"] = True
+
+
+def _par_flag(level_id, rec):
+    """Whether a level shows as at par on the difficulty in use. Easy also shows a Normal par (it is the stricter result); Hard
+    shows only what was earned on Hard."""
+    if difficulty == "normal":
+        return rec["par"]
+    own = bool(meta["tiers"][difficulty].get(level_id, {}).get("par"))
+    return own or (rec["par"] if difficulty == "easy" else False)
 
 
 def _sandbox_found():
@@ -173,10 +195,14 @@ def _sandbox_found():
 
 
 # ---- editing -------------------------------------------------------------------------------------
+def _trim_history():
+    while len(history) > state.undo_depth(difficulty):
+        del history[0]
+
+
 def _push_history():
     history.append(copy.deepcopy(_board()))
-    if len(history) > state.UNDO_DEPTH:
-        del history[0]
+    _trim_history()
 
 
 def _chip_by_id(cid):
@@ -238,8 +264,7 @@ def _set_wire(dest, src):
         meta["work"][meta["current"]] = snapshot
         return "That would loop the wire back on itself. Loops are for the memory boards and the sandbox."
     history.append(snapshot)
-    if len(history) > state.UNDO_DEPTH:
-        del history[0]
+    _trim_history()
     meta["stats"]["wires"] += 1
     return None
 
@@ -360,18 +385,33 @@ def _a_hint(_req):
     if meta["current"] == state.SANDBOX:
         return "The sandbox has no hints."
     rec = _rec(level["id"])
-    if rec["hints"] >= state.MAX_HINT:
+    if rec["hints"] >= _max_rung():
         return "That is every hint there is."
     rec["hints"] += 1
+    if difficulty == "easy" and rec["hints"] == 1:
+        rec["hints"] = 2          # Easy: the first press opens the nudge and the hint together
     return "NOEVAL"
+
+
+def _max_rung():
+    return state.MAX_HINT - 1 if difficulty == "hard" else state.MAX_HINT
+
+
+def _answer_ready(rec):
+    """Hard has no answer step. Easy needs the nudge and the hint open; Normal needs all three rungs, as ever."""
+    if difficulty == "hard":
+        return False
+    return rec["hints"] >= (2 if difficulty == "easy" else state.MAX_HINT)
 
 
 def _a_place_answer(_req):
     level = _cur()
     if meta["current"] == state.SANDBOX:
         return "The sandbox has no answer."
+    if difficulty == "hard":
+        return "Hard has no answer step. Switch to Normal or Easy in the Difficulty panel if you want it."
     rec = _rec(level["id"])
-    if rec["hints"] < state.MAX_HINT:
+    if not _answer_ready(rec):
         return "Ask for the hints first."
     _push_history()
     rec["answer"] = True
@@ -381,9 +421,19 @@ def _a_place_answer(_req):
     return None
 
 
+def _a_difficulty(req):
+    global difficulty
+    level = req.get("level")
+    if level not in state.DIFFICULTIES:
+        return "That is not a difficulty."
+    difficulty = level
+    _trim_history()
+    return "NOEVAL"
+
+
 ACTIONS = {"add": _a_add, "remove": _a_remove, "wire": _a_wire, "pick": _a_pick, "cancel": _a_clear_pick, "undo": _a_undo,
            "clear": _a_clear, "restore": _a_restore, "start": _a_start, "next": _a_next, "flip": _a_flip, "script": _a_script,
-           "manual": _a_manual, "hint": _a_hint, "answer": _a_place_answer}
+           "manual": _a_manual, "hint": _a_hint, "answer": _a_place_answer, "difficulty": _a_difficulty}
 READ_ONLY = ("open", "reset")
 
 
@@ -455,7 +505,7 @@ def _picker():
                 continue
             rec = meta["levels"].get(lv["id"], state.new_record())
             miss = [levels.REGISTRY[c]["label"] for c in levels.missing_chips(lv, solved)]
-            items.append({"id": lv["id"], "name": lv["name"], "index": lv["index"], "solved": rec["solved"], "par": rec["par"],
+            items.append({"id": lv["id"], "name": lv["name"], "index": lv["index"], "solved": rec["solved"], "par": _par_flag(lv["id"], rec),
                           "open": not miss or rec["solved"], "missing": miss, "current": lv["id"] == meta["current"],
                           "unlock": levels.REGISTRY[lv["unlock"]]["label"] if lv["unlock"] else None})
         out.append({"id": ch["id"], "name": ch["name"], "intro": ch["intro"], "levels": items,
@@ -490,7 +540,7 @@ def view():
     rec = recs.get(level["id"], state.new_record())
     v = {
         "note": note, "svg": svg, "svg_width": width, "armed": armed, "target": target,
-        "stats": {"solved": solved, "total": len(levels.LEVELS), "par": sum(1 for r in recs.values() if r["par"]), "chips": meta["stats"]["chips"],
+        "stats": {"solved": solved, "total": len(levels.LEVELS), "par": sum(1 for lid, r in recs.items() if _par_flag(lid, r)), "chips": meta["stats"]["chips"],
                   "wires": meta["stats"]["wires"], "flips": meta["stats"]["flips"], "found": len(meta["found"]),
                   "sixteen": achievements.sixteen_found(meta["found"])},
         "goals": achievements.goals(meta), "achievements": achievements.view(meta),
@@ -506,7 +556,7 @@ def view():
         "table": _table(level) if not sandbox else None,
         "sandbox": {"found": len(meta["found"]), "total": 256,
                     "sixteen": [{"name": n, "found": any(code_name(c) == n for c in meta["found"])} for n in SIXTEEN]},
-        "info": info.view(),
+        "info": info.view(), "difficulty": difficulty,
         "story": [{"name": lv["name"], "text": lv["log"]} for lv in levels.LEVELS if recs.get(lv["id"], {}).get("solved")],
     }
     if sandbox:
@@ -518,11 +568,13 @@ def view():
         v["level"].update({"goal": level["goal"], "chapter": level["chapter"], "chapter_name": ch["name"], "index": level["index"], "par": level["par"],
                            "intro": ch["intro"] if level["index"] == next(lv["index"] for lv in levels.LEVELS if lv["chapter"] == level["chapter"]) else "",
                            "log": level["log"], "unlock": levels.REGISTRY[level["unlock"]]["label"] if level["unlock"] else None,
-                           "steps": len(level["steps"]) if level["steps"] else 0, "record": rec})
-        v["hints"] = {"rung": rec["hints"], "nudge": level["nudge"] if rec["hints"] >= 1 else None,
-                      "hint": level["hint"] if rec["hints"] >= 2 else None,
-                      "answer": words.describe(level["ref"], level["outs"]) if rec["hints"] >= 3 else None,
-                      "answer_used": rec["answer"]}
+                           "steps": len(level["steps"]) if level["steps"] else 0,
+                           "record": rec if difficulty == "normal" else dict(rec, par=_par_flag(level["id"], rec))})
+        rung = min(rec["hints"], _max_rung())
+        v["hints"] = {"rung": rung, "nudge": level["nudge"] if rung >= 1 else None,
+                      "hint": level["hint"] if rung >= 2 else None,
+                      "answer": words.describe(level["ref"], level["outs"]) if rung >= 3 else None,
+                      "answer_used": rec["answer"], "max": _max_rung(), "answer_ready": _answer_ready(rec)}
     return v
 
 

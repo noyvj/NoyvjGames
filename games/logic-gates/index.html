@@ -11,6 +11,7 @@
 <link rel="stylesheet" href="style.css">
 <link rel="stylesheet" href="../../shared/info-page.css">
 <link rel="stylesheet" href="../../shared/personal-best.css">
+<link rel="stylesheet" href="../../shared/difficulty.css">
 <script src="../../shared/theme.js"></script>
 <script src="../../shared/lite-mode.js"></script>
 <script src="../../shared/error-boundary.js" data-game-id="logic-gates"></script>
@@ -105,6 +106,10 @@
     <div id="sfx-setting-slot" class="sfx-setting-slot"></div>
   </section>
   <p id="toast" class="note toast" role="status" aria-live="polite"></p>
+
+  <section id="difficulty-panel" class="panel" aria-label="Difficulty">
+    <div id="difficulty-slot"></div>
+  </section>
 
   <section id="status-strip" class="strip" aria-label="Your progress">
     <span class="stat"><b id="stat-solved">0</b> of <span id="stat-total">40</span> solved</span>
@@ -209,6 +214,7 @@
 <script src="../../shared/opening-screen.js" data-game-id="logic-gates" data-game-name="Logic Gates" data-tagline="Wire the chips. Match the lamps. Wake the station."></script>
 <script src="../../shared/story-toggle.js" data-game-id="logic-gates" data-story-selectors="#level-intro, #level-log, #log-panel, #log-toggle-button"></script>
 <script src="../../shared/confirm-dialog.js"></script>
+<script src="../../shared/difficulty.js"></script>
 <script>
   // pc.js (the Desktop boot only) defines window.LOGIC_GATES_PC_TUTORIAL_STEPS, because the Classic walkthrough points at
   // buttons the Desktop layout turns into icons and windows. app.js asks this function which steps to run.

@@ -10,6 +10,7 @@
 <link rel="stylesheet" href="../../shared/theme-light-games.css">
 <link rel="stylesheet" href="style.css">
 <link rel="stylesheet" href="../../shared/info-page.css">
+<link rel="stylesheet" href="../../shared/difficulty.css">
 <script src="../../shared/theme.js"></script>
 <script src="../../shared/lite-mode.js"></script>
 <script src="../../shared/error-boundary.js" data-game-id="stranded"></script>
@@ -61,6 +62,7 @@
     <div class="map-actions">
       <button id="loose-button" type="button" class="primary" data-testid="stranded-loose">Show me a loose end</button>
       <span id="map-summary" class="note"></span>
+      <span id="loose-hard-note" class="note" hidden>Hard has no loose-end button: use the nudge and the hint, or the day lists below.</span>
     </div>
     <div id="map-overview" class="map-overview"></div>
     <p class="note">Filled dot: seen. Hollow: not found yet. Thick ring: an ending. Heavy gold ring: where you are. Dashed gold ring: it still has paths you have not walked.</p>
@@ -106,6 +108,10 @@
   </section>
   <p id="toast" class="note toast" role="status" aria-live="polite" title="Tap to dismiss"></p>
 
+  <section id="difficulty-panel" class="panel" aria-label="Difficulty">
+    <div id="difficulty-slot"></div>
+  </section>
+
   <section id="stats" class="stat-strip" aria-label="This conversation">
     <div class="stat" id="stat-day"><span class="stat-label">Day</span><span id="stat-day-value" class="stat-value">1/12</span><span id="stat-day-word" class="stat-word"></span></div>
     <div class="stat" id="stat-trust"><span class="stat-label">Trust</span><span id="stat-trust-value" class="stat-value">3</span><span id="stat-trust-word" class="stat-word"></span><span class="meter" aria-hidden="true"><span id="stat-trust-fill" class="meter-fill"></span></span></div>
@@ -140,6 +146,7 @@
       <button id="hint-button" type="button" data-testid="stranded-hint">Need a nudge?</button>
       <p id="hint-nudge" class="note hint-line" hidden></p>
       <p id="hint-hint" class="note hint-line" hidden></p>
+      <p id="hint-limit" class="note hint-line" hidden>Hard has no answer step and no jump button: the nudge and the hint are every hint there is.</p>
       <div id="hint-answer" class="hint-answer" hidden>
         <p id="hint-answer-text" class="hint-line"></p>
         <button id="hint-do-button" type="button" data-testid="stranded-hint-do">Take me there</button>
@@ -187,6 +194,7 @@
 <script src="../../shared/opening-screen.js" data-game-id="stranded" data-game-name="Stranded" data-tagline="A text line to a stranded astronaut. Nothing is timed."></script>
 <script src="../../shared/story-toggle.js" data-game-id="stranded" data-story-selectors=".narrator"></script>
 <script src="../../shared/confirm-dialog.js"></script>
+<script src="../../shared/difficulty.js"></script>
 <script>
   // pc.js (the Desktop boot only) defines window.STRANDED_PC_TUTORIAL_STEPS, because the Classic walkthrough points at
   // buttons the Desktop layout turns into icons and windows. app.js asks this function which steps to run.

@@ -28,6 +28,10 @@ import render
 import story
 import walker
 
+difficulty = "normal"   # AN-17: easy | normal | hard, told to the engine by the page (a per-browser choice, never saved)
+DIFFICULTIES = ("easy", "normal", "hard")
+EASY_OPEN = 2           # Easy: the first hint press opens this many rungs (the nudge and the hint)
+EASY_PEEK_NEED = 1      # Easy: the what-if peek opens after one different reply tried in a scene (Normal and Hard: two)
 TALLY_KEYS = ("rewinds", "peeks", "hints", "jumps", "sent")
 STAT_WORD = ((0, "none"), (2, "very low"), (4, "low"), (6, "middling"), (8, "good"), (10, "full"))
 EDGE_SET = set(story.EDGES)
@@ -191,23 +195,30 @@ class Game:
         return explore.loose_end(self.taken, self.path)
 
     def _hint(self):
+        """Each rung is only in the view once it has been asked for (a nudge, then a hint, then the answer)."""
+        cap = _rung_cap()
         if not self.rung:
-            return {"rung": 0}
+            return {"rung": 0, "max": cap}
+        rung = min(self.rung, cap)
         le = self._loose()
         if le is None:
-            return {"rung": self.rung, "kind": "none", "nudge": "Every reply that can be sent has been tried. The map is complete.", "hint": "", "answer": ""}
+            return {"rung": rung, "max": cap, "kind": "none", "nudge": "Every reply that can be sent has been tried. The map is complete.", "hint": "", "answer": ""}
         scene = story.SCENES[le["scene"]]
-        out = {"rung": self.rung, "kind": le["kind"]}
+        out = {"rung": rung, "max": cap, "kind": le["kind"]}
         if le["kind"] == "locked":
             out["nudge"] = "Everything open has been tried. A reply on day %d is shut: %s." % (scene["day"], le["why"].lower())
-            out["hint"] = "It is in Day %d: %s. Different earlier replies change Trust, Supplies and Hope." % (scene["day"], scene["title"])
-            out["answer"] = "Go to Day %d: %s and look at the shut reply." % (scene["day"], scene["title"])
+            hint = "It is in Day %d: %s. Different earlier replies change Trust, Supplies and Hope." % (scene["day"], scene["title"])
+            answer = "Go to Day %d: %s and look at the shut reply." % (scene["day"], scene["title"])
         else:
             text = scene["choices"][le["choice"]]["text"]
             out["nudge"] = "There is a path you have not walked on day %d." % scene["day"]
-            out["hint"] = "Look at Day %d: %s." % (scene["day"], scene["title"])
-            out["answer"] = "In Day %d: %s, try: %s" % (scene["day"], scene["title"], text)
-        out["do"] = "Rewind there" if le["kind"] == "rewind" else "Take me there"
+            hint = "Look at Day %d: %s." % (scene["day"], scene["title"])
+            answer = "In Day %d: %s, try: %s" % (scene["day"], scene["title"], text)
+        if rung >= 2:
+            out["hint"] = hint
+        if rung >= 3:
+            out["answer"] = answer
+            out["do"] = "Rewind there" if le["kind"] == "rewind" else "Take me there"
         return out
 
     def _map(self):
@@ -250,7 +261,7 @@ class Game:
     def view(self, message="", ok=True):
         scene = self.scene
         facts = self.facts()
-        peek = explore.peek(self.state, self.taken)
+        peek = explore.peek(self.state, self.taken, _peek_need())
         showing = peek["open"] and self.peek_path == self.path
         done = len(self.found) + len(self.taken) + len(self.seen)
         view = {
@@ -266,7 +277,7 @@ class Game:
             "endings": [{"id": eid, "scene": sid, "title": title if eid in self.endings else "Not found yet", "seen": eid in self.endings}
                         for eid, sid, title in story.ENDINGS],
             "map": self._map(), "archive": self._archive(), "tally": dict(self.tally),
-            "hint": self._hint(), "about": info.view(),
+            "hint": self._hint(), "about": info.view(), "difficulty": difficulty,
             "goals": achievements.goals(facts), "achievements": achievements.view(facts),
         }
         view["map_svg"] = render.map_svg([{"day": d["day"], "nodes": d["nodes"]} for d in view["map"]])
@@ -325,7 +336,20 @@ class Game:
 game = Game()
 
 
+def _rung_cap():
+    """The last hint rung on offer: Hard has no answer step."""
+    return 2 if difficulty == "hard" else 3
+
+
+def _peek_need():
+    return EASY_PEEK_NEED if difficulty == "easy" else 2
+
+
+HARD_NO_JUMP = "Hard has no answer step. Switch to Normal or Easy in the Difficulty panel if you want it."
+
+
 def handle(request_json):
+    global difficulty
     try:
         request = json.loads(request_json)
     except ValueError:
@@ -365,23 +389,32 @@ def handle(request_json):
                 g._sync()
                 message = "Here you are."
     elif action == "peek":
-        peek = explore.peek(g.state, g.taken)
+        peek = explore.peek(g.state, g.taken, _peek_need())
         if not peek["open"]:
             ok, message = False, "Try %d more different %s here first." % (peek["need"], "reply" if peek["need"] == 1 else "replies")
         else:
             if g.peek_path != g.path:
                 g.tally["peeks"] += 1
             g.peek_path = g.path
+    elif action == "difficulty":
+        if request.get("level") not in DIFFICULTIES:
+            ok, message = False, "That is not a difficulty."
+        else:
+            difficulty = request.get("level")
     elif action == "hint":
-        if g.rung >= 3:
-            ok, message = False, "That is every rung: the answer is showing."
+        if g.rung >= _rung_cap():
+            ok, message = False, ("That is every rung: the answer is showing." if _rung_cap() == 3 else "That is every rung on Hard: there is no answer step.")
         else:
             g.rung += 1
+            if difficulty == "easy" and g.rung == 1:
+                g.rung = EASY_OPEN
             g.tally["hints"] += 1
     elif action == "loose":
-        ok, message = g.go_loose()
+        ok, message = (False, HARD_NO_JUMP) if difficulty == "hard" else g.go_loose()
     elif action == "hint_do":
-        if g.rung < 3:
+        if difficulty == "hard":
+            ok, message = False, HARD_NO_JUMP
+        elif g.rung < 3:
             ok, message = False, "Climb to the answer first."
         else:
             ok, message = g.go_loose()

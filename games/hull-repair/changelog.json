@@ -2,6 +2,10 @@
   "changelog": [
     {
       "date": "2026-10-11",
+      "entry": "A difficulty choice at the top of the page: Easy, Normal or Hard, Normal by default and remembered on this device. Easy opens the nudge and the hint together on the first press and the hint draws twice as much of the starting line. Hard has no answer step. Boards, rules and what counts as restored are the same on all three, nothing is locked by any choice, and every achievement can be earned on Normal."
+    },
+    {
+      "date": "2026-10-11",
       "entry": "Four new practice boards, two before the first valve and two before the first mixer. Life Support now opens with two small boards that each have a single valve, and The Core opens with two small boards that each have a single mixer, so you can learn the new part before the big boards. The valves and mixers themselves have not moved. The station is now 44 rooms, and the map and the repair log have the four new rooms. Your saved rooms are untouched."
     },
     {

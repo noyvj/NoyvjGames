@@ -4,6 +4,12 @@
   "use strict";
   var ENGINE_MODULES = ["kit.py", "story_1.py", "story_2.py", "story_3.py", "story_4.py", "story.py", "walker.py", "explore.py", "lore.py", "info.py", "achievements.py", "render.py"];
   var STORE_KEY = "stranded:state";
+  var DIFF_GAME = "stranded";
+  var DIFF_TEXT = {
+    easy: "The first hint press opens the nudge and the hint together, and the What if? peek opens after you have tried one reply in a scene instead of two.",
+    normal: "The game as designed: a nudge, then a hint, then the answer that takes you there.",
+    hard: "No answer step and no loose-end jump: only the nudge and the hint. Nothing in the story changes on any difficulty, and every ending stays reachable.",
+  };
   var BACKUP_KEY = "stranded:state-backup";
 
   var $ = function (id) { return document.getElementById(id); };
@@ -232,7 +238,10 @@
   function renderHints() {
     var h = view.hint;
     var btn = $("hint-button");
-    btn.hidden = h.rung >= 3;
+    btn.hidden = h.rung >= h.max;
+    $("hint-limit").hidden = !(h.max < 3 && h.rung >= h.max);
+    $("loose-button").hidden = view.difficulty === "hard";
+    $("loose-hard-note").hidden = view.difficulty !== "hard";
     setText(btn, h.rung === 0 ? "Would you like a suggestion?" : (h.rung === 1 ? "Another hint" : "Another hint: the answer"));
     $("hint-nudge").hidden = !h.nudge;
     setText($("hint-nudge"), h.nudge ? "Nudge: " + h.nudge : "");
@@ -459,7 +468,20 @@
     else go();
   }
 
+  // ---- difficulty (AN-17, shared/difficulty.js): the page keeps the choice, the engine applies it and is never told to save it ----
+  function sendDifficulty() {
+    if (!engine) return null;
+    if (!window.NoyvjDifficulty) return send({ action: "open" });
+    return send({ action: "difficulty", level: window.NoyvjDifficulty.get(DIFF_GAME) });
+  }
+  function wireDifficulty() {
+    if (!window.NoyvjDifficulty) return;
+    window.NoyvjDifficulty.mount("#difficulty-slot", { game: DIFF_GAME, collapsible: true, descriptions: DIFF_TEXT });
+    window.NoyvjDifficulty.onChange(function (d) { if (d.game === DIFF_GAME) sendDifficulty(); });
+  }
+
   function wire() {
+    wireDifficulty();
     $("toast").addEventListener("click", function () { showToast(""); });
     wirePanelToggle("settings-toggle-button", "settings-panel");
     wirePanelToggle("map-toggle-button", "map-panel");
@@ -520,7 +542,7 @@
     }
     $("engine-status").textContent = "";
     shown = 1e9;
-    send({ action: "open" });
+    sendDifficulty();
     await changelog;
     if (window.GameTutorial) window.GameTutorial.init(window.strandedTutorialSteps ? window.strandedTutorialSteps(TUTORIAL_STEPS) : TUTORIAL_STEPS, { gameId: "stranded" });
   }

@@ -62,6 +62,32 @@ def medal(par, size):
     return 1
 
 
+# AN-17 difficulty. Normal is `medal` above, unchanged. Easy loosens both bars by a fixed two steps; Hard keeps gold at par and
+# tightens silver to par plus a sixth (at least one step). Bronze is always a clear. A clear is judged on the fewest steps, which
+# is the same fact on every difficulty, so a looser or tighter bar only changes what that number is called.
+DIFFICULTIES = ("easy", "normal", "hard")
+EASY_EXTRA = 2
+
+
+def limits(par, difficulty="normal"):
+    """(gold limit, silver limit) in steps for a difficulty."""
+    if difficulty == "easy":
+        return par + EASY_EXTRA, silver_limit(par) + EASY_EXTRA
+    if difficulty == "hard":
+        return par, par + max(1, par // 6)
+    return par, silver_limit(par)
+
+
+def medal_for(par, size, difficulty="normal"):
+    """3 gold, 2 silver, 1 bronze for a size on a difficulty; Normal is exactly `medal`."""
+    gold, silver = limits(par, difficulty)
+    if size <= gold:
+        return 3
+    if size <= silver:
+        return 2
+    return 1
+
+
 def _build():
     rooms = []
     chapters = []

@@ -2,6 +2,10 @@
   "changelog": [
     {
       "date": "2026-10-11",
+      "entry": "A difficulty choice at the top of the page: Easy, Normal or Hard, Normal by default and remembered on this device. Easy opens the nudge and the hint together on the first press and lets the What if? peek open after one reply is tried in a scene. Hard has no answer step and no loose-end jump button. The story, the replies and every ending are the same on all three, and nothing is locked by any choice. Also fixed: the hint view used to show the hint and the answer from the very first press; each step now appears only when you ask for it."
+    },
+    {
+      "date": "2026-10-11",
       "entry": "Messages now arrive one at a time, when you tap, by default (Settings still has All at once). Harbour is no longer perfect: three replies on days 2, 4 and 6 show a habit of saying it will be fine before listening, and on day 7 you can own it, which colours a few endings. A tenth ending, Left in the Window, is sadder but gentle (nobody is lost; reach it by accepting Bit's battery on day 9 and asking what Bit needs on day 11). Harbour's one-line log note at the start of each day is now text only and off until you switch it on in Settings."
     },
     {

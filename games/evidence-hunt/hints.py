@@ -6,6 +6,9 @@ import lexicon as lx
 import solver as sv
 
 
+EASY_OPEN = 2        # AN-17: on Easy the first press opens this many rungs (the nudge and the hint)
+
+
 def next_action(case, st):
     return sv.next_action(case, st)
 

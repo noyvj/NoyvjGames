@@ -2,6 +2,10 @@
   "changelog": [
     {
       "date": "2026-10-11",
+      "entry": "A difficulty choice at the top of the page: Easy, Normal or Hard, Normal by default and remembered on this device. Easy opens the nudge and the hint together on the first press and loosens the medal bars by two steps. Hard has no answer step and a tighter silver bar, and keeps its own record of your fewest steps. Normal is the game exactly as it was, nothing is locked by any choice, and every achievement can be earned on Normal."
+    },
+    {
+      "date": "2026-10-11",
       "entry": "Turning arrives early. The first chapter now brings in Left and Right from its fourth room: two new gentle rooms, Face the Pad and Left at the Corner, teach one turn each, and the rooms after them let you turn as well. The first three rooms are still straight lines. The deck has 42 rooms now, and Scrap has two more parts to find. Everything you have already cleared still counts."
     },
     {

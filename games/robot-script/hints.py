@@ -40,8 +40,10 @@ def answer(room):
     return {"text": dsl.to_text(room.ref), "lines": dsl.to_lines(room.ref), "steps": dsl.size(room.ref)}
 
 
-def view(room, rung):
-    """What the ladder shows for a room whose player has climbed `rung` rungs (0 to 3)."""
-    out = {"rung": rung, "next": RUNGS[rung] if rung < 3 else "", "nudge": room.nudge if rung >= 1 else "",
-           "hint": hint_text(room) if rung >= 2 else "", "answer": answer(room) if rung >= 3 else None}
+def view(room, rung, limit=3):
+    """What the ladder shows for a room whose player has climbed `rung` rungs (0 to 3). `limit` is the last rung on offer (2 on
+    Hard: no answer step)."""
+    rung = min(rung, limit)
+    out = {"rung": rung, "next": RUNGS[rung] if rung < limit else "", "nudge": room.nudge if rung >= 1 else "",
+           "hint": hint_text(room) if rung >= 2 else "", "answer": answer(room) if rung >= 3 else None, "max": limit}
     return out

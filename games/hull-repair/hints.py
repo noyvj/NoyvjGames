@@ -7,6 +7,7 @@ import rules
 
 WORDS = ("up", "right", "down", "left")
 OPENING = 4
+EASY_OPENING = 8       # AN-17: on Easy the hint rung shows twice as much of the starting line
 
 
 def exits(board, cell):
@@ -37,36 +38,39 @@ def nudge_text(board):
     return "Start with the %s line (%s): it is the one with the least room to wander." % (name, c)
 
 
-def opening(board):
+def opening(board, easy=False):
     c = starter(board)
-    cells = board.solution[c][:OPENING + 1]
+    cells = board.solution[c][:(EASY_OPENING if easy else OPENING) + 1]
     return c, cells
 
 
-def hint_text(board):
-    c, cells = opening(board)
+def hint_text(board, easy=False):
+    c, cells = opening(board, easy)
     steps = [WORDS[rules.dir_index(rules.sub(b, a))] for a, b in zip(cells, cells[1:])]
     here = "column %d, row %d" % (cells[0][0] + 1, cells[0][1] + 1)
     return "The %s line (%s) leaves its source at %s and goes %s. The dotted ghost on the board shows it." % (
         rules.LINE_NAMES[c], c, here, ", then ".join(steps))
 
 
-def view(board, rung):
-    out = {"rung": rung, "nudge": "", "hint": "", "answer": False}
+def view(board, rung, limit=3, easy=False):
+    """What the ladder shows at `rung`. `limit` is the last rung on offer (2 on Hard: no answer step); `easy` lengthens the hint."""
+    rung = min(rung, limit)
+    out = {"rung": rung, "nudge": "", "hint": "", "answer": False, "max": limit}
     if rung >= 1:
         out["nudge"] = nudge_text(board)
     if rung >= 2:
-        out["hint"] = hint_text(board)
+        out["hint"] = hint_text(board, easy)
     if rung >= 3:
         out["answer"] = True
     return out
 
 
-def ghosts(board, rung):
+def ghosts(board, rung, limit=3, easy=False):
     """The ghost lines to draw under the player's lines for a rung."""
+    rung = min(rung, limit)
     if rung >= 3:
         return {c: list(p) for c, p in board.solution.items()}
     if rung == 2:
-        c, cells = opening(board)
+        c, cells = opening(board, easy)
         return {c: list(cells)}
     return {}

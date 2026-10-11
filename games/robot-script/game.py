@@ -41,6 +41,7 @@ import rooms
 import run as runner
 import sandbox
 
+difficulty = "normal"   # AN-17: easy | normal | hard, told to the engine by the page (a per-browser choice, never saved)
 TALLY_KEYS = ("runs", "halts", "written", "hints", "sbx_runs", "sbx_tiles")
 MAX_COUNT = 10 ** 6
 DEFAULT_COUNT = 3
@@ -104,6 +105,8 @@ class Game:
         self.flags = []
         self.bumped = []               # rooms where a run has halted: for "learned from a bump"
         self.rungs = {}                # room id -> hint rungs climbed (1 to 3)
+        self.hbest = {}                # room id -> fewest steps cleared on Hard (never below the Normal best)
+        self.answered = set()          # rooms whose answer list was loaded this session (not saved): no Hard record for them
         self.sbx_rows = sandbox.default_rows()
         self.sbx_prog = None           # the sandbox's unfinished list
         self.ed = None
@@ -162,6 +165,8 @@ class Game:
             data["bumped"] = list(self.bumped)
         if self.rungs:
             data["rungs"] = dict(self.rungs)
+        if self.hbest:
+            data["hbest"] = dict(self.hbest)
         if self.sbx_rows != sandbox.default_rows():
             data["sbx"] = list(self.sbx_rows)
         if self.sbx_prog is not None:
@@ -203,6 +208,8 @@ class Game:
         self.bumped = [rid for rid in rooms.ORDER if isinstance(bumped, list) and rid in bumped]
         rungs = data.get("rungs") if isinstance(data.get("rungs"), dict) else {}
         self.rungs = {rid: rungs[rid] for rid in rooms.ORDER if _int(rungs.get(rid), 1, 3)}
+        hb = data.get("hbest") if isinstance(data.get("hbest"), dict) else {}
+        self.hbest = {rid: hb[rid] for rid in rooms.ORDER if rid in self.best and _int(hb.get(rid), 1, dsl.MAX_SIZE) and hb[rid] >= self.best[rid]["n"]}
         rows = data.get("sbx")
         self.sbx_rows = list(rows) if sandbox.valid_rows(rows) else sandbox.default_rows()
         text = data.get("sdraft")
@@ -276,10 +283,11 @@ class Game:
             for number, rid in enumerate(chapter["rooms"], start=1):
                 r = rooms.BY_ID[rid]
                 entries.append({"id": rid, "name": r.name, "number": number, "par": r.par,
-                                "medal": progress.medal_of(self.best, rid), "best": self.best[rid]["n"] if rid in self.best else None,
+                                "medal": progress.medal_in(self.best, self.hbest, rid, difficulty),
+                                "best": progress.tier_size(self.best, self.hbest, rid, difficulty),
                                 "current": rid == self.current})
             out.append({"id": chapter["id"], "name": chapter["name"], "blurb": chapter["blurb"],
-                        "cleared": progress.cleared_in(self.best, chapter), "total": len(chapter["rooms"]), "rooms": entries})
+                        "cleared": sum(1 for e in entries if e["medal"]), "total": len(chapter["rooms"]), "rooms": entries})
         return out
 
     def view(self, message="", ok=True, run_result=None, with_svg=False):
@@ -287,13 +295,16 @@ class Game:
         sbx = r.id == "sandbox"
         chapter_name = "Sandbox" if sbx else rooms.CHAPTER_LIST[r.chapter]["name"]
         words_lines, words_rows = render.describe(r.layout)
-        medal = 0 if sbx else progress.medal_of(self.best, r.id)
+        medal = 0 if sbx else progress.medal_in(self.best, self.hbest, r.id, difficulty)
+        tier_best = None if sbx else progress.tier_size(self.best, self.hbest, r.id, difficulty)
+        gold, silver = (r.par, r.silver) if sbx else rooms.limits(r.par, difficulty)
+        cap = _rung_cap()
         goal_rows = [] if sbx else [{"id": g["id"], "label": g["label"], "met": False} for g in _goal_labels(r.layout)]
         view = {
             "ok": ok, "message": message,
             "room": {"id": r.id, "name": r.name, "chapter": chapter_name, "number": r.number,
                      "of": 1 if sbx else len(rooms.CHAPTER_LIST[r.chapter]["rooms"]), "sandbox": sbx,
-                     "intro": r.intro, "nudge": r.nudge, "par": r.par, "silver": r.silver, "best": self.best[r.id]["n"] if r.id in self.best else None,
+                     "intro": r.intro, "nudge": r.nudge, "par": r.par, "silver": silver, "gold": gold, "best": tier_best,
                      "medal": medal, "medal_name": MEDAL_NAMES[medal], "goals": goal_rows,
                      "words": {"lines": words_lines, "rows": words_rows}, "start": list(r.layout.start),
                      "w": r.layout.w, "h": r.layout.h, "has_best": r.id in self.best},
@@ -302,9 +313,10 @@ class Game:
             "sandbox": {"open": self.sandbox_open(), "current": sbx, "need": rooms.CHAPTER_LIST[progress.SANDBOX_AFTER]["name"],
                         "tiles": [{"tile": t, "label": label} for t, label in sandbox.TILES], "size": sandbox.SIZE,
                         "presets": [{"id": k, "label": v[0]} for k, v in sandbox.PRESETS.items()]},
-            "totals": progress.totals(self.best),
+            "totals": progress.tier_totals(self.best, self.hbest, difficulty),
             "tally": dict(self.tally),
-            "hint": hints.view(r, 0) if sbx else hints.view(r, self.rungs.get(r.id, 0)),
+            "difficulty": difficulty,
+            "hint": hints.view(r, 0) if sbx else hints.view(r, self.rungs.get(r.id, 0), cap),
             "scrap": companion.view(self.best),
             "goals": achievements.goals(self.facts(), sandbox=self.sandbox_open()),
             "achievements": achievements.view(self.facts()),
@@ -326,8 +338,10 @@ class Game:
             return self._sandbox_run(result, size)
         self.tally["runs"] += 1
         new_best = False
+        hard_new = False
         medal = 0
         before = self.best.get(r.id)
+        note = ""
         if result.status in ("halt", "loop"):
             self.tally["halts"] += 1
             if r.id not in self.bumped:
@@ -336,14 +350,24 @@ class Game:
             if before is None or size < before["n"]:
                 self.best[r.id] = {"n": size, "t": dsl.to_text(prog)}
                 new_best = True
-            medal = progress.medal_of(self.best, r.id)
+            if difficulty == "hard":
+                if r.id in self.answered:
+                    note = "That list came from the answer, so it does not count for Hard."
+                elif r.id not in self.hbest or size < self.hbest[r.id]:
+                    self.hbest[r.id] = size
+                    hard_new = True
+            medal = progress.medal_in(self.best, self.hbest, r.id, difficulty)
             self._note_flags(r.id, prog)
+        gold, silver = rooms.limits(r.par, difficulty)
+        normal_medal = progress.medal_of(self.best, r.id)
         trace = {"status": result.status, "message": result.message, "frames": [list(f) for f in result.frames],
-                 "actions": result.actions, "size": size, "par": r.par, "silver": r.silver, "cleared": result.cleared,
-                 "goals": result.goals, "at": result.at, "medal": medal, "medal_name": MEDAL_NAMES[medal], "new_best": new_best,
-                 "best": self.best[r.id]["n"] if r.id in self.best else None}
-        trace["scrap_line"] = companion.line_for(r.id, medal) if result.cleared else ""
-        trace["part"] = {"name": companion.part_for(r.id)[1], "finish": companion.FINISH.get(medal, ""),
+                 "actions": result.actions, "size": size, "par": r.par, "silver": silver, "gold": gold, "cleared": result.cleared,
+                 "goals": result.goals, "at": result.at, "medal": medal, "medal_name": MEDAL_NAMES[medal],
+                 "new_best": hard_new if difficulty == "hard" else new_best,
+                 "best": progress.tier_size(self.best, self.hbest, r.id, difficulty), "difficulty": difficulty, "note": note,
+                 "normal_medal_name": MEDAL_NAMES[normal_medal] if difficulty != "normal" else ""}
+        trace["scrap_line"] = companion.line_for(r.id, normal_medal) if result.cleared else ""
+        trace["part"] = {"name": companion.part_for(r.id)[1], "finish": companion.FINISH.get(normal_medal, ""),
                          "first": result.cleared and before is None} if result.cleared else None
         trace["next"] = progress.next_room(self.best, r.id) if result.cleared else None
         trace["next_name"] = rooms.BY_ID[trace["next"]].name if trace["next"] else ""
@@ -380,6 +404,11 @@ class Game:
 FLAGS = ("rep", "call", "branch", "comeback")
 
 
+def _rung_cap():
+    """The last hint rung on offer: Hard has no answer step."""
+    return 2 if difficulty == "hard" else 3
+
+
 def _goal_labels(layout):
     return roomlib.goals(layout, layout.initial())
 
@@ -392,6 +421,7 @@ def _ref_check(ed):
 
 
 def handle(request_json):
+    global difficulty
     try:
         request = json.loads(request_json)
         action = request.get("action")
@@ -482,20 +512,32 @@ def handle(request_json):
             ok, message = False, "Nothing to undo."
     elif action == "clear":
         ed.clear()
+        g.answered.discard(g.current)
     elif action == "load_best":
         prog = dsl.parse(g.best[g.current]["t"]) if g.current in g.best else None
         if prog is None or not ed.load(prog):
             ok, message = False, "There is no best list for this room yet."
     elif action == "hint":
         rung = g.rungs.get(g.current, 0)
-        if rung >= 3:
-            ok, message = False, "That is every rung: the answer is showing."
+        if rung >= _rung_cap():
+            ok, message = False, ("That is every rung: the answer is showing." if _rung_cap() == 3 else "That is every rung on Hard: there is no answer step.")
         else:
             g.rungs[g.current] = rung + 1
+            if difficulty == "easy" and rung == 0:
+                g.rungs[g.current] = 2          # Easy: the first press opens the nudge and the hint together
             g.tally["hints"] += 1
     elif action == "load_answer":
-        if g.rungs.get(g.current, 0) < 3 or not ed.load(g.room.ref):
+        if difficulty == "hard":
+            ok, message = False, "Hard has no answer step. Switch to Normal or Easy in the Difficulty panel if you want it."
+        elif g.rungs.get(g.current, 0) < 3 or not ed.load(g.room.ref):
             ok, message = False, "Climb to the answer first."
+        else:
+            g.answered.add(g.current)
+    elif action == "difficulty":
+        if request.get("level") not in rooms.DIFFICULTIES:
+            ok, message = False, "That is not a difficulty."
+        else:
+            difficulty = request.get("level")
     elif action == "run":
         trace = g.do_run()
         return json.dumps(g.view(trace["message"], ok=trace["cleared"] or trace["status"] == "short", run_result=trace))

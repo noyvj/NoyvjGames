@@ -18,13 +18,44 @@ MAX_HINT = 3
 COUNTER_MAX = 10 ** 7
 UNDO_DEPTH = 60
 
+# AN-17 difficulty. Normal is the game exactly as it always was. The level is a per-browser choice the page tells the engine
+# (it is never saved); Easy and Hard keep their own par records in meta["tiers"] so neither can overwrite a Normal record.
+DIFFICULTIES = ("easy", "normal", "hard")
+TIERS = ("easy", "hard")
+EASY_PAR_EXTRA = 1       # Easy: one chip over the reference still earns Easy par
+HARD_UNDO_DEPTH = 12     # Hard: fewer free undos
+
+
+def undo_depth(difficulty):
+    return HARD_UNDO_DEPTH if difficulty == "hard" else UNDO_DEPTH
+
+
+def tier_par(level, difficulty):
+    """The chip count that earns par on a difficulty: Normal and Hard use the reference count, Easy allows one more."""
+    return level["par"] + (EASY_PAR_EXTRA if difficulty == "easy" else 0)
+
 
 def new_record():
     return {"solved": False, "chips": None, "par": False, "hints": 0, "answer": False}
 
 
 def new_meta():
-    return {"levels": {}, "stats": {"chips": 0, "wires": 0, "flips": 0}, "found": [], "current": levels.LEVELS[0]["id"], "work": {}, "backup": {}}
+    return {"levels": {}, "stats": {"chips": 0, "wires": 0, "flips": 0}, "found": [], "current": levels.LEVELS[0]["id"], "work": {}, "backup": {},
+            "tiers": {"easy": {}, "hard": {}}}
+
+
+def new_tier_record():
+    return {"chips": None, "par": False}
+
+
+def clean_tier_record(data):
+    rec = new_tier_record()
+    if not isinstance(data, dict):
+        return rec
+    chips = data.get("chips")
+    rec["chips"] = _int(chips, 0, 500) if isinstance(chips, (int, float)) and not isinstance(chips, bool) else None
+    rec["par"] = data.get("par") is True
+    return rec
 
 
 def empty_circuit():
@@ -159,6 +190,21 @@ def meta_to_dict(meta):
     backup = {k: v for k, v in meta["backup"].items() if v["chips"] or v["wires"]}
     if backup:
         out["backup"] = backup
+    tiers = {}
+    for tier in TIERS:
+        recs = {}
+        for lid, rec in meta["tiers"][tier].items():
+            d = {}
+            if rec["chips"] is not None:
+                d["chips"] = rec["chips"]
+            if rec["par"]:
+                d["par"] = True
+            if d:
+                recs[lid] = d
+        if recs:
+            tiers[tier] = recs
+    if tiers:
+        out["tiers"] = tiers
     return out
 
 
@@ -178,6 +224,14 @@ def clean_meta(data):
     found = data.get("found")
     if isinstance(found, list):
         meta["found"] = sorted({c for c in found if isinstance(c, int) and not isinstance(c, bool) and 0 <= c <= 255})
+    tiers = data.get("tiers")
+    if isinstance(tiers, dict):
+        for tier in TIERS:
+            blob = tiers.get(tier)
+            if isinstance(blob, dict):
+                for lid, rec in blob.items():
+                    if lid in levels.BY_ID:
+                        meta["tiers"][tier][lid] = clean_tier_record(rec)
     solved = [lid for lid, r in meta["levels"].items() if r["solved"]]
     current = data.get("current")
     if current == SANDBOX or current in levels.BY_ID:
@@ -214,4 +268,10 @@ def merge_meta(mine, theirs):
     out["current"] = theirs["current"]
     out["work"] = {**mine["work"], **theirs["work"]}
     out["backup"] = {**mine["backup"], **theirs["backup"]}
+    for tier in TIERS:
+        for lid in set(mine["tiers"][tier]) | set(theirs["tiers"][tier]):
+            a = mine["tiers"][tier].get(lid, new_tier_record())
+            b = theirs["tiers"][tier].get(lid, new_tier_record())
+            counts = [c for c in (a["chips"], b["chips"]) if c is not None]
+            out["tiers"][tier][lid] = {"chips": min(counts) if counts else None, "par": a["par"] or b["par"]}
     return out

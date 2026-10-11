@@ -4,7 +4,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<script>window.NOYVJ_LAYOUT = "pc"; window.NOYVJ_PC_WINDOWS = [{"panel": "shifts-panel", "toggle": "shifts-toggle-button", "title": "Shifts"}, {"panel": "record-panel", "toggle": "record-toggle-button", "title": "The Record"}, {"panel": "achievements-panel", "toggle": "achievements-toggle-button", "title": "Achievements"}, {"panel": "changelog-panel", "toggle": "changelog-toggle-button", "title": "What's New"}, {"panel": "settings-panel", "toggle": "settings-toggle-button", "title": "Settings"}, {"panel": "info-page-panel", "toggle": "info-page-toggle-button", "title": "About Station Medic"}]; window.NOYVJ_PC_ZONES = {"topbar": [".hub-back-link", "h1", ".game-toolbar"], "stagebar": ["#stats", "#goals"], "stage": ["#shift-panel"], "side": ["#cabinet-panel", "#sheet-panel", "#log-panel", "#tally"], "hidden": [".tagline"]}; window.NOYVJ_PC_HINTS = [["1 to 4", "Look at a patient"], ["Tab", "Move between buttons"], ["Esc", "Menu / close window"], ["?", "All shortcuts"]]; window.NOYVJ_PC_NOTIFY = null; window.NOYVJ_PC_TOOLBAR = {"icons": [["shifts-toggle-button", "📋"], ["record-toggle-button", "📖"], ["achievements-toggle-button", "🏆"], ["settings-toggle-button", "⚙️"]], "menu": [{"heading": "Help", "ids": ["tutorial-restart-button", "info-page-toggle-button", "credits-link", "noyvj-report-menu-button"]}, {"heading": "Records", "ids": ["changelog-toggle-button"]}]}; window.NOYVJ_PC_COMPOSITES = []; window.NOYVJ_PC_ADOPT = []; window.NOYVJ_PC_READOUTS = []; window.NOYVJ_PC_SIDE_LABEL = "Cabinet, sheet and log";</script>
+<script>window.NOYVJ_LAYOUT = "pc"; window.NOYVJ_PC_WINDOWS = [{"panel": "shifts-panel", "toggle": "shifts-toggle-button", "title": "Shifts"}, {"panel": "record-panel", "toggle": "record-toggle-button", "title": "The Record"}, {"panel": "achievements-panel", "toggle": "achievements-toggle-button", "title": "Achievements"}, {"panel": "changelog-panel", "toggle": "changelog-toggle-button", "title": "What's New"}, {"panel": "settings-panel", "toggle": "settings-toggle-button", "title": "Settings"}, {"panel": "info-page-panel", "toggle": "info-page-toggle-button", "title": "About Station Medic"}]; window.NOYVJ_PC_ZONES = {"topbar": [".hub-back-link", "h1", ".game-toolbar"], "stagebar": ["#stats", "#goals"], "stage": ["#shift-panel"], "side": ["#difficulty-panel", "#cabinet-panel", "#sheet-panel", "#log-panel", "#tally"], "hidden": [".tagline"]}; window.NOYVJ_PC_HINTS = [["1 to 4", "Look at a patient"], ["Tab", "Move between buttons"], ["Esc", "Menu / close window"], ["?", "All shortcuts"]]; window.NOYVJ_PC_NOTIFY = null; window.NOYVJ_PC_TOOLBAR = {"icons": [["shifts-toggle-button", "📋"], ["record-toggle-button", "📖"], ["achievements-toggle-button", "🏆"], ["settings-toggle-button", "⚙️"]], "menu": [{"heading": "Help", "ids": ["tutorial-restart-button", "info-page-toggle-button", "credits-link", "noyvj-report-menu-button"]}, {"heading": "Records", "ids": ["changelog-toggle-button"]}]}; window.NOYVJ_PC_COMPOSITES = []; window.NOYVJ_PC_ADOPT = []; window.NOYVJ_PC_READOUTS = []; window.NOYVJ_PC_SIDE_LABEL = "Cabinet, sheet and log";</script>
 <script src="pc.js"></script>
 <script src="../../shared/layout-pref.js" data-game-id="station-medic" data-pc-page="pc.html" data-classic-page="index.html"></script>
 <title>Station Medic - NoyvjGames (Desktop)</title>
@@ -15,6 +15,7 @@
 <link rel="stylesheet" href="../../shared/pc-shell.css">
 <link rel="stylesheet" href="pc.css">
 <link rel="stylesheet" href="../../shared/info-page.css">
+<link rel="stylesheet" href="../../shared/difficulty.css">
 <script src="../../shared/theme.js"></script>
 <script src="../../shared/lite-mode.js"></script>
 <script src="../../shared/error-boundary.js" data-game-id="station-medic"></script>
@@ -100,6 +101,10 @@
   </section>
   <p id="toast" class="note toast" role="status" aria-live="polite" title="Tap to dismiss"></p>
 
+  <section id="difficulty-panel" class="panel" aria-label="Difficulty">
+    <div id="difficulty-slot"></div>
+  </section>
+
   <section id="stats" class="stat-strip" aria-label="Your progress">
     <div class="stat"><span class="stat-label">Shifts done</span><span id="stat-shifts" class="stat-value">0</span></div>
     <div class="stat"><span class="stat-label">Clean shifts</span><span id="stat-clean" class="stat-value">0</span></div>
@@ -159,6 +164,7 @@
       <button id="hint-button" type="button" data-testid="station-medic-hint">Need a nudge?</button>
       <p id="hint-nudge" class="note hint-line" hidden></p>
       <p id="hint-hint" class="note hint-line" hidden></p>
+      <p id="hint-limit" class="note hint-line" hidden>Hard has no answer step: the nudge and the hint are every hint there is.</p>
       <div id="hint-answer" class="hint-answer" hidden>
         <p id="hint-answer-text" class="hint-line"></p>
         <button id="hint-do-button" type="button" data-testid="station-medic-hint-do">Do it for me</button>
@@ -220,6 +226,7 @@
 <script src="../../shared/opening-screen.js" data-game-id="station-medic" data-game-name="Station Medic" data-tagline="A quiet infirmary. Nothing is timed."></script>
 <script src="../../shared/story-toggle.js" data-game-id="station-medic" data-story-selectors=".story-text"></script>
 <script src="../../shared/confirm-dialog.js"></script>
+<script src="../../shared/difficulty.js"></script>
 <script>
   // pc.js (the Desktop boot only) defines window.STATION_MEDIC_PC_TUTORIAL_STEPS, because the Classic walkthrough points at
   // buttons the Desktop layout turns into icons and windows. app.js asks this function which steps to run.

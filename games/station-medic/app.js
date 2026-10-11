@@ -4,6 +4,12 @@
   "use strict";
   var ENGINE_MODULES = ["lexicon.py", "cast.py", "shift.py", "solver.py", "casekit.py", "cases_1.py", "cases_2.py", "cases_3.py", "cases_4.py", "cases_5.py", "cases_6.py", "cases_7.py", "cases_8.py", "cases.py", "progress.py", "codex.py", "achievements.py", "render.py", "hints.py", "info.py"];
   var STORE_KEY = "station-medic:state";
+  var DIFF_GAME = "station-medic";
+  var DIFF_TEXT = {
+    easy: "The first hint press opens the nudge and the hint together, and each seal allows one more point of cost (a Clean seal at a cost of 1 or less).",
+    normal: "The game as designed: a Clean seal needs no cost, Steady allows 1 or 2.",
+    hard: "No answer step (nudge and hint only), and the seals are tighter (Steady allows only 1). Hard seals are kept on their own record, so your Normal seals never change.",
+  };
   var BACKUP_KEY = "station-medic:state-backup";
 
   var $ = function (id) { return document.getElementById(id); };
@@ -117,7 +123,7 @@
   }
   function renderShiftHead() {
     var s = view.shift;
-    setText($("shift-chapter"), s.chapter + " · shift " + s.number + " of " + s.of + (s.best ? " · best seal: " + s.best_name : ""));
+    setText($("shift-chapter"), s.chapter + " · shift " + s.number + " of " + s.of + (s.best ? " · best seal" + (view.difficulty === "normal" ? "" : " on " + (view.difficulty === "easy" ? "Easy" : "Hard")) + ": " + s.best_name : ""));
     setText($("shift-heading"), s.title);
     setText($("shift-intro"), s.intro);
     if ($("scene-holder").dataset.sig !== s.id) {
@@ -353,8 +359,10 @@
     var g = $("result-grade");
     g.textContent = "";
     g.appendChild(sealNode(r.grade_name));
-    g.appendChild(document.createTextNode(" Cost " + r.cost + (r.new_best ? ". A new best seal for this shift." : ". Your best here is " + r.best_name + ".")));
-    setText($("result-text"), r.line);
+    var ladder = r.difficulty === "easy" ? " on Easy" : r.difficulty === "hard" ? " on Hard" : "";
+    g.appendChild(document.createTextNode(" Cost " + r.cost + ladder + (r.new_best ? ". A new best seal for this shift." : ". Your best here is " + r.best_name + ".") +
+      (r.difficulty !== "normal" && r.normal_grade_name ? " On Normal this cost is a " + r.normal_grade_name + " seal." : "")));
+    setText($("result-text"), (r.note ? r.note + " " : "") + r.line);
     var beats = $("result-beats");
     beats.textContent = "";
     r.beats.forEach(function (b) {
@@ -370,7 +378,8 @@
     var h = view.hint;
     var btn = $("hint-button");
     var done = view.shift.done;
-    btn.hidden = done || h.rung >= 3;
+    btn.hidden = done || h.rung >= h.max;
+    $("hint-limit").hidden = done || !(h.max < 3 && h.rung >= h.max);
     setText(btn, h.rung === 0 ? "Would you like a suggestion?" : (h.rung === 1 ? "Another hint" : "Another hint: the answer"));
     $("hint-nudge").hidden = !h.nudge;
     setText($("hint-nudge"), h.nudge ? "Nudge: " + h.nudge : "");
@@ -492,7 +501,20 @@
     else go();
   }
 
+  // ---- difficulty (AN-17, shared/difficulty.js): the page keeps the choice, the engine applies it and is never told to save it ----
+  function sendDifficulty() {
+    if (!engine) return null;
+    if (!window.NoyvjDifficulty) return send({ action: "open" });
+    return send({ action: "difficulty", level: window.NoyvjDifficulty.get(DIFF_GAME) });
+  }
+  function wireDifficulty() {
+    if (!window.NoyvjDifficulty) return;
+    window.NoyvjDifficulty.mount("#difficulty-slot", { game: DIFF_GAME, collapsible: true, descriptions: DIFF_TEXT });
+    window.NoyvjDifficulty.onChange(function (d) { if (d.game === DIFF_GAME) sendDifficulty(); });
+  }
+
   function wire() {
+    wireDifficulty();
     $("toast").addEventListener("click", function () { showToast(""); });
     wirePanelToggle("shifts-toggle-button", "shifts-panel");
     wirePanelToggle("achievements-toggle-button", "achievements-panel");
@@ -544,7 +566,7 @@
       try { engine.loadState(pyodide.toPy(JSON.parse(saved))); } catch (e) { /* a bad save never blocks play */ }
     }
     $("engine-status").textContent = "";
-    send({ action: "open" });
+    sendDifficulty();
     await changelog;
     if (window.GameTutorial) window.GameTutorial.init(window.stationMedicTutorialSteps ? window.stationMedicTutorialSteps(TUTORIAL_STEPS) : TUTORIAL_STEPS, { gameId: "station-medic" });
   }

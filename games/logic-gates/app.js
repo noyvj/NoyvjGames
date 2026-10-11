@@ -5,6 +5,12 @@
   var ENGINE_MODULES = ["chips.py", "net.py", "sim.py", "levels_a.py", "levels_b.py", "levels_c.py", "levels.py", "check.py", "words.py", "render.py",
     "state.py", "achievements.py", "info.py"];
   var STORE_KEY = "logic-gates:state";
+  var DIFF_GAME = "logic-gates";
+  var DIFF_TEXT = {
+    easy: "The first hint press opens the nudge and the hint together, and the answer is one press away. One chip over the reference still earns par.",
+    normal: "The game as designed: three hint steps, then the answer.",
+    hard: "No answer step (nudge and hint only), fewer free undos, and par is kept on its own Hard record.",
+  };
 
   var $ = function (id) { return document.getElementById(id); };
   var engine = null;
@@ -87,8 +93,9 @@
     setText($("level-goal"), lv.goal);
     var rec = lv.record || {};
     var unlock = "";
-    if (lv.unlock) unlock = rec.solved ? "You keep the " + lv.unlock + " chip from this level." : "Solving this level hands you the " + lv.unlock + " chip. " + (lv.par !== null ? "Par is " + lv.par + " chips." : "");
-    else if (!lv.sandbox) unlock = "Par is " + lv.par + " chips.";
+    var easyNote = view.difficulty === "easy" && lv.par !== null ? " (on Easy, " + (lv.par + 1) + " still earns par)" : "";
+    if (lv.unlock) unlock = rec.solved ? "You keep the " + lv.unlock + " chip from this level." : "Solving this level hands you the " + lv.unlock + " chip. " + (lv.par !== null ? "Par is " + lv.par + " chips" + easyNote + "." : "");
+    else if (!lv.sandbox) unlock = "Par is " + lv.par + " chips" + easyNote + ".";
     setText($("level-unlock"), unlock + (lv.sandbox ? "" : " Board space: " + lv.cap + " chips."));
     setText($("level-intro"), lv.intro || "");
     $("level-intro").hidden = !lv.intro;
@@ -262,10 +269,12 @@
     if (!h) return;
     var labels = ["Would you like a suggestion?", "Another hint", "Another hint: the answer", "That is every hint"];
     var b = $("hint-button");
-    setText(b, labels[h.rung]);
-    b.setAttribute("aria-disabled", String(h.rung >= 3));
-    $("answer-button").hidden = h.rung < 3;
-    setText($("hint-rung"), h.rung === 0 ? "No hints used on this level." : "Hints shown: " + h.rung + " of 3." + (h.answer_used ? " The answer was put on the board, so this level does not count for par." : ""));
+    var last = h.rung >= h.max;
+    setText(b, labels[last ? 3 : h.rung]);
+    b.setAttribute("aria-disabled", String(last));
+    $("answer-button").hidden = !h.answer_ready;
+    setText($("answer-button"), view.difficulty === "easy" ? "Put the answer on the board (this level then will not count for par)" : "Put the answer on the board");
+    setText($("hint-rung"), h.rung === 0 ? "No hints used on this level." : "Hints shown: " + h.rung + " of " + h.max + "." + (h.max < 3 ? " Hard has no answer step." : "") + (h.answer_used ? " The answer was put on the board, so this level does not count for par." : ""));
     var list = $("hint-list");
     list.textContent = "";
     if (h.nudge) list.appendChild(el("li", "Nudge: " + h.nudge));
@@ -492,7 +501,20 @@
     });
   }
 
+  // ---- difficulty (AN-17, shared/difficulty.js): the page keeps the choice, the engine applies it and is never told to save it ----
+  function sendDifficulty() {
+    if (!engine) return null;
+    if (!window.NoyvjDifficulty) return send({ action: "open" });
+    return send({ action: "difficulty", level: window.NoyvjDifficulty.get(DIFF_GAME) });
+  }
+  function wireDifficulty() {
+    if (!window.NoyvjDifficulty) return;
+    window.NoyvjDifficulty.mount("#difficulty-slot", { game: DIFF_GAME, collapsible: true, descriptions: DIFF_TEXT });
+    window.NoyvjDifficulty.onChange(function (d) { if (d.game === DIFF_GAME) sendDifficulty(); });
+  }
+
   function wire() {
+    wireDifficulty();
     window.logicGatesRefresh = function () { if (engine) send({ action: "open" }); };
     $("board-holder").addEventListener("click", function (e) {
       if (!view) return;
@@ -513,7 +535,8 @@
     guard("hint-button", function () { send({ action: "hint" }); });
     guard("answer-button", function () {
       var go = function () { send({ action: "answer" }); };
-      if (window.ConfirmDialog) window.ConfirmDialog.ask({ id: "logic-gates-answer", message: "Put the answer on the board? It replaces what is there (Undo brings yours back) and this level will not count for par.", confirmLabel: "Put it on the board", onConfirm: go });
+      if (view.difficulty === "easy") go();      // Easy: no extra question (the button already says what it costs)
+      else if (window.ConfirmDialog) window.ConfirmDialog.ask({ id: "logic-gates-answer", message: "Put the answer on the board? It replaces what is there (Undo brings yours back) and this level will not count for par.", confirmLabel: "Put it on the board", onConfirm: go });
       else go();
     });
     guard("next-level-button", function () { send({ action: "next" }); });
@@ -563,7 +586,7 @@
     }
     $("engine-status").textContent = "";
     setBusy(false);
-    send({ action: "open" });
+    sendDifficulty();
     await changelog;
     if (window.GameTutorial) window.GameTutorial.init(window.logicGatesTutorialSteps ? window.logicGatesTutorialSteps(TUTORIAL_STEPS) : TUTORIAL_STEPS, { gameId: "logic-gates" });
   }

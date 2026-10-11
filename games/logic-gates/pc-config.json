@@ -28,7 +28,7 @@
     "topbar": [".top-row", ".game-toolbar"],
     "stagebar": ["#status-strip", "#goals", "#level-head", "#solved-banner", "#toast", "#engine-status"],
     "stage": ["#board-panel"],
-    "side": ["#check-panel", "#parts-panel", "#hints-panel"],
+    "side": ["#difficulty-panel", "#check-panel", "#parts-panel", "#hints-panel"],
     "hidden": [".tagline"]
   },
   "readouts": [],
