@@ -1,0 +1,74 @@
+{
+  "achievements": [
+    {
+      "id": "first_frame",
+      "label": "First Frame",
+      "description": "Hang your first picture."
+    },
+    {
+      "id": "ten_hung",
+      "label": "Ten Hung",
+      "description": "Hang 10 pictures."
+    },
+    {
+      "id": "thirty_hung",
+      "label": "Thirty Hung",
+      "description": "Hang 30 pictures."
+    },
+    {
+      "id": "sixty_hung",
+      "label": "Sixty Hung",
+      "description": "Hang every picture."
+    },
+    {
+      "id": "small_hands",
+      "label": "Small Hands",
+      "description": "Hang every picture in Instruments."
+    },
+    {
+      "id": "machine_shop",
+      "label": "Machine Shop",
+      "description": "Hang every picture in Small Machines."
+    },
+    {
+      "id": "robot_row",
+      "label": "Robot Row",
+      "description": "Hang every picture in Robots."
+    },
+    {
+      "id": "station_rooms",
+      "label": "Station Rooms",
+      "description": "Hang every picture in Station Rooms."
+    },
+    {
+      "id": "deep_sky_done",
+      "label": "Deep Sky Done",
+      "description": "Hang every picture in Deep Sky."
+    },
+    {
+      "id": "the_long_wall",
+      "label": "The Long Wall",
+      "description": "Hang every picture in The Long Wall."
+    },
+    {
+      "id": "big_one",
+      "label": "Big One",
+      "description": "Hang a 15 by 15 picture."
+    },
+    {
+      "id": "clean_lines",
+      "label": "Clean Lines",
+      "description": "Hang 10 pictures without asking for a suggestion."
+    },
+    {
+      "id": "slow_light",
+      "label": "Slow Light",
+      "description": "Open the Slideshow."
+    },
+    {
+      "id": "ten_thousand",
+      "label": "Ten Thousand",
+      "description": "Fill 10,000 cells."
+    }
+  ]
+}

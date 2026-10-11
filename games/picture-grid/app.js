@@ -3,13 +3,14 @@
    a line is finished or a mark is wrong: it asks the engine, and draws the answer. */
 (function () {
   "use strict";
-  var ENGINE_MODULES = ["nonogram.py", "pictures_g1.py", "pictures_g2.py", "pictures_g3.py", "pictures_g4.py", "pictures_g5.py", "pictures_g6.py", "pictures.py", "hints.py", "goals.py", "info.py"];
+  var ENGINE_MODULES = ["nonogram.py", "pictures_g1.py", "pictures_g2.py", "pictures_g3.py", "pictures_g4.py", "pictures_g5.py", "pictures_g6.py", "pictures.py", "hints.py", "goals.py", "achievements.py", "info.py"];
   var STORE_KEY = "picture-grid:state";
   var BACKUP_KEY = "picture-grid:state-backup";
   var SVG_NS = "http://www.w3.org/2000/svg";
   var CS = 40;                 // one cell, in drawing units
   var CELL_MIN = 15;           // smallest cell, in screen pixels, before the board scrolls sideways (most 15 by 15 pictures fit a 360 px phone at this size)
   var CELL_MAX = 44;
+  var CELL_MAX_PC = 72;        // the Desktop stage is big: small pictures get bigger cells there
   var UNKNOWN = ".", FILLED = "#", DOT = "x";
 
   var $ = function (id) { return document.getElementById(id); };
@@ -145,14 +146,18 @@
     var cs = window.getComputedStyle(wrap);
     var avail = Math.max(160, wrap.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight) - 2);
     function widthAt(cp) { var m = clueMetrics(cp); return rowNums * m.numW + m.tick + 6 + p.width * cp; }
-    var cp = CELL_MAX;
-    if (!isBig()) { while (cp > CELL_MIN && widthAt(cp) > avail) cp -= 1; }
+    // The Desktop layout gives the board a fixed-height stage (pc.css), so the cell size must fit the height too; Classic scrolls the page instead.
+    var pc = document.documentElement.getAttribute("data-layout") === "pc";
+    var availH = pc ? Math.max(160, wrap.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom) - 2) : Infinity;
+    function heightAt(cp) { var m = clueMetrics(cp); return colNums * m.numH + m.tick + 4 + p.height * cp; }
+    var cp = pc ? CELL_MAX_PC : CELL_MAX;
+    if (!isBig()) { while (cp > CELL_MIN && (widthAt(cp) > avail || heightAt(cp) > availH)) cp -= 1; }
     var m = clueMetrics(cp);
     var unit = cp / CS;
     var clueW = (rowNums * m.numW + m.tick + 6) / unit;
     var clueH = (colNums * m.numH + m.tick + 4) / unit;
     return { clueW: clueW, clueH: clueH, W: clueW + p.width * CS, H: clueH + p.height * CS, unit: unit, cell: cp,
-             numW: m.numW / unit, numH: m.numH / unit, tick: m.tick / unit, font: m.font / unit, scroll: widthAt(cp) > avail + 1 };
+             numW: m.numW / unit, numH: m.numH / unit, tick: m.tick / unit, font: m.font / unit, scroll: widthAt(cp) > avail + 1 || heightAt(cp) > availH + 1 };
   }
 
   function drawMark(parent, r, c, state, pending) {
@@ -616,6 +621,46 @@
     if (goalsPanel && window.NoyvjGoals.bindCheckbox) window.NoyvjGoals.bindCheckbox(goalsPanel, "#goals-checkbox");
   }
 
+  // ---- achievements (the engine decides what is earned; this lists them and says so once when one is new) ------------
+  var knownEarned = null;      // null until the first view, so loading a game or a save never fires a toast
+  function renderAchievements() {
+    var list = $("achievements-list");
+    var items = view.achievements;
+    var sig = items.map(function (a) { return a.id + ":" + a.have; }).join(",");
+    if (list.dataset.sig !== sig) {
+      list.dataset.sig = sig;
+      list.textContent = "";
+      items.forEach(function (a) {
+        var li = el("li", a.earned ? "earned" : "");
+        li.setAttribute("data-achievement-id", a.id);
+        li.appendChild(el("span", "tick", a.earned ? "Earned" : a.have + " of " + a.need));
+        var name = el("strong", null, " " + a.label + " ");
+        name.setAttribute("data-achievement-label", "");
+        li.appendChild(name);
+        li.appendChild(el("span", null, a.description));
+        list.appendChild(li);
+      });
+    }
+    var earnedNow = items.filter(function (a) { return a.earned; }).map(function (a) { return a.id; });
+    var count = earnedNow.length + " of " + items.length;
+    setText($("achievements-count"), count + " achievements earned.");
+    var button = $("achievements-toggle-button");
+    button.setAttribute("aria-label", "Achievements, " + count + " earned");
+    var long = button.querySelector(".btn-long");
+    setText(long, "Achievements (" + earnedNow.length + "/" + items.length + ")");
+    setText(button.querySelector(".btn-short"), "Trophies " + earnedNow.length + "/" + items.length);
+    if (knownEarned !== null) {
+      var fresh = items.filter(function (a) { return a.earned && knownEarned.indexOf(a.id) === -1; });
+      if (fresh.length) {
+        var text = fresh.map(function (a) { return "Achievement unlocked: " + a.label + "."; }).join(" ");
+        var t = $("toast");
+        showToast((t.textContent ? t.textContent + " " : "") + text);
+        announce(text);
+      }
+    }
+    knownEarned = earnedNow;
+  }
+
   // ---- slideshow ---------------------------------------------------------------------------------------------
   function openSlideshow() {
     var list = hungList();
@@ -757,6 +802,7 @@
     renderWall();
     renderLarge();
     renderHints();
+    renderAchievements();
     renderInfo();
     if (goalsPanel) goalsPanel.refresh();
     if (view.just && glowShown !== view.just.id + ":" + view.totals.hung) {
@@ -854,6 +900,7 @@
     $("slideshow-button").addEventListener("click", openSlideshow);
     $("hint-button").addEventListener("click", function () { pressHint(false); });
     $("hints-checkbox").addEventListener("change", function () { lsSet("picture-grid:hints-hidden", $("hints-checkbox").checked ? "0" : "1"); if (view) renderHints(); });
+    wirePanelToggle("achievements-toggle-button", "achievements-panel");
     wirePanelToggle("changelog-toggle-button", "changelog-panel");
     wirePanelToggle("info-page-toggle-button", "info-page-panel");
     $("info-page-toggle-button").addEventListener("click", function () { if (!$("info-page-panel").hidden) loadLiveInfo(); });
@@ -874,7 +921,7 @@
       askThen("picture-grid-reset", "Start the whole gallery over? Every hung picture and your tally will be taken down.", "Take it all down", function () { largeId = null; wallSig = ""; send({ action: "reset" }); });
     });
     // The save widget loads a save straight into the engine; this redraws afterwards.
-    window.pictureGridRefresh = function () { if (engine) { boardId = null; wallSig = ""; send({ action: "open" }); } };
+    window.pictureGridRefresh = function () { if (engine) { boardId = null; wallSig = ""; knownEarned = null; send({ action: "open" }); } };
     var resizeTimer = null;
     var relayout = function () { clearTimeout(resizeTimer); resizeTimer = setTimeout(function () { if (view) drawBoard(); }, 80); };
     window.addEventListener("resize", relayout);
@@ -900,7 +947,7 @@
     send({ action: "open" });
     sendDifficulty();
     await changelog;
-    if (window.GameTutorial) window.GameTutorial.init(TUTORIAL_STEPS, { gameId: "picture-grid" });
+    if (window.GameTutorial) window.GameTutorial.init(window.pictureGridTutorialSteps ? window.pictureGridTutorialSteps(TUTORIAL_STEPS) : TUTORIAL_STEPS, { gameId: "picture-grid" });
   }
 
   wire();

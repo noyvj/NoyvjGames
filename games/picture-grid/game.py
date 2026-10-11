@@ -17,11 +17,15 @@ Actions (every request is {"action": ..., ...}; every reply is the whole view):
   difficulty {level}      easy | normal | hard (told by the page, never saved; only changes how the hint ladder opens)
   reset                   start over (everything)
 
+The view also carries `achievements` (id, label, description, earned, have, need for each of the 14; see achievements.py); the save
+writes `achievements_earned` as a projection that load never reads back.
+
 Cell marks in the view's `grid` rows: "." unknown, "#" filled, "x" dot (known empty).
 """
 
 import json
 
+import achievements
 import goals
 import hints
 import info
@@ -156,7 +160,14 @@ class Game:
             data["hints"] = hinted
         if self.slides:
             data["slides"] = 1
+        earned = achievements.earned(self.facts())
+        if earned:
+            data["achievements_earned"] = earned       # written for the hub's dashboard, never read back
         return data
+
+    def facts(self):
+        """What the achievements are computed from: the hung set, the hint record, the player's own fills and the slideshow flag."""
+        return achievements.facts_of(self.solved, self.hinted, self.tally["fills"], self.slides)
 
     def load(self, data):
         """Take a saved dict, checking every field on its own; a bad field falls back to its default. A hung picture only counts
@@ -239,6 +250,7 @@ class Game:
                        "galleries": len(pictures.GALLERIES), "galleries_done": pictures.galleries_done(self.solved)},
             "hint": self._hint_view(), "hint_ui": self._hint_ui(status), "goals": goals.queue(self.solved, self.tally["fills"]),
             "difficulty": difficulty, "slideshow_seen": self.slides, "info": info.view(),
+            "achievements": achievements.view(self.facts()),
         }
         if status == "solved":
             view["picture"].update({"title": p.title, "caption": p.caption, "rows": list(p.rows)})

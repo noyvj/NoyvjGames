@@ -39,7 +39,8 @@ def test_a_fresh_game_saves_as_just_its_layout_version():
 def test_only_changed_keys_are_written_and_the_state_is_json_safe():
     play_a_little()
     state = game.get_state()
-    assert set(state) == {"schema", "cur", "solved", "work", "moves", "tally", "assist"} and state["schema"] == 1
+    assert set(state) == {"schema", "cur", "solved", "work", "moves", "tally", "assist", "achievements_earned"} and state["schema"] == 1
+    assert state["achievements_earned"] == ["first_frame"]
     assert state["cur"] == "key" and state["solved"] == {"hammer": 1} and state["moves"] == {"key": 2}
     assert state["work"] == {"key": [".##..", ".....", ".....", ".....", "x...."]}
     assert state["tally"] == {"fills": 11, "dots": 1} and state["assist"] == {"focus": 1}

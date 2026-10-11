@@ -2,6 +2,10 @@
   "changelog": [
     {
       "date": "2026-10-12",
+      "entry": "Fourteen achievements and a Desktop layout. The Achievements panel lists all 14 with a count (First Frame, Ten, Thirty and Sixty Hung, one for each of the six galleries, Big One for a 15 by 15, Clean Lines for ten pictures hung without a suggestion, Slow Light for opening the Slideshow, and Ten Thousand for filling 10,000 cells), shows how close you are to each, and says so once when one is new; they are the same on Easy, Normal and Hard. On a wide window the Desktop layout gives the frame the whole stage, with the tools, suggestion ladder and clues in a column beside it, the goals and stats always in view, and the Gallery, Achievements and Settings as windows (the Menu holds the rest). Your save is shared with the Classic layout."
+    },
+    {
+      "date": "2026-10-12",
       "entry": "The standard kit arrives: an opening screen with Continue and New Game, a short skippable tutorial, an About panel with the real history of nonograms (read live from Wikipedia when it can be, with its source and read date named), What's New, a keyboard help overlay on ? and Esc, and a confirm question before Clear frame and before starting the gallery over. Nothing changes in the pictures or the rules."
     },
     {

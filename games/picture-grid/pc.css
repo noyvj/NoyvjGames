@@ -1,0 +1,45 @@
+/* Picture Grid, Desktop boot only (loaded by pc.html). Everything is scoped to the pc layout, so the Classic page is untouched.
+   The frame (its title line, the board and the cursor line) is the stage and the board fills what is left; the nudge buttons, the
+   tools, the suggestion ladder, the hung card and the clues as text are a right-hand column; the stats strip and the three goals
+   sit above the stage. The frame, windows and Menu come from shared/pc-shell.css. */
+
+html[data-layout="pc"] #game { padding-bottom: 0.4rem; max-width: none; }
+#pc-topbar { grid-template-columns: auto minmax(0, 1fr) auto; grid-template-areas: "title stats tools"; padding-right: 9rem; }
+#pc-topbar > .game-toolbar { grid-area: tools; justify-content: flex-end; }
+#pc-topbar > h1 { font-size: 1.4rem; letter-spacing: 0.12em; }
+#pc-topbar > #stats { grid-area: stats; margin: 0; grid-template-columns: repeat(5, minmax(5.2rem, 8.5rem)); justify-content: center; align-self: center; }
+html[data-layout="pc"] .stat { display: flex; flex-direction: column; }
+#pc-stagebar:empty { display: none; }
+
+/* The stage: title line, then the board taking all the remaining height, then the cursor line. */
+#pc-stage > #frame-panel {
+  flex: 1 1 0; min-height: 0; margin: 0; overflow: hidden;
+  display: grid; grid-template-columns: auto minmax(0, 1fr); grid-template-rows: auto auto minmax(0, 1fr) auto;
+  grid-template-areas: "kicker kicker" "heading caption" "board board" "cursor cursor"; column-gap: 1rem; row-gap: 0.1rem;
+}
+#pc-stage #frame-kicker { grid-area: kicker; }
+#pc-stage #frame-heading { grid-area: heading; margin: 0; align-self: baseline; }
+#pc-stage #frame-caption { grid-area: caption; margin: 0; align-self: baseline; min-height: 0; }
+#pc-stage #board-wrap {
+  grid-area: board; min-height: 0; min-width: 0; margin: 0.3rem 0; display: flex; overflow: auto; text-align: left;
+}
+#pc-stage #board { margin: auto; flex: 0 0 auto; }
+#pc-stage #cursor-line { grid-area: cursor; margin: 0.2rem 0 0; min-height: 1.4em; }
+
+#pc-body { grid-template-rows: minmax(0, 1fr); }
+#pc-body.pc-has-side { grid-template-columns: minmax(0, 1fr) clamp(15rem, 22vw, 21rem); }
+#pc-side { min-width: 0; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; gap: 0.6rem; padding-right: 0.2rem; }
+#pc-side > * { margin: 0; flex: 0 0 auto; }
+#pc-side #goals { margin: 0; }
+#pc-side .frame-nav { display: flex; gap: 0.4rem; }
+#pc-side .frame-nav button { flex: 1 1 0; }
+#pc-side .tools { display: grid; grid-template-columns: 1fr 1fr; gap: 0.4rem; }
+#pc-side .tools button { min-width: 0; width: 100%; }
+#pc-side #hint-box { margin: 0; }
+#pc-side #difficulty-panel { padding: 0.4rem 0.6rem; }
+#pc-side #hung-card { margin: 0; }
+#pc-side #clue-text { margin: 0; max-height: 14rem; overflow-y: auto; }
+#pc-side .hung-card .button-row button { flex: 1 1 auto; }
+
+html[data-layout="pc"] #story-toggle { top: 0.6rem !important; left: auto !important; right: 12rem !important; }
+html[data-layout="pc"] .large-picture { max-width: 18rem; }
