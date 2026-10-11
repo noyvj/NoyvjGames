@@ -126,6 +126,18 @@ for _g in (
     "crystal", "polymer", "antimatter", "neutronium", "superfluid", "aerogel",
 ):
     ELEMENT_IDS += [f"cartel-{_g}-row", f"cartel-{_g}-text", f"cartel-{_g}-squeeze-button", f"cartel-{_g}-dump-button"]
+# Chain Builder (J-5) and the Modes button (GN-17).
+ELEMENT_IDS += [
+    "chain-toggle-button", "chain-panel", "chain-progress", "chain-status", "chain-pick-button", "chain-leave-button",
+    "chain-board", "chain-title", "chain-blurb", "chain-rules", "chain-goals", "chain-goal-0", "chain-goal-1", "chain-goal-2",
+    "chain-map", "chain-product-0-tab", "chain-product-1-tab", "chain-p0-block", "chain-p1-block",
+    "chain-p0-title", "chain-p1-title", "chain-result", "chain-lock-button", "chain-clear-button", "chain-hint-button",
+    "chain-hint-0-text", "chain-hint-1-text", "chain-hint-2-text", "chain-sites-text", "chain-distances-text",
+]
+for _p in range(2):
+    for _k in range(3):
+        ELEMENT_IDS += [f"chain-p{_p}-s{_k}-row", f"chain-p{_p}-s{_k}-label", f"chain-p{_p}-s{_k}-select",
+                        f"chain-p{_p}-l{_k}-text", f"chain-p{_p}-l{_k}-down-button", f"chain-p{_p}-l{_k}-up-button"]
 ELEMENT_IDS += ["crisis-status", "crisis-restart-button", "crisis-leave-button"]
 for _c in ("grain_famine", "isotope_glut", "broken_network"):
     ELEMENT_IDS += [f"crisis-{_c}-text", f"crisis-{_c}-start-button"]

@@ -215,6 +215,26 @@
       "id": "gold_standard",
       "title": "Three clean mornings",
       "text": "Three crises, three gold medals, each solved before the coffee went cold. The Guild has started describing your fixes as procedures. You have started to suspect that is how procedures get written."
+    },
+    {
+      "id": "chain_first",
+      "title": "The first link",
+      "text": "The plan is a pencil line on a map: a mine, a smelter, a dock. You put one ship on each leg, run the numbers and watch the line turn into goods arriving where they were wanted. It is not much of a supply chain yet. It is the first one that is yours."
+    },
+    {
+      "id": "chain_par",
+      "title": "Exactly enough",
+      "text": "Five chains at par, each with the fewest ships the arithmetic allows. Nobody checks, and nobody would notice an extra hull. You would. The yard foreman starts calling your plans tidy, which in his mouth is a medal."
+    },
+    {
+      "id": "chain_shared",
+      "title": "One furnace, two orders",
+      "text": "Two ports want two things from the same few works, and there is only so much heat to go round. You learn to read a refinery the way a cook reads a stove: who needs it first, who can wait, and where the queue forms if you guess wrong."
+    },
+    {
+      "id": "chain_master",
+      "title": "The whole workshop",
+      "text": "Twenty-four chains, from a single ship on a short run to two long supply lines sharing a crowded forge. The plans sit in a drawer now, each with its small mark of how close it came. You take them out sometimes, just to look at how little was wasted."
     }
   ]
 }

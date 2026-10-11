@@ -199,6 +199,26 @@
       "id": "gold_standard",
       "label": "Gold Standard",
       "description": "Earn a gold medal on all three Trade Crises."
+    },
+    {
+      "id": "chain_first",
+      "label": "First Link",
+      "description": "Solve any Chain Builder puzzle, with any medal."
+    },
+    {
+      "id": "chain_par",
+      "label": "At Par",
+      "description": "Earn a gold medal (reach par) on five Chain Builder puzzles."
+    },
+    {
+      "id": "chain_shared",
+      "label": "Shared Foundry",
+      "description": "Solve all six Chain Builder puzzles in the Shared refiners chapter."
+    },
+    {
+      "id": "chain_master",
+      "label": "Chain Master",
+      "description": "Solve all 24 Chain Builder puzzles, with any medal."
     }
   ]
 }

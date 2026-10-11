@@ -1785,6 +1785,33 @@ button.secondary:disabled::after {
 /* Meridian Freight and the Cartel Board (J-11, J-12, J-3). */
 .cartel-row { margin: 4px 0; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; font-size: 0.85rem; }
 
+/* Chain Builder (J-5). */
+.chain-goals { list-style: none; margin: 8px 0; padding: 0; display: grid; gap: 4px; }
+.chain-goals li { padding: 4px 10px; border: 1px solid rgba(140, 160, 255, 0.4); border-radius: 6px; font-size: 0.9rem; }
+.chain-map-scroll { overflow-x: auto; margin: 8px 0; }
+.chain-map svg { display: block; width: 100%; min-width: 520px; max-width: 720px; height: auto; }
+@media (min-width: 760px) { .chain-map svg { margin: 0 auto; } }
+.chain-grid { stroke: rgba(140, 160, 255, 0.18); stroke-width: 1; }
+.chain-node circle, .chain-node rect, .chain-node polygon { fill: rgba(111, 143, 224, 0.22); stroke: #a9c3ff; stroke-width: 2; }
+.chain-node--used circle, .chain-node--used rect, .chain-node--used polygon { fill: rgba(111, 143, 224, 0.55); stroke-width: 4; }
+.chain-node text { fill: #dfe4ff; font-size: 11px; paint-order: stroke; stroke: rgba(10, 12, 28, 0.85); stroke-width: 3px; }
+.chain-map [data-site] { cursor: pointer; }
+.chain-leg { stroke: #f4e9b8; stroke-width: 2.5; fill: none; }
+.chain-arrowhead { fill: #f4e9b8; }
+.chain-leg-label { fill: #f4e9b8; font-size: 12px; font-weight: 700; }
+.chain-product { margin: 10px 0; }
+.chain-product-title { margin: 6px 0; font-weight: 600; font-size: 0.92rem; }
+.chain-stage-row { display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: center; margin: 6px 0; padding: 6px 8px; border: 1px dashed rgba(140, 160, 255, 0.35); border-radius: 6px; }
+.chain-stage-label { flex: 1 1 100%; font-weight: 600; font-size: 0.88rem; }
+.chain-select { max-width: 100%; min-height: 40px; font: inherit; }
+.chain-leg-text { flex: 1 1 14rem; font-size: 0.85rem; }
+.chain-ship-buttons { display: inline-flex; gap: 6px; }
+.chain-ship-buttons button { min-width: 44px; min-height: 44px; width: auto; }
+.chain-result p { margin: 4px 0; font-size: 0.9rem; }
+.chain-hint { margin: 6px 0; }
+.info-toggle.chain-details { display: block; margin: 6px 0; }
+.info-toggle.chain-details summary { width: auto; height: auto; border-radius: 6px; padding: 3px 10px; font-size: 0.8rem; font-weight: 600; }
+
 /* ============================================================
    Y11b light-theme polish (2026-09-27). Light-only rules from a
    computed-style WCAG contrast scan of the light theme (fresh game,
@@ -1853,3 +1880,16 @@ html[data-theme="light"] .curio--found { color: #1c2750; }
 html[data-theme="light"] .bp-bar-fill { background: #3556b8; }
 html[data-theme="light"] .bp-bar-avg { border-left-color: #8a5a00; }
 html[data-theme="light"] .bp-bar-track { border-color: rgba(40, 60, 140, 0.6); }
+html[data-theme="light"] .chain-goals li { border-color: rgba(70, 95, 170, 0.45); }
+html[data-theme="light"] .chain-grid { stroke: rgba(70, 95, 170, 0.2); }
+html[data-theme="light"] .chain-node circle,
+html[data-theme="light"] .chain-node rect,
+html[data-theme="light"] .chain-node polygon { fill: rgba(70, 95, 170, 0.14); stroke: #2a4ba0; }
+html[data-theme="light"] .chain-node--used circle,
+html[data-theme="light"] .chain-node--used rect,
+html[data-theme="light"] .chain-node--used polygon { fill: rgba(70, 95, 170, 0.4); }
+html[data-theme="light"] .chain-node text { fill: #1b2033; stroke: rgba(247, 248, 252, 0.9); }
+html[data-theme="light"] .chain-leg { stroke: #8a5a00; }
+html[data-theme="light"] .chain-arrowhead,
+html[data-theme="light"] .chain-leg-label { fill: #8a5a00; }
+html[data-theme="light"] .chain-stage-row { border-color: rgba(70, 95, 170, 0.4); }

@@ -113,6 +113,7 @@
       <button id="captains-toggle-button" class="secondary" type="button" aria-controls="captains-panel" aria-expanded="false">🎖️ Captains</button>
       <button id="lab-toggle-button" class="secondary" type="button" aria-controls="lab-panel" aria-expanded="false">🛠️ Fleet Lab</button>
       <button id="desk-toggle-button" class="secondary" type="button" aria-controls="desk-panel" aria-expanded="false">🏛️ Market Desk</button>
+      <button id="chain-toggle-button" class="secondary" type="button" aria-controls="chain-panel" aria-expanded="false">🔗 Chain Builder</button>
       <!-- Site-wide settings panel (TODO.md origin A9): text-scale +
            reduce-motion. Deliberately independent of Pyodide/game.py
            entirely -- see settings.js -- same pattern Continuum's Phase
@@ -503,6 +504,91 @@
         </div>
         <p class="panel-label lab-heading">Curio cabinet</p>
         <ul id="expedition-curios" class="curio-list" aria-label="Curios found on expeditions"></ul>
+      </div>
+    </div>
+
+    <!-- J-5: Chain Builder, a separate puzzle mode. Static markup so the controls keep keyboard focus across the
+         once-a-second render; game.py (render_chain) fills it in. The real game is set aside while a puzzle is open. -->
+    <div id="chain-panel" class="section chain-panel" hidden>
+      <p class="panel-label">Chain Builder
+        <details class="info-toggle"><summary>i</summary><p>A puzzle mode apart from your economy: plan a chain of sites that turns a raw good into what a port wants, and spend as few ships as you can. Nothing here is timed, nothing can be lost, and your real corporation is set aside and comes back unchanged.</p></details>
+      </p>
+      <p class="map-caption">24 short puzzles in four chapters. Pick a site for each step of a chain (from the lists, or by clicking the map), put ships on each leg, and lock it in. Your score is the units delivered per ship; par is the best that any chain can do.</p>
+      <p id="chain-progress" class="lab-status"></p>
+      <p id="chain-status" class="lab-status" aria-live="polite"></p>
+      <div class="lab-actions">
+        <button id="chain-pick-button" class="secondary" type="button">Choose a puzzle</button>
+        <button id="chain-leave-button" class="secondary" type="button" hidden>Leave Chain Builder</button>
+      </div>
+      <div id="chain-board" hidden>
+        <p id="chain-title" class="panel-label lab-heading"></p>
+        <p id="chain-blurb" class="map-caption"></p>
+        <p id="chain-rules" class="map-caption"></p>
+        <ol id="chain-goals" class="chain-goals" aria-label="Three goals for this puzzle">
+          <li id="chain-goal-0"></li>
+          <li id="chain-goal-1"></li>
+          <li id="chain-goal-2"></li>
+        </ol>
+        <div class="chain-map-scroll"><div id="chain-map" class="chain-map" role="img" aria-label="Map of the sites"></div></div>
+        <div class="lab-actions chain-tabs">
+          <button id="chain-product-0-tab" class="secondary" type="button" aria-pressed="true" hidden>Order 1</button>
+          <button id="chain-product-1-tab" class="secondary" type="button" aria-pressed="false" hidden>Order 2</button>
+        </div>
+        <div id="chain-p0-block" class="chain-product" hidden>
+          <p id="chain-p0-title" class="chain-product-title"></p>
+          <div id="chain-p0-s0-row" class="chain-stage-row" hidden>
+            <label id="chain-p0-s0-label" class="chain-stage-label" for="chain-p0-s0-select"></label>
+            <select id="chain-p0-s0-select" class="chain-select"><option value="">Choose a site</option></select>
+            <span id="chain-p0-l0-text" class="chain-leg-text"></span>
+            <span class="chain-ship-buttons"><button id="chain-p0-l0-down-button" class="secondary" type="button" aria-label="Fewer ships on leg 1 of order 1">&minus;</button> <button id="chain-p0-l0-up-button" class="secondary" type="button" aria-label="More ships on leg 1 of order 1">+</button></span>
+          </div>
+          <div id="chain-p0-s1-row" class="chain-stage-row" hidden>
+            <label id="chain-p0-s1-label" class="chain-stage-label" for="chain-p0-s1-select"></label>
+            <select id="chain-p0-s1-select" class="chain-select"><option value="">Choose a site</option></select>
+            <span id="chain-p0-l1-text" class="chain-leg-text"></span>
+            <span class="chain-ship-buttons"><button id="chain-p0-l1-down-button" class="secondary" type="button" aria-label="Fewer ships on leg 2 of order 1">&minus;</button> <button id="chain-p0-l1-up-button" class="secondary" type="button" aria-label="More ships on leg 2 of order 1">+</button></span>
+          </div>
+          <div id="chain-p0-s2-row" class="chain-stage-row" hidden>
+            <label id="chain-p0-s2-label" class="chain-stage-label" for="chain-p0-s2-select"></label>
+            <select id="chain-p0-s2-select" class="chain-select"><option value="">Choose a site</option></select>
+            <span id="chain-p0-l2-text" class="chain-leg-text"></span>
+            <span class="chain-ship-buttons"><button id="chain-p0-l2-down-button" class="secondary" type="button" aria-label="Fewer ships on leg 3 of order 1">&minus;</button> <button id="chain-p0-l2-up-button" class="secondary" type="button" aria-label="More ships on leg 3 of order 1">+</button></span>
+          </div>
+        </div>
+        <div id="chain-p1-block" class="chain-product" hidden>
+          <p id="chain-p1-title" class="chain-product-title"></p>
+          <div id="chain-p1-s0-row" class="chain-stage-row" hidden>
+            <label id="chain-p1-s0-label" class="chain-stage-label" for="chain-p1-s0-select"></label>
+            <select id="chain-p1-s0-select" class="chain-select"><option value="">Choose a site</option></select>
+            <span id="chain-p1-l0-text" class="chain-leg-text"></span>
+            <span class="chain-ship-buttons"><button id="chain-p1-l0-down-button" class="secondary" type="button" aria-label="Fewer ships on leg 1 of order 2">&minus;</button> <button id="chain-p1-l0-up-button" class="secondary" type="button" aria-label="More ships on leg 1 of order 2">+</button></span>
+          </div>
+          <div id="chain-p1-s1-row" class="chain-stage-row" hidden>
+            <label id="chain-p1-s1-label" class="chain-stage-label" for="chain-p1-s1-select"></label>
+            <select id="chain-p1-s1-select" class="chain-select"><option value="">Choose a site</option></select>
+            <span id="chain-p1-l1-text" class="chain-leg-text"></span>
+            <span class="chain-ship-buttons"><button id="chain-p1-l1-down-button" class="secondary" type="button" aria-label="Fewer ships on leg 2 of order 2">&minus;</button> <button id="chain-p1-l1-up-button" class="secondary" type="button" aria-label="More ships on leg 2 of order 2">+</button></span>
+          </div>
+          <div id="chain-p1-s2-row" class="chain-stage-row" hidden>
+            <label id="chain-p1-s2-label" class="chain-stage-label" for="chain-p1-s2-select"></label>
+            <select id="chain-p1-s2-select" class="chain-select"><option value="">Choose a site</option></select>
+            <span id="chain-p1-l2-text" class="chain-leg-text"></span>
+            <span class="chain-ship-buttons"><button id="chain-p1-l2-down-button" class="secondary" type="button" aria-label="Fewer ships on leg 3 of order 2">&minus;</button> <button id="chain-p1-l2-up-button" class="secondary" type="button" aria-label="More ships on leg 3 of order 2">+</button></span>
+          </div>
+        </div>
+        <div id="chain-result" class="chain-result" aria-live="polite"></div>
+        <div class="lab-actions">
+          <button id="chain-lock-button" class="secondary" type="button" disabled>Lock in this chain</button>
+          <button id="chain-clear-button" class="secondary" type="button">Clear the chain</button>
+          <button id="chain-hint-button" class="secondary" type="button">Would you like a suggestion?</button>
+        </div>
+        <p id="chain-hint-0-text" class="map-caption chain-hint" hidden></p>
+        <p id="chain-hint-1-text" class="map-caption chain-hint" hidden></p>
+        <p id="chain-hint-2-text" class="map-caption chain-hint" hidden></p>
+        <details class="info-toggle chain-details"><summary>Sites and distances</summary>
+          <p id="chain-sites-text" class="map-caption"></p>
+          <p id="chain-distances-text" class="map-caption"></p>
+        </details>
       </div>
     </div>
 
@@ -1302,6 +1388,8 @@
   <script src="../../shared/hub-auth.js"></script>
   <script src="../../shared/save-widget.js" data-game-id="trade-empire"></script>
   <!-- Z-18: the practice sandbox toggle and its banner (rules in game.py: sandbox_enter / sandbox_leave / sandbox_is_active). -->
+  <!-- GN-17 / J-5: the shared level select (the Modes screen and the Chain Builder puzzle picker); game.py creates both screens. -->
+  <script src="../../shared/level-select.js"></script>
   <script src="../../shared/sandbox-mode.js" data-game-id="trade-empire"></script>
   <script src="../../shared/opening-screen.js" data-game-id="trade-empire" data-tagline="Found an interstellar trading corporation." data-game-name="Trade Empire"></script>
   <script src="../../shared/story-toggle.js" data-game-id="trade-empire" data-story-selectors=".colony-flavor, .captain-quote, #story-chapters"></script>
@@ -1338,6 +1426,7 @@
         { toggle: "captains-toggle-button", panel: "captains-panel" },
         { toggle: "lab-toggle-button", panel: "lab-panel" },
         { toggle: "desk-toggle-button", panel: "desk-panel" },
+        { toggle: "chain-toggle-button", panel: "chain-panel" },
       ],
     });
   </script>

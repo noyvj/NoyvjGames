@@ -1,6 +1,10 @@
 [
   {
     "date": "2026-10-11",
+    "entry": "New: Chain Builder, its own window and a separate puzzle mode (your economy and your saves are untouched). Twenty-four short puzzles in four chapters (single hop, two hops, shared refiners, bottlenecks): plan a chain such as Ore to Alloy to Machinery by choosing a source and refineries, put ships on each leg and lock it in. The score is units delivered per ship; par is the best any chain can do, proved by a search for every puzzle. Gold is par, silver is within 15%, bronze is any chain that fills the orders. Three goals sit above the board, there is a hint ladder that opens one suggestion at a time (the first asks 'Would you like a suggestion?'), nothing is timed and nothing can be lost. Four new achievements."
+  },
+  {
+    "date": "2026-10-11",
     "entry": "New: Trade Crises, in the Fleet Lab window. Three handcrafted starting boards (Grain Famine at Aurum, Isotope Glut in Kepler, Broken Automation Network), each with a clear goal and par times for gold, silver and bronze. Your real corporation is set aside and comes back unchanged; there is no fail state and no timer to beat. Restart with the R key (listed in the ? help) or the button, and each card shows your best medal as a shape and a word. Two new achievements."
   },
   {

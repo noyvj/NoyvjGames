@@ -45,9 +45,11 @@ trickles in passive revenue. The sandbox itself never ends or locks.
 """
 
 import copy
+import itertools
 import json
 import math
 import random
+from fractions import Fraction
 
 from js import document, setInterval, setTimeout
 from pyodide.ffi import create_proxy
@@ -3301,6 +3303,10 @@ ACHIEVEMENT_CHECKS = {
     "custom_fleet": lambda: any(ship.hull is not None for ship in ships.values()),
     "market_maker": lambda: records["exchange_fills"] >= EXCHANGE_MARKET_MAKER_FILLS,
     "curio_cabinet": lambda: len(records["curios"]) >= len(CURIO_IDS),
+    "chain_first": lambda: bool(records["chain_best"]),  # J-5
+    "chain_par": lambda: _chain_gold_count() >= CHAIN_GOLD_ACHIEVEMENT,
+    "chain_shared": lambda: _chain_chapter_solved(3) >= _chain_chapter_size(3),
+    "chain_master": lambda: len(records["chain_best"]) >= len(CHAIN_PUZZLES),
 }
 
 # Progress readouts, only for achievements with a natural numeric scale-up
@@ -3317,7 +3323,22 @@ ACHIEVEMENT_PROGRESS = {
     "market_maker": lambda: (min(records["exchange_fills"], EXCHANGE_MARKET_MAKER_FILLS), EXCHANGE_MARKET_MAKER_FILLS),
     "board_member": lambda: (min(records["cartel_moves"], CARTEL_ACHIEVEMENT_MOVES), CARTEL_ACHIEVEMENT_MOVES),
     "gold_standard": lambda: (sum(1 for c in CRISIS_IDS if records["crisis_best"].get(c, {}).get("medal") == "gold"), len(CRISIS_IDS)),
+    "chain_par": lambda: (min(_chain_gold_count(), CHAIN_GOLD_ACHIEVEMENT), CHAIN_GOLD_ACHIEVEMENT),
+    "chain_shared": lambda: (_chain_chapter_solved(3), _chain_chapter_size(3)),
+    "chain_master": lambda: (len(records["chain_best"]), len(CHAIN_PUZZLES)),
 }
+
+
+def _chain_gold_count():
+    return sum(1 for pid, e in records["chain_best"].items() if chain_medal_for(CHAIN_BY_ID[pid], e["units"], e["ships"]) == "gold")
+
+
+def _chain_chapter_solved(chapter):
+    return sum(1 for p in CHAIN_PUZZLES if p["chapter"] == chapter and p["id"] in records["chain_best"])
+
+
+def _chain_chapter_size(chapter):
+    return sum(1 for p in CHAIN_PUZZLES if p["chapter"] == chapter)
 
 
 def achievement_ids_earned():
@@ -4121,7 +4142,8 @@ def render():
     # out before their one-shot animation ever gets a frame to paint.
     _sandbox_top_up()
     document.getElementById("profit-display-text").innerText = (
-        "Credits: unlimited (sandbox)" if sandbox_active and crisis_active is None else f"Total profit: {total_profit} credits"
+        "Chain Builder: your corporation is set aside" if chain_active is not None
+        else "Credits: unlimited (sandbox)" if sandbox_active and crisis_active is None else f"Total profit: {total_profit} credits"
     )
     document.getElementById("sale-log").innerText = sale_log[-1] if sale_log else "No sales yet."
     document.getElementById("automation-slots-display").innerText = (
@@ -4169,6 +4191,7 @@ def render():
     render_lab()
     render_blueprint_options()
     render_desk()
+    render_chain()  # J-5
     throughput_el = document.getElementById("throughput-display")
     if throughput_el is not None:
         throughput_el.innerText = throughput_text()
@@ -4408,6 +4431,9 @@ def _spark_burst_high_value_sale():
 
 def tick(event=None):
     global total_profit, research_points, total_sales_count, max_profit_ever, season_ticks, premiums_paid
+    if chain_active is not None:  # J-5: the real corporation is set aside and the stand-in does not run
+        render()
+        return
     research_points += RESEARCH_PER_TICK * (LAB_AUTOMATION_RESEARCH_MULTIPLIER if charter_perk("lab_automation") else 1.0)
     if seasonal_demand_enabled:
         season_ticks += 1
@@ -4514,7 +4540,7 @@ def _fresh_records():
     return {
         "dark_runs": 0, "weather_events": 0, "expeditions": 0, "expedition_nothing_streak": 0,
         "expedition_since_curio": 0, "curios": [], "exchange_fills": 0, "hubs_set": 0,
-        "meridian_contests": 0, "meridian_answers": 0, "cartel_moves": 0, "crisis_best": {},
+        "meridian_contests": 0, "meridian_answers": 0, "cartel_moves": 0, "crisis_best": {}, "chain_best": {},
     }
 
 
@@ -4526,7 +4552,7 @@ def _load_records(raw):
     loaded = _fresh_records()
     if isinstance(raw, dict):
         for key in loaded:
-            if key not in ("curios", "crisis_best"):
+            if key not in ("curios", "crisis_best", "chain_best"):
                 loaded[key] = _saved_int(raw.get(key), 0, RECORDS_COUNT_MAX)
         best = raw.get("crisis_best")
         if isinstance(best, dict):
@@ -4536,6 +4562,12 @@ def _load_records(raw):
                 ticks = _saved_int(item.get("ticks"), 1, 1_000_000, 0)
                 if isinstance(item.get("medal"), str) and item["medal"] in CRISIS_MEDAL_RANK and ticks:
                     loaded["crisis_best"][crisis_id] = {"medal": item["medal"], "ticks": ticks}
+        chain = raw.get("chain_best")  # J-5: kept entry by entry, an impossible score is dropped
+        if isinstance(chain, dict):
+            for puzzle_id, item in chain.items():
+                entry = _chain_clean_best(puzzle_id, item)
+                if entry is not None:
+                    loaded["chain_best"][puzzle_id] = entry
         curios = raw.get("curios")
         if isinstance(curios, list):
             known = [c for c in curios if isinstance(c, str) and c in CURIO_IDS]
@@ -6122,17 +6154,11 @@ def _crisis_real_best():
 
 def crisis_enter(crisis_id):
     """Starts (or restarts) a crisis. The real corporation is set aside exactly as the practice sandbox does it."""
-    global sandbox_active, _sandbox_real, crisis_active, crisis_ticks, crisis_done
+    global crisis_active, crisis_ticks, crisis_done
     if crisis_id not in CRISES:
         return False
     if not sandbox_active:
-        snapshot = get_state()
-        _sandbox_real = {
-            "snapshot": snapshot,
-            "earned": list(snapshot["achievements_earned"]),
-            "guild_cooldown": guild_cooldown,
-        }
-        sandbox_active = True
+        _sandbox_set_real_aside()
     elif crisis_active is None:  # leave a practice sandbox first, then start from the real game
         sandbox_leave()
         return crisis_enter(crisis_id)
@@ -6219,6 +6245,1216 @@ def render_crises():
         document.getElementById(f"crisis-{crisis_id}-start-button").innerText = (
             "Restart" if crisis_active == crisis_id else "Play"
         )
+
+
+# ---------------------------------------------------------------------------
+# J-5 -- Chain Builder (its own window): a separate puzzle mode where you plan multi-step production chains
+# (Ore to Alloy to Machinery) with intermediate refining colonies and score them by throughput per ship.
+# Nothing here touches the main economy: the intermediate goods and recipes below exist ONLY in this mode, and
+# a puzzle runs inside the practice-sandbox machinery (the real corporation is set aside whole as a get_state()
+# snapshot and loaded back unchanged, the real game does not tick while a puzzle is open, nothing can be lost,
+# there is no timer and no fail state). Everything is whole-number arithmetic with no clock and no randomness.
+#
+# The model (one "cycle" is CHAIN_CYCLE ticks of steady running):
+#   - A product is a good the port wants, made along a recipe path (raw good -> refined -> ... -> final good).
+#     You pick one site per step (a source for the raw good, a refinery for each recipe) and put ships on each
+#     leg of the chain, including the last leg into the port. Ships are dedicated to their leg.
+#   - A ship on a leg A -> B carries `cargo` units per trip and fits CHAIN_CYCLE // (2 x distance) whole round
+#     trips in a cycle (distance = grid steps between the sites, at least 1), so short legs are worth far more.
+#   - A source supplies up to its `cap` per cycle; a refinery processes up to its `cap` units of INPUT per cycle
+#     (shared by every product that uses it, the first product listed served first) and turns `take` units of
+#     input into `make` units of output, whole runs only.
+#   - A product is MET when the port receives at least `need` per cycle; the port takes up to `want`.
+#   - Score = units delivered (up to `want`, over all products) / ships used. Par is the best score over every
+#     chain that meets all the orders within the fleet (found by an exhaustive search, chain_solve, and pinned
+#     by tests for every puzzle). Gold = par, silver = at least CHAIN_SILVER_PERCENT of par, bronze = met.
+# ---------------------------------------------------------------------------
+CHAIN_CYCLE = 24
+CHAIN_SILVER_PERCENT = 85
+CHAIN_MAX_PRODUCTS = 2
+CHAIN_MAX_STAGES = 3
+CHAIN_GOODS = {
+    "ore": "Ore", "alloy": "Alloy", "machinery": "Machinery", "plating": "Plating",
+    "grain": "Grain", "flour": "Flour", "rations": "Rations",
+    "ice": "Ice", "coolant": "Coolant", "cells": "Power cells",
+    "silica": "Silica", "glass": "Glass", "lenses": "Lenses",
+}
+CHAIN_RAW_GOODS = ("ore", "grain", "ice", "silica")
+CHAIN_RECIPES = {  # output good -> its one input, units taken, units made, name
+    "alloy": {"from": "ore", "take": 2, "make": 1, "name": "Smelting"},
+    "machinery": {"from": "alloy", "take": 2, "make": 1, "name": "Forging"},
+    "plating": {"from": "alloy", "take": 1, "make": 1, "name": "Rolling"},
+    "flour": {"from": "grain", "take": 2, "make": 1, "name": "Milling"},
+    "rations": {"from": "flour", "take": 1, "make": 1, "name": "Packing"},
+    "coolant": {"from": "ice", "take": 1, "make": 1, "name": "Filtering"},
+    "cells": {"from": "coolant", "take": 3, "make": 2, "name": "Cell assembly"},
+    "glass": {"from": "silica", "take": 2, "make": 1, "name": "Melting"},
+    "lenses": {"from": "glass", "take": 1, "make": 1, "name": "Grinding"},
+}
+CHAIN_CHAPTERS = {
+    1: ("Single hop", "Ship a raw good straight to the port; pick the right source and the right number of ships."),
+    2: ("Two hops", "A refinery sits on the way: balance the two legs so neither starves the other."),
+    3: ("Shared refiners", "Two orders at once, and the works that serve them are shared."),
+    4: ("Bottlenecks", "Small holds, tight fleets and small refineries: every ship has to earn its place."),
+}
+
+
+def _cb_source(name, x, y, good, cap):
+    return {"name": name, "pos": (x, y), "kind": "source", "good": good, "cap": cap}
+
+
+def _cb_refinery(name, x, y, recipes, cap):
+    return {"name": name, "pos": (x, y), "kind": "refinery", "recipes": tuple(recipes), "cap": cap}
+
+
+def _cb_port(name, x, y):
+    return {"name": name, "pos": (x, y), "kind": "port"}
+
+
+def _cb_product(good, port, need, want):
+    return {"good": good, "port": port, "need": need, "want": want}
+
+
+CHAIN_PUZZLES = [
+    {"id": "first_delivery", "chapter": 1, "title": "First Delivery", "blurb": "Port Vesper wants ore. Two mines can supply it: one close, one rich.",
+     "cargo": 4, "fleet": 6,
+     "sites": {
+         "cinder": _cb_source("Cinder Mine", 3, 1, "ore", 30),
+         "brack": _cb_source("Brack Pit", 5, 2, "ore", 60),
+         "vesper": _cb_port("Port Vesper", 1, 0),
+     },
+     "products": [_cb_product("ore", "vesper", 24, 36)],
+     "par": (15, 1), "best": {"sites": [["cinder"]], "ships": [[2]]}},
+    {"id": "thin_seam", "chapter": 1, "title": "Thin Seam", "blurb": "Vesper's order has grown, and the nearer mine can no longer cover it alone.",
+     "cargo": 4, "fleet": 6,
+     "sites": {
+         "cinder": _cb_source("Cinder Mine", 3, 1, "ore", 30),
+         "brack": _cb_source("Brack Pit", 5, 2, "ore", 60),
+         "vesper": _cb_port("Port Vesper", 1, 0),
+     },
+     "products": [_cb_product("ore", "vesper", 36, 48)],
+     "par": (8, 1), "best": {"sites": [["brack"]], "ships": [[5]]}},
+    {"id": "near_or_plenty", "chapter": 1, "title": "Near or Plenty", "blurb": "Three mines, one port. Closer is quicker, but how much can each seam give?",
+     "cargo": 4, "fleet": 6,
+     "sites": {
+         "cinder": _cb_source("Cinder Mine", 3, 1, "ore", 40),
+         "brack": _cb_source("Brack Pit", 4, 3, "ore", 80),
+         "harrow": _cb_source("Harrow Seam", 1, 4, "ore", 22),
+         "vesper": _cb_port("Port Vesper", 1, 1),
+     },
+     "products": [_cb_product("ore", "vesper", 30, 48)],
+     "par": (20, 1), "best": {"sites": [["cinder"]], "ships": [[2]]}},
+    {"id": "orchard_run", "chapter": 1, "title": "Orchard Run", "blurb": "Lantern Dock needs grain by the hold. The biggest orchard is not always the best run.",
+     "cargo": 6, "fleet": 6,
+     "sites": {
+         "low": _cb_source("Low Orchard", 2, 1, "grain", 36),
+         "high": _cb_source("High Orchard", 5, 3, "grain", 90),
+         "fen": _cb_source("Fen Farm", 0, 5, "grain", 54),
+         "lantern": _cb_port("Lantern Dock", 1, 2),
+     },
+     "products": [_cb_product("grain", "lantern", 40, 72)],
+     "par": (18, 1), "best": {"sites": [["fen"]], "ships": [[3]]}},
+    {"id": "ice_for_the_tern", "chapter": 1, "title": "Ice for the Tern", "blurb": "Small holds and a long way: ice for Tern Landing from the quay or the far shelf.",
+     "cargo": 3, "fleet": 7,
+     "sites": {
+         "quay": _cb_source("Frost Quay", 4, 1, "ice", 50),
+         "shelf": _cb_source("Long Shelf", 8, 3, "ice", 120),
+         "tern": _cb_port("Tern Landing", 1, 1),
+     },
+     "products": [_cb_product("ice", "tern", 30, 60)],
+     "par": (12, 1), "best": {"sites": [["quay"]], "ships": [[3]]}},
+    {"id": "dune_glass", "chapter": 1, "title": "Dune Glass", "blurb": "Silica for Vesper from the dunes, the spit or the reef. Mind how many ships you spend.",
+     "cargo": 5, "fleet": 8,
+     "sites": {
+         "dunes": _cb_source("Glass Dunes", 6, 0, "silica", 100),
+         "spit": _cb_source("Salt Spit", 2, 4, "silica", 45),
+         "reef": _cb_source("Red Reef", 4, 4, "silica", 70),
+         "vesper": _cb_port("Port Vesper", 1, 1),
+     },
+     "products": [_cb_product("silica", "vesper", 45, 90)],
+     "par": (15, 1), "best": {"sites": [["spit"]], "ships": [[3]]}},
+    {"id": "ore_to_alloy", "chapter": 2, "title": "Ore to Alloy", "blurb": "Smelt ore into alloy on the way to port. Two smelters; two ore make one alloy.",
+     "cargo": 4, "fleet": 8,
+     "sites": {
+         "cinder": _cb_source("Cinder Mine", 0, 0, "ore", 60),
+         "kiln": _cb_refinery("Kiln Station", 3, 1, ("alloy",), 40),
+         "anvil": _cb_refinery("Anvil Yard", 4, 4, ("alloy",), 60),
+         "vesper": _cb_port("Port Vesper", 6, 1),
+     },
+     "products": [_cb_product("alloy", "vesper", 8, 16)],
+     "par": (4, 1), "best": {"sites": [["cinder", "kiln"]], "ships": [[2, 1]]}},
+    {"id": "mill_choice", "chapter": 2, "title": "Mill Choice", "blurb": "Turn grain into flour at the Mill Hub or the Press Dock. Two grain make one flour.",
+     "cargo": 6, "fleet": 8,
+     "sites": {
+         "low": _cb_source("Low Orchard", 0, 3, "grain", 60),
+         "fen": _cb_source("Fen Farm", 3, 5, "grain", 60),
+         "mill": _cb_refinery("Mill Hub", 2, 2, ("flour",), 36),
+         "press": _cb_refinery("Press Dock", 5, 3, ("flour",), 36),
+         "lantern": _cb_port("Lantern Dock", 7, 2),
+     },
+     "products": [_cb_product("flour", "lantern", 8, 18)],
+     "par": (6, 1), "best": {"sites": [["low", "mill"]], "ships": [[1, 1]]}},
+    {"id": "cold_work", "chapter": 2, "title": "Cold Work", "blurb": "Ice becomes coolant at either works. The two legs differ in length, so split your ships to match.",
+     "cargo": 3, "fleet": 9,
+     "sites": {
+         "quay": _cb_source("Frost Quay", 0, 1, "ice", 90),
+         "shelf": _cb_source("Long Shelf", 1, 5, "ice", 90),
+         "cold": _cb_refinery("Cold Works", 3, 1, ("coolant",), 60),
+         "frost": _cb_refinery("Frost Hall", 4, 5, ("coolant",), 60),
+         "tern": _cb_port("Tern Landing", 7, 3),
+     },
+     "products": [_cb_product("coolant", "tern", 24, 36)],
+     "par": (4, 1), "best": {"sites": [["quay", "cold"]], "ships": [[2, 4]]}},
+    {"id": "packing_house", "chapter": 2, "title": "Packing House", "blurb": "Flour for Lantern Dock. Both mills can make it, but only one sits on the way.",
+     "cargo": 5, "fleet": 8,
+     "sites": {
+         "low": _cb_source("Low Orchard", 0, 2, "grain", 80),
+         "mill": _cb_refinery("Mill Hub", 2, 2, ("flour", "rations",), 40),
+         "pack": _cb_refinery("Pack Yard", 5, 4, ("flour", "rations",), 40),
+         "lantern": _cb_port("Lantern Dock", 7, 1),
+     },
+     "products": [_cb_product("flour", "lantern", 10, 20)],
+     "par": (5, 1), "best": {"sites": [["low", "mill"]], "ships": [[1, 1]]}},
+    {"id": "lens_line", "chapter": 2, "title": "Lens Line", "blurb": "Silica melts into glass at the small Melt House or the big Furnace Ring.",
+     "cargo": 4, "fleet": 9,
+     "sites": {
+         "dunes": _cb_source("Glass Dunes", 0, 0, "silica", 70),
+         "reef": _cb_source("Red Reef", 2, 5, "silica", 70),
+         "melt": _cb_refinery("Melt House", 3, 2, ("glass",), 30),
+         "furn": _cb_refinery("Furnace Ring", 5, 0, ("glass",), 70),
+         "vesper": _cb_port("Port Vesper", 7, 4),
+     },
+     "products": [_cb_product("glass", "vesper", 10, 20)],
+     "par": (3, 1), "best": {"sites": [["reef", "melt"]], "ships": [[2, 2]]}},
+    {"id": "coolant_rush", "chapter": 2, "title": "Coolant Rush", "blurb": "Plenty of ice, two coolant plants and a port that wants more than the small plant can give.",
+     "cargo": 4, "fleet": 10,
+     "sites": {
+         "quay": _cb_source("Frost Quay", 0, 2, "ice", 100),
+         "shelf": _cb_source("Long Shelf", 2, 0, "ice", 100),
+         "cold": _cb_refinery("Cold Works", 3, 3, ("coolant",), 30),
+         "frost": _cb_refinery("Frost Hall", 5, 1, ("coolant",), 100),
+         "tern": _cb_port("Tern Landing", 7, 4),
+     },
+     "products": [_cb_product("coolant", "tern", 20, 40)],
+     "par": (24, 5), "best": {"sites": [["quay", "cold"]], "ships": [[2, 3]]}},
+    {"id": "one_smelter_two_orders", "chapter": 3, "title": "One Smelter, Two Orders", "blurb": "Alloy for Vesper and plating for Tern, and the near smelter cannot feed both. The first order listed is served first.",
+     "cargo": 4, "fleet": 10,
+     "sites": {
+         "cinder": _cb_source("Cinder Mine", 0, 2, "ore", 90),
+         "kiln": _cb_refinery("Kiln Station", 2, 2, ("alloy",), 24),
+         "anvil": _cb_refinery("Anvil Yard", 3, 5, ("alloy",), 60),
+         "roll": _cb_refinery("Rolling Mill", 5, 3, ("plating",), 40),
+         "vesper": _cb_port("Port Vesper", 8, 2),
+         "tern": _cb_port("Tern Landing", 7, 5),
+     },
+     "products": [_cb_product("alloy", "vesper", 6, 12), _cb_product("plating", "tern", 4, 8)],
+     "par": (20, 7), "best": {"sites": [["cinder", "kiln"], ["cinder", "anvil", "roll"]], "ships": [[1, 2], [2, 1, 1]]}},
+    {"id": "mill_and_pack", "chapter": 3, "title": "Mill and Pack", "blurb": "Flour and rations from the same two mills. Rations are flour that has been packed again.",
+     "cargo": 5, "fleet": 10,
+     "sites": {
+         "low": _cb_source("Low Orchard", 0, 1, "grain", 100),
+         "fen": _cb_source("Fen Farm", 1, 5, "grain", 100),
+         "mill": _cb_refinery("Mill Hub", 3, 2, ("flour", "rations",), 40),
+         "press": _cb_refinery("Press Dock", 4, 5, ("flour", "rations",), 40),
+         "lantern": _cb_port("Lantern Dock", 8, 1),
+         "tern": _cb_port("Tern Landing", 7, 4),
+     },
+     "products": [_cb_product("flour", "lantern", 6, 12), _cb_product("rations", "tern", 6, 12)],
+     "par": (17, 5), "best": {"sites": [["low", "mill"], ["fen", "press", "mill"]], "ships": [[1, 1], [1, 1, 1]]}},
+    {"id": "two_docks_one_forge", "chapter": 3, "title": "Two Docks, One Forge", "blurb": "Two ports want machinery and the forges are small. Share them well.",
+     "cargo": 4, "fleet": 10,
+     "sites": {
+         "cinder": _cb_source("Cinder Mine", 0, 3, "ore", 120),
+         "kiln": _cb_refinery("Kiln Station", 2, 3, ("alloy",), 60),
+         "forge": _cb_refinery("Forge Ring", 4, 2, ("machinery",), 30),
+         "anvil": _cb_refinery("Anvil Yard", 4, 5, ("machinery",), 30),
+         "vesper": _cb_port("Port Vesper", 8, 1),
+         "tern": _cb_port("Tern Landing", 8, 5),
+     },
+     "products": [_cb_product("machinery", "vesper", 4, 8), _cb_product("machinery", "tern", 4, 8)],
+     "par": (2, 1), "best": {"sites": [["cinder", "kiln", "forge"], ["cinder", "kiln", "anvil"]], "ships": [[1, 1, 1], [1, 1, 1]]}},
+    {"id": "glass_and_lenses", "chapter": 3, "title": "Glass and Lenses", "blurb": "Glass for one port and ground lenses for the other, both from the same two works.",
+     "cargo": 5, "fleet": 10,
+     "sites": {
+         "dunes": _cb_source("Glass Dunes", 0, 0, "silica", 100),
+         "reef": _cb_source("Red Reef", 1, 4, "silica", 100),
+         "melt": _cb_refinery("Melt House", 3, 1, ("glass", "lenses",), 36),
+         "furn": _cb_refinery("Furnace Ring", 4, 4, ("glass", "lenses",), 80),
+         "vesper": _cb_port("Port Vesper", 8, 0),
+         "lantern": _cb_port("Lantern Dock", 8, 4),
+     },
+     "products": [_cb_product("glass", "vesper", 6, 12), _cb_product("lenses", "lantern", 6, 12)],
+     "par": (22, 7), "best": {"sites": [["reef", "furn"], ["dunes", "melt", "furn"]], "ships": [[1, 2], [2, 1, 1]]}},
+    {"id": "cold_chain", "chapter": 3, "title": "Cold Chain", "blurb": "Coolant for one port and power cells for another, with two plants that can do either.",
+     "cargo": 3, "fleet": 10,
+     "sites": {
+         "quay": _cb_source("Frost Quay", 0, 1, "ice", 80),
+         "cold": _cb_refinery("Cold Works", 2, 2, ("coolant", "cells",), 36),
+         "frost": _cb_refinery("Frost Hall", 3, 5, ("coolant", "cells",), 60),
+         "tern": _cb_port("Tern Landing", 7, 1),
+         "vesper": _cb_port("Port Vesper", 7, 5),
+     },
+     "products": [_cb_product("coolant", "tern", 6, 12), _cb_product("cells", "vesper", 4, 8)],
+     "par": (3, 1), "best": {"sites": [["quay", "cold"], ["quay", "cold", "frost"]], "ships": [[1, 2], [1, 1, 1]]}},
+    {"id": "crowded_forge", "chapter": 3, "title": "Crowded Forge", "blurb": "Machinery and plating, two mines and three busy works: the first crowded map.",
+     "cargo": 4, "fleet": 10,
+     "sites": {
+         "cinder": _cb_source("Cinder Mine", 0, 2, "ore", 120),
+         "brack": _cb_source("Brack Pit", 1, 5, "ore", 120),
+         "kiln": _cb_refinery("Kiln Station", 3, 3, ("alloy", "plating",), 40),
+         "anvil": _cb_refinery("Anvil Yard", 4, 0, ("alloy", "plating", "machinery",), 80),
+         "forge": _cb_refinery("Forge Ring", 6, 3, ("machinery", "plating",), 30),
+         "vesper": _cb_port("Port Vesper", 9, 1),
+         "tern": _cb_port("Tern Landing", 9, 4),
+     },
+     "products": [_cb_product("machinery", "vesper", 4, 8), _cb_product("plating", "tern", 4, 8)],
+     "par": (16, 9), "best": {"sites": [["cinder", "kiln", "forge"], ["cinder", "anvil", "forge"]], "ships": [[3, 1, 1], [2, 1, 1]]}},
+    {"id": "small_holds", "chapter": 4, "title": "Small Holds", "blurb": "Holds of only two units and long legs. Balance the legs so none starves the next.",
+     "cargo": 2, "fleet": 9,
+     "sites": {
+         "cinder": _cb_source("Cinder Mine", 0, 1, "ore", 90),
+         "brack": _cb_source("Brack Pit", 1, 4, "ore", 90),
+         "kiln": _cb_refinery("Kiln Station", 2, 2, ("alloy",), 40),
+         "anvil": _cb_refinery("Anvil Yard", 3, 4, ("alloy",), 40),
+         "forge": _cb_refinery("Forge Ring", 5, 2, ("machinery",), 24),
+         "press": _cb_refinery("Press Dock", 5, 5, ("machinery",), 24),
+         "vesper": _cb_port("Port Vesper", 7, 3),
+     },
+     "products": [_cb_product("machinery", "vesper", 4, 8)],
+     "par": (6, 5), "best": {"sites": [["brack", "anvil", "forge"]], "ships": [[2, 2, 1]]}},
+    {"id": "choke_point", "chapter": 4, "title": "Choke Point", "blurb": "The nearest mill is tiny. Is it still the right one?",
+     "cargo": 3, "fleet": 10,
+     "sites": {
+         "low": _cb_source("Low Orchard", 0, 2, "grain", 120),
+         "mill": _cb_refinery("Mill Hub", 2, 2, ("flour",), 12),
+         "press": _cb_refinery("Press Dock", 3, 5, ("flour",), 60),
+         "pack": _cb_refinery("Pack Yard", 5, 3, ("rations",), 30),
+         "cannery": _cb_refinery("Cannery", 6, 5, ("rations",), 30),
+         "lantern": _cb_port("Lantern Dock", 8, 2),
+     },
+     "products": [_cb_product("rations", "lantern", 6, 12)],
+     "par": (2, 1), "best": {"sites": [["low", "mill", "pack"]], "ships": [[1, 1, 1]]}},
+    {"id": "the_last_ship", "chapter": 4, "title": "The Last Ship", "blurb": "Six ships for a three-step chain: every ship has to earn its place.",
+     "cargo": 2, "fleet": 6,
+     "sites": {
+         "quay": _cb_source("Frost Quay", 0, 0, "ice", 60),
+         "shelf": _cb_source("Long Shelf", 0, 4, "ice", 60),
+         "cold": _cb_refinery("Cold Works", 2, 1, ("coolant",), 30),
+         "frost": _cb_refinery("Frost Hall", 2, 4, ("coolant",), 30),
+         "assay": _cb_refinery("Assay Ring", 4, 2, ("cells",), 24),
+         "dock": _cb_refinery("Cell Dock", 4, 5, ("cells",), 24),
+         "tern": _cb_port("Tern Landing", 6, 3),
+     },
+     "products": [_cb_product("cells", "tern", 4, 8)],
+     "par": (2, 1), "best": {"sites": [["shelf", "frost", "assay"]], "ships": [[1, 2, 1]]}},
+    {"id": "tight_fleet", "chapter": 4, "title": "Tight Fleet", "blurb": "Two orders, eight ships and a forge that both orders may want.",
+     "cargo": 3, "fleet": 8,
+     "sites": {
+         "cinder": _cb_source("Cinder Mine", 0, 3, "ore", 100),
+         "kiln": _cb_refinery("Kiln Station", 3, 2, ("alloy",), 36),
+         "anvil": _cb_refinery("Anvil Yard", 3, 5, ("alloy",), 36),
+         "forge": _cb_refinery("Forge Ring", 6, 2, ("machinery", "plating",), 24),
+         "roll": _cb_refinery("Rolling Mill", 6, 5, ("plating",), 24),
+         "vesper": _cb_port("Port Vesper", 9, 2),
+         "tern": _cb_port("Tern Landing", 9, 5),
+     },
+     "products": [_cb_product("machinery", "vesper", 3, 6), _cb_product("plating", "tern", 4, 8)],
+     "par": (5, 4), "best": {"sites": [["cinder", "kiln", "forge"], ["cinder", "kiln", "forge"]], "ships": [[2, 1, 1], [2, 1, 1]]}},
+    {"id": "far_fields", "chapter": 4, "title": "Far Fields", "blurb": "A long haul across the reach, where only whole round trips count.",
+     "cargo": 4, "fleet": 9,
+     "sites": {
+         "low": _cb_source("Low Orchard", 0, 0, "grain", 100),
+         "fen": _cb_source("Fen Farm", 0, 5, "grain", 100),
+         "mill": _cb_refinery("Mill Hub", 3, 2, ("flour",), 40),
+         "press": _cb_refinery("Press Dock", 5, 5, ("flour",), 60),
+         "pack": _cb_refinery("Pack Yard", 8, 1, ("rations",), 30),
+         "cannery": _cb_refinery("Cannery", 9, 5, ("rations",), 30),
+         "lantern": _cb_port("Lantern Dock", 12, 3),
+     },
+     "products": [_cb_product("rations", "lantern", 6, 12)],
+     "par": (2, 1), "best": {"sites": [["low", "mill", "pack"]], "ships": [[2, 1, 1]]}},
+    {"id": "grand_chain", "chapter": 4, "title": "Grand Chain", "blurb": "Two three-step chains and twelve ships: the full workshop.",
+     "cargo": 3, "fleet": 12,
+     "sites": {
+         "cinder": _cb_source("Cinder Mine", 0, 1, "ore", 120),
+         "brack": _cb_source("Brack Pit", 0, 5, "ore", 120),
+         "kiln": _cb_refinery("Kiln Station", 3, 2, ("alloy",), 36),
+         "anvil": _cb_refinery("Anvil Yard", 3, 5, ("alloy",), 60),
+         "forge": _cb_refinery("Forge Ring", 6, 1, ("machinery", "plating",), 24),
+         "roll": _cb_refinery("Rolling Mill", 6, 4, ("machinery", "plating",), 24),
+         "vesper": _cb_port("Port Vesper", 9, 2),
+         "tern": _cb_port("Tern Landing", 9, 5),
+     },
+     "products": [_cb_product("machinery", "vesper", 4, 8), _cb_product("plating", "tern", 4, 8)],
+     "par": (14, 9), "best": {"sites": [["brack", "anvil", "roll"], ["brack", "anvil", "roll"]], "ships": [[2, 2, 1], [2, 1, 1]]}},
+]
+CHAIN_BY_ID = {p["id"]: p for p in CHAIN_PUZZLES}
+CHAIN_IDS = tuple(p["id"] for p in CHAIN_PUZZLES)
+CHAIN_GOLD_ACHIEVEMENT = 5  # gold medals for the At Par achievement
+chain_open = False  # the Chain Builder window
+chain_active = None  # the puzzle id while one is being played (it runs inside the sandbox machinery)
+chain_plan = []  # per product: {"sites": [site id or None] * stages, "ships": [ships] * stages}
+chain_tab = 0  # which product the map clicks fill
+chain_hint_rung = 0  # suggestions revealed so far (0-3); the next press may place the par chain
+chain_done = None  # {"medal", "units", "ships", "improved"} for the chain last locked in this run
+
+
+def chain_good_name(good):
+    return CHAIN_GOODS.get(good, str(good))
+
+
+def chain_path(good):
+    """The goods along a product's recipe path, raw first and the product last ([] for an unknown good)."""
+    path = [good]
+    while path[-1] not in CHAIN_RAW_GOODS:
+        recipe = CHAIN_RECIPES.get(path[-1])
+        if recipe is None or len(path) > CHAIN_MAX_STAGES:
+            return []
+        path.append(recipe["from"])
+    return path[::-1]
+
+
+def chain_distance(puzzle, a, b):
+    """Grid steps between two sites (never less than 1: a trip always takes some time)."""
+    (ax, ay), (bx, by) = puzzle["sites"][a]["pos"], puzzle["sites"][b]["pos"]
+    return max(1, abs(ax - bx) + abs(ay - by))
+
+
+def chain_trips(puzzle, a, b):
+    """Whole round trips one ship fits in a cycle on the leg a -> b (0 when the leg is too long)."""
+    return CHAIN_CYCLE // (2 * chain_distance(puzzle, a, b))
+
+
+def chain_fits(site, path, stage):
+    """True when `site` may fill step `stage` of a chain whose goods run `path`."""
+    if stage == 0:
+        return site["kind"] == "source" and site["good"] == path[0]
+    return site["kind"] == "refinery" and path[stage] in site["recipes"]
+
+
+def chain_options(puzzle, index):
+    """Every complete choice of sites (one list per product) whose legs are all short enough to run."""
+    product = puzzle["products"][index]
+    path = chain_path(product["good"])
+    layers = [[sid for sid, site in puzzle["sites"].items() if chain_fits(site, path, k)] for k in range(len(path))]
+    found = []
+    for combo in itertools.product(*layers):
+        if len(set(combo)) != len(combo):
+            continue
+        chain = list(combo) + [product["port"]]
+        if all(chain_trips(puzzle, chain[k], chain[k + 1]) >= 1 for k in range(len(chain) - 1)):
+            found.append(list(combo))
+    return found
+
+
+def _chain_flow(puzzle, plan, detail=False):
+    """Runs one cycle of a (structurally valid) plan: returns (delivered per product, total ships, legs)."""
+    sites = puzzle["sites"]
+    left = {sid: site["cap"] for sid, site in sites.items() if site["kind"] != "port"}
+    delivered, legs, total = [], [], 0
+    cargo = puzzle["cargo"]
+    for product, (chosen, ships) in zip(puzzle["products"], plan):
+        path = chain_path(product["good"])
+        chain = list(chosen) + [product["port"]]
+        total += sum(ships)
+        moved = produced = 0
+        product_legs = []
+        for k in range(len(path)):
+            trips = chain_trips(puzzle, chain[k], chain[k + 1])
+            capacity = ships[k] * cargo * trips
+            if k == 0:
+                moved = min(capacity, left[chain[0]])
+                left[chain[0]] -= moved
+            else:
+                moved = min(capacity, produced)
+            leg = None
+            if detail:
+                leg = {"from": chain[k], "to": chain[k + 1], "distance": chain_distance(puzzle, chain[k], chain[k + 1]),
+                       "trips": trips, "per_ship": cargo * trips, "ships": ships[k], "capacity": capacity, "moved": moved,
+                       "made": None}
+                product_legs.append(leg)
+            if k + 1 < len(path):  # arrives at a refinery: it makes whole runs from what it can take
+                recipe = CHAIN_RECIPES[path[k + 1]]
+                runs = min(moved, left[chain[k + 1]]) // recipe["take"]
+                left[chain[k + 1]] -= runs * recipe["take"]
+                produced = runs * recipe["make"]
+                if leg is not None:
+                    leg["made"] = produced
+        delivered.append(moved)
+        legs.append(product_legs)
+    return delivered, total, legs
+
+
+def chain_evaluate(puzzle, plan):
+    """Checks a plan (a list of [sites, ships] per product) and runs it. Returns a dict:
+    ok (the plan is well formed and runs), reason (why not), delivered / credited per product, ships, met (every
+    order reached), score (a Fraction, units credited per ship) and legs (per product, details for the screen)."""
+    result = {"ok": False, "reason": "", "delivered": [], "credited": [], "ships": 0, "met": False,
+              "score": None, "legs": []}
+    products, sites = puzzle["products"], puzzle["sites"]
+    if not isinstance(plan, (list, tuple)) or len(plan) != len(products):
+        result["reason"] = "A chain is needed for every order."
+        return result
+    clean = []
+    for product, entry in zip(products, plan):
+        path = chain_path(product["good"])
+        if not isinstance(entry, (list, tuple)) or len(entry) != 2:
+            result["reason"] = "A chain is not well formed."
+            return result
+        chosen, ships = entry
+        if not isinstance(chosen, (list, tuple)) or not isinstance(ships, (list, tuple)) \
+                or len(chosen) != len(path) or len(ships) != len(path):
+            result["reason"] = "A chain has the wrong number of steps."
+            return result
+        for k, site_id in enumerate(chosen):
+            if not isinstance(site_id, str) or site_id not in sites or not chain_fits(sites[site_id], path, k):
+                result["reason"] = "Choose a site that can do each step."
+                return result
+        if len(set(chosen)) != len(chosen):
+            result["reason"] = "A chain cannot use the same site twice."
+            return result
+        if any(isinstance(n, bool) or not isinstance(n, int) or n < 1 for n in ships):
+            result["reason"] = "Every leg needs at least one ship."
+            return result
+        full = list(chosen) + [product["port"]]
+        if any(chain_trips(puzzle, full[k], full[k + 1]) < 1 for k in range(len(path))):
+            result["reason"] = "A leg is too long for a ship to make a round trip in one cycle."
+            return result
+        clean.append((list(chosen), list(ships)))
+    delivered, total, legs = _chain_flow(puzzle, clean, detail=True)
+    if total > puzzle["fleet"]:
+        result["reason"] = f"That is {total} ships and the fleet has {puzzle['fleet']}."
+        result["ships"] = total
+        return result
+    credited = [min(d, p["want"]) for d, p in zip(delivered, products)]
+    result.update(
+        ok=True, delivered=delivered, credited=credited, ships=total, legs=legs,
+        met=all(d >= p["need"] for d, p in zip(delivered, products)),
+        score=Fraction(sum(credited), total),
+    )
+    return result
+
+
+def _chain_compositions(parts, total):
+    """Every way to give `parts` legs a positive whole number of ships, `total` ships at most (in order)."""
+    if parts == 0:
+        yield ()
+        return
+    for first in range(1, total - (parts - 1) + 1):
+        for rest in _chain_compositions(parts - 1, total - first):
+            yield (first,) + rest
+
+
+def chain_solve(puzzle):
+    """Exhaustive search: every site choice for every product and every split of the fleet over the legs.
+    Returns None when nothing meets the orders, otherwise a dict: score (Fraction, the par), ships, plan
+    (a list of [sites, ships] per product; ties go to the fewest ships, then the first found), valid (how many
+    chains meet the orders) and evaluated (how many were tried)."""
+    products = puzzle["products"]
+    option_lists = [chain_options(puzzle, i) for i in range(len(products))]
+    best_key, best_plan, valid, evaluated = None, None, 0, 0
+    for combo in itertools.product(*option_lists):
+        sizes = [len(c) for c in combo]
+        for allocation in _chain_compositions(sum(sizes), puzzle["fleet"]):
+            plan, at = [], 0
+            for chosen, size in zip(combo, sizes):
+                plan.append((chosen, allocation[at:at + size]))
+                at += size
+            delivered, total, _ = _chain_flow(puzzle, plan)
+            evaluated += 1
+            if all(d >= p["need"] for d, p in zip(delivered, products)):
+                valid += 1
+                score = Fraction(sum(min(d, p["want"]) for d, p in zip(delivered, products)), total)
+                key = (score, -total)
+                if best_key is None or key > best_key:
+                    best_key, best_plan = key, [[list(c), list(s)] for c, s in plan]
+    if best_key is None:
+        return None
+    return {"score": best_key[0], "ships": -best_key[1], "plan": best_plan, "valid": valid, "evaluated": evaluated}
+
+
+def chain_par(puzzle):
+    return Fraction(puzzle["par"][0], puzzle["par"][1])
+
+
+def chain_silver_score(puzzle):
+    return chain_par(puzzle) * CHAIN_SILVER_PERCENT / 100
+
+
+def chain_medal_for(puzzle, units, ships):
+    score = Fraction(units, ships)
+    if score >= chain_par(puzzle):
+        return "gold"
+    return "silver" if score >= chain_silver_score(puzzle) else "bronze"
+
+
+def chain_score_text(score):
+    return f"{float(score):.2f}"
+
+
+def _chain_clean_best(puzzle_id, item):
+    """One saved best ({units, ships}) from an untrusted save, or None. A score above par is impossible, so such
+    an entry (or one that does not even fill the orders) is dropped."""
+    puzzle = CHAIN_BY_ID.get(puzzle_id) if isinstance(puzzle_id, str) else None
+    if puzzle is None or not isinstance(item, dict):
+        return None
+    units = _saved_int(item.get("units"), 1, 10_000, 0)
+    ships = _saved_int(item.get("ships"), 1, puzzle["fleet"], 0)
+    if not units or not ships:
+        return None
+    if units < sum(p["need"] for p in puzzle["products"]) or units > sum(p["want"] for p in puzzle["products"]):
+        return None
+    if Fraction(units, ships) > chain_par(puzzle):
+        return None
+    return {"units": units, "ships": ships}
+
+
+# --- Chain Builder: saved bests, entering and leaving, the draft chain ---------------------------------------------
+def _chain_real_best():
+    """The saved bests of the real game (while a puzzle runs, the live records belong to the puzzle board)."""
+    if _sandbox_real is None:
+        return records["chain_best"]
+    return (_sandbox_real["snapshot"].get("records") or {}).get("chain_best") or {}
+
+
+def _chain_better(units, ships, old):
+    """True when (units, ships) scores higher than the saved best, or ties it with fewer ships."""
+    if old is None:
+        return True
+    new_score, old_score = Fraction(units, ships), Fraction(old["units"], old["ships"])
+    return new_score > old_score or (new_score == old_score and ships < old["ships"])
+
+
+def chain_best_text(puzzle_id):
+    entry = _chain_real_best().get(puzzle_id)
+    if entry is None:
+        return "Best: not solved yet"
+    medal = chain_medal_for(CHAIN_BY_ID[puzzle_id], entry["units"], entry["ships"])
+    return f"Best: {CRISIS_MEDAL_MARK[medal]}, {chain_score_text(Fraction(entry['units'], entry['ships']))} per ship"
+
+
+def chain_medal_counts():
+    """(puzzles solved, gold medals) in the real game."""
+    best = _chain_real_best()
+    golds = sum(1 for pid, e in best.items() if pid in CHAIN_BY_ID and chain_medal_for(CHAIN_BY_ID[pid], e["units"], e["ships"]) == "gold")
+    return len([pid for pid in best if pid in CHAIN_BY_ID]), golds
+
+
+def chain_solved_in_chapter(chapter):
+    best = _chain_real_best()
+    return sum(1 for p in CHAIN_PUZZLES if p["chapter"] == chapter and p["id"] in best)
+
+
+def _chain_new_board(puzzle_id):
+    """A blank chain for a puzzle: no sites chosen, one ship on every leg."""
+    global chain_active, chain_plan, chain_tab, chain_hint_rung, chain_done
+    puzzle = CHAIN_BY_ID[puzzle_id]
+    chain_active, chain_tab, chain_hint_rung, chain_done = puzzle_id, 0, 0, None
+    chain_plan = []
+    for product in puzzle["products"]:
+        stages = len(chain_path(product["good"]))
+        chain_plan.append({"sites": [None] * stages, "ships": [1] * stages})
+
+
+def _chain_clear():
+    global chain_active, chain_plan, chain_tab, chain_hint_rung, chain_done
+    chain_active, chain_plan, chain_tab, chain_hint_rung, chain_done = None, [], 0, 0, None
+
+
+def chain_enter(puzzle_id):
+    """Starts (or restarts) a puzzle. The real corporation is set aside exactly as the practice sandbox does it,
+    and a blank corporation (which does not tick while a puzzle is open) stands in for it."""
+    global chain_open
+    if puzzle_id not in CHAIN_BY_ID:
+        return False
+    if sandbox_active and chain_active is None:  # a crisis or the practice sandbox: back to the real game first
+        sandbox_leave()
+    _chain_new_board(puzzle_id)  # before the load: _apply_state() renders, and a puzzle has no sandbox purse
+    if not sandbox_active:
+        _sandbox_set_real_aside()
+        _reset_running_tables()
+        _apply_state(copy.deepcopy(_fresh_state))
+    chain_open = True
+    render()
+    _sandbox_notify_page()
+    return True
+
+
+def chain_leave():
+    if chain_active is not None:
+        sandbox_leave()
+        _sandbox_notify_page()  # the banner and the sandbox button follow sandbox_is_active()
+
+
+def chain_draft_complete():
+    return chain_active is not None and all(site is not None for entry in chain_plan for site in entry["sites"])
+
+
+def chain_draft_result():
+    """chain_evaluate() of the chain on the board, or None while a site is still missing."""
+    if not chain_draft_complete():
+        return None
+    return chain_evaluate(CHAIN_BY_ID[chain_active], [[e["sites"], e["ships"]] for e in chain_plan])
+
+
+def chain_ships_on_board():
+    return sum(sum(entry["ships"]) for entry in chain_plan)
+
+
+def chain_set_site(product_index, stage, site_id):
+    """Puts a site into one step of a chain ("" or None clears the step). False when it does not fit."""
+    global chain_done
+    if chain_active is None or not isinstance(product_index, int) or not 0 <= product_index < len(chain_plan):
+        return False
+    puzzle = CHAIN_BY_ID[chain_active]
+    entry = chain_plan[product_index]
+    if not isinstance(stage, int) or isinstance(stage, bool) or not 0 <= stage < len(entry["sites"]):
+        return False
+    if not site_id:
+        entry["sites"][stage] = None
+        chain_done = None
+        return True
+    path = chain_path(puzzle["products"][product_index]["good"])
+    site = puzzle["sites"].get(site_id) if isinstance(site_id, str) else None
+    if site is None or not chain_fits(site, path, stage):
+        return False
+    if site_id in [s for k, s in enumerate(entry["sites"]) if k != stage]:
+        return False
+    entry["sites"][stage] = site_id
+    chain_done = None
+    return True
+
+
+def chain_pick_site(site_id):
+    """Map click: the site goes into the first step of the chosen product that it fits (clicking a site that is
+    already in a step takes it out again). True when the board changed."""
+    if chain_active is None or not chain_plan:
+        return False
+    puzzle = CHAIN_BY_ID[chain_active]
+    site = puzzle["sites"].get(site_id) if isinstance(site_id, str) else None
+    if site is None or site["kind"] == "port":
+        return False
+    index = min(chain_tab, len(chain_plan) - 1)
+    entry = chain_plan[index]
+    path = chain_path(puzzle["products"][index]["good"])
+    fitting = [k for k in range(len(path)) if chain_fits(site, path, k)]
+    for k in fitting:
+        if entry["sites"][k] == site_id:
+            return chain_set_site(index, k, "")
+    for k in fitting:
+        if entry["sites"][k] is None:
+            return chain_set_site(index, k, site_id)
+    return bool(fitting) and chain_set_site(index, fitting[0], site_id)
+
+
+def chain_can_add_ship(product_index, stage):
+    return (chain_active is not None and 0 <= product_index < len(chain_plan)
+            and chain_ships_on_board() < CHAIN_BY_ID[chain_active]["fleet"])
+
+
+def chain_adjust_ships(product_index, stage, delta):
+    """One more or one fewer ship on a leg (never below 1, never past the fleet). True when it changed."""
+    global chain_done
+    if chain_active is None or not 0 <= product_index < len(chain_plan) or delta not in (-1, 1):
+        return False
+    entry = chain_plan[product_index]
+    if not 0 <= stage < len(entry["ships"]):
+        return False
+    new = entry["ships"][stage] + delta
+    if new < 1 or (delta > 0 and not chain_can_add_ship(product_index, stage)):
+        return False
+    entry["ships"][stage] = new
+    chain_done = None
+    return True
+
+
+def chain_clear_board():
+    """Empties the chain on the board (one ship per leg again)."""
+    if chain_active is not None:
+        _chain_new_board(chain_active)
+
+
+def chain_place_best():
+    """Puts the stored par chain on the board."""
+    global chain_done
+    if chain_active is None:
+        return False
+    best = CHAIN_BY_ID[chain_active]["best"]
+    chain_plan[:] = [{"sites": list(s), "ships": list(n)} for s, n in zip(best["sites"], best["ships"])]
+    chain_done = None
+    return True
+
+
+def chain_lock_in():
+    """Locks in the chain on the board: when it meets every order the medal is worked out and the best is kept
+    (written straight into the set-aside real game, so leaving keeps it)."""
+    global chain_done
+    result = chain_draft_result()
+    if result is None or not result["ok"] or not result["met"]:
+        return False
+    puzzle = CHAIN_BY_ID[chain_active]
+    units, ships = sum(result["credited"]), result["ships"]
+    medal = chain_medal_for(puzzle, units, ships)
+    old = _chain_real_best().get(chain_active)
+    improved = _chain_better(units, ships, old)
+    first = not _chain_real_best()
+    if improved:
+        stored = _sandbox_real["snapshot"].setdefault("records", {})
+        stored.setdefault("chain_best", {})[chain_active] = {"units": units, "ships": ships}
+    chain_done = {"medal": medal, "units": units, "ships": ships, "improved": improved}
+    extra = " The First Link achievement is yours once you leave." if first else ""
+    show_notice_toast(f"\U0001F517 {puzzle['title']}: {CRISIS_MEDAL_MARK[medal]}, {chain_score_text(Fraction(units, ships))} per ship.{extra}")
+    return True
+
+
+# --- Chain Builder: hints (each rung opens only on a press) --------------------------------------------------------
+def chain_goods_line(puzzle, index):
+    """'Ore to Alloy to Machinery' for a product."""
+    return " to ".join(chain_good_name(g) for g in chain_path(puzzle["products"][index]["good"]))
+
+
+def chain_hint_text(puzzle, rung):
+    if rung == 1:
+        recipes = ", ".join(
+            f"{CHAIN_RECIPES[g]['name']} turns {CHAIN_RECIPES[g]['take']} {chain_good_name(CHAIN_RECIPES[g]['from'])} "
+            f"into {CHAIN_RECIPES[g]['make']} {chain_good_name(g)}"
+            for g in dict.fromkeys(g for p in puzzle["products"] for g in chain_path(p["good"])[1:])
+        )
+        carry = (f"A ship carries {puzzle['cargo']} units a trip and fits as many whole round trips into {CHAIN_CYCLE} ticks as "
+                 "the leg allows (a round trip takes twice the steps), so short legs are worth far more ships' work.")
+        return (recipes + ". " if recipes else "") + carry + " Aim for legs that move about the same amount, so none starves the next."
+    best = puzzle["best"]
+    if rung == 2:
+        parts = []
+        for index, names in enumerate(best["sites"]):
+            parts.append(f"{chain_good_name(puzzle['products'][index]['good'])}: " + ", ".join(puzzle["sites"][s]["name"] for s in names))
+        return "The par chain uses these sites, in order. " + "; ".join(parts) + "."
+    parts = []
+    for index, ships in enumerate(best["ships"]):
+        parts.append(f"{chain_good_name(puzzle['products'][index]['good'])} " + ", ".join(str(n) for n in ships))
+    total = sum(sum(s) for s in best["ships"])
+    return "Ships on each leg of the par chain, first leg to last. " + "; ".join(parts) + f". That is {total} ships in all."
+
+
+def chain_hint_label():
+    return ("Would you like a suggestion?", "Would you like another suggestion?",
+            "Would you like the ships as well?", "Place the par chain on the board")[min(chain_hint_rung, 3)]
+
+
+def chain_hint_press():
+    """Opens the next rung of the ladder; the press after the last rung places the par chain."""
+    global chain_hint_rung
+    if chain_active is None:
+        return False
+    if chain_hint_rung < 3:
+        chain_hint_rung += 1
+        return True
+    return chain_place_best()
+
+
+# --- Chain Builder: the screen -------------------------------------------------------------------------------------
+def _chain_esc(text):
+    return str(text).replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace('"', "&quot;")
+
+
+def chain_site_line(puzzle, site_id):
+    site = puzzle["sites"][site_id]
+    where = f"({site['pos'][0]}, {site['pos'][1]})"
+    if site["kind"] == "source":
+        return f"{site['name']} {where}: source of {chain_good_name(site['good'])}, up to {site['cap']} per cycle."
+    if site["kind"] == "refinery":
+        makes = ", ".join(f"{CHAIN_RECIPES[r]['name']} ({chain_good_name(r)})" for r in site["recipes"])
+        return f"{site['name']} {where}: refinery for {makes}, takes in up to {site['cap']} per cycle."
+    return f"{site['name']} {where}: port."
+
+
+def chain_stage_label(puzzle, index, stage):
+    path = chain_path(puzzle["products"][index]["good"])
+    if stage == 0:
+        return f"Step 1, source: {chain_good_name(path[0])}"
+    recipe = CHAIN_RECIPES[path[stage]]
+    return f"Step {stage + 1}, {recipe['name']}: {recipe['take']} {chain_good_name(recipe['from'])} make {recipe['make']} {chain_good_name(path[stage])}"
+
+
+def chain_distances_text(puzzle):
+    """Every leg any chain of this puzzle could use, with its distance and what one ship moves on it."""
+    seen, lines = set(), []
+    for index, product in enumerate(puzzle["products"]):
+        for combo in chain_options(puzzle, index):
+            full = list(combo) + [product["port"]]
+            for k in range(len(full) - 1):
+                if (full[k], full[k + 1]) not in seen:
+                    seen.add((full[k], full[k + 1]))
+                    trips = chain_trips(puzzle, full[k], full[k + 1])
+                    lines.append(
+                        f"{puzzle['sites'][full[k]]['name']} to {puzzle['sites'][full[k + 1]]['name']}: "
+                        f"{chain_distance(puzzle, full[k], full[k + 1])} steps, {trips} round trips a cycle, "
+                        f"{trips * puzzle['cargo']} units per ship."
+                    )
+    return " ".join(lines)
+
+
+def chain_map_svg(puzzle):
+    """The map as an SVG string: sites as shapes (circle = source, square = refinery, diamond = port) with their
+    names, a faint grid, and the chosen chain drawn as arrows (solid for the first order, dashed for the second)
+    with the ships on each leg. Purely a picture: the controls beside it do the same job with the keyboard."""
+    scale, pad = 46, 34
+    xs = [s["pos"][0] for s in puzzle["sites"].values()]
+    ys = [s["pos"][1] for s in puzzle["sites"].values()]
+    width, height = pad * 2 + max(xs) * scale + 40, pad * 2 + max(ys) * scale + 14
+
+    def at(site_id):
+        x, y = puzzle["sites"][site_id]["pos"]
+        return pad + x * scale, pad + y * scale
+
+    used = {s for e in chain_plan for s in e["sites"] if s}
+    parts = [f'<svg viewBox="0 0 {width} {height}" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">',
+             '<defs><marker id="chain-arrow" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto">'
+             '<path d="M0,0 L8,4 L0,8 z" class="chain-arrowhead"/></marker></defs>']
+    for gx in range(max(xs) + 1):
+        parts.append(f'<line class="chain-grid" x1="{pad + gx * scale}" y1="{pad - 14}" x2="{pad + gx * scale}" y2="{pad + max(ys) * scale + 14}"/>')
+    for gy in range(max(ys) + 1):
+        parts.append(f'<line class="chain-grid" x1="{pad - 14}" y1="{pad + gy * scale}" x2="{pad + max(xs) * scale + 14}" y2="{pad + gy * scale}"/>')
+    for index, entry in enumerate(chain_plan):
+        full = entry["sites"] + [puzzle["products"][index]["port"]]
+        for k in range(len(full) - 1):
+            if full[k] is None or full[k + 1] is None:
+                continue
+            (x1, y1), (x2, y2) = at(full[k]), at(full[k + 1])
+            off = 5 * index
+            dash = ' stroke-dasharray="6 4"' if index else ""
+            parts.append(f'<line class="chain-leg" x1="{x1 + off}" y1="{y1 + off}" x2="{x2 + off}" y2="{y2 + off}"{dash} marker-end="url(#chain-arrow)"/>')
+            parts.append(f'<text class="chain-leg-label" x="{(x1 + x2) / 2 + off + 4}" y="{(y1 + y2) / 2 + off - 4}">x{entry["ships"][k]}</text>')
+    for site_id, site in puzzle["sites"].items():
+        x, y = at(site_id)
+        cls = "chain-node chain-node--" + site["kind"] + (" chain-node--used" if site_id in used else "")
+        if site["kind"] == "source":
+            shape = f'<circle cx="{x}" cy="{y}" r="11"/>'
+        elif site["kind"] == "refinery":
+            shape = f'<rect x="{x - 10}" y="{y - 10}" width="20" height="20"/>'
+        else:
+            shape = f'<polygon points="{x},{y - 13} {x + 13},{y} {x},{y + 13} {x - 13},{y}"/>'
+        parts.append(f'<g class="{cls}" data-site="{_chain_esc(site_id)}">{shape}<text x="{x}" y="{y + 27}" text-anchor="middle">{_chain_esc(site["name"])}</text></g>')
+    parts.append("</svg>")
+    return "".join(parts)
+
+
+def chain_goal_lines(puzzle, result):
+    """The three goals on the strip: meet the orders, silver, gold. Each is a (done, text) pair."""
+    par, silver = chain_par(puzzle), chain_silver_score(puzzle)
+    ready = result is not None and result["ok"]
+    orders = "; ".join(
+        f"{chain_good_name(p['good'])} {result['delivered'][i] if ready else 0} of {p['need']} needed" for i, p in enumerate(puzzle["products"])
+    )
+    score = result["score"] if ready else None
+    met = ready and result["met"]
+    return [
+        (met, "Meet every order: " + orders + "."),
+        (met and score >= silver, f"Silver: score {chain_score_text(silver)} or more per ship ({CHAIN_SILVER_PERCENT}% of par)."),
+        (met and score >= par, f"Gold: reach par, {chain_score_text(par)} per ship."),
+    ]
+
+
+def chain_result_lines(puzzle, result):
+    if result is None:
+        return ["Choose a site for every step to see how the chain runs."]
+    if not result["ok"]:
+        return [result["reason"]]
+    lines = []
+    for index, product in enumerate(puzzle["products"]):
+        legs = result["legs"][index]
+        flow = ", then ".join(
+            f"{leg['moved']} on {puzzle['sites'][leg['from']]['name']} to {puzzle['sites'][leg['to']]['name']}" for leg in legs
+        )
+        lines.append(f"{chain_good_name(product['good'])}: {flow}. Delivered {result['delivered'][index]} (needs {product['need']}, takes up to {product['want']}).")
+    verdict = "Every order is met." if result["met"] else "An order is short: add ships to a starved leg, or choose other sites."
+    score = f"{chain_score_text(result['score'])} units per ship ({sum(result['credited'])} units, {result['ships']} ships)"
+    return lines + [f"Your score: {score}. Par: {chain_score_text(chain_par(puzzle))}. {verdict}"]
+
+
+def chain_status_text():
+    if chain_active is None:
+        return ("Pick a puzzle to play. Your real corporation is set aside and comes back unchanged; nothing in Chain Builder "
+                "can be lost, there is no timer and no fail state.")
+    puzzle = CHAIN_BY_ID[chain_active]
+    line = f"{puzzle['title']}: {chain_best_text(chain_active)}."
+    if chain_done is not None:
+        line += f" Locked in: {CRISIS_MEDAL_MARK[chain_done['medal']]}, {chain_score_text(Fraction(chain_done['units'], chain_done['ships']))} per ship."
+        line += "" if chain_done["improved"] else " (Your saved best is better, so it stays.)"
+    return line
+
+
+def _chain_signature():
+    best = _chain_real_best()
+    return (
+        chain_open, chain_active, chain_tab, chain_hint_rung,
+        tuple((tuple(e["sites"]), tuple(e["ships"])) for e in chain_plan),
+        tuple(sorted((pid, e["units"], e["ships"]) for pid, e in best.items())),
+        None if chain_done is None else tuple(sorted(chain_done.items())),
+    )
+
+
+_chain_rendered_sig = None
+_chain_options_for = None
+
+
+def on_toggle_chain(event=None):
+    global chain_open
+    chain_open = not chain_open
+    render_chain()
+
+
+def on_chain_leave(event=None):
+    chain_leave()
+
+
+def on_chain_lock(event=None):
+    chain_lock_in()
+    render_chain()
+
+
+def on_chain_clear(event=None):
+    chain_clear_board()
+    render_chain()
+
+
+def on_chain_hint(event=None):
+    chain_hint_press()
+    render_chain()
+
+
+def _make_chain_tab_handler(index):
+    def handler(event=None):
+        global chain_tab
+        chain_tab = index
+        render_chain()
+    return handler
+
+
+def _make_chain_select_handler(index, stage):
+    def handler(event=None):
+        chain_set_site(index, stage, document.getElementById(f"chain-p{index}-s{stage}-select").value)
+        render_chain()
+    return handler
+
+
+def _make_chain_ship_handler(index, stage, delta):
+    def handler(event=None):
+        chain_adjust_ships(index, stage, delta)
+        render_chain()
+    return handler
+
+
+def on_chain_map_click(event=None):
+    node = None
+    try:
+        node = event.target.closest("[data-site]")
+    except Exception:  # noqa: BLE001 -- a click on empty map, or no event
+        node = None
+    if node is not None:
+        chain_pick_site(node.getAttribute("data-site"))
+        render_chain()
+
+
+def render_chain():
+    global _chain_rendered_sig, _chain_options_for
+    toggle = document.getElementById("chain-toggle-button")
+    panel = document.getElementById("chain-panel")
+    if toggle is None or panel is None:
+        return
+    signature = _chain_signature()
+    if signature == _chain_rendered_sig:
+        return
+    _chain_rendered_sig = signature
+    toggle.innerText = "Hide Chain Builder" if chain_open else "\U0001F517 Chain Builder"
+    toggle.setAttribute("aria-expanded", "true" if chain_open else "false")
+    panel.hidden = not chain_open
+    document.getElementById("chain-board").hidden = chain_active is None
+    if not chain_open:
+        return
+    solved, golds = chain_medal_counts()
+    document.getElementById("chain-progress").innerText = (
+        f"Solved {solved} of {len(CHAIN_PUZZLES)} puzzles, gold on {golds}. "
+        + " ".join(f"{CHAIN_CHAPTERS[c][0]}: {chain_solved_in_chapter(c)}/{sum(1 for p in CHAIN_PUZZLES if p['chapter'] == c)}." for c in CHAIN_CHAPTERS)
+    )
+    document.getElementById("chain-status").innerText = chain_status_text()
+    document.getElementById("chain-leave-button").hidden = chain_active is None
+    if chain_active is None:
+        _chain_options_for = None
+        return
+    puzzle = CHAIN_BY_ID[chain_active]
+    result = chain_draft_result()
+    chapter = CHAIN_CHAPTERS[puzzle["chapter"]][0]
+    document.getElementById("chain-title").innerText = f"Chapter {puzzle['chapter']}, {chapter}: {puzzle['title']}"
+    document.getElementById("chain-blurb").innerText = puzzle["blurb"]
+    document.getElementById("chain-rules").innerText = (
+        f"Each ship holds {puzzle['cargo']} units. The fleet has {puzzle['fleet']} ships ({chain_ships_on_board()} on the board). "
+        f"A cycle is {CHAIN_CYCLE} ticks. Sources and refineries can only do so much each cycle; ports take up to a limit."
+    )
+    for number, (done, text) in enumerate(chain_goal_lines(puzzle, result)):
+        document.getElementById(f"chain-goal-{number}").innerText = ("✓ Done: " if done else "○ Not yet: ") + text
+    document.getElementById("chain-map").innerHTML = chain_map_svg(puzzle)
+    document.getElementById("chain-map").setAttribute(
+        "aria-label", "Map of the sites. " + " ".join(chain_site_line(puzzle, sid) for sid in puzzle["sites"])
+    )
+    document.getElementById("chain-sites-text").innerText = " ".join(chain_site_line(puzzle, sid) for sid in puzzle["sites"])
+    document.getElementById("chain-distances-text").innerText = chain_distances_text(puzzle)
+    two = len(puzzle["products"]) > 1
+    new_puzzle = _chain_options_for != chain_active
+    _chain_options_for = chain_active
+    for index in range(CHAIN_MAX_PRODUCTS):
+        tab = document.getElementById(f"chain-product-{index}-tab")
+        block = document.getElementById(f"chain-p{index}-block")
+        present = index < len(puzzle["products"])
+        tab.hidden = not (present and two)
+        block.hidden = not present
+        if not present:
+            continue
+        product = puzzle["products"][index]
+        tab.innerText = f"Order {index + 1}: {chain_good_name(product['good'])}"
+        tab.setAttribute("aria-pressed", "true" if chain_tab == index else "false")
+        document.getElementById(f"chain-p{index}-title").innerText = (
+            f"Order {index + 1}: {chain_goods_line(puzzle, index)} for {puzzle['sites'][product['port']]['name']}. "
+            f"Needs {product['need']} a cycle, takes up to {product['want']}."
+        )
+        path = chain_path(product["good"])
+        entry = chain_plan[index]
+        full = entry["sites"] + [product["port"]]
+        for stage in range(CHAIN_MAX_STAGES):
+            row = document.getElementById(f"chain-p{index}-s{stage}-row")
+            row.hidden = stage >= len(path)
+            if stage >= len(path):
+                continue
+            select = document.getElementById(f"chain-p{index}-s{stage}-select")
+            label = chain_stage_label(puzzle, index, stage)
+            document.getElementById(f"chain-p{index}-s{stage}-label").innerText = label
+            select.setAttribute("aria-label", f"Order {index + 1}: {label}")
+            if new_puzzle:
+                options = ['<option value="">Choose a site</option>']
+                for sid, site in puzzle["sites"].items():
+                    if chain_fits(site, path, stage):
+                        detail = f"supplies {site['cap']} a cycle" if site["kind"] == "source" else f"takes in {site['cap']} a cycle"
+                        options.append(f'<option value="{_chain_esc(sid)}">{_chain_esc(site["name"])} ({detail})</option>')
+                select.innerHTML = "".join(options)
+            select.value = entry["sites"][stage] or ""
+            leg = result["legs"][index][stage] if result is not None and result["ok"] else None
+            if full[stage] is not None and full[stage + 1] is not None:
+                a, b = full[stage], full[stage + 1]
+                text = (f"{puzzle['sites'][a]['name']} to {puzzle['sites'][b]['name']}: {chain_distance(puzzle, a, b)} steps, "
+                        f"{chain_trips(puzzle, a, b)} round trips a cycle, {puzzle['cargo'] * chain_trips(puzzle, a, b)} units per ship.")
+            else:
+                text = "Choose this step's site and the next to see the leg."
+            if leg is not None:
+                text += f" Moves {leg['moved']} of a possible {leg['capacity']}."
+            ships = entry["ships"][stage]
+            document.getElementById(f"chain-p{index}-l{stage}-text").innerText = f"{text} Ships on this leg: {ships}."
+            document.getElementById(f"chain-p{index}-l{stage}-down-button").disabled = ships <= 1
+            document.getElementById(f"chain-p{index}-l{stage}-up-button").disabled = not chain_can_add_ship(index, stage)
+    lines = chain_result_lines(puzzle, result)
+    document.getElementById("chain-result").innerHTML = "".join(f"<p>{_chain_esc(line)}</p>" for line in lines)
+    document.getElementById("chain-lock-button").disabled = not (result is not None and result["ok"] and result["met"])
+    document.getElementById("chain-hint-button").innerText = chain_hint_label()
+    for rung in range(1, 4):
+        hint = document.getElementById(f"chain-hint-{rung - 1}-text")
+        hint.hidden = rung > chain_hint_rung
+        hint.innerText = chain_hint_text(puzzle, rung) if rung <= chain_hint_rung else ""
+    _chain_sync_levels()
+
+
+# --- Chain Builder: puzzle picker on the shared level select (shared/level-select.js) ------------------------------
+_chain_levels = None
+_level_select_proxies = []
+
+
+def _chain_js_window():
+    try:
+        from js import window  # noqa: PLC0415 -- Pyodide-only, deliberately lazy
+    except ImportError:
+        return None
+    return window
+
+
+def _chain_to_js(value):
+    try:
+        from js import Object  # noqa: PLC0415
+        from pyodide.ffi import to_js  # noqa: PLC0415
+    except ImportError:
+        return None
+    return to_js(value, dict_converter=Object.fromEntries)
+
+
+def chain_levels_list():
+    """The puzzles as level-select entries; the first puzzle of each later chapter is flagged as a new mechanic."""
+    levels = []
+    for index, puzzle in enumerate(CHAIN_PUZZLES):
+        opens_chapter = index == 0 or CHAIN_PUZZLES[index - 1]["chapter"] != puzzle["chapter"]
+        levels.append({
+            "id": puzzle["id"], "title": puzzle["title"],
+            "kind": "mechanic" if opens_chapter and puzzle["chapter"] > 1 else "level",
+            "blurb": f"Chapter {puzzle['chapter']}, {CHAIN_CHAPTERS[puzzle['chapter']][0]}. {puzzle['blurb']}",
+            "better": "higher", "unit": "per ship",
+        })
+    return levels
+
+
+def chain_levels_state():
+    done, best = [], {}
+    for puzzle in CHAIN_PUZZLES:
+        entry = _chain_real_best().get(puzzle["id"])
+        if entry is not None:
+            score = Fraction(entry["units"], entry["ships"])
+            done.append(puzzle["id"])
+            best[puzzle["id"]] = {"value": float(score),
+                                  "text": f"{CRISIS_MEDAL_MARK[chain_medal_for(puzzle, entry['units'], entry['ships'])]} {chain_score_text(score)} per ship"}
+    return {"done": done, "best": best}
+
+
+def _make_level_start_proxy(handler):
+    proxy = create_proxy(lambda level_id, level=None: handler(str(level_id)))
+    _level_select_proxies.append(proxy)
+    return proxy
+
+
+def _level_select_create(dom_id, title, levels, state, on_start):
+    """A shared level-select screen, or None when the page has none (a test, or the script failed to load)."""
+    window = _chain_js_window()
+    factory = getattr(getattr(window, "NoyvjLevels", None), "create", None) if window is not None else None
+    if factory is None:
+        return None
+    options = _chain_to_js({
+        "domId": dom_id, "title": title, "levels": levels, "state": state,
+        "onStart": _make_level_start_proxy(on_start),
+        "onChange": create_proxy(lambda *args: None),  # progress is Python's: the screen stores nothing itself
+    })
+    if options is None:
+        return None
+    try:
+        return factory(options)
+    except Exception:  # noqa: BLE001 -- a JS-side failure must never break the game
+        return None
+
+
+def _chain_sync_levels():
+    if _chain_levels is None:
+        return
+    payload = _chain_to_js(chain_levels_state())
+    try:
+        if payload is not None:
+            _chain_levels.setState(payload)
+    except Exception:  # noqa: BLE001
+        pass
+
+
+def on_chain_pick(event=None):
+    global _chain_levels
+    if _chain_levels is None:
+        _chain_levels = _level_select_create(
+            "chain-select", "Chain Builder puzzles", chain_levels_list(), chain_levels_state(), chain_enter)
+    if _chain_levels is None:
+        chain_enter(next((p["id"] for p in CHAIN_PUZZLES if p["id"] not in _chain_real_best()), CHAIN_PUZZLES[0]["id"]))
+        return
+    _chain_sync_levels()
+    _chain_levels.open()
 
 
 # @@NEW-FEATURES-END@@ (new feature blocks are inserted above this line)
@@ -7021,7 +8257,7 @@ def sandbox_is_active():
 def _sandbox_top_up():
     """The balance never drops below SANDBOX_CREDITS (called from every render, so also after each purchase)."""
     global total_profit, max_profit_ever
-    if sandbox_active and crisis_active is None and total_profit < SANDBOX_CREDITS:  # a crisis has its own purse
+    if sandbox_active and crisis_active is None and chain_active is None and total_profit < SANDBOX_CREDITS:  # a crisis has its own purse
         total_profit = SANDBOX_CREDITS
         max_profit_ever = max(max_profit_ever, total_profit)
 
@@ -7053,13 +8289,9 @@ def _sandbox_state():
     return data
 
 
-def sandbox_enter():
-    """Sets the real corporation aside and starts a practice one. True when the sandbox is on."""
+def _sandbox_set_real_aside():
+    """Takes the real corporation's snapshot (what get_state() answers while the sandbox, a crisis or a chain puzzle is on)."""
     global sandbox_active, _sandbox_real
-    if sandbox_active and crisis_active is not None:  # J-9: leave a crisis first, then start the sandbox from the real game
-        sandbox_leave()
-    if sandbox_active:
-        return True
     snapshot = get_state()
     _sandbox_real = {
         "snapshot": snapshot,
@@ -7067,6 +8299,15 @@ def sandbox_enter():
         "guild_cooldown": guild_cooldown,
     }
     sandbox_active = True
+
+
+def sandbox_enter():
+    """Sets the real corporation aside and starts a practice one. True when the sandbox is on."""
+    if sandbox_active and (crisis_active is not None or chain_active is not None):
+        sandbox_leave()  # J-9, J-5: leave a crisis or a chain puzzle first, then start the sandbox from the real game
+    if sandbox_active:
+        return True
+    _sandbox_set_real_aside()
     _reset_running_tables()
     _apply_state(_sandbox_state())
     _sandbox_top_up()
@@ -7081,6 +8322,7 @@ def _sandbox_restore_real(apply_snapshot=True):
     sandbox_active = False
     _sandbox_real = None
     _crisis_clear()
+    _chain_clear()
     if real is None:
         return
     if apply_snapshot:
@@ -7206,6 +8448,22 @@ def setup():
         document.getElementById(f"crisis-{crisis_id}-start-button").addEventListener(
             "click", create_proxy(_make_crisis_start_handler(crisis_id))
         )
+    document.getElementById("chain-toggle-button").addEventListener("click", create_proxy(on_toggle_chain))
+    document.getElementById("chain-pick-button").addEventListener("click", create_proxy(on_chain_pick))
+    document.getElementById("chain-leave-button").addEventListener("click", create_proxy(on_chain_leave))
+    document.getElementById("chain-lock-button").addEventListener("click", create_proxy(on_chain_lock))
+    document.getElementById("chain-clear-button").addEventListener("click", create_proxy(on_chain_clear))
+    document.getElementById("chain-hint-button").addEventListener("click", create_proxy(on_chain_hint))
+    document.getElementById("chain-map").addEventListener("click", create_proxy(on_chain_map_click))
+    for index in range(CHAIN_MAX_PRODUCTS):
+        document.getElementById(f"chain-product-{index}-tab").addEventListener("click", create_proxy(_make_chain_tab_handler(index)))
+        for stage in range(CHAIN_MAX_STAGES):
+            document.getElementById(f"chain-p{index}-s{stage}-select").addEventListener(
+                "change", create_proxy(_make_chain_select_handler(index, stage)))
+            document.getElementById(f"chain-p{index}-l{stage}-down-button").addEventListener(
+                "click", create_proxy(_make_chain_ship_handler(index, stage, -1)))
+            document.getElementById(f"chain-p{index}-l{stage}-up-button").addEventListener(
+                "click", create_proxy(_make_chain_ship_handler(index, stage, 1)))
     document.getElementById("meridian-toggle-button").addEventListener("click", create_proxy(on_toggle_meridian))
     document.getElementById("meridian-undercut-button").addEventListener("click", create_proxy(on_undercut_meridian))
     document.getElementById("meridian-intel-button").addEventListener("click", create_proxy(on_buy_meridian_intel))

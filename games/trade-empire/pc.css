@@ -159,4 +159,4 @@ html[data-theme="light"] #ledger-ribbon { color: #1b2033; }
 
 /* Market Desk and Fleet Lab rows (TODO batch 2): keep the small buttons their natural size. */
 .cartel-row { display: grid; grid-template-columns: 1fr auto auto; gap: 0.4rem; }
-.cartel-row button, .exchange-order-row button, .bp-design-row button, .lab-actions button { width: auto; flex: 0 0 auto; }
+.cartel-row button, .exchange-order-row button, .bp-design-row button, .lab-actions button, .chain-ship-buttons button { width: auto; flex: 0 0 auto; }
