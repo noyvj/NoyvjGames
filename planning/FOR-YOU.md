@@ -376,3 +376,30 @@ Default: yes as a relative word with a date, never a price. Say "yes" to go with
 
 Recommended: yes, the fixed shocks are the supply-chain disruption, since you dislike random luck. Say "yes" to go with that, "no" if you still want a random version.
 
+### Dg3. Dream game: which main story do you want (three options are written in `planning/DREAM-GAME-PLAN.md`: 1 The Sleeping Caretaker, 2 The Ledger of the Cabin, 3 Why It Is Always Night)?
+
+Recommended: Option 2 (the Ledger of the Cabin: a notebook you fill in, collecting and completing, no deadline), with Option 1's broken caretaker machine as a recurring character inside it. Say "2", another number, or a mix; keeper quests (TODO DG-4) wait on this.
+
+### Se1. Google Search Console token (TODO Y-8, action for you)
+
+The sitemap, robots file and per-game JSON-LD are done; the last step needs a verification token only you can get. Sign in to Google Search Console with your own account, add `https://noyvj.github.io/NoyvjGames/` as a property, choose the HTML-tag or HTML-file method and paste the token (or the file name) here. Say "later" to leave it parked.
+
+### Lx1. Lexis (TODO FY-13): you answered "no" with "Continue to grow it." Did you mean keep building planets 4 and 5 (the Large size), or not to build them?
+
+Recommended: keep growing it, so I will build planets 4 and 5 when Lexis next comes up. Say "yes" to go with that, "no" if you meant to stop at three worlds.
+
+### Th2. Thaw (TODO G-6): a difficulty panel with sliders (background rise, feedback strength, starting funds, monitor cost) that tags custom runs and keeps them out of the community comparison. Do you want it, given a hard mode and a Custom preset now exist?
+
+Recommended: yes, but only as three named presets (Gentle, Standard, Severe) rather than free sliders, so a number cannot make the game unwinnable; custom-tagged runs stay out of comparisons. Say "yes" for that, "sliders" for the full version, or "no".
+
+### Th3. Thaw (TODO GG-16): research-grant notes offering a small gamble (30 funds now, or 60 only if no region tips next round). You dislike luck, though this one is fully deterministic and shows its odds. Build it?
+
+Recommended: no, drop it: it is a gamble in spirit even when the outcome is fixed in advance, and Thaw already has plenty of spending choices. Say "yes" to build it as an optional toggle, "no" to drop it.
+
+### Th4. Thaw (TODO GG-30): a daily boon (first session each day offers a choice of two tiny boons, no streak). You said you dislike once-a-day mechanics. Build it?
+
+Recommended: no. Say "yes" if you want it as an opt-in extra.
+
+### Ti1. Titles (TODO AN-16): account-wide titles are built and Le Champ de Mots' per-game title is removed. Other games have progression ranks that look like titles (Canopy forest and contract ranks, Continuum dynasty ranks, Lighthouse reputation titles, Thaw run and forecast titles, Herd rating titles, Drift region titles). Should any of them go?
+
+Recommended: none: they are progression systems that unlock things or describe a run, not a title for you as a player. Say "none", or name the ones to remove.
