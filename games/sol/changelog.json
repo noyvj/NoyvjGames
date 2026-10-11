@@ -1,6 +1,10 @@
 {
   "changelog": [
     {
+      "date": "2026-10-12",
+      "entry": "Changed: the Ghost Run now reads through the site's shared ghost. Nothing about the race, your recordings or your save changes, and older recordings keep working. A screen reader now also gets one plain sentence about the race (for example: ghost: you are 3 points ahead of your best run at checkpoint 12), refreshed every few checkpoints rather than at every one. The Ghost run switch still turns the whole thing off."
+    },
+    {
       "date": "2026-10-11",
       "entry": "New: the Ghost Run. Normal play now records your terraform progress every 25 ticks, in this browser only, and keeps the recording when you set a new fastest playthrough. Turn on Ghost run in the Speedrun splits panel (it needs Show timing in Settings) to race it: a split track shows how many points ahead (+) or behind (-) you are, in words as well as signs. In a Scarcity Run you can race your best for that day, the Governor alone, or a friend's blueprint code played by the Governor with their Doctrines and rule twists."
     },

@@ -1,8 +1,10 @@
 import challenges
 import copy
 import export_progress
+import ghost as ghost_lib  # Z-3d3: the shared ghost-run trace (shared/ghost.py)
 import json
 import math
+import re
 from js import document, setInterval, setTimeout
 from pyodide.ffi import create_proxy
 
@@ -7856,6 +7858,71 @@ def _ghost_lead_now():
     return _live_ghost[-1] / 10.0, challenges.ghost_value(_pb_ghost, len(_live_ghost) - 1), "your best run"
 
 
+# Z-3d3: the same race, told through the shared ghost (shared/ghost.py). A recording's checkpoints (average terraform
+# percent every GHOST_STEP ticks, one number per checkpoint, so a "turn" here is a 25-tick checkpoint) are run through
+# ghost.Recorder into a shared trace; ghost.compare/summary then give the one-line sentence for screen readers
+# (#ghost-sentence, a polite status). The recording above stays the stored form (full resolution for the split track,
+# nothing new is saved), so every older recording gives a shared trace with no migration.
+GHOST_SENTENCE_EVERY = 8  # checkpoints (200 ticks) between two refreshes of the sentence, so a screen reader is not chatty
+_trace_cache = {"recording": None, "trace": None}
+_ghost_sentence_state = {"n": -1, "text": ""}
+
+
+def ghost_trace(recording, label="best run"):
+    """The shared ghost trace for a stored recording (percent, one number per checkpoint), or None."""
+    if recording is None:
+        return None
+    if _trace_cache["recording"] is recording:
+        return _trace_cache["trace"]
+    recorder = ghost_lib.Recorder()
+    for tenths in recording["pct"]:
+        recorder.record(tenths / 10.0)
+    trace = recorder.trace(label)
+    _trace_cache["recording"], _trace_cache["trace"] = recording, trace
+    return trace
+
+
+def ghost_sentence(samples, recording, label):
+    """ghost.summary for the live samples (tenths of a percent) against a recording: 'ghost: you are 2.5 points ahead of
+    your best run at checkpoint 12'. '' when there is nothing to compare or the run is longer than the shared cap."""
+    trace = ghost_trace(recording)
+    if trace is None or not samples or len(samples) > ghost_lib.HARD_INPUT_LIMIT:
+        return ""
+    result = ghost_lib.compare([tenths / 10.0 for tenths in samples], trace)
+    if result is None:
+        return ""
+    text = ghost_lib.summary(result, label=label, unit=" points")
+    return re.sub(r"\bturn (\d+)", r"checkpoint \1", text)
+
+
+def _ghost_racing():
+    """(samples, recording, label) of the ghost being raced right now, or None."""
+    if _scarcity is not None:
+        run = _scarcity
+        if run["ghost"] is None or not run["samples"]:
+            return None
+        return run["samples"], run["ghost"], run["ghost_label"]
+    if not ghost_enabled() or _pb_ghost is None or run_completed or not _live_ghost:
+        return None
+    return _live_ghost, _pb_ghost, "your best run"
+
+
+def _refresh_ghost_sentence():
+    racing = _ghost_racing()
+    box = document.getElementById("ghost-sentence")
+    if racing is None:
+        _ghost_sentence_state.update(n=-1, text="")
+    else:
+        samples = racing[0]
+        stale = _ghost_sentence_state["n"] < 0 or len(samples) < _ghost_sentence_state["n"] \
+            or len(samples) - _ghost_sentence_state["n"] >= GHOST_SENTENCE_EVERY
+        if stale:
+            _ghost_sentence_state.update(n=len(samples), text=ghost_sentence(*racing))
+    if box is not None:
+        box.innerText = _ghost_sentence_state["text"]
+        box.hidden = not _ghost_sentence_state["text"]
+
+
 def _refresh_ghost_strip():
     strip = document.getElementById("ghost-strip")
     lead = _ghost_lead_now()
@@ -7865,6 +7932,7 @@ def _refresh_ghost_strip():
     else:
         mine, ghost, label = lead
         strip.innerText = f"Ghost ({label}): you {mine:.1f}%, ghost {ghost:.1f}%, {challenges.lead_text(mine, ghost)}."
+    _refresh_ghost_sentence()
     track = _scarcity_refs.get("track") if _scarcity is not None else _splits_refs.get("track")
     if track is not None:
         if _scarcity is not None:

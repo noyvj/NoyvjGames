@@ -102,6 +102,7 @@ ELEMENT_IDS = [
     "scarcity-strip-text",
     "scarcity-leave-button",
     "ghost-strip",
+    "ghost-sentence",
     "anomaly-strip",
     "era-tagline",
     "blueprint-make-button",

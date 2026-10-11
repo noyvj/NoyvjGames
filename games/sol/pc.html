@@ -143,6 +143,8 @@
     </div>
     <!-- A-29: the Ghost Run line (lead or lag in terraform points, in words), shown only while a ghost is racing. -->
     <p id="ghost-strip" class="ghost-strip" hidden></p>
+    <!-- Z-3d3: the same race as one sentence from the shared ghost, for screen readers (visually hidden, a polite status). -->
+    <p id="ghost-sentence" class="ghost-sentence" role="status" hidden></p>
     <div id="howto-panel" class="section" hidden></div>
     <!-- Settings panel (site-wide goal, planning/TODO.md): text-scale + reduced-motion,
          consolidated into one panel per settings.js. A browser preference, not game
@@ -1435,6 +1437,9 @@
       ]);
       pyodide.FS.writeFile("seed.py", seedSource, { encoding: "utf8" });
       pyodide.FS.writeFile("challenges.py", challengesSource, { encoding: "utf8" });
+      // Z-3d3: the shared ghost-run trace (shared/ghost.py): the Ghost Run's sentence is built through it.
+      const ghostSource = await (await fetch("../../shared/ghost.py")).text();
+      pyodide.FS.writeFile("ghost.py", ghostSource, { encoding: "utf8" });
       // ACHIEVEMENTS-SYSTEM-DESIGN.md's loading contract: fetch the static
       // catalog and hand it to Python as a window global *before* game.py
       // runs, same pattern Le Champ de Mots established for its own JSON

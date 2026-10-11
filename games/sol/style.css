@@ -1882,6 +1882,9 @@ html[data-era-look="on"][data-era="custodian"] .prestige-badge { border-color: #
 /* --- A-11 / A-12 / A-29: Scarcity Run, seed words, Ghost Run (text and symbols carry every meaning, never colour alone) --- */
 .scarcity-strip { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; margin: 0.4rem 0; padding: 0.4rem 0.7rem; border: 1px solid rgba(160, 175, 220, 0.4); border-left: 4px double #e0b24c; border-radius: 8px; font-size: 0.85rem; text-align: left; }
 .scarcity-strip[hidden], .ghost-strip[hidden] { display: none; }
+/* Z-3d3: the shared ghost sentence is for screen readers only; the strip above carries the same race in words. */
+.ghost-sentence { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap; border: 0; }
+.ghost-sentence[hidden] { display: none; }
 .ghost-strip { margin: 0.3rem 0; padding: 0.3rem 0.7rem; border: 1px solid rgba(160, 175, 220, 0.3); border-left: 4px dashed #8fb4ff; border-radius: 8px; font-size: 0.85rem; font-variant-numeric: tabular-nums; text-align: left; }
 .scarcity-ghost-row, .scarcity-calendar-head { display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem; }
 .scarcity-calendar-head { justify-content: space-between; }
