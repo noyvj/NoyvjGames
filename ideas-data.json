@@ -468,6 +468,16 @@
        "n": "Ti1",
        "text": "**Titles (TODO AN-16): account-wide titles are built and Le Champ de Mots' per-game title is removed. Other games have progression ranks that look like titles (Canopy forest and contract ranks, Continuum dynasty ranks, Lighthouse reputation titles, Thaw run and forecast titles, Herd rating titles, Drift region titles). Should any of them go?** Recommended: none: they are progression systems that unlock things or describe a run, not a title for you as a player. Say \"none\", or name the ones to remove.",
        "answered": false
+      },
+      {
+       "n": "Rf1",
+       "text": "**Rule Finder: is \"par\" for a case the shortest set of tests plus 2 acceptable, or should it be exact?** Recommended: shortest plus 2 (a person needs a little more than a perfect oracle). Say \"yes\" to keep it.",
+       "answered": false
+      },
+      {
+       "n": "Rf2",
+       "text": "**Rule Finder: should the \"Answer\" hint rung be allowed to give a gold medal and the Quick Eye achievement (hints never touch the medal, as the plan says), or should using the Answer rung cap the medal at bronze?** Recommended: cap at bronze, so the answer never counts as a clean solve. Say \"yes\" to cap it.",
+       "answered": false
       }
      ]
     }
