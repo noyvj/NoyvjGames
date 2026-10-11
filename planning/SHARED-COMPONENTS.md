@@ -777,3 +777,24 @@ ghost.toggle(); ghost.show(); ghost.hide(); ghost.isOn(); ghost.summary(); ghost
 The group is inserted as the first child of the svg (behind the chart's own lines), ignores the pointer, and carries `data-noyvj-ghost` and `data-testid="ghost-line"`. It is never colour alone: dashed, 60% opacity, labelled "Ghost: Best run" in SVG text, with a `<title>` and an `aria-label` holding the sentence. Colour comes from the CSS variable `--ghost-color` (and `--ghost-halo` for the text outline). Hiding it also clears `summaryEl`. At most 400 points are drawn however long the run. Text is written only with `textContent`/`setAttribute`; nothing calls the network.
 
 **Adopting it (Z-3c to Z-3e):** the game's Python records `Recorder.record(metric)` at the end of every turn and, when a run finishes better than the stored best, saves `recorder.trace(label)` in its state (loading with `ghost.load`, so old saves simply have no ghost). The page then calls `NoyvjGhost.draw(...)` after each chart render with the trace the Python side exposes, or the game keeps drawing its own line from `ghost.value_at` and uses only `compare`/`summary` for the words. The two files are in `sw.js`'s precache list.
+
+## What a "daily" means for a game with no randomness (TODO Z-5d, 2026-10-12)
+
+**Default rule (written by the building session; the owner may change it):** a game with no randomness is **exempt** from the daily seed unless it has **authored content**. A game with an authored list (levels, rooms, boards, cases, shifts, benches, bays) gets a **content of the day** instead: one entry of that list per UTC day, the same for everyone, chosen only from the date. Nothing is generated, nothing about the game changes, and a missed day costs nothing.
+
+How a content-of-the-day pick works, so the games do it the same way:
+- The pick is a pure function of the UTC date and the list: `NoyvjSeed.daily.seed(game, date)` gives the day's seed text, and `Rng(seed).below(len(list))` (or the game's own stable hash of that text) names the entry. Use only entries a new player can open (the first chapter or drawer is the safe default), so a locked level is never offered.
+- The button is the usual `NoyvjSeed.daily.mountButton` ("Today's run"); `onStart` opens that entry through the game's normal "open this level" path. Finishing it the normal way calls `markCompleted` only when the entry opened is today's pick for today's date; an older day's pick, or the same entry opened from the level list on another day, never counts. It never changes a seal, medal, hint or save, and adds no save key (the pick is recomputed from the date).
+- A game whose brief bans the idea stays exempt, whatever it has authored (below).
+
+**Which games fall where** (read from each game's `CLAUDE.md`):
+
+| Group | Games |
+|---|---|
+| Real daily or "Today's run" already (seeded or dated content) | Signal, SOL, Heist Committee, Pocket Bazaar, Dead Reckoning, Evidence Hunt (the house its seed text makes), Grid, Lighthouse, Canopy and Aftermath (shared seed), Continuum (its own K-12 geography seed) |
+| Exempt: simulations or sandboxes with no authored list to pick from (the starting scenario is the player's choice) | Herd, Thaw, Loop, Drift, Tide, Trade Empire |
+| Exempt by the owner's own brief | Stranded (its `CLAUDE.md` bans daily mechanics outright; also no randomness, clocks or leaderboards) |
+| Content of the day, once built (authored list, no randomness) | Logic Gates (40 levels), Robot Script (42 rooms), Hull Repair (44 boards), Station Medic (60 shifts), Rule Finder (48 cases), Mirror Lab (24 benches), Picture Grid (its pictures), Zero-G Shift (48 bays), Chronicle (one authored set, one puzzle of the day), Lexis (its authored puzzles, first rung only) |
+| Study tool, decision pending (Z-1d) | Le Champ de Mots |
+
+Watch for these when a content-of-the-day game is built: Evidence Hunt, Stranded, Robot Script, Hull Repair, Station Medic, Rule Finder and Mirror Lab each have a `tests/test_pledge.py` that scans their own player-facing files for banned words, and "daily" and "streak" are on several of those lists. The shared button's own text lives in `shared/seed.js` (not scanned), so the wiring belongs in a small separate file (Evidence Hunt's `today.js` is the example) and the pledge text must be changed by the owner, not worked around. The shared button's streak line ("3 days in a row, best 5", or "Best streak 5: a new one starts whenever you like") also shows in these games; if a brief says "nothing can be missed", the owner may prefer the streak line hidden for that game.
