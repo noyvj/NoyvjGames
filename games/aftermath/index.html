@@ -312,6 +312,9 @@
       <p id="next-event-display" class="status-line">Next: Flood</p>
       <!-- E8/E16: expected-damage-this-event preview with numeric severity. -->
       <p id="expected-damage-display" class="status-line"></p>
+      <!-- Z-3d: the ghost of your best run on this schedule, in words (Aftermath has no chart), with its off switch. -->
+      <p id="ghost-note" class="status-line ghost-note" role="status" hidden></p>
+      <label id="ghost-toggle-wrap" class="mentor-toggle-label ghost-toggle-label" hidden><input type="checkbox" id="ghost-toggle" checked> Show the ghost of my best run</label>
       <!-- R-31: the mutual-aid gift planned for this run, shown before it arrives (empty unless switched on in Settings). -->
       <p id="neighbour-aid-display" class="status-line neighbour-aid-display" role="status" hidden></p>
       <!-- GE-15: what a Flawless Defense needs for the coming event. -->
@@ -800,7 +803,8 @@
       pyodide.FS.writeFile("export_progress.py", exportProgressSource, { encoding: "utf8" });
       // E-4: the shared run-code module needs seed.py next to it (alphabet, prefix rule, hash).
       // E-2/E-11/GE-16: skill_tree.py is the shared skill-tree rules module (W-3), used for the skill map's states, tiers and checks.
-      for (const f of ["seed.py", "run_code.py", "skill_tree.py"]) {
+      // Z-3d: ghost.py is the shared best-run ghost (Recorder, load, compare, summary).
+      for (const f of ["seed.py", "run_code.py", "skill_tree.py", "ghost.py"]) {
         const src = await (await fetch("../../shared/" + f)).text();
         pyodide.FS.writeFile(f, src, { encoding: "utf8" });
       }

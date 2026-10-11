@@ -1,5 +1,9 @@
 [
   {
+    "date": "2026-10-12",
+    "entry": "New: a ghost of your best run. After each event, a line under the damage preview says whether you are ahead of, level with or behind your best earlier run on the same schedule, counted in resources left (for example: ghost: you are 12 resources ahead of your best run (Run 3) at turn 4). Each schedule keeps its own best run, challenge runs and built schedules are left out, and a checkbox under the preview switches the line off. Older saves are unchanged: a run saved before this simply cannot be compared."
+  },
+  {
     "date": "2026-10-11",
     "entry": "New: the Settlement Chronicle (a Chronicle button, or Menu > Records on the Desktop layout). A scrollable timeline across all your runs, built from what you have already played so old saves have one at once: the first time you weathered each kind of event, the worst disaster so far, each new best score, your first Flawless Defense, and, as you go, the skills you adopt, points you move, memories your settlement forms, curriculum lessons you finish and any Second Founding. Copy the chronicle as plain text to keep or share."
   },

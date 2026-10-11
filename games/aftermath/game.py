@@ -14,6 +14,7 @@ import json
 import time
 
 import export_progress
+import ghost as ghost_lib  # Z-3d: the shared best-run ghost (shared/ghost.py)
 import info_page
 import run_code as shared_run_code
 import seed as shared_seed
@@ -977,6 +978,45 @@ def _sanitize_founding(value):
     return out
 
 
+GHOST_STORAGE_KEY = "aftermath-ghost-on"   # a display preference (not part of any save): "0" switches the ghost note off
+
+
+def ghost_mode_lengths():
+    """Z-3d: the ghost modes and how many events each one's run has: every scenario, and its doubled
+    (extended) form under the key "<scenario>:long"."""
+    out = {}
+    for name, scenario in SCENARIOS.items():
+        out[name] = len(scenario["schedule"])
+        out[name + ":long"] = len(scenario["schedule"]) * 2
+    return out
+
+
+def ghost_mode_key(scenario, extended):
+    return scenario + (":long" if extended else "")
+
+
+def _sanitize_ghosts(value):
+    """Z-3d: meta["ghosts"], {mode key: {"run", "score", "trace"}}: your best finished run per schedule, as a
+    shared ghost trace of the resources left after each event. Every entry is cleaned through ghost.load; an
+    unknown mode, a bad score or a trace whose length is not that schedule's event count is dropped."""
+    out = {}
+    if not isinstance(value, dict):
+        return out
+    lengths = ghost_mode_lengths()
+    for key, item in value.items():
+        if key not in lengths or not isinstance(item, dict):
+            continue
+        trace = ghost_lib.load(item.get("trace"))
+        score = ghost_lib.clean_number(item.get("score"))
+        run_number = item.get("run")
+        if trace is None or score is None or trace["turns"] != lengths[key]:
+            continue
+        if isinstance(run_number, bool) or not isinstance(run_number, int) or run_number < 1:
+            run_number = 0
+        out[key] = {"run": min(run_number, 10 ** 9), "score": score, "trace": trace}
+    return out
+
+
 def _sanitize_meta(data):
     meta = _default_meta()
     if not isinstance(data, dict):
@@ -1010,6 +1050,9 @@ def _sanitize_meta(data):
     meta["skill_progress"] = _sanitize_skill_progress(data.get("skill_progress", {}))
     meta["founding"] = _sanitize_founding(data.get("founding", {}))
     meta["chronicle"] = _sanitize_chronicle(data.get("chronicle", []))
+    ghosts = _sanitize_ghosts(data.get("ghosts"))  # Z-3d: the key exists only once a ghost does
+    if ghosts:
+        meta["ghosts"] = ghosts
     return meta
 
 
@@ -1471,6 +1514,9 @@ class RunState:
         self.growth_capacity = adaptive_growth_bonus(self._unlocked())
         self.damage_taken = 0.0
         self.event_log = []
+        # Z-3d: the resources left after each event so far (one number per event), the live side of the ghost.
+        # Saved only when the run can be compared with a ghost; a save from before it has none.
+        self.resources_log = []
         # Achievements ("profitable_run") need to compare a run's *final*
         # resources against what it actually started with -- which varies
         # run to run once skill-tree bonuses affect starting resources, so
@@ -1727,6 +1773,7 @@ class RunState:
         self.damage_taken += damage
         self.event_log.append({"type": event_type, "damage": damage, "severity": severity, **({"aid": aid} if aid else {})})
         self.event_index += 1
+        self.resources_log.append(self.resources)  # Z-3d
         self.allocation_history = []  # GE-18: nothing to undo after Resolve
         if entry_is_flawless(self.event_log[-1]):
             _note_achievement_progress(ever_flawless_defense=True)  # GE-15
@@ -1786,6 +1833,7 @@ class RunState:
                 save_run_log_history(run_log_history)
                 highest_awarded_run = self.run_number
                 save_highest_awarded_run(highest_awarded_run)
+                file_run_ghost(self)  # Z-3d
                 _chronicle_payout_notes(self)  # E-7: a memory that formed and a lesson that was finished
                 record_skill_progress(self)  # E-11: proven use of the skills owned, once per paid-out run
                 _season_run_finished(self.resources)
@@ -5218,6 +5266,106 @@ def render_schedule_text():
         text_el.innerText = schedule_plain_text(run)
 
 
+# ---- Z-3d: the ghost of your best run (shared/ghost.py) ----------------------------------------------
+# One number per event: the resources left after it. Your best finished run on each schedule (a scenario, or its
+# doubled form) is kept in meta["ghosts"] as a shared ghost trace; the next run on that schedule is compared with it
+# after every event, in words only (Aftermath has no chart to draw on). Challenge runs, built schedules and runs
+# that received neighbour aid are kept out, like every other comparison here. Nothing is timed or lost.
+def ghost_run_eligible(run_state):
+    """Can this run be compared with a ghost (and become one)? Not a friend's challenge, a built schedule
+    or a run with neighbour aid planned or received."""
+    return not (run_state.normalised or run_state.custom_events or run_state.aid_given or neighbour_aid_plan(run_state))
+
+
+def _load_resources_log(raw, event_index):
+    """The saved per-event resources, cleaned. Anything that is not exactly one finite number per event
+    already resolved (an older save, a hand-edited one) gives [] and the run simply has no ghost comparison."""
+    if not isinstance(raw, list) or event_index < 1 or len(raw) != event_index:
+        return []
+    cleaned = [ghost_lib.clean_number(v) for v in raw]
+    return [] if any(v is None for v in cleaned) else cleaned
+
+
+def ghost_entry(run_state):
+    """The stored best run for this run's schedule as {"run", "score", "trace"}, or None."""
+    key = ghost_mode_key(run_state.scenario, run_state.extended)
+    raw = meta.get("ghosts", {}).get(key)
+    return _sanitize_ghosts({key: raw}).get(key) if raw is not None else None   # re-checked on every read
+
+
+def file_run_ghost(run_state):
+    """Keep a just-finished run's trace as the schedule's ghost when it scores at least as well as the one it
+    replaces (the latest wins a tie). Returns True when it was filed."""
+    if not ghost_run_eligible(run_state) or len(run_state.resources_log) != len(run_state.schedule):
+        return False
+    recorder = ghost_lib.Recorder()
+    for value in run_state.resources_log:
+        recorder.record(value)
+    trace = recorder.trace(f"Run {run_state.run_number}")
+    score = ghost_lib.clean_number(run_state.run_score())
+    if trace is None or score is None:
+        return False
+    key = ghost_mode_key(run_state.scenario, run_state.extended)
+    previous = meta.get("ghosts", {}).get(key)
+    if previous is not None and score < previous["score"]:
+        return False
+    meta.setdefault("ghosts", {})[key] = {"run": run_state.run_number, "score": score, "trace": trace}
+    save_meta()
+    return True
+
+
+def ghost_enabled():
+    try:
+        return localStorage.getItem(GHOST_STORAGE_KEY) != "0"
+    except Exception:
+        return True
+
+
+def ghost_note_text(run_state=None):
+    """The sentence under the damage preview: where this run stands against the best run on the same schedule,
+    in the shared ghost wording. "" when this run cannot be compared."""
+    run_state = run_state or run
+    if not ghost_run_eligible(run_state):
+        return ""
+    entry = ghost_entry(run_state)
+    if entry is None:
+        return "Ghost: finish a run on this schedule and your best one is kept here to race, one number after each event."
+    trace, score = entry["trace"], ghost_lib.format_number(entry["score"])
+    if run_state.is_complete() and entry["run"] == run_state.run_number:
+        return f"Ghost: this run is your best on this schedule ({score} resources left). It will be the ghost for your next one."
+    if run_state.event_index == 0:
+        return (f"Ghost: your best run on this schedule ({trace['label'] or 'earlier run'}) ended with {score} resources. "
+                "It is compared with this run after every event.")
+    if len(run_state.resources_log) != run_state.event_index:
+        return "Ghost: this run was saved before ghosts were kept, so it cannot be compared. The next run can."
+    result = ghost_lib.compare(run_state.resources_log, trace)
+    if result is not None and result["status"] in ("ahead", "behind"):   # resources are read in whole numbers, like everywhere else
+        lead = int(round(result["lead"]))
+        result = dict(result, status="level", lead=0) if lead == 0 else dict(result, lead=lead)
+    who = f"your best run ({trace['label']})" if trace["label"] else "your best run"
+    return ghost_lib.summary(result, label=who, unit=" resources").replace("ghost: ", "Ghost: ", 1) + "."
+
+
+def render_ghost():
+    note, wrap, toggle = _el("ghost-note"), _el("ghost-toggle-wrap"), _el("ghost-toggle")
+    eligible = ghost_run_eligible(run)
+    if wrap is not None:
+        wrap.hidden = not eligible
+    if toggle is not None:
+        toggle.checked = ghost_enabled()
+    if note is not None:
+        text = ghost_note_text() if eligible and ghost_enabled() else ""
+        note.innerText = text
+        note.hidden = not text
+
+
+def on_toggle_ghost(event=None):
+    toggle = _el("ghost-toggle")
+    on = True if toggle is None else bool(toggle.checked)
+    _storage_write(GHOST_STORAGE_KEY, "1" if on else "0")
+    render_ghost()
+
+
 # ---- E-4: shareable run codes (shared/run_code.py) and challenge runs -------------------------------
 # A run code carries: a seed (5 characters), a mode word (a-z0-9, up to 8), a score and two numbers.
 # Aftermath uses them like this:
@@ -5837,6 +5985,7 @@ def render():
     document.getElementById("legacy-display").innerText = legacy_message()
     document.getElementById("societal-memory-display").innerText = societal_memory_message()
     render_mentor()
+    render_ghost()  # Z-3d
     render_real_world()
     render_schedule_strip()
     render_schedule_text()  # E-5
@@ -6309,6 +6458,9 @@ def get_state():
            if run.custom_events and not run.normalised else {}),
         # GE-23: the run timer's seconds so far, only for a run that is being timed.
         **({"timer_seconds": int(run.elapsed)} if run.timed and run.elapsed >= 1 else {}),
+        # Z-3d: the resources after each event, only while the run can be compared with a ghost.
+        **({"resources_log": [ghost_lib.clean_number(v) for v in run.resources_log]}
+           if run.resources_log and ghost_run_eligible(run) and len(run.resources_log) == run.event_index else {}),
         # Write-only projection (ACHIEVEMENTS-SYSTEM-DESIGN.md §1) — always
         # freshly recomputed, never read back by load_state() below.
         "summary": steward_summary(),  # B-23: write-only, never read back
@@ -6360,6 +6512,7 @@ def load_state(data):
     run.growth_capacity = data["growth_capacity"]
     run.damage_taken = data["damage_taken"]
     run.event_log = copy.deepcopy(data["event_log"])
+    run.resources_log = _load_resources_log(data.get("resources_log"), run.event_index)  # Z-3d: absent in older saves
     saved_seconds = data.get("timer_seconds")  # GE-23: absent from older saves; a bad value is ignored
     if (
         isinstance(saved_seconds, (int, float)) and not isinstance(saved_seconds, bool)
@@ -7967,6 +8120,9 @@ def setup():
     global mentor_enabled
     mentor_enabled = load_mentor_enabled()
     document.getElementById("mentor-toggle").addEventListener("change", create_proxy(on_toggle_mentor))
+    ghost_toggle = _el("ghost-toggle")
+    if ghost_toggle is not None:
+        ghost_toggle.addEventListener("change", create_proxy(on_toggle_ghost))
     document.getElementById("scenario-select").addEventListener("change", create_proxy(on_scenario_change))
     document.getElementById("new-run-button").addEventListener(
         "click", create_proxy(start_new_run)
