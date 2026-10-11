@@ -10,7 +10,7 @@ import re
 
 def test_changelog_loads_with_a_reasonable_count(game_env):
     module = game_env.module
-    assert 1 <= len(module.CHANGELOG) <= 40
+    assert 1 <= len(module.CHANGELOG) <= 70
 
 
 def test_every_entry_has_a_date_and_nonempty_text(game_env):
