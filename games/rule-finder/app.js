@@ -3,7 +3,7 @@
    logic lives here: whether an item goes Through is always the engine's answer. */
 (function () {
   "use strict";
-  var ENGINE_MODULES = ["lang.py", "cases_numbers.py", "cases.py", "progress.py"];
+  var ENGINE_MODULES = ["lang.py", "cases_numbers.py", "cases_shapes.py", "cases_two.py", "cases_not.py", "cases.py", "progress.py", "codex.py", "render.py"];
   var STORE_KEY = "rule-finder:state";
   var BACKUP_KEY = "rule-finder:state-backup";
   var SHAPE_NAMES = { c: "circle", s: "square", t: "triangle", d: "diamond" };
@@ -120,7 +120,7 @@
   function renderStats() {
     bumpStat("stat-named", view.totals.named + "/" + view.totals.cases);
     bumpStat("stat-tests", view.tally.tests);
-    bumpStat("stat-here", view.case.tests + " (par " + view.case.par + ")");
+    bumpStat("stat-codex", view.totals.pages + "/" + view.totals.cases);
     bumpStat("stat-clean", view.totals.clean);
     bumpStat("stat-near", view.tally.near);
   }
@@ -130,6 +130,7 @@
     var c = view.case;
     setText($("case-drawer"), c.drawer + " · case " + c.number + " of " + c.of + (c.status === "named" ? " · named" : ""));
     setText($("case-heading"), c.name);
+    setText($("here-line"), "Tests here: " + c.tests + " · par " + c.par + (c.free ? " · free counter-examples: " + c.free : "") + (c.best !== null ? " · your best: " + c.best : ""));
     setText($("case-brief"), c.blurb + " " + (c.max_clauses === 1 ? "A rule here is one property of a " + c.subject + "." : "A rule here is up to " + c.max_clauses + " properties joined together."));
   }
   function renderGate(animate) {
@@ -347,12 +348,14 @@
     var c = view.case;
     var next = $("next-button");
     var restart = $("restart-button");
+    var pageBtn = $("page-button");
     var item = $("verdict-item");
     var line = $("verdict-line");
     item.textContent = "";
     line.hidden = true;
     next.hidden = true;
     restart.hidden = true;
+    pageBtn.hidden = true;
     if (!v && c.status !== "named") { card.hidden = true; return; }
     card.hidden = false;
     var text = $("verdict-text");
@@ -391,6 +394,7 @@
     }
     next.hidden = !nextCase;
     restart.hidden = false;
+    pageBtn.hidden = false;
   }
 
   // ---- the drawers --------------------------------------------------------------------------------------
@@ -429,6 +433,73 @@
     });
   }
 
+  function renderMap() {
+    var holder = $("map-holder");
+    if (holder.dataset.sig === view.map) return;
+    holder.dataset.sig = view.map;
+    holder.innerHTML = view.map;
+  }
+  function onMapActivate(e) {
+    if (e.type === "keydown" && e.key !== "Enter" && e.key !== " ") return;
+    var slot = e.target.closest ? e.target.closest(".rf-slot[data-id]") : null;
+    if (!slot) return;
+    e.preventDefault();
+    send({ action: "pick", case: slot.getAttribute("data-id") });
+    $("cases-panel").hidden = true;
+    $("cases-toggle-button").setAttribute("aria-expanded", "false");
+    var anchor = $("case-panel");
+    if (anchor.scrollIntoView) anchor.scrollIntoView({ block: "start" });
+  }
+  function renderCodex() {
+    var counts = view.totals;
+    setText($("codex-summary"), counts.pages + " of " + counts.cases + " pages filled, " + counts.read + " read. A page fills when you name its case, in any order, and shows the shortest path: the fewest tests that would have proved the rule.");
+    $("codex-toggle-button").textContent = "Codex (" + counts.pages + "/" + counts.cases + ")";
+    var list = $("codex-list");
+    var shown = view.page ? view.page.id : "";
+    var sig = view.codex.map(function (e) { return (e.filled ? (e.read ? "r" : "f") : "e") + (e.id === shown ? "*" : ""); }).join("");
+    if (list.dataset.sig !== sig) {
+      list.dataset.sig = sig;
+      list.textContent = "";
+      var drawer = "";
+      view.codex.forEach(function (e) {
+        if (e.drawer !== drawer) { drawer = e.drawer; list.appendChild(el("h3", null, drawer)); }
+        var b = el("button", e.filled ? "filled" : "empty");
+        if (e.id === shown) b.className += " current";
+        b.type = "button";
+        b.dataset.testid = "rule-finder-page-" + e.id;
+        b.textContent = e.number + ". " + (e.filled ? e.name + (e.read ? "" : " (new)") : "Empty page");
+        b.setAttribute("aria-label", e.filled ? "Page " + e.number + ", " + e.name + (e.read ? "" : ", not read yet") : "Page " + e.number + " of " + e.drawer + ", empty until its case is named");
+        if (e.filled) b.addEventListener("click", function () { send({ action: "page", case: e.id }); });
+        else b.setAttribute("aria-disabled", "true");
+        list.appendChild(b);
+      });
+    }
+    var holder = $("codex-page");
+    var p = view.page;
+    var psig = p ? p.id + p.best : "";
+    if (holder.dataset.sig === psig) return;
+    holder.dataset.sig = psig;
+    holder.textContent = "";
+    if (!p) { holder.appendChild(el("p", "note", "Choose a filled page to read it. Every page you fill stays here.")); return; }
+    holder.appendChild(el("h3", null, p.name));
+    holder.appendChild(el("p", "note", p.drawer + " · case " + p.number));
+    holder.appendChild(el("p", null, p.words));
+    holder.appendChild(el("p", null, "Family: " + p.families.join(", ") + " (" + plural(p.clauses, "property", "properties") + ")."));
+    holder.appendChild(el("p", "note", "Shortest path: " + plural(p.shortest.length, "test", "tests") + " would have proved it, next to the starting examples."));
+    var path = el("ul", "path");
+    p.shortest.forEach(function (t) {
+      var li = el("li");
+      li.innerHTML = itemSvg(p.kind, t.item, t.label + ", " + (t.yes ? "Through" : "Stopped"));
+      li.appendChild(el("span", "ans " + (t.yes ? "yes" : "no"), verdictWord(t.yes)));
+      path.appendChild(li);
+    });
+    holder.appendChild(path);
+    var best = el("p", null, "Your best: " + plural(p.best, "test", "tests") + " (par " + p.par + ") ");
+    best.appendChild(medalNode(p.medal));
+    holder.appendChild(best);
+    holder.appendChild(el("p", "line story-text", "Log: " + p.line));
+  }
+
   function resetForCase() {
     caseId = view.case.id;
     if (view.menu) menu = view.menu;
@@ -453,6 +524,8 @@
     renderDraft();
     renderVerdict();
     renderCases();
+    renderMap();
+    renderCodex();
   }
 
   // ---- talking to the engine --------------------------------------------------------------------------------
@@ -482,7 +555,7 @@
       else if (v && v.kind === "near") announce("Not quite. The Sorter says " + v.conflict.sorter + " for " + v.conflict.label + ", your rule says " + v.conflict.rule + ".");
       else if (v && v.kind === "conflict") announce("Not yet. " + conflictText(v.conflict));
     }
-    if (["test", "name", "restart", "pick", "next", "reset"].indexOf(request.action) >= 0) persist();
+    if (["test", "name", "restart", "pick", "next", "reset", "page"].indexOf(request.action) >= 0) persist();
     return result;
   }
 
@@ -494,6 +567,15 @@
   function wire() {
     $("toast").addEventListener("click", function () { showToast(""); });
     wirePanelToggle("cases-toggle-button", "cases-panel");
+    wirePanelToggle("codex-toggle-button", "codex-panel");
+    $("map-holder").addEventListener("click", onMapActivate);
+    $("map-holder").addEventListener("keydown", onMapActivate);
+    $("page-button").addEventListener("click", function () {
+      send({ action: "page", case: view.case.id });
+      $("codex-panel").hidden = false;
+      $("codex-toggle-button").setAttribute("aria-expanded", "true");
+      if ($("codex-panel").scrollIntoView) $("codex-panel").scrollIntoView({ block: "start" });
+    });
     wirePanelToggle("changelog-toggle-button", "changelog-panel");
     buildStaticBuilder();
     $("add-clause-button").addEventListener("click", function () {

@@ -27,7 +27,7 @@ def test_open_returns_the_whole_view_with_the_menu_once():
     fresh()
     v = call(action="open")
     assert v["case"]["id"] == cases.ORDER[0] and v["case"]["status"] == "open" and v["menu"]
-    assert v["totals"] == {"cases": len(cases.ORDER), "named": 0, "clean": 0, "drawers": len(cases.DRAWER_LIST), "drawers_closed": 0}
+    assert v["totals"] == {"cases": len(cases.ORDER), "named": 0, "clean": 0, "drawers": len(cases.DRAWER_LIST), "drawers_closed": 0, "pages": 0, "read": 0}
     assert v["tally"] == {"tests": 0, "near": 0, "hints": 0} and v["last"] is None and v["verdict"] is None
     assert "menu" not in call(action="preview", rule=rule(("even", 0)))
     assert "menu" in call(action="open")
@@ -196,6 +196,7 @@ def test_the_picker_view_lists_every_case_with_its_state():
     fresh()
     name_it("latch")
     v = call(action="open")
+    assert [d["name"] for d in v["cases"]] == [d["name"] for d in cases.DRAWER_LIST]
     drawer = v["cases"][0]
     assert drawer["name"] == "Number Gates" and drawer["named"] == 1 and drawer["total"] == 8 and drawer["max_clauses"] == 1
     assert [x["id"] for x in drawer["cases"]] == [c.id for c in cases.DRAWER_LIST[0]["cases"]]

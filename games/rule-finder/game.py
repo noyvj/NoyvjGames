@@ -12,6 +12,7 @@ Actions (every request is {"action": ..., ...}; every reply is the whole view):
   preview {rule}          check a draft rule against everything seen so far (changes nothing)
   name {rule}             name the rule: right ends the case, wrong shows one counter-example
   restart                 clear this named case's test log to try for a better count (the best is kept)
+  page {case}             open a case's Codex page (it must be named); a page opened counts as read
   reset                   start over (everything)
 A rule is {"lits": [[clause id, negated 0/1], ...], "ops": ["and" | "or", ...]}.
 """
@@ -19,8 +20,10 @@ A rule is {"lits": [[clause id, negated 0/1], ...], "ops": ["and" | "or", ...]}.
 import json
 
 import cases
+import codex
 import lang
 import progress
+import render
 
 TALLY_KEYS = ("tests", "near", "hints")
 MAX_COUNT = 10 ** 9
@@ -38,7 +41,9 @@ class Game:
         self.named = {}                  # case id -> {"t": best tests, "r": rule text, "m": near miss before naming}
         self.log = {}                    # case id -> {"t": [tested items], "f": [free counter-examples]}
         self.tally = {key: 0 for key in TALLY_KEYS}
+        self.read = []                   # Codex pages opened (only named cases)
         self.current = cases.ORDER[0]
+        self.page_id = None              # the Codex page showing (not saved)
         self.last = None                 # the last answer shown at the gate
         self.verdict = None              # the last naming result
         self.menu_due = True
@@ -59,6 +64,7 @@ class Game:
 
     def _enter(self, cid):
         self.current = cid
+        self.page_id = None
         self.last = None
         self.verdict = None
         self.menu_due = True
@@ -77,6 +83,9 @@ class Game:
         tally = {k: v for k, v in self.tally.items() if v}
         if tally:
             data["tally"] = tally
+        read = [cid for cid in cases.ORDER if cid in self.read and cid in self.named]
+        if read:
+            data["read"] = read
         return data
 
     def load(self, data):
@@ -113,6 +122,9 @@ class Game:
                 self.log[case.id] = entry
         tally = data.get("tally") if isinstance(data.get("tally"), dict) else {}
         self.tally = {key: _int(tally.get(key)) for key in TALLY_KEYS}
+        raw = data.get("read") if isinstance(data.get("read"), list) else []
+        self.read = [cid for cid in cases.ORDER if cid in self.named and any(r == cid for r in raw if isinstance(r, str))]
+        self.page_id = None
         cur = data.get("cur")
         self._enter(cur if isinstance(cur, str) and cur in cases.BY_ID else cases.ORDER[0])
 
@@ -151,8 +163,14 @@ class Game:
         return view
 
     def view(self, message="", ok=True, draft=None):
+        picker = self._cases_view()
+        page = cases.BY_ID.get(self.page_id) if self.page_id else None
+        totals = progress.totals(self.named)
+        totals.update({"pages": len(self.named), "read": len([c for c in self.read if c in self.named])})
         view = {"ok": ok, "message": message, "case": self._case_view(), "last": self.last, "verdict": self.verdict,
-                "cases": self._cases_view(), "totals": progress.totals(self.named), "tally": dict(self.tally), "draft": draft}
+                "cases": picker, "map": render.wall_svg(picker), "codex": codex.summary(self.named, self.read),
+                "page": codex.page(page, self.named, self.read) if page else None,
+                "totals": totals, "tally": dict(self.tally), "draft": draft}
         if self.menu_due:
             view["menu"] = lang.menu(self.case.kind)
             self.menu_due = False
@@ -227,6 +245,16 @@ class Game:
         _rule, draft = self._draft(raw)
         return self.view(draft=draft)
 
+    def open_page(self, cid):
+        if not isinstance(cid, str) or cid not in cases.BY_ID:
+            return self.view("There is no such page.", ok=False)
+        if cid not in self.named:
+            return self.view("That page is empty until you name its case.", ok=False)
+        if cid not in self.read:
+            self.read.append(cid)
+        self.page_id = cid
+        return self.view()
+
     def restart(self):
         c = self.case
         if c.id not in self.named:
@@ -273,6 +301,8 @@ def handle(request_json):
         return json.dumps(g.name(request.get("rule")))
     if action == "restart":
         return json.dumps(g.restart())
+    if action == "page":
+        return json.dumps(g.open_page(request.get("case")))
     return json.dumps({"error": "unknown action " + repr(action)})
 
 

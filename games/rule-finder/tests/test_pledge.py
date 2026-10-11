@@ -89,7 +89,7 @@ def test_every_action_moves_a_visible_number():
     assert v["tally"]["tests"] == base["tally"]["tests"] + 1 and v["case"]["tests"] == 1
     v = call(action="name", rule=lang.rule_json(lang.parse_rule("num", "ge:30")))
     assert v["tally"]["near"] == 1 or v["verdict"]["kind"] == "conflict"
-    for ident in ("stat-named", "stat-tests", "stat-here", "stat-clean", "stat-near"):
+    for ident in ("stat-named", "stat-tests", "stat-codex", "stat-clean", "stat-near"):
         assert 'id="%s"' % ident in HTML and ident in APP
 
 

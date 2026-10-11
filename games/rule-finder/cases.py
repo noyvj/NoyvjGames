@@ -5,12 +5,15 @@ the examples, tell the hidden rule from every other rule of its size or shorter 
 tests). The medal target ("par") is that shortest path plus PAR_ALLOWANCE, because a person is not an oracle.
 """
 
+import cases_not
 import cases_numbers
+import cases_shapes
+import cases_two
 import lang
 
 PAR_ALLOWANCE = 2
 SILVER_ALLOWANCE = 4          # silver: within this many tests of par
-MODULES = (cases_numbers,)
+MODULES = (cases_numbers, cases_shapes, cases_two, cases_not)
 
 
 class Case:

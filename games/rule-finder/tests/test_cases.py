@@ -94,3 +94,36 @@ def test_the_par_set_finder_is_exact_on_a_hand_made_cover():
     items, proved = finder.par_set([0b1000, 0b0001])
     assert items == [0, 3] and proved
     assert finder.par_set([]) == ([], True)
+
+
+def _drawer(key):
+    return [d for d in cases.DRAWER_LIST if d["id"] == key][0]
+
+
+def test_the_drawers_grow_from_one_clause_to_three_and_each_has_eight_cases():
+    assert [d["id"] for d in cases.DRAWER_LIST][:4] == ["numbers", "shapes", "two", "not"]
+    assert [d["max_clauses"] for d in cases.DRAWER_LIST][:4] == [1, 1, 2, 3]
+    assert all(len(d["cases"]) == 8 for d in cases.DRAWER_LIST)
+    assert all(c.kind == "shape" and c.size == 1 for c in _drawer("shapes")["cases"])
+    assert all(c.size == 2 and len(c.rule.ops) == 1 for c in _drawer("two")["cases"])
+    assert {c.rule.ops[0] for c in _drawer("two")["cases"]} == {"and", "or"}
+    assert not any(lang.uses_not(c.rule) for d in cases.DRAWER_LIST[:3] for c in d["cases"])
+
+
+def test_every_case_in_the_not_drawer_needs_a_not():
+    """No rule built only from positive clauses, of the same size or shorter, has the same table."""
+    for c in _drawer("not")["cases"]:
+        assert lang.uses_not(c.rule), c.id
+        lits = [c2 for c2 in c.domain.clause_ids]
+        tables = [c.domain.table(x) for x in lits]
+        found = set(tables)
+        level = set(tables)
+        for _n in range(c.size - 1):
+            level = {a & b for a in level for b in tables} | {a | b for a in level for b in tables}
+            found |= level
+        assert c.table not in found, "%s can be written without a not" % c.id
+
+
+def test_the_drawers_use_every_family_of_clause_at_least_once_across_the_game():
+    used = {f for c in cases.ALL_CASES for f in c.families}
+    assert len(used) >= 14

@@ -173,6 +173,41 @@ html[data-reduced-motion="true"] .gate-item.on { animation: none; }
 .medal.silver { border-color: var(--silver); color: var(--silver); border-style: solid; }
 .medal.bronze { border-color: var(--bronze); color: var(--bronze); border-style: dashed; }
 
+/* The wall map and the Rule Codex. */
+.map-holder { max-width: 34rem; margin: 0.4rem auto; }
+.rf-wall { display: block; width: 100%; height: auto; }
+.wall-label { font: 700 11px system-ui, sans-serif; fill: var(--text); }
+.wall-rail { fill: var(--brass-dark); }
+.cubby { fill: var(--surface); stroke: var(--edge); stroke-width: 1.5; stroke-dasharray: 3 3; }
+.empty-slot { fill: none; opacity: 0.35; }
+.rf-slot { cursor: pointer; }
+.rf-slot.s1 .cubby { fill: var(--brass-dark); stroke: var(--brass-lit); stroke-dasharray: none; stroke-width: 2; }
+.rf-slot.current .cubby { stroke: var(--focus); stroke-width: 4; stroke-dasharray: none; }
+.rf-slot:focus-visible { outline: none; }
+.rf-slot:focus-visible .cubby { stroke: var(--focus); stroke-width: 4; }
+.cubby-num { font: 700 12px system-ui, sans-serif; fill: var(--text); }
+.rf-slot.s1 .cubby-num { fill: var(--on-primary); }
+.cubby-tick { fill: none; stroke: var(--on-primary); stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
+.pip { stroke: var(--on-primary); stroke-width: 0.8; }
+.pip.gold { fill: var(--gold); } .pip.silver { fill: var(--silver); } .pip.bronze { fill: var(--bronze); }
+.here-line { text-align: center; margin: 0.1rem 0; }
+.codex-layout { display: grid; grid-template-columns: minmax(0, 1fr); gap: 0.8rem; }
+@media (min-width: 760px) { .codex-layout { grid-template-columns: minmax(0, 16rem) minmax(0, 1fr); align-items: start; } }
+.codex-list { display: grid; gap: 0.2rem; max-height: 28rem; overflow-y: auto; padding-right: 0.2rem; }
+.codex-list h3 { margin: 0.5rem 0 0.1rem; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--accent); }
+.codex-list button { width: 100%; text-align: left; font-size: 0.9rem; padding: 0.3rem 0.6rem; }
+.codex-list button.filled { border-style: double; border-width: 3px; border-color: var(--ok); }
+.codex-list button.empty { border-style: dashed; color: var(--muted); }
+.codex-list button.current { outline: 3px solid var(--accent); outline-offset: 1px; }
+.codex-page { border: 1px solid var(--line); border-radius: 12px; padding: 0.6rem 0.8rem; background: var(--surface); min-height: 8rem; min-width: 0; }
+.codex-page h3 { margin: 0 0 0.2rem; font-size: 1.1rem; }
+.codex-page .path { list-style: none; display: flex; flex-wrap: wrap; gap: 0.4rem; margin: 0.3rem 0; padding: 0; }
+.codex-page .path li { display: flex; flex-direction: column; gap: 0.05rem; align-items: flex-start; }
+.codex-page .path .ans { font-size: 0.75rem; font-weight: 700; }
+.codex-page .path .ans.yes::before { content: "\2713\00a0"; color: var(--through); }
+.codex-page .path .ans.no::before { content: "\2715\00a0"; color: var(--stopped); }
+.codex-page .line { font-style: italic; }
+
 /* The drawer picker. */
 .chapter { border-top: 1px solid var(--line); padding-top: 0.5rem; margin-top: 0.6rem; }
 .chapter:first-child { border-top: 0; margin-top: 0; padding-top: 0; }

@@ -2,6 +2,10 @@
   "changelog": [
     {
       "date": "2026-10-11",
+      "entry": "Three more drawers, 24 new cases: Shape Strings (strings of circles, squares, triangles and diamonds), Two Clauses (a gate that looks at two things, joined by and or by or) and Not (a gate that looks for what a thing is not: tick Not in the Rule Builder). Every drawer and case is open from the start. A wall map shows all the cubbies, and the Rule Codex keeps one page per named case with the rule in words and the shortest path of tests that would have proved it."
+    },
+    {
+      "date": "2026-10-11",
       "entry": "Rule Finder opens: an old relay lets some numbers through its gate and stops others. Build your own test numbers, send them for free as often as you like, then name the rule in the Rule Builder. The first drawer, Number Gates, has eight cases. A wrong name never costs anything: it just shows you one item your rule gets wrong. Nothing is timed."
     }
   ]

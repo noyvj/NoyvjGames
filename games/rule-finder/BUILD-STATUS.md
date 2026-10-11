@@ -7,8 +7,10 @@ Updated after every milestone. Read `planning/rule-finder-plan.md`, `CLAUDE.md` 
 
 - M2 Sorter UI: `game.py`, `progress.py`, `index.html`, `app.js`, `style.css`, `settings.js`, `changelog.json`, favicon; item builders for numbers, shape strings and patterns (the last two exist in the page but no case uses them yet), gate animation, Rule Builder, near-miss counter-example, save contract; checked live at 1440x900 and 360x740 in dark and light.
 
+- M3 Drawers 2-4: `cases_shapes.py`, `cases_two.py`, `cases_not.py` (24 cases, all proved), `codex.py`, `render.py` (wall map), codex panel and wall map in the page; 208 tests; checked live (map, codex, shape builder) at 1440x900 and 360x740.
+
 ## Next
-- M3 Drawers 2-4 (24 cases), Rule Codex.
+- M4 Drawers 5-6 (patterns, odd gate), hint ladder, three-goals strip, medals.
 
 ## Open problems / notes
 - Local Python is 3.9: engine code avoids 3.10+ syntax.

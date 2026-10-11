@@ -36,7 +36,7 @@ A signal-room sorting game: an old relay lets some items through its gate and st
 |---|-----------|---------|--------|
 | 1 | Rule language and prover | `lang.py`, `tools/finder.py`, drawer 1 (8 cases) with proofs and tests | Done |
 | 2 | Sorter UI | Item builder, Send, gate animation, Rule Builder, near-miss counter-example, save contract. Playable slice | Done |
-| 3 | Drawers 2-4 | 24 more cases, shape and Not clauses, Rule Codex | |
+| 3 | Drawers 2-4 | 24 more cases, shape and Not clauses, Rule Codex | Done |
 | 4 | Drawers 5-6, hints, goals | 16 more cases (48 in all), patterns, odd gate, hint ladder, goals strip, medals | |
 | 5 | Standard kit | Opening screen, tutorial, About with Sources, What's New, keyboard help, confirm dialogs, light theme, accessibility | |
 | 6 | Achievements | 14 achievements, panel and toast, manifest, reachability test | |
@@ -50,6 +50,12 @@ A signal-room sorting game: an old relay lets some items through its gate and st
 - Save (`get_state`): `cur`, `named {case: {t: best tests, r: rule, m}}` (each rule re-judged against the hidden one on every load), `log {case: {t: [...], f: [...]}}` (items re-normalised, deduplicated, never an example), `tally {tests, near, hints}`; only non-default keys; the gate's last answer and the verdict are not saved.
 - Items are drawn by `app.js` (`itemSvg`: a number tile, a string of sized tiles, a 3x3 grid) from the engine's item keys; the view never decides an answer (a test checks it).
 - The page uses the `ConfirmDialog` for the full reset; all other buttons act at once and nothing is lost by any of them.
+
+## Milestone 3 notes
+- Drawers: Number Gates (1 clause, numbers), Shape Strings (1, shapes), Two Clauses (2, four numbers and four shapes, and/or), Not (up to 3, every case needs a NOT: a test shows no positive-only rule of the same size or shorter has its table). Builder cap per drawer is `max_clauses` (1, 1, 2, 3, 3, 3). Names are relay parts that never hint at the rule; each case has one dry operator log line.
+- NO DRAWER GATING (deviation from plan section 3): every drawer and case is open from the start; progress.drawer_open/case_open exist so there is one place to ask.
+- Rule Codex (`codex.py`): one page per case, filled when named, READ when opened (`page {case}`); `read` is saved (only named cases) and is what the Full Codex achievement will count, so "All Forty-Eight" (named) and "Full Codex" (read) differ. A page shows the rule in words, the family labels, the shortest path (the par set with each answer) and the player's best, par and medal.
+- Wall map (`render.wall_svg`): six rows of eight cubbies drawn in Python; empty = dashed outline, named = solid with a tick and 3/2/1 pips for gold/silver/bronze, current = heavy outline; each cubby is a keyboard-reachable button.
 
 ## Working conventions
 - Commit only this folder with a pathspec commit, then tag `rule-finder-milestone-0N`. Hub registration (QI-5-R) is a separate later job.

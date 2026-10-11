@@ -35,6 +35,7 @@
   </div>
   <div class="game-toolbar">
     <button id="cases-toggle-button" type="button" aria-expanded="false" aria-controls="cases-panel">Drawers</button>
+    <button id="codex-toggle-button" type="button" aria-expanded="false" aria-controls="codex-panel">Codex</button>
     <button id="changelog-toggle-button" type="button" aria-expanded="false" aria-controls="changelog-panel"><span class="btn-long">What's New</span><span class="btn-short" aria-hidden="true">News</span></button>
     <button id="settings-toggle-button" type="button" aria-expanded="false" aria-controls="settings-panel">Settings</button>
   </div>
@@ -42,7 +43,16 @@
   <section id="cases-panel" class="panel" hidden aria-labelledby="cases-heading">
     <h2 id="cases-heading">Drawers</h2>
     <p class="note">Every drawer and every case is open from the start: play any of them, in any order. A case is named when your rule agrees with the hidden one on every possible item.</p>
+    <div id="map-holder" class="map-holder"></div>
     <div id="cases-body" class="cases-body"></div>
+  </section>
+  <section id="codex-panel" class="panel" hidden aria-labelledby="codex-heading">
+    <h2 id="codex-heading">Rule Codex</h2>
+    <p id="codex-summary" class="note"></p>
+    <div class="codex-layout">
+      <div id="codex-list" class="codex-list"></div>
+      <article id="codex-page" class="codex-page" aria-live="polite"></article>
+    </div>
   </section>
   <section id="changelog-panel" class="panel" hidden aria-labelledby="changelog-heading">
     <h2 id="changelog-heading">What's New</h2>
@@ -71,7 +81,7 @@
   <section id="stats" class="stat-strip" aria-label="Your progress">
     <div class="stat"><span class="stat-label">Cases named</span><span id="stat-named" class="stat-value">0</span></div>
     <div class="stat"><span class="stat-label">Tests sent</span><span id="stat-tests" class="stat-value">0</span></div>
-    <div class="stat"><span class="stat-label">Tests here</span><span id="stat-here" class="stat-value">0</span></div>
+    <div class="stat"><span class="stat-label">Codex pages</span><span id="stat-codex" class="stat-value">0</span></div>
     <div class="stat"><span class="stat-label">Clean names</span><span id="stat-clean" class="stat-value">0</span></div>
   </section>
 
@@ -111,6 +121,7 @@
           <div id="gate-item" class="gate-item" aria-hidden="true"></div>
         </div>
         <p id="gate-line" class="gate-line" role="status" aria-live="polite">Build an item below and send it to see what the gate does.</p>
+        <p id="here-line" class="note here-line"></p>
         <div id="builder" class="builder">
           <h3 id="builder-heading">Build an item</h3>
           <div id="builder-num" class="builder-part">
@@ -163,6 +174,7 @@
           <p id="verdict-line" class="verdict-line story-text note" hidden></p>
           <div class="verdict-buttons">
             <button id="next-button" type="button" class="primary" hidden data-testid="rule-finder-next">Next case</button>
+            <button id="page-button" type="button" hidden data-testid="rule-finder-page">Read its Codex page</button>
             <button id="restart-button" type="button" hidden data-testid="rule-finder-restart">Test it again from scratch</button>
           </div>
         </div>
