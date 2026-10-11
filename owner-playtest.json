@@ -1,0 +1,150 @@
+{
+  "_readme": "The owner's playtest queue (TODO GN-18): the games Claude most wants played next and the specific questions each playtest should answer. Shown as a carousel on the hub only while signed in as the owner; answers are kept on this device and synced to the owner note `playtest-notes`, which Claude reads at the start of a session. Edit this file (or ask Claude to) to change the queue. Newest first. `since` is the date the item was added; `pass` is a slug for the build being tested.",
+  "version": 1,
+  "items": [
+    {
+      "id": "tide-new",
+      "game": "tide",
+      "title": "Tide: run codes, Daily Tide and named coastlines",
+      "since": "2026-10-11",
+      "why": "Three big features landed untested by a human: a shareable run code with a ghost replay, an opt-in daily run with a free archive, and four new coastlines.",
+      "how": "Finish a run, copy its code from the Session Library and paste it back as a ghost. Then start Daily Tide for today and for a past date. Then pick each coastline before season 1.",
+      "questions": [
+        "Does pasting your own run code show a ghost that matches what you played?",
+        "Is Daily Tide clear as opt-in, and does skipping days feel free of pressure?",
+        "Do the four coastlines (delta, headland, atoll, port) each feel different, or are some just the same game?",
+        "Is any coastline too easy or impossible?"
+      ]
+    },
+    {
+      "id": "aftermath-tree",
+      "game": "aftermath",
+      "title": "Aftermath: skill map, ranks, Move a point and Second Founding",
+      "since": "2026-10-11",
+      "why": "The skill tree got a map, per-skill ranks, an unlock reveal, a swap-one-point rule and an optional prestige in one day.",
+      "how": "Open the Skill map (Menu > Game on Desktop), select a locked skill, use the arrow keys, buy a skill, then try Move a point. Play two runs to see ranks. Try the Second Founding panel only after owning all 7 skills.",
+      "questions": [
+        "Is the map easier or harder to read than the list?",
+        "Do the ranks feel like a reward or like homework?",
+        "Is the Move a point fee (1 knowledge) about right?",
+        "Does the Second Founding confirm make clear what you lose and keep, and would you actually use it?"
+      ]
+    },
+    {
+      "id": "canopy-forests",
+      "game": "canopy",
+      "title": "Canopy: named forests, announcer and the new level flow",
+      "since": "2026-10-11",
+      "why": "The save panel now offers up to three named forests per browser (signed out), and screen-reader announcements were added.",
+      "how": "Sign out, open the save panel, make a second forest with a different difficulty, switch back and forth.",
+      "questions": [
+        "Is the Forest menu discoverable?",
+        "Did anything feel lost when switching forests?",
+        "Is the wording clear about what each forest keeps?"
+      ]
+    },
+    {
+      "id": "thaw-batch",
+      "game": "thaw",
+      "title": "Thaw: custom preset, pace line, hard mode, rolling digits, mascots",
+      "since": "2026-10-11",
+      "why": "Eight features landed together; several change how the screen reads.",
+      "how": "Play a few rounds, save a Custom preset, switch on Hard mode before round 1, and turn the mascots on and off.",
+      "questions": [
+        "Is the pace line helpful or noisy?",
+        "Does Hard mode feel meaningfully harder, or just hidden numbers?",
+        "Are the rolling digits fun or annoying?",
+        "Do the hare and fox add anything?"
+      ]
+    },
+    {
+      "id": "hub-new",
+      "game": "hub",
+      "title": "The hub: new menus, carousels, compact cards",
+      "since": "2026-10-11",
+      "why": "The whole lobby was reorganised from your game notes.",
+      "how": "Use the hub on your phone and on the Mac: open each top menu, scroll the carousels, search, filter, expand a card.",
+      "questions": [
+        "Can you find a game faster than before?",
+        "Are the four top menus clear (Me, Updates, Feedback, Help)?",
+        "Do the carousels work with your thumb on the phone?",
+        "Is anything missing that used to be easy to reach?"
+      ]
+    },
+    {
+      "id": "profile-titles",
+      "game": "hub",
+      "title": "Profile: titles, settings button and backfill",
+      "since": "2026-10-11",
+      "why": "The profile now shows account-wide titles and a settings button, and fills in from your existing saves.",
+      "how": "Open your profile page, press Profile settings, try Fill in from my saves.",
+      "questions": [
+        "Do your Canopy and SOL achievements now show?",
+        "Are the title names right in tone?",
+        "Is the settings button where you expect it?"
+      ]
+    },
+    {
+      "id": "champ-formats",
+      "game": "champ-de-mots",
+      "title": "Le Champ de Mots: exam formats and the exam date",
+      "since": "2026-10-11",
+      "why": "Six exam-style formats were added for the French exam (clock, true or false, rewrite, pronouns, reciprocal verbs, question matching).",
+      "how": "Open Exam formats and try each format for a few questions; set the exam date.",
+      "questions": [
+        "Do the formats feel like the real exam?",
+        "Is the clock face readable?",
+        "Are any answers wrongly marked?"
+      ]
+    },
+    {
+      "id": "continuum-daily",
+      "game": "continuum",
+      "title": "Continuum: daily challenge board",
+      "since": "2026-10-11",
+      "why": "The daily challenge now has an opt-in board and a line saying how many other players you beat.",
+      "how": "Play today's challenge to the end while signed in, tick the opt-in box.",
+      "questions": [
+        "Is the opt-in clear?",
+        "Does the beat-N% line feel friendly or pressuring?"
+      ]
+    },
+    {
+      "id": "signal-streak",
+      "game": "signal",
+      "title": "Signal: no streak by default",
+      "since": "2026-10-11",
+      "why": "The streak, best streak and streak badges are now off until you switch them on.",
+      "how": "Play today's puzzle, then switch Show my daily streak on in Settings.",
+      "questions": [
+        "Do you miss the streak when it is off?",
+        "Is the Settings switch easy to find?"
+      ]
+    },
+    {
+      "id": "hint-ladders",
+      "game": "logic-gates",
+      "title": "Every puzzle game: the new hint wording",
+      "since": "2026-10-11",
+      "why": "The first rung now asks Would you like a suggestion? and each rung opens only when pressed.",
+      "how": "Use the hint button on one level in Logic Gates, Hull Repair and Robot Script.",
+      "questions": [
+        "Is the new wording better than before?",
+        "Is the last button (Another hint: the answer) clear enough that it shows the answer?"
+      ]
+    },
+    {
+      "id": "sound",
+      "game": "hull-repair",
+      "title": "Generated sound (Logic Gates, Hull Repair, Lighthouse)",
+      "since": "2026-10-11",
+      "why": "Claude cannot hear audio, and the sound rollout to other games is waiting on your verdict (FOR-YOU Sx1).",
+      "how": "Turn on Sound effects made in code in hub Settings, then play each of the three games.",
+      "questions": [
+        "Are the tones pleasant at the default volume?",
+        "Which cue is too sharp, dull, loud or quiet?",
+        "Should the Lighthouse hum stay on by default?"
+      ]
+    }
+  ]
+}
