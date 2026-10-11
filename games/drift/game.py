@@ -4681,6 +4681,7 @@ def render():
         f"arrival pressure rises — never your capacity or funds math directly."
     )
     render_skins()
+    render_load_note()
     render_round_tools()
     render_civic_tools()
     render_ledger()
@@ -5109,6 +5110,89 @@ def _load_civic_state(data):
     region.stars_banked = banked if _small_int(banked, 1) else None
 
 
+# ---- I-30: tell the player when a loaded save was only partly readable --------------------------------
+load_note_text = ""
+
+
+def _is_number(value, low=0.0):
+    return (
+        isinstance(value, (int, float)) and not isinstance(value, bool)
+        and value == value and value not in (float("inf"), float("-inf")) and value >= low
+    )
+
+
+def _number_list(value):
+    """A list whose every entry is a finite number (no junk to silently drop)."""
+    return isinstance(value, list) and all(
+        isinstance(v, (int, float)) and not isinstance(v, bool) and v == v and v not in (float("inf"), float("-inf"))
+        for v in value
+    )
+
+
+# (label, keys, required in every save this version writes, check). A required section that is absent means
+# the save is from an older version; one that is present but fails its check was damaged or edited.
+LOAD_SECTIONS = [
+    ("the round and funds", ["round_number", "funds"], True,
+     lambda d: _is_number(d.get("round_number"), 1) and _is_number(d.get("funds"))),
+    ("capacity", ["capacity"], True,
+     lambda d: isinstance(d.get("capacity"), dict) and all(_is_number(d["capacity"].get(t)) for t in CAPACITY_TYPES)),
+    ("arrivals and pressure", ["background_severity", "total_arrivals", "arrivals_log"], True,
+     lambda d: _is_number(d.get("background_severity")) and _is_number(d.get("total_arrivals")) and _number_list(d.get("arrivals_log"))),
+    ("strain history", ["strain_log"], True, lambda d: _number_list(d.get("strain_log"))),
+    ("wellbeing history", ["wellbeing_log"], True, lambda d: _number_list(d.get("wellbeing_log"))),
+    ("integration progress", ["integrated_population", "cumulative_services_investment", "cumulative_integration_contribution"], True,
+     lambda d: all(_is_number(d.get(k)) for k in ("integrated_population", "cumulative_services_investment", "cumulative_integration_contribution"))),
+    ("sub-score history", ["subscore_log"], True,
+     lambda d: isinstance(d.get("subscore_log"), list) and all(isinstance(e, dict) for e in d["subscore_log"])),
+    ("the round ledger", ["ledger"], False, lambda d: isinstance(d.get("ledger"), list)),
+    ("policies", ["policy_level"], False, lambda d: isinstance(d.get("policy_level"), dict)),
+    ("the second wave", ["second_wave"], False, lambda d: isinstance(d.get("second_wave"), dict)),
+    ("the neighbouring district", ["neighbor"], False, lambda d: isinstance(d.get("neighbor"), dict)),
+    ("the Crisis Calendar", ["calendar"], False, lambda d: isinstance(d.get("calendar"), dict)),
+    ("the Mayor's Council", ["council"], False, lambda d: isinstance(d.get("council"), list)),
+    ("the Budget Autopilot", ["autopilot"], False, lambda d: isinstance(d.get("autopilot"), dict)),
+    ("the ROI history", ["roi_log"], False, lambda d: isinstance(d.get("roi_log"), list)),
+]
+
+
+def load_report(data):
+    """(restored, reset): labels of the sections of `data` that will load as saved, and of those that will fall
+    back to a fresh start (missing from an older save, or present but unreadable)."""
+    restored, reset = [], []
+    for label, keys, required, check in LOAD_SECTIONS:
+        present = any(key in data for key in keys)
+        if not present:
+            if required:
+                reset.append(label)
+            continue
+        (restored if check(data) else reset).append(label)
+    return restored, reset
+
+
+def _set_load_note(report):
+    global load_note_text
+    restored, reset = report
+    if not reset:
+        load_note_text = ""
+        return
+    load_note_text = (
+        "Loaded your save, but part of it was missing or could not be read (an older or damaged save). "
+        f"Restored: {', '.join(restored) if restored else 'nothing from the main record'}. "
+        f"Started fresh: {', '.join(reset)}."
+    )
+
+
+def on_dismiss_load_note(event=None):
+    global load_note_text
+    load_note_text = ""
+    render_load_note()
+
+
+def render_load_note():
+    document.getElementById("load-note-box").hidden = not load_note_text
+    document.getElementById("load-note").innerText = load_note_text
+
+
 def get_state():
     return {
         "round_number": region.round_number,
@@ -5182,20 +5266,21 @@ def load_state(data):
     if not isinstance(data, dict):
         return False
 
-    region.round_number = data.get("round_number", region.round_number)
-    region.funds = data.get("funds", region.funds)
+    report = load_report(data)
+    region.round_number = int(_finite_number(data.get("round_number"), region.round_number, 1))
+    region.funds = _finite_number(data.get("funds"), region.funds)
     saved_capacity = data.get("capacity")
     if isinstance(saved_capacity, dict):
         for capacity_type in CAPACITY_TYPES:
             if capacity_type in saved_capacity:
-                region.capacity[capacity_type] = copy.deepcopy(saved_capacity[capacity_type])
-    region.background_severity = data.get("background_severity", region.background_severity)
-    region.total_arrivals = data.get("total_arrivals", region.total_arrivals)
+                region.capacity[capacity_type] = _finite_number(saved_capacity[capacity_type], region.capacity[capacity_type])
+    region.background_severity = _finite_number(data.get("background_severity"), region.background_severity)
+    region.total_arrivals = _finite_number(data.get("total_arrivals"), region.total_arrivals)
     saved_arrivals_log = data.get("arrivals_log")
-    if isinstance(saved_arrivals_log, list):
+    if _number_list(saved_arrivals_log):
         region.arrivals_log = copy.deepcopy(saved_arrivals_log)
     saved_strain_log = data.get("strain_log")
-    if isinstance(saved_strain_log, list):
+    if _number_list(saved_strain_log):
         region.strain_log = copy.deepcopy(saved_strain_log)
     # Z25: _strain_sum/_strain_count/_ever_critical_strain ride the save
     # from here on; an old save from before this refactor won't have
@@ -5204,8 +5289,8 @@ def load_state(data):
     # defaulting to 0/False and silently losing the correct lifetime
     # average / achievement-earned state.
     if "strain_sum" in data and "strain_count" in data:
-        region._strain_sum = data.get("strain_sum", region._strain_sum)
-        region._strain_count = data.get("strain_count", region._strain_count)
+        region._strain_sum = _finite_number(data.get("strain_sum"), region._strain_sum)
+        region._strain_count = int(_finite_number(data.get("strain_count"), region._strain_count))
     else:
         region._strain_sum = sum(region.strain_log)
         region._strain_count = len(region.strain_log)
@@ -5218,14 +5303,14 @@ def load_state(data):
             s >= STRAIN_LEVEL_THRESHOLDS[2][0] for s in region.strain_log
         )
     saved_wellbeing_log = data.get("wellbeing_log")
-    if isinstance(saved_wellbeing_log, list):
+    if _number_list(saved_wellbeing_log):
         region.wellbeing_log = copy.deepcopy(saved_wellbeing_log)
-    region.integrated_population = data.get("integrated_population", region.integrated_population)
-    region.cumulative_services_investment = data.get(
-        "cumulative_services_investment", region.cumulative_services_investment
+    region.integrated_population = _finite_number(data.get("integrated_population"), region.integrated_population)
+    region.cumulative_services_investment = _finite_number(
+        data.get("cumulative_services_investment"), region.cumulative_services_investment
     )
-    region.cumulative_integration_contribution = data.get(
-        "cumulative_integration_contribution", region.cumulative_integration_contribution
+    region.cumulative_integration_contribution = _finite_number(
+        data.get("cumulative_integration_contribution"), region.cumulative_integration_contribution
     )
     region.net_positive_round = data.get("net_positive_round", region.net_positive_round)
     region.current_stable_streak = data.get("current_stable_streak", region.current_stable_streak)
@@ -5309,8 +5394,11 @@ def load_state(data):
     # "achievements_earned" is intentionally never read back here — see
     # get_state()'s comment and ACHIEVEMENTS-SYSTEM-DESIGN.md §1.
 
+    _set_load_note(report)
     render()
     _seed_achievement_toast_baseline()
+    if load_note_text:
+        announce(load_note_text)
     return True
 
 
@@ -5385,6 +5473,7 @@ def setup():
         "autopilot-share-select", "autopilot-surplus-select", "autopilot-reserve-select", "autopilot-rounds-select",
     ):
         document.getElementById(select_id).addEventListener("change", create_proxy(on_autopilot_change))
+    document.getElementById("load-note-dismiss").addEventListener("click", create_proxy(on_dismiss_load_note))
     for slot in range(TEMPLATE_SLOTS):
         document.getElementById(f"template-{slot + 1}-save").addEventListener(
             "click", create_proxy(_make_template_save_handler(slot))

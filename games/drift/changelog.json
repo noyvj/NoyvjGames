@@ -1,6 +1,10 @@
 [
   {
     "date": "2026-10-11",
+    "entry": "Better loading: if a save is from an older version or part of it is damaged, Drift now says so after loading (what it restored and what started fresh, with a Dismiss button) instead of quietly filling in defaults, and a damaged number or history no longer breaks the game. A normal save loads with no note."
+  },
+  {
+    "date": "2026-10-11",
     "entry": "New: budget templates. Under Council and calendar, buy what you like in a round and press Save this round's buys to keep it as one of three named plans (Services first, say). Apply then buys the same again in one click, services first, as far as your funds go, and says what it could not afford. Plans stay on this browser so you can reuse them in your next region, and Reset this round refunds an applied plan like any other purchase."
   },
   {

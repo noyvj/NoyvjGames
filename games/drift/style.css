@@ -1828,3 +1828,8 @@ html.high-contrast .achievement-glyph--earned { color: #ffff00; filter: none; }
 .template-summary { grid-column: 1 / -1; margin: 0; }
 @media (max-width: 420px) { .template-row { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); } .template-name { grid-column: 1 / -1; } }
 html[data-theme="light"] .template-name { background: #ffffff; }
+
+/* I-30: partly-readable save note */
+.load-note-box { display: grid; gap: 0.4rem; margin: 0.4rem 0; }
+.load-note-box .turning-point-message { margin: 0; }
+.load-note-box button { justify-self: start; }
