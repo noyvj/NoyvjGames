@@ -24,6 +24,7 @@ import achievements
 import cases
 import codex
 import hints
+import info
 import lang
 import progress
 import render
@@ -196,7 +197,7 @@ class Game:
         view = {"ok": ok, "message": message, "case": self._case_view(), "last": self.last, "verdict": self.verdict,
                 "cases": picker, "map": render.wall_svg(picker), "codex": codex.summary(self.named, self.read),
                 "page": codex.page(page, self.named, self.read) if page else None,
-                "hint": hints.view(self.case, self.rungs.get(self.current, 0), {k for k, _s in self._seen_entries()}),
+                "about": info.view(), "hint": hints.view(self.case, self.rungs.get(self.current, 0), {k for k, _s in self._seen_entries()}),
                 "goals": achievements.goals(self.facts()), "achievements": achievements.view(self.facts()),
                 "totals": totals, "tally": dict(self.tally), "draft": draft}
         if self.menu_due:

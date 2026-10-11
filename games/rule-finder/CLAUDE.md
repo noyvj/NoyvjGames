@@ -38,7 +38,7 @@ A signal-room sorting game: an old relay lets some items through its gate and st
 | 2 | Sorter UI | Item builder, Send, gate animation, Rule Builder, near-miss counter-example, save contract. Playable slice | Done |
 | 3 | Drawers 2-4 | 24 more cases, shape and Not clauses, Rule Codex | Done |
 | 4 | Drawers 5-6, hints, goals | 16 more cases (48 in all), patterns, odd gate, hint ladder, goals strip, medals | Done |
-| 5 | Standard kit | Opening screen, tutorial, About with Sources, What's New, keyboard help, confirm dialogs, light theme, accessibility | |
+| 5 | Standard kit | Opening screen, tutorial, About with Sources, What's New, keyboard help, confirm dialogs, light theme, accessibility | Done |
 | 6 | Achievements | 14 achievements, panel and toast, manifest, reachability test | |
 | 7 | Desktop boot and wrap-up | `pc-config.json`, `pc.css`, `pc.js`, generated `pc.html`, docs, changelog | |
 
@@ -62,6 +62,10 @@ A signal-room sorting game: an old relay lets some items through its gate and st
 - Hint ladder (`hints.py`, action `hint`): rung 1 nudge = the kind of property (family phrase), never the clause or the joins; rung 2 hint = the first shortest-path item not yet seen, shown as a ghost tile with a button that loads it into the item builder (the player still presses Send); rung 3 answer = the rule in words with a button that loads it into the Rule Builder (the player still presses Name it). Free, on request only, saved per case in `rungs`, counted in the `hints` tally, never touching a medal. Deviation worth an owner glance: because the Answer rung does not name the case, a player can name it with 0 tests and earn Quick Eye / a gold medal; the plan says hints never touch the medal, so this is as specified.
 - Goals strip (`achievements.goals`): the next three unearned achievements in manifest order with counts and bars. `achievements.py` already holds all 14 (the manifest, panel and toast arrive in milestone 6).
 - Medals: gold within par (shortest path + 2), silver within 4 more, bronze otherwise; the wall map shows 3, 2, 1 pips.
+
+## Milestone 5 notes
+- Standard kit as in Hull Repair: opening screen (`shared/opening-screen.js`), 10-step tutorial (`TUTORIAL_STEPS`, replaceable on the Desktop boot through `window.RULE_FINDER_PC_TUTORIAL_STEPS`), About from `info.py` (fiction, no real-world facts, so nothing to date; it links the shared Sources page), `sources.json` (only Wason's 2-4-6 task and Eleusis, as the plan records, plus Pyodide), What's New + banner, keyboard help (`?`, with the builders' number keys), reset confirm dialog, story toggle on `.story-text` (operator log lines in the verdict card and Codex), light theme (contrast tested for both themes), `tests/test_pledge.py`.
+- Builder keys (`onBuilderKey`): 1 to 4 add a tile in the shape builder, Backspace takes one back, 1 to 9 toggle squares in the pattern builder, Enter sends.
 
 ## Working conventions
 - Commit only this folder with a pathspec commit, then tag `rule-finder-milestone-0N`. Hub registration (QI-5-R) is a separate later job.

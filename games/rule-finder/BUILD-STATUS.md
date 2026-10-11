@@ -11,8 +11,10 @@ Updated after every milestone. Read `planning/rule-finder-plan.md`, `CLAUDE.md` 
 
 - M4 Drawers 5-6 (patterns, odd gate: 16 more cases, 48 in all, all proved), `hints.py`, `achievements.py` (table + goals), hint ladder and goals strip in the page; 280 tests; checked live at 1440x900 and 360x740.
 
+- M5 Standard kit: opening screen, tutorial, About (`info.py`), `sources.json`, keyboard help and builder keys, story toggle; 285 tests; checked live (opening screen, tutorial walk-through, About, shortcuts list) at 1440x900 dark and 360x740 light.
+
 ## Next
-- M5 standard kit (opening screen, tutorial, About + Sources, keyboard help, accessibility pass).
+- M6 achievements (manifest, panel, toast, share button, reachability test).
 
 ## Open problems / notes
 - Local Python is 3.9: engine code avoids 3.10+ syntax.

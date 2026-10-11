@@ -3,7 +3,7 @@
    logic lives here: whether an item goes Through is always the engine's answer. */
 (function () {
   "use strict";
-  var ENGINE_MODULES = ["lang.py", "cases_numbers.py", "cases_shapes.py", "cases_two.py", "cases_not.py", "cases_patterns.py", "cases_odd.py", "cases.py", "progress.py", "hints.py", "achievements.py", "codex.py", "render.py"];
+  var ENGINE_MODULES = ["lang.py", "cases_numbers.py", "cases_shapes.py", "cases_two.py", "cases_not.py", "cases_patterns.py", "cases_odd.py", "cases.py", "progress.py", "hints.py", "achievements.py", "codex.py", "render.py", "info.py"];
   var STORE_KEY = "rule-finder:state";
   var BACKUP_KEY = "rule-finder:state-backup";
   var SHAPE_NAMES = { c: "circle", s: "square", t: "triangle", d: "diamond" };
@@ -46,6 +46,17 @@
       $(panelId).hidden = !$(panelId).hidden;
       $(buttonId).setAttribute("aria-expanded", String(!$(panelId).hidden));
     });
+  }
+  function renderAbout() {
+    var about = view.about;
+    if (!about || $("pledge-list").dataset.done) return;
+    $("pledge-list").dataset.done = "1";
+    setText($("info-page-framing"), about.framing);
+    setText($("info-page-notice"), about.notice);
+    setText($("pledge-heading"), about.pledge_heading);
+    setText($("how-heading"), about.how_heading);
+    about.pledge.forEach(function (line) { $("pledge-list").appendChild(el("li", null, line)); });
+    about.how.forEach(function (line) { $("how-list").appendChild(el("li", null, line)); });
   }
   function renderChangelog(entries) {
     var holder = $("changelog-entries");
@@ -249,6 +260,28 @@
     $("num-input").addEventListener("input", function () { work.num = $("num-input").value; renderBuilder(); });
     $("num-input").addEventListener("keydown", function (e) { if (e.key === "Enter") { e.preventDefault(); onSend(); } });
     $("send-button").addEventListener("click", onSend);
+  }
+  function onBuilderKey(e) {
+    if (!view || e.ctrlKey || e.metaKey || e.altKey) return;
+    var tag = e.target && e.target.tagName;
+    if (tag === "INPUT" || tag === "SELECT" || tag === "TEXTAREA") return;
+    var kind = view.case.kind;
+    if (kind === "shape" && e.key >= "1" && e.key <= "4") {
+      e.preventDefault();
+      if (work.shape.length < 6) { work.shape.push(SHAPE_ORDER[parseInt(e.key, 10) - 1]); renderBuilder(); announce(work.shape.length + " tiles."); }
+    } else if (kind === "shape" && e.key === "Backspace") {
+      e.preventDefault();
+      work.shape.pop();
+      renderBuilder();
+    } else if (kind === "grid" && e.key >= "1" && e.key <= "9") {
+      e.preventDefault();
+      var n = parseInt(e.key, 10) - 1;
+      work.grid[n] = !work.grid[n];
+      renderBuilder();
+    } else if (e.key === "Enter" && tag !== "BUTTON") {
+      e.preventDefault();
+      onSend();
+    }
   }
   function onSend() {
     var key = workKey();
@@ -569,6 +602,7 @@
     setText($("rule-lead"), "Pick the property the gate looks at. Tick Not to turn it around" + (view.case.max_clauses > 1 ? ", and add a clause to join two or three" : "") + ".");
   }
   function render(animate) {
+    renderAbout();
     if (view.case.id !== caseId) resetForCase();
     renderCase();
     renderGate(animate);
@@ -624,6 +658,8 @@
     $("toast").addEventListener("click", function () { showToast(""); });
     wirePanelToggle("cases-toggle-button", "cases-panel");
     wirePanelToggle("codex-toggle-button", "codex-panel");
+    wirePanelToggle("info-page-toggle-button", "info-page-panel");
+    $("builder").addEventListener("keydown", onBuilderKey);
     $("map-holder").addEventListener("click", onMapActivate);
     $("map-holder").addEventListener("keydown", onMapActivate);
     $("page-button").addEventListener("click", function () {
@@ -653,6 +689,19 @@
     window.ruleFinderRefresh = function () { if (engine) { caseId = null; send({ action: "open" }); } };
   }
 
+  var TUTORIAL_STEPS = [
+    { title: "Welcome to the signal room", text: "An old relay lets some items through its gate and stops the rest. Every case hides one rule. Your job is to find it and name it. Nothing is timed, testing is free, and a wrong name only shows you one item to think about. Skip any time and reopen this from the Tutorial button." },
+    { selector: "#gate-holder", title: "The gate", text: "Items come in from the left. If the rule lets one in, the doors open and it goes Through; if not, the bars come down and it is Stopped. The lamps, the words and the ticks and crosses all say the same thing." },
+    { selector: "#bins", title: "Your log", text: "The starting examples are already here, Through on the left and Stopped on the right. Everything you send is added, and you can look back at it as you think." },
+    { selector: "#builder", title: "Build an item", text: "Build your own test item and press Send it. Numbers, strings of shapes and little patterns each have their own builder. Sending an item you have already seen is free, and so is every other test." },
+    { selector: "#rule-rows", title: "The Rule Builder", text: "When you think you know the rule, pick the property the gate looks at. Tick Not to turn it around, and in later drawers add a clause to join two or three with and or or." },
+    { selector: "#name-button", title: "Name it", text: "Your rule is right when it agrees with the hidden one on every possible item. If it is not, you see one item it gets wrong, free, and you try again. The hidden rule is never shown unless you ask for the answer." },
+    { selector: "#hint-button", title: "Hints are free", text: "A nudge says what kind of property to look at, a hint suggests a good item to send, and the answer writes the rule out. They open one at a time, only when you press, and they never cost you anything." },
+    { selector: "#goals", title: "Your goals", text: "Three goals stay in view, in any order. Every test you send, hint you ask for and case you name counts toward something on the screen." },
+    { selector: "#cases-toggle-button", title: "Drawers and the Codex", text: "Drawers opens the wall of 48 cases. Every drawer and case is open from the start, so pick any. Each case you name fills a page of the Codex with the shortest path of tests that would have proved it." },
+    { title: "You are ready", text: "Take your time. Your progress is saved as you go." }
+  ];
+
   async function boot() {
     var changelog = loadChangelog();
     var pyodide = await window.loadPyodide();
@@ -671,6 +720,7 @@
     $("engine-status").textContent = "";
     send({ action: "open" });
     await changelog;
+    if (window.GameTutorial) window.GameTutorial.init(window.ruleFinderTutorialSteps ? window.ruleFinderTutorialSteps(TUTORIAL_STEPS) : TUTORIAL_STEPS, { gameId: "rule-finder" });
   }
 
   wire();

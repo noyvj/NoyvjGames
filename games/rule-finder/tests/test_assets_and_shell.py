@@ -54,7 +54,7 @@ def test_shared_head_includes_keep_the_site_wide_order():
 
 def test_every_file_the_page_links_exists():
     for ref in re.findall(r'(?:src|href)="((?!https?:|#)[^"]+)"', HTML):
-        assert (GAME_DIR / ref).resolve().exists(), ref
+        assert (GAME_DIR / ref.split("?")[0]).resolve().exists(), ref
 
 
 def test_the_changelog_is_valid_and_dated():
@@ -70,7 +70,8 @@ def test_the_favicon_is_a_code_drawn_svg_in_this_folder_and_the_page_uses_it():
 
 def test_shared_includes_are_in_the_standard_order_after_the_page_scripts():
     tail = HTML[HTML.index("pyodide.js"):]
-    order = ["shared/hub-auth.js", "shared/save-widget.js", "shared/confirm-dialog.js", 'src="app.js"', "shared/last-played.js", "shared/whats-new-banner.js"]
+    order = ["shared/tutorial.js", "shared/hub-auth.js", "shared/save-widget.js", "shared/opening-screen.js", "shared/story-toggle.js",
+             "shared/confirm-dialog.js", 'src="app.js"', "shared/last-played.js", "shared/whats-new-banner.js", "shared/keyboard-shortcuts.js"]
     positions = [tail.index(name) for name in order]
     assert positions == sorted(positions)
 
@@ -85,3 +86,47 @@ def test_the_page_has_one_item_builder_per_kind_of_item():
 def test_the_view_never_decides_what_goes_through():
     """app.js draws answers from the engine; it holds no rule of its own."""
     assert "accepts" not in APP and "rule_accepts" not in APP and "% 2" not in APP and "isPrime" not in APP
+
+
+def test_the_tutorial_only_points_at_things_the_page_has():
+    ids = set(re.findall(r'(?<![-\w])id="([^"]+)"', HTML))
+    steps = APP.split("var TUTORIAL_STEPS = [")[1].split("];")[0]
+    selectors = re.findall(r'selector: "#([\w-]+)"', steps)
+    assert len(selectors) >= 5 and set(selectors) <= ids
+    assert 'id="tutorial-restart-button"' in HTML and "ruleFinderTutorialSteps" in HTML and "tutorial.js" in HTML
+
+
+def test_the_opening_screen_and_story_toggle_are_wired_for_this_game():
+    assert 'opening-screen.js" data-game-id="rule-finder" data-game-name="Rule Finder"' in HTML
+    assert 'story-toggle.js" data-game-id="rule-finder" data-story-selectors=".story-text"' in HTML
+    assert 'class="verdict-line story-text note"' in HTML and "line story-text" in APP
+
+
+def test_every_panel_the_shortcuts_close_exists_and_has_a_toggle():
+    ids = set(re.findall(r'(?<![-\w])id="([^"]+)"', HTML))
+    block = HTML.split("KeyboardShortcuts.init(")[1].split("});")[0]
+    pairs = re.findall(r'toggle: "([\w-]+)", panel: "([\w-]+)"', block)
+    assert len(pairs) >= 5
+    for toggle, panel in pairs:
+        assert toggle in ids and panel in ids
+    assert "Backspace takes a tile back" in block
+
+
+def test_the_sources_file_follows_the_schema_and_lists_only_what_the_plan_records():
+    data = json.loads((GAME_DIR / "sources.json").read_text(encoding="utf-8"))
+    assert data["game"] == "rule-finder" and re.match(r"\d{4}-\d{2}-\d{2}$", data["updated"]) and data["research"] == []
+    assert {i["title"] for i in data["inspiration"]} == {"Wason's 2-4-6 task", "Eleusis"}
+    for entry in data["inspiration"]:
+        assert entry["kind"] in ("game", "show", "book", "film", "other") and entry["note"]
+    for entry in data["other"]:
+        assert entry["title"] and entry["by"] and entry["note"] and entry.get("url", "https://").startswith("https://")
+    assert "../../sources.html?game=rule-finder" in HTML
+
+
+def test_the_about_page_says_fiction_and_the_pledge():
+    import info
+    v = info.view()
+    text = " ".join(v["pledge"]) + v["framing"]
+    for needle in ("no timer", "No audio", "no leaderboards", "invented", "no real-world facts"):
+        assert needle.lower() in (text + v["notice"]).lower()
+    assert len(v["pledge"]) >= 5 and v["how"] and "Fiction" in v["notice"]

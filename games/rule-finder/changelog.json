@@ -2,6 +2,10 @@
   "changelog": [
     {
       "date": "2026-10-11",
+      "entry": "An opening screen (New Game, Saves), a short skippable tutorial, an About page that says what the game will never do, a keyboard shortcut list (press ?), number keys for the shape and pattern builders, a story toggle that hides the operator's log lines if you only want the puzzles, and a light theme. The Sources page lists the hidden-rule puzzles that inspired the game. Nothing about the cases changed."
+    },
+    {
+      "date": "2026-10-11",
       "entry": "The game is complete at 48 cases: two more drawers, Patterns (three by three grids of filled squares) and The Odd Gate (gates with one surprising exception, so test the edges). A free hint ladder on every case, opened one rung at a time and only when you press: a nudge about what kind of property to look at, a test item worth sending next, then the answer. Three goals stay in view, each with a count, and a medal for each named case shows how many tests it took against par. Nothing costs anything."
     },
     {

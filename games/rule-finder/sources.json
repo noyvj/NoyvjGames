@@ -1,0 +1,25 @@
+{
+  "game": "rule-finder",
+  "updated": "2026-10-11",
+  "research": [],
+  "inspiration": [
+    {
+      "title": "Wason's 2-4-6 task",
+      "kind": "other",
+      "note": "The psychology task where you work out a hidden rule by proposing your own examples and being told whether each fits; Rule Finder makes that testing free, unlimited and the whole game."
+    },
+    {
+      "title": "Eleusis",
+      "kind": "game",
+      "note": "A hidden-rule game about finding out by trying; Rule Finder borrows the idea of a rule you can only learn from what is accepted and what is refused."
+    }
+  ],
+  "other": [
+    {
+      "title": "Pyodide",
+      "by": "The Pyodide project",
+      "url": "https://pyodide.org/",
+      "note": "Runs the game's Python rules and fairness checks in the browser through WebAssembly (version 0.26.4, loaded from a CDN), so there is no server and no build step."
+    }
+  ]
+}
