@@ -612,6 +612,60 @@
     });
   }
 
+  // GF-19: tactile feedback. Buttons squish a little when pressed, and a small tractor drives across the
+  // pasture when Advance Round is pressed. CSS and a click listener only (no audio, nothing in game.py or a
+  // save). On by default; Settings can switch it off (localStorage["herd-tactile"] = "false", mirrored as
+  // html[data-tactile="off"]). With reduced motion, lite mode or the OS setting there is no tractor and no squish.
+  const TACTILE_KEY = "herd-tactile";
+
+  function tactileOn() {
+    try {
+      return window.localStorage.getItem(TACTILE_KEY) !== "false";
+    } catch (e) {
+      return true;
+    }
+  }
+
+  function setTactile(on) {
+    document.documentElement.setAttribute("data-tactile", on ? "on" : "off");
+    try {
+      window.localStorage.setItem(TACTILE_KEY, on ? "true" : "false");
+    } catch (e) {
+      // The choice still applies until the page is reloaded.
+    }
+    return on;
+  }
+
+  function driveTractor() {
+    if (!tactileOn() || !motionAllowed()) return false;
+    const pasture = document.querySelector(".pasture-visual");
+    if (!pasture) return false;
+    let tractor = document.getElementById("pasture-tractor");
+    if (!tractor) {
+      tractor = document.createElement("div");
+      tractor.id = "pasture-tractor";
+      tractor.className = "pasture-tractor";
+      tractor.setAttribute("aria-hidden", "true");
+      tractor.textContent = "\uD83D\uDE9C";
+      pasture.appendChild(tractor);
+    }
+    tractor.classList.remove("pasture-tractor--go");
+    void tractor.offsetWidth; // restart the animation if it is still running
+    tractor.classList.add("pasture-tractor--go");
+    return true;
+  }
+
+  function initTactile() {
+    setTactile(tactileOn());
+    const box = document.getElementById("tactile-checkbox");
+    if (box) {
+      box.checked = tactileOn();
+      box.addEventListener("change", function () { setTactile(box.checked); });
+    }
+    const advance = document.getElementById("advance-round-button");
+    if (advance) advance.addEventListener("click", driveTractor);
+  }
+
   function initKeyboardPlay() {
     document.addEventListener("keydown", onLeverKey);
     const howto = document.getElementById("howto-panel");
@@ -629,6 +683,7 @@
     initConfirmThreshold();
     initKeyboardPlay();
     initChaChing();
+    initTactile();
     initProfile();
     initMixer();
     initGlossary();
@@ -685,6 +740,9 @@
         resetDisplayPrefs();
         resetConfirmThreshold();
         setChaChing(true);
+        setTactile(true);
+        const tactileBox = document.getElementById("tactile-checkbox");
+        if (tactileBox) tactileBox.checked = true;
         applyProfile("standard");
         const profileSelect = document.getElementById("profile-select");
         if (profileSelect) profileSelect.value = "standard";
@@ -705,5 +763,5 @@
     cheatSheetItems: CHEAT_SHEET_ITEMS,
     glossary: GLOSSARY,
   };
-  window.HerdFx = { roundGain: roundGain, chaChingOn: chaChingOn, mixerQuality: mixerQuality };
+  window.HerdFx = { driveTractor: driveTractor, tactileOn: tactileOn, roundGain: roundGain, chaChingOn: chaChingOn, mixerQuality: mixerQuality };
 })();

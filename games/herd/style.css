@@ -1704,3 +1704,13 @@ html[data-profile="expert"] #combined-decoupling-display,
 html[data-profile="expert"] #real-world-comparison-display { display: none !important; }
 html[data-profile="expert"] .glossary-term { border-bottom: 0; cursor: inherit; }
 html[data-profile="expert"] #glossary-popover { display: none !important; }
+
+/* GF-19 tactile feel: squish on press and a tractor that crosses the pasture on Advance Round. */
+html:not([data-tactile="off"]) button { transition: transform 90ms ease, filter 120ms ease; }
+html:not([data-tactile="off"]) button:active:not(:disabled) { transform: translateY(1px) scale(0.96); }
+.pasture-tractor { position: absolute; bottom: 6px; left: -12%; z-index: 4; font-size: 1.6rem; line-height: 1; pointer-events: none; opacity: 0; }
+.pasture-tractor--go { animation: tractor-cross 1.8s linear 1 forwards; }
+@keyframes tractor-cross { 0% { left: -12%; opacity: 1; } 95% { opacity: 1; } 100% { left: 108%; opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .pasture-tractor { display: none; } html:not([data-tactile="off"]) button:active:not(:disabled) { transform: none; } }
+html[data-reduced-motion="true"] .pasture-tractor, html[data-lite="true"] .pasture-tractor { display: none; }
+html[data-reduced-motion="true"] button:active:not(:disabled), html[data-lite="true"] button:active:not(:disabled) { transform: none !important; }
