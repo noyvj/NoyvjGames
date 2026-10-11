@@ -792,9 +792,10 @@ How a content-of-the-day pick works, so the games do it the same way:
 | Group | Games |
 |---|---|
 | Real daily or "Today's run" already (seeded or dated content) | Signal, SOL, Heist Committee, Pocket Bazaar, Dead Reckoning, Evidence Hunt (the house its seed text makes), Grid, Lighthouse, Canopy and Aftermath (shared seed), Continuum (its own K-12 geography seed) |
-| Exempt: simulations or sandboxes with no authored list to pick from (the starting scenario is the player's choice) | Herd, Thaw, Loop, Drift, Tide, Trade Empire |
+| Exempt: simulations or sandboxes with no authored list to pick from (the starting scenario is the player's choice) | Herd, Thaw, Loop, Drift (the only `random` in them is cosmetic, as the Z-1 list above says) |
 | Exempt by the owner's own brief | Stranded (its `CLAUDE.md` bans daily mechanics outright; also no randomness, clocks or leaderboards) |
 | Content of the day, once built (authored list, no randomness) | Logic Gates (40 levels), Robot Script (42 rooms), Hull Repair (44 boards), Station Medic (60 shifts), Rule Finder (48 cases), Mirror Lab (24 benches), Picture Grid (its pictures), Zero-G Shift (48 bays), Chronicle (one authored set, one puzzle of the day), Lexis (its authored puzzles, first rung only) |
 | Study tool, decision pending (Z-1d) | Le Champ de Mots |
+| Seeded runs, a "Today's run" like Grid's is the normal next step (not in Z-5c) | Tide, Trade Empire |
 
 Watch for these when a content-of-the-day game is built: Evidence Hunt, Stranded, Robot Script, Hull Repair, Station Medic, Rule Finder and Mirror Lab each have a `tests/test_pledge.py` that scans their own player-facing files for banned words, and "daily" and "streak" are on several of those lists. The shared button's own text lives in `shared/seed.js` (not scanned), so the wiring belongs in a small separate file (Evidence Hunt's `today.js` is the example) and the pledge text must be changed by the owner, not worked around. The shared button's streak line ("3 days in a row, best 5", or "Best streak 5: a new one starts whenever you like") also shows in these games; if a brief says "nothing can be missed", the owner may prefer the streak line hidden for that game.
