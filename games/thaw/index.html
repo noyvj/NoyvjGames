@@ -227,6 +227,8 @@
         <button id="settings-code-restore-button" class="secondary" type="button">Restore from code</button>
         <p id="settings-code-status" class="settings-note" role="status"></p>
       </div>
+      <!-- G-11: developer line, shown only with ?debug=1 (see the script at the end of the page). -->
+      <p id="history-readout" class="settings-note" hidden></p>
       <div class="settings-row">
         <button id="settings-reset-button" class="secondary" type="button">Reset to Default</button>
       </div>
@@ -1064,6 +1066,14 @@
         show(svg, next);
       });
     })();
+  </script>
+  <script>
+    /* G-11: with ?debug=1 the Settings panel also shows how long the histories are and what the graphs draw. */
+    try {
+      if (new URLSearchParams(location.search).get("debug") === "1") {
+        document.getElementById("history-readout").hidden = false;
+      }
+    } catch (e) { /* the line stays hidden */ }
   </script>
   <script src="../../shared/hub-auth.js"></script>
   <script src="../../shared/save-widget.js" data-game-id="thaw"></script>

@@ -200,6 +200,7 @@ ELEMENT_IDS = [
     "settings-reset-button",
     "pace-display",
     "mascots",
+    "history-readout",
 ]
 for _category in CATEGORIES:
     ELEMENT_IDS += [f"{_category}-name", f"{_category}-count", f"{_category}-invest-button"]

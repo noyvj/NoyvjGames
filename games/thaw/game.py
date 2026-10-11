@@ -1342,6 +1342,49 @@ MINI_GRAPH_WIDTH = 120
 MINI_GRAPH_HEIGHT = 40
 
 
+GRAPH_MAX_POINTS = 120       # G-11: most points any one graph line ever draws
+GRAPH_RECENT_FULL = 40       # G-11: the latest rounds are always drawn one by one
+
+
+def graph_indexes(values, limit=GRAPH_MAX_POINTS, recent=GRAPH_RECENT_FULL):
+    """G-11: which rounds of a long history a graph draws. Up to `limit` rounds are drawn one by one
+    (exactly as before). Past that, the newest `recent` rounds stay whole and the older ones are
+    collapsed into summary points: one per bucket, the bucket's highest value, so a peak is never
+    flattened away. The first and last rounds are always kept. Returns ascending indexes."""
+    n = len(values)
+    if n <= limit:
+        return list(range(n))
+    old_end = n - recent
+    slots = max(1, limit - recent - 1)
+    size = -(-(old_end - 1) // slots)
+    kept = [0]
+    start = 1
+    while start < old_end:
+        chunk = range(start, min(old_end, start + size))
+        kept.append(max(chunk, key=lambda i: (values[i], i)))
+        start += size
+    kept.extend(range(old_end, n))
+    return kept
+
+
+def history_readout_text():
+    """G-11: the developer line (shown with ?debug=1): how long the histories are, how many points
+    the graphs really draw and roughly how big the save is."""
+    stored = len(region.temperature_history)
+    drawn = len(graph_indexes(region.temperature_history))
+    size = len(json.dumps(get_state(), separators=(",", ":")))
+    return (
+        f"History: {stored} rounds stored per region, graphs draw {drawn} points each; "
+        f"save about {size / 1024:.1f} KB."
+    )
+
+
+def render_history_readout():
+    element = document.getElementById("history-readout")
+    if not element.hidden:  # only measured when the developer line is on show
+        element.innerText = history_readout_text()
+
+
 def _crosshair_points(history, dampening, xs, ys):
     """G-16: [x, y, label] for up to CROSSHAIR_MAX_POINTS evenly spread points (always the last), as
     JSON the page's hover script reads. A point's label is its round, temperature and dampening."""
@@ -1390,7 +1433,8 @@ def mini_temp_graph_svg(history, name=None, dampening=None, pace=None):
     else:
         ys = [MINI_GRAPH_HEIGHT - ((v - lo) / (hi - lo)) * MINI_GRAPH_HEIGHT for v in history]
     xs = [i * (MINI_GRAPH_WIDTH / (n - 1)) for i in range(n)]
-    points = " ".join(f"{x:.1f},{y:.1f}" for x, y in zip(xs, ys))
+    keep = graph_indexes(history)  # G-11: long histories are drawn as summary points
+    points = " ".join(f"{xs[i]:.1f},{ys[i]:.1f}" for i in keep)
 
     threshold_line = ""
     if hi - lo >= 1e-9 and lo <= MELT_THRESHOLD <= hi:
@@ -1408,7 +1452,7 @@ def mini_temp_graph_svg(history, name=None, dampening=None, pace=None):
             pace_ys = [MINI_GRAPH_HEIGHT / 2 for _ in pace_part]
         else:
             pace_ys = [MINI_GRAPH_HEIGHT - ((v - lo) / (hi - lo)) * MINI_GRAPH_HEIGHT for v in pace_part]
-        pace_points = " ".join(f"{x:.1f},{y:.1f}" for x, y in zip(xs, pace_ys))
+        pace_points = " ".join(f"{xs[i]:.1f},{pace_ys[i]:.1f}" for i in graph_indexes(pace_part))
         pace_line = f'<polyline points="{pace_points}" class="mini-pace-line" />'
 
     aria = ""
@@ -4027,7 +4071,7 @@ def tiny_line_svg(values, label):
     span = hi - lo
     ys = [TINY_HEIGHT / 2 if span < 1e-9 else TINY_HEIGHT - 1 - ((v - lo) / span) * (TINY_HEIGHT - 2) for v in values]
     xs = [i * (TINY_WIDTH / (len(values) - 1)) for i in range(len(values))]
-    points = " ".join(f"{x:.1f},{y:.1f}" for x, y in zip(xs, ys))
+    points = " ".join(f"{xs[i]:.1f},{ys[i]:.1f}" for i in graph_indexes(values))  # G-11
     return (
         f'<svg viewBox="0 0 {TINY_WIDTH} {TINY_HEIGHT}" class="board-spark" role="img" aria-label="{_escape(label)}">'
         f'<polyline points="{points}" class="board-spark-line" /></svg>'
@@ -4112,7 +4156,7 @@ def focus_graph_svg(values, name, key):
 
     n = len(values)
     xs = [FOCUS_PAD_LEFT + i * plot_w / (n - 1) for i in range(n)]
-    points = " ".join(f"{x:.1f},{y_of(v):.1f}" for x, v in zip(xs, values))
+    points = " ".join(f"{xs[i]:.1f},{y_of(values[i]):.1f}" for i in graph_indexes(values))  # G-11
     guides = ""
     for value, css in ((MELT_THRESHOLD, "focus-guide focus-guide--melt"), (SECOND_WARMING_MILESTONE, "focus-guide focus-guide--second")):
         y = y_of(value)
@@ -4495,7 +4539,8 @@ def replay_chart_svg(round_number):
 
     lines = ""
     for key, r in series:
-        pts = " ".join(f"{x_of(i):.1f},{y_of(v):.1f}" for i, v in enumerate(r.temperature_history[:n]))
+        shown = r.temperature_history[:n]
+        pts = " ".join(f"{x_of(i):.1f},{y_of(shown[i]):.1f}" for i in graph_indexes(shown))  # G-11
         lines += f'<polyline points="{pts}" class="replay-line replay-line--{key}" />'
     marks = ""
     for entry in science_log:
@@ -5135,6 +5180,7 @@ def render():
     update_changelog_display()
     update_community_compare_panel()
     render_climate_scientist()
+    render_history_readout()
 
 
 def _make_invest_handler(category):

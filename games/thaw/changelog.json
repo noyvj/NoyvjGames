@@ -1,6 +1,10 @@
 [
   {
     "date": "2026-10-11",
+    "entry": "Behind the scenes: very long games now draw each graph as at most 120 points (the newest 40 rounds stay whole, older rounds are folded into summary points that keep every peak), so a long run stays smooth. Your save still keeps every round. Open the page with ?debug=1 to see a history and save-size line in Settings."
+  },
+  {
+    "date": "2026-10-11",
     "entry": "New: a custom preset for Regions B and C. Build the mix you like with the invest buttons, press Save this mix as Custom, and the Custom button spends a region's funds toward that same ratio, with the usual hover preview. One slot, shared by both regions, kept in your save."
   },
   {
