@@ -177,6 +177,24 @@
         <span class="settings-row-label">Motion</span>
         <button id="reduce-motion-toggle-button" class="secondary" type="button">Reduce Motion: Off</button>
       </div>
+      <!-- I-21: how fast the arrival dots, building pop-ups and strain heartbeat move; separate from Reduce Motion. -->
+      <div class="settings-row">
+        <span class="settings-row-label">Animation speed</span>
+        <div class="settings-control-group" role="group" aria-label="Animation speed" id="anim-speed-group">
+          <button id="anim-speed-slow-button" class="secondary" type="button" data-speed="slow" aria-pressed="false">Slow</button>
+          <button id="anim-speed-normal-button" class="secondary" type="button" data-speed="normal" aria-pressed="true">Normal</button>
+          <button id="anim-speed-fast-button" class="secondary" type="button" data-speed="fast" aria-pressed="false">Fast</button>
+          <button id="anim-speed-off-button" class="secondary" type="button" data-speed="off" aria-pressed="false">Off</button>
+        </div>
+      </div>
+      <!-- I-19: spacing of the panels and lines. -->
+      <div class="settings-row">
+        <span class="settings-row-label">Density</span>
+        <div class="settings-control-group" role="group" aria-label="Density" id="density-group">
+          <button id="density-comfortable-button" class="secondary" type="button" data-density="comfortable" aria-pressed="true">Comfortable</button>
+          <button id="density-compact-button" class="secondary" type="button" data-density="compact" aria-pressed="false">Compact</button>
+        </div>
+      </div>
       <div class="settings-row">
         <span class="settings-row-label">Contrast</span>
         <button id="high-contrast-toggle-button" class="secondary" type="button">High Contrast: Off</button>

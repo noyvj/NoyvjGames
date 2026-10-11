@@ -37,6 +37,57 @@
   // I-20: two more display preferences, same per-browser storage and root-class approach as reduce motion.
   var CONTRAST_KEY = "drift-high-contrast";
   var DYSLEXIA_KEY = "drift-easy-read-font";
+  // I-21 / I-19: animation speed (slow, normal, fast, off) and spacing density (comfortable, compact).
+  var ANIM_SPEED_KEY = "drift-anim-speed";
+  var DENSITY_KEY = "drift-density";
+  // How long an animation runs relative to its normal length (style.css multiplies every duration by this).
+  var ANIM_SCALES = { slow: 2, normal: 1, fast: 0.5, off: 1 };
+  var DENSITIES = ["comfortable", "compact"];
+
+  function readChoice(key, allowed, fallback) {
+    try {
+      var raw = window.localStorage.getItem(key);
+      if (allowed.indexOf(raw) !== -1) return raw;
+    } catch (e) {
+      // Storage can throw in private mode: use the default.
+    }
+    return fallback;
+  }
+
+  function writeChoice(key, value) {
+    try {
+      window.localStorage.setItem(key, value);
+    } catch (e) {
+      // Losing persistence is not worth breaking the control.
+    }
+  }
+
+  function applyAnimSpeed(value) {
+    if (!Object.prototype.hasOwnProperty.call(ANIM_SCALES, value)) value = "normal";
+    var root = document.documentElement;
+    root.setAttribute("data-anim-speed", value);
+    root.style.setProperty("--drift-anim-scale", String(ANIM_SCALES[value]));
+    writeChoice(ANIM_SPEED_KEY, value);
+    return value;
+  }
+
+  function applyDensity(value) {
+    if (DENSITIES.indexOf(value) === -1) value = "comfortable";
+    document.documentElement.setAttribute("data-density", value);
+    writeChoice(DENSITY_KEY, value);
+    return value;
+  }
+
+  // Marks the pressed button of a button group (aria-pressed plus the .active look).
+  function markGroup(groupId, attribute, current) {
+    var group = document.getElementById(groupId);
+    if (!group) return;
+    Array.prototype.forEach.call(group.querySelectorAll("button"), function (button) {
+      var on = button.getAttribute(attribute) === current;
+      button.classList.toggle("active", on);
+      button.setAttribute("aria-pressed", on ? "true" : "false");
+    });
+  }
 
   function readFlag(key) {
     try {
@@ -143,6 +194,23 @@
       });
     }
 
+    var animSpeed = applyAnimSpeed(readChoice(ANIM_SPEED_KEY, Object.keys(ANIM_SCALES), "normal"));
+    var density = applyDensity(readChoice(DENSITY_KEY, DENSITIES, "comfortable"));
+    markGroup("anim-speed-group", "data-speed", animSpeed);
+    markGroup("density-group", "data-density", density);
+    Array.prototype.forEach.call(document.querySelectorAll("#anim-speed-group button"), function (button) {
+      button.addEventListener("click", function () {
+        animSpeed = applyAnimSpeed(button.getAttribute("data-speed"));
+        markGroup("anim-speed-group", "data-speed", animSpeed);
+      });
+    });
+    Array.prototype.forEach.call(document.querySelectorAll("#density-group button"), function (button) {
+      button.addEventListener("click", function () {
+        density = applyDensity(button.getAttribute("data-density"));
+        markGroup("density-group", "data-density", density);
+      });
+    });
+
     var toggleButton = document.getElementById("settings-toggle-button");
     var panel = document.getElementById("settings-panel");
     var open = false;
@@ -206,6 +274,10 @@
         contrast = applyFlag(CONTRAST_KEY, "high-contrast", false);
         easyFont = applyFlag(DYSLEXIA_KEY, "easy-read-font", false);
         updateFlagLabels();
+        animSpeed = applyAnimSpeed("normal");
+        density = applyDensity("comfortable");
+        markGroup("anim-speed-group", "data-speed", animSpeed);
+        markGroup("density-group", "data-density", density);
       });
     }
   }
@@ -220,6 +292,8 @@
     applyScale: applyScale,
     applyMotion: applyMotion,
     applyFlag: applyFlag,
+    applyAnimSpeed: applyAnimSpeed,
+    applyDensity: applyDensity,
     MIN_SCALE: MIN_SCALE,
     MAX_SCALE: MAX_SCALE,
   };

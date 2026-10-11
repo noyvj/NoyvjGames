@@ -56,4 +56,4 @@ def test_render_sets_animation_duration_on_every_dot(game_env):
     game_env.module.render()
     for i in range(1, game_env.module.ARRIVAL_STREAM_MAX_DOTS + 1):
         el = game_env.elements[f"arrival-dot-{i}"]
-        assert el.style.animationDuration.endswith("s")
+        assert "s" in el.style.animationDuration and "var(--drift-anim-scale" in el.style.animationDuration

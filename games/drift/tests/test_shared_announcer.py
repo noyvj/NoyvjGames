@@ -205,7 +205,7 @@ def test_the_games_own_notes_are_not_second_live_regions():
 
     html = (Path(__file__).resolve().parent.parent / "index.html").read_text(encoding="utf-8")
     for note in ("round-tools-note", "calendar-note"):
-        line = next(l for l in html.splitlines() if f'id="{note}"' in l)
+        line = next(row for row in html.splitlines() if f'id="{note}"' in row)
         assert "aria-live" not in line and "role=" not in line
     assert '<script src="../../shared/announcer.js"></script>' in html
     assert html.index("shared/announcer.js") < html.index("shared/last-played.js")

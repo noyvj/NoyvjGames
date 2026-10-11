@@ -1595,3 +1595,75 @@ html.easy-read-font .comparison-message { font-style: normal; }
   outline: 3px solid #f0e442;
   outline-offset: 2px;
 }
+
+/* ---- Round-4 batch (2026-10-11): animation speed, density, building pop, strain heartbeat ----
+   settings.js sets --drift-anim-scale on <html> (2 slow, 1 normal, 0.5 fast) and data-anim-speed
+   (slow, normal, fast, off); data-density is comfortable or compact. */
+.settings-control-group button.active {
+  border-color: rgba(76, 156, 110, 0.6);
+  background: rgba(76, 156, 110, 0.14);
+  color: #7fd6a3;
+}
+html[data-theme="light"] .settings-control-group button.active { color: #1d6b3d; }
+.settings-control-group { flex-wrap: wrap; }
+
+/* GI-14: a building rises, settles and lets out a tiny dust puff. The individual `translate` property
+   composes with the inline scaleY the game sets, so the building's height is never touched. */
+.region-visual-building { position: relative; }
+.region-visual-building.building-pop-a { animation: building-pop-a calc(1.1s * var(--drift-anim-scale, 1)) ease-out 1; }
+.region-visual-building.building-pop-b { animation: building-pop-b calc(1.1s * var(--drift-anim-scale, 1)) ease-out 1; }
+#game:has(#strain-bar.strain--critical) .region-visual-building.building-pop-a {
+  animation: region-visual-flicker 3.6s ease-in-out infinite, building-pop-a calc(1.1s * var(--drift-anim-scale, 1)) ease-out 1;
+}
+#game:has(#strain-bar.strain--critical) .region-visual-building.building-pop-b {
+  animation: region-visual-flicker 3.6s ease-in-out infinite, building-pop-b calc(1.1s * var(--drift-anim-scale, 1)) ease-out 1;
+}
+.region-visual-building.building-pop-a::after,
+.region-visual-building.building-pop-b::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  width: 150%;
+  height: 7px;
+  margin-left: -75%;
+  border-radius: 50%;
+  background: radial-gradient(ellipse at center, rgba(255, 238, 214, 0.75), rgba(255, 238, 214, 0) 70%);
+  opacity: 0;
+  pointer-events: none;
+}
+.region-visual-building.building-pop-a::after { animation: building-dust-a calc(1.1s * var(--drift-anim-scale, 1)) ease-out 1; }
+.region-visual-building.building-pop-b::after { animation: building-dust-b calc(1.1s * var(--drift-anim-scale, 1)) ease-out 1; }
+@keyframes building-pop-a { 0% { translate: 0 0; } 28% { translate: 0 -9px; } 55% { translate: 0 1px; } 75% { translate: 0 -2px; } 100% { translate: 0 0; } }
+@keyframes building-pop-b { 0% { translate: 0 0; } 28% { translate: 0 -9px; } 55% { translate: 0 1px; } 75% { translate: 0 -2px; } 100% { translate: 0 0; } }
+@keyframes building-dust-a { 0%, 45% { opacity: 0; transform: scaleX(0.4); } 60% { opacity: 1; transform: scaleX(1); } 100% { opacity: 0; transform: scaleX(1.5); } }
+@keyframes building-dust-b { 0%, 45% { opacity: 0; transform: scaleX(0.4); } 60% { opacity: 1; transform: scaleX(1); } 100% { opacity: 0; transform: scaleX(1.5); } }
+
+/* GI-19: strain heartbeat. Two soft beats then a rest; the duration comes from game.py (6s stable,
+   2.6s strained, 1.2s critical, times the animation-speed scale). Brightness and a glow only: the
+   text never loses contrast, and nothing flashes more than twice a second. */
+.strain-heartbeat { animation: strain-heartbeat-bar 6s ease-in-out infinite; }
+.strain-heartbeat-text { animation: strain-heartbeat-text 6s ease-in-out infinite; }
+@keyframes strain-heartbeat-bar { 0%, 50%, 100% { filter: brightness(1); } 12% { filter: brightness(1.35); } 36% { filter: brightness(1.2); } }
+@keyframes strain-heartbeat-text { 0%, 50%, 100% { text-shadow: 0 0 0 transparent; } 12% { text-shadow: 0 0 9px currentColor; } 36% { text-shadow: 0 0 5px currentColor; } }
+
+/* I-21: Off stops the three decorative animations without touching Reduce Motion. */
+html[data-anim-speed="off"] .arrival-dot,
+html[data-anim-speed="off"] .region-visual-building,
+html[data-anim-speed="off"] .region-visual-building::after,
+html[data-anim-speed="off"] .strain-heartbeat,
+html[data-anim-speed="off"] .strain-heartbeat-text { animation: none !important; }
+@media (prefers-reduced-motion: reduce) {
+  .strain-heartbeat, .strain-heartbeat-text { animation: none; }
+}
+
+/* I-19: Compact density tightens spacing and line height; Comfortable is the normal layout. */
+html[data-density="compact"] .section { padding: 0.6rem 0.75rem; margin-bottom: 0.55rem; }
+html[data-density="compact"] .status-line { margin-bottom: 0.2rem; font-size: 0.9rem; }
+html[data-density="compact"] .comparison-message { margin-top: 0.3rem; line-height: 1.3; }
+html[data-density="compact"] .meter-label { margin: 0.2rem 0 0.15rem; }
+html[data-density="compact"] .invest-row { padding: 0.25rem 0; }
+html[data-density="compact"] .context-blurb { margin-bottom: 0.6rem; padding: 0.4rem 0.6rem; }
+html[data-density="compact"] .settings-row { gap: 0.4rem; }
+html[data-density="compact"] button.secondary,
+html[data-density="compact"] button.primary { padding-top: 0.4rem; padding-bottom: 0.4rem; }

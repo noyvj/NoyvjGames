@@ -1,6 +1,10 @@
 [
   {
     "date": "2026-10-11",
+    "entry": "New: the skyline comes alive. Every capacity investment makes one building rise, settle and let out a small puff of dust, and a soft pulse on the strain readout beats faster as strain climbs and calms as it falls. Settings gains an Animation speed choice (Slow, Normal, Fast or Off, separate from Reduce Motion, covering the arrival dots, the building pop-ups and the pulse) and a Comfortable or Compact density choice for the spacing of the panels."
+  },
+  {
+    "date": "2026-10-11",
     "entry": "New: a screen reader now hears what changes. After you invest in housing, services or infrastructure, fund a policy, move capacity, brace for an event, advance a round, play five rounds or run the Autopilot, a short plain sentence says what happened: the round recap line, any wave or milestone that just arrived, the new round's arrivals, your funds, strain and wellbeing. A refused action says why. Each investment row is now a named group, and keyboard focus shows a thick yellow ring."
   },
   {

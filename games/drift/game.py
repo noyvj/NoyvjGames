@@ -1256,6 +1256,50 @@ def region_visual_height_scale(total_capacity):
     return max(REGION_VISUAL_MIN_HEIGHT_SCALE, min(1.0, fraction))
 
 
+# GI-14: each capacity investment makes one building on the skyline rise and settle with a tiny dust
+# puff (pure CSS, drawn in style.css; Reduce Motion and the Animation speed "Off" setting stop it).
+# A building that has just been revealed pops first; otherwise the pops take turns along the skyline.
+BUILDING_POP_MS = 1100
+building_pop_count = 0  # transient, never saved: how many pops have run this page load
+
+
+def building_to_pop(count_before, count_after, pops_so_far):
+    """Index (0-based) of the skyline building that pops for an investment that took the visible
+    building count from count_before to count_after."""
+    count_after = max(1, min(count_after, len(REGION_VISUAL_BUILDING_IDS)))
+    if count_after > count_before:
+        return count_after - 1
+    return pops_so_far % count_after
+
+
+def _pop_building(count_before):
+    global building_pop_count
+    count_after = region_visual_building_count(region.total_capacity())
+    index = building_to_pop(count_before, count_after, building_pop_count)
+    building_pop_count += 1
+    element_id = f"region-visual-building-{REGION_VISUAL_BUILDING_IDS[index]}"
+    element = document.getElementById(element_id)
+    # Two identical animations under two class names: swapping to the other one restarts the pop
+    # when the player buys again before the last pop has finished.
+    css_class = "building-pop-b" if element.classList.contains("building-pop-a") else "building-pop-a"
+    _pulse(element_id, css_class, BUILDING_POP_MS)
+
+
+# GI-19: a soft pulse on the strain readout whose beat quickens with the strain level and calms
+# as it falls. Seconds per beat; style.css multiplies it by the Animation speed setting.
+STRAIN_HEARTBEAT_SECONDS = {"stable": 6.0, "strained": 2.6, "critical": 1.2}
+
+
+def strain_heartbeat_seconds(level):
+    return STRAIN_HEARTBEAT_SECONDS.get(level, STRAIN_HEARTBEAT_SECONDS["stable"])
+
+
+def scaled_seconds(seconds):
+    """A CSS duration that follows the player's Animation speed setting (settings.js sets
+    --drift-anim-scale on the page: 2 slow, 1 normal, 0.5 fast)."""
+    return f"calc({seconds:.2f}s * var(--drift-anim-scale, 1))"
+
+
 # I6: a one-line plain-language consequence description per strain level,
 # not just the existing colour/label change on the strain bar -- so a
 # player who hasn't opened the pressure section's info-toggle still knows
@@ -3778,7 +3822,7 @@ def render():
     for dot_index in range(1, ARRIVAL_STREAM_MAX_DOTS + 1):
         dot_el = document.getElementById(f"arrival-dot-{dot_index}")
         dot_el.hidden = dot_index > visible_dot_count
-        dot_el.style.animationDuration = f"{dot_duration:.2f}s"
+        dot_el.style.animationDuration = scaled_seconds(dot_duration)
     # I20: one-time callout once the stream's density has genuinely moved
     # since the severity toggle was first switched on.
     maybe_flag_severity_density_change(region, visible_dot_count)
@@ -3794,7 +3838,13 @@ def render():
     )
     strain_bar = document.getElementById("strain-bar")
     strain_bar.style.width = f"{region.strain_fraction() * 100:.0f}%"
-    strain_bar.className = f"meter-fill meter-fill--strain strain--{region.strain_level()}"
+    strain_bar.className = f"meter-fill meter-fill--strain strain-heartbeat strain--{region.strain_level()}"
+    # GI-19: the readout and its bar pulse at a beat that follows the strain level.
+    heartbeat = scaled_seconds(strain_heartbeat_seconds(region.strain_level()))
+    strain_bar.style.animationDuration = heartbeat
+    strain_display = document.getElementById("strain-display")
+    strain_display.className = "status-line strain-heartbeat-text"
+    strain_display.style.animationDuration = heartbeat
     # I6: one-line consequence description per strain level.
     document.getElementById("strain-consequence-display").innerText = strain_consequence_message(region)
 
@@ -4157,7 +4207,9 @@ def _make_policy_handler(policy):
 def _make_invest_handler(capacity_type):
     def handler(event=None):
         label = CAPACITY_LABEL[capacity_type]
+        count_before = region_visual_building_count(region.total_capacity())
         if region.invest(capacity_type):
+            _pop_building(count_before)
             announce(
                 f"Invested in {label}: now {region.capacity[capacity_type]:.0f}. "
                 f"Total capacity {region.total_capacity():.0f}. Funds {region.funds:.0f}. "
