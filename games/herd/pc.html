@@ -170,6 +170,21 @@
           </select>
         </label>
       </div>
+      <div id="ranch-rules" class="settings-row ranch-rules">
+        <p class="settings-label">Ranch rules (custom runs)</p>
+        <p class="comparison-message">Bend the balance if you like. Any change makes the run unranked: it stays off the community leaderboard and the other-farms comparison. Standard rules are the middle of each slider range.</p>
+        <label class="rule-row" for="rule-starting-funds">Starting funds <output id="rule-starting-funds-value" for="rule-starting-funds">300</output></label>
+        <input type="range" id="rule-starting-funds" min="150" max="600" step="50" value="300">
+        <label class="rule-row" for="rule-season-swing">Season swing <output id="rule-season-swing-value" for="rule-season-swing">100%</output></label>
+        <input type="range" id="rule-season-swing" min="0" max="200" step="50" value="100">
+        <label class="rule-row" for="rule-pressure-strength">Pressure penalty <output id="rule-pressure-strength-value" for="rule-pressure-strength">100%</output></label>
+        <input type="range" id="rule-pressure-strength" min="50" max="200" step="25" value="100">
+        <label class="rule-row" for="rule-growth-slope">Growth-cost slope <output id="rule-growth-slope-value" for="rule-growth-slope">2</output></label>
+        <input type="range" id="rule-growth-slope" min="0" max="4" step="0.5" value="2">
+        <p id="rules-summary" class="comparison-message" role="status" aria-live="polite"></p>
+        <p id="rules-start-note" class="comparison-message"></p>
+        <button id="rules-reset-button" class="secondary" type="button">Back to standard rules</button>
+      </div>
       <div class="settings-row">
         <button id="settings-reset-button" class="secondary" type="button">Reset to Default</button>
       </div>
@@ -282,6 +297,7 @@
     </div>
 
     <div id="actions" class="section">
+      <p id="rules-badge" class="rules-badge" hidden></p>
       <div id="bulk-stepper" class="bulk-stepper" role="group" aria-label="How many units each purchase button buys">
         <span class="bulk-stepper-label">Buy</span>
         <button id="bulk-1-button" class="secondary bulk-step selected" type="button" aria-pressed="true">x1</button>

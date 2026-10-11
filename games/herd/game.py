@@ -256,6 +256,50 @@ HALL_OF_FAME_SIZE = 5
 HALL_PER_HANDOVER = 3
 
 
+# F-1 -- Ranch Rules: four balance sliders for a custom run. Standard values are the ones the rest of
+# the file is written around, so a farm on standard rules behaves exactly as it always has. Any other
+# value makes the run "unranked": it stays off the opt-in leaderboard and out of the other-farms
+# comparison (FY-32). Rules live outside `farm` (like the succession perks) so a handover keeps them.
+RULE_SPECS = {
+    "starting_funds": {"label": "Starting funds", "min": 150, "max": 600, "step": 50, "default": 300, "unit": ""},
+    "season_swing": {"label": "Season swing", "min": 0, "max": 200, "step": 50, "default": 100, "unit": "%"},
+    "pressure_strength": {"label": "Pressure penalty", "min": 50, "max": 200, "step": 25, "default": 100, "unit": "%"},
+    "growth_slope": {"label": "Growth-cost slope", "min": 0, "max": 4, "step": 0.5, "default": 2.0, "unit": ""},
+}
+RULES_STORAGE_KEY = "herd-ranch-rules"
+ranch_rules = {name: spec["default"] for name, spec in RULE_SPECS.items()}
+
+
+def rule(name):
+    return ranch_rules[name]
+
+
+def clean_rule_value(name, value):
+    """A usable value for this rule (a number inside its range, on its step), or None."""
+    spec = RULE_SPECS.get(name)
+    if spec is None or isinstance(value, bool) or not isinstance(value, (int, float)):
+        return None
+    if value != value or abs(value) == float("inf"):
+        return None
+    clamped = max(spec["min"], min(spec["max"], float(value)))
+    snapped = spec["min"] + round((clamped - spec["min"]) / spec["step"]) * spec["step"]
+    return max(spec["min"], min(spec["max"], snapped))
+
+
+def rules_are_custom():
+    return any(abs(ranch_rules[n] - spec["default"]) > 1e-9 for n, spec in RULE_SPECS.items())
+
+
+def rules_unranked():
+    """True for a run that started or ran under non-standard Ranch Rules (it stays unranked for good)."""
+    return farm.custom_rules_used or rules_are_custom()
+
+
+def pressure_scale():
+    """Methane at which pressure would reach 100% income loss; the strength rule shrinks or stretches it."""
+    return PRESSURE_SCALE * 100.0 / ranch_rules["pressure_strength"]
+
+
 def season_for_round(round_number):
     """Deterministic pseudo-random season (same on every load/replay)."""
     return SEASONS[(round_number * 7 + 3) % len(SEASONS)]
@@ -268,7 +312,7 @@ def demand_surge_active(round_number):
 class FarmState:
     def __init__(self):
         self.round_number = 1
-        self.funds = STARTING_FUNDS
+        self.funds = rule("starting_funds")
         self.herd_size = 0
         self.methane = 0.0
         self.decoupling_investment = {m: 0 for m in DECOUPLING_MEASURES}
@@ -283,7 +327,7 @@ class FarmState:
         # other cumulative field. It does NOT mirror decoupling spend, so
         # it isolates whether decoupling investment paid for itself net
         # of its own cost, not just "what if you'd grown the same herd."
-        self.counterfactual_funds = STARTING_FUNDS
+        self.counterfactual_funds = rule("starting_funds")
         self.counterfactual_methane = 0.0
 
         # F5/F11/F17 — one-time nudge callouts. seen_* flags persist (so a
@@ -333,7 +377,9 @@ class FarmState:
         # GF-29/F-17/GF-15: per-round funds record (aligned with methane_history,
         # None where an older save never recorded it), the purchase log and the
         # perfect-round streak.
-        self.funds_history = [STARTING_FUNDS]
+        self.funds_history = [rule("starting_funds")]
+        # F-1: true once any round (or the farm's start) happened under non-standard Ranch Rules.
+        self.custom_rules_used = rules_are_custom()
         self.lever_log = []
         self.perfect_streak = 0
         self.best_perfect_streak = 0
@@ -600,7 +646,8 @@ class FarmState:
     def season_modifier(self, round_number=None):
         if not self.variation_enabled:
             return 0.0
-        return season_for_round(self.round_number if round_number is None else round_number)[1]
+        raw = season_for_round(self.round_number if round_number is None else round_number)[1]
+        return raw * ranch_rules["season_swing"] / 100.0
 
     def plant_income_multiplier(self, round_number=None):
         r = self.round_number if round_number is None else round_number
@@ -678,7 +725,7 @@ class FarmState:
         after that costs marginally more, reflecting real land/logistics
         constraints on scaling a herd rather than a flat per-unit price
         forever."""
-        return HERD_GROWTH_COST + self.herd_size * HERD_GROWTH_COST_SLOPE
+        return HERD_GROWTH_COST + self.herd_size * ranch_rules["growth_slope"]
 
     def grow_herd(self):
         cost = self.grow_herd_cost()
@@ -702,10 +749,10 @@ class FarmState:
         """Fraction of income lost to market/regulatory pressure and
         degraded yields, scaling with sustained methane. Capped so income
         never fully vanishes — a bad strategy gets worse, not impossible."""
-        return min(MAX_PRESSURE, self.methane / PRESSURE_SCALE)
+        return min(MAX_PRESSURE, self.methane / pressure_scale())
 
     def counterfactual_pressure_fraction(self):
-        return min(MAX_PRESSURE, self.counterfactual_methane / PRESSURE_SCALE)
+        return min(MAX_PRESSURE, self.counterfactual_methane / pressure_scale())
 
     def counterfactual_score(self):
         """F1/F3/F13 — the pure-growth counterfactual's own score, using
@@ -972,6 +1019,32 @@ def load_record_coupling_ratio():
 record_coupling_ratio = load_record_coupling_ratio()
 
 
+def _store_rules():
+    """Remembers the rules in this browser so a new farm starts on the same ones (F-1)."""
+    _write_local_storage_item(RULES_STORAGE_KEY, json.dumps({n: v for n, v in ranch_rules.items()}))
+
+
+def _load_stored_rules():
+    raw = _read_local_storage_item(RULES_STORAGE_KEY)
+    if not raw:
+        return
+    try:
+        saved = json.loads(raw)
+    except (ValueError, TypeError):
+        return
+    if not isinstance(saved, dict):
+        return
+    for name in RULE_SPECS:
+        cleaned = clean_rule_value(name, saved.get(name))
+        if cleaned is not None:
+            ranch_rules[name] = cleaned
+
+
+_load_stored_rules()
+if rules_are_custom():
+    farm = FarmState()  # the farm built above predates the stored rules
+
+
 def _maybe_update_record_coupling_ratio():
     """Called every render(); bumps + persists the record whenever the
     live farm's coupling_ratio() drops below it. Lower is better here --
@@ -1151,6 +1224,7 @@ def counterfactual_comparison_message():
 
 
 COMPARE_FALLBACK = "Comparison with other farms isn't available yet."
+UNRANKED_COMPARE_NOTE = "Custom ranch rules: this run is unranked, so it is not compared with other farms."
 
 
 def _request_comparison():
@@ -1175,6 +1249,8 @@ def _request_comparison():
     round/herd_size mostly diverge on methane by how well they've
     decoupled -- same relationship Grid's own `emissions` field has to
     its cost-curve mechanic."""
+    if rules_unranked():
+        return  # F-1: custom-rule runs are not compared with other farms
     try:
         from js import window  # noqa: PLC0415 -- Pyodide-only, deliberately lazy
     except ImportError:
@@ -1190,17 +1266,15 @@ def copy_result_fields():
     own inline script through pyodide.globals when the shared Copy result
     button is pressed, so it always matches the farm as it stands."""
     methane_avoided = max(0.0, farm.counterfactual_methane - farm.methane)
-    return {
-        "game": "Herd",
-        "score": round(farm.score()),
-        "unit": "score",
-        "stats": [
-            RATING_TITLES[rating_index()][0],
-            f"round {farm.round_number}",
-            f"{farm.decoupled_fraction() * 100:.0f}% decoupled",
-            f"{methane_avoided:.0f} methane avoided",
-        ],
-    }
+    stats = [
+        RATING_TITLES[rating_index()][0],
+        f"round {farm.round_number}",
+        f"{farm.decoupled_fraction() * 100:.0f}% decoupled",
+        f"{methane_avoided:.0f} methane avoided",
+    ]
+    if rules_unranked():
+        stats.append("custom rules, unranked")
+    return {"game": "Herd", "score": round(farm.score()), "unit": "score", "stats": stats}
 
 
 def report_card_html():
@@ -1229,7 +1303,8 @@ def report_card_html():
     # F7: filled in by index.html's window.herdCompare() when the shared
     # stats endpoint (planning/TODO.md Z1) is reachable; otherwise this
     # fallback text simply stays.
-    return body + f'<p id="report-card-compare" class="status-line summary-line">{COMPARE_FALLBACK}</p>' + highlights_html()
+    compare_text = UNRANKED_COMPARE_NOTE if rules_unranked() else COMPARE_FALLBACK
+    return body + f'<p id="report-card-compare" class="status-line summary-line">{compare_text}</p>' + highlights_html()
 
 
 def beat_percentage_message():
@@ -1469,7 +1544,8 @@ ACHIEVEMENT_CHECKS = {
     ),
     "long_haul": lambda: farm.round_number >= LONG_HAUL_TARGET,
     "century_farm": lambda: farm.round_number >= CENTURY_FARM_TARGET,
-    "score_400": lambda: farm.score() >= SCORE_400_TARGET,
+    # F-1: a bigger opening purse would make this one free, so a custom-rules run cannot earn it.
+    "score_400": lambda: farm.score() >= SCORE_400_TARGET and not rules_unranked(),
 }
 
 # Progress readouts, only for achievements with a natural numeric scale-up
@@ -1938,7 +2014,8 @@ def farm_vignette():
 def season_message():
     if not farm.variation_enabled:
         return "Market & weather variation is off (turn it on under Scenario options)."
-    name, mod = season_for_round(farm.round_number)
+    name, _raw = season_for_round(farm.round_number)
+    mod = farm.season_modifier()
     text = f"This round: {name}, income {mod * 100:+.0f}%."
     if demand_surge_active(farm.round_number):
         text += " Plant-based demand surge: plant-based output earns more this round."
@@ -2671,15 +2748,18 @@ def season_calendar_cells(count=CALENDAR_ROUNDS):
     income swing and whether a plant-based demand surge is running."""
     cells = []
     for number in range(farm.round_number, farm.round_number + count):
-        name, modifier = season_for_round(number)
-        cells.append({"round": number, "name": name, "mod": modifier, "surge": demand_surge_active(number)})
+        name, raw = season_for_round(number)
+        cells.append({
+            "round": number, "name": name, "mod": farm.season_modifier(number), "raw": raw,
+            "surge": demand_surge_active(number),
+        })
     return cells
 
 
 def season_calendar_html():
     items = []
     for cell in season_calendar_cells():
-        mark = SEASON_MARKS.get(cell["mod"], "■")
+        mark = SEASON_MARKS.get(cell["raw"], "■")
         tone = "up" if cell["mod"] > 0 else ("down" if cell["mod"] < 0 else "flat")
         surge = '<span class="season-surge" aria-hidden="true">\U0001F331</span>' if cell["surge"] else ""
         label = f"Round {cell['round']}: {cell['name']}, income {cell['mod'] * 100:+.0f}%"
@@ -3024,8 +3104,8 @@ def explain_coupling_nodes():
 def explain_pressure_nodes():
     children = [
         _node("All methane so far", f"{farm.methane:.1f}", "never resets"),
-        _node("Divided by", f"{PRESSURE_SCALE:.0f}", "the scale of the pressure curve"),
-        _node("Pressure", f"{farm.methane / PRESSURE_SCALE * 100:.0f}%", f"stops at {MAX_PRESSURE * 100:.0f}%"),
+        _node("Divided by", f"{pressure_scale():.0f}", "the scale of the pressure curve"),
+        _node("Pressure", f"{farm.methane / pressure_scale() * 100:.0f}%", f"stops at {MAX_PRESSURE * 100:.0f}%"),
     ]
     lost = farm.income_breakdown()
     children.append(_node("Income lost this round", f"{lost['raw'] * lost['pressure']:.1f}", f"of {lost['raw']:.1f} before pressure"))
@@ -3066,6 +3146,122 @@ def _make_explain_handler(kind):
     return handler
 
 
+# ===========================================================================
+# Round-6 batch (planning/TODO.md "GF + F. Herd").
+# ===========================================================================
+
+# ---- F-1 Ranch Rules ----------------------------------------------------------------------
+def rule_id(name):
+    return "rule-" + name.replace("_", "-")
+
+
+def format_rule(name, value):
+    spec = RULE_SPECS[name]
+    number = f"{value:g}" if abs(value - round(value)) > 1e-9 else f"{int(round(value))}"
+    return f"{number}{spec['unit']}"
+
+
+def farm_is_pristine():
+    """No round played, nothing bought: the only moment a changed starting purse can still apply."""
+    return (
+        farm.round_number == 1 and farm.herd_size == 0 and not farm.lever_log
+        and farm.poultry_size == 0 and farm.plant_pivot_investment == 0
+    )
+
+
+def set_rule(name, value):
+    """Changes one rule. Returns True when the value really changed. Pace and penalty rules apply at
+    once; a new starting purse applies right away only to a farm that has not started."""
+    cleaned = clean_rule_value(name, value)
+    if cleaned is None or abs(cleaned - ranch_rules[name]) < 1e-9:
+        return False
+    old = ranch_rules[name]
+    ranch_rules[name] = cleaned
+    if name == "starting_funds" and farm_is_pristine():
+        delta = cleaned - old
+        farm.funds += delta
+        farm.counterfactual_funds += delta
+        if farm.funds_history and farm.funds_history[0] is not None:
+            farm.funds_history[0] += delta
+    if rules_are_custom():
+        farm.custom_rules_used = True
+    elif farm_is_pristine():
+        farm.custom_rules_used = False
+    _store_rules()
+    return True
+
+
+def reset_rules():
+    changed = False
+    for name, spec in RULE_SPECS.items():
+        changed = set_rule(name, spec["default"]) or changed
+    return changed
+
+
+def _load_rules_from_save(data):
+    """A save brings its own rules (standard ones when it has none); values are clamped and snapped."""
+    saved = data.get("ranch_rules")
+    for name, spec in RULE_SPECS.items():
+        ranch_rules[name] = spec["default"]
+        if isinstance(saved, dict):
+            cleaned = clean_rule_value(name, saved.get(name))
+            if cleaned is not None:
+                ranch_rules[name] = cleaned
+    _store_rules()
+
+
+def rules_summary_message():
+    custom = [f"{RULE_SPECS[n]['label']} {format_rule(n, v)}" for n, v in ranch_rules.items()
+              if abs(v - RULE_SPECS[n]["default"]) > 1e-9]
+    if custom:
+        return (
+            "Custom rules: " + ", ".join(custom) + ". This run is unranked: it stays off the community "
+            "leaderboard and out of the other-farms comparison."
+        )
+    if farm.custom_rules_used:
+        return "The rules are standard again, but this run already used custom rules, so it stays unranked."
+    return "Standard rules: this run can be ranked."
+
+
+def rules_badge_message():
+    return "Custom ranch rules: this run is unranked." if rules_unranked() else ""
+
+
+def rules_start_note():
+    if farm_is_pristine():
+        return "A new starting purse applies right now, because the farm has not started."
+    return "A new starting purse applies to the next new farm or handover; the other rules apply at once."
+
+
+def render_rules():
+    for name, value in ranch_rules.items():
+        slider = document.getElementById(rule_id(name))
+        slider.value = f"{value:g}"
+        document.getElementById(rule_id(name) + "-value").innerText = format_rule(name, value)
+    document.getElementById("rules-summary").innerText = rules_summary_message()
+    document.getElementById("rules-start-note").innerText = rules_start_note()
+    badge = document.getElementById("rules-badge")
+    text = rules_badge_message()
+    badge.innerText = text
+    badge.hidden = not text
+
+
+def _make_rule_handler(name):
+    def handler(event=None):
+        try:
+            value = float(document.getElementById(rule_id(name)).value)
+        except (TypeError, ValueError):
+            return
+        set_rule(name, value)
+        render()
+    return handler
+
+
+def on_reset_rules(event=None):
+    reset_rules()
+    render()
+
+
 def render():
     _sync_collection()
     render_info_page()
@@ -3094,7 +3290,7 @@ def render():
         f"Market/regulatory pressure: {farm.pressure_fraction() * 100:.0f}% income loss"
     )
     document.getElementById("methane-bar").style.width = (
-        f"{min(1.0, farm.methane / PRESSURE_SCALE) * 100:.0f}%"
+        f"{min(1.0, farm.methane / pressure_scale()) * 100:.0f}%"
     )
     document.getElementById("score-display").innerText = f"Score: {farm.score():.0f}"
 
@@ -3175,6 +3371,7 @@ def render():
     render_progress_extras()
     render_round_extras()
     render_explain()
+    render_rules()
 
 
 # F-18: an optional "ask before a big purchase" setting. The Settings select (settings.js) keeps the
@@ -3450,7 +3647,7 @@ def _report_decoupling_gap():
     score) goes to the shared opt-in leaderboard widget, which only submits
     for an opted-in, signed-in player and remembers the personal best."""
     gap = farm.score() - farm.counterfactual_score()
-    if gap <= 0:
+    if gap <= 0 or rules_unranked():  # F-1: custom-rule runs stay off the leaderboard
         return
     try:
         from js import window  # noqa: PLC0415 -- Pyodide-only, deliberately lazy
@@ -3547,6 +3744,12 @@ def get_state():
         state["hall_of_fame"] = [list(entry) for entry in hall_of_fame]
     if farm.undo_used:
         state["undo_used"] = True
+    # F-1: ranch rules and the unranked flag, only when something is non-standard.
+    custom = {n: v for n, v in ranch_rules.items() if abs(v - RULE_SPECS[n]["default"]) > 1e-9}
+    if custom:
+        state["ranch_rules"] = custom
+    if farm.custom_rules_used:
+        state["custom_rules_used"] = True
     # F25: succession state is written only once a handover has happened or
     # points/perks exist, so an ordinary save is unchanged.
     if generation > 1:
@@ -3606,6 +3809,7 @@ def _load_progress_fields(data):
     combos_found = _valid_ids(data.get("combos_found"), COMBOS)
     farm.undo_used = data.get("undo_used") is True
     farm.undo_snapshot = None
+    farm.custom_rules_used = data.get("custom_rules_used") is True or rules_are_custom()
     hall_of_fame = []
     saved_hall = data.get("hall_of_fame")
     if isinstance(saved_hall, list):
@@ -3794,6 +3998,7 @@ def _apply_state(data):
     # load_state() outright and abort every field after the missing one,
     # the same bare-indexing bug already fixed in Tide's load_state() --
     # see BCM114-DEV-LOG.md 2026-09-02.
+    _load_rules_from_save(data)
     farm.round_number = data.get("round_number", farm.round_number)
     farm.funds = data.get("funds", farm.funds)
     farm.herd_size = data.get("herd_size", farm.herd_size)
@@ -3944,6 +4149,9 @@ def setup():
             "click", create_proxy(_make_delta_pin_handler(key))
         )
     document.getElementById("undo-round-button").addEventListener("click", create_proxy(on_undo_round))
+    for rule_name in RULE_SPECS:
+        document.getElementById(rule_id(rule_name)).addEventListener("input", create_proxy(_make_rule_handler(rule_name)))
+    document.getElementById("rules-reset-button").addEventListener("click", create_proxy(on_reset_rules))
     for kind in EXPLAIN_KINDS:
         document.getElementById(f"explain-{kind}-button").addEventListener("click", create_proxy(_make_explain_handler(kind)))
     render()

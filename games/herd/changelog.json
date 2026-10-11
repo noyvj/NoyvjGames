@@ -1,5 +1,9 @@
 [
   {
+    "date": "2026-10-11",
+    "entry": "Ranch rules: four sliders in Settings (starting funds, season swing, pressure penalty, growth-cost slope) for custom runs. Any change makes the run unranked: it stays off the community leaderboard and out of the other-farms comparison, and the score-400 achievement is not available on custom rules. A badge says so, and Back to standard rules puts everything right."
+  },
+  {
     "date": "2026-10-10",
     "entry": "New 'Why this number?' panel: pick Income per round, Methane per round, Coupling ratio or Pressure and see exactly where it comes from, piece by piece (herd base income, plant-based blend, certification, welfare, poultry, satellite, supply chain, season, pressure, biogas; methane per animal group; each lever's cut in the coupling ratio; the pressure curve and its cap). It updates live as you play."
   },

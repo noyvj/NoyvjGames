@@ -104,6 +104,10 @@ ELEMENT_IDS = [
     "explain-output", "explain-panel",
     "save-recovery-panel", "save-recovery-reasons", "save-recovery-note",
     "save-recovery-defaults-button", "save-recovery-dismiss-button",
+    # Round-6 batch: F-1 ranch rules.
+    "rule-starting-funds", "rule-starting-funds-value", "rule-season-swing", "rule-season-swing-value",
+    "rule-pressure-strength", "rule-pressure-strength-value", "rule-growth-slope", "rule-growth-slope-value",
+    "rules-summary", "rules-start-note", "rules-reset-button", "rules-badge",
 ]
 for _measure in MEASURE_IDS:
     ELEMENT_IDS += [f"{_measure}-name", f"{_measure}-count", f"{_measure}-invest-button"]
