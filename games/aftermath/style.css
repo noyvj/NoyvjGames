@@ -1589,6 +1589,7 @@ html[data-reduced-motion="true"] *::after {
 }
 
 .flawless-hint-display { font-size: 0.8rem; opacity: 0.85; }
+.neighbour-aid-display { font-size: 0.85rem; }  /* R-31: the planned mutual-aid gift */
 
 .knowledge-breakdown {
   margin-top: 0.6rem;

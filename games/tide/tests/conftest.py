@@ -37,6 +37,7 @@ ELEMENT_IDS = [
     "sea-level-bar",
     "sea-level-wave-cue",
     "ticker-log",
+    "coastline-community",  # R-30
     "coastline-before-grid",
     "coastline-now-grid",
     "coastline-now-label",

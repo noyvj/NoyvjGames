@@ -62,6 +62,7 @@ STATS_FIELDS: dict[str, tuple[str, ...]] = {
         "season", "funds", "acidity", "sea_level", "cumulative_damage",
         "max_funds_ever", "min_fish_yield_ever", "max_acidity_ever",
         "tier_first_season.t1", "tier_first_season.t2", "tier_first_season.t3", "tier_first_season.t4",
+        "coastline_kept",  # R-30: coastline rows still dry, written to Tide's save as a read-only number
     ),
     "aftermath": (
         "run_number", "event_index", "resources", "resilience_capacity",

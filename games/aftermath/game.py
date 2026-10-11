@@ -1125,6 +1125,180 @@ def record_societal_memory(event_log, score):
     return category
 
 
+# ---------------------------------------------------------------------------
+# R-31: mutual aid from neighbouring towns (opt-in, default OFF). When the community's AVERAGE tree
+# strength (the write-only `skill_tree_strength` every save carries, aggregated by the backend at
+# GET /stats/games/aftermath) reaches NEIGHBOUR_AID_MIN_COMMUNITY_STRENGTH, a player who switched this on in
+# Settings gets ONE gentle gift per run: "+N resources" just before one fixed event. Nothing here is luck:
+#   * which event and how many resources come only from the run number (aid_hash), so the same run
+#     always gets the same help and the page shows it BEFORE the run starts;
+#   * with the setting off, with no community figure (offline, too few players, a backend that does not
+#     list the field, or "reduce data" with nothing cached) or below the threshold, nothing happens;
+#   * challenge runs (a friend's run code) and built schedules never get aid;
+#   * a run that received aid is TAGGED (`aid` on the event, `neighbour_aid` in its log entry): it never
+#     reaches the hardest-schedule board, is not a Past Runs record, does not earn the "toughest run
+#     survived" badge and gets no shareable run code. No achievement needs aid (all stay reachable
+#     without it), and the aid itself only counts as resources in that run.
+# ---------------------------------------------------------------------------
+NEIGHBOUR_AID_STORAGE_KEY = "aftermath-neighbour-aid"  # the Settings switch ("true" = on); settings.js writes it
+COMMUNITY_RESILIENCE_CACHE_KEY = "aftermath_community_resilience_v1"  # last community mean, so a reload or offline visit agrees
+COMMUNITY_RESILIENCE_CACHE_DAYS = 14
+NEIGHBOUR_AID_MIN_COMMUNITY_STRENGTH = 3.0  # community mean skills unlocked (of the 7 in the tree)
+NEIGHBOUR_AID_AMOUNTS = (15, 20, 25)  # resources; roughly one investment unit, so gentle next to 200 starting
+community_resilience = None  # the community mean, or None while unknown
+
+
+def entry_aid(entry):
+    """Resources a logged event received from neighbouring towns (0 unless it is a real positive number:
+    a damaged save value counts as none)."""
+    value = entry.get("aid") if isinstance(entry, dict) else None
+    ok = isinstance(value, (int, float)) and not isinstance(value, bool) and math.isfinite(value) and value > 0
+    return value if ok else 0
+
+
+def neighbour_aid_enabled():
+    try:
+        return localStorage.getItem(NEIGHBOUR_AID_STORAGE_KEY) == "true"
+    except Exception:
+        return False
+
+
+def _community_value(mean):
+    """A finite number from 0 to the number of skills, else None."""
+    if isinstance(mean, bool) or not isinstance(mean, (int, float)):
+        return None
+    if not math.isfinite(mean) or not 0 <= mean <= len(SKILLS):
+        return None
+    return float(mean)
+
+
+def load_cached_community_resilience():
+    """Reads the last community mean this browser fetched (at most COMMUNITY_RESILIENCE_CACHE_DAYS old).
+    Returns True when a figure was restored."""
+    global community_resilience
+    try:
+        data = json.loads(localStorage.getItem(COMMUNITY_RESILIENCE_CACHE_KEY) or "")
+    except (ValueError, TypeError):
+        return False
+    except Exception:
+        return False
+    if not isinstance(data, dict):
+        return False
+    value = _community_value(data.get("mean"))
+    stamp = data.get("at")
+    if value is None or isinstance(stamp, bool) or not isinstance(stamp, (int, float)):
+        return False
+    if _now() - stamp > COMMUNITY_RESILIENCE_CACHE_DAYS * 86400 or stamp > _now() + 86400:
+        return False
+    community_resilience = value
+    return True
+
+
+def set_community_resilience(mean):
+    """Called by the page with the community mean of skill_tree_strength once the stats summary has
+    answered (a number), or with None when the summary has no usable figure (too few players, field not
+    listed). Anything else counts as no figure. Keeps the last good figure in this browser so the next
+    visit (including an offline or "reduce data" one) agrees with it. Returns True when a figure is kept."""
+    global community_resilience
+    value = _community_value(mean)
+    community_resilience = value
+    if value is None:
+        try:
+            localStorage.removeItem(COMMUNITY_RESILIENCE_CACHE_KEY)
+        except Exception:
+            pass
+    else:
+        try:  # not _storage_write: a cached figure is not player progress, so it must not touch the "Saved" badge
+            localStorage.setItem(COMMUNITY_RESILIENCE_CACHE_KEY, json.dumps({"mean": value, "at": _now()}))
+        except Exception:
+            pass
+    if "run" in globals():
+        render()
+    return value is not None
+
+
+def community_aid_available():
+    return community_resilience is not None and community_resilience >= NEIGHBOUR_AID_MIN_COMMUNITY_STRENGTH
+
+
+def aid_hash(run_number):
+    """A fixed scramble of the run number (never random): the same run number always gives the same value."""
+    return ((int(run_number) * 2654435761) % 4294967296) >> 8
+
+
+def neighbour_aid_schedule(run_number, schedule_length):
+    """(event index, resources) for a run. The index is never the first or the last event, so the gift is
+    neither a free opening nor a last-second rescue; the amount is one of NEIGHBOUR_AID_AMOUNTS."""
+    h = aid_hash(run_number)
+    span = max(1, schedule_length - 2)
+    return 1 + h % span, NEIGHBOUR_AID_AMOUNTS[(h >> 8) % len(NEIGHBOUR_AID_AMOUNTS)]
+
+
+def neighbour_aid_plan(run_state):
+    """The aid still to come in this run as {"index", "amount", "event"}, or None: switched off, no
+    (or too low a) community figure, a challenge or built-schedule run, aid already received, or the
+    run's help point already behind it."""
+    if not neighbour_aid_enabled() or not community_aid_available():
+        return None
+    if run_state.normalised or run_state.custom_events or run_state.aid_given:
+        return None
+    index, amount = neighbour_aid_schedule(run_state.run_number, len(run_state.schedule))
+    if index < run_state.event_index:
+        return None
+    return {"index": index, "amount": amount, "event": run_state.schedule[index]}
+
+
+def neighbour_aid_due(run_state):
+    """Resources arriving with the event about to resolve (0 almost always)."""
+    plan = neighbour_aid_plan(run_state)
+    return plan["amount"] if plan is not None and plan["index"] == run_state.event_index else 0
+
+
+def neighbour_aid_message(run_state=None):
+    """The one line shown under the damage preview: what is planned, what arrived, or why nothing is coming.
+    Empty while the setting is off."""
+    run_state = run_state or run
+    if not neighbour_aid_enabled():
+        return ""
+    if run_state.normalised or run_state.custom_events:
+        return "Mutual aid does not apply to challenge runs or built schedules."
+    if run_state.aid_given:
+        number = next((i + 1 for i, e in enumerate(run_state.event_log) if entry_aid(e)), None)
+        where = f" before event {number}" if number else ""
+        return (
+            f"Neighbouring towns sent help{where}: +{run_state.aid_given:.0f} resources. "
+            "This run is marked, so it stays off the hardest-schedule board and gets no run code."
+        )
+    if community_resilience is None:
+        return "Mutual aid is on, but the community figure is not available, so no help comes this run."
+    if not community_aid_available():
+        return (
+            f"Mutual aid is on, but players' average resilience ({community_resilience:.1f} of {len(SKILLS)} skills) "
+            f"is below the {NEIGHBOUR_AID_MIN_COMMUNITY_STRENGTH:.0f} needed, so no help comes this run."
+        )
+    plan = neighbour_aid_plan(run_state)
+    if plan is None:
+        return "Mutual aid is on, but this run's help point has passed, so no help comes this run."
+    return (
+        f"Neighbouring towns will send help before event {plan['index'] + 1} ({EVENT_LABEL[plan['event']]}): "
+        f"+{plan['amount']} resources. Fixed by this run's number, never luck. "
+        "It marks the run: off the boards, no run code."
+    )
+
+
+def render_neighbour_aid():
+    el = _el("neighbour-aid-display")
+    if el is None:
+        return
+    text = neighbour_aid_message()
+    el.innerText = text
+    el.hidden = not text
+
+
+def on_neighbour_aid_setting(event=None):
+    render()
+
+
 class RunState:
     def __init__(self, run_number=1, extended=False, scenario=DEFAULT_SCENARIO,
                  normalised=False, draw=None, custom_events=None, custom_name=None, challenge=None):
@@ -1184,6 +1358,12 @@ class RunState:
         # E-18: how the most recent event's damage was worked out. In memory
         # only (never saved): after a load there is no breakdown to show.
         self.last_breakdown = None
+
+    @property
+    def aid_given(self):
+        """R-31: resources received from neighbouring towns this run (0 for almost every run). Read from
+        the event log, so it survives a save and load with no extra field."""
+        return sum(entry_aid(e) for e in self.event_log)
 
     def _unlocked(self):
         return frozenset() if self.normalised else (skill_tree.unlocked | founding_owned())
@@ -1378,6 +1558,8 @@ class RunState:
             return False
 
         self.resources += self.growth_capacity * GROWTH_INCOME_PER_UNIT
+        aid = neighbour_aid_due(self)  # R-31: planned, shown beforehand, a fixed function of the run number
+        self.resources += aid
 
         event_type = self.schedule[self.event_index]
         severity = self.severity_at(self.event_index)
@@ -1385,7 +1567,7 @@ class RunState:
         self.last_breakdown = self.damage_breakdown(event_type, severity)  # E-18
         self.resources = max(0.0, self.resources - damage)
         self.damage_taken += damage
-        self.event_log.append({"type": event_type, "damage": damage, "severity": severity})
+        self.event_log.append({"type": event_type, "damage": damage, "severity": severity, **({"aid": aid} if aid else {})})
         self.event_index += 1
         self.allocation_history = []  # GE-18: nothing to undo after Resolve
         if entry_is_flawless(self.event_log[-1]):
@@ -1435,6 +1617,8 @@ class RunState:
                         "event_log": copy.deepcopy(self.event_log),
                         # E-13: runs on a player-built schedule are tagged (older logs lack the field).
                         **({"custom_schedule": self.custom_name or "Unnamed"} if self.custom_events else {}),
+                        # R-31: a run that received neighbour aid is tagged and kept off every comparison.
+                        **({"neighbour_aid": self.aid_given} if self.aid_given else {}),
                     }
                 )
                 save_run_log_history(run_log_history)
@@ -2304,6 +2488,8 @@ def new_record_run_indexes():
     records = set()
     best = None
     for index, entry in enumerate(run_log_history):
+        if entry.get("neighbour_aid"):  # R-31: a run helped by neighbour aid is never a record and sets no bar
+            continue
         score = entry.get("score", 0)
         if best is not None and score > best:
             records.add(index)
@@ -2525,7 +2711,9 @@ def _past_run_card(index, entry, is_record):
         f"{'🏆 ' if is_record else ''}{'🔥 ' if index in streak_log_indexes() else ''}Run #{run_number} — score {entry['score']:.0f} "
         f"({adjusted_text(entry['score'], entry.get('event_log'))}; resilience {entry['resilience_capacity']}, growth {entry['growth_capacity']}, "
         f"+{entry['knowledge_earned']} knowledge)"
-        f" · {run_mode_label(entry)}" + (" · archived" if run_number in meta["archived_runs"] else "")
+        f" · {run_mode_label(entry)}"
+        + (f" · neighbour aid +{entry['neighbour_aid']:.0f}" if entry.get("neighbour_aid") else "")  # R-31
+        + (" · archived" if run_number in meta["archived_runs"] else "")
     )
     card.appendChild(title)
     _render_event_breakdown_lines(card, entry["event_log"], show_category=True)
@@ -2875,6 +3063,8 @@ def _report_hardest_schedule(run_state):
     always exactly 1.00x, so only the harsher later runs can climb the board."""
     if run_state.resources <= 0 or not run_state.event_log:
         return
+    if run_state.aid_given:  # R-31: a run that received neighbour aid never competes on the board
+        return
     try:
         from js import window  # noqa: PLC0415 -- Pyodide-only, deliberately lazy
     except ImportError:
@@ -2893,6 +3083,8 @@ def toughest_survived_run_badge_earned():
     resources -- a personal-best-style marker for surviving a genuinely
     tough schedule, separate from the per-skill badges."""
     for entry in run_log_history:
+        if entry.get("neighbour_aid"):  # R-31: a run helped by neighbour aid does not count
+            continue
         if entry.get("score", 0) > 0 and severity_label(average_severity(entry.get("event_log", []))) == "severe":
             return True
     return False
@@ -2902,6 +3094,8 @@ def toughest_badge_title():
     """E-9: the badge's tooltip. Earned: names the run and shows the raw and adjusted score;
     not yet: says what earns it."""
     for entry in run_log_history:
+        if entry.get("neighbour_aid"):  # R-31
+            continue
         if entry.get("score", 0) > 0 and severity_label(average_severity(entry.get("event_log", []))) == "severe":
             return (
                 f"Survived a run at severe average intensity: run {entry.get('run_number', '?')} scored "
@@ -3874,7 +4068,8 @@ def run_summary_text(run_state=None):
     done = run_state.is_complete()
     lines = [
         f"Aftermath: {name}, run {run_state.run_number} ({scenario}{', extended' if run_state.extended else ''})"
-        + ("" if done else " - in progress"),
+        + ("" if done else " - in progress")
+        + (f" - with neighbour aid +{run_state.aid_given:.0f}" if run_state.aid_given else ""),  # R-31
         f"{'Score' if done else 'Resources so far'}: {run_state.run_score():.0f}"
         + (f" ({adjusted_text(run_state.run_score(), run_state.event_log)})" if done else "")
         + (f" | Knowledge earned: {run_state.knowledge_points_earned()}" if done else ""),
@@ -3905,6 +4100,8 @@ def copy_result_fields(run_state=None):
     ]
     if flawless:
         stats.append({"n": flawless, "one": "flawless defense", "many": "flawless defenses"})
+    if run_state.aid_given:  # R-31
+        stats.append(f"with neighbour aid +{run_state.aid_given:.0f}")
     return {
         "game": "Aftermath",
         "score": round(run_state.run_score()),
@@ -4948,6 +5145,8 @@ def run_code_fields(run_state=None):
     run_state = run_state or run
     if not run_state.is_complete():
         return None
+    if run_state.aid_given:  # R-31: a run with neighbour aid is not on equal terms, so it has no code
+        return None
     seed_text = seed_text_for_int(run_code_seed_number(run_state))
     if seed_text is None:
         return None
@@ -5151,11 +5350,13 @@ def render_challenge():
         status.innerText = challenge_status_text
     wrap = _el("run-end-code-wrap")
     if wrap is not None:
-        wrap.hidden = not run.is_complete()
+        wrap.hidden = not run.is_complete() or bool(run.aid_given)  # R-31: an aided run has no code to copy
     note = _el("run-end-code-note")
     if note is not None:
         note.innerText = (
-            "" if run.is_complete() else "Finish a run to get its run code, then copy it for a friend."
+            "This run had help from neighbouring towns, so it has no run code (codes compare runs on equal terms)."
+            if run.is_complete() and run.aid_given
+            else "" if run.is_complete() else "Finish a run to get its run code, then copy it for a friend."
         )
     try:
         from js import window  # noqa: PLC0415 -- Pyodide-only, deliberately lazy
@@ -5616,12 +5817,14 @@ def render():
             _flash_element("knowledge-preview-display", 900, "knowledge-bump")  # E18
         last_knowledge_preview = knowledge_now
 
+    render_neighbour_aid()  # R-31
     last_event_el = document.getElementById("last-event-display")
     if run.event_log:
         last = run.event_log[-1]
         last_event_el.innerText = (
             f"Last: {EVENT_ICON[last['type']]} {EVENT_LABEL[last['type']]} "
             f"— {last['damage']:.0f} damage ({severity_label(last['severity'])} intensity)"
+            + (f" · neighbours sent +{entry_aid(last):.0f}" if entry_aid(last) else "")  # R-31
         )
         # E19: distinct visual intensity per event severity, alongside the
         # pre-existing weather/non-weather/social category class.
@@ -5819,7 +6022,8 @@ def _resolve_event_now():
     render()
     if len(run.event_log) > before:
         rank_text = skill_rank_callout_text() if run.is_complete() else ""
-        announce(event_announcement(run.event_log[-1]) + (" " + rank_text if rank_text else ""))  # E-5 / E-11
+        aid_text = f" Neighbouring towns sent {entry_aid(run.event_log[-1]):.0f} resources." if entry_aid(run.event_log[-1]) else ""  # R-31
+        announce(event_announcement(run.event_log[-1]) + aid_text + (" " + rank_text if rank_text else ""))  # E-5 / E-11
     _check_new_achievements_for_toast()
 
 
@@ -7038,6 +7242,7 @@ def _wire_round3_batch2():
     _listen("skill-move-button", "click", on_skill_move)
     _listen("skill-move-from", "change", on_skill_move_select)
     _listen("skill-move-to", "change", on_skill_move_select)
+    _listen("neighbour-aid-checkbox", "change", on_neighbour_aid_setting)  # R-31
 
 
 def setup():
@@ -7110,6 +7315,7 @@ def setup():
         "click", create_proxy(on_copy_run_summary)
     )
     document.getElementById("copy-run-summary-area").hidden = True
+    load_cached_community_resilience()  # R-31: the last community figure this browser fetched
     _wire_round3_batch2()
     document.getElementById("achievement-toast").hidden = True
     document.getElementById("skill-unlock-toast").hidden = True

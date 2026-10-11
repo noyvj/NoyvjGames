@@ -2,6 +2,10 @@
   "changelog": [
     {
       "date": "2026-10-11",
+      "entry": "New: a community coastline line under the sea-level meter. Once enough players have saved a game, it reads \"Players keep on average 4.3 of 6 coastline rows dry; you keep 5\", using only a group average (never one player's save) and only for settlements on the standard coastline with moderate sea rise. Nothing is shown when too few players have saved, when you are offline, or while Reduce data is on. Your save now carries the number of rows still dry for this line; it is never read back."
+    },
+    {
+      "date": "2026-10-11",
       "entry": "New: choose a coastline before your first season. Open coast is the game as it always was; Low delta town floods early but fishes well and storms come every 4 seasons; Rocky headland floods late but earns less from fishing and more from visitors; Atoll holds its land for a long while and then loses it almost at once, with a calm lagoon for aquaculture; Dredged port is rich in Output and poor in tourism. Each has its own heritage sites, and the choice is locked once a run starts. Your best-run records stay for the Open coast."
     },
     {

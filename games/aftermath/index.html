@@ -170,6 +170,14 @@
           Ask before facing an event with unspent resources
         </label>
       </div>
+      <!-- R-31: off by default. When players' average resilience is high enough, each run gets one fixed gift of resources
+           from neighbouring towns (shown beforehand, never luck); a run with aid is marked and kept off the boards. -->
+      <div class="settings-row">
+        <label class="settings-checkbox-label" for="neighbour-aid-checkbox">
+          <input type="checkbox" id="neighbour-aid-checkbox">
+          Mutual aid from neighbouring towns (a fixed gift of resources each run once players' average resilience is high enough; such runs are marked and kept off the boards)
+        </label>
+      </div>
       <div class="settings-row">
         <button id="settings-reset-button" class="secondary" type="button">Reset to Default</button>
       </div>
@@ -271,6 +279,8 @@
       <p id="next-event-display" class="status-line">Next: Flood</p>
       <!-- E8/E16: expected-damage-this-event preview with numeric severity. -->
       <p id="expected-damage-display" class="status-line"></p>
+      <!-- R-31: the mutual-aid gift planned for this run, shown before it arrives (empty unless switched on in Settings). -->
+      <p id="neighbour-aid-display" class="status-line neighbour-aid-display" role="status" hidden></p>
       <!-- GE-15: what a Flawless Defense needs for the coming event. -->
       <p id="flawless-hint-display" class="status-line flawless-hint-display"></p>
       <!-- E-17: every event in this run, in order, with hover/focus details (also a plain-text list for screen readers). -->
@@ -939,6 +949,47 @@
     })();
   </script>
   <script src="../../shared/community-index.js" data-game-id="aftermath" data-target="#community-index" data-template="Community resilience index: across {count} players, a skill tree holds an average of {skill_tree_strength:mean} resilience skills (median {skill_tree_strength:p50})."></script>
+  <!--
+    R-31: community resilience figure for the Mutual aid setting. Plain JS like the feedback prompt: a
+    read-only fetch of the same stats summary the line above uses (GET /stats/games/aftermath), handed to
+    game.py's set_community_resilience(mean), which owns every rule (threshold, the fixed event and amount,
+    the cached copy). No figure (offline, fewer than three saves, a failed request) hands in nothing at all,
+    so the last cached figure keeps standing; a summary that has no usable figure hands in null. Skipped
+    while "reduce data" is on (hub setting, or the browser's Data Saver): the cached figure is used instead.
+  -->
+  <script>
+    (function () {
+      var API = "https://noyvjgames.fastapicloud.dev";
+      function reduceData() {
+        var choice = null;
+        try { choice = localStorage.getItem("hub_reduce_data"); } catch (e) { /* storage blocked */ }
+        if (choice === "1") return true;
+        if (choice === "0") return false;
+        var conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+        return Boolean(conn && conn.saveData);
+      }
+      if (reduceData()) return;
+      function hand(mean) {
+        var tries = 0;
+        var timer = setInterval(function () {
+          tries += 1;
+          try {
+            var fn = window.pyodide && window.pyodide.globals.get("set_community_resilience");
+            if (fn) { clearInterval(timer); fn(mean); if (fn.destroy) fn.destroy(); return; }
+          } catch (e) { /* the game is not ready yet */ }
+          if (tries > 240) clearInterval(timer);
+        }, 500);
+      }
+      fetch(API + "/stats/games/aftermath")
+        .then(function (r) { return r.ok ? r.json() : null; })
+        .then(function (summary) {
+          if (!summary) return;
+          var field = !summary.suppressed && summary.fields && summary.fields.skill_tree_strength;
+          hand(field && typeof field.mean === "number" ? field.mean : null);
+        })
+        .catch(function () { /* keep whatever figure is cached */ });
+    })();
+  </script>
   <script src="../../shared/leaderboard.js" data-game-id="aftermath" data-board="hardest_schedule" data-order="desc" data-title="hardest schedule survived" data-unit="x severity" data-mount="#leaderboard-mount"></script>
   <!-- Z4 (site-wide goal): "?" shows a keyboard-shortcuts help overlay,
        Esc closes whichever panel is open. See shared/keyboard-shortcuts.js. -->

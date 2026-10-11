@@ -616,6 +616,8 @@
     </div>
 
     <p id="community-index" data-mview="coast" class="comparison-message" hidden></p>
+    <!-- R-30: how many coastline rows players keep dry, from the community average (game.py set_community_coastline). -->
+    <p id="coastline-community" data-mview="coast" class="comparison-message" hidden></p>
 
     <div id="coastline-comparison" data-mview="coast" class="section">
       <p class="meter-label">Coastline: then vs. now</p>
@@ -995,6 +997,47 @@
   </script>
 <!-- wiring-oct8:end -->
   <script src="../../shared/community-index.js" data-game-id="tide" data-target="#community-index" data-template="Community seawall pace, median season each tier was first reached: [sandbag berms {tier_first_season.t1:p50}] [ · seawalls {tier_first_season.t2:p50}] [ · reinforced seawalls {tier_first_season.t3:p50}] [ · storm-surge barriers {tier_first_season.t4:p50}]."></script>
+  <!--
+    R-30: community coastline line. Plain JS like the feedback prompt: a read-only fetch of the same stats
+    summary the seawall line above uses (GET /stats/games/tide), handed to game.py's
+    set_community_coastline(mean, count), which owns every rule and the wording. The field is
+    coastline_kept: until app/stats.py lists it the summary has no such field and the line stays hidden.
+    Skipped while "reduce data" is on (hub setting, or the browser's Data Saver); every failure leaves the
+    line hidden.
+  -->
+  <script>
+    (function () {
+      var API = "https://noyvjgames.fastapicloud.dev";
+      function reduceData() {
+        var choice = null;
+        try { choice = localStorage.getItem("hub_reduce_data"); } catch (e) { /* storage blocked */ }
+        if (choice === "1") return true;
+        if (choice === "0") return false;
+        var conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+        return Boolean(conn && conn.saveData);
+      }
+      if (reduceData()) return;
+      function hand(mean, count) {
+        var tries = 0;
+        var timer = setInterval(function () {
+          tries += 1;
+          try {
+            var fn = window.pyodide && window.pyodide.globals.get("set_community_coastline");
+            if (fn) { clearInterval(timer); fn(mean, count); if (fn.destroy) fn.destroy(); return; }
+          } catch (e) { /* the game is not ready yet */ }
+          if (tries > 240) clearInterval(timer);
+        }, 500);
+      }
+      fetch(API + "/stats/games/tide")
+        .then(function (r) { return r.ok ? r.json() : null; })
+        .then(function (summary) {
+          if (!summary || summary.suppressed) return;
+          var field = summary.fields && summary.fields.coastline_kept;
+          if (field && typeof field.mean === "number") hand(field.mean, field.count);
+        })
+        .catch(function () { /* leave the line hidden */ });
+    })();
+  </script>
   <!-- Z4 (site-wide goal): "?" shows a keyboard-shortcuts help overlay,
        Esc closes whichever panel is open. See shared/keyboard-shortcuts.js. -->
   <script src="../../shared/keyboard-shortcuts.js"></script>

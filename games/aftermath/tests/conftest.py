@@ -212,6 +212,9 @@ ELEMENT_IDS = [
     "founding-begin-button",
     "founding-skills",
     "founding-message",
+    # R-31: mutual aid from neighbouring towns.
+    "neighbour-aid-checkbox",
+    "neighbour-aid-display",
 ]
 for _skill in SKILL_IDS:
     ELEMENT_IDS += [

@@ -130,7 +130,8 @@
       "title": "Sea level, damage and adaptation",
       "members": [
         "#sea-level-section",
-        "#community-index"
+        "#community-index",
+        "#coastline-community"
       ],
       "group": "Details",
       "label": "🌊 Sea level, damage and adaptation"

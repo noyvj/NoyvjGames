@@ -1,6 +1,10 @@
 [
   {
     "date": "2026-10-11",
+    "entry": "New, off by default: Mutual aid from neighbouring towns (Settings). Once players' average resilience across the site reaches 3 of 7 skills, each of your runs gets one fixed gift of 15, 20 or 25 resources just before one fixed event. Which event and how much depend only on the run number, so it is never luck and the page tells you before the run starts (and why, when no help is coming). A run that received aid is marked: it stays off the hardest-schedule board, is not a Past Runs record, earns no toughest-run badge and has no run code. No achievement needs it, and challenge runs and built schedules never get aid."
+  },
+  {
+    "date": "2026-10-11",
     "entry": "New: an optional Second Founding. Once you own every skill, a new panel lets you give the whole tree up for a permanent Founding star (up to three): you start every run with 10 more resources per star, and three Founding-only skills open up, each with a strong trade-off (Stormwall Doctrine: weather damage down 40% but 80 fewer starting resources; Open Granaries: supply-chain, infrastructure and heat-health damage down 30% but 60 fewer starting resources; Frontier Charter: 100 more starting resources and 2 more growth, but Early Warning Systems and Mutual Aid Network stop adding mitigation). The panel and the confirm say exactly what is lost (the skills, with no refund) and what is kept (your knowledge in hand, lifetime knowledge, ranks, history, achievements and the rest). Founding skills can be put away for a full refund at any time, and nothing in the game needs any of it."
   },
   {

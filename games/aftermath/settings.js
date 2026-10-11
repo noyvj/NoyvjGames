@@ -34,6 +34,8 @@
   const FONT_KEY = "aftermath-readable-font";
   // E-28: ask before Face Next Event while resources sit unspent. Read by game.py from this same key.
   const CONFIRM_UNSPENT_KEY = "aftermath-confirm-unspent";
+  // R-31: opt-in mutual aid from neighbouring towns. Read by game.py from this same key; default OFF.
+  const NEIGHBOUR_AID_KEY = "aftermath-neighbour-aid";
   // GE-21: hides the closing line on the run summary. Read by game.py from this same key.
   const HIDE_EPITAPH_KEY = "aftermath-hide-epitaph";
   const MIN_SCALE = 0.85;
@@ -141,6 +143,18 @@
       });
     }
 
+    const aidBox = document.getElementById("neighbour-aid-checkbox");
+    if (aidBox) {
+      aidBox.checked = readFlag(NEIGHBOUR_AID_KEY);
+      aidBox.addEventListener("change", function () {
+        try {
+          window.localStorage.setItem(NEIGHBOUR_AID_KEY, String(aidBox.checked));
+        } catch (e) {
+          // Persistence is a convenience only.
+        }
+      });
+    }
+
     const epitaphBox = document.getElementById("hide-epitaph-checkbox");
     if (epitaphBox) {
       epitaphBox.checked = readFlag(HIDE_EPITAPH_KEY);
@@ -214,6 +228,15 @@
           } catch (e) {
             // Persistence is a convenience only.
           }
+        }
+        if (aidBox) {
+          aidBox.checked = false;
+          try {
+            window.localStorage.setItem(NEIGHBOUR_AID_KEY, "false");
+          } catch (e) {
+            // Persistence is a convenience only.
+          }
+          aidBox.dispatchEvent(new Event("change"));  // game.py re-reads the switch and redraws the line
         }
         if (confirmBox) {
           confirmBox.checked = false;

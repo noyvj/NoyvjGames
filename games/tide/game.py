@@ -6613,6 +6613,7 @@ def render():
     render_almanac()
     update_tab_status()
     render_tide_oct9()
+    render_coastline_community()  # R-30
     _sync_earned_and_toast()
 
 
@@ -6829,6 +6830,78 @@ def _tier_first_season_field():
     return {"tier_first_season": first} if first else {}
 
 
+def coastline_standard_terms():
+    """R-30: True when this settlement is played on the standard terms, so its dry-row count can be
+    compared with other players': the standard coastline, the moderate sea-level scenario, no
+    Workshop dials or Tidal Chess, and not a Daily Tide run."""
+    return (
+        state.coastline == DEFAULT_COASTLINE
+        and state.sea_scenario == DEFAULT_SEA_SCENARIO
+        and not state.keeps_records_out()
+    )
+
+
+def coastline_kept_comparable():
+    """R-30: standard terms and at least one season resolved (an untouched settlement keeps all six
+    rows and would only pull the community average up)."""
+    return state.season > 1 and coastline_standard_terms()
+
+
+def _coastline_kept_field():
+    """R-30: how many of the six coastline rows are still dry, for the community coastline line. A
+    write-only number (the same count the Climate Steward summary calls rows still dry); only written
+    for a comparable settlement, never read back. The backend lists it in app/stats.py STATS_FIELDS."""
+    return {"coastline_kept": state.rows_dry_count()} if coastline_kept_comparable() else {}
+
+
+# R-30: the community average of coastline_kept, handed in by the page once GET /stats/games/tide has
+# answered (nothing is stored; a reload asks again). None until then, and whenever the figure is
+# suppressed (fewer than three saves) or the backend does not list the field yet.
+community_coastline = None
+
+
+def set_community_coastline(mean, count=None):
+    """Called by the page with the field's mean (and how many saves it covers). Anything that is not a
+    finite number from 0 to the number of rows clears the line. Returns True when a figure is kept."""
+    global community_coastline
+    ok = (
+        isinstance(mean, (int, float)) and not isinstance(mean, bool)
+        and math.isfinite(mean) and 0 <= mean <= COASTLINE_ROWS
+    )
+    if ok:
+        saves = count if isinstance(count, int) and not isinstance(count, bool) and count > 0 else None
+        community_coastline = {"mean": float(mean), "count": saves}
+    else:
+        community_coastline = None
+    render_coastline_community()
+    return ok
+
+
+def coastline_community_text():
+    """R-30: the community line, or "" while there is no figure to show."""
+    if community_coastline is None:
+        return ""
+    mean = f"{community_coastline['mean']:.1f}"
+    from_text = f" (from {community_coastline['count']} settlements)" if community_coastline["count"] else ""
+    if coastline_standard_terms():
+        you = state.rows_dry_count()
+        return f"Players keep on average {mean} of {COASTLINE_ROWS} coastline rows dry; you keep {you}{from_text}."
+    return (
+        f"Players on the standard coastline with moderate sea-level rise keep on average {mean} of "
+        f"{COASTLINE_ROWS} coastline rows dry{from_text}. This settlement plays on other terms, so there is "
+        "nothing to compare."
+    )
+
+
+def render_coastline_community():
+    el = document.getElementById("coastline-community")
+    if el is None:
+        return
+    text = coastline_community_text()
+    el.innerText = text
+    el.hidden = not text
+
+
 def resume_note():
     """QI-58: one plain line for the hub's "Pick up where you stopped" strip (read by shared/last-played.js)."""
     return f"Season {state.season}, funds {round(state.funds)}"
@@ -6882,6 +6955,7 @@ def get_state():
            if (state.storms_weathered or state.storms_clean or state.early_retreats) else {}),  # D-10
         "tier_log": copy.deepcopy(state.tier_log),
         **_tier_first_season_field(),
+        **_coastline_kept_field(),  # R-30: write-only, never read back
         "hard_lag_note_seen": state.hard_lag_note_seen,
         "fish_crash_open": state.fish_crash_open,
         "recovery_celebrated_season": state.recovery_celebrated_season,

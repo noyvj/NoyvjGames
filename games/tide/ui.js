@@ -276,7 +276,7 @@
   const DASH_PANELS = [
     { id: "meters", label: "Status, meters and ticker", sel: ["#status"] },
     { id: "sea", label: "Sea level and adaptation", sel: ["#sea-level-section"] },
-    { id: "coast", label: "Coastline", sel: [".coastline-scene", "#community-index"] },
+    { id: "coast", label: "Coastline", sel: [".coastline-scene", "#community-index", "#coastline-community"] },
     { id: "compare", label: "Then vs. now", sel: ["#coastline-comparison"] },
     { id: "settlement", label: "Settlement and chronicle", sel: ["#settlement-section"] },
     { id: "programmes", label: "Coastal programmes", sel: ["#programmes-section"] },
