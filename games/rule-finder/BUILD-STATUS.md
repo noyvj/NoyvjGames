@@ -13,8 +13,10 @@ Updated after every milestone. Read `planning/rule-finder-plan.md`, `CLAUDE.md` 
 
 - M5 Standard kit: opening screen, tutorial, About (`info.py`), `sources.json`, keyboard help and builder keys, story toggle; 285 tests; checked live (opening screen, tutorial walk-through, About, shortcuts list) at 1440x900 dark and 360x740 light.
 
+- M6 Achievements: manifest, panel, toast, share button, perfect-player reachability test; 294 tests; checked live (toast, panel) at 1440x900.
+
 ## Next
-- M6 achievements (manifest, panel, toast, share button, reachability test).
+- M7 Desktop boot (pc-config.json, pc.css, pc.js, generated pc.html, layout-pref), final docs.
 
 ## Open problems / notes
 - Local Python is 3.9: engine code avoids 3.10+ syntax.

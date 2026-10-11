@@ -22,6 +22,7 @@
 <link rel="stylesheet" href="../../ad-bar.css">
 <link rel="manifest" href="../../manifest.json">
 <!-- Pyodide is loaded by app.js after first paint, so this shell is readable before the engine is warm. -->
+<script src="../../shared/achievement-share.js" data-game-id="rule-finder" data-game-name="Rule Finder"></script>
 <link rel="stylesheet" href="../../shared/a11y.css">
 <link rel="stylesheet" href="../../shared/touch-targets.css">
 <link rel="stylesheet" href="../../shared/lite-mode.css">
@@ -37,6 +38,7 @@
     <button id="tutorial-restart-button" type="button" aria-label="Tutorial"><span class="btn-long">Tutorial</span><span class="btn-short" aria-hidden="true">Tour</span></button>
     <button id="cases-toggle-button" type="button" aria-expanded="false" aria-controls="cases-panel">Drawers</button>
     <button id="codex-toggle-button" type="button" aria-expanded="false" aria-controls="codex-panel">Codex</button>
+    <button id="achievements-toggle-button" type="button" aria-expanded="false" aria-controls="achievements-panel">Achievements</button>
     <button id="changelog-toggle-button" type="button" aria-expanded="false" aria-controls="changelog-panel"><span class="btn-long">What's New</span><span class="btn-short" aria-hidden="true">News</span></button>
     <button id="settings-toggle-button" type="button" aria-expanded="false" aria-controls="settings-panel">Settings</button>
     <button id="info-page-toggle-button" type="button" aria-expanded="false" aria-controls="info-page-panel">About</button>
@@ -55,6 +57,11 @@
       <div id="codex-list" class="codex-list"></div>
       <article id="codex-page" class="codex-page" aria-live="polite"></article>
     </div>
+  </section>
+  <section id="achievements-panel" class="panel" hidden aria-labelledby="ach-heading">
+    <h2 id="ach-heading">Achievements</h2>
+    <p class="note">Every one can be earned in any order, with no luck and no deadline, and each shows how close you are.</p>
+    <ul id="achievements-list" class="ach-list"></ul>
   </section>
   <section id="info-page-panel" class="panel" hidden aria-labelledby="info-page-heading">
     <h2 id="info-page-heading">About Rule Finder</h2>
@@ -254,6 +261,7 @@
     panels: [
       { toggle: "cases-toggle-button", panel: "cases-panel" },
       { toggle: "codex-toggle-button", panel: "codex-panel" },
+      { toggle: "achievements-toggle-button", panel: "achievements-panel" },
       { toggle: "changelog-toggle-button", panel: "changelog-panel" },
       { toggle: "settings-toggle-button", panel: "settings-panel" },
       { toggle: "info-page-toggle-button", panel: "info-page-panel" },

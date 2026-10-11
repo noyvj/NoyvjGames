@@ -2,6 +2,10 @@
   "changelog": [
     {
       "date": "2026-10-11",
+      "entry": "Fourteen achievements, none timed or luck-based, each with a visible count, in a new Achievements panel with a share button and a small toast when one unlocks: naming cases, closing drawers, naming with few tests, naming within par, naming after a counter-example, using Not, sending tests, reading the Codex."
+    },
+    {
+      "date": "2026-10-11",
       "entry": "An opening screen (New Game, Saves), a short skippable tutorial, an About page that says what the game will never do, a keyboard shortcut list (press ?), number keys for the shape and pattern builders, a story toggle that hides the operator's log lines if you only want the puzzles, and a light theme. The Sources page lists the hidden-rule puzzles that inspired the game. Nothing about the cases changed."
     },
     {

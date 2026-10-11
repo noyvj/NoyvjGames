@@ -39,7 +39,7 @@ A signal-room sorting game: an old relay lets some items through its gate and st
 | 3 | Drawers 2-4 | 24 more cases, shape and Not clauses, Rule Codex | Done |
 | 4 | Drawers 5-6, hints, goals | 16 more cases (48 in all), patterns, odd gate, hint ladder, goals strip, medals | Done |
 | 5 | Standard kit | Opening screen, tutorial, About with Sources, What's New, keyboard help, confirm dialogs, light theme, accessibility | Done |
-| 6 | Achievements | 14 achievements, panel and toast, manifest, reachability test | |
+| 6 | Achievements | 14 achievements, panel and toast, manifest, reachability test | Done |
 | 7 | Desktop boot and wrap-up | `pc-config.json`, `pc.css`, `pc.js`, generated `pc.html`, docs, changelog | |
 
 ## Engine and page notes (milestone 2)
@@ -66,6 +66,10 @@ A signal-room sorting game: an old relay lets some items through its gate and st
 ## Milestone 5 notes
 - Standard kit as in Hull Repair: opening screen (`shared/opening-screen.js`), 10-step tutorial (`TUTORIAL_STEPS`, replaceable on the Desktop boot through `window.RULE_FINDER_PC_TUTORIAL_STEPS`), About from `info.py` (fiction, no real-world facts, so nothing to date; it links the shared Sources page), `sources.json` (only Wason's 2-4-6 task and Eleusis, as the plan records, plus Pyodide), What's New + banner, keyboard help (`?`, with the builders' number keys), reset confirm dialog, story toggle on `.story-text` (operator log lines in the verdict card and Codex), light theme (contrast tested for both themes), `tests/test_pledge.py`.
 - Builder keys (`onBuilderKey`): 1 to 4 add a tile in the shape builder, Backspace takes one back, 1 to 9 toggle squares in the pattern builder, Enter sends.
+
+## Milestone 6 notes
+- `achievements.py` holds the table and facts (named, drawers closed, quick = named with 3 or fewer tests, clean = within par, counter = named after a near miss, both = rule used Not, tests sent, drawer counts, pages read); `achievements.json` is the hub manifest (a test keeps them equal). `achievements_earned` is written to the save and never read back. Panel and toast in `app.js` use the hub hooks (`data-achievement-id`, `data-achievement-label`); the share button is `shared/achievement-share.js`. `tests/test_achievements.py` plays a perfect player (shortest-path tests only, one near miss, no hints) and checks all 14 are earned.
+- The page's only network read beyond its own files is the shared script's stats GET, which 404s until the hub registers the game (QI-5-R).
 
 ## Working conventions
 - Commit only this folder with a pathspec commit, then tag `rule-finder-milestone-0N`. Hub registration (QI-5-R) is a separate later job.

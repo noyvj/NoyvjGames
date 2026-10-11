@@ -1,0 +1,74 @@
+{
+  "achievements": [
+    {
+      "id": "first_gate",
+      "label": "First Gate",
+      "description": "Name your first case."
+    },
+    {
+      "id": "eight_named",
+      "label": "Eight Named",
+      "description": "Name 8 cases."
+    },
+    {
+      "id": "twenty_four",
+      "label": "Twenty-Four Named",
+      "description": "Name 24 cases."
+    },
+    {
+      "id": "all_forty_eight",
+      "label": "All Forty-Eight",
+      "description": "Name every case."
+    },
+    {
+      "id": "drawer_closed",
+      "label": "Drawer Closed",
+      "description": "Name every case in one drawer."
+    },
+    {
+      "id": "four_drawers",
+      "label": "Four Drawers",
+      "description": "Name every case in 4 drawers."
+    },
+    {
+      "id": "quick_eye",
+      "label": "Quick Eye",
+      "description": "Name a case with 3 or fewer tests."
+    },
+    {
+      "id": "at_par",
+      "label": "At Par",
+      "description": "Name 10 cases within par."
+    },
+    {
+      "id": "counter_example",
+      "label": "Counter-Example",
+      "description": "Name a case after a near miss showed you a counter-example."
+    },
+    {
+      "id": "both_ways",
+      "label": "Both Ways",
+      "description": "Name 5 cases with a rule that uses Not."
+    },
+    {
+      "id": "patient_hands",
+      "label": "Patient Hands",
+      "description": "Send 200 tests."
+    },
+    {
+      "id": "shape_reader",
+      "label": "Shape Reader",
+      "description": "Name every case in Shape Strings."
+    },
+    {
+      "id": "odd_gate_open",
+      "label": "Odd Gate Open",
+      "description": "Name every case in The Odd Gate."
+    },
+    {
+      "id": "full_codex",
+      "label": "Full Codex",
+      "description": "Read every page of the Codex."
+    }
+  ]
+}

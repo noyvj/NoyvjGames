@@ -225,6 +225,16 @@ html[data-reduced-motion="true"] .gate-item.on { animation: none; }
 .codex-page .path .ans.no::before { content: "\2715\00a0"; color: var(--stopped); }
 .codex-page .line { font-style: italic; }
 
+/* Achievements. */
+.ach-list { list-style: none; margin: 0.4rem 0; padding: 0; display: grid; gap: 0.35rem; }
+.ach-list li { border: 1px solid var(--line); border-radius: 10px; padding: 0.35rem 0.6rem; background: var(--surface); }
+.ach-list li.earned { border-color: var(--ok); border-width: 2px; }
+.ach-list .tick { display: inline-block; min-width: 4rem; text-align: center; font-weight: 700; font-size: 0.78rem; border: 1px solid var(--edge); border-radius: 999px; padding: 0 0.4rem; font-variant-numeric: tabular-nums; }
+.ach-list li.earned .tick { border-style: double; border-width: 3px; }
+.info-page-framing { margin: 0.3rem 0; }
+.pledge-list { padding-left: 1.2rem; margin: 0.3rem 0 0.8rem; }
+.pledge-list li { margin: 0.3rem 0; }
+
 /* The drawer picker. */
 .chapter { border-top: 1px solid var(--line); padding-top: 0.5rem; margin-top: 0.6rem; }
 .chapter:first-child { border-top: 0; margin-top: 0; padding-top: 0; }

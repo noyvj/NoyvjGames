@@ -467,6 +467,36 @@
     });
   }
 
+  var knownEarned = null;
+  function renderAchievements() {
+    var list = $("achievements-list");
+    var earnedNow = [];
+    var sig = view.achievements.map(function (a) { return a.id + a.have; }).join(",");
+    if (list.dataset.sig !== sig) {
+      list.dataset.sig = sig;
+      list.textContent = "";
+      view.achievements.forEach(function (a) {
+        var li = el("li", a.earned ? "earned" : "");
+        li.setAttribute("data-achievement-id", a.id);
+        li.appendChild(el("span", "tick", a.earned ? "Earned" : a.have + "/" + a.need));
+        var name = el("strong", null, " " + a.label + " ");
+        name.setAttribute("data-achievement-label", "");
+        li.appendChild(name);
+        li.appendChild(el("span", null, a.description));
+        list.appendChild(li);
+      });
+    }
+    view.achievements.forEach(function (a) { if (a.earned) earnedNow.push(a.id); });
+    $("achievements-toggle-button").textContent = "Achievements (" + earnedNow.length + "/" + view.achievements.length + ")";
+    if (knownEarned !== null) {
+      earnedNow.filter(function (id) { return knownEarned.indexOf(id) === -1; }).forEach(function (id) {
+        var a = view.achievements.filter(function (x) { return x.id === id; })[0];
+        showToast("Achievement unlocked: " + a.label + ".");
+        announce("Achievement unlocked: " + a.label + ".");
+      });
+    }
+    knownEarned = earnedNow;
+  }
   function renderGoals() {
     var list = $("goals-list");
     var sig = view.goals.map(function (g) { return g.id + g.have; }).join(",");
@@ -616,6 +646,7 @@
     renderCodex();
     renderGoals();
     renderHints();
+    renderAchievements();
   }
 
   // ---- talking to the engine --------------------------------------------------------------------------------
@@ -659,6 +690,7 @@
     wirePanelToggle("cases-toggle-button", "cases-panel");
     wirePanelToggle("codex-toggle-button", "codex-panel");
     wirePanelToggle("info-page-toggle-button", "info-page-panel");
+    wirePanelToggle("achievements-toggle-button", "achievements-panel");
     $("builder").addEventListener("keydown", onBuilderKey);
     $("map-holder").addEventListener("click", onMapActivate);
     $("map-holder").addEventListener("keydown", onMapActivate);
