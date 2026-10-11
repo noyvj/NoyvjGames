@@ -2,6 +2,10 @@
   "changelog": [
     {
       "date": "2026-10-11",
+      "entry": "New: print your operator report. The Run Summary now opens with your scenario, difficulty and run seed and ends with your career points, and a Print or save as PDF button prints just that page in plain dark-on-white."
+    },
+    {
+      "date": "2026-10-11",
       "entry": "New: more achievements show how close you are. Zero Fossil shows your clean share, Learning Curve Paid Off how far down the cost curve you have come, Fossil Phase-Out how many fossil units you have retired, and the 20-round and 10-round ones count your rounds. The Achievements panel now opens with a Next milestone line naming the locked achievement you are furthest along."
     },
     {

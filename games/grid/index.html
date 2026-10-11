@@ -93,6 +93,8 @@
 <!-- AdSense: placeholder client ID until application is approved -->
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXXXXXX" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.js"></script>
+<!-- C-24: printing the page prints just the Run Summary (scenario, grade, resilience, career points), plain dark-on-white. -->
+<link rel="stylesheet" href="../../shared/print-summary.css" media="print">
 <link rel="stylesheet" href="../../shared/a11y.css">
 <link rel="stylesheet" href="../../shared/touch-targets.css">
 <link rel="stylesheet" href="../../shared/lite-mode.css">
@@ -265,7 +267,7 @@
          full duplicate of the dev logs. Same hidden-until-opened .section idiom as
          achievements/settings above. -->
     <div id="changelog-panel" class="section changelog-panel" hidden></div>
-    <div id="summary-panel" class="section summary-panel" hidden></div>
+    <div id="summary-panel" class="section summary-panel print-summary" hidden></div>
     <!-- TODO-C17: weather-event log, narrating how Weather Variability actually
          affected renewable output round to round -- same hidden-until-opened
          .section idiom as changelog/achievements above. -->
@@ -954,6 +956,25 @@
     })();
   </script>
 <!-- wiring-oct8:end -->
+  <script>
+    // C-24: a "Print or save as PDF" button inside the Run Summary panel (the panel is rebuilt each time it opens, so it is
+    // put back whenever it goes missing). Printing shows only the summary (shared/print-summary.css hides the rest).
+    (function () {
+      var panel = document.getElementById("summary-panel");
+      if (!panel) return;
+      function ensure() {
+        if (panel.querySelector(":scope > .summary-print-button") || !panel.firstChild) return;
+        var button = document.createElement("button");
+        button.type = "button";
+        button.className = "secondary summary-print-button";
+        button.textContent = "Print or save as PDF";
+        button.addEventListener("click", function () { window.print(); });
+        panel.appendChild(button);
+      }
+      ensure();
+      new MutationObserver(ensure).observe(panel, { childList: true });
+    })();
+  </script>
   <script src="../../shared/story-toggle.js" data-game-id="grid" data-story-selectors="#story-chapters"></script>
   <script src="../../shared/story-chapters.js" data-game-id="grid" data-story="story.json"></script>
   <!-- Z4 (site-wide goal): "?" shows a keyboard-shortcuts help overlay,

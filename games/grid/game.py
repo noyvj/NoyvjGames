@@ -3092,7 +3092,11 @@ def summary_panel_html():
     state/score/funds-breakdown/C17-counterfactual math, no new
     calculations invented here beyond formatting."""
     avg_clean_pct = state.average_clean_fraction() * 100
+    preset = difficulty_preset_key()
+    preset_label = DIFFICULTY_PRESETS[preset]["label"] if preset in DIFFICULTY_PRESETS else "Custom"
+    bank_points, _ = run_career_points()
     lines = [
+        f"Scenario: {SCENARIOS[state.scenario]['label']}. Difficulty: {preset_label}. Run seed: {state.seed}.",
         f"Round {state.round_number} — sustained clean-grid score: {state.score():.0f}/100",
         f"Average clean share across every round played: {avg_clean_pct:.0f}%",
         clean_trend_message(state.clean_trend()),
@@ -3107,6 +3111,10 @@ def summary_panel_html():
         grade_message(),
         f"Grid resilience (diversification, separate from clean share): {state.resilience_score()}/100.",
         projection_message(state.projection()),
+        (
+            f"Career: {career['points']} point(s) earned over {career['runs']} finished run(s)"
+            + (f"; finishing this run would bank {bank_points}." if bank_points > 0 else ".")
+        ),
     ]
     body = "".join(f'<p class="status-line summary-line">{line}</p>' for line in lines)
     # C15: filled in by index.html's window.gridCompare() when the shared
