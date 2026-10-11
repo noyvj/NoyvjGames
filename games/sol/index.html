@@ -112,6 +112,7 @@
       <button id="charter-toggle-button" class="secondary" type="button">📜 Charter</button>
       <button id="observatory-toggle-button" class="secondary" type="button">🔭 Observatory</button>
       <button id="capsules-toggle-button" class="secondary" type="button">⏳ Time Capsules</button>
+      <button id="scarcity-toggle-button" class="secondary" type="button">🎯 Scarcity Run</button>
       <button id="doctrine-toggle-button" class="secondary" type="button" hidden>📐 Doctrines</button>
       <button id="splits-toggle-button" class="secondary" type="button">⏱️ Splits</button>
       <button id="prestige-tree-toggle-button" class="secondary" type="button" hidden>🌳 Prestige Tree</button>
@@ -129,6 +130,13 @@
     <p id="anomaly-strip" class="anomaly-strip" role="status" hidden></p>
     <!-- A-10: a rogue comet overhead (from the Observatory chart); a real button, so the keyboard reaches it. -->
     <button id="comet-strip" class="comet-strip" type="button" hidden></button>
+    <!-- A-11: shown only while a Scarcity Run is on (a copy of the game; leaving puts the campaign back untouched). -->
+    <div id="scarcity-strip" class="scarcity-strip" hidden>
+      <span id="scarcity-strip-text"></span>
+      <button id="scarcity-leave-button" class="secondary mini-button" type="button">Leave the run</button>
+    </div>
+    <!-- A-29: the Ghost Run line (lead or lag in terraform points, in words), shown only while a ghost is racing. -->
+    <p id="ghost-strip" class="ghost-strip" hidden></p>
     <div id="howto-panel" class="section" hidden></div>
     <!-- Settings panel (site-wide goal, planning/TODO.md): text-scale + reduced-motion,
          consolidated into one panel per settings.js. A browser preference, not game
@@ -259,6 +267,8 @@
     <div id="observatory-panel" class="section chains-panel" hidden></div>
     <!-- A-17 / A-18: Time Capsules (frozen copies of every world, a Governor-only replay and a comparison; this browser only). -->
     <div id="capsules-panel" class="section chains-panel" hidden></div>
+    <!-- A-11 / A-12: the daily Scarcity Run (seed words, month calendar of past days, tally, ghost choice). -->
+    <div id="scarcity-panel" class="section chains-panel scarcity-panel" hidden></div>
     <!-- A-7 / A-8: Governor Doctrines (shown once Automation Basics is researched). -->
     <div id="doctrine-panel" class="section chains-panel" hidden></div>
     <!-- "What's New" changelog panel (site-wide goal, planning/TODO.md, origin K16):
@@ -1411,6 +1421,14 @@
       // pattern Aftermath's index.html already uses for shared/info_page.py.
       const exportProgressSource = await (await fetch("../../shared/export_progress.py")).text();
       pyodide.FS.writeFile("export_progress.py", exportProgressSource, { encoding: "utf8" });
+      // Round-6: the Scarcity Run's pure helpers (challenges.py) and the shared seeded-run module they
+      // draw from (shared/seed.py, the same Rng every daily on the site uses), written next to game.py.
+      const [seedSource, challengesSource] = await Promise.all([
+        fetch("../../shared/seed.py").then((response) => response.text()),
+        fetch("challenges.py").then((response) => response.text()),
+      ]);
+      pyodide.FS.writeFile("seed.py", seedSource, { encoding: "utf8" });
+      pyodide.FS.writeFile("challenges.py", challengesSource, { encoding: "utf8" });
       // ACHIEVEMENTS-SYSTEM-DESIGN.md's loading contract: fetch the static
       // catalog and hand it to Python as a window global *before* game.py
       // runs, same pattern Le Champ de Mots established for its own JSON
@@ -1555,6 +1573,7 @@
         { toggle: "charter-toggle-button", panel: "charter-panel" },
         { toggle: "observatory-toggle-button", panel: "observatory-panel" },
         { toggle: "capsules-toggle-button", panel: "capsules-panel" },
+        { toggle: "scarcity-toggle-button", panel: "scarcity-panel" },
         { toggle: "doctrine-toggle-button", panel: "doctrine-panel" },
         { toggle: "prestige-tree-toggle-button", panel: "prestige-tree-panel" },
         { toggle: "epilogue-button", panel: "epilogue-panel" },

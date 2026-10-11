@@ -17,6 +17,11 @@ GAME_PY = Path(__file__).resolve().parent.parent / "game.py"
 SHARED_DIR = Path(__file__).resolve().parent.parent.parent.parent / "shared"
 if str(SHARED_DIR) not in sys.path:
     sys.path.insert(0, str(SHARED_DIR))
+# Round-6: game.py also imports its own pure helper module (challenges.py), written into Pyodide's
+# filesystem by index.html next to game.py; here it is found beside game.py.
+GAME_DIR = GAME_PY.parent
+if str(GAME_DIR) not in sys.path:
+    sys.path.insert(0, str(GAME_DIR))
 
 # Buttons that carry the `disabled` attribute in index.html's initial markup
 # (they read "Loading..." until Pyodide finishes and setup() enables them).
@@ -91,6 +96,12 @@ TRAVEL_BUTTON_ID = {
 # Element IDs wired up in index.html — kept in one place so tests and the
 # fixture agree on what "the DOM" contains.
 ELEMENT_IDS = [
+    "scarcity-toggle-button",
+    "scarcity-panel",
+    "scarcity-strip",
+    "scarcity-strip-text",
+    "scarcity-leave-button",
+    "ghost-strip",
     "anomaly-strip",
     "era-tagline",
     "blueprint-make-button",

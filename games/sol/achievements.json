@@ -164,6 +164,21 @@
       "id": "relay_network",
       "label": "Relay Network",
       "description": "Hold all four Lagrange Points as relays: claim the open one and share or take over each rival's."
+    },
+    {
+      "id": "scarcity_survivor",
+      "label": "Scarcity Survivor",
+      "description": "Finish any day's Scarcity Run, today's or a past one. Nothing is lost by skipping days."
+    },
+    {
+      "id": "outplayed_governor",
+      "label": "Outplayed the Governor",
+      "description": "Finish a Scarcity Run faster than the reference plan (the Governor with a patient hand) managed on that day."
+    },
+    {
+      "id": "seven_scarce_days",
+      "label": "Seven Scarce Days",
+      "description": "Finish the Scarcity Run on seven different days, in any order; there is no streak to keep."
     }
   ]
 }

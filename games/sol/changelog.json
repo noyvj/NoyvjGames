@@ -2,6 +2,14 @@
   "changelog": [
     {
       "date": "2026-10-11",
+      "entry": "New: the Ghost Run. Normal play now records your terraform progress every 25 ticks, in this browser only, and keeps the recording when you set a new fastest playthrough. Turn on Ghost run in the Speedrun splits panel (it needs Show timing in Settings) to race it: a split track shows how many points ahead (+) or behind (-) you are, in words as well as signs. In a Scarcity Run you can race your best for that day, the Governor alone, or a friend's blueprint code played by the Governor with their Doctrines and rule twists."
+    },
+    {
+      "date": "2026-10-11",
+      "entry": "New: the Scarcity Run, a daily challenge made from the date alone, the same for everyone. Each day has a goal (terraform some of Earth, the Moon and Mars to a target), a harsher ecology, dearer machines, a thin pile and a rich one, and a starting loadout, and terraforming runs 4x faster so the day is about stabilising ecology rather than waiting. It is played on a copy of the game: your campaign, achievements and save are never touched, leaving costs nothing, there are no streaks and any day from 1 October 2026 is open from a month calendar. The reference plan (the Governor with a patient hand) shows the par; your time is kept in ticks. Each day has a short seed such as amber-orbit-7, shown in the panel and on the Stats & Share card. New achievements: Scarcity Survivor, Outplayed the Governor and Seven Scarce Days."
+    },
+    {
+      "date": "2026-10-11",
       "entry": "New: Time Capsules. Freeze every world as a named capsule (up to three, kept in this browser) without changing your game. Replay runs three minutes on a copy with nobody at the controls, just the Governor and your Doctrines, and Compare with now sets how far you have come since the capsule beside what the Governor alone would have done in the same time. A replay never touches your achievements, boards or save."
     },
     {

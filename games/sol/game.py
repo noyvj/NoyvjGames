@@ -1,3 +1,4 @@
+import challenges
 import copy
 import export_progress
 import json
@@ -580,9 +581,18 @@ GOVERNOR_BUDGET_MIN = 0.0
 GOVERNOR_BUDGET_MAX = 100.0
 
 
+_research_effect_cache = None  # only ever a dict inside a headless run, where research cannot change
+
+
 def research_effect(key):
     """Summed effect of every researched node for `key`, as a fraction."""
-    return sum(RESEARCH_NODE_BY_ID[n]["effects"].get(key, 0) for n in researched_nodes) / 100.0
+    cache = _research_effect_cache
+    if cache is not None and key in cache:
+        return cache[key]
+    value = sum(RESEARCH_NODE_BY_ID[n]["effects"].get(key, 0) for n in researched_nodes) / 100.0
+    if cache is not None:
+        cache[key] = value
+    return value
 
 
 def research_yield_multiplier():
@@ -752,7 +762,7 @@ def _machinery_discount():
     base = 0.9 if prestige_has("cheaper_machinery") else 1.0
     if mutator_active("costly_machinery"):
         base *= MUTATOR_COSTLY_FACTOR  # A-3: an opt-in rule twist, paid for in prestige points
-    return base * (1.0 - research_effect("machinery_discount"))
+    return base * (1.0 - research_effect("machinery_discount")) * scarcity_cost()
 
 
 def generator_cost(planet):
@@ -836,7 +846,8 @@ def terraform_rate(planet):
     health = state["ecology_health"]
     if health < TERRAFORM_ECOLOGY_THRESHOLD:
         return 0.0
-    return TERRAFORM_BASE_RATE_PER_SEC * (health / 100) * anomaly_factor("terraform") * megaproject_factor("terraform")
+    return (TERRAFORM_BASE_RATE_PER_SEC * (health / 100) * anomaly_factor("terraform") * megaproject_factor("terraform")
+            * scarcity_terraform())
 
 
 def update_resource_display(planet):
@@ -1172,7 +1183,7 @@ def update_win_display():
     # sibling of every per-planet view in the HTML (not inside any of
     # them), so it stays visible regardless of current_planet and isn't
     # touched by _hide_all_views().
-    complete = all(planet_state[p]["terraform_progress"] >= TERRAFORM_MAX for p in PLANETS)
+    complete = _scarcity is None and all(planet_state[p]["terraform_progress"] >= TERRAFORM_MAX for p in PLANETS)
     document.getElementById("win-banner").hidden = not complete
 
     readout = document.getElementById("prestige-level-readout")
@@ -1364,13 +1375,19 @@ ACHIEVEMENT_CHECKS = {
     "comet_catcher": lambda: comets_caught_total >= COMETS_TO_CATCH,
     "relay_network": lambda: len(revealed_points()) == 4 and all(
         point_state(e["id"]) in ("yours", "partner") for e in revealed_points()),
+    # Round-6 batch: all three are lifetime records kept per date, so a prestige never un-earns them.
+    "scarcity_survivor": lambda: len(scarcity_days) >= 1,
+    "outplayed_governor": lambda: any(r.get("under_par") for r in scarcity_days.values()),
+    "seven_scarce_days": lambda: len(scarcity_days) >= SCARCITY_DAYS_FOR_ACHIEVEMENT,
 }
 
 # Progress readouts, only for achievements with a natural numeric scale-up —
 # a plain earned/not-yet is the honest shape for the rest, rather than
 # inventing fractional progress for a one-shot milestone like "build your
 # first Recycler somewhere".
+SCARCITY_DAYS_FOR_ACHIEVEMENT = 7
 ACHIEVEMENT_PROGRESS = {
+    "seven_scarce_days": lambda: (min(len(scarcity_days), SCARCITY_DAYS_FOR_ACHIEVEMENT), SCARCITY_DAYS_FOR_ACHIEVEMENT),
     "solar_system_unlocked": lambda: (len(unlocked_bodies), len(PLANETS) - 1),
     "grand_tour": lambda: (len(visited_bodies), len(PLANETS)),
     "tier_two_cleared": lambda: (completed_tiers, len(RESEARCH_TIERS)),
@@ -1466,7 +1483,7 @@ def _report_full_completion():
     only submits when this player has opted in and is signed in. Reported once
     per page load; the server keeps just the best score anyway."""
     global _leaderboard_reported
-    if full_system_completed_tick is None or _leaderboard_reported:
+    if full_system_completed_tick is None or _leaderboard_reported or _scarcity is not None:
         return
     _leaderboard_reported = True
     try:
@@ -1489,10 +1506,12 @@ def _note_full_completion():
         run_completed = True
         duration = max(0, total_ticks - run_start_tick)
         _note_split("full")
-        if best_run_ticks is None or duration < best_run_ticks:
+        is_best = best_run_ticks is None or duration < best_run_ticks
+        if is_best:
             pb_splits.clear()
             pb_splits.update(run_splits)  # A-30: the new personal-best run's splits
         best_run_ticks = duration if best_run_ticks is None else min(best_run_ticks, duration)
+        _ghost_run_finished(duration, is_best)  # A-29: the recording is kept only for a new best
     _report_full_completion()
 
 
@@ -1519,6 +1538,8 @@ CHAIN_BONUS_KEY = "sol-chain-bonus"
 
 
 def _setting_on(key):
+    if _scarcity is not None and key in SCARCITY_OFF_KEYS:
+        return False  # a Scarcity Run is played on the same rules by everyone
     return _read_local_storage_item(key) != "off"
 
 
@@ -1629,28 +1650,22 @@ def on_toggle_splits(event=None):
     update_splits_display()
 
 
-def update_splits_display():
+def update_splits_display(force=False):
+    """The panel is built once (and again when the Ghost Run switch or the best recording changes) and its rows are then
+    updated in place, so the ghost button is never swallowed by a rebuild."""
+    global _splits_signature
     toggle = document.getElementById("splits-toggle-button")
     panel = document.getElementById("splits-panel")
     toggle.innerText = "Hide Splits" if splits_open else "⏱️ Splits"
     panel.hidden = not splits_open
     if not splits_open:
+        _splits_signature = None
         return
-    panel.innerHTML = ""
-    heading = document.createElement("h2")
-    heading.className = "stats-panel-heading"
-    heading.innerText = "Speedrun splits"
-    panel.appendChild(heading)
-    intro = document.createElement("p")
-    intro.className = "splits-intro"
-    intro.innerText = (
-        "Time into this run when each world was unlocked, in game time. Your personal best is the "
-        "run with the fastest full playthrough; each row says how far ahead (-) or behind (+) it you are."
-    )
-    panel.appendChild(intro)
-    for key in SPLIT_KEYS:
-        row = document.createElement("p")
-        row.className = "splits-row"
+    signature = (ghost_enabled(), _pb_ghost is not None, tuple(sorted(run_splits)), tuple(sorted(pb_splits)))
+    if force or signature != _splits_signature:
+        _build_splits_panel()
+        _splits_signature = signature
+    for key, row in _splits_refs.get("rows", {}).items():
         mine = run_splits.get(key)
         best = pb_splits.get(key)
         if mine is None:
@@ -1662,7 +1677,48 @@ def update_splits_display():
         else:
             text = f"{split_label(key)}: {_split_time(mine)} (best {_split_time(best)}, {_split_delta(mine, best)})"
         row.innerText = text
+
+
+def _build_splits_panel():
+    panel = document.getElementById("splits-panel")
+    panel.innerHTML = ""
+    _splits_refs.clear()
+    heading = document.createElement("h2")
+    heading.className = "stats-panel-heading"
+    heading.innerText = "Speedrun splits"
+    panel.appendChild(heading)
+    intro = document.createElement("p")
+    intro.className = "splits-intro"
+    intro.innerText = (
+        "Time into this run when each world was unlocked, in game time. Your personal best is the "
+        "run with the fastest full playthrough; each row says how far ahead (-) or behind (+) it you are."
+    )
+    panel.appendChild(intro)
+    rows = {}
+    for key in SPLIT_KEYS:
+        row = document.createElement("p")
+        row.className = "splits-row"
         panel.appendChild(row)
+        rows[key] = row
+    _splits_refs["rows"] = rows
+    panel.appendChild(_make_text("stats-panel-heading", "Ghost Run", tag="h2"))
+    panel.appendChild(_make_text(
+        "splits-intro",
+        "Race a recording of your fastest full playthrough. It is made automatically while you play, kept in this browser only "
+        "(never in your save code) and replaced only when you finish faster. Every 25 ticks the split track shows how many "
+        "terraform points ahead (+) or behind (-) you are."))
+    if _pb_ghost is None:
+        panel.appendChild(_make_text("splits-row", "No personal-best recording yet: finish a full playthrough to make one."))
+    else:
+        panel.appendChild(_make_text("splits-row", f"Your best recording: {_split_time(_pb_ghost['ticks'])}."))
+    panel.appendChild(_make_button(
+        "Ghost run: On" if ghost_enabled() else "Ghost run: Off", {"data-action": "ghost-toggle"}, None,
+        selected=ghost_enabled(), disabled=_pb_ghost is None and not ghost_enabled()))
+    track = document.createElement("div")
+    track.className = "ghost-track"
+    panel.appendChild(track)
+    _splits_refs["track"] = track
+    _render_ghost_track(track, _live_ghost, _pb_ghost if ghost_enabled() else None, "your best run")
 
 
 # --- A-31: trophy shelf ------------------------------------------------------
@@ -1946,6 +2002,8 @@ def _check_new_achievements_for_toast():
     called from _full_render() itself -- see _seed_achievement_toast_baseline
     above for why a load must never diff against a stale/empty baseline."""
     global _achievements_seen_ids
+    if _scarcity is not None:
+        return  # a Scarcity Run never counts for achievements, the story log or the board
     _note_full_completion()
     if _note_story_beats():
         render_story_log()
@@ -2363,6 +2421,8 @@ def build_share_card_text():
     text, not a rendered image -- this project has no asset/image pipeline
     (A6's own build note), and plain text is trivially "shareable" (paste
     it anywhere) without inventing one just for this."""
+    if _scarcity is not None:
+        return scarcity_run_card_text()
     terraform_values = [planet_state[p]["terraform_progress"] for p in PLANETS]
     avg_terraform = sum(terraform_values) / len(terraform_values)
     lines = [
@@ -2377,6 +2437,7 @@ def build_share_card_text():
     if mutators_run:
         lines.append(f"Run rules: {mutator_glyphs(mutators_run).strip()} " + ", ".join(
             MUTATOR_BY_ID[m_id]["label"] for m_id in mutators_run))
+    lines.extend(scarcity_share_lines())  # A-12: today's seed words and today's Scarcity Run result
     return "\n".join(lines)
 
 
@@ -2385,6 +2446,12 @@ def copy_result_fields():
     e.g. "SOL, 100% terraformed, 9/9 worlds fully terraformed, ...". Read by
     the page's own inline script through pyodide.globals when the shared
     Copy result button is pressed, so it always matches the run right now."""
+    if _scarcity is not None:
+        run = _scarcity
+        spec = run["spec"]
+        score = _split_time(run["done"]) if run["done"] is not None else f"{round(_scarcity_mean_progress())}%"
+        return {"game": "SOL", "score": score, "unit": f"Scarcity Run {spec['words']}",
+                "stats": [challenges.goal_text(spec), f"Governor alone {_split_time(spec['par'])}"]}
     terraform_values = [planet_state[p]["terraform_progress"] for p in PLANETS]
     average = round(sum(terraform_values) / len(terraform_values))
     stats = [
@@ -2565,7 +2632,8 @@ def _mine(planet, event=None):
     # rule, there must always be a lever.
     global total_manual_clicks, lifetime_resources_mined_by_click, manual_labor_hit
     state = planet_state[planet]
-    gained = 1 * _yield_multiplier() * _streak_click() * anomaly_factor("click") * (1 + stamp_bonus(planet))
+    gained = (1 * _yield_multiplier() * _streak_click() * anomaly_factor("click") * (1 + stamp_bonus(planet))
+              * scarcity_yield(planet))
     state["resource_count"] += gained
     total_manual_clicks += 1
     lifetime_resources_mined_by_click += gained
@@ -3741,6 +3809,8 @@ COMPARE_FIELDS = (
 
 
 def export_stats_code():
+    if _scarcity is not None:
+        return ""
     # Z8: codec now lives in shared/export_progress.py (the "portable
     # progress-code" pattern shared with Aftermath's E12) -- behavior is
     # unchanged, same STATS_CODE_PREFIX, same flat-counter payload.
@@ -3752,6 +3822,8 @@ def export_stats_code():
 def import_stats_code(code):
     """Returns (ok, message). Only ever raises a counter, never lowers one, so
     a stale code from an old device can't undo newer progress."""
+    if _scarcity is not None:
+        return False, "A Scarcity Run is on. Leave it first: stats codes belong to your campaign."
     ok, payload = export_progress.decode_progress_code(
         code, prefix=STATS_CODE_PREFIX, bad_format_message="That doesn't look like a SOL stats code."
     )
@@ -3768,6 +3840,9 @@ def import_stats_code(code):
 
 
 def on_export_stats(event=None):
+    if _scarcity is not None:
+        document.getElementById("stats-code-status").innerText = "A Scarcity Run is on. Leave it first: stats codes belong to your campaign."
+        return
     document.getElementById("stats-code-output").value = export_stats_code()
     document.getElementById("stats-code-status").innerText = "Copy this code and keep it somewhere safe."
 
@@ -3787,6 +3862,9 @@ def compare_values():
 
 
 def on_compare_run(event=None):
+    if _scarcity is not None:
+        document.getElementById("compare-run-results").innerText = "A Scarcity Run is on. Leave it first to compare your campaign."
+        return
     try:
         import js  # noqa: PLC0415
 
@@ -3853,7 +3931,7 @@ def _forget_close_call_history(planet=None):
 
 # --- Prestige / New Game+ (A1) ---
 def _prestige_available():
-    return all(planet_state[p]["terraform_progress"] >= TERRAFORM_MAX for p in PLANETS)
+    return _scarcity is None and all(planet_state[p]["terraform_progress"] >= TERRAFORM_MAX for p in PLANETS)
 
 
 def on_prestige(event=None):
@@ -4028,6 +4106,7 @@ def _simulate_planet(planet, incoming_trade_restore):
                 * anomaly_factor("produce")
                 * megaproject_factor("produce")
                 * (1 + stamp_bonus(planet))
+                * scarcity_yield(planet)
                 * (1 + SPECIALIZATION_OUTPUT_BONUS if spec == "output" else 1)
                 * (1.2 if prestige_has("governors_mandate") and planet != current_planet else 1)
             )
@@ -4046,6 +4125,7 @@ def _simulate_planet(planet, incoming_trade_restore):
     if mutator_active("thin_atmosphere"):
         decay *= MUTATOR_THIN_DECAY_FACTOR
     decay *= anomaly_factor("decay")
+    decay *= scarcity_decay()
     spec = _specialization(planet)
     if spec == "output":
         decay *= 1 + SPECIALIZATION_OUTPUT_DECAY_PENALTY
@@ -4078,6 +4158,8 @@ def tick(*args):
 
     governor_step()
     _track_close_calls()
+    _scarcity_tick()
+    _ghost_tick()
 
     for planet in PLANETS:
         update_resource_display(planet)
@@ -4110,6 +4192,7 @@ def tick(*args):
     update_doctrine_display()
     update_observatory_display()
     update_capsules_display()
+    update_scarcity_display()
     _check_new_achievements_for_toast()
     if total_ticks % 10 == 0:
         _refresh_goals_panel()  # FY-53: once a second is plenty for a progress bar
@@ -4162,6 +4245,7 @@ def _full_render():
     update_comet_strip()
     update_observatory_display()
     update_capsules_display()
+    update_scarcity_display(force=True)
     render_trophy_shelf()
     render_click_streak()
     _refresh_all_cost_displays()
@@ -4271,6 +4355,7 @@ def serialize_state():
         **({"point_claims": dict(point_claims)} if point_claims else {}),
         **({"comets_caught_run": list(comets_caught_run)} if comets_caught_run else {}),
         **({"comets_caught_total": comets_caught_total} if comets_caught_total else {}),
+        **({"scarcity_days": {d: dict(r) for d, r in scarcity_days.items()}} if scarcity_days else {}),
     }
 
 
@@ -4430,6 +4515,7 @@ def _load_session_additions(data):
     mutators_next[:] = _clean_mutators(data.get("mutators_next"))
     mutators_run[:] = _clean_mutators(data.get("mutators_run"))
     _load_observatory(data)
+    _load_scarcity(data)
 
     saved_story = data.get("story_log")
     story_log.clear()
@@ -4631,7 +4717,9 @@ def get_save_state_json():
 
 
 def load_save_state_json(json_str):
+    _scarcity_discard()
     deserialize_state(json.loads(json_str))
+    _ghost_reload_live()
     _full_render()
     _show_welcome_back_toast()
     return True
@@ -4644,11 +4732,20 @@ def load_save_state_json(json_str):
 # SOL is the reference integration for this contract; save codes created
 # under the old bespoke UI keep working, since the dict shape is unchanged.
 def get_state():
+    if _scarcity is not None:
+        # A Scarcity Run is on: the save is the real game as it was when the run began, plus the run records.
+        data = json.loads(_scarcity["stash"])
+        data.pop("scarcity_days", None)
+        if scarcity_days:
+            data["scarcity_days"] = {d: dict(r) for d, r in scarcity_days.items()}
+        return data
     return serialize_state()
 
 
 def load_state(data):
+    _scarcity_discard()
     deserialize_state(data)
+    _ghost_reload_live()
     _full_render()
     _show_welcome_back_toast()
     return True
@@ -6646,7 +6743,7 @@ def _live_metrics():
 def freeze_capsule(name=""):
     """Freezes every world as a new capsule. Returns the capsule, or None when three are already kept."""
     global _capsule_next_id
-    if len(capsules) >= CAPSULE_MAX:
+    if len(capsules) >= CAPSULE_MAX or _scarcity is not None:
         return None
     clean = " ".join(str(name).split())[:CAPSULE_NAME_MAX] or f"Capsule {_capsule_next_id} at {_mmss(_run_ticks())}"
     capsule = {
@@ -6716,11 +6813,20 @@ def _metrics_change(before, after):
             f"banked {_signed(after['banked'] - before['banked'])}")
 
 
+def _capsule_blocked(capsule_id):
+    text = "A Scarcity Run is on. Leave it first: capsules belong to your campaign."
+    _capsule_notes.setdefault(capsule_id, {})["replay"] = text
+    _capsule_notes[capsule_id]["diff"] = text
+    return text
+
+
 def capsule_replay(capsule_id):
     """A-17: the three-minute Governor-only branch. Returns the one-line outcome (and keeps it for the card)."""
     capsule = _find_capsule(capsule_id)
     if capsule is None:
         return None
+    if _scarcity is not None:
+        return _capsule_blocked(capsule_id)
     after = branch_from_capsule(capsule, CAPSULE_BRANCH_TICKS)
     text = (f"Replay, {_mmss(CAPSULE_BRANCH_TICKS)} with nobody at the controls (the Governor and your Doctrines on every world, "
             f"your current research and perks): {_metrics_change(capsule['metrics'], after)}. Nothing in your game changed.")
@@ -6733,6 +6839,8 @@ def capsule_diff(capsule_id):
     capsule = _find_capsule(capsule_id)
     if capsule is None:
         return None
+    if _scarcity is not None:
+        return _capsule_blocked(capsule_id)
     elapsed = total_ticks - capsule["tick"]
     if elapsed < 0 or capsule["prestige"] != prestige_level:
         text = "This capsule is from a different run or save, so it cannot be compared with where you are now."
@@ -6907,6 +7015,868 @@ def update_capsules_display():
     if signature != _capsules_signature:
         _build_capsules()
         _capsules_signature = signature
+
+
+# =============================================================================
+# Round-6 batch (2026-10-11): A-11 / A-12 Scarcity Run, A-29 Ghost Run.
+# Every save key is optional, written only when non-default and cleaned on load.
+# The pure parts (dates, seed words, the day's rules, recording validators) live in
+# challenges.py; this block owns the simulation and the panels.
+# =============================================================================
+
+# --- A-11 / A-12: the Scarcity Run -----------------------------------------------------
+# One challenge per UTC date, the same for everybody, played on a COPY of the game: starting
+# a run stashes the real game (the exact dict get_state() returns), swaps a fresh start in,
+# and leaving puts the stash back, so the campaign and its save are never touched. While a
+# run is on, get_state() hands the widget the stash (plus the run records), achievements,
+# the leaderboard, capsules, prestige and the campaign's own ghost recording are all off,
+# and timed anomalies, the rhythm bonus and chain bonuses are off so the rules are the same
+# for everyone. The goal is checked every tick; the time is kept in ticks (game time), never
+# wall-clock, in `scarcity_days` (the only new thing in the save). Nothing is a streak.
+# Fairness: before a date is accepted the Governor alone (nobody standing anywhere, default
+# settings) must reach the goal within SCARCITY_BOUND_TICKS; its time is the par.
+SCARCITY_BOUND_TICKS = 9000  # 15 minutes of game time: the Governor alone must finish by here
+SCARCITY_BOT_CLICKS_PER_TICK = 0.3  # three clicks a second: a patient hand, well under a real player's pace
+SCARCITY_STALL_CHECK = 1500  # a candidate day whose progress did not move in this many ticks is stuck
+SCARCITY_MIN_TICKS = 500  # and not so fast that the day is a non-event
+SCARCITY_OFF_KEYS = ("sol-click-streak", "sol-chain-bonus", "sol-anomalies", "sol-rivals")
+SCARCITY_BOT_PRIORITY = "ecology"  # the Governor alone is told to restore ecology first (recyclers only) ...
+SCARCITY_BOT_BUDGET = 100.0  # ... and may spend everything it has
+SCARCITY_RESEARCH_LEVEL = 0  # Near Bodies is researched at the start (Moon and Mars open)
+GHOST_PB_KEY = "sol-ghost-pb-v1"
+GHOST_LIVE_KEY = "sol-ghost-live-v1"
+GHOST_DAILY_KEY = "sol-ghost-daily-v1"
+GHOST_ON_KEY = "sol-ghost-on"
+GHOST_DAILY_KEEP = 40
+GHOST_SAVE_EVERY = 8  # samples between writes of the in-progress recording (200 ticks)
+TODAY_OVERRIDE = None  # tests (and nothing else) may set this to a YYYY-MM-DD text
+
+scarcity_days = {}  # date -> {"ticks", "tries", "under_par"?}: the only saved part
+_scarcity = None  # the active run: {"spec", "stash", "trophies", "samples", "done", "ghost", "ghost_label"}
+_scarcity_keep_days = False
+_scarcity_specs = {}
+scarcity_open = False
+_scarcity_selected = None
+_scarcity_month = None
+_scarcity_signature = None
+_scarcity_refs = {}
+_scarcity_notice = ""
+_scarcity_ghost_choice = "none"  # "none", "best", "par" or "friend" for the next run
+_scarcity_friend_code = ""
+_scarcity_friend = None  # {"date", "rec", "label"}: a friend's blueprint played by the Governor on one date
+_PRISTINE_JSON = ""  # the fresh-game state, taken just before setup()
+
+
+def _today_utc():
+    """The view's clock: today's UTC date as YYYY-MM-DD, or None where there is no clock (the tests). The only
+    place in the Scarcity Run that asks what day it is; everything else takes the date as an argument."""
+    if TODAY_OVERRIDE:
+        return TODAY_OVERRIDE
+    try:
+        from js import Date  # noqa: PLC0415 -- Pyodide-only, deliberately lazy
+        text = str(Date.new().toISOString())[:10]
+        return text if challenges.valid_date(text) else None
+    except Exception:  # noqa: BLE001 -- no clock available: callers treat None as "no date"
+        return None
+
+
+def scarcity_active():
+    return _scarcity is not None
+
+
+def scarcity_yield(planet):
+    """The day's resource-mix factor for a world (1 outside a run)."""
+    return 1.0 if _scarcity is None else _scarcity["spec"]["yields"].get(planet, 1.0)
+
+
+def scarcity_decay():
+    return 1.0 if _scarcity is None else _scarcity["spec"]["decay"]
+
+
+def scarcity_cost():
+    return 1.0 if _scarcity is None else _scarcity["spec"]["cost"]
+
+
+def scarcity_terraform():
+    return 1.0 if _scarcity is None else challenges.TERRAFORM_SPEED
+
+
+def _scarcity_start_data(spec):
+    """A save-shaped dict for the start of a day: a fresh game with Near Bodies researched and the day's loadout."""
+    data = json.loads(_PRISTINE_JSON)
+    data["researched_nodes"] = sorted(node["id"] for node in RESEARCH_NODES if node["tier"] == SCARCITY_RESEARCH_LEVEL)
+    data["unlocked_bodies"] = sorted(RESEARCH_TIERS[SCARCITY_RESEARCH_LEVEL]["unlocks"])
+    data["visited_bodies"] = ["Earth"]
+    data["current_planet"] = "Earth"
+    data["total_ticks"] = 0
+    for world, load in spec["loadout"].items():
+        state = data["planet_state"][world]
+        state["resource_count"] = float(load["stock"])
+        state["generator_count"] = int(load["generators"])
+        state["recycler_count"] = int(load["recyclers"])
+        state["ecology_health"] = float(load["ecology"])
+    return data
+
+
+def _apply_state_data(data):
+    """Loads a save-shaped dict into the live game WITHOUT touching the run records, and clears the few pieces of
+    transient state a save does not carry."""
+    global _scarcity_keep_days, click_streak, _streak_last_tick, _active_anomaly
+    _scarcity_keep_days = True
+    try:
+        deserialize_state(data)
+    finally:
+        _scarcity_keep_days = False
+    _terraform_done_seen.clear()
+    click_streak = 0
+    _streak_last_tick = None
+    _active_anomaly = None
+
+
+def _scarcity_discard():
+    """A save is being loaded over the game: a run that is on is simply dropped (the loaded save replaces its stash)."""
+    if _scarcity is not None:
+        _scarcity_swap_out()  # the real game comes back first, then the save is loaded over it as usual
+
+
+def _load_scarcity(data):
+    if _scarcity_keep_days:
+        return  # an internal swap: the run records are not part of what is being swapped
+    scarcity_days.clear()
+    scarcity_days.update(challenges.clean_days(data.get("scarcity_days")))
+
+
+def _scarcity_swap_in(spec):
+    """Stashes the real game and starts the day's copy. No DOM."""
+    global _scarcity
+    if _scarcity is not None:
+        raise RuntimeError("a Scarcity Run is already on")
+    stash = json.dumps(serialize_state())
+    _scarcity = {"spec": spec, "stash": stash, "trophies": list(recent_trophies), "samples": [], "done": None,
+                 "ghost": None, "ghost_label": ""}
+    try:
+        _apply_state_data(_scarcity_start_data(spec))
+    except Exception:
+        run, _scarcity = _scarcity, None
+        _apply_state_data(json.loads(run["stash"]))
+        raise
+
+
+def _scarcity_swap_out():
+    """Puts the real game back exactly. No DOM."""
+    global _scarcity
+    run, _scarcity = _scarcity, None
+    if run is None:
+        return
+    _apply_state_data(json.loads(run["stash"]))
+    recent_trophies[:] = run["trophies"]
+
+
+def _scarcity_mean_progress():
+    targets = _scarcity["spec"]["targets"]
+    return sum(planet_state[w]["terraform_progress"] for w in targets) / len(targets)
+
+
+def scarcity_goal_met():
+    spec = _scarcity["spec"]
+    return all(planet_state[w]["terraform_progress"] >= spec["target_pct"] for w in spec["targets"])
+
+
+def _scarcity_bot_hand():
+    """The reference plan's one hand: SCARCITY_BOT_CLICKS_PER_TICK clicks a tick on whichever target world is furthest from
+    the goal. It only ever adds the stock a click would (the Governor does all the buying), so a hand-mined pile can
+    never be stuck behind a collapsed world."""
+    spec = _scarcity["spec"]
+    laggard = min(spec["targets"], key=lambda w: planet_state[w]["terraform_progress"])
+    planet_state[laggard]["resource_count"] += (
+        SCARCITY_BOT_CLICKS_PER_TICK * _yield_multiplier() * scarcity_yield(laggard) * (1 + stamp_bonus(laggard)))
+
+
+def _scarcity_headless(spec, rules=None, mutators=None, limit=SCARCITY_BOUND_TICKS):
+    """The Governor alone (nobody standing anywhere, default settings, plus a friend's Doctrines and mutators when
+    given) playing the day on a copy. Returns (ticks to the goal or None, recording {"ticks", "pct"}). Never touches
+    the DOM and always puts the real game back."""
+    global total_ticks, current_planet, _dry_run, governor_priority, governor_budget_pct, _research_effect_cache
+    _scarcity_swap_in(spec)
+    samples = []
+    done = None
+    try:
+        if rules is not None:
+            doctrine_rules[:] = rules
+        if mutators:
+            mutators_run[:] = mutators
+        current_planet = "Deep space"
+        governor_priority, governor_budget_pct = SCARCITY_BOT_PRIORITY, SCARCITY_BOT_BUDGET
+        _dry_run = True
+        _research_effect_cache = {}
+        stalled_at = -1.0
+        samples.append(round(_scarcity_mean_progress() * 10))
+        for _ in range(limit):
+            total_ticks += 1
+            incoming = {p: _incoming_trade_restore(p) for p in challenges.WORLDS}
+            for planet in challenges.WORLDS:  # the five worlds that are still shut are inert, so they are skipped
+                _simulate_planet(planet, incoming[planet])
+            governor_step()
+            _scarcity_bot_hand()
+            if total_ticks % challenges.GHOST_STEP == 0:
+                samples.append(round(_scarcity_mean_progress() * 10))
+            if scarcity_goal_met():
+                done = total_ticks
+                break
+            if total_ticks % SCARCITY_STALL_CHECK == 0:
+                progress = round(_scarcity_mean_progress(), 3)
+                if progress <= stalled_at:
+                    break  # nothing moved for a long while: this candidate day is stuck, so it is not a fair one
+                stalled_at = progress
+        if done is not None and done % challenges.GHOST_STEP:
+            samples.append(round(_scarcity_mean_progress() * 10))
+        ticks_used = done if done is not None else total_ticks
+    finally:
+        _dry_run = False
+        _research_effect_cache = None
+        _scarcity_swap_out()
+    if len(samples) < 2:
+        samples.append(samples[-1])
+    return done, {"ticks": max(1, ticks_used), "pct": [min(1000, max(0, v)) for v in samples]}
+
+
+def scarcity_spec(date_text):
+    """The day's challenge with its fairness proof: the first attempt whose Governor-alone run reaches the goal inside
+    the bound. Adds "par" (that run's ticks) and "par_recording". Memoised per date. Must not be called mid-run."""
+    if date_text in _scarcity_specs:
+        return _scarcity_specs[date_text]
+    for attempt in range(challenges.MAX_ATTEMPTS):
+        spec = challenges.make_spec(date_text, attempt)
+        ticks, recording = _scarcity_headless(spec)
+        if ticks is not None and ticks >= SCARCITY_MIN_TICKS:
+            spec["par"] = ticks
+            spec["par_recording"] = recording
+            if len(_scarcity_specs) > 60:
+                _scarcity_specs.clear()
+            _scarcity_specs[date_text] = spec
+            return spec
+    raise RuntimeError(f"no fair Scarcity Run for {date_text}")
+
+
+def scarcity_leaderboard_entry(date_text):
+    """HOOK for a future opt-in daily board (a separate backend job, NOT built in this pass): the entry the board
+    would take for one finished date, or None. Pure; nothing sends it anywhere."""
+    record = scarcity_days.get(date_text)
+    return challenges.leaderboard_entry(date_text, record) if record else None
+
+
+# --- the run itself ---------------------------------------------------------------------
+def start_scarcity_run(date_text, today=None):
+    """Starts (or restarts) a day on a copy. Returns True, or False with a reason in `_scarcity_notice`."""
+    global _scarcity_notice, _scarcity_selected
+    today = today or _today_utc()
+    if today is None or not challenges.playable(date_text, today):
+        _scarcity_notice = "That day is not open yet. Any day from 1 October 2026 up to today is."
+        return False
+    if _scarcity is not None:
+        leave_scarcity_run(render=False)
+    spec = scarcity_spec(date_text)
+    _scarcity_swap_in(spec)
+    run = _scarcity
+    run["samples"].append(round(_scarcity_mean_progress() * 10))
+    run["ghost"], run["ghost_label"] = _resolve_scarcity_ghost(spec)
+    _scarcity_selected = date_text
+    _scarcity_notice = ""
+    _full_render()
+    update_scarcity_display(force=True)
+    _refresh_ghost_strip()
+    return True
+
+
+def leave_scarcity_run(render=True):
+    """Ends the run and restores the real game exactly. Returns True if a run was on."""
+    global _scarcity_notice
+    if _scarcity is None:
+        return False
+    _scarcity_swap_out()
+    _scarcity_notice = ""
+    if render:
+        _full_render()
+        update_scarcity_display(force=True)
+        _refresh_ghost_strip()
+    return True
+
+
+def _scarcity_finish():
+    run = _scarcity
+    date_text = run["spec"]["date"]
+    run["done"] = total_ticks
+    scarcity_days[date_text] = challenges.merge_record(scarcity_days.get(date_text), total_ticks, run["spec"]["par"])
+    _keep_daily_ghost(date_text, total_ticks, run["samples"])
+    under = total_ticks < run["spec"]["par"]
+    _display_toast(
+        f"\U0001f3af Scarcity Run done in {_split_time(total_ticks)}"
+        + (" - faster than the Governor alone!" if under else f" (the Governor alone: {_split_time(run['spec']['par'])})."))
+
+
+def _scarcity_tick():
+    run = _scarcity
+    if run is None:
+        return
+    if total_ticks % challenges.GHOST_STEP == 0:
+        run["samples"].append(round(_scarcity_mean_progress() * 10))
+        if len(run["samples"]) > challenges.GHOST_MAX_SAMPLES:
+            run["samples"].pop()
+        _refresh_ghost_strip()
+    if run["done"] is None and scarcity_goal_met():
+        _scarcity_finish()
+        update_scarcity_display(force=True)
+
+
+def _scarcity_status_line():
+    run = _scarcity
+    spec = run["spec"]
+    if run["done"] is not None:
+        return f"Scarcity Run {spec['words']}: done in {_split_time(run['done'])}. You can keep playing or leave."
+    parts = ", ".join(
+        f"{PLANET_DISPLAY_NAMES.get(w, w)} {planet_state[w]['terraform_progress']:.1f}/{spec['target_pct']}%" for w in spec["targets"])
+    return f"Scarcity Run {spec['words']}: {parts} - {_split_time(total_ticks)} in."
+
+
+# --- A-12 helpers shared with the Stats & Share card --------------------------------------
+def scarcity_today_words():
+    today = _today_utc()
+    return challenges.seed_words(today) if today else None
+
+
+def scarcity_share_lines():
+    """Lines for the Stats & Share card: today's seed and today's result."""
+    today = _today_utc()
+    if today is None:
+        return []
+    lines = [f"Today's seed: {challenges.seed_words(today)}"]
+    record = scarcity_days.get(today)
+    if record:
+        lines.append(f"Scarcity Run today: {_split_time(record['ticks'])}" + (" (under par)" if record.get("under_par") else ""))
+    return lines
+
+
+def scarcity_run_card_text():
+    """The card shown instead of the campaign card while a run is on."""
+    run = _scarcity
+    spec = run["spec"]
+    lines = ["\U0001f30c SOL Scarcity Run", f"Seed: {spec['words']} ({spec['date']})", f"Goal: {challenges.goal_text(spec)}"]
+    if run["done"] is not None:
+        lines.append(f"Done in {_split_time(run['done'])} (the Governor alone: {_split_time(spec['par'])})")
+    else:
+        lines.append(_scarcity_status_line())
+    return "\n".join(lines)
+
+
+# --- the Scarcity Run panel -----------------------------------------------------------------
+def on_toggle_scarcity(event=None):
+    global scarcity_open
+    scarcity_open = not scarcity_open
+    update_scarcity_display(force=True)
+
+
+def _scarcity_record_text(date_text):
+    record = scarcity_days.get(date_text)
+    if not record:
+        return "Not played yet."
+    return (f"Your best: {_split_time(record['ticks'])} ({record['ticks']} ticks), {record['tries']} "
+            f"{'try' if record['tries'] == 1 else 'tries'}" + (", faster than the Governor alone" if record.get("under_par") else "") + ".")
+
+
+def _scarcity_rules_texts(spec):
+    names = {"Earth": "Earth", "Moon": "the Moon", "Mars": "Mars"}
+    lines = [f"Ecology decays {spec['decay']:g}x as fast as usual. Auto-Machines and Recyclers cost {spec['cost']:g}x. "
+             f"Terraforming runs {challenges.TERRAFORM_SPEED:g}x faster, so the day is about stabilising ecology, not waiting."]
+    yields = []
+    for world in challenges.WORLDS:
+        factor = spec["yields"][world]
+        note = " (scarce)" if factor < 1 else (" (rich)" if factor > 1 else "")
+        yields.append(f"{PLANETS[world]['resource_name']} x{factor:g}{note}")
+    lines.append("Yields: " + ", ".join(yields) + ".")
+    for world in challenges.WORLDS:
+        load = spec["loadout"][world]
+        cfg = PLANETS[world]
+        lines.append(
+            f"Start on {names[world]}: {load['stock']} {cfg['resource_name']}, "
+            f"{load['generators']} {cfg['generator_singular'] if load['generators'] == 1 else cfg['generator_plural']}, "
+            f"{load['recyclers']} Recycler{'s' if load['recyclers'] != 1 else ''}, ecology {load['ecology']}%.")
+    lines.append("Near Bodies research is done (the Moon and Mars are open). Timed anomalies, the rhythm bonus and chain "
+                 "bonuses are off, so everyone plays the same rules.")
+    return lines
+
+
+def _scarcity_calendar_signature():
+    return (tuple(sorted((d, r["ticks"], bool(r.get("under_par"))) for d, r in scarcity_days.items())),)
+
+
+def _scarcity_structure_signature():
+    run_key = None if _scarcity is None else (_scarcity["spec"]["date"], _scarcity["done"] is not None)
+    return (run_key, _scarcity_selected, _scarcity_month, _scarcity_calendar_signature(), _scarcity_notice,
+            _scarcity_ghost_choice, None if _scarcity_friend is None else _scarcity_friend["label"], _today_utc())
+
+
+def _day_label(date_text):
+    d = challenges.parse_date(date_text)
+    return f"{d.day} {_MONTH_NAMES[d.month - 1]} {d.year}"
+
+
+_MONTH_NAMES = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October",
+                "November", "December"]
+_WEEKDAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+
+
+def _build_scarcity_panel():
+    global _scarcity_month, _scarcity_selected
+    global _scarcity_friend_code
+    panel = document.getElementById("scarcity-panel")
+    kept_field = _scarcity_refs.get("friend")
+    if kept_field is not None:
+        _scarcity_friend_code = kept_field.value  # a rebuild must not eat a half-pasted code
+    panel.innerHTML = ""
+    _scarcity_refs.clear()
+    today = _today_utc()
+    panel.appendChild(_make_text("stats-panel-heading", "Scarcity Run"))
+    panel.appendChild(_make_text(
+        "chains-intro",
+        "A daily challenge, the same puzzle for everyone, made from the date alone. It is played on a copy of the game: your "
+        "campaign, achievements and save are never touched, and leaving costs nothing. There are no streaks, a missed day costs "
+        "nothing, and any day from 1 October 2026 is open. A run is not saved: closing the page ends it."))
+    if today is None:
+        panel.appendChild(_make_text("chain-card-detail", "The date is not available here, so no day can be offered."))
+        return
+    if _scarcity_selected is None or not challenges.playable(_scarcity_selected, today):
+        _scarcity_selected = today
+    if _scarcity_month is None:
+        _scarcity_month = challenges.month_of(_scarcity_selected)
+    if _scarcity_notice:
+        panel.appendChild(_make_text("chain-card-detail", _scarcity_notice))
+    run = _scarcity
+    shown = run["spec"]["date"] if run is not None else _scarcity_selected
+    card = document.createElement("div")
+    card.className = "chain-card chain-card--found scarcity-card"
+    title = "Today" if shown == today else "Past day"
+    card.appendChild(_make_text("chain-card-name", f"{title}: {_day_label(shown)}, seed {challenges.seed_words(shown)}"))
+    try:
+        spec = run["spec"] if run is not None else scarcity_spec(shown)
+    except RuntimeError:
+        spec = None
+    if spec is None:
+        card.appendChild(_make_text("chain-card-detail", "No fair challenge could be made for this day."))
+    else:
+        card.appendChild(_make_text("chain-card-detail", "Goal: " + challenges.goal_text(spec)))
+        for line in _scarcity_rules_texts(spec):
+            card.appendChild(_make_text("chain-card-detail", line))
+        card.appendChild(_make_text("chain-card-detail", f"The Governor alone does it in {_split_time(spec['par'])} (par)."))
+        card.appendChild(_make_text("chain-card-count", _scarcity_record_text(shown)))
+        if run is None:
+            card.appendChild(_make_button(
+                "Today's Scarcity Run" if shown == today else f"Play {_day_label(shown)}",
+                {"data-action": "play", "data-date": shown}, None))
+        else:
+            status = _make_text("chain-card-count", _scarcity_status_line())
+            card.appendChild(status)
+            _scarcity_refs["status"] = status
+            card.appendChild(_make_button("Restart this day", {"data-action": "play", "data-date": shown}, None))
+            card.appendChild(_make_button("Leave the run (back to your campaign)", {"data-action": "leave"}, None))
+    panel.appendChild(card)
+    _build_scarcity_ghost_section(panel, shown, spec)
+    _build_scarcity_calendar(panel, today)
+    _build_scarcity_tally(panel, today)
+    entry = challenges.leaderboard_entry(shown, scarcity_days[shown]) if shown in scarcity_days else None
+    panel.appendChild(_make_text(
+        "chain-card-detail",
+        "Daily board: not open yet. Your time is kept as ticks in your save under the name " +
+        f"\"{(entry or {'board': 'sol-scarcity-daily'})['board']}\", ready for an opt-in board later; nothing is sent anywhere."))
+
+
+def _build_scarcity_ghost_section(panel, date_text, spec):
+    section = document.createElement("div")
+    section.className = "chain-card scarcity-ghost"
+    section.appendChild(_make_text("chain-card-name", "Race a ghost (optional)"))
+    section.appendChild(_make_text(
+        "chain-card-detail",
+        "A ghost is a recording of terraform progress, checked every 25 ticks. It shows how many points ahead (+) or behind (-) "
+        "you are, in words as well as symbols. Chosen before the run starts."))
+    best = _load_daily_ghosts().get(date_text)
+    options = [("none", "No ghost", True), ("best", "My best for this day" + ("" if best else " (none yet)"), best is not None),
+               ("par", "The Governor alone", spec is not None)]
+    row = document.createElement("div")
+    row.className = "scarcity-ghost-row"
+    for key, label, enabled in options:
+        row.appendChild(_make_button(label, {"data-action": "ghost-choice", "data-value": key}, None,
+                                     selected=(_scarcity_ghost_choice == key), disabled=not enabled or _scarcity is not None))
+    friend_label = _scarcity_friend["label"] if _scarcity_friend is not None and _scarcity_friend["date"] == date_text else None
+    row.appendChild(_make_button("A friend's blueprint" + (f": {friend_label}" if friend_label else ""),
+                                 {"data-action": "ghost-choice", "data-value": "friend"}, None,
+                                 selected=(_scarcity_ghost_choice == "friend"),
+                                 disabled=friend_label is None or _scarcity is not None))
+    section.appendChild(row)
+    if _scarcity is None:
+        section.appendChild(_make_text(
+            "chain-card-detail",
+            "A friend's blueprint code (from Blueprint Swap in the Build Plan) races as the Governor playing this day with their "
+            "Doctrines and rule twists."))
+        field = document.createElement("input")
+        field.type = "text"
+        field.placeholder = "Paste a SOLPLAN1: code"
+        field.setAttribute("aria-label", "Friend blueprint code")
+        field.className = "build-plan-input capsule-name"
+        field.value = _scarcity_friend_code
+        section.appendChild(field)
+        _scarcity_refs["friend"] = field
+        section.appendChild(_make_button("Make this friend's ghost", {"data-action": "friend-ghost", "data-date": date_text}, None))
+    else:
+        track = document.createElement("div")
+        track.className = "ghost-track"
+        section.appendChild(track)
+        _scarcity_refs["track"] = track
+        _render_ghost_track(track, _scarcity["samples"], _scarcity["ghost"], _scarcity["ghost_label"])
+    panel.appendChild(section)
+
+
+def _build_scarcity_calendar(panel, today):
+    year, month = _scarcity_month
+    wrap = document.createElement("div")
+    wrap.className = "scarcity-calendar"
+    head = document.createElement("div")
+    head.className = "scarcity-calendar-head"
+    can_back = challenges.shift_month(year, month, -1) >= challenges.month_of(challenges.EPOCH)
+    can_forward = challenges.shift_month(year, month, 1) <= challenges.month_of(today)
+    head.appendChild(_make_button("‹ Earlier", {"data-action": "month", "data-value": "-1"}, None, disabled=not can_back))
+    head.appendChild(_make_text("scarcity-month", f"{_MONTH_NAMES[month - 1]} {year}", tag="span"))
+    head.appendChild(_make_button("Later ›", {"data-action": "month", "data-value": "1"}, None, disabled=not can_forward))
+    wrap.appendChild(head)
+    grid = document.createElement("div")
+    grid.className = "scarcity-grid-calendar"
+    grid.setAttribute("role", "group")
+    grid.setAttribute("aria-label", "Past days")
+    for name in _WEEKDAYS:
+        grid.appendChild(_make_text("scarcity-weekday", name, tag="span"))
+    chosen = _scarcity["spec"]["date"] if _scarcity is not None else _scarcity_selected
+    for week in challenges.month_weeks(year, month):
+        for cell in week:
+            if cell is None:
+                grid.appendChild(_make_text("scarcity-day scarcity-day--blank", "", tag="span"))
+                continue
+            record = scarcity_days.get(cell)
+            mark = " ★" if record and record.get("under_par") else (" ✓" if record else "")
+            day = challenges.parse_date(cell).day
+            label = f"{day}{mark}"
+            open_day = challenges.playable(cell, today)
+            words = [_day_label(cell)]
+            if cell == today:
+                words.append("today")
+            if record:
+                words.append(f"done in {_split_time(record['ticks'])}" + (", faster than the Governor alone" if record.get("under_par") else ""))
+            elif open_day:
+                words.append("not played yet")
+            else:
+                words.append("not open")
+            button = _make_button(label, {"data-action": "pick", "data-date": cell, "aria-label": ", ".join(words)}, None,
+                                  selected=(cell == chosen), disabled=not open_day)
+            button.className += " scarcity-day"
+            if cell == chosen:
+                button.setAttribute("aria-pressed", "true")
+            grid.appendChild(button)
+    wrap.appendChild(grid)
+    wrap.appendChild(_make_text("chain-card-detail", "✓ played, ★ played and faster than the Governor alone. Pick a day to read its rules first."))
+    panel.appendChild(wrap)
+
+
+def _build_scarcity_tally(panel, today):
+    tally = challenges.tally(scarcity_days, today)
+    panel.appendChild(_make_text(
+        "chain-card-count", f"Days played: {tally['played']} of the {tally['open']} open so far. Faster than the Governor alone: {tally['under_par']}."))
+    if not tally["open"]:
+        return
+    first = challenges.parse_date(challenges.EPOCH)
+    rows = []
+    cells = []
+    for offset in range(tally["open"]):
+        text = challenges.add_days(challenges.EPOCH, offset)
+        record = scarcity_days.get(text)
+        cells.append("★" if record and record.get("under_par") else ("■" if record else "□"))
+    lead = first.weekday()
+    cells = [" "] * lead + cells
+    for index in range(0, len(cells), 7):
+        rows.append("".join(cells[index:index + 7]))
+    rows = rows[-10:]
+    grid = _make_text("scarcity-tally-grid", "\n".join(rows), tag="pre")
+    grid.setAttribute("aria-label", f"Days played grid: {tally['played']} of {tally['open']}")
+    panel.appendChild(grid)
+    panel.appendChild(_make_text("chain-card-detail", "■ played, ★ faster than the Governor alone, □ not played. Rows are weeks (Monday first), newest last."))
+
+
+def on_scarcity_click(event):
+    global _scarcity_month, _scarcity_selected, _scarcity_ghost_choice, _scarcity_notice
+    action = _target_attr(event, "data-action")
+    value = _target_attr(event, "data-value")
+    date_text = _target_attr(event, "data-date")
+    if action == "play" and date_text:
+        start_scarcity_run(date_text)
+    elif action == "leave":
+        leave_scarcity_run()
+    elif action == "pick" and date_text:
+        today = _today_utc()
+        if today and challenges.playable(date_text, today):
+            _scarcity_selected = date_text
+    elif action == "month" and value in ("-1", "1") and _scarcity_month is not None:
+        today = _today_utc() or challenges.EPOCH
+        target = challenges.shift_month(*_scarcity_month, int(value))
+        if challenges.month_of(challenges.EPOCH) <= target <= challenges.month_of(today):
+            _scarcity_month = target
+    elif action == "ghost-choice" and value in ("none", "best", "par", "friend") and _scarcity is None:
+        _scarcity_ghost_choice = value
+    elif action == "friend-ghost" and date_text and _scarcity is None:
+        field = _scarcity_refs.get("friend")
+        ok, message = make_friend_ghost(getattr(field, "value", ""), date_text)
+        _scarcity_notice = message
+        if ok:
+            _scarcity_ghost_choice = "friend"
+    update_scarcity_display(force=True)
+
+
+def update_scarcity_display(force=False):
+    global _scarcity_signature
+    toggle = document.getElementById("scarcity-toggle-button")
+    panel = document.getElementById("scarcity-panel")
+    strip = document.getElementById("scarcity-strip")
+    toggle.innerText = ("Hide Scarcity Run" if scarcity_open else "\U0001f3af Scarcity Run") + (" (on)" if _scarcity is not None else "")
+    strip.hidden = _scarcity is None
+    if _scarcity is not None:
+        document.getElementById("scarcity-strip-text").innerText = _scarcity_status_line()
+    panel.hidden = not scarcity_open
+    if not scarcity_open:
+        _scarcity_signature = None
+        return
+    signature = _scarcity_structure_signature()
+    if force or signature != _scarcity_signature:
+        _build_scarcity_panel()
+        _scarcity_signature = _scarcity_structure_signature()
+    status = _scarcity_refs.get("status")
+    if status is not None and _scarcity is not None:
+        status.innerText = _scarcity_status_line()
+
+
+def on_scarcity_leave(event=None):
+    leave_scarcity_run()
+
+
+# --- A-29: the Ghost Run ----------------------------------------------------------------------
+# A recording is the average terraform percent (tenths of a point) sampled every GHOST_STEP (25)
+# ticks. Recordings stay in this browser's localStorage, never in the save code, and are validated
+# on read (challenges.clean_recording). Normal play records your run automatically; it is kept only
+# when it is a new personal best (the fastest full playthrough). A Scarcity Run keeps your best
+# recording for each date, and can also race the Governor alone or a friend's blueprint played by
+# the Governor on that day.
+_pb_ghost = None  # the personal-best recording, or None
+_live_ghost = []  # this run's samples so far
+_live_ghost_partial = False  # started mid-run (older save or a gap): can never become the best
+_live_ghost_run = 0  # run_start_tick the live samples belong to
+ghost_open_track = None
+_splits_signature = None
+_splits_refs = {}
+
+
+def ghost_enabled():
+    return _read_local_storage_item(GHOST_ON_KEY) == "on"
+
+
+def _read_json_item(key):
+    raw = _read_local_storage_item(key)
+    if not raw:
+        return None
+    try:
+        return json.loads(raw)
+    except (ValueError, TypeError):
+        return None
+
+
+def _load_pb_ghost():
+    global _pb_ghost
+    _pb_ghost = challenges.clean_recording(_read_json_item(GHOST_PB_KEY))
+
+
+def _load_daily_ghosts():
+    raw = _read_json_item(GHOST_DAILY_KEY)
+    out = {}
+    if isinstance(raw, dict):
+        for date_text, rec in raw.items():
+            clean = challenges.clean_recording(rec)
+            if clean is not None and challenges.valid_date(date_text):
+                out[date_text] = clean
+    return out
+
+
+def _keep_daily_ghost(date_text, ticks, samples):
+    """Keeps this run's recording for the date only if it is faster than the one kept (or none is kept)."""
+    recording = challenges.clean_recording({"ticks": ticks, "pct": list(samples) + ([1000] if samples and samples[-1] < 1000 else [])})
+    if recording is None:
+        return False
+    kept = _load_daily_ghosts()
+    old = kept.get(date_text)
+    if old is not None and old["ticks"] <= ticks:
+        return False
+    kept[date_text] = recording
+    for stale in sorted(kept)[:-GHOST_DAILY_KEEP]:
+        del kept[stale]
+    _write_local_storage_item(GHOST_DAILY_KEY, json.dumps(kept))
+    return True
+
+
+def _resolve_scarcity_ghost(spec):
+    choice = _scarcity_ghost_choice
+    if choice == "best":
+        rec = _load_daily_ghosts().get(spec["date"])
+        return rec, "your best for this day"
+    if choice == "par":
+        return spec["par_recording"], "the Governor alone"
+    if choice == "friend" and _scarcity_friend is not None and _scarcity_friend["date"] == spec["date"]:
+        return _scarcity_friend["rec"], _scarcity_friend["label"]
+    return None, ""
+
+
+def make_friend_ghost(code, date_text):
+    """A friend's blueprint played by the Governor on one day. Returns (ok, message). Needs no network."""
+    global _scarcity_friend
+    ok, result = parse_blueprint(code)
+    if not ok:
+        return False, result
+    if not (result["rules"] or result["mutators"]):
+        return False, "That blueprint has no Doctrines or rule twists for a ghost to play; it only has build-plan steps."
+    today = _today_utc()
+    if today is None or not challenges.playable(date_text, today):
+        return False, "That day is not open yet."
+    spec = scarcity_spec(date_text)
+    ticks, recording = _scarcity_headless(spec, rules=result["rules"], mutators=result["mutators"])
+    label = ("a friend's blueprint, " + (f"done in {_split_time(ticks)}" if ticks is not None else "did not finish within the bound"))
+    _scarcity_friend = {"date": date_text, "rec": recording, "label": label}
+    return True, f"Ghost ready: {label}. Choose it, then start the day."
+
+
+def _campaign_mean_progress():
+    return sum(planet_state[p]["terraform_progress"] for p in PLANETS) / len(PLANETS)
+
+
+def _ghost_reload_live():
+    """Picks the in-progress recording up again after a page load or a save load, if it belongs to this run."""
+    global _live_ghost, _live_ghost_partial, _live_ghost_run
+    raw = _read_json_item(GHOST_LIVE_KEY)
+    run_ticks = _run_ticks()
+    expected = run_ticks // challenges.GHOST_STEP + 1
+    _live_ghost_run = run_start_tick
+    samples = []
+    if isinstance(raw, dict) and raw.get("run") == run_start_tick and isinstance(raw.get("pct"), list):
+        samples = [v for v in raw["pct"] if isinstance(v, int) and not isinstance(v, bool) and 0 <= v <= 1000]
+        if len(samples) != len(raw["pct"]):
+            samples = []
+    _live_ghost = samples[:expected]
+    if not _live_ghost and run_ticks <= 1:
+        _live_ghost = [round(_campaign_mean_progress() * 10)]  # a run that has only just begun: sample 0 is "now"
+    _live_ghost_partial = len(_live_ghost) < expected - 1 or (not _live_ghost and run_ticks > 0)
+
+
+def _ghost_save_live():
+    _write_local_storage_item(GHOST_LIVE_KEY, json.dumps({"run": _live_ghost_run, "pct": _live_ghost}))
+
+
+def _ghost_tick():
+    """Campaign recording, once per GHOST_STEP ticks of the current run. Off inside a Scarcity Run."""
+    global _live_ghost_partial, _live_ghost_run
+    if _scarcity is not None or run_completed:
+        return
+    run_ticks = _run_ticks()
+    if _live_ghost_run != run_start_tick:  # a prestige began a new run
+        _live_ghost[:] = []
+        _live_ghost_run = run_start_tick
+        _live_ghost_partial = run_ticks > 1
+        if not _live_ghost_partial:
+            _live_ghost.append(round(_campaign_mean_progress() * 10))
+    if run_ticks % challenges.GHOST_STEP:
+        return
+    index = run_ticks // challenges.GHOST_STEP
+    value = round(_campaign_mean_progress() * 10)
+    if len(_live_ghost) > index:
+        del _live_ghost[index:]  # an earlier save was loaded: the future is rewritten
+    while len(_live_ghost) < index:
+        _live_ghost.append(_live_ghost[-1] if _live_ghost else 0)
+        _live_ghost_partial = True
+    _live_ghost.append(value)
+    if len(_live_ghost) > challenges.GHOST_MAX_SAMPLES:
+        _live_ghost_partial = True
+        _live_ghost.pop()
+    if len(_live_ghost) % GHOST_SAVE_EVERY == 0:
+        _ghost_save_live()
+    _refresh_ghost_strip()
+
+
+def _ghost_run_finished(duration, is_best):
+    """Called when the whole system is first terraformed in a run. Keeps the recording only for a new personal best."""
+    global _pb_ghost
+    if not is_best or _live_ghost_partial or not _live_ghost:
+        return False
+    recording = challenges.clean_recording({"ticks": max(1, duration), "pct": list(_live_ghost) + [1000]})
+    if recording is None:
+        return False
+    _write_local_storage_item(GHOST_PB_KEY, json.dumps(recording))
+    _pb_ghost = recording
+    return True
+
+
+def _ghost_lead_now():
+    """(you, ghost, label) for the strip, or None when no ghost is being raced."""
+    if _scarcity is not None:
+        run = _scarcity
+        if run["ghost"] is None or not run["samples"]:
+            return None
+        index = len(run["samples"]) - 1
+        mine = run["samples"][-1] / 10.0
+        return mine, challenges.ghost_value(run["ghost"], index), run["ghost_label"]
+    if not ghost_enabled() or _pb_ghost is None or run_completed or not _live_ghost:
+        return None
+    return _live_ghost[-1] / 10.0, challenges.ghost_value(_pb_ghost, len(_live_ghost) - 1), "your best run"
+
+
+def _refresh_ghost_strip():
+    strip = document.getElementById("ghost-strip")
+    lead = _ghost_lead_now()
+    strip.hidden = lead is None
+    if lead is None:
+        strip.innerText = ""
+    else:
+        mine, ghost, label = lead
+        strip.innerText = f"Ghost ({label}): you {mine:.1f}%, ghost {ghost:.1f}%, {challenges.lead_text(mine, ghost)}."
+    track = _scarcity_refs.get("track") if _scarcity is not None else _splits_refs.get("track")
+    if track is not None:
+        if _scarcity is not None:
+            _render_ghost_track(track, _scarcity["samples"], _scarcity["ghost"], _scarcity["ghost_label"])
+        else:
+            _render_ghost_track(track, _live_ghost, _pb_ghost if ghost_enabled() else None, "your best run")
+
+
+def _render_ghost_track(container, samples, recording, label):
+    """The split track: the latest checkpoints, each with both percents and a signed difference in text."""
+    container.innerHTML = ""
+    if recording is None or not samples:
+        container.appendChild(_make_text("splits-row", "No ghost is racing right now."))
+        return
+    ahead, behind, level = challenges.ghost_summary(samples, recording)
+    container.appendChild(_make_text(
+        "splits-row", f"Split track vs {label}: ahead at {ahead} checkpoints, behind at {behind}, level at {level}."))
+    for row in challenges.split_rows(samples, recording):
+        words = "ahead" if row["diff"] > 0 else ("behind" if row["diff"] < 0 else "level")
+        container.appendChild(_make_text(
+            "splits-row ghost-row",
+            f"{_split_time(row['tick'])}: you {row['mine']:.1f}%, ghost {row['ghost']:.1f}%, {row['text']} ({words})"))
+
+
+# the speedrun splits panel gains the ghost section (built once; the rows below it update in place)
+def on_splits_click(event):
+    action = _target_attr(event, "data-action")
+    if action == "ghost-toggle":
+        _write_local_storage_item(GHOST_ON_KEY, "off" if ghost_enabled() else "on")
+        _refresh_ghost_strip()
+        update_splits_display(force=True)
 
 
 def _start_tick_loop():
@@ -7212,6 +8182,10 @@ def setup():
     document.getElementById("build-plan-list").addEventListener("click", create_proxy(on_build_plan_click))
     document.getElementById("build-plan-copy-button").addEventListener("click", create_proxy(on_build_plan_copy))
     document.getElementById("splits-toggle-button").addEventListener("click", create_proxy(on_toggle_splits))
+    document.getElementById("splits-panel").addEventListener("click", create_proxy(on_splits_click))
+    document.getElementById("scarcity-toggle-button").addEventListener("click", create_proxy(on_toggle_scarcity))
+    document.getElementById("scarcity-panel").addEventListener("click", create_proxy(on_scarcity_click))
+    document.getElementById("scarcity-leave-button").addEventListener("click", create_proxy(on_scarcity_leave))
     document.getElementById("chains-toggle-button").addEventListener("click", create_proxy(on_toggle_chains))
     document.getElementById("blueprint-make-button").addEventListener("click", create_proxy(on_blueprint_make))
     document.getElementById("blueprint-import-button").addEventListener("click", create_proxy(on_blueprint_import))
@@ -7253,9 +8227,13 @@ def setup():
     )
 
     _load_capsules()  # A-17: the capsules this browser kept (never part of a save)
+    _load_pb_ghost()  # A-29: the personal-best recording this browser kept (never part of a save)
+    _ghost_reload_live()
     _full_render()
+    _refresh_ghost_strip()
 
     _start_tick_loop()
 
 
+_PRISTINE_JSON = json.dumps(serialize_state())  # A-11: the fresh-game state every Scarcity Run starts from
 setup()

@@ -1879,6 +1879,24 @@ html[data-era-look="on"][data-era="custodian"] .prestige-badge { border-color: #
 
 .stress-strip { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.8rem; margin: 0.15rem 0; text-align: left; }
 
+/* --- A-11 / A-12 / A-29: Scarcity Run, seed words, Ghost Run (text and symbols carry every meaning, never colour alone) --- */
+.scarcity-strip { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; margin: 0.4rem 0; padding: 0.4rem 0.7rem; border: 1px solid rgba(160, 175, 220, 0.4); border-left: 4px double #e0b24c; border-radius: 8px; font-size: 0.85rem; text-align: left; }
+.scarcity-strip[hidden], .ghost-strip[hidden] { display: none; }
+.ghost-strip { margin: 0.3rem 0; padding: 0.3rem 0.7rem; border: 1px solid rgba(160, 175, 220, 0.3); border-left: 4px dashed #8fb4ff; border-radius: 8px; font-size: 0.85rem; font-variant-numeric: tabular-nums; text-align: left; }
+.scarcity-ghost-row, .scarcity-calendar-head { display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem; }
+.scarcity-calendar-head { justify-content: space-between; }
+.scarcity-month { font-weight: 600; }
+.scarcity-grid-calendar { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 0.25rem; margin: 0.4rem 0; }
+.scarcity-weekday { text-align: center; font-size: 0.7rem; opacity: 0.8; }
+.scarcity-grid-calendar .scarcity-day { min-width: 0; margin: 0; padding: 0.3rem 0; text-align: center; font-variant-numeric: tabular-nums; }
+.scarcity-day--blank { display: block; }
+.scarcity-tally-grid { margin: 0.2rem 0; font-family: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace; font-size: 0.9rem; line-height: 1.35; overflow-x: auto; }
+.ghost-track { display: grid; gap: 0.1rem; margin-top: 0.4rem; }
+.ghost-row { font-size: 0.8rem; }
+html[data-theme="light"] .scarcity-strip, html[data-theme="light"] .ghost-strip { border-color: rgba(30, 40, 80, 0.35); }
+html[data-theme="light"] .scarcity-strip { border-left-color: #8a5a00; }
+html[data-theme="light"] .ghost-strip { border-left-color: #2f5fb0; }
+
 /* ============================================================
    Y11b light-theme polish (2026-09-27). Light-only rules from a
    computed-style WCAG contrast scan of the light theme (fresh game, the
