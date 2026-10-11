@@ -193,6 +193,10 @@ ELEMENT_IDS = [
     "ring-theme-blueprint",
     "ring-theme-paper",
     "ring-theme-status",
+    # H-27: load integrity note.
+    "load-note",
+    "load-note-list",
+    "load-note-dismiss",
 ]
 
 

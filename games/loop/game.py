@@ -3655,6 +3655,9 @@ def render():
     render_career()
     render_ledger_and_past()
     render_ring_themes()
+    note_lines = load_note_lines()
+    document.getElementById("load-note").hidden = not note_lines
+    document.getElementById("load-note-list").innerHTML = "".join(f"<li>{html.escape(line)}</li>" for line in note_lines)
     document.getElementById("game").setAttribute("data-damage-tier", str(damage_strain_tier()))
     document.getElementById("rank-badge").innerText = f"\U0001F396\uFE0F {founder_rank()[1]}"
     document.getElementById("rank-detail").innerText = founder_text()
@@ -4396,6 +4399,80 @@ def steward_summary():
     ]
 
 
+# H-27: what a load had to repair. Each optional save key, the plain name shown to the player, and the value
+# a fresh chain has (a key whose saved value would reload as a different value than was written was repaired).
+LOAD_CHECKS = (
+    ("challenge_mode", "Circular design challenge", False),
+    ("zero_waste", "Zero-waste challenge", False),
+    ("waste_focus", "Waste stream focus", None),
+    ("redesign_level", "Redesign levels", None),
+    ("culture_level", "Culture campaign level", 0),
+    ("passport", "Material passport", None),
+    ("picked_category", "Picked goods", None),
+    ("head_start", "Yard scrap line", 0.0),
+    ("perfect_bonus", "Combo bonus", 0.0),
+    ("insurance_used", "Streak insurance", False),
+    ("insurance_armed", "Streak insurance", False),
+    ("first_close_extracted", "First-close record", None),
+    ("first_close_trade_free", "First-close record", None),
+    ("rewind_used", "Rewind token", False),
+    ("market_shocks", "Market shocks switch", False),
+    ("shocks_shrugged", "Market shock count", 0),
+    ("rival_on", "Rival Corporation switch", False),
+    ("rival_crossover_cycle", "Rival Corporation crossover", None),
+    ("ledger", "Cycle ledger", None),
+    ("past_chains", "Past chains", None),
+    ("career", "Career records", None),
+    ("donate_surplus", "Surplus donation switch", False),
+    ("lifetime_pool_donated", "Pool donation total", 0.0),
+)
+load_report = []  # [(name, "reset" | "repaired")] from the most recent load
+
+
+def integrity_report(data):
+    """H-27: compares the optional keys of a save with what the game would write back after loading it.
+    A key that comes back missing (and was not just a default) was reset; one that comes back changed was
+    repaired (a bad ledger row dropped, a note trimmed). Derived and write-only keys are not checked."""
+    again = get_state()
+    report = []
+    for key, name, default in LOAD_CHECKS:
+        if key not in data:
+            continue
+        raw = data[key]
+        if key not in again:
+            harmless = raw in (None, False, 0, 0.0, [], {}) or raw == default
+            if key == "picked_category" and raw == data.get("goods_category"):
+                harmless = True
+            if not harmless:
+                report.append((name, "reset"))
+        elif again[key] != raw:
+            report.append((name, "repaired"))
+    unique = []
+    for item in report:
+        if item not in unique:
+            unique.append(item)
+    return unique
+
+
+def load_note_lines():
+    """H-27: friendly lines for the note shown after a load ('' list when nothing was touched)."""
+    lines = []
+    repaired = [name for name, kind in load_report if kind == "repaired"]
+    reset = [name for name, kind in load_report if kind == "reset"]
+    if repaired:
+        lines.append("Repaired: " + ", ".join(repaired) + ".")
+    if reset:
+        lines.append("Reset to the starting value: " + ", ".join(reset) + ".")
+    if lines:
+        lines.append("Everything else loaded as saved.")
+    return lines
+
+
+def on_dismiss_load_note(event=None):
+    load_report.clear()
+    render()
+
+
 def load_state(data):
     """Take the dict from get_state() (possibly from a previous session)
     and restore `chain` to that point — the exact inverse of
@@ -4521,6 +4598,7 @@ def load_state(data):
     goods_categories_tried = set(data.get("goods_categories_tried", []))
     goods_categories_tried.add(chain.goods_category)
 
+    load_report[:] = integrity_report(data)
     render()
     _seed_achievement_toast_baseline()
     return True
@@ -4591,6 +4669,7 @@ def setup():
     document.getElementById("overseas-trade-invest-button").addEventListener(
         "click", create_proxy(on_invest_overseas_trade)
     )
+    document.getElementById("load-note-dismiss").addEventListener("click", create_proxy(on_dismiss_load_note))
     document.getElementById("replay-tips-button").addEventListener("click", create_proxy(on_replay_tips))
     document.getElementById("regional-hint-dismiss-button").addEventListener(
         "click", create_proxy(on_dismiss_regional_hint)

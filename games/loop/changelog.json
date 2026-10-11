@@ -1,6 +1,10 @@
 [
   {
     "date": "2026-10-11",
+    "entry": "New: if a save that you load had something wrong in it (a value out of range, a ledger row that did not make sense), a short note at the top of the status block now says what was repaired and what was reset to its starting value, instead of silently falling back. A clean save shows nothing."
+  },
+  {
+    "date": "2026-10-11",
     "entry": "New: unlockable ring themes in Settings, cosmetic only. Neon opens when you close the loop once, Blueprint when the secret Ship-Breaking Yard opens (a loop closed on electronics, clothing and furniture), and Paper cut-out when you have earned three name plates. Locked themes show how to open them, and a theme that is not open on the save you load falls back to Standard."
   },
   {

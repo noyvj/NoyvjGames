@@ -1956,3 +1956,8 @@ html[data-ring-theme="blueprint"] .loop-ring-core-glyph { color: #cfe3ff; }
 html[data-ring-theme="paper"] .loop-ring-track { border: 3px solid #d9c9a3; animation: none; }
 html[data-ring-theme="paper"] .loop-ring-node { background: #f3e8cf; color: #3b2a14; border: 2px solid #8a6d3b; box-shadow: 3px 3px 0 rgba(0, 0, 0, 0.45); }
 html[data-ring-theme="paper"] .loop-ring-core-glyph { color: #d9c9a3; }
+
+/* H-27: the "your save loaded with repairs" note. */
+.load-note { margin: 0.4rem 0 0.8rem; padding: 0.6rem 0.8rem; border-radius: 8px; border: 1px dashed rgba(169, 195, 255, 0.7); background: rgba(169, 195, 255, 0.08); font-size: 0.9rem; }
+.load-note-title { margin: 0 0 0.3rem; font-weight: 700; }
+.load-note-list { margin: 0 0 0.5rem 1.1rem; padding: 0; }

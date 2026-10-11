@@ -308,6 +308,12 @@
       <p id="cycle-display" class="status-line">Cycle 1</p>
       <p id="funds-display" class="status-line">Funds: 300</p>
       <p id="rewind-token-display" class="status-line">Rewind: 1 left</p>
+      <!-- H-27: shown after a load that had to repair or reset something in the save. -->
+      <div id="load-note" class="load-note" role="status" hidden>
+        <p class="load-note-title">Your save loaded, with a few repairs.</p>
+        <ul id="load-note-list" class="load-note-list"></ul>
+        <button id="load-note-dismiss" class="secondary" type="button">Got it</button>
+      </div>
       <!-- GH-3: the market-shock notice (this cycle's shock and the early warning for next cycle). -->
       <p id="shock-banner" class="shock-banner" role="status" hidden></p>
       <p id="production-display" class="status-line">Production target: 50 units/cycle</p>
