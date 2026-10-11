@@ -1504,3 +1504,36 @@ html[data-lite="true"][data-tip-shake="true"] .region-card.tipping-flash .mini-t
 /* keep the wide board table scrolling inside its own box on narrow screens */
 .tool-section { min-width: 0; max-width: 100%; }
 .board-scroll { width: 100%; max-width: 100%; }
+
+/* G-21: the best earlier run's path, a faint dashed line behind Region A's graph. */
+.mini-pace-line { fill: none; stroke: #c8d7ff; stroke-opacity: 0.55; stroke-width: 1.2; stroke-dasharray: 3 2.5; vector-effect: non-scaling-stroke; }
+html[data-hide-pace="true"] .mini-pace-line,
+html[data-hide-pace="true"] .pace-display { display: none; }
+.pace-display { margin: 0.1rem 0 0.4rem; font-size: 0.78rem; opacity: 0.8; }
+.pace-display[hidden] { display: none; }
+
+/* GG-15: the snow hare and the arctic fox. */
+.mascots { display: flex; flex-direction: column; gap: 0.2rem; margin: 0.1rem 0 0.5rem; padding: 0.35rem 0.6rem; font-size: 0.8rem; border-left: 3px solid #ffd9a8; background: rgba(255, 200, 140, 0.08); border-radius: 0 6px 6px 0; }
+.mascot-face { display: inline-block; letter-spacing: 0.05em; }
+html[data-hide-mascots="true"] .mascots { display: none; }
+@keyframes mascot-shiver { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-1.5px); } 75% { transform: translateX(1.5px); } }
+@keyframes mascot-cheer { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
+.mascot--shiver .mascot-face { animation: mascot-shiver 0.3s linear infinite; }
+.mascot--cheer .mascot-face { animation: mascot-cheer 0.9s ease-in-out infinite; }
+.mascot--faint .mascot-face { transform: rotate(-12deg); opacity: 0.85; }
+html[data-reduced-motion="true"] .mascot .mascot-face,
+html[data-lite="true"] .mascot .mascot-face { animation: none; }
+@media (prefers-reduced-motion: reduce) { .mascot .mascot-face { animation: none; } }
+
+/* GG-19: the rolling temperature figure keeps its digits the same width so the line does not jitter. */
+#temperature-display { font-variant-numeric: tabular-nums; }
+
+/* G-30, GG-23, G-25: small pieces. */
+.compare-history { margin: 0.3rem 0 0; padding-left: 1.1rem; font-size: 0.82rem; }
+.compare-history li { margin: 0.15rem 0; }
+.hard-mode-reveal { font-style: italic; }
+.settings-code-input { width: 100%; max-width: 100%; box-sizing: border-box; margin: 0.35rem 0; font-family: monospace; font-size: 0.8rem; }
+.settings-code-row { flex-wrap: wrap; }
+.settings-code-row > .settings-label, .settings-code-row > .settings-note, .settings-code-row > .settings-code-input { flex: 1 1 100%; }
+.settings-code-row button { margin-right: 0.35rem; }
+#confirm-threshold-select { margin-left: 0.4rem; }

@@ -7,6 +7,7 @@ across output/preserve/monitor. The permafrost melt + methane feedback
 loop (the entire point of this game) lands in Milestone 2.
 """
 
+import base64
 import json
 import math
 
@@ -1029,6 +1030,289 @@ def preset_preview_text(r, preset_name):
     return "Right now this would buy: " + ", ".join(parts) + "."
 
 
+# ===========================================================================
+# G-20: one custom preset slot shared by Regions B and C. "Save this mix" copies the unit counts a
+# region has built into the slot (so the player designs a mix by investing, then keeps it), and
+# "Preset: Custom" spends a region's funds toward that same ratio exactly as the three named presets
+# do. The slot is part of the save (only written once it holds a mix) and is validated on load.
+# ===========================================================================
+custom_preset = None  # {category: units 1..PLANNER_MAX_UNITS} for the categories in the mix, or None
+
+
+def custom_preset_weights():
+    """The saved mix as the weights `_run_preset` takes, or None while the slot is empty."""
+    if not custom_preset:
+        return None
+    return {c: float(n) for c, n in custom_preset.items() if n > 0} or None
+
+
+def save_custom_preset(r):
+    """Stores `r`'s current unit counts as the custom mix. False when the region has built nothing."""
+    global custom_preset
+    mix = {c: min(PLANNER_MAX_UNITS, int(r.capacity[c])) for c in CATEGORIES if r.capacity[c] > 0}
+    if not mix:
+        return False
+    custom_preset = mix
+    return True
+
+
+def custom_preset_label():
+    if not custom_preset:
+        return "Preset: Custom (empty)"
+    parts = " ".join(f"{CATEGORY_ICON[c]}{custom_preset[c]}" for c in CATEGORIES if c in custom_preset)
+    return f"Preset: Custom ({parts})"
+
+
+def custom_preset_tooltip_text():
+    weights = custom_preset_weights()
+    if not weights:
+        return (
+            "Empty. Build the mix you want in this region with the investment buttons, then press "
+            "'Save this mix as Custom'. Regions B and C share the one slot."
+        )
+    total = sum(weights.values())
+    parts = ", ".join(f"{CATEGORY_LABEL[c]} ({w / total * 100:.0f}%)" for c, w in weights.items())
+    return (
+        f"Spends everything this region can currently afford right now, split roughly {parts} "
+        "— a one-time action, not an ongoing policy."
+    )
+
+
+def custom_preset_preview_text(r):
+    weights = custom_preset_weights()
+    if not weights:
+        return ""
+    scratch = RegionState()
+    scratch.funds = r.funds
+    if not _run_preset(scratch, weights):
+        return "Right now: not enough funds for anything."
+    parts = [f"{scratch.capacity[c]}x {CATEGORY_LABEL[c]}" for c in CATEGORIES if scratch.capacity[c]]
+    return "Right now this would buy: " + ", ".join(parts) + "."
+
+
+def apply_custom_preset(r):
+    """Spends `r`'s funds toward the saved mix. Counts as using a preset for the achievement."""
+    global preset_used_ever
+    weights = custom_preset_weights()
+    if not weights:
+        return False
+    invested_any = _run_preset(r, weights)
+    if invested_any:
+        preset_used_ever = True
+    return invested_any
+
+
+def _clean_custom_preset(raw):
+    """A saved mix, or None if it is missing or has anything unreadable in it."""
+    if not isinstance(raw, dict) or not raw:
+        return None
+    mix = {}
+    for key, value in raw.items():
+        if key not in CATEGORIES or isinstance(value, bool) or not isinstance(value, int):
+            return None
+        if not 1 <= value <= PLANNER_MAX_UNITS:
+            return None
+        mix[key] = value
+    return mix
+
+
+def render_custom_preset(prefix, r):
+    button = document.getElementById(f"{prefix}-preset-custom-button")
+    button.innerText = custom_preset_label()
+    button.disabled = not custom_preset
+    button.title = custom_preset_tooltip_text() + (
+        " " + custom_preset_preview_text(r) if custom_preset and not hard_mode else ""
+    )
+    save = document.getElementById(f"{prefix}-preset-save-button")
+    save.disabled = not any(r.capacity[c] > 0 for c in CATEGORIES)
+    save.title = "Keeps the units this region has built as the shared Custom mix (replaces the old one)."
+
+
+def _make_custom_preset_handler(prefix):
+    def handler(event=None):
+        if _guard_spend(
+            _preset_spend(SECONDARY_REGIONS[prefix], custom_preset_weights()),
+            f"Spend {{amount}} funds on the Custom mix in Region {prefix.upper()}?",
+            "thaw-custom-preset",
+            lambda: _finish_custom_preset(prefix),
+        ):
+            return
+        _finish_custom_preset(prefix)
+    return handler
+
+
+def _finish_custom_preset(prefix):
+    apply_custom_preset(SECONDARY_REGIONS[prefix])
+    render()
+    _check_new_achievements_for_toast()
+
+
+def _make_save_preset_handler(prefix):
+    def handler(event=None):
+        save_custom_preset(SECONDARY_REGIONS[prefix])
+        render()
+    return handler
+
+
+# ===========================================================================
+# G-23: an optional "are you sure?" step for big spends. A Settings choice (Never, or ask whenever one
+# click would spend more than 100, 150 or 250 funds) routed through the shared ConfirmDialog. It covers
+# the one-click bulk spends: the four presets, and an emergency rescue. A single unit costs 20 or 25 so
+# it is never asked. The choice is a per-browser preference (localStorage), not part of the save.
+# ===========================================================================
+CONFIRM_THRESHOLDS = (0, 100, 150, 250)  # 0 = never ask
+CONFIRM_THRESHOLD_KEY = "thaw_confirm_threshold_v1"
+
+
+def load_confirm_threshold():
+    raw = _read_local_storage_item(CONFIRM_THRESHOLD_KEY)
+    try:
+        value = int(raw)
+    except (TypeError, ValueError):
+        return 0
+    return value if value in CONFIRM_THRESHOLDS else 0
+
+
+confirm_threshold = 0
+
+
+def set_confirm_threshold(value):
+    """Stores the choice; anything that is not one of CONFIRM_THRESHOLDS becomes 'never'."""
+    global confirm_threshold
+    try:
+        value = int(value)
+    except (TypeError, ValueError):
+        value = 0
+    confirm_threshold = value if value in CONFIRM_THRESHOLDS else 0
+    _write_local_storage_item(CONFIRM_THRESHOLD_KEY, str(confirm_threshold))
+    return confirm_threshold
+
+
+def confirm_threshold_text():
+    if not confirm_threshold:
+        return "Big spends go ahead with one click."
+    return f"You will be asked first whenever one click would spend more than {confirm_threshold} funds."
+
+
+def _preset_spend(r, weights):
+    """Funds a preset would spend right now, found on a scratch region so nothing is bought."""
+    if not weights:
+        return 0.0
+    scratch = RegionState()
+    scratch.funds = r.funds
+    _run_preset(scratch, weights)
+    return r.funds - scratch.funds
+
+
+def _guard_spend(amount, message_template, action_id, on_confirm):
+    """True when a confirm dialog was opened (on_confirm runs later, if the player agrees) and the caller
+    must stop; False when the caller should simply go ahead now (no threshold, a small spend, or no
+    dialog on this page, which is how the tests run)."""
+    if not confirm_threshold or amount <= confirm_threshold:
+        return False
+    try:
+        from js import window  # noqa: PLC0415 -- Pyodide-only, deliberately lazy
+    except ImportError:
+        return False
+    dialog = getattr(window, "ConfirmDialog", None)
+    if dialog is None:
+        return False
+    dialog.ask(
+        id=action_id,
+        message=message_template.format(amount=f"{amount:.0f}"),
+        confirmLabel="Spend it",
+        allowSkip=False,
+        onConfirm=create_proxy(on_confirm),
+    )
+    return True
+
+
+def render_confirm_threshold():
+    select = document.getElementById("confirm-threshold-select")
+    select.value = str(confirm_threshold)
+    document.getElementById("confirm-threshold-note").innerText = confirm_threshold_text()
+
+
+def on_confirm_threshold_change(event=None):
+    set_confirm_threshold(document.getElementById("confirm-threshold-select").value)
+    render_confirm_threshold()
+
+
+# ===========================================================================
+# GG-23: an opt-in hard mode. Chosen before round 1 (like the long game), it takes away the previews:
+# the Advance Round tooltip with its next-round and ten-round numbers, the "+8% dampening" style
+# forecasts beside the invest buttons, the preset "this would buy" lines and the forecast planner.
+# The warming rate, the dampening readout and every mechanic stay exactly as they are, so it is the
+# same game read with less help. The optional forecast box becomes the way to test your own read of the
+# numbers, and the recap ends with a reveal of how close the forecasts you locked in actually were.
+# Nothing here is luck, nothing is timed, and it is never required.
+# ===========================================================================
+hard_mode = False
+forecast_miss_total = 0.0  # the sum of how far each scored forecast was from the real figure
+
+
+def can_toggle_hard_mode():
+    return all(r.round_number == 1 for r in (region, region_b, region_c, region_d))
+
+
+def set_hard_mode(enabled):
+    """Turns hard mode on or off; only possible before the first round has been played."""
+    global hard_mode
+    if not can_toggle_hard_mode():
+        return False
+    hard_mode = bool(enabled)
+    return True
+
+
+def hard_mode_text():
+    if hard_mode:
+        return (
+            "Hard mode is on: no next-round preview, no forecast numbers beside the invest buttons, no "
+            "preset previews and no forecast planner. Your own forecasts (below) get a reveal in the recap."
+        )
+    return (
+        "Hard mode is off. Turn it on before round 1 to play without the previews and test your own read of "
+        "the numbers; the recap then reveals how close your forecasts were."
+    )
+
+
+def hard_mode_reveal_lines():
+    """The end-of-run reveal (empty unless hard mode is on): how close the locked-in forecasts were."""
+    if not hard_mode or region.round_number <= 1:
+        return []
+    if forecast_total <= 0:
+        return [
+            "Hard mode reveal: you did not lock in any forecast, so there is no guess to compare. "
+            "The forecast box is how you test your own read of the numbers."
+        ]
+    average = forecast_miss_total / forecast_total
+    plural = "" if forecast_total == 1 else "s"
+    verdict = (
+        "right on the money." if average <= FORECAST_TOLERANCE
+        else "close; the warming rate on screen is all you need to do it exactly."
+        if average <= 1.0
+        else "a wide miss, but every forecast makes the next one easier to read."
+    )
+    return [
+        f"Hard mode reveal: you locked in {forecast_total} forecast{plural}, {forecast_hits} on target. "
+        f"On average you were {deg(average)} off the real figure: {verdict}"
+    ]
+
+
+def _render_hard_mode():
+    button = document.getElementById("hard-mode-toggle-button")
+    button.innerText = "Hard mode: on" if hard_mode else "Hard mode: off"
+    button.disabled = not can_toggle_hard_mode()
+    document.getElementById("hard-mode-display").innerText = hard_mode_text() + (
+        "" if can_toggle_hard_mode() else " (Locked once the first round has been played.)"
+    )
+
+
+def on_toggle_hard_mode(event=None):
+    set_hard_mode(not hard_mode)
+    render()
+
+
 def best_region_identifier():
     """G2/G15: which of the three player-managed regions (never Region D
     — it's a deliberate worst-case baseline, not a competitor for
@@ -1081,7 +1365,7 @@ def _crosshair_points(history, dampening, xs, ys):
 CROSSHAIR_MAX_POINTS = 80
 
 
-def mini_temp_graph_svg(history, name=None, dampening=None):
+def mini_temp_graph_svg(history, name=None, dampening=None, pace=None):
     """A compact single-line temperature trend for one region's card —
     deliberately tiny and unlabeled beyond its axis-free shape, since the
     point is the divergence *between* regions' graphs, not reading any
@@ -1098,7 +1382,9 @@ def mini_temp_graph_svg(history, name=None, dampening=None):
     if len(history) < 2:
         return ""
     n = len(history)
-    lo, hi = min(history), max(history)
+    # G-21: the best earlier run's path over the same rounds (as many as it recorded), drawn behind.
+    pace_part = list(pace[:n]) if pace else []
+    lo, hi = min(list(history) + pace_part), max(list(history) + pace_part)
     if hi - lo < 1e-9:
         ys = [MINI_GRAPH_HEIGHT / 2 for _ in history]
     else:
@@ -1115,6 +1401,15 @@ def mini_temp_graph_svg(history, name=None, dampening=None):
             f'<text x="2" y="{max(threshold_y - 2, 7):.1f}" class="mini-temp-threshold-label">'
             f"{deg(MELT_THRESHOLD, 0, plus=True)}</text>"
         )
+
+    pace_line = ""
+    if len(pace_part) >= 2:
+        if hi - lo < 1e-9:
+            pace_ys = [MINI_GRAPH_HEIGHT / 2 for _ in pace_part]
+        else:
+            pace_ys = [MINI_GRAPH_HEIGHT - ((v - lo) / (hi - lo)) * MINI_GRAPH_HEIGHT for v in pace_part]
+        pace_points = " ".join(f"{x:.1f},{y:.1f}" for x, y in zip(xs, pace_ys))
+        pace_line = f'<polyline points="{pace_points}" class="mini-pace-line" />'
 
     aria = ""
     key = ""
@@ -1137,7 +1432,7 @@ def mini_temp_graph_svg(history, name=None, dampening=None):
         )
     return (
         f'<svg viewBox="0 0 {MINI_GRAPH_WIDTH} {MINI_GRAPH_HEIGHT}" class="mini-temp-graph-svg{key}"{aria}>'
-        f"{threshold_line}"
+        f"{threshold_line}{pace_line}"
         f'<polyline points="{points}" class="mini-temp-line" />'
         f"{marker}{cross}"
         f"</svg>"
@@ -1285,8 +1580,10 @@ def render_secondary_region(prefix, r):
     _render_trend(f"{prefix}-temperature-trend", r)
     for preset_name in PRESET_WEIGHTS:
         document.getElementById(f"{prefix}-preset-{preset_name}-button").title = (
-            preset_tooltip_text(preset_name) + " " + preset_preview_text(r, preset_name)
+            preset_tooltip_text(preset_name)
+            + ("" if hard_mode else " " + preset_preview_text(r, preset_name))  # GG-23: no previews
         )
+    render_custom_preset(prefix, r)
     document.getElementById(f"{prefix}-funds-display").innerText = f"Funds: {r.funds:.0f}"
     document.getElementById(f"{prefix}-graph").innerHTML = mini_temp_graph_svg(
         r.temperature_history, f"Region {prefix.upper()}", r.dampening_history
@@ -1702,11 +1999,12 @@ def lock_forecast(raw):
 def resolve_forecast():
     """Scores a locked-in guess against Region A's temperature now (call
     right after the region has advanced). No guess, no-op."""
-    global forecast_guess, forecast_total, forecast_hits, forecast_last
+    global forecast_guess, forecast_total, forecast_hits, forecast_last, forecast_miss_total
     if forecast_guess is None:
         return
     actual = region.temperature
     hit = abs(actual - forecast_guess) <= FORECAST_TOLERANCE
+    forecast_miss_total += abs(actual - forecast_guess)
     forecast_total += 1
     if hit:
         forecast_hits += 1
@@ -2456,6 +2754,7 @@ def update_community_compare_panel():
         return
     panel.innerHTML = (
         f'<p id="community-compare-display" class="comparison-message">{COMMUNITY_COMPARE_FALLBACK}</p>'
+        + compare_history_html()  # G-30
     )
     _request_community_comparison()
 
@@ -2998,7 +3297,9 @@ def highlights_lines():
 
 
 def highlights_text():
-    return f"Thaw highlights (round {region.round_number}): " + " ".join(highlights_lines() + pinned_highlight_lines())
+    return f"Thaw highlights (round {region.round_number}): " + " ".join(
+        highlights_lines() + pinned_highlight_lines() + hard_mode_reveal_lines()
+    )
 
 
 def share_result():
@@ -3023,6 +3324,8 @@ def render_highlights():
     items = "".join(f"<li>{line}</li>" for line in highlights_lines())
     # G-19: pinned log entries ride along under the three recap lines.
     items += "".join(f'<li class="log-entry--pinned">{_escape(line)}</li>' for line in pinned_highlight_lines())
+    # GG-23: hard mode's reveal of how close the forecasts were.
+    items += "".join(f'<li class="hard-mode-reveal">{_escape(line)}</li>' for line in hard_mode_reveal_lines())
     document.getElementById("highlights-list").innerHTML = items
 
 
@@ -3546,6 +3849,7 @@ def result_lines():
         lines.append("That is the top title.")
     lines.append(f"You beat {beaten} of 3 stewards.")
     lines += steward_lines()
+    lines += hard_mode_reveal_lines()
     return lines
 
 
@@ -3897,12 +4201,22 @@ def _make_focus_invest_handler(category):
     return handler
 
 
-def on_focus_rescue(event=None):
-    r = _focus_region_for(_focus_key())
+def _do_focus_rescue(key):
+    r = _focus_region_for(key)
     if r.rescue():
-        _log_action(_focus_key().upper(), "the one-time emergency rescue was used.")
+        _log_action(key.upper(), "the one-time emergency rescue was used.")
         render()
         _check_new_achievements_for_toast()
+
+
+def on_focus_rescue(event=None):
+    key = _focus_key()
+    if _focus_region_for(key).can_rescue() and _guard_spend(
+        RESCUE_COST, f"Use Region {key.upper()}'s one emergency rescue for {{amount}} funds?",
+        "thaw-rescue", lambda: _do_focus_rescue(key),
+    ):
+        return
+    _do_focus_rescue(key)
 
 
 # ===========================================================================
@@ -4017,6 +4331,12 @@ def _planner_inputs():
 
 
 def render_planner():
+    if hard_mode:  # GG-23
+        document.getElementById("planner-chart").innerHTML = ""
+        document.getElementById("planner-readout").innerText = (
+            "Hard mode is on, so the forecast planner is switched off. Use the forecast box to test your own read."
+        )
+        return
     key, plan, repeat = _planner_inputs()
     r = _focus_region_for(key)
     base, _none = planner_projection(r, {c: 0 for c in CATEGORIES})
@@ -4455,6 +4775,8 @@ _TOP_RULES = {
     "hold_the_line": ("bool", 0, 0, "Hold the Line flag"),
     "run": ("dict", 0, 0, "run result"),
     "undo_used": ("bool", 0, 0, "rewind flag"),
+    "hard_mode": ("bool", 0, 0, "hard mode flag"),
+    "custom_preset": ("dict", 0, 0, "custom preset"),
 }
 load_problems = []  # human-readable names of the fields the last load had to replace
 
@@ -4559,6 +4881,8 @@ def on_dismiss_load_notice(event=None):
 
 
 def render():
+    global _roll_token
+    _roll_token += 1  # GG-19: whatever is written below is final; a roll in flight must not overwrite it
     render_info_page()
     document.getElementById("round-display").innerText = f"Round {region.round_number}"
     document.getElementById("session-note").innerText = session_note_text()
@@ -4596,6 +4920,8 @@ def render():
     render_hold_line()
     render_field_notes()
     render_temp_unit()
+    _render_hard_mode()
+    render_confirm_threshold()
     document.getElementById("rise-rate-display").innerText = (
         f"Current warming rate: {deg(region.current_rise_rate(), 2)}/round"
     )
@@ -4709,7 +5035,8 @@ def render():
         f"{min(1.0, region.temperature / TEMPERATURE_METER_MAX) * 100:.0f}%"
     )
     document.getElementById("graph").innerHTML = mini_temp_graph_svg(
-        region.temperature_history, "Region A", region.dampening_history
+        region.temperature_history, "Region A", region.dampening_history,
+        pace=pace_baseline["temps"] if pace_baseline else None,
     )
     document.getElementById("acceleration-sparkline").innerHTML = accel_sparkline_svg(region.acceleration_history)
     document.getElementById("ice-age-display").innerText = ice_age_text(region)
@@ -4726,12 +5053,15 @@ def render():
     # G12: a small inline forecast of each investment's effect, so a
     # player can see what a click would do before making it rather than
     # inferring it from the constants tables in How to Play.
-    document.getElementById("output-forecast").innerText = f"+{output_income_per_unit():g} funds/round"
+    # GG-23: hard mode hides these previews.
+    document.getElementById("output-forecast").innerText = (
+        "" if hard_mode else f"+{output_income_per_unit():g} funds/round"
+    )
     document.getElementById("preserve-forecast").innerText = (
-        f"+{DAMPENING_PER_PRESERVE_UNIT * 100:.0f}% dampening"
+        "" if hard_mode else f"+{DAMPENING_PER_PRESERVE_UNIT * 100:.0f}% dampening"
     )
     document.getElementById("monitor-forecast").innerText = (
-        f"+{DAMPENING_PER_MONITOR_UNIT * 100:.0f}% dampening"
+        "" if hard_mode else f"+{DAMPENING_PER_MONITOR_UNIT * 100:.0f}% dampening"
     )
 
     for prefix, r in SECONDARY_REGIONS.items():
@@ -4773,18 +5103,24 @@ def render():
     # preview rather than information about the current state.
     # G10: one combined tooltip covering all three managed regions, each
     # with its projected temperature after the coming round.
-    document.getElementById("advance-round-button").title = "\n".join(
-        ["Next round preview"]
-        + [
-            f"Region {label}: {deg(r.current_rise_rate(), 2, plus=True)} "
-            f"(to {deg(r.temperature + r.current_rise_rate(), plus=True)})"
-            for label, r in (("A", region), ("B", region_b), ("C", region_c))
-        ]
-        + [outlook_lines()]  # G-5: the 10-round outlook beside the next-round numbers
-    )
+    if hard_mode:  # GG-23: no preview at all
+        document.getElementById("advance-round-button").title = "Hard mode: no preview of the next round."
+    else:
+        document.getElementById("advance-round-button").title = "\n".join(
+            ["Next round preview"]
+            + [
+                f"Region {label}: {deg(r.current_rise_rate(), 2, plus=True)} "
+                f"(to {deg(r.temperature + r.current_rise_rate(), plus=True)})"
+                for label, r in (("A", region), ("B", region_b), ("C", region_c))
+            ]
+            + [outlook_lines()]  # G-5: the 10-round outlook beside the next-round numbers
+        )
 
     _maybe_update_personal_best()
     _maybe_update_climate_archive()
+    _maybe_update_pace()
+    render_pace()
+    render_mascots()
     render_board()  # after the archive update so "best saved" is current
     render_focus()
     render_planner()
@@ -4825,23 +5161,45 @@ def _make_policy_stance_handler(key):
     return handler
 
 
+def _do_rescue(prefix):
+    target = region if prefix == "" else SECONDARY_REGIONS[prefix]
+    if target.rescue():
+        _log_action((prefix or "a").upper(), "the one-time emergency rescue was used.")
+        render()
+        _check_new_achievements_for_toast()
+
+
 def _make_rescue_handler(prefix):
     """G21: prefix "" is Region A, "b"/"c" the secondary regions."""
     def handler(event=None):
         target = region if prefix == "" else SECONDARY_REGIONS[prefix]
-        if target.rescue():
-            _log_action((prefix or "a").upper(), "the one-time emergency rescue was used.")
-            render()
-            _check_new_achievements_for_toast()
+        # G-23: the rescue is the biggest single spend, so it can ask first (only when it would go through).
+        if target.can_rescue() and _guard_spend(
+            RESCUE_COST, f"Use Region {(prefix or 'a').upper()}'s one emergency rescue for {{amount}} funds?",
+            "thaw-rescue", lambda: _do_rescue(prefix),
+        ):
+            return
+        _do_rescue(prefix)
     return handler
 
 
 def _make_preset_handler(prefix, preset_name):
     def handler(event=None):
-        apply_preset(SECONDARY_REGIONS[prefix], preset_name)
-        render()
-        _check_new_achievements_for_toast()
+        r = SECONDARY_REGIONS[prefix]
+        if _guard_spend(
+            _preset_spend(r, PRESET_WEIGHTS.get(preset_name)),
+            f"Spend {{amount}} funds on the {preset_name} preset in Region {prefix.upper()}?",
+            "thaw-preset", lambda: _finish_preset(prefix, preset_name),
+        ):
+            return
+        _finish_preset(prefix, preset_name)
     return handler
+
+
+def _finish_preset(prefix, preset_name):
+    apply_preset(SECONDARY_REGIONS[prefix], preset_name)
+    render()
+    _check_new_achievements_for_toast()
 
 
 def _make_strategy_label_handler(prefix):
@@ -4874,6 +5232,7 @@ def on_advance_round(event=None):
     # GG-17: remember exactly how things stand before this round (one rewind per run uses it).
     _undo_snapshot = json.loads(json.dumps(get_state()))
     level_before = escalation_level(region.round_number)
+    temperature_before = region.temperature
     region.advance_round()
     resolve_forecast()
     for r in SECONDARY_REGIONS.values():
@@ -4889,6 +5248,7 @@ def on_advance_round(event=None):
     # G-10: announce before render() so the balance flag is still set.
     document.getElementById("sr-announcer").innerText = round_announcement()
     render()
+    start_temperature_roll(temperature_before, region.temperature)  # GG-19
     _check_new_achievements_for_toast()
 
 
@@ -5079,6 +5439,494 @@ def _apply_region_state(r, data):
         r.policy_dampening = 0.0
 
 
+# ===========================================================================
+# G-21: a faint pace line from your best Region A run. The run with the most degrees saved on this
+# device keeps its temperature path (up to PACE_MAX_ROUNDS rounds) in localStorage; the NEXT session
+# draws it as a dashed line behind Region A's graph and says in words whether you are ahead of it. The
+# line shown is the best run from before this session started, so it never chases your own current
+# line. Per-browser (not in the save). The setting "Hide the best-run pace line" turns it off.
+# ===========================================================================
+PACE_KEY = "thaw_best_pace_v1"
+PACE_MAX_ROUNDS = 120
+
+
+def _clean_pace(raw):
+    """A stored best run ({saved, temps}) or None if it is missing or anything in it is unreadable."""
+    if not isinstance(raw, dict):
+        return None
+    saved, temps = raw.get("saved"), raw.get("temps")
+    if not _num(saved, 0, 1000000000) or not isinstance(temps, list):
+        return None
+    if not 2 <= len(temps) <= PACE_MAX_ROUNDS or not all(_num(t, -1000, 1000000) for t in temps):
+        return None
+    return {"saved": float(saved), "temps": [float(t) for t in temps]}
+
+
+def load_best_pace():
+    raw = _read_local_storage_item(PACE_KEY)
+    if not raw:
+        return None
+    try:
+        return _clean_pace(json.loads(raw))
+    except (ValueError, TypeError):
+        return None
+
+
+pace_best = load_best_pace()      # the stored record, raised during play
+pace_baseline = pace_best         # what this session compares against (fixed at page load)
+
+
+def _maybe_update_pace():
+    """Called every render(): when Region A has saved more degrees than the stored best run, store this
+    run's path as the new best (the baseline line on screen does not change until next time)."""
+    global pace_best
+    saved = region.temperature_saved()
+    history = region.temperature_history
+    if saved <= 0 or len(history) < 2:
+        return
+    if pace_best is not None and saved <= pace_best["saved"]:
+        return
+    pace_best = {"saved": float(saved), "temps": [round(float(t), 3) for t in history[:PACE_MAX_ROUNDS]]}
+    _write_local_storage_item(PACE_KEY, json.dumps(pace_best))
+
+
+def pace_text():
+    """One sentence on where Region A stands against the best run from an earlier session ('' if none)."""
+    if pace_baseline is None:
+        return ""
+    history = region.temperature_history
+    temps = pace_baseline["temps"]
+    best = deg(pace_baseline["saved"])
+    if not history:
+        return f"Your best earlier run saved {best}; its path will show as a faint dashed line on the graph."
+    index = len(history) - 1
+    if index >= len(temps):
+        return (
+            f"You are past the {len(temps)} rounds your best earlier run recorded (it saved {best} by then). "
+            "Everything from here is new ground."
+        )
+    diff = history[index] - temps[index]
+    if abs(diff) < 0.05:
+        return f"Level with your best earlier run at this round (it saved {best} in all)."
+    if diff < 0:
+        return f"{deg(-diff)} cooler than your best earlier run was at this round: ahead of your best pace."
+    return (
+        f"{deg(diff)} warmer than your best earlier run was at this round; its path is the dashed line on the "
+        "graph (it saved " + best + " in all)."
+    )
+
+
+def render_pace():
+    document.getElementById("pace-display").innerText = pace_text()
+    document.getElementById("pace-display").hidden = pace_baseline is None
+
+
+# ===========================================================================
+# G-30: the last five community comparisons. Each time the Community Comparison panel gets a real
+# percentile back (the page script calls record_compare_result), it is kept as one line in a short
+# list in localStorage so a player can see how their standing moved over time. Per-browser, not saved.
+# ===========================================================================
+COMPARE_HISTORY_KEY = "thaw_compare_history_v1"
+COMPARE_HISTORY_MAX = 5
+
+
+def _clean_compare_entry(raw):
+    if not isinstance(raw, dict):
+        return None
+    rnd, better, count, factor = raw.get("round"), raw.get("better_than"), raw.get("count"), raw.get("factor")
+    ok = (
+        _num(rnd, 1, 1000000) and int(rnd) == rnd
+        and _num(better, 0, 100) and int(better) == better
+        and _num(count, 1, 100000000) and int(count) == count
+        and _num(factor, 0, 10000)
+    )
+    if not ok:
+        return None
+    return {"round": int(rnd), "better_than": int(better), "count": int(count), "factor": round(float(factor), 2)}
+
+
+def load_compare_history():
+    raw = _read_local_storage_item(COMPARE_HISTORY_KEY)
+    if not raw:
+        return []
+    try:
+        data = json.loads(raw)
+    except (ValueError, TypeError):
+        return []
+    if not isinstance(data, list):
+        return []
+    entries = [e for e in (_clean_compare_entry(item) for item in data) if e is not None]
+    return entries[-COMPARE_HISTORY_MAX:]
+
+
+compare_history = load_compare_history()
+
+
+def record_compare_result(better_than, count):
+    """Keeps one comparison result (called by the page script after a successful percentile lookup).
+    `better_than` is the percent of other saved regions whose warming accelerated MORE than Region A's.
+    A repeat of the same round/percent/count is ignored; only the newest five stay."""
+    entry = _clean_compare_entry({
+        "round": region.round_number, "better_than": better_than, "count": count,
+        "factor": region.average_acceleration_factor,
+    })
+    if entry is None:
+        return False
+    if compare_history and (
+        (compare_history[-1]["round"], compare_history[-1]["better_than"], compare_history[-1]["count"])
+        == (entry["round"], entry["better_than"], entry["count"])
+    ):
+        return False
+    compare_history.append(entry)
+    del compare_history[:-COMPARE_HISTORY_MAX]
+    _write_local_storage_item(COMPARE_HISTORY_KEY, json.dumps(compare_history))
+    if community_compare_open:
+        update_community_compare_panel()
+    return True
+
+
+def compare_history_html():
+    if not compare_history:
+        return '<p class="comparison-message">Your last five comparisons will be listed here.</p>'
+    rows = "".join(
+        f"<li>Round {e['round']}: accelerated less than {e['better_than']}% of {e['count']} other saved "
+        f"regions (average {e['factor']:.2f}x)</li>"
+        for e in reversed(compare_history)
+    )
+    head = f'<p class="comparison-message">Your last {len(compare_history)} comparison(s), newest first:</p>'
+    return head + f'<ol class="compare-history">{rows}</ol>'
+
+
+# ===========================================================================
+# G-25: settings export and import. "Copy settings code" packs the local preferences (text size,
+# the display switches, the temperature unit, the big-spend threshold) and the personal bests
+# (overall record and the climate archive) into one short text code; pasting it in on another device
+# restores them, no account needed. The code is plain, checksummed and fully validated on the way in
+# (anything unreadable is skipped and named), and bests merge by keeping the HIGHER of the two so an
+# import can never lower a record. Not included: the saved game itself (use the save widget), field
+# notes, the pace line, and the site-wide lite mode (it has its own switch on the hub).
+# ===========================================================================
+SETTINGS_CODE_PREFIX = "THAW1-"
+SETTINGS_CODE_MAX = 4000
+SETTING_FLAG_KEYS = (
+    "thaw-reduced-motion", "thaw-blindfold", "thaw-graph-patterns", "thaw-high-contrast",
+    "thaw-tip-shake", "thaw-hide-pace", "thaw-hide-mascots", "thaw-instant-digits",
+)
+TEXT_SCALE_KEY = "thaw-text-scale"
+TEXT_SCALE_MIN, TEXT_SCALE_MAX = 0.85, 1.5
+
+
+def _checksum(raw_bytes):
+    return f"{sum(raw_bytes) % 65521:04x}"
+
+
+def settings_snapshot():
+    """The exportable settings as a plain dict (only what is actually stored on this device)."""
+    snap = {}
+    scale = _read_local_storage_item(TEXT_SCALE_KEY)
+    try:
+        if scale is not None and TEXT_SCALE_MIN <= float(scale) <= TEXT_SCALE_MAX:
+            snap["t"] = round(float(scale), 2)
+    except (TypeError, ValueError):
+        pass
+    flags = {}
+    for key in SETTING_FLAG_KEYS:
+        value = _read_local_storage_item(key)
+        if value in ("true", "false"):
+            flags[key] = value == "true"
+    if flags:
+        snap["f"] = flags
+    snap["u"] = temp_unit
+    snap["c"] = confirm_threshold
+    snap["pb"] = dict(personal_best)
+    snap["ar"] = {label: dict(entry) for label, entry in climate_archive.items()}
+    return snap
+
+
+def export_settings_code():
+    raw = json.dumps(settings_snapshot(), separators=(",", ":"), sort_keys=True).encode("utf-8")
+    return SETTINGS_CODE_PREFIX + base64.urlsafe_b64encode(raw).decode("ascii").rstrip("=") + "." + _checksum(raw)
+
+
+def decode_settings_code(code):
+    """The dict inside a settings code, or None when it is not a Thaw settings code (wrong prefix,
+    bad length, bad base64, checksum mismatch, not an object)."""
+    if not isinstance(code, str):
+        return None
+    code = code.strip()
+    if not code.startswith(SETTINGS_CODE_PREFIX) or len(code) > SETTINGS_CODE_MAX or "." not in code:
+        return None
+    body, _dot, check = code[len(SETTINGS_CODE_PREFIX):].rpartition(".")
+    try:
+        raw = base64.urlsafe_b64decode(body + "=" * (-len(body) % 4))
+        data = json.loads(raw.decode("utf-8"))
+    except (ValueError, TypeError):
+        return None
+    if _checksum(raw) != check or not isinstance(data, dict):
+        return None
+    return data
+
+
+def import_settings_code(code):
+    """Applies a settings code. Returns (restored item names, skipped item names), or None when the code
+    is not readable at all."""
+    data = decode_settings_code(code)
+    if data is None:
+        return None
+    restored, skipped = [], []
+    scale = data.get("t")
+    if "t" in data:
+        if _num(scale, TEXT_SCALE_MIN, TEXT_SCALE_MAX):
+            _write_local_storage_item(TEXT_SCALE_KEY, str(round(float(scale), 2)))
+            restored.append("text size")
+        else:
+            skipped.append("text size")
+    flags = data.get("f")
+    if "f" in data:
+        if isinstance(flags, dict):
+            count = 0
+            for key, value in flags.items():
+                if key in SETTING_FLAG_KEYS and isinstance(value, bool):
+                    _write_local_storage_item(key, "true" if value else "false")
+                    count += 1
+                else:
+                    skipped.append("a display switch")
+            if count:
+                restored.append("display switches")
+        else:
+            skipped.append("display switches")
+    if "u" in data:
+        if data["u"] in TEMP_UNITS:
+            set_temp_unit(data["u"])
+            restored.append("temperature unit")
+        else:
+            skipped.append("temperature unit")
+    if "c" in data:
+        value = data["c"]
+        if isinstance(value, int) and not isinstance(value, bool) and value in CONFIRM_THRESHOLDS:
+            set_confirm_threshold(value)
+            restored.append("big-spend threshold")
+        else:
+            skipped.append("big-spend threshold")
+    if "pb" in data:
+        pb = data["pb"]
+        saved = pb.get("temperature_saved") if isinstance(pb, dict) else None
+        if _num(saved, 0, 1000000000):
+            if saved > personal_best["temperature_saved"]:
+                label = pb.get("region") if pb.get("region") in ("A", "B", "C") else None
+                personal_best["temperature_saved"] = float(saved)
+                personal_best["region"] = label
+                _write_local_storage_item(PERSONAL_BEST_STORAGE_KEY, json.dumps(personal_best))
+            restored.append("personal best")
+        else:
+            skipped.append("personal best")
+    if "ar" in data:
+        archive = data["ar"]
+        if isinstance(archive, dict):
+            for label in ARCHIVE_REGIONS:
+                incoming = _clean_archive_entry(archive.get(label))
+                mine = climate_archive[label]
+                for field in mine:
+                    mine[field] = max(mine[field], incoming[field])
+            _write_local_storage_item(ARCHIVE_STORAGE_KEY, json.dumps(climate_archive))
+            restored.append("climate archive")
+        else:
+            skipped.append("climate archive")
+    _reapply_page_settings()
+    return restored, skipped
+
+
+def _reapply_page_settings():
+    """Asks settings.js to re-read what was just stored (text size, switches) so the page and its
+    checkboxes show it at once; harmless where that script is absent (the tests)."""
+    try:
+        from js import window  # noqa: PLC0415 -- Pyodide-only, deliberately lazy
+    except ImportError:
+        return
+    hook = getattr(getattr(window, "ThawSettings", None), "reapply", None)
+    if hook is not None:
+        hook()
+
+
+def settings_code_message(result):
+    if result is None:
+        return "That does not look like a Thaw settings code (it should start with THAW1- and be copied whole)."
+    restored, skipped = result
+    text = "Restored: " + (", ".join(restored) if restored else "nothing") + "."
+    if skipped:
+        text += " Skipped (unreadable): " + ", ".join(sorted(set(skipped))) + "."
+    return text + " Bests keep the higher of the two."
+
+
+def on_copy_settings_code(event=None):
+    code = export_settings_code()
+    document.getElementById("settings-code-input").value = code
+    status = document.getElementById("settings-code-status")
+    try:
+        from js import navigator  # noqa: PLC0415 -- Pyodide-only, deliberately lazy
+        navigator.clipboard.writeText(code)
+        status.innerText = "Settings code copied. Paste it into Thaw on another device."
+    except Exception:  # noqa: BLE001 -- no clipboard (tests, or a blocked page)
+        status.innerText = "The code is in the box: select it and copy it."
+
+
+def on_restore_settings_code(event=None):
+    code = document.getElementById("settings-code-input").value
+    result = import_settings_code(code)
+    document.getElementById("settings-code-status").innerText = settings_code_message(result)
+    if result is not None:
+        render()
+
+
+def on_settings_reset_click(event=None):
+    """The page's 'Reset to Default' (settings.js handles its own switches) also clears this file's
+    big-spend threshold."""
+    set_confirm_threshold(0)
+    render_confirm_threshold()
+
+
+# ===========================================================================
+# GG-19: rolling digits. After Advance Round the Region A temperature readout counts up from its old
+# value to the new one in a few quick steps, faster the higher the acceleration, then lands on exactly
+# the figure render() wrote. It is instant (no rolling) with the "Instant temperature numbers" switch,
+# Reduce motion, lite mode or the system's reduced-motion setting, and wherever there is no page (tests).
+# Only presentation: the real value is already set, and any render() in the middle cancels the roll.
+# ===========================================================================
+ROLL_STEPS = 8
+ROLL_BASE_MS = 70
+ROLL_MIN_MS = 25
+_roll_token = 0
+
+
+def roll_step_ms(acceleration):
+    """Milliseconds between digit steps: faster when warming is accelerating (never under ROLL_MIN_MS)."""
+    try:
+        factor = max(1.0, float(acceleration))
+    except (TypeError, ValueError):
+        factor = 1.0
+    return max(ROLL_MIN_MS, int(ROLL_BASE_MS / factor))
+
+
+def roll_values(old, new, steps=ROLL_STEPS):
+    """The figures shown on the way from old to new (the last one is exactly new)."""
+    steps = max(1, int(steps))
+    return [old + (new - old) * i / steps for i in range(1, steps)] + [new]
+
+
+def _digits_instant():
+    """True when the rolling should be skipped."""
+    try:
+        from js import window  # noqa: PLC0415 -- Pyodide-only, deliberately lazy
+        root = window.document.documentElement
+    except Exception:  # noqa: BLE001 -- no page: stay instant
+        return True
+    for attr in ("data-instant-digits", "data-reduced-motion", "data-lite"):
+        if root.getAttribute(attr) == "true":
+            return True
+    try:
+        return bool(window.matchMedia("(prefers-reduced-motion: reduce)").matches)
+    except Exception:  # noqa: BLE001 -- no matchMedia
+        return False
+
+
+def _temperature_line(value):
+    return f"Global temperature: {deg(value, plus=True)}"
+
+
+def start_temperature_roll(old, new):
+    """Counts the readout from `old` to `new` (call right after render())."""
+    global _roll_token
+    if old is None or abs(new - old) < 1e-9 or _digits_instant():
+        return False
+    _roll_token += 1
+    token = _roll_token
+    values = roll_values(old, new)
+    delay = roll_step_ms(region.acceleration_factor())
+    element = document.getElementById("temperature-display")
+    element.innerText = _temperature_line(old)
+
+    def step(index):
+        if token != _roll_token:
+            return
+        element.innerText = _temperature_line(values[index])
+        if index + 1 < len(values):
+            schedule(index + 1)
+
+    def schedule(index):
+        proxy = create_proxy(lambda *args: (step(index), proxy.destroy()))
+        setTimeout(proxy, delay)
+
+    schedule(0)
+    return True
+
+
+# ===========================================================================
+# GG-15: a snow hare and an arctic fox in the status block, drawn as emoji with a one-line comment
+# each. The pair react to the state of the three managed regions (the same mood the headline ticker
+# reads): calm, shivering when melt has started, cheering when protection is up or restoration runs,
+# and fainting dramatically at the critical tier (their lines still point at something to do). Every
+# fourth round they bicker instead. Everything is fixed by the round and the mood: no randomness,
+# nothing saved, no sound. The Story switch hides them, as does "Hide the hare and the fox".
+# ===========================================================================
+MASCOT_POSES = {
+    "start": "calm", "calm": "calm", "shield": "cheer", "melting": "shiver",
+    "critical": "faint", "restoring": "cheer",
+}
+MASCOT_FACE = {"calm": "\U0001F642", "cheer": "\U0001F389", "shiver": "\U0001F976", "faint": "\U0001F635"}
+MASCOT_LINES = {
+    "start": (
+        ("Hare", "Nothing to report. I like nothing to report."),
+        ("Fox", "Nothing to report is a report with the good bits left out."),
+    ),
+    "calm": (
+        ("Hare", "The ground is still frozen solid. Lovely."),
+        ("Fox", "I will believe it when the thermometer stops climbing."),
+    ),
+    "shield": (
+        ("Hare", "Those protection crews are doing real work."),
+        ("Fox", "Fine. I will admit the dampening number looks good."),
+    ),
+    "melting": (
+        ("Hare", "My ears are cold and the ground is soft. That is a bad mix."),
+        ("Fox", "Soft ground is a planning problem. Add protection, then we talk."),
+    ),
+    "critical": (
+        ("Hare", "I am fainting. Briefly. Then I am helping."),
+        ("Fox", "Rescue plan on the table, protection on the map. Go."),
+    ),
+    "restoring": (
+        ("Hare", "The peat is knitting back together!"),
+        ("Fox", "Do not say it too loudly. It might hear."),
+    ),
+}
+MASCOT_BICKER = (
+    (("Hare", "I counted the rounds. We are doing well."), ("Fox", "You counted wrong, and we are doing fine.")),
+    (("Hare", "It is my turn to read the thermometer."), ("Fox", "It was your turn last time. And the time before.")),
+    (("Hare", "Your tail is in my graph."), ("Fox", "Your graph is in my way.")),
+    (("Fox", "Mud."), ("Hare", "It is not even mud yet.")),
+)
+MASCOT_BICKER_EVERY = 4
+
+
+def mascot_lines():
+    """[(who, text)] for the two mascots this round: a bicker every fourth round, else the mood's pair."""
+    rnd = region.round_number
+    if rnd > 1 and (rnd - 1) % MASCOT_BICKER_EVERY == 0:
+        return list(MASCOT_BICKER[((rnd - 1) // MASCOT_BICKER_EVERY - 1) % len(MASCOT_BICKER)])
+    return list(MASCOT_LINES[headline_mood()])
+
+
+def render_mascots():
+    pose = MASCOT_POSES[headline_mood()]
+    icons = {"Hare": "\U0001F407", "Fox": "\U0001F98A"}
+    items = "".join(
+        f'<span class="mascot mascot--{pose}"><span class="mascot-face" aria-hidden="true">'
+        f'{icons[who]}{MASCOT_FACE[pose]}</span> <strong>{who}:</strong> {_escape(text)}</span>'
+        for who, text in mascot_lines()
+    )
+    document.getElementById("mascots").innerHTML = items
+
+
 def get_state():
     """Return every module-level mutable global needed to fully
     reconstruct the game — all four regions (primary + Region B/C/D) plus
@@ -5105,6 +5953,13 @@ def get_state():
     # G27: the forecast record is written only once a forecast has been scored.
     if forecast_total > 0:
         state["forecast"] = {"total": forecast_total, "hits": forecast_hits}
+        if forecast_miss_total > 0:
+            state["forecast"]["miss"] = round(forecast_miss_total, 4)
+    # GG-23 / G-20: written only when on / filled.
+    if hard_mode:
+        state["hard_mode"] = True
+    if custom_preset:
+        state["custom_preset"] = dict(custom_preset)
     # G3: the carbon bank is written only when it holds credits.
     if carbon_bank > 0:
         state["carbon_bank"] = carbon_bank
@@ -5156,6 +6011,7 @@ def load_state(data):
     global worst_case_intro_seen, forecast_guess, forecast_total, forecast_hits, forecast_last
     global framing, carbon_bank, long_game, convoys_sent, convoy_tax_lost, balance_bonuses, just_balanced
     global hold_the_line, run_over, run_result, just_escalated, undo_used, _undo_snapshot
+    global hard_mode, forecast_miss_total, custom_preset
     if not isinstance(data, dict):
         load_problems[:] = ["the whole save (it is not a game save at all)"]
         render_load_notice()
@@ -5165,6 +6021,10 @@ def load_state(data):
     undo_used = data.get("undo_used") is True
     _undo_snapshot = None
     long_game = data.get("long_game") is True
+    hard_mode = data.get("hard_mode") is True
+    custom_preset = _clean_custom_preset(data.get("custom_preset"))
+    if "custom_preset" in data and custom_preset is None:
+        load_problems.append("custom preset")
     # GG-2: strict bool; never together with the long game; the run result only counts if the mode
     # is on and every field is in range.
     hold_the_line = data.get("hold_the_line") is True and not long_game
@@ -5206,6 +6066,7 @@ def load_state(data):
     forecast_last = None
     forecast_total = 0
     forecast_hits = 0
+    forecast_miss_total = 0.0
     saved_bank = data.get("carbon_bank")
     if isinstance(saved_bank, int) and not isinstance(saved_bank, bool) and 0 <= saved_bank <= CARBON_BANK_CAP:
         carbon_bank = saved_bank
@@ -5243,6 +6104,9 @@ def load_state(data):
         ):
             forecast_total = total
             forecast_hits = hits
+            miss = saved_forecast.get("miss")
+            if _num(miss, 0, 1000000000):
+                forecast_miss_total = float(miss)
     saved_log = data.get("science_log")
     if isinstance(saved_log, list):
         science_log[:] = [
@@ -5267,6 +6131,23 @@ def load_state(data):
 
 
 def setup():
+    global confirm_threshold
+    confirm_threshold = load_confirm_threshold()
+    document.getElementById("confirm-threshold-select").addEventListener(
+        "change", create_proxy(on_confirm_threshold_change)
+    )
+    document.getElementById("hard-mode-toggle-button").addEventListener(
+        "click", create_proxy(on_toggle_hard_mode)
+    )
+    document.getElementById("settings-code-copy-button").addEventListener(
+        "click", create_proxy(on_copy_settings_code)
+    )
+    document.getElementById("settings-code-restore-button").addEventListener(
+        "click", create_proxy(on_restore_settings_code)
+    )
+    document.getElementById("settings-reset-button").addEventListener(
+        "click", create_proxy(on_settings_reset_click)
+    )
     for key in ("a", "b", "c"):
         document.getElementById(f"carbon-bank-{key}-button").addEventListener(
             "click", create_proxy(_make_carbon_handler(key))
@@ -5358,6 +6239,13 @@ def setup():
             # does. title= is set once here since the text is static per
             # preset, not state-dependent.
             preset_button.title = preset_tooltip_text(preset_name)
+        # G-20: the shared custom slot (its label, tooltip and enabled state follow the saved mix).
+        document.getElementById(f"{prefix}-preset-custom-button").addEventListener(
+            "click", create_proxy(_make_custom_preset_handler(prefix))
+        )
+        document.getElementById(f"{prefix}-preset-save-button").addEventListener(
+            "click", create_proxy(_make_save_preset_handler(prefix))
+        )
         # G4: "input" (not "change") so the label updates live as the
         # player types, without waiting for the field to lose focus.
         document.getElementById(f"{prefix}-strategy-label-input").addEventListener(

@@ -189,6 +189,45 @@
         </label>
       </div>
       <div class="settings-row">
+        <label class="settings-checkbox-label" for="instant-digits-checkbox">
+          <input type="checkbox" id="instant-digits-checkbox">
+          Instant temperature numbers (no rolling digits after Advance Round; also off with Reduce motion or lite mode)
+        </label>
+      </div>
+      <div class="settings-row">
+        <label class="settings-checkbox-label" for="hide-pace-checkbox">
+          <input type="checkbox" id="hide-pace-checkbox">
+          Hide the best-run pace line on Region A's graph
+        </label>
+      </div>
+      <div class="settings-row">
+        <label class="settings-checkbox-label" for="hide-mascots-checkbox">
+          <input type="checkbox" id="hide-mascots-checkbox">
+          Hide the snow hare and the arctic fox
+        </label>
+      </div>
+      <div class="settings-row settings-code-row">
+        <label class="settings-checkbox-label" for="confirm-threshold-select">
+          Ask before big spends
+          <select id="confirm-threshold-select">
+            <option value="0">Never</option>
+            <option value="100">More than 100 funds</option>
+            <option value="150">More than 150 funds</option>
+            <option value="250">More than 250 funds</option>
+          </select>
+        </label>
+        <p id="confirm-threshold-note" class="settings-note"></p>
+        <p class="settings-note">Covers the one-click bulk spends (the presets and the emergency rescue). One unit costs 20 or 25 and is never asked.</p>
+      </div>
+      <div class="settings-row settings-code-row">
+        <span class="settings-label">Settings code</span>
+        <p class="settings-note">Copies your settings and personal bests into one short code to paste on another device. Bests keep the higher of the two. It does not include the saved game (use Save for that).</p>
+        <button id="settings-code-copy-button" class="secondary" type="button">Copy settings code</button>
+        <input id="settings-code-input" class="settings-code-input" type="text" maxlength="4000" autocomplete="off" spellcheck="false" placeholder="Paste a THAW1- code here" aria-label="Settings code">
+        <button id="settings-code-restore-button" class="secondary" type="button">Restore from code</button>
+        <p id="settings-code-status" class="settings-note" role="status"></p>
+      </div>
+      <div class="settings-row">
         <button id="settings-reset-button" class="secondary" type="button">Reset to Default</button>
       </div>
     </div>
@@ -234,6 +273,9 @@
       <p id="glossary-strip" class="glossary-strip"><span class="glossary-strip-label">Key terms:</span> <span id="glossary-strip-terms"></span></p>
       <!-- GG-26: a made-up headline per round; hidden by the Story switch. -->
       <p id="headline-ticker" class="headline-ticker"></p>
+      <!-- GG-15: a snow hare and an arctic fox (emoji) commenting on the state; hidden by the Story switch
+           or the "Hide the hare and the fox" setting. -->
+      <p id="mascots" class="mascots"></p>
       <p id="funds-display" class="status-line">Funds: 300</p>
       <p id="temperature-display" class="status-line" title="Global temperature rise. Past +10° permafrost melts; the second warming milestone at +15° is roughly where thaw stops being a regional problem and starts driving global warming in its own right.">Global temperature: +0.0°</p><span id="temperature-trend" class="trend-arrow"></span>
       <div class="meter"><div id="temperature-bar" class="meter-fill meter-fill--temperature"></div></div>
@@ -273,6 +315,8 @@
       <p id="rescue-status" class="rescue-status" hidden></p>
       <details class="info-toggle"><summary>i</summary><p>This compares your real temperature to a hidden shadow region that faces the exact same background trajectory but never receives any preserve/monitor investment — the gap between the two is how many degrees your interventions have actually saved.</p></details>
       <div id="graph" class="mini-temp-graph"></div>
+      <!-- G-21: where Region A stands against the best run from an earlier session (the dashed line). -->
+      <p id="pace-display" class="comparison-message pace-display" hidden></p>
       <p id="personal-best-display" class="personal-best-display">Personal best: 0.0° saved</p>
       <button id="archive-toggle-button" class="secondary archive-toggle" type="button">Climate archive</button>
       <div id="archive-panel" class="archive-panel" hidden>
@@ -391,6 +435,11 @@
       <ul id="hold-line-result" class="hold-line-result" hidden></ul>
     </div>
 
+    <div id="hard-mode" class="section hard-mode">
+      <button id="hard-mode-toggle-button" class="secondary" type="button">Hard mode: off</button>
+      <p id="hard-mode-display" class="comparison-message"></p>
+    </div>
+
     <div id="framing" class="section framing">
       <button id="framing-toggle-button" class="secondary" type="button">Framing</button>
       <p id="framing-summary" class="comparison-message"></p>
@@ -477,6 +526,8 @@
             <button id="b-preset-growth-button" class="secondary region-preset-button" type="button">Preset: Growth</button>
             <button id="b-preset-preservation-button" class="secondary region-preset-button" type="button">Preset: Preservation</button>
             <button id="b-preset-balanced-button" class="secondary region-preset-button" type="button">Preset: Balanced</button>
+            <button id="b-preset-custom-button" class="secondary region-preset-button" type="button" disabled>Preset: Custom (empty)</button>
+            <button id="b-preset-save-button" class="secondary region-preset-button" type="button" disabled>Save this mix as Custom</button>
           </div>
           <input id="b-strategy-label-input" class="region-strategy-label-input" type="text" maxlength="40" placeholder="Label this strategy, e.g. &quot;all-in on preservation&quot; (optional)">
         </div>
@@ -505,6 +556,8 @@
             <button id="c-preset-growth-button" class="secondary region-preset-button" type="button">Preset: Growth</button>
             <button id="c-preset-preservation-button" class="secondary region-preset-button" type="button">Preset: Preservation</button>
             <button id="c-preset-balanced-button" class="secondary region-preset-button" type="button">Preset: Balanced</button>
+            <button id="c-preset-custom-button" class="secondary region-preset-button" type="button" disabled>Preset: Custom (empty)</button>
+            <button id="c-preset-save-button" class="secondary region-preset-button" type="button" disabled>Save this mix as Custom</button>
           </div>
           <input id="c-strategy-label-input" class="region-strategy-label-input" type="text" maxlength="40" placeholder="Label this strategy, e.g. &quot;all-in on preservation&quot; (optional)">
         </div>
@@ -909,6 +962,13 @@
             }
             cache.set(key, { at: Date.now(), text });
             show(text);
+            // G-30: keep this result in the short "last five comparisons" list (Python owns the list).
+            if (d && !d.suppressed && typeof d.percentile === "number" && window.pyodide) {
+              try {
+                const keep = window.pyodide.globals.get("record_compare_result");
+                if (keep) { keep(Math.round(100 - d.percentile), d.count); keep.destroy && keep.destroy(); }
+              } catch (e) { /* the list is a nicety; never break the comparison */ }
+            }
           })
           .catch(() => { cache.set(key, { at: Date.now(), text: null }); });
       };
@@ -1008,7 +1068,7 @@
   <script src="../../shared/hub-auth.js"></script>
   <script src="../../shared/save-widget.js" data-game-id="thaw"></script>
   <script src="../../shared/opening-screen.js" data-game-id="thaw" data-tagline="Watch a slow problem tip into a runaway feedback loop." data-game-name="Thaw"></script>
-  <script src="../../shared/story-toggle.js" data-game-id="thaw" data-story-selectors=".region-flavor, #shared-research, #headline-ticker"></script>
+  <script src="../../shared/story-toggle.js" data-game-id="thaw" data-story-selectors=".region-flavor, #shared-research, #headline-ticker, #mascots"></script>
   <script src="../../shared/last-played.js" data-game-id="thaw"></script>
   <script src="../../shared/whats-new-banner.js" data-game-id="thaw"></script>
   <script src="../../shared/achievement-stats.js" data-game-id="thaw"></script>

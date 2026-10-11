@@ -1287,37 +1287,37 @@
     },
     {
      "path": "games/aftermath/changelog.json",
-     "bytes": 14887,
+     "bytes": 16834,
      "precached": false
     },
     {
      "path": "games/aftermath/game.py",
-     "bytes": 297094,
+     "bytes": 311040,
      "precached": true
     },
     {
      "path": "games/aftermath/index.html",
-     "bytes": 67260,
+     "bytes": 68247,
      "precached": true
     },
     {
      "path": "games/aftermath/pc-config.json",
-     "bytes": 4505,
+     "bytes": 4699,
      "precached": false
     },
     {
      "path": "games/aftermath/pc.css",
-     "bytes": 8270,
+     "bytes": 8361,
      "precached": true
     },
     {
      "path": "games/aftermath/pc.html",
-     "bytes": 71177,
+     "bytes": 72302,
      "precached": true
     },
     {
      "path": "games/aftermath/pc.js",
-     "bytes": 6435,
+     "bytes": 6453,
      "precached": true
     },
     {
@@ -1332,7 +1332,7 @@
     },
     {
      "path": "games/aftermath/style.css",
-     "bytes": 78427,
+     "bytes": 80156,
      "precached": true
     },
     {
@@ -1595,7 +1595,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14849491,
+   "bytes": 14869528,
    "bytes_complete": true
   },
   "herd": {
@@ -1902,22 +1902,22 @@
     },
     {
      "path": "games/thaw/changelog.json",
-     "bytes": 13716,
+     "bytes": 15800,
      "precached": false
     },
     {
      "path": "games/thaw/game.py",
-     "bytes": 235975,
+     "bytes": 272910,
      "precached": true
     },
     {
      "path": "games/thaw/index.html",
-     "bytes": 62933,
+     "bytes": 67003,
      "precached": true
     },
     {
      "path": "games/thaw/pc-config.json",
-     "bytes": 3866,
+     "bytes": 3891,
      "precached": false
     },
     {
@@ -1927,7 +1927,7 @@
     },
     {
      "path": "games/thaw/pc.html",
-     "bytes": 67091,
+     "bytes": 71186,
      "precached": true
     },
     {
@@ -1937,7 +1937,7 @@
     },
     {
      "path": "games/thaw/settings.js",
-     "bytes": 8717,
+     "bytes": 9761,
      "precached": false
     },
     {
@@ -1947,7 +1947,7 @@
     },
     {
      "path": "games/thaw/style.css",
-     "bytes": 53141,
+     "bytes": 55495,
      "precached": true
     }
    ],
@@ -2165,7 +2165,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14635843,
+   "bytes": 14686450,
    "bytes_complete": true
   },
   "loop": {

@@ -129,6 +129,11 @@
     { key: "thaw-high-contrast", attr: "data-high-contrast", box: "high-contrast-checkbox" },
     // GG-12: opt-in shake of a region's card and a crack across its graph when it tips.
     { key: "thaw-tip-shake", attr: "data-tip-shake", box: "tip-shake-checkbox" },
+    // GG-19 / G-21 / GG-15: switches for things that are on by default (the stored "true" means HIDE or
+    // SKIP them, so a missing value and Reset to Default both leave the feature on).
+    { key: "thaw-instant-digits", attr: "data-instant-digits", box: "instant-digits-checkbox" },
+    { key: "thaw-hide-pace", attr: "data-hide-pace", box: "hide-pace-checkbox" },
+    { key: "thaw-hide-mascots", attr: "data-hide-mascots", box: "hide-mascots-checkbox" },
   ];
 
   function readFlag(flag) {
@@ -228,6 +233,20 @@
       });
     }
 
+    // G-25: after game.py restores a settings code into localStorage, show it on the page at once.
+    function reapply() {
+      scale = applyScale(readStoredScale());
+      FLAGS.forEach(function (flag) {
+        const on = readFlag(flag);
+        document.documentElement.setAttribute(flag.attr, on ? "true" : "false");
+        const box = document.getElementById(flag.box);
+        if (box) box.checked = on;
+      });
+      reduced = applyMotion(readStoredMotion());
+      if (motionCheckbox) motionCheckbox.checked = reduced;
+    }
+    window.ThawSettings.reapply = reapply;
+
     const settingsResetButton = document.getElementById("settings-reset-button");
     if (settingsResetButton) {
       settingsResetButton.addEventListener("click", function () {
@@ -245,11 +264,11 @@
     }
   }
 
+  window.ThawSettings = { applyScale: applyScale, applyMotion: applyMotion, applyLite: applyLite, MIN_SCALE: MIN_SCALE, MAX_SCALE: MAX_SCALE };
+
   if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", init);
   } else {
     init();
   }
-
-  window.ThawSettings = { applyScale: applyScale, applyMotion: applyMotion, applyLite: applyLite, MIN_SCALE: MIN_SCALE, MAX_SCALE: MAX_SCALE };
 })();

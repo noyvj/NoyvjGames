@@ -74,9 +74,9 @@
     {
       "id": "pc-options-panel",
       "title": "Game options",
-      "members": ["#hold-line", "#long-game", "#framing"],
+      "members": ["#hold-line", "#hard-mode", "#long-game", "#framing"],
       "group": "Game",
-      "label": "🎚 Hold the Line, long game and framing"
+      "label": "🎚 Hold the Line, hard mode, long game and framing"
     },
     {
       "id": "pc-about-panel",

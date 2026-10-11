@@ -1,6 +1,38 @@
 [
   {
     "date": "2026-10-11",
+    "entry": "New: a custom preset for Regions B and C. Build the mix you like with the invest buttons, press Save this mix as Custom, and the Custom button spends a region's funds toward that same ratio, with the usual hover preview. One slot, shared by both regions, kept in your save."
+  },
+  {
+    "date": "2026-10-11",
+    "entry": "New: a faint dashed pace line on Region A's graph shows the path of your best earlier run, with a sentence saying whether you are ahead of it. It is stored on your device and can be hidden in Settings."
+  },
+  {
+    "date": "2026-10-11",
+    "entry": "New in Settings: Ask before big spends. Pick a size (more than 100, 150 or 250 funds) and the presets and the emergency rescue ask first. Single units are never asked."
+  },
+  {
+    "date": "2026-10-11",
+    "entry": "New in Settings: Copy settings code and Restore from code. One short code carries your settings and personal bests to another device, no account needed. Records only ever keep the higher of the two."
+  },
+  {
+    "date": "2026-10-11",
+    "entry": "New: the Community Comparison panel now lists your last five comparisons, newest first, so you can see how your standing moved as you played."
+  },
+  {
+    "date": "2026-10-11",
+    "entry": "New: an optional hard mode in the Game options, chosen before round 1. It hides the next-round preview, the forecast numbers beside the invest buttons, the preset previews and the planner, and the recap reveals how close your forecasts were. Nothing else changes."
+  },
+  {
+    "date": "2026-10-11",
+    "entry": "New: the temperature now counts up after Advance Round, faster when warming is accelerating. Turn it off with Instant temperature numbers; Reduce motion and lite mode turn it off too."
+  },
+  {
+    "date": "2026-10-11",
+    "entry": "New: a snow hare and an arctic fox comment on how things are going (shivering when melt starts, cheering when protection is up, fainting dramatically at the critical tier, bickering every fourth round). Hide them in Settings or with the Story switch."
+  },
+  {
+    "date": "2026-10-11",
     "entry": "New in Settings: Shake and crack, off by default. When a region tips, its card gives a short tremor and a crack flashes across its graph. It never plays with reduced motion or lite mode, and Reset to Default turns it off."
   },
   {

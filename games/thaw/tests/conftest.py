@@ -188,6 +188,18 @@ ELEMENT_IDS = [
     "board-sort-since",
     "board-th-best",
     "board-sort-best",
+    # Oct 11 batch 2: G-20, G-21, G-23, G-25, G-30, GG-15, GG-19, GG-23.
+    "confirm-threshold-select",
+    "confirm-threshold-note",
+    "hard-mode-toggle-button",
+    "hard-mode-display",
+    "settings-code-copy-button",
+    "settings-code-restore-button",
+    "settings-code-input",
+    "settings-code-status",
+    "settings-reset-button",
+    "pace-display",
+    "mascots",
 ]
 for _category in CATEGORIES:
     ELEMENT_IDS += [f"{_category}-name", f"{_category}-count", f"{_category}-invest-button"]
@@ -210,7 +222,7 @@ for _prefix in ("b", "c"):
     ]
     for _category in CATEGORIES:
         ELEMENT_IDS += [f"{_prefix}-{_category}-count", f"{_prefix}-{_category}-invest-button"]
-    for _preset in PRESET_NAMES:
+    for _preset in PRESET_NAMES + ["custom", "save"]:
         ELEMENT_IDS += [f"{_prefix}-preset-{_preset}-button"]
 
 ELEMENT_IDS += [
