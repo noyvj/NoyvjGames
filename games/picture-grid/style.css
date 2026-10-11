@@ -73,7 +73,7 @@ button[disabled], button[aria-disabled="true"] { opacity: 0.55; cursor: default;
 .settings-row label { display: flex; gap: 0.5rem; align-items: flex-start; }
 .text-size-control { display: inline-flex; gap: 0.3rem; }
 
-.stat-strip { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0.35rem; margin: 0.5rem 0; }
+.stat-strip { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 0.35rem; margin: 0.5rem 0; }
 .stat { background: var(--panel-fill); border: 1px solid var(--line); border-radius: 10px; padding: 0.25rem 0.3rem; text-align: center; min-width: 0; }
 .stat-label { display: block; font-size: 0.62rem; color: var(--muted); letter-spacing: 0.03em; line-height: 1.15; overflow-wrap: anywhere; }
 .stat-value { display: block; font-size: 1.05rem; font-weight: 700; font-variant-numeric: tabular-nums; }
@@ -155,6 +155,45 @@ html[data-reduced-motion="true"] .board.hung-glow, html[data-effects="off"] .boa
   #game { padding: 0.6rem 0.6rem 2.5rem; }
   .tagline { display: none; }
   .stat-strip { gap: 0.25rem; }
-  .board-wrap { padding: 0.2rem; }
+  .board-wrap { padding: 0.1rem; border-width: 3px; }
   .keys-note { display: none; }
+}
+
+/* Standard kit: toolbar short labels, panels, hint ladder, goals, About, What's New. */
+.btn-short { display: none; }
+@media (max-width: 420px) { .btn-long { display: none; } .btn-short { display: inline; } }
+.changelog-entry { border-top: 1px solid var(--line); padding-top: 0.5rem; margin-top: 0.6rem; }
+.changelog-entry:first-child { border-top: 0; margin-top: 0; padding-top: 0; }
+.changelog-date { font-weight: 700; font-variant-numeric: tabular-nums; }
+.changelog-text { margin: 0.2rem 0; }
+.info-page-framing { margin: 0.3rem 0; }
+.pledge-list { padding-left: 1.2rem; margin: 0.3rem 0 0.8rem; }
+.pledge-list li, #how-list li { margin: 0.3rem 0; }
+#how-list { padding-left: 1.2rem; }
+#info-page-panel h3 { margin: 0.8rem 0 0.2rem; font-size: 1rem; }
+.info-page-sources { list-style: none; padding: 0; margin: 0; }
+.info-page-source { border-top: 1px solid var(--line); padding: 0.5rem 0; }
+.info-page-source-note, .info-page-tie-in { color: var(--muted); font-size: 0.85rem; margin: 0.2rem 0; }
+.info-live { border: 1px dashed var(--edge); border-radius: 8px; padding: 0.4rem 0.7rem; }
+.info-live-text { margin: 0.2rem 0; }
+
+.hint-box { margin: 0.5rem 0; }
+.hint-list { list-style: none; margin: 0.4rem 0; padding: 0; display: grid; gap: 0.35rem; }
+.hint-item { display: flex; gap: 0.6rem; align-items: baseline; padding: 0.35rem 0.6rem; background: var(--surface); border-radius: 8px; border-left-width: 6px; border-left-style: solid; border-left-color: var(--edge); }
+.hint-label { font-weight: 800; flex: 0 0 4.6rem; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.06em; }
+.hint-label::before { margin-right: 0.3rem; }
+.hint-rung-1 { border-left-style: dotted; }
+.hint-rung-1 .hint-label::before { content: "\2022"; }
+.hint-rung-2 { border-left-style: dashed; }
+.hint-rung-2 .hint-label::before { content: "\25B8"; }
+.hint-rung-3 { border-left-style: solid; }
+.hint-rung-3 .hint-label::before { content: "\25A0"; }
+.hint-item:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+.b-hintline { fill: var(--focus-tint); stroke: var(--focus); stroke-width: 3; stroke-dasharray: 8 5; pointer-events: none; }
+.goals-slot:empty { display: none; }
+.goals-slot { margin: 0.5rem 0; }
+.large-view .button-row button { min-height: 44px; }
+
+@media (max-width: 640px) {
+  .stat-strip { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }

@@ -3,14 +3,13 @@
    a line is finished or a mark is wrong: it asks the engine, and draws the answer. */
 (function () {
   "use strict";
-  var ENGINE_MODULES = ["nonogram.py", "pictures_g1.py", "pictures_g2.py", "pictures_g3.py", "pictures.py"];
+  var ENGINE_MODULES = ["nonogram.py", "pictures_g1.py", "pictures_g2.py", "pictures_g3.py", "pictures_g4.py", "pictures_g5.py", "pictures_g6.py", "pictures.py", "hints.py", "goals.py", "info.py"];
   var STORE_KEY = "picture-grid:state";
   var BACKUP_KEY = "picture-grid:state-backup";
   var SVG_NS = "http://www.w3.org/2000/svg";
   var CS = 40;                 // one cell, in drawing units
-  var NUM_W = 17;              // width of one row-clue number
-  var NUM_H = 19;              // height of one column-clue number
-  var TICK = 22;               // room for the "done" tick beside a clue
+  var CELL_MIN = 15;           // smallest cell, in screen pixels, before the board scrolls sideways (most 15 by 15 pictures fit a 360 px phone at this size)
+  var CELL_MAX = 44;
   var UNKNOWN = ".", FILLED = "#", DOT = "x";
 
   var $ = function (id) { return document.getElementById(id); };
@@ -24,11 +23,16 @@
   var largeId = null;          // the hung picture open in the large view
   var glowShown = "";          // the hung picture whose glow has already played
   var wallSig = "";
+  var slideshow = false;       // the large view is open as a slideshow
+  var goalsPanel = null;
+  var tutorialSteps = null;
+  var infoLiveDone = false;    // the live Wikipedia read has been tried for this page load
 
   function lsGet(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
   function lsSet(k, v) { try { localStorage.setItem(k, v); } catch (e) { /* convenience only */ } }
   function setText(node, text) { if (node.textContent !== text) node.textContent = text; }
   function announce(text) {
+    if (window.NoyvjAnnounce) { window.NoyvjAnnounce.say(text); return; }      // the shared announcer when it is on the page, otherwise this page's own region (never both)
     var live = $("announce");
     live.textContent = "";
     setTimeout(function () { live.textContent = text; }, 40);
@@ -117,6 +121,7 @@
     bumpStat("stat-hung", view.totals.hung + "/" + view.totals.pictures);
     bumpStat("stat-cells", view.totals.cells);
     bumpStat("stat-galleries", view.totals.galleries_done + "/" + view.totals.galleries);
+    bumpStat("stat-hints", view.totals.hints);
     bumpStat("stat-strokes", view.picture.moves);
   }
 
@@ -125,20 +130,29 @@
   function isBig() { return document.documentElement.getAttribute("data-big-cells") === "true"; }
   function toneOf(r) { return Math.min(2, Math.floor(r * 3 / view.picture.height)) + 1; }
 
+  function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
+  // Clue sizes are chosen in screen pixels (so the numbers stay readable on a small cell), then converted into drawing units.
+  function clueMetrics(cp) {
+    var num = clamp(0.43 * cp, 11, 17);
+    return { numW: num, numH: num + 2, tick: clamp(0.5 * cp, 11, 22), font: num * 0.92 };
+  }
   function layout() {
     var p = view.picture;
     var rowNums = 1, colNums = 1;
     p.row_clues.forEach(function (c) { rowNums = Math.max(rowNums, c.length); });
     p.col_clues.forEach(function (c) { colNums = Math.max(colNums, c.length); });
-    var clueW = rowNums * NUM_W + TICK + 6;
-    var clueH = colNums * NUM_H + TICK + 4;
-    var W = clueW + p.width * CS;
-    var H = clueH + p.height * CS;
     var wrap = $("board-wrap");
-    var avail = Math.max(160, wrap.clientWidth - 24);
-    var unit = isBig() ? 44 / CS : Math.min(44 / CS, avail / W);
-    unit = Math.max(unit, 24 / CS);
-    return { clueW: clueW, clueH: clueH, W: W, H: H, unit: unit, scroll: W * unit > avail + 1 };
+    var cs = window.getComputedStyle(wrap);
+    var avail = Math.max(160, wrap.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight) - 2);
+    function widthAt(cp) { var m = clueMetrics(cp); return rowNums * m.numW + m.tick + 6 + p.width * cp; }
+    var cp = CELL_MAX;
+    if (!isBig()) { while (cp > CELL_MIN && widthAt(cp) > avail) cp -= 1; }
+    var m = clueMetrics(cp);
+    var unit = cp / CS;
+    var clueW = (rowNums * m.numW + m.tick + 6) / unit;
+    var clueH = (colNums * m.numH + m.tick + 4) / unit;
+    return { clueW: clueW, clueH: clueH, W: clueW + p.width * CS, H: clueH + p.height * CS, unit: unit, cell: cp,
+             numW: m.numW / unit, numH: m.numH / unit, tick: m.tick / unit, font: m.font / unit, scroll: widthAt(cp) > avail + 1 };
   }
 
   function drawMark(parent, r, c, state, pending) {
@@ -177,20 +191,29 @@
       var done = view.satisfied.rows[r];
       var list = clue.length ? clue : [0];
       list.forEach(function (n, i) {
-        var t = svgEl("text", { x: geom.clueW - TICK - 6 - (list.length - 1 - i) * NUM_W - NUM_W / 2 + 4, y: y0 + r * CS + CS / 2, "class": "b-clue" + (done ? " done" : "") }, svg);
+        var t = svgEl("text", { x: geom.clueW - geom.tick - 4 - (list.length - 1 - i) * geom.numW - geom.numW / 2, y: y0 + r * CS + CS / 2, "class": "b-clue" + (done ? " done" : "") }, svg);
+        t.style.fontSize = geom.font + "px";
         t.textContent = n;
       });
-      if (done) { var k = svgEl("text", { x: geom.clueW - TICK / 2 - 2, y: y0 + r * CS + CS / 2, "class": "b-check" }, svg); k.textContent = "✓"; }
+      if (done) { var k = svgEl("text", { x: geom.clueW - geom.tick / 2 - 1, y: y0 + r * CS + CS / 2, "class": "b-check" }, svg); k.style.fontSize = geom.font * 0.9 + "px"; k.textContent = "✓"; }
     });
     p.col_clues.forEach(function (clue, c) {
       var done = view.satisfied.cols[c];
       var list = clue.length ? clue : [0];
       list.forEach(function (n, i) {
-        var t = svgEl("text", { x: x0 + c * CS + CS / 2, y: geom.clueH - TICK - 4 - (list.length - 1 - i) * NUM_H - NUM_H / 2 + 4, "class": "b-clue" + (done ? " done" : "") }, svg);
+        var t = svgEl("text", { x: x0 + c * CS + CS / 2, y: geom.clueH - geom.tick - 3 - (list.length - 1 - i) * geom.numH - geom.numH / 2, "class": "b-clue" + (done ? " done" : "") }, svg);
+        t.style.fontSize = geom.font + "px";
         t.textContent = n;
       });
-      if (done) { var k = svgEl("text", { x: x0 + c * CS + CS / 2, y: geom.clueH - TICK / 2 - 1, "class": "b-check" }, svg); k.textContent = "✓"; }
+      if (done) { var k = svgEl("text", { x: x0 + c * CS + CS / 2, y: geom.clueH - geom.tick / 2 - 1, "class": "b-check" }, svg); k.style.fontSize = geom.font * 0.9 + "px"; k.textContent = "✓"; }
     });
+    // the line a suggestion points at (dashed outline, so it is never colour alone), only after the player has asked
+    if (view.hint) {
+      var hl = view.hint;
+      var hx = hl.kind === "row" ? 2 : x0 + hl.index * CS + 2, hy = hl.kind === "row" ? y0 + hl.index * CS + 2 : 2;
+      var hw = hl.kind === "row" ? geom.W - 4 : CS - 4, hh = hl.kind === "row" ? CS - 4 : geom.H - 4;
+      svgEl("rect", { x: hx, y: hy, width: hw, height: hh, rx: 5, "class": "b-hintline" }, svg);
+    }
     // marks
     var wrong = {};
     view.wrong.forEach(function (pair) { wrong[pair[0] + "," + pair[1]] = true; });
@@ -379,6 +402,7 @@
     else if (key === " " || key === "Enter") markCell([cursor.r, cursor.c], mode === "dot" ? DOT : FILLED);
     else if (key === "f" || key === "F") { setMode("fill"); announce("Fill tool."); }
     else if (key === "x" || key === "X") { setMode("dot"); announce("Dot tool."); }
+    else if (key === "h" || key === "H") { if (view.hint_ui.available && !$("hint-box").hidden) pressHint(false); }
     else if (key === "Backspace" || key === "Delete") { if (view.editable && cellState(cursor.r, cursor.c) !== UNKNOWN) sendPaint([[cursor.r, cursor.c]], 0); }
     else handled = false;
     if (handled) e.preventDefault();
@@ -467,6 +491,8 @@
       wall.appendChild(block);
     });
     $("gallery-toggle-button").textContent = "Gallery (" + view.totals.hung + "/" + view.totals.pictures + ")";
+    $("slideshow-button").disabled = view.totals.hung === 0;
+    setText($("slideshow-note"), view.totals.hung === 0 ? "Hang a picture to have something to show." : "Steps through the " + view.totals.hung + " you have hung, one at a time. Nothing moves by itself.");
   }
   function pixelSvgThumb(f) {
     var svg = pixelSvg(f.rows, f.tint, null, true);
@@ -475,7 +501,7 @@
   }
   function onFrameClick(f, g) {
     if (!g.open) { send({ action: "pick", picture: f.id }); return; }
-    if (f.hung) { openLarge(f.id); return; }
+    if (f.hung) { slideshow = false; openLarge(f.id); return; }
     send({ action: "pick", picture: f.id });
     closeGalleryToFrame();
   }
@@ -498,17 +524,18 @@
     if (!largeId) { node.hidden = true; return; }
     var list = hungList();
     var f = list.filter(function (x) { return x.id === largeId; })[0];
-    if (!f) { largeId = null; node.hidden = true; return; }
+    if (!f) { largeId = null; slideshow = false; node.hidden = true; return; }
     var idx = list.indexOf(f);
     setText($("large-title"), f.title);
     var holder = $("large-picture");
     holder.textContent = "";
     holder.appendChild(pixelSvg(f.rows, f.tint, f.title + ", a " + f.size + " pixel picture", true));
     setText($("large-caption"), f.caption);
-    setText($("large-meta"), f.size + " · solved in " + plural(f.moves, "stroke", "strokes") + " · picture " + (idx + 1) + " of " + list.length + " hung");
+    setText($("large-meta"), (slideshow ? "Slideshow · " : "") + f.size + " · solved in " + plural(f.moves, "stroke", "strokes") + (f.hinted ? " (with a suggestion)" : " (no suggestions)") + " · picture " + (idx + 1) + " of " + list.length + " hung");
     setText($("large-words"), pictureWords(f.rows));
     $("large-prev-button").disabled = list.length < 2;
     $("large-next-button").disabled = list.length < 2;
+    $("large-play-button").hidden = slideshow;
   }
   function stepLarge(delta) {
     var list = hungList();
@@ -517,6 +544,202 @@
     largeId = list[(idx + delta + list.length) % list.length].id;
     renderLarge();
   }
+
+
+  // ---- the suggestion ladder (the engine owns every rule; this only shows the rungs the player has pressed for) ------
+  var RUNG_LABELS = { 1: "Nudge", 2: "Hint", 3: "Fill" };
+  function renderHints() {
+    var ui = view.hint_ui;
+    var shown = lsGet("picture-grid:hints-hidden") !== "1";
+    $("hint-box").hidden = !shown || !ui.available;
+    $("hints-checkbox").checked = shown;
+    var button = $("hint-button");
+    button.hidden = ui.next === 0;
+    setText(button, ui.label || "Would you like a suggestion?");
+    var note = "";
+    if (ui.next === 1) note = ui.opens_two ? "On Easy this opens the nudge and the hint together. Nothing is shown until you press." : "Nothing is shown until you press.";
+    else if (ui.next === 3) note = ui.confirm ? "This puts the certain cells of that line on the frame. It asks first, and Undo takes it back." : "This puts the certain cells of that line on the frame. Undo takes it back.";
+    else if (ui.limit) note = "Hard has no fill step: the nudge and the hint are all the help there is.";
+    setText($("hint-note"), note);
+    var list = $("hint-list");
+    var h = view.hint;
+    var sig = h ? [h.rung, h.line, h.nudge, h.detail, h.fill].join("|") : "";
+    if (list.dataset.sig === sig) return;
+    list.dataset.sig = sig;
+    list.textContent = "";
+    list.hidden = !h;
+    if (!h) return;
+    var rungs = [[1, h.nudge], [2, h.detail], [3, h.fill]];
+    rungs.forEach(function (pair) {
+      if (pair[0] > h.rung || !pair[1]) return;
+      var li = el("li", "hint-item hint-rung-" + pair[0]);
+      li.appendChild(el("span", "hint-label", RUNG_LABELS[pair[0]]));
+      li.appendChild(el("span", "hint-text", pair[1]));
+      list.appendChild(li);
+    });
+  }
+  function pressHint(confirmed) {
+    if (!view || view.hint_ui.next === 0) return;
+    if (view.hint_ui.next === 3 && view.hint_ui.confirm && !confirmed) {
+      askThen("picture-grid-hint-fill", "Fill that line in for you? It puts the certain cells of that line on the frame, and Undo takes them back.", "Fill it in", function () { pressHint(true); });
+      return;
+    }
+    var before = view.hint ? view.hint.rung : 0;
+    var result = send({ action: "hint", confirm: confirmed === true });
+    if (result && result.hint) {
+      announce(result.hint.rung === 3 && result.hint.done ? result.hint.fill : (before === 0 ? result.hint.nudge + (result.hint.rung === 2 ? " " + result.hint.detail : "") : result.hint.detail));
+      var items = $("hint-list").querySelectorAll(".hint-item");
+      if (items.length) { items[items.length - 1].setAttribute("tabindex", "-1"); items[items.length - 1].focus({ preventScroll: true }); }
+    }
+  }
+
+  // ---- goals, difficulty ---------------------------------------------------------------------------------
+  var DIFF_GAME = "picture-grid";
+  var DIFF_TEXT = {
+    easy: "The suggestion button opens the nudge and the hint together on its first press, and the fill needs no extra question.",
+    normal: "The game as designed: a nudge, then a hint, then (after a question) a fill, each only when you press.",
+    hard: "No fill step: the nudge and the hint are all the suggestions there are. Pictures, numbers and records are the same."
+  };
+  function sendDifficulty() {
+    if (!engine) return null;
+    if (!window.NoyvjDifficulty) return send({ action: "open" });
+    return send({ action: "difficulty", level: window.NoyvjDifficulty.get(DIFF_GAME) });
+  }
+  function wireDifficulty() {
+    if (!window.NoyvjDifficulty) return;
+    window.NoyvjDifficulty.mount("#difficulty-slot", { game: DIFF_GAME, collapsible: true, descriptions: DIFF_TEXT });
+    window.NoyvjDifficulty.onChange(function (d) { if (d.game === DIFF_GAME) sendDifficulty(); });
+  }
+  function wireGoals() {
+    if (!window.NoyvjGoals) return;
+    goalsPanel = window.NoyvjGoals.mount("#goals", { game: "picture-grid", title: "Goals", getGoals: function () { return view ? view.goals : []; } });
+    if (goalsPanel && window.NoyvjGoals.bindCheckbox) window.NoyvjGoals.bindCheckbox(goalsPanel, "#goals-checkbox");
+  }
+
+  // ---- slideshow ---------------------------------------------------------------------------------------------
+  function openSlideshow() {
+    var list = hungList();
+    if (!list.length) return;
+    slideshow = true;
+    send({ action: "slideshow" }, true);
+    openLarge(list[0].id);
+  }
+  function closeLarge() {
+    largeId = null;
+    var wasSlideshow = slideshow;
+    slideshow = false;
+    renderLarge();
+    $(wasSlideshow ? "slideshow-button" : "gallery-toggle-button").focus();
+  }
+  function onLargeKey(e) {
+    if (!largeId) return;
+    if (e.key === "ArrowRight") { e.preventDefault(); stepLarge(1); }
+    else if (e.key === "ArrowLeft") { e.preventDefault(); stepLarge(-1); }
+    else if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); closeLarge(); }
+  }
+
+  // ---- About (with the live Wikipedia read), What's New ---------------------------------------------------------
+  function listFill(id, items) {
+    var node = $(id);
+    node.textContent = "";
+    items.forEach(function (text) { node.appendChild(el("li", null, text)); });
+  }
+  function renderInfo() {
+    var info = view.info;
+    if (!info) return;
+    setText($("info-page-framing"), info.framing);
+    setText($("pledge-heading"), info.pledge_heading);
+    listFill("pledge-list", info.pledge);
+    setText($("how-heading"), info.how_heading);
+    listFill("how-list", info.how);
+    setText($("facts-heading"), info.facts_heading);
+    var list = $("info-page-sources");
+    if (list.dataset.drawn) return;
+    list.dataset.drawn = "1";
+    info.facts.forEach(function (fact) {
+      var item = el("li", "info-page-source");
+      item.appendChild(el("strong", null, fact.heading));
+      item.appendChild(el("p", "info-page-framing", fact.fact));
+      item.appendChild(el("p", "info-page-tie-in", fact.tie_in));
+      var link = el("a", null, fact.source.title);
+      link.href = fact.source.url; link.target = "_blank"; link.rel = "noopener noreferrer";
+      var src = el("p", "info-page-source-note");
+      src.appendChild(document.createTextNode("Source: "));
+      src.appendChild(link);
+      src.appendChild(document.createTextNode(", " + fact.source.publisher + ". Read on " + fact.source.date_read + "."));
+      item.appendChild(src);
+      list.appendChild(item);
+    });
+  }
+  function firstSentences(text, max) {
+    var out = "";
+    var parts = String(text).split(/(?<=[.!?])\s+/);
+    for (var i = 0; i < parts.length; i++) {
+      if ((out + " " + parts[i]).length > max && out) break;
+      out = out ? out + " " + parts[i] : parts[i];
+    }
+    return out;
+  }
+  function today() { var d = new Date(); return d.getFullYear() + "-" + ("0" + (d.getMonth() + 1)).slice(-2) + "-" + ("0" + d.getDate()).slice(-2); }
+  function loadLiveInfo() {
+    if (infoLiveDone || !view || !view.info) return;
+    infoLiveDone = true;
+    var box = $("info-live");
+    var live = view.info.live;
+    setText(box.firstChild || box.appendChild(el("p", "note")), "Reading the article summary...");
+    var fallback = function () {
+      box.textContent = "";
+      box.appendChild(el("p", "note", "Wikipedia could not be reached just now, so the notes above stand. They were read on " + view.info.date_read + "."));
+    };
+    if (typeof fetch !== "function") { fallback(); return; }
+    fetch(live.api, { headers: { Accept: "application/json" } }).then(function (r) {
+      if (!r.ok) throw new Error("status " + r.status);
+      return r.json();
+    }).then(function (data) {
+      var extract = data && typeof data.extract === "string" ? data.extract.trim() : "";
+      if (!extract) throw new Error("empty");
+      box.textContent = "";
+      box.appendChild(el("p", "info-live-text", firstSentences(extract, 420)));
+      var src = el("p", "info-page-source-note");
+      src.appendChild(document.createTextNode("Source: "));
+      var link = el("a", null, live.title);
+      link.href = live.url; link.target = "_blank"; link.rel = "noopener noreferrer";
+      src.appendChild(link);
+      src.appendChild(document.createTextNode(", " + live.publisher + ", text under CC BY-SA. Read live on " + today() + "."));
+      box.appendChild(src);
+    }).catch(fallback);
+  }
+  function renderChangelog(entries) {
+    var holder = $("changelog-entries");
+    holder.textContent = "";
+    entries.forEach(function (entry) {
+      var row = el("article", "changelog-entry");
+      row.appendChild(el("div", "changelog-date", entry.date));
+      row.appendChild(el("p", "changelog-text", entry.entry));
+      holder.appendChild(row);
+    });
+    var long = document.querySelector("#changelog-toggle-button .btn-long");
+    if (long) long.textContent = "What's New (" + entries.length + ")";
+  }
+  function loadChangelog() {
+    return fetch("changelog.json").then(function (r) { return r.text(); }).then(function (text) {
+      window.CHANGELOG_JSON = text;       // shared/whats-new-banner.js reads this to show a returning player only what is new
+      var data = JSON.parse(text);
+      var list = Array.isArray(data) ? data : (data && data.changelog) || [];
+      renderChangelog(list.slice().sort(function (a, b) { return a.date < b.date ? 1 : -1; }));
+    }).catch(function () { renderChangelog([]); });
+  }
+
+  // ---- the tutorial (shared/tutorial.js; offered from the opening screen, restartable from the toolbar) ------------
+  var TUTORIAL_STEPS = [
+    { title: "Welcome to the gallery", text: "Each frame hides a small picture. You work out which cells belong to it from the numbers on its rows and columns. Nothing is timed, nothing can go wrong, and you can skip this tour at any time." },
+    { selector: "#board", title: "Reading the numbers", text: "A number is the length of a run of filled cells in that row or column. 3 1 means a run of three, at least one empty cell, then a single filled cell. When a line's cells make exactly its numbers it turns grey with a tick." },
+    { selector: ".tools", title: "Fill and Dot", text: "Fill marks a cell that is part of the picture; Dot marks one you know is empty. Drag along a line to mark several at once, or use the arrow keys and Space. Undo and Redo are always there." },
+    { selector: "#hint-box", title: "Stuck? Ask", text: "The suggestion button never opens by itself. A nudge says which line has a certain move, a hint says what kind of reasoning works there, and the last rung fills that line after a question. Every picture can be finished without guessing." },
+    { selector: "#gallery-toggle-button", title: "The gallery", text: "Each finished picture is hung here with its name. Six hung pictures in a gallery open the next, and inside a gallery you can play the frames in any order. The Slideshow button steps through everything you have hung." },
+    { selector: "#settings-toggle-button", title: "Helpers and difficulty", text: "Check mistakes, Auto-dot and Row focus are in Settings, off until you want them. Difficulty (Easy, Normal, Hard) changes only how the suggestions open." },
+    { title: "That is all", text: "Press ? at any time for the keyboard help. The Tutorial button in the toolbar brings this tour back." }
+  ];
 
   // ---- render ---------------------------------------------------------------------------------------
   function render() {
@@ -533,6 +756,9 @@
     renderClueText();
     renderWall();
     renderLarge();
+    renderHints();
+    renderInfo();
+    if (goalsPanel) goalsPanel.refresh();
     if (view.just && glowShown !== view.just.id + ":" + view.totals.hung) {
       glowShown = view.just.id + ":" + view.totals.hung;
       var board = $("board");
@@ -574,7 +800,7 @@
     if (view.message && (!view.ok || (view.just && request.action === "paint") || request.action === "reset" || request.action === "retry")) showToast(view.message);
     render();
     announceChanges(request, previous);
-    if (["paint", "undo", "redo", "pick", "next", "assist", "retry", "reset"].indexOf(request.action) >= 0) persist();
+    if (["paint", "undo", "redo", "pick", "next", "assist", "retry", "reset", "hint", "slideshow"].indexOf(request.action) >= 0) persist();
     return result;
   }
   function askThen(id, message, confirmLabel, go) {
@@ -607,7 +833,12 @@
     $("redo-button").addEventListener("click", function () { send({ action: "redo" }); });
     $("clear-row-button").addEventListener("click", function () { sendPaint(lineCells("row"), 0); });
     $("clear-col-button").addEventListener("click", function () { sendPaint(lineCells("col"), 0); });
-    $("clear-all-button").addEventListener("click", function () { sendPaint(lineCells("all"), 0); });
+    $("clear-all-button").addEventListener("click", function () {
+      if (!view) return;
+      var marked = view.grid.some(function (row) { return row.replace(/\./g, "") !== ""; });
+      if (!marked) return;
+      askThen("picture-grid-clear-frame", "Clear the whole frame? Undo brings your marks back.", "Clear frame", function () { sendPaint(lineCells("all"), 0); });
+    });
     $("prev-frame-button").addEventListener("click", function () { stepFrame(-1); });
     $("next-frame-button").addEventListener("click", function () { stepFrame(1); });
     $("hung-next-button").addEventListener("click", function () { send({ action: "next" }); $("board").focus({ preventScroll: true }); });
@@ -618,7 +849,16 @@
     });
     $("large-prev-button").addEventListener("click", function () { stepLarge(-1); });
     $("large-next-button").addEventListener("click", function () { stepLarge(1); });
-    $("large-close-button").addEventListener("click", function () { largeId = null; renderLarge(); $("gallery-toggle-button").focus(); });
+    $("large-close-button").addEventListener("click", closeLarge);
+    $("large-view").addEventListener("keydown", onLargeKey);
+    $("slideshow-button").addEventListener("click", openSlideshow);
+    $("hint-button").addEventListener("click", function () { pressHint(false); });
+    $("hints-checkbox").addEventListener("change", function () { lsSet("picture-grid:hints-hidden", $("hints-checkbox").checked ? "0" : "1"); if (view) renderHints(); });
+    wirePanelToggle("changelog-toggle-button", "changelog-panel");
+    wirePanelToggle("info-page-toggle-button", "info-page-panel");
+    $("info-page-toggle-button").addEventListener("click", function () { if (!$("info-page-panel").hidden) loadLiveInfo(); });
+    wireDifficulty();
+    wireGoals();
     $("large-play-button").addEventListener("click", function () {
       var id = largeId;
       if (!id) return;
@@ -642,6 +882,7 @@
   }
 
   async function boot() {
+    var changelog = loadChangelog();
     var pyodide = await window.loadPyodide();
     for (var i = 0; i < ENGINE_MODULES.length; i++) {
       var source = await (await fetch(ENGINE_MODULES[i], { cache: "no-cache" })).text();
@@ -657,6 +898,9 @@
     }
     $("engine-status").textContent = "";
     send({ action: "open" });
+    sendDifficulty();
+    await changelog;
+    if (window.GameTutorial) window.GameTutorial.init(TUTORIAL_STEPS, { gameId: "picture-grid" });
   }
 
   wire();

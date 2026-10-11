@@ -12,11 +12,14 @@ import nonogram
 import pictures_g1
 import pictures_g2
 import pictures_g3
+import pictures_g4
+import pictures_g5
+import pictures_g6
 
 OPEN_AT = 6                       # pictures hung in a gallery before the next one opens
 TINTS = ("brass", "teal", "rose", "violet", "moss", "sky")      # the css has one three-tone ramp per name
 
-_MODULES = (pictures_g1, pictures_g2, pictures_g3)
+_MODULES = (pictures_g1, pictures_g2, pictures_g3, pictures_g4, pictures_g5, pictures_g6)
 
 
 class Picture:

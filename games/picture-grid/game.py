@@ -12,6 +12,9 @@ Actions (every request is {"action": ..., ...}; every reply is the whole view):
   undo / redo             step back / forward through your marks on this frame
   assist {name, on}       turn an optional assist on or off: "check", "autodot", "focus"
   retry                   solve a hung picture again from a blank frame (the picture stays hung)
+  hint {confirm}          press the hint ladder once (only ever on a press): 1 nudge, 2 hint, 3 fill the line (see hints.py)
+  slideshow               note that the slideshow of hung pictures was opened (a viewing mode; the page does the showing)
+  difficulty {level}      easy | normal | hard (told by the page, never saved; only changes how the hint ladder opens)
   reset                   start over (everything)
 
 Cell marks in the view's `grid` rows: "." unknown, "#" filled, "x" dot (known empty).
@@ -19,17 +22,22 @@ Cell marks in the view's `grid` rows: "." unknown, "#" filled, "x" dot (known em
 
 import json
 
+import goals
+import hints
+import info
 import nonogram
 import pictures
 
 UNKNOWN, FILLED, EMPTY = nonogram.UNKNOWN, nonogram.FILLED, nonogram.EMPTY
 MARK = {UNKNOWN: ".", FILLED: "#", EMPTY: "x"}
 UNMARK = {".": UNKNOWN, "#": FILLED, "x": EMPTY}
-TALLY_KEYS = ("fills", "dots", "clears")
+TALLY_KEYS = ("fills", "dots", "clears", "hints")
 ASSISTS = ("check", "autodot", "focus")
 MAX_COUNT = 10 ** 9
 MAX_UNDO = 400
 SCHEMA = 1                       # the save layout version; a save from a newer layout is not read
+LEVELS = ("easy", "normal", "hard")
+difficulty = "normal"            # told by the page ({"action": "difficulty"}), a per-browser choice that is never saved; reset and load leave it alone
 
 
 def _int(value, low=0, high=MAX_COUNT, default=0):
@@ -84,6 +92,9 @@ class Game:
         self.redo = []
         self.message = ""
         self.just = None                 # the frame that was hung by the last action (not saved)
+        self.hint = None                 # the ladder in progress on this frame (not saved; any change to the frame clears it)
+        self.hinted = {}                 # picture id -> highest rung asked while it was first being solved (1 nudge, 2 hint, 3 fill)
+        self.slides = False              # has the slideshow been opened
 
     # ---- the current frame -----------------------------------------------------------------------------------------
     @property
@@ -112,6 +123,7 @@ class Game:
     def _enter(self, pid):
         self.current = pid
         self.just = None
+        self.hint = None
         self.undo = []
         self.redo = []
 
@@ -139,6 +151,11 @@ class Game:
         assist = {name: 1 for name in ASSISTS if self.assist[name]}
         if assist:
             data["assist"] = assist
+        hinted = {pid: self.hinted[pid] for pid in pictures.ORDER if self.hinted.get(pid)}
+        if hinted:
+            data["hints"] = hinted
+        if self.slides:
+            data["slides"] = 1
         return data
 
     def load(self, data):
@@ -169,6 +186,10 @@ class Game:
         self.tally = {key: _int(tally.get(key)) for key in TALLY_KEYS}
         assist = data.get("assist") if isinstance(data.get("assist"), dict) else {}
         self.assist = {name: assist.get(name) in (1, True) for name in ASSISTS}
+        raw_hints = data.get("hints") if isinstance(data.get("hints"), dict) else {}
+        self.hinted = {p.id: raw_hints[p.id] for p in pictures.ALL
+                       if p.id in raw_hints and pictures.picture_open(self.solved, p.id) and _int(raw_hints[p.id], 1, 3, 0)}
+        self.slides = data.get("slides") in (1, True)
         cur = data.get("cur")
         self._enter(cur if isinstance(cur, str) and pictures.picture_open(self.solved, cur) else pictures.ORDER[0])
         self.message = ""
@@ -183,7 +204,8 @@ class Game:
                 hung = p.id in self.solved
                 frame = {"id": p.id, "number": p.number, "size": p.size, "hung": hung, "current": p.id == self.current}
                 if hung:
-                    frame.update({"title": p.title, "caption": p.caption, "tint": p.tint, "rows": list(p.rows), "moves": self.solved[p.id]})
+                    frame.update({"title": p.title, "caption": p.caption, "tint": p.tint, "rows": list(p.rows), "moves": self.solved[p.id],
+                                  "hinted": self.hinted.get(p.id, 0) > 0})
                 frames.append(frame)
             need = max(0, min(pictures.OPEN_AT, len(pictures.GALLERIES[g - 1]["pictures"])) - pictures.gallery_hung(self.solved, g - 1)) if g else 0
             out.append({"id": gallery["id"], "name": gallery["name"], "blurb": gallery["blurb"], "open": is_open,
@@ -213,8 +235,10 @@ class Game:
             "grid": _rows_of(grid), "satisfied": {"rows": rows_ok, "cols": cols_ok}, "wrong": wrong,
             "editable": status != "solved", "can_undo": bool(self.undo), "can_redo": bool(self.redo),
             "just": self.just, "galleries": self._wall(), "assist": dict(self.assist), "tally": dict(self.tally),
-            "totals": {"pictures": len(pictures.ORDER), "hung": len(self.solved), "cells": self.tally["fills"],
+            "totals": {"pictures": len(pictures.ORDER), "hung": len(self.solved), "cells": self.tally["fills"], "hints": self.tally["hints"],
                        "galleries": len(pictures.GALLERIES), "galleries_done": pictures.galleries_done(self.solved)},
+            "hint": self._hint_view(), "hint_ui": self._hint_ui(status), "goals": goals.queue(self.solved, self.tally["fills"]),
+            "difficulty": difficulty, "slideshow_seen": self.slides, "info": info.view(),
         }
         if status == "solved":
             view["picture"].update({"title": p.title, "caption": p.caption, "rows": list(p.rows)})
@@ -278,6 +302,7 @@ class Game:
         del self.undo[:-MAX_UNDO]
         self.redo = []
         self.just = None
+        self.hint = None
         if is_complete(p, grid):
             return self._hang()
         return self.view("")
@@ -296,6 +321,7 @@ class Game:
         first = self._finish(pid)
         self.undo = []
         self.redo = []
+        self.hint = None
         self.just = {"id": pid, "first": first, "moves": self.solved[pid]}
         p = self.picture
         return self.view("%s is hung on the wall. %s" % (p.title, p.caption))
@@ -306,6 +332,7 @@ class Game:
         if not stack or not self.editable():
             return self.view("Nothing to %s." % ("redo" if forward else "undo"), ok=False)
         pid, changes = stack.pop()
+        self.hint = None
         grid = self.grids.get(pid)
         if grid is None:
             grid = nonogram.blank_grid(self.picture.height, self.picture.width)
@@ -313,6 +340,99 @@ class Game:
         for r, c, before, after in (changes if forward else reversed(changes)):
             grid[r][c] = after if forward else before
         other.append((pid, changes))
+        return self.view("")
+
+    # ---- the hint ladder -------------------------------------------------------------------------------------------
+    def _hint_view(self):
+        """What the ladder has shown so far on this frame: only the rungs the player pressed for (never the cells before rung 3)."""
+        h = self.hint
+        if not h or h["pid"] != self.current:
+            return None
+        out = {"rung": h["rung"], "kind": h["kind"], "index": h["index"], "line": hints.line_name(h["kind"], h["index"]),
+               "nudge": h["nudge"], "detail": h["detail"] if h["rung"] >= 2 else "", "fill": "", "cells": [], "done": h["done"]}
+        if h["done"]:
+            out["fill"] = h["fill"]
+            out["cells"] = [list(c) for c in h["applied"]]
+        return out
+
+    def _hint_ui(self, status):
+        """What the hint button should offer next: which rung, its words, whether it needs a confirm, whether the level stops it."""
+        h = self.hint if self.hint and self.hint["pid"] == self.current and not self.hint["done"] else None
+        rung = h["rung"] if h else 0
+        limit = 2 if difficulty == "hard" else 3
+        nxt = 0 if rung >= limit else rung + 1
+        labels = {1: "Would you like a suggestion?", 2: "Another hint", 3: "Another hint: fill that line in"}
+        return {"available": status != "solved", "next": nxt, "label": labels.get(nxt, ""), "limit": rung >= limit and difficulty == "hard",
+                "confirm": nxt == 3 and difficulty != "easy", "opens_two": nxt == 1 and difficulty == "easy",
+                "here": self.hinted.get(self.current, 0)}
+
+    def _note_hint(self, rung):
+        """Count one press of the ladder and keep the picture's highest rung (only while it is being solved the first time)."""
+        self.tally["hints"] += 1
+        if self.status() == "open":
+            self.hinted[self.current] = max(self.hinted.get(self.current, 0), rung)
+
+    def ask_hint(self, confirm=False):
+        p = self.picture
+        if not self.editable():
+            return self.view("This picture is hung. Press Solve it again if you would like a suggestion.", ok=False)
+        grid = self.grid_of()
+        h = self.hint if self.hint and self.hint["pid"] == self.current and not self.hint["done"] else None
+        limit = 2 if difficulty == "hard" else 3
+        if h is None:
+            cand = hints.pick(p, grid)
+            if cand is None:
+                return self.view("Nothing is left to suggest on this frame.", ok=False)
+            h = {"pid": self.current, "kind": cand["kind"], "index": cand["index"], "moves": list(cand["moves"]), "rung": 0, "done": False,
+                 "nudge": hints.nudge_text(cand["kind"], cand["index"]),
+                 "detail": hints.detail_text(p, cand["kind"], cand["index"], cand["known"]), "fill": "", "applied": []}
+            self.hint = h
+            h["rung"] = 2 if difficulty == "easy" else 1
+            self._note_hint(h["rung"])
+            return self.view(h["nudge"] if h["rung"] == 1 else h["nudge"] + " " + h["detail"])
+        if h["rung"] >= limit:
+            return self.view("Hard has no fill step: the nudge and the hint are all the help there is.", ok=False)
+        if h["rung"] == 1:
+            h["rung"] = 2
+            self._note_hint(2)
+            return self.view(h["detail"])
+        if difficulty != "easy" and not confirm:
+            return self.view("Filling the line takes the thinking out of it. Press again to confirm.", ok=False)
+        return self._apply_hint_fill(h)
+
+    def _apply_hint_fill(self, h):
+        p = self.picture
+        grid = self.grids.get(self.current)
+        if grid is None:
+            grid = nonogram.blank_grid(p.height, p.width)
+        changes, applied = [], []
+        for i, value in h["moves"]:
+            r, c = hints.point(h["kind"], h["index"], i)
+            if grid[r][c] != value:
+                changes.append((r, c, grid[r][c], value))
+                applied.append((r, c, value))
+        for r, c, _before, after in changes:
+            grid[r][c] = after
+        if self.assist["autodot"]:
+            self._autodot(p, grid, changes)                  # free, like every auto-dot: the ladder's fill is not the player's own mark
+        self.grids[self.current] = grid
+        self.moves[self.current] = self.moves.get(self.current, 0) + 1
+        self.undo.append((self.current, changes))
+        del self.undo[:-MAX_UNDO]
+        self.redo = []
+        self.just = None
+        self._note_hint(3)
+        h["rung"] = 3
+        h["done"] = True
+        h["applied"] = applied
+        h["fill"] = hints.fill_text(h["kind"], h["index"], h["moves"])
+        self.hint = h
+        if is_complete(p, grid):
+            return self._hang()
+        return self.view(h["fill"])
+
+    def open_slideshow(self):
+        self.slides = True
         return self.view("")
 
     # ---- navigation and settings ---------------------------------------------------------------------------------------
@@ -344,6 +464,7 @@ class Game:
         self.moves[self.current] = 0
         self.undo = []
         self.redo = []
+        self.hint = None
         return self.view("A fresh frame. The picture stays hung while you solve it again.")
 
     def set_assist(self, name, on):
@@ -354,6 +475,16 @@ class Game:
 
 
 game = Game()
+
+
+def set_difficulty(level):
+    """Easy / Normal / Hard only change how the hint ladder opens; the pictures, the clues, the rules and every record stay the same."""
+    global difficulty
+    if level not in LEVELS:
+        return game.view("That is not a difficulty.", ok=False)
+    difficulty = level
+    game.hint = None                                         # a ladder in progress was opened under the old level
+    return game.view("")
 
 
 def handle(request_json):
@@ -382,6 +513,12 @@ def handle(request_json):
         return json.dumps(g.set_assist(request.get("name"), request.get("on")))
     if action == "retry":
         return json.dumps(g.retry())
+    if action == "hint":
+        return json.dumps(g.ask_hint(request.get("confirm") is True))
+    if action == "slideshow":
+        return json.dumps(g.open_slideshow())
+    if action == "difficulty":
+        return json.dumps(set_difficulty(request.get("level")))
     return json.dumps({"error": "unknown action " + repr(action)})
 
 

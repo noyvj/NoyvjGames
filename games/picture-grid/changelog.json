@@ -1,0 +1,16 @@
+{
+  "changelog": [
+    {
+      "date": "2026-10-12",
+      "entry": "The standard kit arrives: an opening screen with Continue and New Game, a short skippable tutorial, an About panel with the real history of nonograms (read live from Wikipedia when it can be, with its source and read date named), What's New, a keyboard help overlay on ? and Esc, and a confirm question before Clear frame and before starting the gallery over. Nothing changes in the pictures or the rules."
+    },
+    {
+      "date": "2026-10-12",
+      "entry": "Three more galleries and the first complete game: Station Rooms, Deep Sky and The Long Wall, 30 new pictures at 10 by 10, 12 by 12 and 15 by 15, 60 in all. Every picture is proved to have exactly one answer and to be finishable by line logic alone. A suggestion button gives a graded hint ladder that only opens when you press it (a nudge, then the kind of reasoning, then fill that line after a confirm), an always-visible strip shows three goals with bars, the Gallery has a Slideshow button over the pictures you have hung, and a Difficulty choice (Easy, Normal, Hard) changes only how the hints open."
+    },
+    {
+      "date": "2026-10-12",
+      "entry": "The first three galleries: Instruments (5 by 5), Small Machines (8 by 8) and Robots (10 by 10), a gallery wall with a large view of every picture you have hung, and a frame you can mark by dragging, with dots, undo and optional helpers."
+    }
+  ]
+}

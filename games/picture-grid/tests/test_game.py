@@ -37,9 +37,9 @@ def test_open_returns_the_whole_view():
     assert v["ok"] and v["picture"]["id"] == first.id and v["picture"]["status"] == "open" and v["editable"]
     assert v["picture"]["row_clues"] == first.row_clues and v["picture"]["col_clues"] == first.col_clues
     assert v["grid"] == ["....."] * 5 and v["wrong"] == [] and v["just"] is None
-    assert v["totals"] == {"pictures": 30, "hung": 0, "cells": 0, "galleries": 3, "galleries_done": 0}
-    assert v["tally"] == {"fills": 0, "dots": 0, "clears": 0} and v["assist"] == {"check": False, "autodot": False, "focus": False}
-    assert [g["open"] for g in v["galleries"]] == [True, False, False]
+    assert v["totals"] == {"pictures": 60, "hung": 0, "cells": 0, "hints": 0, "galleries": 6, "galleries_done": 0}
+    assert v["tally"] == {"fills": 0, "dots": 0, "clears": 0, "hints": 0} and v["assist"] == {"check": False, "autodot": False, "focus": False}
+    assert [g["open"] for g in v["galleries"]] == [True, False, False, False, False, False]
 
 
 def test_the_view_never_leaks_an_unhung_picture():
@@ -212,10 +212,10 @@ def test_next_goes_to_the_next_open_frame_not_yet_hung():
 
 def test_every_gallery_can_be_finished_and_a_full_wall_says_so():
     fresh()
-    for g in range(3):
+    for g in range(len(pictures.GALLERIES)):
         hang_gallery(g)
     v = call(action="open")
-    assert v["totals"]["hung"] == 30 and v["totals"]["galleries_done"] == 3
+    assert v["totals"]["hung"] == 60 and v["totals"]["galleries_done"] == 6
     assert call(action="next")["message"] == "Every frame is hung."
     assert all(f["hung"] for g in v["galleries"] for f in g["frames"])
 

@@ -117,3 +117,36 @@ def test_gating_opens_the_next_gallery_at_six_hung():
     assert pictures.picture_open(six, second[0].id) and not pictures.picture_open(five, second[0].id)
     assert not pictures.picture_open(set(), "nothing")
     assert pictures.galleries_done({p.id for p in first}) == 1 and pictures.galleries_done(set()) == 0
+
+
+def test_there_are_six_galleries_of_ten_sixty_pictures_with_the_planned_sizes():
+    assert len(pictures.GALLERIES) == 6 and len(ALL) == 60
+    assert [g["name"] for g in pictures.GALLERIES] == ["Instruments", "Small Machines", "Robots", "Station Rooms", "Deep Sky", "The Long Wall"]
+    assert [len(g["pictures"]) for g in pictures.GALLERIES] == [10] * 6
+    sizes = [{p.size for p in g["pictures"]} for g in pictures.GALLERIES]
+    assert sizes[3] == {"10x10", "12x12"} and sizes[4] == {"12x12", "15x15"} and sizes[5] == {"12x12", "15x15"}
+    assert sum(1 for p in ALL if p.size == "15x15") >= 10 and sum(1 for p in ALL if p.size == "12x12") >= 10
+    assert all(g["blurb"].strip() for g in pictures.GALLERIES)
+
+
+def test_every_gallery_opens_after_six_of_the_one_before_all_the_way_to_the_wall():
+    solved = set()
+    for g in range(len(pictures.GALLERIES) - 1):
+        assert not pictures.gallery_open(solved, g + 1)
+        solved |= {p.id for p in pictures.GALLERIES[g]["pictures"][:6]}
+        assert pictures.gallery_open(solved, g + 1)
+    assert pictures.gallery_open(solved, 5) and pictures.picture_open(solved, pictures.GALLERIES[5]["pictures"][9].id)
+
+
+def test_no_picture_is_a_symmetric_blob_with_no_asymmetric_detail():
+    """The plan asks for asymmetric details: no picture is perfectly mirror symmetric both ways and every one has some empty cells inside."""
+    for p in ALL[30:]:
+        both = all(row == row[::-1] for row in p.rows) and list(p.rows) == list(p.rows)[::-1]
+        assert not both, p.id
+
+
+def test_the_new_pictures_are_proved_by_the_tool_too():
+    import check_pictures
+    for g in pictures.GALLERIES[3:]:
+        for p in g["pictures"]:
+            assert check_pictures.passes(list(p.rows)), p.id
