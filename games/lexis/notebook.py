@@ -20,6 +20,23 @@ def is_message(value):
     return 0 < len(text) <= 60 and all(c.isalnum() or c == " " for c in text)
 
 
+def _count(value):
+    """A whole number of at least 0 for a saved counter; anything else (text, None, a huge float) reads as 0, so
+    one damaged field no longer throws away the rest of the save."""
+    try:
+        return max(0, int(value))
+    except (TypeError, ValueError, OverflowError):
+        return 0
+
+
+def _as_dict(value):
+    return value if isinstance(value, dict) else {}
+
+
+def _as_list(value):
+    return value if isinstance(value, list) else []
+
+
 @dataclass
 class Notebook:
     entries: dict = field(default_factory=dict)   # form -> the player's gloss
@@ -55,7 +72,7 @@ class Notebook:
     @staticmethod
     def from_dict(data):
         nb = Notebook()
-        for form, gloss in (data or {}).get("entries", {}).items():
+        for form, gloss in _as_dict(_as_dict(data).get("entries")).items():
             nb.write(str(form), gloss)
         return nb
 
@@ -95,19 +112,19 @@ class LexisState:
 
     @staticmethod
     def from_dict(data):
-        data = data or {}
-        state = LexisState(Notebook.from_dict(data.get("notebook")), max(0, int(data.get("scenes_seen", 0))))
-        state.spoken = [str(s) for s in data.get("spoken", []) if set(str(s)) <= set("01")][-200:]
-        comp = data.get("compound") or {}
+        data = _as_dict(data)
+        state = LexisState(Notebook.from_dict(data.get("notebook")), _count(data.get("scenes_seen")))
+        state.spoken = [str(s) for s in _as_list(data.get("spoken")) if set(str(s)) <= set("01")][-200:]
+        comp = _as_dict(data.get("compound"))
         state.compound_notebook = Notebook.from_dict(comp.get("notebook"))
-        state.compound_scenes_seen = max(0, int(comp.get("scenes_seen", 0)))
-        state.compound_spoken = [str(s) for s in comp.get("spoken", []) if str(s).isalpha()][-200:]
-        bridge = data.get("bridge") or {}
+        state.compound_scenes_seen = _count(comp.get("scenes_seen"))
+        state.compound_spoken = [str(s) for s in _as_list(comp.get("spoken")) if str(s).isalpha()][-200:]
+        bridge = _as_dict(data.get("bridge"))
         state.bridge_notebook = Notebook.from_dict(bridge.get("notebook"))
-        state.bridge_scenes_seen = max(0, int(bridge.get("scenes_seen", 0)))
-        state.bridge_spoken = [str(s) for s in bridge.get("spoken", []) if is_message(s)][-200:]
-        contact = data.get("contact") or {}
+        state.bridge_scenes_seen = _count(bridge.get("scenes_seen"))
+        state.bridge_spoken = [str(s) for s in _as_list(bridge.get("spoken")) if is_message(s)][-200:]
+        contact = _as_dict(data.get("contact"))
         state.contact = {"pulse": bool(contact.get("pulse")), "compound": bool(contact.get("compound")),
                          "bridge": bool(contact.get("bridge"))}
-        state.flags = {str(k): True for k, v in (data.get("flags") or {}).items() if v}
+        state.flags = {str(k): True for k, v in _as_dict(data.get("flags")).items() if v}
         return state

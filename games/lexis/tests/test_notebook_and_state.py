@@ -59,3 +59,17 @@ def test_state_round_trips_planet_three_and_old_saves_still_load():
     assert old.contact == {"pulse": True, "compound": True, "bridge": False} and old.bridge_spoken == []
     junk = LexisState.from_dict({"bridge": {"scenes_seen": -2, "spoken": ["ku p 0011", "<b>", 5, "x" * 99]}})
     assert junk.bridge_scenes_seen == 0 and junk.bridge_spoken == ["ku p 0011", "5"]
+
+
+def test_one_damaged_saved_field_does_not_throw_away_the_rest_of_the_save():
+    """QA-1: a text counter or a non-dict section used to raise, and load_state then dropped the whole save."""
+    state = LexisState.from_dict({
+        "notebook": {"entries": {"1000": "lamp"}}, "scenes_seen": "many", "spoken": "0101",
+        "compound": {"scenes_seen": [3], "spoken": None, "notebook": 5},
+        "bridge": "nope", "contact": {"pulse": True}, "flags": ["x"],
+    })
+    assert state.notebook.entries == {"1000": "lamp"}
+    assert (state.scenes_seen, state.compound_scenes_seen, state.bridge_scenes_seen) == (0, 0, 0)
+    assert state.spoken == [] and state.contact["pulse"] is True and state.flags == {}
+    assert LexisState.from_dict({"scenes_seen": float("inf")}).scenes_seen == 0
+    assert LexisState.from_dict({"notebook": {"entries": ["x"]}}).notebook.entries == {}
