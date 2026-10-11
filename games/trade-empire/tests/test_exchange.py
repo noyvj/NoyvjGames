@@ -252,4 +252,3 @@ def test_sandbox_round_trip_restores_the_real_orders(game_env):
     assert m.exchange_orders == []
     m.sandbox_leave()
     assert json.dumps(m.get_state(), sort_keys=True) == before
-
