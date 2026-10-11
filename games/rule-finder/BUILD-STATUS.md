@@ -15,8 +15,10 @@ Updated after every milestone. Read `planning/rule-finder-plan.md`, `CLAUDE.md` 
 
 - M6 Achievements: manifest, panel, toast, share button, perfect-player reachability test; 294 tests; checked live (toast, panel) at 1440x900.
 
+- M7 Desktop boot: `pc-config.json`, `pc.css`, `pc.js`, generated `pc.html`, `layout-pref.js`, desktop tests; shared `-k rule` tests and the generator check pass; 300 tests; checked live at 1440x900 (stage, side tally, Drawers window) and 360x740.
+
 ## Next
-- M7 Desktop boot (pc-config.json, pc.css, pc.js, generated pc.html, layout-pref), final docs.
+- Nothing in this folder. Hub registration (QI-5-R) is the hub session's job.
 
 ## Open problems / notes
 - Local Python is 3.9: engine code avoids 3.10+ syntax.

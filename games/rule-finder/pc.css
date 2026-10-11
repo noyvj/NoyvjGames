@@ -1,0 +1,24 @@
+/* Rule Finder, Desktop boot only (loaded by pc.html). Everything is scoped to the pc layout, so the Classic page is untouched.
+   The case (gate, your log, Rule Builder) is the stage; the tally is a side column; the stats strip and the three goals sit
+   above the stage. The frame, windows and Menu come from shared/pc-shell.css. */
+
+html[data-layout="pc"] #game { padding-bottom: 0.4rem; max-width: none; }
+#pc-topbar { grid-template-columns: auto minmax(0, 1fr); grid-template-areas: "title tools"; padding-right: 9rem; }
+#pc-topbar > .game-toolbar { justify-content: flex-end; }
+#pc-topbar > h1 { font-size: 1.4rem; letter-spacing: 0.12em; }
+
+#pc-stagebar { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 0.6rem; align-items: start; }
+#pc-stagebar #stats { margin: 0; grid-template-columns: repeat(4, minmax(0, 1fr)); }
+#pc-stagebar #goals { margin: 0; }
+html[data-layout="pc"] .stat { display: flex; flex-direction: column; }
+
+#pc-stage > #case-panel { flex: 1 1 0; min-height: 0; overflow-y: auto; margin: 0; }
+html[data-layout="pc"] .rf-grid { grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); align-items: start; }
+html[data-layout="pc"] .gate-holder { max-width: min(100%, 26rem); }
+
+#pc-body.pc-has-side { grid-template-columns: minmax(0, 1fr) clamp(12rem, 16vw, 16rem); }
+#pc-side { min-width: 0; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; gap: 0.6rem; padding-right: 0.2rem; }
+#pc-side #tally { margin: 0; }
+
+html[data-layout="pc"] #story-toggle { top: 0.6rem !important; left: auto !important; right: 12rem !important; }
+html[data-layout="pc"] .map-holder { max-width: 36rem; }

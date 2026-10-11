@@ -40,7 +40,7 @@ A signal-room sorting game: an old relay lets some items through its gate and st
 | 4 | Drawers 5-6, hints, goals | 16 more cases (48 in all), patterns, odd gate, hint ladder, goals strip, medals | Done |
 | 5 | Standard kit | Opening screen, tutorial, About with Sources, What's New, keyboard help, confirm dialogs, light theme, accessibility | Done |
 | 6 | Achievements | 14 achievements, panel and toast, manifest, reachability test | Done |
-| 7 | Desktop boot and wrap-up | `pc-config.json`, `pc.css`, `pc.js`, generated `pc.html`, docs, changelog | |
+| 7 | Desktop boot and wrap-up | `pc-config.json`, `pc.css`, `pc.js`, generated `pc.html`, docs, changelog | Done |
 
 ## Engine and page notes (milestone 2)
 - `game.handle(json)` returns the whole view; the clause `menu` is sent only when the case changes (`menu_due`). Actions: `open`, `pick`, `next`, `test {item}`, `preview {rule}`, `name {rule}`, `restart`, `reset`. A rule is `{"lits": [[clause id, negated], ...], "ops": ["and"|"or", ...]}`.
@@ -70,6 +70,13 @@ A signal-room sorting game: an old relay lets some items through its gate and st
 ## Milestone 6 notes
 - `achievements.py` holds the table and facts (named, drawers closed, quick = named with 3 or fewer tests, clean = within par, counter = named after a near miss, both = rule used Not, tests sent, drawer counts, pages read); `achievements.json` is the hub manifest (a test keeps them equal). `achievements_earned` is written to the save and never read back. Panel and toast in `app.js` use the hub hooks (`data-achievement-id`, `data-achievement-label`); the share button is `shared/achievement-share.js`. `tests/test_achievements.py` plays a perfect player (shortest-path tests only, one near miss, no hints) and checks all 14 are earned.
 - The page's only network read beyond its own files is the shared script's stats GET, which 404s until the hub registers the game (QI-5-R).
+
+## Milestone 7 notes and pre-release checklist
+- Desktop boot: the case panel (gate, log, Rule Builder, hints, verdict) is the stage; the tally is the side column; the stats strip and the three goals sit above the stage; Drawers, Rule Codex, Achievements, What's New, Settings and About open as windows. `pc.html` is generated for this game only (`importlib` on `scripts/generate-pc-pages.py`, `build("rule-finder", cfg)` written to `pc.html`); `python3 scripts/generate-pc-pages.py --check` and `python3 -m pytest -q shared/tests -k rule` pass. The Classic page carries `shared/layout-pref.js`.
+- Files the page fetches at load (for the service worker precache): `index.html`, `pc.html`, `style.css`, `pc.css`, `settings.js`, `app.js`, `pc.js`, `changelog.json`, `icons/favicon-rule-finder.svg`, `game.py` and the engine modules `lang.py`, `cases_numbers.py`, `cases_shapes.py`, `cases_two.py`, `cases_not.py`, `cases_patterns.py`, `cases_odd.py`, `cases.py`, `progress.py`, `hints.py`, `achievements.py`, `codex.py`, `render.py`, `info.py`; the hub also reads `achievements.json` and `sources.json`.
+- Hub registration (QI-5-R: title card, `sw.js` precache, `game-*.json`, root CLAUDE.md row, share cards, perf budget, smoke tests) is NOT part of this folder. Until then the shared stats script's GET for this game 404s harmlessly.
+- Manual checks worth a human pass: touch use of the pattern builder on a real phone, a screen-reader walk through the Rule Builder selects, and the Desktop opening-screen "Switch to Classic layout" button.
+- Owner questions: see the plan's section 11 (defaults built: a wrong name never shows the hidden rule; no free "write your own rule" mode) and the deviations listed in this file (no drawer gating; par is shortest path + 2; the Answer rung loads the rule but does not name the case).
 
 ## Working conventions
 - Commit only this folder with a pathspec commit, then tag `rule-finder-milestone-0N`. Hub registration (QI-5-R) is a separate later job.

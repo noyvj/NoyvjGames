@@ -2,6 +2,10 @@
   "changelog": [
     {
       "date": "2026-10-11",
+      "entry": "A Desktop layout for wide windows: the gate, your log and the Rule Builder fill the stage, the tally sits in a side column, and the Drawers wall, the Rule Codex, Achievements and Settings open as windows from icons or the Menu (Esc). It is the same game and the same save; the Classic layout is unchanged and is still what phones use."
+    },
+    {
+      "date": "2026-10-11",
       "entry": "Fourteen achievements, none timed or luck-based, each with a visible count, in a new Achievements panel with a share button and a small toast when one unlocks: naming cases, closing drawers, naming with few tests, naming within par, naming after a counter-example, using Not, sending tests, reading the Codex."
     },
     {
