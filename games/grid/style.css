@@ -1885,3 +1885,50 @@ html[data-reduced-motion="true"] *::after {
 [data-rank-theme="gold"] { --rank-accent: #f0e442; }
 .rank-display { font-weight: 600; border-left: 3px solid var(--rank-accent, transparent); padding-left: 0.4rem; }
 .career-panel[data-rank-theme] { border-left: 4px solid var(--rank-accent, transparent); }
+
+/* C-28: chart colour themes. The page sets data-chart-theme on the trend graph, its checkboxes and the plant-mix section
+   (Settings > Chart colours). "default" is everything above; these only override it. Every line keeps its own dash
+   pattern in all three themes, and the grayscale theme gives every plant-mix bar its own fill pattern too, so no
+   chart ever depends on colour alone. */
+[data-chart-theme="contrast"] .trend-line { stroke-width: 3; }
+[data-chart-theme="contrast"] .trend-line--emissions { stroke: #ff8a66; }
+[data-chart-theme="contrast"] .trend-line--cost { stroke: #6fd0ff; }
+[data-chart-theme="contrast"] .trend-line--global { stroke: #ffffff; }
+[data-chart-theme="contrast"] .trend-line--funds { stroke: #ffe14d; }
+[data-chart-theme="contrast"] .trend-line--demand { stroke: #f0c4ff; }
+[data-chart-theme="contrast"] .trend-line--clean { stroke: #4dffc4; }
+[data-chart-theme="contrast"] .trend-point--emissions { fill: #ff8a66; }
+[data-chart-theme="contrast"] .trend-point--cost { fill: #6fd0ff; }
+[data-chart-theme="contrast"] .trend-point--global { fill: #ffffff; }
+[data-chart-theme="contrast"] .trend-point--funds { fill: #ffe14d; }
+[data-chart-theme="contrast"] .trend-point--demand { fill: #f0c4ff; }
+[data-chart-theme="contrast"] .trend-point--clean { fill: #4dffc4; }
+[data-chart-theme="contrast"] .mix-bar-track { height: 14px; border: 1px solid rgba(255, 255, 255, 0.55); }
+[data-chart-theme="contrast"] .mix-bar--coal { background: #b8bccb; }
+[data-chart-theme="contrast"] .mix-bar--gas { background: #ffb73d; }
+[data-chart-theme="contrast"] .mix-bar--nuclear { background: #f2ff3d; }
+[data-chart-theme="contrast"] .mix-bar--solar { background: #3d9bff; }
+[data-chart-theme="contrast"] .mix-bar--wind { background: #ffffff; }
+[data-chart-theme="contrast"] .mix-bar--hydro { background: #00d0ff; }
+
+[data-chart-theme="pattern"] .trend-line { stroke-width: 2.5; }
+[data-chart-theme="pattern"] .trend-line--emissions { stroke: #ffffff; stroke-width: 3.5; }
+[data-chart-theme="pattern"] .trend-line--cost { stroke: #d2d2d2; }
+[data-chart-theme="pattern"] .trend-line--global { stroke: #8c8c8c; }
+[data-chart-theme="pattern"] .trend-line--funds { stroke: #bdbdbd; }
+[data-chart-theme="pattern"] .trend-line--demand { stroke: #a0a0a0; }
+[data-chart-theme="pattern"] .trend-line--clean { stroke: #ececec; }
+[data-chart-theme="pattern"] .trend-line--ghost { stroke: #9a9a9a; }
+[data-chart-theme="pattern"] .trend-point--emissions { fill: #ffffff; }
+[data-chart-theme="pattern"] .trend-point--cost { fill: #d2d2d2; }
+[data-chart-theme="pattern"] .trend-point--global { fill: #8c8c8c; }
+[data-chart-theme="pattern"] .trend-point--funds { fill: #bdbdbd; }
+[data-chart-theme="pattern"] .trend-point--demand { fill: #a0a0a0; }
+[data-chart-theme="pattern"] .trend-point--clean { fill: #ececec; }
+[data-chart-theme="pattern"] .mix-bar-track { height: 14px; border: 1px solid rgba(255, 255, 255, 0.45); }
+[data-chart-theme="pattern"] .mix-bar--coal { background: #9a9a9a; }
+[data-chart-theme="pattern"] .mix-bar--gas { background: repeating-linear-gradient(0deg, #e6e6e6 0 2px, #4a4a4a 2px 4px); }
+[data-chart-theme="pattern"] .mix-bar--nuclear { background: repeating-linear-gradient(45deg, #f2f2f2 0 3px, #555 3px 6px); }
+[data-chart-theme="pattern"] .mix-bar--solar { background: radial-gradient(circle, #f4f4f4 0 1.5px, #5a5a5a 1.6px) 0 0 / 5px 5px; }
+[data-chart-theme="pattern"] .mix-bar--wind { background: repeating-linear-gradient(45deg, #ececec 0 2px, transparent 2px 5px), repeating-linear-gradient(-45deg, #ececec 0 2px, #5a5a5a 2px 5px); }
+[data-chart-theme="pattern"] .mix-bar--hydro { background: repeating-linear-gradient(90deg, #e8e8e8 0 2px, #4e4e4e 2px 5px); }

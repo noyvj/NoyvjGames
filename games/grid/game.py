@@ -1914,12 +1914,17 @@ PREF_DEFAULTS = {
     "skyline": True,
     "gauge_effects": True,
     "rank_theme": "default",
+    "chart_theme": "default",
 }
 RANK_THEMES = ("default", "teal", "amber", "violet", "rose", "gold")
+# C-28: how the trend graph and the plant-mix bars are coloured. "contrast" uses brighter, thicker lines and bars;
+# "pattern" drops colour for greys and tells every line and bar apart by its dash or fill pattern.
+CHART_THEMES = ("default", "contrast", "pattern")
 PREF_CHOICES = {
     "number_format": ("full", "compact"),
     "unit": ("units", "mw"),
     "rank_theme": RANK_THEMES,
+    "chart_theme": CHART_THEMES,
 }
 prefs = dict(PREF_DEFAULTS)
 
@@ -3649,6 +3654,15 @@ def gauge_table_html():
     )
 
 
+def render_chart_theme():
+    """C-28: the chosen chart theme goes on the trend graph, its checkboxes and the plant-mix section; the look
+    itself is all in style.css (attribute selectors), so nothing here touches a number."""
+    theme = prefs["chart_theme"]
+    for element_id in ("trend-graph", "trend-controls", "plant-mix"):
+        document.getElementById(element_id).dataset.chartTheme = theme
+    document.getElementById("pref-chart-theme").value = theme
+
+
 def render_chart_tables():
     """C-19: with 'Show charts as tables' on, the plant-mix bars and the gauges also get a plain table."""
     on = prefs["table_view"]
@@ -4367,6 +4381,7 @@ def render():
         weather_button.classList.remove("active")
 
     render_trend()
+    render_chart_theme()
     render_chart_tables()
     render_fleet_overview()
     render_coach()
@@ -6649,6 +6664,9 @@ def setup():
         "change", create_proxy(_make_pref_select_handler("number_format"))
     )
     document.getElementById("pref-unit").addEventListener("change", create_proxy(_make_pref_select_handler("unit")))
+    document.getElementById("pref-chart-theme").addEventListener(
+        "change", create_proxy(_make_pref_select_handler("chart_theme"))
+    )
     for fleet_key, _label in FLEET_COLUMNS:
         document.getElementById(f"fleet-sort-{fleet_key}").addEventListener(
             "click", create_proxy(_make_fleet_sort_handler(fleet_key))

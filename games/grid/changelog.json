@@ -2,6 +2,10 @@
   "changelog": [
     {
       "date": "2026-10-11",
+      "entry": "New: chart colour themes. Settings has a Chart colours choice for the trend graph and the plant-mix bars: Default, High contrast (brighter, thicker lines and outlined bars) and Grayscale with patterns, where every line keeps its own dash style and every plant type gets its own fill (stripes, dots, hatching), so nothing depends on colour. It is a display choice only and is not part of a save."
+    },
+    {
+      "date": "2026-10-11",
       "entry": "New: operator ranks. Your lifetime rounds and grades earn a title from Junior Dispatcher up to Chief Engineer, shown under the game title, with a Career panel line saying how far the next rank is. Each rank above the first unlocks an accent colour for the title and the Career panel. Ranks are just for show: they change no rule."
     },
     {

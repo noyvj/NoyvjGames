@@ -175,6 +175,7 @@ ELEMENT_IDS += ["pref-coach", "coach-panel", "coach-text", "settings-reset-butto
                 "pref-number-format", "pref-unit", "funds-delta-display",
                 "skyline-strip", "skyline-graphic", "skyline-caption", "pref-skyline", "gridley-line", "pref-gridley",
                 "needle-gauge", "needle-gauge-needle", "needle-gauge-caption", "needle-gauge-graphic", "pref-gauge-effects",
+                "pref-chart-theme", "trend-controls", "plant-mix",
                 "rank-display", "career-rank-display", "rank-theme-select", "rank-theme-note"]
 # C-14 fleet overview.
 ELEMENT_IDS += ["fleet-body"] + [f"fleet-sort-{k}" for k in ("plant", "count", "wear", "risk", "next", "revenue")]
