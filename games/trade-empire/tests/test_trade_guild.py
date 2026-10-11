@@ -1,10 +1,11 @@
 """J3 -- the Trade Guild: occasional optional bulk contracts."""
 
 import json
+import random
 
 
 def _seed(module, seed=1):
-    module.guild_rng.seed(seed)
+    module.guild_rng = random.Random(seed)
 
 
 def _ready(module):

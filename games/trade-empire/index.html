@@ -659,6 +659,15 @@
         <details class="info-toggle"><summary>i</summary><p>Selling a good repeatedly crashes its price — each unit sold nudges that good's price down, and it only recovers gradually on its own if you leave it alone for a while. Spreading sales across goods keeps prices higher than dumping everything on one.</p></details>
       </p>
       <div class="route-hazards"><button id="route-hazards-toggle-button" class="secondary" type="button">Route hazards: off</button> <button id="route-insurance-toggle-button" class="secondary" type="button" disabled>Route insurance: off</button><p id="route-hazards-status" class="map-caption"></p></div>
+      <details class="run-seed-details"><summary>Run seed</summary>
+        <p id="run-seed-display" class="map-caption">Run seed: </p>
+        <button id="run-seed-copy-button" class="secondary" type="button">Copy seed</button>
+        <label class="run-seed-label">Start from a seed:
+          <input id="run-seed-input" type="text" class="run-seed-input" placeholder="TRADEEMPIRE-K7F2Q" maxlength="24" autocomplete="off" spellcheck="false" aria-label="Run seed to start from">
+        </label>
+        <button id="run-seed-apply-button" class="secondary" type="button">Use seed</button>
+        <p id="run-seed-note" class="map-caption" role="status"></p>
+      </details>
       <div class="trade-post"><button id="trade-post-button" class="secondary" type="button" hidden>Establish trade post (400)</button><p id="trade-post-status" class="map-caption" hidden></p></div>
       <p id="diplomacy-status" class="map-caption" hidden></p>
       <div class="seasonal-demand"><button id="seasonal-demand-toggle-button" class="secondary" type="button">Seasonal demand: off</button><p id="seasonal-demand-status" class="map-caption"></p></div>
@@ -1358,6 +1367,9 @@
       // ACHIEVEMENTS-SYSTEM-DESIGN.md's loading contract: fetch the static
       // catalog and hand it to Python as a window global *before* game.py
       // runs, same pattern SOL (the reference integration) established.
+      // Shared seeded-run helper (shared/seed.py, Z-1): game.py's `import seed` resolves from Pyodide's filesystem.
+      const seedSource = await (await fetch("../../shared/seed.py")).text();
+      pyodide.FS.writeFile("seed.py", seedSource, { encoding: "utf8" });
       const [achievementsJson, changelogJson, code] = await Promise.all([
         fetch("achievements.json").then((response) => response.text()),
         fetch("changelog.json").then((response) => response.text()),

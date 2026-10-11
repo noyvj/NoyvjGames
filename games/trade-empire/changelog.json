@@ -1,5 +1,9 @@
 [
   {
+    "date": "2026-10-12",
+    "entry": "New: a run seed. Open \"Run seed\" under the market's route hazards to see your corporation's seed (such as TRADEEMPIRE-K7F2Q), copy it, or start from a seed someone shared. Route hazards, Trade Guild contracts and the founding conditions of a renewed charter now follow that seed, so the same seed gives the same hazards and offers. A seed can be typed until one of those has used it; saves from before this load unchanged."
+  },
+  {
     "date": "2026-10-11",
     "entry": "New: the Modes screen (the Modes button on the toolbar, or Menu > Empire on Desktop). It lists the game modes as an ordered ladder, from the core game through Expeditions, Chain Builder, Trade Crises and Blackout to the Practice sandbox, each with one line on what it adds. Every mode is open from the start; the order is only a suggested path, and the next suggested mode is marked."
   },

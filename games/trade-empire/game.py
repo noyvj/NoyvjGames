@@ -51,6 +51,8 @@ import math
 import random
 from fractions import Fraction
 
+import seed as seed_lib
+
 from js import document, setInterval, setTimeout
 from pyodide.ffi import create_proxy
 
@@ -828,7 +830,70 @@ route_insurance_enabled = False
 disruptions_suffered = 0
 insurance_payouts = 0
 premiums_paid = 0
-hazard_rng = random.Random()
+hazard_rng = None  # None = the run seed's "hazard" stream; a test may set any object with .random()
+
+# Seeded runs (Z-1b, the shared shared/seed.py reused read-only). One short run seed such as
+# TRADEEMPIRE-K7F2Q drives the three random systems: route hazards, Trade Guild offers and the
+# founding conditions of a renewed charter. Every draw comes from a STATELESS stream named by
+# (seed, purpose, counter), so the same seed and the same choices give the same hazards, contracts
+# and founding conditions, and a saved game resumes exactly where it was. The seed is a run-level
+# key, written to a save only once it has been used or typed (a brand-new save is unchanged), and a
+# charter renewal keeps it. Old saves without one simply get a fresh seed when they load.
+SEED_GAME = "trade-empire"
+run_seed = ""  # made on first need (current_run_seed)
+run_seed_pinned = False  # True once the player typed one (or a save carried one)
+run_seed_message = ""
+hazard_rolls = 0  # how many hazard rolls the run has made (the stream position)
+guild_offers = 0  # how many guild offers the run has made
+
+
+def new_run_seed():
+    return seed_lib.new_seed(SEED_GAME)
+
+
+def current_run_seed():
+    global run_seed
+    if not run_seed:
+        run_seed = new_run_seed()
+    return run_seed
+
+
+def run_stream(label, n):
+    """The deterministic generator for one purpose and one position in the run."""
+    return seed_lib.Rng(f"{current_run_seed()}#{label}#{n}")
+
+
+def run_seed_draws():
+    """How many seeded draws this run has already made."""
+    return hazard_rolls + guild_offers + charters_completed + (1 if founding_seed else 0)
+
+
+def run_seed_changeable():
+    """A typed seed is accepted only before the run has used its seed (and not in the practice sandbox)."""
+    return not sandbox_active and run_seed_draws() == 0
+
+
+def set_run_seed(text):
+    """Start from a typed seed. Returns (ok, message)."""
+    global run_seed, run_seed_pinned
+    result = seed_lib.validate(text, SEED_GAME)
+    if not result["ok"]:
+        return False, result["message"]
+    if not run_seed_changeable():
+        return False, "The seed can only be changed before a hazard, a guild offer or a new charter has used it."
+    run_seed = result["seed"]
+    run_seed_pinned = True
+    return True, f"Seed {run_seed} set."
+
+
+def hazard_roll():
+    """One route-hazard roll in [0, 1): the override when a test set one, else the run's hazard stream."""
+    global hazard_rolls
+    n = hazard_rolls
+    hazard_rolls += 1
+    if hazard_rng is not None:
+        return hazard_rng.random()
+    return run_stream("hazard", n).random()
 
 
 def seasonal_reachable_goods():
@@ -1346,7 +1411,7 @@ class Ship:
                 * captain_proceeds_multiplier(self, destination, good) * colony_premium_multiplier(destination)
                 * archetype_for(self).get("proceeds", 1.0)
             ))
-            if route_hazards_enabled and hazard_rng.random() < ROUTE_HAZARD_CHANCE:
+            if route_hazards_enabled and hazard_roll() < ROUTE_HAZARD_CHANCE:
                 # J11 -- a route disruption: the cargo is lost, nothing is
                 # delivered or sold. Insurance pays a share of what the
                 # trip would have earned. qty == 0 marks the disruption
@@ -1845,7 +1910,7 @@ GUILD_DEADLINE_TICKS = 150
 GUILD_UNITS_MIN, GUILD_UNITS_MAX = 10, 30
 GUILD_REWARD_MULTIPLIER = 1.6  # bonus credits = units x current price x this
 GUILD_STATES = ("none", "offered", "active")
-guild_rng = random.Random()
+guild_rng = None  # None = the run seed's "guild" stream; a test may set a random.Random
 guild_state = "none"
 guild_contract = {"good": None, "destination": None, "units": 0, "delivered": 0, "ticks_left": 0, "reward": 0}
 guild_cooldown = GUILD_FIRST_OFFER_TICKS
@@ -1873,8 +1938,11 @@ def guild_make_offer():
     options = guild_candidates()
     if not options or guild_state != "none":
         return False
-    destination, good = guild_rng.choice(options)
-    units = guild_rng.randint(GUILD_UNITS_MIN, GUILD_UNITS_MAX)
+    global guild_offers
+    rng = guild_rng if guild_rng is not None else run_stream("guild", guild_offers)
+    guild_offers += 1
+    destination, good = rng.choice(options)
+    units = rng.randint(GUILD_UNITS_MIN, GUILD_UNITS_MAX)
     guild_contract.update({
         "good": good,
         "destination": destination,
@@ -2015,6 +2083,7 @@ def found_new_corporation():
     global charters_completed, charter_points_earned, charter_perks, hard_charter_active, hard_charter_next
     global ledger_units_moved, ledger_routes_established, ledger_hard_completed, ledger_routes_seen
     global ledger_charter_units, charter_career, captains_met
+    global run_seed, run_seed_pinned, hazard_rolls, guild_offers
     if not can_found_new_corporation():
         return False
     order = {entry["id"]: i for i, entry in enumerate(ACHIEVEMENTS)}
@@ -2038,6 +2107,7 @@ def found_new_corporation():
         }],
         "met": set(captains_met),
         "records": copy.deepcopy(records),
+        "seed": (run_seed, run_seed_pinned, hazard_rolls, guild_offers),
     }
     finishing_hard = hard_charter_active
     begin_hard = hard_charter_next and hard_charter_unlocked()
@@ -2051,6 +2121,7 @@ def found_new_corporation():
     ledger_routes_seen = set()
     ledger_charter_units = 0
     charter_career = keep["career"][-CAREER_MAX_ENTRIES:]
+    run_seed, run_seed_pinned, hazard_rolls, guild_offers = keep["seed"]  # the seed and its stream positions outlive a renewal
     captains_met = keep["met"]
     records.clear()
     records.update(keep["records"])
@@ -2187,7 +2258,7 @@ FOUNDING_FOCI = {
 }
 FOUNDING_SEED_MAX = 2**31 - 1
 founding_seed = 0  # 0 = the standard first charter
-charter_rng = random.Random()  # tests replace it with a seeded one
+charter_rng = None  # None = the run seed's "charter" stream; a test may set a random.Random
 
 LEDGER_MAX = 10_000_000_000
 CHARTER_COUNT_MAX = 100_000
@@ -2365,7 +2436,8 @@ def apply_founding_conditions():
     thriving pair against the stretched rest, docks ships 1 and 2 at the pair
     and applies any founding perks."""
     global founding_seed
-    founding_seed = charter_rng.randrange(1, FOUNDING_SEED_MAX + 1)
+    rng = charter_rng if charter_rng is not None else run_stream("charter", charters_completed)
+    founding_seed = rng.randint(1, FOUNDING_SEED_MAX)
     info = founding_from_seed(founding_seed)
     for colony_id in COLONIES:
         state = colony_states.get(colony_id)
@@ -2776,6 +2848,68 @@ def on_toggle_route_insurance(event=None):
     render_market()
 
 
+def _copy_text(text):
+    """Best effort clipboard write (a browser may refuse; the note then shows the text to copy by hand)."""
+    try:
+        import js  # noqa: PLC0415 -- Pyodide-only, deliberately lazy
+
+        clipboard = getattr(getattr(js, "navigator", None), "clipboard", None)
+        if clipboard is None:
+            return False
+        clipboard.writeText(text)
+        return True
+    except Exception:  # noqa: BLE001
+        return False
+
+
+def on_apply_run_seed(event=None):
+    global run_seed_message
+    field = document.getElementById("run-seed-input")
+    ok, run_seed_message = set_run_seed(field.value or "")
+    if ok:
+        field.value = ""
+    render_market()
+
+
+def on_copy_run_seed(event=None):
+    global run_seed_message
+    seed_text = current_run_seed()
+    if _copy_text(seed_text):
+        run_seed_message = f"Copied {seed_text}."
+    else:
+        run_seed_message = f"Your browser would not copy it. The seed is {seed_text}: select it above and copy it."
+    render_market()
+
+
+def render_run_seed():
+    """Z-1b: the run seed, a Copy seed button and a start-from-seed field."""
+    display = document.getElementById("run-seed-display")
+    if display is None:
+        return
+    seed_text = current_run_seed()
+    display.innerText = f"Run seed: {seed_text}"
+    changeable = run_seed_changeable()
+    document.getElementById("run-seed-input").disabled = not changeable
+    document.getElementById("run-seed-apply-button").disabled = not changeable
+    note = document.getElementById("run-seed-note")
+    locked = "This seed has been used, so it is fixed for the run."
+    if changeable:
+        note.innerText = run_seed_message or (
+            "Optional: type a shared seed to get the same route hazards, guild contracts and "
+            "founding conditions. It can be changed until one of them has used it."
+        )
+    else:
+        note.innerText = f"{run_seed_message} {locked}" if run_seed_message else locked
+    try:
+        import js  # noqa: PLC0415 -- Pyodide-only: lets the shared info footer show the seed
+
+        window = getattr(js, "window", None)
+        if window is not None:
+            window.NOYVJ_SEED = seed_text
+    except Exception:  # noqa: BLE001
+        pass
+
+
 def on_build_trade_post(event=None):
     build_trade_post()
     render_market()
@@ -2868,6 +3002,7 @@ def render_seasonal_demand():
 def render_market():
     render_trade_post()
     render_route_hazards()
+    render_run_seed()
     render_diplomacy()
     render_seasonal_demand()
     render_almanac()
@@ -7744,8 +7879,9 @@ def get_state():
         ),
         # J3 -- only written once the guild has done anything at all.
         **(
-            {"guild": {"state": guild_state, **guild_contract, "completed": guild_completed, "failed": guild_failed}}
-            if guild_state != "none" or guild_completed or guild_failed
+            {"guild": {"state": guild_state, **guild_contract, "completed": guild_completed, "failed": guild_failed,
+                       **({"offers": guild_offers} if guild_offers else {})}}
+            if guild_state != "none" or guild_completed or guild_failed or guild_offers
             else {}
         ),
         # J-29/J-30 -- Blackout and the lifetime records; only written once used.
@@ -7791,7 +7927,10 @@ def get_state():
             "disruptions": disruptions_suffered,
             "payouts": insurance_payouts,
             "premiums": premiums_paid,
+            **({"rolls": hazard_rolls} if hazard_rolls else {}),
         },
+        # Z-1b -- the run seed, only once it has been typed or used (a brand-new save is unchanged).
+        **({"run_seed": run_seed} if run_seed and (run_seed_pinned or run_seed_draws()) else {}),
         # Write-only projection (ACHIEVEMENTS-SYSTEM-DESIGN.md §1) — always
         # freshly recomputed here, never read back in load_state() below.
         "achievements_earned": achievement_ids_earned(),
@@ -7801,9 +7940,9 @@ def get_state():
 def _load_guild(raw):
     """Restore the guild from an untrusted save value; anything malformed or
     referring to a colony that isn't reachable falls back to 'none'."""
-    global guild_completed, guild_failed
+    global guild_completed, guild_failed, guild_offers
     _guild_clear(guild_first_offer_ticks())
-    guild_completed = guild_failed = 0
+    guild_completed = guild_failed = guild_offers = 0
     if not isinstance(raw, dict):
         return
 
@@ -7812,6 +7951,7 @@ def _load_guild(raw):
 
     guild_completed = as_int(raw.get("completed"), 0, 10_000_000) or 0
     guild_failed = as_int(raw.get("failed"), 0, 10_000_000) or 0
+    guild_offers = as_int(raw.get("offers"), 0, 10_000_000) or 0
     state_name = raw.get("state")
     if state_name not in ("offered", "active"):
         return
@@ -8145,6 +8285,7 @@ def _apply_state(data):
     global seasonal_demand_enabled, season_ticks, cross_system_units
     global route_hazards_enabled, route_insurance_enabled, disruptions_suffered, insurance_payouts, premiums_paid
     global legacy_level, legacy_achievements
+    global run_seed, run_seed_pinned, hazard_rolls
 
     stockpile_raw = data.get("stockpile")
     for good in stockpile:
@@ -8170,6 +8311,9 @@ def _apply_state(data):
     route_hazards_enabled = hazards_raw.get("hazards") is True
     route_insurance_enabled = hazards_raw.get("insurance") is True
     disruptions_suffered, insurance_payouts, premiums_paid = _count("disruptions"), _count("payouts"), _count("premiums")
+    hazard_rolls = _count("rolls")
+    seed_check = seed_lib.validate(data.get("run_seed"), SEED_GAME) if isinstance(data.get("run_seed"), str) else {"ok": False}
+    run_seed, run_seed_pinned = (seed_check["seed"], True) if seed_check["ok"] else ("", False)
 
     units_raw = data.get("cross_system_units")
     cross_system_units = units_raw if isinstance(units_raw, int) and not isinstance(units_raw, bool) and 0 <= units_raw <= 10_000_000 else 0
@@ -8448,6 +8592,7 @@ def _sandbox_set_real_aside():
         "snapshot": snapshot,
         "earned": list(snapshot["achievements_earned"]),
         "guild_cooldown": guild_cooldown,
+        "seed": (run_seed, run_seed_pinned),  # the practice corporation rolls its own seed; the real one comes back after
     }
     sandbox_active = True
 
@@ -8468,7 +8613,7 @@ def sandbox_enter():
 
 def _sandbox_restore_real(apply_snapshot=True):
     """Puts the real corporation back exactly as it was. With apply_snapshot False the caller loads a save instead."""
-    global sandbox_active, _sandbox_real, guild_cooldown
+    global sandbox_active, _sandbox_real, guild_cooldown, run_seed, run_seed_pinned
     real = _sandbox_real
     sandbox_active = False
     _sandbox_real = None
@@ -8480,6 +8625,7 @@ def _sandbox_restore_real(apply_snapshot=True):
         _reset_running_tables()
         _apply_state(copy.deepcopy(real["snapshot"]))
         guild_cooldown = real["guild_cooldown"]
+        run_seed, run_seed_pinned = real["seed"]
     else:
         _reset_running_tables()
 
@@ -8537,6 +8683,8 @@ def setup():
     document.getElementById("route-insurance-toggle-button").addEventListener(
         "click", create_proxy(on_toggle_route_insurance)
     )
+    document.getElementById("run-seed-apply-button").addEventListener("click", create_proxy(on_apply_run_seed))
+    document.getElementById("run-seed-copy-button").addEventListener("click", create_proxy(on_copy_run_seed))
     for colony_id, colony in ALL_COLONIES.items():
         document.getElementById(f"colony-{colony_id}-name").innerText = colony["name"]
         document.getElementById(f"colony-{colony_id}-flavor").innerText = COLONY_FLAVOR[colony_id]

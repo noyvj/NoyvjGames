@@ -52,7 +52,7 @@ def test_route_throughput_averages_over_the_ships_that_hauled_the_good(game_env)
 def test_a_disrupted_trip_moves_nothing(game_env):
     m = game_env.module
     m.route_hazards_enabled = True
-    m.hazard_rng.random = lambda: 0.0
+    m.hazard_rng = type("Fixed", (), {"random": staticmethod(lambda: 0.0)})()
     _trip(game_env)
     assert m.ships["1"].units_moved == 0
 

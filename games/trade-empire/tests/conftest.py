@@ -8,6 +8,10 @@ import pytest
 from .fakes import FakeDocument, FakeElement, FakeTimers, create_proxy
 
 GAME_PY = Path(__file__).resolve().parent.parent / "game.py"
+# game.py imports the shared seed module (shared/seed.py, Z-1b), which Pyodide gets from its virtual filesystem.
+SHARED_DIR = Path(__file__).resolve().parent.parent.parent.parent / "shared"
+if str(SHARED_DIR) not in sys.path:
+    sys.path.insert(0, str(SHARED_DIR))
 
 # J6 — ships 5/6 are purchasable, not present from the start.
 SHIP_IDS = ["1", "2", "3", "4", "5", "6"]
@@ -43,6 +47,11 @@ ELEMENT_IDS = [
     "route-hazards-toggle-button",
     "route-insurance-toggle-button",
     "route-hazards-status",
+    "run-seed-display",
+    "run-seed-input",
+    "run-seed-apply-button",
+    "run-seed-copy-button",
+    "run-seed-note",
     "expansion-market-panel",
     "expansion2-colonies-panel",
     "expansion2-market-panel",
@@ -304,6 +313,7 @@ def game_env():
     module = importlib.util.module_from_spec(spec)
     sys.modules["game"] = module
     spec.loader.exec_module(module)  # runs setup() at the bottom of game.py
+    module.run_seed = "TRADEEMPIRE-23456"  # a fixed run seed, so no test depends on a random one
 
     yield GameEnv(module, elements, timers)
 
