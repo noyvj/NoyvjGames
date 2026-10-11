@@ -1827,7 +1827,9 @@ html[data-reduced-motion="true"] *::after {
 .funds-delta--up { color: #5fd0b0; }
 .funds-delta--down { color: #ffb48a; }
 .funds-delta--flat { opacity: 0.85; }
-.settings-row select { min-height: 44px; }
+.settings-row { flex-wrap: wrap; }
+.settings-row select { min-height: 44px; max-width: 100%; }
+.settings-confirm-row .comparison-message { flex: 1 1 100%; margin: 0; }
 
 /* GC-8: the city skyline strip. Lit buildings have windows, dark ones are bare outlines (shape, not only colour). */
 .skyline-strip { margin: 0.4rem 0; }
