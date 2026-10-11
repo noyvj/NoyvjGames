@@ -1784,6 +1784,7 @@ class RunState:
 
         if self.is_complete() and self.normalised:
             _note_challenge_result(self)  # E-4: a friend's challenge earns nothing for the tree
+            _record_shared_daily(self)  # Z-5c: Today's run on today's seed counts once in the shared daily record
         elif self.is_complete():
             global highest_awarded_run
             if self.run_number > highest_awarded_run:
@@ -5588,6 +5589,84 @@ def start_challenge(code):
     return message
 
 
+DAILY_CODE_MODE = "classic"  # Z-5c: Today's run is the classic schedule for everyone, so the day is the same for all
+
+
+def daily_run_code(seed_text):
+    """Z-5c: the run code that Today's run plays: the classic schedule at the day's shared seed (the severity draw), the same
+    route a friend's code takes. (code, error)."""
+    result = shared_seed.validate(seed_text, RUN_CODE_GAME)
+    if not result["ok"]:
+        return None, result["message"]
+    try:
+        return shared_run_code.encode({"game": RUN_CODE_GAME, "seed": result["seed"], "mode": DAILY_CODE_MODE}), ""
+    except Exception:  # noqa: BLE001 -- an unreadable seed is a message, never a crash
+        return None, "That seed could not be turned into a run."
+
+
+def daily_seed_of_code(code):
+    """Z-5c: the seed of a Today's-run code (classic mode, no custom schedule), else ''."""
+    decoded = shared_run_code.decode(code, RUN_CODE_GAME) if isinstance(code, str) else {}
+    if not decoded.get("ok") or decoded.get("mode") != DAILY_CODE_MODE:
+        return ""
+    return decoded.get("seed", "")
+
+
+def run_is_untouched(run_state=None):
+    """Z-5c: a run that nothing has been done in: no event faced and no resources moved into resilience or growth."""
+    run_state = run_state or run
+    return run_state.event_index == 0 and run_state.resources == run_state.starting_resources and not run_state.allocation_history
+
+
+def start_todays_run(seed_text):
+    """Z-5c: the "Today's run" button (shared/seed.js) hands over the UTC date's shared seed. It starts a challenge-style run on
+    the classic schedule at that seed (your skill tree and memory switched off, so everyone faces the same numbers), but only
+    between runs: a run under way is never replaced. Returns the sentence shown."""
+    global run, challenge_status_text
+    if not (run.is_complete() or run_is_untouched()):
+        message = (
+            "Today's run starts a fresh settlement, and this run is under way. Nothing was changed. "
+            "Finish your current run first (or save it with the Save button), then press the button again."
+        )
+    else:
+        code, error = daily_run_code(seed_text)
+        state, error = challenge_run_from_code(code) if code else (None, error)
+        if state is None:
+            message = error
+        else:
+            state.challenge["daily_seed"] = daily_seed_of_code(code)
+            run = state
+            _reset_run_ui_state()
+            challenge_status_text = ""  # the sentence below is shown beside the button, not repeated under the challenge stats
+            message = (
+                f"Today's run started: the classic schedule, {len(run.schedule)} events, the same for everyone today. "
+                "Your skills and memory are switched off and no knowledge is earned; finishing it counts for today."
+            )
+    render()
+    announce(message)
+    return message
+
+
+def _record_shared_daily(run_state):
+    """Z-5c: a finished Today's run whose seed is TODAY's shared seed counts once for the day in the record the hub's Today
+    strip reads (`localStorage["noyvj-daily-v1"]`, written by `NoyvjSeed.daily.markCompleted`). The page decides what today
+    is (`isDaily`), so a run begun on an older day's seed, a friend's challenge or an ordinary run records nothing. Fails
+    soft: no shared script (pytest, an old page) or any error means nothing, and the run's own result is never affected."""
+    seed_text = (run_state.challenge or {}).get("daily_seed")
+    if not seed_text:
+        return
+    try:
+        import js  # noqa: PLC0415 -- Pyodide-only, deliberately lazy
+        daily = getattr(getattr(js.window, "NoyvjSeed", None), "daily", None)
+        if daily is None or not daily.isDaily(RUN_CODE_GAME, seed_text):
+            return
+        info = js.Object.new()
+        info.text = f"Ended with {int(round(max(0.0, run_state.run_score())))} resources"
+        daily.markCompleted(RUN_CODE_GAME, info)
+    except Exception:  # noqa: BLE001 -- a courtesy record must never break finishing a run
+        pass
+
+
 def leave_challenge(event=None):
     """Drops an unfinished challenge and starts the next normal run."""
     global run, challenge_status_text
@@ -5622,6 +5701,12 @@ def _note_challenge_result(run_state):
 def challenge_result_text(run_state):
     info = run_state.challenge or {}
     mine = int(round(run_state.run_score()))
+    if info.get("daily_seed"):  # Z-5c
+        return (
+            f"Today's run finished: you ended with {mine} resources ({adjusted_text(run_state.run_score(), run_state.event_log)}). "
+            "Everyone who plays it faces the same events and the same severity pattern. "
+            "It earns no knowledge and leaves your history alone."
+        )
     text = (
         f"Challenge finished: you ended with {mine} resources ({adjusted_text(run_state.run_score(), run_state.event_log)}). "
     )
@@ -5650,6 +5735,11 @@ def challenge_banner_text(run_state=None):
     if not run_state.normalised:
         return ""
     info = run_state.challenge or {}
+    if info.get("daily_seed"):  # Z-5c
+        return (
+            f"Today's run: the day's shared schedule, {len(run_state.schedule)} events, with your skill tree and "
+            "memory switched off, so everyone faces the same draw. No knowledge is earned."
+        )
     theirs = f" Their run ended with {info['their_score']}." if info.get("their_score") is not None else ""
     return (
         f"Challenge run: a friend's schedule, {len(run_state.schedule)} events, with your skill tree and "
@@ -6454,6 +6544,8 @@ def get_state():
         # E-4 / E-13: a challenge run keeps its run code (the schedule and draw are rebuilt from it) and a
         # run on a built schedule keeps the events and name. Absent for ordinary runs.
         **({"challenge_code": run.challenge["code"]} if run.normalised and run.challenge else {}),
+        # Z-5c: set only for a run begun with the Today's run button (the seed is rebuilt from the code on load).
+        **({"challenge_daily": True} if run.normalised and run.challenge and run.challenge.get("daily_seed") else {}),
         **({"custom_events": list(run.custom_events), "custom_name": run.custom_name or ""}
            if run.custom_events and not run.normalised else {}),
         # GE-23: the run timer's seconds so far, only for a run that is being timed.
@@ -6497,6 +6589,8 @@ def load_state(data):
         restored, _error = challenge_run_from_code(data["challenge_code"])
         if restored is not None:
             restored.run_number = data["run_number"]
+            if data.get("challenge_daily") is True:  # Z-5c: only a classic-mode code can be a Today's run
+                restored.challenge["daily_seed"] = daily_seed_of_code(data["challenge_code"])
     if restored is None:
         custom = data.get("custom_events")
         restored = RunState(

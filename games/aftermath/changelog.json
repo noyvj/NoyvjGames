@@ -1,6 +1,10 @@
 [
   {
     "date": "2026-10-12",
+    "entry": "New: a Today's run button in the Run codes window (Menu > Records on the Desktop layout). It starts the classic schedule at the UTC date's seed, so everyone who plays it that day faces the same events and the same severity pattern. Like a friend's challenge, it switches your skill tree and memory off and earns no knowledge, so it never touches your history. It only starts between runs (a run under way is never replaced, and the button tells you how to finish or save it first), and finishing it counts once for the day in the hub's Today strip. A day you skip costs nothing."
+  },
+  {
+    "date": "2026-10-12",
     "entry": "New: a ghost of your best run. After each event, a line under the damage preview says whether you are ahead of, level with or behind your best earlier run on the same schedule, counted in resources left (for example: ghost: you are 12 resources ahead of your best run (Run 3) at turn 4). Each schedule keeps its own best run, challenge runs and built schedules are left out, and a checkbox under the preview switches the line off. Older saves are unchanged: a run saved before this simply cannot be compared."
   },
   {

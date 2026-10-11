@@ -676,7 +676,10 @@
 
     <!-- E-4: send a friend your finished run's code, or paste theirs to play the same schedule. -->
     <details id="challenge-panel" class="section progress-code-toggle challenge-panel">
-      <summary>🤝 Run codes and challenges</summary>
+      <summary>🤝 Run codes, challenges and Today's run</summary>
+      <!-- Z-5c: "Today's run" (shared/seed.js): the UTC date's seed on the classic schedule, the same for everyone that day. game.py's start_todays_run owns every rule. -->
+      <div id="todays-run-slot"></div>
+      <p id="todays-run-note" class="comparison-message" role="status"></p>
       <p class="progress-code-label">A run code carries a schedule and a result. Paste a friend's code to play the same events in the same order, struck by the same severity pattern, with your skill tree and memory switched off, so you both start from a fresh settlement. A challenge earns no knowledge and does not touch your history. Their result came from their own build, so it is a friendly note, never a ranking.</p>
       <p id="run-end-code-note" class="comparison-message"></p>
       <div id="run-end-code-wrap"><div id="run-end-code"></div></div>
@@ -949,6 +952,27 @@
     })();
   </script>
 <!-- wiring-oct8:end -->
+  <script src="../../shared/seed.js"></script>
+  <script>
+    // Z-5c: the "Today's run" button. The seed is the UTC date's shared seed; game.py's start_todays_run decides whether a run
+    // can start now (only between runs) and says so. Finishing the run records it (game.py).
+    (function () {
+      if (!window.NoyvjSeed || !window.NoyvjSeed.daily) return;
+      window.NoyvjSeed.daily.mountButton("#todays-run-slot", {
+        game: "aftermath",
+        onStart: function (seed) {
+          var note = document.getElementById("todays-run-note");
+          try {
+            var fn = window.pyodide.globals.get("start_todays_run");
+            note.textContent = fn(seed);
+            fn.destroy();
+          } catch (e) {
+            note.textContent = "The game is still starting up. Try again in a moment.";
+          }
+        }
+      });
+    })();
+  </script>
   <!-- E-4: shared run-code boxes. game.py owns every rule (run_code_fields, start_challenge); this only mounts the boxes. -->
   <script>
     (function () {

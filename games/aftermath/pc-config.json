@@ -134,12 +134,12 @@
     },
     {
       "id": "pc-challenge-panel",
-      "title": "Run codes and challenges",
+      "title": "Run codes, challenges and Today's run",
       "members": [
         "#challenge-panel"
       ],
       "group": "Records",
-      "label": "🤝 Run codes"
+      "label": "🤝 Run codes and Today's run"
     },
     {
       "id": "pc-backup-panel",
