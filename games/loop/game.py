@@ -437,6 +437,12 @@ OVERSEAS_IMPORT_SUPPLY_PER_UNIT = 15.0
 # Round-2 (H6/H26/H27/H28): UI-only tuning.
 PARTNER_COSTS = {"trade": TRADE_LINK_COST, "regional": REGIONAL_TRADE_COST, "overseas": OVERSEAS_TRADE_COST}
 GAME_ID = "loop"
+# GH-23: cosmetic ring themes, unlocked by what the career has done (all monotonic, so a theme never re-locks).
+RING_THEME_UNLOCKS = {
+    "neon": "Close the loop once, on any goods.",
+    "blueprint": "Open the secret yard: close a loop on electronics, clothing and furniture.",
+    "paper": "Earn three name plates.",
+}
 STRAIN_TIER_THRESHOLDS = (0.05, 0.15, 0.3, 0.5)  # GH-16: strain levels where each crack tier starts
 BUY_MULTIPLES = (1, 5, 10)  # H-14: the x1 / x5 / x10 chips
 PARTNER_LABELS = {"trade": "Trade Link", "regional": "Regional Partner", "overseas": "Overseas Consortium"}
@@ -1184,6 +1190,23 @@ def founder_text():
     return line + f" Next rank: {next_name} at {next_at} points ({next_at - points} to go)."
 
 
+def ring_theme_unlocked(theme):
+    """GH-23: 'standard' is always open; the other three open through the career."""
+    if theme == "standard":
+        return True
+    if theme == "neon":
+        return bool(career_closed_categories)
+    if theme == "blueprint":
+        return secret_unlocked()
+    if theme == "paper":
+        return len(career_plates) >= 3
+    return False
+
+
+def ring_theme_count():
+    return sum(1 for theme in RING_THEME_UNLOCKS if ring_theme_unlocked(theme))
+
+
 def secret_unlocked():
     """GH-14: the secret category opens once every ordinary category has had a fully
     closed cycle."""
@@ -1545,6 +1568,32 @@ def past_chains_svg():
     parts.append(f'<text x="{width - right}" y="{height - 4}" text-anchor="end" class="past-axis">cycle {longest}</text>')
     parts.append("</svg>")
     return "".join(parts)
+
+
+RING_THEME_LABELS = {"standard": "Standard", "neon": "Neon", "blueprint": "Blueprint", "paper": "Paper cut-out"}
+
+
+def render_ring_themes():
+    """GH-23: unlock state of the three themes in Settings, and a fall back to Standard if the chosen one
+    is not open on this save (settings.js owns the choice itself)."""
+    for theme, label in RING_THEME_LABELS.items():
+        option = document.getElementById(f"ring-theme-{theme}")
+        open_now = ring_theme_unlocked(theme)
+        option.disabled = not open_now
+        option.innerText = label if open_now else f"{label} (locked: {RING_THEME_UNLOCKS[theme]})"
+    document.getElementById("ring-theme-status").innerText = (
+        f"{ring_theme_count()} of {len(RING_THEME_UNLOCKS)} themes unlocked. Cosmetic only: it changes how the ring looks."
+    )
+    window = _window()
+    settings = getattr(window, "LoopSettings", None) if window is not None else None
+    chosen = getattr(settings, "ringTheme", None)
+    if chosen is not None:
+        try:
+            current = str(chosen())
+            if current in RING_THEME_LABELS and not ring_theme_unlocked(current):
+                settings.applyRingTheme("standard")
+        except Exception:  # noqa: BLE001 -- a cosmetic bridge must never break rendering
+            pass
 
 
 def render_ledger_and_past():
@@ -3605,6 +3654,7 @@ def render():
     document.title = f"Loop - C{chain.cycle_number} - {chain.circular_fraction_this_cycle() * 100:.0f}% circular"
     render_career()
     render_ledger_and_past()
+    render_ring_themes()
     document.getElementById("game").setAttribute("data-damage-tier", str(damage_strain_tier()))
     document.getElementById("rank-badge").innerText = f"\U0001F396\uFE0F {founder_rank()[1]}"
     document.getElementById("rank-detail").innerText = founder_text()

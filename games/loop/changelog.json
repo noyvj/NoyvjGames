@@ -1,6 +1,10 @@
 [
   {
     "date": "2026-10-11",
+    "entry": "New: unlockable ring themes in Settings, cosmetic only. Neon opens when you close the loop once, Blueprint when the secret Ship-Breaking Yard opens (a loop closed on electronics, clothing and furniture), and Paper cut-out when you have earned three name plates. Locked themes show how to open them, and a theme that is not open on the save you load falls back to Standard."
+  },
+  {
+    "date": "2026-10-11",
     "entry": "New: every fold-out panel now remembers whether you left it open or shut, and in the Classic layout the chain, dashboard, investments, trade network and regional pool each get a small chevron that collapses the whole panel (it stays collapsed next visit). Settings gains Replay tips, which brings back the one-time Regional Partner hint and offers the tutorial again on your next visit."
   },
   {

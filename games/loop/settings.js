@@ -190,6 +190,29 @@
     }
   }
 
+  // GH-23: the chosen ring theme (game.py disables the ones the career has not unlocked and falls back to Standard).
+  const THEME_KEY = "loop-ring-theme";
+  const RING_THEMES = ["standard", "neon", "blueprint", "paper"];
+
+  function readRingTheme() {
+    try {
+      const raw = window.localStorage.getItem(THEME_KEY);
+      if (RING_THEMES.indexOf(raw) !== -1) return raw;
+    } catch (e) {
+      // fall through to Standard
+    }
+    return "standard";
+  }
+
+  function applyRingTheme(theme) {
+    const value = RING_THEMES.indexOf(theme) !== -1 ? theme : "standard";
+    document.documentElement.setAttribute("data-ring-theme", value);
+    writeStored(THEME_KEY, value);
+    const select = document.getElementById("ring-theme-select");
+    if (select) select.value = value;
+    return value;
+  }
+
   function readConfirmThreshold() {
     try {
       const raw = window.localStorage.getItem(CONFIRM_KEY);
@@ -329,6 +352,14 @@
       }
     });
 
+    applyRingTheme(readRingTheme());
+    const themeSelect = document.getElementById("ring-theme-select");
+    if (themeSelect) {
+      themeSelect.addEventListener("change", function () {
+        applyRingTheme(themeSelect.value);
+      });
+    }
+
     const confirmSelect = document.getElementById("confirm-threshold-select");
     if (confirmSelect) {
       confirmSelect.value = String(readConfirmThreshold());
@@ -375,6 +406,7 @@
         applyDyslexia(false);
         applyFlowSpeed(DEFAULT_FLOW_SPEED);
         applyConfirmThreshold(0);
+        applyRingTheme("standard");
         TOGGLES.forEach(function (toggle) {
           applyToggle(toggle, toggle.fallback);
         });
@@ -399,6 +431,8 @@
     applyConfirmThreshold: applyConfirmThreshold,
     confirmThreshold: readConfirmThreshold,
     effectsOn: effectsOn,
+    ringTheme: readRingTheme,
+    applyRingTheme: applyRingTheme,
     haptic: haptic,
     MIN_SCALE: MIN_SCALE,
     MAX_SCALE: MAX_SCALE,

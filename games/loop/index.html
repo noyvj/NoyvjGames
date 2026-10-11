@@ -180,6 +180,16 @@
         </label>
       </div>
       <div class="settings-row settings-row--stack">
+        <label class="settings-label" for="ring-theme-select">Ring theme</label>
+        <select id="ring-theme-select">
+          <option id="ring-theme-standard" value="standard">Standard</option>
+          <option id="ring-theme-neon" value="neon" disabled>Neon</option>
+          <option id="ring-theme-blueprint" value="blueprint" disabled>Blueprint</option>
+          <option id="ring-theme-paper" value="paper" disabled>Paper cut-out</option>
+        </select>
+        <p id="ring-theme-status" class="comparison-message"></p>
+      </div>
+      <div class="settings-row settings-row--stack">
         <label class="settings-label" for="confirm-threshold-select">Ask before big purchases</label>
         <select id="confirm-threshold-select">
           <option value="0">Never</option>

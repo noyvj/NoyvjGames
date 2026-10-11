@@ -1941,3 +1941,18 @@ html[data-particle-shapes="on"] .import-flow-particle { color: #4c8ed8; }
 .section.is-collapsed > .panel-chevron .panel-chevron-label { display: inline; }
 .section.is-collapsed > :not(.panel-chevron):not(.sr-only) { display: none !important; }
 html[data-layout="pc"] .panel-chevron { display: none; }
+
+/* GH-23: ring themes (cosmetic only; unlocked through the career, chosen in Settings). */
+html[data-ring-theme="neon"] .loop-ring-track { border: 2px solid #00f0ff; box-shadow: 0 0 12px #00f0ff, inset 0 0 12px #ff2bd6; }
+html[data-ring-theme="neon"] .loop-ring-node { background: #0a0420; border-color: #ff2bd6; box-shadow: 0 0 14px #ff2bd6, 0 0 4px #00f0ff; }
+html[data-ring-theme="neon"] .loop-ring-core-glyph { color: #00f0ff; text-shadow: 0 0 10px #00f0ff; }
+html[data-ring-theme="blueprint"] .loop-ring {
+  background-image: linear-gradient(rgba(207, 227, 255, 0.2) 1px, transparent 1px), linear-gradient(90deg, rgba(207, 227, 255, 0.2) 1px, transparent 1px);
+  background-size: 15px 15px; border-radius: 50%; background-color: #0f2a5e;
+}
+html[data-ring-theme="blueprint"] .loop-ring-track { border: 2px dashed #cfe3ff; }
+html[data-ring-theme="blueprint"] .loop-ring-node { background: #12306b; border: 2px solid #cfe3ff; box-shadow: none; }
+html[data-ring-theme="blueprint"] .loop-ring-core-glyph { color: #cfe3ff; }
+html[data-ring-theme="paper"] .loop-ring-track { border: 3px solid #d9c9a3; animation: none; }
+html[data-ring-theme="paper"] .loop-ring-node { background: #f3e8cf; color: #3b2a14; border: 2px solid #8a6d3b; box-shadow: 3px 3px 0 rgba(0, 0, 0, 0.45); }
+html[data-ring-theme="paper"] .loop-ring-core-glyph { color: #d9c9a3; }

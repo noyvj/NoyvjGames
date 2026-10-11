@@ -187,6 +187,12 @@ ELEMENT_IDS = [
     # H-30: replay tips.
     "replay-tips-button",
     "replay-tips-status",
+    # GH-23: ring themes.
+    "ring-theme-standard",
+    "ring-theme-neon",
+    "ring-theme-blueprint",
+    "ring-theme-paper",
+    "ring-theme-status",
 ]
 
 
