@@ -151,7 +151,10 @@ def test_stored_path_is_capped(game_env):
     m.region.temperature = 299.0
     m.region.counterfactual_temperature = 400.0
     m._maybe_update_pace()
-    assert len(json.loads(storage.data[m.PACE_KEY])["temps"]) == m.PACE_MAX_ROUNDS
+    stored = json.loads(storage.data[m.PACE_KEY])
+    # Z-3e3: a long run is thinned evenly by the shared recorder (not cut off), and says how long it really was
+    assert 2 <= len(stored["temps"]) <= m.PACE_MAX_ROUNDS and stored["rounds"] == 300
+    assert stored["temps"][0] == 0 and stored["temps"][-1] == 299
 
 
 def test_pace_does_not_enter_the_save(game_env):

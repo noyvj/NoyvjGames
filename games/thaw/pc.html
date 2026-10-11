@@ -331,6 +331,8 @@
       <div id="graph" class="mini-temp-graph"></div>
       <!-- G-21: where Region A stands against the best run from an earlier session (the dashed line). -->
       <p id="pace-display" class="comparison-message pace-display" hidden></p>
+      <!-- Z-3e3: the same comparison as the shared ghost's one sentence, for screen readers (visually hidden, a polite status). -->
+      <p id="ghost-sentence" class="sr-only ghost-sentence" role="status" hidden></p>
       <p id="personal-best-display" class="personal-best-display">Personal best: 0.0° saved</p>
       <button id="archive-toggle-button" class="secondary archive-toggle" type="button">Climate archive</button>
       <div id="archive-panel" class="archive-panel" hidden>
@@ -817,6 +819,9 @@
       // rendering stays bespoke -- see the CLAUDE.md build note for why).
       const narrativeLogSource = await (await fetch("../../shared/narrative_log.py")).text();
       pyodide.FS.writeFile("narrative_log.py", narrativeLogSource, { encoding: "utf8" });
+      // Z-3e3: the shared best-run ghost (shared/ghost.py): Region A's pace line and its sentence are built through it.
+      const ghostSource = await (await fetch("../../shared/ghost.py")).text();
+      pyodide.FS.writeFile("ghost.py", ghostSource, { encoding: "utf8" });
       // "What's New" changelog (K16, planning/TODO.md) -- same fetch
       // convention as achievements.json above.
       const [achievementsJson, changelogJson, code] = await Promise.all([

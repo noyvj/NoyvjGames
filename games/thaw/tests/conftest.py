@@ -199,6 +199,7 @@ ELEMENT_IDS = [
     "settings-code-status",
     "settings-reset-button",
     "pace-display",
+    "ghost-sentence",
     "mascots",
     "history-readout",
     "skin-select",

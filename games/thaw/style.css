@@ -1507,8 +1507,12 @@ html[data-lite="true"][data-tip-shake="true"] .region-card.tipping-flash .mini-t
 
 /* G-21: the best earlier run's path, a faint dashed line behind Region A's graph. */
 .mini-pace-line { fill: none; stroke: #c8d7ff; stroke-opacity: 0.55; stroke-width: 1.2; stroke-dasharray: 3 2.5; vector-effect: non-scaling-stroke; }
+.mini-pace-label { font-size: 7px; fill: currentColor; opacity: 0.75; }
 html[data-hide-pace="true"] .mini-pace-line,
+html[data-hide-pace="true"] .mini-pace-label,
+html[data-hide-pace="true"] .ghost-sentence,
 html[data-hide-pace="true"] .pace-display { display: none; }
+.ghost-sentence[hidden] { display: none; }
 .pace-display { margin: 0.1rem 0 0.4rem; font-size: 0.78rem; opacity: 0.8; }
 .pace-display[hidden] { display: none; }
 

@@ -1,5 +1,9 @@
 [
   {
+    "date": "2026-10-12",
+    "entry": "Changed: the best-run pace line now runs through the site's shared ghost. Region A's graph labels the dashed line Ghost: best run (dashed), and a screen reader gets one plain sentence about it (for example: Ghost: you are 0.4 degrees ahead of your best run at round 7; lower temperature is ahead). A best run longer than 120 rounds is now thinned evenly instead of cut off, so the line can cover the whole run. Your stored best run, your save and every number in the game are unchanged, and Hide the best-run pace line in Settings still switches the whole thing off."
+  },
+  {
     "date": "2026-10-11",
     "entry": "New: supply crates. After every sixth round a crate arrives and waits for you. Opening one gives a Preserve unit, a Monitor unit or a box of funds, always in that order, and the Supply crates box tells you what the next one holds and which region it would go to. Nothing is random."
   },
