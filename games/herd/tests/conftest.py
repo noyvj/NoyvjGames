@@ -117,6 +117,8 @@ ELEMENT_IDS = [
     # F-2 ledger.
     "ledger-panel", "ledger-add-button", "ledger-filter", "ledger-clear-button", "ledger-summary", "ledger-chart",
     "ledger-table",
+    # Z-3e: the ghost of your best farm.
+    "ghost-note", "ghost-toggle", "ghost-toggle-wrap",
     # F-16 pinned strip.
     "pinned-strip", "pin-picker", "pin-note", "pin-funds", "pin-income", "pin-welfare", "pin-methane-round",
     "pin-methane", "pin-score", "pin-herd", "pin-pressure",

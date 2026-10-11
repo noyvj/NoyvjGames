@@ -16,6 +16,7 @@ import time
 
 import comparison_chart
 import export_progress
+import ghost as ghost_lib  # Z-3e: the shared best-farm ghost (shared/ghost.py)
 import info_page
 from js import document, setTimeout
 from pyodide.ffi import create_proxy
@@ -1406,19 +1407,36 @@ TREND_GRAPH_WIDTH = 240
 TREND_GRAPH_HEIGHT = 48
 
 
-def methane_trend_graph_svg(history):
+def methane_trend_graph_svg(history, ghost=None):
+    """The methane-over-rounds line. Z-3e: `ghost` (a dict from ghost_graph_data(), or None) adds your best earlier
+    farm's methane as a faint dashed line under it, on the same scale (the range grows to include it)."""
     if len(history) < 2:
         return ""
     n = len(history)
-    lo, hi = min(history), max(history)
+    ghost_values = [] if not ghost else [(i, v) for i, v in ((i, ghost_lib.value_at(ghost["trace"], i)) for i in range(1, n)) if v is not None]
+    lo = min([min(history)] + [v for _i, v in ghost_values])
+    hi = max([max(history)] + [v for _i, v in ghost_values])
     if hi - lo < 1e-9:
         ys = [TREND_GRAPH_HEIGHT / 2 for _ in history]
     else:
         ys = [TREND_GRAPH_HEIGHT - ((v - lo) / (hi - lo)) * TREND_GRAPH_HEIGHT for v in history]
     xs = [i * (TREND_GRAPH_WIDTH / (n - 1)) for i in range(n)]
     points = " ".join(f"{x:.1f},{y:.1f}" for x, y in zip(xs, ys))
+    ghost_svg, head = "", '<svg viewBox="0 0 %d %d" class="methane-trend-graph-svg">' % (TREND_GRAPH_WIDTH, TREND_GRAPH_HEIGHT)
+    if len(ghost_values) >= 2:
+        def y_of(value):
+            return TREND_GRAPH_HEIGHT / 2 if hi - lo < 1e-9 else TREND_GRAPH_HEIGHT - ((value - lo) / (hi - lo)) * TREND_GRAPH_HEIGHT
+        ghost_points = " ".join(f"{xs[i]:.1f},{y_of(v):.1f}" for i, v in ghost_values)
+        sentence = html.escape(ghost["sentence"], quote=True)
+        head = (f'<svg viewBox="0 0 {TREND_GRAPH_WIDTH} {TREND_GRAPH_HEIGHT}" class="methane-trend-graph-svg" role="img" '
+                f'aria-label="Methane over time. {sentence}">')
+        ghost_svg = (
+            f'<g class="ghost-line" data-testid="ghost-line" pointer-events="none"><polyline points="{ghost_points}" fill="none" '
+            f'stroke="currentColor" stroke-width="1.5" stroke-dasharray="4 3" opacity="0.5"><title>{sentence}</title></polyline>'
+            f'<text x="{TREND_GRAPH_WIDTH - 2}" y="9" font-size="8" text-anchor="end" fill="currentColor" opacity="0.8">Ghost: best farm (dashed)</text></g>'
+        )
     return (
-        f'<svg viewBox="0 0 {TREND_GRAPH_WIDTH} {TREND_GRAPH_HEIGHT}" class="methane-trend-graph-svg">'
+        f"{head}{ghost_svg}"
         f'<polyline points="{points}" class="methane-trend-line" />'
         f"{trend_markers_svg(xs, ys, history)}"
         f"</svg>"
@@ -4029,6 +4047,177 @@ def ledger_record(entry):
     return entries
 
 
+# ---- Z-3e: the ghost of your best farm (shared/ghost.py) ---------------------------------------------------------------
+# Two numbers per round are kept for the best farm filed in each farm mode: its score (funds minus the weighted methane,
+# the number the whole game is about) and its methane (the line on the "Methane over time" chart, where the ghost is
+# drawn). A farm is filed when it is handed over or filed in the Ranch Ledger, so the ghost is the best of those: the
+# highest result against the pure-growth baseline, the latest on a tie, after at least GHOST_MIN_ROUNDS rounds. Kept per
+# browser in its own localStorage key (like the ledger; the key exists only once a ghost does, saves are unchanged). Sandbox
+# and custom-rules farms are never ranked, so they neither become a ghost nor race one. Blind runs show nothing until revealed.
+GHOST_STORAGE_KEY = "herd-ghost-v1"
+GHOST_PREF_KEY = "herd-ghost-on"
+GHOST_MIN_ROUNDS = 4
+GHOST_MODE_KEYS = ("plain", "seasons", "cap", "seasons_and_cap")
+
+
+def _ghost_el(element_id):
+    try:
+        return document.getElementById(element_id)
+    except KeyError:
+        return None
+
+
+def ghost_mode_key():
+    return farm_mode().replace(" ", "_")
+
+
+def ghost_eligible():
+    return not rules_unranked()
+
+
+def farm_series(source=None):
+    """([score after each round played], [methane after each round]) for a farm, or None when it has played no round
+    or its funds were not recorded for every round (a save from before the funds history)."""
+    source = farm if source is None else source
+    methane, funds = source.methane_history, source.funds_history
+    if len(methane) < 2 or len(funds) != len(methane):
+        return None
+    scores, gases = [], []
+    for i in range(1, len(methane)):
+        if not _is_finite_number(funds[i]) or not _is_finite_number(methane[i]):
+            return None
+        scores.append(funds[i] - methane[i] * METHANE_PENALTY_WEIGHT)
+        gases.append(methane[i])
+    return scores, gases
+
+
+def load_ghosts():
+    """The stored best farms, {mode key: {"gen", "result", "score", "methane"}}; every trace goes through ghost.load
+    and anything unreadable, unknown or hand-edited is dropped (no ghost, nothing breaks)."""
+    raw = _read_local_storage_item(GHOST_STORAGE_KEY)
+    if not raw:
+        return {}
+    try:
+        data = json.loads(raw)
+    except (ValueError, TypeError):
+        return {}
+    out = {}
+    if not isinstance(data, dict):
+        return out
+    for key in GHOST_MODE_KEYS:
+        item = data.get(key)
+        if not isinstance(item, dict):
+            continue
+        score_trace, methane_trace = ghost_lib.load(item.get("score")), ghost_lib.load(item.get("methane"))
+        result = ghost_lib.clean_number(item.get("result"))
+        if score_trace is None or methane_trace is None or result is None or score_trace["turns"] != methane_trace["turns"]:
+            continue
+        out[key] = {"gen": _safe_int(item.get("gen"), 1) or 1, "result": result, "score": score_trace, "methane": methane_trace}
+    return out
+
+
+def ghost_entry():
+    return load_ghosts().get(ghost_mode_key())
+
+
+def file_ghost():
+    """Keep the farm being filed as the ghost for its mode when it is the best result so far there. True when kept."""
+    series = farm_series()
+    if not ghost_eligible() or series is None or len(series[0]) < GHOST_MIN_ROUNDS:
+        return False
+    label = f"Farm {generation}"
+    traces = []
+    for values in series:
+        recorder = ghost_lib.Recorder()
+        for value in values:
+            recorder.record(value)
+        traces.append(recorder.trace(label))
+    result = ghost_lib.clean_number(farm.score() - farm.counterfactual_score())
+    if traces[0] is None or traces[1] is None or result is None:
+        return False
+    ghosts = load_ghosts()
+    key = ghost_mode_key()
+    if key in ghosts and result < ghosts[key]["result"]:
+        return False
+    ghosts[key] = {"gen": generation, "result": result, "score": traces[0], "methane": traces[1]}
+    _write_local_storage_item(GHOST_STORAGE_KEY, json.dumps(ghosts))
+    return True
+
+
+def ghost_enabled():
+    return _read_local_storage_item(GHOST_PREF_KEY) != "0"
+
+
+def _rounded_result(result, digits):
+    """A ghost.compare result with its lead rounded the way the game shows its numbers; under half a unit is level."""
+    if result is None or result["status"] not in ("ahead", "behind"):
+        return result
+    lead = round(result["lead"], digits)
+    return dict(result, status="level", lead=0) if lead == 0 else dict(result, lead=lead)
+
+
+def ghost_sentences():
+    """(score sentence, methane sentence) from the shared wording for the farm being played against the stored ghost, or
+    None when there is nothing to compare yet."""
+    entry = ghost_entry()
+    series = farm_series()
+    if entry is None or series is None:
+        return None
+    who = f"your best farm ({entry['score']['label']})" if entry["score"]["label"] else "your best farm"
+    score = ghost_lib.summary(_rounded_result(ghost_lib.compare(series[0], entry["score"]), 0), label=who)
+    gas = ghost_lib.summary(_rounded_result(ghost_lib.compare(series[1], entry["methane"], higher_is_better=False), 1), label=who, unit=" methane")
+    return score, gas
+
+
+def ghost_note_text():
+    """The sentence(s) under the methane chart; "" while a blind run is hidden."""
+    if blind_hidden():
+        return ""
+    if not ghost_eligible():
+        return "Ghost: not used on a practice sandbox or custom-rules farm, because those are never ranked."
+    entry = ghost_entry()
+    if entry is None:
+        return (f"Ghost: hand a farm over, or file one in the Ranch Ledger after {GHOST_MIN_ROUNDS} or more rounds, and your best "
+                "one is kept here to race, one score and one methane number per round.")
+    sentences = ghost_sentences()
+    if sentences is None:
+        return (f"Ghost: your best {farm_mode()} farm ({entry['score']['label']}) ran {entry['score']['turns']} rounds. "
+                "This farm is compared with it after every round.")
+    if sentences[0] == sentences[1]:   # the ghost's run ended before this round: one sentence says it for both numbers
+        return sentences[0].replace("ghost: ", "Ghost: ", 1) + "."
+    return f"{sentences[0].replace('ghost: ', 'Ghost: ', 1)}. Methane (lower is better): {sentences[1].replace('ghost: ', '', 1)}."
+
+
+def ghost_graph_data():
+    """What the methane chart needs to draw the ghost, or None (switched off, blind, no ghost, no rounds yet)."""
+    if blind_hidden() or not ghost_eligible() or not ghost_enabled():
+        return None
+    entry, sentences = ghost_entry(), ghost_sentences()
+    if entry is None or sentences is None:
+        return None
+    return {"trace": entry["methane"], "sentence": ghost_note_text()}
+
+
+def render_ghost():
+    note, toggle_wrap, toggle = _ghost_el("ghost-note"), _ghost_el("ghost-toggle-wrap"), _ghost_el("ghost-toggle")
+    has_entry = ghost_eligible() and ghost_entry() is not None and not blind_hidden()
+    if toggle_wrap is not None:
+        toggle_wrap.hidden = not has_entry
+    if toggle is not None:
+        toggle.checked = ghost_enabled()
+    if note is not None:
+        text = ghost_note_text() if ghost_enabled() else ""
+        note.innerText = text
+        note.hidden = not text
+
+
+def on_toggle_ghost(event=None):
+    toggle = _ghost_el("ghost-toggle")
+    on = True if toggle is None else bool(toggle.checked)
+    _write_local_storage_item(GHOST_PREF_KEY, "1" if on else "0")
+    render()
+
+
 def ledger_matches(entry, which):
     if which == "all":
         return True
@@ -4116,6 +4305,7 @@ def on_ledger_add(event=None):
         return
     reveal_blind_run()  # GF-28: filing a farm ends a blind run (the ledger line carries the baseline gap)
     ledger_record(ledger_entry(finished=False))
+    file_ghost()  # Z-3e
     render()
     _display_milestone_toast("Filed this farm in the Ranch Ledger.")
 
@@ -4603,7 +4793,8 @@ def render():
     document.getElementById("certification-display").innerText = certification_message()
 
     # F7 — methane-over-rounds trend graph.
-    document.getElementById("methane-trend-graph").innerHTML = methane_trend_graph_svg(farm.methane_history)
+    document.getElementById("methane-trend-graph").innerHTML = methane_trend_graph_svg(farm.methane_history, ghost_graph_data())
+    render_ghost()  # Z-3e
 
     # F1/F13 — live pure-growth counterfactual + persistent baseline-farm card.
     document.getElementById("counterfactual-comparison-display").innerText = counterfactual_comparison_message()
@@ -4829,6 +5020,7 @@ def hand_over_farm():
         reveal_blind_run()  # GF-28: the blind run ends with the farm; say how it went before it is retired
         _display_milestone_toast(blind_reveal_message())
     ledger_record(ledger_entry(finished=True))  # F-2: the finished farm is filed before it is retired
+    file_ghost()  # Z-3e: and kept as the ghost when it is the best result in its mode
     retire_herd_to_hall()  # GF-13: the longest-serving animals are honoured before the herd is retired
     legacy_points += earned
     generation += 1
@@ -6486,6 +6678,9 @@ def setup():
         document.getElementById(f"pin-{stat.replace('_', '-')}").addEventListener("click", create_proxy(_make_pin_handler(stat)))
     document.getElementById("ledger-filter").addEventListener("change", create_proxy(on_ledger_filter))
     document.getElementById("ledger-add-button").addEventListener("click", create_proxy(on_ledger_add))
+    ghost_toggle = _ghost_el("ghost-toggle")  # Z-3e
+    if ghost_toggle is not None:
+        ghost_toggle.addEventListener("change", create_proxy(on_toggle_ghost))
     document.getElementById("ledger-clear-button").addEventListener("click", create_proxy(on_ledger_clear))
     for horizon in PLAN_HORIZONS:
         document.getElementById(f"plan-horizon-{horizon}-button").addEventListener(

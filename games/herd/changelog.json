@@ -1,5 +1,9 @@
 [
   {
+    "date": "2026-10-12",
+    "entry": "New: a ghost of your best farm. Hand a farm over, or file one in the Ranch Ledger after four or more rounds, and the best result so far in that farm mode is kept. The next farm then races it: your best farm's methane is drawn as a faint dashed line on the Methane over time chart, and a sentence under the chart says whether your score and your methane are ahead of, level with or behind it at the same round (lower methane counts as ahead). A checkbox switches the ghost off. Practice sandbox and custom-rules farms are never ranked, so they never race or become a ghost."
+  },
+  {
     "date": "2026-10-11",
     "entry": "Practice sandbox: set the herd, the methane and every lever with sliders and watch the gauge, the pressure and the income react, with unlimited funds. Nothing in it is scored, saved, earned or compared with other farms, and your real farm comes back exactly as it was when you leave."
   },

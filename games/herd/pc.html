@@ -309,6 +309,9 @@
       <details class="info-toggle"><summary>i</summary><p>The faint haze tinting the whole page shows market/regulatory pressure: it is clear at 0% income loss and reaches its densest at the 80% cap. Purple wisps rising from the cows thin out as your coupling ratio improves, and vanish once the farm is about 90% decoupled.</p></details>
       <p class="meter-label">Methane over time</p>
       <div id="methane-trend-graph" class="methane-trend-graph"></div>
+      <!-- Z-3e: the ghost of your best farm, in words (the dashed line is on the chart above), with its off switch. -->
+      <p id="ghost-note" class="comparison-message ghost-note" role="status" hidden></p>
+      <label id="ghost-toggle-wrap" class="ghost-toggle-label" hidden><input type="checkbox" id="ghost-toggle" checked> Show the ghost of my best farm</label>
     </div>
 
     <div id="status" class="section">
@@ -792,6 +795,9 @@
       // resolves normally. Powers the F15 real-world comparison chart.
       const comparisonChartSource = await (await fetch("../../shared/comparison_chart.py")).text();
       pyodide.FS.writeFile("comparison_chart.py", comparisonChartSource, { encoding: "utf8" });
+      // Z-3e: the shared best-farm ghost (shared/ghost.py): rounds are recorded and compared through it.
+      const ghostSource = await (await fetch("../../shared/ghost.py")).text();
+      pyodide.FS.writeFile("ghost.py", ghostSource, { encoding: "utf8" });
       // F-25: the shared progress-code helper (shared/export_progress.py) for the settings code.
       const exportProgressSource = await (await fetch("../../shared/export_progress.py")).text();
       pyodide.FS.writeFile("export_progress.py", exportProgressSource, { encoding: "utf8" });
