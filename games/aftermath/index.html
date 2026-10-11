@@ -163,6 +163,13 @@
           Hide the closing line on the run summary
         </label>
       </div>
+      <!-- GE-14 / GE-26: the short shake, flash, ripple and pulse effects. On by default; Reduce motion always turns them off. -->
+      <div class="settings-row">
+        <label class="settings-checkbox-label" for="effects-checkbox">
+          <input type="checkbox" id="effects-checkbox">
+          Screen shake, flashes and pulses when an event hits or is near (always off while Reduce motion is on)
+        </label>
+      </div>
       <!-- E-28: off by default; asks before Face Next Event when resources are left unspent. -->
       <div class="settings-row">
         <label class="settings-checkbox-label" for="confirm-unspent-checkbox">
@@ -306,6 +313,8 @@
       </div>
       <p id="generational-memory-display" class="generational-memory" hidden></p>
       <p id="last-event-display" class="status-line"></p>
+      <!-- GE-14: the last event's damage, large, with its icon and the word "damage" (the effect on the art is extra). -->
+      <p id="hit-number" class="hit-number" aria-hidden="true" hidden></p>
       <p id="callout-display" class="callout-display" role="status" hidden></p>
       <!-- GE-13: what the last event's mitigation prevented (count-up in ui.js), plus the held-streak
            and Flawless Defense line. E-5: event-announcer is the screen-reader live region. -->

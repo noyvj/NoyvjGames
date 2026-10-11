@@ -123,3 +123,73 @@ def test_a_cached_page_without_the_look_elements_still_renders(game_env):
     m = game_env.module
     m._el = lambda element_id: None
     m.render_settlement_look()
+
+
+# ------------------------------------------------------------------------------------------ GE-14
+def _set(game_env, key, value):
+    game_env.local_storage.setItem(key, value)
+
+
+def test_every_event_type_has_an_effect_and_a_distinct_enough_class(game_env):
+    m = game_env.module
+    assert set(m.EVENT_HIT_EFFECT) == set(m.EVENT_LABEL)  # a future event type must pick its effect
+    assert {m.hit_effect_class(t) for t in m.EVENT_LABEL} == set(m.HIT_EFFECT_CLASSES)
+    assert len(m.HIT_EFFECT_CLASSES) >= 5
+    assert m.hit_effect_class("flood") == "hit-ripple" and m.hit_effect_class("civil_unrest") == "hit-shudder"
+    assert m.hit_effect_class("not_an_event") == "hit-dim"
+
+
+def test_effects_default_on_switch_off_and_reduce_motion_always_wins(game_env):
+    m = game_env.module
+    assert m.effects_enabled() is True
+    _set(game_env, "aftermath-effects", "false")
+    assert m.effects_enabled() is False
+    _set(game_env, "aftermath-effects", "true")
+    assert m.effects_enabled() is True
+    _set(game_env, "aftermath-reduced-motion", "true")
+    assert m.effects_enabled() is False  # even with the switch on
+    _set(game_env, "aftermath-reduced-motion", "false")
+    assert m.effects_enabled() is True
+
+
+def test_resolving_an_event_plays_its_effect_class_then_removes_it(game_env):
+    m, e = game_env.module, game_env.elements
+    assert m.run.next_event_type() == "flood"
+    game_env.resolve_event()
+    assert e["settlement-visual"].classList.contains("hit-ripple")
+    assert e["hit-number"].classList.contains("hit-number--pop")
+    delays = [d for _cb, d in game_env.timers.pending]
+    assert m.HIT_EFFECT_MS in delays
+    game_env.timers.flush()
+    assert not e["settlement-visual"].classList.contains("hit-ripple")
+    assert not e["hit-number"].classList.contains("hit-number--pop")
+
+
+def test_effects_off_means_no_class_is_ever_added(game_env):
+    e = game_env.elements
+    _set(game_env, "aftermath-effects", "false")
+    game_env.resolve_event()
+    assert not any(e["settlement-visual"].classList.contains(c) for c in game_env.module.HIT_EFFECT_CLASSES)
+    assert not e["hit-number"].classList.contains("hit-number--pop")
+    assert e["hit-number"].innerText  # the large number itself is plain text and stays
+
+
+def test_hit_number_is_words_and_icon_not_just_colour_and_follows_the_last_event(game_env):
+    m, e = game_env.module, game_env.elements
+    assert e["hit-number"].hidden is True and e["hit-number"].innerText == ""
+    game_env.resolve_event()
+    entry = m.run.event_log[-1]
+    text = e["hit-number"].innerText
+    assert m.EVENT_ICON[entry["type"]] in text and f"{entry['damage']:.0f}" in text and "damage" in text
+    assert e["hit-number"].hidden is False and "event-category--weather" in e["hit-number"].className
+    game_env.module.run = m.RunState(run_number=2)
+    m.render()
+    assert e["hit-number"].hidden is True
+
+
+def test_a_page_without_the_hit_elements_still_resolves_events(game_env):
+    m = game_env.module
+    real = m._el
+    m._el = lambda element_id: None if element_id in ("hit-number", "settlement-visual") else real(element_id)
+    game_env.resolve_event()
+    assert len(m.run.event_log) == 1

@@ -38,6 +38,9 @@
   const NEIGHBOUR_AID_KEY = "aftermath-neighbour-aid";
   // GE-21: hides the closing line on the run summary. Read by game.py from this same key.
   const HIDE_EPITAPH_KEY = "aftermath-hide-epitaph";
+  // GE-14 / GE-26: the short hit and countdown effects. "false" turns them off; missing means on.
+  // Reduce motion always overrides it (the checkbox is disabled while that is on).
+  const EFFECTS_KEY = "aftermath-effects";
   const MIN_SCALE = 0.85;
   const MAX_SCALE = 1.5;
   const STEP = 0.1;
@@ -113,6 +116,24 @@
     return on;
   }
 
+  function readEffects() {
+    try {
+      return window.localStorage.getItem(EFFECTS_KEY) !== "false";
+    } catch (e) {
+      return true;
+    }
+  }
+
+  function applyEffects(on) {
+    document.documentElement.setAttribute("data-effects", on ? "true" : "false");
+    try {
+      window.localStorage.setItem(EFFECTS_KEY, String(on));
+    } catch (e) {
+      // Persistence is a convenience only.
+    }
+    return on;
+  }
+
   function init() {
     let contrast = applyFlag("data-high-contrast", CONTRAST_KEY, readFlag(CONTRAST_KEY));
     let readable = applyFlag("data-readable-font", FONT_KEY, readFlag(FONT_KEY));
@@ -172,6 +193,22 @@
     let reduced = readStoredMotion();
     applyMotion(reduced);
 
+    let effects = readEffects();
+    document.documentElement.setAttribute("data-effects", effects ? "true" : "false");
+    const effectsBox = document.getElementById("effects-checkbox");
+    function syncEffectsBox() {
+      if (!effectsBox) return;
+      effectsBox.checked = effects && !reduced;
+      effectsBox.disabled = reduced;
+    }
+    syncEffectsBox();
+    if (effectsBox) {
+      effectsBox.addEventListener("change", function () {
+        effects = applyEffects(effectsBox.checked);
+        syncEffectsBox();
+      });
+    }
+
     const panel = document.getElementById("settings-panel");
     const toggleButton = document.getElementById("settings-toggle-button");
     const decreaseButton = document.getElementById("text-size-decrease-button");
@@ -206,6 +243,7 @@
     if (motionCheckbox) {
       motionCheckbox.addEventListener("change", function () {
         reduced = applyMotion(motionCheckbox.checked);
+        syncEffectsBox();
       });
     }
 
@@ -217,6 +255,8 @@
         if (motionCheckbox) {
           motionCheckbox.checked = false;
         }
+        effects = applyEffects(true);
+        syncEffectsBox();
         contrast = applyFlag("data-high-contrast", CONTRAST_KEY, false);
         readable = applyFlag("data-readable-font", FONT_KEY, false);
         if (contrastBox) contrastBox.checked = false;

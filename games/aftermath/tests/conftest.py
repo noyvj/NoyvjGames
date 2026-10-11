@@ -221,6 +221,8 @@ ELEMENT_IDS = [
     # GE-25: settlement looks.
     "settlement-visual",
     "settlement-look-display",
+    # GE-14: the large damage number.
+    "hit-number",
 ]
 for _skill in SKILL_IDS:
     ELEMENT_IDS += [

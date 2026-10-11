@@ -1,6 +1,10 @@
 [
   {
     "date": "2026-10-11",
+    "entry": "New: each kind of event now hits the settlement art in its own way, with a large damage number beside it. A flood sends a blue ripple, a heatwave or heat-health emergency an orange pulse, a storm a shake and white flash, infrastructure failure a yellow flicker, supply-chain trouble a dimming, and civil unrest a red shudder. They last under a second, and the Last-event line says the same in words. A new Settings switch ('Screen shake, flashes and pulses') turns them off, and Reduce motion always does."
+  },
+  {
+    "date": "2026-10-11",
     "entry": "New: settlement looks. The settlement is now drawn as Thatched huts, Timber halls or Concrete and glass, by how many skills you own when a run starts (Timber halls at 4 of the 7, Concrete and glass at all 7). The status shows the look, what unlocks the next one and how many looks you have seen (Looks seen: 2 of 3), and Past Runs names the look on any run that was not the default. It is art only: no number in the game changes."
   },
   {

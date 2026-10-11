@@ -5730,6 +5730,7 @@ def render():
     render_founding()  # GE-10
     render_mood_strip()  # GE-20
     render_settlement_look()  # GE-25
+    render_hit_number()  # GE-14
     render_challenge()  # E-4
     document.getElementById("curriculum-display").innerText = curriculum_message()
     document.getElementById("resources-display").innerText = f"Resources: {run.resources:.0f}"
@@ -6081,6 +6082,7 @@ def _resolve_event_now():
         rank_text = skill_rank_callout_text() if run.is_complete() else ""
         aid_text = f" Neighbouring towns sent {entry_aid(run.event_log[-1]):.0f} resources." if entry_aid(run.event_log[-1]) else ""  # R-31
         announce(event_announcement(run.event_log[-1]) + aid_text + (" " + rank_text if rank_text else ""))  # E-5 / E-11
+        play_hit_effect(run.event_log[-1])  # GE-14
     _check_new_achievements_for_toast()
 
 
@@ -7347,6 +7349,76 @@ def render_settlement_look():
     text = _el("settlement-look-display")
     if text is not None:
         text.innerText = look_text(run)
+
+
+# ---------------------------------------------------------------------------
+# GE-14: per-category event hit effects. When an event resolves the settlement art gets one short effect
+# for that kind of event (a ripple for floods, a heat pulse for heatwaves and heat-health emergencies, a
+# shake and flash for storms, a flicker for infrastructure failure, a dim for supply-chain trouble, a red
+# shudder for civil unrest) and the damage number is shown large beside it. The effects are one CSS class on
+# the art for under a second; every one is also written in words by the unchanged Last-event line, so
+# nothing depends on them. A Settings switch turns them off, and Reduce motion always does.
+# ---------------------------------------------------------------------------
+EFFECTS_STORAGE_KEY = "aftermath-effects"  # settings.js writes "true" or "false"; missing = on
+REDUCED_MOTION_STORAGE_KEY = "aftermath-reduced-motion"
+HIT_EFFECT_MS = 900
+EVENT_HIT_EFFECT = {
+    "flood": "ripple",
+    "heatwave": "heat",
+    "heat_mortality": "heat",
+    "storm": "storm",
+    "supply_chain": "dim",
+    "infrastructure_failure": "spark",
+    "civil_unrest": "shudder",
+}
+HIT_EFFECT_CLASSES = tuple(f"hit-{name}" for name in sorted(set(EVENT_HIT_EFFECT.values())))
+
+
+def effects_enabled():
+    """True unless the player switched the shake-and-flash effects off, or Reduce motion is on."""
+    try:
+        if localStorage.getItem(REDUCED_MOTION_STORAGE_KEY) == "true":
+            return False
+        return localStorage.getItem(EFFECTS_STORAGE_KEY) != "false"
+    except Exception:
+        return False
+
+
+def hit_effect_class(event_type):
+    return f"hit-{EVENT_HIT_EFFECT.get(event_type, 'dim')}"
+
+
+def hit_number_text(entry):
+    """The big number for the last event: its icon, the damage and a word, so it never relies on colour."""
+    return f"{EVENT_ICON[entry['type']]} \u2212{entry['damage']:.0f} damage"
+
+
+def render_hit_number():
+    element = _el("hit-number")
+    if element is None:
+        return
+    entry = run.event_log[-1] if run.event_log else None
+    element.hidden = entry is None
+    if entry is None:
+        element.innerText = ""
+        element.className = "hit-number"
+        return
+    element.innerText = hit_number_text(entry)
+    element.className = f"hit-number event-category--{EVENT_CATEGORY[entry['type']]}"
+
+
+def _flash_if_present(element_id, duration_ms, css_class):
+    if _el(element_id) is not None:
+        _flash_element(element_id, duration_ms, css_class)
+
+
+def play_hit_effect(entry):
+    """Plays the effect for a just-resolved event (no-op when effects are off)."""
+    if not effects_enabled():
+        return False
+    _flash_if_present("settlement-visual", HIT_EFFECT_MS, hit_effect_class(entry["type"]))
+    _flash_if_present("hit-number", HIT_EFFECT_MS, "hit-number--pop")
+    return True
 
 
 def _listen(element_id, event_name, handler):
