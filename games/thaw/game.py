@@ -1969,12 +1969,40 @@ def set_long_game(enabled):
     return True
 
 
+def unranked_reasons():
+    """FY-32: the custom rules that change the numbers of a run (the long game and Hold the Line), which
+    keep it out of the community comparison. Hard mode only hides previews and a custom preset is only a
+    shortcut, so neither one counts."""
+    reasons = []
+    if long_game:
+        reasons.append("the long game")
+    if hold_the_line:
+        reasons.append("Hold the Line")
+    return reasons
+
+
+def run_unranked():
+    return bool(unranked_reasons())
+
+
+def unranked_note():
+    """FY-32: one sentence saying a run is unranked and why; empty for a standard run."""
+    reasons = unranked_reasons()
+    if not reasons:
+        return ""
+    return (
+        f"Unranked run: {' and '.join(reasons)} change{'s' if len(reasons) == 1 else ''} the rules, so this "
+        "run is kept out of the community comparison. Start a standard game to be compared."
+    )
+
+
 def long_game_text():
     if long_game:
         return (
             f"Long game is on: warming runs at {LONG_GAME_WARMING_SCALE * 100:.0f}% speed and Output pays "
             f"{LONG_GAME_INCOME_SCALE * 100:.0f}% as much, so the full trajectory takes about "
-            f"{1 / LONG_GAME_WARMING_SCALE:.1f}x as many rounds."
+            f"{1 / LONG_GAME_WARMING_SCALE:.1f}x as many rounds. This makes it an unranked run: it is kept out of "
+            "the community comparison."
         )
     return "Standard game. A long game stretches the whole trajectory over roughly two and a half times as many rounds."
 
@@ -2795,6 +2823,12 @@ def update_community_compare_panel():
     )
     panel.hidden = not community_compare_open
     if not community_compare_open:
+        return
+    if run_unranked():  # FY-32: custom rules never reach the shared percentile
+        panel.innerHTML = (
+            f'<p id="community-compare-display" class="comparison-message">{_escape(unranked_note())}</p>'
+            + compare_history_html()
+        )
         return
     panel.innerHTML = (
         f'<p id="community-compare-display" class="comparison-message">{COMMUNITY_COMPARE_FALLBACK}</p>'
@@ -3911,7 +3945,8 @@ def hold_line_status():
     held = untipped_count()
     return (
         f"Hold the Line, round {region.round_number}: {held} of 3 regions are out of the critical tier "
-        f"(you need {HOLD_LINE_MIN_UNTIPPED}). {escalation_text()}"
+        f"(you need {HOLD_LINE_MIN_UNTIPPED}). {escalation_text()} Runs like this are unranked: kept out of the "
+        "community comparison."
     )
 
 
@@ -6028,6 +6063,9 @@ def get_state():
     # GG-17: written only once the run's one rewind has been spent.
     if undo_used:
         state["undo_used"] = True
+    # FY-32: write-only marker for the shared stats; never read back (load_state recomputes it).
+    if run_unranked():
+        state["unranked"] = True
     return state
 
 

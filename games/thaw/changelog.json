@@ -1,6 +1,10 @@
 [
   {
     "date": "2026-10-11",
+    "entry": "New: runs that change the rules (the long game, Hold the Line) are now marked unranked. The Game options say so, and the Community Comparison panel explains that the run is kept out of the comparison instead of measuring it against standard games."
+  },
+  {
+    "date": "2026-10-11",
     "entry": "Behind the scenes: very long games now draw each graph as at most 120 points (the newest 40 rounds stay whole, older rounds are folded into summary points that keep every peak), so a long run stays smooth. Your save still keeps every round. Open the page with ?debug=1 to see a history and save-size line in Settings."
   },
   {
