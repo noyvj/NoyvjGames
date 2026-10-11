@@ -266,6 +266,74 @@ def subscore_arrow(subscore_log, key):
     return TREND_ARROW[trend_indicator(values, tolerance=1.0)]
 
 
+SPARKLINE_ROUNDS = 20
+SPARKLINE_WIDTH = 56
+SPARKLINE_HEIGHT = 14
+
+
+def sparkline_svg(values, rounds=SPARKLINE_ROUNDS, width=SPARKLINE_WIDTH, height=SPARKLINE_HEIGHT):
+    """I-26: a tiny inline line chart of the last `rounds` values of a 0-100 score, on the fixed 0-100
+    scale (so its shape reads the same round to round). Empty until two rounds exist."""
+    recent = [float(v) for v in values[-rounds:]]
+    if len(recent) < 2:
+        return ""
+    step = width / (len(recent) - 1)
+    points = " ".join(
+        f"{i * step:.1f},{height - max(0.0, min(100.0, v)) / 100.0 * (height - 2) - 1:.1f}"
+        for i, v in enumerate(recent)
+    )
+    return (
+        f'<svg viewBox="0 0 {width} {height}" width="{width}" height="{height}" class="sparkline-svg" focusable="false">'
+        f'<polyline points="{points}" class="sparkline-line" /></svg>'
+    )
+
+
+def subscore_sparkline(subscore_log, key):
+    return sparkline_svg([entry.get(key, 0.0) for entry in subscore_log if isinstance(entry, dict)])
+
+
+def pending_age_bands(region_state):
+    """I-23: how long the people still pending have waited, as if the longest-waiting are integrated
+    first (integration here takes people from the backlog, never the newest). The arrivals log gives
+    each round's batch: 'new' is the latest round's arrivals, 'recent' the two before it, 'old' the rest
+    (including any backlog the region started with). The three always sum to the pending population."""
+    pending = region_state.pending_population()
+    log = list(region_state.arrivals_log)
+    bands = {}
+    for key, rounds_back in (("new", 1), ("recent", 2)):
+        batch = sum(log[-rounds_back:]) if log else 0.0
+        del log[-rounds_back:]
+        bands[key] = min(pending, batch)
+        pending -= bands[key]
+    bands["old"] = max(0.0, pending)
+    return bands
+
+
+def pending_pipeline_text(bands):
+    total = sum(bands.values())
+    if total < 0.5:
+        return "Nobody is waiting for integration."
+    return (
+        f"Waiting for integration: {bands['new']:.0f} from the latest round, {bands['recent']:.0f} who have waited "
+        f"2 to 3 rounds, {bands['old']:.0f} who have waited 4 or more (as if the longest-waiting are integrated first)."
+    )
+
+
+def render_pending_pipeline():
+    bands = pending_age_bands(region)
+    total = sum(bands.values())
+    pipeline = document.getElementById("pending-pipeline")
+    text = document.getElementById("pending-pipeline-text")
+    pipeline.hidden = total < 0.5
+    text.hidden = False
+    text.innerText = pending_pipeline_text(bands)
+    for key in ("new", "recent", "old"):
+        share = bands[key] / total * 100 if total >= 0.5 else 0
+        segment = document.getElementById(f"pending-band-{key}")
+        segment.style.width = f"{share:.1f}%"
+        segment.title = f"{bands[key]:.0f} people"
+
+
 # I-8: spend categories (the lifetime split feeds the region-personality
 # titles) and the capped per-round ledger.
 SPEND_KEYS = ["housing", "services", "infrastructure", "policy", "realloc"]
@@ -3855,6 +3923,7 @@ def render():
     document.getElementById("pending-display").innerText = (
         f"Pending integration: {region.pending_population():.0f} people"
     )
+    render_pending_pipeline()
     turning_point_display = document.getElementById("integration-turning-point-display")
     turning_point_message = integration_turning_point_message(region)
     turning_point_display.hidden = turning_point_message is None
@@ -3883,6 +3952,14 @@ def render():
     document.getElementById("social-cohesion-bar").style.width = f"{region.social_cohesion():.0f}%"
     document.getElementById("wellbeing-display").innerText = (
         f"Wellbeing score: {region.wellbeing_score():.0f}"
+    )
+    # I-22: short sources for the phone's sticky bar: round and funds (the coin stands for funds), strain, wellbeing with its band name.
+    document.getElementById("hud-round-display").innerText = f"R{region.round_number} 💰 {region.funds:.0f}"
+    document.getElementById("hud-strain-display").innerText = (
+        f"{region.strain_fraction() * 100:.0f}% {region.strain_level()}"
+    )
+    document.getElementById("hud-wellbeing-display").innerText = (
+        f"{region.wellbeing_score():.0f} {wellbeing_band(region.wellbeing_score())}"
     )
     document.getElementById("wellbeing-message-display").innerText = wellbeing_message(
         region.wellbeing_score()
@@ -3946,6 +4023,9 @@ def render():
         arrow = subscore_arrow(region.subscore_log, key)
         arrow_el.innerText = arrow
         arrow_el.title = {"▲": "improving", "▶": "plateauing", "▼": "declining"}.get(arrow, "")
+        document.getElementById(arrow_id.replace("-trend", "-spark")).innerHTML = subscore_sparkline(
+            region.subscore_log, key
+        )
         document.getElementById(target_id).innerText = (
             f"Thriving marker: {THRIVING_WELLBEING_SCORE:.0f}"
         )

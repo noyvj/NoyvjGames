@@ -185,6 +185,18 @@ ELEMENT_IDS = [
     "run-stars-display",
     "copy-summary-button",
     "summary-copy-area",
+    # Round-4 batch (Oct 11): pending pipeline, sparklines, HUD sources.
+    "pending-pipeline",
+    "pending-pipeline-text",
+    "pending-band-new",
+    "pending-band-recent",
+    "pending-band-old",
+    "service-quality-spark",
+    "economic-health-spark",
+    "social-cohesion-spark",
+    "hud-round-display",
+    "hud-strain-display",
+    "hud-wellbeing-display",
 ]
 
 

@@ -289,6 +289,13 @@
       </p>
       <p id="integrated-display" class="status-line">Integrated: 0 people (contributing 0 funds/round)</p>
       <p id="pending-display" class="status-line">Pending integration: 0 people</p>
+      <!-- I-23: how long the people still waiting have been waiting, in three bands (shown as if the longest-waiting are integrated first). -->
+      <div id="pending-pipeline" class="pending-pipeline" role="img" aria-labelledby="pending-pipeline-text" hidden>
+        <span id="pending-band-new" class="pending-band pending-band--new"></span>
+        <span id="pending-band-recent" class="pending-band pending-band--recent"></span>
+        <span id="pending-band-old" class="pending-band pending-band--old"></span>
+      </div>
+      <p id="pending-pipeline-text" class="gauge-reference-note" hidden></p>
       <p id="integration-turning-point-display" class="turning-point-message" hidden></p>
       <!-- UI decluttering pass (TODO.md closing task): these two long
            comparison paragraphs were stacked directly against the short
@@ -323,25 +330,29 @@
       <div class="wellbeing-trio">
         <div class="wellbeing-gauge wellbeing-gauge--service">
           <span class="wellbeing-gauge-icon" aria-hidden="true">📋</span>
-          <p id="service-quality-display" class="status-line">Service quality: 100</p><span id="service-quality-trend" class="gauge-trend" aria-label="trend"></span>
+          <p id="service-quality-display" class="status-line">Service quality: 100</p><span id="service-quality-trend" class="gauge-trend" aria-label="trend"></span><span id="service-quality-spark" class="gauge-spark" aria-hidden="true"></span>
           <div class="meter"><div id="service-quality-bar" class="meter-fill meter-fill--wellbeing"></div></div>
           <p id="service-quality-target" class="gauge-reference-note"></p>
         </div>
         <div class="wellbeing-gauge wellbeing-gauge--economy">
           <span class="wellbeing-gauge-icon" aria-hidden="true">📊</span>
-          <p id="economic-health-display" class="status-line">Economic health: 30</p><span id="economic-health-trend" class="gauge-trend" aria-label="trend"></span>
+          <p id="economic-health-display" class="status-line">Economic health: 30</p><span id="economic-health-trend" class="gauge-trend" aria-label="trend"></span><span id="economic-health-spark" class="gauge-spark" aria-hidden="true"></span>
           <div class="meter"><div id="economic-health-bar" class="meter-fill meter-fill--wellbeing"></div></div>
           <p id="economic-health-target" class="gauge-reference-note"></p>
           <p id="economic-health-reference-display" class="gauge-reference-note">Reaches 100 at 1000+ funds.</p>
         </div>
         <div class="wellbeing-gauge wellbeing-gauge--cohesion">
           <span class="wellbeing-gauge-icon" aria-hidden="true">🔗</span>
-          <p id="social-cohesion-display" class="status-line">Social cohesion: 0</p><span id="social-cohesion-trend" class="gauge-trend" aria-label="trend"></span>
+          <p id="social-cohesion-display" class="status-line">Social cohesion: 0</p><span id="social-cohesion-trend" class="gauge-trend" aria-label="trend"></span><span id="social-cohesion-spark" class="gauge-spark" aria-hidden="true"></span>
           <div class="meter"><div id="social-cohesion-bar" class="meter-fill meter-fill--wellbeing"></div></div>
           <p id="social-cohesion-target" class="gauge-reference-note"></p>
         </div>
       </div>
       <p id="wellbeing-display" class="status-line">Wellbeing score: 43</p>
+      <!-- I-22: short text the phone's sticky bar (shared/mobile-hud.js) mirrors (round and funds, strain, wellbeing with its band); hidden on the page itself. -->
+      <span id="hud-round-display" hidden>R1 💰 300</span>
+      <span id="hud-strain-display" hidden>0% stable</span>
+      <span id="hud-wellbeing-display" hidden>43 Managing</span>
       <p id="wellbeing-message-display" class="comparison-message">This region is managing, but strain and slow integration are holding it back.</p>
       <p id="thriving-callout-display" class="turning-point-message" hidden></p>
       <details id="thriving-vignette-box" class="context-toggle" hidden>
@@ -692,9 +703,9 @@
       }
       if (window.MobileHud) {
         MobileHud.init([
-          { selector: "#funds-display", label: "" },
-          { selector: "#strain-display", label: "" },
-          { selector: "#wellbeing-display", label: "" },
+          { selector: "#hud-round-display", label: "" },
+          { selector: "#hud-strain-display", label: "Strain" },
+          { selector: "#hud-wellbeing-display", label: "Wellbeing" },
         ]);
       }
     }
