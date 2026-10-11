@@ -64,6 +64,24 @@
   },
   "composites": [
     {
+      "id": "pc-planner-panel",
+      "title": "Multi-cycle planner",
+      "members": [
+        "#planner-panel"
+      ],
+      "group": "Game",
+      "label": "🗓️ Multi-cycle planner"
+    },
+    {
+      "id": "pc-ghost-panel",
+      "title": "Run codes & ghost",
+      "members": [
+        "#ghost-panel"
+      ],
+      "group": "Game",
+      "label": "👻 Run codes & ghost"
+    },
+    {
       "id": "pc-relabel-panel",
       "title": "Relabel goods",
       "members": [

@@ -1,6 +1,30 @@
 [
   {
     "date": "2026-10-11",
+    "entry": "New: a wry narrator under the chain comments on how your chain is doing (a fresh start, damage piling up, a closed loop, a streak, a market shock, the rival). The Story switch hides it."
+  },
+  {
+    "date": "2026-10-11",
+    "entry": "New: hover a ring node to see a small chart of how many funds you put into it each cycle. The same numbers are in the chain-as-a-list view."
+  },
+  {
+    "date": "2026-10-11",
+    "entry": "New: a Multi-cycle planner. Queue purchases for the next 3 to 5 cycles and see the circular share, extraction bill and funds each leads to, compared with doing nothing, then commit this cycle's picks when you like. Nothing is bought until you do."
+  },
+  {
+    "date": "2026-10-11",
+    "entry": "New: Assist mode (Off, Hints, Guided). Hints highlight the best value buy right now; Guided adds a one-line reason with the numbers. An assisted chain is tagged and kept out of your speed flags and records."
+  },
+  {
+    "date": "2026-10-11",
+    "entry": "New: run codes. Copy a code for your run (goods, cycles, extraction, score, circular share and purchases per cycle), or paste a friend's to draw their run as a dotted ghost line on the Past chains graph with a side-by-side comparison card. A code is only a claim, not a verified score."
+  },
+  {
+    "date": "2026-10-11",
+    "entry": "New: earned achievements sit inside a small closed-loop ring with a short flourish when you unlock one, and the Achievements button shows a progress ring and a glowing dot while something new is waiting."
+  },
+  {
+    "date": "2026-10-11",
     "entry": "New: if a save that you load had something wrong in it (a value out of range, a ledger row that did not make sense), a short note at the top of the status block now says what was repaired and what was reset to its starting value, instead of silently falling back. A clean save shows nothing."
   },
   {

@@ -139,3 +139,9 @@ html[data-theme="light"] .pc-readout { color: #1b2233; }
 html[data-theme="light"] .pc-window-frame a { color: #1d4f9e; }
 /* The shell's notification card takes its background from a variable only windows define. */
 html[data-theme="light"] .pc-toast { background: #fbf6ec; border-color: rgba(122, 74, 18, 0.4); color: #1b1710; }
+
+/* Oct 11 batch (Desktop): the narrator sits in the chain panel with the vignette; the achievements icon in the top bar
+   mirrors the "something new" glow of the hidden original (pc.js copies the class across). */
+.pc-icon-button.achievements-toggle--new { position: relative; border-color: #7fd6a3; box-shadow: 0 0 14px rgba(127, 214, 163, 0.55); }
+.pc-icon-button.achievements-toggle--new::after { content: ""; position: absolute; top: -3px; right: -3px; width: 0.65rem; height: 0.65rem; border-radius: 50%; background: #ffd479; border: 2px solid #1b1710; }
+html[data-theme="light"] .narrator-ticker { background: rgba(255, 248, 232, 0.85); color: #1b1710; }

@@ -64,4 +64,19 @@ document.addEventListener("DOMContentLoaded", () => {
   if (map && !remembered("network-map-panel")) map.open = true;
   const relabel = document.getElementById("relabel-goods-panel");
   if (relabel && !remembered("relabel-goods-panel")) relabel.open = true; // its own window here, so no need to unfold it first
+  // H-31: the shell replaces the Achievements button with an icon; carry the "something new" glow across to it.
+  const original = document.getElementById("achievements-toggle-button");
+  if (original) {
+    const mirror = () => {
+      const icon = document.querySelector('.pc-icon-button[aria-label*="Achievements"]');
+      if (icon) icon.classList.toggle("achievements-toggle--new", original.classList.contains("achievements-toggle--new"));
+    };
+    new MutationObserver(mirror).observe(original, { attributes: true, attributeFilter: ["class"] });
+    mirror();
+  }
+  // The planner and the run-code panel also get their own windows on Desktop, so they start unfolded.
+  ["planner-panel", "ghost-panel"].forEach((id) => {
+    const panel = document.getElementById(id);
+    if (panel && !remembered(id)) panel.open = true;
+  });
 });

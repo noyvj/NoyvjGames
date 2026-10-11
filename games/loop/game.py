@@ -21,10 +21,13 @@ framework (ACHIEVEMENTS-SYSTEM-DESIGN.md), and an H1 bug fix (see
 `ChainState.exportable_surplus()`'s docstring).
 """
 
+import base64
 import copy
 import html
 import json
 import math
+import re
+import zlib
 
 import info_page
 from js import document, setTimeout
@@ -546,6 +549,14 @@ LEDGER_COLUMNS = (
 PAST_CHAINS_MAX = 20
 PAST_CURVE_POINTS = 60
 
+# H-26 / GH-28 / H-3: the six things a cycle's purchases can be, in a fixed order (the order of a buy-log row).
+BUY_KINDS = ("repair", "reuse", "recycle", "trade", "regional", "overseas")
+BUY_LABELS = {
+    "repair": "Repair", "reuse": "Reuse", "recycle": "Recycling",
+    "trade": "Trade Link", "regional": "Regional Partner", "overseas": "Overseas Consortium",
+}
+# H-8: Assist mode levels.
+ASSIST_MODES = ("off", "hints", "guided")
 BURST_MILESTONES = 4  # circular-fraction crosses each 25% step
 PULSE_LARGE_UNITS = 20.0
 PULSE_MEDIUM_UNITS = 8.0
@@ -645,11 +656,28 @@ class ChainState:
         # taken just before each Advance Cycle (never saved); only the spent token is saved.
         self.rewind_used = False
         self.rewind_snapshot = None
+        # H-26 / GH-28: purchases per completed cycle (a row of BUY_KINDS counts each), plus the
+        # cycle in progress. Saved when anything was bought.
+        self.buy_log = []
+        self.buys_now = [0] * len(BUY_KINDS)
+        # H-8: Assist mode, and the chain's tag once assistance has been on at any point.
+        self.assist = "off"
+        self.assist_used = False
 
     def can_choose_mode(self):
         """H13/H23: the modes change the rules of the whole chain, so they
         can only be picked before anything has been produced."""
         return self.total_produced == 0 and self.cycle_number == 1
+
+    def set_assist(self, mode):
+        """H-8: Off / Hints / Guided. Switching it on at any point tags the chain as assisted for good
+        (switching it off again does not untag it); unknown values are refused."""
+        if not (isinstance(mode, str) and mode in ASSIST_MODES):
+            return False
+        self.assist = mode
+        if mode != "off":
+            self.assist_used = True
+        return True
 
     def set_challenge_mode(self, on):
         if not self.can_choose_mode():
@@ -896,6 +924,7 @@ class ChainState:
         self.funds -= TRADE_LINK_COST
         self.trade_link_investment += 1
         self.lifetime_investment_spend += TRADE_LINK_COST
+        self.buys_now[BUY_KINDS.index("trade")] += 1
         return True
 
     def invest_regional_trade(self):
@@ -908,6 +937,7 @@ class ChainState:
         self.funds -= REGIONAL_TRADE_COST
         self.regional_trade_investment += 1
         self.lifetime_investment_spend += REGIONAL_TRADE_COST
+        self.buys_now[BUY_KINDS.index("regional")] += 1
         return True
 
     def invest_overseas_trade(self):
@@ -917,6 +947,7 @@ class ChainState:
         self.funds -= OVERSEAS_TRADE_COST
         self.overseas_trade_investment += 1
         self.lifetime_investment_spend += OVERSEAS_TRADE_COST
+        self.buys_now[BUY_KINDS.index("overseas")] += 1
         return True
 
     def unit_cost(self, kind):
@@ -983,6 +1014,7 @@ class ChainState:
         self.funds -= cost
         self.circularity_investment[measure] += 1
         self.lifetime_investment_spend += cost
+        self.buys_now[BUY_KINDS.index(measure)] += 1
         return True
 
     def damage_fraction(self):
@@ -1086,6 +1118,9 @@ class ChainState:
             self.last_insurance_saved = True
         else:
             self.closed_loop_streak = 0
+        self.buy_log.append(list(self.buys_now))  # H-26 / GH-28: this cycle's purchases, filed with the cycle
+        del self.buy_log[:-LEDGER_MAX]
+        self.buys_now = [0] * len(BUY_KINDS)
         self.passport.append({"cycle": self.cycle_number, "source": self.passport_source()})
         del self.passport[:-PASSPORT_MAX_ENTRIES]
         self.circular_fraction_log.append(self.circular_fraction_this_cycle())
@@ -1236,6 +1271,8 @@ def _update_career():
         plate = plate_for_mix(chain.last_cycle_mix)
         if plate:
             career_plates.add(plate)
+    if chain.assist_used:
+        return  # H-8: an assisted chain adds to what you have tried, never to speed flags or mastery records
     if chain.first_loop_closed_cycle is not None:
         if chain.first_loop_closed_cycle <= SPEED_CLOSE_CYCLE:
             career_speed.add("cycle12")
@@ -1333,6 +1370,7 @@ def career_reset():
 # one module-level list, so they are directly testable.
 # ===========================================================================
 past_chains = []  # finished (reset) chains, oldest first; survives Start New Chain like the career
+ghost = None  # GH-28 / H-7: a loaded friend's run (see load_ghost), session and browser only, never in a save
 
 LEDGER_SORTS = {
     "newest": ("Newest first", lambda row: -row["cycle"]),
@@ -1460,7 +1498,7 @@ def past_chain_record():
     log = chain.circular_fraction_log
     step = max(1, math.ceil(len(log) / PAST_CURVE_POINTS))
     curve = [round(f, 2) for f in log[::step]]
-    return {
+    record = {
         "category": chain.picked_category,
         "cycles": chain.cycle_number - 1,
         "closed": chain.first_loop_closed_cycle,
@@ -1472,6 +1510,9 @@ def past_chain_record():
         "trade": chain.trade_link_investment + chain.regional_trade_investment + chain.overseas_trade_investment,
         "curve": curve,
     }
+    if chain.assist_used:
+        record["assisted"] = True  # H-8: tagged, and left out of the mastery records
+    return record
 
 
 def archive_chain():
@@ -1509,12 +1550,15 @@ def past_chains_from_save(raw):
             continue
         if not (isinstance(curve, list) and 0 < len(curve) <= PAST_CURVE_POINTS and all(_row_number(v, 0, 1) for v in curve)):
             continue
-        records.append({
+        record = {
             "category": item["category"], "cycles": cycles, "closed": closed,
             "extracted": float(item["extracted"]), "score": float(item["score"]),
             "repair": counts[0], "reuse": counts[1], "recycle": counts[2], "trade": counts[3],
             "curve": [float(v) for v in curve],
-        })
+        }
+        if item.get("assisted") is True:
+            record["assisted"] = True
+        records.append(record)
     return records
 
 
@@ -1525,6 +1569,7 @@ def past_chain_line(index, record):
         f"Chain {index}: {label}, {record['cycles']} cycle{'' if record['cycles'] == 1 else 's'}, {closed}; "
         f"{record['extracted']:.0f} units extracted, score {record['score']:.0f}; bought repair {record['repair']}, "
         f"reuse {record['reuse']}, recycling {record['recycle']}, trade {record['trade']}."
+        + (" Assisted." if record.get("assisted") else "")
     )
 
 
@@ -1539,6 +1584,8 @@ def past_chains_svg():
     series = [(f"{first_number + i}", record["curve"], PAST_DASHES[i % len(PAST_DASHES)], False) for i, record in enumerate(shown)]
     if chain.circular_fraction_log:
         series.append(("now", [round(f, 2) for f in chain.circular_fraction_log], "", True))
+    if ghost is not None:  # GH-28: a loaded friend's run, drawn dotted and labelled "ghost"
+        series.append(("ghost", list(ghost["fractions"]), "1 3", "ghost"))
     if not series:
         return ""
     width, height, left, bottom, top, right = 320.0, 150.0, 30.0, 18.0, 8.0, 34.0
@@ -1558,9 +1605,11 @@ def past_chains_svg():
             x = left + (width - left - right) * (i / span if span else 0)
             y = top + (height - top - bottom) * (1 - value)
             points.append(f"{x:.1f},{y:.1f}")
-        stroke_w = 3 if current else 1.6
+        is_ghost = current == "ghost"
+        stroke_w = 3 if current is True else (2.4 if is_ghost else 1.6)
         dash_attr = f' stroke-dasharray="{dash}"' if dash else ""
-        parts.append(f'<polyline points="{" ".join(points)}" fill="none" class="past-line{" past-line--now" if current else ""}" '
+        extra_class = " past-line--now" if current is True else (" past-line--ghost" if is_ghost else "")
+        parts.append(f'<polyline points="{" ".join(points)}" fill="none" class="past-line{extra_class}" '
                      f'stroke-width="{stroke_w}"{dash_attr}/>')
         end_x, end_y = points[-1].split(",")
         parts.append(f'<text x="{float(end_x) + 3:.1f}" y="{float(end_y) + 3:.1f}" class="past-label">{html.escape(label)}</text>')
@@ -2076,6 +2125,10 @@ def achievements_summary():
 
 
 achievements_open = False
+# H-31: achievements earned since the panel was last opened (they make the button glow), and those whose
+# unlock flourish has already played (so a re-render of the open panel does not replay it).
+_unseen_achievements = set()
+_flourished_achievements = set()
 
 
 def on_toggle_achievements(event=None):
@@ -2088,11 +2141,24 @@ def update_achievements_display():
     toggle = document.getElementById("achievements-toggle-button")
     panel = document.getElementById("achievements-panel")
     earned_count = len(achievement_ids_earned())
+    fresh = set(_unseen_achievements) if achievements_open else set()
+    if achievements_open:
+        _unseen_achievements.clear()
+    new_note = f" · {len(_unseen_achievements)} new" if _unseen_achievements and not achievements_open else ""
     toggle.innerText = (
         f"Hide Achievements ({earned_count}/{len(ACHIEVEMENTS)})"
         if achievements_open
-        else f"🏆 Achievements ({earned_count}/{len(ACHIEVEMENTS)})"
+        else f"🏆 Achievements ({earned_count}/{len(ACHIEVEMENTS)}){new_note}"
     )
+    # H-31: a progress ring on the button (ten steps) and a glow while something new waits unseen.
+    for step in range(11):
+        toggle.classList.remove(f"achievements-toggle--p{step}")
+    toggle.classList.add("achievements-toggle")
+    toggle.classList.add(f"achievements-toggle--p{round(10 * earned_count / max(1, len(ACHIEVEMENTS)))}")
+    if _unseen_achievements and not achievements_open:
+        toggle.classList.add("achievements-toggle--new")
+    else:
+        toggle.classList.remove("achievements-toggle--new")
     panel.hidden = not achievements_open
     if not achievements_open:
         return
@@ -2101,7 +2167,18 @@ def update_achievements_display():
     for entry in achievements_summary():
         card = document.createElement("div")
         card.className = "achievement-card achievement-card--earned" if entry["earned"] else "achievement-card"
+        if entry["earned"] and entry["id"] in fresh and entry["id"] not in _flourished_achievements:
+            card.className += " achievement-card--new"  # H-31: the one-time unlock flourish (still under reduced motion)
+            _flourished_achievements.add(entry["id"])
         card.dataset.achievementId = entry["id"]
+
+        if entry["earned"]:
+            # H-31: an earned badge sits inside a small closed-loop ring.
+            ring = document.createElement("span")
+            ring.className = "achievement-ring"
+            ring.setAttribute("aria-hidden", "true")
+            ring.innerText = "\u21bb"
+            card.appendChild(ring)
 
         label = document.createElement("p")
         label.className = "achievement-card-label"
@@ -2225,6 +2302,8 @@ def _check_new_achievements_for_toast(delay_ms=0):
     _achievements_seen_ids = earned_now
     if not newly:
         return
+    _unseen_achievements.update(newly)  # H-31: the button glows until the panel is opened
+    update_achievements_display()
 
     by_id = {entry["id"]: entry for entry in ACHIEVEMENTS}
     labels = [by_id[aid]["label"] for aid in sorted(newly) if aid in by_id and aid not in SILENT_ACHIEVEMENTS]
@@ -3405,6 +3484,8 @@ def accessible_chain_lines():
     for key, label, _icon, owned, units, _cost in trade_partner_flows():
         lines.append(f"{label}: {owned} bought, importing {units:.0f} units per cycle.")
     lines.append(f"Surplus sold or donated: {chain.exportable_surplus():.0f} units per cycle.")
+    for measure in CIRCULARITY_INVESTMENTS:  # H-26: the ring-node sparklines, as text
+        lines.append(spend_history_text(measure))
     lines.append(
         f"Environmental damage {chain.damage_fraction() * 100:.0f}%, extraction cost x{chain.extraction_cost_multiplier():.2f}."
     )
@@ -3810,6 +3891,11 @@ def render():
         f"Importing {chain.imported_supply():.0f} units/cycle from the trade network; "
         f"exporting {chain.exportable_surplus():.0f} units/cycle of surplus this cycle."
     )
+    render_narrator()  # GH-19
+    render_node_sparklines()  # H-26
+    render_planner()  # H-3
+    render_assist()  # H-8
+    render_ghost()  # GH-28 / H-7
 
 
 def _report_pool_donation():
@@ -3854,7 +3940,11 @@ def on_advance_cycle(event=None):
     # H-28: the optional one-line note for the cycle being advanced goes into its ledger row.
     note_box = document.getElementById("cycle-note-input")
     note = clean_note(getattr(note_box, "value", ""))
-    _run_action(lambda: chain.advance_cycle(note))
+    def _advance():
+        chain.advance_cycle(note)
+        plan_shift()  # H-3: the next cycle's plan is now this cycle's
+
+    _run_action(_advance)
     note_box.value = ""
     _report_pool_donation()
     # H-4: announce the finished cycle in the polite live region.
@@ -4109,6 +4199,7 @@ def on_reset_chain(event=None):
     def _do_reset():
         global chain
         chain = ChainState()
+        plan_clear()  # H-3: a what-if for the old chain means nothing on the new one
 
     def _confirmed():
         global chains_completed_count
@@ -4290,6 +4381,769 @@ def _run_action(mutate_fn):
     _check_new_achievements_for_toast(delay_ms=LOOP_CLOSED_BANNER_DURATION_MS if loop_just_closed else 0)
 
 
+# ===========================================================================
+# Oct 11 batch: GH-19 narrator ticker, H-3 multi-cycle planner, H-8 Assist mode,
+# H-26 ring-node sparklines, GH-28 / H-7 ghost run codes and comparison cards.
+# Pure functions of state plus a few module-level lists, so they are directly testable.
+# ===========================================================================
+
+# ---- GH-19 snarky supply-chain narrator -------------------------------------------------------------------------
+NARRATOR_HISTORY_MAX = 4  # the line in force plus the few before it
+narrator_history = []  # newest last; a ticker for this session only, never saved
+
+NARRATOR_LINES = {
+    "opening": [
+        "Day one. The chain is a perfectly straight line and it is extremely pleased with itself.",
+        "A fresh chain. Everything it makes is already planning to become somebody's rubbish.",
+        "Nothing bought yet. The mine is thrilled. The mine is always thrilled.",
+    ],
+    "idle": [
+        "Cycle {n} and still nothing bought. The raw material pile is not going to dig itself, but it will keep trying.",
+        "{extracted} units dug up this cycle. The planet has filed a polite complaint.",
+        "Still a straight line. Straight lines are tidy. They are also how this whole mess started.",
+    ],
+    "started": [
+        "Some of it comes back now ({pct}%). The bin is mildly suspicious.",
+        "{pct}% circular. The first stuff is returning from the dead, a little embarrassed.",
+        "A start: {pct}% loops home instead of landing in a pit. Keep going.",
+    ],
+    "progress": [
+        "{pct}% circular. The recycling lorry has started waving at the repair van.",
+        "{pct}% looped. Repair, reuse and recycling are finally on speaking terms.",
+        "{pct}% and climbing. The landfill is looking at its calendar nervously.",
+    ],
+    "almost": [
+        "{pct}% circular. The mine has begun updating its CV.",
+        "So nearly closed ({pct}%). The last few units are hiding. Find them.",
+        "{pct}% looped. Even the discard bin is starting to feel redundant.",
+    ],
+    "damage": [
+        "Damage at {damage}% and the loop still open. Raw material is getting pricey, and the mine knows it.",
+        "{damage}% damage. Every dug-up unit now costs more, which the mine finds flattering.",
+        "The damage meter is at {damage}%. Nobody is blaming you. The meter, however, is keeping notes.",
+    ],
+    "shock": [
+        "The market is having a moment. A tidy loop barely notices; a straight line really does.",
+        "Shock in the news: the closed loop shrugs, the straight line weeps into its invoices.",
+        "Market chaos! Good thing your supply is mostly your own.",
+    ],
+    "closed": [
+        "Loop closed. Nothing new dug up this cycle. The mine has gone for a long lunch.",
+        "Zero extraction. Your waste has just been promoted to raw material.",
+        "A closed loop. The discard bin has nothing to do and is taking it personally.",
+    ],
+    "streak": [
+        "{streak} perfect cycles in a row. The mine is writing you a stern letter.",
+        "Streak of {streak}. The bin has stopped answering your calls.",
+        "{streak} cycles with nothing dug up. This is what showing off looks like.",
+    ],
+    "rival_ahead": [
+        "{rival} is ahead on funds, mostly because it is digging faster than it should. Hold your nerve.",
+        "{rival} leads for now. Its raw material bill is growing, though. Patience.",
+    ],
+    "rival_behind": [
+        "You are ahead of {rival}. It is still extracting. It does not know any other way.",
+        "{rival} is behind you now. Its costs are doing the talking.",
+    ],
+}
+
+
+def narrator_topic():
+    """Which kind of comment fits the chain right now (the first rule that matches wins)."""
+    fraction = chain.circular_fraction_this_cycle()
+    done = chain.cycle_number - 1
+    if chain.is_loop_closed():
+        return "streak" if chain.closed_loop_streak >= 2 else "closed"
+    if chain.market_shocks and (chain.active_shock() is not None or chain.next_shock() is not None):
+        return "shock"
+    if done == 0 and chain.lifetime_investment_spend == 0:
+        return "opening"
+    if chain.rival_on and done > 0:
+        return "rival_ahead" if rival_funds_after(done) > chain.funds else "rival_behind"
+    if chain.damage_fraction() >= 0.5 and fraction < 0.5:
+        return "damage"
+    if fraction >= 0.75:
+        return "almost"
+    if fraction >= 0.25:
+        return "progress"
+    if fraction > 0:
+        return "started"
+    return "idle"
+
+
+def narrator_line():
+    """The narrator's comment for the chain as it stands. Fixed by the state (no randomness): the variant is picked
+    from the cycle number, so the same position always reads the same."""
+    topic = narrator_topic()
+    variants = NARRATOR_LINES[topic]
+    template = variants[(chain.cycle_number + len(topic)) % len(variants)]
+    return template.format(
+        n=chain.cycle_number,
+        extracted=f"{chain.new_extraction_needed():.0f}",
+        pct=f"{chain.circular_fraction_this_cycle() * 100:.0f}",
+        damage=f"{chain.damage_fraction() * 100:.0f}",
+        streak=chain.closed_loop_streak,
+        rival=RIVAL_NAME,
+    )
+
+
+def record_narrator(line):
+    """Files `line` at the end of the ticker when it differs from the last one."""
+    if not narrator_history or narrator_history[-1] != line:
+        narrator_history.append(line)
+        del narrator_history[:-NARRATOR_HISTORY_MAX]
+
+
+def render_narrator():
+    line = narrator_line()
+    record_narrator(line)
+    document.getElementById("narrator-line").innerText = line
+    older = list(reversed(narrator_history[:-1]))
+    document.getElementById("narrator-history").innerHTML = "".join(f"<li>{html.escape(item)}</li>" for item in older)
+
+
+# ---- H-26 spending sparklines on the ring nodes ----------------------------------------------------------------------
+SPARK_CYCLES = 12
+
+
+def node_spend_series(measure):
+    """Funds spent on one circularity measure in each of the last SPARK_CYCLES cycles, the cycle in progress last."""
+    index = BUY_KINDS.index(measure)
+    cost = CIRCULARITY_INVESTMENTS[measure]["cost"]
+    rows = list(chain.buy_log[-(SPARK_CYCLES - 1):]) + [chain.buys_now]
+    return [row[index] * cost for row in rows]
+
+
+def spend_history_text(measure):
+    series = node_spend_series(measure)
+    label = CIRCULARITY_INVESTMENTS[measure]["label"]
+    return f"{label} spending per cycle, latest last: " + ", ".join(f"{value:.0f}" for value in series) + "."
+
+
+def sparkline_svg(values, width=96.0, height=30.0):
+    """A tiny line chart of `values` (a flat line at the bottom when everything is zero)."""
+    top = max(values) if values else 0
+    pad = 3.0
+    points = []
+    for i, value in enumerate(values):
+        x = pad + (width - 2 * pad) * (i / (len(values) - 1) if len(values) > 1 else 0.5)
+        y = height - pad - (height - 2 * pad) * (value / top if top > 0 else 0)
+        points.append((x, y))
+    line = " ".join(f"{x:.1f},{y:.1f}" for x, y in points)
+    end_x, end_y = points[-1] if points else (pad, height - pad)
+    return (
+        f'<svg viewBox="0 0 {width:.0f} {height:.0f}" class="spark-svg" aria-hidden="true">'
+        f'<polyline points="{line}" fill="none" class="spark-line" stroke-width="1.8"/>'
+        f'<circle cx="{end_x:.1f}" cy="{end_y:.1f}" r="2.6" class="spark-dot"/></svg>'
+    )
+
+
+def render_node_sparklines():
+    for measure, spec in CIRCULARITY_INVESTMENTS.items():
+        series = node_spend_series(measure)
+        document.getElementById(f"spark-{measure}").innerHTML = (
+            f'<span class="spark-title">{html.escape(spec["label"])}</span>'
+            + sparkline_svg(series)
+            + f'<span class="spark-caption">{series[-1]:.0f} funds this cycle, {sum(series):.0f} over the last {len(series)}</span>'
+        )
+
+
+# ---- H-3 multi-cycle planner -------------------------------------------------------------------------------------------
+PLANNER_SLOTS = 5
+PLANNER_MAX_PER_SLOT = 20
+PLANNER_SLOT_NAMES = ("This cycle", "Next cycle", "In 2 cycles", "In 3 cycles", "In 4 cycles")
+planner_horizon = 3  # how many cycles ahead the preview looks (3, 4 or 5)
+planner_slot = 0  # which cycle the "add" buttons put a purchase into
+plan = [dict() for _ in range(PLANNER_SLOTS)]  # per slot: {kind: count}; a what-if only, never saved
+plan_added = []  # [(slot, kind)] in the order added, for Undo
+planner_message = ""
+
+
+def plan_total(slot):
+    return sum(plan[slot].get(kind, 0) for kind in BUY_KINDS)
+
+
+def plan_cost(slot):
+    return sum(chain.unit_cost(kind) * plan[slot].get(kind, 0) for kind in BUY_KINDS)
+
+
+def plan_add(kind, slot=None):
+    """Adds one purchase of `kind` to a cycle's slot. False when the kind is unknown, the slot is outside the
+    preview window or already holds PLANNER_MAX_PER_SLOT purchases."""
+    slot = planner_slot if slot is None else slot
+    if kind not in BUY_KINDS or not (isinstance(slot, int) and 0 <= slot < planner_horizon):
+        return False
+    if plan_total(slot) >= PLANNER_MAX_PER_SLOT:
+        return False
+    plan[slot][kind] = plan[slot].get(kind, 0) + 1
+    plan_added.append((slot, kind))
+    return True
+
+
+def plan_undo():
+    """Takes back the most recently added purchase."""
+    while plan_added:
+        slot, kind = plan_added.pop()
+        if plan[slot].get(kind, 0) > 0:
+            plan[slot][kind] -= 1
+            if plan[slot][kind] == 0:
+                del plan[slot][kind]
+            return True
+    return False
+
+
+def plan_clear():
+    for slot in plan:
+        slot.clear()
+    plan_added.clear()
+
+
+def plan_shift():
+    """One cycle has passed: the plan for the next cycle becomes the plan for this one."""
+    plan.pop(0)
+    plan.append({})
+    plan_added[:] = [(slot - 1, kind) for slot, kind in plan_added if slot > 0]
+
+
+def _clone_chain():
+    twin = ChainState()
+    twin.__dict__.update(copy.deepcopy({k: v for k, v in chain.__dict__.items() if k != "rewind_snapshot"}))
+    return twin
+
+
+def simulate_plan(slots=None, horizon=None):
+    """Runs the plan on a COPY of the chain and returns one row per planned cycle: what was bought, what could
+    not be afforded, the circular share and extraction going into the cycle, and the funds afterwards. The real
+    chain is never touched."""
+    slots = plan if slots is None else slots
+    horizon = planner_horizon if horizon is None else horizon
+    twin = _clone_chain()
+    rows = []
+    for i in range(horizon):
+        cycle = twin.cycle_number
+        bought, short = {}, {}
+        for kind in BUY_KINDS:
+            wanted = slots[i].get(kind, 0)
+            if wanted:
+                got = twin.invest_many(kind, wanted)
+                bought[kind] = got
+                if got < wanted:
+                    short[kind] = wanted - got
+        extraction = twin.new_extraction_needed()
+        row = {
+            "cycle": cycle,
+            "bought": bought,
+            "short": short,
+            "fraction": twin.circular_fraction_this_cycle(),
+            "extraction": extraction,
+            "bill": extraction * EXTRACTION_COST_PER_UNIT * twin.price_multiplier(),
+            "closed": extraction <= 0,
+        }
+        twin.advance_cycle()
+        row["funds"] = twin.funds
+        rows.append(row)
+    return rows
+
+
+def plan_buys_text(counts):
+    parts = [f"{BUY_LABELS[kind]} x{counts[kind]}" for kind in BUY_KINDS if counts.get(kind)]
+    return ", ".join(parts) if parts else "no purchases"
+
+
+def planner_table_html(rows):
+    out = [
+        '<table class="planner-table"><thead><tr><th>Cycle</th><th>You buy</th><th>Circular</th>'
+        "<th>New extraction</th><th class=\"planner-bill\">Extraction bill</th><th>Funds after</th></tr></thead><tbody>"
+    ]
+    for i, row in enumerate(rows):
+        buys = plan_buys_text(row["bought"])
+        if row["short"]:
+            buys += " (cannot afford " + plan_buys_text(row["short"]) + ")"
+        name = PLANNER_SLOT_NAMES[i] if i < len(PLANNER_SLOT_NAMES) else ""
+        out.append(
+            f"<tr><td>{row['cycle']} <span class=\"planner-when\">{html.escape(name)}</span></td>"
+            f"<td>{html.escape(buys)}</td><td>{row['fraction'] * 100:.0f}%{' (closed)' if row['closed'] else ''}</td>"
+            f"<td>{row['extraction']:.0f}</td><td class=\"planner-bill\">{row['bill']:.0f}</td><td>{row['funds']:.0f}</td></tr>"
+        )
+    out.append("</tbody></table>")
+    return "".join(out)
+
+
+def planner_summary_text(rows):
+    """One sentence comparing the plan with doing nothing."""
+    if not rows:
+        return ""
+    baseline = simulate_plan([dict() for _ in range(PLANNER_SLOTS)])
+    planned_last, base_last = rows[-1], baseline[-1]
+    if not any(plan_total(i) for i in range(planner_horizon)):
+        return (
+            f"Add some purchases and see where {planner_horizon} cycles of them lead. Doing nothing leaves you at "
+            f"{base_last['fraction'] * 100:.0f}% circular with {base_last['funds']:.0f} funds by cycle {base_last['cycle']}."
+        )
+    return (
+        f"By cycle {planned_last['cycle']} the plan reaches {planned_last['fraction'] * 100:.0f}% circular with "
+        f"{planned_last['funds']:.0f} funds; doing nothing would leave {base_last['fraction'] * 100:.0f}% and "
+        f"{base_last['funds']:.0f}. A preview only: nothing is bought until you commit this cycle's picks."
+    )
+
+
+def planner_slot_options():
+    out = []
+    for i in range(PLANNER_SLOTS):
+        label = PLANNER_SLOT_NAMES[i]
+        count = plan_total(i)
+        note = f" ({count} planned)" if count else ""
+        disabled = " disabled" if i >= planner_horizon else ""
+        out.append(f'<option value="{i}"{disabled}>{html.escape(label)}{note}</option>')
+    return "".join(out)
+
+
+def render_planner():
+    global planner_slot
+    if planner_slot >= planner_horizon:
+        planner_slot = planner_horizon - 1
+    rows = simulate_plan()
+    document.getElementById("planner-table").innerHTML = planner_table_html(rows)
+    document.getElementById("planner-summary").innerText = planner_summary_text(rows)
+    slot_select = document.getElementById("planner-slot-select")
+    slot_select.innerHTML = planner_slot_options()
+    slot_select.value = str(planner_slot)
+    document.getElementById("planner-horizon-select").value = str(planner_horizon)
+    now_total = plan_total(0)
+    commit = document.getElementById("planner-commit-button")
+    commit.disabled = now_total == 0
+    commit.innerText = f"Commit this cycle's picks ({plan_cost(0)})" if now_total else "Commit this cycle's picks"
+    document.getElementById("planner-undo-button").disabled = not plan_added
+    document.getElementById("planner-clear-button").disabled = not plan_added
+    document.getElementById("planner-message").innerText = planner_message
+
+
+def _planner_pick(element_id, default, allowed):
+    value = getattr(document.getElementById(element_id), "value", default)
+    try:
+        number = int(value)
+    except (TypeError, ValueError):
+        return default
+    return number if number in allowed else default
+
+
+def on_planner_horizon(event=None):
+    global planner_horizon, planner_message
+    planner_horizon = _planner_pick("planner-horizon-select", planner_horizon, (3, 4, 5))
+    for i in range(planner_horizon, PLANNER_SLOTS):  # purchases beyond the window are dropped, not hidden
+        plan[i].clear()
+    plan_added[:] = [(slot, kind) for slot, kind in plan_added if slot < planner_horizon]
+    planner_message = ""
+    render()
+
+
+def on_planner_slot(event=None):
+    global planner_slot
+    planner_slot = _planner_pick("planner-slot-select", planner_slot, tuple(range(planner_horizon)))
+    render()
+
+
+def _make_planner_add_handler(kind):
+    def handler(event=None):
+        global planner_message
+        planner_message = "" if plan_add(kind) else "That cycle is full: remove something first."
+        render()
+    return handler
+
+
+def on_planner_undo(event=None):
+    global planner_message
+    plan_undo()
+    planner_message = ""
+    render()
+
+
+def on_planner_clear(event=None):
+    global planner_message
+    plan_clear()
+    planner_message = ""
+    render()
+
+
+def on_planner_commit(event=None):
+    """Buys this cycle's planned purchases for real (the same rules, and the same spend confirmation from Settings,
+    as clicking the buttons), then empties this cycle's slot. The later cycles stay planned."""
+    global planner_message
+    items = [(kind, plan[0][kind]) for kind in BUY_KINDS if plan[0].get(kind)]
+    if not items:
+        planner_message = "Nothing is planned for this cycle."
+        render()
+        return
+    total = plan_cost(0)
+
+    def _do():
+        global planner_message
+        bought = {}
+
+        def _buy():
+            for kind, wanted in items:
+                got = chain.invest_many(kind, wanted)
+                if got:
+                    bought[kind] = got
+
+        _run_action(_buy)
+        plan[0].clear()
+        plan_added[:] = [(slot, kind) for slot, kind in plan_added if slot > 0]
+        planner_message = "Bought: " + plan_buys_text(bought) + "." if bought else "Nothing was affordable."
+        render()
+
+    percent = _setting_number("confirmThreshold", 0)
+    if percent > 0 and chain.funds > 0 and total > chain.funds * percent / 100.0:
+        _confirm_dialog_ask(
+            action_id="loop-spend",
+            message=f"Spend {total} of {chain.funds:.0f} funds on {plan_buys_text(dict(items))}?",
+            confirm_label="Spend",
+            on_confirm=_do,
+        )
+    else:
+        _do()
+
+
+# ---- H-8 Assist mode ---------------------------------------------------------------------------------------------------
+ASSIST_BUTTONS = {
+    "repair": "repair-invest-button", "reuse": "reuse-invest-button", "recycle": "recycle-invest-button",
+    "trade": "trade-link-invest-button", "regional": "regional-trade-invest-button",
+    "overseas": "overseas-trade-invest-button",
+}
+ASSIST_LABELS = {"off": "Off", "hints": "Hints", "guided": "Guided"}
+
+
+def assist_options():
+    """One entry per kind of purchase: label, cost, the units it would add to a cycle's supply, and how many of
+    those would actually be used (supply beyond what this cycle still needs only goes to export)."""
+    need = chain.new_extraction_needed()
+    mult = chain.supply_multiplier()
+    out = []
+    for kind in BUY_KINDS:
+        if kind in CIRCULARITY_INVESTMENTS:
+            units = CIRCULARITY_INVESTMENTS[kind]["supply_per_unit"] * chain.measure_multiplier(kind) * mult
+        else:
+            per_unit = {"trade": IMPORT_SUPPLY_PER_UNIT, "regional": REGIONAL_IMPORT_SUPPLY_PER_UNIT,
+                        "overseas": OVERSEAS_IMPORT_SUPPLY_PER_UNIT}[kind]
+            units = 0.0 if chain.blocked_partner() == kind else per_unit * mult
+        cost = chain.unit_cost(kind)
+        out.append({"kind": kind, "label": BUY_LABELS[kind], "cost": cost, "units": units, "used": min(units, need)})
+    return out
+
+
+def assist_best():
+    """(best affordable, best overall): the purchase giving the most USED supply per fund, or None for each when the
+    loop is already closed or nothing helps. Ties go to the earlier kind in BUY_KINDS."""
+    options = [o for o in assist_options() if o["used"] > 0]
+    if not options:
+        return None, None
+    value = lambda o: o["used"] / o["cost"]  # noqa: E731 -- a one-line key
+    best_any = max(options, key=lambda o: (round(value(o), 9), -BUY_KINDS.index(o["kind"])))
+    affordable = [o for o in options if o["cost"] <= chain.funds]
+    best_now = max(affordable, key=lambda o: (round(value(o), 9), -BUY_KINDS.index(o["kind"]))) if affordable else None
+    return best_now, best_any
+
+
+def assist_hint_text():
+    """The Hints line (and, in Guided mode, the reason too). '' when Assist is off."""
+    if chain.assist == "off":
+        return ""
+    if chain.is_loop_closed():
+        return "The loop is closed this cycle: nothing more is needed. Spare supply is sold or donated."
+    best_now, best_any = assist_best()
+    if best_any is None:
+        return "No purchase would add supply right now (a port strike may have shut a partner)."
+    pick = best_now or best_any
+    per_fund = pick["cost"] / pick["used"]
+    text = (
+        f"Best value right now: {pick['label']} ({pick['cost']} funds, +{pick['units']:.0f} units a cycle, "
+        f"{per_fund:.1f} funds per unit used)."
+    )
+    if best_now is None:
+        text = f"You cannot afford anything yet. Best to save for: {best_any['label']} ({best_any['cost']} funds, +{best_any['units']:.0f} units a cycle)."
+    elif best_any["kind"] != best_now["kind"]:
+        text += f" {best_any['label']} is better value but costs {best_any['cost']}."
+    if chain.assist == "guided":
+        need = chain.new_extraction_needed()
+        after = max(0.0, need - pick["units"])
+        price = EXTRACTION_COST_PER_UNIT * chain.price_multiplier()
+        text += (
+            f" Why: it takes this cycle's new extraction from {need:.0f} to {after:.0f} units, which saves about "
+            f"{(need - after) * price:.0f} funds on the extraction bill at today's {price:.2f} funds a unit, and again every cycle after."
+        )
+    return text
+
+
+def assist_status_text():
+    if chain.assist == "off":
+        if chain.assist_used:
+            return "Assist is off now, but this chain stays tagged as assisted."
+        return "Off: no hints. Turning it on tags the chain as assisted and keeps it out of your records."
+    return "Assist is on. This chain is tagged as assisted and will not count toward your records, speed flags or bests."
+
+
+def render_assist():
+    select = document.getElementById("assist-select")
+    select.value = chain.assist
+    document.getElementById("assist-status").innerText = assist_status_text()
+    hint = assist_hint_text()
+    hint_el = document.getElementById("assist-hint")
+    hint_el.innerText = hint
+    hint_el.hidden = hint == ""
+    best_now, best_any = assist_best() if chain.assist != "off" else (None, None)
+    pick = best_now or best_any
+    for kind, button_id in ASSIST_BUTTONS.items():
+        button = document.getElementById(button_id)
+        if pick is not None and pick["kind"] == kind and chain.assist != "off":
+            button.classList.add("assist-best")
+        else:
+            button.classList.remove("assist-best")
+
+
+def on_assist_change(event=None):
+    value = getattr(document.getElementById("assist-select"), "value", chain.assist)
+    _run_action(lambda: chain.set_assist(value))
+
+
+# ---- GH-28 ghost run codes and H-7 comparison cards --------------------------------------------------------------------
+GHOST_PREFIX = "LOOPRUN1"
+GHOST_MAX_CYCLES = 60  # a code carries the first 60 cycles
+GHOST_MAX_INPUT = 6000  # longer pasted text is refused without being read
+GHOST_MAX_JSON = 20000  # the unpacked size limit (a zip-bomb guard)
+GHOST_STORAGE_KEY = "loop-ghost-v1"
+_GHOST_PATTERN = re.compile(r"^LOOPRUN1-([A-Za-z0-9_-]+)\.([0-9a-f]{8})$")
+ghost_message = ["", False]  # text, is-a-problem
+
+
+def _ghost_check(payload):
+    return format(zlib.crc32(("loop-ghost-v1|" + payload).encode("ascii")) & 0xFFFFFFFF, "08x")
+
+
+def build_run_code():
+    """(code, error) for the chain in play: its goods, cycles, extraction, score, the circular share of each of the
+    first 60 cycles and (when known) what was bought in each. Holds nothing a player typed and nothing personal."""
+    cycles = chain.cycle_number - 1
+    if cycles < 1:
+        return "", "Run at least one cycle first: a code needs a run to share."
+    shown = min(cycles, GHOST_MAX_CYCLES)
+    buys = [list(row) for row in chain.buy_log[:shown]] if len(chain.buy_log) == cycles else []
+    data = {
+        "v": 1, "g": chain.picked_category, "n": cycles, "x": round(chain.total_extracted),
+        "s": round(chain.score()), "k": chain.first_loop_closed_cycle or 0,
+        "f": [round(f * 100) for f in chain.circular_fraction_log[:shown]], "b": buys,
+    }
+    raw = json.dumps(data, separators=(",", ":")).encode("ascii")
+    payload = base64.urlsafe_b64encode(zlib.compress(raw, 9)).decode("ascii").rstrip("=")
+    return f"{GHOST_PREFIX}-{payload}.{_ghost_check(payload)}", ""
+
+
+def _plain_int(value, low, high):
+    return isinstance(value, int) and not isinstance(value, bool) and low <= value <= high
+
+
+def decode_run_code(text):
+    """(ghost, error). A decoded code is DATA TO DISPLAY: never executed, never saved as your own progress, never
+    a verified result (the check only catches typing mistakes; anyone can write a code with any numbers)."""
+    if not isinstance(text, str):
+        return None, "Paste a run code first."
+    compact = "".join(text.split())
+    if not compact:
+        return None, "Paste a run code first."
+    if len(compact) > GHOST_MAX_INPUT:
+        return None, "That is too long to be a Loop run code."
+    match = _GHOST_PATTERN.match(compact)
+    if not match:
+        return None, "That does not look like a Loop run code. They start with LOOPRUN1-."
+    payload, check = match.groups()
+    if _ghost_check(payload) != check:
+        return None, "That run code has a typing mistake: check each character and try again."
+    try:
+        blob = base64.urlsafe_b64decode(payload + "=" * (-len(payload) % 4))
+        unpacker = zlib.decompressobj()
+        raw = unpacker.decompress(blob, GHOST_MAX_JSON)
+        if unpacker.unconsumed_tail or not unpacker.eof:
+            return None, "That run code could not be read."
+        data = json.loads(raw.decode("ascii"))
+    except (ValueError, zlib.error, UnicodeError):
+        return None, "That run code could not be read."
+    if not isinstance(data, dict) or data.get("v") != 1:
+        return None, "That run code was made by a different version of the game."
+    category, cycles, extracted, score, closed = (data.get(k) for k in ("g", "n", "x", "s", "k"))
+    fractions, buys = data.get("f"), data.get("b")
+    if not (isinstance(category, str) and category in ALL_GOODS and _plain_int(cycles, 1, 1_000_000)):
+        return None, "That run code could not be read."
+    if not (_plain_int(extracted, 0, 10**9) and _plain_int(score, -(10**9), 10**9) and _plain_int(closed, 0, 1_000_000)):
+        return None, "That run code could not be read."
+    shown = min(cycles, GHOST_MAX_CYCLES)
+    if not (isinstance(fractions, list) and len(fractions) == shown and all(_plain_int(v, 0, 100) for v in fractions)):
+        return None, "That run code could not be read."
+    if not isinstance(buys, list) or (buys and len(buys) != shown):
+        return None, "That run code could not be read."
+    for row in buys:
+        if not (isinstance(row, list) and len(row) == len(BUY_KINDS) and all(_plain_int(v, 0, 999) for v in row)):
+            return None, "That run code could not be read."
+    return {
+        "category": category, "cycles": cycles, "extracted": extracted, "score": score,
+        "closed": closed or None, "fractions": [v / 100.0 for v in fractions], "buys": [list(r) for r in buys],
+    }, ""
+
+
+def _storage_get(key):
+    window = _window()
+    if window is None:
+        return None
+    try:
+        return window.localStorage.getItem(key)
+    except Exception:  # noqa: BLE001 -- storage can be blocked
+        return None
+
+
+def _storage_set(key, value):
+    window = _window()
+    if window is None:
+        return
+    try:
+        if value is None:
+            window.localStorage.removeItem(key)
+        else:
+            window.localStorage.setItem(key, value)
+    except Exception:  # noqa: BLE001 -- the ghost then simply lasts for this visit
+        pass
+
+
+def load_ghost(text):
+    """Loads a friend's code as the ghost. Returns True on success; the message says what happened either way."""
+    global ghost
+    loaded, error = decode_run_code(text)
+    if loaded is None:
+        ghost_message[:] = [error, True]
+        return False
+    ghost = loaded
+    _storage_set(GHOST_STORAGE_KEY, "".join(text.split()))
+    name = ALL_GOODS[loaded["category"]].get("name") or ALL_GOODS[loaded["category"]]["label"].capitalize()
+    ghost_message[:] = [f"Ghost loaded: {name} chain of {loaded['cycles']} cycles. It is drawn dotted on the Past chains graph.", False]
+    return True
+
+
+def clear_ghost():
+    global ghost
+    ghost = None
+    _storage_set(GHOST_STORAGE_KEY, None)
+    ghost_message[:] = ["Ghost removed.", False]
+
+
+def restore_ghost():
+    """On page load: brings back the ghost the player had loaded (silently drops one that no longer decodes)."""
+    global ghost
+    stored = _storage_get(GHOST_STORAGE_KEY)
+    if not stored:
+        return
+    loaded, _error = decode_run_code(stored)
+    if loaded is None:
+        _storage_set(GHOST_STORAGE_KEY, None)
+        return
+    ghost = loaded
+
+
+def ghost_buy_lines():
+    """What the ghost bought in each cycle, so you can follow (or beat) it."""
+    if ghost is None:
+        return []
+    lines = []
+    for i, row in enumerate(ghost["buys"]):
+        counts = {kind: row[j] for j, kind in enumerate(BUY_KINDS) if row[j]}
+        lines.append(f"Cycle {i + 1}: {plan_buys_text(counts) if counts else 'bought nothing'}")
+    return lines
+
+
+def ghost_gap_text():
+    if ghost is None:
+        return ""
+    done = chain.cycle_number - 1
+    if done < 1:
+        return "Run a cycle and the ghost's circular share can be compared with yours."
+    n = min(done, len(ghost["fractions"]))
+    mine, theirs = chain.circular_fraction_log[n - 1], ghost["fractions"][n - 1]
+    diff = round((mine - theirs) * 100)
+    if diff > 0:
+        verdict = f"you are {diff} points ahead"
+    elif diff < 0:
+        verdict = f"you are {-diff} points behind"
+    else:
+        verdict = "you are level"
+    return f"On cycle {n} the ghost was {theirs * 100:.0f}% circular and you were {mine * 100:.0f}%: {verdict}."
+
+
+def ghost_compare_rows():
+    """(label, yours, ghost's) rows for the comparison card."""
+    if ghost is None:
+        return []
+    done = chain.cycle_number - 1
+    label = lambda c: ALL_GOODS[c].get("name") or ALL_GOODS[c]["label"].capitalize()  # noqa: E731
+    mine_closed = chain.first_loop_closed_cycle
+    return [
+        ("Goods", label(chain.picked_category), label(ghost["category"])),
+        ("Cycles run", str(done), str(ghost["cycles"])),
+        ("Closed the loop on cycle", str(mine_closed) if mine_closed else "not yet",
+         str(ghost["closed"]) if ghost["closed"] else "never"),
+        ("Units extracted", f"{chain.total_extracted:.0f}", str(ghost["extracted"])),
+        ("Score", f"{chain.score():.0f}", str(ghost["score"])),
+    ]
+
+
+def ghost_table_html():
+    rows = ghost_compare_rows()
+    if not rows:
+        return ""
+    out = ['<table class="planner-table"><thead><tr><th></th><th>You</th><th>Ghost</th></tr></thead><tbody>']
+    for label, mine, theirs in rows:
+        out.append(f"<tr><th scope=\"row\">{html.escape(label)}</th><td>{html.escape(mine)}</td><td>{html.escape(theirs)}</td></tr>")
+    out.append("</tbody></table>")
+    return "".join(out)
+
+
+def render_ghost():
+    present = ghost is not None
+    document.getElementById("ghost-compare").hidden = not present
+    document.getElementById("ghost-clear-button").hidden = not present
+    message, problem = ghost_message
+    message_el = document.getElementById("ghost-message")
+    message_el.innerText = message
+    message_el.setAttribute("role", "alert" if problem else "status")
+    if not present:
+        return
+    document.getElementById("ghost-table").innerHTML = ghost_table_html()
+    document.getElementById("ghost-gap").innerText = ghost_gap_text()
+    document.getElementById("ghost-sparks").innerText = (
+        "You    " + (summary_blocks(chain.circular_fraction_log) or "(no cycles yet)") + "\n"
+        "Ghost  " + (summary_blocks(ghost["fractions"]) or "")
+    )
+    lines = ghost_buy_lines() or ["This code does not carry its purchases."]
+    document.getElementById("ghost-buys").innerHTML = "".join(f"<li>{html.escape(line)}</li>" for line in lines)
+
+
+def on_ghost_copy(event=None):
+    code, error = build_run_code()
+    document.getElementById("ghost-code-output").value = code
+    if error:
+        ghost_message[:] = [error, True]
+    elif _copy_to_clipboard(code):
+        ghost_message[:] = ["Run code copied. Anyone can paste it into Load a ghost.", False]
+    else:
+        ghost_message[:] = ["Select the code above and copy it.", False]
+    render()
+
+
+def on_ghost_load(event=None):
+    load_ghost(getattr(document.getElementById("ghost-code-input"), "value", ""))
+    render()
+
+
+def on_ghost_clear(event=None):
+    clear_ghost()
+    render()
+
+
 # SAVE-BUTTON-INTEGRATION.md contract for the shared shared/save-widget.js:
 # get_state()/load_state() are the per-game contract the widget calls
 # (get_state()/load_state() on save/load respectively). SOL is the
@@ -4378,6 +5232,13 @@ def get_state():
         state["rival_on"] = True
     if chain.rival_crossover_cycle is not None:
         state["rival_crossover_cycle"] = chain.rival_crossover_cycle
+    if chain.assist != "off":
+        state["assist"] = chain.assist
+    if chain.assist_used:
+        state["assist_used"] = True
+    if any(chain.buys_now) or chain.buy_log:
+        state["buy_log"] = [list(row) for row in chain.buy_log]
+        state["buys_now"] = list(chain.buys_now)
     if chain.market_shocks:
         state["market_shocks"] = True
     if chain.shocks_shrugged:
@@ -4423,6 +5284,10 @@ LOAD_CHECKS = (
     ("ledger", "Cycle ledger", None),
     ("past_chains", "Past chains", None),
     ("career", "Career records", None),
+    ("assist", "Assist mode", "off"),
+    ("assist_used", "Assisted tag", False),
+    ("buy_log", "Purchases per cycle", None),
+    ("buys_now", "Purchases this cycle", None),
     ("donate_surplus", "Surplus donation switch", False),
     ("lifetime_pool_donated", "Pool donation total", 0.0),
 )
@@ -4471,6 +5336,26 @@ def load_note_lines():
 def on_dismiss_load_note(event=None):
     load_report.clear()
     render()
+
+
+def _buy_row(raw):
+    """A saved purchase row (one count per BUY_KINDS) or None when it is not exactly that."""
+    if isinstance(raw, list) and len(raw) == len(BUY_KINDS) and all(_plain_int(v, 0, 100_000) for v in raw):
+        return list(raw)
+    return None
+
+
+def buy_log_from_save(raw):
+    """H-26 / GH-28: keeps the saved purchase rows only if EVERY row is well formed (a half-kept log would put
+    purchases against the wrong cycles); otherwise the log starts empty."""
+    if not isinstance(raw, list):
+        return []
+    rows = [_buy_row(item) for item in raw[-LEDGER_MAX:]]
+    return rows if all(row is not None for row in rows) else []
+
+
+def buys_now_from_save(raw):
+    return _buy_row(raw) or [0] * len(BUY_KINDS)
 
 
 def load_state(data):
@@ -4576,6 +5461,12 @@ def load_state(data):
         shrugged if isinstance(shrugged, int) and not isinstance(shrugged, bool) and 0 <= shrugged <= 1_000_000 else 0
     )
     chain.rewind_snapshot = None  # the undo point is a visit-only thing: advance a cycle to set a new one
+    saved_assist = data.get("assist")
+    chain.assist = saved_assist if isinstance(saved_assist, str) and saved_assist in ASSIST_MODES else "off"
+    chain.assist_used = data.get("assist_used") is True or chain.assist != "off"
+    chain.buy_log = buy_log_from_save(data.get("buy_log"))
+    chain.buys_now = buys_now_from_save(data.get("buys_now"))
+    plan_clear()
     load_career(data.get("career"))
     chain.lifetime_investment_spend = data.get("lifetime_investment_spend", 0.0)
     chain.lifetime_export_revenue = data.get("lifetime_export_revenue", 0.0)
@@ -4670,6 +5561,20 @@ def setup():
         "click", create_proxy(on_invest_overseas_trade)
     )
     document.getElementById("load-note-dismiss").addEventListener("click", create_proxy(on_dismiss_load_note))
+    # H-3 planner, H-8 Assist, GH-28 / H-7 ghost codes.
+    for kind in BUY_KINDS:
+        document.getElementById(f"planner-add-{kind}-button").addEventListener(
+            "click", create_proxy(_make_planner_add_handler(kind))
+        )
+    document.getElementById("planner-horizon-select").addEventListener("change", create_proxy(on_planner_horizon))
+    document.getElementById("planner-slot-select").addEventListener("change", create_proxy(on_planner_slot))
+    document.getElementById("planner-undo-button").addEventListener("click", create_proxy(on_planner_undo))
+    document.getElementById("planner-clear-button").addEventListener("click", create_proxy(on_planner_clear))
+    document.getElementById("planner-commit-button").addEventListener("click", create_proxy(on_planner_commit))
+    document.getElementById("assist-select").addEventListener("change", create_proxy(on_assist_change))
+    document.getElementById("ghost-copy-button").addEventListener("click", create_proxy(on_ghost_copy))
+    document.getElementById("ghost-load-button").addEventListener("click", create_proxy(on_ghost_load))
+    document.getElementById("ghost-clear-button").addEventListener("click", create_proxy(on_ghost_clear))
     document.getElementById("replay-tips-button").addEventListener("click", create_proxy(on_replay_tips))
     document.getElementById("regional-hint-dismiss-button").addEventListener(
         "click", create_proxy(on_dismiss_regional_hint)
@@ -4686,6 +5591,7 @@ def setup():
             "click", create_proxy(_make_visual_toggle_handler(kind))
         )
     _load_visual_prefs()
+    restore_ghost()  # GH-28: the ghost loaded on a previous visit comes back
     # H20: random per-session vignette-variant offset (real browser only;
     # the pytest fake `js` has no Math, so tests stay deterministic).
     global vignette_session_offset
