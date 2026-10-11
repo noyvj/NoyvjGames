@@ -111,6 +111,7 @@
       <button id="summary-toggle-button" class="secondary" type="button">📊 Summary</button>
       <button id="charter-toggle-button" class="secondary" type="button" aria-controls="charter-panel" aria-expanded="false">📜 Charter</button>
       <button id="captains-toggle-button" class="secondary" type="button" aria-controls="captains-panel" aria-expanded="false">🎖️ Captains</button>
+      <button id="lab-toggle-button" class="secondary" type="button" aria-controls="lab-panel" aria-expanded="false">🛠️ Fleet Lab</button>
       <!-- Site-wide settings panel (TODO.md origin A9): text-scale +
            reduce-motion. Deliberately independent of Pyodide/game.py
            entirely -- see settings.js -- same pattern Continuum's Phase
@@ -424,6 +425,30 @@
           <button id="research-market_insight_2-unlock-button" class="secondary" disabled>Loading...</button>
         </div>
       </details>
+    </div>
+
+    <!-- J-19..J-24: the Fleet Lab (blueprints, hub and spoke, expeditions). Static markup so the
+         buttons keep keyboard focus across the once-a-second render; filled in by render_lab(). -->
+    <div id="lab-panel" class="section lab-panel" hidden>
+      <p class="panel-label">Fleet Lab
+        <details class="info-toggle"><summary>i</summary><p>Optional extras for your fleet. Nothing here is required to finish the game and nothing here can be lost for good.</p></details>
+      </p>
+      <div id="lab-expedition" class="lab-section">
+        <p class="panel-label lab-heading">Expeditions</p>
+        <p class="map-caption">Send one idle, hand-flown ship far from the routes. It cannot trade while it is away; it comes back with a reward and a count on your record.</p>
+        <p id="expedition-status" class="lab-status" aria-live="polite"></p>
+        <p id="expedition-odds" class="map-caption"></p>
+        <div class="lab-actions">
+          <button id="expedition-ship-1-button" class="secondary" type="button" hidden disabled>Send ship 1</button>
+          <button id="expedition-ship-2-button" class="secondary" type="button" hidden disabled>Send ship 2</button>
+          <button id="expedition-ship-3-button" class="secondary" type="button" hidden disabled>Send ship 3</button>
+          <button id="expedition-ship-4-button" class="secondary" type="button" hidden disabled>Send ship 4</button>
+          <button id="expedition-ship-5-button" class="secondary" type="button" hidden disabled>Send ship 5</button>
+          <button id="expedition-ship-6-button" class="secondary" type="button" hidden disabled>Send ship 6</button>
+        </div>
+        <p class="panel-label lab-heading">Curio cabinet</p>
+        <ul id="expedition-curios" class="curio-list" aria-label="Curios found on expeditions"></ul>
+      </div>
     </div>
 
     <div id="map-panel" class="section">
@@ -1185,6 +1210,7 @@
         { toggle: "summary-toggle-button", panel: "summary-panel" },
         { toggle: "charter-toggle-button", panel: "charter-panel" },
         { toggle: "captains-toggle-button", panel: "captains-panel" },
+        { toggle: "lab-toggle-button", panel: "lab-panel" },
       ],
     });
   </script>

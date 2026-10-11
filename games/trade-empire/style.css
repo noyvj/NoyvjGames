@@ -1756,6 +1756,15 @@ button.secondary:disabled::after {
   background: rgba(20, 24, 48, 0.55);
 }
 
+/* Fleet Lab (J-19..J-24). */
+.lab-section { margin: 8px 0 14px; }
+.lab-heading { margin: 10px 0 4px; font-size: 0.9rem; }
+.lab-status { margin: 6px 0; font-size: 0.95rem; }
+.lab-actions { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0; }
+.curio-list { list-style: none; margin: 4px 0 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 4px 12px; font-size: 0.85rem; }
+.curio { opacity: 0.7; }
+.curio--found { opacity: 1; font-weight: 600; }
+
 /* ============================================================
    Y11b light-theme polish (2026-09-27). Light-only rules from a
    computed-style WCAG contrast scan of the light theme (fresh game,
@@ -1817,3 +1826,6 @@ html[data-theme="light"] .ship-captain { color: #1b2033; }
 html[data-theme="light"] #effects-toggle-button.active { color: #1a6b41; background: rgba(31, 122, 74, 0.14); border-color: rgba(31, 122, 74, 0.6); }
 
 html[data-theme="light"] .news-ticker { color: #1c2750; background: rgba(228, 233, 252, 0.9); border-color: rgba(60, 80, 170, 0.5); }
+
+html[data-theme="light"] .curio { color: #46506f; opacity: 1; }
+html[data-theme="light"] .curio--found { color: #1c2750; }

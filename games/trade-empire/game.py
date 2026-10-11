@@ -537,7 +537,7 @@ FLEET_PRIORITY_TARGET_COLOR = "#ff6ad0"
 
 
 def ship_map_position(ship):
-    if ship.docked:
+    if ship.location is not None:
         return NODE_POSITIONS[ship.location]
     origin_x, origin_y = NODE_POSITIONS[ship.origin]
     dest_x, dest_y = NODE_POSITIONS[ship.destination]
@@ -705,7 +705,7 @@ def render_map():
     draw_dock_pulses(ctx)
 
     for ship in ships.values():
-        if not ship.purchased:
+        if not ship.purchased or ship.on_expedition:
             continue
         x, y = ship_map_position(ship)
         ctx.fillStyle = AUTOMATED_SHIP_COLOR if ship.automated else MANUAL_SHIP_COLOR
@@ -1244,8 +1244,12 @@ class Ship:
         return self.location is None
 
     @property
+    def on_expedition(self):
+        return _ship_on_expedition(self)
+
+    @property
     def docked(self):
-        return self.location is not None
+        return self.location is not None and not self.on_expedition
 
     @property
     def loaded(self):
@@ -2008,7 +2012,7 @@ def found_new_corporation():
             **({"dark": True} if blackout_done else {}),  # J-30
         }],
         "met": set(captains_met),
-        "records": dict(records),
+        "records": copy.deepcopy(records),
     }
     finishing_hard = hard_charter_active
     begin_hard = hard_charter_next and hard_charter_unlocked()
@@ -2427,6 +2431,8 @@ def sell_summary(good, qty, profit, colony_id):
 
 
 def ship_status_text(ship):
+    if ship.on_expedition:  # J-23
+        return f"On an expedition away from the routes: back in {expedition['left']} tick(s)."
     if ship.in_transit:
         dest_name = ALL_COLONIES[ship.destination]["name"]
         prefix = "Automated — in transit" if ship.automated else "In transit"
@@ -3261,6 +3267,8 @@ ACHIEVEMENT_CHECKS = {
     "background_galaxy_maxed": lambda: background_world_count() >= ENDGAME_BACKGROUND_WORLD_CAP,
     "dark_run": lambda: records["dark_runs"] >= 1,  # J-30
     "storm_watcher": lambda: records["weather_events"] >= WEATHER_ACHIEVEMENT_EVENTS,  # J-17
+    "first_expedition": lambda: records["expeditions"] >= 1,  # J-23
+    "curio_cabinet": lambda: len(records["curios"]) >= len(CURIO_IDS),
 }
 
 # Progress readouts, only for achievements with a natural numeric scale-up
@@ -3273,6 +3281,7 @@ ACHIEVEMENT_PROGRESS = {
     "charter_veteran": lambda: (min(charters_completed, CHARTER_VETERAN_COUNT), CHARTER_VETERAN_COUNT),
     "full_roster": lambda: (len(captains_met), len(CAPTAINS)),
     "storm_watcher": lambda: (min(records["weather_events"], WEATHER_ACHIEVEMENT_EVENTS), WEATHER_ACHIEVEMENT_EVENTS),
+    "curio_cabinet": lambda: (len(records["curios"]), len(CURIO_IDS)),
 }
 
 
@@ -4122,6 +4131,7 @@ def render():
     render_captains()
     render_blackout()
     render_weather()
+    render_lab()
     throughput_el = document.getElementById("throughput-display")
     if throughput_el is not None:
         throughput_el.innerText = throughput_text()
@@ -4365,6 +4375,7 @@ def tick(event=None):
     if seasonal_demand_enabled:
         season_ticks += 1
     weather_tick()
+    expedition_tick()
     for ship in ships.values():
         result = ship.advance_transit()
         if result is not None:
@@ -4459,7 +4470,10 @@ RECORDS_COUNT_MAX = 1_000_000
 
 
 def _fresh_records():
-    return {"dark_runs": 0, "weather_events": 0}
+    return {
+        "dark_runs": 0, "weather_events": 0, "expeditions": 0, "expedition_nothing_streak": 0,
+        "expedition_since_curio": 0, "curios": [],
+    }
 
 
 records = _fresh_records()
@@ -4470,14 +4484,20 @@ def _load_records(raw):
     loaded = _fresh_records()
     if isinstance(raw, dict):
         for key in loaded:
-            loaded[key] = _saved_int(raw.get(key), 0, RECORDS_COUNT_MAX)
+            if key != "curios":
+                loaded[key] = _saved_int(raw.get(key), 0, RECORDS_COUNT_MAX)
+        curios = raw.get("curios")
+        if isinstance(curios, list):
+            known = [c for c in curios if isinstance(c, str) and c in CURIO_IDS]
+            loaded["curios"] = list(dict.fromkeys(known))
     records.clear()
     records.update(loaded)
 
 
 def _records_for_save():
     """The records worth saving, or an empty dict when nothing was ever recorded."""
-    return {key: value for key, value in records.items() if value != _fresh_records()[key]}
+    fresh = _fresh_records()
+    return {key: (list(value) if isinstance(value, list) else value) for key, value in records.items() if value != fresh[key]}
 
 
 # ---------------------------------------------------------------------------
@@ -4837,6 +4857,238 @@ def render_weather():
             ticker.innerText = text
 
 
+# ---------------------------------------------------------------------------
+# J-23 / J-24 -- Expeditions: send one idle ship on a long exploratory run (12 ticks) away from
+# the routes. The cost is that ship's income while it is away; the reward is a small table of
+# outcomes. Nothing essential is ever luck-gated: the odds are shown in words next to the button
+# (and in its tooltip), two empty trips in a row guarantee that the next one finds something, and
+# every fifth trip without a curio guarantees a curio until all twelve are found. Curios are a
+# collection (a sticker-book list that survives renewals) and the trips themselves are counted
+# (Expeditions: N), so every send visibly counts. The roll is a hash of the lifetime trip number,
+# so it is deterministic and testable.
+# ---------------------------------------------------------------------------
+EXPEDITION_TICKS = 12
+EXPEDITION_WINDFALL = 150
+EXPEDITION_WINDFALL_PER_SYSTEM = 0.5  # +50% per cluster beyond home
+EXPEDITION_RESEARCH = 12
+EXPEDITION_CURIO_GUARANTEE = 5  # every Nth trip without a curio finds one
+EXPEDITION_NOTHING_GUARANTEE = 2  # this many empty trips in a row, then the next finds something
+EXPEDITION_ODDS = (("windfall", 35), ("research", 25), ("curio", 20), ("nothing", 20))
+EXPEDITION_OUTCOME_LABEL = {
+    "windfall": "a windfall of credits", "research": "research points", "curio": "a curio for your cabinet",
+    "nothing": "nothing but the view",
+}
+EXPEDITION_CURIOS = (
+    ("glass_compass", "Glass compass that points at the nearest bargain"),
+    ("tin_cup", "Tin cup from a station that no longer exists"),
+    ("quiet_lane_chart", "Hand-drawn chart of a lane nobody uses"),
+    ("polite_beacon", "A very polite navigation beacon"),
+    ("salt_crystal", "Crystal that tastes faintly of salt"),
+    ("spare_moon", "A spare moon, slightly chipped"),
+    ("lost_manifest", "Manifest for cargo that never arrived"),
+    ("brass_sextant", "Brass sextant, no stars required"),
+    ("cold_lantern", "Lantern that gives off cold light"),
+    ("sealed_letter", "Sealed letter addressed to the next captain"),
+    ("old_ledger", "Ledger page with one very good month"),
+    ("patient_clock", "Clock that is never in a hurry"),
+)
+CURIO_IDS = tuple(curio_id for curio_id, _label in EXPEDITION_CURIOS)
+CURIO_LABEL = dict(EXPEDITION_CURIOS)
+expedition = None  # {"ship": ship id, "left": ticks} while one is away
+expedition_log = ""  # the last result, shown in the Fleet Lab
+
+
+def _mix(*values):
+    x = 2166136261
+    for value in values:
+        x = ((x ^ (int(value) & 0xFFFFFFFF)) * 16777619) & 0xFFFFFFFF
+        x ^= x >> 13
+        x = (x * 3266489917) & 0xFFFFFFFF
+        x ^= x >> 16
+    return x
+
+
+def _ship_on_expedition(ship):
+    return expedition is not None and expedition["ship"] == ship.id
+
+
+def expedition_ship_ok(ship_id):
+    ship = ships.get(ship_id)
+    return (
+        ship is not None and ship.purchased and ship.docked and not ship.loaded and not ship.automated
+        and expedition is None
+    )
+
+
+def can_send_expedition(ship_id):
+    return expedition_ship_ok(ship_id)
+
+
+def expedition_systems_open():
+    return 1 + sum(1 for check in (galaxy_expansion_unlocked, outer_reaches_unlocked, umbral_reach_unlocked) if check())
+
+
+def expedition_windfall():
+    return int(round(EXPEDITION_WINDFALL * (1 + EXPEDITION_WINDFALL_PER_SYSTEM * (expedition_systems_open() - 1))))
+
+
+def expedition_odds_text():
+    parts = ", ".join(f"{weight}% {EXPEDITION_OUTCOME_LABEL[outcome]}" for outcome, weight in EXPEDITION_ODDS)
+    return (
+        f"Odds: {parts}. Never unlucky twice running: after {EXPEDITION_NOTHING_GUARANTEE} empty trips in a row the "
+        f"next one always finds something, and every {EXPEDITION_CURIO_GUARANTEE}th trip without a curio always finds "
+        "one until you hold them all. The ship's income is the cost: it cannot trade for "
+        f"{EXPEDITION_TICKS} ticks."
+    )
+
+
+def expedition_roll(n, nothing_streak, since_curio, found):
+    """The outcome of trip number `n` (0-based) given the guarantees' counters and the curios already found."""
+    unfound = [c for c in CURIO_IDS if c not in found]
+    if unfound and since_curio >= EXPEDITION_CURIO_GUARANTEE - 1:
+        return "curio"
+    roll = _mix(n, 7) % 100
+    outcome = "nothing"
+    total = 0
+    for name, weight in EXPEDITION_ODDS:
+        total += weight
+        if roll < total:
+            outcome = name
+            break
+    if outcome == "curio" and not unfound:
+        outcome = "windfall"
+    if outcome == "nothing" and nothing_streak >= EXPEDITION_NOTHING_GUARANTEE:
+        outcome = "windfall"
+    return outcome
+
+
+def send_expedition(ship_id):
+    global expedition
+    if not can_send_expedition(ship_id):
+        return False
+    expedition = {"ship": ship_id, "left": EXPEDITION_TICKS}
+    return True
+
+
+def _expedition_resolve():
+    """The ship is back: pay out the outcome, count the trip, remember what it found."""
+    global total_profit, research_points, expedition, expedition_log
+    ship = ships[expedition["ship"]]
+    n = records["expeditions"]
+    outcome = expedition_roll(n, records["expedition_nothing_streak"], records["expedition_since_curio"], records["curios"])
+    if outcome == "windfall":
+        gain = expedition_windfall()
+        total_profit += gain
+        text = f"{gain} credits from a forgotten cache"
+    elif outcome == "research":
+        research_points += EXPEDITION_RESEARCH
+        text = f"{EXPEDITION_RESEARCH} research points of survey data"
+    elif outcome == "curio":
+        unfound = [c for c in CURIO_IDS if c not in records["curios"]]
+        found = unfound[_mix(n, 13) % len(unfound)]
+        records["curios"].append(found)
+        text = f"a curio: {CURIO_LABEL[found]}"
+    else:
+        text = "nothing but the view (the crew enjoyed it)"
+    records["expeditions"] = min(RECORDS_COUNT_MAX, n + 1)
+    records["expedition_nothing_streak"] = records["expedition_nothing_streak"] + 1 if outcome == "nothing" else 0
+    records["expedition_since_curio"] = 0 if outcome == "curio" else min(RECORDS_COUNT_MAX, records["expedition_since_curio"] + 1)
+    expedition = None
+    expedition_log = f"{ship.name} returned from expedition number {n + 1} with {text}."
+    show_notice_toast(f"\U0001F9ED {expedition_log}")
+
+
+def expedition_tick():
+    if expedition is None:
+        return
+    expedition["left"] -= 1
+    if expedition["left"] <= 0:
+        _expedition_resolve()
+
+
+def expedition_status_text():
+    n = records["expeditions"]
+    line = f"Expeditions: {n}. Curio cabinet: {len(records['curios'])}/{len(CURIO_IDS)}."
+    if expedition is not None:
+        ship = ships[expedition["ship"]]
+        line += f" {ship.name} is away: {expedition['left']} tick(s) until it returns."
+    elif expedition_log:
+        line += " " + expedition_log
+    return line
+
+
+def expedition_curios_html():
+    items = []
+    for curio_id, label in EXPEDITION_CURIOS:
+        if curio_id in records["curios"]:
+            items.append(f'<li class="curio curio--found"><span aria-hidden="true">■</span> {_html_escape(label)}</li>')
+        else:
+            items.append('<li class="curio"><span aria-hidden="true">□</span> Not found yet</li>')
+    return "".join(items)
+
+
+def _make_expedition_handler(ship_id):
+    def do_send():
+        if send_expedition(ship_id):
+            render()
+
+    def handler(event=None):
+        if not can_send_expedition(ship_id):
+            return
+        _confirm_dialog_ask(
+            "trade-empire-expedition",
+            f"Send {ships[ship_id].name} on an expedition? It cannot trade for {EXPEDITION_TICKS} ticks (that is the "
+            "cost) and then returns with a reward. " + expedition_odds_text(),
+            "Send it", do_send,
+        )
+    return handler
+
+
+def render_expedition():
+    status = document.getElementById("expedition-status")
+    if status is None:
+        return
+    status.innerText = expedition_status_text()
+    odds = document.getElementById("expedition-odds")
+    if odds is not None:
+        odds.innerText = expedition_odds_text()
+    cabinet = document.getElementById("expedition-curios")
+    if cabinet is not None:
+        cabinet.innerHTML = expedition_curios_html()
+    for ship_id, ship in ships.items():
+        button = document.getElementById(f"expedition-ship-{ship_id}-button")
+        if button is None:
+            continue
+        ok = can_send_expedition(ship_id)
+        button.hidden = not ship.purchased
+        button.disabled = not ok
+        button.innerText = f"Send {ship.name}"
+        button.title = expedition_odds_text()
+
+
+# --- the Fleet Lab window (J-19..J-24): one panel, sections added by each feature -----------------
+lab_open = False
+
+
+def on_toggle_lab(event=None):
+    global lab_open
+    lab_open = not lab_open
+    render_lab()
+
+
+def render_lab():
+    toggle = document.getElementById("lab-toggle-button")
+    panel = document.getElementById("lab-panel")
+    if toggle is None or panel is None:
+        return
+    toggle.innerText = "Hide Fleet Lab" if lab_open else "\U0001F6E0\ufe0f Fleet Lab"
+    toggle.setAttribute("aria-expanded", "true" if lab_open else "false")
+    panel.hidden = not lab_open
+    if not lab_open:
+        return
+    render_expedition()
+
+
 # @@NEW-FEATURES-END@@ (new feature blocks are inserted above this line)
 
 
@@ -4990,6 +5242,7 @@ def get_state():
             else {}
         ),
         **({"records": _records_for_save()} if _records_for_save() else {}),
+        **({"expedition": dict(expedition)} if expedition is not None else {}),
         "route_hazards": {
             "hazards": route_hazards_enabled,
             "insurance": route_insurance_enabled,
@@ -5147,6 +5400,19 @@ def _load_blackout(raw):
     bought = raw.get("bought")
     if isinstance(bought, list):
         blackout_bought.update(kind for kind in bought if isinstance(kind, str) and kind in BLACKOUT_INTEL)
+
+
+def _load_expedition(raw):
+    """J-23 -- an expedition under way, from an untrusted save: only for a real, docked, empty, unautomated ship."""
+    global expedition, expedition_log
+    expedition, expedition_log = None, ""
+    if not isinstance(raw, dict):
+        return
+    ship_id, left = raw.get("ship"), _saved_int(raw.get("left"), 1, EXPEDITION_TICKS, 0)
+    ship = ships.get(ship_id) if isinstance(ship_id, str) else None
+    if ship is None or not left or not ship.purchased or ship.location is None or ship.loaded:
+        return
+    expedition = {"ship": ship_id, "left": left}
 
 
 def _load_weather(raw):
@@ -5412,6 +5678,7 @@ def _apply_state(data):
 
     _load_captains(data.get("captains"))
     _load_records(data.get("records"))
+    _load_expedition(data.get("expedition"))
     _load_blackout(data.get("blackout"))
     _load_weather(data.get("weather"))
     price_memory.clear()
@@ -5664,6 +5931,11 @@ def setup():
     document.getElementById("captains-toggle-button").addEventListener("click", create_proxy(on_toggle_captains))
     document.getElementById("blackout-toggle-button").addEventListener("click", create_proxy(on_toggle_blackout))
     document.getElementById("weather-toggle-button").addEventListener("click", create_proxy(on_toggle_weather))
+    document.getElementById("lab-toggle-button").addEventListener("click", create_proxy(on_toggle_lab))
+    for ship_id in ships:
+        document.getElementById(f"expedition-ship-{ship_id}-button").addEventListener(
+            "click", create_proxy(_make_expedition_handler(ship_id))
+        )
     for kind in BLACKOUT_INTEL:
         document.getElementById(f"blackout-buy-{kind}-button").addEventListener(
             "click", create_proxy(_make_blackout_buy_handler(kind))

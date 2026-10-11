@@ -1,6 +1,10 @@
 [
   {
     "date": "2026-10-11",
+    "entry": "New: Expeditions, in the new Fleet Lab (toolbar, Desktop: Menu, Empire). Send one idle, hand-flown ship away from the routes for 12 ticks; it cannot trade meanwhile (that is the cost) and comes back with credits, research points, a curio for your 12-piece cabinet, or just the view. The odds are written next to the button and in its tooltip, and nothing is ever unlucky twice running: after two empty trips the next always finds something, and every fifth trip without a curio always finds one. Two new achievements."
+  },
+  {
+    "date": "2026-10-11",
     "entry": "New: Market Weather, an optional switch in the Market panel. Now and then one good has a boom (+30%) or a slump (-25%) for 20 to 40 ticks, and the good that depends on it follows at half strength. A one-line headline on the map names the event, and the Almanac explains the leading indicators: dock gossip names the colony 12 ticks ahead and says boom or slump 5 ticks ahead, so you can stockpile in time. Nothing is permanent, and see five events through for the Storm Watcher achievement."
   },
   {

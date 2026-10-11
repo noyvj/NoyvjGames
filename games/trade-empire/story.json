@@ -160,6 +160,16 @@
       "id": "storm_watcher",
       "title": "Reading the sky",
       "text": "Five times the dock gossip turned out to be right: a festival here, a strike there, a few days of prices bending around it. You start to read the weather the way a farmer reads a sky, and to buy the grain a day before everyone else decides they want it."
+    },
+    {
+      "id": "first_expedition",
+      "title": "The long way round",
+      "text": "One ship goes the long way round, away from every route you have ever scheduled, and comes home a dozen ticks later with a story it is not quite able to tell. The ledger notes the missing income and, beside it, a small line that says only: worth knowing."
+    },
+    {
+      "id": "curio_cabinet",
+      "title": "A cabinet of small odd things",
+      "text": "Twelve small things now sit in the cabinet on the office wall: a polite beacon, a patient clock, a chipped moon. None of them is worth a credit and nobody can explain why you would not sell the lot for the shelf space."
     }
   ]
 }

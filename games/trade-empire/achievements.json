@@ -144,6 +144,16 @@
       "id": "storm_watcher",
       "label": "Storm Watcher",
       "description": "With Market Weather on, see five weather events (booms or slumps) run their course."
+    },
+    {
+      "id": "first_expedition",
+      "label": "First Expedition",
+      "description": "Send a ship on an expedition and see it come home."
+    },
+    {
+      "id": "curio_cabinet",
+      "label": "Curio Cabinet",
+      "description": "Collect all twelve curios from expeditions, across any charters."
     }
   ]
 }

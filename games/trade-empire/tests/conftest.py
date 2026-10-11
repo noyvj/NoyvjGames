@@ -96,7 +96,15 @@ ELEMENT_IDS = [
     "weather-toggle-button",
     "weather-status",
     "news-ticker",
+    # Fleet Lab (J-19..J-24).
+    "lab-toggle-button",
+    "lab-panel",
+    "expedition-status",
+    "expedition-odds",
+    "expedition-curios",
 ]
+for _s in SHIP_IDS:
+    ELEMENT_IDS.append(f"expedition-ship-{_s}-button")
 CAPTAIN_PERK_IDS = ["frugal", "lucky", "night_owl", "perfectionist"]
 for _node_id in (
     "automation_slot", "fast_ships", "hauler", "galaxy_expansion",
