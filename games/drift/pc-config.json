@@ -5,6 +5,7 @@
     ["changelog-panel", "changelog-toggle-button", "What's New"],
     ["ledger-panel", "ledger-toggle-button", "Round Ledger"],
     ["collection-panel", "collection-toggle-button", "Region Collection"],
+    ["report-panel", "report-toggle-button", "Region Report"],
     ["settings-panel", "settings-toggle-button", "Settings"],
     ["info-page-panel", "info-page-toggle-button", "The Real Story"],
     ["coda-section", "coda-button", "Long-Horizon Outcomes"]
@@ -18,7 +19,7 @@
     "menu": [
       {"heading": "Game", "ids": ["accelerated-severity-toggle-button", "crisis-start-toggle-button"]},
       {"heading": "Help", "ids": ["tutorial-restart-button", "info-page-toggle-button", "credits-link"]},
-      {"heading": "Records", "ids": ["ledger-toggle-button", "collection-toggle-button", "changelog-toggle-button"]}
+      {"heading": "Records", "ids": ["ledger-toggle-button", "collection-toggle-button", "report-toggle-button", "changelog-toggle-button"]}
     ]
   },
   "composites": [

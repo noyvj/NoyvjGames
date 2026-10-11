@@ -139,3 +139,21 @@ class FakeTimers:
         pending, self.pending = self.pending, []
         for callback, _delay in pending:
             callback()
+
+
+class FakeStorage:
+    """A stand-in for window.localStorage (getItem/setItem over a dict), shared by the storage tests."""
+
+    def __init__(self, initial=None):
+        self.data = dict(initial or {})
+        self.writes = 0
+
+    def getItem(self, key):
+        return self.data.get(key)
+
+    def setItem(self, key, value):
+        self.data[key] = value
+        self.writes += 1
+
+    def removeItem(self, key):
+        self.data.pop(key, None)

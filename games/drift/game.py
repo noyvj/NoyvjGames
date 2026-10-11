@@ -2686,6 +2686,8 @@ personal_best = load_personal_best()
 def _maybe_update_personal_best():
     """Called every render(); bumps + persists personal_best whenever the
     live session exceeds it."""
+    if assisted_run:  # I-3: an assisted run never moves a personal best
+        return
     score = region.wellbeing_score()
     if score > personal_best["wellbeing_score"]:
         personal_best["wellbeing_score"] = score
@@ -3190,7 +3192,10 @@ def play_rounds(count=PLAY_ROUNDS_COUNT):
 def on_play_rounds(event=None):
     global round_tools_message, collection_note
     collection_note = ""
+    _clear_band_note()
+    _note_save_activity()
     marks_before = _round_marks()
+    band_before = wellbeing_band(region.wellbeing_score())
     advanced, reason = play_rounds()
     unit = "round" if advanced == 1 else "rounds"
     if reason:
@@ -3200,7 +3205,8 @@ def on_play_rounds(event=None):
     render()
     announce(round_tools_message)
     if advanced:
-        announce(round_announcement_text(marks_before))
+        band_up = _celebrate_band_rise(band_before)  # GI-29
+        announce(round_announcement_text(marks_before) + (f" {band_note_text}" if band_up else ""))
     _check_new_achievements_for_toast()
 
 
@@ -3964,7 +3970,10 @@ def _to_int(value, default):
 def on_autopilot_run(event=None):
     global round_tools_message, collection_note
     collection_note = ""
+    _clear_band_note()
+    _note_save_activity()
     marks_before = _round_marks()
+    band_before = wellbeing_band(region.wellbeing_score())
     advanced, reason = autopilot_run()
     unit = "round" if advanced == 1 else "rounds"
     round_tools_message = (
@@ -3974,7 +3983,8 @@ def on_autopilot_run(event=None):
     render()
     announce(round_tools_message)
     if advanced:
-        announce(round_announcement_text(marks_before))
+        band_up = _celebrate_band_rise(band_before)  # GI-29
+        announce(round_announcement_text(marks_before) + (f" {band_note_text}" if band_up else ""))
     _check_new_achievements_for_toast()
 
 
@@ -4287,7 +4297,9 @@ def run_summary_text():
     name = region.region_name or "Unnamed region"
     completed = max(0, region.round_number - 1)
     score = region.wellbeing_score()
-    tags = []
+    tags = [f"Tier {tier_name(current_tier_id())}"]
+    if assisted_run:
+        tags.append("Assisted run")
     if region.accelerated_severity_enabled:
         tags.append(f"Accelerated Severity ({ACCELERATED_SEVERITY_MULTIPLIER:.0f}x)")
     if region.crisis_start_enabled:
@@ -4469,6 +4481,7 @@ def render():
     render_learning()
     update_achievements_display()
     _maybe_update_personal_best()
+    _maybe_update_tier_best()  # I-25
     render_personal_best()
     document.getElementById("round-display").innerText = f"Round {region.round_number}"
     document.getElementById("funds-display").innerText = f"Funds: {region.funds:.0f}"
@@ -4749,6 +4762,7 @@ def render():
     render_civic_tools()
     render_ledger()
     render_collection_summary()
+    render_batch3()
     document.title = tab_title()
 
 
@@ -4757,17 +4771,21 @@ def on_advance_round(event=None):
     round_tools_message = ""
     collection_note = ""
     _reset_civic_notes()
+    _clear_band_note()
+    _note_save_activity()  # I-27: a save made since the last action restarts the rounds-since-save count here
     _sync_spillover()
     rewind_snapshot = _take_full_snapshot()  # GI-18: the state just before this advance
     completed_round = region.round_number
     marks_before = _round_marks()
+    band_before = wellbeing_band(region.wellbeing_score())
     region.advance_round()
     if neighbor is not None:
         neighbor.advance_round()
     round_start_snapshot = _take_round_start_snapshot()  # I-15: the new round's starting point
     _collect_after_round(completed_round)
     render()
-    announce(round_announcement_text(marks_before))
+    band_up = _celebrate_band_rise(band_before)  # GI-29
+    announce(round_announcement_text(marks_before) + (f" {band_note_text}" if band_up else ""))
     _check_new_achievements_for_toast()
 
 
@@ -4864,19 +4882,33 @@ def _make_neighbor_invest_handler(capacity_type):
     return handler
 
 
+def _do_policy_invest(policy):
+    label = POLICIES[policy]["label"]
+    if region.invest_policy(policy):
+        announce(
+            f"Funded {label}, level {region.policy_level[policy]} of {POLICY_MAX_LEVEL}. Funds {region.funds:.0f}"
+        )
+    elif region.policy_level[policy] >= POLICY_MAX_LEVEL:
+        announce(f"{label} is already at its top level")
+    else:
+        announce(f"Cannot fund {label}: it costs {region.policy_cost(policy):.0f} and you have {region.funds:.0f}")
+    render()
+    _check_new_achievements_for_toast()
+
+
 def _make_policy_handler(policy):
     def handler(event=None):
-        label = POLICIES[policy]["label"]
-        if region.invest_policy(policy):
-            announce(
-                f"Funded {label}, level {region.policy_level[policy]} of {POLICY_MAX_LEVEL}. Funds {region.funds:.0f}"
+        # I-28: a big policy purchase can be confirmed first (Settings > Confirm large moves).
+        if (
+            region.policy_level[policy] < POLICY_MAX_LEVEL
+            and region.funds >= region.policy_cost(policy)
+            and _guard_large_move(
+                policy_move_share(policy), policy_confirm_message(policy),
+                f"drift-policy-{policy}", lambda: _do_policy_invest(policy),
             )
-        elif region.policy_level[policy] >= POLICY_MAX_LEVEL:
-            announce(f"{label} is already at its top level")
-        else:
-            announce(f"Cannot fund {label}: it costs {region.policy_cost(policy):.0f} and you have {region.funds:.0f}")
-        render()
-        _check_new_achievements_for_toast()
+        ):
+            return
+        _do_policy_invest(policy)
     return handler
 
 
@@ -4913,20 +4945,9 @@ def on_toggle_coda(event=None):
 # flip, same as on_toggle_info_page/on_toggle_achievements, not a player
 # action achievements can key off of, so no toast check here.
 def on_toggle_accelerated_severity(event=None):
-    region.accelerated_severity_enabled = not region.accelerated_severity_enabled
-    # I20: capture the dot-density baseline the very first time the toggle
-    # is ever switched on, so a later render can tell whether the stream's
-    # density has genuinely moved since then. Never re-captured on a later
-    # toggle -- the callout is a one-time "here's the effect" moment, not a
-    # per-toggle reminder.
-    if (
-        region.accelerated_severity_enabled
-        and region.severity_toggle_dot_baseline is None
-        and not region.severity_density_callout_shown
-    ):
-        region.severity_toggle_dot_baseline = arrival_stream_dot_count(
-            region.arrivals_this_round()
-        )
+    # I20: the dot-density baseline is captured inside _set_accelerated_severity() the very first time the
+    # toggle is ever switched on (never re-captured later).
+    _set_accelerated_severity(not region.accelerated_severity_enabled)
     render()
 
 
@@ -4937,9 +4958,7 @@ def on_toggle_crisis_start(event=None):
     render()
 
 
-def on_reallocate(event=None):
-    from_type = getattr(document.getElementById("realloc-from"), "value", "housing")
-    to_type = getattr(document.getElementById("realloc-to"), "value", "services")
+def _do_reallocate(from_type, to_type):
     if region.reallocate(from_type, to_type):
         announce(
             f"Moved {REALLOCATION_UNITS:.0f} capacity from {CAPACITY_LABEL[from_type]} to {CAPACITY_LABEL[to_type]}. "
@@ -4952,6 +4971,22 @@ def on_reallocate(event=None):
     else:
         announce(f"Cannot move capacity: it costs {REALLOCATION_FUNDS_COST:.0f} funds and you have {region.funds:.0f}")
     render()
+
+
+def on_reallocate(event=None):
+    from_type = getattr(document.getElementById("realloc-from"), "value", "housing")
+    to_type = getattr(document.getElementById("realloc-to"), "value", "services")
+    # I-28: a big reallocation can be confirmed first (Settings > Confirm large moves).
+    if (
+        from_type != to_type and from_type in CAPACITY_TYPES and to_type in CAPACITY_TYPES
+        and region.capacity[from_type] >= REALLOCATION_UNITS and region.funds >= REALLOCATION_FUNDS_COST
+        and _guard_large_move(
+            realloc_move_share(from_type), realloc_confirm_message(from_type, to_type),
+            "drift-reallocate", lambda: _do_reallocate(from_type, to_type),
+        )
+    ):
+        return
+    _do_reallocate(from_type, to_type)
 
 
 def on_region_name_input(event=None):
@@ -5256,6 +5291,983 @@ def render_load_note():
     document.getElementById("load-note").innerText = load_note_text
 
 
+# ===========================================================================
+# Oct 11 batch 3: named difficulty tiers with per-tier bests (I-9, I-25), planner assist (I-3),
+# confirm large moves (I-28), manual-save nudge (I-27), glossary popovers (I-29), Region Report (I-4),
+# band-change confetti (GI-29). Everything here is a display, a record or advice: no number in a run changes
+# unless the player flips one of the existing options (a tier only sets the options the game already had).
+# ===========================================================================
+
+BAND_ORDER = ["Struggling", "Managing", "Thriving", "Model Region"]
+
+
+def band_rank(score):
+    return BAND_ORDER.index(wellbeing_band(score))
+
+
+def _today():
+    import datetime  # noqa: PLC0415 -- stdlib, imported where used
+
+    return datetime.date.today().isoformat()
+
+
+def _now_ms():
+    import time  # noqa: PLC0415
+
+    return time.time() * 1000.0
+
+
+# ---- I-9: named difficulty tiers -------------------------------------------------------------------
+# A tier is only a name for a set of the three existing options (Crisis Calendar, Accelerated Severity,
+# Crisis Start). The base game with every option off is the easiest the game gets, so it is called Gentle.
+TIERS = [
+    {"id": "gentle", "name": "Gentle", "calendar": False, "accelerated": False, "crisis": False},
+    {"id": "standard", "name": "Standard", "calendar": True, "accelerated": False, "crisis": False},
+    {"id": "rigorous", "name": "Rigorous", "calendar": True, "accelerated": True, "crisis": False},
+    {"id": "demanding", "name": "Demanding", "calendar": True, "accelerated": True, "crisis": True},
+]
+TIER_BY_ID = {tier["id"]: tier for tier in TIERS}
+TIER_BESTS_STORAGE_KEY = "drift_tier_bests_v1"
+tier_note_text = ""
+
+
+def tier_summary_line(tier_id):
+    """One line saying what a tier changes, built from the game's own constants."""
+    if tier_id == "gentle":
+        return (
+            f"The base game: no Crisis Calendar, normal pressure growth and a full {STARTING_FUNDS:.0f}-fund start. "
+            "Every option below is off."
+        )
+    if tier_id == "standard":
+        return (
+            "Turns on the Crisis Calendar: fixed, telegraphed events (surges, a budget cut, a flood, a bumper harvest) "
+            "and three Surge Tests. You can pay to brace for most of them."
+        )
+    if tier_id == "rigorous":
+        return (
+            f"Standard, plus Accelerated Severity: background pressure grows {ACCELERATED_SEVERITY_MULTIPLIER:.0f}x as fast, "
+            "so arrivals climb sooner."
+        )
+    if tier_id == "demanding":
+        return (
+            f"Rigorous, plus Crisis Start: begin with {CRISIS_START_FUNDS:.0f} funds and a backlog already arrived. "
+            "Chosen before round 1."
+        )
+    return "A mix of the options that does not match a named tier. Custom mixes do not update the tier bests."
+
+
+def current_tier_id(region_state=None):
+    """The named tier the region's three options spell out, or 'custom' for any other mix."""
+    r = region if region_state is None else region_state
+    for tier in TIERS:
+        if (
+            bool(r.calendar_enabled) == tier["calendar"]
+            and bool(r.accelerated_severity_enabled) == tier["accelerated"]
+            and bool(r.crisis_start_enabled) == tier["crisis"]
+        ):
+            return tier["id"]
+    return "custom"
+
+
+def tier_name(tier_id):
+    return TIER_BY_ID[tier_id]["name"] if tier_id in TIER_BY_ID else "Custom mix"
+
+
+def tier_available(tier_id):
+    """A tier can be picked unless it needs a different Crisis Start after round 1 (that option is
+    only choosable before the first round)."""
+    tier = TIER_BY_ID.get(tier_id)
+    if tier is None:
+        return False
+    return tier["crisis"] == region.crisis_start_enabled or region.can_toggle_crisis_start()
+
+
+def _set_accelerated_severity(enabled):
+    """The Accelerated Severity switch, with the first-time dot-density baseline the callout needs (I20)."""
+    region.accelerated_severity_enabled = bool(enabled)
+    if (
+        region.accelerated_severity_enabled
+        and region.severity_toggle_dot_baseline is None
+        and not region.severity_density_callout_shown
+    ):
+        region.severity_toggle_dot_baseline = arrival_stream_dot_count(region.arrivals_this_round())
+
+
+def apply_tier(tier_id):
+    """Set the three options to a tier. Returns (ok, message). Nothing changes when it cannot be done."""
+    global round_start_snapshot
+    tier = TIER_BY_ID.get(tier_id)
+    if tier is None:
+        return False, "That tier does not exist."
+    if not tier_available(tier_id):
+        return False, (
+            f"{tier['name']} needs Crisis Start {'on' if tier['crisis'] else 'off'}, and that can only be changed "
+            "before round 1. Start a new region to use it."
+        )
+    region.calendar_enabled = tier["calendar"]
+    _set_accelerated_severity(tier["accelerated"])
+    if tier["crisis"] != region.crisis_start_enabled:
+        region.set_crisis_start(tier["crisis"])
+        round_start_snapshot = _take_round_start_snapshot()
+    return True, f"Difficulty set to {tier['name']}. " + tier_summary_line(tier_id)
+
+
+def _make_tier_handler(tier_id):
+    def handler(event=None):
+        global tier_note_text
+        ok, tier_note_text = apply_tier(tier_id)
+        render()
+        announce(tier_note_text)
+    return handler
+
+
+def _clean_tier_bests(raw):
+    """Stored per-tier bests with anything unreadable dropped: {tier id: {score, band, net_positive, date}}."""
+    out = {}
+    if not isinstance(raw, dict):
+        return out
+    for tier_id in TIER_BY_ID:
+        entry = raw.get(tier_id)
+        if not isinstance(entry, dict):
+            continue
+        score = entry.get("score")
+        if not _is_number(score) or score > 100:
+            continue
+        net = entry.get("net_positive")
+        date = entry.get("date")
+        out[tier_id] = {
+            "score": float(score),
+            "band": wellbeing_band(float(score)),
+            "net_positive": net if _small_int(net, 1) else None,
+            "date": date if isinstance(date, str) and re.fullmatch(r"\d{4}-\d{2}-\d{2}", date) else "",
+        }
+    return out
+
+
+def _load_tier_bests():
+    raw = _read_local_storage_item(TIER_BESTS_STORAGE_KEY)
+    if not raw:
+        return {}
+    try:
+        return _clean_tier_bests(json.loads(raw))
+    except (ValueError, TypeError):
+        return {}
+
+
+tier_bests = _load_tier_bests()
+
+
+def _maybe_update_tier_best():
+    """Called every render. A named tier's best moves up when a round has been played, the run is not assisted
+    and the wellbeing score or the net-positive round beats what that tier holds."""
+    if assisted_run or region.round_number <= 1:
+        return
+    tier_id = current_tier_id()
+    if tier_id == "custom":
+        return
+    score = region.wellbeing_score()
+    entry = tier_bests.get(tier_id)
+    changed = False
+    if entry is None:
+        entry = {"score": score, "band": wellbeing_band(score), "net_positive": region.net_positive_round, "date": _today()}
+        tier_bests[tier_id] = entry
+        changed = True
+    else:
+        if score > entry["score"]:
+            entry["score"] = score
+            entry["band"] = wellbeing_band(score)
+            changed = True
+        net = region.net_positive_round
+        if net is not None and (entry["net_positive"] is None or net < entry["net_positive"]):
+            entry["net_positive"] = net
+            changed = True
+        if changed:
+            entry["date"] = _today()
+    if changed:
+        _write_local_storage_item(TIER_BESTS_STORAGE_KEY, json.dumps(tier_bests))
+
+
+def tier_best_table_html():
+    head = "<tr><th>Tier</th><th>Best band</th><th>Best wellbeing</th><th>Fastest net-positive</th><th>Date</th></tr>"
+    rows = []
+    for tier in TIERS:
+        entry = tier_bests.get(tier["id"])
+        if entry is None:
+            rows.append(f"<tr><td>{tier['name']}</td><td colspan=\"4\">not played yet</td></tr>")
+            continue
+        net = f"round {entry['net_positive']}" if entry["net_positive"] is not None else "not yet"
+        rows.append(
+            f"<tr><td>{tier['name']}</td><td>{entry['band']}</td><td>{entry['score']:.0f}</td>"
+            f"<td>{net}</td><td>{entry['date'] or '-'}</td></tr>"
+        )
+    return f"<table class=\"ledger-table tier-table\"><thead>{head}</thead><tbody>{''.join(rows)}</tbody></table>"
+
+
+def render_tier_panel():
+    tier_id = current_tier_id()
+    label = f"Difficulty tier: {tier_name(tier_id)}" + (" (assisted run)" if assisted_run else "")
+    document.getElementById("tier-summary").innerText = label
+    document.getElementById("tier-line").innerText = tier_summary_line(tier_id)
+    for tier in TIERS:
+        button = document.getElementById(f"tier-{tier['id']}-button")
+        button.setAttribute("aria-pressed", "true" if tier["id"] == tier_id else "false")
+        button.disabled = not tier_available(tier["id"])
+        button.title = tier_summary_line(tier["id"])
+        if tier["id"] == tier_id:
+            button.classList.add("active")
+        else:
+            button.classList.remove("active")
+    document.getElementById("tier-note").innerText = tier_note_text
+    document.getElementById("tier-best-table").innerHTML = tier_best_table_html()
+    document.getElementById("tier-best-note").innerText = (
+        "Bests are kept in this browser. Assisted runs and custom mixes do not update them."
+        if assisted_run is False
+        else "This run is assisted, so it does not update any bests."
+    )
+
+
+# ---- I-3: planner assist (Off / Suggest / Explain) ---------------------------------------------------
+ASSIST_MODES = ("off", "suggest", "explain")
+ASSIST_SERVICES_SHARE = 0.35  # services below this share of capacity: buy services before housing
+ASSIST_MAX_BUYS = 12
+ASSIST_RESERVE = 40.0  # funds left alone when suggesting a policy (economic health reads funds)
+assist_mode = "off"
+assisted_run = False
+
+
+def plan_suggestion(rs=None):
+    """Recommended purchases for this round as a list of {"kind", "key", "label", "count", "cost", "reason"}.
+    Pure advice from the forecast and ROI numbers: nothing is bought. Capacity is sized to cover everyone
+    arrived so far plus this round's arrivals (what strain is measured against over the next two advances)."""
+    r = region if rs is None else rs
+    funds = r.funds
+    capacity = dict(r.capacity)
+    items = []
+    need = r.total_arrivals + r.arrivals_this_round() - r.coverage_bonus()
+    have = sum(capacity.values())
+    gap_start = max(0.0, need - have)
+    bought = {"housing": 0, "services": 0}
+    roi = r.investment_roi()
+    guard = 0
+    while have < need and guard < ASSIST_MAX_BUYS * 3:
+        guard += 1
+        share = capacity["services"] / have if have > 0 else 0.0
+        kind = "services" if share < ASSIST_SERVICES_SHARE else "housing"
+        if funds < INVEST_COST[kind]:
+            other = "housing" if kind == "services" else "services"
+            if funds < INVEST_COST[other]:
+                break
+            kind = other
+        funds -= INVEST_COST[kind]
+        capacity[kind] += CAPACITY_PER_INVESTMENT[kind]
+        have += CAPACITY_PER_INVESTMENT[kind]
+        bought[kind] += 1
+    # a backlog that services throughput would take several rounds to clear
+    pending = r.pending_population()
+    extra_services = 0
+    while (
+        extra_services < 3 and funds >= INVEST_COST["services"]
+        and pending > 0 and capacity["services"] * INTEGRATION_RATE_PER_SERVICES_UNIT * 3 < pending
+    ):
+        funds -= INVEST_COST["services"]
+        capacity["services"] += CAPACITY_PER_INVESTMENT["services"]
+        bought["services"] += 1
+        extra_services += 1
+    gap_text = f"{gap_start:.0f} more capacity covers everyone who has arrived plus this round's {r.arrivals_this_round():.0f}"
+    if bought["housing"]:
+        items.append({
+            "kind": "capacity", "key": "housing", "label": CAPACITY_LABEL["housing"], "count": bought["housing"],
+            "cost": bought["housing"] * INVEST_COST["housing"],
+            "reason": f"Housing adds the most capacity per fund ({CAPACITY_PER_INVESTMENT['housing']:.0f} for "
+                      f"{INVEST_COST['housing']:.0f}); {gap_text}." if gap_start > 0
+            else "Housing adds the most capacity per fund, and the extra keeps strain down as arrivals climb.",
+        })
+    if bought["services"]:
+        roi_text = f" Your return so far is {roi:.2f} funds back per fund invested." if roi is not None else ""
+        items.append({
+            "kind": "capacity", "key": "services", "label": CAPACITY_LABEL["services"], "count": bought["services"],
+            "cost": bought["services"] * INVEST_COST["services"],
+            "reason": "Integration Services is the only capacity that moves pending people to integrated, "
+                      f"and services are {capacity['services'] / max(1.0, have) * 100:.0f}% of your capacity after this."
+                      f"{roi_text}",
+        })
+    # one integration policy once capacity is covered (Community Sponsorship adds less capacity per fund than
+    # Housing, so it is never the suggestion)
+    if have >= need:
+        choice = None
+        if pending >= 30 and r.policy_level["language_access"] < POLICY_MAX_LEVEL:
+            choice = ("language_access", "Language-Access Funding speeds integration, and "
+                      f"{pending:.0f} people are waiting.")
+        elif r.integrated_population >= 30 and r.policy_level["credentialing"] < POLICY_MAX_LEVEL:
+            choice = ("credentialing", f"Streamlined Credentialing raises what the {r.integrated_population:.0f} "
+                      "integrated people contribute back.")
+        if choice is not None:
+            key, why = choice
+            cost = POLICY_BASE_COST * (r.policy_level[key] + 1)
+            if funds - cost >= ASSIST_RESERVE:
+                funds -= cost
+                items.append({
+                    "kind": "policy", "key": key, "label": POLICIES[key]["label"], "count": 1, "cost": cost,
+                    "reason": why + f" You would still keep {funds:.0f} funds.",
+                })
+    target = r.brace_target()
+    if target is not None:
+        brace_cost = CALENDAR_KINDS[target["kind"]]["brace_cost"]
+        if funds >= brace_cost:
+            funds -= brace_cost
+            items.append({
+                "kind": "brace", "key": target["kind"], "label": f"Brace for {target['name']}", "count": 1,
+                "cost": brace_cost,
+                "reason": f"{target['name']} lands in round {target['round']}; bracing softens it for {brace_cost:.0f} funds.",
+            })
+    if not items:
+        items.append({
+            "kind": "hold", "key": "hold", "label": "Hold your funds", "count": 0, "cost": 0.0,
+            "reason": "Capacity already covers everyone expected by the end of next round and services are keeping up with "
+                      "the people waiting. Funds count toward economic health, so keeping them is fine.",
+        })
+    return items
+
+
+def plan_summary_line(items):
+    if len(items) == 1 and items[0]["kind"] == "hold":
+        return "Suggested this round: hold your funds."
+    parts = []
+    for item in items:
+        if item["kind"] == "capacity":
+            parts.append(f"{item['count']} {item['label']}")
+        else:
+            parts.append(item["label"])
+    total = sum(item["cost"] for item in items)
+    return f"Suggested this round: {', '.join(parts)} ({total:.0f} funds)."
+
+
+def set_assist_mode(mode):
+    """Off / Suggest / Explain. Turning it on tags the run as assisted for good (a rewind or switching it
+    back off does not remove the tag); an assisted run never updates a personal best or a tier best."""
+    global assist_mode, assisted_run
+    if mode not in ASSIST_MODES:
+        return False
+    assist_mode = mode
+    if mode != "off":
+        assisted_run = True
+    return True
+
+
+def _make_assist_handler(mode):
+    def handler(event=None):
+        set_assist_mode(mode)
+        render()
+        if mode != "off":
+            announce(plan_summary_line(plan_suggestion()))
+    return handler
+
+
+def render_assist():
+    for mode in ASSIST_MODES:
+        button = document.getElementById(f"assist-{mode}-button")
+        button.setAttribute("aria-pressed", "true" if mode == assist_mode else "false")
+        if mode == assist_mode:
+            button.classList.add("active")
+        else:
+            button.classList.remove("active")
+    note = document.getElementById("assist-note")
+    if assisted_run:
+        note.innerText = (
+            "This run is tagged assisted: personal bests and tier bests will not update for it, "
+            "and the tag stays even if you switch assist off. Achievements still count."
+        )
+    else:
+        note.innerText = (
+            "Optional advice from the forecast and ROI numbers. Switching it on tags this run as assisted: "
+            "it will not update personal bests or tier bests."
+        )
+    suggestion = document.getElementById("assist-suggestion")
+    reasons = document.getElementById("assist-reasons")
+    if assist_mode == "off":
+        suggestion.hidden = True
+        suggestion.innerText = ""
+        reasons.hidden = True
+        reasons.innerHTML = ""
+        return
+    items = plan_suggestion()
+    suggestion.hidden = False
+    suggestion.innerText = plan_summary_line(items)
+    if assist_mode == "explain":
+        reasons.hidden = False
+        reasons.innerHTML = "".join(f"<li><strong>{item['label']}:</strong> {item['reason']}</li>" for item in items)
+    else:
+        reasons.hidden = True
+        reasons.innerHTML = ""
+
+
+def _assist_state_fields():
+    return {"assist": {"mode": assist_mode, "assisted": True}} if assisted_run else {}
+
+
+def _load_assist_state(data):
+    """Saved only once a run was assisted; anything unreadable loads as a plain unassisted run."""
+    global assist_mode, assisted_run
+    assist_mode = "off"
+    assisted_run = False
+    saved = data.get("assist")
+    if isinstance(saved, dict) and saved.get("assisted") is True:
+        assisted_run = True
+        if saved.get("mode") in ASSIST_MODES:
+            assist_mode = saved["mode"]
+
+
+# ---- I-28: confirm large moves -------------------------------------------------------------------
+CONFIRM_STORAGE_KEY = "drift_confirm_threshold_v1"
+CONFIRM_CHOICES = (0, 25, 50, 75)  # 0 = never ask; otherwise ask when a move uses more than this percent
+confirm_threshold = 0
+
+
+def _load_confirm_threshold():
+    raw = _read_local_storage_item(CONFIRM_STORAGE_KEY)
+    try:
+        value = int(raw)
+    except (TypeError, ValueError):
+        return 0
+    return value if value in CONFIRM_CHOICES else 0
+
+
+confirm_threshold = _load_confirm_threshold()
+
+
+def confirm_threshold_text():
+    if not confirm_threshold:
+        return "Never asks. Every purchase and move goes straight through."
+    return (
+        f"Asks first when a policy purchase uses more than {confirm_threshold}% of your funds, or a reallocation moves "
+        f"more than {confirm_threshold}% of that type's capacity or costs more than {confirm_threshold}% of your funds, "
+        "and shows the cost."
+    )
+
+
+def policy_move_share(policy):
+    return region.policy_cost(policy) / region.funds if region.funds > 0 else 0.0
+
+
+def realloc_move_share(from_type):
+    capacity = region.capacity.get(from_type, 0.0)
+    cap_share = REALLOCATION_UNITS / capacity if capacity > 0 else 0.0
+    funds_share = REALLOCATION_FUNDS_COST / region.funds if region.funds > 0 else 0.0
+    return max(cap_share, funds_share)
+
+
+def _guard_large_move(share, message, action_id, on_confirm):
+    """True when a confirm dialog was opened (on_confirm runs later if the player agrees) and the caller must
+    stop; False when the caller should go ahead now (no threshold, a small move, or no dialog on the page)."""
+    if not confirm_threshold or share * 100 <= confirm_threshold:
+        return False
+    try:
+        from js import window  # noqa: PLC0415 -- Pyodide-only, deliberately lazy
+    except ImportError:
+        return False
+    dialog = getattr(window, "ConfirmDialog", None)
+    if dialog is None:
+        return False
+    dialog.ask(
+        id=action_id,
+        message=message,
+        confirmLabel="Go ahead",
+        allowSkip=False,
+        onConfirm=create_proxy(on_confirm),
+    )
+    return True
+
+
+def policy_confirm_message(policy):
+    cost = region.policy_cost(policy)
+    return (
+        f"Fund {POLICIES[policy]['label']} to level {region.policy_level[policy] + 1} for {cost:.0f} of your "
+        f"{region.funds:.0f} funds ({policy_move_share(policy) * 100:.0f}%)? A policy level is permanent."
+    )
+
+
+def realloc_confirm_message(from_type, to_type):
+    kept = REALLOCATION_UNITS * (1 - REALLOCATION_LOSS_FRACTION)
+    return (
+        f"Move {REALLOCATION_UNITS:.0f} {CAPACITY_LABEL[from_type]} capacity (of {region.capacity[from_type]:.0f}) to "
+        f"{CAPACITY_LABEL[to_type]}? It costs {REALLOCATION_FUNDS_COST:.0f} of your {region.funds:.0f} funds and "
+        f"{REALLOCATION_LOSS_FRACTION * 100:.0f}% of the moved capacity is lost, so {CAPACITY_LABEL[to_type]} gains {kept:.0f}."
+    )
+
+
+def on_confirm_threshold_change(event=None):
+    global confirm_threshold
+    raw = getattr(document.getElementById("confirm-threshold-select"), "value", "0")
+    try:
+        value = int(raw)
+    except (TypeError, ValueError):
+        value = 0
+    confirm_threshold = value if value in CONFIRM_CHOICES else 0
+    _write_local_storage_item(CONFIRM_STORAGE_KEY, str(confirm_threshold))
+    render_confirm_threshold()
+
+
+def on_settings_reset_click(event=None):
+    """Settings > Reset to Default also clears this game-side preference (settings.js handles the rest)."""
+    global confirm_threshold
+    confirm_threshold = 0
+    _write_local_storage_item(CONFIRM_STORAGE_KEY, "0")
+    render_confirm_threshold()
+
+
+def render_confirm_threshold():
+    document.getElementById("confirm-threshold-select").value = str(confirm_threshold)
+    document.getElementById("confirm-threshold-note").innerText = confirm_threshold_text()
+
+
+# ---- I-27: manual-save nudge -----------------------------------------------------------------------
+SAVE_NUDGE_ROUNDS = 10
+SAVED_AT_KEY = "savedat:drift"  # written by shared/save-widget.js after every successful save
+save_baseline_round = 1
+nudge_snooze_round = 0
+
+
+def _saved_at_ms():
+    raw = _read_local_storage_item(SAVED_AT_KEY)
+    try:
+        value = int(raw)
+    except (TypeError, ValueError):
+        return 0
+    return value if value > 0 else 0
+
+
+_last_seen_saved_at = _saved_at_ms()
+
+
+def _note_save_activity():
+    """If the save widget has stamped a newer save time since we last looked, a save just happened: the
+    rounds-since-save count restarts from the current round."""
+    global _last_seen_saved_at, save_baseline_round
+    current = _saved_at_ms()
+    if current != _last_seen_saved_at:
+        _last_seen_saved_at = current
+        save_baseline_round = region.round_number
+
+
+def _ago_text(milliseconds):
+    seconds = max(0.0, milliseconds / 1000.0)
+    if seconds < 45:
+        return "just now"
+    if seconds < 5400:
+        return f"{max(1, round(seconds / 60))} min ago"
+    if seconds < 129600:
+        return f"{round(seconds / 3600)} h ago"
+    return f"{round(seconds / 86400)} d ago"
+
+
+def rounds_since_save():
+    return region.round_number - max(save_baseline_round, nudge_snooze_round)
+
+
+def save_nudge_text():
+    """The gentle reminder, or '' while fewer than SAVE_NUDGE_ROUNDS rounds have passed since the last save."""
+    rounds = rounds_since_save()
+    if rounds <= SAVE_NUDGE_ROUNDS:
+        return ""
+    saved_at = _saved_at_ms()
+    when = f"saved {_ago_text(_now_ms() - saved_at)}" if saved_at else "not saved in this browser yet"
+    return (
+        f"You have played {rounds} rounds since this region was last saved ({when}). "
+        "The save button keeps it safe whenever you are ready."
+    )
+
+
+def on_dismiss_save_nudge(event=None):
+    global nudge_snooze_round
+    nudge_snooze_round = region.round_number
+    render_save_nudge()
+
+
+def render_save_nudge():
+    _note_save_activity()
+    text = save_nudge_text()
+    document.getElementById("save-nudge-box").hidden = not text
+    document.getElementById("save-nudge").innerText = text
+
+
+# ---- I-29: glossary popovers -----------------------------------------------------------------------
+GLOSSARY = {
+    "capacity": {
+        "label": "Capacity",
+        "text": "Capacity is the housing, integration services and infrastructure your region has built. Total capacity is set "
+                "against everyone who has arrived: whatever it fails to cover becomes strain.",
+        "real_story": True,
+    },
+    "strain": {
+        "label": "Strain",
+        "text": "Strain is the share of everyone who has arrived that your capacity does not yet cover. It cuts your income each "
+                "round and stays in your service-quality average even after you catch up.",
+        "real_story": False,
+    },
+    "integration": {
+        "label": "Integration",
+        "text": "Integration is when a waiting arrival becomes an integrated resident, with language, work and education access. "
+                "Only Integration Services moves people across, and integrated people then contribute funds back.",
+        "real_story": True,
+    },
+    "control": {
+        "label": "Control region",
+        "text": "The control region is a passive copy of your region with the same pressure and no investment. Its dotted grey line "
+                "on the trend graph shows what would have happened without your choices.",
+        "real_story": False,
+    },
+}
+GLOSSARY_ORDER = ("capacity", "strain", "integration", "control")
+glossary_open = None
+glossary_pinned = False
+
+
+def _show_glossary(term, pin=False):
+    global glossary_open, glossary_pinned
+    glossary_open = term
+    glossary_pinned = pin or (glossary_pinned and glossary_open == term)
+    render_glossary()
+
+
+def _make_glossary_handler(term, action):
+    def handler(event=None):
+        global glossary_open, glossary_pinned
+        if action == "click":
+            if glossary_open == term and glossary_pinned:
+                glossary_open = None
+                glossary_pinned = False
+            else:
+                glossary_open = term
+                glossary_pinned = True
+        elif action == "show":
+            if glossary_pinned:
+                return
+            glossary_open = term
+        elif action == "hide":
+            if glossary_pinned:
+                return
+            glossary_open = None
+        render_glossary()
+    return handler
+
+
+def on_glossary_more(event=None):
+    """Open The Real Story from the popover (clicks the real toggle button so the Desktop window opens too)."""
+    if not info_page_open:
+        button = document.getElementById("info-page-toggle-button")
+        click = getattr(button, "click", None)
+        if callable(click):
+            click()
+        else:
+            on_toggle_info_page()
+
+
+def render_glossary():
+    pop = document.getElementById("glossary-pop")
+    for term in GLOSSARY_ORDER:
+        button = document.getElementById(f"glossary-{term}-button")
+        button.setAttribute("aria-expanded", "true" if term == glossary_open else "false")
+        if term == glossary_open:
+            button.classList.add("active")
+        else:
+            button.classList.remove("active")
+    pop.hidden = glossary_open is None
+    if glossary_open is None:
+        return
+    entry = GLOSSARY[glossary_open]
+    document.getElementById("glossary-pop-text").innerText = f"{entry['label']}: {entry['text']}"
+    document.getElementById("glossary-more-button").hidden = not entry["real_story"]
+
+
+# ---- I-4: Region Report (printable card and copy-as-text) ---------------------------------------------
+report_open = False
+report_note_text = ""
+
+
+def _first_purchase_round():
+    """The first round with any purchase, or None. Only trusted while the ledger still starts at round 1."""
+    if not region.ledger or region.ledger[0]["round"] != 1:
+        return None
+    for row in region.ledger:
+        if row["spent"] > 0:
+            return row["round"]
+    return None
+
+
+def _strain_peak():
+    strain = region.strain_log
+    if not strain or max(strain) <= 0:
+        return None
+    index = strain.index(max(strain))
+    return region.round_number - len(strain) + index, max(strain)
+
+
+def region_report_data():
+    r = region
+    score = r.wellbeing_score()
+    tier_id = current_tier_id()
+    options = []
+    if r.calendar_enabled:
+        options.append("Crisis Calendar")
+    if r.accelerated_severity_enabled:
+        options.append(f"Accelerated Severity ({ACCELERATED_SEVERITY_MULTIPLIER:.0f}x)")
+    if r.crisis_start_enabled:
+        options.append("Crisis Start")
+    key_rounds = []
+    first = _first_purchase_round()
+    key_rounds.append(("First purchase", f"round {first}" if first is not None else "not recorded"))
+    key_rounds.append(("Net-positive turning point", f"round {r.net_positive_round}" if r.net_positive_round else "not yet"))
+    key_rounds.append(("Thriving reached", f"round {r.thriving_round}" if r.thriving_round else "not yet"))
+    if r.second_wave_status is None:
+        wave = "not triggered"
+    elif r.second_wave_status == "done":
+        wave = f"began round {r.second_wave_start_round}, {r.second_wave_result}" if r.second_wave_start_round else f"over, {r.second_wave_result}"
+    else:
+        wave = r.second_wave_status
+    key_rounds.append(("Second wave", wave))
+    peak = _strain_peak()
+    key_rounds.append(("Strain peak", f"{peak[1] * 100:.0f}% in round {peak[0]}" if peak else "none (strain stayed at zero)"))
+    subscores = []
+    for key, label in (("service", "Service quality"), ("economy", "Economic health"), ("cohesion", "Social cohesion")):
+        values = [e.get(key, 0.0) for e in r.subscore_log if isinstance(e, dict)]
+        subscores.append({
+            "label": label, "now": {"service": r.service_quality(), "economy": r.economic_health(), "cohesion": r.social_cohesion()}[key],
+            "first": values[0] if values else None, "arrow": subscore_arrow(r.subscore_log, key),
+            "curve": wellbeing_curve(values, 20),
+        })
+    spent = dict(r.spend_by_type)
+    derived = not any(spent[t] for t in CAPACITY_TYPES)
+    roi_rows = []
+    for t in CAPACITY_TYPES:
+        funds_spent = r.capacity[t] / CAPACITY_PER_INVESTMENT[t] * INVEST_COST[t] if derived else spent[t]
+        if t == "services":
+            ret = (
+                f"{r.cumulative_integration_contribution / r.cumulative_services_investment:.2f} funds back per fund"
+                if r.cumulative_services_investment > 0 else "nothing returned yet"
+            )
+        else:
+            ret = "no direct return; holds strain down"
+        roi_rows.append({"label": CAPACITY_LABEL[t], "spent": funds_spent, "capacity": r.capacity[t], "return": ret})
+    policy_levels = ", ".join(f"{POLICIES[p]['label']} {r.policy_level[p]}" for p in POLICIES if r.policy_level[p]) or "none funded"
+    roi_rows.append({"label": "Policies", "spent": spent["policy"], "capacity": None, "return": policy_levels})
+    roi = r.investment_roi()
+    return {
+        "name": r.region_name or "Unnamed region",
+        "rounds": max(0, r.round_number - 1),
+        "tier": tier_name(tier_id),
+        "options": options,
+        "assisted": assisted_run,
+        "band": wellbeing_band(score),
+        "score": score,
+        "strain_level": r.strain_level(),
+        "key_rounds": key_rounds,
+        "subscores": subscores,
+        "roi_rows": roi_rows,
+        "roi_total": roi,
+        "council": [COUNCIL_BY_ID[pid]["name"] for pid in r.council_picks],
+        "coda": r.coda_legacy_choice,
+        "curve": wellbeing_curve(r.wellbeing_log),
+    }
+
+
+def region_report_text():
+    d = region_report_data()
+    lines = [
+        f"Region Report: {d['name']}",
+        f"Difficulty: {d['tier']}" + (f" ({', '.join(d['options'])})" if d["options"] else " (no options on)")
+        + (", assisted run" if d["assisted"] else ""),
+        f"After {d['rounds']} rounds: {d['band']}, wellbeing {d['score']:.0f}, strain {d['strain_level']}",
+        f"Wellbeing curve: {d['curve']}",
+        "Key rounds:",
+    ]
+    lines += [f"  {label}: {value}" for label, value in d["key_rounds"]]
+    lines.append("Sub-scores (first logged round -> now):")
+    for s in d["subscores"]:
+        first = f"{s['first']:.0f}" if s["first"] is not None else "-"
+        lines.append(f"  {s['label']}: {first} -> {s['now']:.0f} {s['arrow']} {s['curve']}".rstrip())
+    lines.append("Spending and return:")
+    for row in d["roi_rows"]:
+        cap = f", capacity {row['capacity']:.0f}" if row["capacity"] is not None else ""
+        lines.append(f"  {row['label']}: {row['spent']:.0f} funds{cap}; {row['return']}")
+    if d["roi_total"] is not None:
+        lines.append(f"  Overall: {d['roi_total']:.2f} funds contributed back per fund invested")
+    if d["council"]:
+        lines.append("Council programs: " + ", ".join(d["council"]))
+    if d["coda"] in CODA_LEGACY_CHOICES:
+        lines.append("Carried forward: " + CODA_LEGACY_CHOICES[d["coda"]].split(":")[0])
+    return "\n".join(lines)
+
+
+def region_report_html():
+    d = region_report_data()
+    diff = d["tier"] + (f" ({', '.join(d['options'])})" if d["options"] else "") + (" - assisted run" if d["assisted"] else "")
+    key_rows = "".join(f"<tr><td>{label}</td><td>{value}</td></tr>" for label, value in d["key_rounds"])
+    sub_parts = []
+    for s in d["subscores"]:
+        first = f"{s['first']:.0f}" if s["first"] is not None else "-"
+        sub_parts.append(
+            f"<tr><td>{s['label']}</td><td>{first}</td><td>{s['now']:.0f}</td><td>{s['arrow']}</td>"
+            f"<td class=\"report-curve\">{s['curve']}</td></tr>"
+        )
+    sub_rows = "".join(sub_parts)
+    roi_parts = []
+    for row in d["roi_rows"]:
+        capacity = "-" if row["capacity"] is None else f"{row['capacity']:.0f}"
+        roi_parts.append(
+            f"<tr><td>{row['label']}</td><td>{row['spent']:.0f}</td><td>{capacity}</td><td>{row['return']}</td></tr>"
+        )
+    roi_rows = "".join(roi_parts)
+    extras = []
+    if d["roi_total"] is not None:
+        extras.append(f"<p>Overall: {d['roi_total']:.2f} funds contributed back per fund invested.</p>")
+    if d["council"]:
+        extras.append(f"<p>Council programs: {', '.join(d['council'])}.</p>")
+    if d["coda"] in CODA_LEGACY_CHOICES:
+        extras.append(f"<p>Carried forward: {CODA_LEGACY_CHOICES[d['coda']]}</p>")
+    return (
+        f"<h3 class=\"report-title\">Region Report: {_escape_html(d['name'])}</h3>"
+        f"<p><strong>Difficulty:</strong> {diff}</p>"
+        f"<p><strong>After {d['rounds']} rounds:</strong> {d['band']}, wellbeing {d['score']:.0f}, strain {d['strain_level']}.</p>"
+        f"<p class=\"report-curve\" aria-label=\"Wellbeing curve\">Wellbeing curve: {d['curve']}</p>"
+        f"<table class=\"ledger-table\"><caption>Key rounds</caption><tbody>{key_rows}</tbody></table>"
+        "<table class=\"ledger-table\"><caption>Sub-score trends</caption>"
+        f"<thead><tr><th>Score</th><th>First</th><th>Now</th><th>Trend</th><th>Last 20 rounds</th></tr></thead><tbody>{sub_rows}</tbody></table>"
+        "<table class=\"ledger-table\"><caption>Spending and return</caption>"
+        f"<thead><tr><th>Spent on</th><th>Funds</th><th>Capacity</th><th>Return</th></tr></thead><tbody>{roi_rows}</tbody></table>"
+        + "".join(extras)
+    )
+
+
+def _escape_html(text):
+    return str(text).replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace('"', "&quot;")
+
+
+def on_toggle_report(event=None):
+    global report_open
+    report_open = not report_open
+    render_report()
+
+
+def on_copy_report(event=None):
+    global report_note_text
+    text = region_report_text()
+    area = document.getElementById("report-copy-area")
+    if _copy_to_clipboard(text):
+        area.hidden = True
+        report_note_text = "Copied the Region Report as text."
+    else:
+        area.hidden = False
+        area.value = text
+        report_note_text = "Could not copy automatically. Select the text below and copy it yourself."
+    document.getElementById("report-copy-status").innerText = report_note_text
+
+
+def on_print_report(event=None):
+    """Fill the print-only sheet with the report and open the browser's print dialog."""
+    global report_note_text
+    document.getElementById("report-print-sheet").innerHTML = region_report_html()
+    try:
+        import js as _js  # noqa: PLC0415
+
+        printer = getattr(_js.window, "print", None)
+        if callable(printer):
+            printer()
+            report_note_text = "Opened the print dialog."
+        else:
+            report_note_text = "This browser cannot open the print dialog from here. Use Copy report as text instead."
+    except Exception:  # noqa: BLE001 -- no window (tests) or a refused print
+        report_note_text = "This browser cannot open the print dialog from here. Use Copy report as text instead."
+    document.getElementById("report-copy-status").innerText = report_note_text
+
+
+def render_report():
+    toggle = document.getElementById("report-toggle-button")
+    toggle.innerText = "Hide Region Report" if report_open else "📄 Region Report"
+    panel = document.getElementById("report-panel")
+    panel.hidden = not report_open
+    if not report_open:
+        return
+    document.getElementById("report-card").innerHTML = region_report_html()
+    document.getElementById("report-copy-status").innerText = report_note_text
+
+
+# ---- GI-29: band-change confetti -------------------------------------------------------------------------
+BAND_CONFETTI_MS = 2600
+band_note_text = ""
+
+
+def _celebrate_band_rise(band_before):
+    """After an action that advanced rounds: if the wellbeing band went up, set the note and play the
+    confetti (CSS only; Reduce Motion, the OS setting and Animation speed Off hide it). Returns the new
+    band name, or None when it did not rise."""
+    global band_note_text
+    score = region.wellbeing_score()
+    if band_rank(score) <= BAND_ORDER.index(band_before):
+        return None
+    band = wellbeing_band(score)
+    band_note_text = f"Wellbeing rose into the {band} band."
+    _pulse("band-confetti", "band-confetti--go", BAND_CONFETTI_MS)
+    document.getElementById("band-change-note").innerText = band_note_text
+    document.getElementById("band-change-note").hidden = False
+    return band
+
+
+def _clear_band_note():
+    global band_note_text
+    band_note_text = ""
+    note = document.getElementById("band-change-note")
+    note.innerText = ""
+    note.hidden = True
+
+
+def _after_load_batch3():
+    """A loaded save counts as saved at its own round; the transient notes start clean."""
+    global save_baseline_round, nudge_snooze_round, _last_seen_saved_at, tier_note_text, report_note_text
+    save_baseline_round = region.round_number
+    nudge_snooze_round = 0
+    _last_seen_saved_at = _saved_at_ms()
+    tier_note_text = ""
+    report_note_text = ""
+    _clear_band_note()
+
+
+# ---- wiring ----------------------------------------------------------------------------------------------
+def render_batch3():
+    render_tier_panel()
+    render_assist()
+    render_save_nudge()
+    render_glossary()
+    render_report()
+    render_confirm_threshold()
+
+
+def setup_batch3():
+    for tier in TIERS:
+        document.getElementById(f"tier-{tier['id']}-button").addEventListener(
+            "click", create_proxy(_make_tier_handler(tier["id"]))
+        )
+    for mode in ASSIST_MODES:
+        document.getElementById(f"assist-{mode}-button").addEventListener(
+            "click", create_proxy(_make_assist_handler(mode))
+        )
+    document.getElementById("confirm-threshold-select").addEventListener("change", create_proxy(on_confirm_threshold_change))
+    document.getElementById("settings-reset-button").addEventListener("click", create_proxy(on_settings_reset_click))
+    document.getElementById("save-nudge-dismiss").addEventListener("click", create_proxy(on_dismiss_save_nudge))
+    for term in GLOSSARY_ORDER:
+        button = document.getElementById(f"glossary-{term}-button")
+        button.addEventListener("click", create_proxy(_make_glossary_handler(term, "click")))
+        button.addEventListener("mouseenter", create_proxy(_make_glossary_handler(term, "show")))
+        button.addEventListener("focus", create_proxy(_make_glossary_handler(term, "show")))
+        button.addEventListener("mouseleave", create_proxy(_make_glossary_handler(term, "hide")))
+        button.addEventListener("blur", create_proxy(_make_glossary_handler(term, "hide")))
+    document.getElementById("glossary-more-button").addEventListener("click", create_proxy(on_glossary_more))
+    document.getElementById("report-toggle-button").addEventListener("click", create_proxy(on_toggle_report))
+    document.getElementById("report-copy-button").addEventListener("click", create_proxy(on_copy_report))
+    document.getElementById("report-print-button").addEventListener("click", create_proxy(on_print_report))
+    document.getElementById("report-copy-area").hidden = True
+    document.getElementById("band-change-note").hidden = True
+
+
 def get_state():
     return {
         "round_number": region.round_number,
@@ -5302,6 +6314,7 @@ def get_state():
         **({"roi_log": list(region.roi_log)} if region.roi_log else {}),
         **_neighbor_state_fields(),
         **_ledger_state_fields(),
+        **_assist_state_fields(),
         "coda_visible": coda_visible,
         "info_page_open": info_page_open,
         # I17: a write-only number for the community capacity index; never read back.
@@ -5447,6 +6460,8 @@ def load_state(data):
     )
     merge_collection(data.get("collection"))
     _load_civic_state(data)
+    _load_assist_state(data)
+    _after_load_batch3()
     autopilot_log.clear()
     _reset_civic_notes()
     _reset_undo_state()
@@ -5563,6 +6578,7 @@ def setup():
     document.getElementById("ledger-sort-select").addEventListener("change", create_proxy(on_ledger_sort))
     document.getElementById("ledger-filter-select").addEventListener("change", create_proxy(on_ledger_filter))
     document.getElementById("ledger-copy-area").hidden = True
+    setup_batch3()
     _reset_undo_state()
     update_changelog_display()
     render()

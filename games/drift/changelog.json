@@ -1,6 +1,34 @@
 [
   {
     "date": "2026-10-11",
+    "entry": "New: Region Report. A 📄 Region Report window sums up the region so far: name, difficulty, the key rounds (first purchase, turning point, Thriving, second wave, strain peak), each sub-score from first round to now, a spending and return table and the council programs and coda choice you picked. Copy it as plain text or print it as a clean black-on-white card."
+  },
+  {
+    "date": "2026-10-11",
+    "entry": "New: band-change confetti. When the wellbeing band rises (say Managing to Thriving), a short fall of confetti crosses the gauges and a line says which band you reached. It is silent, and it stays off whenever Reduce Motion, the OS setting or Animation speed Off is on; the line and the spoken update are there either way."
+  },
+  {
+    "date": "2026-10-11",
+    "entry": "New: glossary. Under the region name, four small Terms buttons (Capacity, Strain, Integration, Control region) open a one-line definition on hover, focus or tap, and two of them offer a button to read more in The Real Story."
+  },
+  {
+    "date": "2026-10-11",
+    "entry": "New: a gentle save reminder. After more than 10 rounds without saving, a short note under the status lines says how many rounds have gone by and when you last saved. It never blocks anything, Dismiss hides it for another 10 rounds, and saving makes it go away."
+  },
+  {
+    "date": "2026-10-11",
+    "entry": "New: Confirm large moves in Settings. Choose Never (the default), or ask first when a policy purchase uses over a quarter, half or three quarters of your funds, or a reallocation moves that share of a type's capacity. The question shows the cost, and for a reallocation what you lose in the move."
+  },
+  {
+    "date": "2026-10-11",
+    "entry": "New: planner assist. Under Round tools, Planner assist can be Off, Suggest or Explain. It reads the forecast and your return so far and recommends this round's purchases (Explain adds a one-line reason for each). It only advises: nothing is bought for you. Switching it on tags the run as assisted, and assisted runs do not update personal bests or tier bests. Achievements still count."
+  },
+  {
+    "date": "2026-10-11",
+    "entry": "New: difficulty tiers. Gentle (the base game), Standard (adds the Crisis Calendar), Rigorous (adds Accelerated Severity) and Demanding (adds Crisis Start, chosen before round 1) are one-click names for options Drift already had, with a line saying what each changes. A table keeps your best band, best wellbeing, fastest net-positive round and its date for each tier, in this browser."
+  },
+  {
+    "date": "2026-10-11",
     "entry": "New, and off unless you want it: Settings has a Town news switch. When it is on, one warm line of local news sits at the top of the status block (a council debating a bench, a library finding a second kettle) and changes with how the region is doing. The jokes are about meetings, timetables and biscuits, never about the people who arrive."
   },
   {

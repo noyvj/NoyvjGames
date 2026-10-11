@@ -109,6 +109,7 @@
       <button id="changelog-toggle-button" class="secondary" type="button">📋 What's New</button>
       <button id="ledger-toggle-button" class="secondary" type="button">📒 Round Ledger (0)</button>
       <button id="collection-toggle-button" class="secondary" type="button">🗂️ Collection</button>
+      <button id="report-toggle-button" class="secondary" type="button">📄 Region Report</button>
       <button id="accelerated-severity-toggle-button" class="secondary difficulty-toggle" type="button">Loading...</button>
       <button id="crisis-start-toggle-button" class="secondary difficulty-toggle" type="button">Crisis Start: OFF</button>
       <!-- Site-wide settings panel (TODO.md origin A9): text-scale +
@@ -159,6 +160,17 @@
       <p class="meter-label">Region Collection: kept in this browser across every region you run</p>
       <div id="collection-list"></div>
     </div>
+    <!-- I-4: Region Report. game.py fills #report-card; Print uses the print-only sheet at the end of the page. -->
+    <div id="report-panel" class="section report-panel" hidden>
+      <p class="meter-label">Region Report: a summary card of this region so far</p>
+      <div class="round-tools-buttons">
+        <button id="report-copy-button" class="secondary" type="button">Copy report as text</button>
+        <button id="report-print-button" class="secondary" type="button">Print report</button>
+      </div>
+      <p id="report-copy-status" class="comparison-message" role="status" aria-live="polite"></p>
+      <textarea id="report-copy-area" class="ledger-copy-area" readonly hidden aria-label="Region Report as text"></textarea>
+      <div id="report-card" class="report-card"></div>
+    </div>
     <div id="settings-panel" class="section settings-panel" hidden>
       <div class="settings-row">
         <span class="settings-row-label">Text size</span>
@@ -207,6 +219,17 @@
           <button id="density-compact-button" class="secondary" type="button" data-density="compact" aria-pressed="false">Compact</button>
         </div>
       </div>
+      <!-- I-28: ask before a big policy purchase or reallocation; a game-side preference (localStorage). -->
+      <div class="settings-row">
+        <span class="settings-row-label">Confirm large moves</span>
+        <select id="confirm-threshold-select" aria-label="Confirm large moves">
+          <option value="0">Never ask</option>
+          <option value="25">Over a quarter</option>
+          <option value="50">Over half</option>
+          <option value="75">Over three quarters</option>
+        </select>
+      </div>
+      <p id="confirm-threshold-note" class="settings-note"></p>
       <div class="settings-row">
         <span class="settings-row-label">Contrast</span>
         <button id="high-contrast-toggle-button" class="secondary" type="button">High Contrast: Off</button>
@@ -265,12 +288,43 @@
         <p id="load-note" class="turning-point-message"></p>
         <button id="load-note-dismiss" class="secondary" type="button">Dismiss</button>
       </div>
+      <!-- I-27: a gentle reminder after more than 10 rounds without a save. -->
+      <div id="save-nudge-box" class="load-note-box" hidden>
+        <p id="save-nudge" class="turning-point-message" role="status"></p>
+        <button id="save-nudge-dismiss" class="secondary" type="button">Dismiss</button>
+      </div>
       <p id="collection-summary-display" class="status-line"></p>
       <p id="region-title-display" class="status-line"></p>
       <p id="run-stars-display" class="status-line"></p>
       <label class="region-name-row">Region name (optional, carried into the coda)
         <input id="region-name-input" class="region-name-input" type="text" maxlength="30" placeholder="Name your region">
       </label>
+      <!-- I-9 / I-25: named difficulty tiers (a name for the three existing options) and the best result per tier. -->
+      <details id="tier-details" class="context-toggle">
+        <summary id="tier-summary">Difficulty tier: Gentle</summary>
+        <p id="tier-line" class="comparison-message"></p>
+        <div class="settings-control-group" role="group" aria-label="Difficulty tier">
+          <button id="tier-gentle-button" class="secondary" type="button" aria-pressed="true">Gentle</button>
+          <button id="tier-standard-button" class="secondary" type="button" aria-pressed="false">Standard</button>
+          <button id="tier-rigorous-button" class="secondary" type="button" aria-pressed="false">Rigorous</button>
+          <button id="tier-demanding-button" class="secondary" type="button" aria-pressed="false">Demanding</button>
+        </div>
+        <p id="tier-note" class="comparison-message"></p>
+        <div id="tier-best-table" class="ledger-scroll"></div>
+        <p id="tier-best-note" class="gauge-reference-note"></p>
+      </details>
+      <!-- I-29: tap, hover or focus a term for a one-line definition. -->
+      <div class="glossary-row" role="group" aria-label="Terms explained">
+        <span class="glossary-label">Terms</span>
+        <button id="glossary-capacity-button" class="secondary chip" type="button" aria-expanded="false" aria-controls="glossary-pop">Capacity</button>
+        <button id="glossary-strain-button" class="secondary chip" type="button" aria-expanded="false" aria-controls="glossary-pop">Strain</button>
+        <button id="glossary-integration-button" class="secondary chip" type="button" aria-expanded="false" aria-controls="glossary-pop">Integration</button>
+        <button id="glossary-control-button" class="secondary chip" type="button" aria-expanded="false" aria-controls="glossary-pop">Control region</button>
+      </div>
+      <div id="glossary-pop" class="glossary-pop" role="status" hidden>
+        <p id="glossary-pop-text" class="comparison-message"></p>
+        <button id="glossary-more-button" class="secondary" type="button" hidden>Read more in The Real Story</button>
+      </div>
     </div>
 
     <div id="pressure" class="section">
@@ -346,6 +400,9 @@
       <p class="meter-label">Regional wellbeing
         <details class="info-toggle"><summary>i</summary><p>Wellbeing is the simple average of three separately-tracked scores, not one blended number: service quality reflects strain across the whole run so far, economic health is your funds measured against a fixed reference scale, and social cohesion is the share of everyone who's arrived that's actually been integrated.</p></details>
       </p>
+      <!-- GI-29: confetti over the gauges when the wellbeing band rises (CSS only; hidden by Reduce Motion). -->
+      <div id="band-confetti" class="band-confetti" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+      <p id="band-change-note" class="turning-point-message" hidden></p>
       <div class="wellbeing-trio">
         <div class="wellbeing-gauge wellbeing-gauge--service">
           <span class="wellbeing-gauge-icon" aria-hidden="true">📋</span>
@@ -562,6 +619,18 @@
         <button id="copy-summary-button" class="secondary" type="button" title="Copy a plain-text summary of this run: region, band, a block-character wellbeing curve, setup and stars.">📋 Copy run summary</button>
       </div>
       <p id="round-tools-note" class="comparison-message" hidden></p>
+      <!-- I-3: optional planner assist. Switching it on tags the run as assisted (no personal bests). -->
+      <details id="assist-details" class="context-toggle">
+        <summary>Planner assist (optional)</summary>
+        <div class="settings-control-group" role="group" aria-label="Planner assist">
+          <button id="assist-off-button" class="secondary" type="button" aria-pressed="true">Off</button>
+          <button id="assist-suggest-button" class="secondary" type="button" aria-pressed="false">Suggest</button>
+          <button id="assist-explain-button" class="secondary" type="button" aria-pressed="false">Explain</button>
+        </div>
+        <p id="assist-note" class="comparison-message"></p>
+        <p id="assist-suggestion" class="comparison-message" hidden></p>
+        <ul id="assist-reasons" class="autopilot-log" hidden></ul>
+      </details>
       <textarea id="summary-copy-area" class="ledger-copy-area" readonly hidden aria-label="Run summary as text"></textarea>
       <details id="round-recap-details" class="context-toggle" open hidden>
         <summary>Last round recap</summary>
@@ -675,6 +744,9 @@
       <p id="feedback-status" class="feedback-status"></p>
     </div>
   </div>
+
+  <!-- I-4: print-only copy of the Region Report (filled by game.py just before the print dialog opens). -->
+  <div id="report-print-sheet" class="report-print-sheet" aria-hidden="true"></div>
 
   <a id="credits-link" class="credits-link" href="../../credits.html" style="display:block;text-align:center;font-size:0.85rem;margin:0.75rem 0;color:inherit;">Credits</a>
   <div class="ad-bar ad-bar--bottom">
@@ -806,6 +878,7 @@
         { toggle: "changelog-toggle-button", panel: "changelog-panel" },
         { toggle: "ledger-toggle-button", panel: "ledger-panel" },
         { toggle: "collection-toggle-button", panel: "collection-panel" },
+        { toggle: "report-toggle-button", panel: "report-panel" },
         { toggle: "settings-toggle-button", panel: "settings-panel" },
         { toggle: "info-page-toggle-button", panel: "info-page-panel" },
         { toggle: "coda-button", panel: "coda-section" },
