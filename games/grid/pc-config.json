@@ -133,6 +133,15 @@
       ],
       "group": "Game",
       "label": "🎚️ Difficulty and run setup"
+    },
+    {
+      "id": "pc-slots-panel",
+      "title": "Run slots",
+      "members": [
+        "#slots-panel"
+      ],
+      "group": "Game",
+      "label": "💾 Run slots"
     }
   ],
   "readouts": [

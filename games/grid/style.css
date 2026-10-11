@@ -1987,3 +1987,11 @@ html[data-theme="light"] .achievement-card-fresh { color: #7a5200; }
 .sch-flow { animation: sch-dash 0.8s linear 4; }
 @media (prefers-reduced-motion: reduce) { .sch-flow { animation: none; } }
 html[data-reduced-motion="true"] .sch-flow { animation: none; }
+
+/* C-13: run slots. */
+.slots-panel { margin: 0.4rem 0; text-align: left; }
+.slots-panel summary { cursor: pointer; font-weight: 600; min-height: 44px; display: flex; align-items: center; }
+.slots-row { display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem 0.6rem; margin: 0.3rem 0; }
+.slots-row label { font-size: 0.85rem; }
+.slots-row select, .slots-row input[type="text"] { min-height: 44px; max-width: 100%; flex: 1 1 14rem; }
+.slots-buttons button { min-height: 44px; }

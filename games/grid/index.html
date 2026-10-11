@@ -344,6 +344,26 @@
     <!-- C-23: a short picture after Advance Round (sun arc, wind streaks, the demand curve drawing itself); decoration only. -->
     <div id="round-animation" class="round-animation" aria-hidden="true" hidden></div>
 
+    <!-- C-13: three named run slots kept in this browser (no sign-in); each slot holds a whole run with its own scenario. -->
+    <details id="slots-panel" class="slots-panel">
+      <summary>Run slots (this browser)</summary>
+      <div class="slots-row">
+        <label for="slot-select">Slot</label>
+        <select id="slot-select" aria-label="Choose a run slot"></select>
+      </div>
+      <div class="slots-row">
+        <label for="slot-name-input">Name (for Save here and New run here)</label>
+        <input type="text" id="slot-name-input" maxlength="24" autocomplete="off" placeholder="e.g. Coal exit">
+      </div>
+      <div class="slots-row slots-buttons">
+        <button id="slot-save-button" class="secondary" type="button">Save here</button>
+        <button id="slot-load-button" class="secondary" type="button">Load slot</button>
+        <button id="slot-new-button" class="secondary" type="button">New run here</button>
+        <button id="slot-clear-button" class="secondary" type="button">Clear slot</button>
+      </div>
+      <p id="slot-status" class="comparison-message" role="status"></p>
+    </details>
+
     <!-- C-11: the grid as a single-line schematic (generators, bus, demand block, battery tank); the button saves it as a PNG. -->
     <details id="schematic-panel" class="schematic-panel">
       <summary>Grid schematic (single line)</summary>

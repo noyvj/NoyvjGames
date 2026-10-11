@@ -138,3 +138,5 @@ html[data-layout="pc"] .ambient-bg { overflow: hidden; }
 #pc-stage > .round-animation { height: 40px; }
 #pc-stage > .round-animation[hidden] { display: none; }
 #pc-stage > .round-animation .round-animation-svg { height: 40px; width: 100%; max-height: none; }
+/* C-13: in its window the run-slots panel needs no fold-away summary. */
+#slots-panel > summary { display: none; }

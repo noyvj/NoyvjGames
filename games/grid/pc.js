@@ -57,3 +57,9 @@ window.GRID_PC_TUTORIAL_STEPS = [
     text: "That's the full loop: build capacity to meet rising demand, lean into renewables early to unlock the learning-curve payoff, maintain aging plants, and keep emissions down to avoid disruption. There's no game over, just a grid that gets harder to manage the longer you delay the clean transition. Good luck out there.",
   },
 ];
+
+// C-13: the run-slots panel is a <details> on the Classic page; in its Desktop window it is always open.
+document.addEventListener("DOMContentLoaded", function () {
+  var slots = document.getElementById("slots-panel");
+  if (slots) slots.open = true;
+});

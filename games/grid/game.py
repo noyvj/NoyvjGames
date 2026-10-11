@@ -4315,6 +4315,302 @@ def render_schematic():
     document.getElementById("schematic-caption").innerText = schematic_caption()
 
 
+# ---- C-13 local run slots ------------------------------------------------------------------------------------------
+# Three named slots in this browser (no sign-in), each holding one whole run exactly as get_state() writes it (the same
+# serialisation the save widget uses), so a slot keeps its own scenario, seed and career snapshot. Safety rules, so that
+# nothing is lost by accident: a slot only autosaves (after each Advance Round) once the run is ATTACHED to it, which
+# happens only when the player saves, loads or starts a run in it, never on page load; switching saves the current run
+# into its slot first; and every action that would replace a run that is not in a slot, or overwrite or clear a slot,
+# asks first (never skippable). Slots live in localStorage under their own key and are not part of a save.
+SLOTS_STORAGE_KEY = "grid_slots_v1"
+SLOT_COUNT = 3
+SLOT_NAME_MAX = 24
+SLOT_MAX_BYTES = 600_000
+slot_attached = None  # index of the slot the live run autosaves into, or None
+slot_message = ""
+
+
+def _clean_slot_name(raw, index):
+    name = " ".join(str(raw or "").split())[:SLOT_NAME_MAX]
+    return name or f"Slot {index + 1}"
+
+
+def _validate_slot(raw, index):
+    """A stored slot or None: the name is cleaned, the run must be a dict with a sensible round number."""
+    if not isinstance(raw, dict) or not isinstance(raw.get("state"), dict):
+        return None
+    data = raw["state"]
+    round_number = data.get("round_number")
+    if isinstance(round_number, bool) or not isinstance(round_number, int) or round_number < 1:
+        return None
+    # The numbers every screen does arithmetic on must be numbers (a hand-edited slot is treated as damaged).
+    for key in ("funds", "demand", "emissions"):
+        value = data.get(key)
+        if value is not None and (isinstance(value, bool) or not isinstance(value, (int, float)) or value != value):
+            return None
+    counts = data.get("plant_counts")
+    if counts is not None:
+        if not isinstance(counts, dict):
+            return None
+        for count in counts.values():
+            if isinstance(count, bool) or not isinstance(count, int) or count < 0 or count > 100_000:
+                return None
+    return {"name": _clean_slot_name(raw.get("name"), index), "state": data}
+
+
+def load_slots():
+    """The three slots (None for an empty or damaged one). Never raises."""
+    slots = [None] * SLOT_COUNT
+    storage = _career_storage()
+    if storage is None:
+        return slots
+    try:
+        raw = storage.getItem(SLOTS_STORAGE_KEY)
+        parsed = json.loads(raw) if raw else None
+    except Exception:  # noqa: BLE001 -- private mode / corrupt JSON: no slots
+        return slots
+    if isinstance(parsed, dict) and isinstance(parsed.get("slots"), list):
+        for index, entry in enumerate(parsed["slots"][:SLOT_COUNT]):
+            slots[index] = _validate_slot(entry, index)
+    return slots
+
+
+def _write_slots(slots):
+    storage = _career_storage()
+    if storage is None:
+        return False
+    try:
+        storage.setItem(SLOTS_STORAGE_KEY, json.dumps({"v": 1, "slots": slots}))
+        return True
+    except Exception:  # noqa: BLE001 -- a refused write (storage full) must never break play
+        return False
+
+
+def slot_summary(slot, index):
+    if slot is None:
+        return f"Slot {index + 1}: empty"
+    data = slot["state"]
+    scenario = SCENARIOS.get(data.get("scenario"), SCENARIOS["standard"])["label"]
+    return f"Slot {index + 1}: {slot['name']} (round {data['round_number']}, {scenario})"
+
+
+def _store_run_in_slot(index, name=None):
+    """Writes the live run into a slot; returns an error sentence or ''."""
+    slots = load_slots()
+    snapshot = json.loads(json.dumps(get_state()))
+    if len(json.dumps(snapshot)) > SLOT_MAX_BYTES:
+        return "This run is too large to keep in a slot."
+    previous = slots[index]["name"] if slots[index] else None
+    slots[index] = {"name": _clean_slot_name(name or previous, index), "state": snapshot}
+    if not _write_slots(slots):
+        return "This browser would not store the slot (storage may be full or switched off)."
+    return ""
+
+
+def autosave_slot():
+    """After a round: keeps the attached slot current. Silent, and a no-op when nothing is attached."""
+    if slot_attached is None or sandbox_active:
+        return
+    _store_run_in_slot(slot_attached)
+
+
+def _selected_slot():
+    raw = getattr(document.getElementById("slot-select"), "value", "0")
+    try:
+        index = int(raw)
+    except (TypeError, ValueError):
+        return 0
+    return index if 0 <= index < SLOT_COUNT else 0
+
+
+def _slot_say(text):
+    global slot_message
+    slot_message = text
+    render()
+    announce(text)
+
+
+def _attach(index):
+    global slot_attached
+    slot_attached = index
+    document.getElementById("slot-name-input").value = ""  # the typed name has been used
+
+
+def slot_save_here(index, name=None):
+    """Saves the live run into a slot and attaches to it."""
+    if sandbox_active:
+        _slot_say("Leave the practice sandbox first: slots keep your real runs.")
+        return False
+    error = _store_run_in_slot(index, name)
+    if error:
+        _slot_say(error)
+        return False
+    _attach(index)
+    _slot_say(f"Saved this run to slot {index + 1} ({_load_slot_name(index)}). It now saves itself after every round.")
+    return True
+
+
+def _load_slot_name(index):
+    slot = load_slots()[index]
+    return slot["name"] if slot else f"Slot {index + 1}"
+
+
+def slot_switch_to(index):
+    """Loads a slot: the current run goes into its own slot first (or asks, if it is in none)."""
+    if sandbox_active:
+        _slot_say("Leave the practice sandbox first: slots keep your real runs.")
+        return False
+    slot = load_slots()[index]
+    if slot is None:
+        _slot_say(f"Slot {index + 1} is empty. Use Save here to put this run in it, or New run here.")
+        return False
+
+    def go():
+        if slot_attached is not None and slot_attached != index:
+            error = _store_run_in_slot(slot_attached)
+            if error:
+                _slot_say(error + " Nothing was switched.")
+                return
+        backup = json.loads(json.dumps(get_state()))
+        try:
+            load_state(json.loads(json.dumps(slot["state"])))
+        except Exception:  # noqa: BLE001 -- a slot with damaged contents must never break the run on screen
+            load_state(backup)
+            _slot_say(f"Slot {index + 1} could not be read, so this run was left as it was.")
+            return
+        _attach(index)
+        _slot_say(f"Loaded slot {index + 1}: {slot['name']}.")
+
+    if slot_attached is None and not state.unstarted():
+        _confirm_dialog_ask(
+            "grid-slot-switch",
+            "This run is not saved in any slot and loading the slot will replace it. Save it to a slot first if you want to keep it.",
+            "Replace this run", go, allow_skip=False,
+        )
+    else:
+        go()
+    return True
+
+
+def slot_new_run(index, name=None):
+    """Starts a fresh run in a slot (the current run is saved into its own slot first, or asked about)."""
+    if sandbox_active:
+        _slot_say("Leave the practice sandbox first: slots keep your real runs.")
+        return False
+    existing = load_slots()[index]
+
+    def go():
+        if slot_attached is not None and slot_attached != index:
+            error = _store_run_in_slot(slot_attached)
+            if error:
+                _slot_say(error + " Nothing was switched.")
+                return
+        _start_new_run()
+        error = _store_run_in_slot(index, name)
+        if error:
+            _slot_say(error)
+            return
+        _attach(index)
+        _slot_say(f"Started a new run in slot {index + 1} ({_load_slot_name(index)}).")
+
+    if existing is not None:
+        _confirm_dialog_ask(
+            "grid-slot-new",
+            f"Slot {index + 1} already holds {existing['name']}. Starting a new run in it replaces that run.",
+            "Replace the slot", go, allow_skip=False,
+        )
+    elif slot_attached is None and not state.unstarted():
+        _confirm_dialog_ask(
+            "grid-slot-new-unsaved",
+            "This run is not saved in any slot and a new run will replace it. Save it to a slot first if you want to keep it.",
+            "Start new run", go, allow_skip=False,
+        )
+    else:
+        go()
+    return True
+
+
+def slot_clear(index):
+    slots = load_slots()
+    if slots[index] is None:
+        _slot_say(f"Slot {index + 1} is already empty.")
+        return False
+
+    def go():
+        global slot_attached
+        slots[index] = None
+        _write_slots(slots)
+        if slot_attached == index:
+            slot_attached = None
+        _slot_say(f"Cleared slot {index + 1}. The run on screen was not touched.")
+
+    _confirm_dialog_ask(
+        "grid-slot-clear", f"Clear slot {index + 1} ({slots[index]['name']}) for good?", "Clear slot", go, allow_skip=False
+    )
+    return True
+
+
+def on_slot_save(event=None):
+    index = _selected_slot()
+    existing = load_slots()[index]
+    name = getattr(document.getElementById("slot-name-input"), "value", "")
+    if existing is not None and slot_attached != index:
+        _confirm_dialog_ask(
+            "grid-slot-save",
+            f"Slot {index + 1} already holds {existing['name']}. Saving here replaces that run.",
+            "Replace the slot", lambda: slot_save_here(index, name), allow_skip=False,
+        )
+    else:
+        slot_save_here(index, name)
+
+
+def on_slot_load(event=None):
+    index = _selected_slot()
+    slot = load_slots()[index]
+    if slot is not None and slot_attached == index and json.dumps(slot["state"], sort_keys=True) != json.dumps(get_state(), sort_keys=True):
+        _confirm_dialog_ask(
+            "grid-slot-reload",
+            f"Slot {index + 1} was last saved before the changes made this round. Loading it undoes those changes.",
+            "Load the slot", lambda: slot_switch_to(index), allow_skip=False,
+        )
+        return
+    slot_switch_to(index)
+
+
+def on_slot_new(event=None):
+    slot_new_run(_selected_slot(), getattr(document.getElementById("slot-name-input"), "value", ""))
+
+
+def on_slot_clear(event=None):
+    slot_clear(_selected_slot())
+
+
+def on_slot_select(event=None):
+    render()
+
+
+def slot_status_text():
+    if slot_attached is None:
+        head = "No slot holds this run yet. Save it to a slot to keep it (nothing is saved to a slot by itself)."
+    else:
+        head = f"This run is in slot {slot_attached + 1} and saves itself after every round."
+    return head + (" " + slot_message if slot_message else "")
+
+
+def render_slots():
+    select = document.getElementById("slot-select")
+    slots = load_slots()
+    chosen = _selected_slot()
+    labels = [slot_summary(slot, i) + (" (this run)" if slot_attached == i else "") for i, slot in enumerate(slots)]
+    select.innerHTML = "".join(
+        f'<option value="{i}"{" selected" if i == chosen else ""}>{label}</option>' for i, label in enumerate(labels)
+    )
+    select.value = str(chosen)
+    document.getElementById("slot-status").innerText = slot_status_text()
+    document.getElementById("slot-load-button").disabled = slots[chosen] is None
+    document.getElementById("slot-clear-button").disabled = slots[chosen] is None
+
+
 # ---- GC-19 Gridley, the dry one-line commentator --------------------------------------------------------------
 # A single wry line about how the last round went, in a fixed dry voice (never about the player, never a number, never
 # a hint). Which line is picked comes from the run's seed and the round (a stateless stream), so the same run says the
@@ -4623,6 +4919,7 @@ def render():
     render_round_animation_setting()
     render_sandbox_balance()
     render_schematic()
+    render_slots()
     render_chart_tables()
     render_fleet_overview()
     render_coach()
@@ -6214,6 +6511,7 @@ def on_advance_round(event=None):
     state.advance_round()
     _check_renewable_milestone()
     render()
+    autosave_slot()
     _play_round_animation()
     announce(round_announcement_text(milestone_new=state.renewable_50_reached and not reached_before))
     _check_disruption_toast()
@@ -6264,6 +6562,7 @@ def on_auto_advance(event=None):
     auto_advance_message = message
     if played:
         render()
+        autosave_slot()
         _play_round_animation()
         announce(message)
         announce(round_announcement_text(milestone_new=state.renewable_50_reached and not reached_before))
@@ -7038,6 +7337,11 @@ def setup():
         document.getElementById(f"sandbox-bal-{balance_key.replace('_', '-')}").addEventListener(
             "input", create_proxy(_make_sandbox_balance_handler(balance_key))
         )
+    document.getElementById("slot-select").addEventListener("change", create_proxy(on_slot_select))
+    document.getElementById("slot-save-button").addEventListener("click", create_proxy(on_slot_save))
+    document.getElementById("slot-load-button").addEventListener("click", create_proxy(on_slot_load))
+    document.getElementById("slot-new-button").addEventListener("click", create_proxy(on_slot_new))
+    document.getElementById("slot-clear-button").addEventListener("click", create_proxy(on_slot_clear))
     document.getElementById("sandbox-bal-reset").addEventListener("click", create_proxy(on_sandbox_balance_reset))
     document.getElementById("pref-round-animation").addEventListener(
         "change", create_proxy(_make_pref_checkbox_handler("round_animation"))
