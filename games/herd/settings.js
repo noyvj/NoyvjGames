@@ -576,6 +576,42 @@
     });
   }
 
+  // F-11: Beginner / Standard / Expert. The choice is stored in localStorage["herd-profile"] and mirrored as
+  // html[data-profile]; game.py reads the same key to show or hide the Beginner suggestion, and style.css
+  // hides the previews, efficiency lines and "i" notes for Expert. Never part of a save.
+  const PROFILE_KEY = "herd-profile";
+  const PROFILES = ["beginner", "standard", "expert"];
+
+  function readProfile() {
+    try {
+      const raw = window.localStorage.getItem(PROFILE_KEY);
+      return PROFILES.indexOf(raw) === -1 ? "standard" : raw;
+    } catch (e) {
+      return "standard";
+    }
+  }
+
+  function applyProfile(value) {
+    const profile = PROFILES.indexOf(value) === -1 ? "standard" : value;
+    document.documentElement.setAttribute("data-profile", profile);
+    try {
+      window.localStorage.setItem(PROFILE_KEY, profile);
+    } catch (e) {
+      // The choice still applies until the page is reloaded.
+    }
+    return profile;
+  }
+
+  function initProfile() {
+    const select = document.getElementById("profile-select");
+    const profile = applyProfile(readProfile());
+    if (!select) return;
+    select.value = profile;
+    select.addEventListener("change", function () {
+      applyProfile(select.value);
+    });
+  }
+
   function initKeyboardPlay() {
     document.addEventListener("keydown", onLeverKey);
     const howto = document.getElementById("howto-panel");
@@ -593,6 +629,7 @@
     initConfirmThreshold();
     initKeyboardPlay();
     initChaChing();
+    initProfile();
     initMixer();
     initGlossary();
     let scale = readStoredScale();
@@ -648,6 +685,9 @@
         resetDisplayPrefs();
         resetConfirmThreshold();
         setChaChing(true);
+        applyProfile("standard");
+        const profileSelect = document.getElementById("profile-select");
+        if (profileSelect) profileSelect.value = "standard";
         const chaBox = document.getElementById("cha-ching-checkbox");
         if (chaBox) chaBox.checked = true;
       });

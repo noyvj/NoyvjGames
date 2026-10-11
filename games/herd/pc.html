@@ -161,6 +161,16 @@
         </label>
       </div>
       <div class="settings-row">
+        <label class="settings-checkbox-label" for="profile-select">
+          Play style
+          <select id="profile-select">
+            <option value="beginner">Beginner: adds a next-step suggestion</option>
+            <option value="standard" selected>Standard: the game as it is</option>
+            <option value="expert">Expert: hides previews, efficiency lines and notes</option>
+          </select>
+        </label>
+      </div>
+      <div class="settings-row">
         <label class="settings-checkbox-label" for="cha-ching-checkbox">
           <input type="checkbox" id="cha-ching-checkbox" checked>
           Round celebration (the round's income counts up, with a small confetti burst when it beats the last round)
@@ -320,6 +330,7 @@
       <span id="lever-keys-hint" class="sr-only">Keyboard tip: the Up and Down arrow keys move between the buy buttons.</span>
       <p id="grow-consequence-preview" class="grow-consequence-preview">Loading...</p>
       <p id="bulk-note" class="bulk-note"></p>
+      <p id="next-lever-hint" class="next-lever-hint" role="status" aria-live="polite" hidden></p>
     </div>
 
     <div id="decoupling" class="section">

@@ -4295,6 +4295,59 @@ def on_family_retell(event=None):
         render()
 
 
+# ---- F-11 Beginner / Standard / Expert profiles ------------------------------------------
+# A player's own choice in Settings (localStorage["herd-profile"], never in a save). Beginner adds a
+# next-best-lever hint chip; Expert hides the previews, per-lever efficiency lines and the "i" notes
+# (settings.js sets html[data-profile], style.css does the hiding). Standard is the game as it was.
+PROFILE_KEY = "herd-profile"
+PROFILES = ("beginner", "standard", "expert")
+HINT_LEVERS = ("feed", "caps", "capture")
+
+
+def current_profile():
+    raw = _read_local_storage_item(PROFILE_KEY)
+    return raw if raw in PROFILES else "standard"
+
+
+def next_lever_hint():
+    """A plain suggestion for what to do next. The affordable decoupling lever that saves the most methane per
+    fund wins; with none affordable it says to grow or advance. Pure reading: it buys nothing."""
+    best = None
+    for key in HINT_LEVERS:
+        cost = farm.decoupling_cost(key)
+        if farm.funds < cost or farm._efficiency_coupling_ratio() <= MIN_COUPLING_RATIO + 1e-9:
+            continue
+        saved = farm.methane_saved_by(key)
+        if saved <= 0:
+            continue
+        score = saved / cost
+        if best is None or score > best[0]:
+            best = (score, key, saved, cost)
+    if best is not None:
+        _score, key, saved, cost = best
+        return (
+            f"Suggestion: {DECOUPLING_MEASURES[key]['label']} ({cost:g} funds) would cut about {saved:.2f} "
+            "methane per round, the most for the money right now."
+        )
+    if farm.herd_size == 0:
+        return f"Suggestion: Grow Herd ({farm.grow_herd_cost():.0f} funds) to start earning."
+    if farm.funds >= farm.grow_herd_cost():
+        return "Suggestion: grow the herd, or press Advance Round to collect this round's income."
+    return "Suggestion: press Advance Round to collect this round's income."
+
+
+def render_profile():
+    profile = current_profile()
+    hint = document.getElementById("next-lever-hint")
+    hint.hidden = profile != "beginner"
+    hint.innerText = next_lever_hint() if profile == "beginner" else ""
+    document.getElementById("profile-select").value = profile
+
+
+def on_profile_change(event=None):
+    render()
+
+
 def render():
     _sync_collection()
     render_info_page()
@@ -4410,6 +4463,7 @@ def render():
     render_pins()
     render_mixer()
     render_family_story()
+    render_profile()
 
 
 # F-18: an optional "ask before a big purchase" setting. The Settings select (settings.js) keeps the
@@ -5295,6 +5349,8 @@ def setup():
     for slot, (cow_id, _threshold) in enumerate(PASTURE_COW_THRESHOLDS):
         document.getElementById(cow_id).addEventListener("click", create_proxy(_make_cow_click_handler(slot)))
     document.getElementById("cow-listen-button").addEventListener("click", create_proxy(on_cow_listen))
+    document.getElementById("profile-select").addEventListener("change", create_proxy(on_profile_change))
+    document.getElementById("settings-reset-button").addEventListener("click", create_proxy(on_profile_change))
     document.getElementById("mixer-result-button").addEventListener("click", create_proxy(on_mixer_result))
     document.getElementById("mixer-auto-button").addEventListener("click", create_proxy(on_mixer_auto))
     for stat in PIN_STATS:

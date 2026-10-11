@@ -128,6 +128,8 @@ ELEMENT_IDS = [
     "family-story-choice-b", "family-story-choice-c", "family-story-retell-button", "family-story-endings",
     # GF-12 cow reactions.
     "cow-listen-button", "cow-bubble",
+    # F-11 profiles.
+    "profile-select", "next-lever-hint", "settings-reset-button",
 ]
 for _measure in MEASURE_IDS:
     ELEMENT_IDS += [f"{_measure}-name", f"{_measure}-count", f"{_measure}-invest-button"]
