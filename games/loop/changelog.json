@@ -1,6 +1,10 @@
 [
   {
     "date": "2026-10-11",
+    "entry": "New, opt-in: Rival Corporation. Switch on the Rival Corporation panel and a scripted straight-line competitor races you. It makes the same goods every cycle but digs up all of its material new and never invests in repair, reuse or recycling, so it is ahead early and its extraction costs climb until it earns almost nothing. The panel shows both funds, how much less you have dug up, and the cycle you pulled ahead. It is the same every time and changes nothing for you. A new achievement, Overtaken, and a story chapter mark the moment."
+  },
+  {
+    "date": "2026-10-11",
     "entry": "New, opt-in: Market shocks. Switch them on and a fixed, public schedule of shocks starts: in every block of 15 cycles a price spike (raw material costs x1.5) on cycle 5, a three-cycle port strike that shuts one trade partner from cycle 9 (a different partner each round) and a demand surge on cycle 13 (you need 20% more material). Nothing is random, each shock is announced a cycle early in the status block, and a chain that recovers its own material barely notices. A new achievement, Shock Absorber, rewards closing the loop on five shocked cycles, and the story gains a chapter."
   },
   {

@@ -499,6 +499,34 @@ def shock_effect(shock):
     )
 
 
+# GH-5 / FY-38: Rival Corporation, a scripted comparison. It runs the same production target every
+# cycle as a pure straight line: all of the material newly extracted, never an investment, so its
+# extraction cost climbs with its own damage exactly as the player's would. It is a function of the
+# cycle number alone (no randomness, no input from the player), so it is the same every time.
+RIVAL_NAME = "Rival Corporation"
+
+
+def rival_funds_after(cycles):
+    """Rival's funds after `cycles` completed cycles."""
+    funds = STARTING_FUNDS
+    extracted = 0.0
+    for _ in range(max(0, int(cycles))):
+        damage = min(1.0, extracted / ENVIRONMENTAL_DAMAGE_SCALE)
+        multiplier = 1.0 + damage * (MAX_COST_MULTIPLIER - 1.0)
+        funds += PRODUCTION_TARGET * SALE_PRICE_PER_UNIT - PRODUCTION_TARGET * EXTRACTION_COST_PER_UNIT * multiplier
+        extracted += PRODUCTION_TARGET
+    return funds
+
+
+def rival_extracted_after(cycles):
+    return PRODUCTION_TARGET * max(0, int(cycles))
+
+
+def rival_profit_in_cycle(cycle):
+    """What the rival earns in its `cycle`-th cycle (1-based): falls to zero as its damage climbs."""
+    return rival_funds_after(cycle) - rival_funds_after(cycle - 1)
+
+
 BURST_MILESTONES = 4  # circular-fraction crosses each 25% step
 PULSE_LARGE_UNITS = 20.0
 PULSE_MEDIUM_UNITS = 8.0
@@ -581,6 +609,10 @@ class ChainState:
         # cycles landed on a shock (saved when above zero).
         self.market_shocks = False
         self.shocks_shrugged = 0
+        # GH-5 / FY-38: the opt-in Rival Corporation race, and the completed-cycle count at which the
+        # player first pulled ahead of it (saved when on / when set).
+        self.rival_on = False
+        self.rival_crossover_cycle = None
         # GH-18 / FY-39: one rewind per chain. The undo point is a transient copy of the whole chain
         # taken just before each Advance Cycle (never saved); only the spent token is saved.
         self.rewind_used = False
@@ -1008,6 +1040,9 @@ class ChainState:
         self.total_extracted += extraction
         self.total_produced += PRODUCTION_TARGET
         self.cycle_number += 1
+        done = self.cycle_number - 1
+        if self.rival_on and self.rival_crossover_cycle is None and self.funds > rival_funds_after(done):
+            self.rival_crossover_cycle = done
 
     def score(self):
         """Profitability plus a direct reward for lifetime circular
@@ -1547,6 +1582,8 @@ ACHIEVEMENT_CHECKS = {
     "yard_boss": lambda: SECRET_GOODS_CATEGORY in career_closed_categories,
     # GH-3: closed cycles that landed on a market shock (the mode is opt-in).
     "shock_absorber": lambda: chain.shocks_shrugged >= SHOCKED_CLOSE_TARGET,
+    # GH-5: pulled ahead of the scripted Rival Corporation (the race is opt-in).
+    "rival_overtaken": lambda: chain.rival_crossover_cycle is not None,
 }
 
 # GH-20: shown in the achievements panel only, never as an unlock toast.
@@ -2705,6 +2742,78 @@ def insurance_text():
     )
 
 
+def rival_lines():
+    """GH-5: the comparison lines under the switch ('' list when the rival is off)."""
+    if not chain.rival_on:
+        return []
+    done = chain.cycle_number - 1
+    mine = chain.funds
+    theirs = rival_funds_after(done)
+    gap = mine - theirs
+    if done == 0:
+        lines = [f"Both of you start with {mine:.0f} funds. Advance a cycle and the race begins."]
+    elif abs(gap) < 0.5:
+        lines = [f"After {done} cycle{'' if done == 1 else 's'}: level on funds ({mine:.0f} each)."]
+    else:
+        word = "ahead of" if gap > 0 else "behind"
+        lines = [
+            f"After {done} cycle{'' if done == 1 else 's'}: you have {mine:.0f} funds, {RIVAL_NAME} has "
+            f"{theirs:.0f}. You are {abs(gap):.0f} {word} it."
+        ]
+    extracted_rival = rival_extracted_after(done)
+    saved = extracted_rival - chain.total_extracted
+    if done > 0:
+        if saved >= 0:
+            lines.append(
+                f"{RIVAL_NAME} has dug up {extracted_rival:.0f} units; you have dug up {chain.total_extracted:.0f}, "
+                f"{saved:.0f} fewer."
+            )
+        else:
+            lines.append(
+                f"{RIVAL_NAME} has dug up {extracted_rival:.0f} units; you have dug up {chain.total_extracted:.0f}, "
+                f"{-saved:.0f} more (a demand surge can cause that)."
+            )
+        profit = rival_profit_in_cycle(done)
+        damage = min(1.0, extracted_rival / ENVIRONMENTAL_DAMAGE_SCALE)
+        if profit < 0.5:
+            lines.append(
+                f"Its damage is at {damage * 100:.0f}%, so its raw material now costs x{MAX_COST_MULTIPLIER:.1f} "
+                "and it earns nothing more from a cycle."
+            )
+        else:
+            lines.append(
+                f"Its damage is at {damage * 100:.0f}%, so it now makes only {profit:.0f} funds a cycle "
+                "and every extra unit it digs up costs more."
+            )
+    if chain.rival_crossover_cycle is not None:
+        lines.append(f"You pulled ahead of {RIVAL_NAME} on cycle {chain.rival_crossover_cycle}.")
+    elif done > 0 and gap < 0:
+        lines.append("Circularity costs funds up front, so a rival that only digs and sells looks ahead early on. Its costs only climb.")
+    return lines
+
+
+def rival_bar_widths():
+    """GH-5: (you %, rival %) bar widths, each against the larger of the two."""
+    done = chain.cycle_number - 1
+    mine, theirs = max(0.0, chain.funds), max(0.0, rival_funds_after(done))
+    top = max(mine, theirs, 1.0)
+    return round(mine / top * 100), round(theirs / top * 100)
+
+
+def rival_status_text():
+    if chain.rival_on:
+        return f"{RIVAL_NAME} is racing you. It is a fixed script, the same every time, and changes nothing for you."
+    return (
+        f"{RIVAL_NAME} is a straight-line competitor: it makes the same goods every cycle but digs up all of "
+        "the material new and never invests in repair, reuse or recycling. Switch it on to race it. It is "
+        "only a comparison: nothing you do depends on it."
+    )
+
+
+def on_toggle_rival(event=None):
+    _run_action(lambda: setattr(chain, "rival_on", not chain.rival_on))
+
+
 def shock_banner_text():
     """GH-3: the one-line notice shown in the status block ('' when there is nothing to say)."""
     if not chain.market_shocks:
@@ -3086,6 +3195,16 @@ def render():
         insurance_button.innerText = f"Streak insurance ({INSURANCE_COST})"
     insurance_button.disabled = not chain.can_buy_insurance()
     document.getElementById("insurance-status").innerText = insurance_text()
+    # GH-5 / FY-38: the Rival Corporation race.
+    rival_button = document.getElementById("rival-button")
+    rival_button.innerText = f"{RIVAL_NAME}: on" if chain.rival_on else f"{RIVAL_NAME}: off"
+    rival_button.setAttribute("aria-pressed", "true" if chain.rival_on else "false")
+    document.getElementById("rival-status").innerText = rival_status_text()
+    document.getElementById("rival-lines").innerHTML = "".join(f"<li>{html.escape(line)}</li>" for line in rival_lines())
+    document.getElementById("rival-race").hidden = not chain.rival_on
+    you_pct, rival_pct = rival_bar_widths()
+    document.getElementById("rival-bar-you").style.width = f"{you_pct}%"
+    document.getElementById("rival-bar-rival").style.width = f"{rival_pct}%"
     # GH-3 / FY-37: the market-shock switch and notice.
     shock_button = document.getElementById("market-shocks-button")
     shock_button.innerText = "Market shocks: on" if chain.market_shocks else "Market shocks: off"
@@ -3721,6 +3840,10 @@ def get_state():
         state["first_close_trade_free"] = chain.first_close_trade_free
     if chain.rewind_used:
         state["rewind_used"] = True
+    if chain.rival_on:
+        state["rival_on"] = True
+    if chain.rival_crossover_cycle is not None:
+        state["rival_crossover_cycle"] = chain.rival_crossover_cycle
     if chain.market_shocks:
         state["market_shocks"] = True
     if chain.shocks_shrugged:
@@ -3833,6 +3956,11 @@ def load_state(data):
     chain.last_insurance_saved = False
     chain.rewind_used = data.get("rewind_used") is True
     chain.market_shocks = data.get("market_shocks") is True
+    chain.rival_on = data.get("rival_on") is True
+    crossover = data.get("rival_crossover_cycle")
+    chain.rival_crossover_cycle = (
+        crossover if isinstance(crossover, int) and not isinstance(crossover, bool) and 1 <= crossover <= 1_000_000 else None
+    )
     shrugged = data.get("shocks_shrugged")
     chain.shocks_shrugged = (
         shrugged if isinstance(shrugged, int) and not isinstance(shrugged, bool) and 0 <= shrugged <= 1_000_000 else 0
@@ -3902,6 +4030,7 @@ def setup():
     document.getElementById("insurance-button").addEventListener("click", create_proxy(on_buy_insurance))
     document.getElementById("rewind-button").addEventListener("click", create_proxy(on_rewind))
     document.getElementById("market-shocks-button").addEventListener("click", create_proxy(on_toggle_market_shocks))
+    document.getElementById("rival-button").addEventListener("click", create_proxy(on_toggle_rival))
     document.getElementById("copy-summary-button").addEventListener("click", create_proxy(on_copy_summary))
     document.getElementById("culture-invest-button").addEventListener("click", create_proxy(on_invest_culture))
     for measure in CIRCULARITY_INVESTMENTS:

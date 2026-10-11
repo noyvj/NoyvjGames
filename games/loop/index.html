@@ -309,6 +309,21 @@
            Tide's expandable ticker history. Purely a markup wrapper --
            game.py's render() still writes into the same element ids
            exactly as before, open or closed. -->
+      <!-- GH-5 / FY-38: a scripted straight-line rival to race (opt-in; changes nothing for you). -->
+      <details id="rival-panel" class="stats-detail-toggle">
+        <summary>🏁 Rival Corporation</summary>
+        <div class="stats-detail-body">
+          <button id="rival-button" class="secondary" type="button" aria-pressed="false">Rival Corporation: off</button>
+          <p id="rival-status" class="comparison-message"></p>
+          <div id="rival-race" class="rival-race" hidden>
+            <p class="rival-bar-label">You</p>
+            <div class="meter"><div id="rival-bar-you" class="meter-fill meter-fill--circular"></div></div>
+            <p class="rival-bar-label">Rival Corporation (marked with a stripe)</p>
+            <div class="meter"><div id="rival-bar-rival" class="meter-fill meter-fill--extraction meter-fill--striped"></div></div>
+          </div>
+          <ul id="rival-lines" class="passport-list"></ul>
+        </div>
+      </details>
       <details class="stats-detail-toggle">
         <summary>📊 Streak, trend &amp; real-world comparison</summary>
         <div class="stats-detail-body">

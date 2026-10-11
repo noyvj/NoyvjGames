@@ -134,6 +134,11 @@
       "id": "shock_absorber",
       "label": "Shock Absorber",
       "description": "Close the loop on 5 cycles that had a market shock. Turn Market shocks on to meet them: a price spike, a port strike or a demand surge, always announced a cycle early."
+    },
+    {
+      "id": "rival_overtaken",
+      "label": "Overtaken",
+      "description": "Pull ahead of Rival Corporation, the scripted straight-line competitor you can switch on in the Rival Corporation panel. It never invests in circularity, and its extraction costs climb every cycle."
     }
   ]
 }

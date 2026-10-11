@@ -161,6 +161,13 @@ ELEMENT_IDS = [
     "market-shocks-button",
     "shock-status",
     "shock-banner",
+    # GH-5: Rival Corporation.
+    "rival-button",
+    "rival-status",
+    "rival-lines",
+    "rival-race",
+    "rival-bar-you",
+    "rival-bar-rival",
 ]
 
 

@@ -140,6 +140,11 @@
       "id": "shock_absorber",
       "title": "The week the prices jumped",
       "text": "One winter the price of fresh material leaps and the supplier by the harbour shuts his gate for a few days. Along the lane the other workshops go quiet. Yours keeps humming, because most of what it needs is already on the shelves: mended, passed on or melted down and made again. A neighbour comes by to borrow a spool of wire, and leaves with a question about how you did it."
+    },
+    {
+      "id": "rival_overtaken",
+      "title": "The big works across the river",
+      "text": "On the far bank, a much bigger factory digs and burns and sells the same goods as you, and for a while its ledger looks better than yours. Then the price of what it digs keeps climbing, a little more each season, while your shelves stay full of things you already have. One spring you check the figures twice. You are ahead."
     }
   ]
 }

@@ -1820,3 +1820,8 @@ html[data-high-contrast="true"] a { color: var(--hc-accent); text-decoration: un
 .shock-banner { margin: 0.4rem 0; padding: 0.5rem 0.7rem; border-radius: 8px; border: 1px dashed rgba(224, 194, 76, 0.7); background: rgba(224, 194, 76, 0.08); font-size: 0.9rem; }
 .shock-banner[hidden] { display: none; }
 #market-shocks-button[aria-pressed="true"] { outline: 2px solid #e0c24c; outline-offset: 1px; }
+
+/* GH-5: Rival Corporation race (bars carry a stripe and a text label, never colour alone). */
+.rival-race .meter { margin: 0.15rem 0 0.5rem; }
+.rival-bar-label { margin: 0.2rem 0 0; font-size: 0.8rem; opacity: 0.85; }
+.meter-fill--striped { background-image: repeating-linear-gradient(135deg, rgba(255, 255, 255, 0.28) 0 6px, transparent 6px 12px), linear-gradient(90deg, #c8563c, #e0674c); }
