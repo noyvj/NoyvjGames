@@ -1742,6 +1742,20 @@ button.secondary:disabled::after {
 /* Z-28: the pause-when-hidden checkbox row in the settings panel. */
 .settings-checkbox-label { display: flex; align-items: center; gap: 0.5rem; font-size: 0.85rem; cursor: pointer; }
 
+/* TODO batch 2 (2026-10-11): Blackout, Market Weather and the new desk/lab panels. */
+.blackout, .market-weather { margin: 6px 0; }
+.blackout .map-caption, .market-weather .map-caption { margin: 4px 0 0; }
+.news-ticker {
+  margin: 6px 0 0;
+  padding: 4px 10px;
+  border: 1px solid rgba(140, 160, 255, 0.35);
+  border-left-width: 4px;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  color: #dfe4ff;
+  background: rgba(20, 24, 48, 0.55);
+}
+
 /* ============================================================
    Y11b light-theme polish (2026-09-27). Light-only rules from a
    computed-style WCAG contrast scan of the light theme (fresh game,
@@ -1801,3 +1815,5 @@ html[data-theme="light"] .charter-career,
 html[data-theme="light"] .captain-status,
 html[data-theme="light"] .ship-captain { color: #1b2033; }
 html[data-theme="light"] #effects-toggle-button.active { color: #1a6b41; background: rgba(31, 122, 74, 0.14); border-color: rgba(31, 122, 74, 0.6); }
+
+html[data-theme="light"] .news-ticker { color: #1c2750; background: rgba(228, 233, 252, 0.9); border-color: rgba(60, 80, 170, 0.5); }

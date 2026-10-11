@@ -92,6 +92,10 @@ ELEMENT_IDS = [
     "blackout-buy-chart-button",
     "blackout-status",
     "ledger-dark-display",
+    # Market Weather (J-17/J-18).
+    "weather-toggle-button",
+    "weather-status",
+    "news-ticker",
 ]
 CAPTAIN_PERK_IDS = ["frugal", "lucky", "night_owl", "perfectionist"]
 for _node_id in (

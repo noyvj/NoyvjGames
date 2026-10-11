@@ -333,7 +333,7 @@ def test_tampered_records_fall_back_to_zero(game_env, raw):
     state = json.loads(json.dumps(m._fresh_state))
     state["records"] = raw
     m.load_state(state)
-    assert m.records == {"dark_runs": 0}
+    assert m.records == {"dark_runs": 0, "weather_events": 0}
 
 
 def test_career_entry_with_a_tampered_dark_flag_is_cleaned(game_env):

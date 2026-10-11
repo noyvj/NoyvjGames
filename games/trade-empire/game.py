@@ -849,7 +849,7 @@ def seasonal_multiplier(good):
 
 
 def current_sell_price(good):
-    return max(1, round(SELL_PRICE[good] * market_multiplier[good] * seasonal_multiplier(good)))
+    return max(1, round(SELL_PRICE[good] * market_multiplier[good] * seasonal_multiplier(good) * weather_multiplier(good)))
 
 
 def apply_market_sale(good, qty):
@@ -2719,6 +2719,7 @@ def render_almanac():
             f"<td>{row['needed_by']}</td></tr>"
         )
     lines.append("</tbody></table>")
+    lines.append(weather_almanac_note())
     body.innerHTML = "".join(lines)
 
 
@@ -2850,6 +2851,9 @@ def render_market():
             line = f"{GOOD_LABEL[good]}: about {low}-{high} credits/unit (price feed dark)"
         if seasonal_multiplier(good) > 1.0:
             line += f" · in demand (+{int(SEASONAL_DEMAND_BONUS * 100)}%)"
+        if weather_multiplier(good) != 1.0:
+            ev = weather_active_event()
+            line += f" · {'boom' if weather_multiplier(good) > 1.0 else 'slump'} ({(weather_multiplier(good) - 1.0) * 100:+.0f}%, {ev['left']} tick(s) left)"
         display.innerText = line
         display.className = "market-price"
         display.title = ""
@@ -3256,6 +3260,7 @@ ACHIEVEMENT_CHECKS = {
     "guild_favorite": lambda: guild_completed >= 5,
     "background_galaxy_maxed": lambda: background_world_count() >= ENDGAME_BACKGROUND_WORLD_CAP,
     "dark_run": lambda: records["dark_runs"] >= 1,  # J-30
+    "storm_watcher": lambda: records["weather_events"] >= WEATHER_ACHIEVEMENT_EVENTS,  # J-17
 }
 
 # Progress readouts, only for achievements with a natural numeric scale-up
@@ -3267,6 +3272,7 @@ ACHIEVEMENT_PROGRESS = {
     "background_galaxy_maxed": lambda: (background_world_count(), ENDGAME_BACKGROUND_WORLD_CAP),
     "charter_veteran": lambda: (min(charters_completed, CHARTER_VETERAN_COUNT), CHARTER_VETERAN_COUNT),
     "full_roster": lambda: (len(captains_met), len(CAPTAINS)),
+    "storm_watcher": lambda: (min(records["weather_events"], WEATHER_ACHIEVEMENT_EVENTS), WEATHER_ACHIEVEMENT_EVENTS),
 }
 
 
@@ -4115,6 +4121,7 @@ def render():
     render_ribbon()
     render_captains()
     render_blackout()
+    render_weather()
     throughput_el = document.getElementById("throughput-display")
     if throughput_el is not None:
         throughput_el.innerText = throughput_text()
@@ -4357,6 +4364,7 @@ def tick(event=None):
     research_points += RESEARCH_PER_TICK * (LAB_AUTOMATION_RESEARCH_MULTIPLIER if charter_perk("lab_automation") else 1.0)
     if seasonal_demand_enabled:
         season_ticks += 1
+    weather_tick()
     for ship in ships.values():
         result = ship.advance_transit()
         if result is not None:
@@ -4451,7 +4459,7 @@ RECORDS_COUNT_MAX = 1_000_000
 
 
 def _fresh_records():
-    return {"dark_runs": 0}
+    return {"dark_runs": 0, "weather_events": 0}
 
 
 records = _fresh_records()
@@ -4461,7 +4469,8 @@ def _load_records(raw):
     """Restore the lifetime records from an untrusted save value (defaults for anything malformed)."""
     loaded = _fresh_records()
     if isinstance(raw, dict):
-        loaded["dark_runs"] = _saved_int(raw.get("dark_runs"), 0, RECORDS_COUNT_MAX)
+        for key in loaded:
+            loaded[key] = _saved_int(raw.get(key), 0, RECORDS_COUNT_MAX)
     records.clear()
     records.update(loaded)
 
@@ -4626,6 +4635,208 @@ def render_blackout():
         stamp.innerText = blackout_stamp_text() or "Dark runs: none yet (Blackout is optional)."
 
 
+# ---------------------------------------------------------------------------
+# J-17 / J-18 -- Market Weather (opt-in, off by default). One event at a time: after a quiet
+# stretch (20-40 ticks) a boom or a slump hits one good for 20-40 ticks (a boom pays +30%, a
+# slump pays 25% less) and the good made at the colony that needs it follows at half strength.
+# Everything is derived from a hash of the charter's founding seed and the event number, so it
+# is deterministic and testable, yet looks unpredictable to a player who is not reading the
+# Almanac: dock gossip appears 12 ticks ahead (which colony), and 5 ticks ahead it says boom or
+# slump, so a close reader can front-run it (stockpile before a boom). A text-only ticker chip
+# on the map names the current event (no scrolling). Nothing here is ever lost permanently:
+# a slump only lowers what one good sells for while it lasts.
+# ---------------------------------------------------------------------------
+WEATHER_BOOM = 0.30
+WEATHER_SLUMP = -0.25
+WEATHER_CASCADE_SHARE = 0.5
+WEATHER_GAP = (20, 40)
+WEATHER_DURATION = (20, 40)
+WEATHER_RUMOUR_TICKS = 12
+WEATHER_DIRECTION_TICKS = 5
+WEATHER_ACHIEVEMENT_EVENTS = 5
+WEATHER_HEADLINES = {
+    "boom": (
+        "Festival at {colony}: demand for {good} is up",
+        "Trade fair at {colony}: {good} is in short supply",
+    ),
+    "slump": (
+        "Strike at {colony}: {good} buyers hold off, prices soften",
+        "Port backlog at {colony}: {good} sits unsold, prices soften",
+    ),
+}
+weather_enabled = False
+weather_n = 0  # events generated so far in this charter (the hash input)
+weather_event = None  # {"good", "kind", "style", "wait", "left", "dur"} or None
+_weather_ticker_text = None
+
+
+def _weather_hash(n):
+    x = (founding_seed * 2654435761 + (n + 1) * 40503 + 12345) & 0xFFFFFFFF
+    x ^= x >> 15
+    x = (x * 2246822519) & 0xFFFFFFFF
+    x ^= x >> 13
+    x = (x * 3266489917) & 0xFFFFFFFF
+    x ^= x >> 16
+    return x
+
+
+def _weather_make(n=None):
+    """The event with number `n` (default: the next one), over the goods that can be reached right now."""
+    n = weather_n if n is None else n
+    goods = seasonal_reachable_goods()
+    if not goods:
+        return None
+    h = _weather_hash(n)
+    low, high = WEATHER_GAP
+    dlow, dhigh = WEATHER_DURATION
+    dur = dlow + (h >> 9) % (dhigh - dlow + 1)
+    return {
+        "good": goods[h % len(goods)],
+        "kind": "boom" if (h >> 5) & 1 else "slump",
+        "style": (h >> 7) & 1,
+        "wait": low + (h >> 16) % (high - low + 1),
+        "left": dur,
+        "dur": dur,
+    }
+
+
+def weather_active_event():
+    ev = weather_event
+    if weather_enabled and ev is not None and ev["wait"] == 0 and ev["left"] > 0:
+        return ev
+    return None
+
+
+def weather_cascade_good(good):
+    """The good made at the colony that needs `good` (it follows the event at half strength), if reachable."""
+    consumer = colony_needing(good)
+    if consumer is None or consumer not in active_colony_ids():
+        return None
+    other = ALL_COLONIES[consumer]["produces"]
+    return other if other != good else None
+
+
+def weather_multiplier(good):
+    ev = weather_active_event()
+    if ev is None:
+        return 1.0
+    effect = WEATHER_BOOM if ev["kind"] == "boom" else WEATHER_SLUMP
+    if good == ev["good"]:
+        return 1.0 + effect
+    if good == weather_cascade_good(ev["good"]):
+        return 1.0 + effect * WEATHER_CASCADE_SHARE
+    return 1.0
+
+
+def weather_tick():
+    """One tick of the weather clock (only while the mode is on)."""
+    global weather_event, weather_n
+    if not weather_enabled:
+        return
+    if weather_event is None:
+        weather_event = _weather_make()
+        if weather_event is None:
+            return
+        weather_n += 1
+    ev = weather_event
+    if ev["wait"] > 0:
+        ev["wait"] -= 1
+    elif ev["left"] > 0:
+        ev["left"] -= 1
+        if ev["left"] <= 0:
+            weather_event = None
+            if not sandbox_active:
+                records["weather_events"] = min(RECORDS_COUNT_MAX, records["weather_events"] + 1)
+
+
+def _weather_colony_name(good):
+    return ALL_COLONIES[colony_producing(good)]["name"]
+
+
+def weather_headline(ev):
+    template = WEATHER_HEADLINES[ev["kind"]][ev["style"]]
+    return template.format(colony=_weather_colony_name(ev["good"]), good=GOOD_LABEL[ev["good"]])
+
+
+def weather_rumour(ev=None):
+    """Dock gossip about an event that has not started yet, or '' when it is too far off."""
+    ev = weather_event if ev is None else ev
+    if not weather_enabled or ev is None or ev["wait"] <= 0:
+        return ""
+    colony = _weather_colony_name(ev["good"])
+    if ev["wait"] <= WEATHER_DIRECTION_TICKS:
+        word = "a boom" if ev["kind"] == "boom" else "a slump"
+        return f"Dock gossip: {word} looks likely for {GOOD_LABEL[ev['good']]} from {colony} in about {ev['wait']} tick(s)."
+    if ev["wait"] <= WEATHER_RUMOUR_TICKS:
+        return f"Dock gossip at {colony}: something is brewing, in about {ev['wait']} tick(s)."
+    return ""
+
+
+def weather_ticker_text():
+    if not weather_enabled:
+        return ""
+    ev = weather_active_event()
+    if ev is not None:
+        effect = WEATHER_BOOM if ev["kind"] == "boom" else WEATHER_SLUMP
+        return f"{weather_headline(ev)} ({effect * 100:+.0f}%, {ev['left']} tick(s) left)."
+    rumour = weather_rumour()
+    return rumour or "Quiet markets: no weather right now."
+
+
+def weather_status_text():
+    if not weather_enabled:
+        return (
+            f"Optional: now and then one good has a boom ({WEATHER_BOOM * 100:+.0f}% on its price) or a slump "
+            f"({WEATHER_SLUMP * 100:+.0f}%) for 20-40 ticks, and the good that depends on it follows at half strength. "
+            "Dock gossip warns you a few ticks ahead. Nothing is permanent."
+        )
+    ev = weather_active_event()
+    seen = records["weather_events"]
+    line = f"Weather on. Events weathered so far: {seen}. "
+    if ev is not None:
+        follow = weather_cascade_good(ev["good"])
+        line += f"Now: {weather_ticker_text()}"
+        if follow:
+            line += f" {GOOD_LABEL[follow]} follows at half strength."
+    else:
+        line += weather_rumour() or "Quiet markets for now."
+    return line
+
+
+def weather_almanac_note():
+    if not weather_enabled:
+        return ""
+    return (
+        '<p class="almanac-weather">Leading indicators for Market Weather: dock gossip names the colony '
+        f"{WEATHER_RUMOUR_TICKS} ticks before an event and says boom or slump {WEATHER_DIRECTION_TICKS} ticks before. "
+        "Stockpile ahead of a boom; a slump only lowers one good's price while it lasts.</p>"
+    )
+
+
+def on_toggle_weather(event=None):
+    global weather_enabled
+    weather_enabled = not weather_enabled
+    render()
+
+
+def render_weather():
+    button = document.getElementById("weather-toggle-button")
+    status = document.getElementById("weather-status")
+    ticker = document.getElementById("news-ticker")
+    if button is None or status is None:
+        return
+    button.innerText = f"Market weather: {'on' if weather_enabled else 'off'}"
+    button.setAttribute("aria-pressed", "true" if weather_enabled else "false")
+    status.innerText = weather_status_text()
+    global _weather_ticker_text
+    if ticker is not None:
+        text = weather_ticker_text()
+        ticker.hidden = not text
+        if text != _weather_ticker_text:
+            _weather_ticker_text = text
+            ticker.innerText = text
+
+
 # @@NEW-FEATURES-END@@ (new feature blocks are inserted above this line)
 
 
@@ -4770,6 +4981,12 @@ def get_state():
             {"blackout": {"enabled": blackout_enabled, "clean": blackout_clean, "done": blackout_done,
                           "bought": sorted(blackout_bought)}}
             if blackout_enabled or blackout_done or blackout_bought
+            else {}
+        ),
+        **(
+            {"weather": {"enabled": weather_enabled, "n": weather_n,
+                         "event": dict(weather_event) if weather_event is not None else None}}
+            if weather_enabled or weather_n
             else {}
         ),
         **({"records": _records_for_save()} if _records_for_save() else {}),
@@ -4930,6 +5147,30 @@ def _load_blackout(raw):
     bought = raw.get("bought")
     if isinstance(bought, list):
         blackout_bought.update(kind for kind in bought if isinstance(kind, str) and kind in BLACKOUT_INTEL)
+
+
+def _load_weather(raw):
+    """J-17 -- restore Market Weather from an untrusted save value; a bad event is dropped (a new one is rolled)."""
+    global weather_enabled, weather_n, weather_event
+    weather_enabled, weather_n, weather_event = False, 0, None
+    if not isinstance(raw, dict):
+        return
+    weather_enabled = raw.get("enabled") is True
+    weather_n = _saved_int(raw.get("n"), 0, RECORDS_COUNT_MAX)
+    ev = raw.get("event")
+    if not isinstance(ev, dict):
+        return
+    good, kind, style = ev.get("good"), ev.get("kind"), ev.get("style")
+    wait = _saved_int(ev.get("wait"), 0, WEATHER_GAP[1], -1)
+    dur = _saved_int(ev.get("dur"), WEATHER_DURATION[0], WEATHER_DURATION[1], -1)
+    left = _saved_int(ev.get("left"), 0, WEATHER_DURATION[1], -1)
+    if (
+        not isinstance(good, str) or good not in SELL_PRICE or colony_producing(good) not in active_colony_ids()
+        or kind not in WEATHER_HEADLINES or style not in (0, 1) or isinstance(style, bool)
+        or -1 in (wait, dur, left) or left > dur or left == 0
+    ):
+        return
+    weather_event = {"good": good, "kind": kind, "style": style, "wait": wait, "left": left, "dur": dur}
 
 
 def _load_captains(raw):
@@ -5172,6 +5413,7 @@ def _apply_state(data):
     _load_captains(data.get("captains"))
     _load_records(data.get("records"))
     _load_blackout(data.get("blackout"))
+    _load_weather(data.get("weather"))
     price_memory.clear()
     memory_raw = data.get("price_memory")
     if isinstance(memory_raw, dict):
@@ -5421,6 +5663,7 @@ def setup():
     document.getElementById("charter-toggle-button").addEventListener("click", create_proxy(on_toggle_charter))
     document.getElementById("captains-toggle-button").addEventListener("click", create_proxy(on_toggle_captains))
     document.getElementById("blackout-toggle-button").addEventListener("click", create_proxy(on_toggle_blackout))
+    document.getElementById("weather-toggle-button").addEventListener("click", create_proxy(on_toggle_weather))
     for kind in BLACKOUT_INTEL:
         document.getElementById(f"blackout-buy-{kind}-button").addEventListener(
             "click", create_proxy(_make_blackout_buy_handler(kind))

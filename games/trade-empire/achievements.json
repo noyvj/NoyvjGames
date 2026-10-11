@@ -139,6 +139,11 @@
       "id": "dark_run",
       "label": "Dark Run",
       "description": "Reach the endgame with Blackout switched on from before your first sale and never switched off."
+    },
+    {
+      "id": "storm_watcher",
+      "label": "Storm Watcher",
+      "description": "With Market Weather on, see five weather events (booms or slumps) run their course."
     }
   ]
 }

@@ -49,6 +49,7 @@ html[data-layout="pc"] #pc-body .section { margin-bottom: 0; }
 #map-panel > .map-caption { margin: 0; flex: 0 0 auto; }
 #map-panel > p:not(#map-legend) { display: none; }
 #map-panel > #map-legend { font-size: 0.72rem; }
+#map-panel > #news-ticker:not([hidden]) { display: block; margin: 0; flex: 0 0 auto; font-size: 0.78rem; padding: 0.2rem 0.6rem; }
 
 /* Needs at a glance: chips wrap instead of scrolling sideways. */
 #pc-stage > #mobile-needs-strip { padding: 0.4rem 0.8rem; display: flex; align-items: center; gap: 0.6rem; }

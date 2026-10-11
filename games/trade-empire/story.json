@@ -155,6 +155,11 @@
       "id": "dark_run",
       "title": "The lights stay off",
       "text": "You ran the whole charter with the map dark and the prices shown as ranges, buying back each piece of information only when it earned its keep. At the end the ledger gets a small stamp, a half-moon with the words dark run beside it. The ledger does not say whether it was harder; it only notes that you did not look."
+    },
+    {
+      "id": "storm_watcher",
+      "title": "Reading the sky",
+      "text": "Five times the dock gossip turned out to be right: a festival here, a strike there, a few days of prices bending around it. You start to read the weather the way a farmer reads a sky, and to buy the grain a day before everyone else decides they want it."
     }
   ]
 }

@@ -1,6 +1,10 @@
 [
   {
     "date": "2026-10-11",
+    "entry": "New: Market Weather, an optional switch in the Market panel. Now and then one good has a boom (+30%) or a slump (-25%) for 20 to 40 ticks, and the good that depends on it follows at half strength. A one-line headline on the map names the event, and the Almanac explains the leading indicators: dock gossip names the colony 12 ticks ahead and says boom or slump 5 ticks ahead, so you can stockpile in time. Nothing is permanent, and see five events through for the Storm Watcher achievement."
+  },
+  {
+    "date": "2026-10-11",
     "entry": "New: Blackout, an optional harder way to play (Market panel). With it on, the map goes dark, the sparklines are hidden and prices show only as ranges until you buy the information back: a price feed (250 credits, or research Market Insight) and a star chart (200 credits, or research Galaxy Expansion). The economy itself does not change. Switch it on before your first sale and keep it on to the endgame to earn the Dark Run achievement, a stamp in the Charter ledger and a mark beside the title."
   },
   {
