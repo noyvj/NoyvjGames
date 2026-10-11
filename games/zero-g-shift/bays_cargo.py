@@ -1,0 +1,106 @@
+"""Zero-G Shift -- deck 1, Cargo Floor: 8 bays found and frozen by tools/build_bays.py (do not edit by hand)."""
+
+BAYS = [
+    {
+        "id": 'first-pallet', "name": 'First Pallet',
+        "rows": [
+            '...@..',
+            '...1..',
+            '#.....',
+            '##..#.',
+            '....#.',
+            'A.....',
+        ],
+        "par": 4, "line": 'DRDL',
+    },
+    {
+        "id": 'dock-lane', "name": 'Dock Lane',
+        "rows": [
+            '...@...',
+            '......A',
+            '.....1.',
+            '..##...',
+            '.#.##..',
+            '.#.....',
+            '....#..',
+        ],
+        "par": 5, "line": 'DRDRU',
+    },
+    {
+        "id": 'corner-stack', "name": 'The Corner Stack',
+        "rows": [
+            '.A.....',
+            '.....##',
+            '..1.@#.',
+            '.....#.',
+            '.......',
+            '##.....',
+            '....###',
+        ],
+        "par": 6, "line": 'DLURUL',
+    },
+    {
+        "id": 'short-haul', "name": 'Short Haul',
+        "rows": [
+            '....#.',
+            '...A#.',
+            '@..1..',
+            '.....#',
+            '###...',
+            '......',
+        ],
+        "par": 7, "line": 'DRDRULU',
+    },
+    {
+        "id": 'slow-drift', "name": 'Slow Drift',
+        "rows": [
+            '.......',
+            '#......',
+            '#..@.##',
+            '...A...',
+            '.....1.',
+            '...#..#',
+            '...#..#',
+        ],
+        "par": 8, "line": 'RDRUURUL',
+    },
+    {
+        "id": 'elbow-room', "name": 'Elbow Room',
+        "rows": [
+            '...##..',
+            '.#.....',
+            '.#.###.',
+            '.....A@',
+            '.......',
+            '...1...',
+            '..#....',
+        ],
+        "par": 9, "line": 'DLUULDRUR',
+    },
+    {
+        "id": 'cold-storage', "name": 'Cold Storage',
+        "rows": [
+            '..#....',
+            '..#@..#',
+            '.1....#',
+            '......#',
+            'A...#..',
+            '...##..',
+            '...#...',
+        ],
+        "par": 10, "line": 'DLDRULLULD',
+    },
+    {
+        "id": 'loose-freight', "name": 'Loose Freight',
+        "rows": [
+            '.##....',
+            '..@..#.',
+            '..1..#.',
+            '.......',
+            'A..##..',
+            '.......',
+            '..#....',
+        ],
+        "par": 12, "line": 'DRURDLULLDLU',
+    },
+]
