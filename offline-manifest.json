@@ -662,32 +662,32 @@
     },
     {
      "path": "games/grid/changelog.json",
-     "bytes": 9234,
+     "bytes": 13989,
      "precached": false
     },
     {
      "path": "games/grid/game.py",
-     "bytes": 254709,
+     "bytes": 305873,
      "precached": true
     },
     {
      "path": "games/grid/index.html",
-     "bytes": 60159,
+     "bytes": 70408,
      "precached": true
     },
     {
      "path": "games/grid/pc-config.json",
-     "bytes": 5006,
+     "bytes": 5228,
      "precached": false
     },
     {
      "path": "games/grid/pc.css",
-     "bytes": 7278,
+     "bytes": 7718,
      "precached": true
     },
     {
      "path": "games/grid/pc.html",
-     "bytes": 64624,
+     "bytes": 75041,
      "precached": true
     },
     {
@@ -712,7 +712,7 @@
     },
     {
      "path": "games/grid/style.css",
-     "bytes": 51637,
+     "bytes": 58213,
      "precached": true
     }
    ],
@@ -858,6 +858,11 @@
      "precached": true
     },
     {
+     "path": "shared/print-summary.css",
+     "bytes": 5853,
+     "precached": false
+    },
+    {
      "path": "shared/profile.js",
      "bytes": 9880,
      "precached": true
@@ -970,7 +975,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14725214,
+   "bytes": 14814890,
    "bytes_complete": true
   },
   "tide": {
@@ -5266,32 +5271,32 @@
    "files": [
     {
      "path": "games/dead-reckoning/achievements.json",
-     "bytes": 2150,
+     "bytes": 2294,
      "precached": true
     },
     {
      "path": "games/dead-reckoning/achievements.py",
-     "bytes": 3222,
+     "bytes": 3312,
      "precached": true
     },
     {
      "path": "games/dead-reckoning/app.js",
-     "bytes": 37363,
+     "bytes": 42183,
      "precached": true
     },
     {
      "path": "games/dead-reckoning/changelog.json",
-     "bytes": 983,
+     "bytes": 1650,
      "precached": true
     },
     {
      "path": "games/dead-reckoning/chartkit.py",
-     "bytes": 2222,
+     "bytes": 3078,
      "precached": true
     },
     {
      "path": "games/dead-reckoning/charts.py",
-     "bytes": 4257,
+     "bytes": 4894,
      "precached": true
     },
     {
@@ -5320,13 +5325,18 @@
      "precached": true
     },
     {
+     "path": "games/dead-reckoning/charts_two.py",
+     "bytes": 8447,
+     "precached": true
+    },
+    {
      "path": "games/dead-reckoning/charts_wind.py",
      "bytes": 5597,
      "precached": true
     },
     {
      "path": "games/dead-reckoning/daily.js",
-     "bytes": 7702,
+     "bytes": 7776,
      "precached": true
     },
     {
@@ -5340,13 +5350,23 @@
      "precached": true
     },
     {
+     "path": "games/dead-reckoning/fleet.py",
+     "bytes": 9433,
+     "precached": true
+    },
+    {
      "path": "games/dead-reckoning/game.py",
-     "bytes": 30758,
+     "bytes": 41221,
      "precached": true
     },
     {
      "path": "games/dead-reckoning/gen.py",
-     "bytes": 14161,
+     "bytes": 14936,
+     "precached": true
+    },
+    {
+     "path": "games/dead-reckoning/gentwo.py",
+     "bytes": 6713,
      "precached": true
     },
     {
@@ -5361,17 +5381,17 @@
     },
     {
      "path": "games/dead-reckoning/index.html",
-     "bytes": 18655,
+     "bytes": 19788,
      "precached": true
     },
     {
      "path": "games/dead-reckoning/info.py",
-     "bytes": 5019,
+     "bytes": 5165,
      "precached": true
     },
     {
      "path": "games/dead-reckoning/pars.py",
-     "bytes": 4262,
+     "bytes": 6257,
      "precached": true
     },
     {
@@ -5386,22 +5406,22 @@
     },
     {
      "path": "games/dead-reckoning/pc.html",
-     "bytes": 20798,
+     "bytes": 21931,
      "precached": true
     },
     {
      "path": "games/dead-reckoning/pc.js",
-     "bytes": 2466,
+     "bytes": 2696,
      "precached": true
     },
     {
      "path": "games/dead-reckoning/progress.py",
-     "bytes": 3304,
+     "bytes": 3765,
      "precached": true
     },
     {
      "path": "games/dead-reckoning/render.py",
-     "bytes": 19693,
+     "bytes": 24156,
      "precached": true
     },
     {
@@ -5426,12 +5446,12 @@
     },
     {
      "path": "games/dead-reckoning/state.py",
-     "bytes": 10118,
+     "bytes": 10488,
      "precached": true
     },
     {
      "path": "games/dead-reckoning/style.css",
-     "bytes": 19487,
+     "bytes": 21635,
      "precached": true
     },
     {
@@ -5441,7 +5461,7 @@
     },
     {
      "path": "games/dead-reckoning/tools/check_charts.py",
-     "bytes": 2719,
+     "bytes": 4360,
      "precached": false
     },
     {
@@ -5649,7 +5669,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14429687,
+   "bytes": 14486526,
    "bytes_complete": true
   },
   "logic-gates": {
