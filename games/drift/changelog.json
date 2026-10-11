@@ -1,6 +1,10 @@
 [
   {
     "date": "2026-10-11",
+    "entry": "New: region skins. Four skyline palettes (Seaside, Alpine, Desert and Neon Future) open as you earn Full Portfolio, The Turning Point, Crisis Averted and Thriving, and you pick one in Settings (Dusk, the original, is always there). They are cosmetic only, drawn in code, kept on this browser, and a locked skin tells you which achievement opens it."
+  },
+  {
+    "date": "2026-10-11",
     "entry": "New: a closer look at the trend graph. Range chips (Last 10, Last 25, All) zoom in on recent rounds, and toggles show or hide each layer: strain, wellbeing, the passive region, a new ROI line (funds paid back per fund invested) and event markers along the top. The markers have a different shape each (first net-positive round, a wellbeing band change, the strain peak, a capacity move, the start of the second wave) and hovering, touching or pressing the arrow keys on the graph draws a crosshair with the exact values for that round."
   },
   {

@@ -182,6 +182,18 @@
           <button id="anim-speed-off-button" class="secondary" type="button" data-speed="off" aria-pressed="false">Off</button>
         </div>
       </div>
+      <!-- GI-25: cosmetic skyline palettes; game.py unlocks them from achievements and keeps the pressed one current. -->
+      <div class="settings-row">
+        <span class="settings-row-label">Region skin</span>
+        <div class="settings-control-group" role="group" aria-label="Region skin" id="skin-group">
+          <button id="skin-dusk-button" class="secondary" type="button" aria-pressed="true">Dusk</button>
+          <button id="skin-seaside-button" class="secondary" type="button" aria-pressed="false" disabled>🔒 Seaside</button>
+          <button id="skin-alpine-button" class="secondary" type="button" aria-pressed="false" disabled>🔒 Alpine</button>
+          <button id="skin-desert-button" class="secondary" type="button" aria-pressed="false" disabled>🔒 Desert</button>
+          <button id="skin-neon-button" class="secondary" type="button" aria-pressed="false" disabled>🔒 Neon Future</button>
+        </div>
+      </div>
+      <p id="skin-note" class="settings-note"></p>
       <!-- I-19: spacing of the panels and lines. -->
       <div class="settings-row">
         <span class="settings-row-label">Density</span>
@@ -211,7 +223,7 @@
     <p class="tagline">Manage a receiving region as displacement pressure rises. Whether that pressure becomes a crisis or a manageable transition comes down to how well the region prepared.</p>
     <p class="context-blurb">Institutional preparedness, not the scale of arrivals alone, is what determines outcomes. Uganda's refugee policy — granting land access and the right to work and move freely, integrated alongside host communities — is widely cited by policy researchers as a model of how institutional capacity can turn large-scale displacement into manageable, even mutually beneficial, coexistence.</p>
 
-    <div class="region-visual" aria-hidden="true">
+    <div id="region-visual" class="region-visual" data-skin="dusk" aria-hidden="true">
       <div class="region-visual-glow"></div>
       <div class="region-visual-skyline">
         <div id="region-visual-building-a" class="region-visual-building region-visual-building--a"></div>

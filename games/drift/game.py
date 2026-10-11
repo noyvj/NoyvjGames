@@ -2337,6 +2337,8 @@ def _seed_achievement_toast_baseline():
     global _achievements_seen_ids
     _achievements_seen_ids = set(achievement_ids_earned())
     _story_reach_all(_achievements_seen_ids)  # W1: a loaded save's earned chapters come back too
+    if unlock_skins(_achievements_seen_ids):  # GI-25: a loaded save earns its skins quietly
+        render_skins()
 
 
 # I15 -- lightweight, reusable pulse feedback: adds a CSS animation class
@@ -2408,7 +2410,19 @@ def _check_new_achievements_for_toast():
             else:
                 _display_achievement_toast(f"🏆 {len(labels)} achievements unlocked: " + ", ".join(labels))
                 announce(f"{len(labels)} achievements unlocked: " + ", ".join(labels))
+    _note_new_skins(earned_now)
     _achievements_seen_ids = earned_now
+
+
+def _note_new_skins(earned_ids):
+    """GI-25: an achievement that opens a region skin says so (Settings note and a spoken line)."""
+    global skin_note
+    newly = unlock_skins(earned_ids)
+    if newly:
+        names = ", ".join(skin["label"] for skin in newly)
+        skin_note = f"New region skin unlocked: {names}. Choose it in Settings."
+        announce(skin_note)
+        render_skins()
 
 
 def on_toggle_achievements(event=None):
@@ -3460,6 +3474,103 @@ council_note_text = ""
 summary_note_text = ""
 
 
+# ---- GI-25: region skins (cosmetic building palettes for the skyline) --------------------------------
+# Dusk is always there; each other skin unlocks when its achievement is earned in any region on this browser,
+# and stays unlocked (kept like the collection, per browser). The choice is a display preference in
+# localStorage, never part of a save. The palettes themselves are CSS (`.region-visual[data-skin=...]`).
+SKIN_STORAGE_KEY = "drift_skins_v1"
+SKIN_CHOICE_KEY = "drift-skin"
+SKINS = [
+    {"id": "dusk", "label": "Dusk", "unlock": None},
+    {"id": "seaside", "label": "Seaside", "unlock": "full_capacity_portfolio"},
+    {"id": "alpine", "label": "Alpine", "unlock": "turning_point_reached"},
+    {"id": "desert", "label": "Desert", "unlock": "crisis_averted"},
+    {"id": "neon", "label": "Neon Future", "unlock": "thriving_region"},
+]
+SKIN_BY_ID = {skin["id"]: skin for skin in SKINS}
+
+
+def _clean_skin_unlocks(raw):
+    """The skin ids (other than the always-open Dusk) that a stored value says are unlocked."""
+    if not isinstance(raw, list):
+        return []
+    return [skin["id"] for skin in SKINS if skin["unlock"] and skin["id"] in raw]
+
+
+def _load_skin_unlocks():
+    raw = _read_local_storage_item(SKIN_STORAGE_KEY)
+    if not raw:
+        return []
+    try:
+        return _clean_skin_unlocks(json.loads(raw))
+    except (ValueError, TypeError):
+        return []
+
+
+def skin_unlocked(skin_id):
+    skin = SKIN_BY_ID.get(skin_id)
+    return skin is not None and (skin["unlock"] is None or skin_id in skins_unlocked)
+
+
+def _load_skin_choice():
+    raw = _read_local_storage_item(SKIN_CHOICE_KEY)
+    return raw if raw in SKIN_BY_ID and (SKIN_BY_ID[raw]["unlock"] is None or raw in skins_unlocked) else "dusk"
+
+
+skins_unlocked = _load_skin_unlocks()
+skin_choice = _load_skin_choice()
+skin_note = ""
+
+
+def skin_lock_hint(skin):
+    """What to do to unlock a skin: the achievement's own name."""
+    by_id = {entry["id"]: entry for entry in ACHIEVEMENTS}
+    entry = by_id.get(skin["unlock"])
+    return f"Locked: earn the achievement {entry['label'] if entry else skin['unlock']}"
+
+
+def unlock_skins(earned_ids):
+    """Unlocks every skin whose achievement is in `earned_ids`; returns the newly unlocked skins."""
+    newly = [
+        skin for skin in SKINS
+        if skin["unlock"] and skin["unlock"] in earned_ids and skin["id"] not in skins_unlocked
+    ]
+    for skin in newly:
+        skins_unlocked.append(skin["id"])
+    if newly:
+        _write_local_storage_item(SKIN_STORAGE_KEY, json.dumps(skins_unlocked))
+    return newly
+
+
+def choose_skin(skin_id):
+    global skin_choice
+    if not skin_unlocked(skin_id):
+        return False
+    skin_choice = skin_id
+    _write_local_storage_item(SKIN_CHOICE_KEY, skin_id)
+    return True
+
+
+def render_skins():
+    document.getElementById("region-visual").dataset.skin = skin_choice
+    for skin in SKINS:
+        button = document.getElementById(f"skin-{skin['id']}-button")
+        open_ = skin_unlocked(skin["id"])
+        button.disabled = not open_
+        button.title = "" if open_ else skin_lock_hint(skin)
+        button.innerText = skin["label"] if open_ else f"🔒 {skin['label']}"
+        _set_pressed(button, skin["id"] == skin_choice)
+    document.getElementById("skin-note").innerText = skin_note
+
+
+def _make_skin_handler(skin_id):
+    def handler(event=None):
+        if choose_skin(skin_id):
+            announce(f"{SKIN_BY_ID[skin_id]['label']} skin chosen")
+        render_skins()
+    return handler
+
+
 def perfect_fit_message():
     """GI-13: the streak line shown beside the forecast."""
     streak = region.perfect_fit_streak
@@ -4361,6 +4472,7 @@ def render():
         f"severity growth by {ACCELERATED_SEVERITY_MULTIPLIER:.0f}x. Only affects how fast "
         f"arrival pressure rises — never your capacity or funds math directly."
     )
+    render_skins()
     render_round_tools()
     render_civic_tools()
     render_ledger()
@@ -5065,6 +5177,10 @@ def setup():
         "autopilot-share-select", "autopilot-surplus-select", "autopilot-reserve-select", "autopilot-rounds-select",
     ):
         document.getElementById(select_id).addEventListener("change", create_proxy(on_autopilot_change))
+    for skin in SKINS:
+        document.getElementById(f"skin-{skin['id']}-button").addEventListener(
+            "click", create_proxy(_make_skin_handler(skin["id"]))
+        )
     for range_key in TREND_RANGES:
         document.getElementById(f"trend-range-{range_key}-button").addEventListener(
             "click", create_proxy(_make_trend_range_handler(range_key))

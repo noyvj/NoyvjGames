@@ -1736,3 +1736,61 @@ html[data-theme="light"] .trend-tooltip { background: #1b2140; }
 .trend-event title { pointer-events: none; }
 html.high-contrast .trend-controls .chip.active { background: #ffff00; color: #000000; }
 html.high-contrast .trend-tooltip { background: #000000; border: 2px solid #ffffff; }
+
+/* GI-25: region skins (cosmetic skyline palettes, game.py sets data-skin on #region-visual). Colours and a few
+   code-drawn shapes only; the strain dimming and the rising buildings work on top of every skin. */
+.region-visual::before { content: ""; position: absolute; inset: auto 0 0 0; height: 0; pointer-events: none; }
+.region-visual[data-skin="seaside"] {
+  background: linear-gradient(180deg, #1d4f6e 0%, #4f9bb5 46%, #f3d9a4 78%, #2f6f86 100%);
+}
+.region-visual[data-skin="seaside"] .region-visual-building {
+  background-color: #e9f1f3;
+  background-image: radial-gradient(circle, rgba(31, 94, 124, 0.9) 1px, transparent 1.6px);
+}
+.region-visual[data-skin="seaside"] .region-visual-horizon {
+  background: repeating-linear-gradient(90deg, rgba(120, 200, 230, 0.8) 0 14px, rgba(60, 140, 180, 0.8) 14px 28px);
+}
+.region-visual[data-skin="alpine"] {
+  background: linear-gradient(180deg, #2b3a67 0%, #8fa8d6 48%, #e8eef8 80%, #5d7bb0 100%);
+}
+.region-visual[data-skin="alpine"]::before {
+  height: 62%;
+  background: linear-gradient(180deg, #f4f7fc, #a9b8d8);
+  opacity: 0.6;
+  clip-path: polygon(0 100%, 0 55%, 12% 30%, 24% 62%, 38% 12%, 55% 66%, 70% 24%, 86% 62%, 100% 34%, 100% 100%);
+}
+.region-visual[data-skin="alpine"] .region-visual-building {
+  background-color: #34402f;
+  background-image: radial-gradient(circle, rgba(255, 226, 160, 0.95) 1px, transparent 1.6px);
+}
+.region-visual[data-skin="alpine"] .region-visual-horizon {
+  background: linear-gradient(90deg, rgba(240, 246, 255, 0.7), rgba(180, 200, 235, 0.8), rgba(240, 246, 255, 0.7));
+}
+.region-visual[data-skin="desert"] {
+  background: linear-gradient(180deg, #4a1f2a 0%, #c4572f 40%, #f0b45c 76%, #7a3f22 100%);
+}
+.region-visual[data-skin="desert"]::before {
+  height: 38%;
+  background: linear-gradient(180deg, #d9944e, #a8602c);
+  opacity: 0.7;
+  clip-path: polygon(0 100%, 0 70%, 20% 35%, 42% 68%, 64% 28%, 84% 62%, 100% 40%, 100% 100%);
+}
+.region-visual[data-skin="desert"] .region-visual-building {
+  background-color: #b8613c;
+  background-image: radial-gradient(circle, rgba(255, 232, 170, 0.95) 1px, transparent 1.6px);
+}
+.region-visual[data-skin="desert"] .region-visual-horizon {
+  background: linear-gradient(90deg, rgba(255, 190, 110, 0.6), rgba(255, 140, 80, 0.8), rgba(255, 190, 110, 0.6));
+}
+.region-visual[data-skin="neon"] {
+  background: linear-gradient(180deg, #0a0220 0%, #3a0f6b 55%, #ff2a9d 100%);
+}
+.region-visual[data-skin="neon"] .region-visual-building {
+  background-color: #0d0420;
+  background-image: radial-gradient(circle, rgba(54, 240, 255, 0.95) 1px, transparent 1.6px);
+  box-shadow: inset 0 0 0 1px rgba(255, 42, 157, 0.55), 0 0 8px rgba(255, 42, 157, 0.35);
+}
+.region-visual[data-skin="neon"] .region-visual-horizon {
+  background: linear-gradient(90deg, #36f0ff, #ff2a9d, #36f0ff);
+}
+.region-visual-skyline { z-index: 1; }

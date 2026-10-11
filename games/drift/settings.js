@@ -274,6 +274,8 @@
         contrast = applyFlag(CONTRAST_KEY, "high-contrast", false);
         easyFont = applyFlag(DYSLEXIA_KEY, "easy-read-font", false);
         updateFlagLabels();
+        var dusk = document.getElementById("skin-dusk-button"); // the region skin lives in game.py; Dusk is the default
+        if (dusk) dusk.click();
         animSpeed = applyAnimSpeed("normal");
         density = applyDensity("comfortable");
         markGroup("anim-speed-group", "data-speed", animSpeed);
