@@ -175,6 +175,13 @@
           Screen shake, flashes and pulses when an event hits or is near (always off while Reduce motion is on)
         </label>
       </div>
+      <!-- GE-23: off by default. Shows the run's time and lists it in Past Runs; time never changes a score. -->
+      <div class="settings-row">
+        <label class="settings-checkbox-label" for="run-timer-checkbox">
+          <input type="checkbox" id="run-timer-checkbox">
+          Show a run timer (the time a run takes is listed in Past Runs; it never changes a score)
+        </label>
+      </div>
       <!-- E-28: off by default; asks before Face Next Event when resources are left unspent. -->
       <div class="settings-row">
         <label class="settings-checkbox-label" for="confirm-unspent-checkbox">
@@ -239,6 +246,7 @@
             <option value="score_low">Score, low to high</option>
             <option value="score_adjusted">Adjusted score, high to low</option>
             <option value="mode">Mode (scenario)</option>
+            <option value="fastest">Fastest finish (timed runs)</option>
           </select>
         </label>
         <label>Show
@@ -288,6 +296,8 @@
       <!-- E-4: shown while a friend's run code is being played. -->
       <p id="challenge-banner" class="challenge-banner" hidden></p>
       <p id="progress-display" class="status-line">Event 1 of 7</p>
+      <!-- GE-23: the optional run timer (Settings, off by default). Never affects a score. -->
+      <p id="run-timer-display" class="status-line run-timer-display" role="timer" hidden></p>
       <p id="next-event-display" class="status-line">Next: Flood</p>
       <!-- E8/E16: expected-damage-this-event preview with numeric severity. -->
       <p id="expected-damage-display" class="status-line"></p>

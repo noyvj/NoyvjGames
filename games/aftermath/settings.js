@@ -41,6 +41,8 @@
   // GE-14 / GE-26: the short hit and countdown effects. "false" turns them off; missing means on.
   // Reduce motion always overrides it (the checkbox is disabled while that is on).
   const EFFECTS_KEY = "aftermath-effects";
+  // GE-23: the optional run timer. Read by game.py from this same key; default OFF.
+  const RUN_TIMER_KEY = "aftermath-run-timer";
   const MIN_SCALE = 0.85;
   const MAX_SCALE = 1.5;
   const STEP = 0.1;
@@ -176,6 +178,18 @@
       });
     }
 
+    const timerBox = document.getElementById("run-timer-checkbox");
+    if (timerBox) {
+      timerBox.checked = readFlag(RUN_TIMER_KEY);
+      timerBox.addEventListener("change", function () {
+        try {
+          window.localStorage.setItem(RUN_TIMER_KEY, String(timerBox.checked));
+        } catch (e) {
+          // Persistence is a convenience only.
+        }
+      });
+    }
+
     const epitaphBox = document.getElementById("hide-epitaph-checkbox");
     if (epitaphBox) {
       epitaphBox.checked = readFlag(HIDE_EPITAPH_KEY);
@@ -277,6 +291,15 @@
             // Persistence is a convenience only.
           }
           aidBox.dispatchEvent(new Event("change"));  // game.py re-reads the switch and redraws the line
+        }
+        if (timerBox) {
+          timerBox.checked = false;
+          try {
+            window.localStorage.setItem(RUN_TIMER_KEY, "false");
+          } catch (e) {
+            // Persistence is a convenience only.
+          }
+          timerBox.dispatchEvent(new Event("change"));  // game.py ends timing for a run in progress
         }
         if (confirmBox) {
           confirmBox.checked = false;

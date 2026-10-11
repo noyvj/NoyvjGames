@@ -1,6 +1,10 @@
 [
   {
     "date": "2026-10-11",
+    "entry": "New, off by default: a run timer (Settings). When on, the status shows how long the run has taken from your first move, the finished time is kept with the run, and Past Runs lists it, marks your fastest run and has a new 'Fastest finish' sort. Time never changes a score, knowledge, an achievement or a board; waiting at the opening screen or leaving the tab open costs nothing (each step counts at most five seconds), and a run that began with the timer off is simply not timed."
+  },
+  {
+    "date": "2026-10-11",
     "entry": "New: a countdown pulse on the schedule strip. The next event's chip pulses gently and grows a little more as you run out of things you can afford to buy before facing it, and a line under the strip says the same in words ('Nothing left you can afford: Flood is the next step.'). It uses the same Settings switch as the event hit effects, and Reduce motion turns the animation off and leaves the words."
   },
   {

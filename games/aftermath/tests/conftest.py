@@ -225,6 +225,9 @@ ELEMENT_IDS = [
     "hit-number",
     # GE-26: the countdown note under the schedule strip.
     "countdown-note",
+    # GE-23: the optional run timer.
+    "run-timer-display",
+    "run-timer-checkbox",
 ]
 for _skill in SKILL_IDS:
     ELEMENT_IDS += [

@@ -2165,6 +2165,8 @@ html[data-effects="false"] .schedule-strip .schedule-chip--next { animation: non
 @media (prefers-reduced-motion: reduce) {
   .schedule-strip .schedule-chip--next { animation: none; transform: none; box-shadow: none; }
 }
+/* GE-23: the optional run timer. */
+.run-timer-display { font-size: 0.85rem; font-variant-numeric: tabular-nums; }
 /* BATCH3-END */
 
 /* ============================================================

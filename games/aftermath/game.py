@@ -1349,6 +1349,49 @@ def looks_seen(run_state=None):
     return seen
 
 
+# ---------------------------------------------------------------------------
+# GE-23: the optional run timer. OFF by default (Settings). When on, the time from a run's first action to its
+# last event is shown while playing, kept on the run's history entry as "seconds" and listed in Past Runs
+# (with a "fastest" mark and a Fastest finish sort). Time never touches a score, knowledge, an achievement or a
+# board. Only time spent with the page in front counts (each step adds at most TIMER_MAX_STEP seconds).
+# ---------------------------------------------------------------------------
+RUN_TIMER_STORAGE_KEY = "aftermath-run-timer"  # settings.js writes "true" or "false"; missing = off
+TIMER_MAX_STEP = 5.0
+TIMER_MAX_SECONDS = 24 * 60 * 60
+
+
+def run_timer_enabled():
+    try:
+        return localStorage.getItem(RUN_TIMER_STORAGE_KEY) == "true"
+    except Exception:
+        return False
+
+
+def format_duration(seconds):
+    seconds = max(0, int(seconds))
+    hours, rest = divmod(seconds, 3600)
+    minutes, secs = divmod(rest, 60)
+    return f"{hours}:{minutes:02d}:{secs:02d}" if hours else f"{minutes}:{secs:02d}"
+
+
+def entry_seconds(entry):
+    """The timed finish of a logged run in whole seconds, or None (no timer, or a damaged value)."""
+    value = entry.get("seconds") if isinstance(entry, dict) else None
+    if isinstance(value, bool) or not isinstance(value, (int, float)) or not 1 <= value <= TIMER_MAX_SECONDS:
+        return None
+    return int(value)
+
+
+def fastest_run_number():
+    """The run number with the shortest timed finish (the earliest one on a tie), or None when no run was timed."""
+    best, best_number = None, None
+    for entry in run_log_history:
+        seconds = entry_seconds(entry)
+        if seconds is not None and isinstance(entry, dict) and (best is None or seconds < best):
+            best, best_number = seconds, entry.get("run_number")
+    return best_number
+
+
 class RunState:
     def __init__(self, run_number=1, extended=False, scenario=DEFAULT_SCENARIO,
                  normalised=False, draw=None, custom_events=None, custom_name=None, challenge=None):
@@ -1407,6 +1450,11 @@ class RunState:
         # (kind, units). Not part of get_state(): after a load, or once an
         # event resolves, there is nothing to undo.
         self.allocation_history = []
+        # GE-23: the optional run timer. `timed` is None until the run's first action, then True (counted from
+        # that action with the timer on) or False (the timer was off, or was switched off, so this run has no time).
+        self.timed = None
+        self.elapsed = 0.0
+        self._timer_last = None
         # E-18: how the most recent event's damage was worked out. In memory
         # only (never saved): after a load there is no breakdown to show.
         self.last_breakdown = None
@@ -1466,7 +1514,31 @@ class RunState:
 
     # GE-18: undo of allocation clicks before Resolve.
     def _record_allocation(self, kind, units):
+        self._timer_touch()  # GE-23
         self.allocation_history.append((kind, units))
+
+    def _timer_touch(self):
+        """GE-23: called at every action. Starts the timer at the run's first action (when the switch is on),
+        otherwise adds the time since the last touch, at most TIMER_MAX_STEP seconds at once so a tab left open
+        overnight cannot make a run look slow. A timer switched off mid-run ends timing for that run."""
+        enabled = run_timer_enabled()
+        if self.timed is None:
+            self.timed = bool(enabled and not self.normalised)
+            self._timer_last = _now() if self.timed else None
+            return
+        if self.timed and not enabled:
+            self.timed = False
+            self._timer_last = None
+            return
+        if self.timed:
+            self.tick_timer(_now())
+
+    def tick_timer(self, now):
+        if not self.timed or self.is_complete():
+            return
+        if self._timer_last is not None:
+            self.elapsed += min(max(0.0, now - self._timer_last), TIMER_MAX_STEP)
+        self._timer_last = now
 
     def undo_count(self):
         return len(self.allocation_history)
@@ -1609,6 +1681,7 @@ class RunState:
         if self.is_complete():
             return False
 
+        self._timer_touch()  # GE-23
         self.resources += self.growth_capacity * GROWTH_INCOME_PER_UNIT
         aid = neighbour_aid_due(self)  # R-31: planned, shown beforehand, a fixed function of the run number
         self.resources += aid
@@ -1673,6 +1746,8 @@ class RunState:
                         **({"neighbour_aid": self.aid_given} if self.aid_given else {}),
                         # GE-25: the settlement's look this run, only written when it is not the default.
                         **({"look": self.look} if self.look != DEFAULT_LOOK else {}),
+                        # GE-23: the run's time, only when the timer was on for the whole run. Never affects a score.
+                        **({"seconds": int(self.elapsed)} if self.timed and self.elapsed >= 1 else {}),
                     }
                 )
                 save_run_log_history(run_log_history)
@@ -2555,7 +2630,7 @@ def new_record_run_indexes():
 # ---- E-22 / E-21 / E-20: notes, sort, filter, archive and compare in Past Runs ----
 # All view state lives in memory (it is a way of looking at the list, not progress).
 # The notes and the archive list live in `meta`, so they ride the progress export.
-PAST_RUN_SORTS = ("newest", "oldest", "score_high", "score_low", "score_adjusted", "mode")
+PAST_RUN_SORTS = ("newest", "oldest", "score_high", "score_low", "score_adjusted", "mode", "fastest")
 past_runs_sort = "newest"
 past_runs_filter = "all"  # "all", "standard", "extended" or "scenario:<key>"
 past_runs_show_archived = False
@@ -2643,6 +2718,8 @@ def past_runs_view(history=None):
         rows.sort(key=lambda r: (-adjusted_score(r[1].get("score", 0), r[1].get("event_log")), -r[0]))
     elif past_runs_sort == "mode":
         rows.sort(key=lambda r: (run_mode_label(r[1]), -r[0]))
+    elif past_runs_sort == "fastest":  # GE-23: timed runs first, quickest at the top; untimed runs follow, newest first
+        rows.sort(key=lambda r: (entry_seconds(r[1]) is None, entry_seconds(r[1]) or 0, -r[0]))
     else:
         rows.sort(key=lambda r: -r[0])
     return rows
@@ -2768,6 +2845,7 @@ def _past_run_card(index, entry, is_record):
         f" · {run_mode_label(entry)}"
         + (f" · neighbour aid +{entry['neighbour_aid']:.0f}" if entry.get("neighbour_aid") else "")  # R-31
         + (f" · {look_label(entry_look(entry))}" if entry_look(entry) != DEFAULT_LOOK else "")  # GE-25
+        + (f" · \u23f1 {format_duration(entry_seconds(entry))}{' (fastest)' if run_number == fastest_run_number() else ''}" if entry_seconds(entry) is not None else "")  # GE-23
         + (" · archived" if run_number in meta["archived_runs"] else "")
     )
     card.appendChild(title)
@@ -5737,6 +5815,7 @@ def render():
     render_mood_strip()  # GE-20
     render_settlement_look()  # GE-25
     render_hit_number()  # GE-14
+    render_run_timer()  # GE-23
     render_challenge()  # E-4
     document.getElementById("curriculum-display").innerText = curriculum_message()
     document.getElementById("resources-display").innerText = f"Resources: {run.resources:.0f}"
@@ -6189,6 +6268,8 @@ def get_state():
         **({"challenge_code": run.challenge["code"]} if run.normalised and run.challenge else {}),
         **({"custom_events": list(run.custom_events), "custom_name": run.custom_name or ""}
            if run.custom_events and not run.normalised else {}),
+        # GE-23: the run timer's seconds so far, only for a run that is being timed.
+        **({"timer_seconds": int(run.elapsed)} if run.timed and run.elapsed >= 1 else {}),
         # Write-only projection (ACHIEVEMENTS-SYSTEM-DESIGN.md §1) — always
         # freshly recomputed, never read back by load_state() below.
         "summary": steward_summary(),  # B-23: write-only, never read back
@@ -6240,6 +6321,12 @@ def load_state(data):
     run.growth_capacity = data["growth_capacity"]
     run.damage_taken = data["damage_taken"]
     run.event_log = copy.deepcopy(data["event_log"])
+    saved_seconds = data.get("timer_seconds")  # GE-23: absent from older saves; a bad value is ignored
+    if (
+        isinstance(saved_seconds, (int, float)) and not isinstance(saved_seconds, bool)
+        and 1 <= saved_seconds <= TIMER_MAX_SECONDS and not run.normalised and run_timer_enabled()
+    ):
+        run.timed, run.elapsed, run._timer_last = True, float(int(saved_seconds)), _now()
     global event_badges
     event_badges = _clean_event_badges(data.get("event_badges"))
     if event_badges:
@@ -7392,6 +7479,61 @@ def countdown_note_text(run_state):
     return f"You could still buy up to {left} unit{'s' if left != 1 else ''} before {EVENT_LABEL[run_state.next_event_type()]}."
 
 
+def run_timer_text(run_state):
+    """The words for #run-timer-display (shown only while the Settings switch is on)."""
+    if not run_timer_enabled():
+        return ""
+    if run_state.timed:
+        return f"Run time: {format_duration(run_state.elapsed)}" + (" (final)" if run_state.is_complete() else "")
+    if run_state.timed is None:
+        return "Run time: starts with your first move"
+    return "Run time: not timed (the timer was off when this run began); it times your next run"
+
+
+_timer_chain_pending = False
+
+
+def _timer_chain_step(*args):
+    global _timer_chain_pending
+    _timer_chain_pending = False
+    if run_timer_enabled() and run.timed and not run.is_complete():
+        run.tick_timer(_now())
+        render_run_timer()
+
+
+def _schedule_timer_tick():
+    global _timer_chain_pending
+    if _timer_chain_pending:
+        return
+    _timer_chain_pending = True
+
+    def _fire(*args):
+        proxy.destroy()
+        _timer_chain_step()
+
+    proxy = create_proxy(_fire)
+    setTimeout(proxy, 1000)
+
+
+def render_run_timer():
+    element = _el("run-timer-display")
+    if element is None:
+        return
+    text = run_timer_text(run)
+    element.innerText = text
+    element.hidden = not text
+    if run_timer_enabled() and run.timed and not run.is_complete():
+        _schedule_timer_tick()
+
+
+def on_run_timer_setting(event=None):
+    """Switching the timer off ends timing for the run in progress (its time would be partial)."""
+    if not run_timer_enabled() and run.timed:
+        run.timed = False
+        run._timer_last = None
+    render()
+
+
 # ---------------------------------------------------------------------------
 # GE-14: per-category event hit effects. When an event resolves the settlement art gets one short effect
 # for that kind of event (a ripple for floods, a heat pulse for heatwaves and heat-health emergencies, a
@@ -7500,6 +7642,7 @@ def _wire_round3_batch2():
     _listen("skill-move-from", "change", on_skill_move_select)
     _listen("skill-move-to", "change", on_skill_move_select)
     _listen("neighbour-aid-checkbox", "change", on_neighbour_aid_setting)  # R-31
+    _listen("run-timer-checkbox", "change", on_run_timer_setting)  # GE-23
 
 
 def setup():

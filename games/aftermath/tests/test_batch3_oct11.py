@@ -236,3 +236,148 @@ def test_a_cached_page_without_the_countdown_note_still_renders(game_env):
     real = m._el
     m._el = lambda element_id: None if element_id == "countdown-note" else real(element_id)
     m.render_schedule_strip()
+
+
+# ------------------------------------------------------------------------------------------ GE-23
+class _Clock:
+    def __init__(self, start=1000.0):
+        self.t = start
+
+    def __call__(self):
+        return self.t
+
+
+def _timer(game_env, on=True, start=1000.0):
+    m = game_env.module
+    clock = _Clock(start)
+    m._now = clock
+    if on:
+        game_env.local_storage.setItem("aftermath-run-timer", "true")
+    return clock
+
+
+def test_timer_is_off_by_default_hidden_and_adds_nothing_anywhere(game_env):
+    m, e = game_env.module, game_env.elements
+    clock = _timer(game_env, on=False)
+    assert m.run_timer_enabled() is False and e["run-timer-display"].hidden is True
+    game_env.invest_growth()
+    clock.t += 3
+    for _ in range(len(m.run.schedule)):
+        game_env.resolve_event()
+    assert "seconds" not in m.run_log_history[-1] and "timer_seconds" not in m.get_state()
+    assert m.run.timed is False and m.fastest_run_number() is None
+    assert m.run_log_history[-1]["score"] == m.run.run_score()
+
+
+def test_time_runs_from_the_first_action_to_the_last_event_and_is_logged(game_env):
+    m, e = game_env.module, game_env.elements
+    clock = _timer(game_env)
+    m.render()
+    assert e["run-timer-display"].hidden is False and "starts with your first move" in e["run-timer-display"].innerText
+    clock.t += 100
+    assert m.run.elapsed == 0  # waiting before the first move costs nothing
+    game_env.invest_growth()  # the first action starts the clock
+    assert m.run.timed is True
+    clock.t += 4
+    game_env.resolve_event()
+    assert m.run.elapsed == 4
+    for _ in range(len(m.run.schedule) - 1):
+        clock.t += 2
+        game_env.resolve_event()
+    assert m.run.is_complete() and m.run.elapsed == 4 + 2 * 6
+    assert m.run_log_history[-1]["seconds"] == 16
+    assert e["run-timer-display"].innerText == "Run time: 0:16 (final)"
+    assert m.get_state().get("timer_seconds") is None or m.get_state()["timer_seconds"] == 16
+
+
+def test_one_long_pause_counts_at_most_five_seconds(game_env):
+    m = game_env.module
+    clock = _timer(game_env)
+    game_env.invest_growth()
+    clock.t += 3600  # a tab left open for an hour
+    game_env.resolve_event()
+    assert m.run.elapsed == m.TIMER_MAX_STEP
+
+
+def test_ticks_between_actions_keep_the_display_moving_and_chain_one_timeout(game_env):
+    m, e = game_env.module, game_env.elements
+    clock = _timer(game_env)
+    game_env.invest_growth()
+    before = len([d for _cb, d in game_env.timers.pending if d == 1000])
+    assert before == 1
+    m.render()
+    assert len([d for _cb, d in game_env.timers.pending if d == 1000]) == 1  # never doubled
+    clock.t += 1
+    game_env.timers.flush()
+    assert m.run.elapsed == 1 and e["run-timer-display"].innerText == "Run time: 0:01"
+    assert len([d for _cb, d in game_env.timers.pending if d == 1000]) == 1  # and it re-armed itself
+
+
+def test_a_run_that_began_untimed_stays_untimed_and_switching_off_ends_timing(game_env):
+    m, e = game_env.module, game_env.elements
+    clock = _timer(game_env, on=False)
+    game_env.invest_growth()
+    game_env.local_storage.setItem("aftermath-run-timer", "true")
+    clock.t += 5
+    game_env.resolve_event()
+    assert m.run.timed is False and "not timed" in e["run-timer-display"].innerText
+    game_env.start_new_run()
+    game_env.invest_growth()
+    assert m.run.timed is True
+    game_env.local_storage.setItem("aftermath-run-timer", "false")
+    e["run-timer-checkbox"].dispatch("change", None)
+    assert m.run.timed is False and e["run-timer-display"].hidden is True
+
+
+def test_a_challenge_run_is_never_timed(game_env):
+    m = game_env.module
+    _timer(game_env)
+    run = m.RunState(normalised=True)
+    m.run = run
+    game_env.invest_growth()
+    assert run.timed is False
+
+
+def test_a_saved_run_keeps_its_seconds_and_a_bad_value_is_ignored(game_env):
+    m = game_env.module
+    clock = _timer(game_env)
+    game_env.invest_growth()
+    clock.t += 4
+    game_env.resolve_event()
+    state = m.get_state()
+    assert state["timer_seconds"] == 4
+    m.load_state(dict(state))
+    assert m.run.timed is True and m.run.elapsed == 4
+    for bad in (True, "9", -3, 0, 10 ** 9, None, [1]):
+        broken = dict(state, timer_seconds=bad)
+        m.load_state(broken)
+        assert m.run.timed is None and m.run.elapsed == 0
+    m.load_state({k: v for k, v in state.items() if k != "timer_seconds"})  # an older save has no key
+    assert m.run.timed is None
+    game_env.local_storage.setItem("aftermath-run-timer", "false")
+    m.load_state(dict(state))
+    assert m.run.timed is None  # the switch is off now: the loaded run is simply untimed
+
+
+def test_past_runs_show_the_time_mark_the_fastest_and_sort_by_it(game_env):
+    m = game_env.module
+    clock = _timer(game_env)
+    for number, per_step in ((1, 3), (2, 1), (3, 2)):
+        m.run = m.RunState(run_number=number)
+        game_env.invest_growth()
+        for _ in range(len(m.run.schedule)):
+            clock.t += per_step
+            game_env.resolve_event()
+    assert [e.get("seconds") for e in m.run_log_history] == [21, 7, 14]
+    assert m.fastest_run_number() == 2
+    card = m._past_run_card(1, m.run_log_history[1], False)
+    assert "⏱ 0:07 (fastest)" in card.children[0].innerText
+    card = m._past_run_card(0, m.run_log_history[0], False)
+    assert "⏱ 0:21" in card.children[0].innerText and "fastest" not in card.children[0].innerText
+    m.past_runs_sort = "fastest"
+    order = [entry["run_number"] for _i, entry in m.past_runs_view()]
+    assert order == [2, 3, 1]
+    m.run_log_history.append({"run_number": 4, "score": 5, "resilience_capacity": 0, "growth_capacity": 0, "damage_taken": 1, "knowledge_earned": 1, "event_log": []})
+    assert [entry["run_number"] for _i, entry in m.past_runs_view()] == [2, 3, 1, 4]  # untimed runs follow
+    assert m.entry_seconds({"seconds": "9"}) is None and m.entry_seconds({"seconds": 0}) is None and m.entry_seconds({"seconds": True}) is None
+    assert m.format_duration(59) == "0:59" and m.format_duration(3725) == "1:02:05"
