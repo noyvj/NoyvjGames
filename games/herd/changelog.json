@@ -1,6 +1,10 @@
 [
   {
     "date": "2026-10-11",
+    "entry": "Pin up to three stats (funds, income per round, welfare, methane, score, herd or pressure) into a strip at the top of the page that stays in view while you scroll through the extras panels. Your picks are remembered in this browser."
+  },
+  {
+    "date": "2026-10-11",
     "entry": "New Ranch Ledger: a line for every farm you hand down, and a button to file the farm you are playing, kept in this browser. Filter by mode (plain, seasons, cap) and see a trend chart of your score against the pure-growth baseline."
   },
   {

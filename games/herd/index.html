@@ -98,6 +98,7 @@
   <div class="ambient-bg ambient-bg--pastoral" aria-hidden="true"><div class="ambient-bg-blobs"></div><div class="ambient-bg-accent"></div></div>
   <div id="game">
     <div id="haze-overlay" class="haze-overlay"></div>
+    <div id="pinned-strip" class="pinned-strip" role="group" aria-label="Pinned stats" hidden></div>
     <a href="../../index.html" class="hub-back-link">&larr; All games</a>
     <h1>Herd</h1>
 
@@ -432,6 +433,18 @@
       <p id="supply-chain-display" class="comparison-message"></p>
       <div class="meter" role="img" aria-label="Supply chain units bought out of the maximum" id="supply-chain-meter"><div id="supply-chain-bar" class="meter-fill meter-fill--supply"></div></div>
       <button id="supply-chain-invest-button" class="secondary" title="A downstream income lever, independent of herd size.">Processing &amp; Distribution</button>
+      <fieldset id="pin-picker" class="pin-picker">
+        <legend class="meter-label">Pin up to three stats to a strip at the top</legend>
+        <label class="settings-checkbox-label"><input type="checkbox" id="pin-funds"> Funds</label>
+        <label class="settings-checkbox-label"><input type="checkbox" id="pin-income"> Income per round</label>
+        <label class="settings-checkbox-label"><input type="checkbox" id="pin-welfare"> Welfare</label>
+        <label class="settings-checkbox-label"><input type="checkbox" id="pin-methane-round"> Methane per round</label>
+        <label class="settings-checkbox-label"><input type="checkbox" id="pin-methane"> Total methane</label>
+        <label class="settings-checkbox-label"><input type="checkbox" id="pin-score"> Score</label>
+        <label class="settings-checkbox-label"><input type="checkbox" id="pin-herd"> Herd</label>
+        <label class="settings-checkbox-label"><input type="checkbox" id="pin-pressure"> Pressure</label>
+        <p id="pin-note" class="comparison-message"></p>
+      </fieldset>
       <p class="meter-label">Scenario options</p>
       <label class="settings-checkbox-label"><input type="checkbox" id="variation-checkbox"> Market &amp; weather variation (seasons swing income; plant-based demand surges)</label>
       <label class="settings-checkbox-label"><input type="checkbox" id="cap-checkbox"> Regional methane cap (growth blocked past the cap)</label>

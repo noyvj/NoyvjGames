@@ -3800,6 +3800,92 @@ def on_ledger_clear(event=None):
     )
 
 
+# ---- F-16 pin-a-stat strip ---------------------------------------------------------------
+# Up to three readouts pinned into a sticky strip, so they stay in view while the extras panels are
+# open. The choice is a browser preference (localStorage), never part of a save.
+PINS_STORAGE_KEY = "herd-pinned-stats"
+PIN_MAX = 3
+PIN_STATS = {
+    "funds": ("Funds", lambda: f"{farm.funds:.0f}"),
+    "income": ("Income per round", lambda: f"{farm.income_breakdown()['total']:.1f}"),
+    "welfare": ("Welfare", lambda: f"{farm.welfare():.0f}/100"),
+    "methane_round": ("Methane per round", lambda: f"{farm.methane_this_round():.1f}"),
+    "methane": ("Total methane", lambda: f"{farm.methane:.0f}"),
+    "score": ("Score", lambda: f"{farm.score():.0f}"),
+    "herd": ("Herd", lambda: f"{farm.herd_size}"),
+    "pressure": ("Pressure", lambda: f"{farm.pressure_fraction() * 100:.0f}% income loss"),
+}
+
+
+def clean_pins(raw):
+    """Pin ids from stored or untrusted data: real stats only, no repeats, at most PIN_MAX."""
+    if not isinstance(raw, list):
+        return []
+    pins = []
+    for item in raw:
+        if isinstance(item, str) and item in PIN_STATS and item not in pins:
+            pins.append(item)
+    return pins[:PIN_MAX]
+
+
+def load_pins():
+    raw = _read_local_storage_item(PINS_STORAGE_KEY)
+    if not raw:
+        return []
+    try:
+        return clean_pins(json.loads(raw))
+    except (ValueError, TypeError):
+        return []
+
+
+pinned_stats = load_pins()
+
+
+def set_pin(stat, on):
+    """Pins or unpins one stat. Pinning a fourth is refused. Returns True when the pins changed."""
+    global pinned_stats
+    if stat not in PIN_STATS:
+        return False
+    if on and stat not in pinned_stats and len(pinned_stats) < PIN_MAX:
+        pinned_stats = pinned_stats + [stat]
+    elif not on and stat in pinned_stats:
+        pinned_stats = [s for s in pinned_stats if s != stat]
+    else:
+        return False
+    _write_local_storage_item(PINS_STORAGE_KEY, json.dumps(pinned_stats))
+    return True
+
+
+def pinned_strip_html():
+    return "".join(
+        f'<span class="pin-chip"><span class="pin-chip-label">{PIN_STATS[stat][0]}</span> '
+        f'<span class="pin-chip-value">{PIN_STATS[stat][1]()}</span></span>'
+        for stat in pinned_stats
+    )
+
+
+def render_pins():
+    strip = document.getElementById("pinned-strip")
+    strip.hidden = not pinned_stats
+    strip.innerHTML = pinned_strip_html()
+    full = len(pinned_stats) >= PIN_MAX
+    for stat in PIN_STATS:
+        box = document.getElementById(f"pin-{stat.replace('_', '-')}")
+        box.checked = stat in pinned_stats
+        box.disabled = full and stat not in pinned_stats
+    document.getElementById("pin-note").innerText = (
+        f"{len(pinned_stats)} of {PIN_MAX} pinned. Untick one to pin another." if full
+        else f"{len(pinned_stats)} of {PIN_MAX} pinned. Pinned stats stay in a strip at the top of the page."
+    )
+
+
+def _make_pin_handler(stat):
+    def handler(event=None):
+        set_pin(stat, bool(document.getElementById(f"pin-{stat.replace('_', '-')}").checked))
+        render_pins()
+    return handler
+
+
 def render():
     _sync_collection()
     render_info_page()
@@ -3912,6 +3998,7 @@ def render():
     render_rules()
     render_planner()
     render_ledger()
+    render_pins()
 
 
 # F-18: an optional "ask before a big purchase" setting. The Settings select (settings.js) keeps the
@@ -4735,6 +4822,8 @@ def setup():
         ("plan-clear-button", on_plan_clear),
     ):
         document.getElementById(element_id).addEventListener("click", create_proxy(handler))
+    for stat in PIN_STATS:
+        document.getElementById(f"pin-{stat.replace('_', '-')}").addEventListener("click", create_proxy(_make_pin_handler(stat)))
     document.getElementById("ledger-filter").addEventListener("change", create_proxy(on_ledger_filter))
     document.getElementById("ledger-add-button").addEventListener("click", create_proxy(on_ledger_add))
     document.getElementById("ledger-clear-button").addEventListener("click", create_proxy(on_ledger_clear))

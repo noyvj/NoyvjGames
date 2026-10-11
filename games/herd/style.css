@@ -1616,3 +1616,16 @@ html[data-high-contrast="true"] #glossary-popover { background: #000; color: #ff
 .ledger-mark { fill: #7fd6a3; stroke: #000; stroke-width: 0.5; }
 .ledger-table td, .ledger-table th { white-space: nowrap; font-variant-numeric: tabular-nums; }
 .ledger-panel label { font-size: 0.78rem; }
+
+/* F-16 pinned stats: a sticky strip that stays in view while the extras panels are open. */
+.pinned-strip {
+  position: sticky; top: 0; z-index: 30; display: flex; flex-wrap: wrap; gap: 0.4rem 0.8rem; margin: 0 0 0.6rem;
+  padding: 0.35rem 0.6rem; border-radius: 8px; font-size: 0.8rem; font-variant-numeric: tabular-nums;
+  background: rgba(20, 22, 36, 0.94); border: 1px solid rgba(224, 194, 76, 0.55); backdrop-filter: blur(6px);
+}
+.pin-chip-label { opacity: 0.75; }
+.pin-chip-label::after { content: ":"; }
+.pin-chip-value { font-weight: 700; }
+html[data-theme="light"] .pinned-strip { background: rgba(255, 253, 246, 0.96); }
+.pin-picker { border: 0; margin: 0.4rem 0; padding: 0; min-width: 0; }
+.pin-picker legend { padding: 0; }

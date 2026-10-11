@@ -117,6 +117,9 @@ ELEMENT_IDS = [
     # F-2 ledger.
     "ledger-panel", "ledger-add-button", "ledger-filter", "ledger-clear-button", "ledger-summary", "ledger-chart",
     "ledger-table",
+    # F-16 pinned strip.
+    "pinned-strip", "pin-picker", "pin-note", "pin-funds", "pin-income", "pin-welfare", "pin-methane-round",
+    "pin-methane", "pin-score", "pin-herd", "pin-pressure",
 ]
 for _measure in MEASURE_IDS:
     ELEMENT_IDS += [f"{_measure}-name", f"{_measure}-count", f"{_measure}-invest-button"]
