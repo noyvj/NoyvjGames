@@ -194,6 +194,11 @@
         </div>
       </div>
       <p id="skin-note" class="settings-note"></p>
+      <!-- GI-20: a one-line, warm town-news headline in the status block; off by default. -->
+      <div class="settings-row">
+        <span class="settings-row-label">Town news</span>
+        <button id="news-ticker-toggle-button" class="secondary" type="button" aria-pressed="false">Town news: Off</button>
+      </div>
       <!-- I-19: spacing of the panels and lines. -->
       <div class="settings-row">
         <span class="settings-row-label">Density</span>
@@ -244,6 +249,8 @@
     </div>
 
     <div id="status" class="section">
+      <!-- GI-20: optional town-news line, shown only when Settings > Town news is on (settings.js adds html.news-ticker-on). -->
+      <p id="news-ticker" class="news-ticker"></p>
       <p id="round-display" class="status-line">Round 1</p>
       <p id="funds-display" class="status-line">Funds: 300</p>
       <p id="total-capacity-display" class="status-line">Total capacity: 0</p>

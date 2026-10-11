@@ -219,6 +219,7 @@ ELEMENT_IDS = [
     "load-note-box",
     "load-note",
     "load-note-dismiss",
+    "news-ticker",
     "region-visual",
     "skin-dusk-button",
     "skin-seaside-button",

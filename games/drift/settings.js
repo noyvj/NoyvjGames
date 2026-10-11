@@ -43,6 +43,8 @@
   // How long an animation runs relative to its normal length (style.css multiplies every duration by this).
   var ANIM_SCALES = { slow: 2, normal: 1, fast: 0.5, off: 1 };
   var DENSITIES = ["comfortable", "compact"];
+  // GI-20: the optional town-news line (off by default); game.py writes the headline, this only shows or hides it.
+  var NEWS_KEY = "drift-news-ticker";
 
   function readChoice(key, allowed, fallback) {
     try {
@@ -211,6 +213,22 @@
       });
     });
 
+    var news = applyFlag(NEWS_KEY, "news-ticker-on", readFlag(NEWS_KEY));
+    var newsButton = document.getElementById("news-ticker-toggle-button");
+    function updateNewsButton() {
+      if (!newsButton) return;
+      newsButton.textContent = "Town news: " + (news ? "On" : "Off");
+      newsButton.classList.toggle("active", news);
+      newsButton.setAttribute("aria-pressed", news ? "true" : "false");
+    }
+    updateNewsButton();
+    if (newsButton) {
+      newsButton.addEventListener("click", function () {
+        news = applyFlag(NEWS_KEY, "news-ticker-on", !news);
+        updateNewsButton();
+      });
+    }
+
     var toggleButton = document.getElementById("settings-toggle-button");
     var panel = document.getElementById("settings-panel");
     var open = false;
@@ -276,6 +294,8 @@
         updateFlagLabels();
         var dusk = document.getElementById("skin-dusk-button"); // the region skin lives in game.py; Dusk is the default
         if (dusk) dusk.click();
+        news = applyFlag(NEWS_KEY, "news-ticker-on", false);
+        updateNewsButton();
         animSpeed = applyAnimSpeed("normal");
         density = applyDensity("comfortable");
         markGroup("anim-speed-group", "data-speed", animSpeed);

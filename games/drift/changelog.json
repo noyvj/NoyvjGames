@@ -1,6 +1,10 @@
 [
   {
     "date": "2026-10-11",
+    "entry": "New, and off unless you want it: Settings has a Town news switch. When it is on, one warm line of local news sits at the top of the status block (a council debating a bench, a library finding a second kettle) and changes with how the region is doing. The jokes are about meetings, timetables and biscuits, never about the people who arrive."
+  },
+  {
+    "date": "2026-10-11",
     "entry": "Better loading: if a save is from an older version or part of it is damaged, Drift now says so after loading (what it restored and what started fresh, with a Dismiss button) instead of quietly filling in defaults, and a damaged number or history no longer breaks the game. A normal save loads with no note."
   },
   {

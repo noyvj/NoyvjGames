@@ -1833,3 +1833,13 @@ html[data-theme="light"] .template-name { background: #ffffff; }
 .load-note-box { display: grid; gap: 0.4rem; margin: 0.4rem 0; }
 .load-note-box .turning-point-message { margin: 0; }
 .load-note-box button { justify-self: start; }
+
+/* GI-20: optional town-news line (settings.js toggles html.news-ticker-on). */
+.news-ticker { display: none; margin: 0 0 0.6rem; padding: 0.4rem 0.6rem; border-left: 2px solid #c9a13c; border-radius: 0 6px 6px 0; background: rgba(20, 22, 31, 0.45); font-size: 0.82rem; font-style: italic; line-height: 1.35; }
+html.news-ticker-on .news-ticker { display: block; }
+.news-ticker::before { content: "📰 "; font-style: normal; }
+html[data-theme="light"] .news-ticker { background: rgba(255, 255, 255, 0.6); }
+html.high-contrast .news-ticker { border-left-color: #ffffff; background: #000000; color: #ffffff; }
+html.high-contrast[data-theme="light"] .news-ticker { background: #ffffff; color: #000000; border-left-color: #000000; }
+.settings-control-group button.active, #news-ticker-toggle-button.active { border-color: rgba(76, 156, 110, 0.6); background: rgba(76, 156, 110, 0.14); color: #7fd6a3; }
+html[data-theme="light"] #news-ticker-toggle-button.active { color: #1d6b3d; }
