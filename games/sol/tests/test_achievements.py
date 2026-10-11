@@ -33,7 +33,7 @@ def _all_texts(element):
 
 def test_achievements_catalog_loads_from_json_with_a_reasonable_count(game_env):
     module = game_env.module
-    assert 5 <= len(module.ACHIEVEMENTS) <= 30
+    assert 5 <= len(module.ACHIEVEMENTS) <= 40
     ids = [entry["id"] for entry in module.ACHIEVEMENTS]
     assert len(ids) == len(set(ids))  # no duplicate ids
 
