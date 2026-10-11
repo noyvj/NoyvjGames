@@ -35,6 +35,7 @@ class FakeElement:
         self.innerText = ""
         self._innerHTML = ""
         self.disabled = False
+        self.value = ""
         self.hidden = False
         self.title = ""
         self.className = ""

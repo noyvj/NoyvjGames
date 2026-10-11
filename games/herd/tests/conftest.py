@@ -110,6 +110,10 @@ ELEMENT_IDS = [
     "rules-summary", "rules-start-note", "rules-reset-button", "rules-badge",
     # F-9 policy pool.
     "policy-real-display", "policy-history-list",
+    # F-7 planner.
+    "plan-lever-select", "plan-count-select", "plan-round-select", "plan-add-button", "plan-undo-button",
+    "plan-clear-button", "plan-horizon-5-button", "plan-horizon-10-button", "plan-queue-list", "plan-summary",
+    "plan-chart", "plan-table", "planner-panel",
 ]
 for _measure in MEASURE_IDS:
     ELEMENT_IDS += [f"{_measure}-name", f"{_measure}-count", f"{_measure}-invest-button"]

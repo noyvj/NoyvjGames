@@ -1,6 +1,10 @@
 [
   {
     "date": "2026-10-11",
+    "entry": "New 'Plan ahead' drawer: queue purchases for the next few rounds and see a projected score, funds, methane per round and coupling for 5 or 10 rounds, next to doing nothing and next to the pure-growth baseline. It runs on a copy, so your real farm and your save are never touched."
+  },
+  {
+    "date": "2026-10-11",
     "entry": "The policy advisor now has a pool of six offers (decoupling subsidy, cash bonus, carbon-credit contract, feed-price hedge, organic label trial, welfare grant), two at a time and none repeated until the pool is used. Each has a plain real-world tag, and an Advisor history in the Collection panel and a line on the report card list what you took and what you passed on."
   },
   {

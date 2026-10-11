@@ -1594,3 +1594,17 @@ html[data-high-contrast="true"] #glossary-popover { background: #000; color: #ff
 .policy-real { font-size: 0.74rem; opacity: 0.75; }
 .policy-history-list { padding-left: 1.2rem !important; font-size: 0.8rem; }
 #policy-panel button { margin: 0.3rem 0.4rem 0 0; }
+
+/* F-7 dry-run planner. */
+.plan-controls { display: flex; flex-wrap: wrap; gap: 0.5rem; margin: 0.4rem 0; }
+.plan-controls label { display: flex; flex-direction: column; gap: 0.15rem; font-size: 0.78rem; }
+.plan-buttons { display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem; margin: 0.4rem 0; }
+.plan-queue-list { margin: 0.4rem 0; padding-left: 1.2rem; font-size: 0.8rem; line-height: 1.4; }
+.plan-chart-svg { width: 100%; max-width: 360px; height: auto; display: block; }
+.plan-line { fill: none; stroke-width: 2; }
+.plan-line--plan { stroke: #7fd6a3; }
+.plan-line--idle { stroke: #d9a24a; stroke-dasharray: 6 4; }
+.plan-line--base { stroke: #b06fd6; stroke-dasharray: 1.5 3.5; stroke-linecap: round; }
+.plan-line-letter { fill: currentColor; font-size: 8px; font-weight: 700; }
+.plan-table-wrap { overflow-x: auto; }
+.plan-table td, .plan-table th { font-variant-numeric: tabular-nums; white-space: nowrap; }

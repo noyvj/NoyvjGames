@@ -355,6 +355,49 @@
       <div id="explain-output" class="explain-output" aria-live="polite" hidden></div>
     </details>
 
+    <details id="planner-panel" class="section farm-extras planner-panel">
+      <summary>Plan ahead (dry run)</summary>
+      <p class="comparison-message">Queue purchases for the next few rounds and see where a copy of your farm would end up. Nothing here changes your real farm or your save.</p>
+      <div class="plan-controls">
+        <label for="plan-lever-select">Buy
+          <select id="plan-lever-select">
+            <option value="herd">Grow Herd</option>
+            <option value="feed">Feed Additives</option>
+            <option value="caps">Herd Caps</option>
+            <option value="capture">Capture Systems</option>
+            <option value="pivot">Plant-Based Pivot</option>
+            <option value="genetics">Breeding Program</option>
+            <option value="supply">Processing &amp; Distribution</option>
+          </select>
+        </label>
+        <label for="plan-count-select">How many
+          <select id="plan-count-select"><option value="1">x1</option><option value="2">x2</option><option value="5">x5</option></select>
+        </label>
+        <label for="plan-round-select">When
+          <select id="plan-round-select">
+            <option value="0">Now</option><option value="1">In 1 round</option><option value="2">In 2 rounds</option>
+            <option value="3">In 3 rounds</option><option value="4">In 4 rounds</option><option value="5">In 5 rounds</option>
+            <option value="6">In 6 rounds</option><option value="7">In 7 rounds</option><option value="8">In 8 rounds</option>
+            <option value="9">In 9 rounds</option>
+          </select>
+        </label>
+      </div>
+      <div class="plan-buttons">
+        <button id="plan-add-button" class="secondary" type="button">Add to plan</button>
+        <button id="plan-undo-button" class="secondary" type="button" disabled>Remove last step</button>
+        <button id="plan-clear-button" class="secondary" type="button" disabled>Clear plan</button>
+      </div>
+      <div class="plan-buttons" role="group" aria-label="How many rounds to look ahead">
+        <span class="bulk-stepper-label">Look ahead</span>
+        <button id="plan-horizon-5-button" class="secondary bulk-step selected" type="button" aria-pressed="true">5 rounds</button>
+        <button id="plan-horizon-10-button" class="secondary bulk-step" type="button" aria-pressed="false">10 rounds</button>
+      </div>
+      <ol id="plan-queue-list" class="plan-queue-list"></ol>
+      <p id="plan-summary" class="comparison-message" role="status" aria-live="polite"></p>
+      <div id="plan-chart" class="plan-chart"></div>
+      <div id="plan-table" class="plan-table-wrap"></div>
+    </details>
+
     <details id="farm-extras" class="section farm-extras">
       <summary>Farm operations &amp; scenario options</summary>
       <p id="vignette-display" class="comparison-message"></p>
