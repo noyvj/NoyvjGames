@@ -1949,9 +1949,9 @@ html[data-reduced-motion="true"] *::after {
 }
 
 /* C-23: the short round-advance picture. Decoration only: hidden under Reduce motion, in the OS setting and with the Settings checkbox. */
-.round-animation { margin: 0.2rem 0; }
+.round-animation { position: absolute; inset: 0; pointer-events: none; }
 .round-animation[hidden] { display: none; }
-.round-animation-svg { width: 100%; height: auto; max-height: 56px; display: block; }
+.round-animation-svg { width: 100%; height: 100%; display: block; }
 .ra-arc { fill: none; stroke: rgba(255, 224, 138, 0.5); stroke-width: 1.2; stroke-dasharray: 1; stroke-dashoffset: 1; animation: ra-draw 0.7s ease-out forwards; }
 .ra-sun { fill: #ffe08a; animation: ra-sun-move 0.85s ease-in-out forwards; }
 .ra-streak { stroke: #cfe0ff; stroke-width: 1.6; stroke-linecap: round; stroke-dasharray: 14 60; stroke-dashoffset: 40; animation: ra-streak 0.7s ease-out forwards; }

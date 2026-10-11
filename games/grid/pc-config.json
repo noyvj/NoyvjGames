@@ -204,7 +204,6 @@
     "stage": [
       ".grid-visual",
       "#skyline-strip",
-      "#round-animation",
       "#plants",
       "#plant-mix"
     ],
