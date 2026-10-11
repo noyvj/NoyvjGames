@@ -192,3 +192,18 @@ def test_peek_hidden_until_unlocked_and_saved(game_env):
     game_env.state.peeked_round = 0
     g.load_state(data)
     assert game_env.state.peeked_round == 1
+
+
+def test_copy_seed_button_copies_the_run_seed(game_env, monkeypatch):
+    """Z-1a: the Copy seed button hands the run's seed to the clipboard and says so."""
+    g = game_env.module
+    el = game_env.elements
+    copied = []
+    monkeypatch.setattr(g, "_copy_to_clipboard", lambda text: copied.append(text) or True)
+    game_env.state.set_seed("GRID-K7F2Q")
+    el["run-seed-copy-button"].dispatch("click", None)
+    assert copied == ["GRID-K7F2Q"]
+    assert "Copied GRID-K7F2Q" in el["run-seed-note"].innerText
+    monkeypatch.setattr(g, "_copy_to_clipboard", lambda text: False)
+    el["run-seed-copy-button"].dispatch("click", None)
+    assert "GRID-K7F2Q" in el["run-seed-note"].innerText and "would not copy" in el["run-seed-note"].innerText

@@ -107,6 +107,7 @@ ELEMENT_IDS = [
     "run-seed-display",
     "run-seed-input",
     "run-seed-apply-button",
+    "run-seed-copy-button",
     "run-seed-note",
     "ironman-toggle-button",
     "undo-build-button",

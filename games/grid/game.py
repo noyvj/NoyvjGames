@@ -5513,6 +5513,16 @@ def on_apply_run_seed(event=None):
     render()
 
 
+def on_copy_run_seed(event=None):
+    """Z-1a: copy the run's seed so it can be shared; the note says so (or shows it to copy by hand)."""
+    global run_setup_message
+    if _copy_to_clipboard(state.seed):
+        run_setup_message = f"Copied {state.seed}."
+    else:
+        run_setup_message = f"Your browser would not copy it. The seed is {state.seed}: select it above and copy it."
+    render()
+
+
 def on_toggle_ironman(event=None):
     global run_setup_message
     if state.set_ironman(not state.ironman):
@@ -7478,6 +7488,7 @@ def setup():
             mix_row.addEventListener(event_name, create_proxy(_make_mix_hover_handler(plant_type, entering)))
     document.getElementById("start-option-select").addEventListener("change", create_proxy(on_start_option_change))
     document.getElementById("run-seed-apply-button").addEventListener("click", create_proxy(on_apply_run_seed))
+    document.getElementById("run-seed-copy-button").addEventListener("click", create_proxy(on_copy_run_seed))
     document.getElementById("ironman-toggle-button").addEventListener("click", create_proxy(on_toggle_ironman))
     document.getElementById("undo-build-button").addEventListener("click", create_proxy(on_undo_build))
     document.getElementById("grant-accept-button").addEventListener("click", create_proxy(on_accept_grant))
