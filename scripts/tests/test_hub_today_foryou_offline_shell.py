@@ -209,6 +209,23 @@ def test_today_uses_the_shared_daily_record_for_other_games(harness):
     assert page.locator(".today-sample").count() == 0
 
 
+def test_today_lists_every_game_found_in_the_daily_record(harness):
+    """Z-5a: a game that wrote to noyvj-daily-v1 appears without being added to today.json."""
+    record = {"version": 1, "date": "2026-10-08",
+              "runs": {"sol": {"seed": "SOL-X54PB", "completed_at": "2026-10-08T01:00:00Z", "text": "Day 12"}},
+              "streaks": {"sol": {"count": 1, "best": 1, "last": "2026-10-08"},
+                          "pocket-bazaar": {"count": 2, "best": 3, "last": "2026-10-07"}}}
+    feed = {"version": 1, "sample": False, "daily": [{"game": "signal", "label": ""}], "weekly": []}
+    h = harness(init_scripts=[SEEN, TRACK, f"localStorage.setItem('noyvj-daily-v1', {json.dumps(json.dumps(record))});"])
+    h.pages["/today.json"] = json.dumps(feed)
+    page = today_page(h)
+    text = page.inner_text("#today-strip")
+    assert "Done today: Day 12" in text
+    assert page.locator("#today-items .today-item").filter(has_text="pocket-bazaar daily puzzle").count() + \
+        page.locator("#today-items .today-item").filter(has_text="Pocket Bazaar daily puzzle").count() == 1
+    assert text.lower().count("signal daily puzzle") == 1
+
+
 def test_today_weekly_picks_the_week_and_loops(harness):
     h = harness(init_scripts=[SEEN])
     page = today_page(h, "/index.html?event-date=2026-10-14")

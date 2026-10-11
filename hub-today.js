@@ -23,6 +23,8 @@
  * "Today" for dailies is the UTC date (Signal resets at UTC midnight). ?event-date=YYYY-MM-DD
  * overrides the date for testing, the same switch the seasonal events use.
  *
+ * Games found in noyvj-daily-v1 are listed after the feed's own daily list (Z-5a).
+ *
  * window.HubToday: sanitizeFeed, weeklyFor, signalDaily, signalStreak, dailyRecord, utcDate,
  * addDays, render().
  */
@@ -217,9 +219,16 @@
   // ---- sections ---------------------------------------------------------------------------------
 
   function dailyItems(feed, iso, names) {
-    const games = feed && feed.daily.length ? feed.daily : [{ game: "signal", label: "" }];
+    const feedGames = feed && feed.daily.length ? feed.daily : [{ game: "signal", label: "" }];
     const signal = jsonOf(lsGet(SIGNAL_KEY));
     const record = dailyRecord(jsonOf(lsGet(DAILY_KEY)), iso);
+    // Z-5a: also every game that has written to noyvj-daily-v1 (a run today or a streak ever), so a
+    // new daily needs no edit to today.json. The feed's own list keeps its order and labels.
+    const games = feedGames.slice();
+    const seen = new Set(games.map((g) => g.game));
+    Object.keys(record.runs).concat(Object.keys(record.streaks)).sort().forEach((g) => {
+      if (!seen.has(g)) { seen.add(g); games.push({ game: g, label: "" }); }
+    });
     return games.map((g) => {
       const label = g.label || (names[g.game] || g.game) + " daily puzzle";
       const li = item(label);
