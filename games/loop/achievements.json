@@ -129,6 +129,11 @@
       "id": "yard_boss",
       "label": "Yard Boss",
       "description": "Close a loop at the secret Ship-Breaking Yard, which opens once you have closed one on electronics, clothing and furniture."
+    },
+    {
+      "id": "shock_absorber",
+      "label": "Shock Absorber",
+      "description": "Close the loop on 5 cycles that had a market shock. Turn Market shocks on to meet them: a price spike, a port strike or a demand surge, always announced a cycle early."
     }
   ]
 }

@@ -157,6 +157,10 @@ ELEMENT_IDS = [
     "rewind-button",
     "rewind-status",
     "rewind-token-display",
+    # GH-3: market shocks.
+    "market-shocks-button",
+    "shock-status",
+    "shock-banner",
 ]
 
 

@@ -1815,3 +1815,8 @@ html[data-high-contrast="true"] a { color: var(--hc-accent); text-decoration: un
 .buy-chip.selected { outline: 2px solid #a9c3ff; outline-offset: 1px; font-weight: 700; }
 .buy-multiple-hint { flex: 1 1 100%; font-size: 0.75rem; opacity: 0.7; }
 #confirm-threshold-select { max-width: 100%; font: inherit; padding: 0.3rem 0.4rem; }
+
+/* GH-3: market-shock notice and switch. */
+.shock-banner { margin: 0.4rem 0; padding: 0.5rem 0.7rem; border-radius: 8px; border: 1px dashed rgba(224, 194, 76, 0.7); background: rgba(224, 194, 76, 0.08); font-size: 0.9rem; }
+.shock-banner[hidden] { display: none; }
+#market-shocks-button[aria-pressed="true"] { outline: 2px solid #e0c24c; outline-offset: 1px; }

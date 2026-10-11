@@ -200,6 +200,13 @@
 
     <p id="mode-status" class="comparison-message" hidden></p>
 
+    <!-- GH-3 / FY-37: opt-in market shocks on a fixed, public schedule, announced a cycle early. -->
+    <div id="shock-section" class="section shock-section">
+      <p class="meter-label">Market shocks</p>
+      <button id="market-shocks-button" class="secondary" type="button" aria-pressed="false">Market shocks: off</button>
+      <p id="shock-status" class="comparison-message"></p>
+    </div>
+
     <!-- H4: cosmetic-only relabel once a chain is running (the picker above hides
          after the first cycle). Never counts toward "categories tried". -->
     <details id="relabel-goods-panel" class="stats-detail-toggle" hidden>
@@ -262,6 +269,8 @@
       <p id="cycle-display" class="status-line">Cycle 1</p>
       <p id="funds-display" class="status-line">Funds: 300</p>
       <p id="rewind-token-display" class="status-line">Rewind: 1 left</p>
+      <!-- GH-3: the market-shock notice (this cycle's shock and the early warning for next cycle). -->
+      <p id="shock-banner" class="shock-banner" role="status" hidden></p>
       <p id="production-display" class="status-line">Production target: 50 units/cycle</p>
       <p id="extraction-display" class="status-line">New extraction this cycle: 50 units</p>
       <!-- GH-25: a "so close" note with the cheapest single fix, shown only when within a few units. -->

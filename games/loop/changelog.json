@@ -1,6 +1,10 @@
 [
   {
     "date": "2026-10-11",
+    "entry": "New, opt-in: Market shocks. Switch them on and a fixed, public schedule of shocks starts: in every block of 15 cycles a price spike (raw material costs x1.5) on cycle 5, a three-cycle port strike that shuts one trade partner from cycle 9 (a different partner each round) and a demand surge on cycle 13 (you need 20% more material). Nothing is random, each shock is announced a cycle early in the status block, and a chain that recovers its own material barely notices. A new achievement, Shock Absorber, rewards closing the loop on five shocked cycles, and the story gains a chapter."
+  },
+  {
+    "date": "2026-10-11",
     "entry": "New: a Rewind token. Once per chain you can undo your last Advance Cycle, along with anything you bought since, and go back to the start of that cycle. It shows as a chip in the header (Rewind: 1 left) and as a button in the investments column, asks before it spends the token, and a new chain gives you a new one. Records you have already earned are kept; a cycle that gave surplus to the regional pool cannot be rewound."
   },
   {

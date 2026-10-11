@@ -437,6 +437,68 @@ OVERSEAS_IMPORT_SUPPLY_PER_UNIT = 15.0
 # Round-2 (H6/H26/H27/H28): UI-only tuning.
 PARTNER_COSTS = {"trade": TRADE_LINK_COST, "regional": REGIONAL_TRADE_COST, "overseas": OVERSEAS_TRADE_COST}
 BUY_MULTIPLES = (1, 5, 10)  # H-14: the x1 / x5 / x10 chips
+PARTNER_LABELS = {"trade": "Trade Link", "regional": "Regional Partner", "overseas": "Overseas Consortium"}
+
+# GH-3 / FY-37: market shocks. An opt-in mode with a FIXED, public schedule (nothing random, the
+# same for every player) so a shock can be planned for: in every block of SHOCK_PERIOD cycles a
+# price spike lands on cycle 5, a three-cycle port strike on cycles 9 to 11 (a different trade
+# partner each block) and a demand surge on cycle 13. Each is announced one cycle early. They only
+# change the price of, the need for, or the supply from OUTSIDE, so a chain that already recovers
+# its own material barely notices, and nothing ever fails or takes progress away.
+SHOCK_PERIOD = 15
+SHOCK_PRICE_AT = 5
+SHOCK_STRIKE_AT = 9
+SHOCK_STRIKE_CYCLES = 3
+SHOCK_DEMAND_AT = 13
+SHOCK_PRICE_MULTIPLIER = 1.5  # raw material costs this much more for the one cycle
+SHOCK_DEMAND_MULTIPLIER = 1.2  # shoppers want this much more new goods for the one cycle
+STRIKE_PARTNERS = ("trade", "regional", "overseas")
+SHOCKED_CLOSE_TARGET = 5  # the Shock Absorber achievement: closed cycles that had a shock
+
+
+def shock_for_cycle(cycle):
+    """The shock on a given cycle number (1-based) as a dict, or None. Pure and public: the same
+    schedule for everyone. `step` counts 1.. through a multi-cycle shock."""
+    cycle = int(cycle)
+    if cycle < 1:
+        return None
+    block, offset0 = divmod(cycle - 1, SHOCK_PERIOD)
+    offset = offset0 + 1
+    if offset == SHOCK_PRICE_AT:
+        return {"kind": "price_spike", "step": 1, "length": 1, "start": cycle}
+    if SHOCK_STRIKE_AT <= offset < SHOCK_STRIKE_AT + SHOCK_STRIKE_CYCLES:
+        step = offset - SHOCK_STRIKE_AT + 1
+        return {
+            "kind": "port_strike", "partner": STRIKE_PARTNERS[block % len(STRIKE_PARTNERS)],
+            "step": step, "length": SHOCK_STRIKE_CYCLES, "start": cycle - step + 1,
+        }
+    if offset == SHOCK_DEMAND_AT:
+        return {"kind": "demand_surge", "step": 1, "length": 1, "start": cycle}
+    return None
+
+
+def shock_name(shock):
+    if shock["kind"] == "price_spike":
+        return "Price spike"
+    if shock["kind"] == "port_strike":
+        return f"Port strike at the {PARTNER_LABELS[shock['partner']]}"
+    return "Demand surge"
+
+
+def shock_effect(shock):
+    if shock["kind"] == "price_spike":
+        return f"raw material costs x{SHOCK_PRICE_MULTIPLIER:.1f} for one cycle"
+    if shock["kind"] == "port_strike":
+        return (
+            f"the {PARTNER_LABELS[shock['partner']]} cannot deliver for {shock['length']} cycles "
+            f"(cycles {shock['start']} to {shock['start'] + shock['length'] - 1})"
+        )
+    return (
+        f"shoppers want {round((SHOCK_DEMAND_MULTIPLIER - 1) * 100)}% more new goods for one cycle, so the chain "
+        f"needs {PRODUCTION_TARGET * SHOCK_DEMAND_MULTIPLIER:.0f} units of material instead of {PRODUCTION_TARGET:.0f}"
+    )
+
+
 BURST_MILESTONES = 4  # circular-fraction crosses each 25% step
 PULSE_LARGE_UNITS = 20.0
 PULSE_MEDIUM_UNITS = 8.0
@@ -515,6 +577,10 @@ class ChainState:
         # GH-20: the chain's first close, for the speed achievements (saved when set).
         self.first_close_extracted = None
         self.first_close_trade_free = None
+        # GH-3 / FY-37: the opt-in market-shock mode (saved when on), and how many closed
+        # cycles landed on a shock (saved when above zero).
+        self.market_shocks = False
+        self.shocks_shrugged = 0
         # GH-18 / FY-39: one rewind per chain. The undo point is a transient copy of the whole chain
         # taken just before each Advance Cycle (never saved); only the spent token is saved.
         self.rewind_used = False
@@ -586,7 +652,47 @@ class ChainState:
     def material_need(self):
         """H17: units of material one cycle's production actually needs, after
         any demand-side culture campaign. Equals PRODUCTION_TARGET with none."""
-        return PRODUCTION_TARGET * (1.0 - CULTURE_DEMAND_REDUCTION * self.culture_level)
+        need = PRODUCTION_TARGET * (1.0 - CULTURE_DEMAND_REDUCTION * self.culture_level)
+        shock = self.active_shock()
+        if shock is not None and shock["kind"] == "demand_surge":
+            need *= SHOCK_DEMAND_MULTIPLIER
+        return need
+
+    def active_shock(self):
+        """GH-3: this cycle's shock, or None (always None with the mode off)."""
+        return shock_for_cycle(self.cycle_number) if self.market_shocks else None
+
+    def next_shock(self):
+        """GH-3: a NEW shock that starts next cycle (the early warning), else None."""
+        if not self.market_shocks:
+            return None
+        coming = shock_for_cycle(self.cycle_number + 1)
+        return coming if coming is not None and coming["step"] == 1 else None
+
+    def blocked_partner(self):
+        """GH-3: the trade partner a port strike has shut this cycle, or None."""
+        shock = self.active_shock()
+        return shock["partner"] if shock is not None and shock["kind"] == "port_strike" else None
+
+    def shock_price_multiplier(self):
+        shock = self.active_shock()
+        return SHOCK_PRICE_MULTIPLIER if shock is not None and shock["kind"] == "price_spike" else 1.0
+
+    def price_multiplier(self):
+        """What a unit of new extraction actually costs this cycle: the damage multiplier times
+        any price spike."""
+        return self.extraction_cost_multiplier() * self.shock_price_multiplier()
+
+    def partner_supply(self, kind):
+        """Units one trade partner imports per cycle (0 while a port strike shuts it)."""
+        if kind == self.blocked_partner():
+            return 0.0
+        owned, per_unit = {
+            "trade": (self.trade_link_investment, IMPORT_SUPPLY_PER_UNIT),
+            "regional": (self.regional_trade_investment, REGIONAL_IMPORT_SUPPLY_PER_UNIT),
+            "overseas": (self.overseas_trade_investment, OVERSEAS_IMPORT_SUPPLY_PER_UNIT),
+        }[kind]
+        return self.supply_multiplier() * owned * per_unit
 
     def culture_cost(self):
         return CULTURE_BASE_COST * (self.culture_level + 1)
@@ -695,11 +801,7 @@ class ChainState:
         return True
 
     def imported_supply(self):
-        return self.supply_multiplier() * (
-            self.trade_link_investment * IMPORT_SUPPLY_PER_UNIT
-            + self.regional_trade_investment * REGIONAL_IMPORT_SUPPLY_PER_UNIT
-            + self.overseas_trade_investment * OVERSEAS_IMPORT_SUPPLY_PER_UNIT
-        )
+        return sum(self.partner_supply(kind) for kind in PARTNER_COSTS)
 
     def circular_supply(self):
         """Total supply toward closing the loop: internal circularity
@@ -803,7 +905,8 @@ class ChainState:
     def circular_fraction_this_cycle(self):
         """0..1 — the share of *this* cycle's production target that
         circularity investment covers, capped at 1 (fully closed)."""
-        return (PRODUCTION_TARGET - self.new_extraction_needed()) / PRODUCTION_TARGET
+        # Floored at zero: a demand surge can need more than the target in new material.
+        return max(0.0, (PRODUCTION_TARGET - self.new_extraction_needed()) / PRODUCTION_TARGET)
 
     def lifetime_circular_fraction(self):
         """0..1 — the share of all production ever run through the chain
@@ -811,7 +914,7 @@ class ChainState:
         if self.total_produced == 0:
             return 0.0
         circular_total = self.total_produced - self.total_extracted
-        return circular_total / self.total_produced
+        return max(0.0, circular_total / self.total_produced)
 
     def invest_circularity(self, measure):
         cost = CIRCULARITY_INVESTMENTS[measure]["cost"]
@@ -864,7 +967,9 @@ class ChainState:
     def advance_cycle(self):
         self.rewind_snapshot = self._snapshot()
         extraction = self.new_extraction_needed()
-        cost = extraction * EXTRACTION_COST_PER_UNIT * self.extraction_cost_multiplier()
+        cost = extraction * EXTRACTION_COST_PER_UNIT * self.price_multiplier()
+        if extraction <= 0.0 and self.active_shock() is not None:
+            self.shocks_shrugged += 1  # GH-3: a closed cycle that landed on a shock
         revenue = PRODUCTION_TARGET * SALE_PRICE_PER_UNIT
         surplus = self.exportable_surplus()
         if self.donate_surplus and surplus > 0:
@@ -1440,6 +1545,8 @@ ACHIEVEMENT_CHECKS = {
     # GH-15 / GH-14: the plate collection and the secret yard.
     "plate_collector": lambda: len(career_plates) >= len(PLATES),
     "yard_boss": lambda: SECRET_GOODS_CATEGORY in career_closed_categories,
+    # GH-3: closed cycles that landed on a market shock (the mode is opt-in).
+    "shock_absorber": lambda: chain.shocks_shrugged >= SHOCKED_CLOSE_TARGET,
 }
 
 # GH-20: shown in the achievements panel only, never as an unlock toast.
@@ -1479,6 +1586,7 @@ ACHIEVEMENT_PROGRESS = {
     "goods_explorer": lambda: (min(len(goods_categories_tried), GOODS_EXPLORER_TARGET), GOODS_EXPLORER_TARGET),
     "goods_collector": lambda: (len(goods_categories_tried & set(GOODS_CATEGORIES)), len(GOODS_CATEGORIES)),
     "plate_collector": lambda: (len(career_plates), len(PLATES)),
+    "shock_absorber": lambda: (min(chain.shocks_shrugged, SHOCKED_CLOSE_TARGET), SHOCKED_CLOSE_TARGET),
 }
 
 
@@ -1920,7 +2028,7 @@ def audit_lines():
     gap = chain.new_extraction_needed()
     surplus = chain.exportable_surplus()
     if gap > 0:
-        cost = gap * EXTRACTION_COST_PER_UNIT * chain.extraction_cost_multiplier()
+        cost = gap * EXTRACTION_COST_PER_UNIT * chain.price_multiplier()
         lines.append(
             f"New extraction is {gap:.0f} units this cycle, costing about {cost:.0f} funds "
             f"(and adding to lasting damage)."
@@ -1947,6 +2055,10 @@ def audit_lines():
     return lines
 
 
+def _strike_note(kind):
+    return "  (port strike: shut)" if chain.blocked_partner() == kind else ""
+
+
 def network_map_text():
     """H25a/H29a: a simple, everywhere-works text map of the chain, the
     internal recovery loop, and every trade partner's flow."""
@@ -1960,9 +2072,9 @@ def network_map_text():
         f"   new extraction: {chain.new_extraction_needed():.0f}/cycle",
         f"Internal loop back into Manufacture: {internal:.0f}/cycle  ({parts})",
         "Trade partners:",
-        f"  Trade Link          in +{chain.trade_link_investment * IMPORT_SUPPLY_PER_UNIT:.0f}",
-        f"  Regional Partner    in +{chain.regional_trade_investment * REGIONAL_IMPORT_SUPPLY_PER_UNIT:.0f}",
-        f"  Overseas Consortium in +{chain.overseas_trade_investment * OVERSEAS_IMPORT_SUPPLY_PER_UNIT:.0f}",
+        f"  Trade Link          in +{chain.partner_supply('trade'):.0f}{_strike_note('trade')}",
+        f"  Regional Partner    in +{chain.partner_supply('regional'):.0f}{_strike_note('regional')}",
+        f"  Overseas Consortium in +{chain.partner_supply('overseas'):.0f}{_strike_note('overseas')}",
         f"  surplus out -> {chain.exportable_surplus():.0f}/cycle",
     ]
     return "\n".join(lines)
@@ -2094,7 +2206,6 @@ def trade_partner_flows():
     """Real per-partner import flows: (key, label, icon, owned, units/cycle,
     funds per unit). Units include the challenge-mode multiplier so they sum
     to exactly chain.imported_supply()."""
-    mult = chain.supply_multiplier()
     rows = []
     for key, label, icon, owned, per_unit, cost in (
         ("link", "Trade Link", "\U0001F310", chain.trade_link_investment, IMPORT_SUPPLY_PER_UNIT, TRADE_LINK_COST),
@@ -2107,7 +2218,7 @@ def trade_partner_flows():
             OVERSEAS_IMPORT_SUPPLY_PER_UNIT, OVERSEAS_TRADE_COST,
         ),
     ):
-        rows.append((key, label, icon, owned, owned * per_unit * mult, cost / per_unit))
+        rows.append((key, label, icon, owned, chain.partner_supply("trade" if key == "link" else key), cost / per_unit))
     return rows
 
 
@@ -2549,6 +2660,13 @@ def cycle_summary_text():
 def cost_equation_text():
     """H-15: the extraction price worked out, so the number is not a mystery."""
     mult = chain.extraction_cost_multiplier()
+    spike = chain.shock_price_multiplier()
+    if spike != 1.0:
+        return (
+            f"Each extracted unit costs: base {EXTRACTION_COST_PER_UNIT:.1f} x damage multiplier {mult:.2f} "
+            f"(cap {MAX_COST_MULTIPLIER:.1f}) x price spike {spike:.1f} = "
+            f"{EXTRACTION_COST_PER_UNIT * mult * spike:.2f} funds."
+        )
     return (
         f"Each extracted unit costs: base {EXTRACTION_COST_PER_UNIT:.1f} x damage multiplier {mult:.2f} "
         f"(cap {MAX_COST_MULTIPLIER:.1f}) = {EXTRACTION_COST_PER_UNIT * mult:.2f} funds."
@@ -2585,6 +2703,45 @@ def insurance_text():
         f"Pay {INSURANCE_COST} funds, once per chain, to freeze your {chain.closed_loop_streak}-cycle "
         "streak through one cycle that needs extraction."
     )
+
+
+def shock_banner_text():
+    """GH-3: the one-line notice shown in the status block ('' when there is nothing to say)."""
+    if not chain.market_shocks:
+        return ""
+    active = chain.active_shock()
+    coming = chain.next_shock()
+    parts = []
+    if active is not None:
+        label = f"Market shock now: {shock_name(active)}, {shock_effect(active)}"
+        if active["length"] > 1:
+            label += f" (day {active['step']} of {active['length']})"
+        parts.append(label + ".")
+    if coming is not None:
+        parts.append(f"Heads-up for next cycle: {shock_name(coming)}, {shock_effect(coming)}.")
+    return " ".join(parts)
+
+
+def shock_status_text():
+    """GH-3: the always-visible explanation under the Market shocks switch."""
+    if not chain.market_shocks:
+        return (
+            "Off. Turn it on for a fixed, announced schedule of price spikes, port strikes and demand surges. "
+            "There is nothing random in it, every shock is shown one cycle early, and a chain that recovers "
+            "its own material barely notices them."
+        )
+    text = (
+        f"On. Every {SHOCK_PERIOD} cycles: a price spike on cycle {SHOCK_PRICE_AT}, a {SHOCK_STRIKE_CYCLES}-cycle "
+        f"port strike from cycle {SHOCK_STRIKE_AT} (a different trade partner each round) and a demand surge on "
+        f"cycle {SHOCK_DEMAND_AT}. Nothing is ever lost for good."
+    )
+    if chain.shocks_shrugged:
+        text += f" Closed cycles that landed on a shock so far: {chain.shocks_shrugged}."
+    return text
+
+
+def on_toggle_market_shocks(event=None):
+    _run_action(lambda: setattr(chain, "market_shocks", not chain.market_shocks))
 
 
 def rewind_token_text():
@@ -2929,6 +3086,15 @@ def render():
         insurance_button.innerText = f"Streak insurance ({INSURANCE_COST})"
     insurance_button.disabled = not chain.can_buy_insurance()
     document.getElementById("insurance-status").innerText = insurance_text()
+    # GH-3 / FY-37: the market-shock switch and notice.
+    shock_button = document.getElementById("market-shocks-button")
+    shock_button.innerText = "Market shocks: on" if chain.market_shocks else "Market shocks: off"
+    shock_button.setAttribute("aria-pressed", "true" if chain.market_shocks else "false")
+    document.getElementById("shock-status").innerText = shock_status_text()
+    banner_text = shock_banner_text()
+    banner = document.getElementById("shock-banner")
+    banner.innerText = banner_text
+    banner.hidden = banner_text == ""
     # GH-18 / FY-39: the one rewind token.
     document.getElementById("rewind-token-display").innerText = rewind_token_text()
     rewind_button = document.getElementById("rewind-button")
@@ -3555,6 +3721,10 @@ def get_state():
         state["first_close_trade_free"] = chain.first_close_trade_free
     if chain.rewind_used:
         state["rewind_used"] = True
+    if chain.market_shocks:
+        state["market_shocks"] = True
+    if chain.shocks_shrugged:
+        state["shocks_shrugged"] = chain.shocks_shrugged
     career = career_state()
     if career:
         state["career"] = career
@@ -3662,6 +3832,11 @@ def load_state(data):
     chain.last_combo_gain = 0.0
     chain.last_insurance_saved = False
     chain.rewind_used = data.get("rewind_used") is True
+    chain.market_shocks = data.get("market_shocks") is True
+    shrugged = data.get("shocks_shrugged")
+    chain.shocks_shrugged = (
+        shrugged if isinstance(shrugged, int) and not isinstance(shrugged, bool) and 0 <= shrugged <= 1_000_000 else 0
+    )
     chain.rewind_snapshot = None  # the undo point is a visit-only thing: advance a cycle to set a new one
     load_career(data.get("career"))
     chain.lifetime_investment_spend = data.get("lifetime_investment_spend", 0.0)
@@ -3726,6 +3901,7 @@ def setup():
         )
     document.getElementById("insurance-button").addEventListener("click", create_proxy(on_buy_insurance))
     document.getElementById("rewind-button").addEventListener("click", create_proxy(on_rewind))
+    document.getElementById("market-shocks-button").addEventListener("click", create_proxy(on_toggle_market_shocks))
     document.getElementById("copy-summary-button").addEventListener("click", create_proxy(on_copy_summary))
     document.getElementById("culture-invest-button").addEventListener("click", create_proxy(on_invest_culture))
     for measure in CIRCULARITY_INVESTMENTS:

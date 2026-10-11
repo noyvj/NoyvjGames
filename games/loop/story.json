@@ -135,6 +135,11 @@
       "id": "yard_boss",
       "title": "The yard at the end of the lane",
       "text": "Past the last house on Mill Lane, the old shipyard has stood empty for years. You take it on, and the first thing you do is cut a ship apart plate by plate, sending every tonne of steel back to the mill. By evening the beach is clear and the rolling mill is running again."
+    },
+    {
+      "id": "shock_absorber",
+      "title": "The week the prices jumped",
+      "text": "One winter the price of fresh material leaps and the supplier by the harbour shuts his gate for a few days. Along the lane the other workshops go quiet. Yours keeps humming, because most of what it needs is already on the shelves: mended, passed on or melted down and made again. A neighbour comes by to borrow a spool of wire, and leaves with a question about how you did it."
     }
   ]
 }

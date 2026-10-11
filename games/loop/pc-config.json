@@ -110,6 +110,7 @@
       "#advance-cycle-button",
       "#goods-category-picker",
       "#mode-status",
+      "#shock-section",
       "#circularity",
       ".invest-row--trade, .invest-row--regional, #regional-hint",
       "#pool-section"
