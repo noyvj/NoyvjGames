@@ -37,7 +37,7 @@ TEXT_PAIRS = [("--text", "--bg"), ("--text", "--panel"), ("--text", "--surface")
               ("--text", "--sea"), ("--muted", "--sea"), ("--hazard", "--sea"), ("--current", "--sea"), ("--flag", "--sea"),
               ("--good", "--panel"), ("--bad", "--panel")]
 UI_PAIRS = [("--edge", "--panel"), ("--edge", "--surface"), ("--focus", "--panel"), ("--focus", "--bg"), ("--hover-edge", "--panel"),
-            ("--est", "--sea"), ("--truth", "--sea"), ("--land-edge", "--land"), ("--hazard", "--sea"), ("--ribbon", "--sea")]
+            ("--est", "--sea"), ("--truth", "--sea"), ("--est-b", "--sea"), ("--truth-b", "--sea"), ("--est-b", "--panel"), ("--land-edge", "--land"), ("--hazard", "--sea"), ("--ribbon", "--sea")]
 
 
 def test_both_themes_define_every_colour_variable():
@@ -93,7 +93,7 @@ def test_reduced_motion_effects_and_high_contrast_are_wired_to_the_page():
     for attr in ("data-reduced-motion", "data-effects", "data-high-contrast"):
         assert attr in SETTINGS and attr in CSS, attr
     assert "prefers-reduced-motion" in SETTINGS
-    assert "reducedMotion()" in APP and "showUpTo(r.points.length - 1)" in APP   # reduced motion: the result at once
+    assert "reducedMotion()" in APP and "showUpTo(playback.times.length - 1)" in APP   # reduced motion: the result at once
 
 
 def test_text_size_has_bounds_and_the_page_scales_with_it():

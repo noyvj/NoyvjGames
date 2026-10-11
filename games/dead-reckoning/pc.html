@@ -58,6 +58,10 @@
       <h3 id="practice-heading">Practice</h3>
       <p class="note">A fresh chart every time, always solvable, never scored against the campaign. Every one you sail counts toward your practice total. The code under the chart's name replays the same sea.</p>
       <div id="practice-levels" class="practice-levels" role="group" aria-label="Practice difficulty"></div>
+      <div class="practice-two">
+        <input type="checkbox" id="practice-two-checkbox">
+        <label for="practice-two-checkbox">Two ships (plan both; their codes carry a T, such as DR3T-1K9X2)</label>
+      </div>
       <div class="ruler-fields">
         <label class="field">Practice code<input id="practice-code" type="text" maxlength="12" autocomplete="off" autocapitalize="characters" placeholder="DR3-1K9X2"></label>
         <button id="practice-code-button" type="button">Open this code</button>
@@ -136,6 +140,8 @@
       <ul class="legend" aria-label="Key to the chart">
         <li><svg viewBox="0 0 40 12" aria-hidden="true"><path class="dr-est-track" d="M2,6 L38,6"/></svg>Your plot (dashed)</li>
         <li><svg viewBox="0 0 40 12" aria-hidden="true"><path class="dr-true-track" d="M2,6 L38,6"/></svg>Where the ship really went (solid, after the sail)</li>
+        <li id="legend-b" class="legend-b" hidden><svg viewBox="0 0 40 12" aria-hidden="true"><path class="dr-est-track dr-est-track-b" d="M2,6 L38,6"/></svg>Ship B's plot (dash and dot; its markers are squares marked B1, B2)</li>
+        <li id="legend-approach" class="legend-b" hidden><svg viewBox="0 0 40 12" aria-hidden="true"><path class="dr-approach-line" d="M6,6 L34,6"/></svg>Where the two ships come closest (the ring is the 1 nm rule)</li>
       </ul>
       <div id="playback" class="playback" hidden>
         <button id="skip-button" type="button">Skip to the result</button>
@@ -151,6 +157,12 @@
 
     <section id="planner-panel" class="panel" aria-labelledby="planner-heading">
       <h2 id="planner-heading">Your plan</h2>
+      <div id="ship-box" class="ship-box" role="group" aria-label="Which ship you are planning" hidden>
+        <button id="ship-a-button" type="button" aria-pressed="true">Ship A</button>
+        <button id="ship-b-button" type="button" aria-pressed="false">Ship B</button>
+        <p id="ship-summary" class="note"></p>
+        <p id="fleet-line" class="note rule" aria-live="polite"></p>
+      </div>
       <div id="mode-box" class="mode-box" role="group" aria-label="How to play this chart" hidden>
         <button id="mode-plan-button" type="button" aria-pressed="false">Full plan</button>
         <button id="mode-watch-button" type="button" aria-pressed="false">Watch by watch</button>
@@ -286,6 +298,7 @@
     extra: [
       "Tab and Shift+Tab: move between controls; every button, field and tick box works from the keyboard",
       "Planning (focus not in a field): A or Enter adds a leg, S sails, Z undoes the last edit",
+      "Two-ship charts: 1 plans Ship A, 2 plans Ship B",
       "In a heading, speed or time field: Up and Down step the value, or type a number and press Tab",
       "Quick turn buttons change the heading of the selected leg by 5 or 15 degrees",
     ],

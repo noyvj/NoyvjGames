@@ -31,6 +31,11 @@
   function reducedMotion() { return document.documentElement.getAttribute("data-reduced-motion") === "true"; }
   function fmt(n) { return String(Math.round(n * 100) / 100); }
   function stars(n) { return "★".repeat(n) + "☆".repeat(3 - n); }
+  // A plan worth a confirm before it is thrown away: legs for the ship being edited, or (two-ship charts) for either ship.
+  function hasPlan() {
+    if (!view || view.phase !== "plan") return false;
+    return view.legs.length > 0 || (!!view.fleet && view.fleet.ships.some(function (s) { return s.legs > 0; }));
+  }
 
   // ---- the chart ---------------------------------------------------------------------------------
   // ---- chart picker and captain's log ----------------------------------------------------------------
@@ -74,7 +79,7 @@
       $("picker-panel").hidden = true;
       setToggle("picker-toggle-button", "picker-panel");
     }
-    if (view.phase === "plan" && view.legs.length && view.chart.id !== id && window.ConfirmDialog) {
+    if (hasPlan() && view.chart.id !== id && window.ConfirmDialog) {
       window.ConfirmDialog.ask({ id: "dead-reckoning-switch-chart", message: "Leave this chart? The plan you have here will be lost.", confirmLabel: "Open the other chart", onConfirm: go });
     } else go();
   }
@@ -100,17 +105,18 @@
       (p.best_error === null ? "." : ". Smallest final error so far: " + fmt(p.best_error) + " nm."));
     var info = view.chart.practice;
     $("practice-line").hidden = !info;
-    if (info) setText($("practice-line"), "Practice, level " + info.difficulty + " (" + info.name + "). Code " + info.code + ": share it or type it in to replay this sea.");
+    if (info) setText($("practice-line"), "Practice, level " + info.difficulty + " (" + info.name + (info.two ? ", two ships" : "") + "). Code " + info.code + ": share it or type it in to replay this sea.");
   }
 
-  function newPractice(difficulty) {
+  function newPractice(difficulty, two) {
+    if (two === undefined) two = $("practice-two-checkbox").checked;
     var go = function () {
       selected = 0;
-      send({ action: "practice", difficulty: difficulty, seed: Math.floor(Math.random() * 2000000000) });
+      send({ action: "practice", difficulty: difficulty, two: !!two, seed: Math.floor(Math.random() * 2000000000) });
       $("picker-panel").hidden = true;
       setToggle("picker-toggle-button", "picker-panel");
     };
-    if (view.phase === "plan" && view.legs.length && window.ConfirmDialog) {
+    if (hasPlan() && window.ConfirmDialog) {
       window.ConfirmDialog.ask({ id: "dead-reckoning-switch-chart", message: "Leave this chart? The plan you have here will be lost.", confirmLabel: "Open a practice chart", onConfirm: go });
     } else go();
   }
@@ -225,7 +231,7 @@
     var sailed = view.sailed || 0;
     if (selected >= n) selected = Math.max(0, n - 1);
     if (selected < sailed) selected = Math.min(sailed, Math.max(0, n - 1));
-    var sig = n + ":" + sailed;
+    var sig = n + ":" + sailed + ":" + (view.fleet ? view.fleet.active : "");
     if (list.dataset.signature !== sig) {
       list.textContent = "";
       view.legs.forEach(function (leg, i) {
@@ -239,7 +245,7 @@
           list.appendChild(li);
           return;
         }
-        head.appendChild(el("strong", "Leg " + (i + 1) + (leg.speed === 0 ? " (lying at anchor)" : "")));
+        head.appendChild(el("strong", (view.fleet ? "Ship " + view.fleet.ships[view.fleet.active].tag + ", leg " : "Leg ") + (i + 1) + (leg.speed === 0 ? " (lying at anchor)" : "")));
         var rm = el("button", "Remove");
         rm.type = "button";
         rm.setAttribute("aria-label", "Remove leg " + (i + 1));
@@ -275,10 +281,12 @@
     setText($("deadline-hours"), fmt(t.deadline) + " h");
     $("total-hours").classList.toggle("over", t.over);
     setText($("total-distance"), fmt(t.distance));
+    var who = view.fleet ? "Ship " + view.fleet.ships[view.fleet.active].tag + ": your" : "Your";
     var plot = t.legs
-      ? "Your plot ends " + fmt(t.plot_miss) + " nm from the flag, after " + fmt(t.hours) + " hours" + (t.over ? " (over the deadline of " + fmt(t.deadline) + ")." : ".")
-      : "Add a leg to start plotting.";
+      ? who + " plot ends " + fmt(t.plot_miss) + " nm from " + (view.fleet ? "its" : "the") + " flag, after " + fmt(t.hours) + " hours" + (t.over ? " (over the deadline of " + fmt(t.deadline) + ")." : ".")
+      : (view.fleet ? "Add a leg for Ship " + view.fleet.ships[view.fleet.active].tag + " to start plotting." : "Add a leg to start plotting.");
     setText($("plot-line"), plot);
+    renderShips();
     $("allow-checkbox").checked = view.allow;
     renderLegs();
     var watching = view.chart.mode === "watch";
@@ -309,6 +317,27 @@
     } else {
       setText($("ruler-readout"), "No point marked.");
     }
+  }
+
+  // Two-ship charts: choose which ship the leg editor shows, and read both plans' totals and the plots' own closest approach.
+  function renderShips() {
+    var box = $("ship-box");
+    var fl = view.fleet;
+    box.hidden = !fl;
+    $("legend-b").hidden = !fl;
+    $("legend-approach").hidden = !fl;
+    if (!fl) return;
+    ["a", "b"].forEach(function (k, i) {
+      var b = $("ship-" + k + "-button");
+      var s = fl.ships[i];
+      b.setAttribute("aria-pressed", String(fl.active === i));
+      b.textContent = "Ship " + s.tag + " (" + s.legs + (s.legs === 1 ? " leg" : " legs") + ")";
+      b.setAttribute("aria-label", "Plan Ship " + s.tag + ", " + s.legs + (s.legs === 1 ? " leg" : " legs") + ", " + fmt(s.hours) + " of " + fmt(s.deadline) + " hours");
+    });
+    setText($("ship-summary"), fl.ships.map(function (s) {
+      return "Ship " + s.tag + ": " + fmt(s.hours) + " of " + fmt(s.deadline) + " h" + (s.over ? " (over)" : "") + ", plot " + fmt(s.plot_miss) + " nm from its flag.";
+    }).join(" "));
+    setText($("fleet-line"), fl.line + " " + fl.rule);
   }
 
   function renderMode() {
@@ -364,30 +393,46 @@
   function guard(id, handler) { $(id).addEventListener("click", function () { if (!isOff($(id))) handler(); }); }
 
   // ---- the passage: playback and the result card ---------------------------------------------------
-  var playback = { key: null, raf: 0, index: 0, finished: false };
+  var playback = { key: null, raf: 0, index: 0, finished: false, times: [] };
+
+  // The tracks to replay: Ship A's, and on a two-ship chart Ship B's too. Both run on the same clock; the scrub bar steps through the
+  // hours at which either ship has a recorded point.
+  function seriesOf(reveal) { return reveal.points2 ? [reveal.points, reveal.points2] : [reveal.points]; }
+  function timesOf(reveal) {
+    var seen = {};
+    seriesOf(reveal).forEach(function (pts) { pts.forEach(function (p) { seen[Math.round(p[0] * 1000)] = p[0]; }); });
+    return Object.keys(seen).map(function (k) { return seen[k]; }).sort(function (a, b) { return a - b; });
+  }
 
   function showUpTo(index) {
-    var pts = view.reveal.points;
-    index = Math.max(0, Math.min(pts.length - 1, index));
+    var times = playback.times;
+    index = Math.max(0, Math.min(times.length - 1, index));
     playback.index = index;
-    var line = $("dr-true-track");
-    if (line) line.setAttribute("points", pts.slice(0, index + 1).map(function (p) { return p[1] + "," + p[2]; }).join(" "));
-    var ship = $("dr-ship");
-    if (ship) {
-      var cur = pts[index], prev = pts[Math.max(0, index - 1)];
-      var angle = index > 0 ? Math.atan2(cur[1] - prev[1], -(cur[2] - prev[2])) * 180 / Math.PI : 0;
-      var shape = ship.firstElementChild;
-      if (shape) shape.setAttribute("transform", "translate(" + cur[1] + "," + cur[2] + ") rotate(" + fmt(angle) + ")");
-    }
-    var t = pts[index][0];
+    var t = times[index];
+    seriesOf(view.reveal).forEach(function (pts, k) {
+      var j = 0;
+      while (j + 1 < pts.length && pts[j + 1][0] <= t + 1e-9) j++;
+      var line = $(k ? "dr-true-track-2" : "dr-true-track");
+      if (line) line.setAttribute("points", pts.slice(0, j + 1).map(function (p) { return p[1] + "," + p[2]; }).join(" "));
+      var ship = $(k ? "dr-ship-2" : "dr-ship");
+      if (ship) {
+        var cur = pts[j], prev = pts[Math.max(0, j - 1)];
+        var angle = j > 0 ? Math.atan2(cur[1] - prev[1], -(cur[2] - prev[2])) * 180 / Math.PI : 0;
+        var shape = ship.firstElementChild;
+        if (shape) shape.setAttribute("transform", "translate(" + cur[1] + "," + cur[2] + ") rotate(" + fmt(angle) + ")");
+        var tag = ship.querySelector(".dr-ship-tag");
+        if (tag) { tag.setAttribute("x", cur[1] + 9); tag.setAttribute("y", cur[2] - 9); }
+      }
+    });
     document.querySelectorAll(".dr-ribbon").forEach(function (r) { r.style.display = parseFloat(r.getAttribute("data-t")) <= t + 1e-9 ? "" : "none"; });
+    document.querySelectorAll(".dr-approach-true").forEach(function (a) { a.style.display = parseFloat(a.getAttribute("data-t")) <= t + 1e-9 ? "" : "none"; });
     var range = $("scrub-range");
     range.value = index;
     var label = "Hour " + fmt(t) + " of " + fmt(view.reveal.hours);
     range.setAttribute("aria-valuetext", label);
     setText($("playback-time"), label);
     renderEvents(t);
-    if (index >= pts.length - 1) finishPlayback();
+    if (index >= times.length - 1) finishPlayback();
   }
 
   function renderEvents(t) {
@@ -443,12 +488,13 @@
     cancelAnimationFrame(playback.raf);
     playback.finished = false;
     var range = $("scrub-range");
-    range.max = r.points.length - 1;
+    playback.times = timesOf(r);
+    range.max = playback.times.length - 1;
     $("result-card").hidden = true;
     $("playback").hidden = false;
-    if (reducedMotion() || r.points.length < 2) { showUpTo(r.points.length - 1); return; }
+    if (reducedMotion() || playback.times.length < 2) { showUpTo(playback.times.length - 1); return; }
     showUpTo(0);
-    var last = r.points.length - 1;
+    var last = playback.times.length - 1;
     var seconds = Math.max(2.5, Math.min(7, r.hours * 0.8));
     var began = null;
     function frame(now) {
@@ -465,7 +511,7 @@
     $("planner-panel").hidden = reveal;
     $("result-panel").hidden = !reveal;
     if (!reveal) { cancelAnimationFrame(playback.raf); playback.key = null; $("playback").hidden = true; return; }
-    var key = JSON.stringify([view.chart.id, view.legs]);
+    var key = JSON.stringify([view.chart.id, view.legs, view.legs2 || null]);
     if (playback.key !== key) {
       playback.key = key;
       startPlayback();
@@ -568,7 +614,8 @@
         return {
           game: "Dead Reckoning",
           score: r.stars_text + " on " + view.chart.name,
-          stats: [fmt(r.miss_nm) + " nm from the flag", view.progress.cleared + " of " + view.progress.total + " charts cleared"]
+          stats: [fmt(r.miss_nm) + " nm from the flag" + (r.approach ? " (the worse of two ships), closest approach " + fmt(r.approach.dist) + " nm" : ""),
+            view.progress.cleared + " of " + view.progress.total + " charts cleared"]
         };
       }
     });
@@ -613,6 +660,20 @@
     if (!view || view.phase !== "plan") return;
     var t = view.totals;
     var message = null;
+    if (view.fleet) {
+      var fl = view.fleet;
+      var planned = fl.ships.reduce(function (n, s) { return n + s.legs; }, 0);
+      var late = fl.ships.filter(function (s) { return s.over; });
+      if (!planned) message = "Sail with no legs? Both ships will stay where they are.";
+      else if (late.length) message = "Ship " + late.map(function (s) { return s.tag; }).join(" and Ship ") + " takes longer than its deadline. Sail anyway?";
+      else if (fl.plot_closest && fl.plot_closest.too_close) message = "Your plots bring the ships inside the " + fmt(fl.separation) + " nm rule (" + fmt(fl.plot_closest.dist) + " nm at hour " + fmt(fl.plot_closest.t) + "), which costs a star. Sail anyway?";
+      if (message && window.ConfirmDialog) {
+        window.ConfirmDialog.ask({ id: "dead-reckoning-sail-late", message: message, confirmLabel: "Sail", onConfirm: function () { send({ action: "sail" }); } });
+        return;
+      }
+      send({ action: "sail" });
+      return;
+    }
     if (view.chart.mode === "watch") { if (t.legs <= (view.sailed || 0)) return; if (t.over) message = "Your passage is over the " + fmt(t.deadline) + " hour deadline. Sail this watch anyway?"; }
     else if (!t.legs) message = "Sail with no legs? The ship will stay where she is.";
     else if (t.over && !message) message = "Your plan takes " + fmt(t.hours) + " hours, over the " + fmt(t.deadline) + " hour deadline. Sail anyway?";
@@ -651,15 +712,17 @@
       if (window.ConfirmDialog) window.ConfirmDialog.ask({ id: "dead-reckoning-anchor", message: "Drop anchor here and end the passage? It will be scored from where the ship really is.", confirmLabel: "Drop anchor", onConfirm: go });
       else go();
     });
+    guard("ship-a-button", function () { selected = 0; send({ action: "select_ship", ship: 0 }); });
+    guard("ship-b-button", function () { selected = 0; send({ action: "select_ship", ship: 1 }); });
     guard("mode-plan-button", function () { send({ action: "set_mode", mode: "plan" }); });
     guard("mode-watch-button", function () { send({ action: "set_mode", mode: "watch" }); });
-    guard("skip-button", function () { showUpTo(view.reveal.points.length - 1); });
+    guard("skip-button", function () { showUpTo(playback.times.length - 1); });
     $("scrub-range").addEventListener("input", function () {
       cancelAnimationFrame(playback.raf);
       showUpTo(parseInt($("scrub-range").value, 10));
     });
     guard("next-chart-button", function () { selected = 0; send({ action: "next_chart" }); });
-    guard("new-practice-button", function () { newPractice(view.chart.practice.difficulty); });
+    guard("new-practice-button", function () { newPractice(view.chart.practice.difficulty, !!view.chart.practice.two); });
     guard("practice-code-button", function () {
       var code = $("practice-code").value;
       if (!code.trim()) return;
@@ -690,6 +753,7 @@
     if (view.phase === "plan") {
       if (key === "s") { e.preventDefault(); trySail(); }
       else if (key === "z") { e.preventDefault(); if (view.can_undo) send({ action: "undo" }); }
+      else if (view.fleet && (key === "1" || key === "2")) { e.preventDefault(); selected = 0; send({ action: "select_ship", ship: parseInt(key, 10) - 1 }); }
       else if (key === "a" || key === "enter") { e.preventDefault(); if (view.legs.length < view.limits.max_legs) { selected = view.legs.length; send({ action: "add_leg" }); } }
     }
   }
@@ -697,7 +761,8 @@
   function setBusy(busy) {
     ["add-leg-button", "clear-button", "undo-button", "sail-button", "naive-flag-button", "current-flag-button", "naive-point-button",
       "current-point-button", "point-set-button", "point-clear-button", "retry-button", "redo-button", "skip-button", "next-chart-button",
-      "par-button", "use-par-button", "new-practice-button", "practice-code-button", "anchor-button", "add-wait-button", "mode-plan-button", "mode-watch-button"].forEach(function (id) { $(id).disabled = busy; });
+      "par-button", "use-par-button", "new-practice-button", "practice-code-button", "anchor-button", "add-wait-button", "mode-plan-button", "mode-watch-button",
+      "ship-a-button", "ship-b-button"].forEach(function (id) { $(id).disabled = busy; });
   }
 
   async function boot() {

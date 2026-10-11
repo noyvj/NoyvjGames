@@ -33,7 +33,7 @@
       $("daily-toggle-button").setAttribute("aria-expanded", "false");
     };
     var v = lastView;
-    if (v && v.phase === "plan" && v.legs.length && v.chart.id !== "daily-" + date && window.ConfirmDialog) {
+    if (v && v.phase === "plan" && (v.legs.length || (v.fleet && v.fleet.ships.some(function (x) { return x.legs > 0; }))) && v.chart.id !== "daily-" + date && window.ConfirmDialog) {
       window.ConfirmDialog.ask({ id: "dead-reckoning-switch-chart", message: "Leave this chart? The plan you have here will be lost.", confirmLabel: "Open the daily chart", onConfirm: go });
     } else go();
   }
