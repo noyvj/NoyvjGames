@@ -118,6 +118,7 @@ html[data-reduced-motion="true"] .gate-item.on { animation: none; }
 
 /* Items: a number, a string of tiles or a 3 by 3 pattern, each with a name for screen readers. */
 .rf-item { display: block; height: 2.1rem; width: auto; max-width: 100%; }
+.rf-item.rf-grid-item { height: 2.8rem; }
 .rf-item .tile { fill: var(--tile); stroke: var(--tile-edge); stroke-width: 1.5; }
 .rf-item .num-text { fill: var(--text); font: 700 18px system-ui, sans-serif; text-anchor: middle; dominant-baseline: central; }
 .rf-item .sh-c { fill: var(--shape-c); stroke: var(--text); stroke-width: 1; } .rf-item .sh-s { fill: var(--shape-s); stroke: var(--text); stroke-width: 1; }
@@ -172,6 +173,22 @@ html[data-reduced-motion="true"] .gate-item.on { animation: none; }
 .medal.gold { border-color: var(--gold); color: var(--gold); border-style: double; border-width: 4px; }
 .medal.silver { border-color: var(--silver); color: var(--silver); border-style: solid; }
 .medal.bronze { border-color: var(--bronze); color: var(--bronze); border-style: dashed; }
+
+/* Goals: three at a time, always in view. */
+.goals { background: var(--panel-fill); border: 1px solid var(--line); border-radius: 12px; padding: 0.4rem 0.7rem; margin: 0.5rem 0; font-size: 0.85rem; }
+.goals-list { list-style: none; margin: 0.2rem 0 0; padding: 0; display: grid; gap: 0.2rem; }
+.goals-list li { display: flex; flex-wrap: wrap; align-items: center; gap: 0.1rem 0.4rem; }
+.goals-list .bar { display: inline-block; flex: 0 0 5rem; height: 0.55rem; border: 1px solid var(--edge); border-radius: 3px; overflow: hidden; background: var(--surface); }
+.bar-fill { display: block; height: 100%; background: var(--accent); }
+.goal-count { font-variant-numeric: tabular-nums; font-weight: 700; }
+@media (max-width: 640px) { .goals { padding: 0.3rem 0.5rem; font-size: 0.78rem; } .goals-list .bar { flex-basis: 3rem; } }
+
+/* Hints. */
+.hint-box { margin: 0.6rem 0; }
+.hint-line { margin: 0.3rem 0; }
+.hint-part { margin: 0.4rem 0; }
+.hint-ghost { opacity: 0.75; margin: 0.3rem 0; }
+.hint-ghost .rf-item { outline: 2px dashed var(--accent); outline-offset: 3px; border-radius: 4px; }
 
 /* The wall map and the Rule Codex. */
 .map-holder { max-width: 34rem; margin: 0.4rem auto; }

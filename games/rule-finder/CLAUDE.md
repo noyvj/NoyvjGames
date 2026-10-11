@@ -37,7 +37,7 @@ A signal-room sorting game: an old relay lets some items through its gate and st
 | 1 | Rule language and prover | `lang.py`, `tools/finder.py`, drawer 1 (8 cases) with proofs and tests | Done |
 | 2 | Sorter UI | Item builder, Send, gate animation, Rule Builder, near-miss counter-example, save contract. Playable slice | Done |
 | 3 | Drawers 2-4 | 24 more cases, shape and Not clauses, Rule Codex | Done |
-| 4 | Drawers 5-6, hints, goals | 16 more cases (48 in all), patterns, odd gate, hint ladder, goals strip, medals | |
+| 4 | Drawers 5-6, hints, goals | 16 more cases (48 in all), patterns, odd gate, hint ladder, goals strip, medals | Done |
 | 5 | Standard kit | Opening screen, tutorial, About with Sources, What's New, keyboard help, confirm dialogs, light theme, accessibility | |
 | 6 | Achievements | 14 achievements, panel and toast, manifest, reachability test | |
 | 7 | Desktop boot and wrap-up | `pc-config.json`, `pc.css`, `pc.js`, generated `pc.html`, docs, changelog | |
@@ -56,6 +56,12 @@ A signal-room sorting game: an old relay lets some items through its gate and st
 - NO DRAWER GATING (deviation from plan section 3): every drawer and case is open from the start; progress.drawer_open/case_open exist so there is one place to ask.
 - Rule Codex (`codex.py`): one page per case, filled when named, READ when opened (`page {case}`); `read` is saved (only named cases) and is what the Full Codex achievement will count, so "All Forty-Eight" (named) and "Full Codex" (read) differ. A page shows the rule in words, the family labels, the shortest path (the par set with each answer) and the player's best, par and medal.
 - Wall map (`render.wall_svg`): six rows of eight cubbies drawn in Python; empty = dashed outline, named = solid with a tick and 3/2/1 pips for gold/silver/bronze, current = heavy outline; each cubby is a keyboard-reachable button.
+
+## Milestone 4 notes
+- Drawers 5 (Patterns, 3x3 grids, sizes 1 to 3) and 6 (The Odd Gate: eight size-2 rules whose table differs from the first clause by exactly ONE item; a test checks that item is on the shortest path and never among the starting examples). 48 cases, six drawers of eight.
+- Hint ladder (`hints.py`, action `hint`): rung 1 nudge = the kind of property (family phrase), never the clause or the joins; rung 2 hint = the first shortest-path item not yet seen, shown as a ghost tile with a button that loads it into the item builder (the player still presses Send); rung 3 answer = the rule in words with a button that loads it into the Rule Builder (the player still presses Name it). Free, on request only, saved per case in `rungs`, counted in the `hints` tally, never touching a medal. Deviation worth an owner glance: because the Answer rung does not name the case, a player can name it with 0 tests and earn Quick Eye / a gold medal; the plan says hints never touch the medal, so this is as specified.
+- Goals strip (`achievements.goals`): the next three unearned achievements in manifest order with counts and bars. `achievements.py` already holds all 14 (the manifest, panel and toast arrive in milestone 6).
+- Medals: gold within par (shortest path + 2), silver within 4 more, bronze otherwise; the wall map shows 3, 2, 1 pips.
 
 ## Working conventions
 - Commit only this folder with a pathspec commit, then tag `rule-finder-milestone-0N`. Hub registration (QI-5-R) is a separate later job.

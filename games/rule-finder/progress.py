@@ -9,6 +9,11 @@ def drawer_named(named, drawer):
     return sum(1 for c in drawer["cases"] if c.id in named)
 
 
+def drawer_named_by_id(named, key):
+    """How many cases of the drawer with this id are named."""
+    return sum(drawer_named(named, d) for d in cases.DRAWER_LIST if d["id"] == key)
+
+
 def drawer_clean(named, drawer):
     return sum(1 for c in drawer["cases"] if c.id in named and named[c.id]["t"] <= c.par)
 

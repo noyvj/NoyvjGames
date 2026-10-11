@@ -11,6 +11,7 @@ Actions (every request is {"action": ..., ...}; every reply is the whole view):
   test {item}             send one item to the gate; the answer is Through or Stopped (a new item counts as one test)
   preview {rule}          check a draft rule against everything seen so far (changes nothing)
   name {rule}             name the rule: right ends the case, wrong shows one counter-example
+  hint                    climb one more rung of the hint ladder (nudge, hint, answer) for this case; free, on request only
   restart                 clear this named case's test log to try for a better count (the best is kept)
   page {case}             open a case's Codex page (it must be named); a page opened counts as read
   reset                   start over (everything)
@@ -19,8 +20,10 @@ A rule is {"lits": [[clause id, negated 0/1], ...], "ops": ["and" | "or", ...]}.
 
 import json
 
+import achievements
 import cases
 import codex
+import hints
 import lang
 import progress
 import render
@@ -42,6 +45,7 @@ class Game:
         self.log = {}                    # case id -> {"t": [tested items], "f": [free counter-examples]}
         self.tally = {key: 0 for key in TALLY_KEYS}
         self.read = []                   # Codex pages opened (only named cases)
+        self.rungs = {}                  # case id -> hint rungs climbed (1 to 3)
         self.current = cases.ORDER[0]
         self.page_id = None              # the Codex page showing (not saved)
         self.last = None                 # the last answer shown at the gate
@@ -86,7 +90,27 @@ class Game:
         read = [cid for cid in cases.ORDER if cid in self.read and cid in self.named]
         if read:
             data["read"] = read
+        if self.rungs:
+            data["rungs"] = dict(self.rungs)
+        earned = achievements.earned(self.facts())
+        if earned:
+            data["achievements_earned"] = earned       # written for the hub's dashboard, never read back
         return data
+
+    def facts(self):
+        """What the achievements are computed from."""
+        named = self.named
+        totals = progress.totals(named)
+        both = 0
+        for cid, rec in named.items():
+            c = cases.BY_ID[cid]
+            rule = lang.parse_rule(c.kind, rec["r"])
+            if rule is not None and lang.uses_not(rule):
+                both += 1
+        return {"named": totals["named"], "drawers_closed": totals["drawers_closed"], "clean": totals["clean"],
+                "quick": sum(1 for rec in named.values() if rec["t"] <= 3), "counter": sum(1 for rec in named.values() if rec["m"]),
+                "both": both, "tests": self.tally["tests"], "shapes_drawer": progress.drawer_named_by_id(named, "shapes"),
+                "odd_drawer": progress.drawer_named_by_id(named, "odd"), "read": len([c for c in self.read if c in named])}
 
     def load(self, data):
         """Take a saved dict, checking every field on its own; a bad field falls back to its default. A saved name only counts
@@ -125,6 +149,8 @@ class Game:
         raw = data.get("read") if isinstance(data.get("read"), list) else []
         self.read = [cid for cid in cases.ORDER if cid in self.named and any(r == cid for r in raw if isinstance(r, str))]
         self.page_id = None
+        rungs = data.get("rungs") if isinstance(data.get("rungs"), dict) else {}
+        self.rungs = {cid: rungs[cid] for cid in cases.ORDER if _int(rungs.get(cid), 1, 3)}
         cur = data.get("cur")
         self._enter(cur if isinstance(cur, str) and cur in cases.BY_ID else cases.ORDER[0])
 
@@ -170,6 +196,8 @@ class Game:
         view = {"ok": ok, "message": message, "case": self._case_view(), "last": self.last, "verdict": self.verdict,
                 "cases": picker, "map": render.wall_svg(picker), "codex": codex.summary(self.named, self.read),
                 "page": codex.page(page, self.named, self.read) if page else None,
+                "hint": hints.view(self.case, self.rungs.get(self.current, 0), {k for k, _s in self._seen_entries()}),
+                "goals": achievements.goals(self.facts()), "achievements": achievements.view(self.facts()),
                 "totals": totals, "tally": dict(self.tally), "draft": draft}
         if self.menu_due:
             view["menu"] = lang.menu(self.case.kind)
@@ -245,6 +273,14 @@ class Game:
         _rule, draft = self._draft(raw)
         return self.view(draft=draft)
 
+    def hint(self):
+        rung = self.rungs.get(self.current, 0)
+        if rung >= 3:
+            return self.view("That is every rung: the answer is showing.", ok=False)
+        self.rungs[self.current] = rung + 1
+        self.tally["hints"] += 1
+        return self.view()
+
     def open_page(self, cid):
         if not isinstance(cid, str) or cid not in cases.BY_ID:
             return self.view("There is no such page.", ok=False)
@@ -301,6 +337,8 @@ def handle(request_json):
         return json.dumps(g.name(request.get("rule")))
     if action == "restart":
         return json.dumps(g.restart())
+    if action == "hint":
+        return json.dumps(g.hint())
     if action == "page":
         return json.dumps(g.open_page(request.get("case")))
     return json.dumps({"error": "unknown action " + repr(action)})

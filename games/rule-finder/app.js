@@ -3,7 +3,7 @@
    logic lives here: whether an item goes Through is always the engine's answer. */
 (function () {
   "use strict";
-  var ENGINE_MODULES = ["lang.py", "cases_numbers.py", "cases_shapes.py", "cases_two.py", "cases_not.py", "cases.py", "progress.py", "codex.py", "render.py"];
+  var ENGINE_MODULES = ["lang.py", "cases_numbers.py", "cases_shapes.py", "cases_two.py", "cases_not.py", "cases_patterns.py", "cases_odd.py", "cases.py", "progress.py", "hints.py", "achievements.py", "codex.py", "render.py"];
   var STORE_KEY = "rule-finder:state";
   var BACKUP_KEY = "rule-finder:state-backup";
   var SHAPE_NAMES = { c: "circle", s: "square", t: "triangle", d: "diamond" };
@@ -123,6 +123,7 @@
     bumpStat("stat-codex", view.totals.pages + "/" + view.totals.cases);
     bumpStat("stat-clean", view.totals.clean);
     bumpStat("stat-near", view.tally.near);
+    bumpStat("stat-hints", view.tally.hints);
   }
 
   // ---- the case, the gate and your log ------------------------------------------------------------------
@@ -433,6 +434,59 @@
     });
   }
 
+  function renderGoals() {
+    var list = $("goals-list");
+    var sig = view.goals.map(function (g) { return g.id + g.have; }).join(",");
+    if (list.dataset.sig === sig) return;
+    list.dataset.sig = sig;
+    list.textContent = "";
+    if (!view.goals.length) { list.appendChild(el("li", null, "Every goal is done. Take any case again for a better count, if you like.")); return; }
+    view.goals.forEach(function (g) {
+      var li = el("li");
+      li.appendChild(el("strong", null, g.label + ": "));
+      li.appendChild(document.createTextNode(g.description + " "));
+      var bar = el("span", "bar");
+      bar.setAttribute("aria-hidden", "true");
+      var fill = el("span", "bar-fill");
+      fill.style.width = Math.round(100 * g.have / g.need) + "%";
+      bar.appendChild(fill);
+      li.appendChild(bar);
+      li.appendChild(el("span", "goal-count", " " + g.have + "/" + g.need));
+      list.appendChild(li);
+    });
+  }
+  function loadItem(kind, key) {
+    if (kind === "num") { work.num = key; $("num-input").value = key; }
+    else if (kind === "shape") work.shape = key.split("");
+    else work.grid = key.split("").map(function (c) { return c === "#"; });
+    renderBuilder();
+  }
+  function loadRule(rule) {
+    rows = rule.lits.map(function (l, i) { return { op: i ? rule.ops[i - 1] : "and", neg: Boolean(l[1]), cid: l[0] }; });
+    renderRows();
+    onRulesChanged();
+  }
+  function renderHints() {
+    var h = view.hint;
+    var btn = $("hint-button");
+    btn.hidden = h.rung >= 3;
+    setText(btn, h.rung === 0 ? "Would you like a suggestion?" : (h.rung === 1 ? "Another hint" : "Another hint: the answer"));
+    $("hint-nudge").hidden = !h.nudge;
+    setText($("hint-nudge"), h.nudge ? "Nudge: " + h.nudge : "");
+    $("hint-hint").hidden = !h.hint;
+    if (h.hint) {
+      setText($("hint-hint-text"), "Hint: " + h.hint.text);
+      var ghost = $("hint-ghost");
+      var sig = h.hint.item;
+      if (ghost.dataset.sig !== sig + view.case.id) {
+        ghost.dataset.sig = sig + view.case.id;
+        ghost.innerHTML = sig ? itemSvg(view.case.kind, sig, "Suggested test: " + h.hint.label) : "";
+      }
+      $("hint-load-item-button").hidden = !sig;
+    }
+    $("hint-answer").hidden = !h.answer;
+    if (h.answer) setText($("hint-answer-text"), "Answer: " + h.answer.words);
+  }
   function renderMap() {
     var holder = $("map-holder");
     if (holder.dataset.sig === view.map) return;
@@ -526,6 +580,8 @@
     renderCases();
     renderMap();
     renderCodex();
+    renderGoals();
+    renderHints();
   }
 
   // ---- talking to the engine --------------------------------------------------------------------------------
@@ -555,7 +611,7 @@
       else if (v && v.kind === "near") announce("Not quite. The Sorter says " + v.conflict.sorter + " for " + v.conflict.label + ", your rule says " + v.conflict.rule + ".");
       else if (v && v.kind === "conflict") announce("Not yet. " + conflictText(v.conflict));
     }
-    if (["test", "name", "restart", "pick", "next", "reset", "page"].indexOf(request.action) >= 0) persist();
+    if (["test", "name", "restart", "pick", "next", "reset", "page", "hint"].indexOf(request.action) >= 0) persist();
     return result;
   }
 
@@ -585,6 +641,9 @@
       var rule = ruleFromRows();
       if (rule) send({ action: "name", rule: rule });
     });
+    $("hint-button").addEventListener("click", function () { send({ action: "hint" }); });
+    $("hint-load-item-button").addEventListener("click", function () { if (view.hint.hint && view.hint.hint.item) loadItem(view.case.kind, view.hint.hint.item); });
+    $("hint-load-rule-button").addEventListener("click", function () { if (view.hint.answer) loadRule(view.hint.answer.rule); });
     $("next-button").addEventListener("click", function () { send({ action: "next" }); });
     $("restart-button").addEventListener("click", function () { send({ action: "restart" }); });
     $("reset-button").addEventListener("click", function () {

@@ -34,7 +34,7 @@ def test_a_fresh_game_saves_as_nothing():
 def test_only_changed_keys_are_written_and_the_state_is_json_safe():
     play_a_little()
     state = game.get_state()
-    assert set(state) == {"cur", "named", "log", "tally"}
+    assert set(state) == {"cur", "named", "log", "tally", "achievements_earned"} and "first_gate" in state["achievements_earned"]
     assert state["cur"] == "hinge" and state["named"]["latch"]["r"] == "even" and state["named"]["latch"]["m"] == 1
     assert state["tally"] == {"tests": 3, "near": 1}
     assert state["log"]["hinge"] == {"t": ["40"]}

@@ -2,6 +2,10 @@
   "changelog": [
     {
       "date": "2026-10-11",
+      "entry": "The game is complete at 48 cases: two more drawers, Patterns (three by three grids of filled squares) and The Odd Gate (gates with one surprising exception, so test the edges). A free hint ladder on every case, opened one rung at a time and only when you press: a nudge about what kind of property to look at, a test item worth sending next, then the answer. Three goals stay in view, each with a count, and a medal for each named case shows how many tests it took against par. Nothing costs anything."
+    },
+    {
+      "date": "2026-10-11",
       "entry": "Three more drawers, 24 new cases: Shape Strings (strings of circles, squares, triangles and diamonds), Two Clauses (a gate that looks at two things, joined by and or by or) and Not (a gate that looks for what a thing is not: tick Not in the Rule Builder). Every drawer and case is open from the start. A wall map shows all the cubbies, and the Rule Codex keeps one page per named case with the rule in words and the shortest path of tests that would have proved it."
     },
     {

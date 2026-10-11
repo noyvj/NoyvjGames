@@ -9,8 +9,10 @@ Updated after every milestone. Read `planning/rule-finder-plan.md`, `CLAUDE.md` 
 
 - M3 Drawers 2-4: `cases_shapes.py`, `cases_two.py`, `cases_not.py` (24 cases, all proved), `codex.py`, `render.py` (wall map), codex panel and wall map in the page; 208 tests; checked live (map, codex, shape builder) at 1440x900 and 360x740.
 
+- M4 Drawers 5-6 (patterns, odd gate: 16 more cases, 48 in all, all proved), `hints.py`, `achievements.py` (table + goals), hint ladder and goals strip in the page; 280 tests; checked live at 1440x900 and 360x740.
+
 ## Next
-- M4 Drawers 5-6 (patterns, odd gate), hint ladder, three-goals strip, medals.
+- M5 standard kit (opening screen, tutorial, About + Sources, keyboard help, accessibility pass).
 
 ## Open problems / notes
 - Local Python is 3.9: engine code avoids 3.10+ syntax.
