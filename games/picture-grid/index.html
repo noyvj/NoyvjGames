@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Picture Grid - NoyvjGames</title>
+<meta name="description" content="A quiet gallery of small pixel pictures. Fill in each grid from the number clues on its rows and columns, and every solved picture is hung on the wall. Nothing is timed. Working title.">
+<link rel="icon" type="image/svg+xml" href="icons/favicon-picture-grid.svg">
+<link rel="stylesheet" href="../../shared/theme-light-games.css">
+<link rel="stylesheet" href="style.css">
+<script src="../../shared/theme.js"></script>
+<script src="../../shared/lite-mode.js"></script>
+<script src="../../shared/error-boundary.js" data-game-id="picture-grid"></script>
+<script src="../../shared/perf-mark.js" data-game-id="picture-grid"></script>
+<script src="../../shared/debug-overlay.js"></script>
+<script src="../../shared/report-problem.js" data-game-id="picture-grid" data-mount=".game-toolbar"></script>
+<script src="../../shared/profile.js" data-game-id="picture-grid"></script>
+<script src="../../shared/site-settings.js" data-game-id="picture-grid"></script>
+<script src="settings.js"></script>
+<link rel="stylesheet" href="../../ad-bar.css">
+<link rel="manifest" href="../../manifest.json">
+<!-- Pyodide is loaded by app.js after first paint, so this shell is readable before the engine is warm. -->
+<link rel="stylesheet" href="../../shared/a11y.css">
+<link rel="stylesheet" href="../../shared/touch-targets.css">
+<link rel="stylesheet" href="../../shared/lite-mode.css">
+</head>
+<body>
+<a class="skip-link" href="#frame-panel">Skip to the frame</a>
+<main id="game">
+  <div class="top-row">
+    <a href="../../index.html" class="hub-back-link">&larr; All games</a>
+    <h1>Picture Grid</h1>
+  </div>
+  <div class="game-toolbar">
+    <button id="gallery-toggle-button" type="button" aria-expanded="false" aria-controls="gallery-panel" data-testid="picture-grid-gallery-toggle">Gallery</button>
+    <button id="settings-toggle-button" type="button" aria-expanded="false" aria-controls="settings-panel">Settings</button>
+  </div>
+  <p class="tagline">A closed gallery of small pictures on a quiet station. Each frame is blank until you work out what it shows from the numbers on its rows and columns. Nothing is timed and nothing can go wrong.</p>
+
+  <section id="gallery-panel" class="panel" hidden aria-labelledby="gallery-heading">
+    <h2 id="gallery-heading">The Long Gallery</h2>
+    <p class="note">Every picture you solve is hung here, with its name. Open one to see it large. Each gallery opens when six pictures of the one before are hung; inside a gallery, pick any frame in any order.</p>
+    <div id="wall" class="wall"></div>
+    <section id="large-view" class="large-view" hidden aria-labelledby="large-title" tabindex="-1">
+      <h3 id="large-title"></h3>
+      <div id="large-picture" class="large-picture"></div>
+      <p id="large-caption" class="note"></p>
+      <p id="large-meta" class="note"></p>
+      <details class="text-alt">
+        <summary>Describe this picture in words</summary>
+        <p id="large-words"></p>
+      </details>
+      <div class="button-row">
+        <button id="large-prev-button" type="button">Previous hung picture</button>
+        <button id="large-next-button" type="button">Next hung picture</button>
+        <button id="large-play-button" type="button">Solve it again</button>
+        <button id="large-close-button" type="button">Close</button>
+      </div>
+    </section>
+  </section>
+
+  <section id="settings-panel" class="panel" hidden aria-labelledby="settings-heading">
+    <h2 id="settings-heading">Settings</h2>
+    <h3>Helpers (all off until you want them)</h3>
+    <div class="settings-row"><label><input type="checkbox" id="assist-check-checkbox" data-testid="picture-grid-assist-check"> Check mistakes: mark any cell that does not belong to the picture</label></div>
+    <div class="settings-row"><label><input type="checkbox" id="assist-autodot-checkbox" data-testid="picture-grid-assist-autodot"> Auto-dot finished lines: when a row or column is complete, dot its leftover cells</label></div>
+    <div class="settings-row"><label><input type="checkbox" id="assist-focus-checkbox" data-testid="picture-grid-assist-focus"> Row focus: tint the row and column under the cursor</label></div>
+    <h3>Display (stays on this device)</h3>
+    <div class="settings-row">
+      <span id="text-size-label">Text size</span>
+      <div class="text-size-control" role="group" aria-labelledby="text-size-label">
+        <button id="text-size-decrease-button" type="button" aria-label="Decrease text size">A&minus;</button>
+        <button id="text-size-reset-button" type="button" aria-label="Reset text size">A</button>
+        <button id="text-size-increase-button" type="button" aria-label="Increase text size">A+</button>
+      </div>
+    </div>
+    <div class="settings-row"><label><input type="checkbox" id="big-cells-checkbox"> Large cells (at least 44 pixels each; wide grids scroll sideways)</label></div>
+    <div class="settings-row"><label><input type="checkbox" id="reduced-motion-checkbox"> Reduce motion (follows your system setting until you choose)</label></div>
+    <div class="settings-row"><label><input type="checkbox" id="effects-checkbox" checked> Effects (the glow when a picture is hung)</label></div>
+    <div class="settings-row"><label><input type="checkbox" id="high-contrast-checkbox"> High contrast (brighter text, thicker outlines)</label></div>
+    <div class="settings-row"><button id="theme-setting-button" type="button" aria-pressed="false">Light theme</button></div>
+    <div class="settings-row"><button id="display-reset-button" type="button">Reset display settings</button></div>
+    <div class="settings-row"><button id="reset-button" type="button" data-testid="picture-grid-reset">Start the whole gallery over</button> <span class="note">Takes down every picture. It asks first.</span></div>
+  </section>
+  <p id="toast" class="note toast" role="status" aria-live="polite" title="Tap to dismiss"></p>
+
+  <section id="stats" class="stat-strip" aria-label="Your progress">
+    <div class="stat"><span class="stat-label">Pictures hung</span><span id="stat-hung" class="stat-value" data-testid="picture-grid-stat-hung">0</span></div>
+    <div class="stat"><span class="stat-label">Cells filled</span><span id="stat-cells" class="stat-value" data-testid="picture-grid-stat-cells">0</span></div>
+    <div class="stat"><span class="stat-label">Galleries done</span><span id="stat-galleries" class="stat-value">0</span></div>
+    <div class="stat"><span class="stat-label">Strokes here</span><span id="stat-strokes" class="stat-value">0</span></div>
+  </section>
+
+  <section id="frame-panel" class="panel" aria-labelledby="frame-heading" tabindex="-1">
+    <p id="frame-kicker" class="note kicker"></p>
+    <h2 id="frame-heading">Frame</h2>
+    <p id="frame-caption" class="note frame-caption"></p>
+    <div class="frame-nav button-row">
+      <button id="prev-frame-button" type="button" aria-label="Previous frame">&larr; Prev</button>
+      <button id="next-frame-button" type="button" aria-label="Next frame that is not hung yet" data-testid="picture-grid-next">Next &rarr;</button>
+    </div>
+    <div class="tools button-row" role="toolbar" aria-label="Marking tools">
+      <button id="mode-fill-button" type="button" class="mode" aria-pressed="true" data-testid="picture-grid-mode-fill"><span class="mode-glyph" aria-hidden="true">&#9632;</span> Fill</button>
+      <button id="mode-dot-button" type="button" class="mode" aria-pressed="false" data-testid="picture-grid-mode-dot"><span class="mode-glyph" aria-hidden="true">&#8226;</span> Dot</button>
+      <button id="undo-button" type="button" data-testid="picture-grid-undo">Undo</button>
+      <button id="redo-button" type="button" data-testid="picture-grid-redo">Redo</button>
+      <button id="clear-row-button" type="button">Clear row</button>
+      <button id="clear-col-button" type="button">Clear column</button>
+      <button id="clear-all-button" type="button" data-testid="picture-grid-clear">Clear frame</button>
+    </div>
+    <div id="board-wrap" class="board-wrap">
+      <svg id="board" class="board" role="application" tabindex="0" aria-labelledby="board-title" aria-describedby="cursor-line" focusable="true"></svg>
+    </div>
+    <p id="cursor-line" class="cursor-line" aria-live="off"></p>
+    <p class="note keys-note">Keys: arrow keys move the ring. Space or Enter marks the cell with the tool you have chosen, F and X choose Fill and Dot, Backspace clears the cell, Shift with an arrow marks as it moves, Ctrl or Cmd with Z undoes. With a mouse, drag along a line; hold Shift or use the right button to dot.</p>
+    <div id="hung-card" class="hung-card" hidden role="status">
+      <p id="hung-title" class="hung-title"></p>
+      <p id="hung-text" class="note"></p>
+      <div class="button-row">
+        <button id="hung-next-button" type="button" class="primary" data-testid="picture-grid-hung-next">Next frame</button>
+        <button id="hung-retry-button" type="button">Solve it again</button>
+        <button id="hung-gallery-button" type="button">See the gallery</button>
+      </div>
+    </div>
+    <details id="clue-text" class="text-alt clue-text">
+      <summary>Clues as text</summary>
+      <div id="clue-text-body"></div>
+    </details>
+  </section>
+
+  <p id="engine-status" class="note" role="status">Hanging the pictures...</p>
+  <p id="announce" class="sr-only" role="status" aria-live="polite"></p>
+</main>
+
+<a id="credits-link" class="credits-link" href="../../credits.html" style="display:block;text-align:center;font-size:0.85rem;margin:0.75rem 0;color:inherit;">Credits</a>
+<div class="ad-bar ad-bar--bottom">
+  <span class="ad-bar-label ad-bar-label-full">Advertisement — not part of the game</span>
+  <span class="ad-bar-label ad-bar-label-short">Ad</span>
+  <!-- Google AdSense manual display ad unit (placeholder client ID until the application is approved) -->
+  <ins class="adsbygoogle"
+       style="display:block; width:320px; height:50px;"
+       data-ad-client="ca-pub-XXXXXXXXXXXXXXXX"
+       data-ad-slot="XXXXXXXXXX"></ins>
+</div>
+<script src="https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.js"></script>
+<script src="../../shared/hub-auth.js"></script>
+<script src="../../shared/save-widget.js" data-game-id="picture-grid"></script>
+<script src="../../shared/confirm-dialog.js"></script>
+<script src="app.js"></script>
+<script>
+  if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.register("../../sw.js").catch(function () { /* offline support is optional */ });
+  }
+</script>
+</body>
+</html>
