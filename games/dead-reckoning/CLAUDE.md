@@ -114,3 +114,5 @@ You are a ship's navigator with only speed, heading and time. Plot a course acro
 ## Not built / deferred
 - Three ships (the plan says two to three; only two are built). Depth soundings (landmark fixes only). A drag dial for headings (numeric steppers and quick turns only). Celestial navigation (never planned, FOR-YOU Dr3).
 - Hub registration (M-5b-12) is deliberately not done: title card, `sw.js`, `offline-manifest.json`, `game-*.json`, share cards, root CLAUDE.md row, dev logs, the generated meta and JSON-LD blocks in `index.html`, `scripts/perf-budget.json`, `shared/site-settings.js` and the hub smoke tests.
+
+- **Seed system (Z-1e, 2026-10-12).** Dead Reckoning keeps its own code format as the accepted seed system (not `shared/seed.py`): a practice chart is a pure function of `(difficulty 1-5, seed < 36^6)`, shared as `DR<d>-<SEED>` (seed in base 36), and a daily chart comes from the date text alone (`daily.py`). `app.js` only uses `Math.random` to pick a NEW practice seed (exempt in `shared/tests/test_runtime_random_use.py`).

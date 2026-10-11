@@ -354,6 +354,15 @@ NoyvjSeed.mountStart("#new-game-seed", { game: "tide", onStart: (seed) => startR
 
 Both helpers: a labelled group or form, a live status region (`role="status"` / `role="alert"`), buttons and the field at least 44 px high, glyph plus words for every state (`✓ Copied TIDE-K7F2Q`, `! That is not a seed...`), `--ns-*` colour tokens that follow `html[data-theme="light"]` and the OS preference, no transitions under reduced motion (`prefers-reduced-motion` or `html[data-reduced-motion="true"]`), and when the clipboard is refused a selected read-only box with "press Ctrl+C". All text is written with `textContent`.
 
+### Which games use the shared seed, which keep their own, and which are exempt (Z-1e, Z-1f)
+
+Not every game needs `shared/seed.py`. Three groups, so a new game (or a reviewer) can see where it belongs. `shared/tests/test_runtime_random_use.py` enforces it: any game, shared or tool-free runtime file that draws from `random` or `Math.random` must be on its short exemption list with a reason, so unseeded gameplay randomness cannot slip in unnoticed (and a stale entry also fails).
+
+- **Shared seed (`PREFIX-CODE`, shown, copyable, enterable):** Grid (Copy seed, Z-1a), Trade Empire (hazards, guild offers and charter founding conditions, Z-1b), Aftermath (inside its run code), and, as they are done, Lighthouse, Pocket Bazaar and Heist Committee (Z-1c).
+- **Their own code format, accepted as the seed system** (one line in each game's `CLAUDE.md`): Signal (`P-<preset><5 characters>` plus a UTC-date daily), Dead Reckoning (`DR<d>-<base 36>`), Evidence Hunt (`EH<d>-<base 36>`), Chronicle (authored sets, splitmix64 fixtures, no typed seed), Continuum (the K-12 geography seed number).
+- **Exempt, no gameplay randomness at all:** Herd, Thaw, Loop, Drift, Lexis, Logic Gates, Robot Script, Hull Repair, Station Medic, Stranded and Rule Finder. Each is a deterministic puzzle, simulation or authored story; the only `random` in them is cosmetic (Herd's confetti, Loop's vignette offset) and is on the test's exemption list. Hull Repair, Rule Finder and Zero-G Shift use `random` only in build-time `tools/` generators whose output is committed, which the test does not scan.
+- **Study tool, decision pending:** Le Champ de Mots (its minigame and question draws; Z-1d either seeds them or records the exemption in its own `CLAUDE.md`).
+
 ### Daily seed and "Today's run" (Z-5)
 
 `daily_seed(game, "2026-10-08")` is the one seed everybody gets that UTC day, derived only from the date string and the game (`TIDE-X54PB` for Tide on 2026-10-08), so it needs no server. It is an ordinary seed: it validates, goes into `Rng`, and can be copied.
