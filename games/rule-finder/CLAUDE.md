@@ -35,12 +35,21 @@ A signal-room sorting game: an old relay lets some items through its gate and st
 | # | Milestone | Content | Status |
 |---|-----------|---------|--------|
 | 1 | Rule language and prover | `lang.py`, `tools/finder.py`, drawer 1 (8 cases) with proofs and tests | Done |
-| 2 | Sorter UI | Item builder, Send, gate animation, Rule Builder, near-miss counter-example, save contract. Playable slice | |
+| 2 | Sorter UI | Item builder, Send, gate animation, Rule Builder, near-miss counter-example, save contract. Playable slice | Done |
 | 3 | Drawers 2-4 | 24 more cases, shape and Not clauses, Rule Codex | |
 | 4 | Drawers 5-6, hints, goals | 16 more cases (48 in all), patterns, odd gate, hint ladder, goals strip, medals | |
 | 5 | Standard kit | Opening screen, tutorial, About with Sources, What's New, keyboard help, confirm dialogs, light theme, accessibility | |
 | 6 | Achievements | 14 achievements, panel and toast, manifest, reachability test | |
 | 7 | Desktop boot and wrap-up | `pc-config.json`, `pc.css`, `pc.js`, generated `pc.html`, docs, changelog | |
+
+## Engine and page notes (milestone 2)
+- `game.handle(json)` returns the whole view; the clause `menu` is sent only when the case changes (`menu_due`). Actions: `open`, `pick`, `next`, `test {item}`, `preview {rule}`, `name {rule}`, `restart`, `reset`. A rule is `{"lits": [[clause id, negated], ...], "ops": ["and"|"or", ...]}`.
+- A TEST is a new item sent to the gate: it counts once per case attempt; an item already seen (starting examples, earlier tests, free counter-examples) answers again for free. Starting examples are shown in the log as "given".
+- NAMING: first the draft is checked against everything already seen; a rule that contradicts a seen item is a "conflict" (told, never counted). Otherwise equal on every domain item (`lang.agree`) names the case; else a NEAR MISS: the first item (domain order) where the draft and the hidden rule differ is added to the log as a free counter-example (`f`), the near-miss tally goes up, and the hidden rule is never shown. The Rule Builder is capped at the drawer's `max_clauses`.
+- Naming a case again only ever improves the best test count (`restart` clears the test log of a named case so a better count can be tried); `m` remembers a near miss before naming (for the Counter-Example achievement).
+- Save (`get_state`): `cur`, `named {case: {t: best tests, r: rule, m}}` (each rule re-judged against the hidden one on every load), `log {case: {t: [...], f: [...]}}` (items re-normalised, deduplicated, never an example), `tally {tests, near, hints}`; only non-default keys; the gate's last answer and the verdict are not saved.
+- Items are drawn by `app.js` (`itemSvg`: a number tile, a string of sized tiles, a 3x3 grid) from the engine's item keys; the view never decides an answer (a test checks it).
+- The page uses the `ConfirmDialog` for the full reset; all other buttons act at once and nothing is lost by any of them.
 
 ## Working conventions
 - Commit only this folder with a pathspec commit, then tag `rule-finder-milestone-0N`. Hub registration (QI-5-R) is a separate later job.
