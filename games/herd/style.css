@@ -1608,3 +1608,11 @@ html[data-high-contrast="true"] #glossary-popover { background: #000; color: #ff
 .plan-line-letter { fill: currentColor; font-size: 8px; font-weight: 700; }
 .plan-table-wrap { overflow-x: auto; }
 .plan-table td, .plan-table th { font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+/* F-2 Ranch Ledger. */
+.ledger-chart-svg { width: 100%; max-width: 360px; height: auto; display: block; }
+.ledger-line { fill: none; stroke: #7fd6a3; stroke-width: 2; }
+.ledger-zero { stroke: #d9a24a; stroke-width: 1; stroke-dasharray: 4 3; }
+.ledger-mark { fill: #7fd6a3; stroke: #000; stroke-width: 0.5; }
+.ledger-table td, .ledger-table th { white-space: nowrap; font-variant-numeric: tabular-nums; }
+.ledger-panel label { font-size: 0.78rem; }

@@ -398,6 +398,26 @@
       <div id="plan-table" class="plan-table-wrap"></div>
     </details>
 
+    <details id="ledger-panel" class="section farm-extras ledger-panel">
+      <summary>Ranch Ledger</summary>
+      <p class="comparison-message">A line for every farm you hand down, plus any farm you file by hand. Kept in this browser only, never in a save.</p>
+      <div class="plan-buttons">
+        <button id="ledger-add-button" class="secondary" type="button">File this farm now</button>
+        <label for="ledger-filter">Show
+          <select id="ledger-filter">
+            <option value="all">All modes</option>
+            <option value="plain">Plain</option>
+            <option value="seasons">Seasons</option>
+            <option value="cap">Cap</option>
+          </select>
+        </label>
+        <button id="ledger-clear-button" class="secondary" type="button" disabled>Clear ledger</button>
+      </div>
+      <p id="ledger-summary" class="comparison-message" role="status" aria-live="polite"></p>
+      <div id="ledger-chart" class="ledger-chart"></div>
+      <div id="ledger-table" class="plan-table-wrap"></div>
+    </details>
+
     <details id="farm-extras" class="section farm-extras">
       <summary>Farm operations &amp; scenario options</summary>
       <p id="vignette-display" class="comparison-message"></p>

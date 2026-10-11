@@ -3616,6 +3616,190 @@ def _make_plan_horizon_handler(horizon):
     return handler
 
 
+# ---- F-2 Ranch Ledger ---------------------------------------------------------------------
+# One compact line per finished farm (a handover) or per farm the player files by hand, kept in this
+# browser (localStorage), never in a save. A trend chart of score against the pure-growth baseline,
+# filterable by mode.
+LEDGER_STORAGE_KEY = "herd-ranch-ledger-v1"
+LEDGER_MAX = 60
+LEDGER_FILTERS = ("all", "plain", "seasons", "cap")
+LEDGER_LEVERS = ("feed", "caps", "capture", "pivot", "genetics", "supply")
+LEDGER_LEVER_SHORT = {"feed": "Feed", "caps": "Caps", "capture": "Capture", "pivot": "Pivot", "genetics": "Breeding", "supply": "Supply"}
+ledger_filter = "all"
+
+
+def farm_mode():
+    if farm.variation_enabled and farm.regional_cap_enabled:
+        return "seasons and cap"
+    if farm.variation_enabled:
+        return "seasons"
+    if farm.regional_cap_enabled:
+        return "cap"
+    return "plain"
+
+
+def ledger_entry(finished=False):
+    levers = dict(farm.decoupling_investment)
+    levers["pivot"] = farm.plant_pivot_investment
+    levers["genetics"] = farm.genetics_active + len(farm.genetics_pending)
+    levers["supply"] = farm.supply_chain_investment
+    return {
+        "gen": generation, "round": farm.round_number, "funds": round(farm.funds, 1), "methane": round(farm.methane, 1),
+        "score": round(farm.score(), 1), "base": round(farm.counterfactual_score(), 1), "herd": farm.herd_size,
+        "poultry": farm.poultry_size, "mode": farm_mode(), "custom": bool(rules_unranked()), "done": bool(finished),
+        "levers": {k: int(levers.get(k, 0)) for k in LEDGER_LEVERS},
+    }
+
+
+def _clean_ledger_entry(raw):
+    """A usable ledger line from stored JSON, or None."""
+    if not isinstance(raw, dict):
+        return None
+    numbers = {}
+    for key in ("gen", "round", "funds", "methane", "score", "base", "herd", "poultry"):
+        if not _is_finite_number(raw.get(key)):
+            return None
+        numbers[key] = float(raw[key])
+    mode = raw.get("mode")
+    if mode not in ("plain", "seasons", "cap", "seasons and cap"):
+        return None
+    levers = raw.get("levers")
+    if not isinstance(levers, dict):
+        return None
+    clean_levers = {k: _safe_int(levers.get(k), 0) for k in LEDGER_LEVERS}
+    return {
+        "gen": max(1, int(numbers["gen"])), "round": max(1, int(numbers["round"])), "funds": numbers["funds"],
+        "methane": max(0.0, numbers["methane"]), "score": numbers["score"], "base": numbers["base"],
+        "herd": max(0, int(numbers["herd"])), "poultry": max(0, int(numbers["poultry"])), "mode": mode,
+        "custom": raw.get("custom") is True, "done": raw.get("done") is True, "levers": clean_levers,
+    }
+
+
+def read_ledger():
+    raw = _read_local_storage_item(LEDGER_STORAGE_KEY)
+    if not raw:
+        return []
+    try:
+        data = json.loads(raw)
+    except (ValueError, TypeError):
+        return []
+    if not isinstance(data, list):
+        return []
+    entries = [e for e in (_clean_ledger_entry(item) for item in data) if e is not None]
+    return entries[-LEDGER_MAX:]
+
+
+def ledger_record(entry):
+    """Files a line. Filing the same generation at the same round again replaces that line instead of repeating it."""
+    entries = [e for e in read_ledger() if not (e["gen"] == entry["gen"] and e["round"] == entry["round"])]
+    entries.append(entry)
+    del entries[:-LEDGER_MAX]
+    _write_local_storage_item(LEDGER_STORAGE_KEY, json.dumps(entries))
+    return entries
+
+
+def ledger_matches(entry, which):
+    if which == "all":
+        return True
+    if which == "plain":
+        return entry["mode"] == "plain"
+    return which in entry["mode"]
+
+
+def ledger_rows(which=None):
+    which = ledger_filter if which is None else which
+    return [e for e in read_ledger() if ledger_matches(e, which)]
+
+
+def ledger_levers_text(entry):
+    parts = [f"{LEDGER_LEVER_SHORT[k]} {entry['levers'][k]}" for k in LEDGER_LEVERS if entry["levers"][k]]
+    return ", ".join(parts) if parts else "none"
+
+
+def ledger_table_html(rows):
+    if not rows:
+        return "<p class=\"comparison-message\">No farms filed here yet. A handover files the farm automatically; the button above files the one you are playing.</p>"
+    head = (
+        '<caption>Finished and filed farms, oldest first</caption><thead><tr><th scope="col">Gen</th>'
+        '<th scope="col">Rounds</th><th scope="col">Funds</th><th scope="col">Methane</th><th scope="col">Score</th>'
+        '<th scope="col">Vs baseline</th><th scope="col">Levers</th><th scope="col">Flock</th><th scope="col">Mode</th></tr></thead>'
+    )
+    body = ""
+    for e in rows:
+        note = " (custom rules, unranked)" if e["custom"] else ""
+        body += (
+            f'<tr><th scope="row">{e["gen"]}{"" if e["done"] else " (filed)"}</th><td>{e["round"] - 1}</td><td>{e["funds"]:.0f}</td>'
+            f'<td>{e["methane"]:.0f}</td><td>{e["score"]:.0f}</td><td>{e["score"] - e["base"]:+.0f}</td>'
+            f'<td>{html.escape(ledger_levers_text(e))}</td><td>{e["poultry"]}</td><td>{html.escape(e["mode"])}{note}</td></tr>'
+        )
+    return f'<table class="compare-table ledger-table">{head}<tbody>{body}</tbody></table>'
+
+
+def ledger_chart_svg(rows):
+    """Score minus the pure-growth baseline for each filed farm, in order: a line with a square at every
+    point (the shape, not just the colour), a dashed zero line and the best point labelled."""
+    if len(rows) < 2:
+        return ""
+    width, height, pad = 260, 80, 10
+    values = [e["score"] - e["base"] for e in rows] + [0.0]
+    low, high = min(values), max(values)
+    span = (high - low) or 1.0
+
+    def y_of(v):
+        return height - pad - (height - 2 * pad) * ((v - low) / span)
+
+    points = [(pad + (width - 2 * pad) * i / (len(rows) - 1), y_of(e["score"] - e["base"])) for i, e in enumerate(rows)]
+    path = " ".join(f"{x:.1f},{y:.1f}" for x, y in points)
+    marks = "".join(f'<rect class="ledger-mark" x="{x - 2.5:.1f}" y="{y - 2.5:.1f}" width="5" height="5"/>' for x, y in points)
+    label = f"Score against the pure-growth baseline for {len(rows)} filed farms; best {max(values):+.0f}."
+    return (
+        f'<svg viewBox="0 0 {width} {height}" class="ledger-chart-svg" role="img" aria-label="{label}"><title>{label}</title>'
+        f'<line class="ledger-zero" x1="{pad}" x2="{width - pad}" y1="{y_of(0):.1f}" y2="{y_of(0):.1f}"/>'
+        f'<polyline class="ledger-line" points="{path}"/>{marks}</svg>'
+    )
+
+
+def render_ledger():
+    rows = ledger_rows()
+    document.getElementById("ledger-table").innerHTML = ledger_table_html(rows)
+    document.getElementById("ledger-chart").innerHTML = ledger_chart_svg(rows)
+    total = len(read_ledger())
+    best = max((e["score"] - e["base"] for e in read_ledger()), default=None)
+    document.getElementById("ledger-summary").innerText = (
+        "Nothing filed yet." if total == 0 else
+        f"{total} farm{'s' if total != 1 else ''} filed in this browser; best result against the baseline: {best:+.0f}."
+    )
+    document.getElementById("ledger-clear-button").disabled = total == 0
+
+
+def on_ledger_filter(event=None):
+    global ledger_filter
+    value = document.getElementById("ledger-filter").value
+    ledger_filter = value if value in LEDGER_FILTERS else "all"
+    render_ledger()
+
+
+def on_ledger_add(event=None):
+    ledger_record(ledger_entry(finished=False))
+    render_ledger()
+    _display_milestone_toast("Filed this farm in the Ranch Ledger.")
+
+
+def _clear_ledger():
+    _write_local_storage_item(LEDGER_STORAGE_KEY, "[]")
+    render_ledger()
+
+
+def on_ledger_clear(event=None):
+    _confirm_dialog_ask(
+        action_id="herd-clear-ledger",
+        message="Clear the Ranch Ledger? Every filed farm is removed from this browser. Your saves are not touched.",
+        confirm_label="Clear ledger",
+        on_confirm=_clear_ledger,
+        allow_skip=False,
+    )
+
+
 def render():
     _sync_collection()
     render_info_page()
@@ -3727,6 +3911,7 @@ def render():
     render_explain()
     render_rules()
     render_planner()
+    render_ledger()
 
 
 # F-18: an optional "ask before a big purchase" setting. The Settings select (settings.js) keeps the
@@ -3904,6 +4089,7 @@ def hand_over_farm():
     if not can_hand_over():
         return None
     earned = handover_points()
+    ledger_record(ledger_entry(finished=True))  # F-2: the finished farm is filed before it is retired
     retire_herd_to_hall()  # GF-13: the longest-serving animals are honoured before the herd is retired
     legacy_points += earned
     generation += 1
@@ -4549,6 +4735,9 @@ def setup():
         ("plan-clear-button", on_plan_clear),
     ):
         document.getElementById(element_id).addEventListener("click", create_proxy(handler))
+    document.getElementById("ledger-filter").addEventListener("change", create_proxy(on_ledger_filter))
+    document.getElementById("ledger-add-button").addEventListener("click", create_proxy(on_ledger_add))
+    document.getElementById("ledger-clear-button").addEventListener("click", create_proxy(on_ledger_clear))
     for horizon in PLAN_HORIZONS:
         document.getElementById(f"plan-horizon-{horizon}-button").addEventListener(
             "click", create_proxy(_make_plan_horizon_handler(horizon))

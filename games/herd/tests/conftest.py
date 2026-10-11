@@ -114,6 +114,9 @@ ELEMENT_IDS = [
     "plan-lever-select", "plan-count-select", "plan-round-select", "plan-add-button", "plan-undo-button",
     "plan-clear-button", "plan-horizon-5-button", "plan-horizon-10-button", "plan-queue-list", "plan-summary",
     "plan-chart", "plan-table", "planner-panel",
+    # F-2 ledger.
+    "ledger-panel", "ledger-add-button", "ledger-filter", "ledger-clear-button", "ledger-summary", "ledger-chart",
+    "ledger-table",
 ]
 for _measure in MEASURE_IDS:
     ELEMENT_IDS += [f"{_measure}-name", f"{_measure}-count", f"{_measure}-invest-button"]
