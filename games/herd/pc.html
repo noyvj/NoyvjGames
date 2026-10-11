@@ -444,6 +444,26 @@
       <p id="supply-chain-display" class="comparison-message"></p>
       <div class="meter" role="img" aria-label="Supply chain units bought out of the maximum" id="supply-chain-meter"><div id="supply-chain-bar" class="meter-fill meter-fill--supply"></div></div>
       <button id="supply-chain-invest-button" class="secondary" title="A downstream income lever, independent of herd size.">Processing &amp; Distribution</button>
+      <div id="mixer-panel" class="mixer-panel">
+        <p class="meter-label">Feed-additive mixer (optional minigame)</p>
+        <p id="mixer-status" class="comparison-message"></p>
+        <div id="mixer-bar" class="mixer-bar" aria-hidden="true">
+          <div class="mixer-zone mixer-zone--good"></div>
+          <div class="mixer-zone mixer-zone--perfect"></div>
+          <div id="mixer-marker" class="mixer-marker"></div>
+          <span class="mixer-tick mixer-tick--off">Off</span>
+          <span class="mixer-tick mixer-tick--good">Good</span>
+          <span class="mixer-tick mixer-tick--perfect">Perfect</span>
+        </div>
+        <div class="plan-buttons">
+          <button id="mixer-start-button" class="secondary" type="button" disabled>Start blending</button>
+          <button id="mixer-stop-button" class="primary" type="button" hidden>Stop!</button>
+          <button id="mixer-auto-button" class="secondary" type="button" disabled>Auto-blend</button>
+        </div>
+        <button id="mixer-result-button" type="button" hidden aria-hidden="true" tabindex="-1" data-quality="0"></button>
+        <p id="mixer-note" class="comparison-message" role="status" aria-live="polite"></p>
+        <p id="mixer-stats" class="comparison-message"></p>
+      </div>
       <fieldset id="pin-picker" class="pin-picker">
         <legend class="meter-label">Pin up to three stats to a strip at the top</legend>
         <label class="settings-checkbox-label"><input type="checkbox" id="pin-funds"> Funds</label>

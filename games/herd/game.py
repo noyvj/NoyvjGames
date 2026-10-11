@@ -243,6 +243,16 @@ POLICY_WELFARE_BASE = 10
 POLICY_WELFARE_PER_POINT = 1.2
 POLICY_HISTORY_MAX = 40
 
+# GF-25 -- the optional feed-additive mixer: a short click-timing blend (the page's JS handles the bar)
+# that pays a small bonus, at most MIXER_BONUS_FRACTION of the funds in hand (and never more than
+# MIXER_BONUS_MAX), once per round. The auto-blend button pays MIXER_AUTO_QUALITY of that, so nobody
+# has to play it. Needs one Feed Additives unit.
+MIXER_BONUS_FRACTION = 0.05
+MIXER_BONUS_MAX = 40.0
+MIXER_AUTO_QUALITY = 0.5
+MIXER_PERFECT_QUALITY = 0.9
+MIXER_MIN_QUALITY = 0.2  # a timed blend always pays a little, so a miss is never wasted
+
 
 # GF-15 -- perfect-round streak: a round is "perfect" when the methane it added
 # fell below the previous round's AND funds ended the round higher than they ended
@@ -418,6 +428,11 @@ class FarmState:
         self.policy_history = []  # [round, taken id, other id]
         self.hedge_rounds_left = 0
         self.label_rounds_left = 0
+        # GF-25: the mixer's visible tally (blends, perfect blends, funds earned) and the round last blended.
+        self.mixer_blends = 0
+        self.mixer_perfects = 0
+        self.mixer_bonus_total = 0.0
+        self.mixer_round = 0
 
         # F1 satellite farm.
         self.satellite_open = False
@@ -609,6 +624,27 @@ class FarmState:
         if measure == "feed" and self.hedge_rounds_left > 0:
             cost *= 1 - POLICY_HEDGE_DISCOUNT
         return cost
+
+    def mixer_available(self):
+        return self.decoupling_investment["feed"] >= 1 and self.mixer_round != self.round_number
+
+    def mixer_bonus_for(self, quality):
+        """Funds a blend of this quality (0 to 1) pays right now: a share of the funds in hand, capped."""
+        quality = max(0.0, min(1.0, quality))
+        return round(quality * min(MIXER_BONUS_MAX, MIXER_BONUS_FRACTION * max(0.0, self.funds)), 1)
+
+    def blend(self, quality):
+        """One mixer blend. Returns the bonus paid, or None when no blend is allowed right now."""
+        if not self.mixer_available() or not _is_finite_number(quality):
+            return None
+        bonus = self.mixer_bonus_for(quality)
+        self.funds += bonus
+        self.mixer_blends += 1
+        if quality >= MIXER_PERFECT_QUALITY:
+            self.mixer_perfects += 1
+        self.mixer_bonus_total += bonus
+        self.mixer_round = self.round_number
+        return bonus
 
     def label_multiplier(self):
         return 1 + POLICY_LABEL_BONUS if self.label_rounds_left > 0 else 1.0
@@ -1393,6 +1429,7 @@ def report_card_html():
         beat_percentage_message(),
         investment_summary_message(),
         policy_report_line(),
+        mixer_stats_message(),
         real_world_comparison_message(),
     ]
     lines.insert(1, rating_message())
@@ -3886,6 +3923,80 @@ def _make_pin_handler(stat):
     return handler
 
 
+# ---- GF-25 feed-additive mixer -------------------------------------------------------------
+mixer_message = ""
+
+
+def mixer_stats_message():
+    if farm.mixer_blends == 0:
+        return "Mixer tally: no blends yet."
+    return (
+        f"Mixer tally: {farm.mixer_blends} blend{'s' if farm.mixer_blends != 1 else ''}, {farm.mixer_perfects} perfect, "
+        f"+{farm.mixer_bonus_total:.1f} funds earned in total."
+    )
+
+
+def mixer_status_message():
+    if farm.decoupling_investment["feed"] < 1:
+        return "The mixer unlocks with your first Feed Additives unit."
+    if farm.mixer_round == farm.round_number:
+        return "You have blended this round. The mixer is ready again after Advance Round."
+    return (
+        f"Ready: a blend pays up to {farm.mixer_bonus_for(1.0):.1f} funds now "
+        f"({MIXER_BONUS_FRACTION * 100:.0f}% of your funds, at most {MIXER_BONUS_MAX:.0f}). "
+        f"Auto-blend pays {farm.mixer_bonus_for(MIXER_AUTO_QUALITY):.1f}."
+    )
+
+
+def mixer_quality_word(quality):
+    if quality >= MIXER_PERFECT_QUALITY:
+        return "Perfect blend"
+    if quality >= 0.5:
+        return "Good blend"
+    return "Rough blend"
+
+
+def mixer_blend(quality, auto=False):
+    """Applies a blend and sets the message. Returns the bonus, or None when it was not allowed."""
+    global mixer_message
+    bonus = farm.blend(quality)
+    if bonus is None:
+        mixer_message = "No blend right now."
+        return None
+    word = "Auto-blend" if auto else mixer_quality_word(quality)
+    mixer_message = f"{word}: +{bonus:.1f} funds."
+    return bonus
+
+
+def render_mixer():
+    ready = farm.mixer_available()
+    document.getElementById("mixer-start-button").disabled = not ready
+    document.getElementById("mixer-auto-button").disabled = not ready
+    document.getElementById("mixer-status").innerText = mixer_status_message()
+    document.getElementById("mixer-stats").innerText = mixer_stats_message()
+    document.getElementById("mixer-note").innerText = mixer_message
+
+
+def on_mixer_result(event=None):
+    try:
+        quality = float(document.getElementById("mixer-result-button").getAttribute("data-quality"))
+    except (TypeError, ValueError):
+        return
+    if not _is_finite_number(quality):
+        return  # junk from the page never uses up the round's blend
+    if mixer_blend(max(MIXER_MIN_QUALITY, min(1.0, quality))) is not None:
+        render()
+    else:
+        render_mixer()
+
+
+def on_mixer_auto(event=None):
+    if mixer_blend(MIXER_AUTO_QUALITY, auto=True) is not None:
+        render()
+    else:
+        render_mixer()
+
+
 def render():
     _sync_collection()
     render_info_page()
@@ -3999,6 +4110,7 @@ def render():
     render_planner()
     render_ledger()
     render_pins()
+    render_mixer()
 
 
 # F-18: an optional "ask before a big purchase" setting. The Settings select (settings.js) keeps the
@@ -4401,6 +4513,8 @@ def get_state():
         state["policy_seen"] = list(farm.policy_seen)
     if farm.policy_history:
         state["policy_history"] = [list(entry) for entry in farm.policy_history]
+    if farm.mixer_blends > 0:
+        state["mixer_stats"] = [farm.mixer_blends, farm.mixer_perfects, round(farm.mixer_bonus_total, 1), farm.mixer_round]
     if farm.hedge_rounds_left > 0:
         state["hedge_rounds_left"] = farm.hedge_rounds_left
     if farm.label_rounds_left > 0:
@@ -4452,6 +4566,14 @@ def _load_policy_fields(data):
                 and entry[1] in POLICY_OPTIONS and entry[2] in POLICY_OPTIONS and entry[1] != entry[2]
             ):
                 farm.policy_history.append([max(1, int(entry[0])), entry[1], entry[2]])
+    stats = data.get("mixer_stats")
+    farm.mixer_blends = farm.mixer_perfects = farm.mixer_round = 0
+    farm.mixer_bonus_total = 0.0
+    if isinstance(stats, (list, tuple)) and len(stats) == 4 and all(_is_finite_number(v) for v in stats):
+        farm.mixer_blends = _safe_int(stats[0], 0)
+        farm.mixer_perfects = min(farm.mixer_blends, _safe_int(stats[1], 0))
+        farm.mixer_bonus_total = max(0.0, float(stats[2]))
+        farm.mixer_round = _safe_int(stats[3], 0)
     farm.hedge_rounds_left = min(POLICY_HEDGE_ROUNDS, _safe_int(data.get("hedge_rounds_left"), 0))
     farm.label_rounds_left = min(POLICY_LABEL_ROUNDS, _safe_int(data.get("label_rounds_left"), 0))
 
@@ -4844,6 +4966,8 @@ def setup():
         ("plan-clear-button", on_plan_clear),
     ):
         document.getElementById(element_id).addEventListener("click", create_proxy(handler))
+    document.getElementById("mixer-result-button").addEventListener("click", create_proxy(on_mixer_result))
+    document.getElementById("mixer-auto-button").addEventListener("click", create_proxy(on_mixer_auto))
     for stat in PIN_STATS:
         document.getElementById(f"pin-{stat.replace('_', '-')}").addEventListener("click", create_proxy(_make_pin_handler(stat)))
     document.getElementById("ledger-filter").addEventListener("change", create_proxy(on_ledger_filter))

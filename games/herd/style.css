@@ -1640,3 +1640,15 @@ html[data-theme="light"] .pinned-strip { background: rgba(255, 253, 246, 0.96); 
 }
 html[data-reduced-motion="true"] .cha-confetti, html[data-lite="true"] .cha-confetti { display: none; }
 @media (prefers-reduced-motion: reduce) { .cha-confetti { display: none; } }
+
+/* GF-25 feed-additive mixer: the timing bar. Zones carry words and different fills, not colour alone. */
+.mixer-panel { margin-top: 0.6rem; padding-top: 0.5rem; border-top: 1px solid rgba(140, 160, 255, 0.18); }
+.mixer-bar { position: relative; height: 34px; margin: 0.4rem 0 0.6rem; border-radius: 8px; border: 1px solid rgba(140, 160, 255, 0.4); background: repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.06) 0 4px, transparent 4px 9px); overflow: hidden; }
+.mixer-zone { position: absolute; top: 0; bottom: 0; }
+.mixer-zone--good { left: 30%; width: 40%; background: rgba(224, 194, 76, 0.28); }
+.mixer-zone--perfect { left: 46%; width: 8%; background: repeating-linear-gradient(90deg, rgba(127, 214, 163, 0.85) 0 3px, rgba(76, 156, 110, 0.85) 3px 6px); }
+.mixer-marker { position: absolute; top: 0; bottom: 0; left: 50%; width: 4px; margin-left: -2px; background: #fff; box-shadow: 0 0 0 1px #000; }
+.mixer-tick { position: absolute; bottom: 1px; font-size: 0.62rem; opacity: 0.85; }
+.mixer-tick--off { left: 4px; }
+.mixer-tick--good { left: 34%; }
+.mixer-tick--perfect { left: 50%; transform: translateX(-50%); bottom: auto; top: 1px; font-weight: 700; }

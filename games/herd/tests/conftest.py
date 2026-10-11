@@ -120,6 +120,9 @@ ELEMENT_IDS = [
     # F-16 pinned strip.
     "pinned-strip", "pin-picker", "pin-note", "pin-funds", "pin-income", "pin-welfare", "pin-methane-round",
     "pin-methane", "pin-score", "pin-herd", "pin-pressure",
+    # GF-25 mixer.
+    "mixer-panel", "mixer-status", "mixer-start-button", "mixer-stop-button", "mixer-auto-button",
+    "mixer-result-button", "mixer-note", "mixer-stats", "mixer-bar", "mixer-marker",
 ]
 for _measure in MEASURE_IDS:
     ELEMENT_IDS += [f"{_measure}-name", f"{_measure}-count", f"{_measure}-invest-button"]

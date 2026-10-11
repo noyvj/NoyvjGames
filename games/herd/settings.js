@@ -500,6 +500,82 @@
     box.addEventListener("change", function () { setChaChing(box.checked); });
   }
 
+  // GF-25: the optional feed-additive mixer. A marker sweeps across a bar for up to MIXER_TIME ms; the
+  // player stops it (button, Enter or Space) as near the middle as they can. The blend's quality (0 to 1)
+  // goes to game.py through a hidden button's data-quality attribute; game.py pays the bonus and keeps the
+  // tally. "Auto-blend" (game.py) needs no timing at all. With reduced motion, lite mode or the OS
+  // setting there is no sweeping marker: the timed blend is off and only Auto-blend is offered.
+  const MIXER_TIME = 5000;
+  const MIXER_PERIOD = 1600;
+  const MIXER_WINDOW = 0.4;
+
+  function mixerQuality(position) {
+    const distance = Math.abs(position - 0.5);
+    return Math.max(0, 1 - distance / MIXER_WINDOW);
+  }
+
+  function initMixer() {
+    const start = document.getElementById("mixer-start-button");
+    const stop = document.getElementById("mixer-stop-button");
+    const marker = document.getElementById("mixer-marker");
+    const result = document.getElementById("mixer-result-button");
+    const note = document.getElementById("mixer-note");
+    if (!start || !stop || !marker || !result) return;
+    let running = false;
+    let began = 0;
+    let frame = 0;
+
+    function positionAt(now) {
+      const phase = ((now - began) % MIXER_PERIOD) / MIXER_PERIOD;
+      return phase < 0.5 ? phase * 2 : 2 - phase * 2;
+    }
+
+    function finish() {
+      running = false;
+      stop.hidden = true;
+      start.hidden = false;
+      if (frame) window.cancelAnimationFrame(frame);
+    }
+
+    function tick(now) {
+      if (!running) return;
+      if (now - began > MIXER_TIME) {
+        finish();
+        marker.style.left = "50%";
+        if (note) note.textContent = "Time ran out. Nothing was used up: try again or use Auto-blend.";
+        start.focus();
+        return;
+      }
+      marker.style.left = (positionAt(now) * 100).toFixed(1) + "%";
+      frame = window.requestAnimationFrame(tick);
+    }
+
+    start.addEventListener("click", function () {
+      if (start.disabled || running) return;
+      if (!motionAllowed()) {
+        if (note) note.textContent = "Motion is reduced, so the timed blend is off. Use Auto-blend.";
+        return;
+      }
+      running = true;
+      began = window.performance.now();
+      start.hidden = true;
+      stop.hidden = false;
+      stop.focus();
+      if (note) note.textContent = "Stop the marker in the middle!";
+      frame = window.requestAnimationFrame(tick);
+    });
+
+    stop.addEventListener("click", function () {
+      if (!running) return;
+      const position = positionAt(window.performance.now());
+      finish();
+      marker.style.left = (position * 100).toFixed(1) + "%";
+      result.setAttribute("data-quality", mixerQuality(position).toFixed(3));
+      result.click();
+      start.focus();
+    });
+  }
+
   function initKeyboardPlay() {
     document.addEventListener("keydown", onLeverKey);
     const howto = document.getElementById("howto-panel");
@@ -517,6 +593,7 @@
     initConfirmThreshold();
     initKeyboardPlay();
     initChaChing();
+    initMixer();
     initGlossary();
     let scale = readStoredScale();
     applyScale(scale);
@@ -588,5 +665,5 @@
     cheatSheetItems: CHEAT_SHEET_ITEMS,
     glossary: GLOSSARY,
   };
-  window.HerdFx = { roundGain: roundGain, chaChingOn: chaChingOn };
+  window.HerdFx = { roundGain: roundGain, chaChingOn: chaChingOn, mixerQuality: mixerQuality };
 })();

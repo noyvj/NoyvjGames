@@ -1,6 +1,10 @@
 [
   {
     "date": "2026-10-11",
+    "entry": "Optional feed-additive mixer: stop a moving marker in the middle of a bar for a small funds bonus (at most 5% of your funds, once a round). Auto-blend gives half with no timing at all, a miss still pays a little, and your blends and earnings are tallied in the panel and on the report card."
+  },
+  {
+    "date": "2026-10-11",
     "entry": "A small round celebration: after Advance Round the round's income counts up under the button, with a confetti burst when the round earned more than the last one. It can be switched off in Settings, and it is a plain number with no motion when reduced motion or lite mode is on."
   },
   {
