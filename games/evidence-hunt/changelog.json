@@ -1,6 +1,10 @@
 {
   "changelog": [
     {
+      "date": "2026-10-12",
+      "entry": "Practice has a new Today's run button. It opens the one practice house everybody gets that UTC day, made from the date's seed, so you can compare notes with anyone who played it. Solving it adds a tick to the hub's Today strip. It changes no seal, hints stay free, and a day you skip costs nothing."
+    },
+    {
       "date": "2026-10-11",
       "entry": "A difficulty choice at the top of the page: Easy, Normal or Hard, Normal by default and remembered on this device. Easy opens the nudge and the hint together on the first press and lets each seal allow one more point of cost. Hard has no answer step and tighter seals, and keeps its own seals. Normal is the game exactly as it was, nothing is locked by any choice, and every achievement can be earned on Normal."
     },

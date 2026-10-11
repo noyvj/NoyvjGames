@@ -70,6 +70,36 @@ def next_seed(played, difficulty):
     return ((played + 1) * 7919 + difficulty * 104729) % SEED_LIMIT
 
 
+# --- the daily house (Z-5c) -----------------------------------------------------------------------------
+# "Today's run" is a practice house chosen by the UTC date's shared seed text (EVIDENCEHUNT-K7F2Q, from shared/seed.js). The house is a
+# pure function of that text, so everyone who opens the day's seed gets the same house, and the text carries no clock: the page decides
+# which text is today's. Sizes 2 to 4 only (a middle-sized house a day), and every one of them is made by the same fair generator.
+DAILY_PREFIX = "EVIDENCEHUNT"
+DAILY_ALPHABET = "23456789ABCDEFGHJKMNPQRSTUVWXYZ"
+DAILY_RE = re.compile(r"^%s-[%s]{5}$" % (DAILY_PREFIX, DAILY_ALPHABET))
+DAILY_SIZES = (2, 3, 4)
+
+
+def is_daily_text(text):
+    return isinstance(text, str) and DAILY_RE.match(text) is not None
+
+
+def _fnv1a64(text):
+    h = 0xCBF29CE484222325
+    for byte in text.encode("utf-8"):
+        h = ((h ^ byte) * 0x100000001B3) & MASK
+    return h
+
+
+def daily_house(text):
+    """(difficulty, seed) of the practice house for a daily seed text, or None when the text is not one. Repeatable: the same text
+    always gives the same pair, and `make` of that pair always gives a fair house."""
+    if not is_daily_text(text):
+        return None
+    rng = Rng(_fnv1a64(text))
+    return rng.pick(DAILY_SIZES), int(rng.rand() * SEED_LIMIT)
+
+
 # --- a small repeatable source of numbers --------------------------------------------------------------
 def _mix(seed, k):
     x = (seed * 0x9E3779B97F4A7C15 + k * 0xBF58476D1CE4E5B9 + 0x94D049BB133111EB) & MASK

@@ -60,6 +60,7 @@
   <section id="practice-panel" class="panel" hidden aria-labelledby="practice-heading">
     <h2 id="practice-heading">Practice houses</h2>
     <p class="note">A practice house is made from a short code, and the same code always makes the same house. Pick a size, or type a code someone gave you. Practice never changes a seal, but every reading and every guide page it fills still counts.</p>
+    <div id="practice-today"></div>
     <div id="practice-levels" class="act-row" role="group" aria-label="Sizes of practice house"></div>
     <div class="code-row">
       <label for="practice-code">Code</label>
@@ -257,7 +258,9 @@
   // buttons the Desktop layout turns into icons and windows. app.js asks this function which steps to run.
   window.evidenceHuntTutorialSteps = function (classicSteps) { return window.EVIDENCE_HUNT_PC_TUTORIAL_STEPS || classicSteps; };
 </script>
+<script src="../../shared/seed.js"></script>
 <script src="app.js"></script>
+<script src="today.js"></script>
 <script src="../../shared/last-played.js" data-game-id="evidence-hunt"></script>
 <script src="../../shared/whats-new-banner.js" data-game-id="evidence-hunt"></script>
 <script src="../../shared/keyboard-shortcuts.js"></script>

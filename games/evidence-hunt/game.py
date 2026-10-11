@@ -42,6 +42,7 @@ MAX_TOKENS = 400
 LOG_KEEP = 40
 KEEP_PRACTICE_RUNS = 3
 MAX_DONE_CODES = 200
+MAX_DAILY_CODES = 4
 COMPILED = {}
 
 
@@ -80,6 +81,7 @@ class Game:
         self.mem = []                        # authored case ids solved with the sheet covered
         self.sbn = {}                        # difficulty -> practice houses opened from a seed the game chose
         self.sbdone = []                     # practice codes solved
+        self.sbdaily = {}                    # practice code -> the daily seed text it was opened from (Today's run), newest last
         self.tiers = {"easy": {}, "hard": {}}  # case id -> best seal earned on that difficulty (Normal seals are `best`)
         self.rung = 0
         self.helped = False                  # the answer rung did something on this case (not saved): no Hard seal for it
@@ -138,8 +140,9 @@ class Game:
         tiers = {k: dict(v) for k, v in self.tiers.items() if v}
         if tiers:
             data["tiers"] = tiers
-        if self.sbn or self.sbdone:
-            data["sb"] = {k: v for k, v in (("n", {str(d): n for d, n in self.sbn.items() if n}), ("done", list(self.sbdone))) if v}
+        if self.sbn or self.sbdone or self.sbdaily:
+            data["sb"] = {k: v for k, v in (("n", {str(d): n for d, n in self.sbn.items() if n}), ("done", list(self.sbdone)),
+                                            ("today", dict(self.sbdaily))) if v}
         earned = self.earned_ids()
         if earned:
             data["achievements_earned"] = earned       # written for the hub's dashboard, never read back
@@ -186,6 +189,12 @@ class Game:
             parsed = gen.parse(code) if isinstance(code, str) else None
             if parsed and gen.code_of(*parsed) == code and code not in self.sbdone and len(self.sbdone) < MAX_DONE_CODES:
                 self.sbdone.append(code)
+        raw_daily = raw_sb.get("today") if isinstance(raw_sb.get("today"), dict) else {}
+        self.sbdaily = {}
+        for code, text in raw_daily.items():       # kept only when the text really makes that code, so a hand-edited save cannot lie
+            house = gen.daily_house(text) if isinstance(code, str) and isinstance(text, str) else None
+            if house and gen.code_of(*house) == code and len(self.sbdaily) < MAX_DAILY_CODES:
+                self.sbdaily[code] = text
         raw_runs = data.get("run") if isinstance(data.get("run"), dict) else {}
         self.runs = {}
         practice_ids = [cid for cid in raw_runs if isinstance(cid, str) and gen.is_practice_id(cid)][:KEEP_PRACTICE_RUNS]
@@ -385,7 +394,7 @@ class Game:
                      "best": seal, "best_name": GRADE_LABEL[seal], "cost": cost,
                      "grade_now_name": GRADE_LABEL[cw.grade_for(cost, difficulty)], "done": case.done(st), "trips": st[cw.TRIPS], "wrong": st[cw.WRONG],
                      "n": case.n, "presence_line": "One presence in this house." if case.n == 1 else "Two presences, one in each of two rooms. Name both.",
-                     "covered": bool(st[cw.COVERED]), "practice": case.practice, "code": case.code,
+                     "covered": bool(st[cw.COVERED]), "practice": case.practice, "code": case.code, "today_seed": self.sbdaily.get(case.code, "") if case.practice else "",
                      "scene": render.scene(min(5, 1 + len(case.rooms) // 3)), "keepsake": bool(case.keep_room >= 0)},
             "house": self._house(), "bag": self._bag(), "room": self._room(), "notebook": self._notebook(), "accounts": self._accounts(),
             "could": could, "sheet": self._sheet(could), "accuse": {"n": case.n, "options": [{"id": k, "i": lx.KIND_INDEX[k], "name": lx.KIND_NAME[k]} for k in case.pool]},
@@ -492,6 +501,19 @@ class Game:
         for cid in practice[:max(0, len(practice) - KEEP_PRACTICE_RUNS)]:
             self.runs.pop(cid, None)
 
+    def open_daily(self, text):
+        """Open the practice house a daily seed text makes. False for a text that is not a daily seed."""
+        house = gen.daily_house(text)
+        if house is None or gen.make(*house) is None:
+            return False
+        self.open_practice(*house)
+        code = gen.code_of(*house)
+        self.sbdaily.pop(code, None)
+        self.sbdaily[code] = text
+        while len(self.sbdaily) > MAX_DAILY_CODES:
+            self.sbdaily.pop(next(iter(self.sbdaily)))
+        return True
+
     def open_practice(self, difficulty, seed):
         self._stash()
         self._enter(gen.case_id(difficulty, seed))
@@ -555,7 +577,12 @@ def handle(request_json):
     elif action == "practice":
         code = request.get("code")
         d = num("difficulty")
-        if isinstance(code, str) and code.strip():
+        if "today" in request:
+            if g.open_daily(request.get("today")):
+                message = "Opened today's house, %s." % g.case.code
+            else:
+                ok, message = False, "That is not a seed of the day for this game. It looks like EVIDENCEHUNT-K7F2Q."
+        elif isinstance(code, str) and code.strip():
             parsed = gen.parse(code)
             if parsed is None or gen.make(*parsed) is None:
                 ok, message = False, "That is not a practice code the game can make. A code looks like EH3-1K9X2."

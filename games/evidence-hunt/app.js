@@ -600,6 +600,7 @@
     setText($("action-line"), result.result ? "Case solved." : (result.message || ""));
     if (result.message) announce(result.result ? "Case solved." : result.message);
     persist();
+    try { document.dispatchEvent(new CustomEvent("evidence-hunt-view", { detail: result })); } catch (e) { /* an extra script's courtesy only */ }
     return result;
   }
   function act(request) { return send(request); }
@@ -682,6 +683,12 @@
     document.addEventListener("keydown", onKey);
     document.addEventListener("evidence-hunt-narrow-change", function () { if (view) { renderAccuse(); renderSheet(); } });
     // The save widget loads a save straight into the engine; this redraws afterwards.
+    // today.js (the Today's run button) opens a house through the engine the way the size buttons do.
+    window.evidenceHuntStartPractice = function (request) {
+      var result = send(request);
+      if (result && result.ok) closePanel("practice-panel", "practice-toggle-button");
+      return result;
+    };
     window.evidenceHuntRefresh = function () { if (engine) { caseId = null; send({ action: "open" }); } };
   }
 
