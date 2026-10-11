@@ -363,6 +363,33 @@ def demand_surge_active(round_number):
     return round_number % 6 in (4, 5)
 
 
+# GF-3 -- regulator audits. Every AUDIT_EVERY rounds, at the end of the round, an inspector checks two
+# visible targets (coupling ratio low enough, welfare high enough). The targets are shown from round 1
+# and rise with each audit (to 0.60 and 60). Passing earns a permanent perk for this farm; failing
+# costs a fine and a short market-trust hit. Deterministic: no luck, and the baseline farm is untouched.
+AUDIT_EVERY = 10
+AUDIT_WARNING_ROUNDS = 3
+AUDIT_LOG_MAX = 10
+AUDIT_FINE_INCOME_ROUNDS = 1.0  # a fine is this many rounds of income (so a farm earning nothing owes nothing)
+AUDIT_TRUST_ROUNDS = 3
+AUDIT_TRUST_PENALTY = 0.05
+AUDIT_GOODWILL_BONUS = 0.03
+AUDIT_PERK_REPEAT_FUNDS = 40
+AUDIT_PERKS = [
+    {"id": "goodwill", "label": "Regulator's Goodwill", "blurb": "+3% farm income, for good."},
+    {"id": "green_loan", "label": "Green Loan Terms", "blurb": "Feed Additives, Herd Caps and Capture Systems cost 1 less."},
+    {"id": "friendly_inspector", "label": "Friendly Inspector", "blurb": "A failed audit costs half the fine and half the trust hit."},
+]
+
+
+def audit_coupling_target(number):
+    return max(0.6, round(0.9 - 0.1 * (number - 1), 2))
+
+
+def audit_welfare_target(number):
+    return float(min(60, 50 + 5 * number))
+
+
 class FarmState:
     def __init__(self):
         self.round_number = 1
@@ -453,6 +480,14 @@ class FarmState:
         self.best_perfect_streak = 0
         self.last_round_perfect = False  # one-tick, not saved
         self.just_streak_bonus = None  # one-tick (streak, bonus), not saved
+
+        # GF-3: audits resolved, their log ([audit number, round, passed 0/1]), perks earned and the
+        # rounds of shaken market trust left. just_audit is a one-tick result for the toast (not saved).
+        self.audits_done = 0
+        self.audit_log = []
+        self.audit_perks = []
+        self.trust_rounds_left = 0
+        self.just_audit = None
 
         # GF-23: the starting loadout this farm began with ("standard" = none).
         self.loadout = "standard"
@@ -633,6 +668,8 @@ class FarmState:
     # ---- F27 policy advisor ----
     def decoupling_cost(self, measure):
         cost = DECOUPLING_MEASURES[measure]["cost"]
+        if "green_loan" in self.audit_perks:
+            cost = max(1, cost - 1)  # GF-3: an audit perk
         if self.subsidy_rounds_left > 0:
             cost *= 1 - POLICY_SUBSIDY_DISCOUNT
         if measure == "feed" and self.hedge_rounds_left > 0:
@@ -659,6 +696,52 @@ class FarmState:
         self.mixer_bonus_total += bonus
         self.mixer_round = self.round_number
         return bonus
+
+    # ---- GF-3 regulator audits ----
+    def next_audit_round(self):
+        """The round at whose end the next audit happens (this round, when it is a multiple of AUDIT_EVERY)."""
+        return -(-self.round_number // AUDIT_EVERY) * AUDIT_EVERY
+
+    def audit_multiplier(self):
+        multiplier = 1.0
+        if "goodwill" in self.audit_perks:
+            multiplier *= 1 + AUDIT_GOODWILL_BONUS
+        if self.trust_rounds_left > 0:
+            penalty = AUDIT_TRUST_PENALTY * (0.5 if "friendly_inspector" in self.audit_perks else 1.0)
+            multiplier *= 1 - penalty
+        return multiplier
+
+    def audit_passes(self, number=None):
+        number = self.audits_done + 1 if number is None else number
+        return (
+            self.coupling_ratio() <= audit_coupling_target(number) + 1e-9
+            and self.welfare() >= audit_welfare_target(number) - 1e-9
+        )
+
+    def _run_audit(self):
+        """The audit at the end of the round just played. Sets just_audit for the toast."""
+        number = self.audits_done + 1
+        passed = self.audit_passes(number)
+        self.audits_done = number
+        perk, fine = None, 0.0
+        if passed:
+            for entry in AUDIT_PERKS:
+                if entry["id"] not in self.audit_perks:
+                    perk = entry["id"]
+                    self.audit_perks.append(perk)
+                    break
+            if perk is None:
+                self.funds += AUDIT_PERK_REPEAT_FUNDS
+        else:
+            share = AUDIT_FINE_INCOME_ROUNDS * (0.5 if "friendly_inspector" in self.audit_perks else 1.0)
+            fine = float(min(max(0.0, self.funds), round(self.income_breakdown()["total"] * share)))
+            self.funds -= fine
+            self.trust_rounds_left = AUDIT_TRUST_ROUNDS
+        if self.funds_history and self.funds_history[-1] is not None:
+            self.funds_history[-1] = self.funds
+        self.audit_log.append([number, self.round_number - 1, 1 if passed else 0])
+        del self.audit_log[:-AUDIT_LOG_MAX]
+        self.just_audit = (number, passed, fine, perk)
 
     def label_multiplier(self):
         return 1 + POLICY_LABEL_BONUS if self.label_rounds_left > 0 else 1.0
@@ -914,14 +997,15 @@ class FarmState:
         poultry = self.poultry_net_income()
         satellite = self.satellite_net_income()
         label = self.label_multiplier()
-        raw_income = (herd_income + poultry + satellite) * supply * season * label
+        audit = self.audit_multiplier()
+        raw_income = (herd_income + poultry + satellite) * supply * season * label * audit
         pressure = self.pressure_fraction()
         biogas = self.biogas_sales()
         return {
             "herd_base": herd_base, "plant_fraction": fraction, "plant_blend": plant_blend,
             "certification": certification, "welfare": welfare, "herd_income": herd_income,
             "poultry": poultry, "satellite": satellite, "supply": supply, "season": season, "label": label,
-            "raw": raw_income, "pressure": pressure, "after_pressure": raw_income * (1 - pressure),
+            "audit": audit, "raw": raw_income, "pressure": pressure, "after_pressure": raw_income * (1 - pressure),
             "biogas": biogas, "total": raw_income * (1 - pressure) + biogas,
         }
 
@@ -958,6 +1042,8 @@ class FarmState:
             self.hedge_rounds_left -= 1
         if self.label_rounds_left > 0:
             self.label_rounds_left -= 1
+        if self.trust_rounds_left > 0:
+            self.trust_rounds_left -= 1
         if (self.round_number + 1) % POLICY_EVENT_INTERVAL == 0:
             self.policy_offer_pending = True
             self.policy_offer = self.draw_policy_offer()
@@ -1015,6 +1101,11 @@ class FarmState:
         ):
             self.seen_methane_penalty_nudge = True
             self.just_hit_callout = "methane_penalty"
+
+        # GF-3: the regulator audit at the end of every AUDIT_EVERY-th round.
+        self.just_audit = None
+        if (self.round_number - 1) % AUDIT_EVERY == 0:
+            self._run_audit()
 
     def score(self):
         """Profitability weighted against sustained emissions — rewards
@@ -1466,6 +1557,8 @@ def report_card_html():
         real_world_comparison_message(),
     ]
     lines.insert(1, rating_message())
+    if farm.audits_done:
+        lines.insert(2, audit_report_line())
     body = "".join(f'<p class="status-line summary-line">{line}</p>' for line in lines)
     # F7: filled in by index.html's window.herdCompare() when the shared
     # stats endpoint (planning/TODO.md Z1) is reachable; otherwise this
@@ -2038,7 +2131,7 @@ def _display_milestone_toast(message):
     setTimeout(proxy, 5000)
 
 
-def _check_milestone_callout():
+def _check_milestone_callout(prefix=""):
     """Consumes FarmState.just_hit_callout (set at most once per
     advance_round() call) and shows its toast. Called from
     on_advance_round(), not render(), so a save/load round-trip (which
@@ -2047,7 +2140,7 @@ def _check_milestone_callout():
         message = _MILESTONE_CALLOUT_MESSAGES.get(farm.just_hit_callout)
         farm.just_hit_callout = None
         if message:
-            _display_milestone_toast(message)
+            _display_milestone_toast(f"{prefix} {message}".strip())  # GF-3: an audit result is not lost under a callout
 
 
 # F19 — lightweight pulse feedback on a successful investment click.
@@ -3414,6 +3507,13 @@ def explain_income_nodes():
         nodes.append(_node("Season", f"x{b['season']:.2f}", season_for_round(farm.round_number)[0]))
     if farm.label_rounds_left > 0:
         nodes.append(_node("Organic label trial", f"x{b['label']:.2f}", f"{farm.label_rounds_left} rounds left"))
+    if abs(b["audit"] - 1) > 1e-9:
+        reason = []
+        if "goodwill" in farm.audit_perks:
+            reason.append("Regulator's Goodwill")
+        if farm.trust_rounds_left > 0:
+            reason.append(f"market trust shaken for {farm.trust_rounds_left} more rounds")
+        nodes.append(_node("Regulator standing", f"x{b['audit']:.3f}", ", ".join(reason)))
     nodes.append(_node("Income before pressure", f"{b['raw']:.1f}"))
     nodes.append(_node("Market/regulatory pressure", f"-{b['pressure'] * 100:.0f}%", f"takes {b['raw'] * b['pressure']:.1f} of it; see the Pressure breakdown"))
     if b["biogas"]:
@@ -3639,9 +3739,10 @@ def clone_farm(source):
     twin = copy.copy(source)
     twin.decoupling_investment = dict(source.decoupling_investment)
     twin.poultry_investment = dict(source.poultry_investment)
-    for name in ("genetics_pending", "methane_history", "funds_history", "policy_offer", "policy_seen"):
+    for name in ("genetics_pending", "methane_history", "funds_history", "policy_offer", "policy_seen", "audit_perks"):
         setattr(twin, name, list(getattr(source, name)))
     twin.lever_log = [list(entry) for entry in source.lever_log]
+    twin.audit_log = [list(entry) for entry in source.audit_log]
     twin.policy_history = [list(entry) for entry in source.policy_history]
     twin.undo_snapshot = None
     return twin
@@ -4528,6 +4629,7 @@ def render():
     render_golden_cow()
     render_blind_run()
     render_loadouts()
+    render_audit()
 
 
 # F-18: an optional "ask before a big purchase" setting. The Settings select (settings.js) keeps the
@@ -4854,8 +4956,12 @@ def on_advance_round(event=None):
     beat = last_round_income is not None and income_this_round > last_round_income + 1e-9
     last_round_income = income_this_round
     celebrate_round(income_this_round, beat)
-    document.getElementById("round-announcer").innerText = round_announcement(funds_before, methane_before)
+    audit_text = audit_result_message(farm.just_audit) if farm.just_audit else ""
+    farm.just_audit = None
+    document.getElementById("round-announcer").innerText = (round_announcement(funds_before, methane_before) + " " + audit_text).strip()
     nudge = save_nudge_message()
+    if audit_text:
+        nudge = f"{audit_text} {nudge}".strip()
     if farm.just_streak_bonus is not None:
         streak, bonus = farm.just_streak_bonus
         farm.just_streak_bonus = None
@@ -4863,7 +4969,7 @@ def on_advance_round(event=None):
         _display_milestone_toast(f"{message} {nudge}".strip())
     elif nudge:
         _display_milestone_toast(nudge)
-    _check_milestone_callout()
+    _check_milestone_callout(audit_text)
     _check_new_achievements_for_toast()
     if farm.just_flattened:
         farm.just_flattened = False
@@ -4929,6 +5035,14 @@ def get_state():
         state["hall_of_fame"] = [list(entry) for entry in hall_of_fame]
     if farm.undo_used:
         state["undo_used"] = True
+    # GF-3: audit record, only once an audit has happened or something is pending.
+    if farm.audits_done > 0:
+        state["audits_done"] = farm.audits_done
+        state["audit_log"] = [list(entry) for entry in farm.audit_log]
+    if farm.audit_perks:
+        state["audit_perks"] = list(farm.audit_perks)
+    if farm.trust_rounds_left > 0:
+        state["trust_rounds_left"] = farm.trust_rounds_left
     # GF-23: starting loadouts, only when there is something to keep.
     if farm.loadout != "standard":
         state["loadout"] = farm.loadout
@@ -5087,6 +5201,7 @@ def _load_progress_fields(data):
     farm.undo_snapshot = None
     _load_barns(data)
     _load_loadouts(data)
+    _load_audits(data)
     farm.blind_run = data.get("blind_run") is True
     farm.blind_revealed = farm.blind_run and data.get("blind_revealed") is True
     farm.golden_claimed = _safe_int(data.get("golden_claimed"), 0)
@@ -5951,6 +6066,106 @@ def on_loadout_change(event=None):
     else:
         loadout_status_text = "That loadout is still locked."
     render()
+
+
+# ---- GF-3 regulator audits: the panel and messages ---------------------------------------------
+def _load_audits(data):
+    farm.audits_done = _safe_int(data.get("audits_done"), 0)
+    farm.audit_log = []
+    log = data.get("audit_log")
+    if farm.audits_done > 0 and isinstance(log, list):
+        for entry in log[-AUDIT_LOG_MAX:]:
+            if (
+                isinstance(entry, (list, tuple)) and len(entry) == 3 and all(_is_finite_number(v) for v in entry)
+                and entry[2] in (0, 1) and entry[0] >= 1 and entry[1] >= 1
+            ):
+                farm.audit_log.append([int(entry[0]), int(entry[1]), int(entry[2])])
+    perks = data.get("audit_perks")
+    farm.audit_perks = []
+    if isinstance(perks, list):
+        known = [entry["id"] for entry in AUDIT_PERKS]
+        for perk in perks:
+            if isinstance(perk, str) and perk in known and perk not in farm.audit_perks:
+                farm.audit_perks.append(perk)
+    farm.trust_rounds_left = min(AUDIT_TRUST_ROUNDS, _safe_int(data.get("trust_rounds_left"), 0))
+    farm.just_audit = None
+
+
+def audit_perk_label(perk_id):
+    for entry in AUDIT_PERKS:
+        if entry["id"] == perk_id:
+            return entry["label"]
+    return perk_id
+
+
+def audits_passed():
+    return sum(1 for _n, _r, ok in farm.audit_log if ok)
+
+
+def audit_result_message(result):
+    number, passed, fine, perk = result
+    if passed:
+        reward = (
+            f"You earned the perk {audit_perk_label(perk)}." if perk else f"You earned {AUDIT_PERK_REPEAT_FUNDS} funds (every perk is already yours)."
+        )
+        return f"Regulator audit {number}: passed. {reward}"
+    return (
+        f"Regulator audit {number}: not passed. A fine of {fine:g} funds and market trust is shaken "
+        f"for {farm.trust_rounds_left} rounds."
+    )
+
+
+def audit_report_line():
+    perks = ", ".join(audit_perk_label(p) for p in farm.audit_perks) or "none yet"
+    return f"Regulator audits: {audits_passed()} passed of {farm.audits_done}. Perks: {perks}."
+
+
+def audit_target_lines():
+    number = farm.audits_done + 1
+    ratio_target, welfare_target = audit_coupling_target(number), audit_welfare_target(number)
+    ratio_ok = farm.coupling_ratio() <= ratio_target + 1e-9
+    welfare_ok = farm.welfare() >= welfare_target - 1e-9
+    return (
+        f"Coupling ratio {ratio_target:.2f} or lower: now {farm.coupling_ratio():.2f} ({'met' if ratio_ok else 'not met yet'}).",
+        f"Welfare {welfare_target:.0f} or more: now {farm.welfare():.0f} ({'met' if welfare_ok else 'not met yet'}).",
+    )
+
+
+def audit_headline():
+    number = farm.audits_done + 1
+    when = farm.next_audit_round()
+    left = when - farm.round_number
+    if left == 0:
+        return f"Audit {number} is at the end of this round."
+    plural = "s" if left != 1 else ""
+    text = f"Audit {number} is at the end of round {when} ({left} round{plural} from now)."
+    if left <= AUDIT_WARNING_ROUNDS:
+        text = "Warning: " + text[0].lower() + text[1:]
+    return text
+
+
+def render_audit():
+    left = farm.next_audit_round() - farm.round_number
+    warning = left <= AUDIT_WARNING_ROUNDS
+    panel = document.getElementById("audit-panel")
+    if warning:
+        panel.classList.add("audit-warning")
+    else:
+        panel.classList.remove("audit-warning")
+    document.getElementById("audit-headline").innerText = audit_headline()
+    coupling_line, welfare_line = audit_target_lines()
+    document.getElementById("audit-target-coupling").innerText = coupling_line
+    document.getElementById("audit-target-welfare").innerText = welfare_line
+    document.getElementById("audit-reward").innerText = (
+        "Pass: a permanent perk for this farm. Fail: a fine of one round's income and a few rounds of shaken market trust."
+    )
+    perks = ", ".join(audit_perk_label(p) for p in farm.audit_perks)
+    record = f"Audits passed: {audits_passed()} of {farm.audits_done}." if farm.audits_done else "No audit yet."
+    if perks:
+        record += f" Perks: {perks}."
+    if farm.trust_rounds_left > 0:
+        record += f" Market trust is shaken for {farm.trust_rounds_left} more rounds."
+    document.getElementById("audit-record").innerText = record
 
 
 def setup():

@@ -1781,3 +1781,8 @@ html[data-reduced-motion="true"] .golden-cow-glider, html[data-lite="true"] .gol
 /* ---- Round 7: GF-23 starting loadouts ---- */
 .loadout-list { margin: 0.4rem 0 0; padding-left: 1.1rem; font-size: 0.82rem; }
 .loadout-list li { margin: 0.2rem 0; }
+
+/* ---- Round 7: GF-3 regulator audits ---- */
+.audit-targets { margin: 0.3rem 0; padding-left: 1.1rem; font-size: 0.85rem; }
+.audit-panel.audit-warning { border: 2px solid #e69f00; }
+.audit-panel.audit-warning .audit-headline::before { content: "\26A0\FE0F "; }
