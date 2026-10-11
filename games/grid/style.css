@@ -1947,3 +1947,23 @@ html[data-reduced-motion="true"] *::after {
 @media (prefers-reduced-motion: reduce) {
   .achievement-card--powerup .ach-window, .achievement-card--powerup { animation: none; }
 }
+
+/* C-23: the short round-advance picture. Decoration only: hidden under Reduce motion, in the OS setting and with the Settings checkbox. */
+.round-animation { margin: 0.2rem 0; }
+.round-animation[hidden] { display: none; }
+.round-animation-svg { width: 100%; height: auto; max-height: 56px; display: block; }
+.ra-arc { fill: none; stroke: rgba(255, 224, 138, 0.5); stroke-width: 1.2; stroke-dasharray: 1; stroke-dashoffset: 1; animation: ra-draw 0.7s ease-out forwards; }
+.ra-sun { fill: #ffe08a; animation: ra-sun-move 0.85s ease-in-out forwards; }
+.ra-streak { stroke: #cfe0ff; stroke-width: 1.6; stroke-linecap: round; stroke-dasharray: 14 60; stroke-dashoffset: 40; animation: ra-streak 0.7s ease-out forwards; }
+.ra-demand { fill: none; stroke: #c9a0ff; stroke-width: 2; stroke-dasharray: 1; stroke-dashoffset: 1; animation: ra-draw 0.85s ease-out forwards; }
+@keyframes ra-draw { to { stroke-dashoffset: 0; } }
+@keyframes ra-sun-move {
+  0% { transform: translate(0, 0); opacity: 0.2; }
+  25% { transform: translate(27px, -21px); opacity: 1; }
+  50% { transform: translate(54px, -28px); }
+  75% { transform: translate(81px, -21px); opacity: 1; }
+  100% { transform: translate(108px, 0); opacity: 0.2; }
+}
+@keyframes ra-streak { 0% { stroke-dashoffset: 40; opacity: 0; } 30% { opacity: 1; } 100% { stroke-dashoffset: -50; opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .round-animation { display: none !important; } }
+html[data-reduced-motion="true"] .round-animation { display: none !important; }

@@ -262,6 +262,12 @@
         </label>
       </div>
       <div class="settings-row">
+        <label class="settings-checkbox-label" for="pref-round-animation">
+          <input type="checkbox" id="pref-round-animation" checked>
+          Round animation: a short sun, wind and demand picture after Advance Round
+        </label>
+      </div>
+      <div class="settings-row">
         <label class="settings-checkbox-label" for="pref-unlock-flash">
           <input type="checkbox" id="pref-unlock-flash" checked>
           Power-up flash on a newly earned achievement card
@@ -334,6 +340,9 @@
       <div id="skyline-graphic" class="skyline-graphic"></div>
       <p id="skyline-caption" class="skyline-caption"></p>
     </div>
+
+    <!-- C-23: a short picture after Advance Round (sun arc, wind streaks, the demand curve drawing itself); decoration only. -->
+    <div id="round-animation" class="round-animation" aria-hidden="true" hidden></div>
 
     <button id="info-page-toggle-button" class="secondary info-page-toggle">Loading...</button>
     <div id="info-page-panel" class="section" hidden>

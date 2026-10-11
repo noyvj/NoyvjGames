@@ -1916,6 +1916,7 @@ PREF_DEFAULTS = {
     "rank_theme": "default",
     "chart_theme": "default",
     "unlock_flash": True,
+    "round_animation": True,
 }
 RANK_THEMES = ("default", "teal", "amber", "violet", "rose", "gold")
 # C-28: how the trend graph and the plant-mix bars are coloured. "contrast" uses brighter, thicker lines and bars;
@@ -4444,6 +4445,7 @@ def render():
     render_trend()
     render_chart_theme()
     render_unlock_flash_setting()
+    render_round_animation_setting()
     render_chart_tables()
     render_fleet_overview()
     render_coach()
@@ -5942,6 +5944,91 @@ def on_connect_regional_grid(event=None):
 auto_advance_message = ""
 
 
+# ---- C-23 round-advance animation ------------------------------------------------------------------------------------
+# A short (under one second) picture after Advance Round: a sun that crosses its arc if the grid has solar, wind streaks if
+# it has wind (one per few turbines, at most four), and the demand curve drawing itself. It only plays what the grid
+# really has, never changes a number, and is purely decoration: it is hidden from screen readers (the round announcement
+# says it all), switched off with the Settings checkbox, and not shown at all under Reduce motion (CSS).
+ROUND_ANIMATION_MS = 900
+ROUND_ANIMATION_WIDTH = 280
+ROUND_ANIMATION_HEIGHT = 44
+ROUND_ANIMATION_MAX_STREAKS = 4
+ROUND_ANIMATION_POINTS = 10
+_round_animation_token = 0
+
+
+def round_animation_parts():
+    """What the animation would show for the grid as it stands: which scenes and how many streaks."""
+    wind_units = state.plant_counts["wind"]
+    return {
+        "sun": state.plant_counts["solar"] > 0,
+        "wind": wind_units > 0,
+        "streaks": min(ROUND_ANIMATION_MAX_STREAKS, 1 + (wind_units - 1) // 3) if wind_units > 0 else 0,
+        "curve": len(state.demand_history) >= 2,
+    }
+
+
+def round_animation_svg():
+    parts = round_animation_parts()
+    w, h = ROUND_ANIMATION_WIDTH, ROUND_ANIMATION_HEIGHT
+    out = []
+    if parts["sun"]:
+        out.append(
+            f'<path d="M 12 {h - 6} Q {w / 4} -18 {w / 2 - 20} {h - 6}" class="ra-arc" pathLength="1" />'
+            f'<circle cx="12" cy="{h - 6}" r="5" class="ra-sun" />'
+        )
+    if parts["wind"]:
+        for i in range(parts["streaks"]):
+            y = 8 + i * 8
+            out.append(
+                f'<line x1="{w / 2 + 6}" y1="{y}" x2="{w / 2 + 46}" y2="{y}" class="ra-streak" '
+                f'style="animation-delay:{i * 0.1:.1f}s" />'
+            )
+    if parts["curve"]:
+        series = state.demand_history[-ROUND_ANIMATION_POINTS:]
+        lo, hi = min(series), max(series)
+        span = (hi - lo) or 1.0
+        x0, x1 = w / 2 + 60, w - 6
+        pts = " ".join(
+            f"{x0 + (x1 - x0) * i / (len(series) - 1):.1f},{h - 6 - (h - 14) * (v - lo) / span:.1f}"
+            for i, v in enumerate(series)
+        )
+        out.append(f'<polyline points="{pts}" class="ra-demand" pathLength="1" />')
+    if not out:
+        return ""
+    return f'<svg viewBox="0 0 {w} {h}" class="round-animation-svg" aria-hidden="true" focusable="false">{"".join(out)}</svg>'
+
+
+def _play_round_animation():
+    """Shows the picture for ROUND_ANIMATION_MS. The last advance wins if two come close together."""
+    global _round_animation_token
+    box = document.getElementById("round-animation")
+    svg = round_animation_svg() if prefs["round_animation"] else ""
+    if not svg:
+        box.hidden = True
+        box.innerHTML = ""
+        return
+    _round_animation_token += 1
+    token = _round_animation_token
+    box.innerHTML = svg
+    box.hidden = False
+
+    def _hide(*args):
+        if token == _round_animation_token:
+            box.hidden = True
+            box.innerHTML = ""
+        proxy.destroy()
+
+    proxy = create_proxy(_hide)
+    setTimeout(proxy, ROUND_ANIMATION_MS)
+
+
+def render_round_animation_setting():
+    document.getElementById("pref-round-animation").checked = prefs["round_animation"]
+    if not prefs["round_animation"]:
+        document.getElementById("round-animation").hidden = True
+
+
 def on_advance_round(event=None):
     global auto_advance_message, last_finish_records
     auto_advance_message = ""
@@ -5950,6 +6037,7 @@ def on_advance_round(event=None):
     state.advance_round()
     _check_renewable_milestone()
     render()
+    _play_round_animation()
     announce(round_announcement_text(milestone_new=state.renewable_50_reached and not reached_before))
     _check_disruption_toast()
     _check_new_achievements_for_toast()
@@ -5999,6 +6087,7 @@ def on_auto_advance(event=None):
     auto_advance_message = message
     if played:
         render()
+        _play_round_animation()
         announce(message)
         announce(round_announcement_text(milestone_new=state.renewable_50_reached and not reached_before))
         _check_disruption_toast()
@@ -6726,6 +6815,9 @@ def setup():
         "change", create_proxy(_make_pref_select_handler("number_format"))
     )
     document.getElementById("pref-unit").addEventListener("change", create_proxy(_make_pref_select_handler("unit")))
+    document.getElementById("pref-round-animation").addEventListener(
+        "change", create_proxy(_make_pref_checkbox_handler("round_animation"))
+    )
     document.getElementById("pref-unlock-flash").addEventListener(
         "change", create_proxy(_make_pref_checkbox_handler("unlock_flash"))
     )

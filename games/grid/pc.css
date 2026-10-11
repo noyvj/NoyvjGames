@@ -135,3 +135,6 @@ html[data-layout="pc"] .ambient-bg { overflow: hidden; }
 /* GC-25 / GC-11 / GC-21 additions in the side column. */
 #pc-side > #undo-build-button { width: 100%; }
 #pc-side > .grant-banner:not([hidden]) { display: block; }
+#pc-stage > .round-animation { height: 40px; }
+#pc-stage > .round-animation[hidden] { display: none; }
+#pc-stage > .round-animation .round-animation-svg { height: 40px; width: 100%; max-height: none; }
