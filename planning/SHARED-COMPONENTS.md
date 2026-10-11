@@ -737,3 +737,43 @@ Opt-in per game, never the default: hard fail, no restore, no rewind, with its o
 ## Hub shell rework (2026-10-11, TODO GN-11 to GN-16)
 
 Top bar: four `<details>` menus (Me, Updates, Feedback, Help) driven by `hub-nav.js` (one open at a time, Esc, outside click, 44px). Feedback holds `shared/report-problem.js` (`data-game-id="hub"`) and the site feedback form (same ids as before). Strips: Pick up (with a "Saved to your account" list merged in from the old Continue Playing) beside Recently added; For you, Community highlights and Rarest sit in a closed "More for you" dropdown. Cards: collapsed = picture, name, rating badge ("4.5 stars (2)") and "Show more". Games are in carousel rows by first subject tag (the real cards stay in `#game-grid`; a row hides when all its cards are hidden). The Today strip reads no game's daily data unless the per-device setting `hub_today_track_dailies` (Settings > Today strip) is on. Tests: `scripts/tests/test_hub_lobby_rework_browser.py` (20).
+
+## Ghost runs (`shared/ghost.py`, `shared/ghost.js`, TODO Z-3a and Z-3b)
+
+Your best earlier run drawn faintly behind the live one. Python records and compares, JavaScript draws; nothing here migrates a game yet (Z-3c moves Grid's GC-9 ghost onto it as the pilot). Tests: `shared/tests/test_ghost.py` (recorder, caps, cleaning, wording) and `shared/tests/test_ghost_browser.py` (JavaScript agrees with Python on 160+ raw traces and 200 comparisons, then the drawn line, toggle, accessibility and hostile input).
+
+**The trace** is one small JSON-safe dict, saved by the game inside its own save state: `{"v": 1, "turns": 40, "values": [...], "label": "Run 3"}`. One number per turn, at most `MAX_LEN` (120) numbers; a longer run is thinned evenly and a turn is read by spreading it over the stored length (the same rule as Grid's `ghost_value`). Values are rounded to 2 decimals and clamped to +/- 1e12; `turns` is at most 100000; the label at most 40 plain characters.
+
+**Python (`import ghost`)**
+
+| call | does |
+|---|---|
+| `Recorder()` then `record(value)` once per turn, `trace(label="")`, `reset()` | Never grows past `MAX_LEN` (a long run is thinned as it goes and the last turn is always kept). A value that is not a finite number repeats the previous turn's number so turns stay aligned. `trace()` is None until two turns exist. |
+| `make_trace(values, turns=None, label="")` | A trace from a finished run's list (or None). |
+| `load(data)` / `to_dict(trace)` | Clean anything read from a save into a trace or None; never raises. Non-numbers, NaN, infinity, booleans dropped; a list over 5000 entries refused; fewer than 2 usable numbers is no ghost; a bad `turns` falls back to the number of points. An old save with no trace is `load(None)` = None: no ghost, nothing breaks. |
+| `value_at(trace, turn)` | The ghost's number at a 1-based turn, None outside its run. |
+| `compare(live, trace, higher_is_better=True)` | `{turn, live, ghost, gap, status, lead, best_turn, best_gap}`. `status` is `ahead`, `behind`, `level` or `ended` (the ghost's run was shorter). `best_gap`/`best_turn` is the worst moment so far against the ghost. A live entry that is not a number repeats the previous turn's. |
+| `summary(result, label="", unit="")` | The accessible sentence: `ghost: your best run was 12 ahead at turn 7` (live run behind), `ghost: you are 5 ahead of your best run at turn 7`, `ghost: level with your best run at turn 7`, `ghost: your best run ended before turn 21`. `label` replaces "your best run"; `unit` follows the numbers. |
+
+Pure and deterministic: no clock, no `random`, no I/O. Set `higher_is_better=False` for emissions, debt or turns taken.
+
+**JavaScript (`<script src="../../shared/ghost.js">`, `window.NoyvjGhost`)** has the same `load`, `valueAt`, `compare`, `summary`, `makeTrace`, `sanitise`, `formatNumber` (snake_case aliases too) and the drawing:
+
+```js
+const ghost = NoyvjGhost.draw(svgElement, {
+  trace: savedTrace,                       // cleaned here; nothing usable draws nothing
+  live: [0, 8, 15],                        // the live run so far (for the sentence)
+  turns: 40,                               // turns the chart's x axis spans
+  x: { left: 36, right: 380 },             // or a function turn -> px (the chart's own coordinates)
+  y: { top: 10, bottom: 150, min: 0, max: 100 }, // or a function value -> px
+  label: "Best run", unit: "%", higherIsBetter: true,
+  summaryEl: document.getElementById("ghost-note"), // gets the sentence via textContent
+});
+NoyvjGhost.bindToggle(checkbox, ghost, { storageKey: "grid-ghost-on" }); // optional
+ghost.update({ live, turns });   // after each turn; pass { svg: newSvg } if the game rebuilt its svg
+ghost.toggle(); ghost.show(); ghost.hide(); ghost.isOn(); ghost.summary(); ghost.destroy();
+```
+
+The group is inserted as the first child of the svg (behind the chart's own lines), ignores the pointer, and carries `data-noyvj-ghost` and `data-testid="ghost-line"`. It is never colour alone: dashed, 60% opacity, labelled "Ghost: Best run" in SVG text, with a `<title>` and an `aria-label` holding the sentence. Colour comes from the CSS variable `--ghost-color` (and `--ghost-halo` for the text outline). Hiding it also clears `summaryEl`. At most 400 points are drawn however long the run. Text is written only with `textContent`/`setAttribute`; nothing calls the network.
+
+**Adopting it (Z-3c to Z-3e):** the game's Python records `Recorder.record(metric)` at the end of every turn and, when a run finishes better than the stored best, saves `recorder.trace(label)` in its state (loading with `ghost.load`, so old saves simply have no ghost). The page then calls `NoyvjGhost.draw(...)` after each chart render with the trace the Python side exposes, or the game keeps drawing its own line from `ghost.value_at` and uses only `compare`/`summary` for the words. The two files are in `sw.js`'s precache list.

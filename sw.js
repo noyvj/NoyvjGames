@@ -104,6 +104,8 @@ const PRECACHE_URLS = [
   "shared/report-problem.js",
   "shared/seed.js",
   "shared/seed.py",
+  "shared/ghost.js",
+  "shared/ghost.py",
   "shared/copy-result.js",
   "shared/achievement-share.js",
   "shared/time-controls.js",
