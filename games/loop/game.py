@@ -1130,8 +1130,56 @@ career_closed_categories = set()  # picked categories that ran a fully closed cy
 career_plates = set()  # PLATES keys earned
 career_speed = set()  # {"cycle12", "lean", "no_trade"}: speed-loop flags (GH-20)
 career_best = {}  # picked category -> {"fastest_close", "lowest_extraction", "best_score", "best_streak"}
+# H-12: lifetime counts from FINISHED chains (the chain in play is added live, so a rewind can never
+# double count). Part of the career: survives Start New Chain, saved with it.
+career_counts = {"cycles": 0, "chains_closed": 0}
+FOUNDER_POINTS_PER_CLOSED_CHAIN = 15
+FOUNDER_POINTS_PER_CATEGORY = 30
+FOUNDER_RANKS = (
+    ("Apprentice", 0), ("Fitter", 15), ("Technician", 40), ("Engineer", 80), ("Lead Engineer", 140),
+    ("Director", 220), ("Chief Circularity Officer", 330), ("Founder", 480),
+)
 CAREER_SPEED_FLAGS = ("cycle12", "lean", "no_trade")
 CAREER_BEST_FIELDS = ("fastest_close", "lowest_extraction", "best_score", "best_streak")
+
+
+def founder_stats():
+    """H-12: (cycles run, chains closed, goods mastered) across the whole career, including the chain in play."""
+    cycles = career_counts["cycles"] + len(chain.circular_fraction_log)
+    closed = career_counts["chains_closed"] + (1 if chain.first_loop_closed_cycle is not None else 0)
+    mastered = len(career_closed_categories & set(ALL_GOODS))
+    return cycles, closed, mastered
+
+
+def founder_points():
+    cycles, closed, mastered = founder_stats()
+    return cycles + FOUNDER_POINTS_PER_CLOSED_CHAIN * closed + FOUNDER_POINTS_PER_CATEGORY * mastered
+
+
+def founder_rank():
+    """H-12: (index, name, points, next_name or None, next_threshold or None). Purely a badge:
+    nothing in the game reads it."""
+    points = founder_points()
+    index = 0
+    for i, (_name, needed) in enumerate(FOUNDER_RANKS):
+        if points >= needed:
+            index = i
+    name = FOUNDER_RANKS[index][0]
+    if index + 1 < len(FOUNDER_RANKS):
+        return index, name, points, FOUNDER_RANKS[index + 1][0], FOUNDER_RANKS[index + 1][1]
+    return index, name, points, None, None
+
+
+def founder_text():
+    _index, name, points, next_name, next_at = founder_rank()
+    cycles, closed, mastered = founder_stats()
+    line = (
+        f"Founder rank: {name}. {cycles} cycle{'' if cycles == 1 else 's'} run, {closed} chain{'' if closed == 1 else 's'} "
+        f"closed, {mastered} of {len(ALL_GOODS)} goods mastered: {points} points."
+    )
+    if next_name is None:
+        return line + " That is the top rank."
+    return line + f" Next rank: {next_name} at {next_at} points ({next_at - points} to go)."
 
 
 def secret_unlocked():
@@ -1189,14 +1237,17 @@ def _update_career():
 
 def career_state():
     """JSON-safe copy of the career (empty dict when there is nothing to save)."""
-    if not (career_closed_categories or career_plates or career_speed or career_best):
+    if not (career_closed_categories or career_plates or career_speed or career_best or any(career_counts.values())):
         return {}
-    return {
+    state = {
         "closed": sorted(career_closed_categories),
         "plates": sorted(career_plates),
         "speed": sorted(career_speed),
         "best": {cat: dict(rec) for cat, rec in sorted(career_best.items())},
     }
+    if any(career_counts.values()):
+        state["counts"] = dict(career_counts)
+    return state
 
 
 def _finite_number(value, low=0.0, high=1e9):
@@ -1212,8 +1263,15 @@ def load_career(data):
     career_plates.clear()
     career_speed.clear()
     career_best.clear()
+    career_counts.update({"cycles": 0, "chains_closed": 0})
     if not isinstance(data, dict):
         return
+    counts = data.get("counts")
+    if isinstance(counts, dict):
+        for field in career_counts:
+            value = counts.get(field)
+            if isinstance(value, int) and not isinstance(value, bool) and 0 <= value <= 10_000_000:
+                career_counts[field] = value
     valid_categories = set(ALL_GOODS)
     closed = data.get("closed")
     if isinstance(closed, list):
@@ -1396,6 +1454,9 @@ def archive_chain():
     record = past_chain_record()
     if record is None:
         return False
+    career_counts["cycles"] += record["cycles"]  # H-12: the finished chain joins the career totals
+    if record["closed"] is not None:
+        career_counts["chains_closed"] += 1
     past_chains.append(record)
     del past_chains[:-PAST_CHAINS_MAX]
     return True
@@ -3542,6 +3603,8 @@ def render():
     document.title = f"Loop - C{chain.cycle_number} - {chain.circular_fraction_this_cycle() * 100:.0f}% circular"
     render_career()
     render_ledger_and_past()
+    document.getElementById("rank-badge").innerText = f"\U0001F396\uFE0F {founder_rank()[1]}"
+    document.getElementById("rank-detail").innerText = founder_text()
 
     document.getElementById("circular-fraction-display").innerText = (
         f"Circular this cycle: {chain.circular_fraction_this_cycle() * 100:.0f}%"

@@ -177,6 +177,9 @@ ELEMENT_IDS = [
     "past-chains-chart",
     "past-chains-list",
     "past-chains-empty",
+    # H-12: Founder rank.
+    "rank-badge",
+    "rank-detail",
 ]
 
 

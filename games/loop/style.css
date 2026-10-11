@@ -1847,3 +1847,6 @@ html[data-high-contrast="true"] a { color: var(--hc-accent); text-decoration: un
 .past-label { fill: currentColor; font-size: 9px; font-weight: 700; }
 .past-line { stroke: #a9c3ff; }
 .past-line--now { stroke: #4c9c6e; }
+
+/* H-12: the Founder rank badge (a label only). */
+.rank-badge { display: inline-block; margin: 0 0 0.4rem; padding: 0.15rem 0.7rem; border-radius: 999px; font-size: 0.85rem; font-weight: 700; border: 1px solid rgba(224, 194, 76, 0.65); background: rgba(224, 194, 76, 0.1); }

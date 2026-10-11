@@ -1,6 +1,10 @@
 [
   {
     "date": "2026-10-11",
+    "entry": "New: a Founder rank. A badge at the top of the status block (and the Career panel) shows how far you have come across all your chains: Apprentice, Fitter, Technician, Engineer, Lead Engineer, Director, Chief Circularity Officer and Founder. It is built from the cycles you have run, the chains you have closed and the goods you have mastered, never changes anything in the game, and the Career panel shows how many points the next rank needs."
+  },
+  {
+    "date": "2026-10-11",
     "entry": "New: Past chains. Starting a new chain now files the one you are leaving (goods, cycles, when the loop closed, extraction, score and your mix of investments) in a Past chains panel, with a chart that overlays the circular-share curves of your last five chains on the chain you are playing. A bad cycle can no longer take funds you already hold: it can only wipe out that cycle's profit."
   },
   {
