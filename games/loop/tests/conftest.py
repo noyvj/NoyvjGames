@@ -149,6 +149,10 @@ ELEMENT_IDS = [
     "summary-text",
     "copy-summary-button",
     "copy-summary-status",
+    # H-14: buy-multiple chips.
+    "buy-x1-button",
+    "buy-x5-button",
+    "buy-x10-button",
 ]
 
 

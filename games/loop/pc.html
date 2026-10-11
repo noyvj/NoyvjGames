@@ -160,6 +160,15 @@
           <button id="flow-speed-fast-button" class="secondary" type="button" aria-pressed="false">Fast</button>
         </div>
       </div>
+      <div class="settings-row settings-row--stack">
+        <label class="settings-label" for="confirm-threshold-select">Ask before big purchases</label>
+        <select id="confirm-threshold-select">
+          <option value="0">Never</option>
+          <option value="50">When a purchase is over half my funds</option>
+          <option value="75">When a purchase is over 75% of my funds</option>
+          <option value="90">When a purchase is over 90% of my funds</option>
+        </select>
+      </div>
       <div class="settings-row">
         <button id="settings-reset-button" class="secondary" type="button">Reset to Default</button>
       </div>
@@ -346,6 +355,14 @@
         <div class="loop-ring-core">
           <span class="loop-ring-core-glyph">♻</span>
         </div>
+      </div>
+      <!-- H-14: how many purchases one click on a buy button makes (the button shows the running total). -->
+      <div id="buy-multiple-row" class="buy-multiple-row" role="group" aria-label="How many to buy per click">
+        <span class="buy-multiple-label">Buy</span>
+        <button id="buy-x1-button" class="secondary buy-chip selected" type="button" aria-pressed="true">x1</button>
+        <button id="buy-x5-button" class="secondary buy-chip" type="button" aria-pressed="false">x5</button>
+        <button id="buy-x10-button" class="secondary buy-chip" type="button" aria-pressed="false">x10</button>
+        <span class="buy-multiple-hint">Shift-click buys 5. Applies to investments and trade partners.</span>
       </div>
       <div class="invest-row invest-row--repair">
         <span id="repair-name" class="invest-name">🔧 Repair Networks</span>

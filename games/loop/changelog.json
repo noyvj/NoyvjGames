@@ -1,5 +1,9 @@
 [
   {
+    "date": "2026-10-11",
+    "entry": "New: buy several at once. Pick x1, x5 or x10 above the investments (or shift-click for five) and each buy button shows what the whole purchase will cost. It applies to repair, reuse, recycling and all three trade partners, and buys as many as you can afford. Settings gains 'Ask before big purchases', which checks with you when one purchase would take more than half, 75% or 90% of your funds (off by default)."
+  },
+  {
     "date": "2026-10-08",
     "entry": "New: a Copy result button in the Career panel copies a one-line result (score, cycles run, lifetime circular share) to share. Earned achievements now have a Share button, and a Credits link sits at the bottom of the page (in the Help menu on Desktop)."
   },

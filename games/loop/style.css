@@ -1807,3 +1807,11 @@ html[data-high-contrast="true"] a { color: var(--hc-accent); text-decoration: un
 .career-heading { margin: 0.7rem 0 0.2rem; font-size: 0.85rem; font-weight: 600; }
 .settings-row--stack { flex-direction: column; align-items: flex-start; }
 .settings-row--stack .text-size-control { justify-content: flex-start; }
+
+/* H-14: the x1 / x5 / x10 buy chips above the investments. */
+.buy-multiple-row { display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem; margin: 0.4rem 0 0.6rem; }
+.buy-multiple-label { font-size: 0.85rem; opacity: 0.85; }
+.buy-chip { min-width: 2.75rem; padding: 0.3rem 0.6rem; font-size: 0.85rem; }
+.buy-chip.selected { outline: 2px solid #a9c3ff; outline-offset: 1px; font-weight: 700; }
+.buy-multiple-hint { flex: 1 1 100%; font-size: 0.75rem; opacity: 0.7; }
+#confirm-threshold-select { max-width: 100%; font: inherit; padding: 0.3rem 0.4rem; }

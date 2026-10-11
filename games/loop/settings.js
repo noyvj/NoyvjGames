@@ -33,6 +33,9 @@
   const FLOW_SPEED_KEY = "loop-flow-speed";
   const FLOW_SPEEDS = ["off", "slow", "normal", "fast"];
   const DEFAULT_FLOW_SPEED = "normal";
+  // H-20: ask "Spend 120 of 140 funds?" when one purchase takes more than this percent of the funds (0 = never).
+  const CONFIRM_KEY = "loop-confirm-threshold";
+  const CONFIRM_CHOICES = ["0", "50", "75", "90"];
   const MIN_SCALE = 0.85;
   const MAX_SCALE = 1.5;
   const STEP = 0.1;
@@ -139,6 +142,24 @@
     return value;
   }
 
+  function readConfirmThreshold() {
+    try {
+      const raw = window.localStorage.getItem(CONFIRM_KEY);
+      if (CONFIRM_CHOICES.indexOf(raw) !== -1) return parseInt(raw, 10);
+    } catch (e) {
+      // fall through to "never"
+    }
+    return 0;
+  }
+
+  function applyConfirmThreshold(value) {
+    const text = CONFIRM_CHOICES.indexOf(String(value)) !== -1 ? String(value) : "0";
+    writeStored(CONFIRM_KEY, text);
+    const select = document.getElementById("confirm-threshold-select");
+    if (select) select.value = text;
+    return parseInt(text, 10);
+  }
+
   function init() {
     let scale = readStoredScale();
     applyScale(scale);
@@ -182,6 +203,14 @@
       }
     });
 
+    const confirmSelect = document.getElementById("confirm-threshold-select");
+    if (confirmSelect) {
+      confirmSelect.value = String(readConfirmThreshold());
+      confirmSelect.addEventListener("change", function () {
+        applyConfirmThreshold(confirmSelect.value);
+      });
+    }
+
     if (toggleButton && panel) {
       toggleButton.addEventListener("click", function () {
         panel.hidden = !panel.hidden;
@@ -219,6 +248,7 @@
         applyContrast(false);
         applyDyslexia(false);
         applyFlowSpeed(DEFAULT_FLOW_SPEED);
+        applyConfirmThreshold(0);
         if (contrastCheckbox) contrastCheckbox.checked = false;
         if (dyslexiaCheckbox) dyslexiaCheckbox.checked = false;
       });
@@ -237,6 +267,8 @@
     applyContrast: applyContrast,
     applyDyslexia: applyDyslexia,
     applyFlowSpeed: applyFlowSpeed,
+    applyConfirmThreshold: applyConfirmThreshold,
+    confirmThreshold: readConfirmThreshold,
     MIN_SCALE: MIN_SCALE,
     MAX_SCALE: MAX_SCALE,
   };

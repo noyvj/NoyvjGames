@@ -435,6 +435,8 @@ OVERSEAS_TRADE_COST = 90
 OVERSEAS_IMPORT_SUPPLY_PER_UNIT = 15.0
 
 # Round-2 (H6/H26/H27/H28): UI-only tuning.
+PARTNER_COSTS = {"trade": TRADE_LINK_COST, "regional": REGIONAL_TRADE_COST, "overseas": OVERSEAS_TRADE_COST}
+BUY_MULTIPLES = (1, 5, 10)  # H-14: the x1 / x5 / x10 chips
 BURST_MILESTONES = 4  # circular-fraction crosses each 25% step
 PULSE_LARGE_UNITS = 20.0
 PULSE_MEDIUM_UNITS = 8.0
@@ -750,6 +752,34 @@ class ChainState:
         self.overseas_trade_investment += 1
         self.lifetime_investment_spend += OVERSEAS_TRADE_COST
         return True
+
+    def unit_cost(self, kind):
+        """H-14: the price of ONE purchase of `kind` (a circularity measure or a trade partner)."""
+        if kind in CIRCULARITY_INVESTMENTS:
+            return CIRCULARITY_INVESTMENTS[kind]["cost"]
+        return PARTNER_COSTS[kind]
+
+    def affordable_count(self, kind, wanted):
+        """H-14: how many of `wanted` purchases of `kind` the funds cover right now."""
+        cost = self.unit_cost(kind)
+        return max(0, min(int(wanted), int(self.funds // cost)))
+
+    def invest_many(self, kind, count):
+        """H-14: buys up to `count` of `kind`, one after the other, stopping when the funds run
+        out. Returns how many were bought. Every purchase is the ordinary single purchase, so
+        the lifetime tallies and the rules are exactly the same as clicking `count` times."""
+        step = {
+            "trade": self.invest_trade_link,
+            "regional": self.invest_regional_trade,
+            "overseas": self.invest_overseas_trade,
+        }.get(kind)
+        bought = 0
+        for _ in range(max(0, int(count))):
+            ok = step() if step else self.invest_circularity(kind)
+            if not ok:
+                break
+            bought += 1
+        return bought
 
     def extraction_cost_trend(self):
         """H8: 'rising' if last cycle's extraction pushed the per-unit
@@ -2679,6 +2709,14 @@ def render():
     update_achievements_display()
     update_changelog_display()
 
+    for count in BUY_MULTIPLES:
+        chip = document.getElementById(f"buy-x{count}-button")
+        chip.setAttribute("aria-pressed", "true" if buy_multiple == count else "false")
+        if buy_multiple == count:
+            chip.classList.add("selected")
+        else:
+            chip.classList.remove("selected")
+
     picker = document.getElementById("goods-category-picker")
     picker.hidden = chain.total_produced > 0
     for key in GOODS_CATEGORIES:
@@ -2876,7 +2914,7 @@ def render():
             chain.circularity_investment[measure]
         )
         button = document.getElementById(f"{measure}-invest-button")
-        button.innerText = f"{spec['label']} ({spec['cost']})"
+        button.innerText = purchase_label(measure, spec["label"])
         button.disabled = chain.funds < spec["cost"]
 
         # H4 + H15: cost-per-unit-of-supply, and each measure's running
@@ -2925,7 +2963,7 @@ def render():
 
     document.getElementById("trade-link-count").innerText = str(chain.trade_link_investment)
     trade_link_button = document.getElementById("trade-link-invest-button")
-    trade_link_button.innerText = f"Trade Link ({TRADE_LINK_COST})"
+    trade_link_button.innerText = purchase_label("trade", "Trade Link")
     trade_link_button.disabled = chain.funds < TRADE_LINK_COST
     # Onboarding-tooltip coverage (planning/TODO.md, origin A14): the two
     # trade-partner buttons look interchangeable at a glance and the
@@ -2941,7 +2979,7 @@ def render():
 
     document.getElementById("regional-trade-count").innerText = str(chain.regional_trade_investment)
     regional_trade_button = document.getElementById("regional-trade-invest-button")
-    regional_trade_button.innerText = f"Regional Partner ({REGIONAL_TRADE_COST})"
+    regional_trade_button.innerText = purchase_label("regional", "Regional Partner")
     regional_trade_button.disabled = chain.funds < REGIONAL_TRADE_COST
     regional_trade_button.title = (
         f"{REGIONAL_TRADE_COST} funds for {REGIONAL_IMPORT_SUPPLY_PER_UNIT:.0f} imported units/cycle "
@@ -2951,7 +2989,7 @@ def render():
 
     document.getElementById("overseas-trade-count").innerText = str(chain.overseas_trade_investment)
     overseas_button = document.getElementById("overseas-trade-invest-button")
-    overseas_button.innerText = f"Overseas Consortium ({OVERSEAS_TRADE_COST})"
+    overseas_button.innerText = purchase_label("overseas", "Overseas Consortium")
     overseas_button.disabled = chain.funds < OVERSEAS_TRADE_COST
     overseas_button.title = (
         f"{OVERSEAS_TRADE_COST} funds for {OVERSEAS_IMPORT_SUPPLY_PER_UNIT:.0f} imported units/cycle "
@@ -3017,22 +3055,102 @@ def on_advance_cycle(event=None):
     document.getElementById("cycle-live-summary").innerText = cycle_summary_text()
 
 
+def _window():
+    """The browser window, or None under pytest (the fake `js` module only fakes document and
+    setTimeout). One lazy import in one place, like the other optional bridges below."""
+    try:
+        from js import window  # noqa: PLC0415 -- Pyodide-only, deliberately lazy
+    except ImportError:
+        return None
+    return window
+
+
+def _setting_number(name, default=0):
+    """A number read from a LoopSettings getter (settings.js), or `default` when the bridge is
+    missing or returns something odd. Browser preferences only, never part of a save."""
+    window = _window()
+    getter = getattr(getattr(window, "LoopSettings", None), name, None) if window is not None else None
+    if getter is None:
+        return default
+    try:
+        value = float(getter())
+    except (TypeError, ValueError):
+        return default
+    return value if value == value else default
+
+
+# H-14: the x1 / x5 / x10 chips (a browser-session choice, not saved).
+buy_multiple = 1
+
+
+def _requested_count(event=None):
+    """How many purchases one click asks for: the chip, or x5 for a shift-click on x1."""
+    if buy_multiple == 1 and getattr(event, "shiftKey", False) is True:
+        return 5
+    return buy_multiple
+
+
+def purchase_label(kind, label):
+    """H-14: button text with a running total. x1 keeps the plain 'Label (cost)'."""
+    cost = chain.unit_cost(kind)
+    if buy_multiple == 1:
+        return f"{label} ({cost})"
+    count = max(1, chain.affordable_count(kind, buy_multiple))
+    return f"{label} x{count} ({count * cost})"
+
+
+def spend_confirm_text(count, cost, label):
+    return f"Spend {count * cost} of {chain.funds:.0f} funds on {count} x {label}?"
+
+
+def _purchase(kind, label, event=None):
+    """One click on a buy button: applies the chip count, asking first when the spend crosses the
+    optional confirmation threshold from Settings (H-20; off by default)."""
+    count = chain.affordable_count(kind, _requested_count(event))
+    if count <= 0:
+        render()  # nothing affordable: keep the buttons' disabled state honest, as before
+        return
+    total = count * chain.unit_cost(kind)
+    percent = _setting_number("confirmThreshold", 0)
+
+    def _do():
+        _run_action(lambda: chain.invest_many(kind, count))
+
+    if percent > 0 and chain.funds > 0 and total > chain.funds * percent / 100.0:
+        _confirm_dialog_ask(
+            action_id="loop-spend",
+            message=spend_confirm_text(count, chain.unit_cost(kind), label),
+            confirm_label="Spend",
+            on_confirm=_do,
+        )
+    else:
+        _do()
+
+
 def _make_circularity_handler(measure):
     def handler(event=None):
-        _run_action(lambda: chain.invest_circularity(measure))
+        _purchase(measure, CIRCULARITY_INVESTMENTS[measure]["label"], event)
     return handler
 
 
 def on_invest_trade_link(event=None):
-    _run_action(chain.invest_trade_link)
+    _purchase("trade", "Trade Link", event)
 
 
 def on_invest_regional_trade(event=None):
-    _run_action(chain.invest_regional_trade)
+    _purchase("regional", "Regional Partner", event)
 
 
 def on_invest_overseas_trade(event=None):
-    _run_action(chain.invest_overseas_trade)
+    _purchase("overseas", "Overseas Consortium", event)
+
+
+def _make_buy_multiple_handler(count):
+    def handler(event=None):
+        global buy_multiple
+        buy_multiple = count
+        render()
+    return handler
 
 
 def on_dismiss_regional_hint(event=None):
@@ -3495,6 +3613,10 @@ def setup():
     document.getElementById("loop-closed-banner").hidden = True
 
     document.getElementById("pool-donate-button").addEventListener("click", create_proxy(on_toggle_pool_donation))
+    for count in BUY_MULTIPLES:
+        document.getElementById(f"buy-x{count}-button").addEventListener(
+            "click", create_proxy(_make_buy_multiple_handler(count))
+        )
     document.getElementById("advance-cycle-button").addEventListener(
         "click", create_proxy(on_advance_cycle)
     )
