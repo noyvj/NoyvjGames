@@ -1,6 +1,10 @@
 [
   {
     "date": "2026-10-11",
+    "entry": "New: Blackout, an optional harder way to play (Market panel). With it on, the map goes dark, the sparklines are hidden and prices show only as ranges until you buy the information back: a price feed (250 credits, or research Market Insight) and a star chart (200 credits, or research Galaxy Expansion). The economy itself does not change. Switch it on before your first sale and keep it on to the endgame to earn the Dark Run achievement, a stamp in the Charter ledger and a mark beside the title."
+  },
+  {
+    "date": "2026-10-11",
     "entry": "New: a practice sandbox. Press Practice sandbox (Desktop: Menu, Empire) to try a separate practice corporation with a large balance that never runs out, every research node known (so every system and route is open), every ship bought and no route hazards. A banner says Sandbox: nothing here is saved, nothing in it earns an achievement or lets you renew the charter, and Leave sandbox puts your real corporation back exactly as it was. Saving while you are in it saves your real corporation. Also fixed: a colony's neglect counter above 40 is no longer reset to 0 when a save is loaded."
   },
   {

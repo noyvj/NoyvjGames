@@ -86,6 +86,12 @@ ELEMENT_IDS = [
     "captains-toggle-button",
     "captains-panel",
     "captains-summary-display",
+    # Blackout (J-29/J-30).
+    "blackout-toggle-button",
+    "blackout-buy-feed-button",
+    "blackout-buy-chart-button",
+    "blackout-status",
+    "ledger-dark-display",
 ]
 CAPTAIN_PERK_IDS = ["frugal", "lucky", "night_owl", "perfectionist"]
 for _node_id in (

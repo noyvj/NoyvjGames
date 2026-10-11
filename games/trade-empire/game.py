@@ -643,6 +643,15 @@ def render_map():
     canvas = document.getElementById("map-canvas")
     ctx = canvas.getContext("2d")
     ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT)
+    if not blackout_has("chart"):  # J-29: Blackout, the star chart is dark
+        canvas.title = "Blackout: the map is dark. Buy the star chart or research Galaxy Expansion to light it."
+        ctx.fillStyle = LABEL_COLOR
+        ctx.font = "14px sans-serif"
+        ctx.textAlign = "center"
+        ctx.textBaseline = "middle"
+        ctx.fillText("Blackout: the star chart is dark", CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2 - 10)
+        ctx.fillText("(colonies and needs are still listed below)", CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2 + 12)
+        return
     # J6 — hover text explaining what the pink target ring points at.
     if fleet_priority_enabled and colony_states:
         canvas.title = (
@@ -1996,8 +2005,10 @@ def found_new_corporation():
             "routes": len(ledger_routes_seen),
             "peak": int(max_profit_ever),
             "perks": len(charter_perks),
+            **({"dark": True} if blackout_done else {}),  # J-30
         }],
         "met": set(captains_met),
+        "records": dict(records),
     }
     finishing_hard = hard_charter_active
     begin_hard = hard_charter_next and hard_charter_unlocked()
@@ -2012,6 +2023,8 @@ def found_new_corporation():
     ledger_charter_units = 0
     charter_career = keep["career"][-CAREER_MAX_ENTRIES:]
     captains_met = keep["met"]
+    records.clear()
+    records.update(keep["records"])
     _guild_clear(guild_first_offer_ticks())  # Guild Standing shortens the first wait
     # Baseline BEFORE the renewal is counted: the carried achievements must
     # not all toast again, but the ones this renewal earns should.
@@ -2194,7 +2207,10 @@ def charter_crest():
 
 def charter_crest_text():
     label, glyph = charter_crest()
-    return f"{glyph} {label}" + (" (harder)" if hard_charter_active else "")
+    return (
+        f"{glyph} {label}" + (" (harder)" if hard_charter_active else "")
+        + (" \u25d0 Dark run" if records["dark_runs"] else "")  # J-30: the badge by the title
+    )
 
 
 def charter_perk(perk_id):
@@ -2525,10 +2541,10 @@ def render_colony(colony_id):
     # J14 — a need-satisfaction-over-time sparkline alongside the meter.
     document.getElementById(f"colony-{colony_id}-need-sparkline").innerHTML = _trend_sparkline_svg(
         need_history.get(colony_id, []), "need-sparkline"
-    )
+    ) if blackout_has("feed") else ""
     # J24 — a plain "needs met" average alongside the graph.
     hist = need_history.get(colony_id, [])
-    if hist:
+    if hist and blackout_has("feed"):
         avg_pct = sum(hist) / len(hist) * 100
         document.getElementById(f"colony-{colony_id}-need-sparkline").innerHTML += (
             f'<span class="sparkline-pct" title="Average need satisfaction over the last '
@@ -2827,13 +2843,17 @@ def render_market():
         price = current_sell_price(good)
         pct = market_multiplier[good] * 100
         display = document.getElementById(f"market-{good}-display")
-        line = f"{GOOD_LABEL[good]}: {price} credits/unit ({pct:.0f}% of baseline)"
+        if blackout_has("feed"):
+            line = f"{GOOD_LABEL[good]}: {price} credits/unit ({pct:.0f}% of baseline)"
+        else:  # J-29: Blackout, the price feed is dark -- a range and a coarse bar, no exact number
+            low, high = blackout_price_range(price)
+            line = f"{GOOD_LABEL[good]}: about {low}-{high} credits/unit (price feed dark)"
         if seasonal_multiplier(good) > 1.0:
             line += f" · in demand (+{int(SEASONAL_DEMAND_BONUS * 100)}%)"
         display.innerText = line
         display.className = "market-price"
         display.title = ""
-        if market_multiplier[good] < 0.7:
+        if market_multiplier[good] < 0.7 and blackout_has("feed"):
             display.className += " market-price--crashed"
             # J20 — recovery ETA back to baseline at the flat per-tick rate
             # (further sales of this good would push it back down).
@@ -2854,13 +2874,15 @@ def render_market():
                 f"Stockpile {stockpile[good]}/{STOCKPILE_CAPACITY}"
                 + (f" (sells for {stockpile_sale_value(good)} after the {int(STOCKPILE_SELL_FEE * 100)}% fee)" if stockpile[good] else "")
             )
-        document.getElementById(f"market-{good}-bar").style.width = f"{pct:.0f}%"
+        document.getElementById(f"market-{good}-bar").style.width = (
+            f"{pct:.0f}%" if blackout_has("feed") else f"{blackout_bar_percent(pct)}%"
+        )
         # J12 — a small price-history sparkline alongside the bar.
         memory_note = price_memory_text(good)
         sparkline_html = _trend_sparkline_svg(
             price_history.get(good, []), "price-sparkline", f"Now: {price} credits",
             ghost=price_memory.get(good), ghost_label=memory_note or None,
-        )
+        ) if blackout_has("feed") else ""
         if memory_note and sparkline_html:
             sparkline_html += f'<span class="sparkline-pct price-memory-note">{memory_note}</span>'
         document.getElementById(f"market-{good}-sparkline").innerHTML = sparkline_html
@@ -3233,6 +3255,7 @@ ACHIEVEMENT_CHECKS = {
     "guild_partner": lambda: guild_completed >= 1,
     "guild_favorite": lambda: guild_completed >= 5,
     "background_galaxy_maxed": lambda: background_world_count() >= ENDGAME_BACKGROUND_WORLD_CAP,
+    "dark_run": lambda: records["dark_runs"] >= 1,  # J-30
 }
 
 # Progress readouts, only for achievements with a natural numeric scale-up
@@ -3781,6 +3804,7 @@ def career_entry_text(entry):
     return (
         f"{glyph} {kind} {entry['n']} ({label} crest): {entry['units']:,} units moved, {entry['routes']} route(s), "
         f"peak profit {entry['peak']:,}, {entry['perks']} perk(s) owned."
+        + (" \u25d0 Dark run." if entry.get("dark") else "")
     )
 
 
@@ -4090,6 +4114,7 @@ def render():
     render_crest()
     render_ribbon()
     render_captains()
+    render_blackout()
     throughput_el = document.getElementById("throughput-display")
     if throughput_el is not None:
         throughput_el.innerText = throughput_text()
@@ -4407,6 +4432,7 @@ def tick(event=None):
     global endgame_reached, ticks_since_endgame
     if not endgame_reached and endgame_criteria_met():
         endgame_reached = True
+        blackout_note_endgame()  # J-30
     if endgame_reached:
         ticks_since_endgame += 1
         total_profit += background_revenue_this_tick()
@@ -4414,6 +4440,193 @@ def tick(event=None):
     max_profit_ever = max(max_profit_ever, total_profit)
 
     render()
+
+
+# ---------------------------------------------------------------------------
+# Lifetime records (survive a charter renewal, like captains_met and the ledger).
+# One small validated dict instead of a handful of loose globals; saved under
+# "records" only once something in it is non-default.
+# ---------------------------------------------------------------------------
+RECORDS_COUNT_MAX = 1_000_000
+
+
+def _fresh_records():
+    return {"dark_runs": 0}
+
+
+records = _fresh_records()
+
+
+def _load_records(raw):
+    """Restore the lifetime records from an untrusted save value (defaults for anything malformed)."""
+    loaded = _fresh_records()
+    if isinstance(raw, dict):
+        loaded["dark_runs"] = _saved_int(raw.get("dark_runs"), 0, RECORDS_COUNT_MAX)
+    records.clear()
+    records.update(loaded)
+
+
+def _records_for_save():
+    """The records worth saving, or an empty dict when nothing was ever recorded."""
+    return {key: value for key, value in records.items() if value != _fresh_records()[key]}
+
+
+# ---------------------------------------------------------------------------
+# J-29 / J-30 -- Blackout: an opt-in hard mode. The map is dark, sparklines are
+# hidden and prices show as ranges, until the player buys the information back:
+# the "price feed" (exact prices and the sparklines) comes with Market Insight
+# research or a one-time purchase, the "star chart" (the map and the ships on
+# it) comes with Galaxy Expansion research or a one-time purchase. Nothing about
+# the economy changes -- only what the player is told. Switching it on before the
+# first sale of a charter and never switching it off makes a "dark run"; reaching
+# the endgame on one earns the Dark Run achievement, a ledger stamp and a mark
+# beside the title. Plain-language warning, always optional, refused in the sandbox.
+# ---------------------------------------------------------------------------
+BLACKOUT_FEED_COST = 250
+BLACKOUT_CHART_COST = 200
+BLACKOUT_PRICE_BAND = 0.15
+BLACKOUT_INTEL = {
+    "feed": {
+        "label": "Price feed", "cost": BLACKOUT_FEED_COST, "research": "market_insight",
+        "gives": "exact prices and the price and need sparklines",
+    },
+    "chart": {
+        "label": "Star chart", "cost": BLACKOUT_CHART_COST, "research": "galaxy_expansion",
+        "gives": "the trade-routes map and the ships on it",
+    },
+}
+BLACKOUT_WARNING = (
+    "Blackout is a harder way to play and entirely optional. The map goes dark, the sparklines are hidden and "
+    "prices show only as ranges until you buy the information back (a price feed and a star chart, or the research "
+    "that gives them). The economy itself does not change. Turn it on before your first sale and keep it on to the "
+    "endgame for a Dark Run."
+)
+blackout_enabled = False
+blackout_clean = False  # on since before the first sale of this charter and never switched off
+blackout_done = False  # this charter reached the endgame on an unbroken Blackout
+blackout_bought = set()
+
+
+def blackout_has(kind):
+    """True when the player can see what `kind` ('feed' or 'chart') shows -- always, outside Blackout."""
+    if not blackout_enabled:
+        return True
+    return kind in blackout_bought or BLACKOUT_INTEL[kind]["research"] in unlocked_research
+
+
+def blackout_price_range(price):
+    """(low, high) credits shown instead of an exact price while the price feed is dark."""
+    low = max(1, int(price * (1 - BLACKOUT_PRICE_BAND)))
+    high = max(low + 1, int(math.ceil(price * (1 + BLACKOUT_PRICE_BAND))))
+    return low, high
+
+
+def blackout_bar_percent(pct):
+    """A coarse (25% steps) bar width, so a dark price feed still hints at a crash without giving the number."""
+    return min(100, int(round(pct / 25.0)) * 25)
+
+
+def set_blackout(enabled):
+    """Switch Blackout on or off. Returns True when it is now as asked."""
+    global blackout_enabled, blackout_clean
+    if sandbox_active:
+        return False
+    enabled = bool(enabled)
+    if enabled == blackout_enabled:
+        return True
+    blackout_enabled = enabled
+    blackout_clean = enabled and total_sales_count == 0
+    return True
+
+
+def can_buy_blackout_intel(kind):
+    if kind not in BLACKOUT_INTEL or not blackout_enabled or sandbox_active:
+        return False
+    return not blackout_has(kind) and total_profit >= BLACKOUT_INTEL[kind]["cost"]
+
+
+def buy_blackout_intel(kind):
+    global total_profit
+    if not can_buy_blackout_intel(kind):
+        return False
+    total_profit -= BLACKOUT_INTEL[kind]["cost"]
+    blackout_bought.add(kind)
+    return True
+
+
+def blackout_note_endgame():
+    """Called the tick the endgame is first reached: an unbroken Blackout makes it a dark run."""
+    global blackout_done
+    if blackout_enabled and blackout_clean and not sandbox_active and not blackout_done:
+        blackout_done = True
+        records["dark_runs"] = min(RECORDS_COUNT_MAX, records["dark_runs"] + 1)
+
+
+def blackout_status_text():
+    if not blackout_enabled:
+        extra = f" You have finished {records['dark_runs']} dark run(s)." if records["dark_runs"] else ""
+        return "Optional hard mode, off." + extra
+    parts = []
+    for kind, info in BLACKOUT_INTEL.items():
+        if blackout_has(kind):
+            parts.append(f"{info['label']}: bought" if kind in blackout_bought else f"{info['label']}: open (research)")
+        else:
+            parts.append(f"{info['label']}: dark ({info['cost']} credits, or research {RESEARCH_NODES[info['research']]['label']})")
+    run = "Dark run in progress." if blackout_clean else "This is not a dark run (it was not on from the first sale)."
+    if blackout_done:
+        run = "Dark run done: stamped in the ledger."
+    return run + " " + "; ".join(parts) + "."
+
+
+def blackout_stamp_text():
+    """The ledger stamp: a shape plus words (never colour only)."""
+    return f"◐ Dark run stamp x{records['dark_runs']}" if records["dark_runs"] else ""
+
+
+def on_toggle_blackout(event=None):
+    if blackout_enabled:
+        ends = blackout_clean and total_sales_count > 0
+        text = "Switch Blackout off? " + (
+            "This ends your dark run for this charter." if ends else "Nothing else changes."
+        )
+        _confirm_dialog_ask("trade-empire-blackout-off", text, "Switch off", lambda: (set_blackout(False), render()))
+    else:
+        _confirm_dialog_ask(
+            "trade-empire-blackout-on", BLACKOUT_WARNING, "Start Blackout", lambda: (set_blackout(True), render()),
+            allow_skip=False,
+        )
+
+
+def _make_blackout_buy_handler(kind):
+    def handler(event=None):
+        if buy_blackout_intel(kind):
+            render()
+    return handler
+
+
+def render_blackout():
+    button = document.getElementById("blackout-toggle-button")
+    status = document.getElementById("blackout-status")
+    if button is None or status is None:
+        return
+    button.innerText = f"Blackout: {'on' if blackout_enabled else 'off'}"
+    button.setAttribute("aria-pressed", "true" if blackout_enabled else "false")
+    button.disabled = sandbox_active
+    status.innerText = blackout_status_text()
+    for kind, info in BLACKOUT_INTEL.items():
+        buy = document.getElementById(f"blackout-buy-{kind}-button")
+        if buy is None:
+            continue
+        buy.hidden = not blackout_enabled or blackout_has(kind)
+        buy.disabled = not can_buy_blackout_intel(kind)
+        buy.innerText = f"Buy the {info['label'].lower()} ({info['cost']})"
+        buy.title = f"One-time purchase for this charter: {info['gives']}."
+    stamp = document.getElementById("ledger-dark-display")
+    if stamp is not None:
+        stamp.innerText = blackout_stamp_text() or "Dark runs: none yet (Blackout is optional)."
+
+
+# @@NEW-FEATURES-END@@ (new feature blocks are inserted above this line)
 
 
 # ===========================================================================
@@ -4552,6 +4765,14 @@ def get_state():
             if guild_state != "none" or guild_completed or guild_failed
             else {}
         ),
+        # J-29/J-30 -- Blackout and the lifetime records; only written once used.
+        **(
+            {"blackout": {"enabled": blackout_enabled, "clean": blackout_clean, "done": blackout_done,
+                          "bought": sorted(blackout_bought)}}
+            if blackout_enabled or blackout_done or blackout_bought
+            else {}
+        ),
+        **({"records": _records_for_save()} if _records_for_save() else {}),
         "route_hazards": {
             "hazards": route_hazards_enabled,
             "insurance": route_insurance_enabled,
@@ -4627,7 +4848,10 @@ def _load_career(raw, charters_done):
         perks = _saved_int(item.get("perks"), 0, len(CHARTER_PERKS), -1)
         if n == 0 or -1 in (units, routes, peak, perks) or not isinstance(item.get("hard"), bool):
             continue
-        entries.append({"n": n, "hard": item["hard"], "units": units, "routes": routes, "peak": peak, "perks": perks})
+        entry = {"n": n, "hard": item["hard"], "units": units, "routes": routes, "peak": peak, "perks": perks}
+        if item.get("dark") is True:
+            entry["dark"] = True
+        entries.append(entry)
     return entries[-min(CAREER_MAX_ENTRIES, charters_done):]
 
 
@@ -4691,6 +4915,21 @@ def _load_charter(charter_raw, ledger_raw):
                     and pair[0] != pair[1]
                 ):
                     ledger_routes_seen.add(frozenset(pair))
+
+
+def _load_blackout(raw):
+    """J-29 -- restore Blackout from an untrusted save value (off unless it says a real True)."""
+    global blackout_enabled, blackout_clean, blackout_done
+    blackout_enabled = blackout_clean = blackout_done = False
+    blackout_bought.clear()
+    if not isinstance(raw, dict):
+        return
+    blackout_enabled = raw.get("enabled") is True
+    blackout_clean = blackout_enabled and raw.get("clean") is True
+    blackout_done = raw.get("done") is True
+    bought = raw.get("bought")
+    if isinstance(bought, list):
+        blackout_bought.update(kind for kind in bought if isinstance(kind, str) and kind in BLACKOUT_INTEL)
 
 
 def _load_captains(raw):
@@ -4931,6 +5170,8 @@ def _apply_state(data):
             ship.transit_ticks_remaining = ship.transit_total_ticks = 0
 
     _load_captains(data.get("captains"))
+    _load_records(data.get("records"))
+    _load_blackout(data.get("blackout"))
     price_memory.clear()
     memory_raw = data.get("price_memory")
     if isinstance(memory_raw, dict):
@@ -5179,6 +5420,11 @@ def setup():
     )
     document.getElementById("charter-toggle-button").addEventListener("click", create_proxy(on_toggle_charter))
     document.getElementById("captains-toggle-button").addEventListener("click", create_proxy(on_toggle_captains))
+    document.getElementById("blackout-toggle-button").addEventListener("click", create_proxy(on_toggle_blackout))
+    for kind in BLACKOUT_INTEL:
+        document.getElementById(f"blackout-buy-{kind}-button").addEventListener(
+            "click", create_proxy(_make_blackout_buy_handler(kind))
+        )
     for perk_id in CAPTAINS:
         document.getElementById(f"captain-{perk_id}-release-button").addEventListener(
             "click", create_proxy(_make_captain_release_handler(perk_id))

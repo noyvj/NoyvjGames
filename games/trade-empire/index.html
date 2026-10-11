@@ -254,6 +254,7 @@
         <li id="ledger-routes-display"></li>
         <li id="ledger-charters-display"></li>
         <li id="ledger-hard-display"></li>
+        <li id="ledger-dark-display"></li>
       </ul>
       <p class="panel-label charter-ledger-heading">Career log</p>
       <p id="charter-crest-display" class="map-caption"></p>
@@ -440,6 +441,13 @@
       <div class="trade-post"><button id="trade-post-button" class="secondary" type="button" hidden>Establish trade post (400)</button><p id="trade-post-status" class="map-caption" hidden></p></div>
       <p id="diplomacy-status" class="map-caption" hidden></p>
       <div class="seasonal-demand"><button id="seasonal-demand-toggle-button" class="secondary" type="button">Seasonal demand: off</button><p id="seasonal-demand-status" class="map-caption"></p></div>
+      <div class="blackout">
+        <button id="blackout-toggle-button" class="secondary" type="button" aria-pressed="false">Blackout: off</button>
+        <button id="blackout-buy-feed-button" class="secondary" type="button" hidden>Buy the price feed (250)</button>
+        <button id="blackout-buy-chart-button" class="secondary" type="button" hidden>Buy the star chart (200)</button>
+        <p id="blackout-status" class="map-caption"></p>
+        <details class="info-toggle"><summary>i</summary><p>Blackout is an optional harder way to play. The map goes dark, the sparklines are hidden and prices show only as ranges until you buy the information back (a price feed and a star chart, or the research that gives them: Market Insight and Galaxy Expansion). The economy itself does not change. Switch it on before your first sale and keep it on to the endgame for a Dark Run stamp. It is never required for anything.</p></details>
+      </div>
       <details id="almanac-details" class="info-toggle almanac"><summary>Trade almanac</summary><div id="almanac-body">Loading...</div></details>
       <div class="market-row">
         <div class="good-icon good-icon--ore" aria-hidden="true"></div>

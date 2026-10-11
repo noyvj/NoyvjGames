@@ -134,6 +134,11 @@
       "id": "full_roster",
       "label": "Full Roster",
       "description": "Post all four captains (Frugal, Lucky Trader, Night Owl and Perfectionist) at least once, across any charters."
+    },
+    {
+      "id": "dark_run",
+      "label": "Dark Run",
+      "description": "Reach the endgame with Blackout switched on from before your first sale and never switched off."
     }
   ]
 }

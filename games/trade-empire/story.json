@@ -150,6 +150,11 @@
       "id": "background_galaxy_maxed",
       "title": "A thousand quiet ledgers",
       "text": "Beyond the routes you fly yourself, a whole background galaxy of worlds has grown to its full size, each one sending a small, steady trickle of revenue your way. You will never visit most of them, but every one of them is, quietly, part of the company."
+    },
+    {
+      "id": "dark_run",
+      "title": "The lights stay off",
+      "text": "You ran the whole charter with the map dark and the prices shown as ranges, buying back each piece of information only when it earned its keep. At the end the ledger gets a small stamp, a half-moon with the words dark run beside it. The ledger does not say whether it was harder; it only notes that you did not look."
     }
   ]
 }
