@@ -190,6 +190,11 @@
       "id": "custom_fleet",
       "title": "Built to your own drawing",
       "text": "The new ship slides out of dock wearing the name you gave its drawing. It is not better than the others, only differently good, and a little proud of it. Somewhere in the ledger a column that used to say balanced now says a word you made up."
+    },
+    {
+      "id": "first_hub",
+      "title": "One busy dock",
+      "text": "One dock becomes the place everything passes through, and the ships start arriving at it in half the time and leaving it with the same complaints. The warehouse there holds less than it used to, which the harbourmaster takes personally. The map gets a thick ring and the word HUB, and everyone agrees it looks official."
     }
   ]
 }

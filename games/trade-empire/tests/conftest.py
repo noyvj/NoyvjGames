@@ -118,6 +118,7 @@ ELEMENT_IDS = [
     "bp-speed-value", "bp-speed-down-button", "bp-speed-up-button",
     "bp-eff-value", "bp-eff-down-button", "bp-eff-up-button",
 ]
+ELEMENT_IDS += ["hub-status", "hub-clear-button"] + [f"hub-set-{_c}-button" for _c in ALL_COLONY_IDS]
 for _i in range(4):
     ELEMENT_IDS += [f"bp-design-{_i}-row", f"bp-design-{_i}-text", f"bp-design-{_i}-delete-button"]
     ELEMENT_IDS += [f"ship-5-bp{_i}-option", f"ship-6-bp{_i}-option"]

@@ -1,6 +1,10 @@
 [
   {
     "date": "2026-10-11",
+    "entry": "New: Hub & Spoke, in the Fleet Lab window (research the Automation Expansion first). Make one colony your Distribution Hub for 120 credits: trips between it and the other colonies of its system take half as long, but its own good holds only 8 units in the stockpile (instead of 15). The hub is drawn with a thick ring and the word HUB, the map's tooltip states its bonus, and Fleet Priority now prefers the quicker-to-reach colony when two are about equally urgent. Moving the hub costs the same; clearing it is free."
+  },
+  {
+    "date": "2026-10-11",
     "entry": "New: the Blueprint Lab, in the Fleet Lab window (research Fast Ships I and the Hauler-Class Refit first). Spend 9 design points on hold, speed and efficiency (1 to 6 each), name and save up to four hulls, then choose one from the ship-type list when you buy ship 5 or 6. A labelled bar chart compares your draft with the average hull. Every design is a trade-off: none beats the average at everything. Two new achievements."
   },
   {
