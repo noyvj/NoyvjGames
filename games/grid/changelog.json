@@ -2,6 +2,10 @@
   "changelog": [
     {
       "date": "2026-10-11",
+      "entry": "New: a needle gauge for supply against demand. The needle swings to your capacity as a share of demand, overshoots and settles, glows when you are matched (with a tick and the words), and drops into the short zone after a disruption round with a quick shake. The zones are told apart by line style and labels, not colour alone. Turn the wobble, glow and shake off in Settings; they are also off under Reduce motion."
+    },
+    {
+      "date": "2026-10-11",
       "entry": "New: print your operator report. The Run Summary now opens with your scenario, difficulty and run seed and ends with your career points, and a Print or save as PDF button prints just that page in plain dark-on-white."
     },
     {

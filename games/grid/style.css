@@ -1852,3 +1852,25 @@ html[data-reduced-motion="true"] *::after {
 
 /* C-18: the next-milestone line at the top of the achievements panel. */
 .achievement-next { font-weight: 600; margin: 0.2rem 0 0.5rem; }
+
+/* GC-28: the needle gauge. Zones differ by line style and word labels, not hue alone. */
+.needle-gauge { max-width: 220px; margin: 0.3rem 0; }
+.needle-gauge-svg { width: 100%; height: auto; display: block; overflow: visible; }
+.needle-zone { fill: none; stroke-width: 9; }
+.needle-zone--short { stroke: #e0674c; stroke-dasharray: 5 3; }
+.needle-zone--ok { stroke: #5fd0b0; }
+.needle-zone--spare { stroke: #4fa8dd; stroke-dasharray: 1.5 3; stroke-linecap: round; }
+.needle-label { font-size: 8px; fill: currentColor; opacity: 0.85; }
+.needle-line { stroke: currentColor; stroke-width: 3; stroke-linecap: round; }
+.needle-hub { fill: currentColor; }
+.needle-gauge-needle { transform-origin: 100px 100px; transform: rotate(-90deg); transition: transform 0.9s cubic-bezier(0.3, 1.7, 0.45, 1); }
+.needle-gauge--still .needle-gauge-needle { transition: none; }
+.needle-gauge-caption { margin: 0.1rem 0 0; font-size: 0.82rem; }
+@keyframes needle-glow { 0% { filter: drop-shadow(0 0 0 rgba(95, 208, 176, 0)); } 40% { filter: drop-shadow(0 0 6px rgba(95, 208, 176, 0.95)); } 100% { filter: drop-shadow(0 0 0 rgba(95, 208, 176, 0)); } }
+@keyframes needle-shake { 0%, 100% { transform: translateX(0); } 20% { transform: translateX(-3px); } 40% { transform: translateX(3px); } 60% { transform: translateX(-2px); } 80% { transform: translateX(2px); } }
+.needle-gauge--matched:not(.needle-gauge--still) .needle-gauge-svg { animation: needle-glow 1.2s ease-out 1; }
+.needle-gauge--cut:not(.needle-gauge--still) .needle-gauge-svg { animation: needle-shake 0.5s linear 1; }
+@media (prefers-reduced-motion: reduce) {
+  .needle-gauge-needle { transition: none; }
+  .needle-gauge .needle-gauge-svg { animation: none !important; }
+}

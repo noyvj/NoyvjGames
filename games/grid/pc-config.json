@@ -208,6 +208,7 @@
       "#grant-message-display",
       "#peek-forecast-button",
       "#peek-forecast-display",
+      "#needle-gauge",
       "#disruption-risk-display",
       ".meter:has(> #emissions-bar)",
       "#event-display",

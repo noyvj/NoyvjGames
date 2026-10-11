@@ -1912,6 +1912,7 @@ PREF_DEFAULTS = {
     "coach": False,
     "gridley": True,
     "skyline": True,
+    "gauge_effects": True,
 }
 PREF_CHOICES = {"number_format": ("full", "compact"), "unit": ("units", "mw")}
 prefs = dict(PREF_DEFAULTS)
@@ -4136,6 +4137,72 @@ def render_gridley():
     line.innerText = f"Gridley: {gridley_line()}" if prefs["gridley"] else ""
 
 
+# ---- GC-28 supply-against-demand needle gauge -------------------------------------------------------------------
+# A half-dial for capacity against demand (0 to 1.5 times demand). The needle swings to its reading with an overshoot
+# and settles (a CSS transition on a persistent element, so it animates between rounds); after a brownout round it sits
+# in the short zone because delivery was cut; the dial reads "matched" with a tick and a brief glow when capacity covers
+# demand without a large surplus. The zones are told apart by line style and word labels, not hue alone. The wobble,
+# glow and shake switch off with the Settings checkbox, with reduce motion, and under prefers-reduced-motion.
+GAUGE_MAX_RATIO = 1.5
+GAUGE_MATCH_LOW = 1.0
+GAUGE_MATCH_HIGH = 1.15
+
+
+def gauge_reading():
+    """Ratio of delivered supply to demand, the needle angle in degrees (-90 empty, +90 full) and a zone word."""
+    capacity = state.total_capacity()
+    ratio = 0.0 if state.demand <= 0 else capacity / state.demand
+    event = state.last_event
+    cut = False
+    if event and event.get("type") in ("brownout", "damage"):
+        ratio *= max(0.0, 1 - float(event.get("severity", 0.0)) * MAX_REVENUE_LOSS_FRACTION)
+        cut = True
+    shown = max(0.0, min(GAUGE_MAX_RATIO, ratio))
+    angle = -90 + 180 * shown / GAUGE_MAX_RATIO
+    if ratio < GAUGE_MATCH_LOW:
+        zone = "short"
+    elif ratio <= GAUGE_MATCH_HIGH:
+        zone = "matched"
+    else:
+        zone = "spare"
+    return {"ratio": ratio, "angle": angle, "zone": zone, "cut": cut}
+
+
+def gauge_text(reading):
+    percent = f"{reading['ratio'] * 100:.0f}%"
+    capacity = state.total_capacity()
+    base = f"Supply {format_demand(capacity)} against demand {format_demand(state.demand)}: "
+    if reading["zone"] == "matched":
+        return base + f"matched ({percent} of demand)."
+    if reading["zone"] == "spare":
+        return base + f"spare capacity ({percent} of demand)."
+    if reading["cut"]:
+        return base + f"a disruption cut delivery to {percent} of demand."
+    return base + f"short ({percent} of demand), so revenue is capped."
+
+
+def render_needle_gauge():
+    reading = gauge_reading()
+    gauge = document.getElementById("needle-gauge")
+    document.getElementById("pref-gauge-effects").checked = prefs["gauge_effects"]
+    needle = document.getElementById("needle-gauge-needle")
+    needle.style.transform = f"rotate({reading['angle']:.1f}deg)"
+    for name in ("short", "matched", "spare"):
+        gauge.classList.remove(f"needle-gauge--{name}")
+    gauge.classList.add(f"needle-gauge--{reading['zone']}")
+    for name, on in (
+        ("needle-gauge--still", not prefs["gauge_effects"]),
+        ("needle-gauge--cut", reading["cut"]),
+    ):
+        if on:
+            gauge.classList.add(name)
+        else:
+            gauge.classList.remove(name)
+    text = gauge_text(reading)
+    document.getElementById("needle-gauge-caption").innerText = ("\u2713 " if reading["zone"] == "matched" else "") + text
+    document.getElementById("needle-gauge-graphic").title = text
+
+
 def render():
     render_info_page()
     render_shadow()
@@ -4204,6 +4271,7 @@ def render():
     render_chart_tables()
     render_fleet_overview()
     render_coach()
+    render_needle_gauge()
     render_gridley()
     render_skyline()
     render_number_settings()
@@ -6467,6 +6535,9 @@ def setup():
     document.getElementById("settings-reset-button").addEventListener("click", create_proxy(on_reset_prefs))
     document.getElementById("confirm-reset-button").addEventListener("click", create_proxy(on_reset_confirmations))
     document.getElementById("pref-coach").addEventListener("change", create_proxy(_make_pref_checkbox_handler("coach")))
+    document.getElementById("pref-gauge-effects").addEventListener(
+        "change", create_proxy(_make_pref_checkbox_handler("gauge_effects"))
+    )
     document.getElementById("pref-gridley").addEventListener(
         "change", create_proxy(_make_pref_checkbox_handler("gridley"))
     )
