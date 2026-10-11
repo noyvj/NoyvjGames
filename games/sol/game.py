@@ -1359,6 +1359,9 @@ ACHIEVEMENT_CHECKS = {
     "weather_watcher": lambda: len(anomalies_seen) >= len(ANOMALIES),
     "charter_member": lambda: len(mission_stamps) >= CHARTER_MEMBER_STAMPS,
     "great_works": lambda: megaprojects_all_ever,
+    # Round-5 batch: both are lifetime collections.
+    "star_cartographer": lambda: chart_revealed >= len(CHART),
+    "comet_catcher": lambda: comets_caught_total >= COMETS_TO_CATCH,
 }
 
 # Progress readouts, only for achievements with a natural numeric scale-up —
@@ -1378,6 +1381,8 @@ ACHIEVEMENT_PROGRESS = {
     "codex_keeper": lambda: (len(codex_found), len(CLUES)),
     "weather_watcher": lambda: (len(anomalies_seen), len(ANOMALIES)),
     "charter_member": lambda: (min(len(mission_stamps), CHARTER_MEMBER_STAMPS), CHARTER_MEMBER_STAMPS),
+    "star_cartographer": lambda: (chart_revealed, len(CHART)),
+    "comet_catcher": lambda: (min(comets_caught_total, COMETS_TO_CATCH), COMETS_TO_CATCH),
 }
 
 
@@ -3856,7 +3861,11 @@ def on_prestige(event=None):
         global current_planet, governor_priority, governor_budget_pct, governor_tick_count
         global governor_purchase_count, any_generator_ever_built, prestige_points_earned, sandbox_mode
         global epilogue_open, run_start_tick, run_completed, mutators_run
+        global _comet_since
         megaproject_progress.clear()  # A-13: a megaproject belongs to the run that built it
+        comets_caught_run.clear()  # A-10: each run has its comets again
+        _comet_since = None
+        _award_survey(SURVEY_PER_PRESTIGE)  # A-9
         megaprojects_built.clear()
 
         prestige_level = next_level
@@ -4085,8 +4094,11 @@ def tick(*args):
     update_anomaly_strip()
     _check_missions()
     _check_codex()
+    _update_comet()
+    update_comet_strip()
     update_charter_display()
     update_doctrine_display()
+    update_observatory_display()
     _check_new_achievements_for_toast()
     if total_ticks % 10 == 0:
         _refresh_goals_panel()  # FY-53: once a second is plenty for a progress bar
@@ -4135,6 +4147,9 @@ def _full_render():
     _refill_mission_slots()
     update_charter_display()
     update_doctrine_display()
+    _update_comet()
+    update_comet_strip()
+    update_observatory_display()
     render_trophy_shelf()
     render_click_streak()
     _refresh_all_cost_displays()
@@ -4239,6 +4254,11 @@ def serialize_state():
         **({"mission_slots": list(mission_slots)} if mission_slots and not _slots_are_default() else {}),
         **({"mutators_next": list(mutators_next)} if mutators_next else {}),
         **({"mutators_run": list(mutators_run)} if mutators_run else {}),
+        **({"survey_data": survey_data} if survey_data else {}),
+        **({"chart_revealed": chart_revealed} if chart_revealed else {}),
+        **({"point_claims": dict(point_claims)} if point_claims else {}),
+        **({"comets_caught_run": list(comets_caught_run)} if comets_caught_run else {}),
+        **({"comets_caught_total": comets_caught_total} if comets_caught_total else {}),
     }
 
 
@@ -4397,6 +4417,7 @@ def _load_session_additions(data):
                         if m_id not in mission_stamps][:MISSION_SLOTS]
     mutators_next[:] = _clean_mutators(data.get("mutators_next"))
     mutators_run[:] = _clean_mutators(data.get("mutators_run"))
+    _load_observatory(data)
 
     saved_story = data.get("story_log")
     story_log.clear()
@@ -4950,7 +4971,7 @@ def stamps_for(world):
 
 
 def stamp_bonus(planet):
-    return _STAMP_BONUS_WORLD * stamps_for(planet) + _STAMP_BONUS_ALL * stamps_for("all")
+    return _STAMP_BONUS_WORLD * stamps_for(planet) + _STAMP_BONUS_ALL * stamps_for("all") + relay_bonus()
 
 
 def mission_progress(mission):
@@ -4993,6 +5014,7 @@ def _check_missions():
         if mission["measure"]() >= mission["target"]:
             mission_slots.remove(m_id)
             mission_stamps.append(m_id)
+            _award_survey(SURVEY_PER_STAMP)
             _display_toast(f"Charter stamp earned: {mission['label']}")
             _refill_mission_slots()
 
@@ -5953,6 +5975,7 @@ def _check_codex():
             continue
         if (venus_last if clue["id"] == "last_on_purpose" else clue["check"]()):
             codex_found.append(clue["id"])
+            _award_survey(SURVEY_PER_CLUE)
             _display_toast(f"Codex entry found: {clue['name']}")
 
 
@@ -6044,6 +6067,351 @@ def _refresh_goals_panel():
             panel.refreshAll()
     except ImportError:
         pass
+
+
+# =============================================================================
+# Round-5 batch (2026-10-11): A-9 / A-10 Observatory and comets, A-15 / A-16
+# rival colonies, A-17 / A-18 Time Capsules. Every save key is optional,
+# written only when non-default and cleaned on load.
+# =============================================================================
+
+# --- A-9 / A-10: the Observatory -------------------------------------------------
+# Survey Data (earned by prestiging, finishing Charter missions and finding Codex
+# clues) is spent to uncover the next hidden region of a star chart. The order of
+# the chart is fixed, so nothing is random and the whole map is easy to finish:
+# Lagrange Points are relays you can claim for a small permanent yield bonus, and
+# rogue comets bring a windfall once per run, caught from a strip at the top.
+SURVEY_PER_PRESTIGE = 2
+SURVEY_PER_STAMP = 1
+SURVEY_PER_CLUE = 1
+RELAY_BONUS_YOURS = 0.01  # +1% yield everywhere per relay you hold
+CLAIM_COST = 200  # of whichever resource pile is biggest right now
+COMET_BRIGHT_TICKS = 900  # 90 s of game time bright, then fading, then faint (never gone)
+COMET_FADING_TICKS = 1800
+COMET_FLOOR = 150  # a windfall is at least this times the comet's rank ...
+COMET_SECONDS_OF_OUTPUT = 60  # ... or a minute of that world's output, whichever is more
+CHART = [
+    {"id": "wanderer", "kind": "comet", "name": "Wanderer", "cost": 1, "rank": 1},
+    {"id": "harbour_light", "kind": "point", "name": "Harbour Light", "cost": 1},
+    {"id": "ember", "kind": "comet", "name": "Ember", "cost": 2, "rank": 2},
+    {"id": "cairn", "kind": "point", "name": "Cairn", "cost": 2},
+    {"id": "long_tail", "kind": "comet", "name": "Long Tail", "cost": 3, "rank": 3},
+    {"id": "meridian", "kind": "point", "name": "Meridian", "cost": 3},
+    {"id": "quiet_one", "kind": "comet", "name": "The Quiet One", "cost": 4, "rank": 4},
+    {"id": "far_anchor", "kind": "point", "name": "Far Anchor", "cost": 4},
+]
+CHART_BY_ID = {entry["id"]: entry for entry in CHART}
+COMETS_TO_CATCH = 4  # Comet Catcher: four catches over a lifetime
+survey_data = 0  # lifetime currency, saved when above 0
+chart_revealed = 0  # how many chart regions are uncovered (the order is fixed), saved when above 0
+point_claims = {}  # Lagrange Point id -> "yours" (anything not listed is open), lifetime
+comets_caught_run = []  # comet ids caught in this run (a prestige clears it so each run has its windfalls)
+comets_caught_total = 0  # lifetime catches, saved when above 0
+_comet_since = None  # transient: tick the current comet appeared (restarts bright after a reload)
+observatory_open = False
+_observatory_signature = None
+_observatory_refs = {}
+
+
+def _award_survey(amount):
+    global survey_data
+    survey_data = min(survey_data + amount, 10 ** 6)
+
+
+def chart_next():
+    """The next region to uncover, or None when the whole chart is open."""
+    return CHART[chart_revealed] if chart_revealed < len(CHART) else None
+
+
+def survey_region():
+    """Spends Survey Data to uncover the next region. Returns the entry, or None when it cannot."""
+    global survey_data, chart_revealed
+    entry = chart_next()
+    if entry is None or survey_data < entry["cost"]:
+        return None
+    survey_data -= entry["cost"]
+    chart_revealed += 1
+    what = "a Lagrange Point" if entry["kind"] == "point" else f"Comet {entry['name']}"
+    _display_toast(f"Survey complete: {what} found ({entry['name']})")
+    _on_region_revealed(entry)
+    return entry
+
+
+def _on_region_revealed(entry):
+    """Hook for later layers (rival gossip); nothing here yet."""
+
+
+def point_state(point_id):
+    """"open" or "yours" for an uncovered Lagrange Point, None while it is still hidden."""
+    entry = CHART_BY_ID.get(point_id)
+    if entry is None or entry["kind"] != "point" or CHART.index(entry) >= chart_revealed:
+        return None
+    return point_claims.get(point_id, "open")
+
+
+def revealed_points():
+    return [entry for entry in CHART[:chart_revealed] if entry["kind"] == "point"]
+
+
+def relay_bonus():
+    """The small yield bonus every claimed relay adds, everywhere."""
+    return RELAY_BONUS_YOURS * sum(1 for entry in revealed_points() if point_state(entry["id"]) == "yours")
+
+
+def _pile_source(cost):
+    """(planet, amount) a payment of `cost` would come out of (the biggest pile), or None when none has enough."""
+    best = max(_overview_planets(), key=lambda p: planet_state[p]["resource_count"])
+    if planet_state[best]["resource_count"] >= cost:
+        return best, cost
+    return None
+
+
+def _pile_text(cost):
+    source = _pile_source(cost)
+    return f"{cost} {PLANETS[source[0]]['resource_name']}" if source else f"{cost} of any resource"
+
+
+def claim_point(point_id):
+    """Claims an open Lagrange Point for the price of a pile. Returns True when it happened."""
+    if point_state(point_id) != "open":
+        return False
+    source = _pile_source(CLAIM_COST)
+    if source is None:
+        return False
+    planet_state[source[0]]["resource_count"] -= source[1]
+    point_claims[point_id] = "yours"
+    _on_point_changed(point_id, "yours")
+    return True
+
+
+def _on_point_changed(point_id, new_state):
+    """Hook for later layers (rival gossip); nothing here yet."""
+
+
+# --- A-10: rogue comets ----------------------------------------------------------
+def comet_ready():
+    """The first uncovered comet not yet caught this run, or None."""
+    for entry in CHART[:chart_revealed]:
+        if entry["kind"] == "comet" and entry["id"] not in comets_caught_run:
+            return entry
+    return None
+
+
+def comet_phase():
+    """"bright", "fading" or "faint" while a comet is overhead, else None. It never goes away: waiting costs nothing."""
+    if comet_ready() is None or _comet_since is None:
+        return None
+    age = total_ticks - _comet_since
+    return "bright" if age < COMET_BRIGHT_TICKS else "fading" if age < COMET_FADING_TICKS else "faint"
+
+
+def _update_comet():
+    global _comet_since
+    if comet_ready() is None:
+        _comet_since = None
+    elif _comet_since is None:
+        _comet_since = total_ticks
+
+
+def _output_per_second(planet):
+    state = planet_state[planet]
+    return state["generator_count"] * PLANETS[planet]["generator_rate"] * production_multiplier(planet) * _yield_multiplier()
+
+
+def comet_windfall(entry):
+    """planet -> amount for every world you have, for the given comet."""
+    return {
+        planet: max(COMET_FLOOR * entry["rank"], round(COMET_SECONDS_OF_OUTPUT * _output_per_second(planet)))
+        for planet in _overview_planets()
+    }
+
+
+def catch_comet():
+    """Catches the comet overhead: a windfall on every world you have. Returns the amounts, or None."""
+    global comets_caught_total, _comet_since
+    entry = comet_ready()
+    if entry is None:
+        return None
+    amounts = comet_windfall(entry)
+    for planet, amount in amounts.items():
+        planet_state[planet]["resource_count"] += amount
+    comets_caught_run.append(entry["id"])
+    comets_caught_total = min(comets_caught_total + 1, 10 ** 6)
+    _comet_since = None
+    _display_toast(f"Comet {entry['name']} caught: a windfall on every world you have")
+    return amounts
+
+
+COMET_STRIP_TEXT = {
+    "bright": "Comet {name} is overhead. Catch it for a windfall on every world you have.",
+    "fading": "Comet {name} is fading. Catch it now, or later: it will still be here.",
+    "faint": "Comet {name} is faint but still here. Catch it whenever you like; nothing is lost by waiting.",
+}
+
+
+def update_comet_strip():
+    strip = document.getElementById("comet-strip")
+    phase = comet_phase()
+    entry = comet_ready()
+    if phase is None or entry is None:
+        strip.hidden = True
+        return
+    text = "☄ " + COMET_STRIP_TEXT[phase].format(name=entry["name"])
+    if strip.innerText != text:
+        strip.innerText = text
+    strip.hidden = False
+    strip.className = f"comet-strip comet-strip--{phase}"
+
+
+def on_comet_click(event=None):
+    catch_comet()
+    update_comet_strip()
+    update_observatory_display()
+
+
+# --- the Observatory panel ---------------------------------------------------------
+def on_toggle_observatory(event=None):
+    global observatory_open
+    observatory_open = not observatory_open
+    update_observatory_display()
+
+
+def on_observatory_click(event):
+    action = _target_attr(event, "data-action")
+    if action == "survey":
+        survey_region()
+    elif action == "claim":
+        claim_point(_target_attr(event, "data-point"))
+    update_observatory_display()
+
+
+def _observatory_structure_signature():
+    return (survey_data, chart_revealed, tuple(sorted(point_claims.items())), tuple(comets_caught_run),
+            _observatory_extra_signature())
+
+
+def _observatory_extra_signature():
+    return ()
+
+
+def _chart_card(entry, index):
+    card = document.createElement("div")
+    if index >= chart_revealed:
+        card.className = "chain-card"
+        card.appendChild(_make_text("chain-card-name", f"Unmapped region {index + 1}"))
+        card.appendChild(_make_text("chain-card-detail", "Something is out there. Survey it to find out what."))
+        return card
+    if entry["kind"] == "comet":
+        caught = entry["id"] in comets_caught_run
+        card.className = "chain-card chain-card--found" if caught else "chain-card"
+        card.appendChild(_make_text("chain-card-name", f"☄ Comet {entry['name']}"))
+        card.appendChild(_make_text(
+            "chain-card-detail",
+            "Caught this run. It comes back round after your next prestige." if caught
+            else "Overhead now: catch it from the strip at the top of the page for a windfall on every world you have."))
+        return card
+    state = point_state(entry["id"])
+    card.className = "chain-card chain-card--found" if state == "yours" else "chain-card"
+    card.appendChild(_make_text("chain-card-name", f"◎ Lagrange Point {entry['name']}"))
+    _fill_point_card(card, entry, state)
+    return card
+
+
+def _fill_point_card(card, entry, state):
+    if state == "yours":
+        card.appendChild(_make_text(
+            "chain-card-detail", f"Your relay. +{round(RELAY_BONUS_YOURS * 100)}% yield on every world, for good."))
+        return
+    card.appendChild(_make_text("chain-card-detail", "Nobody holds this point. A relay here adds a small yield bonus to every world."))
+    button = _make_button("Claim", {"data-action": "claim", "data-point": entry["id"]}, None)
+    card.appendChild(button)
+    _observatory_refs[("claim", entry["id"])] = button
+
+
+def _build_observatory():
+    panel = document.getElementById("observatory-panel")
+    panel.innerHTML = ""
+    _observatory_refs.clear()
+    panel.appendChild(_make_text("stats-panel-heading", "Observatory"))
+    panel.appendChild(_make_text(
+        "chains-intro",
+        "Survey Data comes from prestiging (2), finishing Charter missions (1 each) and finding Codex clues (1 each). "
+        "Spend it to uncover the next region of the star chart. Nothing here is timed or random, and nothing is lost by waiting."))
+    _observatory_refs["_survey"] = _make_text("chain-card-count", "")
+    panel.appendChild(_observatory_refs["_survey"])
+    button = _make_button("Survey the next region", {"data-action": "survey"}, None)
+    _observatory_refs["_survey_button"] = button
+    panel.appendChild(button)
+    panel.appendChild(_make_text("stats-panel-heading", "Star chart"))
+    for index, entry in enumerate(CHART):
+        panel.appendChild(_chart_card(entry, index))
+    _observatory_refs["_relays"] = _make_text("chain-card-count", "")
+    panel.appendChild(_observatory_refs["_relays"])
+    _build_observatory_extras(panel)
+
+
+def _build_observatory_extras(panel):
+    """Hook for later layers (rival colonies); nothing here yet."""
+
+
+def _refresh_observatory_values():
+    nxt = chart_next()
+    _observatory_refs["_survey"].innerText = (
+        f"Survey Data: {survey_data}. " + (f"The next survey costs {nxt['cost']}." if nxt else "The whole chart is uncovered."))
+    survey_button = _observatory_refs["_survey_button"]
+    survey_button.disabled = nxt is None or survey_data < nxt["cost"]
+    survey_button.innerText = (
+        "Survey the next region" + (f" (costs {nxt['cost']} Survey Data)" if nxt else " (all done)"))
+    for key, button in _observatory_refs.items():
+        if isinstance(key, tuple) and key[0] == "claim":
+            button.disabled = _pile_source(CLAIM_COST) is None
+            button.innerText = f"Claim ({_pile_text(CLAIM_COST)})"
+    held = sum(1 for entry in revealed_points() if point_state(entry["id"]) == "yours")
+    _observatory_refs["_relays"].innerText = (
+        f"Relays held: {held} of {sum(1 for e in CHART if e['kind'] == 'point')} "
+        f"(+{round(relay_bonus() * 100, 1):g}% yield everywhere). Comets caught for life: {comets_caught_total}.")
+    _refresh_observatory_extras()
+
+
+def _refresh_observatory_extras():
+    """Hook for later layers (rival colonies); nothing here yet."""
+
+
+def update_observatory_display():
+    global _observatory_signature
+    toggle = document.getElementById("observatory-toggle-button")
+    panel = document.getElementById("observatory-panel")
+    toggle.innerText = ("Hide Observatory" if observatory_open else "\U0001f52d Observatory") + f" ({chart_revealed}/{len(CHART)})"
+    panel.hidden = not observatory_open
+    if not observatory_open:
+        _observatory_signature = None
+        return
+    signature = _observatory_structure_signature()
+    if signature != _observatory_signature:
+        _build_observatory()
+        _observatory_signature = signature
+    _refresh_observatory_values()
+
+
+def _load_observatory(data):
+    global survey_data, chart_revealed, comets_caught_total
+
+    def _count(value, top):
+        return value if isinstance(value, int) and not isinstance(value, bool) and 0 <= value <= top else 0
+
+    survey_data = _count(data.get("survey_data"), 10 ** 6)
+    chart_revealed = _count(data.get("chart_revealed"), len(CHART))
+    comets_caught_total = _count(data.get("comets_caught_total"), 10 ** 6)
+    point_claims.clear()
+    raw = data.get("point_claims")
+    if isinstance(raw, dict):
+        for point_id, state in raw.items():
+            if state == "yours" and point_state(point_id) is not None:
+                point_claims[point_id] = state
+    comets_caught_run[:] = [
+        c_id for c_id in _clean_ids(data.get("comets_caught_run"), CHART_BY_ID)
+        if CHART_BY_ID[c_id]["kind"] == "comet" and CHART.index(CHART_BY_ID[c_id]) < chart_revealed
+    ]
 
 
 def _start_tick_loop():
@@ -6357,6 +6725,9 @@ def setup():
     document.getElementById("doctrine-panel").addEventListener("click", create_proxy(on_doctrine_click))
     document.getElementById("charter-toggle-button").addEventListener("click", create_proxy(on_toggle_charter))
     document.getElementById("charter-panel").addEventListener("click", create_proxy(on_charter_click))
+    document.getElementById("observatory-toggle-button").addEventListener("click", create_proxy(on_toggle_observatory))
+    document.getElementById("observatory-panel").addEventListener("click", create_proxy(on_observatory_click))
+    document.getElementById("comet-strip").addEventListener("click", create_proxy(on_comet_click))
     document.getElementById("prestige-tree-toggle-button").addEventListener(
         "click", create_proxy(on_toggle_prestige_tree)
     )

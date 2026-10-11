@@ -1843,6 +1843,12 @@ html:not([data-show-timing="on"]) #splits-panel { display: none; }
 /* --- A-2: the anomaly forecast strip (text only, no motion) ---------------------------------------- */
 .anomaly-strip { margin: 0.4rem 0; padding: 0.4rem 0.7rem; border: 1px solid rgba(160, 175, 220, 0.3); border-left-width: 4px; border-radius: 8px; font-size: 0.85rem; text-align: left; }
 .anomaly-strip[hidden] { display: none; }
+.comet-strip { display: block; width: 100%; margin: 0.4rem 0; padding: 0.4rem 0.7rem; border: 1px solid rgba(160, 175, 220, 0.4); border-left: 4px solid #8fb4ff; border-radius: 8px; font: inherit; font-size: 0.85rem; text-align: left; cursor: pointer; background: rgba(40, 60, 120, 0.35); color: inherit; transition: opacity 0.6s; }
+.comet-strip[hidden] { display: none; }
+.comet-strip--fading { opacity: 0.8; border-left-style: dashed; }
+.comet-strip--faint { opacity: 0.6; border-left-style: dotted; }
+.comet-strip:hover, .comet-strip:focus-visible { opacity: 1; }
+html[data-theme="light"] .comet-strip { background: rgba(200, 215, 255, 0.6); border-color: rgba(30, 40, 80, 0.35); }
 .anomaly-strip--boon { border-left-color: #6fcf97; }
 .anomaly-strip--strain { border-left-color: #f2c94c; border-left-style: double; }
 html[data-theme="light"] .anomaly-strip { border-color: rgba(30, 40, 80, 0.35); }

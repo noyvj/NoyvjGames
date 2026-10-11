@@ -149,6 +149,16 @@
       "id": "great_works",
       "label": "The Great Works",
       "description": "Build all four Megaprojects in a single run: Orbital Mirror, Ring Habitat, Dyson Sail and Deep Core Tap."
+    },
+    {
+      "id": "star_cartographer",
+      "label": "Star Cartographer",
+      "description": "Uncover every region of the Observatory's star chart: four Lagrange Points and four rogue comets."
+    },
+    {
+      "id": "comet_catcher",
+      "label": "Comet Catcher",
+      "description": "Catch four rogue comets from the strip at the top of the page (any runs, any comets)."
     }
   ]
 }

@@ -10,7 +10,7 @@ NEW = ["codex_keeper", "weather_watcher", "charter_member", "great_works"]
 def test_catalog_has_the_four_with_checks(game_env):
     m = game_env.module
     ids = [a["id"] for a in json.loads((GAME_DIR / "achievements.json").read_text(encoding="utf-8"))["achievements"]]
-    assert len(ids) == 30 and len(set(ids)) == 30
+    assert len(ids) >= 30 and len(set(ids)) == len(ids)
     for new in NEW:
         assert new in ids and new in m.ACHIEVEMENT_CHECKS
 

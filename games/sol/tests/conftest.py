@@ -103,6 +103,9 @@ ELEMENT_IDS = [
     "doctrine-panel",
     "charter-toggle-button",
     "charter-panel",
+    "observatory-toggle-button",
+    "observatory-panel",
+    "comet-strip",
     # Round-3 batch (A-22/24/25/26/30/31)
     "trophy-shelf",
     "click-streak",
