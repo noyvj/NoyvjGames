@@ -159,11 +159,18 @@
         <label class="settings-checkbox-label" for="profile-select">
           Play style
           <select id="profile-select">
-            <option value="beginner">Beginner: adds a next-step suggestion</option>
-            <option value="standard" selected>Standard: the game as it is</option>
-            <option value="expert">Expert: hides previews, efficiency lines and notes</option>
+            <option value="beginner">Beginner (adds a suggestion)</option>
+            <option value="standard" selected>Standard</option>
+            <option value="expert">Expert (hides hints and notes)</option>
           </select>
         </label>
+      </div>
+      <div class="settings-row">
+        <label class="settings-checkbox-label" for="lite-mode-checkbox">
+          <input type="checkbox" id="lite-mode-checkbox" data-lite-toggle>
+          Lite mode for slow computers (no haze, methane wisps, drifting clouds, grazing cows or blur; the numbers say the same things)
+        </label>
+        <p class="comparison-message" data-lite-status></p>
       </div>
       <div class="settings-row">
         <label class="settings-checkbox-label" for="tactile-checkbox">
