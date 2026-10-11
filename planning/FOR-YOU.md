@@ -412,3 +412,15 @@ Recommended: shortest plus 2 (a person needs a little more than a perfect oracle
 
 Recommended: cap at bronze, so the answer never counts as a clean solve. Say "yes" to cap it.
 
+### Qr1. Canopy: when you load a save from another forest or device, should it ever take away achievements you earned in this browser (per-forest achievements), or should achievements belong to the browser and only ever be added?
+
+Recommended: achievements belong to the browser and are only added (what the review kept). Say "yes" to keep it.
+
+### Qr2. Signal: when two devices' records for the same day are merged, should a finished archive replay count over an in-progress daily of the same day (as it does now)?
+
+Recommended: no, the daily should count: change the order so the daily wins. Say "yes" to change it, "no" to keep it.
+
+### Qr3. Signal: should loading a save re-check the readings of the puzzle you had open (so a hand-edited save cannot keep fake readings)?
+
+Recommended: no, it is a local game and the check already runs when a puzzle opens. Say "yes" to add the re-check anyway.
+
