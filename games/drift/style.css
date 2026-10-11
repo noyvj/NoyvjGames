@@ -1821,3 +1821,10 @@ html[data-anim-speed="off"] .achievement-glyph--fresh * { animation: none; strok
 html.reduce-motion .achievement-glyph--fresh * { stroke-dashoffset: 0; }
 html.high-contrast .achievement-glyph--locked { color: #bdbdbd; }
 html.high-contrast .achievement-glyph--earned { color: #ffff00; filter: none; }
+
+/* I-14: budget templates */
+.template-row { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: 0.35rem; align-items: center; margin-top: 0.5rem; }
+.template-name { min-width: 0; padding: 0.3rem 0.5rem; border-radius: 6px; border: 1px solid rgba(154, 130, 220, 0.4); background: rgba(20, 16, 40, 0.6); color: inherit; font: inherit; font-size: 0.85rem; }
+.template-summary { grid-column: 1 / -1; margin: 0; }
+@media (max-width: 420px) { .template-row { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); } .template-name { grid-column: 1 / -1; } }
+html[data-theme="light"] .template-name { background: #ffffff; }

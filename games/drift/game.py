@@ -3714,9 +3714,10 @@ def calendar_result_message(entry):
 
 
 def _reset_civic_notes():
-    global calendar_note_text, council_note_text
+    global calendar_note_text, council_note_text, template_note
     calendar_note_text = ""
     council_note_text = ""
+    template_note = ""
 
 
 def on_toggle_calendar(event=None):
@@ -3991,6 +3992,161 @@ def render_autopilot():
 
 
 # -- GI-21: star ratings --
+# ---- I-14: budget templates -------------------------------------------------------------------------
+# Three named purchase plans: "Save this round's buys" stores how many Housing, Services and Infrastructure
+# purchases you made since the round began; "Apply" buys the same again in one click, as many as the funds allow
+# (services first, so the integration engine is never the part that gets cut). Kept per browser, like the
+# collection, so a plan can be reused in the next region; never part of a save.
+TEMPLATE_SLOTS = 3
+TEMPLATE_STORAGE_KEY = "drift_budget_templates_v1"
+TEMPLATE_NAME_MAX = 20
+TEMPLATE_MAX_BUYS = 20
+TEMPLATE_BUY_ORDER = ["services", "housing", "infrastructure"]
+
+
+def _default_templates():
+    return [{"name": f"Plan {i + 1}", "buys": {}} for i in range(TEMPLATE_SLOTS)]
+
+
+def _clean_templates(raw):
+    """Exactly TEMPLATE_SLOTS well-formed plans from anything: names trimmed and capped, buy counts 1..20."""
+    out = _default_templates()
+    if not isinstance(raw, list):
+        return out
+    for slot, entry in enumerate(raw[:TEMPLATE_SLOTS]):
+        if not isinstance(entry, dict):
+            continue
+        name = entry.get("name")
+        if isinstance(name, str) and name.strip():
+            out[slot]["name"] = name.strip()[:TEMPLATE_NAME_MAX]
+        buys = entry.get("buys")
+        if isinstance(buys, dict):
+            for kind in CAPACITY_TYPES:
+                count = buys.get(kind)
+                if isinstance(count, int) and not isinstance(count, bool) and 1 <= count <= TEMPLATE_MAX_BUYS:
+                    out[slot]["buys"][kind] = count
+    return out
+
+
+def _load_templates():
+    raw = _read_local_storage_item(TEMPLATE_STORAGE_KEY)
+    if not raw:
+        return _default_templates()
+    try:
+        return _clean_templates(json.loads(raw))
+    except (ValueError, TypeError):
+        return _default_templates()
+
+
+budget_templates = _load_templates()
+template_note = ""
+
+
+def round_purchase_counts():
+    """How many purchases of each capacity type were made since this round began (from the funds spent)."""
+    return {
+        kind: int(round(region.round_spend.get(kind, 0.0) / INVEST_COST[kind]))
+        for kind in CAPACITY_TYPES
+    }
+
+
+def template_summary(template):
+    parts = [f"{CAPACITY_LABEL[kind]} {template['buys'][kind]}" for kind in TEMPLATE_BUY_ORDER if kind in template["buys"]]
+    return ", ".join(parts) if parts else "empty: buy something, then save it"
+
+
+def save_template(slot, name):
+    """Stores this round's purchases as plan `slot`; False when nothing was bought this round."""
+    counts = {kind: min(TEMPLATE_MAX_BUYS, n) for kind, n in round_purchase_counts().items() if n > 0}
+    if not counts or not 0 <= slot < TEMPLATE_SLOTS:
+        return False
+    clean = name.strip()[:TEMPLATE_NAME_MAX] if isinstance(name, str) and name.strip() else f"Plan {slot + 1}"
+    budget_templates[slot] = {"name": clean, "buys": counts}
+    _write_local_storage_item(TEMPLATE_STORAGE_KEY, json.dumps(budget_templates))
+    return True
+
+
+def rename_template(slot, name):
+    if not 0 <= slot < TEMPLATE_SLOTS or not isinstance(name, str) or not name.strip():
+        return False
+    budget_templates[slot]["name"] = name.strip()[:TEMPLATE_NAME_MAX]
+    _write_local_storage_item(TEMPLATE_STORAGE_KEY, json.dumps(budget_templates))
+    return True
+
+
+def apply_template(slot):
+    """Buys plan `slot` with what the funds allow; returns (bought, short) as {type: count} dicts."""
+    template = budget_templates[slot]
+    bought, short = {}, {}
+    for kind in TEMPLATE_BUY_ORDER:
+        want = template["buys"].get(kind, 0)
+        done = 0
+        while done < want and region.invest(kind):
+            done += 1
+        if done:
+            bought[kind] = done
+        if done < want:
+            short[kind] = want - done
+    return bought, short
+
+
+def _counts_text(counts):
+    return ", ".join(f"{n} {CAPACITY_LABEL[kind]}" for kind, n in counts.items())
+
+
+def _make_template_save_handler(slot):
+    def handler(event=None):
+        global template_note
+        name = getattr(document.getElementById(f"template-{slot + 1}-name"), "value", "") or ""
+        if save_template(slot, str(name)):
+            template_note = f"Saved this round's buys as {budget_templates[slot]['name']}: {template_summary(budget_templates[slot])}."
+        else:
+            template_note = "Nothing bought since this round began, so there is nothing to save."
+        announce(template_note)
+        render_templates()
+    return handler
+
+
+def _make_template_apply_handler(slot):
+    def handler(event=None):
+        global template_note
+        template = budget_templates[slot]
+        count_before = region_visual_building_count(region.total_capacity())
+        bought, short = apply_template(slot)
+        if bought:
+            _pop_building(count_before)
+        if not template["buys"]:
+            template_note = f"{template['name']} is empty."
+        elif not bought:
+            template_note = f"{template['name']}: not enough funds to buy anything from it."
+        else:
+            template_note = f"{template['name']}: bought {_counts_text(bought)}."
+            if short:
+                template_note += f" Could not afford {_counts_text(short)}."
+        announce(template_note)
+        render()
+        _check_new_achievements_for_toast()
+    return handler
+
+
+def _make_template_rename_handler(slot):
+    def handler(event=None):
+        value = getattr(document.getElementById(f"template-{slot + 1}-name"), "value", "")
+        if rename_template(slot, str(value or "")):
+            render_templates()
+    return handler
+
+
+def render_templates():
+    for slot, template in enumerate(budget_templates):
+        number = slot + 1
+        document.getElementById(f"template-{number}-name").value = template["name"]
+        document.getElementById(f"template-{number}-summary").innerText = template_summary(template)
+        document.getElementById(f"template-{number}-save").disabled = not any(round_purchase_counts().values())
+        document.getElementById(f"template-{number}-apply").disabled = not template["buys"]
+    document.getElementById("template-note").innerText = template_note
+
+
 def star_goals(r=None):
     """Stars (0 to 3) on the three goals: wellbeing, speed to net-positive, efficiency of funds."""
     r = region if r is None else r
@@ -4171,6 +4327,7 @@ def render_civic_tools():
     render_calendar()
     render_council()
     render_autopilot()
+    render_templates()
     document.getElementById("run-stars-display").innerText = run_stars_message()
 
 
@@ -5228,6 +5385,16 @@ def setup():
         "autopilot-share-select", "autopilot-surplus-select", "autopilot-reserve-select", "autopilot-rounds-select",
     ):
         document.getElementById(select_id).addEventListener("change", create_proxy(on_autopilot_change))
+    for slot in range(TEMPLATE_SLOTS):
+        document.getElementById(f"template-{slot + 1}-save").addEventListener(
+            "click", create_proxy(_make_template_save_handler(slot))
+        )
+        document.getElementById(f"template-{slot + 1}-apply").addEventListener(
+            "click", create_proxy(_make_template_apply_handler(slot))
+        )
+        document.getElementById(f"template-{slot + 1}-name").addEventListener(
+            "change", create_proxy(_make_template_rename_handler(slot))
+        )
     for skin in SKINS:
         document.getElementById(f"skin-{skin['id']}-button").addEventListener(
             "click", create_proxy(_make_skin_handler(skin["id"]))

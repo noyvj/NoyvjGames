@@ -621,6 +621,30 @@
         <button id="autopilot-run-button" class="secondary" type="button">▶ Run Autopilot</button>
         <ul id="autopilot-log" class="autopilot-log" aria-label="Autopilot rule log"></ul>
       </details>
+      <!-- I-14: three named purchase plans, kept in this browser (not in the save). -->
+      <details class="context-toggle">
+        <summary>Budget templates</summary>
+        <p class="comparison-message">Buy what you like this round, then save those purchases as a plan. Apply buys the same again in one click (services first), as far as your funds go.</p>
+        <div class="template-row" role="group" aria-label="Plan 1">
+          <input id="template-1-name" class="template-name" type="text" maxlength="20" value="Plan 1" aria-label="Name of plan 1">
+          <button id="template-1-save" class="secondary" type="button" disabled>Save this round's buys</button>
+          <button id="template-1-apply" class="secondary" type="button" disabled>Apply</button>
+          <p id="template-1-summary" class="gauge-reference-note template-summary"></p>
+        </div>
+        <div class="template-row" role="group" aria-label="Plan 2">
+          <input id="template-2-name" class="template-name" type="text" maxlength="20" value="Plan 2" aria-label="Name of plan 2">
+          <button id="template-2-save" class="secondary" type="button" disabled>Save this round's buys</button>
+          <button id="template-2-apply" class="secondary" type="button" disabled>Apply</button>
+          <p id="template-2-summary" class="gauge-reference-note template-summary"></p>
+        </div>
+        <div class="template-row" role="group" aria-label="Plan 3">
+          <input id="template-3-name" class="template-name" type="text" maxlength="20" value="Plan 3" aria-label="Name of plan 3">
+          <button id="template-3-save" class="secondary" type="button" disabled>Save this round's buys</button>
+          <button id="template-3-apply" class="secondary" type="button" disabled>Apply</button>
+          <p id="template-3-summary" class="gauge-reference-note template-summary"></p>
+        </div>
+        <p id="template-note" class="comparison-message"></p>
+      </details>
     </div>
 
     <!-- B-7: the game's own screen-reader live region; used only when shared/announcer.js is not on the page. -->
