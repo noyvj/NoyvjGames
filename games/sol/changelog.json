@@ -2,6 +2,10 @@
   "changelog": [
     {
       "date": "2026-10-11",
+      "entry": "New: Rival Colonies. Three friendly corporations (Helios Combine, Ceres Freight Guild, Outer Reach Syndicate) already hold three of the Observatory's four Lagrange Points. While they do, trade routes restore a little less ecology (8% per point) on any world with no Focus. You can ignore them, pay to share a point (the pressure goes and you get half a relay) or pay to take it over (a full relay). A Focus on a world shields it, nothing is timed, and a new Settings switch turns the pressure and the ticker off. Their gossip shows up as one-line Ticker entries in the captain's log and does nothing else. New achievement: Relay Network."
+    },
+    {
+      "date": "2026-10-11",
       "entry": "New: the Observatory. Prestiging, finishing Charter missions and finding Codex clues earn Survey Data, which uncovers the next region of a star chart. Regions hold Lagrange Points (claim one for a small permanent yield bonus on every world) and rogue comets: a comet shows as a strip at the top of the page, and catching it pays a windfall on every world you have, once per run. A comet fades while you wait but never leaves, so nothing is lost. Two new achievements, Star Cartographer and Comet Catcher."
     },
     {

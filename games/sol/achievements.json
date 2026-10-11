@@ -159,6 +159,11 @@
       "id": "comet_catcher",
       "label": "Comet Catcher",
       "description": "Catch four rogue comets from the strip at the top of the page (any runs, any comets)."
+    },
+    {
+      "id": "relay_network",
+      "label": "Relay Network",
+      "description": "Hold all four Lagrange Points as relays: claim the open one and share or take over each rival's."
     }
   ]
 }

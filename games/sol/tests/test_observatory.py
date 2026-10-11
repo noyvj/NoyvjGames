@@ -336,3 +336,15 @@ def test_star_cartographer_and_comet_catcher(game_env):
     assert m.ACHIEVEMENT_PROGRESS["comet_catcher"]() == (3, 4)
     m.comets_caught_total = 4
     assert "comet_catcher" in m.achievement_ids_earned()
+
+
+def test_only_the_first_waiting_comet_says_overhead(game_env):
+    m = game_env.module
+    _reveal(m, 3)  # Wanderer, Harbour Light, Ember
+    _open(game_env)
+    text = _panel_text(game_env)
+    assert text.count("Overhead now") == 1 and "Next in line" in text
+    m.catch_comet()
+    m.tick()
+    text = _panel_text(game_env)
+    assert "Caught this run" in text and text.count("Overhead now") == 1 and "Next in line" not in text

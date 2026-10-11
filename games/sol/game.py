@@ -1362,6 +1362,8 @@ ACHIEVEMENT_CHECKS = {
     # Round-5 batch: both are lifetime collections.
     "star_cartographer": lambda: chart_revealed >= len(CHART),
     "comet_catcher": lambda: comets_caught_total >= COMETS_TO_CATCH,
+    "relay_network": lambda: len(revealed_points()) == 4 and all(
+        point_state(e["id"]) in ("yours", "partner") for e in revealed_points()),
 }
 
 # Progress readouts, only for achievements with a natural numeric scale-up —
@@ -1383,6 +1385,7 @@ ACHIEVEMENT_PROGRESS = {
     "charter_member": lambda: (min(len(mission_stamps), CHARTER_MEMBER_STAMPS), CHARTER_MEMBER_STAMPS),
     "star_cartographer": lambda: (chart_revealed, len(CHART)),
     "comet_catcher": lambda: (min(comets_caught_total, COMETS_TO_CATCH), COMETS_TO_CATCH),
+    "relay_network": lambda: (sum(1 for e in revealed_points() if point_state(e["id"]) in ("yours", "partner")), 4),
 }
 
 
@@ -2022,6 +2025,9 @@ def story_line(entry_id):
         return STORY_ROUTE_LINE
     if kind == "prestige" and key == "1":
         return STORY_PRESTIGE_LINE
+    if kind == "rumor":
+        entry = RUMOR_BY_ID.get(key)
+        return "Ticker: " + entry["text"] if entry else None
     if kind == "ach":
         for entry in ACHIEVEMENTS:
             if entry["id"] == key:
@@ -2045,7 +2051,7 @@ def _note_story_beats():
         changed = story_note("route:first") or changed
     if prestige_level >= 1:
         changed = story_note("prestige:1") or changed
-    return changed
+    return _note_world_rumors() or changed
 
 
 def _total_trade_routes_built_now():
@@ -2057,8 +2063,9 @@ def render_story_log():
     panel = document.getElementById("captains-log")
     list_el = document.getElementById("captains-log-list")
     lines = story_log_lines()
-    latest.hidden = not lines
-    latest.innerText = f"Captain's log: {lines[-1]}" if lines else ""
+    own = [line for line in (story_line(e) for e in story_log if not e.startswith("rumor:")) if line]
+    latest.hidden = not own  # the rival ticker stays in the log list, never in the headline line
+    latest.innerText = f"Captain's log: {own[-1]}" if own else ""
     panel.hidden = not lines
     list_el.innerHTML = ""
     for line in reversed(lines):
@@ -3401,6 +3408,9 @@ def _refresh_overview_values():
         spec = _specialization(planet)
         if spec:
             bits.append(f"Focus: {SPECIALIZATION_LABELS[spec]}")
+        pressure = rival_pressure(planet)
+        if pressure:
+            bits.append(f"Rival pressure: trade restores {round(pressure * 100)}% less (a Focus shields this world)")
         stamps = stamps_for(planet)
         if stamps:
             bits.append(f"Charter stamps: {STAMP_STAR * stamps} (+{stamps}% yield)")
@@ -3993,7 +4003,7 @@ def _incoming_trade_restore(planet):
         total += count * TRADE_ROUTE_RESTORE_PER_SEC * (TICK_INTERVAL_MS / 1000)
     if mutator_active("one_way_trade"):
         total *= MUTATOR_ONE_WAY_FACTOR
-    return total * anomaly_factor("trade")
+    return total * anomaly_factor("trade") * (1 - rival_pressure(planet))
 
 
 def _simulate_planet(planet, incoming_trade_restore):
@@ -6094,14 +6104,50 @@ CHART = [
     {"id": "wanderer", "kind": "comet", "name": "Wanderer", "cost": 1, "rank": 1},
     {"id": "harbour_light", "kind": "point", "name": "Harbour Light", "cost": 1},
     {"id": "ember", "kind": "comet", "name": "Ember", "cost": 2, "rank": 2},
-    {"id": "cairn", "kind": "point", "name": "Cairn", "cost": 2},
+    {"id": "cairn", "kind": "point", "name": "Cairn", "cost": 2, "rival": "helios"},
     {"id": "long_tail", "kind": "comet", "name": "Long Tail", "cost": 3, "rank": 3},
-    {"id": "meridian", "kind": "point", "name": "Meridian", "cost": 3},
+    {"id": "meridian", "kind": "point", "name": "Meridian", "cost": 3, "rival": "ceres"},
     {"id": "quiet_one", "kind": "comet", "name": "The Quiet One", "cost": 4, "rank": 4},
-    {"id": "far_anchor", "kind": "point", "name": "Far Anchor", "cost": 4},
+    {"id": "far_anchor", "kind": "point", "name": "Far Anchor", "cost": 4, "rival": "outer"},
 ]
 CHART_BY_ID = {entry["id"]: entry for entry in CHART}
 COMETS_TO_CATCH = 4  # Comet Catcher: four catches over a lifetime
+# --- A-15 / A-16: rival colonies -----------------------------------------------------
+# Three named, non-hostile corporations already hold three of the four Lagrange Points the
+# moment you uncover them. A point a rival holds adds RIVAL_PRESSURE_PER_POINT to a "market
+# pressure" on trade (every trade route restores that much less ecology), but only on worlds
+# with no Focus (Output or Stability, set from the Overview once a world is 75% terraformed),
+# and never more than three points' worth. Nothing is timed and everything is recoverable:
+# ignore them, pay to share a point (removes its pressure, half the relay bonus) or pay to
+# take it over (full relay bonus). Off in Settings ("Rival colonies").
+RIVALS_KEY = "sol-rivals"
+RIVAL_PRESSURE_PER_POINT = 0.08
+PARTNER_COST = 300
+CONTEST_COST = 800
+TAKEOVER_COST = 500  # buying out a partner you already share a point with
+RELAY_BONUS_PARTNER = 0.005
+RIVALS = [
+    {"id": "helios", "name": "Helios Combine", "blurb": "inner-system haulers, fond of Mars and the Moon"},
+    {"id": "ceres", "name": "Ceres Freight Guild", "blurb": "Belt miners who say everything is on schedule"},
+    {"id": "outer", "name": "Outer Reach Syndicate", "blurb": "gas-giant cities with a long view"},
+]
+RIVAL_BY_ID = {entry["id"]: entry for entry in RIVALS}
+# One-line ticker gossip with zero mechanical effect; each line is noted once, in the captain's log.
+RUMORS = [
+    {"id": "met:helios", "text": "Helios Combine has run a flag up at Cairn and is telling anyone who will listen that it was always theirs."},
+    {"id": "met:ceres", "text": "Ceres Freight Guild has painted its name on Meridian. The paint is still wet, and somehow already peeling."},
+    {"id": "met:outer", "text": "Outer Reach Syndicate calls Far Anchor home, mostly because nobody else has the patience to go that far."},
+    {"id": "partner:helios", "text": "Helios Combine and you now share Cairn. Their newsletter calls it a strategic friendship."},
+    {"id": "partner:ceres", "text": "Ceres Freight Guild shares Meridian with you and has stopped calling the arrangement temporary."},
+    {"id": "partner:outer", "text": "Outer Reach Syndicate shares Far Anchor with you and sends a very polite message about the shared fridge."},
+    {"id": "contest:helios", "text": "Helios Combine has moved its flag off Cairn and says it had been meaning to for a while."},
+    {"id": "contest:ceres", "text": "Ceres Freight Guild has left Meridian with its schedule intact and its feelings, it says, unhurt."},
+    {"id": "contest:outer", "text": "Outer Reach Syndicate has taken its lamp down from Far Anchor and mentioned the view will be missed."},
+    {"id": "world:Mars", "rival": "helios", "text": "Helios Combine reports record Mars freight, and has asked that the word record not be checked."},
+    {"id": "world:AsteroidBelt", "rival": "ceres", "text": "Ceres Freight Guild reports record Belt yields and a new kind of lunch."},
+    {"id": "world:JupiterMoons", "rival": "outer", "text": "Outer Reach Syndicate says the clouds over Jupiter's moons have started to look like a view."},
+]
+RUMOR_BY_ID = {entry["id"]: entry for entry in RUMORS}
 survey_data = 0  # lifetime currency, saved when above 0
 chart_revealed = 0  # how many chart regions are uncovered (the order is fixed), saved when above 0
 point_claims = {}  # Lagrange Point id -> "yours" (anything not listed is open), lifetime
@@ -6138,15 +6184,16 @@ def survey_region():
 
 
 def _on_region_revealed(entry):
-    """Hook for later layers (rival gossip); nothing here yet."""
+    if entry.get("rival"):
+        _note_rumor("met:" + entry["rival"])
 
 
 def point_state(point_id):
-    """"open" or "yours" for an uncovered Lagrange Point, None while it is still hidden."""
+    """"open", "rival", "partner" or "yours" for an uncovered Lagrange Point, None while it is still hidden."""
     entry = CHART_BY_ID.get(point_id)
     if entry is None or entry["kind"] != "point" or CHART.index(entry) >= chart_revealed:
         return None
-    return point_claims.get(point_id, "open")
+    return point_claims.get(point_id, "rival" if entry.get("rival") else "open")
 
 
 def revealed_points():
@@ -6154,8 +6201,9 @@ def revealed_points():
 
 
 def relay_bonus():
-    """The small yield bonus every claimed relay adds, everywhere."""
-    return RELAY_BONUS_YOURS * sum(1 for entry in revealed_points() if point_state(entry["id"]) == "yours")
+    """The small yield bonus every claimed relay adds, everywhere (half for a shared point)."""
+    states = [point_state(entry["id"]) for entry in revealed_points()]
+    return RELAY_BONUS_YOURS * states.count("yours") + RELAY_BONUS_PARTNER * states.count("partner")
 
 
 def _pile_source(cost):
@@ -6171,21 +6219,97 @@ def _pile_text(cost):
     return f"{cost} {PLANETS[source[0]]['resource_name']}" if source else f"{cost} of any resource"
 
 
-def claim_point(point_id):
-    """Claims an open Lagrange Point for the price of a pile. Returns True when it happened."""
-    if point_state(point_id) != "open":
-        return False
-    source = _pile_source(CLAIM_COST)
+def _pay(cost):
+    source = _pile_source(cost)
     if source is None:
         return False
     planet_state[source[0]]["resource_count"] -= source[1]
+    return True
+
+
+def claim_point(point_id):
+    """Claims an open Lagrange Point for the price of a pile. Returns True when it happened."""
+    if point_state(point_id) != "open" or not _pay(CLAIM_COST):
+        return False
     point_claims[point_id] = "yours"
     _on_point_changed(point_id, "yours")
     return True
 
 
+def partner_point(point_id):
+    """A-15: shares a rival's point (its pressure goes, half the relay bonus is yours). Returns True when it happened."""
+    if point_state(point_id) != "rival" or not _pay(PARTNER_COST):
+        return False
+    point_claims[point_id] = "partner"
+    _on_point_changed(point_id, "partner")
+    return True
+
+
+def contest_point(point_id):
+    """A-15: takes a point over from a rival (or from a partner, for less). Returns True when it happened."""
+    state = point_state(point_id)
+    if state not in ("rival", "partner") or not _pay(CONTEST_COST if state == "rival" else TAKEOVER_COST):
+        return False
+    point_claims[point_id] = "yours"
+    _on_point_changed(point_id, "yours")
+    return True
+
+
+def contest_cost(point_id):
+    return TAKEOVER_COST if point_state(point_id) == "partner" else CONTEST_COST
+
+
+def _rivals_on():
+    return _setting_on(RIVALS_KEY) and not _sandbox_active()
+
+
+def rival_points_held():
+    """How many uncovered Lagrange Points a rival still holds."""
+    return sum(1 for entry in revealed_points() if point_state(entry["id"]) == "rival")
+
+
+def rival_pressure(planet=None):
+    """The fraction trade routes restore less ecology while rivals hold points (0 when off, or on a world with a Focus)."""
+    held = rival_points_held()
+    if not held or not _rivals_on() or (planet is not None and _specialization(planet)):
+        return 0.0
+    return min(3, held) * RIVAL_PRESSURE_PER_POINT
+
+
+def _note_rumor(rumor_id):
+    """Adds a gossip line to the captain's log once (never when rivals are switched off). Returns True when added."""
+    if not _rivals_on() or rumor_id not in RUMOR_BY_ID:
+        return False
+    if story_note("rumor:" + rumor_id):
+        render_story_log()
+        return True
+    return False
+
+
+def _note_world_rumors():
+    """The 'a world finished' gossip, for rivals you have met. Returns True when a line was added."""
+    changed = False
+    for entry in RUMORS:
+        planet = entry["id"][len("world:"):] if entry["id"].startswith("world:") else None
+        if planet is None or planet not in planet_state or planet_state[planet]["terraform_progress"] < TERRAFORM_MAX:
+            continue
+        met = any(e.get("rival") == entry["rival"] for e in CHART[:chart_revealed])
+        if met and _rivals_on():
+            changed = story_note("rumor:" + entry["id"]) or changed
+    return changed
+
+
+def latest_rumor():
+    for entry_id in reversed(story_log):
+        if entry_id.startswith("rumor:"):
+            return story_line(entry_id)
+    return None
+
+
 def _on_point_changed(point_id, new_state):
-    """Hook for later layers (rival gossip); nothing here yet."""
+    rival = CHART_BY_ID[point_id].get("rival")
+    if rival and new_state in ("yours", "partner"):
+        _note_rumor(("contest:" if new_state == "yours" else "partner:") + rival)
 
 
 # --- A-10: rogue comets ----------------------------------------------------------
@@ -6282,16 +6406,20 @@ def on_observatory_click(event):
         survey_region()
     elif action == "claim":
         claim_point(_target_attr(event, "data-point"))
+    elif action == "partner":
+        partner_point(_target_attr(event, "data-point"))
+    elif action == "contest":
+        contest_point(_target_attr(event, "data-point"))
     update_observatory_display()
 
 
 def _observatory_structure_signature():
     return (survey_data, chart_revealed, tuple(sorted(point_claims.items())), tuple(comets_caught_run),
-            _observatory_extra_signature())
+            _rivals_on(), _specialised_worlds(), latest_rumor())
 
 
-def _observatory_extra_signature():
-    return ()
+def _specialised_worlds():
+    return tuple(p for p in _overview_planets() if _specialization(p))
 
 
 def _chart_card(entry, index):
@@ -6305,10 +6433,13 @@ def _chart_card(entry, index):
         caught = entry["id"] in comets_caught_run
         card.className = "chain-card chain-card--found" if caught else "chain-card"
         card.appendChild(_make_text("chain-card-name", f"☄ Comet {entry['name']}"))
+        ready = comet_ready()
         card.appendChild(_make_text(
             "chain-card-detail",
             "Caught this run. It comes back round after your next prestige." if caught
-            else "Overhead now: catch it from the strip at the top of the page for a windfall on every world you have."))
+            else "Overhead now: catch it from the strip at the top of the page for a windfall on every world you have."
+            if ready is not None and ready["id"] == entry["id"]
+            else "Next in line: it appears once the comet before it has been caught."))
         return card
     state = point_state(entry["id"])
     card.className = "chain-card chain-card--found" if state == "yours" else "chain-card"
@@ -6318,14 +6449,33 @@ def _chart_card(entry, index):
 
 
 def _fill_point_card(card, entry, state):
+    rival = RIVAL_BY_ID.get(entry.get("rival"))
     if state == "yours":
         card.appendChild(_make_text(
             "chain-card-detail", f"Your relay. +{round(RELAY_BONUS_YOURS * 100)}% yield on every world, for good."))
         return
+    if state == "partner":
+        card.appendChild(_make_text(
+            "chain-card-detail",
+            f"Shared with {rival['name']}. +{round(RELAY_BONUS_PARTNER * 100, 1):g}% yield on every world and no market pressure from this point."))
+        _add_point_button(card, entry, "contest", "Take it over")
+        return
+    if state == "rival":
+        card.appendChild(_make_text(
+            "chain-card-detail",
+            f"Held by {rival['name']} ({rival['blurb']}). While they hold it, trade routes restore "
+            f"{round(RIVAL_PRESSURE_PER_POINT * 100)}% less ecology on worlds with no Focus. You can ignore them, share the point or take it over."))
+        _add_point_button(card, entry, "partner", "Share it")
+        _add_point_button(card, entry, "contest", "Take it over")
+        return
     card.appendChild(_make_text("chain-card-detail", "Nobody holds this point. A relay here adds a small yield bonus to every world."))
-    button = _make_button("Claim", {"data-action": "claim", "data-point": entry["id"]}, None)
+    _add_point_button(card, entry, "claim", "Claim")
+
+
+def _add_point_button(card, entry, action, label):
+    button = _make_button(label, {"data-action": action, "data-point": entry["id"]}, None)
     card.appendChild(button)
-    _observatory_refs[("claim", entry["id"])] = button
+    _observatory_refs[(action, entry["id"])] = (button, label)
 
 
 def _build_observatory():
@@ -6350,8 +6500,37 @@ def _build_observatory():
     _build_observatory_extras(panel)
 
 
+def _sentence(text):
+    return text[:1].upper() + text[1:]
+
+
 def _build_observatory_extras(panel):
-    """Hook for later layers (rival colonies); nothing here yet."""
+    panel.appendChild(_make_text("stats-panel-heading", "Rival colonies"))
+    if not _rivals_on():
+        panel.appendChild(_make_text(
+            "chain-card-detail", "Rival colonies are switched off in Settings: no market pressure and no ticker."))
+        return
+    for rival in RIVALS:
+        holds = [e["name"] for e in revealed_points() if e.get("rival") == rival["id"] and point_state(e["id"]) == "rival"]
+        shares = [e["name"] for e in revealed_points() if e.get("rival") == rival["id"] and point_state(e["id"]) == "partner"]
+        met = any(e.get("rival") == rival["id"] for e in CHART[:chart_revealed])
+        if not met:
+            line = "Not met yet. Something out there has a flag."
+        elif holds:
+            line = f"{_sentence(rival['blurb'])}. Holds {', '.join(holds)}."
+        elif shares:
+            line = f"{_sentence(rival['blurb'])}. Shares {', '.join(shares)} with you."
+        else:
+            line = f"{_sentence(rival['blurb'])}. Holds nothing now."
+        card = document.createElement("div")
+        card.className = "chain-card"
+        card.appendChild(_make_text("chain-card-name", rival["name"] if met else "A rival"))
+        card.appendChild(_make_text("chain-card-detail", line))
+        panel.appendChild(card)
+    _observatory_refs["_pressure"] = _make_text("chain-card-count", "")
+    panel.appendChild(_observatory_refs["_pressure"])
+    tip = latest_rumor()
+    panel.appendChild(_make_text("chain-card-detail", tip if tip else "Ticker: quiet for now."))
 
 
 def _refresh_observatory_values():
@@ -6362,19 +6541,25 @@ def _refresh_observatory_values():
     survey_button.disabled = nxt is None or survey_data < nxt["cost"]
     survey_button.innerText = (
         "Survey the next region" + (f" (costs {nxt['cost']} Survey Data)" if nxt else " (all done)"))
-    for key, button in _observatory_refs.items():
-        if isinstance(key, tuple) and key[0] == "claim":
-            button.disabled = _pile_source(CLAIM_COST) is None
-            button.innerText = f"Claim ({_pile_text(CLAIM_COST)})"
-    held = sum(1 for entry in revealed_points() if point_state(entry["id"]) == "yours")
+    costs = {"claim": lambda pid: CLAIM_COST, "partner": lambda pid: PARTNER_COST, "contest": contest_cost}
+    for key, value in _observatory_refs.items():
+        if isinstance(key, tuple):
+            button, label = value
+            cost = costs[key[0]](key[1])
+            button.disabled = _pile_source(cost) is None
+            button.innerText = f"{label} ({_pile_text(cost)})"
+    held = sum(1 for entry in revealed_points() if point_state(entry["id"]) in ("yours", "partner"))
     _observatory_refs["_relays"].innerText = (
         f"Relays held: {held} of {sum(1 for e in CHART if e['kind'] == 'point')} "
         f"(+{round(relay_bonus() * 100, 1):g}% yield everywhere). Comets caught for life: {comets_caught_total}.")
-    _refresh_observatory_extras()
-
-
-def _refresh_observatory_extras():
-    """Hook for later layers (rival colonies); nothing here yet."""
+    pressure = _observatory_refs.get("_pressure")
+    if pressure is not None:
+        n = rival_points_held()
+        pressure.innerText = (
+            "No rival holds a point: trade is at full strength everywhere." if not n
+            else f"Rival pressure: trade routes restore {round(rival_pressure() * 100)}% less ecology on worlds with no Focus"
+                 + (f" (worlds with a Focus are unaffected: {', '.join(PLANET_DISPLAY_NAMES.get(p, p) for p in _specialised_worlds())})."
+                    if _specialised_worlds() else ". A Focus on a world (Overview, from 75% terraformed) shields it."))
 
 
 def update_observatory_display():
@@ -6406,7 +6591,9 @@ def _load_observatory(data):
     raw = data.get("point_claims")
     if isinstance(raw, dict):
         for point_id, state in raw.items():
-            if state == "yours" and point_state(point_id) is not None:
+            if point_state(point_id) is None:
+                continue
+            if state == "yours" or (state == "partner" and CHART_BY_ID[point_id].get("rival")):
                 point_claims[point_id] = state
     comets_caught_run[:] = [
         c_id for c_id in _clean_ids(data.get("comets_caught_run"), CHART_BY_ID)

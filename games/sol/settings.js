@@ -95,6 +95,7 @@
     { id: "trophy-flourish-checkbox", key: "sol-trophy-flourish", fallback: true, attr: "data-trophy-flourish" },
     { id: "era-look-checkbox", key: "sol-era-look", fallback: true, attr: "data-era-look" },
     { id: "anomalies-checkbox", key: "sol-anomalies", fallback: true },
+    { id: "rivals-checkbox", key: "sol-rivals", fallback: true },
     { id: "show-timing-checkbox", key: "sol-show-timing", fallback: false, attr: "data-show-timing" },
   ];
 
