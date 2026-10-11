@@ -133,6 +133,7 @@ ELEMENT_IDS += [
     "chain-map", "chain-product-0-tab", "chain-product-1-tab", "chain-p0-block", "chain-p1-block",
     "chain-p0-title", "chain-p1-title", "chain-result", "chain-lock-button", "chain-clear-button", "chain-hint-button",
     "chain-hint-0-text", "chain-hint-1-text", "chain-hint-2-text", "chain-sites-text", "chain-distances-text",
+    "modes-open-button",
 ]
 for _p in range(2):
     for _k in range(3):

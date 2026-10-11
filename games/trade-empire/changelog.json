@@ -1,6 +1,10 @@
 [
   {
     "date": "2026-10-11",
+    "entry": "New: the Modes screen (the Modes button on the toolbar, or Menu > Empire on Desktop). It lists the game modes as an ordered ladder, from the core game through Expeditions, Chain Builder, Trade Crises and Blackout to the Practice sandbox, each with one line on what it adds. Every mode is open from the start; the order is only a suggested path, and the next suggested mode is marked."
+  },
+  {
+    "date": "2026-10-11",
     "entry": "New: Chain Builder, its own window and a separate puzzle mode (your economy and your saves are untouched). Twenty-four short puzzles in four chapters (single hop, two hops, shared refiners, bottlenecks): plan a chain such as Ore to Alloy to Machinery by choosing a source and refineries, put ships on each leg and lock it in. The score is units delivered per ship; par is the best any chain can do, proved by a search for every puzzle. Gold is par, silver is within 15%, bronze is any chain that fills the orders. Three goals sit above the board, there is a hint ladder that opens one suggestion at a time (the first asks 'Would you like a suggestion?'), nothing is timed and nothing can be lost. Four new achievements."
   },
   {
