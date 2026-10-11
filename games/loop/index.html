@@ -351,6 +351,26 @@
           </div>
           <!-- H15: on-demand efficiency audit. -->
           <details class="info-toggle" id="audit-panel"><summary>🔎 Loop efficiency audit</summary><div id="audit-body"></div></details>
+          <!-- H-10 / H-28: one row per cycle (funds in and out, supply by source, damage, price, partners, your note). -->
+          <details id="ledger-panel" class="stats-detail-toggle ledger-panel">
+            <summary>📒 Cycle ledger</summary>
+            <div class="stats-detail-body">
+            <div class="ledger-controls">
+              <label for="ledger-sort-select" class="ledger-label">Sort</label>
+              <select id="ledger-sort-select">
+                <option value="newest">Newest first</option>
+                <option value="oldest">Oldest first</option>
+                <option value="extraction">Most new extraction</option>
+                <option value="net">Biggest net gain</option>
+                <option value="damage">Highest damage</option>
+              </select>
+              <button id="ledger-copy-button" class="secondary" type="button">Copy as CSV</button>
+            </div>
+            <p id="ledger-copy-status" class="comparison-message" role="status"></p>
+            <div id="ledger-table"></div>
+            <p class="comparison-message">In = sales plus surplus sold; Out = what you spent on investments plus the extraction bill. Partners: T Trade Link, R Regional, O Overseas.</p>
+            </div>
+          </details>
           <!-- H-4: the ring, trade partners and meters as a plain list. -->
           <details id="a11y-chain-panel" class="stats-detail-toggle">
             <summary>&#9855; The chain as a list</summary>
@@ -463,6 +483,15 @@
           </script>
         </div>
       </details>
+      <!-- H-1: finished chains, with the last five circular-share curves overlaid on the chain in play. -->
+      <details id="past-chains-panel" class="stats-detail-toggle">
+        <summary>🗂️ Past chains</summary>
+        <div class="stats-detail-body">
+          <p id="past-chains-empty" class="comparison-message">No finished chains yet. Starting a new chain files the old one here.</p>
+          <div id="past-chains-chart" class="past-chains-chart"></div>
+          <ul id="past-chains-list" class="passport-list"></ul>
+        </div>
+      </details>
       <button id="reset-chain-button" class="secondary reset-chain-button" type="button">🔁 Start New Chain</button>
       <p id="reset-chain-message" class="comparison-message" hidden></p>
     </div>
@@ -533,6 +562,11 @@
     </div>
 
     <button id="advance-cycle-button" class="primary">Advance Cycle</button>
+    <!-- H-28: an optional one-line note, kept in the ledger row for the cycle you advance. -->
+    <div id="cycle-note-row" class="cycle-note-row">
+      <label for="cycle-note-input" class="cycle-note-label">Note for this cycle (optional)</label>
+      <input id="cycle-note-input" class="cycle-note-input" type="text" maxlength="80" autocomplete="off" placeholder="e.g. tried Recycling first">
+    </div>
 
     <div id="feedback-prompt" class="section">
       <p class="feedback-question">Did this change how you think about overconsumption &amp; the take-make-waste economy?</p>

@@ -1825,3 +1825,25 @@ html[data-high-contrast="true"] a { color: var(--hc-accent); text-decoration: un
 .rival-race .meter { margin: 0.15rem 0 0.5rem; }
 .rival-bar-label { margin: 0.2rem 0 0; font-size: 0.8rem; opacity: 0.85; }
 .meter-fill--striped { background-image: repeating-linear-gradient(135deg, rgba(255, 255, 255, 0.28) 0 6px, transparent 6px 12px), linear-gradient(90deg, #c8563c, #e0674c); }
+
+/* H-28: the cycle note box. */
+.cycle-note-row { display: flex; flex-direction: column; gap: 0.2rem; margin: 0.4rem 0 0.8rem; }
+.cycle-note-label { font-size: 0.8rem; opacity: 0.85; }
+.cycle-note-input { font: inherit; padding: 0.4rem 0.5rem; border-radius: 8px; border: 1px solid rgba(140, 160, 255, 0.35); background: rgba(10, 12, 28, 0.55); color: inherit; width: 100%; box-sizing: border-box; }
+
+/* H-10: the cycle ledger table. */
+.ledger-controls { display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem; margin: 0.4rem 0; }
+.ledger-label { font-size: 0.85rem; }
+.ledger-scroll { overflow-x: auto; max-width: 100%; }
+.ledger-table { border-collapse: collapse; font-size: 0.75rem; width: 100%; min-width: 34rem; font-variant-numeric: tabular-nums; }
+.ledger-table th, .ledger-table td { padding: 0.2rem 0.35rem; text-align: right; border-bottom: 1px solid rgba(140, 160, 255, 0.18); white-space: nowrap; }
+.ledger-table th:last-child, .ledger-table td:last-child { text-align: left; white-space: normal; min-width: 8rem; }
+
+/* H-1: the Past chains overlay chart (dash patterns and end labels, never colour alone). */
+.past-chains-chart svg { width: 100%; height: auto; max-width: 28rem; }
+.past-chains-chart[hidden] { display: none; }
+.past-grid { stroke: rgba(140, 160, 255, 0.25); stroke-width: 1; }
+.past-axis { fill: currentColor; font-size: 8px; opacity: 0.75; }
+.past-label { fill: currentColor; font-size: 9px; font-weight: 700; }
+.past-line { stroke: #a9c3ff; }
+.past-line--now { stroke: #4c9c6e; }

@@ -527,6 +527,17 @@ def rival_profit_in_cycle(cycle):
     return rival_funds_after(cycle) - rival_funds_after(cycle - 1)
 
 
+# H-10 / H-28: the per-cycle ledger (a row per completed cycle, newest last) and its one-line notes.
+LEDGER_MAX = 120
+LEDGER_NOTE_MAX = 80
+LEDGER_COLUMNS = (
+    "cycle", "spent", "revenue", "export", "extraction_cost", "repair", "reuse", "recycle", "trade",
+    "extraction", "damage", "multiplier", "partners", "funds_after", "note",
+)
+# H-1: finished (reset) chains kept for the Past Chains panel.
+PAST_CHAINS_MAX = 20
+PAST_CURVE_POINTS = 60
+
 BURST_MILESTONES = 4  # circular-fraction crosses each 25% step
 PULSE_LARGE_UNITS = 20.0
 PULSE_MEDIUM_UNITS = 8.0
@@ -535,6 +546,13 @@ STREAK_PROGRESS_STEP = 5  # H2: progress toward the next 5-cycle streak mark
 # Iteration Pass 2 — single-item vignette: a concrete side-story
 # following one representative product, alongside the abstract chain
 # view, for a player who doesn't naturally read a flow diagram.
+
+
+def clean_note(text):
+    """H-28: a cycle note as stored: a plain single line, trimmed, at most LEDGER_NOTE_MAX characters."""
+    if not isinstance(text, str):
+        return ""
+    return " ".join(text.split())[:LEDGER_NOTE_MAX]
 
 
 def current_goods_label():
@@ -609,6 +627,8 @@ class ChainState:
         # cycles landed on a shock (saved when above zero).
         self.market_shocks = False
         self.shocks_shrugged = 0
+        # H-10 / H-28: one dict per completed cycle (see LEDGER_COLUMNS), capped at LEDGER_MAX.
+        self.ledger = []
         # GH-5 / FY-38: the opt-in Rival Corporation race, and the completed-cycle count at which the
         # player first pulled ahead of it (saved when on / when set).
         self.rival_on = False
@@ -996,8 +1016,18 @@ class ChainState:
         self.rewind_snapshot = None
         return True
 
-    def advance_cycle(self):
+    def advance_cycle(self, note=""):
         self.rewind_snapshot = self._snapshot()
+        funds_before = self.funds
+        # H-10: what the cycle looked like going in (the supply mix, the partners that delivered, the price).
+        ledger_units = {m: self.measure_supply(m) for m in CIRCULARITY_INVESTMENTS}
+        ledger_trade = self.imported_supply()
+        ledger_partners = "".join(
+            letter for kind, letter in (("trade", "T"), ("regional", "R"), ("overseas", "O"))
+            if self.partner_supply(kind) > 0
+        )
+        ledger_damage = self.damage_fraction() * 100.0
+        ledger_multiplier = self.price_multiplier()
         extraction = self.new_extraction_needed()
         cost = extraction * EXTRACTION_COST_PER_UNIT * self.price_multiplier()
         if extraction <= 0.0 and self.active_shock() is not None:
@@ -1012,8 +1042,22 @@ class ChainState:
         else:
             export_revenue = surplus * EXPORT_PRICE_PER_UNIT
             self.last_donation = 0.0
-        self.funds += revenue - cost + export_revenue
+        # A bad cycle (high damage plus a price spike or a demand surge) can wipe out the cycle's profit but
+        # never takes funds the chain already holds.
+        self.funds += max(0.0, revenue - cost + export_revenue)
         self.lifetime_export_revenue += export_revenue
+        previous_after = self.ledger[-1]["funds_after"] if self.ledger else (STARTING_FUNDS if self.cycle_number == 1 else None)
+        self.ledger.append({
+            "cycle": self.cycle_number,
+            "spent": None if previous_after is None else round(max(0.0, previous_after - funds_before), 1),
+            "revenue": round(revenue, 1), "export": round(export_revenue, 1), "extraction_cost": round(cost, 1),
+            "repair": round(ledger_units["repair"], 1), "reuse": round(ledger_units["reuse"], 1),
+            "recycle": round(ledger_units["recycle"], 1), "trade": round(ledger_trade, 1),
+            "extraction": round(extraction, 1), "damage": round(ledger_damage, 1),
+            "multiplier": round(ledger_multiplier, 2), "partners": ledger_partners,
+            "funds_after": round(self.funds, 1), "note": clean_note(note),
+        })
+        del self.ledger[:-LEDGER_MAX]
         # H19: closed-loop streak -- sticky best-ever value, same shape as
         # Grid's best_clean_streak. A cycle only counts toward the streak
         # if it needed zero new extraction (fully closed), matching
@@ -1199,6 +1243,271 @@ def load_career(data):
 
 def career_reset():
     load_career(None)
+
+
+# ===========================================================================
+# H-10 / H-28 (the cycle ledger and notes) and H-1 (Past Chains). Pure functions of state plus
+# one module-level list, so they are directly testable.
+# ===========================================================================
+past_chains = []  # finished (reset) chains, oldest first; survives Start New Chain like the career
+
+LEDGER_SORTS = {
+    "newest": ("Newest first", lambda row: -row["cycle"]),
+    "oldest": ("Oldest first", lambda row: row["cycle"]),
+    "extraction": ("Most new extraction", lambda row: (-row["extraction"], row["cycle"])),
+    "net": ("Biggest net gain", lambda row: (-ledger_net(row), row["cycle"])),
+    "damage": ("Highest damage", lambda row: (-row["damage"], row["cycle"])),
+}
+ledger_sort = "newest"
+
+
+def ledger_funds_in(row):
+    return row["revenue"] + row["export"]
+
+
+def ledger_funds_out(row):
+    return (row["spent"] or 0.0) + row["extraction_cost"]
+
+
+def ledger_net(row):
+    return ledger_funds_in(row) - row["extraction_cost"]
+
+
+def sorted_ledger():
+    return sorted(chain.ledger, key=LEDGER_SORTS.get(ledger_sort, LEDGER_SORTS["newest"])[1])
+
+
+def ledger_csv():
+    """H-10: every ledger row as CSV text (header first)."""
+    def cell(value):
+        text = str(value)
+        return '"' + text.replace('"', '""') + '"' if any(c in text for c in ',"\n') else text
+
+    lines = [",".join((
+        "cycle", "funds_in", "funds_out", "net", "spent_on_investments", "extraction_cost", "repair_units",
+        "reuse_units", "recycle_units", "trade_units", "new_extraction_units", "damage_percent",
+        "price_multiplier", "partners", "note",
+    ))]
+    for row in chain.ledger:
+        spent = "" if row["spent"] is None else row["spent"]
+        lines.append(",".join(cell(v) for v in (
+            row["cycle"], round(ledger_funds_in(row), 1), round(ledger_funds_out(row), 1), round(ledger_net(row), 1),
+            spent, row["extraction_cost"], row["repair"], row["reuse"], row["recycle"], row["trade"],
+            row["extraction"], row["damage"], row["multiplier"], row["partners"] or "-", row["note"],
+        )))
+    return "\n".join(lines)
+
+
+LEDGER_ROWS_SHOWN = 40
+
+
+def ledger_table_html():
+    rows = sorted_ledger()
+    if not rows:
+        return '<p class="comparison-message">No cycles yet. Each Advance Cycle adds a row here.</p>'
+    shown = rows[:LEDGER_ROWS_SHOWN]
+    head = (
+        "<tr><th>Cycle</th><th>In</th><th>Out</th><th>Net</th><th>Repair</th><th>Reuse</th><th>Recycle</th>"
+        "<th>Trade</th><th>New extr.</th><th>Damage</th><th>Price x</th><th>Partners</th><th>Note</th></tr>"
+    )
+    body = []
+    for row in shown:
+        body.append(
+            "<tr>"
+            f"<td>{row['cycle']}</td><td>{ledger_funds_in(row):.0f}</td><td>{ledger_funds_out(row):.0f}</td>"
+            f"<td>{ledger_net(row):.0f}</td><td>{row['repair']:.0f}</td><td>{row['reuse']:.0f}</td>"
+            f"<td>{row['recycle']:.0f}</td><td>{row['trade']:.0f}</td><td>{row['extraction']:.0f}</td>"
+            f"<td>{row['damage']:.0f}%</td><td>{row['multiplier']:.2f}</td><td>{html.escape(row['partners'] or '-')}</td>"
+            f"<td>{html.escape(row['note'])}</td></tr>"
+        )
+    more = ""
+    if len(rows) > len(shown):
+        more = f'<p class="comparison-message">Showing {len(shown)} of {len(rows)} cycles; the CSV has them all.</p>'
+    return (
+        '<div class="ledger-scroll"><table class="ledger-table"><caption class="sr-only">Cycle ledger</caption>'
+        f"<thead>{head}</thead><tbody>{''.join(body)}</tbody></table></div>{more}"
+    )
+
+
+def _row_number(value, low, high):
+    return isinstance(value, (int, float)) and not isinstance(value, bool) and value == value and low <= value <= high
+
+
+def ledger_to_save():
+    """Compact JSON-safe form: one list per row, in LEDGER_COLUMNS order."""
+    return [[row[name] for name in LEDGER_COLUMNS] for row in chain.ledger]
+
+
+def ledger_from_save(raw):
+    """Validated rows from a saved ledger; anything malformed is dropped, never repaired by guessing."""
+    rows = []
+    if not isinstance(raw, list):
+        return rows
+    for item in raw[-LEDGER_MAX:]:
+        if not (isinstance(item, (list, tuple)) and len(item) == len(LEDGER_COLUMNS)):
+            continue
+        row = dict(zip(LEDGER_COLUMNS, item))
+        cycle = row["cycle"]
+        if not (isinstance(cycle, int) and not isinstance(cycle, bool) and 1 <= cycle <= 1_000_000):
+            continue
+        if row["spent"] is not None and not _row_number(row["spent"], 0, 1e9):
+            continue
+        if not all(_row_number(row[k], 0, 1e9) for k in (
+            "revenue", "export", "extraction_cost", "repair", "reuse", "recycle", "trade", "extraction",
+        )):
+            continue
+        if not (_row_number(row["damage"], 0, 100) and _row_number(row["multiplier"], 0, 100)):
+            continue
+        if not _row_number(row["funds_after"], 0, 1e12):
+            continue
+        partners = row["partners"]
+        if not (isinstance(partners, str) and len(partners) <= 3 and set(partners) <= set("TRO")):
+            continue
+        if not isinstance(row["note"], str):
+            continue
+        row["note"] = clean_note(row["note"])
+        rows.append(row)
+    return rows
+
+
+def past_chain_record():
+    """H-1: a compact record of the chain that is ending (None if it never ran a cycle)."""
+    if chain.cycle_number <= 1:
+        return None
+    log = chain.circular_fraction_log
+    step = max(1, math.ceil(len(log) / PAST_CURVE_POINTS))
+    curve = [round(f, 2) for f in log[::step]]
+    return {
+        "category": chain.picked_category,
+        "cycles": chain.cycle_number - 1,
+        "closed": chain.first_loop_closed_cycle,
+        "extracted": round(chain.total_extracted, 1),
+        "score": round(chain.score(), 1),
+        "repair": chain.circularity_investment["repair"],
+        "reuse": chain.circularity_investment["reuse"],
+        "recycle": chain.circularity_investment["recycle"],
+        "trade": chain.trade_link_investment + chain.regional_trade_investment + chain.overseas_trade_investment,
+        "curve": curve,
+    }
+
+
+def archive_chain():
+    """H-1: files the current chain in the Past Chains list (call just before a reset)."""
+    record = past_chain_record()
+    if record is None:
+        return False
+    past_chains.append(record)
+    del past_chains[:-PAST_CHAINS_MAX]
+    return True
+
+
+def past_chains_from_save(raw):
+    records = []
+    if not isinstance(raw, list):
+        return records
+    for item in raw[-PAST_CHAINS_MAX:]:
+        if not isinstance(item, dict):
+            continue
+        cycles, closed = item.get("cycles"), item.get("closed")
+        counts = [item.get(k) for k in ("repair", "reuse", "recycle", "trade")]
+        curve = item.get("curve")
+        if not (isinstance(cycles, int) and not isinstance(cycles, bool) and 1 <= cycles <= 1_000_000):
+            continue
+        if closed is not None and not (isinstance(closed, int) and not isinstance(closed, bool) and 1 <= closed <= 1_000_000):
+            continue
+        if item.get("category") not in ALL_GOODS:
+            continue
+        if not all(isinstance(c, int) and not isinstance(c, bool) and 0 <= c <= 1_000_000 for c in counts):
+            continue
+        if not (_row_number(item.get("extracted"), 0, 1e12) and _row_number(item.get("score"), -1e12, 1e12)):
+            continue
+        if not (isinstance(curve, list) and 0 < len(curve) <= PAST_CURVE_POINTS and all(_row_number(v, 0, 1) for v in curve)):
+            continue
+        records.append({
+            "category": item["category"], "cycles": cycles, "closed": closed,
+            "extracted": float(item["extracted"]), "score": float(item["score"]),
+            "repair": counts[0], "reuse": counts[1], "recycle": counts[2], "trade": counts[3],
+            "curve": [float(v) for v in curve],
+        })
+    return records
+
+
+def past_chain_line(index, record):
+    label = ALL_GOODS[record["category"]]["label"]
+    closed = f"closed the loop on cycle {record['closed']}" if record["closed"] else "never closed the loop"
+    return (
+        f"Chain {index}: {label}, {record['cycles']} cycle{'' if record['cycles'] == 1 else 's'}, {closed}; "
+        f"{record['extracted']:.0f} units extracted, score {record['score']:.0f}; bought repair {record['repair']}, "
+        f"reuse {record['reuse']}, recycling {record['recycle']}, trade {record['trade']}."
+    )
+
+
+PAST_DASHES = ("", "6 3", "2 3", "8 3 2 3", "1 4")
+
+
+def past_chains_svg():
+    """H-1: the last five finished chains' circular-share curves plus the chain in play, one SVG.
+    Each line has its own dash pattern and a numbered label at its end, so it never relies on hue."""
+    shown = past_chains[-5:]
+    first_number = len(past_chains) - len(shown) + 1  # chains are numbered by their place in the list
+    series = [(f"{first_number + i}", record["curve"], PAST_DASHES[i % len(PAST_DASHES)], False) for i, record in enumerate(shown)]
+    if chain.circular_fraction_log:
+        series.append(("now", [round(f, 2) for f in chain.circular_fraction_log], "", True))
+    if not series:
+        return ""
+    width, height, left, bottom, top, right = 320.0, 150.0, 30.0, 18.0, 8.0, 34.0
+    longest = max(len(curve) for _l, curve, _d, _c in series)
+    span = max(1, longest - 1)
+    parts = [
+        f'<svg viewBox="0 0 {width:.0f} {height:.0f}" class="past-chart" role="img" '
+        'aria-label="Circular share by cycle for your last chains and the one in play">'
+    ]
+    for pct in (0, 50, 100):
+        y = top + (height - top - bottom) * (1 - pct / 100)
+        parts.append(f'<line x1="{left}" y1="{y:.1f}" x2="{width - right}" y2="{y:.1f}" class="past-grid"/>')
+        parts.append(f'<text x="{left - 4}" y="{y + 3:.1f}" text-anchor="end" class="past-axis">{pct}%</text>')
+    for label, curve, dash, current in series:
+        points = []
+        for i, value in enumerate(curve):
+            x = left + (width - left - right) * (i / span if span else 0)
+            y = top + (height - top - bottom) * (1 - value)
+            points.append(f"{x:.1f},{y:.1f}")
+        stroke_w = 3 if current else 1.6
+        dash_attr = f' stroke-dasharray="{dash}"' if dash else ""
+        parts.append(f'<polyline points="{" ".join(points)}" fill="none" class="past-line{" past-line--now" if current else ""}" '
+                     f'stroke-width="{stroke_w}"{dash_attr}/>')
+        end_x, end_y = points[-1].split(",")
+        parts.append(f'<text x="{float(end_x) + 3:.1f}" y="{float(end_y) + 3:.1f}" class="past-label">{html.escape(label)}</text>')
+    parts.append(f'<text x="{left}" y="{height - 4}" class="past-axis">cycle 1</text>')
+    parts.append(f'<text x="{width - right}" y="{height - 4}" text-anchor="end" class="past-axis">cycle {longest}</text>')
+    parts.append("</svg>")
+    return "".join(parts)
+
+
+def render_ledger_and_past():
+    document.getElementById("ledger-table").innerHTML = ledger_table_html()
+    document.getElementById("ledger-sort-select").value = ledger_sort
+    document.getElementById("past-chains-chart").innerHTML = past_chains_svg()
+    lines = [past_chain_line(i + 1, r) for i, r in enumerate(past_chains)]
+    document.getElementById("past-chains-list").innerHTML = "".join(f"<li>{html.escape(line)}</li>" for line in reversed(lines))
+    empty = not past_chains
+    document.getElementById("past-chains-empty").hidden = not empty
+
+
+def on_ledger_sort(event=None):
+    global ledger_sort
+    value = getattr(document.getElementById("ledger-sort-select"), "value", ledger_sort)
+    if value in LEDGER_SORTS:
+        ledger_sort = value
+    render()
+
+
+def on_copy_ledger(event=None):
+    status = document.getElementById("ledger-copy-status")
+    if _copy_to_clipboard(ledger_csv()):
+        status.innerText = f"Copied {len(chain.ledger)} cycle{'' if len(chain.ledger) == 1 else 's'} as CSV."
+    else:
+        status.innerText = "Could not copy automatically. Select the table instead."
 
 
 def circular_trend_message(trend):
@@ -2674,9 +2983,14 @@ def cycle_summary_text():
         return ""
     done = chain.cycle_number - 1
     now = PRODUCTION_TARGET * (1.0 - log[-1])
+    before = PRODUCTION_TARGET * (1.0 - log[-2]) if len(log) >= 2 else None
+    # The ledger holds the real extraction (a demand surge can need more than the target).
+    if chain.ledger and chain.ledger[-1]["cycle"] == done:
+        now = chain.ledger[-1]["extraction"]
+        if len(chain.ledger) >= 2 and chain.ledger[-2]["cycle"] == done - 1:
+            before = chain.ledger[-2]["extraction"]
     text = f"Cycle {done} complete: {log[-1] * 100:.0f}% circular"
-    if len(log) >= 2:
-        before = PRODUCTION_TARGET * (1.0 - log[-2])
+    if before is not None:
         delta = round(before - now)
         if delta > 0:
             text += f", extraction down {delta} unit{'' if delta == 1 else 's'}"
@@ -3227,6 +3541,7 @@ def render():
     # H-22: a live tab title.
     document.title = f"Loop - C{chain.cycle_number} - {chain.circular_fraction_this_cycle() * 100:.0f}% circular"
     render_career()
+    render_ledger_and_past()
 
     document.getElementById("circular-fraction-display").innerText = (
         f"Circular this cycle: {chain.circular_fraction_this_cycle() * 100:.0f}%"
@@ -3417,7 +3732,11 @@ def on_toggle_pool_donation(event=None):
 
 
 def on_advance_cycle(event=None):
-    _run_action(chain.advance_cycle)
+    # H-28: the optional one-line note for the cycle being advanced goes into its ledger row.
+    note_box = document.getElementById("cycle-note-input")
+    note = clean_note(getattr(note_box, "value", ""))
+    _run_action(lambda: chain.advance_cycle(note))
+    note_box.value = ""
     _report_pool_donation()
     # H-4: announce the finished cycle in the polite live region.
     document.getElementById("cycle-live-summary").innerText = cycle_summary_text()
@@ -3585,6 +3904,7 @@ def on_reset_chain(event=None):
     def _confirmed():
         global chains_completed_count
         chains_completed_count += 1
+        archive_chain()  # H-1: the chain that is ending is filed in Past Chains first
         _run_action(_do_reset)
         message = document.getElementById("reset-chain-message")
         message.innerText = reset_chain_message()
@@ -3840,6 +4160,10 @@ def get_state():
         state["first_close_trade_free"] = chain.first_close_trade_free
     if chain.rewind_used:
         state["rewind_used"] = True
+    if chain.ledger:
+        state["ledger"] = ledger_to_save()
+    if past_chains:
+        state["past_chains"] = copy.deepcopy(past_chains)
     if chain.rival_on:
         state["rival_on"] = True
     if chain.rival_crossover_cycle is not None:
@@ -3957,6 +4281,8 @@ def load_state(data):
     chain.rewind_used = data.get("rewind_used") is True
     chain.market_shocks = data.get("market_shocks") is True
     chain.rival_on = data.get("rival_on") is True
+    chain.ledger = ledger_from_save(data.get("ledger"))
+    past_chains[:] = past_chains_from_save(data.get("past_chains"))
     crossover = data.get("rival_crossover_cycle")
     chain.rival_crossover_cycle = (
         crossover if isinstance(crossover, int) and not isinstance(crossover, bool) and 1 <= crossover <= 1_000_000 else None
@@ -4031,6 +4357,8 @@ def setup():
     document.getElementById("rewind-button").addEventListener("click", create_proxy(on_rewind))
     document.getElementById("market-shocks-button").addEventListener("click", create_proxy(on_toggle_market_shocks))
     document.getElementById("rival-button").addEventListener("click", create_proxy(on_toggle_rival))
+    document.getElementById("ledger-sort-select").addEventListener("change", create_proxy(on_ledger_sort))
+    document.getElementById("ledger-copy-button").addEventListener("click", create_proxy(on_copy_ledger))
     document.getElementById("copy-summary-button").addEventListener("click", create_proxy(on_copy_summary))
     document.getElementById("culture-invest-button").addEventListener("click", create_proxy(on_invest_culture))
     for measure in CIRCULARITY_INVESTMENTS:

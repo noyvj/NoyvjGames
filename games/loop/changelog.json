@@ -1,6 +1,14 @@
 [
   {
     "date": "2026-10-11",
+    "entry": "New: Past chains. Starting a new chain now files the one you are leaving (goods, cycles, when the loop closed, extraction, score and your mix of investments) in a Past chains panel, with a chart that overlays the circular-share curves of your last five chains on the chain you are playing. A bad cycle can no longer take funds you already hold: it can only wipe out that cycle's profit."
+  },
+  {
+    "date": "2026-10-11",
+    "entry": "New: a Cycle ledger beside the efficiency audit lists every cycle you have run (funds in and out, supply from repair, reuse, recycling and trade, new extraction, damage, the price multiplier and which trade partners delivered). Sort it by newest, oldest, most extraction, biggest net gain or highest damage, and press Copy as CSV to take it away. A new one-line note box under Advance Cycle lets you tag the cycle you are about to run; the note shows in the ledger."
+  },
+  {
+    "date": "2026-10-11",
     "entry": "New, opt-in: Rival Corporation. Switch on the Rival Corporation panel and a scripted straight-line competitor races you. It makes the same goods every cycle but digs up all of its material new and never invests in repair, reuse or recycling, so it is ahead early and its extraction costs climb until it earns almost nothing. The panel shows both funds, how much less you have dug up, and the cycle you pulled ahead. It is the same every time and changes nothing for you. A new achievement, Overtaken, and a story chapter mark the moment."
   },
   {

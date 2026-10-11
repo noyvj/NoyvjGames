@@ -168,6 +168,15 @@ ELEMENT_IDS = [
     "rival-race",
     "rival-bar-you",
     "rival-bar-rival",
+    # H-10 / H-28 / H-1: ledger, notes, past chains.
+    "cycle-note-input",
+    "ledger-table",
+    "ledger-sort-select",
+    "ledger-copy-button",
+    "ledger-copy-status",
+    "past-chains-chart",
+    "past-chains-list",
+    "past-chains-empty",
 ]
 
 

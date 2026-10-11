@@ -108,6 +108,7 @@
     ],
     "side": [
       "#advance-cycle-button",
+      "#cycle-note-row",
       "#goods-category-picker",
       "#mode-status",
       "#shock-section",
