@@ -2083,6 +2083,35 @@ html[data-high-contrast="true"][data-theme="light"] .founding-skill { background
 .mood-strip { display: inline-flex; gap: 0.1rem; font-size: 1.25rem; line-height: 1.2; }
 .mood-face { display: inline-block; min-width: 1.4em; text-align: center; }
 .mood-caption { font-size: 0.85rem; }
+/* GE-25: settlement looks. Thatched (default), timber at half the tree, concrete and glass at all of it. */
+.settlement-look-display { font-size: 0.85rem; }
+.settlement-visual--thatched .settlement-building {
+  background: linear-gradient(180deg, #c19a50, #6b4a22);
+  border-top: 0;
+  clip-path: polygon(0 22%, 50% 0, 100% 22%, 100% 100%, 0 100%);
+}
+.settlement-visual--thatched .settlement-building::before {
+  inset: 52% 32% 0 32%; height: auto; opacity: 1;
+  background: rgba(38, 22, 8, 0.75); background-image: none; border-radius: 3px 3px 0 0;
+}
+.settlement-visual--timber .settlement-building {
+  background: repeating-linear-gradient(0deg, #6e472b 0 6px, #583520 6px 8px);
+  border-top: 0;
+  clip-path: polygon(0 12%, 50% 0, 100% 12%, 100% 100%, 0 100%);
+}
+.settlement-visual--timber .settlement-building::before {
+  inset: 34% 18% auto 18%; height: 34%; opacity: 0.9;
+  background-image: repeating-linear-gradient(90deg, rgba(255, 210, 130, 0.85) 0 5px, transparent 5px 12px);
+}
+.settlement-visual--concrete .settlement-building {
+  background: linear-gradient(180deg, #5d6672, #262c35);
+  border-top: 2px solid rgba(190, 215, 255, 0.55);
+}
+.settlement-visual--concrete .settlement-building::before {
+  background-image:
+    repeating-linear-gradient(90deg, rgba(150, 200, 255, 0.65) 0 3px, transparent 3px 9px),
+    repeating-linear-gradient(0deg, rgba(150, 200, 255, 0.55) 0 3px, transparent 3px 10px);
+}
 /* BATCH3-END */
 
 /* ============================================================

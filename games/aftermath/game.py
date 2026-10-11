@@ -1299,6 +1299,56 @@ def on_neighbour_aid_setting(event=None):
     render()
 
 
+# ---------------------------------------------------------------------------
+# GE-25: settlement looks. The settlement is drawn as thatched huts, timber halls or concrete and glass,
+# by how many of the tree's skills are owned when a run starts (thresholds come from the tree's real
+# size: half of it, rounded up, and all of it). A look is only art and a collectible: it changes no
+# number. The look rides the run's history entry (only when it is not the default) so Past Runs can say
+# which look each run had, and "looks seen" is read from that history.
+# ---------------------------------------------------------------------------
+SETTLEMENT_LOOKS = (
+    ("thatched", "Thatched huts"),
+    ("timber", "Timber halls"),
+    ("concrete", "Concrete and glass"),
+)
+DEFAULT_LOOK = "thatched"
+_LOOK_LABELS = dict(SETTLEMENT_LOOKS)
+
+
+def look_thresholds(skill_count=None):
+    """Skills needed for each look: none, half the tree (rounded up) and the whole tree."""
+    total = len(SKILLS) if skill_count is None else skill_count
+    return {"thatched": 0, "timber": max(1, (total + 1) // 2), "concrete": max(2, total)}
+
+
+def look_for_skill_count(count):
+    thresholds = look_thresholds()
+    best = DEFAULT_LOOK
+    for key, _label in SETTLEMENT_LOOKS:
+        if count >= thresholds[key]:
+            best = key
+    return best
+
+
+def look_label(key):
+    return _LOOK_LABELS.get(key, _LOOK_LABELS[DEFAULT_LOOK])
+
+
+def entry_look(entry):
+    """The look a logged run had; anything missing or unknown reads as the default."""
+    value = entry.get("look") if isinstance(entry, dict) else None
+    return value if isinstance(value, str) and value in _LOOK_LABELS else DEFAULT_LOOK
+
+
+def looks_seen(run_state=None):
+    """The looks this settlement has had in at least one run (the default always counts)."""
+    seen = {DEFAULT_LOOK}
+    seen.update(entry_look(e) for e in run_log_history)
+    if run_state is not None:
+        seen.add(getattr(run_state, "look", DEFAULT_LOOK))
+    return seen
+
+
 class RunState:
     def __init__(self, run_number=1, extended=False, scenario=DEFAULT_SCENARIO,
                  normalised=False, draw=None, custom_events=None, custom_name=None, challenge=None):
@@ -1335,6 +1385,8 @@ class RunState:
         self.draw = int(draw) if draw is not None else run_number
         self.challenge = challenge if self.normalised and isinstance(challenge, dict) else None
         self.event_index = 0
+        # GE-25: the settlement's look, fixed when the run starts (a friend's challenge run ignores the tree).
+        self.look = DEFAULT_LOOK if self.normalised else look_for_skill_count(skill_tree_strength())
         self.resources = (
             STARTING_RESOURCES + starting_resources_bonus(self._unlocked())
             + (0 if self.normalised else founding_star_resources())  # GE-10: the Founding stars' perk
@@ -1619,6 +1671,8 @@ class RunState:
                         **({"custom_schedule": self.custom_name or "Unnamed"} if self.custom_events else {}),
                         # R-31: a run that received neighbour aid is tagged and kept off every comparison.
                         **({"neighbour_aid": self.aid_given} if self.aid_given else {}),
+                        # GE-25: the settlement's look this run, only written when it is not the default.
+                        **({"look": self.look} if self.look != DEFAULT_LOOK else {}),
                     }
                 )
                 save_run_log_history(run_log_history)
@@ -2713,6 +2767,7 @@ def _past_run_card(index, entry, is_record):
         f"+{entry['knowledge_earned']} knowledge)"
         f" · {run_mode_label(entry)}"
         + (f" · neighbour aid +{entry['neighbour_aid']:.0f}" if entry.get("neighbour_aid") else "")  # R-31
+        + (f" · {look_label(entry_look(entry))}" if entry_look(entry) != DEFAULT_LOOK else "")  # GE-25
         + (" · archived" if run_number in meta["archived_runs"] else "")
     )
     card.appendChild(title)
@@ -5674,6 +5729,7 @@ def render():
     render_skill_map()  # E-2 / GE-16
     render_founding()  # GE-10
     render_mood_strip()  # GE-20
+    render_settlement_look()  # GE-25
     render_challenge()  # E-4
     document.getElementById("curriculum-display").innerText = curriculum_message()
     document.getElementById("resources-display").innerText = f"Resources: {run.resources:.0f}"
@@ -7266,6 +7322,31 @@ def render_mood_strip():
     strip.title = label
     if caption is not None:
         caption.innerText = label
+
+
+def look_text(run_state):
+    thresholds = look_thresholds()
+    current = getattr(run_state, "look", DEFAULT_LOOK)
+    owned = skill_tree_strength()
+    keys = [key for key, _label in SETTLEMENT_LOOKS]
+    nxt = next((key for key in keys if thresholds[key] > owned and keys.index(key) > keys.index(current)), None)
+    where = f"{owned} of {len(SKILLS)} skills owned"
+    if nxt:
+        where += f"; {look_label(nxt)} at {thresholds[nxt]}"
+    if run_state.normalised:
+        return f"Settlement look: {look_label(current)} (a friend's challenge run ignores your tree). Looks seen: {len(looks_seen(run_state))} of {len(SETTLEMENT_LOOKS)}."
+    return f"Settlement look: {look_label(current)} ({where}). Looks seen: {len(looks_seen(run_state))} of {len(SETTLEMENT_LOOKS)}."
+
+
+def render_settlement_look():
+    visual = _el("settlement-visual")
+    if visual is not None:
+        for key, _label in SETTLEMENT_LOOKS:
+            visual.classList.remove(f"settlement-visual--{key}")
+        visual.classList.add(f"settlement-visual--{getattr(run, 'look', DEFAULT_LOOK)}")
+    text = _el("settlement-look-display")
+    if text is not None:
+        text.innerText = look_text(run)
 
 
 def _listen(element_id, event_name, handler):

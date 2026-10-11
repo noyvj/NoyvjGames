@@ -218,6 +218,9 @@ ELEMENT_IDS = [
     # Batch 3 (2026-10-11): GE-20 mood strip.
     "mood-strip",
     "mood-caption",
+    # GE-25: settlement looks.
+    "settlement-visual",
+    "settlement-look-display",
 ]
 for _skill in SKILL_IDS:
     ELEMENT_IDS += [

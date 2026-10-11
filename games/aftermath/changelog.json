@@ -1,6 +1,10 @@
 [
   {
     "date": "2026-10-11",
+    "entry": "New: settlement looks. The settlement is now drawn as Thatched huts, Timber halls or Concrete and glass, by how many skills you own when a run starts (Timber halls at 4 of the 7, Concrete and glass at all 7). The status shows the look, what unlocks the next one and how many looks you have seen (Looks seen: 2 of 3), and Past Runs names the look on any run that was not the default. It is art only: no number in the game changes."
+  },
+  {
+    "date": "2026-10-11",
     "entry": "New: a settlement mood strip. Five tiny citizens sit under the Growth line and their faces move from grinning to fearful as your resources and your mitigation change, redrawn on every allocation click. It is only a readout (nothing in the game reads it) and the same thing is always written beside it in words, with a screen-reader label: 'Settlement mood: content. 3 of 5 citizens are smiling.'"
   },
   {

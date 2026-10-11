@@ -328,6 +328,8 @@
       <p id="growth-display" class="status-line">Growth: 0</p>
       <!-- GE-20: five tiny citizens whose faces follow resources and mitigation; the same thing is written in words. -->
       <p class="status-line mood-wrap"><span id="mood-strip" class="mood-strip" role="img" aria-label="Settlement mood"></span> <span id="mood-caption" class="mood-caption" aria-hidden="true"></span></p>
+      <!-- GE-25: which look the settlement has this run (thatched, timber or concrete), by skills owned when it began. -->
+      <p id="settlement-look-display" class="status-line settlement-look-display"></p>
       <p class="meter-label">Mitigation
         <details class="info-toggle"><summary>i</summary><p>How much event damage you avoid. Each Resilience investment adds a flat 5%, capped at 85% total even if you max it out — Early Warning Systems adds another flat 10% on top once unlocked. It never reaches 100%; some damage always gets through.</p></details>
       </p>
@@ -348,7 +350,7 @@
       <!-- GE-22: shown once two or more runs in a row each beat the best before them. -->
       <p id="improvement-streak-display" class="comparison-message improvement-streak" hidden></p>
 
-      <div class="settlement-visual" aria-hidden="true">
+      <div class="settlement-visual settlement-visual--thatched" id="settlement-visual" aria-hidden="true">
         <div class="settlement-visual-sky"></div>
         <div class="settlement-visual-glow"></div>
         <div class="settlement-building settlement-building--a"></div>
