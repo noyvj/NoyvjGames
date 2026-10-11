@@ -5321,12 +5321,12 @@
     },
     {
      "path": "games/dead-reckoning/app.js",
-     "bytes": 42183,
+     "bytes": 44805,
      "precached": true
     },
     {
      "path": "games/dead-reckoning/changelog.json",
-     "bytes": 1650,
+     "bytes": 2129,
      "precached": true
     },
     {
@@ -5336,22 +5336,30 @@
     },
     {
      "path": "games/dead-reckoning/charts.py",
-     "bytes": 4894,
+     "bytes": 9687,
      "precached": true
     },
     {
      "path": "games/dead-reckoning/charts_compass.py",
      "bytes": 3943,
-     "precached": true
+     "precached": false,
+     "pack": "chapter-compass"
     },
     {
      "path": "games/dead-reckoning/charts_fixes.py",
      "bytes": 5283,
-     "precached": true
+     "precached": false,
+     "pack": "chapter-fixes"
     },
     {
      "path": "games/dead-reckoning/charts_fog.py",
      "bytes": 4228,
+     "precached": false,
+     "pack": "chapter-fog"
+    },
+    {
+     "path": "games/dead-reckoning/charts_index.py",
+     "bytes": 3058,
      "precached": true
     },
     {
@@ -5362,17 +5370,20 @@
     {
      "path": "games/dead-reckoning/charts_tides.py",
      "bytes": 4112,
-     "precached": true
+     "precached": false,
+     "pack": "chapter-tides"
     },
     {
      "path": "games/dead-reckoning/charts_two.py",
      "bytes": 8447,
-     "precached": true
+     "precached": false,
+     "pack": "chapter-ships"
     },
     {
      "path": "games/dead-reckoning/charts_wind.py",
      "bytes": 5597,
-     "precached": true
+     "precached": false,
+     "pack": "chapter-wind"
     },
     {
      "path": "games/dead-reckoning/daily.js",
@@ -5396,18 +5407,25 @@
     },
     {
      "path": "games/dead-reckoning/game.py",
-     "bytes": 41221,
+     "bytes": 48701,
      "precached": true
     },
     {
      "path": "games/dead-reckoning/gen.py",
-     "bytes": 14936,
+     "bytes": 3898,
      "precached": true
+    },
+    {
+     "path": "games/dead-reckoning/genmake.py",
+     "bytes": 13308,
+     "precached": false,
+     "pack": "practice"
     },
     {
      "path": "games/dead-reckoning/gentwo.py",
      "bytes": 6713,
-     "precached": true
+     "precached": false,
+     "pack": "two-ships"
     },
     {
      "path": "games/dead-reckoning/geom.py",
@@ -5421,13 +5439,18 @@
     },
     {
      "path": "games/dead-reckoning/index.html",
-     "bytes": 19788,
+     "bytes": 19898,
      "precached": true
     },
     {
      "path": "games/dead-reckoning/info.py",
      "bytes": 5165,
      "precached": true
+    },
+    {
+     "path": "games/dead-reckoning/modules.json",
+     "bytes": 1826,
+     "precached": false
     },
     {
      "path": "games/dead-reckoning/pars.py",
@@ -5446,7 +5469,7 @@
     },
     {
      "path": "games/dead-reckoning/pc.html",
-     "bytes": 21931,
+     "bytes": 22041,
      "precached": true
     },
     {
@@ -5493,6 +5516,11 @@
      "path": "games/dead-reckoning/style.css",
      "bytes": 21635,
      "precached": true
+    },
+    {
+     "path": "games/dead-reckoning/tools/build_charts_index.py",
+     "bytes": 2436,
+     "precached": false
     },
     {
      "path": "games/dead-reckoning/tools/build_pc.py",
@@ -5589,6 +5617,16 @@
     {
      "path": "shared/layout-pref.js",
      "bytes": 2407,
+     "precached": true
+    },
+    {
+     "path": "shared/lazy-packs.css",
+     "bytes": 3563,
+     "precached": true
+    },
+    {
+     "path": "shared/lazy-packs.js",
+     "bytes": 32236,
      "precached": true
     },
     {
@@ -5709,7 +5747,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14486526,
+   "bytes": 14547509,
    "bytes_complete": true
   },
   "logic-gates": {
@@ -5884,12 +5922,12 @@
     {
      "path": "shared/difficulty.css",
      "bytes": 3643,
-     "precached": false
+     "precached": true
     },
     {
      "path": "shared/difficulty.js",
      "bytes": 13054,
-     "precached": false
+     "precached": true
     },
     {
      "path": "shared/error-boundary.js",
@@ -6259,12 +6297,12 @@
     {
      "path": "shared/difficulty.css",
      "bytes": 3643,
-     "precached": false
+     "precached": true
     },
     {
      "path": "shared/difficulty.js",
      "bytes": 13054,
-     "precached": false
+     "precached": true
     },
     {
      "path": "shared/error-boundary.js",
@@ -6599,12 +6637,12 @@
     {
      "path": "shared/difficulty.css",
      "bytes": 3643,
-     "precached": false
+     "precached": true
     },
     {
      "path": "shared/difficulty.js",
      "bytes": 13054,
-     "precached": false
+     "precached": true
     },
     {
      "path": "shared/error-boundary.js",
@@ -6984,12 +7022,12 @@
     {
      "path": "shared/difficulty.css",
      "bytes": 3643,
-     "precached": false
+     "precached": true
     },
     {
      "path": "shared/difficulty.js",
      "bytes": 13054,
-     "precached": false
+     "precached": true
     },
     {
      "path": "shared/error-boundary.js",
@@ -7304,12 +7342,12 @@
     {
      "path": "shared/difficulty.css",
      "bytes": 3643,
-     "precached": false
+     "precached": true
     },
     {
      "path": "shared/difficulty.js",
      "bytes": 13054,
-     "precached": false
+     "precached": true
     },
     {
      "path": "shared/error-boundary.js",
@@ -7674,12 +7712,12 @@
     {
      "path": "shared/difficulty.css",
      "bytes": 3643,
-     "precached": false
+     "precached": true
     },
     {
      "path": "shared/difficulty.js",
      "bytes": 13054,
-     "precached": false
+     "precached": true
     },
     {
      "path": "shared/error-boundary.js",
@@ -7836,22 +7874,22 @@
     },
     {
      "path": "games/trade-empire/changelog.json",
-     "bytes": 16638,
+     "bytes": 17072,
      "precached": false
     },
     {
      "path": "games/trade-empire/game.py",
-     "bytes": 378498,
+     "bytes": 385146,
      "precached": true
     },
     {
      "path": "games/trade-empire/index.html",
-     "bytes": 116002,
+     "bytes": 116314,
      "precached": true
     },
     {
      "path": "games/trade-empire/pc-config.json",
-     "bytes": 2789,
+     "bytes": 2810,
      "precached": false
     },
     {
@@ -7861,7 +7899,7 @@
     },
     {
      "path": "games/trade-empire/pc.html",
-     "bytes": 119395,
+     "bytes": 119728,
      "precached": true
     },
     {
@@ -8124,7 +8162,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14973369,
+   "bytes": 14981117,
    "bytes_complete": true
   }
  }

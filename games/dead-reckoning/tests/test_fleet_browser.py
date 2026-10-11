@@ -65,7 +65,8 @@ def test_plan_two_ships_sail_and_read_the_reveal(base, page_name, width, height)
         page.evaluate("localStorage.clear()")
         page.reload()
         page.wait_for_function(READY, timeout=90000)
-        page.evaluate("""() => {
+        page.evaluate("""async () => {
+            await window.NoyvjPacks.load("chapter-ships");      // chapter 7 is a lazy pack: the test bypasses the chooser, so load it first
             window.pyodide.runPython("for c in charts.ORDER[:-7]:\\n    meta['charts'][c] = dict(state.new_record(), stars=1)\\nhandle(json.dumps({'action': 'start', 'chart_id': 'two-01'}))");
             window.deadReckoningRefresh();
         }""")

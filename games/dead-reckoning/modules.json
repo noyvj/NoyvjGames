@@ -1,0 +1,73 @@
+{
+  "version": 1,
+  "game": "dead-reckoning",
+  "packs": [
+    {
+      "id": "chapter-wind",
+      "label": "Wind and leeway chapter",
+      "kind": "python",
+      "url": "charts_wind.py",
+      "bytes": 5597,
+      "modes": "Chapter 2 charts (Wind and leeway)"
+    },
+    {
+      "id": "chapter-fixes",
+      "label": "Fixes and landmarks chapter",
+      "kind": "python",
+      "url": "charts_fixes.py",
+      "bytes": 5283,
+      "modes": "Chapter 3 charts (Fixes and landmarks)"
+    },
+    {
+      "id": "chapter-fog",
+      "label": "Fog and unmarked dangers chapter",
+      "kind": "python",
+      "url": "charts_fog.py",
+      "bytes": 4228,
+      "modes": "Chapter 4 charts (Fog and unmarked dangers)"
+    },
+    {
+      "id": "chapter-tides",
+      "label": "Tides chapter",
+      "kind": "python",
+      "url": "charts_tides.py",
+      "bytes": 4112,
+      "modes": "Chapter 5 charts (Tides)"
+    },
+    {
+      "id": "chapter-compass",
+      "label": "Compass error chapter",
+      "kind": "python",
+      "url": "charts_compass.py",
+      "bytes": 3943,
+      "modes": "Chapter 6 charts (Compass error)"
+    },
+    {
+      "id": "chapter-ships",
+      "label": "Two ships chapter",
+      "kind": "python",
+      "url": "charts_two.py",
+      "bytes": 8447,
+      "modes": "Chapter 7 charts (Two ships)"
+    },
+    {
+      "id": "practice",
+      "label": "Practice and daily charts",
+      "kind": "python",
+      "url": "genmake.py",
+      "bytes": 13308,
+      "modes": "Practice charts, share codes opened from a code, the Daily Chart"
+    },
+    {
+      "id": "two-ships",
+      "label": "Two-ship practice charts",
+      "kind": "python",
+      "url": "gentwo.py",
+      "bytes": 6713,
+      "modes": "Practice charts with two ships (codes with a T)",
+      "needs": [
+        "practice"
+      ]
+    }
+  ]
+}

@@ -1,6 +1,10 @@
 {
   "changelog": [
     {
+      "date": "2026-10-12",
+      "entry": "Dead Reckoning now opens faster. Only the first chapter is there when the game starts; each later chapter, the practice charts and the two-ship practice option load the first time you open them (a few kilobytes each, with a small loading note), and the chart list says which ones \"load when opened\". Your saves and stars are untouched, and if something cannot load you are told in plain words and can simply try again."
+    },
+    {
       "date": "2026-10-11",
       "entry": "Two ships: a seventh chapter of seven charts where you plan the courses of two vessels on one chart, each with its own flag, speed and deadline. Keep them at least a mile apart while both are under way; a closer approach costs a star, never the passage, and a retry is free. The planner warns you from your own two plots, the reveal shows both true tracks and both errors with the closest point marked, and the par plan covers both ships. Practice can make a two-ship chart too (tick Two ships; its codes carry a T, such as DR3T-1K9X2, and every earlier code works as before). A new achievement, Two at Once."
     },

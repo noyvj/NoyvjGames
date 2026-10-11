@@ -3,11 +3,14 @@
    into chart coordinates, and pacing the playback of a track the engine already computed. */
 (function () {
   "use strict";
-  var ENGINE_MODULES = ["geom.py", "sim.py", "chartkit.py", "charts_open.py", "charts_wind.py", "charts_fixes.py", "charts_fog.py", "charts_tides.py", "charts_compass.py", "charts_two.py", "gen.py", "gentwo.py", "fleet.py", "info.py", "pars.py", "charts.py", "render.py", "solver.py", "state.py", "progress.py", "achievements.py", "fixes.py", "daily.py"];
+  // The core engine, fetched at boot. The charts of chapters 2 to 7, the practice generator and the two-ship option are NOT here: they are
+  // lazy packs (modules.json, shared/lazy-packs.js), fetched the first time they are needed. "../../shared/lazy_packs.py" is the loader's
+  // few lines of Python (written to the file system under its own name).
+  var ENGINE_MODULES = ["geom.py", "sim.py", "chartkit.py", "charts_open.py", "charts_index.py", "gen.py", "fleet.py", "info.py", "pars.py", "charts.py", "render.py", "solver.py", "state.py", "progress.py", "achievements.py", "fixes.py", "daily.py", "../../shared/lazy_packs.py"];
   var STORE_KEY = "dead-reckoning:state";
 
   var $ = function (id) { return document.getElementById(id); };
-  var engine = null;   // { handle, getState, loadState }
+  var engine = null;   // { handle, getState, loadState, needs, settled }
   var view = null;
   var selected = 0;    // the leg the quick-turn buttons act on
 
@@ -37,6 +40,28 @@
     return view.legs.length > 0 || (!!view.fleet && view.fleet.ships.some(function (s) { return s.legs > 0; }));
   }
 
+  // ---- lazy content packs ----------------------------------------------------------------------------
+  // The engine says which packs a request needs (engine.needs); the missing ones are fetched first, behind the loader's loading card, then
+  // the request is sent. A pack that cannot be loaded changes nothing: the player keeps the screen, the plan and the save, and can retry.
+  function needsOf(request) {
+    try { return JSON.parse(engine.needs(JSON.stringify(request))); } catch (e) { return []; }
+  }
+  function withPacks(ids, go, failed) {
+    var list = (ids || []).filter(Boolean);
+    var loader = window.NoyvjPacks;
+    var todo = loader && list.length ? loader.missing(list) : [];
+    if (!todo.length) { go(); return; }
+    loader.requires(todo).then(function () { go(); }, function () {
+      showToast("That part of the game did not load, so nothing has changed. Open it again to retry.");
+      if (failed) failed();
+    });
+  }
+  function sendWithPacks(request) { withPacks(needsOf(request), function () { send(request); }); }
+  function packKb(id) {
+    var info = window.NoyvjPacks && window.NoyvjPacks.info ? window.NoyvjPacks.info(id) : null;
+    return info && info.bytes ? " (about " + Math.max(1, Math.round(info.bytes / 1024)) + " KB)" : "";
+  }
+
   // ---- the chart ---------------------------------------------------------------------------------
   // ---- chart picker and captain's log ----------------------------------------------------------------
   function renderPicker() {
@@ -49,6 +74,9 @@
       var wrap = el("section", undefined, "picker-chapter");
       wrap.appendChild(el("h3", "Chapter " + (n + 1) + ": " + chapter.name + " (" + chapter.cleared + " of " + chapter.total + " cleared)"));
       wrap.appendChild(el("p", chapter.blurb, "note"));
+      if (chapter.pack && !chapter.loaded && chapter.unlocked) {
+        wrap.appendChild(el("p", "Loads when opened" + packKb(chapter.pack) + ".", "note pack-note"));
+      }
       if (!chapter.unlocked) {
         wrap.appendChild(el("p", chapter.lock_text, "note"));
         body.appendChild(wrap);
@@ -74,10 +102,13 @@
 
   function openChart(id) {
     function go() {
-      selected = 0;
-      send({ action: "start", chart_id: id });
-      $("picker-panel").hidden = true;
-      setToggle("picker-toggle-button", "picker-panel");
+      var request = { action: "start", chart_id: id };
+      withPacks(needsOf(request), function () {
+        selected = 0;
+        send(request);
+        $("picker-panel").hidden = true;
+        setToggle("picker-toggle-button", "picker-panel");
+      });
     }
     if (hasPlan() && view.chart.id !== id && window.ConfirmDialog) {
       window.ConfirmDialog.ask({ id: "dead-reckoning-switch-chart", message: "Leave this chart? The plan you have here will be lost.", confirmLabel: "Open the other chart", onConfirm: go });
@@ -111,10 +142,13 @@
   function newPractice(difficulty, two) {
     if (two === undefined) two = $("practice-two-checkbox").checked;
     var go = function () {
-      selected = 0;
-      send({ action: "practice", difficulty: difficulty, two: !!two, seed: Math.floor(Math.random() * 2000000000) });
-      $("picker-panel").hidden = true;
-      setToggle("picker-toggle-button", "picker-panel");
+      var request = { action: "practice", difficulty: difficulty, two: !!two, seed: Math.floor(Math.random() * 2000000000) };
+      withPacks(needsOf(request), function () {
+        selected = 0;
+        send(request);
+        $("picker-panel").hidden = true;
+        setToggle("picker-toggle-button", "picker-panel");
+      });
     };
     if (hasPlan() && window.ConfirmDialog) {
       window.ConfirmDialog.ask({ id: "dead-reckoning-switch-chart", message: "Leave this chart? The plan you have here will be lost.", confirmLabel: "Open a practice chart", onConfirm: go });
@@ -628,7 +662,7 @@
     renderInfo();
     renderPicker();
     renderPractice();
-    if (window.DeadReckoningDaily) window.DeadReckoningDaily.render(view, send, function () { selected = 0; });
+    if (window.DeadReckoningDaily) window.DeadReckoningDaily.render(view, sendWithPacks, function () { selected = 0; });
     renderLog();
     if (view.note) showToast(view.note);
     if (view.phase === "plan") renderPlanner();
@@ -721,14 +755,17 @@
       cancelAnimationFrame(playback.raf);
       showUpTo(parseInt($("scrub-range").value, 10));
     });
-    guard("next-chart-button", function () { selected = 0; send({ action: "next_chart" }); });
+    guard("next-chart-button", function () { selected = 0; sendWithPacks({ action: "next_chart" }); });
     guard("new-practice-button", function () { newPractice(view.chart.practice.difficulty, !!view.chart.practice.two); });
     guard("practice-code-button", function () {
       var code = $("practice-code").value;
       if (!code.trim()) return;
-      selected = 0;
-      send({ action: "practice", code: code });
-      if (!view.note) { $("picker-panel").hidden = true; setToggle("picker-toggle-button", "picker-panel"); }
+      var request = { action: "practice", code: code };
+      withPacks(needsOf(request), function () {
+        selected = 0;
+        send(request);
+        if (!view.note) { $("picker-panel").hidden = true; setToggle("picker-toggle-button", "picker-panel"); }
+      });
     });
     guard("par-button", function () { send({ action: "show_par" }); });
     guard("use-par-button", function () { selected = 0; send({ action: "use_par" }); });
@@ -771,17 +808,22 @@
     var pyodide = await window.loadPyodide();
     for (var i = 0; i < ENGINE_MODULES.length; i++) {
       var source = await (await fetch(ENGINE_MODULES[i])).text();
-      pyodide.FS.writeFile(ENGINE_MODULES[i], source, { encoding: "utf8" });
+      pyodide.FS.writeFile(ENGINE_MODULES[i].split("/").pop(), source, { encoding: "utf8" });
     }
     await pyodide.runPythonAsync(await (await fetch("game.py")).text());
     window.pyodide = pyodide;   // the shared save widget looks for it
-    engine = { handle: pyodide.globals.get("handle"), getState: pyodide.globals.get("get_state"), loadState: pyodide.globals.get("load_state") };
+    engine = { handle: pyodide.globals.get("handle"), getState: pyodide.globals.get("get_state"), loadState: pyodide.globals.get("load_state"),
+      needs: pyodide.globals.get("needs"), settled: pyodide.globals.get("load_settled") };
     var saved = lsGet(STORE_KEY);
     if (saved) {
       try { engine.loadState(pyodide.toPy(JSON.parse(saved))); } catch (e) { /* a bad save never blocks play */ }
     }
+    // A saved plan on a lazy chapter waits for its pack; let that finish (or fail, leaving the save untouched) before the first screen.
+    try { await engine.settled(); } catch (e) { /* the engine keeps the save either way */ }
     $("engine-status").textContent = "";
     setBusy(false);
+    // A returning player's next chart may be in a lazy chapter: fetch it before the first screen (a new player's is in the core).
+    await new Promise(function (resolve) { withPacks(needsOf({ action: "open" }), resolve, resolve); });
     send({ action: "open" });
     if (window.MobileHud) window.MobileHud.init([{ selector: "#total-hours", label: "Hours" }, { selector: "#total-legs", label: "Legs" }]);
     if (window.MobileDock) window.MobileDock.init("#sail-dock");

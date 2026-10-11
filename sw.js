@@ -2,7 +2,7 @@
 // the precache list; ordinary content deploys don't need it, because
 // same-origin requests are network-first (see the fetch handler below) and
 // so always pick up fresh files whenever the player is online.
-const SW_VERSION = 63;
+const SW_VERSION = 65;
 const CACHE_NAME = "site-cache-v" + SW_VERSION;
 // How long a same-origin network request may take before we give up and
 // serve the cached copy instead (a slow/flaky connection shouldn't hang).
@@ -88,6 +88,8 @@ const PRECACHE_URLS = [
   "shared/seasonal-events.css",
   "shared/announcer.js",
   "shared/lazy-packs.js",
+  "shared/difficulty.js",
+  "shared/difficulty.css",
   "shared/lazy-packs.css",
   "shared/lazy_packs.py",
   "shared/night-mode.js",
@@ -276,16 +278,10 @@ const PRECACHE_URLS = [
   "games/dead-reckoning/sim.py",
   "games/dead-reckoning/daily.py",
   "games/dead-reckoning/fleet.py",
-  "games/dead-reckoning/gentwo.py",
-  "games/dead-reckoning/charts_two.py",
   "games/dead-reckoning/daily.js",
   "games/dead-reckoning/chartkit.py",
   "games/dead-reckoning/charts_open.py",
-  "games/dead-reckoning/charts_wind.py",
-  "games/dead-reckoning/charts_fixes.py",
-  "games/dead-reckoning/charts_fog.py",
-  "games/dead-reckoning/charts_tides.py",
-  "games/dead-reckoning/charts_compass.py",
+  "games/dead-reckoning/charts_index.py",
   "games/dead-reckoning/gen.py",
   "games/dead-reckoning/info.py",
   "games/dead-reckoning/pars.py",

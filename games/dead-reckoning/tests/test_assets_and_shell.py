@@ -10,15 +10,28 @@ APP = (GAME_DIR / "app.js").read_text(encoding="utf-8")
 LOCAL = {p.stem for p in GAME_DIR.glob("*.py") if p.stem != "game"}
 
 
-def _module_list():
+def _boot_modules():
+    """The modules app.js fetches at boot (the shared lazy_packs.py is the loader's, not a game module)."""
     block = APP.split("ENGINE_MODULES = [")[1].split("]")[0]
-    return re.findall(r'"([a-z_]+)\.py"', block)
+    return {m for m in re.findall(r'"([a-z_]+)\.py"', block) if m != "lazy_packs"}
+
+
+def _pack_modules():
+    """The modules that are lazy packs (modules.json): fetched on demand, not at boot."""
+    import json
+    packs = json.loads((GAME_DIR / "modules.json").read_text(encoding="utf-8"))["packs"]
+    return {Path(p["url"]).stem for p in packs if p["kind"] == "python"}
+
+
+def _module_list():
+    return list(_boot_modules() | _pack_modules())
 
 
 def test_the_page_loads_every_engine_module_and_no_stray_ones():
-    listed = set(_module_list())
-    assert listed == LOCAL, f"app.js loads {sorted(listed)}, engine modules are {sorted(LOCAL)}"
-    for name in listed:
+    boot, packs = _boot_modules(), _pack_modules()
+    assert not boot & packs, f"a module is both a boot module and a lazy pack: {sorted(boot & packs)}"
+    assert boot | packs == LOCAL, f"app.js loads {sorted(boot)} and modules.json {sorted(packs)}, engine modules are {sorted(LOCAL)}"
+    for name in boot | packs:
         assert (GAME_DIR / f"{name}.py").exists()
 
 

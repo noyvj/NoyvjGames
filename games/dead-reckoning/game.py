@@ -31,7 +31,9 @@ Every request may carry "today" ("YYYY-MM-DD", UTC): the view passes the date in
   reset                      forget all progress
 """
 
+import copy
 import json
+import re
 
 import achievements
 import charts
@@ -52,6 +54,12 @@ run = None
 point = None
 today = None            # the view's UTC date, runtime only (never saved, never read from a clock)
 note = ""               # a one-line message about the last request (never saved)
+_carry_note = ""        # a message from a late (asynchronous) save load, shown with the next request's view
+_held = {"run": None, "packs": []}    # a saved run (and pack ids) that could not be adopted because a lazy pack did not load: written back unchanged
+_load_serial = 0        # counts load_state calls, so a late adoption never overwrites a newer load
+_late_tasks = []        # asyncio tasks of loads that are waiting for packs (Pyodide only)
+PACK_ID_RE = re.compile(r"^[a-z0-9_-]{1,40}$")
+MAX_PACKS_SAVED = 20
 history = []            # earlier leg lists, for Undo (never saved)
 HISTORY_LIMIT = 40
 CURRENT_HELPER_AFTER = 3   # the "allow for the charted current" helper unlocks after this many charts are cleared
@@ -118,18 +126,24 @@ def current_helper_unlocked():
 
 
 def _start(chart_id, mode=None, seed=0):
+    """Open a chart. False (nothing changes) when it is not available: its lazy pack has not loaded (see charts.packs_for)."""
     global run, point, history
     chart = charts.get_chart(chart_id)
+    if chart is None:
+        return False
     if mode not in chart.get("modes", ("plan",)):
         mode = chart.get("default_mode", "plan")
     run = state.new_run(chart_id, chart.get("seed", seed), mode)
     point = None
     history = []
+    return True
 
 
-def _first_chart_id():
+def _first_chart_id(loaded_only=True):
+    """The first unlocked chart without a star. The page asks with loaded_only=False (see needs()) so it can load that chapter first;
+    the engine itself only opens charts that are on the page."""
     for cid in charts.ORDER:
-        if _record(cid)["stars"] == 0 and charts.is_unlocked(cid, meta["charts"]):
+        if _record(cid)["stars"] == 0 and charts.is_unlocked(cid, meta["charts"]) and (not loaded_only or cid in charts.CHARTS):
             return cid
     return charts.ORDER[0]
 
@@ -217,6 +231,7 @@ def _picker():
         unlocked = chapter["id"] in open_chapters
         prev = charts.CHAPTERS[i - 1] if i else None
         out.append({"id": chapter["id"], "name": chapter["name"], "blurb": chapter["blurb"], "unlocked": unlocked,
+                    "pack": chapter["pack"], "loaded": chapter["loaded"],
                     "cleared": charts.chapter_cleared(chapter, records), "total": len(chapter["charts"]),
                     "lock_text": "" if unlocked else "Clear %d charts in %s to open this chapter." % (
                         min(charts.CLEAR_TO_OPEN_NEXT, len(prev["charts"])), prev["name"]),
@@ -232,6 +247,9 @@ def _story():
         for c in chapter["charts"]:
             rec = _record(c["id"])
             if rec["attempts"] or c["id"] == run["chart_id"]:
+                if "intro" not in c:                  # the chapter's lazy pack is not on the page yet: its words arrive with it
+                    entries.append({"id": c["id"], "name": c["name"], "text": "(This chapter loads when you open it, and its log line appears then.)"})
+                    continue
                 text = c["intro"] + ((" " + c["log"]["arrived"]) if rec["stars"] >= 1 else "")
                 entries.append({"id": c["id"], "name": c["name"], "text": text})
     return entries
@@ -531,7 +549,7 @@ def _next_playable(chart_id):
     nxt = charts.next_chart_id(chart_id)
     if nxt is None or _record(chart_id)["stars"] < 1 or not charts.is_unlocked(nxt, meta["charts"]):
         return None
-    return {"id": nxt, "name": charts.get_chart(nxt)["name"]}
+    return {"id": nxt, "name": charts.name_of(nxt)}
 
 
 def _finish():
@@ -600,6 +618,9 @@ def _start_practice(request):
     code = request.get("code")
     if isinstance(code, str) and code.strip():
         parsed = gen.parse_ex(code)
+        if parsed and not _packs_ready(charts.packs_for_code(code)):
+            note = _PACK_NOTE
+            return False
         chart = gen.make_chart(*parsed) if parsed else None
         if chart is None:
             note = "That is not a practice code the game can make. A code looks like DR3-1K9X2 (DR3T-1K9X2 for two ships)."
@@ -610,6 +631,9 @@ def _start_practice(request):
     if d not in gen.DIFFICULTIES or isinstance(d, bool):
         return False
     two = request.get("two") is True
+    if not _packs_ready([charts.PRACTICE_PACK] + ([charts.TWO_SHIPS_PACK] if two else [])):
+        note = _PACK_NOTE
+        return False
     seed = request.get("seed")
     explicit = isinstance(seed, int) and not isinstance(seed, bool) and 0 <= seed < gen.SEED_LIMIT
     for nonce in range(10):
@@ -637,8 +661,10 @@ def _start_daily(request):
         return False
     if run is not None and run["chart_id"] == daily.chart_id(date):
         return True
-    _start(daily.chart_id(date))
-    return True
+    if not gen.ready():
+        note = _PACK_NOTE
+        return False
+    return _start(daily.chart_id(date))
 
 
 def _chapter_ids():
@@ -654,9 +680,73 @@ def _progress():
             "longest_route": meta["best"]["longest_route_nm"]}
 
 
+# --- lazy content packs (modules.json, shared/lazy-packs.js) ---------------------------------------------------
+_PACK_NOTE = "That part of the game has not finished loading. Try again in a moment (it loads the first time you open it)."
+
+
+def _lazy():
+    """shared/lazy_packs.py when the page has the loader, else None (plain CPython, or the loader script missing)."""
+    try:
+        import lazy_packs
+        return lazy_packs if lazy_packs.available() else None
+    except Exception:
+        return None
+
+
+def _packs_ready(pack_ids):
+    """True when every pack in the list is on the page. Under CPython (no loader) the modules are simply importable, which is what
+    charts.pack_ready checks, so one rule serves both."""
+    return all(charts.pack_ready(p) for p in pack_ids)
+
+
+def _clean_pack_ids(raw):
+    out = []
+    if isinstance(raw, list):
+        for p in raw[:60]:
+            if isinstance(p, str) and PACK_ID_RE.match(p) and p not in out:
+                out.append(p)
+    return out[:MAX_PACKS_SAVED]
+
+
+def needs(request_json):
+    """Which lazy packs a request needs before it can run, as JSON (a list of pack ids). The page asks first, loads the missing ones behind
+    the loading card, then sends the request. Changes nothing."""
+    try:
+        request = json.loads(request_json)
+        action = request.get("action")
+    except (ValueError, AttributeError):
+        return "[]"
+    out = []
+    if action in ("open", None):
+        if run is None:
+            out = charts.packs_for(_first_chart_id(loaded_only=False))
+    elif action == "start":
+        cid = request.get("chart_id")
+        if isinstance(cid, str) and len(cid) <= state.CHART_ID_LIMIT:
+            out = charts.packs_for(cid)
+    elif action == "practice":
+        code = request.get("code")
+        if isinstance(code, str) and code.strip():
+            out = charts.packs_for_code(code)
+        elif request.get("difficulty") in gen.DIFFICULTIES:
+            out = [charts.PRACTICE_PACK] + ([charts.TWO_SHIPS_PACK] if request.get("two") is True else [])
+    elif action == "start_daily":
+        out = [charts.PRACTICE_PACK]
+    elif action == "next_chart":
+        nxt = charts.next_chart_id(run["chart_id"]) if run is not None else None
+        out = charts.packs_for(nxt) if nxt else []
+    return json.dumps(out)
+
+
+async def load_settled():
+    """Resolves when every load_state that was waiting for lazy packs has finished (the page awaits it at boot)."""
+    for task in list(_late_tasks):
+        await task
+
+
 def handle(request_json):
-    global run, point, meta, history, note, today
-    note = ""
+    global run, point, meta, history, note, today, _carry_note
+    note, _carry_note = _carry_note, ""
     try:
         request = json.loads(request_json)
         action = request.get("action")
@@ -668,6 +758,7 @@ def handle(request_json):
         run = None                                  # a saved daily for a date that has not started yet is dropped
     if action == "reset":
         meta = state.new_meta()
+        _held.update(run=None, packs=[])
         run = None
         point = None
         history = []
@@ -677,11 +768,12 @@ def handle(request_json):
         _start_daily(request)
     elif action == "start":
         cid = request.get("chart_id")
-        if not isinstance(cid, str) or charts.get_chart(cid) is None:
+        if not isinstance(cid, str) or not (charts.is_campaign_id(cid) or gen.is_practice_id(cid) or daily.is_daily_id(cid)):
             return json.dumps({"error": "unknown chart"})
         if not charts.is_unlocked(cid, meta["charts"]):
             return json.dumps({"error": "that chapter is not open yet"})
-        _start(cid)
+        if not _start(cid):
+            note = _PACK_NOTE
     _ensure_run()
     chart = _chart()
     editing = run["phase"] == "plan"
@@ -695,8 +787,8 @@ def handle(request_json):
         run.pop("known", None)
     elif action == "next_chart":
         nxt = _next_playable(run["chart_id"])
-        if nxt is not None:
-            _start(nxt["id"])
+        if nxt is not None and not _start(nxt["id"]):
+            note = _PACK_NOTE
     elif action == "show_par":
         if _par_view(chart):
             if _scoped(chart["id"]):
@@ -854,25 +946,80 @@ def get_state():
     earned = achievements.earned(meta, _chapter_ids())
     if earned:
         data["achievements_earned"] = earned
+    # Lazy packs this player has used (shared/lazy-packs.js), plus any a loaded save named that did not load: a failed load never drops a
+    # mode from the save. Loading a save fetches them through requires(soft) BEFORE restoring; ids are only ever added, never judged.
+    lazy = _lazy()
+    used = _clean_pack_ids(list(lazy.used())) if lazy is not None else []
+    packs = (used + [p for p in _held["packs"] if p not in used])[:MAX_PACKS_SAVED]
+    if packs:
+        data["packs_used"] = packs
     if run is not None and (run["legs"] or run["phase"] != "plan"):
         data["run"] = state.run_to_dict(run)
+    elif isinstance(_held["run"], dict):
+        data["run"] = copy.deepcopy(_held["run"])      # a saved run waiting for its pack is written back unchanged
     return data
 
 
 def load_state(data):
-    """Merge a saved state in: records keep the better of each, flags are unioned and an unfinished plan is adopted."""
-    global meta, run, point, history
+    """Merge a saved state in: records keep the better of each, flags are unioned and an unfinished plan is adopted.
+
+    The records need only the always-loaded index. The unfinished plan needs its chart, and a chart can live in a lazy pack: the packs
+    the save names (packs_used) and the one its run is on are fetched first through the loader's soft mode, which never fails the save;
+    the plan is adopted when they arrive (a moment later), or kept untouched in the next save if they cannot."""
+    global meta, run, point, history, _load_serial
+    wanted = []
+    raw_run = None
     try:
         incoming = state.clean_meta((data or {}).get("meta"), charts.hazard_ids())
         meta = state.merge_meta(meta, incoming)
-        loaded = state.clean_run((data or {}).get("run"), charts.get_chart)
-        if loaded is not None:
-            run = loaded
-            point = None
-            history = []
+        raw_run = (data or {}).get("run")
+        wanted = _clean_pack_ids((data or {}).get("packs_used"))
+        cid = raw_run.get("chart_id") if isinstance(raw_run, dict) else None
+        if isinstance(cid, str) and len(cid) <= state.CHART_ID_LIMIT:
+            wanted += [p for p in charts.packs_for(cid) if p not in wanted]
     except (ValueError, TypeError, AttributeError, KeyError, OverflowError):
         pass
+    _load_serial += 1
+    lazy = _lazy()
+    waiting = lazy.missing(wanted) if (lazy is not None and wanted) else []
+    if waiting:
+        _held.update(run=copy.deepcopy(raw_run) if isinstance(raw_run, dict) else None, packs=wanted)
+        task = lazy.spawn(_load_late(lazy, wanted, raw_run, _load_serial))
+        _late_tasks.append(task)
+    else:
+        _adopt_run(raw_run, wanted)
     _refresh_view()
+
+
+def _adopt_run(raw_run, wanted):
+    """Take a saved run if its chart is on the page; otherwise keep it (and its pack ids) to be written back unchanged."""
+    global run, point, history
+    try:
+        loaded = state.clean_run(raw_run, charts.get_chart)
+    except (ValueError, TypeError, AttributeError, KeyError, OverflowError):
+        loaded = None
+    if loaded is not None:
+        run = loaded
+        point = None
+        history = []
+        _held.update(run=None, packs=[p for p in _held["packs"] if p not in wanted])
+    elif isinstance(raw_run, dict) and isinstance(raw_run.get("chart_id"), str) and charts.packs_for(raw_run["chart_id"]) and not _packs_ready(charts.packs_for(raw_run["chart_id"])):
+        _held.update(run=copy.deepcopy(raw_run), packs=wanted)
+
+
+async def _load_late(lazy, wanted, raw_run, serial):
+    global _carry_note
+    try:
+        result = await lazy.require(*wanted)
+        if not result["ok"]:
+            _carry_note = ("Part of your save could not be loaded: %s Nothing in the save was changed. Open the chart again to retry."
+                           % (result["message"] or "a content pack did not arrive."))
+        untouched = run is None or (not run["legs"] and not run["legs2"] and run["phase"] == "plan")
+        if serial == _load_serial and untouched:
+            _adopt_run(raw_run, wanted)
+        _refresh_view()
+    except Exception:       # a late load must never break the page
+        pass
 
 
 def _refresh_view():
