@@ -371,3 +371,8 @@ Default: a public engineering reference (Engineering ToolBox) cross-checked agai
 ### Q41_2. Material Match: should the cost word (cheap to dear) be included, given it varies by place and year?
 
 Default: yes as a relative word with a date, never a price. Say "yes" to go with that.
+
+### Lo1. Loop FY-5: you said yes to an opt-in "supply chain disruption" random event, but Loop now has opt-in market shocks on a fixed schedule (announced one cycle early, no randomness); should the fixed shocks count as that item?
+
+Recommended: yes, the fixed shocks are the supply-chain disruption, since you dislike random luck. Say "yes" to go with that, "no" if you still want a random version.
+
