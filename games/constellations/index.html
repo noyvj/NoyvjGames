@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Constellations - NoyvjGames</title>
+<meta name="description" content="A night-sky logic puzzle. Numbers on stars say how many lines must touch them; join the stars without crossing lines and the figure that appears is a real constellation, kept in your sky atlas. Nothing is timed. Working title.">
+<link rel="icon" type="image/svg+xml" href="icons/favicon-constellations.svg">
+<link rel="stylesheet" href="../../shared/theme-light-games.css">
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="../../shared/info-page.css">
+<script src="../../shared/theme.js"></script>
+<script src="../../shared/lite-mode.js"></script>
+<script src="../../shared/error-boundary.js" data-game-id="constellations"></script>
+<script src="../../shared/perf-mark.js" data-game-id="constellations"></script>
+<script src="../../shared/debug-overlay.js"></script>
+<script src="../../shared/info-footer.js" data-game-id="constellations"></script>
+<script src="../../shared/announcer.js"></script>
+<script src="../../shared/report-problem.js" data-game-id="constellations" data-mount=".game-toolbar"></script>
+<script src="../../shared/profile.js" data-game-id="constellations"></script>
+<script src="../../shared/site-settings.js" data-game-id="constellations"></script>
+<script src="settings.js"></script>
+<link rel="stylesheet" href="../../ad-bar.css">
+<link rel="manifest" href="../../manifest.json">
+<!-- Pyodide is loaded by app.js after first paint, so this shell is readable before the engine is warm. -->
+<link rel="stylesheet" href="../../shared/a11y.css">
+<link rel="stylesheet" href="../../shared/touch-targets.css">
+<link rel="stylesheet" href="../../shared/lite-mode.css">
+</head>
+<body>
+<a class="skip-link" href="#chart-panel">Skip to the chart</a>
+<main id="game">
+  <div class="top-row">
+    <a href="../../index.html" class="hub-back-link">&larr; All games</a>
+    <h1>Constellations</h1>
+  </div>
+  <div class="game-toolbar">
+    <button id="charts-toggle-button" type="button" aria-expanded="false" aria-controls="charts-panel" data-testid="constellations-charts-toggle">Charts</button>
+    <button id="atlas-toggle-button" type="button" aria-expanded="false" aria-controls="atlas-panel" data-testid="constellations-atlas-toggle">Sky Atlas</button>
+    <button id="changelog-toggle-button" type="button" aria-expanded="false" aria-controls="changelog-panel"><span class="btn-long">What's New</span><span class="btn-short" aria-hidden="true">News</span></button>
+    <button id="settings-toggle-button" type="button" aria-expanded="false" aria-controls="settings-panel">Settings</button>
+    <button id="info-page-toggle-button" type="button" aria-expanded="false" aria-controls="info-page-panel">About</button>
+  </div>
+  <p class="tagline">A dim observatory on Hollin Ridge, and a patch of real sky on the table. Some stars carry a number: that many lines must touch it. Join the stars without crossing any lines, and the figure that appears is a constellation. Nothing is timed and nothing can go wrong.</p>
+
+  <section id="charts-panel" class="panel" hidden aria-labelledby="charts-heading">
+    <h2 id="charts-heading">Charts</h2>
+    <p class="note">Each season is a page of the atlas. Five finished charts in a season open the next page; inside a season, pick any chart in any order. A chart shows its name only once you have finished it.</p>
+    <div id="season-list" class="seasons"></div>
+  </section>
+
+  <section id="atlas-panel" class="panel" hidden aria-labelledby="atlas-heading">
+    <h2 id="atlas-heading">Sky Atlas</h2>
+    <p class="note">Every constellation you finish is drawn here at its real place in the sky (right ascension runs along the top, declination down the side). A dashed ring marks a chart still to find: its shape and name stay hidden until you finish it.</p>
+    <div id="atlas-wrap" class="atlas-wrap">
+      <svg id="atlas" class="atlas" role="group" aria-label="The sky atlas" focusable="false"></svg>
+    </div>
+    <h3 id="cards-heading">Atlas cards</h3>
+    <p id="cards-empty" class="note">No cards yet. Finish a chart and its card is written here.</p>
+    <div id="atlas-cards" class="cards"></div>
+  </section>
+
+  <section id="changelog-panel" class="panel" hidden aria-labelledby="changelog-heading">
+    <h2 id="changelog-heading">What's New</h2>
+    <div id="changelog-entries"></div>
+  </section>
+  <section id="info-page-panel" class="panel" hidden aria-labelledby="info-page-heading">
+    <h2 id="info-page-heading">About Constellations</h2>
+    <p id="info-page-framing" class="info-page-framing"></p>
+    <h3 id="pledge-heading"></h3>
+    <ul id="pledge-list" class="pledge-list"></ul>
+    <h3 id="how-heading"></h3>
+    <ul id="how-list"></ul>
+    <h3 id="facts-heading"></h3>
+    <ul id="info-page-sources" class="info-page-sources"></ul>
+    <h3>Read live from Wikipedia</h3>
+    <div id="info-live" class="info-live" aria-live="polite"><p class="note">Opens with this panel.</p></div>
+    <p class="note"><a id="sources-link" href="../../sources.html?game=constellations">All sources for this game</a></p>
+  </section>
+
+  <section id="settings-panel" class="panel" hidden aria-labelledby="settings-heading">
+    <h2 id="settings-heading">Settings</h2>
+    <h3>The sky</h3>
+    <div class="settings-row"><label><input type="checkbox" id="letters-checkbox" checked data-testid="constellations-letters"> Show star letters (A, B, C ... from left to right; the chart text uses them)</label></div>
+    <div class="settings-row"><label><input type="checkbox" id="names-checkbox" data-testid="constellations-names"> Show star names on finished charts</label></div>
+    <h3>Display (stays on this device)</h3>
+    <div class="settings-row">
+      <span id="text-size-label">Text size</span>
+      <div class="text-size-control" role="group" aria-labelledby="text-size-label">
+        <button id="text-size-decrease-button" type="button" aria-label="Decrease text size">A&minus;</button>
+        <button id="text-size-reset-button" type="button" aria-label="Reset text size">A</button>
+        <button id="text-size-increase-button" type="button" aria-label="Increase text size">A+</button>
+      </div>
+    </div>
+    <div class="settings-row"><label><input type="checkbox" id="reduced-motion-checkbox"> Reduce motion (follows your system setting until you choose)</label></div>
+    <div class="settings-row"><label><input type="checkbox" id="effects-checkbox" checked> Effects (star glow and the shine when a constellation is found)</label></div>
+    <div class="settings-row"><label><input type="checkbox" id="high-contrast-checkbox"> High contrast (brighter text, thicker outlines)</label></div>
+    <div class="settings-row"><button id="theme-setting-button" type="button" aria-pressed="false">Light theme</button></div>
+    <div class="settings-row"><button id="display-reset-button" type="button">Reset display settings</button></div>
+    <div class="settings-row"><button id="reset-button" type="button" data-testid="constellations-reset">Start the whole atlas over</button> <span class="note">Takes every constellation out of the atlas. It asks first.</span></div>
+  </section>
+  <p id="toast" class="note toast" role="status" aria-live="polite" title="Tap to dismiss"></p>
+
+  <section id="stats" class="stat-strip" aria-label="Your progress">
+    <div class="stat"><span class="stat-label">Constellations</span><span id="stat-done" class="stat-value" data-testid="constellations-stat-done">0</span></div>
+    <div class="stat"><span class="stat-label">Stars joined</span><span id="stat-stars" class="stat-value" data-testid="constellations-stat-stars">0</span></div>
+    <div class="stat"><span class="stat-label">Atlas pages</span><span id="stat-pages" class="stat-value">0</span></div>
+    <div class="stat"><span class="stat-label">Seasons done</span><span id="stat-seasons" class="stat-value">0</span></div>
+    <div class="stat"><span class="stat-label">Lines drawn</span><span id="stat-lines" class="stat-value" data-testid="constellations-stat-lines">0</span></div>
+  </section>
+
+  <section id="chart-panel" class="panel" aria-labelledby="chart-heading" tabindex="-1">
+    <p id="chart-kicker" class="note kicker"></p>
+    <h2 id="chart-heading">Chart</h2>
+    <p id="chart-caption" class="note chart-caption"></p>
+    <div class="chart-nav button-row">
+      <button id="prev-chart-button" type="button" aria-label="Previous chart">&larr; Prev</button>
+      <button id="next-chart-button" type="button" aria-label="Next chart that is not finished yet" data-testid="constellations-next">Next &rarr;</button>
+    </div>
+    <div class="tools button-row" role="toolbar" aria-label="Chart tools">
+      <button id="undo-button" type="button" data-testid="constellations-undo">Undo</button>
+      <button id="redo-button" type="button" data-testid="constellations-redo">Redo</button>
+      <button id="clear-button" type="button" data-testid="constellations-clear">Erase my lines</button>
+      <button id="done-button" type="button" class="primary" data-testid="constellations-done" disabled>Done</button>
+    </div>
+    <div id="done-card" class="done-card" hidden role="status">
+      <p id="done-title" class="done-title"></p>
+      <p id="done-text" class="note"></p>
+      <div class="button-row">
+        <button id="done-next-button" type="button" class="primary" data-testid="constellations-done-next">Next chart</button>
+        <button id="done-atlas-button" type="button">See the atlas</button>
+      </div>
+    </div>
+    <div id="board-wrap" class="board-wrap">
+      <svg id="board" class="board" role="application" tabindex="0" aria-labelledby="chart-heading" aria-describedby="status-line cursor-line" focusable="true"></svg>
+    </div>
+    <p id="status-line" class="status-line" role="status"></p>
+    <p id="cursor-line" class="cursor-line" aria-live="off"></p>
+    <p class="note keys-note">Keys: arrow keys move from star to star. Space or Enter picks up the star the ring is on; on a second star it draws the line (or erases it if it is there) and carries on from that star. Escape puts the star down. Ctrl or Cmd with Z undoes. With a mouse or finger, drag from one star to another, or tap one star and then the next; tap a line you drew to erase it.</p>
+    <details id="chart-text" class="text-alt chart-text">
+      <summary>Chart as text</summary>
+      <div id="chart-text-body"></div>
+    </details>
+  </section>
+
+  <p id="engine-status" class="note" role="status">Opening the observatory...</p>
+  <p id="announce" class="sr-only" role="status" aria-live="polite"></p>
+</main>
+
+<a id="credits-link" class="credits-link" href="../../credits.html" style="display:block;text-align:center;font-size:0.85rem;margin:0.75rem 0;color:inherit;">Credits</a>
+<div class="ad-bar ad-bar--bottom">
+  <span class="ad-bar-label ad-bar-label-full">Advertisement — not part of the game</span>
+  <span class="ad-bar-label ad-bar-label-short">Ad</span>
+  <!-- Google AdSense manual display ad unit (placeholder client ID until the application is approved) -->
+  <ins class="adsbygoogle"
+       style="display:block; width:320px; height:50px;"
+       data-ad-client="ca-pub-XXXXXXXXXXXXXXXX"
+       data-ad-slot="XXXXXXXXXX"></ins>
+</div>
+<script src="https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.js"></script>
+<script src="../../shared/hub-auth.js"></script>
+<script src="../../shared/save-widget.js" data-game-id="constellations"></script>
+<script src="../../shared/confirm-dialog.js"></script>
+<script src="app.js"></script>
+<script src="../../shared/last-played.js" data-game-id="constellations"></script>
+<script src="../../shared/whats-new-banner.js" data-game-id="constellations"></script>
+<script>
+  if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.register("../../sw.js").catch(function () { /* offline support is optional */ });
+  }
+</script>
+</body>
+</html>

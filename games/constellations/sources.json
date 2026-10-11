@@ -1,0 +1,53 @@
+{
+  "game": "constellations",
+  "updated": "2026-10-12",
+  "research": [
+    {
+      "title": "HYG star database v4.1",
+      "by": "David Nash (astronexus)",
+      "url": "https://github.com/astronexus/HYG-Database",
+      "read": "2026-10-12",
+      "note": "Supplies every star's position (right ascension and declination), brightness (magnitude), names and Bayer or Flamsteed designation. A dated snapshot of the 238 stars used is kept in data/snapshot.json."
+    },
+    {
+      "title": "Stellarium sky culture: modern (IAU constellation figures)",
+      "by": "The Stellarium project",
+      "url": "https://stellarium.org",
+      "read": "2026-10-12",
+      "note": "Supplies the traditional line figure of each constellation as chains of Hipparcos star numbers. Some long figures are trimmed to their brightest stars so a chart stays readable."
+    },
+    {
+      "title": "Constellation",
+      "by": "Wikipedia",
+      "url": "https://en.wikipedia.org/wiki/Constellation",
+      "read": "2026-10-12",
+      "note": "Supplies the About page facts: the 88 IAU constellations (accepted 1922, borders adopted 1928), Ptolemy's 48, and that the shapes slowly change. The About panel also reads the summary of IAU designated constellations live when it is opened and shows the day it was read."
+    }
+  ],
+  "inspiration": [
+    {
+      "title": "Hashiwokakero and other connect-the-dots logic puzzles",
+      "kind": "game",
+      "note": "The idea of joining numbered points so that every number holds, lines do not cross and the whole is connected. Constellations uses its own rules and proves every chart has exactly one answer."
+    },
+    {
+      "title": "Flow Free",
+      "kind": "game",
+      "by": "Big Duck Games",
+      "note": "The calm, untimed feel of a logic puzzle that is never lost."
+    }
+  ],
+  "other": [
+    {
+      "title": "Pyodide",
+      "by": "The Pyodide project",
+      "url": "https://pyodide.org/",
+      "note": "Runs the game's Python rules, solver and line logic in the browser, so there is no server and no build step."
+    },
+    {
+      "title": "Short constellation notes",
+      "by": "this project",
+      "note": "The one- or two-sentence note on each atlas card is written for this game from ordinary, well-attested facts about each constellation; it is not copied from any page."
+    }
+  ]
+}
