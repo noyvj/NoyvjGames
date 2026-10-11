@@ -2,6 +2,10 @@
   "changelog": [
     {
       "date": "2026-10-12",
+      "entry": "There is now a Today's run button (in Settings under Run seed, and on the year-end card). It starts a year from today's seed, so everyone who sails it that day gets the same weather, ships and story beats. It asks first, your records are kept, and bringing that year to its end counts it once for the day. Missing a day costs nothing."
+    },
+    {
+      "date": "2026-10-12",
       "entry": "Every year now has a seed you can copy from Settings (Run seed), and you can start a year from someone else's seed to sail the same weather, ships and story beats. Your records and achievements are kept. Older saves load as before."
     },
     {

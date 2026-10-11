@@ -988,7 +988,7 @@
     if (v.phase === "night") renderNight(v);
     if (v.phase === "morning") renderMorning(v);
     if (v.phase === "day") renderDay(v);
-    if (v.phase === "yearend") renderYearEnd(v);
+    if (v.phase === "yearend") { renderYearEnd(v); recordDaily(v); }
     if (lastPhase !== null && lastPhase !== v.phase) {
       var panel = $(PHASE_PANELS[v.phase]);
       var heading = panel.querySelector("h2");
@@ -1091,6 +1091,20 @@
     ["#seed-copy-slot", "#yearend-seed"].forEach(function (sel) {
       if (document.querySelector(sel)) seedCopies.push(window.NoyvjSeed.mountCopy(sel, { seed: "", label: "This year's seed" }));
     });
+    // Z-5c: "Today's run" is a year sailed from the UTC date's seed (the same weather, ships and story beats for everyone
+    // that day). It asks first, because it replaces the year in progress; nothing else is lost. Finishing the year records it.
+    ["#daily-slot", "#yearend-daily"].forEach(function (sel) {
+      if (!document.querySelector(sel) || !window.NoyvjSeed.daily) return;
+      window.NoyvjSeed.daily.mountButton(sel, {
+        game: GAME_ID,
+        onStart: function (text) {
+          window.NoyvjSeed.set(view && view.seed_text || "");   // the button set it; put the year's own seed back until the player says yes
+          var go = function () { orderDraft = null; lastPhase = null; send(newRunRequest("abandon", text), true); showToast("Today's year begins from seed " + text + ". Your records are kept."); };
+          if (window.ConfirmDialog) window.ConfirmDialog.ask({ id: GAME_ID + "-daily-start", message: "Abandon this year and sail today's seed, " + text + "? Your lifetime records and achievements are kept.", confirmLabel: "Sail today's run", allowSkip: false, onConfirm: go });
+          else go();
+        },
+      });
+    });
     if (document.querySelector("#seed-start-slot")) {
       window.NoyvjSeed.mountStart("#seed-start-slot", {
         game: GAME_ID, buttonLabel: "Sail this seed",
@@ -1101,6 +1115,15 @@
         },
       });
     }
+  }
+  // Z-5c: a year sailed from today's seed and brought to its year end counts once for the day (the shared record the hub's
+  // Today strip reads). An older day's seed never counts, and nothing in the game changes.
+  function recordDaily(v) {
+    try {
+      var S = window.NoyvjSeed;
+      if (!S || !S.daily || !v.seed_text || !S.daily.isDaily(GAME_ID, v.seed_text)) return;
+      S.daily.markCompleted(GAME_ID, { text: "Year kept: " + v.rep_title + " to the harbour" });
+    } catch (e) { /* the shared record is a courtesy and must never break the page */ }
   }
   function renderSeed(v) {
     if (!window.NoyvjSeed) return;
