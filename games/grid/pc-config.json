@@ -205,6 +205,7 @@
       "#active-policy-display",
       "#demand-response-level-display",
       "#demand-response-button",
+      "#sandbox-balance",
       "#undo-build-button",
       "#grant-banner",
       "#grant-message-display",

@@ -344,6 +344,33 @@
     <!-- C-23: a short picture after Advance Round (sun arc, wind streaks, the demand curve drawing itself); decoration only. -->
     <div id="round-animation" class="round-animation" aria-hidden="true" hidden></div>
 
+    <!-- C-27: sandbox balance sliders. Hidden except in the practice sandbox, where they never count for career points, achievements or community stats. -->
+    <details id="sandbox-balance" class="sandbox-balance" hidden open>
+      <summary>Sandbox balance (practice only)</summary>
+      <div class="sandbox-balance-row">
+        <label for="sandbox-bal-cost-decay">Renewable cost multiplier per unit built</label>
+        <input type="range" id="sandbox-bal-cost-decay" min="0.85" max="1" step="0.01" value="0.94">
+        <output id="sandbox-bal-cost-decay-out" for="sandbox-bal-cost-decay">0.94</output>
+      </div>
+      <div class="sandbox-balance-row">
+        <label for="sandbox-bal-breakdown">Breakdown chance, % of the real game's</label>
+        <input type="range" id="sandbox-bal-breakdown" min="0" max="300" step="10" value="0">
+        <output id="sandbox-bal-breakdown-out" for="sandbox-bal-breakdown">0%</output>
+      </div>
+      <div class="sandbox-balance-row">
+        <label for="sandbox-bal-growth">Demand growth per round</label>
+        <input type="range" id="sandbox-bal-growth" min="0" max="30" step="1" value="10">
+        <output id="sandbox-bal-growth-out" for="sandbox-bal-growth">10</output>
+      </div>
+      <div class="sandbox-balance-row">
+        <label for="sandbox-bal-revenue">Revenue per unit of demand met</label>
+        <input type="range" id="sandbox-bal-revenue" min="0" max="6" step="0.5" value="2">
+        <output id="sandbox-bal-revenue-out" for="sandbox-bal-revenue">2.0</output>
+      </div>
+      <button id="sandbox-bal-reset" class="secondary" type="button">Reset sliders</button>
+      <p id="sandbox-bal-note" class="comparison-message" role="status"></p>
+    </details>
+
     <button id="info-page-toggle-button" class="secondary info-page-toggle">Loading...</button>
     <div id="info-page-panel" class="section" hidden>
       <p id="info-page-framing" class="info-page-framing"></p>

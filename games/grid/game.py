@@ -472,6 +472,12 @@ def _breakdown_probability_for_age(age):
 
 
 class GridState:
+    # C-27: the numbers the practice sandbox's balance sliders can move. A real run always uses the defaults
+    # (the module constants); only SandboxGridState.set_balance() ever changes them, on its own instance.
+    revenue_per_unit = REVENUE_PER_UNIT_MET
+    base_demand_growth = DEMAND_GROWTH_PER_ROUND
+    cost_decay_override = None
+
     def __init__(self):
         self.round_number = 1
         self.demand = STARTING_DEMAND
@@ -661,7 +667,7 @@ class GridState:
             return 0.0
         shortfall = max(0.0, self.demand - effective_capacity)
         sold = min(shortfall, rate, self.stored_energy)
-        revenue = sold * REVENUE_PER_UNIT_MET * ARBITRAGE_PEAK_PRICE_MULTIPLIER
+        revenue = sold * self.revenue_per_unit * ARBITRAGE_PEAK_PRICE_MULTIPLIER
         self.stored_energy -= sold
         self.arbitrage_revenue_total += revenue
         self.last_arbitrage = {"mode": "discharge", "units": sold, "revenue": revenue}
@@ -796,6 +802,8 @@ class GridState:
         if plant_type not in RENEWABLE_TYPES:
             return base
         decay = RD_GRANT_DECAY if "rd_grant" in self.perks else RENEWABLE_COST_DECAY
+        if self.cost_decay_override is not None:
+            decay = self.cost_decay_override
         multiplier = max(MIN_COST_MULTIPLIER, decay ** self.cumulative_built[plant_type])
         return base * multiplier
 
@@ -1135,7 +1143,7 @@ class GridState:
 
         effective_capacity = self.effective_capacity_for_revenue(weather_rng)
         met_demand = min(effective_capacity, self.demand)
-        revenue = met_demand * REVENUE_PER_UNIT_MET
+        revenue = met_demand * self.revenue_per_unit
         base_revenue = revenue
         # GC-15: the Perfect Round combo's bonus on this round's base revenue (earned by the
         # streak so far, so it applies before this round's own result is known).
@@ -1533,11 +1541,12 @@ class GridState:
         floored so growth can never go negative or stall out entirely.
         Single source of truth for advance_round()/projection()/the
         demand-growth-arrow tooltip, so all three always agree."""
-        growth = DEMAND_GROWTH_PER_ROUND
+        growth = self.base_demand_growth
         if self.steeper_demand_growth_enabled:
             growth *= STEEP_DEMAND_GROWTH_MULTIPLIER
         growth -= self.demand_response_level * DEMAND_RESPONSE_REDUCTION_PER_LEVEL
-        return max(DEMAND_RESPONSE_MIN_GROWTH, growth)
+        # The floor is the normal 3, or lower when a sandbox slider sets the base pace below it.
+        return max(min(DEMAND_RESPONSE_MIN_GROWTH, self.base_demand_growth), growth)
 
     def enact_policy(self, policy_type):
         """TODO-C19: opt into the currently-offered policy lever. Only one
@@ -1619,6 +1628,19 @@ state = GridState()
 #   - the real game is set aside whole (see sandbox_enter) and put back unchanged on leaving.
 # The sandbox grid is a separate SandboxGridState object, so nothing it does can touch the real one.
 SANDBOX_FUNDS = 1_000_000
+# C-27: the balance sliders. Each moves one number of the sandbox grid (never a real run): how fast renewables get
+# cheaper per unit built, how likely an aging breakdown is (as a percentage of the real game's chance; 0 is the sandbox's
+# usual "nothing breaks"), how far demand grows each round and what a unit of demand met earns.
+SANDBOX_BALANCE = {
+    "cost_decay": {"label": "Renewable cost multiplier per unit built", "min": 0.85, "max": 1.0, "step": 0.01, "format": "{:.2f}"},
+    "breakdown": {"label": "Breakdown chance, % of the real game's", "min": 0.0, "max": 300.0, "step": 10.0, "format": "{:.0f}%"},
+    "growth": {"label": "Demand growth per round", "min": 0.0, "max": 30.0, "step": 1.0, "format": "{:.0f}"},
+    "revenue": {"label": "Revenue per unit of demand met", "min": 0.0, "max": 6.0, "step": 0.5, "format": "{:.1f}"},
+}
+SANDBOX_BALANCE_DEFAULTS = {
+    "cost_decay": RD_GRANT_DECAY, "breakdown": 0.0, "growth": float(DEMAND_GROWTH_PER_ROUND),
+    "revenue": float(REVENUE_PER_UNIT_MET),
+}
 SANDBOX_ALL_PERKS = frozenset(skill_tree.effects(CAREER_TREE, CAREER_UNLOCK_ORDER))
 
 
@@ -1626,6 +1648,37 @@ class SandboxGridState(GridState):
     """A grid that cannot fail: see the Z-18 note above."""
 
     sandbox = True
+
+    def __init__(self):
+        super().__init__()
+        self.balance = dict(SANDBOX_BALANCE_DEFAULTS)
+        self.breakdown_scale = 0.0
+
+    def set_balance(self, key, value):
+        """C-27: moves one balance slider (clamped to its range). Returns the value now in force, or None for an
+        unknown key or a value that is not a number."""
+        spec = SANDBOX_BALANCE.get(key)
+        if spec is None:
+            return None
+        try:
+            number = float(value)
+        except (TypeError, ValueError):
+            return None
+        if number != number or number in (float("inf"), float("-inf")):
+            return None
+        number = min(spec["max"], max(spec["min"], number))
+        self.balance[key] = number
+        if key == "cost_decay":
+            # The usual value leaves the normal rule alone (the R&D grant is on in the sandbox, so 0.94).
+            default = SANDBOX_BALANCE_DEFAULTS["cost_decay"]
+            self.cost_decay_override = None if abs(number - default) < 1e-9 else number
+        elif key == "growth":
+            self.base_demand_growth = number
+        elif key == "revenue":
+            self.revenue_per_unit = number
+        elif key == "breakdown":
+            self.breakdown_scale = number / 100.0
+        return number
 
     @property
     def funds(self):
@@ -1639,10 +1692,14 @@ class SandboxGridState(GridState):
         return 0.0
 
     def aging_breakdown_probability(self):
-        return 0.0
+        if self.breakdown_scale <= 0:
+            return 0.0
+        return min(MAX_AGE_BREAKDOWN_PROBABILITY, super().aging_breakdown_probability() * self.breakdown_scale)
 
     def breakdown_risk_probability(self, plant_type):
-        return 0.0
+        if self.breakdown_scale <= 0:
+            return 0.0
+        return min(MAX_AGE_BREAKDOWN_PROBABILITY, super().breakdown_risk_probability(plant_type) * self.breakdown_scale)
 
     def _maybe_offer_grant(self, round_played):
         return None
@@ -1657,10 +1714,13 @@ class SandboxGridState(GridState):
             em["status"] = "stabilized"
 
 
-def new_sandbox_state(scenario_id="standard"):
-    """A fresh sandbox grid on the given starting scenario, with every perk on."""
+def new_sandbox_state(scenario_id="standard", balance=None):
+    """A fresh sandbox grid on the given starting scenario, with every perk on (and, when a scenario change starts the
+    practice grid over, the balance sliders carried across)."""
     fresh = SandboxGridState()
     fresh.perks = set(SANDBOX_ALL_PERKS)
+    for key, value in (balance or {}).items():
+        fresh.set_balance(key, value)
     fresh.apply_scenario(scenario_id if scenario_id in SCENARIOS else "standard")
     return fresh
 
@@ -3574,9 +3634,10 @@ def demand_growth_arrow():
     pulled net growth below standard, regardless of the Steeper Demand
     Growth toggle."""
     growth = state.demand_growth_this_round()
-    if growth > DEMAND_GROWTH_PER_ROUND:
+    standard = state.base_demand_growth
+    if growth > standard:
         return "\u25B2"
-    if growth < DEMAND_GROWTH_PER_ROUND:
+    if growth < standard:
         return "\u25BC"
     return "\u25AC"
 
@@ -3584,7 +3645,7 @@ def demand_growth_arrow():
 def demand_growth_title():
     growth = state.demand_growth_this_round()
     if state.demand_response_level > 0:
-        baseline = DEMAND_GROWTH_PER_ROUND * (
+        baseline = state.base_demand_growth * (
             STEEP_DEMAND_GROWTH_MULTIPLIER if state.steeper_demand_growth_enabled else 1
         )
         return (
@@ -3593,8 +3654,8 @@ def demand_growth_title():
             f"otherwise-{baseline:.0f}-per-round pace."
         )
     if state.steeper_demand_growth_enabled:
-        return f"Demand is rising +{growth:.0f} per round -- faster than the standard +{DEMAND_GROWTH_PER_ROUND} (Steeper Demand Growth is on)."
-    return f"Demand is rising at the standard +{DEMAND_GROWTH_PER_ROUND} per round."
+        return f"Demand is rising +{growth:.0f} per round -- faster than the standard +{state.base_demand_growth:g} (Steeper Demand Growth is on)."
+    return f"Demand is rising at the standard +{state.base_demand_growth:g} per round."
 
 
 def wear_tooltip(plant_type):
@@ -3769,7 +3830,7 @@ def fleet_rows():
     for plant_type in PLANT_TYPES:
         count = state.plant_counts[plant_type]
         generating = plant_type in GENERATION_TYPES
-        revenue = state.capacity_share(plant_type) * paid_units * REVENUE_PER_UNIT_MET if generating else 0.0
+        revenue = state.capacity_share(plant_type) * paid_units * state.revenue_per_unit if generating else 0.0
         rows.append({
             "type": plant_type,
             "plant": PLANT_LABEL[plant_type],
@@ -4446,6 +4507,7 @@ def render():
     render_chart_theme()
     render_unlock_flash_setting()
     render_round_animation_setting()
+    render_sandbox_balance()
     render_chart_tables()
     render_fleet_overview()
     render_coach()
@@ -5359,7 +5421,7 @@ def on_cycle_scenario(event=None):
     global state
     next_id = SCENARIO_ORDER[(SCENARIO_ORDER.index(state.scenario) + 1) % len(SCENARIO_ORDER)]
     if sandbox_active:  # Z-18: any time; the practice grid starts over on the new scenario
-        state = new_sandbox_state(next_id)
+        state = new_sandbox_state(next_id, state.balance)
     else:
         state.apply_scenario(next_id)
     render()
@@ -5492,8 +5554,8 @@ def mix_hover_text(plant_type):
     if total_capacity <= 0:
         return f"{PLANT_LABEL[plant_type]}: no generation on the grid yet, so no share of capacity, revenue or emissions."
     paid_units = min(total_capacity, state.demand)
-    revenue = share * paid_units * REVENUE_PER_UNIT_MET
-    revenue_total = paid_units * REVENUE_PER_UNIT_MET
+    revenue = share * paid_units * state.revenue_per_unit
+    revenue_total = paid_units * state.revenue_per_unit
     emissions = state.plant_counts[plant_type] * PLANT_CAPACITY[plant_type] * EMISSIONS_FACTOR[plant_type]
     emissions_total = sum(
         state.plant_counts[t] * PLANT_CAPACITY[t] * EMISSIONS_FACTOR[t] for t in GENERATION_TYPES
@@ -6731,6 +6793,48 @@ def sandbox_is_active():
     return sandbox_active
 
 
+def sandbox_balance_text():
+    """One plain line saying what the sliders are set to and that none of it counts."""
+    if not sandbox_active:
+        return ""
+    moved = [
+        f"{spec['label'].lower()} {spec['format'].format(state.balance[key])}"
+        for key, spec in SANDBOX_BALANCE.items() if abs(state.balance[key] - SANDBOX_BALANCE_DEFAULTS[key]) > 1e-9
+    ]
+    base = "Sandbox balance: nothing here counts for career points, achievements or community stats."
+    return base + (" Changed: " + "; ".join(moved) + "." if moved else " All sliders at their usual values.")
+
+
+def render_sandbox_balance():
+    panel = document.getElementById("sandbox-balance")
+    panel.hidden = not sandbox_active
+    if not sandbox_active:
+        return
+    for key, spec in SANDBOX_BALANCE.items():
+        slug = key.replace("_", "-")
+        document.getElementById(f"sandbox-bal-{slug}").value = str(state.balance[key])
+        document.getElementById(f"sandbox-bal-{slug}-out").innerText = spec["format"].format(state.balance[key])
+    document.getElementById("sandbox-bal-note").innerText = sandbox_balance_text()
+
+
+def _make_sandbox_balance_handler(key):
+    def handler(event=None):
+        if not sandbox_active:
+            return
+        target = getattr(event, "target", None)
+        state.set_balance(key, getattr(target, "value", None))
+        render()
+    return handler
+
+
+def on_sandbox_balance_reset(event=None):
+    if not sandbox_active:
+        return
+    for key, value in SANDBOX_BALANCE_DEFAULTS.items():
+        state.set_balance(key, value)
+    render()
+
+
 def sandbox_enter():
     """Sets the real game aside and starts a practice grid. True when the sandbox is on."""
     global state, sandbox_active, _sandbox_real
@@ -6815,6 +6919,11 @@ def setup():
         "change", create_proxy(_make_pref_select_handler("number_format"))
     )
     document.getElementById("pref-unit").addEventListener("change", create_proxy(_make_pref_select_handler("unit")))
+    for balance_key in SANDBOX_BALANCE:
+        document.getElementById(f"sandbox-bal-{balance_key.replace('_', '-')}").addEventListener(
+            "input", create_proxy(_make_sandbox_balance_handler(balance_key))
+        )
+    document.getElementById("sandbox-bal-reset").addEventListener("click", create_proxy(on_sandbox_balance_reset))
     document.getElementById("pref-round-animation").addEventListener(
         "change", create_proxy(_make_pref_checkbox_handler("round_animation"))
     )

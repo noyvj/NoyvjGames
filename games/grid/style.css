@@ -1967,3 +1967,13 @@ html[data-reduced-motion="true"] *::after {
 @keyframes ra-streak { 0% { stroke-dashoffset: 40; opacity: 0; } 30% { opacity: 1; } 100% { stroke-dashoffset: -50; opacity: 0; } }
 @media (prefers-reduced-motion: reduce) { .round-animation { display: none !important; } }
 html[data-reduced-motion="true"] .round-animation { display: none !important; }
+html[data-theme="light"] .achievement-card-fresh { color: #7a5200; }
+
+/* C-27: sandbox balance sliders (shown only inside the practice sandbox). */
+.sandbox-balance { text-align: left; border: 1px dashed rgba(140, 160, 255, 0.5); border-radius: 8px; padding: 0.4rem 0.7rem; margin: 0.4rem 0; }
+.sandbox-balance[hidden] { display: none; }
+.sandbox-balance summary { cursor: pointer; font-weight: 600; min-height: 44px; display: flex; align-items: center; }
+.sandbox-balance-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 0.15rem 0.6rem; align-items: center; margin: 0.35rem 0; }
+.sandbox-balance-row label { grid-column: 1 / -1; font-size: 0.85rem; }
+.sandbox-balance-row input[type="range"] { width: 100%; min-height: 32px; }
+.sandbox-balance-row output { font-variant-numeric: tabular-nums; min-width: 3.2rem; text-align: right; font-weight: 600; }
