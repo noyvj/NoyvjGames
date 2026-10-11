@@ -5428,7 +5428,6 @@ def on_settings_import(event=None):
         render()
 
 
-
 def setup():
     # index.html already marks these hidden via the `hidden` attribute,
     # but that markup default doesn't exist for the pytest fake-DOM
