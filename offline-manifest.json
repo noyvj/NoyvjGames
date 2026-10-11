@@ -3238,12 +3238,12 @@
     {
      "path": "games/continuum/peers.js",
      "bytes": 11907,
-     "precached": false
+     "precached": true
     },
     {
      "path": "games/continuum/peers.py",
      "bytes": 11817,
-     "precached": false
+     "precached": true
     },
     {
      "path": "games/continuum/postmortem.py",

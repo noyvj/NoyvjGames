@@ -439,6 +439,8 @@ const PRECACHE_URLS = [
   "games/trade-empire/style.css",
   "games/trade-empire/game.py",
   "games/continuum/index.html",
+  "games/continuum/peers.js",
+  "games/continuum/peers.py",
   "games/continuum/style.css",
   "games/continuum/pc.html",
   "games/continuum/pc.css",

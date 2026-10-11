@@ -208,6 +208,15 @@
       ],
       "group": "Records",
       "label": "🌍 Community"
+    },
+    {
+      "id": "pc-peer-panel",
+      "title": "Another settlement (anonymous)",
+      "members": [
+        "#peer-section"
+      ],
+      "group": "Records",
+      "label": "🌐 Another settlement"
     }
   ],
   "adopt": [

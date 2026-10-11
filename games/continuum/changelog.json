@@ -1,6 +1,10 @@
 [
   {
     "date": "2026-10-11",
+    "entry": "New: look at another settlement. Under Civic Planning there is a new \"Another settlement (anonymous)\" section: press Show another settlement and the game fetches one other player's settlement, drawn as a dashed line beside yours (sustainability score or people, your choice) with a one-line comparison such as \"At season 30 they had 41 people and a score of 62; you have 38 people and a score of 57.\" It is a comparison, not a ranking: nobody is named and nothing is ever stored in your save. You can hide it, or report one that looks wrong. To let others see yours, Settings has an optional, off-by-default switch (it needs an account) that shares only a list of numbers per season (season, era, people, score), with no name or save; switching it off removes it. If the server is unreachable you just get a plain message."
+  },
+  {
+    "date": "2026-10-11",
     "entry": "New: a practice sandbox. In Settings, pick an era (or your current one) and press Practice sandbox: you get a separate practice settlement with every discovery already known, shelter and stores that never run short, and no way to collapse. A banner says Sandbox: nothing here is saved, nothing in it earns an achievement, banks Legacy, fills the archive or posts a score, and Leave sandbox puts your real settlement back exactly as it was (paused). Saving while you are in it saves your real settlement."
   },
   {

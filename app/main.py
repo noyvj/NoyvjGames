@@ -19,6 +19,7 @@ from sqlalchemy.orm import Session
 import account_data
 import boards
 import bug_reports
+import ghosts
 import leaderboards
 import market
 import pools
@@ -2316,6 +2317,13 @@ def admin_patch_bug_report(
     db.refresh(row)
     username = db.query(User.username).filter(User.id == row.user_id).scalar() if row.user_id else None
     return bug_reports.admin_out(row, username)
+
+
+# --- R-33: anonymous ghost settlements (opt-in publish, one random peer; see ghosts.py) ---
+app.include_router(ghosts.make_router(
+    get_db=get_db, get_current_user=get_current_user, get_current_user_optional=get_current_user_optional,
+    require_admin=require_admin, client_key=_client_key,
+))
 
 
 # --- Z-7 / Y-1: the player profile (see profiles.py) ---

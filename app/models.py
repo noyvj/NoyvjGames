@@ -348,3 +348,48 @@ class UserProfile(Base):
     event_badges_json = Column(JSON, nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+
+
+class GhostSeries(Base):
+    """R-33 (Continuum peer-city ghost, see ghosts.py): one account's published, anonymous settlement
+    trajectory. A separate NEW table, so create_all builds it and patch_schema() needs no statement.
+    One row per (game, account), replaced on every re-publish and removed by DELETE /ghosts/{game}.
+    `series_json` is a compact list of per-season number rows ([season, era, people, score] for
+    Continuum) and nothing else: never free text, a username or a save. `user_id` is the owner (used
+    only to keep one row per account, to delete it and to never show you your own); it is never
+    returned. The foreign key cascades on the database, and reads join `users` so a row whose account
+    is gone is never served. `is_hidden` is the admin's (or the report threshold's) hide flag."""
+
+    __tablename__ = "ghost_series"
+    __table_args__ = (
+        UniqueConstraint("game_id", "user_id", name="uq_ghost_series_game_user"),
+        Index("ix_ghost_series_band", "game_id", "scenario", "hard"),
+    )
+
+    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    game_id = Column(String, nullable=False)
+    user_id = Column(String, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    scenario = Column(String, nullable=False)
+    hard = Column(Boolean, nullable=False, default=False, server_default=false())
+    era = Column(Integer, nullable=False)
+    seasons = Column(Integer, nullable=False)
+    series_json = Column(JSON, nullable=False)
+    is_hidden = Column(Boolean, nullable=False, default=False, server_default=false())
+    report_count = Column(Integer, nullable=False, default=0, server_default="0")
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+
+
+class GhostReport(Base):
+    """A "report this settlement" click on a ghost. It stores the ghost's id, a reason from a fixed
+    list and nothing about the reporter (no account, no address). A new table. `is_resolved` is the
+    owner's triage flag in the admin list."""
+
+    __tablename__ = "ghost_reports"
+
+    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    game_id = Column(String, nullable=False, index=True)
+    ghost_id = Column(String, nullable=False, index=True)
+    reason = Column(String, nullable=False)
+    is_resolved = Column(Boolean, nullable=False, default=False, server_default=false())
+    created_at = Column(DateTime(timezone=True), server_default=func.now())

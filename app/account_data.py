@@ -22,7 +22,7 @@ from sqlalchemy.orm import Session
 
 import stats
 from models import (
-    AnswerReport, AuthSession, BugReport, Feedback, HelpfulVote, LeaderboardEntry, PageView, Rating, Save,
+    AnswerReport, AuthSession, BugReport, Feedback, GhostSeries, HelpfulVote, LeaderboardEntry, PageView, Rating, Save,
     SaveSnapshot, ScoreEntry, ScoreProfile, User, UserProfile,
 )
 import profiles
@@ -106,6 +106,11 @@ def build_export(db: Session, user: User, now: Optional[datetime] = None) -> dic
             {"entry_id": r.entry_id, "helpful": bool(r.helpful), "updated_at": _iso(r.updated_at)} for r in votes
         ],
         "profile": profiles.export_block(db, user),
+        "published_ghosts": [   # R-33: what this account published (numbers only), if anything
+            {"game_id": g.game_id, "scenario": g.scenario, "hard": bool(g.hard), "final_era": g.era,
+             "seasons": g.seasons, "series": g.series_json}
+            for g in db.query(GhostSeries).filter(GhostSeries.user_id == user.id).all()
+        ],
         "bug_reports": [
             {"id": r.id, "game_id": r.game_id, "page": r.page, "note": r.note, "schema_version": r.schema_version,
              "browser": r.browser, "viewport": r.viewport, "console_log": r.console_log,
@@ -143,6 +148,7 @@ def delete_account(db: Session, user: User) -> dict:
         ("feedback", Feedback),
         ("whats_new_votes", HelpfulVote),
         ("bug_reports", BugReport),
+        ("ghost_series", GhostSeries),   # R-33: the opt-in published trajectory
     ):
         removed[label] = db.query(model).filter(model.user_id == uid).delete(synchronize_session=False)
     removed["profile"] = db.query(UserProfile).filter(UserProfile.user_id == uid).delete(synchronize_session=False)

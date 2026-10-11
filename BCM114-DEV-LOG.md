@@ -1503,3 +1503,8 @@ Added readability and feedback features to Thaw without adding screen clutter: t
 **Game:** continuum
 **Did:** Added `tests/test_full_playthrough.py`: one continuous run from the Tribal era to the Relay Age through the real UI, with a real JSON save and reload after each transition, then a walk back through every completed era with the Look Back revisit (saving inside a revisit, playing in the past, returning) checking the present settlement is unchanged, plus the transition log beats and the rule that an unreached era cannot be revisited. Found that the seasons played between legs starve the settlement unless it is tended, so the test tops up food and stores between legs, as a player would.
 **Result:** Continuum tests 1307 to 1311, all green. No game code changed.
+
+### 2026-10-11 (Continuum, R-33 peer-city ghost)
+**Game:** continuum
+**Did:** Added an opt-in "Another settlement (anonymous)" overlay. A Settings switch (off by default, account required) publishes a compact per-season series (season, era, people, score; never text or the save) to a new backend table; a button fetches one anonymous series from a similar band and draws it dashed beside your own on a small chart, with a text line, a Report button and a plain message offline. Backend: new tables `ghost_series` and `ghost_reports`, routes under `/ghosts`, rate limits, a minimum of 3 other published rows before anything is shown, three reports hide a ghost for review; the account export and deletion know about it.
+**Result:** backend tests 424 to 485, Continuum tests 1311 to 1387. The backend part goes live with the owner's push; nothing has run against the real backend.

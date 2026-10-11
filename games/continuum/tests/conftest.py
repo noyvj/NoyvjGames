@@ -232,6 +232,9 @@ ELEMENT_IDS = [
     "geography-new-button", "geography-off-button", "geography-seed-input", "geography-use-seed-button", "geography-status",
     "heritage-toggle-button", "heritage-panel", "heritage-note", "heritage-summary", "heritage-list", "heritage-status",
     "scenario-hardy-button", "scenario-river-button", "scenario-heirloom-button", "rewind-button",
+    # R-33 -- the "another settlement" comparison (the show/report buttons and the Settings switch are peers.js only).
+    "peer-graph", "peer-summary", "peer-text", "peer-legend", "peer-hide-button", "peer-metric-button",
+    "peer-report-button",
     "challenge-dial-population",
     "challenge-dial-population-value",
     "challenge-dial-food",

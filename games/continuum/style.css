@@ -1889,6 +1889,21 @@ html[data-theme="light"] .heritage-card { border-color: rgba(122, 74, 18, 0.55);
 html[data-theme="light"] .map-heritage { stroke: #7a4a12; }
 html[data-theme="light"] .orders-card { border-color: rgba(122, 74, 18, 0.55); background: rgba(255, 255, 255, 0.6); }
 
+/* R-33: the "another settlement" comparison (peers.py draws the SVG, game.py render_peers fills the panel).
+   Your line is solid with a filled end dot; the other settlement is dashed with a hollow end dot, so the two
+   never rely on colour alone. */
+.peer-svg { max-width: 420px; }
+.peer-line { stroke-linejoin: round; stroke-linecap: round; }
+polyline.peer-line--mine { stroke: #e0b374; stroke-width: 2.5; fill: none; }
+polyline.peer-line--ghost { stroke: #8fb5e8; stroke-width: 2; stroke-dasharray: 5 3; fill: none; }
+circle.peer-line--mine-end { fill: #e0b374; stroke: none; }
+circle.peer-line--ghost-end { fill: none; stroke: #8fb5e8; stroke-width: 2; }
+.peer-axis { font-size: 9px; fill: currentColor; opacity: 0.7; }
+.peer-section .row-actions { flex-wrap: wrap; }
+.peer-text { font-size: 0.78rem; opacity: 0.85; }
+.peer-section[open] > summary { margin-bottom: 0.4rem; }
+.peer-section summary { cursor: pointer; font-weight: 600; }
+
 /* ==========================================================================
    Light theme (Y11b, 2026-09-27). shared/theme-light-games.css already
    restyles the common chrome (page, #game shell, .section panels, buttons,
@@ -1993,6 +2008,7 @@ html[data-theme="light"] .info-toggle p { border-color: rgba(122, 74, 18, 0.3); 
 html[data-theme="light"] .research-disclosure > summary { color: #7a4a12; border-color: rgba(122, 74, 18, 0.45); }
 html[data-theme="light"] .research-disclosure > summary:hover { background: rgba(168, 105, 31, 0.12); }
 html[data-theme="light"] .community-details summary,
+html[data-theme="light"] .peer-section summary,
 html[data-theme="light"] .real-world-note > summary { color: #1b2033; }
 html[data-theme="light"] .scenario-button.selected,
 html[data-theme="light"] #reduce-motion-toggle-button.active,
@@ -2122,3 +2138,8 @@ html[data-theme="light"] .nb-town, html[data-theme="light"] .nb-home { fill: rgb
 html[data-theme="light"] .nb-site { stroke: #5c3a0a; }
 html[data-theme="light"] .nb-site--yours { fill: rgba(168, 105, 31, 0.5); }
 html[data-theme="light"] .nb-site--rival { fill: rgba(122, 74, 18, 0.2); }
+/* R-33 light-theme rules */
+html[data-theme="light"] polyline.peer-line--mine { stroke: #8a5208; }
+html[data-theme="light"] polyline.peer-line--ghost { stroke: #2a5aa8; }
+html[data-theme="light"] circle.peer-line--mine-end { fill: #8a5208; }
+html[data-theme="light"] circle.peer-line--ghost-end { stroke: #2a5aa8; }

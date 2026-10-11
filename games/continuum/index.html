@@ -485,6 +485,15 @@
           Pause the season clock when this tab is hidden (off lets it keep running in a background tab)
         </label>
       </div>
+      <!-- R-33: opt-in sharing of the settlement's per-season numbers (peers.js; the server side is app/ghosts.py).
+           Off by default, needs an account, anonymous, removable. Not part of the save and not reset by "Reset to Default". -->
+      <div class="settings-row peer-publish-row">
+        <label class="settings-checkbox-label" for="peer-publish-checkbox">
+          <input type="checkbox" id="peer-publish-checkbox" aria-describedby="peer-publish-note" disabled>
+          Share my settlement's trajectory anonymously (optional)
+        </label>
+        <p id="peer-publish-note" class="settings-note" role="status" aria-live="polite">Off by default and optional. Needs an account. Only a list of numbers per season is sent (season, era, people, sustainability score): no name, no username, no save. Anyone who presses "Show another settlement" may see that list, with nothing to say whose it is. Switching this off removes it.</p>
+      </div>
       <!-- Z-18: practice sandbox. Every discovery known, resources never short, no collapse, nothing saved; the real settlement waits untouched. -->
       <div class="settings-row sandbox-row">
         <span class="settings-row-label" id="sandbox-heading">Practice sandbox</span>
@@ -737,6 +746,26 @@
         <p class="row-blurb">One dot per season, the latest one larger. A city that grows without livability sinking sits high and to the right.</p>
       </details>
     </div>
+    <!-- R-33: one anonymous other settlement, drawn beside yours. Optional; nothing is sent until you press the
+         button, and nothing is stored in your save. A section of its own (not inside #civic) so the Desktop boot
+         can show it as a window and the Hamlet view does not hide it. Built by game.py render_peers(); the
+         network half is peers.js. -->
+    <details id="peer-section" class="section peer-section">
+      <summary>Another settlement (anonymous)</summary>
+      <p class="row-blurb">See how one other settlement went, as a dashed line beside yours. It is a comparison, not a ranking: nobody is named, scored against you or told you looked. Pressing the button asks the server for one; nothing is kept in your save.</p>
+      <div class="row-actions">
+        <button id="peer-show-button" class="secondary" type="button">Show another settlement</button>
+        <button id="peer-metric-button" class="secondary" type="button" hidden>Chart: sustainability score (switch to people)</button>
+        <button id="peer-hide-button" class="secondary" type="button" hidden>Hide it</button>
+        <button id="peer-report-button" class="secondary" type="button" hidden>Report this settlement</button>
+      </div>
+      <p id="peer-status" class="settings-note" role="status" aria-live="polite"></p>
+      <div id="peer-graph" class="trajectory-graph"></div>
+      <p id="peer-legend" class="trajectory-legend" hidden><span class="trajectory-key trajectory-key--mine"></span> your settlement (solid) <span class="trajectory-key trajectory-key--ref"></span> Another settlement (anonymous), dashed</p>
+      <p id="peer-summary" class="row-blurb"></p>
+      <p id="peer-text" class="row-blurb peer-text"></p>
+      <p class="settings-note">To let others see yours, turn on sharing in Settings (optional, needs an account).</p>
+    </details>
     <div id="work" class="section">
       <h2 class="section-heading">Work</h2>
       <p id="idle-display" class="status-line">Unassigned: 1</p>
@@ -943,7 +972,7 @@
     // Each engine module is written into Pyodide's virtual filesystem (the
     // working directory, which is on sys.path) before game.py runs and
     // imports them. Still no build step — just more than one fetch.
-    const ENGINE_MODULES = ["sim.py", "sustainability.py", "research.py", "log.py", "transition.py", "save.py", "info_content.py", "visual.py", "summary.py", "challenges.py", "trajectory.py", "views.py", "archive.py", "consulting.py", "founding.py", "minutes.py", "hamlet.py", "forecast.py", "statlog.py", "explain.py", "postmortem.py", "naming.py", "dataexport.py", "monuments.py", "par.py", "techdebt.py", "challengerun.py", "timelapse.py", "advisors.py", "eastereggs.py", "dynasty.py", "banners.py", "doctrines.py", "rewind.py", "citizens.py", "neighbours.py", "orders.py", "heritage.py", "beyond.py", "geography.py", "sandbox.py"];
+    const ENGINE_MODULES = ["sim.py", "sustainability.py", "research.py", "log.py", "transition.py", "save.py", "info_content.py", "visual.py", "summary.py", "challenges.py", "trajectory.py", "views.py", "archive.py", "consulting.py", "founding.py", "minutes.py", "hamlet.py", "forecast.py", "statlog.py", "explain.py", "postmortem.py", "naming.py", "dataexport.py", "monuments.py", "par.py", "techdebt.py", "challengerun.py", "timelapse.py", "advisors.py", "eastereggs.py", "dynasty.py", "banners.py", "doctrines.py", "rewind.py", "citizens.py", "neighbours.py", "orders.py", "heritage.py", "beyond.py", "geography.py", "sandbox.py", "peers.py"];
 
     const CONTINUUM_TUTORIAL_STEPS = [
       {
@@ -1165,6 +1194,8 @@
   <script src="../../shared/story-toggle.js" data-game-id="continuum" data-story-selectors="#log, #advisors-panel, #advisors-toggle-button, #citizens-panel, #citizens-toggle-button, #citizen-spotlight"></script>
   <script src="../../shared/last-played.js" data-game-id="continuum"></script>
   <script src="../../shared/leaderboard.js"></script>
+  <!-- R-33: opt-in sharing switch (Settings) and the "Show another settlement" lookup; Python half is peers.py. -->
+  <script src="peers.js"></script>
   <script>
     // K-10: opt-in "you vs everyone" for the daily challenge (backend board continuum/daily_challenge, UTC day).
     if (window.NoyvjLeaderboard) {
