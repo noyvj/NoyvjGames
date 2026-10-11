@@ -1652,3 +1652,8 @@ html[data-reduced-motion="true"] .cha-confetti, html[data-lite="true"] .cha-conf
 .mixer-tick--off { left: 4px; }
 .mixer-tick--good { left: 34%; }
 .mixer-tick--perfect { left: 50%; transform: translateX(-50%); bottom: auto; top: 1px; font-weight: 700; }
+
+/* GF-10 The Family Farm story panel. */
+.family-story-text { font-size: 0.88rem; line-height: 1.5; margin: 0.4rem 0; font-style: italic; }
+.family-story-choices { display: flex; flex-direction: column; gap: 0.4rem; margin: 0.5rem 0; }
+.family-story-choices button { text-align: left; }
