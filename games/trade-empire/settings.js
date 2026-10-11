@@ -36,6 +36,7 @@
   var TEXT_SCALE_KEY = "trade-empire-text-scale";
   var REDUCE_MOTION_KEY = "trade-empire-reduced-motion";
   var EFFECTS_OFF_KEY = "trade-empire-effects-off";
+  var GHOST_OFF_KEY = "trade-empire-ghost-off";
   var MIN_SCALE = 0.85;
   var MAX_SCALE = 1.5;
   var STEP = 0.1;
@@ -111,10 +112,31 @@
     return value;
   }
 
+  // Z-3e5: the ghost of the best charter (the words under the ledger) is shown unless switched off; `.ghost-off` on <html>
+  // hides it (style.css) and game.py's _ghost_on() reads it. Display preference only, never part of the save.
+  function readStoredGhostOff() {
+    try {
+      return window.localStorage.getItem(GHOST_OFF_KEY) === "true";
+    } catch (e) {
+      return false;
+    }
+  }
+
+  function applyGhostOff(value) {
+    document.documentElement.classList.toggle("ghost-off", value);
+    try {
+      window.localStorage.setItem(GHOST_OFF_KEY, value ? "true" : "false");
+    } catch (e) {
+      // Same as above.
+    }
+    return value;
+  }
+
   function init() {
     var scale = applyScale(readStoredScale());
     var reduced = applyMotion(readStoredMotion());
     var effectsOff = applyEffectsOff(readStoredEffectsOff());
+    var ghostOff = applyGhostOff(readStoredGhostOff());
 
     var toggleButton = document.getElementById("settings-toggle-button");
     var panel = document.getElementById("settings-panel");
@@ -187,12 +209,22 @@
       });
     }
 
+    var ghostBox = document.getElementById("ghost-checkbox");
+    if (ghostBox) {
+      ghostBox.checked = !ghostOff;
+      ghostBox.addEventListener("change", function () {
+        ghostOff = applyGhostOff(!ghostBox.checked);
+      });
+    }
+
     var settingsResetButton = document.getElementById("settings-reset-button");
     if (settingsResetButton) {
       settingsResetButton.addEventListener("click", function () {
         scale = applyScale(DEFAULT_SCALE);
         reduced = applyMotion(false);
         effectsOff = applyEffectsOff(false);
+        ghostOff = applyGhostOff(false);
+        if (ghostBox) ghostBox.checked = true;
         updateMotionLabel();
         updateEffectsLabel();
       });

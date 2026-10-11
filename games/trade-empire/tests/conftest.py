@@ -27,6 +27,7 @@ ALL_COLONY_IDS = COLONY_IDS + EXPANSION_COLONY_IDS + RIFT_COLONY_IDS + DEEP_COLO
 # Statically-declared element IDs, wired up in index.html's initial markup.
 ELEMENT_IDS = [
     "profit-display",
+    "ghost-note",
     "profit-display-text",
     "sale-spark-container",
     "sale-log",

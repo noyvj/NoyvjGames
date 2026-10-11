@@ -1,6 +1,10 @@
 [
   {
     "date": "2026-10-12",
+    "entry": "New: a ghost of your best charter. When you renew the charter after reaching the endgame, the credits you had at every tick of that charter are kept as a path to race next time (only if it took at least 30 ticks, and a harder charter keeps its own). Under the ledger, a line says in words whether the charter you are playing is ahead of that path, level or behind at the same tick (for example: Ghost: you are 120 credits ahead of your best charter at tick 300), and after the endgame it compares the two times. A charter that started part-way or used Blackout is left out, and the practice sandbox never counts. Settings has a checkbox to hide the line. Nothing about your corporation changes."
+  },
+  {
+    "date": "2026-10-12",
     "entry": "New: a run seed. Open \"Run seed\" under the market's route hazards to see your corporation's seed (such as TRADEEMPIRE-K7F2Q), copy it, or start from a seed someone shared. Route hazards, Trade Guild contracts and the founding conditions of a renewed charter now follow that seed, so the same seed gives the same hazards and offers. A seed can be typed until one of those has used it; saves from before this load unchanged."
   },
   {

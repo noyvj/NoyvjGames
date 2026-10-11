@@ -1723,6 +1723,9 @@ button.secondary:disabled::after {
 .effects-off .ledger-ribbon--flourish,
 .effects-off .sale-spark { animation: none; }
 .effects-off .sale-spark { display: none; }
+/* Z-3e5: the ghost of the best charter, words under the ledger; the Settings checkbox adds .ghost-off to <html>. */
+.ghost-note { font-size: 0.8rem; opacity: 0.85; }
+.ghost-note[hidden], .ghost-off .ghost-note { display: none; }
 @media (prefers-reduced-motion: reduce) { .ledger-ribbon--flourish { animation: none; } }
 
 .colony-temperament { margin: 4px 0; font-size: 0.8rem; line-height: 1.4; opacity: 0.85; }

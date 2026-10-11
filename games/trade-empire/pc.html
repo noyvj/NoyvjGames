@@ -165,6 +165,12 @@
         </label>
       </div>
       <div class="settings-row">
+        <label class="settings-checkbox-label" for="ghost-checkbox">
+          <input type="checkbox" id="ghost-checkbox" checked>
+          Show the ghost of my best charter (a line under the ledger comparing this charter with it)
+        </label>
+      </div>
+      <div class="settings-row">
         <button id="settings-reset-button" class="secondary" type="button">Reset to Default</button>
       </div>
       <p class="settings-note">Saved in this browser only — a display preference, not part of your save code.</p>
@@ -1289,6 +1295,8 @@
       <details class="info-toggle"><summary>i</summary><p>Automating a ship makes it load and depart on its own, on a fixed route, without you clicking anything — but only a limited number of ships can be automated at once, and unlocking more slots is a research upgrade.</p></details>
       <p id="sale-log" class="sale-log">No sales yet.</p>
       <p id="throughput-display" class="map-caption">Throughput: no deliveries yet.</p>
+      <!-- Z-3e5: where this charter stands against the path of your best one (words; a polite status refreshed every 20 ticks). -->
+      <p id="ghost-note" class="map-caption ghost-note" role="status" hidden></p>
     </div>
   </div>
 
@@ -1375,6 +1383,9 @@
       // Shared seeded-run helper (shared/seed.py, Z-1): game.py's `import seed` resolves from Pyodide's filesystem.
       const seedSource = await (await fetch("../../shared/seed.py")).text();
       pyodide.FS.writeFile("seed.py", seedSource, { encoding: "utf8" });
+      // Z-3e5: shared best-charter ghost (shared/ghost.py): one credits number per tick is recorded and compared through it.
+      const ghostSource = await (await fetch("../../shared/ghost.py")).text();
+      pyodide.FS.writeFile("ghost.py", ghostSource, { encoding: "utf8" });
       const [achievementsJson, changelogJson, code] = await Promise.all([
         fetch("achievements.json").then((response) => response.text()),
         fetch("changelog.json").then((response) => response.text()),

@@ -51,6 +51,7 @@ import math
 import random
 from fractions import Fraction
 
+import ghost as ghost_lib  # Z-3e5: the shared best-charter ghost (shared/ghost.py)
 import seed as seed_lib
 
 from js import document, setInterval, setTimeout
@@ -2089,7 +2090,9 @@ def found_new_corporation():
     order = {entry["id"]: i for i, entry in enumerate(ACHIEVEMENTS)}
     carried = sorted(set(legacy_achievements) | set(achievement_ids_earned()), key=lambda a: order.get(a, 10**6))
     new_level = min(LEGACY_MAX_LEVEL, legacy_level + 1)
+    _ghost_bank()  # Z-3e5: before the charter's path is cleared below
     keep = {
+        "ghost_best": copy.deepcopy(ghost_best),
         "completed": charters_completed,
         "points": charter_points_earned + charter_points_for_next_renewal(),
         "perks": set(charter_perks),
@@ -2125,6 +2128,8 @@ def found_new_corporation():
     captains_met = keep["met"]
     records.clear()
     records.update(keep["records"])
+    ghost_best.clear()
+    ghost_best.update(keep["ghost_best"])  # Z-3e5: the best path outlives a renewal; the new charter's own path starts empty
     _guild_clear(guild_first_offer_ticks())  # Guild Standing shortens the first wait
     # Baseline BEFORE the renewal is counted: the carried achievements must
     # not all toast again, but the ones this renewal earns should.
@@ -4286,6 +4291,7 @@ def render():
     )
     render_fleet_priority()
     render_endgame()
+    render_ghost()  # Z-3e5
     render_guild()
     render_research()
     render_map()
@@ -4659,6 +4665,7 @@ def tick(event=None):
         total_profit += background_revenue_this_tick()
 
     max_profit_ever = max(max_profit_ever, total_profit)
+    _ghost_record_tick()  # Z-3e5
 
     crisis_tick()  # J-9
     render()
@@ -4716,6 +4723,201 @@ def _records_for_save():
     """The records worth saving, or an empty dict when nothing was ever recorded."""
     fresh = _fresh_records()
     return {key: copy.deepcopy(value) for key, value in records.items() if value != fresh[key]}
+
+
+# ---------------------------------------------------------------------------
+# Z-3e5 -- the ghost of your best charter (shared/ghost.py).
+# Measure: the highest credit balance reached so far this charter (`max_profit_ever`, which never dips when you buy
+# something), one number per tick, recorded by ghost.Recorder from the first tick of a charter until the endgame is
+# reached (the path to the endgame is the ghost's whole length). Renewing the charter keeps that path as the best one
+# for its mode ("standard" or "hard") when it reached the endgame in FEWER ticks than the stored best (a tie keeps the
+# older one). While the next charter runs, #ghost-note says in words whether you are ahead of it; once the endgame is
+# reached it compares the two times. Words only: Trade Empire has no chart for this. Nothing about the economy changes.
+# Saved only once there is something to save, under "ghost": {"best": {mode: {"ticks", "trace"}}, "live": {...}}; the
+# live path travels with the save so a reload in the middle of a charter does not lose it, every trace is cleaned
+# through ghost.load and every number is checked on load. A charter the ghost cannot fairly describe is never kept: one
+# joined part-way (an older save with no live path), one that used Blackout or any other tainting at any tick.
+# The Settings checkbox "Show the ghost of my best charter" (settings.js adds `.ghost-off` to <html>) hides the note.
+# ---------------------------------------------------------------------------
+GHOST_MODES = ("standard", "hard")
+GHOST_MIN_TICKS = 30        # a shorter charter is never kept
+GHOST_NOTE_EVERY = 20       # ticks between two refreshes of the note, so a screen reader is not chatty
+GHOST_STRIDE_MAX = 1 << 20
+_ghost_rec = ghost_lib.Recorder()
+_ghost_state = {"tainted": False, "endgame": None, "shown": None}   # endgame: the tick count when it was reached
+ghost_best = {}             # mode -> {"ticks": int, "trace": shared trace}
+
+
+def _ghost_mode():
+    return "hard" if hard_charter_active else "standard"
+
+
+def _ghost_on():
+    """The Settings checkbox (settings.js adds `.ghost-off` to <html>); on when there is no page to ask."""
+    try:
+        return not document.documentElement.classList.contains("ghost-off")
+    except Exception:
+        return True
+
+
+def _ghost_reset_live():
+    _ghost_rec.reset()
+    _ghost_state.update(tainted=False, endgame=None, shown=None)
+
+
+def _ghost_record_tick():
+    """Called from tick(): one number per tick until the endgame, never in the sandbox."""
+    if sandbox_active or chain_active is not None or _ghost_state["tainted"] or _ghost_state["endgame"] is not None:
+        return
+    if _ghost_rec.turns == 0 and total_sales_count > 0:
+        _ghost_state["tainted"] = True      # joined part-way (a save from before the ghost): the path would not start at the start
+        return
+    if blackout_enabled:
+        _ghost_state["tainted"] = True      # Blackout is a different game; the charter is not comparable
+        return
+    _ghost_rec.record(max_profit_ever)
+    if endgame_reached:
+        _ghost_state["endgame"] = _ghost_rec.turns
+
+
+def _ghost_bank():
+    """Keep the charter that is about to be renewed as the ghost for its mode when it reached the endgame sooner than
+    the stored best. Returns True when it was kept."""
+    ticks = _ghost_state["endgame"]
+    if _ghost_state["tainted"] or ticks is None or ticks < GHOST_MIN_TICKS or ticks != _ghost_rec.turns:
+        return False
+    trace = _ghost_rec.trace("best charter")
+    if trace is None:
+        return False
+    mode = _ghost_mode()
+    old = ghost_best.get(mode)
+    if old is not None and ticks >= old["ticks"]:
+        return False
+    ghost_best[mode] = {"ticks": ticks, "trace": trace}
+    return True
+
+
+def _ghost_for_save():
+    out = {}
+    if ghost_best:
+        out["best"] = {mode: {"ticks": entry["ticks"], "trace": copy.deepcopy(entry["trace"])} for mode, entry in ghost_best.items()}
+    if _ghost_state["tainted"]:
+        out["live"] = {"tainted": True}
+    elif _ghost_rec.turns:
+        live = {"turns": _ghost_rec.turns, "stride": _ghost_rec.stride, "values": list(_ghost_rec.values)}
+        if _ghost_state["endgame"] is not None:
+            live["endgame"] = _ghost_state["endgame"]
+        out["live"] = live
+    return out
+
+
+def _load_ghost(raw):
+    """Restore the ghost from an untrusted save value: anything unreadable is dropped (no ghost, nothing breaks)."""
+    ghost_best.clear()
+    _ghost_reset_live()
+    if not isinstance(raw, dict):
+        return
+    best = raw.get("best")
+    if isinstance(best, dict):
+        for mode in GHOST_MODES:
+            item = best.get(mode)
+            if not isinstance(item, dict):
+                continue
+            trace = ghost_lib.load(item.get("trace"))
+            ticks = _saved_int(item.get("ticks"), GHOST_MIN_TICKS, ghost_lib.MAX_TURNS, 0)
+            if trace is not None and ticks and trace["turns"] == ticks:
+                ghost_best[mode] = {"ticks": ticks, "trace": trace}
+    live = raw.get("live")
+    if not isinstance(live, dict):
+        return
+    if live.get("tainted") is True:
+        _ghost_state["tainted"] = True
+        return
+    turns = _saved_int(live.get("turns"), 1, ghost_lib.MAX_TURNS, 0)
+    stride = _saved_int(live.get("stride"), 1, GHOST_STRIDE_MAX, 0)
+    values = live.get("values")
+    if not (turns and stride and stride & (stride - 1) == 0 and isinstance(values, list)):
+        return
+    clean = [ghost_lib.clean_number(v) for v in values[:ghost_lib.MAX_LEN]]
+    if len(values) >= ghost_lib.MAX_LEN or None in clean or len(clean) != -(-turns // stride):
+        return                              # a recording the recorder could not have made
+    endgame = _saved_int(live.get("endgame"), 1, turns, 0) or None
+    if endgame is not None and endgame != turns:
+        return                              # recording stops the moment the endgame is reached
+    _ghost_rec.values, _ghost_rec.turns, _ghost_rec.stride, _ghost_rec._last = clean, turns, stride, clean[-1]
+    _ghost_state["endgame"] = endgame
+
+
+def ghost_result():
+    """The shared comparison (the same keys as ghost.compare) between this charter now and the stored best path for
+    its mode, or None when there is no ghost or no live path. Built from ghost.value_at because the recorder thins the
+    live path (so a full per-tick list is never kept); a test pins that it agrees with ghost.compare on a full list."""
+    entry = ghost_best.get(_ghost_mode())
+    turn = _ghost_rec.turns
+    if entry is None or turn < 1 or _ghost_state["tainted"]:
+        return None
+    mine = ghost_lib.clean_number(max_profit_ever)
+    if mine is None:
+        return None
+    ghost = ghost_lib.value_at(entry["trace"], turn)
+    if ghost is None:
+        return {"turn": turn, "live": mine, "ghost": None, "gap": None, "status": "ended", "lead": 0, "best_turn": None, "best_gap": 0}
+    gap = round(mine - ghost, 2)
+    lead = abs(gap)
+    status = "level" if lead < ghost_lib.LEVEL_EPSILON else ("ahead" if gap > 0 else "behind")
+    return {"turn": turn, "live": mine, "ghost": ghost, "gap": gap, "status": status, "lead": 0 if status == "level" else lead,
+            "best_turn": None, "best_gap": 0}
+
+
+def ghost_note_text():
+    """The words under the ledger: the shared ghost sentence while racing, a plain comparison once the endgame is
+    reached, or one plain line saying what the ghost is. '' when the ghost is off for this moment (sandbox, Chain Builder)."""
+    if sandbox_active or chain_active is not None:
+        return ""
+    mode = _ghost_mode()
+    entry = ghost_best.get(mode)
+    kind = "harder " if mode == "hard" else ""
+    if _ghost_state["tainted"]:
+        return f"Ghost: this {kind}charter is not compared with your best, because it started part-way or used Blackout."
+    if entry is None:
+        return (f"Ghost: when you renew the charter after reaching the endgame, this {kind}charter's credits are kept here as a "
+                f"faint path to race next time, one number per tick (kept only if it took at least {GHOST_MIN_TICKS} ticks).")
+    ticks = _ghost_state["endgame"]
+    if ticks is not None:
+        diff = entry["ticks"] - ticks
+        if diff > 0:
+            how = f"{diff} tick{'' if diff == 1 else 's'} sooner than"
+        elif diff < 0:
+            how = f"{-diff} tick{'' if diff == -1 else 's'} after"
+        else:
+            how = "the same tick as"
+        return f"Ghost: you reached the endgame at tick {ticks}, {how} your best {kind}charter (tick {entry['ticks']})."
+    if _ghost_rec.turns == 0:
+        return (f"Ghost: your best {kind}charter reached the endgame at tick {entry['ticks']}. "
+                "This charter is compared with its credits every tick.")
+    result = ghost_result()
+    if result is None:
+        return ""
+    if result["status"] == "ended":
+        return f"Ghost: your best {kind}charter had reached the endgame by tick {entry['ticks']}; this one is still on its way."
+    text = ghost_lib.summary(result, label=f"your best {kind}charter", unit=" credits")
+    return "Ghost: " + text[len("ghost: "):].replace(" at turn ", " at tick ") + "."
+
+
+def render_ghost():
+    """Fill #ghost-note, refreshed every GHOST_NOTE_EVERY ticks and whenever what it says changes kind."""
+    note = document.getElementById("ghost-note")
+    if note is None:
+        return
+    on = _ghost_on() and not sandbox_active and chain_active is None
+    key = (on, _ghost_mode(), _ghost_rec.turns // GHOST_NOTE_EVERY, _ghost_state["endgame"], _ghost_state["tainted"],
+           tuple(sorted((m, e["ticks"]) for m, e in ghost_best.items())))
+    if key == _ghost_state["shown"]:
+        return
+    _ghost_state["shown"] = key
+    text = ghost_note_text() if on else ""
+    note.innerText = text
+    note.hidden = not text
 
 
 # ---------------------------------------------------------------------------
@@ -7898,6 +8100,7 @@ def get_state():
             else {}
         ),
         **({"records": _records_for_save()} if _records_for_save() else {}),
+        **({"ghost": _ghost_for_save()} if _ghost_for_save() else {}),  # Z-3e5
         **({"expedition": dict(expedition)} if expedition is not None else {}),
         **({"blueprints": [dict(d) for d in blueprints]} if blueprints else {}),
         **({"hub": hub_colony} if hub_colony is not None else {}),
@@ -8468,6 +8671,7 @@ def _apply_state(data):
 
     _load_captains(data.get("captains"))
     _load_records(data.get("records"))
+    _load_ghost(data.get("ghost"))  # Z-3e5
     _load_expedition(data.get("expedition"))
     _load_exchange(data.get("exchange"))
     _load_blueprints(data.get("blueprints"))
