@@ -432,3 +432,30 @@ def test_a_cached_page_without_the_strip_still_renders(game_env):
     m._el = lambda element_id: None if element_id.startswith("achievement-strip") else real(element_id)
     m._achievement_strip_signature = None
     m.render_achievement_strip()
+
+
+# ------------------------------------------------------------------------------------------ E-26
+def test_the_dock_line_repeats_resources_resilience_and_growth_and_follows_clicks(game_env):
+    e = game_env.elements
+    assert e["dock-resources"].innerText == "Resources 200 · Resilience 0 · Growth 0"
+    game_env.invest_resilience()
+    game_env.invest_growth()
+    assert e["dock-resources"].innerText == "Resources 155 · Resilience 1 · Growth 1"
+
+
+def test_the_dock_line_is_shown_only_while_the_bar_is_docked_and_phone_rules_exist():
+    css = (GAME_DIR / "style.css").read_text(encoding="utf-8")
+    assert ".dock-resources { display: none; margin: 0; }" in css
+    assert "#actions-dock.mobile-docked .dock-resources" in css
+    block = css[css.index("E-26: phone tap targets"):css.index("BATCH3-END")]
+    for needle in (".achievement-node::after", "min-height: 44px", "min-width: 44px", "(max-width: 640px)"):
+        assert needle in block
+    page = (GAME_DIR / "index.html").read_text(encoding="utf-8")
+    assert 'id="dock-resources" class="dock-resources" aria-hidden="true"' in page and page.index('id="actions-dock"') < page.index('id="dock-resources"') < page.index('id="resolve-event-button"')
+
+
+def test_a_cached_page_without_the_dock_line_still_renders(game_env):
+    m = game_env.module
+    real = m._el
+    m._el = lambda element_id: None if element_id == "dock-resources" else real(element_id)
+    m.render_dock_resources()

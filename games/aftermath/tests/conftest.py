@@ -232,6 +232,8 @@ ELEMENT_IDS = [
     "achievement-strip",
     "achievement-strip-summary",
     "achievement-strip-detail",
+    # E-26: the resources line in the docked bar.
+    "dock-resources",
 ]
 for _skill in SKILL_IDS:
     ELEMENT_IDS += [

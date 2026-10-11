@@ -2189,6 +2189,21 @@ html[data-effects="false"] .schedule-strip .schedule-chip--next { animation: non
 }
 .achievement-node:focus-visible { outline: 3px solid #ffd400; outline-offset: 1px; }
 .achievement-strip-detail { margin: 0.3rem 0 0; min-height: 1.1em; opacity: 0.85; }
+/* E-26: phone tap targets and the resources line in the bottom bar. A live scan at 360px found these under 44px
+   in this game's own controls (the shared shell's own small controls are handled by shared/touch-targets.css). */
+.dock-resources { display: none; margin: 0; }
+#actions-dock.mobile-docked .dock-resources {
+  display: block; flex: 1 0 100%; padding: 0 0.1rem 0.2rem; font-size: 0.85rem; font-weight: 700; font-variant-numeric: tabular-nums;
+}
+@media (pointer: coarse), (max-width: 640px) {
+  .achievement-branch-nodes { gap: 0.55rem; }
+  .achievement-node { position: relative; width: 1.75rem; height: 1.75rem; font-size: 0.9rem; }
+  .achievement-node::after { content: ""; position: absolute; inset: -8px; }
+  .schedule-chip { display: flex; align-items: center; min-height: 44px; }
+  #text-size-decrease-button, #text-size-reset-button, #text-size-increase-button,
+  .skill-pin-button, .step-button, .preset-apply-button { min-width: 44px; }
+  .real-world-source, .achievements-hub-link, #info-page-sources a { display: inline-flex; align-items: center; min-height: 44px; }
+}
 /* BATCH3-END */
 
 /* ============================================================

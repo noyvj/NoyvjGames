@@ -5817,6 +5817,7 @@ def render():
     render_settlement_look()  # GE-25
     render_hit_number()  # GE-14
     render_run_timer()  # GE-23
+    render_dock_resources()  # E-26
     render_challenge()  # E-4
     document.getElementById("curriculum-display").innerText = curriculum_message()
     document.getElementById("resources-display").innerText = f"Resources: {run.resources:.0f}"
@@ -7619,6 +7620,24 @@ def render_achievement_strip():
             nodes.appendChild(node)
         branch.appendChild(nodes)
         strip.appendChild(branch)
+
+
+# ---------------------------------------------------------------------------
+# E-26: on a phone the investments and Face Next Event are pinned to the bottom of the screen
+# (shared/mobile-dock.js), so the numbers they spend are repeated as one line at the top of that bar.
+# CSS shows it only while the bar is docked; the real status lines (and the sticky top bar) are unchanged.
+# ---------------------------------------------------------------------------
+def dock_resources_text(run_state):
+    return (
+        f"Resources {run_state.resources:.0f} \u00b7 Resilience {run_state.resilience_capacity} "
+        f"\u00b7 Growth {run_state.growth_capacity}"
+    )
+
+
+def render_dock_resources():
+    element = _el("dock-resources")
+    if element is not None:
+        element.innerText = dock_resources_text(run)
 
 
 # ---------------------------------------------------------------------------
