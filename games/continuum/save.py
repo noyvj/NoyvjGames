@@ -253,6 +253,16 @@ def restore_city(state, data):
             if isinstance(value, list):
                 cleaned = [float(v) for v in value if _is_finite_number(v)]
                 setattr(state, field, cleaned)
+        elif field == "last_report":
+            # QA-1: the season report is None or a dict of plain numbers. A string or a list used to be stored
+            # as-is and the next dashboard read called .get() on it; anything else is kept out, bad entries
+            # inside a real dict are dropped one by one.
+            if value is None:
+                state.last_report = None
+            elif isinstance(value, dict):
+                state.last_report = {
+                    key: item for key, item in value.items() if isinstance(key, str) and _is_finite_number(item)
+                }
         elif field == "ever_recovered_from_collapse":
             if isinstance(value, bool):
                 state.ever_recovered_from_collapse = value
@@ -449,7 +459,7 @@ class Campaign:
             return False
         try:
             version = int(data.get("save_version", SAVE_VERSION))
-        except (TypeError, ValueError):
+        except (TypeError, ValueError, OverflowError):  # OverflowError: the non-standard JSON token Infinity
             return False
         if version > SAVE_VERSION:
             # A save written by a newer build of the game. Refuse rather

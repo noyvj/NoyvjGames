@@ -142,7 +142,7 @@ def clean_spot(raw):
         return None
     if isinstance(season, bool) or not isinstance(season, int) or season < 1:
         return None
-    if event not in SPOTLIGHT:
+    if not isinstance(event, str) or event not in SPOTLIGHT:
         return None
     return {
         "season": min(season, 10**7),

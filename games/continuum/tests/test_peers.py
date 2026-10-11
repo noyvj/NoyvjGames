@@ -364,7 +364,6 @@ def test_a_failing_or_missing_peers_hook_never_breaks_a_season(game_env):
 
 
 def test_the_hook_is_called_once_per_completed_season(game_env):
-    module = game_env.module
     calls = []
     sys.modules["js"].window = types.SimpleNamespace(ContinuumPeers=types.SimpleNamespace(seasonDone=lambda: calls.append(1)))
     try:

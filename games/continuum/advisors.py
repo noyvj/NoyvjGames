@@ -120,7 +120,7 @@ def _clean_action(raw):
 
 
 def _clean_advice(raw):
-    if not isinstance(raw, dict) or raw.get("id") not in ADVISORS:
+    if not isinstance(raw, dict) or not isinstance(raw.get("id"), str) or raw.get("id") not in ADVISORS:
         return None
     action = _clean_action(raw.get("action"))
     text = raw.get("text")
@@ -139,7 +139,7 @@ def _clean_advice(raw):
         "score_delta": _num(raw.get("score_delta", raw.get("score_effect"))),
         "quality": quality if quality in ("sound", "narrow", "empty") else "empty",
         "status": status if status in ("open", "followed") else "open",
-        "rival": raw.get("rival") if raw.get("rival") in ADVISORS else "",
+        "rival": raw.get("rival") if isinstance(raw.get("rival"), str) and raw.get("rival") in ADVISORS else "",
     }
 
 
@@ -165,7 +165,7 @@ def clean(raw):
                 out["record"][a][k] = _int(record[a].get(k), 0, 10**6, 0)
     history = raw.get("history")
     for item in history[-HISTORY_MAX:] if isinstance(history, list) else []:
-        if isinstance(item, dict) and item.get("id") in ADVISORS and isinstance(item.get("text"), str):
+        if isinstance(item, dict) and isinstance(item.get("id"), str) and item.get("id") in ADVISORS and isinstance(item.get("text"), str):
             out["history"].append({"id": item["id"], "text": item["text"][:240],
                                    "season": _int(item.get("season"), 0, 10**7, 0)})
     return out

@@ -133,12 +133,15 @@ class LogEntry:
         if not isinstance(data, dict):
             return None
         text = data.get("text")
-        if not text:
+        if not text or not isinstance(text, str):
             return None
+        # QA-1: era and kind are used as dict keys when the log is drawn, so a list or dict there (a damaged save)
+        # raised "unhashable type"; the season must be a whole number.
+        season, era, kind = data.get("season", 0), data.get("era", ""), data.get("kind", "beat")
         return LogEntry(
-            data.get("season", 0),
-            data.get("era", ""),
-            data.get("kind", "beat"),
+            season if isinstance(season, int) and not isinstance(season, bool) else 0,
+            era if isinstance(era, str) else "",
+            kind if isinstance(kind, str) else "beat",
             text,
         )
 
@@ -271,13 +274,13 @@ class Chronicle:
 
         milestones = data.get("population_milestones_hit")
         self._population_milestones_hit = (
-            {m for m in milestones if m in POPULATION_MILESTONES}
+            {m for m in milestones if isinstance(m, int) and not isinstance(m, bool) and m in POPULATION_MILESTONES}
             if isinstance(milestones, list)
             else set()
         )
 
         label = data.get("last_score_label")
-        self._last_score_label = label if label in _LABEL_ORDER else None
+        self._last_score_label = label if isinstance(label, str) and label in _LABEL_ORDER else None
 
         researched = data.get("researched_seen")
         self._researched_seen = (

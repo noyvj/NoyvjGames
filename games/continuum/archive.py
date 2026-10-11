@@ -113,7 +113,7 @@ def clean_record(raw):
         "peak_population": pop,
         "peak_score": peak,
         "rank": rank if rank in RANKS else None,
-        "scenario": raw.get("scenario") if raw.get("scenario") in sim.SCENARIOS else sim.DEFAULT_SCENARIO,
+        "scenario": raw.get("scenario") if isinstance(raw.get("scenario"), str) and raw.get("scenario") in sim.SCENARIOS else sim.DEFAULT_SCENARIO,
         "hard_mode": raw.get("hard_mode") is True,
         "achievements": achievements,
         "thumb": clean_thumbnail(raw.get("thumb")),

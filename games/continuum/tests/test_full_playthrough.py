@@ -23,6 +23,7 @@ from .test_digital_era import (
 from .test_relay_era import push_to_relay_ready
 from .test_space_age_era import push_to_space_ready
 
+
 # (era reached, how to satisfy and click that transition)
 def _click(game_env):
     game_env.module.render()

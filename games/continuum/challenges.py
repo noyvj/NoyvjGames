@@ -249,7 +249,7 @@ def clean(raw):
             if cid in CHALLENGES and isinstance(count, int) and not isinstance(count, bool):
                 result["completed"][cid] = min(max(count, 0), 999)
     active = raw.get("active")
-    if isinstance(active, dict) and active.get("id") in CHALLENGES:
+    if isinstance(active, dict) and isinstance(active.get("id"), str) and active.get("id") in CHALLENGES:
         baseline = active.get("baseline")
         done = active.get("seasons_done")
         if (
