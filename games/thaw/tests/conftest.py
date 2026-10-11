@@ -201,6 +201,8 @@ ELEMENT_IDS = [
     "pace-display",
     "mascots",
     "history-readout",
+    "skin-select",
+    "skin-note",
 ]
 for _category in CATEGORIES:
     ELEMENT_IDS += [f"{_category}-name", f"{_category}-count", f"{_category}-invest-button"]

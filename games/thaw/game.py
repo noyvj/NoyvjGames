@@ -2174,6 +2174,8 @@ SLOW_BURN_MAX_ACCELERATION = 1.5
 WELL_FUNDED_TARGET = 500
 LONG_HAUL_ROUND_TARGET = 25
 BEAT_BOTH_REGIONS_MIN_ROUND = 15
+SNOW_LEOPARD_MIN_ROUND = 20   # GG-14: a full session (about 20 minutes) in
+SNOW_LEOPARD_GAP = 8.0        # GG-14: degrees cooler than the unmanaged Region D
 
 
 def _all_categories_invested():
@@ -2220,6 +2222,11 @@ ACHIEVEMENT_CHECKS = {
     "comparison_engaged": _both_secondary_regions_invested,
     "preset_strategist": lambda: preset_used_ever,
     "worst_case_witnessed": lambda: worst_case_region_revealed,
+    # GG-14: secret; a quiet predator that keeps well ahead of pure neglect for a whole session.
+    "snow_leopard": lambda: (
+        region.round_number >= SNOW_LEOPARD_MIN_ROUND
+        and region_d.temperature - region.temperature >= SNOW_LEOPARD_GAP
+    ),
 }
 
 # Progress readouts, only for achievements with a genuine numeric scale-up
@@ -2289,6 +2296,7 @@ ACHIEVEMENT_GLYPHS = {
     "comparison_engaged": "\u2696\uFE0F",
     "preset_strategist": "\U0001F39B\uFE0F",
     "worst_case_witnessed": "\U0001F480",
+    "snow_leopard": "\U0001F406",
 }
 DEFAULT_ACHIEVEMENT_GLYPH = "\u2744\uFE0F"
 
@@ -2448,6 +2456,7 @@ _achievements_seen_ids = set()
 def _seed_achievement_toast_baseline():
     global _achievements_seen_ids
     _achievements_seen_ids = set(achievement_ids_earned())
+    del _skin_announcements[:]
 
 
 def _display_achievement_toast(message):
@@ -2478,12 +2487,131 @@ def _check_new_achievements_for_toast():
     if newly:
         by_id = {entry["id"]: entry for entry in ACHIEVEMENTS}
         labels = [by_id[aid]["label"] for aid in newly if aid in by_id]
+        suffix = skin_unlock_suffix()  # GG-18
         if labels:
             if len(labels) == 1:
-                _display_achievement_toast(f"🏆 Achievement unlocked: {labels[0]}")
+                _display_achievement_toast(f"🏆 Achievement unlocked: {labels[0]}{suffix}")
             else:
-                _display_achievement_toast(f"🏆 {len(labels)} achievements unlocked: " + ", ".join(labels))
+                _display_achievement_toast(f"🏆 {len(labels)} achievements unlocked: " + ", ".join(labels) + suffix)
+    del _skin_announcements[:]
     _achievements_seen_ids = earned_now
+
+
+# ===========================================================================
+# GG-18 / GG-14: map skins. The permafrost picture at the top of the page can wear one of four extra
+# looks, each unlocked by a named achievement and kept for good on this device once unlocked (a
+# collection, not a streak: nothing is lost if the run is restarted). Pure CSS keyed on
+# #game[data-skin]; the chosen skin and the unlocked list live in localStorage, outside the save.
+# ===========================================================================
+SKINS = (  # (id, name, achievement that unlocks it; None = always available)
+    ("default", "Default frost", None),
+    ("aurora", "Aurora borealis", "half_dampening"),
+    ("dusk", "Tundra at dusk", "long_haul"),
+    ("pixel", "8-bit tundra", "well_funded"),
+    ("leopard", "Snow Leopard station", "snow_leopard"),
+)
+SKIN_KEY = "thaw_skin_v1"
+SKIN_UNLOCKS_KEY = "thaw_skin_unlocks_v1"
+skins_unlocked = set()
+current_skin = "default"
+_skin_announcements = []
+
+
+def _skin_entry(skin_id):
+    for entry in SKINS:
+        if entry[0] == skin_id:
+            return entry
+    return None
+
+
+def _achievement_label(achievement_id):
+    for entry in ACHIEVEMENTS:
+        if entry["id"] == achievement_id:
+            return entry["label"]
+    return achievement_id
+
+
+def skin_available(skin_id):
+    entry = _skin_entry(skin_id)
+    return entry is not None and (entry[2] is None or skin_id in skins_unlocked)
+
+
+def load_skins():
+    """Reads the stored choice and unlock list, forcing both into known values."""
+    global current_skin, skins_unlocked
+    skins_unlocked = set()
+    raw = _read_local_storage_item(SKIN_UNLOCKS_KEY)
+    if raw:
+        try:
+            listed = json.loads(raw)
+        except (ValueError, TypeError):
+            listed = []
+        if isinstance(listed, list):
+            skins_unlocked = {i for i in listed if isinstance(i, str) and _skin_entry(i) and _skin_entry(i)[2]}
+    choice = _read_local_storage_item(SKIN_KEY)
+    current_skin = choice if isinstance(choice, str) and skin_available(choice) else "default"
+
+
+def record_skin_unlocks():
+    """Adds every skin whose achievement is currently earned to the stored list. Returns the ids that
+    are new this time (for the unlock message)."""
+    earned = set(achievement_ids_earned())
+    fresh = [sid for sid, _name, ach in SKINS if ach and ach in earned and sid not in skins_unlocked]
+    if fresh:
+        skins_unlocked.update(fresh)
+        _write_local_storage_item(SKIN_UNLOCKS_KEY, json.dumps(sorted(skins_unlocked)))
+        _skin_announcements.extend(fresh)
+    return fresh
+
+
+def set_skin(skin_id):
+    """Picks a skin; only an unlocked one can be chosen. Returns True when it took."""
+    global current_skin
+    if not skin_available(skin_id):
+        return False
+    current_skin = skin_id
+    _write_local_storage_item(SKIN_KEY, skin_id)
+    return True
+
+
+def skin_note_text():
+    unlocked = sum(1 for sid, _n, _a in SKINS if skin_available(sid))
+    locked = [(name, ach) for sid, name, ach in SKINS if not skin_available(sid)]
+    text = f"{unlocked} of {len(SKINS)} map skins unlocked."
+    if locked:
+        text += " Locked: " + "; ".join(f"{name} (earn {_achievement_label(ach)})" for name, ach in locked) + "."
+    else:
+        text += " Every skin is yours."
+    return text
+
+
+def render_skins():
+    select = document.getElementById("skin-select")
+    options = ""
+    for sid, name, ach in SKINS:
+        if skin_available(sid):
+            options += f'<option value="{sid}">{_escape(name)}</option>'
+        else:
+            options += f'<option value="{sid}" disabled>{_escape(name)} (locked: {_escape(_achievement_label(ach))})</option>'
+    select.innerHTML = options
+    select.value = current_skin
+    document.getElementById("skin-note").innerText = skin_note_text()
+    document.getElementById("game").setAttribute("data-skin", current_skin)
+
+
+def on_skin_change(event=None):
+    chosen = document.getElementById("skin-select").value
+    set_skin(chosen)
+    render_skins()
+
+
+def skin_unlock_suffix():
+    """Words added to the achievement toast when it also opened a skin; clears the pending list."""
+    names = [_skin_entry(sid)[1] for sid in _skin_announcements if _skin_entry(sid)]
+    del _skin_announcements[:]
+    if not names:
+        return ""
+    return " \u2014 opens the " + " and ".join(names) + " map skin in Settings"
 
 
 # G19: a per-browser "best run" — the highest temperature_saved()
@@ -5216,6 +5344,8 @@ def render():
     update_community_compare_panel()
     render_climate_scientist()
     render_history_readout()
+    record_skin_unlocks()  # GG-18
+    render_skins()
 
 
 def _make_invest_handler(category):
@@ -6217,6 +6347,8 @@ def load_state(data):
 def setup():
     global confirm_threshold
     confirm_threshold = load_confirm_threshold()
+    load_skins()  # GG-18
+    document.getElementById("skin-select").addEventListener("change", create_proxy(on_skin_change))
     document.getElementById("confirm-threshold-select").addEventListener(
         "change", create_proxy(on_confirm_threshold_change)
     )

@@ -1537,3 +1537,96 @@ html[data-lite="true"] .mascot .mascot-face { animation: none; }
 .settings-code-row > .settings-label, .settings-code-row > .settings-note, .settings-code-row > .settings-code-input { flex: 1 1 100%; }
 .settings-code-row button { margin-right: 0.35rem; }
 #confirm-threshold-select { margin-left: 0.4rem; }
+
+/* ============================================================
+   GG-18 / GG-14: map skins. Each one re-dresses the permafrost picture (and a little of the frame)
+   through #game[data-skin]; the melting look of the ice layer is kept for every skin.
+   ============================================================ */
+#game[data-skin="aurora"] .permafrost-scene {
+  background: linear-gradient(180deg, #03101c 0%, #07213a 50%, #0b2a2c 100%);
+  border-color: rgba(120, 255, 200, 0.35);
+}
+#game[data-skin="aurora"] .permafrost-scene::before {
+  background:
+    radial-gradient(40% 100% at 28% 0%, rgba(90, 255, 170, 0.5), transparent 70%),
+    radial-gradient(40% 100% at 72% 0%, rgba(170, 110, 255, 0.45), transparent 70%);
+  height: 90%;
+  filter: blur(14px);
+}
+#game[data-skin="aurora"] .permafrost-ice-layer {
+  background:
+    radial-gradient(circle at 22% 35%, rgba(255, 255, 255, 0.45) 0 3px, transparent 4px) 0 0/28px 28px,
+    linear-gradient(180deg, #c9fff0 0%, #7fd6c8 34%, #3f8f9a 72%, #1c4350 100%);
+}
+#game[data-skin="aurora"]:has(#melt-status-display.melt-status--active) .permafrost-ice-layer {
+  background:
+    radial-gradient(ellipse 34px 14px at 28% 78%, rgba(70, 60, 50, 0.6) 0%, transparent 70%),
+    linear-gradient(180deg, #8fc9bd 0%, #5f9a96 34%, #3a6a66 72%, #162e30 100%);
+}
+
+#game[data-skin="dusk"] .permafrost-scene {
+  background: linear-gradient(180deg, #2a1736 0%, #8a4256 18%, #e08a52 38%, #f2c17a 100%);
+  border-color: rgba(255, 180, 120, 0.4);
+}
+#game[data-skin="dusk"] .permafrost-scene::before {
+  background: radial-gradient(60% 100% at 50% 100%, rgba(255, 205, 130, 0.5), transparent 70%);
+  inset: auto -30px -30px -30px;
+}
+#game[data-skin="dusk"] .permafrost-ice-layer {
+  background:
+    radial-gradient(circle at 22% 35%, rgba(255, 255, 255, 0.4) 0 3px, transparent 4px) 0 0/28px 28px,
+    linear-gradient(180deg, #f3dcd0 0%, #c9a3b4 34%, #7b5a7a 72%, #35283f 100%);
+}
+#game[data-skin="dusk"]:has(#melt-status-display.melt-status--active) .permafrost-ice-layer {
+  background:
+    radial-gradient(ellipse 34px 14px at 28% 78%, rgba(60, 40, 30, 0.6) 0%, transparent 70%),
+    linear-gradient(180deg, #c9a99a 0%, #9c7a86 34%, #5b4458 72%, #261c2c 100%);
+}
+
+#game[data-skin="pixel"] { border-radius: 4px; }
+#game[data-skin="pixel"] h1 { font-family: "Courier New", Courier, monospace; letter-spacing: 0.04em; }
+#game[data-skin="pixel"] .permafrost-scene {
+  border-radius: 0;
+  border: 3px solid #bfe6ff;
+  background:
+    repeating-linear-gradient(90deg, rgba(0, 0, 0, 0.12) 0 8px, transparent 8px 16px),
+    linear-gradient(180deg, #14213a 0 33%, #1b2f55 33% 66%, #25406e 66% 100%);
+  box-shadow: 4px 4px 0 rgba(0, 0, 0, 0.5);
+}
+#game[data-skin="pixel"] .permafrost-scene::before { display: none; }
+#game[data-skin="pixel"] .permafrost-ice-layer {
+  background:
+    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.18) 0 8px, transparent 8px 16px),
+    linear-gradient(180deg, #ffffff 0 25%, #bfe6ff 25% 50%, #7fb4d6 50% 75%, #3c6a8a 75% 100%);
+  box-shadow: none;
+}
+#game[data-skin="pixel"]:has(#melt-status-display.melt-status--active) .permafrost-ice-layer {
+  background:
+    repeating-linear-gradient(90deg, rgba(0, 0, 0, 0.2) 0 8px, transparent 8px 16px),
+    linear-gradient(180deg, #a8c0c8 0 25%, #7f9aa0 25% 50%, #55705f 50% 75%, #2b3d30 75% 100%);
+}
+#game[data-skin="pixel"] .permafrost-frost-dust,
+#game[data-skin="pixel"] .permafrost-bubble { border-radius: 0; }
+
+#game[data-skin="leopard"] {
+  border-color: rgba(255, 214, 140, 0.45);
+  box-shadow: 0 10px 36px rgba(0, 0, 0, 0.4), 0 0 0 2px rgba(255, 214, 140, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+#game[data-skin="leopard"] .permafrost-scene {
+  background: linear-gradient(180deg, #121722 0%, #1d2230 55%, #2a2a2e 100%);
+  border-color: rgba(255, 214, 140, 0.5);
+}
+#game[data-skin="leopard"] .permafrost-scene::before {
+  background: radial-gradient(60% 100% at 50% 0%, rgba(255, 214, 140, 0.28), transparent 70%);
+}
+#game[data-skin="leopard"] .permafrost-ice-layer {
+  background:
+    radial-gradient(ellipse 9px 6px at 18% 38%, rgba(48, 40, 34, 0.7) 0 60%, transparent 62%) 0 0/46px 34px,
+    radial-gradient(ellipse 7px 5px at 62% 70%, rgba(48, 40, 34, 0.6) 0 60%, transparent 62%) 0 0/58px 40px,
+    linear-gradient(180deg, #fbf6ee 0%, #e8dcc6 34%, #b9a88a 72%, #6a5c48 100%);
+}
+#game[data-skin="leopard"]:has(#melt-status-display.melt-status--active) .permafrost-ice-layer {
+  background:
+    radial-gradient(ellipse 9px 6px at 18% 38%, rgba(30, 24, 20, 0.7) 0 60%, transparent 62%) 0 0/46px 34px,
+    linear-gradient(180deg, #cdbfa6 0%, #a39478 34%, #7a6a52 72%, #34291d 100%);
+}
