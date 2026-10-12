@@ -2,7 +2,7 @@
    handle() returns and forwards what the player does. No game logic lives here. */
 (function () {
   "use strict";
-  var ENGINE_MODULES = ["lang.py", "pulse.py", "parse.py", "world.py", "scenes.py", "deduce.py", "notebook.py", "compound.py", "compound_scenes.py", "deduce_compound.py", "glyphs.py", "achievements.py", "bridge.py", "bridge_scenes.py", "deduce_bridge.py", "story.py", "report.py", "info.py", "museum.py"];
+  var ENGINE_MODULES = ["lang.py", "pulse.py", "parse.py", "world.py", "scenes.py", "deduce.py", "notebook.py", "compound.py", "compound_scenes.py", "deduce_compound.py", "glyphs.py", "achievements.py", "bridge.py", "bridge_scenes.py", "deduce_bridge.py", "story.py", "report.py", "info.py", "museum.py", "bench.py"];
   var STORE_KEY = "lexis:state";
   var BRIEF_KEY = "lexis:brief-seen";
   var TOKEN_LEN = 4;
@@ -661,6 +661,67 @@
     });
   }
 
+  // ---- number bench --------------------------------------------------------------------------
+  var currentBenchA = 0;
+  var currentBenchB = 0;
+  var benchTarget = null;
+
+  function generateBenchTarget() {
+    return "0" + Math.floor(Math.random() * 8).toString(2).padStart(3, "0");
+  }
+
+  function renderBench() {
+    var targetEl = $("bench-target");
+    targetEl.textContent = "";
+    if (benchTarget) {
+      var tNode = tokenNode(benchTarget);
+      tNode.setAttribute("aria-label", "Target: " + benchTarget);
+      targetEl.appendChild(tNode);
+    } else {
+      targetEl.textContent = "Press 'New puzzle' to start.";
+    }
+
+    var aEl = $("bench-a");
+    var bEl = $("bench-b");
+    [aEl, bEl].forEach(function (el) { el.textContent = ""; });
+    for (var i = 0; i < 4; i++) {
+      var bit = 3 - i; // 8, 4, 2, 1
+      var swA = document.createElement("button");
+      swA.type = "button";
+      swA.className = "switch" + (currentBenchA & (1 << bit) ? " on" : "");
+      swA.textContent = (currentBenchA & (1 << bit)) ? "1" : "0";
+      swA.setAttribute("aria-label", "Bit " + (bit + 1) + " for first number");
+      swA.addEventListener("click", function () { currentBenchA ^= (1 << bit); renderBench(); });
+      aEl.appendChild(swA);
+
+      var swB = document.createElement("button");
+      swB.type = "button";
+      swB.className = "switch" + (currentBenchB & (1 << bit) ? " on" : "");
+      swB.textContent = (currentBenchB & (1 << bit)) ? "1" : "0";
+      swB.setAttribute("aria-label", "Bit " + (bit + 1) + " for second number");
+      swB.addEventListener("click", function () { currentBenchB ^= (1 << bit); renderBench(); });
+      bEl.appendChild(swB);
+    }
+
+    var resultEl = $("bench-result");
+    if (!benchTarget) {
+      resultEl.textContent = "";
+    } else {
+      var sum = currentBenchA + currentBenchB;
+      if (sum > 7) {
+        resultEl.textContent = "Overflow! The bench only holds up to 7.";
+      } else if (sum === parseInt(benchTarget.substring(1), 2)) {
+        resultEl.textContent = "Correct! Generating new puzzle...";
+        benchTarget = generateBenchTarget();
+        currentBenchA = 0;
+        currentBenchB = 0;
+        renderBench();
+      } else {
+        resultEl.textContent = "Not quite. Adjust the switches.";
+      }
+    }
+  }
+
   function renderMuseum() {
     var list = $("museum-wall");
     list.textContent = "";
@@ -697,6 +758,7 @@
     renderMuseum();
     if (currentPlanet === "bridge") { renderBridge(); return; }
     if (currentPlanet === "compound") { renderCompound(); return; }
+    if (currentPlanet === "pulse") renderBench();
     renderStation();
     renderScenes();
     renderNotebook();
@@ -886,6 +948,13 @@
       renderTransmit();
     });
     wireCheck("check-button", "notebook-list", "check-result");
+    guard("bench-new-button", function () {
+      benchTarget = generateBenchTarget();
+      currentBenchA = 0;
+      currentBenchB = 0;
+      renderBench();
+    });
+    guard("bench-check-button", function () { renderBench(); });
     document.addEventListener("keydown", onKey);
   }
 

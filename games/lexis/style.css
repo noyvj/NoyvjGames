@@ -133,6 +133,14 @@ button[aria-disabled="true"]:hover { border-color: var(--edge); }
 /* Two columns on a wide window, one column in the Classic layout. The wrappers do nothing until pc.css styles them. */
 .planet-cols, .planet-col { display: block; }
 
+/* Number bench */
+.bench-row { display: flex; gap: 0.5rem; align-items: center; margin: 0.4rem 0; }
+.bench-label { font-weight: 600; min-width: 8rem; }
+.switches { display: flex; gap: 0.3rem; }
+.switch { width: 2rem; height: 2rem; border-radius: 6px; border: 2px solid var(--edge); background: var(--off); cursor: pointer; display: flex; align-items: center; justify-content: center; font-weight: 700; color: var(--muted); }
+.switch.on { background: var(--on); border-color: var(--on-edge); color: var(--bg); box-shadow: 0 0 6px var(--glow); }
+html[data-effects="off"] .switch.on { box-shadow: none; }
+
 /* Glyph museum wall */
 .museum-wall { display: grid; grid-template-columns: repeat(auto-fill, minmax(10rem, 1fr)); gap: 0.6rem; margin-top: 0.5rem; }
 .museum-card { border: 1px solid var(--line); border-radius: 8px; padding: 0.6rem; background: var(--surface); transition: background 0.2s, border-color 0.2s; }
