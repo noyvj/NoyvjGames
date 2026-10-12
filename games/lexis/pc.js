@@ -272,3 +272,80 @@ document.addEventListener("DOMContentLoaded", function () {
   document.addEventListener("click", function () { closeMenu(); });
   document.addEventListener("keydown", function (e) { if (e.key === "Escape") closeMenu(); });
 });
+
+document.addEventListener("DOMContentLoaded", function () {
+  /* Pin a scene to a floating player (PC only) */
+  var pinnedPanel = null;
+  var currentPinnedScene = null;
+
+  function createPinnedPanel() {
+    if (pinnedPanel) return pinnedPanel;
+    pinnedPanel = document.createElement("div");
+    pinnedPanel.className = "lexis-pinned-scene";
+    pinnedPanel.setAttribute("role", "dialog");
+    pinnedPanel.setAttribute("aria-label", "Pinned scene");
+    pinnedPanel.innerHTML = `
+      <div class="lexis-pinned-scene-header">
+        <span>Pinned scene</span>
+        <button type="button" class="lexis-pinned-scene-close" aria-label="Close pinned scene">&times;</button>
+      </div>
+      <div class="lexis-pinned-scene-content"></div>
+    `;
+    document.body.appendChild(pinnedPanel);
+    pinnedPanel.querySelector(".lexis-pinned-scene-close").addEventListener("click", function () {
+      closePinnedScene();
+    });
+    return pinnedPanel;
+  }
+
+  function openPinnedScene(sceneEl) {
+    var panel = createPinnedPanel();
+    if (currentPinnedScene === sceneEl) {
+      closePinnedScene();
+      return;
+    }
+    currentPinnedScene = sceneEl;
+    panel.querySelector(".lexis-pinned-scene-content").innerHTML = sceneEl.innerHTML;
+    panel.setAttribute("open", "");
+    
+    document.querySelectorAll(".scene-list li .pin-btn").forEach(function(btn) {
+      btn.classList.remove("active");
+    });
+    var pinBtn = sceneEl.querySelector(".pin-btn");
+    if (pinBtn) pinBtn.classList.add("active");
+  }
+
+  function closePinnedScene() {
+    if (pinnedPanel) pinnedPanel.removeAttribute("open");
+    currentPinnedScene = null;
+    document.querySelectorAll(".scene-list li .pin-btn").forEach(function(btn) {
+      btn.classList.remove("active");
+    });
+  }
+
+  document.addEventListener("click", function (e) {
+    var pinBtn = e.target.closest(".pin-btn");
+    if (!pinBtn) return;
+    var sceneEl = pinBtn.closest(".scene-list li");
+    if (sceneEl) openPinnedScene(sceneEl);
+  });
+
+  function ensurePinButtons() {
+    document.querySelectorAll(".scene-list li").forEach(function(li) {
+      if (!li.querySelector(".pin-btn")) {
+        var btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "pin-btn";
+        btn.textContent = "📌";
+        btn.setAttribute("aria-label", "Pin this scene");
+        li.appendChild(btn);
+      }
+    });
+  }
+
+  ensurePinButtons();
+  var observer = new MutationObserver(function () { ensurePinButtons(); });
+  document.querySelectorAll(".scene-list").forEach(function(list) {
+    observer.observe(list, { childList: true });
+  });
+});
