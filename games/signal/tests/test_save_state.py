@@ -276,6 +276,15 @@ def test_merge_keeps_the_daily_over_an_archive_replay(g):
     assert merged(g, finished("won", "archive"), finished("lost", "daily"))["result"] == "lost"
 
 
+def test_daily_beats_archive_when_archive_is_finished(g):
+    # FY-64: a daily record should always win over an archive replay, even
+    # if the archive is already finished and the daily is still in-progress.
+    archive_won = finished("won", "archive")
+    daily_inprogress = base_day()
+    merged_rec = merged(g, daily_inprogress, archive_won)
+    assert merged_rec["kind"] == "daily" and merged_rec["result"] == "inprogress"
+
+
 def test_merge_prefers_wins_then_fewer_pings_and_is_commutative(g):
     a, b = finished("won", pings=5), finished("won", pings=3)
     assert merged(g, a, b) == merged(g, b, a)
