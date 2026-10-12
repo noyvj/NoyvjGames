@@ -269,7 +269,23 @@ html[data-high-contrast="true"] .cell-num { color: #fff; text-shadow: 0 0 3px #0
 .tool-btn[aria-pressed="true"] {
   background: var(--amber); color: #23160a; border-color: var(--amber);
 }
-.tool-btn:disabled { opacity: 0.4; cursor: default; }
+/* ---- radial menu (mobile long-press) ------------------------------- */
+@media (max-width: 600px) {
+  #radial-menu {
+    position: absolute; z-index: 300; display: none; flex-direction: column; gap: 0.4rem;
+    background: var(--panel); border: 1px solid var(--panel-edge); border-radius: 12px;
+    padding: 0.5rem; box-shadow: 0 4px 16px rgba(0,0,0,0.5);
+    transition: opacity 0.15s ease;
+  }
+  #radial-menu button {
+    font: inherit; font-size: 0.85rem; padding: 0.4rem 0.7rem; border-radius: 8px;
+    background: #1b3026; color: var(--ink); border: 1px solid var(--tile-edge); cursor: pointer;
+  }
+  #radial-menu button:hover, #radial-menu button:focus-visible { border-color: var(--amber); }
+}
+html[data-reduced-motion="true"] #radial-menu, html[data-reduced-motion="true"] #radial-menu button {
+  transition: none !important;
+}
 
 /* ---- mobile ------------------------------------------------------------ */
 @media (max-width: 640px) {

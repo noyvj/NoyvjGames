@@ -664,6 +664,56 @@
 
   function wire() {
     var boardEl = $("board");
+
+    // ---- radial menu (mobile long-press) ------------------------------
+    var rMenu = null, rTimer = null, rTarget = null, rPos = { x: 0, y: 0 };
+    if (window.innerWidth <= 600) {
+      rMenu = document.createElement("div");
+      rMenu.id = "radial-menu";
+      rMenu.innerHTML = '<button data-action="ping">Ping</button><button data-action="mark">Mark</button><button data-action="clear">Clear</button>';
+      document.body.appendChild(rMenu);
+
+      function showRMenu(x, y) {
+        var rect = rMenu.getBoundingClientRect();
+        var left = x + 10;
+        var top = y - 60;
+        if (left + rect.width > window.innerWidth) left = x - rect.width - 10;
+        if (top < 0) top = y + 20;
+        rMenu.style.left = left + "px";
+        rMenu.style.top = top + "px";
+        rMenu.style.display = "flex";
+      }
+      function hideRMenu() { rMenu.style.display = "none"; rTimer = null; rTarget = null; }
+
+      boardEl.addEventListener("pointerdown", function (ev) {
+        if (ev.pointerType !== "touch") return;
+        var btn = ev.target.closest(".cell");
+        if (!btn || !view || view.status !== "inprogress") return;
+        rTarget = btn;
+        rPos = { x: ev.clientX, y: ev.clientY };
+        clearTimeout(rTimer);
+        rTimer = setTimeout(function () { showRMenu(ev.clientX, ev.clientY); }, 400);
+      });
+      boardEl.addEventListener("pointermove", function (ev) {
+        if (!rTarget || !rTimer) return;
+        if (Math.abs(ev.clientX - rPos.x) > 20 || Math.abs(ev.clientY - rPos.y) > 20) { clearTimeout(rTimer); rTimer = null; }
+      });
+      boardEl.addEventListener("pointerup", function () { if (rTimer) { clearTimeout(rTimer); rTimer = null; } });
+      document.addEventListener("pointerdown", function (ev) { if (!rMenu.contains(ev.target)) hideRMenu(); });
+
+      rMenu.addEventListener("click", function (ev) {
+        var btn = ev.target.closest("button");
+        if (!btn || !rTarget) return;
+        var r = parseInt(rTarget.getAttribute("data-r"), 10);
+        var c = parseInt(rTarget.getAttribute("data-c"), 10);
+        var action = btn.getAttribute("data-action");
+        hideRMenu();
+        if (action === "ping") doTool(r, c, false);
+        else if (action === "mark") doTool(r, c, true);
+        else if (action === "clear") act({ action: "clear_marks" });
+      });
+    }
+
     boardEl.addEventListener("click", function (ev) {
       var btn = ev.target.closest(".cell");
       if (!btn) return;
