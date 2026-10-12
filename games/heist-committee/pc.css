@@ -57,6 +57,20 @@ html[data-theme="light"][data-layout="pc"] .pc-window-frame {
 html[data-theme="light"][data-layout="pc"] .pc-readout { background: var(--panel); color: var(--text); }
 html[data-layout="pc"] .pc-readout { color: var(--text); }
 
+/* R4-HCPC-3: Drag-box selection and shift styling */
+#timeline .plan-drag-box {
+  position: absolute;
+  border: 2px dashed var(--accent);
+  background: rgba(193, 154, 51, 0.15);
+  pointer-events: none;
+  z-index: 10;
+}
+#timeline .cell.selected {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+  background: rgba(193, 154, 51, 0.1);
+}
+
 @media (max-width: 1100px) {
   #phase-plan .plan-main { grid-template-columns: minmax(0, 1fr); }
   #phase-plan .timeline { --cell-w: 4.4rem; }
