@@ -1,0 +1,5 @@
+# Local AI settings
+# pr = on lets "ai ... -Pr" and "ai-queue -Pr" push local-ai/... branches (never main)
+# and open DRAFT pull requests for Claude to review. Keep it off until test runs look good
+# and you have checked that pushing a branch does not redeploy the site or the backend.
+pr = off
