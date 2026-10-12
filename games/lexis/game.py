@@ -30,6 +30,7 @@ import deduce
 import deduce_bridge
 import deduce_compound
 import info
+import museum
 import report
 import story
 from bridge import MARKERS, Stock, describe_stock
@@ -201,6 +202,7 @@ def _view(planet):
     else:
         view = _compound_view() if planet == "compound" else _pulse_view()
     view.update(_extras())
+    view["museum"] = museum.get_museum_data(state)
     return view
 
 

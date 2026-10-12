@@ -133,6 +133,16 @@ button[aria-disabled="true"]:hover { border-color: var(--edge); }
 /* Two columns on a wide window, one column in the Classic layout. The wrappers do nothing until pc.css styles them. */
 .planet-cols, .planet-col { display: block; }
 
+/* Glyph museum wall */
+.museum-wall { display: grid; grid-template-columns: repeat(auto-fill, minmax(10rem, 1fr)); gap: 0.6rem; margin-top: 0.5rem; }
+.museum-card { border: 1px solid var(--line); border-radius: 8px; padding: 0.6rem; background: var(--surface); transition: background 0.2s, border-color 0.2s; }
+html[data-effects="off"] .museum-card, html[data-reduced-motion="true"] .museum-card { transition: none; }
+.museum-card.confirmed { border-color: var(--accent); background: var(--panel-fill); }
+.museum-planet { font-size: 0.75rem; text-transform: uppercase; color: var(--muted); letter-spacing: 0.05em; }
+.museum-form { font-family: monospace; font-size: 1.2rem; margin: 0.3rem 0; color: var(--text); }
+.museum-meaning { font-size: 0.9rem; color: var(--muted); }
+.museum-card.confirmed .museum-meaning { color: var(--accent); font-weight: 600; }
+
 /* Effects: the lamp glow and the highlight on the newest transmission. Reduce-motion removes the movement, and the
    Effects switch removes the glow and the highlight; either way no information is carried by them. */
 @keyframes scene-in { from { background: var(--btn); transform: translateY(-4px); } to { background: transparent; transform: none; } }

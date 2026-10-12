@@ -2,7 +2,7 @@
    handle() returns and forwards what the player does. No game logic lives here. */
 (function () {
   "use strict";
-  var ENGINE_MODULES = ["lang.py", "pulse.py", "parse.py", "world.py", "scenes.py", "deduce.py", "notebook.py", "compound.py", "compound_scenes.py", "deduce_compound.py", "glyphs.py", "achievements.py", "bridge.py", "bridge_scenes.py", "deduce_bridge.py", "story.py", "report.py", "info.py"];
+  var ENGINE_MODULES = ["lang.py", "pulse.py", "parse.py", "world.py", "scenes.py", "deduce.py", "notebook.py", "compound.py", "compound_scenes.py", "deduce_compound.py", "glyphs.py", "achievements.py", "bridge.py", "bridge_scenes.py", "deduce_bridge.py", "story.py", "report.py", "info.py", "museum.py"];
   var STORE_KEY = "lexis:state";
   var BRIEF_KEY = "lexis:brief-seen";
   var TOKEN_LEN = 4;
@@ -661,12 +661,40 @@
     });
   }
 
+  function renderMuseum() {
+    var list = $("museum-wall");
+    list.textContent = "";
+    (view.museum || []).forEach(function (item) {
+      var card = document.createElement("div");
+      card.className = "museum-card" + (item.confirmed ? " confirmed" : "");
+      card.setAttribute("aria-label", item.planet + ": " + item.form + (item.confirmed ? ", meaning: " + item.meaning : ", not yet confirmed"));
+      
+      var planetLabel = document.createElement("span");
+      planetLabel.className = "museum-planet";
+      planetLabel.textContent = "Planet " + ({pulse: 1, compound: 2, bridge: 3}[item.planet]);
+      
+      var formSpan = document.createElement("div");
+      formSpan.className = "museum-form";
+      formSpan.textContent = item.form;
+      
+      var meaningDiv = document.createElement("div");
+      meaningDiv.className = "museum-meaning";
+      meaningDiv.textContent = item.confirmed ? item.meaning : "?";
+      
+      card.appendChild(planetLabel);
+      card.appendChild(formSpan);
+      card.appendChild(meaningDiv);
+      list.appendChild(card);
+    });
+  }
+
   function render() {
     renderAchievements();
     renderStory();
     renderReport();
     renderInfo();
     renderTabs();
+    renderMuseum();
     if (currentPlanet === "bridge") { renderBridge(); return; }
     if (currentPlanet === "compound") { renderCompound(); return; }
     renderStation();
@@ -838,6 +866,7 @@
     wirePanelToggle("report-toggle-button", "report-panel");
     wirePanelToggle("info-page-toggle-button", "info-page-panel");
     wirePanelToggle("changelog-toggle-button", "changelog-panel");
+    wirePanelToggle("museum-toggle-button", "museum-panel");
     // The save widget loads a save directly into the engine; this redraws the page afterwards.
     window.lexisRefresh = function () {
       if (!engine) return;
