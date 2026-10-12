@@ -68,6 +68,14 @@
       "needs": [
         "practice"
       ]
+    },
+    {
+      "id": "soundings",
+      "label": "Depth soundings",
+      "kind": "python",
+      "url": "soundings.py",
+      "bytes": 2413,
+      "modes": "Depth soundings (engine only; no chart uses them yet)"
     }
   ]
 }
