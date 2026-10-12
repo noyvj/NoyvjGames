@@ -216,3 +216,59 @@ document.addEventListener("DOMContentLoaded", function () {
   initSearch();
   checkReducedMotion();
 });
+
+document.addEventListener("DOMContentLoaded", function () {
+  /* Right-click context menu for signs (PC only) */
+  var menu = null;
+  var currentTarget = null;
+
+  function createMenu() {
+    if (menu) return menu;
+    menu = document.createElement("div");
+    menu.id = "lexis-context-menu";
+    menu.className = "lexis-context-menu";
+    menu.setAttribute("role", "menu");
+    menu.hidden = true;
+    ["Add note", "Show scenes", "Copy to transmit"].forEach(function(label) {
+      var btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "lexis-context-menu-item";
+      btn.textContent = label;
+      btn.setAttribute("role", "menuitem");
+      btn.addEventListener("click", function (e) {
+        e.stopPropagation();
+        handleAction(label, currentTarget);
+        closeMenu();
+      });
+      menu.appendChild(btn);
+    });
+    document.body.appendChild(menu);
+    return menu;
+  }
+
+  function openMenu(e, target) {
+    e.preventDefault();
+    var m = createMenu();
+    currentTarget = target;
+    m.hidden = false;
+    m.style.left = e.clientX + "px";
+    m.style.top = e.clientY + "px";
+  }
+
+  function closeMenu() {
+    if (menu) menu.hidden = true;
+    currentTarget = null;
+  }
+
+  function handleAction(action, target) {
+    console.log("Context action:", action, "on", target);
+  }
+
+  document.addEventListener("contextmenu", function (e) {
+    var target = e.target.closest(".notebook-list li, .token-buttons button, [data-builder] .signal");
+    if (target) openMenu(e, target);
+  });
+
+  document.addEventListener("click", function () { closeMenu(); });
+  document.addEventListener("keydown", function (e) { if (e.key === "Escape") closeMenu(); });
+});
