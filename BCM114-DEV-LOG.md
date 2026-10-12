@@ -1513,3 +1513,8 @@ Added readability and feedback features to Thaw without adding screen clutter: t
 **Game:** dead-reckoning, lighthouse, logic-gates
 **Did:** Built the engine half of depth soundings, the plan's second kind of fix: `chartkit.depth_area` (written by the new local AI as a chained task, DR-SOUND-1) and `soundings.py` with `depth_at`, `sounding` (whole fathoms, repeatable error up to 10 percent, works in fog) and `matching_areas` (one sounding can fit several places). It is a lazy pack in `modules.json`. Lighthouse and Logic Gates now include `shared/night-mode.js` (part of QI-52); the Logic Gates line was the local AI's first unattended task.
 **Result:** Dead Reckoning 633 tests pass, Lighthouse 203, Logic Gates 269. No chart has depth areas yet and the page does not offer soundings; wiring them into Watch-by-watch is still to do. QI-52 stays open until every game has the line.
+
+### 2026-10-12 (Chronicle: game.py split into smaller files, the file-size pilot)
+**Game:** chronicle
+**Did:** Split the 2,313-line `game.py` (about 28k tokens) into `core.py` (constants, sets, state, derived facts), `views.py`, `actions.py` and a slim `game.py` (handle, save and load), each under 10k tokens, so the local AI can work on every file. Whole functions were moved by a script; the only logic change is that the shared state is refilled in place instead of replaced, so all four files see the same state. No player-visible change.
+**Result:** 437 tests pass, as before; the page boots and switches modes in the browser with no errors. It was the warm-up for splitting the big games (Loop next); Chronicle was the easy case, with one state object and almost no `global` statements.
