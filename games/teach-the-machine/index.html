@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Teach the Machine - NoyvjGames</title>
+<meta name="description" content="Switch features on and off for a small, patient learning machine, press Train, and open up every wrong answer to see exactly which feature fooled it. Nothing is timed. Working title.">
+<link rel="icon" type="image/svg+xml" href="icons/favicon-teach-the-machine.svg">
+<link rel="stylesheet" href="../../shared/theme-light-games.css">
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="../../shared/info-page.css">
+<script src="../../shared/theme.js"></script>
+<script src="../../shared/lite-mode.js"></script>
+<script src="../../shared/error-boundary.js" data-game-id="teach-the-machine"></script>
+<script src="../../shared/perf-mark.js" data-game-id="teach-the-machine"></script>
+<script src="../../shared/debug-overlay.js"></script>
+<script src="../../shared/info-footer.js" data-game-id="teach-the-machine"></script>
+<script src="../../shared/announcer.js"></script>
+<script src="../../shared/report-problem.js" data-game-id="teach-the-machine" data-mount=".game-toolbar"></script>
+<script src="../../shared/profile.js" data-game-id="teach-the-machine"></script>
+<script src="../../shared/site-settings.js" data-game-id="teach-the-machine"></script>
+<script src="settings.js"></script>
+<link rel="stylesheet" href="../../ad-bar.css">
+<link rel="manifest" href="../../manifest.json">
+<!-- Pyodide is loaded by app.js after first paint, so this shell is readable before the engine is warm. -->
+<link rel="stylesheet" href="../../shared/a11y.css">
+<link rel="stylesheet" href="../../shared/touch-targets.css">
+<link rel="stylesheet" href="../../shared/lite-mode.css">
+</head>
+<body>
+<a class="skip-link" href="#lesson-panel">Skip to the workshop</a>
+<main id="game">
+  <div class="top-row">
+    <a href="../../index.html" class="hub-back-link">&larr; All games</a>
+    <h1>Teach the Machine</h1>
+  </div>
+  <div class="game-toolbar">
+    <button id="lessons-toggle-button" type="button" aria-expanded="false" aria-controls="lessons-panel" data-testid="ttm-lessons-toggle">Lessons</button>
+    <button id="notebook-toggle-button" type="button" aria-expanded="false" aria-controls="notebook-panel" data-testid="ttm-notebook-toggle"><span class="btn-long">Failure Notebook</span><span class="btn-short" aria-hidden="true">Notebook</span></button>
+    <button id="changelog-toggle-button" type="button" aria-expanded="false" aria-controls="changelog-panel"><span class="btn-long">What's New</span><span class="btn-short" aria-hidden="true">News</span></button>
+    <button id="settings-toggle-button" type="button" aria-expanded="false" aria-controls="settings-panel">Settings</button>
+    <button id="info-page-toggle-button" type="button" aria-expanded="false" aria-controls="info-page-panel">About</button>
+  </div>
+  <p class="tagline">A worn station workshop, and Pip, a small sorting machine that barely speaks. You choose what Pip may look at, press Train, and see how it does on cases it has never seen. When it gets one wrong, you can open it up and see why. Nothing is timed and nothing is lost.</p>
+
+  <section id="lessons-panel" class="panel" hidden aria-labelledby="lessons-heading">
+    <h2 id="lessons-heading">Lessons</h2>
+    <p class="note">Each shelf is eight lessons. Five cleared lessons on a shelf open the next one; inside a shelf, any order. A lesson with a double border is cleared; "best features" means you cleared it looking at exactly the right things.</p>
+    <div id="shelf-list" class="shelves"></div>
+  </section>
+
+  <section id="notebook-panel" class="panel" hidden aria-labelledby="notebook-heading">
+    <h2 id="notebook-heading">Failure Notebook</h2>
+    <p id="notebook-count" class="note" data-testid="ttm-notebook-count"></p>
+    <p class="note">Every wrong answer is one of five kinds of mistake. The first time you open a Why on an example of one, it is written here.</p>
+    <div id="notebook-list" class="entries"></div>
+    <h3 id="gallery-heading">Pip's lessons</h3>
+    <p id="gallery-empty" class="note">Nothing yet. Clear a lesson and a card of what Pip learned is kept here.</p>
+    <div id="gallery-list" class="entries"></div>
+  </section>
+
+  <section id="changelog-panel" class="panel" hidden aria-labelledby="changelog-heading">
+    <h2 id="changelog-heading">What's New</h2>
+    <div id="changelog-entries"></div>
+  </section>
+  <section id="info-page-panel" class="panel" hidden aria-labelledby="info-page-heading">
+    <h2 id="info-page-heading">About Teach the Machine</h2>
+    <p id="info-page-framing" class="info-page-framing"></p>
+    <h3 id="pledge-heading"></h3>
+    <ul id="pledge-list" class="pledge-list"></ul>
+    <h3 id="how-heading"></h3>
+    <ul id="how-list"></ul>
+    <h3 id="facts-heading"></h3>
+    <ul id="info-page-sources" class="info-page-sources"></ul>
+    <h3>Read live from Wikipedia</h3>
+    <div id="info-live" class="info-live" aria-live="polite"><p class="note">Opens with this panel.</p></div>
+    <p class="note"><a id="sources-link" href="../../sources.html?game=teach-the-machine">All sources for this game</a></p>
+  </section>
+
+  <section id="settings-panel" class="panel" hidden aria-labelledby="settings-heading">
+    <h2 id="settings-heading">Settings</h2>
+    <h3>Display (stays on this device)</h3>
+    <div class="settings-row">
+      <span id="text-size-label">Text size</span>
+      <div class="text-size-control" role="group" aria-labelledby="text-size-label">
+        <button id="text-size-decrease-button" type="button" aria-label="Decrease text size">A&minus;</button>
+        <button id="text-size-reset-button" type="button" aria-label="Reset text size">A</button>
+        <button id="text-size-increase-button" type="button" aria-label="Increase text size">A+</button>
+      </div>
+    </div>
+    <div class="settings-row"><label><input type="checkbox" id="reduced-motion-checkbox"> Reduce motion (follows your system setting until you choose)</label></div>
+    <div class="settings-row"><label><input type="checkbox" id="effects-checkbox" checked> Effects (Pip's lamp glow and the small flash when a lesson is cleared)</label></div>
+    <div class="settings-row"><label><input type="checkbox" id="high-contrast-checkbox"> High contrast (brighter text, thicker outlines)</label></div>
+    <div class="settings-row"><button id="theme-setting-button" type="button" aria-pressed="false">Light theme</button></div>
+    <div class="settings-row"><button id="display-reset-button" type="button">Reset display settings</button></div>
+    <div class="settings-row"><button id="reset-button" type="button" data-testid="ttm-reset">Start over</button> <span class="note">Clears every lesson, your notebook and your tally. It asks first.</span></div>
+  </section>
+  <p id="toast" class="note toast" role="status" aria-live="polite" title="Tap to dismiss"></p>
+
+  <section id="stats" class="stat-strip" aria-label="Your progress">
+    <div class="stat"><span class="stat-label">Lessons cleared</span><span id="stat-cleared" class="stat-value" data-testid="ttm-stat-cleared">0</span></div>
+    <div class="stat"><span class="stat-label">Shelves open</span><span id="stat-shelves" class="stat-value">0</span></div>
+    <div class="stat"><span class="stat-label">Failures explained</span><span id="stat-whys" class="stat-value" data-testid="ttm-stat-whys">0</span></div>
+    <div class="stat"><span class="stat-label">Notebook entries</span><span id="stat-notebook" class="stat-value" data-testid="ttm-stat-notebook">0</span></div>
+    <div class="stat"><span class="stat-label">Trained</span><span id="stat-trains" class="stat-value" data-testid="ttm-stat-trains">0</span></div>
+  </section>
+
+  <section id="lesson-panel" class="panel workshop" aria-labelledby="lesson-heading" tabindex="-1">
+    <div class="pip-row">
+      <svg id="pip" class="pip" viewBox="0 -6 120 124" role="img" aria-labelledby="pip-title" data-state="idle" focusable="false">
+        <title id="pip-title">Pip, a small sorting machine with a lamp on its head</title>
+        <line x1="60" y1="36" x2="60" y2="20" class="pip-stalk"/>
+        <polygon points="26,40 94,40 106,64 94,98 26,98 14,64" class="pip-body"/>
+        <polygon points="26,40 60,40 54,69 14,64" class="pip-facet-a"/>
+        <polygon points="94,40 60,40 66,69 106,64" class="pip-facet-b"/>
+        <polygon points="14,64 54,69 60,98 26,98" class="pip-facet-b"/>
+        <polygon points="106,64 66,69 60,98 94,98" class="pip-facet-a"/>
+        <rect x="36" y="58" width="16" height="10" rx="2" class="pip-eye"/>
+        <rect x="68" y="58" width="16" height="10" rx="2" class="pip-eye"/>
+        <rect x="46" y="80" width="28" height="4" rx="2" class="pip-mouth"/>
+        <circle cx="60" cy="12" r="12" class="pip-lamp"/>
+        <circle cx="60" cy="12" r="4" class="pip-glyph pip-glyph-trained"/>
+        <path d="M53 12 L58 17 L68 7" class="pip-glyph pip-glyph-pleased" fill="none"/>
+        <text x="60" y="18" class="pip-glyph pip-glyph-puzzled" text-anchor="middle">?</text>
+      </svg>
+      <div class="pip-words">
+        <p id="lesson-kicker" class="note kicker"></p>
+        <h2 id="lesson-heading">Lesson</h2>
+        <p id="lesson-task" class="lesson-task"></p>
+        <p id="lamp-words" class="lamp-words" data-testid="ttm-lamp"></p>
+      </div>
+    </div>
+    <div class="lesson-nav button-row">
+      <button id="prev-lesson-button" type="button" aria-label="Previous lesson">&larr; Prev</button>
+      <button id="next-lesson-button" type="button" aria-label="Next lesson that is not cleared yet" data-testid="ttm-next">Next &rarr;</button>
+    </div>
+
+    <fieldset class="switches">
+      <legend>What may Pip look at?</legend>
+      <ul id="feature-list" class="feature-list"></ul>
+    </fieldset>
+    <div class="tools button-row" role="toolbar" aria-label="Pip's lesson tools">
+      <button id="train-button" type="button" class="primary" data-testid="ttm-train" aria-keyshortcuts="T">Train</button>
+      <button id="test-button" type="button" class="primary" data-testid="ttm-test" aria-keyshortcuts="E" disabled>Test</button>
+      <button id="reset-switches-button" type="button" data-testid="ttm-reset-switches">Switches as at the start</button>
+    </div>
+    <p id="status-line" class="status-line" role="status"></p>
+
+    <div id="done-card" class="done-card" hidden role="status">
+      <p id="done-title" class="done-title"></p>
+      <p id="done-text" class="note"></p>
+      <div class="button-row">
+        <button id="done-next-button" type="button" class="primary" data-testid="ttm-done-next">Next lesson</button>
+        <button id="done-lessons-button" type="button">See the lessons</button>
+      </div>
+    </div>
+
+    <details id="train-details" class="text-alt">
+      <summary id="train-summary">Pip's training cases</summary>
+      <p class="note">These are the cases Pip studies. Each has its answer. A dashed chip is a feature Pip may not look at right now.</p>
+      <ul id="train-list" class="case-list"></ul>
+    </details>
+
+    <section id="tree-box" class="box" hidden aria-labelledby="tree-heading">
+      <h3 id="tree-heading">Pip's tree</h3>
+      <p id="tree-score" class="note"></p>
+      <ul id="tree-list" class="tree-list"></ul>
+    </section>
+
+    <section id="result-box" class="box" hidden aria-labelledby="result-heading" tabindex="-1">
+      <h3 id="result-heading">Unseen cases</h3>
+      <p id="result-score" class="status-line"></p>
+      <ul id="result-list" class="case-list result-list"></ul>
+    </section>
+
+    <section id="why-box" class="box why-box" hidden aria-labelledby="why-heading" tabindex="-1">
+      <h3 id="why-heading">Why?</h3>
+      <p id="why-sum" class="why-sum"></p>
+      <p id="why-category" class="why-category"></p>
+      <p id="why-because" class="note"></p>
+      <h4>The questions it went through</h4>
+      <ol id="why-steps" class="why-steps"></ol>
+      <p id="why-decisive" class="note"></p>
+      <p id="why-looking" class="note"></p>
+      <h4 id="why-group-heading">Training cases that looked alike</h4>
+      <p id="why-group" class="note"></p>
+      <ul id="why-neighbours" class="case-list"></ul>
+      <div class="button-row"><button id="why-close-button" type="button" data-testid="ttm-why-close">Close</button></div>
+    </section>
+
+    <p class="note keys-note">Keys: 1 to 8 switch a feature on or off, T trains, E tests. Everything else is a button you can tab to. Escape closes an open panel or the Why.</p>
+  </section>
+
+  <p id="engine-status" class="note" role="status">Opening the workshop...</p>
+  <p id="announce" class="sr-only" role="status" aria-live="polite"></p>
+</main>
+
+<a id="credits-link" class="credits-link" href="../../credits.html" style="display:block;text-align:center;font-size:0.85rem;margin:0.75rem 0;color:inherit;">Credits</a>
+<div class="ad-bar ad-bar--bottom">
+  <span class="ad-bar-label ad-bar-label-full">Advertisement — not part of the game</span>
+  <span class="ad-bar-label ad-bar-label-short">Ad</span>
+  <!-- Google AdSense manual display ad unit (placeholder client ID until the application is approved) -->
+  <ins class="adsbygoogle"
+       style="display:block; width:320px; height:50px;"
+       data-ad-client="ca-pub-XXXXXXXXXXXXXXXX"
+       data-ad-slot="XXXXXXXXXX"></ins>
+</div>
+<script src="https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.js"></script>
+<script src="../../shared/hub-auth.js"></script>
+<script src="../../shared/save-widget.js" data-game-id="teach-the-machine"></script>
+<script src="../../shared/confirm-dialog.js"></script>
+<script src="app.js"></script>
+<script src="../../shared/last-played.js" data-game-id="teach-the-machine"></script>
+<script src="../../shared/whats-new-banner.js" data-game-id="teach-the-machine"></script>
+<script>
+  if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.register("../../sw.js").catch(function () { /* offline support is optional */ });
+  }
+</script>
+</body>
+</html>

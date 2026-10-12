@@ -1,0 +1,59 @@
+# Teach the Machine (working title)
+
+Seed: `planning/teach-the-machine-plan.md` (Quick ideas round A7, TODO QI-7). Personal project, no BCM tag. Milestones 1 to 3 built 2026-10-12 by a background agent (189 tests: `python3 -m pytest -q tests` from this folder): the learner and its proofs, the playable workshop page, and shelves 2 and 3 with the Failure Notebook. NOT yet linked from the hub or registered anywhere (no `sw.js` precache, no `game-manifest.json`, no `offline-manifest.json`, no site-settings key): hub registration is the separate step QI-7-R. The hint ladder, goals strip, standard kit (opening screen, tutorial, keyboard help), achievements and the Desktop boot are milestones 4 to 7 and are NOT built.
+
+## One-line pitch
+Switch features on and off for a small, patient learning machine, press Train, and open up every wrong answer to see exactly which feature fooled it.
+
+## Stack
+- Pyodide Python, plain HTML/CSS, no build step. `game.py` is the single engine entry point (`handle(json) -> json`, `get_state()` / `load_state()` for the shared save widget); `app.js` is glue only (it draws text, switches and lists and turns clicks and keys into requests). Python 3.9 locally (Pyodide 3.12): no 3.10+ syntax in engine code. No Node in this repo's tooling: check JS in the browser.
+- No audio, no image files. Pip (a faceted low-poly head with a lamp) is an inline SVG in `index.html`; everything else is text.
+
+## Core constraints (do not violate without asking)
+1. The engine is pure and deterministic: no clock, no random source (a test scans every engine module). Same switches on the same fixed tables always grow the same tree. The only seeded generator is in `tools/build_lessons.py` and its output is frozen.
+2. Nothing is timed, nothing can fail, nothing is lost. A wrong answer ends nothing; a cleared lesson stays cleared (states only go up; clearing again with the best set upgrades an older clear to the best mark, never the reverse).
+3. No luck and no guessing: every lesson is PROVED (see below) to be clearable, and to need a sensible choice of features.
+4. Never colour alone: a switch says ON or OFF and has a ticked or empty box; Right/Wrong are words with a tick/cross (wrong cases have a dashed border); a feature Pip may not see is a dashed chip marked "(off)"; a cleared lesson has a double border and the word; Pip's lamp has a different glyph per state AND a sentence. Every case is text (chips = a glyph for the kind of feature, then the word and value). A test checks contrast of the text colours in both themes.
+5. Effects toggleable (lamp glow, flicker, the flash on a clear); reduced motion honoured; light and dark theme; high contrast; text size.
+6. The unseen cases, their answers, the features a lesson needs, its best set and its "what Pip learned" text stay out of the view until a test has been taken or the lesson is cleared (a test checks).
+7. All data is invented. Real-world AI facts (About page) are reworded, dated and sourced in `sources.json`; the game says it is a toy and does not claim to show how larger systems work.
+
+## The learner (`learner.py`)
+- A feature is `yes_no`, `number` (whole numbers, optional unit) or `kind` (one of a list of words). A test asks one question: `yes`, `ge` (number is m or more) or `eq` (word is this).
+- Pip's tree: depth at most 3, grown by information gain (entropy drop, rounded to 9 places, only if above 0), over the SWITCHED-ON features only. Fixed tie-breaks: highest gain, then the feature that comes first in the lesson's feature order, then the lower threshold (numbers; a threshold between neighbouring values a < b is `(a + b + 1) // 2`), then the word first in the feature's list. A group stops when pure, 3 questions deep or with no gain; a leaf answers its majority, a tie goes to the lowest bin. A greedy tree cannot learn XOR: that is deliberate (a test says so).
+- `trace` is the one walker the Why panel shows; `predict` is a separate plain walk; tests replay every path on every lesson and compare.
+
+## Lessons and the proofs (`lessons.py`, `lessonkit.py`, `tools/`)
+- `tools/lesson_specs.py` (hand-written) holds, per lesson: story text, features, the hidden rule, which features it NEEDS, the starting switches, its kind. `tools/build_lessons.py` draws a training table (12 to 28 cases) and 20 unseen cases with its own seeded LCG and keeps the FIRST seed whose tables pass the proof for the kind, then writes `lessons_s1.py` to `lessons_s3.py` (GENERATED, do not edit; a test rebuilds all of them and compares byte for byte; `python3 tools/build_lessons.py --check` does it by hand). A lesson no seed can prove is an error, never shipped.
+- `tools/subsets.py`: tries EVERY set of switches (at most 2^8 = 256, the empty set included) for a lesson and records the unseen-table score. Best set = highest score, then fewest features, then first by feature position. Stored in each lesson as `best` / `best_score` with a `golden` snapshot of the tree it grows.
+- Proofs by kind (all asserted again in `tests/test_lessons.py`): every lesson: the stored best set reaches the target (18 of 20 = 90 percent) and equals the needed features, `empty set` never clears. `basic` (shelf 1): the needed feature alone clears; unless `gentle` (lessons 1 and 2, which start with every switch on) the starting switches do NOT clear. `two` (shelf 2): no single feature clears, nor the starting set. `distract` (shelf 3): the lesson STARTS with every switch on and that does NOT clear (small training tables let noise features look useful, rules are bands or two-feature rules), so switching things off is the fix.
+- Gating: shelf n+1 opens at 5 cleared lessons of shelf n (any five, any order inside), derived from the cleared set, judged in shelf order on load.
+
+## Why panel and the Failure Notebook (`why.py`)
+- Every wrong answer on the unseen table is in exactly ONE of five categories, by explicit counterfactual rules in this order: 1 `mislabelled` (the lesson flags mislabelled training cases and training without them gets this case right), 2 `missing` (a needed feature is off and switching the needed ones on gets it right), 3 `shortcut` (a switched-on flagged shortcut feature and switching those off gets it right), 4 `distracting` (non-needed features on, at least one needed one on, and looking only at the needed ones gets it right), 5 `too_few` (the fallback: right features, no data flaw, the training table left a gap near the line between bins). Tests check every wrong answer of every set of switches of every lesson, that the category is the first rule that holds, what each rule means, and (on small made-up lessons) that shortcut and mislabelled work.
+- Shelves 1 to 3 can only show missing, distracting and too_few (a test proves this); shortcut and mislabelled arrive with the lessons of shelves 4 and 5 (milestone 4): lessons carry `shortcuts` and `mislabelled` lists (empty for now) and the notebook says "Examples turn up on a later shelf." until then.
+- The Why panel (`explain`) shows: the exact questions the case went through (replayed), the question that decided it, what Pip was looking at, the group the path ended in with its counts, up to 3 training cases from that group that looked most alike, the category and a sentence about it (it does not name the missing feature). Opening a Why counts once per wrong case per test (`whys`) and writes the category into the notebook against that lesson.
+
+## Engine and page notes
+- `game.handle` returns the whole view. Actions: `open`, `pick {lesson}`, `next`, `toggle {feature}`, `reset_switches`, `train`, `test`, `why {case}`, `close_why`, `reset`. Any change of switches, a new Train, or leaving the lesson throws away the tree, the test and the Why. Test needs a Train first; Train needs at least one switch on.
+- Save (`get_state`, only non-default keys besides `schema`): `cur`, `cleared {lesson: [feature ids]}`, `sel {lesson: [feature ids]}` (switches that differ from the start), `notebook {category: [lesson ids]}`, `tally {trains, tests, whys}`. The tree and the last test are not saved (Train again). `load` checks every field alone; a cleared lesson in a closed shelf is dropped; a saved set that does not really clear is replaced by the proved best set; a bad or newer `schema` gives a fresh game.
+- Stats strip: Lessons cleared (x/24), Shelves open, Failures explained, Notebook entries (x/5), Trained. (The plan's fourth stat, Hints, comes with milestone 4.)
+- Page: lessons panel (shelves, lesson buttons: Open / Cleared / Cleared, best features; locked shelves say how many more), Failure Notebook panel (five entries, names always shown, text only when found, plus "Pip's lessons" cards with the tree in words for each cleared lesson), workshop (Pip and lamp sentence, feature switches, Train / Test / switches as at the start, a collapsible list of the training cases, the tree in words, the unseen cases with Right/Wrong and a Why button, the Why box, a done card). Keyboard: 1 to 8 switch features, T trains, E tests, Escape closes a panel or the Why; everything else is a native button, details or list.
+- Settings: text size, reduce motion, effects, high contrast, theme, reset display, start over (confirm dialog). About (`info.py`): pledge, how it works, four reworded facts from Wikipedia ("Decision tree learning", "Overfitting") with read date 2026-10-12, and a live read of the Decision tree learning summary when About is opened (with a stated fallback). What's New (`changelog.json`), `sources.json` for the hub's sources page.
+- Engine modules (loaded in this order by `app.js`): learner, lessonkit, lessons_s1..s3, lessons, why, info, then game. A test checks the list. `tools/` is dev-only and must not be precached.
+- JS rule: `app.js` holds no rules (a test bans Math.random, Date.now, setInterval, entropy).
+
+## What hub registration (QI-7-R) needs
+Same pattern as Constellations / Reaction Bench (`grep -rl constellations` lists the places): hub card and nav link, `sw.js` precache of the game shell (`index.html`, `style.css`, `settings.js`, `app.js`, `game.py`, every engine module in load order `learner.py lessonkit.py lessons_s1.py lessons_s2.py lessons_s3.py lessons.py why.py info.py`, `changelog.json`, `sources.json`, `icons/favicon-teach-the-machine.svg`; plus later `achievements.json`, the Desktop boot files), `offline-manifest.json`, the `game-*.json` data files (`scripts/generate-last-updated.py`, `scripts/generate-roadmap-data.py`), `shared/site-settings.js` key, `sitemap.xml`, share cards, admin/achievements/ideas pages, the perf budget, the smoke-test list, the root `CLAUDE.md` row. Until then the page's save widget has no backend row for this game id (harmless).
+
+## Milestones
+| # | Milestone | Content | Status |
+|---|-----------|---------|--------|
+| 1 | Learner and prover | Tree trainer, case tables, Why classifier, subset search, shelf 1 (8 lessons) with proofs | Done |
+| 2 | Workshop UI | Feature switches, Train, Test, Why panel with tree path, save contract. Playable slice (with About, What's New, Settings, light theme, save widget) | Done |
+| 3 | Shelves 2-3 | 16 more lessons, distractions, Failure Notebook | Done |
+| 4 | Shelves 4-5, hints, goals | 16 more lessons (40), shortcuts and fair treatment, hint ladder, three-goals strip. First complete game | Not started |
+| 5 | Standard kit | Opening screen, tutorial, About with Sources, What's New, keyboard help, confirm dialogs, light theme, accessibility | Not started |
+| 6 | Achievements | 14 achievements, panel and toast, manifest, reachability test | Not started |
+| 7 | Desktop boot and wrap-up | `pc-config.json`, `pc.css`, `pc.js`, generated `pc.html`, docs, changelog | Not started |
+| R | Register in the hub | Same steps as the earlier new games (TODO QI-7-R) | Not started |
