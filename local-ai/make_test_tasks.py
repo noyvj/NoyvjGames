@@ -16,7 +16,9 @@ ROOT = Path(__file__).resolve().parent.parent
 GAMES = ["lighthouse", "rule-finder", "hull-repair", "lexis", "mirror-lab", "stranded",
          "station-medic", "reaction-bench", "picture-grid", "robot-script", "pocket-bazaar",
          "constellations", "logic-gates", "evidence-hunt", "dead-reckoning", "heist-committee",
-         "signal"]
+         "signal",
+         # big games whose game.py is too large, but which also have small plain-Python modules
+         "continuum", "chronicle", "sol", "champ-de-mots"]
 SKIP_MODULES = {"game", "render", "harness", "info"}
 BUDGET = 14000          # tokens for the module + example test, leaving room for rules and answers
 
