@@ -194,3 +194,28 @@ html[data-reduced-motion="true"] #pc-stage .board {
 }
 #pc-stage .board-wrap { cursor: grab; }
 #pc-stage .board-wrap.grabbing { cursor: grabbing; }
+
+/* R4-SIPC-8: Shift ruler overlay */
+#ruler-overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 5;
+  opacity: 0;
+  transition: opacity 0.1s ease;
+}
+html[data-reduced-motion="true"] #ruler-overlay { transition: none; }
+#ruler-overlay.active { opacity: 1; }
+#ruler-line {
+  stroke: var(--amber, #f0a030);
+  stroke-width: 2;
+  stroke-dasharray: 6 4;
+}
+#ruler-label {
+  fill: var(--ink, #e8e4d9);
+  font-size: 12px;
+  font-family: monospace;
+  background: rgba(0,0,0,0.6);
+  padding: 2px 4px;
+  border-radius: 3px;
+}

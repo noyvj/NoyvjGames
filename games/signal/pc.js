@@ -253,3 +253,79 @@ Object.defineProperty(window, "MobileDock", { configurable: true, get() { return
     recentre();
   });
 })();
+
+// R4-SIPC-8: Shift ruler line
+(function () {
+  var overlay = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  overlay.id = "ruler-overlay";
+  overlay.innerHTML = '<line id="ruler-line" x1="0" y1="0" x2="0" y2="0" />' +
+                      '<text id="ruler-label" x="0" y="0"></text>';
+  var stage = document.getElementById("pc-stage");
+  if (!stage) return;
+  stage.appendChild(overlay);
+
+  function getCellCenter(cell) {
+    var rect = cell.getBoundingClientRect();
+    return { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 };
+  }
+
+  function updateRuler() {
+    var cursor = document.querySelector("#board .cursor, #board .active, #board .cell[aria-current='true']");
+    if (!cursor) return;
+    var pings = Array.from(document.querySelectorAll("#board .cell:has(.cell-num)"));
+    if (pings.length === 0) return;
+
+    var cRect = getCellCenter(cursor);
+    var board = document.getElementById("board");
+    var n = parseInt(board.style.getPropertyValue("--n") || "9", 10);
+    var cols = n + 1; // includes axis column
+    var cells = Array.from(board.querySelectorAll(".cell"));
+    var cursorIdx = cells.indexOf(cursor);
+    var r1 = Math.floor(cursorIdx / cols);
+    var c1 = cursorIdx % cols;
+    var cursorReading = parseInt(cursor.querySelector(".cell-num")?.textContent || "0", 10);
+
+    var nearest = null;
+    var minDist = Infinity;
+    var diff = 0;
+
+    for (var i = 0; i < pings.length; i++) {
+      var pIdx = cells.indexOf(pings[i]);
+      var r2 = Math.floor(pIdx / cols);
+      var c2 = pIdx % cols;
+      var manhattan = Math.abs(r1 - r2) + Math.abs(c1 - c2);
+      if (manhattan < minDist) {
+        minDist = manhattan;
+        nearest = pings[i];
+        diff = Math.abs(cursorReading - parseInt(pings[i].querySelector(".cell-num")?.textContent || "0", 10));
+      }
+    }
+
+    if (!nearest) return;
+
+    var nRect = getCellCenter(nearest);
+    overlay.classList.add("active");
+    document.getElementById("ruler-line").setAttribute("x1", cRect.x);
+    document.getElementById("ruler-line").setAttribute("y1", cRect.y);
+    document.getElementById("ruler-line").setAttribute("x2", nRect.x);
+    document.getElementById("ruler-line").setAttribute("y2", nRect.y);
+
+    var label = "d=" + minDist;
+    if (cursorReading !== 0 || parseInt(nearest.querySelector(".cell-num").textContent, 10) !== 0) {
+      label += " | Δ=" + diff;
+    }
+    var textEl = document.getElementById("ruler-label");
+    textEl.textContent = label;
+    textEl.setAttribute("x", (cRect.x + nRect.x) / 2);
+    textEl.setAttribute("y", (cRect.y + nRect.y) / 2 - 5);
+    textEl.setAttribute("text-anchor", "middle");
+    textEl.setAttribute("dominant-baseline", "middle");
+  }
+
+  document.addEventListener("keydown", function (e) {
+    if (e.key === "Shift") updateRuler();
+  });
+  document.addEventListener("keyup", function (e) {
+    if (e.key === "Shift") overlay.classList.remove("active");
+  });
+})();
