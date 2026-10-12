@@ -52,3 +52,10 @@ Grid and placement solver from Hull Repair; the collectable shelf and ship map f
 ## 11. Open questions for the owner
 1. Should plants ever show a passive visual change over real time (a slow sway), or stay still unless you act? Default: gentle sway only, toggleable, never progress.
 2. Is a free "decorate" mode (move rocks and benches for looks only) wanted after a section is restored? Default: no, to avoid perfectionism.
+
+## Owner decisions (2026-10-12)
+
+From your answers on the ideas sheet ("yes" means go with the default written in the question).
+
+- should plants ever show a passive visual change over real time (a slow sway), or stay still unless you act? -> **Decision (you, 2026-10-12): gentle sway only, toggleable, never progress.**
+- is a free "decorate" mode (move rocks and benches for looks only) wanted after a section is restored? -> **Decision (you, 2026-10-12): YES, build the free decorate mode** (your note: "Free mode sounds fun"); keep it purely for looks, no progress attached.

@@ -53,3 +53,10 @@ Supply-and-allocation logic style from Station Medic's cabinet and Trade Empire;
 ## 11. Open questions for the owner
 1. Should the diet and allergy rules use real-world categories (nut allergy, halal, vegetarian) or invented ones? Default: a small set of real categories, handled respectfully.
 2. Is a "what would you change" voice from volunteers or families after each week wanted? Default: yes, one short line per family.
+
+## Owner decisions (2026-10-12)
+
+From your answers on the ideas sheet ("yes" means go with the default written in the question).
+
+- should the diet and allergy rules use real-world categories (nut allergy, halal, vegetarian) or invented ones? -> **Decision (you, 2026-10-12): a small set of real categories, handled respectfully.** Your note: "Stick to real ones"
+- is a "what would you change" voice from volunteers or families after each week wanted? -> **Decision (you, 2026-10-12): yes, one short line per family.**

@@ -53,3 +53,10 @@ Assignment logic and result-card style from Heist Committee and Trade Empire; ca
 ## 11. Open questions for the owner
 1. Should one late chapter include a round with no Common Ground (an honest tension) where Settlement is the best possible? Default: no, every round has a Settlement and most have Common Ground.
 2. Is a policy-flavoured country setting (UK, US, neutral invented) preferred? Default: a neutral invented town.
+
+## Owner decisions (2026-10-12)
+
+From your answers on the ideas sheet ("yes" means go with the default written in the question).
+
+- should one late chapter include a round with no Common Ground (an honest tension) where Settlement is the best possible? -> **Decision (you, 2026-10-12): no, every round has a Settlement and most have Common Ground.**
+- is a policy-flavoured country setting (UK, US, neutral invented) preferred? -> **Decision (you, 2026-10-12): a neutral invented town.** Your note: "Maybe later add specific ones"

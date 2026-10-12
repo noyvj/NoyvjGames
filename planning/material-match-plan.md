@@ -56,3 +56,10 @@ The materials table is **real data read from named sources and dated on screen**
 ## 10. Open questions for the owner (defaults used meanwhile)
 1. Which named source should be the main one for the numbers? Default: a public engineering reference (Engineering ToolBox) cross-checked against the Wikipedia reference values.
 2. Should the cost word (cheap to dear) be included, given it varies by place and year? Default: yes as a relative word with a date, never a price.
+
+## Owner decisions (2026-10-12)
+
+From your answers on the ideas sheet ("yes" means go with the default written in the question).
+
+- which named source should be the main one for the numbers? -> **Decision (you, 2026-10-12): a public engineering reference (Engineering ToolBox) cross-checked against the Wikipedia reference values.**
+- should the cost word (cheap to dear) be included, given it varies by place and year? -> **Decision (you, 2026-10-12): yes as a relative word with a date, never a price.**

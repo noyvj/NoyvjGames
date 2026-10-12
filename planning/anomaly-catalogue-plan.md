@@ -52,3 +52,10 @@ Scene renderer in the pattern of Hull Repair's SVG station map; Evidence Hunt's 
 ## 11. Open questions for the owner
 1. Should a few late rooms be gently unsettling (a figure that is there only in the Now frame) or stay strictly odd objects? Default: odd objects only, nothing that harms or chases.
 2. Is a hold-to-zoom lens enough for accessibility, or should every room offer a list-view of objects too? Default: add the list view as the screen-reader path.
+
+## Owner decisions (2026-10-12)
+
+From your answers on the ideas sheet ("yes" means go with the default written in the question).
+
+- should a few late rooms be gently unsettling (a figure that is there only in the Now frame) or stay strictly odd objects? -> **Decision (you, 2026-10-12): odd objects only, nothing that harms or chases.**
+- is a hold-to-zoom lens enough for accessibility, or should every room offer a list-view of objects too? -> **Decision (you, 2026-10-12): add the list view as the screen-reader path.**

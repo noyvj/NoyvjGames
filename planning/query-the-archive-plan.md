@@ -57,3 +57,10 @@ Fiction: Cinder Station and its people are invented. The About and Sources page 
 ## 10. Open questions for the owner (defaults used meanwhile)
 1. Should a "free query" practice desk (no slip, just explore the Archive) be added after the last slip? Default: yes, a read-only sandbox that still counts clauses used toward the Drawer.
 2. Clause chips for beginners can be switched off for a typed-only game. Default: chips on until chapter 3, then optional.
+
+## Owner decisions (2026-10-12)
+
+From your answers on the ideas sheet ("yes" means go with the default written in the question).
+
+- should a "free query" practice desk (no slip, just explore the Archive) be added after the last slip? -> **Decision (you, 2026-10-12): yes, a read-only sandbox that still counts clauses used toward the Drawer.**
+- clause chips for beginners can be switched off for a typed-only game. Default: chips on until chapter 3, then optional. -> **Decision (you, 2026-10-12): the default written in the plan.**

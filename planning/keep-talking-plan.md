@@ -57,3 +57,10 @@ None, fiction. The About page notes (read live and dated) the origin of the asym
 ## 10. Open questions for the owner (defaults used meanwhile)
 1. Is "no server, each device checks its own answer" fine, knowing a determined cheat could peek? Default: yes (no leaderboards, so nothing to cheat).
 2. Should a friend job be started from a short code you can read aloud as well as an invite link? Default: both (code is the seed).
+
+## Owner decisions (2026-10-12)
+
+From your answers on the ideas sheet ("yes" means go with the default written in the question).
+
+- is "no server, each device checks its own answer" fine, knowing a determined cheat could peek? -> **Decision (you, 2026-10-12): yes (no leaderboards, so nothing to cheat).**
+- should a friend job be started from a short code you can read aloud as well as an invite link? -> **Decision (you, 2026-10-12): both (code is the seed).**

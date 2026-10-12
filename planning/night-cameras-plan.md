@@ -57,3 +57,10 @@ None, fiction. The building, people and events are invented. The About page may 
 ## 10. Open questions for the owner (defaults used meanwhile)
 1. Should the game mark contradictions between your notes and the footage for you (a setting), on or off by default? Default: on.
 2. Is a mundane or gently sad explanation for every case right, or should a few cases stay unexplained (an anomaly note, like Lighthouse's optional layer)? Default: every case explained.
+
+## Owner decisions (2026-10-12)
+
+From your answers on the ideas sheet ("yes" means go with the default written in the question).
+
+- should the game mark contradictions between your notes and the footage for you (a setting), on or off by default? -> **Decision (you, 2026-10-12): on.**
+- is a mundane or gently sad explanation for every case right, or should a few cases stay unexplained (an anomaly note, like Lighthouse's optional layer)? -> **Decision (you, 2026-10-12): every case explained.**

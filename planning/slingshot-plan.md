@@ -53,3 +53,10 @@ Seeded-sim pattern from Dead Reckoning (`sim.py`, stored par routes, `charts` da
 ## 11. Open questions for the owner
 1. Is 2D circular-orbit "simple but real" the right level, or do you want elliptical orbits for the inner planets? Default: circular, said plainly on About.
 2. Reached-with-any-fuel counts as 100%; is "Thrifty" only a bonus? Default: yes, bonus only.
+
+## Owner decisions (2026-10-12)
+
+From your answers on the ideas sheet ("yes" means go with the default written in the question).
+
+- is 2D circular-orbit "simple but real" the right level, or do you want elliptical orbits for the inner planets? -> **Decision (you, 2026-10-12): circular, said plainly on About.**
+- reached-with-any-fuel counts as 100%; is "Thrifty" only a bonus? -> **Decision (you, 2026-10-12): yes, bonus only.**

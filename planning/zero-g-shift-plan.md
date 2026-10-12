@@ -53,3 +53,10 @@ Grid engine and `tools/solver.py` pattern from Hull Repair and Logic Gates; boar
 ## 11. Open questions for the owner
 1. Is a free Step back fine in a move-by-move puzzle (it is not a story choice)? Default: yes, with Restart always free too.
 2. Should the player also slide when they push a crate (recoil)? Default: no, the player stops.
+
+## Owner decisions (2026-10-12)
+
+From your answers on the ideas sheet ("yes" means go with the default written in the question).
+
+- is a free Step back fine in a move-by-move puzzle (it is not a story choice)? -> **Decision (you, 2026-10-12): yes, with Restart always free too.**
+- should the player also slide when they push a crate (recoil)? -> **Decision (you, 2026-10-12): no, the player stops.**

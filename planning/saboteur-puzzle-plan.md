@@ -57,3 +57,10 @@ None, fiction. The About page may cite, read live and dated, the classic knights
 ## 10. Open questions for the owner (defaults used meanwhile)
 1. Should each saboteur have a small sympathetic reason shown after the case (a debt, a fear), or should the reason stay unknown? Default: a small reason shown.
 2. Should the contradiction check be on by default, with a setting to turn it off for a harder game? Default: on.
+
+## Owner decisions (2026-10-12)
+
+From your answers on the ideas sheet ("yes" means go with the default written in the question).
+
+- should each saboteur have a small sympathetic reason shown after the case (a debt, a fear), or should the reason stay unknown? -> **Decision (you, 2026-10-12): a small reason shown.**
+- should the contradiction check be on by default, with a setting to turn it off for a harder game? -> **Decision (you, 2026-10-12): on.**

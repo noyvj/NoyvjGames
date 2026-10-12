@@ -157,3 +157,8 @@ Several items across the ideas file got parked specifically pending this — you
 - **Dream game interconnected play** (Fg16): everyone in the same lore forest, help each other, fight together; waits on shared run codes, friend ties and the multiplayer groundwork (TODO DG-7).
 - **Le Champ de Mots weeks 11 to 13** (2026-10-11): the slides are about three weeks away; then repeat the slide analysis and build for weeks 11 to 13 and recheck farm rows 22 and 23 (old TODO FS-6, FS-24).
 - **Hull Repair free workbench mode** (Hr4, yes later): draw your own boards after the last deck.
+
+## From the Round 4 ideas sheet (2026-10-12)
+
+- PW-29 Process timeline: a page that turns the dev logs and change lists into a tidy timeline. You answered "later": "Isn't this kinda what's new and roadmap?" Check what What's New and the Roadmap already cover before building.
+- PX-25 Linguist tree: a big tree of notebook tools unlocked by contact points. You answered "later": "I am not sure if this one needs or wants a tree."

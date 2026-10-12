@@ -53,3 +53,9 @@ Wiring and `handle(json)` pattern from Logic Gates; collectable shelf from Stati
 
 ## 11. Open questions for the owner
 1. Should a friend's visit also unlock a tiny optional favour (like a free extra probe type), or stay purely a keepsake? Default: a few gifts are tools, the rest keepsakes.
+
+## Owner decisions (2026-10-12)
+
+From your answers on the ideas sheet ("yes" means go with the default written in the question).
+
+- should a friend's visit also unlock a tiny optional favour (like a free extra probe type), or stay purely a keepsake? -> **Decision (you, 2026-10-12): a few gifts are tools, the rest keepsakes.**

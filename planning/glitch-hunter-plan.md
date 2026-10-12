@@ -56,3 +56,10 @@ Short "Famous glitches" cards on the About and Sources page, read live from name
 ## 10. Open questions for the owner (defaults used meanwhile)
 1. Should the tester's log notes be dry and dark in voice, or plainer? Default: dry and short, behind the Story toggle.
 2. Should "decoy" rooms (no glitch to find) exist at all, or does every room hide one? Default: 3 decoys across the game.
+
+## Owner decisions (2026-10-12)
+
+From your answers on the ideas sheet ("yes" means go with the default written in the question).
+
+- should the tester's log notes be dry and dark in voice, or plainer? -> **Decision (you, 2026-10-12): dry and short, behind the Story toggle.**
+- should "decoy" rooms (no glitch to find) exist at all, or does every room hide one? -> **Decision (you, 2026-10-12): 3 decoys across the game.**

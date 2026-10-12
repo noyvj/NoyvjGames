@@ -55,3 +55,10 @@ Engine pattern from Hull Repair (`rules.py`, `progress.py`, `hints.py`, `render.
 ## 11. Open questions for the owner
 1. Should the table cover only the 36 bench elements for 100%, or all 118 with the unused ones also given a use card? Default: 36, the rest faint and optional.
 2. Is a free sandbox bench (type any formulas and have the ledger check them) wanted after chapter 5? Default: no.
+
+## Owner decisions (2026-10-12)
+
+From your answers on the ideas sheet ("yes" means go with the default written in the question).
+
+- should the table cover only the 36 bench elements for 100%, or all 118 with the unused ones also given a use card? -> **Decision (you, 2026-10-12): 36, the rest faint and optional.**
+- is a free sandbox bench (type any formulas and have the ledger check them) wanted after chapter 5? -> **Decision (you, 2026-10-12): no.**

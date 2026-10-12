@@ -53,3 +53,10 @@ Pure-Python engine with `handle(json)`; enumerator tool in the pattern of Logic 
 ## 11. Open questions for the owner
 1. Should finding every pass of a challenge count towards 100%, or stay a bonus? Default: bonus only, so 100% stays easy.
 2. Should the Broken Build ever be nerfed or banned from a "fair" challenge variant? Default: no, Broken is always allowed and celebrated.
+
+## Owner decisions (2026-10-12)
+
+From your answers on the ideas sheet ("yes" means go with the default written in the question).
+
+- should finding every pass of a challenge count towards 100%, or stay a bonus? -> **Decision (you, 2026-10-12): bonus only, so 100% stays easy.**
+- should the Broken Build ever be nerfed or banned from a "fair" challenge variant? -> **Decision (you, 2026-10-12): no, Broken is always allowed and celebrated.**

@@ -62,3 +62,11 @@ Fact cards drawn from named, dated sources read live and shown with the read dat
 1. Are a fruit farmer, a water engineer and a clinic nurse the right three viewpoints for a water shortage, or would you swap one (for example a shopkeeper or a council member)? Default: as written.
 2. Should the Council meeting be a fourth playable thread, or just an ending screen that summarises what the three sides chose? Default: a short playable thread.
 3. Should fact cards be on by default or switched on in Settings? Default: on, with a setting to hide.
+
+## Owner decisions (2026-10-12)
+
+From your answers on the ideas sheet ("yes" means go with the default written in the question).
+
+- are a fruit farmer, a water engineer and a clinic nurse the right three viewpoints for a water shortage, or would you swap one (for example a shopkeeper or a council member)? -> **Decision (you, 2026-10-12): as written.**
+- should the Council meeting be a fourth playable thread, or just an ending screen that summarises what the three sides chose? -> **Decision (you, 2026-10-12): a short playable thread.**
+- should fact cards be on by default or switched on in Settings? -> **Decision (you, 2026-10-12): on, with a setting to hide.**

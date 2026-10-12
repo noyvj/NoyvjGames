@@ -52,3 +52,10 @@ Grid renderer, drag input and solver-in-`tools/` pattern from Hull Repair; galle
 ## 11. Open questions for the owner
 1. Mono pictures with a final tint, or true multi-colour nonograms for the last gallery? Default: mono with tint (clearer, easier to read on dark).
 2. Should Check mistakes be on by default for the first gallery? Default: off, offered once in the tutorial.
+
+## Owner decisions (2026-10-12)
+
+From your answers on the ideas sheet ("yes" means go with the default written in the question).
+
+- mono pictures with a final tint, or true multi-colour nonograms for the last gallery? -> **Decision (you, 2026-10-12): mono with tint (clearer, easier to read on dark).**
+- should Check mistakes be on by default for the first gallery? -> **Decision (you, 2026-10-12): off, offered once in the tutorial.**

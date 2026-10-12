@@ -53,3 +53,10 @@ Graph engine and `tools/` enumerator in the pattern of Hull Repair and Trade Emp
 ## 11. Open questions for the owner
 1. Should every valley have a Fair share plan (everyone Content), or should a few late valleys be honest "no perfect plan" cases where Common ground is the best? Default: a Fair share plan always exists, but the late ones are tight.
 2. Should the voices be able to disagree with each other in text (a short exchange) or only react to the plan? Default: react to the plan only.
+
+## Owner decisions (2026-10-12)
+
+From your answers on the ideas sheet ("yes" means go with the default written in the question).
+
+- should every valley have a Fair share plan (everyone Content), or should a few late valleys be honest "no perfect plan" cases where Common ground is the best? -> **Decision (you, 2026-10-12): a Fair share plan always exists, but the late ones are tight.**
+- should the voices be able to disagree with each other in text (a short exchange) or only react to the plan? -> **Decision (you, 2026-10-12): react to the plan only.**

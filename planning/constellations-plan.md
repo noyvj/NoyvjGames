@@ -53,3 +53,9 @@ Grid and graph validator patterns from Hull Repair (`rules.py`, `play.py`, `rend
 ## 11. Open questions for the owner
 1. Western (IAU) constellations only, or also a few figures from other sky traditions with their sources? Default: IAU only for now.
 2. Should the atlas show the real sky for the player's hemisphere? Default: no, one fixed atlas.
+
+## Owner decisions (2026-10-12)
+
+From your answers on the ideas sheet ("yes" means go with the default written in the question).
+
+- should the atlas show the real sky for the player's hemisphere? -> **Decision (you, 2026-10-12): no, one fixed atlas.**

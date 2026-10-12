@@ -57,3 +57,10 @@ Small cards read live from named, dated sources on the About page: the binary sy
 ## 10. Open questions for the owner (defaults used meanwhile)
 1. Should helper displays (running sum, binary string) be on by default, with a setting to hide them for a harder game? Default: on.
 2. Should negative numbers (two's complement) be a late optional chapter? Default: no, kept out.
+
+## Owner decisions (2026-10-12)
+
+From your answers on the ideas sheet ("yes" means go with the default written in the question).
+
+- should helper displays (running sum, binary string) be on by default, with a setting to hide them for a harder game? -> **Decision (you, 2026-10-12): on.**
+- should negative numbers (two's complement) be a late optional chapter? -> **Decision (you, 2026-10-12): no, kept out.**

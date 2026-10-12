@@ -59,3 +59,11 @@ None, fiction. The station and its crews are invented. Each plaque names only a 
 1. Shared Station and Space Museum both celebrate what you have done on the site (rooms lit versus objects placed). Keep both as separate games, or merge them? Default: keep both; the station shows status, the museum shows arranging.
 2. Should visitors be able to leave one of 12 fixed "waves", or no gifts at all in v1? Default: waves in, free text never.
 3. Should the Station Card include a display name, or only the lit rooms? Default: a name from a short closed word list.
+
+## Owner decisions (2026-10-12)
+
+From your answers on the ideas sheet ("yes" means go with the default written in the question).
+
+- shared Station and Space Museum both celebrate what you have done on the site (rooms lit versus objects placed). Keep both as separate games, or merge them? -> **Decision (you, 2026-10-12): keep both; the station shows status, the museum shows arranging.**
+- should visitors be able to leave one of 12 fixed "waves", or no gifts at all in v1? -> **Decision (you, 2026-10-12): waves in, free text never.**
+- should the Station Card include a display name, or only the lit rooms? -> **Decision (you, 2026-10-12): a name from a short closed word list.**

@@ -54,3 +54,9 @@ Pure-Python engine with `handle(json)`; `narrative_log.py` and the story toggle 
 
 ## 11. Open questions for the owner
 1. Should Wren's thread be a real story with an ending, or only loose log entries? Default: loose threads per band with a short quiet ending line in the last message.
+
+## Owner decisions (2026-10-12)
+
+From your answers on the ideas sheet ("yes" means go with the default written in the question).
+
+- should Wren's thread be a real story with an ending, or only loose log entries? -> **Decision (you, 2026-10-12): loose threads per band with a short quiet ending line in the last message.**

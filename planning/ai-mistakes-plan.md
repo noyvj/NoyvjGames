@@ -56,3 +56,10 @@ The Field Guide's "Real world" notes cite named, dated sources read live: docume
 ## 10. Open questions for the owner (defaults used meanwhile)
 1. Should cases stay in toy domains (animals, foods, weather) with real-world incidents only in the Field Guide notes, or should some cases use a realistic setting (for example a job-application screener)? Default: toy domains only.
 2. Should the Fix step (change one example and re-run Pip) be on from the start or appear only after the first chapter? Default: from the start.
+
+## Owner decisions (2026-10-12)
+
+From your answers on the ideas sheet ("yes" means go with the default written in the question).
+
+- should cases stay in toy domains (animals, foods, weather) with real-world incidents only in the Field Guide notes, or should some cases use a realistic setting (for example a job-application screener)? -> **Decision (you, 2026-10-12): toy domains only.**
+- should the Fix step (change one example and re-run Pip) be on from the start or appear only after the first chapter? -> **Decision (you, 2026-10-12): from the start.**

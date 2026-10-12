@@ -56,3 +56,10 @@ Minimal: a "How real networks route" card on the About page, read live from a na
 ## 10. Open questions for the owner (defaults used meanwhile)
 1. Wick is steady and kind rather than sad; its decline is gradual forgetting. Is that the right tragic level, or should it be sadder or lighter? Default: as written.
 2. Should Wick's apologies and thanks be spoken in short lines for every Evening, or only on the first and last of each chapter? Default: short every Evening, behind the Story toggle.
+
+## Owner decisions (2026-10-12)
+
+From your answers on the ideas sheet ("yes" means go with the default written in the question).
+
+- wick is steady and kind rather than sad; its decline is gradual forgetting. Is that the right tragic level, or should it be sadder or lighter? -> **Decision (you, 2026-10-12): as written.**
+- should Wick's apologies and thanks be spoken in short lines for every Evening, or only on the first and last of each chapter? -> **Decision (you, 2026-10-12): short every Evening, behind the Story toggle.**

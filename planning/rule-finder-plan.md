@@ -53,3 +53,10 @@ Pure-Python engine with `handle(json)`; `tools/` solver pattern from Hull Repair
 ## 11. Open questions for the owner
 1. Should a wrong name ever show the hidden rule's words after several near misses? Default: no, only the Answer rung does.
 2. Add a free "write your own rule and test a friend" mode? Default: no.
+
+## Owner decisions (2026-10-12)
+
+From your answers on the ideas sheet ("yes" means go with the default written in the question).
+
+- should a wrong name ever show the hidden rule's words after several near misses? -> **Decision (you, 2026-10-12): no, only the Answer rung does.**
+- add a free "write your own rule and test a friend" mode? -> **Decision (you, 2026-10-12): no.**

@@ -52,3 +52,10 @@ Pure-Python engine with `handle(json)`; subset-search tool in the pattern of Log
 ## 11. Open questions for the owner
 1. Is a small decision tree the right "tiny classifier", or do you want a nearest-neighbour model Pip can show as "looks most like these"? Default: decision tree.
 2. Should the Fair Treatment shelf stay inside the game or become an optional extra shelf? Default: inside, switchable off in settings.
+
+## Owner decisions (2026-10-12)
+
+From your answers on the ideas sheet ("yes" means go with the default written in the question).
+
+- is a small decision tree the right "tiny classifier", or do you want a nearest-neighbour model Pip can show as "looks most like these"? -> **Decision (you, 2026-10-12): decision tree.**
+- should the Fair Treatment shelf stay inside the game or become an optional extra shelf? -> **Decision (you, 2026-10-12): inside, switchable off in settings.**

@@ -57,3 +57,9 @@ Real famous software bugs as optional "Afterward" cards read live from named, da
 
 ## 10. Open questions for the owner (defaults used meanwhile)
 1. Should phones get the tap-a-token editor only, or a normal keyboard editor too? Default: both, token mode first on small screens.
+
+## Owner decisions (2026-10-12)
+
+From your answers on the ideas sheet ("yes" means go with the default written in the question).
+
+- should phones get the tap-a-token editor only, or a normal keyboard editor too? -> **Decision (you, 2026-10-12): both, token mode first on small screens.**

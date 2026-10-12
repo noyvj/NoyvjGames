@@ -57,3 +57,10 @@ Part cards show real values read live from named, dated sources: the E12 resisto
 ## 10. Open questions for the owner (defaults used meanwhile)
 1. Should the board stay at 24 parts (works well on phones), or allow bigger boards on desktop? Default: 24 on every device.
 2. Should AC (a swinging source) ever be added, or keep everything DC? Default: DC only.
+
+## Owner decisions (2026-10-12)
+
+From your answers on the ideas sheet ("yes" means go with the default written in the question).
+
+- should the board stay at 24 parts (works well on phones), or allow bigger boards on desktop? -> **Decision (you, 2026-10-12): 24 on every device.**
+- should AC (a swinging source) ever be added, or keep everything DC? -> **Decision (you, 2026-10-12): DC only.**

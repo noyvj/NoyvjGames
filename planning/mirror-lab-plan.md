@@ -52,3 +52,9 @@ Board, renderer and `tools/` solver patterns from Hull Repair; tray/inventory pa
 
 ## 11. Open questions for the owner
 1. Are decoy "must stay dark" sensors welcome, or should every sensor simply need lighting? Default: decoys only in chapter 4 and after.
+
+## Owner decisions (2026-10-12)
+
+From your answers on the ideas sheet ("yes" means go with the default written in the question).
+
+- are decoy "must stay dark" sensors welcome, or should every sensor simply need lighting? -> **Decision (you, 2026-10-12): decoys only in chapter 4 and after.**

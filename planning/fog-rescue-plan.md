@@ -52,3 +52,9 @@ Graph/grid engine, BFS tool and renderer from Hull Repair and Zero-G Shift (same
 
 ## 11. Open questions for the owner
 1. Should this stay a standalone game or be set aside to become part of the foggy-forest dream game later? Default: standalone now, reusable later.
+
+## Owner decisions (2026-10-12)
+
+From your answers on the ideas sheet ("yes" means go with the default written in the question).
+
+- should this stay a standalone game or be set aside to become part of the foggy-forest dream game later? -> **Decision (you, 2026-10-12): standalone now, reusable later.**

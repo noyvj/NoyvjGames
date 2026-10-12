@@ -58,3 +58,10 @@ Short About-page cards read live from named, dated sources: the history of regul
 ## 10. Open questions for the owner (defaults used meanwhile)
 1. The game uses its own matcher for safety, which supports a clearly listed subset of regular expressions. Is that fine, or should it use the full Python engine with a hard cap on pattern length? Default: own matcher.
 2. Par marks reward the shortest pattern. Keep them as an optional small mark, or drop them to keep it pure puzzle? Default: keep, optional.
+
+## Owner decisions (2026-10-12)
+
+From your answers on the ideas sheet ("yes" means go with the default written in the question).
+
+- the game uses its own matcher for safety, which supports a clearly listed subset of regular expressions. Is that fine, or should it use the full Python engine with a hard cap on pattern length? -> **Decision (you, 2026-10-12): own matcher.**
+- par marks reward the shortest pattern. Keep them as an optional small mark, or drop them to keep it pure puzzle? -> **Decision (you, 2026-10-12): keep, optional.**

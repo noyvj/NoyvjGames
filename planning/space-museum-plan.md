@@ -58,3 +58,11 @@ None, fiction. The museum and its visitors are invented. (The object names come 
 1. Should the museum percentage count only the museum's own finds and rooms (so 100% never needs other games), with site objects a separate bonus shelf? Default: yes.
 2. Should an object name be taken straight from the achievement title, or should I hand-write a nicer object for every achievement (about 300 short lines)? Default: titles with about 60 hand-written overrides.
 3. Should visitors see someone else's museum (an invite-link snapshot, like Shared Station)? Default: no, that stays in Shared Station.
+
+## Owner decisions (2026-10-12)
+
+From your answers on the ideas sheet ("yes" means go with the default written in the question).
+
+- should the museum percentage count only the museum's own finds and rooms (so 100% never needs other games), with site objects a separate bonus shelf? -> **Decision (you, 2026-10-12): yes.**
+- should an object name be taken straight from the achievement title, or should I hand-write a nicer object for every achievement (about 300 short lines)? -> **Decision (you, 2026-10-12): titles with about 60 hand-written overrides.**
+- should visitors see someone else's museum (an invite-link snapshot, like Shared Station)? -> **Decision (you, 2026-10-12): no, that stays in Shared Station.**

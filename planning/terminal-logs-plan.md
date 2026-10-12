@@ -58,3 +58,10 @@ Fiction: the ship, crew and events are invented. The About and Sources page show
 ## 10. Open questions for the owner (defaults used meanwhile)
 1. Buttons only, or also a real typing line for commands (with autocomplete) on desktop? Default: both, typing optional.
 2. Should the ship's daemon speak (short lines in its own log voice) or should there be no voice at all, only files? Default: short daemon lines, behind the Story toggle.
+
+## Owner decisions (2026-10-12)
+
+From your answers on the ideas sheet ("yes" means go with the default written in the question).
+
+- buttons only, or also a real typing line for commands (with autocomplete) on desktop? -> **Decision (you, 2026-10-12): both, typing optional.**
+- should the ship's daemon speak (short lines in its own log voice) or should there be no voice at all, only files? -> **Decision (you, 2026-10-12): short daemon lines, behind the Story toggle.**

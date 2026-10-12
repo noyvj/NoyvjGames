@@ -52,3 +52,10 @@ Pure-Python engine with `handle(json)`; story lines via `narrative_log.py` and t
 ## 11. Open questions for the owner
 1. Is a 40-memory story about a flawed caretaker AI the right tone, or should HALCY be gentler with less of a mistake behind it? Default: a small, forgivable mistake, never a disaster.
 2. Should Check show how many scraps are right, or only Right or Not yet? Default: the number.
+
+## Owner decisions (2026-10-12)
+
+From your answers on the ideas sheet ("yes" means go with the default written in the question).
+
+- is a 40-memory story about a flawed caretaker AI the right tone, or should HALCY be gentler with less of a mistake behind it? -> **Decision (you, 2026-10-12): a small, forgivable mistake, never a disaster.**
+- should Check show how many scraps are right, or only Right or Not yet? -> **Decision (you, 2026-10-12): the number.**

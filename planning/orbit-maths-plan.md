@@ -56,3 +56,10 @@ The **Real figures** sheets use numbers read live from named, dated sources and 
 ## 10. Open questions for the owner (defaults used meanwhile)
 1. Should the physics stay at ratios, speeds and fuel with given numbers (no formulas to memorise), or include the real rocket equation with logarithms in the last stage? Default: simple steps with given numbers; no logarithms.
 2. Should a built-in calculator be allowed on every sheet, or only on the last two stages? Default: every sheet.
+
+## Owner decisions (2026-10-12)
+
+From your answers on the ideas sheet ("yes" means go with the default written in the question).
+
+- should the physics stay at ratios, speeds and fuel with given numbers (no formulas to memorise), or include the real rocket equation with logarithms in the last stage? -> **Decision (you, 2026-10-12): simple steps with given numbers; no logarithms.**
+- should a built-in calculator be allowed on every sheet, or only on the last two stages? -> **Decision (you, 2026-10-12): every sheet.**
