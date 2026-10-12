@@ -2,7 +2,7 @@
    handle() returns and forwards what the player does. No game logic lives here. */
 (function () {
   "use strict";
-  var ENGINE_MODULES = ["lang.py", "pulse.py", "parse.py", "world.py", "scenes.py", "deduce.py", "notebook.py", "compound.py", "compound_scenes.py", "deduce_compound.py", "glyphs.py", "achievements.py", "bridge.py", "bridge_scenes.py", "deduce_bridge.py", "story.py", "report.py", "info.py", "museum.py", "bench.py"];
+  var ENGINE_MODULES = ["lang.py", "pulse.py", "parse.py", "world.py", "scenes.py", "deduce.py", "notebook.py", "compound.py", "compound_scenes.py", "deduce_compound.py", "glyphs.py", "achievements.py", "bridge.py", "bridge_scenes.py", "deduce_bridge.py", "story.py", "report.py", "info.py", "museum.py", "bench.py", "globes.py"];
   var STORE_KEY = "lexis:state";
   var BRIEF_KEY = "lexis:brief-seen";
   var TOKEN_LEN = 4;
@@ -749,7 +749,17 @@
     });
   }
 
+  function renderGlobe() {
+    var container = $("globe-container");
+    if (!container) return;
+    var lamps = (view && view.station && view.station.lamps) ? view.station.lamps : 0;
+    try {
+      container.innerHTML = engine.globe_svg(lamps);
+    } catch (e) { /* fallback to empty */ }
+  }
+
   function render() {
+    renderGlobe();
     renderAchievements();
     renderStory();
     renderReport();
@@ -972,7 +982,7 @@
     }
     await pyodide.runPythonAsync(await (await fetch("game.py")).text());
     window.pyodide = pyodide;   // the shared save widget (milestone 5) looks for it
-    engine = { handle: pyodide.globals.get("handle"), getState: pyodide.globals.get("get_state"), loadState: pyodide.globals.get("load_state") };
+    engine = { handle: pyodide.globals.get("handle"), getState: pyodide.globals.get("get_state"), loadState: pyodide.globals.get("load_state"), globe_svg: pyodide.globals.get("globe_svg") };
     var saved = lsGet(STORE_KEY);
     if (saved) {
       try { engine.loadState(pyodide.toPy(JSON.parse(saved))); } catch (e) { /* a bad save never blocks play */ }

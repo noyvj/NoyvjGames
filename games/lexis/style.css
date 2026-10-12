@@ -162,3 +162,8 @@ html[data-reduced-motion="true"] *, html[data-reduced-motion="true"] *::before, 
 html[data-effects="off"] *, html[data-effects="off"] *::before, html[data-effects="off"] *::after {
   animation: none !important; transition: none !important; scroll-behavior: auto !important;
 }
+
+/* Low-poly globe */
+.planet-globe { display: flex; justify-content: center; margin: 0.8rem 0; }
+.planet-globe svg { width: 100%; max-width: 200px; height: auto; }
+html[data-reduced-motion="true"] .planet-globe svg, html[data-effects="off"] .planet-globe svg { filter: none; }
