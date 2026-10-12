@@ -17,11 +17,15 @@ Actions (every request is {"action": ..., ...}; every reply is the whole view):
   difficulty {level}      easy | normal | hard (told by the page, never saved; only changes how the hint ladder opens)
   reset                   start over (everything)
 
+The view also carries `achievements` (id, label, description, earned, have, need for each of the 14; see achievements.py); the save
+writes `achievements_earned` as a projection that load never reads back.
+
 The names of a chart, of its stars and its note are in the view only once the chart is finished. Stars are A, B, C ... from left to right.
 """
 
 import json
 
+import achievements
 import charts
 import goals
 import hints
@@ -141,7 +145,14 @@ class Game:
         asked = {cid: self.hinted[cid] for cid in charts.ORDER if self.hinted.get(cid)}
         if asked:
             data["hints"] = asked
+        earned = achievements.earned(self.facts())
+        if earned:
+            data["achievements_earned"] = earned       # written for the hub's dashboard; load never reads it back (the ids are derived from the rest)
         return data
+
+    def facts(self):
+        """What the achievements are computed from: the finished set, the hint record and the tally of lines drawn."""
+        return achievements.facts_of(self.solved, self.hinted, self.tally["draws"])
 
     def load(self, data):
         """Take a saved dict, checking every field on its own; a bad field falls back to its default. A finished chart only counts if its
@@ -306,6 +317,7 @@ class Game:
             "editable": not solved, "can_undo": bool(self.undo), "can_redo": bool(self.redo), "can_clear": bool(self.work.get(c["id"])) and not solved,
             "just": self.just, "seasons": self._seasons(), "atlas": self._atlas(), "cards": self._cards(), "tally": dict(self.tally),
             "hint": self._hint_view(), "hint_ui": self._hint_ui(status), "goals": goals.queue(self.solved, self.tally["draws"]), "difficulty": difficulty,
+            "achievements": achievements.view(self.facts()),
             "totals": {"charts": len(charts.ORDER), "done": len(self.solved), "stars": charts.star_total(self.solved),
                        "pages_open": sum(1 for s in range(len(charts.SEASONS)) if charts.season_open(self.solved, s)), "pages": len(charts.SEASONS),
                        "seasons_done": charts.seasons_finished(self.solved), "lines": self.tally["draws"], "erased": self.tally["erases"], "hints": self.tally["hints"]},

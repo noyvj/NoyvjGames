@@ -41,7 +41,7 @@ def test_the_save_is_plain_json_data():
     do(action="toggle", a=charts.BY_ID[season_one()[1]]["edges"][0][0], b=charts.BY_ID[season_one()[1]]["edges"][0][1])
     state = game_module.get_state()
     assert json.loads(json.dumps(state)) == state
-    assert set(state) <= {"schema", "cur", "solved", "work", "moves", "tally"}
+    assert set(state) <= {"schema", "cur", "solved", "work", "moves", "tally", "hints", "achievements_earned"}
 
 
 def test_round_trip_keeps_progress_work_and_tally():

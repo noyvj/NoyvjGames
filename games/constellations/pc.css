@@ -1,0 +1,51 @@
+/* Constellations, Desktop boot only (loaded by pc.html). Everything is scoped to the pc layout, so the Classic page is untouched.
+   The chart (its title line, the sky board and the status and cursor lines) is the stage and the board fills what is left of the window;
+   the chart arrows, the tools, the done card, the suggestion ladder, the chart as text, the difficulty choice and the three goals are a
+   right-hand column; the stats strip sits in the top bar. The frame, windows and Menu come from shared/pc-shell.css. */
+
+html[data-layout="pc"] #game { padding-bottom: 0.4rem; max-width: none; }
+#pc-topbar { grid-template-columns: auto minmax(0, 1fr) auto; grid-template-areas: "title stats tools"; padding-right: 9rem; }
+#pc-topbar > .game-toolbar { grid-area: tools; justify-content: flex-end; }
+#pc-topbar > h1 { font-size: 1.4rem; letter-spacing: 0.12em; }
+#pc-topbar > #stats { grid-area: stats; margin: 0; grid-template-columns: repeat(6, minmax(4.6rem, 7.5rem)); justify-content: center; align-self: center; }
+html[data-layout="pc"] .stat { display: flex; flex-direction: column; }
+#pc-stagebar:empty { display: none; }
+@media (max-width: 1180px) {
+  /* A narrower window: the six stats take their own row under the title and the icons instead of squeezing between them. */
+  #pc-topbar { grid-template-columns: auto minmax(0, 1fr); grid-template-areas: "title tools" "stats stats"; }
+  #pc-topbar > #stats { grid-template-columns: repeat(6, minmax(0, 1fr)); justify-self: stretch; }
+}
+
+/* The stage: title line, then the sky board taking all the remaining height, then the status and cursor lines. */
+#pc-stage > #chart-panel {
+  flex: 1 1 0; min-height: 0; margin: 0; overflow: hidden;
+  display: grid; grid-template-columns: auto minmax(0, 1fr); grid-template-rows: auto auto minmax(0, 1fr) auto auto;
+  grid-template-areas: "kicker kicker" "heading caption" "board board" "status status" "cursor cursor"; column-gap: 1rem; row-gap: 0.1rem;
+}
+#pc-stage #chart-kicker { grid-area: kicker; }
+#pc-stage #chart-heading { grid-area: heading; margin: 0; align-self: baseline; }
+#pc-stage #chart-caption { grid-area: caption; margin: 0; align-self: baseline; min-height: 0; }
+#pc-stage #board-wrap { grid-area: board; position: relative; min-height: 0; min-width: 0; margin: 0.3rem 0; padding: 0; overflow: hidden; }
+#pc-stage #board { position: absolute; inset: 0.3rem; width: calc(100% - 0.6rem); height: calc(100% - 0.6rem); max-height: none; }
+#pc-stage #status-line { grid-area: status; margin: 0.1rem 0 0; min-height: 1.4em; }
+#pc-stage #cursor-line { grid-area: cursor; margin: 0.1rem 0 0; min-height: 1.4em; }
+
+#pc-body { grid-template-rows: minmax(0, 1fr); }
+#pc-body.pc-has-side { grid-template-columns: minmax(0, 1fr) clamp(16rem, 24vw, 22rem); }
+#pc-side { min-width: 0; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; gap: 0.6rem; padding-right: 0.2rem; }
+#pc-side > * { margin: 0; flex: 0 0 auto; }
+#pc-side #goals { margin: 0; }
+#pc-side .chart-nav { display: flex; gap: 0.4rem; }
+#pc-side .chart-nav button { flex: 1 1 0; }
+#pc-side .tools { display: grid; grid-template-columns: 1fr 1fr; gap: 0.4rem; }
+#pc-side .tools button { min-width: 0; width: 100%; }
+#pc-side #hint-box { margin: 0; }
+#pc-side #hint-draw-button { margin-top: 0.3rem; }
+#pc-side #difficulty-panel { padding: 0.4rem 0.6rem; }
+#pc-side #done-card .button-row button { flex: 1 1 auto; }
+#pc-side #chart-text { margin: 0; max-height: 18rem; overflow-y: auto; }
+
+/* Messages ("Joined A and B.", "Achievement unlocked") float over the corner of the stage instead of taking a row. */
+html[data-layout="pc"] #toast { position: fixed; left: 50%; bottom: 3.4rem; transform: translateX(-50%); z-index: 40; max-width: min(48rem, 90vw); margin: 0; }
+html[data-layout="pc"] #toast:empty, html[data-layout="pc"] #engine-status:empty { display: none; }
+html[data-layout="pc"] #story-toggle { top: 0.6rem !important; left: auto !important; right: 12rem !important; }

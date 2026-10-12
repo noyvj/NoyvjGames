@@ -1,0 +1,43 @@
+{
+  "windows": [
+    ["charts-panel", "charts-toggle-button", "Charts"],
+    ["atlas-panel", "atlas-toggle-button", "Sky Atlas"],
+    ["achievements-panel", "achievements-toggle-button", "Achievements"],
+    ["changelog-panel", "changelog-toggle-button", "What's New"],
+    ["settings-panel", "settings-toggle-button", "Settings"],
+    ["info-page-panel", "info-page-toggle-button", "About Constellations"]
+  ],
+  "toolbar": {
+    "icons": [
+      ["charts-toggle-button", "🗂️"],
+      ["atlas-toggle-button", "🌌"],
+      ["achievements-toggle-button", "🏆"],
+      ["settings-toggle-button", "⚙️"]
+    ],
+    "menu": [
+      {"heading": "Help", "ids": ["tutorial-restart-button", "info-page-toggle-button", "credits-link"]},
+      {"heading": "Records", "ids": ["changelog-toggle-button"]}
+    ]
+  },
+  "composites": [],
+  "adopt": [],
+  "zones": {
+    "topbar": [".hub-back-link", "h1", "#stats", ".game-toolbar"],
+    "stagebar": [],
+    "stage": ["#chart-panel"],
+    "side": ["#goals", "#chart-panel .chart-nav", "#chart-panel .tools", "#done-card", "#hint-box", "#chart-text", "#difficulty-panel"],
+    "hidden": [".tagline", ".keys-note", ".zoom-row"]
+  },
+  "readouts": [],
+  "side_label": "Tools, suggestions and goals",
+  "hints": [
+    ["Arrows", "Move the ring from star to star"],
+    ["Letter", "Jump to that star"],
+    ["Space", "Pick up a star / draw the line"],
+    ["Ctrl+Z", "Undo"],
+    ["Alt+H", "Ask for a suggestion"],
+    ["Esc", "Put a star down / Menu / close window"],
+    ["?", "All shortcuts"]
+  ],
+  "notify": null
+}

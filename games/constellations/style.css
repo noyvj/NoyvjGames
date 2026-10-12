@@ -219,3 +219,10 @@ html[data-reduced-motion="true"] .board.found .b-star, html[data-effects="off"] 
 .zoom-row button[aria-pressed="true"] { border-width: 3px; }
 .board-wrap.zoomed { overflow: auto; text-align: left; max-height: 80vh; }
 @media (max-width: 640px) { .stat-strip { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+
+/* Achievements (milestone 6): a quiet list, each with a count. Earned is a double border and the word "Earned", never colour alone. */
+.ach-list { list-style: none; margin: 0.4rem 0; padding: 0; display: grid; gap: 0.35rem; }
+.ach-list li { border: 1px solid var(--line); border-radius: 10px; padding: 0.35rem 0.6rem; background: var(--surface); }
+.ach-list li.earned { border-color: var(--ok); border-width: 2px; }
+.ach-list .tick { display: inline-block; min-width: 4.6rem; text-align: center; font-weight: 700; font-size: 0.78rem; border: 1px solid var(--edge); border-radius: 999px; padding: 0 0.4rem; font-variant-numeric: tabular-nums; }
+.ach-list li.earned .tick { border-style: double; border-width: 3px; }

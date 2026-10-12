@@ -2,6 +2,10 @@
   "changelog": [
     {
       "date": "2026-10-12",
+      "entry": "Achievements and a Desktop layout. There are 14 achievements, from your first constellation to the whole sky, one for each season, a pair of bears, the smallest constellation of all, and a night spent drawing 500 lines; each shows how close you are, none is timed, and the ones about a particular constellation do not name it until you have found it. A button in the toolbar opens the list, and a short message says when one is earned. On a wide window with a mouse there is now a Desktop layout: the sky board fills the window, the tools, the suggestion button and your three goals sit in a column beside it, and Charts, the Sky Atlas, Achievements and Settings open as windows. The same save works on both layouts, and the Menu switches between them."
+    },
+    {
+      "date": "2026-10-12",
       "entry": "The whole sky: 16 more charts in Autumn Sky (Cassiopeia to Pegasus) and Southern Sky (Crux to Centaurus), 40 in all. The Southern Cross is drawn the traditional way, as two lines that cross, and is the one chart where that is allowed. New: a suggestion button (\"Would you like a suggestion?\") that only answers when you ask, one rung at a time: a nudge, a hint that shows the line and why it is certain, and the whole answer you can draw with one press; Easy, Normal and Hard change only how the rungs open. Three goals are always on show, a larger-board button helps on small screens, and About now checks your atlas against Stellarium's live figures. There is a tutorial, a welcome screen with Continue and New Game, and a keyboard help list (press ?)."
     },
     {

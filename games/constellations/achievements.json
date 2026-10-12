@@ -1,0 +1,74 @@
+{
+  "achievements": [
+    {
+      "id": "first_figure",
+      "label": "First Figure",
+      "description": "Find your first constellation."
+    },
+    {
+      "id": "ten_figures",
+      "label": "Ten Figures",
+      "description": "Find 10 constellations."
+    },
+    {
+      "id": "twenty_figures",
+      "label": "Twenty Figures",
+      "description": "Find 20 constellations."
+    },
+    {
+      "id": "forty_figures",
+      "label": "Forty Figures",
+      "description": "Find every constellation."
+    },
+    {
+      "id": "winter_done",
+      "label": "Winter Done",
+      "description": "Find all 8 constellations in Winter Sky."
+    },
+    {
+      "id": "spring_done",
+      "label": "Spring Done",
+      "description": "Find all 8 constellations in Spring Sky."
+    },
+    {
+      "id": "summer_done",
+      "label": "Summer Done",
+      "description": "Find all 8 constellations in Summer Sky."
+    },
+    {
+      "id": "autumn_done",
+      "label": "Autumn Done",
+      "description": "Find all 8 constellations in Autumn Sky."
+    },
+    {
+      "id": "southern_done",
+      "label": "Southern Done",
+      "description": "Find all 8 constellations in Southern Sky."
+    },
+    {
+      "id": "the_hunter",
+      "label": "Belt and Sword",
+      "description": "Find the winter constellation with a belt of three bright stars in a row."
+    },
+    {
+      "id": "the_bears",
+      "label": "The Bears",
+      "description": "Find both bears of the spring sky, one large and one small."
+    },
+    {
+      "id": "southern_cross",
+      "label": "Smallest of All",
+      "description": "Find the smallest constellation of all, a cross of four stars low in the southern sky."
+    },
+    {
+      "id": "no_hints_needed",
+      "label": "No Hints Needed",
+      "description": "Find 10 constellations without asking for a suggestion."
+    },
+    {
+      "id": "long_night",
+      "label": "Long Night",
+      "description": "Draw 500 lines."
+    }
+  ]
+}

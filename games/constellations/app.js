@@ -3,7 +3,7 @@
    whether a number holds or the chart is finished: it asks the engine, and draws the answer. */
 (function () {
   "use strict";
-  var ENGINE_MODULES = ["sky.py", "charts_s1.py", "charts_s2.py", "charts_s3.py", "charts_s4.py", "charts_s5.py", "charts.py", "hints.py", "goals.py", "info.py"];
+  var ENGINE_MODULES = ["sky.py", "charts_s1.py", "charts_s2.py", "charts_s3.py", "charts_s4.py", "charts_s5.py", "charts.py", "hints.py", "goals.py", "achievements.py", "info.py"];
   var STORE_KEY = "constellations:state";
   var BACKUP_KEY = "constellations:state-backup";
   var SVG_NS = "http://www.w3.org/2000/svg";
@@ -465,7 +465,8 @@
 
   // ---- zoom: a larger board for small screens (it scrolls sideways) ---------------------------------------------
   function applyZoom() {
-    var z = ZOOMS[zoomIdx];
+    var pc = document.documentElement.getAttribute("data-layout") === "pc";      // the Desktop board fills the stage (a window with room), so it never needs the larger sizes
+    var z = pc ? 1 : ZOOMS[zoomIdx];
     var svg = $("board");
     svg.style.width = z === 1 ? "" : Math.round(z * 100) + "%";
     svg.style.maxHeight = z === 1 ? "" : "none";
@@ -562,6 +563,43 @@
     if (!window.NoyvjGoals) return;
     goalsPanel = window.NoyvjGoals.mount("#goals", { game: "constellations", title: "Goals", getGoals: function () { return view ? view.goals : []; } });
     if (goalsPanel && window.NoyvjGoals.bindCheckbox) window.NoyvjGoals.bindCheckbox(goalsPanel, "#goals-checkbox");
+  }
+
+  // ---- achievements (the engine decides what is earned; this lists them and says so once when one is new) ------------
+  var knownEarned = null;      // null until the first view, so loading a game or a save never fires a toast
+  var achText = "";            // "Achievement unlocked: ..." for what the last view newly earned (set by renderAchievements, used by send)
+  function renderAchievements() {
+    var list = $("achievements-list");
+    var items = view.achievements;
+    var sig = items.map(function (a) { return a.id + ":" + a.have; }).join(",");
+    if (list.dataset.sig !== sig) {
+      list.dataset.sig = sig;
+      list.textContent = "";
+      items.forEach(function (a) {
+        var li = el("li", a.earned ? "earned" : "");
+        li.setAttribute("data-achievement-id", a.id);
+        li.appendChild(el("span", "tick", a.earned ? "Earned" : a.have + " of " + a.need));
+        var name = el("strong", null, " " + a.label + " ");
+        name.setAttribute("data-achievement-label", "");
+        li.appendChild(name);
+        li.appendChild(el("span", null, a.description));
+        list.appendChild(li);
+      });
+    }
+    var earnedNow = items.filter(function (a) { return a.earned; }).map(function (a) { return a.id; });
+    var count = earnedNow.length + " of " + items.length;
+    setText($("achievements-count"), count + " achievements earned.");
+    var button = $("achievements-toggle-button");
+    button.setAttribute("aria-label", "Achievements, " + count + " earned");
+    setText(button.querySelector(".btn-long"), "Achievements (" + earnedNow.length + "/" + items.length + ")");
+    setText(button.querySelector(".btn-short"), "Trophies " + earnedNow.length + "/" + items.length);
+    if (knownEarned !== null) {
+      var fresh = items.filter(function (a) { return a.earned && knownEarned.indexOf(a.id) === -1; });
+      if (fresh.length) {
+        achText = fresh.map(function (a) { return "Achievement unlocked: " + a.label + "."; }).join(" ");     // send() shows and announces it after the move's own message
+      }
+    }
+    knownEarned = earnedNow;
   }
 
   // ---- charts panel, atlas and cards -----------------------------------------------------------------------------
@@ -859,6 +897,7 @@
     renderCards();
     renderInfo();
     renderHints();
+    renderAchievements();
     if (goalsPanel) goalsPanel.refresh();
   }
 
@@ -875,18 +914,22 @@
     if (!engine) return null;
     var previous = view;
     var reply;
+    achText = "";
     try { reply = JSON.parse(engine.handle(JSON.stringify(request))); } catch (err) { showToast("Something went wrong. Reload to try again."); return null; }
     if (reply.error) { showToast(reply.error); return null; }
     view = reply;
     render();
-    showToast(view.message || "");
+    showToast((view.message || "") + (achText ? (view.message ? " " : "") + achText : ""));
+    var extra = achText ? " " + achText : "";
     if (request.action === "pick" || request.action === "next") {
       var c = view.chart;
-      announce("Chart " + c.number + " of " + c.of + " in " + c.season + ", " + plural(c.stars.length, "star", "stars") + ". " + (c.status === "solved" ? c.name + ", already in your atlas." : view.problems));
+      announce("Chart " + c.number + " of " + c.of + " in " + c.season + ", " + plural(c.stars.length, "star", "stars") + ". " + (c.status === "solved" ? c.name + ", already in your atlas." : view.problems) + extra);
     } else if (view.message && request.action === "finish" && view.just) {
-      announce(view.message);
+      announce(view.message + extra);
     } else if (view.say) {
-      announce(view.say);
+      announce(view.say + extra);
+    } else if (achText) {
+      announce(achText);
     }
     if (view.just && (!previous || !previous.just || previous.just.id !== view.just.id)) {
       if ($("done-card").scrollIntoView) $("done-card").scrollIntoView({ block: "nearest" });
@@ -929,6 +972,7 @@
     });
     wirePanelToggle("charts-toggle-button", "charts-panel");
     wirePanelToggle("atlas-toggle-button", "atlas-panel");
+    wirePanelToggle("achievements-toggle-button", "achievements-panel");
     wirePanelToggle("changelog-toggle-button", "changelog-panel");
     wirePanelToggle("info-page-toggle-button", "info-page-panel");
     $("info-page-toggle-button").addEventListener("click", function () { if (!$("info-page-panel").hidden) { loadLiveInfo(); loadLiveLines(); } });
@@ -947,10 +991,10 @@
       askThen("constellations-reset", "Start the whole atlas over? Every constellation will be taken out of the atlas and your tally will be cleared.", "Take it all out", function () { held = null; atlasSig = ""; cardsSig = ""; chartsSig = ""; send({ action: "reset" }); });
     });
     // The save widget loads a save straight into the engine; this redraws afterwards.
-    window.constellationsRefresh = function () { if (engine) { boardId = null; atlasSig = ""; cardsSig = ""; chartsSig = ""; send({ action: "open" }); } };
+    window.constellationsRefresh = function () { if (engine) { boardId = null; atlasSig = ""; cardsSig = ""; chartsSig = ""; knownEarned = null; send({ action: "open" }); } };
     document.addEventListener("keydown", function (e) {
       if (e.key === "Escape") {
-        ["charts", "atlas", "changelog", "settings", "info-page"].forEach(function (name) {
+        ["charts", "atlas", "achievements", "changelog", "settings", "info-page"].forEach(function (name) {
           var panel = $(name + "-panel");
           if (panel && !panel.hidden) setPanel(name + "-panel", name + "-toggle-button", false);
         });
