@@ -735,6 +735,10 @@
       });
     });
 
+    $("today-button").addEventListener("click", function () {
+      act({ action: "open", date: utcToday(), mode: "easy" });
+    });
+
     $("practice-new-button").addEventListener("click", function () {
       var mode = $("practice-preset").value;
       var go = function () { act({ action: "practice", mode: mode }, { slow: !!SLOW_MODES[mode] }); };
