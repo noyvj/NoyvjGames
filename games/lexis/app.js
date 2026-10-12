@@ -5,6 +5,7 @@
   var ENGINE_MODULES = ["lang.py", "pulse.py", "parse.py", "world.py", "scenes.py", "deduce.py", "notebook.py", "compound.py", "compound_scenes.py", "deduce_compound.py", "glyphs.py", "achievements.py", "bridge.py", "bridge_scenes.py", "deduce_bridge.py", "story.py", "report.py", "info.py", "museum.py", "bench.py", "globes.py", "star_map.py"];
   var STORE_KEY = "lexis:state";
   var BRIEF_KEY = "lexis:brief-seen";
+  var RESUME_KEY = "lexis:resume-frame";
   var TOKEN_LEN = 4;
   var MAX_OUT = 40;
 
@@ -108,6 +109,55 @@
     pad.appendChild(tickBtn);
     pad.appendChild(barBtn);
     document.getElementById("game").appendChild(pad);
+  }
+
+  function initResumeButton() {
+    var btn = document.getElementById("resume-btn");
+    if (!btn) {
+      btn = document.createElement("button");
+      btn.id = "resume-btn";
+      btn.className = "resume-btn";
+      btn.textContent = "Resume last visit";
+      btn.addEventListener("click", loadResumeFrame);
+      var gameEl = document.getElementById("game");
+      if (gameEl) gameEl.appendChild(btn);
+    }
+    updateResumeButton();
+  }
+
+  function saveResumeFrame() {
+    var frame = {
+      planet: currentPlanet,
+      outgoing: outgoing,
+      glyph: outgoingGlyph,
+      message: outgoingMessage.slice(),
+      benchTarget: benchTarget,
+      benchA: currentBenchA,
+      benchB: currentBenchB
+    };
+    try { localStorage.setItem(RESUME_KEY, JSON.stringify(frame)); } catch(e) {}
+  }
+
+  function loadResumeFrame() {
+    var raw = lsGet(RESUME_KEY);
+    if (!raw) return;
+    try {
+      var frame = JSON.parse(raw);
+      currentPlanet = frame.planet || "pulse";
+      outgoing = frame.outgoing || "";
+      outgoingGlyph = frame.glyph || "";
+      outgoingMessage = frame.message || [];
+      benchTarget = frame.benchTarget || null;
+      currentBenchA = frame.benchA || 0;
+      currentBenchB = frame.benchB || 0;
+      render();
+    } catch(e) {}
+  }
+
+  function updateResumeButton() {
+    var btn = document.getElementById("resume-btn");
+    if (!btn) return;
+    btn.hidden = !lsGet(RESUME_KEY);
   }
 
   // ---- drawing helpers -----------------------------------------------------------------------
@@ -868,6 +918,7 @@
     renderScenes();
     renderNotebook();
     renderTransmit();
+    saveResumeFrame();
   }
 
   // ---- talking to the engine -----------------------------------------------------------------
@@ -1038,6 +1089,7 @@
   function wire() {
     mountCopyResult();
     initTransmitPad();
+    initResumeButton();
     wireCompound();
     wireBridge();
     wirePanelToggle("achievements-toggle-button", "achievements-panel");
