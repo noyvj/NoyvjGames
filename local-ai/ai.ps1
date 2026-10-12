@@ -187,7 +187,12 @@ $minutes = [math]::Round(((Get-Date) - $started).TotalMinutes, 1)
 $ok = ($problems.Count -eq 0)
 if ($ok) {
     git -C $work add -- @inside
-    git -C $work commit -q -m "local-ai: ${Item}: $Task" -m "Made by the local model ($Model), not yet reviewed by Claude." -- @inside
+    # The message goes through a file: Windows PowerShell mangles double quotes in native arguments,
+    # which stripped them from messages and broke the commit outright when a task quoted code.
+    $msgFile = Join-Path $work ".aider-commit-msg.txt"
+    [IO.File]::WriteAllText($msgFile, "local-ai: ${Item}: $Task`n`nMade by the local model ($Model), not yet reviewed by Claude.`n", (New-Object System.Text.UTF8Encoding $false))
+    git -C $work commit -q -F $msgFile -- @inside
+    Remove-Item $msgFile -ErrorAction SilentlyContinue
     if ($LASTEXITCODE -ne 0) { $ok = $false; $problems += "git commit failed" }
 }
 
