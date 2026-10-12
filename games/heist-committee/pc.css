@@ -98,3 +98,15 @@ html[data-layout="pc"] .pc-readout { color: var(--text); }
   html[data-layout="pc"] #game { gap: 0.4rem; padding-top: 0.4rem; }
   #pc-topbar > h1 { margin-top: 0.8rem; font-size: 1.2rem; }
 }
+
+/* R4-HCPC-7: Second-screen playback log */
+#pc-playback-log {
+  position: fixed; bottom: 1rem; right: 1rem; width: 30vw; max-width: 40rem; height: 60vh;
+  background: var(--bg); border: 2px solid var(--accent); border-radius: 8px; padding: 1rem;
+  display: none; flex-direction: column; z-index: 100; font-size: 1.1rem;
+}
+#pc-playback-log.visible { display: flex; }
+#pc-playback-log h3 { margin: 0 0 0.5rem; font-size: 1rem; color: var(--accent); }
+#pc-playback-log-content { flex: 1; overflow-y: auto; margin-top: 0.5rem; font-family: monospace; white-space: pre-wrap; line-height: 1.4; }
+#pc-log-popout-button, #pc-log-close-button { margin-top: 0.5rem; align-self: flex-end; background: var(--btn-bg); border: 1px solid var(--btn-border); padding: 0.3rem 0.6rem; cursor: pointer; font-size: 0.85rem; }
+@media (prefers-reduced-motion: reduce) { #pc-playback-log { transition: none; } }
