@@ -156,3 +156,100 @@ Object.defineProperty(window, "MobileDock", { configurable: true, get() { return
     });
   });
 })();
+
+// R4-SIPC-7: Mouse-wheel zoom and drag pan for large boards (PC view)
+(function () {
+  var board = document.getElementById("board");
+  if (!board) return;
+  var wrap = board.parentElement;
+  var SCALE_KEY = "signal-zoom-scale";
+  var PAN_X_KEY = "signal-zoom-x";
+  var PAN_Y_KEY = "signal-zoom-y";
+
+  function getScale() {
+    var v = parseFloat(localStorage.getItem(SCALE_KEY));
+    return (!isNaN(v) && v >= 0.5 && v <= 3.0) ? v : 1.0;
+  }
+  function getX() {
+    var v = parseFloat(localStorage.getItem(PAN_X_KEY));
+    return isNaN(v) ? 0 : v;
+  }
+  function getY() {
+    var v = parseFloat(localStorage.getItem(PAN_Y_KEY));
+    return isNaN(v) ? 0 : v;
+  }
+
+  var s = getScale();
+  var x = getX();
+  var y = getY();
+  board.style.transform = "translate(" + x + "px, " + y + "px) scale(" + s + ")";
+
+  function applyTransform() {
+    board.style.transform = "translate(" + x + "px, " + y + "px) scale(" + s + ")";
+  }
+
+  function recentre() {
+    s = 1.0; x = 0; y = 0;
+    applyTransform();
+    localStorage.setItem(SCALE_KEY, "1");
+    localStorage.setItem(PAN_X_KEY, "0");
+    localStorage.setItem(PAN_Y_KEY, "0");
+  }
+
+  // Wheel zoom
+  wrap.addEventListener("wheel", function (e) {
+    if (document.documentElement.getAttribute("data-reduced-motion") === "true") return;
+    e.preventDefault();
+    var delta = e.deltaY > 0 ? 0.9 : 1.1;
+    var newS = Math.max(0.5, Math.min(3.0, s * delta));
+    var rect = wrap.getBoundingClientRect();
+    var cx = e.clientX - rect.left - rect.width / 2;
+    var cy = e.clientY - rect.top - rect.height / 2;
+    x += (cx - x) * (1 - newS / s);
+    y += (cy - y) * (1 - newS / s);
+    s = newS;
+    applyTransform();
+    localStorage.setItem(SCALE_KEY, s.toFixed(3));
+    localStorage.setItem(PAN_X_KEY, x.toFixed(2));
+    localStorage.setItem(PAN_Y_KEY, y.toFixed(2));
+  }, { passive: false });
+
+  // Drag pan
+  var dragging = false;
+  var startX, startY, startPanX, startPanY;
+  wrap.addEventListener("mousedown", function (e) {
+    if (document.documentElement.getAttribute("data-reduced-motion") === "true") return;
+    if (e.button !== 0) return;
+    dragging = true;
+    startX = e.clientX;
+    startY = e.clientY;
+    startPanX = x;
+    startPanY = y;
+    wrap.classList.add("grabbing");
+  });
+  document.addEventListener("mousemove", function (e) {
+    if (!dragging) return;
+    x = startPanX + (e.clientX - startX);
+    y = startPanY + (e.clientY - startY);
+    applyTransform();
+    localStorage.setItem(PAN_X_KEY, x.toFixed(2));
+    localStorage.setItem(PAN_Y_KEY, y.toFixed(2));
+  });
+  document.addEventListener("mouseup", function () {
+    if (dragging) {
+      dragging = false;
+      wrap.classList.remove("grabbing");
+    }
+  });
+
+  // Recentre key 'R' or double-click
+  document.addEventListener("keydown", function (e) {
+    if ((e.key === "r" || e.key === "R") && !e.ctrlKey && !e.altKey && !e.metaKey) {
+      var target = e.target;
+      if (target.closest("#pc-stage")) recentre();
+    }
+  });
+  wrap.addEventListener("dblclick", function () {
+    recentre();
+  });
+})();
