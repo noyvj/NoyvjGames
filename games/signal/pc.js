@@ -254,6 +254,45 @@ Object.defineProperty(window, "MobileDock", { configurable: true, get() { return
   });
 })();
 
+// R4-SIPC-9: Held mouse button sweeps marks across tiles
+(function () {
+  var board = document.getElementById("board");
+  if (!board) return;
+  var sweeping = false;
+  var lastCell = null;
+
+  function toggleSweep(cell) {
+    if (cell && cell.classList.contains("cell")) {
+      cell.classList.toggle("marked");
+      lastCell = cell;
+    }
+  }
+
+  board.addEventListener("mousedown", function (e) {
+    if (document.documentElement.getAttribute("data-reduced-motion") === "true") return;
+    if (e.button !== 0) return;
+    var cell = e.target.closest(".cell");
+    if (cell) {
+      e.preventDefault();
+      sweeping = true;
+      toggleSweep(cell);
+    }
+  });
+
+  document.addEventListener("mousemove", function (e) {
+    if (!sweeping) return;
+    var cell = e.target.closest(".cell");
+    if (cell !== lastCell) {
+      toggleSweep(cell);
+    }
+  });
+
+  document.addEventListener("mouseup", function () {
+    sweeping = false;
+    lastCell = null;
+  });
+})();
+
 // R4-SIPC-8: Shift ruler line
 (function () {
   var overlay = document.createElementNS("http://www.w3.org/2000/svg", "svg");
