@@ -116,6 +116,20 @@
     document.getElementById("game").appendChild(pad);
   }
 
+  function initCrewLogSwipe() {
+    if (document.documentElement.getAttribute("data-reduced-motion") === "true") return;
+    var holder = $("crew-log-entries");
+    if (!holder) return;
+    var startX = 0;
+    holder.addEventListener("touchstart", function (e) { startX = e.touches[0].clientX; }, { passive: true });
+    holder.addEventListener("touchend", function (e) {
+      var diff = startX - e.changedTouches[0].clientX;
+      if (Math.abs(diff) > 50) {
+        holder.scrollBy({ left: diff, behavior: "smooth" });
+      }
+    }, { passive: true });
+  }
+
   function initResumeButton() {
     var btn = document.getElementById("resume-btn");
     if (!btn) {
@@ -1099,6 +1113,7 @@
     wireBridge();
     wirePanelToggle("achievements-toggle-button", "achievements-panel");
     wirePanelToggle("crew-log-toggle-button", "crew-log-panel");
+    initCrewLogSwipe();
     wirePanelToggle("report-toggle-button", "report-panel");
     wirePanelToggle("info-page-toggle-button", "info-page-panel");
     wirePanelToggle("changelog-toggle-button", "changelog-panel");

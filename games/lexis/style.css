@@ -272,4 +272,29 @@ html[data-reduced-motion="true"] .stamp, html[data-effects="off"] .stamp { anima
     cursor: pointer;
   }
   .resume-btn:hover { background: var(--btn); }
+
+  /* Crew log card stack */
+  #crew-log-entries {
+    display: flex;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    gap: 1rem;
+    padding: 0.5rem 0;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  #crew-log-entries::-webkit-scrollbar { display: none; }
+  .log-entry {
+    flex: 0 0 88%;
+    scroll-snap-align: center;
+    margin: 0;
+    border-top: none;
+    padding-top: 0;
+    background: var(--panel);
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+    padding: 1rem;
+  }
+  html[data-reduced-motion="true"] #crew-log-entries { overflow-x: scroll; scrollbar-width: thin; }
+  html[data-reduced-motion="true"] .log-entry { flex: 0 0 auto; margin-right: 1rem; box-shadow: none; border-top: 1px solid var(--line); padding-top: 0.5rem; }
 }
