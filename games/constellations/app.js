@@ -3,7 +3,7 @@
    whether a number holds or the chart is finished: it asks the engine, and draws the answer. */
 (function () {
   "use strict";
-  var ENGINE_MODULES = ["sky.py", "charts_s1.py", "charts_s2.py", "charts_s3.py", "charts.py", "info.py"];
+  var ENGINE_MODULES = ["sky.py", "charts_s1.py", "charts_s2.py", "charts_s3.py", "charts_s4.py", "charts_s5.py", "charts.py", "hints.py", "goals.py", "info.py"];
   var STORE_KEY = "constellations:state";
   var BACKUP_KEY = "constellations:state-backup";
   var SVG_NS = "http://www.w3.org/2000/svg";
@@ -24,6 +24,11 @@
   var atlasSig = "", cardsSig = "", chartsSig = "";
   var foundShown = "";
   var infoLiveDone = false;    // the live Wikipedia read has been tried for this page load
+  var stelData = null;         // today's Stellarium file of constellation lines once it has been read (kept for this page load)
+  var stelTried = false;
+  var goalsPanel = null;
+  var ZOOMS = [1, 1.5, 2, 3];  // board sizes (1 = fit the screen; larger ones scroll sideways)
+  var zoomIdx = 0;
 
   function lsGet(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
   function lsSet(k, v) { try { localStorage.setItem(k, v); } catch (e) { /* convenience only */ } }
@@ -85,6 +90,7 @@
     bumpStat("stat-pages", t.pages_open + "/" + t.pages);
     bumpStat("stat-seasons", t.seasons_done + "/" + t.pages);
     bumpStat("stat-lines", t.lines);
+    bumpStat("stat-hints", t.hints);
   }
 
   // ---- the chart ---------------------------------------------------------------------------------------
@@ -206,6 +212,28 @@
         svgEl("line", { x1: pt.x - 12, y1: pt.y + 12, x2: pt.x + 12, y2: pt.y - 12, "class": "b-cross-mark" }, svg);
       }
     }
+    // lines that cross where this chart allows it (the Southern Cross): a small ring where they meet, never a warning
+    (c.joined || []).forEach(function (pair) {
+      var pt = intersection(starOf(pair[0][0]), starOf(pair[0][1]), starOf(pair[1][0]), starOf(pair[1][1]));
+      svgEl("circle", { cx: pt.x, cy: pt.y, r: 13, "class": "b-joined" }, svg);
+    });
+    // the suggestion ladder: dotted guide lines with a plus (draw) or a minus (erase) in a small plate, so it is never told by colour alone
+    var hint = view.hint;
+    if (hint && !solved) {
+      var guide = function (pair, sign) {
+        var ga = starOf(pair[0]), gb = starOf(pair[1]);
+        svgEl("line", { x1: ga.x, y1: ga.y, x2: gb.x, y2: gb.y, "class": "b-hintline" }, svg);
+        var mx = (ga.x + gb.x) / 2, my = (ga.y + gb.y) / 2;
+        svgEl("circle", { cx: mx, cy: my, r: 17, "class": "b-hintplate" }, svg);
+        svgEl("text", { x: mx, y: my + 1, "class": "b-hintsign" }, svg).textContent = sign;
+      };
+      if (hint.rung >= 3) {
+        hint.ghost.forEach(function (pair) { guide(pair, "+"); });
+        hint.erase.forEach(function (pair) { guide(pair, "\u2212"); });
+      } else if (hint.rung >= 2 && hint.line) {
+        guide(hint.line, hint.kind === "remove" ? "\u2212" : "+");
+      }
+    }
     // tap targets for the lines the player drew
     if (!solved) {
       c.lines.forEach(function (l) {
@@ -222,6 +250,10 @@
       drawStar(g, s, solved);
     });
 
+    if (hint && !solved && hint.star !== null && hint.star !== undefined && starOf(hint.star)) {
+      var hs0 = starOf(hint.star);
+      svgEl("circle", { cx: hs0.x, cy: hs0.y, r: BADGE + 24, "class": "b-hintstar" }, svg);
+    }
     if (!solved) {
       if (ghostFrom !== null || held !== null) {
         var hs = starOf(ghostFrom !== null ? ghostFrom : held);
@@ -397,6 +429,7 @@
     var mod = e.ctrlKey || e.metaKey;
     if (mod && (e.key === "z" || e.key === "Z")) { e.preventDefault(); send({ action: e.shiftKey ? "redo" : "undo" }); return; }
     if (mod && (e.key === "y" || e.key === "Y")) { e.preventDefault(); send({ action: "redo" }); return; }
+    if (e.altKey && !mod && e.code === "KeyH") { e.preventDefault(); if (view.hint_ui.available && !$("hint-box").hidden) pressHint(false); return; }
     if (mod || e.altKey) return;
     var solved = view.chart.status === "solved";
     var handled = true;
@@ -424,9 +457,111 @@
     if (!handled) return;
     e.preventDefault();
     showCursor = true;
+    revealStar(cursor);
     drawBoard();
     renderCursorLine();
     if (e.key !== "Escape") announce(describeStar(cursor) + ". Can join " + neighboursOf(cursor).join(", ") + ".");
+  }
+
+  // ---- zoom: a larger board for small screens (it scrolls sideways) ---------------------------------------------
+  function applyZoom() {
+    var z = ZOOMS[zoomIdx];
+    var svg = $("board");
+    svg.style.width = z === 1 ? "" : Math.round(z * 100) + "%";
+    svg.style.maxHeight = z === 1 ? "" : "none";
+    svg.style.touchAction = z === 1 ? "" : "pan-x pan-y";
+    $("board-wrap").classList.toggle("zoomed", z > 1);
+    $("zoom-out-button").disabled = zoomIdx === 0;
+    $("zoom-in-button").disabled = zoomIdx === ZOOMS.length - 1;
+    $("zoom-reset-button").setAttribute("aria-pressed", String(z === 1));
+    setText($("zoom-note"), z === 1 ? "Stars close together? Press + for a larger board." : "Board at " + Math.round(z * 100) + "%. Scroll the board sideways. On a touch screen, drag scrolls; tap one star, then the next, to draw.");
+  }
+  function setZoom(index) {
+    zoomIdx = Math.max(0, Math.min(ZOOMS.length - 1, index));
+    lsSet("constellations:zoom", String(zoomIdx));
+    applyZoom();
+    if (view) revealStar(cursor);
+  }
+  function revealStar(i) {
+    var wrap = $("board-wrap");
+    if (!view || !view.chart.stars[i] || wrap.scrollWidth <= wrap.clientWidth + 1) return;
+    var svg = $("board");
+    var m = svg.getScreenCTM();
+    if (!m) return;
+    var s = view.chart.stars[i];
+    var sx = s.x * m.a + m.e;
+    var box = wrap.getBoundingClientRect();
+    if (sx < box.left + 50) wrap.scrollLeft -= box.left + 50 - sx;
+    else if (sx > box.right - 50) wrap.scrollLeft += sx - (box.right - 50);
+  }
+
+  // ---- the suggestion ladder (the engine decides every rung; this shows what it sent) --------------------------------
+  var RUNG_LABELS = { 1: "Nudge", 2: "Hint", 3: "Answer" };
+  function renderHints() {
+    var ui = view.hint_ui;
+    var shown = lsGet("constellations:hints-hidden") !== "1";
+    $("hint-box").hidden = !shown || !ui.available;
+    $("hints-checkbox").checked = shown;
+    var button = $("hint-button");
+    button.hidden = ui.next === 0;
+    setText(button, ui.label || "Would you like a suggestion?");
+    $("hint-draw-button").hidden = !ui.can_draw;
+    var note = "";
+    if (ui.next === 1) note = ui.opens_two ? "On Easy this opens the nudge and the hint together. Nothing is shown until you press." : "Nothing is shown until you press.";
+    else if (ui.next === 3) note = ui.confirm ? "This shows the whole shape as a dotted guide. It asks first." : "This shows the whole shape as a dotted guide.";
+    else if (ui.limit) note = "Hard has no answer step: the nudge and the hint are all the help there is.";
+    else if (ui.can_draw) note = "Draw it puts the guide on the chart as one step; Undo takes it back, and Done is still yours to press.";
+    setText($("hint-note"), note);
+    var list = $("hint-list");
+    var h = view.hint;
+    var sig = h ? [h.rung, h.nudge, h.detail, h.answer].join("|") : "";
+    if (list.dataset.sig === sig) return;
+    list.dataset.sig = sig;
+    list.textContent = "";
+    list.hidden = !h;
+    if (!h) return;
+    [[1, h.nudge], [2, h.detail], [3, h.answer]].forEach(function (pair) {
+      if (pair[0] > h.rung || !pair[1]) return;
+      var li = el("li", "hint-item hint-rung-" + pair[0]);
+      li.appendChild(el("span", "hint-label", RUNG_LABELS[pair[0]]));
+      li.appendChild(el("span", "hint-text", pair[1]));
+      list.appendChild(li);
+    });
+  }
+  function pressHint(confirmed) {
+    if (!view || view.hint_ui.next === 0) return;
+    if (view.hint_ui.next === 3 && view.hint_ui.confirm && !confirmed) {
+      askThen("constellations-hint-answer", "Show the whole answer? It draws the finished shape as a dotted guide, and you can then draw it with one press. Nothing is lost.", "Show it", function () { pressHint(true); });
+      return;
+    }
+    var result = send({ action: "hint", confirm: confirmed === true });
+    if (result && result.hint) {
+      var items = $("hint-list").querySelectorAll(".hint-item");
+      if (items.length) { items[items.length - 1].setAttribute("tabindex", "-1"); items[items.length - 1].focus({ preventScroll: true }); }
+    }
+  }
+
+  // ---- goals, difficulty -----------------------------------------------------------------------------------------
+  var DIFF_GAME = "constellations";
+  var DIFF_TEXT = {
+    easy: "The suggestion button opens the nudge and the hint together on its first press, and the answer needs no extra question.",
+    normal: "The game as designed: a nudge, then a hint, then (after a question) the whole answer, each only when you press.",
+    hard: "No answer step: the nudge and the hint are all the suggestions there are. Charts, numbers and records are the same."
+  };
+  function sendDifficulty() {
+    if (!engine) return null;
+    if (!window.NoyvjDifficulty) return send({ action: "open" });
+    return send({ action: "difficulty", level: window.NoyvjDifficulty.get(DIFF_GAME) });
+  }
+  function wireDifficulty() {
+    if (!window.NoyvjDifficulty) return;
+    window.NoyvjDifficulty.mount("#difficulty-slot", { game: DIFF_GAME, collapsible: true, descriptions: DIFF_TEXT });
+    window.NoyvjDifficulty.onChange(function (d) { if (d.game === DIFF_GAME) sendDifficulty(); });
+  }
+  function wireGoals() {
+    if (!window.NoyvjGoals) return;
+    goalsPanel = window.NoyvjGoals.mount("#goals", { game: "constellations", title: "Goals", getGoals: function () { return view ? view.goals : []; } });
+    if (goalsPanel && window.NoyvjGoals.bindCheckbox) window.NoyvjGoals.bindCheckbox(goalsPanel, "#goals-checkbox");
   }
 
   // ---- charts panel, atlas and cards -----------------------------------------------------------------------------
@@ -624,6 +759,49 @@
       box.appendChild(src);
     }).catch(fallback);
   }
+  function renderLiveLines(box, data) {
+    var live = {};
+    var count = 0;
+    (data && data.constellations || []).forEach(function (con) {
+      var code = String(con.id || "").split(" ").pop();
+      var set = {};
+      (con.lines || []).forEach(function (chain) { chain.forEach(function (hip) { set[hip] = true; }); });
+      live[code] = set;
+      count++;
+    });
+    if (!count) throw new Error("empty");
+    var cards = view.cards;
+    var same = cards.filter(function (card) { return live[card.code] && card.hips.every(function (hip) { return live[card.code][hip]; }); }).length;
+    box.textContent = "";
+    var text = cards.length === 0 ?
+      "Today's file lists lines for " + count + " constellations. Finish a chart and this check will compare your constellation with it." :
+      "Today's file lists lines for " + count + " constellations. " + same + " of your " + plural(cards.length, "finished constellation", "finished constellations") + " use only stars that the live lines also use" +
+      (same === cards.length ? "." : "; the rest differ a little from the dated snapshot the charts were built from.");
+    box.appendChild(el("p", "info-live-text", text));
+    var src = el("p", "info-page-source-note");
+    src.appendChild(document.createTextNode("Source: "));
+    var link = el("a", null, view.info.live_lines.title);
+    link.href = view.info.live_lines.url; link.target = "_blank"; link.rel = "noopener noreferrer";
+    src.appendChild(link);
+    src.appendChild(document.createTextNode(", " + view.info.live_lines.publisher + ". Read live on " + today() + ". Star positions and brightness stay as read on " + view.info.date_read + ": the whole star database is too large to read each time."));
+    box.appendChild(src);
+  }
+  function loadLiveLines() {
+    if (!view || !view.info || !view.info.live_lines) return;
+    var box = $("info-live-lines");
+    var fallback = function () {
+      box.textContent = "";
+      box.appendChild(el("p", "note", "Stellarium's lines could not be reached just now, so the charts stand as read on " + view.info.date_read + "."));
+    };
+    if (stelData) { try { renderLiveLines(box, stelData); } catch (e) { fallback(); } return; }
+    if (stelTried || typeof fetch !== "function") { if (!stelTried) fallback(); return; }
+    stelTried = true;
+    setText(box.firstChild || box.appendChild(el("p", "note")), "Reading today's lines...");
+    fetch(view.info.live_lines.api, { headers: { Accept: "application/json" } }).then(function (r) {
+      if (!r.ok) throw new Error("status " + r.status);
+      return r.json();
+    }).then(function (data) { stelData = data; renderLiveLines(box, data); }).catch(function () { stelTried = false; fallback(); });
+  }
   function renderChangelog(entries) {
     var holder = $("changelog-entries");
     holder.textContent = "";
@@ -644,6 +822,19 @@
       renderChangelog(list.slice().sort(function (a, b) { return a.date < b.date ? 1 : -1; }));
     }).catch(function () { renderChangelog([]); });
   }
+
+  // ---- the tutorial (shared/tutorial.js; offered from the opening screen, restartable from the toolbar) ------------
+  var TUTORIAL_STEPS = [
+    { title: "Welcome to the observatory", text: "Each chart is a patch of real sky. You join the stars with lines until the shape that appears is a constellation, and it is kept in your Sky Atlas. Nothing is timed, nothing can go wrong, and you can skip this tour at any time." },
+    { selector: "#board", title: "Reading the numbers", text: "A number on a star says how many lines must touch it. A star with no number can have any number of lines, or none. Lines may not cross, and all the lines together must make one connected shape. A number that holds gets a double ring and a tick." },
+    { selector: "#board", title: "Drawing a line", text: "Drag from one star to another, or tap one star and then the next. Press the same two stars again to take the line away. A thick double line is already drawn for you; a pair with a cross through it can never be joined." },
+    { selector: ".tools", title: "Undo and Done", text: "Undo, Redo and Erase my lines are always there. When every number holds and the lines make one piece, Done adds the constellation to your atlas." },
+    { selector: "#hint-box", title: "Stuck? Ask", text: "The suggestion button never opens by itself. A nudge says which star has a certain line, a hint shows the line and why it is certain, and the last rung shows the whole shape. Every chart can be finished without guessing." },
+    { selector: "#charts-toggle-button", title: "Charts and seasons", text: "Charts come in five seasons of eight. Five finished charts in a season open the next page, and inside a season you can play the charts in any order. A chart shows its name only once you have finished it." },
+    { selector: "#atlas-toggle-button", title: "The Sky Atlas", text: "Every constellation you find is drawn here at its real place in the sky, with a card that has its note, its brightest star and its sources." },
+    { selector: "#settings-toggle-button", title: "Settings and difficulty", text: "Star letters, text size, reduced motion, effects, high contrast and the light theme are in Settings. Difficulty (Easy, Normal, Hard) changes only how the suggestions open. On a small screen the + button under the chart makes the board larger." },
+    { title: "That is all", text: "Press ? at any time for the keyboard help. The Tutorial button in the toolbar brings this tour back." }
+  ];
 
   // ---- render ---------------------------------------------------------------------------------------
   function render() {
@@ -667,6 +858,8 @@
     renderAtlas();
     renderCards();
     renderInfo();
+    renderHints();
+    if (goalsPanel) goalsPanel.refresh();
   }
 
   // ---- talking to the engine --------------------------------------------------------------------------
@@ -738,7 +931,18 @@
     wirePanelToggle("atlas-toggle-button", "atlas-panel");
     wirePanelToggle("changelog-toggle-button", "changelog-panel");
     wirePanelToggle("info-page-toggle-button", "info-page-panel");
-    $("info-page-toggle-button").addEventListener("click", function () { if (!$("info-page-panel").hidden) loadLiveInfo(); });
+    $("info-page-toggle-button").addEventListener("click", function () { if (!$("info-page-panel").hidden) { loadLiveInfo(); loadLiveLines(); } });
+    $("hint-button").addEventListener("click", function () { pressHint(false); });
+    $("hint-draw-button").addEventListener("click", function () { send({ action: "hint_draw" }); $("board").focus({ preventScroll: true }); });
+    $("hints-checkbox").addEventListener("change", function () { lsSet("constellations:hints-hidden", $("hints-checkbox").checked ? "0" : "1"); if (view) renderHints(); });
+    $("zoom-in-button").addEventListener("click", function () { setZoom(zoomIdx + 1); });
+    $("zoom-out-button").addEventListener("click", function () { setZoom(zoomIdx - 1); });
+    $("zoom-reset-button").addEventListener("click", function () { setZoom(0); });
+    var savedZoom = parseInt(lsGet("constellations:zoom"), 10);
+    zoomIdx = savedZoom >= 0 && savedZoom < ZOOMS.length ? savedZoom : 0;
+    applyZoom();
+    wireDifficulty();
+    wireGoals();
     $("reset-button").addEventListener("click", function () {
       askThen("constellations-reset", "Start the whole atlas over? Every constellation will be taken out of the atlas and your tally will be cleared.", "Take it all out", function () { held = null; atlasSig = ""; cardsSig = ""; chartsSig = ""; send({ action: "reset" }); });
     });
@@ -771,7 +975,9 @@
     }
     $("engine-status").textContent = "";
     send({ action: "open" });
+    sendDifficulty();
     await changelog;
+    if (window.GameTutorial) window.GameTutorial.init(window.constellationsTutorialSteps ? window.constellationsTutorialSteps(TUTORIAL_STEPS) : TUTORIAL_STEPS, { gameId: "constellations" });
   }
 
   wire();

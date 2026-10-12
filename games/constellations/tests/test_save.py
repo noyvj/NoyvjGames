@@ -82,7 +82,7 @@ def test_bad_fields_fall_back_alone():
     game_module.load_state(state)
     v = do(action="open")
     assert v["totals"]["done"] == 3                                              # the string and negative counts reset to 0 but the charts count
-    assert v["tally"] == {"draws": 0, "erases": 5}
+    assert v["tally"] == {"draws": 0, "erases": 5, "hints": 0}
     assert v["chart"]["id"] == charts.ORDER[0]
     st = game_module.get_state()
     assert st["solved"][ids[0]] == 7 and st["solved"][ids[1]] == 0
@@ -142,7 +142,7 @@ def test_load_never_keeps_old_progress_that_the_save_lacks():
     solve(season_one()[0])
     game_module.load_state({"schema": 1})
     v = do(action="open")
-    assert v["totals"]["done"] == 0 and v["tally"] == {"draws": 0, "erases": 0}
+    assert v["totals"]["done"] == 0 and v["tally"] == {"draws": 0, "erases": 0, "hints": 0}
 
 
 def test_finished_charts_are_listed_in_chart_order_whatever_order_they_were_done_in():

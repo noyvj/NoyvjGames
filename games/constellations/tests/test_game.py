@@ -44,8 +44,8 @@ def open_spring():
 def test_the_first_view_is_the_first_winter_chart():
     v = do(action="open")
     assert v["ok"] and v["chart"]["id"] == charts.ORDER[0] and v["chart"]["number"] == 1 and v["chart"]["status"] == "open"
-    assert v["totals"]["done"] == 0 and v["totals"]["charts"] == 24 and v["valid"] is False
-    assert [s["open"] for s in v["seasons"]] == [True, False, False]
+    assert v["totals"]["done"] == 0 and v["totals"]["charts"] == 40 and v["valid"] is False
+    assert [s["open"] for s in v["seasons"]] == [True, False, False, False, False]
 
 
 def test_stars_are_lettered_left_to_right_and_a_view_carries_everything_the_page_draws():
@@ -69,7 +69,7 @@ def test_an_unfinished_chart_never_tells_its_name_its_star_names_or_its_note():
         for s in c["stars"]:
             assert s["name"] not in text
     atlas_unfinished = [i for i in v["atlas"]["items"] if not i["solved"]]
-    assert len(atlas_unfinished) == 24 and all("pts" not in i and "name" not in i for i in atlas_unfinished)
+    assert len(atlas_unfinished) == 40 and all("pts" not in i and "name" not in i for i in atlas_unfinished)
 
 
 def test_drawing_a_line_counts_and_erasing_it_counts():
@@ -79,7 +79,7 @@ def test_drawing_a_line_counts_and_erasing_it_counts():
     assert v["ok"] and any(l["a"] == a and l["b"] == b for l in v["chart"]["lines"]) and v["tally"]["draws"] == 1
     assert v["can_undo"] and v["totals"]["lines"] == 1
     v = do(action="toggle", a=b, b=a)                                       # the same pair the other way round erases it
-    assert not v["chart"]["lines"] and v["tally"] == {"draws": 1, "erases": 1}
+    assert not v["chart"]["lines"] and v["tally"] == {"draws": 1, "erases": 1, "hints": 0}
 
 
 def test_only_allowed_pairs_can_be_joined_and_nothing_is_counted_for_a_refusal():
@@ -241,7 +241,7 @@ def test_the_atlas_places_every_chart_and_shows_only_finished_figures():
     solve(charts.ORDER[0])
     v = do(action="open")
     items = {i["id"]: i for i in v["atlas"]["items"]}
-    assert len(items) == 24
+    assert len(items) == 40
     done = items[charts.ORDER[0]]
     assert done["solved"] and len(done["pts"]) == len(charts.BY_ID[done["id"]]["stars"]) and done["lines"]
     for i in items.values():
@@ -261,25 +261,25 @@ def test_cards_carry_the_note_brightest_star_best_time_and_sources():
     assert any("HYG" in s for s in card["sources"]) and any("Stellarium" in s for s in card["sources"]) and any("2026-10-12" in s for s in card["sources"])
 
 
-def test_the_whole_game_can_be_played_through_to_the_end_of_season_three():
+def test_the_whole_game_can_be_played_through_to_the_end_of_season_five():
     for cid in charts.ORDER:
         if not charts.chart_open(game_module.game.solved, cid):
             continue
         solve(cid)
     # keep going until every season is open
-    for _ in range(3):
+    for _ in range(5):
         for cid in charts.ORDER:
             if charts.chart_open(game_module.game.solved, cid) and cid not in game_module.game.solved:
                 solve(cid)
     v = do(action="open")
-    assert v["totals"]["done"] == 24 and v["totals"]["seasons_done"] == 3 and v["totals"]["pages_open"] == 3
+    assert v["totals"]["done"] == 40 and v["totals"]["seasons_done"] == 5 and v["totals"]["pages_open"] == 5
     assert do(action="next")["ok"] is False
 
 
 def test_reset_starts_over():
     solve(charts.ORDER[0])
     v = do(action="reset")
-    assert v["totals"]["done"] == 0 and v["tally"] == {"draws": 0, "erases": 0} and v["chart"]["id"] == charts.ORDER[0]
+    assert v["totals"]["done"] == 0 and v["tally"] == {"draws": 0, "erases": 0, "hints": 0} and v["chart"]["id"] == charts.ORDER[0]
 
 
 def test_bad_requests_are_answered_not_raised():

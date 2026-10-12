@@ -12,6 +12,9 @@ Actions (every request is {"action": ..., ...}; every reply is the whole view):
   undo / redo             step back / forward through your lines on this chart
   clear                   erase every line you drew on this chart (one undo step)
   finish                  add the figure to the atlas (only when every number holds and the lines make one connected figure)
+  hint {confirm}          press the hint ladder once (only ever on a press): 1 nudge, 2 hint, 3 the whole figure as a ghost (see hints.py)
+  hint_draw               after rung 3: draw the ghost figure (erasing lines that do not belong); one undo step
+  difficulty {level}      easy | normal | hard (told by the page, never saved; only changes how the hint ladder opens)
   reset                   start over (everything)
 
 The names of a chart, of its stars and its note are in the view only once the chart is finished. Stars are A, B, C ... from left to right.
@@ -20,10 +23,14 @@ The names of a chart, of its stars and its note are in the view only once the ch
 import json
 
 import charts
+import goals
+import hints
 import info
 import sky
 
-TALLY_KEYS = ("draws", "erases")
+TALLY_KEYS = ("draws", "erases", "hints")
+LEVELS = ("easy", "normal", "hard")
+difficulty = "normal"            # told by the page ({"action": "difficulty"}), a per-browser choice that is never saved; reset and load leave it alone
 MAX_COUNT = 10 ** 9
 MAX_UNDO = 400
 SCHEMA = 1                       # the save layout version; a save from a newer layout is not read
@@ -76,6 +83,8 @@ class Game:
         self.message = ""
         self.say = ""
         self.just = None                 # the chart finished by the last action (not saved)
+        self.hint = None                 # the ladder in progress on this chart (not saved; any change to the lines clears it)
+        self.hinted = {}                 # chart id -> highest rung asked while it was first being solved (1 nudge, 2 hint, 3 answer)
 
     # ---- the current chart -----------------------------------------------------------------------------------------
     @property
@@ -103,6 +112,7 @@ class Game:
     def _enter(self, cid):
         self.current = cid
         self.just = None
+        self.hint = None
         self.undo = []
         self.redo = []
 
@@ -128,6 +138,9 @@ class Game:
         tally = {k: v for k, v in self.tally.items() if v}
         if tally:
             data["tally"] = tally
+        asked = {cid: self.hinted[cid] for cid in charts.ORDER if self.hinted.get(cid)}
+        if asked:
+            data["hints"] = asked
         return data
 
     def load(self, data):
@@ -158,6 +171,9 @@ class Game:
                 self._finish(cid)
         tally = data.get("tally") if isinstance(data.get("tally"), dict) else {}
         self.tally = {key: _int(tally.get(key)) for key in TALLY_KEYS}
+        raw_hints = data.get("hints") if isinstance(data.get("hints"), dict) else {}
+        self.hinted = {c["id"]: raw_hints[c["id"]] for c in charts.ALL
+                       if c["id"] in raw_hints and charts.chart_open(self.solved, c["id"]) and _int(raw_hints[c["id"]], 1, 3, 0)}
         cur = data.get("cur")
         self._enter(cur if isinstance(cur, str) and charts.chart_open(self.solved, cur) else charts.ORDER[0])
         self.message = self.say = ""
@@ -203,7 +219,7 @@ class Game:
             if c["id"] in self.solved:
                 cards.append({"id": c["id"], "name": c["name"], "meaning": c["meaning"], "note": c["note"], "stars": len(c["stars"]),
                               "brightest": dict(c["brightest"]), "best": c["best"], "season": charts.SEASONS[c["season"]]["name"],
-                              "number": c["number"], "moves": self.solved[c["id"]],
+                              "number": c["number"], "moves": self.solved[c["id"]], "code": c["code"], "hips": [st["hip"] for st in c["stars"]],
                               "sources": ["Star positions and brightness: %s." % c["source"]["stars"],
                                           "Line figure: %s." % c["source"]["figure"],
                                           "The note is written for this game. Read on %s." % c["source"]["read"]]})
@@ -225,6 +241,9 @@ class Game:
             join = [letter[o] for k in rules.inc[i] for o in rules.edges[k] if o != i and k not in rules.never]
             part += ". Can join: %s." % (", ".join(sorted(join)) if join else "nothing")
             lines.append(part)
+        for k, m in rules.cross_ok:
+            lines.append("On this chart the lines %s-%s and %s-%s are allowed to cross each other, and where they cross they count as joined." % (
+                letter[rules.edges[k][0]], letter[rules.edges[k][1]], letter[rules.edges[m][0]], letter[rules.edges[m][1]]))
         given = [("%s-%s" % (letter[rules.edges[k][0]], letter[rules.edges[k][1]])) for k in sorted(rules.must)]
         if given:
             lines.append("Lines already drawn for you: %s." % ", ".join(given))
@@ -275,19 +294,21 @@ class Game:
         lines = [{"a": rules.edges[k][0], "b": rules.edges[k][1], "given": k in rules.must, "cross": k in cross_lines} for k in sorted(drawn)]
         season = charts.SEASONS[c["season"]]
         problems = self._problems(report, drawn)
+        joined = [[list(rules.edges[k]), list(rules.edges[m])] for k, m in rules.cross_ok if k in drawn and m in drawn]
         view = {
             "ok": ok, "message": self.message, "say": self.say,
             "chart": {"id": c["id"], "number": c["number"], "of": len(season["charts"]), "season": season["name"], "season_index": c["season"],
                       "w": c["w"], "h": c["h"], "stars": stars, "allowed": [list(e) for k, e in enumerate(rules.edges) if k not in rules.never],
-                      "never": [list(rules.edges[k]) for k in sorted(rules.never)], "lines": lines, "status": status,
+                      "never": [list(rules.edges[k]) for k in sorted(rules.never)], "lines": lines, "status": status, "joined": joined,
                       "moves": self.moves.get(c["id"], 0) if not solved else self.solved[c["id"]], "best": self.solved.get(c["id"])},
             "valid": report["valid"] and not solved, "problems": problems, "parts": report["parts"],
             "words": self._words(c, rules, drawn, solved),
             "editable": not solved, "can_undo": bool(self.undo), "can_redo": bool(self.redo), "can_clear": bool(self.work.get(c["id"])) and not solved,
             "just": self.just, "seasons": self._seasons(), "atlas": self._atlas(), "cards": self._cards(), "tally": dict(self.tally),
+            "hint": self._hint_view(), "hint_ui": self._hint_ui(status), "goals": goals.queue(self.solved, self.tally["draws"]), "difficulty": difficulty,
             "totals": {"charts": len(charts.ORDER), "done": len(self.solved), "stars": charts.star_total(self.solved),
                        "pages_open": sum(1 for s in range(len(charts.SEASONS)) if charts.season_open(self.solved, s)), "pages": len(charts.SEASONS),
-                       "seasons_done": charts.seasons_finished(self.solved), "lines": self.tally["draws"], "erased": self.tally["erases"]},
+                       "seasons_done": charts.seasons_finished(self.solved), "lines": self.tally["draws"], "erased": self.tally["erases"], "hints": self.tally["hints"]},
             "info": info.view(),
         }
         if solved:
@@ -324,6 +345,7 @@ class Game:
         del self.undo[:-MAX_UNDO]
         self.redo = []
         self.just = None
+        self.hint = None
         return self._after("Joined" if added else "Erased the line between", a, b)
 
     def _after(self, verb, a, b):
@@ -350,6 +372,7 @@ class Game:
             else:
                 lines.discard(k)
         other.append((cid, changes))
+        self.hint = None
         return self.view("", say="%s." % ("Redone" if forward else "Undone"))
 
     def clear(self):
@@ -362,6 +385,7 @@ class Game:
         self.tally["erases"] += len(changes)
         self.moves[self.current] = self.moves.get(self.current, 0) + 1
         lines.clear()
+        self.hint = None
         self.undo.append((self.current, changes))
         del self.undo[:-MAX_UNDO]
         self.redo = []
@@ -375,6 +399,7 @@ class Game:
             self.solved[cid] = self.moves.get(cid, 0)
         self.work.pop(cid, None)
         self.moves.pop(cid, None)
+        self.hint = None
         return first
 
     def finish(self):
@@ -395,6 +420,89 @@ class Game:
         if opened:
             text += " A new page opens: %s." % ", ".join(opened)
         return self.view(text)
+
+    # ---- the hint ladder -----------------------------------------------------------------------------------------------
+    def _hint_view(self):
+        """What the ladder has shown so far on this chart: only the rungs the player pressed for (never a line before rung 2, never the figure before rung 3)."""
+        h = self.hint
+        if not h or h["cid"] != self.current or self.status() == "solved":
+            return None
+        rules = self.rules
+        out = {"rung": h["rung"], "kind": h["kind"], "star": h["star"], "nudge": h["nudge"], "detail": h["detail"] if h["rung"] >= 2 else "",
+               "line": list(rules.edges[h["line"]]) if h["rung"] >= 2 else None, "answer": "", "ghost": [], "erase": [], "can_draw": False}
+        if h["rung"] >= 3:
+            out["answer"] = h["answer"]
+            out["ghost"] = [list(rules.edges[k]) for k in h["missing"]]
+            out["erase"] = [list(rules.edges[k]) for k in h["wrong"]]
+            out["can_draw"] = True
+        return out
+
+    def _hint_ui(self, status):
+        """What the hint button should offer next: which rung, its words, whether it needs a confirm, whether the level stops it."""
+        h = self.hint if self.hint and self.hint["cid"] == self.current else None
+        rung = h["rung"] if h else 0
+        limit = 2 if difficulty == "hard" else 3
+        nxt = 0 if rung >= limit else rung + 1
+        labels = {1: "Would you like a suggestion?", 2: "Another hint", 3: "Another hint: show the whole figure"}
+        return {"available": status != "solved", "next": nxt, "label": labels.get(nxt, ""), "limit": rung >= limit and difficulty == "hard",
+                "confirm": nxt == 3 and difficulty != "easy", "opens_two": nxt == 1 and difficulty == "easy",
+                "can_draw": bool(h and rung >= 3), "here": self.hinted.get(self.current, 0)}
+
+    def _note_hint(self, rung):
+        """Count one press of the ladder and keep the chart's highest rung (only while it is being solved the first time)."""
+        self.tally["hints"] += 1
+        if self.status() == "open":
+            self.hinted[self.current] = max(self.hinted.get(self.current, 0), rung)
+
+    def ask_hint(self, confirm=False):
+        if not self.editable():
+            return self.view("This constellation is in your atlas.", ok=False)
+        h = self.hint if self.hint and self.hint["cid"] == self.current else None
+        limit = 2 if difficulty == "hard" else 3
+        if h is None:
+            found = hints.pick(self.chart, self.rules, self.drawn(), charts.LETTERS)
+            if found is None:
+                return self.view("Nothing is left to suggest: every number holds and the figure is one piece. Press Done.", ok=False)
+            h = dict(found, cid=self.current, rung=2 if difficulty == "easy" else 1, answer="")
+            self.hint = h
+            self._note_hint(h["rung"])
+            return self.view(h["nudge"] if h["rung"] == 1 else h["nudge"] + " " + h["detail"])
+        if h["rung"] >= limit:
+            return self.view("Hard has no answer step: the nudge and the hint are all the help there is.", ok=False) if difficulty == "hard" else \
+                self.view("The whole figure is already shown.", ok=False)
+        if h["rung"] == 1:
+            h["rung"] = 2
+            self._note_hint(2)
+            return self.view(h["detail"])
+        if difficulty != "easy" and not confirm:
+            return self.view("Showing the whole figure takes the puzzle out of it. Press again to confirm.", ok=False)
+        h["rung"] = 3
+        h["answer"] = hints.answer_text(self.rules, charts.LETTERS, h["missing"], h["wrong"])
+        self._note_hint(3)
+        return self.view(h["answer"])
+
+    def draw_hint(self):
+        """Draw the figure the third rung showed: erase the lines that do not belong, add the missing ones, as one undo step. It is not the
+        player's own drawing, so the tally of lines drawn and erased does not move. Done is still the player's to press."""
+        h = self.hint if self.hint and self.hint["cid"] == self.current else None
+        if not self.editable() or h is None or h["rung"] < 3:
+            return self.view("Ask for the whole figure first.", ok=False)
+        lines = self.work.setdefault(self.current, set())
+        changes = [(k, False) for k in h["wrong"] if k in lines] + [(k, True) for k in h["missing"] if k not in lines]
+        for k, added in changes:
+            if added:
+                lines.add(k)
+            else:
+                lines.discard(k)
+        self.moves[self.current] = self.moves.get(self.current, 0) + 1
+        self.undo.append((self.current, changes))
+        del self.undo[:-MAX_UNDO]
+        self.redo = []
+        self.just = None
+        self.hint = None
+        if sky.is_valid(self.rules, self.drawn()):
+            return self.view("The figure is drawn. Press Done to add it to your atlas.")
+        return self.view("Drawn.")
 
     # ---- navigation ---------------------------------------------------------------------------------------------------
     def pick(self, cid):
@@ -419,6 +527,16 @@ class Game:
 
 
 game = Game()
+
+
+def set_difficulty(level):
+    """Easy / Normal / Hard only change how the hint ladder opens; the charts, the numbers, the rules and every record stay the same."""
+    global difficulty
+    if level not in LEVELS:
+        return game.view("That is not a difficulty.", ok=False)
+    difficulty = level
+    game.hint = None                                         # a ladder in progress was opened under the old level
+    return game.view("")
 
 
 def handle(request_json):
@@ -447,6 +565,12 @@ def handle(request_json):
         return json.dumps(g.clear())
     if action == "finish":
         return json.dumps(g.finish())
+    if action == "hint":
+        return json.dumps(g.ask_hint(request.get("confirm") is True))
+    if action == "hint_draw":
+        return json.dumps(g.draw_hint())
+    if action == "difficulty":
+        return json.dumps(set_difficulty(request.get("level")))
     return json.dumps({"error": "unknown action " + repr(action)})
 
 

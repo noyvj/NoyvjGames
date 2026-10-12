@@ -157,6 +157,17 @@ def candidates(pix_by_index, figure, neighbours=NEIGHBOURS):
     return out
 
 
+def crossing_pairs(pts, figure):
+    """Pairs of figure lines that cross each other (only the traditional Southern Cross has any). Returned as sorted ((i, j), (k, l)) pairs."""
+    out = []
+    lines = sorted(figure)
+    for x in range(len(lines)):
+        for y in range(x + 1, len(lines)):
+            if sky.edges_conflict(pts, lines[x], lines[y]):
+                out.append((lines[x], lines[y]))
+    return out
+
+
 def _count(chart, degree, must, never, limit=2):
     return sky.count_solutions(chart.with_clues(degree, must, never), limit)
 

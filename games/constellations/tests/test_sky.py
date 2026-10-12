@@ -172,3 +172,58 @@ def test_the_bridge_rule_joins_two_halves_through_their_only_link():
     known, trail = sky.propagate(ch)
     assert known[ch.index[(2, 3)]] == sky.IN
     assert any(t[0] == "bridge" for t in trail) or any(t[0] == "forced" for t in trail)
+
+
+# ---- a chart that allows two lines to cross (the Southern Cross) -------------------------------------------------------
+KITE = [(100, 400), (500, 100), (500, 800), (900, 500)]       # stars 0..3: left, top, bottom, right; the diagonals 0-3 and 1-2 cross
+
+
+def cross_chart(allow=True, degree=None):
+    data = {"stars": [{"x": x, "y": y} for x, y in KITE], "edges": [list(e) for e in ALL_PAIRS],
+            "clues": {"degree": dict(degree if degree is not None else {0: 1, 1: 1, 2: 1, 3: 1}), "must": [], "never": []}}
+    if allow:
+        data["cross_ok"] = [[[0, 3], [1, 2]]]
+    return sky.Chart(data)
+
+
+def test_the_diagonals_of_the_kite_cross_but_only_a_listed_pair_may():
+    plain, allowed = cross_chart(False), cross_chart(True)
+    d1, d2 = plain.edge(0, 3), plain.edge(1, 2)
+    assert plain.conflict[d1] >> d2 & 1
+    assert not allowed.conflict[allowed.edge(0, 3)] >> allowed.edge(1, 2) & 1
+    assert allowed.cross_ok == ((min(d1, d2), max(d1, d2)),)
+    assert sky.analyse(plain, {d1, d2})["valid"] is False and sky.analyse(plain, {d1, d2})["crossings"]
+    report = sky.analyse(allowed, {d1, d2})
+    assert report["valid"] and report["parts"] == 1 and not report["crossings"]
+
+
+def test_two_lines_that_cross_where_allowed_count_as_one_piece_and_two_that_do_not_cross_do_not():
+    ch = cross_chart(True)
+    sides = {ch.edge(0, 1), ch.edge(2, 3)}
+    report = sky.analyse(ch, sides)
+    assert report["parts"] == 2 and not report["valid"]
+    assert sky.analyse(ch, {ch.edge(0, 3), ch.edge(1, 2)})["parts"] == 1
+
+
+def test_the_solvers_agree_that_the_crossing_pair_is_the_only_figure():
+    ch = cross_chart(True)
+    found = sky.solutions(ch, 3)
+    assert found == [frozenset({ch.edge(0, 3), ch.edge(1, 2)})]
+    assert sky.count_by_stars(ch, 3) == 1
+    assert brute_force(ch) == found
+    assert sky.solutions(cross_chart(False), 3) == [] and sky.count_by_stars(cross_chart(False), 3) == 0
+
+
+def test_line_logic_finishes_the_crossing_chart():
+    ch = cross_chart(True)
+    known, trail = sky.propagate(ch)
+    assert {k for k, v in known.items() if v == sky.IN} == {ch.edge(0, 3), ch.edge(1, 2)}
+    assert {r for r, _k, _v, _s in trail} >= {"close", "bridge"}
+    assert sky.solved_by_logic(ch) == frozenset({ch.edge(0, 3), ch.edge(1, 2)})
+
+
+def test_a_crossing_allowance_never_changes_a_chart_that_has_none():
+    import charts
+    for c in charts.ALL:
+        assert ("cross_ok" in c) == (c["id"] == "crux")
+        assert charts.rules(c["id"]).cross_ok == (() if c["id"] != "crux" else charts.rules("crux").cross_ok)

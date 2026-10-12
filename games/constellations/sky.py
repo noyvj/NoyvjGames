@@ -8,6 +8,9 @@ and clues. A clue is one of
 A figure is VALID when every number holds exactly, no two lines cross or touch, no crossed-out pair is drawn, and all the lines form
 ONE connected figure. A star without a number may have any number of lines (including none).
 
+One chart (the Southern Cross) is drawn with two lines that cross: its data lists those pairs in `cross_ok`. Two lines of such a pair may
+cross each other, and where they cross they count as joined (the figure is one piece). Every other pair of lines still may not cross.
+
 This module holds the geometry (`edges_conflict`), the rule check (`analyse`), an exhaustive solver (`solutions`) and an independent
 second counter that shares no search code with it (`count_by_stars`), and `propagate`, the line-logic that a person can follow: it is what
 the proofs use to show that a chart can be finished by reasoning alone, and what the hint ladder of a later milestone will read.
@@ -81,10 +84,12 @@ class Chart:
         for k, (i, j) in enumerate(self.edges):
             self.inc[i].append(k)
             self.inc[j].append(k)
+        self.cross_ok = tuple(sorted((min(self.index[tuple(a)], self.index[tuple(b)]), max(self.index[tuple(a)], self.index[tuple(b)]))
+                                     for a, b in data.get("cross_ok", [])))
         self.conflict = [0] * len(self.edges)
         for k, e in enumerate(self.edges):
             for m in range(k + 1, len(self.edges)):
-                if edges_conflict(self.pts, e, self.edges[m]):
+                if edges_conflict(self.pts, e, self.edges[m]) and (k, m) not in self.cross_ok:
                     self.conflict[k] |= 1 << m
                     self.conflict[m] |= 1 << k
 
@@ -113,6 +118,9 @@ def _components(chart, chosen):
     for k in chosen:
         i, j = chart.edges[k]
         parent[find(i)] = find(j)
+    for k, m in chart.cross_ok:                                   # two lines that cross where the chart allows it are joined
+        if k in chosen and m in chosen:
+            parent[find(chart.edges[k][0])] = find(chart.edges[m][0])
     return len({find(v) for k in chosen for v in chart.edges[k]})
 
 
@@ -198,7 +206,7 @@ def count_by_stars(chart, limit=2):
     count = [0]
 
     def clash(k, chosen):
-        return any(edges_conflict(chart.pts, chart.edges[k], chart.edges[c]) for c in chosen)
+        return any(edges_conflict(chart.pts, chart.edges[k], chart.edges[c]) and (min(k, c), max(k, c)) not in chart.cross_ok for c in chosen)
 
     def go(v, chosen, degree):
         if count[0] >= limit:
@@ -253,6 +261,9 @@ def _groups(chart, state, extra=None):
     for k in lines:
         i, j = chart.edges[k]
         parent[find(i)] = find(j)
+    for k, m in chart.cross_ok:
+        if k in lines and m in lines:
+            parent[find(chart.edges[k][0])] = find(chart.edges[m][0])
     pieces = {}
     for k in lines:
         root = find(chart.edges[k][0])
@@ -268,6 +279,10 @@ def _closed(chart, state, stars, lines, extra=None):
     for k in lines:
         for v in chart.edges[k]:
             count[v] += 1
+    for k, m in chart.cross_ok:                                   # a line that may still cross a partner can still join a bigger figure
+        for mine, other in ((k, m), (m, k)):
+            if mine in lines and other not in lines and state.get(other) != OUT:
+                return False
     return all(v in chart.need and count[v] == chart.need[v] for v in stars)
 
 
@@ -298,6 +313,9 @@ def _reach(chart, state, skip=None):
     for k, (i, j) in enumerate(chart.edges):
         if k != skip and state.get(k) != OUT:
             parent[find(i)] = find(j)
+    for k, m in chart.cross_ok:
+        if skip not in (k, m) and state.get(k) != OUT and state.get(m) != OUT:
+            parent[find(chart.edges[k][0])] = find(chart.edges[m][0])
     groups = {}
     for v in range(chart.n):
         groups.setdefault(find(v), set()).add(v)

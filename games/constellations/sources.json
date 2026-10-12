@@ -7,14 +7,14 @@
       "by": "David Nash (astronexus)",
       "url": "https://github.com/astronexus/HYG-Database",
       "read": "2026-10-12",
-      "note": "Supplies every star's position (right ascension and declination), brightness (magnitude), names and Bayer or Flamsteed designation. A dated snapshot of the 238 stars used is kept in data/snapshot.json."
+      "note": "Supplies every star's position (right ascension and declination), brightness (magnitude), names and Bayer or Flamsteed designation. A dated snapshot of the 380 stars on the 40 figures is kept in data/snapshot.json; the whole database is too large to read live, so the charts use the snapshot."
     },
     {
       "title": "Stellarium sky culture: modern (IAU constellation figures)",
       "by": "The Stellarium project",
       "url": "https://stellarium.org",
       "read": "2026-10-12",
-      "note": "Supplies the traditional line figure of each constellation as chains of Hipparcos star numbers. Some long figures are trimmed to their brightest stars so a chart stays readable."
+      "note": "Supplies the traditional line figure of each constellation as chains of Hipparcos star numbers. Some long figures are trimmed to their brightest stars so a chart stays readable. The About panel also reads today's file when it is opened, checks that the stars of each constellation in your atlas are still on the live figure, and shows the day it was read."
     },
     {
       "title": "Constellation",

@@ -7,9 +7,11 @@ builds the rules object (sky.Chart) for each chart on first use, and decides whi
 import charts_s1
 import charts_s2
 import charts_s3
+import charts_s4
+import charts_s5
 import sky
 
-_MODULES = (charts_s1, charts_s2, charts_s3)
+_MODULES = (charts_s1, charts_s2, charts_s3, charts_s4, charts_s5)
 OPEN_AT = 5                                  # season n+1 opens when this many charts of season n are done (any five)
 LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 

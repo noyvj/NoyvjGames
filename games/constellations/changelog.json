@@ -2,6 +2,10 @@
   "changelog": [
     {
       "date": "2026-10-12",
+      "entry": "The whole sky: 16 more charts in Autumn Sky (Cassiopeia to Pegasus) and Southern Sky (Crux to Centaurus), 40 in all. The Southern Cross is drawn the traditional way, as two lines that cross, and is the one chart where that is allowed. New: a suggestion button (\"Would you like a suggestion?\") that only answers when you ask, one rung at a time: a nudge, a hint that shows the line and why it is certain, and the whole answer you can draw with one press; Easy, Normal and Hard change only how the rungs open. Three goals are always on show, a larger-board button helps on small screens, and About now checks your atlas against Stellarium's live figures. There is a tutorial, a welcome screen with Continue and New Game, and a keyboard help list (press ?)."
+    },
+    {
+      "date": "2026-10-12",
       "entry": "The first three sky seasons: 24 charts of real constellations in Winter, Spring and Summer Sky, from Auriga and Lyra to Orion, Ursa Major and Scorpius. Join the stars so every number holds, no lines cross and the lines make one figure; the constellation then goes into your Sky Atlas, drawn at its real place in the sky, with a card (its note, brightest star and best month to see it). Five finished charts in a season open the next page. Every chart was proved to have exactly one answer and to be finishable by following the numbers. Chart as text, star letters and keyboard play are there for everyone."
     }
   ]

@@ -20,12 +20,13 @@ def fig_idx(c):
     return frozenset(rules.index[tuple(e)] for e in c["figure"])
 
 
-def test_three_seasons_of_eight_with_sizes_five_to_fourteen():
-    assert [len(s["charts"]) for s in charts.SEASONS] == [8, 8, 8]
-    assert [s["name"] for s in charts.SEASONS] == ["Winter Sky", "Spring Sky", "Summer Sky"]
-    assert len(charts.ALL) == 24 and len(set(IDS)) == 24
+def test_five_seasons_of_eight_with_sizes_four_to_fourteen():
+    assert [len(s["charts"]) for s in charts.SEASONS] == [8, 8, 8, 8, 8]
+    assert [s["name"] for s in charts.SEASONS] == ["Winter Sky", "Spring Sky", "Summer Sky", "Autumn Sky", "Southern Sky"]
+    assert len(charts.ALL) == 40 and len(set(IDS)) == 40
     sizes = [len(c["stars"]) for c in charts.ALL]
-    assert min(sizes) == 5 and max(sizes) <= 14
+    assert min(sizes) == 4 and max(sizes) <= 14
+    assert [c["id"] for c in charts.ALL if len(c["stars"]) < 5] == ["crux"], "only the Southern Cross has four stars"
     for s in charts.SEASONS:
         counts = [len(c["stars"]) for c in s["charts"]]
         assert counts == sorted(counts), "a season goes from small charts to big ones"

@@ -64,13 +64,14 @@ def build_chart(snap, spec, season_index, number):
     pts = [pix[h] for h in hips]
     fig = {(min(index[a], index[b]), max(index[a], index[b])) for a, b in fig_hip}
     cand = figures.candidates(pts, fig)
+    cross_ok = figures.crossing_pairs(pts, fig)          # only the Southern Cross: its two traditional lines cross, and the chart says so
     stars = []
     for h in hips:
         row = dict(snap["stars"][str(h)], hip=h)
         stars.append({"hip": h, "x": pix[h][0], "y": pix[h][1], "mag": round(float(row["mag"]), 2),
                       "name": star_name(row, spec["genitive"]), "proper": bool(row["proper"]),
                       "bayer": ("%s %s" % (row["bayer"], row["con"])) if row["bayer"] else ""})
-    chart = sky.Chart({"id": spec["id"], "stars": stars, "edges": cand, "clues": {}})
+    chart = sky.Chart(dict({"id": spec["id"], "stars": stars, "edges": cand, "clues": {}}, **({"cross_ok": cross_ok} if cross_ok else {})))
     degree, must, never, level = figures.best_clues(chart, fig)
     if level == 0:
         raise SystemExit("%s: no clue set can be finished by line logic" % spec["id"])
@@ -80,8 +81,11 @@ def build_chart(snap, spec, season_index, number):
     assert len(found) == 1 and set(found[0]) == figure_idx, "%s is not uniquely the traditional figure" % spec["id"]
     assert sky.count_by_stars(proven, 3) == 1, "%s: the second counter disagrees" % spec["id"]
     brightest = min(stars, key=lambda s: (s["mag"], s["name"]))
-    best = spec.get("best") or "best seen on evenings around %s (from the northern middle latitudes)" % best_month(ra0)
-    return {
+    if spec.get("south"):
+        best = "best seen on evenings around %s (from the southern hemisphere; low or out of sight from the north)" % best_month(ra0)
+    else:
+        best = spec.get("best") or "best seen on evenings around %s (from the northern middle latitudes)" % best_month(ra0)
+    out = {
         "id": spec["id"], "season": season_index, "number": number, "code": code,
         "name": spec["name"], "meaning": spec["meaning"], "note": spec["note"], "best": best,
         "brightest": {"name": brightest["name"], "mag": brightest["mag"]},
@@ -95,6 +99,9 @@ def build_chart(snap, spec, season_index, number):
                    "figure": "Stellarium modern sky culture, the IAU constellation figures (stellarium.org)", "read": snap["read"]},
         "atlas": {"ra": round(ra0, 2), "dec": round(dec0, 1), "ox": ox, "oy": oy, "scale": round(scale, 1)},
     }
+    if cross_ok:
+        out["cross_ok"] = [[list(a), list(b)] for a, b in cross_ok]
+    return out
 
 
 def main():
