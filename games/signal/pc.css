@@ -102,6 +102,17 @@ html[data-theme="light"] #pc-hintbar { opacity: 1; }
 html[data-theme="light"] #pc-side .practice-controls { background: #fbf9f3; }
 .pc-window-frame a { color: var(--amber); }
 
+/* Maybe notes for thinking on the board (R4-SIPC-2) */
+#pc-stage .cell.maybe::before {
+  content: "✏️";
+  position: absolute;
+  font-size: 0.75em;
+  top: 1px;
+  right: 3px;
+  pointer-events: none;
+  opacity: 0.6;
+}
+
 /* Hover preview for R4-SIPC-1 */
 #hover-preview {
   position: absolute;

@@ -96,5 +96,13 @@ Object.defineProperty(window, "MobileDock", { configurable: true, get() { return
       var cell = e.target.closest(".cell");
       if (cell && !stage.contains(e.relatedTarget)) hidePreview();
     });
+    // R4-SIPC-2: right-click toggles a "maybe" pencil note on the tile
+    stage.addEventListener("contextmenu", function (e) {
+      var cell = e.target.closest(".cell");
+      if (cell) {
+        e.preventDefault();
+        cell.classList.toggle("maybe");
+      }
+    });
   });
 })();
