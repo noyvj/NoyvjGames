@@ -8,3 +8,11 @@
   use_repo_map: true
   extra_params:
     num_ctx: 32768
+
+# Qwen3.6 35B-A3B (2026-10-12): a mixture-of-experts model, 35B total but about 3B active per token,
+# so the part that spills from the 16 GB card into system RAM costs far less speed than a dense model.
+- name: ollama_chat/qwen3.6:35b
+  edit_format: diff
+  use_repo_map: true
+  extra_params:
+    num_ctx: 32768

@@ -26,6 +26,11 @@ param(
     [string]$Chain = "",
     [int]$Step = 0
 )
+# The model can be switched for every following task in config.txt (model = ...), without restarting the queue.
+if (-not $PSBoundParameters.ContainsKey("Model")) {
+    $cfgModel = Select-String -Path (Join-Path $PSScriptRoot "config.txt") -Pattern "^\s*model\s*=\s*(\S+)\s*$" -ErrorAction SilentlyContinue | Select-Object -First 1
+    if ($cfgModel) { $Model = $cfgModel.Matches[0].Groups[1].Value }
+}
 if ($Item -match '^chain:([A-Za-z0-9-]+):(\d+)$') { $Chain = $Matches[1]; $Step = [int]$Matches[2] }
 if ($Chain) { $Item = "$Chain-$Step" }
 # "Continue": git prints harmless notes on stderr, which "Stop" would turn into crashes in
