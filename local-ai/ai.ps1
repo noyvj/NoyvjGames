@@ -130,35 +130,83 @@ $aiderArgs = @("--model", $Model,
     "--test-cmd", "python ../../scripts/generate-pc-pages.py >NUL && python -m pytest -q -x --tb=line -p no:warnings", "--auto-test",
     "--lint-cmd", "python: python -m flake8 --select=E9,F63,F7,F82", "--auto-lint",   # only real errors here: layout is fixed automatically afterwards, so the model keeps its retries for failing tests
     "--yes-always", "--no-pretty", "--no-stream", "--analytics-disable", "--no-check-update", "--timeout", "1800",   # a big multi-file request can take a long time on this laptop: wait up to 30 min per reply
-    "--chat-history-file", $log, "--input-history-file", "NUL") + $readArgs + $fileArgs +
-    @("--message-file", $taskFile)
+    "--chat-history-file", $log, "--input-history-file", "NUL") + $readArgs
 
-# Run Aider as a background job so a stuck run can be stopped after $TimeoutMinutes
-# instead of blocking the whole queue for days.
-$job = Start-Job -ScriptBlock {
-    param($dir, $exe, $argList, $apiBase)
-    $env:OLLAMA_API_BASE = $apiBase
-    $env:PYTHONUTF8 = "1"; $env:PYTHONIOENCODING = "utf-8"   # Aider crashed printing a model reply with symbols like a triangle under the cp1252 console
-    Set-Location $dir
-    & $exe @argList *>&1 | Out-Null
-} -ArgumentList $gameDir, $aider, $aiderArgs, $env:OLLAMA_API_BASE
-$timedOut = -not (Wait-Job $job -Timeout ($TimeoutMinutes * 60))
-if ($timedOut) {
-    # aider.exe is a launcher with a python child: end the whole tree, then the job
-    Get-CimInstance Win32_Process -Filter "Name='aider.exe'" | Where-Object { $_.CreationDate -ge $started } |
-        ForEach-Object { taskkill /T /F /PID $_.ProcessId 2>$null | Out-Null }
-    Stop-Job $job
+# Run Aider as a background job so a stuck run can be stopped when the task's time is up
+# instead of blocking the whole queue for days. Returns $true if it was stopped for time.
+function Invoke-Aider($messageFile, $extraFiles) {
+    $left = $TimeoutMinutes * 60 - ((Get-Date) - $started).TotalSeconds
+    if ($left -lt 60) { return $true }
+    $argList = $aiderArgs + @($extraFiles | Where-Object { $_ }) + @("--message-file", $messageFile)
+    $job = Start-Job -ScriptBlock {
+        param($dir, $exe, $argList, $apiBase)
+        $env:OLLAMA_API_BASE = $apiBase
+        $env:PYTHONUTF8 = "1"; $env:PYTHONIOENCODING = "utf-8"   # Aider crashed printing a model reply with symbols like a triangle under the cp1252 console
+        Set-Location $dir
+        & $exe @argList *>&1 | Out-Null
+    } -ArgumentList $gameDir, $aider, $argList, $env:OLLAMA_API_BASE
+    $stopped = -not (Wait-Job $job -Timeout ([int]$left))
+    if ($stopped) {
+        # aider.exe is a launcher with a python child: end the whole tree, then the job
+        Get-CimInstance Win32_Process -Filter "Name='aider.exe'" | Where-Object { $_.CreationDate -ge $started } |
+            ForEach-Object { taskkill /T /F /PID $_.ProcessId 2>$null | Out-Null }
+        Stop-Job $job
+    }
+    Remove-Job $job -Force
+    return $stopped
 }
-Remove-Job $job -Force
-Remove-Item $taskFile -ErrorAction SilentlyContinue
 
-# pc.html is generated from index.html and must never be hand-edited (the first trial run's
-# only failure). Regenerate it here; the generator only rewrites pages whose content changed.
-if (Test-Path (Join-Path $gameDir "pc-config.json")) {
-    Push-Location $work
-    python scripts/generate-pc-pages.py | Out-Null
+function Update-PcPages {
+    # pc.html is generated from index.html and must never be hand-edited (the first trial run's
+    # only failure). Regenerate it; the generator only rewrites pages whose content changed.
+    if (Test-Path (Join-Path $gameDir "pc-config.json")) {
+        Push-Location $work
+        python scripts/generate-pc-pages.py | Out-Null
+        Pop-Location
+    }
+}
+
+$timedOut = Invoke-Aider $taskFile $fileArgs
+Update-PcPages
+
+# Repair rounds: real changes but failing tests (a feature task, not a test-writing one). The model gets a
+# fresh session with the failing output and the files it changed, up to twice. This is the step that most
+# often turns a near miss (for example one save-format test) into a pass.
+$repairs = 0
+while (-not $timedOut -and $repairs -lt 2) {
+    $touched = @(git -C $work status --porcelain --untracked-files=all | ForEach-Object { $_.Substring(3).Trim('"') } |
+        Where-Object { $_ -like "games/$Game/*" -and $_ -notlike "*/pc.html" })
+    if ($touched.Count -eq 0 -or ($touched | Where-Object { $_ -notmatch "/tests/test_ai_[^/]+\.py$" }).Count -eq 0) { break }
+    Push-Location $gameDir
+    $firstTry = (python -m pytest -q -x --tb=short -p no:warnings 2>&1 | Out-String)
+    $passing = ($LASTEXITCODE -eq 0)
     Pop-Location
+    if ($passing) { break }
+    $repairs++
+    $tail = (($firstTry.Trim() -split "`n") | Select-Object -Last 60) -join "`n"
+    $repairFile = Join-Path $work ".aider-repair.md"
+    @"
+# Fix the failing tests (repair round $repairs of 2)
+
+You were building this in games/${Game}:
+
+$Task
+
+Your changes are in the files listed below and already in this chat. The game's tests now fail. Fix the
+cause with small edits; do not delete or weaken existing tests. Remember the save rules in RULES.md: old
+saves must load unchanged, and a new key appears in get_state() only when its value is not the default.
+
+Test output (end):
+~~~
+$tail
+~~~
+"@ | Set-Content -Encoding utf8 $repairFile
+    $repairFiles = @(); foreach ($f in $touched) { $repairFiles += @("--file", $f.Substring("games/$Game/".Length)) }
+    $timedOut = Invoke-Aider $repairFile $repairFiles
+    Remove-Item $repairFile -ErrorAction SilentlyContinue
+    Update-PcPages
 }
+Remove-Item $taskFile -ErrorAction SilentlyContinue
 
 # --- Check the result ----------------------------------------------------
 $changed = @(git -C $work status --porcelain --untracked-files=all | ForEach-Object { $_.Substring(3).Trim('"') } |
@@ -173,11 +221,15 @@ if ($outside.Count -gt 0) { $problems += "it changed files outside games/${Game}
 $py = @($inside | Where-Object { $_ -like "*.py" } | ForEach-Object { Join-Path $work $_ } | Where-Object { Test-Path $_ })
 # Layout (spacing, blank lines, trailing spaces) is fixed mechanically rather than failing correct work over it.
 if ($py.Count -gt 0) { python -m autopep8 --in-place --select=E1,E2,E3,W2,W3 @py 2>$null | Out-Null }
-# New test files the AI wrote (tests/test_ai_*.py) also lose unused imports and variables.
+# Test-writing tasks make tests/test_ai_*.py files. Any brand-new test file the AI wrote, whatever its
+# name, also loses unused imports and variables.
 $newTests = @($inside | Where-Object { $_ -match "^games/$([regex]::Escape($Game))/tests/test_ai_[^/]+\.py$" })
 $testOnly = ($inside.Count -gt 0 -and $newTests.Count -eq $inside.Count)
-if ($newTests.Count -gt 0) {
-    $newPaths = @($newTests | ForEach-Object { Join-Path $work $_ })
+$untracked = @(git -C $work status --porcelain --untracked-files=all | Where-Object { $_.StartsWith("??") } |
+    ForEach-Object { $_.Substring(3).Trim('"') })
+$newTestFiles = @($untracked | Where-Object { $_ -match "^games/$([regex]::Escape($Game))/tests/[^/]+\.py$" })
+if ($newTestFiles.Count -gt 0) {
+    $newPaths = @($newTestFiles | ForEach-Object { Join-Path $work $_ })
     python -m autoflake --in-place --remove-all-unused-imports --remove-unused-variables @newPaths 2>$null | Out-Null
 }
 
@@ -230,6 +282,7 @@ if ($ok) {
 - Took: $minutes minutes
 - Tests: $testLine
 $(if ($salvageNote) { "- Salvage: $salvageNote" })
+$(if ($repairs) { "- Repair rounds: $repairs (the model was shown the failing tests and asked to fix them)" })
 $(if ($problems.Count) { "- Problems: " + ($problems -join "; ") })
 
 ## Changed files
