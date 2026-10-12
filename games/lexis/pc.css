@@ -67,3 +67,14 @@ html[data-layout="pc"] .pc-readout { color: var(--text); }
 .notebook-list li { cursor: grab; user-select: none; }
 .notebook-list li.dragging { opacity: 0.5; cursor: grabbing; }
 .signal .dropped-sign { margin-right: 0.4rem; padding: 0.2rem 0.4rem; background: var(--panel); border: 1px solid var(--accent); border-radius: 4px; }
+
+/* Notebook search (PC only) */
+.pc-notebook-search-input {
+  position: fixed; top: 1rem; left: 50%; transform: translateX(-50%);
+  padding: 0.4rem 0.8rem; border-radius: 4px; border: 1px solid var(--accent);
+  background: var(--panel); color: var(--text); z-index: 100; font-size: inherit;
+}
+.pc-notebook-search-input[hidden] { display: none; }
+.notebook-list li.search-match {
+  background: var(--accent); color: #fff; border-radius: 4px;
+}

@@ -109,3 +109,110 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   });
 });
+
+document.addEventListener("DOMContentLoaded", function () {
+  /* Notebook search (PC only) */
+  var searchInput = null;
+  var matches = [];
+  var matchIndex = -1;
+  var reducedMotion = false;
+
+  function initSearch() {
+    searchInput = document.createElement("input");
+    searchInput.id = "pc-notebook-search";
+    searchInput.type = "text";
+    searchInput.placeholder = "Search notebook (/)";
+    searchInput.className = "pc-notebook-search-input";
+    document.body.appendChild(searchInput);
+
+    searchInput.addEventListener("input", function () { filterNotebook(); });
+    searchInput.addEventListener("keydown", function (e) {
+      if (e.key === "ArrowDown") { e.preventDefault(); moveMatch(1); }
+      else if (e.key === "ArrowUp") { e.preventDefault(); moveMatch(-1); }
+      else if (e.key === "Escape") { closeSearch(); }
+    });
+
+    document.addEventListener("keydown", function (e) {
+      if (e.key === "/" && !searchInput.matches(":focus") && !isTypingInInput()) {
+        e.preventDefault();
+        openSearch();
+      }
+    });
+  }
+
+  function isTypingInInput() {
+    var tag = document.activeElement.tagName.toLowerCase();
+    return tag === "input" || tag === "textarea" || document.activeElement.isContentEditable;
+  }
+
+  function openSearch() {
+    searchInput.value = "";
+    searchInput.hidden = false;
+    searchInput.focus();
+    filterNotebook();
+  }
+
+  function closeSearch() {
+    searchInput.hidden = true;
+    searchInput.blur();
+    document.querySelectorAll(".notebook-list li").forEach(function(li) {
+      li.style.display = "";
+      li.classList.remove("search-match");
+    });
+  }
+
+  function filterNotebook() {
+    var query = searchInput.value.toLowerCase().trim();
+    var allItems = Array.from(document.querySelectorAll(".notebook-list li"));
+    matches = [];
+    matchIndex = -1;
+
+    allItems.forEach(function(li) {
+      if (!query || li.textContent.toLowerCase().includes(query)) {
+        li.style.display = "";
+        matches.push(li);
+      } else {
+        li.style.display = "none";
+      }
+    });
+
+    if (matches.length > 0 && matchIndex === -1) {
+      moveMatch(1);
+    } else if (matchIndex >= matches.length) {
+      matchIndex = matches.length - 1;
+    }
+    highlightMatch();
+  }
+
+  function moveMatch(dir) {
+    if (matches.length === 0) return;
+    matchIndex += dir;
+    if (matchIndex < 0) matchIndex = matches.length - 1;
+    if (matchIndex >= matches.length) matchIndex = 0;
+    highlightMatch();
+  }
+
+  function highlightMatch() {
+    matches.forEach(function(li, i) {
+      li.classList.toggle("search-match", i === matchIndex);
+      if (i === matchIndex && !reducedMotion) {
+        li.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      } else if (i === matchIndex) {
+        li.scrollIntoView({ block: "nearest" });
+      }
+    });
+  }
+
+  function checkReducedMotion() {
+    try {
+      var val = window.localStorage.getItem("lexis-reduced-motion");
+      reducedMotion = val === "true";
+    } catch(e) { reducedMotion = false; }
+    if (!reducedMotion && window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      reducedMotion = true;
+    }
+  }
+
+  initSearch();
+  checkReducedMotion();
+});
