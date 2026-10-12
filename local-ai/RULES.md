@@ -36,8 +36,28 @@ left, and stop.
 - achievements_earned is written by get_state() and never read back.
 - Per-device settings (like an effects toggle) go in localStorage, not saves.
 
+## Saving new data (the pattern album lost all its counts on reload)
+- Data that must survive a reload has to be in get_state() AND read back in load_state().
+- In get_state(), add the key only when it is not empty or default, so old saves stay exactly the same.
+- In load_state(), MERGE what the save holds into what is already there: take the larger count, or the
+  union of sets. Never add the saved number to the current one: loading the same save twice must give
+  the same result as loading it once.
+
+## Page code (.js) in the browser
+- pc.js is loaded in the page's <head>, before the board or any game element exists. Never look up
+  elements or use document.body at the top level of pc.js: do it inside
+  document.addEventListener("DOMContentLoaded", ...), or inside a function the game calls later.
+- The game redraws its board after every move, which throws away classes or children you added to
+  cells. Anything you show on a cell must be reapplied after each redraw (find the game's render or
+  refresh function and hook in there), not added once.
+- "At the bottom edge" or "always visible" means position: fixed (or sticky), not just a bigger button.
+- Put styling in the game's CSS file (style.css or pc.css) with a class name. Do not set element.style
+  properties from JavaScript except for positions that change while the player moves the mouse.
+
 ## Tests
-- Add or update pytest tests in this game's tests/ folder for any Python change.
+- Add or update pytest tests in this game's tests/ folder for any Python change. A task that changes
+  the game's Python but adds or changes no test is failed automatically.
+- Test what the feature promises, including a save and reload round trip if it stores anything.
 - The tests and flake8 run automatically after your edits. Fix any failure
   before saying you are done.
 

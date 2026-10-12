@@ -80,9 +80,17 @@ if ($Chain -and $Step -gt 1) {
     if ($prev.Count -eq 0 -or -not $prev[0]) { Fail "step $($Step - 1) of $Chain has not passed, so step $Step cannot start" }
     $start = $prev[0]
 }
+# Feature tasks for the same game build on each other through local-ai/stack-<game>: each starts from
+# the last passed feature for that game, so two features never edit the same file from the same base and
+# conflict (2026-10-12: six Signal pc.js branches could not be combined). Test-writing tasks (T-, EDGE-)
+# only add new files and still start from main. A reviewer reviews the stack, one commit per TODO item.
+$isFeature = -not $Chain -and $Item -notmatch '^(T|EDGE)-'
+$stack = "local-ai/stack-$Game"
+$haveStack = $isFeature -and ($null -ne (git -C $root rev-parse -q --verify "refs/heads/$stack" 2>$null))
+if ($haveStack) { $start = $stack }
 git -C $root worktree add -q -b $branch $work $start
 if ($LASTEXITCODE -ne 0) { Fail "could not create the working copy" }
-if ($start -eq $Base -and $haveRemote -and -not ($Chain -and $Step -gt 1)) {
+if (($start -eq $Base -or $haveStack) -and $haveRemote -and -not ($Chain -and $Step -gt 1)) {
     git -C $work merge -q --no-edit $remoteBase 2>$null | Out-Null
     if ($LASTEXITCODE -ne 0) {
         git -C $work merge --abort 2>$null | Out-Null
@@ -248,6 +256,13 @@ if (-not $testsOk -and $testOnly) {
 }
 Pop-Location
 if (-not $testsOk) { $problems += "tests failed" }
+# A feature that changes the game's Python must come with a test (the pattern album shipped untested
+# and lost its data on reload).
+$gamePy = @($inside | Where-Object { $_ -like "*.py" -and $_ -notmatch "/tests/" })
+$testFiles = @($inside | Where-Object { $_ -match "/tests/[^/]+\.py$" })
+if (-not $testOnly -and $gamePy.Count -gt 0 -and $testFiles.Count -eq 0) {
+    $problems += "it changed the game's Python ($($gamePy -join ', ')) but added or changed no test"
+}
 $testLine = ($testOut.Trim() -split "`n")[-1]
 
 $flakeOut = ""
@@ -270,8 +285,13 @@ if ($ok) {
     $msgFile = Join-Path $work ".aider-commit-msg.txt"
     [IO.File]::WriteAllText($msgFile, "local-ai: ${Item}: $Task`n`nMade by the local model ($Model), not yet reviewed by Claude.`n", (New-Object System.Text.UTF8Encoding $false))
     git -C $work commit -q -F $msgFile -- @inside
+    $commitOk = ($LASTEXITCODE -eq 0)
     Remove-Item $msgFile -ErrorAction SilentlyContinue
-    if ($LASTEXITCODE -ne 0) { $ok = $false; $problems += "git commit failed" }
+    if (-not $commitOk) { $ok = $false; $problems += "git commit failed" }
+    elseif ($isFeature) {
+        # the next feature task for this game starts from here (see local-ai/stack-<game> above)
+        git -C $root branch -f $stack $branch 2>$null | Out-Null
+    }
 }
 
 @"
