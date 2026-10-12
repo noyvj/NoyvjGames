@@ -158,3 +158,18 @@ html[data-reduced-motion="true"] .lexis-pinned-scene { transition: none; }
   opacity: 0.9;
   pointer-events: none;
 }
+
+/* Print glossary layout */
+@media print {
+  body * { display: none !important; }
+  #print-glossary, #print-glossary * { display: block !important; }
+  #print-glossary {
+    position: absolute; top: 0; left: 0; width: 100%; height: auto;
+    padding: 2rem; font-family: sans-serif; color: #000; background: #fff;
+    column-count: 2; column-gap: 2rem;
+  }
+  #print-glossary h2 { column-span: all; margin-top: 0; border-bottom: 1px solid #ccc; padding-bottom: 0.5rem; }
+  #print-glossary h3 { margin-top: 1.5rem; font-size: 1.1rem; }
+  #print-glossary ol { column-break-inside: avoid; padding-left: 1.2rem; }
+  #print-glossary li { margin-bottom: 0.4rem; break-inside: avoid; }
+}

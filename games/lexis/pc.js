@@ -450,3 +450,37 @@ document.addEventListener("DOMContentLoaded", function () {
     if (focusTarget) focusTarget.focus();
   });
 });
+
+document.addEventListener("DOMContentLoaded", function () {
+  /* Print glossary (PC only) */
+  var printGlossary = document.createElement("div");
+  printGlossary.id = "print-glossary";
+  printGlossary.hidden = true;
+  document.body.appendChild(printGlossary);
+
+  function buildGlossary() {
+    var html = "<h2>Lexis Glossary</h2>";
+    var planets = [
+      ["notebook-list", "Planet 1: Pulse"],
+      ["c-notebook-list", "Planet 2: Compound"],
+      ["b-notebook-list", "Planet 3: Bridge"]
+    ];
+    planets.forEach(function(p) {
+      var ul = document.getElementById(p[0]);
+      if (!ul) return;
+      html += "<h3>" + p[1] + "</h3><ol>";
+      Array.from(ul.children).forEach(function(li) {
+        var text = li.textContent.trim();
+        if (text) html += "<li>" + text + "</li>";
+      });
+      html += "</ol>";
+    });
+    printGlossary.innerHTML = html;
+  }
+
+  window.addEventListener("beforeprint", buildGlossary);
+  window.addEventListener("afterprint", function () {
+    printGlossary.innerHTML = "";
+    printGlossary.hidden = true;
+  });
+});
