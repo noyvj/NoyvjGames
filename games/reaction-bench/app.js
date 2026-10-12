@@ -3,7 +3,7 @@
    decides whether an equation balances or whether a product list is right: it asks the engine and draws the answer. */
 (function () {
   "use strict";
-  var ENGINE_MODULES = ["elements.py", "chem.py", "reactions_c1.py", "reactions_c2.py", "reactions_c3.py", "reactions_c4.py", "reactions_c5.py", "reactions.py", "info.py", "hints.py", "goals.py"];
+  var ENGINE_MODULES = ["elements.py", "chem.py", "reactions_c1.py", "reactions_c2.py", "reactions_c3.py", "reactions_c4.py", "reactions_c5.py", "reactions.py", "info.py", "hints.py", "goals.py", "achievements.py"];
   var STORE_KEY = "reaction-bench:state";
   var BACKUP_KEY = "reaction-bench:state-backup";
   var FENNEL_KEY = "reaction-bench:fennel-hidden";
@@ -609,6 +609,45 @@
     if (goalsPanel && window.NoyvjGoals.bindCheckbox) window.NoyvjGoals.bindCheckbox(goalsPanel, "#goals-checkbox");
   }
 
+  // ---- achievements (the engine decides what is earned; this lists them and says so once when one is new) ------------
+  var knownEarned = null;      // null until the first view, so loading a game or a save never fires a toast
+  function renderAchievements() {
+    var list = $("achievements-list");
+    var items = view.achievements;
+    var sig = items.map(function (a) { return a.id + ":" + a.have; }).join(",");
+    if (list.dataset.sig !== sig) {
+      list.dataset.sig = sig;
+      list.textContent = "";
+      items.forEach(function (a) {
+        var li = el("li", a.earned ? "earned" : "");
+        li.setAttribute("data-achievement-id", a.id);
+        li.appendChild(el("span", "tick", a.earned ? "Earned" : a.have + " of " + a.need));
+        var name = el("strong", null, " " + a.label + " ");
+        name.setAttribute("data-achievement-label", "");
+        li.appendChild(name);
+        li.appendChild(el("span", null, a.description));
+        list.appendChild(li);
+      });
+    }
+    var earnedNow = items.filter(function (a) { return a.earned; }).map(function (a) { return a.id; });
+    var count = earnedNow.length + " of " + items.length;
+    setText($("achievements-count"), count + " achievements earned.");
+    var button = $("achievements-toggle-button");
+    button.setAttribute("aria-label", "Achievements, " + count + " earned");
+    setText(button.querySelector(".btn-long"), "Achievements (" + earnedNow.length + "/" + items.length + ")");
+    setText(button.querySelector(".btn-short"), "Trophies " + earnedNow.length + "/" + items.length);
+    if (knownEarned !== null) {
+      var fresh = items.filter(function (a) { return a.earned && knownEarned.indexOf(a.id) === -1; });
+      if (fresh.length) {
+        var text = fresh.map(function (a) { return "Achievement unlocked: " + a.label + "."; }).join(" ");
+        var t = $("toast");
+        showToast((t.textContent ? t.textContent + " " : "") + text);
+        announce(text);
+      }
+    }
+    knownEarned = earnedNow;
+  }
+
   // ---- the tutorial (shared/tutorial.js; offered from the opening screen, restartable from the toolbar) ----------------
   var TUTORIAL_STEPS = [
     { title: "Welcome to the night shift", text: "Each order is a chemical equation. You turn a dial in front of every formula until the atoms on both sides are equal, then run it and the compound goes on the shelf. Nothing is timed and nothing can go wrong. Skip any time and reopen this from the Tutorial button." },
@@ -725,6 +764,7 @@
     renderTable();
     renderInfo();
     renderHints();
+    renderAchievements();
     if (goalsPanel) goalsPanel.refresh();
     if (view.just && view.just.first !== undefined && glowShown !== view.just.id + ":" + view.totals.runs) {
       glowShown = view.just.id + ":" + view.totals.runs;
@@ -819,6 +859,7 @@
     wirePanelToggle("orders-toggle-button", "orders-panel");
     wirePanelToggle("shelf-toggle-button", "shelf-panel");
     wirePanelToggle("table-toggle-button", "table-panel");
+    wirePanelToggle("achievements-toggle-button", "achievements-panel");
     wirePanelToggle("changelog-toggle-button", "changelog-panel");
     wirePanelToggle("info-page-toggle-button", "info-page-panel");
     $("info-page-toggle-button").addEventListener("click", function () { if (!$("info-page-panel").hidden) loadLiveInfo(); });
@@ -842,7 +883,7 @@
       askThen("reaction-bench-reset", "Start the whole bench over? Every compound on the shelf and every lit tile will be cleared.", "Clear the bench", function () { cardSymbol = null; eqSig = ""; listSig = { orders: "", shelf: "", table: "", choice: "" }; send({ action: "reset" }); });
     });
     // The save widget loads a save straight into the engine; this redraws afterwards.
-    window.reactionBenchRefresh = function () { if (engine) { eqSig = ""; listSig = { orders: "", shelf: "", table: "", choice: "" }; cardSymbol = null; send({ action: "open" }); } };
+    window.reactionBenchRefresh = function () { if (engine) { knownEarned = null; eqSig = ""; listSig = { orders: "", shelf: "", table: "", choice: "" }; cardSymbol = null; send({ action: "open" }); } };
     document.addEventListener("keydown", onKey);
   }
 
@@ -865,7 +906,7 @@
     send({ action: "open" });
     sendDifficulty();
     await changelog;
-    if (window.GameTutorial) window.GameTutorial.init(TUTORIAL_STEPS, { gameId: "reaction-bench" });
+    if (window.GameTutorial) window.GameTutorial.init(window.reactionBenchTutorialSteps ? window.reactionBenchTutorialSteps(TUTORIAL_STEPS) : TUTORIAL_STEPS, { gameId: "reaction-bench" });
   }
 
   wire();

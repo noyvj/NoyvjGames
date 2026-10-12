@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script src="../../shared/layout-pref.js" data-game-id="reaction-bench" data-pc-page="pc.html" data-classic-page="index.html"></script>
 <title>Reaction Bench - NoyvjGames</title>
 <meta name="description" content="A quiet night-shift lab. Turn the dials to balance each chemical equation, put the compound on the shelf and light a new tile on the periodic table. Nothing is timed. Working title.">
 <link rel="icon" type="image/svg+xml" href="icons/favicon-reaction-bench.svg">
@@ -25,6 +26,7 @@
 <link rel="stylesheet" href="../../ad-bar.css">
 <link rel="manifest" href="../../manifest.json">
 <!-- Pyodide is loaded by app.js after first paint, so this shell is readable before the engine is warm. -->
+<script src="../../shared/achievement-share.js" data-game-id="reaction-bench" data-game-name="Reaction Bench"></script>
 <link rel="stylesheet" href="../../shared/a11y.css">
 <link rel="stylesheet" href="../../shared/touch-targets.css">
 <link rel="stylesheet" href="../../shared/lite-mode.css">
@@ -41,6 +43,7 @@
     <button id="orders-toggle-button" type="button" aria-expanded="false" aria-controls="orders-panel" data-testid="reaction-bench-orders-toggle">Orders</button>
     <button id="shelf-toggle-button" type="button" aria-expanded="false" aria-controls="shelf-panel" data-testid="reaction-bench-shelf-toggle">Shelf</button>
     <button id="table-toggle-button" type="button" aria-expanded="false" aria-controls="table-panel" data-testid="reaction-bench-table-toggle"><span class="btn-long">Periodic table</span><span class="btn-short" aria-hidden="true">Table</span></button>
+    <button id="achievements-toggle-button" type="button" aria-expanded="false" aria-controls="achievements-panel" data-testid="reaction-bench-achievements-toggle"><span class="btn-long">Achievements</span><span class="btn-short" aria-hidden="true">Trophies</span></button>
     <button id="changelog-toggle-button" type="button" aria-expanded="false" aria-controls="changelog-panel"><span class="btn-long">What's New</span><span class="btn-short" aria-hidden="true">News</span></button>
     <button id="settings-toggle-button" type="button" aria-expanded="false" aria-controls="settings-panel">Settings</button>
     <button id="info-page-toggle-button" type="button" aria-expanded="false" aria-controls="info-page-panel">About</button>
@@ -78,6 +81,12 @@
     </details>
   </section>
 
+  <section id="achievements-panel" class="panel" hidden aria-labelledby="ach-heading">
+    <h2 id="ach-heading">Achievements</h2>
+    <p id="achievements-count" class="note" data-testid="reaction-bench-achievements-count"></p>
+    <p class="note">Every one can be earned in any order, on any difficulty, with no luck and no deadline, and each shows how close you are.</p>
+    <ul id="achievements-list" class="ach-list"></ul>
+  </section>
   <section id="changelog-panel" class="panel" hidden aria-labelledby="changelog-heading">
     <h2 id="changelog-heading">What's New</h2>
     <div id="changelog-entries"></div>
@@ -154,19 +163,21 @@
     </div>
     <p id="equation-line" class="equation-line" aria-live="off"></p>
 
-    <h3 class="ledger-heading" id="ledger-heading">Atom ledger</h3>
-    <p class="note" id="ledger-note">Right minus left: a plus sign means too many on the right, a minus sign too few.</p>
-    <div class="ledger-wrap">
-      <table id="ledger" class="ledger" aria-labelledby="ledger-heading">
-        <thead><tr><th scope="col">Element</th><th scope="col">Left</th><th scope="col">Right</th><th scope="col">Difference</th></tr></thead>
-        <tbody id="ledger-body"></tbody>
-      </table>
-    </div>
-    <p id="ledger-status" class="ledger-status" role="status"></p>
+    <div id="ledger-block" class="ledger-block">
+      <h3 class="ledger-heading" id="ledger-heading">Atom ledger</h3>
+      <p class="note" id="ledger-note">Right minus left: a plus sign means too many on the right, a minus sign too few.</p>
+      <div class="ledger-wrap">
+        <table id="ledger" class="ledger" aria-labelledby="ledger-heading">
+          <thead><tr><th scope="col">Element</th><th scope="col">Left</th><th scope="col">Right</th><th scope="col">Difference</th></tr></thead>
+          <tbody id="ledger-body"></tbody>
+        </table>
+      </div>
+      <p id="ledger-status" class="ledger-status" role="status"></p>
 
-    <div class="run-row button-row">
-      <button id="run-button" type="button" class="primary" data-testid="reaction-bench-run">Run</button>
-      <button id="reset-dials-button" type="button" data-testid="reaction-bench-reset-dials">Reset dials</button>
+      <div class="run-row button-row">
+        <button id="run-button" type="button" class="primary" data-testid="reaction-bench-run">Run</button>
+        <button id="reset-dials-button" type="button" data-testid="reaction-bench-reset-dials">Reset dials</button>
+      </div>
     </div>
     <div id="hint-box" class="hint-box">
       <button id="hint-button" type="button" data-testid="reaction-bench-hint">Would you like a suggestion?</button>
@@ -208,6 +219,11 @@
 <script src="../../shared/confirm-dialog.js"></script>
 <script src="../../shared/difficulty.js"></script>
 <script src="../../shared/goals-panel.js"></script>
+<script>
+  // pc.js (the Desktop boot only) defines window.REACTION_BENCH_PC_TUTORIAL_STEPS, because the Classic walkthrough points at
+  // buttons the Desktop layout turns into icons and windows. app.js asks this function which steps to run.
+  window.reactionBenchTutorialSteps = function (classicSteps) { return window.REACTION_BENCH_PC_TUTORIAL_STEPS || classicSteps; };
+</script>
 <script src="app.js"></script>
 <script src="../../shared/last-played.js" data-game-id="reaction-bench"></script>
 <script src="../../shared/whats-new-banner.js" data-game-id="reaction-bench"></script>
@@ -218,6 +234,7 @@
       { toggle: "orders-toggle-button", panel: "orders-panel" },
       { toggle: "shelf-toggle-button", panel: "shelf-panel" },
       { toggle: "table-toggle-button", panel: "table-panel" },
+      { toggle: "achievements-toggle-button", panel: "achievements-panel" },
       { toggle: "changelog-toggle-button", panel: "changelog-panel" },
       { toggle: "settings-toggle-button", panel: "settings-panel" },
       { toggle: "info-page-toggle-button", panel: "info-page-panel" },

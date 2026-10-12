@@ -21,7 +21,7 @@ def test_the_opening_screen_is_included_after_the_save_widget_with_the_games_nam
 
 
 def test_the_tutorial_has_a_restart_button_and_every_selector_exists():
-    assert 'id="tutorial-restart-button"' in HTML and "GameTutorial.init(TUTORIAL_STEPS" in APP
+    assert 'id="tutorial-restart-button"' in HTML and "GameTutorial.init(window.reactionBenchTutorialSteps ? window.reactionBenchTutorialSteps(TUTORIAL_STEPS) : TUTORIAL_STEPS" in APP
     steps = APP.split("var TUTORIAL_STEPS = [")[1].split("];")[0]
     selectors = re.findall(r'selector: "#([\w-]+)"', steps)
     assert len(selectors) >= 6 and len(re.findall(r"title: ", steps)) >= 8

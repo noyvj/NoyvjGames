@@ -21,7 +21,7 @@ def test_only_changed_keys_are_written_and_the_state_is_json_safe():
     call(action="pick", reaction="water")
     call(action="dial", index=0, value=3)
     state = game.get_state()
-    assert set(state) == {"schema", "cur", "shelf", "dials", "tally"}
+    assert set(state) == {"schema", "cur", "shelf", "dials", "tally", "achievements_earned"}
     assert state["shelf"] == {"carbon-dioxide": 1} and state["dials"] == {"water": [3, 1, 1]} and state["cur"] == "water"
     assert state["tally"] == {"turns": 1, "runs": 1}                       # carbon dioxide needs no turn; the water dial was turned once
     assert json.loads(json.dumps(state)) == state
@@ -87,7 +87,7 @@ def test_a_hand_edited_save_cannot_skip_a_closed_chapter():
     game.load_state(data)
     v = call(action="open")
     assert v["totals"]["shelved"] == 1 and v["reaction"]["id"] == "carbon-dioxide"        # only water counts
-    assert game.get_state() == {"schema": 1, "shelf": {"water": 2}}
+    assert game.get_state() == {"schema": 1, "shelf": {"water": 2}, "achievements_earned": ["first_balance"]}
 
 
 def test_a_shelved_round_is_always_loaded_as_picked_and_a_save_with_a_gap_is_judged_in_order():

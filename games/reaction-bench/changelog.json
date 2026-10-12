@@ -2,6 +2,10 @@
   "changelog": [
     {
       "date": "2026-10-12",
+      "entry": "Fourteen achievements and a Desktop layout. The achievements are all earned by plain play, in any order and on any difficulty: First Balance, Ten on the Shelf, Twenty Shelved, Every Flask, a trophy for the Burning, Acid and Works chapters, Salt of the Earth for every order that makes a salt, Quarter, Half and Full Table for the tiles you light (4, 8 and all 15), Oxygen Everywhere, Straight Through for orders shelved without a suggestion, and Right Product for rounds where you chose the right list first time. Each shows how close you are, and a note appears when one is earned. On a wide screen with a mouse the Desktop layout fills the window: the bench in the middle, the atom ledger and Run in a column beside it, your goals, Prev and Next, the suggestion box and the difficulty choice in the next column, and the order board, shelf, periodic table, achievements and settings as windows. It shares its save with the Classic layout."
+    },
+    {
+      "date": "2026-10-12",
       "entry": "The bench is a complete game. Two more chapters make 40 orders: Acids, Bases and Swaps (neutralisation, milk of magnesia, fizz, a metal in acid, copper beating silver and more) and Works, four routes of two steps each where what step one makes is carried into step two (sulfuric acid, fertiliser, iron, sugar to fuel). A suggestion button gives a nudge, then a hint, then the answer, only when you press, with Easy, Normal and Hard for how it opens. Three goals sit under the stats. Element cards now read PubChem live and name the day, with a bundled copy if you are offline. There is an opening screen with Continue, New Game and Saves, a short tutorial, and the equation row no longer ends a line with a plus sign or an arrow on a narrow screen."
     },
     {

@@ -17,10 +17,14 @@ Actions (every request is {"action": ..., ...}; every reply is the whole view):
   reset                   start over (everything)
 
 The ledger's difference is right minus left, so +2 means two too many on the right and -1 means one too few.
+
+The view also carries `achievements` (id, label, description, earned, have, need for each of the 14; see achievements.py); the save
+writes `achievements_earned` as a projection that load never reads back.
 """
 
 import json
 
+import achievements
 import chem
 import elements
 import goals
@@ -118,7 +122,14 @@ class Game:
         tally = {k: v for k, v in self.tally.items() if v}
         if tally:
             data["tally"] = tally
+        earned = achievements.earned(self.facts())
+        if earned:
+            data["achievements_earned"] = earned           # written for the hub's dashboard, never read back
         return data
+
+    def facts(self):
+        """What the achievements are computed from: the shelf, the elements lit, the suggestion record and the rounds chosen right first."""
+        return achievements.facts_of(self.shelf, len(self.elements_found()), self.hinted, self.first)
 
     def load(self, data):
         """Take a saved dict, checking every field on its own; a bad field falls back to its default. A shelved order only
@@ -275,6 +286,7 @@ class Game:
                        "hints": self.tally["hints"]},
             "hint": self._hint_view(), "hint_ui": self._hint_ui(), "difficulty": difficulty,
             "goals": goals.queue(self.shelf, len(self.elements_found()), self.tally["turns"]),
+            "achievements": achievements.view(self.facts()),
             "info": info.view(),
         }
         return view

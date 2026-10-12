@@ -1,0 +1,61 @@
+/* Reaction Bench, Desktop boot only (loaded by pc.html). Everything is scoped to the pc layout, so the Classic page is untouched.
+   The order (its title, the product choice when there is one, the bench of flasks and dials, the words line and the shelved card) is
+   the stage and the bench fills what is left; the side area has two columns: the atom ledger with Run on the left, and the goals, the
+   Prev/Next buttons, the suggestion box and the difficulty choice on the right. The stats strip sits in the top bar. The frame,
+   windows and Menu come from shared/pc-shell.css. */
+
+html[data-layout="pc"] #game { padding-bottom: 0.4rem; max-width: none; }
+#pc-topbar { grid-template-columns: auto minmax(0, 1fr) auto; grid-template-areas: "title stats tools"; padding-right: 9rem; }
+#pc-topbar > .game-toolbar { grid-area: tools; justify-content: flex-end; }
+#pc-topbar > h1 { font-size: 1.4rem; letter-spacing: 0.12em; }
+#pc-topbar > #stats { grid-area: stats; margin: 0; grid-template-columns: repeat(5, minmax(5.2rem, 8.5rem)); justify-content: center; align-self: center; }
+html[data-layout="pc"] .stat { display: flex; flex-direction: column; }
+#pc-stagebar:empty { display: none; }
+
+/* The stage: the order's heading lines, then the bench taking all the remaining height. */
+#pc-stage > #bench-panel { flex: 1 1 0; min-height: 0; margin: 0; overflow-y: auto; display: flex; flex-direction: column; }
+#pc-stage #bench-panel > * { flex: 0 0 auto; }
+#pc-stage #bench-panel > .bench { flex: 1 1 auto; margin: 0.4rem 0; display: flex; }
+#pc-stage #bench-panel > .bench .equation { width: 100%; margin: auto; }          /* auto margins centre it, and let it start at the top when it is taller than the bench */
+html[data-layout="pc"] #bench-heading { margin-bottom: 0.1rem; }
+html[data-layout="pc"] .species { width: 8.2rem; }
+html[data-layout="pc"] .species .flask { width: 5.2rem; height: 5.9rem; }
+html[data-layout="pc"] .op { margin-top: 4.1rem; }
+#pc-stage .equation-line { margin: 0.2rem 0; }
+#pc-stage .choice-box { margin: 0.3rem 0; }
+
+/* The side area: ledger and Run in one column, the tools in the other. */
+#pc-body { grid-template-rows: minmax(0, 1fr); }
+#pc-body.pc-has-side { grid-template-columns: minmax(0, 1fr) clamp(30rem, 47vw, 46rem); }
+#pc-side {
+  min-width: 0; min-height: 0; overflow-y: auto; padding-right: 0.2rem;
+  display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr); grid-template-rows: repeat(4, auto) minmax(0, 1fr);
+  column-gap: 0.6rem; row-gap: 0.5rem; align-content: start;
+}
+#pc-side > * { margin: 0; align-self: start; min-width: 0; }
+#pc-side > #ledger-block { grid-column: 1; grid-row: 1 / -1; }
+#pc-side > #goals { grid-column: 2; grid-row: 1; }
+#pc-side > .order-nav { grid-column: 2; grid-row: 2; display: flex; gap: 0.4rem; }
+#pc-side > .order-nav button { flex: 1 1 0; }
+#pc-side > #hint-box { grid-column: 2; grid-row: 3; }
+#pc-side > #difficulty-panel { grid-column: 2; grid-row: 4; padding: 0.4rem 0.6rem; }
+#pc-side .ledger-heading { margin-top: 0; }
+#pc-side .ledger .el { white-space: normal; }
+#pc-side .ledger .diff { white-space: normal; }
+#pc-side .ledger .diff .word { display: block; font-size: 0.82rem; }
+#pc-side .hint-item { flex-direction: column; gap: 0.1rem; }
+#pc-side .hint-label { flex-basis: auto; }
+#pc-side .run-row { margin-top: 0.3rem; }
+#pc-side .run-row button { flex: 1 1 auto; }
+@media (max-width: 1250px) {
+  #pc-topbar { padding-right: 8rem; }
+  #pc-topbar > h1 { font-size: 1.1rem; letter-spacing: 0.06em; }
+  #pc-topbar > #stats { grid-template-columns: repeat(5, minmax(3.4rem, 6rem)); }
+  html[data-layout="pc"] .stat-label { font-size: 0.56rem; }
+}
+@media (max-width: 1100px) {
+  #pc-body.pc-has-side { grid-template-columns: minmax(0, 1fr) clamp(18rem, 36vw, 26rem); }
+  #pc-side { grid-template-columns: minmax(0, 1fr); grid-template-rows: none; display: flex; flex-direction: column; }
+  #pc-side > * { flex: 0 0 auto; }
+}
+

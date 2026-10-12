@@ -1,0 +1,46 @@
+{
+  "windows": [
+    ["orders-panel", "orders-toggle-button", "The order board"],
+    ["shelf-panel", "shelf-toggle-button", "The shelf"],
+    ["table-panel", "table-toggle-button", "The periodic table"],
+    ["achievements-panel", "achievements-toggle-button", "Achievements"],
+    ["changelog-panel", "changelog-toggle-button", "What's New"],
+    ["settings-panel", "settings-toggle-button", "Settings"],
+    ["info-page-panel", "info-page-toggle-button", "About Reaction Bench"]
+  ],
+  "toolbar": {
+    "icons": [
+      ["orders-toggle-button", "📋"],
+      ["shelf-toggle-button", "🧪"],
+      ["table-toggle-button", "⚛️"],
+      ["achievements-toggle-button", "🏆"],
+      ["settings-toggle-button", "⚙️"]
+    ],
+    "menu": [
+      {"heading": "Help", "ids": ["tutorial-restart-button", "info-page-toggle-button", "credits-link"]},
+      {"heading": "Records", "ids": ["changelog-toggle-button"]}
+    ]
+  },
+  "composites": [],
+  "adopt": [],
+  "zones": {
+    "topbar": [".hub-back-link", "h1", "#stats", ".game-toolbar"],
+    "stagebar": [],
+    "stage": ["#bench-panel"],
+    "side": ["#goals", ".order-nav", "#ledger-block", "#hint-box", "#difficulty-panel"],
+    "hidden": [".tagline", ".keys-note"]
+  },
+  "readouts": [],
+  "side_label": "Atom ledger, suggestions and goals",
+  "hints": [
+    ["Tab / digits", "Move between dials / set one"],
+    ["R", "Run the order"],
+    ["N", "Next order"],
+    ["H", "Ask for a suggestion"],
+    ["[ ]", "Previous / next order"],
+    ["1-4", "Choose a product list"],
+    ["Esc", "Menu / close window"],
+    ["?", "All shortcuts"]
+  ],
+  "notify": null
+}

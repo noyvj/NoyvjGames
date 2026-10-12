@@ -55,6 +55,11 @@ button[disabled], button[aria-disabled="true"] { opacity: 0.55; cursor: default;
 .toast { min-height: 1.3rem; font-weight: 600; }
 .toast:empty { min-height: 0; margin: 0; }
 .toast.on { background: var(--surface); border: 1px solid var(--edge); border-radius: 8px; padding: 0.25rem 0.6rem; }
+.ach-list { list-style: none; margin: 0.4rem 0; padding: 0; display: grid; gap: 0.35rem; }
+.ach-list li { border: 1px solid var(--line); border-radius: 10px; padding: 0.35rem 0.6rem; background: var(--surface); }
+.ach-list li.earned { border-color: var(--ok); border-width: 2px; }
+.ach-list .tick { display: inline-block; min-width: 4.6rem; text-align: center; font-weight: 700; font-size: 0.78rem; border: 1px solid var(--edge); border-radius: 999px; padding: 0 0.4rem; font-variant-numeric: tabular-nums; }
+.ach-list li.earned .tick { border-style: double; border-width: 3px; }
 .settings-row { display: flex; gap: 0.6rem; align-items: center; flex-wrap: wrap; margin: 0.5rem 0; }
 .settings-row input[type="checkbox"] { width: 1.25rem; height: 1.25rem; accent-color: var(--btn-primary); vertical-align: middle; flex: 0 0 auto; }
 .settings-row label { display: flex; gap: 0.5rem; align-items: flex-start; }

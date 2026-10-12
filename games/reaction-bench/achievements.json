@@ -1,0 +1,74 @@
+{
+  "achievements": [
+    {
+      "id": "first_balance",
+      "label": "First Balance",
+      "description": "Put your first compound on the shelf."
+    },
+    {
+      "id": "ten_on_the_shelf",
+      "label": "Ten on the Shelf",
+      "description": "Shelve 10 compounds."
+    },
+    {
+      "id": "twenty_shelved",
+      "label": "Twenty Shelved",
+      "description": "Shelve 20 compounds."
+    },
+    {
+      "id": "every_flask",
+      "label": "Every Flask",
+      "description": "Shelve all 40 compounds."
+    },
+    {
+      "id": "fire_starter",
+      "label": "Fire Starter",
+      "description": "Shelve every order in Burning."
+    },
+    {
+      "id": "salt_of_the_earth",
+      "label": "Salt of the Earth",
+      "description": "Shelve every order that makes a salt."
+    },
+    {
+      "id": "acid_test",
+      "label": "Acid Test",
+      "description": "Shelve every order in Acids, Bases and Swaps."
+    },
+    {
+      "id": "the_works",
+      "label": "The Works",
+      "description": "Shelve every order in Works."
+    },
+    {
+      "id": "quarter_table",
+      "label": "Quarter Table",
+      "description": "Light 4 tiles of the periodic table."
+    },
+    {
+      "id": "half_table",
+      "label": "Half Table",
+      "description": "Light 8 tiles of the periodic table."
+    },
+    {
+      "id": "full_table",
+      "label": "Full Table",
+      "description": "Light every tile on the bench (15)."
+    },
+    {
+      "id": "oxygen_everywhere",
+      "label": "Oxygen Everywhere",
+      "description": "Shelve 15 orders that use oxygen."
+    },
+    {
+      "id": "straight_through",
+      "label": "Straight Through",
+      "description": "Shelve 10 orders without asking for a suggestion."
+    },
+    {
+      "id": "right_product",
+      "label": "Right Product",
+      "description": "Choose the right list first time in 10 product rounds."
+    }
+  ]
+}
