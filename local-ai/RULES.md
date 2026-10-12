@@ -55,6 +55,9 @@ left, and stop.
   properties from JavaScript except for positions that change while the player moves the mouse.
 
 ## Tests
+- Paths in the chat are relative to the repo root, not the game folder. A new test file is
+  games/<game>/tests/test_<name>.py (never tests/... at the top). Do not add sys.path code to a
+  test: the game's tests/conftest.py already makes its modules importable, and that code breaks flake8.
 - Add or update pytest tests in this game's tests/ folder for any Python change. A task that changes
   the game's Python but adds or changes no test is failed automatically.
 - Test what the feature promises, including a save and reload round trip if it stores anything.

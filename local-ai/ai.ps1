@@ -136,7 +136,7 @@ $($itemText -join "`n")
 ## What to do now
 $Task
 
-Do only this. Change only files in games/$Game. Follow RULES.md. If you need a file that is not in the chat yet, name it: it will be added and you will be asked again, so then make the edits straight away.
+Do only this. Change only files in games/$Game. Follow RULES.md. Write every path from the repo root: game files as games/$Game/<file> and new tests as games/$Game/tests/test_<name>.py. Do not add sys.path code to tests: the game's tests/conftest.py already makes its modules importable. If you need a file that is not in the chat yet, name it: it will be added and you will be asked again, so then make the edits straight away.
 "@ | Set-Content -Encoding utf8 $taskFile
 
 # --- Run Aider with no chatting -----------------------------------------
@@ -236,6 +236,15 @@ $tail
 Remove-Item $taskFile -ErrorAction SilentlyContinue
 
 # --- Check the result ----------------------------------------------------
+# Aider writes chat paths relative to the repo root, so the model sometimes puts a NEW test file in the
+# top-level tests/ folder (tests/test_goals.py, tests/lexis/test_x.py) instead of games/<game>/tests/.
+# A brand-new one is moved where it belongs; anything else outside the game still fails below.
+$gameTests = Join-Path $gameDir "tests"
+foreach ($stray in @(git -C $work status --porcelain --untracked-files=all | Where-Object { $_.StartsWith("??") } |
+        ForEach-Object { $_.Substring(3).Trim('"') } | Where-Object { $_ -match '^tests/(.+/)?[^/]+\.py$' })) {
+    $target = Join-Path $gameTests (Split-Path $stray -Leaf)
+    if (-not (Test-Path $target)) { Move-Item (Join-Path $work $stray) $target; Write-Host "Moved stray test file $stray into games/$Game/tests/" }
+}
 $changed = @(git -C $work status --porcelain --untracked-files=all | ForEach-Object { $_.Substring(3).Trim('"') } |
     Where-Object { $_ -notlike ".aider*" })
 $outside = @($changed | Where-Object { $_ -notlike "games/$Game/*" })
@@ -257,7 +266,7 @@ $untracked = @(git -C $work status --porcelain --untracked-files=all | Where-Obj
 $newTestFiles = @($untracked | Where-Object { $_ -match "^games/$([regex]::Escape($Game))/tests/[^/]+\.py$" })
 if ($newTestFiles.Count -gt 0) {
     $newPaths = @($newTestFiles | ForEach-Object { Join-Path $work $_ })
-    python -m autoflake --in-place --remove-all-unused-imports --remove-unused-variables @newPaths 2>$null | Out-Null
+    python (Join-Path $aiDir "tidy_new_tests.py") @newPaths 2>$null | Out-Null   # one import per line, unused ones gone, late imports marked noqa E402
 }
 
 Push-Location $gameDir
