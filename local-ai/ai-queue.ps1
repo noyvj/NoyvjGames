@@ -7,6 +7,7 @@
 #   game | ITEM-ID | files (comma separated, or blank) | what to do
 #   lighthouse | QI-52 | index.html | Add <script src="../../shared/night-mode.js"></script> right after the site-settings.js line.
 # Finished lines move to queue-done.txt with PASSED or FAILED in front.
+# When queue.txt runs out, everything in queue-next.txt (same format) is moved into it and the run carries on.
 #
 # Built to run unattended for days:
 #   - waits (up to 6 hours) for Ollama instead of failing every task while it is down
@@ -80,7 +81,21 @@ while ($true) {
     for ($i = 0; $i -lt $lines.Count; $i++) {
         if ($lines[$i].Trim() -and -not $lines[$i].Trim().StartsWith("#")) { $index = $i; break }
     }
-    if ($index -lt 0) { break }
+    if ($index -lt 0) {
+        # queue.txt is empty: carry on with the second list, if it has anything in it
+        $nextFile = Join-Path $aiDir "queue-next.txt"
+        $nextTasks = @()
+        if (Test-Path $nextFile) {
+            $nextTasks = @(Get-Content $nextFile -Encoding utf8 | Where-Object { $_.Trim() })
+        }
+        if (@($nextTasks | Where-Object { -not $_.Trim().StartsWith("#") }).Count -eq 0) { break }
+        Set-Content -Encoding utf8 $queue (@($lines[0], "# Moved in from queue-next.txt on $(Get-Date -Format 'yyyy-MM-dd HH:mm')") + $nextTasks)
+        Set-Content -Encoding utf8 $nextFile "# Second list: used when queue.txt runs out (same format as queue.txt)"
+        Add-Content -Encoding utf8 $done "SWITCHED  $(Get-Date -Format 'yyyy-MM-dd HH:mm')  queue.txt was empty: moved $($nextTasks.Count) lines in from queue-next.txt"
+        Write-Host ""
+        Write-Host "queue.txt is done: carrying on with queue-next.txt ($($nextTasks.Count) lines)." -ForegroundColor Cyan
+        continue
+    }
     if (-not (Wait-ForOllama)) { Write-Host "Ollama never came back. Stopping; the remaining tasks are still in queue.txt." -ForegroundColor Red; break }
 
     $line = $lines[$index]
