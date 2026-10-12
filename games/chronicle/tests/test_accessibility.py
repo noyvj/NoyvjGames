@@ -82,7 +82,7 @@ def test_a_picked_up_card_is_marked_by_a_triangle_and_a_thicker_border_as_well_a
 
 def test_confidence_levels_have_symbol_label_and_border_style():
     assert re.search(r"\.conf\.disputed\s*\{[^}]*dashed", CSS) and re.search(r"\.conf\.traditional-but-doubtful\s*\{[^}]*dotted", CSS)
-    py = (GAME_DIR / "game.py").read_text(encoding="utf-8")
+    py = "".join((GAME_DIR / n).read_text(encoding="utf-8") for n in ("game.py", "core.py", "views.py", "actions.py"))
     assert '"Documented", "✔"' in py and '"Disputed", "≈"' in py and '"Traditional but doubtful", "?"' in py
 
 

@@ -223,7 +223,7 @@ def test_report_rejects_bad_input(p):
 def test_the_engine_module_never_imports_a_network_library():
     from pathlib import Path
     root = Path(__file__).resolve().parent.parent
-    for name in ("game.py", "setdata.py", "puzzle.py", "report.py", "achievements.py"):
+    for name in ("game.py", "core.py", "views.py", "actions.py", "setdata.py", "puzzle.py", "report.py", "achievements.py"):
         src = (root / name).read_text(encoding="utf-8")
         for banned in ("urllib.request", "requests", "http.client", "socket", "fetch(", "XMLHttpRequest"):
             assert banned not in src, (name, banned)
