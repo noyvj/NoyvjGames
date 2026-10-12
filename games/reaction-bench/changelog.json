@@ -2,6 +2,10 @@
   "changelog": [
     {
       "date": "2026-10-12",
+      "entry": "The bench is a complete game. Two more chapters make 40 orders: Acids, Bases and Swaps (neutralisation, milk of magnesia, fizz, a metal in acid, copper beating silver and more) and Works, four routes of two steps each where what step one makes is carried into step two (sulfuric acid, fertiliser, iron, sugar to fuel). A suggestion button gives a nudge, then a hint, then the answer, only when you press, with Easy, Normal and Hard for how it opens. Three goals sit under the stats. Element cards now read PubChem live and name the day, with a bundled copy if you are offline. There is an opening screen with Continue, New Game and Saves, a short tutorial, and the equation row no longer ends a line with a plus sign or an arrow on a narrow screen."
+    },
+    {
+      "date": "2026-10-12",
       "entry": "Two more chapters and the periodic table. Burning (methane, propane, ethanol, pentane, ethyne, sulfur, sugar and ammonia) and Oxides and Salts (limestone, slaked lime, limewater, baking soda, peroxide, antacid, rust and fertiliser) add 16 orders, 24 in all. From chapter 2 you choose what comes out from four lists before the dials open: only one can be balanced, and a wrong choice just says why. Chapter 3 draws bracket groups such as (OH). Each new element you use lights a tile on the periodic table, and its card says what it is for. Five shelved orders open the next chapter."
     },
     {

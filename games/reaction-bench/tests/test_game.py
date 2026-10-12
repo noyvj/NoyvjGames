@@ -12,10 +12,10 @@ from .helpers import call, open_chapter, solve
 def test_a_fresh_view_is_the_first_order_with_a_live_ledger():
     v = call(action="open")
     rx = v["reaction"]
-    assert rx["id"] == "carbon-dioxide" and rx["number"] == 1 and rx["of"] == 24 and rx["status"] == "open" and not rx["round"]
+    assert rx["id"] == "carbon-dioxide" and rx["number"] == 1 and rx["of"] == 40 and rx["status"] == "open" and not rx["round"]
     assert [s["formula"] for s in rx["species"]] == ["C", "O2", "CO2"] and [s["coef"] for s in rx["species"]] == [1, 1, 1]
     assert rx["balanced"] and rx["can_run"] and rx["equation"] == "1 C + 1 O2 gives 1 CO2"
-    assert v["totals"]["shelved"] == 0 and v["totals"]["orders"] == 24 and v["totals"]["elements"] == 0
+    assert v["totals"]["shelved"] == 0 and v["totals"]["orders"] == 40 and v["totals"]["elements"] == 0
 
 
 def test_the_view_never_contains_an_unshelved_orders_answer_or_fact():
@@ -25,7 +25,7 @@ def test_the_view_never_contains_an_unshelved_orders_answer_or_fact():
     assert r.blurb not in text and "blurb" not in call(action="open")["reaction"]
     rx = call(action="open")["reaction"]
     assert '"answer":' not in text and "answer" not in rx and "right" not in rx and "choices" in rx and rx["choices"] is None
-    for locked in reactions.CHAPTERS[1]["reactions"] + reactions.CHAPTERS[2]["reactions"]:
+    for locked in [x for c in reactions.CHAPTERS[1:] for x in c["reactions"]]:
         assert locked.title not in text and locked.fennel not in text and locked.blurb not in text
 
 
@@ -140,8 +140,8 @@ def test_a_dark_tile_gives_nothing_away_and_a_lit_one_has_a_card():
 def test_the_table_has_a_cell_for_every_element_and_names_only_lit_or_off_ones():
     v = call(action="open")
     cells = v["table"]["cells"]
-    assert len(cells) == 118 and v["table"]["all"] == 118 and v["table"]["bench"] == 11
-    assert sum(c["state"] == "bench" for c in cells) == 11 and sum(c["state"] == "off" for c in cells) == 107
+    assert len(cells) == 118 and v["table"]["all"] == 118 and v["table"]["bench"] == 15
+    assert sum(c["state"] == "bench" for c in cells) == 15 and sum(c["state"] == "off" for c in cells) == 103
     assert len({(c["row"], c["col"]) for c in cells}) == 118
 
 
@@ -216,7 +216,7 @@ def test_every_order_in_every_chapter_can_be_balanced_and_shelved():
                 open_chapter(r.chapter)
             assert solve(r.id)["ok"], r.id
     v = call(action="open")
-    assert v["totals"]["shelved"] == 24 and v["totals"]["elements"] == 11 == v["totals"]["bench"] and v["totals"]["chapters_done"] == 3
+    assert v["totals"]["shelved"] == 40 and v["totals"]["elements"] == 15 == v["totals"]["bench"] and v["totals"]["chapters_done"] == 5
     assert sorted(v["table"]["cards"]) == sorted(reactions.BENCH_ELEMENTS)
 
 

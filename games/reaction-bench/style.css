@@ -62,7 +62,7 @@ button[disabled], button[aria-disabled="true"] { opacity: 0.55; cursor: default;
 .btn-short { display: none; }
 @media (max-width: 420px) { .btn-long { display: none; } .btn-short { display: inline; } }
 
-.stat-strip { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0.35rem; margin: 0.5rem 0; }
+.stat-strip { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 0.35rem; margin: 0.5rem 0; }
 .stat { background: var(--panel-fill); border: 1px solid var(--line); border-radius: 10px; padding: 0.25rem 0.3rem; text-align: center; min-width: 0; }
 .stat-label { display: block; font-size: 0.62rem; color: var(--muted); letter-spacing: 0.03em; line-height: 1.15; overflow-wrap: anywhere; }
 .stat-value { display: block; font-size: 1.05rem; font-weight: 700; font-variant-numeric: tabular-nums; }
@@ -87,7 +87,8 @@ html[data-reduced-motion="true"] .stat-value.bump, html[data-effects="off"] .sta
 .formula .grp { display: inline-block; border: 2px solid var(--accent); border-top-width: 0; border-radius: 0 0 6px 6px; padding: 0 0.1em; margin: 0 0.05em; position: relative; }
 .formula .grp::before { content: ""; position: absolute; left: -2px; right: -2px; top: 0; height: 0; }
 .formula .br { color: var(--accent); font-weight: 400; }
-.op { align-self: center; font-size: 1.6rem; color: var(--muted); padding: 0 0.1rem; margin-top: 1.4rem; min-width: 1.2rem; text-align: center; }
+.term { display: flex; align-items: flex-start; }          /* a sign and the formula after it wrap together, so a row never ends with + or an arrow */
+.op { align-self: flex-start; font-size: 1.6rem; color: var(--muted); padding: 0 0.1rem; margin-top: 3.7rem; min-width: 1.2rem; text-align: center; }
 .unknown-box { border: 3px dashed var(--edge); border-radius: 10px; padding: 0.6rem 0.8rem; align-self: center; margin-top: 1rem; text-align: center; max-width: 11rem; }
 .unknown-box strong { display: block; font-size: 1.6rem; }
 .dial { display: inline-flex; align-items: center; gap: 0.15rem; }
@@ -130,6 +131,7 @@ html[data-reduced-motion="true"] .stat-value.bump, html[data-effects="off"] .sta
   .ledger th, .ledger td { padding: 0.25rem 0.2rem; }
   .ledger .diff .word { display: block; white-space: normal; font-size: 0.78rem; }
 }
+@media (max-width: 360px) { .ledger th { font-size: 0.62rem; letter-spacing: 0; } .ledger th, .ledger td { padding: 0.25rem 0.15rem; } }
 
 /* Product choice. */
 .choice-box { border: 2px dashed var(--edge); border-radius: 12px; padding: 0.4rem 0.7rem; margin: 0.6rem 0; }
@@ -195,7 +197,8 @@ html[data-reduced-motion="true"] .bench.shelf-glow, html[data-effects="off"] .be
   .species { width: 6.6rem; }
   .species .flask { width: 3.6rem; height: 4.1rem; }
   .keys-note { display: none; }
-  .op { margin-top: 1rem; }
+  .op { margin-top: 3rem; min-width: 0.9rem; padding: 0; }
+  .stat-strip { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
 
 /* Standard-kit panels: What's New and About. */
@@ -213,3 +216,24 @@ html[data-reduced-motion="true"] .bench.shelf-glow, html[data-effects="off"] .be
 .info-page-source-note, .info-page-tie-in { color: var(--muted); font-size: 0.85rem; margin: 0.2rem 0; }
 .info-live { border: 1px dashed var(--edge); border-radius: 8px; padding: 0.4rem 0.7rem; }
 .info-live-text { margin: 0.2rem 0; }
+
+/* Milestone 4-5: routes, the suggestion ladder, goals, the tutorial and difficulty slots. */
+.route-line { margin: 0.2rem 0 0.4rem; padding: 0.3rem 0.6rem; border: 2px dashed var(--accent); border-radius: 8px; font-weight: 600; font-size: 0.9rem; }
+.order-btn.route-locked { border-style: dashed; opacity: 0.8; }
+.route-tag { display: block; color: var(--muted); font-size: 0.72rem; font-weight: 400; }
+.dial-val.hinted { border-style: dashed; border-width: 3px; border-color: var(--focus); }
+.hint-box { margin: 0.5rem 0; }
+.hint-list { list-style: none; margin: 0.4rem 0; padding: 0; display: grid; gap: 0.35rem; }
+.hint-item { display: flex; gap: 0.6rem; align-items: baseline; padding: 0.35rem 0.6rem; background: var(--surface); border-radius: 8px; border-left-width: 6px; border-left-style: solid; border-left-color: var(--edge); }
+.hint-label { font-weight: 800; flex: 0 0 4.6rem; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.06em; }
+.hint-label::before { margin-right: 0.3rem; }
+.hint-rung-1 { border-left-style: dotted; }
+.hint-rung-1 .hint-label::before { content: "\2022"; }
+.hint-rung-2 { border-left-style: dashed; }
+.hint-rung-2 .hint-label::before { content: "\25B8"; }
+.hint-rung-3 { border-left-style: solid; }
+.hint-rung-3 .hint-label::before { content: "\25A0"; }
+.hint-item:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+.goals-slot:empty { display: none; }
+.goals-slot { margin: 0.5rem 0; }
+@media (max-width: 380px) { .hint-item { flex-direction: column; gap: 0.1rem; } .hint-label { flex-basis: auto; } }

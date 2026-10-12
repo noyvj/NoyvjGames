@@ -229,7 +229,9 @@ def why_not(reactants, products):
     if extra:
         return "%s would have to appear from nowhere: there is none on the left." % _join([elements.name_of(s) for s in extra]).capitalize()
     if missing:
-        return "%s goes in on the left but has nowhere to go on the right." % _join([elements.name_of(s) for s in missing]).capitalize()
+        many = len(missing) > 1
+        return "%s %s in on the left but %s nowhere to go on the right." % (
+            _join([elements.name_of(s) for s in missing]).capitalize(), "go" if many else "goes", "have" if many else "has")
     return "Every element is on both sides, but no whole-number settings make them all come out equal."
 
 

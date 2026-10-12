@@ -12,6 +12,8 @@ Actions (every request is {"action": ..., ...}; every reply is the whole view):
   reset_dials             put every dial of this order back to 1
   choose {option}         in a product-choice round: choose one of the candidate lists for what comes out
   run                     press Run: only when the product is chosen and the ledger reads equal; puts the compound on the shelf
+  hint {confirm}          press the hint ladder once (only ever on a press): 1 nudge, 2 hint, 3 answer (see hints.py)
+  difficulty {level}      easy | normal | hard (told by the page, never saved; only changes how the hint ladder opens)
   reset                   start over (everything)
 
 The ledger's difference is right minus left, so +2 means two too many on the right and -1 means one too few.
@@ -21,12 +23,16 @@ import json
 
 import chem
 import elements
+import goals
+import hints
 import info
 import reactions
 
 MAX_COUNT = 10 ** 9
 SCHEMA = 1                          # the save layout version; a save from a newer layout is not read
-TALLY_KEYS = ("turns", "runs", "tries")
+TALLY_KEYS = ("turns", "runs", "tries", "hints")
+LEVELS = ("easy", "normal", "hard")
+difficulty = "normal"            # told by the page ({"action": "difficulty"}), a per-browser choice that is never saved; reset and load leave it alone
 FIRST = reactions.ORDER[0]
 
 
@@ -53,6 +59,8 @@ class Game:
         self.picked = set()              # product-choice rounds whose products have been chosen
         self.tried = {}                  # reaction id -> candidate lists already tried and wrong
         self.first = set()               # rounds chosen right on the first try
+        self.hint = None                 # the ladder in progress on this order (not saved; any change to the order clears it)
+        self.hinted = {}                 # order id -> highest rung asked while it was not yet shelved (1 nudge, 2 hint, 3 answer)
         self.tally = {key: 0 for key in TALLY_KEYS}
         self.current = FIRST
         self.message = ""
@@ -104,6 +112,9 @@ class Game:
         first = [rid for rid in reactions.ORDER if rid in self.first]
         if first:
             data["first"] = first
+        hinted = {rid: self.hinted[rid] for rid in reactions.ORDER if self.hinted.get(rid)}
+        if hinted:
+            data["hints"] = hinted
         tally = {k: v for k, v in self.tally.items() if v}
         if tally:
             data["tally"] = tally
@@ -116,10 +127,10 @@ class Game:
         schema = data.get("schema", SCHEMA)
         if isinstance(schema, bool) or not isinstance(schema, int) or not 1 <= schema <= SCHEMA:
             data = {}                                            # an unknown layout is never half-read
-        self.shelf, self.dials, self.picked, self.tried, self.first = {}, {}, set(), {}, set()
+        self.shelf, self.dials, self.picked, self.tried, self.first, self.hinted, self.hint = {}, {}, set(), {}, set(), {}, None
         raw_shelf = data.get("shelf") if isinstance(data.get("shelf"), dict) else {}
         for r in reactions.ALL:                                  # chapter order, so each chapter is judged on those before it
-            if r.id in raw_shelf and reactions.chapter_open(self.shelf, r.chapter):
+            if r.id in raw_shelf and reactions.reaction_open(self.shelf, r.id):
                 self.shelf[r.id] = _int(raw_shelf[r.id], 1, MAX_COUNT, 1)
         raw_dials = data.get("dials") if isinstance(data.get("dials"), dict) else {}
         for r in reactions.ALL:
@@ -143,6 +154,9 @@ class Game:
                     self.tried[r.id] = wrong
         raw_first = data.get("first") if isinstance(data.get("first"), list) else []
         self.first = {r.id for r in reactions.ALL if r.is_round and r.id in raw_first and r.id in self.picked}
+        raw_hints = data.get("hints") if isinstance(data.get("hints"), dict) else {}
+        self.hinted = {r.id: raw_hints[r.id] for r in reactions.ALL
+                       if r.id in raw_hints and reactions.reaction_open(self.shelf, r.id) and _int(raw_hints[r.id], 1, 3, 0)}
         tally = data.get("tally") if isinstance(data.get("tally"), dict) else {}
         self.tally = {key: _int(tally.get(key)) for key in TALLY_KEYS}
         cur = data.get("cur")
@@ -159,7 +173,12 @@ class Game:
             if is_open:
                 for r in chapter["reactions"]:
                     item = {"id": r.id, "number": r.number, "title": r.title, "shelved": r.id in self.shelf, "current": r.id == self.current,
-                            "runs": self.shelf.get(r.id, 0), "round": r.is_round}
+                            "runs": self.shelf.get(r.id, 0), "round": r.is_round, "locked": reactions.route_locked(self.shelf, r.id)}
+                    if r.route:
+                        item["route"] = reactions.ROUTES[r.route]["name"]
+                        item["step"] = r.step
+                        if item["locked"]:
+                            item["needs"] = reactions.BY_ID[r.after].title
                     if r.id in self.shelf:
                         item["makes"] = " + ".join(reactions.name_of(f) for f in r.products)
                         item["formula"] = " + ".join(r.products)
@@ -209,10 +228,18 @@ class Game:
         rows = chem.ledger(reactants, products, coefs) if products else []
         balanced = bool(products) and chem.is_balanced(rows)
         species = []
+        route = self._route_view(r)
+        carried = route["carried"] if route else ""
         for i, f in enumerate(reactants):
-            species.append(dict(_species(f), role="reactant", index=i, coef=coefs[i]))
+            sp = dict(_species(f), role="reactant", index=i, coef=coefs[i])
+            if route and r.step == 2 and f == carried:
+                sp["carried"] = True                       # made by the step-one order and carried over
+            species.append(sp)
         for i, f in enumerate(products):
-            species.append(dict(_species(f), role="product", index=len(reactants) + i, coef=coefs[len(reactants) + i]))
+            sp = dict(_species(f), role="product", index=len(reactants) + i, coef=coefs[len(reactants) + i])
+            if route and r.step == 1 and f == carried:
+                sp["carried"] = True                       # goes on into the step-two order
+            species.append(sp)
         ledger_rows = []
         for row in rows:
             name = elements.name_of(row["symbol"])
@@ -235,7 +262,7 @@ class Game:
             "species": species, "n_reactants": len(reactants), "choices": choices, "ledger": ledger_rows, "balanced": balanced,
             "lowest": chem.lowest_terms(coefs) if balanced else True, "can_run": balanced, "runs": self.shelf.get(r.id, 0),
             "fennel": r.fennel, "equation": equation_words(reactants, products, coefs) if products else "",
-            "left_text": " + ".join(reactants), "max": chem.MAX_COEF, "min": chem.MIN_COEF,
+            "left_text": " + ".join(reactants), "max": chem.MAX_COEF, "min": chem.MIN_COEF, "route": route,
         }
         if shelved:
             reaction["blurb"] = r.blurb
@@ -244,19 +271,40 @@ class Game:
             "tally": dict(self.tally),
             "totals": {"orders": len(reactions.ALL), "shelved": len(self.shelf), "elements": len(self.elements_found()),
                        "bench": len(reactions.BENCH_ELEMENTS), "chapters": len(reactions.CHAPTERS),
-                       "chapters_done": reactions.chapters_done(self.shelf), "turns": self.tally["turns"], "runs": self.tally["runs"]},
+                       "chapters_done": reactions.chapters_done(self.shelf), "turns": self.tally["turns"], "runs": self.tally["runs"],
+                       "hints": self.tally["hints"]},
+            "hint": self._hint_view(), "hint_ui": self._hint_ui(), "difficulty": difficulty,
+            "goals": goals.queue(self.shelf, len(self.elements_found()), self.tally["turns"]),
             "info": info.view(),
         }
         return view
+
+    def _route_view(self, r):
+        """For an order that belongs to a two-step route: which route, which step, and what is carried between the steps."""
+        if not r.route:
+            return None
+        route = reactions.ROUTES[r.route]
+        first = route["first"]
+        carried = first.carries
+        name = reactions.name_of(carried)
+        if r.step == 1:
+            note = "Step 1 of 2 in the %s. What comes out here, %s (%s), is carried into the next step: %s." % (
+                route["name"], name, carried, route["second"].title)
+        else:
+            note = "Step 2 of 2 in the %s. %s (%s) is carried over from %s." % (route["name"], name.capitalize(), carried, first.title)
+        return {"id": r.route, "name": route["name"], "step": r.step, "of": 2, "carried": carried, "carried_name": name, "note": note}
 
     # ---- actions -------------------------------------------------------------------------------------------------------
     def _enter(self, rid):
         self.current = rid
         self.just = None
+        self.hint = None
 
     def pick(self, rid):
         if not isinstance(rid, str) or rid not in reactions.BY_ID:
             return self.view("There is no such order.", ok=False)
+        if reactions.route_locked(self.shelf, rid):
+            return self.view("Shelve %s first: this step uses what it makes." % reactions.BY_ID[reactions.BY_ID[rid].after].title, ok=False)
         if not reactions.reaction_open(self.shelf, rid):
             ci = reactions.BY_ID[rid].chapter
             return self.view("That chapter opens when %d orders in %s are on the shelf." % (reactions.chapter_need(ci - 1), reactions.CHAPTERS[ci - 1]["name"]), ok=False)
@@ -295,11 +343,13 @@ class Game:
         self.dials[r.id] = coefs
         self.tally["turns"] += 1
         self.just = None
+        self.hint = None
         return self.view("")
 
     def reset_dials(self):
         self.dials.pop(self.current, None)
         self.just = None
+        self.hint = None
         return self.view("")
 
     def choose(self, option):
@@ -310,6 +360,7 @@ class Game:
             return self.view("The products are already chosen.", ok=False)
         if isinstance(option, bool) or not isinstance(option, int) or not 0 <= option < len(r.choices):
             return self.view("There is no such choice.", ok=False)
+        self.hint = None
         if option == r.right:
             first = not self.tried.get(r.id)
             self.picked.add(r.id)
@@ -323,6 +374,84 @@ class Game:
             self.tally["tries"] += 1
         return self.view("Not that one. " + chem.why_not(r.reactants, r.choices[option]), ok=False)
 
+    # ---- the hint ladder -------------------------------------------------------------------------------------------------
+    def _hint_now(self):
+        h = self.hint
+        return h if h and h["rid"] == self.current else None
+
+    def _hint_view(self):
+        """What the ladder has shown so far on this order: only the rungs the player pressed for."""
+        h = self._hint_now()
+        if not h:
+            return None
+        return {"rung": h["rung"], "stage": h["stage"], "nudge": h["nudge"], "hint": h["hint"] if h["rung"] >= 2 else "",
+                "answer": h["answer"] if h["rung"] >= 3 else "", "done": h["rung"] >= 3, "dial": h["target"] if h["rung"] >= 2 and h["stage"] == hints.STAGE_DIALS else None}
+
+    def _hint_ui(self):
+        """What the suggestion button should offer next: which rung, its words, whether it needs a confirm, whether the level stops it."""
+        r = self.reaction
+        known = self.products_known()
+        stage = hints.stage(known)
+        shelved = r.id in self.shelf
+        balanced = False
+        if known and not shelved:
+            reactants, products, coefs = self._active(r)
+            balanced = chem.is_balanced(chem.ledger(reactants, products, coefs))
+        h = self._hint_now()
+        rung = h["rung"] if h else 0
+        cap = hints.rung_cap(difficulty)
+        nxt = 0 if (shelved or balanced or rung >= cap) else rung + 1
+        return {"available": not shelved, "next": nxt, "label": hints.button_label(rung, stage) if nxt else "", "stage": stage, "balanced": balanced,
+                "limit": difficulty == "hard" and rung >= cap and not shelved and not balanced, "confirm": nxt == 3 and difficulty != "easy",
+                "opens_two": nxt == 1 and difficulty == "easy", "here": self.hinted.get(r.id, 0)}
+
+    def _note_hint(self, rung):
+        """Count one press of the ladder and keep the order's highest rung (an order not yet shelved)."""
+        self.tally["hints"] += 1
+        if self.current not in self.shelf:
+            self.hinted[self.current] = max(self.hinted.get(self.current, 0), rung)
+
+    def ask_hint(self, confirm=False):
+        r = self.reaction
+        if r.id in self.shelf:
+            return self.view("This order is on the shelf already. Suggestions are for orders that are not.", ok=False)
+        known = self.products_known()
+        stage = hints.stage(known)
+        h = self._hint_now()
+        if h is None:
+            if known:
+                texts = hints.dial_texts(r, self.coefs())
+                if texts is None:
+                    return self.view("Every element reads equal already. Press Run.", ok=False)
+            else:
+                texts = hints.choose_texts(r, self.tried.get(r.id, []))
+            nudge, hint, answer, target = texts
+            h = {"rid": r.id, "stage": stage, "rung": hints.first_rung(difficulty), "nudge": nudge, "hint": hint, "answer": answer, "target": target}
+            self.hint = h
+            self._note_hint(h["rung"])
+            return self.view(nudge if h["rung"] == 1 else nudge + " " + hint)
+        if h["rung"] >= hints.rung_cap(difficulty):
+            return self.view("Hard has no answer step: the nudge and the hint are all the help there is." if difficulty == "hard"
+                             else "That was the last step.", ok=False)
+        if h["rung"] == 1:
+            h["rung"] = 2
+            self._note_hint(2)
+            return self.view(h["hint"])
+        if difficulty != "easy" and not confirm:
+            return self.view("The answer takes the thinking out of it. Press again to confirm.", ok=False)
+        self._note_hint(3)
+        h["rung"] = 3
+        if h["stage"] == hints.STAGE_CHOOSE:                  # the right list is chosen for you (it does not count as right first time)
+            self.picked.add(r.id)
+            self.tried.pop(r.id, None)
+            self.hint = None
+            return self.view("List %d is chosen for you. The dials are open." % (r.right + 1))
+        self.dials[r.id] = list(r.answer)
+        if all(c == 1 for c in r.answer):
+            self.dials.pop(r.id, None)
+        self.just = None
+        return self.view("The dials are set to the answer. Press Run.")
+
     def run(self):
         r = self.reaction
         if not self.products_known():
@@ -332,6 +461,7 @@ class Game:
             return self.view("The ledger does not read equal yet, so there is nothing to run.", ok=False)
         before = self.elements_found()
         first = r.id not in self.shelf
+        self.hint = None
         self.shelf[r.id] = self.shelf.get(r.id, 0) + 1
         self.tally["runs"] += 1
         new = [s for s in r.elements if s not in before]
@@ -343,6 +473,16 @@ class Game:
 
 
 game = Game()
+
+
+def set_difficulty(level):
+    """Easy / Normal / Hard only change how the hint ladder opens; the orders, the proofs, the shelf and every record stay the same."""
+    global difficulty
+    if level not in LEVELS:
+        return game.view("That is not a difficulty.", ok=False)
+    difficulty = level
+    game.hint = None                                         # a ladder in progress was opened under the old level
+    return game.view("")
 
 
 def handle(request_json):
@@ -369,6 +509,10 @@ def handle(request_json):
         return json.dumps(g.choose(request.get("option")))
     if action == "run":
         return json.dumps(g.run())
+    if action == "hint":
+        return json.dumps(g.ask_hint(request.get("confirm") is True))
+    if action == "difficulty":
+        return json.dumps(set_difficulty(request.get("level")))
     return json.dumps({"error": "unknown action " + repr(action)})
 
 

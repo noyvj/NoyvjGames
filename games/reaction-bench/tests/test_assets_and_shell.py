@@ -175,5 +175,5 @@ def test_the_changelog_is_valid_and_dated():
 def test_the_claude_md_table_matches_what_exists():
     text = (GAME_DIR / "CLAUDE.md").read_text(encoding="utf-8")
     rows = {m.group(1): m.group(2).strip() for m in re.finditer(r"^\| (\d|R) \|.*\| (Done|Not started) \|$", text, flags=re.M)}
-    assert rows == {"1": "Done", "2": "Done", "3": "Done", "4": "Not started", "5": "Not started", "6": "Not started", "7": "Not started", "R": "Not started"}
+    assert rows == {"1": "Done", "2": "Done", "3": "Done", "4": "Done", "5": "Done", "6": "Not started", "7": "Not started", "R": "Not started"}
     assert str(len(reactions.ALL)) in text

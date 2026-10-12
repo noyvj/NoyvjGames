@@ -17,11 +17,18 @@
       "note": "Supplies the About page facts on Mendeleev's 1869 table, the 118 known elements and the 18 groups and the periods the layout uses."
     },
     {
+      "title": "Haber process",
+      "by": "Wikipedia",
+      "url": "https://en.wikipedia.org/wiki/Haber_process",
+      "read": "2026-10-12",
+      "note": "Supplies the About page fact that the Haber-Bosch process is the main industrial route to ammonia, from nitrogen in the air and hydrogen over an iron catalyst. It also underlies the Fertiliser works route in chapter 5."
+    },
+    {
       "title": "PubChem Periodic Table",
       "by": "National Center for Biotechnology Information (NCBI), US National Library of Medicine",
       "url": "https://pubchem.ncbi.nlm.nih.gov/periodic-table/",
       "read": "2026-10-12",
-      "note": "The atomic masses and the kind of element (for example alkali metal or halogen) on each element card are a bundled snapshot of this service's JSON table, read on the date shown. Live reading of the same service is planned for a later milestone."
+      "note": "Element cards read this service's JSON table live when a card is opened (atomic mass, group block, state and year of discovery) and name the day it was read. A bundled snapshot of the same table, read on the date shown, stands in when the service cannot be reached; the proofs use only the snapshot."
     }
   ],
   "inspiration": [

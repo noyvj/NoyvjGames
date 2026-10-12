@@ -52,7 +52,7 @@ def test_no_leaderboard_or_backend_calls_in_the_game_page():
     for chunk in re.findall(r"fetch\([^)]*\)", APP):
         assert not re.search(r"/app/|leaderboard|stats/|feedback", chunk), chunk
     assert "leaderboard" not in HTML.lower()
-    assert set(re.findall(r"fetch\(([^,)]+)", APP)) <= {"\"changelog.json\"", "ENGINE_MODULES[i]", "\"game.py\"", "live.api"}
+    assert set(re.findall(r"fetch\(([^,)]+)", APP)) <= {"\"changelog.json\"", "ENGINE_MODULES[i]", "\"game.py\"", "live.api", "PUBCHEM_URL"}
 
 
 def test_nothing_can_be_lost_and_the_ledger_never_fails_an_order():

@@ -3,10 +3,13 @@
    decides whether an equation balances or whether a product list is right: it asks the engine and draws the answer. */
 (function () {
   "use strict";
-  var ENGINE_MODULES = ["elements.py", "chem.py", "reactions_c1.py", "reactions_c2.py", "reactions_c3.py", "reactions.py", "info.py"];
+  var ENGINE_MODULES = ["elements.py", "chem.py", "reactions_c1.py", "reactions_c2.py", "reactions_c3.py", "reactions_c4.py", "reactions_c5.py", "reactions.py", "info.py", "hints.py", "goals.py"];
   var STORE_KEY = "reaction-bench:state";
   var BACKUP_KEY = "reaction-bench:state-backup";
   var FENNEL_KEY = "reaction-bench:fennel-hidden";
+  var HINTS_KEY = "reaction-bench:hints-hidden";
+  var PUBCHEM_URL = "https://pubchem.ncbi.nlm.nih.gov/rest/pug/periodictable/JSON";
+  var DIFF_GAME = "reaction-bench";
   var SVG_NS = "http://www.w3.org/2000/svg";
 
   var $ = function (id) { return document.getElementById(id); };
@@ -19,6 +22,8 @@
   var infoLiveDone = false;
   var flaskCount = 0;
   var wasBalanced = false;
+  var goalsPanel = null;
+  var live = { state: "idle", rows: null, date: "" };      // the PubChem periodic table, read live the first time a card is wanted
 
   function lsGet(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
   function lsSet(k, v) { try { localStorage.setItem(k, v); } catch (e) { /* convenience only */ } }
@@ -156,6 +161,7 @@
     bumpStat("stat-elements", view.totals.elements + "/" + view.totals.bench);
     bumpStat("stat-turns", view.totals.turns);
     bumpStat("stat-runs", view.totals.runs);
+    bumpStat("stat-hints", view.totals.hints);
   }
 
   // ---- the equation row ------------------------------------------------------------------------------
@@ -204,25 +210,30 @@
     eq.textContent = "";
     var known = rx.picked;
     rx.species.forEach(function (sp, i) {
-      if (sp.role === "product" && sp.index === rx.n_reactants) eq.appendChild(el("span", "op", "→")).setAttribute("aria-hidden", "true");
-      else if (i > 0) eq.appendChild(el("span", "op", "+")).setAttribute("aria-hidden", "true");
+      // each sign travels with the formula after it, so a wrapped row can start with "+" or an arrow but never end with one
+      var term = el("div", "term");
+      if (sp.role === "product" && sp.index === rx.n_reactants) term.appendChild(el("span", "op", "→")).setAttribute("aria-hidden", "true");
+      else if (i > 0) term.appendChild(el("span", "op", "+")).setAttribute("aria-hidden", "true");
       var box = el("div", "species");
       box.dataset.index = String(sp.index);
-      box.appendChild(el("span", "role", sp.role === "reactant" ? "Goes in" : "Comes out"));
+      box.appendChild(el("span", "role", sp.role === "reactant" ? (sp.carried ? "Goes in (carried over)" : "Goes in") : (sp.carried ? "Comes out (carried on)" : "Comes out")));
       var holder = el("div", "flask-holder");
       holder.appendChild(flaskSvg(sp.role, sp.coef));
       box.appendChild(holder);
       box.appendChild(buildDial(sp, known));
       box.appendChild(formulaNode(sp));
       box.appendChild(el("span", "sname", sp.name));
-      eq.appendChild(box);
+      term.appendChild(box);
+      eq.appendChild(term);
     });
     if (!known) {
-      eq.appendChild(el("span", "op", "→")).setAttribute("aria-hidden", "true");
+      var tail = el("div", "term");
+      tail.appendChild(el("span", "op", "→")).setAttribute("aria-hidden", "true");
       var unk = el("div", "unknown-box");
       unk.appendChild(el("strong", null, "?"));
       unk.appendChild(el("span", "note", "Choose what comes out, just above."));
-      eq.appendChild(unk);
+      tail.appendChild(unk);
+      eq.appendChild(tail);
     }
   }
   function updateEquation() {
@@ -234,6 +245,7 @@
       setText(val, String(sp.coef));
       val.setAttribute("aria-valuenow", String(sp.coef));
       val.setAttribute("aria-valuetext", sp.coef + " " + sp.name);
+      val.classList.toggle("hinted", Boolean(view.hint && view.hint.dial === sp.index));
       var holder = box.querySelector(".flask-holder");
       if (holder.dataset.coef !== String(sp.coef)) {
         holder.dataset.coef = String(sp.coef);
@@ -299,10 +311,12 @@
     var rx = view.reaction;
     setText($("bench-kicker"), rx.chapter + " - order " + rx.number + " of " + rx.of);
     setText($("bench-heading"), rx.title);
+    var routeLine = $("route-line");
+    routeLine.hidden = !rx.route;
+    if (rx.route) setText(routeLine, rx.route.note);
     var hide = lsGet(FENNEL_KEY) === "1";
     setText($("fennel-line"), hide ? "" : "Fennel: " + rx.fennel);
-    var list = [];
-    view.orders.forEach(function (c) { if (c.open) c.orders.forEach(function (o) { list.push(o); }); });
+    var list = openOrders();
     var idx = list.findIndex(function (o) { return o.current; });
     $("prev-order-button").disabled = idx <= 0;
     $("next-order-button").disabled = false;
@@ -360,7 +374,7 @@
     $("bench-panel").focus({ preventScroll: false });
   }
   function renderOrders() {
-    var sig = JSON.stringify(view.orders.map(function (c) { return [c.open, c.need, c.orders.map(function (o) { return (o.shelved ? "s" : "u") + (o.current ? "*" : ""); }).join("")]; }));
+    var sig = JSON.stringify(view.orders.map(function (c) { return [c.open, c.need, c.orders.map(function (o) { return (o.shelved ? "s" : o.locked ? "l" : "u") + (o.current ? "*" : ""); }).join("")]; }));
     if (sig === listSig.orders) return;
     listSig.orders = sig;
     var holder = $("orders");
@@ -374,11 +388,14 @@
         var ul = el("ul", "order-list");
         c.orders.forEach(function (o) {
           var li = el("li");
-          var b = el("button", "order-btn" + (o.shelved ? " shelved" : "") + (o.current ? " current" : ""));
+          var b = el("button", "order-btn" + (o.shelved ? " shelved" : "") + (o.current ? " current" : "") + (o.locked ? " route-locked" : ""));
           b.type = "button";
-          b.appendChild(el("span", "mark", o.shelved ? "Shelved" : "Not yet"));
-          b.appendChild(el("span", null, o.number + ". " + o.title));
+          b.appendChild(el("span", "mark", o.shelved ? "Shelved" : o.locked ? "Needs step 1" : "Not yet"));
+          var label = el("span", null, o.number + ". " + o.title);
+          if (o.route) label.appendChild(el("small", "route-tag", " " + o.route + ", step " + o.step + " of 2" + (o.locked ? ". Shelve " + o.needs + " first." : "")));
+          b.appendChild(label);
           if (o.current) b.setAttribute("aria-current", "true");
+          if (o.locked) b.setAttribute("aria-disabled", "true");
           b.addEventListener("click", function () { goTo(o.id); });
           li.appendChild(b);
           ul.appendChild(li);
@@ -390,7 +407,7 @@
   }
   function renderShelf() {
     setText($("shelf-count"), view.totals.shelved + " of " + view.totals.orders + " compounds on the shelf.");
-    var sig = JSON.stringify(view.orders.map(function (c) { return [c.open, c.need, c.orders.map(function (o) { return (o.shelved ? "s" + o.runs : "u"); }).join("")]; }));
+    var sig = JSON.stringify(view.orders.map(function (c) { return [c.open, c.need, c.orders.map(function (o) { return (o.shelved ? "s" + o.runs : o.locked ? "l" : "u"); }).join("")]; }));
     if (sig === listSig.shelf) return;
     listSig.shelf = sig;
     var holder = $("shelf");
@@ -408,7 +425,8 @@
           b.type = "button";
           b.appendChild(flaskSvg("product", undefined, o.shelved));
           b.appendChild(el("span", "fb-name", o.title));
-          b.appendChild(el("span", "fb-meta", o.shelved ? "On the shelf: " + o.makes + ", run " + plural(o.runs, "time", "times") : "Empty flask"));
+          b.appendChild(el("span", "fb-meta", o.shelved ? "On the shelf: " + o.makes + ", run " + plural(o.runs, "time", "times") : o.locked ? "Empty flask. Needs " + o.needs + " first." : "Empty flask"));
+          if (o.locked) b.setAttribute("aria-disabled", "true");
           b.addEventListener("click", function () { goTo(o.id); });
           li.appendChild(b);
           ul.appendChild(li);
@@ -468,9 +486,31 @@
     }
     renderCard();
   }
+  // Live facts: the PubChem Periodic Table service is read once per visit, the first time a card is wanted. If it cannot be reached
+  // the bundled snapshot stands, and the card says so in one quiet line.
+  function loadLiveElements() {
+    if (live.state !== "idle") return;
+    if (typeof fetch !== "function") { live.state = "failed"; return; }
+    live.state = "loading";
+    fetch(PUBCHEM_URL, { headers: { Accept: "application/json" } }).then(function (r) {
+      if (!r.ok) throw new Error("status " + r.status);
+      return r.json();
+    }).then(function (data) {
+      var cols = data.Table.Columns.Column, rows = {};
+      data.Table.Row.forEach(function (row) {
+        var o = {};
+        cols.forEach(function (name, i) { o[name] = row.Cell[i]; });
+        rows[o.Symbol] = o;
+      });
+      if (!rows.H) throw new Error("unreadable");
+      live.rows = rows; live.date = today(); live.state = "done";
+      renderCard();
+    }).catch(function () { live.state = "failed"; renderCard(); });
+  }
   function openCard(sym) {
     cardSymbol = sym;
     listSig.table = "";
+    loadLiveElements();
     renderTable();
     $("element-card").focus({ preventScroll: false });
   }
@@ -479,14 +519,108 @@
     var data = cardSymbol && view.table.cards[cardSymbol];
     card.hidden = !data;
     if (!data) { cardSymbol = null; return; }
+    var row = live.state === "done" && live.rows ? live.rows[data.symbol] : null;
+    var mass = row && row.AtomicMass ? row.AtomicMass : data.mass;
+    var kind = row && row.GroupBlock ? row.GroupBlock : data.kind;
+    var state = row && row.StandardState ? row.StandardState.toLowerCase() : data.state;
     setText($("card-title"), data.name + " (" + data.symbol + ")");
-    setText($("card-line"), "Element " + data.number + ", " + (data.group ? "group " + data.group + ", " : "") + "period " + data.period + ". " + data.kind + ", a " + data.state + " at room temperature. Atomic mass " + data.mass + ".");
+    setText($("card-line"), "Element " + data.number + ", " + (data.group ? "group " + data.group + ", " : "") + "period " + data.period + ". " + kind + ", a " + state + " at room temperature. Atomic mass " + mass + ".");
     setText($("card-use"), data.use);
     var used = data.reactions.length ? "Used in your shelved orders: " + data.reactions.join(", ") + "." : "";
     var more = data.more ? " " + plural(data.more, "more open order uses", "more open orders use") + " it." : "";
     setText($("card-reactions"), (used + more).trim());
-    setText($("card-source"), "Mass and kind: snapshot of the " + data.source + ", read " + data.snapshot + ".");
+    var source;
+    if (row) {
+      var year = row.YearDiscovered;
+      source = "Mass, kind and state: read live from the PubChem Periodic Table (pubchem.ncbi.nlm.nih.gov) on " + live.date + "." +
+        (year ? (/^\d+$/.test(year) ? " Discovered " + year + "." : " Known since " + String(year).toLowerCase() + " times.") : "");
+    } else {
+      source = "Mass and kind: bundled snapshot of the " + data.source + ", read " + data.snapshot + "." +
+        (live.state === "failed" ? " The live read could not be reached just now, so this copy stands." : live.state === "loading" ? " Reading it live now..." : "");
+    }
+    setText($("card-source"), source);
   }
+
+  // ---- the suggestion ladder (the engine owns every rule; this only shows the rungs the player has pressed for) --------------
+  var RUNG_LABELS = { 1: "Nudge", 2: "Hint", 3: "Answer" };
+  function renderHints() {
+    var ui = view.hint_ui;
+    var shown = lsGet(HINTS_KEY) !== "1";
+    $("hint-box").hidden = !shown || !ui.available;
+    $("hints-checkbox").checked = shown;
+    var button = $("hint-button");
+    button.hidden = ui.next === 0;
+    setText(button, ui.label || "Would you like a suggestion?");
+    var note = "";
+    if (ui.balanced) note = "Every element reads equal, so there is nothing to suggest. Press Run.";
+    else if (ui.next === 1) note = ui.opens_two ? "On Easy this opens the nudge and the hint together. Nothing is shown until you press." : "Nothing is shown until you press.";
+    else if (ui.next === 3) note = (ui.stage === "choose" ? "This chooses the right list for you." : "This sets every dial to the answer.") + (ui.confirm ? " It asks first." : "") + " Run is still yours to press.";
+    else if (ui.limit) note = "Hard has no answer step: the nudge and the hint are all the help there is.";
+    setText($("hint-note"), note);
+    var list = $("hint-list");
+    var h = view.hint;
+    var sig = h ? [h.rung, h.nudge, h.hint, h.answer].join("|") : "";
+    if (list.dataset.sig === sig) return;
+    list.dataset.sig = sig;
+    list.textContent = "";
+    list.hidden = !h;
+    if (!h) return;
+    [[1, h.nudge], [2, h.hint], [3, h.answer]].forEach(function (pair) {
+      if (pair[0] > h.rung || !pair[1]) return;
+      var li = el("li", "hint-item hint-rung-" + pair[0]);
+      li.appendChild(el("span", "hint-label", RUNG_LABELS[pair[0]]));
+      li.appendChild(el("span", "hint-text", pair[1]));
+      list.appendChild(li);
+    });
+  }
+  function pressHint(confirmed) {
+    if (!view || view.hint_ui.next === 0) return;
+    if (view.hint_ui.next === 3 && view.hint_ui.confirm && !confirmed) {
+      var choose = view.hint_ui.stage === "choose";
+      askThen("reaction-bench-hint-answer", choose ? "Choose the right list for you? The dials open, and you still balance it." : "Set every dial to the answer for you? You still press Run.", choose ? "Choose it" : "Set the dials", function () { pressHint(true); });
+      return;
+    }
+    var result = send({ action: "hint", confirm: confirmed === true });
+    if (!result) return;
+    var items = $("hint-list").querySelectorAll(".hint-item");
+    if (result.hint && items.length) { var last = items[items.length - 1]; last.setAttribute("tabindex", "-1"); last.focus({ preventScroll: true }); }
+    else if (result.ok && result.reaction.picked) { var dial = document.querySelector("#equation .dial-val"); if (dial) dial.focus({ preventScroll: true }); }
+  }
+
+  // ---- goals and difficulty ---------------------------------------------------------------------------------------------
+  var DIFF_TEXT = {
+    easy: "The suggestion button opens the nudge and the hint together on its first press, and the answer needs no extra question.",
+    normal: "The game as designed: a nudge, then a hint, then (after a question) the answer, each only when you press.",
+    hard: "No answer step: the nudge and the hint are all the suggestions there are. Orders, proofs and records are the same."
+  };
+  function sendDifficulty() {
+    if (!engine) return null;
+    if (!window.NoyvjDifficulty) return send({ action: "open" });
+    return send({ action: "difficulty", level: window.NoyvjDifficulty.get(DIFF_GAME) });
+  }
+  function wireDifficulty() {
+    if (!window.NoyvjDifficulty) return;
+    window.NoyvjDifficulty.mount("#difficulty-slot", { game: DIFF_GAME, collapsible: true, descriptions: DIFF_TEXT });
+    window.NoyvjDifficulty.onChange(function (d) { if (d.game === DIFF_GAME) sendDifficulty(); });
+  }
+  function wireGoals() {
+    if (!window.NoyvjGoals) return;
+    goalsPanel = window.NoyvjGoals.mount("#goals", { game: "reaction-bench", title: "Goals", getGoals: function () { return view ? view.goals : []; } });
+    if (goalsPanel && window.NoyvjGoals.bindCheckbox) window.NoyvjGoals.bindCheckbox(goalsPanel, "#goals-checkbox");
+  }
+
+  // ---- the tutorial (shared/tutorial.js; offered from the opening screen, restartable from the toolbar) ----------------
+  var TUTORIAL_STEPS = [
+    { title: "Welcome to the night shift", text: "Each order is a chemical equation. You turn a dial in front of every formula until the atoms on both sides are equal, then run it and the compound goes on the shelf. Nothing is timed and nothing can go wrong. Skip any time and reopen this from the Tutorial button." },
+    { selector: "#bench", title: "Dials in front of each formula", text: "A conical flask is something that goes in and a round flask is something that comes out. The number on a dial says how many of that substance take part. Use the plus and minus buttons, or the arrow keys and the digits." },
+    { selector: "#ledger-status", title: "The atom ledger", text: "Below the bench a table counts every element on the left and on the right. Each row shows a tick and the word Equal, or a cross and how many too many or too few. When every row reads equal, Run works." },
+    { selector: "#run-button", title: "Run", text: "Run puts the compound on the shelf and lights a tile on the periodic table for every new element you used. You can run an order again any time, and Reset dials is free." },
+    { selector: "#hint-box", title: "Stuck? Ask", text: "The suggestion button never opens by itself. A nudge says where to look, a hint says what to turn, and the last rung gives the answer after a question. Every order can be finished without guessing." },
+    { selector: "#orders-toggle-button", title: "The order board", text: "Five shelved orders in a chapter open the next one. From chapter 2 you choose what comes out from four lists first, and in the last chapter each route has two steps: what step one makes is carried into step two." },
+    { selector: "#table-toggle-button", title: "The periodic table", text: "Each element you use lights its tile. Open a lit tile for its card: facts read live from PubChem, with the date, and a bundled copy if you are offline." },
+    { selector: "#settings-toggle-button", title: "Settings and difficulty", text: "Text size, reduced motion, high contrast and the light theme are in Settings. Difficulty (Easy, Normal, Hard) changes only how the suggestions open; nothing is locked." },
+    { title: "That is all", text: "Press ? at any time for the keyboard help. The Tutorial button in the toolbar brings this tour back." }
+  ];
 
   // ---- About and What's New (the same shape as the sibling games) -------------------------------------------
   function listFill(id, items) {
@@ -590,6 +724,8 @@
     renderShelf();
     renderTable();
     renderInfo();
+    renderHints();
+    if (goalsPanel) goalsPanel.refresh();
     if (view.just && view.just.first !== undefined && glowShown !== view.just.id + ":" + view.totals.runs) {
       glowShown = view.just.id + ":" + view.totals.runs;
       var bench = $("bench");
@@ -619,7 +755,7 @@
         if (rx.balanced) parts.push("Every element reads equal. Press Run.");
         else parts.push(plural(off.length, "element is", "elements are") + " still off: " + off.map(function (r) { return r.name + " " + (r.diff > 0 ? "+" : "") + r.diff; }).join(", ") + ".");
       }
-    } else if (request.action === "run" || request.action === "choose") {
+    } else if (request.action === "run" || request.action === "choose" || request.action === "hint") {
       parts.push(view.message);
     } else if (request.action === "pick" || request.action === "next") {
       parts.push(rx.chapter + " order " + rx.number + ": " + rx.title + ".");
@@ -638,16 +774,20 @@
     render();
     announceChanges(request, previous);
     if (request.action === "choose" && view.reaction.picked) { var first = document.querySelector("#equation .dial-val"); if (first) first.focus({ preventScroll: true }); }
-    if (["dial", "reset_dials", "choose", "run", "pick", "next", "reset"].indexOf(request.action) >= 0) persist();
+    if (["dial", "reset_dials", "choose", "run", "pick", "next", "reset", "hint"].indexOf(request.action) >= 0) persist();
     return result;
   }
   function askThen(id, message, confirmLabel, go) {
     if (window.ConfirmDialog) window.ConfirmDialog.ask({ id: id, message: message, confirmLabel: confirmLabel, allowSkip: false, onConfirm: go });
     else go();
   }
-  function stepOrder(delta) {
+  function openOrders() {
     var list = [];
-    view.orders.forEach(function (c) { if (c.open) c.orders.forEach(function (o) { list.push(o); }); });
+    view.orders.forEach(function (c) { if (c.open) c.orders.forEach(function (o) { if (!o.locked) list.push(o); }); });
+    return list;
+  }
+  function stepOrder(delta) {
+    var list = openOrders();
     var idx = list.findIndex(function (o) { return o.current; });
     var target = list[idx + delta];
     if (target) send({ action: "pick", reaction: target.id });
@@ -665,6 +805,7 @@
     var k = e.key;
     if (k === "r" || k === "R") { send({ action: "run" }); e.preventDefault(); }
     else if (k === "n" || k === "N") { send({ action: "next" }); e.preventDefault(); }
+    else if (k === "h" || k === "H") { pressHint(false); e.preventDefault(); }
     else if (k === "[") { stepOrder(-1); e.preventDefault(); }
     else if (k === "]") { stepOrder(1); e.preventDefault(); }
     else if (/^[1-4]$/.test(k) && view.reaction.choices && e.target.getAttribute("role") !== "spinbutton") {
@@ -681,6 +822,11 @@
     wirePanelToggle("changelog-toggle-button", "changelog-panel");
     wirePanelToggle("info-page-toggle-button", "info-page-panel");
     $("info-page-toggle-button").addEventListener("click", function () { if (!$("info-page-panel").hidden) loadLiveInfo(); });
+    $("table-toggle-button").addEventListener("click", function () { if (!$("table-panel").hidden) loadLiveElements(); });
+    $("hint-button").addEventListener("click", function () { pressHint(false); });
+    $("hints-checkbox").addEventListener("change", function () { lsSet(HINTS_KEY, $("hints-checkbox").checked ? "0" : "1"); if (view) renderHints(); });
+    wireDifficulty();
+    wireGoals();
     $("prev-order-button").addEventListener("click", function () { stepOrder(-1); });
     $("next-order-button").addEventListener("click", function () { send({ action: "next" }); });
     $("run-button").addEventListener("click", function () { send({ action: "run" }); });
@@ -717,7 +863,9 @@
     }
     $("engine-status").textContent = "";
     send({ action: "open" });
+    sendDifficulty();
     await changelog;
+    if (window.GameTutorial) window.GameTutorial.init(TUTORIAL_STEPS, { gameId: "reaction-bench" });
   }
 
   wire();

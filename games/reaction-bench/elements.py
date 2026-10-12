@@ -114,6 +114,14 @@ BENCH = {
            "use": "Found in limestone, chalk, shells and bones. Heated limestone gives quicklime."},
     "Fe": {"mass": "55.84", "kind": "Transition metal", "state": "solid",
            "use": "The main metal of steel. It rusts where wet air reaches it."},
+    "P": {"mass": "30.97376200", "kind": "Nonmetal", "state": "solid",
+          "use": "Found in bones, teeth and every living cell. Phosphates are a main fertiliser ingredient."},
+    "K": {"mass": "39.0983", "kind": "Alkali metal", "state": "solid",
+          "use": "A soft, silvery metal. Plants need potassium, so its salts go into fertiliser."},
+    "Cu": {"mass": "63.55", "kind": "Transition metal", "state": "solid",
+           "use": "A reddish metal used in wiring and pipes. Outdoors it slowly gets a green coating."},
+    "Ag": {"mass": "107.868", "kind": "Transition metal", "state": "solid",
+           "use": "A bright metal that carries electricity very well. It is used in jewellery, coins and electronics."},
 }
 
 MASSES = {sym: info["mass"] for sym, info in BENCH.items()}

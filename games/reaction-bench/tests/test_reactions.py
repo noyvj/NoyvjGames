@@ -14,10 +14,10 @@ from balance import brute_force, check
 ALL = reactions.ALL
 
 
-def test_the_bench_has_three_chapters_of_eight():
-    assert [len(c["reactions"]) for c in reactions.CHAPTERS] == [8, 8, 8] and len(ALL) == 24
-    assert [r.number for r in ALL] == list(range(1, 25))
-    assert len({r.id for r in ALL}) == 24 and len({r.title for r in ALL}) == 24
+def test_the_bench_has_five_chapters_of_eight():
+    assert [len(c["reactions"]) for c in reactions.CHAPTERS] == [8, 8, 8, 8, 8] and len(ALL) == 40
+    assert [r.number for r in ALL] == list(range(1, 41))
+    assert len({r.id for r in ALL}) == 40 and len({r.title for r in ALL}) == 40
 
 
 @pytest.mark.parametrize("r", ALL, ids=lambda r: r.id)
@@ -36,7 +36,7 @@ def test_the_stored_answer_passes_the_same_ledger_the_player_uses(r):
     assert len(r.answer) == r.size and all(chem.MIN_COEF <= c <= chem.MAX_COEF for c in r.answer)
 
 
-@pytest.mark.parametrize("r", [r for r in ALL if r.size <= 4], ids=lambda r: r.id)
+@pytest.mark.parametrize("r", [r for r in ALL if r.size <= 5], ids=lambda r: r.id)
 def test_a_brute_force_search_finds_no_other_setting(r):
     """Independent of the nullspace code: try every setting from 1 to 12."""
     assert [s for s in brute_force(r.reactants, r.products) if chem.lowest_terms(s)] == [r.answer]
@@ -57,7 +57,7 @@ def test_tools_balance_agrees(r):
 
 def test_every_product_choice_round_has_exactly_one_balanceable_list():
     rounds = [r for r in ALL if r.is_round]
-    assert [r.chapter for r in rounds] == [1] * 8 + [2] * 8 and not any(r.is_round for r in reactions.CHAPTERS[0]["reactions"])
+    assert [r.chapter for r in rounds] == [1] * 8 + [2] * 8 + [3] * 8 + [4] * 8 and not any(r.is_round for r in reactions.CHAPTERS[0]["reactions"])
     for r in rounds:
         assert len(r.choices) == 4 and r.choices[r.right] == r.products
         balanceable = [i for i, c in enumerate(r.choices) if chem.can_balance(r.reactants, c)]
@@ -139,7 +139,7 @@ def test_gating_opens_the_next_chapter_after_five_of_the_one_before():
 
 def test_the_bench_elements_are_in_atomic_number_order():
     nums = [elements.number_of(s) for s in reactions.BENCH_ELEMENTS]
-    assert nums == sorted(nums) and len(nums) == 11
+    assert nums == sorted(nums) and len(nums) == 15
 
 
 def test_no_clock_and_no_randomness_in_any_engine_module():

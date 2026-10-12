@@ -9,6 +9,8 @@
 <link rel="stylesheet" href="../../shared/theme-light-games.css">
 <link rel="stylesheet" href="style.css">
 <link rel="stylesheet" href="../../shared/info-page.css">
+<link rel="stylesheet" href="../../shared/difficulty.css">
+<link rel="stylesheet" href="../../shared/goals-panel.css">
 <script src="../../shared/theme.js"></script>
 <script src="../../shared/lite-mode.js"></script>
 <script src="../../shared/error-boundary.js" data-game-id="reaction-bench"></script>
@@ -35,6 +37,7 @@
     <h1>Reaction Bench</h1>
   </div>
   <div class="game-toolbar">
+    <button id="tutorial-restart-button" type="button" aria-label="Tutorial"><span class="btn-long">Tutorial</span><span class="btn-short" aria-hidden="true">Tour</span></button>
     <button id="orders-toggle-button" type="button" aria-expanded="false" aria-controls="orders-panel" data-testid="reaction-bench-orders-toggle">Orders</button>
     <button id="shelf-toggle-button" type="button" aria-expanded="false" aria-controls="shelf-panel" data-testid="reaction-bench-shelf-toggle">Shelf</button>
     <button id="table-toggle-button" type="button" aria-expanded="false" aria-controls="table-panel" data-testid="reaction-bench-table-toggle"><span class="btn-long">Periodic table</span><span class="btn-short" aria-hidden="true">Table</span></button>
@@ -97,6 +100,8 @@
     <h2 id="settings-heading">Settings</h2>
     <h3>Helpers</h3>
     <div class="settings-row"><label><input type="checkbox" id="fennel-checkbox" checked> Show Fennel's remark on each order</label></div>
+    <div class="settings-row"><label><input type="checkbox" id="goals-checkbox" checked> Show the three goals under the stats</label></div>
+    <div class="settings-row"><label><input type="checkbox" id="hints-checkbox" checked> Show the suggestion button under the bench</label></div>
     <h3>Display (stays on this device)</h3>
     <div class="settings-row">
       <span id="text-size-label">Text size</span>
@@ -115,16 +120,23 @@
   </section>
   <p id="toast" class="note toast" role="status" aria-live="polite" title="Tap to dismiss"></p>
 
+  <section id="difficulty-panel" class="panel" aria-label="Difficulty">
+    <div id="difficulty-slot"></div>
+  </section>
+
   <section id="stats" class="stat-strip" aria-label="Your progress">
     <div class="stat"><span class="stat-label">Compounds shelved</span><span id="stat-shelved" class="stat-value" data-testid="reaction-bench-stat-shelved">0</span></div>
     <div class="stat"><span class="stat-label">Elements found</span><span id="stat-elements" class="stat-value" data-testid="reaction-bench-stat-elements">0</span></div>
     <div class="stat"><span class="stat-label">Dial turns</span><span id="stat-turns" class="stat-value" data-testid="reaction-bench-stat-turns">0</span></div>
     <div class="stat"><span class="stat-label">Runs</span><span id="stat-runs" class="stat-value" data-testid="reaction-bench-stat-runs">0</span></div>
+    <div class="stat"><span class="stat-label">Hints asked</span><span id="stat-hints" class="stat-value" data-testid="reaction-bench-stat-hints">0</span></div>
   </section>
+  <div id="goals" class="goals-slot"></div>
 
   <section id="bench-panel" class="panel" aria-labelledby="bench-heading" tabindex="-1">
     <p id="bench-kicker" class="note kicker"></p>
     <h2 id="bench-heading">Order</h2>
+    <p id="route-line" class="route-line" hidden></p>
     <p id="fennel-line" class="note fennel-line"></p>
     <div class="order-nav button-row">
       <button id="prev-order-button" type="button" aria-label="Previous order">&larr; Prev</button>
@@ -156,7 +168,12 @@
       <button id="run-button" type="button" class="primary" data-testid="reaction-bench-run">Run</button>
       <button id="reset-dials-button" type="button" data-testid="reaction-bench-reset-dials">Reset dials</button>
     </div>
-    <p class="note keys-note">Keys: Tab moves between the dials; Up and Right turn a dial up, Down and Left turn it down, Home and End go to 1 and 12, and the digits 1 to 9 set it. R runs when the ledger is equal, N goes to the next order, [ and ] step back and forward. In a product round, 1 to 4 choose a list.</p>
+    <div id="hint-box" class="hint-box">
+      <button id="hint-button" type="button" data-testid="reaction-bench-hint">Would you like a suggestion?</button>
+      <p id="hint-note" class="note"></p>
+      <ol id="hint-list" class="hint-list" hidden aria-label="Suggestions so far"></ol>
+    </div>
+    <p class="note keys-note">Keys: Tab moves between the dials; Up and Right turn a dial up, Down and Left turn it down, Home and End go to 1 and 12, and the digits 1 to 9 set it. R runs when the ledger is equal, H asks for a suggestion, N goes to the next order, [ and ] step back and forward. In a product round, 1 to 4 choose a list.</p>
 
     <div id="shelved-card" class="shelved-card" hidden role="status">
       <p id="shelved-title" class="shelved-title"></p>
@@ -184,9 +201,13 @@
        data-ad-slot="XXXXXXXXXX"></ins>
 </div>
 <script src="https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.js"></script>
+<script src="../../shared/tutorial.js"></script>
 <script src="../../shared/hub-auth.js"></script>
 <script src="../../shared/save-widget.js" data-game-id="reaction-bench"></script>
+<script src="../../shared/opening-screen.js" data-game-id="reaction-bench" data-game-name="Reaction Bench" data-tagline="Balance the equation. Shelve the compound. Nothing is timed."></script>
 <script src="../../shared/confirm-dialog.js"></script>
+<script src="../../shared/difficulty.js"></script>
+<script src="../../shared/goals-panel.js"></script>
 <script src="app.js"></script>
 <script src="../../shared/last-played.js" data-game-id="reaction-bench"></script>
 <script src="../../shared/whats-new-banner.js" data-game-id="reaction-bench"></script>
@@ -204,6 +225,7 @@
     extra: [
       "Bench: Tab moves between the dials; Up/Right and Down/Left turn the focused dial, Home and End go to 1 and 12, digits 1 to 9 set it",
       "Bench: R runs the order when the ledger reads equal, N goes to the next order that is not shelved",
+      "Bench: H asks for a suggestion (each rung opens only on a press)",
       "Bench: [ and ] step to the previous and next order",
       "Product round: 1 to 4 choose one of the lists",
       "Esc: close the open panel",

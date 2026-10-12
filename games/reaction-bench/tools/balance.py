@@ -34,7 +34,7 @@ def brute_force(reactants, products, limit=chem.MAX_COEF):
 def check(r):
     basis = chem.nullspace(r.reactants, r.products)
     small = chem.smallest(r.reactants, r.products)
-    brute = [s for s in brute_force(r.reactants, r.products) if chem.lowest_terms(s)] if r.size <= 4 else None
+    brute = [s for s in brute_force(r.reactants, r.products) if chem.lowest_terms(s)] if r.size <= 5 else None
     left = chem.side_mass(r.reactants, r.answer[:len(r.reactants)], elements.MASSES)
     right = chem.side_mass(r.products, r.answer[len(r.reactants):], elements.MASSES)
     ok_choices = None
