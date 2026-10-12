@@ -18,7 +18,7 @@
 
   var GAME = "chronicle";
   var PYODIDE_URL = "https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.js";
-  var ENGINE_MODULES = ["setdata.py", "puzzle.py", "web.py", "myth.py", "account.py", "decision.py", "review.py", "achievements.py", "report.py"];
+  var ENGINE_MODULES = ["setdata.py", "core.py", "views.py", "actions.py", "puzzle.py", "web.py", "myth.py", "account.py", "decision.py", "review.py", "achievements.py", "report.py"];
   var SET_FILES = ["meta", "sources", "entities", "claims", "relations", "sections", "readings"];
   var OPTIONAL_SET_FILES = ["chapters", "accounts", "decisions"];   // chapters, accounts and decision points: a set may have none of them
   var LS_STATE = "chronicle:state";

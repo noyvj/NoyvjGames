@@ -96,7 +96,7 @@ def test_the_report_button_never_sends_anything():
 
 
 def test_engine_has_no_dom_dependency():
-    for name in ("game.py", "setdata.py", "puzzle.py", "achievements.py", "report.py"):
+    for name in ("game.py", "core.py", "views.py", "actions.py", "setdata.py", "puzzle.py", "achievements.py", "report.py"):
         source = (GAME_DIR / name).read_text(encoding="utf-8")
         assert "document." not in source and "getElementById" not in source and "window." not in source.replace("js.window", ""), name
     assert len(re.findall(r"^\s+import js\b", (GAME_DIR / "game.py").read_text(encoding="utf-8"), re.M)) == 1

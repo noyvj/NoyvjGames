@@ -75,7 +75,7 @@ def test_a_wrong_answer_returns_tomorrow_from_the_first_rung_and_never_removes_t
 
 
 def test_the_schedule_never_reads_a_clock_or_a_random_state():
-    for name in ("review.py", "decision.py", "account.py", "game.py"):
+    for name in ("review.py", "decision.py", "account.py", "game.py", "core.py", "views.py", "actions.py"):
         source = (GAME_DIR / name).read_text(encoding="utf-8")
         assert not re.search(r"^\s*(import|from)\s+(random|time|datetime|calendar)\b", source, re.M), name
         assert not re.search(r"\b(time\.time|datetime\.|setTimeout|setInterval|Date\.now|new Date)\b", source), name
@@ -394,7 +394,7 @@ def _string_literals(path):
 
 def test_no_player_visible_review_text_uses_pressure_words():
     banned = re.compile(r"\b(streak|overdue|missed|falling behind|expired?|penalt\w*|punish\w*|hurry|urgent|countdown|don't lose|keep it alive)\b", re.I)
-    for name in ("review.py", "game.py"):
+    for name in ("review.py", "game.py", "core.py", "views.py", "actions.py"):
         for s in _string_literals(GAME_DIR / name):
             assert not banned.search(s), (name, s)
     for name in ("index.html", "app.js"):

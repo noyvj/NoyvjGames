@@ -77,7 +77,7 @@ def test_the_new_engine_modules_are_loaded_and_have_no_dom():
 
 
 def test_nothing_new_reaches_a_network():
-    for name in ("web.py", "myth.py", "account.py", "decision.py", "review.py", "game.py"):
+    for name in ("web.py", "myth.py", "account.py", "decision.py", "review.py", "game.py", "core.py", "views.py", "actions.py"):
         source = (GAME_DIR / name).read_text(encoding="utf-8")
         assert not re.search(r"^\s*(import|from)\s+(urllib|http|requests|socket)", source, re.M), name
 
@@ -93,7 +93,7 @@ def test_the_cached_view_without_a_result_cannot_crash_the_boards():
 def test_strength_is_a_symbol_words_a_border_and_a_line_style_not_colour():
     assert re.search(r"\.strength\.direct\s*\{[^}]*solid", CSS) and re.search(r"\.strength\.contributing\s*\{[^}]*dashed", CSS)
     assert re.search(r"\.arc\.direct\s*\{[^}]*stroke-width: 4", CSS) and re.search(r"\.arc\.contributing\s*\{[^}]*stroke-dasharray", CSS)
-    py = (GAME_DIR / "game.py").read_text(encoding="utf-8")
+    py = "".join((GAME_DIR / n).read_text(encoding="utf-8") for n in ("game.py", "core.py", "views.py", "actions.py"))
     assert '"Direct cause"' in py and '"Contributing cause"' in py and "\\u21d2" in py and "\\u21e2" in py
 
 
