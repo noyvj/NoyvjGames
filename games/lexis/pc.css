@@ -144,3 +144,17 @@ html[data-reduced-motion="true"] .lexis-context-menu {
   overflow-y: auto; flex: 1; min-height: 0;
 }
 html[data-reduced-motion="true"] .lexis-pinned-scene { transition: none; }
+
+/* Hover line for crew-log entries (PC only) */
+#crew-log-entries > * {
+  position: relative;
+}
+#crew-log-entries > *:hover::after {
+  content: attr(data-source);
+  display: block;
+  margin-top: 0.25rem;
+  font-size: 0.85rem;
+  color: var(--accent);
+  opacity: 0.9;
+  pointer-events: none;
+}

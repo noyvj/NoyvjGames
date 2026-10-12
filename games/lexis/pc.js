@@ -110,6 +110,24 @@ document.addEventListener("DOMContentLoaded", function () {
   });
 });
 
+/* Hover line on crew-log entries showing planet and scene (PC only) */
+document.addEventListener("DOMContentLoaded", function () {
+  var observer = new MutationObserver(function () {
+    var entries = document.querySelectorAll("#crew-log-entries > *");
+    for (var i = 0; i < entries.length; i++) {
+      var el = entries[i];
+      if (!el.dataset.source) {
+        var text = el.textContent || "";
+        var planet = "1";
+        var m = text.match(/Planet (\d+)/);
+        if (m) planet = m[1];
+        el.dataset.source = "Planet " + planet + " • Scene " + (i + 1);
+      }
+    }
+  });
+  observer.observe(document.getElementById("crew-log-entries"), { childList: true, subtree: true });
+});
+
 document.addEventListener("DOMContentLoaded", function () {
   /* Notebook search (PC only) */
   var searchInput = null;
