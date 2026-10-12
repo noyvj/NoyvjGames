@@ -341,6 +341,11 @@
       var date = new Date(Date.UTC(cal.y, cal.m, d)).toISOString().slice(0, 10);
       var enabled = date >= EPOCH && date <= today;
       var cell = el("div", "cal-day" + (enabled ? "" : " off") + (date === today ? " today" : ""));
+      cell.setAttribute("data-date", date);
+      var currentMode = (view && view.session && view.session.mode) || "easy";
+      cell.setAttribute("data-mode", currentMode);
+      var res = dayStatus(date, currentMode);
+      if (res !== "none") cell.setAttribute("data-result", res === "inprogress" ? "in-progress" : res);
       cell.appendChild(el("span", "num", String(d)));
       ["easy", "hard"].forEach(function (mode) { cell.appendChild(makeChip(date, d, mode, enabled)); });
       grid.appendChild(cell);

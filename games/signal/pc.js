@@ -106,3 +106,53 @@ Object.defineProperty(window, "MobileDock", { configurable: true, get() { return
     });
   });
 })();
+
+// R4-SIPC-6: Archive hover previews
+(function () {
+  var preview = null;
+  var MODE_SIZES = { easy: "9×9", hard: "9×9", wide: "13×13", bigsky: "15×15" };
+
+  function showPreview(dayEl) {
+    if (!preview) {
+      preview = document.createElement("div");
+      preview.className = "cal-hover-preview";
+      dayEl.appendChild(preview);
+    }
+    var date = dayEl.getAttribute("data-date") || "";
+    var mode = (dayEl.getAttribute("data-mode") || "").toLowerCase();
+    var result = (dayEl.getAttribute("data-result") || "").toLowerCase();
+    var lines = [];
+    if (date) lines.push(date);
+    if (mode) {
+      var size = MODE_SIZES[mode] || "?×?";
+      lines.push(size + " " + mode.charAt(0).toUpperCase() + mode.slice(1));
+    }
+    if (result) {
+      var resText = result === "won" ? "✔ Won" : result === "lost" ? "✖ Lost" : result === "in-progress" ? "… In progress" : "";
+      if (resText) lines.push(resText);
+    }
+    preview.textContent = lines.join(" • ");
+    preview.hidden = false;
+  }
+
+  function hidePreview() {
+    if (preview && preview.parentNode) {
+      preview.parentNode.removeChild(preview);
+    }
+    preview = null;
+  }
+
+  document.addEventListener("DOMContentLoaded", function () {
+    var grid = document.getElementById("calendar-grid");
+    if (!grid) return;
+
+    grid.addEventListener("mouseover", function (e) {
+      var day = e.target.closest(".cal-day");
+      if (day) showPreview(day);
+    });
+    grid.addEventListener("mouseout", function (e) {
+      var day = e.target.closest(".cal-day");
+      if (day && !grid.contains(e.relatedTarget)) hidePreview();
+    });
+  });
+})();
