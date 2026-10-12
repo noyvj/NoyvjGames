@@ -1394,13 +1394,19 @@ def _action_settings(req, today_text=None):
 
 def _action_stats(today_text):
     modes = {}
+    total_solved = 0
     for m in PRESET_ORDER:
         entry = {"label": PRESETS[m]["label"], "daily_mode": PRESETS[m]["daily"], "practice": _practice_stats(m)}
         if PRESETS[m]["daily"]:
             entry["daily"] = compute_stats(m, "daily", today_text)
             entry["archive"] = compute_stats(m, "archive", today_text)
         modes[m] = entry
-    return _response(extra={"stats": modes, "best_streak": overall_best_streak(today_text) if S["settings"].get("show_streaks") else None})
+    for key, rec in S["days"].items():
+        if rec["result"] == "won":
+            total_solved += 1
+    for m in PRESET_ORDER:
+        total_solved += S["practice_stats"][m]["won"]
+    return _response(extra={"stats": modes, "best_streak": overall_best_streak(today_text) if S["settings"].get("show_streaks") else None, "total_solved": total_solved})
 
 
 def handle_dict(req):
