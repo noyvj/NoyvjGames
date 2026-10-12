@@ -43,6 +43,19 @@ window.SIGNAL_PC_TUTORIAL_STEPS = [
   },
 ];
 
+// Maybe notes (pencil marks) via right-click
+(function () {
+  var board = document.getElementById("board");
+  if (!board) return;
+  board.addEventListener("contextmenu", function (e) {
+    var cell = e.target.closest(".cell");
+    if (cell) {
+      e.preventDefault();
+      cell.classList.toggle("maybe");
+    }
+  });
+})();
+
 // The Desktop layout is for wide windows, so the shared mobile dock (which would lift the answer buttons
 // out of the side column into a fixed bar below 640px, and drop them back in the wrong place on widening)
 // is switched off here. shared/mobile-dock.js assigns window.MobileDock after this file runs; the setter
