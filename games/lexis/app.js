@@ -1151,6 +1151,17 @@
       renderBench();
     });
     guard("bench-check-button", function () { renderBench(); });
+    // Close the notebook sheet when turning to landscape so it doesn't overlap the scene.
+    window.addEventListener("orientationchange", function () {
+      if (window.matchMedia("(orientation: landscape)").matches) {
+        var panel = $("notebook-panel");
+        if (panel && panel.classList.contains("sheet-open")) {
+          panel.classList.remove("sheet-open");
+          var btn = $("notebook-toggle-button");
+          if (btn) btn.setAttribute("aria-expanded", "false");
+        }
+      }
+    });
     document.addEventListener("keydown", onKey);
   }
 

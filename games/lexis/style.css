@@ -298,3 +298,34 @@ html[data-reduced-motion="true"] .stamp, html[data-effects="off"] .stamp { anima
   html[data-reduced-motion="true"] #crew-log-entries { overflow-x: scroll; scrollbar-width: thin; }
   html[data-reduced-motion="true"] .log-entry { flex: 0 0 auto; margin-right: 1rem; box-shadow: none; border-top: 1px solid var(--line); padding-top: 0.5rem; }
 }
+
+/* Landscape on narrow screens: scene left, notebook right (work desk). */
+@media (max-width: 600px) and (orientation: landscape) {
+  #game {
+    max-width: none;
+    padding: 0.5rem;
+    display: flex;
+    gap: 1rem;
+    align-items: flex-start;
+  }
+  .planet-cols {
+    flex: 2;
+    min-width: 0;
+  }
+  #notebook-panel {
+    position: static;
+    max-height: none;
+    transform: none;
+    border-radius: 14px;
+    margin: 0;
+    z-index: auto;
+    overflow-y: visible;
+    flex: 1;
+    min-width: 0;
+    transition: none !important;
+  }
+  #notebook-panel.sheet-open {
+    transform: none;
+  }
+  .transmit-pad, .resume-btn { display: none !important; }
+}
