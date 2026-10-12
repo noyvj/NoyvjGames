@@ -75,8 +75,12 @@ html[data-layout="pc"] .pc-readout { color: var(--text); }
   background: var(--panel); color: var(--text); z-index: 100; font-size: inherit;
 }
 .pc-notebook-search-input[hidden] { display: none; }
-.notebook-list li.search-match {
+.notebook-list li.search-match,
+.notebook-list li.notebook-jumped {
   background: var(--accent); color: #fff; border-radius: 4px;
+}
+html[data-reduced-motion="true"] .notebook-list li.notebook-jumped {
+  transition: none;
 }
 
 /* Right-click context menu for signs (PC only) */

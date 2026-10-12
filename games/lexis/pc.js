@@ -349,3 +349,43 @@ document.addEventListener("DOMContentLoaded", function () {
     observer.observe(list, { childList: true });
   });
 });
+
+document.addEventListener("DOMContentLoaded", function () {
+  /* Double-click a scene to jump to its notebook entry (PC only) */
+  var reducedMotion = false;
+  function checkReducedMotion() {
+    try {
+      var val = window.localStorage.getItem("lexis-reduced-motion");
+      reducedMotion = val === "true";
+    } catch(e) { reducedMotion = false; }
+    if (!reducedMotion && window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      reducedMotion = true;
+    }
+  }
+  checkReducedMotion();
+
+  document.addEventListener("dblclick", function (e) {
+    var sceneLi = e.target.closest(".scene-list li");
+    if (!sceneLi) return;
+    
+    var sceneList = sceneLi.parentElement;
+    var scenes = Array.from(sceneList.children);
+    var sceneIndex = scenes.indexOf(sceneLi);
+    if (sceneIndex === -1) return;
+
+    var notebookList = document.querySelector(".notebook-list");
+    if (!notebookList) return;
+    var notebookItems = Array.from(notebookList.children);
+    var targetNotebook = notebookItems[sceneIndex];
+    if (!targetNotebook) return;
+
+    var behavior = reducedMotion ? "auto" : "smooth";
+    targetNotebook.scrollIntoView({ behavior: behavior, block: "nearest" });
+    
+    targetNotebook.classList.add("notebook-jumped");
+    setTimeout(function() { targetNotebook.classList.remove("notebook-jumped"); }, 1500);
+
+    var focusTarget = targetNotebook.querySelector("input, textarea, [contenteditable]");
+    if (focusTarget) focusTarget.focus();
+  });
+});
