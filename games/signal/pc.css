@@ -51,7 +51,16 @@ html[data-layout="pc"] #action-bar.mobile-docked { position: static; max-width: 
 }
 #pc-stage .cell-num { font-size: 1em; }
 #pc-stage .cell-glyph { font-size: 0.7em; top: 2px; right: 4px; }
-#pc-stage .cell-tag { font-size: 0.95em; left: 4px; bottom: 1px; }
+/* Maybe notes (pencil marks) */
+#pc-stage .cell.maybe::before {
+  content: "✎";
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  font-size: 0.7em;
+  color: var(--amber);
+  pointer-events: none;
+}
 #pc-stage .cell.marked::after { font-size: 1.05em; left: 4px; top: 0; }
 #pc-stage .axis { font-size: clamp(0.62rem, 1.6cqmin, 0.9rem); }
 #pc-stage > .message-line { margin: 0; min-height: 1.4em; font-size: 0.85rem; text-align: center; }
