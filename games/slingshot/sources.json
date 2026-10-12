@@ -1,0 +1,82 @@
+{
+  "game": "slingshot",
+  "updated": "2026-10-12",
+  "research": [
+    {
+      "title": "JPL Solar System Dynamics: Astrodynamic Parameters",
+      "by": "NASA Jet Propulsion Laboratory",
+      "url": "https://ssd.jpl.nasa.gov/astro_par.html",
+      "read": "2026-10-12",
+      "note": "Supplies the Sun's gravitational constant, the astronomical unit and the gravitational constants of Mercury and Venus (from the JPL planetary ephemeris DE440). A dated snapshot is kept in data/snapshot.json."
+    },
+    {
+      "title": "JPL Solar System Dynamics: Approximate Positions of the Planets (Table 1)",
+      "by": "NASA Jet Propulsion Laboratory",
+      "url": "https://ssd.jpl.nasa.gov/planets/approx_pos.html",
+      "read": "2026-10-12",
+      "note": "Supplies each planet's orbit radius and its mean longitude at J2000 and rate, which set where each planet starts on a mission's start date. The game draws every orbit as a circle, so a planet can be a few degrees from its real place."
+    },
+    {
+      "title": "JPL Solar System Dynamics: Planetary Physical Parameters",
+      "by": "NASA Jet Propulsion Laboratory",
+      "url": "https://ssd.jpl.nasa.gov/planets/phys_par.html",
+      "read": "2026-10-12",
+      "note": "Supplies each planet's mean radius and orbital period."
+    },
+    {
+      "title": "JPL Solar System Dynamics: Planetary Satellite Physical Parameters",
+      "by": "NASA Jet Propulsion Laboratory",
+      "url": "https://ssd.jpl.nasa.gov/sats/phys_par/",
+      "read": "2026-10-12",
+      "note": "Supplies the gravitational constants of Earth, Mars and the other planets, and the gravitational constant and mean radius of the Moon, Phobos and Deimos."
+    },
+    {
+      "title": "JPL Solar System Dynamics: Planetary Satellite Mean Elements",
+      "by": "NASA Jet Propulsion Laboratory",
+      "url": "https://ssd.jpl.nasa.gov/sats/elem/",
+      "read": "2026-10-12",
+      "note": "Supplies each moon's orbit radius and period."
+    },
+    {
+      "title": "NASA Planetary Fact Sheet",
+      "by": "NASA Space Science Data Coordinated Archive",
+      "url": "https://nssdc.gsfc.nasa.gov/planetary/factsheet/",
+      "read": "2026-10-12",
+      "note": "Used to cross-check the planets' sizes, distances and periods (the page was last updated 18 March 2025)."
+    },
+    {
+      "title": "Patched conic approximation, Gravity assist, Sphere of influence (astrodynamics), Hohmann transfer orbit",
+      "by": "Wikipedia",
+      "url": "https://en.wikipedia.org/wiki/Patched_conic_approximation",
+      "read": "2026-10-12",
+      "note": "Supply the four About page facts, reworded; each is linked from the About page with the day it was read."
+    }
+  ],
+  "inspiration": [
+    {
+      "title": "Kerbal Space Program",
+      "kind": "game",
+      "by": "Squad",
+      "note": "The idea of planning transfers and gravity assists between real-feeling worlds. Slingshot is the opposite in temperament: no piloting, no tutorial wall, a plan on a quiet chart."
+    },
+    {
+      "title": "Flow Free",
+      "kind": "game",
+      "by": "Big Duck Games",
+      "note": "The calm, untimed feel of a puzzle that is never lost."
+    }
+  ],
+  "other": [
+    {
+      "title": "Pyodide",
+      "by": "The Pyodide project",
+      "url": "https://pyodide.org/",
+      "note": "Runs the game's Python flight engine in the browser, so there is no server and no build step."
+    },
+    {
+      "title": "Kestrel Desk, Wren and the notes on each mission",
+      "by": "this project",
+      "note": "The mission desk, the probe and the short notes are invented for this game."
+    }
+  ]
+}

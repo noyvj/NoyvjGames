@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Slingshot - NoyvjGames</title>
+<meta name="description" content="Plan a probe's burns on a quiet chart, watch the flight play out exactly as planned, and use gravity assists to reach the Moon, Mars and its moons on a fuel budget. Real planet and moon data. Nothing is timed. Working title.">
+<link rel="icon" type="image/svg+xml" href="icons/favicon-slingshot.svg">
+<link rel="stylesheet" href="../../shared/theme-light-games.css">
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="../../shared/info-page.css">
+<script src="../../shared/theme.js"></script>
+<script src="../../shared/lite-mode.js"></script>
+<script src="../../shared/error-boundary.js" data-game-id="slingshot"></script>
+<script src="../../shared/perf-mark.js" data-game-id="slingshot"></script>
+<script src="../../shared/debug-overlay.js"></script>
+<script src="../../shared/info-footer.js" data-game-id="slingshot"></script>
+<script src="../../shared/announcer.js"></script>
+<script src="../../shared/report-problem.js" data-game-id="slingshot" data-mount=".game-toolbar"></script>
+<script src="../../shared/profile.js" data-game-id="slingshot"></script>
+<script src="../../shared/site-settings.js" data-game-id="slingshot"></script>
+<script src="settings.js"></script>
+<link rel="stylesheet" href="../../ad-bar.css">
+<link rel="manifest" href="../../manifest.json">
+<!-- Pyodide is loaded by app.js after first paint, so this shell is readable before the engine is warm. -->
+<link rel="stylesheet" href="../../shared/a11y.css">
+<link rel="stylesheet" href="../../shared/touch-targets.css">
+<link rel="stylesheet" href="../../shared/lite-mode.css">
+</head>
+<body>
+<a class="skip-link" href="#flight-panel">Skip to the flight planner</a>
+<main id="game">
+  <div class="top-row">
+    <a href="../../index.html" class="hub-back-link">&larr; All games</a>
+    <h1>Slingshot</h1>
+  </div>
+  <div class="game-toolbar">
+    <button id="missions-toggle-button" type="button" aria-expanded="false" aria-controls="missions-panel" data-testid="slingshot-missions-toggle">Missions</button>
+    <button id="atlas-toggle-button" type="button" aria-expanded="false" aria-controls="atlas-panel" data-testid="slingshot-atlas-toggle">Moon Atlas</button>
+    <button id="changelog-toggle-button" type="button" aria-expanded="false" aria-controls="changelog-panel"><span class="btn-long">What's New</span><span class="btn-short" aria-hidden="true">News</span></button>
+    <button id="settings-toggle-button" type="button" aria-expanded="false" aria-controls="settings-panel">Settings</button>
+    <button id="info-page-toggle-button" type="button" aria-expanded="false" aria-controls="info-page-panel">About</button>
+  </div>
+  <p class="tagline">Kestrel Desk plans the burns; a probe called Wren flies them. Choose when, which way and how hard, watch the whole flight appear on the chart, and reach the Moon, Mars and its moons on a fuel budget. Nothing is timed and a miss costs nothing.</p>
+
+  <section id="missions-panel" class="panel" hidden aria-labelledby="missions-heading">
+    <h2 id="missions-heading">Missions</h2>
+    <p class="note">Five finished missions in a chapter open the next chapter; inside a chapter, pick any mission in any order.</p>
+    <div id="chapter-list" class="chapters"></div>
+  </section>
+
+  <section id="atlas-panel" class="panel" hidden aria-labelledby="atlas-heading">
+    <h2 id="atlas-heading">Moon Atlas</h2>
+    <p class="note">Every place you can go, nearest the Sun on the left. Not to scale. A mark is one mission: a filled mark with a tick is done, with the fuel you used; an empty one is still to do. Press a mark to go to its mission.</p>
+    <div id="atlas-wrap" class="atlas-wrap">
+      <svg id="atlas" class="atlas" role="group" aria-label="The Moon Atlas, a chart of destinations" focusable="false"></svg>
+    </div>
+    <details id="atlas-text-box" class="text-alt">
+      <summary>Atlas as text</summary>
+      <div id="atlas-text"></div>
+    </details>
+    <h3 id="cards-heading">Destination cards</h3>
+    <p id="cards-empty" class="note">No cards yet. Finish a mission and the card for its destination, with real numbers and where they came from, is written here.</p>
+    <div id="atlas-cards" class="cards"></div>
+  </section>
+
+  <section id="changelog-panel" class="panel" hidden aria-labelledby="changelog-heading">
+    <h2 id="changelog-heading">What's New</h2>
+    <div id="changelog-entries"></div>
+  </section>
+  <section id="info-page-panel" class="panel" hidden aria-labelledby="info-page-heading">
+    <h2 id="info-page-heading">About Slingshot</h2>
+    <p id="info-page-framing" class="info-page-framing"></p>
+    <h3 id="pledge-heading"></h3>
+    <ul id="pledge-list" class="pledge-list"></ul>
+    <h3 id="how-heading"></h3>
+    <ul id="how-list"></ul>
+    <h3 id="model-heading"></h3>
+    <ul id="model-list"></ul>
+    <h3 id="facts-heading"></h3>
+    <ul id="info-page-sources" class="info-page-sources"></ul>
+    <p class="note"><a id="sources-link" href="../../sources.html?game=slingshot">All sources for this game</a></p>
+  </section>
+
+  <section id="settings-panel" class="panel" hidden aria-labelledby="settings-heading">
+    <h2 id="settings-heading">Settings</h2>
+    <h3>The chart</h3>
+    <div class="settings-row"><label><input type="checkbox" id="labels-checkbox" checked data-testid="slingshot-labels"> Show body names on the chart</label></div>
+    <h3>Display (stays on this device)</h3>
+    <div class="settings-row">
+      <span id="text-size-label">Text size</span>
+      <div class="text-size-control" role="group" aria-labelledby="text-size-label">
+        <button id="text-size-decrease-button" type="button" aria-label="Decrease text size">A&minus;</button>
+        <button id="text-size-reset-button" type="button" aria-label="Reset text size">A</button>
+        <button id="text-size-increase-button" type="button" aria-label="Increase text size">A+</button>
+      </div>
+    </div>
+    <div class="settings-row"><label><input type="checkbox" id="reduced-motion-checkbox"> Reduce motion (follows your system setting until you choose)</label></div>
+    <div class="settings-row"><label><input type="checkbox" id="effects-checkbox" checked> Effects (the glow on the path and the shine when a mission is done)</label></div>
+    <div class="settings-row"><label><input type="checkbox" id="high-contrast-checkbox"> High contrast (brighter text, thicker outlines)</label></div>
+    <div class="settings-row"><button id="theme-setting-button" type="button" aria-pressed="false">Light theme</button></div>
+    <div class="settings-row"><button id="display-reset-button" type="button">Reset display settings</button></div>
+    <div class="settings-row"><button id="reset-button" type="button" data-testid="slingshot-reset">Start over</button> <span class="note">Clears every mission, plan and count. It asks first.</span></div>
+  </section>
+  <p id="toast" class="note toast" role="status" aria-live="polite" title="Tap to dismiss"></p>
+
+  <section id="stats" class="stat-strip" aria-label="Your progress">
+    <div class="stat"><span class="stat-label">Missions</span><span id="stat-done" class="stat-value" data-testid="slingshot-stat-done">0</span></div>
+    <div class="stat"><span class="stat-label">Fuel saved</span><span id="stat-saved" class="stat-value" data-testid="slingshot-stat-saved">0</span></div>
+    <div class="stat"><span class="stat-label">Flights</span><span id="stat-flights" class="stat-value" data-testid="slingshot-stat-flights">0</span></div>
+    <div class="stat"><span class="stat-label">Chapters open</span><span id="stat-chapters" class="stat-value">1</span></div>
+    <div class="stat"><span class="stat-label">Burns set</span><span id="stat-edits" class="stat-value" data-testid="slingshot-stat-edits">0</span></div>
+  </section>
+
+  <section id="mission-panel" class="panel" aria-labelledby="mission-heading-main">
+    <p id="mission-kicker" class="note kicker"></p>
+    <h2 id="mission-heading-main">Mission</h2>
+    <div class="chart-nav button-row">
+      <button id="prev-mission-button" type="button" aria-label="Previous mission">&larr; Prev</button>
+      <button id="next-mission-button" type="button" aria-label="Next mission that is not done yet" data-testid="slingshot-next">Next &rarr;</button>
+    </div>
+    <p id="mission-brief" class="mission-brief"></p>
+    <p class="goal-line"><strong>Goal:</strong> <span id="mission-goal"></span></p>
+    <p id="mission-note" class="note desk-note"></p>
+    <div class="fuel-block">
+      <p id="fuel-text" class="fuel-text" data-testid="slingshot-fuel"></p>
+      <div class="fuel-meter" aria-hidden="true"><div id="fuel-fill" class="fuel-fill"></div><div class="fuel-ref" id="fuel-ref"></div></div>
+    </div>
+  </section>
+
+  <section id="flight-panel" class="panel" aria-labelledby="flight-heading" tabindex="-1">
+    <h2 id="flight-heading">Flight</h2>
+    <div id="chart-wrap" class="chart-wrap">
+      <svg id="chart" class="chart" role="img" tabindex="0" aria-labelledby="flight-heading" aria-describedby="scrub-readout" focusable="true"></svg>
+    </div>
+    <div class="scrub-row" role="group" aria-label="Time on the chart">
+      <button id="scrub-start-button" type="button" aria-label="Go to the start of the flight">|&lt;</button>
+      <button id="scrub-back-button" type="button" aria-label="One step back in time">&lt;</button>
+      <input id="scrub" type="range" min="0" max="0" step="1" value="0" aria-label="Time along the flight" data-testid="slingshot-scrub">
+      <button id="scrub-forward-button" type="button" aria-label="One step forward in time">&gt;</button>
+      <button id="scrub-end-button" type="button" aria-label="Go to the end of the flight">&gt;|</button>
+    </div>
+    <p id="scrub-readout" class="scrub-readout" data-testid="slingshot-readout"></p>
+    <div class="button-row">
+      <button id="scrub-play-button" type="button" data-testid="slingshot-play">Play the flight</button>
+      <button id="add-burn-here-button" type="button" data-testid="slingshot-add-here">Burn here</button>
+    </div>
+    <details id="closeup-box" class="text-alt" hidden>
+      <summary>Close-up of the pass</summary>
+      <div id="closeup" class="closeup"></div>
+    </details>
+    <details id="chart-text" class="text-alt chart-text">
+      <summary>Chart as text</summary>
+      <div id="chart-text-body"></div>
+    </details>
+  </section>
+
+  <section id="plan-panel" class="panel" aria-labelledby="plan-heading">
+    <h2 id="plan-heading">Plan</h2>
+    <p class="note">Each burn is instant. Direction is measured from Wren's own travel: 0 is straight ahead, 180 is backwards, 90 is to the left, -90 to the right.</p>
+    <div id="burn-list" class="burn-list"></div>
+    <div class="button-row">
+      <button id="add-burn-button" type="button" data-testid="slingshot-add">Add a burn</button>
+    </div>
+    <div id="pass-list" class="pass-list"></div>
+    <details id="more-pass-box" class="text-alt" hidden>
+      <summary>Closest-approach burns at other bodies</summary>
+      <div id="pass-list-more" class="pass-list"></div>
+    </details>
+    <div class="tools button-row" role="toolbar" aria-label="Plan tools">
+      <button id="undo-button" type="button" data-testid="slingshot-undo">Undo</button>
+      <button id="redo-button" type="button" data-testid="slingshot-redo">Redo</button>
+      <button id="clear-button" type="button" data-testid="slingshot-clear">Clear the plan</button>
+      <button id="fly-button" type="button" class="primary" data-testid="slingshot-fly">Fly this plan</button>
+    </div>
+  </section>
+
+  <section id="result-card" class="panel result-card" aria-labelledby="result-heading">
+    <h2 id="result-heading">What this plan does</h2>
+    <p id="result-title" class="result-title" role="status" data-testid="slingshot-result"></p>
+    <p id="result-verdict" class="result-verdict"></p>
+    <ul id="result-details" class="result-details"></ul>
+    <ul id="result-burns" class="result-burns"></ul>
+  </section>
+
+  <div id="done-card" class="done-card" hidden role="status">
+    <p id="done-title" class="done-title"></p>
+    <p id="done-text" class="note"></p>
+    <div class="button-row">
+      <button id="done-next-button" type="button" class="primary" data-testid="slingshot-done-next">Next mission</button>
+      <button id="done-atlas-button" type="button">See the atlas</button>
+    </div>
+  </div>
+
+  <p id="engine-status" class="note" role="status">Opening Kestrel Desk...</p>
+  <p id="announce" class="sr-only" role="status" aria-live="polite"></p>
+  <p class="note keys-note">Keys: with the chart focused, Left and Right move the time by one step, Page Up and Page Down by ten, Home and End jump to the start and end. B adds a burn at that time. F flies the plan. Ctrl or Cmd with Z undoes, with Shift redoes. Escape closes an open panel.</p>
+</main>
+
+<a id="credits-link" class="credits-link" href="../../credits.html" style="display:block;text-align:center;font-size:0.85rem;margin:0.75rem 0;color:inherit;">Credits</a>
+<div class="ad-bar ad-bar--bottom">
+  <span class="ad-bar-label ad-bar-label-full">Advertisement — not part of the game</span>
+  <span class="ad-bar-label ad-bar-label-short">Ad</span>
+  <!-- Google AdSense manual display ad unit (placeholder client ID until the application is approved) -->
+  <ins class="adsbygoogle"
+       style="display:block; width:320px; height:50px;"
+       data-ad-client="ca-pub-XXXXXXXXXXXXXXXX"
+       data-ad-slot="XXXXXXXXXX"></ins>
+</div>
+<script src="https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.js"></script>
+<script src="../../shared/hub-auth.js"></script>
+<script src="../../shared/save-widget.js" data-game-id="slingshot"></script>
+<script src="../../shared/confirm-dialog.js"></script>
+<script src="app.js"></script>
+<script src="../../shared/last-played.js" data-game-id="slingshot"></script>
+<script src="../../shared/whats-new-banner.js" data-game-id="slingshot"></script>
+<script>
+  if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.register("../../sw.js").catch(function () { /* offline support is optional */ });
+  }
+</script>
+</body>
+</html>
