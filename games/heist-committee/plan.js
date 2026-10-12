@@ -393,4 +393,12 @@
   $("start-heist-button").addEventListener("click", function () {
     HC.ask("heist-start", "Start the heist? The plan is fixed once it begins.", "Start Heist", function () { armed = null; selected = null; HC.send({ action: "start_heist" }); });
   });
+
+  // Expose right-click menu actions for pc.js to call
+  window.heistPlanOps = {
+    clear: function(lane, beat) { HC.send({ action: "clear", lane: +lane, beat: +beat }); },
+    copy: function(lane, beat) { console.log("Copy from cell", lane, beat); },
+    swap: function(lane, beat) { console.log("Swap with cell", lane, beat); },
+    odds: function(lane, beat) { console.log("Odds for lane", lane, "beat", beat); }
+  };
 })();
