@@ -17,7 +17,7 @@
     },
     {
      "path": "games/sol/changelog.json",
-     "bytes": 14374,
+     "bytes": 14851,
      "precached": false
     },
     {
@@ -27,7 +27,7 @@
     },
     {
      "path": "games/sol/game.py",
-     "bytes": 370915,
+     "bytes": 375122,
      "precached": true
     },
     {
@@ -37,7 +37,7 @@
     },
     {
      "path": "games/sol/index.html",
-     "bytes": 94068,
+     "bytes": 94634,
      "precached": true
     },
     {
@@ -52,7 +52,7 @@
     },
     {
      "path": "games/sol/pc.html",
-     "bytes": 98389,
+     "bytes": 98955,
      "precached": true
     },
     {
@@ -72,7 +72,7 @@
     },
     {
      "path": "games/sol/style.css",
-     "bytes": 59197,
+     "bytes": 59540,
      "precached": true
     }
    ],
@@ -133,6 +133,11 @@
      "precached": false
     },
     {
+     "path": "shared/ghost.py",
+     "bytes": 13517,
+     "precached": true
+    },
+    {
      "path": "shared/goals-panel.css",
      "bytes": 4364,
      "precached": false
@@ -188,6 +193,16 @@
      "precached": false
     },
     {
+     "path": "shared/night-mode.css",
+     "bytes": 2951,
+     "precached": true
+    },
+    {
+     "path": "shared/night-mode.js",
+     "bytes": 10663,
+     "precached": true
+    },
+    {
      "path": "shared/opening-screen.js",
      "bytes": 27851,
      "precached": false
@@ -225,6 +240,11 @@
     {
      "path": "shared/save-widget.js",
      "bytes": 106612,
+     "precached": true
+    },
+    {
+     "path": "shared/seed.js",
+     "bytes": 29042,
      "precached": true
     },
     {
@@ -310,7 +330,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14922496,
+   "bytes": 14984828,
    "bytes_complete": true
   },
   "canopy": {
@@ -322,17 +342,17 @@
     },
     {
      "path": "games/canopy/changelog.json",
-     "bytes": 22693,
+     "bytes": 23830,
      "precached": false
     },
     {
      "path": "games/canopy/game.py",
-     "bytes": 486700,
+     "bytes": 499487,
      "precached": true
     },
     {
      "path": "games/canopy/index.html",
-     "bytes": 92697,
+     "bytes": 94572,
      "precached": true
     },
     {
@@ -352,7 +372,7 @@
     },
     {
      "path": "games/canopy/pc.html",
-     "bytes": 97413,
+     "bytes": 99288,
      "precached": true
     },
     {
@@ -423,6 +443,16 @@
      "precached": true
     },
     {
+     "path": "shared/calm-mode.css",
+     "bytes": 4542,
+     "precached": true
+    },
+    {
+     "path": "shared/calm-mode.js",
+     "bytes": 12127,
+     "precached": true
+    },
+    {
      "path": "shared/community-pool.js",
      "bytes": 4091,
      "precached": false
@@ -445,6 +475,11 @@
     {
      "path": "shared/error-boundary.js",
      "bytes": 9714,
+     "precached": true
+    },
+    {
+     "path": "shared/ghost.py",
+     "bytes": 13517,
      "precached": true
     },
     {
@@ -513,6 +548,16 @@
      "precached": false
     },
     {
+     "path": "shared/night-mode.css",
+     "bytes": 2951,
+     "precached": true
+    },
+    {
+     "path": "shared/night-mode.js",
+     "bytes": 10663,
+     "precached": true
+    },
+    {
      "path": "shared/opening-screen.js",
      "bytes": 27851,
      "precached": false
@@ -560,6 +605,11 @@
     {
      "path": "shared/save-widget.js",
      "bytes": 106612,
+     "precached": true
+    },
+    {
+     "path": "shared/seed.js",
+     "bytes": 29042,
      "precached": true
     },
     {
@@ -660,7 +710,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 15157501,
+   "bytes": 15248017,
    "bytes_complete": true
   },
   "grid": {
@@ -672,17 +722,17 @@
     },
     {
      "path": "games/grid/changelog.json",
-     "bytes": 14897,
+     "bytes": 15797,
      "precached": false
     },
     {
      "path": "games/grid/game.py",
-     "bytes": 340547,
+     "bytes": 346958,
      "precached": true
     },
     {
      "path": "games/grid/index.html",
-     "bytes": 77548,
+     "bytes": 79105,
      "precached": true
     },
     {
@@ -697,7 +747,7 @@
     },
     {
      "path": "games/grid/pc.html",
-     "bytes": 82389,
+     "bytes": 83946,
      "precached": true
     },
     {
@@ -793,6 +843,11 @@
      "precached": true
     },
     {
+     "path": "shared/ghost.py",
+     "bytes": 13517,
+     "precached": true
+    },
+    {
      "path": "shared/hub-auth.js",
      "bytes": 1356,
      "precached": true
@@ -848,6 +903,16 @@
      "precached": false
     },
     {
+     "path": "shared/night-mode.css",
+     "bytes": 2951,
+     "precached": true
+    },
+    {
+     "path": "shared/night-mode.js",
+     "bytes": 10663,
+     "precached": true
+    },
+    {
      "path": "shared/opening-screen.js",
      "bytes": 27851,
      "precached": false
@@ -895,6 +960,11 @@
     {
      "path": "shared/save-widget.js",
      "bytes": 106612,
+     "precached": true
+    },
+    {
+     "path": "shared/seed.js",
+     "bytes": 29042,
      "precached": true
     },
     {
@@ -985,7 +1055,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14874163,
+   "bytes": 14940761,
    "bytes_complete": true
   },
   "tide": {
@@ -1007,7 +1077,7 @@
     },
     {
      "path": "games/tide/index.html",
-     "bytes": 76981,
+     "bytes": 77086,
      "precached": true
     },
     {
@@ -1022,7 +1092,7 @@
     },
     {
      "path": "games/tide/pc.html",
-     "bytes": 81307,
+     "bytes": 81412,
      "precached": true
     },
     {
@@ -1090,6 +1160,16 @@
     {
      "path": "shared/announcer.js",
      "bytes": 4713,
+     "precached": true
+    },
+    {
+     "path": "shared/calm-mode.css",
+     "bytes": 4542,
+     "precached": true
+    },
+    {
+     "path": "shared/calm-mode.js",
+     "bytes": 12127,
      "precached": true
     },
     {
@@ -1171,6 +1251,16 @@
      "path": "shared/mobile-hud.js",
      "bytes": 4491,
      "precached": false
+    },
+    {
+     "path": "shared/night-mode.css",
+     "bytes": 2951,
+     "precached": true
+    },
+    {
+     "path": "shared/night-mode.js",
+     "bytes": 10663,
+     "precached": true
     },
     {
      "path": "shared/opening-screen.js",
@@ -1285,7 +1375,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14852477,
+   "bytes": 14882970,
    "bytes_complete": true
   },
   "aftermath": {
@@ -1297,22 +1387,22 @@
     },
     {
      "path": "games/aftermath/changelog.json",
-     "bytes": 21473,
+     "bytes": 22661,
      "precached": false
     },
     {
      "path": "games/aftermath/game.py",
-     "bytes": 354491,
+     "bytes": 367607,
      "precached": true
     },
     {
      "path": "games/aftermath/index.html",
-     "bytes": 74875,
+     "bytes": 76584,
      "precached": true
     },
     {
      "path": "games/aftermath/pc-config.json",
-     "bytes": 4863,
+     "bytes": 4892,
      "precached": false
     },
     {
@@ -1322,7 +1412,7 @@
     },
     {
      "path": "games/aftermath/pc.html",
-     "bytes": 79078,
+     "bytes": 80816,
      "precached": true
     },
     {
@@ -1483,6 +1573,16 @@
      "precached": false
     },
     {
+     "path": "shared/night-mode.css",
+     "bytes": 2951,
+     "precached": true
+    },
+    {
+     "path": "shared/night-mode.js",
+     "bytes": 10663,
+     "precached": true
+    },
+    {
      "path": "shared/opening-screen.js",
      "bytes": 27851,
      "precached": false
@@ -1540,6 +1640,11 @@
     {
      "path": "shared/seasonal-events.js",
      "bytes": 25112,
+     "precached": true
+    },
+    {
+     "path": "shared/seed.js",
+     "bytes": 29042,
      "precached": true
     },
     {
@@ -1605,7 +1710,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14946374,
+   "bytes": 15006810,
    "bytes_complete": true
   },
   "herd": {
@@ -1617,17 +1722,17 @@
     },
     {
      "path": "games/herd/changelog.json",
-     "bytes": 21903,
+     "bytes": 22526,
      "precached": false
     },
     {
      "path": "games/herd/game.py",
-     "bytes": 287719,
+     "bytes": 297128,
      "precached": true
     },
     {
      "path": "games/herd/index.html",
-     "bytes": 71346,
+     "bytes": 72028,
      "precached": true
     },
     {
@@ -1642,7 +1747,7 @@
     },
     {
      "path": "games/herd/pc.html",
-     "bytes": 75015,
+     "bytes": 75697,
      "precached": true
     },
     {
@@ -1738,6 +1843,11 @@
      "precached": false
     },
     {
+     "path": "shared/ghost.py",
+     "bytes": 13517,
+     "precached": true
+    },
+    {
      "path": "shared/hub-auth.js",
      "bytes": 1356,
      "precached": true
@@ -1791,6 +1901,16 @@
      "path": "shared/mobile-hud.js",
      "bytes": 4491,
      "precached": false
+    },
+    {
+     "path": "shared/night-mode.css",
+     "bytes": 2951,
+     "precached": true
+    },
+    {
+     "path": "shared/night-mode.js",
+     "bytes": 10663,
+     "precached": true
     },
     {
      "path": "shared/opening-screen.js",
@@ -1915,7 +2035,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14809373,
+   "bytes": 14847900,
    "bytes_complete": true
   },
   "thaw": {
@@ -1927,17 +2047,17 @@
     },
     {
      "path": "games/thaw/changelog.json",
-     "bytes": 17197,
+     "bytes": 17814,
      "precached": false
     },
     {
      "path": "games/thaw/game.py",
-     "bytes": 287503,
+     "bytes": 292173,
      "precached": true
     },
     {
      "path": "games/thaw/index.html",
-     "bytes": 68278,
+     "bytes": 68825,
      "precached": true
     },
     {
@@ -1952,7 +2072,7 @@
     },
     {
      "path": "games/thaw/pc.html",
-     "bytes": 72478,
+     "bytes": 73025,
      "precached": true
     },
     {
@@ -1972,7 +2092,7 @@
     },
     {
      "path": "games/thaw/style.css",
-     "bytes": 61374,
+     "bytes": 61580,
      "precached": true
     }
    ],
@@ -2033,6 +2153,11 @@
      "precached": true
     },
     {
+     "path": "shared/ghost.py",
+     "bytes": 13517,
+     "precached": true
+    },
+    {
      "path": "shared/hub-auth.js",
      "bytes": 1356,
      "precached": true
@@ -2086,6 +2211,16 @@
      "path": "shared/narrative_log.py",
      "bytes": 8585,
      "precached": false
+    },
+    {
+     "path": "shared/night-mode.css",
+     "bytes": 2951,
+     "precached": true
+    },
+    {
+     "path": "shared/night-mode.js",
+     "bytes": 10663,
+     "precached": true
     },
     {
      "path": "shared/opening-screen.js",
@@ -2190,7 +2325,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14711117,
+   "bytes": 14744835,
    "bytes_complete": true
   },
   "loop": {
@@ -2212,7 +2347,7 @@
     },
     {
      "path": "games/loop/index.html",
-     "bytes": 62170,
+     "bytes": 62223,
      "precached": true
     },
     {
@@ -2227,7 +2362,7 @@
     },
     {
      "path": "games/loop/pc.html",
-     "bytes": 65329,
+     "bytes": 65382,
      "precached": true
     },
     {
@@ -2373,6 +2508,16 @@
      "precached": false
     },
     {
+     "path": "shared/night-mode.css",
+     "bytes": 2951,
+     "precached": true
+    },
+    {
+     "path": "shared/night-mode.js",
+     "bytes": 10663,
+     "precached": true
+    },
+    {
      "path": "shared/opening-screen.js",
      "bytes": 27851,
      "precached": false
@@ -2475,7 +2620,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14707395,
+   "bytes": 14721115,
    "bytes_complete": true
   },
   "drift": {
@@ -2497,7 +2642,7 @@
     },
     {
      "path": "games/drift/index.html",
-     "bytes": 63069,
+     "bytes": 63122,
      "precached": true
     },
     {
@@ -2512,7 +2657,7 @@
     },
     {
      "path": "games/drift/pc.html",
-     "bytes": 66243,
+     "bytes": 66296,
      "precached": true
     },
     {
@@ -2663,6 +2808,16 @@
      "precached": false
     },
     {
+     "path": "shared/night-mode.css",
+     "bytes": 2951,
+     "precached": true
+    },
+    {
+     "path": "shared/night-mode.js",
+     "bytes": 10663,
+     "precached": true
+    },
+    {
      "path": "shared/opening-screen.js",
      "bytes": 27851,
      "precached": false
@@ -2765,7 +2920,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14733127,
+   "bytes": 14746847,
    "bytes_complete": true
   },
   "champ-de-mots": {
@@ -2802,7 +2957,7 @@
     },
     {
      "path": "games/champ-de-mots/index.html",
-     "bytes": 91371,
+     "bytes": 91476,
      "precached": true
     },
     {
@@ -2827,7 +2982,7 @@
     },
     {
      "path": "games/champ-de-mots/pc.html",
-     "bytes": 97171,
+     "bytes": 97276,
      "precached": true
     },
     {
@@ -2895,6 +3050,16 @@
     {
      "path": "shared/ambient-bg.css",
      "bytes": 16268,
+     "precached": true
+    },
+    {
+     "path": "shared/calm-mode.css",
+     "bytes": 4542,
+     "precached": true
+    },
+    {
+     "path": "shared/calm-mode.js",
+     "bytes": 12127,
      "precached": true
     },
     {
@@ -2966,6 +3131,16 @@
      "path": "shared/narrative_log.py",
      "bytes": 8585,
      "precached": false
+    },
+    {
+     "path": "shared/night-mode.css",
+     "bytes": 2951,
+     "precached": true
+    },
+    {
+     "path": "shared/night-mode.js",
+     "bytes": 10663,
+     "precached": true
     },
     {
      "path": "shared/opening-screen.js",
@@ -3075,7 +3250,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 15583491,
+   "bytes": 15613984,
    "bytes_complete": true
   },
   "continuum": {
@@ -3197,7 +3372,7 @@
     },
     {
      "path": "games/continuum/index.html",
-     "bytes": 86368,
+     "bytes": 86421,
      "precached": true
     },
     {
@@ -3252,7 +3427,7 @@
     },
     {
      "path": "games/continuum/pc.html",
-     "bytes": 91037,
+     "bytes": 91090,
      "precached": true
     },
     {
@@ -3488,6 +3663,16 @@
      "precached": false
     },
     {
+     "path": "shared/night-mode.css",
+     "bytes": 2951,
+     "precached": true
+    },
+    {
+     "path": "shared/night-mode.js",
+     "bytes": 10663,
+     "precached": true
+    },
+    {
      "path": "shared/opening-screen.js",
      "bytes": 27851,
      "precached": false
@@ -3630,7 +3815,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 16243814,
+   "bytes": 16257534,
    "bytes_complete": true
   },
   "signal": {
@@ -3657,7 +3842,7 @@
     },
     {
      "path": "games/signal/index.html",
-     "bytes": 19143,
+     "bytes": 19244,
      "precached": true
     },
     {
@@ -3672,7 +3857,7 @@
     },
     {
      "path": "games/signal/pc.html",
-     "bytes": 21964,
+     "bytes": 22065,
      "precached": true
     },
     {
@@ -3726,6 +3911,16 @@
      "path": "shared/achievement-stats.js",
      "bytes": 12523,
      "precached": false
+    },
+    {
+     "path": "shared/calm-mode.css",
+     "bytes": 4542,
+     "precached": true
+    },
+    {
+     "path": "shared/calm-mode.js",
+     "bytes": 12127,
+     "precached": true
     },
     {
      "path": "shared/confirm-dialog.js",
@@ -3791,6 +3986,16 @@
      "path": "shared/mobile-dock.js",
      "bytes": 3392,
      "precached": false
+    },
+    {
+     "path": "shared/night-mode.css",
+     "bytes": 2951,
+     "precached": true
+    },
+    {
+     "path": "shared/night-mode.js",
+     "bytes": 10663,
+     "precached": true
     },
     {
      "path": "shared/opening-screen.js",
@@ -3859,7 +4064,7 @@
     }
    ],
    "cdn": [],
-   "bytes": 551024,
+   "bytes": 581509,
    "bytes_complete": true
   },
   "lexis": {
@@ -3931,7 +4136,7 @@
     },
     {
      "path": "games/lexis/index.html",
-     "bytes": 20042,
+     "bytes": 20143,
      "precached": true
     },
     {
@@ -3966,7 +4171,7 @@
     },
     {
      "path": "games/lexis/pc.html",
-     "bytes": 22265,
+     "bytes": 22366,
      "precached": true
     },
     {
@@ -4042,6 +4247,16 @@
      "precached": true
     },
     {
+     "path": "shared/calm-mode.css",
+     "bytes": 4542,
+     "precached": true
+    },
+    {
+     "path": "shared/calm-mode.js",
+     "bytes": 12127,
+     "precached": true
+    },
+    {
      "path": "shared/copy-result.js",
      "bytes": 9681,
      "precached": true
@@ -4094,6 +4309,16 @@
     {
      "path": "shared/lite-mode.js",
      "bytes": 8153,
+     "precached": true
+    },
+    {
+     "path": "shared/night-mode.css",
+     "bytes": 2951,
+     "precached": true
+    },
+    {
+     "path": "shared/night-mode.js",
+     "bytes": 10663,
      "precached": true
     },
     {
@@ -4194,7 +4419,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14310587,
+   "bytes": 14341072,
    "bytes_complete": true
   },
   "heist-committee": {
@@ -4211,7 +4436,7 @@
     },
     {
      "path": "games/heist-committee/app.js",
-     "bytes": 27189,
+     "bytes": 29402,
      "precached": true
     },
     {
@@ -4221,7 +4446,7 @@
     },
     {
      "path": "games/heist-committee/changelog.json",
-     "bytes": 1117,
+     "bytes": 1415,
      "precached": true
     },
     {
@@ -4276,7 +4501,7 @@
     },
     {
      "path": "games/heist-committee/daily.js",
-     "bytes": 6588,
+     "bytes": 7324,
      "precached": true
     },
     {
@@ -4291,7 +4516,7 @@
     },
     {
      "path": "games/heist-committee/game.py",
-     "bytes": 43537,
+     "bytes": 45223,
      "precached": true
     },
     {
@@ -4306,7 +4531,7 @@
     },
     {
      "path": "games/heist-committee/index.html",
-     "bytes": 14804,
+     "bytes": 14900,
      "precached": true
     },
     {
@@ -4326,7 +4551,7 @@
     },
     {
      "path": "games/heist-committee/pc.html",
-     "bytes": 16938,
+     "bytes": 17034,
      "precached": true
     },
     {
@@ -4477,6 +4702,16 @@
      "precached": false
     },
     {
+     "path": "shared/night-mode.css",
+     "bytes": 2951,
+     "precached": true
+    },
+    {
+     "path": "shared/night-mode.js",
+     "bytes": 10663,
+     "precached": true
+    },
+    {
      "path": "shared/opening-screen.js",
      "bytes": 27851,
      "precached": false
@@ -4509,6 +4744,11 @@
     {
      "path": "shared/save-widget.js",
      "bytes": 106612,
+     "precached": true
+    },
+    {
+     "path": "shared/seed.js",
+     "bytes": 29042,
      "precached": true
     },
     {
@@ -4574,7 +4814,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14515299,
+   "bytes": 14563080,
    "bytes_complete": true
   },
   "lighthouse": {
@@ -4591,7 +4831,7 @@
     },
     {
      "path": "games/lighthouse/app.js",
-     "bytes": 76281,
+     "bytes": 79845,
      "precached": true
     },
     {
@@ -4601,7 +4841,7 @@
     },
     {
      "path": "games/lighthouse/changelog.json",
-     "bytes": 3402,
+     "bytes": 4085,
      "precached": true
     },
     {
@@ -4621,7 +4861,7 @@
     },
     {
      "path": "games/lighthouse/game.py",
-     "bytes": 9048,
+     "bytes": 9258,
      "precached": true
     },
     {
@@ -4641,7 +4881,7 @@
     },
     {
      "path": "games/lighthouse/index.html",
-     "bytes": 27344,
+     "bytes": 27847,
      "precached": true
     },
     {
@@ -4671,7 +4911,7 @@
     },
     {
      "path": "games/lighthouse/pc.html",
-     "bytes": 29696,
+     "bytes": 30199,
      "precached": true
     },
     {
@@ -4706,7 +4946,7 @@
     },
     {
      "path": "games/lighthouse/state.py",
-     "bytes": 19687,
+     "bytes": 20604,
      "precached": true
     },
     {
@@ -4726,7 +4966,7 @@
     },
     {
      "path": "games/lighthouse/view.py",
-     "bytes": 9618,
+     "bytes": 9647,
      "precached": true
     },
     {
@@ -4764,6 +5004,16 @@
     {
      "path": "shared/ambient-bg.css",
      "bytes": 16268,
+     "precached": true
+    },
+    {
+     "path": "shared/calm-mode.css",
+     "bytes": 4542,
+     "precached": true
+    },
+    {
+     "path": "shared/calm-mode.js",
+     "bytes": 12127,
      "precached": true
     },
     {
@@ -4837,6 +5087,16 @@
      "precached": false
     },
     {
+     "path": "shared/night-mode.css",
+     "bytes": 2951,
+     "precached": true
+    },
+    {
+     "path": "shared/night-mode.js",
+     "bytes": 10663,
+     "precached": true
+    },
+    {
      "path": "shared/opening-screen.js",
      "bytes": 27851,
      "precached": false
@@ -4874,6 +5134,11 @@
     {
      "path": "shared/save-widget.js",
      "bytes": 106612,
+     "precached": true
+    },
+    {
+     "path": "shared/seed.js",
+     "bytes": 29042,
      "precached": true
     },
     {
@@ -4959,7 +5224,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14553815,
+   "bytes": 14619549,
    "bytes_complete": true
   },
   "pocket-bazaar": {
@@ -4976,7 +5241,7 @@
     },
     {
      "path": "games/pocket-bazaar/app.js",
-     "bytes": 40542,
+     "bytes": 41953,
      "precached": true
     },
     {
@@ -4986,7 +5251,7 @@
     },
     {
      "path": "games/pocket-bazaar/changelog.json",
-     "bytes": 1622,
+     "bytes": 1950,
      "precached": true
     },
     {
@@ -5011,7 +5276,7 @@
     },
     {
      "path": "games/pocket-bazaar/game.py",
-     "bytes": 27463,
+     "bytes": 29197,
      "precached": true
     },
     {
@@ -5026,7 +5291,7 @@
     },
     {
      "path": "games/pocket-bazaar/index.html",
-     "bytes": 17228,
+     "bytes": 17768,
      "precached": true
     },
     {
@@ -5036,7 +5301,7 @@
     },
     {
      "path": "games/pocket-bazaar/market.js",
-     "bytes": 8712,
+     "bytes": 9398,
      "precached": true
     },
     {
@@ -5066,7 +5331,7 @@
     },
     {
      "path": "games/pocket-bazaar/pc.html",
-     "bytes": 19161,
+     "bytes": 19701,
      "precached": true
     },
     {
@@ -5147,6 +5412,16 @@
      "precached": true
     },
     {
+     "path": "shared/calm-mode.css",
+     "bytes": 4542,
+     "precached": true
+    },
+    {
+     "path": "shared/calm-mode.js",
+     "bytes": 12127,
+     "precached": true
+    },
+    {
      "path": "shared/confirm-dialog.js",
      "bytes": 10900,
      "precached": false
@@ -5202,6 +5477,16 @@
      "precached": true
     },
     {
+     "path": "shared/night-mode.css",
+     "bytes": 2951,
+     "precached": true
+    },
+    {
+     "path": "shared/night-mode.js",
+     "bytes": 10663,
+     "precached": true
+    },
+    {
      "path": "shared/opening-screen.js",
      "bytes": 27851,
      "precached": false
@@ -5239,6 +5524,11 @@
     {
      "path": "shared/save-widget.js",
      "bytes": 106612,
+     "precached": true
+    },
+    {
+     "path": "shared/seed.js",
+     "bytes": 29042,
      "precached": true
     },
     {
@@ -5304,7 +5594,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14363040,
+   "bytes": 14427604,
    "bytes_complete": true
   },
   "dead-reckoning": {
@@ -5331,7 +5621,7 @@
     },
     {
      "path": "games/dead-reckoning/chartkit.py",
-     "bytes": 3078,
+     "bytes": 3223,
      "precached": true
     },
     {
@@ -5387,7 +5677,7 @@
     },
     {
      "path": "games/dead-reckoning/daily.js",
-     "bytes": 7776,
+     "bytes": 8526,
      "precached": true
     },
     {
@@ -5439,7 +5729,7 @@
     },
     {
      "path": "games/dead-reckoning/index.html",
-     "bytes": 19898,
+     "bytes": 20044,
      "precached": true
     },
     {
@@ -5449,7 +5739,7 @@
     },
     {
      "path": "games/dead-reckoning/modules.json",
-     "bytes": 1826,
+     "bytes": 2043,
      "precached": false
     },
     {
@@ -5469,7 +5759,7 @@
     },
     {
      "path": "games/dead-reckoning/pc.html",
-     "bytes": 22041,
+     "bytes": 22187,
      "precached": true
     },
     {
@@ -5501,6 +5791,12 @@
      "path": "games/dead-reckoning/solver.py",
      "bytes": 5200,
      "precached": true
+    },
+    {
+     "path": "games/dead-reckoning/soundings.py",
+     "bytes": 2413,
+     "precached": false,
+     "pack": "soundings"
     },
     {
      "path": "games/dead-reckoning/sources.json",
@@ -5567,6 +5863,16 @@
     {
      "path": "shared/achievement-share.js",
      "bytes": 13153,
+     "precached": true
+    },
+    {
+     "path": "shared/calm-mode.css",
+     "bytes": 4542,
+     "precached": true
+    },
+    {
+     "path": "shared/calm-mode.js",
+     "bytes": 12127,
      "precached": true
     },
     {
@@ -5650,6 +5956,16 @@
      "precached": false
     },
     {
+     "path": "shared/night-mode.css",
+     "bytes": 2951,
+     "precached": true
+    },
+    {
+     "path": "shared/night-mode.js",
+     "bytes": 10663,
+     "precached": true
+    },
+    {
      "path": "shared/opening-screen.js",
      "bytes": 27851,
      "precached": false
@@ -5682,6 +5998,11 @@
     {
      "path": "shared/save-widget.js",
      "bytes": 106612,
+     "precached": true
+    },
+    {
+     "path": "shared/seed.js",
+     "bytes": 29042,
      "precached": true
     },
     {
@@ -5747,7 +6068,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14547509,
+   "bytes": 14610651,
    "bytes_complete": true
   },
   "logic-gates": {
@@ -5794,7 +6115,7 @@
     },
     {
      "path": "games/logic-gates/index.html",
-     "bytes": 15381,
+     "bytes": 15482,
      "precached": true
     },
     {
@@ -5839,7 +6160,7 @@
     },
     {
      "path": "games/logic-gates/pc.html",
-     "bytes": 17717,
+     "bytes": 17818,
      "precached": true
     },
     {
@@ -5910,6 +6231,16 @@
      "precached": true
     },
     {
+     "path": "shared/calm-mode.css",
+     "bytes": 4542,
+     "precached": true
+    },
+    {
+     "path": "shared/calm-mode.js",
+     "bytes": 12127,
+     "precached": true
+    },
+    {
      "path": "shared/confirm-dialog.js",
      "bytes": 10900,
      "precached": false
@@ -5972,6 +6303,16 @@
     {
      "path": "shared/lite-mode.js",
      "bytes": 8153,
+     "precached": true
+    },
+    {
+     "path": "shared/night-mode.css",
+     "bytes": 2951,
+     "precached": true
+    },
+    {
+     "path": "shared/night-mode.js",
+     "bytes": 10663,
      "precached": true
     },
     {
@@ -6087,7 +6428,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14374530,
+   "bytes": 14405015,
    "bytes_complete": true
   },
   "robot-script": {
@@ -6144,7 +6485,7 @@
     },
     {
      "path": "games/robot-script/index.html",
-     "bytes": 17872,
+     "bytes": 17973,
      "precached": true
     },
     {
@@ -6164,7 +6505,7 @@
     },
     {
      "path": "games/robot-script/pc.html",
-     "bytes": 19955,
+     "bytes": 20056,
      "precached": true
     },
     {
@@ -6285,6 +6626,16 @@
      "precached": true
     },
     {
+     "path": "shared/calm-mode.css",
+     "bytes": 4542,
+     "precached": true
+    },
+    {
+     "path": "shared/calm-mode.js",
+     "bytes": 12127,
+     "precached": true
+    },
+    {
      "path": "shared/confirm-dialog.js",
      "bytes": 10900,
      "precached": false
@@ -6347,6 +6698,16 @@
     {
      "path": "shared/lite-mode.js",
      "bytes": 8153,
+     "precached": true
+    },
+    {
+     "path": "shared/night-mode.css",
+     "bytes": 2951,
+     "precached": true
+    },
+    {
+     "path": "shared/night-mode.js",
+     "bytes": 10663,
      "precached": true
     },
     {
@@ -6447,7 +6808,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14366483,
+   "bytes": 14396968,
    "bytes_complete": true
   },
   "hull-repair": {
@@ -6519,7 +6880,7 @@
     },
     {
      "path": "games/hull-repair/index.html",
-     "bytes": 14744,
+     "bytes": 14845,
      "precached": true
     },
     {
@@ -6544,7 +6905,7 @@
     },
     {
      "path": "games/hull-repair/pc.html",
-     "bytes": 16771,
+     "bytes": 16872,
      "precached": true
     },
     {
@@ -6625,6 +6986,16 @@
      "precached": true
     },
     {
+     "path": "shared/calm-mode.css",
+     "bytes": 4542,
+     "precached": true
+    },
+    {
+     "path": "shared/calm-mode.js",
+     "bytes": 12127,
+     "precached": true
+    },
+    {
      "path": "shared/confirm-dialog.js",
      "bytes": 10900,
      "precached": false
@@ -6687,6 +7058,16 @@
     {
      "path": "shared/lite-mode.js",
      "bytes": 8153,
+     "precached": true
+    },
+    {
+     "path": "shared/night-mode.css",
+     "bytes": 2951,
+     "precached": true
+    },
+    {
+     "path": "shared/night-mode.js",
+     "bytes": 10663,
      "precached": true
     },
     {
@@ -6797,7 +7178,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14369900,
+   "bytes": 14400385,
    "bytes_complete": true
   },
   "station-medic": {
@@ -6899,7 +7280,7 @@
     },
     {
      "path": "games/station-medic/index.html",
-     "bytes": 16503,
+     "bytes": 16604,
      "precached": true
     },
     {
@@ -6924,7 +7305,7 @@
     },
     {
      "path": "games/station-medic/pc.html",
-     "bytes": 18546,
+     "bytes": 18647,
      "precached": true
     },
     {
@@ -7010,6 +7391,16 @@
      "precached": true
     },
     {
+     "path": "shared/calm-mode.css",
+     "bytes": 4542,
+     "precached": true
+    },
+    {
+     "path": "shared/calm-mode.js",
+     "bytes": 12127,
+     "precached": true
+    },
+    {
      "path": "shared/confirm-dialog.js",
      "bytes": 10900,
      "precached": false
@@ -7072,6 +7463,16 @@
     {
      "path": "shared/lite-mode.js",
      "bytes": 8153,
+     "precached": true
+    },
+    {
+     "path": "shared/night-mode.css",
+     "bytes": 2951,
+     "precached": true
+    },
+    {
+     "path": "shared/night-mode.js",
+     "bytes": 10663,
      "precached": true
     },
     {
@@ -7172,7 +7573,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14366979,
+   "bytes": 14397464,
    "bytes_complete": true
   },
   "stranded": {
@@ -7214,7 +7615,7 @@
     },
     {
      "path": "games/stranded/index.html",
-     "bytes": 15948,
+     "bytes": 16049,
      "precached": true
     },
     {
@@ -7244,7 +7645,7 @@
     },
     {
      "path": "games/stranded/pc.html",
-     "bytes": 17959,
+     "bytes": 18060,
      "precached": true
     },
     {
@@ -7330,6 +7731,16 @@
      "precached": true
     },
     {
+     "path": "shared/calm-mode.css",
+     "bytes": 4542,
+     "precached": true
+    },
+    {
+     "path": "shared/calm-mode.js",
+     "bytes": 12127,
+     "precached": true
+    },
+    {
      "path": "shared/confirm-dialog.js",
      "bytes": 10900,
      "precached": false
@@ -7392,6 +7803,16 @@
     {
      "path": "shared/lite-mode.js",
      "bytes": 8153,
+     "precached": true
+    },
+    {
+     "path": "shared/night-mode.css",
+     "bytes": 2951,
+     "precached": true
+    },
+    {
+     "path": "shared/night-mode.js",
+     "bytes": 10663,
      "precached": true
     },
     {
@@ -7492,7 +7913,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14336724,
+   "bytes": 14367209,
    "bytes_complete": true
   },
   "evidence-hunt": {
@@ -7509,7 +7930,7 @@
     },
     {
      "path": "games/evidence-hunt/app.js",
-     "bytes": 37256,
+     "bytes": 37715,
      "precached": true
     },
     {
@@ -7554,7 +7975,7 @@
     },
     {
      "path": "games/evidence-hunt/changelog.json",
-     "bytes": 1297,
+     "bytes": 1654,
      "precached": true
     },
     {
@@ -7564,12 +7985,12 @@
     },
     {
      "path": "games/evidence-hunt/game.py",
-     "bytes": 32166,
+     "bytes": 33778,
      "precached": true
     },
     {
      "path": "games/evidence-hunt/gen.py",
-     "bytes": 8364,
+     "bytes": 9685,
      "precached": true
     },
     {
@@ -7589,7 +8010,7 @@
     },
     {
      "path": "games/evidence-hunt/index.html",
-     "bytes": 18549,
+     "bytes": 18764,
      "precached": true
     },
     {
@@ -7614,7 +8035,7 @@
     },
     {
      "path": "games/evidence-hunt/pc.html",
-     "bytes": 20736,
+     "bytes": 20951,
      "precached": true
     },
     {
@@ -7650,6 +8071,11 @@
     {
      "path": "games/evidence-hunt/style.css",
      "bytes": 19863,
+     "precached": true
+    },
+    {
+     "path": "games/evidence-hunt/today.js",
+     "bytes": 1863,
      "precached": true
     },
     {
@@ -7700,6 +8126,16 @@
      "precached": true
     },
     {
+     "path": "shared/calm-mode.css",
+     "bytes": 4542,
+     "precached": true
+    },
+    {
+     "path": "shared/calm-mode.js",
+     "bytes": 12127,
+     "precached": true
+    },
+    {
      "path": "shared/confirm-dialog.js",
      "bytes": 10900,
      "precached": false
@@ -7765,6 +8201,16 @@
      "precached": true
     },
     {
+     "path": "shared/night-mode.css",
+     "bytes": 2951,
+     "precached": true
+    },
+    {
+     "path": "shared/night-mode.js",
+     "bytes": 10663,
+     "precached": true
+    },
+    {
      "path": "shared/opening-screen.js",
      "bytes": 27851,
      "precached": false
@@ -7797,6 +8243,11 @@
     {
      "path": "shared/save-widget.js",
      "bytes": 106612,
+     "precached": true
+    },
+    {
+     "path": "shared/seed.js",
+     "bytes": 29042,
      "precached": true
     },
     {
@@ -7862,7 +8313,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14416453,
+   "bytes": 14481820,
    "bytes_complete": true
   },
   "trade-empire": {
@@ -7874,17 +8325,17 @@
     },
     {
      "path": "games/trade-empire/changelog.json",
-     "bytes": 17072,
+     "bytes": 18292,
      "precached": false
     },
     {
      "path": "games/trade-empire/game.py",
-     "bytes": 385146,
+     "bytes": 402098,
      "precached": true
     },
     {
      "path": "games/trade-empire/index.html",
-     "bytes": 116314,
+     "bytes": 118100,
      "precached": true
     },
     {
@@ -7899,7 +8350,7 @@
     },
     {
      "path": "games/trade-empire/pc.html",
-     "bytes": 119728,
+     "bytes": 121514,
      "precached": true
     },
     {
@@ -7909,7 +8360,7 @@
     },
     {
      "path": "games/trade-empire/settings.js",
-     "bytes": 6996,
+     "bytes": 8086,
      "precached": false
     },
     {
@@ -7924,7 +8375,7 @@
     },
     {
      "path": "games/trade-empire/style.css",
-     "bytes": 62652,
+     "bytes": 62882,
      "precached": true
     }
    ],
@@ -7980,6 +8431,11 @@
      "precached": true
     },
     {
+     "path": "shared/ghost.py",
+     "bytes": 13517,
+     "precached": true
+    },
+    {
      "path": "shared/hub-auth.js",
      "bytes": 1356,
      "precached": true
@@ -8030,6 +8486,16 @@
      "precached": false
     },
     {
+     "path": "shared/night-mode.css",
+     "bytes": 2951,
+     "precached": true
+    },
+    {
+     "path": "shared/night-mode.js",
+     "bytes": 10663,
+     "precached": true
+    },
+    {
      "path": "shared/opening-screen.js",
      "bytes": 27851,
      "precached": false
@@ -8077,6 +8543,11 @@
     {
      "path": "shared/save-widget.js",
      "bytes": 106612,
+     "precached": true
+    },
+    {
+     "path": "shared/seed.py",
+     "bytes": 9788,
      "precached": true
     },
     {
@@ -8162,7 +8633,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14981117,
+   "bytes": 15041100,
    "bytes_complete": true
   }
  }

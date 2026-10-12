@@ -34,7 +34,7 @@
   "inspiration": [
     {
       "title": "Chemical equation balancing exercises",
-      "kind": "puzzle form",
+      "kind": "other",
       "note": "The puzzle form is the textbook one: count each element on both sides and adjust the whole-number coefficients until they match. Reaction Bench keeps the form, proves every answer with an exact solver, and turns each solved equation into a flask on a shelf and a tile on a periodic table."
     },
     {

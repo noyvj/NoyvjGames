@@ -20,7 +20,7 @@
   "inspiration": [
     {
       "title": "Decision trees as a first idea of machine learning",
-      "kind": "method",
+      "kind": "other",
       "note": "Pip is a small decision tree of at most three questions, grown by information gain with fixed tie-breaks, so training is the same every time. It is a toy that shows one idea; larger systems use many other methods and this game does not claim to show how they work."
     },
     {
