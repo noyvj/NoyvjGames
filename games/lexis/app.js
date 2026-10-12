@@ -515,6 +515,13 @@
       li.appendChild(tick);
       li.appendChild(name);
       li.appendChild(desc);
+      if (a.riddle) {
+        var riddleEl = document.createElement("p");
+        riddleEl.className = "achievement-riddle";
+        riddleEl.textContent = "Riddle: " + a.riddle;
+        riddleEl.hidden = !a.earned;
+        li.appendChild(riddleEl);
+      }
       list.appendChild(li);
       if (a.earned) earnedNow.push(a.id);
     });
