@@ -351,6 +351,49 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 
 document.addEventListener("DOMContentLoaded", function () {
+  /* Ctrl+Z / Ctrl+Y undo/redo for transmit lines (PC only) */
+  const history = {};
+
+  document.querySelectorAll("[data-builder] .signal").forEach(signal => {
+    const builder = signal.closest("[data-builder]").getAttribute("data-builder");
+    const key = `lexis-${builder}`;
+    if (!history[key]) history[key] = { undo: [], redo: [] };
+
+    let timer = null;
+    const observer = new MutationObserver(() => {
+      clearTimeout(timer);
+      timer = setTimeout(() => {
+        history[key].undo.push(signal.innerHTML);
+        if (history[key].undo.length > 50) history[key].undo.shift();
+        history[key].redo = [];
+      }, 120);
+    });
+    observer.observe(signal, { childList: true, subtree: true, characterData: true, attributes: true });
+  });
+
+  document.addEventListener("keydown", (e) => {
+    const signal = document.activeElement?.closest("[data-builder] .signal");
+    if (!signal) return;
+    const builder = signal.closest("[data-builder]").getAttribute("data-builder");
+    const key = `lexis-${builder}`;
+
+    if ((e.ctrlKey || e.metaKey) && e.key === "z") {
+      e.preventDefault();
+      if (history[key].undo.length > 0) {
+        history[key].redo.push(signal.innerHTML);
+        signal.innerHTML = history[key].undo.pop();
+      }
+    } else if ((e.ctrlKey || e.metaKey) && e.key === "y") {
+      e.preventDefault();
+      if (history[key].redo.length > 0) {
+        history[key].undo.push(signal.innerHTML);
+        signal.innerHTML = history[key].redo.pop();
+      }
+    }
+  });
+});
+
+document.addEventListener("DOMContentLoaded", function () {
   /* Double-click a scene to jump to its notebook entry (PC only) */
   var reducedMotion = false;
   function checkReducedMotion() {
