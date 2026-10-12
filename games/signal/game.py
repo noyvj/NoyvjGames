@@ -1490,15 +1490,16 @@ def get_state():
 
 
 def _rank(rec):
-    """Ordering key for merging two records of the same puzzle: finished
-    beats in-progress, a daily beats an archive replay (so replaying a
-    finished daily elsewhere cannot rewrite the streak), a win beats a loss,
-    fewer pings beats more. Ties fall back to the canonical JSON so the merge
-    is commutative."""
+    """Ordering key for merging two records of the same puzzle: a daily beats
+    an archive replay (so local progress is never overwritten by a remote
+    archive replay), finished beats in-progress, a win beats a loss, fewer
+    pings beats more. Ties fall back to the canonical JSON so the merge is
+    commutative."""
+    kind_daily = 1 if rec["kind"] == "daily" else 0
     finished = _finished(rec)
     return (
+        kind_daily,
         1 if finished else 0,
-        1 if rec["kind"] == "daily" else 0,
         1 if rec["result"] == "won" else 0,
         -rec["pings_used"] if finished else rec["pings_used"],
         json.dumps(rec, sort_keys=True),
