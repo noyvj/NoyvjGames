@@ -1457,6 +1457,30 @@ def handle_dict(req):
     return _response(False, "Unknown action.")
 
 
+def recent_history(mode, n=7):
+    """Return last n daily results and par values for a mode."""
+    import datetime
+    today = utc_today()
+    try:
+        base = datetime.date.fromisoformat(today)
+    except Exception:
+        base = datetime.date.today()
+
+    history = []
+    for i in range(n):
+        d = (base - datetime.timedelta(days=i)).isoformat()
+        res = S["days"].get(d, {}).get(mode)
+        if res is None:
+            continue
+        try:
+            puzzle = daily_puzzle(d, mode)
+            p = puzzle.par
+        except Exception:
+            p = "?"
+        history.append({"date": d, "result": res, "par": p})
+    return history
+
+
 def handle(request):
     """The one entry point app.js calls: JSON text in, JSON text out."""
     try:

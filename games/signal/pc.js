@@ -368,3 +368,48 @@ Object.defineProperty(window, "MobileDock", { configurable: true, get() { return
     if (e.key === "Shift") overlay.classList.remove("active");
   });
 })();
+
+// R4-SIPC-10: History panel beside the board
+(function () {
+  var panel = document.createElement("div");
+  panel.id = "history-panel";
+  panel.className = "history-panel";
+  panel.innerHTML = '<h3>History</h3><div id="hist-streak" class="history-chart"></div><div id="hist-par" class="history-chart"></div>';
+
+  function render() {
+    var stateStr = localStorage.getItem("signal:state");
+    if (!stateStr) return;
+    try {
+      var state = JSON.parse(stateStr);
+      var mode = (document.querySelector("#mode-tabs button[aria-pressed='true']") || {}).getAttribute("data-mode-tab") || "easy";
+      var days = state.days || {};
+      var streak = 0;
+      var parBars = "";
+      
+      for (var i = 0; i < 7; i++) {
+        var d = new Date();
+        d.setDate(d.getDate() - i);
+        var ds = d.toISOString().split("T")[0];
+        var res = days[ds] ? days[ds][mode] : null;
+        if (res === "won") streak++; else if (res) streak = 0;
+        
+        var cls = res === "won" ? "won" : res === "lost" ? "lost" : "empty";
+        parBars += '<span class="hist-bar ' + cls + '" title="' + ds + '"></span>';
+      }
+      
+      document.getElementById("hist-streak").textContent = "Streak: " + streak;
+      document.getElementById("hist-par").innerHTML = parBars;
+    } catch(e) {}
+  }
+
+  document.addEventListener("DOMContentLoaded", function () {
+    var side = document.getElementById("pc-side") || document.querySelector("#pc-body");
+    if (side) side.appendChild(panel);
+    render();
+    
+    // Update when mode tabs change
+    document.addEventListener("click", function(e) {
+      if (e.target.closest("[data-mode-tab]")) render();
+    });
+  });
+})();

@@ -219,3 +219,18 @@ html[data-reduced-motion="true"] #ruler-overlay { transition: none; }
   padding: 2px 4px;
   border-radius: 3px;
 }
+
+/* R4-SIPC-10: History panel beside the board */
+.history-panel {
+  padding: 0.6rem 0.8rem;
+  border-radius: 10px;
+  background: rgba(10, 18, 15, 0.4);
+  font-size: 0.85rem;
+}
+.history-panel h3 { margin: 0 0 0.4rem; font-size: 0.9rem; color: var(--muted, #aaa); }
+.history-chart { display: flex; gap: 3px; height: 1.2rem; align-items: flex-end; margin-bottom: 0.3rem; }
+.hist-bar { flex: 1; background: var(--panel-edge, #444); border-radius: 2px; min-width: 8px; transition: background 0.2s ease; }
+html[data-reduced-motion="true"] .hist-bar { transition: none; }
+.hist-bar.won { background: var(--green, #4caf50); }
+.hist-bar.lost { background: var(--red, #e53935); }
+#hist-streak { font-weight: 600; margin-bottom: 0.2rem; }
