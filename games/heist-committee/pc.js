@@ -46,6 +46,7 @@ window.HEIST_COMMITTEE_PC_TUTORIAL_STEPS = [
   "use strict";
   var dragStart = null;
   var dragBox = null;
+  var clipboard = null;
 
   function getTimeline() { return document.getElementById("timeline"); }
 
@@ -122,6 +123,39 @@ window.HEIST_COMMITTEE_PC_TUTORIAL_STEPS = [
     var phase = timeline.closest(".phase");
     var isPlan = phase && phase.id === "phase-plan" && !phase.hidden;
     if (!isPlan) return;
+
+    // Ctrl+C / Ctrl+V for copying plan rows
+    if (e.ctrlKey && e.key === 'c') {
+      e.preventDefault();
+      clipboard = {};
+      getCells().filter(function (c) { return c.classList.contains("selected"); }).forEach(function (c) {
+        var lane = parseInt(c.dataset.lane, 10);
+        var beat = c.dataset.beat;
+        var cellData = HC.view.plan.lanes[lane][beat];
+        var actionId = cellData && (cellData.id || cellData.name);
+        if (actionId) clipboard[beat] = actionId;
+      });
+      var toast = document.getElementById("toast");
+      if (toast && Object.keys(clipboard).length > 0) toast.textContent = "Copied " + Object.keys(clipboard).length + " actions to clipboard";
+      return;
+    }
+    if (e.ctrlKey && e.key === 'v') {
+      e.preventDefault();
+      if (!clipboard || !Object.keys(clipboard).length) return;
+      var targetRow = null;
+      var activeCell = document.activeElement;
+      if (activeCell && activeCell.classList.contains("cell")) {
+        targetRow = parseInt(activeCell.dataset.lane, 10);
+      } else {
+        var firstSelected = getCells().find(function(c) { return c.classList.contains("selected"); });
+        if (firstSelected) targetRow = parseInt(firstSelected.dataset.lane, 10);
+      }
+      if (targetRow !== null) {
+        timeline.dispatchEvent(new CustomEvent("hc-paste", { detail: { lane: targetRow, beats: clipboard } }));
+      }
+      return;
+    }
+
     var delta = 0;
     if (e.key === "ArrowLeft") delta = -1;
     else if (e.key === "ArrowRight") delta = 1;

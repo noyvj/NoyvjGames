@@ -381,6 +381,15 @@
     disarm();
   }, true);
 
+  // ---- paste from clipboard ----------------------------------------------------------------------
+  document.addEventListener("hc-paste", function (e) {
+    var lane = e.detail.lane;
+    var beats = e.detail.beats;
+    Object.keys(beats).forEach(function (b) {
+      HC.send({ action: "place", lane: lane, beat: +b, cell: beats[b] });
+    });
+  });
+
   // ---- buttons -----------------------------------------------------------------------------------
   $("undo-button").addEventListener("click", function () { HC.send({ action: "undo" }); });
   $("redo-button").addEventListener("click", function () { HC.send({ action: "redo" }); });
