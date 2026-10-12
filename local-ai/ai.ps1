@@ -20,8 +20,14 @@ param(
     [int]$Issue = 0,
     [string]$Model = "ollama_chat/devstral-small-2:24b",
     [string]$Base = "main",
-    [int]$TimeoutMinutes = 45
+    [int]$TimeoutMinutes = 45,
+    # A chain is a feature built in steps: step N starts from step N-1's branch instead of main.
+    # In queue.txt write the item as chain:NAME:N (for example chain:DR-SOUND:2).
+    [string]$Chain = "",
+    [int]$Step = 0
 )
+if ($Item -match '^chain:([A-Za-z0-9-]+):(\d+)$') { $Chain = $Matches[1]; $Step = [int]$Matches[2] }
+if ($Chain) { $Item = "$Chain-$Step" }
 # "Continue": git prints harmless notes on stderr, which "Stop" would turn into crashes in
 # Windows PowerShell 5.1. Every step checks its own result ($LASTEXITCODE / Fail) instead.
 $ErrorActionPreference = "Continue"
@@ -40,7 +46,7 @@ try { Invoke-RestMethod http://127.0.0.1:11434/api/version | Out-Null }
 catch { Fail "Ollama is not running. Start it from the Start menu." }
 foreach ($f in $Files) {
     $p = Join-Path $root "games\$Game\$f"
-    if (-not (Test-Path $p)) { Fail "games\$Game\$f does not exist" }
+    if (-not (Test-Path $p)) { if ($Chain) { continue }; Fail "games\$Game\$f does not exist" }   # a chain step's files may exist only on the previous step's branch
     $tokens = [math]::Round((Get-Item $p).Length / 3.5)
     if ($tokens -gt $maxTokens) { Fail "$f is about $tokens tokens, too big for the local model (limit ~$maxTokens)" }
 }
@@ -64,9 +70,14 @@ if ($LASTEXITCODE -ne 0) { Write-Host "Warning: could not fetch from GitHub (off
 $remoteBase = "origin/$Base"
 $haveRemote = ($null -ne (git -C $root rev-parse -q --verify $remoteBase 2>$null))
 $start = if ($Pr -and $prOn -and $haveRemote) { $remoteBase } else { $Base }
+if ($Chain -and $Step -gt 1) {
+    $prev = @(git -C $root for-each-ref --sort=-committerdate --format="%(refname:short)" "refs/heads/local-ai/$Chain-$($Step - 1)-*")
+    if ($prev.Count -eq 0 -or -not $prev[0]) { Fail "step $($Step - 1) of $Chain has not passed, so step $Step cannot start" }
+    $start = $prev[0]
+}
 git -C $root worktree add -q -b $branch $work $start
 if ($LASTEXITCODE -ne 0) { Fail "could not create the working copy" }
-if ($start -eq $Base -and $haveRemote) {
+if ($start -eq $Base -and $haveRemote -and -not ($Chain -and $Step -gt 1)) {
     git -C $work merge -q --no-edit $remoteBase 2>$null | Out-Null
     if ($LASTEXITCODE -ne 0) {
         git -C $work merge --abort 2>$null | Out-Null
