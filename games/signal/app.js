@@ -931,6 +931,84 @@
     setTimeout(startEngine, 0);
   }
 
+  // Mobile pinch-to-zoom & double-tap reset (max-width: 600px)
+  (function () {
+    if (window.innerWidth > 600) return;
+    var board = document.getElementById("board");
+    if (!board) return;
+    var wrap = board.parentElement;
+    if (!wrap) return;
+    // Respect reduced motion
+    if (document.documentElement.getAttribute("data-reduced-motion") === "true" ||
+        window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
+    var SCALE_KEY = "signal-zoom-scale";
+    var PAN_X_KEY = "signal-zoom-x";
+    var PAN_Y_KEY = "signal-zoom-y";
+    var MIN_S = 0.5, MAX_S = 3;
+
+    function getScale() {
+      var v = parseFloat(localStorage.getItem(SCALE_KEY));
+      return isFinite(v) && v >= MIN_S && v <= MAX_S ? v : 1;
+    }
+    function setScale(s) {
+      s = Math.max(MIN_S, Math.min(MAX_S, s));
+      localStorage.setItem(SCALE_KEY, s);
+      applyTransform();
+    }
+    function getPX() { return parseFloat(localStorage.getItem(PAN_X_KEY)) || 0; }
+    function setPX(x) { localStorage.setItem(PAN_X_KEY, x); applyTransform(); }
+    function getPY() { return parseFloat(localStorage.getItem(PAN_Y_KEY)) || 0; }
+    function setPY(y) { localStorage.setItem(PAN_Y_KEY, y); applyTransform(); }
+
+    function applyTransform() {
+      var s = getScale();
+      var x = getPX();
+      var y = getPY();
+      board.style.transform = "translate(" + x + "px, " + y + "px) scale(" + s + ")";
+    }
+
+    var lastPinchDist = null;
+    wrap.addEventListener("touchstart", function (e) {
+      if (e.touches.length === 2) {
+        var dx = e.touches[0].clientX - e.touches[1].clientX;
+        var dy = e.touches[0].clientY - e.touches[1].clientY;
+        lastPinchDist = Math.sqrt(dx * dx + dy * dy);
+      }
+    }, { passive: true });
+
+    wrap.addEventListener("touchmove", function (e) {
+      if (e.touches.length === 2 && lastPinchDist !== null) {
+        var dx = e.touches[0].clientX - e.touches[1].clientX;
+        var dy = e.touches[0].clientY - e.touches[1].clientY;
+        var dist = Math.sqrt(dx * dx + dy * dy);
+        setScale(getScale() + (dist - lastPinchDist) / 200);
+        lastPinchDist = dist;
+      }
+    }, { passive: true });
+
+    wrap.addEventListener("touchend", function () { lastPinchDist = null; });
+
+    var lastTapTime = 0;
+    board.addEventListener("touchend", function (e) {
+      if (e.changedTouches.length !== 1) return;
+      var now = Date.now();
+      if (now - lastTapTime < 300) {
+        setScale(1);
+        setPX(0);
+        setPY(0);
+        localStorage.removeItem(PAN_X_KEY);
+        localStorage.removeItem(PAN_Y_KEY);
+        applyTransform();
+        lastTapTime = 0;
+      } else {
+        lastTapTime = now;
+      }
+    });
+
+    applyTransform();
+  })();
+
   window.SignalApp = { timings: timings, act: act, getView: function () { return view; }, startEngine: startEngine };
   window.SignalTimings = timings;
 
