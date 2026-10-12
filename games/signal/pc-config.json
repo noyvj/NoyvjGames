@@ -57,7 +57,6 @@
     ["Enter", "Use tool (ping or mark)"],
     ["Space", "Mark / unmark"],
     ["D4", "Jump to a tile"],
-    ["Right-click", "Toggle maybe note"],
     ["?", "All shortcuts"],
     ["Esc", "Menu / close window"]
   ],
