@@ -241,3 +241,12 @@ html[data-effects="off"] .star-dot { transition: none; }
   100% { transform: scale(1); }
 }
 html[data-reduced-motion="true"] .stamp, html[data-effects="off"] .stamp { animation: none; }
+
+/* Mobile long-press cue for scene signs */
+@media (max-width: 600px) {
+  .scene .signal, .scene .glyph, .scene .message {
+    border-bottom: 2px dashed var(--edge);
+    padding-bottom: 0.3rem;
+    margin-bottom: 0.2rem;
+  }
+}

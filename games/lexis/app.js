@@ -57,6 +57,21 @@
   }
   function ordinalIn(list, code) { var i = (list || []).indexOf(code); return i === -1 ? 0 : i + 1; }
 
+  // Long-press to copy a sign from a scene into the transmit line.
+  function attachLongPress(node, value) {
+    var timer = null;
+    node.addEventListener("touchstart", function () {
+      if (document.documentElement.getAttribute("data-reduced-motion") === "true" || document.documentElement.getAttribute("data-effects") === "off") return;
+      timer = setTimeout(function () {
+        if (currentPlanet === "pulse") addMarks(value);
+        else if (currentPlanet === "compound" && outgoingGlyph.length < 4) { outgoingGlyph += value; renderCompound(); }
+        else if (currentPlanet === "bridge") addToMessage(value);
+      }, 500);
+    });
+    node.addEventListener("touchend", function () { clearTimeout(timer); });
+    node.addEventListener("touchmove", function () { clearTimeout(timer); });
+  }
+
   // ---- mobile transmit pad -------------------------------------------------------------------
   var audioCtx = null;
   function playBuzz(type) {
@@ -162,7 +177,9 @@
       var label = document.createElement("strong");
       label.textContent = "Transmission " + (index + 1) + " ";
       head.appendChild(label);
-      head.appendChild(signalNode(scene.marks));
+      var sig = signalNode(scene.marks);
+      head.appendChild(sig);
+      attachLongPress(sig, scene.marks);
       var what = document.createElement("div");
       what.className = "what";
       var changes = [];
@@ -327,7 +344,9 @@
       var label = document.createElement("strong");
       label.textContent = "Transmission " + (index + 1) + " ";
       head.appendChild(label);
-      head.appendChild(glyphNode(scene.glyph));
+      var gl = glyphNode(scene.glyph);
+      head.appendChild(gl);
+      attachLongPress(gl, scene.glyph);
       var what = document.createElement("div");
       what.className = "what";
       what.innerHTML = "The tray: <b></b>";
@@ -466,7 +485,9 @@
       var label = document.createElement("strong");
       label.textContent = "Transmission " + (index + 1) + " ";
       head.appendChild(label);
-      head.appendChild(messageNode(scene.message.split(" ")));
+      var msg = messageNode(scene.message.split(" "));
+      head.appendChild(msg);
+      attachLongPress(msg, scene.message);
       var what = document.createElement("div");
       what.className = "what";
       what.innerHTML = "The counter: <b></b>";
