@@ -241,6 +241,17 @@ html[data-high-contrast="true"] {
 html[data-high-contrast="true"] .cell.pinged { background: #000; }
 html[data-high-contrast="true"] .cell-num { color: #fff; text-shadow: 0 0 3px #000, 0 0 3px #000; }
 
+/* ---- mobile tool switch (R4-SIMO-2) ----------------------------------- */
+@media (max-width: 600px) {
+  #tool-buttons { display: flex !important; gap: 0.5rem; margin: 0.5rem 0; }
+  .tool-btn {
+    flex: 1; padding: 0.8rem 0; font-size: 1rem; font-weight: 700; border-radius: 8px;
+    background: #1b3026; color: var(--ink-dim); border: 1px solid var(--tile-edge);
+  }
+  .tool-btn.active { background: var(--amber); color: #23160a; border-color: var(--amber); }
+  #tool-toggle-button { display: none; }
+}
+
 /* ---- mobile ------------------------------------------------------------ */
 @media (max-width: 640px) {
   #game { margin: 0.5rem 0.4rem 1rem; padding: 0.9rem 0.6rem 1.3rem; }
