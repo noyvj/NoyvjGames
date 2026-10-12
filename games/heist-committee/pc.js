@@ -175,4 +175,80 @@ window.HEIST_COMMITTEE_PC_TUTORIAL_STEPS = [
       window.HeistCommittee.onPlanShift(delta);
     }
   });
+
+  /* R4-HCPC-6: Track and list changed cells */
+  var _changedCells = new Set();
+  var _changesPanel = null;
+  var _changesList = null;
+
+  function _initChangesTracker() {
+    if (_changesPanel) return;
+    var planSide = document.querySelector(".plan-side");
+    if (!planSide) return;
+    _changesPanel = document.createElement("section");
+    _changesPanel.className = "panel pc-changes-panel";
+    _changesPanel.id = "pc-changes-panel";
+    _changesPanel.innerHTML = '<h3 id="changes-heading">Changed cells</h3><ul id="changes-list" class="pc-changes-list"></ul><button id="clear-changes-button" type="button">Clear list</button>';
+    planSide.appendChild(_changesPanel);
+    _changesList = document.getElementById("changes-list");
+
+    var timeline = getTimeline();
+    if (!timeline) return;
+
+    var observer = new MutationObserver(function (mutations) {
+      for (var m of mutations) {
+        if (m.type === "childList" || m.type === "attributes") {
+          var nodes = m.addedNodes ? Array.from(m.addedNodes) : [];
+          if (m.removedNodes) nodes = nodes.concat(Array.from(m.removedNodes));
+          if (m.target.classList && m.target.classList.contains("cell")) nodes.push(m.target);
+          for (var node of nodes) {
+            if (node.classList && node.classList.contains("cell")) {
+              var key = node.dataset.lane + "-" + node.dataset.beat;
+              if (key) _changedCells.add(key);
+            }
+          }
+        }
+      }
+      _renderChanges();
+    });
+    observer.observe(timeline, { childList: true, subtree: true, attributes: true, attributeFilter: ["class", "data-lane", "data-beat"] });
+  }
+
+  function _renderChanges() {
+    if (!_changesList) return;
+    _changesList.innerHTML = "";
+    _changedCells.forEach(function (key) {
+      var li = document.createElement("li");
+      var parts = key.split("-");
+      li.textContent = "Lane " + parts[0] + ", Beat " + parts[1];
+      _changesList.appendChild(li);
+    });
+  }
+
+  function _resetChanges() {
+    _changedCells.clear();
+    if (_changesList) _changesList.innerHTML = "";
+  }
+
+  document.addEventListener("click", function (e) {
+    if (e.target.id === "clear-plan-button" || e.target.id === "start-heist-button") {
+      _resetChanges();
+    }
+    if (e.target.id === "clear-changes-button") {
+      _resetChanges();
+    }
+  });
+
+  var _phaseObserver = new MutationObserver(function (mutations) {
+    for (var m of mutations) {
+      if (m.type === "attributes" && m.attributeName === "hidden") {
+        var phase = m.target;
+        if (phase.id === "phase-plan" && !phase.hidden) {
+          _initChangesTracker();
+        }
+      }
+    }
+  });
+  var mainStage = document.getElementById("main-stage");
+  if (mainStage) _phaseObserver.observe(mainStage, { attributes: true, subtree: true, attributeFilter: ["hidden"] });
 })();
