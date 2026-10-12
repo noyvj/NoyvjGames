@@ -13,6 +13,10 @@ def rock(hid, name, x, y, r, charted=True):
     return {"id": hid, "kind": "rock", "name": name, "x": x, "y": y, "r": r, "charted": charted}
 
 
+def depth_area(did, name, x, y, r, fathoms):
+    return {"id": did, "kind": "depth", "name": name, "x": x, "y": y, "r": r, "fathoms": fathoms}
+
+
 def land(lid, name, poly):
     return {"id": lid, "name": name, "poly": [list(p) for p in poly]}
 
