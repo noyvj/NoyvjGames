@@ -113,3 +113,12 @@ def test_todays_run_opens_the_dated_house_and_solving_it_counts_once(base, page_
         assert page.evaluate("document.documentElement.scrollWidth - document.documentElement.clientWidth") <= 1
         browser.close()
     assert errors == []
+
+
+def test_fy60_streak_line_is_hidden(page):
+    """FY-60: The streak line ('N days in a row') must be hidden so the pledge stays true."""
+    page.goto("http://localhost:8000/games/evidence-hunt/index.html")
+    page.wait_for_selector("#practice-today", state="attached", timeout=2000)
+    # shared/seed.js mounts the button and streak line into #practice-today
+    streak = page.locator("#practice-today .streak")
+    assert streak.count() == 0 or streak.evaluate("el => getComputedStyle(el).display === 'none'")
