@@ -170,6 +170,8 @@ if (-not $testsOk) { $problems += "tests failed" }
 $testLine = ($testOut.Trim() -split "`n")[-1]
 
 $py = @($inside | Where-Object { $_ -like "*.py" } | ForEach-Object { Join-Path $work $_ } | Where-Object { Test-Path $_ })
+# Blank lines and trailing spaces are pure layout: fix them mechanically rather than failing correct work over them.
+if ($py.Count -gt 0) { python -m autopep8 --in-place --select=E301,E302,E303,E304,E305,E306,W291,W293,W391 @py 2>$null | Out-Null }
 $flakeOut = ""
 if ($py.Count -gt 0) {
     $flakeOut = (python -m flake8 --extend-ignore=E501 @py 2>&1 | Out-String)
