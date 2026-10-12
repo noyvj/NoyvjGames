@@ -105,6 +105,7 @@
     <button id="settings-toggle-button" type="button" aria-expanded="false" aria-controls="settings-panel">Settings</button>
     <button id="info-page-toggle-button" type="button" aria-expanded="false" aria-controls="info-page-panel">About Lexis</button>
     <button id="museum-toggle-button" type="button" aria-expanded="false" aria-controls="museum-panel">Glyph museum</button>
+    <button id="star-map-toggle-button" type="button" aria-expanded="false" aria-controls="star-map-panel">Star map</button>
   </div>
   <section id="crew-log-panel" class="panel" hidden aria-labelledby="crew-log-heading">
     <h2 id="crew-log-heading">Crew log</h2>
@@ -134,6 +135,12 @@
   <section id="changelog-panel" class="panel" hidden aria-labelledby="changelog-heading">
     <h2 id="changelog-heading">What's New</h2>
     <div id="changelog-entries"></div>
+  </section>
+  <section id="star-map-panel" class="panel" hidden aria-labelledby="star-map-heading">
+    <h2 id="star-map-heading">Star map</h2>
+    <p class="note">Faint signals drift across the sky. Click a star to tune in and reveal its place and strength.</p>
+    <div id="star-map-container" class="star-map" role="img" aria-label="Star map"></div>
+    <p id="star-map-info" class="note" aria-live="polite"></p>
   </section>
   <section id="settings-panel" class="panel" hidden aria-labelledby="settings-heading">
     <h2 id="settings-heading">Settings</h2>

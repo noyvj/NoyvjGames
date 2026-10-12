@@ -167,3 +167,10 @@ html[data-effects="off"] *, html[data-effects="off"] *::before, html[data-effect
 .planet-globe { display: flex; justify-content: center; margin: 0.8rem 0; }
 .planet-globe svg { width: 100%; max-width: 200px; height: auto; }
 html[data-reduced-motion="true"] .planet-globe svg, html[data-effects="off"] .planet-globe svg { filter: none; }
+
+/* Star map */
+.star-map { position: relative; width: 100%; height: 20rem; background: var(--surface); border-radius: 8px; margin-top: 0.5rem; }
+.star-dot { position: absolute; width: 1rem; height: 1rem; border-radius: 50%; background: var(--edge); transform: translate(-50%, -50%); cursor: pointer; transition: background 0.2s, box-shadow 0.2s; }
+html[data-effects="off"] .star-dot { transition: none; }
+.star-dot.discovered { background: var(--accent); box-shadow: 0 0 8px var(--glow); }
+#star-map-info { margin-top: 0.5rem; font-weight: 600; min-height: 1.4rem; }

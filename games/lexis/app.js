@@ -2,7 +2,7 @@
    handle() returns and forwards what the player does. No game logic lives here. */
 (function () {
   "use strict";
-  var ENGINE_MODULES = ["lang.py", "pulse.py", "parse.py", "world.py", "scenes.py", "deduce.py", "notebook.py", "compound.py", "compound_scenes.py", "deduce_compound.py", "glyphs.py", "achievements.py", "bridge.py", "bridge_scenes.py", "deduce_bridge.py", "story.py", "report.py", "info.py", "museum.py", "bench.py", "globes.py"];
+  var ENGINE_MODULES = ["lang.py", "pulse.py", "parse.py", "world.py", "scenes.py", "deduce.py", "notebook.py", "compound.py", "compound_scenes.py", "deduce_compound.py", "glyphs.py", "achievements.py", "bridge.py", "bridge_scenes.py", "deduce_bridge.py", "story.py", "report.py", "info.py", "museum.py", "bench.py", "globes.py", "star_map.py"];
   var STORE_KEY = "lexis:state";
   var BRIEF_KEY = "lexis:brief-seen";
   var TOKEN_LEN = 4;
@@ -722,6 +722,34 @@
     }
   }
 
+  function renderStarMap() {
+    var container = $("star-map-container");
+    if (!container) return;
+    container.textContent = "";
+    var map = view.star_map || [];
+    var discovered = new Set(view.discovered_stars || []);
+    map.forEach(function(star) {
+      var dot = document.createElement("div");
+      dot.className = "star-dot" + (discovered.has(star.id) ? " discovered" : "");
+      dot.style.left = (star.x * 10) + "%";
+      dot.style.top = (star.y * 10) + "%";
+      dot.setAttribute("role", "button");
+      dot.setAttribute("tabindex", "0");
+      dot.setAttribute("aria-label", discovered.has(star.id) ? star.label + ", tuned" : "Untuned signal at " + star.x + "," + star.y);
+      dot.addEventListener("click", function() { send({ action: "tune_star", id: star.id }); });
+      container.appendChild(dot);
+    });
+    var info = $("star-map-info");
+    if (info) {
+      if (view.tuned_star) {
+        info.textContent = "Tuned: " + view.tuned_star.label + " at (" + view.tuned_star.x + ", " + view.tuned_star.y + "), strength " + view.tuned_star.strength;
+        delete view.tuned_star;
+      } else {
+        info.textContent = "";
+      }
+    }
+  }
+
   function renderMuseum() {
     var list = $("museum-wall");
     list.textContent = "";
@@ -765,6 +793,7 @@
     renderReport();
     renderInfo();
     renderTabs();
+    renderStarMap();
     renderMuseum();
     if (currentPlanet === "bridge") { renderBridge(); return; }
     if (currentPlanet === "compound") { renderCompound(); return; }
@@ -938,6 +967,7 @@
     wirePanelToggle("report-toggle-button", "report-panel");
     wirePanelToggle("info-page-toggle-button", "info-page-panel");
     wirePanelToggle("changelog-toggle-button", "changelog-panel");
+    wirePanelToggle("star-map-toggle-button", "star-map-panel");
     wirePanelToggle("museum-toggle-button", "museum-panel");
     // The save widget loads a save directly into the engine; this redraws the page afterwards.
     window.lexisRefresh = function () {
