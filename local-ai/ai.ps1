@@ -19,7 +19,8 @@ param(
     [switch]$Pr,
     [int]$Issue = 0,
     [string]$Model = "ollama_chat/devstral-small-2:24b",
-    [string]$Base = "main"
+    [string]$Base = "main",
+    [int]$TimeoutMinutes = 45
 )
 # "Continue": git prints harmless notes on stderr, which "Stop" would turn into crashes in
 # Windows PowerShell 5.1. Every step checks its own result ($LASTEXITCODE / Fail) instead.
@@ -47,7 +48,7 @@ $aider = (Get-Command aider -ErrorAction SilentlyContinue).Source
 if (-not $aider) { $aider = Join-Path $HOME ".local\bin\aider.exe" }
 
 # --- Separate working copy on a new branch -------------------------------
-$stamp = Get-Date -Format "yyMMdd-HHmm"
+$stamp = Get-Date -Format "yyMMdd-HHmmss"
 $branch = "local-ai/$Item-$Game-$stamp"
 $workRoot = Join-Path (Split-Path -Parent $root) "bcm206-ai-work"
 $work = Join-Path $workRoot ($branch -replace '/', '_')
@@ -104,20 +105,32 @@ $log = Join-Path $reports (($branch -replace '/', '_') + ".log")
 $started = Get-Date
 Write-Host "Working on $Item in $Game (branch $branch). This takes several minutes..."
 
-Push-Location $gameDir
-try {
-    & $aider --model $Model `
-        --model-settings-file (Join-Path $aiDir "aider.model.settings.yml") `
-        --subtree-only --map-tokens 1024 `
-        --no-auto-commits --no-dirty-commits --no-gitignore `
-        --test-cmd "python ../../scripts/generate-pc-pages.py >NUL && python -m pytest -q -x --tb=line -p no:warnings" --auto-test `
-        --lint-cmd "python: python -m flake8 --extend-ignore=E501" --auto-lint `
-        --yes-always --no-pretty --no-stream --analytics-disable --no-check-update `
-        --chat-history-file $log --input-history-file NUL `
-        @readArgs @fileArgs `
-        --message "Do the task in .aider-task.md now. Make the edits, keep them small." *>&1 | Out-Null
+$aiderArgs = @("--model", $Model,
+    "--model-settings-file", (Join-Path $aiDir "aider.model.settings.yml"),
+    "--subtree-only", "--map-tokens", "1024",
+    "--no-auto-commits", "--no-dirty-commits", "--no-gitignore",
+    "--test-cmd", "python ../../scripts/generate-pc-pages.py >NUL && python -m pytest -q -x --tb=line -p no:warnings", "--auto-test",
+    "--lint-cmd", "python: python -m flake8 --extend-ignore=E501", "--auto-lint",
+    "--yes-always", "--no-pretty", "--no-stream", "--analytics-disable", "--no-check-update",
+    "--chat-history-file", $log, "--input-history-file", "NUL") + $readArgs + $fileArgs +
+    @("--message", "Do the task in .aider-task.md now. Make the edits, keep them small.")
+
+# Run Aider as a background job so a stuck run can be stopped after $TimeoutMinutes
+# instead of blocking the whole queue for days.
+$job = Start-Job -ScriptBlock {
+    param($dir, $exe, $argList, $apiBase)
+    $env:OLLAMA_API_BASE = $apiBase
+    Set-Location $dir
+    & $exe @argList *>&1 | Out-Null
+} -ArgumentList $gameDir, $aider, $aiderArgs, $env:OLLAMA_API_BASE
+$timedOut = -not (Wait-Job $job -Timeout ($TimeoutMinutes * 60))
+if ($timedOut) {
+    # aider.exe is a launcher with a python child: end the whole tree, then the job
+    Get-CimInstance Win32_Process -Filter "Name='aider.exe'" | Where-Object { $_.CreationDate -ge $started } |
+        ForEach-Object { taskkill /T /F /PID $_.ProcessId 2>$null | Out-Null }
+    Stop-Job $job
 }
-finally { Pop-Location }
+Remove-Job $job -Force
 Remove-Item $taskFile -ErrorAction SilentlyContinue
 
 # pc.html is generated from index.html and must never be hand-edited (the first trial run's
@@ -134,6 +147,7 @@ $changed = @(git -C $work status --porcelain --untracked-files=all | ForEach-Obj
 $outside = @($changed | Where-Object { $_ -notlike "games/$Game/*" })
 $inside = @($changed | Where-Object { $_ -like "games/$Game/*" })
 $problems = @()
+if ($timedOut) { $problems += "timed out after $TimeoutMinutes minutes" }
 if ($inside.Count -eq 0) { $problems += "the AI made no changes in games/$Game" }
 if ($outside.Count -gt 0) { $problems += "it changed files outside games/${Game}: $($outside -join ', ')" }
 
@@ -150,7 +164,10 @@ if ($py.Count -gt 0) {
     $flakeOut = (python -m flake8 --extend-ignore=E501 @py 2>&1 | Out-String)
     if ($LASTEXITCODE -ne 0) { $problems += "flake8 found problems" }
 }
-$diffStat = (git -C $work diff --stat 2>&1 | Out-String)
+$diffStat = ($changed | ForEach-Object { "- $_" }) -join "`n"
+# keep the change itself in the report: a failed run's working copy is deleted below
+git -C $work add -N -- @inside 2>$null | Out-Null
+$diffText = (git -C $work diff -- @inside 2>&1 | Select-Object -First 300 | Out-String)
 $minutes = [math]::Round(((Get-Date) - $started).TotalMinutes, 1)
 
 # --- Commit or not -------------------------------------------------------
@@ -173,16 +190,20 @@ $(if ($problems.Count) { "- Problems: " + ($problems -join "; ") })
 ## Changed files
 $diffStat
 $(if ($flakeOut) { "## flake8`n$flakeOut" })
+$(if (-not $ok -and $diffText.Trim()) { "## The change it tried (first 300 lines)`n~~~diff`n$diffText~~~" })
+$(if (-not $ok -and $testsOk -eq $false) { "## Test output (end)`n~~~`n" + (($testOut -split "`n" | Select-Object -Last 40) -join "`n") + "`n~~~" })
 Full AI conversation: $log
-Working copy: $work
 "@ | Set-Content -Encoding utf8 $report
 
 if (-not $ok) {
     if ($Issue -gt 0 -and $prOn) {
         gh issue comment $Issue --body ("The local AI could not finish this.`n`n" + (Get-Content $report -Raw)) | Out-Null
     }
+    # The report keeps the attempted change; drop the working copy and its empty branch so days of
+    # failures never pile up on disk.
+    git -C $root worktree remove --force $work 2>$null | Out-Null
+    git -C $root branch -q -D $branch 2>$null | Out-Null
     Write-Host "FAILED ($($problems -join '; ')). Nothing committed. Report: $report" -ForegroundColor Yellow
-    Write-Host "The working copy is kept so you can look: $work"
     exit 1
 }
 
