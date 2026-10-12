@@ -44,4 +44,6 @@ left, and stop.
 ## Style
 - Match the code around you: same naming, same comment density, same idioms.
 - Keep changes small. Do not reformat or rename things the item does not need.
+- Python layout (flake8): two blank lines before and after every top-level def or class,
+  one blank line between methods, no spaces at the end of a line.
 - Do not commit. The human runs the finish step, which tests and commits.
