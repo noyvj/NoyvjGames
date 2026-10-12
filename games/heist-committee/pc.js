@@ -331,4 +331,84 @@ window.HEIST_COMMITTEE_PC_TUTORIAL_STEPS = [
     window.HeistCommitteePC = window.HeistCommitteePC || {};
     window.HeistCommitteePC.togglePlaybackLog = toggleLog;
   })();
+
+  /* R4-HCPC-8: Client brief panel */
+  (function () {
+    "use strict";
+    var _briefPanel = null;
+    var _briefContent = null;
+
+    function initBriefPanel() {
+      if (_briefPanel) return;
+      _briefPanel = document.createElement("div");
+      _briefPanel.id = "pc-brief-panel";
+      _briefPanel.className = "pc-brief-panel";
+      _briefPanel.innerHTML = '<h3>Client Brief</h3><div id="pc-brief-content"></div>';
+      document.body.appendChild(_briefPanel);
+      _briefContent = document.getElementById("pc-brief-content");
+
+      var toggleBtn = document.getElementById("brief-toggle-button");
+      if (toggleBtn) {
+        toggleBtn.addEventListener("click", function () {
+          _briefPanel.classList.toggle("visible");
+          if (_briefPanel.classList.contains("visible")) {
+            _updateBrief();
+          }
+        });
+      }
+    }
+
+    function _updateBrief() {
+      if (!_briefContent) return;
+      var hc = window.HeistCommittee;
+      if (!hc || !hc.content || !hc.view) return;
+      
+      var targetId = hc.view.target_id;
+      var target = hc.content.targets ? hc.content.targets[targetId] : null;
+      if (!target) {
+        _briefContent.innerHTML = "<p>No target selected.</p>";
+        return;
+      }
+
+      var html = '<div class="brief-section"><h4>Target: ' + (target.name || targetId) + '</h4></div>';
+      
+      if (target.rules && target.rules.length) {
+        html += '<div class="brief-section"><h4>Rules</h4><ul>';
+        target.rules.forEach(function(r) { html += '<li>' + (r.text || r) + '</li>'; });
+        html += '</ul></div>';
+      }
+      
+      if (target.complications && target.complications.length) {
+        html += '<div class="brief-section"><h4>Complications</h4><ul>';
+        target.complications.forEach(function(c) { html += '<li>' + (c.text || c) + '</li>'; });
+        html += '</ul></div>';
+      }
+
+      _briefContent.innerHTML = html;
+    }
+
+    var _briefPhaseObs = new MutationObserver(function (mutations) {
+      for (var m of mutations) {
+        if (m.attributeName === "hidden") {
+          var phase = m.target;
+          if ((phase.id === "phase-scout" || phase.id === "phase-plan") && !phase.hidden) {
+            initBriefPanel();
+            if (_briefPanel.classList.contains("visible")) {
+              _updateBrief();
+            }
+          }
+        }
+      }
+    });
+    var mainStage = document.getElementById("main-stage");
+    if (mainStage) _briefPhaseObs.observe(mainStage, { attributes: true, subtree: true, attributeFilter: ["hidden"] });
+
+    window.HeistCommitteePC = window.HeistCommitteePC || {};
+    window.HeistCommitteePC.toggleBrief = function(show) {
+      initBriefPanel();
+      if (show !== undefined) _briefPanel.classList.toggle("visible", show);
+      else _briefPanel.classList.toggle("visible");
+      if (_briefPanel.classList.contains("visible")) _updateBrief();
+    };
+  })();
 })();

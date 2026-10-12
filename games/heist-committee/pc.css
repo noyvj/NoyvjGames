@@ -109,4 +109,16 @@ html[data-layout="pc"] .pc-readout { color: var(--text); }
 #pc-playback-log h3 { margin: 0 0 0.5rem; font-size: 1rem; color: var(--accent); }
 #pc-playback-log-content { flex: 1; overflow-y: auto; margin-top: 0.5rem; font-family: monospace; white-space: pre-wrap; line-height: 1.4; }
 #pc-log-popout-button, #pc-log-close-button { margin-top: 0.5rem; align-self: flex-end; background: var(--btn-bg); border: 1px solid var(--btn-border); padding: 0.3rem 0.6rem; cursor: pointer; font-size: 0.85rem; }
-@media (prefers-reduced-motion: reduce) { #pc-playback-log { transition: none; } }
+/* R4-HCPC-8: Client brief panel */
+#pc-brief-panel {
+  position: fixed; top: 3rem; left: 1rem; width: 24vw; max-width: 20rem; height: 70vh;
+  background: var(--bg); border: 2px solid var(--accent); border-radius: 8px; padding: 1rem;
+  display: none; flex-direction: column; z-index: 90; font-size: 0.95rem; overflow-y: auto;
+}
+#pc-brief-panel.visible { display: flex; }
+#pc-brief-panel h3 { margin: 0 0 0.5rem; font-size: 1rem; color: var(--accent); }
+#pc-brief-panel .brief-section { margin-bottom: 0.8rem; }
+#pc-brief-panel .brief-section h4 { margin: 0 0 0.3rem; font-size: 0.9rem; color: var(--text-secondary, #aaa); }
+#pc-brief-panel ul { margin: 0; padding-left: 1.2rem; }
+#pc-brief-panel li { margin-bottom: 0.2rem; }
+@media (prefers-reduced-motion: reduce) { #pc-brief-panel { transition: none; } }
