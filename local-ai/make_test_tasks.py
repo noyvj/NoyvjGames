@@ -2,6 +2,7 @@
 
     python local-ai/make_test_tasks.py            print the queue lines
     python local-ai/make_test_tasks.py --append   also add them to local-ai/queue.txt
+    python local-ai/make_test_tasks.py --edge     instead: one edge-case test file per module
 
 Only the small games, only plain-Python modules (no browser code), and only when the module
 plus an example test file fit the local model comfortably. Each task asks for a NEW test file,
@@ -80,8 +81,34 @@ def tasks_for(game):
     return lines
 
 
+def edge_tasks_for(game):
+    """One task per module: a NEW file of edge-case tests (empty input, limits, bad values)."""
+    gdir = ROOT / "games" / game
+    tests = sorted((gdir / "tests").glob("test_*.py"))
+    lines = []
+    for mod in sorted(gdir.glob("*.py")):
+        name = mod.stem
+        text = mod.read_text(encoding="utf-8")
+        if name in SKIP_MODULES or browser_code(text) or not public_functions(text):
+            continue
+        if (gdir / "tests" / f"test_ai_edge_{name}.py").exists():
+            continue
+        example = example_test(tests, name)
+        if example is None or tokens(mod) + tokens(example) > BUDGET:
+            continue
+        task = (f"Write edge-case pytest tests for {name}.py in a NEW file tests/test_ai_edge_{name}.py "
+                f"and change no other file. Import modules the same way tests/{example.name} does. "
+                f"Pick four to six public functions or methods in {name}.py and test their limits: "
+                f"empty or zero input, the smallest and largest allowed values, and values that should "
+                f"be rejected or clamped, but only where the code really handles them. Give each test a "
+                f"short docstring. Do not test private names that start with _. Every test must pass.")
+        lines.append(f"{game} | EDGE-{name.replace('_', '-')[:30]} | {name}.py, tests/{example.name} | {task}")
+    return lines
+
+
 def main():
-    per_game = {g: tasks_for(g) for g in GAMES}
+    make = edge_tasks_for if "--edge" in sys.argv else tasks_for
+    per_game = {g: make(g) for g in GAMES}
     # interleave games so one game's trouble never blocks a long stretch of the queue
     out = []
     while any(per_game.values()):
@@ -94,7 +121,9 @@ def main():
     if "--append" in sys.argv:
         queue = ROOT / "local-ai" / "queue.txt"
         with open(queue, "a", encoding="utf-8") as f:
-            f.write("\n# Batch 2: tests for functions no test mentions yet (make_test_tasks.py)\n")
+            label = "edge-case tests, one new file per module" if "--edge" in sys.argv else \
+                "tests for functions no test mentions yet"
+            f.write(f"\n# Batch from make_test_tasks.py: {label}\n")
             f.write("\n".join(out) + "\n")
 
 
