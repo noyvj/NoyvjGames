@@ -15,4 +15,4 @@
   edit_format: diff
   use_repo_map: true
   extra_params:
-    num_ctx: 32768
+    num_ctx: 65536  # 32k was too small: game.py + app.js filled it and the task text got cut

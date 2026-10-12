@@ -109,12 +109,14 @@ $($itemText -join "`n")
 ## What to do now
 $Task
 
-Do only this. Change only files in games/$Game. Follow RULES.md.
+Do only this. Change only files in games/$Game. Follow RULES.md. If you need a file that is not in the chat yet, name it: it will be added and you will be asked again, so then make the edits straight away.
 "@ | Set-Content -Encoding utf8 $taskFile
 
 # --- Run Aider with no chatting -----------------------------------------
 $env:OLLAMA_API_BASE = "http://127.0.0.1:11434"
-$readArgs = @("--read", (Join-Path $aiDir "RULES.md"), "--read", $taskFile)
+# The task goes in as the message itself (newest text, so it is never the part cut when the context fills up),
+# through a file so Windows never mangles its quotes. RULES.md stays a read-only file.
+$readArgs = @("--read", (Join-Path $aiDir "RULES.md"))
 if (Test-Path (Join-Path $gameDir "CLAUDE.md")) { $readArgs += @("--read", (Join-Path $gameDir "CLAUDE.md")) }
 $fileArgs = @(); foreach ($f in $Files) { $fileArgs += @("--file", $f) }
 $log = Join-Path $reports (($branch -replace '/', '_') + ".log")
@@ -129,7 +131,7 @@ $aiderArgs = @("--model", $Model,
     "--lint-cmd", "python: python -m flake8 --select=E9,F63,F7,F82", "--auto-lint",   # only real errors here: layout is fixed automatically afterwards, so the model keeps its retries for failing tests
     "--yes-always", "--no-pretty", "--no-stream", "--analytics-disable", "--no-check-update", "--timeout", "1800",   # a big multi-file request can take a long time on this laptop: wait up to 30 min per reply
     "--chat-history-file", $log, "--input-history-file", "NUL") + $readArgs + $fileArgs +
-    @("--message", "Do the task in .aider-task.md now. Make the edits, keep them small.")
+    @("--message-file", $taskFile)
 
 # Run Aider as a background job so a stuck run can be stopped after $TimeoutMinutes
 # instead of blocking the whole queue for days.
