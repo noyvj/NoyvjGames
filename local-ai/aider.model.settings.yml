@@ -2,9 +2,9 @@
 # num_ctx is how much text (in tokens) the model holds at once. Measured on
 # this laptop's RTX 3080 Ti with OLLAMA_FLASH_ATTENTION=1 and
 # OLLAMA_KV_CACHE_TYPE=q8_0 set: 16384 = 12 tok/s, 24576 = 10, 32768 = 8.
-# 24576 fits every game.py up to ~17k tokens (Signal) plus the rules.
+# 32768 (2026-10-12): Round 4 features need game.py, app.js and index.html at once; slower (~8 tok/s) but fits.
 - name: ollama_chat/devstral-small-2:24b
   edit_format: diff
   use_repo_map: true
   extra_params:
-    num_ctx: 24576
+    num_ctx: 32768

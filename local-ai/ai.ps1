@@ -20,7 +20,7 @@ param(
     [int]$Issue = 0,
     [string]$Model = "ollama_chat/devstral-small-2:24b",
     [string]$Base = "main",
-    [int]$TimeoutMinutes = 45,
+    [int]$TimeoutMinutes = 90,
     # A chain is a feature built in steps: step N starts from step N-1's branch instead of main.
     # In queue.txt write the item as chain:NAME:N (for example chain:DR-SOUND:2).
     [string]$Chain = "",
@@ -122,7 +122,7 @@ $aiderArgs = @("--model", $Model,
     "--no-auto-commits", "--no-dirty-commits", "--no-gitignore",
     "--test-cmd", "python ../../scripts/generate-pc-pages.py >NUL && python -m pytest -q -x --tb=line -p no:warnings", "--auto-test",
     "--lint-cmd", "python: python -m flake8 --select=E9,F63,F7,F82", "--auto-lint",   # only real errors here: layout is fixed automatically afterwards, so the model keeps its retries for failing tests
-    "--yes-always", "--no-pretty", "--no-stream", "--analytics-disable", "--no-check-update",
+    "--yes-always", "--no-pretty", "--no-stream", "--analytics-disable", "--no-check-update", "--timeout", "1800",   # a big multi-file request can take a long time on this laptop: wait up to 30 min per reply
     "--chat-history-file", $log, "--input-history-file", "NUL") + $readArgs + $fileArgs +
     @("--message", "Do the task in .aider-task.md now. Make the edits, keep them small.")
 
