@@ -846,6 +846,16 @@
     $(listId).querySelectorAll("input[type=checkbox]").forEach(function (box) { if (box.checked) forms.push(box.dataset.token); });
     return forms;
   }
+  var lastConfirmStamp = 0;
+  function triggerConfirmStamp(el) {
+    var now = Date.now();
+    if (now - lastConfirmStamp < 180000) return; // cooldown: 3 minutes
+    lastConfirmStamp = now;
+    el.classList.remove("stamp");
+    void el.offsetWidth; // force reflow to restart animation
+    el.classList.add("stamp");
+  }
+
   function wireCheck(buttonId, listId, resultId) {
     guard(buttonId, function () {
       var forms = checkedForms(listId);
@@ -855,6 +865,7 @@
       var text = result ? result.right + " of the " + result.chosen + " ticked entries are right." : "";
       out.textContent = "";
       setTimeout(function () { out.textContent = text; }, 40);   // re-announced even when the answer is unchanged
+      if (result && result.confirm_stamp) triggerConfirmStamp(out);
     });
   }
 

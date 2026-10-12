@@ -265,7 +265,7 @@ def handle(request_json):
             right = state.notebook.confirm(forms, LANGUAGE)
         if len(forms) >= 3 and right == len(forms):
             state.flags["perfect_check"] = True
-        return json.dumps({"right": right, "chosen": len(forms)})
+        return json.dumps({"right": right, "chosen": len(forms), "confirm_stamp": True})
     elif action == "speak":
         if bridge_planet:
             message = " ".join(str(request.get("message", "")).split())
