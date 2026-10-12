@@ -234,17 +234,6 @@
     var toggle = $("tool-toggle-button");
     toggle.textContent = "Tool: " + (tool === "ping" ? "Ping" : "Mark");
     toggle.setAttribute("aria-pressed", String(tool === "mark"));
-
-    // R4-SIMO-2: Update mobile tool switch state
-    var mBtns = $("tool-buttons");
-    if (mBtns) {
-      var pBtn = $("tool-ping-btn");
-      var kBtn = $("tool-mark-btn");
-      if (pBtn && kBtn) {
-        pBtn.classList.toggle("active", tool === "ping");
-        kBtn.classList.toggle("active", tool === "mark");
-      }
-    }
     $("warm-line").hidden = engineReady;
     if (!engineReady) {
       $("warm-line").textContent = "Receiver warming up..." + (queue.length ? " " + queue.length + " tap" + (queue.length === 1 ? "" : "s") + " queued." : "");
@@ -713,11 +702,6 @@
       tool = tool === "ping" ? "mark" : "ping";
       renderStatus();
     });
-
-    // R4-SIMO-2: Mobile tool switch buttons
-    var btns = $("tool-buttons");
-    $("tool-ping-btn").addEventListener("click", function () { tool = "ping"; renderStatus(); });
-    $("tool-mark-btn").addEventListener("click", function () { tool = "mark"; renderStatus(); });
 
     document.querySelectorAll("[data-mode-tab]").forEach(function (tab) {
       tab.addEventListener("click", function () {
