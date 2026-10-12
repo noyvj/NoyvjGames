@@ -241,6 +241,31 @@ html[data-high-contrast="true"] {
 html[data-high-contrast="true"] .cell.pinged { background: #000; }
 html[data-high-contrast="true"] .cell-num { color: #fff; text-shadow: 0 0 3px #000, 0 0 3px #000; }
 
+/* ---- mobile tool bar ---------------------------------------------------- */
+.mobile-tool-bar {
+  display: none;
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 200;
+  padding: 0.6rem 0.8rem calc(0.6rem + env(safe-area-inset-bottom));
+  background: rgba(13, 21, 18, 0.97);
+  border-top: 1px solid var(--panel-edge);
+  gap: 0.6rem; justify-content: center;
+}
+@media (max-width: 600px) {
+  .mobile-tool-bar { display: flex; }
+  html body { padding-bottom: 90px !important; }
+}
+.tool-btn {
+  flex: 1 1 0; max-width: 14rem; height: 56px;
+  font-size: 1.1rem; font-weight: 700; letter-spacing: 0.08em;
+  border-radius: 12px; border: 2px solid var(--tile-edge);
+  background: #1b3026; color: var(--ink-dim); cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+.tool-btn[aria-pressed="true"] {
+  background: var(--amber); color: #23160a; border-color: var(--amber);
+}
+.tool-btn:disabled { opacity: 0.4; cursor: default; }
+
 /* ---- mobile ------------------------------------------------------------ */
 @media (max-width: 640px) {
   #game { margin: 0.5rem 0.4rem 1rem; padding: 0.9rem 0.6rem 1.3rem; }

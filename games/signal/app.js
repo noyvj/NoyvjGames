@@ -234,6 +234,12 @@
     var toggle = $("tool-toggle-button");
     toggle.textContent = "Tool: " + (tool === "ping" ? "Ping" : "Mark");
     toggle.setAttribute("aria-pressed", String(tool === "mark"));
+    var pingBtn = $("mobile-ping-button");
+    var markBtn = $("mobile-mark-button");
+    if (pingBtn) {
+      pingBtn.setAttribute("aria-pressed", String(tool === "ping"));
+      markBtn.setAttribute("aria-pressed", String(tool === "mark"));
+    }
     $("warm-line").hidden = engineReady;
     if (!engineReady) {
       $("warm-line").textContent = "Receiver warming up..." + (queue.length ? " " + queue.length + " tap" + (queue.length === 1 ? "" : "s") + " queued." : "");
@@ -702,6 +708,8 @@
       tool = tool === "ping" ? "mark" : "ping";
       renderStatus();
     });
+    $("mobile-ping-button").addEventListener("click", function () { tool = "ping"; renderStatus(); });
+    $("mobile-mark-button").addEventListener("click", function () { tool = "mark"; renderStatus(); });
 
     document.querySelectorAll("[data-mode-tab]").forEach(function (tab) {
       tab.addEventListener("click", function () {
