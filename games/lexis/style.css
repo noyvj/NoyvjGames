@@ -154,6 +154,11 @@ html[data-effects="off"] .museum-card, html[data-reduced-motion="true"] .museum-
 
 /* Mobile bottom sheet for notebook */
 @media (max-width: 600px) {
+  /* Night mode toggle visibility */
+  #night-toggle-button { display: inline-block; margin-left: auto; }
+  /* Night mode: softer background and glow for mobile bedtime puzzling. */
+  html[data-night="true"] { --bg: #03050a; --bg-top: #080d18; --panel: #090e1a; --surface: #070b14; --text: #8fa3c8; --muted: #4e6289; --glow: rgba(255, 216, 102, 0.08); }
+  html[data-night="true"] .lamp.lit { box-shadow: 0 0 4px var(--glow); }
   #notebook-panel {
     position: fixed;
     bottom: 0; left: 0; right: 0;

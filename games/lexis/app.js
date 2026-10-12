@@ -6,6 +6,7 @@
   var STORE_KEY = "lexis:state";
   var BRIEF_KEY = "lexis:brief-seen";
   var RESUME_KEY = "lexis:resume-frame";
+  var NIGHT_KEY = "lexis-night-mode";
   var TOKEN_LEN = 4;
   var MAX_OUT = 40;
 
@@ -21,6 +22,10 @@
 
   function lsGet(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
   function lsSet(k, v) { try { localStorage.setItem(k, v); } catch (e) { /* convenience only */ } }
+  function applyNight(on) {
+    document.documentElement.setAttribute("data-night", on ? "true" : "false");
+    lsSet(NIGHT_KEY, on);
+  }
 
   // ---- accessibility helpers -------------------------------------------------------------------
   // Live regions only announce when their text really changes, so assign through setText.
@@ -1155,6 +1160,17 @@
     }
     $("engine-status").textContent = "";
     setBusy(false);
+    applyNight(lsGet(NIGHT_KEY) === "true");
+    var nightBtn = document.getElementById("night-toggle-button");
+    if (!nightBtn) {
+      nightBtn = document.createElement("button");
+      nightBtn.id = "night-toggle-button";
+      nightBtn.className = "primary";
+      nightBtn.textContent = "Night mode";
+      nightBtn.addEventListener("click", function () { applyNight(document.documentElement.getAttribute("data-night") !== "true"); });
+      var toolbar = document.getElementById("game-toolbar");
+      if (toolbar) toolbar.appendChild(nightBtn);
+    }
     send({ action: "open" });
     if (lsGet(BRIEF_KEY) === null) {      // the mission brief opens by itself the first time only
       $("crew-log-panel").hidden = false;
