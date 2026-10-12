@@ -52,3 +52,60 @@ window.LEXIS_PC_TUTORIAL_STEPS = [
     text: "Every word can be worked out from what you are shown. Take your time.",
   },
 ];
+
+/* Drag-and-drop notebook items into transmit bars (PC only) */
+document.addEventListener("DOMContentLoaded", function () {
+  var dragItem = null;
+
+  document.addEventListener("dragstart", function (e) {
+    if (e.target.closest(".notebook-list li")) {
+      dragItem = e.target.closest(".notebook-list li");
+      e.dataTransfer.setData("text/plain", dragItem.textContent.trim());
+      e.dataTransfer.effectAllowed = "copy";
+      setTimeout(function () { dragItem.classList.add("dragging"); }, 0);
+    }
+  });
+
+  document.addEventListener("dragend", function (e) {
+    if (dragItem) {
+      dragItem.classList.remove("dragging");
+      dragItem = null;
+    }
+  });
+
+  document.addEventListener("dragover", function (e) {
+    var target = e.target.closest("[data-builder] .signal");
+    if (!target) return;
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "copy";
+
+    if (dragItem && dragItem.parentNode === target) {
+      var siblings = Array.from(target.children);
+      var closestChild = null;
+      var closestOffset = Number.NEGATIVE_INFINITY;
+      for (var i = 0; i < siblings.length; i++) {
+        var child = siblings[i];
+        if (child === dragItem) continue;
+        var box = child.getBoundingClientRect();
+        var offset = e.clientY - box.top - box.height / 2;
+        if (offset < 0 && offset > closestOffset) {
+          closestOffset = offset;
+          closestChild = child;
+        }
+      }
+      target.insertBefore(dragItem, closestChild);
+    }
+  });
+
+  document.addEventListener("drop", function (e) {
+    var target = e.target.closest("[data-builder] .signal");
+    if (target && e.dataTransfer.types.includes("text/plain")) {
+      e.preventDefault();
+      var text = e.dataTransfer.getData("text/plain");
+      var span = document.createElement("span");
+      span.className = "dropped-sign";
+      span.textContent = text;
+      target.appendChild(span);
+    }
+  });
+});
