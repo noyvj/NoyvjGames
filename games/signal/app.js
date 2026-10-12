@@ -402,6 +402,23 @@
       return;
     }
     var showStreaks = resp.best_streak !== null && resp.best_streak !== undefined;
+
+    // Quiet streak: total solved (big, never goes down) with streak beside it
+    if (resp.total_solved !== undefined) {
+      var qs = el("div", "quiet-streak");
+      qs.style.fontSize = "2rem";
+      qs.style.fontWeight = "bold";
+      qs.style.marginBottom = "0.5rem";
+      qs.textContent = resp.total_solved + " solved";
+      if (showStreaks && resp.best_streak !== null) {
+        var streakSpan = el("span", "", " · streak: " + resp.best_streak);
+        streakSpan.style.fontSize = "1rem";
+        streakSpan.style.fontWeight = "normal";
+        qs.appendChild(streakSpan);
+      }
+      panel.appendChild(qs);
+    }
+
     panel.appendChild(el("p", "panel-note", showStreaks
       ? "Longest daily streak (any mode): " + resp.best_streak + " day(s). Daily streaks count wins on the daily puzzle only."
       : "Daily streaks are off, so missing a day costs nothing. You can switch them on in Settings."));

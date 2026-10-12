@@ -220,6 +220,17 @@ def test_new_achievements_are_reported_once(g):
     assert g.call("view")["new"] == []
 
 
+def test_quiet_streak_counts_all_wins(g):
+    g.call("boot")
+    play_day(g, 0)
+    play_day(g, 1, win=False)
+    play_day(g, 2)
+    g.call("practice", mode="easy")
+    g.win_current(pings=1)
+    stats = g.call("stats")
+    assert stats["total_solved"] == 3
+
+
 # ---- AN-11: no streak by default ----
 
 def test_streaks_are_off_by_default_nothing_is_shown_or_reported_or_earned(g):
