@@ -121,7 +121,7 @@ $aiderArgs = @("--model", $Model,
     "--subtree-only", "--map-tokens", "1024",
     "--no-auto-commits", "--no-dirty-commits", "--no-gitignore",
     "--test-cmd", "python ../../scripts/generate-pc-pages.py >NUL && python -m pytest -q -x --tb=line -p no:warnings", "--auto-test",
-    "--lint-cmd", "python: python -m flake8 --extend-ignore=E501", "--auto-lint",
+    "--lint-cmd", "python: python -m flake8 --select=E9,F63,F7,F82", "--auto-lint",   # only real errors here: layout is fixed automatically afterwards, so the model keeps its retries for failing tests
     "--yes-always", "--no-pretty", "--no-stream", "--analytics-disable", "--no-check-update",
     "--chat-history-file", $log, "--input-history-file", "NUL") + $readArgs + $fileArgs +
     @("--message", "Do the task in .aider-task.md now. Make the edits, keep them small.")
@@ -162,16 +162,34 @@ if ($timedOut) { $problems += "timed out after $TimeoutMinutes minutes" }
 if ($inside.Count -eq 0) { $problems += "the AI made no changes in games/$Game" }
 if ($outside.Count -gt 0) { $problems += "it changed files outside games/${Game}: $($outside -join ', ')" }
 
+$py = @($inside | Where-Object { $_ -like "*.py" } | ForEach-Object { Join-Path $work $_ } | Where-Object { Test-Path $_ })
+# Layout (spacing, blank lines, trailing spaces) is fixed mechanically rather than failing correct work over it.
+if ($py.Count -gt 0) { python -m autopep8 --in-place --select=E1,E2,E3,W2,W3 @py 2>$null | Out-Null }
+# New test files the AI wrote (tests/test_ai_*.py) also lose unused imports and variables.
+$newTests = @($inside | Where-Object { $_ -match "^games/$([regex]::Escape($Game))/tests/test_ai_[^/]+\.py$" })
+$testOnly = ($inside.Count -gt 0 -and $newTests.Count -eq $inside.Count)
+if ($newTests.Count -gt 0) {
+    $newPaths = @($newTests | ForEach-Object { Join-Path $work $_ })
+    python -m autoflake --in-place --remove-all-unused-imports --remove-unused-variables @newPaths 2>$null | Out-Null
+}
+
 Push-Location $gameDir
 $testOut = (python -m pytest -q 2>&1 | Out-String)
 $testsOk = ($LASTEXITCODE -eq 0)
+$salvageNote = ""
+# A test-writing task with some wrong guesses: keep its passing tests rather than throw the whole file away.
+if (-not $testsOk -and $testOnly) {
+    $rels = @($newTests | ForEach-Object { $_.Substring("games/$Game/".Length) })
+    $salvageNote = ((python (Join-Path $aiDir "salvage_tests.py") $gameDir @rels 2>&1) -join " ")
+    if ($LASTEXITCODE -eq 0) {
+        $testOut = (python -m pytest -q 2>&1 | Out-String)
+        $testsOk = ($LASTEXITCODE -eq 0)
+    }
+}
 Pop-Location
 if (-not $testsOk) { $problems += "tests failed" }
 $testLine = ($testOut.Trim() -split "`n")[-1]
 
-$py = @($inside | Where-Object { $_ -like "*.py" } | ForEach-Object { Join-Path $work $_ } | Where-Object { Test-Path $_ })
-# Blank lines and trailing spaces are pure layout: fix them mechanically rather than failing correct work over them.
-if ($py.Count -gt 0) { python -m autopep8 --in-place --select=E301,E302,E303,E304,E305,E306,W291,W293,W391 @py 2>$null | Out-Null }
 $flakeOut = ""
 if ($py.Count -gt 0) {
     $flakeOut = (python -m flake8 --extend-ignore=E501 @py 2>&1 | Out-String)
@@ -203,6 +221,7 @@ if ($ok) {
 - Task: $Task
 - Took: $minutes minutes
 - Tests: $testLine
+$(if ($salvageNote) { "- Salvage: $salvageNote" })
 $(if ($problems.Count) { "- Problems: " + ($problems -join "; ") })
 
 ## Changed files

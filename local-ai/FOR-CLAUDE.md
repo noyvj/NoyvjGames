@@ -39,6 +39,11 @@ Each passing task becomes a draft PR titled `local-ai: <ITEM> <game>: <task>`, s
 
     gh pr list --search "head:local-ai/" --state open
 
+Layout (spacing, blank lines) and, in its own new tests/test_ai_*.py files, unused imports and
+variables are fixed by tools after the model finishes. When a test-writing task had some failing
+tests, `salvage_tests.py` deleted just those and kept the rest if at least two still pass: the
+report's "Salvage:" line names what was dropped. Check that what is left still tests something.
+
 For each one: read the diff against the game's CLAUDE.md and the standing rules
 (nothing timed, nothing lost, no luck for 100%, no audio files, saves load unchanged,
 new save keys only when non-default and validated), run that game's tests, then
