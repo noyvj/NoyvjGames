@@ -48,3 +48,53 @@ window.SIGNAL_PC_TUTORIAL_STEPS = [
 // is switched off here. shared/mobile-dock.js assigns window.MobileDock after this file runs; the setter
 // below keeps this inert stand-in in its place.
 Object.defineProperty(window, "MobileDock", { configurable: true, get() { return { init() {} }; }, set() {} });
+
+// Hover preview for R4-SIPC-1
+(function () {
+  var preview = document.createElement("div");
+  preview.id = "hover-preview";
+  preview.hidden = true;
+  document.body.appendChild(preview);
+
+  function updatePreview(cell) {
+    var activeBtn = document.querySelector("#mode-tabs button[aria-pressed='true']");
+    var r = 4;
+    if (activeBtn) {
+      var mode = activeBtn.getAttribute("data-mode-tab");
+      if (mode === "wide") r = 5;
+      else if (mode === "bigsky") r = 6;
+    }
+    var lines = [];
+    for (var d = 0; d <= r; d++) {
+      var val = Math.max(0, r - d);
+      lines.push("d" + d + ": +" + val);
+    }
+    preview.innerHTML = lines.join("<br>");
+
+    var rect = cell.getBoundingClientRect();
+    var stage = document.querySelector("#pc-stage");
+    if (stage) {
+      var stageRect = stage.getBoundingClientRect();
+      preview.style.left = (rect.right - stageRect.left + 8) + "px";
+      preview.style.top = (rect.top - stageRect.top) + "px";
+    }
+    preview.hidden = false;
+  }
+
+  function hidePreview() {
+    preview.hidden = true;
+  }
+
+  document.addEventListener("DOMContentLoaded", function () {
+    var stage = document.querySelector("#pc-stage");
+    if (!stage) return;
+    stage.addEventListener("mouseover", function (e) {
+      var cell = e.target.closest(".cell");
+      if (cell) updatePreview(cell);
+    });
+    stage.addEventListener("mouseout", function (e) {
+      var cell = e.target.closest(".cell");
+      if (cell && !stage.contains(e.relatedTarget)) hidePreview();
+    });
+  });
+})();

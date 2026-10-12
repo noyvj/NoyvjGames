@@ -101,3 +101,22 @@ html[data-theme="light"] #pc-side > #tool-toggle-button[aria-pressed="true"] { b
 html[data-theme="light"] #pc-hintbar { opacity: 1; }
 html[data-theme="light"] #pc-side .practice-controls { background: #fbf9f3; }
 .pc-window-frame a { color: var(--amber); }
+
+/* Hover preview for R4-SIPC-1 */
+#hover-preview {
+  position: absolute;
+  background: var(--panel-bg, rgba(10, 18, 15, 0.9));
+  color: var(--ink, #e8e4d9);
+  padding: 0.3rem 0.5rem;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  line-height: 1.2;
+  pointer-events: none;
+  z-index: 10;
+  white-space: nowrap;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+html[data-reduced-motion="true"] #hover-preview { transition: none; }
+#hover-preview[hidden] { opacity: 0 !important; }
+#hover-preview:not([hidden]) { opacity: 1; }
