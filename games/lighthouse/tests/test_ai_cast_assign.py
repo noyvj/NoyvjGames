@@ -30,8 +30,8 @@ def test_mail_ship_keeps_its_name_when_assigned():
                 assert ship["name"] == sailor["ship"]
 
 
-def test_edge_case_no_ships_of_correct_kind():
-    """Edge case where no ships match the sailor's kind."""
+def test_night_one_with_seed_three_assigns_nobody():
+    """On night 1 with seed 3 no ship is given a sailor (pins the current behaviour)."""
     seed = 3
     night = 1
     ships_list = ships.ships_for_night(seed, night, ships.mail_scheduled(seed, night))

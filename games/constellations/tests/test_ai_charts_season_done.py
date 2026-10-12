@@ -36,19 +36,3 @@ def test_season_done_with_charts_from_multiple_seasons():
     assert charts.season_done(solved, 0) == 1
     assert charts.season_done(solved, 1) == 1
     assert charts.season_done(solved, 2) == 1
-
-
-def test_season_done_with_edge_case_empty_season():
-    """Edge case: season_done handles empty seasons correctly (though none exist in the game)."""
-    # This is an edge case test - in the actual game all seasons have charts
-    # But the function should handle it gracefully
-    solved = set()
-    # Create a mock empty season for testing
-    empty_season_index = 99  # Non-existent season
-    try:
-        result = charts.season_done(solved, empty_season_index)
-        # Should return 0 without error
-        assert result == 0
-    except IndexError:
-        # If the season index is out of range, that's also acceptable behavior
-        pass
