@@ -136,6 +136,7 @@ $aiderArgs = @("--model", $Model,
 $job = Start-Job -ScriptBlock {
     param($dir, $exe, $argList, $apiBase)
     $env:OLLAMA_API_BASE = $apiBase
+    $env:PYTHONUTF8 = "1"; $env:PYTHONIOENCODING = "utf-8"   # Aider crashed printing a model reply with symbols like a triangle under the cp1252 console
     Set-Location $dir
     & $exe @argList *>&1 | Out-Null
 } -ArgumentList $gameDir, $aider, $aiderArgs, $env:OLLAMA_API_BASE

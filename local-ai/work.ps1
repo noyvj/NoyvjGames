@@ -47,6 +47,7 @@ try { Invoke-RestMethod http://127.0.0.1:11434/api/version | Out-Null }
 catch { Write-Host "Ollama is not running. Start it from the Start menu, then try again."; exit 1 }
 
 $env:OLLAMA_API_BASE = "http://127.0.0.1:11434"
+$env:PYTHONUTF8 = "1"; $env:PYTHONIOENCODING = "utf-8"
 $readArgs = @("--read", (Join-Path $aiDir "RULES.md"), "--read", $task)
 $gameNotes = Join-Path $gameDir "CLAUDE.md"
 if (Test-Path $gameNotes) { $readArgs += @("--read", $gameNotes) }
