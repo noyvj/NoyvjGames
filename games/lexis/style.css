@@ -168,6 +168,45 @@ html[data-effects="off"] .museum-card, html[data-reduced-motion="true"] .museum-
   #notebook-panel.sheet-open {
     transform: translateY(0);
   }
+
+  /* Mobile transmit pad */
+  .transmit-pad {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1rem;
+    justify-content: center;
+  }
+  .pad-btn {
+    flex: 1;
+    max-width: 9rem;
+    height: 5.5rem;
+    font-size: 1.3rem;
+    font-weight: 700;
+    border-radius: 14px;
+    background: var(--btn);
+    color: var(--text);
+    border: 2px solid var(--edge);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: manipulation;
+    transition: background 0.15s, border-color 0.15s, transform 0.1s;
+  }
+  .pad-btn:hover { border-color: var(--hover-edge); }
+  .pad-btn:active {
+    background: var(--btn-primary);
+    border-color: var(--hover-edge);
+    transform: scale(0.96);
+  }
+  html[data-reduced-motion="true"] .pad-btn:active,
+  html[data-effects="off"] .pad-btn:active {
+    transform: none;
+  }
+  .pad-btn.tick::after { content: "•"; font-size: 2.2rem; line-height: 1; }
+  .pad-btn.bar::after { content: "▬"; font-size: 2.2rem; line-height: 1; }
 }
 
 /* Effects: the lamp glow and the highlight on the newest transmission. Reduce-motion removes the movement, and the

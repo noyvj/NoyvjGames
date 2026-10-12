@@ -57,6 +57,44 @@
   }
   function ordinalIn(list, code) { var i = (list || []).indexOf(code); return i === -1 ? 0 : i + 1; }
 
+  // ---- mobile transmit pad -------------------------------------------------------------------
+  var audioCtx = null;
+  function playBuzz(type) {
+    if (document.documentElement.getAttribute("data-reduced-motion") === "true" || document.documentElement.getAttribute("data-effects") === "off") return;
+    if (!window.AudioContext && !window.webkitAudioContext) return;
+    if (audioCtx === null) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if (audioCtx.state === "suspended") audioCtx.resume();
+    var osc = audioCtx.createOscillator();
+    var gain = audioCtx.createGain();
+    osc.type = "square";
+    osc.frequency.value = type === "tick" ? 800 : 400;
+    gain.gain.value = 0.15;
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.start();
+    osc.stop(audioCtx.currentTime + (type === "tick" ? 0.08 : 0.2));
+  }
+  function initTransmitPad() {
+    var pad = document.getElementById("transmit-pad");
+    if (pad) return;
+    pad = document.createElement("div");
+    pad.id = "transmit-pad";
+    pad.className = "transmit-pad";
+    var tickBtn = document.createElement("button");
+    tickBtn.type = "button";
+    tickBtn.className = "pad-btn tick";
+    tickBtn.setAttribute("aria-label", "Short signal (tick)");
+    tickBtn.addEventListener("click", function () { addMarks("0"); playBuzz("tick"); });
+    var barBtn = document.createElement("button");
+    barBtn.type = "button";
+    barBtn.className = "pad-btn bar";
+    barBtn.setAttribute("aria-label", "Long signal (bar)");
+    barBtn.addEventListener("click", function () { addMarks("1"); playBuzz("bar"); });
+    pad.appendChild(tickBtn);
+    pad.appendChild(barBtn);
+    document.getElementById("game").appendChild(pad);
+  }
+
   // ---- drawing helpers -----------------------------------------------------------------------
   function markNode(ch) {
     var span = document.createElement("span");
@@ -978,6 +1016,7 @@
 
   function wire() {
     mountCopyResult();
+    initTransmitPad();
     wireCompound();
     wireBridge();
     wirePanelToggle("achievements-toggle-button", "achievements-panel");
