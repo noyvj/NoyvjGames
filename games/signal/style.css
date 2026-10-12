@@ -277,3 +277,20 @@ html[data-theme="light"] #action-bar.mobile-docked { background: rgba(255, 255, 
 html[data-theme="light"][data-high-contrast="true"] { --ink: #000; --ink-dim: #111; --tile-edge: #000; --panel-edge: #000; --tile: #fff; --fill: #000; --amber: #6b3a00; }
 html[data-theme="light"][data-high-contrast="true"] .cell.pinged { background: #fff; }
 html[data-theme="light"][data-high-contrast="true"] .cell-num { color: #000; text-shadow: none; }
+
+/* ---- resume banner (mobile) ----------------------------------------------- */
+@media (max-width: 600px) {
+  .resume-banner {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 800;
+    background: rgba(13, 21, 18, 0.95); color: var(--amber);
+    border-bottom: 1px solid var(--panel-edge);
+    padding: 0.6rem 1rem; font-size: 0.85rem; text-align: center;
+    display: flex; justify-content: center; align-items: center; gap: 0.8rem;
+    transform: translateY(-100%); transition: transform 0.3s ease-out;
+  }
+  .resume-banner.visible { transform: translateY(0); }
+  .resume-banner button {
+    background: transparent; border: 1px solid var(--amber); color: var(--amber);
+    padding: 0.2rem 0.6rem; font-size: 0.8rem; cursor: pointer; border-radius: 4px;
+  }
+}

@@ -22,6 +22,8 @@
   var PYODIDE_URL = "https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.js";
   var LS_STATE = "signal:state";
   var LS_VIEW = "signal:lastview";
+  var LS_TOOL = "signal:tool";
+  var LS_CURSOR = "signal:cursor";
   var MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
   var GLYPHS = "▁▂▃▄▅▆▇█";
   var SYMBOL = { none: "·", inprogress: "…", won: "✔", lost: "✖" };
@@ -122,6 +124,47 @@
 
   // ---- rendering ---------------------------------------------------------------
   function setMessage(text) { $("message-line").textContent = text || ""; }
+
+  function saveResumeState() {
+    if (!view || view.status !== "inprogress") return;
+    lsSet(LS_TOOL, tool);
+    lsSet(LS_CURSOR, JSON.stringify(cursor));
+  }
+
+  function restoreResumeState() {
+    if (!view || view.status !== "inprogress") return;
+    var savedTool = lsGet(LS_TOOL);
+    var savedCursor = lsGet(LS_CURSOR);
+    var n = view.board.n;
+    if (savedTool === "ping" || savedTool === "mark") tool = savedTool;
+    if (savedCursor) {
+      try {
+        var c = JSON.parse(savedCursor);
+        if (typeof c.r === "number" && typeof c.c === "number" && c.r >= 0 && c.r < n && c.c >= 0 && c.c < n) cursor = c;
+      } catch (e) {}
+    }
+    showResumeBanner();
+  }
+
+  var resumeBannerEl = null;
+  function showResumeBanner() {
+    if (resumeBannerEl) return;
+    resumeBannerEl = document.createElement("div");
+    resumeBannerEl.className = "resume-banner";
+    resumeBannerEl.innerHTML = '<span>Resuming your last board</span><button type="button">Dismiss</button>';
+    resumeBannerEl.querySelector("button").addEventListener("click", function () {
+      resumeBannerEl.classList.remove("visible");
+      setTimeout(function () { if (resumeBannerEl) resumeBannerEl.remove(); resumeBannerEl = null; }, 350);
+    });
+    document.body.appendChild(resumeBannerEl);
+    requestAnimationFrame(function () { resumeBannerEl.classList.add("visible"); });
+    setTimeout(function () {
+      if (resumeBannerEl && resumeBannerEl.parentNode) {
+        resumeBannerEl.classList.remove("visible");
+        setTimeout(function () { if (resumeBannerEl) resumeBannerEl.remove(); resumeBannerEl = null; }, 350);
+      }
+    }, 4000);
+  }
 
   function renderTabs() {
     var s = view.session;
@@ -625,6 +668,7 @@
   function doTool(r, c, forceMark) {
     if (view.status !== "inprogress") { setMessage("This puzzle is finished. Open another from the tabs or the archive."); return; }
     cursor = { r: r, c: c };
+    saveResumeState();
     if (forceMark || tool === "mark") act({ action: "mark", r: r, c: c });
     else act({ action: "ping", r: r, c: c });
   }
@@ -662,6 +706,7 @@
       if (moved) {
         ev.preventDefault();
         cursor = { r: r, c: c };
+        saveResumeState();
         renderBoard();
         focusCursor();
         return;
@@ -683,6 +728,7 @@
 
     $("tool-toggle-button").addEventListener("click", function () {
       tool = tool === "ping" ? "mark" : "ping";
+      saveResumeState();
       renderStatus();
     });
 
@@ -837,6 +883,7 @@
       setMessage("Welcome back. Your board is shown while the receiver warms up.");
     }
     cursor = { r: Math.floor(view.board.n / 2), c: Math.floor(view.board.n / 2) };
+    restoreResumeState();
     wire();
     render();
     renderAchievements();
