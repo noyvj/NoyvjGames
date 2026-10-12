@@ -40,6 +40,7 @@
     <button id="changelog-toggle-button" type="button" aria-expanded="false" aria-controls="changelog-panel"><span class="btn-long">What's New</span><span class="btn-short" aria-hidden="true">News</span></button>
     <button id="settings-toggle-button" type="button" aria-expanded="false" aria-controls="settings-panel">Settings</button>
     <button id="info-page-toggle-button" type="button" aria-expanded="false" aria-controls="info-page-panel">About</button>
+    <button id="tutorial-restart-button" type="button" aria-label="Tutorial"><span class="btn-long">Tutorial</span><span class="btn-short" aria-hidden="true">Tour</span></button>
   </div>
   <p class="tagline">A worn station workshop, and Pip, a small sorting machine that barely speaks. You choose what Pip may look at, press Train, and see how it does on cases it has never seen. When it gets one wrong, you can open it up and see why. Nothing is timed and nothing is lost.</p>
 
@@ -188,7 +189,7 @@
       <div class="button-row"><button id="why-close-button" type="button" data-testid="ttm-why-close">Close</button></div>
     </section>
 
-    <p class="note keys-note">Keys: 1 to 8 switch a feature on or off, T trains, E tests. Everything else is a button you can tab to. Escape closes an open panel or the Why.</p>
+    <p class="note keys-note">Keys: 1 to 8 switch a feature on or off, T trains, E tests, ? lists the keys. Everything else is a button you can tab to. Escape closes an open panel or the Why.</p>
   </section>
 
   <p id="engine-status" class="note" role="status">Opening the workshop...</p>
@@ -206,12 +207,38 @@
        data-ad-slot="XXXXXXXXXX"></ins>
 </div>
 <script src="https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.js"></script>
+<script src="../../shared/tutorial.js"></script>
 <script src="../../shared/hub-auth.js"></script>
 <script src="../../shared/save-widget.js" data-game-id="teach-the-machine"></script>
+<script src="../../shared/opening-screen.js" data-game-id="teach-the-machine" data-game-name="Teach the Machine" data-tagline="Choose what Pip looks at. Find out why it got it wrong. Nothing is timed."></script>
 <script src="../../shared/confirm-dialog.js"></script>
+<script>
+  // pc.js (the Desktop boot, a later milestone) will define window.TEACH_THE_MACHINE_PC_TUTORIAL_STEPS, because the Classic walkthrough
+  // points at buttons the Desktop layout turns into icons and windows. app.js asks this function which steps to run.
+  window.teachTheMachineTutorialSteps = function (classicSteps) { return window.TEACH_THE_MACHINE_PC_TUTORIAL_STEPS || classicSteps; };
+</script>
 <script src="app.js"></script>
 <script src="../../shared/last-played.js" data-game-id="teach-the-machine"></script>
 <script src="../../shared/whats-new-banner.js" data-game-id="teach-the-machine"></script>
+<script src="../../shared/keyboard-shortcuts.js"></script>
+<script>
+  window.KeyboardShortcuts.init({
+    panels: [
+      { toggle: "lessons-toggle-button", panel: "lessons-panel" },
+      { toggle: "notebook-toggle-button", panel: "notebook-panel" },
+      { toggle: "changelog-toggle-button", panel: "changelog-panel" },
+      { toggle: "settings-toggle-button", panel: "settings-panel" },
+      { toggle: "info-page-toggle-button", panel: "info-page-panel" },
+    ],
+    extra: [
+      "Workshop: 1 to 8 switch the first to eighth feature on or off",
+      "Workshop: T trains Pip, E tests it (after a Train)",
+      "Workshop: Tab moves between the switches, Train, Test and the Why buttons; Space or Enter presses the one you are on",
+      "Why box: Esc closes it and puts you back on the case you opened",
+      "Esc: close the open panel",
+    ],
+  });
+</script>
 <script>
   if ("serviceWorker" in navigator) {
     navigator.serviceWorker.register("../../sw.js").catch(function () { /* offline support is optional */ });

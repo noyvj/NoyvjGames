@@ -6,6 +6,7 @@
   var ENGINE_MODULES = ["learner.py", "lessonkit.py", "lessons_s1.py", "lessons_s2.py", "lessons_s3.py", "lessons.py", "why.py", "info.py"];
   var STORE_KEY = "teach-the-machine:state";
   var BACKUP_KEY = "teach-the-machine:state-backup";
+  var BEFORE_NEW_KEY = "teach-the-machine:state-before-new-game";
 
   var $ = function (id) { return document.getElementById(id); };
   var engine = null;
@@ -436,9 +437,24 @@
       window.CHANGELOG_JSON = text;       // shared/whats-new-banner.js reads this to show a returning player only what is new
       var data = JSON.parse(text);
       var list = Array.isArray(data) ? data : (data && data.changelog) || [];
-      renderChangelog(list.slice().sort(function (a, b) { return a.date < b.date ? 1 : -1; }));
+      renderChangelog(list.slice().sort(function (a, b) { return a.date < b.date ? 1 : a.date > b.date ? -1 : 0; }));
     }).catch(function () { renderChangelog([]); });
   }
+
+  // ---- the tutorial (shared/tutorial.js; offered from the opening screen, restartable from the toolbar) ----------------
+  // A step whose element is hidden at that moment (the unseen cases before a Test) is shown as a centred card instead.
+  var TUTORIAL_STEPS = [
+    { title: "Welcome to the workshop", text: "Pip is a small sorting machine. You choose what Pip may look at, press Train, and see how it does on cases it has never seen. Nothing is timed, nothing can fail and nothing is lost. You can skip this tour at any time." },
+    { selector: "#feature-list", title: "What may Pip look at?", text: "Each switch lets Pip see one thing about a case. ON means Pip may use it, OFF means it is blind to it. Fewer, better-chosen features often teach Pip more than all of them. Keys 1 to 8 flip the switches." },
+    { selector: "#train-button", title: "Train", text: "Train makes Pip study its training cases and grow a tree of questions from only the features that are on. You can change the switches and train again as often as you like." },
+    { selector: "#test-button", title: "Test", text: "Test asks Pip about cases it has never seen. Each one is marked Right or Wrong, and Pip needs enough right to clear the lesson." },
+    { selector: "#result-box", title: "Why was it wrong?", text: "Every wrong answer has a Why button. It shows the exact questions the case went through, the training cases that looked alike, and which of five kinds of mistake it was." },
+    { selector: "#lamp-words", title: "Pip's lamp", text: "The lamp on Pip's head and the sentence under it say how the lesson stands: waiting, trained, puzzled or pleased. The sentence always says it in words as well." },
+    { selector: "#lessons-toggle-button", title: "Lessons and shelves", text: "Lessons sit on shelves of eight. Clear any five on a shelf to open the next shelf, and inside a shelf you can go in any order. Clearing a lesson with exactly the right features earns the best mark." },
+    { selector: "#notebook-toggle-button", title: "The Failure Notebook", text: "The first time you open a Why on an example of a kind of mistake, it is written into the notebook. Cleared lessons also keep a card of what Pip learned." },
+    { selector: "#settings-toggle-button", title: "Settings", text: "Text size, reduced motion, effects, high contrast and the light theme are in Settings, and Start over asks before it clears anything." },
+    { title: "That is all", text: "Press ? at any time for the keyboard help. The Tutorial button in the toolbar brings this tour back." }
+  ];
 
   // ---- render ---------------------------------------------------------------------------------------
   function render() {
@@ -492,6 +508,18 @@
     if (window.ConfirmDialog) window.ConfirmDialog.ask({ id: id, message: message, confirmLabel: confirmLabel, allowSkip: false, onConfirm: go });
     else go();
   }
+  // True while something modal is on screen (the opening screen, the tutorial, the shortcuts list or a confirm dialog), so the
+  // workshop's own keys stay quiet and the dialog gets the keystroke.
+  function modalOpen() {
+    var nodes = document.querySelectorAll("[role='dialog'], #tutorial-overlay, #confirm-dialog-overlay, .confirm-dialog");
+    for (var i = 0; i < nodes.length; i++) {
+      var n = nodes[i];
+      if (n.hidden) continue;
+      var cs = window.getComputedStyle(n);
+      if (cs.display !== "none" && cs.visibility !== "hidden") return true;
+    }
+    return false;
+  }
   function closePanels() {
     var closed = false;
     ["lessons", "notebook", "changelog", "settings", "info-page"].forEach(function (name) {
@@ -529,6 +557,7 @@
       if (engine) { featureSig = trainSig = shelfSig = notebookSig = gallerySig = resultSig = ""; send({ action: "open" }); }
     };
     document.addEventListener("keydown", function (e) {
+      if (modalOpen()) return;
       if (e.key === "Escape") {
         if (closePanels()) return;
         if (view && view.lesson.why) send({ action: "close_why" });
@@ -537,7 +566,6 @@
       if (e.ctrlKey || e.metaKey || e.altKey || !view) return;
       var tag = e.target && e.target.tagName;
       if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return;
-      if (document.querySelector(".confirm-dialog, [role='dialog']")) return;
       var key = e.key.toLowerCase();
       if (key >= "1" && key <= "8") {
         var f = view.lesson.features[parseInt(key, 10) - 1];
@@ -560,7 +588,16 @@
     await pyodide.runPythonAsync(await (await fetch("game.py", { cache: "no-cache" })).text());
     window.pyodide = pyodide;   // the shared save widget looks for it
     engine = { handle: pyodide.globals.get("handle"), getState: pyodide.globals.get("get_state"), loadState: pyodide.globals.get("load_state") };
+    // The opening screen (shared/opening-screen.js) answers first. "New Game" starts a clean workshop; the old local copy is kept under
+    // its own key so a mis-click never costs a game (the save widget also snapshots before a New Game).
+    var choice = "continue";
+    try { if (window.NoyvjOpeningScreen && window.NoyvjOpeningScreen.choice) choice = await window.NoyvjOpeningScreen.choice; } catch (e) { choice = "continue"; }
     var saved = lsGet(STORE_KEY);
+    if (choice === "new") {
+      if (saved && saved !== "{}") lsSet(BEFORE_NEW_KEY, saved);
+      try { localStorage.removeItem(STORE_KEY); } catch (e) { /* ok */ }
+      saved = null;
+    }
     if (saved && saved !== "{}") {
       lsSet(BACKUP_KEY, saved);      // kept until the next good save, so a load problem can never cost the player a game
       try { engine.loadState(pyodide.toPy(JSON.parse(saved))); } catch (e) { /* a bad save never blocks play */ }
@@ -568,6 +605,7 @@
     $("engine-status").textContent = "";
     send({ action: "open" });
     await changelog;
+    if (window.GameTutorial) window.GameTutorial.init(window.teachTheMachineTutorialSteps ? window.teachTheMachineTutorialSteps(TUTORIAL_STEPS) : TUTORIAL_STEPS, { gameId: "teach-the-machine" });
   }
 
   wire();
