@@ -44,6 +44,25 @@ $maxTokens = 17000   # biggest single file the model can hold next to the rules 
 
 function Fail($msg) { Write-Host "STOPPED: $msg" -ForegroundColor Red; exit 1 }
 
+# A running tally after every task, in the Terminal and in its window title (visible from the taskbar).
+# Counted from queue-done.txt plus this task, which the queue only writes there after this script ends.
+function Show-Tally([bool]$passed) {
+    try {
+        $doneFile = Join-Path $PSScriptRoot "queue-done.txt"
+        $rows = @(if (Test-Path $doneFile) { Get-Content $doneFile -Encoding utf8 | ForEach-Object { $_.TrimStart([char]0xFEFF) } |
+            Where-Object { $_ -match '^(PASSED|FAILED)  ' } })
+        $today = Get-Date -Format "yyyy-MM-dd"
+        $isTodo = ($Item -match '^(R4|FY)-')
+        $run = $rows.Count + 1
+        $runToday = @($rows | Where-Object { $_ -match "^\S+  $today" }).Count + 1
+        $built = @($rows | Where-Object { $_ -match '^PASSED .*\| (R4|FY)-' }).Count + $(if ($passed -and $isTodo) { 1 } else { 0 })
+        $passedAll = @($rows | Where-Object { $_ -like "PASSED*" }).Count + $(if ($passed) { 1 } else { 0 })
+        $mark = if ($passed) { [char]0x2713 } else { [char]0x00B7 }
+        Write-Host ("{0} Tally: {1} tasks run ({2} passed) - {3} TODO items built - {4} today" -f $mark, $run, $passedAll, $built, $runToday) -ForegroundColor Cyan
+        $Host.UI.RawUI.WindowTitle = "Local AI: $built TODO built - $run run - $runToday today"
+    } catch { }
+}
+
 # --- Preconditions -------------------------------------------------------
 if (-not (Test-Path (Join-Path $root "games\$Game"))) { Fail "no game folder games\$Game" }
 if ($Item -notmatch '^[A-Za-z0-9-]+$') { Fail "item id '$Item' should look like QI-52" }
@@ -322,6 +341,7 @@ if (-not $ok) {
     git -C $root worktree remove --force $work 2>$null | Out-Null
     git -C $root branch -q -D $branch 2>$null | Out-Null
     Write-Host "FAILED ($($problems -join '; ')). Nothing committed. Report: $report" -ForegroundColor Yellow
+    Show-Tally $false
     exit 1
 }
 
@@ -338,3 +358,4 @@ if ($Pr -and $prOn) {
 
 git -C $root worktree remove --force $work
 Write-Host "PASSED in $minutes min. Committed on branch $branch. Report: $report" -ForegroundColor Green
+Show-Tally $true
