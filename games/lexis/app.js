@@ -987,6 +987,12 @@
     wirePanelToggle("changelog-toggle-button", "changelog-panel");
     wirePanelToggle("star-map-toggle-button", "star-map-panel");
     wirePanelToggle("museum-toggle-button", "museum-panel");
+    var notebookOpen = false;
+    guard("notebook-toggle-button", function () {
+      notebookOpen = !notebookOpen;
+      $("notebook-panel").classList.toggle("sheet-open", notebookOpen);
+      $("notebook-toggle-button").setAttribute("aria-expanded", String(notebookOpen));
+    });
     // The save widget loads a save directly into the engine; this redraws the page afterwards.
     window.lexisRefresh = function () {
       if (!engine) return;

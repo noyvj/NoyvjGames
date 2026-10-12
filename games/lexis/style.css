@@ -152,6 +152,24 @@ html[data-effects="off"] .museum-card, html[data-reduced-motion="true"] .museum-
 .museum-meaning { font-size: 0.9rem; color: var(--muted); }
 .museum-card.confirmed .museum-meaning { color: var(--accent); font-weight: 600; }
 
+/* Mobile bottom sheet for notebook */
+@media (max-width: 600px) {
+  #notebook-panel {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    max-height: 55vh;
+    margin: 0;
+    border-radius: 14px 14px 0 0;
+    transform: translateY(100%);
+    transition: transform 0.3s ease-out;
+    z-index: 100;
+    overflow-y: auto;
+  }
+  #notebook-panel.sheet-open {
+    transform: translateY(0);
+  }
+}
+
 /* Effects: the lamp glow and the highlight on the newest transmission. Reduce-motion removes the movement, and the
    Effects switch removes the glow and the highlight; either way no information is carried by them. */
 @keyframes scene-in { from { background: var(--btn); transform: translateY(-4px); } to { background: transparent; transform: none; } }
