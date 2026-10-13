@@ -168,10 +168,20 @@ $aiderArgs = @("--model", $Model,
     "--model-settings-file", (Join-Path $aiDir "aider.model.settings.yml"),
     "--subtree-only", "--map-tokens", "1024",
     "--no-auto-commits", "--no-dirty-commits", "--no-gitignore",
-    "--test-cmd", "python ../../scripts/generate-pc-pages.py >NUL && python -m pytest -q -x --tb=line -p no:warnings", "--auto-test",
+    "--test-cmd", "python ../../scripts/generate-pc-pages.py >NUL && python -m pytest -q -x --tb=line -p no:warnings --ignore-glob=*browser*", "--auto-test",   # browser tests only run in the final check: they are slow and Aider reruns tests after every edit
     "--lint-cmd", "python: python -m flake8 --select=E9,F63,F7,F82", "--auto-lint",   # only real errors here: layout is fixed automatically afterwards, so the model keeps its retries for failing tests
     "--yes-always", "--no-pretty", "--no-stream", "--analytics-disable", "--no-check-update", "--timeout", "1800",   # a big multi-file request can take a long time on this laptop: wait up to 30 min per reply
     "--chat-history-file", $log, "--input-history-file", "NUL") + $readArgs
+# Thinking: the model's first reply was 6.5k-12k tokens of reasoning (3-5 minutes). config.txt: think = on | off | ab
+# ("ab" alternates task by task so local-ai/ab_report.py can compare pass rates and times before choosing).
+$thinkMode = "on"
+$cfgThink = Select-String -Path (Join-Path $aiDir "config.txt") -Pattern "^\s*think\s*=\s*(on|off|ab)\s*$" -ErrorAction SilentlyContinue | Select-Object -First 1
+if ($cfgThink) { $thinkMode = $cfgThink.Matches[0].Groups[1].Value }
+if ($thinkMode -eq "ab") {
+    $doneRows = @(Get-Content (Join-Path $aiDir "queue-done.txt") -Encoding utf8 -ErrorAction SilentlyContinue | Where-Object { $_ -match '(PASSED|FAILED)  ' }).Count
+    $thinkMode = if ($doneRows % 2 -eq 0) { "off" } else { "on" }
+}
+if ($thinkMode -eq "off") { $aiderArgs += @("--reasoning-effort", "none", "--no-check-model-accepts-settings") }
 
 # Run Aider as a background job so a stuck run can be stopped when the task's time is up
 # instead of blocking the whole queue for days. Returns $true if it was stopped for time.
@@ -219,7 +229,7 @@ while (-not $timedOut -and $repairs -lt 2) {
         Where-Object { $_ -like "games/$Game/*" -and $_ -notlike "*/pc.html" })
     if ($touched.Count -eq 0 -or ($touched | Where-Object { $_ -notmatch "/tests/test_ai_[^/]+\.py$" }).Count -eq 0) { break }
     Push-Location $gameDir
-    $firstTry = (python -m pytest -q -x --tb=short -p no:warnings 2>&1 | Out-String)
+    $firstTry = (python -m pytest -q -x --tb=short -p no:warnings --ignore-glob=*browser* 2>&1 | Out-String)
     $passing = ($LASTEXITCODE -eq 0)
     Pop-Location
     if ($passing) { break }
@@ -363,6 +373,7 @@ if ($ok) {
 - Took: $minutes minutes
 - Tests: $testLine
 $(if ($salvageNote) { "- Salvage: $salvageNote" })
+- Thinking: $thinkMode
 $(if ($pageNote) { "- $pageNote" })
 $(if ($repairs) { "- Repair rounds: $repairs (the model was shown the failing tests and asked to fix them)" })
 $(if ($problems.Count) { "- Problems: " + ($problems -join "; ") })
@@ -383,6 +394,17 @@ if (-not $ok) {
     # failures never pile up on disk.
     git -C $root worktree remove --force $work 2>$null | Out-Null
     git -C $root branch -q -D $branch 2>$null | Out-Null
+    # One automatic second try for a TODO task (not test-writing tasks): back on the second list, which runs
+    # after queue.txt. A second failure is not retried again.
+    if ($Item -notmatch '^(T|EDGE)-') {
+        $doneFile = Join-Path $aiDir "queue-done.txt"
+        $failedBefore = @(Get-Content $doneFile -Encoding utf8 -ErrorAction SilentlyContinue | Where-Object { $_ -match "^\W*FAILED .*\| $([regex]::Escape($Item)) \|" }).Count
+        if ($failedBefore -eq 0 -and -not $timedOut) {
+            $retryLine = "$Game | $Item | $($Files -join ', ') | $($Task -replace '\|', '/')"
+            Add-Content -Encoding utf8 (Join-Path $aiDir "queue-next.txt") $retryLine
+            Write-Host "Queued one more try for $Item on the second list (queue-next.txt)."
+        }
+    }
     Write-Host "FAILED ($($problems -join '; ')). Nothing committed. Report: $report" -ForegroundColor Yellow
     Show-Tally $false
     exit 1

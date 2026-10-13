@@ -4,6 +4,10 @@
 # aider.model.settings.yml. Options installed: ollama_chat/devstral-small-2:24b, ollama_chat/qwen3.6:35b
 model = ollama_chat/qwen3.6:35b
 
+# think = on (the model reasons before answering), off (much faster), or ab (alternate task by task to compare;
+# run python local-ai/ab_report.py after ~30 tasks and set the winner).
+think = ab
+
 # push = on lets ai-queue push finished local-ai/... branches to GitHub every sync_every tasks
 # and at the end, so other sessions can see them. main is never pushed. Safe: the website
 # (GitHub Pages) and the backend (FastAPI Cloud) only deploy from main.
