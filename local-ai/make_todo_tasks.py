@@ -41,9 +41,22 @@ ITEM = re.compile(r"^\s*- \[ \] ([A-Z0-9][A-Z0-9-]*[A-Z0-9]):?\s*(?:\((small|big
 EXTRA_NAMES = {"slingshot": "slingshot", "zero-g shift": "zero-g-shift"}   # games started since GAMES was written
 
 
+def folder_names():
+    """Every game folder's name, from the first heading of its CLAUDE.md (new games scaffolded by
+    scripts/new_game.py included), plus its slug read as words."""
+    out = {}
+    for notes in (ROOT / "games").glob("*/CLAUDE.md"):
+        slug = notes.parent.name
+        out[slug.replace("-", " ")] = slug
+        first = next((ln[2:].strip() for ln in notes.read_text(encoding="utf-8").splitlines() if ln.startswith("# ")), "")
+        if first:
+            out[re.sub(r"\s*\(.*\)$", "", first).lower().replace("'", "")] = slug
+    return out
+
+
 def game_of(section, text=""):
     """The game a section is about; failing that, the one existing game the item's own text names."""
-    names = {**GAMES, **EXTRA_NAMES}
+    names = {**GAMES, **EXTRA_NAMES, **folder_names()}
     low = section.lower()
     for name in sorted(names, key=len, reverse=True):
         if re.search(rf"\b{re.escape(name)}\b", low):
