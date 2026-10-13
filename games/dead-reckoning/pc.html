@@ -240,6 +240,10 @@
         <button id="planner-undo-button" type="button">Undo</button>
         <button id="sail-button" type="button" class="primary">Sail</button>
       </div>
+      <button id="planner-toggle" class="planner-toggle" type="button" aria-label="Toggle planner layout">
+        <svg viewBox="0 0 24 24"><path d="M3 6h18v2H3V6zm0 5h18v2H3v-2zm0 5h18v2H3v-2z"/></svg>
+        Layout
+      </button>
     </section>
 
     <section id="result-panel" class="panel" aria-labelledby="result-heading" hidden>
@@ -302,6 +306,7 @@
 <script src="../../shared/lazy-packs.js" data-game-id="dead-reckoning" data-manifest="modules.json"></script>
 <script src="daily.js"></script>
 <script src="wheel-pickers.js"></script>
+<script src="mobile-layout.js"></script>
 <script src="fix-mark.js"></script>
 <script src="swipe-legs.js"></script>
 <script src="app.js"></script>
