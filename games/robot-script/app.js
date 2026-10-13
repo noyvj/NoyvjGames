@@ -719,6 +719,9 @@
     } else if (changed) {
       roomId = view.room.id;
     }
+    if (changed && view.draft && view.draft[roomId]) {
+      send({ action: "load_draft", room: roomId }, true);
+    }
     renderStats();
     renderRoomHead();
     if (!play.trace) renderGoals("room-goals", view.room.goals);
