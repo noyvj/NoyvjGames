@@ -98,6 +98,7 @@ button[aria-disabled="true"]:hover { border-color: var(--edge); }
 .ach-list li.earned { border-style: solid; border-width: 2px; border-color: var(--accent); }
 .ach-list li:not(.earned) { border-style: dashed; border-color: var(--edge); }
 .ach-list .tick { display: inline-block; min-width: 4.5rem; font-weight: 700; }
+.achievement-riddle { margin-top: 0.3rem; font-style: italic; color: var(--accent); font-size: 0.9rem; }
 .toast { min-height: 1.4rem; font-weight: 600; }
 
 /* Planet 3: the counter. A chip is its label plus a written count, never colour alone; a small sign is a
@@ -133,6 +134,86 @@ button[aria-disabled="true"]:hover { border-color: var(--edge); }
 /* Two columns on a wide window, one column in the Classic layout. The wrappers do nothing until pc.css styles them. */
 .planet-cols, .planet-col { display: block; }
 
+/* Number bench */
+.bench-row { display: flex; gap: 0.5rem; align-items: center; margin: 0.4rem 0; }
+.bench-label { font-weight: 600; min-width: 8rem; }
+.switches { display: flex; gap: 0.3rem; }
+.switch { width: 2rem; height: 2rem; border-radius: 6px; border: 2px solid var(--edge); background: var(--off); cursor: pointer; display: flex; align-items: center; justify-content: center; font-weight: 700; color: var(--muted); }
+.switch.on { background: var(--on); border-color: var(--on-edge); color: var(--bg); box-shadow: 0 0 6px var(--glow); }
+html[data-effects="off"] .switch.on { box-shadow: none; }
+
+/* Glyph museum wall */
+.museum-wall { display: grid; grid-template-columns: repeat(auto-fill, minmax(10rem, 1fr)); gap: 0.6rem; margin-top: 0.5rem; }
+.museum-card { border: 1px solid var(--line); border-radius: 8px; padding: 0.6rem; background: var(--surface); transition: background 0.2s, border-color 0.2s; }
+html[data-effects="off"] .museum-card, html[data-reduced-motion="true"] .museum-card { transition: none; }
+.museum-card.confirmed { border-color: var(--accent); background: var(--panel-fill); }
+.museum-planet { font-size: 0.75rem; text-transform: uppercase; color: var(--muted); letter-spacing: 0.05em; }
+.museum-form { font-family: monospace; font-size: 1.2rem; margin: 0.3rem 0; color: var(--text); }
+.museum-meaning { font-size: 0.9rem; color: var(--muted); }
+.museum-card.confirmed .museum-meaning { color: var(--accent); font-weight: 600; }
+
+/* Mobile bottom sheet for notebook */
+@media (max-width: 600px) {
+  /* Night mode toggle visibility */
+  #night-toggle-button { display: inline-block; margin-left: auto; }
+  /* Night mode: softer background and glow for mobile bedtime puzzling. */
+  html[data-night="true"] { --bg: #03050a; --bg-top: #080d18; --panel: #090e1a; --surface: #070b14; --text: #8fa3c8; --muted: #4e6289; --glow: rgba(255, 216, 102, 0.08); }
+  html[data-night="true"] .lamp.lit { box-shadow: 0 0 4px var(--glow); }
+  #notebook-panel {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    max-height: 55vh;
+    margin: 0;
+    border-radius: 14px 14px 0 0;
+    transform: translateY(100%);
+    transition: transform 0.3s ease-out;
+    z-index: 100;
+    overflow-y: auto;
+  }
+  #notebook-panel.sheet-open {
+    transform: translateY(0);
+  }
+
+  /* Mobile transmit pad */
+  .transmit-pad {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1rem;
+    justify-content: center;
+  }
+  .pad-btn {
+    flex: 1;
+    max-width: 9rem;
+    height: 5.5rem;
+    font-size: 1.3rem;
+    font-weight: 700;
+    border-radius: 14px;
+    background: var(--btn);
+    color: var(--text);
+    border: 2px solid var(--edge);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: manipulation;
+    transition: background 0.15s, border-color 0.15s, transform 0.1s;
+  }
+  .pad-btn:hover { border-color: var(--hover-edge); }
+  .pad-btn:active {
+    background: var(--btn-primary);
+    border-color: var(--hover-edge);
+    transform: scale(0.96);
+  }
+  html[data-reduced-motion="true"] .pad-btn:active,
+  html[data-effects="off"] .pad-btn:active {
+    transform: none;
+  }
+  .pad-btn.tick::after { content: "•"; font-size: 2.2rem; line-height: 1; }
+  .pad-btn.bar::after { content: "▬"; font-size: 2.2rem; line-height: 1; }
+}
+
 /* Effects: the lamp glow and the highlight on the newest transmission. Reduce-motion removes the movement, and the
    Effects switch removes the glow and the highlight; either way no information is carried by them. */
 @keyframes scene-in { from { background: var(--btn); transform: translateY(-4px); } to { background: transparent; transform: none; } }
@@ -143,4 +224,108 @@ html[data-effects="off"] .scene.fresh { animation: none; }
 html[data-reduced-motion="true"] *, html[data-reduced-motion="true"] *::before, html[data-reduced-motion="true"] *::after,
 html[data-effects="off"] *, html[data-effects="off"] *::before, html[data-effects="off"] *::after {
   animation: none !important; transition: none !important; scroll-behavior: auto !important;
+}
+
+/* Low-poly globe */
+.planet-globe { display: flex; justify-content: center; margin: 0.8rem 0; }
+.planet-globe svg { width: 100%; max-width: 200px; height: auto; }
+html[data-reduced-motion="true"] .planet-globe svg, html[data-effects="off"] .planet-globe svg { filter: none; }
+
+/* Star map */
+.star-map { position: relative; width: 100%; height: 20rem; background: var(--surface); border-radius: 8px; margin-top: 0.5rem; }
+.star-dot { position: absolute; width: 1rem; height: 1rem; border-radius: 50%; background: var(--edge); transform: translate(-50%, -50%); cursor: pointer; transition: background 0.2s, box-shadow 0.2s; }
+html[data-effects="off"] .star-dot { transition: none; }
+.star-dot.discovered { background: var(--accent); box-shadow: 0 0 8px var(--glow); }
+#star-map-info { margin-top: 0.5rem; font-weight: 600; min-height: 1.4rem; }
+
+/* Confirm stamp animation */
+.stamp { animation: confirm-stamp 0.4s ease-out; }
+@keyframes confirm-stamp {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.12); color: var(--accent); }
+  100% { transform: scale(1); }
+}
+html[data-reduced-motion="true"] .stamp, html[data-effects="off"] .stamp { animation: none; }
+
+/* Mobile long-press cue for scene signs */
+@media (max-width: 600px) {
+  .scene .signal, .scene .glyph, .scene .message {
+    border-bottom: 2px dashed var(--edge);
+    padding-bottom: 0.3rem;
+    margin-bottom: 0.2rem;
+  }
+}
+
+/* Mobile resume button */
+@media (max-width: 600px) {
+  .resume-btn {
+    display: block;
+    width: 100%;
+    margin: 0.5rem 0;
+    padding: 0.8rem;
+    font-size: 1rem;
+    font-weight: 600;
+    background: var(--btn-primary);
+    color: var(--on-primary);
+    border: 2px solid var(--hover-edge);
+    border-radius: 10px;
+    cursor: pointer;
+  }
+  .resume-btn:hover { background: var(--btn); }
+
+  /* Crew log card stack */
+  #crew-log-entries {
+    display: flex;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    gap: 1rem;
+    padding: 0.5rem 0;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  #crew-log-entries::-webkit-scrollbar { display: none; }
+  .log-entry {
+    flex: 0 0 88%;
+    scroll-snap-align: center;
+    margin: 0;
+    border-top: none;
+    padding-top: 0;
+    background: var(--panel);
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+    padding: 1rem;
+  }
+  html[data-reduced-motion="true"] #crew-log-entries { overflow-x: scroll; scrollbar-width: thin; }
+  html[data-reduced-motion="true"] .log-entry { flex: 0 0 auto; margin-right: 1rem; box-shadow: none; border-top: 1px solid var(--line); padding-top: 0.5rem; }
+}
+
+/* Landscape on narrow screens: scene left, notebook right (work desk). */
+@media (max-width: 600px) and (orientation: landscape) {
+  #game {
+    max-width: none;
+    padding: 0.5rem;
+    display: flex;
+    gap: 1rem;
+    align-items: flex-start;
+  }
+  .planet-cols {
+    flex: 2;
+    min-width: 0;
+  }
+  #notebook-panel {
+    position: static;
+    max-height: none;
+    transform: none;
+    border-radius: 14px;
+    margin: 0;
+    z-index: auto;
+    overflow-y: visible;
+    flex: 1;
+    min-width: 0;
+    transition: none !important;
+  }
+  #notebook-panel.sheet-open {
+    transform: none;
+  }
+  .transmit-pad, .resume-btn { display: none !important; }
 }

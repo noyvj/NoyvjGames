@@ -2,9 +2,11 @@
    handle() returns and forwards what the player does. No game logic lives here. */
 (function () {
   "use strict";
-  var ENGINE_MODULES = ["lang.py", "pulse.py", "parse.py", "world.py", "scenes.py", "deduce.py", "notebook.py", "compound.py", "compound_scenes.py", "deduce_compound.py", "glyphs.py", "achievements.py", "bridge.py", "bridge_scenes.py", "deduce_bridge.py", "story.py", "report.py", "info.py"];
+  var ENGINE_MODULES = ["lang.py", "pulse.py", "parse.py", "world.py", "scenes.py", "deduce.py", "notebook.py", "compound.py", "compound_scenes.py", "deduce_compound.py", "glyphs.py", "achievements.py", "bridge.py", "bridge_scenes.py", "deduce_bridge.py", "story.py", "report.py", "info.py", "museum.py", "bench.py", "globes.py", "star_map.py"];
   var STORE_KEY = "lexis:state";
   var BRIEF_KEY = "lexis:brief-seen";
+  var RESUME_KEY = "lexis:resume-frame";
+  var NIGHT_KEY = "lexis-night-mode";
   var TOKEN_LEN = 4;
   var MAX_OUT = 40;
 
@@ -20,6 +22,10 @@
 
   function lsGet(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
   function lsSet(k, v) { try { localStorage.setItem(k, v); } catch (e) { /* convenience only */ } }
+  function applyNight(on) {
+    document.documentElement.setAttribute("data-night", on ? "true" : "false");
+    lsSet(NIGHT_KEY, on);
+  }
 
   // ---- accessibility helpers -------------------------------------------------------------------
   // Live regions only announce when their text really changes, so assign through setText.
@@ -56,6 +62,122 @@
     });
   }
   function ordinalIn(list, code) { var i = (list || []).indexOf(code); return i === -1 ? 0 : i + 1; }
+
+  // Long-press to copy a sign from a scene into the transmit line.
+  function attachLongPress(node, value) {
+    var timer = null;
+    node.addEventListener("touchstart", function () {
+      if (document.documentElement.getAttribute("data-reduced-motion") === "true" || document.documentElement.getAttribute("data-effects") === "off") return;
+      timer = setTimeout(function () {
+        if (currentPlanet === "pulse") addMarks(value);
+        else if (currentPlanet === "compound" && outgoingGlyph.length < 4) { outgoingGlyph += value; renderCompound(); }
+        else if (currentPlanet === "bridge") addToMessage(value);
+      }, 500);
+    });
+    node.addEventListener("touchend", function () { clearTimeout(timer); });
+    node.addEventListener("touchmove", function () { clearTimeout(timer); });
+  }
+
+  // ---- mobile transmit pad -------------------------------------------------------------------
+  var audioCtx = null;
+  function playBuzz(type) {
+    if (document.documentElement.getAttribute("data-reduced-motion") === "true" || document.documentElement.getAttribute("data-effects") === "off") return;
+    if (!window.AudioContext && !window.webkitAudioContext) return;
+    if (audioCtx === null) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if (audioCtx.state === "suspended") audioCtx.resume();
+    var osc = audioCtx.createOscillator();
+    var gain = audioCtx.createGain();
+    osc.type = "square";
+    osc.frequency.value = type === "tick" ? 800 : 400;
+    gain.gain.value = 0.15;
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.start();
+    osc.stop(audioCtx.currentTime + (type === "tick" ? 0.08 : 0.2));
+  }
+  function initTransmitPad() {
+    var pad = document.getElementById("transmit-pad");
+    if (pad) return;
+    pad = document.createElement("div");
+    pad.id = "transmit-pad";
+    pad.className = "transmit-pad";
+    var tickBtn = document.createElement("button");
+    tickBtn.type = "button";
+    tickBtn.className = "pad-btn tick";
+    tickBtn.setAttribute("aria-label", "Short signal (tick)");
+    tickBtn.addEventListener("click", function () { addMarks("0"); playBuzz("tick"); });
+    var barBtn = document.createElement("button");
+    barBtn.type = "button";
+    barBtn.className = "pad-btn bar";
+    barBtn.setAttribute("aria-label", "Long signal (bar)");
+    barBtn.addEventListener("click", function () { addMarks("1"); playBuzz("bar"); });
+    pad.appendChild(tickBtn);
+    pad.appendChild(barBtn);
+    document.getElementById("game").appendChild(pad);
+  }
+
+  function initCrewLogSwipe() {
+    if (document.documentElement.getAttribute("data-reduced-motion") === "true") return;
+    var holder = $("crew-log-entries");
+    if (!holder) return;
+    var startX = 0;
+    holder.addEventListener("touchstart", function (e) { startX = e.touches[0].clientX; }, { passive: true });
+    holder.addEventListener("touchend", function (e) {
+      var diff = startX - e.changedTouches[0].clientX;
+      if (Math.abs(diff) > 50) {
+        holder.scrollBy({ left: diff, behavior: "smooth" });
+      }
+    }, { passive: true });
+  }
+
+  function initResumeButton() {
+    var btn = document.getElementById("resume-btn");
+    if (!btn) {
+      btn = document.createElement("button");
+      btn.id = "resume-btn";
+      btn.className = "resume-btn";
+      btn.textContent = "Resume last visit";
+      btn.addEventListener("click", loadResumeFrame);
+      var gameEl = document.getElementById("game");
+      if (gameEl) gameEl.appendChild(btn);
+    }
+    updateResumeButton();
+  }
+
+  function saveResumeFrame() {
+    var frame = {
+      planet: currentPlanet,
+      outgoing: outgoing,
+      glyph: outgoingGlyph,
+      message: outgoingMessage.slice(),
+      benchTarget: benchTarget,
+      benchA: currentBenchA,
+      benchB: currentBenchB
+    };
+    try { localStorage.setItem(RESUME_KEY, JSON.stringify(frame)); } catch(e) {}
+  }
+
+  function loadResumeFrame() {
+    var raw = lsGet(RESUME_KEY);
+    if (!raw) return;
+    try {
+      var frame = JSON.parse(raw);
+      currentPlanet = frame.planet || "pulse";
+      outgoing = frame.outgoing || "";
+      outgoingGlyph = frame.glyph || "";
+      outgoingMessage = frame.message || [];
+      benchTarget = frame.benchTarget || null;
+      currentBenchA = frame.benchA || 0;
+      currentBenchB = frame.benchB || 0;
+      render();
+    } catch(e) {}
+  }
+
+  function updateResumeButton() {
+    var btn = document.getElementById("resume-btn");
+    if (!btn) return;
+    btn.hidden = !lsGet(RESUME_KEY);
+  }
 
   // ---- drawing helpers -----------------------------------------------------------------------
   function markNode(ch) {
@@ -124,7 +246,9 @@
       var label = document.createElement("strong");
       label.textContent = "Transmission " + (index + 1) + " ";
       head.appendChild(label);
-      head.appendChild(signalNode(scene.marks));
+      var sig = signalNode(scene.marks);
+      head.appendChild(sig);
+      attachLongPress(sig, scene.marks);
       var what = document.createElement("div");
       what.className = "what";
       var changes = [];
@@ -289,7 +413,9 @@
       var label = document.createElement("strong");
       label.textContent = "Transmission " + (index + 1) + " ";
       head.appendChild(label);
-      head.appendChild(glyphNode(scene.glyph));
+      var gl = glyphNode(scene.glyph);
+      head.appendChild(gl);
+      attachLongPress(gl, scene.glyph);
       var what = document.createElement("div");
       what.className = "what";
       what.innerHTML = "The tray: <b></b>";
@@ -428,7 +554,9 @@
       var label = document.createElement("strong");
       label.textContent = "Transmission " + (index + 1) + " ";
       head.appendChild(label);
-      head.appendChild(messageNode(scene.message.split(" ")));
+      var msg = messageNode(scene.message.split(" "));
+      head.appendChild(msg);
+      attachLongPress(msg, scene.message);
       var what = document.createElement("div");
       what.className = "what";
       what.innerHTML = "The counter: <b></b>";
@@ -515,6 +643,13 @@
       li.appendChild(tick);
       li.appendChild(name);
       li.appendChild(desc);
+      if (a.riddle) {
+        var riddleEl = document.createElement("p");
+        riddleEl.className = "achievement-riddle";
+        riddleEl.textContent = "Riddle: " + a.riddle;
+        riddleEl.hidden = !a.earned;
+        li.appendChild(riddleEl);
+      }
       list.appendChild(li);
       if (a.earned) earnedNow.push(a.id);
     });
@@ -661,18 +796,148 @@
     });
   }
 
+  // ---- number bench --------------------------------------------------------------------------
+  var currentBenchA = 0;
+  var currentBenchB = 0;
+  var benchTarget = null;
+
+  function generateBenchTarget() {
+    return "0" + Math.floor(Math.random() * 8).toString(2).padStart(3, "0");
+  }
+
+  function renderBench() {
+    var targetEl = $("bench-target");
+    targetEl.textContent = "";
+    if (benchTarget) {
+      var tNode = tokenNode(benchTarget);
+      tNode.setAttribute("aria-label", "Target: " + benchTarget);
+      targetEl.appendChild(tNode);
+    } else {
+      targetEl.textContent = "Press 'New puzzle' to start.";
+    }
+
+    var aEl = $("bench-a");
+    var bEl = $("bench-b");
+    [aEl, bEl].forEach(function (el) { el.textContent = ""; });
+    for (var i = 0; i < 4; i++) {
+      var bit = 3 - i; // 8, 4, 2, 1
+      var swA = document.createElement("button");
+      swA.type = "button";
+      swA.className = "switch" + (currentBenchA & (1 << bit) ? " on" : "");
+      swA.textContent = (currentBenchA & (1 << bit)) ? "1" : "0";
+      swA.setAttribute("aria-label", "Bit " + (bit + 1) + " for first number");
+      swA.addEventListener("click", function () { currentBenchA ^= (1 << bit); renderBench(); });
+      aEl.appendChild(swA);
+
+      var swB = document.createElement("button");
+      swB.type = "button";
+      swB.className = "switch" + (currentBenchB & (1 << bit) ? " on" : "");
+      swB.textContent = (currentBenchB & (1 << bit)) ? "1" : "0";
+      swB.setAttribute("aria-label", "Bit " + (bit + 1) + " for second number");
+      swB.addEventListener("click", function () { currentBenchB ^= (1 << bit); renderBench(); });
+      bEl.appendChild(swB);
+    }
+
+    var resultEl = $("bench-result");
+    if (!benchTarget) {
+      resultEl.textContent = "";
+    } else {
+      var sum = currentBenchA + currentBenchB;
+      if (sum > 7) {
+        resultEl.textContent = "Overflow! The bench only holds up to 7.";
+      } else if (sum === parseInt(benchTarget.substring(1), 2)) {
+        resultEl.textContent = "Correct! Generating new puzzle...";
+        benchTarget = generateBenchTarget();
+        currentBenchA = 0;
+        currentBenchB = 0;
+        renderBench();
+      } else {
+        resultEl.textContent = "Not quite. Adjust the switches.";
+      }
+    }
+  }
+
+  function renderStarMap() {
+    var container = $("star-map-container");
+    if (!container) return;
+    container.textContent = "";
+    var map = view.star_map || [];
+    var discovered = new Set(view.discovered_stars || []);
+    map.forEach(function(star) {
+      var dot = document.createElement("div");
+      dot.className = "star-dot" + (discovered.has(star.id) ? " discovered" : "");
+      dot.style.left = (star.x * 10) + "%";
+      dot.style.top = (star.y * 10) + "%";
+      dot.setAttribute("role", "button");
+      dot.setAttribute("tabindex", "0");
+      dot.setAttribute("aria-label", discovered.has(star.id) ? star.label + ", tuned" : "Untuned signal at " + star.x + "," + star.y);
+      dot.addEventListener("click", function() { send({ action: "tune_star", id: star.id }); });
+      container.appendChild(dot);
+    });
+    var info = $("star-map-info");
+    if (info) {
+      if (view.tuned_star) {
+        info.textContent = "Tuned: " + view.tuned_star.label + " at (" + view.tuned_star.x + ", " + view.tuned_star.y + "), strength " + view.tuned_star.strength;
+        delete view.tuned_star;
+      } else {
+        info.textContent = "";
+      }
+    }
+  }
+
+  function renderMuseum() {
+    var list = $("museum-wall");
+    list.textContent = "";
+    (view.museum || []).forEach(function (item) {
+      var card = document.createElement("div");
+      card.className = "museum-card" + (item.confirmed ? " confirmed" : "");
+      card.setAttribute("aria-label", item.planet + ": " + item.form + (item.confirmed ? ", meaning: " + item.meaning : ", not yet confirmed"));
+      
+      var planetLabel = document.createElement("span");
+      planetLabel.className = "museum-planet";
+      planetLabel.textContent = "Planet " + ({pulse: 1, compound: 2, bridge: 3}[item.planet]);
+      
+      var formSpan = document.createElement("div");
+      formSpan.className = "museum-form";
+      formSpan.textContent = item.form;
+      
+      var meaningDiv = document.createElement("div");
+      meaningDiv.className = "museum-meaning";
+      meaningDiv.textContent = item.confirmed ? item.meaning : "?";
+      
+      card.appendChild(planetLabel);
+      card.appendChild(formSpan);
+      card.appendChild(meaningDiv);
+      list.appendChild(card);
+    });
+  }
+
+  function renderGlobe() {
+    var container = $("globe-container");
+    if (!container) return;
+    var lamps = (view && view.station && view.station.lamps) ? view.station.lamps : 0;
+    try {
+      container.innerHTML = engine.globe_svg(lamps);
+    } catch (e) { /* fallback to empty */ }
+  }
+
   function render() {
+    renderGlobe();
     renderAchievements();
     renderStory();
     renderReport();
     renderInfo();
     renderTabs();
+    renderStarMap();
+    renderMuseum();
     if (currentPlanet === "bridge") { renderBridge(); return; }
     if (currentPlanet === "compound") { renderCompound(); return; }
+    if (currentPlanet === "pulse") renderBench();
     renderStation();
     renderScenes();
     renderNotebook();
     renderTransmit();
+    saveResumeFrame();
   }
 
   // ---- talking to the engine -----------------------------------------------------------------
@@ -710,6 +975,16 @@
     $(listId).querySelectorAll("input[type=checkbox]").forEach(function (box) { if (box.checked) forms.push(box.dataset.token); });
     return forms;
   }
+  var lastConfirmStamp = 0;
+  function triggerConfirmStamp(el) {
+    var now = Date.now();
+    if (now - lastConfirmStamp < 180000) return; // cooldown: 3 minutes
+    lastConfirmStamp = now;
+    el.classList.remove("stamp");
+    void el.offsetWidth; // force reflow to restart animation
+    el.classList.add("stamp");
+  }
+
   function wireCheck(buttonId, listId, resultId) {
     guard(buttonId, function () {
       var forms = checkedForms(listId);
@@ -719,6 +994,7 @@
       var text = result ? result.right + " of the " + result.chosen + " ticked entries are right." : "";
       out.textContent = "";
       setTimeout(function () { out.textContent = text; }, 40);   // re-announced even when the answer is unchanged
+      if (result && result.confirm_stamp) triggerConfirmStamp(out);
     });
   }
 
@@ -831,13 +1107,24 @@
 
   function wire() {
     mountCopyResult();
+    initTransmitPad();
+    initResumeButton();
     wireCompound();
     wireBridge();
     wirePanelToggle("achievements-toggle-button", "achievements-panel");
     wirePanelToggle("crew-log-toggle-button", "crew-log-panel");
+    initCrewLogSwipe();
     wirePanelToggle("report-toggle-button", "report-panel");
     wirePanelToggle("info-page-toggle-button", "info-page-panel");
     wirePanelToggle("changelog-toggle-button", "changelog-panel");
+    wirePanelToggle("star-map-toggle-button", "star-map-panel");
+    wirePanelToggle("museum-toggle-button", "museum-panel");
+    var notebookOpen = false;
+    guard("notebook-toggle-button", function () {
+      notebookOpen = !notebookOpen;
+      $("notebook-panel").classList.toggle("sheet-open", notebookOpen);
+      $("notebook-toggle-button").setAttribute("aria-expanded", String(notebookOpen));
+    });
     // The save widget loads a save directly into the engine; this redraws the page afterwards.
     window.lexisRefresh = function () {
       if (!engine) return;
@@ -857,6 +1144,24 @@
       renderTransmit();
     });
     wireCheck("check-button", "notebook-list", "check-result");
+    guard("bench-new-button", function () {
+      benchTarget = generateBenchTarget();
+      currentBenchA = 0;
+      currentBenchB = 0;
+      renderBench();
+    });
+    guard("bench-check-button", function () { renderBench(); });
+    // Close the notebook sheet when turning to landscape so it doesn't overlap the scene.
+    window.addEventListener("orientationchange", function () {
+      if (window.matchMedia("(orientation: landscape)").matches) {
+        var panel = $("notebook-panel");
+        if (panel && panel.classList.contains("sheet-open")) {
+          panel.classList.remove("sheet-open");
+          var btn = $("notebook-toggle-button");
+          if (btn) btn.setAttribute("aria-expanded", "false");
+        }
+      }
+    });
     document.addEventListener("keydown", onKey);
   }
 
@@ -874,13 +1179,24 @@
     }
     await pyodide.runPythonAsync(await (await fetch("game.py")).text());
     window.pyodide = pyodide;   // the shared save widget (milestone 5) looks for it
-    engine = { handle: pyodide.globals.get("handle"), getState: pyodide.globals.get("get_state"), loadState: pyodide.globals.get("load_state") };
+    engine = { handle: pyodide.globals.get("handle"), getState: pyodide.globals.get("get_state"), loadState: pyodide.globals.get("load_state"), globe_svg: pyodide.globals.get("globe_svg") };
     var saved = lsGet(STORE_KEY);
     if (saved) {
       try { engine.loadState(pyodide.toPy(JSON.parse(saved))); } catch (e) { /* a bad save never blocks play */ }
     }
     $("engine-status").textContent = "";
     setBusy(false);
+    applyNight(lsGet(NIGHT_KEY) === "true");
+    var nightBtn = document.getElementById("night-toggle-button");
+    if (!nightBtn) {
+      nightBtn = document.createElement("button");
+      nightBtn.id = "night-toggle-button";
+      nightBtn.className = "primary";
+      nightBtn.textContent = "Night mode";
+      nightBtn.addEventListener("click", function () { applyNight(document.documentElement.getAttribute("data-night") !== "true"); });
+      var toolbar = document.getElementById("game-toolbar");
+      if (toolbar) toolbar.appendChild(nightBtn);
+    }
     send({ action: "open" });
     if (lsGet(BRIEF_KEY) === null) {      // the mission brief opens by itself the first time only
       $("crew-log-panel").hidden = false;

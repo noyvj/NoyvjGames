@@ -44,6 +44,25 @@ $maxTokens = 17000   # biggest single file the model can hold next to the rules 
 
 function Fail($msg) { Write-Host "STOPPED: $msg" -ForegroundColor Red; exit 1 }
 
+# A running tally after every task, in the Terminal and in its window title (visible from the taskbar).
+# Counted from queue-done.txt plus this task, which the queue only writes there after this script ends.
+function Show-Tally([bool]$passed) {
+    try {
+        $doneFile = Join-Path $PSScriptRoot "queue-done.txt"
+        $rows = @(if (Test-Path $doneFile) { Get-Content $doneFile -Encoding utf8 | ForEach-Object { $_.TrimStart([char]0xFEFF) } |
+            Where-Object { $_ -match '^(PASSED|FAILED)  ' } })
+        $today = Get-Date -Format "yyyy-MM-dd"
+        $isTodo = ($Item -match '^(R4|FY)-')
+        $run = $rows.Count + 1
+        $runToday = @($rows | Where-Object { $_ -match "^\S+  $today" }).Count + 1
+        $built = @($rows | Where-Object { $_ -match '^PASSED .*\| (R4|FY)-' }).Count + $(if ($passed -and $isTodo) { 1 } else { 0 })
+        $passedAll = @($rows | Where-Object { $_ -like "PASSED*" }).Count + $(if ($passed) { 1 } else { 0 })
+        $mark = if ($passed) { [char]0x2713 } else { [char]0x00B7 }
+        Write-Host ("{0} Tally: {1} tasks run ({2} passed) - {3} TODO items built - {4} today" -f $mark, $run, $passedAll, $built, $runToday) -ForegroundColor Cyan
+        $Host.UI.RawUI.WindowTitle = "Local AI: $built TODO built - $run run - $runToday today"
+    } catch { }
+}
+
 # --- Preconditions -------------------------------------------------------
 if (-not (Test-Path (Join-Path $root "games\$Game"))) { Fail "no game folder games\$Game" }
 if ($Item -notmatch '^[A-Za-z0-9-]+$') { Fail "item id '$Item' should look like QI-52" }
@@ -80,9 +99,17 @@ if ($Chain -and $Step -gt 1) {
     if ($prev.Count -eq 0 -or -not $prev[0]) { Fail "step $($Step - 1) of $Chain has not passed, so step $Step cannot start" }
     $start = $prev[0]
 }
+# Feature tasks for the same game build on each other through local-ai/stack-<game>: each starts from
+# the last passed feature for that game, so two features never edit the same file from the same base and
+# conflict (2026-10-12: six Signal pc.js branches could not be combined). Test-writing tasks (T-, EDGE-)
+# only add new files and still start from main. A reviewer reviews the stack, one commit per TODO item.
+$isFeature = -not $Chain -and $Item -notmatch '^(T|EDGE)-'
+$stack = "local-ai/stack-$Game"
+$haveStack = $isFeature -and ($null -ne (git -C $root rev-parse -q --verify "refs/heads/$stack" 2>$null))
+if ($haveStack) { $start = $stack }
 git -C $root worktree add -q -b $branch $work $start
 if ($LASTEXITCODE -ne 0) { Fail "could not create the working copy" }
-if ($start -eq $Base -and $haveRemote -and -not ($Chain -and $Step -gt 1)) {
+if (($start -eq $Base -or $haveStack) -and $haveRemote -and -not ($Chain -and $Step -gt 1)) {
     git -C $work merge -q --no-edit $remoteBase 2>$null | Out-Null
     if ($LASTEXITCODE -ne 0) {
         git -C $work merge --abort 2>$null | Out-Null
@@ -109,7 +136,7 @@ $($itemText -join "`n")
 ## What to do now
 $Task
 
-Do only this. Change only files in games/$Game. Follow RULES.md. If you need a file that is not in the chat yet, name it: it will be added and you will be asked again, so then make the edits straight away.
+Do only this. Change only files in games/$Game. Follow RULES.md. Write every path from the repo root: game files as games/$Game/<file> and new tests as games/$Game/tests/test_<name>.py. Do not add sys.path code to tests: the game's tests/conftest.py already makes its modules importable. If you need a file that is not in the chat yet, name it: it will be added and you will be asked again, so then make the edits straight away.
 "@ | Set-Content -Encoding utf8 $taskFile
 
 # --- Run Aider with no chatting -----------------------------------------
@@ -209,6 +236,15 @@ $tail
 Remove-Item $taskFile -ErrorAction SilentlyContinue
 
 # --- Check the result ----------------------------------------------------
+# Aider writes chat paths relative to the repo root, so the model sometimes puts a NEW test file in the
+# top-level tests/ folder (tests/test_goals.py, tests/lexis/test_x.py) instead of games/<game>/tests/.
+# A brand-new one is moved where it belongs; anything else outside the game still fails below.
+$gameTests = Join-Path $gameDir "tests"
+foreach ($stray in @(git -C $work status --porcelain --untracked-files=all | Where-Object { $_.StartsWith("??") } |
+        ForEach-Object { $_.Substring(3).Trim('"') } | Where-Object { $_ -match '^tests/(.+/)?[^/]+\.py$' })) {
+    $target = Join-Path $gameTests (Split-Path $stray -Leaf)
+    if (-not (Test-Path $target)) { Move-Item (Join-Path $work $stray) $target; Write-Host "Moved stray test file $stray into games/$Game/tests/" }
+}
 $changed = @(git -C $work status --porcelain --untracked-files=all | ForEach-Object { $_.Substring(3).Trim('"') } |
     Where-Object { $_ -notlike ".aider*" })
 $outside = @($changed | Where-Object { $_ -notlike "games/$Game/*" })
@@ -230,7 +266,7 @@ $untracked = @(git -C $work status --porcelain --untracked-files=all | Where-Obj
 $newTestFiles = @($untracked | Where-Object { $_ -match "^games/$([regex]::Escape($Game))/tests/[^/]+\.py$" })
 if ($newTestFiles.Count -gt 0) {
     $newPaths = @($newTestFiles | ForEach-Object { Join-Path $work $_ })
-    python -m autoflake --in-place --remove-all-unused-imports --remove-unused-variables @newPaths 2>$null | Out-Null
+    python (Join-Path $aiDir "tidy_new_tests.py") @newPaths 2>$null | Out-Null   # one import per line, unused ones gone, late imports marked noqa E402
 }
 
 Push-Location $gameDir
@@ -248,6 +284,13 @@ if (-not $testsOk -and $testOnly) {
 }
 Pop-Location
 if (-not $testsOk) { $problems += "tests failed" }
+# A feature that changes the game's Python must come with a test (the pattern album shipped untested
+# and lost its data on reload).
+$gamePy = @($inside | Where-Object { $_ -like "*.py" -and $_ -notmatch "/tests/" })
+$testFiles = @($inside | Where-Object { $_ -match "/tests/[^/]+\.py$" })
+if (-not $testOnly -and $gamePy.Count -gt 0 -and $testFiles.Count -eq 0) {
+    $problems += "it changed the game's Python ($($gamePy -join ', ')) but added or changed no test"
+}
 $testLine = ($testOut.Trim() -split "`n")[-1]
 
 $flakeOut = ""
@@ -270,8 +313,13 @@ if ($ok) {
     $msgFile = Join-Path $work ".aider-commit-msg.txt"
     [IO.File]::WriteAllText($msgFile, "local-ai: ${Item}: $Task`n`nMade by the local model ($Model), not yet reviewed by Claude.`n", (New-Object System.Text.UTF8Encoding $false))
     git -C $work commit -q -F $msgFile -- @inside
+    $commitOk = ($LASTEXITCODE -eq 0)
     Remove-Item $msgFile -ErrorAction SilentlyContinue
-    if ($LASTEXITCODE -ne 0) { $ok = $false; $problems += "git commit failed" }
+    if (-not $commitOk) { $ok = $false; $problems += "git commit failed" }
+    elseif ($isFeature) {
+        # the next feature task for this game starts from here (see local-ai/stack-<game> above)
+        git -C $root branch -f $stack $branch 2>$null | Out-Null
+    }
 }
 
 @"
@@ -302,6 +350,7 @@ if (-not $ok) {
     git -C $root worktree remove --force $work 2>$null | Out-Null
     git -C $root branch -q -D $branch 2>$null | Out-Null
     Write-Host "FAILED ($($problems -join '; ')). Nothing committed. Report: $report" -ForegroundColor Yellow
+    Show-Tally $false
     exit 1
 }
 
@@ -318,3 +367,4 @@ if ($Pr -and $prOn) {
 
 git -C $root worktree remove --force $work
 Write-Host "PASSED in $minutes min. Committed on branch $branch. Report: $report" -ForegroundColor Green
+Show-Tally $true

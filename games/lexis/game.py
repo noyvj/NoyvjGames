@@ -30,7 +30,9 @@ import deduce
 import deduce_bridge
 import deduce_compound
 import info
+import museum
 import report
+import star_map
 import story
 from bridge import MARKERS, Stock, describe_stock
 from bridge_scenes import bridge_scenes
@@ -201,6 +203,10 @@ def _view(planet):
     else:
         view = _compound_view() if planet == "compound" else _pulse_view()
     view.update(_extras())
+    view["museum"] = museum.get_museum_data(state)
+    discovered = list(getattr(state, "discovered_stars", set()))
+    view["star_map"] = star_map.STAR_MAP
+    view["discovered_stars"] = discovered
     return view
 
 
@@ -259,7 +265,7 @@ def handle(request_json):
             right = state.notebook.confirm(forms, LANGUAGE)
         if len(forms) >= 3 and right == len(forms):
             state.flags["perfect_check"] = True
-        return json.dumps({"right": right, "chosen": len(forms)})
+        return json.dumps({"right": right, "chosen": len(forms), "confirm_stamp": True})
     elif action == "speak":
         if bridge_planet:
             message = " ".join(str(request.get("message", "")).split())
@@ -314,6 +320,16 @@ def handle(request_json):
             view = _view("pulse")
         view["reaction"] = {"understood": reaction.understood, "text": reaction.text, "reason": reaction.reason}
         return json.dumps(view)
+    elif action == "tune_star":
+        sid = str(request.get("id", ""))
+        if not hasattr(state, "discovered_stars") or state.discovered_stars is None:
+            state.discovered_stars = set()
+        result = star_map.tune_star(sid, state.discovered_stars)
+        if result:
+            view = _view(planet)
+            view["tuned_star"] = result
+            return json.dumps(view)
+        return json.dumps({"error": "unknown signal"})
     elif action == "reset":
         state.__init__()
         station = Station(0, "shut")
@@ -331,6 +347,9 @@ def get_state():
     data["stock"] = [[label, count] for label, count in stock.items]
     # A write-only projection for the hub's achievements dashboard, recomputed here, never read back.
     data["achievements_earned"] = achievements.earned(state, station, tray)
+    disc = getattr(state, "discovered_stars", None)
+    if disc:
+        data["discovered_stars"] = list(disc)
     return data
 
 
@@ -387,6 +406,11 @@ def load_state(data):
         stock = rebuilt
     except (TypeError, AttributeError):
         pass
+    raw = (data.get("discovered_stars") if isinstance(data, dict) else None)
+    if isinstance(raw, list):
+        state.discovered_stars = set(raw)
+    elif not hasattr(state, "discovered_stars"):
+        state.discovered_stars = set()
     _refresh_view()
 
 

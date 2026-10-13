@@ -3,62 +3,74 @@
     {
       "id": "first_signal",
       "label": "First Signal",
-      "description": "Send a signal the station understands."
+      "description": "Send a signal the station understands.",
+      "riddle": "A spark in the dark, the first hello."
     },
     {
       "id": "lamp_keeper",
       "label": "Lamp Keeper",
-      "description": "Light all seven lamps on planet 1."
+      "description": "Light all seven lamps on planet 1.",
+      "riddle": "Seven eyes open, the station wakes."
     },
     {
       "id": "first_words",
       "label": "First Words",
-      "description": "Write your first notebook entry."
+      "description": "Write your first notebook entry.",
+      "riddle": "The first guess takes root in silent soil."
     },
     {
       "id": "learning_from_static",
       "label": "Learning From Static",
-      "description": "Send a signal the station cannot understand, and keep going."
+      "description": "Send a signal the station cannot understand, and keep going.",
+      "riddle": "When words turn to noise, patience speaks louder."
     },
     {
       "id": "sharp_ear",
       "label": "Sharp Ear",
-      "description": "Check three or more notebook entries and have every one right."
+      "description": "Check three or more notebook entries and have every one right.",
+      "riddle": "Three guesses, one truth, and a quiet mind."
     },
     {
       "id": "first_contact",
       "label": "First Contact",
-      "description": "Make contact with planet 1."
+      "description": "Make contact with planet 1.",
+      "riddle": "The bridge is built, the voice is heard."
     },
     {
       "id": "unseen_sign",
       "label": "Never Shown",
-      "description": "Send a sign on planet 2 that no transmission ever showed you."
+      "description": "Send a sign on planet 2 that no transmission ever showed you.",
+      "riddle": "A shape never shown, yet understood."
     },
     {
       "id": "second_contact",
       "label": "Second Contact",
-      "description": "Make contact with planet 2."
+      "description": "Make contact with planet 2.",
+      "riddle": "Two worlds speak, the ship listens."
     },
     {
       "id": "full_glossary",
       "label": "Full Glossary",
-      "description": "Have every part of planet 2's signs written down correctly."
+      "description": "Have every part of planet 2's signs written down correctly.",
+      "riddle": "Every part named, the puzzle completes."
     },
     {
       "id": "patient_listener",
       "label": "Patient Listener",
-      "description": "Receive every transmission on both planets."
+      "description": "Receive every transmission on both planets.",
+      "riddle": "Six scenes and four more, all received."
     },
     {
       "id": "third_contact",
       "label": "Third Contact",
-      "description": "Make contact with planet 3."
+      "description": "Make contact with planet 3.",
+      "riddle": "Three planets answered, the journey deepens."
     },
     {
       "id": "markers_known",
       "label": "Small Signs",
-      "description": "Have all three of planet 3's small signs written down correctly."
+      "description": "Have all three of planet 3's small signs written down correctly.",
+      "riddle": "Three small signs, three big changes."
     }
   ]
 }

@@ -39,6 +39,7 @@
     ["Del", "Clear signal"],
     ["←→", "Along a row of buttons"],
     ["?", "All shortcuts"],
+    ["Ctrl+Z / Ctrl+Y", "Undo / redo in transmit line"],
     ["Esc", "Menu / close window"]
   ],
   "notify": null
