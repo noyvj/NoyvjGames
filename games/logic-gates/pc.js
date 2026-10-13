@@ -46,3 +46,54 @@ window.LOGIC_GATES_PC_TUTORIAL_STEPS = [
     text: "Take your time. The station has waited eleven years.",
   },
 ];
+
+/* Wire hover card (R4-LGPC-3) */
+(function () {
+  "use strict";
+  var card = null;
+  var visible = false;
+
+  function showCard(el) {
+    if (!card) return;
+    var val = el.dataset.value || "?";
+    var rows = el.dataset.rows || "";
+    card.querySelector(".lg-wire-value").textContent = "Value: " + val;
+    card.querySelector(".lg-wire-rows").textContent = "Rows high: " + (rows || "none");
+    card.classList.add("visible");
+    visible = true;
+  }
+
+  function hideCard() {
+    if (!card) return;
+    card.classList.remove("visible");
+    visible = false;
+  }
+
+  function moveCard(e) {
+    if (!visible || !card) return;
+    var x = e.clientX + 12;
+    var y = e.clientY + 12;
+    var rect = card.getBoundingClientRect();
+    if (x + rect.width > window.innerWidth) x = e.clientX - rect.width - 12;
+    if (y + rect.height > window.innerHeight) y = e.clientY - rect.height - 12;
+    card.style.left = x + "px";
+    card.style.top = y + "px";
+  }
+
+  document.addEventListener("DOMContentLoaded", function () {
+    card = document.createElement("div");
+    card.className = "lg-wire-hover-card";
+    card.innerHTML = '<span class="lg-wire-value"></span><span class="lg-wire-rows"></span>';
+    document.body.appendChild(card);
+
+    document.addEventListener("mouseover", function (e) {
+      var wire = e.target.closest(".lg-wire");
+      if (wire) showCard(wire);
+    });
+    document.addEventListener("mouseout", function (e) {
+      var wire = e.target.closest(".lg-wire");
+      if (wire && (!e.relatedTarget || !e.relatedTarget.closest(".lg-wire"))) hideCard();
+    });
+    document.addEventListener("mousemove", moveCard);
+  });
+})();
