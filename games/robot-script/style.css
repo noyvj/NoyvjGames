@@ -249,4 +249,15 @@ html[data-sandbox="true"] .room-holder svg { cursor: crosshair; }
 .ach-list li.earned { border-color: var(--ok); border-width: 2px; }
 .ach-list .tick { display: inline-block; min-width: 4rem; text-align: center; font-weight: 700; font-size: 0.78rem; border: 1px solid var(--edge); border-radius: 999px; padding: 0 0.4rem; font-variant-numeric: tabular-nums; }
 .ach-list li.earned .tick { border-style: double; border-width: 3px; }
+@media (max-width: 600px) {
+  #game { display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+  #room-panel { flex: 0 0 auto; min-height: 20vh; overflow-y: auto; position: relative; }
+  #editor-panel { flex: 1 1 auto; min-height: 20vh; overflow-y: auto; position: relative; }
+  #split-divider {
+    height: 1.5rem; width: 100%; background: var(--line); cursor: row-resize;
+    display: flex; align-items: center; justify-content: center; user-select: none; touch-action: none;
+  }
+  #split-divider::after { content: "⋮"; color: var(--muted); font-size: 1.2rem; }
+  html[data-reduced-motion="true"] #split-divider, html[data-effects="off"] #split-divider { cursor: default; }
+}
 .toast.on { background: var(--surface); border: 1px solid var(--ok); border-radius: 8px; padding: 0.25rem 0.6rem; }
