@@ -153,6 +153,22 @@ html[data-high-contrast="true"] .dr-est-track-b, html[data-high-contrast="true"]
   /* Long-press fix mark */
   .dr-fix-mark { pointer-events: none; }
 }
+/* Mobile accuracy indicator */
+.dr-accuracy-indicator { display: none; }
+@media (max-width: 600px) {
+  .dr-accuracy-indicator {
+    display: flex; align-items: center; gap: 0.4rem;
+    margin-top: 0.5rem; padding: 0.4rem 0.6rem;
+    background: var(--surface); border: 1px solid var(--line); border-radius: 8px;
+    font-size: 0.9rem; color: var(--text);
+  }
+  .dr-accuracy-indicator.buzzing { animation: pulse-buzz 0.4s ease-in-out 3; }
+}
+@keyframes pulse-buzz {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+
 html[data-reduced-motion="true"] .wheel-content { transition: none !important; }
 
 /* --- legend and notes ------------------------------------------------------------------------------ */

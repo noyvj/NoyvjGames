@@ -500,6 +500,21 @@
     r.criteria.forEach(function (c) { crit.appendChild(el("li", c.text, c.ok ? "ok" : "no")); });
     renderEvents(Infinity);
     renderResultExtras();
+    // Mobile accuracy indicator (R4-DEMO-4)
+    var ind = $("dr-accuracy-indicator");
+    if (!ind) {
+      ind = el("div", undefined, "dr-accuracy-indicator");
+      ind.id = "dr-accuracy-indicator";
+      card.appendChild(ind);
+    }
+    if (r.miss_nm != null && r.miss_nm <= 1.0) {
+      setText(ind, "You are within a mile of the flag.");
+      if (!reducedMotion() && navigator.vibrate) navigator.vibrate(50);
+      ind.classList.add("buzzing");
+      setTimeout(function () { ind.classList.remove("buzzing"); }, 1200);
+    } else {
+      ind.textContent = "";
+    }
     announce(r.title + ". " + r.stars_text + ". " + r.lines[0]);
   }
 
