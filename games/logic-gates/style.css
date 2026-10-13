@@ -172,7 +172,24 @@ td.want-differs { font-weight: 700; }
 .changelog-date { font-size: 0.8rem; color: var(--muted); }
 .changelog-entry { margin: 0.5rem 0; }
 
+/* --- chip drawer (mobile) ------------------------------------------------------------------- */
 @media (max-width: 600px) {
+  .chip-drawer {
+    position: fixed; bottom: 0; left: 0; right: 0; z-index: 100;
+    background: var(--panel); border-top: 2px solid var(--line);
+    transform: translateY(calc(100% - 3.5rem)); transition: transform 0.2s ease-out;
+  }
+  .chip-drawer.open { transform: translateY(0); }
+  .chip-drawer-handle {
+    display: flex; align-items: center; justify-content: center; gap: 0.5rem;
+    height: 3.5rem; cursor: pointer; user-select: none; color: var(--muted); font-size: 0.9rem;
+    background: var(--panel-fill); border-top-left-radius: 12px; border-top-right-radius: 12px;
+  }
+  .chip-drawer-handle::before { content: "⌃"; font-size: 1.2rem; transition: transform 0.2s ease-out; }
+  .chip-drawer.open .chip-drawer-handle::before { transform: rotate(180deg); }
+  .chip-drawer-content { padding: 0.5rem 1rem 1.5rem; display: flex; gap: 0.4rem; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .chip-drawer-content button { flex-shrink: 0; }
+
   .lg-pin { transition: transform 0.15s ease-out; }
   .lg-pin--magnet-active { transform: scale(1.7); stroke-width: 4px; }
 }

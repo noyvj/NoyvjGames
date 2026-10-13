@@ -593,6 +593,12 @@
     wirePanelToggle("info-page-toggle-button", "info-page-panel");
     wirePanelToggle("changelog-toggle-button", "changelog-panel");
     wirePanelToggle("achievements-toggle-button", "achievements-panel");
+    var drawer = $("chip-drawer");
+    if (drawer) {
+      drawer.addEventListener("chip-drawer:place", function (e) {
+        send({ action: "add", type: e.detail.type });
+      });
+    }
     document.addEventListener("keydown", onKey);
   }
 
