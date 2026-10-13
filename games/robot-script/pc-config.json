@@ -6,7 +6,8 @@
     ["changelog-panel", "changelog-toggle-button", "What's New"],
     ["settings-panel", "settings-toggle-button", "Settings"],
     ["info-page-panel", "info-page-toggle-button", "About Robot Script"],
-    ["snippets-panel", "snippets-toggle-button", "Snippets"]
+    ["snippets-panel", "snippets-toggle-button", "Snippets"],
+    ["medals-panel", "medals-toggle-button", "Medals Table"]
   ],
   "toolbar": {
     "icons": [
@@ -14,7 +15,8 @@
       ["workshop-toggle-button", "🔧"],
       ["achievements-toggle-button", "🏆"],
       ["settings-toggle-button", "⚙️"],
-      ["snippets-toggle-button", "📋"]
+      ["snippets-toggle-button", "📋"],
+      ["medals-toggle-button", "🏅"]
     ],
     "menu": [
       {"heading": "Help", "ids": ["tutorial-restart-button", "info-page-toggle-button", "credits-link"]},

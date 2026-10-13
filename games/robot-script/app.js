@@ -727,6 +727,20 @@
     renderWorkshop();
     renderHints();
     syncPlayButtons();
+
+    // Expose data for Desktop windows (Medals Table)
+    var allRooms = [];
+    var roomPars = {};
+    if (view.rooms) {
+      view.rooms.forEach(function(ch) {
+        ch.rooms.forEach(function(r) {
+          allRooms.push({ id: r.id, name: r.name });
+          roomPars[r.id] = r.par;
+        });
+      });
+    }
+    window.robotScriptRooms = allRooms;
+    window.robotScriptRoomPars = roomPars;
   }
 
   // ---- talking to the engine --------------------------------------------------------------------------------
@@ -803,6 +817,7 @@
   }
 
   function wire() {
+    window.robotScriptChangeRoom = function(roomId) { send({ action: "pick", room: roomId }); };
     wireDifficulty();
     $("toast").addEventListener("click", function () { showToast(""); });
 
