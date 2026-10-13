@@ -213,6 +213,7 @@ td.want-differs { font-weight: 700; }
 .chapter-level-btn.locked { opacity: 0.5; cursor: default; }
 
 @media (max-width: 600px) {
+  .lg-gesture-hint { display: block; text-align: center; font-size: 0.85rem; color: var(--muted); margin-top: 0.4rem; }
   /* --- result bottom sheet ------------------------------------------------------------------ */
   #result-sheet {
     background: var(--panel); border-top: 2px solid var(--line);

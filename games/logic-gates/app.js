@@ -679,6 +679,20 @@
     window.addEventListener("resize", updateLandscapeLayout);
     window.addEventListener("orientationchange", updateLandscapeLayout);
 
+    // R4-LGMO-9: two-finger tap undo (mobile)
+    var _twoFingerDown = false;
+    function onTouchStart(e) { if (e.touches.length === 2) _twoFingerDown = true; }
+    function onTouchEnd(e) { if (_twoFingerDown && e.changedTouches.length === 2) { send({ action: "undo" }); _twoFingerDown = false; } }
+    document.addEventListener("touchstart", onTouchStart, { passive: true });
+    document.addEventListener("touchend", onTouchEnd, { passive: true });
+    
+    var reducedMotion = false;
+    try { reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches; } catch(e) {}
+    if (window.innerWidth <= 600 && !reducedMotion) {
+      var hint = el("p", "Two-finger tap to undo", "lg-gesture-hint");
+      $("board-holder").appendChild(hint);
+    }
+
     document.addEventListener("keydown", onKey);
   }
 
