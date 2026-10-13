@@ -152,4 +152,39 @@ document.addEventListener("DOMContentLoaded", function () {
       document.documentElement.classList.toggle("focus-mode");
     }
   });
+
+  /* R4-HRPC-10: Map keyboard navigation */
+  var mapHolder = document.getElementById("map-holder");
+  if (mapHolder) {
+    function getRooms() {
+      return Array.from(mapHolder.querySelectorAll('.room, [role="button"], button'));
+    }
+
+    document.addEventListener("keydown", function (e) {
+      if (!mapHolder.contains(document.activeElement)) return;
+      var rooms = getRooms();
+      if (!rooms.length) return;
+      var current = document.activeElement;
+      var idx = rooms.indexOf(current);
+      if (idx === -1) idx = 0;
+
+      var nextIdx = idx;
+      if (e.key === "ArrowRight" || e.key === "ArrowDown") nextIdx = Math.min(idx + 1, rooms.length - 1);
+      else if (e.key === "ArrowLeft" || e.key === "ArrowUp") nextIdx = Math.max(idx - 1, 0);
+      else return;
+
+      e.preventDefault();
+      rooms[nextIdx].focus();
+    });
+
+    document.addEventListener("keyup", function (e) {
+      if (!mapHolder.contains(document.activeElement)) return;
+      if (e.key === "Enter" || e.key === " ") {
+        var current = document.activeElement;
+        if (current && (current.classList.contains("room") || current.getAttribute("role") === "button" || current.tagName === "BUTTON")) {
+          current.click();
+        }
+      }
+    });
+  }
 });

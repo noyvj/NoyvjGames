@@ -98,3 +98,10 @@ html[data-layout="pc"].focus-mode .board-holder svg {
     transition: none;
   }
 }
+
+/* R4-HRPC-10: Map room focus ring */
+html[data-layout="pc"] #map-holder .room:focus,
+html[data-layout="pc"] #map-holder [role="button"]:focus {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
