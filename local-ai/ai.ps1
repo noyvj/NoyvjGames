@@ -223,6 +223,14 @@ Update-PcPages
 # Repair rounds: real changes but failing tests (a feature task, not a test-writing one). The model gets a
 # fresh session with the failing output and the files it changed, up to twice. This is the step that most
 # often turns a near miss (for example one save-format test) into a pass.
+# What the work looks like (each changed file and its content hash), so a full test pass can be reused when
+# nothing changed afterwards instead of running the slow browser tests twice.
+function Get-WorkState {
+    $files = @(git -C $work status --porcelain --untracked-files=all | ForEach-Object { $_.Substring(3).Trim('"') } | Where-Object { $_ -notlike ".aider*" } | Sort-Object)
+    ($files | ForEach-Object { $p = Join-Path $work $_; if (Test-Path $p -PathType Leaf) { $_ + ":" + (Get-FileHash $p -Algorithm MD5).Hash } else { $_ + ":gone" } }) -join "|"
+}
+$verifiedState = $null
+$verifiedLine = ""
 $repairs = 0
 while (-not $timedOut -and $repairs -lt 2) {
     $touched = @(git -C $work status --porcelain --untracked-files=all | ForEach-Object { $_.Substring(3).Trim('"') } |
@@ -231,6 +239,19 @@ while (-not $timedOut -and $repairs -lt 2) {
     Push-Location $gameDir
     $firstTry = (python -m pytest -q -x --tb=short -p no:warnings --ignore-glob=*browser* 2>&1 | Out-String)
     $passing = ($LASTEXITCODE -eq 0)
+    $fastLine = ($firstTry.Trim() -split "`n")[-1]
+    if ($passing) {
+        # The edit loop skips the slow browser tests, so run them once here: if they fail, the model gets to
+        # repair them (2026-10-13: two Dead Reckoning features broke browser tests the model never saw).
+        $browserFiles = @(Get-ChildItem (Join-Path $gameDir "tests") -Filter "*browser*.py" -File -ErrorAction SilentlyContinue | ForEach-Object { "tests/" + $_.Name })
+        $browserLine = "no browser tests"
+        if ($browserFiles.Count -gt 0) {
+            $browserTry = (python -m pytest -q -x --tb=short -p no:warnings @browserFiles 2>&1 | Out-String)
+            $browserLine = ($browserTry.Trim() -split "`n")[-1]
+            if ($LASTEXITCODE -ne 0) { $passing = $false; $firstTry = $browserTry }
+        }
+        if ($passing) { $verifiedState = Get-WorkState; $verifiedLine = "$fastLine; browser tests: $browserLine" }
+    }
     Pop-Location
     if ($passing) { break }
     $repairs++
@@ -294,8 +315,14 @@ if ($newTestFiles.Count -gt 0) {
 }
 
 Push-Location $gameDir
-$testOut = (python -m pytest -q 2>&1 | Out-String)
-$testsOk = ($LASTEXITCODE -eq 0)
+if ($verifiedState -and $verifiedState -eq (Get-WorkState)) {
+    # nothing changed since the repair check ran the whole suite (fast tests + browser tests): reuse it
+    $testOut = "$verifiedLine (whole suite, before the final tidy-up changed nothing)"
+    $testsOk = $true
+} else {
+    $testOut = (python -m pytest -q 2>&1 | Out-String)
+    $testsOk = ($LASTEXITCODE -eq 0)
+}
 $salvageNote = ""
 # A test-writing task with some wrong guesses: keep its passing tests rather than throw the whole file away.
 if (-not $testsOk -and $testOnly) {
