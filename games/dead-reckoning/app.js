@@ -760,7 +760,7 @@
     guard("add-leg-button", function () { selected = view.legs.length; send({ action: "add_leg" }); });
     guard("clear-button", function () { send({ action: "clear" }); });
     guard("add-wait-button", function () { selected = view.legs.length; send({ action: "add_wait" }); });
-    guard("undo-button", function () { send({ action: "undo" }); });
+    guard("planner-undo-button", function () { send({ action: "undo" }); });
     guard("sail-button", trySail);
     guard("naive-flag-button", function () { selected = view.legs.length; send({ action: "helper", kind: "naive", target: "flag" }); });
     guard("current-flag-button", function () { selected = view.legs.length; send({ action: "helper", kind: "current", target: "flag" }); });
@@ -841,7 +841,7 @@
   }
 
   function setBusy(busy) {
-    ["add-leg-button", "clear-button", "undo-button", "sail-button", "naive-flag-button", "current-flag-button", "naive-point-button",
+    ["add-leg-button", "clear-button", "planner-undo-button", "sail-button", "naive-flag-button", "current-flag-button", "naive-point-button",
       "current-point-button", "point-set-button", "point-clear-button", "retry-button", "redo-button", "skip-button", "next-chart-button",
       "par-button", "use-par-button", "new-practice-button", "practice-code-button", "anchor-button", "add-wait-button", "mode-plan-button", "mode-watch-button",
       "ship-a-button", "ship-b-button"].forEach(function (id) { $(id).disabled = busy; });
