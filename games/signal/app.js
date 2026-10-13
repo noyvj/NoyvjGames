@@ -502,6 +502,13 @@
     return JSON.parse(api(JSON.stringify(req)));
   }
 
+  function triggerHaptic(reading, top) {
+    if (navigator.vibrate && !document.documentElement.hasAttribute("data-reduced-motion")) {
+      var ms = Math.max(5, Math.round((reading / top) * 25));
+      navigator.vibrate(ms);
+    }
+  }
+
   function applyResponse(resp, req) {
     if (resp.view) {
       view = resp.view;
@@ -523,6 +530,13 @@
     });
     if (resp.dirty) persistState();
     if (view) { render(); cacheView(); }
+    if (req.action === "ping" && view.pings && view.pings.length > 0) {
+      var lastPing = view.pings[view.pings.length - 1];
+      triggerHaptic(lastPing.v || 0, view.board.top || 5);
+      var boardEl = $("board");
+      boardEl.classList.add("haptic-active");
+      setTimeout(function() { boardEl.classList.remove("haptic-active"); }, 200);
+    }
   }
 
   var QUEUEABLE = { ping: true, mark: true, clear_marks: true, commit: true, give_up: true, open: true, practice: true };

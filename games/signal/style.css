@@ -290,6 +290,18 @@ html[data-reduced-motion="true"] #radial-menu, html[data-reduced-motion="true"] 
   transition: none !important;
 }
 
+/* ---- haptic pulse (mobile only) -------------------------------------- */
+@media (max-width: 600px) {
+  @keyframes haptic-pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.025); }
+    100% { transform: scale(1); }
+  }
+  .board.haptic-active {
+    animation: haptic-pulse 0.18s ease-out;
+  }
+}
+
 /* ---- mobile ------------------------------------------------------------ */
 @media (max-width: 640px) {
   #game { margin: 0.5rem 0.4rem 1rem; padding: 0.9rem 0.6rem 1.3rem; }
