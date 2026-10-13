@@ -56,3 +56,57 @@ window.LIGHTHOUSE_PC_TUTORIAL_STEPS = [
     text: "Set the lamp, light it, and keep the sea company. Take your time.",
   },
 ];
+
+/* Ship hover card (Desktop) --------------------------------------------------- */
+(function () {
+  "use strict";
+  var card = null;
+  var data = {};
+
+  function init() {
+    card = document.createElement("div");
+    card.id = "ship-hover-card";
+    card.innerHTML = "<h3 id='shc-name'></h3><p><span class='label'>Cargo:</span> <span id='shc-cargo'></span></p><p><span class='label'>Mood:</span> <span id='shc-mood'></span></p><p><span class='label'>Last letter:</span> <span id='shc-letter'></span></p>";
+    document.body.appendChild(card);
+
+    var scene = document.getElementById("scene-panel");
+    if (!scene) return;
+
+    scene.addEventListener("mouseover", onOver, true);
+    scene.addEventListener("mouseout", onOut, true);
+    scene.addEventListener("mousemove", onMove, true);
+  }
+
+  function onOver(e) {
+    var el = e.target.closest("[data-ship-id]");
+    if (!el) return;
+    data.name = el.getAttribute("data-name") || "Unknown Ship";
+    data.cargo = el.getAttribute("data-cargo") || "None";
+    data.mood = el.getAttribute("data-mood") || "Neutral";
+    data.letter = el.getAttribute("data-letter") || "No letters yet";
+    card.querySelector("#shc-name").textContent = data.name;
+    card.querySelector("#shc-cargo").textContent = data.cargo;
+    card.querySelector("#shc-mood").textContent = data.mood;
+    card.querySelector("#shc-letter").textContent = data.letter;
+    card.classList.add("visible");
+  }
+
+  function onOut(e) {
+    var el = e.target.closest("[data-ship-id]");
+    if (!el || !card.contains(e.relatedTarget)) return;
+    card.classList.remove("visible");
+  }
+
+  function onMove(e) {
+    if (!card.classList.contains("visible")) return;
+    var x = e.clientX + 12;
+    var y = e.clientY + 12;
+    var rect = card.getBoundingClientRect();
+    if (x + rect.width > window.innerWidth) x = e.clientX - rect.width - 12;
+    if (y + rect.height > window.innerHeight) y = e.clientY - rect.height - 12;
+    card.style.left = x + "px";
+    card.style.top = y + "px";
+  }
+
+  document.addEventListener("DOMContentLoaded", init);
+})();

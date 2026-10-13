@@ -184,6 +184,12 @@
       node.body.style.opacity = fog && !s.lit ? "0.55" : "1";
       node.g.style.setProperty("--ship-fill", ink.ship);
       node.g.style.setProperty("--ship-line", ink.shipLine);
+      // Data attributes for the Desktop hover card
+      node.g.setAttribute("data-ship-id", s.id);
+      node.g.setAttribute("data-name", (s.label || "") + " " + (s.name || ""));
+      node.g.setAttribute("data-cargo", s.cargo || "None");
+      node.g.setAttribute("data-mood", s.mood || "Neutral");
+      node.g.setAttribute("data-letter", s.last_letter || "No letters yet");
     });
   }
 
