@@ -846,6 +846,19 @@
     if (seedCopy) seedCopy.update(view.seed_text || "");
   }
 
+  // R4-PBMO-6: Resume banner for mobile
+  var RESUME_KEY = "pocket-bazaar-resume-shown";
+  function showResumeBanner() {
+    var banner = document.getElementById("resume-banner");
+    if (!banner || lsGet(RESUME_KEY)) return;
+    banner.innerHTML = '<span>Day in progress</span><button id="resume-btn">Resume</button>';
+    banner.classList.add("visible");
+    document.getElementById("resume-btn").addEventListener("click", function () {
+      banner.classList.remove("visible");
+      lsSet(RESUME_KEY, "1");
+    });
+  }
+
   function wire() {
     $("toast").addEventListener("click", function () { showToast(""); });
     $("start-day-button").addEventListener("click", function () { send({ action: "start_day" }); });
@@ -967,6 +980,7 @@
     $("engine-status").textContent = "";
     send({ action: "open" });
     setBusy(false);
+    if (view.phase === "open") showResumeBanner();
     await changelog;
     if (window.GameTutorial) window.GameTutorial.init(window.pocketBazaarTutorialSteps ? window.pocketBazaarTutorialSteps(TUTORIAL_STEPS) : TUTORIAL_STEPS, { gameId: "pocket-bazaar" });
   }
