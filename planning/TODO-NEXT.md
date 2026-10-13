@@ -1,6 +1,6 @@
 # Next TODO list (from the Round 4 ideas, started 2026-10-12)
 
-**Progress: 0/921 items checked off (0.0%).** This is the NEXT list, written alongside the live `planning/TODO.md` (which is untouched). It becomes the live list once the current one is archived. Run `python3 scripts/todo-progress.py planning/TODO-NEXT.md` after ticking items.
+**Progress: 52/921 items checked off (5.6%).** This is the NEXT list, written alongside the live `planning/TODO.md` (which is untouched). It becomes the live list once the current one is archived. Run `python3 scripts/todo-progress.py planning/TODO-NEXT.md` after ticking items.
 
 How it is built: one section per Round 4 section on the ideas sheet (`planning/IMPROVEMENT-IDEAS-ROUND-4.md`), in the sheet's order, ids `R4-<section code>-<number>`. Only ideas you answered "yes" to are items, with your note where you wrote one. A section that is not fully answered keeps its heading and ends with one item to add the rest once you have answered them. "No" answers are dropped (listed under the heading); "later" answers are parked in `planning/LATER.md`.
 
@@ -10,13 +10,21 @@ How it is built: one section per Round 4 section on the ideas sheet (`planning/I
 
 | Section | Done | % | |
 |---|---:|---:|---|
+| LEPC. Lexis: PC view | 8/10 | 80% | ████████░░ |
+| SIPC. Signal: PC view | 7/10 | 70% | ███████░░░ |
+| LEMO. Lexis: mobile view | 7/10 | 70% | ███████░░░ |
+| HCPC. Heist Committee: PC view | 6/10 | 60% | ██████░░░░ |
+| HCMO. Heist Committee: mobile view | 6/10 | 60% | ██████░░░░ |
+| LHPC. Lighthouse: PC view | 6/10 | 60% | ██████░░░░ |
+| SIMO. Signal: mobile view | 5/10 | 50% | █████░░░░░ |
+| PX. Lexis: made for you | 6/29 | 21% | ██░░░░░░░░ |
+| PU. Signal: made for you | 1/6 | 17% | ██░░░░░░░░ |
 | PC. Canopy: made for you | 0/30 | 0% | ░░░░░░░░░░ |
 | PI. Tide: made for you | 0/30 | 0% | ░░░░░░░░░░ |
 | PN. Le Champ de Mots: made for you | 0/30 | 0% | ░░░░░░░░░░ |
 | PW. Whole site: made for you | 0/29 | 0% | ░░░░░░░░░░ |
 | PS. SOL: made for you | 0/29 | 0% | ░░░░░░░░░░ |
 | PG. Grid: made for you | 0/29 | 0% | ░░░░░░░░░░ |
-| PX. Lexis: made for you | 0/29 | 0% | ░░░░░░░░░░ |
 | CLP. Chronicle: made for you | 0/28 | 0% | ░░░░░░░░░░ |
 | XG. Whole site: general ideas | 0/17 | 0% | ░░░░░░░░░░ |
 | SO. SOL: general ideas | 0/15 | 0% | ░░░░░░░░░░ |
@@ -47,13 +55,6 @@ How it is built: one section per Round 4 section on the ideas sheet (`planning/I
 | COMO. Continuum: mobile view | 0/10 | 0% | ░░░░░░░░░░ |
 | CHPC. Le Champ de Mots: PC view | 0/10 | 0% | ░░░░░░░░░░ |
 | CHMO. Le Champ de Mots: mobile view | 0/10 | 0% | ░░░░░░░░░░ |
-| SIPC. Signal: PC view | 0/10 | 0% | ░░░░░░░░░░ |
-| SIMO. Signal: mobile view | 0/10 | 0% | ░░░░░░░░░░ |
-| LEPC. Lexis: PC view | 0/10 | 0% | ░░░░░░░░░░ |
-| LEMO. Lexis: mobile view | 0/10 | 0% | ░░░░░░░░░░ |
-| HCPC. Heist Committee: PC view | 0/10 | 0% | ░░░░░░░░░░ |
-| HCMO. Heist Committee: mobile view | 0/10 | 0% | ░░░░░░░░░░ |
-| LHPC. Lighthouse: PC view | 0/10 | 0% | ░░░░░░░░░░ |
 | LHMO. Lighthouse: mobile view | 0/10 | 0% | ░░░░░░░░░░ |
 | PBPC. Pocket Bazaar: PC view | 0/10 | 0% | ░░░░░░░░░░ |
 | PBMO. Pocket Bazaar: mobile view | 0/10 | 0% | ░░░░░░░░░░ |
@@ -83,7 +84,6 @@ How it is built: one section per Round 4 section on the ideas sheet (`planning/I
 | PT. Thaw: made for you | 0/6 | 0% | ░░░░░░░░░░ |
 | PL. Loop: made for you | 0/6 | 0% | ░░░░░░░░░░ |
 | PO. Continuum: made for you | 0/6 | 0% | ░░░░░░░░░░ |
-| PU. Signal: made for you | 0/6 | 0% | ░░░░░░░░░░ |
 | M. Five new game concepts | 0/5 | 0% | ░░░░░░░░░░ |
 | AF. Aftermath: general ideas | 0/1 | 0% | ░░░░░░░░░░ |
 | HE. Herd: general ideas | 0/1 | 0% | ░░░░░░░░░░ |
@@ -111,7 +111,7 @@ How it is built: one section per Round 4 section on the ideas sheet (`planning/I
 | OC. Overclock: general ideas | 0/1 | 0% | ░░░░░░░░░░ |
 | OCP. Overclock: made for you | 0/1 | 0% | ░░░░░░░░░░ |
 | AU. Sound | 0/1 | 0% | ░░░░░░░░░░ |
-| **All sections** | **0/921** | **0.0%** | ░░░░░░░░░░ |
+| **All sections** | **52/921** | **5.6%** | █░░░░░░░░░ |
 
 <!-- PROGRESS-CHART:END -->
 
@@ -941,7 +941,7 @@ Dropped (you said no): PG-30.
 30 ideas on the sheet: 5 yes, 0 no, 0 later, 25 not answered yet.
 
 - [ ] R4-PU-1: (small) Pattern album: every layout of transmitters you meet, such as pairs, triangles and lines, is filed in an album with a count of how many you have discovered. You get a collector's page.
-- [ ] R4-PU-2: (small) Quiet streak: the total number of puzzles you have solved is shown big and can never go down, with the streak small beside it. You get steady progress that cannot be lost.
+- [x] R4-PU-2: (small) Quiet streak: the total number of puzzles you have solved is shown big and can never go down, with the streak small beside it. You get steady progress that cannot be lost.
 - [ ] R4-PU-3: (small) Three goals panel: three standing goals, such as "ten Hard solves at par", "fill six album pages" and "three archive weeks". You get the goal layout you like.
 - [ ] R4-PU-4: (big) Distress calls: each solve locates a lost probe on a sector map, and clearing a sector opens the next. You get short wins that build into a bigger picture, in space.
 - [ ] R4-PU-5: (big) Two listeners: an invite link splits a board's pings between two players who each see only their own readings and talk it out in any app they like. You get an optional friend tie with no chat built in.
@@ -951,31 +951,31 @@ Dropped (you said no): PG-30.
 
 10 ideas on the sheet: 10 yes, 0 no, 0 later, 0 not answered yet.
 
-- [ ] R4-SIPC-1: (small) Show a faint preview on hover that lists what a ping on that tile would read for each possible transmitter distance. You pick your pings with more thought and fewer wasted ones.
-- [ ] R4-SIPC-2: (small) Let a right-click on a tile toggle a small pencil "maybe" note in the corner that does not count as an answer. You can think on the board the way you do on paper.
+- [x] R4-SIPC-1: (small) Show a faint preview on hover that lists what a ping on that tile would read for each possible transmitter distance. You pick your pings with more thought and fewer wasted ones.
+- [x] R4-SIPC-2: (small) Let a right-click on a tile toggle a small pencil "maybe" note in the corner that does not count as an answer. You can think on the board the way you do on paper.
 - [ ] R4-SIPC-3: (small) Add a readings sheet beside the board that lists each ping's tile and number in sortable rows, with a click that highlights the tile. Your evidence sits in one table.
 - [ ] R4-SIPC-4: (small) Add Ctrl+Z and Ctrl+Y for markers and pencil notes, with a visible history list. You can try theories and step back.
 - [ ] R4-SIPC-5: (big) Hold Space to overlay each ping's reach rings across the whole board, so the overlap points show where a transmitter must sit. You can see the logic of the puzzle at a glance.
-- [ ] R4-SIPC-6: (small) Show the archive as a wide month grid with hover previews of each puzzle's board size and your result. You browse past puzzles like a calendar app.
-- [ ] R4-SIPC-7: (small) Add mouse-wheel zoom and drag pan for large practice boards, with a recentre key. Big boards stay comfortable on a monitor.
-- [ ] R4-SIPC-8: (small) Hold Shift to draw a ruler line from the cursor tile to the nearest ping showing distance and reading difference. You check the geometry quickly.
-- [ ] R4-SIPC-9: (small) Let a held mouse button sweep across tiles to mark or unmark them in one stroke. Filling in candidate tiles is fast.
-- [ ] R4-SIPC-10: (small) Add a stats window that stays open beside the board with streak and par history as small charts. Your record sits in view while you solve.
+- [x] R4-SIPC-6: (small) Show the archive as a wide month grid with hover previews of each puzzle's board size and your result. You browse past puzzles like a calendar app.
+- [x] R4-SIPC-7: (small) Add mouse-wheel zoom and drag pan for large practice boards, with a recentre key. Big boards stay comfortable on a monitor.
+- [x] R4-SIPC-8: (small) Hold Shift to draw a ruler line from the cursor tile to the nearest ping showing distance and reading difference. You check the geometry quickly.
+- [x] R4-SIPC-9: (small) Let a held mouse button sweep across tiles to mark or unmark them in one stroke. Filling in candidate tiles is fast.
+- [x] R4-SIPC-10: (small) Add a stats window that stays open beside the board with streak and par history as small charts. Your record sits in view while you solve.
 
 ## SIMO. Signal: mobile view
 
 10 ideas on the sheet: 10 yes, 0 no, 0 later, 0 not answered yet.
 
 - [ ] R4-SIMO-1: (big) Hold a tile to show a magnifier bubble above your finger with the tile's coordinate and a ping preview, so your thumb never hides the target. Precise tapping works on a small screen.
-- [ ] R4-SIMO-2: (small) Put the Ping and Mark tool switch as two big buttons at the bottom edge. The main choice sits under your thumb.
+- [x] R4-SIMO-2: (small) Put the Ping and Mark tool switch as two big buttons at the bottom edge. The main choice sits under your thumb.
 - [ ] R4-SIMO-3: (small) Let a tap ping the tile and a long-press mark it, as an option in Settings. One finger does both jobs without a tool switch.
 - [ ] R4-SIMO-4: (small) Add a haptic pulse on each ping that grows stronger with a bigger reading, where the browser allows. You feel how close you are.
 - [ ] R4-SIMO-5: (small) Reopen on the exact half-solved board with pings and markers in place. A two-minute visit keeps all your reasoning.
-- [ ] R4-SIMO-6: (small) Add a Today shortcut that opens straight into the day's puzzle from the home-screen icon. You get a one-tap start.
+- [x] R4-SIMO-6: (small) Add a Today shortcut that opens straight into the day's puzzle from the home-screen icon. You get a one-tap start.
 - [ ] R4-SIMO-7: (small) Let you swipe between Today, Archive and Practice as three full-screen tabs. Moving between modes is a flick.
-- [ ] R4-SIMO-8: (small) Add a pure-black dark theme for OLED phones with brighter tile outlines. Bed-time play is easy on the eyes and the battery.
-- [ ] R4-SIMO-9: (small) Open a small radial menu with Ping, Mark and Clear next to your finger when you long-press the board. You never travel to a toolbar.
-- [ ] R4-SIMO-10: (small) Add pinch to zoom on large boards, with a double-tap to reset. Large practice puzzles remain tappable.
+- [x] R4-SIMO-8: (small) Add a pure-black dark theme for OLED phones with brighter tile outlines. Bed-time play is easy on the eyes and the battery.
+- [x] R4-SIMO-9: (small) Open a small radial menu with Ping, Mark and Clear next to your finger when you long-press the board. You never travel to a toolbar.
+- [x] R4-SIMO-10: (small) Add pinch to zoom on large boards, with a double-tap to reset. Large practice puzzles remain tappable.
 
 ## LE. Lexis: general ideas
 
@@ -991,7 +991,7 @@ Parked in LATER.md (you said later): PX-25.
 - [ ] R4-PX-1: (big) The machine planet: a language that is secretly a tiny machine instruction set, where you learn what each code does and then write a short program. You get computers and robots as the puzzle.
 - [ ] R4-PX-2: (big) The broken guardian: a lone damaged robot on an abandoned station whose log you piece together, with a quiet, tragic story and optional reading. You get a character in the spirit of the ones you like.
 - [ ] R4-PX-3: (big) Crew choices: between planets, short branching talks with the crew, with a captain who makes real mistakes and no effect on the puzzles. You get optional story told your way.
-- [ ] R4-PX-4: (small) Glyph museum: all signs from every planet on one wall, with the meanings you have confirmed filling in. You get a collector's page.
+- [x] R4-PX-4: (small) Glyph museum: all signs from every planet on one wall, with the meanings you have confirmed filling in. You get a collector's page.
 - [ ] R4-PX-5: (small) Three open goals: three contact goals visible across planets at all times, in any order. You get the goal layout you like.
 - [ ] R4-PX-6: (small) Listening post: a calm screen where the ship plays back messages you have already decoded as a quiet running log. You get a watch mode for late at night.
 - [ ] R4-PX-7: (big) Branching voyage: choose which planet to visit next, and the crew react differently depending on your order. You get a Lifeline-style path with your own choices (your branching-story taste). Your note: "Yes but you get to all of them at some point and give an initial signal that everyone gives. Always the same message just different languages as a show of difficulty"
@@ -1001,20 +1001,20 @@ Parked in LATER.md (you said later): PX-25.
 - [ ] R4-PX-11: (big) Translator pair: one friend sees the scene, the other holds the notebook, and they talk it out in any app. You get a co-op puzzle (your Keep Talking taste).
 - [ ] R4-PX-12: (small) Mystery message: make a short message from your languages for a friend to decode. You get a friend gift with no chat (your gifts-and-notes taste).
 - [ ] R4-PX-13: (big) Grammar filter: decide which garbled messages obey a language's rules, like regular expressions. You get a coding-style puzzle (your coding taste).
-- [ ] R4-PX-14: (small) Number bench: convert and add Pulse numbers with binary switches. You get a binary puzzle (your maths and binary taste).
+- [x] R4-PX-14: (small) Number bench: convert and add Pulse numbers with binary switches. You get a binary puzzle (your maths and binary taste).
 - [ ] R4-PX-15: (big) Spectrum planet: a planet that speaks in light lines, and you decide which element each means. You get sci-fi science to decode (your chemistry and science-fiction taste).
 - [ ] R4-PX-16: (small) Base puzzle: numbers written in base 5 or base 12 from tally marks. You get a maths puzzle (your maths taste).
 - [ ] R4-PX-17: (big) Sign tiles: slide signs on a board to change a world rule in a small sandbox. You get a Baba Is You style puzzle (your rule-puzzle taste).
 - [ ] R4-PX-18: (big) Path panels: draw a path through signs that spells a valid message. You get a Witness-style puzzle from the grammar (your Witness taste).
 - [ ] R4-PX-19: (big) Evidence board: pin fragments of an impossible message and name what is sending it, creepy but calm. You get an investigation (your Phasmophobia-style taste).
-- [ ] R4-PX-20: (small) Low-poly globes: each planet as a dark low-poly globe with its lamps lit. You get a moody look (your dark low-poly taste).
+- [x] R4-PX-20: (small) Low-poly globes: each planet as a dark low-poly globe with its lamps lit. You get a moody look (your dark low-poly taste).
 - [ ] R4-PX-21: (small) Previously on Marigold: a two-line recap of your last scene when you return. You get a friendly welcome back (your welcome-back taste).
 - [ ] R4-PX-22: (small) Full completion bar: one percentage bar across signs, scenes and achievements. You get a reachable 100 percent (your reachable-100% taste).
 - [ ] R4-PX-23: (small) Postcard mural: each decoded phrase sends a postcard home, and the postcards form a growing mural. You get short wins building a bigger picture (your short-wins taste).
 - [ ] R4-PX-24: (small) Unpack the crate: place alien objects in a lab by following words. You get a calm Unpacking-like game (your Unpacking taste).
-- [ ] R4-PX-26: (small) Star map: faint signals on a star map that you tune to reveal their place and strength. You get exploration and completion (your exploration taste).
-- [ ] R4-PX-27: (small) Riddle achievements: achievements with cryptic riddle descriptions. You get hidden goals that give a clue (your cryptic-description taste).
-- [ ] R4-PX-28: (small) Confirm stamps: a tiny stamp animation each time a sign is confirmed. You get a small reward every few minutes (your small-rewards taste).
+- [x] R4-PX-26: (small) Star map: faint signals on a star map that you tune to reveal their place and strength. You get exploration and completion (your exploration taste).
+- [x] R4-PX-27: (small) Riddle achievements: achievements with cryptic riddle descriptions. You get hidden goals that give a clue (your cryptic-description taste).
+- [x] R4-PX-28: (small) Confirm stamps: a tiny stamp animation each time a sign is confirmed. You get a small reward every few minutes (your small-rewards taste).
 - [ ] R4-PX-29: (small) Sketch page: rough pencil sketches of each species in the crew notebook, drawn by code. You get a hand-drawn touch (your hand-drawn-on-occasion taste).
 - [ ] R4-PX-30: (small) Contact settings: Gentle, Standard and Sharp settings that change the number of scenes and distractor signs, each checked to stay deducible. You get a difficulty you choose (your choose-difficulty taste).
 
@@ -1024,29 +1024,29 @@ Parked in LATER.md (you said later): PX-25.
 
 - [ ] R4-LEPC-1: (big) Hover any sign to light up every place it appears in the scenes, notebook and crew log at once. You can spot patterns by pointing.
 - [ ] R4-LEPC-2: (big) Show scene player, notebook and transmit bar as three docked panes with draggable dividers on wide screens. You can watch, note and compose together.
-- [ ] R4-LEPC-3: (small) Let you drag signs from the notebook into the transmit bar and reorder them by dragging. Building a message feels hands-on.
-- [ ] R4-LEPC-4: (small) Press / to search the notebook by sign shape or your own note, and arrow keys to move through the matches. You find an entry with the keyboard only.
-- [ ] R4-LEPC-5: (small) Add a right-click menu on a sign with Add note, Show scenes and Copy to transmit. Common jobs sit at the cursor.
-- [ ] R4-LEPC-6: (small) Pin a scene as a small floating player that stays visible while you edit the notebook. You can compare as you write.
-- [ ] R4-LEPC-7: (small) Double-click a sign in a scene to jump the notebook to its entry and open it for editing. You go from scene to note in one action.
-- [ ] R4-LEPC-8: (small) Add Ctrl+Z and Ctrl+Y for the transmit line. You can try a message and step back.
-- [ ] R4-LEPC-9: (small) Show a hover line on each crew-log entry saying which planet and scene triggered it. You can trace the story to its cause.
-- [ ] R4-LEPC-10: (small) Add a print layout so Ctrl+P produces a one-page glossary of your notebook. You get a take-away sheet of what you have decoded.
+- [x] R4-LEPC-3: (small) Let you drag signs from the notebook into the transmit bar and reorder them by dragging. Building a message feels hands-on.
+- [x] R4-LEPC-4: (small) Press / to search the notebook by sign shape or your own note, and arrow keys to move through the matches. You find an entry with the keyboard only.
+- [x] R4-LEPC-5: (small) Add a right-click menu on a sign with Add note, Show scenes and Copy to transmit. Common jobs sit at the cursor.
+- [x] R4-LEPC-6: (small) Pin a scene as a small floating player that stays visible while you edit the notebook. You can compare as you write.
+- [x] R4-LEPC-7: (small) Double-click a sign in a scene to jump the notebook to its entry and open it for editing. You go from scene to note in one action.
+- [x] R4-LEPC-8: (small) Add Ctrl+Z and Ctrl+Y for the transmit line. You can try a message and step back.
+- [x] R4-LEPC-9: (small) Show a hover line on each crew-log entry saying which planet and scene triggered it. You can trace the story to its cause.
+- [x] R4-LEPC-10: (small) Add a print layout so Ctrl+P produces a one-page glossary of your notebook. You get a take-away sheet of what you have decoded.
 
 ## LEMO. Lexis: mobile view
 
 10 ideas on the sheet: 10 yes, 0 no, 0 later, 0 not answered yet.
 
 - [ ] R4-LEMO-1: (big) Play scenes as full-screen vertical cards where you swipe up for the next scene and tap to pause. Watching feels like a phone story.
-- [ ] R4-LEMO-2: (small) Pull the notebook up as a bottom sheet with a peek height that leaves the scene visible above. You can read and watch together.
-- [ ] R4-LEMO-3: (small) Make the transmit pad two big buttons for tick and bar, with a short buzz for a tick and a long buzz for a bar, where the browser allows. Composing a signal feels physical.
+- [x] R4-LEMO-2: (small) Pull the notebook up as a bottom sheet with a peek height that leaves the scene visible above. You can read and watch together.
+- [x] R4-LEMO-3: (small) Make the transmit pad two big buttons for tick and bar, with a short buzz for a tick and a long buzz for a bar, where the browser allows. Composing a signal feels physical.
 - [ ] R4-LEMO-4: (big) Add a portrait sign keyboard at the bottom with your known signs in a grid, tapped to build a message. Composing is a thumb job.
-- [ ] R4-LEMO-5: (small) Let you long-press a sign in a scene to copy it into the transmit line. A sign moves from watching to speaking in one gesture.
-- [ ] R4-LEMO-6: (small) Resume a scene at the exact frame you paused on. A short visit never loses your place.
+- [x] R4-LEMO-5: (small) Let you long-press a sign in a scene to copy it into the transmit line. A sign moves from watching to speaking in one gesture.
+- [x] R4-LEMO-6: (small) Resume a scene at the exact frame you paused on. A short visit never loses your place.
 - [ ] R4-LEMO-7: (small) Add a home-screen card with planets contacted, signs decoded and the next goal. You can see progress at a glance.
-- [ ] R4-LEMO-8: (small) Add a dim night theme with softer glow on the signs. Bed-time puzzling stays gentle.
-- [ ] R4-LEMO-9: (small) Turn the crew log into a swipeable card stack, one entry per card. Story beats fit a phone.
-- [ ] R4-LEMO-10: (small) In landscape, show the scene on the left and the notebook on the right. Turning the phone gives a work desk.
+- [x] R4-LEMO-8: (small) Add a dim night theme with softer glow on the signs. Bed-time puzzling stays gentle.
+- [x] R4-LEMO-9: (small) Turn the crew log into a swipeable card stack, one entry per card. Story beats fit a phone.
+- [x] R4-LEMO-10: (small) In landscape, show the scene on the left and the notebook on the right. Turning the phone gives a work desk.
 
 ## HC. Heist Committee: general ideas
 
@@ -1065,14 +1065,14 @@ Parked in LATER.md (you said later): PX-25.
 10 ideas on the sheet: 10 yes, 0 no, 0 later, 0 not answered yet.
 
 - [ ] R4-HCPC-1: (small) Show a hover card on each timeline cell with its odds in words, who clashes with whom there, and what chains it could set off. You plan with the facts in front of you.
-- [ ] R4-HCPC-2: (small) Add a right-click menu on a cell with Clear, Copy to another beat, Swap with and Show odds. Cell jobs sit at the cursor.
-- [ ] R4-HCPC-3: (small) Let a drag-box select several cells and arrow keys nudge the whole block one beat. You can shift a plan without redoing it.
-- [ ] R4-HCPC-4: (small) Add Ctrl+C and Ctrl+V to copy a block of actions from one crew row to another. You reuse a good routine.
+- [x] R4-HCPC-2: (small) Add a right-click menu on a cell with Clear, Copy to another beat, Swap with and Show odds. Cell jobs sit at the cursor.
+- [x] R4-HCPC-3: (small) Let a drag-box select several cells and arrow keys nudge the whole block one beat. You can shift a plan without redoing it.
+- [x] R4-HCPC-4: (small) Add Ctrl+C and Ctrl+V to copy a block of actions from one crew row to another. You reuse a good routine.
 - [ ] R4-HCPC-5: (big) Add a playback film strip under the timeline with J, K and L stepping, a speed key and a draggable playhead. You can study exactly how a complication chained.
-- [ ] R4-HCPC-6: (small) Highlight every cell changed since your last run with a small dot, and list them in a side panel. You can see what your edits did.
-- [ ] R4-HCPC-7: (small) Add a second-screen playback log with big text you can pop out into its own window. The story plays on one screen while you plan on the other.
-- [ ] R4-HCPC-8: (small) Add a pop-out client brief window you can park on a second monitor, listing the target's rules and complications. The brief stays visible and the timeline gets the full screen.
-- [ ] R4-HCPC-9: (small) Add a Controls tab in Settings that rebinds the arm keys 1 to 9, Standby and Delete. The keys fit your hand.
+- [x] R4-HCPC-6: (small) Highlight every cell changed since your last run with a small dot, and list them in a side panel. You can see what your edits did.
+- [x] R4-HCPC-7: (small) Add a second-screen playback log with big text you can pop out into its own window. The story plays on one screen while you plan on the other.
+- [ ] R4-HCPC-8: (built by the local AI but its toggle button was never created, so the panel cannot be opened; reopen as a small task)  (small) Add a pop-out client brief window you can park on a second monitor, listing the target's rules and complications. The brief stays visible and the timeline gets the full screen.
+- [x] R4-HCPC-9: (small) Add a Controls tab in Settings that rebinds the arm keys 1 to 9, Standby and Delete. The keys fit your hand.
 - [ ] R4-HCPC-10: (small) Hover a crew portrait to show its clash and friendship pairs as small icons in the side panel. You can seat the crew without opening a screen.
 
 ## HCMO. Heist Committee: mobile view
@@ -1080,14 +1080,14 @@ Parked in LATER.md (you said later): PX-25.
 10 ideas on the sheet: 10 yes, 0 no, 0 later, 0 not answered yet.
 
 - [ ] R4-HCMO-1: (big) Show the timeline one crew row at a time, with swipe up and down between crew and sideways scroll for beats, and a bottom sheet to pick an action for a tapped cell. Planning works on a portrait screen.
-- [ ] R4-HCMO-2: (small) Put the action tray as a thumb-height carousel at the bottom with the odds shown as one word. You pick an action in one flick.
-- [ ] R4-HCMO-3: (small) Add a short buzz for each link in a complication chain during playback, where the browser allows. A chain reaction is felt.
+- [x] R4-HCMO-2: (small) Put the action tray as a thumb-height carousel at the bottom with the odds shown as one word. You pick an action in one flick.
+- [x] R4-HCMO-3: (small) Add a short buzz for each link in a complication chain during playback, where the browser allows. A chain reaction is felt.
 - [ ] R4-HCMO-4: (big) Play the heist as full-screen story cards where a tap anywhere moves to the next beat. Playback is a one-thumb show.
 - [ ] R4-HCMO-5: (small) Resume playback at the exact beat you left. A two-minute pause never loses the story.
-- [ ] R4-HCMO-6: (small) Let a long-press on a cell open a sheet that explains its odds in plain words. Detail comes without a hover.
-- [ ] R4-HCMO-7: (small) Let the crew sheet slide in from the left edge with a swipe and slide away with another. The timeline gets the whole screen when you plan.
-- [ ] R4-HCMO-8: (small) In landscape, show the whole timeline with crew rows and allow a pinch to zoom. Turning the phone gives the full plan view.
-- [ ] R4-HCMO-9: (small) Add a dim cosy-night theme with bigger cells. Bed-time planning stays easy.
+- [x] R4-HCMO-6: (small) Let a long-press on a cell open a sheet that explains its odds in plain words. Detail comes without a hover.
+- [x] R4-HCMO-7: (small) Let the crew sheet slide in from the left edge with a swipe and slide away with another. The timeline gets the whole screen when you plan.
+- [x] R4-HCMO-8: (small) In landscape, show the whole timeline with crew rows and allow a pinch to zoom. Turning the phone gives the full plan view.
+- [x] R4-HCMO-9: (small) Add a dim cosy-night theme with bigger cells. Bed-time planning stays easy.
 - [ ] R4-HCMO-10: (small) Add a swipe on a past job in the career list to replay it. History is one flick away.
 
 ## LH. Lighthouse: general ideas
@@ -1107,15 +1107,15 @@ Parked in LATER.md (you said later): PX-25.
 10 ideas on the sheet: 10 yes, 0 no, 0 later, 0 not answered yet.
 
 - [ ] R4-LHPC-1: (big) Make the lighthouse picture clickable: hover the lamp, clockwork or trouble spot to see a glowing label and click to act. The keeper's rounds happen in the place itself.
-- [ ] R4-LHPC-2: (small) Show a hover card on a ship with its name, cargo, mood toward the light and last letter. You read the sea by pointing.
-- [ ] R4-LHPC-3: (small) Add a Controls tab in Settings that rebinds W, T, Space, brackets and the lamp keys. The keys fit your hand.
-- [ ] R4-LHPC-4: (small) Make the letters window a two-pane mail reader with J and K to move between letters, the sailor on the left and the letter on the right. Reading is smooth.
+- [x] R4-LHPC-2: (small) Show a hover card on a ship with its name, cargo, mood toward the light and last letter. You read the sea by pointing.
+- [x] R4-LHPC-3: (small) Add a Controls tab in Settings that rebinds W, T, Space, brackets and the lamp keys. The keys fit your hand.
+- [x] R4-LHPC-4: (small) Make the letters window a two-pane mail reader with J and K to move between letters, the sailor on the left and the letter on the right. Reading is smooth.
 - [ ] R4-LHPC-5: (small) Add a small storm scope as a dockable circular window you can place anywhere. You watch the weather without changing screens.
-- [ ] R4-LHPC-6: (small) Add HUD scale and fade sliders in Settings, with an option to hide the HUD while nothing needs you. The scene stays cinematic.
+- [x] R4-LHPC-6: (small) Add HUD scale and fade sliders in Settings, with an option to hide the HUD while nothing needs you. The scene stays cinematic.
 - [ ] R4-LHPC-7: (big) Add a camera key C that cycles three fixed views (the sea, the gallery and the lantern room) with a slow drift. The place feels like a world you look around.
-- [ ] R4-LHPC-8: (small) Save window arrangements such as "Keeper desk" and "Quiet night" and switch with F1 and F2. The screen fits the sitting.
+- [x] R4-LHPC-8: (small) Save window arrangements such as "Keeper desk" and "Quiet night" and switch with F1 and F2. The screen fits the sitting.
 - [ ] R4-LHPC-9: (small) Add a letterbox cinema option with a choice of 16:9 or 21:9 framing and optional film grain. The scene is framed like a short film.
-- [ ] R4-LHPC-10: (small) Add an opacity slider for each window so reports and letters can sit as see-through panels over the scene. You read while the sea stays in view.
+- [x] R4-LHPC-10: (small) Add an opacity slider for each window so reports and letters can sit as see-through panels over the scene. You read while the sea stays in view.
 
 ## LHMO. Lighthouse: mobile view
 

@@ -1,6 +1,8 @@
 {
   "windows": [
     ["crew-log-panel", "crew-log-toggle-button", "Crew log"],
+    ["museum-panel", "museum-toggle-button", "Glyph museum"],
+    ["star-map-panel", "star-map-toggle-button", "Star map"],
     ["report-panel", "report-toggle-button", "Contact report"],
     ["achievements-panel", "achievements-toggle-button", "Achievements"],
     ["changelog-panel", "changelog-toggle-button", "What's New"],
@@ -16,7 +18,7 @@
     "menu": [
       {"heading": "Game", "ids": []},
       {"heading": "Help", "ids": ["tutorial-restart-button", "info-page-toggle-button", "credits-link"]},
-      {"heading": "Records", "ids": ["report-toggle-button", "changelog-toggle-button"]}
+      {"heading": "Records", "ids": ["museum-toggle-button", "star-map-toggle-button", "report-toggle-button", "changelog-toggle-button"]}
     ]
   },
   "composites": [],

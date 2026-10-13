@@ -54,7 +54,8 @@ Object.defineProperty(window, "MobileDock", { configurable: true, get() { return
   var preview = document.createElement("div");
   preview.id = "hover-preview";
   preview.hidden = true;
-  document.body.appendChild(preview);
+  // pc.js loads in <head>, before the body exists and before the shell builds #pc-stage, so wait for "load".
+  window.addEventListener("load", function () { document.body.appendChild(preview); });
 
   function updatePreview(cell) {
     var activeBtn = document.querySelector("#mode-tabs button[aria-pressed='true']");
@@ -85,7 +86,7 @@ Object.defineProperty(window, "MobileDock", { configurable: true, get() { return
     preview.hidden = true;
   }
 
-  document.addEventListener("DOMContentLoaded", function () {
+  window.addEventListener("load", function () {
     var stage = document.querySelector("#pc-stage");
     if (!stage) return;
     stage.addEventListener("mouseover", function (e) {
@@ -142,7 +143,7 @@ Object.defineProperty(window, "MobileDock", { configurable: true, get() { return
     preview = null;
   }
 
-  document.addEventListener("DOMContentLoaded", function () {
+  window.addEventListener("load", function () {
     var grid = document.getElementById("calendar-grid");
     if (!grid) return;
 
@@ -299,9 +300,10 @@ Object.defineProperty(window, "MobileDock", { configurable: true, get() { return
   overlay.id = "ruler-overlay";
   overlay.innerHTML = '<line id="ruler-line" x1="0" y1="0" x2="0" y2="0" />' +
                       '<text id="ruler-label" x="0" y="0"></text>';
-  var stage = document.getElementById("pc-stage");
-  if (!stage) return;
-  stage.appendChild(overlay);
+  window.addEventListener("load", function () {
+    var stage = document.getElementById("pc-stage");
+    if (stage) stage.appendChild(overlay);
+  });
 
   function getCellCenter(cell) {
     var rect = cell.getBoundingClientRect();
@@ -383,26 +385,32 @@ Object.defineProperty(window, "MobileDock", { configurable: true, get() { return
       var state = JSON.parse(stateStr);
       var mode = (document.querySelector("#mode-tabs button[aria-pressed='true']") || {}).getAttribute("data-mode-tab") || "easy";
       var days = state.days || {};
+      var showStreaks = !!(state.settings && state.settings.show_streaks);
       var streak = 0;
+      var counting = true;
       var parBars = "";
-      
+
+      // Newest day first; a day counts as won/lost when its record for this mode is finished.
       for (var i = 0; i < 7; i++) {
         var d = new Date();
         d.setDate(d.getDate() - i);
         var ds = d.toISOString().split("T")[0];
-        var res = days[ds] ? days[ds][mode] : null;
-        if (res === "won") streak++; else if (res) streak = 0;
-        
+        var rec = days[ds + ":" + mode];
+        var res = rec && rec.kind === "daily" ? rec.result : null;
+        if (counting) {
+          if (res === "won") streak++; else if (res === "lost") counting = false;
+        }
         var cls = res === "won" ? "won" : res === "lost" ? "lost" : "empty";
-        parBars += '<span class="hist-bar ' + cls + '" title="' + ds + '"></span>';
+        var word = res === "won" ? "won" : res === "lost" ? "not solved" : "not played";
+        parBars += '<span class="hist-bar ' + cls + '" title="' + ds + ": " + word + '"></span>';
       }
-      
-      document.getElementById("hist-streak").textContent = "Streak: " + streak;
+
+      document.getElementById("hist-streak").textContent = showStreaks ? "Daily run: " + streak + " won in a row" : "Last seven days (each bar is one daily puzzle)";
       document.getElementById("hist-par").innerHTML = parBars;
     } catch(e) {}
   }
 
-  document.addEventListener("DOMContentLoaded", function () {
+  window.addEventListener("load", function () {
     var side = document.getElementById("pc-side") || document.querySelector("#pc-body");
     if (side) side.appendChild(panel);
     render();

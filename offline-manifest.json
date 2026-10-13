@@ -244,7 +244,7 @@
     },
     {
      "path": "shared/seed.js",
-     "bytes": 29042,
+     "bytes": 29099,
      "precached": true
     },
     {
@@ -330,7 +330,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14984828,
+   "bytes": 14984885,
    "bytes_complete": true
   },
   "canopy": {
@@ -609,7 +609,7 @@
     },
     {
      "path": "shared/seed.js",
-     "bytes": 29042,
+     "bytes": 29099,
      "precached": true
     },
     {
@@ -710,7 +710,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 15248017,
+   "bytes": 15248074,
    "bytes_complete": true
   },
   "grid": {
@@ -964,7 +964,7 @@
     },
     {
      "path": "shared/seed.js",
-     "bytes": 29042,
+     "bytes": 29099,
      "precached": true
     },
     {
@@ -1055,7 +1055,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14940761,
+   "bytes": 14940818,
    "bytes_complete": true
   },
   "tide": {
@@ -1309,7 +1309,7 @@
     },
     {
      "path": "shared/seed.js",
-     "bytes": 29042,
+     "bytes": 29099,
      "precached": true
     },
     {
@@ -1375,7 +1375,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14882970,
+   "bytes": 14883027,
    "bytes_complete": true
   },
   "aftermath": {
@@ -1644,7 +1644,7 @@
     },
     {
      "path": "shared/seed.js",
-     "bytes": 29042,
+     "bytes": 29099,
      "precached": true
     },
     {
@@ -1710,7 +1710,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 15006810,
+   "bytes": 15006867,
    "bytes_complete": true
   },
   "herd": {
@@ -3724,7 +3724,7 @@
     },
     {
      "path": "shared/seed.js",
-     "bytes": 29042,
+     "bytes": 29099,
      "precached": true
     },
     {
@@ -3815,7 +3815,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 16257534,
+   "bytes": 16257591,
    "bytes_complete": true
   },
   "signal": {
@@ -3827,7 +3827,7 @@
     },
     {
      "path": "games/signal/app.js",
-     "bytes": 39805,
+     "bytes": 46419,
      "precached": true
     },
     {
@@ -3837,12 +3837,12 @@
     },
     {
      "path": "games/signal/game.py",
-     "bytes": 57719,
+     "bytes": 58643,
      "precached": true
     },
     {
      "path": "games/signal/index.html",
-     "bytes": 19244,
+     "bytes": 19759,
      "precached": true
     },
     {
@@ -3852,22 +3852,22 @@
     },
     {
      "path": "games/signal/pc.css",
-     "bytes": 5846,
+     "bytes": 9775,
      "precached": true
     },
     {
      "path": "games/signal/pc.html",
-     "bytes": 22065,
+     "bytes": 22580,
      "precached": true
     },
     {
      "path": "games/signal/pc.js",
-     "bytes": 3576,
+     "bytes": 16277,
      "precached": true
     },
     {
      "path": "games/signal/settings.js",
-     "bytes": 3626,
+     "bytes": 4063,
      "precached": false
     },
     {
@@ -3877,7 +3877,7 @@
     },
     {
      "path": "games/signal/style.css",
-     "bytes": 13693,
+     "bytes": 15810,
      "precached": true
     }
    ],
@@ -4064,25 +4064,30 @@
     }
    ],
    "cdn": [],
-   "bytes": 581509,
+   "bytes": 609261,
    "bytes_complete": true
   },
   "lexis": {
    "files": [
     {
      "path": "games/lexis/achievements.json",
-     "bytes": 1735,
+     "bytes": 2451,
      "precached": true
     },
     {
      "path": "games/lexis/achievements.py",
-     "bytes": 3127,
+     "bytes": 3677,
      "precached": true
     },
     {
      "path": "games/lexis/app.js",
-     "bytes": 42995,
+     "bytes": 55435,
      "precached": true
+    },
+    {
+     "path": "games/lexis/bench.py",
+     "bytes": 748,
+     "precached": false
     },
     {
      "path": "games/lexis/bridge.py",
@@ -4126,8 +4131,13 @@
     },
     {
      "path": "games/lexis/game.py",
-     "bytes": 17172,
+     "bytes": 18221,
      "precached": true
+    },
+    {
+     "path": "games/lexis/globes.py",
+     "bytes": 2130,
+     "precached": false
     },
     {
      "path": "games/lexis/glyphs.py",
@@ -4136,7 +4146,7 @@
     },
     {
      "path": "games/lexis/index.html",
-     "bytes": 20143,
+     "bytes": 22219,
      "precached": true
     },
     {
@@ -4150,6 +4160,11 @@
      "precached": true
     },
     {
+     "path": "games/lexis/museum.py",
+     "bytes": 1355,
+     "precached": false
+    },
+    {
      "path": "games/lexis/notebook.py",
      "bytes": 5838,
      "precached": true
@@ -4161,22 +4176,22 @@
     },
     {
      "path": "games/lexis/pc-config.json",
-     "bytes": 1549,
+     "bytes": 1780,
      "precached": false
     },
     {
      "path": "games/lexis/pc.css",
-     "bytes": 4134,
+     "bytes": 7546,
      "precached": true
     },
     {
      "path": "games/lexis/pc.html",
-     "bytes": 22366,
+     "bytes": 24717,
      "precached": true
     },
     {
      "path": "games/lexis/pc.js",
-     "bytes": 3296,
+     "bytes": 17559,
      "precached": true
     },
     {
@@ -4205,13 +4220,18 @@
      "precached": false
     },
     {
+     "path": "games/lexis/star_map.py",
+     "bytes": 997,
+     "precached": false
+    },
+    {
      "path": "games/lexis/story.py",
      "bytes": 6591,
      "precached": true
     },
     {
      "path": "games/lexis/style.css",
-     "bytes": 11670,
+     "bytes": 18389,
      "precached": true
     },
     {
@@ -4419,7 +4439,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14341072,
+   "bytes": 14390109,
    "bytes_complete": true
   },
   "heist-committee": {
@@ -4436,7 +4456,7 @@
     },
     {
      "path": "games/heist-committee/app.js",
-     "bytes": 29402,
+     "bytes": 30873,
      "precached": true
     },
     {
@@ -4531,7 +4551,7 @@
     },
     {
      "path": "games/heist-committee/index.html",
-     "bytes": 14900,
+     "bytes": 15112,
      "precached": true
     },
     {
@@ -4540,28 +4560,33 @@
      "precached": true
     },
     {
+     "path": "games/heist-committee/mobile-tray.js",
+     "bytes": 1820,
+     "precached": false
+    },
+    {
      "path": "games/heist-committee/pc-config.json",
-     "bytes": 2133,
+     "bytes": 2250,
      "precached": false
     },
     {
      "path": "games/heist-committee/pc.css",
-     "bytes": 4172,
+     "bytes": 7360,
      "precached": true
     },
     {
      "path": "games/heist-committee/pc.html",
-     "bytes": 17034,
+     "bytes": 17318,
      "precached": true
     },
     {
      "path": "games/heist-committee/pc.js",
-     "bytes": 2753,
+     "bytes": 20883,
      "precached": true
     },
     {
      "path": "games/heist-committee/plan.js",
-     "bytes": 22203,
+     "bytes": 25149,
      "precached": true
     },
     {
@@ -4576,12 +4601,12 @@
     },
     {
      "path": "games/heist-committee/play.js",
-     "bytes": 12860,
+     "bytes": 13206,
      "precached": true
     },
     {
      "path": "games/heist-committee/settings.js",
-     "bytes": 6574,
+     "bytes": 7356,
      "precached": true
     },
     {
@@ -4596,8 +4621,13 @@
     },
     {
      "path": "games/heist-committee/style.css",
-     "bytes": 21546,
+     "bytes": 25671,
      "precached": true
+    },
+    {
+     "path": "games/heist-committee/timeline-zoom.js",
+     "bytes": 2378,
+     "precached": false
     },
     {
      "path": "games/heist-committee/writeup.py",
@@ -4748,7 +4778,7 @@
     },
     {
      "path": "shared/seed.js",
-     "bytes": 29042,
+     "bytes": 29099,
      "precached": true
     },
     {
@@ -4814,7 +4844,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14563080,
+   "bytes": 14598936,
    "bytes_complete": true
   },
   "lighthouse": {
@@ -4831,7 +4861,7 @@
     },
     {
      "path": "games/lighthouse/app.js",
-     "bytes": 79845,
+     "bytes": 80664,
      "precached": true
     },
     {
@@ -4901,22 +4931,22 @@
     },
     {
      "path": "games/lighthouse/pc-config.json",
-     "bytes": 1726,
+     "bytes": 1786,
      "precached": false
     },
     {
      "path": "games/lighthouse/pc.css",
-     "bytes": 3856,
+     "bytes": 7529,
      "precached": true
     },
     {
      "path": "games/lighthouse/pc.html",
-     "bytes": 30199,
+     "bytes": 30255,
      "precached": true
     },
     {
      "path": "games/lighthouse/pc.js",
-     "bytes": 3188,
+     "bytes": 13543,
      "precached": true
     },
     {
@@ -5138,7 +5168,7 @@
     },
     {
      "path": "shared/seed.js",
-     "bytes": 29042,
+     "bytes": 29099,
      "precached": true
     },
     {
@@ -5224,7 +5254,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14619549,
+   "bytes": 14634569,
    "bytes_complete": true
   },
   "pocket-bazaar": {
@@ -5528,7 +5558,7 @@
     },
     {
      "path": "shared/seed.js",
-     "bytes": 29042,
+     "bytes": 29099,
      "precached": true
     },
     {
@@ -5594,7 +5624,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14427604,
+   "bytes": 14427661,
    "bytes_complete": true
   },
   "dead-reckoning": {
@@ -6002,7 +6032,7 @@
     },
     {
      "path": "shared/seed.js",
-     "bytes": 29042,
+     "bytes": 29099,
      "precached": true
     },
     {
@@ -6068,7 +6098,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14610651,
+   "bytes": 14610708,
    "bytes_complete": true
   },
   "logic-gates": {
@@ -8075,7 +8105,7 @@
     },
     {
      "path": "games/evidence-hunt/today.js",
-     "bytes": 1863,
+     "bytes": 1976,
      "precached": true
     },
     {
@@ -8247,7 +8277,7 @@
     },
     {
      "path": "shared/seed.js",
-     "bytes": 29042,
+     "bytes": 29099,
      "precached": true
     },
     {
@@ -8313,7 +8343,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14481820,
+   "bytes": 14481990,
    "bytes_complete": true
   },
   "trade-empire": {

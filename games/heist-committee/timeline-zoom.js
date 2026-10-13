@@ -18,8 +18,11 @@
       try { localStorage.setItem(ZOOM_KEY, String(clamped)); } catch(e) {}
     }
 
+    // Only a phone held sideways fits the whole timeline on screen. Upright, the cells stay full size
+    // (44px touch targets), so nothing is shrunk unless the player pinches on purpose.
     function autoFit() {
-      if (window.innerWidth > 600) return;
+      var landscapePhone = window.innerWidth <= 900 && window.innerWidth > window.innerHeight;
+      if (!landscapePhone) { TL.style.transform = ""; return; }
       var wrapW = WRAP.clientWidth || 300;
       var tlW = TL.scrollWidth || 400;
       var scale = Math.min(1, wrapW / tlW);

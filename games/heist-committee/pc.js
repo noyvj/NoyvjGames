@@ -61,7 +61,7 @@ window.HEIST_COMMITTEE_PC_TUTORIAL_STEPS = [
 
   document.addEventListener("mousedown", function (e) {
     var timeline = getTimeline();
-    if (!timeline || e.button !== 0) return;
+    if (!timeline || e.button !== 0 || !timeline.contains(e.target)) return;
     var rect = timeline.getBoundingClientRect();
     dragStart = { x: e.clientX - rect.left, y: e.clientY - rect.top };
     if (!dragBox) {
@@ -103,15 +103,21 @@ window.HEIST_COMMITTEE_PC_TUTORIAL_STEPS = [
     var timeline = getTimeline();
     if (!timeline) return;
     var rect = timeline.getBoundingClientRect();
-    var x2 = Math.max(0, dragStart.x + parseFloat(dragBox.style.width));
-    var y2 = Math.max(0, dragStart.y + parseFloat(dragBox.style.height));
-    var cells = getCells();
-    cells.forEach(function (cell) {
-      var cr = cell.getBoundingClientRect();
-      if (cr.left < x2 && cr.right > left && cr.top < y2 && cr.bottom > top) {
-        toggleSelection(cell);
-      }
-    });
+    var bw = parseFloat(dragBox.style.width) || 0;
+    var bh = parseFloat(dragBox.style.height) || 0;
+    if (bw > 4 || bh > 4) {
+      // The box is kept in timeline coordinates; cells are measured in viewport coordinates.
+      var bl = rect.left + (parseFloat(dragBox.style.left) || 0);
+      var bt = rect.top + (parseFloat(dragBox.style.top) || 0);
+      var br = bl + bw;
+      var bb = bt + bh;
+      getCells().forEach(function (cell) {
+        var cr = cell.getBoundingClientRect();
+        if (cr.left < br && cr.right > bl && cr.top < bb && cr.bottom > bt) {
+          toggleSelection(cell);
+        }
+      });
+    }
     dragStart = null;
     dragBox.style.display = "none";
   }
