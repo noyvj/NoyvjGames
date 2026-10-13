@@ -235,6 +235,7 @@
     play.i = i;
     var f = play.frames[i];
     applyFrame(f, jump);
+    if (i > 0) RobotSound.tick();
     var last = i === play.frames.length - 1;
     markNode(i === 0 ? "" : f[7], last && play.trace.status !== "cleared" && play.trace.status !== "short" && Boolean(play.trace.at));
     var done = Math.min(i, play.trace.actions);
@@ -289,6 +290,7 @@
       if (t.difficulty !== "normal" && t.normal_medal_name !== "none" && t.normal_medal_name) more += " On Normal this room stands at " + t.normal_medal_name + ".";
       if (t.note) more = t.note + " " + more;
       setText($("result-text"), (t.new_best ? "A new best for this room" + ladder + ". " : "Your best here" + ladder + " is " + t.best + ". ") + more);
+      RobotSound.buzz();
     } else if (halted) {
       setText($("result-title"), "The robot stopped");
       setText($("result-text"), t.message + " Nothing is lost: change the list and run it again.");
