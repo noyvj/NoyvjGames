@@ -179,3 +179,33 @@ window.POCKET_BAZAAR_PC_TUTORIAL_STEPS = [
     if (tip) tip.innerHTML = "";
   });
 })();
+
+/* R4-PBPC-5: Shift+click selection for multi-handover */
+(function () {
+  "use strict";
+  var board = document.getElementById("board");
+  if (!board) return;
+
+  function toggleSelection(cell) {
+    cell.classList.toggle("selected");
+  }
+
+  board.addEventListener("click", function (e) {
+    var cell = e.target.closest(".cell");
+    if (!cell || !cell.getAttribute("data-good")) return;
+    if (e.shiftKey) {
+      e.preventDefault();
+      toggleSelection(cell);
+    }
+  });
+
+  document.addEventListener("keydown", function (e) {
+    if (e.key === "d" && e.shiftKey) {
+      e.preventDefault();
+      var selected = board.querySelectorAll(".cell.selected");
+      if (selected.length > 0) {
+        board.dispatchEvent(new CustomEvent("pb-handover-selected", { detail: { cells: Array.from(selected).map(function(c) { return c.dataset.cell; }) } }));
+      }
+    }
+  });
+})();

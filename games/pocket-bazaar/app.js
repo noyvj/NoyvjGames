@@ -811,6 +811,16 @@
         else showMessage("No customer wants this.", false);
       }
     });
+
+    // R4-PBPC-5: Shift+click multi-handover
+    $("board").addEventListener("pb-handover-selected", function (e) {
+      var cells = e.detail.cells;
+      if (!cells || cells.length === 0) return;
+      cells.forEach(function (idx) {
+        var takers = view.deliverable[String(idx)] || [];
+        if (takers.length > 0) send({ action: "deliver", from: idx, to: takers[0] });
+      });
+    });
     // The save widget (a later milestone) loads a save straight into the engine; this redraws afterwards.
     window.pocketBazaarRefresh = function () { if (engine) { selected = null; send({ action: "open" }); } };
   }

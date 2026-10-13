@@ -142,3 +142,13 @@ html[data-layout="pc"] #queue .customer:hover .customer-tooltip { display: block
 @media (prefers-reduced-motion: reduce) {
   html[data-layout="pc"] #queue .customer:hover .customer-tooltip { animation: none; transition: none; }
 }
+
+/* R4-PBPC-5: Shift+click selection */
+html[data-layout="pc"] .cell.selected {
+  outline: 2px solid var(--accent, #4a90d9);
+  outline-offset: -1px;
+  background-color: var(--accent-bg, #e8f0fe);
+}
+@media (prefers-reduced-motion: reduce) {
+  html[data-layout="pc"] .cell.selected { transition: none; }
+}
