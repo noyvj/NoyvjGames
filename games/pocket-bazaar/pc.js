@@ -240,3 +240,49 @@ window.POCKET_BAZAAR_PC_TUTORIAL_STEPS = [
     observer.observe(comboEl, { childList: true, characterData: true, subtree: true });
   });
 })();
+
+/* R4-PBPC-8: Board size slider in Settings */
+(function () {
+  "use strict";
+  var SCALE_KEY = "pocket-bazaar-board-scale";
+  var MIN_SCALE = 0.8;
+  var MAX_SCALE = 1.6;
+  var STEP = 0.05;
+
+  function applyScale(value) {
+    document.documentElement.style.setProperty("--board-scale", value);
+    try { window.localStorage.setItem(SCALE_KEY, String(value)); } catch (e) {}
+  }
+
+  function readScale() {
+    var stored = null;
+    try { stored = window.localStorage.getItem(SCALE_KEY); } catch (e) {}
+    if (!stored) return 1.0;
+    var val = parseFloat(stored);
+    return !isNaN(val) && val >= MIN_SCALE && val <= MAX_SCALE ? val : 1.0;
+  }
+
+  document.addEventListener("DOMContentLoaded", function () {
+    var panel = document.getElementById("settings-panel");
+    if (!panel) return;
+
+    var row = document.createElement("div");
+    row.className = "settings-row";
+    row.innerHTML = '<label>Board size: <input type="range" min="' + MIN_SCALE + '" max="' + MAX_SCALE + '" step="' + STEP + '" value="1" id="board-scale-slider"> <span id="board-scale-value">100%</span></label>';
+
+    var slider = row.querySelector("#board-scale-slider");
+    var display = row.querySelector("#board-scale-value");
+    var current = readScale();
+    slider.value = current;
+    display.textContent = Math.round(current * 100) + "%";
+    applyScale(current);
+
+    slider.addEventListener("input", function () {
+      var val = parseFloat(slider.value);
+      display.textContent = Math.round(val * 100) + "%";
+      applyScale(val);
+    });
+
+    panel.appendChild(row);
+  });
+})();

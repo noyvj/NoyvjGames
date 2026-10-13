@@ -34,8 +34,9 @@ html[data-layout="pc"] .cust-kind { display: block; }
   html[data-layout="pc"] .cust-kind { position: absolute; top: 0.4rem; right: 0.5rem; }
   html[data-layout="pc"] .cust-head { padding-right: 4rem; }
 }
+html[data-layout="pc"] { --board-scale: 1; }
 /* The board is as large as the window's height allows. */
-html[data-layout="pc"] .board { max-width: min(100%, 44rem, calc((100vh - 17rem) * var(--cols) / 6)); }
+html[data-layout="pc"] .board { max-width: min(100%, 44rem, calc((100vh - 17rem) * var(--cols) / 6) * var(--board-scale)); }
 
 #pc-body.pc-has-side { grid-template-columns: minmax(0, 1fr) clamp(16.5rem, 24vw, 24rem); }
 #pc-side { min-width: 0; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; gap: 0.6rem; padding-right: 0.2rem; }
