@@ -127,6 +127,10 @@
     [
       "Ctrl+L",
       "Quick leg input"
+    ],
+    [
+      "R",
+      "Reset chart view"
     ]
   ],
   "notify": null

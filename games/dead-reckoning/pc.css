@@ -72,3 +72,8 @@ html[data-layout="pc"] .quick-leg-input {
   html[data-layout="pc"] #game { gap: 0.4rem; padding-top: 0.4rem; }
   #pc-topbar > h1 { margin-top: 0.8rem; font-size: 1.2rem; }
 }
+
+/* Chart zoom & pan cursors --------------------------------------------------- */
+#chart-holder { cursor: grab; }
+#chart-holder.grabbing { cursor: grabbing; }
+#chart-holder svg.dr-chart { transform-box: fill-box; }
