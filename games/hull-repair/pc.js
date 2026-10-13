@@ -93,4 +93,39 @@ document.addEventListener("DOMContentLoaded", function () {
       }
     }
   });
+
+  function triggerReplay() {
+    if (document.documentElement.dataset.reducedMotion === "true") return;
+    var lines = holder.querySelectorAll("path.line");
+    if (!lines.length) return;
+    
+    Array.from(lines).forEach(function (line, i) {
+      var len = line.getTotalLength();
+      if (len === 0) return;
+      line.style.strokeDasharray = len;
+      line.style.strokeDashoffset = len;
+      line.classList.add("replay");
+      line.style.animationDelay = (i * 0.15) + "s";
+    });
+    
+    setTimeout(function () {
+      lines.forEach(function (l) { 
+        l.classList.remove("replay"); 
+        l.style.strokeDasharray = ""; 
+        l.style.strokeDashoffset = ""; 
+      });
+    }, lines.length * 150 + 700);
+  }
+
+  var resultCard = document.getElementById("result-card");
+  if (resultCard) {
+    var observer = new MutationObserver(function (mutations) {
+      mutations.forEach(function (m) {
+        if (m.attributeName === "hidden" && !resultCard.hidden) {
+          triggerReplay();
+        }
+      });
+    });
+    observer.observe(resultCard, { attributes: true });
+  }
 });
