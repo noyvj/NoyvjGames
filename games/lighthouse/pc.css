@@ -50,6 +50,32 @@ html[data-theme="light"] #pc-hintbar { opacity: 1; }
 html[data-theme="light"][data-layout="pc"] .pc-readout { background: var(--panel); color: var(--text); }
 html[data-layout="pc"] .pc-readout { color: var(--text); }
 
+/* --- HUD scale and fade ------------------------------------------------------- */
+html[data-layout="pc"] #hud {
+  transform-origin: top left;
+  transform: scale(var(--hud-scale, 1));
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+html[data-layout="pc"] #hud.idle {
+  opacity: var(--hud-fade, 0);
+}
+html[data-layout="pc"][data-reduced-motion="true"] #hud {
+  transition: none;
+}
+
+/* --- HUD scale and fade ------------------------------------------------------- */
+html[data-layout="pc"] #hud {
+  transform-origin: top left;
+  transform: scale(var(--hud-scale, 1));
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+html[data-layout="pc"] #hud.idle {
+  opacity: var(--hud-fade, 0);
+}
+html[data-layout="pc"][data-reduced-motion="true"] #hud {
+  transition: none;
+}
+
 @media (max-width: 1100px) {
   html[data-layout="pc"] #pc-body { grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); }
   .pc-readout { padding: 0.25rem 0.55rem; font-size: 0.8rem; }

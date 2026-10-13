@@ -165,3 +165,97 @@ window.LIGHTHOUSE_PC_TUTORIAL_STEPS = [
 
     document.addEventListener("DOMContentLoaded", init);
   })();
+
+  /* HUD scale, fade and idle hide ------------------------------------------------ */
+  (function () {
+    "use strict";
+    var SCALE_KEY = "lighthouse-hud-scale";
+    var FADE_KEY = "lighthouse-hud-fade";
+    var AUTOHIDE_KEY = "lighthouse-hud-autohide";
+    var MIN_SCALE = 0.5;
+    var MAX_SCALE = 1.5;
+    var STEP = 0.05;
+    var IDLE_TIMEOUT = 3000;
+    var hud = document.getElementById("hud");
+    var root = document.documentElement;
+
+    function get(key) { try { return window.localStorage.getItem(key); } catch (e) { return null; } }
+    function set(key, value) { try { window.localStorage.setItem(key, String(value)); } catch (e) {} }
+
+    function applyScale(v) {
+      var clamped = Math.max(MIN_SCALE, Math.min(MAX_SCALE, v));
+      root.style.setProperty("--hud-scale", clamped);
+      set(SCALE_KEY, clamped);
+      return clamped;
+    }
+
+    function applyFade(v) {
+      var clamped = Math.max(0, Math.min(1, v));
+      root.style.setProperty("--hud-fade", clamped);
+      set(FADE_KEY, clamped);
+      return clamped;
+    }
+
+    function applyAutohide(on) {
+      root.setAttribute("data-hud-autohide", on ? "true" : "false");
+      set(AUTOHIDE_KEY, on);
+      if (on) startIdle(); else stopIdle();
+    }
+
+    var idleTimer = null;
+    function resetIdle() {
+      hud.classList.remove("idle");
+      clearTimeout(idleTimer);
+      if (root.getAttribute("data-hud-autohide") === "true") {
+        idleTimer = setTimeout(function () { hud.classList.add("idle"); }, IDLE_TIMEOUT);
+      }
+    }
+
+    function startIdle() { resetIdle(); }
+    function stopIdle() { clearTimeout(idleTimer); hud.classList.remove("idle"); }
+
+    document.addEventListener("DOMContentLoaded", function () {
+      if (!hud) return;
+      var panel = document.getElementById("settings-panel");
+      if (!panel) return;
+
+      var scaleRow = document.createElement("div");
+      scaleRow.className = "settings-row";
+      scaleRow.innerHTML = '<label for="hud-scale-slider">HUD scale</label><input type="range" id="hud-scale-slider" min="'+MIN_SCALE+'" max="'+MAX_SCALE+'" step="'+STEP+'" value="1">';
+      panel.appendChild(scaleRow);
+
+      var fadeRow = document.createElement("div");
+      fadeRow.className = "settings-row";
+      fadeRow.innerHTML = '<label for="hud-fade-slider">Fade when idle</label><input type="range" id="hud-fade-slider" min="0" max="1" step="0.05" value="1">';
+      panel.appendChild(fadeRow);
+
+      var autoRow = document.createElement("div");
+      autoRow.className = "settings-row";
+      autoRow.innerHTML = '<label><input type="checkbox" id="hud-autohide-checkbox"> Hide HUD when idle</label>';
+      panel.appendChild(autoRow);
+
+      var scaleSlider = document.getElementById("hud-scale-slider");
+      var fadeSlider = document.getElementById("hud-fade-slider");
+      var autoCheckbox = document.getElementById("hud-autohide-checkbox");
+
+      var savedScale = parseFloat(get(SCALE_KEY));
+      var savedFade = parseFloat(get(FADE_KEY));
+      var savedAuto = get(AUTOHIDE_KEY) === "true";
+
+      scaleSlider.value = !isNaN(savedScale) && savedScale >= MIN_SCALE ? savedScale : 1;
+      fadeSlider.value = !isNaN(savedFade) && savedFade >= 0 ? savedFade : 1;
+      autoCheckbox.checked = savedAuto;
+
+      applyScale(parseFloat(scaleSlider.value));
+      applyFade(parseFloat(fadeSlider.value));
+      applyAutohide(savedAuto);
+
+      scaleSlider.addEventListener("input", function () { applyScale(parseFloat(this.value)); });
+      fadeSlider.addEventListener("input", function () { applyFade(parseFloat(this.value)); });
+      autoCheckbox.addEventListener("change", function () { applyAutohide(this.checked); });
+
+      ["mousemove", "keydown", "touchstart"].forEach(function (evt) {
+        document.addEventListener(evt, resetIdle, true);
+      });
+    });
+  })();
