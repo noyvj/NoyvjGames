@@ -485,3 +485,22 @@ html[data-reduced-motion="true"] .letters-list li:not(.flipped) .letter-card-bac
     animation-play-state: running !important;
   }
 }
+
+/* ---- mobile lamp rail (R4-LHMO-9) ---- */
+@media (max-width: 600px) {
+  .lamp-rail-wrap {
+    position: fixed; bottom: 1rem; left: 50%; transform: translateX(-50%);
+    z-index: 800; display: flex; gap: 0.4rem; background: var(--panel-fill);
+    border: 1px solid var(--edge); border-radius: 999px; padding: 0.3rem 0.5rem;
+  }
+  .lamp-rail-btn {
+    width: 2.8rem; height: 2.8rem; border-radius: 50%; border: 2px solid var(--edge);
+    background: var(--btn); color: var(--text); font-weight: 700; font-size: 0.9rem;
+    display: flex; align-items: center; justify-content: center; cursor: pointer;
+    transition: background 0.2s, border-color 0.2s;
+  }
+  .lamp-rail-btn[data-active="true"] {
+    background: var(--btn-primary); border-color: var(--accent); color: var(--on-primary);
+  }
+  html[data-reduced-motion="true"] .lamp-rail-btn { transition: none; }
+}
