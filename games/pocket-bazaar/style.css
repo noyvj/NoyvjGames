@@ -235,6 +235,39 @@ html[data-effects="off"] *, html[data-effects="off"] *::before, html[data-effect
   .crate-btn { flex-direction: column; gap: 0.1rem; padding: 0.2rem 0.15rem; font-size: 0.72rem; min-height: 3.2rem; }
   .tool-buttons { flex: 0 0 auto; gap: 0.3rem; }
   .tool { flex: 0 0 auto; min-width: 3.4rem; padding: 0.2rem 0.3rem; font-size: 0.8rem; }
+
+  /* Mobile bottom dock for Sell, Broom, Hand over */
+  .mobile-dock {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    display: flex;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.8rem 1rem calc(0.8rem + env(safe-area-inset-bottom));
+    background: var(--panel-fill);
+    border-top: 1px solid var(--line);
+    z-index: 100;
+  }
+  .mobile-dock button {
+    flex: 1 1 0;
+    max-width: 8rem;
+    padding: 0.6rem 0.4rem;
+    font-size: 1rem;
+    font-weight: 700;
+    border-radius: 12px;
+    background: var(--btn);
+    color: var(--text);
+    border: 1px solid var(--edge);
+  }
+  .mobile-dock button.active {
+    border-color: var(--accent);
+    border-width: 2px;
+    background: var(--surface);
+  }
+  /* Hide the old tool buttons on mobile (they are in the dock) */
+  .tool-buttons { display: none !important; }
 }
 @media (max-width: 420px) {
   #game { padding: 0.6rem 0.6rem 2.5rem; }

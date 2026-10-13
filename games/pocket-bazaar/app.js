@@ -923,6 +923,19 @@
     if (window.GameTutorial) window.GameTutorial.init(window.pocketBazaarTutorialSteps ? window.pocketBazaarTutorialSteps(TUTORIAL_STEPS) : TUTORIAL_STEPS, { gameId: "pocket-bazaar" });
   }
 
+  // Mobile bottom dock for Sell, Broom, Hand over
+  var dock = document.querySelector(".mobile-dock");
+  if (dock) {
+    dock.addEventListener("click", function (e) {
+      var btn = e.target.closest("button[data-action]");
+      if (!btn) return;
+      var action = btn.getAttribute("data-action");
+      if (action === "sell") send({ action: "sell" });
+      else if (action === "broom") send({ action: "broom" });
+      else if (action === "handover") send({ action: "deliver", from: selected, to: 0 });
+    });
+  }
+
   wire();
   boot().catch(function (err) {
     $("engine-status").textContent = "The stall could not open (" + err + "). Reload to try again.";
