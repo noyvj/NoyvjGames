@@ -214,6 +214,11 @@ td.want-differs { font-weight: 700; }
 
 @media (max-width: 600px) {
   .lg-gesture-hint { display: block; text-align: center; font-size: 0.85rem; color: var(--muted); margin-top: 0.4rem; }
+  /* --- mobile fit/centre and snap ----------------------------------------------------------- */
+  #lg-mobile-tools { display: flex; gap: 0.4rem; margin-bottom: 0.5rem; }
+  .lg-fit-btn, .lg-snap-btn { font-size: 0.85rem; padding: 0.3rem 0.6rem; }
+  .lg-snap-btn[aria-pressed="true"] { background: var(--btn-primary); color: var(--on-primary); border-color: var(--hover-edge); }
+  .lg-snap-grid { background-image: linear-gradient(var(--line) 1px, transparent 1px), linear-gradient(90deg, var(--line) 1px, transparent 1px) !important; background-size: 20px 20px !important; }
   /* --- result bottom sheet ------------------------------------------------------------------ */
   #result-sheet {
     background: var(--panel); border-top: 2px solid var(--line);

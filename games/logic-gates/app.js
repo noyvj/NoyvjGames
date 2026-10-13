@@ -617,6 +617,69 @@
     }
   }
 
+  // ---- mobile fit/centre and snap -----------------------------------------------------------
+  var SNAP_KEY = "logic-gates-snap";
+  var SNAP_STEP = 20;
+
+  function getSnap() {
+    try { return localStorage.getItem(SNAP_KEY) === "true"; } catch(e) { return false; }
+  }
+  function toggleSnap() {
+    var on = !getSnap();
+    try { localStorage.setItem(SNAP_KEY, String(on)); } catch(e) {}
+    var btn = $("lg-snap-btn");
+    if (btn) btn.setAttribute("aria-pressed", on ? "true" : "false");
+    applySnap(on);
+  }
+  function applySnap(on) {
+    var holder = $("board-holder");
+    if (!holder) return;
+    if (on) holder.classList.add("lg-snap-grid");
+    else holder.classList.remove("lg-snap-grid");
+  }
+
+  function doFitAndCentre() {
+    var reducedMotion = false;
+    try { reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches; } catch(e) {}
+    var holder = $("board-holder");
+    if (!holder || !holder.firstElementChild) return;
+    var svg = holder.firstElementChild;
+    var bbox = svg.getBBox();
+    var pad = 20;
+    var availW = window.innerWidth - pad * 2;
+    var availH = window.innerHeight - pad * 2;
+    if (availW <= 0 || availH <= 0) return;
+    var scale = Math.min(availW / bbox.width, availH / bbox.height);
+    scale = Math.max(0.5, Math.min(scale, 3));
+    var tx = (availW - bbox.width * scale) / 2 - bbox.x * scale;
+    var ty = (availH - bbox.height * scale) / 2 - bbox.y * scale;
+    svg.style.transformOrigin = "0 0";
+    svg.style.transition = reducedMotion ? "none" : "transform 0.2s ease-out";
+    svg.style.transform = "translate(" + tx + "px, " + ty + "px) scale(" + scale + ")";
+  }
+
+  function initMobileTools() {
+    var panel = $("board-panel");
+    if (!panel) return;
+    var tools = document.createElement("div");
+    tools.id = "lg-mobile-tools";
+    tools.className = "lg-mobile-tools";
+    
+    var fitBtn = btn("Fit", "lg-fit-btn", function () { doFitAndCentre(); });
+    fitBtn.type = "button";
+    fitBtn.className = "lg-fit-btn";
+    tools.appendChild(fitBtn);
+    
+    var snapBtn = btn("Snap", "lg-snap-btn", function () { toggleSnap(); });
+    snapBtn.type = "button";
+    snapBtn.className = "lg-snap-btn";
+    snapBtn.setAttribute("aria-pressed", getSnap() ? "true" : "false");
+    tools.appendChild(snapBtn);
+    
+    panel.insertBefore(tools, panel.firstChild);
+    if (getSnap()) applySnap(true);
+  }
+
   function wire() {
     wireDifficulty();
     window.logicGatesRefresh = function () { if (engine) send({ action: "open" }); };
@@ -693,6 +756,7 @@
       $("board-holder").appendChild(hint);
     }
 
+    initMobileTools();
     document.addEventListener("keydown", onKey);
   }
 
