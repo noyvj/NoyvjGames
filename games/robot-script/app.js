@@ -941,4 +941,81 @@
   boot().catch(function (err) {
     $("engine-status").textContent = "The deck could not start (" + err + "). Reload to try again.";
   });
+
+  // Pinch-to-zoom and double-tap-to-fit for mobile rooms
+  (function () {
+    "use strict";
+    var ROOM_HOLDER = document.querySelector(".room-holder");
+    if (!ROOM_HOLDER) return;
+    var SVG = ROOM_HOLDER.querySelector("svg");
+    if (!SVG) return;
+
+    var SCALE_KEY = "robot-script-zoom-scale";
+    var MIN_SCALE = 0.5;
+    var MAX_SCALE = 3.0;
+    var currentScale = 1;
+    try { currentScale = parseFloat(localStorage.getItem(SCALE_KEY)) || 1; } catch (e) {}
+    var lastTapTime = 0;
+    var reducedMotion = false;
+
+    function applyScale() {
+      SVG.style.transform = "scale(" + currentScale + ")";
+      SVG.style.transformOrigin = "center center";
+      try { localStorage.setItem(SCALE_KEY, String(currentScale)); } catch (e) {}
+    }
+
+    function checkReducedMotion() {
+      return document.documentElement.getAttribute("data-reduced-motion") === "true" ||
+             (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+    }
+
+    function updateTouchAction() {
+      ROOM_HOLDER.style.touchAction = reducedMotion ? "auto" : "none";
+    }
+
+    if (window.matchMedia) {
+      window.matchMedia("(prefers-reduced-motion: reduce)").addEventListener("change", function(e) {
+        reducedMotion = e.matches;
+        updateTouchAction();
+      });
+    }
+
+    reducedMotion = checkReducedMotion();
+    updateTouchAction();
+
+    var startDist = 0;
+
+    ROOM_HOLDER.addEventListener("touchstart", function(e) {
+      if (reducedMotion || e.touches.length > 2) return;
+      if (e.touches.length === 1) {
+        var now = e.timeStamp;
+        if (now - lastTapTime < 300) {
+          currentScale = 1;
+          applyScale();
+          lastTapTime = 0;
+          e.preventDefault();
+          return;
+        }
+        lastTapTime = now;
+      } else if (e.touches.length === 2) {
+        var dx = e.touches[0].clientX - e.touches[1].clientX;
+        var dy = e.touches[0].clientY - e.touches[1].clientY;
+        startDist = Math.sqrt(dx * dx + dy * dy);
+      }
+    }, { passive: false });
+
+    ROOM_HOLDER.addEventListener("touchmove", function(e) {
+      if (reducedMotion || e.touches.length !== 2 || startDist < 1) return;
+      var dx = e.touches[0].clientX - e.touches[1].clientX;
+      var dy = e.touches[0].clientY - e.touches[1].clientY;
+      var dist = Math.sqrt(dx * dx + dy * dy);
+      var delta = dist / startDist;
+      currentScale = Math.max(MIN_SCALE, Math.min(MAX_SCALE, currentScale * delta));
+      applyScale();
+      startDist = dist;
+      e.preventDefault();
+    }, { passive: false });
+
+    applyScale();
+  })();
 })();

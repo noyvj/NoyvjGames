@@ -293,5 +293,8 @@ html[data-sandbox="true"] .room-holder svg { cursor: crosshair; }
   .medal-count { font-size: 0.85rem; color: var(--muted); font-weight: normal; }
   .room-grid { grid-template-columns: repeat(2, 1fr); gap: 0.3rem; margin-top: 0.5rem; }
   .room-btn { min-height: 4rem; padding: 0.5rem; }
+  .room-holder { touch-action: none; overflow: hidden; position: relative; }
+  .room-holder svg { transition: transform 0.1s ease-out; will-change: transform; }
+  html[data-reduced-motion="true"] .room-holder svg, html[data-effects="off"] .room-holder svg { transition: none; }
 }
 .toast.on { background: var(--surface); border: 1px solid var(--ok); border-radius: 8px; padding: 0.25rem 0.6rem; }
