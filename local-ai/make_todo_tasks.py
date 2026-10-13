@@ -38,12 +38,32 @@ SKIP = [
 ITEM = re.compile(r"^\s*- \[ \] ([A-Z0-9][A-Z0-9-]*[A-Z0-9]):?\s*(?:\((small|big)\)\s*)?(.+)$")
 
 
-def game_of(section):
+EXTRA_NAMES = {"slingshot": "slingshot", "zero-g shift": "zero-g-shift"}   # games started since GAMES was written
+
+
+def game_of(section, text=""):
+    """The game a section is about; failing that, the one existing game the item's own text names."""
+    names = {**GAMES, **EXTRA_NAMES}
     low = section.lower()
-    for name in sorted(GAMES, key=len, reverse=True):
+    for name in sorted(names, key=len, reverse=True):
         if re.search(rf"\b{re.escape(name)}\b", low):
-            return GAMES[name]
-    return None
+            return names[name]
+    hits = {names[n] for n in names if re.search(rf"\b{re.escape(n)}\b", text.lower())}
+    hits = {g for g in hits if (ROOT / "games" / g).is_dir()}
+    return hits.pop() if len(hits) == 1 else None
+
+
+def milestone_done(game, text):
+    """True when the game's own CLAUDE.md milestone table already marks this milestone Done."""
+    m = re.search(r"\bmilestone (\d+)\b", text, re.I)
+    notes = ROOT / "games" / game / "CLAUDE.md"
+    if not m or not notes.exists():
+        return False
+    for row in notes.read_text(encoding="utf-8").splitlines():
+        cells = [c.strip() for c in row.strip().strip("|").split("|")]
+        if len(cells) >= 3 and cells[0] == m.group(1):
+            return cells[-1].lower().startswith("done")
+    return False
 
 
 def where(section, item):
@@ -81,20 +101,34 @@ def collect():
             if item in seen:
                 skipped["already queued or run"] += 1
                 continue
-            game = game_of(section)
+            game = game_of(section, text)
             if not game:
                 skipped["not tied to one game"] += 1
                 continue
             low = (section + " " + text).lower()
             reason = next((why for pattern, why in SKIP if re.search(pattern, low if pattern != "^qa" else section.lower())), None)
-            if reason:
+            milestone = reason == "new-game milestone" and "register in the hub" not in low and (ROOT / "games" / game).is_dir()
+            if reason and not milestone:
                 skipped[reason] += 1
                 continue
-            scope = "a simple first version" if size == "big" else "a small, simple first version"
-            task = (f"TODO item {item} ({path.name}): {text.replace('|', '/')} Build {scope} of this inside games/{game} "
-                    f"only. {where(section, item)} Read the files the item touches before editing and keep the change "
-                    f"small. Anything new stays optional for the player and respects reduced motion. Keep every "
-                    f"existing test passing and add a pytest test for any Python you change.")
+            if milestone and milestone_done(game, text):
+                skipped["milestone already Done in the game's CLAUDE.md (only the tick is missing)"] += 1
+                continue
+            if milestone:
+                # a game whose folder already exists: build the milestone from its plan (ai.ps1 adds the plan file)
+                task = (f"TODO item {item} ({path.name}): {text.replace('|', '/')} This is a milestone of a game that is "
+                        f"already being built in games/{game}: read planning/{game}-plan.md (in the chat) and "
+                        f"games/{game}/CLAUDE.md, follow the design there exactly, and build this milestone on top of what "
+                        f"exists, in games/{game} only. Content follows the existing pattern (same data format, every "
+                        f"level or puzzle proved by the game's solver or checker tests). When it works, set this "
+                        f"milestone's Status to Done in the milestone table of games/{game}/CLAUDE.md. Keep every existing "
+                        f"test passing and add tests for what you build.")
+            else:
+                scope = "a simple first version" if size == "big" else "a small, simple first version"
+                task = (f"TODO item {item} ({path.name}): {text.replace('|', '/')} Build {scope} of this inside games/{game} "
+                        f"only. {where(section, item)} Read the files the item touches before editing and keep the change "
+                        f"small. Anything new stays optional for the player and respects reduced motion. Keep every "
+                        f"existing test passing and add a pytest test for any Python you change.")
             out.setdefault(game, []).append(f"{game} | {item} |  | {task}")
             seen.add(item)
     return out, skipped
@@ -103,6 +137,8 @@ def collect():
 def main():
     by_game, skipped = collect()
     lines = [t for g in sorted(by_game) for t in by_game[g]]
+    for line in lines:
+        print(line)
     for g in sorted(by_game):
         print(f"{len(by_game[g]):4}  {g}", file=sys.stderr)
     print(f"# {len(lines)} new TODO tasks; skipped: {dict(skipped)}", file=sys.stderr)

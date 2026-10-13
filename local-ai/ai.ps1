@@ -156,6 +156,9 @@ $env:OLLAMA_API_BASE = "http://127.0.0.1:11434"
 # through a file so Windows never mangles its quotes. RULES.md stays a read-only file.
 $readArgs = @("--read", (Join-Path $aiDir "RULES.md"))
 if (Test-Path (Join-Path $gameDir "CLAUDE.md")) { $readArgs += @("--read", (Join-Path $gameDir "CLAUDE.md")) }
+# A game still being built has a plan (planning/<game>-plan.md) with the design each milestone follows.
+$planFile = Join-Path $work "planning\$Game-plan.md"
+if ($Item -match "^QI-\d+-\d+$" -and (Test-Path $planFile)) { $readArgs += @("--read", $planFile) }
 $fileArgs = @(); foreach ($f in $Files) { $fileArgs += @("--file", $f) }
 $log = Join-Path $reports (($branch -replace '/', '_') + ".log")
 $started = Get-Date
