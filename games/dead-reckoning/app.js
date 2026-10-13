@@ -655,6 +655,19 @@
     });
   }
 
+  // ---- tide table window (PC only) -----------------------------------------------------------------
+  function renderTideTable() {
+    var tide = view && view.chart && view.chart.tide;
+    if (!tide || typeof window.deadReckoningTideTable === "undefined" || !window.deadReckoningTideTable.update) return;
+    var currentHour = view && view.totals ? view.totals.hours : 0;
+    window.deadReckoningTideTable.update({
+      period: tide.period,
+      drift_min: tide.drift_min,
+      drift_max: tide.drift_max,
+      current_hour: currentHour
+    });
+  }
+
   // ---- render --------------------------------------------------------------------------------------
   function render() {
     renderChart();
@@ -667,6 +680,7 @@
     if (view.note) showToast(view.note);
     if (view.phase === "plan") renderPlanner();
     renderResult();
+    renderTideTable();
   }
 
   // ---- talking to the engine -----------------------------------------------------------------------
