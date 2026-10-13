@@ -798,6 +798,19 @@
     window.addEventListener("pointerup", function (e) { endDrag(e, false); });
     window.addEventListener("pointercancel", function (e) { endDrag(e, true); });
     document.addEventListener("keydown", onKey);
+    $("board").addEventListener("pb-action", function (e) {
+      var action = e.detail.action;
+      var cellIdx = Number(e.detail.cell);
+      if (action === "pick-up") {
+        onCell(cellIdx);
+      } else if (action === "sell") {
+        sellAt(cellIdx);
+      } else if (action === "hand-over") {
+        var takers = view.deliverable[String(cellIdx)] || [];
+        if (takers.length > 0) send({ action: "deliver", from: cellIdx, to: takers[0] });
+        else showMessage("No customer wants this.", false);
+      }
+    });
     // The save widget (a later milestone) loads a save straight into the engine; this redraws afterwards.
     window.pocketBazaarRefresh = function () { if (engine) { selected = null; send({ action: "open" }); } };
   }

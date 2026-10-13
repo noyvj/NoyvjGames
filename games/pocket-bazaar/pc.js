@@ -98,3 +98,48 @@ window.POCKET_BAZAAR_PC_TUTORIAL_STEPS = [
     if (!board.contains(e.relatedTarget)) clearHover();
   });
 })();
+
+/* R4-PBPC-2: Right-click context menu on pieces */
+(function () {
+  "use strict";
+  var board = document.getElementById("board");
+  if (!board) return;
+
+  var menu = document.createElement("div");
+  menu.id = "pc-context-menu";
+  menu.setAttribute("role", "menu");
+  ["Pick up", "Sell", "Hand over"].forEach(function (label) {
+    var btn = document.createElement("button");
+    btn.textContent = label;
+    btn.setAttribute("role", "menuitem");
+    btn.addEventListener("click", function () {
+      var action = label.toLowerCase().replace(" ", "-");
+      board.dispatchEvent(new CustomEvent("pb-action", { detail: { action: action, cell: menu.dataset.cell } }));
+      hideMenu();
+    });
+    menu.appendChild(btn);
+  });
+  document.body.appendChild(menu);
+
+  function hideMenu() {
+    menu.style.display = "none";
+    menu.removeAttribute("data-cell");
+  }
+
+  board.addEventListener("contextmenu", function (e) {
+    var cell = e.target.closest(".cell");
+    if (!cell || !cell.getAttribute("data-good")) return;
+    e.preventDefault();
+    menu.dataset.cell = cell.dataset.cell;
+    menu.style.display = "flex";
+    var rect = menu.getBoundingClientRect();
+    var x = Math.min(e.clientX, window.innerWidth - rect.width - 10);
+    var y = Math.min(e.clientY, window.innerHeight - rect.height - 10);
+    menu.style.left = x + "px";
+    menu.style.top = y + "px";
+  });
+
+  document.addEventListener("click", function (e) {
+    if (!menu.contains(e.target)) hideMenu();
+  });
+})();
