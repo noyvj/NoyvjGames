@@ -216,4 +216,8 @@ html[data-effects="off"] .hr-room.s2 .hr-window { opacity: 0.9; }
 .ach-list li.earned { border-color: var(--ok); border-width: 2px; }
 .ach-list .tick { display: inline-block; min-width: 4rem; text-align: center; font-weight: 700; font-size: 0.78rem; border: 1px solid var(--edge); border-radius: 999px; padding: 0 0.4rem; font-variant-numeric: tabular-nums; }
 .ach-list li.earned .tick { border-style: double; border-width: 3px; }
-.toast.on { background: var(--surface); border: 1px solid var(--ok); border-radius: 8px; padding: 0.25rem 0.6rem; }
+@media (max-width: 600px) {
+  #board-holder.hr-dragging #hr-lines {
+    transform: translateY(-35px);
+  }
+}

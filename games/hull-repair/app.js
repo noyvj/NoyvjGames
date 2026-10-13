@@ -407,6 +407,7 @@
     e.preventDefault();
     var holder = $("board-holder");
     if (holder.setPointerCapture) { try { holder.setPointerCapture(e.pointerId); } catch (err) { /* synthetic events */ } }
+    if (!window.matchMedia("(prefers-reduced-motion: reduce)").matches) holder.classList.add("hr-dragging");
     var res = send({ action: "begin", x: cell[0], y: cell[1] }, true);
     drag = { last: cell, active: Boolean(res && res.ok), id: e.pointerId };
     kbd.x = cell[0];
@@ -429,6 +430,7 @@
     drag = null;
     var holder = $("board-holder");
     if (holder.releasePointerCapture) { try { holder.releasePointerCapture(was.id); } catch (err) { /* ignore */ } }
+    holder.classList.remove("hr-dragging");
     if (was.active) send({ action: "end" });
     else if (view && view.message && view.ok === false) showToast(view.message);
   }
