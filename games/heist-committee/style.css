@@ -312,5 +312,8 @@ html[data-effects="off"] *, html[data-effects="off"] *::before, html[data-effect
   .odds-label { margin: 0; font-weight: 700; }
   .odds-explanation { margin: 0; white-space: pre-wrap; color: var(--muted); font-size: 0.9rem; line-height: 1.4; }
   @keyframes slide-up { from { transform: translateY(100%); } to { transform: none; } }
-  html[data-reduced-motion="true"] .odds-sheet { animation: none; }
+  /* R4-HCMO-8: Mobile timeline zoom */
+  .timeline-wrap { touch-action: pan-x pinch-zoom; }
+  .timeline { transform-origin: top left; transition: transform 0.2s ease-out; will-change: transform; }
+  html[data-reduced-motion="true"] .timeline, html[data-effects="off"] .timeline { transition: none !important; }
 }
