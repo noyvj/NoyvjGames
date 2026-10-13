@@ -47,3 +47,26 @@ html[data-layout="pc"] .pc-snippet-del { background: none; border: none; cursor:
 html[data-layout="pc"] .pc-snippet-del:hover { opacity: 1; }
 html[data-layout="pc"] #program.drag-over { outline: 2px dashed var(--accent, #3b82f6); outline-offset: 2px; }
 html[data-layout="pc"] [data-reduced-motion] #program.drag-over { transition: none; }
+
+/* Compare mode (R4-RSPC-9) */
+html[data-layout="pc"] #compare-panel {
+  margin-top: 0.5rem;
+  padding: 0.6rem;
+  background: var(--bg-secondary, #f8f9fa);
+  border-radius: 6px;
+  font-size: 0.85rem;
+}
+html[data-layout="pc"] #compare-panel[hidden] { display: none; }
+html[data-layout="pc"] .compare-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.4rem; font-weight: bold; }
+html[data-layout="pc"] .compare-areas { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-bottom: 0.5rem; }
+html[data-layout="pc"] .compare-areas textarea {
+  width: 100%; height: 6rem; padding: 0.4rem; font-family: monospace; font-size: 0.8rem;
+  border: 1px solid var(--border, #ccc); border-radius: 4px; resize: vertical;
+}
+html[data-layout="pc"] #compare-diff-btn { background: var(--accent, #3b82f6); color: white; border: none; padding: 0.3rem 0.6rem; border-radius: 4px; cursor: pointer; }
+html[data-layout="pc"] .compare-diff table { width: 100%; border-collapse: collapse; margin-top: 0.5rem; font-family: monospace; font-size: 0.8rem; }
+html[data-layout="pc"] .compare-diff td, html[data-layout="pc"] .compare-diff th { padding: 0.2rem 0.4rem; border-bottom: 1px solid var(--border, #eee); }
+html[data-layout="pc"] .diff-line-a { background: rgba(255, 99, 71, 0.15); color: #c62828; }
+html[data-layout="pc"] .diff-line-b { background: rgba(76, 175, 80, 0.15); color: #2e7d32; }
+html[data-layout="pc"] .diff-unchanged { color: var(--text-secondary, #666); }
+html[data-layout="pc"] html[data-reduced-motion] .compare-diff table tr { transition: none; }

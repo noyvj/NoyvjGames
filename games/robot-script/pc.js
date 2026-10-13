@@ -114,6 +114,88 @@ window.ROBOT_SCRIPT_PC_TUTORIAL_STEPS = [
   });
 })();
 
+// Compare mode (R4-RSPC-9)
+(function () {
+  "use strict";
+  var KEY = "robot-script-compare-mode";
+  function loadCompare() {
+    try { return localStorage.getItem(KEY) === "true"; } catch (e) { return false; }
+  }
+  function saveCompare(on) { localStorage.setItem(KEY, String(on)); }
+
+  document.addEventListener("DOMContentLoaded", function () {
+    var toggleBtn = document.getElementById("compare-toggle-button");
+    if (!toggleBtn) return;
+
+    var stage = document.getElementById("pc-stage");
+    if (!stage) return;
+    var panel = document.createElement("div");
+    panel.id = "compare-panel";
+    panel.hidden = !loadCompare();
+    panel.innerHTML = `
+      <div class="compare-header">
+        <span>Compare programs</span>
+        <button id="compare-close" type="button" aria-label="Close compare">×</button>
+      </div>
+      <div class="compare-areas">
+        <textarea id="compare-a" spellcheck="false" placeholder="Current program"></textarea>
+        <textarea id="compare-b" spellcheck="false" placeholder="Paste or type second program"></textarea>
+      </div>
+      <button id="compare-diff-btn" type="button">Show diff</button>
+      <pre id="compare-diff" class="compare-diff" hidden></pre>
+    `;
+    stage.appendChild(panel);
+
+    function updateA() {
+      var lines = document.querySelectorAll("#program ol > li");
+      var text = Array.from(lines).map(function(li) { return li.textContent.trim(); }).join("\n");
+      document.getElementById("compare-a").value = text;
+    }
+
+    toggleBtn.addEventListener("click", function () {
+      var isOn = !panel.hidden;
+      panel.hidden = isOn;
+      saveCompare(!isOn);
+      if (!isOn) updateA();
+    });
+
+    document.getElementById("compare-close").addEventListener("click", function () {
+      panel.hidden = true;
+      saveCompare(false);
+    });
+
+    document.getElementById("compare-diff-btn").addEventListener("click", function () {
+      var a = document.getElementById("compare-a").value.split("\n");
+      var b = document.getElementById("compare-b").value.split("\n");
+      var maxLen = Math.max(a.length, b.length);
+      var html = "<table>";
+      for (var i = 0; i < maxLen; i++) {
+        var lineA = a[i] || "";
+        var lineB = b[i] || "";
+        if (lineA === lineB) {
+          html += "<tr><td class='diff-unchanged'>" + (i+1) + "</td><td>" + escapeHtml(lineA) + "</td></tr>";
+        } else {
+          html += "<tr class='diff-changed'><td class='diff-line-a'>" + (i+1) + "</td><td class='diff-line-a'>- " + escapeHtml(lineA) + "</td></tr>";
+          if (lineB) {
+            html += "<tr class='diff-changed'><td class='diff-line-b'>" + (i+1) + "</td><td class='diff-line-b'>+ " + escapeHtml(lineB) + "</td></tr>";
+          }
+        }
+      }
+      html += "</table>";
+      var diffEl = document.getElementById("compare-diff");
+      diffEl.innerHTML = html;
+      diffEl.hidden = false;
+    });
+
+    function escapeHtml(str) {
+      return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+    }
+
+    var observer = new MutationObserver(function () { updateA(); });
+    observer.observe(document.getElementById("program"), { childList: true, subtree: true });
+  });
+})();
+
 // Snippets drawer (Desktop boot)
 (function () {
   "use strict";
