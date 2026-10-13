@@ -221,6 +221,20 @@
           <button id="current-point-button" type="button">Steer to P allowing for the chart</button>
         </div>
       </details>
+      <div id="wheel-pickers" class="wheel-pickers" hidden>
+        <div class="wheel-picker" data-key="speed">
+          <span class="wheel-label">Speed</span>
+          <div class="wheel-track"><div class="wheel-content"></div></div>
+          <div class="wheel-selection"></div>
+          <span class="wheel-value">0.0</span>
+        </div>
+        <div class="wheel-picker" data-key="hours">
+          <span class="wheel-label">Time</span>
+          <div class="wheel-track"><div class="wheel-content"></div></div>
+          <div class="wheel-selection"></div>
+          <span class="wheel-value">0.0</span>
+        </div>
+      </div>
       <div id="sail-dock" class="sail-dock">
         <button id="undo-button" type="button">Undo</button>
         <button id="sail-button" type="button" class="primary">Sail</button>
@@ -285,6 +299,7 @@
 </script>
 <script src="../../shared/lazy-packs.js" data-game-id="dead-reckoning" data-manifest="modules.json"></script>
 <script src="daily.js"></script>
+<script src="wheel-pickers.js"></script>
 <script src="app.js"></script>
 <script src="../../shared/last-played.js" data-game-id="dead-reckoning"></script>
 <script src="../../shared/whats-new-banner.js" data-game-id="dead-reckoning"></script>
