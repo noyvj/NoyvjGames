@@ -1312,6 +1312,11 @@
     if (window.GameTutorial) window.GameTutorial.init(window.lighthouseTutorialSteps ? window.lighthouseTutorialSteps(TUTORIAL_STEPS) : TUTORIAL_STEPS, { gameId: GAME_ID });
     if (window.MobileHud) window.MobileHud.init([{ selector: "#hud-night", label: "Night" }, { selector: "#hud-oil", label: "Oil" }, { selector: "#hud-energy", label: "Energy" }]);
     if (window.MobileDock) window.MobileDock.init("#night-controls", { breakpoint: 640 });
+    if (typeof window.lighthouseInitCrank === "function") window.lighthouseInitCrank();
+    document.addEventListener("lighthouse-crank-wound", function(e) {
+      var amount = e.detail || 1;
+      send({ action: "wind", n: amount });
+    });
     watchDock();
   }
 

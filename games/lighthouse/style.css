@@ -306,4 +306,17 @@ html[data-reduced-motion="true"] #off-chart .odd-light.blinking { animation: non
   .lamp-slider::-moz-range-thumb { width: 1.2rem; height: 1.2rem; border-radius: 50%; background: var(--accent); border: none; box-shadow: 0 2px 6px rgba(0,0,0,0.3); }
   .lamp-notch { font-size: 0.65rem; color: var(--muted); text-align: center; writing-mode: vertical-rl; transform: rotate(180deg); letter-spacing: 0.05em; }
 }
+@media (max-width: 600px) {
+  .crank-wrap {
+    position: fixed; left: 0.5rem; bottom: 4rem; z-index: 800;
+    display: flex; flex-direction: column; align-items: center; gap: 0.25rem;
+    background: var(--panel-fill); border: 1px solid var(--edge); border-radius: 12px;
+    padding: 0.6rem 0.4rem; touch-action: none; user-select: none;
+  }
+  .crank-svg { width: 5rem; height: 5rem; cursor: grab; }
+  .crank-svg:active { cursor: grabbing; }
+  .crank-handle { transition: transform 0.1s linear; }
+  .crank-label { font-size: 0.65rem; color: var(--muted); text-align: center; }
+}
+html[data-reduced-motion="true"] .crank-wrap { display: none; }
 .info-page-how { margin: 0.3rem 0; padding-left: 1.2rem; }
