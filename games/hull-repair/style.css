@@ -220,4 +220,6 @@ html[data-effects="off"] .hr-room.s2 .hr-window { opacity: 0.9; }
   #board-holder.hr-dragging #hr-lines {
     transform: translateY(-35px);
   }
+  /* Prevent layout shift during haptic feedback on mobile */
+  .board-holder { transform: translateZ(0); }
 }

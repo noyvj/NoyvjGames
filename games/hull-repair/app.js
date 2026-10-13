@@ -14,6 +14,21 @@
   var BACKUP_KEY = "hull-repair:state-backup";
   var GLYPHS = { circle: "●", square: "■", triangle: "▲", diamond: "◆", hexagon: "⬢", pentagon: "⬟", cross: "✚", star: "★" };
 
+  // ---- haptics (optional, respects reduced-motion and effects settings) ----------------------------
+  var HR_Haptics = (function () {
+    var TICK_MS = 10;
+    var CONNECT_MS = [20, 30, 20];
+    function canVibrate() {
+      return typeof navigator !== "undefined" && "vibrate" in navigator &&
+             document.documentElement.getAttribute("data-reduced-motion") !== "true" &&
+             document.documentElement.getAttribute("data-effects") !== "off";
+    }
+    return {
+      tick: function () { if (canVibrate()) navigator.vibrate(TICK_MS); },
+      connect: function () { if (canVibrate()) navigator.vibrate(CONNECT_MS); }
+    };
+  })();
+
   var $ = function (id) { return document.getElementById(id); };
   var engine = null;
   var view = null;
@@ -341,7 +356,7 @@
     });
     var restored = request.action === "end" && view.result && view.result.status === 2 && !(previous.result && previous.result.status === 2);
     if (restored) window.NoyvjSfx.play("bell");
-    else if (joined) window.NoyvjSfx.play("confirm");
+    else if (joined) { window.NoyvjSfx.play("confirm"); HR_Haptics.connect(); }
     else if (cut) window.NoyvjSfx.play("click_low");
   }
 
@@ -423,6 +438,7 @@
     drag.last = cell;
     var res = send({ action: "move", cells: steps }, true);
     if (res && res.ok === false) setText($("board-line"), res.message);
+    HR_Haptics.tick();
   }
   function onPointerUp(e) {
     if (!drag) return;
