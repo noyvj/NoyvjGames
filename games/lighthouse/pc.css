@@ -86,3 +86,12 @@ html[data-layout="pc"][data-reduced-motion="true"] #ship-hover-card {
 html[data-layout="pc"] #ship-hover-card h3 { margin: 0 0 0.4rem; font-size: 1rem; color: var(--accent); }
 html[data-layout="pc"] #ship-hover-card p { margin: 0.25rem 0; font-size: 0.85rem; color: var(--text); }
 html[data-layout="pc"] #ship-hover-card .label { color: var(--text); font-weight: 600; opacity: 0.8; }
+
+/* --- Letters window: two-pane mail reader ------------------------------------------------ */
+html[data-layout="pc"] #letters-pane-wrapper { display: flex; gap: 1rem; width: 100%; }
+html[data-layout="pc"] #letters-list { flex: 0 0 30%; overflow-y: auto; max-height: 60vh; border-right: 1px solid var(--accent); padding-right: 0.5rem; }
+html[data-layout="pc"] #letters-list li { cursor: pointer; padding: 0.4rem; margin-bottom: 0.2rem; border-radius: 4px; transition: background 0.15s ease, color 0.15s ease; }
+html[data-layout="pc"] #letters-list li:hover,
+html[data-layout="pc"] #letters-list li.active { background: var(--accent); color: var(--panel-bg, #fff); }
+html[data-layout="pc"][data-reduced-motion="true"] #letters-list li { transition: none; }
+html[data-layout="pc"] #letters-reader { flex: 1; overflow-y: auto; max-height: 60vh; padding-left: 0.5rem; font-style: italic; line-height: 1.5; color: var(--text); }

@@ -110,3 +110,58 @@ window.LIGHTHOUSE_PC_TUTORIAL_STEPS = [
 
   document.addEventListener("DOMContentLoaded", init);
 })();
+
+  /* Letters window: two-pane mail reader --------------------------------------------------- */
+  (function () {
+    "use strict";
+    var panel = document.getElementById("letters-panel");
+    var list = document.getElementById("letters-list");
+    var wrapper = null;
+    var reader = null;
+    var activeIdx = -1;
+
+    function init() {
+      if (!panel || !list) return;
+      
+      wrapper = document.createElement("div");
+      wrapper.id = "letters-pane-wrapper";
+      list.parentNode.insertBefore(wrapper, list);
+      wrapper.appendChild(list);
+      
+      reader = document.createElement("div");
+      reader.id = "letters-reader";
+      wrapper.appendChild(reader);
+
+      list.addEventListener("click", onListClick);
+      document.addEventListener("keydown", onKey);
+    }
+
+    function onListClick(e) {
+      var item = e.target.closest("li");
+      if (!item) return;
+      var idx = Array.prototype.indexOf.call(list.children, item);
+      showLetter(idx);
+    }
+
+    function showLetter(idx) {
+      if (idx < 0 || idx >= list.children.length) return;
+      activeIdx = idx;
+      if (list.children[activeIdx]) list.children[activeIdx].classList.remove("active");
+      list.children[activeIdx].classList.add("active");
+
+      var letterEl = list.children[activeIdx].querySelector(".letter-content") || list.children[activeIdx];
+      reader.innerHTML = "";
+      reader.appendChild(letterEl.cloneNode(true));
+    }
+
+    function onKey(e) {
+      if (panel.hidden) return;
+      if (e.key === "j" || e.key === "J") {
+        showLetter(activeIdx - 1);
+      } else if (e.key === "k" || e.key === "K") {
+        showLetter(activeIdx + 1);
+      }
+    }
+
+    document.addEventListener("DOMContentLoaded", init);
+  })();
