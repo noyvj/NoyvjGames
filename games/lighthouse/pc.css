@@ -121,3 +121,10 @@ html[data-layout="pc"] #letters-list li:hover,
 html[data-layout="pc"] #letters-list li.active { background: var(--accent); color: var(--panel-bg, #fff); }
 html[data-layout="pc"][data-reduced-motion="true"] #letters-list li { transition: none; }
 html[data-layout="pc"] #letters-reader { flex: 1; overflow-y: auto; max-height: 60vh; padding-left: 0.5rem; font-style: italic; line-height: 1.5; color: var(--text); }
+
+/* Layout presets (F1/F2) ------------------------------------------------ */
+html[data-layout="pc"][data-pc-layout="keeper-desk"] #pc-side { flex: 0 0 auto; max-width: 35rem; }
+html[data-layout="pc"][data-pc-layout="quiet-night"] #pc-side { flex: 0 0 20rem; opacity: 0.85; }
+html[data-layout="pc"][data-pc-layout="quiet-night"] #log-panel { display: none; }
+html[data-layout="pc"][data-pc-layout="quiet-night"] #scene-panel .scene { max-height: min(65vh, 45rem); }
+html[data-layout="pc"][data-pc-layout="quiet-night"] #hud { --hud-fade: 0.3; }

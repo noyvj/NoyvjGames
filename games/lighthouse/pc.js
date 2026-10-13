@@ -259,3 +259,35 @@ window.LIGHTHOUSE_PC_TUTORIAL_STEPS = [
       });
     });
   })();
+
+  /* Layout presets (F1/F2) ------------------------------------------------ */
+  (function () {
+    "use strict";
+    var LAYOUT_KEY = "lighthouse-pc-layout";
+    var PRESETS = ["keeper-desk", "quiet-night"];
+    var current = localStorage.getItem(LAYOUT_KEY) || "keeper-desk";
+
+    function apply(name) {
+      document.documentElement.setAttribute("data-pc-layout", name);
+      localStorage.setItem(LAYOUT_KEY, name);
+      var announce = document.getElementById("announce");
+      if (announce) announce.textContent = "Layout switched to " + name.replace(/-/g, " ");
+    }
+
+    function init() {
+      apply(current);
+      document.addEventListener("keydown", function (e) {
+        if (e.key === "F1") {
+          e.preventDefault();
+          var idx = PRESETS.indexOf(current);
+          apply(PRESETS[(idx + 1) % PRESETS.length]);
+        } else if (e.key === "F2") {
+          e.preventDefault();
+          var idx = PRESETS.indexOf(current);
+          apply(PRESETS[(idx - 1 + PRESETS.length) % PRESETS.length]);
+        }
+      });
+    }
+
+    document.addEventListener("DOMContentLoaded", init);
+  })();
