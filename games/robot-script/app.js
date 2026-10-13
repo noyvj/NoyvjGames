@@ -591,9 +591,17 @@
     if (holder.dataset.sig === sig) return;
     holder.dataset.sig = sig;
     holder.textContent = "";
+    var list = el("div", "chapter-list");
     view.rooms.forEach(function (c) {
       var sec = el("section", "chapter");
-      sec.appendChild(el("h3", null, c.name + " (" + c.cleared + "/" + c.total + ")"));
+      var medalCount = c.rooms.filter(function(r) { return r.medal === 3; }).length;
+      var h3 = el("h3", null, c.name + " (" + c.cleared + "/" + c.total + ")");
+      if (medalCount > 0) {
+        h3.appendChild(el("span", "medal-count", medalCount + " gold"));
+      } else {
+        h3.appendChild(el("span", "medal-count", "No gold yet"));
+      }
+      sec.appendChild(h3);
       sec.appendChild(el("p", "note", c.blurb));
       var ul = el("ul", "room-grid");
       c.rooms.forEach(function (r) {
@@ -622,8 +630,9 @@
         ul.appendChild(li);
       });
       sec.appendChild(ul);
-      holder.appendChild(sec);
+      list.appendChild(sec);
     });
+    holder.appendChild(list);
   }
 
   // ---- goals, the workshop and the hint ladder ----------------------------------------------------------

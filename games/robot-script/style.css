@@ -284,5 +284,14 @@ html[data-sandbox="true"] .room-holder svg { cursor: crosshair; }
   html[data-reduced-motion="true"] .undo-bar { transition: none; }
   .undo-bar.visible { opacity: 1; pointer-events: auto; }
   .undo-bar button { background: var(--btn-primary); color: var(--on-primary); border: none; padding: 0.4rem 0.8rem; border-radius: 6px; cursor: pointer; font-weight: 700; }
+
+  /* Swipeable chapter cards */
+  .chapter-list { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; gap: 0.8rem; padding: 0.5rem 1rem; -webkit-overflow-scrolling: touch; }
+  html[data-reduced-motion="true"] .chapter-list { scroll-snap-type: none; }
+  .chapter { flex: 0 0 85vw; scroll-snap-align: center; background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 1rem; margin: 0; }
+  .chapter h3 { font-size: 1.1rem; margin-bottom: 0.5rem; display: flex; justify-content: space-between; align-items: center; }
+  .medal-count { font-size: 0.85rem; color: var(--muted); font-weight: normal; }
+  .room-grid { grid-template-columns: repeat(2, 1fr); gap: 0.3rem; margin-top: 0.5rem; }
+  .room-btn { min-height: 4rem; padding: 0.5rem; }
 }
 .toast.on { background: var(--surface); border: 1px solid var(--ok); border-radius: 8px; padding: 0.25rem 0.6rem; }
