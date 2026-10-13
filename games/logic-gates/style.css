@@ -174,6 +174,23 @@ td.want-differs { font-weight: 700; }
 
 /* --- chip drawer (mobile) ------------------------------------------------------------------- */
 @media (max-width: 600px) {
+  /* --- result bottom sheet ------------------------------------------------------------------ */
+  #result-sheet {
+    background: var(--panel); border-top: 2px solid var(--line);
+    transform: translateY(calc(100% - 3.5rem)); transition: transform 0.2s ease-out;
+  }
+  #result-sheet.open { transform: translateY(0); }
+  #result-sheet-handle {
+    display: flex; align-items: center; justify-content: center; gap: 0.5rem;
+    height: 3.5rem; cursor: pointer; user-select: none; color: var(--muted); font-size: 0.9rem;
+    background: var(--panel-fill); border-top-left-radius: 12px; border-top-right-radius: 12px;
+  }
+  #result-sheet-handle::before { content: "⌃"; font-size: 1.2rem; transition: transform 0.2s ease-out; }
+  #result-sheet.open #result-sheet-handle::before { transform: rotate(180deg); }
+  #result-sheet-content { padding: 0.5rem 1rem 1.5rem; display: flex; flex-direction: column; gap: 0.4rem; overflow-y: auto; max-height: 60vh; }
+  #result-sheet table.truth { width: 100%; margin-bottom: 0.5rem; }
+  #result-sheet tr.failing td { background: rgba(255, 185, 173, 0.15); font-weight: 700; }
+
   .chip-drawer {
     position: fixed; bottom: 0; left: 0; right: 0; z-index: 100;
     background: var(--panel); border-top: 2px solid var(--line);

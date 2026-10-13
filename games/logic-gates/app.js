@@ -260,6 +260,7 @@
       table.appendChild(tr);
     });
     holder.appendChild(table);
+    if (window.NoyvjResultSheet) window.NoyvjResultSheet.render(view.table);
   }
 
   // ---- hints ---------------------------------------------------------------------------------------
