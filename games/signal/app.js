@@ -546,7 +546,7 @@
   }
 
   function triggerHaptic(reading, top) {
-    if (navigator.vibrate && !document.documentElement.hasAttribute("data-reduced-motion")) {
+    if (navigator.vibrate && document.documentElement.getAttribute("data-reduced-motion") !== "true") {
       var ms = Math.max(5, Math.round((reading / top) * 25));
       navigator.vibrate(ms);
     }
@@ -577,8 +577,10 @@
       var lastPing = view.pings[view.pings.length - 1];
       triggerHaptic(lastPing.v || 0, view.board.top || 5);
       var boardEl = $("board");
-      boardEl.classList.add("haptic-active");
-      setTimeout(function() { boardEl.classList.remove("haptic-active"); }, 200);
+      if (document.documentElement.getAttribute("data-reduced-motion") !== "true") {
+        boardEl.classList.add("haptic-active");
+        setTimeout(function() { boardEl.classList.remove("haptic-active"); }, 200);
+      }
     }
   }
 

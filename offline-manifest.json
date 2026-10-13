@@ -3827,7 +3827,7 @@
     },
     {
      "path": "games/signal/app.js",
-     "bytes": 46419,
+     "bytes": 48922,
      "precached": true
     },
     {
@@ -3877,7 +3877,7 @@
     },
     {
      "path": "games/signal/style.css",
-     "bytes": 15810,
+     "bytes": 16899,
      "precached": true
     }
    ],
@@ -4064,7 +4064,7 @@
     }
    ],
    "cdn": [],
-   "bytes": 609261,
+   "bytes": 612853,
    "bytes_complete": true
   },
   "lexis": {

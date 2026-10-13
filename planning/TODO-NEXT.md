@@ -1,6 +1,6 @@
 # Next TODO list (from the Round 4 ideas, started 2026-10-12)
 
-**Progress: 52/921 items checked off (5.6%).** This is the NEXT list, written alongside the live `planning/TODO.md` (which is untouched). It becomes the live list once the current one is archived. Run `python3 scripts/todo-progress.py planning/TODO-NEXT.md` after ticking items.
+**Progress: 54/921 items checked off (5.9%).** This is the NEXT list, written alongside the live `planning/TODO.md` (which is untouched). It becomes the live list once the current one is archived. Run `python3 scripts/todo-progress.py planning/TODO-NEXT.md` after ticking items.
 
 How it is built: one section per Round 4 section on the ideas sheet (`planning/IMPROVEMENT-IDEAS-ROUND-4.md`), in the sheet's order, ids `R4-<section code>-<number>`. Only ideas you answered "yes" to are items, with your note where you wrote one. A section that is not fully answered keeps its heading and ends with one item to add the rest once you have answered them. "No" answers are dropped (listed under the heading); "later" answers are parked in `planning/LATER.md`.
 
@@ -12,11 +12,11 @@ How it is built: one section per Round 4 section on the ideas sheet (`planning/I
 |---|---:|---:|---|
 | LEPC. Lexis: PC view | 8/10 | 80% | ████████░░ |
 | SIPC. Signal: PC view | 7/10 | 70% | ███████░░░ |
+| SIMO. Signal: mobile view | 7/10 | 70% | ███████░░░ |
 | LEMO. Lexis: mobile view | 7/10 | 70% | ███████░░░ |
 | HCPC. Heist Committee: PC view | 6/10 | 60% | ██████░░░░ |
 | HCMO. Heist Committee: mobile view | 6/10 | 60% | ██████░░░░ |
 | LHPC. Lighthouse: PC view | 6/10 | 60% | ██████░░░░ |
-| SIMO. Signal: mobile view | 5/10 | 50% | █████░░░░░ |
 | PX. Lexis: made for you | 6/29 | 21% | ██░░░░░░░░ |
 | PU. Signal: made for you | 1/6 | 17% | ██░░░░░░░░ |
 | PC. Canopy: made for you | 0/30 | 0% | ░░░░░░░░░░ |
@@ -111,7 +111,7 @@ How it is built: one section per Round 4 section on the ideas sheet (`planning/I
 | OC. Overclock: general ideas | 0/1 | 0% | ░░░░░░░░░░ |
 | OCP. Overclock: made for you | 0/1 | 0% | ░░░░░░░░░░ |
 | AU. Sound | 0/1 | 0% | ░░░░░░░░░░ |
-| **All sections** | **52/921** | **5.6%** | █░░░░░░░░░ |
+| **All sections** | **54/921** | **5.9%** | █░░░░░░░░░ |
 
 <!-- PROGRESS-CHART:END -->
 
@@ -969,8 +969,8 @@ Dropped (you said no): PG-30.
 - [ ] R4-SIMO-1: (big) Hold a tile to show a magnifier bubble above your finger with the tile's coordinate and a ping preview, so your thumb never hides the target. Precise tapping works on a small screen.
 - [x] R4-SIMO-2: (small) Put the Ping and Mark tool switch as two big buttons at the bottom edge. The main choice sits under your thumb.
 - [ ] R4-SIMO-3: (small) Let a tap ping the tile and a long-press mark it, as an option in Settings. One finger does both jobs without a tool switch.
-- [ ] R4-SIMO-4: (small) Add a haptic pulse on each ping that grows stronger with a bigger reading, where the browser allows. You feel how close you are.
-- [ ] R4-SIMO-5: (small) Reopen on the exact half-solved board with pings and markers in place. A two-minute visit keeps all your reasoning.
+- [x] R4-SIMO-4: (small) Add a haptic pulse on each ping that grows stronger with a bigger reading, where the browser allows. You feel how close you are.
+- [x] R4-SIMO-5: (small) Reopen on the exact half-solved board with pings and markers in place. A two-minute visit keeps all your reasoning.
 - [x] R4-SIMO-6: (small) Add a Today shortcut that opens straight into the day's puzzle from the home-screen icon. You get a one-tap start.
 - [ ] R4-SIMO-7: (small) Let you swipe between Today, Archive and Practice as three full-screen tabs. Moving between modes is a flick.
 - [x] R4-SIMO-8: (small) Add a pure-black dark theme for OLED phones with brighter tile outlines. Bed-time play is easy on the eyes and the battery.
