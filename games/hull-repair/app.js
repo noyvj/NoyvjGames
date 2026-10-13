@@ -587,6 +587,60 @@
     document.addEventListener("keydown", onGlobalKey);
     // The save widget loads a save straight into the engine; this redraws afterwards.
     window.hullRepairRefresh = function () { if (engine) { boardId = null; send({ action: "open" }); } };
+
+    // Mobile undo button and two-finger tap (R4-HRMO-5)
+    var undoBtn = null;
+    var touchStartData = null;
+    function initMobileUndo() {
+      if (undoBtn) return;
+      undoBtn = document.createElement("button");
+      undoBtn.className = "hr-undo-btn";
+      undoBtn.textContent = "↩";
+      undoBtn.setAttribute("aria-label", "Undo last move");
+      document.body.appendChild(undoBtn);
+      
+      function updateState() {
+        if (!view) return;
+        var show = window.innerWidth <= 600 && view.can_undo;
+        undoBtn.style.display = show ? "flex" : "none";
+        undoBtn.disabled = !show;
+      }
+      
+      undoBtn.addEventListener("click", function () {
+        if (view && view.can_undo) send({ action: "undo" });
+      });
+      
+      window.addEventListener("resize", updateState);
+      updateState();
+    }
+    
+    function onBoardTouchStart(e) {
+      if (e.touches.length === 2) {
+        var dx = e.touches[0].clientX - e.touches[1].clientX;
+        var dy = e.touches[0].clientY - e.touches[1].clientY;
+        if (Math.hypot(dx, dy) < 60) {
+          touchStartData = { time: e.timeStamp, x: (e.touches[0].clientX + e.touches[1].clientX)/2, y: (e.touches[0].clientY + e.touches[1].clientY)/2 };
+        } else {
+          touchStartData = null;
+        }
+      }
+    }
+    function onBoardTouchEnd(e) {
+      if (touchStartData && e.changedTouches.length === 2) {
+        var dx = e.changedTouches[0].clientX - touchStartData.x;
+        var dy = e.changedTouches[0].clientY - touchStartData.y;
+        if (Math.hypot(dx, dy) < 30 && e.timeStamp - touchStartData.time < 400) {
+          if (view && view.can_undo) send({ action: "undo" });
+        }
+      }
+      touchStartData = null;
+    }
+    
+    if (holder) {
+      initMobileUndo();
+      holder.addEventListener("touchstart", onBoardTouchStart);
+      holder.addEventListener("touchend", onBoardTouchEnd);
+    }
   }
 
   var TUTORIAL_STEPS = [
