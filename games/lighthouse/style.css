@@ -319,4 +319,138 @@ html[data-reduced-motion="true"] #off-chart .odd-light.blinking { animation: non
   .crank-label { font-size: 0.65rem; color: var(--muted); text-align: center; }
 }
 html[data-reduced-motion="true"] .crank-wrap { display: none; }
+@media (max-width: 600px) {
+  .letters-list {
+    display: flex;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    gap: 1rem;
+    padding-bottom: 0.5rem;
+    -webkit-overflow-scrolling: touch;
+  }
+  .letters-list li {
+    flex: 0 0 85%;
+    scroll-snap-align: center;
+    perspective: 1000px;
+    cursor: pointer;
+    user-select: none;
+    -webkit-user-select: none;
+    transition: transform 0.3s ease, opacity 0.3s ease;
+  }
+  .letter-card-inner {
+    position: relative;
+    width: 100%;
+    min-height: 12rem;
+    transition: transform 0.4s ease;
+    transform-style: preserve-3d;
+  }
+  .letters-list li.flipped .letter-card-inner {
+    transform: rotateY(180deg);
+  }
+  .letter-card-front, .letter-card-back {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    backface-visibility: hidden;
+    border-radius: 10px;
+    padding: 0.8rem;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+  }
+  .letter-card-front {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+  }
+  .letter-card-back {
+    background: #fdfbf7;
+    color: var(--text);
+    transform: rotateY(180deg);
+    overflow-y: auto;
+    font-family: Georgia, "Times New Roman", serif;
+    white-space: pre-wrap;
+  }
+  .tap-hint { color: var(--muted); font-size: 0.8rem; margin-top: 0.5rem; }
+}
+html[data-reduced-motion="true"] .letter-card-inner,
+html[data-reduced-motion="true"] .letters-list li.flipped .letter-card-inner {
+  transition: none;
+  transform: none !important;
+}
+html[data-reduced-motion="true"] .letters-list li.flipped .letter-card-back {
+  display: flex;
+}
+html[data-reduced-motion="true"] .letters-list li:not(.flipped) .letter-card-back {
+  display: none;
+}
+@media (max-width: 600px) {
+  .letters-list {
+    display: flex;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    gap: 1rem;
+    padding-bottom: 0.5rem;
+    -webkit-overflow-scrolling: touch;
+  }
+  .letters-list li {
+    flex: 0 0 85%;
+    scroll-snap-align: center;
+    perspective: 1000px;
+    cursor: pointer;
+    user-select: none;
+    -webkit-user-select: none;
+    transition: transform 0.3s ease, opacity 0.3s ease;
+  }
+  .letter-card-inner {
+    position: relative;
+    width: 100%;
+    min-height: 12rem;
+    transition: transform 0.4s ease;
+    transform-style: preserve-3d;
+  }
+  .letters-list li.flipped .letter-card-inner {
+    transform: rotateY(180deg);
+  }
+  .letter-card-front, .letter-card-back {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    backface-visibility: hidden;
+    border-radius: 10px;
+    padding: 0.8rem;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+  }
+  .letter-card-front {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+  }
+  .letter-card-back {
+    background: #fdfbf7;
+    color: var(--text);
+    transform: rotateY(180deg);
+    overflow-y: auto;
+    font-family: Georgia, "Times New Roman", serif;
+    white-space: pre-wrap;
+  }
+  .tap-hint { color: var(--muted); font-size: 0.8rem; margin-top: 0.5rem; }
+}
+html[data-reduced-motion="true"] .letter-card-inner,
+html[data-reduced-motion="true"] .letters-list li.flipped .letter-card-inner {
+  transition: none;
+  transform: none !important;
+}
+html[data-reduced-motion="true"] .letters-list li.flipped .letter-card-back {
+  display: flex;
+}
+html[data-reduced-motion="true"] .letters-list li:not(.flipped) .letter-card-back {
+  display: none;
+}
 .info-page-how { margin: 0.3rem 0; padding-left: 1.2rem; }
