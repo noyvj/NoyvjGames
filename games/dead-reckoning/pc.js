@@ -303,3 +303,69 @@ window.DEAD_RECKONING_PC_TUTORIAL_STEPS = [
     menu.classList.add("hidden");
   });
 })();
+
+// Layers panel (PC only) -------------------------------------------------------
+(function () {
+  var LAYERS_KEY = "dead-reckoning-layers";
+  var defaultLayers = { currents: true, wind: true, hazards: true, grid: true, labels: true };
+
+  function getLayers() {
+    try { var s = localStorage.getItem(LAYERS_KEY); return s ? JSON.parse(s) : {...defaultLayers}; } catch(e) { return {...defaultLayers}; }
+  }
+  function setLayers(l) { try { localStorage.setItem(LAYERS_KEY, JSON.stringify(l)); } catch(e) {} }
+
+  var toolbar = document.querySelector(".game-toolbar");
+  if (!toolbar) return;
+
+  var btn = document.createElement("button");
+  btn.id = "layers-toggle-button";
+  btn.type = "button";
+  btn.textContent = "Layers";
+  btn.setAttribute("aria-expanded", "false");
+  btn.setAttribute("aria-controls", "layers-panel");
+  toolbar.appendChild(btn);
+
+  var panel = document.createElement("section");
+  panel.id = "layers-panel";
+  panel.className = "panel";
+  panel.hidden = true;
+  panel.innerHTML = '<h2>Layers</h2><p class="note">Toggle chart elements on or off. Changes are saved for this device.</p><div class="layers-list" role="group" aria-label="Chart layers"></div>';
+  document.getElementById("game").appendChild(panel);
+
+  var list = panel.querySelector(".layers-list");
+  var layers = getLayers();
+  ["currents", "wind", "hazards", "grid", "labels"].forEach(function(name) {
+    var label = document.createElement("label");
+    label.className = "layer-item";
+    var cb = document.createElement("input");
+    cb.type = "checkbox";
+    cb.checked = layers[name];
+    cb.dataset.layer = name;
+    cb.addEventListener("change", function() {
+      layers[name] = this.checked;
+      setLayers(layers);
+      applyLayers();
+    });
+    label.appendChild(cb);
+    label.appendChild(document.createTextNode(" " + name.charAt(0).toUpperCase() + name.slice(1)));
+    list.appendChild(label);
+  });
+
+  btn.addEventListener("click", function() {
+    var expanded = panel.hidden === false;
+    panel.hidden = expanded;
+    btn.setAttribute("aria-expanded", String(!expanded));
+  });
+
+  function applyLayers() {
+    var svg = document.querySelector("#chart-holder svg.dr-chart");
+    if (!svg) return;
+    ["currents", "wind", "hazards", "grid", "labels"].forEach(function(name) {
+      if (layers[name]) svg.setAttribute("data-layers-" + name, "on");
+      else svg.setAttribute("data-layers-" + name, "off");
+    });
+  }
+
+  applyLayers();
+  window.addEventListener("dead-reckoning-chart-loaded", applyLayers);
+})();
