@@ -40,6 +40,63 @@
     return view.legs.length > 0 || (!!view.fleet && view.fleet.ships.some(function (s) { return s.legs > 0; }));
   }
 
+  // ---- draft plan persistence --------------------------------------------------------------------
+  var DRAFT_KEY_PREFIX = "dead-reckoning:draft-";
+  function getDraftKey(chartId) { return DRAFT_KEY_PREFIX + chartId; }
+  function saveDraft(legs, chartId) {
+    if (!chartId || !legs || legs.length === 0) return;
+    try { localStorage.setItem(getDraftKey(chartId), JSON.stringify(legs)); } catch (e) {}
+  }
+  function loadDraft(chartId) {
+    try { var d = localStorage.getItem(getDraftKey(chartId)); return d ? JSON.parse(d) : null; } catch (e) { return null; }
+  }
+  function clearDraft(chartId) {
+    try { localStorage.removeItem(getDraftKey(chartId)); } catch (e) {}
+  }
+
+  function renderDraftIndicator() {
+    if (!view || view.phase !== "plan") return;
+    var container = $("draft-indicator-container");
+    if (!container) {
+      container = el("div", undefined, "draft-indicator-container");
+      container.id = "draft-indicator-container";
+      var planner = $("planner-panel");
+      if (planner) planner.parentNode.insertBefore(container, planner);
+    }
+    var box = $("draft-indicator");
+    if (!box) {
+      box = el("div", undefined, "draft-indicator");
+      box.id = "draft-indicator";
+      box.appendChild(el("span", "Draft plan saved from a previous visit."));
+      var resumeBtn = el("button", "Resume", "primary");
+      resumeBtn.id = "draft-resume-button";
+      var clearBtn = el("button", "Clear draft");
+      clearBtn.id = "draft-clear-button";
+      box.appendChild(resumeBtn);
+      box.appendChild(clearBtn);
+      container.appendChild(box);
+    }
+    var draft = loadDraft(view.chart.id);
+    if (!draft || draft.length === 0) {
+      box.hidden = true;
+      return;
+    }
+    box.hidden = false;
+    $("draft-resume-button").textContent = "Resume (" + draft.length + " leg" + (draft.length === 1 ? "" : "s") + ")";
+    $("draft-resume-button").onclick = function () {
+      send({ action: "clear" });
+      draft.forEach(function (l) {
+        send({ action: "add_leg" });
+        send({ action: "set_leg", i: view.legs.length - 1, heading: l.heading, speed: l.speed, hours: l.hours });
+      });
+      clearDraft(view.chart.id);
+    };
+    $("draft-clear-button").onclick = function () {
+      clearDraft(view.chart.id);
+      box.hidden = true;
+    };
+  }
+
   // ---- lazy content packs ----------------------------------------------------------------------------
   // The engine says which packs a request needs (engine.needs); the missing ones are fetched first, behind the loader's loading card, then
   // the request is sent. A pack that cannot be loaded changes nothing: the player keeps the screen, the plan and the save, and can retry.
@@ -323,6 +380,7 @@
     renderShips();
     $("allow-checkbox").checked = view.allow;
     renderLegs();
+    renderDraftIndicator();
     var watching = view.chart.mode === "watch";
     var pending = t.legs - (view.sailed || 0);
     setEnabled("add-leg-button", t.legs < view.limits.max_legs && !(watching && pending > 0));
@@ -824,6 +882,10 @@
     guard("retry-button", function () { send({ action: "retry" }); });
     guard("redo-button", function () { send({ action: "restart" }); });
     document.addEventListener("keydown", onKey);
+    // Save draft plan when leg inputs change
+    document.addEventListener("change", function (e) {
+      if (view && view.phase === "plan" && e.target.closest("#legs-list")) saveDraft(view.legs, view.chart.id);
+    });
   }
 
   // Everything is reachable with Tab; these are speed-ups, and only fire when focus is not in a field or on a button.

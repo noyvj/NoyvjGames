@@ -314,6 +314,12 @@ html[data-effects="off"] *, html[data-effects="off"] *::before, html[data-effect
 }
 .sail-dock:not(.mobile-docked) { display: flex; gap: 0.6rem; margin-top: 0.8rem; }
 
+/* Draft indicator for short visits */
+@media (max-width: 600px) {
+  .draft-indicator { display: flex; align-items: center; gap: 0.4rem; margin-bottom: 0.5rem; padding: 0.4rem 0.6rem; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; font-size: 0.85rem; color: var(--muted); }
+  .draft-indicator button { margin-left: auto; padding: 0.2rem 0.5rem; font-size: 0.8rem; }
+}
+
 /* Watch-by-watch */
 .mode-box { display: flex; flex-wrap: wrap; gap: 0.4rem; align-items: center; margin: 0.4rem 0; }
 .mode-box button[aria-pressed="true"] { background: var(--btn-primary); color: var(--on-primary); border-width: 3px; border-color: var(--hover-edge); font-weight: 700; text-decoration: underline; text-underline-offset: 0.25em; }
