@@ -42,3 +42,22 @@ html[data-layout="pc"] .board-holder svg .port.highlighted,
 html[data-layout="pc"] .board-holder svg path.line.highlighted {
   filter: brightness(1.4);
 }
+
+/* R4-HRPC-6: Pulse uncovered cells on C */
+html[data-layout="pc"] .board-holder circle.pulse-uncovered {
+  animation: pulse-uncovered 1.5s ease-in-out infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  html[data-layout="pc"] .board-holder circle.pulse-uncovered {
+    animation: none;
+    opacity: 0.85;
+  }
+}
+html[data-layout="pc"][data-reduced-motion="true"] .board-holder circle.pulse-uncovered {
+  animation: none;
+  opacity: 0.85;
+}
+@keyframes pulse-uncovered {
+  0%, 100% { opacity: 0.2; }
+  50% { opacity: 0.8; }
+}

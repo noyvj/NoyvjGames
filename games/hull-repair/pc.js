@@ -84,4 +84,13 @@ document.addEventListener("DOMContentLoaded", function () {
     clearHighlights();
     currentHover = null;
   });
+
+  holder.addEventListener("keydown", function (e) {
+    if (e.key === "c" || e.key === "C") {
+      var circles = holder.querySelectorAll("circle");
+      for (var i = 0; i < circles.length; i++) {
+        circles[i].classList.toggle("pulse-uncovered");
+      }
+    }
+  });
 });
