@@ -123,6 +123,10 @@
     [
       "Esc",
       "Menu / close window"
+    ],
+    [
+      "Ctrl+L",
+      "Quick leg input"
     ]
   ],
   "notify": null

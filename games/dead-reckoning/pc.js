@@ -37,7 +37,36 @@ window.DEAD_RECKONING_PC_TUTORIAL_STEPS = [
     text: "The icons open the Charts (seven chapters, the last with two ships to plan at once, and a practice mode), your Achievements and Settings. The Menu, or Escape when nothing else is open, holds the rest: this tutorial, About Dead Reckoning with its named sources, the Captain's log and What's New. Each opens as a window over the game, and Escape closes the top one.",
   },
   {
+    selector: "#quick-leg-input",
+    title: "Quick leg input",
+    text: "Type a leg here as heading speed hours (e.g., 090 6kn 2h) and press Enter to add it instantly. Works with or without units.",
+  },
+  {
     title: "You are ready",
     text: "Fair weather. Take your time.",
   },
 ];
+
+// Quick leg input (PC only) --------------------------------------------------
+(function () {
+  var input = document.getElementById("quick-leg-input");
+  if (!input) return;
+  input.addEventListener("keydown", function (e) {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      var val = input.value.trim();
+      if (!val) return;
+      var parts = val.split(/\s+/);
+      var h = parseInt(parts[0], 10);
+      var s = parseFloat(parts[1]);
+      var t = parseFloat(parts[2]);
+      if (isNaN(h) || isNaN(s) || isNaN(t)) {
+        input.setCustomValidity("Format: heading speed hours (e.g., 090 6kn 2h)");
+        return;
+      }
+      input.setCustomValidity("");
+      window.dispatchEvent(new CustomEvent("dead-reckoning-quick-leg", { detail: { heading: h, speed: s, hours: t } }));
+      input.value = "";
+    }
+  });
+})();

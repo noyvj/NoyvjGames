@@ -45,6 +45,29 @@ html[data-theme="light"][data-layout="pc"] .pc-window-frame {
 .pc-window-frame a { color: var(--accent); }
 html[data-theme="light"] #pc-hintbar { opacity: 1; }
 
+/* Quick leg input (PC only) -------------------------------------------------- */
+.quick-leg-input {
+  width: 100%;
+  margin-top: 0.5rem;
+  padding: 0.4rem 0.6rem;
+  font-family: monospace;
+  font-size: 0.95rem;
+  border: 1px solid var(--muted);
+  border-radius: 4px;
+  background: var(--panel-bg, #fffaf0);
+  color: var(--text);
+}
+.quick-leg-input:focus {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+html[data-theme="dark"] .quick-leg-input {
+  background: var(--panel-bg, #1a1a1a);
+}
+html[data-layout="pc"] .quick-leg-input {
+  display: block;
+}
+
 @media (max-height: 780px) {
   html[data-layout="pc"] #game { gap: 0.4rem; padding-top: 0.4rem; }
   #pc-topbar > h1 { margin-top: 0.8rem; font-size: 1.2rem; }
