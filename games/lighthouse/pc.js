@@ -166,6 +166,54 @@ window.LIGHTHOUSE_PC_TUTORIAL_STEPS = [
     document.addEventListener("DOMContentLoaded", init);
   })();
 
+  /* Window opacity sliders ------------------------------------------------ */
+  (function () {
+    "use strict";
+    var STORAGE_KEY = "lighthouse-window-opacity";
+    var PANELS = ["letters-panel", "achievements-panel", "changelog-panel", "settings-panel", "info-page-panel"];
+
+    function init() {
+      PANELS.forEach(function (id) {
+        var panel = document.getElementById(id);
+        if (!panel) return;
+        
+        var wrapper = document.createElement("div");
+        wrapper.className = "window-opacity-control";
+        wrapper.innerHTML = '<label for="opacity-' + id + '">Opacity</label>';
+        
+        var slider = document.createElement("input");
+        slider.type = "range";
+        slider.min = "0.3";
+        slider.max = "1";
+        slider.step = "0.05";
+        slider.id = "opacity-" + id;
+        slider.className = "window-opacity-slider";
+        slider.setAttribute("aria-label", "Panel opacity");
+        
+        var saved = parseFloat(localStorage.getItem(STORAGE_KEY + "-" + id));
+        if (!isNaN(saved)) slider.value = saved;
+
+        function apply() {
+          panel.style.opacity = slider.value;
+          localStorage.setItem(STORAGE_KEY + "-" + id, slider.value);
+        }
+        apply();
+        slider.addEventListener("input", apply);
+        
+        wrapper.appendChild(slider);
+        
+        var h2 = panel.querySelector("h2");
+        if (h2) {
+          h2.parentNode.insertBefore(wrapper, h2.nextSibling);
+        } else {
+          panel.appendChild(wrapper);
+        }
+      });
+    }
+
+    document.addEventListener("DOMContentLoaded", init);
+  })();
+
   /* HUD scale, fade and idle hide ------------------------------------------------ */
   (function () {
     "use strict";
