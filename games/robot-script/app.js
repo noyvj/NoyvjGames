@@ -864,6 +864,49 @@
     wirePanelToggle("workshop-toggle-button", "workshop-panel");
     wirePanelToggle("achievements-toggle-button", "achievements-panel");
     $("hint-button").addEventListener("click", function () { send({ action: "hint" }); });
+
+    // Hint bottom sheet (mobile)
+    var hintSheet = document.createElement("div");
+    hintSheet.className = "hint-bottom-sheet";
+    hintSheet.innerHTML = '<div class="hint-line"></div><button class="hint-reveal-btn">Reveal next</button>';
+    document.body.appendChild(hintSheet);
+    var hintLineDisplay = hintSheet.querySelector(".hint-line");
+    var hintRevealBtn = hintSheet.querySelector(".hint-reveal-btn");
+
+    function openHintSheet() {
+      if (!view || !view.hint) return;
+      hintSheet.classList.add("open");
+      updateHintDisplay();
+    }
+    function closeHintSheet() {
+      hintSheet.classList.remove("open");
+    }
+    function updateHintDisplay() {
+      var h = view.hint;
+      if (!h || !hintLineDisplay || !hintRevealBtn) return;
+      
+      var line = "";
+      if (h.rung === 0 && h.nudge) line = "Nudge: " + h.nudge;
+      else if (h.rung === 1 && h.hint) line = "Hint: " + h.hint;
+      else if (h.rung >= 2 && h.answer) line = "Answer: " + h.answer.lines.join(" ");
+      else line = "No more hints available.";
+      
+      hintLineDisplay.textContent = line;
+      hintRevealBtn.disabled = h.rung >= h.max;
+      hintRevealBtn.textContent = h.rung < h.max ? "Reveal next" : "Done";
+    }
+
+    var hintBtn = $("hint-button");
+    if (hintBtn) {
+      hintBtn.addEventListener("click", openHintSheet);
+      hintBtn.addEventListener("touchend", function(e) { e.preventDefault(); openHintSheet(); });
+    }
+
+    hintRevealBtn.addEventListener("click", function() {
+      if (!view || !view.hint) return;
+      send({ action: "hint" });
+      updateHintDisplay();
+    });
     $("answer-load-button").addEventListener("click", function () { send({ action: "load_answer" }, true); });
     wirePanelToggle("changelog-toggle-button", "changelog-panel");
     wirePanelToggle("info-page-toggle-button", "info-page-panel");

@@ -298,3 +298,23 @@ html[data-sandbox="true"] .room-holder svg { cursor: crosshair; }
   html[data-reduced-motion="true"] .room-holder svg, html[data-effects="off"] .room-holder svg { transition: none; }
 }
 .toast.on { background: var(--surface); border: 1px solid var(--ok); border-radius: 8px; padding: 0.25rem 0.6rem; }
+
+/* Hint bottom sheet (mobile) */
+@media (max-width: 600px) {
+  .hint-bottom-sheet {
+    position: fixed; bottom: 0; left: 0; right: 0;
+    background: var(--panel); border-top: 1px solid var(--line);
+    padding: 1rem; max-height: 40vh; overflow-y: auto;
+    transform: translateY(100%); transition: transform 0.2s ease-out;
+    z-index: 200; display: flex; flex-direction: column; gap: 0.5rem;
+  }
+  html[data-reduced-motion="true"] .hint-bottom-sheet { transition: none; }
+  .hint-bottom-sheet.open { transform: translateY(0); }
+  .hint-bottom-sheet .hint-line { font-size: 0.9rem; color: var(--text); padding: 0.3rem 0; border-bottom: 1px solid var(--line); min-height: 1.5em; }
+  .hint-reveal-btn {
+    background: var(--btn-primary); color: var(--on-primary);
+    border: none; padding: 0.6rem; border-radius: 8px;
+    font-weight: 700; margin-top: auto; cursor: pointer;
+  }
+  .hint-reveal-btn[disabled] { opacity: 0.5; cursor: default; }
+}
