@@ -403,6 +403,62 @@
     HC.ask("heist-start", "Start the heist? The plan is fixed once it begins.", "Start Heist", function () { armed = null; selected = null; HC.send({ action: "start_heist" }); });
   });
 
+  // ---- long-press odds sheet (mobile) -----------------------------------------------------------
+  var _oddsSheet = null;
+  var _lpTimer = null;
+  var _lpTarget = null;
+
+  function showOddsSheet(lane, beat) {
+    if (_oddsSheet) closeOddsSheet();
+    var view = HC.view;
+    if (!view || view.phase !== "plan") return;
+    var c = cellOf(view, lane, beat);
+    if (!c.odds) return;
+
+    var partsText = c.odds.parts.map(function (p) { return p[0] + ": " + (p[1] > 0 ? "+" : "") + p[1]; }).join("\n");
+    var scoreText = "Score: " + (c.odds.margin > 0 ? "+" : "") + c.odds.margin;
+    var explanation = "Odds are " + c.odds.label.toLowerCase() + ".\n" + scoreText + ".\n" + partsText;
+
+    _oddsSheet = el("div", { "class": "odds-sheet" }, [
+      el("button", { "class": "odds-sheet-close", type: "button", text: "✕", onclick: closeOddsSheet }),
+      el("h3", { text: c.name + (c.arg_label ? " for " + c.arg_label : "") }),
+      el("p", { "class": "odds-label" }, ["Odds: ", c.odds.label]),
+      el("p", { "class": "odds-explanation" }, [explanation])
+    ]);
+    document.body.appendChild(_oddsSheet);
+  }
+
+  function closeOddsSheet() {
+    if (_oddsSheet) { _oddsSheet.remove(); _oddsSheet = null; }
+  }
+
+  document.addEventListener("pointerdown", function (e) {
+    var cell = e.target.closest(".cell[data-lane]");
+    if (!cell || !HC.view || HC.view.phase !== "plan") return;
+    if (_oddsSheet) closeOddsSheet();
+
+    var lane = +cell.dataset.lane;
+    var beat = ownerBeat(HC.view, lane, +cell.dataset.beat);
+    _lpTarget = cell;
+    _lpTimer = setTimeout(function () { showOddsSheet(lane, beat); }, 500);
+  });
+
+  document.addEventListener("pointermove", function (e) {
+    if (!_lpTarget) return;
+    var r = _lpTarget.getBoundingClientRect();
+    if (Math.abs(e.clientX - r.left) > 12 || Math.abs(e.clientY - r.top) > 12) {
+      clearTimeout(_lpTimer); _lpTarget = null;
+    }
+  });
+
+  document.addEventListener("pointerup", function () {
+    if (_lpTimer) { clearTimeout(_lpTimer); _lpTarget = null; }
+  });
+
+  document.addEventListener("pointerdown", function (e) {
+    if (_oddsSheet && !_oddsSheet.contains(e.target)) closeOddsSheet();
+  });
+
   // Expose right-click menu actions for pc.js to call
   window.heistPlanOps = {
     clear: function(lane, beat) { HC.send({ action: "clear", lane: +lane, beat: +beat }); },

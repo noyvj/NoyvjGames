@@ -286,4 +286,17 @@ html[data-effects="off"] *, html[data-effects="off"] *::before, html[data-effect
   
   html[data-reduced-motion="true"] #mobile-tray,
   html[data-effects="off"] #mobile-tray { scroll-snap-type: none; transition: none !important; }
+
+  .odds-sheet {
+    position: fixed; left: 1rem; right: 1rem; bottom: 1rem; z-index: 200;
+    background: var(--panel); border: 1px solid var(--edge); border-radius: 12px;
+    padding: 1rem; box-shadow: 0 -4px 16px rgba(0,0,0,0.3);
+    display: flex; flex-direction: column; gap: 0.5rem;
+    animation: slide-up 0.2s ease-out;
+  }
+  .odds-sheet-close { align-self: flex-end; background: transparent; border: none; font-size: 1.2rem; padding: 0; cursor: pointer; color: var(--text); }
+  .odds-label { margin: 0; font-weight: 700; }
+  .odds-explanation { margin: 0; white-space: pre-wrap; color: var(--muted); font-size: 0.9rem; line-height: 1.4; }
+  @keyframes slide-up { from { transform: translateY(100%); } to { transform: none; } }
+  html[data-reduced-motion="true"] .odds-sheet { animation: none; }
 }
