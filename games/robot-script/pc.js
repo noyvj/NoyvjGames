@@ -42,3 +42,74 @@ window.ROBOT_SCRIPT_PC_TUTORIAL_STEPS = [
     text: "Take your time. Your lists and medals are saved as you go.",
   },
 ];
+
+// Breakpoints gutter for Desktop view
+(function () {
+  "use strict";
+  window.ROBOT_SCRIPT_breakpoints = new Set();
+
+  function toggleBreakpoint(index) {
+    if (window.ROBOT_SCRIPT_breakpoints.has(index)) {
+      window.ROBOT_SCRIPT_breakpoints.delete(index);
+    } else {
+      window.ROBOT_SCRIPT_breakpoints.add(index);
+    }
+    _updateGutters();
+  }
+  window.ROBOT_SCRIPT_toggleBreakpoint = toggleBreakpoint;
+
+  function _updateGutters() {
+    var lines = document.querySelectorAll("#program ol > li");
+    for (var i = 0; i < lines.length; i++) {
+      var gutter = lines[i].querySelector(".gutter");
+      if (!gutter) continue;
+      if (window.ROBOT_SCRIPT_breakpoints.has(i)) {
+        gutter.classList.add("breakpoint");
+      } else {
+        gutter.classList.remove("breakpoint");
+      }
+    }
+  }
+
+  document.addEventListener("DOMContentLoaded", function () {
+    var program = document.getElementById("program");
+    if (!program) return;
+
+    // Inject gutters into existing lines
+    var lines = program.querySelectorAll("#program ol > li");
+    for (var i = 0; i < lines.length; i++) {
+      var gutter = document.createElement("div");
+      gutter.className = "gutter";
+      gutter.setAttribute("data-index", i);
+      gutter.setAttribute("role", "button");
+      gutter.setAttribute("aria-label", "Toggle breakpoint at line " + (i + 1));
+      gutter.addEventListener("click", function (e) {
+        e.stopPropagation();
+        toggleBreakpoint(parseInt(e.currentTarget.getAttribute("data-index"), 10));
+      });
+      lines[i].appendChild(gutter);
+    }
+
+    // Hook into future lines if app.js adds them dynamically
+    var observer = new MutationObserver(function (mutations) {
+      for (var m = 0; m < mutations.length; m++) {
+        mutations[m].addedNodes.forEach(function (node) {
+          if (node.nodeType === 1 && node.tagName === "LI") {
+            var idx = Array.prototype.indexOf.call(node.parentNode.children, node);
+            var gutter = document.createElement("div");
+            gutter.className = "gutter";
+            gutter.setAttribute("data-index", idx);
+            gutter.setAttribute("role", "button");
+            gutter.setAttribute("aria-label", "Toggle breakpoint at line " + (idx + 1));
+            gutter.addEventListener("click", function (e) {
+              e.stopPropagation();
+              toggleBreakpoint(parseInt(e.currentTarget.getAttribute("data-index"), 10));
+            });
+            node.appendChild(gutter);
+          }
+        });
+      }
+    });
+    observer.observe(program, { childList: true });
+  });
+})();

@@ -27,3 +27,13 @@ html[data-layout="pc"] .room-holder svg { max-height: calc(100vh - 24rem); }
 
 html[data-layout="pc"] #story-toggle { top: 0.6rem !important; left: auto !important; right: 12rem !important; }
 #pc-hintbar { flex: 0 0 auto; }
+
+/* Breakpoints gutter for Desktop view */
+html[data-layout="pc"] #program ol > li { position: relative; }
+html[data-layout="pc"] #program .gutter {
+  position: absolute; left: -1.2rem; top: 0; bottom: 0; width: 0.8rem;
+  cursor: pointer; border-radius: 4px; transition: background-color 0.15s;
+}
+html[data-layout="pc"] #program .gutter:hover { background-color: rgba(0,0,0,0.05); }
+html[data-layout="pc"] #program .gutter.breakpoint { background-color: #e63946; }
+html[data-layout="pc"] [data-reduced-motion] #program .gutter.breakpoint { transition: none; }

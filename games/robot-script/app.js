@@ -20,7 +20,7 @@
   var view = null;
   var roomId = null;
   var headDeg = 0;
-  var play = { frames: null, i: 0, timer: null, trace: null, running: false };
+  var play = { frames: null, i: 0, timer: null, trace: null, running: false, currentLine: 0 };
   var refocus = false;
   var sandboxTile = "#";
 
@@ -199,6 +199,7 @@
     play.trace = null;
     play.frames = null;
     play.i = 0;
+    play.currentLine = 0;
     markNode("", false);
     hideResult();
     if (view && svgEl()) {
@@ -226,6 +227,13 @@
   }
   function advance() {
     if (!play.frames) return;
+    play.currentLine++;
+    if (window.ROBOT_SCRIPT_breakpoints && window.ROBOT_SCRIPT_breakpoints.has(play.currentLine)) {
+      stopTimer();
+      setText($("run-line"), "Paused at breakpoint");
+      syncPlayButtons();
+      return;
+    }
     if (play.i >= play.frames.length - 1) { finishRun(); return; }
     showFrameAt(play.i + 1, false);
     if (play.i >= play.frames.length - 1) finishRun();
@@ -291,6 +299,7 @@
     play.trace = trace;
     play.frames = trace.frames;
     play.i = 0;
+    play.currentLine = 0;
     hideResult();
     applyFrame(play.frames[0], true);
     syncPlayButtons();
