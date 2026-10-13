@@ -143,3 +143,39 @@ window.POCKET_BAZAAR_PC_TUTORIAL_STEPS = [
     if (!menu.contains(e.target)) hideMenu();
   });
 })();
+
+/* R4-PBPC-3: Hover tooltip for customers */
+(function () {
+  "use strict";
+  var queue = document.getElementById("queue");
+  if (!queue) return;
+
+  function showTooltip(customerEl, text) {
+    var tip = customerEl.querySelector(".customer-tooltip");
+    if (!tip) {
+      tip = document.createElement("div");
+      tip.className = "customer-tooltip";
+      tip.setAttribute("aria-hidden", "true");
+      customerEl.appendChild(tip);
+    }
+    tip.innerHTML = text;
+  }
+
+  queue.addEventListener("mouseover", function (e) {
+    var customer = e.target.closest(".customer");
+    if (!customer) return;
+    var good = customer.getAttribute("data-good") || "";
+    var patience = customer.getAttribute("data-patience") || "";
+    var lines = [];
+    if (good) lines.push("Wants: " + good);
+    if (patience) lines.push("Patience: " + patience + " beats");
+    showTooltip(customer, lines.join("<br>"));
+  });
+
+  queue.addEventListener("mouseout", function (e) {
+    var customer = e.target.closest(".customer");
+    if (!customer || !customer.contains(e.relatedTarget)) return;
+    var tip = customer.querySelector(".customer-tooltip");
+    if (tip) tip.innerHTML = "";
+  });
+})();
