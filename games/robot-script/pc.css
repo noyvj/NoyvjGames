@@ -37,3 +37,13 @@ html[data-layout="pc"] #program .gutter {
 html[data-layout="pc"] #program .gutter:hover { background-color: rgba(0,0,0,0.05); }
 html[data-layout="pc"] #program .gutter.breakpoint { background-color: #e63946; }
 html[data-layout="pc"] [data-reduced-motion] #program .gutter.breakpoint { transition: none; }
+
+/* Snippets drawer */
+#pc-snippets-body { display: flex; flex-direction: column; gap: 0.5rem; padding: 0.5rem; max-height: 40vh; overflow-y: auto; }
+html[data-layout="pc"] .pc-snippet-item { display: flex; justify-content: space-between; align-items: center; padding: 0.4rem 0.6rem; background: var(--bg-secondary, #f4f4f5); border-radius: 4px; cursor: grab; user-select: none; }
+html[data-layout="pc"] .pc-snippet-item:active { cursor: grabbing; }
+html[data-layout="pc"] .pc-snippet-name { flex: 1; font-size: 0.9rem; }
+html[data-layout="pc"] .pc-snippet-del { background: none; border: none; cursor: pointer; color: inherit; opacity: 0.6; padding: 0 0.3rem; }
+html[data-layout="pc"] .pc-snippet-del:hover { opacity: 1; }
+html[data-layout="pc"] #program.drag-over { outline: 2px dashed var(--accent, #3b82f6); outline-offset: 2px; }
+html[data-layout="pc"] [data-reduced-motion] #program.drag-over { transition: none; }

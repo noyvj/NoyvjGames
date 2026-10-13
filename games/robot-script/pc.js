@@ -113,3 +113,87 @@ window.ROBOT_SCRIPT_PC_TUTORIAL_STEPS = [
     observer.observe(program, { childList: true });
   });
 })();
+
+// Snippets drawer (Desktop boot)
+(function () {
+  "use strict";
+  var KEY = "robot-script-snippets";
+  function load() {
+    try { return JSON.parse(localStorage.getItem(KEY)) || []; } catch (e) { return []; }
+  }
+  function save(snips) { localStorage.setItem(KEY, JSON.stringify(snips)); }
+
+  function render() {
+    var body = document.getElementById("pc-snippets-body");
+    if (!body) return;
+    body.innerHTML = "";
+    var snips = load();
+    snips.forEach(function (s, i) {
+      var item = document.createElement("div");
+      item.className = "pc-snippet-item";
+      item.draggable = true;
+      item.setAttribute("aria-label", "Drag to insert: " + s.name);
+      item.innerHTML = '<span class="pc-snippet-name">' + s.name + '</span><button class="pc-snippet-del" aria-label="Delete snippet">✕</button>';
+      item.addEventListener("dragstart", function (e) {
+        e.dataTransfer.setData("text/plain", JSON.stringify(s));
+        e.dataTransfer.effectAllowed = "copy";
+      });
+      var delBtn = item.querySelector(".pc-snippet-del");
+      delBtn.addEventListener("click", function () {
+        snips.splice(i, 1);
+        save(snips);
+        render();
+      });
+      body.appendChild(item);
+    });
+  }
+
+  document.addEventListener("DOMContentLoaded", function () {
+    var addBtn = document.getElementById("snippets-add-button");
+    if (addBtn) {
+      addBtn.addEventListener("click", function () {
+        var name = prompt("Name for this snippet:");
+        if (!name) return;
+        var lines = document.querySelectorAll("#program ol > li");
+        var text = Array.from(lines).map(function(li) { return li.textContent.trim(); }).join("\n");
+        if (!text) { alert("The list is empty."); return; }
+        var snips = load();
+        snips.push({ id: Date.now().toString(), name: name, text: text });
+        save(snips);
+        render();
+      });
+    }
+
+    var program = document.getElementById("program");
+    if (program) {
+      program.addEventListener("dragover", function (e) {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = "copy";
+        program.classList.add("drag-over");
+      });
+      program.addEventListener("dragleave", function () {
+        program.classList.remove("drag-over");
+      });
+      program.addEventListener("drop", function (e) {
+        e.preventDefault();
+        program.classList.remove("drag-over");
+        var data = e.dataTransfer.getData("text/plain");
+        if (!data) return;
+        try {
+          var s = JSON.parse(data);
+          var ol = program.querySelector("ol");
+          if (ol) {
+            var lines = s.text.split("\n");
+            for (var i = 0; i < lines.length; i++) {
+              var newLi = document.createElement("li");
+              newLi.textContent = lines[i];
+              ol.appendChild(newLi);
+            }
+          }
+        } catch (err) {}
+      });
+    }
+
+    render();
+  });
+})();
