@@ -71,7 +71,7 @@ window.DEAD_RECKONING_PC_TUTORIAL_STEPS = [
   });
 })();
 
-// Chart zoom & pan (PC only) -------------------------------------------------
+// Chart zoom & pan + parallel rules measurement (PC only) -------------------
 (function () {
   var holder = document.getElementById("chart-holder");
   if (!holder) return;
@@ -86,6 +86,46 @@ window.DEAD_RECKONING_PC_TUTORIAL_STEPS = [
   function applyTransform() {
     svg.style.transform = "translate(" + tx + "px, " + ty + "px) scale(" + scale + ")";
     svg.style.transformOrigin = "center center";
+  }
+
+  // Measurement state
+  var isMeasuring = false;
+  var measureStart = null;
+  var measureLine = document.createElementNS("http://www.w3.org/2000/svg", "line");
+  measureLine.setAttribute("class", "dr-measure-line");
+  measureLine.style.pointerEvents = "none";
+  holder.appendChild(measureLine);
+
+  var measureLabel = document.getElementById("dr-measure-result") || document.createElement("div");
+  measureLabel.id = "dr-measure-result";
+  measureLabel.className = "hidden";
+  measureLabel.style.position = "absolute";
+  measureLabel.style.zIndex = "30";
+  holder.appendChild(measureLabel);
+
+  function getSvgCoords(e) {
+    var pt = svg.createSVGPoint();
+    pt.x = e.clientX;
+    pt.y = e.clientY;
+    return pt.matrixTransform(svg.getScreenCTM().inverse());
+  }
+
+  function updateMeasure(e) {
+    if (!measureStart) return;
+    var end = getSvgCoords(e);
+    measureLine.setAttribute("x2", end.x);
+    measureLine.setAttribute("y2", end.y);
+
+    var dx = end.x - measureStart.x;
+    var dy = -(end.y - measureStart.y);
+    var dist = Math.sqrt(dx * dx + dy * dy).toFixed(1);
+    var bearing = ((Math.atan2(dx, dy) * 180 / Math.PI) + 360) % 360;
+    bearing = Math.round(bearing);
+
+    measureLabel.textContent = bearing + "° / " + dist + " nm";
+    measureLabel.style.left = (end.x + 5) + "px";
+    measureLabel.style.top = (end.y - 20) + "px";
+    measureLabel.classList.remove("hidden");
   }
 
   holder.addEventListener("wheel", function (e) {
@@ -106,23 +146,41 @@ window.DEAD_RECKONING_PC_TUTORIAL_STEPS = [
 
   holder.addEventListener("mousedown", function (e) {
     if (e.button !== 0) return;
-    dragging = true;
-    startX = e.clientX;
-    startY = e.clientY;
-    startTx = tx;
-    startTy = ty;
-    holder.classList.add("grabbing");
+    if (isMeasuring) {
+      measureStart = getSvgCoords(e);
+      measureLine.setAttribute("x1", measureStart.x);
+      measureLine.setAttribute("y1", measureStart.y);
+      measureLine.style.display = "block";
+      measureLabel.classList.add("hidden");
+      e.preventDefault();
+    } else {
+      dragging = true;
+      startX = e.clientX;
+      startY = e.clientY;
+      startTx = tx;
+      startTy = ty;
+      holder.classList.add("grabbing");
+    }
   });
 
   window.addEventListener("mousemove", function (e) {
-    if (!dragging) return;
-    tx = startTx + (e.clientX - startX);
-    ty = startTy + (e.clientY - startY);
-    applyTransform();
+    if (isMeasuring && measureStart) {
+      updateMeasure(e);
+    } else if (dragging) {
+      tx = startTx + (e.clientX - startX);
+      ty = startTy + (e.clientY - startY);
+      applyTransform();
+    }
   });
 
   window.addEventListener("mouseup", function () {
-    if (dragging) {
+    if (isMeasuring && measureStart) {
+      isMeasuring = false;
+      measureLine.style.display = "none";
+      measureLabel.classList.add("hidden");
+      measureStart = null;
+      holder.style.cursor = "";
+    } else if (dragging) {
       dragging = false;
       holder.classList.remove("grabbing");
     }
@@ -131,8 +189,19 @@ window.DEAD_RECKONING_PC_TUTORIAL_STEPS = [
   document.addEventListener("keydown", function (e) {
     if ((e.key === "r" || e.key === "R") && !e.ctrlKey && !e.metaKey && !e.altKey) {
       if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA") return;
-      scale = 1; tx = 0; ty = 0;
-      applyTransform();
+      isMeasuring = true;
+      holder.style.cursor = "crosshair";
+    }
+  });
+
+  document.addEventListener("keyup", function (e) {
+    if ((e.key === "r" || e.key === "R") && !e.ctrlKey && !e.metaKey && !e.altKey) {
+      isMeasuring = false;
+      holder.style.cursor = "";
+      if (!measureStart) {
+        scale = 1; tx = 0; ty = 0;
+        applyTransform();
+      }
     }
   });
 
