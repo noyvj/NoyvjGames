@@ -401,7 +401,11 @@ if (-not $ok) {
         $failedBefore = @(Get-Content $doneFile -Encoding utf8 -ErrorAction SilentlyContinue | Where-Object { $_ -match "^\W*FAILED .*\| $([regex]::Escape($Item)) \|" }).Count
         if ($failedBefore -eq 0 -and -not $timedOut) {
             $retryLine = "$Game | $Item | $($Files -join ', ') | $($Task -replace '\|', '/')"
-            Add-Content -Encoding utf8 (Join-Path $aiDir "queue-next.txt") $retryLine
+            $nextFile = Join-Path $aiDir "queue-next.txt"   # retries go to the top, ahead of the parked test-writing tasks
+            $nextLines = @(Get-Content $nextFile -Encoding utf8 -ErrorAction SilentlyContinue)
+            $head = @($nextLines | Select-Object -First 1)
+            $rest = @($nextLines | Select-Object -Skip 1)
+            Set-Content -Encoding utf8 $nextFile (@($head) + @($retryLine) + $rest)
             Write-Host "Queued one more try for $Item on the second list (queue-next.txt)."
         }
     }
