@@ -473,3 +473,15 @@ html[data-reduced-motion="true"] .letters-list li:not(.flipped) .letter-card-bac
   }
   html[data-reduced-motion="true"] #letters-panel { transition: none; }
 }
+
+/* Battery saver night (mobile): hides animated layers, keeps beam moving */
+@media (max-width: 600px) {
+  html[data-battery-saver="true"] .wave-row,
+  html[data-battery-saver="true"] #rain-layer,
+  html[data-battery-saver="true"] #fog-layer {
+    display: none;
+  }
+  html[data-battery-saver="true"] .beam.sweeping {
+    animation-play-state: running !important;
+  }
+}
