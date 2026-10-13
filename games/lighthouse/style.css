@@ -287,4 +287,23 @@ html[data-reduced-motion="true"] #off-chart .odd-light.blinking { animation: non
   html body #story-toggle { bottom: calc(var(--dock-h, 0px) + 3.6rem); }
   html body #theme-toggle-floating { bottom: calc(var(--dock-h, 0px) + 6.4rem); }
 }
+
+/* ---- mobile lamp slider (R4-LHMO-1) ---- */
+@media (max-width: 600px) {
+  .lamp-slider-wrap {
+    position: fixed; right: 0.5rem; bottom: 4rem; z-index: 800;
+    display: flex; flex-direction: column; align-items: center; gap: 0.25rem;
+    background: var(--panel-fill); border: 1px solid var(--edge); border-radius: 12px;
+    padding: 0.6rem 0.4rem;
+  }
+  .lamp-slider {
+    -webkit-appearance: slider-vertical; appearance: slider-vertical;
+    width: 1.8rem; height: 12rem; accent-color: var(--accent); transform-origin: center;
+  }
+  .lamp-slider::-webkit-slider-runnable-track { width: 0.4rem; background: var(--off); border-radius: 999px; }
+  .lamp-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 1.2rem; height: 1.2rem; border-radius: 50%; background: var(--accent); margin-left: -0.4rem; box-shadow: 0 2px 6px rgba(0,0,0,0.3); }
+  .lamp-slider::-moz-range-track { width: 0.4rem; background: var(--off); border-radius: 999px; }
+  .lamp-slider::-moz-range-thumb { width: 1.2rem; height: 1.2rem; border-radius: 50%; background: var(--accent); border: none; box-shadow: 0 2px 6px rgba(0,0,0,0.3); }
+  .lamp-notch { font-size: 0.65rem; color: var(--muted); text-align: center; writing-mode: vertical-rl; transform: rotate(180deg); letter-spacing: 0.05em; }
+}
 .info-page-how { margin: 0.3rem 0; padding-left: 1.2rem; }
