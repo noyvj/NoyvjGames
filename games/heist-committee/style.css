@@ -8,6 +8,7 @@
   --accent: #ffc15e; --focus: #ffd666; --hover-edge: #ffc15e;
   --good: #8be0a0; --warn: #ffb347; --bad: #ff8d8d; --info: #8fd3ff;
   --cell: #181c2c; --cell-fill: #232843; --selected: #ffc15e; --armed: #5fd0c8;
+  --cosy-bg: #1a1d2e; --cosy-bg-top: #0f111a;
 }
 html[data-theme="light"] {
   --bg: #f4efe6; --bg-top: #fbf8f1; --panel: #fffdf8; --panel-fill: rgba(255, 253, 248, 0.96); --surface: #f1ebde;
@@ -316,4 +317,26 @@ html[data-effects="off"] *, html[data-effects="off"] *::before, html[data-effect
   .timeline-wrap { touch-action: pan-x pinch-zoom; }
   .timeline { transform-origin: top left; transition: transform 0.2s ease-out; will-change: transform; }
   html[data-reduced-motion="true"] .timeline, html[data-effects="off"] .timeline { transition: none !important; }
+
+  /* R4-HCMO-9: Cosy night mode - dimmer background, larger cells for bedtime planning */
+  html[data-cosy-night="true"] #game {
+    background: radial-gradient(ellipse at top, var(--cosy-bg), var(--cosy-bg-top) 70%);
+  }
+  html[data-cosy-night="true"] .panel,
+  html[data-cosy-night="true"] .card,
+  html[data-cosy-night="true"] .cell {
+    background: rgba(255, 255, 255, 0.04);
+    border-color: var(--line);
+  }
+  html[data-cosy-night="true"] .timeline-wrap {
+    background: rgba(0, 0, 0, 0.3);
+  }
+  /* Bigger cells for touch targets in cosy mode */
+  html[data-cosy-night="true"] .cell {
+    min-height: 5.2rem;
+    font-size: 0.85rem;
+  }
+  html[data-cosy-night="true"] .beat-head {
+    padding: 0.3rem 0.2rem;
+  }
 }
