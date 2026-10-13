@@ -22,3 +22,23 @@ html[data-layout="pc"] .board-holder svg { max-height: calc(100vh - 24rem); }
 
 html[data-layout="pc"] #story-toggle { top: 0.6rem !important; left: auto !important; right: 12rem !important; }
 html[data-layout="pc"] .map-holder { max-width: 36rem; }
+
+/* R4-HRPC-2: Hover highlights for ports and lines */
+html[data-layout="pc"] .board-holder svg .port,
+html[data-layout="pc"] .board-holder svg path.line {
+  transition: opacity 0.15s ease, filter 0.15s ease;
+}
+@media (prefers-reduced-motion: reduce) {
+  html[data-layout="pc"] .board-holder svg .port,
+  html[data-layout="pc"] .board-holder svg path.line {
+    transition: none;
+  }
+}
+html[data-layout="pc"] .board-holder svg .port:hover,
+html[data-layout="pc"] .board-holder svg path.line:hover {
+  filter: brightness(1.25);
+}
+html[data-layout="pc"] .board-holder svg .port.highlighted,
+html[data-layout="pc"] .board-holder svg path.line.highlighted {
+  filter: brightness(1.4);
+}

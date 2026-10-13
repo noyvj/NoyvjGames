@@ -41,3 +41,47 @@ window.HULL_REPAIR_PC_TUTORIAL_STEPS = [
     text: "Take your time. Your repairs are saved as you go.",
   },
 ];
+
+document.addEventListener("DOMContentLoaded", function () {
+  var holder = document.getElementById("board-holder");
+  if (!holder) return;
+
+  function clearHighlights() {
+    holder.querySelectorAll(".highlighted").forEach(function (el) { el.classList.remove("highlighted"); });
+  }
+
+  function getPortId(el) {
+    return el.getAttribute("data-port") || (el.getAttribute("class") || "").match(/[A-Ha-h]/)?.[0];
+  }
+
+  var currentHover = null;
+
+  holder.addEventListener("mouseover", function (e) {
+    var target = e.target.closest(".port, path.line");
+    if (!target || target === currentHover) return;
+    clearHighlights();
+    currentHover = target;
+    if (target.classList.contains("port")) {
+      var id = getPortId(target);
+      if (!id) return;
+      holder.querySelectorAll(".port").forEach(function (p) {
+        if (getPortId(p) === id) p.classList.add("highlighted");
+      });
+      holder.querySelectorAll("path.line").forEach(function (l) {
+        if ((l.getAttribute("data-port") || "").includes(id)) l.classList.add("highlighted");
+      });
+    } else {
+      target.classList.add("highlighted");
+      var len = target.getAttribute("data-length");
+      if (!len && target.getAttribute("d")) len = target.getAttribute("d").split(",").length;
+      target.setAttribute("title", "Length: " + (len || "?"));
+    }
+  });
+
+  holder.addEventListener("mouseout", function (e) {
+    var target = e.target.closest(".port, path.line");
+    if (!target || target !== currentHover) return;
+    clearHighlights();
+    currentHover = null;
+  });
+});
