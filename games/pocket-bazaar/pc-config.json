@@ -38,5 +38,15 @@
     ["Esc", "Menu / close window"],
     ["?", "All shortcuts"]
   ],
+  "hotkeys": {
+    "Enter": "#start-day-button",
+    "1": ".crates .crate-btn:nth-child(1)",
+    "2": ".crates .crate-btn:nth-child(2)",
+    "3": ".crates .crate-btn:nth-child(3)",
+    "4": ".crates .crate-btn:nth-child(4)",
+    "5": ".crates .crate-btn:nth-child(5)",
+    "S": "#sell-button",
+    "B": "#broom-button"
+  },
   "notify": null
 }

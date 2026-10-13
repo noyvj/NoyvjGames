@@ -172,6 +172,26 @@ html[data-layout="pc"] .cell.selected {
   outline-offset: -1px;
   background-color: var(--accent-bg, #e8f0fe);
 }
+/* R4-PBPC-8: Alt-hold hotkey overlay */
+html[data-layout="pc"] #pc-hotkey-overlay {
+  position: fixed;
+  top: 0; left: 0; width: 100%; height: 100%;
+  pointer-events: none;
+  z-index: 9999;
+}
+html[data-layout="pc"] .hotkey-label {
+  position: absolute;
+  top: -1.2rem;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--accent, #4a90d9);
+  color: #fff;
+  padding: 0.1rem 0.4rem;
+  border-radius: 3px;
+  font-size: 0.8rem;
+  font-weight: bold;
+  white-space: nowrap;
+}
 @media (prefers-reduced-motion: reduce) {
-  html[data-layout="pc"] .cell.selected { transition: none; }
+  html[data-layout="pc"] .hotkey-label { transition: none; }
 }

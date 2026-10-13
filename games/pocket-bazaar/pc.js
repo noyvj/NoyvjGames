@@ -99,6 +99,55 @@ window.POCKET_BAZAAR_PC_TUTORIAL_STEPS = [
   });
 })();
 
+/* R4-PBPC-8: Alt-hold hotkey overlay */
+(function () {
+  "use strict";
+  var overlay = null;
+
+  function showOverlay() {
+    if (overlay) return;
+    overlay = document.createElement("div");
+    overlay.id = "pc-hotkey-overlay";
+    overlay.setAttribute("aria-hidden", "true");
+    document.body.appendChild(overlay);
+
+    var config = window.NOYVJ_PC_HOTKEYS || {};
+    for (var key in config) {
+      var selector = config[key];
+      var el = document.querySelector(selector);
+      if (el && !el.querySelector(".hotkey-label")) {
+        var span = document.createElement("span");
+        span.className = "hotkey-label";
+        span.textContent = key;
+        el.style.position = "relative";
+        el.appendChild(span);
+      }
+    }
+  }
+
+  function hideOverlay() {
+    if (!overlay) return;
+    var spans = overlay.querySelectorAll(".hotkey-label");
+    for (var i = 0; i < spans.length; i++) {
+      if (spans[i].parentNode) spans[i].parentNode.removeChild(spans[i]);
+    }
+    document.body.removeChild(overlay);
+    overlay = null;
+  }
+
+  document.addEventListener("keydown", function (e) {
+    if (e.key === "Alt") {
+      showOverlay();
+    }
+  });
+
+  document.addEventListener("keyup", function (e) {
+    if (e.key === "Alt") {
+      hideOverlay();
+    }
+  });
+})();
+
 /* R4-PBPC-2: Right-click context menu on pieces */
 (function () {
   "use strict";
