@@ -42,3 +42,59 @@ window.POCKET_BAZAAR_PC_TUTORIAL_STEPS = [
     text: "Take your time. Your stall is saved after every action, and nothing is lost by leaving.",
   },
 ];
+
+/* R4-PBPC-1: Hover preview for merges */
+(function () {
+  "use strict";
+  var board = document.getElementById("board");
+  if (!board) return;
+
+  function clearHover() {
+    board.querySelectorAll("[data-hover-target]").forEach(function (el) {
+      el.removeAttribute("data-hover-target");
+      el.removeAttribute("data-result");
+    });
+  }
+
+  function getCellGood(cell) {
+    var raw = cell.getAttribute("data-good");
+    if (!raw) return null;
+    try {
+      if (raw.startsWith("[")) return JSON.parse(raw);
+      var p = raw.split(",");
+      return { family: p[0], tier: parseInt(p[1], 10), wild: false };
+    } catch (_) { return null; }
+  }
+
+  board.addEventListener("mouseover", function (e) {
+    var cell = e.target.closest(".cell");
+    if (!cell) return;
+    clearHover();
+    var g1 = getCellGood(cell);
+    if (!g1) return;
+
+    board.querySelectorAll(".cell").forEach(function (other) {
+      if (other === cell) return;
+      var g2 = getCellGood(other);
+      var compatible = false;
+      if (g1 && g2) {
+        var sameFamily = g1.family === g2.family;
+        var sameTier = g1.tier === g2.tier;
+        var wild1 = g1.wild || false;
+        var wild2 = g2.wild || false;
+        compatible = (sameFamily && sameTier) || wild1 || wild2;
+      }
+
+      if (compatible) {
+        other.setAttribute("data-hover-target", "true");
+        var resTier = Math.min(g1.tier + 1, 5);
+        var resFamily = wild1 ? "Wild" : (wild2 ? g2.family : g1.family);
+        other.setAttribute("data-result", "T" + resTier + " " + resFamily);
+      }
+    });
+  });
+
+  board.addEventListener("mouseout", function (e) {
+    if (!board.contains(e.relatedTarget)) clearHover();
+  });
+})();

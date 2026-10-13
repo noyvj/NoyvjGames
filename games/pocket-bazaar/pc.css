@@ -64,3 +64,33 @@ html[data-layout="pc"] .closed-card { display: flex; flex-direction: column; ali
 html[data-layout="pc"] .closed-card #closed-heading { order: -3; }
 html[data-layout="pc"] .closed-card .closed-buttons { order: -2; margin-bottom: 0.5rem; }
 html[data-layout="pc"] .closed-card #summary { order: -1; }
+
+/* R4-PBPC-1: Hover preview for merges */
+html[data-layout="pc"] .cell[data-hover-target] {
+  outline: 2px dashed var(--accent, #4a90d9);
+  outline-offset: -1px;
+}
+html[data-layout="pc"] .cell[data-hover-target]::after {
+  content: attr(data-result);
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  background: var(--bg, #fff);
+  border: 1px solid var(--border, #ccc);
+  padding: 1px 4px;
+  font-size: 0.7rem;
+  line-height: 1;
+  white-space: nowrap;
+  pointer-events: none;
+  z-index: 2;
+}
+html[data-layout="pc"] .cell[data-hover-target] {
+  animation: pc-hover-pulse 1.5s infinite alternate ease-in-out;
+}
+@keyframes pc-hover-pulse {
+  from { outline-color: var(--accent, #4a90d9); }
+  to { outline-color: var(--accent, #7ab8f0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  html[data-layout="pc"] .cell[data-hover-target] { animation: none; }
+}
