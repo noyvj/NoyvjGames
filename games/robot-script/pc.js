@@ -197,3 +197,62 @@ window.ROBOT_SCRIPT_PC_TUTORIAL_STEPS = [
     render();
   });
 })();
+
+// Playback slider and keyboard controls (Desktop boot)
+(function () {
+  "use strict";
+  var KEY = "robot-script-playback-speed";
+  function loadSpeed() {
+    try { return parseInt(localStorage.getItem(KEY), 10) || 50; } catch (e) { return 50; }
+  }
+  function saveSpeed(val) { localStorage.setItem(KEY, String(val)); }
+
+  document.addEventListener("DOMContentLoaded", function () {
+    var playback = document.getElementById("playback");
+    if (!playback) return;
+
+    var slider = document.createElement("input");
+    slider.type = "range";
+    slider.min = "0";
+    slider.max = "100";
+    slider.value = loadSpeed();
+    slider.id = "playback-slider";
+    slider.setAttribute("aria-label", "Playback speed");
+    slider.addEventListener("input", function () {
+      var val = parseInt(slider.value, 10);
+      // Map 0-100 to 600ms-50ms (slow to fast)
+      var delay = Math.max(50, 600 - (val * 5.5));
+      playback.dataset.playbackDelay = delay;
+      window.robotScriptPlaybackDelay = delay;
+      saveSpeed(val);
+      document.dispatchEvent(new CustomEvent("robotScriptPlaybackSpeedChange", { detail: val }));
+    });
+    playback.appendChild(slider);
+
+    // Keyboard shortcuts
+    document.addEventListener("keydown", function (e) {
+      if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA") return;
+      var slider = document.getElementById("playback-slider");
+      if (!slider) return;
+      var val = parseInt(slider.value, 10);
+      if (e.key === "[") {
+        slider.value = Math.max(0, val - 5);
+        playback.dataset.playbackDelay = slider.value;
+        window.robotScriptPlaybackDelay = slider.value;
+        saveSpeed(slider.value);
+        document.dispatchEvent(new CustomEvent("robotScriptPlaybackSpeedChange", { detail: slider.value }));
+        e.preventDefault();
+      } else if (e.key === "]") {
+        slider.value = Math.min(100, val + 5);
+        playback.dataset.playbackDelay = slider.value;
+        window.robotScriptPlaybackDelay = slider.value;
+        saveSpeed(slider.value);
+        document.dispatchEvent(new CustomEvent("robotScriptPlaybackSpeedChange", { detail: slider.value }));
+        e.preventDefault();
+      } else if (e.key === "ArrowLeft" || e.key === "ArrowRight") {
+        document.dispatchEvent(new CustomEvent("robotScriptFrameStep", { detail: e.key === "ArrowLeft" ? -1 : 1 }));
+        e.preventDefault();
+      }
+    });
+  });
+})();

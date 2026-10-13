@@ -182,13 +182,28 @@
   // ---- playback --------------------------------------------------------------------------------------
   function speedMs() {
     var reduced = document.documentElement.getAttribute("data-reduced-motion") === "true";
-    var name = document.documentElement.getAttribute("data-run-speed") || "normal";
     if (reduced) return 0;
+    var custom = window.robotScriptPlaybackDelay;
+    if (custom !== undefined && typeof custom === "number") return custom;
+    var name = document.documentElement.getAttribute("data-run-speed") || "normal";
     return SPEED_MS[name] === undefined ? SPEED_MS.normal : SPEED_MS[name];
   }
   function stopTimer() {
     if (play.timer) { clearInterval(play.timer); play.timer = null; }
     play.running = false;
+  }
+  function updatePlaybackSpeed(delay) {
+    if (!play.running || !play.trace) return;
+    stopTimer();
+    play.timer = setInterval(advance, delay);
+    syncPlayButtons();
+  }
+  function stepFrame(dir) {
+    if (!play.trace || !play.frames) return;
+    var nextI = play.i + dir;
+    if (nextI < 0) nextI = 0;
+    if (nextI >= play.frames.length) nextI = play.frames.length - 1;
+    showFrameAt(nextI, true);
   }
   function hideResult() {
     $("result-card").hidden = true;
@@ -294,11 +309,11 @@
     announce(t.cleared ? "Room cleared, " + t.medal_name + " medal." : t.message);
     syncPlayButtons();
   }
-  function startPlay(trace, autoplay) {
+  function startPlay(trace, autoplay, i) {
     stopTimer();
     play.trace = trace;
     play.frames = trace.frames;
-    play.i = 0;
+    play.i = i !== undefined ? i : 0;
     play.currentLine = 0;
     hideResult();
     applyFrame(play.frames[0], true);
@@ -313,11 +328,7 @@
   function onRun() {
     if (play.running) { stopTimer(); syncPlayButtons(); return; }
     if (play.trace && play.i < play.frames.length - 1) {
-      var ms = speedMs();
-      if (ms === 0) { showFrameAt(play.frames.length - 1, true); finishRun(); return; }
-      play.running = true;
-      play.timer = setInterval(advance, ms);
-      syncPlayButtons();
+      startPlay(play.trace, true, play.i);
       return;
     }
     var result = send({ action: "run" });
@@ -794,6 +805,14 @@
   function wire() {
     wireDifficulty();
     $("toast").addEventListener("click", function () { showToast(""); });
+
+    // Playback slider and keyboard controls
+    document.addEventListener("robotScriptPlaybackSpeedChange", function (e) {
+      updatePlaybackSpeed(e.detail);
+    });
+    document.addEventListener("robotScriptFrameStep", function (e) {
+      stepFrame(e.detail);
+    });
     wirePanelToggle("rooms-toggle-button", "rooms-panel");
     wirePanelToggle("workshop-toggle-button", "workshop-panel");
     wirePanelToggle("achievements-toggle-button", "achievements-panel");
