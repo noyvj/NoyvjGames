@@ -97,3 +97,33 @@ html[data-theme="dark"] #chart-tooltip {
   background: var(--panel-bg, #1a1a1a);
 }
 #chart-tooltip.visible { display: block; }
+
+/* Chart right-click tools menu (PC only) ---------------------------------------- */
+#chart-tools-menu {
+  position: absolute;
+  background: var(--panel-bg, #fffaf0);
+  border: 1px solid var(--muted);
+  border-radius: 4px;
+  padding: 0.25rem 0;
+  font-size: 0.9rem;
+  color: var(--text);
+  z-index: 20;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  display: none;
+}
+html[data-theme="dark"] #chart-tools-menu {
+  background: var(--panel-bg, #1a1a1a);
+}
+#chart-tools-menu button {
+  display: block;
+  width: 100%;
+  padding: 0.4rem 1rem;
+  text-align: left;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+}
+#chart-tools-menu button:hover {
+  background: var(--accent-bg, rgba(127, 209, 255, 0.15));
+}
