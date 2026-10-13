@@ -78,7 +78,8 @@ select { font: inherit; color: var(--text); background: var(--surface); border: 
 /* --- play area --------------------------------------------------------------------------------- */
 .play { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); gap: 1rem; align-items: start; }
 .play > .panel { margin: 0.5rem 0; }
-@media (max-width: 900px) { .play { grid-template-columns: minmax(0, 1fr); } }
+@media (max-width: 600px) { .play { grid-template-columns: minmax(0, 1fr); } }
+html[data-lg-landscape="true"] .play { grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); }
 .board-scroll { overflow-x: auto; overflow-y: hidden; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); padding: 0.3rem; max-width: 100%; }
 #board-holder { line-height: 0; width: max-content; min-width: 100%; }
 .lg-board { display: block; max-width: none; }

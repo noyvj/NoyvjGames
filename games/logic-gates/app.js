@@ -600,6 +600,16 @@
         send({ action: "add", type: e.detail.type });
       });
     }
+    // ---- mobile landscape layout (R4-LGMO-7) ---------------------------------------------------
+    function updateLandscapeLayout() {
+      if (!window.matchMedia || !window.matchMedia("(orientation: landscape)").matches) return;
+      if (window.innerWidth < 600) $("game").setAttribute("data-lg-landscape", "true");
+      else $("game").removeAttribute("data-lg-landscape");
+    }
+    updateLandscapeLayout();
+    window.addEventListener("resize", updateLandscapeLayout);
+    window.addEventListener("orientationchange", updateLandscapeLayout);
+
     document.addEventListener("keydown", onKey);
   }
 
