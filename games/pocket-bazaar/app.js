@@ -656,12 +656,14 @@
     if (!btn || broomArmed) return;
     var i = Number(btn.dataset.cell);
     if (!cellAt(i)) return;
-    drag = { from: i, x: e.clientX, y: e.clientY, active: false, id: e.pointerId, ghost: null };
+    drag = { from: i, x: e.clientX, y: e.clientY, dx: 0, dy: 0, lastTarget: null, active: false, id: e.pointerId, ghost: null };
   }
   function onPointerMove(e) {
     if (!drag || e.pointerId !== drag.id) return;
+    drag.dx = e.clientX - drag.x;
+    drag.dy = e.clientY - drag.y;
     if (!drag.active) {
-      if (Math.abs(e.clientX - drag.x) + Math.abs(e.clientY - drag.y) < DRAG_THRESHOLD) return;
+      if (Math.abs(drag.dx) + Math.abs(drag.dy) < DRAG_THRESHOLD) return;
       drag.active = true;
       select(drag.from);
       var cell = cellAt(drag.from);
@@ -674,6 +676,7 @@
     drag.ghost.style.top = e.clientY + "px";
     clearOver();
     var target = dropTargetAt(e.clientX, e.clientY);
+    drag.lastTarget = target;
     if (target) target.classList.add("drop-over");
   }
   function endDrag(e, cancelled) {
@@ -686,16 +689,39 @@
     suppressClick = true;
     setTimeout(function () { suppressClick = false; }, 0);
     if (cancelled) return;
-    var target = dropTargetAt(e.clientX, e.clientY);
-    if (!target) { select(null); return; }
-    var spec = target.dataset.drop;
-    if (spec === "sell") sellAt(d.from);
-    else if (spec === "broom") send({ action: "broom", at: d.from });
-    else if (spec.indexOf("customer:") === 0) send({ action: "deliver", from: d.from, to: Number(spec.slice(9)) });
-    else if (spec.indexOf("cell:") === 0) {
-      var to = Number(spec.slice(5));
-      if (to === d.from) select(d.from); else send({ action: "drop", from: d.from, to: to });
-    } else select(null);
+
+    // Swipe detection for mobile
+    var absDx = Math.abs(d.dx);
+    var absDy = Math.abs(d.dy);
+    var threshold = 40;
+    var targetIdx = null;
+    if (cellEls.length > 0 && absDx > threshold && absDx > absDy) {
+      targetIdx = d.dx > 0 ? d.from + 1 : d.from - 1;
+    } else if (cellEls.length > 0 && absDy > threshold && absDy > absDx) {
+      var b = view.board;
+      if (b) {
+        var row = Math.floor(d.from / b.w);
+        targetIdx = d.dy > 0 ? d.from + b.w : d.from - b.w;
+      }
+    }
+
+    if (targetIdx !== null && targetIdx >= 0 && targetIdx < cellEls.length) {
+      var targetBtn = cellButton(targetIdx);
+      if (targetBtn) {
+        targetBtn.classList.add("swipe-target");
+        setTimeout(function () { targetBtn.classList.remove("swipe-target"); }, 300);
+      }
+      send({ action: "swipe", from: d.from, to: targetIdx });
+    } else {
+      var spec = d.lastTarget ? d.lastTarget.dataset.drop : "";
+      if (spec === "sell") sellAt(d.from);
+      else if (spec === "broom") send({ action: "broom", at: d.from });
+      else if (spec.indexOf("customer:") === 0) send({ action: "deliver", from: d.from, to: Number(spec.slice(9)) });
+      else if (spec.indexOf("cell:") === 0) {
+        var to = Number(spec.slice(5));
+        if (to === d.from) select(d.from); else send({ action: "drop", from: d.from, to: to });
+      } else select(null);
+    }
   }
 
   // ---- the keyboard --------------------------------------------------------------------------

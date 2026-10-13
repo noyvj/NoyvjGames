@@ -194,6 +194,9 @@ html[data-effects="off"] *, html[data-effects="off"] *::before, html[data-effect
 }
 
 @media (max-width: 600px) {
+  /* Swipe/flick support on mobile */
+  .board { touch-action: none; }
+  .cell.swipe-target { outline: 2px dashed var(--accent); outline-offset: -1px; }
   /* The board shrinks to the screen's height so the crates and Sell/Broom stay on screen without scrolling. */
   .board { max-width: min(22rem, 100%, calc((100vh - 23rem) * var(--cols) / 6)); }
   /* A phone shows the whole counter and the crates without scrolling: the long intro and the panel title step aside. */
