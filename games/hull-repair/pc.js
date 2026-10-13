@@ -128,4 +128,28 @@ document.addEventListener("DOMContentLoaded", function () {
     });
     observer.observe(resultCard, { attributes: true });
   }
+
+  /* R4-HRPC-9: Board scale slider */
+  var scaleSlider = document.createElement("input");
+  scaleSlider.type = "range";
+  scaleSlider.min = "0.5";
+  scaleSlider.max = "2.0";
+  scaleSlider.step = "0.05";
+  scaleSlider.value = "1.0";
+  scaleSlider.id = "board-scale-slider";
+  scaleSlider.setAttribute("aria-label", "Board scale");
+
+  var side = document.getElementById("pc-side");
+  if (side) side.prepend(scaleSlider);
+
+  scaleSlider.addEventListener("input", function () {
+    document.documentElement.style.setProperty("--board-scale", this.value);
+  });
+
+  /* R4-HRPC-9: Focus key */
+  document.addEventListener("keydown", function (e) {
+    if ((e.key === "f" || e.key === "F") && e.target.tagName !== "INPUT" && e.target.tagName !== "TEXTAREA") {
+      document.documentElement.classList.toggle("focus-mode");
+    }
+  });
 });

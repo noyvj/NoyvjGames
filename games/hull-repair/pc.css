@@ -77,3 +77,24 @@ html[data-layout="pc"] .board-holder svg path.line.replay {
 html[data-layout="pc"][data-reduced-motion="true"] .board-holder svg path.line.replay {
   animation: none;
 }
+
+/* R4-HRPC-9: Board scale slider */
+html[data-layout="pc"] #board-scale-slider {
+  width: 12rem;
+  margin: 0.5rem 0;
+}
+
+/* R4-HRPC-9: Focus mode (hides side panels) */
+html[data-layout="pc"].focus-mode #pc-side,
+html[data-layout="pc"].focus-mode #pc-stagebar {
+  display: none !important;
+}
+html[data-layout="pc"].focus-mode .board-holder svg {
+  transform: scale(var(--board-scale, 1));
+  transform-origin: center center;
+}
+@media (prefers-reduced-motion: reduce) {
+  html[data-layout="pc"].focus-mode .board-holder svg {
+    transition: none;
+  }
+}
