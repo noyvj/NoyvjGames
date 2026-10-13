@@ -513,9 +513,48 @@
     window.NoyvjDifficulty.onChange(function (d) { if (d.game === DIFF_GAME) sendDifficulty(); });
   }
 
+  // ---- mobile pin magnet ---------------------------------------------------------------------------------------
+  var _magnetPin = null;
+  function onPointerMove(e) {
+    if (!view || (!view.armed && !view.target)) {
+      if (_magnetPin) { _magnetPin.classList.remove("lg-pin--magnet-active"); _magnetPin = null; }
+      $("board-holder").style.cursor = "";
+      return;
+    }
+    var holder = $("board-holder");
+    var rect = holder.getBoundingClientRect();
+    var mx = e.clientX - rect.left;
+    var my = e.clientY - rect.top;
+    var pins = holder.querySelectorAll(".lg-pin");
+    var nearest = null;
+    var minDist = 60;
+    for (var i = 0; i < pins.length; i++) {
+      var pRect = pins[i].getBoundingClientRect();
+      var cx = pRect.left + pRect.width / 2 - rect.left;
+      var cy = pRect.top + pRect.height / 2 - rect.top;
+      var dx = mx - cx, dy = my - cy;
+      var dist = Math.sqrt(dx * dx + dy * dy);
+      if (dist < minDist) {
+        minDist = dist;
+        nearest = pins[i];
+      }
+    }
+    if (_magnetPin !== nearest) {
+      if (_magnetPin) _magnetPin.classList.remove("lg-pin--magnet-active");
+      if (nearest) nearest.classList.add("lg-pin--magnet-active");
+      _magnetPin = nearest;
+      holder.style.cursor = nearest ? "pointer" : "";
+    }
+  }
+
   function wire() {
     wireDifficulty();
     window.logicGatesRefresh = function () { if (engine) send({ action: "open" }); };
+    $("board-holder").addEventListener("pointermove", onPointerMove);
+    $("board-holder").addEventListener("pointerleave", function () {
+      if (_magnetPin) { _magnetPin.classList.remove("lg-pin--magnet-active"); _magnetPin = null; }
+      $("board-holder").style.cursor = "";
+    });
     $("board-holder").addEventListener("click", function (e) {
       if (!view) return;
       var pin = e.target.closest && e.target.closest("[data-pin]");

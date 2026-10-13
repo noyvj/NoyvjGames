@@ -172,6 +172,11 @@ td.want-differs { font-weight: 700; }
 .changelog-date { font-size: 0.8rem; color: var(--muted); }
 .changelog-entry { margin: 0.5rem 0; }
 
+@media (max-width: 600px) {
+  .lg-pin { transition: transform 0.15s ease-out; }
+  .lg-pin--magnet-active { transform: scale(1.7); stroke-width: 4px; }
+}
+
 @media (max-width: 480px) {
   #game { padding: 0.6rem 0.6rem 3rem; }
   .panel { padding: 0.6rem 0.7rem; }
