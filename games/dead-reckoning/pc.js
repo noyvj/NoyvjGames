@@ -140,3 +140,46 @@ window.DEAD_RECKONING_PC_TUTORIAL_STEPS = [
     reducedMotion = e.matches;
   });
 })();
+
+// Chart hover tooltip (PC only) -------------------------------------------------
+(function () {
+  var holder = document.getElementById("chart-holder");
+  if (!holder) return;
+  var svg = holder.querySelector("svg.dr-chart");
+  if (!svg) return;
+
+  var tip = document.createElement("div");
+  tip.id = "chart-tooltip";
+  tip.className = "hidden";
+  holder.appendChild(tip);
+
+  var reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var lastUpdate = 0;
+
+  function updateTip(e) {
+    if (reducedMotion && Date.now() - lastUpdate < 150) return;
+    lastUpdate = Date.now();
+
+    var rect = svg.getBoundingClientRect();
+    var mx = e.clientX - rect.left;
+    var my = e.clientY - rect.top;
+
+    if (mx < 0 || my < 0 || mx > rect.width || my > rect.height) {
+      tip.classList.add("hidden");
+      return;
+    }
+
+    tip.classList.remove("hidden");
+    tip.style.left = (e.clientX + 12) + "px";
+    tip.style.top = (e.clientY - 30) + "px";
+
+    var chartSize = window.deadReckoningChart && window.deadReckoningChart.size ? window.deadReckoningChart.size : { w: 100, h: 100 };
+    var x = (mx / rect.width) * chartSize.w;
+    var y = (my / rect.height) * chartSize.h;
+
+    tip.innerHTML = "Pos: " + x.toFixed(1) + " E, " + y.toFixed(1) + " N<br>Current: --<br>Tide: --";
+  }
+
+  holder.addEventListener("mousemove", updateTip);
+  holder.addEventListener("mouseleave", function () { tip.classList.add("hidden"); });
+})();
