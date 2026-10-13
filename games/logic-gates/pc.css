@@ -79,6 +79,19 @@ html[data-layout="pc"] .lg-wire-hover-card.visible {
 html[data-layout="pc"] .lg-wire-value { font-weight: bold; margin-right: 0.5rem; }
 html[data-layout="pc"] .lg-wire-rows { color: var(--text-muted, #8fa4b8); }
 
+/* Drag-box selection (R4-LGPC-5) */
+html[data-layout="pc"] .lg-drag-box {
+  position: absolute;
+  border: 1px dashed var(--accent, #5fd4e6);
+  background: rgba(95, 212, 230, 0.15);
+  pointer-events: none;
+  z-index: 100;
+}
+html[data-layout="pc"] .lg-selected {
+  outline: 2px solid var(--accent, #5fd4e6) !important;
+  outline-offset: 2px;
+  filter: brightness(1.1);
+}
 @media (prefers-reduced-motion: reduce) {
-  html[data-layout="pc"] .lg-wire-hover-card { transition: none; }
+  html[data-layout="pc"] .lg-selected { filter: none; }
 }

@@ -97,3 +97,88 @@ window.LOGIC_GATES_PC_TUTORIAL_STEPS = [
     document.addEventListener("mousemove", moveCard);
   });
 })();
+
+/* Drag-box selection (R4-LGPC-5) */
+(function () {
+  "use strict";
+  var box = null;
+  var startX, startY;
+  var selected = [];
+  var buffer = "";
+  var dragging = false;
+
+  function init() {
+    var board = document.getElementById("board-holder");
+    if (!board) return;
+
+    board.addEventListener("mousedown", function (e) {
+      if (e.button !== 0) return;
+      if (e.target.closest(".lg-pin, .lg-chip-handle, .lg-tie")) return;
+      startX = e.clientX;
+      startY = e.clientY;
+      box = document.createElement("div");
+      box.className = "lg-drag-box";
+      document.body.appendChild(box);
+      dragging = true;
+    });
+
+    document.addEventListener("mousemove", function (e) {
+      if (!dragging || !box) return;
+      var x = Math.min(startX, e.clientX);
+      var y = Math.min(startY, e.clientY);
+      var w = Math.abs(e.clientX - startX);
+      var h = Math.abs(e.clientY - startY);
+      box.style.left = x + "px";
+      box.style.top = y + "px";
+      box.style.width = w + "px";
+      box.style.height = h + "px";
+    });
+
+    document.addEventListener("mouseup", function (e) {
+      if (!dragging || !box) return;
+      dragging = false;
+      var x = Math.min(startX, e.clientX);
+      var y = Math.min(startY, e.clientY);
+      var w = Math.abs(e.clientX - startX);
+      var h = Math.abs(e.clientY - startY);
+
+      if (w > 5 && h > 5) {
+        selected = [];
+        Array.from(board.children).forEach(function (el) {
+          var rect = el.getBoundingClientRect();
+          if (rect.right > x && rect.left < x + w && rect.bottom > y && rect.top < y + h) {
+            el.classList.add("lg-selected");
+            selected.push(el);
+          }
+        });
+      }
+      box.remove();
+      box = null;
+    });
+
+    document.addEventListener("keydown", function (e) {
+      if ((e.ctrlKey || e.metaKey) && e.key === "c" && selected.length > 0) {
+        buffer = selected.map(function (el) { return el.outerHTML; }).join("\n");
+        e.preventDefault();
+      }
+      if ((e.ctrlKey || e.metaKey) && e.key === "v") {
+        if (buffer) {
+          var frag = document.createDocumentFragment();
+          var temp = document.createElement("div");
+          temp.innerHTML = buffer;
+          while (temp.firstChild) frag.appendChild(temp.firstChild);
+          var pasteX = startX || 50, pasteY = startY || 50;
+          Array.from(frag.children).forEach(function (el) {
+            el.style.position = "absolute";
+            el.style.left = (pasteX + Math.random() * 20) + "px";
+            el.style.top = (pasteY + Math.random() * 20) + "px";
+            board.appendChild(el);
+          });
+          e.preventDefault();
+        }
+      }
+    });
+  }
+
+  document.addEventListener("DOMContentLoaded", init);
+})();
