@@ -441,6 +441,75 @@
     { title: "You are ready", text: "Take your time. The station has waited eleven years." },
   ];
 
+  // ---- mobile chapter cards ----------------------------------------------------------------------
+  var _mobileChaptersInitialized = false;
+  function renderMobileChapters() {
+    var container = $("mobile-chapter-cards");
+    if (!container || !view.picker) return;
+    
+    var reducedMotion = false;
+    try { reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches; } catch(e) {}
+    
+    container.textContent = "";
+    var totalChips = (view.board && view.board.count) || 0;
+    view.picker.forEach(function(ch) {
+      var card = el("div", undefined, "chapter-card");
+      card.appendChild(el("h3", ch.name));
+      
+      var solvedCount = 0;
+      ch.levels.forEach(function(lv) { if (lv.solved) solvedCount++; });
+      var totalLevels = ch.total || ch.levels.length;
+      var progress = totalLevels > 0 ? solvedCount / totalLevels : 0;
+      var circumference = 2 * Math.PI * 24;
+      var offset = reducedMotion ? 0 : circumference * (1 - progress);
+      
+      var ringWrap = el("div", undefined, "chapter-progress-ring");
+      var svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+      svg.setAttribute("viewBox", "0 0 60 60");
+      var bg = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+      bg.setAttribute("cx", "30"); bg.setAttribute("cy", "30"); bg.setAttribute("r", "24"); bg.className = "bg";
+      var fg = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+      fg.setAttribute("cx", "30"); fg.setAttribute("cy", "30"); fg.setAttribute("r", "24"); fg.className = "fg"; 
+      fg.setAttribute("stroke-dasharray", circumference); 
+      fg.setAttribute("stroke-dashoffset", offset);
+      svg.appendChild(bg);
+      svg.appendChild(fg);
+      ringWrap.appendChild(svg);
+      card.appendChild(ringWrap);
+      
+      var chipText = el("span", "Chips: " + totalChips, "chapter-chip-count");
+      card.appendChild(chipText);
+      
+      var list = el("div", undefined, "chapter-levels-list");
+      ch.levels.forEach(function(lv) {
+        var btn = el("button", lv.index + ".", "chapter-level-btn" + (lv.solved ? " solved" : "") + (!lv.open ? " locked" : ""));
+        btn.type = "button";
+        btn.setAttribute("aria-label", "Level " + lv.index + ": " + lv.name + (lv.solved ? ", solved" : (lv.open ? ", open" : ", locked")));
+        if (lv.open) {
+          btn.addEventListener("click", function() { openLevel(lv.id); });
+        }
+        list.appendChild(btn);
+      });
+      card.appendChild(list);
+      container.appendChild(card);
+    });
+
+    // Swipe handling (only once, and only if reduced motion is off)
+    if (!_mobileChaptersInitialized && !reducedMotion) {
+      var startX = 0;
+      function onPointerDown(e) { startX = e.clientX; }
+      function onPointerUp(e) {
+        var dx = e.clientX - startX;
+        if (Math.abs(dx) > 50) {
+          container.scrollLeft += dx > 0 ? -container.clientWidth : container.clientWidth;
+        }
+      }
+      container.addEventListener("pointerdown", onPointerDown);
+      container.addEventListener("pointerup", onPointerUp);
+      _mobileChaptersInitialized = true;
+    }
+  }
+
   // ---- render / talk to the engine -----------------------------------------------------------------
   function render() {
     renderStats();

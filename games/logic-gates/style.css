@@ -174,6 +174,44 @@ td.want-differs { font-weight: 700; }
 .changelog-entry { margin: 0.5rem 0; }
 
 /* --- chip drawer (mobile) ------------------------------------------------------------------- */
+/* Swipeable chapter cards (mobile only) ---------------------------------------------------- */
+.chapter-cards-container {
+  display: none;
+  position: relative;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  padding: 0.5rem 0;
+  gap: 1rem;
+}
+.chapter-card {
+  flex: 0 0 85%;
+  scroll-snap-align: center;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+.chapter-card h3 { margin: 0; font-size: 1.1rem; color: var(--accent); }
+.chapter-progress-ring { width: 60px; height: 60px; position: relative; }
+.chapter-progress-ring svg { transform: rotate(-90deg); }
+.chapter-progress-ring circle { fill: none; stroke-width: 4; }
+.chapter-progress-ring .bg { stroke: var(--line); }
+.chapter-progress-ring .fg { stroke: var(--accent); transition: stroke-dashoffset 0.3s ease; }
+.chapter-chip-count { font-size: 0.9rem; color: var(--muted); }
+.chapter-levels-list { width: 100%; display: flex; flex-wrap: wrap; gap: 0.4rem; justify-content: center; margin-top: 0.5rem; }
+.chapter-level-btn {
+  width: 2.8rem; height: 2.8rem; border-radius: 8px; border: 1px solid var(--line);
+  background: var(--surface); color: var(--text); font-size: 0.9rem; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+}
+.chapter-level-btn.solved { background: var(--btn-primary); color: var(--on-primary); border-color: var(--accent); }
+.chapter-level-btn.locked { opacity: 0.5; cursor: default; }
+
 @media (max-width: 600px) {
   /* --- result bottom sheet ------------------------------------------------------------------ */
   #result-sheet {
