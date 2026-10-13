@@ -504,3 +504,46 @@ html[data-reduced-motion="true"] .letters-list li:not(.flipped) .letter-card-bac
   }
   html[data-reduced-motion="true"] .lamp-rail-btn { transition: none; }
 }
+
+/* ---- mobile oil & repair chips (R4-LHMO-10) ---- */
+@media (max-width: 600px) {
+  .chip[data-stat="oil"],
+  .chip[data-stat="repair"] {
+    grid-column: span 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 0.6rem 0.4rem;
+    background: var(--surface);
+    border: 1px solid var(--edge);
+    border-radius: 12px;
+  }
+  .chip[data-stat="oil"] .chip-value,
+  .chip[data-stat="repair"] .chip-value {
+    font-size: 1.8rem;
+    line-height: 1;
+    margin-top: 0.2rem;
+  }
+  .chip[data-stat="oil"] .ico,
+  .chip[data-stat="repair"] .ico {
+    font-size: 1.4rem;
+    margin-bottom: 0.1rem;
+  }
+  /* Gentle glow when low */
+  .chip[data-stat="oil"][data-state="low"],
+  .chip[data-stat="repair"][data-state="low"] {
+    border-color: var(--accent);
+    animation: gentle-glow 3s ease-in-out infinite;
+  }
+  @keyframes gentle-glow {
+    0%, 100% { box-shadow: 0 0 4px rgba(255, 207, 107, 0.2); }
+    50% { box-shadow: 0 0 12px rgba(255, 207, 107, 0.5); }
+  }
+  html[data-reduced-motion="true"] .chip[data-stat="oil"][data-state="low"],
+  html[data-reduced-motion="true"] .chip[data-stat="repair"][data-state="low"] {
+    animation: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 6px rgba(255, 207, 107, 0.4);
+  }
+}
