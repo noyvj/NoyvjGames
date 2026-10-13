@@ -209,3 +209,34 @@ window.POCKET_BAZAAR_PC_TUTORIAL_STEPS = [
     }
   });
 })();
+
+/* R4-PBPC-6: Large chain counter */
+(function () {
+  "use strict";
+  document.addEventListener("DOMContentLoaded", function () {
+    var stats = document.getElementById("stats");
+    if (!stats) return;
+
+    var display = document.createElement("div");
+    display.id = "combo-display";
+    display.setAttribute("aria-hidden", "true");
+    stats.appendChild(display);
+
+    var comboEl = document.getElementById("stat-combo");
+    if (!comboEl) return;
+
+    var observer = new MutationObserver(function () {
+      var text = comboEl.textContent.trim();
+      var match = text.match(/x(\d)/);
+      if (match) {
+        var level = parseInt(match[1], 10);
+        display.textContent = "x" + level;
+        display.className = "active combo-x" + level;
+      } else {
+        display.className = "";
+      }
+    });
+
+    observer.observe(comboEl, { childList: true, characterData: true, subtree: true });
+  });
+})();

@@ -139,8 +139,30 @@ html[data-layout="pc"] .customer-tooltip {
   display: none;
 }
 html[data-layout="pc"] #queue .customer:hover .customer-tooltip { display: block; }
+/* R4-PBPC-6: Large chain counter */
+html[data-layout="pc"] #combo-display {
+  display: block;
+  width: 100%;
+  font-size: 2.5rem;
+  font-weight: bold;
+  text-align: center;
+  padding: 0.5rem 0;
+  margin-top: 0.5rem;
+  opacity: 0;
+  transform: scale(0.8);
+  transition: opacity 0.3s ease, transform 0.3s ease;
+  pointer-events: none;
+}
+html[data-layout="pc"] #combo-display.active {
+  opacity: 1;
+  transform: scale(1);
+}
+html[data-layout="pc"] #combo-display.combo-x1 { color: var(--text, #222); }
+html[data-layout="pc"] #combo-display.combo-x2 { color: var(--accent, #4a90d9); }
+html[data-layout="pc"] #combo-display.combo-x3 { color: var(--accent-glow, #f0c040); text-shadow: 0 0 10px var(--accent-glow, #f0c040); }
+
 @media (prefers-reduced-motion: reduce) {
-  html[data-layout="pc"] #queue .customer:hover .customer-tooltip { animation: none; transition: none; }
+  html[data-layout="pc"] #combo-display { transition: none; }
 }
 
 /* R4-PBPC-5: Shift+click selection */
