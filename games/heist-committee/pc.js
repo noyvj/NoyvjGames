@@ -159,7 +159,17 @@ window.HEIST_COMMITTEE_PC_TUTORIAL_STEPS = [
     var delta = 0;
     if (e.key === "ArrowLeft") delta = -1;
     else if (e.key === "ArrowRight") delta = 1;
-    else return;
+    else {
+      var controls = window.HeistCommitteePC && window.HeistCommitteePC.getControls ? window.HeistCommitteePC.getControls() : null;
+      if (controls) {
+        var isControlKey = controls.arm.indexOf(e.key) !== -1 ||
+                           controls.standby.indexOf(e.key) !== -1 ||
+                           controls.delete.indexOf(e.key) !== -1;
+        if (!isControlKey) return;
+      } else {
+        return;
+      }
+    }
 
     var selected = getCells().filter(function (c) { return c.classList.contains("selected"); });
     if (!selected.length) return;
@@ -410,5 +420,100 @@ window.HEIST_COMMITTEE_PC_TUTORIAL_STEPS = [
       else _briefPanel.classList.toggle("visible");
       if (_briefPanel.classList.contains("visible")) _updateBrief();
     };
+  })();
+
+  /* R4-HCPC-9: Controls tab for key rebinding */
+  (function () {
+    "use strict";
+    var STORAGE_KEY = "heist-controls";
+    var defaults = { arm: "1,2,3,4,5,6,7,8,9", standby: "s", delete: "Delete" };
+    var bindings = {};
+
+    function load() {
+      try {
+        var saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
+        if (saved && typeof saved === "object") {
+          bindings = Object.assign({}, defaults, saved);
+        } else {
+          bindings = Object.assign({}, defaults);
+        }
+      } catch (e) {
+        bindings = Object.assign({}, defaults);
+      }
+    }
+
+    function save() {
+      try { localStorage.setItem(STORAGE_KEY, JSON.stringify(bindings)); } catch (e) {}
+    }
+
+    function parseKeys(str) {
+      return str.split(",").map(function(k){ return k.trim(); }).filter(Boolean);
+    }
+
+    function injectUI() {
+      var panel = document.getElementById("settings-panel");
+      if (!panel || document.getElementById("controls-tab")) return;
+      var div = document.createElement("div");
+      div.id = "controls-tab";
+      div.className = "settings-section";
+      div.innerHTML = '<h3>Controls</h3>' +
+        '<div class="settings-row"><label>Arm action (1-9): <input type="text" id="ctrl-arm" maxlength="50"></label></div>' +
+        '<div class="settings-row"><label>Standby: <input type="text" id="ctrl-standby" maxlength="20"></label></div>' +
+        '<div class="settings-row"><label>Delete cell: <input type="text" id="ctrl-delete" maxlength="20"></label></div>' +
+        '<div class="settings-row"><button id="reset-controls-button" type="button">Reset to defaults</button></div>';
+      panel.appendChild(div);
+
+      var armInput = document.getElementById("ctrl-arm");
+      var standbyInput = document.getElementById("ctrl-standby");
+      var deleteInput = document.getElementById("ctrl-delete");
+      var resetBtn = document.getElementById("reset-controls-button");
+
+      function updateInputs() {
+        armInput.value = bindings.arm.join(",");
+        standbyInput.value = bindings.standby.join(",");
+        deleteInput.value = bindings.delete.join(",");
+      }
+
+      load();
+      updateInputs();
+
+      armInput.addEventListener("input", function() {
+        bindings.arm = parseKeys(armInput.value);
+        save();
+      });
+      standbyInput.addEventListener("input", function() {
+        bindings.standby = parseKeys(standbyInput.value);
+        save();
+      });
+      deleteInput.addEventListener("input", function() {
+        bindings.delete = parseKeys(deleteInput.value);
+        save();
+      });
+
+      resetBtn.addEventListener("click", function() {
+        bindings = Object.assign({}, defaults);
+        save();
+        updateInputs();
+      });
+    }
+
+    window.HeistCommitteePC = window.HeistCommitteePC || {};
+    window.HeistCommitteePC.getControls = function() { return bindings; };
+    window.HeistCommitteePC.initControls = injectUI;
+
+    document.addEventListener("DOMContentLoaded", function() {
+      var panel = document.getElementById("settings-panel");
+      if (panel) {
+        var obs = new MutationObserver(function(mutations) {
+          for (var m of mutations) {
+            if (m.attributeName === "hidden" && !panel.hidden) {
+              injectUI();
+              obs.disconnect();
+            }
+          }
+        });
+        obs.observe(panel, { attributes: true, attributeFilter: ["hidden"] });
+      }
+    });
   })();
 })();

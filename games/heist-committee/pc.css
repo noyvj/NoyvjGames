@@ -121,4 +121,9 @@ html[data-layout="pc"] .pc-readout { color: var(--text); }
 #pc-brief-panel .brief-section h4 { margin: 0 0 0.3rem; font-size: 0.9rem; color: var(--text-secondary, #aaa); }
 #pc-brief-panel ul { margin: 0; padding-left: 1.2rem; }
 #pc-brief-panel li { margin-bottom: 0.2rem; }
-@media (prefers-reduced-motion: reduce) { #pc-brief-panel { transition: none; } }
+/* R4-HCPC-9: Controls tab in Settings */
+#controls-tab { margin-top: 1rem; padding-top: 0.5rem; border-top: 1px solid var(--panel-border, rgba(0,0,0,0.1)); }
+#controls-tab h3 { margin: 0 0 0.5rem; font-size: 1rem; color: var(--accent); }
+#controls-tab .settings-row { margin-bottom: 0.4rem; }
+#controls-tab input[type="text"] { width: 60%; padding: 0.3rem; font-family: monospace; font-size: 0.9rem; background: var(--bg-input, #fff); border: 1px solid var(--input-border, #ccc); border-radius: 4px; }
+html[data-theme="light"][data-layout="pc"] #controls-tab input[type="text"] { background: #fff; color: var(--text); }
