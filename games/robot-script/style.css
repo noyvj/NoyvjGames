@@ -260,4 +260,19 @@ html[data-sandbox="true"] .room-holder svg { cursor: crosshair; }
   #split-divider::after { content: "⋮"; color: var(--muted); font-size: 1.2rem; }
   html[data-reduced-motion="true"] #split-divider, html[data-effects="off"] #split-divider { cursor: default; }
 }
+@media (max-width: 600px) {
+  .node { transition: transform 0.2s ease-out; will-change: transform; }
+  html[data-reduced-motion="true"] .node { transition: none; }
+  .node.swiped { transform: translateX(-4.5rem); }
+  .undo-bar {
+    position: fixed; bottom: 1rem; left: 50%; transform: translateX(-50%);
+    background: var(--panel); border: 1px solid var(--line); border-radius: 999px;
+    padding: 0.6rem 1.2rem; display: flex; gap: 1rem; align-items: center;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3); z-index: 100; opacity: 0; pointer-events: none;
+    transition: opacity 0.2s ease-out; white-space: nowrap;
+  }
+  html[data-reduced-motion="true"] .undo-bar { transition: none; }
+  .undo-bar.visible { opacity: 1; pointer-events: auto; }
+  .undo-bar button { background: var(--btn-primary); color: var(--on-primary); border: none; padding: 0.4rem 0.8rem; border-radius: 6px; cursor: pointer; font-weight: 700; }
+}
 .toast.on { background: var(--surface); border: 1px solid var(--ok); border-radius: 8px; padding: 0.25rem 0.6rem; }

@@ -858,6 +858,9 @@
       askThen("robot-script-reset", "Start the whole deck over? Your medals, lists and tally will be erased.", "Erase it", function () { send({ action: "reset" }); });
     });
     document.addEventListener("keydown", onKey);
+    document.addEventListener("robotScriptSwipeDelete", function (e) {
+      send({ action: "remove", at: e.detail }, true);
+    });
     // The save widget loads a save straight into the engine; this redraws afterwards.
     window.robotScriptRefresh = function () { if (engine) { roomId = null; send({ action: "open" }); } };
   }
