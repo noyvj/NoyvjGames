@@ -122,6 +122,13 @@
         pat.appendChild(bar);
         pat.appendChild(el("span", "beats", String(c.patience)));
         btn.appendChild(pat);
+        // R4-PBMO-7: patience dots for mobile
+        var dots = el("div", "patience-dots");
+        dots.setAttribute("aria-hidden", "true");
+        for (var d = 0; d < c.max; d++) {
+          dots.appendChild(el("span", "patience-dot" + (d < c.patience ? " filled" : "")));
+        }
+        btn.appendChild(dots);
       }
       btn.setAttribute("aria-label", customerLabel(c) + (wants.indexOf(n) !== -1 ? " Would take the good you picked up." : ""));
     });
