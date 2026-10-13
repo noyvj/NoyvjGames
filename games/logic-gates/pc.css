@@ -95,3 +95,26 @@ html[data-layout="pc"] .lg-selected {
 @media (prefers-reduced-motion: reduce) {
   html[data-layout="pc"] .lg-selected { filter: none; }
 }
+
+/* R4-LGPC-6: Docked truth table */
+html[data-layout="pc"] #check-panel {
+  position: sticky;
+  top: 0.5rem;
+  z-index: 10;
+}
+html[data-layout="pc"] .lg-table-row,
+html[data-layout="pc"] #table-holder tr {
+  transition: background-color 0.2s ease, border-left-color 0.2s ease;
+  cursor: pointer;
+}
+@media (prefers-reduced-motion: reduce) {
+  html[data-layout="pc"] .lg-table-row,
+  html[data-layout="pc"] #table-holder tr { transition: none; }
+}
+html[data-layout="pc"] .lg-current {
+  background-color: rgba(95, 212, 230, 0.15);
+  border-left: 3px solid var(--accent, #5fd4e6);
+}
+html[data-layout="pc"] .lg-table-row:hover {
+  background-color: rgba(95, 212, 230, 0.08);
+}

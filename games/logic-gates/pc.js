@@ -182,3 +182,69 @@ window.LOGIC_GATES_PC_TUTORIAL_STEPS = [
 
   document.addEventListener("DOMContentLoaded", init);
 })();
+
+/* R4-LGPC-6: Docked truth table helper */
+(function () {
+  "use strict";
+  var tableHolder = null;
+  var rows = [];
+
+  function getSwitchStates() {
+    var states = [];
+    var sws = document.querySelectorAll("#switches input[type='checkbox'], #switches [data-switch]");
+    for (var i = 0; i < sws.length; i++) {
+      states.push(sws[i].checked ? 1 : 0);
+    }
+    return states;
+  }
+
+  function highlightCurrent() {
+    if (!tableHolder || !rows.length) return;
+    var current = getSwitchStates();
+    rows.forEach(function(row) {
+      var rowVals = row.dataset.rowValues ? row.dataset.rowValues.split(",").map(Number) : [];
+      if (rowVals.length === current.length && rowVals.every(function(v, i) { return v === current[i]; })) {
+        row.classList.add("lg-current");
+      } else {
+        row.classList.remove("lg-current");
+      }
+    });
+  }
+
+  function init() {
+    tableHolder = document.getElementById("table-holder");
+    if (!tableHolder) return;
+
+    var observer = new MutationObserver(function() {
+      rows = Array.from(tableHolder.querySelectorAll(".lg-table-row, tr"));
+      highlightCurrent();
+    });
+    observer.observe(tableHolder, { childList: true, subtree: true });
+
+    rows = Array.from(tableHolder.querySelectorAll(".lg-table-row, tr"));
+    highlightCurrent();
+
+    tableHolder.addEventListener("click", function(e) {
+      var row = e.target.closest(".lg-table-row, tr");
+      if (!row) return;
+      var vals = row.dataset.rowValues ? row.dataset.rowValues.split(",").map(Number) : [];
+      if (vals.length === 0) return;
+
+      var sws = document.querySelectorAll("#switches input[type='checkbox'], #switches [data-switch]");
+      for (var i = 0; i < sws.length && i < vals.length; i++) {
+        if (sws[i].type === "checkbox") {
+          sws[i].checked = vals[i] === 1;
+        } else {
+          sws[i].dataset.switch = String(vals[i]);
+        }
+      }
+      highlightCurrent();
+    });
+
+    document.addEventListener("change", function(e) {
+      if (e.target.closest("#switches")) highlightCurrent();
+    });
+  }
+
+  document.addEventListener("DOMContentLoaded", init);
+})();
