@@ -172,3 +172,20 @@ html[data-theme="dark"] #chart-tools-menu {
 .dr-chart[data-layers-labels="off"] .layer-labels {
   display: none !important;
 }
+
+/* Print layout (Ctrl+P) ------------------------------------------------------ */
+@media print {
+  html[data-layout="pc"] body,
+  #pc-topbar, #pc-stagebar, #pc-hintbar, .game-toolbar, .panel, .playback, details.notes, .ad-bar, #engine-status, #announce, a.skip-link, button, input, select, textarea {
+    display: none !important;
+  }
+  #pc-body.pc-has-side { grid-template-columns: 1fr !important; }
+  #pc-stage > #chart-panel, #pc-side > .panel { margin: 0; padding: 0; border: none; box-shadow: none; background: transparent; flex: none; }
+  #chart-holder svg.dr-chart { width: 100%; height: auto; max-height: none; transform: none !important; }
+  #planner-panel { display: block !important; margin-bottom: 2rem; }
+  #planner-panel h2, #planner-panel .note, #planner-panel ol.legs, #planner-panel .totals { font-size: 0.9rem; color: #000; background: transparent; }
+  #planner-panel ol.legs { padding-left: 1.5rem; }
+  #planner-panel ol.legs li { margin-bottom: 0.25rem; }
+  svg.dr-chart { fill: none; stroke: #000; }
+  .dr-est-track, .dr-true-track, .dr-approach-line { stroke: #000 !important; }
+}

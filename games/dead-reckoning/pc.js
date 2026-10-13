@@ -369,3 +369,13 @@ window.DEAD_RECKONING_PC_TUTORIAL_STEPS = [
   applyLayers();
   window.addEventListener("dead-reckoning-chart-loaded", applyLayers);
 })();
+
+// Print layout (Ctrl+P) -------------------------------------------------------
+(function () {
+  document.addEventListener("keydown", function (e) {
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "p") {
+      e.preventDefault();
+      window.print();
+    }
+  });
+})();
