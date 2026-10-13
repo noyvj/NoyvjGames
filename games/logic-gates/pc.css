@@ -118,3 +118,13 @@ html[data-layout="pc"] .lg-current {
 html[data-layout="pc"] .lg-table-row:hover {
   background-color: rgba(95, 212, 230, 0.08);
 }
+
+/* R4-LGPC-10: Controls */
+html[data-layout="pc"] #controls-container { margin-top: 1rem; }
+html[data-layout="pc"] .controls-list { list-style: none; padding: 0; margin: 0.5rem 0; display: grid; grid-template-columns: auto 1fr; gap: 0.3rem 1rem; align-items: center; }
+html[data-layout="pc"] .control-row { display: contents; }
+html[data-layout="pc"] .control-label { font-weight: bold; text-align: right; }
+html[data-layout="pc"] .control-key { background: var(--pc-window-bg, #1a2436); color: var(--text, #e0e8f0); border: 1px solid var(--pc-window-line, rgba(95, 212, 230, 0.4)); border-radius: 4px; padding: 0.3rem 0.6rem; font-family: monospace; cursor: pointer; min-width: 3rem; text-align: center; }
+html[data-layout="pc"] .control-key:hover { background: var(--pc-window-bar-bg, #16263d); }
+html[data-layout="pc"] .control-key.active { border-color: var(--accent, #5fd4e6); box-shadow: 0 0 0 2px rgba(95, 212, 230, 0.3); }
+@media (prefers-reduced-motion: reduce) { html[data-layout="pc"] .control-key { transition: none; } }

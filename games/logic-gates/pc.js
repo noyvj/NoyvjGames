@@ -183,6 +183,101 @@ window.LOGIC_GATES_PC_TUTORIAL_STEPS = [
   document.addEventListener("DOMContentLoaded", init);
 })();
 
+/* R4-LGPC-10: Controls rebinding */
+(function () {
+  "use strict";
+  var STORAGE_KEY = "logic-gates-controls";
+  var defaults = {
+    "Undo": "u",
+    "Next level": "n",
+    "Let go / menu / close window": "Escape",
+    "All shortcuts": "?",
+    "Wire toggle": " "
+  };
+  var bindings = {};
+  var rebindingAction = null;
+
+  function load() {
+    try {
+      var saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}");
+      for (var k in defaults) {
+        bindings[k] = saved[k] !== undefined ? saved[k] : defaults[k];
+      }
+    } catch (e) {
+      bindings = Object.assign({}, defaults);
+    }
+  }
+
+  function save() {
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(bindings)); } catch (e) {}
+  }
+
+  function render() {
+    var panel = document.getElementById("settings-panel");
+    if (!panel) return;
+    if (document.getElementById("controls-list")) return;
+
+    var container = document.createElement("div");
+    container.id = "controls-container";
+    container.innerHTML = '<h3 class="settings-sub">Controls</h3><p class="note">Click a key to rebind it. Press any key to set it.</p>';
+    var list = document.createElement("ul");
+    list.id = "controls-list";
+    list.className = "controls-list";
+
+    for (var action in bindings) {
+      var li = document.createElement("li");
+      li.className = "control-row";
+      var label = document.createElement("span");
+      label.className = "control-label";
+      label.textContent = action + ":";
+      var keyBtn = document.createElement("button");
+      keyBtn.className = "control-key";
+      keyBtn.setAttribute("data-action", action);
+      keyBtn.setAttribute("aria-label", "Rebind " + action);
+      keyBtn.textContent = bindings[action] === " " ? "Space" : bindings[action];
+      li.appendChild(label);
+      li.appendChild(keyBtn);
+      list.appendChild(li);
+    }
+    container.appendChild(list);
+    panel.appendChild(container);
+  }
+
+  function handleKeydown(e) {
+    if (!rebindingAction) return;
+    var key = e.key === " " ? " " : e.key;
+    bindings[rebindingAction] = key;
+    save();
+    var btn = document.querySelector('.control-key[data-action="' + rebindingAction + '"]');
+    if (btn) {
+      btn.textContent = key === " " ? "Space" : key;
+      btn.classList.remove("active");
+    }
+    rebindingAction = null;
+  }
+
+  function init() {
+    load();
+    document.addEventListener("DOMContentLoaded", render);
+    document.addEventListener("keydown", handleKeydown);
+    document.addEventListener("click", function (e) {
+      var btn = e.target.closest(".control-key");
+      if (!btn) return;
+      rebindingAction = btn.getAttribute("data-action");
+      document.querySelectorAll(".control-key").forEach(function (b) { b.classList.remove("active"); });
+      btn.classList.add("active");
+      btn.textContent = "Press key...";
+    });
+    window.LG_CONTROLS = bindings;
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", init);
+  } else {
+    init();
+  }
+})();
+
 /* R4-LGPC-6: Docked truth table helper */
 (function () {
   "use strict";
