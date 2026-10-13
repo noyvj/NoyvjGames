@@ -16,3 +16,17 @@
   use_repo_map: true
   extra_params:
     num_ctx: 65536  # 32k was too small: game.py + app.js filled it and the task text got cut
+
+# Long-context names for the same Qwen3.6 model (ollama cp, no extra disk), picked automatically by
+# ai.ps1 from the size of the game's game.py: big games (73k-146k tokens) need the whole file in view.
+# Measured 2026-10-12: Loop's 68k-token game.py read in 134 s at a 96k context.
+- name: ollama_chat/qwen3.6-128k
+  edit_format: diff
+  use_repo_map: true
+  extra_params:
+    num_ctx: 131072
+- name: ollama_chat/qwen3.6-192k
+  edit_format: diff
+  use_repo_map: true
+  extra_params:
+    num_ctx: 196608
