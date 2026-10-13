@@ -259,6 +259,20 @@ html[data-effects="off"] *, html[data-effects="off"] *::before, html[data-effect
 
 /* Mobile carousel tray (R4-HCMO-2) */
 @media (max-width: 600px) {
+  /* R4-HCMO-7: Crew sheet slide-in overlay */
+  #phase-recruit.crew-sheet-open {
+    position: fixed; top: 0; left: 0; bottom: 0;
+    width: min(85vw, 22rem); z-index: 100;
+    background: var(--bg); padding-top: 3.5rem; overflow-y: auto;
+    transform: translateX(-100%); transition: transform 0.25s ease-out;
+    margin: 0; box-sizing: border-box;
+  }
+  #phase-recruit.crew-sheet-open.is-visible { transform: translateX(0); }
+  html[data-reduced-motion="true"] #phase-recruit.crew-sheet-open,
+  html[data-effects="off"] #phase-recruit.crew-sheet-open { transition: none !important; }
+
+  #main-stage.has-crew-sheet #timeline-wrap { width: 100%; }
+
   .chain li { min-width: 12rem; padding: 0.35rem 0.6rem; font-size: 0.9rem; }
   #mobile-tray {
     position: fixed; left: 0; right: 0; bottom: 0; z-index: 100;

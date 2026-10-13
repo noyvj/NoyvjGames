@@ -480,6 +480,40 @@
     if (window.HC.afterBoot) await window.HC.afterBoot();
   }
 
+  // R4-HCMO-7: Crew sheet swipe toggle
+  (function () {
+    var recruit = HC.$("phase-recruit");
+    var stage = HC.$("main-stage");
+    if (!recruit || !stage) return;
+    var startX = 0, startY = 0;
+    function onPointerDown(e) {
+      startX = e.clientX || (e.touches && e.touches[0].clientX);
+      startY = e.clientY || (e.touches && e.touches[0].clientY);
+    }
+    function onPointerUp(e) {
+      var endX = e.clientX || (e.changedTouches && e.changedTouches[0].clientX);
+      var endY = e.clientY || (e.changedTouches && e.changedTouches[0].clientY);
+      var dx = endX - startX;
+      if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(endY - startY)) {
+        if (dx > 0 && !recruit.classList.contains("is-visible")) {
+          recruit.classList.add("crew-sheet-open", "is-visible");
+          stage.classList.add("has-crew-sheet");
+        } else if (dx < 0 && recruit.classList.contains("is-visible")) {
+          recruit.classList.remove("is-visible");
+          setTimeout(function () { stage.classList.remove("has-crew-sheet"); }, 250);
+        }
+      }
+    }
+    stage.addEventListener("touchstart", onPointerDown, { passive: true });
+    stage.addEventListener("touchend", onPointerUp, { passive: true });
+    recruit.addEventListener("click", function () {
+      if (!recruit.classList.contains("is-visible")) {
+        recruit.classList.add("crew-sheet-open", "is-visible");
+        stage.classList.add("has-crew-sheet");
+      }
+    });
+  })();
+
   wireGlobal();
   setBusy(true);
   boot().catch(function (err) {
