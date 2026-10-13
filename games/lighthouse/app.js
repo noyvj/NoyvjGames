@@ -1246,9 +1246,23 @@
     if (!t || !t.closest || /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName)) return;
     if (document.querySelector("#opening-screen, #confirm-dialog-overlay:not([hidden]), #tutorial-overlay:not([hidden])")) return;
     var k = e.key.toLowerCase();
-    if (k >= "1" && k <= "4") { e.preventDefault(); send({ action: "level", level: LEVEL_IDS[parseInt(k, 10) - 1] }); }
-    else if (k === "w") { e.preventDefault(); send({ action: "wind" }); }
-    else if (k === "t") { e.preventDefault(); send({ action: "tend" }); }
+    var bindings = window.LIGHTHOUSE_KEYBINDINGS || {};
+
+    // Lamp levels 1-4
+    if (k >= "1" && k <= "4") {
+      var bound = bindings["lamp-" + parseInt(k, 10)];
+      if (!bound || bound.toLowerCase() === k) { e.preventDefault(); send({ action: "level", level: LEVEL_IDS[parseInt(k, 10) - 1] }); }
+    }
+    // Wind clockwork
+    else if (k === "w") {
+      var windBound = bindings["wind"];
+      if (!windBound || windBound.toLowerCase() === k) { e.preventDefault(); send({ action: "wind" }); }
+    }
+    // See to trouble
+    else if (k === "t") {
+      var tendBound = bindings["tend"];
+      if (!tendBound || tendBound.toLowerCase() === k) { e.preventDefault(); send({ action: "tend" }); }
+    }
   }
 
   function setBusy(on) {
