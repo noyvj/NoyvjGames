@@ -523,6 +523,9 @@
       var sw = e.target.closest && e.target.closest("[data-flip]");
       if (sw) send({ action: "flip", name: sw.getAttribute("data-flip") });
     });
+    $("board-holder").addEventListener("lg-place-chip", function (e) {
+      send({ action: "add", type: e.detail.type });
+    });
     guard("undo-button", function () { send({ action: "undo" }); });
     guard("restore-button", function () { send({ action: "restore" }); });
     guard("clear-button", function () {
