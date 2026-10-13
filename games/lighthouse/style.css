@@ -454,3 +454,22 @@ html[data-reduced-motion="true"] .letters-list li:not(.flipped) .letter-card-bac
   display: none;
 }
 .info-page-how { margin: 0.3rem 0; padding-left: 1.2rem; }
+
+/* Swipe-to-open letters drawer (mobile) */
+@media (max-width: 600px) {
+  #letters-panel {
+    position: fixed; top: 0; left: 0; bottom: 0;
+    width: 85%; max-width: 24rem;
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+    z-index: 900; background: var(--panel-fill);
+    border-right: 1px solid var(--line); padding: 1rem;
+    overflow-y: auto;
+  }
+  #letters-panel[data-open="true"] { transform: translateX(0); }
+  .swipe-trigger {
+    position: fixed; top: 0; left: 0; bottom: 0; width: 2.5rem;
+    z-index: 899; cursor: pointer;
+  }
+  html[data-reduced-motion="true"] #letters-panel { transition: none; }
+}
