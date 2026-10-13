@@ -133,6 +133,11 @@
     <div id="room-holder" class="room-holder"></div>
     <div id="playback" class="playback" role="group" aria-label="Run controls">
       <button id="run-button" type="button" class="primary" data-testid="robot-script-run">Run</button>
+      <div id="speed-chip" class="speed-chip" role="group" aria-label="Playback speed">
+        <button type="button" data-speed="1" aria-pressed="true">1×</button>
+        <button type="button" data-speed="2">2×</button>
+        <button type="button" data-speed="4">4×</button>
+      </div>
       <button id="step-button" type="button" data-testid="robot-script-step">Step</button>
       <button id="skip-button" type="button" data-testid="robot-script-skip">Skip to the end</button>
       <button id="rewind-button" type="button" data-testid="robot-script-rewind">Back to start</button>

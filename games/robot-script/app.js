@@ -21,6 +21,7 @@
   var roomId = null;
   var headDeg = 0;
   var play = { frames: null, i: 0, timer: null, trace: null, running: false, currentLine: 0 };
+  var playbackSpeed = 1;
   var refocus = false;
   var sandboxTile = "#";
 
@@ -186,7 +187,8 @@
     var custom = window.robotScriptPlaybackDelay;
     if (custom !== undefined && typeof custom === "number") return custom;
     var name = document.documentElement.getAttribute("data-run-speed") || "normal";
-    return SPEED_MS[name] === undefined ? SPEED_MS.normal : SPEED_MS[name];
+    var base = SPEED_MS[name] === undefined ? SPEED_MS.normal : SPEED_MS[name];
+    return Math.max(1, Math.floor(base / playbackSpeed));
   }
   function stopTimer() {
     if (play.timer) { clearInterval(play.timer); play.timer = null; }
@@ -567,6 +569,10 @@
     Array.prototype.forEach.call($("sandbox-tools").querySelectorAll("button"), function (b) { b.setAttribute("aria-pressed", String(b.dataset.tile === sandboxTile)); });
   }
   function onRoomClick(e) {
+    if (play.running && !view.room.sandbox) {
+      onSkip();
+      return;
+    }
     if (!view || !view.room.sandbox) return;
     var svg = svgEl();
     if (!svg || !svg.getScreenCTM) return;
@@ -825,6 +831,18 @@
     window.robotScriptChangeRoom = function(roomId) { send({ action: "pick", room: roomId }); };
     wireDifficulty();
     $("toast").addEventListener("click", function () { showToast(""); });
+
+    // Speed chip (mobile)
+    var speedChip = $("speed-chip");
+    if (speedChip) {
+      Array.prototype.forEach.call(speedChip.querySelectorAll("button"), function(btn) {
+        btn.addEventListener("click", function() {
+          playbackSpeed = Number(btn.dataset.speed);
+          Array.prototype.forEach.call(speedChip.querySelectorAll("button"), function(b) { b.setAttribute("aria-pressed", String(b === btn)); });
+          if (play.running && play.trace) updatePlaybackSpeed(speedMs());
+        });
+      });
+    }
 
     // Playback slider and keyboard controls
     document.addEventListener("robotScriptPlaybackSpeedChange", function (e) {
