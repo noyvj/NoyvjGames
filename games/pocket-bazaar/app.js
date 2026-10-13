@@ -467,6 +467,20 @@
     Array.prototype.forEach.call(holder.children, function (btn, n) { btn.classList.toggle("active", n === activeCrate); });
   }
 
+  // R4-PBMO-2: Haptic merge feedback (mobile only)
+  var HAPTICS_KEY = "pocket-bazaar-haptics";
+  function triggerMergeHaptic(tier, isCascade) {
+    if (!navigator.vibrate || document.documentElement.hasAttribute("data-reduced-motion")) return;
+    var enabled = true;
+    try { enabled = window.localStorage.getItem(HAPTICS_KEY) !== "off"; } catch(e) {}
+    if (!enabled) return;
+    var pattern = [tier * 8];
+    if (isCascade && Math.random() < 0.3) {
+      pattern.push(50, tier * 6);
+    }
+    try { navigator.vibrate(pattern); } catch(e) {}
+  }
+
   function renderInfo() {
     var info = $("selection-info");
     var cell = selected !== null ? cellAt(selected) : null;
@@ -559,6 +573,8 @@
     if (event && (event.kind === "merge" || event.kind === "crate")) {
       var target = cellButton(event.kind === "merge" ? event.dst : event.at);
       if (target) {
+        if (event.kind === "merge") triggerMergeHaptic(view.board.cells[event.dst].tier, Math.random() < 0.3);
+        target.classList.add("haptic-merge");
         target.classList.remove("pop");
         void target.offsetWidth;
         target.classList.add("pop");
@@ -709,7 +725,6 @@
       var targetBtn = cellButton(targetIdx);
       if (targetBtn) {
         targetBtn.classList.add("swipe-target");
-        setTimeout(function () { targetBtn.classList.remove("swipe-target"); }, 300);
       }
       send({ action: "swipe", from: d.from, to: targetIdx });
     } else {

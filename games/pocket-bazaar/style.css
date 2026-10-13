@@ -194,6 +194,8 @@ html[data-effects="off"] *, html[data-effects="off"] *::before, html[data-effect
 }
 
 @media (max-width: 600px) {
+  /* Haptic merge feedback hook */
+  .cell.haptic-merge { transform: scale(0.98); transition: transform 0.05s ease-out; }
   /* Swipe/flick support on mobile */
   .board { touch-action: none; }
   .cell.swipe-target { outline: 2px dashed var(--accent); outline-offset: -1px; }
