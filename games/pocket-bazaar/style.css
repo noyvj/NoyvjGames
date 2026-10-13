@@ -239,6 +239,8 @@ html[data-effects="off"] *, html[data-effects="off"] *::before, html[data-effect
   .crates { flex: 1 1 auto; gap: 0.3rem; }
   .crate-btn { flex-direction: column; gap: 0.1rem; padding: 0.2rem 0.15rem; font-size: 0.72rem; min-height: 3.2rem; }
   .tool-buttons { flex: 0 0 auto; gap: 0.3rem; }
+  #game.mirror .crates { order: 2; }
+  #game.mirror .tool-buttons { order: 1; }
   .tool { flex: 0 0 auto; min-width: 3.4rem; padding: 0.2rem 0.3rem; font-size: 0.8rem; }
 
   /* Mobile bottom dock for Sell, Broom, Hand over */
