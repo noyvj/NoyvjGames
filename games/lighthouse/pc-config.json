@@ -44,7 +44,8 @@
     ["T", "See to trouble"],
     ["Tab", "Next control"],
     ["?", "All shortcuts"],
-    ["Esc", "Menu / close window"]
+    ["Esc", "Menu / close window"],
+    ["J / K", "Previous / next letter in the mail reader"]
   ],
   "notify": null
 }
