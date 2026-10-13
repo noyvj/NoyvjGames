@@ -720,16 +720,29 @@
       return;
     }
     if (key === "Escape") { letGo(); return; }
-    if (key === "b" || key === "B") { e.preventDefault(); if (onGrid && selected === null && cellAt(cursor)) send({ action: "broom", at: cursor }); else doBroom(); return; }
-    if (key === "s" || key === "S") { e.preventDefault(); if (selected === null && onGrid && cellAt(cursor)) select(cursor); doSell(); return; }
-    if (key === "d" || key === "D") {
+
+    // R4-PBPC-9: Check custom keys from Settings, fallback to defaults
+    function getCustom(action, fallback) {
+      var k = window.NOYVJ_PC_CUSTOM_KEYS;
+      return (k && k[action]) ? k[action].toLowerCase() : (fallback || "").toLowerCase();
+    }
+
+    var broomKey = getCustom("broom", "b");
+    if (key.toLowerCase() === broomKey) { e.preventDefault(); if (onGrid && selected === null && cellAt(cursor)) send({ action: "broom", at: cursor }); else doBroom(); return; }
+
+    var sellKey = getCustom("sell", "s");
+    if (key.toLowerCase() === sellKey) { e.preventDefault(); if (selected === null && onGrid && cellAt(cursor)) select(cursor); doSell(); return; }
+
+    var handoverKey = getCustom("handover", "d");
+    if (key.toLowerCase() === handoverKey) {
       e.preventDefault();
       if (selected === null && onGrid && cellAt(cursor)) select(cursor);
-      if (selected === null) { showMessage("Pick up a good first, then press D to hand it over.", false); return; }
+      if (selected === null) { showMessage("Pick up a good first, then press " + ((handoverKey || "D").toUpperCase()) + " to hand it over.", false); return; }
       var takers = view.deliverable[String(selected)] || [];
       send({ action: "deliver", from: selected, to: takers.length ? takers[0] : 0 });
       return;
     }
+
     if (key === "c" || key === "C") {
       e.preventDefault();
       activeCrate = (activeCrate + 1) % view.crates.length;
@@ -737,10 +750,16 @@
       $("crates").children[activeCrate].focus();
       return;
     }
-    if (/^[1-9]$/.test(key) && Number(key) <= view.crates.length) {
+
+    var cratesKey = getCustom("crates", "1");
+    if ((cratesKey && key.toLowerCase() === cratesKey) || (!cratesKey && /^[1-9]$/.test(key))) {
       e.preventDefault();
-      activeCrate = Number(key) - 1;
-      send({ action: "crate", family: view.crates[activeCrate].family });
+      if (cratesKey) {
+        send({ action: "crate", family: view.crates[activeCrate].family });
+      } else {
+        activeCrate = Number(key) - 1;
+        send({ action: "crate", family: view.crates[activeCrate].family });
+      }
     }
   }
 
