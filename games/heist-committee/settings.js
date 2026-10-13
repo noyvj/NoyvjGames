@@ -18,6 +18,7 @@
   var EFFECTS_KEY = "heist-effects";
   var CONTRAST_KEY = "heist-high-contrast";
   var AUTOPLAY_KEY = "heist-autoplay";
+  var COSY_NIGHT_KEY = "heist-cosy-night";
   var MIN_SCALE = 0.85;
   var MAX_SCALE = 1.5;
   var STEP = 0.1;
@@ -69,11 +70,21 @@
     if (remember) set(CONTRAST_KEY, on);
     return on;
   }
+  function cosyNightChoice() {
+    var stored = get(COSY_NIGHT_KEY);
+    return stored === "true" ? true : stored === "false" ? false : null;
+  }
+  function applyCosyNight(on, remember) {
+    root.setAttribute("data-cosy-night", on ? "true" : "false");
+    if (remember) set(COSY_NIGHT_KEY, on);
+    return on;
+  }
 
   var scale = applyScale(readScale());
   var reduced = applyMotion(motionChoice() === null ? systemPrefersReducedMotion() : motionChoice(), false);
   var effects = applyEffects(get(EFFECTS_KEY) !== "false", false);
   var contrast = applyContrast(get(CONTRAST_KEY) === "true", false);
+  var cosyNight = applyCosyNight(cosyNightChoice() === true, false);
 
   function autoplayOn() { return get(AUTOPLAY_KEY) === "true"; }
 
@@ -83,6 +94,7 @@
     var motionBox = document.getElementById("reduced-motion-checkbox");
     var effectsBox = document.getElementById("effects-checkbox");
     var contrastBox = document.getElementById("high-contrast-checkbox");
+    var cosyBox = document.getElementById("cosy-night-checkbox");
     var themeButton = document.getElementById("theme-setting-button");
     var autoBox = document.getElementById("autoplay-checkbox");
     if (autoBox) {
@@ -95,6 +107,7 @@
     if (motionBox) motionBox.checked = reduced;
     if (effectsBox) effectsBox.checked = effects;
     if (contrastBox) contrastBox.checked = contrast;
+    if (cosyBox) cosyBox.checked = cosyNight;
     if (toggle && panel) {
       toggle.addEventListener("click", function () {
         panel.hidden = !panel.hidden;
@@ -111,6 +124,7 @@
     if (motionBox) motionBox.addEventListener("change", function () { reduced = applyMotion(motionBox.checked, true); });
     if (effectsBox) effectsBox.addEventListener("change", function () { effects = applyEffects(effectsBox.checked, true); });
     if (contrastBox) contrastBox.addEventListener("change", function () { contrast = applyContrast(contrastBox.checked, true); });
+    if (cosyBox) cosyBox.addEventListener("change", function () { cosyNight = applyCosyNight(cosyBox.checked, true); });
 
     function syncThemeButton() {
       if (!themeButton || !window.NoyvjTheme) return;
@@ -130,14 +144,17 @@
       reduced = applyMotion(systemPrefersReducedMotion(), false);
       remove(EFFECTS_KEY);
       effects = applyEffects(true, false);
+      remove(COSY_NIGHT_KEY);
       remove(CONTRAST_KEY);
       remove(AUTOPLAY_KEY);
       if (autoBox) autoBox.checked = false;
       document.dispatchEvent(new CustomEvent("heist-autoplay-change"));
       contrast = applyContrast(false, false);
+      cosyNight = applyCosyNight(false, false);
       if (motionBox) motionBox.checked = reduced;
       if (effectsBox) effectsBox.checked = true;
       if (contrastBox) contrastBox.checked = false;
+      if (cosyBox) cosyBox.checked = false;
     });
   }
 

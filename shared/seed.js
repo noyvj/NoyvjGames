@@ -550,7 +550,7 @@ label.noyvj-seed-label{display:block;margin-bottom:.4rem}
   }
 
   /**
-   * daily.mountButton(container, { game, onStart(seed, info), today })
+   * daily.mountButton(container, { game, onStart(seed, info), today, hideStreak })
    * "Today's run" button for a start screen. Shows the date's seed, whether it is done today
    * (a check mark and a solid border versus a dashed one) and the streak with kind wording.
    * `today` (Date or function returning one) is for tests. Returns { refresh(), destroy(), element }.
@@ -582,7 +582,8 @@ label.noyvj-seed-label{display:block;margin-bottom:.4rem}
       root.classList.toggle("noyvj-seed--done", done);
       root.classList.toggle("noyvj-seed--open", !done);
       let streak = "";
-      if (st.count > 0) streak = " " + st.count + (st.count === 1 ? " day" : " days") + " in a row" + (st.best > st.count ? ", best " + st.best : "") + ".";
+      if (opts.hideStreak) streak = "";
+      else if (st.count > 0) streak = " " + st.count + (st.count === 1 ? " day" : " days") + " in a row" + (st.best > st.count ? ", best " + st.best : "") + ".";
       else if (st.best > 0) streak = " Best streak " + st.best + ": a new one starts whenever you like.";
       sub.textContent = "Seed " + seed + " (" + day + " UTC), the same for everyone, changes at 00:00 UTC." + streak;
     }

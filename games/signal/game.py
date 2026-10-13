@@ -1394,13 +1394,19 @@ def _action_settings(req, today_text=None):
 
 def _action_stats(today_text):
     modes = {}
+    total_solved = 0
     for m in PRESET_ORDER:
         entry = {"label": PRESETS[m]["label"], "daily_mode": PRESETS[m]["daily"], "practice": _practice_stats(m)}
         if PRESETS[m]["daily"]:
             entry["daily"] = compute_stats(m, "daily", today_text)
             entry["archive"] = compute_stats(m, "archive", today_text)
         modes[m] = entry
-    return _response(extra={"stats": modes, "best_streak": overall_best_streak(today_text) if S["settings"].get("show_streaks") else None})
+    for key, rec in S["days"].items():
+        if rec["result"] == "won":
+            total_solved += 1
+    for m in PRESET_ORDER:
+        total_solved += S["practice_stats"][m]["won"]
+    return _response(extra={"stats": modes, "best_streak": overall_best_streak(today_text) if S["settings"].get("show_streaks") else None, "total_solved": total_solved})
 
 
 def handle_dict(req):
@@ -1451,6 +1457,30 @@ def handle_dict(req):
     return _response(False, "Unknown action.")
 
 
+def recent_history(mode, n=7):
+    """Return last n daily results and par values for a mode."""
+    import datetime
+    today = utc_today()
+    try:
+        base = datetime.date.fromisoformat(today)
+    except Exception:
+        base = datetime.date.today()
+
+    history = []
+    for i in range(n):
+        d = (base - datetime.timedelta(days=i)).isoformat()
+        res = S["days"].get(d, {}).get(mode)
+        if res is None:
+            continue
+        try:
+            puzzle = daily_puzzle(d, mode)
+            p = puzzle.par
+        except Exception:
+            p = "?"
+        history.append({"date": d, "result": res, "par": p})
+    return history
+
+
 def handle(request):
     """The one entry point app.js calls: JSON text in, JSON text out."""
     try:
@@ -1490,15 +1520,16 @@ def get_state():
 
 
 def _rank(rec):
-    """Ordering key for merging two records of the same puzzle: finished
-    beats in-progress, a daily beats an archive replay (so replaying a
-    finished daily elsewhere cannot rewrite the streak), a win beats a loss,
-    fewer pings beats more. Ties fall back to the canonical JSON so the merge
-    is commutative."""
+    """Ordering key for merging two records of the same puzzle: a daily beats
+    an archive replay (so local progress is never overwritten by a remote
+    archive replay), finished beats in-progress, a win beats a loss, fewer
+    pings beats more. Ties fall back to the canonical JSON so the merge is
+    commutative."""
+    kind_daily = 1 if rec["kind"] == "daily" else 0
     finished = _finished(rec)
     return (
+        kind_daily,
         1 if finished else 0,
-        1 if rec["kind"] == "daily" else 0,
         1 if rec["result"] == "won" else 0,
         -rec["pings_used"] if finished else rec["pings_used"],
         json.dumps(rec, sort_keys=True),

@@ -286,8 +286,9 @@ def test_the_desktop_layout_keeps_both_columns_and_scrolls_inside_panels_not_the
     assert "overflow-y: auto" in PC_CSS
     assert 'html[data-theme="light"]' in PC_CSS, "the Desktop windows are checked in both themes"
     config = json.loads((GAME_DIR / "pc-config.json").read_text(encoding="utf-8"))
-    assert [w[0] for w in config["windows"]] == ["crew-log-panel", "report-panel", "achievements-panel",
-                                                 "changelog-panel", "settings-panel", "info-page-panel"]
+    assert [w[0] for w in config["windows"]] == ["crew-log-panel", "museum-panel", "star-map-panel",
+                                                 "report-panel", "achievements-panel", "changelog-panel",
+                                                 "settings-panel", "info-page-panel"]
 
 
 def test_the_planet_columns_wrap_the_four_panels_of_every_planet():

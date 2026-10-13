@@ -57,6 +57,38 @@ html[data-theme="light"][data-layout="pc"] .pc-window-frame {
 html[data-theme="light"][data-layout="pc"] .pc-readout { background: var(--panel); color: var(--text); }
 html[data-layout="pc"] .pc-readout { color: var(--text); }
 
+/* R4-HCPC-3: Drag-box selection and shift styling */
+#timeline .plan-drag-box {
+  position: absolute;
+  border: 2px dashed var(--accent);
+  background: rgba(193, 154, 51, 0.15);
+  pointer-events: none;
+  z-index: 10;
+}
+#timeline .cell.selected {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+  background: rgba(193, 154, 51, 0.1);
+}
+
+/* R4-HCPC-6: Changed cells tracker */
+.pc-changes-panel { margin-top: 0.6rem; }
+.pc-changes-list { list-style: none; padding: 0; margin: 0 0 0.5rem; max-height: 12rem; overflow-y: auto; font-size: 0.85rem; }
+.pc-changes-list li { padding: 0.2rem 0; border-bottom: 1px solid var(--panel-border, rgba(0,0,0,0.1)); }
+#pc-changes-panel button { background: var(--btn-bg, #eee); border: 1px solid var(--btn-border, #ccc); padding: 0.3rem 0.6rem; cursor: pointer; font-size: 0.85rem; }
+
+#timeline .cell.changed::after {
+  content: "";
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+  pointer-events: none;
+}
+
 @media (max-width: 1100px) {
   #phase-plan .plan-main { grid-template-columns: minmax(0, 1fr); }
   #phase-plan .timeline { --cell-w: 4.4rem; }
@@ -66,3 +98,32 @@ html[data-layout="pc"] .pc-readout { color: var(--text); }
   html[data-layout="pc"] #game { gap: 0.4rem; padding-top: 0.4rem; }
   #pc-topbar > h1 { margin-top: 0.8rem; font-size: 1.2rem; }
 }
+
+/* R4-HCPC-7: Second-screen playback log */
+#pc-playback-log {
+  position: fixed; bottom: 1rem; right: 1rem; width: 30vw; max-width: 40rem; height: 60vh;
+  background: var(--bg); border: 2px solid var(--accent); border-radius: 8px; padding: 1rem;
+  display: none; flex-direction: column; z-index: 100; font-size: 1.1rem;
+}
+#pc-playback-log.visible { display: flex; }
+#pc-playback-log h3 { margin: 0 0 0.5rem; font-size: 1rem; color: var(--accent); }
+#pc-playback-log-content { flex: 1; overflow-y: auto; margin-top: 0.5rem; font-family: monospace; white-space: pre-wrap; line-height: 1.4; }
+#pc-log-popout-button, #pc-log-close-button { margin-top: 0.5rem; align-self: flex-end; background: var(--btn-bg); border: 1px solid var(--btn-border); padding: 0.3rem 0.6rem; cursor: pointer; font-size: 0.85rem; }
+/* R4-HCPC-8: Client brief panel */
+#pc-brief-panel {
+  position: fixed; top: 3rem; left: 1rem; width: 24vw; max-width: 20rem; height: 70vh;
+  background: var(--bg); border: 2px solid var(--accent); border-radius: 8px; padding: 1rem;
+  display: none; flex-direction: column; z-index: 90; font-size: 0.95rem; overflow-y: auto;
+}
+#pc-brief-panel.visible { display: flex; }
+#pc-brief-panel h3 { margin: 0 0 0.5rem; font-size: 1rem; color: var(--accent); }
+#pc-brief-panel .brief-section { margin-bottom: 0.8rem; }
+#pc-brief-panel .brief-section h4 { margin: 0 0 0.3rem; font-size: 0.9rem; color: var(--text-secondary, #aaa); }
+#pc-brief-panel ul { margin: 0; padding-left: 1.2rem; }
+#pc-brief-panel li { margin-bottom: 0.2rem; }
+/* R4-HCPC-9: Controls tab in Settings */
+#controls-tab { margin-top: 1rem; padding-top: 0.5rem; border-top: 1px solid var(--panel-border, rgba(0,0,0,0.1)); }
+#controls-tab h3 { margin: 0 0 0.5rem; font-size: 1rem; color: var(--accent); }
+#controls-tab .settings-row { margin-bottom: 0.4rem; }
+#controls-tab input[type="text"] { width: 60%; padding: 0.3rem; font-family: monospace; font-size: 0.9rem; background: var(--bg-input, #fff); border: 1px solid var(--input-border, #ccc); border-radius: 4px; }
+html[data-theme="light"][data-layout="pc"] #controls-tab input[type="text"] { background: #fff; color: var(--text); }

@@ -40,3 +40,486 @@ window.HEIST_COMMITTEE_PC_TUTORIAL_STEPS = [
     text: "Have fun, and keep the plan flexible.",
   },
 ];
+
+/* R4-HCPC-3: Drag-box selection and arrow-key shift for the timeline */
+(function () {
+  "use strict";
+  var dragStart = null;
+  var dragBox = null;
+  var clipboard = null;
+
+  function getTimeline() { return document.getElementById("timeline"); }
+
+  function getCells() {
+    var tl = getTimeline();
+    return tl ? Array.from(tl.querySelectorAll(".cell")) : [];
+  }
+
+  function toggleSelection(cell) {
+    cell.classList.toggle("selected");
+  }
+
+  document.addEventListener("mousedown", function (e) {
+    var timeline = getTimeline();
+    if (!timeline || e.button !== 0 || !timeline.contains(e.target)) return;
+    var rect = timeline.getBoundingClientRect();
+    dragStart = { x: e.clientX - rect.left, y: e.clientY - rect.top };
+    if (!dragBox) {
+      dragBox = document.createElement("div");
+      dragBox.className = "plan-drag-box";
+      dragBox.style.display = "none";
+      timeline.appendChild(dragBox);
+    }
+    dragBox.style.display = "block";
+    dragBox.style.left = dragStart.x + "px";
+    dragBox.style.top = dragStart.y + "px";
+    dragBox.style.width = "0";
+    dragBox.style.height = "0";
+    document.addEventListener("mousemove", onDrag);
+    document.addEventListener("mouseup", endDrag);
+  });
+
+  function onDrag(e) {
+    if (!dragStart || !dragBox) return;
+    var timeline = getTimeline();
+    if (!timeline) return;
+    var rect = timeline.getBoundingClientRect();
+    var x = Math.max(0, e.clientX - rect.left);
+    var y = Math.max(0, e.clientY - rect.top);
+    var left = Math.min(dragStart.x, x);
+    var top = Math.min(dragStart.y, y);
+    var width = Math.abs(x - dragStart.x);
+    var height = Math.abs(y - dragStart.y);
+    dragBox.style.left = left + "px";
+    dragBox.style.top = top + "px";
+    dragBox.style.width = width + "px";
+    dragBox.style.height = height + "px";
+  }
+
+  function endDrag() {
+    document.removeEventListener("mousemove", onDrag);
+    document.removeEventListener("mouseup", endDrag);
+    if (!dragStart || !dragBox) return;
+    var timeline = getTimeline();
+    if (!timeline) return;
+    var rect = timeline.getBoundingClientRect();
+    var bw = parseFloat(dragBox.style.width) || 0;
+    var bh = parseFloat(dragBox.style.height) || 0;
+    if (bw > 4 || bh > 4) {
+      // The box is kept in timeline coordinates; cells are measured in viewport coordinates.
+      var bl = rect.left + (parseFloat(dragBox.style.left) || 0);
+      var bt = rect.top + (parseFloat(dragBox.style.top) || 0);
+      var br = bl + bw;
+      var bb = bt + bh;
+      getCells().forEach(function (cell) {
+        var cr = cell.getBoundingClientRect();
+        if (cr.left < br && cr.right > bl && cr.top < bb && cr.bottom > bt) {
+          toggleSelection(cell);
+        }
+      });
+    }
+    dragStart = null;
+    dragBox.style.display = "none";
+  }
+
+  document.addEventListener("keydown", function (e) {
+    if (document.activeElement.tagName === "INPUT" || document.activeElement.tagName === "TEXTAREA") return;
+    var timeline = getTimeline();
+    if (!timeline) return;
+    var phase = timeline.closest(".phase");
+    var isPlan = phase && phase.id === "phase-plan" && !phase.hidden;
+    if (!isPlan) return;
+
+    // Ctrl+C / Ctrl+V for copying plan rows
+    if (e.ctrlKey && e.key === 'c') {
+      e.preventDefault();
+      clipboard = {};
+      getCells().filter(function (c) { return c.classList.contains("selected"); }).forEach(function (c) {
+        var lane = parseInt(c.dataset.lane, 10);
+        var beat = c.dataset.beat;
+        var cellData = HC.view.plan.lanes[lane][beat];
+        var actionId = cellData && (cellData.id || cellData.name);
+        if (actionId) clipboard[beat] = actionId;
+      });
+      var toast = document.getElementById("toast");
+      if (toast && Object.keys(clipboard).length > 0) toast.textContent = "Copied " + Object.keys(clipboard).length + " actions to clipboard";
+      return;
+    }
+    if (e.ctrlKey && e.key === 'v') {
+      e.preventDefault();
+      if (!clipboard || !Object.keys(clipboard).length) return;
+      var targetRow = null;
+      var activeCell = document.activeElement;
+      if (activeCell && activeCell.classList.contains("cell")) {
+        targetRow = parseInt(activeCell.dataset.lane, 10);
+      } else {
+        var firstSelected = getCells().find(function(c) { return c.classList.contains("selected"); });
+        if (firstSelected) targetRow = parseInt(firstSelected.dataset.lane, 10);
+      }
+      if (targetRow !== null) {
+        timeline.dispatchEvent(new CustomEvent("hc-paste", { detail: { lane: targetRow, beats: clipboard } }));
+      }
+      return;
+    }
+
+    var delta = 0;
+    if (e.key === "ArrowLeft") delta = -1;
+    else if (e.key === "ArrowRight") delta = 1;
+    else {
+      var controls = window.HeistCommitteePC && window.HeistCommitteePC.getControls ? window.HeistCommitteePC.getControls() : null;
+      if (controls) {
+        var isControlKey = controls.arm.indexOf(e.key) !== -1 ||
+                           controls.standby.indexOf(e.key) !== -1 ||
+                           controls.delete.indexOf(e.key) !== -1;
+        if (!isControlKey) return;
+      } else {
+        return;
+      }
+    }
+
+    var selected = getCells().filter(function (c) { return c.classList.contains("selected"); });
+    if (!selected.length) return;
+    e.preventDefault();
+
+    var beats = parseInt(getComputedStyle(timeline).getPropertyValue('--beats'), 10) || 10;
+    selected.forEach(function (c) {
+      var b = parseInt(c.dataset.beat, 10);
+      c.dataset.beat = Math.max(0, Math.min(beats - 1, b + delta));
+    });
+
+    if (window.HeistCommittee && window.HeistCommittee.onPlanShift) {
+      window.HeistCommittee.onPlanShift(delta);
+    }
+  });
+
+  /* R4-HCPC-6: Track and list changed cells */
+  var _changedCells = new Set();
+  var _changesPanel = null;
+  var _changesList = null;
+
+  function _initChangesTracker() {
+    if (_changesPanel) return;
+    var planSide = document.querySelector(".plan-side");
+    if (!planSide) return;
+    _changesPanel = document.createElement("section");
+    _changesPanel.className = "panel pc-changes-panel";
+    _changesPanel.id = "pc-changes-panel";
+    _changesPanel.innerHTML = '<h3 id="changes-heading">Changed cells</h3><ul id="changes-list" class="pc-changes-list"></ul><button id="clear-changes-button" type="button">Clear list</button>';
+    planSide.appendChild(_changesPanel);
+    _changesList = document.getElementById("changes-list");
+
+    var timeline = getTimeline();
+    if (!timeline) return;
+
+    var observer = new MutationObserver(function (mutations) {
+      for (var m of mutations) {
+        if (m.type === "childList" || m.type === "attributes") {
+          var nodes = m.addedNodes ? Array.from(m.addedNodes) : [];
+          if (m.removedNodes) nodes = nodes.concat(Array.from(m.removedNodes));
+          if (m.target.classList && m.target.classList.contains("cell")) nodes.push(m.target);
+          for (var node of nodes) {
+            if (node.classList && node.classList.contains("cell")) {
+              var key = node.dataset.lane + "-" + node.dataset.beat;
+              if (key) _changedCells.add(key);
+            }
+          }
+        }
+      }
+      _renderChanges();
+    });
+    observer.observe(timeline, { childList: true, subtree: true, attributes: true, attributeFilter: ["class", "data-lane", "data-beat"] });
+  }
+
+  function _renderChanges() {
+    if (!_changesList) return;
+    _changesList.innerHTML = "";
+    _changedCells.forEach(function (key) {
+      var li = document.createElement("li");
+      var parts = key.split("-");
+      li.textContent = "Lane " + parts[0] + ", Beat " + parts[1];
+      _changesList.appendChild(li);
+    });
+  }
+
+  function _resetChanges() {
+    _changedCells.clear();
+    if (_changesList) _changesList.innerHTML = "";
+  }
+
+  document.addEventListener("click", function (e) {
+    if (e.target.id === "clear-plan-button" || e.target.id === "start-heist-button") {
+      _resetChanges();
+    }
+    if (e.target.id === "clear-changes-button") {
+      _resetChanges();
+    }
+  });
+
+  var _phaseObserver = new MutationObserver(function (mutations) {
+    for (var m of mutations) {
+      if (m.type === "attributes" && m.attributeName === "hidden") {
+        var phase = m.target;
+        if (phase.id === "phase-plan" && !phase.hidden) {
+          _initChangesTracker();
+        }
+      }
+    }
+  });
+  var mainStage = document.getElementById("main-stage");
+  if (mainStage) _phaseObserver.observe(mainStage, { attributes: true, subtree: true, attributeFilter: ["hidden"] });
+
+  /* R4-HCPC-7: Second-screen playback log */
+  (function () {
+    "use strict";
+    var _logPanel = null;
+    var _logContent = null;
+    var _popoutWin = null;
+
+    function initPlaybackLog() {
+      if (_logPanel) return;
+      _logPanel = document.createElement("div");
+      _logPanel.id = "pc-playback-log";
+      _logPanel.className = "pc-playback-log";
+      _logPanel.innerHTML = '<h3>Playback Log</h3><div id="pc-playback-log-content"></div><button id="pc-log-popout-button" type="button">Pop out to new window</button><button id="pc-log-close-button" type="button">Close log</button>';
+      document.body.appendChild(_logPanel);
+      _logContent = document.getElementById("pc-playback-log-content");
+
+      var popBtn = document.getElementById("pc-log-popout-button");
+      if (popBtn) {
+        popBtn.addEventListener("click", function () {
+          if (_popoutWin && !_popoutWin.closed) {
+            _popoutWin.focus();
+            return;
+          }
+          _popoutWin = window.open("", "_blank", "width=800,height=600,scrollbars=yes");
+          if (_popoutWin) {
+            _popoutWin.document.write("<!DOCTYPE html><html><head><title>Heist Log</title><style>body{font-family:monospace;font-size:1.2rem;padding:2rem;white-space:pre-wrap;background:#1d2133;color:#fff;}</style></head><body id='popout-log'></body></html>");
+            _popoutWin.document.close();
+          }
+        });
+      }
+
+      var closeBtn = document.getElementById("pc-log-close-button");
+      if (closeBtn) {
+        closeBtn.addEventListener("click", function () { toggleLog(false); });
+      }
+    }
+
+    function toggleLog(show) {
+      if (_logPanel) _logPanel.classList.toggle("visible", show);
+    }
+
+    function updateLog() {
+      if (!_logContent || !_logPanel.classList.contains("visible")) return;
+      var log = [];
+      if (window.HeistCommittee && window.HeistCommittee.view && window.HeistCommittee.view.play && window.HeistCommittee.view.play.log) {
+        log = window.HeistCommittee.view.play.log;
+      } else {
+        var body = document.getElementById("playback-body");
+        if (body) log = [body.innerText];
+      }
+      _logContent.textContent = log.join("\n\n");
+      _logContent.scrollTop = _logContent.scrollHeight;
+
+      if (_popoutWin && !_popoutWin.closed && _popoutWin.document.getElementById("popout-log")) {
+        _popoutWin.document.getElementById("popout-log").textContent = _logContent.textContent;
+      }
+    }
+
+    var _logPhaseObs = new MutationObserver(function (mutations) {
+      for (var m of mutations) {
+        if (m.attributeName === "hidden") {
+          var phase = m.target;
+          if (phase.id === "phase-playback" && !phase.hidden) {
+            initPlaybackLog();
+            toggleLog(true);
+          } else if (phase.id === "phase-playback" && phase.hidden) {
+            toggleLog(false);
+          }
+        }
+      }
+    });
+    var logMainStage = document.getElementById("main-stage");
+    if (logMainStage) _logPhaseObs.observe(logMainStage, { attributes: true, subtree: true, attributeFilter: ["hidden"] });
+
+    setInterval(updateLog, 1000);
+
+    window.HeistCommitteePC = window.HeistCommitteePC || {};
+    window.HeistCommitteePC.togglePlaybackLog = toggleLog;
+  })();
+
+  /* R4-HCPC-8: Client brief panel */
+  (function () {
+    "use strict";
+    var _briefPanel = null;
+    var _briefContent = null;
+
+    function initBriefPanel() {
+      if (_briefPanel) return;
+      _briefPanel = document.createElement("div");
+      _briefPanel.id = "pc-brief-panel";
+      _briefPanel.className = "pc-brief-panel";
+      _briefPanel.innerHTML = '<h3>Client Brief</h3><div id="pc-brief-content"></div>';
+      document.body.appendChild(_briefPanel);
+      _briefContent = document.getElementById("pc-brief-content");
+
+      var toggleBtn = document.getElementById("brief-toggle-button");
+      if (toggleBtn) {
+        toggleBtn.addEventListener("click", function () {
+          _briefPanel.classList.toggle("visible");
+          if (_briefPanel.classList.contains("visible")) {
+            _updateBrief();
+          }
+        });
+      }
+    }
+
+    function _updateBrief() {
+      if (!_briefContent) return;
+      var hc = window.HeistCommittee;
+      if (!hc || !hc.content || !hc.view) return;
+      
+      var targetId = hc.view.target_id;
+      var target = hc.content.targets ? hc.content.targets[targetId] : null;
+      if (!target) {
+        _briefContent.innerHTML = "<p>No target selected.</p>";
+        return;
+      }
+
+      var html = '<div class="brief-section"><h4>Target: ' + (target.name || targetId) + '</h4></div>';
+      
+      if (target.rules && target.rules.length) {
+        html += '<div class="brief-section"><h4>Rules</h4><ul>';
+        target.rules.forEach(function(r) { html += '<li>' + (r.text || r) + '</li>'; });
+        html += '</ul></div>';
+      }
+      
+      if (target.complications && target.complications.length) {
+        html += '<div class="brief-section"><h4>Complications</h4><ul>';
+        target.complications.forEach(function(c) { html += '<li>' + (c.text || c) + '</li>'; });
+        html += '</ul></div>';
+      }
+
+      _briefContent.innerHTML = html;
+    }
+
+    var _briefPhaseObs = new MutationObserver(function (mutations) {
+      for (var m of mutations) {
+        if (m.attributeName === "hidden") {
+          var phase = m.target;
+          if ((phase.id === "phase-scout" || phase.id === "phase-plan") && !phase.hidden) {
+            initBriefPanel();
+            if (_briefPanel.classList.contains("visible")) {
+              _updateBrief();
+            }
+          }
+        }
+      }
+    });
+    var mainStage = document.getElementById("main-stage");
+    if (mainStage) _briefPhaseObs.observe(mainStage, { attributes: true, subtree: true, attributeFilter: ["hidden"] });
+
+    window.HeistCommitteePC = window.HeistCommitteePC || {};
+    window.HeistCommitteePC.toggleBrief = function(show) {
+      initBriefPanel();
+      if (show !== undefined) _briefPanel.classList.toggle("visible", show);
+      else _briefPanel.classList.toggle("visible");
+      if (_briefPanel.classList.contains("visible")) _updateBrief();
+    };
+  })();
+
+  /* R4-HCPC-9: Controls tab for key rebinding */
+  (function () {
+    "use strict";
+    var STORAGE_KEY = "heist-controls";
+    var defaults = { arm: "1,2,3,4,5,6,7,8,9", standby: "s", delete: "Delete" };
+    var bindings = {};
+
+    function load() {
+      try {
+        var saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
+        if (saved && typeof saved === "object") {
+          bindings = Object.assign({}, defaults, saved);
+        } else {
+          bindings = Object.assign({}, defaults);
+        }
+      } catch (e) {
+        bindings = Object.assign({}, defaults);
+      }
+    }
+
+    function save() {
+      try { localStorage.setItem(STORAGE_KEY, JSON.stringify(bindings)); } catch (e) {}
+    }
+
+    function parseKeys(str) {
+      return str.split(",").map(function(k){ return k.trim(); }).filter(Boolean);
+    }
+
+    function injectUI() {
+      var panel = document.getElementById("settings-panel");
+      if (!panel || document.getElementById("controls-tab")) return;
+      var div = document.createElement("div");
+      div.id = "controls-tab";
+      div.className = "settings-section";
+      div.innerHTML = '<h3>Controls</h3>' +
+        '<div class="settings-row"><label>Arm action (1-9): <input type="text" id="ctrl-arm" maxlength="50"></label></div>' +
+        '<div class="settings-row"><label>Standby: <input type="text" id="ctrl-standby" maxlength="20"></label></div>' +
+        '<div class="settings-row"><label>Delete cell: <input type="text" id="ctrl-delete" maxlength="20"></label></div>' +
+        '<div class="settings-row"><button id="reset-controls-button" type="button">Reset to defaults</button></div>';
+      panel.appendChild(div);
+
+      var armInput = document.getElementById("ctrl-arm");
+      var standbyInput = document.getElementById("ctrl-standby");
+      var deleteInput = document.getElementById("ctrl-delete");
+      var resetBtn = document.getElementById("reset-controls-button");
+
+      function updateInputs() {
+        armInput.value = bindings.arm.join(",");
+        standbyInput.value = bindings.standby.join(",");
+        deleteInput.value = bindings.delete.join(",");
+      }
+
+      load();
+      updateInputs();
+
+      armInput.addEventListener("input", function() {
+        bindings.arm = parseKeys(armInput.value);
+        save();
+      });
+      standbyInput.addEventListener("input", function() {
+        bindings.standby = parseKeys(standbyInput.value);
+        save();
+      });
+      deleteInput.addEventListener("input", function() {
+        bindings.delete = parseKeys(deleteInput.value);
+        save();
+      });
+
+      resetBtn.addEventListener("click", function() {
+        bindings = Object.assign({}, defaults);
+        save();
+        updateInputs();
+      });
+    }
+
+    window.HeistCommitteePC = window.HeistCommitteePC || {};
+    window.HeistCommitteePC.getControls = function() { return bindings; };
+    window.HeistCommitteePC.initControls = injectUI;
+
+    document.addEventListener("DOMContentLoaded", function() {
+      var panel = document.getElementById("settings-panel");
+      if (panel) {
+        var obs = new MutationObserver(function(mutations) {
+          for (var m of mutations) {
+            if (m.attributeName === "hidden" && !panel.hidden) {
+              injectUI();
+              obs.disconnect();
+            }
+          }
+        });
+        obs.observe(panel, { attributes: true, attributeFilter: ["hidden"] });
+      }
+    });
+  })();
+})();

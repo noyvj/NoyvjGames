@@ -241,6 +241,67 @@ html[data-high-contrast="true"] {
 html[data-high-contrast="true"] .cell.pinged { background: #000; }
 html[data-high-contrast="true"] .cell-num { color: #fff; text-shadow: 0 0 3px #000, 0 0 3px #000; }
 
+/* ---- mobile tool bar ---------------------------------------------------- */
+.mobile-tool-bar {
+  display: none;
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 200;
+  padding: 0.6rem 0.8rem calc(0.6rem + env(safe-area-inset-bottom));
+  background: rgba(13, 21, 18, 0.97);
+  border-top: 1px solid var(--panel-edge);
+  gap: 0.6rem; justify-content: center;
+}
+@media (max-width: 600px) {
+  #today-button {
+    display: block; width: 100%; margin: 0.5rem 0; padding: 0.7rem;
+    font-size: 1rem; font-weight: 700; background: var(--amber); color: #23160a;
+    border: none; border-radius: 8px; cursor: pointer;
+  }
+  .mobile-tool-bar { display: flex; }
+  html body { padding-bottom: 90px !important; }
+  /* Pinch-to-zoom breathing room */
+  .board-wrap { overflow-x: auto; overflow-y: auto; padding: 0.5rem; }
+  .board { min-width: max-content; }
+}
+.tool-btn {
+  flex: 1 1 0; max-width: 14rem; height: 56px;
+  font-size: 1.1rem; font-weight: 700; letter-spacing: 0.08em;
+  border-radius: 12px; border: 2px solid var(--tile-edge);
+  background: #1b3026; color: var(--ink-dim); cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+.tool-btn[aria-pressed="true"] {
+  background: var(--amber); color: #23160a; border-color: var(--amber);
+}
+/* ---- radial menu (mobile long-press) ------------------------------- */
+@media (max-width: 600px) {
+  #radial-menu {
+    position: absolute; z-index: 300; display: none; flex-direction: column; gap: 0.4rem;
+    background: var(--panel); border: 1px solid var(--panel-edge); border-radius: 12px;
+    padding: 0.5rem; box-shadow: 0 4px 16px rgba(0,0,0,0.5);
+    transition: opacity 0.15s ease;
+  }
+  #radial-menu button {
+    font: inherit; font-size: 0.85rem; padding: 0.4rem 0.7rem; border-radius: 8px;
+    background: #1b3026; color: var(--ink); border: 1px solid var(--tile-edge); cursor: pointer;
+  }
+  #radial-menu button:hover, #radial-menu button:focus-visible { border-color: var(--amber); }
+}
+html[data-reduced-motion="true"] #radial-menu, html[data-reduced-motion="true"] #radial-menu button {
+  transition: none !important;
+}
+
+/* ---- haptic pulse (mobile only) -------------------------------------- */
+@media (max-width: 600px) {
+  @keyframes haptic-pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.025); }
+    100% { transform: scale(1); }
+  }
+  .board.haptic-active {
+    animation: haptic-pulse 0.18s ease-out;
+  }
+}
+
 /* ---- mobile ------------------------------------------------------------ */
 @media (max-width: 640px) {
   #game { margin: 0.5rem 0.4rem 1rem; padding: 0.9rem 0.6rem 1.3rem; }
@@ -277,3 +338,20 @@ html[data-theme="light"] #action-bar.mobile-docked { background: rgba(255, 255, 
 html[data-theme="light"][data-high-contrast="true"] { --ink: #000; --ink-dim: #111; --tile-edge: #000; --panel-edge: #000; --tile: #fff; --fill: #000; --amber: #6b3a00; }
 html[data-theme="light"][data-high-contrast="true"] .cell.pinged { background: #fff; }
 html[data-theme="light"][data-high-contrast="true"] .cell-num { color: #000; text-shadow: none; }
+
+/* ---- resume banner (mobile) ----------------------------------------------- */
+@media (max-width: 600px) {
+  .resume-banner {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 800;
+    background: rgba(13, 21, 18, 0.95); color: var(--amber);
+    border-bottom: 1px solid var(--panel-edge);
+    padding: 0.6rem 1rem; font-size: 0.85rem; text-align: center;
+    display: flex; justify-content: center; align-items: center; gap: 0.8rem;
+    transform: translateY(-100%); transition: transform 0.3s ease-out;
+  }
+  .resume-banner.visible { transform: translateY(0); }
+  .resume-banner button {
+    background: transparent; border: 1px solid var(--amber); color: var(--amber);
+    padding: 0.2rem 0.6rem; font-size: 0.8rem; cursor: pointer; border-radius: 4px;
+  }
+}

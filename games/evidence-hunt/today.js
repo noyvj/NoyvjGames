@@ -18,6 +18,7 @@
     if (!S || !document.getElementById("practice-today")) return;
     S.daily.mountButton("#practice-today", {
       game: GAME,
+      hideStreak: true,   // the pledge bans streaks (FY-60): the shared button must not print "N days in a row"
       onStart: function (text) {
         if (window.evidenceHuntStartPractice) window.evidenceHuntStartPractice({ action: "practice", today: text });
       },

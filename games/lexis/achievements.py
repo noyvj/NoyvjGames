@@ -7,18 +7,18 @@ from bridge import MARKERS
 from compound import COMPONENTS
 
 ACHIEVEMENTS = (
-    ("first_signal", "First Signal", "Send a signal the station understands."),
-    ("lamp_keeper", "Lamp Keeper", "Light all seven lamps on planet 1."),
-    ("first_words", "First Words", "Write your first notebook entry."),
-    ("learning_from_static", "Learning From Static", "Send a signal the station cannot understand, and keep going."),
-    ("sharp_ear", "Sharp Ear", "Check three or more notebook entries and have every one right."),
-    ("first_contact", "First Contact", "Make contact with planet 1."),
-    ("unseen_sign", "Never Shown", "Send a sign on planet 2 that no transmission ever showed you."),
-    ("second_contact", "Second Contact", "Make contact with planet 2."),
-    ("full_glossary", "Full Glossary", "Have every part of planet 2's signs written down correctly."),
-    ("patient_listener", "Patient Listener", "Receive every transmission on both planets."),
-    ("third_contact", "Third Contact", "Make contact with planet 3."),
-    ("markers_known", "Small Signs", "Have all three of planet 3's small signs written down correctly."),
+    ("first_signal", "First Signal", "Send a signal the station understands.", "A spark in the dark, the first hello."),
+    ("lamp_keeper", "Lamp Keeper", "Light all seven lamps on planet 1.", "Seven eyes open, the station wakes."),
+    ("first_words", "First Words", "Write your first notebook entry.", "The first guess takes root in silent soil."),
+    ("learning_from_static", "Learning From Static", "Send a signal the station cannot understand, and keep going.", "When words turn to noise, patience speaks louder."),
+    ("sharp_ear", "Sharp Ear", "Check three or more notebook entries and have every one right.", "Three guesses, one truth, and a quiet mind."),
+    ("first_contact", "First Contact", "Make contact with planet 1.", "The bridge is built, the voice is heard."),
+    ("unseen_sign", "Never Shown", "Send a sign on planet 2 that no transmission ever showed you.", "A shape never shown, yet understood."),
+    ("second_contact", "Second Contact", "Make contact with planet 2.", "Two worlds speak, the ship listens."),
+    ("full_glossary", "Full Glossary", "Have every part of planet 2's signs written down correctly.", "Every part named, the puzzle completes."),
+    ("patient_listener", "Patient Listener", "Receive every transmission on both planets.", "Six scenes and four more, all received."),
+    ("third_contact", "Third Contact", "Make contact with planet 3.", "Three planets answered, the journey deepens."),
+    ("markers_known", "Small Signs", "Have all three of planet 3's small signs written down correctly.", "Three small signs, three big changes."),
 )
 
 SCENES_PULSE = 6
@@ -59,4 +59,4 @@ def earned(state, station, tray):
 
 def view(state, station, tray):
     have = set(earned(state, station, tray))
-    return [{"id": i, "label": label, "description": desc, "earned": i in have} for i, label, desc in ACHIEVEMENTS]
+    return [{"id": i, "label": label, "description": desc, "riddle": riddle, "earned": i in have} for i, label, desc, riddle in ACHIEVEMENTS]

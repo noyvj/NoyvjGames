@@ -140,6 +140,7 @@
       </div>
       <div class="settings-row"><label><input type="checkbox" id="reduced-motion-checkbox"> Reduce motion (stops the pulsing reveal)</label></div>
       <div class="settings-row"><label><input type="checkbox" id="high-contrast-checkbox"> High contrast</label></div>
+      <div class="settings-row"><label><input type="checkbox" id="oled-checkbox"> OLED pure-black dark mode (mobile only)</label></div>
       <div class="settings-row"><button id="theme-setting-button" class="secondary" type="button">Toggle light / dark theme</button></div>
       <div class="settings-row"><label><input type="checkbox" id="assist-checkbox" checked> Easy mode: hatch tiles the readings have ruled out</label></div>
       <div class="settings-row"><label><input type="checkbox" id="ascii-checkbox"> Share as plain text (. : + #) instead of block glyphs</label></div>
@@ -169,6 +170,7 @@
 
     <div id="session-bar" class="section">
       <p id="session-line" class="session-line">Signal</p>
+      <button id="today-button" type="button" aria-label="Open today's puzzle">▶ Today</button>
       <div id="mode-tabs" class="segmented" role="group" aria-label="Puzzle">
         <button type="button" data-mode-tab="easy" aria-pressed="true">Easy</button>
         <button type="button" data-mode-tab="hard" aria-pressed="false">Hard</button>
@@ -210,6 +212,11 @@
       <button id="commit-button" class="primary" type="button" disabled>Commit answer</button>
       <button id="clear-marks-button" class="secondary" type="button">Clear markers</button>
       <button id="give-up-button" class="secondary" type="button">Give up</button>
+    </div>
+
+    <div id="mobile-tool-bar" class="mobile-tool-bar" hidden>
+      <button id="mobile-ping-button" class="tool-btn" type="button" aria-pressed="true">Ping</button>
+      <button id="mobile-mark-button" class="tool-btn" type="button" aria-pressed="false">Mark</button>
     </div>
 
     <div id="result-panel" class="section result-panel" hidden>

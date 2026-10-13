@@ -22,6 +22,8 @@
   var PYODIDE_URL = "https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.js";
   var LS_STATE = "signal:state";
   var LS_VIEW = "signal:lastview";
+  var LS_TOOL = "signal:tool";
+  var LS_CURSOR = "signal:cursor";
   var MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
   var GLYPHS = "▁▂▃▄▅▆▇█";
   var SYMBOL = { none: "·", inprogress: "…", won: "✔", lost: "✖" };
@@ -122,6 +124,47 @@
 
   // ---- rendering ---------------------------------------------------------------
   function setMessage(text) { $("message-line").textContent = text || ""; }
+
+  function saveResumeState() {
+    if (!view || view.status !== "inprogress") return;
+    lsSet(LS_TOOL, tool);
+    lsSet(LS_CURSOR, JSON.stringify(cursor));
+  }
+
+  function restoreResumeState() {
+    if (!view || view.status !== "inprogress") return;
+    var savedTool = lsGet(LS_TOOL);
+    var savedCursor = lsGet(LS_CURSOR);
+    var n = view.board.n;
+    if (savedTool === "ping" || savedTool === "mark") tool = savedTool;
+    if (savedCursor) {
+      try {
+        var c = JSON.parse(savedCursor);
+        if (typeof c.r === "number" && typeof c.c === "number" && c.r >= 0 && c.r < n && c.c >= 0 && c.c < n) cursor = c;
+      } catch (e) {}
+    }
+    showResumeBanner();
+  }
+
+  var resumeBannerEl = null;
+  function showResumeBanner() {
+    if (resumeBannerEl) return;
+    resumeBannerEl = document.createElement("div");
+    resumeBannerEl.className = "resume-banner";
+    resumeBannerEl.innerHTML = '<span>Resuming your last board</span><button type="button">Dismiss</button>';
+    resumeBannerEl.querySelector("button").addEventListener("click", function () {
+      resumeBannerEl.classList.remove("visible");
+      setTimeout(function () { if (resumeBannerEl) resumeBannerEl.remove(); resumeBannerEl = null; }, 350);
+    });
+    document.body.appendChild(resumeBannerEl);
+    requestAnimationFrame(function () { resumeBannerEl.classList.add("visible"); });
+    setTimeout(function () {
+      if (resumeBannerEl && resumeBannerEl.parentNode) {
+        resumeBannerEl.classList.remove("visible");
+        setTimeout(function () { if (resumeBannerEl) resumeBannerEl.remove(); resumeBannerEl = null; }, 350);
+      }
+    }, 4000);
+  }
 
   function renderTabs() {
     var s = view.session;
@@ -234,6 +277,12 @@
     var toggle = $("tool-toggle-button");
     toggle.textContent = "Tool: " + (tool === "ping" ? "Ping" : "Mark");
     toggle.setAttribute("aria-pressed", String(tool === "mark"));
+    var pingBtn = $("mobile-ping-button");
+    var markBtn = $("mobile-mark-button");
+    if (pingBtn) {
+      pingBtn.setAttribute("aria-pressed", String(tool === "ping"));
+      markBtn.setAttribute("aria-pressed", String(tool === "mark"));
+    }
     $("warm-line").hidden = engineReady;
     if (!engineReady) {
       $("warm-line").textContent = "Receiver warming up..." + (queue.length ? " " + queue.length + " tap" + (queue.length === 1 ? "" : "s") + " queued." : "");
@@ -335,6 +384,11 @@
       var date = new Date(Date.UTC(cal.y, cal.m, d)).toISOString().slice(0, 10);
       var enabled = date >= EPOCH && date <= today;
       var cell = el("div", "cal-day" + (enabled ? "" : " off") + (date === today ? " today" : ""));
+      cell.setAttribute("data-date", date);
+      var currentMode = (view && view.session && view.session.mode) || "easy";
+      cell.setAttribute("data-mode", currentMode);
+      var res = dayStatus(date, currentMode);
+      if (res !== "none") cell.setAttribute("data-result", res === "inprogress" ? "in-progress" : res);
       cell.appendChild(el("span", "num", String(d)));
       ["easy", "hard"].forEach(function (mode) { cell.appendChild(makeChip(date, d, mode, enabled)); });
       grid.appendChild(cell);
@@ -402,6 +456,23 @@
       return;
     }
     var showStreaks = resp.best_streak !== null && resp.best_streak !== undefined;
+
+    // Quiet streak: total solved (big, never goes down) with streak beside it
+    if (resp.total_solved !== undefined) {
+      var qs = el("div", "quiet-streak");
+      qs.style.fontSize = "2rem";
+      qs.style.fontWeight = "bold";
+      qs.style.marginBottom = "0.5rem";
+      qs.textContent = resp.total_solved + " solved";
+      if (showStreaks && resp.best_streak !== null) {
+        var streakSpan = el("span", "", " · streak: " + resp.best_streak);
+        streakSpan.style.fontSize = "1rem";
+        streakSpan.style.fontWeight = "normal";
+        qs.appendChild(streakSpan);
+      }
+      panel.appendChild(qs);
+    }
+
     panel.appendChild(el("p", "panel-note", showStreaks
       ? "Longest daily streak (any mode): " + resp.best_streak + " day(s). Daily streaks count wins on the daily puzzle only."
       : "Daily streaks are off, so missing a day costs nothing. You can switch them on in Settings."));
@@ -474,6 +545,13 @@
     return JSON.parse(api(JSON.stringify(req)));
   }
 
+  function triggerHaptic(reading, top) {
+    if (navigator.vibrate && document.documentElement.getAttribute("data-reduced-motion") !== "true") {
+      var ms = Math.max(5, Math.round((reading / top) * 25));
+      navigator.vibrate(ms);
+    }
+  }
+
   function applyResponse(resp, req) {
     if (resp.view) {
       view = resp.view;
@@ -495,6 +573,15 @@
     });
     if (resp.dirty) persistState();
     if (view) { render(); cacheView(); }
+    if (req.action === "ping" && view.pings && view.pings.length > 0) {
+      var lastPing = view.pings[view.pings.length - 1];
+      triggerHaptic(lastPing.v || 0, view.board.top || 5);
+      var boardEl = $("board");
+      if (document.documentElement.getAttribute("data-reduced-motion") !== "true") {
+        boardEl.classList.add("haptic-active");
+        setTimeout(function() { boardEl.classList.remove("haptic-active"); }, 200);
+      }
+    }
   }
 
   var QUEUEABLE = { ping: true, mark: true, clear_marks: true, commit: true, give_up: true, open: true, practice: true };
@@ -625,6 +712,7 @@
   function doTool(r, c, forceMark) {
     if (view.status !== "inprogress") { setMessage("This puzzle is finished. Open another from the tabs or the archive."); return; }
     cursor = { r: r, c: c };
+    saveResumeState();
     if (forceMark || tool === "mark") act({ action: "mark", r: r, c: c });
     else act({ action: "ping", r: r, c: c });
   }
@@ -636,6 +724,56 @@
 
   function wire() {
     var boardEl = $("board");
+
+    // ---- radial menu (mobile long-press) ------------------------------
+    var rMenu = null, rTimer = null, rTarget = null, rPos = { x: 0, y: 0 };
+    if (window.innerWidth <= 600) {
+      rMenu = document.createElement("div");
+      rMenu.id = "radial-menu";
+      rMenu.innerHTML = '<button data-action="ping">Ping</button><button data-action="mark">Mark</button><button data-action="clear">Clear</button>';
+      document.body.appendChild(rMenu);
+
+      function showRMenu(x, y) {
+        var rect = rMenu.getBoundingClientRect();
+        var left = x + 10;
+        var top = y - 60;
+        if (left + rect.width > window.innerWidth) left = x - rect.width - 10;
+        if (top < 0) top = y + 20;
+        rMenu.style.left = left + "px";
+        rMenu.style.top = top + "px";
+        rMenu.style.display = "flex";
+      }
+      function hideRMenu() { rMenu.style.display = "none"; rTimer = null; rTarget = null; }
+
+      boardEl.addEventListener("pointerdown", function (ev) {
+        if (ev.pointerType !== "touch") return;
+        var btn = ev.target.closest(".cell");
+        if (!btn || !view || view.status !== "inprogress") return;
+        rTarget = btn;
+        rPos = { x: ev.clientX, y: ev.clientY };
+        clearTimeout(rTimer);
+        rTimer = setTimeout(function () { showRMenu(ev.clientX, ev.clientY); }, 400);
+      });
+      boardEl.addEventListener("pointermove", function (ev) {
+        if (!rTarget || !rTimer) return;
+        if (Math.abs(ev.clientX - rPos.x) > 20 || Math.abs(ev.clientY - rPos.y) > 20) { clearTimeout(rTimer); rTimer = null; }
+      });
+      boardEl.addEventListener("pointerup", function () { if (rTimer) { clearTimeout(rTimer); rTimer = null; } });
+      document.addEventListener("pointerdown", function (ev) { if (!rMenu.contains(ev.target)) hideRMenu(); });
+
+      rMenu.addEventListener("click", function (ev) {
+        var btn = ev.target.closest("button");
+        if (!btn || !rTarget) return;
+        var r = parseInt(rTarget.getAttribute("data-r"), 10);
+        var c = parseInt(rTarget.getAttribute("data-c"), 10);
+        var action = btn.getAttribute("data-action");
+        hideRMenu();
+        if (action === "ping") doTool(r, c, false);
+        else if (action === "mark") doTool(r, c, true);
+        else if (action === "clear") act({ action: "clear_marks" });
+      });
+    }
+
     boardEl.addEventListener("click", function (ev) {
       var btn = ev.target.closest(".cell");
       if (!btn) return;
@@ -662,6 +800,7 @@
       if (moved) {
         ev.preventDefault();
         cursor = { r: r, c: c };
+        saveResumeState();
         renderBoard();
         focusCursor();
         return;
@@ -683,8 +822,11 @@
 
     $("tool-toggle-button").addEventListener("click", function () {
       tool = tool === "ping" ? "mark" : "ping";
+      saveResumeState();
       renderStatus();
     });
+    $("mobile-ping-button").addEventListener("click", function () { tool = "ping"; renderStatus(); });
+    $("mobile-mark-button").addEventListener("click", function () { tool = "mark"; renderStatus(); });
 
     document.querySelectorAll("[data-mode-tab]").forEach(function (tab) {
       tab.addEventListener("click", function () {
@@ -703,6 +845,10 @@
         $("practice-controls").hidden = true;
         act({ action: "open", date: utcToday(), mode: t });
       });
+    });
+
+    $("today-button").addEventListener("click", function () {
+      act({ action: "open", date: utcToday(), mode: "easy" });
     });
 
     $("practice-new-button").addEventListener("click", function () {
@@ -837,6 +983,7 @@
       setMessage("Welcome back. Your board is shown while the receiver warms up.");
     }
     cursor = { r: Math.floor(view.board.n / 2), c: Math.floor(view.board.n / 2) };
+    restoreResumeState();
     wire();
     render();
     renderAchievements();
@@ -846,6 +993,84 @@
     // (not requestAnimationFrame) so a tab opened in the background still warms up.
     setTimeout(startEngine, 0);
   }
+
+  // Mobile pinch-to-zoom & double-tap reset (max-width: 600px)
+  (function () {
+    if (window.innerWidth > 600) return;
+    var board = document.getElementById("board");
+    if (!board) return;
+    var wrap = board.parentElement;
+    if (!wrap) return;
+    // Respect reduced motion
+    if (document.documentElement.getAttribute("data-reduced-motion") === "true" ||
+        window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
+    var SCALE_KEY = "signal-zoom-scale";
+    var PAN_X_KEY = "signal-zoom-x";
+    var PAN_Y_KEY = "signal-zoom-y";
+    var MIN_S = 0.5, MAX_S = 3;
+
+    function getScale() {
+      var v = parseFloat(localStorage.getItem(SCALE_KEY));
+      return isFinite(v) && v >= MIN_S && v <= MAX_S ? v : 1;
+    }
+    function setScale(s) {
+      s = Math.max(MIN_S, Math.min(MAX_S, s));
+      localStorage.setItem(SCALE_KEY, s);
+      applyTransform();
+    }
+    function getPX() { return parseFloat(localStorage.getItem(PAN_X_KEY)) || 0; }
+    function setPX(x) { localStorage.setItem(PAN_X_KEY, x); applyTransform(); }
+    function getPY() { return parseFloat(localStorage.getItem(PAN_Y_KEY)) || 0; }
+    function setPY(y) { localStorage.setItem(PAN_Y_KEY, y); applyTransform(); }
+
+    function applyTransform() {
+      var s = getScale();
+      var x = getPX();
+      var y = getPY();
+      board.style.transform = "translate(" + x + "px, " + y + "px) scale(" + s + ")";
+    }
+
+    var lastPinchDist = null;
+    wrap.addEventListener("touchstart", function (e) {
+      if (e.touches.length === 2) {
+        var dx = e.touches[0].clientX - e.touches[1].clientX;
+        var dy = e.touches[0].clientY - e.touches[1].clientY;
+        lastPinchDist = Math.sqrt(dx * dx + dy * dy);
+      }
+    }, { passive: true });
+
+    wrap.addEventListener("touchmove", function (e) {
+      if (e.touches.length === 2 && lastPinchDist !== null) {
+        var dx = e.touches[0].clientX - e.touches[1].clientX;
+        var dy = e.touches[0].clientY - e.touches[1].clientY;
+        var dist = Math.sqrt(dx * dx + dy * dy);
+        setScale(getScale() + (dist - lastPinchDist) / 200);
+        lastPinchDist = dist;
+      }
+    }, { passive: true });
+
+    wrap.addEventListener("touchend", function () { lastPinchDist = null; });
+
+    var lastTapTime = 0;
+    board.addEventListener("touchend", function (e) {
+      if (e.changedTouches.length !== 1) return;
+      var now = Date.now();
+      if (now - lastTapTime < 300) {
+        setScale(1);
+        setPX(0);
+        setPY(0);
+        localStorage.removeItem(PAN_X_KEY);
+        localStorage.removeItem(PAN_Y_KEY);
+        applyTransform();
+        lastTapTime = 0;
+      } else {
+        lastTapTime = now;
+      }
+    });
+
+    applyTransform();
+  })();
 
   window.SignalApp = { timings: timings, act: act, getView: function () { return view; }, startEngine: startEngine };
   window.SignalTimings = timings;

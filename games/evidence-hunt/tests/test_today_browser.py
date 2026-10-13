@@ -113,3 +113,11 @@ def test_todays_run_opens_the_dated_house_and_solving_it_counts_once(base, page_
         assert page.evaluate("document.documentElement.scrollWidth - document.documentElement.clientWidth") <= 1
         browser.close()
     assert errors == []
+
+
+def test_fy60_the_todays_run_button_never_prints_a_streak():
+    """FY-60: the pledge bans streaks, so the game asks the shared button to leave its streak line out."""
+    today = (ROOT / "games" / "evidence-hunt" / "today.js").read_text(encoding="utf-8")
+    seed = (ROOT / "shared" / "seed.js").read_text(encoding="utf-8")
+    assert "hideStreak: true" in today
+    assert "opts.hideStreak" in seed

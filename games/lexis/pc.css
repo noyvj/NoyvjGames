@@ -62,3 +62,114 @@ html[data-layout="pc"] .pc-readout { color: var(--text); }
   html[data-layout="pc"] #game { gap: 0.4rem; padding-top: 0.4rem; }
   #pc-topbar > h1 { margin-top: 0.8rem; font-size: 1.2rem; }
 }
+
+/* Drag-and-drop support for notebook -> transmit bar (PC only) */
+.notebook-list li { cursor: grab; user-select: none; }
+.notebook-list li.dragging { opacity: 0.5; cursor: grabbing; }
+.signal .dropped-sign { margin-right: 0.4rem; padding: 0.2rem 0.4rem; background: var(--panel); border: 1px solid var(--accent); border-radius: 4px; }
+
+/* Notebook search (PC only) */
+.pc-notebook-search-input {
+  position: fixed; top: 1rem; left: 50%; transform: translateX(-50%);
+  padding: 0.4rem 0.8rem; border-radius: 4px; border: 1px solid var(--accent);
+  background: var(--panel); color: var(--text); z-index: 100; font-size: inherit;
+}
+.pc-notebook-search-input[hidden] { display: none; }
+.notebook-list li.search-match,
+.notebook-list li.notebook-jumped {
+  background: var(--accent); color: #fff; border-radius: 4px;
+}
+html[data-reduced-motion="true"] .notebook-list li.notebook-jumped {
+  transition: none;
+}
+
+/* Right-click context menu for signs (PC only) */
+.lexis-context-menu {
+  position: fixed;
+  z-index: 1000;
+  min-width: 14rem;
+  padding: 0.3rem 0;
+  background: var(--panel);
+  border: 1px solid var(--accent);
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+  color: var(--text);
+  font-size: 0.9rem;
+}
+.lexis-context-menu-item {
+  display: block;
+  width: 100%;
+  padding: 0.4rem 1rem;
+  background: transparent;
+  border: none;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.lexis-context-menu-item:hover,
+.lexis-context-menu-item:focus {
+  background: var(--accent);
+  color: #fff;
+}
+html[data-reduced-motion="true"] .lexis-context-menu {
+  transition: none;
+}
+
+/* Pinned scene player (PC only) */
+.lexis-pinned-scene {
+  position: fixed;
+  bottom: 1rem;
+  left: 1rem;
+  width: 20rem;
+  max-height: 40vh;
+  background: var(--panel);
+  border: 1px solid var(--accent);
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  padding: 0.75rem;
+  z-index: 900;
+  display: none;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.lexis-pinned-scene[open] { display: flex; }
+.lexis-pinned-scene-header {
+  display: flex; justify-content: space-between; align-items: center;
+  font-weight: bold; color: var(--accent);
+}
+.lexis-pinned-scene-close {
+  background: transparent; border: none; cursor: pointer; font-size: 1.2rem; color: var(--text);
+}
+.lexis-pinned-scene-content {
+  overflow-y: auto; flex: 1; min-height: 0;
+}
+html[data-reduced-motion="true"] .lexis-pinned-scene { transition: none; }
+
+/* Hover line for crew-log entries (PC only) */
+#crew-log-entries > * {
+  position: relative;
+}
+#crew-log-entries > *:hover::after {
+  content: attr(data-source);
+  display: block;
+  margin-top: 0.25rem;
+  font-size: 0.85rem;
+  color: var(--accent);
+  opacity: 0.9;
+  pointer-events: none;
+}
+
+/* Print glossary layout */
+@media print {
+  body * { display: none !important; }
+  #print-glossary, #print-glossary * { display: block !important; }
+  #print-glossary {
+    position: absolute; top: 0; left: 0; width: 100%; height: auto;
+    padding: 2rem; font-family: sans-serif; color: #000; background: #fff;
+    column-count: 2; column-gap: 2rem;
+  }
+  #print-glossary h2 { column-span: all; margin-top: 0; border-bottom: 1px solid #ccc; padding-bottom: 0.5rem; }
+  #print-glossary h3 { margin-top: 1.5rem; font-size: 1.1rem; }
+  #print-glossary ol { column-break-inside: avoid; padding-left: 1.2rem; }
+  #print-glossary li { margin-bottom: 0.4rem; break-inside: avoid; }
+}

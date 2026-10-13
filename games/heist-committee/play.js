@@ -92,6 +92,15 @@
     pb.events.forEach(function (ev) {
       var fresh = grew && ev.beat === pb.cursor - 1;
       log.appendChild(eventNode(ev, fresh));
+      if (fresh && ev.type === "complication") {
+        try {
+          if (document.documentElement.getAttribute("data-reduced-motion") !== "true" &&
+              document.documentElement.getAttribute("data-effects") !== "off" &&
+              navigator.vibrate) {
+            navigator.vibrate(50);
+          }
+        } catch (_) {}
+      }
       if (fresh && ev.type !== "beat" && announceBits.length < 4) announceBits.push(ev.text);
     });
     if (grew) {

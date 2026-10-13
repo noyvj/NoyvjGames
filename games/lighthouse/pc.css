@@ -50,6 +50,32 @@ html[data-theme="light"] #pc-hintbar { opacity: 1; }
 html[data-theme="light"][data-layout="pc"] .pc-readout { background: var(--panel); color: var(--text); }
 html[data-layout="pc"] .pc-readout { color: var(--text); }
 
+/* --- HUD scale and fade ------------------------------------------------------- */
+html[data-layout="pc"] #hud {
+  transform-origin: top left;
+  transform: scale(var(--hud-scale, 1));
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+html[data-layout="pc"] #hud.idle {
+  opacity: var(--hud-fade, 0);
+}
+html[data-layout="pc"][data-reduced-motion="true"] #hud {
+  transition: none;
+}
+
+/* --- HUD scale and fade ------------------------------------------------------- */
+html[data-layout="pc"] #hud {
+  transform-origin: top left;
+  transform: scale(var(--hud-scale, 1));
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+html[data-layout="pc"] #hud.idle {
+  opacity: var(--hud-fade, 0);
+}
+html[data-layout="pc"][data-reduced-motion="true"] #hud {
+  transition: none;
+}
+
 @media (max-width: 1100px) {
   html[data-layout="pc"] #pc-body { grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); }
   .pc-readout { padding: 0.25rem 0.55rem; font-size: 0.8rem; }
@@ -58,4 +84,61 @@ html[data-layout="pc"] .pc-readout { color: var(--text); }
   html[data-layout="pc"] #game { gap: 0.4rem; padding-top: 0.4rem; }
   #pc-topbar > h1 { margin-top: 0.8rem; font-size: 1.2rem; }
   #pc-stage > #scene-panel .scene { max-height: 36vh; }
+}
+
+/* --- Ship hover card (Desktop) ------------------------------------------------ */
+html[data-layout="pc"] #ship-hover-card {
+  position: fixed;
+  z-index: 100;
+  background: var(--panel);
+  border: 1px solid var(--accent);
+  border-radius: 6px;
+  padding: 0.75rem 1rem;
+  min-width: 180px;
+  max-width: 240px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  pointer-events: none;
+  opacity: 0;
+  transform: translateY(4px);
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+html[data-layout="pc"] #ship-hover-card.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+html[data-layout="pc"][data-reduced-motion="true"] #ship-hover-card {
+  transition: none;
+}
+html[data-layout="pc"] #ship-hover-card h3 { margin: 0 0 0.4rem; font-size: 1rem; color: var(--accent); }
+html[data-layout="pc"] #ship-hover-card p { margin: 0.25rem 0; font-size: 0.85rem; color: var(--text); }
+html[data-layout="pc"] #ship-hover-card .label { color: var(--text); font-weight: 600; opacity: 0.8; }
+
+/* --- Letters window: two-pane mail reader ------------------------------------------------ */
+html[data-layout="pc"] #letters-pane-wrapper { display: flex; gap: 1rem; width: 100%; }
+html[data-layout="pc"] #letters-list { flex: 0 0 30%; overflow-y: auto; max-height: 60vh; border-right: 1px solid var(--accent); padding-right: 0.5rem; }
+html[data-layout="pc"] #letters-list li { cursor: pointer; padding: 0.4rem; margin-bottom: 0.2rem; border-radius: 4px; transition: background 0.15s ease, color 0.15s ease; }
+html[data-layout="pc"] #letters-list li:hover,
+html[data-layout="pc"] #letters-list li.active { background: var(--accent); color: var(--panel-bg, #fff); }
+html[data-layout="pc"][data-reduced-motion="true"] #letters-list li { transition: none; }
+html[data-layout="pc"] #letters-reader { flex: 1; overflow-y: auto; max-height: 60vh; padding-left: 0.5rem; font-style: italic; line-height: 1.5; color: var(--text); }
+
+/* Layout presets (F1/F2) ------------------------------------------------ */
+html[data-layout="pc"][data-pc-layout="keeper-desk"] #pc-side { flex: 0 0 auto; max-width: 35rem; }
+html[data-layout="pc"][data-pc-layout="quiet-night"] #pc-side { flex: 0 0 20rem; opacity: 0.85; }
+html[data-layout="pc"][data-pc-layout="quiet-night"] #log-panel { display: none; }
+html[data-layout="pc"][data-pc-layout="quiet-night"] #scene-panel .scene { max-height: min(65vh, 45rem); }
+html[data-layout="pc"][data-pc-layout="quiet-night"] #hud { --hud-fade: 0.3; }
+
+/* --- Window opacity slider ------------------------------------------------ */
+html[data-layout="pc"] .window-opacity-slider {
+  width: 100%;
+  margin: 0.5rem 0;
+  cursor: pointer;
+}
+html[data-layout="pc"] .panel[hidden] .window-opacity-slider,
+html[data-layout="pc"] .panel[aria-hidden="true"] .window-opacity-slider {
+  display: none;
+}
+html[data-layout="pc"][data-reduced-motion="true"] .window-opacity-slider {
+  transition: none;
 }

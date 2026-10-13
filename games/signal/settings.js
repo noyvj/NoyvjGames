@@ -14,6 +14,7 @@
   var SCALE_KEY = "signal-text-scale";
   var MOTION_KEY = "signal-reduced-motion";
   var CONTRAST_KEY = "signal-high-contrast";
+  var OLED_KEY = "signal-oled-mode";
   var MIN_SCALE = 0.85;
   var MAX_SCALE = 1.5;
   var STEP = 0.1;
@@ -45,14 +46,17 @@
   var scale = applyScale(readScale());
   var reduced = applyFlag("data-reduced-motion", MOTION_KEY, get(MOTION_KEY) === "true");
   var contrast = applyFlag("data-high-contrast", CONTRAST_KEY, get(CONTRAST_KEY) === "true");
+  var oled = applyFlag("data-oled", OLED_KEY, get(OLED_KEY) === "true");
 
   function init() {
     var panel = document.getElementById("settings-panel");
     var toggle = document.getElementById("settings-toggle-button");
     var motionBox = document.getElementById("reduced-motion-checkbox");
     var contrastBox = document.getElementById("high-contrast-checkbox");
+    var oledBox = document.getElementById("oled-checkbox");
     if (motionBox) motionBox.checked = reduced;
     if (contrastBox) contrastBox.checked = contrast;
+    if (oledBox) oledBox.checked = oled;
     if (toggle && panel) toggle.addEventListener("click", function () { panel.hidden = !panel.hidden; });
     function on(id, handler) {
       var el = document.getElementById(id);
@@ -63,12 +67,15 @@
     on("text-size-reset-button", function () { scale = applyScale(DEFAULT_SCALE); });
     if (motionBox) motionBox.addEventListener("change", function () { reduced = applyFlag("data-reduced-motion", MOTION_KEY, motionBox.checked); });
     if (contrastBox) contrastBox.addEventListener("change", function () { contrast = applyFlag("data-high-contrast", CONTRAST_KEY, contrastBox.checked); });
+    if (oledBox) oledBox.addEventListener("change", function () { oled = applyFlag("data-oled", OLED_KEY, oledBox.checked); });
     on("display-reset-button", function () {
       scale = applyScale(DEFAULT_SCALE);
       reduced = applyFlag("data-reduced-motion", MOTION_KEY, false);
       contrast = applyFlag("data-high-contrast", CONTRAST_KEY, false);
+      oled = applyFlag("data-oled", OLED_KEY, false);
       if (motionBox) motionBox.checked = false;
       if (contrastBox) contrastBox.checked = false;
+      if (oledBox) oledBox.checked = false;
     });
   }
 

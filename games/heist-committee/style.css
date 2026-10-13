@@ -8,6 +8,7 @@
   --accent: #ffc15e; --focus: #ffd666; --hover-edge: #ffc15e;
   --good: #8be0a0; --warn: #ffb347; --bad: #ff8d8d; --info: #8fd3ff;
   --cell: #181c2c; --cell-fill: #232843; --selected: #ffc15e; --armed: #5fd0c8;
+  --cosy-bg: #1a1d2e; --cosy-bg-top: #0f111a;
 }
 html[data-theme="light"] {
   --bg: #f4efe6; --bg-top: #fbf8f1; --panel: #fffdf8; --panel-fill: rgba(255, 253, 248, 0.96); --surface: #f1ebde;
@@ -256,3 +257,86 @@ html[data-effects="off"] *, html[data-effects="off"] *::before, html[data-effect
 .daily-cell { width: .8rem; height: .8rem; border: 1px solid currentColor; border-radius: 2px; opacity: .45; font-size: .6rem; line-height: .8rem; text-align: center; overflow: hidden; }
 .daily-cell.done { opacity: 1; background: var(--text); color: var(--bg); font-weight: 700; }
 .daily-note, .daily-result { border-left: 3px solid currentColor; }
+
+/* Mobile carousel tray (R4-HCMO-2) */
+@media (max-width: 600px) {
+  /* R4-HCMO-7: Crew sheet slide-in overlay */
+  #phase-recruit.crew-sheet-open {
+    position: fixed; top: 0; left: 0; bottom: 0;
+    width: min(85vw, 22rem); z-index: 100;
+    background: var(--bg); padding-top: 3.5rem; overflow-y: auto;
+    transform: translateX(-100%); transition: transform 0.25s ease-out;
+    margin: 0; box-sizing: border-box;
+  }
+  #phase-recruit.crew-sheet-open.is-visible { transform: translateX(0); }
+  html[data-reduced-motion="true"] #phase-recruit.crew-sheet-open,
+  html[data-effects="off"] #phase-recruit.crew-sheet-open { transition: none !important; }
+
+  #main-stage.has-crew-sheet #timeline-wrap { width: 100%; }
+
+  .chain li { min-width: 12rem; padding: 0.35rem 0.6rem; font-size: 0.9rem; }
+  #mobile-tray {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 100;
+    background: var(--panel); border-top: 1px solid var(--line);
+    padding: 0.5rem 0.6rem; display: flex; gap: 0.4rem; overflow-x: auto;
+    -webkit-overflow-scrolling: touch; scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+  }
+  #mobile-tray::-webkit-scrollbar { display: none; }
+  .tray-carousel-item {
+    flex: 0 0 auto; width: 7rem; scroll-snap-align: center;
+    border: 1px solid var(--edge); border-radius: 8px; padding: 0.4rem 0.3rem;
+    background: var(--surface); text-align: center; cursor: pointer;
+    touch-action: manipulation; user-select: none; transition: border-color 0.2s, background 0.2s;
+  }
+  .tray-carousel-item[aria-pressed="true"] {
+    border-color: var(--accent); border-width: 2px; background: var(--cell-fill);
+  }
+  .tray-carousel-item .t-name { font-weight: 700; font-size: 0.85rem; margin-bottom: 0.15rem; }
+  .tray-carousel-item .t-odds { font-size: 0.7rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; }
+  .tray-carousel-item .t-odds.solid { color: var(--good); }
+  .tray-carousel-item .t-odds.risky { color: var(--warn); }
+  .tray-carousel-item .t-odds.long { color: var(--bad); }
+  .tray-carousel-item .t-odds.none { color: var(--muted); border-bottom: 1px dashed currentColor; display: inline-block; }
+  
+  html[data-reduced-motion="true"] #mobile-tray,
+  html[data-effects="off"] #mobile-tray { scroll-snap-type: none; transition: none !important; }
+
+  .odds-sheet {
+    position: fixed; left: 1rem; right: 1rem; bottom: 1rem; z-index: 200;
+    background: var(--panel); border: 1px solid var(--edge); border-radius: 12px;
+    padding: 1rem; box-shadow: 0 -4px 16px rgba(0,0,0,0.3);
+    display: flex; flex-direction: column; gap: 0.5rem;
+    animation: slide-up 0.2s ease-out;
+  }
+  .odds-sheet-close { align-self: flex-end; background: transparent; border: none; font-size: 1.2rem; padding: 0; cursor: pointer; color: var(--text); }
+  .odds-label { margin: 0; font-weight: 700; }
+  .odds-explanation { margin: 0; white-space: pre-wrap; color: var(--muted); font-size: 0.9rem; line-height: 1.4; }
+  @keyframes slide-up { from { transform: translateY(100%); } to { transform: none; } }
+  /* R4-HCMO-8: Mobile timeline zoom */
+  .timeline-wrap { touch-action: pan-x pinch-zoom; }
+  .timeline { transform-origin: top left; transition: transform 0.2s ease-out; will-change: transform; }
+  html[data-reduced-motion="true"] .timeline, html[data-effects="off"] .timeline { transition: none !important; }
+
+  /* R4-HCMO-9: Cosy night mode - dimmer background, larger cells for bedtime planning */
+  html[data-cosy-night="true"] #game {
+    background: radial-gradient(ellipse at top, var(--cosy-bg), var(--cosy-bg-top) 70%);
+  }
+  html[data-cosy-night="true"] .panel,
+  html[data-cosy-night="true"] .card,
+  html[data-cosy-night="true"] .cell {
+    background: rgba(255, 255, 255, 0.04);
+    border-color: var(--line);
+  }
+  html[data-cosy-night="true"] .timeline-wrap {
+    background: rgba(0, 0, 0, 0.3);
+  }
+  /* Bigger cells for touch targets in cosy mode */
+  html[data-cosy-night="true"] .cell {
+    min-height: 5.2rem;
+    font-size: 0.85rem;
+  }
+  html[data-cosy-night="true"] .beat-head {
+    padding: 0.3rem 0.2rem;
+  }
+}

@@ -39,7 +39,7 @@ def test_confirm_reports_a_count_only():
     call(action="write", form="1000", gloss="lamp")
     call(action="write", form="1001", gloss="wrong")
     result = call(action="confirm", forms=["1000", "1001"])
-    assert result == {"right": 1, "chosen": 2}
+    assert result == {"right": 1, "chosen": 2, "confirm_stamp": True}
 
 
 def test_speaking_changes_the_station_and_answers_in_world():
@@ -115,7 +115,7 @@ def test_compound_notebook_is_separate_and_confirm_counts_only():
     call(action="write", planet="compound", form="zz", gloss="ignored")
     assert call(action="open", planet="compound")["notebook"] == {"k": "water", "u": "small"}
     assert call(action="open")["notebook"] == {}                           # planet 1's notebook is untouched
-    assert call(action="confirm", planet="compound", forms=["k", "u"]) == {"right": 1, "chosen": 2}
+    assert call(action="confirm", planet="compound", forms=["k", "u"]) == {"right": 1, "chosen": 2, "confirm_stamp": True}
 
 
 def test_save_round_trip_keeps_both_planets():
@@ -182,8 +182,8 @@ def test_bridge_notebook_is_separate_and_confirm_counts_only_with_the_role_word(
     view = call(action="open", planet="bridge")
     assert view["notebook"] == {"p": "plural", "n": "ask", "q": "ask"}     # only markers; stored, never judged
     assert call(action="open", planet="compound")["notebook"] == {}
-    assert call(action="confirm", planet="bridge", forms=["p", "n", "q"]) == {"right": 2, "chosen": 3}
-    assert call(action="confirm", planet="bridge", forms=["z"]) == {"right": 0, "chosen": 1}
+    assert call(action="confirm", planet="bridge", forms=["p", "n", "q"]) == {"right": 2, "chosen": 3, "confirm_stamp": True}
+    assert call(action="confirm", planet="bridge", forms=["z"]) == {"right": 0, "chosen": 1, "confirm_stamp": True}
     call(action="write", planet="bridge", form="p", gloss="")
     assert "p" not in call(action="open", planet="bridge")["notebook"]
 
@@ -290,7 +290,7 @@ def test_confirm_counts_a_repeated_entry_once_so_it_cannot_fake_a_perfect_check(
     call(action="reset")
     call(action="write", form="1000", gloss="lamp")
     out = call(action="confirm", forms=["1000", "1000", "1000"])
-    assert out == {"right": 1, "chosen": 1}
+    assert out == {"right": 1, "chosen": 1, "confirm_stamp": True}
     assert "perfect_check" not in game.state.flags
     assert call(action="confirm", forms="1000")["chosen"] == 0           # not a list: nothing chosen, no crash
 
