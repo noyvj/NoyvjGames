@@ -79,6 +79,10 @@ select { font: inherit; color: var(--text); background: var(--surface); border: 
 .play { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); gap: 1rem; align-items: start; }
 .play > .panel { margin: 0.5rem 0; }
 @media (max-width: 900px) { .play { grid-template-columns: minmax(0, 1fr); } }
+/* R4-LGMO-7: a phone turned sideways (short and wide) keeps the board on the left and the check on the right */
+@media (orientation: landscape) and (max-height: 520px) and (min-width: 560px) { .play { grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); } }
+table.truth tr.pickable { cursor: pointer; }
+table.truth tr.pickable:hover td { background: rgba(95, 212, 230, 0.12); }
 .board-scroll { overflow-x: auto; overflow-y: hidden; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); padding: 0.3rem; max-width: 100%; }
 #board-holder { line-height: 0; width: max-content; min-width: 100%; }
 .lg-board { display: block; max-width: none; }
@@ -171,6 +175,63 @@ td.want-differs { font-weight: 700; }
 .log-entry h3 { margin: 0; font-size: 0.95rem; }
 .changelog-date { font-size: 0.8rem; color: var(--muted); }
 .changelog-entry { margin: 0.5rem 0; }
+
+/* --- phone extras (R4-LGMO-1, -2, -8, -10): all behind max-width 600px; none of it shows on Desktop ------------------------- */
+.chapter-cards-container, .chip-drawer, .lg-mobile-tools { display: none; }
+.chapter-card {
+  flex: 0 0 85%; scroll-snap-align: center; box-sizing: border-box;
+  background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 1rem;
+  display: flex; flex-direction: column; align-items: center; gap: 0.5rem;
+}
+.chapter-card h3 { margin: 0; font-size: 1.05rem; color: var(--accent); text-align: center; }
+.chapter-progress-ring { width: 60px; height: 60px; position: relative; }
+.chapter-progress-ring svg { width: 60px; height: 60px; transform: rotate(-90deg); }
+.chapter-progress-ring circle { fill: none; stroke-width: 4; }
+.chapter-progress-ring .bg { stroke: var(--line); }
+.chapter-progress-ring .fg { stroke: var(--accent); }
+.chapter-ring-text { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; font-weight: 700; }
+.chapter-chip-count { font-size: 0.85rem; color: var(--muted); text-align: center; }
+.chapter-levels-list { width: 100%; display: flex; flex-wrap: wrap; gap: 0.4rem; justify-content: center; margin-top: 0.3rem; }
+.chapter-level-btn { width: 2.75rem; min-width: 44px; height: 2.75rem; min-height: 44px; padding: 0; justify-content: center; }
+.chapter-level-btn.solved { background: var(--btn-primary); color: var(--on-primary); border-color: var(--accent); }
+.chapter-level-btn.locked { border-style: dashed; opacity: 0.75; }
+.chapter-level-btn.current { border-width: 3px; border-color: var(--accent); }
+
+@media (max-width: 600px) {
+  /* chapter cards replace the long level list on a phone */
+  .chapter-cards-container { display: flex; gap: 0.75rem; overflow-x: auto; scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch; padding: 0.4rem 0; }
+  html:not([data-layout="pc"]) #picker-body { display: none; }
+
+  /* chip drawer: a handle always in thumb reach, the chip buttons slide up */
+  .chip-drawer {
+    display: block; position: fixed; bottom: 0; left: 0; right: 0; z-index: 100;
+    background: var(--panel); border-top: 2px solid var(--line);
+    transform: translateY(calc(100% - 3.5rem)); transition: transform 0.2s ease-out;
+  }
+  .chip-drawer.open { transform: translateY(0); }
+  .chip-drawer-handle {
+    display: flex; align-items: center; justify-content: center; gap: 0.5rem; width: 100%;
+    height: 3.5rem; min-height: 44px; cursor: pointer; color: var(--text); font-size: 0.95rem;
+    background: var(--panel-fill); border: 0; border-radius: 12px 12px 0 0;
+  }
+  .chip-drawer-handle::before { content: "\2303"; font-size: 1.2rem; }
+  .chip-drawer.open .chip-drawer-handle::before { content: "\2304"; }
+  .chip-drawer-content { padding: 0.5rem 1rem 1rem; display: flex; flex-wrap: wrap; gap: 0.4rem; max-height: 40vh; overflow-y: auto; }
+  .chip-drawer:not(.open) .chip-drawer-content { visibility: hidden; }
+  .chip-drawer-content button { flex-shrink: 0; min-height: 44px; }
+  html:not([data-layout="pc"]) #game { padding-bottom: 5rem; }
+
+  /* fit the board to the screen width */
+  .lg-mobile-tools { display: flex; gap: 0.4rem; margin: 0 0 0.5rem; }
+  .lg-mobile-tools button { min-height: 44px; font-size: 0.85rem; }
+  .lg-mobile-tools button[aria-pressed="true"] { background: var(--btn-primary); color: var(--on-primary); border-color: var(--hover-edge); }
+  #board-holder.lg-fit { width: 100%; }
+  #board-holder.lg-fit .lg-board { width: 100%; height: auto; }
+
+  /* a wire is armed: the pins read as bigger targets (taps near a pin also count, see magnetPin in app.js) */
+  #board-holder.lg-wiring .lg-pin { r: 10px; }
+}
+html[data-layout="pc"] .chip-drawer, html[data-layout="pc"] .chapter-cards-container, html[data-layout="pc"] .lg-mobile-tools { display: none !important; }
 
 @media (max-width: 480px) {
   #game { padding: 0.6rem 0.6rem 3rem; }

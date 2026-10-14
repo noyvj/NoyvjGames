@@ -61,6 +61,7 @@
   <section id="picker-panel" class="panel" hidden aria-labelledby="picker-heading">
     <h2 id="picker-heading">Levels</h2>
     <p class="note">A level opens when you own the chips its answer needs, so there is more than one road through. A tick means solved; PAR means solved with no more chips than the reference. Nothing here is timed.</p>
+    <div id="mobile-chapter-cards" class="chapter-cards-container"></div>
     <div id="picker-body" class="picker"></div>
   </section>
   <section id="shelf-panel" class="panel" hidden aria-labelledby="shelf-heading">
@@ -145,6 +146,7 @@
     <section id="board-panel" class="panel" aria-labelledby="board-heading">
       <h2 id="board-heading">Board</h2>
       <p id="wiring-status" class="note" aria-live="polite"></p>
+      <div class="lg-mobile-tools"><button type="button" id="lg-fit-btn" aria-pressed="false" title="Scale the whole circuit to the width of the screen">Fit board to screen</button></div>
       <div id="board-scroll" class="board-scroll" tabindex="0" role="group" aria-label="Circuit drawing (scrolls sideways when it is wide)">
         <div id="board-holder"></div>
       </div>
@@ -227,6 +229,11 @@
   // buttons the Desktop layout turns into icons and windows. app.js asks this function which steps to run.
   window.logicGatesTutorialSteps = function (classicSteps) { return window.LOGIC_GATES_PC_TUTORIAL_STEPS || classicSteps; };
 </script>
+<div id="chip-drawer" class="chip-drawer">
+  <button type="button" id="chip-drawer-handle" class="chip-drawer-handle" aria-expanded="false" aria-controls="chip-drawer-content">Chips</button>
+  <div id="chip-drawer-content" class="chip-drawer-content" role="group" aria-label="Chips you can add"></div>
+</div>
+<script src="chip-drawer.js"></script>
 <script src="app.js"></script>
 <script src="../../shared/last-played.js" data-game-id="logic-gates"></script>
 <script src="../../shared/whats-new-banner.js" data-game-id="logic-gates"></script>
@@ -246,6 +253,8 @@
     extra: [
       "Tab and Shift+Tab: move between controls; every connection can be chosen from a list, so nothing needs a mouse",
       "On the board (focus not in a field): U undoes the last edit, N goes to the next level",
+      "Desktop layout: A, O and X add an AND, OR or XOR chip, Shift+N adds a NOT (a gate you have not earned yet is ignored)",
+      "Click a row of the truth table, or press Enter on it, to set the switches to that row",
       "Round pins on the drawing are for mouse and touch; the lists in Parts do the same job from the keyboard",
     ],
   });
