@@ -147,7 +147,7 @@ $($itemText -join "`n")
 ## What to do now
 $Task
 
-Do only this. Change only files in games/$Game. Follow RULES.md. Write every path from the repo root: game files as games/$Game/<file> and new tests as games/$Game/tests/test_<name>.py. Do not add sys.path code to tests: the game's tests/conftest.py already makes its modules importable. If you need a file that is not in the chat yet, name it: it will be added and you will be asked again, so then make the edits straight away.
+Do only this. Change only files in games/$Game. Follow RULES.md. Write every path from the repo root: game files as games/$Game/<file> and new tests as games/$Game/tests/test_<name>.py. Do not add sys.path code to tests: the game's tests/conftest.py already makes its modules importable. Every feature must come with a test in games/$Game/tests/ that would fail without it (see RULES.md: a pytest test for Python, a browser test for page code), or the task fails. If you need a file that is not in the chat yet, name it: it will be added and you will be asked again, so then make the edits straight away.
 "@ | Set-Content -Encoding utf8 $taskFile
 
 # --- Run Aider with no chatting -----------------------------------------
@@ -339,8 +339,10 @@ if (-not $testsOk) { $problems += "tests failed" }
 # and lost its data on reload).
 $gamePy = @($inside | Where-Object { $_ -like "*.py" -and $_ -notmatch "/tests/" })
 $testFiles = @($inside | Where-Object { $_ -match "/tests/[^/]+\.py$" })
-if (-not $testOnly -and $gamePy.Count -gt 0 -and $testFiles.Count -eq 0) {
-    $problems += "it changed the game's Python ($($gamePy -join ', ')) but added or changed no test"
+if ($isFeature -and -not $testOnly -and $inside.Count -gt 0 -and $testFiles.Count -eq 0) {
+    # every TODO feature comes with a test (owner, 2026-10-14): Python or page code alike
+    $what = if ($gamePy.Count -gt 0) { "changed the game's Python ($($gamePy -join ', '))" } else { "changed the page ($((@($inside | Where-Object { $_ -notlike '*/pc.html' }) | Select-Object -First 3) -join ', '))" }
+    $problems += "it $what but added or changed no test in games/$Game/tests/"
 }
 $testLine = ($testOut.Trim() -split "`n")[-1]
 

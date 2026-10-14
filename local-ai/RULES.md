@@ -61,6 +61,13 @@ left, and stop.
 - Add or update pytest tests in this game's tests/ folder for any Python change. A task that changes
   the game's Python but adds or changes no test is failed automatically.
 - Test what the feature promises, including a save and reload round trip if it stores anything.
+- EVERY feature you build adds or extends at least one test in games/<game>/tests/, or the task fails:
+  - Python behaviour: a pytest unit test that would fail without your change.
+  - Page behaviour (app.js, pc.js, index.html, CSS): a browser test copying the pattern of the game's
+    existing tests/test_*_browser.py (it starts a local server and drives the page with Playwright):
+    open the page, do what a player would do, assert what they should see.
+  - If the game has no browser tests yet, at least a test that reads the changed file and checks the
+    new element, class or handler is there and wired up (weaker, but required).
 - The tests and flake8 run automatically after your edits. Fix any failure
   before saying you are done.
 
