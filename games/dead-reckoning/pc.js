@@ -184,57 +184,6 @@ window.DEAD_RECKONING_PC_TUTORIAL_STEPS = [
   holder.addEventListener("mouseleave", function () { tip.classList.add("hidden"); });
 })();
 
-// Chart right-click tools (PC only) -------------------------------------------------
-(function () {
-  var holder = document.getElementById("chart-holder");
-  if (!holder) return;
-
-  var menu = document.createElement("div");
-  menu.id = "chart-tools-menu";
-  menu.className = "hidden";
-  holder.appendChild(menu);
-
-  var items = [
-    { id: "fix", label: "Drop a fix mark" },
-    { id: "measure", label: "Measure from the ship" },
-    { id: "waypoint", label: "Add a waypoint" }
-  ];
-
-  items.forEach(function (item) {
-    var btn = document.createElement("button");
-    btn.textContent = item.label;
-    btn.addEventListener("click", function () {
-      menu.classList.add("hidden");
-      window.dispatchEvent(new CustomEvent("dead-reckoning-chart-tools", { detail: { action: item.id, x: menu._x, y: menu._y } }));
-    });
-    menu.appendChild(btn);
-  });
-
-  function showMenu(x, y) {
-    menu.style.left = x + "px";
-    menu.style.top = y + "px";
-    menu.classList.remove("hidden");
-    var rect = holder.getBoundingClientRect();
-    var mRect = menu.getBoundingClientRect();
-    var w = mRect.width || 150;
-    var h = mRect.height || 80;
-    if (x + w > rect.right) menu.style.left = (rect.right - w) + "px";
-    if (y + h > rect.bottom) menu.style.top = (rect.bottom - h) + "px";
-    menu._x = parseFloat(menu.style.left);
-    menu._y = parseFloat(menu.style.top);
-  }
-
-  holder.addEventListener("contextmenu", function (e) {
-    e.preventDefault();
-    var rect = holder.getBoundingClientRect();
-    showMenu(e.clientX - rect.left, e.clientY - rect.top);
-  });
-
-  document.addEventListener("click", function () {
-    menu.classList.add("hidden");
-  });
-})();
-
 // Print layout (Ctrl+P) -------------------------------------------------------
 (function () {
   document.addEventListener("keydown", function (e) {
