@@ -47,6 +47,12 @@ window.STATION_MEDIC_PC_TUTORIAL_STEPS = [
   function init() {
     document.addEventListener("mouseover", onHover);
     document.addEventListener("mouseout", onLeave);
+    document.addEventListener("click", function(e) {
+      var li = e.target.closest("#sheet-list li");
+      if (li) {
+        li.classList.toggle("struck-out");
+      }
+    });
   }
   function onHover(e) {
     var el = e.target.closest(".bedside-signs li, .bedside-readings li");
