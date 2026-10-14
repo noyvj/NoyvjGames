@@ -134,6 +134,9 @@ button.big { font-size: 1.05rem; padding: 0.6rem 1.3rem; min-height: 3rem; margi
 .cell.has-good { touch-action: none; cursor: grab; }
 .cell.selected { outline: 3px solid var(--pick); outline-offset: -1px; border-color: var(--pick); }
 .cell.partner { outline: 3px dashed var(--match); outline-offset: -1px; }
+/* R4-PBPC-5: goods chosen with Shift+click (hand-over together): a double outline and a tick, so colour is not the signal. */
+.cell.multi { outline: 4px double var(--pick); outline-offset: -2px; }
+.cell.multi::before { content: "\2713"; position: absolute; top: 1px; left: 4px; font-weight: 900; color: var(--pick); font-size: 1rem; line-height: 1; }
 .cell.partner::after { content: "+"; position: absolute; top: 1px; right: 4px; font-weight: 900; color: var(--match); font-size: 1rem; line-height: 1; }
 .cell.drop-over { background: var(--btn); border-style: dashed; }
 .cell.hand-over { outline: 3px dotted var(--match); outline-offset: -1px; }

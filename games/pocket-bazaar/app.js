@@ -12,6 +12,7 @@
   var engine = null;
   var view = null;
   var selected = null;       // the cell number of the picked-up good
+  var multi = [];            // R4-PBPC-5: goods chosen with Shift+click, to hand over together with Shift+D
   var cursor = 0;            // the cell the arrow keys are on (roving tab stop)
   var broomArmed = false;
   var activeCrate = 0;
@@ -388,7 +389,7 @@
     b.dataset.testid = "pocket-bazaar-cell-" + i;
     b.dataset.label = label;
     b.tabIndex = -1;
-    b.addEventListener("click", function () { if (suppressClick) return; onCell(i); });
+    b.addEventListener("click", function (e) { if (suppressClick) return; if (e.shiftKey && cellAt(i)) { toggleMulti(i); return; } onCell(i); });
     return b;
   }
 
@@ -440,10 +441,12 @@
       }
       btn.classList.toggle("has-good", Boolean(cell));
       btn.classList.toggle("selected", selected === i);
+      btn.classList.toggle("multi", multi.indexOf(i) !== -1);
       btn.classList.toggle("partner", partners.indexOf(i) !== -1);
       btn.classList.toggle("broom-armed", broomArmed);
       var label = btn.dataset.label + ": " + (cell ? cell.label : "empty");
       if (selected === i) label += ", picked up";
+      if (multi.indexOf(i) !== -1) label += ", chosen to hand over together";
       if (partners.indexOf(i) !== -1) label += ", would merge";
       btn.setAttribute("aria-label", label);
       btn.setAttribute("aria-pressed", selected === i ? "true" : "false");
@@ -495,7 +498,9 @@
     var info = $("selection-info");
     var cell = selected !== null ? cellAt(selected) : null;
     var text;
-    if (broomArmed) {
+    if (multi.length) {
+      text = multi.length + (multi.length === 1 ? " good chosen" : " goods chosen") + " to hand over together: press Shift+D to give them all to one customer. Shift+click a chosen good again to drop it, Esc clears.";
+    } else if (broomArmed) {
       text = "Broom ready: tap a good to sweep it away for free. Esc puts the broom down.";
     } else if (cell) {
       text = cell.label + " picked up.";
@@ -626,6 +631,7 @@
     if (result.error) { $("engine-status").textContent = "Something went wrong: " + result.error; return null; }
     view = result;
     showToast("");
+    if (request.action === "drop" || request.action === "sell" || request.action === "start_day") multi = [];
     if (request.action === "drop" || request.action === "sell" || request.action === "broom" || request.action === "deliver" || request.action === "start_day") selected = null;
     if (request.action === "start_day") { cursor = 0; broomArmed = false; }
     render(result.event);
@@ -682,7 +688,35 @@
   }
   function letGo() {
     broomArmed = false;
+    multi = [];
     select(null);
+  }
+  // R4-PBPC-5: Shift+click chooses several goods; Shift+D hands every one a chosen customer still wants to that one customer.
+  function toggleMulti(i) {
+    if (!view || view.phase !== "open" || !cellAt(i)) return;
+    var at = multi.indexOf(i);
+    if (at === -1) multi.push(i); else multi.splice(at, 1);
+    selected = null;
+    broomArmed = false;
+    render();
+    announce(multi.length + (multi.length === 1 ? " good chosen" : " goods chosen") + " to hand over together");
+  }
+  function handOverMulti() {
+    var first = multi.length ? view.deliverable[String(multi[0])] || [] : [];
+    if (!first.length) { showMessage("Nobody wants the first chosen good. Esc clears the choice.", false); return; }
+    var to = first[0];
+    var who = view.customers[to] ? view.customers[to].name : "";
+    var chosen = multi.slice();
+    var given = 0;
+    chosen.forEach(function (from) {
+      if (!view || view.phase !== "open" || !view.customers[to] || view.customers[to].name !== who) return;
+      if ((view.deliverable[String(from)] || []).indexOf(to) === -1) return;
+      send({ action: "deliver", from: from, to: to });
+      given += 1;
+    });
+    multi = [];
+    if (view && view.phase === "open") render();
+    if (!given) showMessage("Nobody wanted those goods.", false);
   }
 
   // ---- dragging (pointer events: the same code serves a mouse, a finger and a pen) -----------------
@@ -802,6 +836,7 @@
     if (key.toLowerCase() === sellKey) { e.preventDefault(); if (selected === null && onGrid && cellAt(cursor)) select(cursor); doSell(); return; }
 
     var handoverKey = getCustom("handover", "d");
+    if (e.shiftKey && multi.length && key.toLowerCase() === handoverKey) { e.preventDefault(); handOverMulti(); return; }
     if (key.toLowerCase() === handoverKey) {
       e.preventDefault();
       if (selected === null && onGrid && cellAt(cursor)) select(cursor);
@@ -913,15 +948,6 @@
       }
     });
 
-    // R4-PBPC-5: Shift+click multi-handover
-    $("board").addEventListener("pb-handover-selected", function (e) {
-      var cells = e.detail.cells;
-      if (!cells || cells.length === 0) return;
-      cells.forEach(function (idx) {
-        var takers = view.deliverable[String(idx)] || [];
-        if (takers.length > 0) send({ action: "deliver", from: idx, to: takers[0] });
-      });
-    });
     // The save widget (a later milestone) loads a save straight into the engine; this redraws afterwards.
     // R4-PBMO-5: Pull-down peek panel setup
     if (!peekPanel) {
