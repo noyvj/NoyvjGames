@@ -101,6 +101,7 @@ window.STATION_MEDIC_PC_TUTORIAL_STEPS = [
   }
 
   function init() {
+    ensureChartNotesStrip();
     document.addEventListener("mouseover", onHover);
     document.addEventListener("mouseout", onLeave);
     document.addEventListener("click", function(e) {
@@ -146,6 +147,21 @@ window.STATION_MEDIC_PC_TUTORIAL_STEPS = [
       conditions[i].classList.remove("highlighted");
     }
   }
+  function ensureChartNotesStrip() {
+    if (document.getElementById("chart-notes-strip")) return;
+    var strip = document.createElement("section");
+    strip.id = "chart-notes-strip";
+    strip.className = "panel";
+    strip.innerHTML = '<h2>Chart Notes</h2><ul id="pc-chart-notes-list" class="log"></ul>';
+    document.body.appendChild(strip);
+
+    // Move bedside-notes into the permanent strip so app.js updates it directly.
+    var notes = document.getElementById("bedside-notes");
+    if (notes) {
+      strip.appendChild(notes);
+    }
+  }
+
   if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", init);
   } else {

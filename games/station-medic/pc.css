@@ -45,6 +45,23 @@ html[data-layout="pc"] html[data-reduced-motion="true"] #treat-row:focus-within 
   transition: none;
 }
 
+/* Permanent chart notes strip on wide screens */
+@media (min-width: 1024px) {
+  #chart-notes-strip {
+    background: var(--bg-panel, #f8f9fa);
+    border: 1px solid var(--border, #ccc);
+    border-radius: 4px;
+    padding: 0.5rem;
+    max-height: 60vh;
+    overflow-y: auto;
+  }
+  #chart-notes-strip .log {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+}
+
 /* Right-click context menu on patients (Desktop only) */
 html[data-layout="pc"] #patient-context-menu {
   position: fixed;
