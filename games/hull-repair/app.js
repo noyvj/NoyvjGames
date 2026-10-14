@@ -484,7 +484,7 @@
     drag.last = cell;
     var res = send({ action: "move", cells: steps }, true);
     if (res && res.ok === false) setText($("board-line"), res.message);
-    HR_Haptics.tick();
+    else HR_Haptics.tick();
     if (drag.touch) updateFingerGhost();
   }
   function onPointerUp(e) {
