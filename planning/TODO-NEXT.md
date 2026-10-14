@@ -1,6 +1,6 @@
 # Next TODO list (from the Round 4 ideas, started 2026-10-12)
 
-**Progress: 74/921 items checked off (8.0%).** This is the NEXT list, written alongside the live `planning/TODO.md` (which is untouched). It becomes the live list once the current one is archived. Run `python3 scripts/todo-progress.py planning/TODO-NEXT.md` after ticking items.
+**Progress: 83/921 items checked off (9.0%).** This is the NEXT list, written alongside the live `planning/TODO.md` (which is untouched). It becomes the live list once the current one is archived. Run `python3 scripts/todo-progress.py planning/TODO-NEXT.md` after ticking items.
 
 How it is built: one section per Round 4 section on the ideas sheet (`planning/IMPROVEMENT-IDEAS-ROUND-4.md`), in the sheet's order, ids `R4-<section code>-<number>`. Only ideas you answered "yes" to are items, with your note where you wrote one. A section that is not fully answered keeps its heading and ends with one item to add the rest once you have answered them. "No" answers are dropped (listed under the heading); "later" answers are parked in `planning/LATER.md`.
 
@@ -19,7 +19,9 @@ How it is built: one section per Round 4 section on the ideas sheet (`planning/I
 | HCPC. Heist Committee: PC view | 6/10 | 60% | ██████░░░░ |
 | HCMO. Heist Committee: mobile view | 6/10 | 60% | ██████░░░░ |
 | LHPC. Lighthouse: PC view | 6/10 | 60% | ██████░░░░ |
+| RSMO. Robot Script: mobile view | 6/10 | 60% | ██████░░░░ |
 | DEMO. Dead Reckoning: mobile view | 3/10 | 30% | ███░░░░░░░ |
+| RSPC. Robot Script: PC view | 3/10 | 30% | ███░░░░░░░ |
 | PX. Lexis: made for you | 6/29 | 21% | ██░░░░░░░░ |
 | DEPC. Dead Reckoning: PC view | 2/10 | 20% | ██░░░░░░░░ |
 | PU. Signal: made for you | 1/6 | 17% | ██░░░░░░░░ |
@@ -70,8 +72,6 @@ How it is built: one section per Round 4 section on the ideas sheet (`planning/I
 | OCMO. Overclock: mobile view | 0/10 | 0% | ░░░░░░░░░░ |
 | LGPC. Logic Gates: PC view | 0/10 | 0% | ░░░░░░░░░░ |
 | LGMO. Logic Gates: mobile view | 0/10 | 0% | ░░░░░░░░░░ |
-| RSPC. Robot Script: PC view | 0/10 | 0% | ░░░░░░░░░░ |
-| RSMO. Robot Script: mobile view | 0/10 | 0% | ░░░░░░░░░░ |
 | HRPC. Hull Repair: PC view | 0/10 | 0% | ░░░░░░░░░░ |
 | HRMO. Hull Repair: mobile view | 0/10 | 0% | ░░░░░░░░░░ |
 | SMPC. Station Medic: PC view | 0/10 | 0% | ░░░░░░░░░░ |
@@ -111,7 +111,7 @@ How it is built: one section per Round 4 section on the ideas sheet (`planning/I
 | OC. Overclock: general ideas | 0/1 | 0% | ░░░░░░░░░░ |
 | OCP. Overclock: made for you | 0/1 | 0% | ░░░░░░░░░░ |
 | AU. Sound | 0/1 | 0% | ░░░░░░░░░░ |
-| **All sections** | **74/921** | **8.0%** | █░░░░░░░░░ |
+| **All sections** | **83/921** | **9.0%** | █░░░░░░░░░ |
 
 <!-- PROGRESS-CHART:END -->
 
@@ -1447,12 +1447,12 @@ Parked in LATER.md (you said later): PX-25.
 
 - [ ] R4-RSPC-1: (big) Let you drag instruction blocks from a palette into the list, reorder them by dragging and drop them inside repeat blocks. Building a program feels like a real visual coding tool.
 - [ ] R4-RSPC-2: (big) Add a step debugger where F10 runs one instruction, the current line is highlighted and a side panel shows the robot's position and what it holds. You can find a mistake by watching it happen.
-- [ ] R4-RSPC-3: (small) Let you click the gutter beside a line to set a breakpoint where a run pauses. You can stop exactly where you want to look.
+- [x] R4-RSPC-3: (small) Let you click the gutter beside a line to set a breakpoint where a run pauses. You can stop exactly where you want to look.
 - [ ] R4-RSPC-4: (small) Show a hover card on a line with the tiles it visited last run. You can see what each step did.
 - [ ] R4-RSPC-5: (big) Add a text view where the same program appears as numbered lines you can edit directly, with Ctrl+Enter to run. Keyboard players can type a whole program.
 - [ ] R4-RSPC-6: (small) Add a snippets drawer where you save a routine and drag it into any room. You can reuse a good routine.
-- [ ] R4-RSPC-7: (small) Add a playback slider with the bracket keys for speed and the arrow keys for frame stepping. You control how closely you watch.
-- [ ] R4-RSPC-8: (small) Add a medals table window sorting every room by your length against par. You can find rooms to improve.
+- [x] R4-RSPC-7: (small) Add a playback slider with the bracket keys for speed and the arrow keys for frame stepping. You control how closely you watch.
+- [x] R4-RSPC-8: (small) Add a medals table window sorting every room by your length against par. You can find rooms to improve.
 - [ ] R4-RSPC-9: (small) Let you run two versions of a program side by side on the same room with a diff of their steps. You can compare approaches directly.
 - [ ] R4-RSPC-10: (small) Add a Controls tab in Settings that rebinds F, L, R, G, P, S and Run. The keys fit your hand.
 
@@ -1461,15 +1461,15 @@ Parked in LATER.md (you said later): PX-25.
 10 ideas on the sheet: 10 yes, 0 no, 0 later, 0 not answered yet.
 
 - [ ] R4-RSMO-1: (big) Build programs from a bottom keypad of large instruction buttons, with a scrolling list above and long-press handles to reorder. Writing a program works with one thumb.
-- [ ] R4-RSMO-2: (small) Add a soft tick as the robot takes each step and a longer buzz at the exit, where the browser allows. Watching a run is felt.
+- [x] R4-RSMO-2: (small) Add a soft tick as the robot takes each step and a longer buzz at the exit, where the browser allows. Watching a run is felt.
 - [ ] R4-RSMO-3: (small) Split the screen into room on top and list below with a draggable divider. You choose how much of each you see.
-- [ ] R4-RSMO-4: (small) Swipe an instruction left to delete it with an undo bar. Editing is a flick.
+- [x] R4-RSMO-4: (small) Swipe an instruction left to delete it with an undo bar. Editing is a flick.
 - [ ] R4-RSMO-5: (small) Reopen on the same room with your unfinished list kept. A short visit never loses a program.
-- [ ] R4-RSMO-6: (small) Add a run-speed chip (1x, 2x, 4x) next to Run, with a tap on the room to skip to the end. Quick runs stay quick.
+- [x] R4-RSMO-6: (small) Add a run-speed chip (1x, 2x, 4x) next to Run, with a tap on the room to skip to the end. Quick runs stay quick.
 - [ ] R4-RSMO-7: (small) In landscape, put the room on the left and the list on the right. Turning the phone gives a workbench.
-- [ ] R4-RSMO-8: (small) Show chapters as swipeable cards with medal counts. Picking a room fits a phone.
-- [ ] R4-RSMO-9: (small) Add pinch to zoom for large rooms with a double-tap to fit. Bigger rooms stay tappable.
-- [ ] R4-RSMO-10: (small) Show a hint as a bottom sheet that reveals one line at a time with each long-press. You choose how much help you get.
+- [x] R4-RSMO-8: (small) Show chapters as swipeable cards with medal counts. Picking a room fits a phone.
+- [x] R4-RSMO-9: (small) Add pinch to zoom for large rooms with a double-tap to fit. Bigger rooms stay tappable.
+- [x] R4-RSMO-10: (small) Show a hint as a bottom sheet that reveals one line at a time with each long-press. You choose how much help you get.
 
 ## HRPC. Hull Repair: PC view
 
