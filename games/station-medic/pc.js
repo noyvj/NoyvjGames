@@ -44,6 +44,35 @@ window.STATION_MEDIC_PC_TUTORIAL_STEPS = [
 
 (function () {
   "use strict";
+  var contextMenu = null;
+
+  function showContextMenu(e) {
+    if (!contextMenu) {
+      contextMenu = document.createElement("div");
+      contextMenu.id = "patient-context-menu";
+      contextMenu.setAttribute("role", "menu");
+      ["Scan", "Treat", "Isolate", "Comfort"].forEach(function(action) {
+        var btn = document.createElement("button");
+        btn.textContent = action;
+        btn.setAttribute("role", "menuitem");
+        btn.addEventListener("click", function() {
+          contextMenu.hidden = true;
+          // Placeholder for future ward job logic
+        });
+        contextMenu.appendChild(btn);
+      });
+      document.body.appendChild(contextMenu);
+    }
+    contextMenu.hidden = false;
+    var x = e.clientX;
+    var y = e.clientY;
+    var rect = contextMenu.getBoundingClientRect();
+    if (x + rect.width > window.innerWidth) x = window.innerWidth - rect.width - 10;
+    if (y + rect.height > window.innerHeight) y = window.innerHeight - rect.height - 10;
+    contextMenu.style.left = x + "px";
+    contextMenu.style.top = y + "px";
+  }
+
   function init() {
     document.addEventListener("mouseover", onHover);
     document.addEventListener("mouseout", onLeave);
@@ -51,6 +80,20 @@ window.STATION_MEDIC_PC_TUTORIAL_STEPS = [
       var li = e.target.closest("#sheet-list li");
       if (li) {
         li.classList.toggle("struck-out");
+      }
+    });
+    // Right-click menu on patients (Desktop only)
+    document.addEventListener("contextmenu", function(e) {
+      if (document.documentElement.getAttribute("data-layout") !== "pc") return;
+      var patientCard = e.target.closest(".scene");
+      if (patientCard && document.getElementById("patients").contains(patientCard)) {
+        e.preventDefault();
+        showContextMenu(e);
+      }
+    });
+    document.addEventListener("click", function(e) {
+      if (contextMenu && !contextMenu.hidden && !e.target.closest("#patient-context-menu")) {
+        contextMenu.hidden = true;
       }
     });
   }
