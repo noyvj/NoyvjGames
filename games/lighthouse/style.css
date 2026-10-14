@@ -384,4 +384,17 @@ html[data-reduced-motion="true"] #off-chart .odd-light.blinking { animation: non
   .lamp-rail-btn[aria-pressed="true"] { background: var(--btn-primary); border: 2px solid var(--hover-edge); color: var(--on-primary); }
   html[data-phone-lamp="rail"]:not([data-layout="pc"]) .crank-wrap { bottom: calc(var(--dock-h, 0px) + 3.8rem + 3.6rem); }
 }
+.chip-repair { display: none; }
+@media (max-width: 600px) {
+  /* R4-LHMO-10: Oil and Repair as big icons with big numbers; when low they glow gently (and say so in words) */
+  html:not([data-layout="pc"]) .chip-repair { display: flex; }
+  html:not([data-layout="pc"]) .chip[data-stat] { align-items: center; text-align: center; }
+  html:not([data-layout="pc"]) .chip[data-stat] .chip-icon { display: block; font-size: 1.7rem; line-height: 1.1; }
+  html:not([data-layout="pc"]) .chip[data-stat] .chip-value { font-size: 1.5rem; }
+  html:not([data-layout="pc"]) .chip[data-stat][data-state="low"] { border: 2px solid var(--accent); box-shadow: 0 0 6px var(--glow); }
+}
+@media (max-width: 600px) {
+  html:not([data-reduced-motion="true"]):not([data-effects="off"]):not([data-layout="pc"]) .chip[data-stat][data-state="low"] { animation: chip-glow 3.2s ease-in-out infinite; }
+}
+@keyframes chip-glow { 0%, 100% { box-shadow: 0 0 3px var(--glow); } 50% { box-shadow: 0 0 12px var(--glow); } }
 .info-page-how { margin: 0.3rem 0; padding-left: 1.2rem; }

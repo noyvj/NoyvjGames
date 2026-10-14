@@ -155,8 +155,9 @@
   <div id="hud" class="hud" role="group" aria-label="Station status">
     <div class="chip chip-wide"><span class="chip-label">Night</span><span class="chip-value" id="hud-night">1</span><span class="chip-sub" id="hud-season"></span></div>
     <div class="chip"><span class="chip-label">Clock</span><span class="chip-value" id="hud-clock">20:00</span></div>
-    <div class="chip"><span class="chip-label"><span aria-hidden="true">&#x1F6E2; </span>Oil</span><span class="chip-value" id="hud-oil">0</span>
+    <div class="chip" data-stat="oil" id="hud-oil-chip"><span class="chip-label"><span class="chip-icon" aria-hidden="true">&#x1F6E2; </span>Oil</span><span class="chip-value" id="hud-oil">0</span>
       <span class="meter" id="hud-oil-meter" data-state="ok"><span class="meter-fill" id="hud-oil-fill"></span></span><span class="chip-sub" id="hud-oil-state"></span></div>
+    <div class="chip chip-repair" data-stat="repair" id="hud-repair-chip"><span class="chip-label"><span class="chip-icon" aria-hidden="true">&#x1F527; </span>Repair</span><span class="chip-value" id="hud-repair">100</span><span class="chip-sub" id="hud-repair-state"></span></div>
     <div class="chip"><span class="chip-label"><span aria-hidden="true">&#x2764; </span>Energy</span><span class="chip-value" id="hud-energy">0</span>
       <span class="meter" id="hud-energy-meter" data-state="ok"><span class="meter-fill" id="hud-energy-fill"></span></span><span class="chip-sub" id="hud-energy-state"></span></div>
     <div class="chip"><span class="chip-label"><span aria-hidden="true">&#x2605; </span>The Light</span><span class="chip-value" id="hud-rep">0</span><span class="chip-sub" id="hud-rep-title"></span></div>

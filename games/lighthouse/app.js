@@ -292,6 +292,14 @@
     setText($("hud-oil"), String(Math.round(v.oil)));
     meter("hud-oil-meter", oilPct, oilState);
     setText($("hud-oil-state"), oilState === "empty" ? "Empty" : oilState === "low" ? "Low" : oilPct > 60 ? "Plenty" : "Enough");
+    // R4-LHMO-10: Repair is how sound the station's weakest part is (0 to 100); both Oil and Repair carry a calm "low" state
+    // for the phone's big icon chips (style.css), always with the words as well
+    var worst = Math.round(Math.min.apply(null, v.structure.map(function (p) { return p.value; })));
+    var repairState = worst < 40 ? "low" : "ok";
+    setText($("hud-repair"), String(worst));
+    setText($("hud-repair-state"), worst < 40 ? "Needs mending" : worst < 70 ? "Worn" : "Sound");
+    $("hud-repair-chip").setAttribute("data-state", repairState);
+    $("hud-oil-chip").setAttribute("data-state", oilState === "ok" ? "ok" : "low");
     setText($("hud-energy"), String(v.energy));
     var eState = v.energy < 20 ? "low" : "ok";
     meter("hud-energy-meter", v.energy, eState);
@@ -1321,7 +1329,7 @@
     }).observe(document.documentElement, { attributes: true, attributeFilter: ["data-reduced-motion"] });
     await changelog;
     if (window.GameTutorial) window.GameTutorial.init(window.lighthouseTutorialSteps ? window.lighthouseTutorialSteps(TUTORIAL_STEPS) : TUTORIAL_STEPS, { gameId: GAME_ID });
-    if (window.MobileHud) window.MobileHud.init([{ selector: "#hud-night", label: "Night" }, { selector: "#hud-oil", label: "Oil" }, { selector: "#hud-energy", label: "Energy" }]);
+    if (window.MobileHud) window.MobileHud.init([{ selector: "#hud-night", label: "Night" }, { selector: "#hud-oil", label: "Oil" }, { selector: "#hud-repair", label: "Repair" }, { selector: "#hud-energy", label: "Energy" }]);
     if (window.MobileDock) window.MobileDock.init("#night-controls", { breakpoint: 640 });
     watchDock();
   }
