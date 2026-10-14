@@ -35,6 +35,7 @@
 <body>
 <a class="skip-link" href="#board-panel">Skip to the board</a>
 <main id="game">
+  <div id="home-progress" class="home-progress" role="group" aria-label="Station progress"><span id="hp-text"></span><div class="progress-bar" aria-hidden="true"><div id="hp-fill" class="progress-fill"></div></div></div>
   <div class="top-row">
     <a href="../../index.html" class="hub-back-link">&larr; All games</a>
     <h1>Hull Repair</h1>
@@ -91,6 +92,8 @@
     <div class="settings-row"><label><input type="checkbox" id="reduced-motion-checkbox"> Reduce motion (follows your system setting until you choose)</label></div>
     <div class="settings-row"><label><input type="checkbox" id="effects-checkbox" checked> Effects (the glow on a joined line)</label></div>
     <div class="settings-row"><label><input type="checkbox" id="dots-checkbox" checked> Show a dot on every cell no line covers yet</label></div>
+    <div class="settings-row"><label><input type="checkbox" id="hand-checkbox"> Left-hand layout (on a phone, Undo and Next sit on the left)</label></div>
+    <div class="settings-row"><label><input type="checkbox" id="big-ports-checkbox"> Big ports (on a phone, ports are drawn larger)</label></div>
     <div class="settings-row"><label><input type="checkbox" id="high-contrast-checkbox"> High contrast (brighter text, thicker outlines)</label></div>
     <div class="settings-row"><button id="theme-setting-button" type="button" aria-pressed="false">Light theme</button></div>
     <div class="settings-row"><button id="display-reset-button" type="button">Reset display settings</button></div>
@@ -133,6 +136,7 @@
       <p id="result-log" class="result-log story-text note" hidden></p>
       <div class="result-buttons">
         <button id="next-button" type="button" class="primary" hidden data-testid="hull-repair-next">Next room</button>
+        <button id="one-more-button" class="one-more-btn" type="button" hidden>One more board</button>
       </div>
     </div>
     <div id="hint-box" class="hint-box">

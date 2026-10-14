@@ -14,7 +14,23 @@
   var BACKUP_KEY = "hull-repair:state-backup";
   var GLYPHS = { circle: "●", square: "■", triangle: "▲", diamond: "◆", hexagon: "⬢", pentagon: "⬟", cross: "✚", star: "★" };
 
+  // ---- haptics (optional, respects reduced-motion and effects settings) ----------------------------
+  var HR_Haptics = (function () {
+    var TICK_MS = 10;
+    var CONNECT_MS = [20, 30, 20];
+    function canVibrate() {
+      return typeof navigator !== "undefined" && "vibrate" in navigator &&
+             document.documentElement.getAttribute("data-reduced-motion") !== "true" &&
+             document.documentElement.getAttribute("data-effects") !== "off";
+    }
+    return {
+      tick: function () { if (canVibrate()) navigator.vibrate(TICK_MS); },
+      connect: function () { if (canVibrate()) navigator.vibrate(CONNECT_MS); }
+    };
+  })();
+
   var $ = function (id) { return document.getElementById(id); };
+  var thumbUndo = null;
   var engine = null;
   var view = null;
   var boardId = null;
@@ -178,6 +194,10 @@
     var next = $("next-button");
     next.hidden = !r.next;
     if (r.next) setText(next, "Next room: " + r.next_name);
+
+    var oneMore = $("one-more-button");
+    oneMore.hidden = !r.next;
+    if (r.next) oneMore.setAttribute("aria-label", "One more board: " + r.next_name);
   }
   function renderRooms() {
     var holder = $("rooms-body");
@@ -309,7 +329,20 @@
     setText($("hint-hint"), h.hint ? "Hint: " + h.hint : "");
     $("hint-answer").hidden = !h.answer;
   }
+  function renderHomeProgress() {
+    if (!view || !view.totals || !view.board) return;
+    var restored = view.totals.restored || 0;
+    var total = view.totals.rooms || 1;
+    setText($("hp-text"), "Rooms restored: " + restored + " of " + total + " · Deck: " + view.board.chapter);
+    $("hp-fill").style.width = Math.round((restored / total) * 100) + "%";
+  }
+
+  function syncThumbUndo() {
+    if (thumbUndo && view) thumbUndo.disabled = !view.can_undo;
+  }
+
   function render() {
+    syncThumbUndo();
     renderAbout();
     renderBoard();
     renderStats();
@@ -320,6 +353,7 @@
     renderAchievements();
     renderGoalStrip();
     renderHints();
+    renderHomeProgress();
   }
 
   // ---- sound (shared/sfx.js: generated in code, off unless the player turns it on, never the only signal) ----
@@ -341,7 +375,7 @@
     });
     var restored = request.action === "end" && view.result && view.result.status === 2 && !(previous.result && previous.result.status === 2);
     if (restored) window.NoyvjSfx.play("bell");
-    else if (joined) window.NoyvjSfx.play("confirm");
+    else if (joined) { window.NoyvjSfx.play("confirm"); HR_Haptics.connect(); }
     else if (cut) window.NoyvjSfx.play("click_low");
   }
 
@@ -400,15 +434,43 @@
     }
     return out;
   }
+  // R4-HRMO-1: while a finger drags a line, a faint copy of that line floats just above the finger so the thumb never hides it.
+  function clearFingerGhost() {
+    var svg = boardSvg();
+    var old = svg && svg.querySelector("#hr-finger-ghost");
+    if (old) old.remove();
+  }
+  function updateFingerGhost() {
+    var svg = boardSvg();
+    clearFingerGhost();
+    if (!svg || !view || !drag || document.documentElement.getAttribute("data-effects") === "off") return;
+    var letter = "";
+    var paths = view.board.paths || {};
+    Object.keys(paths).forEach(function (c) {
+      var p = paths[c];
+      if (p.length > 1 && p[p.length - 1][0] === drag.last[0] && p[p.length - 1][1] === drag.last[1]) letter = c;
+    });
+    var line = letter && svg.querySelector('#hr-lines g.hr-line[data-line="' + letter + '"]');
+    if (!line) return;
+    var copy = line.cloneNode(true);
+    copy.removeAttribute("data-line");
+    var ghost = document.createElementNS("http://www.w3.org/2000/svg", "g");
+    ghost.id = "hr-finger-ghost";
+    ghost.setAttribute("class", "hr-finger-ghost");
+    ghost.setAttribute("transform", "translate(0," + (-0.9 * view.board.cell) + ")");
+    ghost.appendChild(copy);
+    svg.appendChild(ghost);
+  }
   function onPointerDown(e) {
     if (e.button !== undefined && e.button !== 0) return;
+    if (drag && drag.id !== e.pointerId) return;
     var cell = cellAt(e);
     if (!cell) return;
     e.preventDefault();
     var holder = $("board-holder");
     if (holder.setPointerCapture) { try { holder.setPointerCapture(e.pointerId); } catch (err) { /* synthetic events */ } }
     var res = send({ action: "begin", x: cell[0], y: cell[1] }, true);
-    drag = { last: cell, active: Boolean(res && res.ok), id: e.pointerId };
+    drag = { last: cell, active: Boolean(res && res.ok), id: e.pointerId, touch: e.pointerType === "touch" };
     kbd.x = cell[0];
     kbd.y = cell[1];
     placeCursor(false);
@@ -422,6 +484,8 @@
     drag.last = cell;
     var res = send({ action: "move", cells: steps }, true);
     if (res && res.ok === false) setText($("board-line"), res.message);
+    else HR_Haptics.tick();
+    if (drag.touch) updateFingerGhost();
   }
   function onPointerUp(e) {
     if (!drag) return;
@@ -429,6 +493,7 @@
     drag = null;
     var holder = $("board-holder");
     if (holder.releasePointerCapture) { try { holder.releasePointerCapture(was.id); } catch (err) { /* ignore */ } }
+    clearFingerGhost();
     if (was.active) send({ action: "end" });
     else if (view && view.message && view.ok === false) showToast(view.message);
   }
@@ -543,6 +608,33 @@
 
   function wire() {
     wireDifficulty();
+
+    // Phone comfort settings (R4-HRMO-8 hand layout, R4-HRMO-9 big ports): per-device, kept in localStorage, never in the save.
+    function lsRead(key) { try { return localStorage.getItem(key); } catch (e) { return null; } }
+    function applyHand(left) {
+      document.documentElement.setAttribute("data-hand", left ? "left" : "right");
+      try { localStorage.setItem("hull-repair-hand", left ? "left" : "right"); } catch (e) { /* not saved */ }
+    }
+    function applyBigPorts(on) {
+      $("board-holder").classList.toggle("hr-big-ports", Boolean(on));
+      try { localStorage.setItem("hull-repair-big-ports", on ? "1" : "0"); } catch (e) { /* not saved */ }
+    }
+    var leftHanded = lsRead("hull-repair-hand") === "left";
+    var bigPorts = lsRead("hull-repair-big-ports") === "1";
+    applyHand(leftHanded);
+    applyBigPorts(bigPorts);
+    $("hand-checkbox").checked = leftHanded;
+    $("big-ports-checkbox").checked = bigPorts;
+    $("hand-checkbox").addEventListener("change", function () { applyHand(this.checked); });
+    $("big-ports-checkbox").addEventListener("change", function () { applyBigPorts(this.checked); });
+    $("display-reset-button").addEventListener("click", function () {
+      applyHand(false);
+      applyBigPorts(false);
+      $("hand-checkbox").checked = false;
+      $("big-ports-checkbox").checked = false;
+    });
+
+    $("one-more-button").addEventListener("click", function () { send({ action: "next" }); });
     $("toast").addEventListener("click", function () { showToast(""); });
     wirePanelToggle("rooms-toggle-button", "rooms-panel");
     wirePanelToggle("log-toggle-button", "log-panel");
@@ -569,6 +661,37 @@
     document.addEventListener("keydown", onGlobalKey);
     // The save widget loads a save straight into the engine; this redraws afterwards.
     window.hullRepairRefresh = function () { if (engine) { boardId = null; send({ action: "open" }); } };
+
+    // Thumb-height Undo button (shown by CSS on a phone) and two-finger tap on the board (R4-HRMO-5)
+    thumbUndo = el("button", "hr-undo-btn", "Undo");
+    thumbUndo.type = "button";
+    thumbUndo.id = "thumb-undo-button";
+    thumbUndo.setAttribute("aria-label", "Undo the last move");
+    thumbUndo.disabled = true;
+    thumbUndo.addEventListener("click", function () { if (view && view.can_undo) send({ action: "undo" }); });
+    document.body.appendChild(thumbUndo);
+    var tap = null;
+    function onBoardTouchStart(e) {
+      if (e.touches.length === 2) {
+        tap = { time: e.timeStamp, pts: [[e.touches[0].clientX, e.touches[0].clientY], [e.touches[1].clientX, e.touches[1].clientY]] };
+      } else if (e.touches.length > 2) {
+        tap = null;
+      }
+    }
+    function onBoardTouchMove(e) {
+      if (!tap) return;
+      for (var i = 0; i < e.touches.length && i < 2; i++) {
+        if (Math.hypot(e.touches[i].clientX - tap.pts[i][0], e.touches[i].clientY - tap.pts[i][1]) > 30) { tap = null; return; }
+      }
+    }
+    function onBoardTouchEnd(e) {
+      if (tap && e.touches.length === 0 && e.timeStamp - tap.time < 500 && view && view.can_undo) send({ action: "undo" });
+      if (e.touches.length === 0) tap = null;
+    }
+    holder.addEventListener("touchstart", onBoardTouchStart, { passive: true });
+    holder.addEventListener("touchmove", onBoardTouchMove, { passive: true });
+    holder.addEventListener("touchend", onBoardTouchEnd);
+    holder.addEventListener("touchcancel", function () { tap = null; });
   }
 
   var TUTORIAL_STEPS = [
