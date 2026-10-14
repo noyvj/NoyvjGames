@@ -458,7 +458,7 @@
     if (!view || e.ctrlKey || e.metaKey || e.altKey) return;
     var tag = e.target && e.target.tagName;
     if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return;
-    if (document.querySelector("dialog[open], .confirm-dialog, [role='dialog']")) return;
+    if (document.querySelector("dialog[open], .confirm-dialog, [role='dialog']:not([hidden])")) return;
     var n = parseInt(e.key, 10);
     if (e.key.length === 1 && n >= 1 && n <= view.choices.length && $("choices").children.length) choose(n - 1);
   }
