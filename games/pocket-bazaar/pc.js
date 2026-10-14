@@ -102,6 +102,67 @@ window.pocketBazaarAfterRender = function () {
   });
 })();
 
+/* R4-PBPC-7: board size slider (80 to 160 percent) in Settings. A per-device display choice: localStorage, never the save. */
+(function () {
+  "use strict";
+  var KEY = "pocket-bazaar-board-scale";
+  var MIN = 0.8;
+  var MAX = 1.6;
+
+  function read() {
+    var raw = null;
+    try { raw = window.localStorage.getItem(KEY); } catch (e) { raw = null; }
+    var val = raw === null ? NaN : parseFloat(raw);
+    return isFinite(val) && val >= MIN && val <= MAX ? val : 1;
+  }
+  function apply(val, remember) {
+    document.documentElement.style.setProperty("--board-scale", String(val));
+    if (!remember) return;
+    try { window.localStorage.setItem(KEY, String(val)); } catch (e) { /* convenience only */ }
+  }
+
+  apply(read(), false);
+
+  document.addEventListener("DOMContentLoaded", function () {
+    var reset = document.getElementById("display-reset-button");
+    var panel = document.getElementById("settings-panel");
+    if (!panel || !reset) return;
+    var row = document.createElement("div");
+    row.className = "settings-row board-size-row";
+    var label = document.createElement("label");
+    label.setAttribute("for", "board-scale-slider");
+    label.textContent = "Board size ";
+    var slider = document.createElement("input");
+    slider.type = "range";
+    slider.id = "board-scale-slider";
+    slider.min = String(MIN);
+    slider.max = String(MAX);
+    slider.step = "0.05";
+    var out = document.createElement("span");
+    out.id = "board-scale-value";
+    function show(val) {
+      slider.value = String(val);
+      out.textContent = Math.round(val * 100) + "%";
+      slider.setAttribute("aria-valuetext", out.textContent);
+    }
+    show(read());
+    slider.addEventListener("input", function () {
+      var val = Math.min(MAX, Math.max(MIN, parseFloat(slider.value) || 1));
+      show(val);
+      apply(val, true);
+    });
+    row.appendChild(label);
+    row.appendChild(slider);
+    row.appendChild(out);
+    reset.parentNode.parentNode.insertBefore(row, reset.parentNode);
+    reset.addEventListener("click", function () {
+      try { window.localStorage.removeItem(KEY); } catch (e) { /* convenience only */ }
+      apply(1, false);
+      show(1);
+    });
+  });
+})();
+
 /* R4-PBPC-6: a large combo counter under the stats. It grows with the multiplier and says how many orders in a row.
    It only restates what the Combo stat already says (aria-hidden) and has no animation of its own. */
 (function () {

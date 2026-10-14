@@ -35,7 +35,10 @@ html[data-layout="pc"] .cust-kind { display: block; }
   html[data-layout="pc"] .cust-head { padding-right: 4rem; }
 }
 /* The board is as large as the window's height allows. */
-html[data-layout="pc"] .board { max-width: min(100%, 44rem, calc((100vh - 17rem) * var(--cols) / 6)); }
+/* R4-PBPC-7: --board-scale (0.8 to 1.6, set from Settings, kept on this device) scales both limits; 100% of the column still caps it. */
+html[data-layout="pc"] { --board-scale: 1; }
+html[data-layout="pc"] .board { max-width: min(100%, calc(44rem * var(--board-scale)), calc((100vh - 17rem) * var(--cols) / 6 * var(--board-scale))); }
+.board-size-row input[type="range"] { min-width: 10rem; min-height: 2.75rem; accent-color: var(--btn-primary); }
 
 #pc-body.pc-has-side { grid-template-columns: minmax(0, 1fr) clamp(16.5rem, 24vw, 24rem); }
 #pc-side { min-width: 0; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; gap: 0.6rem; padding-right: 0.2rem; }
