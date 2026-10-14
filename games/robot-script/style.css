@@ -249,13 +249,6 @@ html[data-sandbox="true"] .room-holder svg { cursor: crosshair; }
 .ach-list li.earned { border-color: var(--ok); border-width: 2px; }
 .ach-list .tick { display: inline-block; min-width: 4rem; text-align: center; font-weight: 700; font-size: 0.78rem; border: 1px solid var(--edge); border-radius: 999px; padding: 0 0.4rem; font-variant-numeric: tabular-nums; }
 .ach-list li.earned .tick { border-style: double; border-width: 3px; }
-@media (max-width: 600px) and (orientation: landscape) {
-  #game { flex-direction: row; height: auto; overflow: visible; padding-bottom: 2.5rem; }
-  #room-panel { flex: 1 1 45%; min-height: 0; max-height: 80vh; overflow-y: auto; }
-  #editor-panel { flex: 1 1 45%; min-height: 0; max-height: 80vh; overflow-y: auto; margin-left: 0.5rem; }
-  #split-divider { display: none; }
-}
-
 @media (max-width: 600px) {
   .speed-chip { display: flex; gap: 0.2rem; margin-left: 0.3rem; align-items: center; }
   .speed-chip button { padding: 0.25rem 0.4rem; font-size: 0.8rem; background: var(--btn); border: 1px solid var(--edge); border-radius: 6px; color: var(--text); min-width: 2rem; }

@@ -933,15 +933,6 @@
     });
     // The save widget loads a save straight into the engine; this redraws afterwards.
     window.robotScriptRefresh = function () { if (engine) { roomId = null; send({ action: "open" }); } };
-
-    // Landscape workbench (R4-RSMO-7)
-    function updateOrientation() {
-      var w = window.innerWidth, h = window.innerHeight;
-      document.documentElement.setAttribute("data-orientation", w > h ? "landscape" : "portrait");
-    }
-    updateOrientation();
-    window.addEventListener("resize", updateOrientation);
-    window.addEventListener("orientationchange", updateOrientation);
   }
 
   var TUTORIAL_STEPS = [
