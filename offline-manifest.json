@@ -5641,7 +5641,7 @@
     },
     {
      "path": "games/dead-reckoning/app.js",
-     "bytes": 44805,
+     "bytes": 50875,
      "precached": true
     },
     {
@@ -5727,7 +5727,7 @@
     },
     {
      "path": "games/dead-reckoning/game.py",
-     "bytes": 48701,
+     "bytes": 49149,
      "precached": true
     },
     {
@@ -5759,7 +5759,7 @@
     },
     {
      "path": "games/dead-reckoning/index.html",
-     "bytes": 20044,
+     "bytes": 20966,
      "precached": true
     },
     {
@@ -5779,22 +5779,22 @@
     },
     {
      "path": "games/dead-reckoning/pc-config.json",
-     "bytes": 2021,
+     "bytes": 2069,
      "precached": false
     },
     {
      "path": "games/dead-reckoning/pc.css",
-     "bytes": 3243,
+     "bytes": 6323,
      "precached": true
     },
     {
      "path": "games/dead-reckoning/pc.html",
-     "bytes": 22187,
+     "bytes": 23135,
      "precached": true
     },
     {
      "path": "games/dead-reckoning/pc.js",
-     "bytes": 2696,
+     "bytes": 7228,
      "precached": true
     },
     {
@@ -5840,7 +5840,12 @@
     },
     {
      "path": "games/dead-reckoning/style.css",
-     "bytes": 21635,
+     "bytes": 23370,
+     "precached": true
+    },
+    {
+     "path": "games/dead-reckoning/swipe-legs.js",
+     "bytes": 2518,
      "precached": true
     },
     {
@@ -6098,7 +6103,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14610708,
+   "bytes": 14631009,
    "bytes_complete": true
   },
   "logic-gates": {

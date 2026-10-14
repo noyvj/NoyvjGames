@@ -273,6 +273,7 @@ const PRECACHE_URLS = [
   "games/dead-reckoning/style.css",
   "games/dead-reckoning/game.py",
   "games/dead-reckoning/app.js",
+  "games/dead-reckoning/swipe-legs.js",
   "games/dead-reckoning/settings.js",
   "games/dead-reckoning/changelog.json",
   "games/dead-reckoning/achievements.json",

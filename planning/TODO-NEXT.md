@@ -1,6 +1,6 @@
 # Next TODO list (from the Round 4 ideas, started 2026-10-12)
 
-**Progress: 54/921 items checked off (5.9%).** This is the NEXT list, written alongside the live `planning/TODO.md` (which is untouched). It becomes the live list once the current one is archived. Run `python3 scripts/todo-progress.py planning/TODO-NEXT.md` after ticking items.
+**Progress: 59/921 items checked off (6.4%).** This is the NEXT list, written alongside the live `planning/TODO.md` (which is untouched). It becomes the live list once the current one is archived. Run `python3 scripts/todo-progress.py planning/TODO-NEXT.md` after ticking items.
 
 How it is built: one section per Round 4 section on the ideas sheet (`planning/IMPROVEMENT-IDEAS-ROUND-4.md`), in the sheet's order, ids `R4-<section code>-<number>`. Only ideas you answered "yes" to are items, with your note where you wrote one. A section that is not fully answered keeps its heading and ends with one item to add the rest once you have answered them. "No" answers are dropped (listed under the heading); "later" answers are parked in `planning/LATER.md`.
 
@@ -17,7 +17,9 @@ How it is built: one section per Round 4 section on the ideas sheet (`planning/I
 | HCPC. Heist Committee: PC view | 6/10 | 60% | ██████░░░░ |
 | HCMO. Heist Committee: mobile view | 6/10 | 60% | ██████░░░░ |
 | LHPC. Lighthouse: PC view | 6/10 | 60% | ██████░░░░ |
+| DEMO. Dead Reckoning: mobile view | 3/10 | 30% | ███░░░░░░░ |
 | PX. Lexis: made for you | 6/29 | 21% | ██░░░░░░░░ |
+| DEPC. Dead Reckoning: PC view | 2/10 | 20% | ██░░░░░░░░ |
 | PU. Signal: made for you | 1/6 | 17% | ██░░░░░░░░ |
 | PC. Canopy: made for you | 0/30 | 0% | ░░░░░░░░░░ |
 | PI. Tide: made for you | 0/30 | 0% | ░░░░░░░░░░ |
@@ -58,8 +60,6 @@ How it is built: one section per Round 4 section on the ideas sheet (`planning/I
 | LHMO. Lighthouse: mobile view | 0/10 | 0% | ░░░░░░░░░░ |
 | PBPC. Pocket Bazaar: PC view | 0/10 | 0% | ░░░░░░░░░░ |
 | PBMO. Pocket Bazaar: mobile view | 0/10 | 0% | ░░░░░░░░░░ |
-| DEPC. Dead Reckoning: PC view | 0/10 | 0% | ░░░░░░░░░░ |
-| DEMO. Dead Reckoning: mobile view | 0/10 | 0% | ░░░░░░░░░░ |
 | CLPC. Chronicle: PC view | 0/10 | 0% | ░░░░░░░░░░ |
 | CLMO. Chronicle: mobile view | 0/10 | 0% | ░░░░░░░░░░ |
 | UNPC. Undersleep: PC view | 0/10 | 0% | ░░░░░░░░░░ |
@@ -111,7 +111,7 @@ How it is built: one section per Round 4 section on the ideas sheet (`planning/I
 | OC. Overclock: general ideas | 0/1 | 0% | ░░░░░░░░░░ |
 | OCP. Overclock: made for you | 0/1 | 0% | ░░░░░░░░░░ |
 | AU. Sound | 0/1 | 0% | ░░░░░░░░░░ |
-| **All sections** | **54/921** | **5.9%** | █░░░░░░░░░ |
+| **All sections** | **59/921** | **6.4%** | █░░░░░░░░░ |
 
 <!-- PROGRESS-CHART:END -->
 
@@ -1190,7 +1190,7 @@ Parked in LATER.md (you said later): PX-25.
 
 10 ideas on the sheet: 10 yes, 0 no, 0 later, 0 not answered yet.
 
-- [ ] R4-DEPC-1: (small) Let you type a leg as "090 6kn 2h" in a one-line box and press Enter to add it. Planning is fast for keyboard users.
+- [x] R4-DEPC-1: (small) Let you type a leg as "090 6kn 2h" in a one-line box and press Enter to add it. Planning is fast for keyboard users.
 - [ ] R4-DEPC-2: (small) Add mouse-wheel zoom and drag pan on the chart with a scale bar and a recentre key. You can read a big chart closely.
 - [ ] R4-DEPC-3: (small) Show the position in nautical miles, the current arrow and the tide at that spot as you hover over the chart. The chart tells you what is under the cursor.
 - [ ] R4-DEPC-4: (small) Add a right-click menu on the chart with Drop a fix mark, Measure from the ship and Add a waypoint. Chart tools sit at the cursor.
@@ -1198,7 +1198,7 @@ Parked in LATER.md (you said later): PX-25.
 - [ ] R4-DEPC-6: (small) Add a layers panel to toggle currents, wind, hazards, grid and labels. The chart can be as plain or rich as you like.
 - [ ] R4-DEPC-7: (big) Add an editable plan table where every leg is a row with heading, speed and time cells you tab through, and the chart redraws as you type. You can plan like a spreadsheet.
 - [ ] R4-DEPC-8: (small) Dock the tide table as a window beside the chart and highlight the row for the hour of your current leg. You read tides without hunting.
-- [ ] R4-DEPC-9: (small) Add a Ctrl+P print layout that produces a clean chart sheet with your plan listed. You get a paper chart to keep.
+- [x] R4-DEPC-9: (small) Add a Ctrl+P print layout that produces a clean chart sheet with your plan listed. You get a paper chart to keep.
 - [ ] R4-DEPC-10: (small) Add save slots as a file-style list with chart name, stars and a thumbnail of the track. Loading looks like a real PC menu.
 
 ## DEMO. Dead Reckoning: mobile view
@@ -1208,10 +1208,10 @@ Parked in LATER.md (you said later): PX-25.
 - [ ] R4-DEMO-1: (small) Set speed and time with two large wheel pickers at the bottom of the screen. Entering a leg is a thumb spin.
 - [ ] R4-DEMO-2: (small) Let you pinch to zoom the chart and drag to pan. The chart works like a phone map.
 - [ ] R4-DEMO-3: (small) Long-press the chart to drop a fix mark. A common job becomes a gesture.
-- [ ] R4-DEMO-4: (small) Add a short buzz when the reveal shows your estimate within one nautical mile, where the browser allows. Accuracy is felt.
-- [ ] R4-DEMO-5: (small) Show legs as cards you swipe to delete with an undo bar. Editing a plan is a flick.
+- [x] R4-DEMO-4: (small) Add a short buzz when the reveal shows your estimate within one nautical mile, where the browser allows. Accuracy is felt.
+- [x] R4-DEMO-5: (small) Show legs as cards you swipe to delete with an undo bar. Editing a plan is a flick.
 - [ ] R4-DEMO-6: (big) Make the chart fill a portrait screen with the plan as a bottom sheet that peeks up. The chart and plan share a phone.
-- [ ] R4-DEMO-7: (small) Resume the plan you were drafting, with every leg kept. Short visits never lose a plan.
+- [x] R4-DEMO-7: (small) Resume the plan you were drafting, with every leg kept. Short visits never lose a plan.
 - [ ] R4-DEMO-8: (small) Let the leg editor float as a draggable card over the chart that you can slide to the top or bottom. You keep the part of the chart you are working on in view.
 - [ ] R4-DEMO-9: (small) In landscape, show the chart full-screen with a floating leg editor. Turning the phone gives a chart table.
 - [ ] R4-DEMO-10: (small) Make downloaded charts work fully offline with a small list of what is saved. Navigation works on the bus.
