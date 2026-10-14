@@ -1,41 +1,40 @@
+/*
+ * Lighthouse -- R4-LHMO-1: the lamp level as a tall slider at the right edge (phones, night only, when the player has
+ * chosen "Slider" under Settings > On a phone). It sends the same {action: "level"} the four dock buttons send and
+ * follows the engine's own lamp level, so the two always agree. A real <input type="range">, so the arrow keys,
+ * Home/End and screen readers work; the four notches are labels beside it.
+ */
 (function () {
   "use strict";
-  var WRAP = document.createElement("div");
-  WRAP.className = "lamp-slider-wrap";
-  WRAP.setAttribute("aria-label", "Lamp level slider");
-  var SLIDER = document.createElement("input");
-  SLIDER.type = "range";
-  SLIDER.min = "0";
-  SLIDER.max = "3";
-  SLIDER.step = "1";
-  SLIDER.className = "lamp-slider";
-  SLIDER.setAttribute("aria-valuemin", "0");
-  SLIDER.setAttribute("aria-valuemax", "3");
-  var NOTCHES = ["Dim", "Standard", "Bright", "Storm"];
-  for (var i = 0; i < 4; i++) {
-    var N = document.createElement("span");
-    N.className = "lamp-notch";
-    N.textContent = NOTCHES[i];
-    WRAP.appendChild(N);
-  }
-  WRAP.appendChild(SLIDER);
-  document.body.appendChild(WRAP);
+  var wrap = document.getElementById("lamp-slider-wrap");
+  var slider = document.getElementById("lamp-slider");
+  if (!wrap || !slider) return;
+  var IDS = ["dim", "standard", "bright", "storm"];
+  var LABELS = ["Dim", "Standard", "Bright", "Storm"];
 
-  function sync() {
-    var active = document.querySelector(".scale-cell[data-in='true']");
-    if (active) SLIDER.value = active.getAttribute("data-level") || "1";
+  function wanted() { return window.LighthousePhonePrefs && window.LighthousePhonePrefs.get("lamp") === "slider"; }
+
+  function sync(v) {
+    var api = window.lighthouseApi;
+    v = v || (api && api.view());
+    var show = Boolean(v) && v.phase === "night" && wanted();
+    wrap.hidden = !show;
+    if (!v || !show) return;
+    var i = IDS.indexOf(v.beam.level);
+    if (i < 0) i = 0;
+    if (String(i) !== slider.value) slider.value = String(i);
+    slider.setAttribute("aria-valuetext", LABELS[i]);
+    slider.disabled = !(v.oil > 0);
   }
 
-  SLIDER.addEventListener("input", function () {
-    var lvl = parseInt(SLIDER.value, 10);
-    document.querySelectorAll(".scale-cell").forEach(function(c) { c.removeAttribute("data-in"); });
-    var target = document.querySelector('.scale-cell[data-level="' + lvl + '"]');
-    if (target) target.setAttribute("data-in", "true");
-    if (typeof window.lighthouseSetLamp === "function") window.lighthouseSetLamp(lvl);
-    else document.dispatchEvent(new CustomEvent("lighthouse-lamp-change", { detail: lvl }));
+  slider.addEventListener("input", function () {
+    var i = parseInt(slider.value, 10);
+    if (!(i >= 0 && i <= 3) || !window.lighthouseApi) return;
+    slider.setAttribute("aria-valuetext", LABELS[i]);
+    window.lighthouseApi.send({ action: "level", level: IDS[i] });
   });
 
+  document.addEventListener("lighthouse-view", function (e) { sync(e.detail); });
+  document.addEventListener("lighthouse-phone-pref", function (e) { if (e.detail.name === "lamp") sync(); });
   sync();
-  var obs = new MutationObserver(sync);
-  obs.observe(document.body, { attributes: true, subtree: true, attributeFilter: ["data-in"] });
 })();

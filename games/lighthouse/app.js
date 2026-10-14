@@ -371,7 +371,7 @@
   }
 
   function letterItem(l) {
-    var li = el("li"); li.dataset.read = String(l.read);
+    var li = el("li"); li.dataset.read = String(l.read); li.dataset.letterId = l.id;
     var head = el("div", null, "letter-head");
     head.appendChild(el("strong", l.from_name + ": " + l.subject));
     head.appendChild(el("span", "night " + l.night, "note"));
@@ -1025,7 +1025,18 @@
     syncTime(v);
     soundFor(v);
     renderSeed(v);
+    // the phone touches (mobile-*.js) listen for this on document; the view is a plain object they must only read
+    document.dispatchEvent(new CustomEvent("lighthouse-view", { detail: v }));
   }
+
+  // A small door for the phone-only scripts (mobile-*.js): they may read the latest view and send ordinary engine
+  // actions, the same ones the buttons send. They never touch the engine directly.
+  window.lighthouseApi = {
+    view: function () { return view; },
+    send: function (request) { return send(request, false); },
+    announce: announce,
+    toast: showToast
+  };
 
   // ---- sound (shared/sfx.js: generated in code, off unless the player turns it on, never the only signal) ----
   // A soft bell when a ship comes safely past, and (if the hum is not switched off) a faint bed under the night.
@@ -1312,11 +1323,6 @@
     if (window.GameTutorial) window.GameTutorial.init(window.lighthouseTutorialSteps ? window.lighthouseTutorialSteps(TUTORIAL_STEPS) : TUTORIAL_STEPS, { gameId: GAME_ID });
     if (window.MobileHud) window.MobileHud.init([{ selector: "#hud-night", label: "Night" }, { selector: "#hud-oil", label: "Oil" }, { selector: "#hud-energy", label: "Energy" }]);
     if (window.MobileDock) window.MobileDock.init("#night-controls", { breakpoint: 640 });
-    if (typeof window.lighthouseInitCrank === "function") window.lighthouseInitCrank();
-    document.addEventListener("lighthouse-crank-wound", function(e) {
-      var amount = e.detail || 1;
-      send({ action: "wind", n: amount });
-    });
     watchDock();
   }
 

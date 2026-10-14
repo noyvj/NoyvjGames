@@ -116,6 +116,12 @@
     <div class="settings-row"><label class="settings-checkbox-label" for="pause-hidden-checkbox"><input type="checkbox" id="pause-hidden-checkbox" checked> Pause when this tab is hidden</label></div>
     <div class="settings-row"><button id="theme-setting-button" type="button" aria-pressed="false">Light theme</button></div>
     <div class="settings-row"><button id="display-reset-button" type="button">Reset display settings</button></div>
+    <div class="phone-settings">
+      <h3 class="settings-sub">On a phone</h3>
+      <p class="note">Optional extras for a narrow screen. They stay off until you choose them, and they change nothing in the game itself.</p>
+      <div class="settings-row"><label for="phone-lamp-select">Lamp control at night</label>
+        <select id="phone-lamp-select"><option value="off">The buttons only</option><option value="slider">A slider at the right edge</option></select></div>
+    </div>
     <h3 class="settings-sub">Sound</h3>
     <div id="sfx-setting-slot" class="sfx-setting-slot"></div>
     <div class="settings-row"><label><input type="checkbox" id="sfx-hum-checkbox" checked> Faint ambient hum during the night (only when sound is on)</label></div>
@@ -370,11 +376,9 @@
   <p id="announce" class="sr-only" role="status" aria-live="polite"></p>
 </main>
 
-<div id="lamp-rail" class="lamp-rail-wrap">
-  <button class="lamp-rail-btn" data-level="1" aria-label="Dim">D</button>
-  <button class="lamp-rail-btn" data-level="2" aria-label="Standard">S</button>
-  <button class="lamp-rail-btn" data-level="3" aria-label="Bright">B</button>
-  <button class="lamp-rail-btn" data-level="4" aria-label="Storm">ST</button>
+<div id="lamp-slider-wrap" class="lamp-slider-wrap" role="group" aria-label="Lamp level" hidden>
+  <input id="lamp-slider" class="lamp-slider" type="range" min="0" max="3" step="1" value="1" aria-label="Lamp level" aria-orientation="vertical" aria-valuetext="Standard">
+  <ul class="lamp-notches" aria-hidden="true"><li>Storm</li><li>Bright</li><li>Standard</li><li>Dim</li></ul>
 </div>
 <a id="credits-link" class="credits-link" href="../../credits.html" style="display:block;text-align:center;font-size:0.85rem;margin:0.75rem 0;color:inherit;">Credits</a>
 <div class="ad-bar ad-bar--bottom">
@@ -403,10 +407,8 @@
 <script src="../../shared/time-controls.js" data-game-id="lighthouse" data-container="#time-controls"></script>
 <script src="../../shared/pause-hidden.js" data-game-id="lighthouse"></script>
 <script src="app.js"></script>
+<script src="mobile-prefs.js"></script>
 <script src="mobile-lamp.js"></script>
-<script src="mobile-letters.js"></script>
-<script src="mobile-letters.js"></script>
-<script src="mobile-lamp-rail.js"></script>
 <script src="../../shared/last-played.js" data-game-id="lighthouse"></script>
 <script src="../../shared/whats-new-banner.js" data-game-id="lighthouse"></script>
 <script src="../../shared/keyboard-shortcuts.js"></script>
