@@ -94,12 +94,48 @@ document.addEventListener("DOMContentLoaded", function () {
   });
 });
 
-// Print layout (Ctrl+P) -------------------------------------------------------
+// Print layout (R4-DEPC-9). Ctrl+P is the browser's own; the print stylesheet in pc.css makes the sheet. Just before printing, the plan is
+// written out as plain text (the leg boxes would print as empty fields) and taken away again afterwards. ------------------------------
 (function () {
-  document.addEventListener("keydown", function (e) {
-    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "p") {
-      e.preventDefault();
-      window.print();
+  function legText(li) {
+    var n = li.querySelector(".leg-number");
+    var heading = li.querySelector("input[id$='-heading']");
+    if (!heading) {                                    // a sailed watch is already text
+      var done = li.querySelector("strong");
+      return done ? done.textContent : "";
     }
+    var base = heading.id.replace(/-heading$/, "");
+    var speed = parseFloat(document.getElementById(base + "-speed").value);
+    var hours = document.getElementById(base + "-hours").value;
+    var h = String(parseInt(heading.value, 10) || 0);
+    while (h.length < 3) h = "0" + h;
+    return (n ? "Leg " + n.textContent + ": " : "") + (speed === 0 ? "lie at anchor for " + hours + " h" : "steer " + h + " at " + speed + " kn for " + hours + " h");
+  }
+  window.addEventListener("beforeprint", function () {
+    var panel = document.getElementById("planner-panel");
+    var list = document.getElementById("legs-list");
+    if (!panel || !list) return;
+    var old = document.getElementById("print-plan");
+    if (old) old.remove();
+    var ol = document.createElement("ol");
+    ol.id = "print-plan";
+    ol.setAttribute("aria-hidden", "true");
+    Array.prototype.forEach.call(list.querySelectorAll("li.leg"), function (li) {
+      var text = legText(li);
+      if (!text) return;
+      var item = document.createElement("li");
+      item.textContent = text;
+      ol.appendChild(item);
+    });
+    if (!ol.children.length) {
+      var none = document.createElement("li");
+      none.textContent = "No legs planned yet.";
+      ol.appendChild(none);
+    }
+    panel.appendChild(ol);
+  });
+  window.addEventListener("afterprint", function () {
+    var ol = document.getElementById("print-plan");
+    if (ol) ol.remove();
   });
 })();
