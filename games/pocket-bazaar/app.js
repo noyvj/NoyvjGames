@@ -565,6 +565,11 @@
   }
 
   function render(event) {
+    renderView(event);
+    // The Desktop page (pc.js) redraws its hover and selection marks here, because every redraw above rebuilds the cells.
+    if (typeof window.pocketBazaarAfterRender === "function") window.pocketBazaarAfterRender();
+  }
+  function renderView(event) {
     renderSeed();
     renderAbout();
     renderAchievements();
@@ -950,6 +955,7 @@
       });
     }
 
+    window.pocketBazaarApi = { view: function () { return view; } };
     window.pocketBazaarRefresh = function () { if (engine) { selected = null; send({ action: "open" }); } };
   }
 

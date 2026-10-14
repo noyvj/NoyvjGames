@@ -43,295 +43,61 @@ window.POCKET_BAZAAR_PC_TUTORIAL_STEPS = [
   },
 ];
 
-/* R4-PBPC-1: Hover preview for merges */
+/* Desktop extras. pc.js is loaded in the head, before the board exists, so every block waits for DOMContentLoaded or
+   for the game's own redraw hook, and reads the game through window.pocketBazaarApi (set by app.js). */
+function pbPcView() {
+  return window.pocketBazaarApi ? window.pocketBazaarApi.view() : null;
+}
+function pbPcCell(i) {
+  return document.querySelector('#board .cell[data-cell="' + i + '"]');
+}
+/* Blocks add their redraw work here; app.js calls it after every redraw (the cells are rebuilt each time). */
+window.pbPcAfterRender = [];
+window.pocketBazaarAfterRender = function () {
+  window.pbPcAfterRender.forEach(function (fn) { fn(); });
+};
+
+/* R4-PBPC-1: hover a piece to see every piece it can merge with and what the merge makes. */
 (function () {
   "use strict";
-  var board = document.getElementById("board");
-  if (!board) return;
+  var hovered = null;
 
   function clearHover() {
-    board.querySelectorAll("[data-hover-target]").forEach(function (el) {
+    document.querySelectorAll("#board .cell[data-hover-target]").forEach(function (el) {
       el.removeAttribute("data-hover-target");
       el.removeAttribute("data-result");
     });
   }
 
-  function getCellGood(cell) {
-    var raw = cell.getAttribute("data-good");
-    if (!raw) return null;
-    try {
-      if (raw.startsWith("[")) return JSON.parse(raw);
-      var p = raw.split(",");
-      return { family: p[0], tier: parseInt(p[1], 10), wild: false };
-    } catch (_) { return null; }
-  }
-
-  board.addEventListener("mouseover", function (e) {
-    var cell = e.target.closest(".cell");
-    if (!cell) return;
+  function showHover() {
     clearHover();
-    var g1 = getCellGood(cell);
-    if (!g1) return;
-
-    board.querySelectorAll(".cell").forEach(function (other) {
-      if (other === cell) return;
-      var g2 = getCellGood(other);
-      var compatible = false;
-      if (g1 && g2) {
-        var sameFamily = g1.family === g2.family;
-        var sameTier = g1.tier === g2.tier;
-        var wild1 = g1.wild || false;
-        var wild2 = g2.wild || false;
-        compatible = (sameFamily && sameTier) || wild1 || wild2;
-      }
-
-      if (compatible) {
-        other.setAttribute("data-hover-target", "true");
-        var resTier = Math.min(g1.tier + 1, 5);
-        var resFamily = wild1 ? "Wild" : (wild2 ? g2.family : g1.family);
-        other.setAttribute("data-result", "T" + resTier + " " + resFamily);
-      }
+    var view = pbPcView();
+    if (hovered === null || !view || view.phase !== "open" || !view.board) return;
+    var mine = view.board.cells[hovered];
+    var partners = view.partners[String(hovered)] || [];
+    if (!mine) return;
+    partners.forEach(function (p) {
+      var el = pbPcCell(p);
+      var other = view.board.cells[p];
+      if (!el || !other) return;
+      el.setAttribute("data-hover-target", "true");
+      el.setAttribute("data-result", "Makes " + (mine.next || other.next || "a showpiece"));
     });
-  });
-
-  board.addEventListener("mouseout", function (e) {
-    if (!board.contains(e.relatedTarget)) clearHover();
-  });
-})();
-
-/* R4-PBPC-8: Alt-hold hotkey overlay */
-(function () {
-  "use strict";
-  var overlay = null;
-
-  function showOverlay() {
-    if (overlay) return;
-    overlay = document.createElement("div");
-    overlay.id = "pc-hotkey-overlay";
-    overlay.setAttribute("aria-hidden", "true");
-    document.body.appendChild(overlay);
-
-    var config = window.NOYVJ_PC_HOTKEYS || {};
-    for (var key in config) {
-      var selector = config[key];
-      var el = document.querySelector(selector);
-      if (el && !el.querySelector(".hotkey-label")) {
-        var span = document.createElement("span");
-        span.className = "hotkey-label";
-        span.textContent = key;
-        el.style.position = "relative";
-        el.appendChild(span);
-      }
-    }
   }
 
-  function hideOverlay() {
-    if (!overlay) return;
-    var spans = overlay.querySelectorAll(".hotkey-label");
-    for (var i = 0; i < spans.length; i++) {
-      if (spans[i].parentNode) spans[i].parentNode.removeChild(spans[i]);
-    }
-    document.body.removeChild(overlay);
-    overlay = null;
-  }
-
-  document.addEventListener("keydown", function (e) {
-    if (e.key === "Alt") {
-      showOverlay();
-    }
-  });
-
-  document.addEventListener("keyup", function (e) {
-    if (e.key === "Alt") {
-      hideOverlay();
-    }
-  });
-})();
-
-/* R4-PBPC-2: Right-click context menu on pieces */
-(function () {
-  "use strict";
-  var board = document.getElementById("board");
-  if (!board) return;
-
-  var menu = document.createElement("div");
-  menu.id = "pc-context-menu";
-  menu.setAttribute("role", "menu");
-  ["Pick up", "Sell", "Hand over"].forEach(function (label) {
-    var btn = document.createElement("button");
-    btn.textContent = label;
-    btn.setAttribute("role", "menuitem");
-    btn.addEventListener("click", function () {
-      var action = label.toLowerCase().replace(" ", "-");
-      board.dispatchEvent(new CustomEvent("pb-action", { detail: { action: action, cell: menu.dataset.cell } }));
-      hideMenu();
-    });
-    menu.appendChild(btn);
-  });
-  document.body.appendChild(menu);
-
-  function hideMenu() {
-    menu.style.display = "none";
-    menu.removeAttribute("data-cell");
-  }
-
-  board.addEventListener("contextmenu", function (e) {
-    var cell = e.target.closest(".cell");
-    if (!cell || !cell.getAttribute("data-good")) return;
-    e.preventDefault();
-    menu.dataset.cell = cell.dataset.cell;
-    menu.style.display = "flex";
-    var rect = menu.getBoundingClientRect();
-    var x = Math.min(e.clientX, window.innerWidth - rect.width - 10);
-    var y = Math.min(e.clientY, window.innerHeight - rect.height - 10);
-    menu.style.left = x + "px";
-    menu.style.top = y + "px";
-  });
-
-  document.addEventListener("click", function (e) {
-    if (!menu.contains(e.target)) hideMenu();
-  });
-})();
-
-/* R4-PBPC-3: Hover tooltip for customers */
-(function () {
-  "use strict";
-  var queue = document.getElementById("queue");
-  if (!queue) return;
-
-  function showTooltip(customerEl, text) {
-    var tip = customerEl.querySelector(".customer-tooltip");
-    if (!tip) {
-      tip = document.createElement("div");
-      tip.className = "customer-tooltip";
-      tip.setAttribute("aria-hidden", "true");
-      customerEl.appendChild(tip);
-    }
-    tip.innerHTML = text;
-  }
-
-  queue.addEventListener("mouseover", function (e) {
-    var customer = e.target.closest(".customer");
-    if (!customer) return;
-    var good = customer.getAttribute("data-good") || "";
-    var patience = customer.getAttribute("data-patience") || "";
-    var lines = [];
-    if (good) lines.push("Wants: " + good);
-    if (patience) lines.push("Patience: " + patience + " beats");
-    showTooltip(customer, lines.join("<br>"));
-  });
-
-  queue.addEventListener("mouseout", function (e) {
-    var customer = e.target.closest(".customer");
-    if (!customer || !customer.contains(e.relatedTarget)) return;
-    var tip = customer.querySelector(".customer-tooltip");
-    if (tip) tip.innerHTML = "";
-  });
-})();
-
-/* R4-PBPC-5: Shift+click selection for multi-handover */
-(function () {
-  "use strict";
-  var board = document.getElementById("board");
-  if (!board) return;
-
-  function toggleSelection(cell) {
-    cell.classList.toggle("selected");
-  }
-
-  board.addEventListener("click", function (e) {
-    var cell = e.target.closest(".cell");
-    if (!cell || !cell.getAttribute("data-good")) return;
-    if (e.shiftKey) {
-      e.preventDefault();
-      toggleSelection(cell);
-    }
-  });
-
-  document.addEventListener("keydown", function (e) {
-    if (e.key === "d" && e.shiftKey) {
-      e.preventDefault();
-      var selected = board.querySelectorAll(".cell.selected");
-      if (selected.length > 0) {
-        board.dispatchEvent(new CustomEvent("pb-handover-selected", { detail: { cells: Array.from(selected).map(function(c) { return c.dataset.cell; }) } }));
-      }
-    }
-  });
-})();
-
-/* R4-PBPC-6: Large chain counter */
-(function () {
-  "use strict";
-  document.addEventListener("DOMContentLoaded", function () {
-    var stats = document.getElementById("stats");
-    if (!stats) return;
-
-    var display = document.createElement("div");
-    display.id = "combo-display";
-    display.setAttribute("aria-hidden", "true");
-    stats.appendChild(display);
-
-    var comboEl = document.getElementById("stat-combo");
-    if (!comboEl) return;
-
-    var observer = new MutationObserver(function () {
-      var text = comboEl.textContent.trim();
-      var match = text.match(/x(\d)/);
-      if (match) {
-        var level = parseInt(match[1], 10);
-        display.textContent = "x" + level;
-        display.className = "active combo-x" + level;
-      } else {
-        display.className = "";
-      }
-    });
-
-    observer.observe(comboEl, { childList: true, characterData: true, subtree: true });
-  });
-})();
-
-/* R4-PBPC-8: Board size slider in Settings */
-(function () {
-  "use strict";
-  var SCALE_KEY = "pocket-bazaar-board-scale";
-  var MIN_SCALE = 0.8;
-  var MAX_SCALE = 1.6;
-  var STEP = 0.05;
-
-  function applyScale(value) {
-    document.documentElement.style.setProperty("--board-scale", value);
-    try { window.localStorage.setItem(SCALE_KEY, String(value)); } catch (e) {}
-  }
-
-  function readScale() {
-    var stored = null;
-    try { stored = window.localStorage.getItem(SCALE_KEY); } catch (e) {}
-    if (!stored) return 1.0;
-    var val = parseFloat(stored);
-    return !isNaN(val) && val >= MIN_SCALE && val <= MAX_SCALE ? val : 1.0;
-  }
+  window.pbPcAfterRender.push(showHover);
 
   document.addEventListener("DOMContentLoaded", function () {
-    var panel = document.getElementById("settings-panel");
-    if (!panel) return;
-
-    var row = document.createElement("div");
-    row.className = "settings-row";
-    row.innerHTML = '<label>Board size: <input type="range" min="' + MIN_SCALE + '" max="' + MAX_SCALE + '" step="' + STEP + '" value="1" id="board-scale-slider"> <span id="board-scale-value">100%</span></label>';
-
-    var slider = row.querySelector("#board-scale-slider");
-    var display = row.querySelector("#board-scale-value");
-    var current = readScale();
-    slider.value = current;
-    display.textContent = Math.round(current * 100) + "%";
-    applyScale(current);
-
-    slider.addEventListener("input", function () {
-      var val = parseFloat(slider.value);
-      display.textContent = Math.round(val * 100) + "%";
-      applyScale(val);
+    var board = document.getElementById("board");
+    if (!board) return;
+    board.addEventListener("mouseover", function (e) {
+      var cell = e.target.closest(".cell");
+      hovered = cell && cell.classList.contains("has-good") ? Number(cell.dataset.cell) : null;
+      showHover();
     });
-
-    panel.appendChild(row);
+    board.addEventListener("mouseleave", function () {
+      hovered = null;
+      showHover();
+    });
   });
 })();
