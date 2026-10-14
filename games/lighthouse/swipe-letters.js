@@ -18,8 +18,10 @@
   function isOpen() { return !panel.hidden; }
   function drawerMode() { return wanted() && phone(); }
 
+  var openedAt = 0;
   function open() {
     if (isOpen() || toggle.hidden) return;
+    openedAt = Date.now();
     toggle.click();
     try { closeBtn.focus({ preventScroll: true }); } catch (err) { /* fine */ }
   }
@@ -50,6 +52,8 @@
   document.addEventListener("keydown", function (e) { if (e.key === "Escape" && drawerMode() && isOpen()) close(); });
   document.addEventListener("click", function (e) {
     if (!drawerMode() || !isOpen()) return;
+    // the click that ends the very swipe which opened the drawer lands on the edge strip: it is not a tap outside
+    if (Date.now() - openedAt < 600) return;
     // the path is read from the event, not the DOM: a button inside the drawer may already have been redrawn away
     var path = e.composedPath ? e.composedPath() : [];
     if (path.indexOf(panel) !== -1 || path.indexOf(toggle) !== -1) return;

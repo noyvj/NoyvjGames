@@ -139,7 +139,11 @@
   list.addEventListener("click", function (e) {
     var b = e.target.closest("button");
     var card = b && b.closest("li[data-letter-id]");
-    if (card && !b.classList.contains("card-read") && !b.classList.contains("card-file") && b.parentNode === card) opened[card.dataset.letterId] = true;
+    if (card && !b.classList.contains("card-read") && !b.classList.contains("card-file") && b.parentNode === card) {
+      opened[card.dataset.letterId] = true;
+      // the engine's answer has already redrawn the list (and this card was painted closed): paint again now it is remembered
+      Array.prototype.forEach.call(list.querySelectorAll("li.paper-card"), paint);
+    }
   });
 
   filedToggle.addEventListener("click", function () { showFiled = !showFiled; paintToggle(); });

@@ -243,3 +243,20 @@ def test_lhmo10_the_view_carries_the_numbers_the_chips_show():
     assert view["oil"] > 0 and view["oil_cap"] > 0
     game.keep.structure["lantern"] = 10
     assert min(p["value"] for p in req(action="open")["structure"]) == 10
+
+
+# ---- found live in the browser pass (Playwright, 360x740) -----------------------------------------------------
+def test_the_click_that_ends_the_opening_swipe_does_not_close_the_drawer_again():
+    js = src("swipe-letters.js")
+    assert "openedAt = Date.now()" in js and "Date.now() - openedAt < 600" in js
+
+
+def test_an_unread_card_is_painted_open_again_after_the_engine_redraws_the_list():
+    js = src("mobile-letters.js")
+    assert 'querySelectorAll("li.paper-card"), paint' in js
+    assert "opened[card.dataset.letterId] = true" in js
+
+
+def test_floating_phone_extras_start_to_the_right_of_the_story_and_theme_pills():
+    assert "left: 3.6rem; right: 0.4rem; bottom: calc(var(--dock-h, 0px) + 3.8rem)" in CSS
+    assert "position: fixed; left: 3.6rem; bottom: calc(var(--dock-h, 0px) + 3.8rem)" in CSS
