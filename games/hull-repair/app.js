@@ -580,6 +580,36 @@
 
   function wire() {
     wireDifficulty();
+
+    // Hand layout (R4-HRMO-8)
+    var HAND_KEY = "hull-repair-hand";
+    function applyHandLayout(hand) {
+      var btns = document.querySelector(".edit-buttons");
+      if (btns) btns.setAttribute("data-hand", hand || "right");
+      try { localStorage.setItem(HAND_KEY, hand || "right"); } catch(e) {}
+    }
+    var currentHand = "right";
+    try { var stored = localStorage.getItem(HAND_KEY); if (stored === "left" || stored === "right") currentHand = stored; } catch(e) {}
+    applyHandLayout(currentHand);
+
+    var settingsRow = document.querySelector(".settings-row");
+    if (settingsRow) {
+      var label = document.createElement("label");
+      label.className = "hand-layout-label";
+      label.style.cssText = "display:flex;align-items:center;gap:0.3rem;font-size:0.85rem;color:var(--muted);cursor:pointer;margin-left:auto;";
+      var cb = document.createElement("input");
+      cb.type = "checkbox";
+      cb.checked = currentHand === "right";
+      cb.style.cssText = "width:1.25rem;height:1.25rem;accent-color:var(--btn-primary);vertical-align:middle;";
+      label.appendChild(cb);
+      label.appendChild(document.createTextNode("Right-hand layout"));
+      label.addEventListener("click", function(e) {
+        if (e.target !== cb) cb.checked = !cb.checked;
+        applyHandLayout(cb.checked ? "right" : "left");
+      });
+      settingsRow.appendChild(label);
+    }
+
     $("toast").addEventListener("click", function () { showToast(""); });
     wirePanelToggle("rooms-toggle-button", "rooms-panel");
     wirePanelToggle("log-toggle-button", "log-panel");
