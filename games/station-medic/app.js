@@ -38,6 +38,13 @@
     t.classList.toggle("on", Boolean(text));
   }
   function plural(n, one, many) { return n + " " + (n === 1 ? one : many); }
+  // R4-SMMO-3: a soft buzz for a clean cure and a gentle double buzz when a cost is added, on phones that allow it. It is
+  // part of the Effects switch and stays off under reduced motion; nothing is shown or changed on screen.
+  function buzz(kind) {
+    var root = document.documentElement;
+    if (!navigator.vibrate || root.getAttribute("data-reduced-motion") === "true" || root.getAttribute("data-effects") === "off") return;
+    try { navigator.vibrate(kind === "cost" ? [18, 90, 18] : [30]); } catch (e) { /* a browser that refuses is fine */ }
+  }
 
   // ---- panels --------------------------------------------------------------------------------------
   function wirePanelToggle(buttonId, panelId) {
@@ -135,10 +142,26 @@
     var cost = s.cost;
     setText($("cost-line"), "Cost so far: " + cost + (cost === 0 ? " (clean so far)" : " (" + s.grade_now_name.toLowerCase() + ")"));
   }
+  // the shelf letters of every scan or treatment this patient can have right now (the Desktop supply tray previews it)
+  function usableGlyphs(p) {
+    var out = [];
+    if (p.closed) return out;
+    view.cabinet.tests.forEach(function (t) { var a = p.actions.scan[t.t]; if (a && a.ok && out.indexOf(t.glyph) === -1) out.push(t.glyph); });
+    view.cabinet.tx.forEach(function (x) { var a = p.actions.treat[x.x]; if (a && a.ok && out.indexOf(x.glyph) === -1) out.push(x.glyph); });
+    return out;
+  }
+  // looking at a patient redraws the bedside, the cards and the sheet (the sheet dims what cannot fit them); the Desktop extras
+  // (pc.js) listen for the event to redraw their own parts
+  function selectPatient(i) {
+    sel = i;
+    renderBedside(); renderPatients(); renderSheet();
+    document.dispatchEvent(new CustomEvent("station-medic-rendered"));
+  }
+  window.stationMedicSelect = function (i) { if (view && view.patients[i]) selectPatient(i); };
   function renderPatients() {
     var holder = $("patients");
     if (sel >= view.patients.length) sel = 0;
-    var sig = view.patients.map(function (p) { return [p.i, p.closed, p.iso, p.steady, sel === p.i].join(":"); }).join("|") + shiftId;
+    var sig = view.patients.map(function (p) { return [p.i, p.closed, p.iso, p.steady, sel === p.i, usableGlyphs(p).join("")].join(":"); }).join("|") + shiftId;
     if (holder.dataset.sig === sig) return;
     holder.dataset.sig = sig;
     holder.textContent = "";
@@ -146,6 +169,8 @@
       var b = el("button", "patient" + (p.closed ? " settled" : ""));
       b.type = "button";
       b.dataset.testid = "station-medic-patient-" + p.i;
+      b.dataset.patientId = p.i;
+      b.dataset.usable = usableGlyphs(p).join("");
       b.setAttribute("aria-pressed", String(p.i === sel));
       var portrait = el("span");
       portrait.innerHTML = p.portrait;
@@ -153,7 +178,14 @@
       b.appendChild(el("span", "pname", p.first));
       b.appendChild(el("span", "pstatus", statusOf(p)));
       b.setAttribute("aria-label", p.name + ", " + p.role + ". " + statusOf(p) + (p.i === sel ? ". Looking at them now." : ""));
-      b.addEventListener("click", function () { sel = p.i; renderBedside(); renderPatients(); renderSheet(); });
+      b.addEventListener("click", function () { selectPatient(p.i); applyPicked(p.i); });
+      b.addEventListener("dragover", function (e) { if (pickedItem !== null) e.preventDefault(); });
+      b.addEventListener("drop", function (e) {
+        if (pickedItem === null) return;
+        e.preventDefault();
+        selectPatient(p.i);
+        applyPicked(p.i);
+      });
       holder.appendChild(b);
     });
   }
@@ -169,6 +201,19 @@
     b.addEventListener("click", handler);
     return b;
   }
+  // R4-SMMO-6: each sign is a large tappable chip; pressing it lists the conditions on today's sheet that carry it
+  var openSign = null;
+  function renderSignInfo() {
+    var info = $("sign-conditions");
+    var p = view.patients[sel];
+    var has = openSign !== null && p && p.signs.some(function (sg) { return sg.name === openSign; });
+    if (!has) openSign = null;
+    document.querySelectorAll("#bedside-signs .sign-chip").forEach(function (chip) { chip.setAttribute("aria-pressed", String(chip.textContent === openSign)); });
+    info.hidden = !has;
+    if (!has) { info.textContent = ""; return; }
+    var names = view.sheet.filter(function (c) { return c.signs.indexOf(openSign) !== -1; }).map(function (c) { return c.name; });
+    setText(info, openSign + " is carried by: " + (names.length ? names.join(", ") : "nothing on today's sheet") + ".");
+  }
   function renderBedside() {
     var p = view.patients[sel];
     if (!p) return;
@@ -178,16 +223,30 @@
     setText($("bedside-say"), "“" + p.say + "”");
     var signs = $("bedside-signs");
     signs.textContent = "";
-    p.signs.forEach(function (s) { signs.appendChild(el("li", null, s.name)); });
+    p.signs.forEach(function (sg) {
+      var li = el("li");
+      var chip = el("button", "sign-chip", sg.name);
+      chip.type = "button";
+      chip.setAttribute("aria-pressed", String(openSign === sg.name));
+      chip.setAttribute("aria-label", sg.name + ". Press to list the conditions that carry this sign.");
+      chip.addEventListener("click", function () { openSign = openSign === sg.name ? null : sg.name; renderSignInfo(); });
+      li.appendChild(chip);
+      signs.appendChild(li);
+    });
+    renderSignInfo();
     var notes = $("bedside-notes");
     notes.textContent = "";
     p.notes.forEach(function (n) { notes.appendChild(el("li", null, n)); });
+
+    renderNotesBanner(p);
     var readings = $("bedside-readings");
     readings.textContent = "";
     if (!p.readings.length) readings.appendChild(el("li", "unknown", "No scans on this shift."));
     p.readings.forEach(function (r) {
       var text = r.test + ": " + (r.state === "unknown" ? "not run" : r.state === "positive" ? r.positive : "nothing");
-      readings.appendChild(el("li", r.state, text));
+      var rli = el("li", r.state, text);
+      rli.dataset.scan = r.test + " " + r.positive;     // the same wording the sheet lists under "Scans" (the Desktop hover matches on it)
+      readings.appendChild(rli);
     });
     setText($("bedside-certain"), p.matches.length === 1 ? "(only one fits)" : "(" + p.matches.length + " fit)");
     var matches = $("bedside-matches");
@@ -225,20 +284,134 @@
     var found = view.cabinet.items.filter(function (i) { return i.name === itemName; })[0];
     return found ? found.count : 0;
   }
+  // R4-SMMO-7: on a phone the shelves split into a Scans tab and a Treatments tab, each with the supplies left on it.
+  // Wide screens and the Desktop layout keep one list of every shelf (the tabs are hidden there).
+  var cabinetTab = "scan";
+  function isPc() { return window.NOYVJ_LAYOUT === "pc" || document.documentElement.getAttribute("data-layout") === "pc"; }
+  function isPhone() { return !isPc() && Boolean(window.matchMedia && window.matchMedia("(max-width: 600px)").matches); }
+  function shelfKinds(cab) {
+    var scanItems = {}, treatItems = {};
+    cab.tests.forEach(function (t) { scanItems[t.item] = true; });
+    cab.tx.forEach(function (x) { treatItems[x.item] = true; });
+    return function (item) {
+      var scan = Boolean(scanItems[item.name]), treat = Boolean(treatItems[item.name]);
+      if (!scan && !treat) treat = true;      // a shelf only the steadying band uses sits with the treatments
+      return { scan: scan, treat: treat };
+    };
+  }
+  function ensureCabinetTabs() {
+    var tabs = $("cabinet-tabs");
+    if (tabs.dataset.built) return tabs;
+    tabs.dataset.built = "1";
+    tabs.setAttribute("role", "tablist");
+    tabs.setAttribute("aria-label", "Supply cabinet");
+    [["scan", "Scans"], ["treat", "Treatments"]].forEach(function (pair) {
+      var b = el("button", "cabinet-tab", pair[1]);
+      b.type = "button";
+      b.id = "cabinet-tab-" + pair[0];
+      b.dataset.tab = pair[0];
+      b.setAttribute("role", "tab");
+      b.setAttribute("aria-controls", "cabinet-list");
+      b.addEventListener("click", function () { cabinetTab = pair[0]; renderCabinet(); });
+      tabs.appendChild(b);
+    });
+    return tabs;
+  }
+  // R4-SMMO-2: press a shelf, then a patient, to use it; or drag the shelf onto a patient. Either way the engine is only
+  // sent a scan or treat it already offers for that patient; if the shelf can do more than one thing there, the player picks.
+  var pickedItem = null;
+  function itemByIndex(k) { return view.cabinet.items.filter(function (i) { return i.i === k; })[0]; }
+  function shelfNode(i) {
+    var picked = pickedItem === i.i;
+    var li = el("li", "shelf" + (i.count === 0 ? " empty" : "") + (picked ? " selected" : ""));
+    li.dataset.supply = i.glyph;
+    li.dataset.item = String(i.i);
+    var b = el("button", "shelf-pick");
+    b.type = "button";
+    b.setAttribute("aria-pressed", String(picked));
+    b.setAttribute("aria-label", i.name + ": " + plural(i.count, "left", "left") + " of " + i.start + ". Used for " + i.uses.join(", ") +
+      (i.count ? (picked ? ". Picked up: choose a patient." : ". Press to pick it up, then choose a patient.") : ". None left."));
+    b.appendChild(el("span", "letter", i.glyph));
+    var body = el("span", "sname", i.name);
+    body.appendChild(el("span", "uses", i.uses.join(", ")));
+    if (picked) body.appendChild(el("span", "uses picked-note", "Picked up: now choose a patient"));
+    b.appendChild(body);
+    b.appendChild(el("span", "count", String(i.count)));
+    if (i.count > 0) {
+      b.draggable = true;
+      b.addEventListener("dragstart", function (e) {
+        pickedItem = i.i;                       // no re-render here: replacing the dragged node would cancel the drag
+        li.classList.add("selected");
+        b.setAttribute("aria-pressed", "true");
+        if (e.dataTransfer) { e.dataTransfer.effectAllowed = "copy"; e.dataTransfer.setData("text/plain", i.name); }
+      });
+    }
+    b.addEventListener("click", function () { pickShelf(i); });
+    li.appendChild(b);
+    return li;
+  }
+  function pickShelf(i) {
+    var say;
+    if (i.count === 0) say = "The " + i.name + " shelf is empty. If you are short, borrow a spare under Short of something.";
+    else if (pickedItem === i.i) { pickedItem = null; say = "Put the " + i.name + " shelf back."; }
+    else { pickedItem = i.i; say = "Picked up the " + i.name + " shelf. Now choose a patient."; }
+    renderCabinet();
+    var again = document.querySelector('#cabinet-list li[data-item="' + i.i + '"] .shelf-pick');
+    if (again) again.focus();
+    setText($("action-line"), say);
+    announce(say);
+  }
+  function applyPicked(index) {
+    if (pickedItem === null) return;
+    var item = itemByIndex(pickedItem);
+    var p = view.patients[index];
+    pickedItem = null;
+    if (!item || !p) { renderCabinet(); return; }
+    var uses = [];
+    if (!p.closed) {
+      view.cabinet.tests.forEach(function (t) {
+        var a = p.actions.scan[t.t];
+        if (t.item === item.name && a && a.ok) uses.push({ action: "scan", p: p.i, t: t.t });
+      });
+      view.cabinet.tx.forEach(function (x) {
+        var a = p.actions.treat[x.x];
+        if (x.item === item.name && a && a.ok) uses.push({ action: "treat", p: p.i, x: x.x });
+      });
+    }
+    if (uses.length === 1) { act(uses[0]); return; }
+    var say = uses.length ? "The " + item.name + " shelf can do " + uses.length + " things for " + p.first + ": choose one under Scan or Treat below."
+      : "Nothing from the " + item.name + " shelf works for " + p.first + " right now.";
+    renderCabinet();
+    setText($("action-line"), say);
+    announce(say);
+  }
   function renderCabinet() {
     var cab = view.cabinet;
     var list = $("cabinet-list");
+    var tabs = ensureCabinetTabs();
+    var phone = isPhone();
+    tabs.hidden = !phone;
+    var kindOf = shelfKinds(cab);
+    var left = { scan: 0, treat: 0 };
+    cab.items.forEach(function (i) {
+      var k = kindOf(i);
+      if (k.scan) left.scan += i.count;
+      if (k.treat) left.treat += i.count;
+    });
+    ["scan", "treat"].forEach(function (name) {
+      var b = $("cabinet-tab-" + name);
+      setText(b, (name === "scan" ? "Scans" : "Treatments") + " (" + left[name] + " left)");
+      b.setAttribute("aria-selected", String(cabinetTab === name));
+      b.classList.toggle("active", cabinetTab === name);
+    });
+    if (phone) list.setAttribute("aria-labelledby", "cabinet-tab-" + cabinetTab);
+    else list.removeAttribute("aria-labelledby");
     list.textContent = "";
     cab.items.forEach(function (i) {
-      var li = el("li", "shelf" + (i.count === 0 ? " empty" : ""));
-      li.appendChild(el("span", "letter", i.glyph));
-      var body = el("span", "sname", i.name);
-      body.appendChild(el("span", "uses", i.uses.join(", ")));
-      li.appendChild(body);
-      li.appendChild(el("span", "count", String(i.count)));
-      li.setAttribute("aria-label", i.name + ": " + plural(i.count, "left", "left") + " of " + i.start + ". Used for " + i.uses.join(", "));
-      list.appendChild(li);
+      if (phone && !kindOf(i)[cabinetTab]) return;
+      list.appendChild(shelfNode(i));
     });
+
     var extra = [];
     if (cab.beds) extra.push("Cold room: " + cab.beds_used + " of " + plural(cab.beds, "bed", "beds") + " in use.");
     if (cab.robots) extra.push("Tally: " + (cab.robots_used ? "steadying one patient" : "free to steady one patient") + ".");
@@ -255,6 +428,7 @@
     list.textContent = "";
     view.sheet.forEach(function (c) {
       var li = el("li", fits.indexOf(c.id) === -1 ? "ruled-out" : "");
+      li.dataset.cond = c.id;
       var head = el("span", "cname", c.name);
       if (c.spreads) head.appendChild(el("span", "tag", "spreads"));
       li.appendChild(head);
@@ -450,7 +624,10 @@
     renderGoalStrip();
     renderAchievements();
     renderRecord();
+    document.dispatchEvent(new CustomEvent("station-medic-rendered"));
   }
+  // the Desktop boot (pc.js) reads the drawn view through this and redraws its extras after every "station-medic-rendered"
+  window.stationMedicView = function () { return view; };
 
   // ---- talking to the engine --------------------------------------------------------------------------------
   function persist() {
@@ -477,6 +654,11 @@
   function act(request) {
     var before = view.patients[sel];
     var result = send(request);
+    if (result && result.ok && result.log.length) {
+      var last = result.log[result.log.length - 1];
+      if (/Cost \d/.test(last.msg)) buzz("cost");
+      else if (last.kind === "cure") buzz("cure");
+    }
     if (result && result.ok && before && view.patients[sel] && view.patients[sel].closed) {
       var next = view.patients.filter(function (p) { return !p.closed; })[0];
       if (next) { sel = next.i; render(); }
@@ -484,16 +666,31 @@
   }
 
   // ---- keyboard ------------------------------------------------------------------------------------------
+  function focusFirst(rowId) {
+    if ($("bedside-actions").hidden) return false;
+    var b = $(rowId).querySelector("button");
+    if (b) b.focus();
+    return Boolean(b);
+  }
   function onKey(e) {
     if (!view || e.ctrlKey || e.metaKey || e.altKey) return;
     var tag = e.target && e.target.tagName;
     if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return;
-    if (document.querySelector("dialog[open], .confirm-dialog, [role='dialog']")) return;
+    // an open window or dialog owns the keys (on the Desktop layout every closed window frame is a hidden role=dialog)
+    if (document.querySelector("dialog[open], .confirm-dialog, [role='dialog']:not([hidden])")) return;
+    if (e.key === "Escape" && isPhone() && $("sheet-panel").dataset.open === "true") { setSheetOpen(false); return; }
+    if (e.key === "Escape" && pickedItem !== null) { pickedItem = null; renderCabinet(); return; }
     var n = parseInt(e.key, 10);
     if (n >= 1 && n <= view.patients.length && e.key.length === 1) {
       sel = n - 1;
       render();
+      return;
     }
+    // R4-SMPC-5: S moves to the scans, T to the treatments, Z steps back one action (free); with 1 to 4 a shift plays from the keyboard
+    var key = e.key.length === 1 ? e.key.toLowerCase() : "";
+    if (key === "s" && focusFirst("scan-row")) e.preventDefault();
+    else if (key === "t" && focusFirst("treat-row")) e.preventDefault();
+    else if (key === "z") { e.preventDefault(); send({ action: "undo" }); }
   }
 
   function askThen(id, message, confirmLabel, go) {
@@ -511,6 +708,85 @@
     if (!window.NoyvjDifficulty) return;
     window.NoyvjDifficulty.mount("#difficulty-slot", { game: DIFF_GAME, collapsible: true, descriptions: DIFF_TEXT });
     window.NoyvjDifficulty.onChange(function (d) { if (d.game === DIFF_GAME) sendDifficulty(); });
+  }
+
+  // R4-SMMO-4: on a phone the Condition Sheet is a bottom sheet. A fixed "Condition Sheet" tab opens it (a tap, or a drag
+  // upward); dragging its heading down, the Close button or Esc closes it. Wide screens and the Desktop layout keep the
+  // ordinary panel, and the tab and Close button are hidden there by CSS.
+  function setSheetOpen(open) {
+    var panel = $("sheet-panel"), tab = $("sheet-tab");
+    panel.dataset.open = String(open);
+    tab.setAttribute("aria-expanded", String(open));
+    if (isPhone()) (open ? $("sheet-close-button") : tab).focus();
+  }
+  function _initSheetGesture() {
+    var tab = $("sheet-tab"), head = $("sheet-heading");
+    var y0 = null;
+    function down(e) { y0 = e.clientY; }
+    function up(e, delta) {
+      if (y0 === null) return;
+      var dy = e.clientY - y0;
+      y0 = null;
+      if (delta(dy)) setSheetOpen(tab.getAttribute("aria-expanded") !== "true");
+    }
+    tab.addEventListener("click", function () { setSheetOpen(true); });
+    tab.addEventListener("pointerdown", down);
+    tab.addEventListener("pointerup", function (e) { up(e, function (dy) { return dy < -30 && tab.getAttribute("aria-expanded") !== "true"; }); });
+    head.addEventListener("pointerdown", down);
+    head.addEventListener("pointerup", function (e) { up(e, function (dy) { return dy > 50 && tab.getAttribute("aria-expanded") === "true"; }); });
+    ["pointercancel"].forEach(function (name) { tab.addEventListener(name, function () { y0 = null; }); head.addEventListener(name, function () { y0 = null; }); });
+    $("sheet-close-button").addEventListener("click", function () { setSheetOpen(false); });
+  }
+
+  // R4-SMMO-10: on a phone the chart notes of the patient being looked at show as a banner that sticks to the top. A swipe
+  // upward or the Hide button puts it away, and a "Chart notes" tab brings it back. Wide screens and the Desktop layout
+  // never show it (the notes are already on the chart there); the notes stay on the chart on a phone as well.
+  var notesDismissed = false;
+  function renderNotesBanner(p) {
+    var list = $("notes-list");
+    list.textContent = "";
+    p.notes.forEach(function (n) { list.appendChild(el("li", null, n)); });
+    $("notes-banner").hidden = !p.notes.length || notesDismissed;
+    $("notes-tab").hidden = !p.notes.length || !notesDismissed;
+  }
+  function _initNotesBanner() {
+    var banner = $("notes-banner"), y0 = null;
+    function setDismissed(value) {
+      notesDismissed = value;
+      if (view && view.patients[sel]) renderNotesBanner(view.patients[sel]);
+      var target = value ? $("notes-tab") : $("notes-close-btn");
+      if (!target.hidden) target.focus();
+    }
+    $("notes-close-btn").addEventListener("click", function () { setDismissed(true); });
+    $("notes-tab").addEventListener("click", function () { setDismissed(false); });
+    banner.addEventListener("pointerdown", function (e) { y0 = e.clientY; });
+    banner.addEventListener("pointerup", function (e) {
+      if (y0 !== null && e.clientY - y0 < -30) setDismissed(true);
+      y0 = null;
+    });
+    banner.addEventListener("pointercancel", function () { y0 = null; });
+  }
+
+  // R4-SMMO-5: hold the shift title to restore the shift, behind the same confirm as the Restore button (which stays the
+  // keyboard and one-tap way). The page uses no timers (a tested pledge), so the hold is judged when the finger or button is
+  // released: pressed for at least HOLD_MS (the event's own time stamp) without moving, it opens the confirm.
+  var HOLD_MS = 700;
+  function _initHoldToRestore() {
+    var heading = $("shift-heading");
+    var t0 = null, x0 = 0, y0 = 0, moved = false;
+    heading.title = "Hold to restore this shift";
+    heading.addEventListener("pointerdown", function (e) {
+      if (e.button) return;
+      t0 = e.timeStamp; x0 = e.clientX; y0 = e.clientY; moved = false;
+    });
+    heading.addEventListener("pointermove", function (e) { if (t0 !== null && (Math.abs(e.clientX - x0) > 10 || Math.abs(e.clientY - y0) > 10)) moved = true; });
+    heading.addEventListener("pointerup", function (e) {
+      var held = t0 !== null && !moved && e.timeStamp - t0 >= HOLD_MS;
+      t0 = null;
+      if (held) askThen("station-medic-restore-hold", "Restore this shift to its start? Your seals are kept; only this shift's actions are cleared.", "Restore it", function () { send({ action: "restore" }); });
+    });
+    ["pointercancel", "pointerleave"].forEach(function (name) { heading.addEventListener(name, function () { t0 = null; }); });
+    heading.addEventListener("contextmenu", function (e) { e.preventDefault(); });   // a phone's long press would open its own menu
   }
 
   function wire() {
@@ -533,9 +809,16 @@
       askThen("station-medic-reset", "Start the whole station over? Your seals, records and tally will be erased.", "Erase it", function () { shiftId = null; send({ action: "reset" }); });
     });
     document.addEventListener("keydown", onKey);
-    document.addEventListener("station-medic-narrow-change", function () { if (view) renderSheet(); });
+    document.addEventListener("station-medic-narrow-change", function () { if (view) { renderSheet(); document.dispatchEvent(new CustomEvent("station-medic-rendered")); } });
     // The save widget loads a save straight into the engine; this redraws afterwards.
     window.stationMedicRefresh = function () { if (engine) { shiftId = null; send({ action: "open" }); } };
+    _initSheetGesture();
+    _initHoldToRestore();
+    _initNotesBanner();
+    if (window.matchMedia) {
+      var phoneQuery = window.matchMedia("(max-width: 600px)");
+      if (phoneQuery.addEventListener) phoneQuery.addEventListener("change", function () { if (view) { renderCabinet(); } });
+    }
   }
 
   var TUTORIAL_STEPS = [
@@ -568,6 +851,7 @@
     $("engine-status").textContent = "";
     sendDifficulty();
     await changelog;
+    if (isPhone()) TUTORIAL_STEPS.forEach(function (step) { if (step.selector === "#sheet-panel") step.selector = "#sheet-tab"; });   // the sheet itself sits off screen until opened
     if (window.GameTutorial) window.GameTutorial.init(window.stationMedicTutorialSteps ? window.stationMedicTutorialSteps(TUTORIAL_STEPS) : TUTORIAL_STEPS, { gameId: "station-medic" });
   }
 

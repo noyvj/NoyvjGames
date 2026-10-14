@@ -82,6 +82,16 @@
   }
   var narrow = applyNarrow(get(NARROW_KEY) !== "false", false);
 
+  // R4-SMMO-9: "Dim infirmary night mode" (darker, calmer colours; on a phone also larger buttons). Off by default and a
+  // per-device choice like the other display settings. The page's CSS reads html[data-dim-night].
+  var DIM_KEY = "station-medic-dim-night";
+  function applyDim(on, remember) {
+    root.setAttribute("data-dim-night", on ? "on" : "off");
+    if (remember) set(DIM_KEY, on);
+    return on;
+  }
+  var dim = applyDim(get(DIM_KEY) === "true", false);
+
   function init() {
     var panel = document.getElementById("settings-panel");
     var toggle = document.getElementById("settings-toggle-button");
@@ -96,6 +106,11 @@
         narrow = applyNarrow(narrowBox.checked, true);
         document.dispatchEvent(new CustomEvent("station-medic-narrow-change"));
       });
+    }
+    var dimBox = document.getElementById("night-toggle");
+    if (dimBox) {
+      dimBox.checked = dim;
+      dimBox.addEventListener("change", function () { dim = applyDim(dimBox.checked, true); });
     }
     if (motionBox) motionBox.checked = reduced;
     if (effectsBox) effectsBox.checked = effects;
@@ -139,6 +154,9 @@
       narrow = applyNarrow(true, false);
       if (narrowBox) narrowBox.checked = true;
       document.dispatchEvent(new CustomEvent("station-medic-narrow-change"));
+      remove(DIM_KEY);
+      dim = applyDim(false, false);
+      if (dimBox) dimBox.checked = false;
       remove(CONTRAST_KEY);
       contrast = applyContrast(false, false);
       if (motionBox) motionBox.checked = reduced;

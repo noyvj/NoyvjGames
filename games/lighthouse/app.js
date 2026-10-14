@@ -292,6 +292,14 @@
     setText($("hud-oil"), String(Math.round(v.oil)));
     meter("hud-oil-meter", oilPct, oilState);
     setText($("hud-oil-state"), oilState === "empty" ? "Empty" : oilState === "low" ? "Low" : oilPct > 60 ? "Plenty" : "Enough");
+    // R4-LHMO-10: Repair is how sound the station's weakest part is (0 to 100); both Oil and Repair carry a calm "low" state
+    // for the phone's big icon chips (style.css), always with the words as well
+    var worst = Math.round(Math.min.apply(null, v.structure.map(function (p) { return p.value; })));
+    var repairState = worst < 40 ? "low" : "ok";
+    setText($("hud-repair"), String(worst));
+    setText($("hud-repair-state"), worst < 40 ? "Needs mending" : worst < 70 ? "Worn" : "Sound");
+    $("hud-repair-chip").setAttribute("data-state", repairState);
+    $("hud-oil-chip").setAttribute("data-state", oilState === "ok" ? "ok" : "low");
     setText($("hud-energy"), String(v.energy));
     var eState = v.energy < 20 ? "low" : "ok";
     meter("hud-energy-meter", v.energy, eState);
@@ -371,7 +379,7 @@
   }
 
   function letterItem(l) {
-    var li = el("li"); li.dataset.read = String(l.read);
+    var li = el("li"); li.dataset.read = String(l.read); li.dataset.letterId = l.id;
     var head = el("div", null, "letter-head");
     head.appendChild(el("strong", l.from_name + ": " + l.subject));
     head.appendChild(el("span", "night " + l.night, "note"));
@@ -1025,7 +1033,18 @@
     syncTime(v);
     soundFor(v);
     renderSeed(v);
+    // the phone touches (mobile-*.js) listen for this on document; the view is a plain object they must only read
+    document.dispatchEvent(new CustomEvent("lighthouse-view", { detail: v }));
   }
+
+  // A small door for the phone-only scripts (mobile-*.js): they may read the latest view and send ordinary engine
+  // actions, the same ones the buttons send. They never touch the engine directly.
+  window.lighthouseApi = {
+    view: function () { return view; },
+    send: function (request) { return send(request, false); },
+    announce: announce,
+    toast: showToast
+  };
 
   // ---- sound (shared/sfx.js: generated in code, off unless the player turns it on, never the only signal) ----
   // A soft bell when a ship comes safely past, and (if the hum is not switched off) a faint bed under the night.
@@ -1310,7 +1329,7 @@
     }).observe(document.documentElement, { attributes: true, attributeFilter: ["data-reduced-motion"] });
     await changelog;
     if (window.GameTutorial) window.GameTutorial.init(window.lighthouseTutorialSteps ? window.lighthouseTutorialSteps(TUTORIAL_STEPS) : TUTORIAL_STEPS, { gameId: GAME_ID });
-    if (window.MobileHud) window.MobileHud.init([{ selector: "#hud-night", label: "Night" }, { selector: "#hud-oil", label: "Oil" }, { selector: "#hud-energy", label: "Energy" }]);
+    if (window.MobileHud) window.MobileHud.init([{ selector: "#hud-night", label: "Night" }, { selector: "#hud-oil", label: "Oil" }, { selector: "#hud-repair", label: "Repair" }, { selector: "#hud-energy", label: "Energy" }]);
     if (window.MobileDock) window.MobileDock.init("#night-controls", { breakpoint: 640 });
     watchDock();
   }

@@ -32,6 +32,8 @@
   "side_label": "Cabinet, sheet and log",
   "hints": [
     ["1 to 4", "Look at a patient"],
+    ["S / T", "Scans / treatments"],
+    ["Z", "Step back one action"],
     ["Tab", "Move between buttons"],
     ["Esc", "Menu / close window"],
     ["?", "All shortcuts"]

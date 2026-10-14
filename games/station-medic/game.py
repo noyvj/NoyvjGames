@@ -15,6 +15,7 @@ Actions (every request is {"action": ..., ...}; every reply is the whole view):
   comfort {p}              settle a patient with comfort care (cost 1)
   borrow {item}            a spare supply from the ring's reserve (cost 1)
   restore                  back to the start of this shift (free)
+  undo                     take back the last action of this unfinished shift (free)
   hint                     climb one more rung of the hint ladder (nudge, hint, answer)
   hint_do                  do what the answer rung says (after the answer rung)
   reset                    start over (everything)
@@ -384,6 +385,24 @@ class Game:
         else:
             self.runs.pop(self.cur, None)
 
+    def undo(self):
+        """R4-SMPC-5: take back the last action of an unfinished shift by replaying the others. Free, and the Record and the
+        tally keep what they have already learned (they only ever count up). Returns (ok, message)."""
+        if self.case.done(self.st):
+            return False, "This shift is finished. Restore it to play it again, or go on to the next."
+        if not self.tokens:
+            return False, "Nothing to step back from yet."
+        tokens = self.tokens[:-1]
+        st, infos = sh.replay(self.case, tokens)
+        if st is None:
+            return False, "That step cannot be taken back."
+        self.tokens = tokens
+        self.st = st
+        self.log = [{"msg": i["msg"], "kind": i["kind"], "ok": True} for i in infos][-LOG_KEEP:]
+        self.result = None
+        self.rung = 0
+        return True, "Stepped back one action."
+
     def restore(self):
         self.tally["restores"] += 1
         self.tokens = []
@@ -438,6 +457,8 @@ def handle(request_json):
     elif action == "restore":
         g.restore()
         message = "Restored."
+    elif action == "undo":
+        ok, message = g.undo()
     elif action == "difficulty":
         if request.get("level") not in sh.DIFFICULTIES:
             ok, message = False, "That is not a difficulty."

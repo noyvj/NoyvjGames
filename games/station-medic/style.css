@@ -20,6 +20,15 @@ html[data-theme="light"] {
   --sc-wall: #cdd8de; --sc-floor: #b9c7cf; --sc-port: #7e93a0; --sc-space: #243541; --sc-star: #f2f8fb; --sc-lamp: #b87a28;
   --sc-beam: rgba(184, 122, 40, 0.18); --sc-bed: #8fa3af; --sc-pane: #7e93a0; --sc-pane-in: #e6eef2;
 }
+/* R4-SMMO-9: dim infirmary night mode: a darker, calmer palette that still keeps text well above 4.5:1; it wins over the light theme */
+html[data-dim-night="on"], html[data-dim-night="on"][data-theme="light"] {
+  --bg: #04070a; --bg-top: #0a1117; --panel: #0b1218; --panel-fill: rgba(11, 18, 24, 0.97); --surface: #101922;
+  --btn: #19242d; --btn-primary: #8a5a1c; --on-primary: #fff6e8;
+  --line: #2c3c46; --edge: #7e98a8; --text: #cfdde3; --muted: #9bb0bb;
+  --accent: #d9a05a; --cool: #7fb3c8; --focus: #ffd666; --hover-edge: #d9a05a; --ink: #04070a;
+  --ok: #8fe0a4; --bad: #ff9c8a; color-scheme: dark;
+}
+html[data-dim-night="on"] .scene-holder { filter: brightness(0.8); }
 html[data-high-contrast="true"] { --line: #a9c2d0; --edge: #e1ecf2; --muted: #e1ecf2; }
 html[data-high-contrast="true"][data-theme="light"] { --line: #2f4452; --edge: #17232b; --muted: #17232b; }
 html[data-high-contrast="true"] .panel, html[data-high-contrast="true"] button { border-width: 2px; }
@@ -105,6 +114,10 @@ html[data-reduced-motion="true"] .stat-value.bump, html[data-effects="off"] .sta
 .bedside-label { margin: 0.5rem 0 0.15rem; font-size: 0.72rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
 .chips, .matches, .readings, .chart-notes { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 0.3rem; }
 .chips li { border: 1px solid var(--edge); border-radius: 999px; padding: 0.05rem 0.6rem; font-size: 0.85rem; }
+.chips li:has(.sign-chip) { padding: 0; }
+.sign-chip { background: none; border: 0; border-radius: 999px; padding: 0.05rem 0.6rem; font-size: 0.85rem; min-height: 1.6rem; cursor: pointer; }
+.sign-chip[aria-pressed="true"] { background: var(--btn-primary); color: var(--on-primary); text-decoration: underline; }
+.sign-conditions { margin: 0.3rem 0; }
 .chart-notes li { border: 2px dashed var(--accent); border-radius: 8px; padding: 0.05rem 0.5rem; font-size: 0.82rem; }
 .readings li { border: 1px solid var(--line); border-radius: 8px; padding: 0.05rem 0.5rem; font-size: 0.82rem; }
 .readings li.positive { border: 2px solid var(--cool); font-weight: 700; }
@@ -136,9 +149,15 @@ html[data-reduced-motion="true"] .stat-value.bump, html[data-effects="off"] .sta
 .shelf .count { font-size: 1.2rem; font-weight: 800; font-variant-numeric: tabular-nums; }
 .shelf .sname { font-size: 0.8rem; line-height: 1.2; }
 .shelf.empty { border-style: dashed; opacity: 0.8; }
+.shelf { padding: 0; }
+.shelf-pick { display: flex; align-items: center; gap: 0.5rem; width: 100%; min-height: 44px; padding: 0.3rem 0.5rem; background: none; border: 0; border-radius: 8px; color: inherit; text-align: left; cursor: pointer; }
+.shelf-pick[draggable="true"] { cursor: grab; }
+.shelf.selected { border-color: var(--focus); outline: 3px solid var(--focus); outline-offset: 1px; }
+.shelf .picked-note { color: var(--text); font-weight: 700; }
 .shelf .uses { display: block; font-size: 0.68rem; color: var(--muted); }
 .borrow { margin-top: 0.4rem; font-size: 0.9rem; color: var(--muted); }
 .sheet { list-style: none; margin: 0.3rem 0; padding: 0; display: grid; gap: 0.35rem; }
+.sheet-tab, .sheet-close, .notes-banner, .notes-tab { display: none; }
 .sheet li { border: 1px solid var(--line); border-radius: 10px; padding: 0.3rem 0.6rem; background: var(--surface); }
 .sheet li.ruled-out { opacity: 0.55; border-style: dashed; }
 html[data-narrow="on"] .sheet li.ruled-out .cname { text-decoration: line-through; }
@@ -176,6 +195,51 @@ html[data-narrow="off"] .sheet li.ruled-out { opacity: 1; border-style: solid; }
   .tagline { display: none; }
   .scene { height: 3.8rem; }
   .patients { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 600px) {
+  /* R4-SMMO-6: large chips on a phone */
+  .sign-chip { min-height: 44px; padding: 0.3rem 1rem; font-size: 1rem; }
+
+  /* R4-SMMO-5: the shift title can be held to restore the shift */
+  #shift-heading { touch-action: manipulation; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
+
+  /* R4-SMMO-7: the cabinet splits into Scans and Treatments tabs on a phone (app.js hides the tabs elsewhere) */
+  #cabinet-tabs { display: flex; gap: 0.4rem; margin: 0.4rem 0; }
+  .cabinet-tab { flex: 1; min-height: 44px; font-weight: 600; }
+  .cabinet-tab.active { background: var(--btn-primary); border-color: var(--hover-edge); color: var(--on-primary); }
+  #cabinet-panel .cabinet { grid-template-columns: 1fr; }
+
+  /* R4-SMMO-4: Condition Sheet as a bottom sheet (phone layout only; the Desktop layout keeps the ordinary panel) */
+  html:not([data-layout="pc"]) #game { padding-bottom: 8rem; }
+  html:not([data-layout="pc"]) .sheet-tab {
+    display: block; position: fixed; bottom: 50px; left: 50%; transform: translateX(-50%); z-index: 89; min-height: 44px; padding: 0.4rem 1.4rem;
+    border-radius: 14px 14px 0 0; border-bottom: 0; background: var(--btn-primary); color: var(--on-primary); font-weight: 700; touch-action: none;
+  }
+  html:not([data-layout="pc"]) .sheet-tab[aria-expanded="true"] { display: none; }
+  html:not([data-layout="pc"]) .sheet-close { display: block; width: 100%; min-height: 44px; margin-bottom: 0.4rem; }
+  html:not([data-layout="pc"]) #sheet-heading { touch-action: none; }
+  html:not([data-layout="pc"]) #sheet-panel {
+    position: fixed; bottom: 50px; left: 0; right: 0; max-height: calc(75vh - 50px); overflow-y: auto; margin: 0;
+    transform: translateY(105%); visibility: hidden; transition: transform 0.2s ease-out, visibility 0s linear 0.2s; z-index: 90;
+    border-radius: 16px 16px 0 0; box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.3);
+  }
+  html:not([data-layout="pc"]) #sheet-panel[data-open="true"] { transform: translateY(0); visibility: visible; transition: transform 0.2s ease-out; }
+  html[data-reduced-motion="true"]:not([data-layout="pc"]) #sheet-panel, html[data-effects="off"]:not([data-layout="pc"]) #sheet-panel { transition: none; }
+
+  /* R4-SMMO-9: bigger buttons in the dim infirmary night mode */
+  html[data-dim-night="on"] button, html[data-dim-night="on"] select { min-height: 48px; padding: 0.6rem 1rem; font-size: 1.05rem; }
+  html[data-dim-night="on"] .act-row button { padding: 0.5rem 0.8rem; }
+
+  /* R4-SMMO-10: chart notes banner, phone layout only */
+  html:not([data-layout="pc"]) .notes-banner {
+    display: flex; align-items: center; gap: 0.5rem; position: sticky; top: 0; z-index: 80; margin: 0 0 0.5rem; padding: 0.4rem 0.6rem;
+    background: var(--panel-fill); border: 2px dashed var(--accent); border-radius: 10px; touch-action: pan-x;
+  }
+  html:not([data-layout="pc"]) .notes-tab { display: block; min-height: 44px; margin: 0 0 0.5rem; }
+  .notes-list { list-style: none; margin: 0; padding: 0; flex: 1; font-size: 0.9rem; }
+  .notes-list li { margin: 0.1rem 0; }
+  .notes-banner button { min-height: 44px; }
 }
 
 /* Goals: three at a time, always in view. */

@@ -1194,7 +1194,7 @@
       nightBtn.className = "primary";
       nightBtn.textContent = "Night mode";
       nightBtn.addEventListener("click", function () { applyNight(document.documentElement.getAttribute("data-night") !== "true"); });
-      var toolbar = document.getElementById("game-toolbar");
+      var toolbar = document.querySelector(".game-toolbar");
       if (toolbar) toolbar.appendChild(nightBtn);
     }
     send({ action: "open" });

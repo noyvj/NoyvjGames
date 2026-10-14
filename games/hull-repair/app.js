@@ -585,7 +585,7 @@
     var tag = e.target && e.target.tagName;
     if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT" || tag === "BUTTON" || tag === "SUMMARY" || tag === "A") return;
     if (e.target === $("board-holder")) return;
-    if (document.querySelector("dialog[open], .confirm-dialog, [role='dialog']")) return;
+    if (document.querySelector("dialog[open], .confirm-dialog, [role='dialog']:not([hidden])")) return;
     if (e.key === "z" || e.key === "Z") { e.preventDefault(); send({ action: "undo" }); }
   }
 

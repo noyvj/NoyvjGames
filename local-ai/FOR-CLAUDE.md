@@ -68,3 +68,20 @@ The queue runs its scripts from `C:\Users\Esthe\Documents\bcm206` (local-ai/), s
 `git worktree add ../bcm206-audit local-ai/stack-<game>` (and `git worktree remove ../bcm206-audit` after).
 A checkout of a stack branch on 2026-10-14 made every task run on two-day-old scripts; the runner now waits
 whenever the folder is not on main.
+
+## 3. What the 2026-10-14/15 audits found (Claude session on the Mac, Noyvj)
+Seven `stack-*` branches (about 100 Round 4 mobile and PC ideas) were audited. Of those, the audits kept about
+half after rebuilding them (they had no tests and dead wiring), reverted about a fifth, and the model never
+wrote about a fifth. See `local-ai/RULES.md` ("More mistakes from the audits") for what the model is told.
+
+To do on the Windows side (Claude on the Alienware):
+- Call `python local-ai/static_check.py <game> --changed` from `ai.ps1` after the tests and flake8, in the final
+  check. It prints one line per finding and exits 1 on any: fail the task, give the model the lines to fix
+  (like the repair rounds for failing tests), and put the lines in the PR report. `--changed` also fails a task
+  that changed game code with no test added or changed. It needs no network or browser.
+- Treat the pre-existing finding `heist-committee ... brief-toggle-button` as known (an open Heist item).
+- Task types that failed most: anything that needs a new engine action, anything that zooms, pans or transforms
+  the SVG board, drag/gesture features on the board, and bottom sheets. Queue these as Claude work, not local-AI
+  work, or split them so the engine part comes first.
+- Task types that worked: one panel with one button and one setting, a CSS-only layout change, a keyboard key
+  that calls an existing engine action.

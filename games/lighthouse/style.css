@@ -287,4 +287,114 @@ html[data-reduced-motion="true"] #off-chart .odd-light.blinking { animation: non
   html body #story-toggle { bottom: calc(var(--dock-h, 0px) + 3.6rem); }
   html body #theme-toggle-floating { bottom: calc(var(--dock-h, 0px) + 6.4rem); }
 }
+
+/* ---- phone touches (R4-LHMO-*): every one is optional (Settings > On a phone), phone width only, never in the Desktop layout ---- */
+.phone-settings { display: none; }
+@media (max-width: 600px) {
+  html:not([data-layout="pc"]) .phone-settings { display: block; }
+}
+.lamp-slider-wrap { display: none; }
+@media (max-width: 600px) {
+  /* R4-LHMO-1: the lamp slider, a tall thumb-reach control above the docked night controls (shown only at night, when chosen) */
+  html[data-phone-lamp="slider"]:not([data-layout="pc"]) .lamp-slider-wrap {
+    display: flex; align-items: stretch; gap: 0.3rem;
+    position: fixed; right: 0.4rem; bottom: calc(var(--dock-h, 0px) + 3.8rem); z-index: 800;
+    background: var(--panel-fill); border: 1px solid var(--edge); border-radius: 14px; padding: 0.4rem 0.4rem 0.4rem 0.5rem;
+  }
+  .lamp-slider-wrap[hidden] { display: none !important; }
+  .lamp-slider {
+    writing-mode: vertical-lr; direction: rtl; width: 2.75rem; height: 10.5rem; margin: 0; padding: 0;
+    background: transparent; accent-color: var(--btn-primary); cursor: pointer;
+  }
+  .lamp-slider:disabled { opacity: 0.55; cursor: default; }
+  .lamp-notches { list-style: none; margin: 0; padding: 0.45rem 0; display: flex; flex-direction: column; justify-content: space-between; font-size: 0.72rem; color: var(--muted); }
+  .lamp-notches li { line-height: 1; }
+}
+.crank-wrap { display: none; }
+@media (max-width: 600px) {
+  /* R4-LHMO-2: the wind crank, bottom left above the docked night controls (night only, when chosen) */
+  html[data-phone-crank="on"]:not([data-layout="pc"]) .crank-wrap {
+    display: flex; flex-direction: column; align-items: center; gap: 0.2rem;
+    position: fixed; left: 3.6rem; bottom: calc(var(--dock-h, 0px) + 3.8rem); z-index: 800;
+    background: var(--panel-fill); border: 1px solid var(--edge); border-radius: 14px; padding: 0.4rem 0.5rem;
+  }
+  .crank-wrap[hidden] { display: none !important; }
+  .crank-svg { width: 5.5rem; height: 5.5rem; touch-action: none; cursor: grab; user-select: none; -webkit-user-select: none; }
+  .crank-hint { font-size: 0.72rem; color: var(--muted); }
+  .crank-button { min-height: 2.75rem; min-width: 2.75rem; }
+}
+.letters-filed-toggle, .card-actions { display: none; }
+@media (max-width: 600px) {
+  /* R4-LHMO-4: letters as paper cards (when chosen) */
+  html[data-phone-cards="on"]:not([data-layout="pc"]) .letters-filed-toggle { display: inline-block; margin: 0.3rem 0; }
+  .letters-filed-toggle[hidden] { display: none !important; }
+  html[data-phone-cards="on"]:not([data-layout="pc"]) .card-actions { display: flex; gap: 0.5rem; margin: 0.4rem 0; }
+  html[data-phone-cards="on"]:not([data-layout="pc"]) .card-actions button { min-height: 2.75rem; }
+  html[data-phone-cards="on"]:not([data-layout="pc"]) .card-actions button[hidden] { display: none; }
+  html[data-phone-cards="on"]:not([data-layout="pc"]) .letters-list li.paper-card {
+    background: #fbf6e9; color: #2b2a26; border: 1px solid #cdbf9a; border-radius: 6px;
+    box-shadow: 0 2px 0 #d9ccaa, 0 6px 10px rgba(0, 0, 0, 0.25); touch-action: pan-y; padding: 0.6rem 0.8rem;
+  }
+  html[data-phone-cards="on"]:not([data-layout="pc"]) .letters-list li.paper-card[data-read="false"] { border: 2px solid #8a4f00; }
+  html[data-phone-cards="on"]:not([data-layout="pc"]) .letters-list li.paper-card .note,
+  html[data-phone-cards="on"]:not([data-layout="pc"]) .letters-list li.paper-card .letter-new { color: #5a3a00; }
+  html[data-phone-cards="on"]:not([data-layout="pc"]) .letters-list li.paper-card button { color: var(--text); }
+  html[data-phone-cards="on"]:not([data-layout="pc"]) .letters-list li.paper-card[data-open="false"] > :not(.letter-head):not(.card-actions):not(button) { display: none; }
+  html[data-phone-cards="on"]:not([data-layout="pc"]) .letters-list li.paper-card[data-filed="true"] { display: none; }
+  html[data-phone-cards="on"]:not([data-layout="pc"]) .letters-list[data-show-filed="true"] li.paper-card[data-filed="true"] { display: block; opacity: 0.75; border-style: dashed; }
+}
+@media (max-width: 600px) {
+  html[data-phone-cards="on"]:not([data-reduced-motion="true"]):not([data-effects="off"]):not([data-layout="pc"]) .letters-list li.paper-card.flip { animation: paper-flip 0.35s ease-out; }
+}
+@keyframes paper-flip { from { transform: perspective(600px) rotateX(-65deg); opacity: 0.5; } to { transform: none; opacity: 1; } }
+.edge-strip, .letters-close { display: none; }
+@media (max-width: 600px) {
+  /* R4-LHMO-6: the letters drawer (when chosen): the ordinary Letters panel, drawn as a sheet from the left edge */
+  html[data-phone-edge="on"]:not([data-layout="pc"]) .edge-strip {
+    display: block; position: fixed; left: 0; top: 4rem; bottom: 4rem; width: 1.25rem; z-index: 850; touch-action: pan-y;
+  }
+  .edge-strip[hidden] { display: none !important; }
+  html[data-phone-edge="on"]:not([data-layout="pc"]) #letters-panel:not([hidden]) {
+    position: fixed; top: 5rem; left: 0; bottom: 0; width: min(88vw, 24rem); margin: 0; z-index: 9000; overflow-y: auto;
+    border-radius: 0 14px 14px 0; background: var(--panel); box-shadow: 4px 0 18px rgba(0, 0, 0, 0.45);
+  }
+  html[data-phone-edge="on"]:not([data-layout="pc"]) #letters-panel:not([hidden]) .letters-close { display: block; margin-bottom: 0.5rem; min-height: 2.75rem; }
+}
+@media (max-width: 600px) {
+  html[data-phone-edge="on"]:not([data-reduced-motion="true"]):not([data-effects="off"]):not([data-layout="pc"]) #letters-panel:not([hidden]) { animation: drawer-in 0.25s ease-out; }
+}
+@keyframes drawer-in { from { transform: translateX(-100%); } to { transform: none; } }
+@media (max-width: 600px) {
+  /* R4-LHMO-8: battery saver (when chosen): one still picture and the sweeping beam, nothing else moves */
+  html[data-battery-saver="on"]:not([data-layout="pc"]) *,
+  html[data-battery-saver="on"]:not([data-layout="pc"]) *::before,
+  html[data-battery-saver="on"]:not([data-layout="pc"]) *::after { animation: none !important; transition: none !important; }
+  html[data-battery-saver="on"]:not([data-layout="pc"]) #beam.sweeping { animation: sweep 7s ease-in-out infinite !important; }
+  html[data-battery-saver="on"]:not([data-layout="pc"]) .ambient-bg { display: none; }
+}
+.lamp-rail { display: none; }
+@media (max-width: 600px) {
+  /* R4-LHMO-9: the lamp rail, four big buttons along the bottom edge above the docked night controls (night only, when chosen) */
+  html[data-phone-lamp="rail"]:not([data-layout="pc"]) .lamp-rail {
+    display: flex; gap: 0.35rem; position: fixed; left: 3.6rem; right: 0.4rem; bottom: calc(var(--dock-h, 0px) + 3.8rem); z-index: 800;
+    background: var(--panel-fill); border: 1px solid var(--edge); border-radius: 999px; padding: 0.3rem;
+  }
+  .lamp-rail[hidden] { display: none !important; }
+  .lamp-rail-btn { flex: 1 1 0; min-height: 2.75rem; border-radius: 999px; padding: 0.3rem 0.2rem; font-size: 0.85rem; font-weight: 600; }
+  .lamp-rail-btn[aria-pressed="true"] { background: var(--btn-primary); border: 2px solid var(--hover-edge); color: var(--on-primary); }
+  html[data-phone-lamp="rail"]:not([data-layout="pc"]) .crank-wrap { bottom: calc(var(--dock-h, 0px) + 3.8rem + 3.6rem); }
+}
+.chip-repair { display: none; }
+@media (max-width: 600px) {
+  /* R4-LHMO-10: Oil and Repair as big icons with big numbers; when low they glow gently (and say so in words) */
+  html:not([data-layout="pc"]) .chip-repair { display: flex; }
+  html:not([data-layout="pc"]) .chip[data-stat] { align-items: center; text-align: center; }
+  html:not([data-layout="pc"]) .chip[data-stat] .chip-icon { display: block; font-size: 1.7rem; line-height: 1.1; }
+  html:not([data-layout="pc"]) .chip[data-stat] .chip-value { font-size: 1.5rem; }
+  html:not([data-layout="pc"]) .chip[data-stat][data-state="low"] { border: 2px solid var(--accent); box-shadow: 0 0 6px var(--glow); }
+}
+@media (max-width: 600px) {
+  html:not([data-reduced-motion="true"]):not([data-effects="off"]):not([data-layout="pc"]) .chip[data-stat][data-state="low"] { animation: chip-glow 3.2s ease-in-out infinite; }
+}
+@keyframes chip-glow { 0%, 100% { box-shadow: 0 0 3px var(--glow); } 50% { box-shadow: 0 0 12px var(--glow); } }
 .info-page-how { margin: 0.3rem 0; padding-left: 1.2rem; }

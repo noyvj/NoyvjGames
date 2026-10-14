@@ -111,3 +111,19 @@ Recommended: yes. Say "no" and name the key you would rather use for NOT.
 ### Lg2. Logic Gates: clicking a truth-table row to set the switches counts as a switch flip in the stats. Is that fine?
 
 Recommended: yes, it is still you flipping switches. Say "no" to leave those clicks out of the flips stat.
+
+### Sm1. Station Medic: you asked for the condition sheet to open by pulling down (R4-SMMO-4); I built a fixed "Condition Sheet" tab that opens by tap or by dragging up, because a pull-down clashes with the browser's pull-to-refresh. Is the tab enough?
+
+Recommended: yes. Say "no" and I will try a pull-down gesture anyway.
+
+### Sm2. Station Medic: Z is now a free single-step undo on a keyboard (separate from Restore); should it also get a button on the phone layout?
+
+Recommended: yes, a small Undo button next to Restore. Say "no" to keep it keyboard-only.
+
+### Lh1. Lighthouse: the seven phone extras (lamp slider, wind crank, paper cards, letters drawer, battery saver, lamp rail, bigger Oil and Repair chips) are all off until switched on in Settings under "On a phone"; only the larger Oil and Repair chips show by default. Should any of them be on by default?
+
+Recommended: no, keep them opt-in. Say "yes" and name which ones to turn on.
+
+### Lh2. Lighthouse: is "Repair" meant as how sound the weakest part of the station is (0 to 100)?
+
+Recommended: yes. Say "no" and say what number you wanted.

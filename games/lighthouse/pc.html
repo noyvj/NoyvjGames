@@ -68,8 +68,10 @@
   </section>
   <section id="letters-panel" class="panel" hidden aria-labelledby="letters-heading">
     <h2 id="letters-heading">Letters, sailors and the room</h2>
+    <button id="letters-close-button" type="button" class="letters-close">Close letters</button>
     <p class="note" id="letters-counts"></p>
     <h3>Letters</h3>
+    <button id="letters-filed-toggle" type="button" class="letters-filed-toggle" aria-pressed="false" hidden>Filed letters (0): show</button>
     <ul id="letters-list" class="letters-list"></ul>
     <p class="note" id="letters-empty">No letters yet. Sailors write once their boat has got safely by.</p>
     <h3>The sailors</h3>
@@ -121,6 +123,16 @@
     <div class="settings-row"><label class="settings-checkbox-label" for="pause-hidden-checkbox"><input type="checkbox" id="pause-hidden-checkbox" checked> Pause when this tab is hidden</label></div>
     <div class="settings-row"><button id="theme-setting-button" type="button" aria-pressed="false">Light theme</button></div>
     <div class="settings-row"><button id="display-reset-button" type="button">Reset display settings</button></div>
+    <div class="phone-settings">
+      <h3 class="settings-sub">On a phone</h3>
+      <p class="note">Optional extras for a narrow screen. They stay off until you choose them, and they change nothing in the game itself.</p>
+      <div class="settings-row"><label for="phone-lamp-select">Lamp control at night</label>
+        <select id="phone-lamp-select"><option value="off">The buttons only</option><option value="slider">A slider at the right edge</option><option value="rail">A rail of four buttons along the bottom</option></select></div>
+      <div class="settings-row"><label><input type="checkbox" id="phone-crank-checkbox"> A crank to wind the clockwork by drawing circles (the "Wind it" button stays beside it)</label></div>
+      <div class="settings-row"><label><input type="checkbox" id="phone-cards-checkbox"> Letters as paper cards you turn over with Read and file away with a swipe or the File away button (filed letters can always be shown again)</label></div>
+      <div class="settings-row"><label><input type="checkbox" id="phone-edge-checkbox"> Swipe in from the left edge to open the letters drawer (the Letters button still works; some phones use that edge for Back)</label></div>
+      <div class="settings-row"><label><input type="checkbox" id="battery-saver-checkbox"> Battery saver: the night keeps one still picture and the moving beam, and every other animation stops</label></div>
+    </div>
     <h3 class="settings-sub">Sound</h3>
     <div id="sfx-setting-slot" class="sfx-setting-slot"></div>
     <div class="settings-row"><label><input type="checkbox" id="sfx-hum-checkbox" checked> Faint ambient hum during the night (only when sound is on)</label></div>
@@ -148,8 +160,9 @@
   <div id="hud" class="hud" role="group" aria-label="Station status">
     <div class="chip chip-wide"><span class="chip-label">Night</span><span class="chip-value" id="hud-night">1</span><span class="chip-sub" id="hud-season"></span></div>
     <div class="chip"><span class="chip-label">Clock</span><span class="chip-value" id="hud-clock">20:00</span></div>
-    <div class="chip"><span class="chip-label"><span aria-hidden="true">&#x1F6E2; </span>Oil</span><span class="chip-value" id="hud-oil">0</span>
+    <div class="chip" data-stat="oil" id="hud-oil-chip"><span class="chip-label"><span class="chip-icon" aria-hidden="true">&#x1F6E2; </span>Oil</span><span class="chip-value" id="hud-oil">0</span>
       <span class="meter" id="hud-oil-meter" data-state="ok"><span class="meter-fill" id="hud-oil-fill"></span></span><span class="chip-sub" id="hud-oil-state"></span></div>
+    <div class="chip chip-repair" data-stat="repair" id="hud-repair-chip"><span class="chip-label"><span class="chip-icon" aria-hidden="true">&#x1F527; </span>Repair</span><span class="chip-value" id="hud-repair">100</span><span class="chip-sub" id="hud-repair-state"></span></div>
     <div class="chip"><span class="chip-label"><span aria-hidden="true">&#x2764; </span>Energy</span><span class="chip-value" id="hud-energy">0</span>
       <span class="meter" id="hud-energy-meter" data-state="ok"><span class="meter-fill" id="hud-energy-fill"></span></span><span class="chip-sub" id="hud-energy-state"></span></div>
     <div class="chip"><span class="chip-label"><span aria-hidden="true">&#x2605; </span>The Light</span><span class="chip-value" id="hud-rep">0</span><span class="chip-sub" id="hud-rep-title"></span></div>
@@ -375,6 +388,26 @@
   <p id="announce" class="sr-only" role="status" aria-live="polite"></p>
 </main>
 
+<div id="edge-strip" class="edge-strip" aria-hidden="true" hidden></div>
+<div id="crank-wrap" class="crank-wrap" role="group" aria-label="Clockwork crank" hidden>
+  <svg id="crank-svg" class="crank-svg" viewBox="0 0 100 100" aria-hidden="true" focusable="false">
+    <circle cx="50" cy="50" r="42" fill="none" style="stroke: var(--edge)" stroke-width="3"/>
+    <circle cx="50" cy="50" r="6" style="fill: var(--edge)"/>
+    <g id="crank-handle"><line x1="50" y1="50" x2="50" y2="12" style="stroke: var(--accent)" stroke-width="6" stroke-linecap="round"/><circle cx="50" cy="12" r="7" style="fill: var(--accent)"/></g>
+  </svg>
+  <span class="crank-hint">Draw circles to wind</span>
+  <button id="crank-button" type="button" class="crank-button">Wind it</button>
+</div>
+<div id="lamp-rail" class="lamp-rail" role="group" aria-label="Lamp level" hidden>
+  <button type="button" class="lamp-rail-btn" data-level="dim" aria-pressed="false">Dim</button>
+  <button type="button" class="lamp-rail-btn" data-level="standard" aria-pressed="false">Standard</button>
+  <button type="button" class="lamp-rail-btn" data-level="bright" aria-pressed="false">Bright</button>
+  <button type="button" class="lamp-rail-btn" data-level="storm" aria-pressed="false">Storm</button>
+</div>
+<div id="lamp-slider-wrap" class="lamp-slider-wrap" role="group" aria-label="Lamp level" hidden>
+  <input id="lamp-slider" class="lamp-slider" type="range" min="0" max="3" step="1" value="1" aria-label="Lamp level" aria-orientation="vertical" aria-valuetext="Standard">
+  <ul class="lamp-notches" aria-hidden="true"><li>Storm</li><li>Bright</li><li>Standard</li><li>Dim</li></ul>
+</div>
 <a id="credits-link" class="credits-link" href="../../credits.html" style="display:block;text-align:center;font-size:0.85rem;margin:0.75rem 0;color:inherit;">Credits</a>
 <div class="ad-bar ad-bar--bottom">
   <span class="ad-bar-label ad-bar-label-full">Advertisement — not part of the game</span>
@@ -402,6 +435,12 @@
 <script src="../../shared/time-controls.js" data-game-id="lighthouse" data-container="#time-controls"></script>
 <script src="../../shared/pause-hidden.js" data-game-id="lighthouse"></script>
 <script src="app.js"></script>
+<script src="mobile-prefs.js"></script>
+<script src="mobile-lamp.js"></script>
+<script src="mobile-crank.js"></script>
+<script src="mobile-letters.js"></script>
+<script src="swipe-letters.js"></script>
+<script src="mobile-lamp-rail.js"></script>
 <script src="../../shared/last-played.js" data-game-id="lighthouse"></script>
 <script src="../../shared/whats-new-banner.js" data-game-id="lighthouse"></script>
 <script src="../../shared/keyboard-shortcuts.js"></script>
