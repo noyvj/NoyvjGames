@@ -82,6 +82,10 @@ left, and stop.
   - Page behaviour (app.js, pc.js, index.html, CSS): a browser test copying the pattern of the game's
     existing tests/test_*_browser.py (it starts a local server and drives the page with Playwright):
     open the page, do what a player would do, assert what they should see.
+    The test must START ITS OWN SERVER: copy the `base` fixture from games/evidence-hunt/tests/test_today_browser.py
+    (a free port from socket.bind(("127.0.0.1", 0)), http.server.ThreadingHTTPServer on the repo root, stopped after).
+    Never write a fixed address like http://localhost:8073: nothing is listening there and the test fails.
+    Name the file test_<name>_browser.py.
   - If the game has no browser tests yet, at least a test that reads the changed file and checks the
     new element, class or handler is there and wired up (weaker, but required).
 - The tests and flake8 run automatically after your edits. Fix any failure

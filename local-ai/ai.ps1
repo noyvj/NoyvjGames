@@ -253,11 +253,23 @@ while (-not $timedOut -and $repairs -lt 2) {
     $touched = @(git -C $work status --porcelain --untracked-files=all | ForEach-Object { $_.Substring(3).Trim('"') } |
         Where-Object { $_ -like "games/$Game/*" -and $_ -notlike "*/pc.html" })
     if ($touched.Count -eq 0 -or ($touched | Where-Object { $_ -notmatch "/tests/test_ai_[^/]+\.py$" }).Count -eq 0) { break }
+    # Tidy layout and the model's new test files first, so flake8 below only reports real mistakes.
+    $chgPy = @($touched | Where-Object { $_ -like "*.py" } | ForEach-Object { Join-Path $work $_ } | Where-Object { Test-Path $_ })
+    if ($chgPy.Count -gt 0) { python -m autopep8 --in-place --select=E1,E2,E3,W2,W3 @chgPy 2>$null | Out-Null }
+    $freshTests = @(git -C $work status --porcelain --untracked-files=all | Where-Object { $_ -match '^(\?\?|A )' } |
+        ForEach-Object { $_.Substring(3).Trim('"') } | Where-Object { $_ -match "^games/$([regex]::Escape($Game))/tests/[^/]+\.py$" } | ForEach-Object { Join-Path $work $_ })
+    if ($freshTests.Count -gt 0) { python (Join-Path $aiDir "tidy_new_tests.py") @freshTests 2>$null | Out-Null }
     Push-Location $gameDir
     $firstTry = (python -m pytest -q -x --tb=short -p no:warnings --ignore-glob=*browser* 2>&1 | Out-String)
     $passing = ($LASTEXITCODE -eq 0)
+    # flake8 counts as a failing check too (2026-10-14: two Lexis features passed every test and then failed the
+    # final flake8 on an unused variable and a redefined fixture, with no round to fix them).
+    if ($passing -and $chgPy.Count -gt 0) {
+        $lintTry = (python -m flake8 --extend-ignore=E501 @chgPy 2>&1 | Out-String)
+        if ($LASTEXITCODE -ne 0) { $passing = $false; $firstTry = "flake8 (fix each line; an unused import or variable: delete it):`n" + $lintTry }
+    }
     $fastLine = ($firstTry.Trim() -split "`n")[-1]
-    if ($passing) {
+    if ($passing -and -not $firstTry.StartsWith("flake8")) {
         # The edit loop skips the slow browser tests, so run them once here: if they fail, the model gets to
         # repair them (2026-10-13: two Dead Reckoning features broke browser tests the model never saw).
         $browserFiles = @(Get-ChildItem (Join-Path $gameDir "tests") -Filter "*browser*.py" -File -ErrorAction SilentlyContinue | ForEach-Object { "tests/" + $_.Name })
@@ -315,13 +327,13 @@ $checkLines
     $tail = (($firstTry.Trim() -split "`n") | Select-Object -Last 60) -join "`n"
     $repairFile = Join-Path $work ".aider-repair.md"
     @"
-# Fix the failing tests (repair round $repairs of 2)
+# Fix the failing checks (repair round $repairs of 2)
 
 You were building this in games/${Game}:
 
 $Task
 
-Your changes are in the files listed below and already in this chat. The game's tests now fail. Fix the
+Your changes are in the files listed below and already in this chat. The game's tests or flake8 now fail. Fix the
 cause with small edits; do not delete or weaken existing tests. Remember the save rules in RULES.md: old
 saves must load unchanged, and a new key appears in get_state() only when its value is not the default.
 
@@ -363,7 +375,7 @@ if ($py.Count -gt 0) { python -m autopep8 --in-place --select=E1,E2,E3,W2,W3 @py
 # name, also loses unused imports and variables.
 $newTests = @($inside | Where-Object { $_ -match "^games/$([regex]::Escape($Game))/tests/test_ai_[^/]+\.py$" })
 $testOnly = ($inside.Count -gt 0 -and $newTests.Count -eq $inside.Count)
-$untracked = @(git -C $work status --porcelain --untracked-files=all | Where-Object { $_.StartsWith("??") } |
+$untracked = @(git -C $work status --porcelain --untracked-files=all | Where-Object { $_.StartsWith("??") -or $_.StartsWith("A ") } |   # Aider stages the files it creates ("A "), so they count as new too
     ForEach-Object { $_.Substring(3).Trim('"') })
 $newTestFiles = @($untracked | Where-Object { $_ -match "^games/$([regex]::Escape($Game))/tests/[^/]+\.py$" })
 if ($newTestFiles.Count -gt 0) {

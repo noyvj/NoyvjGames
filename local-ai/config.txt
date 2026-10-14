@@ -6,7 +6,8 @@ model = ollama_chat/qwen3.6:35b
 
 # think = on (the model reasons before answering), off (much faster), or ab (alternate task by task to compare;
 # run python local-ai/ab_report.py after ~30 tasks and set the winner).
-think = ab
+# 2026-10-14 A/B over 108 runs: off passed 62%, on 55%, same speed; "on" sometimes spent the whole reply reasoning and wrote no edit.
+think = off
 
 # push = on lets ai-queue push finished local-ai/... branches to GitHub every sync_every tasks
 # and at the end, so other sessions can see them. main is never pushed. Safe: the website
