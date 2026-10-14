@@ -251,6 +251,14 @@ html[data-narrow="off"] .sheet li.ruled-out { opacity: 1; border-style: solid; }
   }
   #sheet-panel[data-open="true"] { transform: translateY(0); }
   html[data-reduced-motion="true"] #sheet-panel, html[data-effects="off"] #sheet-panel { transition: none; }
+
+  /* R4-SMMO-9: Dim infirmary night mode */
+  body.night-mode { --bg: #05080b; --bg-top: #0a1016; --panel: #0d141c; --surface: #121a23; --btn: #1a2530; --edge: #2a3a46; --text: #cfe6ef; --muted: #7e98a8; }
+  body.night-mode .scene { filter: brightness(0.75); }
+  body.night-mode .patient, body.night-mode .bedside, body.night-mode .shelf { padding: 0.5rem 0.7rem; margin: 0.25rem; }
+  body.night-mode button, body.night-mode select { padding: 0.6rem 1rem; font-size: 1.05rem; }
+  body.night-mode .act-row button { padding: 0.5rem 0.8rem; }
+  html[data-reduced-motion="true"] body.night-mode .scene, html[data-effects="off"] body.night-mode .scene { filter: none; }
 }
 
 /* Goals: three at a time, always in view. */
