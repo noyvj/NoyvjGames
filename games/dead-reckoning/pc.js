@@ -47,29 +47,52 @@ window.DEAD_RECKONING_PC_TUTORIAL_STEPS = [
   },
 ];
 
-// Quick leg input (PC only) --------------------------------------------------
-(function () {
+// Quick leg input (R4-DEPC-1). pc.js loads in the head, so everything that touches the page waits for DOMContentLoaded. ------------
+// "090 6kn 2h" is heading, speed and hours (units optional). Enter adds the leg through the engine (app.js listens for the event);
+// the engine forces the numbers onto the chart's legal grid, so the leg row shows what was really added. L focuses the box.
+document.addEventListener("DOMContentLoaded", function () {
   var input = document.getElementById("quick-leg-input");
   if (!input) return;
+  input.hidden = false;
+  var note = document.createElement("p");
+  note.id = "quick-leg-note";
+  note.className = "note";
+  note.setAttribute("role", "status");
+  input.setAttribute("aria-describedby", "quick-leg-note");
+  input.parentNode.insertBefore(note, input.nextSibling);
+  note.textContent = "Type a leg as heading, speed, hours (for example 090 6kn 2h), then Enter. Press L to jump here.";
+
+  var PATTERN = /^\s*(\d{1,3})\s+(\d+(?:\.\d+)?)\s*(?:kn|kt|kts|knots?)?\s+(\d+(?:\.\d+)?)\s*(?:h|hr|hrs|hours?)?\s*$/i;
+
   input.addEventListener("keydown", function (e) {
-    if (e.key === "Enter") {
-      e.preventDefault();
-      var val = input.value.trim();
-      if (!val) return;
-      var parts = val.split(/\s+/);
-      var h = parseInt(parts[0], 10);
-      var s = parseFloat(parts[1]);
-      var t = parseFloat(parts[2]);
-      if (isNaN(h) || isNaN(s) || isNaN(t)) {
-        input.setCustomValidity("Format: heading speed hours (e.g., 090 6kn 2h)");
-        return;
-      }
-      input.setCustomValidity("");
-      window.dispatchEvent(new CustomEvent("dead-reckoning-quick-leg", { detail: { heading: h, speed: s, hours: t } }));
-      input.value = "";
+    if (e.key !== "Enter") return;
+    e.preventDefault();
+    var raw = input.value.trim();
+    if (!raw) return;
+    var m = PATTERN.exec(raw);
+    var heading = m ? parseInt(m[1], 10) : NaN;
+    var hours = m ? parseFloat(m[3]) : NaN;
+    if (!m || heading > 360 || !(hours > 0)) {
+      input.setAttribute("aria-invalid", "true");
+      note.textContent = "That is not a leg. Write heading, speed and hours, like 090 6kn 2h.";
+      return;
     }
+    input.removeAttribute("aria-invalid");
+    document.dispatchEvent(new CustomEvent("dead-reckoning-quick-leg", { detail: { heading: heading % 360, speed: parseFloat(m[2]), hours: hours } }));
+    input.value = "";
+    note.textContent = "Leg added. The plan shows the values the chart allows.";
   });
-})();
+
+  document.addEventListener("keydown", function (e) {
+    if (e.key !== "l" && e.key !== "L") return;
+    if (e.ctrlKey || e.metaKey || e.altKey) return;
+    var t = e.target;
+    if (t && (t.isContentEditable || /^(INPUT|TEXTAREA|SELECT|BUTTON)$/.test(t.tagName))) return;
+    if (input.offsetParent === null) return;      // the plan column is not showing a plan
+    e.preventDefault();
+    input.focus();
+  });
+});
 
 // Print layout (Ctrl+P) -------------------------------------------------------
 (function () {

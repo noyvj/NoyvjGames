@@ -46,27 +46,9 @@ html[data-theme="light"][data-layout="pc"] .pc-window-frame {
 html[data-theme="light"] #pc-hintbar { opacity: 1; }
 
 /* Quick leg input (PC only) -------------------------------------------------- */
-.quick-leg-input {
-  width: 100%;
-  margin-top: 0.5rem;
-  padding: 0.4rem 0.6rem;
-  font-family: monospace;
-  font-size: 0.95rem;
-  border: 1px solid var(--muted);
-  border-radius: 4px;
-  background: var(--panel-bg, #fffaf0);
-  color: var(--text);
-}
-.quick-leg-input:focus {
-  outline: 2px solid var(--accent);
-  outline-offset: 1px;
-}
-html[data-theme="dark"] .quick-leg-input {
-  background: var(--panel-bg, #1a1a1a);
-}
-html[data-layout="pc"] .quick-leg-input {
-  display: block;
-}
+.quick-leg-input { box-sizing: border-box; width: 100%; min-height: 2.75rem; margin-top: 0.5rem; font-family: monospace; font-size: 1rem; }
+.quick-leg-input[aria-invalid="true"] { border-width: 3px; border-style: dashed; }
+#quick-leg-note { margin: 0.3rem 0 0; }
 
 @media (max-height: 780px) {
   html[data-layout="pc"] #game { gap: 0.4rem; padding-top: 0.4rem; }

@@ -797,7 +797,8 @@
     // Quick leg input (PC only)
     document.addEventListener("dead-reckoning-quick-leg", function (e) {
       var d = e.detail;
-      if (!d || !view || view.phase !== "plan") return;
+      if (!d || !view || view.phase !== "plan" || isOff($("add-leg-button"))) return;
+      selected = view.legs.length;
       send({ action: "add_leg", heading: d.heading, speed: d.speed, hours: d.hours });
     });
     $("chart-holder").addEventListener("click", onChartTap);
