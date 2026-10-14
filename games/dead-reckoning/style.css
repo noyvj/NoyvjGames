@@ -144,6 +144,8 @@ html[data-high-contrast="true"] .dr-est-track-b, html[data-high-contrast="true"]
 @media (pointer: coarse) { .swipe-hint { display: block; } }
 .leg-undo-bar { display: flex; align-items: center; justify-content: space-between; gap: 0.6rem; margin: 0.4rem 0; padding: 0.3rem 0.3rem 0.3rem 0.7rem; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; }
 .leg-undo-bar[hidden] { display: none; }
+.leg-undo-bar { position: sticky; bottom: 4.6rem; z-index: 3; box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.18); }
+@media (max-width: 600px) { .leg-undo-bar { bottom: 7.2rem; padding-left: 3.6rem; } }      /* the floating theme button sits at the left edge */
 .leg-undo-bar button { min-width: 5rem; min-height: 2.75rem; }
 /* R4-DEMO-4: the "plot within a mile of the truth" line on the result card (shown by app.js, hidden otherwise) */
 .dr-accuracy-indicator { margin: 0.5rem 0 0; padding: 0.4rem 0.6rem; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; font-size: 0.9rem; }
