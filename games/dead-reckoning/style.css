@@ -137,24 +137,14 @@ input[type="number"], input[type="text"], select { font: inherit; color: var(--t
 html[data-high-contrast="true"] .dr-est-track-b, html[data-high-contrast="true"] .dr-true-track-b { stroke-width: 4.5; }
 
 
-@media (max-width: 600px) {
-
-  /* Swipe-to-delete legs */
-  .leg { touch-action: pan-y; user-select: none; transition: transform 0.2s ease-out; will-change: transform; }
-  html[data-reduced-motion="true"] .leg { transition: none; }
-  .leg.swiping { touch-action: none; }
-  .leg.deleted { pointer-events: none; }
-
-  .undo-bar {
-    position: fixed; left: 0; right: 0; bottom: 60px; z-index: 200;
-    display: flex; justify-content: center; gap: 1rem; padding: 0.8rem;
-    background: var(--panel); border-top: 2px solid var(--edge);
-    transform: translateY(100%); transition: transform 0.3s ease-out;
-  }
-  html[data-reduced-motion="true"] .undo-bar { transition: none; }
-  .undo-bar.visible { transform: translateY(0); }
-  .undo-bar button { min-width: 6rem; }
-}
+/* R4-DEMO-5: swipe a leg card left to remove it (swipe-legs.js), with an in-flow undo bar under the list. No transitions: the card follows the finger. */
+.leg:not(.sailed) { touch-action: pan-y; }
+.leg.swiping { position: relative; opacity: 0.85; }
+.swipe-hint { display: none; margin: 0.3rem 0 0; }
+@media (pointer: coarse) { .swipe-hint { display: block; } }
+.leg-undo-bar { display: flex; align-items: center; justify-content: space-between; gap: 0.6rem; margin: 0.4rem 0; padding: 0.3rem 0.3rem 0.3rem 0.7rem; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; }
+.leg-undo-bar[hidden] { display: none; }
+.leg-undo-bar button { min-width: 5rem; min-height: 2.75rem; }
 /* R4-DEMO-4: the "plot within a mile of the truth" line on the result card (shown by app.js, hidden otherwise) */
 .dr-accuracy-indicator { margin: 0.5rem 0 0; padding: 0.4rem 0.6rem; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; font-size: 0.9rem; }
 
@@ -258,11 +248,11 @@ html[data-effects="off"] *, html[data-effects="off"] *::before, html[data-effect
 }
 .sail-dock:not(.mobile-docked) { display: flex; gap: 0.6rem; margin-top: 0.8rem; }
 
-/* Draft indicator for short visits */
-@media (max-width: 600px) {
-  .draft-indicator { display: flex; align-items: center; gap: 0.4rem; margin-bottom: 0.5rem; padding: 0.4rem 0.6rem; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; font-size: 0.85rem; color: var(--muted); }
-  .draft-indicator button { margin-left: auto; padding: 0.2rem 0.5rem; font-size: 0.8rem; }
-}
+/* R4-DEMO-7: the offer to bring back a plan left on this chart (app.js shows it only when the chart opens with an empty plan) */
+.draft-indicator { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; margin: 0.6rem 0 0; padding: 0.4rem 0.6rem; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; font-size: 0.9rem; }
+.draft-indicator[hidden] { display: none; }
+.draft-indicator span { flex: 1 1 10rem; }
+.draft-indicator button { min-height: 2.75rem; }
 
 /* Watch-by-watch */
 .mode-box { display: flex; flex-wrap: wrap; gap: 0.4rem; align-items: center; margin: 0.4rem 0; }

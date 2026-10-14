@@ -1,106 +1,51 @@
+/* Dead Reckoning, R4-DEMO-5: swipe a leg card to the left to remove it. This file is only the gesture; app.js removes the leg through the
+   engine (one undoable step) and shows the undo bar. Touch and pen only (a mouse has the Remove button); the card follows the finger with no
+   animation, so there is nothing for Reduce motion to switch off. The Remove button on every leg stays the keyboard and screen-reader way. */
 (function () {
   "use strict";
-  var LEG_SELECTOR = ".leg";
-  var UNDO_THRESHOLD = 60;
-  var undoTimeout = null;
-  var lastDeleted = null;
+  var THRESHOLD = 80;      // px to the left that count as a swipe
+  var drag = null;
 
   function init() {
-    var container = document.querySelector(".legs");
-    if (!container) return;
+    var list = document.getElementById("legs-list");
+    if (!list) return;
 
-    container.addEventListener("touchstart", onLegStart, { passive: true });
-    container.addEventListener("touchmove", onLegMove, { passive: false });
-    container.addEventListener("touchend", onLegEnd);
-    window.addEventListener("mousemove", onLegMove);
-    window.addEventListener("mouseup", onLegEnd);
-  }
+    list.addEventListener("pointerdown", function (e) {
+      if (e.pointerType === "mouse" || !e.isPrimary) return;
+      if (e.target.closest("input, button, select, textarea")) return;       // fields and buttons keep their own touch behaviour
+      var li = e.target.closest("li.leg:not(.sailed)");
+      if (!li || li.parentNode !== list) return;
+      drag = { li: li, id: e.pointerId, x: e.clientX, y: e.clientY, dx: 0, active: false };
+    });
 
-  var startX = 0, startY = 0, currentX = 0;
-  var activeLeg = null;
-
-  function onLegStart(e) {
-    var leg = e.target.closest(LEG_SELECTOR);
-    if (!leg || leg.classList.contains("deleted")) return;
-    startX = e.type === "touchstart" ? e.touches[0].clientX : e.clientX;
-    startY = e.type === "touchstart" ? e.touches[0].clientY : e.clientY;
-    activeLeg = leg;
-    currentX = startX;
-  }
-
-  function onLegMove(e) {
-    if (!activeLeg) return;
-    var clientX = e.type === "touchmove" ? e.touches[0].clientX : e.clientX;
-    var clientY = e.type === "touchmove" ? e.touches[0].clientY : e.clientY;
-    currentX = clientX;
-
-    var dx = currentX - startX;
-    var dy = Math.abs(clientY - startY);
-
-    if (dx > dy) {
-      e.preventDefault();
-      activeLeg.style.transform = "translateX(" + dx + "px)";
-      if (dx < -UNDO_THRESHOLD) {
-        activeLeg.classList.add("swiping");
-      } else {
-        activeLeg.classList.remove("swiping");
+    list.addEventListener("pointermove", function (e) {
+      if (!drag || e.pointerId !== drag.id) return;
+      var dx = e.clientX - drag.x;
+      var dy = e.clientY - drag.y;
+      if (!drag.active) {
+        if (Math.abs(dx) < 10 || Math.abs(dx) < 2 * Math.abs(dy)) return;      // not clearly a sideways drag yet
+        drag.active = true;
+        drag.li.classList.add("swiping");
+        try { drag.li.setPointerCapture(e.pointerId); } catch (err) { /* capture is only a convenience */ }
       }
+      drag.dx = Math.min(0, dx);                                                // only leftwards
+      drag.li.style.transform = "translateX(" + drag.dx + "px)";
+    });
+
+    function finish(e, cancelled) {
+      if (!drag || e.pointerId !== drag.id) return;
+      var li = drag.li;
+      var swiped = drag.active && !cancelled && drag.dx <= -THRESHOLD;
+      li.classList.remove("swiping");
+      li.style.transform = "";
+      var index = Array.prototype.indexOf.call(list.children, li);
+      drag = null;
+      if (swiped && index >= 0) document.dispatchEvent(new CustomEvent("dead-reckoning-leg-swipe", { detail: { index: index } }));
     }
+    list.addEventListener("pointerup", function (e) { finish(e, false); });
+    list.addEventListener("pointercancel", function (e) { finish(e, true); });
   }
 
-  function onLegEnd() {
-    if (!activeLeg) return;
-    var dx = currentX - startX;
-
-    if (dx < -UNDO_THRESHOLD) {
-      activeLeg.classList.add("deleted");
-      activeLeg.style.transform = "translateX(-100%)";
-      lastDeleted = { leg: activeLeg, index: Array.from(activeLeg.parentNode.children).indexOf(activeLeg) };
-      showUndoBar();
-      setTimeout(function () {
-        if (lastDeleted && lastDeleted.leg.parentNode) {
-          lastDeleted.leg.remove();
-        }
-        lastDeleted = null;
-      }, 300);
-    } else {
-      activeLeg.style.transform = "";
-      activeLeg.classList.remove("swiping");
-    }
-    activeLeg = null;
-  }
-
-  function showUndoBar() {
-    var bar = document.getElementById("undo-bar");
-    if (!bar) return;
-    bar.classList.add("visible");
-    clearTimeout(undoTimeout);
-    undoTimeout = setTimeout(function () {
-      bar.classList.remove("visible");
-      lastDeleted = null;
-    }, 4000);
-
-    var btn = bar.querySelector("#undo-button");
-    if (btn) {
-      btn.onclick = function () {
-        if (lastDeleted && lastDeleted.leg) {
-          var container = document.querySelector(".legs");
-          if (container) {
-            var refNode = container.children[lastDeleted.index];
-            container.insertBefore(lastDeleted.leg, refNode || null);
-            lastDeleted.leg.style.transform = "";
-            lastDeleted.leg.classList.remove("deleted", "swiping");
-          }
-        }
-        bar.classList.remove("visible");
-        lastDeleted = null;
-      };
-    }
-  }
-
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", init);
-  } else {
-    init();
-  }
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);
+  else init();
 })();

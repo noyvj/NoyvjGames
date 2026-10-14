@@ -151,12 +151,10 @@
         <summary>The chart in words</summary>
         <ul id="chart-notes-list"></ul>
       </details>
-      <div id="draft-indicator-container" hidden>
-        <div id="draft-indicator" class="draft-indicator">
-          <span>Draft plan saved from a previous visit.</span>
-          <button id="draft-resume-button" type="button" class="primary">Resume</button>
-          <button id="draft-clear-button" type="button">Clear draft</button>
-        </div>
+      <div id="draft-indicator" class="draft-indicator" role="status" hidden>
+        <span id="draft-text"></span>
+        <button id="draft-resume-button" type="button" class="primary">Resume it</button>
+        <button id="draft-discard-button" type="button">Discard</button>
       </div>
     </section>
     <section id="planner-panel" class="panel" aria-labelledby="planner-heading">
@@ -190,6 +188,8 @@
         <label for="allow-checkbox">Allow for the charted currents, wind and compass error in my plot</label>
       </div>
       <ol id="legs-list" class="legs" aria-label="Legs"></ol>
+      <p class="note swipe-hint">On a touch screen, swipe a leg card to the left to remove it. Undo brings it back.</p>
+      <div id="leg-undo-bar" class="leg-undo-bar" role="status" hidden><span id="leg-undo-text"></span><button id="leg-undo-button" type="button">Undo</button></div>
       <input id="quick-leg-input" type="text" placeholder="090 6kn 2h" class="quick-leg-input" aria-label="Quick leg input" hidden>
       <div id="turns" class="turns" role="group" aria-label="Quick turns for the selected leg">
         <button type="button" data-turn="-15">&minus;15&deg;</button>
@@ -222,9 +222,8 @@
           <button id="current-point-button" type="button">Steer to P allowing for the chart</button>
         </div>
       </details>
-      <div id="undo-bar" class="undo-bar" role="alert"><button id="undo-button">Undo</button></div>
       <div id="sail-dock" class="sail-dock">
-        <button id="planner-undo-button" type="button">Undo</button>
+        <button id="undo-button" type="button">Undo</button>
         <button id="sail-button" type="button" class="primary">Sail</button>
       </div>
     </section>
