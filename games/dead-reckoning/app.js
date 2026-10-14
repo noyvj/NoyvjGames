@@ -862,16 +862,6 @@
     });
     guard("par-button", function () { send({ action: "show_par" }); });
     guard("use-par-button", function () { selected = 0; send({ action: "use_par" }); });
-    // Wheel pickers integration
-    window.addEventListener("dr-wheel-change", function (e) {
-      var key = e.detail.key;
-      var val = e.detail.value;
-      if (!view || view.phase !== "plan") return;
-      if (selected >= view.legs.length) selected = Math.max(0, view.legs.length - 1);
-      var req = { action: "set_leg", i: selected };
-      req[key] = val;
-      send(req);
-    });
     wirePanelToggle("picker-toggle-button", "picker-panel");
     wirePanelToggle("daily-toggle-button", "daily-panel");
     wirePanelToggle("log-toggle-button", "log-panel");

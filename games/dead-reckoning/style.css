@@ -136,19 +136,8 @@ input[type="number"], input[type="text"], select { font: inherit; color: var(--t
 .dr-label-approach { font-weight: 700; }
 html[data-high-contrast="true"] .dr-est-track-b, html[data-high-contrast="true"] .dr-true-track-b { stroke-width: 4.5; }
 
-/* Wheel pickers (mobile) */
-.wheel-pickers { display: none; }
-.wheel-picker { flex: 1; display: flex; flex-direction: column; align-items: center; position: relative; }
-.wheel-label { font-size: 0.85rem; color: var(--muted); margin-bottom: 0.25rem; }
-.wheel-track { height: 6rem; overflow: hidden; position: relative; width: 100%; border-radius: 8px; background: var(--surface); border: 1px solid var(--line); }
-.wheel-content { position: absolute; top: 0; left: 0; right: 0; display: flex; flex-direction: column; align-items: center; transition: transform 0.2s ease-out; will-change: transform; }
-.wheel-option { height: 2.5rem; width: 100%; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; color: var(--text); cursor: pointer; user-select: none; }
-.wheel-selection { position: absolute; top: 50%; left: 0; right: 0; height: 2.5rem; transform: translateY(-50%); border-top: 2px solid var(--accent); border-bottom: 2px solid var(--accent); background: rgba(127, 209, 255, 0.1); pointer-events: none; }
-.wheel-value { font-size: 1.2rem; font-weight: 700; margin-top: 0.3rem; color: var(--accent); }
 
 @media (max-width: 600px) {
-  .wheel-pickers { display: flex !important; position: fixed; left: 0; right: 0; bottom: 50px; z-index: 140; padding: 0.8rem; background: var(--panel-fill); border-top: 2px solid var(--edge); }
-  .wheel-track { height: 7rem; }
 
   /* Swipe-to-delete legs */
   .leg { touch-action: pan-y; user-select: none; transition: transform 0.2s ease-out; will-change: transform; }
@@ -181,8 +170,6 @@ html[data-high-contrast="true"] .dr-est-track-b, html[data-high-contrast="true"]
   0%, 100% { transform: scale(1); }
   50% { transform: scale(1.05); }
 }
-
-html[data-reduced-motion="true"] .wheel-content { transition: none !important; }
 
 /* --- legend and notes ------------------------------------------------------------------------------ */
 .legend { display: flex; flex-wrap: wrap; gap: 0.3rem 1.2rem; margin: 0.5rem 0 0; padding: 0; list-style: none; font-size: 0.85rem; color: var(--muted); }
