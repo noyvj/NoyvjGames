@@ -421,3 +421,83 @@ Object.defineProperty(window, "MobileDock", { configurable: true, get() { return
     });
   });
 })();
+
+// R4-SIPC-3: Readings sheet beside the board
+(function () {
+  var sheet = document.createElement("div");
+  sheet.id = "readings-sheet";
+  sheet.innerHTML = '<h3>Readings</h3><table><thead><tr><th data-sort="index">#</th><th data-sort="tile">Tile</th><th data-sort="value">Value</th></tr></thead><tbody id="readings-body"></tbody></table>';
+
+  var sortKey = "index";
+  var lastPingsLen = 0;
+
+  function render() {
+    var viewStr = localStorage.getItem("signal:lastview");
+    if (!viewStr) return;
+    try {
+      var view = JSON.parse(viewStr);
+      var pings = view.pings || [];
+      if (pings.length === lastPingsLen) return;
+      lastPingsLen = pings.length;
+
+      var tbody = document.getElementById("readings-body");
+      tbody.innerHTML = "";
+
+      var sorted = pings.slice();
+      if (sortKey !== "index") {
+        sorted.sort(function (a, b) {
+          var va = a[sortKey] != null ? a[sortKey] : 0;
+          var vb = b[sortKey] != null ? b[sortKey] : 0;
+          return sortKey === "value" ? vb - va : String(va).localeCompare(String(vb));
+        });
+      }
+
+      sorted.forEach(function (p) {
+        var tr = document.createElement("tr");
+        tr.className = "reading-row";
+        tr.dataset.index = pings.indexOf(p);
+        var r = p.r != null ? p.r : 0;
+        var c = p.c != null ? p.c : 0;
+        var tileStr = String.fromCharCode(65 + c) + (r + 1);
+        tr.innerHTML = '<td>' + (sorted.indexOf(p) + 1) + '</td><td>' + tileStr + '</td><td>' + p.value + '</td>';
+        tbody.appendChild(tr);
+      });
+    } catch (e) {}
+  }
+
+  function highlightTile(idx) {
+    var viewStr = localStorage.getItem("signal:lastview");
+    if (!viewStr) return;
+    var pings = JSON.parse(viewStr).pings || [];
+    if (idx < 0 || idx >= pings.length) return;
+    var ping = pings[idx];
+    var r = ping.r, c = ping.c;
+    var board = document.getElementById("board");
+    if (!board) return;
+    var cell = board.querySelector(".cell[data-r='" + r + "'][data-c='" + c + "']");
+    if (cell) {
+      cell.classList.add("highlighted-ping");
+      setTimeout(function () { cell.classList.remove("highlighted-ping"); }, 2000);
+    }
+  }
+
+  sheet.addEventListener("click", function (e) {
+    var th = e.target.closest("[data-sort]");
+    if (th) {
+      sortKey = th.getAttribute("data-sort");
+      render();
+      return;
+    }
+    var row = e.target.closest(".reading-row");
+    if (row) {
+      highlightTile(parseInt(row.dataset.index, 10));
+    }
+  });
+
+  window.addEventListener("load", function () {
+    var side = document.getElementById("pc-side") || document.querySelector("#pc-body");
+    if (side) side.appendChild(sheet);
+    render();
+    setInterval(render, 500);
+  });
+})();

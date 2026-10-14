@@ -234,3 +234,19 @@ html[data-reduced-motion="true"] .hist-bar { transition: none; }
 .hist-bar.won { background: var(--green, #4caf50); }
 .hist-bar.lost { background: var(--red, #e53935); }
 #hist-streak { font-weight: 600; margin-bottom: 0.2rem; }
+
+/* R4-SIPC-3: Readings sheet */
+#readings-sheet {
+  padding: 0.6rem 0.8rem;
+  border-radius: 10px;
+  background: rgba(10, 18, 15, 0.4);
+  font-size: 0.85rem;
+}
+#readings-sheet h3 { margin: 0 0 0.4rem; font-size: 0.9rem; color: var(--muted, #aaa); }
+#readings-sheet table { width: 100%; border-collapse: collapse; }
+#readings-sheet th, #readings-sheet td { padding: 0.3rem 0.4rem; text-align: left; border-bottom: 1px solid var(--panel-edge, #444); }
+#readings-sheet th { cursor: pointer; user-select: none; color: var(--muted, #aaa); }
+#readings-sheet th:hover { color: var(--ink, #e8e4d9); }
+#readings-sheet tr.reading-row:hover { background: rgba(255, 255, 255, 0.05); cursor: pointer; }
+#readings-sheet .highlighted-ping { background: rgba(240, 160, 48, 0.3) !important; transition: background 0.2s ease; }
+html[data-reduced-motion="true"] #readings-sheet .highlighted-ping { transition: none; }

@@ -42,7 +42,7 @@
     "topbar": [".hub-back-link", "h1", ".game-toolbar"],
     "stagebar": ["#mode-tabs", "#warm-line"],
     "stage": [".board-wrap", "#message-line"],
-    "side": ["#practice-controls", "#tool-toggle-button", "#pings-display", "#action-bar", "#waterfall-section", "#result-panel"],
+    "side": ["#practice-controls", "#tool-toggle-button", "#pings-display", "#action-bar", "#waterfall-section", "#readings-sheet", "#result-panel"],
     "hidden": ["#session-line", "#pings-text", "#par-text", "#marks-text", ".tagline", "#session-bar"]
   },
   "readouts": [
