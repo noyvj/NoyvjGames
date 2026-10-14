@@ -211,3 +211,69 @@ window.STATION_MEDIC_PC_TUTORIAL_STEPS = [
     window.addEventListener("resize", function () { close(false); });
   });
 })();
+
+(function () {
+  "use strict";
+  var pc = window.StationMedicPc;
+
+  // R4-SMPC-8: a supply tray along the bottom of the stage: every shelf with its letter and count, always in view. Pointing at
+  // (or focusing) a shelf lights the patients who could have a scan or treatment from it right now and says who in words;
+  // pressing it picks the shelf up, the same as pressing it in the cabinet, and then a patient uses it.
+  var tray = null, note = null;
+  function ensure() {
+    if (tray && document.body.contains(tray)) return true;
+    var stage = document.getElementById("pc-stage");
+    if (!stage) return false;
+    tray = document.createElement("div");
+    tray.id = "supply-tray";
+    tray.setAttribute("role", "group");
+    tray.setAttribute("aria-label", "Supply tray");
+    note = document.createElement("span");
+    note.className = "tray-note";
+    note.setAttribute("aria-live", "polite");
+    stage.appendChild(tray);
+    return true;
+  }
+  function usable(glyph) {
+    return Array.prototype.filter.call(document.querySelectorAll("#patients .patient"), function (p) { return (p.dataset.usable || "").indexOf(glyph) !== -1; });
+  }
+  function show(glyph, name) {
+    var who = usable(glyph);
+    document.querySelectorAll("#patients .patient").forEach(function (p) { p.classList.toggle("tray-highlight", who.indexOf(p) !== -1); });
+    note.textContent = who.length ? name + ": " + who.map(function (p) { return p.querySelector(".pname").textContent; }).join(", ") + " could have it now." : name + ": nobody could use it right now.";
+  }
+  function clear() {
+    document.querySelectorAll("#patients .tray-highlight").forEach(function (p) { p.classList.remove("tray-highlight"); });
+    note.textContent = "";
+  }
+  function draw() {
+    var v = pc.view();
+    if (!v || !ensure()) return;
+    tray.textContent = "";
+    v.cabinet.items.forEach(function (i) {
+      var b = document.createElement("button");
+      b.type = "button";
+      b.className = "tray-item" + (i.count === 0 ? " empty" : "");
+      b.setAttribute("aria-label", i.name + ": " + i.count + " left. Point at it to see who could use it; press to pick it up.");
+      var letter = document.createElement("span");
+      letter.className = "tray-letter";
+      letter.textContent = i.glyph;
+      var count = document.createElement("span");
+      count.className = "tray-count";
+      count.textContent = String(i.count);
+      b.appendChild(letter);
+      b.appendChild(count);
+      b.addEventListener("mouseenter", function () { show(i.glyph, i.name); });
+      b.addEventListener("focus", function () { show(i.glyph, i.name); });
+      b.addEventListener("mouseleave", clear);
+      b.addEventListener("blur", clear);
+      b.addEventListener("click", function () {
+        var shelf = document.querySelector('#cabinet-list li[data-item="' + i.i + '"] .shelf-pick');
+        if (shelf) shelf.click();
+      });
+      tray.appendChild(b);
+    });
+    tray.appendChild(note);
+  }
+  pc.ready(function () { pc.onRendered(draw); window.addEventListener("load", draw); draw(); });
+})();

@@ -40,3 +40,12 @@ html[data-layout="pc"] .strike-btn { margin-top: 0.25rem; font-size: 0.8rem; pad
 #patient-context-menu button { text-align: left; border: 0; background: none; border-radius: 6px; min-height: 36px; }
 #patient-context-menu button:hover, #patient-context-menu button:focus-visible { background: var(--btn); }
 #patient-context-menu button[aria-disabled="true"] { opacity: 0.55; border-style: dashed; }
+
+/* R4-SMPC-8: the supply tray under the ward */
+#supply-tray { flex: 0 0 auto; display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem; padding: 0.35rem 0.5rem; margin-top: 0.4rem; background: var(--panel-fill); border: 1px solid var(--line); border-radius: 10px; }
+.tray-item { display: inline-flex; align-items: center; gap: 0.35rem; min-height: 36px; padding: 0.15rem 0.6rem; border: 2px solid var(--edge); border-radius: 8px; background: var(--surface); }
+.tray-item.empty { border-style: dashed; opacity: 0.75; }
+.tray-letter { font: 800 1.05rem ui-monospace, monospace; border: 2px solid var(--accent); border-radius: 5px; min-width: 1.6rem; text-align: center; }
+.tray-count { font-weight: 800; font-variant-numeric: tabular-nums; }
+.tray-note { flex: 1 1 12rem; font-size: 0.82rem; color: var(--muted); }
+html[data-layout="pc"] .patient.tray-highlight { outline: 3px solid var(--accent); outline-offset: 2px; }
