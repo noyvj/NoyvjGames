@@ -159,6 +159,45 @@ html[data-reduced-motion="true"] .lexis-pinned-scene { transition: none; }
   pointer-events: none;
 }
 
+/* Wide-screen docked panes with draggable dividers */
+@media (min-width: 1200px) {
+  #pc-stage .planet-cols {
+    display: flex;
+    flex-direction: row;
+    gap: 0;
+  }
+  #pc-stage .planet-col:first-child {
+    width: 35%;
+    min-width: 280px;
+    max-width: 60%;
+    position: relative;
+    border-right: 1px solid var(--accent);
+  }
+  #pc-stage .planet-col:last-child {
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: row;
+    gap: 0;
+  }
+  #pc-stage .planet-col:last-child > .panel:nth-child(2) {
+    width: 35%;
+    min-width: 280px;
+    max-width: 60%;
+    position: relative;
+    border-left: 1px solid var(--accent);
+  }
+}
+
+.pc-divider {
+  position: absolute;
+  top: 0; bottom: 0;
+  width: 8px;
+  cursor: col-resize;
+  z-index: 10;
+}
+.pc-divider-h { right: -4px; }
+#pc-stage .planet-col:last-child > .panel:nth-child(2) .pc-divider-h { left: -4px; }
+
 /* Print glossary layout */
 @media print {
   body * { display: none !important; }

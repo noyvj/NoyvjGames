@@ -484,3 +484,68 @@ document.addEventListener("DOMContentLoaded", function () {
     printGlossary.hidden = true;
   });
 });
+
+document.addEventListener("DOMContentLoaded", function () {
+  /* Docked panes with draggable dividers (PC wide screens) */
+  var reducedMotion = false;
+  try {
+    var val = window.localStorage.getItem("lexis-reduced-motion");
+    reducedMotion = val === "true";
+  } catch(e) { reducedMotion = false; }
+  if (!reducedMotion && window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    reducedMotion = true;
+  }
+
+  function initPanes() {
+    var cols = document.querySelector("#pc-stage .planet-cols");
+    if (!cols || window.innerWidth < 1200) return;
+
+    var leftCol = cols.children[0];
+    var rightPanel2 = cols.querySelector(".planet-col:last-child > .panel:nth-child(2)");
+
+    // Insert dividers if not already present
+    if (leftCol && !leftCol.querySelector(".pc-divider")) {
+      var d1 = document.createElement("div");
+      d1.className = "pc-divider pc-divider-h";
+      leftCol.appendChild(d1);
+    }
+    if (rightPanel2 && !rightPanel2.querySelector(".pc-divider")) {
+      var d2 = document.createElement("div");
+      d2.className = "pc-divider pc-divider-h";
+      rightPanel2.appendChild(d2);
+    }
+
+    function startDrag(e, divider, target) {
+      e.preventDefault();
+      var startX = e.clientX;
+      var startWidth = target.offsetWidth;
+      var containerWidth = cols.offsetWidth;
+
+      function onMove(ev) {
+        var dx = ev.clientX - startX;
+        var newPct = (startWidth / containerWidth * 100) + (dx / containerWidth * 100);
+        target.style.width = Math.max(25, Math.min(60, newPct)) + "%";
+      }
+
+      function onUp() {
+        document.removeEventListener("mousemove", onMove);
+        document.removeEventListener("mouseup", onUp);
+      }
+
+      document.addEventListener("mousemove", onMove);
+      document.addEventListener("mouseup", onUp);
+    }
+
+    var dividers = cols.querySelectorAll(".pc-divider");
+    for (var i = 0; i < dividers.length; i++) {
+      dividers[i].addEventListener("mousedown", function(e) {
+        startDrag(e, this, this.parentElement);
+      });
+    }
+  }
+
+  initPanes();
+  window.addEventListener("resize", function() {
+    if (window.innerWidth >= 1200) initPanes();
+  });
+});
