@@ -95,3 +95,11 @@ Recommended: no. It currently adds to them, so the number keys always work.
 ### Pb3. Pocket Bazaar: you asked to "pull down the stall banner" to peek at the festival and regulars (R4-PBMO-5); it was built as pulling down the top row or the day message. Is that the banner you meant?
 
 Recommended: yes. Say "no" and describe the banner.
+
+### Hr1. Hull Repair: on a phone the old "Next room" button is hidden and replaced by the big "One more board" button (R4-HRMO-10). Is that OK, or should both show?
+
+Recommended: yes, one button is enough. Say "no" to show both.
+
+### Hr2. Hull Repair: the phone progress card (R4-HRMO-7) sits on the page behind the opening screen, not on the opening screen itself, because the shared opening screen has no slot for extra content. Is the in-page card acceptable?
+
+Recommended: yes. Say "no" and I will add a slot to the shared opening screen.

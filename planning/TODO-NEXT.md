@@ -1,6 +1,6 @@
 # Next TODO list (from the Round 4 ideas, started 2026-10-12)
 
-**Progress: 83/921 items checked off (9.0%).** This is the NEXT list, written alongside the live `planning/TODO.md` (which is untouched). It becomes the live list once the current one is archived. Run `python3 scripts/todo-progress.py planning/TODO-NEXT.md` after ticking items.
+**Progress: 94/921 items checked off (10.2%).** This is the NEXT list, written alongside the live `planning/TODO.md` (which is untouched). It becomes the live list once the current one is archived. Run `python3 scripts/todo-progress.py planning/TODO-NEXT.md` after ticking items.
 
 How it is built: one section per Round 4 section on the ideas sheet (`planning/IMPROVEMENT-IDEAS-ROUND-4.md`), in the sheet's order, ids `R4-<section code>-<number>`. Only ideas you answered "yes" to are items, with your note where you wrote one. A section that is not fully answered keeps its heading and ends with one item to add the rest once you have answered them. "No" answers are dropped (listed under the heading); "later" answers are parked in `planning/LATER.md`.
 
@@ -20,6 +20,8 @@ How it is built: one section per Round 4 section on the ideas sheet (`planning/I
 | HCMO. Heist Committee: mobile view | 6/10 | 60% | ██████░░░░ |
 | LHPC. Lighthouse: PC view | 6/10 | 60% | ██████░░░░ |
 | RSMO. Robot Script: mobile view | 6/10 | 60% | ██████░░░░ |
+| HRMO. Hull Repair: mobile view | 6/10 | 60% | ██████░░░░ |
+| HRPC. Hull Repair: PC view | 5/10 | 50% | █████░░░░░ |
 | DEMO. Dead Reckoning: mobile view | 3/10 | 30% | ███░░░░░░░ |
 | RSPC. Robot Script: PC view | 3/10 | 30% | ███░░░░░░░ |
 | PX. Lexis: made for you | 6/29 | 21% | ██░░░░░░░░ |
@@ -72,8 +74,6 @@ How it is built: one section per Round 4 section on the ideas sheet (`planning/I
 | OCMO. Overclock: mobile view | 0/10 | 0% | ░░░░░░░░░░ |
 | LGPC. Logic Gates: PC view | 0/10 | 0% | ░░░░░░░░░░ |
 | LGMO. Logic Gates: mobile view | 0/10 | 0% | ░░░░░░░░░░ |
-| HRPC. Hull Repair: PC view | 0/10 | 0% | ░░░░░░░░░░ |
-| HRMO. Hull Repair: mobile view | 0/10 | 0% | ░░░░░░░░░░ |
 | SMPC. Station Medic: PC view | 0/10 | 0% | ░░░░░░░░░░ |
 | SMMO. Station Medic: mobile view | 0/10 | 0% | ░░░░░░░░░░ |
 | SOMO. SOL: mobile view | 0/9 | 0% | ░░░░░░░░░░ |
@@ -111,7 +111,7 @@ How it is built: one section per Round 4 section on the ideas sheet (`planning/I
 | OC. Overclock: general ideas | 0/1 | 0% | ░░░░░░░░░░ |
 | OCP. Overclock: made for you | 0/1 | 0% | ░░░░░░░░░░ |
 | AU. Sound | 0/1 | 0% | ░░░░░░░░░░ |
-| **All sections** | **83/921** | **9.0%** | █░░░░░░░░░ |
+| **All sections** | **94/921** | **10.2%** | █░░░░░░░░░ |
 
 <!-- PROGRESS-CHART:END -->
 
@@ -1476,30 +1476,30 @@ Parked in LATER.md (you said later): PX-25.
 10 ideas on the sheet: 10 yes, 0 no, 0 later, 0 not answered yet.
 
 - [ ] R4-HRPC-1: (big) Draw the station as a large cutaway you can zoom with the mouse wheel and pan with a drag, where hover shows a room's status and a click opens its board. The bigger picture is something you explore.
-- [ ] R4-HRPC-2: (small) Hover a port to light its twin and its current path, and hover a line to show its length. You read the board by pointing.
+- [x] R4-HRPC-2: (small) Hover a port to light its twin and its current path, and hover a line to show its length. You read the board by pointing.
 - [ ] R4-HRPC-3: (small) Add a lock on finished lines through a right-click so dragging cannot cut them. You can protect work as you finish others.
 - [ ] R4-HRPC-4: (small) Let Tab pick the next line, arrow keys extend it, and Backspace trim it. You can route a whole board without the mouse.
 - [ ] R4-HRPC-5: (small) Add Ctrl+Z and Ctrl+Y with a clickable history list. You can step back to try another route.
-- [ ] R4-HRPC-6: (small) Press C to pulse the uncovered open cells gently. You see what still needs routing at a glance.
-- [ ] R4-HRPC-7: (small) After a restore, replay the lines drawing in order. A neat finish shows how you solved it.
+- [x] R4-HRPC-6: (small) Press C to pulse the uncovered open cells gently. You see what still needs routing at a glance.
+- [x] R4-HRPC-7: (small) After a restore, replay the lines drawing in order. A neat finish shows how you solved it.
 - [ ] R4-HRPC-8: (small) Add a Ctrl+K palette where typing a room name opens its board. You reach any room in two keystrokes.
-- [ ] R4-HRPC-9: (small) Add a board scale slider and a focus key that hides side panels. The board fits any monitor.
-- [ ] R4-HRPC-10: (small) Add arrow-key movement across the cutaway map with Enter to open the room under the cursor. You can browse the station with the keyboard.
+- [x] R4-HRPC-9: (small) Add a board scale slider and a focus key that hides side panels. The board fits any monitor.
+- [x] R4-HRPC-10: (small) Add arrow-key movement across the cutaway map with Enter to open the room under the cursor. You can browse the station with the keyboard.
 
 ## HRMO. Hull Repair: mobile view
 
 10 ideas on the sheet: 10 yes, 0 no, 0 later, 0 not answered yet.
 
-- [ ] R4-HRMO-1: (small) Show a faint ghost of the line a little above your finger as you drag. Your thumb never hides the route.
-- [ ] R4-HRMO-2: (small) Add a haptic tick for each cell entered and a short pulse when a line connects, where the browser allows. Routing feels tactile.
+- [x] R4-HRMO-1: (small) Show a faint ghost of the line a little above your finger as you drag. Your thumb never hides the route.
+- [x] R4-HRMO-2: (small) Add a haptic tick for each cell entered and a short pulse when a line connects, where the browser allows. Routing feels tactile.
 - [ ] R4-HRMO-3: (small) Add two-finger pan and pinch zoom for 9 by 9 boards with a double-tap to fit. The biggest boards remain playable.
 - [ ] R4-HRMO-4: (big) Show the station as a vertical scroll of decks, each with room thumbnails you tap to open. The bigger picture fits a phone.
-- [ ] R4-HRMO-5: (small) Add undo with a two-finger tap and a large undo button at thumb height. Mistakes are cheap.
+- [x] R4-HRMO-5: (small) Add undo with a two-finger tap and a large undo button at thumb height. Mistakes are cheap.
 - [ ] R4-HRMO-6: (small) Let a drag backward from the end of a line trim it with a soft tick per cell. Fixing a mistake is one smooth gesture.
 - [ ] R4-HRMO-7: (small) Add a home-screen card with rooms restored out of forty and the current deck. You can see how much of the station is lit.
-- [ ] R4-HRMO-8: (small) Add left-hand and right-hand layouts that move the undo and next-board buttons to your thumb side. Both hands can play comfortably.
-- [ ] R4-HRMO-9: (small) Add a big-shape mode that draws ports larger with their letters. Ports are easy to tell apart on small screens.
-- [ ] R4-HRMO-10: (small) End each board with a One more board button that opens the next one straight away. A short session turns into a few.
+- [x] R4-HRMO-8: (small) Add left-hand and right-hand layouts that move the undo and next-board buttons to your thumb side. Both hands can play comfortably.
+- [x] R4-HRMO-9: (small) Add a big-shape mode that draws ports larger with their letters. Ports are easy to tell apart on small screens.
+- [x] R4-HRMO-10: (small) End each board with a One more board button that opens the next one straight away. A short session turns into a few.
 
 ## SMPC. Station Medic: PC view
 
