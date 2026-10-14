@@ -611,21 +611,6 @@
 
     // Phone comfort settings (R4-HRMO-8 hand layout, R4-HRMO-9 big ports): per-device, kept in localStorage, never in the save.
     function lsRead(key) { try { return localStorage.getItem(key); } catch (e) { return null; } }
-    function addToggle(id, text, checked, onChange) {
-      var anchor = $("dots-checkbox");
-      var row = el("div", "settings-row");
-      var label = el("label");
-      var box = el("input");
-      box.type = "checkbox";
-      box.id = id;
-      box.checked = checked;
-      label.appendChild(box);
-      label.appendChild(document.createTextNode(" " + text));
-      row.appendChild(label);
-      box.addEventListener("change", function () { onChange(box.checked); });
-      var parentRow = anchor && anchor.closest(".settings-row");
-      if (parentRow && parentRow.parentNode) parentRow.parentNode.insertBefore(row, parentRow.nextSibling);
-    }
     function applyHand(left) {
       document.documentElement.setAttribute("data-hand", left ? "left" : "right");
       try { localStorage.setItem("hull-repair-hand", left ? "left" : "right"); } catch (e) { /* not saved */ }
@@ -638,8 +623,10 @@
     var bigPorts = lsRead("hull-repair-big-ports") === "1";
     applyHand(leftHanded);
     applyBigPorts(bigPorts);
-    addToggle("hand-checkbox", "Left-hand layout (on a phone, Undo and Next sit on the left)", leftHanded, applyHand);
-    addToggle("big-ports-checkbox", "Big ports (on a phone, ports are drawn larger)", bigPorts, applyBigPorts);
+    $("hand-checkbox").checked = leftHanded;
+    $("big-ports-checkbox").checked = bigPorts;
+    $("hand-checkbox").addEventListener("change", function () { applyHand(this.checked); });
+    $("big-ports-checkbox").addEventListener("change", function () { applyBigPorts(this.checked); });
     $("display-reset-button").addEventListener("click", function () {
       applyHand(false);
       applyBigPorts(false);
