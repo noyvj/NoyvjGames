@@ -41,6 +41,17 @@ $aiDir = Join-Path $root "local-ai"
 $reports = Join-Path $aiDir ".history\reports"
 New-Item -ItemType Directory -Force $reports | Out-Null
 $maxTokens = 17000   # biggest single file the model can hold next to the rules (see README)
+# Long-context mode: the default Qwen model holds 64k tokens; a big game's game.py is 73k-146k, so tasks in
+# those games switch to a long-context name of the same model (ollama cp, no extra disk). Each switch reloads
+# the model for a minute or two, so the queue keeps a game's tasks together.
+if ($Model -like "ollama_chat/qwen3.6*") {
+    $biggest = 0
+    Get-ChildItem (Join-Path $root "games\$Game") -Filter *.py -File -ErrorAction SilentlyContinue |
+        ForEach-Object { $biggest = [math]::Max($biggest, [math]::Round($_.Length / 3.5)) }
+    if ($biggest -gt 100000) { $Model = "ollama_chat/qwen3.6-192k"; $maxTokens = 165000 }
+    elseif ($biggest -gt 40000) { $Model = "ollama_chat/qwen3.6-128k"; $maxTokens = 110000 }
+    else { $maxTokens = 50000 }
+}
 
 function Fail($msg) { Write-Host "STOPPED: $msg" -ForegroundColor Red; exit 1 }
 
@@ -52,10 +63,10 @@ function Show-Tally([bool]$passed) {
         $rows = @(if (Test-Path $doneFile) { Get-Content $doneFile -Encoding utf8 | ForEach-Object { $_.TrimStart([char]0xFEFF) } |
             Where-Object { $_ -match '^(PASSED|FAILED)  ' } })
         $today = Get-Date -Format "yyyy-MM-dd"
-        $isTodo = ($Item -match '^(R4|FY)-')
+        $isTodo = ($Item -notmatch '^(T|EDGE)-')
         $run = $rows.Count + 1
         $runToday = @($rows | Where-Object { $_ -match "^\S+  $today" }).Count + 1
-        $built = @($rows | Where-Object { $_ -match '^PASSED .*\| (R4|FY)-' }).Count + $(if ($passed -and $isTodo) { 1 } else { 0 })
+        $built = @($rows | Where-Object { $_ -match '^PASSED ' -and $_ -notmatch '\| (T|EDGE)-' }).Count + $(if ($passed -and $isTodo) { 1 } else { 0 })
         $passedAll = @($rows | Where-Object { $_ -like "PASSED*" }).Count + $(if ($passed) { 1 } else { 0 })
         $mark = if ($passed) { [char]0x2713 } else { [char]0x00B7 }
         Write-Host ("{0} Tally: {1} tasks run ({2} passed) - {3} TODO items built - {4} today" -f $mark, $run, $passedAll, $built, $runToday) -ForegroundColor Cyan
@@ -145,6 +156,9 @@ $env:OLLAMA_API_BASE = "http://127.0.0.1:11434"
 # through a file so Windows never mangles its quotes. RULES.md stays a read-only file.
 $readArgs = @("--read", (Join-Path $aiDir "RULES.md"))
 if (Test-Path (Join-Path $gameDir "CLAUDE.md")) { $readArgs += @("--read", (Join-Path $gameDir "CLAUDE.md")) }
+# A game still being built has a plan (planning/<game>-plan.md) with the design each milestone follows.
+$planFile = Join-Path $work "planning\$Game-plan.md"
+if ($Item -match "^QI-\d+-\d+$" -and (Test-Path $planFile)) { $readArgs += @("--read", $planFile) }
 $fileArgs = @(); foreach ($f in $Files) { $fileArgs += @("--file", $f) }
 $log = Join-Path $reports (($branch -replace '/', '_') + ".log")
 $started = Get-Date
@@ -298,6 +312,25 @@ if ($py.Count -gt 0) {
     $flakeOut = (python -m flake8 --extend-ignore=E501 @py 2>&1 | Out-String)
     if ($LASTEXITCODE -ne 0) { $problems += "flake8 found problems" }
 }
+# Load the game's pages in a real browser when the page code changed: tests never run pc.js or app.js,
+# and on 2026-10-12 two Signal features passed every test but crashed or did nothing in the browser.
+# Only NEW script errors fail the task (main's own errors are cached per main commit as a baseline).
+$pageNote = ""
+if (@($inside | Where-Object { $_ -match '\.(js|html|css)$' -and $_ -notlike "*/pc.html" }).Count -gt 0) {
+    $mainHead = (git -C $root rev-parse --short HEAD).Trim()
+    $baseFile = Join-Path $reports "pagecheck-$Game-$mainHead.json"
+    if (-not (Test-Path $baseFile)) { python (Join-Path $aiDir "page_check.py") $root $Game | Set-Content -Encoding utf8 $baseFile }
+    $base = Get-Content $baseFile -Raw | ConvertFrom-Json
+    $now = python (Join-Path $aiDir "page_check.py") $work $Game | ConvertFrom-Json
+    if ($now -is [System.Management.Automation.PSCustomObject] -and $now.unavailable) {
+        $pageNote = "browser check skipped: $($now.unavailable)"
+    } else {
+        $known = @($base | Where-Object { $_ -is [string] })
+        $new = @($now | Where-Object { $_ -is [string] -and $known -notcontains $_ })
+        if ($new.Count -gt 0) { $problems += "the page shows a new script error in the browser: $($new[0])" }
+        else { $pageNote = "browser check: no new script errors" }
+    }
+}
 $diffStat = ($changed | ForEach-Object { "- $_" }) -join "`n"
 # keep the change itself in the report: a failed run's working copy is deleted below
 git -C $work add -N -- @inside 2>$null | Out-Null
@@ -330,6 +363,7 @@ if ($ok) {
 - Took: $minutes minutes
 - Tests: $testLine
 $(if ($salvageNote) { "- Salvage: $salvageNote" })
+$(if ($pageNote) { "- $pageNote" })
 $(if ($repairs) { "- Repair rounds: $repairs (the model was shown the failing tests and asked to fix them)" })
 $(if ($problems.Count) { "- Problems: " + ($problems -join "; ") })
 

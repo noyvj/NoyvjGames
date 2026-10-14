@@ -37,7 +37,105 @@ window.DEAD_RECKONING_PC_TUTORIAL_STEPS = [
     text: "The icons open the Charts (seven chapters, the last with two ships to plan at once, and a practice mode), your Achievements and Settings. The Menu, or Escape when nothing else is open, holds the rest: this tutorial, About Dead Reckoning with its named sources, the Captain's log and What's New. Each opens as a window over the game, and Escape closes the top one.",
   },
   {
+    selector: "#quick-leg-input",
+    title: "Quick leg input",
+    text: "Type a leg here as heading speed hours (e.g., 090 6kn 2h) and press Enter to add it instantly. Works with or without units.",
+  },
+  {
     title: "You are ready",
     text: "Fair weather. Take your time.",
   },
 ];
+
+// Quick leg input (R4-DEPC-1). pc.js loads in the head, so everything that touches the page waits for DOMContentLoaded. ------------
+// "090 6kn 2h" is heading, speed and hours (units optional). Enter adds the leg through the engine (app.js listens for the event);
+// the engine forces the numbers onto the chart's legal grid, so the leg row shows what was really added. L focuses the box.
+document.addEventListener("DOMContentLoaded", function () {
+  var input = document.getElementById("quick-leg-input");
+  if (!input) return;
+  input.hidden = false;
+  var note = document.createElement("p");
+  note.id = "quick-leg-note";
+  note.className = "note";
+  note.setAttribute("role", "status");
+  input.setAttribute("aria-describedby", "quick-leg-note");
+  input.parentNode.insertBefore(note, input.nextSibling);
+  note.textContent = "Type a leg as heading, speed, hours (for example 090 6kn 2h), then Enter. Press L to jump here.";
+
+  var PATTERN = /^\s*(\d{1,3})\s+(\d+(?:\.\d+)?)\s*(?:kn|kt|kts|knots?)?\s+(\d+(?:\.\d+)?)\s*(?:h|hr|hrs|hours?)?\s*$/i;
+
+  input.addEventListener("keydown", function (e) {
+    if (e.key !== "Enter") return;
+    e.preventDefault();
+    var raw = input.value.trim();
+    if (!raw) return;
+    var m = PATTERN.exec(raw);
+    var heading = m ? parseInt(m[1], 10) : NaN;
+    var hours = m ? parseFloat(m[3]) : NaN;
+    if (!m || heading > 360 || !(hours > 0)) {
+      input.setAttribute("aria-invalid", "true");
+      note.textContent = "That is not a leg. Write heading, speed and hours, like 090 6kn 2h.";
+      return;
+    }
+    input.removeAttribute("aria-invalid");
+    document.dispatchEvent(new CustomEvent("dead-reckoning-quick-leg", { detail: { heading: heading % 360, speed: parseFloat(m[2]), hours: hours } }));
+    input.value = "";
+    note.textContent = "Leg added. The plan shows the values the chart allows.";
+  });
+
+  document.addEventListener("keydown", function (e) {
+    if (e.key !== "l" && e.key !== "L") return;
+    if (e.ctrlKey || e.metaKey || e.altKey) return;
+    var t = e.target;
+    if (t && (t.isContentEditable || /^(INPUT|TEXTAREA|SELECT|BUTTON)$/.test(t.tagName))) return;
+    if (input.offsetParent === null) return;      // the plan column is not showing a plan
+    e.preventDefault();
+    input.focus();
+  });
+});
+
+// Print layout (R4-DEPC-9). Ctrl+P is the browser's own; the print stylesheet in pc.css makes the sheet. Just before printing, the plan is
+// written out as plain text (the leg boxes would print as empty fields) and taken away again afterwards. ------------------------------
+(function () {
+  function legText(li) {
+    var n = li.querySelector(".leg-number");
+    var heading = li.querySelector("input[id$='-heading']");
+    if (!heading) {                                    // a sailed watch is already text
+      var done = li.querySelector("strong");
+      return done ? done.textContent : "";
+    }
+    var base = heading.id.replace(/-heading$/, "");
+    var speed = parseFloat(document.getElementById(base + "-speed").value);
+    var hours = document.getElementById(base + "-hours").value;
+    var h = String(parseInt(heading.value, 10) || 0);
+    while (h.length < 3) h = "0" + h;
+    return (n ? "Leg " + n.textContent + ": " : "") + (speed === 0 ? "lie at anchor for " + hours + " h" : "steer " + h + " at " + speed + " kn for " + hours + " h");
+  }
+  window.addEventListener("beforeprint", function () {
+    var panel = document.getElementById("planner-panel");
+    var list = document.getElementById("legs-list");
+    if (!panel || !list) return;
+    var old = document.getElementById("print-plan");
+    if (old) old.remove();
+    var ol = document.createElement("ol");
+    ol.id = "print-plan";
+    ol.setAttribute("aria-hidden", "true");
+    Array.prototype.forEach.call(list.querySelectorAll("li.leg"), function (li) {
+      var text = legText(li);
+      if (!text) return;
+      var item = document.createElement("li");
+      item.textContent = text;
+      ol.appendChild(item);
+    });
+    if (!ol.children.length) {
+      var none = document.createElement("li");
+      none.textContent = "No legs planned yet.";
+      ol.appendChild(none);
+    }
+    panel.appendChild(ol);
+  });
+  window.addEventListener("afterprint", function () {
+    var ol = document.getElementById("print-plan");
+    if (ol) ol.remove();
+  });
+})();

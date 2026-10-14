@@ -50,3 +50,14 @@ new save keys only when non-default and validated), run that game's tests, then
 merge, fix on the branch, or close with a short reason. When a merge completes a
 whole TODO item, tick it and run `python3 scripts/todo-progress.py`.
 Tasks that FAILED get a comment on their issue instead of a PR.
+
+## New games and hub registration (scripts, 2026-10-12)
+- `python3 scripts/new_game.py <slug> "<Name>"` starts a game folder from `planning/<slug>-plan.md`
+  (CLAUDE.md with the plan's milestone table, BUILD-STATUS.md, test setup); add `--page` when milestone 2
+  starts for a minimal working page (index.html with the site includes, app.js, game.py with the save
+  contract, tests). After that the local AI can build the milestones (make_todo_tasks.py queues them).
+- `python3 scripts/register_game.py <slug>` registers a finished game on the hub in one command, from the
+  design choices in `games/<slug>/register.json` (name, blurb, tags, colours, status line, smoke actions; the
+  local AI can write that file). It edits every hub list, the service worker and the counting tests, runs the
+  generators and the performance measurement, then the hub and smoke tests. `--dry-run` lists the changes.
+  Tested on a throwaway copy with Slingshot: every step and test passed.

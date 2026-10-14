@@ -470,7 +470,7 @@ def _reveal_view_fleet(chart):
         "reveal": {"title": title, "stars": sc["stars"], "stars_text": _stars_text(sc["stars"]), "criteria": sc["criteria"],
                    "lines": lines, "events": events, "points": points, "points2": points2, "hours": res["hours"],
                    "approach": {"dist": ap["dist"], "t": ap["t"], "too_close": ap["too_close"], "separation": fleet.SEPARATION},
-                   "miss_nm": sc["miss_nm"], "arrived": sc["arrived"], "aground": sc["aground"],
+                   "miss_nm": sc["miss_nm"], "arrived": sc["arrived"], "aground": sc["aground"], "forecast_error_nm": sc["forecast_error_nm"],
                    "best_stars": _record(chart["id"])["stars"] if not _scoped(chart["id"]) else 0,
                    "log": _fleet_log_line(chart, sc), "par": par, "next_chart": _next_playable(chart["id"])},
         "stars": _record(chart["id"])["stars"],
@@ -536,7 +536,7 @@ def _reveal_view(chart):
                    "plot_end": [est[-1][1], est[-1][2]], "plot_miss": round(dist((est[-1][1], est[-1][2]), chart["dest"]), 1)},
         "reveal": {"title": title, "stars": sc["stars"], "stars_text": _stars_text(sc["stars"]), "criteria": sc["criteria"],
                    "lines": lines, "events": events, "points": points, "hours": res["hours"],
-                   "miss_nm": sc["miss_nm"], "arrived": sc["arrived"], "aground": sc["aground"],
+                   "miss_nm": sc["miss_nm"], "arrived": sc["arrived"], "aground": sc["aground"], "forecast_error_nm": sc["forecast_error_nm"],
                    "best_stars": (meta["daily_days"].get(daily.date_of(chart["id"]), {}).get("stars", 0) if daily.is_daily_id(chart["id"]) else _record(chart["id"])["stars"]), "log": _log_line(chart, sc), "par": par,
                    "next_chart": _next_playable(chart["id"])},
         "stars": _record(chart["id"])["stars"],
@@ -841,7 +841,10 @@ def handle(request_json):
     elif action == "add_leg":
         if len(_legs()) < state.MAX_LEGS and not (_watch() and len(_legs()) > run["sailed"]):
             _snapshot()
-            _legs().append(_default_leg(chart))
+            leg = _default_leg(chart)
+            # The Desktop quick-leg box ("090 6kn 2h") may name the new leg's values; they are forced onto the legal grid like any edit.
+            named = {field: request[field] for field in ("heading", "speed", "hours") if sim._num(request.get(field), None) is not None}
+            _legs().append(sim.clean_leg(_sc(chart), dict(leg, **named)) if named else leg)
     elif action == "set_leg":
         i = _leg_index(request)
         if i is not None:
