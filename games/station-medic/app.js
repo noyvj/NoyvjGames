@@ -142,10 +142,18 @@
     var cost = s.cost;
     setText($("cost-line"), "Cost so far: " + cost + (cost === 0 ? " (clean so far)" : " (" + s.grade_now_name.toLowerCase() + ")"));
   }
+  // the shelf letters of every scan or treatment this patient can have right now (the Desktop supply tray previews it)
+  function usableGlyphs(p) {
+    var out = [];
+    if (p.closed) return out;
+    view.cabinet.tests.forEach(function (t) { var a = p.actions.scan[t.t]; if (a && a.ok && out.indexOf(t.glyph) === -1) out.push(t.glyph); });
+    view.cabinet.tx.forEach(function (x) { var a = p.actions.treat[x.x]; if (a && a.ok && out.indexOf(x.glyph) === -1) out.push(x.glyph); });
+    return out;
+  }
   function renderPatients() {
     var holder = $("patients");
     if (sel >= view.patients.length) sel = 0;
-    var sig = view.patients.map(function (p) { return [p.i, p.closed, p.iso, p.steady, sel === p.i].join(":"); }).join("|") + shiftId;
+    var sig = view.patients.map(function (p) { return [p.i, p.closed, p.iso, p.steady, sel === p.i, usableGlyphs(p).join("")].join(":"); }).join("|") + shiftId;
     if (holder.dataset.sig === sig) return;
     holder.dataset.sig = sig;
     holder.textContent = "";
@@ -154,6 +162,7 @@
       b.type = "button";
       b.dataset.testid = "station-medic-patient-" + p.i;
       b.dataset.patientId = p.i;
+      b.dataset.usable = usableGlyphs(p).join("");
       b.setAttribute("aria-pressed", String(p.i === sel));
       var portrait = el("span");
       portrait.innerHTML = p.portrait;
@@ -227,7 +236,9 @@
     if (!p.readings.length) readings.appendChild(el("li", "unknown", "No scans on this shift."));
     p.readings.forEach(function (r) {
       var text = r.test + ": " + (r.state === "unknown" ? "not run" : r.state === "positive" ? r.positive : "nothing");
-      readings.appendChild(el("li", r.state, text));
+      var rli = el("li", r.state, text);
+      rli.dataset.scan = r.test + " " + r.positive;     // the same wording the sheet lists under "Scans" (the Desktop hover matches on it)
+      readings.appendChild(rli);
     });
     setText($("bedside-certain"), p.matches.length === 1 ? "(only one fits)" : "(" + p.matches.length + " fit)");
     var matches = $("bedside-matches");
@@ -409,9 +420,7 @@
     list.textContent = "";
     view.sheet.forEach(function (c) {
       var li = el("li", fits.indexOf(c.id) === -1 ? "ruled-out" : "");
-      li.setAttribute("data-signs", c.signs.join(","));
-      li.setAttribute("data-scans", c.scans.join(","));
-      li.setAttribute("data-treats", c.cures.join(","));
+      li.dataset.cond = c.id;
       var head = el("span", "cname", c.name);
       if (c.spreads) head.appendChild(el("span", "tag", "spreads"));
       li.appendChild(head);
@@ -607,7 +616,10 @@
     renderGoalStrip();
     renderAchievements();
     renderRecord();
+    document.dispatchEvent(new CustomEvent("station-medic-rendered"));
   }
+  // the Desktop boot (pc.js) reads the drawn view through this and redraws its extras after every "station-medic-rendered"
+  window.stationMedicView = function () { return view; };
 
   // ---- talking to the engine --------------------------------------------------------------------------------
   function persist() {
@@ -646,18 +658,31 @@
   }
 
   // ---- keyboard ------------------------------------------------------------------------------------------
+  function focusFirst(rowId) {
+    if ($("bedside-actions").hidden) return false;
+    var b = $(rowId).querySelector("button");
+    if (b) b.focus();
+    return Boolean(b);
+  }
   function onKey(e) {
     if (!view || e.ctrlKey || e.metaKey || e.altKey) return;
     var tag = e.target && e.target.tagName;
     if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return;
-    if (document.querySelector("dialog[open], .confirm-dialog, [role='dialog']")) return;
+    // an open window or dialog owns the keys (on the Desktop layout every closed window frame is a hidden role=dialog)
+    if (document.querySelector("dialog[open], .confirm-dialog, [role='dialog']:not([hidden])")) return;
     if (e.key === "Escape" && isPhone() && $("sheet-panel").dataset.open === "true") { setSheetOpen(false); return; }
     if (e.key === "Escape" && pickedItem !== null) { pickedItem = null; renderCabinet(); return; }
     var n = parseInt(e.key, 10);
     if (n >= 1 && n <= view.patients.length && e.key.length === 1) {
       sel = n - 1;
       render();
+      return;
     }
+    // R4-SMPC-5: S moves to the scans, T to the treatments, Z steps back one action (free); with 1 to 4 a shift plays from the keyboard
+    var key = e.key.length === 1 ? e.key.toLowerCase() : "";
+    if (key === "s" && focusFirst("scan-row")) e.preventDefault();
+    else if (key === "t" && focusFirst("treat-row")) e.preventDefault();
+    else if (key === "z") { e.preventDefault(); send({ action: "undo" }); }
   }
 
   function askThen(id, message, confirmLabel, go) {

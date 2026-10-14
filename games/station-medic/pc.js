@@ -73,33 +73,6 @@ window.STATION_MEDIC_PC_TUTORIAL_STEPS = [
     contextMenu.style.top = y + "px";
   }
 
-  function onKeyDown(e) {
-    if (document.documentElement.getAttribute("data-layout") !== "pc") return;
-    var key = e.key.toLowerCase();
-    if (key >= '1' && key <= '4') {
-      var idx = parseInt(key, 10) - 1;
-      var patients = document.querySelectorAll("#patients .scene");
-      if (patients[idx]) {
-        patients[idx].click();
-        e.preventDefault();
-      }
-    } else if (key === 's') {
-      var scanRow = document.getElementById("scan-row");
-      if (scanRow) { scanRow.focus(); e.preventDefault(); }
-    } else if (key === 't') {
-      var treatRow = document.getElementById("treat-row");
-      if (treatRow) { treatRow.focus(); e.preventDefault(); }
-    } else if (key === 'z') {
-      var bedside = document.getElementById("bedside");
-      if (bedside && !bedside.hidden) {
-        bedside.hidden = true;
-        var patients = document.querySelectorAll("#patients .scene");
-        for (var i = 0; i < patients.length; i++) patients[i].classList.remove("selected");
-        e.preventDefault();
-      }
-    }
-  }
-
   function initSupplyTray() {
     if (document.getElementById("supply-tray")) return;
     var tray = document.createElement("div");
@@ -189,7 +162,6 @@ window.STATION_MEDIC_PC_TUTORIAL_STEPS = [
         contextMenu.hidden = true;
       }
     });
-    document.addEventListener("keydown", onKeyDown);
   }
   function onHover(e) {
     var el = e.target.closest(".bedside-signs li, .bedside-readings li");
