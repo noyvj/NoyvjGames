@@ -1,6 +1,6 @@
 # Next TODO list (from the Round 4 ideas, started 2026-10-12)
 
-**Progress: 100/921 items checked off (10.9%).** This is the NEXT list, written alongside the live `planning/TODO.md` (which is untouched). It becomes the live list once the current one is archived. Run `python3 scripts/todo-progress.py planning/TODO-NEXT.md` after ticking items.
+**Progress: 115/921 items checked off (12.5%).** This is the NEXT list, written alongside the live `planning/TODO.md` (which is untouched). It becomes the live list once the current one is archived. Run `python3 scripts/todo-progress.py planning/TODO-NEXT.md` after ticking items.
 
 How it is built: one section per Round 4 section on the ideas sheet (`planning/IMPROVEMENT-IDEAS-ROUND-4.md`), in the sheet's order, ids `R4-<section code>-<number>`. Only ideas you answered "yes" to are items, with your note where you wrote one. A section that is not fully answered keeps its heading and ends with one item to add the rest once you have answered them. "No" answers are dropped (listed under the heading); "later" answers are parked in `planning/LATER.md`.
 
@@ -12,10 +12,12 @@ How it is built: one section per Round 4 section on the ideas sheet (`planning/I
 |---|---:|---:|---|
 | LEPC. Lexis: PC view | 8/10 | 80% | ████████░░ |
 | PBPC. Pocket Bazaar: PC view | 8/10 | 80% | ████████░░ |
+| SMPC. Station Medic: PC view | 8/10 | 80% | ████████░░ |
 | SIPC. Signal: PC view | 7/10 | 70% | ███████░░░ |
 | SIMO. Signal: mobile view | 7/10 | 70% | ███████░░░ |
 | LEMO. Lexis: mobile view | 7/10 | 70% | ███████░░░ |
 | PBMO. Pocket Bazaar: mobile view | 7/10 | 70% | ███████░░░ |
+| SMMO. Station Medic: mobile view | 7/10 | 70% | ███████░░░ |
 | HCPC. Heist Committee: PC view | 6/10 | 60% | ██████░░░░ |
 | HCMO. Heist Committee: mobile view | 6/10 | 60% | ██████░░░░ |
 | LHPC. Lighthouse: PC view | 6/10 | 60% | ██████░░░░ |
@@ -74,8 +76,6 @@ How it is built: one section per Round 4 section on the ideas sheet (`planning/I
 | LLMO. Last Line: mobile view | 0/10 | 0% | ░░░░░░░░░░ |
 | OCPC. Overclock: PC view | 0/10 | 0% | ░░░░░░░░░░ |
 | OCMO. Overclock: mobile view | 0/10 | 0% | ░░░░░░░░░░ |
-| SMPC. Station Medic: PC view | 0/10 | 0% | ░░░░░░░░░░ |
-| SMMO. Station Medic: mobile view | 0/10 | 0% | ░░░░░░░░░░ |
 | SOMO. SOL: mobile view | 0/9 | 0% | ░░░░░░░░░░ |
 | PA. Aftermath: made for you | 0/7 | 0% | ░░░░░░░░░░ |
 | PD. Drift: made for you | 0/7 | 0% | ░░░░░░░░░░ |
@@ -111,7 +111,7 @@ How it is built: one section per Round 4 section on the ideas sheet (`planning/I
 | OC. Overclock: general ideas | 0/1 | 0% | ░░░░░░░░░░ |
 | OCP. Overclock: made for you | 0/1 | 0% | ░░░░░░░░░░ |
 | AU. Sound | 0/1 | 0% | ░░░░░░░░░░ |
-| **All sections** | **100/921** | **10.9%** | █░░░░░░░░░ |
+| **All sections** | **115/921** | **12.5%** | █░░░░░░░░░ |
 
 <!-- PROGRESS-CHART:END -->
 
@@ -1506,30 +1506,30 @@ Parked in LATER.md (you said later): PX-25.
 10 ideas on the sheet: 10 yes, 0 no, 0 later, 0 not answered yet.
 
 - [ ] R4-SMPC-1: (big) Let you drag a treatment from the supply cabinet onto a patient's bed, and a scan onto a patient to run it. Treating the ward feels hands-on.
-- [ ] R4-SMPC-2: (small) Hover a sign or scan result to show which conditions on the sheet carry it. You can reason without searching.
-- [ ] R4-SMPC-3: (small) Add a notepad on the Condition Sheet where a click strikes out a condition and a second click restores it. You can rule things out as you go.
-- [ ] R4-SMPC-4: (small) Add a right-click menu on a patient with Scan, Treat, Isolate and Comfort. Ward jobs sit at the cursor.
-- [ ] R4-SMPC-5: (small) Let 1 to 4 pick patients, S open scans, T open treatments and Z step back. A whole shift can be played from the keyboard.
+- [x] R4-SMPC-2: (small) Hover a sign or scan result to show which conditions on the sheet carry it. You can reason without searching.
+- [x] R4-SMPC-3: (small) Add a notepad on the Condition Sheet where a click strikes out a condition and a second click restores it. You can rule things out as you go.
+- [x] R4-SMPC-4: (small) Add a right-click menu on a patient with Scan, Treat, Isolate and Comfort. Ward jobs sit at the cursor.
+- [x] R4-SMPC-5: (small) Let 1 to 4 pick patients, S open scans, T open treatments and Z step back. A whole shift can be played from the keyboard.
 - [ ] R4-SMPC-6: (big) Show every action in a history list where a click on an earlier step rewinds to it, leaving later steps ready to re-run. You can retry from any point without restarting the shift.
-- [ ] R4-SMPC-7: (small) On wide screens, show all patient beds side by side with a permanent strip for chart notes. You can compare cases at a glance.
-- [ ] R4-SMPC-8: (small) Keep a supply tray along the bottom with stock counts and a hover preview of which patient could use each item. You never open the cabinet to check.
-- [ ] R4-SMPC-9: (small) Add a Ctrl+P print layout for the shift report with seal and notes. You get a clean record of the shift.
-- [ ] R4-SMPC-10: (small) Let you pin a patient's chart (signs, scans done, notes) beside each bed as a resizable window. You read several charts at once.
+- [x] R4-SMPC-7: (small) On wide screens, show all patient beds side by side with a permanent strip for chart notes. You can compare cases at a glance.
+- [x] R4-SMPC-8: (small) Keep a supply tray along the bottom with stock counts and a hover preview of which patient could use each item. You never open the cabinet to check.
+- [x] R4-SMPC-9: (small) Add a Ctrl+P print layout for the shift report with seal and notes. You get a clean record of the shift.
+- [x] R4-SMPC-10: (small) Let you pin a patient's chart (signs, scans done, notes) beside each bed as a resizable window. You read several charts at once.
 
 ## SMMO. Station Medic: mobile view
 
 10 ideas on the sheet: 10 yes, 0 no, 0 later, 0 not answered yet.
 
 - [ ] R4-SMMO-1: (big) Show one patient per screen with swipe left and right between beds, and scans and treatments in a bottom drawer. The ward fits a phone.
-- [ ] R4-SMMO-2: (small) Let you tap a supply chip and then a patient to use it, or drag it. Two ways to act suit different thumbs.
-- [ ] R4-SMMO-3: (small) Add a soft pulse for a clean cure and a gentle double pulse when a cost is added, where the browser allows. The result is felt.
+- [x] R4-SMMO-2: (small) Let you tap a supply chip and then a patient to use it, or drag it. Two ways to act suit different thumbs.
+- [x] R4-SMMO-3: (small) Add a soft pulse for a clean cure and a gentle double pulse when a cost is added, where the browser allows. The result is felt.
 - [ ] R4-SMMO-4: (small) Pull down to open the Condition Sheet as a bottom sheet. The reference is one gesture away.
-- [ ] R4-SMMO-5: (small) Hold the shift title to Restore the shift with a confirm. Starting over is deliberate and easy.
-- [ ] R4-SMMO-6: (small) Show each patient's signs as large icon chips whose tap lists the conditions that carry them. Reading a patient takes a glance.
-- [ ] R4-SMMO-7: (small) Split the drawer into Scans and Treatments tabs with a supply count on each. You see what is left before you tap.
+- [x] R4-SMMO-5: (small) Hold the shift title to Restore the shift with a confirm. Starting over is deliberate and easy.
+- [x] R4-SMMO-6: (small) Show each patient's signs as large icon chips whose tap lists the conditions that carry them. Reading a patient takes a glance.
+- [x] R4-SMMO-7: (small) Split the drawer into Scans and Treatments tabs with a supply count on each. You see what is left before you tap.
 - [ ] R4-SMMO-8: (small) Let a long-press on a supply borrow it through a confirm sheet that shows the cost. A fallback is one gesture away.
-- [ ] R4-SMMO-9: (small) Add a dim infirmary night mode with bigger buttons. Bed-time play stays easy.
-- [ ] R4-SMMO-10: (small) Show chart notes as a banner at the top that you can swipe away and recall from a tab. Warnings stay in reach but out of the way.
+- [x] R4-SMMO-9: (small) Add a dim infirmary night mode with bigger buttons. Bed-time play stays easy.
+- [x] R4-SMMO-10: (small) Show chart notes as a banner at the top that you can swipe away and recall from a tab. Warnings stay in reach but out of the way.
 
 ## M. Five new game concepts (brand new, not in Quick ideas)
 
