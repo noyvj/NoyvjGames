@@ -103,3 +103,11 @@ Recommended: yes, one button is enough. Say "no" to show both.
 ### Hr2. Hull Repair: the phone progress card (R4-HRMO-7) sits on the page behind the opening screen, not on the opening screen itself, because the shared opening screen has no slot for extra content. Is the in-page card acceptable?
 
 Recommended: yes. Say "no" and I will add a slot to the shared opening screen.
+
+### Lg1. Logic Gates: on Desktop, A, O and X now add an AND, OR or XOR chip, and Shift+N adds a NOT because plain N already means "Next level". Is Shift+N acceptable?
+
+Recommended: yes. Say "no" and name the key you would rather use for NOT.
+
+### Lg2. Logic Gates: clicking a truth-table row to set the switches counts as a switch flip in the stats. Is that fine?
+
+Recommended: yes, it is still you flipping switches. Say "no" to leave those clicks out of the flips stat.

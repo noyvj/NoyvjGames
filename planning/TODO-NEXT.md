@@ -1,6 +1,6 @@
 # Next TODO list (from the Round 4 ideas, started 2026-10-12)
 
-**Progress: 94/921 items checked off (10.2%).** This is the NEXT list, written alongside the live `planning/TODO.md` (which is untouched). It becomes the live list once the current one is archived. Run `python3 scripts/todo-progress.py planning/TODO-NEXT.md` after ticking items.
+**Progress: 100/921 items checked off (10.9%).** This is the NEXT list, written alongside the live `planning/TODO.md` (which is untouched). It becomes the live list once the current one is archived. Run `python3 scripts/todo-progress.py planning/TODO-NEXT.md` after ticking items.
 
 How it is built: one section per Round 4 section on the ideas sheet (`planning/IMPROVEMENT-IDEAS-ROUND-4.md`), in the sheet's order, ids `R4-<section code>-<number>`. Only ideas you answered "yes" to are items, with your note where you wrote one. A section that is not fully answered keeps its heading and ends with one item to add the rest once you have answered them. "No" answers are dropped (listed under the heading); "later" answers are parked in `planning/LATER.md`.
 
@@ -22,10 +22,12 @@ How it is built: one section per Round 4 section on the ideas sheet (`planning/I
 | RSMO. Robot Script: mobile view | 6/10 | 60% | ██████░░░░ |
 | HRMO. Hull Repair: mobile view | 6/10 | 60% | ██████░░░░ |
 | HRPC. Hull Repair: PC view | 5/10 | 50% | █████░░░░░ |
+| LGMO. Logic Gates: mobile view | 4/10 | 40% | ████░░░░░░ |
 | DEMO. Dead Reckoning: mobile view | 3/10 | 30% | ███░░░░░░░ |
 | RSPC. Robot Script: PC view | 3/10 | 30% | ███░░░░░░░ |
 | PX. Lexis: made for you | 6/29 | 21% | ██░░░░░░░░ |
 | DEPC. Dead Reckoning: PC view | 2/10 | 20% | ██░░░░░░░░ |
+| LGPC. Logic Gates: PC view | 2/10 | 20% | ██░░░░░░░░ |
 | PU. Signal: made for you | 1/6 | 17% | ██░░░░░░░░ |
 | PC. Canopy: made for you | 0/30 | 0% | ░░░░░░░░░░ |
 | PI. Tide: made for you | 0/30 | 0% | ░░░░░░░░░░ |
@@ -72,8 +74,6 @@ How it is built: one section per Round 4 section on the ideas sheet (`planning/I
 | LLMO. Last Line: mobile view | 0/10 | 0% | ░░░░░░░░░░ |
 | OCPC. Overclock: PC view | 0/10 | 0% | ░░░░░░░░░░ |
 | OCMO. Overclock: mobile view | 0/10 | 0% | ░░░░░░░░░░ |
-| LGPC. Logic Gates: PC view | 0/10 | 0% | ░░░░░░░░░░ |
-| LGMO. Logic Gates: mobile view | 0/10 | 0% | ░░░░░░░░░░ |
 | SMPC. Station Medic: PC view | 0/10 | 0% | ░░░░░░░░░░ |
 | SMMO. Station Medic: mobile view | 0/10 | 0% | ░░░░░░░░░░ |
 | SOMO. SOL: mobile view | 0/9 | 0% | ░░░░░░░░░░ |
@@ -111,7 +111,7 @@ How it is built: one section per Round 4 section on the ideas sheet (`planning/I
 | OC. Overclock: general ideas | 0/1 | 0% | ░░░░░░░░░░ |
 | OCP. Overclock: made for you | 0/1 | 0% | ░░░░░░░░░░ |
 | AU. Sound | 0/1 | 0% | ░░░░░░░░░░ |
-| **All sections** | **94/921** | **10.2%** | █░░░░░░░░░ |
+| **All sections** | **100/921** | **10.9%** | █░░░░░░░░░ |
 
 <!-- PROGRESS-CHART:END -->
 
@@ -1417,10 +1417,10 @@ Parked in LATER.md (you said later): PX-25.
 
 - [ ] R4-LGPC-1: (big) Let you drag a wire from one pin to another with a live preview line and a snap to the nearest pin, alongside the tap-tap path. Wiring feels like a real circuit editor.
 - [ ] R4-LGPC-2: (big) Add mouse-wheel zoom and drag pan on the board, with a minimap for the big computer levels. Large circuits stay easy to navigate.
-- [ ] R4-LGPC-3: (small) Show a hover card on a wire with its live value and the truth-table rows where it is high. You can read a signal by pointing at it.
+- [x] R4-LGPC-3: (small) Show a hover card on a wire with its live value and the truth-table rows where it is high. You can read a signal by pointing at it.
 - [ ] R4-LGPC-4: (big) Add a right-click menu on a built chip with Open inside, Duplicate and Delete, where Open inside shows its own circuit in a window. You can see how any chip you made works.
 - [ ] R4-LGPC-5: (small) Let a drag-box select several parts, move them together and copy them with Ctrl+C and Ctrl+V. You can repeat a half-adder without rebuilding it.
-- [ ] R4-LGPC-6: (small) Dock the truth table beside the board and highlight the row for the current inputs, with a click on a row that sets the switches. You test every case fast.
+- [x] R4-LGPC-6: (small) Dock the truth table beside the board and highlight the row for the current inputs, with a click on a row that sets the switches. You test every case fast.
 - [ ] R4-LGPC-7: (small) Add hotkeys A, O, N and X that put an AND, OR, NOT or XOR gate under the cursor. A circuit can be built with one hand on the keyboard.
 - [ ] R4-LGPC-8: (big) Add a timing-diagram window for sequence levels showing each wire's 0 and 1 over the steps like a logic analyser. You see memory and clocks the way engineers do.
 - [ ] R4-LGPC-9: (small) Let you drop a circuit text file onto the page to load it into the sandbox. You can keep and share circuits as small files.
@@ -1430,15 +1430,15 @@ Parked in LATER.md (you said later): PX-25.
 
 10 ideas on the sheet: 10 yes, 0 no, 0 later, 0 not answered yet.
 
-- [ ] R4-LGMO-1: (small) Make pin hit areas grow when a wire is armed, with a gentle magnet toward the nearest pin. Wiring on a small screen stops missing.
-- [ ] R4-LGMO-2: (small) Put the chip tray in a bottom drawer you pull up and tap to place. Chips are always in thumb reach.
+- [x] R4-LGMO-1: (small) Make pin hit areas grow when a wire is armed, with a gentle magnet toward the nearest pin. Wiring on a small screen stops missing.
+- [x] R4-LGMO-2: (small) Put the chip tray in a bottom drawer you pull up and tap to place. Chips are always in thumb reach.
 - [ ] R4-LGMO-3: (big) Add pinch to zoom and two-finger pan on the board with a double-tap to fit it to the screen. Big circuits work on a phone.
 - [ ] R4-LGMO-4: (small) Add a light haptic tick when a switch flips and a longer buzz when a level solves, where the browser allows. The circuit feels alive.
 - [ ] R4-LGMO-5: (small) Reopen on the exact wiring of the level you were in. A short visit never loses a circuit.
 - [ ] R4-LGMO-6: (small) Show the result as a bottom sheet with a scrolling truth table and the failing row highlighted. You can see what is wrong without leaving the board.
 - [ ] R4-LGMO-7: (small) In landscape, put the board on the left and the truth table on the right. Turning the phone gives a bench view.
-- [ ] R4-LGMO-8: (small) Show levels as swipeable chapter cards with a progress ring and chip count for each. Choosing a level fits a phone.
-- [ ] R4-LGMO-9: (small) Undo with a two-finger tap. A common fix is a gesture.
+- [x] R4-LGMO-8: (small) Show levels as swipeable chapter cards with a progress ring and chip count for each. Choosing a level fits a phone.
+- [x] R4-LGMO-9: (small) Undo with a two-finger tap. A common fix is a gesture.
 - [ ] R4-LGMO-10: (small) Add a fit-and-centre button and a snap-to-grid toggle for placing chips. Placement stays precise with a thumb.
 
 ## RSPC. Robot Script: PC view

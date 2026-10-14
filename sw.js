@@ -300,6 +300,7 @@ const PRECACHE_URLS = [
   "games/logic-gates/game.py",
   "games/logic-gates/app.js",
   "games/logic-gates/settings.js",
+  "games/logic-gates/chip-drawer.js",
   "games/logic-gates/changelog.json",
   "games/logic-gates/achievements.json",
   "games/logic-gates/chips.py",
