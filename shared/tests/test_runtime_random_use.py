@@ -29,6 +29,7 @@ EXEMPT = {
     "games/herd/settings.js": "cosmetic confetti position and delay, no gameplay",
     "games/lighthouse/app.js": "the fallback entropy for a new run seed when crypto is missing",
     "games/loop/game.py": "a cosmetic starting offset for which flavour vignette shows, no gameplay",
+    "games/lexis/app.js": "number bench practice: picks a random target to convert, not a seeded run and not scored",
     "games/signal/game.py": "entropy for a NEW practice code only; every puzzle is a pure function of its code or date",
     "games/trade-empire/game.py": "random.Random(seed) from the saved founding_seed integer: deterministic",
     "shared/save-widget.js": "random suffix of a local snapshot or file id, no gameplay",
