@@ -121,6 +121,17 @@ if ($Chain -and $Step -gt 1) {
 $isFeature = -not $Chain -and $Item -notmatch '^(T|EDGE)-'
 $stack = "local-ai/stack-$Game"
 $haveStack = $isFeature -and ($null -ne (git -C $root rev-parse -q --verify "refs/heads/$stack" 2>$null))
+# A stack that no longer merges with GitHub's main has been superseded there (2026-10-14: the audit rebuilt
+# Lighthouse's seven stacked ideas on main, and every Lighthouse task then failed in seconds on the conflict).
+# Keep the old stack under a dated name for the record and start this game's stack again from main.
+if ($haveStack -and $haveRemote) {
+    git -C $root merge-tree --write-tree $remoteBase $stack 2>$null | Out-Null
+    if ($LASTEXITCODE -ne 0) {
+        git -C $root branch -m $stack "$stack-superseded-$stamp"
+        Write-Host "local-ai/stack-$Game conflicts with GitHub's $Base, so it was kept as $stack-superseded-$stamp and this task starts from $Base."
+        $haveStack = $false
+    }
+}
 if ($haveStack) { $start = $stack }
 git -C $root worktree add -q -b $branch $work $start
 if ($LASTEXITCODE -ne 0) { Fail "could not create the working copy" }
