@@ -12,6 +12,7 @@
   var engine = null;
   var view = null;
   var selected = null;       // the cell number of the picked-up good
+  var multi = [];            // R4-PBPC-5: goods chosen with Shift+click, to hand over together with Shift+D
   var cursor = 0;            // the cell the arrow keys are on (roving tab stop)
   var broomArmed = false;
   var activeCrate = 0;
@@ -119,6 +120,14 @@
         pat.appendChild(bar);
         pat.appendChild(el("span", "beats", String(c.patience)));
         btn.appendChild(pat);
+        // R4-PBMO-7 (phones, CSS): the patience as five large dots under the card plus the number of beats. A day's customers
+        // wait 10 to 40 beats, so each dot stands for a fifth of the patience this customer started with.
+        var dots = el("div", "patience-dots");
+        dots.setAttribute("aria-hidden", "true");
+        var lit = c.patience > 0 ? Math.max(1, Math.round(5 * c.patience / c.max)) : 0;
+        for (var d = 0; d < 5; d++) dots.appendChild(el("span", "patience-dot" + (d < lit ? " filled" : "")));
+        dots.appendChild(el("span", "patience-num", String(c.patience)));
+        btn.appendChild(dots);
       }
       btn.setAttribute("aria-label", customerLabel(c) + (wants.indexOf(n) !== -1 ? " Would take the good you picked up." : ""));
     });
@@ -378,7 +387,7 @@
     b.dataset.testid = "pocket-bazaar-cell-" + i;
     b.dataset.label = label;
     b.tabIndex = -1;
-    b.addEventListener("click", function () { if (suppressClick) return; onCell(i); });
+    b.addEventListener("click", function (e) { if (suppressClick) return; if (e.shiftKey && cellAt(i)) { toggleMulti(i); return; } onCell(i); });
     return b;
   }
 
@@ -430,10 +439,12 @@
       }
       btn.classList.toggle("has-good", Boolean(cell));
       btn.classList.toggle("selected", selected === i);
+      btn.classList.toggle("multi", multi.indexOf(i) !== -1);
       btn.classList.toggle("partner", partners.indexOf(i) !== -1);
       btn.classList.toggle("broom-armed", broomArmed);
       var label = btn.dataset.label + ": " + (cell ? cell.label : "empty");
       if (selected === i) label += ", picked up";
+      if (multi.indexOf(i) !== -1) label += ", chosen to hand over together";
       if (partners.indexOf(i) !== -1) label += ", would merge";
       btn.setAttribute("aria-label", label);
       btn.setAttribute("aria-pressed", selected === i ? "true" : "false");
@@ -467,11 +478,31 @@
     Array.prototype.forEach.call(holder.children, function (btn, n) { btn.classList.toggle("active", n === activeCrate); });
   }
 
+  // R4-PBMO-2: a short buzz on a merge, stronger with the tier, one pulse per link of a chain, where the browser has
+  // navigator.vibrate (most phones; never iOS Safari). Off with the Settings switch or with reduced motion.
+  var HAPTICS_KEY = "pocket-bazaar-haptics";
+  function hapticsAllowed() {
+    if (!navigator.vibrate || document.documentElement.getAttribute("data-reduced-motion") === "true") return false;
+    return lsGet(HAPTICS_KEY) !== "false";   // settings.js writes "true" or "false"
+  }
+  function mergeHaptic(tier, links) {
+    if (!hapticsAllowed()) return;
+    var pulse = 10 + 8 * Math.max(1, Math.min(5, tier));
+    var pattern = [];
+    for (var n = 0; n < Math.max(1, Math.min(4, links)); n++) {
+      if (n) pattern.push(45);
+      pattern.push(pulse);
+    }
+    try { navigator.vibrate(pattern); } catch (e) { /* a buzz is a nicety */ }
+  }
+
   function renderInfo() {
     var info = $("selection-info");
     var cell = selected !== null ? cellAt(selected) : null;
     var text;
-    if (broomArmed) {
+    if (multi.length) {
+      text = multi.length + (multi.length === 1 ? " good chosen" : " goods chosen") + " to hand over together: press Shift+D to give them all to one customer. Shift+click a chosen good again to drop it, Esc clears.";
+    } else if (broomArmed) {
       text = "Broom ready: tap a good to sweep it away for free. Esc puts the broom down.";
     } else if (cell) {
       text = cell.label + " picked up.";
@@ -492,6 +523,10 @@
     var sell = $("sell-button");
     setText(sell, cell ? "Sell (" + cell.sell + ")" : "Sell");
     $("broom-button").setAttribute("aria-pressed", broomArmed ? "true" : "false");
+    var dockSell = document.querySelector('#mobile-dock [data-action="sell"]');
+    var dockBroom = document.querySelector('#mobile-dock [data-action="broom"]');
+    if (dockSell) setText(dockSell, cell ? "Sell (" + cell.sell + ")" : "Sell");
+    if (dockBroom) dockBroom.setAttribute("aria-pressed", broomArmed ? "true" : "false");
   }
 
   function bumpStat(id, value) {
@@ -541,6 +576,11 @@
   }
 
   function render(event) {
+    renderView(event);
+    // The Desktop page (pc.js) redraws its hover and selection marks here, because every redraw above rebuilds the cells.
+    if (typeof window.pocketBazaarAfterRender === "function") window.pocketBazaarAfterRender();
+  }
+  function renderView(event) {
     renderSeed();
     renderAbout();
     renderAchievements();
@@ -559,6 +599,7 @@
     if (event && (event.kind === "merge" || event.kind === "crate")) {
       var target = cellButton(event.kind === "merge" ? event.dst : event.at);
       if (target) {
+        if (event.kind === "merge") mergeHaptic(event.good ? event.good[1] : 1, event.links || 1);
         target.classList.remove("pop");
         void target.offsetWidth;
         target.classList.add("pop");
@@ -583,6 +624,7 @@
     if (result.error) { $("engine-status").textContent = "Something went wrong: " + result.error; return null; }
     view = result;
     showToast("");
+    if (request.action === "drop" || request.action === "sell" || request.action === "start_day") multi = [];
     if (request.action === "drop" || request.action === "sell" || request.action === "broom" || request.action === "deliver" || request.action === "start_day") selected = null;
     if (request.action === "start_day") { cursor = 0; broomArmed = false; }
     render(result.event);
@@ -639,7 +681,35 @@
   }
   function letGo() {
     broomArmed = false;
+    multi = [];
     select(null);
+  }
+  // R4-PBPC-5: Shift+click chooses several goods; Shift+D hands every one a chosen customer still wants to that one customer.
+  function toggleMulti(i) {
+    if (!view || view.phase !== "open" || !cellAt(i)) return;
+    var at = multi.indexOf(i);
+    if (at === -1) multi.push(i); else multi.splice(at, 1);
+    selected = null;
+    broomArmed = false;
+    render();
+    announce(multi.length + (multi.length === 1 ? " good chosen" : " goods chosen") + " to hand over together");
+  }
+  function handOverMulti() {
+    var first = multi.length ? view.deliverable[String(multi[0])] || [] : [];
+    if (!first.length) { showMessage("Nobody wants the first chosen good. Esc clears the choice.", false); return; }
+    var to = first[0];
+    var who = view.customers[to] ? view.customers[to].name : "";
+    var chosen = multi.slice();
+    var given = 0;
+    chosen.forEach(function (from) {
+      if (!view || view.phase !== "open" || !view.customers[to] || view.customers[to].name !== who) return;
+      if ((view.deliverable[String(from)] || []).indexOf(to) === -1) return;
+      send({ action: "deliver", from: from, to: to });
+      given += 1;
+    });
+    multi = [];
+    if (view && view.phase === "open") render();
+    if (!given) showMessage("Nobody wanted those goods.", false);
   }
 
   // ---- dragging (pointer events: the same code serves a mouse, a finger and a pen) -----------------
@@ -656,12 +726,14 @@
     if (!btn || broomArmed) return;
     var i = Number(btn.dataset.cell);
     if (!cellAt(i)) return;
-    drag = { from: i, x: e.clientX, y: e.clientY, active: false, id: e.pointerId, ghost: null };
+    drag = { from: i, x: e.clientX, y: e.clientY, dx: 0, dy: 0, lastTarget: null, active: false, id: e.pointerId, ghost: null };
   }
   function onPointerMove(e) {
     if (!drag || e.pointerId !== drag.id) return;
+    drag.dx = e.clientX - drag.x;
+    drag.dy = e.clientY - drag.y;
     if (!drag.active) {
-      if (Math.abs(e.clientX - drag.x) + Math.abs(e.clientY - drag.y) < DRAG_THRESHOLD) return;
+      if (Math.abs(drag.dx) + Math.abs(drag.dy) < DRAG_THRESHOLD) return;
       drag.active = true;
       select(drag.from);
       var cell = cellAt(drag.from);
@@ -674,6 +746,7 @@
     drag.ghost.style.top = e.clientY + "px";
     clearOver();
     var target = dropTargetAt(e.clientX, e.clientY);
+    drag.lastTarget = target;
     if (target) target.classList.add("drop-over");
   }
   function endDrag(e, cancelled) {
@@ -686,9 +759,19 @@
     suppressClick = true;
     setTimeout(function () { suppressClick = false; }, 0);
     if (cancelled) return;
-    var target = dropTargetAt(e.clientX, e.clientY);
-    if (!target) { select(null); return; }
-    var spec = target.dataset.drop;
+
+    var spec = d.lastTarget ? d.lastTarget.dataset.drop : "";
+    // R4-PBMO-1, a flick. A short push that ends on nothing (or back on its own cell) moves the
+    // good one cell the way it was pushed, onto an empty cell or a match. A real drop on a cell, customer or tool is untouched.
+    if (spec === "" || spec === "cell:" + d.from) {
+      var flick = flickTarget(d);
+      if (flick !== null) {
+        var partners = view.partners[String(d.from)] || [];
+        if (!cellAt(flick) || partners.indexOf(flick) !== -1) send({ action: "drop", from: d.from, to: flick });
+        else { select(d.from); showMessage("Something is in the way there. Flick toward an empty cell or a match.", false); }
+        return;
+      }
+    }
     if (spec === "sell") sellAt(d.from);
     else if (spec === "broom") send({ action: "broom", at: d.from });
     else if (spec.indexOf("customer:") === 0) send({ action: "deliver", from: d.from, to: Number(spec.slice(9)) });
@@ -696,6 +779,18 @@
       var to = Number(spec.slice(5));
       if (to === d.from) select(d.from); else send({ action: "drop", from: d.from, to: to });
     } else select(null);
+  }
+  var FLICK_MIN = 24;
+  // The cell one step from d.from in the direction of the push, or null when the push was too short or leaves the grid.
+  function flickTarget(d) {
+    var b = view && view.board;
+    if (!b || d.from >= b.w * b.h) return null;
+    var ax = Math.abs(d.dx), ay = Math.abs(d.dy);
+    if (Math.max(ax, ay) < FLICK_MIN) return null;
+    var row = Math.floor(d.from / b.w), col = d.from % b.w;
+    if (ax >= ay) col += d.dx > 0 ? 1 : -1; else row += d.dy > 0 ? 1 : -1;
+    if (col < 0 || col >= b.w || row < 0 || row >= b.h) return null;
+    return row * b.w + col;
   }
 
   // ---- the keyboard --------------------------------------------------------------------------
@@ -720,21 +815,43 @@
       return;
     }
     if (key === "Escape") { letGo(); return; }
-    if (key === "b" || key === "B") { e.preventDefault(); if (onGrid && selected === null && cellAt(cursor)) send({ action: "broom", at: cursor }); else doBroom(); return; }
-    if (key === "s" || key === "S") { e.preventDefault(); if (selected === null && onGrid && cellAt(cursor)) select(cursor); doSell(); return; }
-    if (key === "d" || key === "D") {
+
+    // R4-PBPC-9: keys the player set in Settings, Controls (pc.js, window.NOYVJ_PC_CUSTOM_KEYS), else the defaults
+    function getCustom(action, fallback) {
+      var k = window.NOYVJ_PC_CUSTOM_KEYS;
+      return (k && k[action]) ? k[action].toLowerCase() : (fallback || "").toLowerCase();
+    }
+
+    var broomKey = getCustom("broom", "b");
+    if (key.toLowerCase() === broomKey) { e.preventDefault(); if (onGrid && selected === null && cellAt(cursor)) send({ action: "broom", at: cursor }); else doBroom(); return; }
+
+    var sellKey = getCustom("sell", "s");
+    if (key.toLowerCase() === sellKey) { e.preventDefault(); if (selected === null && onGrid && cellAt(cursor)) select(cursor); doSell(); return; }
+
+    var handoverKey = getCustom("handover", "d");
+    if (e.shiftKey && multi.length && key.toLowerCase() === handoverKey) { e.preventDefault(); handOverMulti(); return; }
+    if (key.toLowerCase() === handoverKey) {
       e.preventDefault();
       if (selected === null && onGrid && cellAt(cursor)) select(cursor);
-      if (selected === null) { showMessage("Pick up a good first, then press D to hand it over.", false); return; }
+      if (selected === null) { showMessage("Pick up a good first, then press " + ((handoverKey || "D").toUpperCase()) + " to hand it over.", false); return; }
       var takers = view.deliverable[String(selected)] || [];
       send({ action: "deliver", from: selected, to: takers.length ? takers[0] : 0 });
       return;
     }
+
     if (key === "c" || key === "C") {
       e.preventDefault();
       activeCrate = (activeCrate + 1) % view.crates.length;
       renderCrates();
       $("crates").children[activeCrate].focus();
+      return;
+    }
+
+    // A key set in Settings, Controls opens the highlighted crate (C moves the highlight); the number keys always work.
+    var cratesKey = getCustom("crates", "");
+    if (cratesKey && key.toLowerCase() === cratesKey) {
+      e.preventDefault();
+      send({ action: "crate", family: view.crates[activeCrate].family });
       return;
     }
     if (/^[1-9]$/.test(key) && Number(key) <= view.crates.length) {
@@ -771,6 +888,49 @@
     if (seedCopy) seedCopy.update(view.seed_text || "");
   }
 
+  // R4-PBMO-5 (phones): pull down on the top row or the day banner to peek at the festival and the regulars. The panel
+  // shows while the finger is down and goes when it lifts, so a glance never leaves the board. Everything it says is also
+  // on screen elsewhere (the day banner, the Regulars button), so there is no gesture-only information.
+  function wirePeek() {
+    var panel = el("div", "peek-panel");
+    panel.id = "peek-panel";
+    panel.setAttribute("aria-hidden", "true");
+    var title = el("div", "peek-title", "Today's stall");
+    var fest = el("div", "peek-festival");
+    var reg = el("div", "peek-regulars");
+    panel.appendChild(title);
+    panel.appendChild(fest);
+    panel.appendChild(reg);
+    document.body.appendChild(panel);
+    function fill() {
+      if (!view) return;
+      var f = view.festival;
+      setText(fest, f ? f.name + " (" + (f.tone === "tricky" ? "harder day" : "easier day") + "): " + f.blurb : "");
+      var here = (view.customers || []).filter(function (c) { return c.archetype === "regular"; }).map(function (c) { return c.name; });
+      setText(reg, "Regulars met: " + view.regulars_met + " of " + view.regulars.length + (here.length ? ". At the stall now: " + here.join(", ") + "." : "."));
+    }
+    function begin(e) {
+      if (!window.matchMedia("(max-width: 600px)").matches || !view) return;
+      var startY = e.clientY;
+      function move(ev) {
+        if (ev.pointerId !== e.pointerId || ev.clientY - startY < 40) return;
+        fill();
+        panel.classList.add("open");
+      }
+      function end(ev) {
+        if (ev.pointerId !== e.pointerId) return;
+        panel.classList.remove("open");
+        window.removeEventListener("pointermove", move);
+        window.removeEventListener("pointerup", end);
+        window.removeEventListener("pointercancel", end);
+      }
+      window.addEventListener("pointermove", move);
+      window.addEventListener("pointerup", end);
+      window.addEventListener("pointercancel", end);
+    }
+    Array.prototype.forEach.call(document.querySelectorAll(".top-row, #message"), function (node) { node.addEventListener("pointerdown", begin); });
+  }
+
   function wire() {
     $("toast").addEventListener("click", function () { showToast(""); });
     $("start-day-button").addEventListener("click", function () { send({ action: "start_day" }); });
@@ -798,7 +958,24 @@
     window.addEventListener("pointerup", function (e) { endDrag(e, false); });
     window.addEventListener("pointercancel", function (e) { endDrag(e, true); });
     document.addEventListener("keydown", onKey);
+    $("board").addEventListener("pb-action", function (e) {
+      var action = e.detail.action;
+      var cellIdx = Number(e.detail.cell);
+      if (!view || view.phase !== "open" || !cellAt(cellIdx)) return;
+      if (action === "pick-up") {
+        select(cellIdx);
+      } else if (action === "sell") {
+        sellAt(cellIdx);
+      } else if (action === "hand-over") {
+        var takers = view.deliverable[String(cellIdx)] || [];
+        if (takers.length > 0) send({ action: "deliver", from: cellIdx, to: takers[0] });
+        else showMessage("No customer wants this.", false);
+      }
+    });
+
     // The save widget (a later milestone) loads a save straight into the engine; this redraws afterwards.
+    wirePeek();
+    window.pocketBazaarApi = { view: function () { return view; } };
     window.pocketBazaarRefresh = function () { if (engine) { selected = null; send({ action: "open" }); } };
   }
 
@@ -836,8 +1013,29 @@
     $("engine-status").textContent = "";
     send({ action: "open" });
     setBusy(false);
+    // R4-PBMO-6: the engine already keeps the whole day (board, queue, patience) in the save after every action and
+    // loads it on boot; this line only says so, so a short break reads as safe.
+    if (view.phase === "open") showMessage("Back at the stall: your day is just as you left it, every good on the counter and every customer's patience.", true);
     await changelog;
     if (window.GameTutorial) window.GameTutorial.init(window.pocketBazaarTutorialSteps ? window.pocketBazaarTutorialSteps(TUTORIAL_STEPS) : TUTORIAL_STEPS, { gameId: "pocket-bazaar" });
+  }
+
+  // R4-PBMO-3: the dock along the bottom edge (phones only, CSS) does exactly what Sell, Broom and D do.
+  function doHandOver() {
+    if (selected === null) { showMessage("Pick up a good first (tap it), then press Hand over.", false); return; }
+    var takers = view.deliverable[String(selected)] || [];
+    send({ action: "deliver", from: selected, to: takers.length ? takers[0] : 0 });
+  }
+  var dock = document.getElementById("mobile-dock");
+  if (dock) {
+    dock.addEventListener("click", function (e) {
+      var btn = e.target.closest("button[data-action]");
+      if (!btn || !view || view.phase !== "open") return;
+      var action = btn.getAttribute("data-action");
+      if (action === "sell") doSell();
+      else if (action === "broom") doBroom();
+      else if (action === "handover") doHandOver();
+    });
   }
 
   wire();

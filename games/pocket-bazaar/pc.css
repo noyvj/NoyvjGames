@@ -35,7 +35,10 @@ html[data-layout="pc"] .cust-kind { display: block; }
   html[data-layout="pc"] .cust-head { padding-right: 4rem; }
 }
 /* The board is as large as the window's height allows. */
-html[data-layout="pc"] .board { max-width: min(100%, 44rem, calc((100vh - 17rem) * var(--cols) / 6)); }
+/* R4-PBPC-7: --board-scale (0.8 to 1.6, set from Settings, kept on this device) scales both limits; 100% of the column still caps it. */
+html[data-layout="pc"] { --board-scale: 1; }
+html[data-layout="pc"] .board { max-width: min(100%, calc(44rem * var(--board-scale)), calc((100vh - 17rem) * var(--cols) / 6 * var(--board-scale))); }
+html[data-layout="pc"] .board-size-row input[type="range"] { min-width: 10rem; min-height: 2.75rem; accent-color: var(--btn-primary); }
 
 #pc-body.pc-has-side { grid-template-columns: minmax(0, 1fr) clamp(16.5rem, 24vw, 24rem); }
 #pc-side { min-width: 0; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; gap: 0.6rem; padding-right: 0.2rem; }
@@ -64,3 +67,51 @@ html[data-layout="pc"] .closed-card { display: flex; flex-direction: column; ali
 html[data-layout="pc"] .closed-card #closed-heading { order: -3; }
 html[data-layout="pc"] .closed-card .closed-buttons { order: -2; margin-bottom: 0.5rem; }
 html[data-layout="pc"] .closed-card #summary { order: -1; }
+
+/* R4-PBPC-1: hover a piece to see its merge partners (no animation, so nothing to switch off). */
+html[data-layout="pc"] .cell[data-hover-target] { outline: 3px dashed var(--match); outline-offset: -1px; }
+html[data-layout="pc"] .cell[data-hover-target]::before {
+  content: attr(data-result); position: absolute; left: 2px; right: 2px; bottom: 2px; z-index: 2; padding: 1px 3px;
+  background: var(--panel); color: var(--text); border: 1px solid var(--line); border-radius: 4px;
+  font-size: 0.7rem; line-height: 1.2; text-align: center; pointer-events: none;
+}
+
+/* R4-PBPC-9: the key buttons in Settings, Controls. */
+html[data-layout="pc"] .controls-section .key-button { min-width: 3.5rem; min-height: 2.75rem; font-weight: 800; }
+html[data-layout="pc"] .controls-section .key-button[aria-pressed="true"] { outline: 3px solid var(--focus); }
+
+/* R4-PBPC-8: hold Alt to show the key on every crate and tool (a static label, so nothing to animate). */
+#pc-side [data-hotkey] { position: relative; }
+html[data-layout="pc"].pc-show-keys #pc-side [data-hotkey]::after {
+  content: attr(data-hotkey); position: absolute; top: 0.2rem; right: 0.3rem; min-width: 1.5rem; padding: 0 0.3rem;
+  background: var(--btn-primary); color: var(--on-primary); border: 2px solid var(--edge); border-radius: 6px;
+  font-weight: 800; font-size: 0.95rem; line-height: 1.4; text-align: center; pointer-events: none; z-index: 3;
+}
+
+/* R4-PBPC-6: large combo counter (static: it grows by step, not by animation). */
+html[data-layout="pc"] #combo-display { display: none; text-align: center; margin: 0; padding: 0.3rem 0.5rem; border: 2px solid var(--line); border-radius: 12px; background: var(--panel-fill); }
+html[data-layout="pc"] #combo-display.active { display: block; }
+html[data-layout="pc"] #combo-display .combo-num { display: block; font-weight: 800; line-height: 1.1; font-variant-numeric: tabular-nums; }
+html[data-layout="pc"] #combo-display .combo-line { display: block; font-size: 0.8rem; color: var(--muted); }
+html[data-layout="pc"] #combo-display.combo-x1 .combo-num { font-size: 1.6rem; }
+html[data-layout="pc"] #combo-display.combo-x2 { border-color: var(--edge); border-style: dashed; }
+html[data-layout="pc"] #combo-display.combo-x2 .combo-num { font-size: 2.4rem; color: var(--accent); }
+html[data-layout="pc"] #combo-display.combo-x3 { border-color: var(--accent); border-style: double; border-width: 5px; }
+html[data-layout="pc"] #combo-display.combo-x3 .combo-num { font-size: 3.2rem; color: var(--accent); text-decoration: underline; }
+
+/* R4-PBPC-3: customer hover tip, beside the card. Placed by pc.js. */
+#pc-customer-tip {
+  position: fixed; z-index: 900; max-width: 18rem; padding: 0.4rem 0.6rem; pointer-events: none;
+  background: var(--panel); color: var(--text); border: 1px solid var(--edge); border-radius: 8px; font-size: 0.85rem;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3);
+}
+#pc-customer-tip[hidden] { display: none; }
+
+/* R4-PBPC-2: right-click menu on a piece. Placed at the cursor by pc.js (the only inline style). */
+#pc-context-menu {
+  position: fixed; z-index: 1000; display: flex; flex-direction: column; min-width: 9rem; padding: 0.25rem;
+  background: var(--panel); color: var(--text); border: 1px solid var(--edge); border-radius: 8px; box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
+}
+#pc-context-menu[hidden] { display: none; }
+#pc-context-menu button { min-height: 2.75rem; text-align: left; border-color: transparent; background: transparent; }
+#pc-context-menu button:hover, #pc-context-menu button:focus-visible { background: var(--btn); border-color: var(--hover-edge); }
