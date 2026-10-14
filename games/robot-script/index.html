@@ -97,7 +97,7 @@
     <div class="settings-row"><label for="run-speed-select">Run speed</label>
       <select id="run-speed-select"><option value="slow">Slow</option><option value="normal">Normal</option><option value="fast">Fast</option><option value="instant">Instant (show the result at once)</option></select></div>
     <div class="settings-row"><label><input type="checkbox" id="reduced-motion-checkbox"> Reduce motion (the robot jumps instead of sliding and runs show their result at once; follows your system setting until you choose)</label></div>
-    <div class="settings-row"><label><input type="checkbox" id="effects-checkbox" checked> Effects (the glow on a lit switch, the robot sliding between tiles)</label></div>
+    <div class="settings-row"><label><input type="checkbox" id="effects-checkbox" checked> Effects (the glow on a lit switch, the robot sliding between tiles, and the tick and buzz a phone feels while a run plays)</label></div>
     <div class="settings-row"><label><input type="checkbox" id="high-contrast-checkbox"> High contrast (brighter text, thicker outlines)</label></div>
     <div class="settings-row"><button id="theme-setting-button" type="button" aria-pressed="false">Light theme</button></div>
     <div class="settings-row"><button id="display-reset-button" type="button">Reset display settings</button></div>
@@ -247,7 +247,7 @@
   // buttons the Desktop layout turns into icons and windows. app.js asks this function which steps to run.
   window.robotScriptTutorialSteps = function (classicSteps) { return window.ROBOT_SCRIPT_PC_TUTORIAL_STEPS || classicSteps; };
 </script>
-<script src="sound.js"></script>
+<script src="haptics.js"></script>
 <script src="app.js"></script>
 <script src="swipe.js"></script>
 <script src="../../shared/last-played.js" data-game-id="robot-script"></script>
