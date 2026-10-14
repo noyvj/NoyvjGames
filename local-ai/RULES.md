@@ -93,3 +93,34 @@ left, and stop.
 - Python layout (flake8): two blank lines before and after every top-level def or class,
   one blank line between methods, no spaces at the end of a line.
 - Do not commit. The human runs the finish step, which tests and commits.
+
+## More mistakes from the 2026-10-14/15 audits of the Round 4 batches (about 100 ideas; almost none worked as pushed)
+Run `python local-ai/static_check.py <game>` yourself before you say you are done: it reads the page code
+and lists most of these. A finding means look at that line.
+- Every id you look up with getElementById, $() or querySelector("#...") must exist: in index.html, or created by
+  your own code BEFORE the lookup. Write the element in index.html first, then the code that uses it.
+- An event has one target. If you send it with window.dispatchEvent, listen with window.addEventListener (not
+  document), and the other way round.
+- Never read a data-xxx attribute (dataset.xxx) that you have not made something write. Say where it is set.
+- Only send the engine an action it has: open game.py, find the action in handle(), and use the exact
+  name and arguments. Do not invent actions (swipe, load_draft). If the engine lacks one, do not build the idea;
+  say what engine change it needs.
+- A setting needs all of: a checkbox or control in index.html, code that applies it on load, a reset path
+  ("Reset display settings"), and it lives in localStorage. A label wrapped around its input must not also have
+  its own click handler (it toggles twice and does nothing).
+- Keyboard guards that skip keys while a dialog is open: write [role='dialog']:not([hidden]). On the Desktop
+  page every window frame is a role=dialog that is hidden when closed, and a plain [role='dialog'] makes every
+  shortcut dead there.
+- Do not scale, transform or add elements to the game's SVG board: the engine rebuilds it on every move and
+  your change is lost. Put the zoom or highlight on a wrapper element or reapply it after each render.
+- A panel, sheet or drawer that is hidden by default needs a visible button that opens it AND a way to close it
+  (button and Escape). A position: fixed panel that starts off-screen with nothing to open it is a dead feature.
+- Do not rename or remove an id that other code uses (for example #undo-button): search the game folder for it first.
+- Reduced motion: test with window.matchMedia("(prefers-reduced-motion: reduce)").matches (call .matches), and give
+  every new effect an off switch in Settings. Vibration (navigator.vibrate) is allowed; sound is not.
+- Timers: some games' pledge tests count setTimeout and setInterval in app.js. Use the event's timeStamp for
+  hold and long-press instead of a timer.
+- Prefer a smaller idea that really works over a big idea half-built. If you cannot finish an idea, do the smallest
+  working part and say what is left; a panel that nothing opens counts as not done.
+- Write tests that check the wiring: the id in the HTML equals the id in the JS, a setting is read back on load,
+  a new key survives get_state then load_state. A test that only checks an element exists is not enough.
