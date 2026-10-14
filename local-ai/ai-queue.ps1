@@ -97,6 +97,13 @@ while ($true) {
         Write-Host "queue.txt is done: carrying on with queue-next.txt ($($nextTasks.Count) lines)." -ForegroundColor Cyan
         continue
     }
+    # The scripts run from this folder, so it must be on main: on 2026-10-14 another session switched it to a
+    # local-ai/stack branch and every task ran on two-day-old scripts. Wait (checking every 2 minutes) instead.
+    $warned = $false
+    while ((git -C $root branch --show-current) -ne "main") {
+        if (-not $warned) { Write-Host "This folder is on branch '$(git -C $root branch --show-current)', not main. Waiting until it is switched back (git checkout main)..." -ForegroundColor Yellow; $warned = $true }
+        Start-Sleep 120
+    }
     if (-not (Wait-ForOllama)) { Write-Host "Ollama never came back. Stopping; the remaining tasks are still in queue.txt." -ForegroundColor Red; break }
 
     $line = $lines[$index]

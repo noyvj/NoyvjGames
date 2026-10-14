@@ -61,3 +61,10 @@ Tasks that FAILED get a comment on their issue instead of a PR.
   local AI can write that file). It edits every hub list, the service worker and the counting tests, runs the
   generators and the performance measurement, then the hub and smoke tests. `--dry-run` lists the changes.
   Tested on a throwaway copy with Slingshot: every step and test passed.
+
+## Do not switch branches in the owner's main folder (2026-10-14)
+The queue runs its scripts from `C:\Users\Esthe\Documents\bcm206` (local-ai/), so that folder must stay on
+`main`. To audit a `local-ai/stack-<game>` branch, use a separate worktree:
+`git worktree add ../bcm206-audit local-ai/stack-<game>` (and `git worktree remove ../bcm206-audit` after).
+A checkout of a stack branch on 2026-10-14 made every task run on two-day-old scripts; the runner now waits
+whenever the folder is not on main.
