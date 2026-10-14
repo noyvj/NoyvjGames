@@ -125,8 +125,9 @@ def dest_point(dest, pos, circuit):
     return x, y + HEAD + PIN_PITCH * REGISTRY[chip["type"]]["ins"].index(pin) + PIN_PITCH / 2
 
 
-def draw(level, circuit, values, inputs, armed=None, target=None):
-    """values(src) -> 0/1 for a source string. inputs: the probe switch positions. -> (svg string, natural width)."""
+def draw(level, circuit, values, inputs, armed=None, target=None, rows_high=None):
+    """values(src) -> 0/1 for a source string. inputs: the probe switch positions. rows_high: optional {src: [row labels]} for the
+    hover card on a wire (R4-LGPC-3). -> (svg string, natural width)."""
     _CIRCUIT.clear()
     _CIRCUIT.update({c["id"]: c for c in circuit["chips"] if c["type"] in REGISTRY})
     pos, width, height = layout(level, circuit)
@@ -141,7 +142,9 @@ def draw(level, circuit, values, inputs, armed=None, target=None):
         v = values(src)
         dx = max(30.0, abs(b[0] - a[0]) * 0.5)
         cls = "lg-w1" if v else "lg-w0"
-        wires.append(f'<path class="lg-wire {cls}" d="M{a[0]:.1f},{a[1]:.1f} C{a[0] + dx:.1f},{a[1]:.1f} {b[0] - dx:.1f},{b[1]:.1f} {b[0]:.1f},{b[1]:.1f}"/>')
+        rows = rows_high.get(src) if rows_high else None
+        extra = f' data-value="{1 if v else 0}" data-src="{escape(src)}"' + (f' data-rows="{escape(" ".join(rows))}"' if rows is not None else "")
+        wires.append(f'<path class="lg-wire {cls}"{extra} d="M{a[0]:.1f},{a[1]:.1f} C{a[0] + dx:.1f},{a[1]:.1f} {b[0] - dx:.1f},{b[1]:.1f} {b[0]:.1f},{b[1]:.1f}"/>')
 
     def pin(kind, ident, x, y, cls=""):
         pid = f"{kind}:{ident}"

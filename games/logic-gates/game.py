@@ -528,12 +528,41 @@ def _table(level):
     return out
 
 
+MAX_HOVER_INS = 4   # the wire hover card lists rows only for small tables (16 rows at most)
+
+
+def _rows_high(level, circuit):
+    """{source: [row labels where that wire is 1]} for the hover card on a wire, or None where a table makes no sense (a script level,
+    a big table, or no program yet). A row label is the input bits in the level's input order, e.g. "01"."""
+    ins = level["ins"]
+    prog = probe["prog"]
+    if prog is None or level.get("steps") or len(ins) > MAX_HOVER_INS:
+        return None
+    srcs = set(circuit["wires"].values())
+    out = {s: [] for s in srcs}
+    for r in range(1 << len(ins)):
+        values = check.row_values(ins, r)
+        sim = Sim(prog)
+        sim.step(values)
+        label = "".join(str(values[n]) for n in ins)
+        for s in srcs:
+            if s.startswith("in:"):
+                on = values.get(s[3:], 0)
+            elif s.startswith("const:"):
+                on = int(s[6:])
+            else:
+                on = sim.top_value(s)
+            if on:
+                out[s].append(label)
+    return out
+
+
 def view():
     level = _cur()
     circuit = _board()
     if probe["prog"] is None:
         _probe_rebuild()
-    svg, width = render.draw(level, circuit, _value, probe["inputs"], armed, target)
+    svg, width = render.draw(level, circuit, _value, probe["inputs"], armed, target, _rows_high(level, circuit))
     recs = meta["levels"]
     solved = sum(1 for r in recs.values() if r["solved"])
     sandbox = meta["current"] == state.SANDBOX
