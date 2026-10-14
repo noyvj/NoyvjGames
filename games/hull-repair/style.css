@@ -218,7 +218,18 @@ html[data-effects="off"] .hr-room.s2 .hr-window { opacity: 0.9; }
 .ach-list .tick { display: inline-block; min-width: 4rem; text-align: center; font-weight: 700; font-size: 0.78rem; border: 1px solid var(--edge); border-radius: 999px; padding: 0 0.4rem; font-variant-numeric: tabular-nums; }
 .ach-list li.earned .tick { border-style: double; border-width: 3px; }
 .one-more-btn { display: none; }
+.hr-undo-btn { display: none; }
 @media (max-width: 600px) {
+  /* Thumb-height Undo: fixed above the ad bar, on the side of the chosen hand (R4-HRMO-5) */
+  .hr-undo-btn {
+    display: flex; align-items: center; justify-content: center;
+    position: fixed; bottom: 6rem; right: 0.8rem; z-index: 30;
+    width: 3.5rem; height: 3.5rem; border-radius: 50%;
+    font-weight: 700; font-size: 0.95rem;
+    background: var(--btn-primary); color: var(--on-primary); border: 2px solid var(--hover-edge);
+  }
+  html[data-hand="left"] .hr-undo-btn { right: auto; left: 0.8rem; }
+  .hr-undo-btn:disabled { opacity: 0.45; }
   html[data-hand="left"] .edit-buttons, html[data-hand="left"] .result-buttons { justify-content: flex-start; }
   html[data-hand="right"] .edit-buttons, html[data-hand="right"] .result-buttons { justify-content: flex-end; }
 

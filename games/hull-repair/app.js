@@ -30,6 +30,7 @@
   })();
 
   var $ = function (id) { return document.getElementById(id); };
+  var thumbUndo = null;
   var engine = null;
   var view = null;
   var boardId = null;
@@ -346,7 +347,12 @@
     card.hidden = Boolean(view.board);
   }
 
+  function syncThumbUndo() {
+    if (thumbUndo && view) thumbUndo.disabled = !view.can_undo;
+  }
+
   function render() {
+    syncThumbUndo();
     renderAbout();
     renderBoard();
     renderStats();
@@ -440,6 +446,7 @@
   }
   function onPointerDown(e) {
     if (e.button !== undefined && e.button !== 0) return;
+    if (drag && drag.id !== e.pointerId) return;
     var cell = cellAt(e);
     if (!cell) return;
     e.preventDefault();
@@ -651,59 +658,36 @@
     // The save widget loads a save straight into the engine; this redraws afterwards.
     window.hullRepairRefresh = function () { if (engine) { boardId = null; send({ action: "open" }); } };
 
-    // Mobile undo button and two-finger tap (R4-HRMO-5)
-    var undoBtn = null;
-    var touchStartData = null;
-    function initMobileUndo() {
-      if (undoBtn) return;
-      undoBtn = document.createElement("button");
-      undoBtn.className = "hr-undo-btn";
-      undoBtn.textContent = "↩";
-      undoBtn.setAttribute("aria-label", "Undo last move");
-      document.body.appendChild(undoBtn);
-      
-      function updateState() {
-        if (!view) return;
-        var show = window.innerWidth <= 600 && view.can_undo;
-        undoBtn.style.display = show ? "flex" : "none";
-        undoBtn.disabled = !show;
-      }
-      
-      undoBtn.addEventListener("click", function () {
-        if (view && view.can_undo) send({ action: "undo" });
-      });
-      
-      window.addEventListener("resize", updateState);
-      updateState();
-    }
-    
+    // Thumb-height Undo button (shown by CSS on a phone) and two-finger tap on the board (R4-HRMO-5)
+    thumbUndo = el("button", "hr-undo-btn", "Undo");
+    thumbUndo.type = "button";
+    thumbUndo.id = "thumb-undo-button";
+    thumbUndo.setAttribute("aria-label", "Undo the last move");
+    thumbUndo.disabled = true;
+    thumbUndo.addEventListener("click", function () { if (view && view.can_undo) send({ action: "undo" }); });
+    document.body.appendChild(thumbUndo);
+    var tap = null;
     function onBoardTouchStart(e) {
       if (e.touches.length === 2) {
-        var dx = e.touches[0].clientX - e.touches[1].clientX;
-        var dy = e.touches[0].clientY - e.touches[1].clientY;
-        if (Math.hypot(dx, dy) < 60) {
-          touchStartData = { time: e.timeStamp, x: (e.touches[0].clientX + e.touches[1].clientX)/2, y: (e.touches[0].clientY + e.touches[1].clientY)/2 };
-        } else {
-          touchStartData = null;
-        }
+        tap = { time: e.timeStamp, pts: [[e.touches[0].clientX, e.touches[0].clientY], [e.touches[1].clientX, e.touches[1].clientY]] };
+      } else if (e.touches.length > 2) {
+        tap = null;
+      }
+    }
+    function onBoardTouchMove(e) {
+      if (!tap) return;
+      for (var i = 0; i < e.touches.length && i < 2; i++) {
+        if (Math.hypot(e.touches[i].clientX - tap.pts[i][0], e.touches[i].clientY - tap.pts[i][1]) > 30) { tap = null; return; }
       }
     }
     function onBoardTouchEnd(e) {
-      if (touchStartData && e.changedTouches.length === 2) {
-        var dx = e.changedTouches[0].clientX - touchStartData.x;
-        var dy = e.changedTouches[0].clientY - touchStartData.y;
-        if (Math.hypot(dx, dy) < 30 && e.timeStamp - touchStartData.time < 400) {
-          if (view && view.can_undo) send({ action: "undo" });
-        }
-      }
-      touchStartData = null;
+      if (tap && e.touches.length === 0 && e.timeStamp - tap.time < 500 && view && view.can_undo) send({ action: "undo" });
+      if (e.touches.length === 0) tap = null;
     }
-    
-    if (holder) {
-      initMobileUndo();
-      holder.addEventListener("touchstart", onBoardTouchStart);
-      holder.addEventListener("touchend", onBoardTouchEnd);
-    }
+    holder.addEventListener("touchstart", onBoardTouchStart, { passive: true });
+    holder.addEventListener("touchmove", onBoardTouchMove, { passive: true });
+    holder.addEventListener("touchend", onBoardTouchEnd);
+    holder.addEventListener("touchcancel", function () { tap = null; });
   }
 
   var TUTORIAL_STEPS = [
