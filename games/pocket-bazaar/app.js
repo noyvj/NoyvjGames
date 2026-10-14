@@ -120,12 +120,13 @@
         pat.appendChild(bar);
         pat.appendChild(el("span", "beats", String(c.patience)));
         btn.appendChild(pat);
-        // R4-PBMO-7: patience dots for mobile
+        // R4-PBMO-7 (phones, CSS): the patience as five large dots under the card plus the number of beats. A day's customers
+        // wait 10 to 40 beats, so each dot stands for a fifth of the patience this customer started with.
         var dots = el("div", "patience-dots");
         dots.setAttribute("aria-hidden", "true");
-        for (var d = 0; d < c.max; d++) {
-          dots.appendChild(el("span", "patience-dot" + (d < c.patience ? " filled" : "")));
-        }
+        var lit = c.patience > 0 ? Math.max(1, Math.round(5 * c.patience / c.max)) : 0;
+        for (var d = 0; d < 5; d++) dots.appendChild(el("span", "patience-dot" + (d < lit ? " filled" : "")));
+        dots.appendChild(el("span", "patience-num", String(c.patience)));
         btn.appendChild(dots);
       }
       btn.setAttribute("aria-label", customerLabel(c) + (wants.indexOf(n) !== -1 ? " Would take the good you picked up." : ""));

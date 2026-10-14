@@ -199,6 +199,7 @@ html[data-effects="off"] *, html[data-effects="off"] *::before, html[data-effect
 /* The tool dock below is phone-only (R4-PBMO-3). */
 .mobile-dock { display: none; }
 .peek-panel { display: none; }
+.patience-dots { display: none; }
 
 @media (max-width: 600px) {
   /* The board shrinks to the screen's height so the crates and Sell/Broom stay on screen without scrolling. */
@@ -213,11 +214,13 @@ html[data-effects="off"] *, html[data-effects="off"] *::before, html[data-effect
   .queue { gap: 0.25rem; }
   .customer { min-height: 4.6rem; padding: 0.25rem 0.3rem; font-size: 0.75rem; }
   .cust-kind { display: none; }
-  /* Patience dots replace the bar on mobile */
+  /* R4-PBMO-7: five large dots (filled = patience left, hollow = used up) and the beats replace the thin bar on a phone */
   .cust-patience { display: none; }
-  .customer .patience-dots { display: flex; gap: 6px; justify-content: center; margin-top: 0.35rem; }
-  .patience-dot { width: 16px; height: 16px; border-radius: 50%; background: var(--edge); opacity: 0.45; }
-  .patience-dot.filled { background: var(--accent); opacity: 1; }
+  .customer .patience-dots { display: flex; align-items: center; gap: 3px; margin-top: 0.3rem; }
+  .patience-dot { flex: 0 0 auto; width: 12px; height: 12px; border-radius: 50%; border: 2px solid var(--edge); background: transparent; }
+  .patience-dot.filled { background: var(--accent); border-color: var(--accent); }
+  .customer.low .patience-dot.filled { border-radius: 2px; }
+  .patience-num { margin-left: 2px; font-size: 0.7rem; font-weight: 700; font-variant-numeric: tabular-nums; }
   .queue-line { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin: 0 0 0.2rem; font-size: 0.72rem; }
   .message { min-height: 2.5em; font-size: 0.82rem; margin: 0 0 0.3rem; overflow: hidden; }
   .msg-flavor { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; }
