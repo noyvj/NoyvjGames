@@ -34,6 +34,17 @@ html[data-layout="pc"] .sheet li.highlighted { background-color: var(--highlight
 html[data-layout="pc"] .sheet li.struck-out { text-decoration: line-through; opacity: 0.5; }
 html[data-layout="pc"] html[data-reduced-motion="true"] .sheet li.struck-out { transition: none; }
 
+/* Keyboard focus indicators for scans and treatments */
+html[data-layout="pc"] #scan-row:focus-within,
+html[data-layout="pc"] #treat-row:focus-within {
+  outline: 2px solid var(--focus-color, #4a90d9);
+  outline-offset: 2px;
+}
+html[data-layout="pc"] html[data-reduced-motion="true"] #scan-row:focus-within,
+html[data-layout="pc"] html[data-reduced-motion="true"] #treat-row:focus-within {
+  transition: none;
+}
+
 /* Right-click context menu on patients (Desktop only) */
 html[data-layout="pc"] #patient-context-menu {
   position: fixed;
