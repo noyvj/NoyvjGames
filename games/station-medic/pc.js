@@ -41,3 +41,37 @@ window.STATION_MEDIC_PC_TUTORIAL_STEPS = [
     text: "Take your time. Your seals and records are saved as you go.",
   },
 ];
+
+(function () {
+  "use strict";
+  function init() {
+    document.addEventListener("mouseover", onHover);
+    document.addEventListener("mouseout", onLeave);
+  }
+  function onHover(e) {
+    var el = e.target.closest(".bedside-signs li, .bedside-readings li");
+    if (!el) return;
+    var val = el.textContent.trim();
+    if (!val) return;
+    var conditions = document.querySelectorAll("#sheet-list li");
+    for (var i = 0; i < conditions.length; i++) {
+      var c = conditions[i];
+      var signs = c.getAttribute("data-signs") || "";
+      var scans = c.getAttribute("data-scans") || "";
+      if (signs.split(",").indexOf(val) !== -1 || scans.split(",").indexOf(val) !== -1) {
+        c.classList.add("highlighted");
+      }
+    }
+  }
+  function onLeave(e) {
+    var conditions = document.querySelectorAll("#sheet-list li");
+    for (var i = 0; i < conditions.length; i++) {
+      conditions[i].classList.remove("highlighted");
+    }
+  }
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", init);
+  } else {
+    init();
+  }
+})();

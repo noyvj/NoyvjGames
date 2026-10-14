@@ -24,3 +24,8 @@ html[data-layout="pc"] .scene { height: 4.2rem; }
 
 html[data-layout="pc"] #story-toggle { top: 0.6rem !important; left: auto !important; right: 12rem !important; }
 #pc-hintbar { flex: 0 0 auto; }
+
+/* Hover a sign or scan to highlight matching conditions on the sheet */
+html[data-layout="pc"] .sheet li { transition: background-color 0.2s ease, border-color 0.2s ease; }
+html[data-layout="pc"] html[data-reduced-motion="true"] .sheet li { transition: none; }
+html[data-layout="pc"] .sheet li.highlighted { background-color: var(--highlight-bg, #e8f0ff); border-color: var(--highlight-border, #4a90d9); }
