@@ -184,7 +184,32 @@
     setText($("bedside-say"), "“" + p.say + "”");
     var signs = $("bedside-signs");
     signs.textContent = "";
-    p.signs.forEach(function (s) { signs.appendChild(el("li", null, s.name)); });
+    signs.classList.add("patient-signs");
+    var condContainer = el("div", "sign-conditions");
+    condContainer.id = "sign-conditions-" + p.i;
+    signs.appendChild(condContainer);
+    p.signs.forEach(function (s) {
+      var chip = el("div", "sign-chip");
+      chip.textContent = s.glyph || s.name[0].toUpperCase();
+      chip.setAttribute("role", "button");
+      chip.setAttribute("aria-label", s.name + ". Tap to see conditions.");
+      chip.addEventListener("click", function () {
+        var wasActive = chip.classList.contains("active");
+        signs.querySelectorAll(".sign-chip").forEach(function (c) { c.classList.remove("active"); });
+        if (!wasActive) {
+          chip.classList.add("active");
+          condContainer.style.display = "block";
+          condContainer.innerHTML = "";
+          view.sheet.forEach(function (c) {
+            if (c.signs.indexOf(s.name) !== -1) condContainer.appendChild(el("div", null, "• " + c.name));
+          });
+        } else {
+          condContainer.style.display = "none";
+          condContainer.innerHTML = "";
+        }
+      });
+      signs.appendChild(chip);
+    });
     var notes = $("bedside-notes");
     notes.textContent = "";
     p.notes.forEach(function (n) { notes.appendChild(el("li", null, n)); });
