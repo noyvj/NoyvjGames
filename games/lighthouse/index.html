@@ -65,6 +65,7 @@
     <h2 id="letters-heading">Letters, sailors and the room</h2>
     <p class="note" id="letters-counts"></p>
     <h3>Letters</h3>
+    <button id="letters-filed-toggle" type="button" class="letters-filed-toggle" aria-pressed="false" hidden>Filed letters (0): show</button>
     <ul id="letters-list" class="letters-list"></ul>
     <p class="note" id="letters-empty">No letters yet. Sailors write once their boat has got safely by.</p>
     <h3>The sailors</h3>
@@ -122,6 +123,7 @@
       <div class="settings-row"><label for="phone-lamp-select">Lamp control at night</label>
         <select id="phone-lamp-select"><option value="off">The buttons only</option><option value="slider">A slider at the right edge</option></select></div>
       <div class="settings-row"><label><input type="checkbox" id="phone-crank-checkbox"> A crank to wind the clockwork by drawing circles (the "Wind it" button stays beside it)</label></div>
+      <div class="settings-row"><label><input type="checkbox" id="phone-cards-checkbox"> Letters as paper cards you turn over with Read and file away with a swipe or the File away button (filed letters can always be shown again)</label></div>
     </div>
     <h3 class="settings-sub">Sound</h3>
     <div id="sfx-setting-slot" class="sfx-setting-slot"></div>
@@ -420,6 +422,7 @@
 <script src="mobile-prefs.js"></script>
 <script src="mobile-lamp.js"></script>
 <script src="mobile-crank.js"></script>
+<script src="mobile-letters.js"></script>
 <script src="../../shared/last-played.js" data-game-id="lighthouse"></script>
 <script src="../../shared/whats-new-banner.js" data-game-id="lighthouse"></script>
 <script src="../../shared/keyboard-shortcuts.js"></script>

@@ -323,4 +323,28 @@ html[data-reduced-motion="true"] #off-chart .odd-light.blinking { animation: non
   .crank-hint { font-size: 0.72rem; color: var(--muted); }
   .crank-button { min-height: 2.75rem; min-width: 2.75rem; }
 }
+.letters-filed-toggle, .card-actions { display: none; }
+@media (max-width: 600px) {
+  /* R4-LHMO-4: letters as paper cards (when chosen) */
+  html[data-phone-cards="on"]:not([data-layout="pc"]) .letters-filed-toggle { display: inline-block; margin: 0.3rem 0; }
+  .letters-filed-toggle[hidden] { display: none !important; }
+  html[data-phone-cards="on"]:not([data-layout="pc"]) .card-actions { display: flex; gap: 0.5rem; margin: 0.4rem 0; }
+  html[data-phone-cards="on"]:not([data-layout="pc"]) .card-actions button { min-height: 2.75rem; }
+  html[data-phone-cards="on"]:not([data-layout="pc"]) .card-actions button[hidden] { display: none; }
+  html[data-phone-cards="on"]:not([data-layout="pc"]) .letters-list li.paper-card {
+    background: #fbf6e9; color: #2b2a26; border: 1px solid #cdbf9a; border-radius: 6px;
+    box-shadow: 0 2px 0 #d9ccaa, 0 6px 10px rgba(0, 0, 0, 0.25); touch-action: pan-y; padding: 0.6rem 0.8rem;
+  }
+  html[data-phone-cards="on"]:not([data-layout="pc"]) .letters-list li.paper-card[data-read="false"] { border: 2px solid #8a4f00; }
+  html[data-phone-cards="on"]:not([data-layout="pc"]) .letters-list li.paper-card .note,
+  html[data-phone-cards="on"]:not([data-layout="pc"]) .letters-list li.paper-card .letter-new { color: #5a3a00; }
+  html[data-phone-cards="on"]:not([data-layout="pc"]) .letters-list li.paper-card button { color: var(--text); }
+  html[data-phone-cards="on"]:not([data-layout="pc"]) .letters-list li.paper-card[data-open="false"] > :not(.letter-head):not(.card-actions):not(button) { display: none; }
+  html[data-phone-cards="on"]:not([data-layout="pc"]) .letters-list li.paper-card[data-filed="true"] { display: none; }
+  html[data-phone-cards="on"]:not([data-layout="pc"]) .letters-list[data-show-filed="true"] li.paper-card[data-filed="true"] { display: block; opacity: 0.75; border-style: dashed; }
+}
+@media (max-width: 600px) {
+  html[data-phone-cards="on"]:not([data-reduced-motion="true"]):not([data-effects="off"]):not([data-layout="pc"]) .letters-list li.paper-card.flip { animation: paper-flip 0.35s ease-out; }
+}
+@keyframes paper-flip { from { transform: perspective(600px) rotateX(-65deg); opacity: 0.5; } to { transform: none; opacity: 1; } }
 .info-page-how { margin: 0.3rem 0; padding-left: 1.2rem; }
