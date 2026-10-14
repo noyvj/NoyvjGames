@@ -27,3 +27,12 @@ html[data-layout="pc"] .room-holder svg { max-height: calc(100vh - 24rem); }
 
 html[data-layout="pc"] #story-toggle { top: 0.6rem !important; left: auto !important; right: 12rem !important; }
 #pc-hintbar { flex: 0 0 auto; }
+
+/* R4-RSPC-3: breakpoint gutter beside each step (the dot is filled when set, so it is never colour alone). */
+html[data-layout="pc"] #program .bp-gutter { flex: 0 0 auto; min-width: 1.4rem; min-height: 1.4rem; padding: 0; border: 0; background: transparent; color: var(--muted); cursor: pointer; line-height: 1; }
+html[data-layout="pc"] #program .bp-gutter:hover { color: var(--text); }
+html[data-layout="pc"] #program .bp-gutter.bp-on { color: var(--bad); }
+
+/* R4-RSPC-7: playback speed slider beside the run controls. */
+html[data-layout="pc"] .pc-speed { display: inline-flex; align-items: center; gap: 0.4rem; font-size: 0.85rem; }
+html[data-layout="pc"] .pc-speed input { width: 7rem; }

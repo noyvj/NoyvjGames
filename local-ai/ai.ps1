@@ -168,10 +168,20 @@ $aiderArgs = @("--model", $Model,
     "--model-settings-file", (Join-Path $aiDir "aider.model.settings.yml"),
     "--subtree-only", "--map-tokens", "1024",
     "--no-auto-commits", "--no-dirty-commits", "--no-gitignore",
-    "--test-cmd", "python ../../scripts/generate-pc-pages.py >NUL && python -m pytest -q -x --tb=line -p no:warnings", "--auto-test",
+    "--test-cmd", "python ../../scripts/generate-pc-pages.py >NUL && python -m pytest -q -x --tb=line -p no:warnings --ignore-glob=*browser*", "--auto-test",   # browser tests only run in the final check: they are slow and Aider reruns tests after every edit
     "--lint-cmd", "python: python -m flake8 --select=E9,F63,F7,F82", "--auto-lint",   # only real errors here: layout is fixed automatically afterwards, so the model keeps its retries for failing tests
     "--yes-always", "--no-pretty", "--no-stream", "--analytics-disable", "--no-check-update", "--timeout", "1800",   # a big multi-file request can take a long time on this laptop: wait up to 30 min per reply
     "--chat-history-file", $log, "--input-history-file", "NUL") + $readArgs
+# Thinking: the model's first reply was 6.5k-12k tokens of reasoning (3-5 minutes). config.txt: think = on | off | ab
+# ("ab" alternates task by task so local-ai/ab_report.py can compare pass rates and times before choosing).
+$thinkMode = "on"
+$cfgThink = Select-String -Path (Join-Path $aiDir "config.txt") -Pattern "^\s*think\s*=\s*(on|off|ab)\s*$" -ErrorAction SilentlyContinue | Select-Object -First 1
+if ($cfgThink) { $thinkMode = $cfgThink.Matches[0].Groups[1].Value }
+if ($thinkMode -eq "ab") {
+    $doneRows = @(Get-Content (Join-Path $aiDir "queue-done.txt") -Encoding utf8 -ErrorAction SilentlyContinue | Where-Object { $_ -match '(PASSED|FAILED)  ' }).Count
+    $thinkMode = if ($doneRows % 2 -eq 0) { "off" } else { "on" }
+}
+if ($thinkMode -eq "off") { $aiderArgs += @("--reasoning-effort", "none", "--no-check-model-accepts-settings") }
 
 # Run Aider as a background job so a stuck run can be stopped when the task's time is up
 # instead of blocking the whole queue for days. Returns $true if it was stopped for time.
@@ -213,14 +223,35 @@ Update-PcPages
 # Repair rounds: real changes but failing tests (a feature task, not a test-writing one). The model gets a
 # fresh session with the failing output and the files it changed, up to twice. This is the step that most
 # often turns a near miss (for example one save-format test) into a pass.
+# What the work looks like (each changed file and its content hash), so a full test pass can be reused when
+# nothing changed afterwards instead of running the slow browser tests twice.
+function Get-WorkState {
+    $files = @(git -C $work status --porcelain --untracked-files=all | ForEach-Object { $_.Substring(3).Trim('"') } | Where-Object { $_ -notlike ".aider*" } | Sort-Object)
+    ($files | ForEach-Object { $p = Join-Path $work $_; if (Test-Path $p -PathType Leaf) { $_ + ":" + (Get-FileHash $p -Algorithm MD5).Hash } else { $_ + ":gone" } }) -join "|"
+}
+$verifiedState = $null
+$verifiedLine = ""
 $repairs = 0
 while (-not $timedOut -and $repairs -lt 2) {
     $touched = @(git -C $work status --porcelain --untracked-files=all | ForEach-Object { $_.Substring(3).Trim('"') } |
         Where-Object { $_ -like "games/$Game/*" -and $_ -notlike "*/pc.html" })
     if ($touched.Count -eq 0 -or ($touched | Where-Object { $_ -notmatch "/tests/test_ai_[^/]+\.py$" }).Count -eq 0) { break }
     Push-Location $gameDir
-    $firstTry = (python -m pytest -q -x --tb=short -p no:warnings 2>&1 | Out-String)
+    $firstTry = (python -m pytest -q -x --tb=short -p no:warnings --ignore-glob=*browser* 2>&1 | Out-String)
     $passing = ($LASTEXITCODE -eq 0)
+    $fastLine = ($firstTry.Trim() -split "`n")[-1]
+    if ($passing) {
+        # The edit loop skips the slow browser tests, so run them once here: if they fail, the model gets to
+        # repair them (2026-10-13: two Dead Reckoning features broke browser tests the model never saw).
+        $browserFiles = @(Get-ChildItem (Join-Path $gameDir "tests") -Filter "*browser*.py" -File -ErrorAction SilentlyContinue | ForEach-Object { "tests/" + $_.Name })
+        $browserLine = "no browser tests"
+        if ($browserFiles.Count -gt 0) {
+            $browserTry = (python -m pytest -q -x --tb=short -p no:warnings @browserFiles 2>&1 | Out-String)
+            $browserLine = ($browserTry.Trim() -split "`n")[-1]
+            if ($LASTEXITCODE -ne 0) { $passing = $false; $firstTry = $browserTry }
+        }
+        if ($passing) { $verifiedState = Get-WorkState; $verifiedLine = "$fastLine; browser tests: $browserLine" }
+    }
     Pop-Location
     if ($passing) { break }
     $repairs++
@@ -284,8 +315,14 @@ if ($newTestFiles.Count -gt 0) {
 }
 
 Push-Location $gameDir
-$testOut = (python -m pytest -q 2>&1 | Out-String)
-$testsOk = ($LASTEXITCODE -eq 0)
+if ($verifiedState -and $verifiedState -eq (Get-WorkState)) {
+    # nothing changed since the repair check ran the whole suite (fast tests + browser tests): reuse it
+    $testOut = "$verifiedLine (whole suite, before the final tidy-up changed nothing)"
+    $testsOk = $true
+} else {
+    $testOut = (python -m pytest -q 2>&1 | Out-String)
+    $testsOk = ($LASTEXITCODE -eq 0)
+}
 $salvageNote = ""
 # A test-writing task with some wrong guesses: keep its passing tests rather than throw the whole file away.
 if (-not $testsOk -and $testOnly) {
@@ -363,6 +400,7 @@ if ($ok) {
 - Took: $minutes minutes
 - Tests: $testLine
 $(if ($salvageNote) { "- Salvage: $salvageNote" })
+- Thinking: $thinkMode
 $(if ($pageNote) { "- $pageNote" })
 $(if ($repairs) { "- Repair rounds: $repairs (the model was shown the failing tests and asked to fix them)" })
 $(if ($problems.Count) { "- Problems: " + ($problems -join "; ") })
@@ -383,6 +421,21 @@ if (-not $ok) {
     # failures never pile up on disk.
     git -C $root worktree remove --force $work 2>$null | Out-Null
     git -C $root branch -q -D $branch 2>$null | Out-Null
+    # One automatic second try for a TODO task (not test-writing tasks): back on the second list, which runs
+    # after queue.txt. A second failure is not retried again.
+    if ($Item -notmatch '^(T|EDGE)-') {
+        $doneFile = Join-Path $aiDir "queue-done.txt"
+        $failedBefore = @(Get-Content $doneFile -Encoding utf8 -ErrorAction SilentlyContinue | Where-Object { $_ -match "^\W*FAILED .*\| $([regex]::Escape($Item)) \|" }).Count
+        if ($failedBefore -eq 0 -and -not $timedOut) {
+            $retryLine = "$Game | $Item | $($Files -join ', ') | $($Task -replace '\|', '/')"
+            $nextFile = Join-Path $aiDir "queue-next.txt"   # retries go to the top, ahead of the parked test-writing tasks
+            $nextLines = @(Get-Content $nextFile -Encoding utf8 -ErrorAction SilentlyContinue)
+            $head = @($nextLines | Select-Object -First 1)
+            $rest = @($nextLines | Select-Object -Skip 1)
+            Set-Content -Encoding utf8 $nextFile (@($head) + @($retryLine) + $rest)
+            Write-Host "Queued one more try for $Item on the second list (queue-next.txt)."
+        }
+    }
     Write-Host "FAILED ($($problems -join '; ')). Nothing committed. Report: $report" -ForegroundColor Yellow
     Show-Tally $false
     exit 1
