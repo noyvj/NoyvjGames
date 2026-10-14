@@ -610,6 +610,38 @@
       settingsRow.appendChild(label);
     }
 
+    // Big-shape mode (R4-HRMO-9)
+    var BIG_PORTS_KEY = "hull-repair-big-ports";
+    function applyBigPorts(on) {
+      var holder = $("board-holder");
+      if (!holder) return;
+      holder.classList.toggle("hr-big-ports", Boolean(on));
+      try { localStorage.setItem(BIG_PORTS_KEY, on ? "1" : "0"); } catch(e) {}
+    }
+    (function initBigPorts() {
+      var val = "0";
+      try { val = localStorage.getItem(BIG_PORTS_KEY); } catch(e) {}
+      applyBigPorts(val === "1");
+
+      var settingsRow = document.querySelector(".settings-row");
+      if (settingsRow) {
+        var label = document.createElement("label");
+        label.className = "big-ports-label";
+        label.style.cssText = "display:flex;align-items:center;gap:0.3rem;font-size:0.85rem;color:var(--muted);cursor:pointer;margin-left:auto;";
+        var cb = document.createElement("input");
+        cb.type = "checkbox";
+        cb.checked = val === "1";
+        cb.style.cssText = "width:1.25rem;height:1.25rem;accent-color:var(--btn-primary);vertical-align:middle;";
+        label.appendChild(cb);
+        label.appendChild(document.createTextNode("Big ports"));
+        label.addEventListener("click", function(e) {
+          if (e.target !== cb) cb.checked = !cb.checked;
+          applyBigPorts(cb.checked);
+        });
+        settingsRow.appendChild(label);
+      }
+    })();
+
     $("toast").addEventListener("click", function () { showToast(""); });
     wirePanelToggle("rooms-toggle-button", "rooms-panel");
     wirePanelToggle("log-toggle-button", "log-panel");
