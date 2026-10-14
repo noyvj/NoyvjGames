@@ -38,6 +38,11 @@
     t.classList.toggle("on", Boolean(text));
   }
   function plural(n, one, many) { return n + " " + (n === 1 ? one : many); }
+  function triggerPulse(elOrId, className) {
+    var el = typeof elOrId === "string" ? $(elOrId) : elOrId;
+    if (!el) return;
+    el.classList.add(className);
+  }
 
   // ---- panels --------------------------------------------------------------------------------------
   function wirePanelToggle(buttonId, panelId) {
@@ -275,7 +280,9 @@
     list.textContent = "";
     view.log.forEach(function (l) {
       var cls = l.kind === "refused" ? "refused" : (/Cost \d/.test(l.msg) ? "cost" : (l.kind === "cure" ? "cure" : ""));
-      list.appendChild(el("li", cls, l.msg));
+      var li = el("li", cls, l.msg);
+      list.appendChild(li);
+      if (cls === "cost" || cls === "cure") triggerPulse(li, cls === "cost" ? "pulse-cost" : "pulse-clean");
     });
     list.scrollTop = list.scrollHeight;
   }
@@ -365,6 +372,7 @@
     var g = $("result-grade");
     g.textContent = "";
     g.appendChild(sealNode(r.grade_name));
+    if (r.grade_name === "Clean") triggerPulse(card, "pulse-clean");
     var ladder = r.difficulty === "easy" ? " on Easy" : r.difficulty === "hard" ? " on Hard" : "";
     g.appendChild(document.createTextNode(" Cost " + r.cost + ladder + (r.new_best ? ". A new best seal for this shift." : ". Your best here is " + r.best_name + ".") +
       (r.difficulty !== "normal" && r.normal_grade_name ? " On Normal this cost is a " + r.normal_grade_name + " seal." : "")));

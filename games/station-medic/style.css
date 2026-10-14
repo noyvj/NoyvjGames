@@ -193,6 +193,23 @@ html[data-narrow="off"] .sheet li.ruled-out { opacity: 1; border-style: solid; }
   #cabinet-panel .shelf .count { font-size: 1rem; }
   #cabinet-panel .shelf .sname { display: none; }
   html[data-reduced-motion="true"] #cabinet-panel .shelf { transition: none; }
+
+  /* R4-SMMO-3: Mobile pulses for result and cost */
+  @keyframes pulse-clean {
+    0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(143, 224, 164, 0.7); }
+    50% { transform: scale(1.02); box-shadow: 0 0 12px 4px rgba(143, 224, 164, 0.4); }
+    100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(143, 224, 164, 0); }
+  }
+  @keyframes pulse-cost {
+    0%, 100% { transform: scale(1); }
+    25%, 75% { transform: scale(1.03); }
+  }
+  .result-card.pulse-clean { animation: pulse-clean 0.6s ease-out; }
+  .log li.cost.pulse-cost, .bedside .cost-indicator.pulse-cost { animation: pulse-cost 0.4s ease-in-out 2; }
+  html[data-reduced-motion="true"] .result-card.pulse-clean,
+  html[data-effects="off"] .result-card.pulse-clean,
+  html[data-reduced-motion="true"] .log li.cost.pulse-cost,
+  html[data-effects="off"] .log li.cost.pulse-cost { animation: none; }
 }
 
 /* Goals: three at a time, always in view. */
