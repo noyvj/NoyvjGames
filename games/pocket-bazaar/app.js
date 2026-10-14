@@ -767,37 +767,37 @@
     setTimeout(function () { suppressClick = false; }, 0);
     if (cancelled) return;
 
-    // Swipe detection for mobile
-    var absDx = Math.abs(d.dx);
-    var absDy = Math.abs(d.dy);
-    var threshold = 40;
-    var targetIdx = null;
-    if (cellEls.length > 0 && absDx > threshold && absDx > absDy) {
-      targetIdx = d.dx > 0 ? d.from + 1 : d.from - 1;
-    } else if (cellEls.length > 0 && absDy > threshold && absDy > absDx) {
-      var b = view.board;
-      if (b) {
-        var row = Math.floor(d.from / b.w);
-        targetIdx = d.dy > 0 ? d.from + b.w : d.from - b.w;
+    var spec = d.lastTarget ? d.lastTarget.dataset.drop : "";
+    // R4-PBMO-1, a flick. A short push that ends on nothing (or back on its own cell) moves the
+    // good one cell the way it was pushed, onto an empty cell or a match. A real drop on a cell, customer or tool is untouched.
+    if (spec === "" || spec === "cell:" + d.from) {
+      var flick = flickTarget(d);
+      if (flick !== null) {
+        var partners = view.partners[String(d.from)] || [];
+        if (!cellAt(flick) || partners.indexOf(flick) !== -1) send({ action: "drop", from: d.from, to: flick });
+        else { select(d.from); showMessage("Something is in the way there. Flick toward an empty cell or a match.", false); }
+        return;
       }
     }
-
-    if (targetIdx !== null && targetIdx >= 0 && targetIdx < cellEls.length) {
-      var targetBtn = cellButton(targetIdx);
-      if (targetBtn) {
-        targetBtn.classList.add("swipe-target");
-      }
-      send({ action: "swipe", from: d.from, to: targetIdx });
-    } else {
-      var spec = d.lastTarget ? d.lastTarget.dataset.drop : "";
-      if (spec === "sell") sellAt(d.from);
-      else if (spec === "broom") send({ action: "broom", at: d.from });
-      else if (spec.indexOf("customer:") === 0) send({ action: "deliver", from: d.from, to: Number(spec.slice(9)) });
-      else if (spec.indexOf("cell:") === 0) {
-        var to = Number(spec.slice(5));
-        if (to === d.from) select(d.from); else send({ action: "drop", from: d.from, to: to });
-      } else select(null);
-    }
+    if (spec === "sell") sellAt(d.from);
+    else if (spec === "broom") send({ action: "broom", at: d.from });
+    else if (spec.indexOf("customer:") === 0) send({ action: "deliver", from: d.from, to: Number(spec.slice(9)) });
+    else if (spec.indexOf("cell:") === 0) {
+      var to = Number(spec.slice(5));
+      if (to === d.from) select(d.from); else send({ action: "drop", from: d.from, to: to });
+    } else select(null);
+  }
+  var FLICK_MIN = 24;
+  // The cell one step from d.from in the direction of the push, or null when the push was too short or leaves the grid.
+  function flickTarget(d) {
+    var b = view && view.board;
+    if (!b || d.from >= b.w * b.h) return null;
+    var ax = Math.abs(d.dx), ay = Math.abs(d.dy);
+    if (Math.max(ax, ay) < FLICK_MIN) return null;
+    var row = Math.floor(d.from / b.w), col = d.from % b.w;
+    if (ax >= ay) col += d.dx > 0 ? 1 : -1; else row += d.dy > 0 ? 1 : -1;
+    if (col < 0 || col >= b.w || row < 0 || row >= b.h) return null;
+    return row * b.w + col;
   }
 
   // ---- the keyboard --------------------------------------------------------------------------
