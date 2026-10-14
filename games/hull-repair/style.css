@@ -218,6 +218,7 @@ html[data-effects="off"] .hr-room.s2 .hr-window { opacity: 0.9; }
 .ach-list .tick { display: inline-block; min-width: 4rem; text-align: center; font-weight: 700; font-size: 0.78rem; border: 1px solid var(--edge); border-radius: 999px; padding: 0 0.4rem; font-variant-numeric: tabular-nums; }
 .ach-list li.earned .tick { border-style: double; border-width: 3px; }
 .one-more-btn { display: none; }
+.home-progress { display: none; }
 .hr-undo-btn { display: none; }
 @media (max-width: 600px) {
   /* Thumb-height Undo: fixed above the ad bar, on the side of the chosen hand (R4-HRMO-5) */
@@ -268,6 +269,7 @@ html[data-effects="off"] .hr-room.s2 .hr-window { opacity: 0.9; }
   /* Prevent layout shift during haptic feedback on mobile */
   .board-holder { transform: translateZ(0); }
   .home-progress {
+    display: block;
     background: var(--panel-fill);
     border: 1px solid var(--line);
     border-radius: 12px;

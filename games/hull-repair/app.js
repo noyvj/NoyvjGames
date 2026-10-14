@@ -330,21 +330,11 @@
     $("hint-answer").hidden = !h.answer;
   }
   function renderHomeProgress() {
-    var card = $("home-progress");
-    if (!card) {
-      card = el("div", "home-progress");
-      card.id = "home-progress";
-      card.innerHTML = '<span id="hp-text"></span><div class="progress-bar"><div id="hp-fill" class="progress-fill"></div></div>';
-      var game = $("game");
-      if (game) game.insertBefore(card, game.firstChild);
-    }
-    if (!view || !view.totals) return;
+    if (!view || !view.totals || !view.board) return;
     var restored = view.totals.restored || 0;
-    var total = 40;
-    var pct = Math.round((restored / total) * 100);
-    setText($("hp-text"), "Rooms restored: " + restored + " / " + total);
-    $("hp-fill").style.width = pct + "%";
-    card.hidden = Boolean(view.board);
+    var total = view.totals.rooms || 1;
+    setText($("hp-text"), "Rooms restored: " + restored + " of " + total + " · Deck: " + view.board.chapter);
+    $("hp-fill").style.width = Math.round((restored / total) * 100) + "%";
   }
 
   function syncThumbUndo() {
