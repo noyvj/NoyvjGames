@@ -356,3 +356,72 @@ window.STATION_MEDIC_PC_TUTORIAL_STEPS = [
   }
   window.addEventListener("beforeprint", build);
 })();
+
+(function () {
+  "use strict";
+  var pc = window.StationMedicPc;
+
+  // R4-SMPC-10: pin a patient's chart (signs, scans, chart notes, what could fit) as its own resizable window. Pin as many
+  // as you like, one per patient, and read them all at once; they update as you play and Unpin closes them.
+  var pinned = [], bar = null, button = null;
+  function currentIndex() {
+    var b = document.querySelector('#patients .patient[aria-pressed="true"]');
+    return b ? Number(b.dataset.patientId) : -1;
+  }
+  function add(parent, tag, text, cls) { var n = document.createElement(tag); n.textContent = text; if (cls) n.className = cls; parent.appendChild(n); return n; }
+  function windowFor(p) {
+    var win = document.createElement("section");
+    win.className = "pinned-chart";
+    win.setAttribute("role", "group");
+    win.setAttribute("aria-label", p.name + ", pinned chart");
+    var close = add(win, "button", "Unpin", "pinned-close");
+    close.type = "button";
+    close.setAttribute("aria-label", "Unpin " + p.name + "'s chart");
+    close.addEventListener("click", function () { pinned.splice(pinned.indexOf(p.i), 1); draw(); });
+    add(win, "h3", p.name + " (" + p.role + ")");
+    add(win, "p", "Signs: " + (p.signs.map(function (s) { return s.name; }).join(", ") || "none"));
+    add(win, "p", "Scans: " + (p.readings.map(function (r) { return r.test + " " + (r.state === "unknown" ? "not run" : r.state === "positive" ? r.positive : "nothing"); }).join("; ") || "none on this shift"));
+    add(win, "p", "Chart notes: " + (p.notes.join("; ") || "none"));
+    add(win, "p", "Could be: " + (p.matches.join("; ") || "nothing"));
+    add(win, "p", p.closed ? p.outcome : "Not yet settled", "note");
+    return win;
+  }
+  function draw() {
+    var v = pc.view();
+    if (!v) return;
+    if (!bar) {
+      bar = document.createElement("div");
+      bar.id = "pinned-charts";
+      bar.setAttribute("role", "region");
+      bar.setAttribute("aria-label", "Pinned charts");
+      document.body.appendChild(bar);
+    }
+    pinned = pinned.filter(function (i) { return v.patients[i]; });
+    bar.textContent = "";
+    bar.hidden = !pinned.length;
+    pinned.forEach(function (i) { bar.appendChild(windowFor(v.patients[i])); });
+    if (button) {
+      var on = pinned.indexOf(currentIndex()) !== -1;
+      button.textContent = on ? "Unpin this chart" : "Pin this chart";
+      button.setAttribute("aria-pressed", String(on));
+    }
+  }
+  pc.ready(function () {
+    var head = document.querySelector("#bedside .bedside-head > div:last-child") || document.querySelector("#bedside .bedside-head");
+    if (head) {
+      button = document.createElement("button");
+      button.id = "pin-chart-button";
+      button.type = "button";
+      button.addEventListener("click", function () {
+        var i = currentIndex();
+        if (i < 0) return;
+        var at = pinned.indexOf(i);
+        if (at === -1) pinned.push(i); else pinned.splice(at, 1);
+        draw();
+      });
+      head.appendChild(button);
+    }
+    pc.onRendered(draw);
+    draw();
+  });
+})();
