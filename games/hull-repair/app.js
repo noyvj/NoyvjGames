@@ -324,6 +324,24 @@
     setText($("hint-hint"), h.hint ? "Hint: " + h.hint : "");
     $("hint-answer").hidden = !h.answer;
   }
+  function renderHomeProgress() {
+    var card = $("home-progress");
+    if (!card) {
+      card = el("div", "home-progress");
+      card.id = "home-progress";
+      card.innerHTML = '<span id="hp-text"></span><div class="progress-bar"><div id="hp-fill" class="progress-fill"></div></div>';
+      var game = $("game");
+      if (game) game.insertBefore(card, game.firstChild);
+    }
+    if (!view || !view.totals) return;
+    var restored = view.totals.restored || 0;
+    var total = 40;
+    var pct = Math.round((restored / total) * 100);
+    setText($("hp-text"), "Rooms restored: " + restored + " / " + total);
+    $("hp-fill").style.width = pct + "%";
+    card.hidden = Boolean(view.board);
+  }
+
   function render() {
     renderAbout();
     renderBoard();
@@ -335,6 +353,7 @@
     renderAchievements();
     renderGoalStrip();
     renderHints();
+    renderHomeProgress();
   }
 
   // ---- sound (shared/sfx.js: generated in code, off unless the player turns it on, never the only signal) ----

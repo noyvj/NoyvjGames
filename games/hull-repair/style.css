@@ -232,4 +232,31 @@ html[data-effects="off"] .hr-room.s2 .hr-window { opacity: 0.9; }
   .board-holder { transform: translateZ(0); }
   /* Trim gesture preview */
   .hr-trim-preview { stroke: var(--accent); stroke-width: 12; stroke-dasharray: 6 4; fill: none; opacity: 0.75; pointer-events: none; }
+
+  .home-progress {
+    background: var(--panel-fill);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 0.5rem 0.8rem;
+    margin: 0.5rem auto;
+    text-align: center;
+    font-size: 0.9rem;
+    color: var(--text);
+  }
+  .home-progress .progress-bar {
+    height: 6px;
+    background: var(--surface);
+    border-radius: 3px;
+    margin-top: 0.4rem;
+    overflow: hidden;
+  }
+  .home-progress .progress-fill {
+    height: 100%;
+    background: var(--ok);
+    transition: width 0.3s ease-out;
+  }
+  html[data-reduced-motion="true"] .home-progress .progress-fill,
+  html[data-effects="off"] .home-progress .progress-fill {
+    transition: none;
+  }
 }
