@@ -150,9 +150,6 @@ html[data-high-contrast="true"] .dr-est-track-b, html[data-high-contrast="true"]
   .wheel-pickers { display: flex !important; position: fixed; left: 0; right: 0; bottom: 50px; z-index: 140; padding: 0.8rem; background: var(--panel-fill); border-top: 2px solid var(--edge); }
   .wheel-track { height: 7rem; }
 
-  /* Long-press fix mark */
-  .dr-fix-mark { pointer-events: none; }
-
   /* Swipe-to-delete legs */
   .leg { touch-action: pan-y; user-select: none; transition: transform 0.2s ease-out; will-change: transform; }
   html[data-reduced-motion="true"] .leg { transition: none; }
