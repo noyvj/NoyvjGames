@@ -196,9 +196,12 @@ html[data-effects="off"] *, html[data-effects="off"] *::before, html[data-effect
   animation: none !important; transition: none !important; scroll-behavior: auto !important;
 }
 
+/* The tool dock below is phone-only (R4-PBMO-3). */
+.mobile-dock { display: none; }
+
 @media (max-width: 600px) {
   /* The board shrinks to the screen's height so the crates and Sell/Broom stay on screen without scrolling. */
-  .board { max-width: min(22rem, 100%, calc((100vh - 23rem) * var(--cols) / 6)); }
+  .board { max-width: min(22rem, 100%, calc((100vh - 26.6rem) * var(--cols) / 6)); }
   /* A phone shows the whole counter and the crates without scrolling: the long intro and the panel title step aside. */
   .tagline { display: none; }
   .panel-title { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; }
@@ -241,37 +244,15 @@ html[data-effects="off"] *, html[data-effects="off"] *::before, html[data-effect
   #game.mirror .tool-buttons { order: 1; }
   .tool { flex: 0 0 auto; min-width: 3.4rem; padding: 0.2rem 0.3rem; font-size: 0.8rem; }
 
-  /* Mobile bottom dock for Sell, Broom, Hand over */
-  .mobile-dock {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    display: flex;
-    justify-content: center;
-    gap: 0.5rem;
-    padding: 0.8rem 1rem calc(0.8rem + env(safe-area-inset-bottom));
-    background: var(--panel-fill);
-    border-top: 1px solid var(--line);
-    z-index: 100;
+  /* R4-PBMO-3: three big tool buttons along the bottom edge, above the ad bar (50px), only while a day is open.
+     They replace the small Sell/Broom pair, and the board is a little smaller so everything still fits one screen. */
+  #game[data-phase="open"] .mobile-dock {
+    position: fixed; left: 0; right: 0; bottom: calc(50px + env(safe-area-inset-bottom)); z-index: 90;
+    display: flex; justify-content: center; gap: 0.4rem; padding: 0.3rem 0.6rem;
+    background: var(--panel-fill); border-top: 1px solid var(--line);
   }
-  .mobile-dock button {
-    flex: 1 1 0;
-    max-width: 8rem;
-    padding: 0.6rem 0.4rem;
-    font-size: 1rem;
-    font-weight: 700;
-    border-radius: 12px;
-    background: var(--btn);
-    color: var(--text);
-    border: 1px solid var(--edge);
-  }
-  .mobile-dock button.active {
-    border-color: var(--accent);
-    border-width: 2px;
-    background: var(--surface);
-  }
-  /* Hide the old tool buttons on mobile (they are in the dock) */
+  .mobile-dock button { flex: 1 1 0; max-width: 9rem; min-height: 2.75rem; padding: 0.3rem; font-size: 1rem; font-weight: 700; border-radius: 12px; }
+  .mobile-dock button[aria-pressed="true"] { border: 3px solid var(--accent); }
   .tool-buttons { display: none !important; }
 
   /* Resume banner: appears when a day is left mid-play. */

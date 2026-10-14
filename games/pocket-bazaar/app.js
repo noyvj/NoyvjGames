@@ -525,6 +525,10 @@
     var sell = $("sell-button");
     setText(sell, cell ? "Sell (" + cell.sell + ")" : "Sell");
     $("broom-button").setAttribute("aria-pressed", broomArmed ? "true" : "false");
+    var dockSell = document.querySelector('#mobile-dock [data-action="sell"]');
+    var dockBroom = document.querySelector('#mobile-dock [data-action="broom"]');
+    if (dockSell) setText(dockSell, cell ? "Sell (" + cell.sell + ")" : "Sell");
+    if (dockBroom) dockBroom.setAttribute("aria-pressed", broomArmed ? "true" : "false");
   }
 
   function bumpStat(id, value) {
@@ -1030,16 +1034,21 @@
     if (window.GameTutorial) window.GameTutorial.init(window.pocketBazaarTutorialSteps ? window.pocketBazaarTutorialSteps(TUTORIAL_STEPS) : TUTORIAL_STEPS, { gameId: "pocket-bazaar" });
   }
 
-  // Mobile bottom dock for Sell, Broom, Hand over
-  var dock = document.querySelector(".mobile-dock");
+  // R4-PBMO-3: the dock along the bottom edge (phones only, CSS) does exactly what Sell, Broom and D do.
+  function doHandOver() {
+    if (selected === null) { showMessage("Pick up a good first (tap it), then press Hand over.", false); return; }
+    var takers = view.deliverable[String(selected)] || [];
+    send({ action: "deliver", from: selected, to: takers.length ? takers[0] : 0 });
+  }
+  var dock = document.getElementById("mobile-dock");
   if (dock) {
     dock.addEventListener("click", function (e) {
       var btn = e.target.closest("button[data-action]");
-      if (!btn) return;
+      if (!btn || !view || view.phase !== "open") return;
       var action = btn.getAttribute("data-action");
-      if (action === "sell") send({ action: "sell" });
-      else if (action === "broom") send({ action: "broom" });
-      else if (action === "handover") send({ action: "deliver", from: selected, to: 0 });
+      if (action === "sell") doSell();
+      else if (action === "broom") doBroom();
+      else if (action === "handover") doHandOver();
     });
   }
 
