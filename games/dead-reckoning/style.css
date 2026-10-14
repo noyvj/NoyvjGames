@@ -155,21 +155,8 @@ html[data-high-contrast="true"] .dr-est-track-b, html[data-high-contrast="true"]
   .undo-bar.visible { transform: translateY(0); }
   .undo-bar button { min-width: 6rem; }
 }
-/* Mobile accuracy indicator */
-.dr-accuracy-indicator { display: none; }
-@media (max-width: 600px) {
-  .dr-accuracy-indicator {
-    display: flex; align-items: center; gap: 0.4rem;
-    margin-top: 0.5rem; padding: 0.4rem 0.6rem;
-    background: var(--surface); border: 1px solid var(--line); border-radius: 8px;
-    font-size: 0.9rem; color: var(--text);
-  }
-  .dr-accuracy-indicator.buzzing { animation: pulse-buzz 0.4s ease-in-out 3; }
-}
-@keyframes pulse-buzz {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.05); }
-}
+/* R4-DEMO-4: the "plot within a mile of the truth" line on the result card (shown by app.js, hidden otherwise) */
+.dr-accuracy-indicator { margin: 0.5rem 0 0; padding: 0.4rem 0.6rem; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; font-size: 0.9rem; }
 
 /* --- legend and notes ------------------------------------------------------------------------------ */
 .legend { display: flex; flex-wrap: wrap; gap: 0.3rem 1.2rem; margin: 0.5rem 0 0; padding: 0; list-style: none; font-size: 0.85rem; color: var(--muted); }

@@ -558,20 +558,14 @@
     r.criteria.forEach(function (c) { crit.appendChild(el("li", c.text, c.ok ? "ok" : "no")); });
     renderEvents(Infinity);
     renderResultExtras();
-    // Mobile accuracy indicator (R4-DEMO-4)
+    // R4-DEMO-4: a plot that ends within a nautical mile of where the ship really ended up is said in words (every screen) and felt as one short
+    // buzz where the browser has one. The buzz follows Reduce motion and the Effects switch; a phone without one just shows the line.
+    var near = r.forecast_error_nm != null && r.forecast_error_nm <= 1.0;
     var ind = $("dr-accuracy-indicator");
-    if (!ind) {
-      ind = el("div", undefined, "dr-accuracy-indicator");
-      ind.id = "dr-accuracy-indicator";
-      card.appendChild(ind);
-    }
-    if (r.miss_nm != null && r.miss_nm <= 1.0) {
-      setText(ind, "You are within a mile of the flag.");
-      if (!reducedMotion() && navigator.vibrate) navigator.vibrate(50);
-      ind.classList.add("buzzing");
-      setTimeout(function () { ind.classList.remove("buzzing"); }, 1200);
-    } else {
-      ind.textContent = "";
+    ind.hidden = !near;
+    setText(ind, near ? "Your plot ended within a mile of where the ship really ended up." : "");
+    if (near && navigator.vibrate && !reducedMotion() && document.documentElement.getAttribute("data-effects") !== "off") {
+      try { navigator.vibrate(60); } catch (e) { /* a buzz is only a bonus */ }
     }
     announce(r.title + ". " + r.stars_text + ". " + r.lines[0]);
   }
