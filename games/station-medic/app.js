@@ -760,24 +760,24 @@
   }
 
   // R4-SMMO-5: hold the shift title to restore the shift, behind the same confirm as the Restore button (which stays the
-  // keyboard and one-tap way). Only a steady hold counts: lifting, leaving or moving the finger cancels it.
+  // keyboard and one-tap way). The page uses no timers (a tested pledge), so the hold is judged when the finger or button is
+  // released: pressed for at least HOLD_MS (the event's own time stamp) without moving, it opens the confirm.
   var HOLD_MS = 700;
   function _initHoldToRestore() {
     var heading = $("shift-heading");
-    var held = null, x0 = 0, y0 = 0;
-    function cancel() { if (held) { clearTimeout(held); held = null; } }
+    var t0 = null, x0 = 0, y0 = 0, moved = false;
     heading.title = "Hold to restore this shift";
     heading.addEventListener("pointerdown", function (e) {
       if (e.button) return;
-      cancel();
-      x0 = e.clientX; y0 = e.clientY;
-      held = setTimeout(function () {
-        held = null;
-        askThen("station-medic-restore-hold", "Restore this shift to its start? Your seals are kept; only this shift's actions are cleared.", "Restore it", function () { send({ action: "restore" }); });
-      }, HOLD_MS);
+      t0 = e.timeStamp; x0 = e.clientX; y0 = e.clientY; moved = false;
     });
-    heading.addEventListener("pointermove", function (e) { if (held && (Math.abs(e.clientX - x0) > 10 || Math.abs(e.clientY - y0) > 10)) cancel(); });
-    ["pointerup", "pointercancel", "pointerleave"].forEach(function (name) { heading.addEventListener(name, cancel); });
+    heading.addEventListener("pointermove", function (e) { if (t0 !== null && (Math.abs(e.clientX - x0) > 10 || Math.abs(e.clientY - y0) > 10)) moved = true; });
+    heading.addEventListener("pointerup", function (e) {
+      var held = t0 !== null && !moved && e.timeStamp - t0 >= HOLD_MS;
+      t0 = null;
+      if (held) askThen("station-medic-restore-hold", "Restore this shift to its start? Your seals are kept; only this shift's actions are cleared.", "Restore it", function () { send({ action: "restore" }); });
+    });
+    ["pointercancel", "pointerleave"].forEach(function (name) { heading.addEventListener(name, function () { t0 = null; }); });
     heading.addEventListener("contextmenu", function (e) { e.preventDefault(); });   // a phone's long press would open its own menu
   }
 
