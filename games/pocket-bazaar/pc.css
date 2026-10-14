@@ -73,6 +73,17 @@ html[data-layout="pc"] .cell[data-hover-target]::before {
   font-size: 0.7rem; line-height: 1.2; text-align: center; pointer-events: none;
 }
 
+/* R4-PBPC-6: large combo counter (static: it grows by step, not by animation). */
+#combo-display { display: none; text-align: center; margin: 0; padding: 0.3rem 0.5rem; border: 2px solid var(--line); border-radius: 12px; background: var(--panel-fill); }
+#combo-display.active { display: block; }
+#combo-display .combo-num { display: block; font-weight: 800; line-height: 1.1; font-variant-numeric: tabular-nums; }
+#combo-display .combo-line { display: block; font-size: 0.8rem; color: var(--muted); }
+#combo-display.combo-x1 .combo-num { font-size: 1.6rem; }
+#combo-display.combo-x2 { border-color: var(--edge); border-style: dashed; }
+#combo-display.combo-x2 .combo-num { font-size: 2.4rem; color: var(--accent); }
+#combo-display.combo-x3 { border-color: var(--accent); border-style: double; border-width: 5px; }
+#combo-display.combo-x3 .combo-num { font-size: 3.2rem; color: var(--accent); text-decoration: underline; }
+
 /* R4-PBPC-3: customer hover tip, beside the card. Placed by pc.js. */
 #pc-customer-tip {
   position: fixed; z-index: 900; max-width: 18rem; padding: 0.4rem 0.6rem; pointer-events: none;

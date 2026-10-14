@@ -102,6 +102,43 @@ window.pocketBazaarAfterRender = function () {
   });
 })();
 
+/* R4-PBPC-6: a large combo counter under the stats. It grows with the multiplier and says how many orders in a row.
+   It only restates what the Combo stat already says (aria-hidden) and has no animation of its own. */
+(function () {
+  "use strict";
+  var big = null;
+
+  function refresh() {
+    var view = pbPcView();
+    var stats = document.getElementById("stats");
+    if (!stats || !view) return;
+    if (!big) {
+      big = document.createElement("div");
+      big.id = "combo-display";
+      big.setAttribute("aria-hidden", "true");
+      stats.insertAdjacentElement("afterend", big);
+    }
+    var day = view.phase === "open" ? view.day : null;
+    if (!day || !day.streak) {
+      big.textContent = "";
+      big.className = "";
+      return;
+    }
+    big.className = "active combo-x" + day.mult;
+    big.textContent = "";
+    var num = document.createElement("span");
+    num.className = "combo-num";
+    num.textContent = "x" + day.mult;
+    var line = document.createElement("span");
+    line.className = "combo-line";
+    line.textContent = day.streak + (day.streak === 1 ? " order in a row" : " orders in a row");
+    big.appendChild(num);
+    big.appendChild(line);
+  }
+
+  window.pbPcAfterRender.push(refresh);
+})();
+
 /* R4-PBPC-3: hover a customer to read what they want and their patience in beats. The card's own aria-label already
    says the same, so the tip is a visual extra (aria-hidden). */
 (function () {
