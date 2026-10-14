@@ -13,8 +13,8 @@ html[data-layout="pc"] #game { padding-bottom: 0.4rem; max-width: none; }
 html[data-layout="pc"] .stat { display: flex; flex-direction: column; }
 
 #pc-stage > #board-panel { flex: 1 1 0; min-height: 0; overflow-y: auto; margin: 0; }
-html[data-layout="pc"] .board-holder { max-width: min(100%, 40rem, calc((100vh - 24rem) * 1.05)); }
-html[data-layout="pc"] .board-holder svg { max-height: calc(100vh - 24rem); }
+html[data-layout="pc"] .board-holder { max-width: min(100%, calc(40rem * var(--board-scale, 1)), calc((100vh - 24rem) * 1.05 * var(--board-scale, 1))); }
+html[data-layout="pc"] .board-holder svg { max-height: calc((100vh - 24rem) * var(--board-scale, 1)); }
 
 #pc-body.pc-has-side { grid-template-columns: minmax(0, 1fr) clamp(14rem, 20vw, 20rem); }
 #pc-side { min-width: 0; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; gap: 0.6rem; padding-right: 0.2rem; }
@@ -23,85 +23,42 @@ html[data-layout="pc"] .board-holder svg { max-height: calc(100vh - 24rem); }
 html[data-layout="pc"] #story-toggle { top: 0.6rem !important; left: auto !important; right: 12rem !important; }
 html[data-layout="pc"] .map-holder { max-width: 36rem; }
 
-/* R4-HRPC-2: Hover highlights for ports and lines */
-html[data-layout="pc"] .board-holder svg .port,
-html[data-layout="pc"] .board-holder svg path.line {
-  transition: opacity 0.15s ease, filter 0.15s ease;
+/* R4-HRPC-2: hover a port or a line (pc.js adds .highlighted and the #pc-hover-tip text) */
+html[data-layout="pc"] g.hr-port.highlighted .hr-shape { stroke: var(--focus); stroke-width: 4; }
+html[data-layout="pc"] g.hr-line.highlighted .hr-pipe { stroke: var(--focus); }
+html[data-layout="pc"] .pc-hover-tip {
+  position: fixed; z-index: 60; pointer-events: none; padding: 0.15rem 0.5rem; border-radius: 6px;
+  background: var(--surface); color: var(--text); border: 1px solid var(--edge); font-size: 0.85rem;
 }
+html[data-layout="pc"] .pc-hover-tip[hidden] { display: none; }
+
+/* R4-HRPC-6: C pulses the cells no line covers yet; with reduced motion they just stay highlighted */
+html[data-layout="pc"] .board-holder.pulse-on .hr-dot { display: inline; fill: var(--focus); opacity: 1; animation: hr-pulse 1.5s ease-in-out infinite; }
+@keyframes hr-pulse { 0%, 100% { opacity: 0.35; } 50% { opacity: 1; } }
+html[data-layout="pc"][data-reduced-motion="true"] .board-holder.pulse-on .hr-dot { animation: none; }
 @media (prefers-reduced-motion: reduce) {
-  html[data-layout="pc"] .board-holder svg .port,
-  html[data-layout="pc"] .board-holder svg path.line {
-    transition: none;
-  }
-}
-html[data-layout="pc"] .board-holder svg .port:hover,
-html[data-layout="pc"] .board-holder svg path.line:hover {
-  filter: brightness(1.25);
-}
-html[data-layout="pc"] .board-holder svg .port.highlighted,
-html[data-layout="pc"] .board-holder svg path.line.highlighted {
-  filter: brightness(1.4);
+  html[data-layout="pc"]:not([data-reduced-motion="false"]) .board-holder.pulse-on .hr-dot { animation: none; }
 }
 
-/* R4-HRPC-6: Pulse uncovered cells on C */
-html[data-layout="pc"] .board-holder circle.pulse-uncovered {
-  animation: pulse-uncovered 1.5s ease-in-out infinite;
+/* R4-HRPC-7: when a room is patched or restored the lines draw themselves again, in order (pc.js sets pathLength and --i) */
+html[data-layout="pc"] #hr-lines.hr-replaying .hr-pipe,
+html[data-layout="pc"] #hr-lines.hr-replaying .hr-core {
+  stroke-dasharray: 1; stroke-dashoffset: 1;
+  animation: hr-draw 0.5s ease forwards; animation-delay: calc(var(--i, 0) * 0.2s);
 }
-@media (prefers-reduced-motion: reduce) {
-  html[data-layout="pc"] .board-holder circle.pulse-uncovered {
-    animation: none;
-    opacity: 0.85;
-  }
-}
-html[data-layout="pc"][data-reduced-motion="true"] .board-holder circle.pulse-uncovered {
-  animation: none;
-  opacity: 0.85;
-}
-@keyframes pulse-uncovered {
-  0%, 100% { opacity: 0.2; }
-  50% { opacity: 0.8; }
-}
+@keyframes hr-draw { to { stroke-dashoffset: 0; } }
 
-/* R4-HRPC-7: Replay drawing on restore */
-html[data-layout="pc"] .board-holder svg path.line.replay {
-  animation: draw-line 0.6s ease forwards;
-}
-@keyframes draw-line {
-  to { stroke-dashoffset: 0; }
-}
-@media (prefers-reduced-motion: reduce) {
-  html[data-layout="pc"] .board-holder svg path.line.replay {
-    animation: none;
-  }
-}
-html[data-layout="pc"][data-reduced-motion="true"] .board-holder svg path.line.replay {
-  animation: none;
-}
-
-/* R4-HRPC-9: Board scale slider */
-html[data-layout="pc"] #board-scale-slider {
-  width: 12rem;
-  margin: 0.5rem 0;
-}
-
-/* R4-HRPC-9: Focus mode (hides side panels) */
+/* R4-HRPC-9: board size slider, focus mode (F) */
+html[data-layout="pc"] .pc-board-tools { display: flex; flex-direction: column; gap: 0.4rem; }
+html[data-layout="pc"] .pc-board-tools input[type="range"] { width: 100%; }
 html[data-layout="pc"].focus-mode #pc-side,
-html[data-layout="pc"].focus-mode #pc-stagebar {
-  display: none !important;
-}
-html[data-layout="pc"].focus-mode .board-holder svg {
-  transform: scale(var(--board-scale, 1));
-  transform-origin: center center;
-}
-@media (prefers-reduced-motion: reduce) {
-  html[data-layout="pc"].focus-mode .board-holder svg {
-    transition: none;
-  }
-}
+html[data-layout="pc"].focus-mode #pc-stagebar { display: none; }
+html[data-layout="pc"].focus-mode #pc-body.pc-has-side { grid-template-columns: minmax(0, 1fr); }
+html[data-layout="pc"].focus-mode .board-holder { max-width: min(100%, calc((100vh - 9rem) * 1.05 * var(--board-scale, 1))); }
+html[data-layout="pc"].focus-mode .board-holder svg { max-height: calc((100vh - 9rem) * var(--board-scale, 1)); }
+html[data-layout="pc"] .pc-focus-exit { position: fixed; right: 0.8rem; bottom: 0.8rem; z-index: 60; min-height: 2.75rem; }
+html[data-layout="pc"] .pc-focus-exit[hidden] { display: none; }
 
-/* R4-HRPC-10: Map room focus ring */
-html[data-layout="pc"] #map-holder .room:focus,
-html[data-layout="pc"] #map-holder [role="button"]:focus {
-  outline: 2px solid #3b82f6;
-  outline-offset: 2px;
-}
+/* R4-HRPC-10: the station map as a keyboard grid (pc.js makes each room a focusable button) */
+html[data-layout="pc"] #map-holder g.hr-room:focus { outline: none; }
+html[data-layout="pc"] #map-holder g.hr-room:focus .hr-room-body { stroke: var(--focus); stroke-width: 3; }
