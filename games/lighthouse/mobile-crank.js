@@ -1,78 +1,84 @@
+/*
+ * Lighthouse -- R4-LHMO-2: wind the clockwork by drawing circles on a crank (phones, night only, when "Wind crank" is
+ * switched on under Settings > On a phone). One full turn of the handle, either way round, sends the same {action: "wind"}
+ * the "Wind it" button and the W key send. The plain "Wind it" button beside the crank does the same without any
+ * drawing, so the gesture is never the only way. Nothing is timed: the handle stays wherever you leave it.
+ */
 (function () {
   "use strict";
-  var THRESHOLD = 360;
-  var container = null;
-  var svg = null;
-  var handle = null;
-  var startAngle = 0;
-  var currentRotation = 0;
-  var totalRotation = 0;
-  var isDragging = false;
+  var wrap = document.getElementById("crank-wrap");
+  var svg = document.getElementById("crank-svg");
+  var handle = document.getElementById("crank-handle");
+  var button = document.getElementById("crank-button");
+  if (!wrap || !svg || !handle || !button) return;
 
-  function init() {
-    if (document.getElementById("crank-container")) return;
-    if (document.documentElement.getAttribute("data-reduced-motion") === "true") return;
-    container = document.createElement("div");
-    container.id = "crank-container";
-    container.className = "crank-wrap";
-    container.innerHTML = '<svg class="crank-svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="40" fill="none" stroke="var(--edge)" stroke-width="2"/><line class="crank-handle" x1="50" y1="50" x2="50" y2="10" stroke="var(--accent)" stroke-width="4" stroke-linecap="round"/></svg><span class="crank-label">Wind</span>';
-    document.body.appendChild(container);
-    svg = container.querySelector(".crank-svg");
-    handle = container.querySelector(".crank-handle");
-    bindEvents();
+  var dragging = false;
+  var lastPointerAngle = 0;
+  var handleAngle = 0;   // where the handle is drawn, in degrees
+  var turned = 0;        // signed degrees since the last wind
+
+  function wanted() { return window.LighthousePhonePrefs && window.LighthousePhonePrefs.get("crank") === "on"; }
+  function api() { return window.lighthouseApi; }
+  function reduced() { return document.documentElement.getAttribute("data-reduced-motion") === "true"; }
+
+  function draw() { handle.setAttribute("transform", "rotate(" + handleAngle.toFixed(1) + " 50 50)"); }
+
+  function pointerAngle(e) {
+    var r = svg.getBoundingClientRect();
+    return Math.atan2(e.clientY - (r.top + r.height / 2), e.clientX - (r.left + r.width / 2)) * 180 / Math.PI;
   }
 
-  function getAngle(e) {
-    var rect = svg.getBoundingClientRect();
-    var cx = rect.left + rect.width / 2;
-    var cy = rect.top + rect.height / 2;
-    var clientX = e.touches ? e.touches[0].clientX : e.clientX;
-    var clientY = e.touches ? e.touches[0].clientY : e.clientY;
-    return Math.atan2(clientY - cy, clientX - cx) * (180 / Math.PI);
+  // One wind, the same message the button would give. Returns true when the engine wound it.
+  function wind() {
+    var a = api();
+    var v = a && a.view();
+    if (!v || v.phase !== "night") return false;
+    if (v.clockwork.left >= v.clockwork.max - 1) {
+      a.toast("The clockwork is already wound.");
+      a.announce("The clockwork is already wound.");
+      return false;
+    }
+    var res = a.send({ action: "wind" });
+    if (res) {
+      a.announce("You wind the clockwork.");
+      if (navigator.vibrate && !reduced()) { try { navigator.vibrate(15); } catch (err) { /* not everywhere */ } }
+    }
+    return Boolean(res);
   }
 
-  function bindEvents() {
-    svg.addEventListener("mousedown", onDown);
-    svg.addEventListener("touchstart", onDown, { passive: false });
-    window.addEventListener("mousemove", onMove);
-    window.addEventListener("touchmove", onMove, { passive: false });
-    window.addEventListener("mouseup", onUp);
-    window.addEventListener("touchend", onUp);
-  }
-
-  function onDown(e) {
-    isDragging = true;
-    startAngle = getAngle(e) - currentRotation;
+  svg.addEventListener("pointerdown", function (e) {
+    dragging = true;
+    lastPointerAngle = pointerAngle(e);
+    try { svg.setPointerCapture(e.pointerId); } catch (err) { /* fine without */ }
     e.preventDefault();
-  }
-
-  function onMove(e) {
-    if (!isDragging) return;
-    var angle = getAngle(e);
-    var delta = angle - (startAngle + currentRotation);
+  });
+  svg.addEventListener("pointermove", function (e) {
+    if (!dragging) return;
+    var angle = pointerAngle(e);
+    var delta = angle - lastPointerAngle;
     if (delta > 180) delta -= 360;
     if (delta < -180) delta += 360;
-    currentRotation += delta;
-    totalRotation += delta;
-    handle.style.transform = "rotate(" + currentRotation + "deg)";
-    e.preventDefault();
-  }
-
-  function onUp() {
-    if (!isDragging) return;
-    isDragging = false;
-    if (Math.abs(totalRotation) >= THRESHOLD) {
-      triggerWind();
-      totalRotation = 0;
-      currentRotation = 0;
-      handle.style.transform = "rotate(0deg)";
+    lastPointerAngle = angle;
+    handleAngle += delta;
+    turned += delta;
+    draw();
+    while (Math.abs(turned) >= 360) {
+      turned -= turned > 0 ? 360 : -360;
+      wind();
     }
-  }
+    e.preventDefault();
+  });
+  function release() { dragging = false; turned = 0; }
+  svg.addEventListener("pointerup", release);
+  svg.addEventListener("pointercancel", release);
 
-  function triggerWind() {
-    var amount = Math.floor(Math.abs(totalRotation) / THRESHOLD);
-    document.dispatchEvent(new CustomEvent("lighthouse-crank-wound", { detail: amount }));
-  }
+  button.addEventListener("click", function () { if (wind()) { handleAngle += 360; draw(); } });
 
-  window.lighthouseInitCrank = init;
+  function sync(v) {
+    v = v || (api() && api().view());
+    wrap.hidden = !(Boolean(v) && v.phase === "night" && wanted());
+  }
+  document.addEventListener("lighthouse-view", function (e) { sync(e.detail); });
+  document.addEventListener("lighthouse-phone-pref", function (e) { if (e.detail.name === "crank") sync(); });
+  sync();
 })();

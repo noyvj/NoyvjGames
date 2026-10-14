@@ -121,6 +121,7 @@
       <p class="note">Optional extras for a narrow screen. They stay off until you choose them, and they change nothing in the game itself.</p>
       <div class="settings-row"><label for="phone-lamp-select">Lamp control at night</label>
         <select id="phone-lamp-select"><option value="off">The buttons only</option><option value="slider">A slider at the right edge</option></select></div>
+      <div class="settings-row"><label><input type="checkbox" id="phone-crank-checkbox"> A crank to wind the clockwork by drawing circles (the "Wind it" button stays beside it)</label></div>
     </div>
     <h3 class="settings-sub">Sound</h3>
     <div id="sfx-setting-slot" class="sfx-setting-slot"></div>
@@ -376,6 +377,15 @@
   <p id="announce" class="sr-only" role="status" aria-live="polite"></p>
 </main>
 
+<div id="crank-wrap" class="crank-wrap" role="group" aria-label="Clockwork crank" hidden>
+  <svg id="crank-svg" class="crank-svg" viewBox="0 0 100 100" aria-hidden="true" focusable="false">
+    <circle cx="50" cy="50" r="42" fill="none" style="stroke: var(--edge)" stroke-width="3"/>
+    <circle cx="50" cy="50" r="6" style="fill: var(--edge)"/>
+    <g id="crank-handle"><line x1="50" y1="50" x2="50" y2="12" style="stroke: var(--accent)" stroke-width="6" stroke-linecap="round"/><circle cx="50" cy="12" r="7" style="fill: var(--accent)"/></g>
+  </svg>
+  <span class="crank-hint">Draw circles to wind</span>
+  <button id="crank-button" type="button" class="crank-button">Wind it</button>
+</div>
 <div id="lamp-slider-wrap" class="lamp-slider-wrap" role="group" aria-label="Lamp level" hidden>
   <input id="lamp-slider" class="lamp-slider" type="range" min="0" max="3" step="1" value="1" aria-label="Lamp level" aria-orientation="vertical" aria-valuetext="Standard">
   <ul class="lamp-notches" aria-hidden="true"><li>Storm</li><li>Bright</li><li>Standard</li><li>Dim</li></ul>
@@ -409,6 +419,7 @@
 <script src="app.js"></script>
 <script src="mobile-prefs.js"></script>
 <script src="mobile-lamp.js"></script>
+<script src="mobile-crank.js"></script>
 <script src="../../shared/last-played.js" data-game-id="lighthouse"></script>
 <script src="../../shared/whats-new-banner.js" data-game-id="lighthouse"></script>
 <script src="../../shared/keyboard-shortcuts.js"></script>

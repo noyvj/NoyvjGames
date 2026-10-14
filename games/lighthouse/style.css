@@ -310,4 +310,17 @@ html[data-reduced-motion="true"] #off-chart .odd-light.blinking { animation: non
   .lamp-notches { list-style: none; margin: 0; padding: 0.45rem 0; display: flex; flex-direction: column; justify-content: space-between; font-size: 0.72rem; color: var(--muted); }
   .lamp-notches li { line-height: 1; }
 }
+.crank-wrap { display: none; }
+@media (max-width: 600px) {
+  /* R4-LHMO-2: the wind crank, bottom left above the docked night controls (night only, when chosen) */
+  html[data-phone-crank="on"]:not([data-layout="pc"]) .crank-wrap {
+    display: flex; flex-direction: column; align-items: center; gap: 0.2rem;
+    position: fixed; left: 0.4rem; bottom: calc(var(--dock-h, 0px) + 3.8rem); z-index: 800;
+    background: var(--panel-fill); border: 1px solid var(--edge); border-radius: 14px; padding: 0.4rem 0.5rem;
+  }
+  .crank-wrap[hidden] { display: none !important; }
+  .crank-svg { width: 5.5rem; height: 5.5rem; touch-action: none; cursor: grab; user-select: none; -webkit-user-select: none; }
+  .crank-hint { font-size: 0.72rem; color: var(--muted); }
+  .crank-button { min-height: 2.75rem; min-width: 2.75rem; }
+}
 .info-page-how { margin: 0.3rem 0; padding-left: 1.2rem; }
