@@ -249,56 +249,55 @@ html[data-sandbox="true"] .room-holder svg { cursor: crosshair; }
 .ach-list li.earned { border-color: var(--ok); border-width: 2px; }
 .ach-list .tick { display: inline-block; min-width: 4rem; text-align: center; font-weight: 700; font-size: 0.78rem; border: 1px solid var(--edge); border-radius: 999px; padding: 0 0.4rem; font-variant-numeric: tabular-nums; }
 .ach-list li.earned .tick { border-style: double; border-width: 3px; }
-@media (max-width: 600px) {
-  .speed-chip { display: flex; gap: 0.2rem; margin-left: 0.3rem; align-items: center; }
-  .speed-chip button { padding: 0.25rem 0.4rem; font-size: 0.8rem; background: var(--btn); border: 1px solid var(--edge); border-radius: 6px; color: var(--text); min-width: 2rem; }
-  .speed-chip button[aria-pressed="true"] { background: var(--btn-primary); color: var(--on-primary); border-color: var(--hover-edge); }
-}
-@media (max-width: 600px) {
-  .node { transition: transform 0.2s ease-out; will-change: transform; }
-  html[data-reduced-motion="true"] .node { transition: none; }
-  .node.swiped { transform: translateX(-4.5rem); }
-  .undo-bar {
-    position: fixed; bottom: 1rem; left: 50%; transform: translateX(-50%);
-    background: var(--panel); border: 1px solid var(--line); border-radius: 999px;
-    padding: 0.6rem 1.2rem; display: flex; gap: 1rem; align-items: center;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.3); z-index: 100; opacity: 0; pointer-events: none;
-    transition: opacity 0.2s ease-out; white-space: nowrap;
-  }
-  html[data-reduced-motion="true"] .undo-bar { transition: none; }
-  .undo-bar.visible { opacity: 1; pointer-events: auto; }
-  .undo-bar button { background: var(--btn-primary); color: var(--on-primary); border: none; padding: 0.4rem 0.8rem; border-radius: 6px; cursor: pointer; font-weight: 700; }
 
-  /* Swipeable chapter cards */
-  .chapter-list { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; gap: 0.8rem; padding: 0.5rem 1rem; -webkit-overflow-scrolling: touch; }
+/* R4-RSPC-8: the medals table. */
+.medals-body { overflow-x: auto; }
+.medals-table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+.medals-table th, .medals-table td { text-align: left; padding: 0.25rem 0.5rem; border-bottom: 1px solid var(--line); font-variant-numeric: tabular-nums; }
+.medals-table tbody th { font-weight: 600; }
+.medals-go { text-align: left; }
+
+/* R4-RSMO-6: the run-speed chip beside Run (the Desktop boot has its own slider instead). */
+.speed-chip { display: inline-flex; gap: 0.2rem; align-items: center; }
+.speed-chip button { padding: 0.25rem 0.5rem; min-width: 2.75rem; }
+.speed-chip button[aria-pressed="true"] { background: var(--btn-primary); color: var(--on-primary); border-color: var(--hover-edge); }
+html[data-layout="pc"] .speed-chip { display: none; }
+
+/* R4-RSMO-4: swipe a step left to delete it; the undo bar sits above the bottom edge. */
+#program .node { touch-action: pan-y; }
+.undo-bar {
+  position: fixed; bottom: 1rem; left: 50%; transform: translateX(-50%); z-index: 100;
+  display: flex; gap: 1rem; align-items: center; white-space: nowrap;
+  background: var(--panel); color: var(--text); border: 1px solid var(--edge); border-radius: 999px; padding: 0.3rem 0.4rem 0.3rem 1.1rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+.undo-bar[hidden] { display: none; }
+.undo-bar button { min-height: 2.75rem; min-width: 2.75rem; border-radius: 999px; }
+
+/* R4-RSMO-8: chapters as swipeable cards on a phone. */
+@media (max-width: 600px) {
+  .chapter-list { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; gap: 0.8rem; padding: 0.5rem 0.2rem; }
   html[data-reduced-motion="true"] .chapter-list { scroll-snap-type: none; }
-  .chapter { flex: 0 0 85vw; scroll-snap-align: center; background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 1rem; margin: 0; }
-  .chapter h3 { font-size: 1.1rem; margin-bottom: 0.5rem; display: flex; justify-content: space-between; align-items: center; }
-  .medal-count { font-size: 0.85rem; color: var(--muted); font-weight: normal; }
-  .room-grid { grid-template-columns: repeat(2, 1fr); gap: 0.3rem; margin-top: 0.5rem; }
-  .room-btn { min-height: 4rem; padding: 0.5rem; }
-  .room-holder { touch-action: none; overflow: hidden; position: relative; }
-  .room-holder svg { transition: transform 0.1s ease-out; will-change: transform; }
-  html[data-reduced-motion="true"] .room-holder svg, html[data-effects="off"] .room-holder svg { transition: none; }
+  .chapter-list > .chapter { flex: 0 0 85%; scroll-snap-align: center; border: 1px solid var(--line); border-radius: 16px; padding: 0.8rem; margin: 0; background: var(--panel); }
+  .chapter h3 { display: flex; justify-content: space-between; align-items: center; gap: 0.5rem; }
 }
-.toast.on { background: var(--surface); border: 1px solid var(--ok); border-radius: 8px; padding: 0.25rem 0.6rem; }
+.medal-count { font-size: 0.85rem; color: var(--muted); font-weight: normal; }
 
-/* Hint bottom sheet (mobile) */
-@media (max-width: 600px) {
-  .hint-bottom-sheet {
-    position: fixed; bottom: 0; left: 0; right: 0;
-    background: var(--panel); border-top: 1px solid var(--line);
-    padding: 1rem; max-height: 40vh; overflow-y: auto;
-    transform: translateY(100%); transition: transform 0.2s ease-out;
-    z-index: 200; display: flex; flex-direction: column; gap: 0.5rem;
-  }
-  html[data-reduced-motion="true"] .hint-bottom-sheet { transition: none; }
-  .hint-bottom-sheet.open { transform: translateY(0); }
-  .hint-bottom-sheet .hint-line { font-size: 0.9rem; color: var(--text); padding: 0.3rem 0; border-bottom: 1px solid var(--line); min-height: 1.5em; }
-  .hint-reveal-btn {
-    background: var(--btn-primary); color: var(--on-primary);
-    border: none; padding: 0.6rem; border-radius: 8px;
-    font-weight: 700; margin-top: auto; cursor: pointer;
-  }
-  .hint-reveal-btn[disabled] { opacity: 0.5; cursor: default; }
+/* R4-RSMO-9: pinch zoom of a big room; the holder scrolls when the room is bigger than the screen. */
+.room-holder { overflow: auto; touch-action: pan-x pan-y; }
+.room-holder svg { width: calc(100% * var(--room-zoom, 1)); max-width: none; }
+.room-holder.room-zoomed svg { max-height: none; }
+.zoom-fit { display: block; margin: 0 auto 0.4rem; }
+.zoom-fit[hidden] { display: none; }
+
+/* R4-RSMO-10: the hint bottom sheet (opened by the hint button on a phone). */
+.hint-sheet {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 200; max-height: 60vh; overflow-y: auto;
+  display: flex; flex-direction: column; gap: 0.5rem; padding: 0.8rem 1rem calc(0.8rem + env(safe-area-inset-bottom, 0px));
+  background: var(--panel); color: var(--text); border-top: 2px solid var(--edge); box-shadow: 0 -6px 18px rgba(0, 0, 0, 0.35);
 }
+.hint-sheet[hidden], .hint-sheet [hidden] { display: none; }
+.hint-sheet-head { display: flex; justify-content: space-between; align-items: center; }
+.hint-sheet-line { margin: 0.2rem 0; padding-bottom: 0.3rem; border-bottom: 1px solid var(--line); }
+#hint-sheet-reveal { min-height: 3rem; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; touch-action: manipulation; }
+.toast.on { background: var(--surface); border: 1px solid var(--ok); border-radius: 8px; padding: 0.25rem 0.6rem; }

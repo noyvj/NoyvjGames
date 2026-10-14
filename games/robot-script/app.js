@@ -20,7 +20,7 @@
   var view = null;
   var roomId = null;
   var headDeg = 0;
-  var play = { frames: null, i: 0, timer: null, trace: null, running: false, currentLine: 0 };
+  var play = { frames: null, i: 0, timer: null, trace: null, running: false, bpAt: -1 };
   var playbackSpeed = 1;
   var refocus = false;
   var sandboxTile = "#";
@@ -202,10 +202,15 @@
   }
   function stepFrame(dir) {
     if (!play.trace || !play.frames) return;
+    stopTimer();
     var nextI = play.i + dir;
     if (nextI < 0) nextI = 0;
     if (nextI >= play.frames.length) nextI = play.frames.length - 1;
+    var last = play.frames.length - 1;
+    if (nextI < last) hideResult();
     showFrameAt(nextI, true);
+    if (nextI === last) finishRun();
+    syncPlayButtons();
   }
   function hideResult() {
     $("result-card").hidden = true;
@@ -216,7 +221,7 @@
     play.trace = null;
     play.frames = null;
     play.i = 0;
-    play.currentLine = 0;
+    play.bpAt = -1;
     markNode("", false);
     hideResult();
     if (view && svgEl()) {
@@ -243,14 +248,22 @@
     var done = Math.min(i, play.trace.actions);
     setText($("run-line"), done ? "Step " + done + " of " + play.trace.actions : "");
   }
+  function breakpointSet() { return window.ROBOT_SCRIPT_breakpoints || new Set(); }
   function advance() {
     if (!play.frames) return;
-    play.currentLine++;
-    if (window.ROBOT_SCRIPT_breakpoints && window.ROBOT_SCRIPT_breakpoints.has(play.currentLine)) {
-      stopTimer();
-      setText($("run-line"), "Paused at breakpoint");
-      syncPlayButtons();
-      return;
+    // R4-RSPC-3: a run that is playing pauses before a step the player marked in the gutter (pc.js keeps the set of
+    // addresses); Resume or Step carries on past it, and stepping by hand never stops at one.
+    if (play.running && play.i < play.frames.length - 1 && play.bpAt !== play.i + 1) {
+      var next = play.frames[play.i + 1];
+      if (next[7] && breakpointSet().has(next[7])) {
+        play.bpAt = play.i + 1;
+        stopTimer();
+        markNode(next[7], false);
+        setText($("run-line"), "Paused at a breakpoint. Resume or Step to go on.");
+        announce("Paused at a breakpoint.");
+        syncPlayButtons();
+        return;
+      }
     }
     if (play.i >= play.frames.length - 1) { finishRun(); return; }
     showFrameAt(play.i + 1, false);
@@ -318,15 +331,15 @@
     play.trace = trace;
     play.frames = trace.frames;
     play.i = i !== undefined ? i : 0;
-    play.currentLine = 0;
+    play.bpAt = -1;
     hideResult();
     applyFrame(play.frames[0], true);
     syncPlayButtons();
     var ms = speedMs();
     if (!autoplay) return;
-    if (ms === 0) { showFrameAt(play.frames.length - 1, true); finishRun(); return; }
+    if (ms === 0 && breakpointSet().size === 0) { showFrameAt(play.frames.length - 1, true); finishRun(); return; }
     play.running = true;
-    play.timer = setInterval(advance, ms);
+    play.timer = setInterval(advance, Math.max(1, ms));
     syncPlayButtons();
   }
   function onRun() {
@@ -569,11 +582,12 @@
     Array.prototype.forEach.call($("sandbox-tools").querySelectorAll("button"), function (b) { b.setAttribute("aria-pressed", String(b.dataset.tile === sandboxTile)); });
   }
   function onRoomClick(e) {
-    if (play.running && !view.room.sandbox) {
+    if (!view) return;
+    if (play.running && !view.room.sandbox) {      // R4-RSMO-6: a tap on the room while a run plays skips to the end
       onSkip();
       return;
     }
-    if (!view || !view.room.sandbox) return;
+    if (!view.room.sandbox) return;
     var svg = svgEl();
     if (!svg || !svg.getScreenCTM) return;
     var pt = svg.createSVGPoint();
@@ -636,6 +650,55 @@
   }
 
   // ---- goals, the workshop and the hint ladder ----------------------------------------------------------
+  // R4-RSPC-8: the medals table, every room by its length against par (furthest over par first, uncleared last)
+  var MEDAL_WORDS = ["none", "bronze", "silver", "gold"];
+  function renderMedals() {
+    var holder = $("medals-body");
+    var rows = [];
+    view.rooms.forEach(function (c) {
+      c.rooms.forEach(function (r) { rows.push({ id: r.id, name: r.name, chapter: c.name, par: r.par, best: r.best, medal: r.medal, order: rows.length }); });
+    });
+    rows.sort(function (a, b) {
+      var ao = a.best === null ? null : a.best - a.par;
+      var bo = b.best === null ? null : b.best - b.par;
+      if (ao === null || bo === null) return ao === bo ? a.order - b.order : (ao === null ? 1 : -1);
+      return bo - ao || a.order - b.order;
+    });
+    var sig = view.difficulty + JSON.stringify(rows.map(function (r) { return [r.id, r.best, r.medal]; }));
+    if (holder.dataset.sig === sig) return;
+    holder.dataset.sig = sig;
+    holder.textContent = "";
+    var table = el("table", "medals-table");
+    var head = el("tr");
+    ["Room", "Best", "Par", "Over par", "Medal"].forEach(function (h) { var th = el("th", null, h); th.scope = "col"; head.appendChild(th); });
+    var thead = el("thead");
+    thead.appendChild(head);
+    table.appendChild(thead);
+    var body = el("tbody");
+    rows.forEach(function (r) {
+      var tr = el("tr");
+      var th = el("th");
+      th.scope = "row";
+      var go = smallButton(r.name, "Go to " + r.name + " in " + r.chapter, "medals-go", function () {
+        send({ action: "pick", room: r.id });
+        $("medals-panel").hidden = true;
+        $("medals-toggle-button").setAttribute("aria-expanded", "false");
+        var anchor = $("room-panel");
+        if (anchor.scrollIntoView) anchor.scrollIntoView({ block: "start" });
+      });
+      th.appendChild(go);
+      tr.appendChild(th);
+      tr.appendChild(el("td", null, r.best === null ? "-" : String(r.best)));
+      tr.appendChild(el("td", null, String(r.par)));
+      tr.appendChild(el("td", null, r.best === null ? "not cleared" : (r.best <= r.par ? "at par" : "+" + (r.best - r.par))));
+      var m = el("td");
+      if (r.medal) m.appendChild(medalNode(MEDAL_WORDS[r.medal])); else m.textContent = "none";
+      tr.appendChild(m);
+      body.appendChild(tr);
+    });
+    table.appendChild(body);
+    holder.appendChild(table);
+  }
   function renderGoalStrip() {
     var list = $("goals-list");
     var sig = view.goals.map(function (g) { return g.id + g.have; }).join(",");
@@ -719,6 +782,7 @@
     setText($("hint-hint"), h.hint ? "Hint: " + h.hint : "");
     $("hint-answer").hidden = !h.answer;
     if (h.answer) setText($("hint-answer-lines"), h.answer.lines.join("\n"));
+    document.dispatchEvent(new CustomEvent("robotScriptHints", { detail: h }));
   }
 
   // ---- render everything ----------------------------------------------------------------------------------
@@ -745,19 +809,7 @@
     renderHints();
     syncPlayButtons();
 
-    // Expose data for Desktop windows (Medals Table)
-    var allRooms = [];
-    var roomPars = {};
-    if (view.rooms) {
-      view.rooms.forEach(function(ch) {
-        ch.rooms.forEach(function(r) {
-          allRooms.push({ id: r.id, name: r.name });
-          roomPars[r.id] = r.par;
-        });
-      });
-    }
-    window.robotScriptRooms = allRooms;
-    window.robotScriptRoomPars = roomPars;
+    renderMedals();
   }
 
   // ---- talking to the engine --------------------------------------------------------------------------------
@@ -834,7 +886,6 @@
   }
 
   function wire() {
-    window.robotScriptChangeRoom = function(roomId) { send({ action: "pick", room: roomId }); };
     wireDifficulty();
     $("toast").addEventListener("click", function () { showToast(""); });
 
@@ -860,50 +911,11 @@
     wirePanelToggle("rooms-toggle-button", "rooms-panel");
     wirePanelToggle("workshop-toggle-button", "workshop-panel");
     wirePanelToggle("achievements-toggle-button", "achievements-panel");
+    wirePanelToggle("medals-toggle-button", "medals-panel");
     $("hint-button").addEventListener("click", function () { send({ action: "hint" }); });
-
-    // Hint bottom sheet (mobile)
-    var hintSheet = document.createElement("div");
-    hintSheet.className = "hint-bottom-sheet";
-    hintSheet.innerHTML = '<div class="hint-line"></div><button class="hint-reveal-btn">Reveal next</button>';
-    document.body.appendChild(hintSheet);
-    var hintLineDisplay = hintSheet.querySelector(".hint-line");
-    var hintRevealBtn = hintSheet.querySelector(".hint-reveal-btn");
-
-    function openHintSheet() {
-      if (!view || !view.hint) return;
-      hintSheet.classList.add("open");
-      updateHintDisplay();
-    }
-    function closeHintSheet() {
-      hintSheet.classList.remove("open");
-    }
-    function updateHintDisplay() {
-      var h = view.hint;
-      if (!h || !hintLineDisplay || !hintRevealBtn) return;
-      
-      var line = "";
-      if (h.rung === 0 && h.nudge) line = "Nudge: " + h.nudge;
-      else if (h.rung === 1 && h.hint) line = "Hint: " + h.hint;
-      else if (h.rung >= 2 && h.answer) line = "Answer: " + h.answer.lines.join(" ");
-      else line = "No more hints available.";
-      
-      hintLineDisplay.textContent = line;
-      hintRevealBtn.disabled = h.rung >= h.max;
-      hintRevealBtn.textContent = h.rung < h.max ? "Reveal next" : "Done";
-    }
-
-    var hintBtn = $("hint-button");
-    if (hintBtn) {
-      hintBtn.addEventListener("click", openHintSheet);
-      hintBtn.addEventListener("touchend", function(e) { e.preventDefault(); openHintSheet(); });
-    }
-
-    hintRevealBtn.addEventListener("click", function() {
-      if (!view || !view.hint) return;
-      send({ action: "hint" });
-      updateHintDisplay();
-    });
+    // R4-RSMO-10 (hint-sheet.js): the phone's hint sheet asks for hints and the answer through these events
+    document.addEventListener("robotScriptHintRequest", function () { send({ action: "hint" }); });
+    document.addEventListener("robotScriptHintAnswer", function () { send({ action: "load_answer" }, true); });
     $("answer-load-button").addEventListener("click", function () { send({ action: "load_answer" }, true); });
     wirePanelToggle("changelog-toggle-button", "changelog-panel");
     wirePanelToggle("info-page-toggle-button", "info-page-panel");
@@ -931,6 +943,7 @@
     document.addEventListener("robotScriptSwipeDelete", function (e) {
       send({ action: "remove", at: e.detail }, true);
     });
+    document.addEventListener("robotScriptSwipeUndo", function () { send({ action: "undo" }, true); });
     // The save widget loads a save straight into the engine; this redraws afterwards.
     window.robotScriptRefresh = function () { if (engine) { roomId = null; send({ action: "open" }); } };
   }
@@ -972,81 +985,4 @@
   boot().catch(function (err) {
     $("engine-status").textContent = "The deck could not start (" + err + "). Reload to try again.";
   });
-
-  // Pinch-to-zoom and double-tap-to-fit for mobile rooms
-  (function () {
-    "use strict";
-    var ROOM_HOLDER = document.querySelector(".room-holder");
-    if (!ROOM_HOLDER) return;
-    var SVG = ROOM_HOLDER.querySelector("svg");
-    if (!SVG) return;
-
-    var SCALE_KEY = "robot-script-zoom-scale";
-    var MIN_SCALE = 0.5;
-    var MAX_SCALE = 3.0;
-    var currentScale = 1;
-    try { currentScale = parseFloat(localStorage.getItem(SCALE_KEY)) || 1; } catch (e) {}
-    var lastTapTime = 0;
-    var reducedMotion = false;
-
-    function applyScale() {
-      SVG.style.transform = "scale(" + currentScale + ")";
-      SVG.style.transformOrigin = "center center";
-      try { localStorage.setItem(SCALE_KEY, String(currentScale)); } catch (e) {}
-    }
-
-    function checkReducedMotion() {
-      return document.documentElement.getAttribute("data-reduced-motion") === "true" ||
-             (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
-    }
-
-    function updateTouchAction() {
-      ROOM_HOLDER.style.touchAction = reducedMotion ? "auto" : "none";
-    }
-
-    if (window.matchMedia) {
-      window.matchMedia("(prefers-reduced-motion: reduce)").addEventListener("change", function(e) {
-        reducedMotion = e.matches;
-        updateTouchAction();
-      });
-    }
-
-    reducedMotion = checkReducedMotion();
-    updateTouchAction();
-
-    var startDist = 0;
-
-    ROOM_HOLDER.addEventListener("touchstart", function(e) {
-      if (reducedMotion || e.touches.length > 2) return;
-      if (e.touches.length === 1) {
-        var now = e.timeStamp;
-        if (now - lastTapTime < 300) {
-          currentScale = 1;
-          applyScale();
-          lastTapTime = 0;
-          e.preventDefault();
-          return;
-        }
-        lastTapTime = now;
-      } else if (e.touches.length === 2) {
-        var dx = e.touches[0].clientX - e.touches[1].clientX;
-        var dy = e.touches[0].clientY - e.touches[1].clientY;
-        startDist = Math.sqrt(dx * dx + dy * dy);
-      }
-    }, { passive: false });
-
-    ROOM_HOLDER.addEventListener("touchmove", function(e) {
-      if (reducedMotion || e.touches.length !== 2 || startDist < 1) return;
-      var dx = e.touches[0].clientX - e.touches[1].clientX;
-      var dy = e.touches[0].clientY - e.touches[1].clientY;
-      var dist = Math.sqrt(dx * dx + dy * dy);
-      var delta = dist / startDist;
-      currentScale = Math.max(MIN_SCALE, Math.min(MAX_SCALE, currentScale * delta));
-      applyScale();
-      startDist = dist;
-      e.preventDefault();
-    }, { passive: false });
-
-    applyScale();
-  })();
 })();

@@ -1,98 +1,86 @@
-/**
- * swipe.js - Mobile swipe-to-delete for the instruction list.
- */
+/* Robot Script -- R4-RSMO-4: swipe an instruction in the list to the left to delete it, with an undo bar.
+ * The x button on every step is still the keyboard path. The delete is an ordinary `remove` edit (app.js listens for
+ * robotScriptSwipeDelete on document) and Undo is the engine's own undo, so nothing can be lost. */
 (function () {
   "use strict";
-  var THRESHOLD = 40;
-  var undoBar = null;
-  var swipedNode = null;
-  var startX = 0;
-  var currentX = 0;
+  var THRESHOLD = 70;       // px of leftward travel that counts as a swipe
+  var drag = null;
+  var bar = null;
 
-  function init() {
-    if (document.documentElement.getAttribute("data-reduced-motion") === "true") return;
-    var editor = document.getElementById("editor-panel");
-    if (!editor) return;
-    editor.addEventListener("touchstart", onTouchStart, { passive: false });
-    editor.addEventListener("touchmove", onTouchMove, { passive: false });
-    editor.addEventListener("touchend", onTouchEnd);
+  function ensureBar() {
+    if (bar) return bar;
+    bar = document.createElement("div");
+    bar.id = "undo-bar";
+    bar.className = "undo-bar";
+    bar.setAttribute("role", "status");
+    bar.hidden = true;
+    var text = document.createElement("span");
+    text.textContent = "Step removed.";
+    var btn = document.createElement("button");
+    btn.type = "button";
+    btn.id = "undo-bar-button";
+    btn.textContent = "Undo";
+    btn.addEventListener("click", function () {
+      hideBar();
+      document.dispatchEvent(new CustomEvent("robotScriptSwipeUndo"));
+    });
+    bar.appendChild(text);
+    bar.appendChild(btn);
+    document.body.appendChild(bar);
+    return bar;
+  }
+  function showBar() { ensureBar().hidden = false; }
+  function hideBar() { if (bar) bar.hidden = true; }
+
+  function reset(node) {
+    if (node) node.style.removeProperty("transform");
   }
 
-  function onTouchStart(e) {
-    var node = e.target.closest(".node");
-    if (!node || node.querySelector("button") || node.querySelector("select")) return;
-    startX = e.touches[0].clientX;
-    currentX = startX;
-    swipedNode = node;
+  function onDown(e) {
+    var node = e.target.closest && e.target.closest("#program .node");
+    if (!node || e.target.closest("button, select, input, a") || !node.dataset.a) return;
+    if (e.pointerType === "mouse" && e.button !== 0) return;
+    drag = { node: node, x: e.clientX, y: e.clientY, id: e.pointerId, moved: false };
+    try { node.setPointerCapture(e.pointerId); } catch (err) { /* only keeps the drag alive outside the row */ }
   }
-
-  function onTouchMove(e) {
-    if (!swipedNode) return;
-    currentX = e.touches[0].clientX;
-    var diff = currentX - startX;
-    if (diff < -THRESHOLD / 2) {
-      swipedNode.style.transform = "translateX(" + Math.max(diff, -50) + "px)";
+  function onMove(e) {
+    if (!drag || e.pointerId !== drag.id) return;
+    var dx = e.clientX - drag.x;
+    var dy = e.clientY - drag.y;
+    if (!drag.moved && Math.abs(dy) > Math.abs(dx) && Math.abs(dy) > 10) { drag = null; return; }   // a vertical scroll
+    if (dx < -6) {
+      drag.moved = true;
+      drag.node.style.transform = "translateX(" + Math.max(dx, -120) + "px)";
     } else {
-      swipedNode.style.removeProperty("transform");
+      reset(drag.node);
     }
   }
-
-  function onTouchEnd(e) {
-    if (!swipedNode) return;
-    var diff = currentX - startX;
-    if (diff < -THRESHOLD) {
-      swipedNode.classList.add("swiped");
-      showUndoBar(swipedNode);
-    } else {
-      swipedNode.style.removeProperty("transform");
+  function onUp(e) {
+    if (!drag || e.pointerId !== drag.id) return;
+    var dx = e.clientX - drag.x;
+    var node = drag.node;
+    drag = null;
+    reset(node);
+    if (dx <= -THRESHOLD && node.dataset.a) {
+      document.dispatchEvent(new CustomEvent("robotScriptSwipeDelete", { detail: node.dataset.a }));
+      showBar();
     }
-    swipedNode = null;
+  }
+  function onCancel() {
+    if (drag) reset(drag.node);
+    drag = null;
   }
 
-  function showUndoBar(node) {
-    if (!undoBar) {
-      undoBar = document.createElement("div");
-      undoBar.className = "undo-bar";
-      var btnUndo = document.createElement("button");
-      btnUndo.textContent = "Undo";
-      btnUndo.addEventListener("click", function () {
-        hideUndoBar();
-        restoreNode(swipedNode);
-      });
-      var btnDelete = document.createElement("button");
-      btnDelete.textContent = "Delete";
-      btnDelete.addEventListener("click", function () {
-        dispatchDelete(swipedNode);
-      });
-      undoBar.appendChild(btnUndo);
-      undoBar.appendChild(btnDelete);
-      document.body.appendChild(undoBar);
-    }
-    node.style.position = "absolute";
-    node.style.left = "-200%";
-    undoBar.classList.add("visible");
-  }
-
-  function dispatchDelete(node) {
-    document.dispatchEvent(new CustomEvent("robotScriptSwipeDelete", { detail: node.dataset.a }));
-    hideUndoBar();
-    restoreNode(node);
-  }
-
-  function hideUndoBar() {
-    if (undoBar) undoBar.classList.remove("visible");
-  }
-
-  function restoreNode(node) {
-    node.style.position = "";
-    node.style.left = "";
-    node.classList.remove("swiped");
-    hideUndoBar();
-  }
-
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", init);
-  } else {
-    init();
-  }
+  document.addEventListener("DOMContentLoaded", function () {
+    var program = document.getElementById("program");
+    if (!program) return;
+    program.addEventListener("pointerdown", onDown);
+    program.addEventListener("pointermove", onMove);
+    program.addEventListener("pointerup", onUp);
+    program.addEventListener("pointercancel", onCancel);
+    // any other edit or tap elsewhere closes the bar (nothing is timed)
+    document.addEventListener("pointerdown", function (e) {
+      if (bar && !bar.hidden && !(e.target.closest && e.target.closest("#undo-bar")) && !(e.target.closest && e.target.closest("#program .node"))) hideBar();
+    });
+  });
 })();

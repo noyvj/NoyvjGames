@@ -41,6 +41,7 @@
   <div class="game-toolbar">
     <button id="tutorial-restart-button" type="button" aria-label="Tutorial"><span class="btn-long">Tutorial</span><span class="btn-short" aria-hidden="true">Tour</span></button>
     <button id="rooms-toggle-button" type="button" aria-expanded="false" aria-controls="rooms-panel">Rooms</button>
+    <button id="medals-toggle-button" type="button" aria-expanded="false" aria-controls="medals-panel">Medals</button>
     <button id="achievements-toggle-button" type="button" aria-expanded="false" aria-controls="achievements-panel">Achievements</button>
     <button id="workshop-toggle-button" type="button" aria-expanded="false" aria-controls="workshop-panel">Workshop</button>
     <button id="changelog-toggle-button" type="button" aria-expanded="false" aria-controls="changelog-panel"><span class="btn-long">What's New</span><span class="btn-short" aria-hidden="true">News</span></button>
@@ -53,6 +54,11 @@
     <p class="note">Every chapter and room is open from the start: play any room in any order, and come back to the hard ones whenever you like. The medal on a room is for the shortest list you have cleared it with.</p>
     <div id="rooms-body" class="rooms-body"></div>
     <section id="sandbox-entry" class="chapter"></section>
+  </section>
+  <section id="medals-panel" class="panel" hidden aria-labelledby="medals-heading">
+    <h2 id="medals-heading">Medals table</h2>
+    <p class="note">Every room you have cleared, with the furthest over par first, so the rooms with the most to win back are at the top. Choose a room name to go there. Rooms you have not cleared yet come last.</p>
+    <div id="medals-body" class="medals-body"></div>
   </section>
   <section id="achievements-panel" class="panel" hidden aria-labelledby="ach-heading">
     <h2 id="ach-heading">Achievements</h2>
@@ -250,6 +256,8 @@
 <script src="haptics.js"></script>
 <script src="app.js"></script>
 <script src="swipe.js"></script>
+<script src="hint-sheet.js"></script>
+<script src="zoom.js"></script>
 <script src="../../shared/last-played.js" data-game-id="robot-script"></script>
 <script src="../../shared/whats-new-banner.js" data-game-id="robot-script"></script>
 <script src="../../shared/keyboard-shortcuts.js"></script>
@@ -257,6 +265,7 @@
   window.KeyboardShortcuts.init({
     panels: [
       { toggle: "rooms-toggle-button", panel: "rooms-panel" },
+      { toggle: "medals-toggle-button", panel: "medals-panel" },
       { toggle: "achievements-toggle-button", panel: "achievements-panel" },
       { toggle: "workshop-toggle-button", panel: "workshop-panel" },
       { toggle: "changelog-toggle-button", panel: "changelog-panel" },
