@@ -1,31 +1,24 @@
+/* R4-LGMO-2: the phone chip drawer. app.js fills #chip-drawer-content with the same add-a-chip buttons as the Parts panel
+   (renderParts); this file only opens and closes the drawer. CSS shows it at max-width 600px on the Classic page only. */
 (function () {
   "use strict";
-  var drawer = null;
-  var handle = null;
 
   function init() {
-    drawer = document.getElementById("chip-drawer");
-    handle = document.getElementById("chip-drawer-handle");
+    var drawer = document.getElementById("chip-drawer");
+    var handle = document.getElementById("chip-drawer-handle");
     if (!drawer || !handle) return;
 
-    handle.addEventListener("click", function () {
-      drawer.classList.toggle("open");
-    });
+    function setOpen(open) {
+      drawer.classList.toggle("open", open);
+      handle.setAttribute("aria-expanded", String(open));
+    }
 
-    drawer.addEventListener("click", function (e) {
-      var btn = e.target.closest(".chip-drawer-content button");
-      if (btn && drawer.classList.contains("open")) {
-        var type = btn.getAttribute("data-chip-type");
-        if (type) {
-          drawer.dispatchEvent(new CustomEvent("chip-drawer:place", { detail: { type: type } }));
-        }
-      }
+    handle.addEventListener("click", function () { setOpen(!drawer.classList.contains("open")); });
+    document.addEventListener("keydown", function (e) {
+      if (e.key === "Escape" && drawer.classList.contains("open")) setOpen(false);
     });
   }
 
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", init);
-  } else {
-    init();
-  }
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);
+  else init();
 })();
