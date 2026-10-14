@@ -527,6 +527,29 @@
     window.NoyvjDifficulty.onChange(function (d) { if (d.game === DIFF_GAME) sendDifficulty(); });
   }
 
+  // R4-SMMO-4: Bottom sheet gesture for Condition Sheet
+  var _sheetDrag = { active: false, y0: 0 };
+  function _initSheetGesture() {
+    document.addEventListener("touchstart", _sheetDragStart, { passive: true });
+    document.addEventListener("touchmove", _sheetDragMove, { passive: false });
+    document.addEventListener("touchend", _sheetDragEnd);
+    document.addEventListener("mousedown", _sheetDragStart);
+    document.addEventListener("mousemove", _sheetDragMove);
+    document.addEventListener("mouseup", _sheetDragEnd);
+  }
+  function _sheetDragStart(e) { if (e.target.closest("#sheet-panel")) { _sheetDrag.active = true; _sheetDrag.y0 = e.clientY || e.touches[0].clientY; } }
+  function _sheetDragMove(e) {
+    if (!_sheetDrag.active) return;
+    var y = e.clientY || e.touches[0].clientY;
+    var dy = y - _sheetDrag.y0;
+    if (Math.abs(dy) > 5) e.preventDefault();
+    var panel = $("sheet-panel");
+    if (!panel) return;
+    if (panel.dataset.open === "true" && dy > 60) { panel.dataset.open = "false"; _sheetDrag.active = false; }
+    else if (panel.dataset.open !== "true" && dy < -60) { panel.dataset.open = "true"; _sheetDrag.active = false; }
+  }
+  function _sheetDragEnd() { _sheetDrag.active = false; }
+
   function wire() {
     wireDifficulty();
     $("toast").addEventListener("click", function () { showToast(""); });
@@ -560,6 +583,7 @@
     });
     // The save widget loads a save straight into the engine; this redraws afterwards.
     window.stationMedicRefresh = function () { if (engine) { shiftId = null; send({ action: "open" }); } };
+    _initSheetGesture();
   }
 
   var TUTORIAL_STEPS = [
