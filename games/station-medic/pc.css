@@ -49,3 +49,8 @@ html[data-layout="pc"] .strike-btn { margin-top: 0.25rem; font-size: 0.8rem; pad
 .tray-count { font-weight: 800; font-variant-numeric: tabular-nums; }
 .tray-note { flex: 1 1 12rem; font-size: 0.82rem; color: var(--muted); }
 html[data-layout="pc"] .patient.tray-highlight { outline: 3px solid var(--accent); outline-offset: 2px; }
+
+/* R4-SMPC-7: chart notes for every bed, always visible in the side column */
+#chart-notes-strip .strip-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.25rem; font-size: 0.85rem; }
+#chart-notes-strip .strip-list li { border: 2px dashed var(--accent); border-radius: 8px; padding: 0.1rem 0.5rem; }
+#chart-notes-strip .strip-list li.current { border-style: solid; }

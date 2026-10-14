@@ -277,3 +277,47 @@ window.STATION_MEDIC_PC_TUTORIAL_STEPS = [
   }
   pc.ready(function () { pc.onRendered(draw); window.addEventListener("load", draw); draw(); });
 })();
+
+(function () {
+  "use strict";
+  var pc = window.StationMedicPc;
+
+  // R4-SMPC-7: the ward already shows every bed side by side; this adds a permanent strip in the side column listing the chart
+  // notes of EVERY patient, so cases can be compared without clicking through them.
+  var strip = null, list = null;
+  function ensure() {
+    if (strip && document.body.contains(strip)) return true;
+    var side = document.getElementById("pc-side");
+    if (!side) return false;
+    strip = document.createElement("section");
+    strip.id = "chart-notes-strip";
+    strip.className = "panel";
+    strip.setAttribute("aria-labelledby", "chart-notes-strip-heading");
+    var h = document.createElement("h2");
+    h.id = "chart-notes-strip-heading";
+    h.textContent = "Chart notes, every bed";
+    list = document.createElement("ul");
+    list.className = "strip-list";
+    strip.appendChild(h);
+    strip.appendChild(list);
+    side.appendChild(strip);
+    return true;
+  }
+  function draw() {
+    var v = pc.view();
+    if (!v || !ensure()) return;
+    list.textContent = "";
+    var sel = document.querySelector('#patients .patient[aria-pressed="true"]');
+    var current = sel ? Number(sel.dataset.patientId) : -1;
+    v.patients.forEach(function (p) {
+      var li = document.createElement("li");
+      var name = document.createElement("strong");
+      name.textContent = p.first + ": ";
+      li.appendChild(name);
+      li.appendChild(document.createTextNode(p.notes.length ? p.notes.join("; ") : "no chart notes"));
+      if (p.i === current) li.classList.add("current");
+      list.appendChild(li);
+    });
+  }
+  pc.ready(function () { pc.onRendered(draw); window.addEventListener("load", draw); draw(); });
+})();
