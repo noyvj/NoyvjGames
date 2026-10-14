@@ -102,6 +102,58 @@ window.pocketBazaarAfterRender = function () {
   });
 })();
 
+/* R4-PBPC-3: hover a customer to read what they want and their patience in beats. The card's own aria-label already
+   says the same, so the tip is a visual extra (aria-hidden). */
+(function () {
+  "use strict";
+  var tip = null;
+  var current = null;
+
+  function tipText(c) {
+    var wants = c.items.map(function (i) { return i.label + (i.done ? " (handed over)" : ""); }).join(", ");
+    return c.name + " (" + c.kind + ") wants " + wants + ". Patience: " + c.patience + " of " + c.max + " beats. Pays " + c.pay + " coins.";
+  }
+
+  function place(card) {
+    var r = card.getBoundingClientRect();
+    tip.hidden = false;
+    var w = tip.getBoundingClientRect().width;
+    var left = r.right + 8;
+    if (left + w > window.innerWidth - 8) left = Math.max(8, r.left - w - 8);
+    tip.style.left = left + "px";
+    tip.style.top = Math.max(8, r.top) + "px";
+  }
+
+  function refresh() {
+    var view = pbPcView();
+    if (!tip || current === null || !view || view.phase !== "open" || !view.customers[current]) {
+      if (tip) tip.hidden = true;
+      return;
+    }
+    tip.textContent = tipText(view.customers[current]);
+    var card = document.querySelector('#queue .customer[data-drop="customer:' + current + '"]');
+    if (card) place(card); else tip.hidden = true;
+  }
+
+  window.pbPcAfterRender.push(refresh);
+
+  document.addEventListener("DOMContentLoaded", function () {
+    var queue = document.getElementById("queue");
+    if (!queue) return;
+    tip = document.createElement("div");
+    tip.id = "pc-customer-tip";
+    tip.setAttribute("aria-hidden", "true");
+    tip.hidden = true;
+    document.body.appendChild(tip);
+    queue.addEventListener("mouseover", function (e) {
+      var card = e.target.closest(".customer");
+      current = card && !card.classList.contains("empty") ? Number(card.dataset.drop.slice(9)) : null;
+      refresh();
+    });
+    queue.addEventListener("mouseleave", function () { current = null; refresh(); });
+  });
+})();
+
 /* R4-PBPC-2: right-click a piece for Pick up, Sell and Hand over at the cursor. app.js does the work (pb-action). */
 (function () {
   "use strict";
