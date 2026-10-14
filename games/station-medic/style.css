@@ -178,6 +178,23 @@ html[data-narrow="off"] .sheet li.ruled-out { opacity: 1; border-style: solid; }
   .patients { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
+@media (max-width: 600px) {
+  #cabinet-panel .shelf {
+    display: inline-flex; flex-direction: row; align-items: center; gap: 0.4rem;
+    padding: 0.5rem 0.8rem; margin: 0.2rem; border-radius: 999px; cursor: pointer;
+    user-select: none; -webkit-user-select: none; touch-action: manipulation;
+    transition: background 0.15s ease, border-color 0.15s ease;
+  }
+  #cabinet-panel .shelf.selected {
+    background: var(--accent); color: var(--ink); border-color: var(--accent);
+  }
+  #cabinet-panel .shelf.empty { opacity: 0.4; cursor: default; }
+  #cabinet-panel .shelf .letter { font-size: 1rem; border-width: 2px; }
+  #cabinet-panel .shelf .count { font-size: 1rem; }
+  #cabinet-panel .shelf .sname { display: none; }
+  html[data-reduced-motion="true"] #cabinet-panel .shelf { transition: none; }
+}
+
 /* Goals: three at a time, always in view. */
 .goals { background: var(--panel-fill); border: 1px solid var(--line); border-radius: 12px; padding: 0.4rem 0.7rem; margin: 0.5rem 0; font-size: 0.85rem; }
 .goals-list { list-style: none; margin: 0.2rem 0 0; padding: 0; display: grid; gap: 0.2rem; }

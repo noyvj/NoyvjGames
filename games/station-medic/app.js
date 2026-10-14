@@ -146,6 +146,7 @@
       var b = el("button", "patient" + (p.closed ? " settled" : ""));
       b.type = "button";
       b.dataset.testid = "station-medic-patient-" + p.i;
+      b.dataset.patientId = p.i;
       b.setAttribute("aria-pressed", String(p.i === sel));
       var portrait = el("span");
       portrait.innerHTML = p.portrait;
@@ -231,6 +232,8 @@
     list.textContent = "";
     cab.items.forEach(function (i) {
       var li = el("li", "shelf" + (i.count === 0 ? " empty" : ""));
+      li.setAttribute("draggable", "true");
+      li.dataset.supply = i.glyph;
       li.appendChild(el("span", "letter", i.glyph));
       var body = el("span", "sname", i.name);
       body.appendChild(el("span", "uses", i.uses.join(", ")));
@@ -537,6 +540,16 @@
     });
     document.addEventListener("keydown", onKey);
     document.addEventListener("station-medic-narrow-change", function () { if (view) renderSheet(); });
+    document.addEventListener("station-medic-apply-supply", function (e) {
+      var d = e.detail;
+      if (!d || !d.supply || d.patientId === undefined) return;
+      if (!view || !view.patients) return;
+      var pIdx = view.patients.findIndex(function (p) { return p.i === d.patientId; });
+      if (pIdx === -1) return;
+      var txIdx = view.cabinet.tx ? view.cabinet.tx.findIndex(function (t) { return t.glyph === d.supply; }) : -1;
+      if (txIdx === -1) return;
+      act({ action: "treat", p: pIdx, x: txIdx });
+    });
     // The save widget loads a save straight into the engine; this redraws afterwards.
     window.stationMedicRefresh = function () { if (engine) { shiftId = null; send({ action: "open" }); } };
   }
