@@ -122,7 +122,7 @@
       <h3 class="settings-sub">On a phone</h3>
       <p class="note">Optional extras for a narrow screen. They stay off until you choose them, and they change nothing in the game itself.</p>
       <div class="settings-row"><label for="phone-lamp-select">Lamp control at night</label>
-        <select id="phone-lamp-select"><option value="off">The buttons only</option><option value="slider">A slider at the right edge</option></select></div>
+        <select id="phone-lamp-select"><option value="off">The buttons only</option><option value="slider">A slider at the right edge</option><option value="rail">A rail of four buttons along the bottom</option></select></div>
       <div class="settings-row"><label><input type="checkbox" id="phone-crank-checkbox"> A crank to wind the clockwork by drawing circles (the "Wind it" button stays beside it)</label></div>
       <div class="settings-row"><label><input type="checkbox" id="phone-cards-checkbox"> Letters as paper cards you turn over with Read and file away with a swipe or the File away button (filed letters can always be shown again)</label></div>
       <div class="settings-row"><label><input type="checkbox" id="phone-edge-checkbox"> Swipe in from the left edge to open the letters drawer (the Letters button still works; some phones use that edge for Back)</label></div>
@@ -392,6 +392,12 @@
   <span class="crank-hint">Draw circles to wind</span>
   <button id="crank-button" type="button" class="crank-button">Wind it</button>
 </div>
+<div id="lamp-rail" class="lamp-rail" role="group" aria-label="Lamp level" hidden>
+  <button type="button" class="lamp-rail-btn" data-level="dim" aria-pressed="false">Dim</button>
+  <button type="button" class="lamp-rail-btn" data-level="standard" aria-pressed="false">Standard</button>
+  <button type="button" class="lamp-rail-btn" data-level="bright" aria-pressed="false">Bright</button>
+  <button type="button" class="lamp-rail-btn" data-level="storm" aria-pressed="false">Storm</button>
+</div>
 <div id="lamp-slider-wrap" class="lamp-slider-wrap" role="group" aria-label="Lamp level" hidden>
   <input id="lamp-slider" class="lamp-slider" type="range" min="0" max="3" step="1" value="1" aria-label="Lamp level" aria-orientation="vertical" aria-valuetext="Standard">
   <ul class="lamp-notches" aria-hidden="true"><li>Storm</li><li>Bright</li><li>Standard</li><li>Dim</li></ul>
@@ -428,6 +434,7 @@
 <script src="mobile-crank.js"></script>
 <script src="mobile-letters.js"></script>
 <script src="swipe-letters.js"></script>
+<script src="mobile-lamp-rail.js"></script>
 <script src="../../shared/last-played.js" data-game-id="lighthouse"></script>
 <script src="../../shared/whats-new-banner.js" data-game-id="lighthouse"></script>
 <script src="../../shared/keyboard-shortcuts.js"></script>

@@ -372,4 +372,16 @@ html[data-reduced-motion="true"] #off-chart .odd-light.blinking { animation: non
   html[data-battery-saver="on"]:not([data-layout="pc"]) #beam.sweeping { animation: sweep 7s ease-in-out infinite !important; }
   html[data-battery-saver="on"]:not([data-layout="pc"]) .ambient-bg { display: none; }
 }
+.lamp-rail { display: none; }
+@media (max-width: 600px) {
+  /* R4-LHMO-9: the lamp rail, four big buttons along the bottom edge above the docked night controls (night only, when chosen) */
+  html[data-phone-lamp="rail"]:not([data-layout="pc"]) .lamp-rail {
+    display: flex; gap: 0.35rem; position: fixed; left: 0.4rem; right: 0.4rem; bottom: calc(var(--dock-h, 0px) + 3.8rem); z-index: 800;
+    background: var(--panel-fill); border: 1px solid var(--edge); border-radius: 999px; padding: 0.3rem;
+  }
+  .lamp-rail[hidden] { display: none !important; }
+  .lamp-rail-btn { flex: 1 1 0; min-height: 2.75rem; border-radius: 999px; padding: 0.3rem 0.2rem; font-size: 0.85rem; font-weight: 600; }
+  .lamp-rail-btn[aria-pressed="true"] { background: var(--btn-primary); border: 2px solid var(--hover-edge); color: var(--on-primary); }
+  html[data-phone-lamp="rail"]:not([data-layout="pc"]) .crank-wrap { bottom: calc(var(--dock-h, 0px) + 3.8rem + 3.6rem); }
+}
 .info-page-how { margin: 0.3rem 0; padding-left: 1.2rem; }

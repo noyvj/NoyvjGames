@@ -1,37 +1,36 @@
+/*
+ * Lighthouse -- R4-LHMO-9: four lamp-level buttons as a one-thumb rail along the bottom edge (phones, night only, when
+ * "A rail of four buttons" is chosen under Settings > On a phone). One tap sends the same {action: "level"} the dock's
+ * lamp buttons send, and the pressed one follows the engine's own beam level, so the two always agree.
+ */
 (function () {
   "use strict";
-  var RAIL = document.getElementById("lamp-rail");
-  if (!RAIL) return;
-  var BUTTONS = RAIL.querySelectorAll(".lamp-rail-btn");
+  var rail = document.getElementById("lamp-rail");
+  if (!rail) return;
+  var buttons = Array.prototype.slice.call(rail.querySelectorAll(".lamp-rail-btn"));
 
-  function sync() {
-    var active = document.querySelector(".scale-cell[data-in='true']");
-    var level = active ? (active.getAttribute("data-level") || "1") : "1";
-    BUTTONS.forEach(function(btn) {
-      btn.setAttribute("data-active", btn.getAttribute("data-level") === level ? "true" : "false");
+  function wanted() { return window.LighthousePhonePrefs && window.LighthousePhonePrefs.get("lamp") === "rail"; }
+
+  function sync(v) {
+    var api = window.lighthouseApi;
+    v = v || (api && api.view());
+    var show = Boolean(v) && v.phase === "night" && wanted();
+    rail.hidden = !show;
+    if (!v || !show) return;
+    buttons.forEach(function (btn) {
+      btn.setAttribute("aria-pressed", String(v.beam.level === btn.dataset.level));
+      btn.setAttribute("aria-disabled", String(!(v.oil > 0)));
     });
   }
 
-  function setLevel(level) {
-    BUTTONS.forEach(function(btn) {
-      btn.setAttribute("data-active", btn.getAttribute("data-level") === level ? "true" : "false");
-    });
-    if (typeof window.setLampLevel === "function") {
-      window.setLampLevel(level);
-    } else {
-      document.dispatchEvent(new CustomEvent("lamp-change", { detail: level }));
-    }
-  }
-
-  BUTTONS.forEach(function(btn) {
-    btn.addEventListener("click", function() {
-      setLevel(btn.getAttribute("data-level"));
+  buttons.forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      if (btn.getAttribute("aria-disabled") === "true" || !window.lighthouseApi) return;
+      window.lighthouseApi.send({ action: "level", level: btn.dataset.level });
     });
   });
 
-  document.addEventListener("lamp-change", function(e) {
-    if (e.detail !== undefined) setLevel(e.detail);
-  });
-
-  setTimeout(sync, 100);
+  document.addEventListener("lighthouse-view", function (e) { sync(e.detail); });
+  document.addEventListener("lighthouse-phone-pref", function (e) { if (e.detail.name === "lamp") sync(); });
+  sync();
 })();
