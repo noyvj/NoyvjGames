@@ -266,19 +266,6 @@ html[data-effects="off"] *, html[data-effects="off"] *::before, html[data-effect
   .peek-panel.open { visibility: visible; transform: translateY(0); }
   .peek-title { font-weight: 800; margin-bottom: 0.2rem; }
   .peek-festival, .peek-regulars { font-size: 0.9rem; margin: 0.15rem 0; }
-
-  /* Resume banner: appears when a day is left mid-play. */
-  #resume-banner {
-    position: fixed; bottom: 0; left: 0; right: 0;
-    background: var(--panel-fill); border-top: 1px solid var(--line);
-    padding: 0.6rem 1rem calc(0.6rem + env(safe-area-inset-bottom));
-    display: flex; justify-content: space-between; align-items: center; gap: 0.5rem;
-    z-index: 200; transform: translateY(100%); transition: transform 0.3s ease-out;
-  }
-  #resume-banner.visible { transform: translateY(0); }
-  #resume-banner button { flex: 0 0 auto; padding: 0.4rem 0.8rem; font-weight: 700; }
-  html[data-reduced-motion="true"] #resume-banner,
-  html[data-reduced-motion="true"] #resume-banner.visible { transition: none; transform: translateY(0); }
 }
 @media (max-width: 420px) {
   #game { padding: 0.6rem 0.6rem 2.5rem; }

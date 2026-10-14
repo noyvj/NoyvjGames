@@ -887,19 +887,6 @@
     if (seedCopy) seedCopy.update(view.seed_text || "");
   }
 
-  // R4-PBMO-6: Resume banner for mobile
-  var RESUME_KEY = "pocket-bazaar-resume-shown";
-  function showResumeBanner() {
-    var banner = document.getElementById("resume-banner");
-    if (!banner || lsGet(RESUME_KEY)) return;
-    banner.innerHTML = '<span>Day in progress</span><button id="resume-btn">Resume</button>';
-    banner.classList.add("visible");
-    document.getElementById("resume-btn").addEventListener("click", function () {
-      banner.classList.remove("visible");
-      lsSet(RESUME_KEY, "1");
-    });
-  }
-
   // R4-PBMO-5 (phones): pull down on the top row or the day banner to peek at the festival and the regulars. The panel
   // shows while the finger is down and goes when it lifts, so a glance never leaves the board. Everything it says is also
   // on screen elsewhere (the day banner, the Regulars button), so there is no gesture-only information.
@@ -1025,7 +1012,9 @@
     $("engine-status").textContent = "";
     send({ action: "open" });
     setBusy(false);
-    if (view.phase === "open") showResumeBanner();
+    // R4-PBMO-6: the engine already keeps the whole day (board, queue, patience) in the save after every action and
+    // loads it on boot; this line only says so, so a short break reads as safe.
+    if (view.phase === "open") showMessage("Back at the stall: your day is just as you left it, every good on the counter and every customer's patience.", true);
     await changelog;
     if (window.GameTutorial) window.GameTutorial.init(window.pocketBazaarTutorialSteps ? window.pocketBazaarTutorialSteps(TUTORIAL_STEPS) : TUTORIAL_STEPS, { gameId: "pocket-bazaar" });
   }
