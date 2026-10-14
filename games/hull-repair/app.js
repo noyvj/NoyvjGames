@@ -195,15 +195,8 @@
     if (r.next) setText(next, "Next room: " + r.next_name);
 
     var oneMore = $("one-more-button");
-    if (!oneMore) {
-      oneMore = document.createElement("button");
-      oneMore.id = "one-more-button";
-      oneMore.className = "one-more-btn";
-      oneMore.textContent = "One more board";
-      oneMore.addEventListener("click", function () { send({ action: "next" }); });
-      card.appendChild(oneMore);
-    }
     oneMore.hidden = !r.next;
+    if (r.next) oneMore.setAttribute("aria-label", "One more board: " + r.next_name);
   }
   function renderRooms() {
     var holder = $("rooms-body");
@@ -653,6 +646,7 @@
       }
     })();
 
+    $("one-more-button").addEventListener("click", function () { send({ action: "next" }); });
     $("toast").addEventListener("click", function () { showToast(""); });
     wirePanelToggle("rooms-toggle-button", "rooms-panel");
     wirePanelToggle("log-toggle-button", "log-panel");
