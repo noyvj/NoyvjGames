@@ -47,9 +47,12 @@ $maxTokens = 17000   # biggest single file the model can hold next to the rules 
 # the model for a minute or two, so the queue keeps a game's tasks together.
 if ($Model -like "ollama_chat/qwen3.6*") {
     $biggest = 0
+    # 3 characters per token, not 3.5: measured on SOL, real code packs tighter (Tide's 349 KB game.py is ~116k tokens)
     Get-ChildItem (Join-Path $root "games\$Game") -Filter *.py -File -ErrorAction SilentlyContinue |
-        ForEach-Object { $biggest = [math]::Max($biggest, [math]::Round($_.Length / 3.5)) }
-    if ($biggest -gt 100000) { $Model = "ollama_chat/qwen3.6-192k"; $maxTokens = 165000 }
+        ForEach-Object { $biggest = [math]::Max($biggest, [math]::Round($_.Length / 3.0)) }
+    # A page-only (view) task never sees the big game.py (it is hidden from the model below), so 128k is plenty.
+    if ($biggest -gt 100000 -and $Task -match 'view idea') { $Model = "ollama_chat/qwen3.6-128k"; $maxTokens = 110000 }
+    elseif ($biggest -gt 100000) { $Model = "ollama_chat/qwen3.6-192k"; $maxTokens = 165000 }
     elseif ($biggest -gt 40000) { $Model = "ollama_chat/qwen3.6-128k"; $maxTokens = 110000 }
     else { $maxTokens = 50000 }
 }
@@ -161,6 +164,19 @@ if (Test-Path (Join-Path $gameDir "CLAUDE.md")) { $readArgs += @("--read", (Join
 $planFile = Join-Path $work "planning\$Game-plan.md"
 if ($Item -match "^QI-\d+-\d+$" -and (Test-Path $planFile)) { $readArgs += @("--read", $planFile) }
 $fileArgs = @(); foreach ($f in $Files) { $fileArgs += @("--file", $f) }
+# Page-only (view) tasks, 2026-10-14: given no files, the model asked for game.py, pc.html, index.html and style.css
+# at once. In Tide that is ~590 KB, far past its context, and Aider quit silently with no edits (5 failures in a row).
+# So: start it with the page files already in the chat, and hide what it must not open. .aiderignore keeps a file
+# out of the chat and the repo map; pc.html is generated (never edited) and a big game.py has no place in a view task.
+$ignore = @("# written by ai.ps1 (this first line absorbs the byte-order mark Set-Content adds)", "games/$Game/pc.html")
+if ($Task -match 'view idea') {
+    Get-ChildItem $gameDir -Filter *.py -File | Where-Object { $_.Length -gt 120000 } | ForEach-Object { $ignore += "games/$Game/$($_.Name)" }
+    if ($fileArgs.Count -eq 0) {
+        $viewFiles = if ($Task -match 'PC \(Desktop\) view') { @("pc.js", "pc.css", "pc-config.json") } else { @("style.css", "ui.js", "app.js") }
+        foreach ($f in $viewFiles) { if (Test-Path (Join-Path $gameDir $f)) { $fileArgs += @("--file", $f) } }
+    }
+}
+Set-Content -Encoding utf8 (Join-Path $work ".aiderignore") ($ignore -join "`n")
 $log = Join-Path $reports (($branch -replace '/', '_') + ".log")
 $started = Get-Date
 Write-Host "Working on $Item in $Game (branch $branch). This takes several minutes..."
@@ -191,12 +207,12 @@ function Invoke-Aider($messageFile, $extraFiles) {
     if ($left -lt 60) { return $true }
     $argList = $aiderArgs + @($extraFiles | Where-Object { $_ }) + @("--message-file", $messageFile)
     $job = Start-Job -ScriptBlock {
-        param($dir, $exe, $argList, $apiBase)
+        param($dir, $exe, $argList, $apiBase, $outFile)
         $env:OLLAMA_API_BASE = $apiBase
         $env:PYTHONUTF8 = "1"; $env:PYTHONIOENCODING = "utf-8"   # Aider crashed printing a model reply with symbols like a triangle under the cp1252 console
         Set-Location $dir
-        & $exe @argList *>&1 | Out-Null
-    } -ArgumentList $gameDir, $aider, $argList, $env:OLLAMA_API_BASE
+        & $exe @argList *>&1 | Out-File -Append -Encoding utf8 $outFile   # kept: Aider's own errors (context too full, crashes) never reach the chat log
+    } -ArgumentList $gameDir, $aider, $argList, $env:OLLAMA_API_BASE, ($log -replace '\.log$', '.out')
     $stopped = -not (Wait-Job $job -Timeout ([int]$left))
     if ($stopped) {
         # aider.exe is a launcher with a python child: end the whole tree, then the job
