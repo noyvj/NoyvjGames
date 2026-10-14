@@ -746,42 +746,26 @@
     document.addEventListener("mousemove", onPointerMove);
   }
 
-  // R4-SMMO-5: Hold shift title to restore (timer-free)
+  // R4-SMMO-5: hold the shift title to restore the shift, behind the same confirm as the Restore button (which stays the
+  // keyboard and one-tap way). Only a steady hold counts: lifting, leaving or moving the finger cancels it.
+  var HOLD_MS = 700;
   function _initHoldToRestore() {
     var heading = $("shift-heading");
-    if (!heading) return;
-    var confirmBox = $("restore-confirm");
-    if (!confirmBox) return;
-
-    var showConfirm = function() {
-      confirmBox.removeAttribute("hidden");
-      confirmBox.classList.add("show");
-    };
-    var hideConfirm = function() {
-      confirmBox.classList.remove("show");
-      confirmBox.setAttribute("hidden", "");
-    };
-
-    heading.addEventListener("touchstart", function(e) {
-      if (e.target.closest("#restore-confirm")) return;
-      showConfirm();
-      heading.classList.add("holding");
-    }, { passive: true });
-    heading.addEventListener("touchend", hideConfirm);
-    heading.addEventListener("touchcancel", hideConfirm);
-    heading.addEventListener("mousedown", function(e) {
-      if (e.target.closest("#restore-confirm")) return;
-      showConfirm();
-      heading.classList.add("holding");
+    var held = null, x0 = 0, y0 = 0;
+    function cancel() { if (held) { clearTimeout(held); held = null; } }
+    heading.title = "Hold to restore this shift";
+    heading.addEventListener("pointerdown", function (e) {
+      if (e.button) return;
+      cancel();
+      x0 = e.clientX; y0 = e.clientY;
+      held = setTimeout(function () {
+        held = null;
+        askThen("station-medic-restore-hold", "Restore this shift to its start? Your seals are kept; only this shift's actions are cleared.", "Restore it", function () { send({ action: "restore" }); });
+      }, HOLD_MS);
     });
-    heading.addEventListener("mouseup", hideConfirm);
-    heading.addEventListener("mouseleave", hideConfirm);
-
-    $("restore-cancel-btn").addEventListener("click", hideConfirm);
-    $("restore-go-btn").addEventListener("click", function() {
-      hideConfirm();
-      askThen("station-medic-restore-hold", "Restore this shift to its start? Your seals are kept; only this shift's actions are cleared.", "Restore it", function () { send({ action: "restore" }); });
-    });
+    heading.addEventListener("pointermove", function (e) { if (held && (Math.abs(e.clientX - x0) > 10 || Math.abs(e.clientY - y0) > 10)) cancel(); });
+    ["pointerup", "pointercancel", "pointerleave"].forEach(function (name) { heading.addEventListener(name, cancel); });
+    heading.addEventListener("contextmenu", function (e) { e.preventDefault(); });   // a phone's long press would open its own menu
   }
 
   function wire() {

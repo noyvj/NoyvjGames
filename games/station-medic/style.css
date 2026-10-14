@@ -191,17 +191,8 @@ html[data-narrow="off"] .sheet li.ruled-out { opacity: 1; border-style: solid; }
   /* R4-SMMO-6: large chips on a phone */
   .sign-chip { min-height: 44px; padding: 0.3rem 1rem; font-size: 1rem; }
 
-  /* R4-SMMO-5: Hold shift title to restore */
-  #shift-heading { touch-action: manipulation; user-select: none; -webkit-user-select: none; cursor: pointer; }
-  #shift-heading.holding { opacity: 0.6; }
-  .restore-confirm {
-    position: fixed; bottom: 1rem; left: 50%; transform: translateX(-50%) translateY(120%);
-    background: var(--panel-fill); border: 2px solid var(--bad); border-radius: 12px; padding: 0.8rem 1rem;
-    text-align: center; z-index: 100; transition: transform 0.2s ease-out; width: min(90%, 24rem);
-  }
-  .restore-confirm.show { transform: translateX(-50%) translateY(0); }
-  html[data-reduced-motion="true"] .restore-confirm, html[data-effects="off"] .restore-confirm { transition: none; }
-  .btn-row { display: flex; gap: 0.5rem; justify-content: center; margin-top: 0.6rem; }
+  /* R4-SMMO-5: the shift title can be held to restore the shift */
+  #shift-heading { touch-action: manipulation; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
 
   /* R4-SMMO-7: the cabinet splits into Scans and Treatments tabs on a phone (app.js hides the tabs elsewhere) */
   #cabinet-tabs { display: flex; gap: 0.4rem; margin: 0.4rem 0; }
