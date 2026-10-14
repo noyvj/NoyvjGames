@@ -24,3 +24,54 @@ html[data-layout="pc"] .scene { height: 4.2rem; }
 
 html[data-layout="pc"] #story-toggle { top: 0.6rem !important; left: auto !important; right: 12rem !important; }
 #pc-hintbar { flex: 0 0 auto; }
+
+/* R4-SMPC-2: conditions on the sheet that carry the sign or scan result being pointed at (an outline and bold, not colour alone) */
+html[data-layout="pc"] .sheet li.highlighted { outline: 3px solid var(--accent); outline-offset: 1px; background: var(--surface); }
+html[data-layout="pc"] .sheet li.highlighted .cname { font-weight: 800; }
+
+/* R4-SMPC-3: the player's own strike-outs on the sheet (a line through the name AND a button that says Put back) */
+html[data-layout="pc"] .sheet li { cursor: pointer; }
+html[data-layout="pc"] .sheet li.struck-out { opacity: 0.6; }
+html[data-layout="pc"] .sheet li.struck-out .cname { text-decoration: line-through double; }
+html[data-layout="pc"] .strike-btn { margin-top: 0.25rem; font-size: 0.8rem; padding: 0.15rem 0.6rem; }
+
+/* R4-SMPC-4: the right-click ward menu */
+html[data-layout="pc"] #patient-context-menu { position: fixed; z-index: 400; display: flex; flex-direction: column; min-width: 9rem; padding: 0.25rem; background: var(--panel); border: 2px solid var(--edge); border-radius: 10px; box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35); }
+html[data-layout="pc"] #patient-context-menu button { text-align: left; border: 0; background: none; border-radius: 6px; min-height: 36px; }
+html[data-layout="pc"] #patient-context-menu button:hover, html[data-layout="pc"] #patient-context-menu button:focus-visible { background: var(--btn); }
+html[data-layout="pc"] #patient-context-menu button[aria-disabled="true"] { opacity: 0.55; border-style: dashed; }
+
+/* R4-SMPC-8: the supply tray under the ward */
+html[data-layout="pc"] #supply-tray { flex: 0 0 auto; display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem; padding: 0.35rem 0.5rem; margin-top: 0.4rem; background: var(--panel-fill); border: 1px solid var(--line); border-radius: 10px; }
+html[data-layout="pc"] .tray-item { display: inline-flex; align-items: center; gap: 0.35rem; min-height: 36px; padding: 0.15rem 0.6rem; border: 2px solid var(--edge); border-radius: 8px; background: var(--surface); }
+html[data-layout="pc"] .tray-item.empty { border-style: dashed; opacity: 0.75; }
+html[data-layout="pc"] .tray-letter { font: 800 1.05rem ui-monospace, monospace; border: 2px solid var(--accent); border-radius: 5px; min-width: 1.6rem; text-align: center; }
+html[data-layout="pc"] .tray-count { font-weight: 800; font-variant-numeric: tabular-nums; }
+html[data-layout="pc"] .tray-note { flex: 1 1 12rem; font-size: 0.82rem; color: var(--muted); }
+html[data-layout="pc"] .patient.tray-highlight { outline: 3px solid var(--accent); outline-offset: 2px; }
+
+/* R4-SMPC-7: chart notes for every bed, always visible in the side column */
+html[data-layout="pc"] #chart-notes-strip .strip-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.25rem; font-size: 0.85rem; }
+html[data-layout="pc"] #chart-notes-strip .strip-list li { border: 2px dashed var(--accent); border-radius: 8px; padding: 0.1rem 0.5rem; }
+html[data-layout="pc"] #chart-notes-strip .strip-list li.current { border-style: solid; }
+
+/* R4-SMPC-9: the printed shift report */
+html[data-layout="pc"] #print-report { display: none; }
+@media print {
+  html[data-layout="pc"], html[data-layout="pc"] body { height: auto !important; overflow: visible !important; background: #fff !important; }
+  html[data-layout="pc"] body > *:not(#print-report) { display: none !important; }
+  html[data-layout="pc"] #print-report { display: block !important; color: #000; background: #fff; font: 11pt/1.4 system-ui, sans-serif; padding: 0; }
+  #print-report h1 { font-size: 18pt; margin: 0 0 4pt; }
+  #print-report h2 { font-size: 14pt; margin: 0 0 6pt; }
+  #print-report h3 { font-size: 12pt; margin: 10pt 0 2pt; break-after: avoid; }
+  #print-report p { margin: 2pt 0; }
+  #print-report li { break-inside: avoid; }
+  @page { size: A4; margin: 1.5cm; }
+}
+
+/* R4-SMPC-10: pinned patient charts, each a resizable window */
+html[data-layout="pc"] #pinned-charts { position: fixed; left: 0.6rem; bottom: 3.2rem; z-index: 120; display: flex; flex-wrap: wrap; align-items: flex-end; gap: 0.5rem; max-width: calc(100vw - 1.2rem); max-height: 60vh; overflow: auto; }
+html[data-layout="pc"] .pinned-chart { position: relative; width: 18rem; height: 13rem; min-width: 12rem; min-height: 8rem; max-width: 80vw; resize: both; overflow: auto; padding: 0.5rem 0.7rem; background: var(--panel); border: 2px solid var(--edge); border-radius: 10px; box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35); font-size: 0.82rem; }
+html[data-layout="pc"] .pinned-chart h3 { margin: 0 0 0.25rem; font-size: 0.95rem; padding-right: 4.5rem; }
+html[data-layout="pc"] .pinned-chart p { margin: 0.2rem 0; }
+html[data-layout="pc"] .pinned-close { position: absolute; top: 0.3rem; right: 0.4rem; min-height: 32px; padding: 0.1rem 0.6rem; font-size: 0.8rem; }
