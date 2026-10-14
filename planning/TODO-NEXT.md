@@ -1,6 +1,6 @@
 # Next TODO list (from the Round 4 ideas, started 2026-10-12)
 
-**Progress: 115/921 items checked off (12.5%).** This is the NEXT list, written alongside the live `planning/TODO.md` (which is untouched). It becomes the live list once the current one is archived. Run `python3 scripts/todo-progress.py planning/TODO-NEXT.md` after ticking items.
+**Progress: 122/921 items checked off (13.2%).** This is the NEXT list, written alongside the live `planning/TODO.md` (which is untouched). It becomes the live list once the current one is archived. Run `python3 scripts/todo-progress.py planning/TODO-NEXT.md` after ticking items.
 
 How it is built: one section per Round 4 section on the ideas sheet (`planning/IMPROVEMENT-IDEAS-ROUND-4.md`), in the sheet's order, ids `R4-<section code>-<number>`. Only ideas you answered "yes" to are items, with your note where you wrote one. A section that is not fully answered keeps its heading and ends with one item to add the rest once you have answered them. "No" answers are dropped (listed under the heading); "later" answers are parked in `planning/LATER.md`.
 
@@ -16,6 +16,7 @@ How it is built: one section per Round 4 section on the ideas sheet (`planning/I
 | SIPC. Signal: PC view | 7/10 | 70% | ███████░░░ |
 | SIMO. Signal: mobile view | 7/10 | 70% | ███████░░░ |
 | LEMO. Lexis: mobile view | 7/10 | 70% | ███████░░░ |
+| LHMO. Lighthouse: mobile view | 7/10 | 70% | ███████░░░ |
 | PBMO. Pocket Bazaar: mobile view | 7/10 | 70% | ███████░░░ |
 | SMMO. Station Medic: mobile view | 7/10 | 70% | ███████░░░ |
 | HCPC. Heist Committee: PC view | 6/10 | 60% | ██████░░░░ |
@@ -67,7 +68,6 @@ How it is built: one section per Round 4 section on the ideas sheet (`planning/I
 | COMO. Continuum: mobile view | 0/10 | 0% | ░░░░░░░░░░ |
 | CHPC. Le Champ de Mots: PC view | 0/10 | 0% | ░░░░░░░░░░ |
 | CHMO. Le Champ de Mots: mobile view | 0/10 | 0% | ░░░░░░░░░░ |
-| LHMO. Lighthouse: mobile view | 0/10 | 0% | ░░░░░░░░░░ |
 | CLPC. Chronicle: PC view | 0/10 | 0% | ░░░░░░░░░░ |
 | CLMO. Chronicle: mobile view | 0/10 | 0% | ░░░░░░░░░░ |
 | UNPC. Undersleep: PC view | 0/10 | 0% | ░░░░░░░░░░ |
@@ -111,7 +111,7 @@ How it is built: one section per Round 4 section on the ideas sheet (`planning/I
 | OC. Overclock: general ideas | 0/1 | 0% | ░░░░░░░░░░ |
 | OCP. Overclock: made for you | 0/1 | 0% | ░░░░░░░░░░ |
 | AU. Sound | 0/1 | 0% | ░░░░░░░░░░ |
-| **All sections** | **115/921** | **12.5%** | █░░░░░░░░░ |
+| **All sections** | **122/921** | **13.2%** | █░░░░░░░░░ |
 
 <!-- PROGRESS-CHART:END -->
 
@@ -1121,16 +1121,16 @@ Parked in LATER.md (you said later): PX-25.
 
 10 ideas on the sheet: 10 yes, 0 no, 0 later, 0 not answered yet.
 
-- [ ] R4-LHMO-1: (small) Make lamp level a tall slider at the right edge you drag with your thumb, with four marked notches. The main control is easy to reach.
-- [ ] R4-LHMO-2: (small) Wind the clockwork by drawing circles on a crank on screen. A tap job becomes a small physical act.
+- [x] R4-LHMO-1: (small) Make lamp level a tall slider at the right edge you drag with your thumb, with four marked notches. The main control is easy to reach.
+- [x] R4-LHMO-2: (small) Wind the clockwork by drawing circles on a crank on screen. A tap job becomes a small physical act.
 - [ ] R4-LHMO-3: (small) Add an optional soft pulse once per beam sweep, off by default, where the browser allows. The light has a gentle rhythm you feel.
-- [ ] R4-LHMO-4: (small) Show letters as paper cards you flip with a tap and swipe away to file. Reading feels like handling mail.
+- [x] R4-LHMO-4: (small) Show letters as paper cards you flip with a tap and swipe away to file. Reading feels like handling mail.
 - [ ] R4-LHMO-5: (small) Keep a night summary strip in the header that expands into the full phase report when tapped. The main screen stays about the light.
-- [ ] R4-LHMO-6: (small) Open the letters drawer with a swipe from the left edge. Reading mail is one thumb flick away.
+- [x] R4-LHMO-6: (small) Open the letters drawer with a swipe from the left edge. Reading mail is one thumb flick away.
 - [ ] R4-LHMO-7: (big) Make the scene a tall portrait view with the lighthouse on top and phase panels in a bottom sheet. The place fits a phone.
-- [ ] R4-LHMO-8: (small) Add a battery-saver night that draws one still frame and a moving beam only. The phone lasts through a long watch.
-- [ ] R4-LHMO-9: (small) Keep four lamp-level buttons as a one-thumb rail on the bottom edge. Quick changes are one tap.
-- [ ] R4-LHMO-10: (small) Show oil and repair as large icons with numbers in the top bar that glow gently when low, never loudly. Warnings are calm and clear.
+- [x] R4-LHMO-8: (small) Add a battery-saver night that draws one still frame and a moving beam only. The phone lasts through a long watch.
+- [x] R4-LHMO-9: (small) Keep four lamp-level buttons as a one-thumb rail on the bottom edge. Quick changes are one tap.
+- [x] R4-LHMO-10: (small) Show oil and repair as large icons with numbers in the top bar that glow gently when low, never loudly. Warnings are calm and clear.
 
 ## PB. Pocket Bazaar: general ideas
 

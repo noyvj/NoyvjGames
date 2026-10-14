@@ -4861,7 +4861,7 @@
     },
     {
      "path": "games/lighthouse/app.js",
-     "bytes": 80664,
+     "bytes": 81962,
      "precached": true
     },
     {
@@ -4911,7 +4911,7 @@
     },
     {
      "path": "games/lighthouse/index.html",
-     "bytes": 27847,
+     "bytes": 31741,
      "precached": true
     },
     {
@@ -4922,6 +4922,31 @@
     {
      "path": "games/lighthouse/lore.py",
      "bytes": 20803,
+     "precached": true
+    },
+    {
+     "path": "games/lighthouse/mobile-crank.js",
+     "bytes": 3414,
+     "precached": true
+    },
+    {
+     "path": "games/lighthouse/mobile-lamp-rail.js",
+     "bytes": 1534,
+     "precached": true
+    },
+    {
+     "path": "games/lighthouse/mobile-lamp.js",
+     "bytes": 1744,
+     "precached": true
+    },
+    {
+     "path": "games/lighthouse/mobile-letters.js",
+     "bytes": 6793,
+     "precached": true
+    },
+    {
+     "path": "games/lighthouse/mobile-prefs.js",
+     "bytes": 3223,
      "precached": true
     },
     {
@@ -4941,7 +4966,7 @@
     },
     {
      "path": "games/lighthouse/pc.html",
-     "bytes": 30255,
+     "bytes": 34149,
      "precached": true
     },
     {
@@ -4986,7 +5011,12 @@
     },
     {
      "path": "games/lighthouse/style.css",
-     "bytes": 23667,
+     "bytes": 31811,
+     "precached": true
+    },
+    {
+     "path": "games/lighthouse/swipe-letters.js",
+     "bytes": 3801,
      "precached": true
     },
     {
@@ -5254,7 +5284,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14634569,
+   "bytes": 14672308,
    "bytes_complete": true
   },
   "pocket-bazaar": {
@@ -6885,7 +6915,7 @@
     },
     {
      "path": "games/hull-repair/app.js",
-     "bytes": 35681,
+     "bytes": 35695,
      "precached": true
     },
     {
@@ -7238,7 +7268,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14422886,
+   "bytes": 14422900,
    "bytes_complete": true
   },
   "station-medic": {
@@ -7255,7 +7285,7 @@
     },
     {
      "path": "games/station-medic/app.js",
-     "bytes": 30097,
+     "bytes": 45624,
      "precached": true
     },
     {
@@ -7325,7 +7355,7 @@
     },
     {
      "path": "games/station-medic/game.py",
-     "bytes": 24331,
+     "bytes": 25359,
      "precached": true
     },
     {
@@ -7340,7 +7370,7 @@
     },
     {
      "path": "games/station-medic/index.html",
-     "bytes": 16604,
+     "bytes": 17703,
      "precached": true
     },
     {
@@ -7355,22 +7385,22 @@
     },
     {
      "path": "games/station-medic/pc-config.json",
-     "bytes": 1349,
+     "bytes": 1421,
      "precached": false
     },
     {
      "path": "games/station-medic/pc.css",
-     "bytes": 1725,
+     "bytes": 6514,
      "precached": true
     },
     {
      "path": "games/station-medic/pc.html",
-     "bytes": 18647,
+     "bytes": 19810,
      "precached": true
     },
     {
      "path": "games/station-medic/pc.js",
-     "bytes": 2446,
+     "bytes": 20447,
      "precached": true
     },
     {
@@ -7385,7 +7415,7 @@
     },
     {
      "path": "games/station-medic/settings.js",
-     "bytes": 6924,
+     "bytes": 7701,
      "precached": true
     },
     {
@@ -7405,7 +7435,7 @@
     },
     {
      "path": "games/station-medic/style.css",
-     "bytes": 17412,
+     "bytes": 22102,
      "precached": true
     },
     {
@@ -7633,7 +7663,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14397464,
+   "bytes": 14444610,
    "bytes_complete": true
   },
   "stranded": {
@@ -7650,7 +7680,7 @@
     },
     {
      "path": "games/stranded/app.js",
-     "bytes": 27776,
+     "bytes": 27790,
      "precached": true
     },
     {
@@ -7973,7 +8003,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14367209,
+   "bytes": 14367223,
    "bytes_complete": true
   },
   "evidence-hunt": {
@@ -7990,7 +8020,7 @@
     },
     {
      "path": "games/evidence-hunt/app.js",
-     "bytes": 37715,
+     "bytes": 37729,
      "precached": true
     },
     {
@@ -8373,7 +8403,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14481990,
+   "bytes": 14482004,
    "bytes_complete": true
   },
   "trade-empire": {
