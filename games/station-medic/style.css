@@ -259,6 +259,25 @@ html[data-narrow="off"] .sheet li.ruled-out { opacity: 1; border-style: solid; }
   body.night-mode button, body.night-mode select { padding: 0.6rem 1rem; font-size: 1.05rem; }
   body.night-mode .act-row button { padding: 0.5rem 0.8rem; }
   html[data-reduced-motion="true"] body.night-mode .scene, html[data-effects="off"] body.night-mode .scene { filter: none; }
+
+  /* R4-SMMO-10: Chart notes banner */
+  .notes-banner {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 80;
+    background: var(--panel-fill); border-bottom: 2px solid var(--accent);
+    padding: 0.5rem 0.7rem; display: flex; align-items: center; gap: 0.5rem;
+    transform: translateY(-100%); transition: transform 0.2s ease-out;
+  }
+  .notes-banner.show { transform: translateY(0); }
+  html[data-reduced-motion="true"] .notes-banner, html[data-effects="off"] .notes-banner { transition: none; }
+  #notes-close-btn { background: var(--btn); border: 1px solid var(--edge); border-radius: 6px; padding: 0.2rem 0.5rem; cursor: pointer; font-size: 1.1rem; color: var(--text); }
+  .notes-list { list-style: none; margin: 0; padding: 0; flex: 1; font-size: 0.85rem; color: var(--muted); }
+  .notes-list li { margin: 0.1rem 0; }
+  #notes-tab {
+    position: fixed; top: 0.5rem; right: 0.5rem; z-index: 81;
+    background: var(--accent); color: var(--ink); border: none; border-radius: 6px;
+    padding: 0.3rem 0.6rem; font-size: 0.8rem; cursor: pointer; display: none;
+  }
+  #notes-tab.show { display: block; }
 }
 
 /* Goals: three at a time, always in view. */

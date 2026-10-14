@@ -213,6 +213,21 @@
     var notes = $("bedside-notes");
     notes.textContent = "";
     p.notes.forEach(function (n) { notes.appendChild(el("li", null, n)); });
+
+    // R4-SMMO-10: Chart notes banner
+    var bannerList = $("notes-list");
+    if (bannerList) {
+      bannerList.textContent = "";
+      p.notes.forEach(function (n) { bannerList.appendChild(el("li", null, n)); });
+      var banner = $("notes-banner");
+      var tab = $("notes-tab");
+      if (p.notes.length > 0 && !banner.classList.contains("show")) {
+        tab.classList.add("show");
+      } else if (p.notes.length === 0) {
+        tab.classList.remove("show");
+        banner.classList.remove("show");
+      }
+    }
     var readings = $("bedside-readings");
     readings.textContent = "";
     if (!p.readings.length) readings.appendChild(el("li", "unknown", "No scans on this shift."));
@@ -629,6 +644,40 @@
   }
   function _sheetDragEnd() { _sheetDrag.active = false; }
 
+  // R4-SMMO-10: Chart notes banner
+  function _initNotesBanner() {
+    var banner = $("notes-banner");
+    var tab = $("notes-tab");
+    var closeBtn = $("notes-close-btn");
+    if (!banner || !tab) return;
+
+    function showBanner() {
+      banner.classList.add("show");
+      tab.classList.remove("show");
+    }
+    function hideBanner() {
+      banner.classList.remove("show");
+      tab.classList.add("show");
+    }
+
+    closeBtn.addEventListener("click", hideBanner);
+    tab.addEventListener("click", showBanner);
+
+    var startY = 0;
+    function onPointerDown(e) {
+      if (e.target.closest("#notes-banner")) startY = e.clientY || e.touches[0].clientY;
+    }
+    function onPointerMove(e) {
+      if (!banner.classList.contains("show")) return;
+      var y = e.clientY || e.touches[0].clientY;
+      if (y - startY > 60) hideBanner();
+    }
+    document.addEventListener("touchstart", onPointerDown, { passive: true });
+    document.addEventListener("touchmove", onPointerMove, { passive: false });
+    document.addEventListener("mousedown", onPointerDown);
+    document.addEventListener("mousemove", onPointerMove);
+  }
+
   // R4-SMMO-5: Hold shift title to restore (timer-free)
   function _initHoldToRestore() {
     var heading = $("shift-heading");
@@ -702,6 +751,7 @@
     window.stationMedicRefresh = function () { if (engine) { shiftId = null; send({ action: "open" }); } };
     _initSheetGesture();
     _initHoldToRestore();
+    _initNotesBanner();
   }
 
   var TUTORIAL_STEPS = [
