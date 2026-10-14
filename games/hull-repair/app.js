@@ -585,66 +585,43 @@
   function wire() {
     wireDifficulty();
 
-    // Hand layout (R4-HRMO-8)
-    var HAND_KEY = "hull-repair-hand";
-    function applyHandLayout(hand) {
-      var btns = document.querySelector(".edit-buttons");
-      if (btns) btns.setAttribute("data-hand", hand || "right");
-      try { localStorage.setItem(HAND_KEY, hand || "right"); } catch(e) {}
+    // Phone comfort settings (R4-HRMO-8 hand layout, R4-HRMO-9 big ports): per-device, kept in localStorage, never in the save.
+    function lsRead(key) { try { return localStorage.getItem(key); } catch (e) { return null; } }
+    function addToggle(id, text, checked, onChange) {
+      var anchor = $("dots-checkbox");
+      var row = el("div", "settings-row");
+      var label = el("label");
+      var box = el("input");
+      box.type = "checkbox";
+      box.id = id;
+      box.checked = checked;
+      label.appendChild(box);
+      label.appendChild(document.createTextNode(" " + text));
+      row.appendChild(label);
+      box.addEventListener("change", function () { onChange(box.checked); });
+      var parentRow = anchor && anchor.closest(".settings-row");
+      if (parentRow && parentRow.parentNode) parentRow.parentNode.insertBefore(row, parentRow.nextSibling);
     }
-    var currentHand = "right";
-    try { var stored = localStorage.getItem(HAND_KEY); if (stored === "left" || stored === "right") currentHand = stored; } catch(e) {}
-    applyHandLayout(currentHand);
-
-    var settingsRow = document.querySelector(".settings-row");
-    if (settingsRow) {
-      var label = document.createElement("label");
-      label.className = "hand-layout-label";
-      label.style.cssText = "display:flex;align-items:center;gap:0.3rem;font-size:0.85rem;color:var(--muted);cursor:pointer;margin-left:auto;";
-      var cb = document.createElement("input");
-      cb.type = "checkbox";
-      cb.checked = currentHand === "right";
-      cb.style.cssText = "width:1.25rem;height:1.25rem;accent-color:var(--btn-primary);vertical-align:middle;";
-      label.appendChild(cb);
-      label.appendChild(document.createTextNode("Right-hand layout"));
-      label.addEventListener("click", function(e) {
-        if (e.target !== cb) cb.checked = !cb.checked;
-        applyHandLayout(cb.checked ? "right" : "left");
-      });
-      settingsRow.appendChild(label);
+    function applyHand(left) {
+      document.documentElement.setAttribute("data-hand", left ? "left" : "right");
+      try { localStorage.setItem("hull-repair-hand", left ? "left" : "right"); } catch (e) { /* not saved */ }
     }
-
-    // Big-shape mode (R4-HRMO-9)
-    var BIG_PORTS_KEY = "hull-repair-big-ports";
     function applyBigPorts(on) {
-      var holder = $("board-holder");
-      if (!holder) return;
-      holder.classList.toggle("hr-big-ports", Boolean(on));
-      try { localStorage.setItem(BIG_PORTS_KEY, on ? "1" : "0"); } catch(e) {}
+      $("board-holder").classList.toggle("hr-big-ports", Boolean(on));
+      try { localStorage.setItem("hull-repair-big-ports", on ? "1" : "0"); } catch (e) { /* not saved */ }
     }
-    (function initBigPorts() {
-      var val = "0";
-      try { val = localStorage.getItem(BIG_PORTS_KEY); } catch(e) {}
-      applyBigPorts(val === "1");
-
-      var settingsRow = document.querySelector(".settings-row");
-      if (settingsRow) {
-        var label = document.createElement("label");
-        label.className = "big-ports-label";
-        label.style.cssText = "display:flex;align-items:center;gap:0.3rem;font-size:0.85rem;color:var(--muted);cursor:pointer;margin-left:auto;";
-        var cb = document.createElement("input");
-        cb.type = "checkbox";
-        cb.checked = val === "1";
-        cb.style.cssText = "width:1.25rem;height:1.25rem;accent-color:var(--btn-primary);vertical-align:middle;";
-        label.appendChild(cb);
-        label.appendChild(document.createTextNode("Big ports"));
-        label.addEventListener("click", function(e) {
-          if (e.target !== cb) cb.checked = !cb.checked;
-          applyBigPorts(cb.checked);
-        });
-        settingsRow.appendChild(label);
-      }
-    })();
+    var leftHanded = lsRead("hull-repair-hand") === "left";
+    var bigPorts = lsRead("hull-repair-big-ports") === "1";
+    applyHand(leftHanded);
+    applyBigPorts(bigPorts);
+    addToggle("hand-checkbox", "Left-hand layout (on a phone, Undo and Next sit on the left)", leftHanded, applyHand);
+    addToggle("big-ports-checkbox", "Big ports (on a phone, ports are drawn larger)", bigPorts, applyBigPorts);
+    $("display-reset-button").addEventListener("click", function () {
+      applyHand(false);
+      applyBigPorts(false);
+      $("hand-checkbox").checked = false;
+      $("big-ports-checkbox").checked = false;
+    });
 
     $("one-more-button").addEventListener("click", function () { send({ action: "next" }); });
     $("toast").addEventListener("click", function () { showToast(""); });
