@@ -259,8 +259,49 @@
   function renderCabinet() {
     var cab = view.cabinet;
     var list = $("cabinet-list");
+
+    // R4-SMMO-7: Tabs container
+    var tabsDiv = $("cabinet-tabs");
+    if (!tabsDiv) {
+      tabsDiv = el("div", "cabinet-tabs");
+      tabsDiv.id = "cabinet-tabs";
+      var scanBtn = el("button", "active", "Scans (0)");
+      scanBtn.dataset.tab = "scan";
+      var treatBtn = el("button", "", "Treatments (0)");
+      treatBtn.dataset.tab = "treat";
+      tabsDiv.appendChild(scanBtn);
+      tabsDiv.appendChild(treatBtn);
+      if (list.parentNode) {
+        list.parentNode.insertBefore(tabsDiv, list);
+      } else {
+        $("cabinet-panel").appendChild(tabsDiv);
+      }
+    }
+
+    // Count supplies per tab
+    var scanCount = 0, treatCount = 0;
+    // Fallback to cabinet structure if engine hasn't tagged items yet
+    var scanItems = new Set((cab.tests || []).map(function(t) { return t.item; }));
+    var treatItems = new Set((cab.tx || []).map(function(x) { return x.item; }));
+    cab.items.forEach(function(i) {
+      var t = i.type || (scanItems.has(i.i) ? "scan" : (treatItems.has(i.i) ? "treat" : "shared"));
+      if (t === "scan" || t === "shared") scanCount += i.count;
+      if (t === "treat" || t === "shared") treatCount += i.count;
+    });
+    tabsDiv.querySelector('[data-tab="scan"]').textContent = "Scans (" + scanCount + ")";
+    tabsDiv.querySelector('[data-tab="treat"]').textContent = "Treatments (" + treatCount + ")";
+
     list.textContent = "";
+
+    var activeTab = tabsDiv.querySelector("button.active").dataset.tab;
+
     cab.items.forEach(function (i) {
+      var t = i.type || (scanItems.has(i.i) ? "scan" : (treatItems.has(i.i) ? "treat" : "shared"));
+      var show = false;
+      if (activeTab === "scan" && (t === "scan" || t === "shared")) show = true;
+      if (activeTab === "treat" && (t === "treat" || t === "shared")) show = true;
+      if (!show) return;
+
       var li = el("li", "shelf" + (i.count === 0 ? " empty" : ""));
       li.setAttribute("draggable", "true");
       li.dataset.supply = i.glyph;
@@ -272,6 +313,19 @@
       li.setAttribute("aria-label", i.name + ": " + plural(i.count, "left", "left") + " of " + i.start + ". Used for " + i.uses.join(", "));
       list.appendChild(li);
     });
+
+    // Wire tabs once
+    if (!tabsDiv.dataset.wired) {
+      tabsDiv.dataset.wired = "1";
+      tabsDiv.addEventListener("click", function(e) {
+        var btn = e.target.closest("button");
+        if (!btn) return;
+        tabsDiv.querySelectorAll("button").forEach(function(b) { b.classList.remove("active"); });
+        btn.classList.add("active");
+        renderCabinet();
+      });
+    }
+
     var extra = [];
     if (cab.beds) extra.push("Cold room: " + cab.beds_used + " of " + plural(cab.beds, "bed", "beds") + " in use.");
     if (cab.robots) extra.push("Tally: " + (cab.robots_used ? "steadying one patient" : "free to steady one patient") + ".");

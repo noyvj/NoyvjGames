@@ -206,6 +206,11 @@ html[data-narrow="off"] .sheet li.ruled-out { opacity: 1; border-style: solid; }
   html[data-reduced-motion="true"] .restore-confirm, html[data-effects="off"] .restore-confirm { transition: none; }
   .btn-row { display: flex; gap: 0.5rem; justify-content: center; margin-top: 0.6rem; }
 
+  /* R4-SMMO-7: Cabinet tabs */
+  #cabinet-tabs { display: flex; gap: 0.4rem; margin-bottom: 0.5rem; }
+  #cabinet-tabs button { flex: 1; padding: 0.4rem; border-radius: 8px; font-weight: 600; background: var(--btn); color: var(--text); border: 1px solid var(--edge); cursor: pointer; }
+  #cabinet-tabs button.active { background: var(--accent); color: var(--ink); border-color: var(--accent); }
+
   #cabinet-panel .shelf {
     display: inline-flex; flex-direction: row; align-items: center; gap: 0.4rem;
     padding: 0.5rem 0.8rem; margin: 0.2rem; border-radius: 999px; cursor: pointer;
