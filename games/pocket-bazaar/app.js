@@ -823,7 +823,7 @@
     }
     if (key === "Escape") { letGo(); return; }
 
-    // R4-PBPC-9: Check custom keys from Settings, fallback to defaults
+    // R4-PBPC-9: keys the player set in Settings, Controls (pc.js, window.NOYVJ_PC_CUSTOM_KEYS), else the defaults
     function getCustom(action, fallback) {
       var k = window.NOYVJ_PC_CUSTOM_KEYS;
       return (k && k[action]) ? k[action].toLowerCase() : (fallback || "").toLowerCase();
@@ -854,15 +854,17 @@
       return;
     }
 
-    var cratesKey = getCustom("crates", "1");
-    if ((cratesKey && key.toLowerCase() === cratesKey) || (!cratesKey && /^[1-9]$/.test(key))) {
+    // A key set in Settings, Controls opens the highlighted crate (C moves the highlight); the number keys always work.
+    var cratesKey = getCustom("crates", "");
+    if (cratesKey && key.toLowerCase() === cratesKey) {
       e.preventDefault();
-      if (cratesKey) {
-        send({ action: "crate", family: view.crates[activeCrate].family });
-      } else {
-        activeCrate = Number(key) - 1;
-        send({ action: "crate", family: view.crates[activeCrate].family });
-      }
+      send({ action: "crate", family: view.crates[activeCrate].family });
+      return;
+    }
+    if (/^[1-9]$/.test(key) && Number(key) <= view.crates.length) {
+      e.preventDefault();
+      activeCrate = Number(key) - 1;
+      send({ action: "crate", family: view.crates[activeCrate].family });
     }
   }
 

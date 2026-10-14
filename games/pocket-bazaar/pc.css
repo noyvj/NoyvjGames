@@ -76,6 +76,10 @@ html[data-layout="pc"] .cell[data-hover-target]::before {
   font-size: 0.7rem; line-height: 1.2; text-align: center; pointer-events: none;
 }
 
+/* R4-PBPC-9: the key buttons in Settings, Controls. */
+.controls-section .key-button { min-width: 3.5rem; min-height: 2.75rem; font-weight: 800; }
+.controls-section .key-button[aria-pressed="true"] { outline: 3px solid var(--focus); }
+
 /* R4-PBPC-8: hold Alt to show the key on every crate and tool (a static label, so nothing to animate). */
 #pc-side [data-hotkey] { position: relative; }
 html.pc-show-keys #pc-side [data-hotkey]::after {

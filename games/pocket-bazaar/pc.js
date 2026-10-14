@@ -114,6 +114,145 @@ function pbPcKeys() {
   };
 }
 
+/* R4-PBPC-9: Settings, Controls: rebind the crate, hand-over, sell and broom keys. A per-device choice (localStorage,
+   never the save). Keys are single letters a-z; C is taken (it moves along the crates) and no two actions may share one.
+   The crate key is an extra: it opens the highlighted crate, and the number keys keep working. app.js reads
+   window.NOYVJ_PC_CUSTOM_KEYS on every key press. */
+(function () {
+  "use strict";
+  var KEY = "pocket-bazaar-pc-keys";
+  var ACTIONS = [
+    ["crates", "Open the highlighted crate", ""],
+    ["handover", "Hand over", "d"],
+    ["sell", "Sell", "s"],
+    ["broom", "Broom", "b"],
+  ];
+
+  function load() {
+    var out = {};
+    var raw = null;
+    try { raw = JSON.parse(window.localStorage.getItem(KEY) || "null"); } catch (e) { raw = null; }
+    if (!raw || typeof raw !== "object") return out;
+    ACTIONS.forEach(function (a) {
+      var v = raw[a[0]];
+      if (typeof v === "string" && /^[a-z]$/.test(v) && v !== "c") out[a[0]] = v;
+    });
+    // Two actions on one key would make one unreachable: drop the whole set rather than guess which to keep.
+    var used = ACTIONS.map(function (a) { return out[a[0]] || a[2]; }).filter(Boolean);
+    return used.length === new Set(used).size ? out : {};
+  }
+  function save(keys) {
+    try {
+      if (Object.keys(keys).length) window.localStorage.setItem(KEY, JSON.stringify(keys));
+      else window.localStorage.removeItem(KEY);
+    } catch (e) { /* convenience only */ }
+  }
+
+  window.NOYVJ_PC_CUSTOM_KEYS = load();
+
+  // Registered at once on window (capture), so it runs before the shell's own Escape handling and the game's keys.
+  var handler = null;
+  window.addEventListener("keydown", function (e) { if (handler) handler(e); }, true);
+
+  document.addEventListener("DOMContentLoaded", function () {
+    var panel = document.getElementById("settings-panel");
+    var reset = document.getElementById("display-reset-button");
+    if (!panel || !reset) return;
+    var box = document.createElement("section");
+    box.className = "controls-section";
+    box.setAttribute("aria-labelledby", "controls-heading");
+    var h = document.createElement("h3");
+    h.id = "controls-heading";
+    h.className = "settings-sub";
+    h.textContent = "Controls";
+    var note = document.createElement("p");
+    note.className = "note";
+    note.textContent = "Choose a button, then press a letter. Esc cancels. C always moves along the crates, and the number keys always open a crate.";
+    var status = document.createElement("p");
+    status.className = "note";
+    status.setAttribute("role", "status");
+    status.setAttribute("aria-live", "polite");
+    box.appendChild(h);
+    box.appendChild(note);
+    var buttons = {};
+    var capturing = null;
+
+    function effective(name) {
+      var a = ACTIONS.filter(function (x) { return x[0] === name; })[0];
+      return window.NOYVJ_PC_CUSTOM_KEYS[name] || a[2];
+    }
+    function paint() {
+      ACTIONS.forEach(function (a) {
+        var k = effective(a[0]);
+        buttons[a[0]].textContent = k ? k.toUpperCase() : "None";
+        buttons[a[0]].setAttribute("aria-label", a[1] + " key: " + (k ? k.toUpperCase() : "none set") + ". Press to change.");
+      });
+    }
+    function stop() {
+      if (capturing) buttons[capturing].removeAttribute("aria-pressed");
+      capturing = null;
+    }
+    ACTIONS.forEach(function (a) {
+      var row = document.createElement("div");
+      row.className = "settings-row";
+      var label = document.createElement("span");
+      label.textContent = a[1];
+      var btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "key-button";
+      btn.addEventListener("click", function () {
+        stop();
+        capturing = a[0];
+        btn.setAttribute("aria-pressed", "true");
+        status.textContent = "Press a letter for: " + a[1] + ". Esc cancels.";
+      });
+      buttons[a[0]] = btn;
+      row.appendChild(label);
+      row.appendChild(btn);
+      box.appendChild(row);
+    });
+    var clear = document.createElement("button");
+    clear.type = "button";
+    clear.textContent = "Reset keys";
+    clear.addEventListener("click", function () {
+      stop();
+      window.NOYVJ_PC_CUSTOM_KEYS = {};
+      save({});
+      paint();
+      status.textContent = "Keys are back to the defaults.";
+    });
+    var clearRow = document.createElement("div");
+    clearRow.className = "settings-row";
+    clearRow.appendChild(clear);
+    box.appendChild(clearRow);
+    box.appendChild(status);
+    reset.parentNode.parentNode.insertBefore(box, reset.parentNode);
+    paint();
+
+    // While a button waits for a key, the key is taken here and never reaches the game.
+    handler = function (e) {
+      if (!capturing) return;
+      if (e.key === "Shift" || e.key === "Control" || e.key === "Alt" || e.key === "Meta") return;
+      e.preventDefault();
+      e.stopPropagation();
+      e.__pcMenuOpened = true;
+      var name = capturing;
+      var k = e.key.toLowerCase();
+      if (e.key === "Escape") { status.textContent = "Cancelled."; stop(); return; }
+      if (!/^[a-z]$/.test(k) || k === "c") { status.textContent = "Use a letter from A to Z other than C."; return; }
+      var clash = ACTIONS.filter(function (a) { return a[0] !== name && effective(a[0]) === k; })[0];
+      if (clash) { status.textContent = k.toUpperCase() + " is already used for " + clash[1] + ". Pick another letter."; return; }
+      var next = Object.assign({}, window.NOYVJ_PC_CUSTOM_KEYS);
+      next[name] = k;
+      window.NOYVJ_PC_CUSTOM_KEYS = next;
+      save(next);
+      status.textContent = ACTIONS.filter(function (a) { return a[0] === name; })[0][1] + " is now " + k.toUpperCase() + ".";
+      stop();
+      paint();
+    };
+  });
+})();
+
 /* R4-PBPC-8: hold Alt to see the key for every crate and tool. Labels come from data-hotkey on the buttons (set after
    every redraw, since the crates are rebuilt) and are drawn by CSS only while html has pc-show-keys. */
 (function () {
