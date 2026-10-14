@@ -198,6 +198,7 @@ html[data-effects="off"] *, html[data-effects="off"] *::before, html[data-effect
 
 /* The tool dock below is phone-only (R4-PBMO-3). */
 .mobile-dock { display: none; }
+.peek-panel { display: none; }
 
 @media (max-width: 600px) {
   /* The board shrinks to the screen's height so the crates and Sell/Broom stay on screen without scrolling. */
@@ -254,6 +255,17 @@ html[data-effects="off"] *, html[data-effects="off"] *::before, html[data-effect
   .mobile-dock button { flex: 1 1 0; max-width: 9rem; min-height: 2.75rem; padding: 0.3rem; font-size: 1rem; font-weight: 700; border-radius: 12px; }
   .mobile-dock button[aria-pressed="true"] { border: 3px solid var(--accent); }
   .tool-buttons { display: none !important; }
+
+  /* R4-PBMO-5: the peek panel, pulled down over the top of the page while a finger holds the banner. */
+  .top-row, #message { touch-action: pan-x; }
+  .peek-panel {
+    display: block; position: fixed; top: 0; left: 0; right: 0; z-index: 300; padding: 0.7rem 1rem; visibility: hidden; pointer-events: none;
+    transform: translateY(-100%); transition: transform 0.2s ease-out;
+    background: var(--panel); color: var(--text); border-bottom: 2px solid var(--edge); box-shadow: 0 6px 16px rgba(0, 0, 0, 0.35);
+  }
+  .peek-panel.open { visibility: visible; transform: translateY(0); }
+  .peek-title { font-weight: 800; margin-bottom: 0.2rem; }
+  .peek-festival, .peek-regulars { font-size: 0.9rem; margin: 0.15rem 0; }
 
   /* Resume banner: appears when a day is left mid-play. */
   #resume-banner {

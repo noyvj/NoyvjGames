@@ -21,9 +21,6 @@
   var shelfEl = null;
   var drag = null;
   var suppressClick = false;
-  // R4-PBMO-5: Pull-down peek panel state
-  var peekPanel = null;
-  var peekOpen = false;
 
   function lsGet(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
   function lsSet(k, v) { try { localStorage.setItem(k, v); } catch (e) { /* convenience only */ } }
@@ -598,18 +595,6 @@
     renderBoard();
     renderCrates();
     renderInfo();
-    if (peekPanel && peekOpen) {
-      var fest = view.festival;
-      var festEl = document.getElementById("peek-fest");
-      if (festEl && fest) {
-        festEl.textContent = fest.name + " (" + fest.tone + ")";
-        festEl.title = fest.blurb;
-      }
-      var regEl = document.getElementById("peek-reg");
-      if (regEl) {
-        regEl.textContent = "Regulars: " + view.regulars_met + "/" + (view.regulars ? view.regulars.length : 0) + " met.";
-      }
-    }
     if (event && (event.kind === "merge" || event.kind === "crate")) {
       var target = cellButton(event.kind === "merge" ? event.dst : event.at);
       if (target) {
@@ -915,6 +900,49 @@
     });
   }
 
+  // R4-PBMO-5 (phones): pull down on the top row or the day banner to peek at the festival and the regulars. The panel
+  // shows while the finger is down and goes when it lifts, so a glance never leaves the board. Everything it says is also
+  // on screen elsewhere (the day banner, the Regulars button), so there is no gesture-only information.
+  function wirePeek() {
+    var panel = el("div", "peek-panel");
+    panel.id = "peek-panel";
+    panel.setAttribute("aria-hidden", "true");
+    var title = el("div", "peek-title", "Today's stall");
+    var fest = el("div", "peek-festival");
+    var reg = el("div", "peek-regulars");
+    panel.appendChild(title);
+    panel.appendChild(fest);
+    panel.appendChild(reg);
+    document.body.appendChild(panel);
+    function fill() {
+      if (!view) return;
+      var f = view.festival;
+      setText(fest, f ? f.name + " (" + (f.tone === "tricky" ? "harder day" : "easier day") + "): " + f.blurb : "");
+      var here = (view.customers || []).filter(function (c) { return c.archetype === "regular"; }).map(function (c) { return c.name; });
+      setText(reg, "Regulars met: " + view.regulars_met + " of " + view.regulars.length + (here.length ? ". At the stall now: " + here.join(", ") + "." : "."));
+    }
+    function begin(e) {
+      if (!window.matchMedia("(max-width: 600px)").matches || !view) return;
+      var startY = e.clientY;
+      function move(ev) {
+        if (ev.pointerId !== e.pointerId || ev.clientY - startY < 40) return;
+        fill();
+        panel.classList.add("open");
+      }
+      function end(ev) {
+        if (ev.pointerId !== e.pointerId) return;
+        panel.classList.remove("open");
+        window.removeEventListener("pointermove", move);
+        window.removeEventListener("pointerup", end);
+        window.removeEventListener("pointercancel", end);
+      }
+      window.addEventListener("pointermove", move);
+      window.addEventListener("pointerup", end);
+      window.addEventListener("pointercancel", end);
+    }
+    Array.prototype.forEach.call(document.querySelectorAll(".top-row, #message"), function (node) { node.addEventListener("pointerdown", begin); });
+  }
+
   function wire() {
     $("toast").addEventListener("click", function () { showToast(""); });
     $("start-day-button").addEventListener("click", function () { send({ action: "start_day" }); });
@@ -958,39 +986,7 @@
     });
 
     // The save widget (a later milestone) loads a save straight into the engine; this redraws afterwards.
-    // R4-PBMO-5: Pull-down peek panel setup
-    if (!peekPanel) {
-      peekPanel = el("div", "peek-panel");
-      peekPanel.id = "peek-panel";
-      peekPanel.innerHTML = '<div class="peek-title">Today\'s stall</div><div class="peek-festival" id="peek-fest"></div><div class="peek-regulars" id="peek-reg"></div>';
-      document.body.appendChild(peekPanel);
-    }
-    var banner = document.getElementById("stall-banner") || document.querySelector(".top-row");
-    if (banner) {
-      var closePeek = function() {
-        peekPanel.classList.remove("open");
-        peekOpen = false;
-      };
-      banner.addEventListener("pointerdown", function(e) {
-        if (e.pointerType === "mouse" && e.button !== 0) return;
-        peekOpen = false;
-        var startY = e.clientY;
-        var onMove = function(ev) {
-          ev.preventDefault(); // Prevent page scroll while dragging the banner
-          if (ev.clientY - startY > 40) {
-            peekPanel.classList.add("open");
-            peekOpen = true;
-            banner.removeEventListener("pointermove", onMove);
-            banner.removeEventListener("pointerup", closePeek);
-            banner.removeEventListener("pointercancel", closePeek);
-          }
-        };
-        banner.addEventListener("pointermove", onMove, { passive: false });
-        banner.addEventListener("pointerup", closePeek);
-        banner.addEventListener("pointercancel", closePeek);
-      });
-    }
-
+    wirePeek();
     window.pocketBazaarApi = { view: function () { return view; } };
     window.pocketBazaarRefresh = function () { if (engine) { selected = null; send({ action: "open" }); } };
   }
