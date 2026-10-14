@@ -262,7 +262,7 @@ html[data-sandbox="true"] .room-holder svg { cursor: crosshair; }
   .speed-chip button[aria-pressed="true"] { background: var(--btn-primary); color: var(--on-primary); border-color: var(--hover-edge); }
   #game { display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
   #room-panel { flex: 0 0 auto; min-height: 20vh; overflow-y: auto; position: relative; }
-  #editor-panel { flex: 1 1 auto; min-height: 30vh; overflow-y: auto; position: relative; }
+  #editor-panel { flex: 1 1 auto; min-height: 20vh; overflow-y: auto; position: relative; }
   #split-divider {
     height: 1.5rem; width: 100%; background: var(--line); cursor: row-resize;
     display: flex; align-items: center; justify-content: center; user-select: none; touch-action: none;
