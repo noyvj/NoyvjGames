@@ -28,3 +28,9 @@ html[data-layout="pc"] #story-toggle { top: 0.6rem !important; left: auto !impor
 /* R4-SMPC-2: conditions on the sheet that carry the sign or scan result being pointed at (an outline and bold, not colour alone) */
 html[data-layout="pc"] .sheet li.highlighted { outline: 3px solid var(--accent); outline-offset: 1px; background: var(--surface); }
 html[data-layout="pc"] .sheet li.highlighted .cname { font-weight: 800; }
+
+/* R4-SMPC-3: the player's own strike-outs on the sheet (a line through the name AND a button that says Put back) */
+html[data-layout="pc"] .sheet li { cursor: pointer; }
+html[data-layout="pc"] .sheet li.struck-out { opacity: 0.6; }
+html[data-layout="pc"] .sheet li.struck-out .cname { text-decoration: line-through double; }
+html[data-layout="pc"] .strike-btn { margin-top: 0.25rem; font-size: 0.8rem; padding: 0.15rem 0.6rem; }

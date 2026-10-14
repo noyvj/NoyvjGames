@@ -80,3 +80,44 @@ window.STATION_MEDIC_PC_TUTORIAL_STEPS = [
     document.addEventListener("focusout", leave);
   });
 })();
+
+(function () {
+  "use strict";
+  var pc = window.StationMedicPc;
+
+  // R4-SMPC-3: a notepad on the Condition Sheet. A click on a condition (or its Rule out button, which is the keyboard way)
+  // strikes it out; a second click puts it back. This is the player's own note, separate from the engine's "rule out for me"
+  // dimming, and it is kept for the page's life only (it is not part of a save).
+  var struck = {};
+  function shiftKey() { var h = document.getElementById("scene-holder"); return h ? h.dataset.sig || "" : ""; }
+  function keyOf(li) { return shiftKey() + ":" + li.dataset.cond; }
+  function decorate() {
+    document.querySelectorAll("#sheet-list li").forEach(function (li) {
+      var on = Boolean(struck[keyOf(li)]);
+      var nameNode = li.querySelector(".cname");
+      var name = nameNode && nameNode.firstChild ? nameNode.firstChild.textContent : "this condition";
+      li.classList.toggle("struck-out", on);
+      var b = li.querySelector(".strike-btn");
+      if (!b) {
+        b = document.createElement("button");
+        b.type = "button";
+        b.className = "strike-btn";
+        li.appendChild(b);
+      }
+      b.textContent = on ? "Put back" : "Rule out";
+      b.setAttribute("aria-pressed", String(on));
+      b.setAttribute("aria-label", (on ? "Put back " : "Rule out ") + name + " in my notes");
+    });
+  }
+  pc.ready(function () {
+    pc.onRendered(decorate);
+    document.addEventListener("click", function (e) {
+      var li = e.target.closest && e.target.closest("#sheet-list li");
+      if (!li || e.target.closest("a")) return;
+      var key = keyOf(li);
+      struck[key] = !struck[key];
+      decorate();
+    });
+    decorate();
+  });
+})();
