@@ -38,10 +38,12 @@
     t.classList.toggle("on", Boolean(text));
   }
   function plural(n, one, many) { return n + " " + (n === 1 ? one : many); }
-  function triggerPulse(elOrId, className) {
-    var el = typeof elOrId === "string" ? $(elOrId) : elOrId;
-    if (!el) return;
-    el.classList.add(className);
+  // R4-SMMO-3: a soft buzz for a clean cure and a gentle double buzz when a cost is added, on phones that allow it. It is
+  // part of the Effects switch and stays off under reduced motion; nothing is shown or changed on screen.
+  function buzz(kind) {
+    var root = document.documentElement;
+    if (!navigator.vibrate || root.getAttribute("data-reduced-motion") === "true" || root.getAttribute("data-effects") === "off") return;
+    try { navigator.vibrate(kind === "cost" ? [18, 90, 18] : [30]); } catch (e) { /* a browser that refuses is fine */ }
   }
 
   // ---- panels --------------------------------------------------------------------------------------
@@ -437,9 +439,7 @@
     list.textContent = "";
     view.log.forEach(function (l) {
       var cls = l.kind === "refused" ? "refused" : (/Cost \d/.test(l.msg) ? "cost" : (l.kind === "cure" ? "cure" : ""));
-      var li = el("li", cls, l.msg);
-      list.appendChild(li);
-      if (cls === "cost" || cls === "cure") triggerPulse(li, cls === "cost" ? "pulse-cost" : "pulse-clean");
+      list.appendChild(el("li", cls, l.msg));
     });
     list.scrollTop = list.scrollHeight;
   }
@@ -529,7 +529,6 @@
     var g = $("result-grade");
     g.textContent = "";
     g.appendChild(sealNode(r.grade_name));
-    if (r.grade_name === "Clean") triggerPulse(card, "pulse-clean");
     var ladder = r.difficulty === "easy" ? " on Easy" : r.difficulty === "hard" ? " on Hard" : "";
     g.appendChild(document.createTextNode(" Cost " + r.cost + ladder + (r.new_best ? ". A new best seal for this shift." : ". Your best here is " + r.best_name + ".") +
       (r.difficulty !== "normal" && r.normal_grade_name ? " On Normal this cost is a " + r.normal_grade_name + " seal." : "")));
@@ -648,6 +647,11 @@
   function act(request) {
     var before = view.patients[sel];
     var result = send(request);
+    if (result && result.ok && result.log.length) {
+      var last = result.log[result.log.length - 1];
+      if (/Cost \d/.test(last.msg)) buzz("cost");
+      else if (last.kind === "cure") buzz("cure");
+    }
     if (result && result.ok && before && view.patients[sel] && view.patients[sel].closed) {
       var next = view.patients.filter(function (p) { return !p.closed; })[0];
       if (next) { sel = next.i; render(); }
