@@ -270,8 +270,48 @@ while (-not $timedOut -and $repairs -lt 2) {
         if ($passing) { $verifiedState = Get-WorkState; $verifiedLine = "$fastLine; browser tests: $browserLine" }
     }
     Pop-Location
+    # Tests pass, but a feature also needs its own test and none of the mistakes the 2026-10-14/15 audits kept
+    # finding (local-ai/static_check.py: dead ids, lookups before the page exists, unknown engine actions, no
+    # test). Until now a missing test failed the task at the very end and threw the work away; now the model
+    # gets a repair round to add it, like a failing test.
+    $checkLines = ""
+    if ($passing -and $isFeature) {
+        $env:NOYVJ_ROOT = $work
+        $checkLines = ((python (Join-Path $aiDir "static_check.py") $Game --changed 2>&1) -join "`n")
+        $checkFailed = ($LASTEXITCODE -ne 0)
+        Remove-Item Env:NOYVJ_ROOT -ErrorAction SilentlyContinue
+        if ($checkFailed) { $passing = $false; $verifiedState = $null } else { $checkLines = "" }
+    }
     if ($passing) { break }
     $repairs++
+    if ($checkLines) {
+        $repairFile = Join-Path $work ".aider-repair.md"
+        @"
+# Finish the feature (repair round $repairs of 2)
+
+You were building this in games/${Game}:
+
+$Task
+
+The tests pass, but the checker found the problems below. Fix each one with small edits.
+- no-test: add a test file games/$Game/tests/test_<name>.py that would FAIL without your change and pass with
+  it (RULES.md, Tests): a pytest unit test for Python, or a test that reads the changed page file and checks
+  the new element, class or handler is there and wired up. Every assert checks a specific value.
+- missing-id / data-never-set / unknown-action: the page code uses something nothing creates. Create it, or
+  use the name the page or game.py really uses.
+- head-lookup: move the lookup inside window.addEventListener("load", ...).
+
+Checker output:
+~~~
+$checkLines
+~~~
+"@ | Set-Content -Encoding utf8 $repairFile
+        $repairFiles = @(); foreach ($f in $touched) { $repairFiles += @("--file", $f.Substring("games/$Game/".Length)) }
+        $timedOut = Invoke-Aider $repairFile $repairFiles
+        Remove-Item $repairFile -ErrorAction SilentlyContinue
+        Update-PcPages
+        continue
+    }
     $tail = (($firstTry.Trim() -split "`n") | Select-Object -Last 60) -join "`n"
     $repairFile = Join-Path $work ".aider-repair.md"
     @"
@@ -387,6 +427,14 @@ if (@($inside | Where-Object { $_ -match '\.(js|html|css)$' -and $_ -notlike "*/
         else { $pageNote = "browser check: no new script errors" }
     }
 }
+# The same checker as in the repair rounds, as a final gate (findings go in the report for the reviewer).
+$staticOut = ""
+if ($isFeature -and -not $testOnly -and $inside.Count -gt 0) {
+    $env:NOYVJ_ROOT = $work
+    $staticOut = ((python (Join-Path $aiDir "static_check.py") $Game --changed 2>&1) -join "`n")
+    if ($LASTEXITCODE -ne 0) { $problems += "static_check.py found problems (see below)" } else { $staticOut = "" }
+    Remove-Item Env:NOYVJ_ROOT -ErrorAction SilentlyContinue
+}
 $diffStat = ($changed | ForEach-Object { "- $_" }) -join "`n"
 # keep the change itself in the report: a failed run's working copy is deleted below
 git -C $work add -N -- @inside 2>$null | Out-Null
@@ -421,12 +469,13 @@ if ($ok) {
 $(if ($salvageNote) { "- Salvage: $salvageNote" })
 - Thinking: $thinkMode
 $(if ($pageNote) { "- $pageNote" })
-$(if ($repairs) { "- Repair rounds: $repairs (the model was shown the failing tests and asked to fix them)" })
+$(if ($repairs) { "- Repair rounds: $repairs (the model was shown failing tests or checker findings and asked to fix them)" })
 $(if ($problems.Count) { "- Problems: " + ($problems -join "; ") })
 
 ## Changed files
 $diffStat
 $(if ($flakeOut) { "## flake8`n$flakeOut" })
+$(if ($staticOut) { "## static_check.py`n~~~`n$staticOut`n~~~" })
 $(if (-not $ok -and $diffText.Trim()) { "## The change it tried (first 300 lines)`n~~~diff`n$diffText~~~" })
 $(if (-not $ok -and $testsOk -eq $false) { "## Test output (end)`n~~~`n" + (($testOut -split "`n" | Select-Object -Last 40) -join "`n") + "`n~~~" })
 Full AI conversation: $log
