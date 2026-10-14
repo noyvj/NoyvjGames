@@ -550,6 +550,44 @@
   }
   function _sheetDragEnd() { _sheetDrag.active = false; }
 
+  // R4-SMMO-5: Hold shift title to restore (timer-free)
+  function _initHoldToRestore() {
+    var heading = $("shift-heading");
+    if (!heading) return;
+    var confirmBox = $("restore-confirm");
+    if (!confirmBox) return;
+
+    var showConfirm = function() {
+      confirmBox.removeAttribute("hidden");
+      confirmBox.classList.add("show");
+    };
+    var hideConfirm = function() {
+      confirmBox.classList.remove("show");
+      confirmBox.setAttribute("hidden", "");
+    };
+
+    heading.addEventListener("touchstart", function(e) {
+      if (e.target.closest("#restore-confirm")) return;
+      showConfirm();
+      heading.classList.add("holding");
+    }, { passive: true });
+    heading.addEventListener("touchend", hideConfirm);
+    heading.addEventListener("touchcancel", hideConfirm);
+    heading.addEventListener("mousedown", function(e) {
+      if (e.target.closest("#restore-confirm")) return;
+      showConfirm();
+      heading.classList.add("holding");
+    });
+    heading.addEventListener("mouseup", hideConfirm);
+    heading.addEventListener("mouseleave", hideConfirm);
+
+    $("restore-cancel-btn").addEventListener("click", hideConfirm);
+    $("restore-go-btn").addEventListener("click", function() {
+      hideConfirm();
+      askThen("station-medic-restore-hold", "Restore this shift to its start? Your seals are kept; only this shift's actions are cleared.", "Restore it", function () { send({ action: "restore" }); });
+    });
+  }
+
   function wire() {
     wireDifficulty();
     $("toast").addEventListener("click", function () { showToast(""); });
@@ -584,6 +622,7 @@
     // The save widget loads a save straight into the engine; this redraws afterwards.
     window.stationMedicRefresh = function () { if (engine) { shiftId = null; send({ action: "open" }); } };
     _initSheetGesture();
+    _initHoldToRestore();
   }
 
   var TUTORIAL_STEPS = [

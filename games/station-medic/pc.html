@@ -121,6 +121,13 @@
   <section id="shift-panel" class="panel" aria-labelledby="shift-heading">
     <p id="shift-chapter" class="note shift-chapter"></p>
     <h2 id="shift-heading">First Night</h2>
+    <div id="restore-confirm" class="panel restore-confirm" hidden aria-live="polite">
+      <p class="note">Hold to restore this shift</p>
+      <div class="btn-row">
+        <button id="restore-cancel-btn" type="button">Cancel</button>
+        <button id="restore-go-btn" type="button" class="primary">Restore it</button>
+      </div>
+    </div>
     <p id="shift-intro" class="story-text note"></p>
     <div id="scene-holder" class="scene-holder" aria-hidden="true"></div>
     <h3 class="sub">The ward <span id="ward-count" class="note"></span></h3>

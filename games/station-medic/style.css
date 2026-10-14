@@ -179,6 +179,18 @@ html[data-narrow="off"] .sheet li.ruled-out { opacity: 1; border-style: solid; }
 }
 
 @media (max-width: 600px) {
+  /* R4-SMMO-5: Hold shift title to restore */
+  #shift-heading { touch-action: manipulation; user-select: none; -webkit-user-select: none; cursor: pointer; }
+  #shift-heading.holding { opacity: 0.6; }
+  .restore-confirm {
+    position: fixed; bottom: 1rem; left: 50%; transform: translateX(-50%) translateY(120%);
+    background: var(--panel-fill); border: 2px solid var(--bad); border-radius: 12px; padding: 0.8rem 1rem;
+    text-align: center; z-index: 100; transition: transform 0.2s ease-out; width: min(90%, 24rem);
+  }
+  .restore-confirm.show { transform: translateX(-50%) translateY(0); }
+  html[data-reduced-motion="true"] .restore-confirm, html[data-effects="off"] .restore-confirm { transition: none; }
+  .btn-row { display: flex; gap: 0.5rem; justify-content: center; margin-top: 0.6rem; }
+
   #cabinet-panel .shelf {
     display: inline-flex; flex-direction: row; align-items: center; gap: 0.4rem;
     padding: 0.5rem 0.8rem; margin: 0.2rem; border-radius: 999px; cursor: pointer;
