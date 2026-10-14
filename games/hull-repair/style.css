@@ -160,17 +160,6 @@ html[data-dots="off"] .hr-dot { display: none; }
   .board-holder svg { max-height: 56vh; }
 }
 
-@media (max-width: 600px) {
-  .edit-buttons[data-hand="left"] { justify-content: flex-start; }
-  .edit-buttons[data-hand="right"] { justify-content: flex-end; }
-
-  .board-holder svg {
-    transform-origin: center;
-    will-change: transform;
-    transition: transform 0.15s ease-out;
-  }
-}
-
 /* Goals: three at a time, always in view. */
 .goals { background: var(--panel-fill); border: 1px solid var(--line); border-radius: 12px; padding: 0.4rem 0.7rem; margin: 0.5rem 0; font-size: 0.85rem; }
 .goals-list { list-style: none; margin: 0.2rem 0 0; padding: 0; display: grid; gap: 0.2rem; }
