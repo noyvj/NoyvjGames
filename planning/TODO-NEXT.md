@@ -1,6 +1,6 @@
 # Next TODO list (from the Round 4 ideas, started 2026-10-12)
 
-**Progress: 59/921 items checked off (6.4%).** This is the NEXT list, written alongside the live `planning/TODO.md` (which is untouched). It becomes the live list once the current one is archived. Run `python3 scripts/todo-progress.py planning/TODO-NEXT.md` after ticking items.
+**Progress: 74/921 items checked off (8.0%).** This is the NEXT list, written alongside the live `planning/TODO.md` (which is untouched). It becomes the live list once the current one is archived. Run `python3 scripts/todo-progress.py planning/TODO-NEXT.md` after ticking items.
 
 How it is built: one section per Round 4 section on the ideas sheet (`planning/IMPROVEMENT-IDEAS-ROUND-4.md`), in the sheet's order, ids `R4-<section code>-<number>`. Only ideas you answered "yes" to are items, with your note where you wrote one. A section that is not fully answered keeps its heading and ends with one item to add the rest once you have answered them. "No" answers are dropped (listed under the heading); "later" answers are parked in `planning/LATER.md`.
 
@@ -11,9 +11,11 @@ How it is built: one section per Round 4 section on the ideas sheet (`planning/I
 | Section | Done | % | |
 |---|---:|---:|---|
 | LEPC. Lexis: PC view | 8/10 | 80% | ████████░░ |
+| PBPC. Pocket Bazaar: PC view | 8/10 | 80% | ████████░░ |
 | SIPC. Signal: PC view | 7/10 | 70% | ███████░░░ |
 | SIMO. Signal: mobile view | 7/10 | 70% | ███████░░░ |
 | LEMO. Lexis: mobile view | 7/10 | 70% | ███████░░░ |
+| PBMO. Pocket Bazaar: mobile view | 7/10 | 70% | ███████░░░ |
 | HCPC. Heist Committee: PC view | 6/10 | 60% | ██████░░░░ |
 | HCMO. Heist Committee: mobile view | 6/10 | 60% | ██████░░░░ |
 | LHPC. Lighthouse: PC view | 6/10 | 60% | ██████░░░░ |
@@ -58,8 +60,6 @@ How it is built: one section per Round 4 section on the ideas sheet (`planning/I
 | CHPC. Le Champ de Mots: PC view | 0/10 | 0% | ░░░░░░░░░░ |
 | CHMO. Le Champ de Mots: mobile view | 0/10 | 0% | ░░░░░░░░░░ |
 | LHMO. Lighthouse: mobile view | 0/10 | 0% | ░░░░░░░░░░ |
-| PBPC. Pocket Bazaar: PC view | 0/10 | 0% | ░░░░░░░░░░ |
-| PBMO. Pocket Bazaar: mobile view | 0/10 | 0% | ░░░░░░░░░░ |
 | CLPC. Chronicle: PC view | 0/10 | 0% | ░░░░░░░░░░ |
 | CLMO. Chronicle: mobile view | 0/10 | 0% | ░░░░░░░░░░ |
 | UNPC. Undersleep: PC view | 0/10 | 0% | ░░░░░░░░░░ |
@@ -111,7 +111,7 @@ How it is built: one section per Round 4 section on the ideas sheet (`planning/I
 | OC. Overclock: general ideas | 0/1 | 0% | ░░░░░░░░░░ |
 | OCP. Overclock: made for you | 0/1 | 0% | ░░░░░░░░░░ |
 | AU. Sound | 0/1 | 0% | ░░░░░░░░░░ |
-| **All sections** | **59/921** | **6.4%** | █░░░░░░░░░ |
+| **All sections** | **74/921** | **8.0%** | █░░░░░░░░░ |
 
 <!-- PROGRESS-CHART:END -->
 
@@ -1148,30 +1148,30 @@ Parked in LATER.md (you said later): PX-25.
 
 10 ideas on the sheet: 10 yes, 0 no, 0 later, 0 not answered yet.
 
-- [ ] R4-PBPC-1: (small) Hover a piece to highlight every piece it can merge with and show what the merge would make. You see good moves before you take them.
-- [ ] R4-PBPC-2: (small) Add a right-click menu on a piece with Sell, Hand over to a customer and Pick up. Piece jobs sit at the cursor.
-- [ ] R4-PBPC-3: (small) Hover a customer to show their liked goods and patience in beats. You can read the queue without opening anything.
+- [x] R4-PBPC-1: (small) Hover a piece to highlight every piece it can merge with and show what the merge would make. You see good moves before you take them.
+- [x] R4-PBPC-2: (small) Add a right-click menu on a piece with Sell, Hand over to a customer and Pick up. Piece jobs sit at the cursor.
+- [x] R4-PBPC-3: (small) Hover a customer to show their liked goods and patience in beats. You can read the queue without opening anything.
 - [ ] R4-PBPC-4: (big) On wide screens, let you drag decorations around a free-form stall scene to arrange them anywhere. Your stall becomes your own layout.
-- [ ] R4-PBPC-5: (small) Hold Shift to select several pieces and press D to hand them all to one customer. A big order is one action.
-- [ ] R4-PBPC-6: (small) Show a large chain counter on wide screens that grows and changes style as a combo builds. A good combo feels like a moment.
-- [ ] R4-PBPC-7: (small) Add a board size slider from 80 percent to 160 percent in Settings. The board fits any monitor.
-- [ ] R4-PBPC-8: (small) Hold Alt to show the hotkey number over every crate and tool. You learn the keys by looking.
-- [ ] R4-PBPC-9: (small) Add a Controls tab in Settings that rebinds the crate, hand-over, sell and broom keys. The keys fit your hand.
+- [x] R4-PBPC-5: (small) Hold Shift to select several pieces and press D to hand them all to one customer. A big order is one action.
+- [x] R4-PBPC-6: (small) Show a large chain counter on wide screens that grows and changes style as a combo builds. A good combo feels like a moment.
+- [x] R4-PBPC-7: (small) Add a board size slider from 80 percent to 160 percent in Settings. The board fits any monitor.
+- [x] R4-PBPC-8: (small) Hold Alt to show the hotkey number over every crate and tool. You learn the keys by looking.
+- [x] R4-PBPC-9: (small) Add a Controls tab in Settings that rebinds the crate, hand-over, sell and broom keys. The keys fit your hand.
 - [ ] R4-PBPC-10: (small) Add save slots as a file-style list with coins, day and a small stall thumbnail. Loading looks like a real PC menu.
 
 ## PBMO. Pocket Bazaar: mobile view
 
 10 ideas on the sheet: 10 yes, 0 no, 0 later, 0 not answered yet.
 
-- [ ] R4-PBMO-1: (small) Let you flick a piece in a direction to push it to the next cell. Merging works by swiping.
-- [ ] R4-PBMO-2: (small) Add a haptic tap on a merge that gets stronger with the tier and a roll for a cascade, where the browser allows. Merging feels satisfying.
-- [ ] R4-PBMO-3: (small) Put Sell, Broom and Hand over as three big buttons along the bottom edge. The tools sit under your thumb.
+- [x] R4-PBMO-1: (small) Let you flick a piece in a direction to push it to the next cell. Merging works by swiping.
+- [x] R4-PBMO-2: (small) Add a haptic tap on a merge that gets stronger with the tier and a roll for a cascade, where the browser allows. Merging feels satisfying.
+- [x] R4-PBMO-3: (small) Put Sell, Broom and Hand over as three big buttons along the bottom edge. The tools sit under your thumb.
 - [ ] R4-PBMO-4: (big) Make the board fill the phone width with customers as a row of cards above it. The whole stall fits one portrait screen.
-- [ ] R4-PBMO-5: (small) Let you pull down the stall banner to peek at the festival and regulars. A glance does not leave the board.
-- [ ] R4-PBMO-6: (small) Resume the day on the exact board. A short break never loses a merge.
-- [ ] R4-PBMO-7: (small) Show each customer's patience beats as large dots under their card. You never miss that someone is about to leave.
+- [x] R4-PBMO-5: (small) Let you pull down the stall banner to peek at the festival and regulars. A glance does not leave the board.
+- [x] R4-PBMO-6: (small) Resume the day on the exact board. A short break never loses a merge.
+- [x] R4-PBMO-7: (small) Show each customer's patience beats as large dots under their card. You never miss that someone is about to leave.
 - [ ] R4-PBMO-8: (small) Let a double-tap on a piece pick it up and a double-tap on a customer hand it over. Frequent actions become gestures.
-- [ ] R4-PBMO-9: (small) Add a mirror switch that moves the tool buttons to the left side. Left-handed play is comfortable.
+- [x] R4-PBMO-9: (small) Add a mirror switch that moves the tool buttons to the left side. Left-handed play is comfortable.
 - [ ] R4-PBMO-10: (small) Add a dark lantern-lit night market theme with larger pieces. Bed-time play stays easy on the eyes.
 
 ## DE. Dead Reckoning: general ideas
