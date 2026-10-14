@@ -706,9 +706,6 @@
       updateState();
     }
     
-    var trimState = null;
-    var TRIM_MIN_DIST = 20;
-
     function onBoardTouchStart(e) {
       if (e.touches.length === 2) {
         var dx = e.touches[0].clientX - e.touches[1].clientX;
@@ -718,81 +715,9 @@
         } else {
           touchStartData = null;
         }
-      } else if (e.touches.length === 1 && view && view.board) {
-        var cell = cellAt(e.touches[0]);
-        if (!cell) return;
-        var paths = view.board.paths || {};
-        for (var c in paths) {
-          var p = paths[c];
-          if (p.length > 1) {
-            var end = p[p.length - 1];
-            if (end[0] === cell[0] && end[1] === cell[1]) {
-              trimState = { line: c, startCell: [cell[0], cell[1]], startPos: { x: e.touches[0].clientX, y: e.touches[0].clientY }, previewEl: null };
-              break;
-            }
-          }
-        }
       }
-    }
-    function onBoardTouchMove(e) {
-      if (!trimState || e.touches.length !== 1) return;
-      var touch = e.touches[0];
-      var cell = cellAt(touch);
-      if (!cell) return;
-
-      var dist = Math.hypot(touch.clientX - trimState.startPos.x, touch.clientY - trimState.startPos.y);
-      if (dist < TRIM_MIN_DIST) return;
-
-      var p = view.board.paths[trimState.line];
-      var end = p[p.length - 1];
-      var dx = cell[0] - end[0];
-      var dy = cell[1] - end[1];
-      if (p.length > 1) {
-        var prev = p[p.length - 2];
-        if (dx * (end[0] - prev[0]) + dy * (end[1] - prev[1]) > 0) return;
-      }
-
-      var steps = Math.floor(dist / view.board.cell);
-      if (steps < 1) steps = 1;
-      var newLen = p.length - steps;
-      if (newLen < 2) newLen = 2;
-      var trimmedPath = p.slice(0, newLen);
-
-      if (!trimState.previewEl) {
-        trimState.previewEl = document.createElementNS("http://www.w3.org/2000/svg", "path");
-        trimState.previewEl.setAttribute("class", "hr-trim-preview");
-        $("board-holder").querySelector("#hr-lines").appendChild(trimState.previewEl);
-      }
-      var d = trimmedPath.map(function(c, i) { return (i === 0 ? "M" : "L") + c[0] * view.board.cell + "," + c[1] * view.board.cell; }).join(" ");
-      trimState.previewEl.setAttribute("d", d);
-
-      HR_Haptics.tick();
     }
     function onBoardTouchEnd(e) {
-      if (trimState && e.changedTouches.length === 1) {
-        var touch = e.changedTouches[0];
-        var dist = Math.hypot(touch.clientX - trimState.startPos.x, touch.clientY - trimState.startPos.y);
-        if (dist >= TRIM_MIN_DIST) {
-          var p = view.board.paths[trimState.line];
-          var steps = Math.floor(dist / view.board.cell);
-          var newLen = Math.max(2, p.length - steps);
-          view.board.paths[trimState.line] = p.slice(0, newLen);
-          for (var i = 0; i < view.board.lines.length; i++) {
-            if (view.board.lines[i].c === trimState.line) {
-              view.board.lines[i].state = "drawing";
-              break;
-            }
-          }
-          persist();
-          render();
-        }
-      }
-      if (trimState && trimState.previewEl) {
-        trimState.previewEl.remove();
-        trimState.previewEl = null;
-      }
-      trimState = null;
-
       if (touchStartData && e.changedTouches.length === 2) {
         var dx = e.changedTouches[0].clientX - touchStartData.x;
         var dy = e.changedTouches[0].clientY - touchStartData.y;
@@ -806,7 +731,6 @@
     if (holder) {
       initMobileUndo();
       holder.addEventListener("touchstart", onBoardTouchStart);
-      holder.addEventListener("touchmove", onBoardTouchMove);
       holder.addEventListener("touchend", onBoardTouchEnd);
     }
   }

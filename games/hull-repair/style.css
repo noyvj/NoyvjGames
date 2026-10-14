@@ -272,9 +272,6 @@ html[data-effects="off"] .hr-room.s2 .hr-window { opacity: 0.9; }
   }
   /* Prevent layout shift during haptic feedback on mobile */
   .board-holder { transform: translateZ(0); }
-  /* Trim gesture preview */
-  .hr-trim-preview { stroke: var(--accent); stroke-width: 12; stroke-dasharray: 6 4; fill: none; opacity: 0.75; pointer-events: none; }
-
   .home-progress {
     background: var(--panel-fill);
     border: 1px solid var(--line);
