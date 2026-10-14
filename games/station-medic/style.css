@@ -211,16 +211,16 @@ html[data-narrow="off"] .sheet li.ruled-out { opacity: 1; border-style: solid; }
   #cabinet-panel .cabinet { grid-template-columns: 1fr; }
 
   /* R4-SMMO-4: Condition Sheet as a bottom sheet (phone layout only; the Desktop layout keeps the ordinary panel) */
-  html:not([data-layout="pc"]) #game { padding-bottom: 5rem; }
+  html:not([data-layout="pc"]) #game { padding-bottom: 8rem; }
   html:not([data-layout="pc"]) .sheet-tab {
-    display: block; position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); z-index: 89; min-height: 44px; padding: 0.4rem 1.4rem;
+    display: block; position: fixed; bottom: 50px; left: 50%; transform: translateX(-50%); z-index: 89; min-height: 44px; padding: 0.4rem 1.4rem;
     border-radius: 14px 14px 0 0; border-bottom: 0; background: var(--btn-primary); color: var(--on-primary); font-weight: 700; touch-action: none;
   }
   html:not([data-layout="pc"]) .sheet-tab[aria-expanded="true"] { display: none; }
   html:not([data-layout="pc"]) .sheet-close { display: block; width: 100%; min-height: 44px; margin-bottom: 0.4rem; }
   html:not([data-layout="pc"]) #sheet-heading { touch-action: none; }
   html:not([data-layout="pc"]) #sheet-panel {
-    position: fixed; bottom: 0; left: 0; right: 0; max-height: 75vh; overflow-y: auto; margin: 0;
+    position: fixed; bottom: 50px; left: 0; right: 0; max-height: calc(75vh - 50px); overflow-y: auto; margin: 0;
     transform: translateY(105%); visibility: hidden; transition: transform 0.2s ease-out, visibility 0s linear 0.2s; z-index: 90;
     border-radius: 16px 16px 0 0; box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.3);
   }
