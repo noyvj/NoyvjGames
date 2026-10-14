@@ -20,6 +20,15 @@ html[data-theme="light"] {
   --sc-wall: #cdd8de; --sc-floor: #b9c7cf; --sc-port: #7e93a0; --sc-space: #243541; --sc-star: #f2f8fb; --sc-lamp: #b87a28;
   --sc-beam: rgba(184, 122, 40, 0.18); --sc-bed: #8fa3af; --sc-pane: #7e93a0; --sc-pane-in: #e6eef2;
 }
+/* R4-SMMO-9: dim infirmary night mode: a darker, calmer palette that still keeps text well above 4.5:1; it wins over the light theme */
+html[data-dim-night="on"], html[data-dim-night="on"][data-theme="light"] {
+  --bg: #04070a; --bg-top: #0a1117; --panel: #0b1218; --panel-fill: rgba(11, 18, 24, 0.97); --surface: #101922;
+  --btn: #19242d; --btn-primary: #8a5a1c; --on-primary: #fff6e8;
+  --line: #2c3c46; --edge: #7e98a8; --text: #cfdde3; --muted: #9bb0bb;
+  --accent: #d9a05a; --cool: #7fb3c8; --focus: #ffd666; --hover-edge: #d9a05a; --ink: #04070a;
+  --ok: #8fe0a4; --bad: #ff9c8a; color-scheme: dark;
+}
+html[data-dim-night="on"] .scene-holder { filter: brightness(0.8); }
 html[data-high-contrast="true"] { --line: #a9c2d0; --edge: #e1ecf2; --muted: #e1ecf2; }
 html[data-high-contrast="true"][data-theme="light"] { --line: #2f4452; --edge: #17232b; --muted: #17232b; }
 html[data-high-contrast="true"] .panel, html[data-high-contrast="true"] button { border-width: 2px; }
@@ -218,13 +227,9 @@ html[data-narrow="off"] .sheet li.ruled-out { opacity: 1; border-style: solid; }
   html:not([data-layout="pc"]) #sheet-panel[data-open="true"] { transform: translateY(0); visibility: visible; transition: transform 0.2s ease-out; }
   html[data-reduced-motion="true"]:not([data-layout="pc"]) #sheet-panel, html[data-effects="off"]:not([data-layout="pc"]) #sheet-panel { transition: none; }
 
-  /* R4-SMMO-9: Dim infirmary night mode */
-  body.night-mode { --bg: #05080b; --bg-top: #0a1016; --panel: #0d141c; --surface: #121a23; --btn: #1a2530; --edge: #2a3a46; --text: #cfe6ef; --muted: #7e98a8; }
-  body.night-mode .scene { filter: brightness(0.75); }
-  body.night-mode .patient, body.night-mode .bedside, body.night-mode .shelf { padding: 0.5rem 0.7rem; margin: 0.25rem; }
-  body.night-mode button, body.night-mode select { padding: 0.6rem 1rem; font-size: 1.05rem; }
-  body.night-mode .act-row button { padding: 0.5rem 0.8rem; }
-  html[data-reduced-motion="true"] body.night-mode .scene, html[data-effects="off"] body.night-mode .scene { filter: none; }
+  /* R4-SMMO-9: bigger buttons in the dim infirmary night mode */
+  html[data-dim-night="on"] button, html[data-dim-night="on"] select { min-height: 48px; padding: 0.6rem 1rem; font-size: 1.05rem; }
+  html[data-dim-night="on"] .act-row button { padding: 0.5rem 0.8rem; }
 
   /* R4-SMMO-10: Chart notes banner */
   .notes-banner {
