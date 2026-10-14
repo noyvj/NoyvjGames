@@ -159,7 +159,14 @@
       b.appendChild(el("span", "pname", p.first));
       b.appendChild(el("span", "pstatus", statusOf(p)));
       b.setAttribute("aria-label", p.name + ", " + p.role + ". " + statusOf(p) + (p.i === sel ? ". Looking at them now." : ""));
-      b.addEventListener("click", function () { sel = p.i; renderBedside(); renderPatients(); renderSheet(); });
+      b.addEventListener("click", function () { sel = p.i; renderBedside(); renderPatients(); renderSheet(); applyPicked(p.i); });
+      b.addEventListener("dragover", function (e) { if (pickedItem !== null) e.preventDefault(); });
+      b.addEventListener("drop", function (e) {
+        if (pickedItem === null) return;
+        e.preventDefault();
+        sel = p.i; renderBedside(); renderPatients(); renderSheet();
+        applyPicked(p.i);
+      });
       holder.appendChild(b);
     });
   }
@@ -304,16 +311,73 @@
     });
     return tabs;
   }
+  // R4-SMMO-2: press a shelf, then a patient, to use it; or drag the shelf onto a patient. Either way the engine is only
+  // sent a scan or treat it already offers for that patient; if the shelf can do more than one thing there, the player picks.
+  var pickedItem = null;
+  function itemByIndex(k) { return view.cabinet.items.filter(function (i) { return i.i === k; })[0]; }
   function shelfNode(i) {
-    var li = el("li", "shelf" + (i.count === 0 ? " empty" : ""));
+    var picked = pickedItem === i.i;
+    var li = el("li", "shelf" + (i.count === 0 ? " empty" : "") + (picked ? " selected" : ""));
     li.dataset.supply = i.glyph;
-    li.appendChild(el("span", "letter", i.glyph));
+    li.dataset.item = String(i.i);
+    var b = el("button", "shelf-pick");
+    b.type = "button";
+    b.setAttribute("aria-pressed", String(picked));
+    b.setAttribute("aria-label", i.name + ": " + plural(i.count, "left", "left") + " of " + i.start + ". Used for " + i.uses.join(", ") +
+      (i.count ? (picked ? ". Picked up: choose a patient." : ". Press to pick it up, then choose a patient.") : ". None left."));
+    b.appendChild(el("span", "letter", i.glyph));
     var body = el("span", "sname", i.name);
     body.appendChild(el("span", "uses", i.uses.join(", ")));
-    li.appendChild(body);
-    li.appendChild(el("span", "count", String(i.count)));
-    li.setAttribute("aria-label", i.name + ": " + plural(i.count, "left", "left") + " of " + i.start + ". Used for " + i.uses.join(", "));
+    if (picked) body.appendChild(el("span", "uses picked-note", "Picked up: now choose a patient"));
+    b.appendChild(body);
+    b.appendChild(el("span", "count", String(i.count)));
+    if (i.count > 0) {
+      b.draggable = true;
+      b.addEventListener("dragstart", function (e) {
+        pickedItem = i.i;                       // no re-render here: replacing the dragged node would cancel the drag
+        li.classList.add("selected");
+        b.setAttribute("aria-pressed", "true");
+        if (e.dataTransfer) { e.dataTransfer.effectAllowed = "copy"; e.dataTransfer.setData("text/plain", i.name); }
+      });
+    }
+    b.addEventListener("click", function () { pickShelf(i); });
+    li.appendChild(b);
     return li;
+  }
+  function pickShelf(i) {
+    var say;
+    if (i.count === 0) say = "The " + i.name + " shelf is empty. If you are short, borrow a spare under Short of something.";
+    else if (pickedItem === i.i) { pickedItem = null; say = "Put the " + i.name + " shelf back."; }
+    else { pickedItem = i.i; say = "Picked up the " + i.name + " shelf. Now choose a patient."; }
+    renderCabinet();
+    var again = document.querySelector('#cabinet-list li[data-item="' + i.i + '"] .shelf-pick');
+    if (again) again.focus();
+    setText($("action-line"), say);
+    announce(say);
+  }
+  function applyPicked(index) {
+    if (pickedItem === null) return;
+    var item = itemByIndex(pickedItem);
+    var p = view.patients[index];
+    pickedItem = null;
+    if (!item || !p) { renderCabinet(); return; }
+    var uses = [];
+    if (!p.closed) {
+      view.cabinet.tests.forEach(function (t) {
+        var a = p.actions.scan[t.t];
+        if (t.item === item.name && a && a.ok) uses.push({ action: "scan", p: p.i, t: t.t });
+      });
+      view.cabinet.tx.forEach(function (x) {
+        var a = p.actions.treat[x.x];
+        if (x.item === item.name && a && a.ok) uses.push({ action: "treat", p: p.i, x: x.x });
+      });
+    }
+    if (uses.length === 1) { act(uses[0]); return; }
+    var say = uses.length ? "The " + item.name + " shelf can do " + uses.length + " things for " + p.first + ": choose one under Scan or Treat below."
+      : "Nothing from the " + item.name + " shelf works for " + p.first + " right now.";
+    renderCabinet();
+    setText($("action-line"), say);
+    announce(say);
   }
   function renderCabinet() {
     var cab = view.cabinet;
@@ -598,6 +662,7 @@
     var tag = e.target && e.target.tagName;
     if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return;
     if (document.querySelector("dialog[open], .confirm-dialog, [role='dialog']")) return;
+    if (e.key === "Escape" && pickedItem !== null) { pickedItem = null; renderCabinet(); return; }
     var n = parseInt(e.key, 10);
     if (n >= 1 && n <= view.patients.length && e.key.length === 1) {
       sel = n - 1;
@@ -738,16 +803,6 @@
     });
     document.addEventListener("keydown", onKey);
     document.addEventListener("station-medic-narrow-change", function () { if (view) renderSheet(); });
-    document.addEventListener("station-medic-apply-supply", function (e) {
-      var d = e.detail;
-      if (!d || !d.supply || d.patientId === undefined) return;
-      if (!view || !view.patients) return;
-      var pIdx = view.patients.findIndex(function (p) { return p.i === d.patientId; });
-      if (pIdx === -1) return;
-      var txIdx = view.cabinet.tx ? view.cabinet.tx.findIndex(function (t) { return t.glyph === d.supply; }) : -1;
-      if (txIdx === -1) return;
-      act({ action: "treat", p: pIdx, x: txIdx });
-    });
     // The save widget loads a save straight into the engine; this redraws afterwards.
     window.stationMedicRefresh = function () { if (engine) { shiftId = null; send({ action: "open" }); } };
     _initSheetGesture();

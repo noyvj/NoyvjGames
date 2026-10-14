@@ -136,6 +136,11 @@ html[data-reduced-motion="true"] .stat-value.bump, html[data-effects="off"] .sta
 .shelf .count { font-size: 1.2rem; font-weight: 800; font-variant-numeric: tabular-nums; }
 .shelf .sname { font-size: 0.8rem; line-height: 1.2; }
 .shelf.empty { border-style: dashed; opacity: 0.8; }
+.shelf { padding: 0; }
+.shelf-pick { display: flex; align-items: center; gap: 0.5rem; width: 100%; min-height: 44px; padding: 0.3rem 0.5rem; background: none; border: 0; border-radius: 8px; color: inherit; text-align: left; cursor: pointer; }
+.shelf-pick[draggable="true"] { cursor: grab; }
+.shelf.selected { border-color: var(--focus); outline: 3px solid var(--focus); outline-offset: 1px; }
+.shelf .picked-note { color: var(--text); font-weight: 700; }
 .shelf .uses { display: block; font-size: 0.68rem; color: var(--muted); }
 .borrow { margin-top: 0.4rem; font-size: 0.9rem; color: var(--muted); }
 .sheet { list-style: none; margin: 0.3rem 0; padding: 0; display: grid; gap: 0.35rem; }
