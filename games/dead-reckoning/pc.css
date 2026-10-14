@@ -151,28 +151,6 @@ html[data-theme="dark"] #chart-tools-menu {
   background: var(--accent-bg, rgba(127, 209, 255, 0.15));
 }
 
-/* Layers panel ---------------------------------------------------------------- */
-#layers-panel {
-  margin: 0.5rem 0;
-  padding: 0.5rem;
-  background: var(--panel-bg);
-  border: 1px solid var(--muted);
-  border-radius: 4px;
-}
-#layers-panel h2 { font-size: 1rem; margin: 0 0 0.3rem; }
-.layers-list { display: flex; flex-wrap: wrap; gap: 0.5rem; }
-.layer-item { display: flex; align-items: center; gap: 0.3rem; cursor: pointer; user-select: none; font-size: 0.9rem; }
-.layer-item input { margin: 0; accent-color: var(--accent); }
-
-/* Layer visibility (toggled via data attributes on .dr-chart) ----------------- */
-.dr-chart[data-layers-currents="off"] .layer-currents,
-.dr-chart[data-layers-wind="off"] .layer-wind,
-.dr-chart[data-layers-hazards="off"] .layer-hazards,
-.dr-chart[data-layers-grid="off"] .layer-grid,
-.dr-chart[data-layers-labels="off"] .layer-labels {
-  display: none !important;
-}
-
 /* Print layout (Ctrl+P) ------------------------------------------------------ */
 @media print {
   html[data-layout="pc"] body,

@@ -34,11 +34,6 @@
       "info-page-panel",
       "info-page-toggle-button",
       "About Dead Reckoning"
-    ],
-    [
-      "layers-panel",
-      "layers-toggle-button",
-      "Layers"
     ]
   ],
   "toolbar": {
