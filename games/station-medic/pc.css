@@ -127,3 +127,49 @@ html[data-layout="pc"] .scene.tray-highlight {
 html[data-layout="pc"] html[data-reduced-motion="true"] .scene.tray-highlight {
   transition: none;
 }
+
+/* Print layout for shift report (Ctrl+P) */
+@media print {
+  html[data-layout="pc"] body,
+  html[data-layout="pc"] #game {
+    padding: 0;
+    max-width: none;
+    background: #fff;
+    color: #000;
+  }
+  html[data-layout="pc"] .top-row,
+  html[data-layout="pc"] .game-toolbar,
+  html[data-layout="pc"] .tagline,
+  html[data-layout="pc"] #stats,
+  html[data-layout="pc"] #goals,
+  html[data-layout="pc"] #hint-box,
+  html[data-layout="pc"] .ad-bar,
+  html[data-layout="pc"] #credits-link,
+  html[data-layout="pc"] button,
+  html[data-layout="pc"] details,
+  html[data-layout="pc"] .panel:not(#shift-panel):not(#sheet-panel):not(#log-panel) {
+    display: none !important;
+  }
+  html[data-layout="pc"] #shift-panel {
+    display: block !important;
+    margin: 0;
+    padding: 1rem;
+    border: none;
+  }
+  html[data-layout="pc"] #result-card[hidden] {
+    display: block !important;
+  }
+  html[data-layout="pc"] .log,
+  html[data-layout="pc"] .sheet {
+    max-height: none;
+    overflow: visible;
+  }
+  html[data-layout="pc"] .result-grade {
+    font-size: 1.2rem;
+    margin-bottom: 0.5rem;
+  }
+  @page {
+    size: A4;
+    margin: 1cm;
+  }
+}
