@@ -18,6 +18,7 @@
   var EFFECTS_KEY = "pocket-bazaar-effects";
   var CONTRAST_KEY = "pocket-bazaar-high-contrast";
   var MIRROR_KEY = "pocket-bazaar-mirror";
+  var HAPTICS_KEY = "pocket-bazaar-haptics";   // read by app.js (a buzz on a merge); on unless set to "false"
   var MIN_SCALE = 0.85;
   var MAX_SCALE = 1.5;
   var STEP = 0.1;
@@ -93,11 +94,13 @@
     var effectsBox = document.getElementById("effects-checkbox");
     var contrastBox = document.getElementById("high-contrast-checkbox");
     var mirrorBox = document.getElementById("mirror-checkbox");
+    var hapticsBox = document.getElementById("haptics-checkbox");
     var themeButton = document.getElementById("theme-setting-button");
     if (motionBox) motionBox.checked = reduced;
     if (effectsBox) effectsBox.checked = effects;
     if (contrastBox) contrastBox.checked = contrast;
     if (mirrorBox) mirrorBox.checked = readMirror() === true;
+    if (hapticsBox) hapticsBox.checked = get(HAPTICS_KEY) !== "false";
     if (toggle && panel) {
       toggle.addEventListener("click", function () {
         panel.hidden = !panel.hidden;
@@ -115,6 +118,7 @@
     if (effectsBox) effectsBox.addEventListener("change", function () { effects = applyEffects(effectsBox.checked, true); });
     if (contrastBox) contrastBox.addEventListener("change", function () { contrast = applyContrast(contrastBox.checked, true); });
     if (mirrorBox) mirrorBox.addEventListener("change", function () { mirror = applyMirror(mirrorBox.checked, true); });
+    if (hapticsBox) hapticsBox.addEventListener("change", function () { set(HAPTICS_KEY, hapticsBox.checked); });
 
     function syncThemeButton() {
       if (!themeButton || !window.NoyvjTheme) return;
@@ -136,6 +140,7 @@
       effects = applyEffects(true, false);
       remove(CONTRAST_KEY);
       contrast = applyContrast(false, false);
+      remove(HAPTICS_KEY);
       remove(MIRROR_KEY);
       mirror = readMirror();
       applyMirror(mirror === true, false);
@@ -143,6 +148,7 @@
       if (effectsBox) effectsBox.checked = true;
       if (contrastBox) contrastBox.checked = false;
       if (mirrorBox) mirrorBox.checked = false;
+      if (hapticsBox) hapticsBox.checked = true;
     });
   }
 

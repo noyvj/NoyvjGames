@@ -197,8 +197,6 @@ html[data-effects="off"] *, html[data-effects="off"] *::before, html[data-effect
 }
 
 @media (max-width: 600px) {
-  /* Haptic merge feedback hook */
-  .cell.haptic-merge { transform: scale(0.98); transition: transform 0.05s ease-out; }
   /* The board shrinks to the screen's height so the crates and Sell/Broom stay on screen without scrolling. */
   .board { max-width: min(22rem, 100%, calc((100vh - 23rem) * var(--cols) / 6)); }
   /* A phone shows the whole counter and the crates without scrolling: the long intro and the panel title step aside. */

@@ -480,18 +480,22 @@
     Array.prototype.forEach.call(holder.children, function (btn, n) { btn.classList.toggle("active", n === activeCrate); });
   }
 
-  // R4-PBMO-2: Haptic merge feedback (mobile only)
+  // R4-PBMO-2: a short buzz on a merge, stronger with the tier, one pulse per link of a chain, where the browser has
+  // navigator.vibrate (most phones; never iOS Safari). Off with the Settings switch or with reduced motion.
   var HAPTICS_KEY = "pocket-bazaar-haptics";
-  function triggerMergeHaptic(tier, isCascade) {
-    if (!navigator.vibrate || document.documentElement.hasAttribute("data-reduced-motion")) return;
-    var enabled = true;
-    try { enabled = window.localStorage.getItem(HAPTICS_KEY) !== "off"; } catch(e) {}
-    if (!enabled) return;
-    var pattern = [tier * 8];
-    if (isCascade && Math.random() < 0.3) {
-      pattern.push(50, tier * 6);
+  function hapticsAllowed() {
+    if (!navigator.vibrate || document.documentElement.getAttribute("data-reduced-motion") === "true") return false;
+    return lsGet(HAPTICS_KEY) !== "false";   // settings.js writes "true" or "false"
+  }
+  function mergeHaptic(tier, links) {
+    if (!hapticsAllowed()) return;
+    var pulse = 10 + 8 * Math.max(1, Math.min(5, tier));
+    var pattern = [];
+    for (var n = 0; n < Math.max(1, Math.min(4, links)); n++) {
+      if (n) pattern.push(45);
+      pattern.push(pulse);
     }
-    try { navigator.vibrate(pattern); } catch(e) {}
+    try { navigator.vibrate(pattern); } catch (e) { /* a buzz is a nicety */ }
   }
 
   function renderInfo() {
@@ -605,8 +609,7 @@
     if (event && (event.kind === "merge" || event.kind === "crate")) {
       var target = cellButton(event.kind === "merge" ? event.dst : event.at);
       if (target) {
-        if (event.kind === "merge") triggerMergeHaptic(view.board.cells[event.dst].tier, Math.random() < 0.3);
-        target.classList.add("haptic-merge");
+        if (event.kind === "merge") mergeHaptic(event.good ? event.good[1] : 1, event.links || 1);
         target.classList.remove("pop");
         void target.offsetWidth;
         target.classList.add("pop");
