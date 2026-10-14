@@ -1,6 +1,6 @@
 # Next TODO list (from the Round 4 ideas, started 2026-10-12)
 
-**Progress: 54/921 items checked off (5.9%).** This is the NEXT list, written alongside the live `planning/TODO.md` (which is untouched). It becomes the live list once the current one is archived. Run `python3 scripts/todo-progress.py planning/TODO-NEXT.md` after ticking items.
+**Progress: 100/921 items checked off (10.9%).** This is the NEXT list, written alongside the live `planning/TODO.md` (which is untouched). It becomes the live list once the current one is archived. Run `python3 scripts/todo-progress.py planning/TODO-NEXT.md` after ticking items.
 
 How it is built: one section per Round 4 section on the ideas sheet (`planning/IMPROVEMENT-IDEAS-ROUND-4.md`), in the sheet's order, ids `R4-<section code>-<number>`. Only ideas you answered "yes" to are items, with your note where you wrote one. A section that is not fully answered keeps its heading and ends with one item to add the rest once you have answered them. "No" answers are dropped (listed under the heading); "later" answers are parked in `planning/LATER.md`.
 
@@ -11,13 +11,23 @@ How it is built: one section per Round 4 section on the ideas sheet (`planning/I
 | Section | Done | % | |
 |---|---:|---:|---|
 | LEPC. Lexis: PC view | 8/10 | 80% | ████████░░ |
+| PBPC. Pocket Bazaar: PC view | 8/10 | 80% | ████████░░ |
 | SIPC. Signal: PC view | 7/10 | 70% | ███████░░░ |
 | SIMO. Signal: mobile view | 7/10 | 70% | ███████░░░ |
 | LEMO. Lexis: mobile view | 7/10 | 70% | ███████░░░ |
+| PBMO. Pocket Bazaar: mobile view | 7/10 | 70% | ███████░░░ |
 | HCPC. Heist Committee: PC view | 6/10 | 60% | ██████░░░░ |
 | HCMO. Heist Committee: mobile view | 6/10 | 60% | ██████░░░░ |
 | LHPC. Lighthouse: PC view | 6/10 | 60% | ██████░░░░ |
+| RSMO. Robot Script: mobile view | 6/10 | 60% | ██████░░░░ |
+| HRMO. Hull Repair: mobile view | 6/10 | 60% | ██████░░░░ |
+| HRPC. Hull Repair: PC view | 5/10 | 50% | █████░░░░░ |
+| LGMO. Logic Gates: mobile view | 4/10 | 40% | ████░░░░░░ |
+| DEMO. Dead Reckoning: mobile view | 3/10 | 30% | ███░░░░░░░ |
+| RSPC. Robot Script: PC view | 3/10 | 30% | ███░░░░░░░ |
 | PX. Lexis: made for you | 6/29 | 21% | ██░░░░░░░░ |
+| DEPC. Dead Reckoning: PC view | 2/10 | 20% | ██░░░░░░░░ |
+| LGPC. Logic Gates: PC view | 2/10 | 20% | ██░░░░░░░░ |
 | PU. Signal: made for you | 1/6 | 17% | ██░░░░░░░░ |
 | PC. Canopy: made for you | 0/30 | 0% | ░░░░░░░░░░ |
 | PI. Tide: made for you | 0/30 | 0% | ░░░░░░░░░░ |
@@ -56,10 +66,6 @@ How it is built: one section per Round 4 section on the ideas sheet (`planning/I
 | CHPC. Le Champ de Mots: PC view | 0/10 | 0% | ░░░░░░░░░░ |
 | CHMO. Le Champ de Mots: mobile view | 0/10 | 0% | ░░░░░░░░░░ |
 | LHMO. Lighthouse: mobile view | 0/10 | 0% | ░░░░░░░░░░ |
-| PBPC. Pocket Bazaar: PC view | 0/10 | 0% | ░░░░░░░░░░ |
-| PBMO. Pocket Bazaar: mobile view | 0/10 | 0% | ░░░░░░░░░░ |
-| DEPC. Dead Reckoning: PC view | 0/10 | 0% | ░░░░░░░░░░ |
-| DEMO. Dead Reckoning: mobile view | 0/10 | 0% | ░░░░░░░░░░ |
 | CLPC. Chronicle: PC view | 0/10 | 0% | ░░░░░░░░░░ |
 | CLMO. Chronicle: mobile view | 0/10 | 0% | ░░░░░░░░░░ |
 | UNPC. Undersleep: PC view | 0/10 | 0% | ░░░░░░░░░░ |
@@ -68,12 +74,6 @@ How it is built: one section per Round 4 section on the ideas sheet (`planning/I
 | LLMO. Last Line: mobile view | 0/10 | 0% | ░░░░░░░░░░ |
 | OCPC. Overclock: PC view | 0/10 | 0% | ░░░░░░░░░░ |
 | OCMO. Overclock: mobile view | 0/10 | 0% | ░░░░░░░░░░ |
-| LGPC. Logic Gates: PC view | 0/10 | 0% | ░░░░░░░░░░ |
-| LGMO. Logic Gates: mobile view | 0/10 | 0% | ░░░░░░░░░░ |
-| RSPC. Robot Script: PC view | 0/10 | 0% | ░░░░░░░░░░ |
-| RSMO. Robot Script: mobile view | 0/10 | 0% | ░░░░░░░░░░ |
-| HRPC. Hull Repair: PC view | 0/10 | 0% | ░░░░░░░░░░ |
-| HRMO. Hull Repair: mobile view | 0/10 | 0% | ░░░░░░░░░░ |
 | SMPC. Station Medic: PC view | 0/10 | 0% | ░░░░░░░░░░ |
 | SMMO. Station Medic: mobile view | 0/10 | 0% | ░░░░░░░░░░ |
 | SOMO. SOL: mobile view | 0/9 | 0% | ░░░░░░░░░░ |
@@ -111,7 +111,7 @@ How it is built: one section per Round 4 section on the ideas sheet (`planning/I
 | OC. Overclock: general ideas | 0/1 | 0% | ░░░░░░░░░░ |
 | OCP. Overclock: made for you | 0/1 | 0% | ░░░░░░░░░░ |
 | AU. Sound | 0/1 | 0% | ░░░░░░░░░░ |
-| **All sections** | **54/921** | **5.9%** | █░░░░░░░░░ |
+| **All sections** | **100/921** | **10.9%** | █░░░░░░░░░ |
 
 <!-- PROGRESS-CHART:END -->
 
@@ -1148,30 +1148,30 @@ Parked in LATER.md (you said later): PX-25.
 
 10 ideas on the sheet: 10 yes, 0 no, 0 later, 0 not answered yet.
 
-- [ ] R4-PBPC-1: (small) Hover a piece to highlight every piece it can merge with and show what the merge would make. You see good moves before you take them.
-- [ ] R4-PBPC-2: (small) Add a right-click menu on a piece with Sell, Hand over to a customer and Pick up. Piece jobs sit at the cursor.
-- [ ] R4-PBPC-3: (small) Hover a customer to show their liked goods and patience in beats. You can read the queue without opening anything.
+- [x] R4-PBPC-1: (small) Hover a piece to highlight every piece it can merge with and show what the merge would make. You see good moves before you take them.
+- [x] R4-PBPC-2: (small) Add a right-click menu on a piece with Sell, Hand over to a customer and Pick up. Piece jobs sit at the cursor.
+- [x] R4-PBPC-3: (small) Hover a customer to show their liked goods and patience in beats. You can read the queue without opening anything.
 - [ ] R4-PBPC-4: (big) On wide screens, let you drag decorations around a free-form stall scene to arrange them anywhere. Your stall becomes your own layout.
-- [ ] R4-PBPC-5: (small) Hold Shift to select several pieces and press D to hand them all to one customer. A big order is one action.
-- [ ] R4-PBPC-6: (small) Show a large chain counter on wide screens that grows and changes style as a combo builds. A good combo feels like a moment.
-- [ ] R4-PBPC-7: (small) Add a board size slider from 80 percent to 160 percent in Settings. The board fits any monitor.
-- [ ] R4-PBPC-8: (small) Hold Alt to show the hotkey number over every crate and tool. You learn the keys by looking.
-- [ ] R4-PBPC-9: (small) Add a Controls tab in Settings that rebinds the crate, hand-over, sell and broom keys. The keys fit your hand.
+- [x] R4-PBPC-5: (small) Hold Shift to select several pieces and press D to hand them all to one customer. A big order is one action.
+- [x] R4-PBPC-6: (small) Show a large chain counter on wide screens that grows and changes style as a combo builds. A good combo feels like a moment.
+- [x] R4-PBPC-7: (small) Add a board size slider from 80 percent to 160 percent in Settings. The board fits any monitor.
+- [x] R4-PBPC-8: (small) Hold Alt to show the hotkey number over every crate and tool. You learn the keys by looking.
+- [x] R4-PBPC-9: (small) Add a Controls tab in Settings that rebinds the crate, hand-over, sell and broom keys. The keys fit your hand.
 - [ ] R4-PBPC-10: (small) Add save slots as a file-style list with coins, day and a small stall thumbnail. Loading looks like a real PC menu.
 
 ## PBMO. Pocket Bazaar: mobile view
 
 10 ideas on the sheet: 10 yes, 0 no, 0 later, 0 not answered yet.
 
-- [ ] R4-PBMO-1: (small) Let you flick a piece in a direction to push it to the next cell. Merging works by swiping.
-- [ ] R4-PBMO-2: (small) Add a haptic tap on a merge that gets stronger with the tier and a roll for a cascade, where the browser allows. Merging feels satisfying.
-- [ ] R4-PBMO-3: (small) Put Sell, Broom and Hand over as three big buttons along the bottom edge. The tools sit under your thumb.
+- [x] R4-PBMO-1: (small) Let you flick a piece in a direction to push it to the next cell. Merging works by swiping.
+- [x] R4-PBMO-2: (small) Add a haptic tap on a merge that gets stronger with the tier and a roll for a cascade, where the browser allows. Merging feels satisfying.
+- [x] R4-PBMO-3: (small) Put Sell, Broom and Hand over as three big buttons along the bottom edge. The tools sit under your thumb.
 - [ ] R4-PBMO-4: (big) Make the board fill the phone width with customers as a row of cards above it. The whole stall fits one portrait screen.
-- [ ] R4-PBMO-5: (small) Let you pull down the stall banner to peek at the festival and regulars. A glance does not leave the board.
-- [ ] R4-PBMO-6: (small) Resume the day on the exact board. A short break never loses a merge.
-- [ ] R4-PBMO-7: (small) Show each customer's patience beats as large dots under their card. You never miss that someone is about to leave.
+- [x] R4-PBMO-5: (small) Let you pull down the stall banner to peek at the festival and regulars. A glance does not leave the board.
+- [x] R4-PBMO-6: (small) Resume the day on the exact board. A short break never loses a merge.
+- [x] R4-PBMO-7: (small) Show each customer's patience beats as large dots under their card. You never miss that someone is about to leave.
 - [ ] R4-PBMO-8: (small) Let a double-tap on a piece pick it up and a double-tap on a customer hand it over. Frequent actions become gestures.
-- [ ] R4-PBMO-9: (small) Add a mirror switch that moves the tool buttons to the left side. Left-handed play is comfortable.
+- [x] R4-PBMO-9: (small) Add a mirror switch that moves the tool buttons to the left side. Left-handed play is comfortable.
 - [ ] R4-PBMO-10: (small) Add a dark lantern-lit night market theme with larger pieces. Bed-time play stays easy on the eyes.
 
 ## DE. Dead Reckoning: general ideas
@@ -1190,7 +1190,7 @@ Parked in LATER.md (you said later): PX-25.
 
 10 ideas on the sheet: 10 yes, 0 no, 0 later, 0 not answered yet.
 
-- [ ] R4-DEPC-1: (small) Let you type a leg as "090 6kn 2h" in a one-line box and press Enter to add it. Planning is fast for keyboard users.
+- [x] R4-DEPC-1: (small) Let you type a leg as "090 6kn 2h" in a one-line box and press Enter to add it. Planning is fast for keyboard users.
 - [ ] R4-DEPC-2: (small) Add mouse-wheel zoom and drag pan on the chart with a scale bar and a recentre key. You can read a big chart closely.
 - [ ] R4-DEPC-3: (small) Show the position in nautical miles, the current arrow and the tide at that spot as you hover over the chart. The chart tells you what is under the cursor.
 - [ ] R4-DEPC-4: (small) Add a right-click menu on the chart with Drop a fix mark, Measure from the ship and Add a waypoint. Chart tools sit at the cursor.
@@ -1198,7 +1198,7 @@ Parked in LATER.md (you said later): PX-25.
 - [ ] R4-DEPC-6: (small) Add a layers panel to toggle currents, wind, hazards, grid and labels. The chart can be as plain or rich as you like.
 - [ ] R4-DEPC-7: (big) Add an editable plan table where every leg is a row with heading, speed and time cells you tab through, and the chart redraws as you type. You can plan like a spreadsheet.
 - [ ] R4-DEPC-8: (small) Dock the tide table as a window beside the chart and highlight the row for the hour of your current leg. You read tides without hunting.
-- [ ] R4-DEPC-9: (small) Add a Ctrl+P print layout that produces a clean chart sheet with your plan listed. You get a paper chart to keep.
+- [x] R4-DEPC-9: (small) Add a Ctrl+P print layout that produces a clean chart sheet with your plan listed. You get a paper chart to keep.
 - [ ] R4-DEPC-10: (small) Add save slots as a file-style list with chart name, stars and a thumbnail of the track. Loading looks like a real PC menu.
 
 ## DEMO. Dead Reckoning: mobile view
@@ -1208,10 +1208,10 @@ Parked in LATER.md (you said later): PX-25.
 - [ ] R4-DEMO-1: (small) Set speed and time with two large wheel pickers at the bottom of the screen. Entering a leg is a thumb spin.
 - [ ] R4-DEMO-2: (small) Let you pinch to zoom the chart and drag to pan. The chart works like a phone map.
 - [ ] R4-DEMO-3: (small) Long-press the chart to drop a fix mark. A common job becomes a gesture.
-- [ ] R4-DEMO-4: (small) Add a short buzz when the reveal shows your estimate within one nautical mile, where the browser allows. Accuracy is felt.
-- [ ] R4-DEMO-5: (small) Show legs as cards you swipe to delete with an undo bar. Editing a plan is a flick.
+- [x] R4-DEMO-4: (small) Add a short buzz when the reveal shows your estimate within one nautical mile, where the browser allows. Accuracy is felt.
+- [x] R4-DEMO-5: (small) Show legs as cards you swipe to delete with an undo bar. Editing a plan is a flick.
 - [ ] R4-DEMO-6: (big) Make the chart fill a portrait screen with the plan as a bottom sheet that peeks up. The chart and plan share a phone.
-- [ ] R4-DEMO-7: (small) Resume the plan you were drafting, with every leg kept. Short visits never lose a plan.
+- [x] R4-DEMO-7: (small) Resume the plan you were drafting, with every leg kept. Short visits never lose a plan.
 - [ ] R4-DEMO-8: (small) Let the leg editor float as a draggable card over the chart that you can slide to the top or bottom. You keep the part of the chart you are working on in view.
 - [ ] R4-DEMO-9: (small) In landscape, show the chart full-screen with a floating leg editor. Turning the phone gives a chart table.
 - [ ] R4-DEMO-10: (small) Make downloaded charts work fully offline with a small list of what is saved. Navigation works on the bus.
@@ -1417,10 +1417,10 @@ Parked in LATER.md (you said later): PX-25.
 
 - [ ] R4-LGPC-1: (big) Let you drag a wire from one pin to another with a live preview line and a snap to the nearest pin, alongside the tap-tap path. Wiring feels like a real circuit editor.
 - [ ] R4-LGPC-2: (big) Add mouse-wheel zoom and drag pan on the board, with a minimap for the big computer levels. Large circuits stay easy to navigate.
-- [ ] R4-LGPC-3: (small) Show a hover card on a wire with its live value and the truth-table rows where it is high. You can read a signal by pointing at it.
+- [x] R4-LGPC-3: (small) Show a hover card on a wire with its live value and the truth-table rows where it is high. You can read a signal by pointing at it.
 - [ ] R4-LGPC-4: (big) Add a right-click menu on a built chip with Open inside, Duplicate and Delete, where Open inside shows its own circuit in a window. You can see how any chip you made works.
 - [ ] R4-LGPC-5: (small) Let a drag-box select several parts, move them together and copy them with Ctrl+C and Ctrl+V. You can repeat a half-adder without rebuilding it.
-- [ ] R4-LGPC-6: (small) Dock the truth table beside the board and highlight the row for the current inputs, with a click on a row that sets the switches. You test every case fast.
+- [x] R4-LGPC-6: (small) Dock the truth table beside the board and highlight the row for the current inputs, with a click on a row that sets the switches. You test every case fast.
 - [ ] R4-LGPC-7: (small) Add hotkeys A, O, N and X that put an AND, OR, NOT or XOR gate under the cursor. A circuit can be built with one hand on the keyboard.
 - [ ] R4-LGPC-8: (big) Add a timing-diagram window for sequence levels showing each wire's 0 and 1 over the steps like a logic analyser. You see memory and clocks the way engineers do.
 - [ ] R4-LGPC-9: (small) Let you drop a circuit text file onto the page to load it into the sandbox. You can keep and share circuits as small files.
@@ -1430,15 +1430,15 @@ Parked in LATER.md (you said later): PX-25.
 
 10 ideas on the sheet: 10 yes, 0 no, 0 later, 0 not answered yet.
 
-- [ ] R4-LGMO-1: (small) Make pin hit areas grow when a wire is armed, with a gentle magnet toward the nearest pin. Wiring on a small screen stops missing.
-- [ ] R4-LGMO-2: (small) Put the chip tray in a bottom drawer you pull up and tap to place. Chips are always in thumb reach.
+- [x] R4-LGMO-1: (small) Make pin hit areas grow when a wire is armed, with a gentle magnet toward the nearest pin. Wiring on a small screen stops missing.
+- [x] R4-LGMO-2: (small) Put the chip tray in a bottom drawer you pull up and tap to place. Chips are always in thumb reach.
 - [ ] R4-LGMO-3: (big) Add pinch to zoom and two-finger pan on the board with a double-tap to fit it to the screen. Big circuits work on a phone.
 - [ ] R4-LGMO-4: (small) Add a light haptic tick when a switch flips and a longer buzz when a level solves, where the browser allows. The circuit feels alive.
 - [ ] R4-LGMO-5: (small) Reopen on the exact wiring of the level you were in. A short visit never loses a circuit.
 - [ ] R4-LGMO-6: (small) Show the result as a bottom sheet with a scrolling truth table and the failing row highlighted. You can see what is wrong without leaving the board.
 - [ ] R4-LGMO-7: (small) In landscape, put the board on the left and the truth table on the right. Turning the phone gives a bench view.
-- [ ] R4-LGMO-8: (small) Show levels as swipeable chapter cards with a progress ring and chip count for each. Choosing a level fits a phone.
-- [ ] R4-LGMO-9: (small) Undo with a two-finger tap. A common fix is a gesture.
+- [x] R4-LGMO-8: (small) Show levels as swipeable chapter cards with a progress ring and chip count for each. Choosing a level fits a phone.
+- [x] R4-LGMO-9: (small) Undo with a two-finger tap. A common fix is a gesture.
 - [ ] R4-LGMO-10: (small) Add a fit-and-centre button and a snap-to-grid toggle for placing chips. Placement stays precise with a thumb.
 
 ## RSPC. Robot Script: PC view
@@ -1447,12 +1447,12 @@ Parked in LATER.md (you said later): PX-25.
 
 - [ ] R4-RSPC-1: (big) Let you drag instruction blocks from a palette into the list, reorder them by dragging and drop them inside repeat blocks. Building a program feels like a real visual coding tool.
 - [ ] R4-RSPC-2: (big) Add a step debugger where F10 runs one instruction, the current line is highlighted and a side panel shows the robot's position and what it holds. You can find a mistake by watching it happen.
-- [ ] R4-RSPC-3: (small) Let you click the gutter beside a line to set a breakpoint where a run pauses. You can stop exactly where you want to look.
+- [x] R4-RSPC-3: (small) Let you click the gutter beside a line to set a breakpoint where a run pauses. You can stop exactly where you want to look.
 - [ ] R4-RSPC-4: (small) Show a hover card on a line with the tiles it visited last run. You can see what each step did.
 - [ ] R4-RSPC-5: (big) Add a text view where the same program appears as numbered lines you can edit directly, with Ctrl+Enter to run. Keyboard players can type a whole program.
 - [ ] R4-RSPC-6: (small) Add a snippets drawer where you save a routine and drag it into any room. You can reuse a good routine.
-- [ ] R4-RSPC-7: (small) Add a playback slider with the bracket keys for speed and the arrow keys for frame stepping. You control how closely you watch.
-- [ ] R4-RSPC-8: (small) Add a medals table window sorting every room by your length against par. You can find rooms to improve.
+- [x] R4-RSPC-7: (small) Add a playback slider with the bracket keys for speed and the arrow keys for frame stepping. You control how closely you watch.
+- [x] R4-RSPC-8: (small) Add a medals table window sorting every room by your length against par. You can find rooms to improve.
 - [ ] R4-RSPC-9: (small) Let you run two versions of a program side by side on the same room with a diff of their steps. You can compare approaches directly.
 - [ ] R4-RSPC-10: (small) Add a Controls tab in Settings that rebinds F, L, R, G, P, S and Run. The keys fit your hand.
 
@@ -1461,45 +1461,45 @@ Parked in LATER.md (you said later): PX-25.
 10 ideas on the sheet: 10 yes, 0 no, 0 later, 0 not answered yet.
 
 - [ ] R4-RSMO-1: (big) Build programs from a bottom keypad of large instruction buttons, with a scrolling list above and long-press handles to reorder. Writing a program works with one thumb.
-- [ ] R4-RSMO-2: (small) Add a soft tick as the robot takes each step and a longer buzz at the exit, where the browser allows. Watching a run is felt.
+- [x] R4-RSMO-2: (small) Add a soft tick as the robot takes each step and a longer buzz at the exit, where the browser allows. Watching a run is felt.
 - [ ] R4-RSMO-3: (small) Split the screen into room on top and list below with a draggable divider. You choose how much of each you see.
-- [ ] R4-RSMO-4: (small) Swipe an instruction left to delete it with an undo bar. Editing is a flick.
+- [x] R4-RSMO-4: (small) Swipe an instruction left to delete it with an undo bar. Editing is a flick.
 - [ ] R4-RSMO-5: (small) Reopen on the same room with your unfinished list kept. A short visit never loses a program.
-- [ ] R4-RSMO-6: (small) Add a run-speed chip (1x, 2x, 4x) next to Run, with a tap on the room to skip to the end. Quick runs stay quick.
+- [x] R4-RSMO-6: (small) Add a run-speed chip (1x, 2x, 4x) next to Run, with a tap on the room to skip to the end. Quick runs stay quick.
 - [ ] R4-RSMO-7: (small) In landscape, put the room on the left and the list on the right. Turning the phone gives a workbench.
-- [ ] R4-RSMO-8: (small) Show chapters as swipeable cards with medal counts. Picking a room fits a phone.
-- [ ] R4-RSMO-9: (small) Add pinch to zoom for large rooms with a double-tap to fit. Bigger rooms stay tappable.
-- [ ] R4-RSMO-10: (small) Show a hint as a bottom sheet that reveals one line at a time with each long-press. You choose how much help you get.
+- [x] R4-RSMO-8: (small) Show chapters as swipeable cards with medal counts. Picking a room fits a phone.
+- [x] R4-RSMO-9: (small) Add pinch to zoom for large rooms with a double-tap to fit. Bigger rooms stay tappable.
+- [x] R4-RSMO-10: (small) Show a hint as a bottom sheet that reveals one line at a time with each long-press. You choose how much help you get.
 
 ## HRPC. Hull Repair: PC view
 
 10 ideas on the sheet: 10 yes, 0 no, 0 later, 0 not answered yet.
 
 - [ ] R4-HRPC-1: (big) Draw the station as a large cutaway you can zoom with the mouse wheel and pan with a drag, where hover shows a room's status and a click opens its board. The bigger picture is something you explore.
-- [ ] R4-HRPC-2: (small) Hover a port to light its twin and its current path, and hover a line to show its length. You read the board by pointing.
+- [x] R4-HRPC-2: (small) Hover a port to light its twin and its current path, and hover a line to show its length. You read the board by pointing.
 - [ ] R4-HRPC-3: (small) Add a lock on finished lines through a right-click so dragging cannot cut them. You can protect work as you finish others.
 - [ ] R4-HRPC-4: (small) Let Tab pick the next line, arrow keys extend it, and Backspace trim it. You can route a whole board without the mouse.
 - [ ] R4-HRPC-5: (small) Add Ctrl+Z and Ctrl+Y with a clickable history list. You can step back to try another route.
-- [ ] R4-HRPC-6: (small) Press C to pulse the uncovered open cells gently. You see what still needs routing at a glance.
-- [ ] R4-HRPC-7: (small) After a restore, replay the lines drawing in order. A neat finish shows how you solved it.
+- [x] R4-HRPC-6: (small) Press C to pulse the uncovered open cells gently. You see what still needs routing at a glance.
+- [x] R4-HRPC-7: (small) After a restore, replay the lines drawing in order. A neat finish shows how you solved it.
 - [ ] R4-HRPC-8: (small) Add a Ctrl+K palette where typing a room name opens its board. You reach any room in two keystrokes.
-- [ ] R4-HRPC-9: (small) Add a board scale slider and a focus key that hides side panels. The board fits any monitor.
-- [ ] R4-HRPC-10: (small) Add arrow-key movement across the cutaway map with Enter to open the room under the cursor. You can browse the station with the keyboard.
+- [x] R4-HRPC-9: (small) Add a board scale slider and a focus key that hides side panels. The board fits any monitor.
+- [x] R4-HRPC-10: (small) Add arrow-key movement across the cutaway map with Enter to open the room under the cursor. You can browse the station with the keyboard.
 
 ## HRMO. Hull Repair: mobile view
 
 10 ideas on the sheet: 10 yes, 0 no, 0 later, 0 not answered yet.
 
-- [ ] R4-HRMO-1: (small) Show a faint ghost of the line a little above your finger as you drag. Your thumb never hides the route.
-- [ ] R4-HRMO-2: (small) Add a haptic tick for each cell entered and a short pulse when a line connects, where the browser allows. Routing feels tactile.
+- [x] R4-HRMO-1: (small) Show a faint ghost of the line a little above your finger as you drag. Your thumb never hides the route.
+- [x] R4-HRMO-2: (small) Add a haptic tick for each cell entered and a short pulse when a line connects, where the browser allows. Routing feels tactile.
 - [ ] R4-HRMO-3: (small) Add two-finger pan and pinch zoom for 9 by 9 boards with a double-tap to fit. The biggest boards remain playable.
 - [ ] R4-HRMO-4: (big) Show the station as a vertical scroll of decks, each with room thumbnails you tap to open. The bigger picture fits a phone.
-- [ ] R4-HRMO-5: (small) Add undo with a two-finger tap and a large undo button at thumb height. Mistakes are cheap.
+- [x] R4-HRMO-5: (small) Add undo with a two-finger tap and a large undo button at thumb height. Mistakes are cheap.
 - [ ] R4-HRMO-6: (small) Let a drag backward from the end of a line trim it with a soft tick per cell. Fixing a mistake is one smooth gesture.
 - [ ] R4-HRMO-7: (small) Add a home-screen card with rooms restored out of forty and the current deck. You can see how much of the station is lit.
-- [ ] R4-HRMO-8: (small) Add left-hand and right-hand layouts that move the undo and next-board buttons to your thumb side. Both hands can play comfortably.
-- [ ] R4-HRMO-9: (small) Add a big-shape mode that draws ports larger with their letters. Ports are easy to tell apart on small screens.
-- [ ] R4-HRMO-10: (small) End each board with a One more board button that opens the next one straight away. A short session turns into a few.
+- [x] R4-HRMO-8: (small) Add left-hand and right-hand layouts that move the undo and next-board buttons to your thumb side. Both hands can play comfortably.
+- [x] R4-HRMO-9: (small) Add a big-shape mode that draws ports larger with their letters. Ports are easy to tell apart on small screens.
+- [x] R4-HRMO-10: (small) End each board with a One more board button that opens the next one straight away. A short session turns into a few.
 
 ## SMPC. Station Medic: PC view
 

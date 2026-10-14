@@ -20,7 +20,8 @@
   var view = null;
   var roomId = null;
   var headDeg = 0;
-  var play = { frames: null, i: 0, timer: null, trace: null, running: false };
+  var play = { frames: null, i: 0, timer: null, trace: null, running: false, bpAt: -1 };
+  var playbackSpeed = 1;
   var refocus = false;
   var sandboxTile = "#";
 
@@ -182,13 +183,34 @@
   // ---- playback --------------------------------------------------------------------------------------
   function speedMs() {
     var reduced = document.documentElement.getAttribute("data-reduced-motion") === "true";
-    var name = document.documentElement.getAttribute("data-run-speed") || "normal";
     if (reduced) return 0;
-    return SPEED_MS[name] === undefined ? SPEED_MS.normal : SPEED_MS[name];
+    var custom = window.robotScriptPlaybackDelay;
+    if (custom !== undefined && typeof custom === "number") return custom;
+    var name = document.documentElement.getAttribute("data-run-speed") || "normal";
+    var base = SPEED_MS[name] === undefined ? SPEED_MS.normal : SPEED_MS[name];
+    return Math.max(1, Math.floor(base / playbackSpeed));
   }
   function stopTimer() {
     if (play.timer) { clearInterval(play.timer); play.timer = null; }
     play.running = false;
+  }
+  function updatePlaybackSpeed(delay) {
+    if (!play.running || !play.trace) return;
+    stopTimer();
+    play.timer = setInterval(advance, delay);
+    syncPlayButtons();
+  }
+  function stepFrame(dir) {
+    if (!play.trace || !play.frames) return;
+    stopTimer();
+    var nextI = play.i + dir;
+    if (nextI < 0) nextI = 0;
+    if (nextI >= play.frames.length) nextI = play.frames.length - 1;
+    var last = play.frames.length - 1;
+    if (nextI < last) hideResult();
+    showFrameAt(nextI, true);
+    if (nextI === last) finishRun();
+    syncPlayButtons();
   }
   function hideResult() {
     $("result-card").hidden = true;
@@ -199,6 +221,7 @@
     play.trace = null;
     play.frames = null;
     play.i = 0;
+    play.bpAt = -1;
     markNode("", false);
     hideResult();
     if (view && svgEl()) {
@@ -219,13 +242,29 @@
     play.i = i;
     var f = play.frames[i];
     applyFrame(f, jump);
+    if (i > 0) RobotHaptics.tick();
     var last = i === play.frames.length - 1;
     markNode(i === 0 ? "" : f[7], last && play.trace.status !== "cleared" && play.trace.status !== "short" && Boolean(play.trace.at));
     var done = Math.min(i, play.trace.actions);
     setText($("run-line"), done ? "Step " + done + " of " + play.trace.actions : "");
   }
+  function breakpointSet() { return window.ROBOT_SCRIPT_breakpoints || new Set(); }
   function advance() {
     if (!play.frames) return;
+    // R4-RSPC-3: a run that is playing pauses before a step the player marked in the gutter (pc.js keeps the set of
+    // addresses); Resume or Step carries on past it, and stepping by hand never stops at one.
+    if (play.running && play.i < play.frames.length - 1 && play.bpAt !== play.i + 1) {
+      var next = play.frames[play.i + 1];
+      if (next[7] && breakpointSet().has(next[7])) {
+        play.bpAt = play.i + 1;
+        stopTimer();
+        markNode(next[7], false);
+        setText($("run-line"), "Paused at a breakpoint. Resume or Step to go on.");
+        announce("Paused at a breakpoint.");
+        syncPlayButtons();
+        return;
+      }
+    }
     if (play.i >= play.frames.length - 1) { finishRun(); return; }
     showFrameAt(play.i + 1, false);
     if (play.i >= play.frames.length - 1) finishRun();
@@ -266,6 +305,7 @@
       if (t.difficulty !== "normal" && t.normal_medal_name !== "none" && t.normal_medal_name) more += " On Normal this room stands at " + t.normal_medal_name + ".";
       if (t.note) more = t.note + " " + more;
       setText($("result-text"), (t.new_best ? "A new best for this room" + ladder + ". " : "Your best here" + ladder + " is " + t.best + ". ") + more);
+      RobotHaptics.buzz();
     } else if (halted) {
       setText($("result-title"), "The robot stopped");
       setText($("result-text"), t.message + " Nothing is lost: change the list and run it again.");
@@ -286,29 +326,26 @@
     announce(t.cleared ? "Room cleared, " + t.medal_name + " medal." : t.message);
     syncPlayButtons();
   }
-  function startPlay(trace, autoplay) {
+  function startPlay(trace, autoplay, i) {
     stopTimer();
     play.trace = trace;
     play.frames = trace.frames;
-    play.i = 0;
+    play.i = i !== undefined ? i : 0;
+    if (i === undefined) play.bpAt = -1;      // resuming keeps the breakpoint it just stopped at, so it is passed once
     hideResult();
-    applyFrame(play.frames[0], true);
+    applyFrame(play.frames[play.i], true);
     syncPlayButtons();
     var ms = speedMs();
     if (!autoplay) return;
-    if (ms === 0) { showFrameAt(play.frames.length - 1, true); finishRun(); return; }
+    if (ms === 0 && breakpointSet().size === 0) { showFrameAt(play.frames.length - 1, true); finishRun(); return; }
     play.running = true;
-    play.timer = setInterval(advance, ms);
+    play.timer = setInterval(advance, Math.max(1, ms));
     syncPlayButtons();
   }
   function onRun() {
     if (play.running) { stopTimer(); syncPlayButtons(); return; }
     if (play.trace && play.i < play.frames.length - 1) {
-      var ms = speedMs();
-      if (ms === 0) { showFrameAt(play.frames.length - 1, true); finishRun(); return; }
-      play.running = true;
-      play.timer = setInterval(advance, ms);
-      syncPlayButtons();
+      startPlay(play.trace, true, play.i);
       return;
     }
     var result = send({ action: "run" });
@@ -545,7 +582,12 @@
     Array.prototype.forEach.call($("sandbox-tools").querySelectorAll("button"), function (b) { b.setAttribute("aria-pressed", String(b.dataset.tile === sandboxTile)); });
   }
   function onRoomClick(e) {
-    if (!view || !view.room.sandbox) return;
+    if (!view) return;
+    if (play.running && !view.room.sandbox) {      // R4-RSMO-6: a tap on the room while a run plays skips to the end
+      onSkip();
+      return;
+    }
+    if (!view.room.sandbox) return;
     var svg = svgEl();
     if (!svg || !svg.getScreenCTM) return;
     var pt = svg.createSVGPoint();
@@ -563,9 +605,17 @@
     if (holder.dataset.sig === sig) return;
     holder.dataset.sig = sig;
     holder.textContent = "";
+    var list = el("div", "chapter-list");
     view.rooms.forEach(function (c) {
       var sec = el("section", "chapter");
-      sec.appendChild(el("h3", null, c.name + " (" + c.cleared + "/" + c.total + ")"));
+      var medalCount = c.rooms.filter(function(r) { return r.medal === 3; }).length;
+      var h3 = el("h3", null, c.name + " (" + c.cleared + "/" + c.total + ")");
+      if (medalCount > 0) {
+        h3.appendChild(el("span", "medal-count", medalCount + " gold"));
+      } else {
+        h3.appendChild(el("span", "medal-count", "No gold yet"));
+      }
+      sec.appendChild(h3);
       sec.appendChild(el("p", "note", c.blurb));
       var ul = el("ul", "room-grid");
       c.rooms.forEach(function (r) {
@@ -594,11 +644,61 @@
         ul.appendChild(li);
       });
       sec.appendChild(ul);
-      holder.appendChild(sec);
+      list.appendChild(sec);
     });
+    holder.appendChild(list);
   }
 
   // ---- goals, the workshop and the hint ladder ----------------------------------------------------------
+  // R4-RSPC-8: the medals table, every room by its length against par (furthest over par first, uncleared last)
+  var MEDAL_WORDS = ["none", "bronze", "silver", "gold"];
+  function renderMedals() {
+    var holder = $("medals-body");
+    var rows = [];
+    view.rooms.forEach(function (c) {
+      c.rooms.forEach(function (r) { rows.push({ id: r.id, name: r.name, chapter: c.name, par: r.par, best: r.best, medal: r.medal, order: rows.length }); });
+    });
+    rows.sort(function (a, b) {
+      var ao = a.best === null ? null : a.best - a.par;
+      var bo = b.best === null ? null : b.best - b.par;
+      if (ao === null || bo === null) return ao === bo ? a.order - b.order : (ao === null ? 1 : -1);
+      return bo - ao || a.order - b.order;
+    });
+    var sig = view.difficulty + JSON.stringify(rows.map(function (r) { return [r.id, r.best, r.medal]; }));
+    if (holder.dataset.sig === sig) return;
+    holder.dataset.sig = sig;
+    holder.textContent = "";
+    var table = el("table", "medals-table");
+    var head = el("tr");
+    ["Room", "Best", "Par", "Over par", "Medal"].forEach(function (h) { var th = el("th", null, h); th.scope = "col"; head.appendChild(th); });
+    var thead = el("thead");
+    thead.appendChild(head);
+    table.appendChild(thead);
+    var body = el("tbody");
+    rows.forEach(function (r) {
+      var tr = el("tr");
+      var th = el("th");
+      th.scope = "row";
+      var go = smallButton(r.name, "Go to " + r.name + " in " + r.chapter, "medals-go", function () {
+        send({ action: "pick", room: r.id });
+        $("medals-panel").hidden = true;
+        $("medals-toggle-button").setAttribute("aria-expanded", "false");
+        var anchor = $("room-panel");
+        if (anchor.scrollIntoView) anchor.scrollIntoView({ block: "start" });
+      });
+      th.appendChild(go);
+      tr.appendChild(th);
+      tr.appendChild(el("td", null, r.best === null ? "-" : String(r.best)));
+      tr.appendChild(el("td", null, String(r.par)));
+      tr.appendChild(el("td", null, r.best === null ? "not cleared" : (r.best <= r.par ? "at par" : "+" + (r.best - r.par))));
+      var m = el("td");
+      if (r.medal) m.appendChild(medalNode(MEDAL_WORDS[r.medal])); else m.textContent = "none";
+      tr.appendChild(m);
+      body.appendChild(tr);
+    });
+    table.appendChild(body);
+    holder.appendChild(table);
+  }
   function renderGoalStrip() {
     var list = $("goals-list");
     var sig = view.goals.map(function (g) { return g.id + g.have; }).join(",");
@@ -682,6 +782,7 @@
     setText($("hint-hint"), h.hint ? "Hint: " + h.hint : "");
     $("hint-answer").hidden = !h.answer;
     if (h.answer) setText($("hint-answer-lines"), h.answer.lines.join("\n"));
+    document.dispatchEvent(new CustomEvent("robotScriptHints", { detail: h }));
   }
 
   // ---- render everything ----------------------------------------------------------------------------------
@@ -707,6 +808,8 @@
     renderWorkshop();
     renderHints();
     syncPlayButtons();
+
+    renderMedals();
   }
 
   // ---- talking to the engine --------------------------------------------------------------------------------
@@ -741,7 +844,7 @@
     if (!view || e.ctrlKey || e.metaKey || e.altKey) return;
     var tag = e.target && e.target.tagName;
     if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return;
-    if (document.querySelector("dialog[open], .confirm-dialog, [role='dialog']")) return;
+    if (document.querySelector("dialog[open], .confirm-dialog, [role='dialog']:not([hidden])")) return;
     var key = e.key;
     var map = { f: "F", l: "L", r: "R", g: "G", p: "P", s: "S" };
     if (map[key.toLowerCase()] && key.length === 1) {
@@ -785,10 +888,34 @@
   function wire() {
     wireDifficulty();
     $("toast").addEventListener("click", function () { showToast(""); });
+
+    // Speed chip (mobile)
+    var speedChip = $("speed-chip");
+    if (speedChip) {
+      Array.prototype.forEach.call(speedChip.querySelectorAll("button"), function(btn) {
+        btn.addEventListener("click", function() {
+          playbackSpeed = Number(btn.dataset.speed);
+          Array.prototype.forEach.call(speedChip.querySelectorAll("button"), function(b) { b.setAttribute("aria-pressed", String(b === btn)); });
+          if (play.running && play.trace) updatePlaybackSpeed(speedMs());
+        });
+      });
+    }
+
+    // Playback slider and keyboard controls
+    document.addEventListener("robotScriptPlaybackSpeedChange", function (e) {
+      updatePlaybackSpeed(e.detail);
+    });
+    document.addEventListener("robotScriptFrameStep", function (e) {
+      stepFrame(e.detail);
+    });
     wirePanelToggle("rooms-toggle-button", "rooms-panel");
     wirePanelToggle("workshop-toggle-button", "workshop-panel");
     wirePanelToggle("achievements-toggle-button", "achievements-panel");
+    wirePanelToggle("medals-toggle-button", "medals-panel");
     $("hint-button").addEventListener("click", function () { send({ action: "hint" }); });
+    // R4-RSMO-10 (hint-sheet.js): the phone's hint sheet asks for hints and the answer through these events
+    document.addEventListener("robotScriptHintRequest", function () { send({ action: "hint" }); });
+    document.addEventListener("robotScriptHintAnswer", function () { send({ action: "load_answer" }, true); });
     $("answer-load-button").addEventListener("click", function () { send({ action: "load_answer" }, true); });
     wirePanelToggle("changelog-toggle-button", "changelog-panel");
     wirePanelToggle("info-page-toggle-button", "info-page-panel");
@@ -813,6 +940,10 @@
       askThen("robot-script-reset", "Start the whole deck over? Your medals, lists and tally will be erased.", "Erase it", function () { send({ action: "reset" }); });
     });
     document.addEventListener("keydown", onKey);
+    document.addEventListener("robotScriptSwipeDelete", function (e) {
+      send({ action: "remove", at: e.detail }, true);
+    });
+    document.addEventListener("robotScriptSwipeUndo", function () { send({ action: "undo" }, true); });
     // The save widget loads a save straight into the engine; this redraws afterwards.
     window.robotScriptRefresh = function () { if (engine) { roomId = null; send({ action: "open" }); } };
   }

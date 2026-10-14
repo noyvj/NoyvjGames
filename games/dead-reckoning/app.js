@@ -40,6 +40,74 @@
     return view.legs.length > 0 || (!!view.fleet && view.fleet.ships.some(function (s) { return s.legs > 0; }));
   }
 
+  // ---- leg undo bar (R4-DEMO-5) --------------------------------------------------------------------
+  var legUndoSig = null;      // the plan right after a swipe removed a leg; the bar's Undo only applies while the plan is still exactly that
+  function legsSignature() { return JSON.stringify([view.legs, view.fleet ? view.fleet.active : 0]); }
+  function hideLegUndo() { legUndoSig = null; $("leg-undo-bar").hidden = true; }
+  function syncLegUndo() { if (legUndoSig !== null && (view.phase !== "plan" || legsSignature() !== legUndoSig)) hideLegUndo(); }
+
+  // ---- draft plans (R4-DEMO-7) -----------------------------------------------------------------------
+  // A plan being drafted on a chart is kept on this device (localStorage, per chart, newest 12 charts; never part of a save), so leaving a
+  // chart for another and coming back offers the legs again. The offer appears only when the chart opens with an empty plan; Resume refills
+  // the plan through the engine (every leg is cleaned there), Discard drops the draft. Plan mode on one-ship charts only.
+  var DRAFTS_KEY = "dead-reckoning:drafts";
+  var DRAFTS_MAX = 12;
+  var draftPrev = { chart: null, n: 0 };      // the previous render: a plan emptied during a visit is not offered back
+  var draftHidden = null;                      // the chart whose offer was discarded or resumed in this visit
+  var resuming = false;
+  function draftsGet() {
+    try {
+      var all = JSON.parse(lsGet(DRAFTS_KEY));
+      return Array.isArray(all) ? all.filter(function (d) { return d && typeof d.chart === "string" && cleanDraftLegs(d.legs).length > 0; }) : [];
+    } catch (e) { return []; }
+  }
+  function cleanDraftLegs(legs) {
+    if (!Array.isArray(legs)) return [];
+    return legs.slice(0, 30).filter(function (l) {
+      return l && isFinite(l.heading) && isFinite(l.speed) && isFinite(l.hours) && typeof l.heading === "number" && typeof l.speed === "number" && typeof l.hours === "number";
+    }).map(function (l) { return { heading: l.heading, speed: l.speed, hours: l.hours }; });
+  }
+  function draftFor(chartId) {
+    var found = draftsGet().filter(function (d) { return d.chart === chartId; })[0];
+    return found ? cleanDraftLegs(found.legs) : [];
+  }
+  function draftSet(chartId, legs) {
+    var all = draftsGet().filter(function (d) { return d.chart !== chartId; });
+    if (legs.length) all.unshift({ chart: chartId, legs: legs });
+    lsSet(DRAFTS_KEY, JSON.stringify(all.slice(0, DRAFTS_MAX)));
+  }
+  function draftable() { return view && view.phase === "plan" && !view.fleet && view.chart.mode !== "watch"; }
+  function renderDraft() {
+    var box = $("draft-indicator");
+    if (!draftable() || resuming) { box.hidden = true; return; }
+    var id = view.chart.id;
+    var n = view.legs.length;
+    if (draftPrev.chart !== id) draftHidden = null;      // arriving on a chart: its offer is fresh again
+    if (draftPrev.chart === id && draftPrev.n > 0 && n === 0) { draftSet(id, []); draftHidden = id; }      // the player emptied the plan
+    draftPrev = { chart: id, n: n };
+    if (n > 0) { draftSet(id, view.legs.map(function (l) { return { heading: l.heading, speed: l.speed, hours: l.hours }; })); box.hidden = true; return; }
+    var draft = draftFor(id);
+    if (!draft.length || draftHidden === id) { box.hidden = true; return; }
+    setText($("draft-text"), "You left a plan of " + draft.length + " leg" + (draft.length === 1 ? "" : "s") + " on this chart.");
+    box.hidden = false;
+  }
+  function resumeDraft() {
+    var id = view.chart.id;
+    var draft = draftFor(id);
+    if (!draft.length || view.legs.length) return;
+    resuming = true;
+    try {
+      draft.forEach(function (l) { send({ action: "add_leg", heading: l.heading, speed: l.speed, hours: l.hours }); });
+    } finally { resuming = false; }
+    draftHidden = id;
+    render();
+  }
+  function discardDraft() {
+    draftHidden = view.chart.id;
+    draftSet(view.chart.id, []);
+    $("draft-indicator").hidden = true;
+  }
+
   // ---- lazy content packs ----------------------------------------------------------------------------
   // The engine says which packs a request needs (engine.needs); the missing ones are fetched first, behind the loader's loading card, then
   // the request is sent. A pack that cannot be loaded changes nothing: the player keeps the screen, the plan and the save, and can retry.
@@ -500,6 +568,15 @@
     r.criteria.forEach(function (c) { crit.appendChild(el("li", c.text, c.ok ? "ok" : "no")); });
     renderEvents(Infinity);
     renderResultExtras();
+    // R4-DEMO-4: a plot that ends within a nautical mile of where the ship really ended up is said in words (every screen) and felt as one short
+    // buzz where the browser has one. The buzz follows Reduce motion and the Effects switch; a phone without one just shows the line.
+    var near = r.forecast_error_nm != null && r.forecast_error_nm <= 1.0;
+    var ind = $("dr-accuracy-indicator");
+    ind.hidden = !near;
+    setText(ind, near ? "Your plot ended within a mile of where the ship really ended up." : "");
+    if (near && navigator.vibrate && !reducedMotion() && document.documentElement.getAttribute("data-effects") !== "off") {
+      try { navigator.vibrate(60); } catch (e) { /* a buzz is only a bonus */ }
+    }
     announce(r.title + ". " + r.stars_text + ". " + r.lines[0]);
   }
 
@@ -666,6 +743,8 @@
     renderLog();
     if (view.note) showToast(view.note);
     if (view.phase === "plan") renderPlanner();
+    syncLegUndo();
+    renderDraft();
     renderResult();
   }
 
@@ -721,6 +800,30 @@
 
   function wire() {
     window.deadReckoningRefresh = function () { if (engine) send({ action: "open" }); };
+    // Quick leg input (PC only)
+    // R4-DEMO-5: swipe-legs.js reports a swipe; the leg is removed through the engine (undoable) and the bar offers Undo until the plan changes
+    document.addEventListener("dead-reckoning-leg-swipe", function (e) {
+      var i = e.detail && e.detail.index;
+      if (!view || view.phase !== "plan" || typeof i !== "number" || i < (view.sailed || 0) || i >= view.legs.length) return;
+      selected = Math.max(0, Math.min(i, view.legs.length - 2));
+      if (!send({ action: "remove_leg", i: i })) return;
+      legUndoSig = legsSignature();
+      setText($("leg-undo-text"), "Leg " + (i + 1) + " removed.");
+      $("leg-undo-bar").hidden = false;
+    });
+    guard("draft-resume-button", resumeDraft);
+    guard("draft-discard-button", discardDraft);
+    $("leg-undo-button").addEventListener("click", function () {
+      var ok = legUndoSig !== null && legUndoSig === legsSignature() && view.can_undo;
+      hideLegUndo();
+      if (ok) send({ action: "undo" });
+    });
+    document.addEventListener("dead-reckoning-quick-leg", function (e) {
+      var d = e.detail;
+      if (!d || !view || view.phase !== "plan" || isOff($("add-leg-button"))) return;
+      selected = view.legs.length;
+      send({ action: "add_leg", heading: d.heading, speed: d.speed, hours: d.hours });
+    });
     $("chart-holder").addEventListener("click", onChartTap);
     guard("add-leg-button", function () { selected = view.legs.length; send({ action: "add_leg" }); });
     guard("clear-button", function () { send({ action: "clear" }); });

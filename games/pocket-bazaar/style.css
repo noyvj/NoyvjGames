@@ -134,6 +134,9 @@ button.big { font-size: 1.05rem; padding: 0.6rem 1.3rem; min-height: 3rem; margi
 .cell.has-good { touch-action: none; cursor: grab; }
 .cell.selected { outline: 3px solid var(--pick); outline-offset: -1px; border-color: var(--pick); }
 .cell.partner { outline: 3px dashed var(--match); outline-offset: -1px; }
+/* R4-PBPC-5: goods chosen with Shift+click (hand-over together): a double outline and a tick, so colour is not the signal. */
+.cell.multi { outline: 4px double var(--pick); outline-offset: -2px; }
+.cell.multi::before { content: "\2713"; position: absolute; top: 1px; left: 4px; font-weight: 900; color: var(--pick); font-size: 1rem; line-height: 1; }
 .cell.partner::after { content: "+"; position: absolute; top: 1px; right: 4px; font-weight: 900; color: var(--match); font-size: 1rem; line-height: 1; }
 .cell.drop-over { background: var(--btn); border-style: dashed; }
 .cell.hand-over { outline: 3px dotted var(--match); outline-offset: -1px; }
@@ -193,9 +196,14 @@ html[data-effects="off"] *, html[data-effects="off"] *::before, html[data-effect
   animation: none !important; transition: none !important; scroll-behavior: auto !important;
 }
 
+/* The tool dock below is phone-only (R4-PBMO-3). */
+.mobile-dock { display: none; }
+.peek-panel { display: none; }
+.patience-dots { display: none; }
+
 @media (max-width: 600px) {
   /* The board shrinks to the screen's height so the crates and Sell/Broom stay on screen without scrolling. */
-  .board { max-width: min(22rem, 100%, calc((100vh - 23rem) * var(--cols) / 6)); }
+  .board { max-width: min(22rem, 100%, calc((100vh - 26.6rem) * var(--cols) / 6)); }
   /* A phone shows the whole counter and the crates without scrolling: the long intro and the panel title step aside. */
   .tagline { display: none; }
   .panel-title { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; }
@@ -206,6 +214,13 @@ html[data-effects="off"] *, html[data-effects="off"] *::before, html[data-effect
   .queue { gap: 0.25rem; }
   .customer { min-height: 4.6rem; padding: 0.25rem 0.3rem; font-size: 0.75rem; }
   .cust-kind { display: none; }
+  /* R4-PBMO-7: five large dots (filled = patience left, hollow = used up) and the beats replace the thin bar on a phone */
+  .cust-patience { display: none; }
+  .customer .patience-dots { display: flex; align-items: center; gap: 3px; margin-top: 0.3rem; }
+  .patience-dot { flex: 0 0 auto; width: 12px; height: 12px; border-radius: 50%; border: 2px solid var(--edge); background: transparent; }
+  .patience-dot.filled { background: var(--accent); border-color: var(--accent); }
+  .customer.low .patience-dot.filled { border-radius: 2px; }
+  .patience-num { margin-left: 2px; font-size: 0.7rem; font-weight: 700; font-variant-numeric: tabular-nums; }
   .queue-line { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin: 0 0 0.2rem; font-size: 0.72rem; }
   .message { min-height: 2.5em; font-size: 0.82rem; margin: 0 0 0.3rem; overflow: hidden; }
   .msg-flavor { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; }
@@ -230,6 +245,30 @@ html[data-effects="off"] *, html[data-effects="off"] *::before, html[data-effect
   .crate-btn { flex-direction: column; gap: 0.1rem; padding: 0.2rem 0.15rem; font-size: 0.72rem; min-height: 3.2rem; }
   .tool-buttons { flex: 0 0 auto; gap: 0.3rem; }
   .tool { flex: 0 0 auto; min-width: 3.4rem; padding: 0.2rem 0.3rem; font-size: 0.8rem; }
+
+  /* R4-PBMO-3: three big tool buttons along the bottom edge, above the ad bar (50px), only while a day is open.
+     They replace the small Sell/Broom pair, and the board is a little smaller so everything still fits one screen. */
+  #game[data-phase="open"] .mobile-dock {
+    position: fixed; left: 0; right: 0; bottom: calc(50px + env(safe-area-inset-bottom)); z-index: 90;
+    display: flex; justify-content: center; gap: 0.4rem; padding: 0.3rem 0.6rem;
+    background: var(--panel-fill); border-top: 1px solid var(--line);
+  }
+  .mobile-dock button { flex: 1 1 0; max-width: 9rem; min-height: 2.75rem; padding: 0.3rem; font-size: 1rem; font-weight: 700; border-radius: 12px; }
+  .mobile-dock button[aria-pressed="true"] { border: 3px solid var(--accent); }
+  .tool-buttons { display: none !important; }
+  /* R4-PBMO-9: the mirror switch in Settings reverses the dock, so Hand over sits under the left thumb. */
+  html[data-mirror="true"] .mobile-dock { flex-direction: row-reverse; }
+
+  /* R4-PBMO-5: the peek panel, pulled down over the top of the page while a finger holds the banner. */
+  .top-row, #message { touch-action: pan-x; }
+  .peek-panel {
+    display: block; position: fixed; top: 0; left: 0; right: 0; z-index: 300; padding: 0.7rem 1rem; visibility: hidden; pointer-events: none;
+    transform: translateY(-100%); transition: transform 0.2s ease-out;
+    background: var(--panel); color: var(--text); border-bottom: 2px solid var(--edge); box-shadow: 0 6px 16px rgba(0, 0, 0, 0.35);
+  }
+  .peek-panel.open { visibility: visible; transform: translateY(0); }
+  .peek-title { font-weight: 800; margin-bottom: 0.2rem; }
+  .peek-festival, .peek-regulars { font-size: 0.9rem; margin: 0.15rem 0; }
 }
 @media (max-width: 420px) {
   #game { padding: 0.6rem 0.6rem 2.5rem; }

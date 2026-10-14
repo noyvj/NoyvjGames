@@ -32,6 +32,7 @@
     ["Enter", "Pick up / drop"],
     ["1-5", "Open a crate"],
     ["D", "Hand over"],
+    ["Shift+D", "Hand over chosen goods"],
     ["S", "Sell"],
     ["B", "Broom"],
     ["Esc", "Menu / close window"],

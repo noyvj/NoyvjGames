@@ -83,3 +83,31 @@ The sitemap, robots file and per-game JSON-LD are done; the last step needs a ve
 ### Q8_1b. Constellations: the game has the 88 official constellations (the Western list). Do you also want a few sky pictures from other cultures, such as Aboriginal Australian sky stories or Chinese constellations, added as optional charts with their sources?
 
 Recommended: not yet. Those traditions belong to living communities, so they need careful, named sources and ideally their own wording, which is a bigger job. Say "yes" to add a few later, "no" to stay with the official 88. (Your Q8_2 note about wanting both hemispheres is covered: the atlas already has northern and southern skies.)
+
+### Pb1. Pocket Bazaar: you asked to "move the tool buttons to the left side" (R4-PBMO-9); the audit built it as a Left-handed layout checkbox that reverses the dock so Hand over is on the left. Is that what you meant?
+
+Recommended: yes. Say "no" and say what you wanted (for example moving all three buttons to a left-hand column).
+
+### Pb2. Pocket Bazaar: should a rebound crate key (Settings, Controls) replace the 1 to 5 number keys?
+
+Recommended: no. It currently adds to them, so the number keys always work.
+
+### Pb3. Pocket Bazaar: you asked to "pull down the stall banner" to peek at the festival and regulars (R4-PBMO-5); it was built as pulling down the top row or the day message. Is that the banner you meant?
+
+Recommended: yes. Say "no" and describe the banner.
+
+### Hr1. Hull Repair: on a phone the old "Next room" button is hidden and replaced by the big "One more board" button (R4-HRMO-10). Is that OK, or should both show?
+
+Recommended: yes, one button is enough. Say "no" to show both.
+
+### Hr2. Hull Repair: the phone progress card (R4-HRMO-7) sits on the page behind the opening screen, not on the opening screen itself, because the shared opening screen has no slot for extra content. Is the in-page card acceptable?
+
+Recommended: yes. Say "no" and I will add a slot to the shared opening screen.
+
+### Lg1. Logic Gates: on Desktop, A, O and X now add an AND, OR or XOR chip, and Shift+N adds a NOT because plain N already means "Next level". Is Shift+N acceptable?
+
+Recommended: yes. Say "no" and name the key you would rather use for NOT.
+
+### Lg2. Logic Gates: clicking a truth-table row to set the switches counts as a switch flip in the stats. Is that fine?
+
+Recommended: yes, it is still you flipping switches. Say "no" to leave those clicks out of the flips stat.

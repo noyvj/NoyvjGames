@@ -117,7 +117,7 @@
       </div>
     </div>
     <div class="settings-row"><label><input type="checkbox" id="reduced-motion-checkbox"> Reduce motion (the sail shows its result at once; follows your system setting until you choose)</label></div>
-    <div class="settings-row"><label><input type="checkbox" id="effects-checkbox" checked> Effects (the fade-in on a new result card)</label></div>
+    <div class="settings-row"><label><input type="checkbox" id="effects-checkbox" checked> Effects (the fade-in on a new result card, and one short buzz on a phone that has one when your plot ends within a mile of the truth)</label></div>
     <div class="settings-row"><label><input type="checkbox" id="high-contrast-checkbox"> High contrast (brighter text, thicker outlines and tracks)</label></div>
     <div class="settings-row"><button id="theme-setting-button" type="button" aria-pressed="false">Light theme</button></div>
     <div class="settings-row"><button id="display-reset-button" type="button">Reset display settings</button></div>
@@ -151,8 +151,12 @@
         <summary>The chart in words</summary>
         <ul id="chart-notes-list"></ul>
       </details>
+      <div id="draft-indicator" class="draft-indicator" role="status" hidden>
+        <span id="draft-text"></span>
+        <button id="draft-resume-button" type="button" class="primary">Resume it</button>
+        <button id="draft-discard-button" type="button">Discard</button>
+      </div>
     </section>
-
     <section id="planner-panel" class="panel" aria-labelledby="planner-heading">
       <h2 id="planner-heading">Your plan</h2>
       <div id="ship-box" class="ship-box" role="group" aria-label="Which ship you are planning" hidden>
@@ -184,6 +188,9 @@
         <label for="allow-checkbox">Allow for the charted currents, wind and compass error in my plot</label>
       </div>
       <ol id="legs-list" class="legs" aria-label="Legs"></ol>
+      <p class="note swipe-hint">On a touch screen, swipe a leg card to the left to remove it. Undo brings it back.</p>
+      <div id="leg-undo-bar" class="leg-undo-bar" role="status" hidden><span id="leg-undo-text"></span><button id="leg-undo-button" type="button">Undo</button></div>
+      <input id="quick-leg-input" type="text" placeholder="090 6kn 2h" class="quick-leg-input" aria-label="Quick leg input" hidden>
       <div id="turns" class="turns" role="group" aria-label="Quick turns for the selected leg">
         <button type="button" data-turn="-15">&minus;15&deg;</button>
         <button type="button" data-turn="-5">&minus;5&deg;</button>
@@ -229,6 +236,7 @@
         <ul id="result-lines" class="events"></ul>
         <ul id="result-criteria" class="criteria"></ul>
         <div id="result-copy"></div>
+        <div id="dr-accuracy-indicator" class="dr-accuracy-indicator" hidden></div>
       </div>
       <h3>Log</h3>
       <ul id="event-list" class="events" aria-live="polite"></ul>
@@ -279,6 +287,7 @@
 </script>
 <script src="../../shared/lazy-packs.js" data-game-id="dead-reckoning" data-manifest="modules.json"></script>
 <script src="daily.js"></script>
+<script src="swipe-legs.js"></script>
 <script src="app.js"></script>
 <script src="../../shared/last-played.js" data-game-id="dead-reckoning"></script>
 <script src="../../shared/whats-new-banner.js" data-game-id="dead-reckoning"></script>

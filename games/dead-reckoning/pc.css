@@ -45,7 +45,44 @@ html[data-theme="light"][data-layout="pc"] .pc-window-frame {
 .pc-window-frame a { color: var(--accent); }
 html[data-theme="light"] #pc-hintbar { opacity: 1; }
 
+/* Quick leg input (PC only) -------------------------------------------------- */
+.quick-leg-input { box-sizing: border-box; width: 100%; min-height: 2.75rem; margin-top: 0.5rem; font-family: monospace; font-size: 1rem; }
+.quick-leg-input[aria-invalid="true"] { border-width: 3px; border-style: dashed; }
+#quick-leg-note { margin: 0.3rem 0 0; }
+
 @media (max-height: 780px) {
   html[data-layout="pc"] #game { gap: 0.4rem; padding-top: 0.4rem; }
   #pc-topbar > h1 { margin-top: 0.8rem; font-size: 1.2rem; }
+}
+
+/* Print layout (R4-DEPC-9): the browser's own Ctrl+P prints a clean chart sheet, always on paper colours (the chart's colours are variables,
+   so the paper-chart set is put back for printing), with the chart title, goal, the chart, its key and the plan as plain text.
+   pc.js builds the plan list (#print-plan) just before printing. -------------------------------------------------- */
+#print-plan { display: none; }
+@media print {
+  html:root:root {
+    color-scheme: light;
+    --bg: #fff; --bg-top: #fff; --panel: #fff; --panel-fill: #fff; --surface: #fff; --line: #888; --edge: #444; --text: #000; --muted: #222;
+    --accent: #14507e; --sea: #dfe9e8; --grid-minor: #c8d5d4; --grid-major: #8ea7a8; --halo: #fff;
+    --land: #ecdcab; --land-edge: #5c4b1d; --land-hatch: #a38a45; --hazard: #a1175f; --hazard-fill: #f0c6dc; --current: #1b6b45;
+    --est: #14507e; --truth: #b3430a; --ribbon: #4a5663; --flag: #a1175f; --est-b: #5b2a9e; --truth-b: #00606f;
+  }
+  html[data-layout="pc"], html[data-layout="pc"] body, html[data-layout="pc"] #game, html[data-layout="pc"] #pc-body,
+  html[data-layout="pc"] #pc-stage, html[data-layout="pc"] #pc-side { height: auto !important; overflow: visible !important; background: #fff !important; }
+  html[data-layout="pc"] #game { display: block; padding: 0; }
+  html[data-layout="pc"] #pc-body { display: block; }
+  .skip-link, .ad-bar, #save-widget, #theme-toggle-floating, .noyvj-night-overlay, .noyvj-calm-dim, #pc-backdrop, #mobile-hud-bar, #pc-hintbar,
+  #kb-shortcuts-panel, #kb-shortcuts-panel-backdrop, #engine-status, #announce, #toast, #result-panel, #draft-indicator-container,
+  #pc-topbar > :not(h1), #pc-stagebar > :not(#chart-head), .playback, details.notes, #chart-intro,
+  #planner-panel > :not(h2):not(.totals):not(#plot-line):not(#print-plan) { display: none !important; }
+  .panel { background: #fff !important; border: 0; box-shadow: none !important; padding: 0; margin: 0.4rem 0; border-radius: 0; }
+  #pc-topbar > h1 { margin: 0; font-size: 1.3rem; }
+  #pc-topbar { padding-right: 0; }
+  #pc-stage > #chart-panel { display: block !important; flex: none !important; overflow: visible !important; }
+  #pc-stage > #chart-panel #chart-holder { display: block !important; flex: none !important; min-height: 0 !important; }
+  #pc-stage > #chart-panel .dr-chart { display: block; width: auto !important; height: auto !important; max-width: 100%; max-height: 62vh !important; margin: 0 auto; }
+  #pc-stage > #chart-panel .legend { color: #000; }
+  #print-plan { display: block; list-style: none; margin: 0.3rem 0 0; padding-left: 0; }
+  #print-plan li { margin: 0.15rem 0; }
+  .dr-est-track, .dr-true-track { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
 }

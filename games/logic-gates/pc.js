@@ -46,3 +46,50 @@ window.LOGIC_GATES_PC_TUTORIAL_STEPS = [
     text: "Take your time. The station has waited eleven years.",
   },
 ];
+
+/* Wire hover card (R4-LGPC-3): point at a wire to read its live value and the truth-table rows where it is 1.
+   render.py writes data-value, data-src and (for small tables) data-rows on every .lg-wire; the board is rebuilt on every
+   action, so everything is looked up from the pointer, never from a remembered element. Mouse-only extra: the same facts are
+   in the board description and the truth table. */
+(function () {
+  "use strict";
+  var card = null;
+
+  function build() {
+    card = document.createElement("div");
+    card.className = "lg-wire-hover-card";
+    card.setAttribute("aria-hidden", "true");
+    card.hidden = true;
+    card.innerHTML = '<span class="lg-wire-value"></span> <span class="lg-wire-rows"></span>';
+    document.body.appendChild(card);
+  }
+
+  function hide() { if (card) card.hidden = true; }
+
+  function onMove(e) {
+    var wire = e.target && e.target.closest ? e.target.closest(".lg-wire") : null;
+    if (!wire) { hide(); return; }
+    if (!card) build();
+    var src = wire.getAttribute("data-src") || "";
+    var name = src.indexOf("in:") === 0 ? "Switch " + src.slice(3) : (src.indexOf("const:") === 0 ? "Tie " + src.slice(6) : "Chip output " + src);
+    var rows = wire.getAttribute("data-rows");
+    card.querySelector(".lg-wire-value").textContent = name + " is " + (wire.getAttribute("data-value") === "1" ? "1 (high)" : "0 (low)") + ".";
+    card.querySelector(".lg-wire-rows").textContent = rows === null ? "" : (rows ? "High on rows: " + rows.split(" ").join(", ") : "High on no row.");
+    card.hidden = false;
+    var x = e.clientX + 14, y = e.clientY + 14;
+    var w = card.offsetWidth, h = card.offsetHeight;
+    if (x + w > window.innerWidth - 4) x = Math.max(4, e.clientX - w - 14);
+    if (y + h > window.innerHeight - 4) y = Math.max(4, e.clientY - h - 14);
+    card.style.left = x + "px";
+    card.style.top = y + "px";
+  }
+
+  function init() {
+    document.addEventListener("mousemove", onMove);
+    document.addEventListener("mouseleave", hide);
+    window.addEventListener("blur", hide);
+  }
+
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);
+  else init();
+})();

@@ -119,6 +119,7 @@
       holder.innerHTML = view.svg;              // the engine's own markup: no player text goes in
       holder.dataset.signature = view.svg;
     }
+    holder.classList.toggle("lg-wiring", Boolean(view.armed || view.target));
     var status = "";
     if (view.armed) status = "Picked up " + view.armed.replace("in:", "switch ").replace("const:", "tie ") + ". Tap an input pin to connect it, or press Escape to let go.";
     else if (view.target) status = "Picked input " + view.target.replace("out:", "lamp ") + ". Tap a source pin to connect it, or press Escape to let go.";
@@ -182,6 +183,14 @@
       built.addEventListener("toggle", function () { lsSet("logic-gates:built-open", built.open ? "1" : "0"); });
       pal.appendChild(built);
     }
+    var drawerBody = $("chip-drawer-content");
+    if (drawerBody) {
+      drawerBody.textContent = "";
+      view.palette.forEach(function (p) {
+        drawerBody.appendChild(btn("+ " + p.label, null, function () { send({ action: "add", type: p.type }); }, { title: p.blurb, "aria-label": "Add a " + p.label + " chip" }));
+      });
+      if (!view.palette.length) drawerBody.appendChild(el("span", "No chips yet.", "note"));
+    }
     if (!view.palette.length) pal.appendChild(el("span", "No chips yet: this board is only switches and lamps. Solve it to earn the first chip.", "note"));
     setText($("board-count"), "Chips on the board: " + view.board.count + " of " + view.board.cap + ". Wires: " + view.board.wires + ".");
     $("undo-button").setAttribute("aria-disabled", String(!view.can_undo));
@@ -217,6 +226,12 @@
   // ---- the table -----------------------------------------------------------------------------------
   function cell(tag, text, className) { return el(tag, text, className); }
 
+  function setSwitches(names, values) {
+    names.forEach(function (n, i) {
+      if (view && view.probe.inputs[n] !== values[i]) send({ action: "flip", name: n });
+    });
+  }
+
   function renderTable() {
     var holder = $("table-holder");
     holder.textContent = "";
@@ -249,6 +264,17 @@
         c0.appendChild(sb);
         tr.appendChild(c0);
         if (view.probe.step === r.step - 1) tr.className += " current";
+      }
+      if (t.kind === "comb" && r.ok !== null) {
+        // R4-LGPC-6: the row for the switches as they are now is marked, and a row sets the switches to its inputs
+        if (t.ins.every(function (n, i) { return view.probe.inputs[n] === r.inputs[i]; })) { tr.className += " current"; tr.setAttribute("aria-current", "true"); }
+        tr.className += " pickable";
+        tr.tabIndex = 0;
+        tr.title = "Set the switches to this row";
+        tr.addEventListener("click", function () { setSwitches(t.ins, r.inputs); });
+        tr.addEventListener("keydown", function (e) {
+          if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setSwitches(t.ins, r.inputs); }
+        });
       }
       r.inputs.forEach(function (v) { tr.appendChild(cell("td", String(v))); });
       t.outs.forEach(function (n, i) { tr.appendChild(cell("td", r.want && r.want[i] !== null && r.want[i] !== undefined ? String(r.want[i]) : "-")); });
@@ -295,6 +321,7 @@
     if (body.dataset.signature === sig) return;
     body.dataset.signature = sig;
     body.textContent = "";
+    renderMobileChapters();
     view.picker.forEach(function (ch) {
       var wrap = el("section", undefined, "picker-chapter");
       wrap.appendChild(el("h3", "Chapter " + ch.id + ": " + ch.name + " (" + ch.cleared + " of " + ch.total + " solved)"));
@@ -440,6 +467,51 @@
     { title: "You are ready", text: "Take your time. The station has waited eleven years." },
   ];
 
+  // ---- mobile chapter cards (R4-LGMO-8) ------------------------------------------------------------------
+  // Phone width only (CSS shows #mobile-chapter-cards at max-width 600px and hides the long list there). The cards are a second view
+  // of view.picker, rebuilt whenever the picker is; scroll-snap does the swiping, so nothing here depends on touch events.
+  function renderMobileChapters() {
+    var container = $("mobile-chapter-cards");
+    if (!container) return;
+    container.textContent = "";
+    var NS = "http://www.w3.org/2000/svg";
+    var circumference = 2 * Math.PI * 24;
+    view.picker.forEach(function (ch) {
+      var card = el("article", undefined, "chapter-card");
+      card.setAttribute("aria-label", "Chapter " + ch.id + ": " + ch.name + ", " + ch.cleared + " of " + ch.total + " solved");
+      card.appendChild(el("h3", "Chapter " + ch.id + ": " + ch.name));
+      var ringWrap = el("div", undefined, "chapter-progress-ring");
+      var svg = document.createElementNS(NS, "svg");
+      svg.setAttribute("viewBox", "0 0 60 60");
+      svg.setAttribute("aria-hidden", "true");
+      var bg = document.createElementNS(NS, "circle");
+      bg.setAttribute("cx", "30"); bg.setAttribute("cy", "30"); bg.setAttribute("r", "24"); bg.setAttribute("class", "bg");
+      var fg = document.createElementNS(NS, "circle");
+      fg.setAttribute("cx", "30"); fg.setAttribute("cy", "30"); fg.setAttribute("r", "24"); fg.setAttribute("class", "fg");
+      fg.setAttribute("stroke-dasharray", String(circumference));
+      fg.setAttribute("stroke-dashoffset", String(circumference * (1 - (ch.total ? ch.cleared / ch.total : 0))));
+      svg.appendChild(bg);
+      svg.appendChild(fg);
+      ringWrap.appendChild(svg);
+      ringWrap.appendChild(el("span", ch.cleared + "/" + ch.total, "chapter-ring-text"));
+      card.appendChild(ringWrap);
+      var newChips = ch.levels.filter(function (lv) { return lv.unlock; }).map(function (lv) { return lv.unlock; });
+      card.appendChild(el("span", newChips.length ? "New chips: " + newChips.join(", ") + " (" + newChips.length + ")" : "No new chips", "chapter-chip-count"));
+      var list = el("div", undefined, "chapter-levels-list");
+      ch.levels.forEach(function (lv) {
+        var b = el("button", String(lv.index), "chapter-level-btn" + (lv.solved ? " solved" : "") + (lv.open ? "" : " locked") + (lv.current ? " current" : ""));
+        b.type = "button";
+        b.setAttribute("aria-label", "Level " + lv.index + ", " + lv.name + ", " + (lv.solved ? (lv.par ? "solved at par" : "solved") : (lv.open ? "open" : "locked, needs " + lv.missing.join(", "))) + (lv.current ? ", open now" : ""));
+        b.title = lv.name + (lv.open ? "" : " (needs " + lv.missing.join(", ") + ")");
+        if (lv.current) b.setAttribute("aria-current", "true");
+        b.addEventListener("click", function () { openLevel(lv.id); });
+        list.appendChild(b);
+      });
+      card.appendChild(list);
+      container.appendChild(card);
+    });
+  }
+
   // ---- render / talk to the engine -----------------------------------------------------------------
   function render() {
     renderStats();
@@ -513,12 +585,61 @@
     window.NoyvjDifficulty.onChange(function (d) { if (d.game === DIFF_GAME) sendDifficulty(); });
   }
 
+  // ---- mobile pin magnet (R4-LGMO-1) ----------------------------------------------------------------------
+  // While a wire is armed (a source or an input picked), a tap that lands near a pin of the kind that completes it counts as a tap on
+  // that pin. Phone and touch screens only; on a mouse the pins keep their exact hit area. The board is rebuilt on every action, so the
+  // nearest pin is looked up at tap time from the current SVG, never remembered.
+  var MAGNET_PX = 34;
+  function coarseScreen() {
+    try { return window.innerWidth <= 600 || window.matchMedia("(pointer: coarse)").matches; } catch (e) { return window.innerWidth <= 600; }
+  }
+  function magnetPin(holder, x, y) {
+    if (!view || (!view.armed && !view.target) || !coarseScreen()) return null;
+    var want = view.armed ? "d:" : "s:";          // an armed source is waiting for an input pin, a picked input for a source pin
+    var pins = holder.querySelectorAll("[data-pin]");
+    var best = null, bestDist = MAGNET_PX;
+    for (var i = 0; i < pins.length; i++) {
+      if ((pins[i].getAttribute("data-pin") || "").indexOf(want) !== 0) continue;
+      var r = pins[i].getBoundingClientRect();
+      var d = Math.hypot(x - (r.left + r.width / 2), y - (r.top + r.height / 2));
+      if (d < bestDist) { bestDist = d; best = pins[i]; }
+    }
+    return best;
+  }
+
+  // ---- mobile fit (R4-LGMO-10) -----------------------------------------------------------------------------
+  // "Fit" scales the board drawing to the width of the board panel (and back). The chips are laid out by the engine, so there is nothing
+  // to snap on a grid: the idea's snap toggle is not built. The choice is per device (localStorage), applied on load, and a class on the
+  // holder, so it survives every re-render of the SVG.
+  var FIT_KEY = "logic-gates:fit-board";
+  function fitOn() { return lsGet(FIT_KEY) === "1"; }
+  function applyFit() {
+    var on = fitOn();
+    var holder = $("board-holder");
+    if (holder) holder.classList.toggle("lg-fit", on);
+    var b = $("lg-fit-btn");
+    if (b) b.setAttribute("aria-pressed", String(on));
+    var scroller = $("board-scroll");
+    if (on && scroller) scroller.scrollLeft = 0;
+  }
+  function initMobileTools() {
+    var b = $("lg-fit-btn");
+    if (!b) return;
+    b.addEventListener("click", function () {
+      lsSet(FIT_KEY, fitOn() ? "0" : "1");
+      applyFit();
+      announce(fitOn() ? "Board fitted to the screen." : "Board at full size, scroll sideways to see all of it.");
+    });
+    applyFit();
+  }
+
   function wire() {
     wireDifficulty();
     window.logicGatesRefresh = function () { if (engine) send({ action: "open" }); };
     $("board-holder").addEventListener("click", function (e) {
       if (!view) return;
       var pin = e.target.closest && e.target.closest("[data-pin]");
+      if (!pin) pin = magnetPin($("board-holder"), e.clientX, e.clientY);
       if (pin) { send({ action: "pick", pin: pin.getAttribute("data-pin") }); return; }
       var sw = e.target.closest && e.target.closest("[data-flip]");
       if (sw) send({ action: "flip", name: sw.getAttribute("data-flip") });
@@ -551,8 +672,29 @@
     wirePanelToggle("info-page-toggle-button", "info-page-panel");
     wirePanelToggle("changelog-toggle-button", "changelog-panel");
     wirePanelToggle("achievements-toggle-button", "achievements-panel");
+    // R4-LGMO-9: a two-finger tap undoes (touch screens only; a pinch, a drag or a long press does not count)
+    var tap2 = null;
+    document.addEventListener("touchstart", function (e) {
+      if (e.touches.length >= 2) { if (!tap2) tap2 = { t: e.timeStamp, moved: false, x: e.touches[0].clientX, y: e.touches[0].clientY }; }
+      else if (e.touches.length === 1 && tap2) tap2 = null;
+    }, { passive: true });
+    document.addEventListener("touchmove", function (e) {
+      if (tap2 && Math.hypot(e.touches[0].clientX - tap2.x, e.touches[0].clientY - tap2.y) > 12) tap2.moved = true;
+    }, { passive: true });
+    document.addEventListener("touchend", function (e) {
+      if (!tap2 || e.touches.length > 0) return;       // wait until every finger is up
+      var quick = e.timeStamp - tap2.t < 450 && !tap2.moved;
+      tap2 = null;
+      if (quick && view && view.can_undo) send({ action: "undo" });
+    }, { passive: true });
+    document.addEventListener("touchcancel", function () { tap2 = null; }, { passive: true });
+
+    initMobileTools();
     document.addEventListener("keydown", onKey);
   }
+
+  var GATE_KEYS = { a: "and", o: "or", x: "xor", "n+": "not" };
+  function openWindow() { return document.querySelector("[role='dialog']:not([hidden])"); }
 
   function onKey(e) {
     if (e.altKey || e.ctrlKey || e.metaKey || !view) return;
@@ -562,6 +704,12 @@
     if (key === "u") { e.preventDefault(); if (view.can_undo) send({ action: "undo" }); }
     else if (key === "n") { e.preventDefault(); if (nextOpenLevel()) send({ action: "next" }); }
     else if (key === "escape" && (view.armed || view.target)) { e.preventDefault(); send({ action: "cancel" }); }
+    else if (window.NOYVJ_LAYOUT === "pc" && GATE_KEYS[key + (e.shiftKey ? "+" : "")] && !openWindow()) {
+      // R4-LGPC-7 (Desktop): A, O and X put an AND, OR or XOR chip on the board, Shift+N a NOT (plain N stays "Next level").
+      // The board is laid out by the engine, so a chip lands in its place, not under the cursor.
+      var type = GATE_KEYS[key + (e.shiftKey ? "+" : "")];
+      if (view.palette.some(function (p) { return p.type === type; })) { e.preventDefault(); send({ action: "add", type: type }); }
+    }
   }
 
   function setBusy(busy) {

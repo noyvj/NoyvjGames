@@ -5271,7 +5271,7 @@
     },
     {
      "path": "games/pocket-bazaar/app.js",
-     "bytes": 41953,
+     "bytes": 52424,
      "precached": true
     },
     {
@@ -5321,7 +5321,7 @@
     },
     {
      "path": "games/pocket-bazaar/index.html",
-     "bytes": 17768,
+     "bytes": 18536,
      "precached": true
     },
     {
@@ -5351,22 +5351,22 @@
     },
     {
      "path": "games/pocket-bazaar/pc-config.json",
-     "bytes": 1269,
+     "bytes": 1312,
      "precached": false
     },
     {
      "path": "games/pocket-bazaar/pc.css",
-     "bytes": 5231,
+     "bytes": 9205,
      "precached": true
     },
     {
      "path": "games/pocket-bazaar/pc.html",
-     "bytes": 19701,
+     "bytes": 20508,
      "precached": true
     },
     {
      "path": "games/pocket-bazaar/pc.js",
-     "bytes": 2611,
+     "bytes": 20706,
      "precached": true
     },
     {
@@ -5391,7 +5391,7 @@
     },
     {
      "path": "games/pocket-bazaar/settings.js",
-     "bytes": 6019,
+     "bytes": 7284,
      "precached": true
     },
     {
@@ -5406,7 +5406,7 @@
     },
     {
      "path": "games/pocket-bazaar/style.css",
-     "bytes": 24280,
+     "bytes": 27147,
      "precached": true
     },
     {
@@ -5624,7 +5624,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14427661,
+   "bytes": 14465951,
    "bytes_complete": true
   },
   "dead-reckoning": {
@@ -5641,7 +5641,7 @@
     },
     {
      "path": "games/dead-reckoning/app.js",
-     "bytes": 44805,
+     "bytes": 50875,
      "precached": true
     },
     {
@@ -5727,7 +5727,7 @@
     },
     {
      "path": "games/dead-reckoning/game.py",
-     "bytes": 48701,
+     "bytes": 49149,
      "precached": true
     },
     {
@@ -5759,7 +5759,7 @@
     },
     {
      "path": "games/dead-reckoning/index.html",
-     "bytes": 20044,
+     "bytes": 20966,
      "precached": true
     },
     {
@@ -5779,22 +5779,22 @@
     },
     {
      "path": "games/dead-reckoning/pc-config.json",
-     "bytes": 2021,
+     "bytes": 2069,
      "precached": false
     },
     {
      "path": "games/dead-reckoning/pc.css",
-     "bytes": 3243,
+     "bytes": 6323,
      "precached": true
     },
     {
      "path": "games/dead-reckoning/pc.html",
-     "bytes": 22187,
+     "bytes": 23135,
      "precached": true
     },
     {
      "path": "games/dead-reckoning/pc.js",
-     "bytes": 2696,
+     "bytes": 7228,
      "precached": true
     },
     {
@@ -5840,7 +5840,12 @@
     },
     {
      "path": "games/dead-reckoning/style.css",
-     "bytes": 21635,
+     "bytes": 23370,
+     "precached": true
+    },
+    {
+     "path": "games/dead-reckoning/swipe-legs.js",
+     "bytes": 2518,
      "precached": true
     },
     {
@@ -6098,7 +6103,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14610708,
+   "bytes": 14631009,
    "bytes_complete": true
   },
   "logic-gates": {
@@ -6115,7 +6120,7 @@
     },
     {
      "path": "games/logic-gates/app.js",
-     "bytes": 30551,
+     "bytes": 39320,
      "precached": true
     },
     {
@@ -6129,13 +6134,18 @@
      "precached": true
     },
     {
+     "path": "games/logic-gates/chip-drawer.js",
+     "bytes": 962,
+     "precached": true
+    },
+    {
      "path": "games/logic-gates/chips.py",
      "bytes": 2689,
      "precached": true
     },
     {
      "path": "games/logic-gates/game.py",
-     "bytes": 24033,
+     "bytes": 25127,
      "precached": true
     },
     {
@@ -6145,7 +6155,7 @@
     },
     {
      "path": "games/logic-gates/index.html",
-     "bytes": 15482,
+     "bytes": 16314,
      "precached": true
     },
     {
@@ -6185,22 +6195,22 @@
     },
     {
      "path": "games/logic-gates/pc.css",
-     "bytes": 4011,
+     "bytes": 4730,
      "precached": true
     },
     {
      "path": "games/logic-gates/pc.html",
-     "bytes": 17818,
+     "bytes": 18650,
      "precached": true
     },
     {
      "path": "games/logic-gates/pc.js",
-     "bytes": 2543,
+     "bytes": 4712,
      "precached": true
     },
     {
      "path": "games/logic-gates/render.py",
-     "bytes": 7993,
+     "bytes": 8306,
      "precached": true
     },
     {
@@ -6225,7 +6235,7 @@
     },
     {
      "path": "games/logic-gates/style.css",
-     "bytes": 14022,
+     "bytes": 18256,
      "precached": true
     },
     {
@@ -6458,7 +6468,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14405015,
+   "bytes": 14424939,
    "bytes_complete": true
   },
   "robot-script": {
@@ -6475,7 +6485,7 @@
     },
     {
      "path": "games/robot-script/app.js",
-     "bytes": 40872,
+     "bytes": 46929,
      "precached": true
     },
     {
@@ -6504,6 +6514,16 @@
      "precached": true
     },
     {
+     "path": "games/robot-script/haptics.js",
+     "bytes": 908,
+     "precached": true
+    },
+    {
+     "path": "games/robot-script/hint-sheet.js",
+     "bytes": 5220,
+     "precached": true
+    },
+    {
      "path": "games/robot-script/hints.py",
      "bytes": 2015,
      "precached": true
@@ -6515,7 +6535,7 @@
     },
     {
      "path": "games/robot-script/index.html",
-     "bytes": 17973,
+     "bytes": 19057,
      "precached": true
     },
     {
@@ -6525,22 +6545,22 @@
     },
     {
      "path": "games/robot-script/pc-config.json",
-     "bytes": 1401,
+     "bytes": 1503,
      "precached": false
     },
     {
      "path": "games/robot-script/pc.css",
-     "bytes": 1929,
+     "bytes": 2624,
      "precached": true
     },
     {
      "path": "games/robot-script/pc.html",
-     "bytes": 20056,
+     "bytes": 21260,
      "precached": true
     },
     {
      "path": "games/robot-script/pc.js",
-     "bytes": 2443,
+     "bytes": 6975,
      "precached": true
     },
     {
@@ -6615,7 +6635,12 @@
     },
     {
      "path": "games/robot-script/style.css",
-     "bytes": 20293,
+     "bytes": 23576,
+     "precached": true
+    },
+    {
+     "path": "games/robot-script/swipe.js",
+     "bytes": 3306,
      "precached": true
     },
     {
@@ -6627,6 +6652,11 @@
      "path": "games/robot-script/tools/solver.py",
      "bytes": 1160,
      "precached": false
+    },
+    {
+     "path": "games/robot-script/zoom.js",
+     "bytes": 2428,
+     "precached": true
     }
    ],
    "shared": [
@@ -6838,7 +6868,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14396968,
+   "bytes": 14425787,
    "bytes_complete": true
   },
   "hull-repair": {
@@ -6855,7 +6885,7 @@
     },
     {
      "path": "games/hull-repair/app.js",
-     "bytes": 29913,
+     "bytes": 35681,
      "precached": true
     },
     {
@@ -6910,7 +6940,7 @@
     },
     {
      "path": "games/hull-repair/index.html",
-     "bytes": 14845,
+     "bytes": 15470,
      "precached": true
     },
     {
@@ -6925,22 +6955,22 @@
     },
     {
      "path": "games/hull-repair/pc-config.json",
-     "bytes": 1341,
+     "bytes": 1434,
      "precached": false
     },
     {
      "path": "games/hull-repair/pc.css",
-     "bytes": 1668,
+     "bytes": 4473,
      "precached": true
     },
     {
      "path": "games/hull-repair/pc.html",
-     "bytes": 16872,
+     "bytes": 17582,
      "precached": true
     },
     {
      "path": "games/hull-repair/pc.js",
-     "bytes": 2547,
+     "bytes": 12501,
      "precached": true
     },
     {
@@ -6975,7 +7005,7 @@
     },
     {
      "path": "games/hull-repair/style.css",
-     "bytes": 17252,
+     "bytes": 19798,
      "precached": true
     },
     {
@@ -7208,7 +7238,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14400385,
+   "bytes": 14422886,
    "bytes_complete": true
   },
   "station-medic": {
