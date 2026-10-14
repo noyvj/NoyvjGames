@@ -244,8 +244,6 @@ html[data-effects="off"] *, html[data-effects="off"] *::before, html[data-effect
   .crates { flex: 1 1 auto; gap: 0.3rem; }
   .crate-btn { flex-direction: column; gap: 0.1rem; padding: 0.2rem 0.15rem; font-size: 0.72rem; min-height: 3.2rem; }
   .tool-buttons { flex: 0 0 auto; gap: 0.3rem; }
-  #game.mirror .crates { order: 2; }
-  #game.mirror .tool-buttons { order: 1; }
   .tool { flex: 0 0 auto; min-width: 3.4rem; padding: 0.2rem 0.3rem; font-size: 0.8rem; }
 
   /* R4-PBMO-3: three big tool buttons along the bottom edge, above the ad bar (50px), only while a day is open.
@@ -258,6 +256,8 @@ html[data-effects="off"] *, html[data-effects="off"] *::before, html[data-effect
   .mobile-dock button { flex: 1 1 0; max-width: 9rem; min-height: 2.75rem; padding: 0.3rem; font-size: 1rem; font-weight: 700; border-radius: 12px; }
   .mobile-dock button[aria-pressed="true"] { border: 3px solid var(--accent); }
   .tool-buttons { display: none !important; }
+  /* R4-PBMO-9: the mirror switch in Settings reverses the dock, so Hand over sits under the left thumb. */
+  html[data-mirror="true"] .mobile-dock { flex-direction: row-reverse; }
 
   /* R4-PBMO-5: the peek panel, pulled down over the top of the page while a finger holds the banner. */
   .top-row, #message { touch-action: pan-x; }

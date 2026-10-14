@@ -76,7 +76,7 @@
     return stored === "true" ? true : stored === "false" ? false : null;
   }
   function applyMirror(on, remember) {
-    document.getElementById("game").classList.toggle("mirror", on);
+    root.setAttribute("data-mirror", on ? "true" : "false");
     if (remember) set(MIRROR_KEY, on);
     return on;
   }
@@ -85,7 +85,7 @@
   var reduced = applyMotion(motionChoice() === null ? systemPrefersReducedMotion() : motionChoice(), false);
   var effects = applyEffects(get(EFFECTS_KEY) !== "false", false);
   var contrast = applyContrast(get(CONTRAST_KEY) === "true", false);
-  var mirror = readMirror();
+  var mirror = applyMirror(readMirror() === true, false);   // mirror = the tool dock reads right to left (left-handed play)
 
   function init() {
     var panel = document.getElementById("settings-panel");
@@ -142,8 +142,7 @@
       contrast = applyContrast(false, false);
       remove(HAPTICS_KEY);
       remove(MIRROR_KEY);
-      mirror = readMirror();
-      applyMirror(mirror === true, false);
+      mirror = applyMirror(false, false);
       if (motionBox) motionBox.checked = reduced;
       if (effectsBox) effectsBox.checked = true;
       if (contrastBox) contrastBox.checked = false;
